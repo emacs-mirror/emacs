@@ -269,8 +269,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   /* VAL is the string of minibuffer text.  */
   last_minibuf_string = val;
 
-  /* Add the value to the appropriate history list.  */
-  if (XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
+  /* Add the value to the appropriate history list unless it is empty.  */
+  if (XSTRING (val)->size != 0
+      && XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
       && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
     {
       /* If the caller wanted to save the value read on a history list,
