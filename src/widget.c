@@ -167,11 +167,6 @@ get_default_char_pixel_size (ew, pixel_width, pixel_height)
      int* pixel_width;
      int* pixel_height;
 {
-/*
-  *pixel_width = XTextWidth (ew->emacs_frame.font, "n", 1);
-  *pixel_height =
-    ew->emacs_frame.font->ascent + ew->emacs_frame.font->descent;
-*/
   struct frame* f = ew->emacs_frame.frame;
   *pixel_width = FONT_WIDTH (f->display.x->font);
   *pixel_height = FONT_HEIGHT (f->display.x->font);
@@ -865,30 +860,6 @@ EmacsFrameQueryGeometry (widget, request, result)
     }
   return result->request_mode ? XtGeometryAlmost : XtGeometryYes;
 }
-
-#if 0
-/* I don't know why this is necessary; Matthieu said he had to do
-   it to make the focus handlers work??
- */
-static void
-key_press (w, event, params, n_params)
-     Widget w;
-     XEvent* event;
-     String *params;
-     Cardinal *n_params;
-{
-}
-
-static void
-emacs_frame_focus_handler (w, event, params, n_params)
-     Widget w;
-     XEvent *event;
-     String *params;
-     Cardinal *n_params;
-{
-  emacs_Xt_focus_event_handler (event, 0);
-}
-#endif
 
 /* Special entrypoints */
 void
