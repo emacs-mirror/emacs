@@ -1345,6 +1345,13 @@ sequence counting from the head."
 
 ;; For conversion mode.
 
+(defsubst quail-point-in-conversion-region ()
+  "Return non-nil value if the point is in conversion region of Quail mode."
+  (let (start pos)
+    (and (setq start (overlay-start quail-conv-overlay))
+	 (>= (setq pos (point)) start)
+	 (<= pos (overlay-end quail-conv-overlay)))))
+
 (defun quail-conversion-backward-char ()
   (interactive)
   (if (<= (point) (overlay-start quail-conv-overlay))
@@ -1394,14 +1401,16 @@ sequence counting from the head."
 
 (defun quail-conversion-backward-delete-char ()
   (interactive)
-  (if (<= (point) (overlay-start quail-conv-overlay))
-      (quail-error "Beginning of conversion region"))
-  (delete-char -1)
-  (let ((start (overlay-start quail-conv-overlay))
-	(end (overlay-end quail-conv-overlay)))
-    (setq quail-conversion-str (buffer-substring start end))
-    (if (= start end)
-	(setq quail-converting nil))))
+  (if (> (length quail-current-key) 0)
+      (quail-delete-last-char)
+    (if (<= (point) (overlay-start quail-conv-overlay))
+	(quail-error "Beginning of conversion region"))
+    (delete-char -1)
+    (let ((start (overlay-start quail-conv-overlay))
+	  (end (overlay-end quail-conv-overlay)))
+      (setq quail-conversion-str (buffer-substring start end))
+      (if (= start end)
+	  (setq quail-converting nil)))))
 
 (defun quail-do-conversion (func &rest args)
   "Call FUNC to convert text in the current conversion region of Quail.
