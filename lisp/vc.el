@@ -1253,7 +1253,8 @@ and two version designators specifying which versions to compare."
 	 "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
-      (if (not (vc-locking-user file))
+      (if nil ;;; (not (vc-locking-user file))
+	  ;; This seems like feeping creaturism -- rms.
           ;; if the file is not locked, ask for older version to compare with
           (let ((old (read-string 
                       "File is unchanged; version to compare with: ")))
