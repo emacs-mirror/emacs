@@ -1,6 +1,6 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
- * $HopeName: MMsrc!reserv.c(trunk.2) $
+ * $HopeName: MMsrc!reserv.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * IMPROVEMENTS
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.2) $");
+SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.3) $");
 
 
 /* The reservoir pool is defined here. See design.mps.reservoir */
@@ -51,7 +51,7 @@ static Res ResPoolInit(Pool pool, va_list arg)
 /* ResPoolFinish -- Reservoir pool finish method 
  *
  * .reservoir.finish: This might be called from ArenaFinish, so the 
- * arena cannot be checked at this time. In order to avoid the 
+ * arena cannot be checked at this time.  In order to avoid the 
  * check, insist that the reservoir is empty, by AVERing that
  * the reserve list is NULL.
  */
@@ -63,7 +63,7 @@ static void ResPoolFinish(Pool pool)
   AVERT(Pool, pool);
   reservoir = PoolPoolReservoir(pool);
   AVERT(Reservoir, reservoir);
-  AVER(NULL == reservoir->reserve);  /* .reservoir.finish */
+  AVER(reservoir->reserve == NULL);  /* .reservoir.finish */
 }
 
 
@@ -91,7 +91,7 @@ Bool ReservoirCheck(Reservoir reservoir)
   CHECKD(Pool, &reservoir->poolStruct);
   CHECKL(reservoir->poolStruct.class == reservoircl);
   arena = reservoirArena(reservoir);
-  CHECKS(Arena, arena);  /* Can't use CHECKD; circularly referenced */
+  CHECKU(Arena, arena);
   /* could call ReservoirIsConsistent, but it's costly. */
   tract = reservoir->reserve;
   if (tract != NULL) {
@@ -242,10 +242,10 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
   respool = &reservoir->poolStruct;
   AVERT(Pool, respool);
 
-  /* @@@ As a short-term measure, we only permit the reservoir to */
+  /* @@@@ As a short-term measure, we only permit the reservoir to */
   /* allocate single-page regions. */
   /* See .improve.contiguous &  change.dylan.jackdaw.160125 */
-  if(size != ArenaAlign(arena))
+  if (size != ArenaAlign(arena))
     return ResMEMORY;
   
   if (size <= reservoir->reservoirSize) {
@@ -291,6 +291,7 @@ void ReservoirDeposit(Reservoir reservoir, Addr base, Size size)
 
   /* put as many pages as necessary into the reserve & free the rest */
   TRACT_FOR(tract, addr, arena, base, limit) {
+    AVER(TractCheck(tract));
     if (reservoir->reservoirSize < reslimit) {
       /* Reassign the tract to the reservoir pool */
       TractFinish(tract);
@@ -395,8 +396,9 @@ Size ReservoirAvailable(Reservoir reservoir)
 
 Res ReservoirInit(Reservoir reservoir, Arena arena)
 {
-  /* reservoir and arena are not initialized and can't be checked */
   Res res;
+
+  /* reservoir and arena are not initialized and can't be checked */
   reservoir->reservoirLimit = (Size)0;
   reservoir->reservoirSize = (Size)0;
   reservoir->reserve = NULL;
@@ -418,4 +420,3 @@ void ReservoirFinish (Reservoir reservoir)
   PoolFinish(&reservoir->poolStruct);
   reservoir->sig = SigInvalid;
 }
-
