@@ -1410,12 +1410,9 @@ nil           word is correct or spelling is accepted.
 \(\"word\" arg\)  word is hand entered.
 quit          spell session exited."
 
-  (interactive (list nil nil current-prefix-arg))
+  (interactive (list ispell-following-word ispell-quietly current-prefix-arg))
   (if continue
       (ispell-continue)
-    (if (interactive-p)
-	(setq following ispell-following-word
-	      quietly ispell-quietly))
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
 	  (word (ispell-get-word following))
