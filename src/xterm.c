@@ -11198,7 +11198,7 @@ x_erase_phys_cursor (w)
       if (cursor_glyph == NULL)
 	goto mark_cursor_off;
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    x,
