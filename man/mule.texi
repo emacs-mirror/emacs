@@ -928,6 +928,9 @@ files.
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
 selection---the next one---to or from the window system.
+
+@item M-x recode-region
+Convert the region from a previous coding system to a new one.
 @end table
 
 @kindex C-x RET f
@@ -1056,6 +1059,12 @@ corresponding buffer.
   The default for translation of process input and output depends on the
 current language environment.
 
+@findex recode-region
+  If a piece of text has already been inserted into a buffer using the
+wrong coding system, you can decode it again using @kbd{M-x
+recode-region}.  This prompts you for the old coding system and the
+desired coding system, and acts on the text in the region.
+
 @vindex file-name-coding-system
 @cindex file names with non-@acronym{ASCII} characters
 @findex set-file-name-coding-system
@@ -1083,6 +1092,12 @@ differently) under the new coding system.  If you try to save one of
 these buffers under the visited file name, saving may use the wrong file
 name, or it may get an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
+
+@findex recode-file-name
+  If a mistake occurs when encoding a file name, use the command
+command @kbd{M-x recode-file-name} to change the file name's coding
+system.  This prompts for an existing file name, its old coding
+system, and the coding system to which you wish to convert.
 
 @vindex locale-coding-system
 @cindex decoding non-@acronym{ASCII} keyboard input on X
