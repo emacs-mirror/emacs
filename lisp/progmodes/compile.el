@@ -564,7 +564,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 	    file (or (if file
 			 (nth 2 (car (or (get-text-property (1- file) 'message)
 					 (get-text-property file 'message)))))
-		     ;; no previous either -- let font-lock continue
+		     ;; no previous either -- but don't let font-lock fail
 		     (gethash (setq file '("*unknown*")) compilation-locs)
 		     (puthash file (list file fmt) compilation-locs))))
     ;; All of these fields are optional, get them only if we have an index, and
@@ -581,15 +581,54 @@ Faces `compilation-error-face', `compilation-warning-face',
     (if (and end-col (setq end-col (match-string-no-properties end-col)))
 	(setq end-col (- (string-to-number end-col) compilation-first-column))
       (if end-line (setq end-col -1)))
-    (if (consp type)			; not a preset type, check what it is.
+    (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
 		       2)))
-    ;; Get any (first) already existing marker (if any has one, all have one).
-    ;; Do this first, as the next assq`s may create new nodes.
-    (let ((marker (nth 3 (car (cdar (cddr file)))))
-	  (loc (compilation-assq line (cdr file)))
-	  end-loc)
+    ;; Get first already existing marker (if any has one, all have one).
+    ;; Do this first, as the compilation-assq`s may create new nodes.
+    (let* ((marker-line (car (cddr file)))	; a line structure
+	   (marker (nth 3 (cadr marker-line)))	; its marker
+	   (compilation-error-screen-columns compilation-error-screen-columns)
+	   end-marker loc end-loc)
+      (if (not (and marker (marker-buffer marker)))
+	  (setq marker)			; no valid marker for this file
+	(setq loc (or line 1)		; normalize no linenumber to line 1
+	      marker-line)
+	(catch 'marker			; find nearest loc, at least one exists
+	  (dolist (x (cddr file))	; loop over lines
+	    (if (> (or (car x) 1) loc)	; still bigger
+		(setq marker-line x)
+	      (if (or (not marker-line)	; first in list
+		      (> (- (or (car marker-line) 1) loc)
+			 (- loc (or (car x) 1)))) ; current line is nearer
+		  (setq marker-line x))
+	      (throw 'marker t))))
+	(setq marker (nth 3 (cadr marker-line))
+	      marker-line (car marker-line))
+	(with-current-buffer (marker-buffer marker)
+	  (save-restriction
+	    (widen)
+	    (goto-char (marker-position marker))
+	    (when (or end-col end-line)
+	      (beginning-of-line (- (or end-line line) marker-line -1))
+	      (if (< end-col 0)
+		  (end-of-line)
+		(if compilation-error-screen-columns
+		    (move-to-column end-col)
+		  (forward-char end-col)))
+	      (setq end-marker (list (point-marker))))
+	    (beginning-of-line (if end-line
+				   (- end-line line -1)
+				 (- loc marker-line -1)))
+	    (if col
+		(if compilation-error-screen-columns
+		    (move-to-column col)
+		  (forward-char col))
+	      (forward-to-indentation 0))
+	    (setq marker (list (point-marker))))))
+
+      (setq loc (compilation-assq line (cdr file)))
       (if end-line
 	  (setq end-loc (compilation-assq end-line (cdr file))
 		end-loc (compilation-assq end-col end-loc))
@@ -597,44 +636,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 	    (setq end-loc (compilation-assq end-col loc))))
       (setq loc (compilation-assq col loc))
       ;; If they are new, make the loc(s) reference the file they point to.
-      (or (cdr loc) (setcdr loc (list line file)))
+      (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
       (if end-loc
-	  (or (cdr end-loc) (setcdr end-loc (list (or end-line line) file))))
-      ;; If we'd found a marker, ensure that the new locs also get markers
-      (when (and marker
-		 (not (or (cddr loc) (cddr end-loc))) ; maybe new node w/o marker
-		 (marker-buffer marker)) ; other marker still valid
-	(or line (setq line 1))		 ; normalize no linenumber to line 1
-	(catch 'marker		       ; find nearest loc, at least one exists
-	  (dolist (x (cddr file))
-	    (if (> (or (car x) 1) line)
-		(setq marker x)
-	      (if (eq (or (car x) 1) line)
-		  (if (cdr (cddr x))	; at least one other column
-		      (throw 'marker (setq marker x))
-		    (if marker (throw 'marker t)))
-		(throw 'marker (or marker (setq marker x)))))))
-	(setq marker (if (eq (car (cddr marker)) col)
-			 (nthcdr 3 marker)
-		       (cddr marker))
-	      file compilation-error-screen-columns)
-	(with-current-buffer (marker-buffer (cddr marker))
-	  (save-restriction
-	    (widen)
-	    (goto-char (marker-position (cddr marker)))
-	    (beginning-of-line (- line (car (cadr marker)) -1))
-	    (if file			; original c.-error-screen-columns
-		(move-to-column (car loc))
-	      (forward-char (car loc)))
-	    (setcdr (cdr loc) (point-marker))
-	    (when end-loc
-	      (beginning-of-line (- end-line line -1))
-	      (if (< end-col 0)
-		  (end-of-line)
-		(if file		; original c.-error-screen-columns
-		    (move-to-column (car end-loc))
-		  (forward-char (car end-loc))))
-	      (setcdr (cdr end-loc) (point-marker))))))
+	  (or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+
       ;; Must start with face
       `(face ,compilation-message-face
 	     message (,loc ,type ,end-loc)
@@ -1449,7 +1454,7 @@ See variable `compilation-error-regexp-alist' for customization ideas."
     ;; If loc contains no marker, no error in that file has been visited.  If
     ;; the marker is invalid the buffer has been killed.  So, recalculate all
     ;; markers for that file.
-    (unless (and (nthcdr 3 loc) (marker-buffer (nth 3 loc)))
+    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (or (cdar (nth 2 loc))
 						      default-directory))
@@ -1472,7 +1477,7 @@ See variable `compilation-error-regexp-alist' for customization ideas."
 		      (forward-char (car col))))
 		(beginning-of-line)
 		(skip-chars-forward " \t"))
-	      (if (nthcdr 3 col)
+	      (if (nth 3 col)
 		  (set-marker (nth 3 col) (point))
 		(setcdr (nthcdr 2 col) `(,(point-marker)))))))))
     (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
@@ -1498,6 +1503,32 @@ This operates on the output from the \\[compile] command."
   (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
   (setq compilation-current-error nil)
   (next-error n))
+
+(defun compilation-fake-loc (marker file &optional line col)
+  "Preassociate MARKER with FILE.
+This is useful when you compile temporary files, but want
+automatic translation of the messages to the real buffer from
+which the temporary file came.  This only works if done before a
+message about FILE appears!
+
+Optional args LINE and COL default to 1 and beginning of
+indentation respectively.  The marker is expected to reflect
+this.  In the simplest case the marker points to the first line
+of the region that was saved to the temp file.
+
+If you concatenate several regions into the temp file (e.g. a
+header with variable assignments and a code region), you must
+call this several times, once each for the last line of one
+region and the first line of the next region."
+  (or (consp file) (setq file (list file)))
+  (setq	file (or (gethash file compilation-locs)
+		 (puthash file (list file nil) compilation-locs)))
+  (let ((loc (compilation-assq (or line 1) (cdr file))))
+    (setq loc (compilation-assq col loc))
+    (if (cdr loc)
+	(setcdr (cddr loc) (list marker))
+      (setcdr loc (list (or line 1) file marker)))
+    loc))
 
 (defcustom compilation-context-lines next-screen-context-lines
   "*Display this many lines of leading context before message."
