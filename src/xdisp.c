@@ -3282,7 +3282,7 @@ display_scan_buffer (start, count, shortage)
      check only for newlines.  */
   if (! (!NILP (current_buffer->selective_display)
 	 && !INTEGERP (current_buffer->selective_display)))
-    return scan_buffer ('\n', start, count, shortage, 0);
+    return scan_buffer ('\n', start, 0, count, shortage, 0);
 
   /* The code that follows is like scan_buffer
      but checks for either newline or carriage return.  */
