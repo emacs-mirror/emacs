@@ -133,19 +133,15 @@ Negative arg -N means kill N sexps after the cursor."
   (interactive "p")
   (kill-sexp (- arg)))
 
-(defvar beginning-of-defun nil
+(defvar beginning-of-defun-function nil
   "If non-nil, function for `beginning-of-defun-raw' to call.
 This is used to find the beginning of the defun instead of using the
-normal recipe described in the doc of function `beginning-of-defun'.
-Major modes can define this if defining `defun-prompt-regexp' is not
-sufficient to use the normal recipe.
+normal recipe (see `beginning-of-defun').  Major modes can define this
+if defining `defun-prompt-regexp' is not sufficient to handle the mode's
+needs.
 
-The function should go to the line on which the current \"defun\"
-starts and return non-nil or should return nil if it can't find the
-beginning.
-
-Buffer-local.")
-(make-variable-buffer-local 'beginning-of-defun)
+The function should go to the line on which the current defun starts,
+and return non-nil, or should return nil if it can't find the beginning.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -158,8 +154,8 @@ syntax at the beginning of a line.  If `defun-prompt-regexp' is
 non-nil, then a string which matches that regexp may precede the
 open-parenthesis, and point ends up at the beginning of the line.
 
-If variable `beginning-of-defun' is non-nil, its value is called as a
-function to find the defun's beginning."
+If variable `beginning-of-defun-function' is non-nil, its value
+is called as a function to find the defun's beginning."
   (interactive "p")
   (and (beginning-of-defun-raw arg)
        (progn (beginning-of-line) t)))
@@ -170,11 +166,11 @@ This is identical to function `beginning-of-defun', except that point
 does not move to the beginning of the line when `defun-prompt-regexp'
 is non-nil.
 
-If variable `beginning-of-defun' is non-nil, its value is called as a
-function to find the defun's beginning."
+If variable `beginning-of-defun-function' is non-nil, its value
+is called as a function to find the defun's beginning."
   (interactive "p")
-  (if beginning-of-defun
-      (funcall beginning-of-defun)
+  (if beginning-of-defun-function
+      (funcall beginning-of-defun-function)
     (and arg (< arg 0) (not (eobp)) (forward-char 1))
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat "^\\s(\\|"
@@ -183,14 +179,11 @@ function to find the defun's beginning."
 			     nil 'move (or arg 1))
 	 (progn (goto-char (1- (match-end 0)))) t)))
 
-(defvar end-of-defun nil
+(defvar end-of-defun-function nil
   "If non-nil, function for function `end-of-defun' to call.
 This is used to find the end of the defun instead of using the normal
-recipe described in the doc of function `end-of-defun'.  Major modes
-can define this if the normal recipe is not appropriate.
-
-Buffer-local.")
-(make-variable-buffer-local 'end-of-defun)
+recipe (see `end-of-defun').  Major modes can define this if the
+normal method is not appropriate.")
 
 (defun buffer-end (arg)
   (if (> arg 0) (point-max) (point-min)))
@@ -201,10 +194,13 @@ Negative argument -N means move back to Nth preceding end of defun.
 
 An end of a defun occurs right after the close-parenthesis that
 matches the open-parenthesis that starts a defun; see function
-`beginning-of-defun'."
+`beginning-of-defun'.
+
+If variable `end-of-defun-function' is non-nil, its value
+is called as a function to find the defun's end."
   (interactive "p")
-  (if end-of-defun
-      (funcall end-of-defun)
+  (if end-of-defun-function
+      (funcall end-of-defun-function)
     (if (or (null arg) (= arg 0)) (setq arg 1))
     (let ((first t))
       (while (and (> arg 0) (< (point) (point-max)))
