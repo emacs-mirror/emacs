@@ -71,7 +71,8 @@
 		      (delete-region (point) end)))
 		(goto-char (point-max))
 		(insert "\^_\f\nTag table:\n")
-		(move-marker Info-tag-table-marker (point))
+		(if (eq major-mode 'info-mode)
+		    (move-marker Info-tag-table-marker (point)))
 		(setq list (nreverse list))
 		(while list
 		  (insert "Node: " (car (car list)) ?\177)
