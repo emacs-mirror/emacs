@@ -1185,7 +1185,7 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
   keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
   coding.h process.h gtkutil.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
-  charset.h coding.h ccl.h buffer.h atimer.h systime.h $(config_h)
+  buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
