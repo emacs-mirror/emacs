@@ -1366,6 +1366,12 @@ was renamed to @code{auto-fill-function} in version 19.
 @end quotation
 @end defvar
 
+@defvar normal-auto-fill-function
+This variable specifies the function to use for
+@code{auto-fill-function}, if and when Auto Fill is turned on.  Major
+modes can set this locally to alter how Auto Fill works.
+@end defvar
+
 @node Sorting
 @section Sorting Text
 @cindex sorting text
