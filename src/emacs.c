@@ -76,6 +76,14 @@ Lisp_Object Vinstallation_directory;
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
+#ifdef SIGUSR1
+/* Hooks for signal USR1 and USR2 handing */
+Lisp_Object Vsignal_USR1_hook;
+#ifdef SIGUSR2
+Lisp_Object Vsignal_USR2_hook;
+#endif 
+#endif
+
 /* Set nonzero after Emacs has started up the first time.
   Prevents reinitialization of the Lisp world and keymaps
   on subsequent starts.  */
@@ -164,6 +172,41 @@ int fatal_error_code;
 
 /* Nonzero if handling a fatal error already */
 int fatal_error_in_progress;
+
+#ifdef SIGUSR1
+int SIGUSR1_in_progress=0;
+SIGTYPE
+handle_USR1_signal (sig)
+     int sig;
+{
+  if (! SIGUSR1_in_progress)
+    {
+      SIGUSR1_in_progress = 1;
+      
+      if (!NILP (Vrun_hooks) && !noninteractive)
+	call1 (Vrun_hooks, intern ("signal-USR1-hook"));
+      
+      SIGUSR1_in_progress = 0;
+    }
+}
+#ifdef SIGUSR2
+int SIGUSR2_in_progress=0;
+SIGTYPE
+handle_USR2_signal (sig)
+     int sig;
+{
+  if (! SIGUSR2_in_progress)
+    {
+      SIGUSR2_in_progress = 1;
+      
+      if (!NILP (Vrun_hooks) && !noninteractive)
+	call1 (Vrun_hooks, intern ("signal-USR2-hook"));
+      
+      SIGUSR2_in_progress = 0;
+    }
+}
+#endif
+#endif 
 
 /* Handle bus errors, illegal instruction, etc. */
 SIGTYPE
@@ -817,6 +860,12 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       signal (SIGQUIT, fatal_error_signal);
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
+#ifdef SIGUSR1
+      signal (SIGUSR1, handle_USR1_signal);
+#ifdef SIGUSR2
+      signal (SIGUSR2, handle_USR2_signal);
+#endif
+#endif
 #ifdef SIGABRT
       signal (SIGABRT, fatal_error_signal);
 #endif
@@ -1705,6 +1754,18 @@ in other similar situations), functions placed on this hook should not\n\
 expect to be able to interact with the user.  To ask for confirmation,\n\
 see `kill-emacs-query-functions' instead.");
   Vkill_emacs_hook = Qnil;
+
+#ifdef SIGUSR1
+  DEFVAR_LISP ("signal-USR1-hook", &Vsignal_USR1_hook,
+    "Hook to be run whenever emacs recieves a USR1 signal");
+  Vsignal_USR1_hook = Qnil;
+#ifdef SIGUSR2
+  DEFVAR_LISP ("signal-USR2-hook", &Vsignal_USR2_hook,
+    "Hook to be run whenever emacs recieves a USR2 signal");
+  Vsignal_USR2_hook = Qnil;
+#endif
+#endif
+
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
     "Priority for Emacs to run at.\n\
