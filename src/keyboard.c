@@ -672,7 +672,9 @@ void (*keyboard_init_hook) ();
 
 static int read_avail_input P_ ((int));
 static void get_input_pending P_ ((int *, int));
+static void get_filtered_input_pending P_ ((int *, int, int));
 static int readable_events P_ ((int));
+static int readable_filtered_events P_ ((int, int));
 static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
 						Lisp_Object, int *));
 static Lisp_Object read_char_x_menu_prompt ();
@@ -3253,31 +3255,37 @@ some_mouse_moved ()
 /* Return true iff there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
 static int
-readable_events (do_timers_now)
+readable_filtered_events (do_timers_now, filter_events)
      int do_timers_now;
+     int filter_events;
 {
   if (do_timers_now)
     timer_check (do_timers_now);
 
   /* If the buffer contains only FOCUS_IN_EVENT events,
-     report it as empty.  */
+     and FILTER_EVENTS is nonzero, report it as empty.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
-      struct input_event *event;
+      int have_live_event = 1;
 
-      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
-	       ? kbd_fetch_ptr
-	       : kbd_buffer);
+      if (filter_events)
+        {
+          struct input_event *event;
 
-      while (event->kind == FOCUS_IN_EVENT)
-	{
-	  event++;
-	  if (event == kbd_buffer + KBD_BUFFER_SIZE)
-	    event = kbd_buffer;
-	  if (event == kbd_store_ptr)
-	    return 0;
-	}
-      return 1;
+          event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+                   ? kbd_fetch_ptr
+                   : kbd_buffer);
+
+          while (have_live_event && event->kind == FOCUS_IN_EVENT)
+            {
+              event++;
+              if (event == kbd_buffer + KBD_BUFFER_SIZE)
+                event = kbd_buffer;
+              if (event == kbd_store_ptr)
+                have_live_event = 0;
+            }
+        }
+      if (have_live_event) return 1;
     }
 
 #ifdef HAVE_MOUSE
@@ -3297,6 +3305,15 @@ readable_events (do_timers_now)
 	  return 1;
     }
   return 0;
+}
+
+/* Return true iff there are any events in the queue that read-char
+   would return.  If this returns false, a read-char would block.  */
+static int
+readable_events (do_timers_now)
+     int do_timers_now;
+{
+  return readable_filtered_events (do_timers_now, 0);
 }
 
 /* Set this for debugging, to have a way to get out */
@@ -6144,15 +6161,18 @@ lucid_event_type_list_p (object)
    but works even if FIONREAD does not exist.
    (In fact, this may actually read some input.)
 
-   If DO_TIMERS_NOW is nonzero, actually run timer events that are ripe.  */
+   If DO_TIMERS_NOW is nonzero, actually run timer events that are ripe.
+   If FILTER_EVENTS is nonzero, ignore internal events (FOCUS_IN_EVENT). */
 
 static void
-get_input_pending (addr, do_timers_now)
+get_filtered_input_pending (addr, do_timers_now, filter_events)
      int *addr;
      int do_timers_now;
+     int filter_events;
 {
   /* First of all, have we already counted some input?  */
-  *addr = !NILP (Vquit_flag) || readable_events (do_timers_now);
+  *addr = (!NILP (Vquit_flag)
+           || readable_filtered_events (do_timers_now, filter_events));
 
   /* If input is being read as it arrives, and we have none, there is none.  */
   if (*addr > 0 || (interrupt_input && ! interrupts_deferred))
@@ -6160,7 +6180,23 @@ get_input_pending (addr, do_timers_now)
 
   /* Try to read some input and see how much we get.  */
   gobble_input (0);
-  *addr = !NILP (Vquit_flag) || readable_events (do_timers_now);
+  *addr = (!NILP (Vquit_flag)
+           || readable_filtered_events (do_timers_now, filter_events));
+}
+
+/* Store into *addr a value nonzero if terminal input chars are available.
+   Serves the purpose of ioctl (0, FIONREAD, addr)
+   but works even if FIONREAD does not exist.
+   (In fact, this may actually read some input.)
+
+   If DO_TIMERS_NOW is nonzero, actually run timer events that are ripe.  */
+
+static void
+get_input_pending (addr, do_timers_now)
+     int *addr;
+     int do_timers_now;
+{
+  get_filtered_input_pending (addr, do_timers_now, 0);
 }
 
 /* Interface to read_avail_input, blocking SIGIO or SIGALRM if necessary.  */
@@ -9563,7 +9599,7 @@ if there is a doubt, the value is t.  */)
   if (!NILP (Vunread_command_events) || unread_command_char != -1)
     return (Qt);
 
-  get_input_pending (&input_pending, 1);
+  get_filtered_input_pending (&input_pending, 1, 1);
   return input_pending > 0 ? Qt : Qnil;
 }
 
