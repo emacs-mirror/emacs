@@ -355,8 +355,7 @@ internal_self_insert (c1, noautofill)
     }
   if ((c == ' ' || c == '\n')
       && !noautofill
-      && !NILP (current_buffer->auto_fill_function)
-      && current_column () > XFASTINT (current_buffer->fill_column))
+      && !NILP (current_buffer->auto_fill_function))
     {
       if (c1 != '\n')
 	insert_and_inherit (&c1, 1);
