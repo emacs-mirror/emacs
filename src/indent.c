@@ -1165,20 +1165,21 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
-	      /* Truncating: skip to newline.  */
-	      if (pos <= to)  /* This IF is needed because we may past TO */
+	      /* Truncating: skip to newline, unless we are already past
+                 TO (we need to go back below).  */
+	      if (pos <= to)
 		{
 		  pos = find_before_next_newline (pos, to, 1);
 		  pos_byte = CHAR_TO_BYTE (pos);
+		  hpos = width;
+		  /* If we just skipped next_boundary,
+		     loop around in the main while
+		     and handle it.  */
+		  if (pos >= next_boundary)
+		    next_boundary = pos + 1;
+		  prev_hpos = width;
+		  prev_tab_offset = tab_offset;
 		}
-	      hpos = width;
-	      /* If we just skipped next_boundary,
-		 loop around in the main while
-		 and handle it.  */
-	      if (pos >= next_boundary)
-		next_boundary = pos + 1;
-	      prev_hpos = width;
-	      prev_tab_offset = tab_offset;
 	    }
 	  else
 	    {
