@@ -1218,6 +1218,77 @@ the buffer, just like for the local files.
 ** When invoked with a prefix argument, the command `list-abbrevs' now
 displays local abbrevs, only.
 
+** VC Changes
+
+VC has been overhauled internally.  It is now modular, making it
+easier to plug-in arbitrary version control backends.  (See Lisp
+Changes for details on the new structure.)  As a result, the mechanism
+to enable and disable support for particular version systems has
+changed: everything is now controlled by the new variable
+`vc-handled-backends'.  Its value is a list of atoms that identify
+version systems; the default is '(RCS CVS SCCS).  When finding a file,
+each of the backends in that list is tried in order to see whether the
+file is registered in that backend.
+
+When registering a new file, VC first tries each of the listed
+backends to see if any of them considers itself "responsible" for the
+directory of the file (e.g. because a corresponding subdirectory for
+master files exists).  If none of the backends is responsible, then
+the first backend in the list that could register the file is chosen.
+As a consequence, the variable `vc-default-back-end' is now obsolete.
+
+The old variable `vc-master-templates' is also obsolete, although VC
+still supports it for backward compatibility.  To define templates for
+RCS or SCCS, you should rather use the new variables
+vc-{rcs,sccs}-master-templates.  (There is no such feature under CVS
+where it doesn't make sense.)
+
+The variables `vc-ignore-vc-files' and `vc-handle-cvs' are also
+obsolete now, you must set `vc-handled-backends' to nil or exclude
+`CVS' from the list, respectively, to achieve their effect now.
+
+*** General Changes
+
+The variable `vc-checkout-carefully' is obsolete: the corresponding
+checks are always done now.
+
+VC Dired buffers are now kept up-to-date during all version control 
+operations.
+
+*** Changes for CVS
+
+There is a new user option, `vc-cvs-stay-local'.  If it is `t' (the
+default), then VC avoids network queries for files registered in
+remote repositories.  The state of such files is then only determined
+by heuristics and past information.  `vc-cvs-stay-local' can also be a
+regexp to match against repository hostnames; only files from hosts
+that match it are treated locally.  If the variable is nil, then VC
+queries the repository just as often as it does for local files.
+
+If `vc-cvs-stay-local' is on, and there have been changes in the
+repository, VC notifies you about it when you actually try to commit.
+If you want to check for updates from the repository without trying to
+commit, you can either use C-u C-x v m to perform an update on the
+current file, or you can use C-x v r RET to get an update for an
+entire directory tree.
+
+The new user option `vc-cvs-use-edit' indicates whether VC should call
+"cvs edit" to make files writeable; it defaults to `t'.  (This option
+is only meaningful if the CVSREAD variable is set, or if files are
+"watched" by other developers.)
+
+*** Lisp Changes in VC
+
+VC has been restructured internally to make it modular.  You can now
+add support for arbitrary version control backends by writing a
+library that provides a certain set of backend-specific functions, and
+then telling VC to use that library.  For example, to add support for
+a version system named FOO, you write a library named vc-foo.el, which
+provides a number of functions vc-foo-... (see commentary at the end
+of vc.el for a detailed list of them).  To make VC use that library,
+you need to put it somewhere into Emacs' load path and add the atom
+`FOO' to the list `vc-handled-backends'.
+
 ** New modes and packages
 
 +++

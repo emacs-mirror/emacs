@@ -1,5 +1,7 @@
 2000-09-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc.el (vc-dired-resynch-file): Add autoload cookie.
+	
 	* vc.el (toplevel): Require `dired' at run-time for dired-mode-map.
 
 	* Makefile.in (DONTCOMPILE): Fix typo in file name.
