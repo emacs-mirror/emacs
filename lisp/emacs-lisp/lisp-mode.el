@@ -91,11 +91,13 @@
 (defvar lisp-imenu-generic-expression
       '(
 	(nil 
-	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|ine-skeleton\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
+	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|ine-skeleton\\)\
+\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
 	("Variables" 
 	 "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
 	("Types" 
-	 "^\\s-*(def\\(group\\|type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 
+	 "^\\s-*(def\\(group\\|type\\|struct\\|class\\|ine-condition\
+\\|ine-widget\\)\\s-+'?\\([-A-Za-z0-9+*|:/]+\\)" 
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -204,6 +206,24 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
     (if (file-newer-than-file-p compiled-file-name buffer-file-name)
 	(load-file compiled-file-name)
       (byte-compile-file buffer-file-name t))))
+
+(defcustom emacs-lisp-mode-hook nil
+  "Hook run when entering Emacs Lisp mode."
+  :options '(turn-on-eldoc-mode imenu-add-menubar-index)
+  :type 'hook
+  :group 'lisp)
+
+(defcustom lisp-mode-hook nil
+  "Hook run when entering Lisp mode."
+  :options '(imenu-add-menubar-index)
+  :type 'hook
+  :group 'lisp)
+
+(defcustom lisp-interaction-mode-hook nil
+  "Hook run when entering Lisp Interaction mode."
+  :options '(turn-on-eldoc-mode)
+  :type 'hook
+  :group 'lisp)
 
 (defun emacs-lisp-mode ()
   "Major mode for editing Lisp code to run in Emacs.
