@@ -230,13 +230,21 @@ we're in the GUD buffer)."
   "Return a new keymap which inherits from MAP and has name `Gud'."
   (nconc (make-sparse-keymap "Gud") map))
 
+(defun gud-make-debug-menu ()
+  "Make sure the current local map has a [menu-bar debug] submap.
+If it doesn't, replace it with a new map that inherits it,
+and create such a submap in that new map."
+  (if (lookup-key (current-local-map) [menu-bar debug])
+      nil
+    (use-local-map (gud-new-keymap (current-local-map)))
+    (define-key (current-local-map) [menu-bar debug]
+      (cons "Gud" (gud-new-keymap gud-menu-map)))))
+
 (defun gud-gdb-find-file (f)
   (save-excursion
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
-      (use-local-map (gud-new-keymap (current-local-map)))
-      (define-key (current-local-map) [menu-bar debug]
-	(cons "Gud" (gud-new-keymap gud-menu-map)))
+      (gud-make-debug-menu)
       (local-set-key [menu-bar debug tbreak]
 		     '("Temporary breakpoint" . gud-tbreak))
       (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
@@ -455,9 +463,7 @@ available with older versions of GDB."
 		   (find-tag-noselect f)
 		 (find-file-noselect f))))
       (set-buffer buf)
-      (use-local-map (gud-new-keymap (current-local-map)))
-      (define-key (current-local-map) [menu-bar debug]
-	(cons "Gud" (gud-new-keymap gud-menu-map)))
+      (gud-make-debug-menu)
       (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
       buf)))
 
@@ -688,9 +694,7 @@ This works in IRIX 4, 5 and 6.")
   (save-excursion
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
-      (use-local-map (gud-new-keymap (current-local-map)))
-      (define-key (current-local-map) [menu-bar debug]
-	(cons "Gud" (gud-new-keymap gud-menu-map)))
+      (gud-make-debug-menu)
       (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
       (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
       buf)))
@@ -820,9 +824,7 @@ containing the executable being debugged.")
       (if realf
 	  (let ((buf (find-file-noselect realf)))
 	    (set-buffer buf)
-	    (use-local-map (gud-new-keymap (current-local-map)))
-	    (define-key (current-local-map) [menu-bar debug]
-	      (cons "Gud" (gud-new-keymap gud-menu-map)))
+	    (gud-make-debug-menu)
 	    (local-set-key [menu-bar debug tbreak]
 			   '("Temporary breakpoint" . gud-tbreak))
 	    (local-set-key [menu-bar debug finish]
@@ -1077,10 +1079,9 @@ comint mode, which see."
   (setq major-mode 'gud-mode)
   (setq mode-name "Debugger")
   (setq mode-line-process '(":%s"))
-  (use-local-map (gud-new-keymap comint-mode-map))
+  (use-local-map comint-mode-map)
+  (gud-make-debug-menu)
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
-  (define-key (current-local-map) [menu-bar debug]
-    (cons "Gud" (gud-new-keymap gud-menu-map)))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
