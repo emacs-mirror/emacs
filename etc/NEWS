@@ -88,6 +88,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+---
+** The IELM prompt is now, by default, read-only.  This can be
+controlled with the new user option `ielm-prompt-read-only'.
+
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
 

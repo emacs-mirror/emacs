@@ -1,5 +1,7 @@
 2004-04-24  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* comint.el (comint-delete-output): Bind inhibit-read-only to t.
+
 	* ielm.el (ielm-prompt-read-only): New user option.
 	(ielm-prompt): Expand docstring to describe new behavior.
 	(inferior-emacs-lisp-mode): Implement ielm-prompt-read-only and
