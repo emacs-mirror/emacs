@@ -787,6 +787,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
     (if over
 	(let ((input-str (buffer-substring (overlay-start over)
 					   (overlay-end over))))
+	  (goto-char (point-max))
 	  (delete-region
 	   ;; Can't use kill-region as it sets this-command
 	   (or  (marker-position comint-accum-marker)
