@@ -835,6 +835,8 @@ XTclear_end_of_line (first_unused)
   if (first_unused >= f->width)
     first_unused = f->width;
 
+  first_unused += FRAME_LEFT_SCROLL_BAR_WIDTH (f);
+
   BLOCK_INPUT;
 
   do_line_dance ();
@@ -1301,7 +1303,7 @@ do_line_dance ()
     abort ();
 
   ht = f->height;
-  intborder = f->output_data.x->internal_border_width;
+  intborder = CHAR_TO_PIXEL_COL (f, FRAME_LEFT_SCROLL_BAR_WIDTH (f));
 
   x_update_cursor (updating_frame, 0);
 
@@ -1389,8 +1391,8 @@ dumprectangle (f, left, top, cols, rows)
     left = 0;
   if (top < 0)
     top = 0;
-  if (right > f->width)
-    right = f->width;
+  if (right > FRAME_WINDOW_WIDTH (f))
+    right = FRAME_WINDOW_WIDTH (f);
   if (bottom > f->height)
     bottom = f->height;
 
@@ -2072,7 +2074,7 @@ fast_find_position (window, pos, columnp, rowp)
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
   int row = 0;
-  int left = w->left;
+  int left = WINDOW_LEFT_MARGIN (w);
   int top = w->top;
   int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
   int width = window_internal_width (w);
@@ -2149,10 +2151,10 @@ show_mouse_face (dpyinfo, hl)
     {
       int column = (i == FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
 		    ? FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col
-		    : w->left);
+		    : WINDOW_LEFT_MARGIN (w));
       int endcolumn = (i == FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
 		       ? FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col
-		       : w->left + width);
+		       : WINDOW_LEFT_MARGIN (w) + width);
       endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i]);
 
       /* If the cursor's in the text we are about to rewrite,
@@ -2538,9 +2540,9 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   BLOCK_INPUT;
 
   {
-    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (XINT (bar->width));
-    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
-    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
+    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, XINT (bar->width));
+    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
+    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
 
     /* Make sure the values are reasonable, and try to preserve
        the distance between start and end.  */
@@ -2707,7 +2709,7 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
      dragged.  */
   if (NILP (bar->dragging))
     {
-      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (pixel_height);
+      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, pixel_height);
 
       if (whole == 0)
 	x_scroll_bar_set_handle (bar, 0, top_range, 0);
@@ -2841,6 +2843,9 @@ x_scroll_bar_expose (bar, event)
   Window w = SCROLL_BAR_X_WINDOW (bar);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
+  int width_trim = (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
+		    ? LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM
+		    : 0);
 
   BLOCK_INPUT;
 
@@ -2850,8 +2855,10 @@ x_scroll_bar_expose (bar, event)
   XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
 
 		  /* x, y, width, height */
-		  0, 0, XINT (bar->width) - 1, XINT (bar->height) - 1);
-
+		  0, 0,
+		  XINT (bar->width) - 1 - width_trim,
+		  XINT (bar->height) - 1);
+    
   UNBLOCK_INPUT;
 }
 
@@ -2881,10 +2888,11 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
   emacs_event->frame_or_window = bar->window;
   emacs_event->timestamp = event->xbutton.time;
   {
+    FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
     int internal_height
-      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
     int top_range
-      = VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
+      = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
     int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
 
     if (y < 0) y = 0;
@@ -3003,9 +3011,9 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
   else
     {
       int inside_height
-	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
       int top_range
-	= VERTICAL_SCROLL_BAR_TOP_RANGE     (XINT (bar->height));
+	= VERTICAL_SCROLL_BAR_TOP_RANGE     (f, XINT (bar->height));
 
       win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
