@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Mouse support for MS intelli-mouse type mice
 
-;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998,2000,2001,2002  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -46,21 +46,32 @@
 ;; new button is bound to mwheel-scroll.
 
 (defun mouse-wheel-change-button (var button)
-  (set-default var button)
-  (when mouse-wheel-mode
-    (mouse-wheel-mode 0)
-    (mouse-wheel-mode 1)))
+  (let ((active mouse-wheel-mode))
+    ;; Deactivate before changing the setting.
+    (when active (mouse-wheel-mode -1))
+    (set-default var button)
+    (when active (mouse-wheel-mode 1))))
 
 (defcustom mouse-wheel-down-button 4
-  "Mouse button number for scrolling down."
+  "Obsolete.  Use `mouse-wheel-down-event'.")
+(defcustom mouse-wheel-down-event
+  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
+  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		  mouse-wheel-down-button))
+  "Event used for scrolling down."
   :group 'mouse
-  :type 'integer
+  :type 'symbol
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-button 5
-  "Mouse button number for scrolling up."
+  "Obsolete.  Use `mouse-whell-up-event'.")
+(defcustom mouse-wheel-up-event
+  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
+  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		  mouse-wheel-up-button))
+  "Event used for scrolling down."
   :group 'mouse
-  :type 'integer
+  :type 'symbol
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
@@ -106,7 +117,7 @@ of button events."
   :group 'mouse
   :type 'boolean)
 
-(defcustom mouse-wheel-follow-mouse nil
+(defcustom mouse-wheel-follow-mouse t
   "Whether the mouse wheel should scroll the window that the mouse is over.
 This can be slightly disconcerting, but some people prefer it."
   :group 'mouse
@@ -114,16 +125,14 @@ This can be slightly disconcerting, but some people prefer it."
 
 (if (not (fboundp 'event-button))
     (defun mwheel-event-button (event)
-      (let ((x (symbol-name (event-basic-type event))))
+      (let ((x (event-basic-type event)))
 	;; Map mouse-wheel events to appropriate buttons
-	(if (string-equal "mouse-wheel" x)
+	(if (eq 'mouse-wheel x)
 	    (let ((amount (car (cdr (cdr (cdr event))))))
 	      (if (< amount 0)
-		  mouse-wheel-up-button
-		mouse-wheel-down-button))
-	  (if (not (string-match "^mouse-\\([0-9]+\\)" x))
-	      (error "Not a button event: %S" event)
-	    (string-to-int (substring x (match-beginning 1) (match-end 1)))))))
+		  mouse-wheel-up-event
+		mouse-wheel-down-event))
+	  x)))
   (fset  'mwheel-event-button 'event-button))
 
 (if (not (fboundp 'event-window))
@@ -134,7 +143,7 @@ This can be slightly disconcerting, but some people prefer it."
 (defun mwheel-scroll (event)
   "Scroll up or down according to the EVENT.
 This should only be bound to mouse buttons 4 and 5."
-  (interactive "e")
+  (interactive (list last-input-event))
   (let* ((curwin (if mouse-wheel-follow-mouse
                      (prog1
                          (selected-window)
@@ -149,12 +158,12 @@ This should only be bound to mouse buttons 4 and 5."
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
     (when (and mouse-wheel-progessive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
-      ;; So by adding things up we get a squaring up (1, 3, 6, 10, 16, ...).
+      ;; So by adding things up we get a squaring up (1, 3, 6, 10, 15, ...).
       (setq amt (* amt (event-click-count event))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
-	  (cond ((= button mouse-wheel-down-button) (scroll-down amt))
-		((= button mouse-wheel-up-button) (scroll-up amt))
+	  (cond ((eq button mouse-wheel-down-event) (scroll-down amt))
+		((eq button mouse-wheel-up-event) (scroll-up amt))
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))))
 
@@ -166,13 +175,8 @@ With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
   :group 'mouse
-  ;; In the latest versions of XEmacs, we could just use
-  ;; (S-)*mouse-[45], since those are aliases for the button
-  ;; equivalents in XEmacs, but I want this to work in as many
-  ;; versions of XEmacs as it can.
-  (let* ((prefix (if (featurep 'xemacs) "button%d" "mouse-%d"))
-         (dn (intern (format prefix mouse-wheel-down-button)))
-         (up (intern (format prefix mouse-wheel-up-button)))
+  (let* ((dn mouse-wheel-down-event)
+         (up mouse-wheel-up-event)
          (keys
           (nconc (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,up)])
 			 mouse-wheel-scroll-amount)
@@ -195,7 +199,7 @@ Returns non-nil if the new state is enabled."
 ;;;###autoload
 (defun mwheel-install (&optional uninstall)
   "Enable mouse wheel support."
-  (mouse-wheel-mode t))
+  (mouse-wheel-mode (if uninstall -1 1)))
 
 (provide 'mwheel)
 
