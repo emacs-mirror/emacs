@@ -378,7 +378,7 @@ dosv_refresh_virtual_screen (int offset, int count)
 }
 #endif
 
-static
+static void
 dos_direct_output (y, x, buf, len)
      int y;
      int x;
@@ -952,7 +952,7 @@ IT_cursor_to (int y, int x)
 
 static int cursor_cleared;
 
-static
+static void
 IT_display_cursor (int on)
 {
   if (on && cursor_cleared)
@@ -1152,9 +1152,14 @@ IT_set_terminal_modes (void)
     es_value = regs.x.es;
     __dpmi_int (0x10, &regs);
 
-    if (regs.x.es != es_value && regs.x.es != (ScreenPrimary >> 4) & 0xffff)
+    if (regs.x.es != es_value)
       {
-	screen_old_address = ScreenPrimary;
+	/* screen_old_address is only set if ScreenPrimary does NOT
+	   already point to the relocated buffer address returned by
+	   the Int 10h/AX=FEh call above.  DJGPP v2.02 and later sets
+	   ScreenPrimary to that address at startup under DOS/V.  */
+	if (regs.x.es != (ScreenPrimary >> 4) & 0xffff)
+	  screen_old_address = ScreenPrimary;
 	screen_virtual_segment = regs.x.es;
 	screen_virtual_offset  = regs.x.di;
 	ScreenPrimary = (screen_virtual_segment << 4) + screen_virtual_offset;
@@ -1473,13 +1478,33 @@ check_x (void)
  *                    SPACE
  */
 
+#define Ignore	0x0000
+#define Normal	0x0000	/* normal key - alt changes scan-code */
+#define FctKey	0x1000	/* func key if c == 0, else c */
+#define Special	0x2000	/* func key even if c != 0 */
+#define ModFct	0x3000	/* special if mod-keys, else 'c' */
+#define Map	0x4000	/* alt scan-code, map to unshift/shift key */
+#define KeyPad	0x5000	/* map to insert/kp-0 depending on c == 0xe0 */
+#define Grey	0x6000	/* Grey keypad key */
+
+#define Alt	0x0100	/* alt scan-code */
+#define Ctrl	0x0200	/* ctrl scan-code */
+#define Shift	0x0400	/* shift scan-code */
+
 static int extended_kbd; /* 101 (102) keyboard present.	*/
+
+struct kbd_translate {
+  unsigned char  sc;
+  unsigned char  ch;
+  unsigned short code;
+};
 
 struct dos_keyboard_map
 {
   char *unshifted;
   char *shifted;
   char *alt_gr;
+  struct kbd_translate *translate_table;
 };
 
 
@@ -1489,7 +1514,8 @@ static struct dos_keyboard_map us_keyboard = {
   "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\   zxcvbnm,./  ",
 /* 0123456789012345678901234567890123456789 012345678901234 */
   "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|   ZXCVBNM<>?  ",
-  0				/* no Alt-Gr key */
+  0,				/* no Alt-Gr key */
+  0				/* no translate table */
 };
 
 static struct dos_keyboard_map fr_keyboard = {
@@ -1499,7 +1525,8 @@ static struct dos_keyboard_map fr_keyboard = {
 /* 0123456789012345678901234567890123456789012345678901234 */
   " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê   WXCVBN?./ı  ",
 /* 01234567 89012345678901234567890123456789012345678901234 */
-  "  ~#{[|`\\^@]}             œ                              "
+  "  ~#{[|`\\^@]}             œ                              ",
+  0				/* no translate table */
 };
 
 /*
@@ -1509,14 +1536,21 @@ static struct dos_keyboard_map fr_keyboard = {
  * added also {,},` as, respectively, AltGr-8, AltGr-9, AltGr-'
  * Donated by Stefano Brozzi <brozzis@mag00.cedi.unipr.it>
  */
+
+static struct kbd_translate it_kbd_translate_table[] = {
+  { 0x56, 0x3c, Map | 13 },
+  { 0x56, 0x3e, Map | 13 },
+  { 0, 0, 0 }
+};
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç  qwertyuiopä+   asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+   asdfghjklïÖó   zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "|!\"ú$%&/()=?^  QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "        {}~`             []             @#               "
+  "        {}~`             []             @#               ",
+  it_kbd_translate_table
 };
 
 static struct dos_keyboard_map dk_keyboard = {
@@ -1526,7 +1560,23 @@ static struct dos_keyboard_map dk_keyboard = {
 /* 01 23456789012345678901234567890123456789012345678901234 */
   "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*   ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "  @ú$  {[]} |                                             "
+  "  @ú$  {[]} |                                             ",
+  0				/* no translate table */
+};
+
+static struct kbd_translate jp_kbd_translate_table[] = {
+  { 0x73, 0x5c, Map | 0 },
+  { 0x7d, 0x5c, Map | 13 },
+  { 0, 0, 0 }
+};
+static struct dos_keyboard_map jp_keyboard = {
+/*  0         1          2         3         4         5     */
+/*  0123456789012 345678901234567890123456789012345678901234 */
+  "\\1234567890-^\\ qwertyuiop@[   asdfghjkl;:]   zxcvbnm,./  ",
+/*  01 23456789012345678901234567890123456789012345678901234 */
+   "_!\"#$%&'()~=~| QWERTYUIOP`{   ASDFGHJKL+*}   ZXCVBNM<>?  ",
+  0,				/* no Alt-Gr key */
+  jp_kbd_translate_table
 };
 
 static struct keyboard_layout_list
@@ -1538,7 +1588,8 @@ static struct keyboard_layout_list
   1, &us_keyboard,
   33, &fr_keyboard,
   39, &it_keyboard,
-  45, &dk_keyboard
+  45, &dk_keyboard,
+  81, &jp_keyboard
 };
 
 static struct dos_keyboard_map *keyboard;
@@ -1578,19 +1629,6 @@ dos_set_keyboard (code, always)
   return 0;
 }
 
-#define Ignore	0x0000
-#define Normal	0x0000	/* normal key - alt changes scan-code */
-#define FctKey	0x1000	/* func key if c == 0, else c */
-#define Special	0x2000	/* func key even if c != 0 */
-#define ModFct	0x3000	/* special if mod-keys, else 'c' */
-#define Map	0x4000	/* alt scan-code, map to unshift/shift key */
-#define KeyPad	0x5000	/* map to insert/kp-0 depending on c == 0xe0 */
-#define Grey	0x6000	/* Grey keypad key */
-
-#define Alt	0x0100	/* alt scan-code */
-#define Ctrl	0x0200	/* ctrl scan-code */
-#define Shift	0x0400	/* shift scan-code */
-
 static struct
 {
   unsigned char char_code;	/* normal code	*/
@@ -1690,7 +1728,7 @@ ibmpc_translate_map[] =
   Ignore,			/* Right shift */
   Grey | 1,			/* Grey * */
   Ignore,			/* Alt */
-  Normal |  ' ',		/* ' ' */
+  Normal | 55,			/* ' ' */
   Ignore,			/* Caps Lock */
   FctKey | 0xbe,		/* F1 */
   FctKey | 0xbf,		/* F2 */
@@ -1962,7 +2000,7 @@ dos_rawgetc ()
     {
       union REGS regs;
       register unsigned char c;
-      int sc, code, mask, kp_mode;
+      int sc, code = -1, mask, kp_mode;
       int modifiers;
 
       regs.h.ah = extended_kbd ? 0x10 : 0x00;
@@ -2012,10 +2050,30 @@ dos_rawgetc ()
 	}
       else
 	{
-	  if (sc >= (sizeof (ibmpc_translate_map) / sizeof (short)))
-	    continue;
-	  if ((code = ibmpc_translate_map[sc]) == Ignore)
-	    continue;
+	  /* Try the keyboard-private translation table first.  */
+	  if (keyboard->translate_table)
+	    {
+	      struct kbd_translate *p = keyboard->translate_table;
+
+	      while (p->sc)
+		{
+		  if (p->sc == sc && p->ch == c)
+		    {
+		      code = p->code;
+		      break;
+		    }
+		  p++;
+		}
+	    }
+	  /* If the private table didn't translate it, use the general
+             one.  */
+	  if (code == -1)
+	    {
+	      if (sc >= (sizeof (ibmpc_translate_map) / sizeof (short)))
+		continue;
+	      if ((code = ibmpc_translate_map[sc]) == Ignore)
+		continue;
+	    }
 	}
       
       if (c == 0)
@@ -2071,6 +2129,8 @@ dos_rawgetc ()
 	    }
 	  
 	case Map:
+	  if (keyboard->translate_table)
+	    c = 0;	/* so key gets mapped through country-specific kbd */
 	  if (c && !(mask & ALT_P) && !((mask & SHIFT_P) && (mask & CTRL_P)))
 	    if (!keyboard_map_all)
 	      return c;
@@ -3908,10 +3968,12 @@ abort ()
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (2 * 10 * screen_size_X, 4 * screen_size_X);
-#endif /* __DJGPP_MINOR__ < 2 */
   /* Generate traceback, so we could tell whodunit.  */
   signal (SIGINT, SIG_DFL);
   __asm__ __volatile__ ("movb $0x1b,%al;call ___djgpp_hw_exception");
+#else  /* __DJGPP_MINOR__ >= 2 */
+  raise (SIGABRT);
+#endif /* __DJGPP_MINOR__ >= 2 */
 #endif
   exit (2);
 }
