@@ -1,5 +1,13 @@
 2003-02-01  Jason Rumney  <jasonr@gnu.org>
 
+	* w32fns.c (w32_create_pixmap_from_bitmap_data): Use alloca for
+	local malloc.
+	[HAVE_XPM]: Avoid clashes with XColor, XImage and Pixel
+	definitions in xpm.h.
+	(init_xpm_functions): New function.
+	(xpm_load): Sync with xfns.c. Adapt for Windows version of libXpm.
+	(init_external_image_libraries): Try to load libXpm.dll.
+
 	* fileio.c (Fcopy_file) [WINDOWSNT]: Reverse logic for setting
 	timestamp.
 

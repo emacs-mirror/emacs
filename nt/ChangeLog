@@ -1,3 +1,9 @@
+2003-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Automatically detect libXpm.
+	Suppress compiler output when testing for image libraries.
+	Give names of un-found libraries in messages.
+
 2003-01-31  Juanma Barranquero  <lektu@terra.es>
 
 	* configure.bat: Automatically detect giflib and tifflib.
