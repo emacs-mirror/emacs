@@ -1,3 +1,10 @@
+2002-03-13  Jason Rumney  <jasonr@gnu.org>
+
+	* config.in: Add STRFTIME_NO_POSIX2.
+
+	* strftime.c (my_strftime) [STRFTIME_NO_POSIX2]: Handle %h, %EX
+	and %OX when underlying strftime does not.
+
 2002-03-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (x_set_toolkit_scroll_bar_thumb) <USE_MOTIF>:

@@ -1,3 +1,7 @@
+2002-03-13  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (STRFTIME_NO_POSIX2): Define.
+
 2002-02-18  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs.rc: Define VS_VERSION_INFO if not already.
