@@ -1,5 +1,10 @@
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_cursor_movement): Check update_mode_lines instead
+	of the window's update_mode_line flag, since the former is set by
+	force-mode-line-update, not the latter.  This makes
+	column-number-mode slightly faster.
+	
 	* xdisp.c (try_window_id) <all changes above window start>:
 	Set the cursor.
 
