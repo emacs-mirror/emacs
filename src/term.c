@@ -1832,8 +1832,8 @@ produce_glyphs (it)
      the caller.  */
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
-  it->ascent = it->max_ascent = 0;
-  it->descent = it->max_descent = 1;
+  it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
+  it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
 }
 
 
