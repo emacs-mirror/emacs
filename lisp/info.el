@@ -2373,8 +2373,14 @@ the variable `Info-file-list-for-emacs'."
 
 (defface Info-title-3-face
   '((((type tty pc) (class color)) (:weight bold))
-    (t (:height 1.2 :weight bold :inherit variable-pitch)))
+    (t (:height 1.2 :inherit Info-title-4-face)))
   "Face for Info titles at level 3."
+  :group 'info)
+
+(defface Info-title-4-face
+  '((((type tty pc) (class color)) (:weight bold))
+    (t (:weight bold :inherit variable-pitch)))
+  "Face for Info titles at level 4."
   :group 'info)
 
 (defun Info-fontify-node ()
@@ -2408,13 +2414,14 @@ the variable `Info-file-list-for-emacs'."
 		    (put-text-property tbeg nend 'local-map keymap))))
 	      ))))
       (goto-char (point-min))
-      (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\)$"
+      (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				nil t)
 	(let ((c (preceding-char))
 	      face)
 	  (cond ((= c ?*) (setq face 'Info-title-1-face))
 		((= c ?=) (setq face 'Info-title-2-face))
-		(t        (setq face 'Info-title-3-face)))
+		((= c ?-) (setq face 'Info-title-3-face))
+		(t        (setq face 'Info-title-4-face)))
 	  (put-text-property (match-beginning 1) (match-end 1)
 			     'face face))
 	;; This is a serious problem for trying to handle multiple
