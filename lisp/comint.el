@@ -1714,7 +1714,7 @@ value of `comint-use-prompt-regexp-instead-of-fields'."
     ;; Return the contents of the field at the current point.
     (let ((pos (field-beginning (point))))
       (unless (eq (get-char-property pos 'field) 'input)
-	(error "Point not in input field"))
+	(error "Not an input field"))
       (field-string pos))))
 
 (defun comint-copy-old-input ()
