@@ -825,7 +825,7 @@ line numbers for the errors."
       (set-process-sentinel proc 'tex-shell-sentinel)
       (process-kill-without-query proc)
       (setq comint-prompt-regexp shell-prompt-pattern)
-      (setq tex-shell-map (copy-keymap shell-mode-map))
+      (setq tex-shell-map (nconc (make-sparse-keymap) shell-mode-map))
       (tex-define-common-keys tex-shell-map)
       (use-local-map tex-shell-map)
       (run-hooks 'tex-shell-hook)
