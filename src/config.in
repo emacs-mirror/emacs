@@ -188,6 +188,9 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_GETPAGESIZE
 #undef HAVE_TZSET
 #undef HAVE_SETLOCALE
+#undef HAVE_UTIMES
+#undef HAVE_SETRLIMIT
+
 #undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
 
@@ -196,8 +199,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
 #undef HAVE_STRERROR
-
-#undef HAVE_UTIMES
 
 /* Define if `sys_siglist' is declared by <signal.h>.  */
 #undef SYS_SIGLIST_DECLARED
