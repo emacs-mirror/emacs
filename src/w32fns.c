@@ -5367,13 +5367,6 @@ This function is an internal primitive--use `make-frame' instead.")
   tem = w32_get_arg (parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Create the window. Add the tool-bar height to the initial frame
-     height so that the user gets a text display area of the size he
-     specified with -g or via the registry. Later changes of the
-     tool-bar height don't change the frame size. This is done so that
-     users can create tall Emacs frames without having to guess how
-     tall the tool-bar will get. */
-  f->height += FRAME_TOOL_BAR_LINES (f);
   w32_window (f, window_prompting, minibuffer_only);
   x_icon (f, parms);
 
