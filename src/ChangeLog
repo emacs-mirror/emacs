@@ -1,3 +1,8 @@
+2004-08-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_name, x_set_title): Encode title to UTF8 before
+	passing it to gtk_window_set_title.
+
 2004-08-19  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (wait_reading_process_input): Clean up.
