@@ -128,6 +128,12 @@ int auto_save_mode_bits;
    whose I/O is done with a special handler.  */
 Lisp_Object Vfile_name_handler_alist;
 
+/* Format for auto-save files */
+Lisp_Object Vauto_save_file_format;
+
+/* Lisp functions for translating file formats */
+Lisp_Object Qformat_decode, Qformat_annotate_function;
+
 /* Functions to be called to process text properties in inserted file.  */
 Lisp_Object Vafter_insert_file_functions;
 
@@ -3079,6 +3085,15 @@ and (2) it puts less data in the undo list.")
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
     }
 
+  /* Decode file format */
+  if (inserted > 0)
+    {
+      insval = call3 (Qformat_decode, 
+		      Qnil, make_number (inserted), visit);
+      CHECK_NUMBER (insval, 0);
+      inserted = XFASTINT (insval);
+    }
+
   if (inserted > 0 && NILP (visit) && total > 0)
     signal_after_change (point, 0, inserted);
   
@@ -3510,6 +3525,27 @@ build_annotations (start, end)
 	  annotations = Qnil;
 	}
       Flength (res);   /* Check basic validity of return value */
+      annotations = merge (annotations, res, Qcar_less_than_car);
+      p = Fcdr (p);
+    }
+
+  /* Now do the same for annotation functions implied by the file-format */
+  if (auto_saving && (!EQ (Vauto_save_file_format, Qt)))
+    p = Vauto_save_file_format;
+  else
+    p = current_buffer->file_format;
+  while (!NILP (p))
+    {
+      struct buffer *given_buffer = current_buffer;
+      Vwrite_region_annotations_so_far = annotations;
+      res = call3 (Qformat_annotate_function, Fcar (p), start, end);
+      if (current_buffer != given_buffer)
+	{
+	  start = BEGV;
+	  end = ZV;
+	  annotations = Qnil;
+	}
+      Flength (res);
       annotations = merge (annotations, res, Qcar_less_than_car);
       p = Fcdr (p);
     }
@@ -4260,6 +4296,18 @@ syms_of_fileio ()
   staticpro (&Qfind_buffer_file_type);
 #endif /* DOS_NT */
 
+  DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
+    "*Format in which to write auto-save files.
+Should be a list of symbols naming formats that are defined in `format-alist'.\n\
+If it is t, which is the default, auto-save files are written in the\n\
+same format as a regular save would use.");
+  Vauto_save_file_format = Qt;
+
+  Qformat_decode = intern ("format-decode");
+  staticpro (&Qformat_decode);
+  Qformat_annotate_function = intern ("format-annotate-function");
+  staticpro (&Qformat_annotate_function);
+	
   Qcar_less_than_car = intern ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
 
