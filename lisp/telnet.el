@@ -174,6 +174,8 @@ rejecting one login and prompting again for a username and password.")
       (delete-region comint-last-input-start
 		     comint-last-input-end)))
 
+;;;autoload (add-hook 'same-window-regexps "\\*telnet-.*\\*\\(\\|<[0-9]+>\\)")
+
 ;;;###autoload
 (defun telnet (host)
   "Open a network login connection to host named HOST (a string).
@@ -185,8 +187,8 @@ Normally input is edited in Emacs and sent a line at a time."
 	 (buffer (get-buffer (concat "*" name "*")))
 	 process)
     (if (and buffer (get-buffer-process buffer))
-	(switch-to-buffer (concat "*" name "*"))
-      (switch-to-buffer (make-comint name telnet-program))
+	(pop-to-buffer (concat "*" name "*"))
+      (pop-to-buffer (make-comint name telnet-program))
       (setq process (get-buffer-process (current-buffer)))
       (set-process-filter process 'telnet-initial-filter)
       ;; Don't send the `open' cmd till telnet is ready for it.
@@ -214,15 +216,17 @@ Data is sent to the remote host when RET is typed.
   (use-local-map telnet-mode-map)
   (run-hooks 'telnet-mode-hook))
 
+;;;autoload (add-hook 'same-window-regexps "\\*[^-]*-rsh\\*\\(\\|<[0-9]*>\\)")
+
 ;;;###autoload
 (defun rsh (host)
   "Open a network login connection to host named HOST (a string).
-Communication with HOST is recorded in a buffer *HOST-rsh*.
+Communication with HOST is recorded in a buffer `*HOST-rsh*'.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat host "-rsh" )))
-    (switch-to-buffer (make-comint name remote-shell-program nil host))
+    (pop-to-buffer (make-comint name remote-shell-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
