@@ -1,3 +1,11 @@
+2002-03-12  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+
+	* term/x-win.el (emacs-session-restore): Take previous id as
+	an argument.
+
+	* startup.el (command-line): Must check that x-session-previous-id
+	is bound also, for non-X platforms.
+
 2002-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (lisp-loop-keyword-indentation)
