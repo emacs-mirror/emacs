@@ -1935,8 +1935,8 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
   produced_chars = 0;
   while (consumed_bytes < str_bytes)
     {
-      unsigned char *p = XSTRING (str)->data + consumed_bytes;
-      unsigned char *endp = XSTRING (str)->data + str_bytes;
+      const unsigned char *p = XSTRING (str)->data + consumed_bytes;
+      const unsigned char *endp = XSTRING (str)->data + str_bytes;
       int i = 0;
       int *src, src_size;
 
