@@ -1,3 +1,8 @@
+2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (dos_set_window_size): Update screen dimension
+	variables.
+
 2000-10-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_cache_char_metrics): Double check that font is
