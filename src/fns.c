@@ -32,6 +32,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "keyboard.h"
 #include "intervals.h"
 
+extern Lisp_Object Flookup_key ();
+
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 
@@ -64,9 +66,9 @@ With argument t, set the random number seed from the current time and pid.")
     srandom (getpid () + time (0));
   if (XTYPE (limit) == Lisp_Int && XINT (limit) > 0)
     {
-      if (XINT (limit) >= 0x40000000)
+      if (XFASTINT (limit) >= 0x40000000)
 	/* This case may occur on 64-bit machines.  */
-	val = random () % XINT (limit);
+	val = random () % XFASTINT (limit);
       else
 	{
 	  /* Try to take our random number from the higher bits of VAL,
@@ -79,7 +81,7 @@ With argument t, set the random number seed from the current time and pid.")
 	  denominator = (unsigned long)0x40000000 / XFASTINT (limit);
 	  do
 	    val = (random () & 0x3fffffff) / denominator;
-	  while (val >= limit);
+	  while (val >= XFASTINT (limit));
 	}
     }
   else
