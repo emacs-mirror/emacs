@@ -550,7 +550,9 @@ that string, rather than text from the buffer.  @var{end} is ignored in
 this case.
 
 If @var{append} is non-@code{nil}, then the specified text is appended
-to the existing file contents (if any).
+to the existing file contents (if any).  Starting in Emacs 21, if
+@var{append} is an integer, then @code{write-region} seeks to that byte
+offset from the start of the file and writes the data from there.
 
 If @var{mustbenew} is non-@code{nil}, then @code{write-region} asks
 for confirmation if @var{filename} names an existing file.
