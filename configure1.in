@@ -1085,7 +1085,6 @@ opsysfile="s/${opsys}.h"
 
 ]
 AC_PREPARE(lisp)
-ifdef([AC_LANG_C], AC_LANG_C)dnl
 AC_CONFIG_HEADER(src/config.h)
 [
 
