@@ -128,6 +128,31 @@ record_delete (beg, length)
 	     current_buffer->undo_list);
 }
 
+/* Record the fact that MARKER is about to be adjusted by ADJUSTMENT.
+   This is done only when a marker points within text being deleted,
+   because that's the only case where an automatic marker adjustment
+   won't be inverted automatically by undoing the buffer modification.  */
+
+record_marker_adjustment (marker, adjustment)
+     Lisp_Object marker;
+     int adjustment;
+{
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
+
+  if (current_buffer != XBUFFER (last_undo_buffer))
+    Fundo_boundary ();
+  XSETBUFFER (last_undo_buffer, current_buffer);
+
+  current_buffer->undo_list
+    = Fcons (Fcons (marker, make_number (adjustment)),
+	     current_buffer->undo_list);
+}
+
 /* Record that a replacement is about to take place,
    for LENGTH characters at location BEG.
    The replacement does not change the number of characters.  */
@@ -462,6 +487,15 @@ Return what remains of the list.")
 		      Finsert_before_markers (1, &membuf);
 		      SET_PT (pos);
 		    }
+		}
+	      else if (MARKERP (car) && INTEGERP (cdr))
+		{
+		  /* (MARKER . INTEGER) means a marker MARKER
+		     was adjusted by INTEGER.  */
+		  if (XMARKER (car)->buffer)
+		    Fset_marker (car,
+				 make_number (marker_position (car) - XINT (cdr)),
+				 Fmarker_buffer (car));
 		}
 	    }
 	}
