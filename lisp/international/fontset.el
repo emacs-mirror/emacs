@@ -106,6 +106,10 @@
 (setq x-pixel-size-width-font-regexp
       "gb2312\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
 
+;; There fonts require vertical centering.
+(setq vertical-centering-font-regexp
+      "gb2312\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
+
 (defvar x-font-name-charset-alist
   '(("iso8859-1" ascii latin-iso8859-1)
     ("iso8859-2" ascii latin-iso8859-2)
