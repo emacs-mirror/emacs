@@ -929,8 +929,7 @@ FName to link to message: ")
 		   (list (prefix-numeric-value current-prefix-arg))
 		 (list nil)))
   (cond ((not (numberp n)) (setq n 13))
-	((< n 0) (setq n (- 26 (% (- n) 26))))
-	(t (setq n (% n 26))))		;canonicalize N
+	(t (setq n (mod n 26))))	;canonicalize N
   (if (not (zerop n))		; no action needed for a rot of 0
       (progn
 	(if (or (not (boundp 'caesar-translate-table))
