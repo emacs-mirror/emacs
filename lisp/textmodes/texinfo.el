@@ -396,7 +396,7 @@ value of texinfo-mode-hook."
 ;;; Insert string commands
 
 (defconst texinfo-environment-regexp
-  "^@\\(f?table\\|enumerate\\|itemize\
+  "^[ \t]*@\\(f?table\\|enumerate\\|itemize\
 \\|ifhtml\\|ifinfo\\|iftex\\|ifset\\|ifclear\
 \\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\
 \\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|html\\|cartouche\\|menu\
