@@ -258,6 +258,9 @@ static WINDOWINFO_TYPE windowinfo;
 
 extern int errno;
 
+/* See keyboard.c.  */
+extern int extra_keyboard_modifiers;
+
 extern Display *XOpenDisplay ();
 extern Window XCreateWindow ();
 
@@ -2679,7 +2682,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      KeySym keysym;
 	      char copy_buffer[80];
-	      int modifiers = event.xkey.state;
+	      int modifiers;
+
+	      event.xkey.state |= extra_keyboard_modifiers;
+	      modifiers = event.xkey.state;
 
 	      /* Some keyboards generate different characters
 		 depending on the state of the meta key, in an attempt
