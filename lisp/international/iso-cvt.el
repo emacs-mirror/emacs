@@ -828,30 +828,30 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 
 ;;;###autoload
 (defun iso-cvt-define-menu ()
-  "Add submenus to the Files menu, to convert to and from various formats."
+  "Add submenus to the File menu, to convert to and from various formats."
   (interactive)
 
-  (define-key menu-bar-files-menu [load-as-separator] '("--"))
+  (define-key menu-bar-file-menu [load-as-separator] '("--"))
 
-  (define-key menu-bar-files-menu [load-as] '("Load As..."  . load-as))
+  (define-key menu-bar-file-menu [load-as] '("Load As..."  . load-as))
   (defvar load-as-menu-map (make-sparse-keymap "Load As..."))
   (fset 'load-as load-as-menu-map)
 
-  ;;(define-key menu-bar-files-menu [insert-as] '("Insert As..."  . insert-as))
+  ;;(define-key menu-bar-file-menu [insert-as] '("Insert As..."  . insert-as))
   (defvar insert-as-menu-map (make-sparse-keymap "Insert As..."))
   (fset 'insert-as insert-as-menu-map)
 
-  (define-key menu-bar-files-menu [write-as] '("Write As..."  . write-as))
+  (define-key menu-bar-file-menu [write-as] '("Write As..."  . write-as))
   (defvar write-as-menu-map (make-sparse-keymap "Write As..."))
   (fset 'write-as write-as-menu-map)
 
-  (define-key menu-bar-files-menu [translate-separator] '("--"))
+  (define-key menu-bar-file-menu [translate-separator] '("--"))
 
-  (define-key menu-bar-files-menu [translate-to] '("Translate to..."  . translate-to))
+  (define-key menu-bar-file-menu [translate-to] '("Translate to..."  . translate-to))
   (defvar translate-to-menu-map (make-sparse-keymap "Translate to..."))
   (fset 'translate-to translate-to-menu-map)
 
-  (define-key menu-bar-files-menu [translate-from] '("Translate from..."  . translate-from))
+  (define-key menu-bar-file-menu [translate-from] '("Translate from..."  . translate-from))
   (defvar translate-from-menu-map (make-sparse-keymap "Translate from..."))
   (fset 'translate-from translate-from-menu-map)
 
