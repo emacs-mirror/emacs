@@ -24,9 +24,6 @@ CC=@CC@
 CPP=@CPP@
 CFLAGS=@CFLAGS@
 LN_S=@LN_S@
-/* These escaped doublequotes become part of the macro definition in emacs.c.
-   Thus, the definition is a C string constant. */
-configuration=\"@configuration@\"
 /* Substitute an assignment for the MAKE variable, because
    BSD doesn't have it as a default.  */
 @SET_MAKE@
@@ -753,7 +750,6 @@ doc.o : doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o : doprnt.c
 editfns.o : editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
 emacs.o : emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h) 
-	$(CC) -c -DCONFIGURATION="$(configuration)" $(CPPFLAGS) $(ALL_CFLAGS) $<
 fileio.o : fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
 filelock.o : filelock.c buffer.h paths.h $(config_h)
 filemode.o : filemode.c  $(config_h)
