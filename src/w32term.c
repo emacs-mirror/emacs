@@ -1432,7 +1432,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 	  ccl->reg[2] = BYTE2 (*char2b);
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, NULL, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
