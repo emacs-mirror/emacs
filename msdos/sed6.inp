@@ -1,8 +1,8 @@
-# -sed6.inp-----------------------------------------------------------
-# Configuration script for man/Makefile under DJGPP v2.x
-# ----------------------------------------------------------------------
+# -sed6.inp------------------------------------------------------------------
+# Configuration script for man/Makefile and lispref/Makefile under DJGPP v2.x
+# ---------------------------------------------------------------------------
 #
-# Copyright (C) 1997, 2000
+# Copyright (C) 1997, 2000, 2001
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -22,3 +22,6 @@
 ENVADD =\
 export TEXINPUTS := $(srcdir)";"$(TEXINPUTS)\
 export MAKEINFO := $(MAKEINFO) -I$(srcdir)
+/^texinputdir/c\
+texinputdir =\
+export texinputdir := $(srcdir)";"$(TEXINPUTS)
