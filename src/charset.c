@@ -997,8 +997,8 @@ strwidth (str, len)
       else
 	{
 	  Lisp_Object disp;
-	  int thiswidth;
-	  int c = STRING_CHAR (str, endp - str);
+	  int thislen;
+	  int c = STRING_CHAR_AND_LENGTH (str, endp - str, thislen);
 
 	  /* Get the way the display table would display it.  */
 	  if (dp)
@@ -1007,12 +1007,11 @@ strwidth (str, len)
 	    disp = Qnil;
 
 	  if (VECTORP (disp))
-	    thiswidth = XVECTOR (disp)->size;
+	    width += XVECTOR (disp)->size;
 	  else
-	    thiswidth = ONE_BYTE_CHAR_WIDTH (*str);
+	    width += ONE_BYTE_CHAR_WIDTH (*str);
 
-	  width += thiswidth;
-	  str += BYTES_BY_CHAR_HEAD (*str);
+	  str += thislen;
 	}
     }
   return width;
@@ -1030,7 +1029,7 @@ the following bytes is not checked.")
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  XSETFASTINT (val, strwidth (XSTRING (str)->data, XSTRING (str)->size));
+  XSETFASTINT (val, strwidth (XSTRING (str)->data, XSTRING (str)->size_byte));
   return val;
 }
 
