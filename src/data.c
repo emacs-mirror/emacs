@@ -642,6 +642,11 @@ do_symval_forwarding (valcontents)
       case Lisp_Misc_Buffer_Objfwd:
 	offset = XBUFFER_OBJFWD (valcontents)->offset;
 	return *(Lisp_Object *)(offset + (char *)current_buffer);
+
+      case Lisp_Misc_Display_Objfwd:
+	offset = XDISPLAY_OBJFWD (valcontents)->offset;
+	return *(Lisp_Object *)(offset
+				+ (char *)get_perdisplay (selected_frame));
       }
   return valcontents;
 }
@@ -685,8 +690,15 @@ store_symval_forwarding (sym, valcontents, newval)
 	      buffer_slot_type_mismatch (offset);
 
 	    *(Lisp_Object *)(offset + (char *)current_buffer) = newval;
-	    break;
 	  }
+	  break;
+
+	case Lisp_Misc_Display_Objfwd:
+	  (*(Lisp_Object *)((char *)get_perdisplay (selected_frame)
+			    + XDISPLAY_OBJFWD (valcontents)->offset))
+	    = newval;
+	  break;
+
 	default:
 	  goto def;
 	}
@@ -711,9 +723,9 @@ static Lisp_Object
 swap_in_symval_forwarding (sym, valcontents)
      Lisp_Object sym, valcontents;
 {
-  /* valcontents is a list
+  /* valcontents is a pointer to a struct resembling the cons
      (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE)).
-     
+
      CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
      local_var_alist, that being the element whose car is this
      variable.  Or it can be a pointer to the
@@ -784,6 +796,10 @@ find_symbol_value (sym)
 	case Lisp_Misc_Buffer_Objfwd:
 	  return *(Lisp_Object *)(XBUFFER_OBJFWD (valcontents)->offset
 				  + (char *)current_buffer);
+
+	case Lisp_Misc_Display_Objfwd:
+	  return *(Lisp_Object *)(XDISPLAY_OBJFWD (valcontents)->offset
+				  + (char *)get_perdisplay (selected_frame));
 	}
     }
 
@@ -1101,10 +1117,10 @@ The function `default-value' gets the default value and `set-default' sets it.")
 
   CHECK_SYMBOL (sym, 0);
 
-  if (EQ (sym, Qnil) || EQ (sym, Qt))
+  valcontents = XSYMBOL (sym)->value;
+  if (EQ (sym, Qnil) || EQ (sym, Qt) || DISPLAY_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", XSYMBOL (sym)->name->data);
 
-  valcontents = XSYMBOL (sym)->value;
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     return sym;
   if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -1144,14 +1160,14 @@ Use `make-local-hook' instead.")
 
   CHECK_SYMBOL (sym, 0);
 
-  if (EQ (sym, Qnil) || EQ (sym, Qt))
+  valcontents = XSYMBOL (sym)->value;
+  if (EQ (sym, Qnil) || EQ (sym, Qt) || DISPLAY_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", XSYMBOL (sym)->name->data);
 
-  valcontents = XSYMBOL (sym)->value;
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     {
       tem = Fboundp (sym);
-      
+
       /* Make sure the symbol has a local value in this particular buffer,
 	 by setting it to the same value it already has.  */
       Fset (sym, (EQ (tem, Qt) ? Fsymbol_value (sym) : Qunbound));
@@ -1576,7 +1592,7 @@ NUM may be an integer or a floating point number.")
       char pigbuf[350];	/* see comments in float_to_string */
 
       float_to_string (pigbuf, XFLOAT(num)->data);
-      return build_string (pigbuf);      
+      return build_string (pigbuf);
     }
 #endif /* LISP_FLOAT_TYPE */
 
@@ -1609,7 +1625,7 @@ It ignores leading spaces and tabs.")
 
   return make_number (atoi (p));
 }
-  
+
 enum arithop
   { Aadd, Asub, Amult, Adiv, Alogand, Alogior, Alogxor, Amax, Amin };
 
@@ -1698,7 +1714,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 {
   register Lisp_Object val;
   double next;
-  
+
   for (; argnum < nargs; argnum++)
     {
       val = args[argnum];    /* using args[argnum] as argument to CHECK_NUMBER_... */
@@ -1864,7 +1880,7 @@ Both X and Y must be numbers or markers.")
 
   if (i2 == 0)
     Fsignal (Qarith_error, Qnil);
-  
+
   i1 %= i2;
 
   /* If the "remainder" comes out with the wrong sign, fix it.  */
@@ -2374,7 +2390,7 @@ init_data ()
     return;
 #endif /* CANNOT_DUMP */
   signal (SIGFPE, arith_error);
-  
+
 #ifdef uts
   signal (SIGEMT, arith_error);
 #endif /* uts */
