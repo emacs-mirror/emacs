@@ -1947,11 +1947,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
 
-  /* It would not be safe to call this below,
-     where we call redisplay_preserve_echo_area.  */
-  if (do_display && frame_garbaged)
-    prepare_menu_bars ();
-
   while (1)
     {
       /* If calling from keyboard input, do not quit
@@ -2035,7 +2030,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 and indicates that a frame is trashed, the select may block
 	 displaying a trashed screen.  */
       if (frame_garbaged && do_display)
-	redisplay_preserve_echo_area ();
+	{
+	  clear_waiting_for_input ();
+	  redisplay_preserve_echo_area ();
+	  if (XINT (read_kbd) < 0)
+	    set_waiting_for_input ();
+	}
 
       if (XINT (read_kbd) && detect_input_pending ())
 	{
