@@ -2918,23 +2918,18 @@ Optional EVENT is the location for the menu."
 
 ;;; The `custom-save-all' Function.
 ;;;###autoload
-(defcustom custom-file (if (boundp 'emacs-user-extension-dir)
-			   (concat "~"
-				   init-file-user
-				   emacs-user-extension-dir
-				   "options.el")
-			 (convert-standard-filename"~/.emacs"))
+(defcustom custom-file nil
   "File used for storing customization information.
-If you change this from the default \"~/.emacs\" (or \"~/_emacs\"
-on MS-DOS) you need to explicitly load that file for the settings
-to take effect."
-  :type 'file
+The default is nil, which means to use your init file
+as specified by `user-init-file'.  If you specify some other file,
+you need to explicitly load that file for the settings to take effect."
+  :type '(choice (const :tag "Your Emacs init file" nil) file)
   :group 'customize)
 
 (defun custom-save-delete (symbol)
   "Delete the call to SYMBOL form `custom-file'.
 Leave point at the location of the call, or after the last expression."
-  (set-buffer (find-file-noselect custom-file))
+  (set-buffer (find-file-noselect (or custom-file user-init-file)))
   (goto-char (point-min))
   (catch 'found
     (while t
@@ -3041,7 +3036,7 @@ Leave point at the location of the call, or after the last expression."
     (custom-save-variables)
     (custom-save-faces)
     (save-excursion
-      (set-buffer (find-file-noselect custom-file))
+      (set-buffer (find-file-noselect (or custom-file user-init-file)))
       (save-buffer))))
 
 ;;; The Customize Menu.
