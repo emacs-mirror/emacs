@@ -1650,9 +1650,7 @@ see the doc of that variable if you want to add names to the list."
 (defun select-tags-table-quit ()
   "Kill the buffer and delete the selected window."
   (interactive)
-  (kill-buffer (current-buffer))
-  (or (one-window-p)
-      (delete-window)))
+  (quit-window t (selected-window)))
 
 ;;; Note, there is another definition of this function in bindings.el.
 ;;;###autoload
