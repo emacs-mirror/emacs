@@ -1,7 +1,7 @@
 ;;; Abbrev-expansion of mail aliases.
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 ;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
-;;; Last change  16-mar-92. roland@gnu.ai.mit.edu
+;;; Last change 24-mar-92. jwz
 
 ;;; This file is part of GNU Emacs.
 
@@ -133,69 +133,17 @@ no aliases, which is represented by this being a table with no entries.)")
 
 ;;;###autoload
 (defun mail-aliases-setup ()
-  "Put on `mail-setup-hook' to use mail-abbrevs."
   (if (and (not (vectorp mail-aliases))
 	   (file-exists-p (mail-abbrev-mailrc-file)))
       (build-mail-aliases))
-  (if (boundp 'pre-abbrev-expand-hook)
-      (progn
-	(make-local-variable 'pre-abbrev-expand-hook)
-	(setq pre-abbrev-expand-hook
-	      (cond ((and (listp pre-abbrev-expand-hook)
-			  (not (eq 'lambda (car pre-abbrev-expand-hook))))
-		     (cons 'sendmail-pre-abbrev-expand-hook
-			   pre-abbrev-expand-hook))
-		    (t
-		     (list 'sendmail-pre-abbrev-expand-hook
-			   pre-abbrev-expand-hook)))))
-    (or mail-abbrevs-map-munged
-	(mail-abbrevs-munge-map))
-    (use-local-map mail-mode-map))
+  (make-local-variable 'pre-abbrev-expand-hook)
+  (setq pre-abbrev-expand-hook
+    (cond ((and (listp pre-abbrev-expand-hook)
+		(not (eq 'lambda (car pre-abbrev-expand-hook))))
+	   (cons 'sendmail-pre-abbrev-expand-hook pre-abbrev-expand-hook))
+	  (t
+	   (list 'sendmail-pre-abbrev-expand-hook pre-abbrev-expand-hook))))
   (abbrev-mode 1))
-
-(defvar mail-abbrevs-map-munged nil)
-(defun mail-abbrevs-munge-map ()
-  ;; If mail-mode-map is a sparse-keymap, convert it to a non-sparse one.
-  ;; If a given key would be bound to self-insert-command in mail-mode (that
-  ;; is, it is bound to it in mail-mode-map or in global-map) then bind it
-  ;; to sendmail-self-insert-command in mail-mode-map.
-  (let* ((sparse-p (consp mail-mode-map))
-	 (map (make-keymap))
-	 (L (length map))
-	 (i 0))
-    (while (< i L)
-      (let ((old (or (if sparse-p
-			 (cdr (assq i mail-mode-map))
-		       (aref mail-mode-map i))
-		     (aref global-map i))))
-	(aset map i (if (eq old 'self-insert-command)
-			'sendmail-self-insert-command
-		      old)))
-      (setq i (1+ i)))
-    (setq mail-mode-map map))
-  (setq mail-abbrevs-map-munged t))
-
-(defun sendmail-self-insert-command (arg)
-  "Just like self-insert-command, except that, if `mail-aliases' is an abbrev
-table, and point is in an appropriate header field of the message being
-composed, then the local-abbrev-table will be set to mail-aliases.  Otherwise
-the local-abbrev-table is mail-mode-abbrev-table (the normal state).  The 
-variable mail-abbrev-mode-regexp controls which header-fields use the 
-mail-aliases table."
-  (interactive "p")
-  (if (= (char-syntax last-command-char) ? )
-      (progn
-	(sendmail-pre-abbrev-expand-hook)
-	;; Unhack expand-abbrev, so it will work right next time around.
-	(setq abbrev-start-location nil)))
-  (self-insert-command arg))
-
-(defun expand-mail-aliases (&rest args)
-  "Obsoleted by mail-abbrevs.  Does nothing."
-  nil)
-
-(or (fboundp 'buffer-disable-undo)
-    (fset 'buffer-disable-undo 'buffer-flush-undo))
 
 ;;; Originally defined in mailalias.el.  Changed to call define-mail-alias
 ;;; with an additional argument.
@@ -207,7 +155,7 @@ mail-aliases table."
       nil
     (setq mail-aliases nil)
     (define-abbrev-table 'mail-aliases '()))
-  (message "Parsing %s ..." file)
+  (message "Parsing %s..." file)
   (let ((buffer nil)
 	(obuf (current-buffer)))
     (unwind-protect
@@ -263,7 +211,7 @@ mail-aliases table."
 	  mail-aliases)
       (if buffer (kill-buffer buffer))
       (set-buffer obuf)))
-    (message "Parsing %s ... done" file))
+    (message "Parsing %s... done" file))
 
 (defvar mail-alias-seperator-string ", "
   "*A string inserted between addresses in multi-address mail aliases.
@@ -360,38 +308,28 @@ If DEFINITION contains multiple addresses, seperate them with commas."
   After expanding a mail-abbrev, if fill-mode is on and we're past the 
 fill-column, break the line at the previous comma, and indent the next
 line."
-  (save-excursion
-    (let ((p (point))
-	  (bol (save-excursion
-		 (re-search-backward mail-abbrev-mode-regexp)
-		 (match-end 0))))
-      (goto-char bol)
-      (while (re-search-forward
-	      "\\(\\s *,?\\s *\\(\"?\\)\\(/[^,]+\\)\\2\\)\\(,\\|\\s +\\|$\\)"
-	      p t)
+  (let (p bol)
+      (while (and auto-fill-function
+		  (>= (current-column) fill-column))
+	(setq p (point))
 	(save-excursion
-	  (goto-char p)
-	  (insert "\nFCC: " (buffer-substring (match-beginning 3)
-					      (match-end 3))))
-	(delete-region (match-beginning 1) (match-end 1)))
-      (if (and (if (boundp 'auto-fill-function)
-		   auto-fill-function
-		 auto-fill-hook)
-	       (or (>= (current-column) fill-column)
-		   (> (count-lines bol p) 1)))
 	  (let (fp)
+	    (beginning-of-line)
+	    (setq bol (point))
 	    (goto-char p)
-	    (while (search-backward "," bol t)
-	      (save-excursion
-		(forward-char 1)
-		(insert "\n")
-		(delete-horizontal-space)
-		(setq p (point))
-		(indent-relative)
-		(setq fp (buffer-substring p (point)))))
+	    (while (and (>= (current-column) fill-column)
+			(search-backward "," bol t)))
+	    (save-excursion
+	      (forward-char 1)
+	      (insert "\n")
+	      (delete-horizontal-space)
+	      (setq p (point))
+	      (indent-relative)
+	      (setq fp (buffer-substring p (point))))
 	    (if (> (current-column) fill-column)
 		(let ((fill-prefix (or fp "\t")))
 		  (do-auto-fill))))))))
+
 
 ;;; Syntax tables and abbrev-expansion
 
@@ -424,7 +362,7 @@ turned on.")
     ;; Do this if you want to have aliases with hyphens in them.  This causes
     ;; hyphens to be considered word-syntax, so forward-word will not stop at
     ;; hyphens.
-    ;;(modify-syntax-entry ?- "w" tab)
+    (modify-syntax-entry ?- "w" tab)
     tab)
   "The syntax table used in send-mail mode when in a mail-address header.
 mail-mode-syntax-table is used when the cursor is in the message body or in
@@ -468,51 +406,61 @@ characters which may be a part of the name of a mail-alias.")
 
 (defvar mail-mode-abbrev-table) ; quiet the compiler
 
-(defun sendmail-pre-abbrev-expand-hook ()
+;; If INSERT is non-nil, self-insert it instead of doing expand-abbrev.
+(defun sendmail-pre-abbrev-expand-hook (&optional insert)
   (if mail-abbrev-aliases-need-to-be-resolved
       (mail-resolve-all-aliases))
-  (if (and mail-aliases (not (eq mail-aliases t)))
-      (if (not (mail-abbrev-in-expansion-header-p))
-	  ;;
-	  ;; If we're not in a mail header in which mail aliases should
-	  ;; be expanded, then use the normal mail-mode abbrev table (if any)
-	  ;; and the normal mail-mode syntax table.
-	  ;;
+  (let ((in-header (mail-abbrev-in-expansion-header-p)))
+      (if in-header
 	  (progn
-	    (setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
-					  mail-mode-abbrev-table))
-	    (set-syntax-table mail-mode-syntax-table))
-	;;
-	;; Otherwise, we are in a To: (or CC:, or whatever) header, and
-	;; should use word-abbrevs to expand mail aliases.
-	;;   -  First, install the mail-aliases as the word-abbrev table.
-	;;   -  Then install the mail-abbrev-syntax-table, which temporarily
-	;;      marks all of the non-alphanumeric-atom-characters (the "_"
-	;;      syntax ones) as being normal word-syntax.  We do this because
-	;;      the C code for expand-abbrev only works on words, and we want
-	;;      these characters to be considered words for the purpose of
-	;;      abbrev expansion.
-	;;   -  Then we call expand-abbrev again, recursively, to do the abbrev
-	;;      expansion with the above syntax table.
-	;;   -  Then we do a trick which tells the expand-abbrev frame which
-	;;      invoked us to not continue (and thus not expand twice.)
-	;;   -  Then we set the syntax table to mail-mode-header-syntax-table,
-	;;      which doesn't have anything to do with abbrev expansion, but
-	;;      is just for the user's convenience (see its doc string.)
-	;;
-	(setq local-abbrev-table mail-aliases)
-	;; If the character just typed was non-alpha-symbol-syntax, then don't
-	;; expand the abbrev now (that is, don't expand when the user types -.)
-	(or (= (char-syntax last-command-char) ?_)
-	    (let ((pre-abbrev-expand-hook nil)) ; that's us; don't loop
+	    (if (or (null mail-aliases) (eq mail-aliases t))
+		(if insert
+		    (self-insert-command insert))
+	      ;;
+	      ;; We are in a To: (or CC:, or whatever) header, and
+	      ;; should use word-abbrevs to expand mail aliases.
+	      ;;   -  First, install mail-aliases as the word-abbrev table.
+	      ;;   -  Then install the mail-abbrev-syntax-table, which
+	      ;;      temporarily marks all of the
+	      ;;      non-alphanumeric-atom-characters (the "_" syntax
+	      ;;      ones) as being normal word-syntax.  We do this
+	      ;;      because the C code for expand-abbrev only works on
+	      ;;      words, and we want these characters to be considered
+	      ;;      words for the purpose of abbrev expansion.
+	      ;;   -  Then we call expand-abbrev again, recursively, to do
+	      ;;      the abbrev expansion with the above syntax table.
+	      ;;   -  Then we do a trick which tells the expand-abbrev
+	      ;;      frame which invoked us to not continue (and thus not
+	      ;;      expand twice.)
+	      ;;   -  Then we set the syntax table to
+	      ;;      mail-mode-header-syntax-table, which doesn't have
+	      ;;      anything to do with abbrev expansion, but is just for
+	      ;;      the user's convenience (see its doc string.)
+	      ;;
+	      (setq local-abbrev-table mail-aliases)
 	      (set-syntax-table mail-abbrev-syntax-table)
-	      (expand-abbrev)))
-	(setq abbrev-start-location (point)  ; this is the trick
-	      abbrev-start-location-buffer (current-buffer))
-	;; and do this just because.
-	(set-syntax-table mail-mode-header-syntax-table)
-	)))
-
+	      (if insert
+		  (self-insert-command insert)
+		;; If the character just typed was non-alpha-symbol-syntax,
+		;; then don't expand the abbrev now (that is, don't expand when
+		;; the user types -.)
+		(or (= (char-syntax last-command-char) ?_)
+		    (let ((pre-abbrev-expand-hook nil)) ; that's us; don't loop
+		      (expand-abbrev)))
+		(setq abbrev-start-location (point)	; this is the trick
+		      abbrev-start-location-buffer (current-buffer))))
+	    ;; and do this just because.
+	    (set-syntax-table mail-mode-header-syntax-table))
+	;;
+	;; If we're not in a mail header in which mail aliases should
+	;; be expanded, then use the normal mail-mode abbrev table (if any)
+	;; and the normal mail-mode syntax table.
+	;;
+	(setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
+				      mail-mode-abbrev-table))
+	(set-syntax-table mail-mode-syntax-table)
+	(if insert
+	    (self-insert-command insert)))))
 
 ;;; utilities
 
@@ -565,8 +513,8 @@ end of line."
 
 (define-key mail-mode-map "\C-c\C-a" 'mail-interactive-insert-alias)
 
-(define-key mail-mode-map "\C-n" 'abbrev-hacking-next-line)
-(define-key mail-mode-map "\M->" 'abbrev-hacking-end-of-buffer)
+;;(define-key mail-mode-map "\C-n" 'abbrev-hacking-next-line)
+;;(define-key mail-mode-map "\M->" 'abbrev-hacking-end-of-buffer)
 
 
 ;;; Patching it in:
@@ -579,3 +527,66 @@ end of line."
 ;;; Add an autoload of define-mail-alias
 
 (provide 'mail-abbrevs)
+
+
+;;; V18 compatibility
+;;; these defuns and defvars aren't inside the cond in deference to the
+;;; intense brokenness of the v18 byte-compiler.
+
+(defun sendmail-v18-self-insert-command (arg)
+  "Just like self-insert-command, but runs sendmail-pre-abbrev-expand-hook."
+  (interactive "p")
+  (sendmail-pre-abbrev-expand-hook arg))
+
+(defvar mail-abbrevs-v18-map-munged nil)
+
+(defun mail-abbrevs-v18-munge-map ()
+  ;; If mail-mode-map is a sparse-keymap, convert it to a non-sparse one.
+  ;; If a given key would be bound to self-insert-command in mail-mode (that
+  ;; is, it is bound to it in mail-mode-map or in global-map) then bind it
+  ;; to sendmail-self-insert-command in mail-mode-map.
+  (let* ((sparse-p (consp mail-mode-map))
+	 (map (make-keymap))
+	 (L (length map))
+	 (i 0))
+    (while (< i L)
+      (let ((old (or (if sparse-p
+			 (cdr (assq i mail-mode-map))
+		       (aref mail-mode-map i))
+		     (aref global-map i))))
+	(aset map i (if (eq old 'self-insert-command)
+			'sendmail-v18-self-insert-command
+		      old)))
+      (setq i (1+ i)))
+    (setq mail-mode-map map))
+  (setq mail-abbrevs-v18-map-munged t))
+
+(defun mail-aliases-v18-setup ()
+  "Put this on `mail-setup-hook' to use mail-abbrevs."
+  (if (and (not (vectorp mail-aliases))
+	   (file-exists-p (mail-abbrev-mailrc-file)))
+      (build-mail-aliases))
+  (or mail-abbrevs-v18-map-munged (mail-abbrevs-v18-munge-map))
+  (use-local-map mail-mode-map)
+  (abbrev-mode 1))
+
+
+(defun mail-abbrev-expand-hook-v18 ()
+  (let ((auto-fill-function auto-fill-hook)) ; new name
+    (mail-abbrev-expand-hook-v19)))
+
+
+(cond ((or (string-match "^18\\." emacs-version)
+	   (and (boundp 'epoch::version) epoch::version))
+       (or (fboundp 'buffer-disable-undo)
+	   (fset 'buffer-disable-undo 'buffer-flush-undo))
+       (or (fboundp 'mail-abbrev-expand-hook-v19)
+	   (fset 'mail-abbrev-expand-hook-v19
+		 (symbol-function 'mail-abbrev-expand-hook)))
+       (fset 'mail-abbrev-expand-hook 'mail-abbrev-expand-hook-v18)
+       (fset 'expand-mail-aliases
+	     '(lambda (&rest args) "Obsoleted by mail-abbrevs.  Does nothing."
+		nil))
+       )
+      (t ; v19
+       (fmakunbound 'expand-mail-aliases)))
