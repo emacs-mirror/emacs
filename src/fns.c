@@ -1261,7 +1261,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	}
 #endif
       cursor_in_echo_area = 1;
-      message ("%s(y or n) ", XSTRING (xprompt)->data);
+      message_nolog ("%s(y or n) ", XSTRING (xprompt)->data);
 
       obj = read_filtered_event (1, 0, 0);
       cursor_in_echo_area = 0;
@@ -1315,7 +1315,8 @@ Also accepts Space to mean yes, or Delete to mean no.")
   if (! noninteractive)
     {
       cursor_in_echo_area = -1;
-      message ("%s(y or n) %c", XSTRING (xprompt)->data, answer ? 'y' : 'n');
+      message_nolog ("%s(y or n) %c",
+		     XSTRING (xprompt)->data, answer ? 'y' : 'n');
       cursor_in_echo_area = ocech;
     }
 
@@ -1341,7 +1342,7 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Takes one argument, which is the string to display to ask the question.\n\
 It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.\n\
 The user must confirm the answer with RET,\n\
-and can edit it until it as been confirmed.")
+and can edit it until it has been confirmed.")
   (prompt)
      Lisp_Object prompt;
 {
