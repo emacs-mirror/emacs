@@ -1,3 +1,10 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* hi-lock.el (hi-lock-refontify): Don't call non-existent
+	jit-lock-fontify-buffer; it should anyway be unneccessary to
+	dp anything special when jit-lock is active.
+	(hi-yellow, hi-pink, hi-green, hi-blue): Fix defface specs.
+
 2000-11-22  Dave Love  <fx@gnu.org>
 
 	* language/chinese.el, language/cyrillic.el:
