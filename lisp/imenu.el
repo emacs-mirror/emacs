@@ -851,7 +851,7 @@ See `imenu-choose-buffer-index' for more information."
   (interactive
    (list (save-restriction 
 	   (widen)
-	   (car (imenu-choose-buffer-index)))))
+	   (imenu-choose-buffer-index))))
   ;; Convert a string to an alist element.
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
