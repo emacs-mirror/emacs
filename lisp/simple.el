@@ -2505,7 +2505,7 @@ default part of the buffer's text.  Examples of such commands include
 \\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
 the prompt, to see the documentation of commands which are sensitive to
 the Transient Mark mode."
-  :global t :group 'editing-basics)
+  :global t :group 'editing-basics :require nil)
 
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
@@ -3285,14 +3285,14 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics)
+  :init-value t :global t :group 'editing-basics :require nil)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'editing-basics :require nil)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
