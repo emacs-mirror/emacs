@@ -48,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Structure forward declarations.  */
 
-struct sound_file;
+struct sound;
 struct sound_device;
 
 /* The file header of RIFF-WAVE files (*.wav).  Files are always in
@@ -146,9 +146,9 @@ struct sound_device
   /* Configure SD accoring to device-dependent parameters.  */
   void (* configure) P_ ((struct sound_device *device));
   
-  /* Choose a device-dependent format for outputting sound file SF.  */
+  /* Choose a device-dependent format for outputting sound S.  */
   void (* choose_format) P_ ((struct sound_device *sd,
-			      struct sound_file *sf));
+			      struct sound *s));
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
   void (* write) P_ ((struct sound_device *sd, char *buffer, int nbytes));
@@ -167,20 +167,27 @@ enum sound_type
 
 /* Interface structure for sound files.  */
 
-struct sound_file
+struct sound
 {
   /* The type of the file.  */
   enum sound_type type;
 
-  /* File descriptor of the file.  */
+  /* File descriptor of a sound file.  */
   int fd;
 
-  /* Pointer to sound file header.  This contains the first
-     MAX_SOUND_HEADER_BYTES read from the file.  */
+  /* Pointer to sound file header.  This contains header_size bytes
+     read from the start of a sound file.  */
   char *header;
 
-  /* Play sound file SF on device SD.  */
-  void (* play) P_ ((struct sound_file *sf, struct sound_device *sd)); 
+  /* Number of bytes raed from sound file.  This is always <=
+     MAX_SOUND_HEADER_BYTES.  */
+  int header_size;
+
+  /* Sound data, if a string.  */
+  Lisp_Object data;
+
+  /* Play sound file S on device SD.  */
+  void (* play) P_ ((struct sound *s, struct sound_device *sd)); 
 };
 
 /* Indices of attributes in a sound attributes vector.  */
@@ -188,6 +195,7 @@ struct sound_file
 enum sound_attr
 {
   SOUND_FILE,
+  SOUND_DATA,
   SOUND_DEVICE,
   SOUND_VOLUME,
   SOUND_ATTR_SENTINEL
@@ -195,7 +203,7 @@ enum sound_attr
 
 /* Symbols.  */
 
-extern Lisp_Object QCfile;
+extern Lisp_Object QCfile, QCdata;
 Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
 Lisp_Object Qplay_sound_functions;
@@ -203,27 +211,27 @@ Lisp_Object Qplay_sound_functions;
 /* These are set during `play-sound' so that sound_cleanup has
    access to them.  */
 
-struct sound_device *sound_device;
-struct sound_file *sound_file;
+struct sound_device *current_sound_device;
+struct sound *current_sound;
 
 /* Function prototypes.  */
 
 static void vox_open P_ ((struct sound_device *));
 static void vox_configure P_ ((struct sound_device *));
 static void vox_close P_ ((struct sound_device *sd));
-static void vox_choose_format P_ ((struct sound_device *, struct sound_file *));
+static void vox_choose_format P_ ((struct sound_device *, struct sound *));
 static void vox_init P_ ((struct sound_device *));
 static void vox_write P_ ((struct sound_device *, char *, int));
 static void sound_perror P_ ((char *));
 static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
-static void find_sound_file_type P_ ((struct sound_file *));
+static void find_sound_type P_ ((struct sound *));
 static u_int32_t le2hl P_ ((u_int32_t));
 static u_int16_t le2hs P_ ((u_int16_t));
 static u_int32_t be2hl P_ ((u_int32_t));
-static int wav_init P_ ((struct sound_file *));
-static void wav_play P_ ((struct sound_file *, struct sound_device *));
-static int au_init P_ ((struct sound_file *));
-static void au_play P_ ((struct sound_file *, struct sound_device *));
+static int wav_init P_ ((struct sound *));
+static void wav_play P_ ((struct sound *, struct sound_device *));
+static int au_init P_ ((struct sound *));
+static void au_play P_ ((struct sound *, struct sound_device *));
 
 #if 0 /* Currently not used.  */
 static u_int16_t be2hs P_ ((u_int16_t));
@@ -256,6 +264,11 @@ sound_perror (msg)
    FILE is the sound file to play.  If it isn't an absolute name,
    it's searched under `data-directory'.
 
+   - `:data DATA'
+
+   DATA is a string containing sound data.  Either :file or :data
+   may be present, but not both.
+
    - `:device DEVICE'
 
    DEVICE is the name of the device to play on, e.g. "/dev/dsp2".
@@ -277,11 +290,13 @@ parse_sound (sound, attrs)
 
   sound = XCDR (sound);
   attrs[SOUND_FILE] = Fplist_get (sound, QCfile);
+  attrs[SOUND_DATA] = Fplist_get (sound, QCdata);
   attrs[SOUND_DEVICE] = Fplist_get (sound, QCdevice);
   attrs[SOUND_VOLUME] = Fplist_get (sound, QCvolume);
 
-  /* File name must be specified.  */
-  if (!STRINGP (attrs[SOUND_FILE]))
+  /* File name or data must be specified.  */
+  if (!STRINGP (attrs[SOUND_FILE])
+      && !STRINGP (attrs[SOUND_DATA]))
     return 0;
 
   /* Volume must be in the range 0..100 or unspecified.  */
@@ -313,15 +328,14 @@ parse_sound (sound, attrs)
 
 
 /* Find out the type of the sound file whose file descriptor is FD.
-   SF is the sound file structure to fill in.  */
+   S is the sound file structure to fill in.  */
 
 static void
-find_sound_file_type (sf)
-     struct sound_file *sf;
+find_sound_type (s)
+     struct sound *s;
 {
-  if (!wav_init (sf)
-      && !au_init (sf))
-    error ("Unknown sound file format");
+  if (!wav_init (s) && !au_init (s))
+    error ("Unknown sound format");
 }
 
 
@@ -331,11 +345,11 @@ static Lisp_Object
 sound_cleanup (arg)
      Lisp_Object arg;
 {
-  if (sound_device)
+  if (current_sound_device)
     {
-      sound_device->close (sound_device);
-      if (sound_file->fd > 0)
-	emacs_close (sound_file->fd);
+      current_sound_device->close (current_sound_device);
+      if (current_sound->fd > 0)
+	emacs_close (current_sound->fd);
     }
 }
 
@@ -348,42 +362,46 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
   Lisp_Object file;
   struct gcpro gcpro1, gcpro2;
-  int nbytes;
   struct sound_device sd;
-  struct sound_file sf;
+  struct sound s;
   Lisp_Object args[2];
   int count = specpdl_ptr - specpdl;
 
   file = Qnil;
   GCPRO2 (sound, file);
   bzero (&sd, sizeof sd);
-  bzero (&sf, sizeof sf);
-  sf.header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
-  
-  sound_device = &sd;
-  sound_file = &sf;
+  bzero (&s, sizeof s);
+  current_sound_device = &sd;
+  current_sound = &s;
   record_unwind_protect (sound_cleanup, Qnil);
+  s.header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
 
   /* Parse the sound specification.  Give up if it is invalid.  */
   if (!parse_sound (sound, attrs))
+    error ("Invalid sound specification");
+
+  if (STRINGP (attrs[SOUND_FILE]))
     {
-      UNGCPRO;
-      error ("Invalid sound specification");
+      /* Open the sound file.  */
+      s.fd = openp (Fcons (Vdata_directory, Qnil),
+		     attrs[SOUND_FILE], "", &file, 0);
+      if (s.fd < 0)
+	sound_perror ("Open sound file");
+
+      /* Read the first bytes from the file.  */
+      s.header_size = emacs_read (s.fd, s.header, MAX_SOUND_HEADER_BYTES);
+      if (s.header_size < 0)
+	sound_perror ("Reading sound file header");
+    }
+  else
+    {
+      s.data = attrs[SOUND_DATA];
+      bcopy (XSTRING (s.data)->data, s.header,
+	     min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data))));
     }
 
-  /* Open the sound file.  */
-  sf.fd = openp (Fcons (Vdata_directory, Qnil),
-		 attrs[SOUND_FILE], "", &file, 0);
-  if (sf.fd < 0)
-    sound_perror ("Open sound file");
-
-  /* Read the first bytes from the file.  */
-  nbytes = emacs_read (sf.fd, sf.header, MAX_SOUND_HEADER_BYTES);
-  if (nbytes < 0)
-    sound_perror ("Reading sound file header");
-
-  /* Find out the type of sound file.  Give up if we can't tell.  */
-  find_sound_file_type (&sf);
+  /* Find out the type of sound.  Give up if we can't tell.  */
+  find_sound_type (&s);
 
   /* Set up a device.  */
   if (STRINGP (attrs[SOUND_DEVICE]))
@@ -392,6 +410,7 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
       sd.file = (char *) alloca (len + 1);
       strcpy (sd.file, XSTRING (attrs[SOUND_DEVICE])->data);
     }
+  
   if (INTEGERP (attrs[SOUND_VOLUME]))
     sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
   else if (FLOATP (attrs[SOUND_VOLUME]))
@@ -401,15 +420,30 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
   args[1] = sound;
   Frun_hook_with_args (make_number (2), args);
 
+  /* There is only one type of device we currently support, the VOX
+     sound driver.  Set up the device interface functions for that
+     device.  */
   vox_init (&sd);
+
+  /* Open the device.  */
   sd.open (&sd);
 
-  sf.play (&sf, &sd);
-  emacs_close (sf.fd);
-  sf.fd = -1;
+  /* Play the sound.  */
+  s.play (&s, &sd);
+
+  /* Close the input file, if any.  */
+  if (!STRINGP (s.data))
+    {
+      emacs_close (s.fd);
+      s.fd = -1;
+    }
+
+  /* Close the device.  */
   sd.close (&sd);
-  sound_device = NULL;
-  sound_file = NULL;
+
+  /* Clean up.  */
+  current_sound_device = NULL;
+  current_sound = NULL;
   UNGCPRO;
   unbind_to (count, Qnil);
   return Qnil;
@@ -488,19 +522,20 @@ be2hs (value)
 			  RIFF-WAVE (*.wav)
  ***********************************************************************/
 
-/* Try to initialize sound file SF from SF->header.  SF->header
+/* Try to initialize sound file S from S->header.  S->header
    contains the first MAX_SOUND_HEADER_BYTES number of bytes from the
    sound file.  If the file is a WAV-format file, set up interface
-   functions in SF and convert header fields to host byte-order.
+   functions in S and convert header fields to host byte-order.
    Value is non-zero if the file is a WAV file.  */
 
 static int
-wav_init (sf)
-     struct sound_file *sf;
+wav_init (s)
+     struct sound *s;
 {
-  struct wav_header *header = (struct wav_header *) sf->header;
-  
-  if (bcmp (sf->header, "RIFF", 4) != 0)
+  struct wav_header *header = (struct wav_header *) s->header;
+
+  if (s->header_size < sizeof *header
+      || bcmp (s->header, "RIFF", 4) != 0)
     return 0;
 
   /* WAV files are in little-endian order.  Convert the header
@@ -520,28 +555,25 @@ wav_init (sf)
   header->data_length = le2hl (header->data_length);
 
   /* Set up the interface functions for WAV.  */
-  sf->type = RIFF;
-  sf->play = wav_play;
+  s->type = RIFF;
+  s->play = wav_play;
 
   return 1;
 }  
 
 
-/* Play RIFF-WAVE audio file SF on sound device SD.  */
+/* Play RIFF-WAVE audio file S on sound device SD.  */
 
 static void
-wav_play (sf, sd)
-     struct sound_file *sf;
+wav_play (s, sd)
+     struct sound *s;
      struct sound_device *sd;
 {
-  struct wav_header *header = (struct wav_header *) sf->header;
-  char *buffer;
-  int nbytes;
-  int blksize = 2048;
+  struct wav_header *header = (struct wav_header *) s->header;
 
   /* Let the device choose a suitable device-dependent format
      for the file.  */
-  sd->choose_format (sd, sf);
+  sd->choose_format (sd, s);
   
   /* Configure the device.  */
   sd->sample_size = header->sample_size;
@@ -554,14 +586,24 @@ wav_play (sf, sd)
      actually more complex.  This simple scheme worked with all WAV
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
-  buffer = (char *) alloca (blksize);
-  lseek (sf->fd, sizeof *header, SEEK_SET);
+  if (STRINGP (s->data))
+    sd->write (sd, XSTRING (s->data)->data + sizeof *header,
+	       STRING_BYTES (XSTRING (s->data)) - sizeof *header);
+  else
+    {
+      char *buffer;
+      int nbytes;
+      int blksize = 2048;
+      
+      buffer = (char *) alloca (blksize);
+      lseek (s->fd, sizeof *header, SEEK_SET);
   
-  while ((nbytes = emacs_read (sf->fd, buffer, blksize)) > 0)
-    sd->write (sd, buffer, nbytes);
+      while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
+	sd->write (sd, buffer, nbytes);
 
-  if (nbytes < 0)
-    sound_perror ("Reading sound file");
+      if (nbytes < 0)
+	sound_perror ("Reading sound file");
+    }
 }
 
 
@@ -585,19 +627,20 @@ enum au_encoding
 };
 
 
-/* Try to initialize sound file SF from SF->header.  SF->header
+/* Try to initialize sound file S from S->header.  S->header
    contains the first MAX_SOUND_HEADER_BYTES number of bytes from the
    sound file.  If the file is a AU-format file, set up interface
-   functions in SF and convert header fields to host byte-order.
+   functions in S and convert header fields to host byte-order.
    Value is non-zero if the file is an AU file.  */
 
 static int
-au_init (sf)
-     struct sound_file *sf;
+au_init (s)
+     struct sound *s;
 {
-  struct au_header *header = (struct au_header *) sf->header;
+  struct au_header *header = (struct au_header *) s->header;
   
-  if (bcmp (sf->header, ".snd", 4) != 0)
+  if (s->header_size < sizeof *header
+      || bcmp (s->header, ".snd", 4) != 0)
     return 0;
   
   header->magic_number = be2hl (header->magic_number);
@@ -608,42 +651,49 @@ au_init (sf)
   header->channels = be2hl (header->channels);
   
   /* Set up the interface functions for AU.  */
-  sf->type = SUN_AUDIO;
-  sf->play = au_play;
+  s->type = SUN_AUDIO;
+  s->play = au_play;
 
   return 1;
 }
 
 
-/* Play Sun audio file SF on sound device SD.  */
+/* Play Sun audio file S on sound device SD.  */
 
 static void
-au_play (sf, sd)
-     struct sound_file *sf;
+au_play (s, sd)
+     struct sound *s;
      struct sound_device *sd;
 {
-  struct au_header *header = (struct au_header *) sf->header;
-  int blksize = 2048;
-  char *buffer;
-  int nbytes;
+  struct au_header *header = (struct au_header *) s->header;
 
   sd->sample_size = 0;
   sd->sample_rate = header->sample_rate;
   sd->bps = 0;
   sd->channels = header->channels;
-  sd->choose_format (sd, sf);
+  sd->choose_format (sd, s);
   sd->configure (sd);
-      
-  /* Seek */
-  lseek (sf->fd, header->data_offset, SEEK_SET);
-  
-  /* Copy sound data to the device.  */
-  buffer = (char *) alloca (blksize);
-  while ((nbytes = emacs_read (sf->fd, buffer, blksize)) > 0)
-    sd->write (sd, buffer, nbytes);
 
-  if (nbytes < 0)
-    sound_perror ("Reading sound file");
+  if (STRINGP (s->data))
+    sd->write (sd, XSTRING (s->data)->data + header->data_offset,
+	       STRING_BYTES (XSTRING (s->data)) - header->data_offset);
+  else
+    {
+      int blksize = 2048;
+      char *buffer;
+      int nbytes;
+      
+      /* Seek */
+      lseek (s->fd, header->data_offset, SEEK_SET);
+  
+      /* Copy sound data to the device.  */
+      buffer = (char *) alloca (blksize);
+      while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
+	sd->write (sd, buffer, nbytes);
+      
+      if (nbytes < 0)
+	sound_perror ("Reading sound file");
+    }
 }
 
 
@@ -737,16 +787,16 @@ vox_close (sd)
 }
 
 
-/* Choose device-dependent format for device SD from sound file SF.  */
+/* Choose device-dependent format for device SD from sound file S.  */
 
 static void
-vox_choose_format (sd, sf)
+vox_choose_format (sd, s)
      struct sound_device *sd;
-     struct sound_file *sf;
+     struct sound *s;
 {
-  if (sf->type == RIFF)
+  if (s->type == RIFF)
     {
-      struct wav_header *h = (struct wav_header *) sf->header;
+      struct wav_header *h = (struct wav_header *) s->header;
       if (h->precision == 8)
 	sd->format = AFMT_U8;
       else if (h->precision == 16)
@@ -754,9 +804,9 @@ vox_choose_format (sd, sf)
       else
 	error ("Unsupported WAV file format");
     }
-  else if (sf->type == SUN_AUDIO)
+  else if (s->type == SUN_AUDIO)
     {
-      struct au_header *header = (struct au_header *) sf->header;
+      struct au_header *header = (struct au_header *) s->header;
       switch (header->encoding)
 	{
 	case AU_ENCODING_ULAW_8:
