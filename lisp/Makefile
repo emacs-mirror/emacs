@@ -12,7 +12,7 @@ dontcompilefiles: forms-d2.el forms-pass.el
 dontcompilefiles: latin-1.el latin-2.el latin-3.el latin-4.el latin-5.el
 dontcompilefiles: loaddefs.el loadup.el mule-conf.el patcomp.el
 dontcompilefiles: paths.el sc.el subdirs.el term-nasty.el version.el 
-dontcompilefiles: generic-x.el
+dontcompilefiles: generic-x.el latin-8.el latin-9.el
 
 doit:
 
