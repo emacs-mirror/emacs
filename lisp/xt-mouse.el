@@ -100,6 +100,9 @@
 (defvar xterm-mouse-y 0
   "Position of last xterm mouse event relative to the frame.")
 
+;; Indicator for the xterm-mouse mode.
+(defvar xterm-mouse-mode nil)
+
 (defadvice mouse-position (around xterm-mouse activate)
   "Use last key from xterm-mouse-mode if available."
   (let ((answer ad-do-it))
@@ -140,9 +143,6 @@
     (list mouse
 	  (list window pos point
 		(/ (nth 2 (current-time)) 1000)))))
-
-;; Indicator for the xterm-mouse mode.
-(defvar xterm-mouse-mode nil)
 
 (or (assq 'xterm-mouse-mode minor-mode-alist)
     (setq minor-mode-alist
