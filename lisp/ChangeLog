@@ -1,3 +1,13 @@
+2003-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Call
+	ucs-set-table-for-input for all buffers that don't have local
+	value of buffer-file-coding-system.
+
+	* international/ucs-tables.el (ucs-set-table-for-input): If
+	translation-table-for-encode is a symbol, get its
+	translation-table property.
+
 2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ffap.el (ffap-read-file-or-url): Eliminate reliance of the call
