@@ -1,5 +1,8 @@
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (split_font_name): Use the right field when
+	checking for `[...]' syntax.
+
 	* buffer.c (copy_overlays): New function.
 	(clone_per_buffer_values): Use it.
 

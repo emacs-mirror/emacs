@@ -1,5 +1,8 @@
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* tooltip.el (tooltip) <defgroup>: Put it in `gud' group instead
+	of `c'.
+
 	* textmodes/outline.el (outline-font-lock-level): Remove the
 	condition-case, test what outline-level returns instead, to ease
 	debugging.
