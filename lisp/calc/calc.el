@@ -3221,6 +3221,7 @@ See calc-keypad for details."
      ("\\cal") ("\\mit") ("\\Cal") ("\\Bbb") ("\\frak") ("\\goth")
      ("\\evalto")
      ("\\matrix" mat) ("\\bmatrix" mat) ("\\pmatrix" mat)
+     ("\\begin" begenv)
      ("\\cr" punc ";") ("\\\\" punc ";") ("\\*" punc "*")
      ("\\{" punc "[") ("\\}" punc "]")
 ))
