@@ -1401,6 +1401,7 @@ calc-kill calc-kill-region calc-yank))))
            (and (>= last-command-char 0) (< last-command-char ? )
                 (not (eq last-command-char meta-prefix-char)))))
      (calc-wrapper))  ; clear flags if not a Calc command.
+  (setq prefix-arg arg)
   (calc-unread-command)
   (setq overriding-terminal-local-map nil))
 
