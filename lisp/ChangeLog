@@ -1,3 +1,11 @@
+2004-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-name-non-special): There are more operations
+	which need handling: `find-backup-file-name',
+	`insert-file-contents', `verify-visited-file-modtime',
+	`write-region'.  Rename t value of method to `add'.  Add new
+	methods `quote' and `unquote-then-quote' to file-arg-indices.
+
 2004-05-25  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-toc): Call Info-mode on intermediate buffer.
