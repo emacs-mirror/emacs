@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,89,93,94,95,96 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -435,6 +435,7 @@ Lisp_Object Qmake_frame_visible;
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
+Lisp_Object Qtimer_event;
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -467,10 +468,14 @@ extern Lisp_Object Qmenu_enable;
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
+EMACS_TIME timer_check ();
 
 extern char *x_get_keysym_name ();
 
 Lisp_Object Qpolling_period;
+
+/* List of active timers.  Appears in order of next scheduled event.  */
+Lisp_Object Vtimer_list;
 
 extern Lisp_Object Vprint_level, Vprint_length;
 
@@ -1883,11 +1888,25 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
-	  int delay = delay_level * XFASTINT (Vauto_save_timeout) / 4;
+	  EMACS_TIME timer_delay;
+	  EMACS_TIME delay, difference;
+
+	  EMACS_SET_SECS (delay,
+			  delay_level * XFASTINT (Vauto_save_timeout) / 4);
+	  EMACS_SET_USECS (delay, 0);
+
+	  /* Don't wait longer than until the next timer will fire.  */
+	  timer_delay = timer_check (0);
+	  if (! EMACS_TIME_NEG_P (timer_delay))
+	    {
+	      EMACS_SUB_TIME (difference, timer_delay, delay);
+	      if (EMACS_TIME_NEG_P (difference))
+		delay = timer_delay;
+	    }
 
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (delay, 0, 1, 1);
+	  tem0 = sit_for (EMACS_SECS (delay), EMACS_USECS (delay), 1, 1);
 	  restore_getcjmp (save_jump);
 
 	  if (EQ (tem0, Qt))
@@ -2322,6 +2341,7 @@ some_mouse_moved ()
 static int
 readable_events ()
 {
+  timer_check (0);
   if (kbd_fetch_ptr != kbd_store_ptr)
     return 1;
 #ifdef HAVE_MOUSE
@@ -2501,6 +2521,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 {
   register int c;
   Lisp_Object obj;
+  EMACS_TIME next_timer_delay;
 
   if (noninteractive)
     {
@@ -2519,6 +2540,17 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
+
+      /* Check when the next timer fires.  */
+      next_timer_delay = timer_check (0);
+      if (EMACS_SECS (next_timer_delay) == 0
+	  && EMACS_USECS (next_timer_delay) == 0)
+	break;
+      if (EMACS_TIME_NEG_P (next_timer_delay))
+	{
+	  EMACS_SET_SECS (next_timer_delay, 0);
+	  EMACS_SET_USECS (next_timer_delay, 0);
+	}
 
       /* If the quit flag is set, then read_char will return
 	 quit_char, so that counts as "available input."  */
@@ -2545,7 +2577,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	Lisp_Object minus_one;
 
 	XSETINT (minus_one, -1);
-	wait_reading_process_input (0, 0, minus_one, 1);
+	wait_reading_process_input (EMACS_SECS (next_timer_delay),
+				    EMACS_USECS (next_timer_delay),
+				    minus_one, 1);
 
 	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	  /* Pass 1 for EXPECT since we just waited to have input.  */
@@ -2828,6 +2862,83 @@ swallow_events ()
     }
 
   get_input_pending (&input_pending);
+}
+
+/* Check whether a timer has fired.  To prevent larger problems we simply
+   disregard elements that are not proper timers.  Do not make a circular
+   timer list for the time being.
+
+   Returns the number of seconds to wait until the next timer fires.  If a
+   timer is triggering now, return zero seconds.
+   If no timer is active, return -1 seconds.
+
+   If a timer is triggering now, either queue a timer-event
+   or run the timer's handler function if DO_IT_NOW is nonzero.  */
+
+EMACS_TIME
+timer_check (do_it_now)
+     int do_it_now;
+{
+  EMACS_TIME nexttime;
+  EMACS_TIME now;
+  Lisp_Object timers = Vtimer_list;
+
+  EMACS_GET_TIME (now);
+  EMACS_SET_SECS (nexttime, -1);
+  EMACS_SET_USECS (nexttime, -1);
+
+  while (CONSP (timers))
+    {
+      int triggertime;
+      Lisp_Object timer, *vector;
+      EMACS_TIME timer_time;
+      EMACS_TIME difference;
+
+      timer = XCONS (timers)->car;
+      timers = XCONS (timers)->cdr;
+
+      if (!VECTORP (timer) || XVECTOR (timer)->size != 7)
+	continue;
+      vector = XVECTOR (timer)->contents;
+
+      if (!INTEGERP (vector[1]) || !INTEGERP (vector[2])
+	  || !INTEGERP (vector[3]))
+	continue;
+
+      EMACS_SET_SECS (timer_time,
+		      (XINT (vector[1]) << 16) | (XINT (vector[2])));
+      EMACS_SET_USECS (timer_time, XINT (vector[3]));
+      EMACS_SUB_TIME (difference, timer_time, now);
+      if (EMACS_TIME_NEG_P (difference))
+	{
+	  if (NILP (vector[0]))
+	    {
+	      if (do_it_now)
+		apply1 (vector[5], vector[6]);
+	      else
+		{
+		  struct input_event event;
+
+		  event.kind = timer_event;
+		  event.modifiers = 0;
+		  event.x = event.y = Qnil;
+		  event.timestamp = triggertime;
+		  /* Store the timer in the frame slot.  */
+		  event.frame_or_window = Fcons (Fselected_frame (), timer);
+		  kbd_buffer_store_event (&event);
+
+		  /* Mark the timer as triggered to prevent problems if the lisp
+		     code fails to reschedule it right.  */
+		  vector[0] = Qt;
+		  EMACS_SET_SECS (nexttime, 0);
+		  EMACS_SET_USECS (nexttime, 0);
+		}
+	    }
+	}
+      else
+	return difference;
+    }
+  return nexttime;
 }
 
 /* Caches for modify_event_symbol.  */
@@ -3296,6 +3407,9 @@ make_lispy_event (event)
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
       break;
+
+    case timer_event:
+      return Fcons (Qtimer_event, Fcdr (event->frame_or_window));
 
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
@@ -7299,6 +7413,8 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
+  Qtimer_event = intern ("timer-event");
+  staticpro (&Qtimer_event);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
@@ -7664,6 +7780,10 @@ If the value is non-nil and not a number, we wait 2 seconds.");
   DEFVAR_LISP ("column-number-mode", &Vcolumn_number_mode,
     "Non-nil enables display of the current column number in the mode line.");
   Vcolumn_number_mode = Qnil;
+
+  DEFVAR_LISP ("timer-list", &Vtimer_list,
+    "List of active timers in order of increasing time");
+  Vtimer_list = Qnil;
 }
 
 keys_of_keyboard ()
