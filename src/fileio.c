@@ -5662,7 +5662,7 @@ DIR defaults to current buffer's directory default.")
 
   GCPRO2 (insdef, default_filename);
   
-#ifdef USE_MOTIF
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && have_menus_p ())
@@ -5675,7 +5675,8 @@ DIR defaults to current buffer's directory default.")
 	  default_filename = file;
 	  dir = Ffile_name_directory (dir);
 	}
-      default_filename = Fexpand_file_name (default_filename, dir);
+      if (!NILP(default_filename))
+        default_filename = Fexpand_file_name (default_filename, dir);
       val = Fx_file_dialog (prompt, dir, default_filename, mustmatch);
       add_to_history = 1;
     }
