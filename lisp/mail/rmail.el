@@ -201,10 +201,13 @@ that file, but does not copy any new mail into the file."
 	  (progn
 	    (rmail-set-message-counters)
 	    (rmail-show-message))))
-    (rmail-get-new-mail)
-    ;; Show the first unseen message, which might be from a previous session
-    ;; or might have been just read in by rmail-get-new-mail.
-    (rmail-first-unseen-message)))
+    (let ((existing-unseen (rmail-first-unseen-message)))
+      (rmail-get-new-mail)
+      ;; Show the first unseen message, which might be from a previous session
+      ;; or might have been just read in by rmail-get-new-mail.  Must
+      ;; determine already unseen messages first, as rmail-get-new-mail
+      ;; positions on the first new messsage, thus marking it as seen.
+      (rmail-show-message existing-unseen))))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.
 ;; This is turned off because it is not clear that the user wants
@@ -1261,6 +1264,12 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   (rmail-search regexp (- (or n -1))))
 
+(defun glofp ()
+  (interactive)
+  (let ((new (1+ (string-to-int (buffer-substring (1- (point)) (point))))))
+    (backward-delete-char 1)
+    (insert (int-to-string new))))
+
 ;; Show the first message which has the `unseen' attribute.
 (defun rmail-first-unseen-message ()
   (let ((current 1)
@@ -1271,8 +1280,10 @@ Interactively, empty argument means use same regexp used last time."
 	(if (rmail-message-labels-p current ", ?\\(unseen\\),")
 	    (setq found current))
 	(setq current (1+ current))))
-    (if found
-	(rmail-show-message found))))
+;; Let the caller show the message.
+;;    (if found
+;;	(rmail-show-message found))
+    found))
 
 ;;;; *** Rmail Message Deletion Commands ***
 
