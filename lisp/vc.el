@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.302 2001/07/30 08:18:04 gerd Exp $
+;; $Id: vc.el,v 1.303 2001/07/30 15:01:49 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1427,7 +1427,9 @@ for vc-log-operation-hook."
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
-REV defaults to the latest revision."
+REV defaults to the latest revision.
+
+After check-out, runs the normal hook `vc-checkout-hook'."
   (and writable
        (not rev)
        (vc-call make-version-backups-p file)
