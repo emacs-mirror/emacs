@@ -1,3 +1,27 @@
+2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.25 released.
+	(tramp-handle-file-truename): If it's a directory,
+	append slash only if result doesn't end in a slash already.
+	(tramp-handle-file-truename): Restructure logic.  If list of steps
+	is nil, return "/" as the real name.
+	(tramp-completion-mode): Add "\\(" and "\\)". Otherwise,
+	`match-string' doesn't make sense.  From Michael Albinus.
+	(tramp-host-with-port-regexp): New defcustom. Equal to previous
+	`tramp-host-regexp'.  From Michael Albinus.
+	(tramp-host-regexp): Taken off hashes in host names. Otherwise,
+	scanning files like .rhosts would take comments as host names.
+	From Michael Albinus.
+	(tramp-file-name-structure, tramp-multi-file-name-hop-structure):
+	Replace `tramp-host-regexp' by `tramp-host-with-port-regexp'.
+	From Michael Albinus.
+	(tramp-action-terminal): New function.
+	(tramp-terminal-prompt-regexp): New variable, matches "tset"
+	prompts.
+	(tramp-actions-before-shell): Use them.
+	(tramp-handle-shell-command): Logic error.  From Ivan
+	Zakharyaschev <imz@altlinux.org>.
+
 2002-10-06  Markus Holmberg <markush@acc.umu.se>  (tiny change)
 
 	* thingatpt.el (thing-at-point-uri-schemes): New variable.

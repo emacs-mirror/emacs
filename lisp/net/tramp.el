@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.24"
+(defconst tramp-version "2.0.25"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -841,7 +841,18 @@ The regexp should match at end of buffer.
 See also `tramp-yesno-prompt-regexp'."
   :group 'tramp
   :type 'regexp)
-  
+
+(defcustom tramp-terminal-prompt-regexp
+  (concat "\\("
+	  "TERM = (.*)"
+	  "\\|"
+	  "Terminal type\\? \\[.*\\]"
+	  "\\)\\s-*")
+  "Regular expression matching all terminal setting prompts.
+The regexp should match at end of buffer.
+The answer will be provided by `tramp-action-terminal', which see."
+  :group 'tramp
+  :type 'regexp)
 
 (defcustom tramp-temp-name-prefix "tramp."
   "*Prefix to use for temporary files.
@@ -962,6 +973,12 @@ Derived from `tramp-postfix-user-format'."
   :type 'regexp)
 
 (defcustom tramp-host-regexp
+  "[a-zA-Z0-9_.-]*"
+  "*Regexp matching host names."
+  :group 'tramp
+  :type 'regexp)
+
+(defcustom tramp-host-with-port-regexp
   "[a-zA-Z0-9_.#-]*"
   "*Regexp matching host names."
   :group 'tramp
@@ -994,9 +1011,9 @@ Derived from `tramp-postfix-host-format'."
    (concat
     tramp-prefix-regexp
     "\\(" "\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp "\\)?"
-    "\\(" "\\(" tramp-user-regexp   "\\)" tramp-postfix-user-regexp   "\\)?"
-          "\\(" tramp-host-regexp   "\\)" tramp-postfix-host-regexp
-	  "\\(" tramp-path-regexp   "\\)")
+    "\\(" "\\(" tramp-user-regexp "\\)" tramp-postfix-user-regexp   "\\)?"
+          "\\(" tramp-host-with-port-regexp "\\)" tramp-postfix-host-regexp
+	  "\\(" tramp-path-regexp "\\)")
    2 4 5 6)
 
   "*List of five elements (REGEXP METHOD USER HOST FILE), detailing \
@@ -1127,8 +1144,8 @@ string, but I haven't actually tried what happens if it doesn't..."
   (list
    (concat
     "\\(" tramp-method-regexp "\\)" tramp-postfix-multi-method-regexp
-    "\\(" tramp-user-regexp   "\\)" tramp-postfix-user-regexp
-    "\\(" tramp-host-regexp   "\\)")
+    "\\(" tramp-user-regexp "\\)" tramp-postfix-user-regexp
+    "\\(" tramp-host-with-port-regexp "\\)")
    1 2 3)
   "*Describes the structure of a hop in multi files.
 This is a list of four elements (REGEXP METHOD USER HOST).  First
@@ -1200,7 +1217,8 @@ but it might be slow on large directories."
     (tramp-shell-prompt-pattern tramp-action-succeed)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-yesno-prompt-regexp tramp-action-yesno)
-    (tramp-yn-prompt-regexp tramp-action-yn))
+    (tramp-yn-prompt-regexp tramp-action-yn)
+    (tramp-terminal-prompt-regexp tramp-action-terminal))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
 Each item looks like (PATTERN ACTION).
@@ -1889,14 +1907,19 @@ target of the symlink differ."
       (when (>= numchase numchase-limit)
 	(error "Maximum number (%d) of symlinks exceeded" numchase-limit))
       (setq result (reverse result))
+      ;; Combine list to form string.
+      (setq result
+	    (if result
+		(mapconcat 'identity (cons "" result) "/")
+	      "/"))
+      (when (and is-dir (or (string= "" result)
+			    (not (string= (substring result -1) "/"))))
+	(setq result (concat result "/")))
       (tramp-message-for-buffer
        multi-method method user host
-       10 "True name of `%s' is `%s'"
-       filename (mapconcat 'identity (cons "" result) "/"))
+       10 "True name of `%s' is `%s'" filename result)
       (tramp-make-tramp-file-name
-       multi-method method user host
-       (concat (mapconcat 'identity (cons "" result) "/")
-	       (if is-dir "/" ""))))))
+       multi-method method user host result))))
 
 ;; Basic functions.
 
@@ -2910,60 +2933,60 @@ Doesn't do anything if the NAME does not start with a drive letter."
   "Like `shell-command' for tramp files.
 This will break if COMMAND prints a newline, followed by the value of
 `tramp-end-of-output', followed by another newline."
-  (when (tramp-tramp-file-p default-directory)
-    (with-parsed-tramp-file-name default-directory nil
-      (when (tramp-ange-ftp-file-name-p multi-method method user host)
-	(let ((default-directory (tramp-make-ange-ftp-file-name
-				  user host path)))
-	  (tramp-invoke-ange-ftp 'shell-command
-				 command output-buffer error-buffer)))
-      (let (status)
-	(when (string-match "&[ \t]*\\'" command)
-	  (error "Tramp doesn't grok asynchronous shell commands, yet"))
-	(when error-buffer
-	  (error "Tramp doesn't grok optional third arg ERROR-BUFFER, yet"))
-	(save-excursion
-	  (tramp-barf-unless-okay
-	   multi-method method user host
-	   (format "cd %s" (tramp-shell-quote-argument path))
-	   nil 'file-error
-	   "tramp-handle-shell-command: Couldn't `cd %s'"
-	   (tramp-shell-quote-argument path))
-	  (tramp-send-command multi-method method user host
-			      (concat command "; tramp_old_status=$?"))
-	  ;; This will break if the shell command prints "/////"
-	  ;; somewhere.  Let's just hope for the best...
-	  (tramp-wait-for-output))
-	(unless output-buffer
-	  (setq output-buffer (get-buffer-create "*Shell Command Output*"))
+  (if (tramp-tramp-file-p default-directory)
+      (with-parsed-tramp-file-name default-directory nil
+	(when (tramp-ange-ftp-file-name-p multi-method method user host)
+	  (let ((default-directory (tramp-make-ange-ftp-file-name
+				    user host path)))
+	    (tramp-invoke-ange-ftp 'shell-command
+				   command output-buffer error-buffer)))
+	(let (status)
+	  (when (string-match "&[ \t]*\\'" command)
+	    (error "Tramp doesn't grok asynchronous shell commands, yet"))
+	  (when error-buffer
+	    (error "Tramp doesn't grok optional third arg ERROR-BUFFER, yet"))
+	  (save-excursion
+	    (tramp-barf-unless-okay
+	     multi-method method user host
+	     (format "cd %s" (tramp-shell-quote-argument path))
+	     nil 'file-error
+	     "tramp-handle-shell-command: Couldn't `cd %s'"
+	     (tramp-shell-quote-argument path))
+	    (tramp-send-command multi-method method user host
+				(concat command "; tramp_old_status=$?"))
+	    ;; This will break if the shell command prints "/////"
+	    ;; somewhere.  Let's just hope for the best...
+	    (tramp-wait-for-output))
+	  (unless output-buffer
+	    (setq output-buffer (get-buffer-create "*Shell Command Output*"))
+	    (set-buffer output-buffer)
+	    (erase-buffer))
+	  (unless (bufferp output-buffer)
+	    (setq output-buffer (current-buffer)))
 	  (set-buffer output-buffer)
-	  (erase-buffer))
-	(unless (bufferp output-buffer)
-	  (setq output-buffer (current-buffer)))
-	(set-buffer output-buffer)
-	(insert-buffer (tramp-get-buffer multi-method method user host))
-	(save-excursion
-	  (tramp-send-command multi-method method user host "cd")
-	  (tramp-wait-for-output)
-	  (tramp-send-command
-	   multi-method method user host
-	   (concat "tramp_set_exit_status $tramp_old_status;"
-		   " echo tramp_exit_status $?"))
-	  (tramp-wait-for-output)
-	  (goto-char (point-max))
-	  (unless (search-backward "tramp_exit_status " nil t)
-	    (error "Couldn't find exit status of `%s'" command))
-	  (skip-chars-forward "^ ")
-	  (setq status (read (current-buffer))))
-	(unless (zerop (buffer-size))
-	  (pop-to-buffer output-buffer))
-	status)))
-  ;; The following is only executed if something strange was
-  ;; happening.  Emit a helpful message and do it anyway.
-  (message "tramp-handle-shell-command called with non-tramp directory: `%s'"
-	   default-directory)
-  (tramp-run-real-handler 'shell-command
-			  (list command output-buffer error-buffer)))
+	  (insert-buffer (tramp-get-buffer multi-method method user host))
+	  (save-excursion
+	    (tramp-send-command multi-method method user host "cd")
+	    (tramp-wait-for-output)
+	    (tramp-send-command
+	     multi-method method user host
+	     (concat "tramp_set_exit_status $tramp_old_status;"
+		     " echo tramp_exit_status $?"))
+	    (tramp-wait-for-output)
+	    (goto-char (point-max))
+	    (unless (search-backward "tramp_exit_status " nil t)
+	      (error "Couldn't find exit status of `%s'" command))
+	    (skip-chars-forward "^ ")
+	    (setq status (read (current-buffer))))
+	  (unless (zerop (buffer-size))
+	    (pop-to-buffer output-buffer))
+	  status))
+    ;; The following is only executed if something strange was
+    ;; happening.  Emit a helpful message and do it anyway.
+    (message "tramp-handle-shell-command called with non-tramp directory: `%s'"
+	     default-directory)
+    (tramp-run-real-handler 'shell-command
+			    (list command output-buffer error-buffer))))
 
 ;; File Editing.
 
@@ -3578,9 +3601,8 @@ Return (nil) if arg is nil."
    ((featurep 'xemacs) t)
    ((string-match "^/.*:.*:$" file) nil)
    ((string-match
-     (concat
-      tramp-prefix-regexp
-      tramp-method-regexp tramp-postfix-single-method-regexp "$")
+     (concat tramp-prefix-regexp
+      "\\(" tramp-method-regexp  "\\)" tramp-postfix-single-method-regexp "$")
      file)
     (member (match-string 1 file)
 	    (cons tramp-ftp-method (mapcar 'car tramp-methods))))
@@ -4382,6 +4404,15 @@ See also `tramp-action-yesno'."
       (erase-buffer)
       (throw 'tramp-action 'permission-denied))
     (process-send-string p (concat "y" tramp-rsh-end-of-line))))
+
+(defun tramp-action-terminal (p multi-method method user host)
+  "Tell the remote host which terminal type to use.
+The terminal type can be configured with `tramp-terminal-type'."
+  (tramp-message 9 "Setting `%s' as terminal type."
+		 tramp-terminal-type)
+  (erase-buffer)
+  (process-send-string nil (concat tramp-terminal-type
+				   tramp-rsh-end-of-line)))
 
 ;; The following functions are specifically for multi connections.
 
