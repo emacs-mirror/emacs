@@ -1,3 +1,14 @@
+2004-06-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fdelete_process): Undo 2004-05-28 change.
+	Instead, call status_notify also for network process.
+	(status_message): Use process instead of status as arg.
+	Give messages "deleted" or "connection broken by remote peer" for
+	an exited network process.
+	(status_notify): Change call to status_message.
+	(read_process_output): Increase readmax to 4096.  Do not increase
+	buffer size for datagram channels (default is now large enough).
+
 2004-06-06  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
 	* macfns.c (x_create_tip_frame): Fix Mac OS X 10.1 compilation
