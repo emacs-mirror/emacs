@@ -19,7 +19,7 @@
 	eight-bit-control chars.
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-ccl):
-	Reduce making temporary vector (suggested by by Dave Love).
+	Reduce making temporary vector (suggested by Dave Love).
 
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
