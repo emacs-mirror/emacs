@@ -30,9 +30,12 @@ extern int poll_suppress_count;
    Initialized by the terminal-specific lisp files.  */
 extern Lisp_Object Vfunction_key_map;
 
-/* Buffer holding the key that invoked the current command.  */
-extern Lisp_Object *this_command_keys;
-extern int this_command_key_count;	/* Size in use.  */
+/* Vector holding the key sequence that invoked the current command.
+   It is reused for each command, and it may be longer than the current
+   sequence; this_command_key_count indicates how many elements
+   actually mean something.  */
+extern Lisp_Object this_command_keys;
+extern int this_command_key_count;
 
 
 /* Macros for dealing with lispy events.  */
