@@ -3,6 +3,7 @@
 ;;
 ;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 8 Oct 1993
+;; Lindberg's last update version: 3.27
 ;; Keywords: mouse buffer menu 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,7 +52,8 @@
 ;;   Also check out the variable `msb-display-invisible-buffers-p'.
 
 ;; Known bugs:
-;; - `msb' does not work on a non-X-toolkit Emacs.
+;; - Files-by-directory
+;;   + No possibility to show client/changed buffers separately
 ;; Future enhancements:
 ;; - [Mattes] had a suggestion about sorting files by extension.
 ;;   I (Lars Lindberg) think this case could be solved if msb.el was
@@ -211,10 +213,9 @@ The separators will appear between all menus that have a sorting key that differ
 (defvar msb-files-by-directory-sort-key 0
   "*The sort key for files sorted by directory")
 
-(defvar msb-max-menu-items 25
+(defvar msb-max-menu-items 15
   "*The maximum number of items in a menu.
-If this variable is set to 15 for instance, then the 15 latest used
-buffer that fits in a certain submenu will appear in that submenu.
+If this variable is set to 15 for instance, then the submenu will be split up in minor parts, 15 items each.
 Nil means no limit.")
 
 (defvar msb-max-file-menu-items 10
@@ -224,15 +225,17 @@ When the menu is of type `file by directory', this is the maximum
 number of buffers that are clumped togehter from different
 directories.
 
+Set this to 1 if you want one menu per directory instead of clumping
+them together.
+
 If the value is not a number, then the value 10 is used.")
 
 (defvar msb-most-recently-used-sort-key -1010
   "*Where should the menu with the most recently used buffers be placed?")
 
-(defvar msb-display-most-recently-used t
+(defvar msb-display-most-recently-used 15
   "*How many buffers should be in the most-recently-used menu.
-No buffers at all if less than 1 or nil.
-T means use the value of `msb-max-menu-items' in the way it is defined.")
+ No buffers at all if less than 1 or nil (or any non-number).")
 
 (defvar msb-most-recently-used-title "Most recently used (%d)"
   "*The title for the most-recently-used menu.")
@@ -252,6 +255,9 @@ names that starts with a space character.")
 The default function to call for handling the appearance of a menu
 item.  It should take to arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,
 where the latter is the max length of all buffer names.
+
+The function should return the string to use in the menu.
+
 When the function is called, BUFFER is the current buffer.
 This function is called for items in the variable `msb-menu-cond' that
 have nil as ITEM-HANDLING-FUNCTION.  See `msb-menu-cond' for more
@@ -331,7 +337,7 @@ error every time you do \\[msb].")
 (defvar msb--error nil)
 
 ;;;
-;;; Some example function to be used for `msb-item-sort-function'.
+;;; Some example function to be used for `msb-item-handling-function'.
 ;;;
 (defun msb-item-handler (buffer &optional maxbuf)
   "Create one string item, concerning BUFFER, for the buffer menu.
@@ -386,7 +392,7 @@ The `#' appears only version control file (SCCS/RCS)."
           (or buffer-file-name "")))
 
 ;;;
-;;; Some example function to be used for `msb-item-handling-function'.
+;;; Some example function to be used for `msb-item-sort-function'.
 ;;;
 (defun msb-sort-by-name (item1 item2)
   "Sorts the items depending on their buffer-name
@@ -417,10 +423,9 @@ See the function `mouse-select-buffer' and the variable
   (interactive "e")
   (let ((buffer (mouse-select-buffer event))
 	(window (posn-window (event-start event))))
-    (cond
-     (buffer
-      (or (framep window) (select-window window))
-      (switch-to-buffer (car (cdr buffer))))))
+    (when buffer
+      (unless (framep window) (select-window window))
+      (switch-to-buffer buffer)))
   nil)
 
 ;;;
@@ -463,8 +468,6 @@ If the argument is left out or nil, then the current buffer is considered."
 	       (lambda (item)
 		 (cond
 		  ((and path
-			msb-max-menu-items
-			(< (length buffers) msb-max-menu-items)
 			(string= path (car item)))
 		   (push (cdr item) buffers)
 		   nil)
@@ -507,10 +510,14 @@ If the argument is left out or nil, then the current buffer is considered."
 	(cond
 	 ((> (length buffers) max-clumped-together)
 	  (setq last-path (car first))
-	  (when top-found-p
-	    (setq first (cons (concat (car first) "/...")
-			      (cdr first)))
-	    (setq top-found-p nil))
+	  (setq first
+		(cons (format (if top-found-p
+				  "%s/... (%d)"
+				"%s (%d)")
+			      (car first)
+			      (length (cdr first)))
+		      (cdr first)))
+	  (setq top-found-p nil)
 	  (push first final-list)
 	  (setq first (car rest)
 		rest (cdr rest))
@@ -531,22 +538,27 @@ If the argument is left out or nil, then the current buffer is considered."
 			      (string= path
 				       (substring last-path 0 (length path))))))
 			 
-	    (when top-found-p
-	      (setq first (cons (concat (car first) "/...")
-				(cdr first)))
-	      (setq top-found-p nil))
+	    (setq first
+		  (cons (format (if top-found-p
+				    "%s/... (%d)"
+				  "%s (%d)")
+				(car first)
+				(length (cdr first)))
+			(cdr first)))
+	    (setq top-found-p nil)
 	    (push first final-list)
 	    (setq first (car rest)
 		  rest (cdr rest))
 	    (setq path (car first)
 		buffers (cdr first)))))))
-    (when top-found-p
-      (setq first (cons (concat (car first)
-				(if (string-match "/$" (car first))
-				    "..."
-				  "/..."))
-			(cdr first)))
-      (setq top-found-p nil))
+    (setq first
+	  (cons (format (if top-found-p
+			    "%s/... (%d)"
+			  "%s (%d)")
+			(car first)
+			(length (cdr first)))
+		(cdr first)))
+    (setq top-found-p nil)
     (push first final-list)
     (nreverse final-list)))
 
@@ -604,10 +616,7 @@ If the argument is left out or nil, then the current buffer is considered."
 				  multi-flag))
 			(progn (when (eq result 'multi)
 				 (setq multi-flag t))
-			       t)
-			(or (not msb-max-menu-items)
-			    (< (length (eval (aref fi 0)))
-			       msb-max-menu-items)))
+			       t))
 		collect fi
 		until (and result
 			   (not (eq result 'multi)))))
@@ -672,15 +681,9 @@ If the argument is left out or nil, then the current buffer is considered."
 ;; Returns a list on the form ((TITLE . BUFFER-LIST)) for
 ;; the most recently used buffers.
 (defun msb--most-recently-used-menu (max-buffer-name-length)
-  (when (and msb-display-most-recently-used
-	     (or (not (numberp msb-display-most-recently-used))
-		 (> msb-display-most-recently-used 0)))
-    (let* ((max-in-menu
-	    (if (numberp msb-display-most-recently-used)
-		msb-display-most-recently-used
-	      msb-max-menu-items))
-
-	   (most-recently-used
+  (when (and (numberp msb-display-most-recently-used)
+ 	     (> msb-display-most-recently-used 0))
+    (let* ((most-recently-used
 	    (loop with n = 0
 		  for buffer in (cdr (buffer-list))
 		  if (save-excursion
@@ -694,7 +697,7 @@ If the argument is left out or nil, then the current buffer is considered."
 					   max-buffer-name-length)
 				  buffer))
 		  and do (incf n)
-		  until (and max-in-menu (>= n max-in-menu)))))
+		  until (>= n msb-display-most-recently-used))))
       (cons (if (stringp msb-most-recently-used-title)
 		(format msb-most-recently-used-title
 			(length most-recently-used))
@@ -748,7 +751,11 @@ If the argument is left out or nil, then the current buffer is considered."
 				   (sort
 				    (mapcar (function
 					     (lambda (buffer)
-					       (cons (buffer-name buffer)
+					       (cons (save-excursion
+						       (set-buffer buffer)
+						       (funcall msb-item-handling-function
+							      buffer
+							      max-buffer-name-length))
 						     buffer)))
 					    (cdr buffer-list))
 				    (function
@@ -756,15 +763,14 @@ If the argument is left out or nil, then the current buffer is considered."
 				       (string< (car item1) (car item2)))))))))
 		     (msb--choose-file-menu file-buffers))))
     ;; Now make the menu - a list of (TITLE . BUFFER-LIST)
-    (let* ((buffers (buffer-list))
-	   menu
+    (let* (menu
 	   (most-recently-used
 	    (msb--most-recently-used-menu max-buffer-name-length))
 	   (others (append file-buffers
 			   (loop for elt
-			 across function-info-vector
-			 for value = (msb--create-sort-item elt)
-			 if value collect value))))
+				 across function-info-vector
+				 for value = (msb--create-sort-item elt)
+				 if value collect value))))
       (setq menu
 	    (mapcar 'cdr		;Remove the SORT-KEY
 		    ;; Sort the menus - not the items.
@@ -811,7 +817,7 @@ If the argument is left out or nil, then the current buffer is considered."
   "Pop up several menus of buffers, for selection with the mouse.
 Returns the selected buffer or nil if no buffer is selected.
 
-The way the buffers are splitted is conveniently handled with the
+The way the buffers are split is conveniently handled with the
 variable `msb-menu-cond'."
   ;; Popup the menu and return the selected buffer.
   (when (or msb--error
@@ -820,31 +826,33 @@ variable `msb-menu-cond'."
 	    (frame-or-buffer-changed-p))
     (setq msb--error nil)
     (setq msb--last-buffer-menu (msb--create-buffer-menu)))
-  (let ((position event))
+  (let ((position event)
+	choice)
     (when (and (fboundp 'posn-x-y)
 	       (fboundp 'posn-window))
       (let ((posX (car (posn-x-y (event-start event))))
 	    (posY (cdr (posn-x-y (event-start event))))
-	    (posWind (posn-window (event-start event)))
-	    name)
+	    (posWind (posn-window (event-start event))))
 	;; adjust position
 	(setq posX (- posX (funcall msb-horizontal-shift-function))
 	      position (list (list posX posY) posWind))))
-    (setq name (x-popup-menu position msb--last-buffer-menu))
-    ;; If toggle bring up the
+    (setq choice (x-popup-menu position msb--last-buffer-menu))
     (cond
-     ((eq (car name) 'toggle)
-	(msb--toggle-menu-type)
-	(mouse-select-buffer event))
-     ((and (numberp (car name))
-	   (null (cdr name)))
-      (let ((msb--last-buffer-menu (nthcdr 3 (assq (car name) msb--last-buffer-menu))))
+     ((eq (car choice) 'toggle)
+      ;; Bring up the menu again with type toggled.
+      (msb--toggle-menu-type)
+      (mouse-select-buffer event))
+     ((and (numberp (car choice))
+	   (null (cdr choice)))
+      (let ((msb--last-buffer-menu (nthcdr 3 (assq (car choice) msb--last-buffer-menu))))
 	(mouse-select-buffer event)))
-      ((and (stringp (car name))
-	   (null (cdr name)))
-      (cons nil name))
-      (t
-       name))))
+     ((while (numberp (car choice))
+	(setq choice (cdr choice))))
+     ((and (stringp (car choice))
+	   (null (cdr choice)))
+      (car choice))
+     (t
+      (error "Unknown form for buffer: %s" choice)))))
 		    
 ;; Add separators
 (defun msb--add-separators (sorted-list)
@@ -870,6 +878,37 @@ variable `msb-menu-cond'."
 	    (list item)))))
        sorted-list)))))
 
+(defun msb--split-menus-2 (list mcount result)
+  (cond
+   ((> (length list) msb-max-menu-items)
+    (let ((count 0)
+	  sub-name
+	  (tmp-list nil))
+      (while (< count msb-max-menu-items)
+	(push (pop list) tmp-list)
+	(incf count))
+    (setq tmp-list (nreverse tmp-list))
+    (setq sub-name (concat (car (car tmp-list)) "..."))
+    (push (append (list mcount sub-name
+			'keymap sub-name)
+		  tmp-list)
+	  result))
+    (msb--split-menus-2 list (1+ mcount) result))
+   ((null result)
+    list)
+   (t
+    (let (sub-name)
+      (setq sub-name (concat (car (car list)) "..."))
+      (push (append (list mcount sub-name
+			'keymap sub-name)
+		  list)
+	  result))
+    (nreverse result))))
+    
+(defun msb--split-menus (list)
+ (msb--split-menus-2 list 0 nil))
+
+
 (defun msb--make-keymap-menu (raw-menu)
   (let ((end (cons '(nil) 'menu-bar-select-buffer))
 	(mcount 0))
@@ -880,15 +919,16 @@ variable `msb-menu-cond'."
 	 ((eq 'separator sub-menu)
 	  (list 'separator "---"))
 	 (t
-	  (append (list (incf mcount) (car sub-menu)
-			'keymap (car sub-menu))
-		  (mapcar (function
-			   (lambda (item)
-			     (let ((string (car item))
-				   (buffer (cdr item)))
-			       (cons (buffer-name buffer)
-				     (cons string end)))))
-		   (cdr sub-menu)))))))
+	  (let ((buffers (mapcar (function
+				  (lambda (item)
+				    (let ((string (car item))
+					  (buffer (cdr item)))
+				      (cons (buffer-name buffer)
+					    (cons string end)))))
+				 (cdr sub-menu))))
+	    (append (list (incf mcount) (car sub-menu)
+			  'keymap (car sub-menu))
+		    (msb--split-menus buffers)))))))
      raw-menu)))
 
 (defun menu-bar-update-buffers (&optional arg)
@@ -951,4 +991,3 @@ variable `msb-menu-cond'."
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
 ;;; msb.el ends here
-
