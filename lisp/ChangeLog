@@ -1,3 +1,7 @@
+2003-01-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xml.el (xml-substitute-special): Move "&amp;" -> "&" last.
+
 2003-01-04  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (split-line): If present, copy fill-prefix from
@@ -52,7 +56,7 @@
 
 2003-01-02  Markus Rost  <rost@math.ohio-state.edu>
 
-	* cus-edit.el (customize-group, customize-group-other-window): 
+	* cus-edit.el (customize-group, customize-group-other-window):
 	Call custom-load-symbol unconditionally.
 	(customize-face, customize-face-other-window): Fix format arg.
 
@@ -71,8 +75,8 @@
 
 	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
 	scroll bars correctly default to being on the right for Mac
-	Carbon port 
-	
+	Carbon port
+
 2002-12-29  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-delete-display): Rename (gdb-delete-expression).
@@ -157,7 +161,7 @@
 2002-12-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Use t argument to vc-checkout in
-	order to get the latest version on the current branch.  Update 
+	order to get the latest version on the current branch.  Update
 	documentation of vc-BACKEND-checkout to explain this.
 
 	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
