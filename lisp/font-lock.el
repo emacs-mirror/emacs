@@ -262,7 +262,9 @@ See `font-lock-make-face' and `list-faces-display'."
 		      (list 'font-lock-variable-name-face
 			    (if light-bg "DimGray" "Gray90") nil t t nil)
 		      (list 'font-lock-type-face
-			    (if light-bg "DimGray" "Gray80") nil t nil t)))
+			    (if light-bg "DimGray" "Gray80") nil t nil t)
+		      (list 'font-lock-reference-face
+			    (if light-bg "Gray50" "LightGray") nil t nil t)))
 		    (light-bg		; light colour background
 		     '((font-lock-comment-face "Firebrick")
 		       (font-lock-string-face "RosyBrown")
