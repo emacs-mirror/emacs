@@ -1,12 +1,19 @@
+2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-delay-rationalize-file-buffer-names):
+	Rename from delay-uniquify-rationalize-file-buffer-names.
+	Only rationalize if the buffer is under uniquify control.
+	(uniquify-delayed-rationalize-file-buffer-names):
+	Rename from delayed-uniquify-rationalize-file-buffer-names.
+
 2002-06-27  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-file-name-structure)
-	(tramp-multi-file-name-hop-structure): Split for easier
-	readability. 
+	(tramp-multi-file-name-hop-structure): Split for easier readability.
 	(tramp-handle-make-symbolic-link): Use user/host/method/... from
 	LINKNAME, not FILENAME.
-	(tramp-handle-verify-visited-file-modtime): Call
-	tramp-ange-ftp-file-name-p with right parameters.
+	(tramp-handle-verify-visited-file-modtime):
+	Call tramp-ange-ftp-file-name-p with right parameters.
 	(tramp-handle-verify-visited-file-modtime): `insert' does not
 	work for integers, convert them to strings first.
 	(tramp-handle-ange-ftp): New function to perform setup for
@@ -27,8 +34,7 @@
 2002-06-26  Juanma Barranquero  <lektu@terra.es>
 
 	* info.el (info-menu-5): Fix documentation.
-	(Info-fontify-maximum-menu-size): Remove reference to
-	`Info-fontify'.
+	(Info-fontify-maximum-menu-size): Remove reference to `Info-fontify'.
 
 2002-06-26  Richard M. Stallman  <rms@gnu.org>
 
@@ -52,20 +58,18 @@
 2002-06-25  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-ftp-method): New user option.
-	(tramp-invoke-ange-ftp): New function to forward calls to
-	Ange-FTP.
+	(tramp-invoke-ange-ftp): New function to forward calls to Ange-FTP.
 	(with-parsed-tramp-file-name): New macro for the usual big `let'
 	statement to dissect a file-name.
-	(tramp-handle-make-symbolic-link, tramp-handle-load) 
-	(tramp-handle-file-name-directory) 
-	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename) 
-	(tramp-handle-file-truename, tramp-handle-file-directory-p) 
-	(tramp-handle-file-regular-p, tramp-handle-file-symlink-p) 
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename)
+	(tramp-handle-file-truename, tramp-handle-file-directory-p)
+	(tramp-handle-file-regular-p, tramp-handle-file-symlink-p)
 	(tramp-handle-file-writable-p, tramp-handle-file-writable-p):
-        Use the new macro and forward call to Ange-FTP if applicable.
+	Use the new macro and forward call to Ange-FTP if applicable.
 	(tramp-make-ange-ftp-file-name): New helper function to convert a
-	file name into an Ange-FTP file name, used by
-	`tramp-invoke-ange-ftp'.
+	file name into an Ange-FTP file name, used by `tramp-invoke-ange-ftp'.
 	(tramp-default-method-alist): New user option.
 	(tramp-find-default-method): Use it.
 	(tramp-sh-extra-args): New variable.
