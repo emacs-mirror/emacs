@@ -1150,7 +1150,7 @@ Greenwich.
 @var{dow} and @var{zone}.
 @end defun
 
-@defun encode-time seconds minutes hour day month year &optional @dots{}zone
+@defun encode-time seconds minutes hour day month year &optional zone
 This function is the inverse of @code{decode-time}.  It converts seven
 items of calendrical data into a time value.  For the meanings of the
 arguments, see the table above under @code{decode-time}.
