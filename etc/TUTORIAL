@@ -314,7 +314,8 @@ current cursor position.
 
 When a line of text gets too big for one line on the screen, the line
 of text is "continued" onto a second screen line.  A backslash ("\")
-at the right margin indicates a line which has been continued.
+(or, if you're using a windowed display, a little curved arrow) at the
+right margin indicates a line which has been continued.
 
 >> Insert text until you reach the right margin, and keep on inserting.
    You'll see a continuation line appear.
