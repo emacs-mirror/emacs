@@ -1,6 +1,6 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
-   Copyright (C) 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -54,6 +54,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <errno.h>
 #define NO_SHORTNAMES   /* Tell config not to load remap.h */
 #include <../src/config.h>
+#include <../src/syswait.h>
 
 #ifdef USG
 #include <fcntl.h>
@@ -98,6 +99,7 @@ main (argc, argv)
   char *inname, *outname;
   int indesc, outdesc;
   int nread;
+  WAITTYPE status;
 
 #ifndef MAIL_USE_FLOCK
   struct stat st;
@@ -199,9 +201,9 @@ main (argc, argv)
     {
       /* Create the lock file, but not under the lock file name.  */
       /* Give up if cannot do that.  */
-      desc = open (tempname, O_WRONLY | O_CREAT, 0666);
+      desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (desc < 0)
-        pfatal_with_name ("lock file--see source file lib-src/movemail.c");
+	pfatal_with_name ("lock file--see source file lib-src/movemail.c");
       close (desc);
 
       tem = link (tempname, lockname);
@@ -222,86 +224,100 @@ main (argc, argv)
   delete_lockname = lockname;
 #endif /* not MAIL_USE_FLOCK */
 
+  if (fork () == 0)
+    {
+      seteuid (getuid ());
+
 #ifdef MAIL_USE_FLOCK
-  indesc = open (inname, O_RDWR);
-#else /* if not MAIL_USE_FLOCK */
-  indesc = open (inname, O_RDONLY);
+      indesc = open (inname, O_RDWR);
+#else  /* if not MAIL_USE_FLOCK */
+      indesc = open (inname, O_RDONLY);
 #endif /* not MAIL_USE_FLOCK */
-#else /* MAIL_USE_MMDF */
-  indesc = lk_open (inname, O_RDONLY, 0, 0, 10);
+#else  /* MAIL_USE_MMDF */
+      indesc = lk_open (inname, O_RDONLY, 0, 0, 10);
 #endif /* MAIL_USE_MMDF */
 
-  if (indesc < 0)
-    pfatal_with_name (inname);
+      if (indesc < 0)
+	pfatal_with_name (inname);
 
 #if defined (BSD) || defined (XENIX)
-  /* In case movemail is setuid to root, make sure the user can
-     read the output file.  */
-  /* This is desirable for all systems
-     but I don't want to assume all have the umask system call */
-  umask (umask (0) & 0333);
+      /* In case movemail is setuid to root, make sure the user can
+	 read the output file.  */
+      /* This is desirable for all systems
+	 but I don't want to assume all have the umask system call */
+      umask (umask (0) & 0333);
 #endif /* BSD or Xenix */
-  outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
-  if (outdesc < 0)
-    pfatal_with_name (outname);
+      outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
+      if (outdesc < 0)
+	pfatal_with_name (outname);
 #ifdef MAIL_USE_FLOCK
 #ifdef XENIX
-  if (locking (indesc, LK_RLCK, 0L) < 0) pfatal_with_name (inname);
+      if (locking (indesc, LK_RLCK, 0L) < 0) pfatal_with_name (inname);
 #else
-  if (flock (indesc, LOCK_EX) < 0) pfatal_with_name (inname);
+      if (flock (indesc, LOCK_EX) < 0) pfatal_with_name (inname);
 #endif
 #endif /* MAIL_USE_FLOCK */
 
-  {
-    char buf[1024];
-
-    while (1)
       {
-	nread = read (indesc, buf, sizeof buf);
-	if (nread != write (outdesc, buf, nread))
+	char buf[1024];
+
+	while (1)
 	  {
-	    int saved_errno = errno;
-	    unlink (outname);
-	    errno = saved_errno;
-	    pfatal_with_name (outname);
+	    nread = read (indesc, buf, sizeof buf);
+	    if (nread != write (outdesc, buf, nread))
+	      {
+		int saved_errno = errno;
+		unlink (outname);
+		errno = saved_errno;
+		pfatal_with_name (outname);
+	      }
+	    if (nread < sizeof buf)
+	      break;
 	  }
-	if (nread < sizeof buf)
-	  break;
       }
-  }
 
 #ifdef BSD
-  if (fsync (outdesc) < 0)
-    pfatal_and_delete (outname);
+      if (fsync (outdesc) < 0)
+	pfatal_and_delete (outname);
 #endif
 
-  /* Check to make sure no errors before we zap the inbox.  */
-  if (close (outdesc) != 0)
-    pfatal_and_delete (outname);
+      /* Check to make sure no errors before we zap the inbox.  */
+      if (close (outdesc) != 0)
+	pfatal_and_delete (outname);
 
 #ifdef MAIL_USE_FLOCK
 #if defined (STRIDE) || defined (XENIX)
-  /* Stride, xenix have file locking, but no ftruncate.  This mess will do. */
-  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
+      /* Stride, xenix have file locking, but no ftruncate.  This mess will do. */
+      close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
 #else
-  ftruncate (indesc, 0L);
+      ftruncate (indesc, 0L);
 #endif /* STRIDE or XENIX */
 #endif /* MAIL_USE_FLOCK */
 
 #ifdef MAIL_USE_MMDF
-  lk_close (indesc, 0, 0, 0);
+      lk_close (indesc, 0, 0, 0);
 #else
-  close (indesc);
+      close (indesc);
 #endif
 
 #ifndef MAIL_USE_FLOCK
-  /* Delete the input file; if we can't, at least get rid of its contents.  */
+      /* Delete the input file; if we can't, at least get rid of its contents.  */
 #ifdef MAIL_UNLINK_SPOOL
-  /* This is generally bad to do, because it destroys the permissions
-     that were set on the file.  Better to just empty the file.  */
-  if (unlink (inname) < 0 && errno != ENOENT)
+      /* This is generally bad to do, because it destroys the permissions
+	 that were set on the file.  Better to just empty the file.  */
+      if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
-    creat (inname, 0600);
+	creat (inname, 0600);
+
+      exit (0);
+    }
+
+  wait (&status);
+  if (!WIFEXITED (status))
+    exit (1);
+  else if (WRETCODE (status) != 0)
+    exit (WRETCODE (status));
+
 #ifndef MAIL_USE_MMDF
   unlink (lockname);
 #endif /* not MAIL_USE_MMDF */
