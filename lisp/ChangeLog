@@ -1,5 +1,9 @@
 2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/perl-mode.el (perl-indent-continued-arguments): New var.
+	(perl-calculate-indent): Use it.
+	(perl-backward-to-noncomment): Use forward-comment.
+
 	* derived.el (define-derived-mode, derived-mode-make-docstring):
 	Allow `parent' to be nil.
 
