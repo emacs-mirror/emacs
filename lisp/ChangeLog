@@ -1,3 +1,9 @@
+2003-03-28  Jonathan Yavner  <jyavner@engineer.com>
+
+	* emacs-lisp/testcover.el (testcover-mark-all): Handle screwy
+	top-level macros that put functions as properties.
+	(testcover-mark): No error for functions that just return a constant.
+
 2003-03-27  Andreas Schwab  <schwab@suse.de>
 
 	* vc-cvs.el (vc-cvs-parse-entry): Make sure a file with conflicts
