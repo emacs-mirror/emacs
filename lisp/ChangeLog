@@ -1,5 +1,9 @@
 2003-03-12  Kenichi Handa  <handa@etlken2>
 
+	* international/quail.el (quail-show-guidance-buf): Make the quail
+	guidance buffer inherit the current value of
+	quail-current-package.
+
 	* international/utf-8.el (ccl-decode-mule-utf-8): Don't loose
 	bytes on handling an invalid byte sequence.
 
