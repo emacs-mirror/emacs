@@ -129,7 +129,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define LINUX_LDAV_FILE "/proc/loadavg" */
 
-/* This is needed for disknew.c:update_frame */
+/* This is needed for dispnew.c:update_frame */
 
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
