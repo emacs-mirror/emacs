@@ -40,6 +40,13 @@
 
 	* eshell/esh-var.el (eshell-var-initialize): Likewise.
 
+	* progmodes/idlw-shell.el (idlwave-shell-mode): Likewise.
+
+	* progmodes/idlwave.el (idlwave-mode): Likewise.
+
+	* textmodes/reftex-sel.el (reftex-select-label-mode)
+	(reftex-select-bib-mode): Likewise.
+
 2002-02-16  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-hist.el (eshell-hist-initialize): When in the
