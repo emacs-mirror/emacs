@@ -1,3 +1,9 @@
+2001-01-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* keymap.c (Fwhere_is_internal): Don't nreverse the cached
+	value in where_is_cache; the next lookup in the cache returns
+	something bogus if we do.
+
 2001-01-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (syms_of_xdisp) <Stool_bar_lines_needed>: Don't defsubr
