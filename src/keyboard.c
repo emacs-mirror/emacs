@@ -3349,12 +3349,13 @@ quit_throw_to_read_char ()
 
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
   "Set mode of reading keyboard input.\n\
-First arg non-nil means use input interrupts; nil means use CBREAK mode.\n\
-Second arg non-nil means use ^S/^Q flow control for output to terminal\n\
+First arg INTERRUPT non-nil means use input interrupts;\n\
+ nil means use CBREAK mode.\n\
+Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal\n\
  (no effect except in CBREAK mode).\n\
-Third arg non-nil means accept 8-bit input (for a Meta key).\n\
+Third arg META non-nil means accept 8-bit input (for a Meta key).\n\
  Otherwise, the top bit is ignored, on the assumption it is parity.\n\
-Optional fourth arg non-nil specifies character to use for quitting.")
+Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
   (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {

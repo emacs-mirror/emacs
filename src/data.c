@@ -49,7 +49,7 @@ Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qcdr;
 
 #ifdef LISP_FLOAT_TYPE
-Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
+Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 #endif
 
@@ -246,16 +246,6 @@ DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0, "T if OBJECT is a marker (editor 
   return Qnil;
 }
 
-DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 0,
-  "T if OBJECT is an integer or a marker (editor pointer).")
-  (obj)
-     register Lisp_Object obj;
-{
-  if (XTYPE (obj) == Lisp_Marker || XTYPE (obj) == Lisp_Int)
-    return Qt;
-  return Qnil;
-}
-
 DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "T if OBJECT is a built-in function.")
   (obj)
      Lisp_Object obj;
@@ -293,11 +283,50 @@ DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is a number.")
   return Qnil;
 }
 
+DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 0,
+  "T if OBJECT is an integer or a marker (editor pointer).")
+  (obj)
+     register Lisp_Object obj;
+{
+  if (XTYPE (obj) == Lisp_Marker || XTYPE (obj) == Lisp_Int)
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0, "T if OBJECT is a nonnegative number.")
   (obj)
      Lisp_Object obj;
 {
   if (XTYPE (obj) == Lisp_Int && XINT (obj) >= 0)
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
+       "T if OBJECT is a number (floating point or integer).")
+  (obj)
+     Lisp_Object obj;
+{
+  if (0
+#ifdef LISP_FLOAT_TYPE
+      || XTYPE (obj) == Lisp_Float
+#endif
+      || XTYPE (obj) == Lisp_Int)
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
+       Snumber_or_marker_p, 1, 1, 0,
+       "T if OBJECT is a number or a marker.")
+  (obj)
+     Lisp_Object obj;
+{
+  if (XTYPE (obj) == Lisp_Int
+#ifdef LISP_FLOAT_TYPE
+      || XTYPE (obj) == Lisp_Float
+#endif
+      || XTYPE (obj) == Lisp_Marker)
     return Qt;
   return Qnil;
 }
@@ -309,29 +338,6 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
      Lisp_Object obj;
 {
   if (XTYPE (obj) == Lisp_Float)
-    return Qt;
-  return Qnil;
-}
-
-DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
-       "T if OBJECT is a number (floating point or integer).")
-  (obj)
-     Lisp_Object obj;
-{
-  if (XTYPE (obj) == Lisp_Float || XTYPE (obj) == Lisp_Int)
-    return Qt;
-  return Qnil;
-}
-
-DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
-       Snumber_or_marker_p, 1, 1, 0,
-       "T if OBJECT is a number or a marker.")
-  (obj)
-     Lisp_Object obj;
-{
-  if (XTYPE (obj) == Lisp_Float
-      || XTYPE (obj) == Lisp_Int
-      || XTYPE (obj) == Lisp_Marker)
     return Qt;
   return Qnil;
 }
@@ -1922,8 +1928,8 @@ syms_of_data ()
   staticpro (&Qinteger_or_marker_p);
 #ifdef LISP_FLOAT_TYPE
   staticpro (&Qfloatp);
-  staticpro (&Qinteger_or_floatp);
-  staticpro (&Qinteger_or_float_or_marker_p);
+  staticpro (&Qnumberp);
+  staticpro (&Qnumber_or_marker_p);
 #endif /* LISP_FLOAT_TYPE */
 
   staticpro (&Qboundp);
@@ -1937,10 +1943,11 @@ syms_of_data ()
   defsubr (&Sconsp);
   defsubr (&Satom);
   defsubr (&Sintegerp);
-#ifdef LISP_FLOAT_TYPE
-  defsubr (&Sfloatp);
+  defsubr (&Sinteger_or_marker_p);
   defsubr (&Snumberp);
   defsubr (&Snumber_or_marker_p);
+#ifdef LISP_FLOAT_TYPE
+  defsubr (&Sfloatp);
 #endif /* LISP_FLOAT_TYPE */
   defsubr (&Snatnump);
   defsubr (&Ssymbolp);
@@ -1950,7 +1957,6 @@ syms_of_data ()
   defsubr (&Ssequencep);
   defsubr (&Sbufferp);
   defsubr (&Smarkerp);
-  defsubr (&Sinteger_or_marker_p);
   defsubr (&Ssubrp);
   defsubr (&Scompiled_function_p);
   defsubr (&Schar_or_string_p);

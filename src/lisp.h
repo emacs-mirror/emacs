@@ -571,12 +571,12 @@ typedef unsigned char UCHAR;
 
 #define CHECK_NUMBER_OR_FLOAT(x, i)	\
 { if (XTYPE (x) != Lisp_Float && XTYPE (x) != Lisp_Int)	\
-    x = wrong_type_argument (Qinteger_or_floatp, (x)); }
+    x = wrong_type_argument (Qnumberp, (x)); }
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x, i) \
 { if (XTYPE (x) == Lisp_Marker) XFASTINT (x) = marker_position (x);	\
   else if (XTYPE (x) != Lisp_Int && XTYPE (x) != Lisp_Float)		\
-    x = wrong_type_argument (Qinteger_or_float_or_marker_p, (x)); }
+    x = wrong_type_argument (Qnumber_or_marker_p, (x)); }
 
 #else  /* Not LISP_FLOAT_TYPE */
 
