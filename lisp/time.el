@@ -163,8 +163,10 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
               ("Sep" . "9") ("Oct" . "10") ("Nov" . "11") ("Dec" . "12")))))
          (dayname (substring time 0 3)))
     (setq display-time-string
-          (mapconcat 'eval display-time-string-forms "")))
-  (run-hooks 'display-time-hook)
+          (mapconcat 'eval display-time-string-forms ""))
+    ;; This is inside the let binding, but we are not going to document
+    ;; what variables are available.
+    (run-hooks 'display-time-hook))
   (force-mode-line-update)
   ;; Do redisplay right now, if no input pending.
   (sit-for 0))
