@@ -648,6 +648,7 @@ lisp= \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/devanagari.elc \
+	${lispsource}language/english.elc \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
 	${lispsource}language/greek.elc \
@@ -657,6 +658,7 @@ lisp= \
 	${lispsource}language/korean.elc \
 	${lispsource}language/lao.elc \
 	${lispsource}language/thai.elc \
+	${lispsource}language/tibetan.elc \
 	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.elc \
 	${lispsource}page.elc \
@@ -702,6 +704,7 @@ shortlisp= \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/devanagari.elc \
+	../lisp/language/english.elc \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
 	../lisp/language/greek.elc \
@@ -711,6 +714,7 @@ shortlisp= \
 	../lisp/language/korean.elc \
 	../lisp/language/lao.elc \
 	../lisp/language/thai.elc \
+	../lisp/language/tibetan.elc \
 	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.elc \
 	../lisp/page.elc \
