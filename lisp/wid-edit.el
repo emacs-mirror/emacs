@@ -3400,10 +3400,7 @@ To use this type, you must define :match or :match-alternatives."
 		    (widget-value widget)
 		  (error (widget-get widget :value)))))
     (if (color-defined-p value)
-	(let ((symbol (intern (concat "fg:" value))))
-	  (condition-case nil
-	      (facemenu-get-face symbol)
-	    (error 'default)))
+	(list (cons 'foreground-color value))
       'default)))
 
 (defun widget-color-action (widget &optional event)
