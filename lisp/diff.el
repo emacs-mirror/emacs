@@ -296,11 +296,11 @@ The backup file is the first file given to `diff'."
 	      (base-versions (concat (file-name-sans-versions
 				      (file-name-nondirectory backupname))
 				     ".~"))
-	      (bv-length (length base-versions)))
+	      ;; This is a fluid var for backup-extract-version.
+	      (backup-extract-version-start (length base-versions)))
 	 (concat dir
 		 (car (sort
 		       (file-name-all-completions base-versions dir)
-		       ;; bv-length is a fluid var for backup-extract-version:
 		       (function
 			(lambda (fn1 fn2)
 			  (> (backup-extract-version fn1)
