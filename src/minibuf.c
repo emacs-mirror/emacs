@@ -1065,7 +1065,7 @@ test_completion (txt)
       /* Bypass intern-soft as that loses for nil */
       tem = oblookup (Vminibuffer_completion_table,
 		      XSTRING (txt)->data, XSTRING (txt)->size);
-      if (SYMBOLP (tem))
+      if (!SYMBOLP (tem))
 	return Qnil;
       else if (!NILP (Vminibuffer_completion_predicate))
 	return call1 (Vminibuffer_completion_predicate, tem);
