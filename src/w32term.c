@@ -2916,10 +2916,22 @@ construct_mouse_wheel (result, msg, f)
      struct frame *f;
 {
   POINT p;
-  result->kind = MOUSE_CLICK_EVENT;
-  result->code = (GET_WHEEL_DELTA_WPARAM (msg->msg.wParam) < 0) ? 4 : 3;
+  int delta;
+
+  result->kind = WHEEL_EVENT;
+  result->code = 0;
   result->timestamp = msg->msg.time;
-  result->modifiers = msg->dwModifiers;
+
+  /* A WHEEL_DELTA positive value indicates that the wheel was rotated
+     forward, away from the user (up); a negative value indicates that
+     the wheel was rotated backward, toward the user (down).  */
+  delta = GET_WHEEL_DELTA_WPARAM (msg->msg.wParam);
+
+  /* The up and down modifiers indicate if the wheel was rotated up or
+     down based on WHEEL_DELTA value.  */
+  result->modifiers = (msg->dwModifiers
+                       | ((delta < 0 ) ? down_modifier : up_modifier));
+
   p.x = LOWORD (msg->msg.lParam);
   p.y = HIWORD (msg->msg.lParam);
   ScreenToClient (msg->msg.hwnd, &p);
@@ -4389,15 +4401,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	case WM_MOUSEWHEEL:
 	  {
-	    /* Convert each Windows mouse wheel event in a couple of
-	       Emacs mouse click down/up events.  Scrolling the wheel up
-	       is associated to mouse button 4 and scrolling the wheel
-	       down to the mouse button 5.  */
-	    int button;
-	    int up;
-
-	    up = msg.dwModifiers & up_modifier;
-
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
 	      f = last_mouse_frame;
@@ -4406,70 +4409,25 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	    if (f)
 	      {
-		Lisp_Object window;
-		POINT p;
-		int x, y;
-
-		p.x = LOWORD (msg.msg.lParam);
-		p.y = HIWORD (msg.msg.lParam);
-		ScreenToClient (msg.msg.hwnd, &p);
-		x = XFASTINT (p.x);
-		y = XFASTINT (p.y);
-
-		window = window_from_coordinates (f, x, y, 0, 0, 0, 0);
-
-		/* Ignore mouse wheel events not in a window.  */
-		if (!WINDOWP(window))
-		  break;
 
 		if ((!dpyinfo->w32_focus_frame
 		     || f == dpyinfo->w32_focus_frame)
 		    && (numchars >= 1))
 		  {
-		    if ( !up )
-		      {
-			/* Emit an Emacs mouse down message.  */
-			msg.dwModifiers |= down_modifier;
-			construct_mouse_wheel (bufp, &msg, f);
-			bufp++;
-			count++;
-			numchars--;
-
-			/* Push a simulated WM_MOUSEWHEEL up message.  */
-			msg.dwModifiers &= ~down_modifier;
-			msg.dwModifiers |= up_modifier;
-			prepend_msg (&msg);
-		      }
-		    else
-		      {
-			/* Emit an Emacs mouse up message.  */
-			construct_mouse_wheel (bufp, &msg, f);
-			bufp++;
-			count++;
-			numchars--;
-		      }
+		    /* Emit an Emacs wheel-up/down event.  */
+		    construct_mouse_wheel (bufp, &msg, f);
+		    bufp++;
+		    count++;
+		    numchars--;
 		  }
+		/* Ignore any mouse motion that happened before this
+		   event; any subsequent mouse-movement Emacs events
+		   should reflect only motion after the
+		   ButtonPress.	 */
+		f->mouse_moved = 0;
 	      }
-
-	    button = (GET_WHEEL_DELTA_WPARAM (msg.msg.wParam) < 0)? 4 : 3;
-
-	    if (up)
-	      {
-		dpyinfo->grabbed &= ~ (1 << button);
-	      }
-	    else
-	      {
-		dpyinfo->grabbed |= (1 << button);
-		last_mouse_frame = f;
-		/* Ignore any mouse motion that happened
-		   before this event; any subsequent mouse-movement
-		   Emacs events should reflect only motion after
-		   the ButtonPress.  */
-		if (f != 0)
-		  f->mouse_moved = 0;
-
-		last_tool_bar_item = -1;
-	      }
+	    last_mouse_frame = f;
+	    last_tool_bar_item = -1;
 	  }
 	  break;
 
