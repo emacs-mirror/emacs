@@ -10601,8 +10601,8 @@ try_window_id (w)
 	  row = row_containing_pos (w, PT,
 				    MATRIX_FIRST_TEXT_ROW (w->current_matrix),
 				    last_unchanged_at_beg_row + 1);
-	  xassert (row && row <= last_unchanged_at_beg_row);
-	  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+	  if (row)
+	    set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
 	}
 
       /* Start from first_unchanged_at_end_row looking for PT.  */
