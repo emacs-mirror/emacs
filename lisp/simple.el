@@ -1094,7 +1094,7 @@ system cut and paste."
 	      (goto-char opoint)
 	      ;; If user quit, deactivate the mark
 	      ;; as C-g would as a command.
-	      (and quit-flag transient-mark-mode mark-active
+	      (and quit-flag mark-active
 		   (progn
 		     (message "foo")	;XXX what is this here for?  --roland
 		     (deactivate-mark))))
