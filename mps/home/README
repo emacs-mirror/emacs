@@ -1,5 +1,3 @@
--*- Text -*-
-
 		   MEMORY MANAGEMENT PROJECT ROBOT
 
 
@@ -8,12 +6,9 @@ tedious tasks on behalf of the project team and report any problems
 found.  The crontab file used to perform these automatic actions can
 be found in HOMEmm!etc:crontab.
 
-The overnight script checks out a fresh copy of the MM compound,
-constructs the project environment, then builds and tests various
-products.  For details see the script itself, HOMEmm!etc:overnight.
-
 For information about the Memory Management Project, see the World
-Wide Web page MMdoc_WWW!home.html.
+Wide Web page http://springhost.cam.harlequin.co.uk/~mm/home.html
+or MMdoc_WWW!home.html.
 
 ---
-$Id$
+$Id: README,v 1.1 1994/06/15 12:51:41 mm Exp $
