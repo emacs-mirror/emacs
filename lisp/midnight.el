@@ -47,13 +47,14 @@
   :group 'calendar
   :version "20.3")
 
-(defcustom midnight-mode t
+(defcustom midnight-mode nil
   "*Non-nil means run `midnight-hook' at midnight.
 Setting this variable outside customize has no effect;
 call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
   :type 'boolean
   :group 'midnight
   :require 'midnight
+  :initialize 'custom-initialize-default
   :set (lambda (symb val)
          (set symb val) (require 'midnight)
          (if val (timer-activate midnight-timer)
@@ -61,22 +62,22 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
 
 ;;; time conversion
 
-(defun float-time (&optional tm)
+(defun midnight-float-time (&optional tm)
   "Convert `current-time' to a float number of seconds."
   (multiple-value-bind (s0 s1 s2) (or tm (current-time))
     (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))
 
-(defun time-float (num)
+(defun midnight-time-float (num)
   "Convert the float number of seconds since epoch to the list of 3 integers."
   (let* ((div (ash 1 16)) (1st (floor num div)))
     (list 1st (floor (- num (* (float div) 1st)))
           (round (* 10000000 (mod num 1))))))
 
-(defun buffer-display-time (&optional buf)
+(defun midnight-buffer-display-time (&optional buf)
   "Return the time-stamp of the given buffer, or current buffer, as float."
   (save-excursion
     (set-buffer (or buf (current-buffer)))
-    (when buffer-display-time (float-time buffer-display-time))))
+    (when buffer-display-time (midnight-float-time buffer-display-time))))
 
 ;;; clean-buffer-list stuff
 
@@ -175,10 +176,10 @@ the current date/time, buffer name, how many seconds ago it was
 displayed (can be NIL if the buffer was never displayed) and its
 lifetime, i.e., its `age' when it will be purged."
   (interactive)
-  (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn
+  (let ((tm (midnight-float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn
         (bufs (buffer-list)) buf delay cbld)
     (while (setq buf (pop bufs))
-      (setq bts (buffer-display-time buf) bn (buffer-name buf)
+      (setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
             delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
       (message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) cbld)
       (unless (or (midnight-find bn clean-buffer-list-kill-never-regexps
