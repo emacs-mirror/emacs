@@ -812,7 +812,7 @@ If VARIABLE has a `custom-type' property, it must be a widget and the
 `:prompt-value' property of that widget will be used for reading the value.
 
 If given a prefix (or a COMMENT argument), also prompt for a comment."
-  (interactive (custom-prompt-variable "Set and ave variable: "
+  (interactive (custom-prompt-variable "Set and save variable: "
 				       "Set and save value for %s as: "
 				       current-prefix-arg))
   (funcall (or (get var 'custom-set) 'set-default) var value)
