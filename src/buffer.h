@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -788,7 +788,7 @@ extern struct buffer buffer_local_types;
 
 extern void reset_buffer P_ ((struct buffer *));
 extern void evaporate_overlays P_ ((int));
-extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *));
+extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *, int));
 extern int sort_overlays P_ ((Lisp_Object *, int, struct window *));
 extern void recenter_overlay_lists P_ ((struct buffer *, int));
 extern int overlay_strings P_ ((int, struct window *, unsigned char **));
