@@ -543,7 +543,13 @@ The actual command ends at the end of the first \\(grouping\\)."
 
 
 (defvar sh-here-document-word "EOF"
-  "Word to delimit here documents.")
+  "Word to delimit here documents.
+If the first character of this string is \"-\", this character will
+be removed from the string when it is used to close the here document.
+This convention is used by the Bash shell, for example, to indicate
+that leading tabs inside the here document should be ignored.
+Note that Emacs currently has no support for indenting inside here
+documents - you must insert literal tabs by hand.")
 
 (defvar sh-test
   '((sh "[  ]" . 3)
@@ -3498,7 +3504,10 @@ The document is bounded by `sh-here-document-word'."
 	    (sh-quoted-p)
 	  (end-of-line 2))
 	(newline)
-	(save-excursion (insert ?\n sh-here-document-word)))))
+	(save-excursion
+          (insert ?\n (substring
+                       sh-here-document-word
+                       (if (string-match "^-" sh-here-document-word) 1 0)))))))
 
 
 ;; various other commands
