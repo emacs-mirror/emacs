@@ -887,7 +887,9 @@ static Lisp_Object
 wait_for_property_change_unwind (identifierval)
      Lisp_Object identifierval;
 {
-  unexpect_property_change (XPNTR (identifierval));
+  unexpect_property_change ((struct prop_location *)
+			    (XFASTINT (XCONS (identifierval)->car) << 16
+			     | XFASTINT (XCONS (identifierval)->cdr)));
 }
 
 /* Actually wait for a property change.
@@ -901,7 +903,9 @@ wait_for_property_change (location)
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem;
 
-  XSETCONS (tem, location);
+  tem = Fcons (Qnil, Qnil);
+  XSETFASTINT (XCONS (tem)->car, (EMACS_UINT)location >> 16);
+  XSETFASTINT (XCONS (tem)->cdr, (EMACS_UINT)location & 0xffff);
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind, tem);
