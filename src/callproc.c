@@ -1253,10 +1253,15 @@ init_callproc ()
 	}
     }
 
-  tempdir = Fdirectory_file_name (Vexec_directory);
-  if (access (XSTRING (tempdir)->data, 0) < 0)
-    dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
-		 Vexec_directory);
+#ifndef CANNOT_DUMP
+  if (initialized)
+#endif
+    {
+      tempdir = Fdirectory_file_name (Vexec_directory);
+      if (access (XSTRING (tempdir)->data, 0) < 0)
+	dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
+		     Vexec_directory);
+    }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
