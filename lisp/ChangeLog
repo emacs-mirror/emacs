@@ -1,3 +1,13 @@
+2002-07-19  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/bytecomp.el (dot, dot-max, dot-min, dot-marker)
+	(buffer-flush-undo, baud-rate, compiled-function-p, define-function):
+	Move obsolescence declarations to subr.el.
+
+	* subr.el (dot, dot-max, dot-min, dot-marker, buffer-flush-undo)
+	(baud-rate, compiled-function-p, define-function): Move obsolescence
+	declarations from subr.el
+
 2002-07-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el: Updated to IDLWAVE version 4.14.  Too many
