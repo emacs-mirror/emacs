@@ -332,8 +332,6 @@ That buffer should be current already."
 	       (sym (intern-soft (buffer-substring-no-properties
 				  beg end)))
 	       (file (and sym (symbol-file sym))))
-	  (message "sym %s, file %s" sym file)
-	  (recursive-edit)
 	  (when file
 	    (goto-char beg)
 	    ;; help-xref-button needs to operate on something matched
