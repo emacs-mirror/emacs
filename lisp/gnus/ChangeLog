@@ -2891,7 +2891,7 @@
 	* gnus-draft.el (gnus-draft-send): Move gnus-draft-setup inside of
 	let.
 
-2000-04-26  Pavel Janik ml. <Pavel.Janik@inet.cz>
+2000-04-26  Pavel Jan,Bm(Bk <Pavel@Janik.cz>
 
 	* gnus-draft.el (gnus-draft-setup): Fix comments.
 
