@@ -1,3 +1,7 @@
+2004-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_ref_via_base): Fix previous change.
+
 2004-01-07  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (read_process_output): Only activate adaptive
