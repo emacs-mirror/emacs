@@ -153,7 +153,7 @@ OBJ2 =  $(BLD)\w32.obj           \
 WIN32OBJ = $(BLD)\w32term.obj	\
 	   $(BLD)\w32xfns.obj	\
 	   $(BLD)\w32fns.obj	\
-	   $(BLD)\w32faces.obj	\
+	   $(BLD)\xfaces.obj	\
 	   $(BLD)\w32select.obj	\
 	   $(BLD)\w32menu.obj	\
 	   $(BLD)\w32reg.obj    \
@@ -1156,12 +1156,14 @@ $(BLD)\xdisp.obj : \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
-$(BLD)\w32faces.obj: \
+$(BLD)\xfaces.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\w32faces.c \
+	$(SRC)\xfaces.c \
 	$(SRC)\lisp.h \
+	$(SRC)\charset.h \
+	$(SRC)\fontset.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\buffer.h \
@@ -1169,6 +1171,7 @@ $(BLD)\w32faces.obj: \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\window.h \
+	$(SRC)\keyboard.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
