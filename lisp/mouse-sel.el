@@ -4,7 +4,7 @@
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: mouse
-;; Version: 2.0
+;; Version: 2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +40,8 @@
 ;;     directly, mouse-sel sets the variables interprogram-cut-function
 ;;     and interprogram-paste-function to nil.
 ;;
-;;   * Clicking mouse-2 pastes contents of primary selection.
+;;   * Clicking mouse-2 pastes contents of primary selection at the mouse
+;;     position.
 ;;
 ;;   * Pressing mouse-2 while selecting or extending copies selection
 ;;     to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
@@ -94,6 +95,11 @@
 ;;       delete-selection-mode and yank over the top of it.
 ;;       
 ;;   (c) If mouse-sel-default-bindings = nil, no bindings are made.
+;;
+;; * By default, mouse-insert-selection (mouse-2) inserts the selection at
+;;   the mouse position.  You can tell it to insert at point instead with:
+;;
+;;     (setq mouse-sel-insert-at-point t)
 ;;
 ;; * I like to leave point at the end of the region nearest to where the
 ;;   mouse was, even though this makes region highlighting mis-leading (the
@@ -152,7 +158,7 @@
 
 ;;=== Version =============================================================
 
-(defconst mouse-sel-version "2.0" 
+(defconst mouse-sel-version "2.1" 
   "The version number of mouse-sel (as string).")
 
 ;;=== User Variables ======================================================
@@ -173,8 +179,12 @@ If nil, highlighting will be turned off when the mouse is lifted.")
   "*If non-nil, \\[mouse-select] cycles the click-counts after 3 clicks.
 Ie. 4 clicks = 1 click, 5 clicks = 2 clicks, etc.")
 
+(defvar mouse-sel-insert-at-point nil
+  "*If non-nil, \\[mouse-insert-selection] inserts at point.
+Normally, \\[mouse-insert-selection] inserts at the mouse position.")
+
 (defvar mouse-sel-default-bindings t
-  "Set to nil before loading mouse-sel to prevent default mouse bindings.")
+  "Set to nil before loading `mouse-sel' to prevent default mouse bindings.")
 
 ;;=== Selection ===========================================================
 
@@ -182,8 +192,7 @@ Ie. 4 clicks = 1 click, 5 clicks = 2 clicks, etc.")
 (make-variable-buffer-local 'mouse-sel-selection-type)
 
 (defvar mouse-sel-selection "" 
-  "This variable is used to store the selection value when mouse-sel is
-used on windowing systems other than X Windows.")
+  "Store the selection value when using a window systems other than X.")
 
 (defvar mouse-sel-set-selection-function 
   (if (fboundp 'x-set-selection)
@@ -207,8 +216,8 @@ Called with no argument.")
 Called with no arguments.")
 
 (defun mouse-sel-determine-selection-type (NCLICKS)
-  "Determine what `thing' \\[mouse-select] and \\[mouse-extend] should
-select by.  The first argument is NCLICKS, is the number of consecutive
+  "Determine what `thing' `mouse-sel' should operate on.
+The first argument is NCLICKS, is the number of consecutive
 mouse clicks at the same position."
   (let* ((next-char (char-after (point)))
 	 (char-syntax (if next-char (char-syntax next-char)))
@@ -406,9 +415,11 @@ This should be bound to a down-mouse event."
 	  (delete-overlay mouse-drag-overlay)))))
 
 (defun mouse-insert-selection (click)
-  "Insert the contents of the selection at mouse click."
+  "Insert the contents of the selection at mouse click.
+If `mouse-sel-insert-at-point' is non-nil, insert at point instead."
   (interactive "e")
-  (mouse-set-point click)
+  (or mouse-sel-insert-at-point 
+      (mouse-set-point click))
   (deactivate-mark)
   (if mouse-sel-get-selection-function
       (insert (or (funcall mouse-sel-get-selection-function) ""))))
