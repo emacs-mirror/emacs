@@ -269,7 +269,7 @@ wrong, use this command again to toggle back to the right mode."
 		     cmd (key-binding keyseq t))
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
-	      ;; Have to bind `last-command-char' here so that 
+	      ;; Have to bind `last-command-char' here so that
 	      ;; `digit-argument', for isntance, can compute the
 	      ;; prefix arg.
 	      (last-command-char (aref keyseq 0)))
@@ -297,7 +297,7 @@ This sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as file-name-coding-system for converting file names.
+  o default value used as `file-name-coding-system' for converting file names.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
   o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
@@ -426,6 +426,7 @@ non-nil, it is used to sort CODINGS in the different way than above."
 
 (defun find-coding-systems-region (from to)
   "Return a list of proper coding systems to encode a text between FROM and TO.
+If FROM is a string, find coding systems in that instead of the buffer.
 All coding systems in the list can safely encode any multibyte characters
 in the text.
 
@@ -552,8 +553,15 @@ proper one is suggested as the default.
 The list of `buffer-file-coding-system' of the current buffer and the
 most preferred coding system (if it corresponds to a MIME charset) is
 treated as the default coding system list.  Among them, the first one
-that safely encodes the text is silently selected and returned without
-any user interaction.  See also the command `prefer-coding-system'.
+that safely encodes the text is normally selected silently and
+returned without any user interaction.  See also the command
+`prefer-coding-system'.
+
+However, the user is queried if the chosen coding system is
+inconsistent with what would be selected by `set-auto-coding' from
+coding cookies &c. if the contents of the region were read from a
+file.  (That could lead to data corruption in a file subsequently
+re-visited and edited.)
 
 Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
@@ -653,63 +661,72 @@ and TO is ignored."
       ;; Make sure the offending buffer is displayed.
       (or (stringp from)
 	  (pop-to-buffer bufname))
-      ;; Then ask users to select one form CODINGS.
-      (unwind-protect
-	  (save-window-excursion
-	    (with-output-to-temp-buffer "*Warning*"
-	      (save-excursion
-		(set-buffer standard-output)
-		(if (not default-coding-system)
-		    (insert "No default coding systems to try for "
-			    (if (stringp from)
-				(format "string \"%s\"." from)
-			      (format "buffer `%s'." bufname)))
-		  (insert
-		   "These default coding systems were tried to encode"
-		   (if (stringp from)
-		       (concat " \"" (if (> (length from) 10)
-					 (concat (substring from 0 10) "...\"")
-				       (concat from "\"")))
-		     (format " text\nin the buffer `%s'" bufname))
-		   ":\n")
+      (save-excursion
+	(goto-char (unencodable-char-position
+		    from to (mapcar #'car default-coding-system)))
+	;; Then ask users to select one form CODINGS.
+	(unwind-protect
+	    (save-window-excursion
+	      (with-output-to-temp-buffer "*Warning*"
+		(save-excursion
+		  (set-buffer standard-output)
+		  (if (not default-coding-system)
+		      (insert "No default coding systems to try for "
+			      (if (stringp from)
+				  (format "string \"%s\"." from)
+				(format "buffer `%s'." bufname)))
+		    (insert
+		     "These default coding systems were tried to encode"
+		     (if (stringp from)
+			 (concat " \"" (if (> (length from) 10)
+					   (concat (substring from 0 10) "...\"")
+					 (concat from "\"")))
+		       (format " text\nin the buffer `%s'" bufname))
+		     ":\n")
+		    (let ((pos (point))
+			  (fill-prefix "  "))
+		      (mapcar (function (lambda (x)
+					  (princ "  ") (princ (car x))))
+			      default-coding-system)
+		      (insert "\n")
+		      (fill-region-as-paragraph pos (point)))
+		    (if (consp coding-system)
+			(insert (format "%s safely encodes the target text,\n"
+					(car coding-system))
+				"\
+but it is not recommended for encoding text in this context,
+e.g., for sending an email message.\n")
+		      (insert "\
+However, none of them safely encodes the target text.
+
+The first problematic character is at point in the displayed buffer,\n"
+			      (substitute-command-keys "\
+and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
+		  (insert (if (consp coding-system)
+			      "\nSelect the above, or "
+			    "\nSelect ")
+			  "\
+one of the following safe coding systems, or edit the buffer:\n")
 		  (let ((pos (point))
 			(fill-prefix "  "))
-		    (mapcar (function (lambda (x)
-					(princ "  ") (princ (car x))))
-			    default-coding-system)
+		    (mapcar (function (lambda (x) (princ "  ") (princ x)))
+			    codings)
 		    (insert "\n")
-		    (fill-region-as-paragraph pos (point)))
-		  (insert
-		   (if (consp coding-system)
-		       (concat (format "%s safely encodes the target text,\n"
-				       (car coding-system))
-			       "but it is not recommended for encoding text in this context,\n"
-			       "e.g., for sending an email message.\n")
-		     "However, none of them safely encodes the target text.\n")))
-		(insert (if (consp coding-system)
-			    "\nSelect the above, or "
-			  "\nSelect ")
-			"one of the following safe coding systems:\n")
-		(let ((pos (point))
-		      (fill-prefix "  "))
-		  (mapcar (function (lambda (x) (princ "  ") (princ x)))
-			  codings)
-		  (insert "\n")
-		  (fill-region-as-paragraph pos (point)))))
+		    (fill-region-as-paragraph pos (point)))))
 
-	    ;; Read a coding system.
-	    (if (consp coding-system)
-		(setq codings (cons (car coding-system) codings)))
-	    (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-				       codings))
-		   (name (completing-read
-			  (format "Select coding system (default %s): "
-				  (car codings))
-			  safe-names nil t nil nil
-			  (car (car safe-names)))))
-	      (setq last-coding-system-specified (intern name)
-		    coding-system last-coding-system-specified)))
-	(kill-buffer "*Warning*")))
+	      ;; Read a coding system.
+	      (if (consp coding-system)
+		  (setq codings (cons (car coding-system) codings)))
+	      (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+					 codings))
+		     (name (completing-read
+			    (format "Select coding system (default %s): "
+				    (car codings))
+			    safe-names nil t nil nil
+			    (car (car safe-names)))))
+		(setq last-coding-system-specified (intern name)
+		      coding-system last-coding-system-specified)))
+	  (kill-buffer "*Warning*"))))
 
     (if (vectorp (coding-system-eol-type coding-system))
 	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
@@ -732,6 +749,10 @@ and TO is ignored."
 			 (set-auto-coding (or file buffer-file-name "")
 					  (buffer-size))))))
 	(if (and auto-cs
+		 ;; Don't barf if writing a compressed file, say.
+		 ;; This check perhaps isn't ideal, but is probably
+		 ;; the best thing to do.
+		 (not (auto-coding-alist-lookup (or file buffer-file-name "")))
 		 (not (coding-system-equal (coding-system-base coding-system)
 					   (coding-system-base auto-cs))))
 	    (unless (yes-or-no-p
@@ -740,6 +761,46 @@ and TO is ignored."
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted")))))
     coding-system))
+
+(defun unencodable-char-position (start end coding-system)
+  "Return position of first un-encodable character in a region.
+START and END specfiy the region and CODING-SYSTEM specifies the
+encoding to check.  Return nil if CODING-SYSTEM does encode the region.
+
+CODING-SYSTEM may also be a list of coding systems, in which case return
+the first position not encodable by any of them.
+
+This function is fairly slow."
+  ;; Use recursive calls in the binary chop below, since we're
+  ;; O(logN), and the call overhead shouldn't be a bottleneck.
+  (unless enable-multibyte-characters
+    (error "Unibyte buffer"))
+  ;; Recurse if list of coding systems.
+  (if (consp coding-system)
+      (let ((end end) res)
+	(dolist (elt coding-system (and res (>= res 0) res))
+	  (let ((pos (unencodable-char-position start end elt)))
+	    (if pos
+		(setq end pos
+		      res pos)))))
+    ;; Skip ASCII initially.
+    (save-excursion
+      (goto-char start)
+      (skip-chars-forward "\000-\177" end)
+      (setq start (point))
+      (unless (= start end)
+	(setq coding-system (coding-system-base coding-system))	; canonicalize
+	(let ((codings (find-coding-systems-region start end)))
+	  (unless (or (equal codings '(undecided))
+		      (memq coding-system
+			    (find-coding-systems-region start end)))
+	    ;; Binary chop.
+	    (if (= start (1- end))
+		start
+	      (or (unencodable-char-position start (/ (+ start end) 2)
+					     coding-system)
+		  (unencodable-char-position (/ (+ start end) 2) end
+					     coding-system)))))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
@@ -760,7 +821,7 @@ it asks the user to select a proper coding system."
 		     default-sendmail-coding-system
 		     default-buffer-file-coding-system)))
     (if (eq coding 'no-conversion)
-	;; We should never use no-conversion for outgoing mails.
+	;; We should never use no-conversion for outgoing mail.
 	(setq coding nil))
     (if (fboundp select-safe-coding-system-function)
 	(funcall select-safe-coding-system-function
@@ -783,9 +844,9 @@ Meaningful values for KEY include
 			is meant for, and how to use it.
   charset	     value is a list of the character sets used by this
 			language environment.
-  sample-text	     value is one line of text,
-			written using those character sets,
-			appropriate for this language environment.
+  sample-text	     value is an expression which is evalled to generate
+                        a line of text written using characters appropriate
+                        for this language environment.
   setup-function     value is a function to call to switch to this
 			language environment.
   exit-function      value is a function to call to leave this
@@ -862,7 +923,7 @@ ALIST is an alist of KEY and INFO values.  See the documentation of
 `language-info-alist' for the meanings of KEY and INFO.
 
 Optional arg PARENTS is a list of parent menu names; it specifies
-where to put this language environment in the 
+where to put this language environment in the
 Describe Language Environment and Set Language Environment menus.
 For example, (\"European\") means to put this language environment
 in the European submenu in each of those two menus."
@@ -929,7 +990,7 @@ This returns a language environment name as a string."
 	name)))
 
 ;;; Multilingual input methods.
-(defgroup leim nil 
+(defgroup leim nil
   "LEIM: Libraries of Emacs Input Methods."
   :group 'mule)
 
@@ -940,7 +1001,7 @@ in the format of Lisp expression for registering each input method.
 Emacs loads this file at startup time.")
 
 (defvar leim-list-header (format
-";;; %s -- list of LEIM (Library of Emacs Input Method)
+";;; %s -- list of LEIM (Library of Emacs Input Method) -*-coding: iso-2022-7bit;-*-
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
 ;; methods in the same directory as this file.  Loading this file
@@ -1182,7 +1243,7 @@ and enable that one.  The default is the most recent input method specified
 	      default t))
 	 default))
       (unless default-input-method
-	(prog1 
+	(prog1
 	    (setq default-input-method current-input-method)
 	  (when (interactive-p)
 	    (customize-mark-as-set 'default-input-method)))))))
@@ -1207,7 +1268,7 @@ and enable that one.  The default is the most recent input method specified
 	      (activate-input-method input-method)
 	      (describe-current-input-method))
 	    (activate-input-method current))
-	(error 
+	(error
 	 (activate-input-method current)
 	 (help-setup-xref (list #'describe-input-method input-method)
 			  (interactive-p))
@@ -1273,7 +1334,8 @@ guidance, but simple input methods give it only when you are not in
 the minibuffer.
 
 See also the variable `input-method-highlight-flag'."
-  :type '(choice (const t) (const nil) (const complex-only) (const default))
+  :type '(choice (const :tag "Always" t) (const :tag "Never" nil)
+		 (const complex-only) (const default))
   :group 'mule)
 
 (defcustom input-method-highlight-flag t
@@ -1378,7 +1440,7 @@ to using the function `set-language-environment'."
 
 The default status is as follows:
 
-  The default value of buffer-file-coding-system is nil.
+  The default value of `buffer-file-coding-system' is nil.
   The default coding system for process I/O is nil.
   The default value for the command `set-terminal-coding-system' is nil.
   The default value for the command `set-keyboard-coding-system' is nil.
@@ -1429,7 +1491,7 @@ The default status is as follows:
      coding-category-iso-7
      coding-category-iso-7-else
      coding-category-iso-8-else
-     coding-category-emacs-mule 
+     coding-category-emacs-mule
      coding-category-raw-text
      coding-category-sjis
      coding-category-big5
@@ -1451,7 +1513,7 @@ The default status is as follows:
   (let ((output-coding
 	 ;; When bootstrapping, coding-systems are not defined yet, so
 	 ;; we need to catch the error from check-coding-system.
-	 (condition-case nil 
+	 (condition-case nil
 	     (coding-system-change-text-conversion
 	      (car default-process-coding-system) 'undecided)
 	   (coding-system-error 'undecided)))
@@ -1602,7 +1664,7 @@ specifies the character set for the major languages of Western Europe."
   "Do various coding system setups for language environment LANGUAGE-NAME.
 
 The optional arg EOL-TYPE specifies the eol-type of the default value
-of buffer-file-coding-system set by this function."
+of `buffer-file-coding-system' set by this function."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority)))
     (if priority
@@ -1618,8 +1680,8 @@ of buffer-file-coding-system set by this function."
 	    (setq priority (cdr priority) categories (cdr categories)))
 	  (update-coding-systems-internal)))))
 
-;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
+  "Print all arguments with `princ', then print \"\n\"."
   (while args (princ (car args)) (setq args (cdr args)))
   (princ "\n"))
 
@@ -1763,10 +1825,11 @@ of buffer-file-coding-system set by this function."
     ; bn Bengali, Bangla
     ("bo" . "Tibetan")
     ("br" . "Latin-1") ; Breton
+    ("bs" . "Latin-2") ; Bosnian
     ("ca" . "Latin-1") ; Catalan
     ; co Corsican
     ("cs" . "Czech")
-    ("cy" . "Latin-8") ; Welsh
+    ("cy" . "Welsh") ; Welsh
     ("da" . "Latin-1") ; Danish
     ("de" . "German")
     ; dz Bhutani
@@ -1777,7 +1840,7 @@ of buffer-file-coding-system set by this function."
     ("es" . "Spanish")
     ("et" . "Latin-4") ; Estonian
     ("eu" . "Latin-1") ; Basque
-    ; fa Persian
+    ; fa Persian glibc uses utf-8
     ("fi" . "Latin-1") ; Finnish
     ; fj Fiji
     ("fo" . "Latin-1") ; Faroese
@@ -1788,7 +1851,7 @@ of buffer-file-coding-system set by this function."
     ("gl" . "Latin-1") ; Galician
     ; gn Guarani
     ; gu Gujarati
-    ("gv" . "Latin-8") ; Manx Gaelic
+    ("gv" . "Latin-8") ; Manx Gaelic  glibc uses 8859-1
     ; ha Hausa
     ("he" . "Hebrew")
     ("hi" . "Devanagari") ; Hindi  glibc uses utf-8
@@ -1886,6 +1949,7 @@ of buffer-file-coding-system set by this function."
     ("uz" . "Latin-1") ; Uzbek
     ("vi" . "Vietnamese") ;  glibc uses utf-8
     ; vo Volapuk
+    ("wa" . "Latin-1") ; Walloon
     ; wo Wolof
     ; xh Xhosa
     ("yi" . "Windows-1255") ; Yiddish
@@ -1991,7 +2055,7 @@ For example, the locale name \"ja_JP.EUC\" might name a locale
 for Japanese in Japan using the `japanese-iso-8bit' coding-system.
 
 If LOCALE-NAME is nil, its value is taken from the environment
-variables LC_ALL, LC_CTYLE and LANG (the first one that is set).
+variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
