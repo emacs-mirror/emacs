@@ -10323,7 +10323,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
     {
       /* If there are no frames there, let's pretend that we are a
          well-behaving UN*X program and quit. */
-      fatal_error_signal (getpid (), SIGTERM);
+      fatal_error_signal (SIGTERM);
     }
   else
     {
