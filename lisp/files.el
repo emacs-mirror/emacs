@@ -943,6 +943,21 @@ Optional second arg RAWFILE non-nil means the file is read literally"
 	    (after-find-file error (not nowarn))
 	    (setq buf (current-buffer)))))
       buf)))
+
+(defun find-file-literally (filename) 
+  "Visit file FILENAME with no conversion of any kind.
+Format conversion and character code conversion are both disabled,
+and multibyte characters are disabled in the resulting buffer.
+Automatic uncompression is also disabled."
+  (interactive "FFind file literally: ")
+  (let ((coding-system-for-read 'no-conversion)
+	(coding-system-for-write 'no-conversion)
+	(jka-compr-compression-info-list nil)
+	(format-alist nil)
+	(after-insert-file-functions nil))
+    (prog1
+	(find-file filename)
+      (setq enable-multibyte-characters nil))))
 
 (defvar after-find-file-from-revert-buffer nil)
 
