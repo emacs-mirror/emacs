@@ -1,3 +1,12 @@
+2000-10-29  Miles Bader  <miles@gnu.org>
+
+	* custom.el (custom-add-to-group): Allow multiple entries for a
+	given value OPTION, as long as their widget types are different.
+	* cus-edit.el (custom-face-value-create): If face name doesn't end
+	with "face", add such here (similar to custom group widgets).
+
+	* comint.el (comint-highlight-prompt): Add :type.
+
 2000-10-28  John Wiegley  <johnw@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-maybe-correct-transposition):
