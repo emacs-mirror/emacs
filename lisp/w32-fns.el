@@ -181,8 +181,14 @@ See also `auto-save-file-name-p'."
     name))
 
 ;;; Fix interface to (X-specific) mouse.el
-(defalias 'x-set-selection 'ignore)
-(fset 'x-get-selection '(lambda (&rest rest) ""))
+(defun x-set-selection (type data)
+  (or type (setq type 'PRIMARY))
+  (put 'x-selections type data))
+
+(defun x-get-selection (&optional type data-type)
+  (or type (setq type 'PRIMARY))
+  (get 'x-selections type))
+
 (fmakunbound 'font-menu-add-default)
 (global-unset-key [C-down-mouse-1])
 (global-unset-key [C-down-mouse-2])
