@@ -114,6 +114,64 @@ with a definition that really does change some file names."
 		    (convert-standard-filename dir))
 		  string))))))
 
+(defun dos-truncate-to-8+3 (filename)
+  "Truncate FILENAME to DOS 8+3 limits."
+  (if (or (not (stringp filename))
+	  (< (length filename) 5))	; too short to give any trouble
+      filename
+    (let ((flen (length filename)))
+      ;; If FILENAME has a trailing slash, remove it and recurse.
+      (if (memq (aref filename (1- flen)) '(?/ ?\\))
+	  (concat (dos-truncate-to-8+3 (substring filename 0 (1- flen)))
+		  "/")
+	(let* (;; ange-ftp gets in the way for names like "/foo:bar".
+	       ;; We need to inhibit all magic file names, because
+	       ;; remote file names should never be passed through
+	       ;; this function, as they are not meant for the local
+	       ;; filesystem!
+	       (file-name-handler-alist nil)
+	       (dir
+		;; If FILENAME is "x:foo", file-name-directory returns
+		;; "x:/bar/baz", substituting the current working
+		;; directory on drive x:.  We want to be left with "x:"
+		;; instead.
+		(if (and (< 1 flen)
+			 (eq (aref filename 1) ?:)
+			 (null (string-match "[/\\]" filename)))
+		    (substring filename 0 2)
+		  (file-name-directory filename)))
+	       (dlen-m-1 (1- (length dir)))
+	       (string (copy-sequence (file-name-nondirectory filename)))
+	       (strlen (length string))
+	       (lastchar (aref string (1- strlen)))
+	       i firstdot)
+	  (setq firstdot (string-match "\\." string))
+	  (cond
+	   (firstdot
+	    ;; Truncate the extension to 3 characters.
+	    (if (> strlen (+ firstdot 4))
+		(setq string (substring string 0 (+ firstdot 4))))
+	    ;; Truncate the basename to 8 characters.
+	    (if (> firstdot 8)
+		(setq string (concat (substring string 0 8)
+				     "."
+				     (substring string (1+ firstdot))))))
+	   ((> strlen 8)
+	    ;; No dot; truncate file name to 8 characters.
+	    (setq string (substring string 0 8))))
+	  ;; If the last character of the original filename was `~',
+	  ;; make sure the munged name ends with it also.  This is so
+	  ;; a backup file retains its final `~'.
+	  (if (equal lastchar ?~)
+	      (aset string (1- (length string)) lastchar))
+	  (concat (if (and (stringp dir)
+			   (memq (aref dir dlen-m-1) '(?/ ?\\)))
+		      (concat (dos-truncate-to-8+3 (substring dir 0 dlen-m-1))
+			      "/")
+		    ;; Recurse to truncate the leading directories.
+		    (dos-truncate-to-8+3 dir))
+		  string))))))
+
 ;; See dos-vars.el for defcustom.
 (defvar msdos-shells)
 
