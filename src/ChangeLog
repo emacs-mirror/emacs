@@ -1,3 +1,8 @@
+2004-05-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (back_to_previous_visible_line_start): Skip backwards
+	over display properties, e.g. images, that replace buffer text.
+
 2004-05-25  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (marker_blocks_pending_free): New var.
