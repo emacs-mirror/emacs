@@ -55,7 +55,7 @@ AC_ARG_WITH(game-dir,
 
 gameuser=games
 AC_ARG_WITH(game-user,
-[  --with-game-user       use specified user for game directory],
+[  --with-game-user        use specified user for game directory],
    [gameuser="$withval"])
 
 AC_ARG_WITH(gcc,

@@ -841,7 +841,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-game-dir         use a shared game directory if possible
-  --with-game-user       use specified user for game directory
+  --with-game-user        use specified user for game directory
   --without-gcc           don't use GCC to compile Emacs if GCC is found
   --without-pop           don't support POP mail retrieval with movemail
   --with-kerberos         support Kerberos-authenticated POP
