@@ -1,3 +1,7 @@
+2003-04-04  Andreas Schwab  <schwab@suse.de>
+
+	* net/tramp.el (tramp-send-string): Handle empty string.
+
 2003-04-03  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-define):
