@@ -1,5 +1,19 @@
 2001-11-04  Richard M. Stallman  <rms@gnu.org>
 
+	* buffer.c (Fbuffer_local_value): Remove extra args from CHECK_SYMBOL
+	and CHECK_BUFFER.
+
+	* keyboard.c (read_char): Use Fcar and Fcdr, not Fnth.
+	(record_char): Likewise.
+
+	* keyboard.c (make_lispy_event): Don't insist a drag event must
+	move to a different buffer position.  Instead, check for moving at
+	least double_click_fuzz.
+
+	* fns.c (Fmake_hash_table): Use XCAR and XCDR, not Fnth and Flength.
+
+	* keyboard.c (echo-area-clear-hook): Undo Oct 29 change.
+
 	* indent.c (current_column_1, Fmove_to_column): Separate the code
 	for display-table glyphs from the code buffer text, to fix
 	bugs in the former.
