@@ -4,8 +4,8 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 3.4.0
-;; Keywords: comm processes
+;; Version: 3.4.2
+;; Keywords: comm processes terminals services
 
 ;; This file is part of GNU Emacs.
 
@@ -172,7 +172,7 @@ in shell buffers.  You set this variable by calling one of:
 \\[ansi-color-for-comint-mode-on]
 \\[ansi-color-for-comint-mode-off]
 \\[ansi-color-for-comint-mode-filter]"
-  :version "20.8"
+  :version "21.1"
   :type '(choice (const :tag "Do nothing" nil)
 		 (const :tag "Filter" filter)
 		 (const :tag "Translate" t))
@@ -218,7 +218,7 @@ This is a good function to put in `comint-output-filter-functions'."
 	  'ansi-color-process-output)
 
 
-;; Alternative font-lock-unfontify-region-function
+;; Alternative font-lock-unfontify-region-function for Emacs only
 
 
 (eval-when-compile
@@ -238,9 +238,12 @@ This is a good function to put in `comint-output-filter-functions'."
   (put 'save-buffer-state 'lisp-indent-function 1))
 
 (defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
-  "Replacement function for `font-lock-default-unfontify-region'.  
-When font-lock is active in a buffer, you cannot simply add face
-text-properties to the buffer.  Font-lock will remove the face
+  "Replacement function for `font-lock-default-unfontify-region'.
+
+As text-properties are implemented using extents in XEmacs, this
+function is probably not needed.  In Emacs, however, things are a bit
+different: When font-lock is active in a buffer, you cannot simply add
+face text-properties to the buffer.  Font-lock will remove the face
 text-property using `font-lock-unfontify-region-function'.  If you want
 to insert the strings returned by `ansi-color-apply' into such buffers,
 you must set `font-lock-unfontify-region-function' to
