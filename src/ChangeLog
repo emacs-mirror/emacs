@@ -1,12 +1,23 @@
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (make_number): The arg can be bigger than `int'.
+	* lisp.h (make_number): Make prototype more precise.
+
+	* process.c, dired.c (Vfile_name_coding_system)
+	(Vdefault_file_name_coding_system):
+	* callproc.c (Vdoc_file_name, Vfile_name_coding_system)
+	(Vdefault_file_name_coding_system): Remove unused declarations.
+
 2005-03-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (create_and_show_popup_menu): Just remove menu and return
 	if it failed to pop up (Gnome "show pointer on ctrl" option makes
 	menus fail to pop up).
 
-2005-03-24  Stefan  <monnier@iro.umontreal.ca>
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (get_next_display_element): Also use `\ ' & `\-' for latin-9.
+	Just prepend a backslash without replacing the NBSP by an SPC.
 
 2005-03-22  Kim F. Storm  <storm@cua.dk>
 
