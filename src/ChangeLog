@@ -1,10 +1,15 @@
+2004-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* syntax.c (skip_chars): Only recognize [:class:] when it has the
+	proper format and class is a lower-case word.
+
 2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): New function.
 	(xg_get_gdk_pixmap_and_mask): Removed.
 	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
 	xg_get_gdk_pixmap_and_mask.
-	
+
 	* xterm.h (struct x_display_info): Typo in comment fixed.
 
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
