@@ -1,3 +1,8 @@
+2002-11-19  Ben Key <bkey1@tampabay.rr.com>
+	* makefile.w32-in: Fixed a bug that caused the documentation for
+	the built in function play-sound-internal not to be included in
+	/etc/DOC.
+	
 2002-11-18  Dave Love  <fx@gnu.org>
 
 	* update-game-score.c: Include unistd.h, string.h, stdlib.h,
