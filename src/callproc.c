@@ -1011,7 +1011,7 @@ t (mix it with ordinary output), or a file name string.
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining args are passed to PROGRAM at startup as command args.
 
-If BUFFER is nil, `call-process-region' returns immediately with value nil.
+If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
