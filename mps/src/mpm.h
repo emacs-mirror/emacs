@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.143) $
+ * $HopeName: MMsrc!mpm.h(trunk.144) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -506,19 +506,18 @@ extern Bool ArenaClassCheck(ArenaClass class);
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, Lock lock, ArenaClass class);
+extern Res ArenaInit(Arena arena, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode,
 			MutatorFaultContext context);
 
-extern void ArenaAnnounce(Arena arena);
-extern void ArenaDenounce(Arena arena);
-
 extern Bool GlobalsCheck(Globals arena);
-extern Res GlobalsInit(Globals arena, Lock lock);
+extern Res GlobalsInit(Globals arena);
 extern void GlobalsFinish(Globals arena);
+extern Res GlobalsCompleteCreate(Globals arenaGlobals);
+extern void GlobalsPrepareToDestroy(Globals arenaGlobals);
 extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream);
 
 #define ArenaGlobals(arena) (&(arena)->globals)
