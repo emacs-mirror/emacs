@@ -1,4 +1,5 @@
 % === BEGIN ps-print prologue 0
+% version: 5.2.2
 
 %%BeginProcSet: ErrorHandler
 % Downloaded Error Break-page handler
@@ -11,12 +12,12 @@
 {
  /ps$brkpage 64 dict def
  ps$brkpage begin
-  /tx 0 def /ty 0 def /toy 0 def /tox 0 def
+  /tx 0 def/ty 0 def/toy 0 def/tox 0 def
   /prnt{
-   dup type /stringtype ne{=string cvs}if
+   dup type/stringtype ne{=string cvs}if
    dup length 6 mul
-   /tx exch def /ty 10 def
-   currentpoint /toy exch def /tox exch def
+   /tx exch def/ty 10 def
+   currentpoint/toy exch def/tox exch def
    1 setgray newpath
    tox toy 2 sub moveto
    0 ty rlineto tx 0 rlineto
@@ -30,8 +31,8 @@
   /lmargin 72 def
   /rmargin 72 def
   /tprint{
-   dup length cp add rmargin gt{nl /cp 0 def}if
-   dup length cp add /cp exch def
+   dup length cp add rmargin gt{nl/cp 0 def}if
+   dup length cp add/cp exch def
    prnt
   }readonly def
   /cvsprint{=string cvs tprint( )tprint}readonly def
@@ -63,8 +64,8 @@
     {({)tprint{typeprint}forall(})tprint}
     {([)tprint{typeprint}forall(])tprint}ifelse}
    {pop(-packedarray-)tprint}ifelse}readonly def
-  /courier /Courier findfont 10 scalefont def
-  /OLDhandleerror errordict /handleerror get def
+  /courier/Courier findfont 10 scalefont def
+  /OLDhandleerror errordict/handleerror get def
  end %ps$brkpage
 
  /handleerror{
@@ -75,17 +76,17 @@
    ErrorMessage 1 and 0 ne{ % print on paper
     courier setfont lmargin 720 moveto
     (# ERROR: )prnt errorname prnt nl
-    (# OFFENDING COMMAND: )prnt /command load prnt
-    $error /ostack known
-    {nl nl(# STACK:)prnt nl nl $error /ostack get aload length{==}repeat}if
-    $error /errorinfo known
-    {nl nl(# ERRORINFO:)prnt nl nl $error /errorinfo get aload length{==}repeat}if
-    systemdict /showpage get exec}if
+    (# OFFENDING COMMAND: )prnt/command load prnt
+    $error/ostack known
+    {nl nl(# STACK:)prnt nl nl $error/ostack get aload length{==}repeat}if
+    $error/errorinfo known
+    {nl nl(# ERRORINFO:)prnt nl nl $error/errorinfo get aload length{==}repeat}if
+    systemdict/showpage get exec}if
    ErrorMessage 2 and 0 ne{ % send back to printing system
     (\%\%[ Error: )print errorname =print
     (; OffendingCommand: )print/command load =print
-    $error /errorinfo known
-    {(; ErrorInfo:)print $error /errorinfo get aload length{( )=print =print}repeat}if
+    $error/errorinfo known
+    {(; ErrorInfo:)print $error/errorinfo get aload length{( )=print =print}repeat}if
     ( ]\%\%)= flush
     (\%\%[ Rest of job is ignored ]\%\%)= flush}if
    /newerror true store}if
@@ -123,7 +124,7 @@
  dup where{pop pop pop}
  {exch dup where{pop}{pop/pop}ifelse load def}ifelse}def
 
-/duplexmode /setduplexmode DefOp
-/tumble /settumble DefOp
+/duplexmode/setduplexmode DefOp
+/tumble/settumble DefOp
 
 % === END ps-print prologue 0

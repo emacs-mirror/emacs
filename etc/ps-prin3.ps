@@ -1,12 +1,9 @@
 % === BEGIN ps-print prologue 3
+% version: 5.2.2
 
 % --- duplex feature verification
-UseSetpagedevice {
-  BMark /Duplex DuplexValue /Tumble TumbleValue EMark setpagedevice
-}{
-  statusdict begin
-   DuplexValue setduplexmode TumbleValue settumble
-  end
-}ifelse
+UseSetpagedevice
+{BMark/Duplex DuplexValue/Tumble TumbleValue EMark setpagedevice}
+{statusdict begin DuplexValue setduplexmode TumbleValue settumble end}ifelse
 
 % === END ps-print prologue 3
