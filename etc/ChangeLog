@@ -1,5 +1,19 @@
 2003-04-12  Kenichi Handa  <handa@m17n.org>
 
+	* charsets/Makefile (MAPS): Change gb18030.map to gb18030-2.map
+	and gb18030-4.map.
+	(gb18030.map): Delete this target.
+	(gb18030-2.map, gb18030-4.map): New targets.
+
+	* charsets/gb18030.awk: Deleted.
+
+	* charsets/gb18030-2.awk, charsets/gb18030-4.awk: Make them work
+	for the map file included int glibc.
+
+	* charsets/gb18030-2.map, charsets/gb18030-4.map: Remade by them.
+
+2003-04-12  Kenichi Handa  <handa@m17n.org>
+
 	* HELLO: Change "Hindi" to more common characters.
 
 2003-02-12  Dave Love  <fx@gnu.org>

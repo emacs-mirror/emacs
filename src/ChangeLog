@@ -1,3 +1,15 @@
+2003-05-20  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (BASE_FONTSET_P): Check FONTSET_BASE, not
+	FONTSET_NAME.
+	(fontset_add): Fix for the case that TO is less than TO1.
+	(Ffontset_info): Don't use fallback fontset on checking the
+	default fontset.
+	(dump_fontset): New function for debugging.
+
+	* coding.c (Fdefine_coding_system_internal): Fix for the case that
+	coding_type is Qcharset.
+
 2003-05-07  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (map_sub_char_table): New argument DEFAULT_VAL.

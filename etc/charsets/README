@@ -73,7 +73,6 @@ MACINTOSH			mac-roman.map		mac-roman
 VISCII				viscii.map		viscii
 VISCII				viscii-lower.map	vietnamese-viscii-lower
 VISCII				viscii-upper.map	vietnamese-viscii-upper
-VISCII				vscii.map		vscii
 KOI8-R				koi8-r.map		koi8-r
 IBM866				ibm866.map		alternativnyj
 CP1251				windows-1251.map	windows-1251
