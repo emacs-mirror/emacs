@@ -37,6 +37,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Vdoc_file_name;
 
+extern Lisp_Object Voverriding_local_map;
+
 Lisp_Object
 get_doc_string (filepos)
      long filepos;
@@ -391,7 +393,11 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   name = Qnil;
   GCPRO4 (str, tem, keymap, name);
 
-  keymap = current_buffer->keymap;
+  /* KEYMAP is either nil (which means search all the active keymaps)
+     or a specified local map (which means search just that and the
+     global map).  If non-nil, it might come from Voverriding_local_map,
+     or from a \\<mapname> construct in STR itself..  */
+  keymap = Voverriding_local_map;
 
   bsize = XSTRING (str)->size;
   bufp = buf = (unsigned char *) xmalloc (bsize);
@@ -425,7 +431,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  /* Save STRP in IDX.  */
 	  idx = strp - (unsigned char *) XSTRING (str)->data;
 	  tem = Fintern (make_string (start, length), Qnil);
-	  tem = Fwhere_is_internal (tem, keymap, Qnil, Qt, Qnil);
+	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil);
 
 	  /* Disregard menu bar bindings; it is positively annoying to
 	     mention them when there's no menu bar, and it isn't terribly
