@@ -144,7 +144,8 @@ of the inserted text.
   Skeletons may ask for input several times.  They even have a looping
 mechanism in which you will be asked for input as long as you are willing to
 furnish it.  An example would be multiple ``else if'' conditions.  You can
-recognize this situation by a prompt ending in ``RET, C-g or C-h''.  This
+recognize this situation by a prompt ending in @key{RET}, @kbd{C-g}
+or @kbd{C-h}.  This
 means that entering an empty string will simply assume that you are finished.
 Typing quit on the other hand terminates the loop but also the rest of the
 skeleton, e.g. an ``else'' clause is skipped.  Only a syntactically necessary
@@ -242,52 +243,53 @@ expression for complex read functions or for returning some calculated value.
 The rest of the list are any number of elements as described in the following
 table:
 
-@table @code
-@item "string", ?c, ?\c
+@table @asis
+@item @code{"@var{string}"}, @code{?@var{c}}, @code{?\@var{c}}
 @vindex skeleton-transformation
 Insert string or character.  Literal strings and characters are passed through
 @code{skeleton-transformation} when that is non-@code{nil}.
-@item \n
+@item @code{?\n}
+@c ??? something seems very wrong here.
 Insert a newline and align under current line.  Use newline character
 @code{?\n} to prevent alignment.
-@item _
+@item @code{_}
 Interesting point.  When wrapping skeletons around successive regions, they are
 put at these places.  Point is left at first @code{_} where nothing is wrapped.
-@item >
+@item @code{>}
 Indent line according to major mode.  When following element is @code{_}, and
 there is a interregion that will be wrapped here, indent that interregion.
-@item &
+@item @code{&}
 Logical and.  Iff preceding element moved point, i.e. usually inserted
 something, do following element.
-@item |
+@item @code{|}
 Logical xor.  Iff preceding element didn't move point, i.e. usually inserted
 nothing, do following element.
-@item -number
+@item @code{-@var{number}}
 Delete preceding number characters.  Depends on value of
 @code{skeleton-untabify}.
-@item (), nil
+@item @code{()} or @code{nil}
 Ignored.
-@item lisp expression
+@item @var{lisp-expression}
 Evaluated, and the return value is again interpreted as a skeleton element.
-@item str
+@item @code{str}
 A special variable that, when evaluated the first time, usually prompts
 for input according to the skeleton's interactor.  It is then set to the
 return value resulting from the interactor.  Each subskeleton has its local
 copy of this variable.
-@item v1, v2
+@item @code{v1}, @code{v2}
 Skeleton-local user variables.
-@item '
+@item @code{'@var{expression}}
 Evaluate following lisp expression for its side-effect, but prevent it from
 being interpreted as a skeleton element.
-@item skeleton
+@item @var{skeleton}
 Subskeletons are inserted recursively, not once, but as often as the user
 enters something at the subskeletons interactor.  Thus there must be a
 @code{str} in the subskeleton.  They can also be used non-interactively, when
 prompt is a lisp-expression that returns successive list-elements.
-@item resume:
-Ignored.  Execution resumes here when the user quit during skeleton
+@item @code{resume:}
+Ignored.  Execution resumes here if the user quits during skeleton
 interpretation.
-@item quit
+@item @code{quit}
 A constant which is non-@code{nil} when the @code{resume:} section was entered
 because the user quit.
 @end table
@@ -295,7 +297,7 @@ because the user quit.
 @findex skeleton-further-elements
   Some modes also use other skeleton elements they themselves defined.  For
 example in shell script mode's skeletons you will find @code{<} which does a
-rigid indentation backwards, or in cc-mode's skeletons you find the
+rigid indentation backwards, or in CC mode's skeletons you find the
 self-inserting elements @code{@{} and @code{@}}.  These are defined by the
 buffer-local variable @code{skeleton-further-elements} which is a list of
 variables bound while interpreting a skeleton.
@@ -325,13 +327,14 @@ fingers backwards, this can be quite relieving too.
 
 @findex skeleton-pair-insert-maybe
 @vindex skeleton-pair
-  This is done by binding the first key (@pxref{(emacs)Rebinding}) of the
-pair to @code{skeleton-pair-insert-maybe} instead of @code{self-insert-command}.
-The ``maybe'' comes from the fact that this at first surprising behaviour is
-initially turned off.  To enable it, you must set @code{skeleton-pair} to some
-non-@code{nil} value.  And even then, a positive argument
-(@pxref{(emacs)Arguments}) will make this key behave like a self
-inserting key (@pxref{(emacs)Inserting Text}).
+  This is done by binding the first key (@pxref{(emacs)Rebinding}) of
+the pair to @code{skeleton-pair-insert-maybe} instead of
+@code{self-insert-command}.  The ``maybe'' comes from the fact that
+this at-first surprising behaviour is initially turned off.  To enable
+it, you must set @code{skeleton-pair} to some non-@code{nil} value.
+And even then, a positive argument (@pxref{(emacs)Arguments}) will
+make this key behave like a self-inserting key
+(@pxref{(emacs)Inserting Text}).
 
 @vindex skeleton-pair-on-word
   While this breaks with the stated intention of always balancing pairs, it
@@ -340,21 +343,22 @@ character is part of a word.  If you want pairing to occur even then, set
 @code{skeleton-pair-on-word} to some non-@code{nil} value.
 
 @vindex skeleton-pair-alist
-  Pairing is possible for all visible characters.  By default the parenthesis
-`(', the square bracket `[', the brace `@{', the pointed bracket `<' and the
-backquote ``' will all pair to the symmetrical character.  All other
-characters will pair themselves.  This behaviour can be modified by the
-variable @code{skeleton-pair-alist}.  This is in fact an alist of skeletons
-(@pxref{Skeleton Language}), with the first part of each sublist matching the
-typed character.  This is the position of the interactor, but since pairs
-don't need the @code{str} element, this is ignored.
+  Pairing is possible for all visible characters.  By default the
+parenthesis @samp{(}, the square bracket @samp{[}, the brace
+@samp{@{}, the pointed bracket @samp{<} and the backquote @samp{`} all
+pair with the symmetrical character.  All other characters pair
+themselves.  This behaviour can be modified by the variable
+@code{skeleton-pair-alist}.  This is in fact an alist of skeletons
+(@pxref{Skeleton Language}), with the first part of each sublist
+matching the typed character.  This is the position of the interactor,
+but since pairs don't need the @code{str} element, this is ignored.
 
-  Some modes have bound the command @code{skeleton-pair-insert-maybe} to
-relevant keys.  These modes also configure the pairs as appropriate.
-For example, when typing english prose, you'd expect the backquote (`)
-to pair to the quote (') while in Shell script mode it must pair to
-itself.  They can also inhibit pairing in certain contexts.  For example
-an escaped character will stand for itself.
+  Some modes have bound the command @code{skeleton-pair-insert-maybe}
+to relevant keys.  These modes also configure the pairs as
+appropriate.  For example, when typing english prose, you'd expect the
+backquote (@samp{`}) to pair with the quote (@samp{'}), while in Shell
+script mode it must pair to itself.  They can also inhibit pairing in
+certain contexts.  For example an escaped character stands for itself.
 
 
 
@@ -372,14 +376,15 @@ empty file is visited.  This is accomplished by putting @code{(add-hook
 
 @vindex auto-insert-alist
   What gets inserted, if anything, is determined by the variable
-@code{auto-insert-alist}.  The @code{car}s of this list are each either a mode
-name, making an element applicable when a buffer is in that mode.  Or they
-can be a string, which is a regexp matched against the buffer's file name.
-In that way different kinds of files that have the same mode in Emacs can be
-distinguished.  The @code{car}s may also be @code{cons}-cells consisting of
-mode name or regexp as above and an additional descriptive string.
+@code{auto-insert-alist}.  The @sc{car}s of this list are each either
+a mode name, making an element applicable when a buffer is in that
+mode.  Or they can be a string, which is a regexp matched against the
+buffer's file name.  In that way different kinds of files that have
+the same mode in Emacs can be distinguished.  The @sc{car}s may also
+be cons cells consisting of mode name or regexp as above and an
+additional descriptive string.
 
-  When a matching element is found, the @code{cdr} says what to do.  It may
+  When a matching element is found, the @sc{cdr} says what to do.  It may
 be a string, which is a file name, whose contents are to be inserted, if
 that file is found in the directory @code{auto-insert-directory} or under a
 absolute file name.  Or it can be a skeleton (@pxref{Skeleton Language}) to
@@ -390,7 +395,7 @@ can simply insert some text, indeed, it can be skeleton command (@pxref{Using
 Skeletons}).  It can be a lambda function which will for example conditionally
 call another function.  Or it can even reset the mode for the buffer. If you
 want to perform several such actions in order, you use a vector, i.e. several
-of the above elements between square brackets ([...]).
+of the above elements between square brackets (@samp{[@r{@dots{}}]}).
 
   By default C and C++ headers insert a definition of a symbol derived from
 the filename to prevent multiple inclusions.  C and C++ sources insert an
@@ -400,25 +405,26 @@ include of the header.  Makefiles insert the file makefile.inc if it exists.
 LaTeX mode files insert a typical @code{\documentclass} frame.  Html
 files insert a skeleton with the usual frame.
 
-  Ada mode files call the Ada header skeleton command.  Emacs lisp source
-files insert the usual header, with a copyright of your environment variable
-@code{$ORGANIZATION} or else the FSF, and prompt for valid keywords describing
-the contents.  Files in a @code{bin/} directory for which Emacs could
-determine no specialised mode (@pxref{(emacs)Choosing Modes}) are set to Shell script
-mode.
+  Ada mode files call the Ada header skeleton command.  Emacs lisp
+source files insert the usual header, with a copyright of your
+environment variable @env{$ORGANIZATION} or else the FSF, and prompt
+for valid keywords describing the contents.  Files in a @file{bin}
+directory for which Emacs could determine no specialised mode
+(@pxref{(emacs)Choosing Modes}) are set to Shell script mode.
 
 @findex define-auto-insert
-  In Lisp (@pxref{(emacs)Init File}) you can use the function @code{define-auto-insert}
-to add to or modify @code{auto-insert-alist}.  See its documentation with
-@kbd{C-h f auto-insert-alist}.
+  In Lisp (@pxref{(emacs)Init File}) you can use the function
+@code{define-auto-insert} to add to or modify
+@code{auto-insert-alist}.  See its documentation with @kbd{C-h f
+auto-insert-alist}.
 
 @vindex auto-insert
   The variable @code{auto-insert} says what to do when @code{auto-insert} is
 called non-interactively, e.g. when a newly found file is empty (see above):
-@table @code
-@item nil
+@table @asis
+@item @code{nil}
 Do nothing.
-@item t
+@item @code{t}
 Insert something if possible, i.e. there is a matching entry in
 @code{auto-insert-alist}.
 @item other
@@ -427,15 +433,15 @@ Insert something if possible, but mark as unmodified.
 
 @vindex auto-insert-query
   The variable @code{auto-insert-query} controls whether to ask about
-inserting something.  When this is @code{nil} inserting is only done with
-@kbd{M-x auto-insert}.  When this is @code{'function} you are queried
+inserting something.  When this is @code{nil}, inserting is only done with
+@kbd{M-x auto-insert}.  When this is @code{function}, you are queried
 whenever @code{auto-insert} is called as a function, such as when Emacs
 visits an empty file and you have set the above-mentioned hook.  Otherwise
 you are alway queried.
 
 @vindex auto-insert-prompt
   When querying, the variable @code{auto-insert-prompt}'s value is used as a
-prompt for a y-or-n-type question.  If this includes a @code{%s} construct,
+prompt for a y-or-n-type question.  If this includes a @samp{%s} construct,
 that is replaced by what caused the insertion rule to be chosen.  This is
 either a descriptive text, the mode-name of the buffer or the regular
 expression that matched the filename.
@@ -449,7 +455,7 @@ expression that matched the filename.
 @findex copyright
   @kbd{M-x copyright} is a skeleton inserting command, that adds a copyright
 notice at the point.  The ``by'' part is taken from your environment variable
-@code{$ORGANIZATION} or if that isn't set you are prompted for it.  If the
+@env{$ORGANIZATION} or if that isn't set you are prompted for it.  If the
 buffer has a comment syntax (@pxref{(emacs)Comments}), this is inserted as a comment.
 
 @findex copyright-update
@@ -473,7 +479,7 @@ file (@pxref{(emacs)Init File}).
 @vindex copyright-query
   The variable @code{copyright-query} controls whether to update the
 copyright or whether to ask about it.  When this is @code{nil} updating is
-only done with @kbd{M-x copyright-update}.  When this is @code{'function}
+only done with @kbd{M-x copyright-update}.  When this is @code{function}
 you are queried whenever @code{copyright-update} is called as a function,
 such as in the @code{write-file-hooks} feature mentioned above.  Otherwise
 you are always queried.
@@ -486,13 +492,13 @@ you are always queried.
 
 @vindex executable-prefix
 @vindex executable-chmod
-  Various Un*x interpreter modes such as Shell script mode or AWK mode
-will automatically insert or update the buffer's magic number, a special
-comment on the first line that makes the @code{exec()} systemcall know how
-to execute the script.  To this end the script is automatically made
-executable upon saving, with @code{executable-chmod} as argument to the
-system @code{chmod} command.  The magic number is prefixed by the value of
-@code{executable-prefix}.
+  Various interpreter modes such as Shell script mode or AWK mode will
+automatically insert or update the buffer's magic number, a special
+comment on the first line that makes the @code{exec} systemcall know
+how to execute the script.  To this end the script is automatically
+made executable upon saving, with @code{executable-chmod} as argument
+to the system @code{chmod} command.  The magic number is prefixed by
+the value of @code{executable-prefix}.
 
 @vindex executable-magicless-file-regexp
   Any file whose name matches @code{executable-magicless-file-regexp} is not
@@ -503,10 +509,10 @@ intended for resource files, which are only meant to be read in.
   The variable @code{executable-insert} says what to do when
 @code{executable-set-magic} is called non-interactively, e.g. when file has no
 or the wrong magic number:
-@table @code
-@item nil
+@table @asis
+@item @code{nil}
 Do nothing.
-@item t
+@item @code{t}
 Insert or update magic number.
 @item other
 Insert or update magic number, but mark as unmodified.
@@ -517,7 +523,7 @@ Insert or update magic number, but mark as unmodified.
   The variable @code{executable-query} controls whether to ask about
 inserting or updating the magic number.  When this is @code{nil} updating
 is only done with @kbd{M-x executable-set-magic}.  When this is
-@code{'function} you are queried whenever @code{executable-set-magic} is
+@code{function} you are queried whenever @code{executable-set-magic} is
 called as a function, such as when Emacs puts a buffer in Shell script
 mode.  Otherwise you are alway queried.
 
@@ -525,7 +531,7 @@ mode.  Otherwise you are alway queried.
   @kbd{M-x executable-self-display} adds a magic number to the buffer, which
 will turn it into a self displaying text file, when called as a Un*x command.
 The ``interpreter'' used is @code{executable-self-display} with argument
-@code{+2}.
+@samp{+2}.
 
 @node Timestamps
 @chapter Maintaining Timestamps in Modified Files
