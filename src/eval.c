@@ -20,17 +20,11 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
-
 #include "lisp.h"
 #include "blockinput.h"
-
-#ifndef standalone
 #include "commands.h"
 #include "keyboard.h"
-#else
-#define INTERACTIVE 1
-#endif
-
+#include "dispextern.h"
 #include <setjmp.h>
 
 /* This definition is duplicated in alloc.c and keyboard.c */
@@ -202,13 +196,32 @@ Lisp_Object
 call_debugger (arg)
      Lisp_Object arg;
 {
+  int debug_while_redisplaying;
+  Lisp_Object val;
+  
   if (lisp_eval_depth + 20 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 20;
+  
   if (specpdl_size + 40 > max_specpdl_size)
     max_specpdl_size = specpdl_size + 40;
+  
   debug_on_next_call = 0;
   when_entered_debugger = num_nonmacro_input_events;
-  return apply1 (Vdebugger, arg);
+
+  /* Resetting redisplaying_p to 0 makes sure that debug output is
+     displayed if the debugger is invoked during redisplay.  */
+  debug_while_redisplaying = redisplaying_p;
+  redisplaying_p = 0;
+  
+  val = apply1 (Vdebugger, arg);
+
+  /* Interrupting redisplay and resuming it later is not safe under
+     all circumstances.  So, when the debugger returns, abort the
+     interupted redisplay by going back to the top-level.  */
+  if (debug_while_redisplaying)
+    Ftop_level ();
+
+  return val;
 }
 
 void
