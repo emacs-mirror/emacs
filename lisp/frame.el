@@ -112,6 +112,8 @@ These supersede the values given in `default-frame-alist'.")
 ;; Record the parameters used in frame-initialize to make the initial frame.
 (defvar frame-initial-frame-alist)
 
+(defvar frame-initial-geometry-arguments nil)
+
 ;;; startup.el calls this function before loading the user's init
 ;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
@@ -187,8 +189,15 @@ These supersede the values given in `default-frame-alist'.")
 				  nil))
 		   ;; Get rid of `reverse', because that was handled
 		   ;; when we first made the frame.
-		   (new (make-frame (cons '(reverse . nil)
-					  (delq (assq 'reverse parms) parms)))))
+		   (new (make-frame
+			 ;; Use the geometry args that created the existing
+			 ;; frame, rather than the parms we get for it.q
+			 (append frame-initial-geometry-arguments
+				 (let (frame-initial-geometry-arguments)
+				   (frame-remove-geometry-params
+				    (cons '(reverse . nil)
+					  (delq (assq 'reverse parms)
+						parms))))))))
 	      ;; The initial frame, which we are about to delete, may be
 	      ;; the only frame with a minibuffer.  If it is, create a
 	      ;; new one.
@@ -352,15 +361,19 @@ additional frame parameters that Emacs recognizes for X window frames."
 (defun frame-remove-geometry-params (param-list)
   "Return the parameter list PARAM-LIST, but with geometry specs removed.
 This deletes all bindings in PARAM-LIST for `top', `left', `width',
-and `height' parameters.
+`height', `user-size' and `user-position' parameters.
 Emacs uses this to avoid overriding explicit moves and resizings from
 the user during startup."
   (setq param-list (cons nil param-list))
   (let ((tail param-list))
     (while (consp (cdr tail))
       (if (and (consp (car (cdr tail)))
-	       (memq (car (car (cdr tail))) '(height width top left)))
-	  (setcdr tail (cdr (cdr tail)))
+	       (memq (car (car (cdr tail)))
+		     '(height width top left user-position user-size)))
+	  (progn
+	    (setq frame-initial-geometry-arguments
+		  (cons (car (cdr tail)) frame-initial-geometry-arguments))
+	    (setcdr tail (cdr (cdr tail))))
 	(setq tail (cdr tail)))))
   (cdr param-list))
 
