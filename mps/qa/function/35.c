@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!35.c(trunk.4) $
  summary =  provoke segsummary assertion (request.dylan.170450)
  language = c
  link = testlib.o awlfmt.o
@@ -12,6 +12,7 @@ END_HEADER
 #include "awlfmt.h"
 
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -42,15 +43,8 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
-/*
  cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-*/
-
- cdie(
-  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, &z[0], 10),
+  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&z[0], 10),
   "create table root");
 
  cdie(
@@ -67,7 +61,7 @@ static void test(void)
 
  for (j=1; j<100; j++)
  {
-  comment("%i of 10.", j);
+  comment("%i of 100.", j);
   UC;
   *a = allocone(ap, 5, 1);
   *b = *a;
@@ -122,8 +116,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
