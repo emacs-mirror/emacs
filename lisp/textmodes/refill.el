@@ -110,49 +110,51 @@ This is used to optimize refilling.")
   (let (fill-pfx)
     (save-excursion
       (goto-char pos)
-      ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
-      ;; leading to excessive refilling and wrong choice of fill-prefix.
-      ;; might be a bug in my paragraphs.el.
-      (forward-paragraph)
-      (skip-syntax-backward "-")
-      (let ((end (point))
-	    (beg (progn (backward-paragraph) (point)))
-	    (obeg (overlay-start refill-ignorable-overlay))
-	    (oend (overlay-end refill-ignorable-overlay)))
-	(goto-char pos)
-	(if (and (>= beg obeg) (< beg oend))
-	    ;; Limit filling to the modified tail of the paragraph.
-	    (let (;; When adaptive-fill-mode is enabled, the filling
-		  ;; functions will attempt to set the fill prefix from
-		  ;; the fake paragraph bounds we pass in, so set it
-		  ;; ourselves first, using the real paragraph bounds.
-		  (fill-prefix
-		   (if (and adaptive-fill-mode
-			    (or (null fill-prefix) (string= fill-prefix "")))
-		       (fill-context-prefix beg end)
-		     fill-prefix))
-		  ;; Turn off adaptive-fill-mode temporarily
-		  (adaptive-fill-mode nil))
-	      (save-restriction
-		(if use-hard-newlines
-		    (fill-region oend end arg)
-		  (fill-region-as-paragraph oend end arg)))
-	      (setq fill-pfx fill-prefix)
-	      (move-overlay refill-ignorable-overlay obeg (point)))
-	  ;; Fill the whole paragraph
-	  (setq fill-pfx
+      (unless (or (and (bolp) (eolp))
+		  (save-match-data (looking-at "\n\n")))
+	;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
+	;; leading to excessive refilling and wrong choice of fill-prefix.
+	;; might be a bug in my paragraphs.el.
+	(forward-paragraph)
+	(skip-syntax-backward "-")
+	(let ((end (point))
+	      (beg (progn (backward-paragraph) (point)))
+	      (obeg (overlay-start refill-ignorable-overlay))
+	      (oend (overlay-end refill-ignorable-overlay)))
+	  (goto-char pos)
+	  (if (and (>= beg obeg) (< beg oend))
+	      ;; Limit filling to the modified tail of the paragraph.
+	      (let ( ;; When adaptive-fill-mode is enabled, the filling
+		    ;; functions will attempt to set the fill prefix from
+		    ;; the fake paragraph bounds we pass in, so set it
+		    ;; ourselves first, using the real paragraph bounds.
+		    (fill-prefix
+		     (if (and adaptive-fill-mode
+			      (or (null fill-prefix) (string= fill-prefix "")))
+			 (fill-context-prefix beg end)
+		       fill-prefix))
+		    ;; Turn off adaptive-fill-mode temporarily
+		    (adaptive-fill-mode nil))
 		(save-restriction
 		  (if use-hard-newlines
-		      (fill-region beg end arg)
-		    (fill-region-as-paragraph beg end arg))))
-	  (move-overlay refill-ignorable-overlay beg (point)))))))
+		      (fill-region oend end arg)
+		    (fill-region-as-paragraph oend end arg)))
+		(setq fill-pfx fill-prefix)
+		(move-overlay refill-ignorable-overlay obeg (point)))
+	    ;; Fill the whole paragraph
+	    (setq fill-pfx
+		  (save-restriction
+		    (if use-hard-newlines
+			(fill-region beg end arg)
+		      (fill-region-as-paragraph beg end arg))))
+	    (move-overlay refill-ignorable-overlay beg (point))))))))
 
 (defun refill-fill-paragraph (arg)
   "Like `fill-paragraph' but don't delete whitespace at paragraph end."
   (refill-fill-paragraph-at (point) arg))
 
 (defvar refill-doit nil
-  "Non-nil means that `refill-post-command-function' does its processing.
+  "Non-nil tells `refill-post-command-function' to do its processing.
 Set by `refill-after-change-function' in `after-change-functions' and
 unset by `refill-post-command-function' in `post-command-hook', and
 sometimes `refill-pre-command-function' in `pre-command-hook'.  This
