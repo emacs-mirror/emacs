@@ -388,7 +388,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
         print_chars += size;
 #endif /* MAX_PRINT_CHARS */
     }
-  else if (noninteractive)
+  else if (noninteractive && EQ (printcharfun, Qt))
     {
       fwrite (ptr, 1, size_byte, stdout);
       noninteractive_need_newline = 1;
