@@ -6091,12 +6091,15 @@ apply_modifiers (modifiers, base)
       entry = Fcons (index, new_symbol);
       Fput (base, Qmodifier_cache, Fcons (entry, cache));
 
-      /* We have the parsing info now for free, so add it to the caches.  */
-      XSETFASTINT (index, modifiers);
-      Fput (new_symbol, Qevent_symbol_element_mask,
-	    Fcons (base, Fcons (index, Qnil)));
-      Fput (new_symbol, Qevent_symbol_elements,
-	    Fcons (base, lispy_modifier_list (modifiers)));
+      /* We have the parsing info now for free, so we could add it to
+	 the caches:
+         XSETFASTINT (index, modifiers);
+         Fput (new_symbol, Qevent_symbol_element_mask,
+               Fcons (base, Fcons (index, Qnil)));
+         Fput (new_symbol, Qevent_symbol_elements,
+               Fcons (base, lispy_modifier_list (modifiers)));
+	 Sadly, this is only correct if `base' is indeed a base event,
+	 which is not necessarily the case.  -stef  */
     }
 
   /* Make sure this symbol is of the same kind as BASE.
