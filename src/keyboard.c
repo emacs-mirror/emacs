@@ -1667,6 +1667,7 @@ adjust_point_for_property (last_pt)
       if (check_display
 	  && PT > BEGV && PT < ZV
 	  && get_property_and_range (PT, Qdisplay, &val, &start, &end, Qnil)
+	  && display_prop_intangible_p (val)
 	  && start < PT && end > PT
 	  && (last_pt <= start || last_pt >= end))
 	{
