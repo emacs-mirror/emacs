@@ -1,3 +1,13 @@
+2004-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (reseat_at_previous_visible_line_start): No longer static.
+	(get_next_display_element): Fix previous change to apply only to \n.
+
+	* indent.c (Fvertical_motion): Scan to PT from start of line to
+	make iterator consistent.
+
+	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
+
 2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (pop_down_file_dialog): Add BLOCK_INPUT.
