@@ -1,6 +1,6 @@
-;;; footnote.el --- Footnote support for message mode
+;;; footnote.el --- Footnote support for message mode  -*- coding: iso-latin-1;-*-
 
-;; Copyright (C) 1997 by Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000 by Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news
@@ -35,26 +35,6 @@
 ;; Reasonable Undo support.
 ;; more language styles.
 
-;;; Change Log:
-
-;; May-31-1998: In `Footnote-make-hole', `concat' was called with integer
-;;              argument; now use `Footnote-index-to-string' and `format'
-;; Apr-04-1997: Added option to narrow buffer when editing the text of
-;;		a footnote.
-;;		Insertion and renumbering now works.
-;;		Deletion and renumbering now works.
-;;		Footnote styles implemented.
-;; Apr-05-1997: Added dumb version of footnote-set-style.
-;;		Merged minor corrections from Hrvoje Niksic, Sudish Joseph,
-;;		and David Moore.
-;;		Remove absolute dependency on message-mode.
-;;		Replicate letters when footnote numbers hit the end of
-;;		the alphabet.
-;; Apr-06-1997: Emacs portability patches from Lars Magne Ingebrigtsen.
-;; Apr-18-1997:	Stricter matching of footnote tag.  (Idea from Colin Rafferty)
-;; May-16-1997:	Allow customization of spacing of footnote body tag.  (Idea
-;;		from Samuel Tardieu).
-
 ;;; Code:
 
 (eval-when-compile
@@ -63,6 +43,7 @@
 
 (defgroup footnote nil
   "Support for footnotes in mail and news messages."
+  :version "21.1"
   :group 'message)
 
 (defcustom footnote-mode-line-string " FN"
@@ -91,18 +72,6 @@ If nil, no blank line will be inserted."
   :type 'boolean
   :group 'footnote)
 
-(defcustom footnote-style 'numeric
-  "*Style used for footnoting.
-numeric == 1, 2, 3, ...
-english-lower == a, b, c, ...
-english-upper == A, B, C, ...
-roman-lower == i, ii, iii, iv, v, ...
-roman-upper == I, II, III, IV, V, ...
-Some versions of XEmacs and Emacs/mule may support further styles
-like 'hebrew, 'greek-lower, and 'greek-upper."
-  :type 'symbol
-  :group 'footnote)
-
 (defcustom footnote-use-message-mode t
   "*If non-nil assume Footnoting will be done in message-mode."
   :type 'boolean
@@ -121,15 +90,22 @@ like 'hebrew, 'greek-lower, and 'greek-upper."
 (defconst footnote-section-tag "Footnotes: "
   "*Tag inserted at beginning of footnote section.")
 
-(defconst footnote-section-tag-regexp "Footnotes\\(\\[.\\]\\)?: "
-  "*Regexp which indicates the start of a footnote section.")
+(defcustom footnote-section-tag-regexp "Footnotes\\(\\[.\\]\\)?: "
+  "*Regexp which indicates the start of a footnote section.
+See also `footnote-section-tag'."
+  :type 'regexp
+  :group 'footnote)
 
 ;; The following three should be consumed by footnote styles.
-(defconst footnote-start-tag "["
-  "*String used to denote start of numbered footnote.")
+(defcustom footnote-start-tag "["
+  "*String used to denote start of numbered footnote."
+  :type 'string
+  :group 'footnote)
 
-(defconst footnote-end-tag "]"
-  "*String used to denote end of numbered footnote.")
+(defcustom footnote-end-tag "]"
+  "*String used to denote end of numbered footnote."
+  :type 'string
+  :group 'footnote)
 
 (defvar footnote-signature-separator (if (boundp 'message-signature-separator)
 					 message-signature-separator
@@ -285,18 +261,43 @@ Wrapping around the alphabet implies successive repetitions of letters."
 		   (- n (car rom-low-pair))
 		   footnote-roman-list)))))))
 
+;; Latin-1
+
+(defconst footnote-latin-regexp "¹²³ºª§¶"
+  "Regexp for Latin-1 footnoting characters.")
+
+(defun Footnote-latin (n)
+  "Latin-1 footnote style.
+Use a range of Latin-1 non-ASCII characters for footnoting."
+  (string (aref footnote-latin-regexp
+		(mod (1- n) (length footnote-latin-regexp)))))
+
 ;;; list of all footnote styles
 (defvar footnote-style-alist
   `((numeric Footnote-numeric ,footnote-numeric-regexp)
     (english-lower Footnote-english-lower ,footnote-english-lower-regexp)
     (english-upper Footnote-english-upper ,footnote-english-upper-regexp)
     (roman-lower Footnote-roman-lower ,footnote-roman-lower-regexp)
-    (roman-upper Footnote-roman-upper ,footnote-roman-upper-regexp))
+    (roman-upper Footnote-roman-upper ,footnote-roman-upper-regexp)
+    (latin Footnote-latin ,footnote-latin-regexp))
   "Styles of footnote tags available.
 By default only boring Arabic numbers, English letters and Roman Numerals
 are available.
 See footnote-han.el, footnote-greek.el and footnote-hebrew.el for more
 exciting styles.")
+
+(defcustom footnote-style 'numeric
+  "*Style used for footnoting.
+numeric == 1, 2, 3, ...
+english-lower == a, b, c, ...
+english-upper == A, B, C, ...
+roman-lower == i, ii, iii, iv, v, ...
+roman-upper == I, II, III, IV, V, ...
+latin == ¹ ² ³ º ª § ¶
+See also variables `footnote-start-tag' and `footnote-end-tag'."
+  :type (cons 'choice (mapcar (lambda (x) (list 'const (car x)))
+			      footnote-style-alist))
+  :group 'footnote)
 
 ;;; Style utilities & functions
 (defun Footnote-style-p (style)
@@ -664,7 +665,7 @@ specified, jump to the text of that footnote."
 	(setq footnote (assq arg footnote-text-marker-alist))))
     (if footnote
 	(goto-char (cdr footnote))
-      (if (= arg 0)
+      (if (eq arg 0)
 	  (progn
 	    (goto-char (point-max))
 	    (re-search-backward (concat "^" footnote-section-tag-regexp))
