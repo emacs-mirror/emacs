@@ -187,10 +187,10 @@ so we can use character sets rather than grouping parenthesis."
 	    ;; common prefix: take it and recurse on the suffixes.
 	    (let* ((n (length prefix))
 		   (suffixes (mapcar (lambda (s) (substring s n)) strings)))
-	      (concat open-charset
+	      (concat open-group
 		      (regexp-quote prefix)
 		      (regexp-opt-group suffixes t t)
-		      close-charset))
+		      close-group))
 
 	  (let* ((sgnirts (mapcar (lambda (s)
 				    (concat (nreverse (string-to-list s))))
@@ -200,11 +200,11 @@ so we can use character sets rather than grouping parenthesis."
 		;; common suffix: take it and recurse on the prefixes.
 		(let* ((n (- (length xiffus)))
 		       (prefixes (mapcar (lambda (s) (substring s 0 n)) strings)))
-		  (concat open-charset
+		  (concat open-group
 			  (regexp-opt-group prefixes t t)
 			  (regexp-quote
 			   (concat (nreverse (string-to-list xiffus))))
-			  close-charset))
+			  close-group))
 	      
 	      ;; Otherwise, divide the list into those that start with a
 	      ;; particular letter and those that do not, and recurse on them.
