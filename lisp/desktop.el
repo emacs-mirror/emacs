@@ -1,9 +1,9 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.09
+;; Version: 2.10
 ;; Keywords: customization
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -50,7 +50,7 @@
 ;;
 ;;	(setq desktop-locals-to-save (cons 'foobar desktop-locals-to-save))
 ;;
-;; To avoid saving excessive amounts of data you may also with to add
+;; To avoid saving excessive amounts of data you may also wish to add
 ;; something like the following
 ;;
 ;;	(add-hook 'kill-emacs-hook
@@ -84,7 +84,7 @@
 ;;            chris@tecc.co.uk (Chris Boucher)       for a mark tip.
 ;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
 ;;            kifer@sbkifer.cs.sunysb.edu (M. Kifer) for a bug hunt.
-;;            treese@lcs.mit.edu (Win Treese)        for ange-ftp ftps.
+;;            treese@lcs.mit.edu (Win Treese)        for ange-ftp tips.
 ;; ---------------------------------------------------------------------------
 ;; TODO:
 ;;
@@ -358,11 +358,13 @@ MODE is the major mode."
 				      (list Info-current-file
 					    Info-current-node))
 				     ((eq major-mode 'dired-mode)
-				      (nreverse
-				       (mapcar
-					(function car)
-					dired-subdir-alist)))
-				     )
+				      (cons
+				       (expand-file-name dired-directory)
+				       (cdr
+					(nreverse
+					 (mapcar
+					  (function car)
+					  dired-subdir-alist))))))
 			       (let ((locals desktop-locals-to-save)
 				     (loclist (buffer-local-variables))
 				     (ll))
@@ -470,10 +472,10 @@ to provide correct modes for autoloaded files."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (eq 'dired-mode mam)
-      (if (file-directory-p (directory-file-name (car misc)))
+      (if (file-directory-p (file-name-directory (car misc)))
 	  (progn
 	    (dired (car misc))
-	    (mapcar (function dired-maybe-insert-subdir) (cdr misc))
+	    (mapcar 'dired-insert-subdir (cdr misc))
 	    t)
 	(message "Directory %s no longer exists." (car misc))
 	(sit-for 1)
