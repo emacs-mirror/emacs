@@ -1365,15 +1365,17 @@ function by default."
 		     (re-coding
 		      (concat
 		       "^" prefix
-		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+		       ;; N.B. without the \n below, the regexp can
+		       ;; eat newlines.
+		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
 		       suffix "$"))
 		     (re-unibyte
 		      (concat
 		       "^" prefix
-		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
 		       suffix "$"))
 		     (re-end
-		      (concat "^" prefix "[ \t]*end *:[ \t]*" suffix "$"))
+		      (concat "^" prefix "[ \t]*End *:[ \t]*" suffix "$"))
 		     (pos (point)))
 		(re-search-forward re-end tail-end 'move)
 		(setq tail-end (point))
