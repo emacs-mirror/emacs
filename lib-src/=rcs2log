@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-#	$Id: rcs2clog,v 1.2 1992/02/05 04:29:40 eggert Exp $
+#	$Id: rcs2clog,v 1.2 1992/02/05 04:31:18 eggert Exp eggert $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
@@ -35,9 +35,11 @@ done
 datearg=-d'>1970'
 if test -s ChangeLog
 then
-	date=`sed 1q <ChangeLog` || exit
-	set x $date; shift
-	datearg="-d>$1 $2 $3 $4 $5"
+	e='s/^\(...\) \(...\) \(..\) \(..:..:..\) \(....\) .*/\1 \2 \3 \4 \5/p; 1q'
+	date=`sed -n "$e" <ChangeLog` || exit
+	case $date in
+	?*) datearg="-d>$date"
+	esac
 fi
 
 rlogout=/tmp/chg$$
