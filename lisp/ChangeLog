@@ -1,3 +1,29 @@
+2004-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (breakpoint-enabled-icon, breakpoint-disabled-icon): 
+	Initialize margin area images to nil.
+	(breakpoint-bitmap): New defvar for breakpoint fringe bitmaps.
+	(breakpoint-enabled-bitmap-face)
+	(breakpoint-disabled-bitmap-face): New faces for bpt in fringe.
+	(gdb-info-breakpoints-custom): Use gdb-remove-breakpoint-icons.
+	(gdb-info-breakpoints-custom): Use gdb-put-breakpoint-icon.
+	(gdb-mouse-toggle-breakpoint): Handle bpt in fringe.
+	(gdb-reset): Use gdb-remove-breakpoint-icons.
+	(gdb-put-string): Add dprop arg to specify alternative display
+	property (for setting fringe bitmap).
+	(gdb-remove-strings): Doc fix.
+	(gdb-put-breakpoint-icon): New defun which displays a breakpoint
+	icon in fringe (if available), or else as icon or text in display
+	margin.  Creates necessary icons in breakpoint-bitmap,
+	breakpoint-enabled-icon, and/or breakpoint-disabled-icon.  Also
+	make left window margin if required.
+	(gdb-remove-breakpoint-icons): New defun to remove breakpoint
+	icons inserted by gdb-put-breakpoint-icon.  Remove left margin if
+	no longer needed.
+	(gdb-assembler-custom): Use gdb-remove-breakpoint-icons and
+	gdb-put-breakpoint-icon.
+	(gdb-assembler-mode): Don't set left-margin-width here.
+
 2004-02-27  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el: In scheme-mode symbol regexp, disallow backquote and
