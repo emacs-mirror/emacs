@@ -481,7 +481,16 @@ static Lisp_Object Vmax_mini_window_height;
 
 /* Window configuration saved in resize_mini_window.  */
 
-static Lisp_Object Vresize_mini_config;
+Lisp_Object Vresize_mini_config;
+
+/* Frmae of the mini-window being resized by resize_mini_window.  */
+
+struct frame *resize_mini_frame;
+
+/* Initial height of the mini-window having been resized
+   by resize_mini_window.  */
+
+int resize_mini_initial_height;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -5456,28 +5465,51 @@ resize_mini_window (w)
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
       SET_MARKER_FROM_TEXT_POS (w->start, start);
-      
-      /* Change window's height, if necessary.  */
-      if (height > XFASTINT (w->height)
-	  || (height < XFASTINT (w->height)
-	      && NILP (Vresize_mini_config)))
-	{
-	  Lisp_Object old_selected_window;
 
-	  if (NILP (Vresize_mini_config))
-	    Vresize_mini_config = Fcurrent_window_configuration (Qnil);
-	  
-	  old_selected_window = selected_window;
-	  XSETWINDOW (selected_window, w);
-	  change_window_height (height - XFASTINT (w->height), 0);
-	  selected_window = old_selected_window;
-	  window_height_changed_p = 1;
-	}
-      else if (height < XFASTINT (w->height)
-	       && !NILP (Vresize_mini_config))
+      if (NILP (Vresize_mini_config))
 	{
-	  Fset_window_configuration (Vresize_mini_config);
-	  Vresize_mini_config = Qnil;
+	  if (height != XFASTINT (w->height))
+	    {
+	      Lisp_Object old_selected_window;
+	      Lisp_Object config;
+	      struct gcpro gcpro1;
+	      
+	      resize_mini_initial_height = XFASTINT (w->height);
+	      config = Fcurrent_window_configuration (Qnil);
+	      GCPRO1 (config);
+	      
+	      old_selected_window = selected_window;
+	      XSETWINDOW (selected_window, w);
+	      change_window_height (height - XFASTINT (w->height), 0);
+	      selected_window = old_selected_window;
+	      
+	      window_height_changed_p = 1;
+
+	      /* Set this after changing window sizes, or else
+		 Vresize_mini_config would be reset in
+		 adjust_frame_glyphs.  */
+	      resize_mini_frame = XFRAME (w->frame);
+	      Vresize_mini_config = config;
+	      UNGCPRO;
+	    }
+	}
+      else if (height != XFASTINT (w->height))
+	{
+	  if (height == resize_mini_initial_height)
+	    {
+	      Fset_window_configuration (Vresize_mini_config);
+	      Vresize_mini_config = Qnil;
+	      resize_mini_frame = NULL;
+	    }
+	  else
+	    {
+	      Lisp_Object old_selected_window;
+	      old_selected_window = selected_window;
+	      XSETWINDOW (selected_window, w);
+	      change_window_height (height - XFASTINT (w->height), 0);
+	      selected_window = old_selected_window;
+	    }
+	      
 	  window_height_changed_p = 1;
 	}
     }
@@ -5799,12 +5831,20 @@ echo_area_display (update_frame_p)
       echo_area_window = mini_window;
       window_height_changed_p = display_echo_area (w);
       w->must_be_updated_p = 1;
-      
+
       if (update_frame_p)
 	{
-	  /* Calling update_single_window is faster when we can use
-	     window-based redisplay.  */
-	  if (FRAME_WINDOW_P (f))
+	  /* Not called from redisplay_internal.  If we changed
+	     window configuration, we must redisplay thoroughly.
+	     Otherwise, we can do with updating what we displayed
+	     above.  */
+	  if (window_height_changed_p)
+	    {
+	      ++windows_or_buffers_changed;
+	      ++update_mode_lines;
+	      redisplay_internal (0);
+	    }
+	  else if (FRAME_WINDOW_P (f))
 	    {
 	      update_single_window (w, 1);
 	      rif->flush_display (f);
@@ -5815,7 +5855,8 @@ echo_area_display (update_frame_p)
     }
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
-  
+
+  /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
       
   /* Prevent redisplay optimization in redisplay_internal by resetting
@@ -8607,8 +8648,7 @@ redisplay_window (window, just_this_one_p)
 	   /* Window must be either use window-based redisplay or
 	      be full width.  */
 	   && (FRAME_WINDOW_P (f)
-	       || ((line_ins_del_ok && WINDOW_FULL_WIDTH_P (w))
-		   && just_this_one_p))
+	       || (line_ins_del_ok && WINDOW_FULL_WIDTH_P (w)))
 	   && !MINI_WINDOW_P (w)
 	   /* Point is not known NOT to appear in window.  */
 	   && PT >= CHARPOS (startp)
@@ -9495,14 +9535,10 @@ get_last_unchanged_at_beg_row (w)
 /* Find the first glyph row in the current matrix of W that is not
    affected by changes at the end of current_buffer since the last
    time the window was redisplayed.  Return in *DELTA the number of
-   bytes by which buffer positions in unchanged text at the end of
-   current_buffer must be adjusted.  Value is null if no such row
-   exists, i.e. all rows are affected by changes.
-
-   The global variable end_unchanged is assumed to contain the number
-   of unchanged bytes at the end of current_buffer.  The buffer
-   position of the last changed byte in current_buffer is then Z -
-   end_unchanged.  */
+   chars by which buffer positions in unchanged text at the end of
+   current_buffer must be adjusted.  Return in *DELTA_BYTES the
+   corresponding number of bytes.  Value is null if no such row
+   exists, i.e. all rows are affected by changes.  */
    
 static struct glyph_row *
 get_first_unchanged_at_end_row (w, delta, delta_bytes)
