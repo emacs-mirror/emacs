@@ -58,6 +58,12 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
+;; This is a temporary work-around while we the separate keymap
+;; stuff isn't yet fixed.  These variables aren't used anymore,
+;; but the lisp code wants them to exist.  -JimB
+(setq global-mouse-map (make-sparse-keymap))
+(setq global-function-map (make-sparse-keymap))
+
 (setq command-switch-alist
       (append '(("-dm" . x-establish-daemon-mode)
 		("-bw" . x-handle-numeric-switch)
