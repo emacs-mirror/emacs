@@ -27,7 +27,7 @@
 #endif
 
 /* Specify compiler options for compiling oldXMenu.  */
-#define OLDXMENU_OPTIONS CFLAGS=-I/usr/include/X11R5 -I/usr/include/X11R4
+#define OLDXMENU_OPTIONS CFLAGS="-I/usr/include/X11R5 -I/usr/include/X11R4"
 
 /* Some hpux 8 machines seem to have TIOCGWINSZ,
    and none have sioctl.h, so might as well define this.  */
