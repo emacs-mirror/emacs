@@ -1,3 +1,7 @@
+2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi (Fortran Motion): Fix previous change.
+
 2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (Display Customization): Markup fixes.
