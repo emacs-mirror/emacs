@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcl-cvs-defs.el,v 1.27 2000/03/03 20:58:09 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -463,7 +463,6 @@ It is expected to call the function.")
 ;;;; 
 ;;;; 
 
-;;;###autoload
 (if (progn (condition-case () (require 'easymenu) (error nil))
 	   (fboundp 'easy-menu-add-item))
     (easy-menu-add-item nil '("tools")
