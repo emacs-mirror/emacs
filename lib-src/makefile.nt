@@ -28,7 +28,7 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 -DNO_ARCHIVES=1 
 OBJDIR	      	= obj
 BLD	      	= $(OBJDIR)\$(ARCH)
 
-LINK_FLAGS	= $(ARCH_LDFLAGS) -debug:PARTIAL -machine:$(ARCH) -subsystem:console -entry:mainCRTStartup
+LINK_FLAGS	= $(ARCH_LDFLAGS) -debug:PARTIAL -machine:$(ARCH) -subsystem:console -entry:mainCRTStartup setargv.obj
 
 ALL	        = $(BLD)\make-docfile.exe \
 		$(BLD)\hexl.exe		\
@@ -56,23 +56,47 @@ LIBS	      = $(BASE_LIBS)
 
 $(BLD)\make-docfile.exe: 	$(BLD)\make-docfile.obj
 $(BLD)\hexl.exe:		$(BLD)\hexl.obj
-$(BLD)\ctags.exe: 		$(BLD)\etags.exe
-	copy $(BLD)\etags.exe $(BLD)\ctags.exe
 $(BLD)\wakeup.exe: 		$(BLD)\wakeup.obj $(BLD)\ntlib.obj
-		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj $(LIBS)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj \
+		$(BLD)\ntlib.obj $(LIBS)
 
-make-docfile:	$(BLD)\make-docfile.exe
-wakeup:		$(BLD)\wakeup.exe
-etags:		$(BLD)\etags.exe
-hexl:		$(BLD)\hexl.exe
+make-docfile:	$(BLD) $(BLD)\make-docfile.exe
+wakeup:		$(BLD) $(BLD)\wakeup.exe
+etags:		$(BLD) $(BLD)\etags.exe
+hexl:		$(BLD) $(BLD)\hexl.exe
 
 ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\getopt.obj \
 		$(BLD)\getopt1.obj \
+		$(BLD)\ntlib.obj \
+		$(BLD)\regex.obj \
+		$(BLD)\alloca.obj
+
+$(BLD)\etags.exe: 	$(ETAGSOBJ)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
+
+
+$(BLD)\regex.obj: ../src/regex.c ../src/regex.h ../src/config.h
+		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
+		../src/regex.c -Fo$@
+
+$(BLD)\etags.obj: etags.c
+		$(CC) $(CFLAGS) -DETAGS_REGEXPS -Fo$@ etags.c
+
+CTAGSOBJ      = $(BLD)\ctags.obj \
+		$(BLD)\getopt.obj \
+		$(BLD)\getopt1.obj \
 		$(BLD)\ntlib.obj
 
-$(BLD)\etags.exe: 		$(ETAGSOBJ)
-		$(LINK) -out:$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
+$(BLD)\ctags.exe:           ctags.c $(CTAGSOBJ)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(CTAGSOBJ) $(LIBS)
+
+ctags.c:	etags.c
+		- del ctags.c
+		copy etags.c ctags.c
+
+$(BLD)\ctags.obj: ctags.c
+	$(CC) $(CFLAGS) -DCTAGS -Fo$@ ctags.c
 
 #
 # don't know what to do with these yet...
