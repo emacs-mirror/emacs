@@ -562,6 +562,7 @@ Do the same for the keys of the same name."
   (if (> (length (cdr yank-menu)) kill-ring-max)
       (setcdr (nthcdr kill-ring-max yank-menu) nil)))
 
+(put 'menu-bar-select-yank 'apropos-inhibit t)
 (defun menu-bar-select-yank ()
   (interactive "*")
   (push-mark (point))
