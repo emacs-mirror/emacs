@@ -1,3 +1,8 @@
+2002-03-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-revert-buffer): If the buffer is not saved, prompt
+	the user to do that first.
+
 2002-03-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/tex-mode.el (tex-guess-main-file): Handle the case
