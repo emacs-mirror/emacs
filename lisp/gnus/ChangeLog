@@ -1,9 +1,16 @@
+2000-10-13  Dave Love  <fx@gnu.org>
+
+	* qp.el (quoted-printable-decode-region): Avoid invalid
+	coding-systems.
+
 2000-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* mm-bodies.el: Don't require `mm-uu' at compile-time; it leads
 	to a recursive load.
 
 2000-10-12  Dave Love  <fx@gnu.org>
+
+	* mm-util.el (mm-charset-synonym-alist): Add windows-1252.
 
 	* gnus.el (gnus-group-startup-message): Check for PBM image.
 

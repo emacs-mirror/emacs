@@ -1,3 +1,7 @@
+2000-10-13  Dave Love  <fx@gnu.org>
+
+	* toolbar/paste.pbm, toolbar/saveas.pbm: Retouch.
+
 2000-10-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp.el (down-list, backward-up-list, up-list): Doc
