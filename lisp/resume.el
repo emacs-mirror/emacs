@@ -97,7 +97,8 @@
   "Handler for command line args given when Emacs is resumed."
   (let ((start-buffer (current-buffer))
 	(args-buffer (get-buffer-create resume-emacs-args-buffer))
-	length args)
+	length args
+	(command-line-default-directory default-directory))
     (unwind-protect
 	(progn
 	  (set-buffer args-buffer)
@@ -127,7 +128,8 @@
 	  (resume-write-buffer-to-file (current-buffer) resume-emacs-args-file)
 	  ;; if nothing was in buffer, args will be null
 	  (or (null args)
-	      (setq default-directory (file-name-as-directory (car args))
+	      (setq command-line-default-directory
+		    (file-name-as-directory (car args))
 		    args (cdr args)))
 	  ;; actually process the arguments
 	  (command-line-1 args))
@@ -160,5 +162,7 @@
       (widen)
       (write-region (point-min) (point-max) file nil 'quiet))
     (set-buffer-modified-p nil)))
+
+(provide 'resume)
 
 ;;; resume.el ends here
