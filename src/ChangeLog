@@ -1,3 +1,7 @@
+2002-03-13  Kim F. Storm  <storm@cua.dk>
+
+	* puresize.h (BASE_PURESIZE): Increase to 775000.
+
 2002-03-12  Juanma Barranquero  <lektu@terra.es>
 
 	* editfns.c (syms_of_editfns): Fix typo.
