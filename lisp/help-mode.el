@@ -600,5 +600,3 @@ For the cross-reference format, see `help-make-xrefs'."
 (provide 'help-mode)
 
 ;;; help-mode.el ends here
-
-
