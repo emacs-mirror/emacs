@@ -2824,10 +2824,10 @@ handle_single_display_prop (it, prop, object, position,
 	 object where the property was found, and `buffer-position'
 	 to the current position in the buffer.  */
       specbind (Qobject, object);
-      specbind (Qposition, CHARPOS (*position));
-      specbind (Qbuffer_position, (STRINGP (object)
-				   ? make_number (IT_CHARPOS (*it))
-				   : make_number (CHARPOS (*position))));
+      specbind (Qposition, make_number (CHARPOS (*position)));
+      specbind (Qbuffer_position,
+		make_number (STRINGP (object)
+			     ? IT_CHARPOS (*it) : CHARPOS (*position)));
       GCPRO1 (form);
       form = safe_eval (form);
       UNGCPRO;
