@@ -1,3 +1,13 @@
+2001-10-21  Miles Bader  <miles@gnu.org>
+
+	* help-funs.el (help-manyarg-func-alist): Remove entries for
+	`insert', `insert_and_inherit', `insert_before_markers',
+	`insert-before-markers-and-inherit', `messapge', `message_box',
+	`message_or_box', `propertize', `format', `encode_time', `append',
+	`concat', `vconcat', `nconc', `widget_apply', `make_hash_table',
+	`insert_string', `ml_if', `ml_provide_prefix_argument', and
+	`ml_prefix_argument_loop'.
+
 2001-10-21  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-internal, vc-coding-system-for-diff, 
