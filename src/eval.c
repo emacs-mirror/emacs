@@ -651,7 +651,8 @@ If SYMBOL is buffer-local, its default value is what is set;\n\
  buffer-local values are not affected.\n\
 INITVALUE and DOCSTRING are optional.\n\
 If DOCSTRING starts with *, this variable is identified as a user option.\n\
- This means that M-x set-variable and M-x edit-options recognize it.\n\
+ This means that M-x set-variable recognizes it.\n\
+ See also `user-variable-p'.\n\
 If INITVALUE is missing, SYMBOL's value is not set.")
   (args)
      Lisp_Object args;
