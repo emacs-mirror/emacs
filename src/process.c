@@ -1562,9 +1562,9 @@ create_process (process, new_argv, current_dir)
 
   if (inchannel >= 0)
     {
-#ifndef USG 
-      /* On USG systems it does not work to open the pty's tty here
-	       and then close and reopen it in the child.  */
+#if ! defined (USG) || defined (USG_SUBTTY_WORKS)
+      /* On most USG systems it does not work to open the pty's tty here,
+	 then close it and reopen it in the child.  */
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
@@ -1576,7 +1576,7 @@ create_process (process, new_argv, current_dir)
 	report_file_error ("Opening pty", Qnil);
 #else
       forkin = forkout = -1;
-#endif /* not USG */
+#endif /* not USG, or USG_SUBTTY_WORKS */
       pty_flag = 1;
     }
   else
@@ -5027,7 +5027,10 @@ process_send_signal (process, signo, current_group, nomsg)
     current_group = Qnil;
 
   /* If we are using pgrps, get a pgrp number and make it negative.  */
-  if (!NILP (current_group))
+  if (NILP (current_group))
+    /* Send the signal to the shell's process group.  */
+    gid = XFASTINT (p->pid);
+  else
     {
 #ifdef SIGNALS_VIA_CHARACTERS
       /* If possible, send signals to the entire pgrp
@@ -5122,7 +5125,7 @@ process_send_signal (process, signo, current_group, nomsg)
 #endif /* defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP 
-      /* Get the pgrp using the tty itself, if we have that.
+      /* Get the current pgrp using the tty itself, if we have that.
 	 Otherwise, use the pty to get the pgrp.
 	 On pfa systems, saka@pfu.fujitsu.co.JP writes:
 	 "TIOCGPGRP symbol defined in sys/ioctl.h at E50.
@@ -5137,28 +5140,28 @@ process_send_signal (process, signo, current_group, nomsg)
 	else
 	  err = ioctl (XINT (p->infd), TIOCGPGRP, &gid);
 
-#ifdef pfa
 	if (err == -1)
-	  gid = - XFASTINT (p->pid);
-#endif /* ! defined (pfa) */
+	  /* If we can't get the information, assume
+	     the shell owns the tty.  */
+	  gid = XFASTINT (p->pid);
       }
+
+      /* It is not clear whether anything really can set GID to -1.
+	 Perhaps on some system one of those ioctls can or could do so.
+	 Or perhaps this is vestigial.  */
       if (gid == -1)
 	no_pgrp = 1;
-      else
-	gid = - gid;
 #else  /* ! defined (TIOCGPGRP ) */
       /* Can't select pgrps on this system, so we know that
 	 the child itself heads the pgrp.  */
-      gid = - XFASTINT (p->pid);
+      gid = XFASTINT (p->pid);
 #endif /* ! defined (TIOCGPGRP ) */
 
       /* If current_group is lambda, and the shell owns the terminal,
 	 don't send any signal.  */
-      if (EQ (current_group, Qlambda) && gid == - XFASTINT (p->pid))
+      if (EQ (current_group, Qlambda) && gid == XFASTINT (p->pid))
 	return;
     }
-  else
-    gid = - XFASTINT (p->pid);
 
   switch (signo)
     {
@@ -5210,7 +5213,7 @@ process_send_signal (process, signo, current_group, nomsg)
       kill (gid, signo);
     }
 #else /* ! defined (TIOCSIGSEND) */
-  EMACS_KILLPG (-gid, signo);
+  EMACS_KILLPG (gid, signo);
 #endif /* ! defined (TIOCSIGSEND) */
 }
 
