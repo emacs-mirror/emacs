@@ -626,7 +626,7 @@ This is in addition to the primary selection.")
 ;; W32 systems have different fonts than commonly found on X, so
 ;; we define our own standard fontset here.
 (defvar w32-standard-fontset-spec
- "-*-Courier New*-normal-r-*-*-13-*-*-*-c-*-fontset-standard"
+ "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-fontset-standard"
  "String of fontset spec of the standard fontset. This defines a
 fontset consisting of the Courier New variations for European
 languages which are distributed with Windows as \"Multilanguage Support\".
@@ -707,11 +707,7 @@ specified in X resources."
                   (create-fontset-from-fontset-spec
                    (concat fontset ", ascii:" font) styles)
                   )))))
-      ;; This cannot be run yet, as creating fontsets requires a
-      ;; Window to be initialised so the fonts can be listed.
-      ;; Add it to a hook so it gets run later.
-      (add-hook 'before-init-hook 'w32-create-initial-fontsets)
-      ))
+      (w32-create-initial-fontsets)))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
@@ -883,6 +879,12 @@ Courier. These fonts are used in the font menu if the variable
 `w32-use-w32-font-dialog' is nil.")
 
 (defun mouse-set-font (&rest fonts)
+  "Select a font. If `w32-use-w32-font-dialog' is non-nil (the default),
+use the Windows font dialog. Otherwise use a pop-up menu (like Emacs
+on other platforms) initialized with the fonts in
+`w32-fixed-font-alist'. Emacs will attempt to create a fontset from
+the font chosen, covering all the charsets that can be fully represented
+with the font."
   (interactive
    (if w32-use-w32-font-dialog
        (list (w32-select-font))
@@ -892,15 +894,21 @@ Courier. These fonts are used in the font menu if the variable
       (if (fboundp 'new-fontset)
       (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
-      (let (font)
+      (let (font fontset)
 	(while fonts
 	  (condition-case nil
 	      (progn
-		(set-default-font (car fonts))
-		(setq font (car fonts))
-		(setq fonts nil))
-	    (error
-	     (setq fonts (cdr fonts)))))
+                (setq font (car fonts))
+                (if (fontset-name-p font)
+                    (setq fontset font)
+                  (condition-case nil
+                      (setq fontset (create-fontset-from-ascii-font font))
+                    (error nil)))
+                (if fontset
+                    (set-default-font fontset)
+                  (set-default-font font))
+                (setq fonts nil))
+	    (error (setq fonts (cdr fonts)))))
 	(if (null font)
 	    (error "Font not found")))))
 
