@@ -1049,7 +1049,7 @@ DEFUN ("process-plist", Fprocess_plist, Sprocess_plist,
 
 DEFUN ("set-process-plist", Fset_process_plist, Sset_process_plist,
        2, 2, 0,
-       doc: /* Replace the plist of PROCESS with PLIST.  */)
+       doc: /* Replace the plist of PROCESS with PLIST.  Returns PLIST.  */)
      (process, plist)
      register Lisp_Object process, plist;
 {
@@ -1057,6 +1057,7 @@ DEFUN ("set-process-plist", Fset_process_plist, Sset_process_plist,
   CHECK_LIST (plist);
 
   XPROCESS (process)->plist = plist;
+  return plist;
 }
 
 #if 0 /* Turned off because we don't currently record this info
