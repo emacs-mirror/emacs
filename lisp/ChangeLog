@@ -1,3 +1,7 @@
+2005-01-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: No longer require `cl'; `dolist' is standard.
+
 2005-01-03  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (replace-dehighlight): Use lazy-highlight-cleanup.
