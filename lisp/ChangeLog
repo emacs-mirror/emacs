@@ -1,3 +1,7 @@
+2002-02-12  Miles Bader  <miles@gnu.org>
+
+	* faces.el (mode-line-inactive): Add dark-background variant.
+
 2002-02-11  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* toolbar/tool-bar.el (tool-bar-mode): Removed standard value.
@@ -239,6 +243,7 @@
 	* cus-start.el (x-use-underline-position-properties):
 	Allow customization.
 
+>>>>>>> 1.3434
 2002-02-04  Simon Josefsson  <jas@extundo.com>
 
 	* dired.el (dired-load-hook, dired-mode-hook)
