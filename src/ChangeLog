@@ -1,3 +1,11 @@
+2000-10-24  Andrew Innes  <andrewi@gnu.org>
+
+	* dired.c (directory_files_internal_unwind): New function.
+	(directory_files_internal): Use it to ensure closedir is called
+	even if expand-file-name or file-attributes throw, eg. because of
+	a user interrupt.  Also enable immediate_quit while calling
+	re_search, so that matching can be interrupted as well.
+
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (size_window): Prevent setting window's width or
