@@ -4351,7 +4351,8 @@ displayed_window_lines (w)
       int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
       it.vpos += lines;
     }
-  else if (bottom_y > height)
+  else if (it.current_y < height && bottom_y > height)
+    /* Partially visible line at the bottom.  */
     ++it.vpos;
   
   return it.vpos;
