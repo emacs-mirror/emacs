@@ -456,7 +456,7 @@ DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
 BASE-BUFFER should be an existing buffer (or buffer name).\n\
 NAME should be a string which is not the name of an existing buffer.\n\
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,\n\
-such as major and minor modes, in the indirect buffer.
+such as major and minor modes, in the indirect buffer.\n\
 CLONE nil means the indirect buffer's state is reset to default values.")
   (base_buffer, name, clone)
      Lisp_Object base_buffer, name, clone;
@@ -3951,7 +3951,7 @@ init_buffer_once ()
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */
 
-  /* real setup is done in loaddefs.el */
+  /* real setup is done in bindings.el */
   buffer_defaults.mode_line_format = build_string ("%-");
   buffer_defaults.header_line_format = Qnil;
   buffer_defaults.abbrev_mode = Qnil;
