@@ -26,7 +26,11 @@
 
 #define COFF
 #undef LD_SWITCH_MACHINE
+#ifdef __GNUC__
+#define LD_SWITCH_MACHINE -Xlinker -x -Xlinker -D -Xlinker 800000
+#else
 #define LD_SWITCH_MACHINE -x -D 800000
+#endif
 
 /* #define C_OPTIMIZE_SWITCH -O2 */
 #define C_OPTIMIZE_SWITCH -O
@@ -42,6 +46,7 @@
 
 /* Don't use the definitions in m/mips.h.  */
 #undef LINKER
+#define LINKER $(CC) -nostdlib
 #undef LIBS_MACHINE
 #define LIBS_MACHINE -lmld
 
