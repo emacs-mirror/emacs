@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.9) $
+ * $HopeName: MMsrc!mpmst.h(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -452,7 +452,7 @@ typedef struct RootStruct {
 
 /* Scan State
  *
- * See impl.c.trace.
+ * .ss: See impl.c.trace.
  *
  * The first four fields of the trace structure must match the
  * external scan state structure (mps_ss_s) thus:
