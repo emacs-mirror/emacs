@@ -3,7 +3,8 @@
 	* gud.el (gud-kill-buffer-hook): Save gud-minor-mode type.
 	(gud-reset): New function. Reset environment at end of debugging.
 	(gud-sentinel): Call gud-reset or gdb-reset.
-	
+	(gud-menu-map, gud-tool-bar-map, gdb): Change gud-goto to gud-until.
+
 	* gdb-ui.el (gud-display): Use GDB command ptype instead of whatis
 	to find out if variable shuld be dereferenced.
 	(gud-display1): Exit if there is `No symbol'.
