@@ -382,8 +382,7 @@ unlock_all_files ()
        tail = XCONS (tail)->cdr)
     {
       b = XBUFFER (XCONS (XCONS (tail)->car)->cdr);
-      if (XTYPE (b->filename) == Lisp_String &&
-	  b->save_modified < BUF_MODIFF (b))
+      if (STRINGP (b->filename) && b->save_modified < BUF_MODIFF (b))
 	unlock_file (b->filename);
     }
 }
@@ -414,7 +413,7 @@ if it should normally be locked.")
   ()
 {
   if (current_buffer->save_modified < MODIFF &&
-      XTYPE (current_buffer->filename) == Lisp_String)
+      STRINGP (current_buffer->filename))
     unlock_file (current_buffer->filename);
   return Qnil;
 }
@@ -426,7 +425,7 @@ unlock_buffer (buffer)
      struct buffer *buffer;
 {
   if (buffer->save_modified < BUF_MODIFF (buffer) &&
-      XTYPE (buffer->filename) == Lisp_String)
+      STRINGP (buffer->filename))
     unlock_file (buffer->filename);
 }
 
