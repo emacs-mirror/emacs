@@ -864,22 +864,55 @@ Commands for sorting the summary:
 	  (set-buffer obuf))))))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
-  "Scroll the Rmail window forward."
+  "Scroll the Rmail window forward.
+If the Rmail window is displaying the end of a message,
+advance to the next message."
   (interactive "P")
-  (let ((other-window-scroll-buffer rmail-buffer))
-    (if (get-buffer-window rmail-buffer)
-	(scroll-other-window dist)
-      ;; This forces rmail-buffer to be sized correctly later.
-      (display-buffer rmail-buffer)
-      (setq rmail-current-message nil))))
+  (if (eq dist '-)
+      (rmail-summary-scroll-msg-down nil)
+    (let ((rmail-buffer-window (get-buffer-window rmail-buffer)))
+      (if rmail-buffer-window
+	  (if (let ((rmail-summary-window (selected-window)))
+		(select-window rmail-buffer-window)
+		(prog1
+		    ;; Is EOB visible in the buffer?
+		    (save-excursion
+		      (let ((ht (window-height (selected-window))))
+			(move-to-window-line (- ht 2))
+			(end-of-line)
+			(eobp)))
+		  (select-window rmail-summary-window)))
+	      (rmail-summary-next-msg (or dist 1))
+	    (let ((other-window-scroll-buffer rmail-buffer))
+	      (scroll-other-window dist)))
+	;; This forces rmail-buffer to be sized correctly later.
+	(display-buffer rmail-buffer)
+	(setq rmail-current-message nil)))))
 
 (defun rmail-summary-scroll-msg-down (&optional dist)
-  "Scroll the Rmail window backward."
+  "Scroll the Rmail window backward.
+If the Rmail window is displaying the beginning of a message,
+advance to the previous message."
   (interactive "P")
-  (rmail-summary-scroll-msg-up
-   (cond ((eq dist '-) nil)
-	 ((null dist) '-)
-	 (t (- (prefix-numeric-value dist))))))
+  (if (eq dist '-)
+      (rmail-summary-scroll-msg-up nil)
+    (let ((rmail-buffer-window (get-buffer-window rmail-buffer)))
+      (if rmail-buffer-window
+	  (if (let ((rmail-summary-window (selected-window)))
+		(select-window rmail-buffer-window)
+		(prog1
+		    ;; Is BOB visible in the buffer?
+		    (save-excursion
+		      (move-to-window-line 0)
+		      (beginning-of-line)
+		      (bobp))
+		  (select-window rmail-summary-window)))
+	      (rmail-summary-previous-msg (or dist 1))
+	    (let ((other-window-scroll-buffer rmail-buffer))
+	      (scroll-other-window-down dist)))
+	;; This forces rmail-buffer to be sized correctly later.
+	(display-buffer rmail-buffer)
+	(setq rmail-current-message nil)))))
 
 (defun rmail-summary-beginning-of-message ()
   "Show current message from the beginning."
