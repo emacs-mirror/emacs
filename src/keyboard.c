@@ -374,10 +374,10 @@ static volatile struct input_event *kbd_store_ptr;
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
 
-/* If this flag is non-zero, we check mouse_moved to see when the
-   mouse moves, and motion events will appear in the input stream.  If
-   it is zero, mouse motion is ignored.  */
-static int do_mouse_tracking;
+/* If this flag is a frame, we check mouse_moved to see when the
+   mouse moves, and motion events will appear in the input stream.
+   Otherwise, mouse motion is ignored.  */
+static Lisp_Object do_mouse_tracking;
 
 /* The window system handling code should set this if the mouse has
    moved since the last call to the mouse_position_hook.  Calling that
@@ -392,7 +392,8 @@ int mouse_moved;
    is readable input; all the events in the queue might be button-up
    events, and do_mouse_tracking might be off.  */
 #define EVENT_QUEUES_EMPTY \
-  ((kbd_fetch_ptr == kbd_store_ptr) && (!do_mouse_tracking || !mouse_moved))
+  ((kbd_fetch_ptr == kbd_store_ptr) \
+   && (! FRAMEP (do_mouse_tracking) || !mouse_moved))
 
 
 /* Symbols to head events.  */
@@ -1889,13 +1890,14 @@ restore_getcjmp (temp)
 
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
+
 static Lisp_Object
 tracking_off (old_value)
      Lisp_Object old_value;
 {
   if (! XFASTINT (old_value))
     {
-      do_mouse_tracking = 0;
+      do_mouse_tracking = Qnil;
 
       /* Redisplay may have been preempted because there was input
 	 available, and it assumes it will be called again after the
@@ -1922,13 +1924,12 @@ Normally, mouse motion is ignored.")
   int count = specpdl_ptr - specpdl;
   Lisp_Object val;
 
-  XSETINT (val, do_mouse_tracking);
-  record_unwind_protect (tracking_off, val);
+  record_unwind_protect (tracking_off, do_mouse_tracking);
 
   if (!input_pending && !detect_input_pending ())
     prepare_menu_bars ();
 
-  do_mouse_tracking = 1;
+  XSETFRAME (do_mouse_tracking, selected_frame);
   
   val = Fprogn (args);
   return unbind_to (count, val);
@@ -2200,9 +2201,9 @@ kbd_buffer_get_event ()
 	}
     }
   /* Try generating a mouse motion event.  */
-  else if (do_mouse_tracking && mouse_moved)
+  else if (FRAMEP (do_mouse_tracking) && mouse_moved)
     {
-      FRAME_PTR f = 0;
+      FRAME_PTR f = XFRAME (do_mouse_tracking);
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
@@ -5877,7 +5878,7 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-  do_mouse_tracking = 0;
+  do_mouse_tracking = Qnil;
   input_pending = 0;
 
 #ifdef MULTI_FRAME
