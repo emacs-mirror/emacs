@@ -345,9 +345,12 @@ For instance
   
   export DEBUGSOURCES="RowColumn.c MenuShell.c MenuUtil.c"
   export DEBUG_FILE=/usr/tmp/LESSTIF_TRACE
+  emacs &
 
 causes LessTif to print traces from the three named source files to a
-file in `/usr/tmp' (that file can get pretty large).
+file in `/usr/tmp' (that file can get pretty large).  The above should
+be typed at the shell prompt before invoking Emacs, as shown by the
+last line above.
 
 Running GDB from another terminal could also help with such problems.
 You can arrange for GDB to run on one machine, with the Emacs display
