@@ -427,6 +427,14 @@ redisplay ()
       || ! EQ (Voverlay_arrow_string, last_arrow_string))
     all_windows = 1, clip_changed = 1;
 
+  /* If showing region, and mark has changed, must redisplay whole window.  */
+  if (((!NILP (Vtransient_mark_mode)
+	&& !NILP (XBUFFER (w->buffer)->mark_active))
+       != !NILP (w->region_showing))
+      || !EQ (w->region_showing,
+	      Fmarker_position (XBUFFER (w->buffer)->mark)))
+    this_line_bufpos = -1;
+
   tlbufpos = this_line_bufpos;
   tlendpos = this_line_endpos;
   if (!all_windows && tlbufpos > 0 && NILP (w->update_mode_line)
@@ -486,7 +494,10 @@ redisplay ()
 	    }
 	  goto update;
 	}
-      else
+      /* If highlighting the region, we can't just move the cursor.  */
+      else if (! (!NILP (Vtransient_mark_mode)
+		  && !NILP (current_buffer->mark_active))
+	       && NILP (w->region_showing))
 	{
 	  pos = *compute_motion (tlbufpos, 0,
 				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
@@ -699,10 +710,20 @@ mark_window_display_accurate (window, flag)
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
-	XFASTINT (w->last_modified)
-	  = !flag ? 0
-	    : XBUFFER (w->buffer) == current_buffer
-	      ? MODIFF : BUF_MODIFF (XBUFFER (w->buffer));
+	{
+	  XFASTINT (w->last_modified)
+	    = !flag ? 0
+	      : XBUFFER (w->buffer) == current_buffer
+		? MODIFF : BUF_MODIFF (XBUFFER (w->buffer));
+
+	  /* Record if we are showing a region, so can make sure to
+	     update it fully at next redisplay.  */
+	  w->region_showing = (!NILP (Vtransient_mark_mode)
+			       && !NILP (XBUFFER (w->buffer)->mark_active)
+			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
+			       : Qnil);
+	}
+
       w->window_end_valid = Qt;
       w->update_mode_line = Qnil;
 
@@ -849,6 +870,7 @@ redisplay_window (window, just_this_one)
       try_window (window, startp);
       if (cursor_vpos < 0)
 	{
+	  /* ??? What should happen here if highlighting a region?  */
 	  /* If point does not appear, move point so it does appear */
 	  pos = *compute_motion (startp, 0,
 				((EQ (window, minibuf_window) && startp == 1)
@@ -884,6 +906,9 @@ redisplay_window (window, just_this_one)
   if (XFASTINT (w->last_modified) >= MODIFF
       && point >= startp && !clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
+      /* Can't use this case if highlighting a region.  */
+      && !(!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
+      && NILP (w->region_showing)
       && !EQ (window, minibuf_window))
     {
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0),
@@ -926,6 +951,10 @@ redisplay_window (window, just_this_one)
 	   && do_id && !clip_changed
 	   && !blank_end_of_window
 	   && XFASTINT (w->width) == FRAME_WIDTH (f)
+	   /* Can't use this case if highlighting a region.  */
+	   && !(!NILP (Vtransient_mark_mode)
+		&& !NILP (current_buffer->mark_active))
+	   && NILP (w->region_showing)
 	   && EQ (last_arrow_position, Voverlay_arrow_position)
 	   && EQ (last_arrow_string, Voverlay_arrow_string)
 	   && (tem = try_window_id (FRAME_SELECTED_WINDOW (f)))
@@ -1638,6 +1667,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
     || (truncate_partial_width_windows
 	&& XFASTINT (w->width) < FRAME_WIDTH (f))
     || !NILP (current_buffer->truncate_lines);
+
+  /* 1 if we should highlight the region.  */
+  int highlight_region
+    = !NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active);
+  int region_beg, region_end;
+
   int selective
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
@@ -1678,6 +1713,22 @@ display_text_line (w, start, vpos, hpos, taboffset)
   hpos += XFASTINT (w->left);
   get_display_line (f, vpos, XFASTINT (w->left));
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+
+  /* Show where to highlight the region.  */
+  if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0)
+    {
+      region_beg = marker_position (current_buffer->mark);
+      if (PT < region_beg)
+	{
+	  region_end = region_beg;
+	  region_beg = PT;
+	}
+      else
+	region_end = PT;
+      w->region_showing = Qt;
+    }
+  else
+    region_beg = region_end = -1;
 
   if (MINI_WINDOW_P (w) && start == 1
       && vpos == XFASTINT (w->top))
@@ -1730,7 +1781,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
 	  if (pos == next_face_change)
-	    current_face = compute_char_face (f, w, pos, &next_face_change);
+	    current_face = compute_char_face (f, w, pos,
+					      region_beg, region_end,
+					      &next_face_change);
 #endif
 
 	  pause = end;
@@ -2001,6 +2054,25 @@ display_menu_bar (w)
     return;
 
   get_display_line (f, vpos, 0);
+
+  /* If the user has switched buffers or windows, we need to
+     recompute to reflect the new bindings.  But we'll
+     recompute when update_mode_lines is set too; that means
+     that people can use force-mode-line-update to request
+     that the menu bar be recomputed.  The adverse effect on
+     the rest of the redisplay algorithm is about the same as
+     windows_or_buffers_changed anyway.  */
+  if (windows_or_buffers_changed
+      || update_mode_lines
+      || (XFASTINT (w->last_modified) < MODIFF
+	  && (XFASTINT (w->last_modified)
+	      <= XBUFFER (w->buffer)->save_modified)))
+    {
+      struct buffer *prev = current_buffer;
+      current_buffer = XBUFFER (w->buffer);
+      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
+      current_buffer = prev;
+    }
 
   for (tail = FRAME_MENU_BAR_ITEMS (f); CONSP (tail); tail = XCONS (tail)->cdr)
     {
