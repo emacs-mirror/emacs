@@ -28,9 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-/* Dense keymaps look like (keymap VECTOR . ALIST), where VECTOR is a
-   128-element vector used to look up bindings for ASCII characters,
-   and ALIST is an assoc list for looking up symbols.  */
+/* The number of elements in keymap vectors.  */
 #define DENSE_TABLE_SIZE (0200)
 
 /* Actually allocate storage for these variables */
@@ -84,7 +82,7 @@ void describe_map_tree ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command ();
 static void describe_map ();
-static void describe_alist ();
+static void describe_map_2 ();
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -190,6 +188,7 @@ get_keymap_1 (object, error)
   tem = indirect_function (object);
   if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
     return tem;
+
   if (error)
     wrong_type_argument (Qkeymapp, object);
   else
@@ -204,27 +203,12 @@ get_keymap (object)
 }
 
 
-/* If KEYMAP is a dense keymap, return the vector from its cadr.
-   Otherwise, return nil.  */
-
-Lisp_Object
-keymap_table (keymap)
-     Lisp_Object keymap;
-{
-  Lisp_Object cadr;
-
-  if (CONSP (XCONS (keymap)->cdr)
-      && XTYPE (cadr = XCONS (XCONS (keymap)->cdr)->car) == Lisp_Vector
-      && XVECTOR (cadr)->size == DENSE_TABLE_SIZE)
-    return cadr;
-  else
-    return Qnil;
-}
-
-
 /* Look up IDX in MAP.  IDX may be any sort of event.
-   Note that this does only one level of lookup; IDX must
-   be a single event, not a sequence.  */
+
+   Note that this does only one level of lookup; IDX must be a single
+   event, not a sequence.  If IDX is unbound in MAP but MAP has a
+   binding for Qt, then Qt's binding is returned; this makes bindings
+   of Qt act like "default" bindings.  */
 
 Lisp_Object
 access_keymap (map, idx)
@@ -239,26 +223,39 @@ access_keymap (map, idx)
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
-    error ("Command key is not an ASCII character");
+    error ("only ASCII characters may used as keymap indices");
+
+  /* If idx is a symbol, it might have modifiers, which need to
+     be put in the canonical order.  */
+  else if (XTYPE (idx) == Lisp_Symbol)
+    idx = reorder_modifiers (idx);
 
   {
-    Lisp_Object table = keymap_table (map);
+    Lisp_Object tail;
+    Lisp_Object t_binding = Qnil;
 
-    /* A dense keymap indexed by a character?  */
-    if (XTYPE (idx) == Lisp_Int
-	&& ! NILP (table))
-      return XVECTOR (table)->contents[XFASTINT (idx)];
-
-    /* This lookup will not involve a vector reference.  */
-    else
+    for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
       {
-	/* If idx is a symbol, it might have modifiers, which need to
-	   be put in the canonical order.  */
-	if (XTYPE (idx) == Lisp_Symbol)
-	  idx = reorder_modifiers (idx);
-	
-	return Fcdr (Fassq (idx, map));
+	Lisp_Object binding = XCONS (tail)->car;
+
+	switch (XTYPE (binding))
+	  {
+	  case Lisp_Cons:
+	    if (EQ (XCONS (binding)->car, idx))
+	      return XCONS (binding)->cdr;
+	    if (EQ (XCONS (binding)->car, Qt))
+	      t_binding = XCONS (binding)->cdr;
+	    break;
+
+	  case Lisp_Vector:
+	    if (XVECTOR (binding)->size == DENSE_TABLE_SIZE
+		&& XTYPE (idx) == Lisp_Int)
+	      return XVECTOR (binding)->contents[XINT (idx)];
+	    break;
+	  }
       }
+
+    return t_binding;
   }
 }
 
@@ -313,6 +310,10 @@ store_in_keymap (keymap, idx, def)
      register Lisp_Object idx;
      register Lisp_Object def;
 {
+  if (XTYPE (keymap) != Lisp_Cons
+      || ! EQ (XCONS (keymap)->car, Qkeymap))
+    error ("attempt to define a key in a non-keymap");
+
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
@@ -321,43 +322,70 @@ store_in_keymap (keymap, idx, def)
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
-    error ("Command key is a character outside of the ASCII set.");
-  
+    error ("only ASCII characters may be used as keymap indices");
+
+  /* If idx is a symbol, it might have modifiers, which need to
+     be put in the canonical order.  */
+  else if (XTYPE (idx) == Lisp_Symbol)
+    idx = reorder_modifiers (idx);
+
+
+  /* Scan the keymap for a binding of idx.  */
   {
-    Lisp_Object table = keymap_table (keymap);
+    Lisp_Object tail;
 
-    /* A dense keymap indexed by a character?  */
-    if (XTYPE (idx) == Lisp_Int	&& !NILP (table))
-      XVECTOR (table)->contents[XFASTINT (idx)] = def;
+    /* The cons after which we should insert new bindings.  If the
+       keymap has a table element, we record its position here, so new
+       bindings will go after it; this way, the table will stay
+       towards the front of the alist and character lookups in dense
+       keymaps will remain fast.  Otherwise, this just points at the
+       front of the keymap.  */
+    Lisp_Object insertion_point = keymap;
 
-    /* Must be a sparse keymap, or a dense keymap indexed by a symbol.  */
-    else
+    for (tail = XCONS (keymap)->cdr; CONSP (tail); tail = XCONS (tail)->cdr)
       {
-	/* Point to the pointer to the start of the assoc-list part
-	   of the keymap.  */
-	register Lisp_Object *assoc_head
-	  = (NILP (table)
-	     ? & XCONS (keymap)->cdr
-	     : & XCONS (XCONS (keymap)->cdr)->cdr);
-	register Lisp_Object defining_pair;
+	Lisp_Object elt = XCONS (tail)->car;
 
-	/* If idx is a symbol, it might have modifiers, which need to
-	   be put in the canonical order.  */
-	if (XTYPE (idx) == Lisp_Symbol)
-	  idx = reorder_modifiers (idx);
+	switch (XTYPE (elt))
+	  {
+	  case Lisp_Vector:
+	    if (XTYPE (idx) == Lisp_Int)
+	      {
+		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
+		return def;
+	      }
+	    insertion_point = tail;
+	    break;
 
-	/* Point to the pair where idx is bound, if any.  */
-	defining_pair = Fassq (idx, *assoc_head);
+	  case Lisp_Cons:
+	    if (EQ (idx, XCONS (elt)->car))
+	      {
+		XCONS (elt)->cdr = def;
+		return def;
+	      }
+	    break;
 
-	if (NILP (defining_pair))
-	  *assoc_head = Fcons (Fcons (idx, def), *assoc_head);
-	else
-	  Fsetcdr (defining_pair, def);
+	  case Lisp_Symbol:
+	    /* If we find a 'keymap' symbol in the spine of KEYMAP,
+               then we must have found the start of a second keymap
+               being used as the tail of KEYMAP, and a binding for IDX
+               should be inserted before it.  */
+	    if (EQ (elt, Qkeymap))
+	      goto keymap_end;
+	    break;
+	  }
       }
-  }
 
+  keymap_end:
+    /* We have scanned the entire keymap, and not found a binding for
+       IDX.  Let's add one.  */
+    XCONS (insertion_point)->cdr =
+      Fcons (Fcons (idx, def), XCONS (insertion_point)->cdr);
+  }
+	  
   return def;
 }
+
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
   "Return a copy of the keymap KEYMAP.\n\
@@ -372,43 +400,29 @@ is not copied.")
   register Lisp_Object copy, tail;
 
   copy = Fcopy_alist (get_keymap (keymap));
-  tail = XCONS (copy)->cdr;
 
-  /* If this is a dense keymap, copy the vector.  */
-  if (CONSP (tail))
+  for (tail = copy; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      register Lisp_Object table = XCONS (tail)->car;
+      Lisp_Object elt = XCONS (tail)->car;
 
-      if (XTYPE (table) == Lisp_Vector
-	  && XVECTOR (table)->size == DENSE_TABLE_SIZE)
+      if (XTYPE (elt) == Lisp_Vector
+	  && XVECTOR (elt)->size == DENSE_TABLE_SIZE)
 	{
-	  register int i;
+	  int i;
 
-	  table = Fcopy_sequence (table);
+	  elt = Fcopy_sequence (elt);
+	  XCONS (tail)->car = elt;
 
 	  for (i = 0; i < DENSE_TABLE_SIZE; i++)
-	    if (XTYPE (XVECTOR (copy)->contents[i]) != Lisp_Symbol)
-	      if (! NILP (Fkeymapp (XVECTOR (table)->contents[i])))
-		XVECTOR (table)->contents[i]
-		  = Fcopy_keymap (XVECTOR (table)->contents[i]);
-	  XCONS (tail)->car = table;
-      
-	  tail = XCONS (tail)->cdr;
+	    if (XTYPE (XVECTOR (elt)->contents[i]) != Lisp_Symbol
+		&& Fkeymapp (XVECTOR (elt)->contents[i]))
+	      XVECTOR (elt)->contents[i] =
+		Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
-    }
-
-  /* Copy the alist portion of the keymap.  */
-  while (CONSP (tail))
-    {
-      register Lisp_Object elt;
-
-      elt = XCONS (tail)->car;
-      if (CONSP (elt)
-	  && XTYPE (XCONS (elt)->cdr) != Lisp_Symbol
-	  && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
+      else if (CONSP (elt)
+	       && XTYPE (XCONS (elt)->cdr) != Lisp_Symbol
+	       && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
 	XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
-
-      tail = XCONS (tail)->cdr;
     }
 
   return copy;
@@ -897,7 +911,6 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
   Lisp_Object maps, tail;
 
   maps = Fcons (Fcons (build_string (""), get_keymap (startmap)), Qnil);
-  tail = maps;
 
   /* For each map in the list maps,
      look at any other maps it points to,
@@ -906,7 +919,7 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
      This is a breadth-first traversal, where tail is the queue of
      nodes, and maps accumulates a list of all nodes visited.  */
 
-  while (!NILP (tail))
+  for (tail = maps; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object thisseq = Fcar (Fcar (tail));
       register Lisp_Object thismap = Fcdr (Fcar (tail));
@@ -916,14 +929,13 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
       int is_metized = (XINT (last) >= 0
 			&& EQ (Faref (thisseq, last), meta_prefix_char));
 
-      /* Skip the 'keymap element of the list.  */
-      thismap = Fcdr (thismap);
-
-      if (CONSP (thismap))
+      for (; CONSP (thismap); thismap = XCONS (thismap)->cdr)
 	{
-	  register Lisp_Object table = XCONS (thismap)->car;
+	  Lisp_Object elt = XCONS (thismap)->car;
 
-	  if (XTYPE (table) == Lisp_Vector)
+	  QUIT;
+
+	  if (XTYPE (elt) == Lisp_Vector)
 	    {
 	      register int i;
 
@@ -933,7 +945,7 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 		  register Lisp_Object tem;
 		  register Lisp_Object cmd;
 
-		  cmd = get_keyelt (XVECTOR (table)->contents[i]);
+		  cmd = get_keyelt (XVECTOR (elt)->contents[i]);
 		  if (NILP (cmd)) continue;
 		  tem = Fkeymapp (cmd);
 		  if (!NILP (tem))
@@ -946,7 +958,8 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 			  /* If the last key in thisseq is meta-prefix-char,
 			     turn it into a meta-ized keystroke.  We know
 			     that the event we're about to append is an
-			     ascii keystroke.  */
+			     ascii keystroke since we're processing a
+			     keymap table.  */
 			  if (is_metized)
 			    {
 			      tem = Fcopy_sequence (thisseq);
@@ -966,20 +979,8 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 			}
 		    }
 		}
-
-	      /* Once finished with the lookup elements of the dense
-		 keymap, go on to scan its assoc list.  */
-	      thismap = XCONS (thismap)->cdr;
-	    }
-	}
-
-      /* The rest is an alist.  Scan all the alist elements.  */
-      while (CONSP (thismap))
-	{
-	  Lisp_Object elt = XCONS (thismap)->car;
-
-	  /* Ignore elements that are not conses.  */
-	  if (CONSP (elt))
+	    }	    
+	  else if (CONSP (elt))
 	    {
 	      register Lisp_Object cmd = get_keyelt (XCONS (elt)->cdr);
 	      register Lisp_Object tem;
@@ -1017,11 +1018,7 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 		    }
 		}
 	    }
-	  
-	  thismap = XCONS (thismap)->cdr;
 	}
-
-      tail = Fcdr (tail);
     }
 
   return maps;
@@ -1206,10 +1203,14 @@ indirect definition itself.")
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
-      register this = Fcar (Fcar (maps)); /* Key sequence to reach map */
-      register map = Fcdr (Fcar (maps)); /* The map that it reaches */
-      register dense_alist;
-      register int i = 0;
+      /* Key sequence to reach map */
+      register Lisp_Object this = Fcar (Fcar (maps));
+
+      /* The map that it reaches */
+      register Lisp_Object map  = Fcdr (Fcar (maps));
+
+      /* If Fcar (map) is a VECTOR, the current element within that vector.  */
+      int i = 0;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -1217,54 +1218,50 @@ indirect definition itself.")
       Lisp_Object last = make_number (XINT (Flength (this)) - 1);
       int last_is_meta = (XINT (last) >= 0
 			  && EQ (Faref (this, last), meta_prefix_char));
-	 
-      /* Skip the 'keymap element of the list.  */
-      map = Fcdr (map);
 
-      /* If the keymap is sparse, map traverses the alist to the end.
-
-	 If the keymap is dense, we set map to the vector and
-	 dense_alist to the assoc-list portion of the keymap.  When we
-	 are finished dealing with the vector portion, we set map to
-	 dense_alist, and handle the rest like a sparse keymap.  */
-      if (XTYPE (XCONS (map)->car) == Lisp_Vector)
+      while (CONSP (map))
 	{
-	  dense_alist = XCONS (map)->cdr;
-	  map = XCONS (map)->car;
-	}
+	  /* Because the code we want to run on each binding is rather
+	     large, we don't want to have two separate loop bodies for
+	     sparse keymap bindings and tables; we want to iterate one
+	     loop body over both keymap and vector bindings.
 
-      while (1)
-	{
-	  register Lisp_Object key, binding, sequence;
+	     For this reason, if Fcar (map) is a vector, we don't
+	     advance map to the next element until i indicates that we
+	     have finished off the vector.  */
 	  
-	  QUIT;
-	  if (XTYPE (map) == Lisp_Vector)
+	  Lisp_Object elt = XCONS (map)->car;
+	  Lisp_Object key, binding, sequence;
+
+	  /* Set key and binding to the current key and binding, and
+	     advance map and i to the next binding.  */
+	  if (XTYPE (elt) == Lisp_Vector)
 	    {
 	      /* In a vector, look at each element.  */
-	      binding = XVECTOR (map)->contents[i];
+	      binding = XVECTOR (elt)->contents[i];
 	      XFASTINT (key) = i;
 	      i++;
 
-	      /* If we've just finished scanning a vector, switch map to
-		 the assoc-list at the end of the vector.  */
+	      /* If we've just finished scanning a vector, advance map
+		 to the next element, and reset i in anticipation of the
+		 next vector we may find.  */
 	      if (i >= DENSE_TABLE_SIZE)
-		map = dense_alist;
-	    }
-	  else if (CONSP (map))
-	    {
-	      /* In an alist, ignore elements that aren't conses.  */
-	      if (! CONSP (XCONS (map)->car))
 		{
-		  /* Ignore other elements.  */
-		  map = Fcdr (map);
-		  continue;
+		  map = XCONS (map)->cdr;
+		  i = 0;
 		}
-	      binding = Fcdr (Fcar (map));
+	    }
+	  else if (CONSP (elt))
+	    {
 	      key = Fcar (Fcar (map));
-	      map = Fcdr (map);
+	      binding = Fcdr (Fcar (map));
+
+	      map = XCONS (map)->cdr;
 	    }
 	  else
-	    break;
+	    /* We want to ignore keymap elements that are neither
+	       vectors nor conses.  */
+	    continue;
 
 	  /* Search through indirections unless that's not wanted.  */
 	  if (NILP (noindirect))
@@ -1575,28 +1572,14 @@ describe_map (map, keys, partial, shadow)
   else
     keysdesc = Qnil;
 
-  /* Skip the 'keymap element of the list.  */
-  map = Fcdr (map);
-
-  /* If this is a dense keymap, take care of the table.  */
-  if (CONSP (map)
-      && XTYPE (XCONS (map)->car) == Lisp_Vector)
-    {
-      describe_vector (XCONS (map)->car, keysdesc, describe_command,
-		       partial, shadow);
-      map = XCONS (map)->cdr;
-    }
-
-  /* Now map is an alist.  */
-  describe_alist (map, keysdesc, describe_command, partial, shadow);
+  describe_map_2 (map, keysdesc, describe_command, partial, shadow);
 }
 
-/* Insert a description of ALIST into the current buffer. 
-   Note that ALIST is just a plain association list, not a keymap.  */
+/* Insert a description of KEYMAP into the current buffer.  */
 
 static void
-describe_alist (alist, elt_prefix, elt_describer, partial, shadow)
-     register Lisp_Object alist;
+describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
+     register Lisp_Object keymap;
      Lisp_Object elt_prefix;
      int (*elt_describer) ();
      int partial;
@@ -1613,56 +1596,63 @@ describe_alist (alist, elt_prefix, elt_describer, partial, shadow)
     suppress = intern ("suppress-keymap");
 
   /* This vector gets used to present single keys to Flookup_key.  Since
-     that is done once per alist element, we don't want to cons up a
+     that is done once per keymap element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
 
   GCPRO3 (elt_prefix, tem2, kludge);
 
-  for (; CONSP (alist); alist = Fcdr (alist))
+  for (; CONSP (keymap); keymap = Fcdr (keymap))
     {
       QUIT;
-      tem1 = Fcar_safe (Fcar (alist));
-      tem2 = get_keyelt (Fcdr_safe (Fcar (alist)));
 
-      /* Don't show undefined commands or suppressed commands.  */
-      if (NILP (tem2)) continue;
-      if (XTYPE (tem2) == Lisp_Symbol && partial)
+      if (XTYPE (XCONS (keymap)->car) == Lisp_Vector)
+	describe_vector (XCONS (keymap)->car,
+			 elt_prefix, elt_describer, partial, shadow);
+      else
 	{
-	  this = Fget (tem2, suppress);
-	  if (!NILP (this))
-	    continue;
+	  tem1 =             Fcar_safe (Fcar (keymap));
+	  tem2 = get_keyelt (Fcdr_safe (Fcar (keymap)));
+
+	  /* Don't show undefined commands or suppressed commands.  */
+	  if (NILP (tem2)) continue;
+	  if (XTYPE (tem2) == Lisp_Symbol && partial)
+	    {
+	      this = Fget (tem2, suppress);
+	      if (!NILP (this))
+		continue;
+	    }
+
+	  /* Don't show a command that isn't really visible
+	     because a local definition of the same key shadows it.  */
+
+	  if (!NILP (shadow))
+	    {
+	      Lisp_Object tem;
+
+	      XVECTOR (kludge)->contents[0] = tem1;
+	      tem = Flookup_key (shadow, kludge);
+	      if (!NILP (tem)) continue;
+	    }
+
+	  if (first)
+	    {
+	      insert ("\n", 1);
+	      first = 0;
+	    }
+
+	  if (!NILP (elt_prefix))
+	    insert1 (elt_prefix);
+
+	  /* THIS gets the string to describe the character TEM1.  */
+	  this = Fsingle_key_description (tem1);
+	  insert1 (this);
+
+	  /* Print a description of the definition of this character.
+	     elt_describer will take care of spacing out far enough
+	     for alignment purposes.  */
+	  (*elt_describer) (tem2);
 	}
-
-      /* Don't show a command that isn't really visible
-	 because a local definition of the same key shadows it.  */
-
-      if (!NILP (shadow))
-	{
-	  Lisp_Object tem;
-
-	  XVECTOR (kludge)->contents[0] = tem1;
-	  tem = Flookup_key (shadow, kludge);
-	  if (!NILP (tem)) continue;
-	}
-
-      if (first)
-	{
-	  insert ("\n", 1);
-	  first = 0;
-	}
-
-      if (!NILP (elt_prefix))
-	insert1 (elt_prefix);
-
-      /* THIS gets the string to describe the character TEM1.  */
-      this = Fsingle_key_description (tem1);
-      insert1 (this);
-
-      /* Print a description of the definition of this character.
-	 elt_describer will take care of spacing out far enough
-	 for alignment purposes.  */
-      (*elt_describer) (tem2);
     }
 
   UNGCPRO;
