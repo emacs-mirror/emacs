@@ -476,7 +476,6 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
-  b->enable_multibyte_characters = Qt;
   b->last_selected_window = Qnil;
   b->extra2 = Qnil;
   b->extra3 = Qnil;
@@ -3517,6 +3516,7 @@ init_buffer_once ()
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
 #endif
+  buffer_defaults.enable_multibyte_characters = Qt;
   XSETFASTINT (buffer_defaults.fill_column, 70);
   XSETFASTINT (buffer_defaults.left_margin, 0);
   buffer_defaults.cache_long_line_scans = Qnil;
@@ -3546,7 +3546,6 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
-  XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3573,6 +3572,9 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
   XSETFASTINT (buffer_local_flags.category_table, 0x20000);
   XSETFASTINT (buffer_local_flags.direction_reversed, 0x40000);
+  XSETFASTINT (buffer_local_flags.enable_multibyte_characters, 0x80000);
+  /* Make this one a permanent local.  */
+  buffer_permanent_local_flags |= 0x80000;
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -3717,6 +3719,11 @@ This is the same as (default-value 'ctl-arrow).");
  	      &buffer_defaults.direction_reversed,
      "Default value of `direction_reversed' for buffers that do not override it.\n\
  This is the same as (default-value 'direction-reversed).");
+ 
+   DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
+ 	      &buffer_defaults.enable_multibyte_characters,
+     "Default value of `enable-multibyte-characters' for buffers not overriding it.\n\
+ This is the same as (default-value 'enable-multibyte-characters).");
  
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
 	      &buffer_defaults.truncate_lines,
