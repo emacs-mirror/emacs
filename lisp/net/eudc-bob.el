@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Oscar Figueiredo <oscar@xemacs.org>
-;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
+;; Author: Oscar Figueiredo <oscar@cpe.fr>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -43,6 +43,9 @@
 
 (defvar eudc-bob-url-keymap nil
   "Keymap for inline urls.")
+
+(defvar eudc-bob-mail-keymap nil
+  "Keymap for inline e-mail addresses.")
 
 (defconst eudc-bob-generic-menu
   '("EUDC Binary Object Menu"
@@ -206,22 +209,9 @@ display a button."
   (let (sound)
     (if (null (setq sound (eudc-bob-get-overlay-prop 'object-data)))
 	(error "No sound data available here")
-      (cond (eudc-xemacs-p
-	     (if (not (and (boundp 'sound-alist)
-			   sound-alist))
-		 (error "Don't know how to play sound on this Emacs version")
-	       (setq sound-alist
-		     (cons (list 'eudc-sound
-				 :sound sound)
-			   sound-alist))
-	       (condition-case nil
-		   (play-sound 'eudc-sound)
-		 (t
-		  (setq sound-alist (cdr sound-alist))))))
-	    (t
-	     (unless (fboundp 'play-sound)
-	       (error "Playing sounds not supported on this system"))
-	     (play-sound (list 'sound :data sound)))))))
+      (unless (fboundp 'play-sound)
+	(error "Playing sounds not supported on this system"))
+      (play-sound (list 'sound :data sound)))))
 
 (defun eudc-bob-play-sound-at-mouse (event)
   "Play the sound data contained in the button where EVENT occurred."
@@ -229,7 +219,6 @@ display a button."
   (save-excursion
     (eudc-jump-to-event event)
     (eudc-bob-play-sound-at-point)))
-
 
 (defun eudc-bob-save-object ()
   "Save the object data of the button at point."
@@ -318,6 +307,14 @@ display a button."
 			  [down-mouse-2]) 'browse-url-at-mouse)
 	map))
 
+(setq eudc-bob-mail-keymap
+      (let ((map (make-sparse-keymap)))
+	(define-key map [return] 'goto-address-at-point)
+	(define-key map (if eudc-xemacs-p
+			    [button2]
+			  [down-mouse-2]) 'goto-address-at-mouse)
+	map))
+
 (set-keymap-parent eudc-bob-image-keymap eudc-bob-generic-keymap)
 (set-keymap-parent eudc-bob-sound-keymap eudc-bob-generic-keymap)
 
@@ -346,6 +343,12 @@ display a button."
   "Display URL and make it clickable."
   (require 'browse-url)
   (eudc-bob-make-button url eudc-bob-url-keymap))
+
+;;;###autoload
+(defun eudc-display-mail (mail)
+  "Display e-mail address and make it clickable."
+  (require 'goto-addr)
+  (eudc-bob-make-button mail eudc-bob-mail-keymap))
 
 ;;;###autoload
 (defun eudc-display-sound (data)
