@@ -41,6 +41,10 @@
 ;; (define-charset 0 ascii
 ;;    [1 94 1 0 ?B 0 "ASCII" "ASCII" "ASCII (ISO646 IRV)"])
 
+;; 1-byte charsets.  Valid range of CHARSET-ID is 128..143.
+
+;; CHARSET-ID 128 is not used.
+
 (define-charset 129 'latin-iso8859-1
   [1 96 1 0 ?A 1 "RHP of Latin-1" "RHP of Latin-1 (ISO 8859-1): ISO-IR-100"
      "Right-Hand Part of Latin Alphabet 1 (ISO/IEC 8859-1): ISO-IR-100"])
@@ -71,6 +75,9 @@
 (define-charset 138 'latin-jisx0201
   [1 94 1 0 ?J 0 "JISX0201 Roman" "Japanese Roman (JISX0201.1976)"
      "Roman Part of JISX0201.1976"])
+
+;; CHARSET-ID is not used 139.
+
 (define-charset 140 'cyrillic-iso8859-5
   [1 96 1 0 ?L 1 "RHP of ISO8859/5" "RHP of Cyrillic (ISO 8859-5): ISO-IR-144"
      "Right-Hand Part of Latin/Cyrillic Alphabet (ISO/IEC 8859-5): ISO-IR-144"])
@@ -83,6 +90,9 @@
 (define-charset 143 'latin-iso8859-14
   [1 96 1 0 ?_ 1 "RHP of Latin-8" "RHP of Latin-8 (ISO 8859-14)"
      "Right-Hand Part of Latin Alphabet 8 (ISO/IEC 8859-14)"])
+
+;; 2-byte charsets.  Valid range of CHARSET-ID is 144..153.
+
 (define-charset 144 'japanese-jisx0208-1978
   [2 94 2 0 ?@ 0 "JISX0208.1978" "JISX0208.1978 (Japanese): ISO-IR-42"
      "JISX0208.1978 Japanese Kanji (so called \"old JIS\"): ISO-IR-42"])
@@ -104,6 +114,8 @@
 (define-charset 150 'chinese-cns11643-2
   [2 94 2 0 ?H 0 "CNS11643-2" "CNS11643-2 (Chinese traditional): ISO-IR-172"
      "CNS11643 Plane 2 Chinese traditional: ISO-IR-172"])
+(define-charset 151 'japanese-jisx0213-1
+  [2 94 2 0 ?O 0 "JISX0213-1" "JISX0213-1" "JISX0213 Plane 1 (Japanese)"])
 (define-charset 152 'chinese-big5-1
   [2 94 2 0 ?0 0 "Big5 (Level-1)" "Big5 (Level-1) A141-C67F"
      "Frequentry used part (A141-C67F) of Big5 (Chinese traditional)"])
@@ -115,7 +127,7 @@
 ;; treated less space-efficiently in the buffer.
 
 ;; Syntax:
-;; (define-charset nil CHARSET
+;; (define-charset CHARSET-ID CHARSET
 ;;   [ DIMENSION CHARS WIDTH DIRECTION ISO-FINAL-CHAR ISO-GRAPHIC-PLANE
 ;;     SHORT-NAME LONG-NAME DESCRIPTION ])
 
@@ -124,88 +136,117 @@
 ;; reserves `0' through `9' to support several private character sets.
 ;; The remaining final characters `:' through `?' are for users.
 
-(define-charset nil 'chinese-sisheng
+;; 1-byte 1-column charsets.  Valid range of CHARSET-ID is 160..223.
+
+(define-charset 160 'chinese-sisheng
   [1 94 1 0 ?0 0 "SiSheng" "SiSheng (PinYin/ZhuYin)"
      "SiSheng characters for PinYin/ZhuYin"])
 
 ;; IPA characters for phonetic symbols.
-(define-charset nil 'ipa
+(define-charset 161 'ipa
   [1 96 1 0 ?0 1 "IPA" "IPA" "IPA (International Phonetic Association)"])
 
 ;; Vietnamese VISCII.  VISCII is 1-byte character set which contains
 ;; more than 96 characters.  Since Emacs can't handle it as one
 ;; character set, it is divided into two: lower case letters and upper
 ;; case letters.
-(define-charset nil 'vietnamese-viscii-lower
+(define-charset 162 'vietnamese-viscii-lower
   [1 96 1 0 ?1 1 "VISCII lower" "VISCII lower-case" "VISCII1.1 lower-case"])
-(define-charset nil 'vietnamese-viscii-upper
+(define-charset 163 'vietnamese-viscii-upper
   [1 96 1 0 ?2 1 "VISCII upper" "VISCII upper-case" "VISCII1.1 upper-case"])
 
 ;; For Arabic, we need three different types of character sets.
 ;; Digits are of direction left-to-right and of width 1-column.
 ;; Others are of direction right-to-left and of width 1-column or
 ;; 2-column.
-(define-charset nil 'arabic-digit
+(define-charset 164 'arabic-digit
   [1 94 1 0 ?2 0 "Arabic digit" "Arabic digit" "Arabic digit"])
-(define-charset nil 'arabic-1-column
+(define-charset 165 'arabic-1-column
   [1 94 1 1 ?3 0 "Arabic 1-col" "Arabic 1-column" "Arabic 1-column"])
-(define-charset nil 'arabic-2-column
-  [1 94 2 1 ?4 0 "Arabic 2-col" "Arabic 2-column" "Arabic 2-column"])
-
-;; Ethiopic characters (Amahric and Tigrigna).
-(define-charset nil 'ethiopic
-  [2 94 2 0 ?3 0 "Ethiopic" "Ethiopic characters" "Ethiopic characters"])
-
-;; Chinese CNS11643 Plane3 thru Plane7.  Although these are official
-;; character sets, the use is rare and don't have to be treated
-;; space-efficiently in the buffer.
-(define-charset nil 'chinese-cns11643-3
-  [2 94 2 0 ?I 0 "CNS11643-3" "CNS11643-3 (Chinese traditional): ISO-IR-183"
-     "CNS11643 Plane 3 Chinese Traditional: ISO-IR-183"])
-(define-charset nil 'chinese-cns11643-4
-  [2 94 2 0 ?J 0 "CNS11643-4" "CNS11643-4 (Chinese traditional): ISO-IR-184"
-     "CNS11643 Plane 4 Chinese Traditional: ISO-IR-184"])
-(define-charset nil 'chinese-cns11643-5
-  [2 94 2 0 ?K 0 "CNS11643-5" "CNS11643-5 (Chinese traditional): ISO-IR-185"
-     "CNS11643 Plane 5 Chinese Traditional: ISO-IR-185"])
-(define-charset nil 'chinese-cns11643-6
-  [2 94 2 0 ?L 0 "CNS11643-6" "CNS11643-6 (Chinese traditional): ISO-IR-186"
-     "CNS11643 Plane 6 Chinese Traditional: ISO-IR-186"])
-(define-charset nil 'chinese-cns11643-7
-  [2 94 2 0 ?M 0 "CNS11643-7" "CNS11643-7 (Chinese traditional): ISO-IR-187"
-     "CNS11643 Plane 7 Chinese Traditional: ISO-IR-187"])
 
 ;; ASCII with right-to-left direction.
-(define-charset nil 'ascii-right-to-left
+(define-charset 166 'ascii-right-to-left
   [1 94 1 1 ?B 0 "rev ASCII" "ASCII with right-to-left direction"
      "ASCII (left half of ISO 8859-1) with right-to-left direction"])
+
+;; Lao script.
+;; ISO10646's 0x0E80..0x0EDF are mapped to 0x20..0x7F.
+(define-charset 167 'lao
+  [1 94 1 0 ?1 0 "Lao" "Lao" "Lao characters (ISO10646 0E80..0EDF)"])
+
+;; CHARSET-IDs 168..223 are not used.
+
+;; 1-byte 2-column charsets.  Valid range of CHARSET-ID is 224..239.
+
+(define-charset 224 'arabic-2-column
+  [1 94 2 1 ?4 0 "Arabic 2-col" "Arabic 2-column" "Arabic 2-column"])
 
 ;; Indian scripts.  Symbolic charset for data exchange.  Glyphs are
 ;; not assigned.  They are automatically converted to each Indian
 ;; script which IS-13194 supports.
 
-(define-charset nil 'indian-is13194
+(define-charset 225 'indian-is13194
   [1 94 2 0 ?5 1 "IS 13194" "Indian IS 13194"
      "Generic Indian charset for data exchange with IS 13194"])
-;; Actual Glyph for 2-column width.
-(define-charset nil 'indian-2-column
-  [2 94 2 0 ?5 0 "Indian 2-col" "Indian 2 Column"
-     "Indian charset for 2-column width glyphs"])
+
+;; CHARSET-IDs 226..239 are not used.
+
+;; 2-byte 1-column charsets.  Valid range of CHARSET-ID is 240..244.
+
 ;; Actual Glyph for 1-column width.
-(define-charset nil 'indian-1-column
+(define-charset 240 'indian-1-column
   [2 94 1 0 ?6 0 "Indian 1-col" "Indian 1 Column"
      "Indian charset for 2-column width glyphs"])
 
-;; Lao script.
-;; ISO10646's 0x0E80..0x0EDF are mapped to 0x20..0x7F.
-(define-charset nil 'lao
-  [1 94 1 0 ?1 0 "Lao" "Lao" "Lao characters (ISO10646 0E80..0EDF)"])
+(define-charset 241 'tibetan-1-column
+  [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
+
+;; CHARSET-IDs 242 and 243 are not used.
+
+;; Subset of Unicode.
+(define-charset 244 'mule-unicode-0100-24ff
+  [2 96 1 0 ?1 0 "Unicode subset" "Unicode subset (U+0100..U+24FF)"
+     "Unicode characters of the range U+0100..U+24FF."])
+
+;; 2-byte 2-column charsets.  Valid range of CHARSET-ID is 245..254.
+
+;; Ethiopic characters (Amahric and Tigrigna).
+(define-charset 245 'ethiopic
+  [2 94 2 0 ?3 0 "Ethiopic" "Ethiopic characters" "Ethiopic characters"])
+
+;; Chinese CNS11643 Plane3 thru Plane7.  Although these are official
+;; character sets, the use is rare and don't have to be treated
+;; space-efficiently in the buffer.
+(define-charset 246 'chinese-cns11643-3
+  [2 94 2 0 ?I 0 "CNS11643-3" "CNS11643-3 (Chinese traditional): ISO-IR-183"
+     "CNS11643 Plane 3 Chinese Traditional: ISO-IR-183"])
+(define-charset 247 'chinese-cns11643-4
+  [2 94 2 0 ?J 0 "CNS11643-4" "CNS11643-4 (Chinese traditional): ISO-IR-184"
+     "CNS11643 Plane 4 Chinese Traditional: ISO-IR-184"])
+(define-charset 248 'chinese-cns11643-5
+  [2 94 2 0 ?K 0 "CNS11643-5" "CNS11643-5 (Chinese traditional): ISO-IR-185"
+     "CNS11643 Plane 5 Chinese Traditional: ISO-IR-185"])
+(define-charset 249 'chinese-cns11643-6
+  [2 94 2 0 ?L 0 "CNS11643-6" "CNS11643-6 (Chinese traditional): ISO-IR-186"
+     "CNS11643 Plane 6 Chinese Traditional: ISO-IR-186"])
+(define-charset 250 'chinese-cns11643-7
+  [2 94 2 0 ?M 0 "CNS11643-7" "CNS11643-7 (Chinese traditional): ISO-IR-187"
+     "CNS11643 Plane 7 Chinese Traditional: ISO-IR-187"])
+
+;; Actual Glyph for 2-column width.
+(define-charset 251 'indian-2-column
+  [2 94 2 0 ?5 0 "Indian 2-col" "Indian 2 Column"
+     "Indian charset for 2-column width glyphs"])
 
 ;; Tibetan script.
-(define-charset nil 'tibetan
+(define-charset 252 'tibetan
   [2 94 2 0 ?7 0 "Tibetan 2-col" "Tibetan 2 column" "Tibetan characters"])
-(define-charset nil 'tibetan-1-column
-  [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
+
+;; CHARSET-ID 253 is not used.
+
+;; JISX0213 Plane 2
+(define-charset 254 'japanese-jisx0213-2
+  [2 94 2 0 ?P 0 "JISX0213-2" "JISX0213-2" "JISX0213 Plane 2 (Japanese)"])
 
 ;; Tell C code charset ID's of several charsets.
 (setup-special-charsets)
