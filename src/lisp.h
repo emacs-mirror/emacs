@@ -2594,6 +2594,10 @@ EXFUN (Fprevious_char_property_change, 2);
 EXFUN (Fnext_char_property_change, 2);
 extern void report_interval_modification P_ ((Lisp_Object, Lisp_Object));
 extern void syms_of_textprop P_ ((void));
+extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
+							 Lisp_Object,
+							 Lisp_Object,
+							 Lisp_Object));
 
 /* defined in intervals.c */
 extern Lisp_Object get_local_map P_ ((int, struct buffer *));
