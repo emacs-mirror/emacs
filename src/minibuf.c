@@ -2123,6 +2123,7 @@ syms_of_minibuf ()
 
   Qbuffer_name_history = intern ("buffer-name-history");
   staticpro (&Qbuffer_name_history);
+  Fset (Qbuffer_name_history, Qnil);
 
   Qminibuffer_setup_hook = intern ("minibuffer-setup-hook");
   staticpro (&Qminibuffer_setup_hook);
