@@ -82,6 +82,7 @@ Lisp_Object Qmodeline;
 Lisp_Object Qname;
 Lisp_Object Qonly;
 Lisp_Object Qunsplittable;
+Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 
@@ -1065,6 +1066,7 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
                    : FRAME_MINIBUF_WINDOW (f))));
   store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
+  store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
@@ -1421,6 +1423,8 @@ syms_of_frame ()
   staticpro (&Qwidth);
   Qx = intern ("x");
   staticpro (&Qx);
+  Qmenu_bar_lines = intern ("menu-bar-lines");
+  staticpro (&Qmenu_bar_lines);
 
   staticpro (&Vframe_list);
 
