@@ -24,14 +24,13 @@ As a result, packages such as Gnus, Ispell, and Comint do not work.
 they are not supported in the Mac OS version.
 
 @menu
-* Mac Input::                  Keyboard input on the Mac.
-* Mac International::          International character set support on the Mac.
-* Mac Environment Variables::  Setting environment variables for Emacs.
-* Mac Directories::            Volumes and directories on the Mac.
-* Mac Font Specs::             Specifying fonts on the Mac.
-* Mac Functions::              Mac specific Lisp functions.
+* Input: Mac Input.                Keyboard input on the Mac.
+* Intl: Mac International.         International character sets on the Mac.
+* Env: Mac Environment Variables.  Setting environment variables for Emacs.
+* Directories: Mac Directories.    Volumes and directories on the Mac.
+* Font: Mac Font Specs.            Specifying fonts on the Mac.
+* Functions: Mac Functions.        Mac-specific Lisp functions.
 @end menu
-
 
 @node Mac Input
 @section Keyboard Input on the Mac
@@ -74,7 +73,7 @@ generates Latin-2 codes by typink @kbd{C-x RET k iso-latin-2 RET}.  To
 make this setting permanent, put this in your @file{.emacs} init file:
 
 @lisp
- (set-keyboard-coding-system 'iso-latin-2)
+(set-keyboard-coding-system 'iso-latin-2)
 @end lisp
 
 @node Mac International
@@ -86,7 +85,7 @@ make this setting permanent, put this in your @file{.emacs} init file:
 characters.  It also deviates from the ISO 2022 standard by using code
 points in the range 128-159.  The coding system @code{mac-roman} is used
 to represent this Mac encoding.  It is used for editing files stored in
-this native encoding, and for displaying filenames in Dired mode.
+this native encoding, and for displaying file names in Dired mode.
 
   Any native (non-symbol) Mac font can be used to correctly display
 characters in the @code{mac-roman} coding system.
@@ -165,10 +164,10 @@ EMACS_UNIBYTE=1
   The directory structure in the Mac OS is seen by Emacs as 
 
 @example
-/<volumename>/<pathname>
+/@var{volumename}/@var{filename}
 @end example
 
-So when Emacs requests a file name, doing filename completion on
+So when Emacs requests a file name, doing file name completion on
 @file{/} will display all volumes on the system.  As in Unix, @file{..}
 can be used to go up a directory level.
 
@@ -192,16 +191,15 @@ another directory but this folder will still be created.
   Fonts are specified to Emacs on the Mac in the form of a standard X
 font name.  I.e.,
 
-@example
-  -FOUNDRY-FAMILY-WEIGHT-SLANT-WIDTH--PIXELS-POINTS-
-    HRES-VRES-SPACING-AVEWIDTH-CHARSET
-@end example
+@smallexample
+-@var{foundry}-@var{family}-@var{weight}-@var{slant}-@var{width}--@var{pixels}-@var{points}-@var{hres}-@var{vres}-@var{spacing}-@var{avewidth}-@var{charset}
+@end smallexample
 
+@noindent
 where the fields refer to foundry, font family, weight, slant, width,
-pixels, point size, horizontal resolution, vertical resolution, spacing,
-average width, and character set, respectively.
-
-Wildcards are supported as they are on X.
+pixels, point size, horizontal resolution, vertical resolution,
+spacing, average width, and character set, respectively.  Wildcards
+are supported as they are on X.
 
   Native Apple fonts in Mac Roman encoding has foundry name @code{apple}
 and charset @code{mac-roman}.  For example 12-point Monaco can be
@@ -229,7 +227,7 @@ string.
 
 @findex mac-filename-to-unix
 @findex unix-filename-to-mac
-  The function @code{mac-filename-to-unix} takes a Mac pathname and
+  The function @code{mac-filename-to-unix} takes a Mac file name and
 returns the Unix equivalent.  The function @code{unix-filename-to-mac}
 performs the opposite conversion.  They are useful for constructing
 AppleScript commands to be passed to @code{do-applescript}.
