@@ -1,3 +1,10 @@
+2004-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* regex.h (enum reg_errcode_t): New value REG_ERANGEX.
+
+	* regex.c (re_error_msgid): Add an entry for REG_ERANGEX.
+	(regex_compile): Return REG_ERANGEX if appropriate.
+
 2004-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Ftranslate_region_internal): New function.
