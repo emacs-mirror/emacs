@@ -502,8 +502,6 @@ int timers_run;
 
 extern Lisp_Object Vprint_level, Vprint_length;
 
-extern nonascii_insert_offset;
-
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
 EMACS_TIME *input_available_clear_time;
@@ -1390,9 +1388,8 @@ command_loop_1 ()
 		      /* Add the offset to the character, for Finsert_char.
 			 We pass internal_self_insert the unmodified character
 			 because it itself does this offsetting.  */
-		      if (lose >= 0200 && lose <= 0377
-			  && ! NILP (current_buffer->enable_multibyte_characters))
-			lose += nonascii_insert_offset;
+		      if (! NILP (current_buffer->enable_multibyte_characters))
+			lose = unibyte_char_to_multibyte (lose);
 
 		      if (dp)
 			{
