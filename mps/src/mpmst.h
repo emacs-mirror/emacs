@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.4) $
+ * $HopeName: MMsrc!mpmst.h(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -189,7 +189,7 @@ typedef struct VMStruct {       /* ANSI fake VM structure; impl.c.vman */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
 
-#elif defined(MPS_OS_SU)
+#elif defined(MPS_OS_SU) || defined(MPS_OS_SO)
 
 typedef struct VMStruct {       /* SunOS 4 VM structure; impl.c.vmsu */
   Sig sig;                      /* impl.h.misc.sig */
@@ -380,7 +380,7 @@ typedef struct ThreadStruct {   /* Win32 thread structure */
 } ThreadStruct;
 
 #elif defined(MPS_OS_SU) || defined(MPS_OS_O1) || \
- defined(MPS_OS_S7) || defined(MPS_OS_IR)
+ defined(MPS_OS_S7) || defined(MPS_OS_IR) || defined(MPS_OS_SO)
 
 typedef struct LockStruct {     /* ANSI fake lock structure */
   Sig sig;                      /* impl.h.misc.sig */
