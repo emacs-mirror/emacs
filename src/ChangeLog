@@ -37,6 +37,7 @@
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
 	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
+	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
 
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
 
