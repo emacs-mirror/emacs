@@ -37,7 +37,7 @@
   :group 'indent
   :type 'integer)
 
-(defvar indent-line-function 'indent-relative
+(defvar indent-line-function 'indent-to-left-margin
   "Function to indent the current line.
 This function will be called with no arguments.
 If it is called somewhere where auto-indentation cannot be done
