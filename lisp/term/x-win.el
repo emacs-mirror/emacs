@@ -626,7 +626,9 @@ This is in addition to the primary selection.")
 
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY")))
-		   x-command-line-resources)
+		   x-command-line-resources
+		   ;; Exit Emacs with fatal error if this fails.
+		   t)
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
