@@ -1,5 +1,7 @@
 2001-04-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (command_loop_1): Redo change of 2001-03-12.
+
 	* xdisp.c (try_window_id): Fix a case where window_end_pos
 	and window_end_bytepos were not adjusted.
 
