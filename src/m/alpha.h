@@ -188,14 +188,3 @@ NOTE-END
 /* Similarly, for XSETINT */
 
 #define XSETINT(a, b)   ((a) = (long)((a) & ~VALMASK) | (long)((b) & VALMASK))
-
-
-/* Make PURESIZE twice as large, as pointers are 64 bit */
-
-#ifdef MULTI_FRAME
-#define PURESIZE 460000
-#else
-#define PURESIZE 400000
-#endif
-
-
