@@ -1,3 +1,12 @@
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
+	renamed to `disabled-command-function'.
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	(Command Loop Info): Replace reference to it.
+	(Disabling Commands): `disabled-command-hook' has been renamed to
+	`disabled-command-function'.
+
 2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* os.texi (Translating Input): Only non-prefix bindings in
