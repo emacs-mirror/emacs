@@ -3,10 +3,10 @@
 ;; Copyright (C) 1993, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
-;; Author:	Jacques Duthen <duthen@cegelec-red.fr>
+;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
 ;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Author:	Kenichi Handa <handa@etl.go.jp> (multibyte characters)
-;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multibyte characters)
+;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	print, PostScript
 ;; Time-stamp:	<98/10/13  15:42:23 vinicius>
@@ -437,10 +437,10 @@ Please send all bug fixes and enhancements to
 ;; Characters TAB, NEWLINE and FORMFEED are always treated by ps-print engine.
 ;;
 ;;
-;; Printing Multibyte Buffer
-;; -------------------------
+;; Printing Multi-byte Buffer
+;; --------------------------
 ;;
-;; The variable `ps-multibyte-buffer' specifies the ps-print multibyte buffer
+;; The variable `ps-multibyte-buffer' specifies the ps-print multi-byte buffer
 ;; handling.
 ;;
 ;; Valid values for `ps-multibyte-buffer' are:
@@ -833,7 +833,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [keinichi] 980819 Kein'ichi Handa <handa@etl.go.jp>
 ;;
-;; Multibyte buffer handling.
+;; Multi-byte buffer handling.
 ;;
 ;; [vinicius] 980306 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
@@ -912,7 +912,7 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
-;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multibyte buffer handling.
+;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
 ;; Thanks to Matthew O Persico <Matthew.Persico@lazard.com> for line number on
 ;; empty columns.
@@ -1024,7 +1024,7 @@ Please send all bug fixes and enhancements to
 
 
 (defcustom ps-multibyte-buffer nil
-  "*Specifies the multibyte buffer handling.
+  "*Specifies the multi-byte buffer handling.
 
 Valid values are:
 
@@ -2938,7 +2938,7 @@ which long lines wrap around."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; For handling multibyte characters -- Begin.
+;; For handling multi-byte characters -- Begin.
 ;;
 ;; The following comments apply only to this part (through the next ^L).
 ;; Author:	Kenichi Handa <handa@etl.go.jp>
@@ -3000,7 +3000,7 @@ one argument, the string to encode, and it should return an encoded string.
 BYTES specifies how many bytes each character has in the encoded byte
 sequence; it should be 1 or 2. 
 
-All multibyte characters are printed by fonts specified in this database
+All multi-byte characters are printed by fonts specified in this database
 regardless of a font family of ASCII characters.  The exception is Latin-1
 characters which are printed by the same font as ASCII characters, thus obey
 font family.
@@ -3355,8 +3355,8 @@ current font."
 	  (and newcodes
 	       (ps-mule-generate-glyphs font-spec newcodes))))))
 
-;; List of charsets of multibyte characters in a text being printed.
-;; If the text doesn't contain any multibyte characters (i.e. only
+;; List of charsets of multi-byte characters in a text being printed.
+;; If the text doesn't contain any multi-byte characters (i.e. only
 ;; ASCII), the value is nil.
 (defvar ps-mule-charset-list nil)
 
@@ -3410,7 +3410,7 @@ current font."
 %%%% End of Mule Section
 
 "
-  "PostScript code for printing multibyte characters.")
+  "PostScript code for printing multi-byte characters.")
 
 (defun ps-mule-skip-same-charset (charset)
   "Skip characters of CHARSET following the current point."
@@ -3855,7 +3855,7 @@ NewBitmapDict
 ;; Mule specific initializers.
 
 (defun ps-mule-initialize ()
-  "Produce Poscript code in the prologue part for multibyte characters."
+  "Produce Poscript code in the prologue part for multi-byte characters."
   (setq ps-mule-font-info-database
 	(cond ((eq ps-multibyte-buffer 'non-latin-printer)
 	       ps-mule-font-info-database-ps)
@@ -3931,7 +3931,7 @@ NewBitmapDict
 	      (setq font (cdr font)
 		    i (1+ i))))))))
 
-;; For handling multibyte characters -- End.
+;; For handling multi-byte characters -- End.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -4790,7 +4790,7 @@ EndDSCPage\n"))
     ;; pagefeeds, control characters, and plot each chunk.
     (while (< from to)
       (if (re-search-forward ps-control-or-escape-regexp to t)
-	  ;; region with some control characters or some multibyte characters
+	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
 		 (match (char-after match-point)))
 	    (when (< from match-point)
@@ -4821,7 +4821,7 @@ EndDSCPage\n"))
 		       (= ps-height-remaining ps-print-height))
 		  (ps-next-page)))
 
-	     ((> match 255)		; a multibyte character
+	     ((> match 255)		; a multi-byte character
 	      (let ((charset (char-charset match)))
 		(or (eq charset 'composition)
 		    (ps-mule-skip-same-charset charset))
@@ -4831,7 +4831,7 @@ EndDSCPage\n"))
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
-	;; region without control characters nor multibyte characters
+	;; region without control characters nor multi-byte characters
 	(when (not (eq ps-mule-current-charset 'ascii))
 	  (ps-set-font  ps-current-font)
 	  (setq ps-mule-current-charset 'ascii))
