@@ -195,7 +195,7 @@ is nil, REGEXP matches only half a hunk.")
 Interactively the current buffer's file name is the default for NEW
 and a backup file for NEW is the default for OLD.
 With prefix arg, prompt for diff switches.
-If NO-ASYNC is non-nil, call diff syncrhonously."
+If NO-ASYNC is non-nil, call diff synchronously."
   (interactive
    (nconc
     (let (oldf newf)
