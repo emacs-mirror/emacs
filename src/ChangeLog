@@ -1,3 +1,10 @@
+2004-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fmap_keymap): New arg SORT-FIRST.  Use
+	map-keymap-internal to implement that.
+
+	* indent.c (Fvertical_motion): In batch mode, use vmotion directly.
+
 2004-11-16  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (Fdefine_fringe_bitmap): Always set 'h'. Simplify.

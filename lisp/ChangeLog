@@ -1,3 +1,30 @@
+2004-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* international/iso-cvt.el (iso-tex2iso-trans-tab):
+	Discard spaces after \i according to TeX rules.
+
+	* international/mule.el (set-buffer-file-coding-system): 
+	New arg NOMODIFY.
+	(after-insert-file-set-coding): Pass that new arg.
+	Prevent set-buffer-multibyte from trying to lock the file.
+
+	* buff-menu.el (list-buffers-noselect): New arg BUFFER-LIST.
+
+	* saveplace.el (save-place): Doc fix.
+
+	* dabbrev.el (dabbrev-expand): When handling SPC M-/,
+	temporarily widen before finding the following word to copy.
+
+	* emacs-lisp/lucid.el (map-keymap): Definition deleted.
+	(cl-map-keymap): Definition deleted.
+
+	* subr.el (map-keymap-internal): New function.
+
+2004-11-14  Frederic Han  <han@math.jussieu.fr>  (tiny change)
+
+	* international/iso-cvt.el (iso-tex2iso-trans-tab): 
+	Discard whitespace after macro \i when converting it.
+
 2004-11-16  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/find-func.el (find-function-regexp):
