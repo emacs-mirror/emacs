@@ -5,7 +5,7 @@
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Emacs MIME: (emacs-mime).   The MIME de/composition library.
 @end direntry
