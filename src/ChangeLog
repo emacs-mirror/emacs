@@ -1,5 +1,10 @@
 2002-08-01  Kenichi Handa  <handa@etl.go.jp>
 
+	* syntax.c (Vnext_word_boundary_function_table): New variable.
+	(syms_of_syntax): Declare it as a Lisp variable.
+	(scan_words): Call functions in Vnext_word_boundary_function_table
+	if any.
+
 	* xterm.c (x_load_font): Initialize fontp->fontset to -1.
 
 	* fontset.c (fs_load_font): If fontp->charset is not negative,
