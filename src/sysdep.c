@@ -22,6 +22,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <signal.h>
 #include <setjmp.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -73,6 +76,10 @@ extern int h_errno;
 /* Get _POSIX_VDISABLE, if it is available.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 
 #ifdef HAVE_SETPGID
@@ -203,10 +210,6 @@ struct utimbuf {
   long modtime;
 };
 #endif
-#endif
-
-#ifndef VFORK_RETURN_TYPE
-#define VFORK_RETURN_TYPE int
 #endif
 
 /* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
