@@ -634,7 +634,7 @@ that they will have to give up reading it all.
 entering an outgoing message:
 
 @example
-(setq mail-signature '(spool))
+(setq mail-signature '(spook))
 @end example
 
   Whether or not this confuses the NSA, it at least amuses people.
