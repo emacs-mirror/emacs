@@ -775,7 +775,7 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
       int count = specpdl_ptr - specpdl;
 
-      record_unwind_protect (Fstore_match_data, Fmatch_data ());
+      record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -1396,7 +1396,7 @@ update_menu_bar (f, save_match_data)
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
-	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
+	    record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
 	  if (NILP (Voverriding_local_map_menu_flag))
 	    {
 	      specbind (Qoverriding_terminal_local_map, Qnil);
@@ -2047,6 +2047,11 @@ try_window (window, pos)
   FRAME_PTR f = XFRAME (w->frame);
   int width = window_internal_width (w) - 1;
   struct position val;
+
+  /* POS should never be out of range!  */
+  if (pos < XBUFFER (w->buffer)->begv
+      || pos > XBUFFER (w->buffer)->zv)
+    abort ();
 
   Fset_marker (w->start, make_number (pos), Qnil);
   cursor_vpos = -1;
