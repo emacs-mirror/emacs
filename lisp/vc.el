@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.240 1998/12/02 13:34:59 spiegel Exp rost $
+;; $Id: vc.el,v 1.241 1998/12/08 16:04:52 rost Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -2939,17 +2939,13 @@ THRESHOLD, nil otherwise"
 	      ;; diff it against /dev/null.
 	      (apply 'vc-do-command
 		     "*vc-diff*" 1 "diff" file 'WORKFILE
-		     (append (if (listp diff-switches) 
-				 diff-switches
-			       (list diff-switches)) '("/dev/null")))))
+                     (append diff-switches-list '("/dev/null")))))
 	;; cmp is not yet implemented -- we always do a full diff.
 	(apply 'vc-do-command
 	       "*vc-diff*" 1 "cvs" file 'WORKFILE "diff"
 	       (and oldvers (concat "-r" oldvers))
 	       (and newvers (concat "-r" newvers))
-	       (if (listp diff-switches)
-		   diff-switches
-		 (list diff-switches))))))))
+               diff-switches-list))))))
 
 (defun vc-backend-merge-news (file)
   ;; Merge in any new changes made to FILE.
