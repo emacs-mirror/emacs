@@ -578,6 +578,14 @@ and the buffer that is killed or buried is the one in that window."
     (and window (not window-handled) (not window-solitary)
 	 (delete-window window))))
 
+(defun handle-select-window (event)
+  "Handle select-window events."
+  (interactive "e")
+  (let ((window (posn-window (event-start event))))
+    (if (or (not (window-minibuffer-p window))
+	    (minibuffer-window-active-p window))
+	(select-window window))))
+
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
