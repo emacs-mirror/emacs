@@ -1,3 +1,8 @@
+2001-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* m/ibms390.h: New file.  From Adam Thornton
+	<athornton@sinenomine.net>.
+
 2001-10-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing

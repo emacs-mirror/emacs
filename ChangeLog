@@ -1,3 +1,8 @@
+2001-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.in (s390-*-linux-gnu): New system.  From Adam Thornton
+	<athornton@sinenomine.net>.
+
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): New target.
