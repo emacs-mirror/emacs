@@ -544,11 +544,12 @@ nunix-30|nu-telnet-30|nu-half: Half nu screen thru telnet:\
 nunix-61|nu-telnet-61|nu-full| Full nu screen thru telnet:\
 	:co#78:li#61:tc=nunix-30:
 
-## VT200 entry for VMS.  Make sure not to use \n for nl or anything else.
+## VT200 entry for VMS.  Also for VT300.
+# Make sure not to use \n for nl or anything else.
 # It is bad form to use ^J,^L,^K to scroll the screen.
 # If the VT2xx doesn't have newline mode set those characters
 # donot move the cursor down a line.  Use \ED instead.
-d0|vt200-80|vt200|VT 200 with 80 columns, on VMS:\
+d0|vt200-80|vt200|vt300-80|VT 200 with 80 columns, on VMS:\
 	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:IC=\E[%d@:\
 	:LE=\E[%dD:RI=\E[%dC:SR=1*\E[%dM:UP=\E[%dA:al=\E[L:\
 	:am:bl=^G:bs:cd=2*\E[J:ce=2*\E[K:cl=45\E[H\E[2J:\
@@ -560,7 +561,7 @@ d0|vt200-80|vt200|VT 200 with 80 columns, on VMS:\
 	:mr=\E[7m:ms:nd=\E[C:nl=\ED:nw=\EE:pf=\E[?4i:po=\E[?5i:\
 	:ps=\E[i:rc=\E8:sc=\E7:se=\E[27m:sf=1*\ED:so=\E[7m:\
 	:sr=1*\EM:st=\EH:ue=\E[24m:up=\EM:us=\E[4m:xn:
-d0|vt200-132|VT 200 with 132 columns, on VMS:\
+d0|vt200-132|vt300-132|VT 200 with 132 columns, on VMS:\
 	:co#132:tc=vt200-80:
 
 aP|apollo_15P|apollo 15 inch display:\
