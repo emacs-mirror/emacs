@@ -558,6 +558,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;;! ;; Choose a good default value for split-window-keep-point.
   ;;! (setq split-window-keep-point (> baud-rate 2400))
 
+  ;; Set the default strings to display in mode line for
+  ;; end-of-line formats that aren't native to this platform.
+  (cond
+   ((memq system-type '(ms-dos windows-nt emx))
+    (setq eol-mnemonic-unix "(Unix)")
+    (setq eol-mnemonic-mac  "(Mac)"))
+   ;; Mac-specific settings should come here, once there's a
+   ;; system-type symbol specific to MacOS.
+   (t	; this is for Unix/GNU/Linux systems
+    (setq eol-mnemonic-dos  "(DOS)")
+    (setq eol-mnemonic-mac  "(Mac)")))
+
   ;; Read window system's init file if using a window system.
   (condition-case error
       (if (and window-system (not noninteractive))
