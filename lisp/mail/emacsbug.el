@@ -77,17 +77,19 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	  (while (progn (move-to-column 50) (not (eobp)))
 	    (search-forward " " nil t)
 	    (insert "\n")))
-	(insert "\n\n")
-	(insert "Recent messages:\n")
-	(insert-buffer-substring "*Messages*"
-				 (save-excursion
-				   (set-buffer "*Messages*")
-				   (goto-char (point-max))
-				   (forward-line -10)
-				   (point))
-				 (save-excursion
-				   (set-buffer "*Messages*")
-				   (point-max)))
+	(let ((message-buf (get-buffer "*Messages*")))
+	  (if message-buf
+	      (progn
+		(insert "\n\nRecent messages:\n")
+		(insert-buffer-substring message-buf
+					 (save-excursion
+					   (set-buffer message-buf)
+					   (goto-char (point-max))
+					   (forward-line -10)
+					   (point))
+					 (save-excursion
+					   (set-buffer message-buf)
+					   (point-max))))))
 	;; This is so the user has to type something
 	;; in order to send easily.
 	(use-local-map (nconc (make-sparse-keymap) (current-local-map)))
