@@ -135,7 +135,7 @@ ${SUBDIRS}:
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 ${TIT}:
-	[ -d quail ] || mkdir quail
+	if [ -d quail ]; then true; else make quail; fi
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
