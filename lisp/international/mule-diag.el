@@ -62,7 +62,42 @@
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
 ;;;###autoload
-(defvar non-iso-charset-alist nil
+(defvar non-iso-charset-alist 
+  `((mac-roman
+     (ascii latin-iso8859-1 mule-unicode-2500-33ff
+	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-viscii-nonascii-translation-table
+     ((0 255)))
+    (vietnamese-tcvn
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-tcvn-nonascii-translation-table
+     ((0 255)))
+    (koi8-r
+     (ascii cyrillic-iso8859-5)
+     cyrillic-koi8-r-nonascii-translation-table
+     ((32 255)))
+    (alternativnyj
+     (ascii cyrillic-iso8859-5)
+     cyrillic-alternativnyj-nonascii-translation-table
+     ((32 255)))
+    (koi8-u
+     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
+     cyrillic-koi8-u-nonascii-translation-table
+     ((32 255)))
+    (big5
+     (ascii chinese-big5-1 chinese-big5-2)
+     decode-big5-char
+     ((32 127)
+      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
+    (sjis
+     (ascii katakana-jisx0201 japanese-jisx0208)
+     decode-sjis-char
+     ((32 127 ?\xA1 ?\xDF)
+      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
   "Alist of charset names vs the corresponding information.
 This is mis-named for historical reasons.  The charsets are actually
 non-built-in ones.  They correspond to Emacs coding systems, not Emacs
@@ -92,47 +127,6 @@ In the first form, valid codes are between FROM1 and TO1, or FROM2 and
 TO2, or...
 The second form is used for 2-byte codes.  The car part is the ranges
 of the first byte, and the cdr part is the ranges of the second byte.")
-
-;; Set it like this in case code-pages &c has been loaded previously,
-;; in which case defvar would be useless.
-(setq non-iso-charset-alist
-      (append
-       non-iso-charset-alist
-       `((mac-roman
-	  (ascii latin-iso8859-1 mule-unicode-2500-33ff
-		 mule-unicode-0100-24ff mule-unicode-e000-ffff)
-	  mac-roman-decoder
-	  ((0 255)))
-	 (viscii
-	  (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-	  viet-viscii-nonascii-translation-table
-	  ((0 255)))
-	 (vietnamese-tcvn
-	  (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-	  viet-tcvn-nonascii-translation-table
-	  ((0 255)))
-	 (koi8-r
-	  (ascii cyrillic-iso8859-5)
-	  cyrillic-koi8-r-nonascii-translation-table
-	  ((32 255)))
-	 (alternativnyj
-	  (ascii cyrillic-iso8859-5)
-	  cyrillic-alternativnyj-nonascii-translation-table
-	  ((32 255)))
-	 (koi8-u
-	  (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
-	  cyrillic-koi8-u-nonascii-translation-table
-	  ((32 255)))
-	 (big5
-	  (ascii chinese-big5-1 chinese-big5-2)
-	  decode-big5-char
-	  ((32 127)
-	   ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
-	 (sjis
-	  (ascii katakana-jisx0201 japanese-jisx0208)
-	  decode-sjis-char
-	  ((32 127 ?\xA1 ?\xDF)
-	   ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))))
 
 ;;;###autoload
 (defun list-character-sets (arg)
