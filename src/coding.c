@@ -411,47 +411,6 @@ Lisp_Object Vtranslation_table_for_input;
 Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
 
-static void record_conversion_result (struct coding_system *coding,
-				      enum coding_result_code result);
-static int detect_coding_utf_8 P_ ((struct coding_system *,
-				    struct coding_detection_info *info));
-static void decode_coding_utf_8 P_ ((struct coding_system *));
-static int encode_coding_utf_8 P_ ((struct coding_system *));
-
-static int detect_coding_utf_16 P_ ((struct coding_system *,
-				     struct coding_detection_info *info));
-static void decode_coding_utf_16 P_ ((struct coding_system *));
-static int encode_coding_utf_16 P_ ((struct coding_system *));
-
-static int detect_coding_iso_2022 P_ ((struct coding_system *,
-				       struct coding_detection_info *info));
-static void decode_coding_iso_2022 P_ ((struct coding_system *));
-static int encode_coding_iso_2022 P_ ((struct coding_system *));
-
-static int detect_coding_emacs_mule P_ ((struct coding_system *,
-					 struct coding_detection_info *info));
-static void decode_coding_emacs_mule P_ ((struct coding_system *));
-static int encode_coding_emacs_mule P_ ((struct coding_system *));
-
-static int detect_coding_sjis P_ ((struct coding_system *,
-				   struct coding_detection_info *info));
-static void decode_coding_sjis P_ ((struct coding_system *));
-static int encode_coding_sjis P_ ((struct coding_system *));
-
-static int detect_coding_big5 P_ ((struct coding_system *,
-				   struct coding_detection_info *info));
-static void decode_coding_big5 P_ ((struct coding_system *));
-static int encode_coding_big5 P_ ((struct coding_system *));
-
-static int detect_coding_ccl P_ ((struct coding_system *,
-				  struct coding_detection_info *info));
-static void decode_coding_ccl P_ ((struct coding_system *));
-static int encode_coding_ccl P_ ((struct coding_system *));
-
-static void decode_coding_raw_text P_ ((struct coding_system *));
-static int encode_coding_raw_text P_ ((struct coding_system *));
-
-
 /* ISO2022 section */
 
 #define CODING_ISO_INITIAL(coding, reg)			\
@@ -857,6 +816,85 @@ static struct coding_system coding_categories[coding_category_max];
     EMIT_TWO_BYTES (c3, c4);			\
   } while (0)
 
+
+/* Prototypes for static functions.  */
+static void record_conversion_result P_ ((struct coding_system *coding,
+					  enum coding_result_code result));
+static int detect_coding_utf_8 P_ ((struct coding_system *,
+				    struct coding_detection_info *info));
+static void decode_coding_utf_8 P_ ((struct coding_system *));
+static int encode_coding_utf_8 P_ ((struct coding_system *));
+
+static int detect_coding_utf_16 P_ ((struct coding_system *,
+				     struct coding_detection_info *info));
+static void decode_coding_utf_16 P_ ((struct coding_system *));
+static int encode_coding_utf_16 P_ ((struct coding_system *));
+
+static int detect_coding_iso_2022 P_ ((struct coding_system *,
+				       struct coding_detection_info *info));
+static void decode_coding_iso_2022 P_ ((struct coding_system *));
+static int encode_coding_iso_2022 P_ ((struct coding_system *));
+
+static int detect_coding_emacs_mule P_ ((struct coding_system *,
+					 struct coding_detection_info *info));
+static void decode_coding_emacs_mule P_ ((struct coding_system *));
+static int encode_coding_emacs_mule P_ ((struct coding_system *));
+
+static int detect_coding_sjis P_ ((struct coding_system *,
+				   struct coding_detection_info *info));
+static void decode_coding_sjis P_ ((struct coding_system *));
+static int encode_coding_sjis P_ ((struct coding_system *));
+
+static int detect_coding_big5 P_ ((struct coding_system *,
+				   struct coding_detection_info *info));
+static void decode_coding_big5 P_ ((struct coding_system *));
+static int encode_coding_big5 P_ ((struct coding_system *));
+
+static int detect_coding_ccl P_ ((struct coding_system *,
+				  struct coding_detection_info *info));
+static void decode_coding_ccl P_ ((struct coding_system *));
+static int encode_coding_ccl P_ ((struct coding_system *));
+
+static void decode_coding_raw_text P_ ((struct coding_system *));
+static int encode_coding_raw_text P_ ((struct coding_system *));
+
+static void coding_set_source P_ ((struct coding_system *));
+static void coding_set_destination P_ ((struct coding_system *));
+static void coding_alloc_by_realloc P_ ((struct coding_system *, EMACS_INT));
+static void coding_alloc_by_making_gap P_ ((struct coding_system *,
+					    EMACS_INT));
+static unsigned char *alloc_destination P_ ((struct coding_system *,
+					     EMACS_INT, unsigned char *));
+static void setup_iso_safe_charsets P_ ((Lisp_Object));
+static unsigned char *encode_designation_at_bol P_ ((struct coding_system *,
+						     int *, int *,
+						     unsigned char *));
+static int detect_eol P_ ((const unsigned char *,
+			   EMACS_INT, enum coding_category));
+static Lisp_Object adjust_coding_eol_type P_ ((struct coding_system *, int));
+static void decode_eol P_ ((struct coding_system *));
+static Lisp_Object get_translation_table P_ ((Lisp_Object, int, int *));
+static Lisp_Object get_translation P_ ((Lisp_Object, int *, int *,
+					int, int *, int *));
+static int produce_chars P_ ((struct coding_system *, Lisp_Object, int));
+static INLINE void produce_composition P_ ((struct coding_system *, int *,
+					    EMACS_INT));
+static INLINE void produce_charset P_ ((struct coding_system *, int *,
+					EMACS_INT));
+static void produce_annotation P_ ((struct coding_system *, EMACS_INT));
+static int decode_coding P_ ((struct coding_system *));
+static INLINE int *handle_composition_annotation P_ ((EMACS_INT, EMACS_INT,
+						      struct coding_system *, 
+						      int *, EMACS_INT *));
+static INLINE int *handle_charset_annotation P_ ((EMACS_INT, EMACS_INT,
+						  struct coding_system *,
+						  int *, EMACS_INT *));
+static void consume_chars P_ ((struct coding_system *, Lisp_Object, int));
+static int encode_coding P_ ((struct coding_system *));
+static Lisp_Object make_conversion_work_buffer P_ ((int));
+static Lisp_Object code_conversion_restore P_ ((Lisp_Object));
+static INLINE int char_encodable_p P_ ((int, Lisp_Object));
+static Lisp_Object make_subsidiaries P_ ((Lisp_Object));
 
 static void
 record_conversion_result (struct coding_system *coding,
@@ -5209,11 +5247,11 @@ coding_inherit_eol_type (coding_system, parent)
 
 static int
 detect_eol (source, src_bytes, category)
-     unsigned char *source;
+     const unsigned char *source;
      EMACS_INT src_bytes;
      enum coding_category category;
 {
-  unsigned char *src = source, *src_end = src + src_bytes;
+  const unsigned char *src = source, *src_end = src + src_bytes;
   unsigned char c;
   int total  = 0;
   int eol_seen = EOL_SEEN_NONE;
@@ -6085,7 +6123,7 @@ decode_coding (coding)
 
 	      coding->charbuf[coding->charbuf_used++] = (c & 0x80 ? - c : c);
 	    }
-	  produce_chars (coding);
+	  produce_chars (coding, Qnil, 1);
 	}
       else
 	{
@@ -6430,8 +6468,9 @@ static int reused_workbuf_in_use;
 /* Return a working buffer of code convesion.  MULTIBYTE specifies the
    multibyteness of returning buffer.  */
 
-Lisp_Object
+static Lisp_Object
 make_conversion_work_buffer (multibyte)
+     int multibyte;
 {
   Lisp_Object name, workbuf;
   struct buffer *current;
