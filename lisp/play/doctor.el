@@ -223,7 +223,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (make-local-variable 'feelings-about)
   (setq feelings-about
 	'((feelings about)
-	  (aprehensions toward)
+	  (apprehensions toward)
 	  (thoughts on)
 	  (emotions toward)))
   (make-local-variable 'random-adjective)
@@ -1217,7 +1217,7 @@ the subject noun, and return the portion of the sentence following it."
   (memq x '(all also always amusing any anyway associated awesome
 		bad beautiful best better but certain clear
 		ever every fantastic fun funny
-		good great gross growdy however if ignorant
+		good great grody gross however if ignorant
 		less linked losing lusing many more much
 		never nice obnoxious often poor pretty real related rich
 		similar some stupid super superb
@@ -1620,7 +1620,7 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 (defun doctor-strangelove ()
   (interactive)
-  (insert "Mein fuhrer!!\n")
+  (insert "Mein fuehrer!!\n")
   (doctor-read-print))
 
 ;;; doctor.el ends here
