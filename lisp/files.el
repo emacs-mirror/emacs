@@ -1940,6 +1940,7 @@ is specified, returning t if it is specified."
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (put 'mode-line-modes 'risky-local-variable t)
 (put 'mode-line-position 'risky-local-variable t)
+(put 'display-time-string-forms 'risky-local-variable t)
 
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
