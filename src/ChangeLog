@@ -1,3 +1,8 @@
+2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_update_begin): Don't crash if mouse_face_mouse_frame
+	member of display_info is NULL.
+
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (compact_small_strings): Use safe_bcopy, add an
