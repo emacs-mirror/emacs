@@ -834,6 +834,13 @@ list-buffers or electric-buffer-list.  Use M-x bs-show to display a
 buffer menu with this package.  You can use M-x bs-customize to
 customize the package.
 
+*** calculator.el is a small calculator package that is intended to
+replace desktop calculators such as xcalc and calc.exe.  Actually, it
+is not too small - it has more features than most desktop calculators,
+and can be customized easily to get many more functions.  It should
+not be confused with "calc" which is a much bigger mathematical tool
+which answers different needs.
+
 *** The minor modes cwarn-mode and global-cwarn-mode highlights
 suspicious C and C++ constructions.  Currently, assignments inside
 expressions, semicolon following `if', `for' and `while' (except, of
