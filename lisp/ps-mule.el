@@ -1083,8 +1083,8 @@ This checks if all multi-byte characters in the region are printable or not."
        ;; Initialize `ps-mule-charset-list'.  If some characters aren't
        ;; printable, warn it.
        (let ((charsets (find-charset-region from to)))
-	 (setq charsets (delq 'ascii (delq 'unknown (delq nil charsets))))
-	 (setq ps-mule-charset-list charsets)
+	 (setq charsets (delq 'ascii (delq 'unknown (delq nil charsets)))
+	       ps-mule-charset-list charsets)
 	 (save-excursion
 	   (goto-char from)
 	   (and (search-forward "\200" to t)
