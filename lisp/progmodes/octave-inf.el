@@ -347,4 +347,8 @@ directory and makes this the current buffer's default directory."
   (inferior-octave-send-list-and-digest '("pwd\n"))
   (cd (car inferior-octave-output-list)))
 
+;;; provide ourself
+
+(provide 'octave-inf)
+
 ;;; octave-inf.el ends here
