@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.57) $
+ * $HopeName: MMsrc!arena.c(trunk.58) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.57) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.58) $");
 
 
 /* Forward declarations */
@@ -529,6 +529,7 @@ void ArenaInit(Arena arena, ArenaClass class)
 
   arena->class = class;
   RingInit(&arena->globalRing);
+  arena->mpsVersionString = MPSVersion();
   RingInit(&arena->poolRing);
   arena->poolSerial = (Serial)0;
   RingInit(&arena->rootRing);
