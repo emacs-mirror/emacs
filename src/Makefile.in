@@ -882,7 +882,7 @@ xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
    blockinput.h paths.h $(config_h)
 xmenu.o: xmenu.c xterm.h window.h dispextern.h frame.h keyboard.h \
-   blockinput.h puresize.h $(config_h)
+   blockinput.h puresize.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h $(config_h)
