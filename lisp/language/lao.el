@@ -41,5 +41,6 @@
 (aset use-default-ascent ?(1=(B t)
 (aset use-default-ascent ?(1?(B t)
 (aset use-default-ascent ?(1B(B t)
+(aset ignore-relative-composition ?(1\(B t)
 
 ;;; lao.el ends here
