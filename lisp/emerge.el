@@ -2007,7 +2007,7 @@ With a negative argument, turn off Auto-Advance mode."
   (setq emerge-auto-advance (if (null arg)
 				(not emerge-auto-advance)
 			      (> (prefix-numeric-value arg) 0)))
-  (message (if emerge-skip-prefers
+  (message (if emerge-auto-advance
 	       "Auto-advance set"
 	     "Auto-advance cleared"))
   ;; force mode line redisplay
