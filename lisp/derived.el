@@ -311,19 +311,19 @@ Where the new table already has an entry, nothing is copied from the old one."
 	  (aset new idx (aref old idx)))
       (setq idx (1+ idx)))))
 
+;; Merge an old abbrev table into a new one.
+;; This function requires internal knowledge of how abbrev tables work,
+;; presuming that they are obarrays with the abbrev as the symbol, the expansion
+;; as the value of the symbol, and the hook as the function definition.
 (defun derived-mode-merge-abbrev-tables (old new)
-  "Merge an old abbrev table into a new one.
-This function requires internal knowledge of how abbrev tables work,
-presuming that they are obarrays with the abbrev as the symbol, the expansion
-as the value of the symbol, and the hook as the function definition.
-This could well break with some future version of Gnu Emacs."
-  (mapatoms 
-   (function 
-    (lambda (symbol)
-      (or (intern-soft (symbol-name symbol) new)
-	  (define-abbrev new (symbol-name symbol)
-	    (symbol-value symbol) (symbol-function symbol)))))
-   old))
+  (if old
+      (mapatoms 
+       (function 
+	(lambda (symbol)
+	  (or (intern-soft (symbol-name symbol) new)
+	      (define-abbrev new (symbol-name symbol)
+		(symbol-value symbol) (symbol-function symbol)))))
+       old)))
     
 (provide 'derived)
 
