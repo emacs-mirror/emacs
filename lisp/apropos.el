@@ -197,23 +197,24 @@ for the regexp; the part that matches gets displayed in this font."
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 
 (defun apropos-next-label-button (pos)
-  "Returns the next `apropos-label' button after POS, or nil if there's none.
+  "Returns the next apropos label button after POS, or nil if there's none.
 Will also return nil if more than one `apropos-symbol' button is encountered
 before finding a label."
   (let* ((button (next-button pos t))
 	 (already-hit-symbol nil)
-	 (button-type (and button (button-get button 'type))))
+	 (label (and button (button-get button 'apropos-label)))
+	 (type (and button (button-get button 'type))))
     (while (and button
-		(not (eq button-type 'apropos-label))
-		(or (not (eq button-type 'apropos-symbol))
+		(not label)
+		(or (not (eq type 'apropos-symbol))
 		    (not already-hit-symbol)))
-      (when (eq button-type 'apropos-symbol)
+      (when (eq type 'apropos-symbol)
 	(setq already-hit-symbol t))
       (setq button (next-button (button-start button)))
       (when button
-	(setq button-type (button-get button 'type))))
-    (and (eq button-type 'apropos-label)
-	 button)))
+	(setq label (button-get button 'apropos-label))
+	(setq type (button-get button 'type))))
+    (and label button)))
 
 
 ;;;###autoload
