@@ -1,3 +1,8 @@
+2003-01-03  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* emacs-lisp/eldoc.el (eldoc-get-var-docstring): Only return a
+	documentation string when `sym' is non-nil.
+
 2003-01-02  Steven Tamm  <steventamm@mac.com>
 
 	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have

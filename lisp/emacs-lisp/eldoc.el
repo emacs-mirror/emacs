@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.20 2002/01/08 23:57:30 rms Exp $
+;; $Id: eldoc.el,v 1.21 2002/11/19 23:32:54 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -327,16 +327,17 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 ;; Return a string containing a brief (one-line) documentation string for
 ;; the variable.
 (defun eldoc-get-var-docstring (sym)
-  (cond ((and (eq sym (aref eldoc-last-data 0))
-              (eq 'variable (aref eldoc-last-data 2)))
-         (aref eldoc-last-data 1))
-        (t
-         (let ((doc (documentation-property sym 'variable-documentation t)))
-           (cond (doc
-                  (setq doc (eldoc-docstring-format-sym-doc
-                             sym (eldoc-docstring-first-line doc)))
-                  (eldoc-last-data-store sym doc 'variable)))
-           doc))))
+  (when sym
+    (cond ((and (eq sym (aref eldoc-last-data 0))
+		(eq 'variable (aref eldoc-last-data 2)))
+	   (aref eldoc-last-data 1))
+	  (t
+	   (let ((doc (documentation-property sym 'variable-documentation t)))
+	     (cond (doc
+		    (setq doc (eldoc-docstring-format-sym-doc
+			       sym (eldoc-docstring-first-line doc)))
+		    (eldoc-last-data-store sym doc 'variable)))
+	     doc)))))
 
 (defun eldoc-last-data-store (symbol doc type)
   (aset eldoc-last-data 0 symbol)
