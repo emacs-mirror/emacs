@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.9 2000/10/30 14:28:30 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.10 2000/11/03 20:12:09 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -304,7 +304,7 @@ To select default log text, we:
       (log-edit-hide-buf buf 'all)
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert (mapconcat 'identity files "\n"))
+      (cvs-insert-strings files)
       (setq buffer-read-only t)
       (goto-char (point-min))
       (save-selected-window
