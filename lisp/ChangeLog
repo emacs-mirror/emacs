@@ -1,3 +1,11 @@
+2001-11-10  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word/local-keymap):
+	Function deleted.
+	(flyspell-correct-word): Old definition deleted.
+	(flyspell-correct-word/mouse-keymap): Renamed to flyspell-correct-word.
+	All references renamed too.
+
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (finder_setwins, setwins): Exclude Calc.
