@@ -1,3 +1,39 @@
+2000-09-29  Jason Rumney <jasonr@gnu.org>
+
+	* w32term.c (w32_char_font_type, w32_encode_char)
+	(x_produce_glyphs): Distinguish single and multibyte BDF fonts.
+	(w32_bdf_per_char_metric): New function.
+	(w32_per_char_metric): Use it.
+	(x_draw_glyph_string_background): Always draw background for BDF
+	glyphs.
+
+	* w32bdf.h (glyph_struct, cache_bitmap): Cache bitmap data, not
+	GDI object which is a scarce resource.
+
+	* w32bdf.c (search_file_line): Fix skipping of whitespace.
+	(get_quoted_string): Fix limit on memchr search.
+	(set_bdf_font_info): Use unsigned chars. Negate yoffset.
+	(w32_init_bdf_font): Initialize codepoint and bitmap heaps.
+	(w32_free_bdf_font): Free bitmaps and codepoints on heaps.
+	(get_cached_font_char, cache_char_offset): Use macro
+	BDF_CODEPOINT_RANGE_COVER_P.
+	(cache_char_offset): Use HeapAlloc to allocate codepoints on own heap.
+	(clear_cached_bitmap_slots): New function.
+	(GET_HEX_VALUE): G-Z, g-z are not hex.
+	(w32_get_bdf_glyph): Convert to DIB format. Return bytes read.
+	(get_bitmap_with_cache): Use new cache implementation.
+	(create_offscreen_bitmap): New function.
+	(w32_BDF_TextOut): Use it. Draw glyphs as DIBs.
+
+	* w32term.c (x_produce_glyphs):  If the distance from the current
+	position to the next tab stop is less than a canonical character
+	width, use the tab stop after that.
+	(x_draw_glyphs): Handle case START and END are out of bounds more
+	carefully.
+	(x_clear_mouse_face): Block/unblock input.
+	(x_display_and_set_cursor): Don't show a hollow box cursor for
+	buffers whose cursor_type is nil.
+
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_tool_bar_lines): Clear frame when tool bar
