@@ -13,6 +13,7 @@ extern mps_res_t dylan_init(mps_addr_t addr, size_t size,
                             mps_addr_t *refs, size_t nr_refs);
 extern void dylan_write(mps_addr_t addr,
                         mps_addr_t *refs, size_t nr_refs);
+extern void dylan_mutate(mps_addr_t addr);
 extern mps_addr_t dylan_read(mps_addr_t addr);
 extern mps_bool_t dylan_check(mps_addr_t addr);
 extern void dylan_pad(mps_addr_t addr, size_t size);
