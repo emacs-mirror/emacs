@@ -48,7 +48,8 @@
     ("\M-n"	. cvs-status-next)
     ("\M-p"	. cvs-status-prev)
     ("t"	. cvs-status-cvstrees)
-    ("T"	. cvs-status-trees))
+    ("T"	. cvs-status-trees)
+    (">"        . cvs-status-checkout))
   "CVS-Status' keymap."
   :group 'cvs-status
   :inherit 'cvs-mode-map)
@@ -463,6 +464,25 @@ Optional prefix ARG chooses between two representations."
 	    ;;(cvs-refontify pt (point))
 	    ;;(sit-for 0)
 	    ))))))
+
+(defun-cvs-mode (cvs-status-checkout . NOARGS) (dir)
+  "Run cvs-checkout against the tag under the point.
+The files are stored to DIR."
+  (interactive 
+   (let* ((module (cvs-get-module))
+	  (branch (cvs-prefix-get 'cvs-branch-prefix))
+	  (prompt (format "CVS Checkout Directory for `%s%s': " 
+			 module
+			 (if branch (format "(branch: %s)" branch)
+			   ""))))
+     (list
+      (read-directory-name prompt
+			   nil default-directory nil))))
+  (let ((modules (cvs-string->strings (cvs-get-module)))
+	(flags (cvs-add-branch-prefix
+		(cvs-flags-query 'cvs-checkout-flags "cvs checkout flags")))
+	(cvs-cvsroot (cvs-get-cvsroot)))
+    (cvs-checkout modules dir flags)))
 
 (defun cvs-tree-tags-insert (tags prev)
   (when tags
