@@ -1440,6 +1440,8 @@ x_append_glyph (it)
       glyph->right_box_line_p = it->end_of_box_run_p;
       glyph->voffset = it->voffset;
       glyph->multibyte_p = it->multibyte_p;
+      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
+				      || it->phys_descent > it->descent);
       ++it->glyph_row->used[area];
     }
 }
@@ -1487,8 +1489,8 @@ x_produce_image_glyph (it)
   PREPARE_FACE_FOR_DISPLAY (it->f, face);
   prepare_image_for_display (it->f, img);
 
-  it->ascent = IMAGE_ASCENT (img);
-  it->descent = img->height + 2 * img->margin - it->ascent;
+  it->ascent = it->phys_ascent = IMAGE_ASCENT (img);
+  it->descent = it->phys_descent = img->height + 2 * img->margin - it->ascent;
   it->pixel_width = img->width + 2 * img->margin;
 
   it->nglyphs = 1;
@@ -1691,8 +1693,8 @@ x_produce_stretch_glyph (it)
     }
 
   it->pixel_width = width;
-  it->ascent = height * ascent;
-  it->descent = height - it->ascent;
+  it->ascent = it->phys_ascent = height * ascent;
+  it->descent = it->phys_descent = height - it->ascent;
   it->nglyphs = 1;
 
   if (face->box != FACE_NO_BOX)
@@ -1758,10 +1760,12 @@ x_produce_glyphs (it)
 	  int stretched_p;
 
 	  it->nglyphs = 1;
-	  it->ascent = font->ascent;
-	  it->descent = font->descent;
 
 	  pcm = x_per_char_metric (font, &char2b);
+	  it->ascent = font->ascent;
+	  it->descent = font->descent;
+	  it->phys_ascent = pcm->ascent;
+	  it->phys_descent = pcm->descent;
 	  it->pixel_width = pcm->width;
 
 	  /* If this is a space inside a region of text with
@@ -1820,8 +1824,8 @@ x_produce_glyphs (it)
 	  /* A newline has no width but we need the height of the line.  */
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
-	  it->ascent = font->ascent;
-	  it->descent = font->descent;
+	  it->ascent = it->phys_ascent = font->ascent;
+	  it->descent = it->phys_descent = font->descent;
       
 	  if (face->box != FACE_NO_BOX)
 	    {
@@ -1840,8 +1844,8 @@ x_produce_glyphs (it)
       
 	  it->pixel_width = next_tab_x - x;
 	  it->nglyphs = 1;
-	  it->ascent = font->ascent;
-	  it->descent = font->descent;
+	  it->ascent = it->phys_ascent = font->ascent;
+	  it->descent = it->phys_descent = font->descent;
 	  
 	  if (it->glyph_row)
 	    {
@@ -1879,6 +1883,8 @@ x_produce_glyphs (it)
 		 information in cmpcharp to do the correct setting.  */
 	      it->ascent = font->ascent;
 	      it->descent = font->descent;
+	      it->phys_ascent = font->max_bounds.ascent;
+	      it->phys_descent = font->max_bounds.descent;
 	    }
 	  else
 	    {
@@ -1894,6 +1900,8 @@ x_produce_glyphs (it)
 	      it->nglyphs = 1;
 	      it->ascent = font->ascent;
 	      it->descent = font->descent;
+	      it->phys_ascent = pcm->ascent;
+	      it->phys_descent = pcm->descent;
 	      if (it->glyph_row
 		  && (pcm->lbearing < 0
 		      || pcm->rbearing > pcm->width))
@@ -1932,8 +1940,11 @@ x_produce_glyphs (it)
   xassert (it->ascent >= 0 && it->descent > 0);
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
+  
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
+  it->max_phys_ascent = max (it->max_phys_ascent, it->phys_ascent);
+  it->max_phys_descent = max (it->max_phys_descent, it->phys_descent);
 }
 
 
@@ -2065,6 +2076,11 @@ struct glyph_string
      stipple pattern.  */
   unsigned stippled_p : 1;
 
+  /* 1 means only the foreground of this glyph string must be drawn,
+     and we should use the physical height of the line this glyph
+     string appears in as clip rect.  */
+  unsigned for_overlaps_p : 1;
+
   /* The GC to use for drawing this glyph string.  */
   GC gc;
 
@@ -2119,7 +2135,8 @@ static int x_left_overwritten P_ ((struct glyph_string *));
 static int x_left_overwriting P_ ((struct glyph_string *));
 static int x_right_overwritten P_ ((struct glyph_string *));
 static int x_right_overwriting P_ ((struct glyph_string *));
-static int x_fill_glyph_string P_ ((struct glyph_string *, int, int, int));
+static int x_fill_glyph_string P_ ((struct glyph_string *, int, int, int,
+				    int));
 static void x_init_glyph_string P_ ((struct glyph_string *,
 					XChar2b *, struct window *,
 					struct glyph_row *,
@@ -2127,7 +2144,7 @@ static void x_init_glyph_string P_ ((struct glyph_string *,
 					enum draw_glyphs_face));
 static int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
 			      enum glyph_row_area, int, int,
-			      enum draw_glyphs_face, int *, int *));
+			      enum draw_glyphs_face, int *, int *, int));
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -2159,9 +2176,10 @@ static void x_draw_relief_rect P_ ((struct frame *, int, int, int, int,
 				    int, int, int, int, XRectangle *));
 static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, XRectangle *));
+static void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
+					enum glyph_row_area));
 
 
-     
 /* Append the list of glyph strings with head H and tail T to the list
    with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
 
@@ -2420,12 +2438,22 @@ x_get_glyph_string_clip_rect (s, r)
     r->y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (s->w);
   else
     r->y = max (0, s->row->y);
-  r->y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r->y);
 
   /* If drawing a toolbar window, draw it over the internal border
      at the top of the window.  */
   if (s->w == XWINDOW (s->f->toolbar_window))
     r->y -= s->f->output_data.x->internal_border_width;
+
+  /* If S draws overlapping rows, it's sufficient to use the top and
+     bottom of the window for clipping because this glyph string
+     intentionally draws over other lines.  */
+  if (s->for_overlaps_p)
+    {
+      r->y = WINDOW_DISPLAY_TOP_LINE_HEIGHT (s->w);
+      r->height = window_text_bottom_y (s->w) - r->y;
+    }
+      
+  r->y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r->y);
 }
 
 
@@ -2754,7 +2782,8 @@ x_draw_glyph_string_foreground (s)
 	     Always use XDrawImageString when drawing the cursor so
 	     that there is no chance that characters under a box
 	     cursor are invisible.  */
-	  if (s->background_filled_p && s->hl != DRAW_CURSOR)
+	  if (s->for_overlaps_p
+	      || (s->background_filled_p && s->hl != DRAW_CURSOR))
 	    {
 	      /* Draw characters with 16-bit or 8-bit functions.  */
 	      if (s->two_byte_p)
@@ -3675,7 +3704,7 @@ x_draw_glyph_string (s)
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang)
+  if (s->next && s->right_overhang && !s->for_overlaps_p)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -3698,7 +3727,10 @@ x_draw_glyph_string (s)
       break;
 
     case CHAR_GLYPH:
-      x_draw_glyph_string_background (s, 0);
+      if (s->for_overlaps_p)
+	s->background_filled_p = 1;
+      else
+	x_draw_glyph_string_background (s, 0);
       x_draw_glyph_string_foreground (s);
       break;
 
@@ -3706,72 +3738,75 @@ x_draw_glyph_string (s)
       abort ();
     }
 
-  /* Draw underline.  */
-  if (s->face->underline_p)
+  if (!s->for_overlaps_p)
     {
-      unsigned long dy, h;
+      /* Draw underline.  */
+      if (s->face->underline_p)
+	{
+	  unsigned long dy, h;
 
-      if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
-	h = 1;
-      if (!XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &dy))
-	dy = s->height - h;
+	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
+	    h = 1;
+	  if (!XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &dy))
+	    dy = s->height - h;
       
-      if (s->face->underline_defaulted_p)
-	XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			s->width, h);
-      else
-	{
-	  XGCValues xgcv;
-	  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
-	  XSetForeground (s->display, s->gc, s->face->underline_color);
-	  XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			  s->width, h);
-	  XSetForeground (s->display, s->gc, xgcv.foreground);
+	  if (s->face->underline_defaulted_p)
+	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			    s->width, h);
+	  else
+	    {
+	      XGCValues xgcv;
+	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+	      XSetForeground (s->display, s->gc, s->face->underline_color);
+	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			      s->width, h);
+	      XSetForeground (s->display, s->gc, xgcv.foreground);
+	    }
 	}
-    }
 
-  /* Draw overline.  */
-  if (s->face->overline_p)
-    {
-      unsigned long dy = 0, h = 1;
-
-      if (s->face->overline_color_defaulted_p)
-	XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			s->width, h);
-      else
+      /* Draw overline.  */
+      if (s->face->overline_p)
 	{
-	  XGCValues xgcv;
-	  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
-	  XSetForeground (s->display, s->gc, s->face->overline_color);
-	  XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			  s->width, h);
-	  XSetForeground (s->display, s->gc, xgcv.foreground);
+	  unsigned long dy = 0, h = 1;
+
+	  if (s->face->overline_color_defaulted_p)
+	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			    s->width, h);
+	  else
+	    {
+	      XGCValues xgcv;
+	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+	      XSetForeground (s->display, s->gc, s->face->overline_color);
+	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			      s->width, h);
+	      XSetForeground (s->display, s->gc, xgcv.foreground);
+	    }
 	}
-    }
   
-  /* Draw strike-through.  */
-  if (s->face->strike_through_p)
-    {
-      unsigned long h = 1;
-      unsigned long dy = (s->height - h) / 2;
-
-      if (s->face->strike_through_color_defaulted_p)
-	XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			s->width, h);
-      else
+      /* Draw strike-through.  */
+      if (s->face->strike_through_p)
 	{
-	  XGCValues xgcv;
-	  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
-	  XSetForeground (s->display, s->gc, s->face->strike_through_color);
-	  XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			  s->width, h);
-	  XSetForeground (s->display, s->gc, xgcv.foreground);
+	  unsigned long h = 1;
+	  unsigned long dy = (s->height - h) / 2;
+
+	  if (s->face->strike_through_color_defaulted_p)
+	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			    s->width, h);
+	  else
+	    {
+	      XGCValues xgcv;
+	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+	      XSetForeground (s->display, s->gc, s->face->strike_through_color);
+	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+			      s->width, h);
+	      XSetForeground (s->display, s->gc, xgcv.foreground);
+	    }
 	}
-    }
   
-  /* Draw relief.  */
-  if (s->face->box != FACE_NO_BOX)
-    x_draw_glyph_string_box (s);
+      /* Draw relief.  */
+      if (s->face->box != FACE_NO_BOX)
+	x_draw_glyph_string_box (s);
+    }
   
   /* Reset clipping.  */
   XSetClipMask (s->display, s->gc, None);
@@ -3797,26 +3832,31 @@ struct work
 
 static void x_fill_composite_glyph_string P_ ((struct glyph_string *,
 					       int, struct work **,
-					       struct work **));
+					       struct work **, int));
 
 
 /* Load glyph string S with information from the top of *STACK for a
    composite character.  FACE_ID is the id of the face in which S is
    drawn.  *NEW is a pointer to a struct work not on the stack, that
    can be used if this function needs to push a new structure on the
-   stack.  If it uses it, *NEW is set to null.  */
+   stack.  If it uses it, *NEW is set to null.  OVERLAPS_P non-zero
+   means S should draw the foreground only, and use its lines physical
+   height for clipping.  */
 
 static void
-x_fill_composite_glyph_string (s, face_id, stack, new)
+x_fill_composite_glyph_string (s, face_id, stack, new, overlaps_p)
      struct glyph_string *s;
      int face_id;
      struct work **stack, **new;
+     int overlaps_p;
 {
   int i, c;
   struct work *work;
 
   xassert (s && *new && *stack);
 
+  s->for_overlaps_p = 1;
+  
   /* Pop the work stack.  */
   work = *stack;
   *stack = work->next;
@@ -3885,14 +3925,17 @@ x_fill_composite_glyph_string (s, face_id, stack, new)
 
 /* Load glyph string S with a sequence of non-composite characters.
    FACE_ID is the face id of the string.  START is the index of the
-   first glyph to consider, END is the index of the last + 1.  Value
-   is the index of the first glyph not in S.  */
+   first glyph to consider, END is the index of the last + 1.
+   OVERLAPS_P non-zero means S should draw the foreground only, and
+   use its lines physical height for clipping.
+
+   Value is the index of the first glyph not in S.  */
 
 static int
-x_fill_glyph_string (s, face_id, start, end)
+x_fill_glyph_string (s, face_id, start, end, overlaps_p)
      struct glyph_string *s;
      int face_id;
-     int start, end;
+     int start, end, overlaps_p;
 {
   struct glyph *glyph, *last;
   int voffset;
@@ -3902,6 +3945,7 @@ x_fill_glyph_string (s, face_id, start, end)
   xassert (s->nchars == 0);
   xassert (start >= 0 && end > start);
 
+  s->for_overlaps_p = overlaps_p,
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
@@ -3938,7 +3982,7 @@ x_fill_glyph_string (s, face_id, start, end)
 
   /* Adjust base line for subscript/superscript text.  */
   s->ybase += voffset;
-  
+
   xassert (s->face && s->face->gc);
   return glyph - s->row->glyphs[s->area];
 }
@@ -4102,7 +4146,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    right-most x-position of the drawing area.  */
 
 #define BUILD_CHAR_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, \
-			         X, LAST_X)				   \
+			         X, LAST_X, OVERLAPS_P)			   \
      do									   \
        {								   \
 	 int c, charset, face_id;					   \
@@ -4152,7 +4196,7 @@ x_set_glyph_string_background_width (s, start, last_x)
 		 if (new == NULL)					   \
 		   new = (struct work *) alloca (sizeof *new);		   \
 		 x_fill_composite_glyph_string (s, face_id, &stack,	   \
-						&new);			   \
+						&new, OVERLAPS_P);	   \
 	       }							   \
 									   \
 	     ++START;							   \
@@ -4166,7 +4210,8 @@ x_set_glyph_string_background_width (s, start, last_x)
 	     x_append_glyph_string (&HEAD, &TAIL, s);			   \
 	     s->charset = charset;					   \
 	     s->x = (X);						   \
-	     START = x_fill_glyph_string (s, face_id, START, END);	   \
+	     START = x_fill_glyph_string (s, face_id, START, END,	   \
+                                          OVERLAPS_P);			   \
 	   }								   \
        }								   \
      while (0)
@@ -4183,7 +4228,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    asynchronously).  */
 
 #define BUILD_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL,	   \
-			    X, LAST_X)					   \
+			    X, LAST_X, OVERLAPS_P)			   \
      do									   \
        {								   \
 	 HEAD = TAIL = NULL;						   \
@@ -4194,7 +4239,8 @@ x_set_glyph_string_background_width (s, start, last_x)
 	       {							   \
 	       case CHAR_GLYPH:						   \
                  BUILD_CHAR_GLYPH_STRINGS (W, ROW, AREA, START, END, HEAD, \
-		                           TAIL, HL, X, LAST_X);	   \
+		                           TAIL, HL, X, LAST_X,		   \
+                                           OVERLAPS_P);	                   \
 		 break;							   \
 									   \
 	       case STRETCH_GLYPH:					   \
@@ -4235,10 +4281,14 @@ x_set_glyph_string_background_width (s, start, last_x)
    return in *REAL_END the real end position for display.  This can be
    different from END in case overlapping glyphs must be displayed.
 
+   If OVERLAPS_P is non-zero, draw only the foreground of characters
+   and clip to the physical height of ROW.
+
    Value is the x-position reached, relative to AREA of W.  */
      
 static int
-x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
+x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
+	       overlaps_p)
      struct window *w;
      int x;
      struct glyph_row *row;
@@ -4246,6 +4296,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
      int start, end;
      enum draw_glyphs_face hl;
      int *real_start, *real_end;
+     int overlaps_p;
 {
   struct glyph_string *head, *tail;
   struct glyph_string *s;
@@ -4299,7 +4350,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
      BUILD_GLYPH_STRINGS will modify its start parameter.  That's
      the reason we use a separate variable `i'.  */
   i = start;
-  BUILD_GLYPH_STRINGS (w, row, area, i, end, head, tail, hl, x, last_x);
+  BUILD_GLYPH_STRINGS (w, row, area, i, end, head, tail, hl, x, last_x,
+		       overlaps_p);
   if (tail)
     x_reached = tail->x + tail->background_width;
   else
@@ -4308,7 +4360,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
   /* If there are any glyphs with lbearing < 0 or rbearing > width in
      the row, redraw some glyphs in front or following the glyph
      strings built above.  */
-  if (row->contains_overlapping_glyphs_p)
+  if (!overlaps_p && row->contains_overlapping_glyphs_p)
     {
       int dummy_x = 0;
       struct glyph_string *h, *t;
@@ -4327,7 +4379,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
 	{
 	  j = i;
 	  BUILD_GLYPH_STRINGS (w, row, area, j, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x);
+			       DRAW_NORMAL_TEXT, dummy_x, last_x,
+			       overlaps_p);
 	  start = i;
 	  if (real_start)
 	    *real_start = start;
@@ -4346,7 +4399,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
       if (i >= 0)
 	{
 	  BUILD_GLYPH_STRINGS (w, row, area, i, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x);
+			       DRAW_NORMAL_TEXT, dummy_x, last_x,
+			       overlaps_p);
 	  for (s = h; s; s = s->next)
 	    s->background_filled_p = 1;
 	  if (real_start)
@@ -4363,7 +4417,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
       if (i >= 0)
 	{
 	  BUILD_GLYPH_STRINGS (w, row, area, end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x);
+			       DRAW_NORMAL_TEXT, x, last_x,
+			       overlaps_p);
 	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  x_append_glyph_string_lists (&head, &tail, h, t);
 	  if (real_end)
@@ -4379,7 +4434,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
       if (i >= 0)
 	{
 	  BUILD_GLYPH_STRINGS (w, row, area, end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x);
+			       DRAW_NORMAL_TEXT, x, last_x,
+			       overlaps_p);
 	  for (s = h; s; s = s->next)
 	    s->background_filled_p = 1;
 	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
@@ -4407,6 +4463,56 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
 }
 
 
+/* Fix the display of area AREA of overlapping row ROW in window W.  */
+
+static void
+x_fix_overlapping_area (w, row, area)
+     struct window *w;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+{
+  int i, x;
+  
+  BLOCK_INPUT;
+  
+  if (area == LEFT_MARGIN_AREA)
+    x = 0;
+  else if (area == TEXT_AREA)
+    x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
+  else
+    x = (window_box_width (w, LEFT_MARGIN_AREA)
+	 + window_box_width (w, TEXT_AREA));
+
+  for (i = 0; i < row->used[area];)
+    {
+      if (row->glyphs[area][i].overlaps_vertically_p)
+	{
+	  int start = i, start_x = x;
+
+	  do
+	    {
+	      x += row->glyphs[area][i].pixel_width;
+	      ++i;
+	    }
+	  while (i < row->used[area]
+		 && row->glyphs[area][i].overlaps_vertically_p);
+
+	  x_draw_glyphs (w, start_x, row, area, start, i,
+			 (row->inverse_p
+			  ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
+			 NULL, NULL, 1);
+	}
+      else
+	{
+	  x += row->glyphs[area][i].pixel_width;
+	  ++i;
+	}
+    }
+  
+  UNBLOCK_INPUT;
+}
+
+
 /* Output LEN glyphs starting at START at the nominal cursor position.
    Advance the nominal cursor over the text.  The global variable
    updated_window contains the window being updated, updated_row is
@@ -4431,7 +4537,7 @@ x_write_glyphs (start, len)
 		     hpos, hpos + len,
 		     (updated_row->inverse_p
 		      ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
-		     &real_start, &real_end);
+		     &real_start, &real_end, 0);
 
   /* If we drew over the cursor, note that it is not visible any more.  */
   note_overwritten_text_cursor (updated_window, real_start,
@@ -4490,7 +4596,7 @@ x_insert_glyphs (start, len)
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
   x_draw_glyphs (w, output_cursor.x, row, updated_area, hpos, hpos + len,
-		 DRAW_NORMAL_TEXT, &real_start, &real_end);
+		 DRAW_NORMAL_TEXT, &real_start, &real_end, 0);
   note_overwritten_text_cursor (w, real_start, real_end - real_start);
   
   /* Advance the output cursor.  */
@@ -5091,7 +5197,7 @@ expose_area (w, row, r, area)
 		   first - row->glyphs[area],
 		   last - row->glyphs[area],
 		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
-		   NULL, NULL);
+		   NULL, NULL, 0);
 }
       
 
@@ -5109,7 +5215,7 @@ expose_line (w, row, r)
   if (row->mode_line_p || w->pseudo_window_p)
     x_draw_glyphs (w, 0, row, TEXT_AREA, 0, row->used[TEXT_AREA],
 		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
-		   NULL, NULL);
+		   NULL, NULL, 0);
   else
     {
       if (row->used[LEFT_MARGIN_AREA])
@@ -6583,7 +6689,7 @@ show_mouse_face (dpyinfo, draw)
 
       if (end_hpos > start_hpos)
 	x_draw_glyphs (w, start_x, row, updated_area, 
-		       start_hpos, end_hpos, draw, NULL, NULL);
+		       start_hpos, end_hpos, draw, NULL, NULL, 0);
     }
 
   /* If we turned the cursor off, turn it back on.  */
@@ -9771,8 +9877,25 @@ x_draw_phys_cursor_glyph (w, row, hl)
      happen in mini-buffer windows when switching between echo area
      glyphs and mini-buffer.  */
   if (w->phys_cursor.hpos < row->used[TEXT_AREA])
-    x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
-		   w->phys_cursor.hpos, w->phys_cursor.hpos + 1, hl, 0, 0);
+    {
+      x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
+		     w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
+		     hl, 0, 0, 0);
+
+      /* When we erase the cursor, and ROW is overlapped by other
+	 rows, make sure that these overlapping parts of other rows
+	 are redrawn.  */
+      if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
+	{
+	  if (row > w->current_matrix->rows
+	      && MATRIX_ROW_OVERLAPS_SUCC_P (row - 1))
+	    x_fix_overlapping_area (w, row - 1, TEXT_AREA);
+
+	  if (MATRIX_ROW_BOTTOM_Y (row) < window_text_bottom_y (w)
+	      && MATRIX_ROW_OVERLAPS_PRED_P (row + 1))
+	    x_fix_overlapping_area (w, row + 1, TEXT_AREA);
+	}
+    }
 }
 
 
@@ -12619,7 +12742,8 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   XTcursor_to,
   x_flush,
-  x_get_glyph_overhangs
+  x_get_glyph_overhangs,
+  x_fix_overlapping_area
 };
 
 void
