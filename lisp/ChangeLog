@@ -1,3 +1,8 @@
+2000-03-23  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el: Restore previous use of
+	browse-url-maybe-new-window.
+
 2000-03-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Skip banner page fix.
