@@ -720,6 +720,7 @@ argument causes us to read a file name and use that file as the inbox."
 	  (message "%d new message%s read"
 		   new-messages (if (= 1 new-messages) "" "s"))
 	  (and (boundp 'display-time-string)
+	       (stringp display-time-string)
 	       (string-match " Mail" display-time-string)
 	       (setq display-time-string
 		     (concat
