@@ -155,6 +155,11 @@
 
 (defvar mm-auto-save-coding-system
   (cond
+   ((mm-coding-system-p 'utf-8-emacs)
+    (if (memq system-type '(windows-nt ms-dos ms-windows))
+	(if (mm-coding-system-p 'utf-8-emacs-dos)
+	    'utf-8-emacs-dos mm-binary-coding-system)
+      'utf-8-emacs))
    ((mm-coding-system-p 'emacs-mule)
     (if (memq system-type '(windows-nt ms-dos ms-windows))
 	(if (mm-coding-system-p 'emacs-mule-dos)
