@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include <pwd.h>
 #include <sys/param.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #if __MWERKS__
 #include <unistd.h>
 #endif
@@ -2811,7 +2812,8 @@ int sys_read (fds, buf, nbyte)
   int r;
 
   /* Use select to block on IO while still checking for quit_char */
-  if (!inhibit_window_system && !noninteractive)
+  if (!inhibit_window_system && !noninteractive &&
+      ! (fcntl(fds, F_GETFL, 0) & O_NONBLOCK))
     {
       FD_ZERO (&rfds);
       FD_SET (fds, &rfds);
