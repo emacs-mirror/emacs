@@ -615,18 +615,14 @@ get_keyelt (object, autoload)
 
 	      /* If there's a `:filter FILTER', apply FILTER to the
 		 menu-item's definition to get the real definition to
-		 use.  Temporarily inhibit GC while evaluating FILTER,
-	         because not functions calling get_keyelt are prepared
-		 for a GC.  */
+		 use.  */
 	      for (; CONSP (tem) && CONSP (XCDR (tem)); tem = XCDR (tem))
-		if (EQ (XCAR (tem), QCfilter))
+		if (EQ (XCAR (tem), QCfilter) && autoload)
 		  {
-		    int count = inhibit_garbage_collection ();
 		    Lisp_Object filter;
 		    filter = XCAR (XCDR (tem));
 		    filter = list2 (filter, list2 (Qquote, object));
 		    object = menu_item_eval_property (filter);
-		    unbind_to (count, Qnil);
 		    break;
 		  }
 	    }
