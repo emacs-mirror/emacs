@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/keymaps
@@ -228,7 +228,7 @@ to @code{nil}, and does not bind any other kind of event.
 @end example
 
 If you specify @var{prompt}, that becomes the overall prompt string for
-the keymap.  The prompt string is useful for menu keymaps
+the keymap.  The prompt string should be provided for menu keymaps
 (@pxref{Defining Menus}).
 @end defun
 
@@ -474,7 +474,7 @@ its value.  But if @var{mapvar} is non-@code{nil}, it sets @var{mapvar}
 as a variable instead.
 
 If @var{prompt} is non-@code{nil}, that becomes the overall prompt
-string for the keymap.  The prompt string is useful for menu keymaps
+string for the keymap.  The prompt string should be given for menu keymaps
 (@pxref{Defining Menus}).
 @end defun
 
@@ -1527,13 +1527,15 @@ A keymap is suitable for menu use if it has an @dfn{overall prompt
 string}, which is a string that appears as an element of the keymap.
 (@xref{Format of Keymaps}.)  The string should describe the purpose of
 the menu's commands.  Emacs displays the overall prompt string as the
-menu title in some cases, depending on which toolkit is used for
-displaying menus.  Keyboard menus also display the overall prompt
-string.
+menu title in some cases, depending on the toolkit (if any) used for
+displaying menus.@footnote{It is required for menus which do not use a
+toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the overall
+prompt string.
 
 The easiest way to construct a keymap with a prompt string is to specify
-the string as an argument when you call @code{make-keymap} or
-@code{make-sparse-keymap} (@pxref{Creating Keymaps}).
+the string as an argument when you call @code{make-keymap},
+@code{make-sparse-keymap} or @code{define-prefix-command}
+(@pxref{Creating Keymaps}).
 
 The order of items in the menu is the same as the order of bindings in
 the keymap.  Since @code{define-key} puts new bindings at the front, you
@@ -1570,11 +1572,12 @@ describe the action of the command it corresponds to.
 You can also supply a second string, called the help string, as follows:
 
 @example
-(@var{item-string} @var{help-string} . @var{real-binding})
+(@var{item-string} @var{help} . @var{real-binding})
 @end example
 
-@var{help-string} specifies a ``help-echo'' string to display while the
-mouse is on that item.
+@var{help} specifies a ``help-echo'' string to display while the mouse
+is on that item in the same way as @code{help-echo} text properties
+(@pxref{Help display}).
 
 As far as @code{define-key} is concerned, @var{item-string} and
 @var{help-string} are part of the event's binding.  However,
@@ -1657,8 +1660,11 @@ does not appear, then the menu is displayed as if this item were
 not defined at all.
 
 @item :help @var{help}
-The value of this property, @var{help}, is the ``help-echo'' string to
-display while the mouse is on that item.
+The value of this property, @var{help}, specifies a ``help-echo'' string
+to display while the mouse is on that item.  This is displayed in the
+same way as @code{help-echo} text properties (@pxref{Help display}).
+Note that this must be a constant string, unlike the @code{help-echo}
+property for text and overlays.
 
 @item :button (@var{type} . @var{selected})
 This property provides a way to define radio buttons and toggle buttons.
@@ -2124,8 +2130,9 @@ tool bar bindings and have their normal meanings.  The @var{real-binding}
 in the item must be a command, not a keymap; in other words, it does not
 work to define a tool bar icon as a prefix key.
 
-  The @code{:help} property is meaningful, and specifies a ``help-echo''
-string to display while the mouse is on that item.
+  The @code{:help} property specifies a ``help-echo'' string to display
+while the mouse is on that item.  This is displayed in the same way as
+@code{help-echo} text properties (@pxref{Help display}).
 
   In addition, you should use the @code{:image} property;
 this is how you specify the image to display in the tool bar:
