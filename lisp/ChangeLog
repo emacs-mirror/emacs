@@ -1,3 +1,16 @@
+2002-12-22  Zoltan Kemenczy <zoltan@ieee.org>
+
+	* gud.el (gud-menu-map): Add jdb support for "run".
+	(gud-jdb-find-source-using-classpath): Use 'identity.
+	(gud-jdb-marker-filter): Marker regexp and filename filtering
+	change to support a backwards-incompatible change in Sun's jdb
+	line number display in SDK versions 1.4.
+	(gud-format-command): gud-find-class now requires two
+	parameters (file and linenumber).
+	(gud-find-class): Bulk of the change related to using c-syntactic
+	symbols to locate nested class declarations in java sources
+	visited by java-mode (cc-mode).
+
 2002-12-21  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el Remove the concept of an instance. This means that
