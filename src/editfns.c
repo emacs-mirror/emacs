@@ -718,7 +718,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   list_args[5] = XFASTINT (decoded_time->tm_year + 1900);
   list_args[6] = XFASTINT (decoded_time->tm_wday);
   list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
-  list_args[8] = XFASTINT (decoded_time->tm_gmtoff);
+  list_args[8] = XINT (decoded_time->tm_gmtoff);
   return Flist (9, list_args);
 }
 
