@@ -81,6 +81,7 @@ struct catchtag
     int lisp_eval_depth;
     int pdlcount;
     int poll_suppress_count;
+    struct byte_stack *byte_stack;
   };
 
 struct catchtag *catchlist;
@@ -922,6 +923,7 @@ internal_catch (tag, func, arg)
   c.pdlcount = specpdl_ptr - specpdl;
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
   catchlist = &c;
 
   /* Call FUNC.  */
@@ -974,6 +976,7 @@ unwind_to_catch (catch, value)
     }
   while (! last_time);
 
+  byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
 #ifdef DEBUG_GCPRO
   if (gcprolist != 0)
@@ -1085,6 +1088,7 @@ See also the function `signal' for more info.")
   c.pdlcount = specpdl_ptr - specpdl;
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
     {
       if (!NILP (h.var))
@@ -1145,6 +1149,7 @@ internal_condition_case (bfun, handlers, hfun)
   c.pdlcount = specpdl_ptr - specpdl;
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
@@ -1184,6 +1189,7 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   c.pdlcount = specpdl_ptr - specpdl;
   c.poll_suppress_count = poll_suppress_count;
   c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
