@@ -63,7 +63,7 @@ The values can be:
     (iso-8859-5 . B)
     (koi8-r . B)
     (iso-8859-7 . Q)
-    (iso-8859-8 . Q)
+    (iso-8859-8 . B)
     (iso-8859-9 . Q)
     (iso-8859-14 . Q)
     (iso-8859-15 . Q)
@@ -78,7 +78,8 @@ The values can be:
     (iso-2022-jp-2 . B)
     (iso-2022-int-1 . B))
   "Alist of MIME charsets to RFC2047 encodings.
-Valid encodings are nil, `Q' and `B'.")
+Valid encodings are nil, `Q' and `B'.  These indicate binary (no) encoding,
+quoted-printable and base64 respectively.")
 
 (defvar rfc2047-encoding-function-alist
   '((Q . rfc2047-q-encode-region)
