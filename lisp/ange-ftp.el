@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.47 $")
+(defconst ange-ftp-version "$Revision: 1.48 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3785,8 +3785,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-hook-function (operation &rest args)
   (let ((fn (get operation 'ange-ftp)))
     (if fn (apply fn args)
-      (let (file-name-handler-alist)
-	(apply operation args)))))
+      (ange-ftp-run-real-handler operation args))))
 
 
 ;;; This regexp takes care of real ange-ftp file names (with a slash
@@ -3864,8 +3863,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers
 	 (cons 'ange-ftp-hook-function
-	       (and (eq inhibit-file-name-operation operation)
-		    inhibit-file-name-handlers)))
+	       (cons 'ange-ftp-completion-hook-function
+		     (and (eq inhibit-file-name-operation operation)
+			  inhibit-file-name-handlers))))
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
