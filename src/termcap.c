@@ -17,8 +17,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #ifdef HAVE_CONFIG_H
-
 #include <config.h>
+#endif
+
+#ifdef emacs
 
 /* Get the O_* definitions for open et al.  */
 #include <sys/file.h>
@@ -26,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <fcntl.h>
 #endif
 
-#else /* not HAVE_CONFIG_H */
+#else /* not emacs */
 
 #ifdef STDC_HEADERS
 #include <stdlib.h>
@@ -49,7 +51,7 @@ char *realloc ();
 #include <fcntl.h>
 #endif
 
-#endif /* not HAVE_CONFIG_H */
+#endif /* not emacs */
 
 #ifndef NULL
 #define NULL (char *) 0

@@ -18,8 +18,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Emacs config.h may rename various library functions such as malloc.  */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#else /* not HAVE_CONFIG_H */
+#endif
 
+#ifndef emacs
 #if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
 #define bcopy(s, d, n) memcpy ((d), (s), (n))
 #endif
@@ -32,7 +33,7 @@ char *malloc ();
 char *realloc ();
 #endif
 
-#endif /* not HAVE_CONFIG_H */
+#endif /* not emacs */
 
 #ifndef NULL
 #define NULL (char *) 0
