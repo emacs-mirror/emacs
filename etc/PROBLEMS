@@ -275,25 +275,15 @@ and tooltips.  Support for these will be added in future versions.
 
 Help text that is displayed in a tooltip on other window systems, on
 Windows is printed in the echo area, since tooltips are not yet
-available.  Help text for menu items is not displayed at all.
+available.  Help text for pop-up menu items is not displayed at all.
 
-There are problems with display if the variable `redisplay-dont-pause'
-is set to nil (w32-win.el sets it to t by default, to avoid these
-problems).  The problems include:
+There are problems with display if mouse-tracking is enabled and the
+mouse is moved off a frame, over another frame then back over the first
+frame.  A workaround is to click the left mouse button inside the frame
+after moving back into it.
 
-  . No redisplay as long as help echo is displayed in the echo area,
-    e.g. if the mouse is on a mouse-sensitive part of the mode line.
-
-  . When the mode line is dragged with the mouse, multiple copies of the
-    mode line are left behind, until the mouse button is released and
-    the next input event occurs.
-
-  . Window contents are not updated when text is selected by dragging
-    the mouse, and the mouse is dragged below the bottom line of the
-    window.  When the mouse button is released, the window display is
-    correctly updated.
-
-Again, these problems only occur if `redisplay-dont-pause' is nil.
+Some minor flickering still persists during mouse-tracking, although
+not as severely as in 21.1.
 
 Emacs can sometimes abort when non-ASCII text, possibly with null
 characters, is copied and pasted into a buffer.
