@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.10) $
+ * $HopeName: MMsrc!mpsi.c(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -8,6 +8,10 @@
  * they must recover the space from their parameters.  Methods such
  * as ThreadSpace() must therefore be callable when the space is
  * _not_ locked.  These methods are tagged with the tag of this note.
+ *
+ * .lock-free: Certain functions inside the mps are thread-safe and do
+ * not need to be serialized by using locks.  They are tagged with this
+ * the tag of this note.
  */
 
 #include "std.h"
@@ -26,7 +30,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.10) $");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.11) $");
 
 
 /* Check consistency of interface mappings. */
@@ -590,16 +594,15 @@ void mps_ld_reset(mps_ld_t mps_ld, mps_space_t mps_space)
   SpaceLockRelease(space);
 }
 
-/* @@@@ We should be able to avoid locking the space for ld code */
+/* .lock-free */
 void mps_ld_add(mps_ld_t mps_ld, mps_space_t mps_space, mps_addr_t addr)
 {
   Space space = (Space)mps_space;
   LD ld = (LD)mps_ld;
-  SpaceLockClaim(space);
   LDAdd(ld, space, (Addr)addr);
-  SpaceLockRelease(space);
 }
 
+/* .lock-free */
 mps_bool_t mps_ld_isstale(mps_ld_t mps_ld,
                           mps_space_t mps_space,
                           mps_addr_t addr)
@@ -607,9 +610,7 @@ mps_bool_t mps_ld_isstale(mps_ld_t mps_ld,
   Space space = (Space)mps_space;
   LD ld = (LD)mps_ld;
   Bool b;
-  SpaceLockClaim(space);
   b = LDIsStale(ld, space, (Addr)addr);
-  SpaceLockRelease(space);
   return (mps_bool_t)b;
 }
 
