@@ -789,38 +789,38 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		    (if reverse
 			(re-search-backward pattern1 nil t)
 		      (re-search-forward pattern1 nil t)))
-	  (cond
-	   ((progn
-	      (goto-char (match-beginning 0))
-	      (dabbrev--goto-start-of-abbrev)
-	      (/= (point) (match-beginning 0)))
-	    ;; Prefix of found abbreviation not OK
-	    nil)
-	   (t
-	    (goto-char (match-beginning 0))
+	  (goto-char (match-beginning 0))
+	  ;; In case we matched in the middle of a word,
+	  ;; back up to start of word and verify we still match.
+	  (dabbrev--goto-start-of-abbrev)
+
+	  (if (not (looking-at pattern1))
+	      nil
+	    ;; We have a truly valid match.  Find the end.
 	    (re-search-forward pattern2)
 	    (setq found-string
 		  (buffer-substring (match-beginning 1) (match-end 1)))
 	    (and ignore-case (setq found-string (downcase found-string)))
-	    ;; Throw away if found in table
+	    ;; Ignore this match if it's already in the table.
 	    (if (dabbrev-filter-elements
 		 table-string dabbrev--last-table
 		 (string= found-string table-string))
-		(setq found-string nil))))
+		(setq found-string nil)))
+	  ;; Prepare to continue searching.
 	  (if reverse
 	      (goto-char (match-beginning 0))
 	    (goto-char (match-end 0))))
-	(cond
-	 (found-string
-	  ;;--------------------------------
-	  ;; Put in `dabbrev--last-table' and decide if we should return
-	  ;; result or (downcase result)
-	  ;;--------------------------------
-	  (setq dabbrev--last-table (cons found-string dabbrev--last-table))
-	  (let ((result (buffer-substring (match-beginning 0) (match-end 0))))
-	    (if (and ignore-case (eval dabbrev-case-replace))
-		(downcase result)
-	      result))))))))
+	;; If we found something, use it.
+	(if found-string
+	    ;; Put it into `dabbrev--last-table'
+	    ;; and return it (either downcased, or as is).
+	    (let ((result
+		   (buffer-substring (match-beginning 0) (match-end 0))))
+	      (setq dabbrev--last-table
+		    (cons found-string dabbrev--last-table))
+	      (if (and ignore-case (eval dabbrev-case-replace))
+		  (downcase result)
+		result)))))))
 
 (provide 'dabbrev)
 
