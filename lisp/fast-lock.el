@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.12.01
+;; Version: 3.12.02
 
 ;;; This file is part of GNU Emacs.
 
@@ -166,6 +166,12 @@
 ;; - Made `fast-lock-cache-data' simplify calls of `font-lock-compile-keywords'
 ;; 3.12--3.13:
 ;; - Removed `byte-*' variables from `eval-when-compile' (Erik Naggum hint)
+;; - Changed structure of cache to include `font-lock-syntactic-keywords'
+;; - Made `fast-lock-save-cache-1' save syntactic fontification data
+;; - Made `fast-lock-cache-data' take syntactic fontification data
+;; - Added `fast-lock-get-syntactic-properties'
+;; - Renamed `fast-lock-set-face-properties' to `fast-lock-add-properties'
+;; - Made `fast-lock-add-properties' add syntactic and face fontification data
 
 ;;; Code:
 
@@ -213,7 +219,7 @@
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12.01"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12.02"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)
@@ -541,9 +547,14 @@ See `fast-lock-cache-directory'."
 
 ;; Font Lock Cache Processing Functions:
 
+;; The version 3 format of the cache is:
+;;
+;; (fast-lock-cache-data VERSION TIMESTAMP
+;;  font-lock-syntactic-keywords SYNTACTIC-PROPERTIES
+;;  font-lock-keywords FACE-PROPERTIES)
+
 (defun fast-lock-save-cache-1 (file timestamp)
-  ;; Save the FILE with the TIMESTAMP as:
-  ;; (fast-lock-cache-data Version=2 TIMESTAMP font-lock-keywords PROPERTIES).
+  ;; Save the FILE with the TIMESTAMP plus fontification data.
   ;; Returns non-nil if a save was attempted to a writable cache file.
   (let ((tpbuf (generate-new-buffer " *fast-lock*"))
 	(verbose (if (numberp fast-lock-verbose)
@@ -553,8 +564,10 @@ See `fast-lock-cache-directory'."
     (if verbose (message "Saving %s font lock cache..." (buffer-name)))
     (condition-case nil
 	(save-excursion
-	  (print (list 'fast-lock-cache-data 2
+	  (print (list 'fast-lock-cache-data 3
 		       (list 'quote timestamp)
+		       (list 'quote font-lock-syntactic-keywords)
+		       (list 'quote (fast-lock-get-syntactic-properties))
 		       (list 'quote font-lock-keywords)
 		       (list 'quote (fast-lock-get-face-properties)))
 		 tpbuf)
@@ -571,30 +584,39 @@ See `fast-lock-cache-directory'."
     ;; We return non-nil regardless of whether a failure occurred.
     saved))
 
-(defun fast-lock-cache-data (version timestamp keywords properties
+(defun fast-lock-cache-data (version timestamp
+			     syntactic-keywords syntactic-properties
+			     keywords face-properties
 			     &rest ignored)
-  ;; Change from (HIGH LOW) for back compatibility.  Remove for version 3!
-  (when (consp (cdr-safe timestamp))
-    (setcdr timestamp (nth 1 timestamp)))
-  ;; Compile `font-lock-keywords' and KEYWORDS in case one is and one isn't.
-  (setq font-lock-keywords (font-lock-compile-keywords font-lock-keywords)
+  ;; Find value of syntactic keywords in case it is a symbol.
+  (setq font-lock-syntactic-keywords (font-lock-eval-keywords
+				      font-lock-syntactic-keywords))
+  ;; Compile all keywords in case some are and some aren't.
+  (setq font-lock-syntactic-keywords (font-lock-compile-keywords
+				      font-lock-syntactic-keywords)
+	syntactic-keywords (font-lock-compile-keywords syntactic-keywords)
+
+	font-lock-keywords (font-lock-compile-keywords font-lock-keywords)
 	keywords (font-lock-compile-keywords keywords))
-  ;; Use the Font Lock cache PROPERTIES if we're using cache VERSION format 2,
-  ;; the current buffer's file timestamp matches the TIMESTAMP, and the current
-  ;; buffer's font-lock-keywords are the same as KEYWORDS.
+  ;; Use the Font Lock cache SYNTACTIC-PROPERTIES and FACE-PROPERTIES if we're
+  ;; using cache VERSION format 3, the current buffer's file timestamp matches
+  ;; the TIMESTAMP, the current buffer's `font-lock-syntactic-keywords' are the
+  ;; same as SYNTACTIC-KEYWORDS, and the current buffer's `font-lock-keywords'
+  ;; are the same as KEYWORDS.
   (let ((buf-timestamp (visited-file-modtime))
 	(verbose (if (numberp fast-lock-verbose)
 		     (> (buffer-size) fast-lock-verbose)
 		   fast-lock-verbose))
 	(loaded t))
-    (if (or (/= version 2)
+    (if (or (/= version 3)
 	    (buffer-modified-p)
 	    (not (equal timestamp buf-timestamp))
+	    (not (equal syntactic-keywords font-lock-syntactic-keywords))
 	    (not (equal keywords font-lock-keywords)))
 	(setq loaded nil)
       (if verbose (message "Loading %s font lock cache..." (buffer-name)))
       (condition-case nil
-	  (fast-lock-set-face-properties properties)
+	  (fast-lock-add-properties syntactic-properties face-properties)
 	(error (setq loaded 'error)) (quit (setq loaded 'quit)))
       (if verbose (message "Loading %s font lock cache...%s" (buffer-name)
 			   (cond ((eq loaded 'error) "failed")
@@ -608,7 +630,7 @@ See `fast-lock-cache-directory'."
 ;; This is fast, but fails if adjacent characters have different `face' text
 ;; properties.  Maybe that's why I dropped it in the first place?
 ;(defun fast-lock-get-face-properties ()
-;  "Return a list of all `face' text properties in the current buffer.
+;  "Return a list of `face' text properties in the current buffer.
 ;Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
 ;where VALUE is a `face' property value and STARTx and ENDx are positions."
 ;  (save-restriction
@@ -628,7 +650,7 @@ See `fast-lock-cache-directory'."
 ;; This is slow, but copes if adjacent characters have different `face' text
 ;; properties, but fails if they are lists.
 ;(defun fast-lock-get-face-properties ()
-;  "Return a list of all `face' text properties in the current buffer.
+;  "Return a list of `face' text properties in the current buffer.
 ;Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
 ;where VALUE is a `face' property value and STARTx and ENDx are positions.
 ;Only those `face' VALUEs in `fast-lock-save-faces' are returned."
@@ -648,7 +670,7 @@ See `fast-lock-cache-directory'."
 ;      properties)))
 
 (defun fast-lock-get-face-properties ()
-  "Return a list of all `face' text properties in the current buffer.
+  "Return a list of `face' text properties in the current buffer.
 Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
 where VALUE is a `face' property value and STARTx and ENDx are positions."
   (save-restriction
@@ -666,21 +688,50 @@ where VALUE is a `face' property value and STARTx and ENDx are positions."
 	(setq start (text-property-not-all end (point-max) 'face nil)))
       properties)))
 
-(defun fast-lock-set-face-properties (properties)
-  "Set all `face' text properties to PROPERTIES in the current buffer.
-Any existing `face' text properties are removed first.
-See `fast-lock-get-face-properties' for the format of PROPERTIES."
+(defun fast-lock-get-syntactic-properties ()
+  "Return a list of `syntax-table' text properties in the current buffer.
+See `fast-lock-get-face-properties'."
+  (save-restriction
+    (widen)
+    (let ((start (text-property-not-all (point-min) (point-max) 'syntax-table
+					nil))
+	  end properties value cell)
+      (while start
+	(setq end (next-single-property-change start 'syntax-table nil
+					       (point-max))
+	      value (get-text-property start 'syntax-table))
+	;; Make, or add to existing, list of regions with same `syntax-table'.
+	(if (setq cell (assoc value properties))
+	    (setcdr cell (cons start (cons end (cdr cell))))
+	  (push (list value start end) properties))
+	(setq start (text-property-not-all end (point-max) 'syntax-table nil)))
+      properties)))
+
+(defun fast-lock-add-properties (syntactic-properties face-properties)
+  "Add `syntax-table' and `face' text properties to the current buffer.
+Any existing `syntax-table' and `face' text properties are removed first.
+See `fast-lock-get-face-properties'."
   (save-buffer-state (plist regions)
     (save-restriction
       (widen)
       (font-lock-unfontify-region (point-min) (point-max))
-      (while properties
-	(setq plist (list 'face (car (car properties)))
-	      regions (cdr (car properties))
-	      properties (cdr properties))
-	;; Set the `face' property for each start/end region.
+      ;;
+      ;; Set the `syntax-table' property for each start/end region.
+      (while syntactic-properties
+	(setq plist (list 'syntax-table (car (car syntactic-properties)))
+	      regions (cdr (car syntactic-properties))
+	      syntactic-properties (cdr syntactic-properties))
 	(while regions
-	  (set-text-properties (nth 0 regions) (nth 1 regions) plist)
+	  (add-text-properties (nth 0 regions) (nth 1 regions) plist)
+	  (setq regions (nthcdr 2 regions))))
+      ;;
+      ;; Set the `face' property for each start/end region.
+      (while face-properties
+	(setq plist (list 'face (car (car face-properties)))
+	      regions (cdr (car face-properties))
+	      face-properties (cdr face-properties))
+	(while regions
+	  (add-text-properties (nth 0 regions) (nth 1 regions) plist)
 	  (setq regions (nthcdr 2 regions)))))))
 
 ;; Functions for XEmacs:
@@ -690,7 +741,7 @@ See `fast-lock-get-face-properties' for the format of PROPERTIES."
   ;; It would be better to use XEmacs' `map-extents' over extents with a
   ;; `font-lock' property, but `face' properties are on different extents.
   (defun fast-lock-get-face-properties ()
-    "Return a list of all `face' text properties in the current buffer.
+    "Return a list of `face' text properties in the current buffer.
 Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
 where VALUE is a `face' property value and STARTx and ENDx are positions.
 Only those `face' VALUEs in `fast-lock-save-faces' are returned."
@@ -713,40 +764,55 @@ Only those `face' VALUEs in `fast-lock-save-faces' are returned."
 	      nil))))
 	properties)))
   ;;
+  ;; XEmacs does not support the `syntax-table' text property.
+  (defalias 'fast-lock-get-syntactic-properties
+    'ignore)
+  ;;
   ;; Make extents just like XEmacs' font-lock.el does.
-  (defun fast-lock-set-face-properties (properties)
-    "Set all `face' text properties to PROPERTIES in the current buffer.
+  (defun fast-lock-add-properties (syntactic-properties face-properties)
+    "Set `face' text properties in the current buffer.
 Any existing `face' text properties are removed first.
-See `fast-lock-get-face-properties' for the format of PROPERTIES."
+See `fast-lock-get-face-properties'."
     (save-restriction
       (widen)
       (font-lock-unfontify-region (point-min) (point-max))
-      (while properties
-	(let ((face (car (car properties)))
-	      (regions (cdr (car properties))))
-	  ;; Set the `face' property, etc., for each start/end region.
+      ;; Set the `face' property, etc., for each start/end region.
+      (while face-properties
+	(let ((face (car (car face-properties)))
+	      (regions (cdr (car face-properties))))
 	  (while regions
 	    (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
 	    (setq regions (nthcdr 2 regions)))
-	  (setq properties (cdr properties))))))
+	  (setq face-properties (cdr face-properties))))
+      ;; XEmacs does not support the `syntax-table' text property.      
+      ))
   ;;
   ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.
   (add-hook 'font-lock-after-fontify-buffer-hook
 	    'fast-lock-after-fontify-buffer))
 
-(unless (boundp 'font-lock-inhibit-thing-lock)
-  (defvar font-lock-inhibit-thing-lock nil
-    "List of Font Lock mode related modes that should not be turned on."))
+(unless (boundp 'font-lock-syntactic-keywords)
+  (defvar font-lock-syntactic-keywords nil))
 
-(unless (fboundp 'font-lock-value-in-major-mode)
-  (defun font-lock-value-in-major-mode (alist)
-    ;; Return value in ALIST for `major-mode'.
-    (if (consp alist)
-	(cdr (or (assq major-mode alist) (assq t alist)))
-      alist)))
+(unless (boundp 'font-lock-inhibit-thing-lock)
+  (defvar font-lock-inhibit-thing-lock nil))
 
 (unless (fboundp 'font-lock-compile-keywords)
   (defalias 'font-lock-compile-keywords 'identity))
+
+(unless (fboundp 'font-lock-eval-keywords)
+  (defun font-lock-eval-keywords (keywords)
+    (if (symbolp keywords)
+	(font-lock-eval-keywords (if (fboundp keywords)
+				     (funcall keywords)
+				   (eval keywords)))
+      keywords)))
+
+(unless (fboundp 'font-lock-value-in-major-mode)
+  (defun font-lock-value-in-major-mode (alist)
+    (if (consp alist)
+	(cdr (or (assq major-mode alist) (assq t alist)))
+      alist)))
 
 ;; Install ourselves:
 
