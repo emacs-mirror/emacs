@@ -297,6 +297,7 @@ The provided functions are:
 
 (defcustom message-forward-as-mime t
   "*If non-nil, forward messages as an inline/rfc822 MIME section.  Otherwise, directly inline the old message in the forwarded message."
+  :version "21.1"
   :group 'message-forwarding
   :type 'boolean)
 
@@ -322,6 +323,7 @@ The provided functions are:
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
   "*All headers that match this regexp will be deleted when forwarding a message."
+  :version "21.1"
   :group 'message-forwarding
   :type '(choice (const :tag "None" nil)
 		 regexp))
@@ -662,6 +664,7 @@ If nil, Message won't auto-save."
 (defcustom message-buffer-naming-style 'unique
   "*The way new message buffers are named.
 Valid valued are `unique' and `unsent'."
+  :version "21.1"
   :group 'message-buffers
   :type '(choice (const :tag "unique" unique)
 		 (const :tag "unsent" unsent)))
@@ -670,6 +673,7 @@ Valid valued are `unique' and `unsent'."
   (and (not (mm-multibyte-p)) 'iso-8859-1)
   "Default charset used in non-MULE Emacsen.
 If nil, you might be asked to input the charset."
+  :version "21.1"
   :group 'message
   :type 'symbol)
 
@@ -677,6 +681,7 @@ If nil, you might be asked to input the charset."
   (and (boundp 'rmail-dont-reply-to-names) rmail-dont-reply-to-names)
   "*A regexp specifying names to prune when doing wide replies.
 A value of nil means exclude your own name only."
+  :version "21.1"
   :group 'message
   :type '(choice (const :tag "Yourself" nil)
 		 regexp))
@@ -900,6 +905,7 @@ The cdr of ech entry is a function for applying the face to a region.")
   "The limitation of messages sent as message/partial.
 The lower bound of message size in characters, beyond which the message 
 should be sent in several parts. If it is nil, the size is unlimited."
+  :version "21.1"
   :group 'message-buffers
   :type '(choice (const :tag "unlimited" nil)
 		 (integer 1000000)))
