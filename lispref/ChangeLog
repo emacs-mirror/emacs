@@ -1,5 +1,8 @@
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* objects.texi (Character Type): Reposition `@anchor' to prevent
+	double space inside sentence in Info.
+
 	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
 	renamed to `disabled-command-function'.
 	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
