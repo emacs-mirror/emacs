@@ -2908,6 +2908,7 @@ typically for purposes of moderating a list."
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
 	  "^ *---+ +Returned message +---+ *$\\|"
+	  "^ *---+ *Returned mail follows *---+ *$\\|"
 	  "^Start of returned message$\\|"
 	  "^ *---+ +Original message +---+ *$\\|"
 	  "^ *--+ +begin message +--+ *$\\|"
