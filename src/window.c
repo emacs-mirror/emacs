@@ -534,6 +534,7 @@ coordinates_in_window (w, x, y)
   /* The width of the area where the vertical line can be dragged.
      (Between mode lines for instance.  */
   int grabbable_width = ux;
+  int lmargin_width = 0, rmargin_width = 0;
 
   if (*x < x0 || *x >= x1)
     return ON_NOTHING;
@@ -628,9 +629,14 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  if (*x <= window_box_right (w, LEFT_MARGIN_AREA))
+	  lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
+	  rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
+	  /* You can never be on a margin area if its width is zero.  */
+	  if (lmargin_width
+	      && *x <= window_box_right (w, LEFT_MARGIN_AREA))
 	    part = ON_LEFT_MARGIN;
-	  else if (*x >= window_box_left (w, RIGHT_MARGIN_AREA))
+	  else if (rmargin_width
+		   && *x >= window_box_left (w, RIGHT_MARGIN_AREA))
 	    part = ON_RIGHT_MARGIN;
 	  else
 	    {
@@ -665,9 +671,15 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  if (*x <= window_box_right (w, LEFT_MARGIN_AREA))
+	  lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
+	  rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
+	  /* You can never be on a margin area if its width is zero.
+	     This is especially important for character terminals.  */
+	  if (lmargin_width
+	      && *x <= window_box_right (w, LEFT_MARGIN_AREA))
 	    part = ON_LEFT_MARGIN;
-	  else if (*x >= window_box_left (w, RIGHT_MARGIN_AREA))
+	  else if (rmargin_width
+		   && *x >= window_box_left (w, RIGHT_MARGIN_AREA))
 	    part = ON_RIGHT_MARGIN;
 	  else
 	    {
