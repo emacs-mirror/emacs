@@ -73,9 +73,6 @@ and those for buffer-specialised fontification functions,
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
 (make-variable-buffer-local 'font-lock-defaults)
 
-(defvar font-lock-core-only nil
-  "If non-nil, then don't load font-lock.el unless necessary.")
-
 ;; This variable is used where font-lock.el itself supplies the
 ;; keywords.  Really, this shouldn't need to be in font-core.el, but
 ;; we can't avoid it.  In the future, this stuff will hopefully be
@@ -225,8 +222,7 @@ your own function which is called when `font-lock-mode' is toggled via
 	(push (list 'face 'font-lock-face) char-property-alias-alist)))
     ;; Only do hard work if the mode has specified stuff in
     ;; `font-lock-defaults'.
-    (when (and font-lock-defaults
-	       (not font-lock-core-only))
+    (when font-lock-defaults
       (add-hook 'after-change-functions 'font-lock-after-change-function t t)
       (font-lock-turn-on-thing-lock)
       ;; Fontify the buffer if we have to.
@@ -248,8 +244,7 @@ your own function which is called when `font-lock-mode' is toggled via
 	(setcdr elt (remq 'font-lock-face (cdr elt)))
 	(when (null (cdr elt))
 	  (setq char-property-alias-alist (delq elt char-property-alias-alist)))))
-    (when (and font-lock-defaults
-	       (not font-lock-core-only))
+    (when font-lock-defaults
       (remove-hook 'after-change-functions 'font-lock-after-change-function t)
       (font-lock-unfontify-buffer)
       (font-lock-turn-off-thing-lock))))
@@ -271,13 +266,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (make-local-variable 'font-lock-multiline)
     (let ((defaults (or font-lock-defaults
 			(cdr (assq major-mode font-lock-defaults-alist)))))
-      ;; Variable alist?
-      (dolist (x (nthcdr 5 defaults))
-	(set (make-local-variable (car x)) (cdr x)))
-      (when (and defaults
-		 ;; Detect if this is a simple mode, which doesn't use
-		 ;; any syntactic fontification functions.
-		 (not font-lock-core-only))
+      (when defaults
 	(require 'font-lock)
 	(font-lock-set-defaults-1)))))
 
@@ -353,12 +342,8 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
   :group 'font-lock)
 
 (defun turn-on-font-lock-if-enabled ()
-  (when (and (or font-lock-defaults
-		 (assq major-mode font-lock-defaults-alist))
-	     (or (eq font-lock-global-modes t)
-		 (if (eq (car-safe font-lock-global-modes) 'not)
-		     (not (memq major-mode (cdr font-lock-global-modes)))
-		   (memq major-mode font-lock-global-modes))))
+  (unless (and (eq (car-safe font-lock-global-modes) 'not)
+	       (memq major-mode (cdr font-lock-global-modes)))
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
