@@ -1,3 +1,28 @@
+2002-08-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (fontset_add): Make the type `int'.
+	(fontset_id_valid_p): Define it if FONTSET_DEBUG is defined.
+
+	* character.c (unibyte_char_to_multibyte): Refer to
+	charset_unibyte, not charset_primary.
+	(multibyte_char_to_unibyte): Likewise.
+	(Funibyte_char_to_multibyte): Likewise.
+
+	* charset.h: (charset_unibyte): Extern it instead of
+	charset_primary.
+
+	* charset.c (charset_unibyte): Renamed from charset_primary.
+	(Funibyte_charset): Renamed from Fprimary_charset.
+	(Fset_unibyte_charset): Renamed from Fset_primary_charset.
+	(syms_of_charset): Adjusted for the above changes.
+
+	* w32term.c (x_produce_glyphs): Use ASCII_CHAR_P, not
+	SINGLE_BYTE_CHAR_P.  Fix the logic of handling non-ASCII char when
+	it->multibyte_p is zero.
+
+	* lisp.h (nonascii_insert_offset, Vnonascii_translation_table):
+	Extern deleted.
+
 2002-08-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (Fdefine_coding_system_internal): Fix category setting

@@ -430,7 +430,7 @@ sub_char_table_set_range (table, depth, min_char, from, to, val)
 {
   int max_char = min_char + chartab_chars[depth] - 1;
 
-  if (depth == 3 || from <= min_char && to >= max_char)
+  if (depth == 3 || (from <= min_char && to >= max_char))
     *table = val;
   else
     {

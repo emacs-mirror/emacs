@@ -1,3 +1,14 @@
+2002-08-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (reset-language-environment): Don't
+	set nonascii-translation-table and nonascii-insert-offset.  Call
+	set-unibyte-charset, not set-primary-charset.
+	(nonascii-translation-table, nonascii-insert-offset): Declare
+	these variable as obsolete ones.
+	(set-language-environment): Call set-unibyte-charset, not
+	set-primary-charset.  Call set-charset-priority with `charset'
+	info of the language environment.
+
 2002-08-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* tar-mode.el (tar-extract): Fix previous change.
