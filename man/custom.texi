@@ -2230,7 +2230,7 @@ If the function is not interactive, omit the @code{t} or use
 
 @item
 Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}
-(@xref{Init Rebinding}.)
+(@pxref{Init Rebinding}).
 
 @example
 (global-set-key "\C-xl" 'make-symbolic-link)
