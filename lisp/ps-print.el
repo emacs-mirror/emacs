@@ -7,11 +7,11 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <98/05/15  21:15:06 vinicius>
-;; Version:    3.06.1
+;; Time-stamp: <98/05/22  21:11:07 vinicius>
+;; Version:    3.06.2
 
-(defconst ps-print-version "3.06.1"
-  "ps-print.el, v 3.06.1 <98/05/15 vinicius>
+(defconst ps-print-version "3.06.2"
+  "ps-print.el, v 3.06.2 <98/05/22 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -2065,19 +2065,23 @@ StandardEncoding 46 82 getinterval aload pop
 
 % stack:  --
 /doLineNumber {
-  currentfont
-  gsave
-  0.0 0.0 0.0 setrgbcolor
-  /L0 findfont setfont
-  LineNumber Lines ge
-    {(end      )}
-    {LineNumber 6 string cvs (      ) strcat}
-  ifelse
-  dup stringwidth pop neg 0 rmoveto
-  show
-  grestore
-  setfont
-  /LineNumber LineNumber 1 add def
+  /LineNumber where
+  {
+    pop
+    currentfont
+    gsave
+    0.0 0.0 0.0 setrgbcolor
+    /L0 findfont setfont
+    LineNumber Lines ge
+      {(end      )}
+      {LineNumber 6 string cvs (      ) strcat}
+    ifelse
+    dup stringwidth pop neg 0 rmoveto
+    show
+    grestore
+    setfont
+    /LineNumber LineNumber 1 add def
+  } if
 } def
 
 % stack: --
