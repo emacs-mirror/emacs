@@ -1,5 +1,7 @@
 2000-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* international/ccl.el (ccl-compile-map-multiple): Don't quote lambda.
+
 	* log-edit.el (log-edit-done): Cleanup trailing empty lines.
 	(log-edit-insert-changelog): Drop `:' as well.
 
