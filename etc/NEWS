@@ -318,6 +318,11 @@ The command M-x comint-redirect-send-command-to-process acts like
 M-x comint-redirect-send-command but additionally reads the name of
 the buffer whose process should be used from the mini-buffer.
 
+** Changes to Rmail mode
+
+RET is now bound in the Rmail summary to rmail-summary-goto-msg, like
+`j'.
+
 ** Changes to TeX mode
 
 The default mode has been changed from `plain-tex-mode' to
