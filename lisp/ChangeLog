@@ -1,3 +1,8 @@
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* progmodes/grep.el (grep-compute-defaults): Undo change from
+	2004-01-29: don't use executable-command-find-posix-p.
+
 2004-02-16  Richard Sharman  <rsharman@pobox.com>
 
 	* hilit-chg.el: Use require instead of eval-and-compile.
