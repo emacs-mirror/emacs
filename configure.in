@@ -2232,6 +2232,16 @@ test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 changequote([, ])dnl
 
+## Check if the C preprocessor will convert `..' to `. .'.  If so, set
+## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
+## from Makefile.c can correctly provide the arg `-traditional' to the
+## C preprocessor.
+
+AC_EGREP_CPP(yes..yes,
+	[yes..yes],
+	CPP_NEED_TRADITIONAL=no,
+	CPP_NEED_TRADITIONAL=yes)
+
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
 	lisp/Makefile leim/Makefile, [
@@ -2264,7 +2274,7 @@ make epaths-force
 # As of 2000-11-19, newest development versions of GNU cpp preprocess
 # `..' to `. .'  unless invoked with -traditional
 
-if test "x$GCC" = xyes && test "x$NON_GNU_CPP" = x; then
+if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
 fi
 
@@ -2308,5 +2318,5 @@ fi
 # This is how we know whether to re-run configure in certain cases.
 touch src/config.stamp
 
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
