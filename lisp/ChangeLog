@@ -1,3 +1,8 @@
+2003-01-14  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* apropos.el (apropos): Restore autoload cookie.  Fix error
+	message typo.
+
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (process-put, process-get): New functions.

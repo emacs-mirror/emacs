@@ -440,6 +440,8 @@ satisfy the predicate VAR-PREDICATE."
 	  "(not documented)"))
     (error "(error retrieving documentation)")))
 
+
+;;;###autoload
 (defun apropos (apropos-regexp &optional do-all)
   "Show all bound symbols whose names match APROPOS-REGEXP.
 With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also
@@ -473,7 +475,7 @@ time-consuming.  Returns list of symbols and documentation found."
 				   (void-function
 				    "(alias for undefined function)")
 				   (error
-				    "(error retrieving function documentation")))
+				    "(error retrieving function documentation)")))
 		       (substring doc 0 (string-match "\n" doc))
 		     "(not documented)"))
 		 (when (boundp symbol)
