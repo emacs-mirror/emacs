@@ -1764,6 +1764,7 @@ extern Lisp_Object Qexecute_kbd_macro;
 extern Lisp_Object Fexecute_kbd_macro ();
 
 /* defined in undo.c */
+extern Lisp_Object Qinhibit_read_only;
 extern Lisp_Object Fundo_boundary ();
 extern Lisp_Object truncate_undo_list ();
 
