@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.11 1993/05/03 17:55:22 eggert Exp rms $
+# $Id: rcs2log,v 1.12 1993/05/29 06:22:48 rms Exp eggert $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -173,6 +173,16 @@ case $authors in
 		{
 			if (author[$1]) {
 				fullname = $5
+				if (fullname ~ /[0-9]+-[^(]*\([0-9]+\)$/) {
+					# Remove the junk from fullnames like "0000-Admin(0000)".
+					fullname = substr(fullname, index(fullname, "-") + 1)
+					fullname = substr(fullname, 1, index(fullname, "(") - 1)
+				}
+				if (fullname ~ /,[^ ]/) {
+					# Some sites put comma-separated junk after the fullname.
+					# Remove it, but leave "Bill Gates, Jr" alone.
+					fullname = substr(fullname, 1, index(fullname, ",") - 1)
+				}
 				abbr = index(fullname, "&")
 				if (abbr) {
 					a = substr($1, 1, 1)
