@@ -554,8 +554,7 @@ echo "Making links to \`oldXMenu'"
 echo "Making links to \`lwlib'"
 (cd lwlib
  ln *.c *.h *.in ../${tempdir}/lwlib
- ln README Imakefile ChangeLog ../${tempdir}/lwlib
- cd ../${tempdir}/lwlib)
+ ln README ChangeLog ../${tempdir}/lwlib)
 
 echo "Making links to \`etc'"
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
