@@ -235,7 +235,8 @@ the like shorter."
 	search-ring-yank-pointer nil
 	regexp-search-ring nil
 	regexp-search-ring-yank-pointer nil)
-  (mapcar (function kill-buffer) (buffer-list))
+;;;  What a screw!
+;;;  (mapcar (function kill-buffer) (buffer-list))
   (delete-other-windows))
 ;; ----------------------------------------------------------------------------
 (add-hook 'kill-emacs-hook 'desktop-kill)
