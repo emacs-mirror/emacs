@@ -3,6 +3,16 @@
 	* configure.in: The function gtk_window_set_icon_from_file was
 	introduced in GTK+ 2.2, so check for that release.
 
+2003-07-23  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Add --enable-maintainer-mode, substitute MAINT.
+
+	* Makefile.in (YACC): Remove, not used.
+	(MAINT): Don't set.
+	(${srcdir}/configure, $(srcdir)/src/stamp-h.in): Use @MAINT@ to
+	disable dependency on ${srcdir}/configure.in when maintainer mode
+	is disabled.
+
 2003-07-22  Dave Love  <fx@gnu.org>
 
 	* configure.in: Make XRegisterIMInstantiateCallback test depend on
