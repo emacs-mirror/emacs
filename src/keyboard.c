@@ -7261,7 +7261,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   /* If the command has a key binding, print it now.  */
   if (!NILP (bindings)
-      && ! (ARRAYP (bindings) && EQ (Faref (bindings), Qmouse_movement)))
+      && ! (ARRAYP (bindings)
+	    && EQ (Faref (Voverriding_local_map, bindings), Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
       if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
@@ -7534,7 +7535,6 @@ On such systems, Emacs starts a subshell instead of suspending.")
   int old_height, old_width;
   int width, height;
   struct gcpro gcpro1, gcpro2;
-  extern init_sys_modes ();
 
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring, 0);
