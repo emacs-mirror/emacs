@@ -603,9 +603,10 @@ relock:
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) relock)
 
-TAGS tags:	lib-src src
-	# The src subdir knows how to do the right thing
-	# even when the build directory and source dir are different.
+# The src subdir knows how to do the right thing
+# even when the build directory and source dir are different.
+TAGS tags:
+	lib-src src
 	cd src; $(MAKE) tags
 
 check:
@@ -616,10 +617,10 @@ dist:
 
 .PHONY: info dvi dist check html
 force-info:
+# Note that man/Makefile knows how to
+# put the info files in $(srcdir),
+# so we can do ok running make in the build dir.
 info: force-info
-	# Note that man/Makefile knows how to
-	# put the info files in $(srcdir),
-	# so we can do ok running make in the build dir.
 	(cd man; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
