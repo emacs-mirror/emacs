@@ -203,7 +203,7 @@ Set it to either \`yes' or \`no'."
             val=`eval echo '$'$index`
 	  fi
 	  x_includes="${val}"
-	  C_SWITCH_X_SITE="-I${x_includes}"
+	  C_SWITCH_X_SITE="-I\"${x_includes}\""
         ;;
 	"x_libraries" )
 	  ## If the value was omitted, get it from the next argument.
@@ -219,7 +219,7 @@ Set it to either \`yes' or \`no'."
             val=`eval echo '$'$index`
 	  fi
 	  x_libraries="${val}"
-	  LD_SWITCH_X_SITE="-L${x_libraries}"
+	  LD_SWITCH_X_SITE="-L\"${x_libraries}\""
         ;;
 
 	## Should this use the "development configuration"?
@@ -547,9 +547,13 @@ case "${configuration}" in
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
   ;;
-  ## HP/UX 8 doesn't run on these machines, so use HP/UX 7.
+  ## HP/UX 7, 8 and 9 are supported on these machines.
   m68*-hp-hpux* )
-    machine=hp9000s300 opsys=hpux
+    case "`uname -r`" in
+      *.08.* ) machine=hp9000s300 opsys=hpux8 ;;
+      *.09.* ) machine=hp9000s300 opsys=hpux9 ;;
+      *) machine=hp9000s300 opsys=hpux ;;
+    esac
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
