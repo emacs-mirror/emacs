@@ -272,7 +272,7 @@
 (put 'generic-x 'custom-loads '("generic-x"))
 (put 'partial-completion 'custom-loads '("complete"))
 (put 'whitespace 'custom-loads '("whitespace"))
-(put 'maint 'custom-loads '("gulp" "lisp-mnt" "emacsbug"))
+(put 'maint 'custom-loads '("emacsbug" "gulp" "lisp-mnt"))
 (put 'pages 'custom-loads '("page-ext"))
 (put 'message-interface 'custom-loads '("message"))
 (put 'diary 'custom-loads '("calendar" "diary-lib"))

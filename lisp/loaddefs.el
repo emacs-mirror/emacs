@@ -5224,7 +5224,7 @@ Play sounds in message buffers." t nil)
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  easy-mmode-define-global-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (15611 31353))
+;;;;;;  "emacs-lisp/easy-mmode.el" (15778 47714))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias (quote easy-mmode-define-minor-mode) (quote define-minor-mode))
@@ -7602,7 +7602,7 @@ Fontify the current buffer the way the function `font-lock-mode' would." t nil)
 ;;;***
 
 ;;;### (autoloads (create-fontset-from-fontset-spec) "fontset" "international/fontset.el"
-;;;;;;  (15611 31355))
+;;;;;;  (15769 17153))
 ;;; Generated autoloads from international/fontset.el
 
 (autoload (quote create-fontset-from-fontset-spec) "fontset" "\
@@ -7674,7 +7674,7 @@ Visit a file in Forms mode in other window." t nil)
 ;;;***
 
 ;;;### (autoloads (fortran-mode fortran-tab-mode-default) "fortran"
-;;;;;;  "progmodes/fortran.el" (15735 20647))
+;;;;;;  "progmodes/fortran.el" (15776 19967))
 ;;; Generated autoloads from progmodes/fortran.el
 
 (defvar fortran-tab-mode-default nil "\
@@ -11329,7 +11329,7 @@ different buffer menu using the function `msb'." t nil)
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-char-after describe-character-set
 ;;;;;;  list-charset-chars read-charset list-character-sets) "mule-diag"
-;;;;;;  "international/mule-diag.el" (15611 31356))
+;;;;;;  "international/mule-diag.el" (15769 18229))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload (quote list-character-sets) "mule-diag" "\
@@ -12527,7 +12527,7 @@ they are not defaultly assigned to keys." t nil)
 
 ;;;***
 
-;;;### (autoloads (pong) "pong" "play/pong.el" (15745 58372))
+;;;### (autoloads (pong) "pong" "play/pong.el" (15745 59372))
 ;;; Generated autoloads from play/pong.el
 
 (autoload (quote pong) "pong" "\
@@ -15027,7 +15027,7 @@ which smileys to operate on and which images to use for them." t nil)
 
 ;;;***
 
-;;;### (autoloads (snake) "snake" "play/snake.el" (15745 58403))
+;;;### (autoloads (snake) "snake" "play/snake.el" (15745 59563))
 ;;; Generated autoloads from play/snake.el
 
 (autoload (quote snake) "snake" "\
@@ -16016,7 +16016,7 @@ subprocess started." t nil)
 
 ;;;***
 
-;;;### (autoloads (tetris) "tetris" "play/tetris.el" (15745 58478))
+;;;### (autoloads (tetris) "tetris" "play/tetris.el" (15745 59670))
 ;;; Generated autoloads from play/tetris.el
 
 (autoload (quote tetris) "tetris" "\
@@ -17182,73 +17182,6 @@ used to override the default assumption about average word length and the
 fraction of the maximum threshold to which to set the minimum threshold.
 FRAC should be the inverse of the fractional value; for example, a value of
 2 would mean to use one half, a value of 4 would mean to use one quarter, etc." t nil)
-
-;;;***
-
-;;;### (autoloads (unify-8859-on-decoding-mode unify-8859-on-encoding-mode)
-;;;;;;  "ucs-tables" "international/ucs-tables.el" (15761 38862))
-;;; Generated autoloads from international/ucs-tables.el
-
-(defvar unify-8859-on-encoding-mode nil "\
-Non-nil if Unify-8859-On-Encoding mode is enabled.
-See the command `unify-8859-on-encoding-mode' for a description of this minor-mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `unify-8859-on-encoding-mode'.")
-
-(custom-add-to-group (quote mule) (quote unify-8859-on-encoding-mode) (quote custom-variable))
-
-(custom-add-load (quote unify-8859-on-encoding-mode) (quote ucs-tables))
-
-(autoload (quote unify-8859-on-encoding-mode) "ucs-tables" "\
-Set up translation tables for unifying ISO 8859 characters on encoding.
-
-The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
-8859-15 (Latin-9) differ only in a few characters.  Emacs normally
-distinguishes equivalent characters from those ISO-8859 character sets
-which are built in to Emacs.  This behaviour is essentially inherited
-from the European-originated international standards.  Treating them
-equivalently, by translating to and from a single representation is
-called `unification'.  (The `utf-8' coding system treats the
-characters of European scripts in a unified manner.)
-
-In this mode, on encoding -- i.e. output operations -- non-ASCII
-characters from the built-in ISO 8859 and `mule-unicode-0100-24ff'
-charsets are handled automatically by the coding system used if it can
-represent them.  Thus, say, an e-acute from the Latin-1 charset (the
-unified representation) in a buffer saved as Latin-9 will be encoded
-directly to a byte value 233.  By default, in contrast, you would be
-prompted for a general coding system to use for saving the file, which
-can cope with separate Latin-1 and Latin-9 representations of e-acute.
-
-Also sets hooks that arrange `translation-table-for-input' to be set
-up locally when Quail input methods are activated.  This will often
-allow input generated by Quail input methods to conform with what the
-buffer's file coding system can encode.  Thus you could use a Latin-2
-input method to search for e-acute in a Latin-1 buffer.
-
-See also command `unify-8859-on-decoding-mode'." t nil)
-
-(defvar unify-8859-on-decoding-mode nil "\
-Non-nil if Unify-8859-On-Decoding mode is enabled.
-See the command `unify-8859-on-decoding-mode' for a description of this minor-mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `unify-8859-on-decoding-mode'.")
-
-(custom-add-to-group (quote mule) (quote unify-8859-on-decoding-mode) (quote custom-variable))
-
-(custom-add-load (quote unify-8859-on-decoding-mode) (quote ucs-tables))
-
-(autoload (quote unify-8859-on-decoding-mode) "ucs-tables" "\
-Set up translation tables for unifying ISO 8859 characters on decoding.
-On decoding, i.e. input operations, non-ASCII characters from the
-built-in ISO 8859 charsets are unified by mapping them into the
-`iso-latin-1' and `mule-unicode-0100-24ff' charsets.
-
-Also sets `translation-table-for-input' globally, so that Quail input
-methods produce unified characters.
-
-See also command `unify-8859-on-encoding-mode' and the user option
-`utf-8-fragment-on-decoding'." t nil)
 
 ;;;***
 
