@@ -155,6 +155,15 @@ extern int quit_char;
 #include "syssignal.h"
 #include "systime.h"
 
+/* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
+#ifndef LPASS8
+#define LPASS8 0
+#endif
+
+#ifdef BSD4_1
+#define LNOFLSH 0100000
+#endif
+
 static int baud_convert[] =
 #ifdef BAUD_CONVERT
   BAUD_CONVERT;
@@ -496,6 +505,7 @@ child_setup_tty (out)
 
   s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
 		       | CBREAK | TANDEM);
+  s.main.sg_flags |= LPASS8;
   s.main.sg_erase = 0377;
   s.main.sg_kill = 0377;
   s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
@@ -1171,15 +1181,6 @@ init_sys_modes ()
 	  tty.tchars.t_startc = '\021';
 	  tty.tchars.t_stopc = '\023';
 	}
-
-/* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
-#ifndef LPASS8
-#define LPASS8 0
-#endif
-
-#ifdef BSD4_1
-#define LNOFLSH 0100000
-#endif
 
       tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | old_tty.lmode;
 #ifdef ultrix
@@ -2118,11 +2119,16 @@ read_input_waiting ()
   e.modifiers = 0;
   for (i = 0; i < nread; i++)
     {
-      /* If the user says she has a meta key, then believe her. */
-      if (meta_key == 1 && (buf[i] & 0x80))
-	e.modifiers = meta_modifier;
-      if (meta_key != 2)
-	buf[i] &= ~0x80;
+      /* Convert chars > 0177 to meta events if desired.
+	 We do this under the same conditions that read_avail_input does.  */
+      if (read_socket_hook == 0)
+	{
+	  /* If the user says she has a meta key, then believe her. */
+	  if (meta_key == 1 && (buf[i] & 0x80))
+	    e.modifiers = meta_modifier;
+	  if (meta_key != 2)
+	    buf[i] &= ~0x80;
+	}
 
       XSET (e.code, Lisp_Int, buf[i]);
       kbd_buffer_store_event (&e);
