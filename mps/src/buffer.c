@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.30) $
+ * $HopeName: MMsrc!buffer.c(trunk.31) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.30) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.31) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -173,7 +173,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   return ResOK;
 
 failInit:
-  ArenaFree(arena, (Addr)buffer, sizeof(BufferStruct));
+  ArenaFree(arena, buffer, sizeof(BufferStruct));
 failAlloc:
   return res;
 }
@@ -266,7 +266,7 @@ void BufferDestroy(Buffer buffer)
   AVERT(Buffer, buffer);
   arena = buffer->arena;
   BufferFinish(buffer);
-  ArenaFree(arena, (Addr)buffer, sizeof(BufferStruct));
+  ArenaFree(arena, buffer, sizeof(BufferStruct));
 }
 
 

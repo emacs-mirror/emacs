@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.12) $
+ * $HopeName: MMsrc!poolawl.c(trunk.13) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.12) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.13) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -82,11 +82,11 @@ static void AWLGroupDestroy(AWLGroup group)
   AVER(segGrains == group->grains);
   tableSize = BTSize(segGrains);
   PoolSegFree(pool, seg);
-  ArenaFree(arena, (Addr)group->alloc, tableSize);
-  ArenaFree(arena, (Addr)group->scanned, tableSize);
-  ArenaFree(arena, (Addr)group->mark, tableSize);
+  ArenaFree(arena, group->alloc, tableSize);
+  ArenaFree(arena, group->scanned, tableSize);
+  ArenaFree(arena, group->mark, tableSize);
   group->sig = SigInvalid;
-  ArenaFree(arena, (Addr)group, sizeof *group);
+  ArenaFree(arena, group, sizeof *group);
 }
   
  
@@ -153,11 +153,11 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   return ResOK;
 
 failArenaAllocAlloc:
-  ArenaFree(arena, (Addr)group->scanned, tableSize);
+  ArenaFree(arena, group->scanned, tableSize);
 failArenaAllocScanned:
-  ArenaFree(arena, (Addr)group->mark, tableSize);
+  ArenaFree(arena, group->mark, tableSize);
 failArenaAllocMark:
-  ArenaFree(arena, (Addr)group, sizeof *group);
+  ArenaFree(arena, group, sizeof *group);
 failArenaAlloc0:
   PoolSegFree(pool, seg);
 failSegAlloc:

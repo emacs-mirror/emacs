@@ -1,6 +1,6 @@
 /*  impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thw3i3.c(MMdevel_config_thread.2) $
+ *  $HopeName: MMsrc!thw3i3.c(trunk.18) $
  *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  *  Implements thread registration, suspension, and stack
@@ -63,7 +63,7 @@
 
 #include <windows.h>
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(MMdevel_config_thread.2) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.18) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -137,7 +137,7 @@ void ThreadDeregister(Thread thread, Arena arena)
   b = CloseHandle(thread->handle);
   AVER(b); /* .error.close-handle */
 
-  ArenaFree(arena, (Addr)thread, sizeof(ThreadStruct));
+  ArenaFree(arena, thread, sizeof(ThreadStruct));
 }
 
 
