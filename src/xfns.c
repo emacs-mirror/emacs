@@ -744,6 +744,7 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+static void x_change_window_heights P_ ((Lisp_Object, int));
 static void x_disable_image P_ ((struct frame *, struct image *));
 static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -1916,9 +1917,12 @@ x_set_visibility (f, value, oldval)
   else
     Fmake_frame_visible (frame);
 }
+
 
+/* Change window heights in windows rooted in WINDOW by N lines.  */
+
 static void
-x_set_menu_bar_lines_1 (window, n)
+x_change_window_heights (window, n)
   Lisp_Object window;
   int n;
 {
@@ -1934,13 +1938,13 @@ x_set_menu_bar_lines_1 (window, n)
 
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
-    x_set_menu_bar_lines_1 (w->vchild, n);
+    x_change_window_heights (w->vchild, n);
 
   /* Adjust all children in a horizontal split.  */
   for (window = w->hchild; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
-      x_set_menu_bar_lines_1 (window, n);
+      x_change_window_heights (window, n);
     }
 }
 
@@ -1988,7 +1992,7 @@ x_set_menu_bar_lines (f, value, oldval)
     }
 #else /* not USE_X_TOOLKIT */
   FRAME_MENU_BAR_LINES (f) = nlines;
-  x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
+  x_change_window_heights (f->root_window, nlines - olines);
 #endif /* not USE_X_TOOLKIT */
   adjust_glyphs (f);
 }
@@ -2005,7 +2009,8 @@ x_set_tool_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
 {
-  int delta, nlines;
+  int delta, nlines, root_height;
+  Lisp_Object root_window;
 
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)
@@ -2017,8 +2022,18 @@ x_set_tool_bar_lines (f, value, oldval)
   ++windows_or_buffers_changed;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
+
+  /* Don't resize the tool-bar to more than we have room for.  */
+  root_window = FRAME_ROOT_WINDOW (f);
+  root_height = XINT (XWINDOW (root_window)->height);
+  if (root_height - delta < 1)
+    {
+      delta = root_height - 1;
+      nlines = FRAME_TOOL_BAR_LINES (f) + delta;
+    }
+
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  x_set_menu_bar_lines_1 (FRAME_ROOT_WINDOW (f), delta);
+  x_change_window_heights (root_window, delta);
   adjust_glyphs (f);
 }
 
