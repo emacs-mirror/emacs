@@ -129,7 +129,7 @@
   "Association list for ISO accent combinations.")
 
 (defvar iso-accents-minor-mode nil
-  "*Non-nil enables ISO-accents mode.
+  "*Non-nil enables ISO Accents mode.
 Setting this variable makes it local to the current buffer.
 See `iso-accents-mode'.")
 (make-variable-buffer-local 'iso-accents-minor-mode)
@@ -195,7 +195,7 @@ See `iso-accents-mode'.")
 
 ;;;###autoload
 (defun iso-accents-mode (&optional arg)
-  "Toggle a minor mode in which accents modify the following letter.
+  "Toggle ISO Accents mode, in which accents modify the following letter.
 This permits easy insertion of accented characters according to ISO-8859-1.
 When Iso-accents mode is enabled, accent character keys
 \(`, ', \", ^, / and ~) do not self-insert; instead, they modify the following
