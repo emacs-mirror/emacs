@@ -379,6 +379,11 @@ If you prefer the old behavior, you can set the new user option
 Info files on your system for a string, and builds a menu of the
 possible matches.
 
+*** Images in Info pages are supported.
+Info pages show embedded images, in Emacs frames with image support.
+Info documentation that includes images, processed with makeinfo
+version 4.7 or newer, compiles to Info pages with embedded images.
+
 +++
 *** The default value for `Info-scroll-prefer-subnodes' is now nil.
 
