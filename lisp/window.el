@@ -217,7 +217,9 @@ new mode line."
   "Split current window into two windows side by side.
 This window becomes the leftmost of the two, and gets ARG columns.
 Negative arg means select the size of the rightmost window instead.
-No arg means split equally."
+The argument includes the width of the window's scroll bar; if there
+are no scroll bars, it includes the width of the divider column
+to the window's right, if any.  No arg means split equally."
   (interactive "P")
   (let ((old-w (selected-window))
 	(size (and arg (prefix-numeric-value arg))))
