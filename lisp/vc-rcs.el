@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.4 2000/09/09 00:48:40 monnier Exp $
+;; $Id: vc-rcs.el,v 1.5 2000/09/21 13:21:41 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -592,7 +592,7 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 	     ;; allow creation of branches with no changes;
 	     ;; this is used by vc-rcs-receive-file if the
 	     ;; base version cannot be found
-	     (if (string-match ".1.1$" rev) "-f")
+	     (if (and (stringp rev) (string-match ".1.1$" rev)) "-f")
 	     switches)
       (vc-file-setprop file 'vc-workfile-version nil)
 
