@@ -20,7 +20,7 @@ Emacs operates its own X windows.  You can begin typing Emacs commands
 as soon as you direct your keyboard input to the Emacs frame.
 
 @vindex initial-major-mode
-  When Emacs starts up, it makes a buffer named @samp{*scratch*}.
+  When Emacs starts up, it creates a buffer named @samp{*scratch*}.
 That's the buffer you start out in.  The @samp{*scratch*} buffer uses Lisp
 Interaction mode; you can use it to type Lisp expressions and evaluate
 them, or you can ignore that capability and simply doodle.  (You can
@@ -106,19 +106,20 @@ failing to support job control properly, but that is a matter of taste.)
 dedicated X windows, @kbd{C-z} has a different meaning.  Suspending an
 application that uses its own X windows is not meaningful or useful.
 Instead, @kbd{C-z} runs the command @code{iconify-or-deiconify-frame},
-which temporarily closes up the selected Emacs frame (@pxref{Frames}).
-The way to get back to a shell window is with the window manager.
+which temporarily iconifies (or ``minimizes'') the selected Emacs
+frame (@pxref{Frames}).  Then you can use the window manager to get
+back to a shell window.
 
 @kindex C-x C-c
 @findex save-buffers-kill-emacs
-  To kill Emacs, type @kbd{C-x C-c} (@code{save-buffers-kill-emacs}).  A
-two-character key is used for this to make it harder to type.  This
-command first offers to save any modified file-visiting buffers.  If you
-do not save them all, it asks for reconfirmation with @kbd{yes} before
-killing Emacs, since any changes not saved will be lost forever.  Also,
-if any subprocesses are still running, @kbd{C-x C-c} asks for
-confirmation about them, since killing Emacs will kill the subprocesses
-immediately.
+  To exit and kill Emacs, type @kbd{C-x C-c}
+(@code{save-buffers-kill-emacs}).  A two-character key is used for
+this to make it harder to type by accident.  This command first offers
+to save any modified file-visiting buffers.  If you do not save them
+all, it asks for reconfirmation with @kbd{yes} before killing Emacs,
+since any changes not saved will be lost forever.  Also, if any
+subprocesses are still running, @kbd{C-x C-c} asks for confirmation
+about them, since killing Emacs will also kill the subprocesses.
 
 @vindex confirm-kill-emacs
   If the value of the variable @code{confirm-kill-emacs} is
@@ -129,10 +130,10 @@ function to use as the value of @code{confirm-kill-emacs} is the
 function @code{yes-or-no-p}.  The default value of
 @code{confirm-kill-emacs} is @code{nil}.
 
-  There is no way to restart an Emacs session once you have killed it.
+  There is no way to resume an Emacs session once you have killed it.
 You can, however, arrange for Emacs to record certain session
-information, such as which files are visited, when you kill it, so that
-the next time you restart Emacs it will try to visit the same files and
+information when you kill it, such as which files are visited, so that
+the next time you start Emacs it will try to visit the same files and
 so on.  @xref{Saving Emacs Sessions}.
 
   The operating system usually listens for certain special characters

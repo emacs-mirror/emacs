@@ -81,12 +81,11 @@ given at the end of a line, rather than transposing the last character of
 the line with the newline, which would be useless, @kbd{C-t} transposes the
 last two characters on the line.  So, if you catch your transposition error
 right away, you can fix it with just a @kbd{C-t}.  If you don't catch it so
-fast, you must move the cursor back to between the two transposed
-characters.  If you transposed a space with the last character of the word
-before it, the word motion commands are a good way of getting there.
-Otherwise, a reverse search (@kbd{C-r}) is often the best way.
-@xref{Search}.
-
+fast, you must move the cursor back between the two transposed
+characters before you type @kbd{C-t}.  If you transposed a space with
+the last character of the word before it, the word motion commands are
+a good way of getting there.  Otherwise, a reverse search (@kbd{C-r})
+is often the best way.  @xref{Search}.
 
 @kindex C-x C-t
 @findex transpose-lines
@@ -211,7 +210,7 @@ you various alternatives for what to do about it.
   To check the entire current buffer, use @kbd{M-x ispell-buffer}.  Use
 @kbd{M-x ispell-region} to check just the current region.  To check
 spelling in an email message you are writing, use @kbd{M-x
-ispell-message}; that checks the whole buffer, but does not check
+ispell-message}; that command checks the whole buffer, except for
 material that is indented or appears to be cited from other messages.
 
 @findex ispell
@@ -223,7 +222,8 @@ spell-checks the current buffer.
   Each time these commands encounter an incorrect word, they ask you
 what to do.  They display a list of alternatives, usually including
 several ``near-misses''---words that are close to the word being
-checked.  Then you must type a character.  Here are the valid responses:
+checked.  Then you must type a single-character response.  Here are
+the valid responses:
 
 @table @kbd
 @item @key{SPC}
@@ -252,7 +252,7 @@ editing session and for this buffer.
 
 @item i
 Insert this word in your private dictionary file so that Ispell will
-consider it correct it from now on, even in future sessions.
+consider it correct from now on, even in future sessions.
 
 @item u
 Insert the lower-case version of this word in your private dic@-tion@-ary
@@ -264,8 +264,8 @@ information.
 
 @item l @var{word} @key{RET}
 Look in the dictionary for words that match @var{word}.  These words
-become the new list of ``near-misses''; you can select one of them to
-replace with by typing a digit.  You can use @samp{*} in @var{word} as a
+become the new list of ``near-misses''; you can select one of them as
+the replacement by typing a digit.  You can use @samp{*} in @var{word} as a
 wildcard.
 
 @item C-g

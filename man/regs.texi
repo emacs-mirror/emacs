@@ -90,7 +90,7 @@ Insert text from register @var{r} (@code{insert-register}).
   @kbd{C-x r s @var{r}} stores a copy of the text of the region into
 the register named @var{r}.  @kbd{C-u C-x r s @var{r}}, the same
 command with a numeric argument, deletes the text from the buffer as
-well.
+well; you can think of this as ``moving'' the region text into the register.
 
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point before the text and places the mark
@@ -247,8 +247,8 @@ to the position of the bookmark at the same time.
   To display a list of all your bookmarks in a separate buffer, type
 @kbd{C-x r l} (@code{list-bookmarks}).  If you switch to that buffer,
 you can use it to edit your bookmark definitions or annotate the
-bookmarks.  Type @kbd{C-h m} in that buffer for more information about
-its special editing commands.
+bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
+information about its special editing commands.
 
   When you kill Emacs, Emacs offers to save your bookmark values in your
 default bookmark file, @file{~/.emacs.bmk}, if you have changed any
