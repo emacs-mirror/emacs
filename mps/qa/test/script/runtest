@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(MMQA_harness_dev.2) $
+# $HopeName: MMQA_harness!script:runtest(trunk.22) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -51,7 +51,7 @@ sub run_exe {
  &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
  if ($compoutput) {
-  $real_results{'cl_out'} = $compoutput;
+  $real_output{'cl_out'} = $compoutput;
  }
  &verdict;
 }
