@@ -1,6 +1,8 @@
 2002-05-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/f90.el (f90-match-end): Simplify it a bit.
+	* progmodes/f90.el (f90-match-end, f90-break-line): Simplify a bit.
+	(f90-get-present-comment-type): Fix earlier change.
+	(f90-comment-indent): Doc fix.
 
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
