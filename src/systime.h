@@ -33,11 +33,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <time.h>
 #endif /* _h_BSDTYPES */
 
+#endif
+
 /* AIX needs both <sys/time.h> and <time.h>.  */
 #ifdef _AIX
 #include <time.h>
-#endif
-
 #endif
 
 
@@ -184,8 +184,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef EMACS_CURRENT_TIME_ZONE
 
+/* System V derivatives have a timezone global variable.  */
+#ifdef USG
+#define EMACS_GET_TZ_OFFSET(offset)					\
+  do {									\
+    tzset ();								\
+    *(offset) = timezone;						\
+  } while (0)
+#endif
+
 /* If we have timeval, then we have gettimeofday; that's half the battle.  */
-#ifdef HAVE_TIMEVAL
+#if defined (HAVE_TIMEVAL) && !defined (EMACS_GET_TZ_OFFSET)
 #define EMACS_GET_TZ_OFFSET(offset)					\
   do {									\
     struct timeval dummy;						\
@@ -195,15 +204,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     *(offset) = -zoneinfo.tz_minuteswest;				\
   } while (0)
 #endif /* ! defined (HAVE_TIMEVAL) */
-
-/* System V derivatives have a timezone global variable.  */
-#ifdef USG
-#define EMACS_GET_TZ_OFFSET(offset)					\
-  do {									\
-    tzset ();								\
-    *(offset) = timezone;						\
-  } while (0)
-#endif
 
 /* The following sane systems have a tzname array.  The timezone() function
    is a stupid idea; timezone names can only be determined geographically,
