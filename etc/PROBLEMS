@@ -1129,7 +1129,7 @@ or disable it entirely.
 This is a limitation of the Operating System, and can cause problems
 when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
-ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
+ftp://ftp.gnu.org/gnu/windows/emacs/docs/index.html
 
 * Windows 95/98/ME crashes when Emacs invokes non-existent programs.
 

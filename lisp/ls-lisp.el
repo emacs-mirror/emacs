@@ -150,7 +150,7 @@ Otherwise they are treated as Emacs regexps (for backward compatibility)."
 
 ;; This stub is to allow ls-lisp to parse symbolic links via another
 ;; library such as w32-symlinks.el from
-;; http://centaur.qmw.ac.uk/Emacs/:
+;; http://centaur.maths.qmw.ac.uk/Emacs/:
 (defun ls-lisp-parse-symlink (file-name)
   "This stub may be redefined to parse FILE-NAME as a symlink.
 It should return nil or the link target as a string."

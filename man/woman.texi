@@ -1,10 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.6 2001/03/04 07:14:22 rms Exp $
+@c $Id: woman.texi,v 1.7 2001/03/05 15:11:21 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
 @c Manual last updated:
-@set UPDATED Time-stamp: <2001-03-05 17:10:30 eliz>
+@set UPDATED Time-stamp: <2002-12-04 09:12:13 pavel>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -162,7 +162,7 @@ This browser works quite well on simple well-written man files.  It
 works less well on idiosyncratic files that ``break the rules'' or use
 the more obscure @code{ROFF} requests directly.  Current test results
 are available in the file
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/woman.status,
+@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/files/woman.status,
 @file{woman.status}}.
 
 WoMan supports the use of compressed man files via
