@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.131 $")
+(defconst byte-compile-version "$Revision: 2.133 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2763,6 +2763,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   ;; If function is a symbol, then the variable "byte-SYMBOL" must name
   ;; the opcode to be used.  If function is a list, the first element
   ;; is the function and the second element is the bytecode-symbol.
+  ;; The second element may be nil, meaning there is no opcode.
   ;; COMPILE-HANDLER is the function to use to compile this byte-op, or
   ;; may be the abbreviations 0, 1, 2, 3, 0-1, or 1-2.
   ;; If it is nil, then the handler is "byte-compile-SYMBOL."
@@ -3528,7 +3529,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-out 'byte-temp-output-buffer-setup 0)
   (byte-compile-body (cdr (cdr form)))
   (byte-compile-out 'byte-temp-output-buffer-show 0))
-
 
 ;;; top-level forms elsewhere
 
@@ -3665,6 +3665,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (if calls
 	(setq byte-compile-unresolved-functions
 	      (delq calls byte-compile-unresolved-functions)))))
+
+(byte-defop-compiler-1 with-no-warnings byte-compile-no-warnings)
+(defun byte-compile-no-warnings (form)
+  (let (byte-compile-warnings)
+    (byte-compile-form (cadr form))))
 
 ;;; tags
 
