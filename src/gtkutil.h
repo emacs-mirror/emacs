@@ -179,6 +179,7 @@ extern void free_frame_tool_bar P_ ((FRAME_PTR f));
 extern void xg_resize_widgets P_ ((FRAME_PTR f,
                                    int pixelwidth,
                                    int pixelheight));
+extern void xg_frame_cleared P_ ((FRAME_PTR f));
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
 extern GtkWidget * xg_win_to_widget P_ ((Window));
 extern int xg_create_frame_widgets P_ ((FRAME_PTR f));

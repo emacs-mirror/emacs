@@ -1,5 +1,7 @@
 2003-03-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.h: Add declaration for xg_frame_cleared.
+
 	* xterm.c (x_clear_frame): Call xg_frame_cleared for GTK.
 
 	* gtkutil.c (struct xg_last_sb_pos): New structure.
