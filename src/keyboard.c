@@ -6487,13 +6487,28 @@ init_kboard (kb)
  * We use this just before deleteing it, or if we're going to initialize
  * it a second time.
  */
-void
+static void
 wipe_kboard (kb)
      KBOARD *kb;
 {
   if (kb->kbd_macro_buffer)
     xfree (kb->kbd_macro_buffer);
 }
+
+#ifdef MULTI_KBOARD
+void
+delete_kboard (kb)
+  KBOARD *kb;
+{
+  KBOARD **kbp;
+  for (kbp = &all_kboards; *kbp != kb; kbp = &(*kbp)->next_kboard)
+    if (*kbp == NULL)
+      abort ();
+  *kbp = kb->next_kboard;
+  wipe_kboard (kb);
+  xfree (kb);
+}
+#endif
 
 init_keyboard ()
 {
