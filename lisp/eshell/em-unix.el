@@ -572,9 +572,12 @@ symlink, then revert to the system's definition of cat."
   (if (or eshell-in-pipeline-p
 	  (catch 'special
 	    (eshell-for arg args
-	      (unless (let ((attrs (eshell-file-attributes arg)))
-			(and attrs (memq (aref (nth 8 attrs) 0)
-					 '(?d ?l ?-))))
+	      (unless (or (and (stringp arg)
+			       (> (length arg) 0)
+			       (eq (aref arg 0) ?-))
+			  (let ((attrs (eshell-file-attributes arg)))
+			    (and attrs (memq (aref (nth 8 attrs) 0)
+					     '(?d ?l ?-)))))
 		(throw 'special t)))))
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
