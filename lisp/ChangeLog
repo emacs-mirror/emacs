@@ -1,3 +1,11 @@
+2002-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (macro-declaration-function): New function.  Set the
+	variable macro-declaration-function to it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble): 
+	Handle declarations in macro definitions.
+
 2002-03-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* facemenu.el (facemenu-get-face): Remove unised variable
