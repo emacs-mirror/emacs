@@ -187,9 +187,9 @@ The variable `lpr-page-header-program' specifies the program to use."
       (cons (point-min) (point-max)))))
 
 (defun printify-region (begin end)
-  "Turn nonprinting characters (other than TAB, LF, SPC, RET, and FF)
-in the current buffer into printable representations as control or
-hexadecimal escapes."
+  "Replace nonprinting characters in region with printable representations.
+The printable representations use ^ (for ASCII control characters) or hex.
+The characters tab, linefeed, space, return and formfeed are not affected."
   (interactive "r")
   (save-excursion
     (goto-char begin)
