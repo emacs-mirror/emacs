@@ -1748,7 +1748,7 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 
   BLOCK_INPUT;
 
-  if (! NILP (last_mouse_scroll_bar))
+  if (! NILP (last_mouse_scroll_bar) && insist == 0)
     /* This is never called at the moment.  */
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
   else
@@ -1790,7 +1790,7 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 	      }
 	  }
 
-	if (f1 == 0 && insist)
+	if (f1 == 0 && insist > 0)
 	  f1 = selected_frame;
 
 	if (f1)
