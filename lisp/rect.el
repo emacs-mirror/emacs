@@ -367,8 +367,7 @@ rectangle which were empty."
   (apply-on-rectangle 'clear-rectangle-line start end fill))
 
 (defun clear-rectangle-line (startcol endcol fill)
-  (let ((pt (point-at-eol))
-	spaces)
+  (let ((pt (point-at-eol)))
     (when (= (move-to-column startcol (or fill 'coerce)) startcol)
       (if (and (not fill)
 	       (<= (save-excursion (goto-char pt) (current-column)) endcol))
@@ -376,9 +375,9 @@ rectangle which were empty."
 	;; else
 	(setq pt (point))
 	(move-to-column endcol t)
-	(setq spaces (- (point) pt))
+	(setq endcol (current-column))
 	(delete-region pt (point))
-	(indent-to (+ (current-column) spaces))))))
+	(indent-to endcol)))))
 
 (provide 'rect)
 
