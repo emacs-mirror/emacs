@@ -152,6 +152,11 @@ NOTE-END
 # endif
 #endif
 
+#ifdef __ELF__
+#undef UNEXEC
+#define UNEXEC unexelf1.o
+#endif
+
 #ifndef __ELF__
 
 /* Describe layout of the address space in an executing process.  */
