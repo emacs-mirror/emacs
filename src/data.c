@@ -1743,22 +1743,25 @@ IDX starts at 0.")
     }
   else if (STRING_MULTIBYTE (array))
     {
-      Lisp_Object val;
+      Lisp_Object new_len;
       int c, idxval_byte, actual_len;
+      unsigned char *p, *str;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
 
       idxval_byte = string_char_to_byte (array, idxval);
+      p = &XSTRING (array)->data[idxval_byte];
 
-      c = STRING_CHAR_AND_LENGTH (&XSTRING (array)->data[idxval_byte],
-				  XSTRING (array)->size_byte - idxval_byte,
-				  actual_len);
-      if (actual_len != 1)
-	error ("Attempt to store a multibyte character into a string");
+      actual_len
+	= MULTIBYTE_FORM_LENGTH (p, XSTRING (array)->size_byte - idxval_byte);
+      new_len = Fchar_bytes (newelt);
+      if (actual_len != XINT (new_len))
+	error ("Attempt to change byte length of a string");
 
-      CHECK_NUMBER (newelt, 2);
-      XSTRING (array)->data[idxval_byte] = XINT (newelt);
+      CHAR_STRING (XINT (newelt), p, str);
+      if (p != str)
+	bcopy (str, p, actual_len);
     }
   else
     {
