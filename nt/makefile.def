@@ -21,44 +21,106 @@
 # BEGIN CONFIGURATION
 #
 
+# Set INSTALL_DIR to be the directory into which you want emacs installed.
 #
-# Set ARCH to the architecture on which you're building (i386, mips, alpha).
-# Set SYS_INC_DIR and SYS_LIB_DIR to your system include and library dirs.
-#
-
-ARCH            = mips
-SYS_INC_DIR     = C:\mstools\h
-SYS_LIB_DIR     = C:\mstools\lib
-
-# Set this to be the directory into which you want emacs installed
-INSTALL_DIR	= C:\emacs
-
-# May need to be cl386.exe when using the SDK on an x86.
-CC              = cl.exe
-
-# May need to be lib32.exe on NT 3.1, lib.exe on NT 3.5
-AR              = lib32.exe
-
-MAKE            = nmake.exe
-LINK            = link32.exe
-
-# If you are using VC 2.0, define COMPAT_LIB (only tested on i386)
-#COMPAT_LIB	= $(SYS_LIB_DIR)\oldnames.lib
-
-CVTRES		= cvtres.exe
+!ifndef INSTALL_DIR
+INSTALL_DIR     = C:\emacs
+!endif
 
 #
 # END CONFIGURATION
 #
-# You shouldn't have to change any of the below to get emacs to build and
-# install on your system.  If you did have to make changes, let me know.
-#
 
-INC             = -I. -I$(SYS_INC_DIR) -I$(SYS_INC_DIR)\crt
+# Check that the INCLUDE and LIB environment variables are set.
+#
+!ifndef INCLUDE
+!error The INCLUDE environment variable needs to be set.
+!endif
+!ifndef LIB
+!error The LIB environment variable needs to be set.
+!endif
+
+# Determine the architecture we're running on.
+# Define ARCH for our purposes; 
+# Define CPU for use by ntwin32.mak;
+# Define CONFIG_H to the appropriate config.h for the system;
+#
+!ifdef PROCESSOR_ARCHITECTURE
+# We're on Windows NT
+CPU		= $(PROCESSOR_ARCHITECTURE)
+CONFIG_H	= config.nt
+OS_TYPE		= winnt
+! if "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH		= i386
+CPU		= i386
+! else
+!  if "$(PROCESSOR_ARCHITECTURE)" == "MIPS"
+ARCH		= mips
+!  else
+!   if "$(PROCESSOR_ARCHITECTURE)" == "ALPHA"
+ARCH		= alpha
+!   else
+!    if "$(PROCESSOR_ARCHITECTURE)" == "PPC"
+ARCH		= ppc
+!    else
+!error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+!    endif
+!   endif
+!  endif
+! endif
+!else
+# We're on Windows 95
+ARCH		= i386
+CPU		= i386
+CONFIG_H	= config.w95
+OS_TYPE		= win95
+!endif
+
+# Include ntwin32.mak.  So far, this file seems to be supported by every
+# Microsoft compiler on NT and Win95 and properly defines the executable
+# names and libraries necessary to build Emacs.  I do not have access 
+# to any other vendor compilers, so I do not know if they supply this 
+# file, too.  For now I'll assume that they do.
+#
+!include <ntwin32.mak>
+
+# Using cvtres is necessary on NT 3.10 and doesn't hurt on later platforms.
+CVTRES		= cvtres.exe
+AR		= $(implib)
+# The assignment $(CC) = $(cc) fails even though variables are case sensitive.
+LINK_TMP	= $(link)
+LINK		= $(LINK_TMP)
+CC_TMP		= $(cc)
+CC		= $(CC_TMP)
+
+# advapi32.lib is left off of $(baselibs) on NT 3.10
+!if "$(baselibs)" == "kernel32.lib "
+ADVAPI32	= advapi32.lib
+!else
+ADVAPI32	=
+!endif
+
+# Older ntwin32.mak files do not define libc; do it for them.
+!ifndef libc
+libc		= libc.lib
+!endif
+
+# The base libraries for compiling Emacs on NT.  With MSVC, this should
+# include oldnames.lib.
+BASE_LIBS	= $(libc) $(baselibs)
+
+# We want any debugging info in the executable.
+!if "$(LINK)" == "link32"
+SYS_LDFLAGS	= 
+!else
+SYS_LDFLAGS	= -pdb:none -release -incremental:no
+!endif
+
+INC             = -I.
 CFLAGS          = -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH)
 
 OBJDIR          = obj
-$(OBJDIR):;     -mkdir $(OBJDIR)
+$(OBJDIR):;	-mkdir $(OBJDIR)
 BLD             = $(OBJDIR)\$(ARCH)
 $(BLD):         $(OBJDIR)
 		-mkdir $(BLD)
@@ -69,24 +131,29 @@ CP_DIR		= xcopy /fried
 # This is completely braindamaged, but it's the only routine known to be there
 DEL_TREE	= echo y | rmdir /s
 
-!IF "$(ARCH)" == "i386"
+!if "$(ARCH)" == "i386"
 ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -G3d -Zi -Od
-ARCH_LDFLAGS	= -align:0x1000
+ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
 
-!ELSE
-!IF "$(ARCH)" == "mips"
-CC              = mcl.exe
-ARCH_CFLAGS     = -D_MIPS_=1 -c -W2 -Zi -Od -Gt0 -D__stdcall= -D__cdecl=
-ARCH_LDFLAGS	= -align:0x1000
+!else
+!if "$(ARCH)" == "mips"
+ARCH_CFLAGS     = -D_MIPS_=1 -c -W2 -Zi -Od -Gt0
+ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
 
-!ELSE
-!IF "$(ARCH)" == "alpha"
-CC              = claxp.exe
+!else
+!if "$(ARCH)" == "alpha"
 ARCH_CFLAGS     = -D_ALPHA_=1 -c -Ze -Zi -W2 -D__stdcall= -D__cdecl=
-ARCH_LDFLAGS	= -align:0x2000
+ARCH_LDFLAGS	= -align:0x2000 $(SYS_LDFLAGS)
 
-!ELSE
-!ERROR Unknown architecture type.
-!ENDIF
-!ENDIF
-!ENDIF
+!else
+!if "$(ARCH)" == "ppc"
+# These flags are a guess...if they don't work, please send me mail.
+ARCH_CFLAGS	= -D_PPC_=1 -c -Ze -Zi -W2 -Od
+ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
+
+!else
+!ERROR Unknown architecture type "$(ARCH)".
+!endif
+!endif
+!endif
+!endif
