@@ -3474,14 +3474,11 @@ init_keyboard ()
   quit_char = Ctl ('g');
   unread_command_char = Qnil;
   total_keys = 0;
+  recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
   do_mouse_tracking = 0;
   input_pending = 0;
-
-  recent_keys = Fmake_vector (make_number (NUM_RECENT_KEYS), Qnil);
-  staticpro (&recent_keys);
-  recent_keys_index = 0;
 
   if (!noninteractive)
     {
@@ -3587,6 +3584,9 @@ syms_of_keyboard ()
 	Fput (*p->var, Qevent_unmodified, *p->var);
       }
   }
+
+  recent_keys = Fmake_vector (make_number (NUM_RECENT_KEYS), Qnil);
+  staticpro (&recent_keys);
 
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
