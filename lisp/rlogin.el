@@ -180,8 +180,8 @@ variable."
 
       (make-local-variable 'rlogin-host)
       (setq rlogin-host host)
-      (make-local-variable 'rlogin-user)
-      (setq rlogin-user user)
+      (make-local-variable 'rlogin-remote-user)
+      (setq rlogin-remote-user user)
 
       (cond
        ((eq rlogin-directory-tracking-mode t)
@@ -189,7 +189,7 @@ variable."
         ;; avoid a gratuitous resync check; the default should be the
         ;; user's home directory, be it local or remote.
         (setq comint-file-name-prefix 
-              (concat "/" rlogin-user "@" rlogin-host ":"))
+              (concat "/" rlogin-remote-user "@" rlogin-host ":"))
         (cd-absolute comint-file-name-prefix))
        ((null rlogin-directory-tracking-mode))
        (t
@@ -230,7 +230,7 @@ local one share the same directories (through NFS)."
     (setq rlogin-directory-tracking-mode t)
     (setq shell-dirtrack-p t)
     (setq comint-file-name-prefix 
-          (concat "/" rlogin-user "@" rlogin-host ":")))
+          (concat "/" rlogin-remote-user "@" rlogin-host ":")))
    ((< prefix 0)
     (setq rlogin-directory-tracking-mode nil)
     (setq shell-dirtrack-p nil))
@@ -306,10 +306,10 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
     (delete-char arg)))
 
 (defun rlogin-tab-or-complete ()
-  "Complete file name if doing directory tracking, or just send TAB."
+  "Complete file name if doing directory tracking, or just insert TAB."
   (interactive)
   (if rlogin-directory-tracking-mode
       (comint-dynamic-complete)
-    (send-string nil "\C-i")))
+    (insert "\C-i")))
 
 ;;; rlogin.el ends here
