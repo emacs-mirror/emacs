@@ -1,3 +1,9 @@
+2000-09-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecomp.el (byte-compile-defvar): Undo last change
+	because it breaks '(make-variable-buffer-local (defvar ...)'
+	which is used at least in dired.
+
 2000-09-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-define-package): Docstring
