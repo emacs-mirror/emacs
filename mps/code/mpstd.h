@@ -259,7 +259,6 @@
 #define MPS_ARCH_AL
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
-#define MPS_T_SHORT     unsigned
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
@@ -274,7 +273,6 @@
 #define MPS_ARCH_AL
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
-#define MPS_T_SHORT     unsigned
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
@@ -338,18 +336,18 @@
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -360,7 +358,7 @@
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
