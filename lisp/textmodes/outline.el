@@ -309,7 +309,7 @@ at the end of the buffer."
   (if (re-search-forward (concat "\n\\(" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (match-beginning 0)))
-  (if (bolp)
+  (if (and (bolp) (not (bobp)))
       (forward-char -1)))
 
 (defun outline-next-heading ()
