@@ -60,7 +60,7 @@ to the system configuration; look at `system-configuration' instead."
 		 (cond ((featurep 'motif) ", Motif")
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       (t ""))
-		 (format-time-string "%a %Y-%m-%d" emacs-build-time)
+		 (format-time-string "%Y-%m-%d" emacs-build-time)
                  emacs-build-system)))
     (if here 
         (insert version-string)
