@@ -385,7 +385,6 @@
 (modify-category-entry '(#xe80 . #xeff) ?o)
 (map-charset-chars #'modify-category-entry 'lao ?o)
 
-;; Fixme: check this.  Lao characters in HELLO seem to have all the categories
 (let ((deflist	'(("ກ-ຮ"	"w"	?0) ; consonant
 		  ("ະາຳຽເ-ໄ"	"w"	?1) ; vowel base
 		  ("ັິ-ືົໍ"	"w"	?2) ; vowel upper
@@ -897,6 +896,9 @@
 (map-charset-chars
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
+(map-charset-chars
+ (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'korean-ksc5601)
 
 (optimize-char-table (standard-case-table))
 (optimize-char-table char-width-table)
