@@ -60,19 +60,20 @@
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
 (load "simple")
-(load "help")
 (load "files")
-;; Any Emacs Lisp source file (*.el) loaded here after can contain
-;; multilingual text.
-(load "international/mule-cmds")
-(load "case-table")
-(load "international/characters")
 
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (message "%s" (garbage-collect))
+
+(load "help")
+;; Any Emacs Lisp source file (*.el) loaded here after can contain
+;; multilingual text.
+(load "international/mule-cmds")
+(load "case-table")
+(load "international/characters")
 
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
