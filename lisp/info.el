@@ -2462,7 +2462,7 @@ Moving within a node:
 \\[beginning-of-buffer]	Go to beginning of node.
 
 Advanced commands:
-\\[Info-exit]	Quit Info: reselect previously selected buffer.
+\\[Info-copy-current-node-name]	Put name of current info node in the kill ring.
 \\[Info-edit]	Edit contents of selected node.
 1	Pick first item in node's menu.
 2, 3, 4, 5   Pick second ... fifth item in node's menu.
