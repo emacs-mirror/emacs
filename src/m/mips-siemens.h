@@ -159,8 +159,6 @@ NOTE-END  */
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
 #define XSETINT(a, b)  XSET(a, XTYPE(a), b)
-#define XSETUINT(a, b) XSET(a, XTYPE(a), b)
-#define XSETPNTR(a, b) XSET(a, XTYPE(a), b)
 
 #define XUNMARK(a)							\
   ((a) =								\
