@@ -172,8 +172,11 @@ we're in the GUD buffer)."
   (cons "-fullname" args))
 
 (defvar gud-gdb-marker-regexp
-  (concat "\032\032\\([^" path-separator "\n]*\\)" path-separator
-	  "\\([0-9]*\\)" path-separator ".*\n"))
+  ;; This used to use path-separator instead of ":";
+  ;; however, we found that on both Windows 32 and MSDOS
+  ;; a colon is correct here.
+  (concat "\032\032\\([^" ":" "\n]*\\)" ":"
+	  "\\([0-9]*\\)" ":" ".*\n"))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
