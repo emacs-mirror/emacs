@@ -110,3 +110,7 @@ char *_getpty();
 
 #define MAIL_USE_FLOCK
 
+/* use K&R C */
+#ifndef __GNUC__
+#define C_SWITCH_SYSTEM -cckr
+#endif
