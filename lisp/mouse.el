@@ -38,25 +38,29 @@
 
 
 (defun mouse-delete-window (click)
-  "Delete the window clicked on.
+  "Delete the window you click on.
 This must be bound to a mouse click."
   (interactive "e")
   (delete-window (event-window click)))
 
 (defun mouse-delete-other-windows (click)
-  "Select Emacs window clicked on, then kill all other Emacs windows.
-This must be bound to a mouse click."
-  (interactive "e")
-  (select-window (event-window click))
+  "Delete all window except the one you click on."
+  (interactive "@e")
   (delete-other-windows))
 
 (defun mouse-split-window-vertically (click)
   "Select Emacs window mouse is on, then split it vertically in half.
 The window is split at the line clicked on.
 This command must be bound to a mouse click."
-  (interactive "e")
-  (select-window (event-window click))
+  (interactive "@e")
   (split-window-vertically (1+ (cdr (mouse-coords click)))))
+
+(defun mouse-split-window-horizontally (click)
+  "Select Emacs window mouse is on, then split it horizontally in half.
+The window is split at the column clicked on.
+This command must be bound to a mouse click."
+  (interactive "@e")
+  (split-window-horizontally (1+ (car (mouse-coords click)))))
 
 (defun mouse-set-point (click)
   "Move point to the position clicked on with the mouse.
@@ -101,6 +105,23 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (mouse-set-mark click)
   (call-interactively 'kill-ring-save))
 
+(defun mouse-save-then-kill (click)
+  "Copy the region between point and the mouse click in the kill ring.
+This does not delete the region; it acts like \\[kill-ring-save]."
+  (interactive "e")
+  (mouse-set-mark click)
+  (if (string= (buffer-substring (point) (mark)) (car kill-ring))
+      ;; If this text was already saved in kill ring,
+      ;; now delete it from the buffer.
+      (progn
+	(let ((buffer-undo-list t))
+	  (delete-region (point) (mark)))
+	;; Make the undo list by hand so it is shared.
+	(setq buffer-undo-list
+	      (cons (cons (car kill-ring) (point)) buffer-undo-list)))
+    ;; Otherwise, save this region.
+    (call-interactively 'kill-ring-save)))
+
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse."
   (interactive "e")
@@ -127,13 +148,13 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 ;; Commands for the scroll bar.
 
-(defun mouse-scroll-down (nlines)
-  (interactive "@p")
-  (scroll-down nlines))
+(defun mouse-scroll-down (click)
+  (interactive "@e")
+  (scroll-down (1+ (cdr (mouse-coords click)))))
 
-(defun mouse-scroll-up (nlines)
-  (interactive "@p")
-  (scroll-up nlines))
+(defun mouse-scroll-up (click)
+  (interactive "@e")
+  (scroll-up (1+ (cdr (mouse-coords click)))))
 
 (defun mouse-scroll-down-full ()
   (interactive "@")
@@ -143,9 +164,9 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "@")
   (scroll-up nil))
 
-(defun mouse-scroll-move-cursor (nlines)
-  (interactive "@p")
-  (move-to-window-line nlines))
+(defun mouse-scroll-move-cursor (click)
+  (interactive "@e")
+  (move-to-window-line (1+ (cdr (mouse-coords click)))))
 
 (defun mouse-scroll-absolute (event)
   (interactive "@e")
@@ -161,13 +182,13 @@ This does not delete the region; it acts like \\[kill-ring-save]."
       (goto-char newpos)
       (recenter '(4)))))
 
-(defun mouse-scroll-left (ncolumns)
-  (interactive "@p")
-  (scroll-left ncolumns))
+(defun mouse-scroll-left (click)
+  (interactive "@e")
+  (scroll-left (1+ (car (mouse-coords click)))))
 
 (defun mouse-scroll-right (ncolumns)
-  (interactive "@p")
-  (scroll-right ncolumns))
+  (interactive "@e")
+  (scroll-right (1+ (car (mouse-coords click)))))
 
 (defun mouse-scroll-left-full ()
   (interactive "@")
@@ -177,9 +198,9 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "@")
   (scroll-right nil))
 
-(defun mouse-scroll-move-cursor-horizontally (ncolumns)
-  (interactive "@p")
-  (move-to-column ncolumns))
+(defun mouse-scroll-move-cursor-horizontally (click)
+  (interactive "@e")
+  (move-to-column (1+ (car (mouse-coords click)))))
 
 (defun mouse-scroll-absolute-horizontally (event)
   (interactive "@e")
@@ -223,6 +244,13 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (global-set-key [thumbright mouse-1] 'mouse-scroll-right-full)
 (global-set-key [thumbright mouse-2] 'mouse-scroll-right-full)
 (global-set-key [thumbright mouse-3] 'mouse-scroll-right-full)
+
+(global-set-key [horizontal-scroll-bar S-mouse-2]
+		'mouse-split-window-horizontally)
+(global-set-key [mode-line S-mouse-2]
+		'mouse-split-window-horizontally)
+(global-set-key [vertical-scroll-bar S-mouse-2]
+		'mouse-split-window)
 
 ;;;;
 ;;;; Here are experimental things being tested.  Mouse events
@@ -513,8 +541,7 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (global-set-key   [down-mouse-1]	'mouse-set-point)
 (global-set-key   [drag-mouse-1]	'mouse-set-mark)
 (global-set-key   [mouse-2]	'mouse-yank-at-click)
-(global-set-key   [mouse-3]	'mouse-kill-ring-save)
-(global-set-key   [S-mouse-3]	'mouse-kill)
+(global-set-key   [mouse-3]	'mouse-save-then-kill)
 
 (global-set-key   [C-mouse-1]	'mouse-buffer-menu)
 
@@ -522,6 +549,9 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
+
+(global-set-key   [mode-line mouse-1] 'mouse-delete-other-windows)
+(global-set-key   [mode-line mouse-3] 'mouse-delete-window)
 
 ;; Define the mouse help menu tree.
 
