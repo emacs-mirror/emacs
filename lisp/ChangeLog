@@ -1,3 +1,8 @@
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with
+	`invalid'.
+
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-insert-input): Obey mouse-yank-at-point.
