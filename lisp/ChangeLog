@@ -1,3 +1,8 @@
+2002-11-23   Markus Rost  <rost@math.ohio-state.edu>
+
+	* scroll-all.el (scroll-all-mode): Move arg LIGHTER to the right
+	place.
+
 2002-11-21  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el : General tidying. Patches from Stefan Monnier.
