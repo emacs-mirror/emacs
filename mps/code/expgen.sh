@@ -18,6 +18,42 @@
 # w3gen.def - a .def file suitable for use in the linker stage when
 # building a Windows .DLL.
 #
+# Procedure for rebuilding a new w3gen.def
+#
+# This procedure should be carried out when the contents of w3gen.def
+# would change.  This is a bit tricky to say exactly when, but certainly
+# when:
+# a) new functions are declared in public header files.
+# b) different header files are released to a client.
+#
+# Procedure:
+#
+# 1) Ensure that the sources for w3gen.def are submitted.  w3gen.def
+# must be built from versioned sources.
+# The sources are:
+# expgen.sh
+# w3build.bat
+# all the headers that get included.
+# For safety's sake better to ensure that no files are open:
+# p4 opened ...
+# should say '... - file(s) not opened on this client.'
+#
+# 2) Open w3gen.def for edit (making it writable)
+# p4 open w3gen.def
+#
+# 3) Run this script.
+# sh expgen.sh
+# There should be no output when successful.
+#
+# 4) Eyeball the diff.
+# p4 diff ...
+# Check the that resulting diff is sane.  For most changes it should
+# just consist of a new symbol being included (plus some Header related
+# junk).
+#
+# 5) Submit the change.
+# p4 submit ...
+#
 #
 # Design
 #
