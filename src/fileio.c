@@ -22,6 +22,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #if !defined (S_ISLNK) && defined (S_IFLNK)
 #  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
 #endif
