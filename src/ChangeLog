@@ -1,3 +1,8 @@
+2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_scrollbar_pos): Call x_sync so that the
+	GTK main loop is entered in xterm.c, thus doing the redraw.
+
 2005-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pos_visible_p): Fix X value in last line of buffer.
