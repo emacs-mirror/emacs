@@ -255,6 +255,7 @@ address, and postmaster of the mail relay used."
 	    ((eq uce-mail-reader 'rmail)
 	     (save-excursion
 	       (save-restriction
+		 (rmail-toggle-header 1)
 		 (widen)
 		 (rmail-maybe-set-message-counters)
 		 (copy-region-as-kill (rmail-msgbeg rmail-current-message) 
