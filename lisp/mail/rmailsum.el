@@ -570,17 +570,19 @@ If N is negative, go forwards instead."
 
 ;; Delete and undelete summary commands.
 
-(defun rmail-summary-delete-forward (&optional backward)
+(defun rmail-summary-delete-forward (&optional count)
   "Delete this message and move to next nondeleted one.
 Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-With prefix argument, delete and move backward."
-  (interactive "P")
-  (let (end)
-    (rmail-summary-goto-msg)
-    (pop-to-buffer rmail-buffer)
-    (rmail-delete-message)
-    (let ((del-msg rmail-current-message))
-      (pop-to-buffer rmail-summary-buffer)
+A prefix argument serves as a repeat count;
+a negative argument means to delete and move backward."
+  (interactive "p")
+  (let (end del-msg
+	    (backward (< count 0)))
+    (while (/= count 0)
+      (rmail-summary-goto-msg)
+      (with-current-buffer rmail-buffer
+	(rmail-delete-message)
+	(setq del-msg rmail-current-message))
       (rmail-summary-mark-deleted del-msg)
       (while (and (not (if backward (bobp) (eobp)))
 		  (save-excursion (beginning-of-line)
@@ -588,13 +590,17 @@ With prefix argument, delete and move backward."
 	(forward-line (if backward -1 1)))
       ;; It looks ugly to move to the empty line at end of buffer.
       (and (eobp) (not backward)
-	   (forward-line -1)))))
+	   (forward-line -1))
+      (setq count
+	    (if (> count 0) (1- count) (1+ count))))))
 
-(defun rmail-summary-delete-backward ()
+(defun rmail-summary-delete-backward (&optional count)
   "Delete this message and move to previous nondeleted one.
-Deleted messages stay in the file until the \\[rmail-expunge] command is given."
-  (interactive)
-  (rmail-summary-delete-forward t))
+Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+A prefix argument serves as a repeat count;
+a negative argument means to delete and move forward."
+  (interactive "p")
+  (rmail-summary-delete-forward (- count)))
 
 (defun rmail-summary-mark-deleted (&optional n undel)
   ;; Since third arg is t, this only alters the summary, not the Rmail buf.
