@@ -1,3 +1,20 @@
+2004-04-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi: Various changes in addition to:
+	(Buffer File Name): Add `find-buffer-visiting'.
+	(Buffer Modification): Mention optional ARG to `not-modified'.
+	(Indirect Buffers): Mention optional CLONE argument to
+	`make-indirect-buffer'.
+
+	* files.texi: Various changes in addition to:
+	(Visiting Functions): `find-file-hook' is now a normal hook.
+	(File Name Expansion): Explain difference between the way that
+	`expand-file-name' and `file-truename' treat `..'.
+	(Contents of Directories): Mention optional ID-FORMAT argument to
+	`directory-files-and-attributes'.
+	(Format Conversion): Mention new optional CONFIRM argument to
+	`format-write-file'.
+
 2004-04-12  Miles Bader  <miles@gnu.org>
 
 	* macros.texi (Expansion): Add description of `macroexpand-all'.
