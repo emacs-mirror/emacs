@@ -1890,8 +1890,6 @@ x_window (f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
-  x_calc_absolute_position (f);
-
   attributes.background_pixel = f->display.x->background_pixel;
   attributes.border_pixel = f->display.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
@@ -2082,7 +2080,7 @@ be shared by the new frame.")
 {
 #ifdef HAVE_X11
   struct frame *f;
-  Lisp_Object frame, tem, tem0, tem1;
+  Lisp_Object frame, tem;
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
@@ -2204,6 +2202,22 @@ be shared by the new frame.")
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
 
+  switch (((f->display.x->left_pos < 0) << 1) + (f->display.x->top_pos < 0))
+    {
+    case 0:
+      f->display.x->win_gravity = NorthWestGravity;
+      break;
+    case 1:
+      f->display.x->win_gravity = SouthWestGravity;
+      break;
+    case 2:
+      f->display.x->win_gravity = NorthEastGravity;
+      break;
+    case 3:
+      f->display.x->win_gravity = SouthEastGravity;
+      break;
+    }
+
 #ifdef USE_X_TOOLKIT
   x_window (f, window_prompting, minibuffer_only);
 #else
@@ -2235,10 +2249,8 @@ be shared by the new frame.")
 
 /* With the toolkit, the geometry management is done in x_window.  */
 #ifndef USE_X_TOOLKIT
-  tem0 = x_get_arg (parms, Qleft, 0, 0, number);
-  tem1 = x_get_arg (parms, Qtop, 0, 0, number);
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, window_prompting, 1, XINT (tem0), XINT (tem1));
+  x_wm_set_size_hint (f, window_prompting, 1);
   UNBLOCK_INPUT;
 #endif /* USE_X_TOOLKIT */
 
