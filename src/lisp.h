@@ -2691,7 +2691,7 @@ EXFUN (Ffile_directory_p, 1);
 EXFUN (Fwrite_region, 7);
 EXFUN (Ffile_readable_p, 1);
 EXFUN (Ffile_executable_p, 1);
-EXFUN (Fread_file_name, 5);
+EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((char *, Lisp_Object));
 extern int internal_delete_file P_ ((Lisp_Object));
