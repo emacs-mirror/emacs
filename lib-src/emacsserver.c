@@ -45,7 +45,7 @@ main ()
 
 #else /* HAVE_SOCKETS or HAVE_SYSVIPC */
 
-#if defined (HAVE_SOCKETS)
+#if defined (HAVE_SOCKETS) && ! defined (NO_SOCKETS_IN_FILE_SYSTEM)
 /* BSD code is very different from SYSV IPC code */
 
 #include <sys/types.h>
