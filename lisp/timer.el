@@ -29,17 +29,18 @@
 ;;; Code:
 
 ;; Layout of a timer vector:
-;; [triggered-p high-seconds low-seconds usecs delta-secs function args]
+;; [triggered-p high-seconds low-seconds usecs repeat-delay
+;;  function args idle-delay]
 
 (defun timer-create ()
   "Create a timer object."
-  (let ((timer (make-vector 7 nil)))
+  (let ((timer (make-vector 8 nil)))
     (aset timer 0 t)
     timer))
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
-  (and (vectorp object) (= (length object) 7)))
+  (and (vectorp object) (= (length object) 8)))
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
@@ -132,6 +133,35 @@ fire repeatedly that menu seconds apart."
 	    (setcdr last (cons timer timers))
 	  (setq timer-list (cons timer timers)))
 	(aset timer 0 nil)
+	(aset timer 7 nil)
+	nil)
+    (error "Invalid or uninitialized timer")))
+
+(defun timer-activate-when-idle (timer)
+  "Arrange to activate TIMER whenever Emacs is next idle."
+  (if (and (timerp timer)
+	   (integerp (aref timer 1))
+	   (integerp (aref timer 2))
+	   (integerp (aref timer 3))
+	   (aref timer 5))
+      (let ((timers timer-idle-list)
+	    last)
+	;; Skip all timers to trigger before the new one.
+	(while (and timers
+		    (or (> (aref timer 1) (aref (car timers) 1))
+			(and (= (aref timer 1) (aref (car timers) 1))
+			     (> (aref timer 2) (aref (car timers) 2)))
+			(and (= (aref timer 1) (aref (car timers) 1))
+			     (= (aref timer 2) (aref (car timers) 2))
+			     (> (aref timer 3) (aref (car timers) 3)))))
+	  (setq last timers
+		timers (cdr timers)))
+	;; Insert new timer after last which possibly means in front of queue.
+	(if last
+	    (setcdr last (cons timer timers))
+	  (setq timer-idle-list (cons timer timers)))
+	(aset timer 0 t)
+	(aset timer 7 t)
 	nil)
     (error "Invalid or uninitialized timer")))
 
@@ -141,6 +171,7 @@ fire repeatedly that menu seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
   (setq timer-list (delq timer timer-list))
+  (setq timer-idle-list (delq timer timer-idle-list))
   nil)
 
 (defun cancel-function-timers (function)
@@ -150,6 +181,11 @@ fire repeatedly that menu seconds apart."
     (while tail
       (if (eq (aref (car tail) 5) function)
           (setq timer-list (delq (car tail) timer-list)))
+      (setq tail (cdr tail))))
+  (let ((tail timer-idle-list))
+    (while tail
+      (if (eq (aref (car tail) 5) function)
+          (setq timer-idle-list (delq (car tail) timer-idle-list)))
       (setq tail (cdr tail)))))
 
 ;; Set up the common handler for all timer events.  Since the event has
@@ -169,7 +205,8 @@ fire repeatedly that menu seconds apart."
 	  (apply (aref timer 5) (aref timer 6))
 	  ;; Re-schedule if requested.
 	  (if (aref timer 4)
-	      (progn
+	      (if (aref timer 7)
+		  (timer-activate-when-idle timer)
 		(timer-inc-time timer (aref timer 4) 0)
 		(timer-activate timer))))
       (error "Bogus timer event"))))
@@ -245,6 +282,27 @@ This function returns a timer object which you can use in `cancel-timer'."
     (timer-inc-time timer secs)
     (timer-set-function timer function args)
     (timer-activate timer)
+    timer))
+
+;;;###autoload
+(defun run-with-idle-timer (secs repeat function &rest args)
+  "Perform an action the next time Emacs is idle for SECS seconds.
+The action is to call FUNCTION with arguments ARGS.
+If REPEAT is non-nil, do this each time Emacs is idle for SECS seconds.
+SECS may be an integer or a floating point number.
+
+This function returns a timer object which you can use in `cancel-timer'."
+  (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
+
+  (let ((timer (timer-create)))
+    (timer-set-function timer function args)
+    ;; Store 0 into the time fields, then add in SECS.
+    (aset timer 1 0)
+    (aset timer 2 0)
+    (aset timer 3 0)
+    (timer-inc-time timer secs)
+    (aset timer 4 repeat)
+    (timer-activate-when-idle timer)
     timer))
 
 ;;;###autoload
