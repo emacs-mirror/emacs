@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993,94,1995,2000,01,02,2003  Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -882,22 +882,9 @@ PROPS are additional properties."
 (define-key menu-bar-options-menu [edit-options-separator]
   '("--"))
 (define-key menu-bar-options-menu [cua-mode]
-  '(menu-item "CUA-style cut and paste"
-	      menu-bar-toggle-cua-mode
-	      :help "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
-	      :button (:toggle . cua-mode)))
-
-(defun menu-bar-toggle-cua-mode ()
-  "Toggle CUA key-binding mode.
-When enabled, using shifted movement keys will activate the region (and
-highlight the region using `transient-mark-mode'), and typed text replaces
-the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
-paste (in addition to the normal Emacs bindings)."
-  (interactive)
-  (cua-mode nil)
-  (customize-mark-as-set 'cua-mode)
-  (message "CUA-style cut and paste %s"
-	   (if cua-mode "enabled" "disabled")))
+  (menu-bar-make-mm-toggle cua-mode
+			   "CUA-style cut and paste"
+			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
