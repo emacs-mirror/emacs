@@ -352,11 +352,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   else
     {
 #ifndef MSDOS
-#ifdef WINDOWSNT
-      pipe_with_inherited_out (fd);
-#else  /* not WINDOWSNT */
       pipe (fd);
-#endif /* not WINDOWSNT */
 #endif
 #if 0
       /* Replaced by close_process_descs */
@@ -631,7 +627,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       tempfile = alloca (20);
       *tempfile = '\0';
     }
-  dostounix_filename (tempfile);
   if (!IS_DIRECTORY_SEP (tempfile[strlen (tempfile) - 1]))
     strcat (tempfile, "/");
 #ifdef WINDOWSNT
@@ -639,6 +634,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #else
   strcat (tempfile, "detmp.XXX");
 #endif
+  if ('/' == DIRECTORY_SEP)
+    dostounix_filename (tempfile);
+  else
+    unixtodos_filename (tempfile);
 #else /* not DOS_NT */
 
 #ifdef VMS
@@ -708,7 +707,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   char *pwd_var;
 #ifdef WINDOWSNT
   int cpid;
-  HANDLE handles[4];
+  HANDLE handles[3];
 #endif /* WINDOWSNT */
 
   int pid = getpid ();
