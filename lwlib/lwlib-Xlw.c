@@ -77,10 +77,15 @@ xlw_create_menubar (instance)
      widget_instance* instance;
 {
   Widget widget;
-  Arg al[1];
+  Arg al[5];
   int ac = 0;
 
   XtSetArg (al[ac], XtNmenu, instance->info->val); ac++;
+#ifdef emacs
+  XtSetArg (al[ac], XtNshowGrip, 0); ac++;
+  XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
+  XtSetArg (al[ac], XtNallowResize, 1); ac++;
+#endif
 
   /* This used to use XtVaCreateWidget, but an old Xt version
      has a bug in XtVaCreateWidget that frees instance->info->name.  */

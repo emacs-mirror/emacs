@@ -25,6 +25,12 @@
 #define XtCHorizontal "Horizontal"
 #define XtNcursor "cursor"
 #define XtNCursor "Cursor"
+#define XtNshowGrip "showGrip"
+#define XtCShowGrip "ShowGrip"
+#define XtNresizeToPreferred "resizeToPreferred"
+#define XtCResizeToPreferred "ResizeToPreferred"
+#define XtNallowResize "allowResize"
+#define XtCAllowResize "AllowResize"
 
 /* Motif-compatible resource names */
 #define XmNshadowThickness	"shadowThickness"
@@ -45,6 +51,6 @@ typedef struct _XlwMenuClassRec *XlwMenuWidgetClass;
 extern WidgetClass xlwMenuWidgetClass;
 
 void
-pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent* event);
+pop_up_menu ();
 
 #endif /* _XlwMenu_h */
