@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lifia.imag.fr>
 ;; Adapted-By: ESR
@@ -24,12 +24,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-
-;; Gomoku game between you and GNU Emacs.  Last modified on 13 Sep 1988
-;;
-;; Written by Ph. Schnoebelen (phs@lifia.imag.fr), 1987, 1988
-;; with precious advices from J.-F. Rit.
-;; This has been tested with GNU Emacs 18.50.
 
 ;; RULES:
 ;;
@@ -84,38 +78,75 @@
 (if gomoku-mode-map nil
   (setq gomoku-mode-map (make-sparse-keymap))
 
-  ;; Key bindings for cursor motion. Arrow keys are just "function"
-  ;; keys, see below.
-  (define-key gomoku-mode-map "y" 'gomoku-move-nw)		; Y
-  (define-key gomoku-mode-map "u" 'gomoku-move-ne)		; U
-  (define-key gomoku-mode-map "b" 'gomoku-move-sw)		; B
-  (define-key gomoku-mode-map "n" 'gomoku-move-se)		; N
-  (define-key gomoku-mode-map "h" 'gomoku-move-left)		; H
-  (define-key gomoku-mode-map "l" 'gomoku-move-right)		; L
-  (define-key gomoku-mode-map "j" 'gomoku-move-down)		; J
-  (define-key gomoku-mode-map "k" 'gomoku-move-up)		; K
-  (define-key gomoku-mode-map "\C-n" 'gomoku-move-down)		; C-N
-  (define-key gomoku-mode-map "\C-p" 'gomoku-move-up)		; C-P
-  (define-key gomoku-mode-map "\C-f" 'gomoku-move-right)	; C-F
-  (define-key gomoku-mode-map "\C-b" 'gomoku-move-left)		; C-B
+  ;; Key bindings for cursor motion.
+  (define-key gomoku-mode-map "y" 'gomoku-move-nw)		; y
+  (define-key gomoku-mode-map "u" 'gomoku-move-ne)		; u
+  (define-key gomoku-mode-map "b" 'gomoku-move-sw)		; b
+  (define-key gomoku-mode-map "n" 'gomoku-move-se)		; n
+  (define-key gomoku-mode-map "h" 'backward-char)		; h
+  (define-key gomoku-mode-map "l" 'forward-char)		; l
+  (define-key gomoku-mode-map "j" 'gomoku-move-down)		; j
+  (define-key gomoku-mode-map "k" 'gomoku-move-up)		; k
+
+  (define-key gomoku-mode-map [kp-7] 'gomoku-move-nw)
+  (define-key gomoku-mode-map [kp-9] 'gomoku-move-ne)
+  (define-key gomoku-mode-map [kp-1] 'gomoku-move-sw)
+  (define-key gomoku-mode-map [kp-3] 'gomoku-move-se)
+  (define-key gomoku-mode-map [kp-4] 'backward-char)
+  (define-key gomoku-mode-map [kp-6] 'forward-char)
+  (define-key gomoku-mode-map [kp-2] 'gomoku-move-down)
+  (define-key gomoku-mode-map [kp-8] 'gomoku-move-up)
+
+  (define-key gomoku-mode-map "\C-n" 'gomoku-move-down)		; C-n
+  (define-key gomoku-mode-map "\C-p" 'gomoku-move-up)		; C-p
 
   ;; Key bindings for entering Human moves.
   ;; If you have a mouse, you may also bind some mouse click ...
   (define-key gomoku-mode-map "X" 'gomoku-human-plays)		; X
   (define-key gomoku-mode-map "x" 'gomoku-human-plays)		; x
+  (define-key gomoku-mode-map " " 'gomoku-human-plays)		; RET
   (define-key gomoku-mode-map "\C-m" 'gomoku-human-plays)	; RET
-  (define-key gomoku-mode-map "\C-c\C-p" 'gomoku-human-plays)	; C-C C-P
-  (define-key gomoku-mode-map "\C-c\C-b" 'gomoku-human-takes-back) ; C-C C-B
-  (define-key gomoku-mode-map "\C-c\C-r" 'gomoku-human-resigns)	; C-C C-R
-  (define-key gomoku-mode-map "\C-c\C-e" 'gomoku-emacs-plays)	; C-C C-E
+  (define-key gomoku-mode-map "\C-c\C-p" 'gomoku-human-plays)	; C-c C-p
+  (define-key gomoku-mode-map "\C-c\C-b" 'gomoku-human-takes-back) ; C-c C-b
+  (define-key gomoku-mode-map "\C-c\C-r" 'gomoku-human-resigns)	; C-c C-r
+  (define-key gomoku-mode-map "\C-c\C-e" 'gomoku-emacs-plays)	; C-c C-e
 
-  (define-key gomoku-mode-map [up] 'gomoku-move-up)
-  (define-key gomoku-mode-map [down] 'gomoku-move-down)
-  (define-key gomoku-mode-map [left] 'gomoku-move-left)
-  (define-key gomoku-mode-map [right] 'gomoku-move-right)
   (define-key gomoku-mode-map [kp-enter] 'gomoku-human-plays)
   (define-key gomoku-mode-map [mouse-2] 'gomoku-click)
-  (define-key gomoku-mode-map [insert] 'gomoku-human-plays))
+  (define-key gomoku-mode-map [insert] 'gomoku-human-plays)
+
+  (substitute-key-definition 'previous-line 'gomoku-move-up
+			     gomoku-mode-map (current-global-map))
+  (substitute-key-definition 'next-line 'gomoku-move-down
+			     gomoku-mode-map (current-global-map))
+  (substitute-key-definition 'undo 'gomoku-human-takes-back
+			     gomoku-mode-map (current-global-map))
+  (substitute-key-definition 'advertised-undo 'gomoku-human-takes-back
+			     gomoku-mode-map (current-global-map)))
+
+(defvar gomoku-emacs-won ()
+  "*For making font-lock use the winner's face for the line.")
+
+(defvar gomoku-font-lock-O-face
+  (if window-system
+      (list (facemenu-get-face 'fg:red) 'bold))
+  "*Face to use for Emacs' O.")
+
+(defvar gomoku-font-lock-X-face
+  (if window-system
+      (list (facemenu-get-face 'fg:green) 'bold))
+  "*Face to use for your X.")
+
+(defvar gomoku-font-lock-keywords
+  '(("O" . gomoku-font-lock-O-face)
+    ("X" . gomoku-font-lock-X-face)
+    ("[-|/\\]" 0 (if gomoku-emacs-won
+		     gomoku-font-lock-O-face
+		   gomoku-font-lock-X-face)))
+  "*Font lock rules for Gomoku.")
+
+(put 'gomoku-mode 'front-sticky
+     (put 'gomoku-mode 'rear-nonsticky '(intangible)))
 
 (defun gomoku-mode ()
   "Major mode for playing Gomoku against Emacs.
@@ -128,12 +159,15 @@ You play by moving the cursor over the square you choose and hitting \\[gomoku-h
 Other useful commands:
 \\{gomoku-mode-map}
 Entry to this mode calls the value of `gomoku-mode-hook' if that value
-is non-nil."
+is non-nil.  One interesting value is `turn-on-font-lock'."
   (interactive)
   (setq major-mode 'gomoku-mode
 	mode-name "Gomoku")
   (gomoku-display-statistics)
   (use-local-map gomoku-mode-map)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(gomoku-font-lock-keywords t))
+  (toggle-read-only t)
   (run-hooks 'gomoku-mode-hook))
 
 ;;;
@@ -531,7 +565,8 @@ that DVAL has been added on SQUARE."
 	gomoku-board-height  m
 	gomoku-vector-length (1+ (* (+ m 2) (1+ n)))
 	gomoku-draw-limit    (/ (* 7 n m) 10))
-  (setq gomoku-game-history	     nil
+  (setq gomoku-emacs-won	     nil
+	gomoku-game-history	     nil
 	gomoku-number-of-moves	     0
 	gomoku-number-of-human-moves 0
 	gomoku-emacs-played-first    nil
@@ -650,7 +685,7 @@ that DVAL has been added on SQUARE."
 
     (gomoku-display-statistics)
     (if message (message message))
-    (ding)
+    ;;(ding)
     (setq gomoku-game-in-progress nil)))
 
 (defun gomoku-crash-game ()
@@ -728,6 +763,7 @@ Use \\[describe-mode] for more info."
 	     (gomoku-play-move square 6)
 	     (cond ((>= score gomoku-winning-threshold)
 		    (gomoku-find-filled-qtuple square 6)
+		    (setq gomoku-emacs-won t) ; for font-lock
 		    (gomoku-cross-winning-qtuple)
 		    (gomoku-terminate-game 'emacs-won))
 		   ((zerop score)
@@ -918,41 +954,44 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-put-char (char)
   "Draw CHAR on the Gomoku screen."
-  (let ((inhibit-read-only t))
-    (insert char)
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
+    (insert-and-inherit char)
+    (and window-system
+	 (eq char ?.)
+	 (put-text-property (1- (point)) (point) 'mouse-face 'highlight))
     (delete-char 1)
     (backward-char 1)))
 
 (defun gomoku-init-display (n m)
   "Display an N by M Gomoku board."
   (buffer-disable-undo (current-buffer))
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+	(string1 (make-string gomoku-x-offset ? ))
+	(string2 (make-string (1- gomoku-square-width) ? ))
+	(point 1)
+	(i m) j)
     (erase-buffer)
-    (let (string1 string2 string3 string4)
-      ;; We do not use gomoku-plot-square which would be too slow for
-      ;; initializing the display. Rather we build STRING1 for lines where
-      ;; board squares are to be found, and STRING2 for empty lines. STRING1 is
-      ;; like STRING2 except for dots every DX squares. Empty lines are filled
-      ;; with spaces so that cursor moving up and down remains on the same
-      ;; column.
-      (setq string1 (concat (make-string (1- gomoku-square-width) ? ) ".")
-	    string1 (apply 'concat
-			   (make-list (1- n) string1))
-	    string1 (concat (make-string gomoku-x-offset ? ) "." string1 "\n")
-	    string2 (make-string (+ 1 gomoku-x-offset
-				    (* (1- n) gomoku-square-width))
-				 ? )
-	    string2 (concat string2 "\n")
-	    string3 (apply 'concat
-			   (make-list (1- gomoku-square-height) string2))
-	    string3 (concat string3 string1)
-	    string3 (apply 'concat
-			   (make-list (1- m) string3))
-	    string4 (apply 'concat
-			   (make-list gomoku-y-offset string2)))
-      (insert string4 string1 string3))
-    (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
-    (sit-for 0)))			; Display NOW
+    ;; We do not use gomoku-plot-square which would be too slow for
+    ;; initializing the display.
+    (newline gomoku-y-offset)
+    (while (progn
+	     (indent-to gomoku-x-offset)
+	     (setq j n)
+	     (while (progn
+		      (put-text-property point (point) 'category 'gomoku-mode)
+		      (put-text-property point (point) 'intangible (point))
+		      (setq point (point))
+		      (insert ?.)
+		      (if window-system
+			  (put-text-property point (point)
+					     'mouse-face 'highlight))
+		      (> (setq j (1- j)) 0))
+	       (insert string2))
+	     (> (setq i (1- i)) 0))
+      (insert-char ?\n gomoku-square-height))
+    (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)))	; center of the board
+  (sit-for 0))				; Display NOW
 
 (defun gomoku-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
@@ -1042,53 +1081,42 @@ If the game is finished, this command requests for another game."
 (defun gomoku-cross-qtuple (square1 square2 dx dy)
   "Cross every square between SQUARE1 and SQUARE2 in the DX, DY direction."
   (save-excursion			; Not moving point from last square
-    (let ((depl (gomoku-xy-to-index dx dy)))
+    (let ((depl (gomoku-xy-to-index dx dy))
+	  (inhibit-read-only t)
+	  (inhibit-point-motion-hooks t))
       ;; WARNING: this function assumes DEPL > 0 and SQUARE2 > SQUARE1
-      (while (not (= square1 square2))
+      (while (/= square1 square2)
 	(gomoku-goto-square square1)
 	(setq square1 (+ square1 depl))
 	(cond
-	  ((and (= dx 1) (= dy 0))	; Horizontal
-	   (let ((n 1))
-	     (while (< n gomoku-square-width)
-	       (setq n (1+ n))
-	       (forward-char 1)
-	       (gomoku-put-char ?-))))
-	  ((and (= dx 0) (= dy 1))	; Vertical
-	   (let ((n 1))
+	  ((= dy 0)			; Horizontal
+	   (forward-char 1)
+	   (insert-char ?- (1- gomoku-square-width) t)
+	   (delete-char (1- gomoku-square-width)))
+	  ((= dx 0)			; Vertical
+	   (let ((n 1)
+		 (column (current-column)))
 	     (while (< n gomoku-square-height)
 	       (setq n (1+ n))
-	       (next-line 1)
-	       (gomoku-put-char ?|))))
-	  ((and (= dx -1) (= dy 1))	; 1st Diagonal
+	       (forward-line 1)
+	       (indent-to column)
+	       (insert-and-inherit ?|))))
+	  ((= dx -1)			; 1st Diagonal
 	   (backward-char (/ gomoku-square-width 2))
-	   (next-line (/ gomoku-square-height 2))
-	   (gomoku-put-char ?/))
-	  ((and (= dx 1) (= dy 1))	; 2nd Diagonal
+	   (indent-to (prog1 (current-column)
+			(forward-line (/ gomoku-square-height 2))))
+	   (insert-and-inherit ?/))
+	  (t				; 2nd Diagonal
 	   (forward-char (/ gomoku-square-width 2))
-	   (next-line (/ gomoku-square-height 2))
-	   (gomoku-put-char ?\\))))))
+	   (indent-to (prog1 (current-column)
+			(forward-line (/ gomoku-square-height 2))))
+	   (insert-and-inherit ?\\))))))
   (sit-for 0))				; Display NOW
 
 ;;;
 ;;; CURSOR MOTION.
 ;;;
-(defun gomoku-move-left ()
-  "Move point backward one column on the Gomoku board."
-  (interactive)
-  (let ((x (gomoku-point-x)))
-    (backward-char (cond ((null x) 1)
-			 ((> x 1) gomoku-square-width)
-			 (t 0)))))
-
-(defun gomoku-move-right ()
-  "Move point forward one column on the Gomoku board."
-  (interactive)
-  (let ((x (gomoku-point-x)))
-    (forward-char (cond ((null x) 1)
-			((< x gomoku-board-width) gomoku-square-width)
-			(t 0)))))
-
+;; previous-line and next-line don't work right with intangible newlines
 (defun gomoku-move-down ()
   "Move point down one row on the Gomoku board."
   (interactive)
@@ -1109,25 +1137,25 @@ If the game is finished, this command requests for another game."
   "Move point North East on the Gomoku board."
   (interactive)
   (gomoku-move-up)
-  (gomoku-move-right))
+  (forward-char))
 
 (defun gomoku-move-se ()
   "Move point South East on the Gomoku board."
   (interactive)
   (gomoku-move-down)
-  (gomoku-move-right))
+  (forward-char))
 
 (defun gomoku-move-nw ()
   "Move point North West on the Gomoku board."
   (interactive)
   (gomoku-move-up)
-  (gomoku-move-left))
+  (backward-char))
 
 (defun gomoku-move-sw ()
   "Move point South West on the Gomoku board."
   (interactive)
   (gomoku-move-down)
-  (gomoku-move-left))
+  (backward-char))
 
 (provide 'gomoku)
 
