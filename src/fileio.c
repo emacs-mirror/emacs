@@ -623,6 +623,11 @@ See also the function `substitute-in-file-name'.")
   if (!NILP (handler))
     return call3 (handler, Qexpand_file_name, name, defalt);
 
+  /* Use the buffer's default-directory if DEFALT is omitted.  */
+  if (NILP (defalt))
+    defalt = current_buffer->directory;
+  CHECK_STRING (defalt, 1);
+
   /* Make sure DEFALT is properly expanded.
      It would be better to do this down below where we actually use
      defalt.  Unfortunately, calling Fexpand_file_name recursively
@@ -630,8 +635,12 @@ See also the function `substitute-in-file-name'.")
      be annoying because we have pointers into strings lying around
      that would need adjusting, and people would add new pointers to
      the code and forget to adjust them, resulting in intermittent bugs.
-     Putting this call here avoids all that crud.  */
-  if (! NILP (defalt)) 
+     Putting this call here avoids all that crud.
+
+     The EQ test avoids infinite recursion.  */
+  if (! NILP (defalt) && !EQ (defalt, name)
+      /* This saves time in a common case.  */
+      && XSTRING (defalt)->data[0] != '/')
     {
       struct gcpro gcpro1;
 
@@ -831,9 +840,6 @@ See also the function `substitute-in-file-name'.")
 #endif /* not VMS */
       && !newdir)
     {
-      if (NILP (defalt))
-	defalt = current_buffer->directory;
-      CHECK_STRING (defalt, 1);
       newdir = XSTRING (defalt)->data;
     }
 
@@ -2486,7 +2492,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
   Lisp_Object handler;
-  Lisp_Object visit_file = XTYPE (visit) == Lisp_String ? visit : filename;
+  Lisp_Object visit_file;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   /* Special kludge to simplify auto-saving */
@@ -2498,8 +2504,13 @@ to the file, instead of any buffer contents, and END is ignored.")
   else if (XTYPE (start) != Lisp_String)
     validate_region (&start, &end);
 
-  GCPRO4 (start, filename, visit, visit_file);
   filename = Fexpand_file_name (filename, Qnil);
+  if (XTYPE (visit) == Lisp_String)
+    visit = Fexpand_file_name (visit, Qnil);
+  else
+    visit_file = filename;
+
+  GCPRO4 (start, filename, visit, visit_file);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
