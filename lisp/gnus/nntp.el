@@ -151,7 +151,10 @@ server there that you can connect to.  See also `nntp-open-connection-function'"
 
 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
 (defvoo nntp-coding-system-for-read nil
-  "*coding-system for read from NNTP.")
+  "*Coding system to read from NNTP.")
+
+(defvoo nntp-coding-system-for-write nil
+  "*Coding system to write to NNTP.")
 
 
 
@@ -750,7 +753,8 @@ This function is supposed to be called from `nntp-server-opened-hook'."
 	 (process
 	  (condition-case ()
 	      ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
-	      (let ((coding-system-for-read nntp-coding-system-for-read))
+	      (let ((coding-system-for-read nntp-coding-system-for-read)
+		    (coding-system-for-write nntp-coding-system-for-write))
 		(funcall nntp-open-connection-function pbuffer))
 	    (error nil)
 	    (quit nil))))
