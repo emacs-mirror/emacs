@@ -31,6 +31,9 @@ Boston, MA 02111-1307, USA.  */
 #include "atimer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
+#include "keyboard.h"
+#include "charset.h"
+#include "coding.h"
 #include <gdk/gdkkeysyms.h>
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
@@ -498,8 +501,8 @@ xg_create_frame_widgets (f)
   gtk_widget_set_name (wfixed, SDATA (Vx_resource_name));
 
   /* If this frame has a title or name, set it in the title bar.  */
-  if (! NILP (f->title)) title = SDATA (f->title);
-  else if (! NILP (f->name)) title = SDATA (f->name);
+  if (! NILP (f->title)) title = SDATA (ENCODE_UTF_8 (f->title));
+  else if (! NILP (f->name)) title = SDATA (ENCODE_UTF_8 (f->name));
 
   if (title) gtk_window_set_title (GTK_WINDOW (wtop), title);
 
