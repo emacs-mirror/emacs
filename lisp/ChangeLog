@@ -1,3 +1,8 @@
+2000-01-22  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32_create_initial_fontsets): Disabled as it
+	conflicts with new face support.
+
 2000-01-22  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* replace.el (query-replace): Rename last arg to DELIMITED.
