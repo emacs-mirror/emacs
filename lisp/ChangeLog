@@ -12,6 +12,14 @@
 
 2005-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/refill.el (refill-post-command-function):
+	Add `indent-new-comment-line' and `reindent-then-newline-and-indent'
+	to the list of functions that we should be careful not to undo.
+	(refill-late-fill-paragraph-function): Remove.
+	(refill-saved-state): New var.
+	(refill-mode): Use it to save fill-paragraph-function.
+	Save also the value of auto-fill-function.
+
 	* term/w32-win.el: Simplify code.
 
 2005-01-23  Kim F. Storm  <storm@cua.dk>
