@@ -353,6 +353,17 @@ Note that the match is done at the beginning of lines.
 Each elt has the form (REGEXP). This alist is by default empty, but if
 you have some good regexps here, the parsing of messages will be faster.")
 
+(defcustom compilation-error-screen-columns t
+  "*If non-nil, column numbers in error messages are screen columns.
+Otherwise they are interpreted as character positions, with
+each character occupying one column.
+The default is to use screen columns, which requires that the compilation
+program and Emacs agree about the display width of the characters,
+especially the TAB character."
+  :type 'boolean
+  :group 'compilation
+  :version "20.4")
+
 (defcustom compilation-read-command t
   "*If not nil, M-x compile reads the compilation command to use.
 Otherwise, M-x compile just uses the value of `compile-command'."
@@ -1497,7 +1508,9 @@ The current buffer should be the desired compilation output buffer."
 			      (goto-line last-line)
 			      (if (and column (> column 0))
 				  ;; Columns in error msgs are 1-origin.
-				  (forward-char (1- column))
+				  (if compilation-error-screen-columns
+				      (move-to-column (1- column))
+				    (forward-char (1- column)))
 				(beginning-of-line))
 			      (setcdr next-error (point-marker))
 			      ;; Make all the other error messages referring
@@ -1521,7 +1534,9 @@ The current buffer should be the desired compilation output buffer."
 								lines))
 					 (forward-line lines))
 				       (if (and column (> column 1))
-					   (forward-char (1- column))
+					   (if compilation-error-screen-columns
+					       (move-to-column (1- column))
+					     (forward-char (1- column)))
 					 (beginning-of-line))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
