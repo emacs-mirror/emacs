@@ -164,7 +164,7 @@ is governed by the variable `number-of-diary-entries'."
 ;;;###autoload
 (defcustom number-of-diary-entries 1
   "*Specifies how many days of diary entries are to be displayed initially.
-This variable affects the diary display when the command M-x diary is used,
+This variable affects the diary display when the command \\[diary] is used,
 or if the value of the variable `view-diary-entries-initially' is t.  For
 example, if the default value 1 is used, then only the current day's diary
 entries will be displayed.  If the value 2 is used, then both the current
@@ -489,7 +489,7 @@ See the documentation for the function `include-other-diary-files'."
 
 ;;;###autoload
 (defcustom sexp-diary-entry-symbol "%%"
-  "*The string used to indicate a sexp diary entry in diary-file.
+  "*The string used to indicate a sexp diary entry in `diary-file'.
 See the documentation for the function `list-sexp-diary-entries'."
   :type 'string
   :group 'diary)
@@ -742,7 +742,7 @@ describes the style of such diary entries."
   "*List of functions called after marking diary entries in the calendar.
 
 A function `mark-included-diary-files' is also provided for use as the
-mark-diary-entries-hook; it enables you to use shared diary files together
+`mark-diary-entries-hook'; it enables you to use shared diary files together
 with your own.  The files included are specified in the diary file by lines
 of the form
         #include \"filename\"
@@ -1036,7 +1036,7 @@ See the documentation for `calendar-holidays' for details."
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
           oriental-holidays solar-holidays)
-  "*List of notable days for the command M-x holidays.
+  "*List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the list
 `other-holidays' in your .emacs file.  Similarly, by setting any of
@@ -1055,7 +1055,7 @@ Several basic functions are provided for this purpose:
     (holiday-float MONTH DAYNAME K STRING &optional day) is the Kth DAYNAME in
                                MONTH on the Gregorian calendar (0 for Sunday,
                                etc.); K<0 means count back from the end of the
-                               month. An optional parameter DAY means the Kth
+                               month.  An optional parameter DAY means the Kth
                                DAYNAME after/before MONTH DAY.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
@@ -1205,7 +1205,7 @@ Forward if N is positive or backward if N is negative."
   (car (cdr (cdr date))))
 
 (defsubst calendar-leap-year-p (year)
-  "Returns t if YEAR is a Gregorian leap year."
+  "Return t if YEAR is a Gregorian leap year."
   (and (zerop (% year 4))
        (or (not (zerop (% year 100)))
            (zerop (% year 400)))))
@@ -1395,7 +1395,7 @@ necessary to display the desired date.
 
 Diary entries can be marked on the calendar or displayed in another window.
 
-Use M-x describe-mode for details of the key bindings in the calendar window.
+Use \\[describe-mode] for details of the key bindings in the calendar window.
 
 The Gregorian calendar is assumed.
 
@@ -2191,12 +2191,12 @@ the STRINGS are just concatenated and the result truncated."
             (bury-buffer))))))
 
 (defun calendar-current-date ()
-  "Returns the current date in a list (month day year)."
+  "Return the current date in a list (month day year)."
   (let ((now (decode-time)))
     (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
 (defun calendar-cursor-to-date (&optional error)
-  "Returns a list (month day year) of current cursor position.
+  "Return a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
   (let* ((segment (/ (current-column) 25))
@@ -2350,10 +2350,10 @@ is a string to insert in the minibuffer before reading."
     value))
 
 (defun calendar-read-date (&optional noday)
-  "Prompt for Gregorian date.  Returns a list (month day year).
+  "Prompt for Gregorian date.  Return a list (month day year).
 If optional NODAY is t, does not ask for day, but just returns
 \(month nil year); if NODAY is any other non-nil value the value returned is
-\(month year) "
+\(month year)"
   (let* ((year (calendar-read
                 "Year (>0): "
                 (lambda (x) (> x 0))
@@ -2383,7 +2383,7 @@ If optional NODAY is t, does not ask for day, but just returns
      (- mon2 mon1)))
 
 (defun calendar-day-name (date &optional width absolute)
-  "Returns a string with the name of the day of the week of DATE.
+  "Return a string with the name of the day of the week of DATE.
 If WIDTH is non-nil, return just the first WIDTH characters of the name.
 If ABSOLUTE is non-nil, then DATE is actually the day-of-the-week
 rather than a date."
@@ -2408,7 +2408,7 @@ Start at index 1, unless optional START-INDEX is provided.
 If FILTER is provided, apply it to each item in the list."
   (let ((index (if start-index (1- start-index) 0)))
     (mapcar
-     '(lambda (x)
+     (lambda (x)
         (setq index (1+ index))
         (cons (if filter (funcall filter x) x)
               index))
@@ -2429,7 +2429,7 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
       string)))
 
 (defun calendar-day-of-week (date)
-  "Returns the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
+  "Return the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
   (% (calendar-absolute-from-gregorian date) 7))
 
 (defun calendar-unmark ()
@@ -2440,14 +2440,14 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
   (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
-  "Returns t if DATE is legal and is visible in the calendar window."
+  "Return t if DATE is legal and is visible in the calendar window."
   (let ((gap (calendar-interval
               displayed-month displayed-year
               (extract-calendar-month date) (extract-calendar-year date))))
     (and (calendar-date-is-legal-p date) (> 2 gap) (< -2 gap))))
 
 (defun calendar-date-is-legal-p (date)
-  "Returns t if DATE is a legal date."
+  "Return t if DATE is a legal date."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
@@ -2456,7 +2456,7 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
          (<= 1 year))))
 
 (defun calendar-date-equal (date1 date2)
-  "Returns t if the DATE1 and DATE2 are the same."
+  "Return t if the DATE1 and DATE2 are the same."
   (and
    (= (extract-calendar-month date1) (extract-calendar-month date2))
    (= (extract-calendar-day date1) (extract-calendar-day date2))
@@ -2482,10 +2482,10 @@ MARK defaults to diary-entry-marker."
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
-This function can be used with the today-visible-calendar-hook run after the
+This function can be used with the `today-visible-calendar-hook' run after the
 calendar window has been prepared."
-  (let ((buffer-read-only nil))
-    (make-variable-buffer-local 'calendar-starred-day)
+  (let ((inhibit-read-only t))
+    (make-local-variable 'calendar-starred-day)
     (forward-char 1)
     (setq calendar-starred-day
           (string-to-int
@@ -2498,14 +2498,14 @@ calendar window has been prepared."
 (defun calendar-mark-today ()
   "Mark the date under the cursor in the calendar window.
 The date is marked with calendar-today-marker.  This function can be used with
-the today-visible-calendar-hook run after the calendar window has been
+the `today-visible-calendar-hook' run after the calendar window has been
 prepared."
   (mark-visible-calendar-date
    (calendar-cursor-to-date)
    calendar-today-marker))
 
 (defun calendar-date-compare (date1 date2)
-  "Returns t if DATE1 is before DATE2, nil otherwise.
+  "Return t if DATE1 is before DATE2, nil otherwise.
 The actual dates are in the car of DATE1 and DATE2."
   (< (calendar-absolute-from-gregorian (car date1))
      (calendar-absolute-from-gregorian (car date2))))
@@ -2532,7 +2532,7 @@ omits the name of the day of the week."
     (mapconcat 'eval calendar-date-display-form "")))
 
 (defun calendar-dayname-on-or-before (dayname date)
-  "Returns the absolute date of the DAYNAME on or before absolute DATE.
+  "Return the absolute date of the DAYNAME on or before absolute DATE.
 DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
 
 Note: Applying this function to d+6 gives us the DAYNAME on or after an
