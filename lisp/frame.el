@@ -678,34 +678,6 @@ that is beyond the control of Emacs and this command has no effect on it."
 		-1 1)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
-
-(defcustom scroll-bar-side 'left
-  "*Specify which side scroll bars should be on.  Value is `left' or `right'."
-  :type '(choice (const left)
-		 (const right))
-  :group 'frames)
-
-(defun toggle-scroll-bar (arg)
-  "Toggle whether or not the selected frame has vertical scroll bars.
-With arg, turn vertical scroll bars on if and only if arg is positive."
-  (interactive "P")
-  (if (null arg)
-      (setq arg
-	    (if (cdr (assq 'vertical-scroll-bars
-			   (frame-parameters (selected-frame))))
-		-1 1)))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'vertical-scroll-bars
-				       (if (> arg 0)
-					   scroll-bar-side)))))
-
-(defun toggle-horizontal-scroll-bar (arg)
-  "Toggle whether or not the selected frame has horizontal scroll bars.
-With arg, turn horizontal scroll bars on if and only if arg is positive.
-Horizontal scroll bars aren't implemented yet."
-  (interactive "P")
-  (error "Horizontal scroll bars aren't implemented yet"))
-
 
 ;;;; Aliases for backward compatibility with Emacs 18.
 (defalias 'screen-height 'frame-height)
