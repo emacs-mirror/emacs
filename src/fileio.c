@@ -3296,7 +3296,7 @@ a_write (desc, addr, len, pos, annot)
   int nextpos;
   int lastpos = pos + len;
 
-  while (1)
+  while (CONSP (*annot))
     {
       tem = Fcar_safe (Fcar (*annot));
       if (INTEGERP (tem) && XINT (tem) >= pos && XFASTINT (tem) <= lastpos)
