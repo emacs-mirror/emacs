@@ -64,6 +64,9 @@ Lisp_Object Vminibuffer_local_completion_map;
 /* was MinibufLocalMustMatchMap */
 Lisp_Object Vminibuffer_local_must_match_map;
 
+/* Alist of minor mode variables and keymaps.  */
+Lisp_Object Vminor_mode_map_alist;
+
 Lisp_Object Qkeymapp, Qkeymap;
 
 /* A char over 0200 in a key sequence
@@ -77,6 +80,8 @@ static void describe_command ();
 static void describe_map ();
 static void describe_alist ();
 
+/* Keymap object support - constructors and predicates.			*/
+
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 0, 0,
   "Construct and return a new keymap, of the form (keymap VECTOR . ALIST).\n\
 VECTOR is a 128-element vector which holds the bindings for the ASCII\n\
@@ -173,7 +178,8 @@ get_keymap_1 (object, error)
     return tem;
   if (error)
     wrong_type_argument (Qkeymapp, object);
-  else return Qnil;
+  else
+    return Qnil;
 }
 
 Lisp_Object
@@ -387,6 +393,8 @@ is not copied.")
   return copy;
 }
 
+/* Simple Keymap mutators and accessors.				*/
+
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
   "Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.\n\
 KEYMAP is a keymap.  KEY is a string or a vector of symbols and characters\n\
@@ -558,6 +566,75 @@ append_key (key_sequence, key)
 }
 
 
+/* Global, local, and minor mode keymap stuff.				*/
+
+/* Store a pointer to an array of the keymaps of the currently active
+   minor modes in *buf, and return the number of maps it contains.
+
+   This function always returns a pointer to the same buffer, and may
+   free or reallocate it, so if you want to keep it for a long time or
+   hand it out to lisp code, copy it.  This procedure will be called
+   for every key sequence read, so the nice lispy approach (return a
+   new assoclist, list, what have you) for each invocation would
+   result in a lot of consing over time.
+
+   If we used xrealloc/xmalloc and ran out of memory, they would throw
+   back to the command loop, which would try to read a key sequence,
+   which would call this function again, resulting in an infinite
+   loop.  Instead, we'll use realloc/malloc and silently truncate the
+   list, let the key sequence be read, and hope some other piece of
+   code signals the error.  */
+int
+current_minor_maps (modeptr, mapptr)
+     Lisp_Object **modeptr, **mapptr;
+{
+  static Lisp_Object *modes, *maps;
+  static int size;
+
+  int i = 0;
+  Lisp_Object alist, assoc, var;
+
+  for (alist = Vminor_mode_map_alist;
+       CONSP (alist);
+       alist = XCONS (alist)->cdr)
+    if (CONSP (assoc = XCONS (alist)->car)
+	&& XTYPE (var = XCONS (assoc)->car) == Lisp_Symbol
+	&& ! NULL (Fboundp (var))
+	&& ! NULL (Fsymbol_value (var)))
+      {
+	if (i >= size)
+	  {
+	    Lisp_Object *newmodes, *newmaps;
+
+	    if (maps)
+	      {
+		newmodes = (Lisp_Object *) realloc (modes, size *= 2);
+		newmaps  = (Lisp_Object *) realloc (maps,  size);
+	      }
+	    else
+	      {
+		newmodes = (Lisp_Object *) malloc (size = 30);
+		newmaps  = (Lisp_Object *) malloc (size);
+	      }
+
+	    if (newmaps && newmodes)
+	      {
+		modes = newmodes;
+		maps = newmaps;
+	      }
+	    else
+	      break;
+	  }
+	modes[i] = var;
+	maps [i] = XCONS (assoc)->cdr;
+	i++;
+      }
+
+  if (modeptr) *modeptr = modes;
+  if (mapptr)  *mapptr  = maps;
+  return i;
+}
+
 DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 1, 0,
   "Return the binding for command KEY in current keymaps.\n\
 KEY is a string, a sequence of keystrokes.\n\
@@ -565,22 +642,30 @@ The binding is probably a symbol with a function definition.")
   (key)
      Lisp_Object key;
 {
-  register Lisp_Object map, value, value1;
-  map = current_buffer->keymap;
-  if (!NULL (map))
+  Lisp_Object *maps, value;
+  int nmaps, i;
+
+  nmaps = current_minor_maps (0, &maps);
+  for (i = 0; i < nmaps; i++)
+    if (! NULL (maps[i]))
+      {
+	value = Flookup_key (maps[i], key);
+	if (! NULL (value) && XTYPE (value) != Lisp_Int)
+	  return value;
+      }
+
+  if (! NULL (current_buffer->keymap))
     {
-      value = Flookup_key (map, key);
-      if (NULL (value))
-	{
-	  value1 = Flookup_key (current_global_map, key);
-	  if (XTYPE (value1) == Lisp_Int)
-	    return Qnil;
-	  return value1;
-	}
-      else if (XTYPE (value) != Lisp_Int)
+      value = Flookup_key (current_buffer->keymap, key);
+      if (! NULL (value) && XTYPE (value) != Lisp_Int)
 	return value;
     }
-  return Flookup_key (current_global_map, key);
+
+  value = Flookup_key (current_global_map, key);
+  if (! NULL (value) && XTYPE (value) != Lisp_Int)
+    return value;
+  
+  return Qnil;
 }
 
 DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 1, 0,
@@ -605,6 +690,38 @@ The binding is probably a symbol with a function definition.")
      Lisp_Object keys;
 {
   return Flookup_key (current_global_map, keys);
+}
+
+DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 1, 0,
+  "Find the visible minor mode bindings of KEY.\n\
+Return an alist of pairs (MODENAME . BINDING), where MODENAME is the\n\
+the symbol which names the minor mode binding KEY, and BINDING is\n\
+KEY's definition in that mode.  In particular, if KEY has no\n\
+minor-mode bindings, return nil.  If the first binding is a\n\
+non-prefix, all subsequent bindings will be omitted, since they would\n\
+be ignored.  Similarly, the list doesn't include non-prefix bindings\n\
+that come after prefix bindings.")
+  (key)
+{
+  Lisp_Object *modes, *maps;
+  int nmaps;
+  Lisp_Object binding;
+  int i, j;
+
+  nmaps = current_minor_maps (&modes, &maps);
+
+  for (i = j = 0; i < nmaps; i++)
+    if (! NULL (maps[i])
+	&& ! NULL (binding = Flookup_key (maps[i], key))
+	&& XTYPE (binding) != Lisp_Int)
+      {
+	if (! NULL (get_keymap_1 (binding, 0)))
+	  maps[j++] = Fcons (modes[i], binding);
+	else if (j == 0)
+	  return Fcons (Fcons (modes[i], binding), Qnil);
+      }
+
+  return Flist (j, maps);
 }
 
 DEFUN ("global-set-key", Fglobal_set_key, Sglobal_set_key, 2, 2,
@@ -729,7 +846,19 @@ DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
 {
   return current_global_map;
 }
+
+DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_maps, 0, 0, 0,
+  "Return a list of keymaps for the minor modes of the current buffer.")
+  ()
+{
+  Lisp_Object *maps;
+  int nmaps = current_minor_maps (0, &maps);
+
+  return Flist (nmaps, maps);
+}
 
+/* Help functions for describing and documenting keymaps.		*/
+
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
   1, 1, 0,
   "Find all keymaps accessible via prefix characters from KEYMAP.\n\
@@ -1021,6 +1150,8 @@ Control characters turn into \"^char\", etc.")
   return build_string (tem);
 }
 
+/* where-is - finding a command in a set of keymaps.			*/
+
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
   "Return list of keys that invoke DEFINITION in KEYMAP or KEYMAP1.\n\
 If KEYMAP is nil, search only KEYMAP1.\n\
@@ -1212,6 +1343,8 @@ Argument is a command definition, usually a symbol with a function definition.")
   return Qnil;
 }
 
+/* describe-bindings - summarizing all the bindings in a set of keymaps.  */
+
 DEFUN ("describe-bindings", Fdescribe_bindings, Sdescribe_bindings, 0, 0, "",
   "Show a list of all defined keys, and their definitions.\n\
 The list is put in a buffer, which is displayed.")
@@ -1236,19 +1369,41 @@ describe_buffer_bindings (descbuf)
 
   Fset_buffer (Vstandard_output);
 
+  {
+    int i, nmaps;
+    Lisp_Object *modes, *maps;
+
+    nmaps = current_minor_maps (&modes, &maps);
+    for (i = 0; i < nmaps; i++)
+      {
+	if (XTYPE (modes[i]) == Lisp_Symbol)
+	  {
+	    insert_char ('`');
+	    insert_string (XSYMBOL (modes[i])->name->data);
+	    insert_char ('\'');
+	  }
+	else
+	  insert_string ("Strangely Named");
+	insert_string (" Minor Mode Bindings:\n");
+	insert_string (heading);
+	describe_map_tree (maps[i], 0, Qnil);
+	insert_char ('\n');
+      }
+  }
+
   start1 = XBUFFER (descbuf)->keymap;
   if (!NULL (start1))
     {
       insert_string ("Local Bindings:\n");
       insert_string (heading);
-      describe_map_tree (start1, 0, Qnil, Qnil);
+      describe_map_tree (start1, 0, Qnil);
       insert_string ("\n");
     }
 
   insert_string ("Global Bindings:\n");
   insert_string (heading);
 
-  describe_map_tree (current_global_map, 0, XBUFFER (descbuf)->keymap, Qnil);
+  describe_map_tree (current_global_map, 0, XBUFFER (descbuf)->keymap);
 
   Fset_buffer (descbuf);
   return Qnil;
@@ -1563,7 +1718,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
   UNGCPRO;
 }
 
-/* Apropos */
+/* Apropos - finding all symbols whose names match a regexp.		*/
 Lisp_Object apropos_predicate;
 Lisp_Object apropos_accumulate;
 
@@ -1639,6 +1794,14 @@ syms_of_keymap ()
 
   current_global_map = global_map;
 
+  DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
+    "Alist of keymaps to use for minor modes.\n\
+Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read\n\
+key sequences and look up bindings iff VARIABLE's value is non-nil.\n\
+If two active keymaps bind the same key, the keymap appearing earlier\n\
+in the list takes precedence.");
+  Vminor_mode_map_alist = Qnil;
+
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);
 
@@ -1655,6 +1818,7 @@ syms_of_keymap ()
   defsubr (&Skey_binding);
   defsubr (&Slocal_key_binding);
   defsubr (&Sglobal_key_binding);
+  defsubr (&Sminor_mode_key_binding);
   defsubr (&Sglobal_set_key);
   defsubr (&Slocal_set_key);
   defsubr (&Sdefine_key);
@@ -1666,6 +1830,7 @@ syms_of_keymap ()
   defsubr (&Suse_local_map);
   defsubr (&Scurrent_local_map);
   defsubr (&Scurrent_global_map);
+  defsubr (&Scurrent_minor_mode_maps);
   defsubr (&Saccessible_keymaps);
   defsubr (&Skey_description);
   defsubr (&Sdescribe_vector);
