@@ -584,7 +584,7 @@ concat (nargs, args, target_type, last_special)
 		ch = XVECTOR (this)->contents[i];
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		this_len_byte = XFASTINT (Fchar_bytes (ch));
+		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (this_len_byte > 1)
 		  some_multibyte = 1;
@@ -597,7 +597,7 @@ concat (nargs, args, target_type, last_special)
 		ch = XCONS (this)->car;
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		this_len_byte = XFASTINT (Fchar_bytes (ch));
+		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (this_len_byte > 1)
 		  some_multibyte = 1;
