@@ -479,7 +479,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
    * space.
    */
 
-  bias = bss_end - (f_ohdr.data_start + f_dhdr.s_size);
+  bias = bss_start - (f_ohdr.data_start + f_dhdr.s_size);
 
 #endif
 
@@ -1024,11 +1024,12 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 	{
 	  read (new, &auxentry, AUXESZ);
 	  nsyms++;
-	  if (ISFCN (symentry.n_type)) {
-	    auxentry.x_sym.x_fcnary.x_fcn.x_lnnoptr += bias;
-	    lseek (new, -AUXESZ, 1);
-	    write (new, &auxentry, AUXESZ);
-	  }
+	  if (ISFCN (symentry.n_type) || symentry.n_type == 0x2400)
+	    {
+	      auxentry.x_sym.x_fcnary.x_fcn.x_lnnoptr += bias;
+	      lseek (new, -AUXESZ, 1);
+	      write (new, &auxentry, AUXESZ);
+	    }
 	}
     }
   close (new);
