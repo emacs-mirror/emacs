@@ -2,16 +2,18 @@
 
 ;; Copyright (C) 1993, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
-;; Author:     Jim Thompson (was <thompson@wg2.waii.com>)
-;; Author:     Jacques Duthen <duthen@cegelec-red.fr>
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   print, PostScript
-;; Time-stamp: <98/06/04  15:23:12 vinicius>
-;; Version:    3.06.3
+;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
+;; Author:	Jacques Duthen <duthen@cegelec-red.fr>
+;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author:	Kenichi Handa <handa@etl.go.jp> (multibyte characters)
+;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multibyte characters)
+;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Keywords:	print, PostScript
+;; Time-stamp:	<98/08/19  11:10:03 vinicius>
+;; Version:	4.0
 
-(defconst ps-print-version "3.06.3"
-  "ps-print.el, v 3.06.3 <98/06/04 vinicius>
+(defconst ps-print-version "4.0"
+  "ps-print.el, v 4.0 <98/08/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -399,6 +401,32 @@ Please send all bug fixes and enhancements to
 ;; Characters TAB, NEWLINE and FORMFEED are always treated by ps-print engine.
 ;;
 ;;
+;; Printing Multi-Byte Buffer
+;; --------------------------
+;;
+;; ps-print can print multi-byte buffer.
+;;
+;; If you are using only Latin-1 characters, you don't need to do anything else.
+;;
+;; If you have a japanese or korean PostScript printer, you can print ASCII,
+;; Latin-1, Japanese (JISX0208, and JISX0201-Kana) and Korean characters by
+;; setting:
+;;
+;;	(setq ps-mule-font-info-database ps-mule-font-info-database-ps)
+;;
+;; At present, it was not tested the korean characters printing.  If you have
+;; a korean PostScript printer, please verify it.
+;;
+;; If you use any other kind of character, you need to install intlfonts-1.1.
+;; So you can print using BDF fonts contained in intlfonts-1.1.  To print using
+;; BDF fonts, do the following settings:
+;;
+;;   (1) Set the variable `bdf-directory-list' appropriately (see bdf.el for
+;;       documentation of this variable).
+;;
+;;   (2) (setq ps-mule-font-info-database-ps ps-mule-font-info-database-bdf)
+;;
+;;
 ;; Line Number
 ;; -----------
 ;;
@@ -744,9 +772,13 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
+;; [keinichi] 980819 Kein'ichi Handa <handa@etl.go.jp>
+;;
+;; Multi-byte buffer handling.
+;;
 ;; [vinicius] 980306 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
-;; Skip invisible text
+;; Skip invisible text.
 ;;
 ;; [vinicius] 971130 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
@@ -822,6 +854,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Thanks to Roland Ducournau <ducour@lirmm.fr> for
 ;; `ps-print-control-characters' variable documentation.
+;;
+;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
 ;; Thanks to Marcus G Daniels <marcus@cathcart.sysc.pdx.edu> for a better
 ;; database font management.
@@ -1776,11 +1810,17 @@ The table depends on the current ps-print setup."
 ;; Return t if the device (which can be changed during an emacs session)
 ;; can handle colors.
 ;; This is function is not yet implemented for GNU emacs.
-(defun ps-color-device ()
-  (if (and (eq ps-print-emacs-type 'xemacs)
-	   (>= emacs-minor-version 12))
-      (eq (device-class) 'color)
-    t))
+(cond ((and (eq ps-print-emacs-type 'xemacs)
+	    (>= emacs-minor-version 12)) ; xemacs
+       (defun ps-color-device ()
+	 (eq (device-class) 'color))
+       )
+
+      (t				; emacs
+       (defun ps-color-device ()
+	 t)
+       ))
+
 
 (require 'time-stamp)
 
@@ -1867,7 +1907,7 @@ StandardEncoding 46 82 getinterval aload pop
 % (x1 y1) --> +----+ - -
 
     currentdict /FontType get 0 ne {
-      FontBBox				% -- x1 y1 x2 y2
+      /FontBBox load aload pop			% -- x1 y1 x2 y2
       FontMatrix transform /Ascent  exch def pop
       FontMatrix transform /Descent exch def pop
     } {
@@ -1884,9 +1924,9 @@ StandardEncoding 46 82 getinterval aload pop
     /UnderlinePosition  Descent 0.70 mul def
     /OverlinePosition   Descent UnderlinePosition sub Ascent add def
     /StrikeoutPosition  Ascent 0.30 mul def
-    /LineThickness      0  50 FontMatrix transform exch pop def
-    /Xshadow            0  80 FontMatrix transform exch pop def
-    /Yshadow            0 -90 FontMatrix transform exch pop def
+    /LineThickness      FontHeight 0.05 mul def
+    /Xshadow            FontHeight  0.08 mul def
+    /Yshadow            FontHeight -0.09 mul def
     /SpaceBackground    Descent neg UnderlinePosition add def
     /XBox               Descent neg def
     /YBox               LineThickness 0.7 mul def
@@ -2171,6 +2211,8 @@ StandardEncoding 46 82 getinterval aload pop
 } def
 
 /BeginDoc {
+  % ---- Remember space width of the normal text font `f0'.
+  /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
   % ---- save the state of the document (useful for ghostscript!)
   /docState save def
   % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
@@ -2741,6 +2783,982 @@ x-dimension, of the text it has printed, and thus affects the point at
 which long lines wrap around."
   (get font-sym 'avg-char-width))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; For handling multibyte characters.
+;;
+;; The following comments apply only to this part (through the next ^L).
+;; Author:	Kenichi Handa <handa@etl.go.jp>
+;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
+
+(eval-and-compile
+  (if (fboundp 'set-buffer-multibyte)
+      (progn
+	(defalias 'ps-mule-next-point '1+)
+	(defalias 'ps-mule-chars-in-string 'length)
+	(defalias 'ps-mule-string-char 'aref)
+	(defsubst ps-mule-next-index (str i) (1+ i)))
+    (defun set-buffer-multibyte (arg)
+      (setq enable-multibyte-characters arg))
+    (defun string-as-unibyte (arg) arg)
+    (defun string-as-multibyte (arg) arg)
+    (defun charset-after (&optional arg)
+      (char-charset (char-after arg)))
+    (defun ps-mule-next-point (arg)
+      (save-excursion (goto-char arg) (forward-char 1) (point)))
+    (defun ps-mule-chars-in-string (string)
+      (/ (length string) (char-bytes (sref string 0))))
+    (defalias 'ps-mule-string-char 'sref)
+    (defun ps-mule-next-index (str i)
+      (+ i (char-bytes (sref str i)))))
+  )
+
+(defvar ps-mule-font-info-database
+  '((latin-iso8859-1
+     (normal nil nil iso-latin-1)))
+  "Alist of charsets vs the corresponding font information.
+Each element has the form:
+	(CHARSET (FONT-TYPE FONT-SRC FONT-NAME ENCODING BYTES) ...)
+where
+
+CHARSET is a charset (symbol) for this font family,
+
+FONT-TYPE is a type of font: normal, bold, italic, or bold-italic.
+
+FONT-SRC is a source of font: builtin, bdf, vflib, or nil.
+
+  If FONT-SRC is builtin, FONT-NAME is a buitin PostScript font name.
+
+  If FONT-SRC is bdf, FONT-NAME is a BDF font file name.  To use this
+  font, the external library `bdf' is required.
+
+  If FONT-SRC is vflib, FONT-NAME is name of font VFlib knows.  To use
+  this font, the external library `vflib' is required.
+
+  If FONT-SRC is nil, a proper ASCII font in the variable
+  `ps-font-info-database' is used.  This is useful for Latin-1
+  characters.
+
+ENCODING is a coding system to encode a string of characters of
+CHARSET into a proper string matching an encoding of the specified
+font.  ENCODING may be a function to call to do this encoding.  In
+this case, the function is called with one arguemnt, the string to
+encode, and it should return an encoded string.
+
+BYTES specifies how many bytes in encoded byte sequence construct esch
+character, it should be 1 or 2.
+
+All multibyte characters are printed by fonts specified in this
+database regardless of a font family of ASCII characters.  The
+exception is Latin-1 characters which are printed by the same font as
+ASCII characters, thus obey font family.
+
+See also the variable `ps-font-info-database'.")
+
+(defconst ps-mule-font-info-database-ps
+  '((katakana-jisx0201
+     (normal builtin "Ryumin-Light.Katakana" ps-mule-encode-7bit 1)
+     (bold builtin "GothicBBB-Medium.Katakana" ps-mule-encode-7bit 1)
+     (bold-italic builtin "GothicBBB-Medium.Katakana" ps-mule-encode-7bit 1))
+    (latin-jisx0201
+     (normat builtin "Ryumin-Light.Hankaku" ps-mule-encode-7bit 1)
+     (bold builtin "GothicBBB-Medium.Hankaku" ps-mule-encode-7bit 1))
+    (japanese-jisx0208
+     (normal builtin "Ryumin-Light-H" ps-mule-encode-7bit 2)
+     (bold builtin "GothicBBB-Medium-H" ps-mule-encode-7bit 2))
+    (korean-ksc5601
+     (normal builtin "Batang-Medium-KSC-H" ps-mule-encode-7bit 2)
+     (bold builtin " Gulim-Medium-KSC-H" ps-mule-encode-7bit 2))
+    )
+  "Sample setting of the `ps-mule-font-info-database' to use builtin PS font.
+
+Currently, data for Japanese and Korean PostScript printers are listed.")
+
+(defconst ps-mule-font-info-database-bdf
+  '(;;(ascii
+    ;; (normal bdf "etl24-latin1.bdf" nil 1)
+    ;; (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
+    ;; (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
+    ;; (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+    ;;(latin-iso8859-1
+    ;; (normal bdf "etl24-latin1.bdf" iso-latin-1 1)
+    ;; (bold bdf "etl16b-latin1.bdf" iso-latin-1 1)
+    ;; (italic bdf "etl16i-latin1.bdf" iso-latin-1 1)
+    ;; (bold-italic bdf "etl16bi-latin1.bdf" iso-latin-1 1))
+    (latin-iso8859-1
+     (normal nil nil iso-latin-1))
+    (latin-iso8859-2
+     (normal bdf "etl24-latin2.bdf" iso-latin-2 1))
+    (latin-iso8859-3
+     (normal bdf "etl24-latin3.bdf" iso-latin-3 1))
+    (latin-iso8859-4
+     (normal bdf "etl24-latin4.bdf" iso-latin-4 1))
+    (thai-tis620
+     (normal bdf "thai-24.bdf" thai-tis620 1))
+    (greek-iso8859-7
+     (normal bdf "etl24-greek.bdf" greek-iso-8bit 1))
+    ;; (arabic-iso8859-6	nil) ; not yet available
+    (hebrew-iso8859-8
+     (normal bdf "etl24-hebrew.bdf" hebrew-iso-8bit 1))
+    (katakana-jisx0201
+     (normal bdf "12x24rk.bdf" ps-mule-encode-8bit 1))
+    (latin-jisx0201
+     (normal bdf "12x24rk.bdf" ps-mule-encode-7bit 1))
+    (cyrillic-iso8859-5
+     (normal bdf "etl24-cyrillic.bdf" cyrillic-iso-8bit 1))
+    (latin-iso8859-9
+     (normal bdf "etl24-latin5.bdf" iso-latin-5 1))
+    (japanese-jisx0208-1978
+     (normal bdf "jiskan24.bdf" ps-mule-encode-7bit 2))
+    (chinese-gb2312
+     (normal bdf "gb24st.bdf" ps-mule-encode-7bit 2))
+    (japanese-jisx0208
+     (normal bdf "jiskan24.bdf" ps-mule-encode-7bit 2))
+    (korean-ksc5601
+     (normal bdf "hanglm24.bdf" ps-mule-encode-7bit 2))
+    (japanese-jisx0212
+     (normal bdf "jisksp40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-1
+     (normal bdf "cns-1-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-2
+     (normal bdf "cns-2-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-big5-1
+     (normal bdf "taipei24.bdf" chinese-big5 2))
+    (chinese-big5-2
+     (normal bdf "taipei24.bdf" chinese-big5 2))
+    (chinese-sisheng
+     (normal bdf "etl24-sisheng.bdf" ps-mule-encode-8bit 1))
+    (ipa
+     (normal bdf "etl24-ipa.bdf" ps-mule-encode-8bit 1))
+    (vietnamese-viscii-lower
+     (normal bdf "etl24-viscii.bdf" vietnamese-viscii 1))
+    (vietnamese-viscii-upper
+     (normal bdf "etl24-viscii.bdf" vietnamese-viscii 1))
+    (arabic-digit
+     (normal bdf "etl24-arabic0.bdf" ps-mule-encode-7bit 1))
+    (arabic-1-column
+     (normal bdf "etl24-arabic1.bdf" ps-mule-encode-7bit 1))
+    ;; (ascii-right-to-left nil) ; not yet available
+    (lao
+     (normal bdf "mule-lao-24.bdf" lao 1))
+    (arabic-2-column
+     (normal bdf "etl24-arabic2.bdf" ps-mule-encode-7bit 1))
+    (indian-is13194
+     (normal bdf "mule-iscii-24.bdf" ps-mule-encode-7bit 1))
+    (indian-1-column
+     (normal bdf "mule-indian-1col-24.bdf" ps-mule-encode-7bit 2))
+    (tibetan-1-column
+     (normal bdf "mule-tibmdx-1col-24.bdf" ps-mule-encode-7bit 2))
+    (ethiopic
+     (normal bdf "ethiomx24f-uni.bdf" ps-mule-encode-ethiopic 2))
+    (chinese-cns11643-3
+     (normal bdf "cns-3-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-4
+     (normal bdf "cns-4-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-5
+     (normal bdf "cns-5-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-6
+     (normal bdf "cns-6-40.bdf" ps-mule-encode-7bit 2))
+    (chinese-cns11643-7
+     (normal bdf "cns-7-40.bdf" ps-mule-encode-7bit 2))
+    (indian-2-column
+     (normal bdf "mule-indian-24.bdf" ps-mule-encode-7bit 2))
+    (tibetan
+     (normal bdf "mule-tibmdx-24.bdf" ps-mule-encode-7bit 2)))
+  "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
+
+Current default value lists BDF fonts included in `intlfonts-1.1'
+which is a collection of X11 fonts for all characters supported by
+Emacs.")
+
+;; Two typical encoding functions for PostScript fonts.
+
+(defun ps-mule-encode-7bit (string)
+  (let* ((dim (charset-dimension
+	       (char-charset (ps-mule-string-char string 0))))
+	 (len (* (ps-mule-chars-in-string string) dim))
+	 (str (make-string len 0))
+	 (i 0) (j 0))
+    (if (= dim 1)
+	(while (< j len)
+	  (aset str j (nth 1 (split-char (ps-mule-string-char string i))))
+	  (setq i (ps-mule-next-index string i)
+		j (1+ j)))
+      (while (< j len)
+	(let ((split (split-char (ps-mule-string-char string i))))
+	  (aset str j (nth 1 split))
+	  (aset str (1+ j) (nth 2 split))
+	  (setq i (ps-mule-next-index string i)
+		j (+ j 2)))))
+    str))
+
+(defun ps-mule-encode-8bit (string)
+  (let* ((dim (charset-dimension
+	       (char-charset (ps-mule-string-char string 0))))
+	 (len (* (ps-mule-chars-in-string string) dim))
+	 (str (make-string len 0))
+	 (i 0) (j 0))
+    (if (= dim 1)
+	(while (< j len)
+	  (aset str j
+		(+ (nth 1 (split-char (ps-mule-string-char string i))) 128))
+	  (setq i (ps-mule-next-index string i)
+		j (1+ j)))
+      (while (< j len)
+	(let ((split (split-char (ps-mule-string-char string i))))
+	  (aset str j (+ (nth 1 split) 128))
+	  (aset str (1+ j) (+ (nth 2 split) 128))
+	  (setq i (ps-mule-next-index string i)
+		j (+ j 2)))))
+    str))
+
+;; Special encoding function for Ethiopic.
+(define-ccl-program ccl-encode-ethio-unicode
+  `(1
+    (read r2)
+    (loop
+     (if (r2 == ,leading-code-private-22)
+	 ((read r0)
+	  (if (r0 == ,(charset-id 'ethiopic))
+	      ((read r1 r2)
+	       (r1 &= 127) (r2 &= 127)
+	       (call ccl-encode-ethio-font)
+	       (write r1)
+	       (write-read-repeat r2))
+	    ((write r2 r0)
+	     (repeat))))
+       (write-read-repeat r2)))))
+
+(defun ps-mule-encode-ethiopic (string)
+  (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
+			 (make-vector 9 nil)
+			 string))
+
+;; A charset which we are now processing.
+(defvar ps-mule-current-charset nil)
+
+(defun ps-mule-get-font-spec (charset font-type)
+  "Return FONT-SPEC for printing characters CHARSET with FONT-TYPE.  
+FONT-SPEC is a list of FONT-SRC, FONT-NAME, ENCODING, and BYTES,
+this information is extracted from `ps-mule-font-info-database'
+See the documentation of `ps-mule-font-info-database' for the meaning
+of each element of the list."
+  (let ((slot (cdr (assq charset ps-mule-font-info-database))))
+    (if slot
+	(cdr (or (assq font-type slot)
+		 (and (eq font-type 'bold-italic)
+		      (or (assq 'bold slot) (assq 'italic slot)))
+		 (assq 'normal slot))))))
+
+;; Functions to access each element of FONT-SPEC.
+(defsubst ps-mule-font-spec-src (font-spec) (car font-spec))
+(defsubst ps-mule-font-spec-name (font-spec) (nth 1 font-spec))
+(defsubst ps-mule-font-spec-encoding (font-spec) (nth 2 font-spec))
+(defsubst ps-mule-font-spec-bytes (font-spec) (nth 3 font-spec))
+
+(defsubst ps-mule-printable-p (charset)
+  "Non-nil if characters in CHARSET is printable."
+  (ps-mule-get-font-spec charset 'normal))
+
+(defconst ps-mule-external-libraries
+  '((builtin nil
+	     nil nil nil)
+    (bdf nil
+	 bdf-generate-prologue bdf-generate-font bdf-generate-glyphs)
+    (pcf nil
+	 pcf-generate-prologue pcf-generate-font pcf-generate-glyphs)
+    (vflib nil
+	   vflib-generate-prologue vflib-generate-font vflib-generate-glyphs))
+  "Alist of information of external libraries to support PostScript printing.
+Each element has the form:
+    (FONT-SRC INITIALIZED-P PROLOGUE-FUNC FONT-FUNC GLYPHS-FUNC)
+
+FONT-SRC is a source of font: builtin, bdf, pcf, or vflib.  Except for
+builtin, libraries of the same names are necessary, but currently, we
+only have the library `bdf'.
+
+INITIALIZED-P is a flag to tell this library is initialized or not.
+
+PROLOGUE-FUNC is a function to call to get a PostScript codes which
+define procedures to use this library.  It is called with no argument,
+and should return a list of strings.
+
+FONT-FUNC is a function to call to get a PostScript codes which define
+a new font.  It is called with one argument FONT-SPEC, and should
+return a list of strings.
+
+GLYPHS-FUNC is a function to call to get a PostScript codes which
+define glyphs of characters.  It is called with three arguments
+FONT-SPEC, CODE-LIST, and BYTES, and should return a list of strings.")
+
+(defun ps-mule-init-external-library (font-spec)
+  "Initialize external librarie specified in FONT-SPEC for PostScript printing.
+See the documentation of `ps-mule-get-font-spec' for the meaning of
+each element of the list."
+  (let* ((font-src (ps-mule-font-spec-src font-spec))
+	 (slot (assq font-src ps-mule-external-libraries)))
+    (or (not font-src)
+	(nth 1 slot)
+	(let ((func (nth 2 slot)))
+	  (if func
+	      (progn
+		(or (featurep font-src) (require font-src))
+		(ps-output-prologue (funcall func))))
+	  (setcar (cdr slot) t)))))
+
+;; Cached glyph information of fonts, alist of:
+;;	(FONT-NAME ((FONT-TYPE-NUMBER . SCALED-FONT-NAME) ...)
+;;	 cache CODE0 CODE1 ...)
+(defvar ps-mule-font-cache nil)
+
+(defun ps-mule-generate-font (font-spec charset)
+  "Generate PostScript codes to define a new font in FONT-SPEC for CHARSET."
+  (let* ((font-cache (assoc (ps-mule-font-spec-name font-spec)
+			    ps-mule-font-cache))
+	 (font-src (ps-mule-font-spec-src font-spec))
+	 (font-name (ps-mule-font-spec-name font-spec))
+	 (func (nth 3 (assq font-src ps-mule-external-libraries)))
+	 (scaled-font-name
+	  (if (eq charset 'ascii)
+	      (format "f%d" ps-current-font)
+	    (format "f%02x-%d"
+		    (charset-id charset) ps-current-font))))
+    (if (and func (not font-cache))
+	(ps-output-prologue (funcall func font-spec)))
+    (ps-output-prologue
+     (list (format "/%s %f /%s Def%sFontMule\n"
+		   scaled-font-name ps-font-size font-name
+		   (if (eq ps-mule-current-charset 'ascii) "Ascii" ""))))
+    (if font-cache
+	(setcar (cdr font-cache)
+		(cons (cons ps-current-font scaled-font-name)
+		      (nth 1 font-cache)))
+      (setq font-cache (list font-name
+			     (list (cons ps-current-font scaled-font-name))
+			     'cache))
+      (setq ps-mule-font-cache (cons font-cache ps-mule-font-cache)))
+    font-cache))
+
+(defun ps-mule-generate-glyphs (font-spec code-list)
+  "Generate PostScript codes which generate glyphs for CODE-LIST of FONT-SPEC."
+  (let* ((font-src (ps-mule-font-spec-src font-spec))
+	 (func (nth 4 (assq font-src ps-mule-external-libraries))))
+    (if func
+	(ps-output-prologue
+	 (funcall func font-spec code-list
+		  (ps-mule-font-spec-bytes font-spec))))))
+
+(defvar ps-last-font nil)
+
+(defun ps-mule-prepare-font (font-spec string charset &optional no-setfont) 
+  "Generate PostScript codes to print STRING of CHARSET by font in FONT-SPEC.
+The generated codes goes to prologue part except for a code for
+setting the current font (using PostScript procedure `FM').
+If optional arg NO-SETFONT is non-nil, don't generate the code for
+setting the current font."
+  (let ((font-cache (assoc (ps-mule-font-spec-name font-spec)
+			   ps-mule-font-cache)))
+    (or (and font-cache (assq ps-current-font (nth 1 font-cache)))
+	(setq font-cache (ps-mule-generate-font font-spec charset)))
+    (or no-setfont
+	(let ((new-font (cdr (assq ps-current-font (nth 1 font-cache)))))
+	  (or (equal new-font ps-last-font)
+	      (progn
+		(ps-output (format "/%s FM\n" new-font))
+		(setq ps-last-font new-font)))))
+    (if (nth 4 (assq (ps-mule-font-spec-src font-spec)
+		     ps-mule-external-libraries))
+	;; We have to generate PostScript codes which define glyphs.
+	(let* ((cached-codes (nthcdr 2 font-cache))
+	       (newcodes nil)
+	       (bytes (ps-mule-font-spec-bytes font-spec))
+	       (len (length string))
+	       (i 0)
+	       code)
+	  (while (< i len)
+	    (setq code
+		  (if (= bytes 1) (aref string i)
+		    (+ (* (aref string i) 256) (aref string (1+ i)))))
+	    (or (memq code cached-codes)
+		(progn
+		  (setq newcodes (cons code newcodes))
+		  (setcdr cached-codes (cons code (cdr cached-codes)))))
+	    (setq i (+ i bytes)))
+	  (if newcodes
+	      (ps-mule-generate-glyphs font-spec newcodes))))))
+
+;; List of charsets of multibyte characters in a text being printed.
+;; If the text doesn't contain any multibyte characters (i.e. only
+;; ASCII), the value is nil.
+(defvar ps-mule-charset-list nil)
+
+;; This constant string is a PostScript code embeded as is in the
+;; header of generated PostScript.
+
+(defvar ps-mule-prologue-generated nil)
+
+(defconst ps-mule-prologue
+  "%%%% Start of Mule Section
+
+%% Working dictionaly for general use.
+/MuleDict 10 dict def
+
+%% Define already scaled font for non-ASCII character sets.
+/DefFontMule {			% fontname size basefont  |-  --
+  findfont exch scalefont definefont pop
+} bind def
+
+%% Define already scaled font for ASCII character sets.
+/DefAsciiFontMule {		% fontname size basefont  |-
+  MuleDict begin
+  findfont dup /Encoding get /ISOLatin1Encoding exch def
+  exch scalefont reencodeFontISO
+  end
+} def
+
+%% Set the specified non-ASCII font to use.  It doesn't install
+%% Ascent, etc.
+/FM {				%  fontname  |-  --
+  findfont setfont
+} bind def
+
+%% Show vacant box for characters which don't have appropriate font.
+/SB {				% count column |-  --
+    SpaceWidth mul /w exch def
+    1 exch 1 exch { %for
+	pop
+	gsave
+	0 setlinewidth
+	0 Descent rmoveto w 0 rlineto
+	0 LineHeight rlineto w neg 0 rlineto closepath stroke
+	grestore
+	w 0 rmoveto
+    } for
+} bind def
+
+%% Flag to tell if we are now handling a composite character.  This is
+%% defined here because both composite character handler and bitmap font
+%% handler require it.
+/Cmpchar false def
+
+%%%% End of Mule Section
+
+"
+  "PostScript code for printing multibyte characters.")
+
+(defun ps-mule-skip-same-charset (charset)
+  "Skip characters of CHARSET following the current point."
+  (while (eq (charset-after) charset) (forward-char 1)))
+
+(defun ps-mule-find-wrappoint (from to char-width)
+  "Find a longest sequence at FROM which is printable in the current line.
+
+TO limits the sequence.  It is assumed that all characters between
+FROM and TO belong to a charset set in `ps-mule-current-charset'.
+
+CHAR-WIDTH is an average width of ASCII characters in the current font.
+
+The return value is a cons of ENDPOS and RUN-WIDTH, where
+ENDPOS is an end position of the sequence,
+RUN-WIDTH is the width of the sequence."
+  (let (run-width)
+    (if (eq ps-mule-current-charset 'composition)
+	;; We must draw one char by one.
+	(let ((ch (char-after from)))
+	  (setq run-width (* (char-width ch) char-width))
+	  (if (> run-width ps-width-remaining)
+	      (setq run-width ps-width-remaining)
+	    (setq from (ps-mule-next-point from))))
+      ;; We assume that all characters in this range have the same width.
+      (let ((width (charset-width ps-mule-current-charset)))
+	(setq run-width (* (- to from) char-width width))
+	(if (> run-width ps-width-remaining)
+	    (setq from (min
+			(+ from (truncate (/ ps-width-remaining char-width)))
+			to)
+		  run-width ps-width-remaining)
+	  (setq from to))))
+    (cons from run-width)))
+
+(defun ps-mule-plot-string (from to &optional bg-color)
+  "Generate PostScript code for ploting characters in the region FROM and TO.
+It is assumed that all characters in this region belong to the
+charset `ps-mule-current-charset'.
+Optional arg BG-COLOR specifies background color.
+The return value is a cons of ENDPOS and WIDTH of the sequence
+actually plotted by this function."
+  (let* ((wrappoint (ps-mule-find-wrappoint
+		     from to (ps-avg-char-width 'ps-font-for-text)))
+	 (to (car wrappoint))
+	 (font-type (car (nth ps-current-font
+			      (ps-font-alist 'ps-font-for-text))))
+	 (font-spec (ps-mule-get-font-spec ps-mule-current-charset font-type))
+	 (encoding (ps-mule-font-spec-encoding font-spec))
+	 (string (buffer-substring-no-properties from to)))
+    (cond
+     ((= from to)
+      ;; We can't print any more characters in the current line.
+      nil)
+
+     (font-spec
+      ;; We surely have a font for printing this character set.
+      (if (coding-system-p encoding)
+	  (setq string (encode-coding-string string encoding))
+	(if (functionp encoding)
+	    (setq string (funcall encoding string))
+	  (if encoding
+	      (error "Invalid coding system or function: %s" encoding))))
+      (setq string (string-as-unibyte string))
+      (if (ps-mule-font-spec-src font-spec)
+	  (ps-mule-prepare-font font-spec string ps-mule-current-charset)
+	(ps-set-font ps-current-font))
+      (ps-output-string string)
+      (ps-output " S\n"))
+
+     ((eq ps-mule-current-charset 'latin-iso8859-1)
+      ;; Latin-1 can be printed by a normal ASCII font.
+      (ps-set-font ps-current-font)
+      (ps-output-string
+       (string-as-unibyte (encode-coding-string string 'iso-latin-1)))
+      (ps-output " S\n"))
+
+     ((eq ps-mule-current-charset 'composition)
+      (let* ((ch (char-after from))
+	     (width (char-width ch))
+	     (ch-list (decompose-composite-char ch 'list t)))
+	(if (consp (nth 1 ch-list))
+	    (ps-mule-plot-rule-cmpchar ch-list width font-type)
+	  (ps-mule-plot-cmpchar ch-list width t font-type))))
+
+     (t
+      ;; No way to print this charset.  Just show a vacant box of an
+      ;; appropriate width.
+      (ps-output (format "%d %d SB\n"
+			 (length string)
+			 (if (eq ps-mule-current-charset 'composition)
+			     (char-width (char-after from))
+			   (charset-width ps-mule-current-charset))))))
+    wrappoint))
+
+;; Composite font support
+
+(defvar ps-mule-cmpchar-prologue-generated nil)
+
+(defconst ps-mule-cmpchar-prologue
+  "%%%% Composite character handler
+/CmpcharWidth 0 def
+/CmpcharRelativeCompose 0 def
+/CmpcharRelativeSkip 0.4 def
+
+%% Get a bounding box (relative to currentpoint) of STR.
+/GetPathBox {			% str  |-  --
+    gsave
+    currentfont /FontType get 3 eq { %ifelse
+	stringwidth pop pop
+    } {
+	currentpoint /y exch def pop
+	false charpath flattenpath pathbbox
+	y sub /URY exch def pop
+	y sub /LLY exch def pop
+    } ifelse
+    grestore
+} bind def
+
+%% Beginning of composite char.
+/BC {				% str xoff width |-  --
+    /Cmpchar true def
+    /CmpcharWidth exch def
+    currentfont /RelativeCompose known {
+	/CmpcharRelativeCompose currentfont /RelativeCompose get def
+    } {
+	/CmpcharRelativeCompose false def
+    } ifelse
+    /bgsave bg def /bgcolorsave bgcolor def
+    /Effectsave Effect def
+    gsave			% Reflect effect only at first
+	/Effect Effect 1 2 add 4 add 16 add and def
+	/f0 findfont setfont (        ) 0 CmpcharWidth getinterval S
+    grestore
+    /Effect Effectsave 8 32 add and def	% enable only shadow and outline
+    false BG
+    gsave SpaceWidth mul 0 rmoveto dup GetPathBox S grestore
+    /y currentpoint exch pop def
+    /HIGH URY y add def /LOW LLY y add def
+} bind def
+
+%% End of composite char.
+/EC {				% --  |-  --
+    /bg bgsave def /bgcolor bgcolorsave def
+    /Effect Effectsave def
+    /Cmpchar false def
+    CmpcharWidth SpaceWidth mul 0 rmoveto
+} bind def
+
+%% Rule base composition
+/RBC {				% str xoff gref nref  |-  --
+    /nref exch def /gref exch def
+    gsave
+    SpaceWidth mul 0 rmoveto
+    dup
+    GetPathBox
+    [ HIGH currentpoint exch pop LOW HIGH LOW add 2 div ] gref get
+    [ URY LLY sub LLY neg 0 URY LLY sub 2 div ] nref get
+    sub /btm exch def
+    /top btm URY LLY sub add def
+    top HIGH gt { /HIGH top def } if
+    btm LOW lt { /LOW btm def } if
+    currentpoint pop btm LLY sub moveto
+    S
+    grestore
+} bind def    
+
+%% Relative composition
+/RLC {				% str  |-  --
+    gsave
+    dup GetPathBox
+    CmpcharRelativeCompose type /integertype eq {
+	LLY CmpcharRelativeCompose gt {	% compose on top
+	    currentpoint pop HIGH LLY sub CmpcharRelativeSkip add moveto
+	    /HIGH HIGH URY LLY sub add CmpcharRelativeSkip add def
+	} { URY 0 le {			% compose under bottom
+	    currentpoint pop LOW LLY add CmpcharRelativeSkip sub moveto
+	    /LOW LOW URY LLY sub sub CmpcharRelativeSkip sub def
+    } if } ifelse } if
+    S
+    grestore
+} bind def
+%%%% End of composite character handler
+
+"
+  "PostScript code for printing composite characters.")
+
+(defun ps-mule-plot-rule-cmpchar (ch-rule-list total-width font-type)
+  (let* ((leftmost 0.0)
+	 (rightmost (float (char-width (car ch-rule-list))))
+	 (l (cons '(3 . 3) ch-rule-list))
+	 (cmpchar-elements nil))
+    (while l
+      (let* ((this (car l))
+	     (gref (car this))
+	     (nref (cdr this))
+	     ;; X-axis info (0:left, 1:center, 2:right)
+	     (gref-x (% gref 3))
+	     (nref-x (% nref 3))
+	     ;; Y-axis info (0:top, 1:base, 2:bottom, 3:center)
+	     (gref-y (if (= gref 4) 3 (/ gref 3)))
+	     (nref-y (if (= nref 4) 3 (/ nref 3)))
+	     (width (float (char-width (car (cdr l)))))
+	     left)
+	(setq left (+ leftmost
+		      (/ (* (- rightmost leftmost) gref-x) 2.0)
+		      (- (/ (* nref-x width) 2.0))))
+	(setq cmpchar-elements
+	      (cons (list (car (cdr l)) left gref-y nref-y) cmpchar-elements))
+	(if (< left leftmost)
+	    (setq leftmost left))
+	(if (> (+ left width) rightmost)
+	    (setq rightmost (+ left width)))
+	(setq l (nthcdr 2 l))))
+    (if (< leftmost 0)
+	(let ((l cmpchar-elements))
+	  (while l
+	    (setcar (cdr (car l))
+		    (- (nth 1 (car l)) leftmost))
+	    (setq l (cdr l)))))
+    (ps-mule-plot-cmpchar (nreverse cmpchar-elements)
+			  total-width nil font-type)))
+
+(defun ps-mule-plot-cmpchar (elements total-width relativep font-type)
+  (let* ((ch (if relativep (car elements) (car (car elements))))
+	 (str (ps-mule-prepare-cmpchar-font ch font-type)))
+    (ps-output-string str)
+    (ps-output (format " %d %d BC "
+		       (if relativep 0 (nth 1 (car elements)))
+		       total-width)))
+  (setq elements (cdr elements))
+  (while elements
+    (let* ((elt (car elements))
+	   (ch (if relativep elt (car elt)))
+	   (str (ps-mule-prepare-cmpchar-font ch font-type)))
+      (if relativep
+	  (progn
+	    (ps-output-string str)
+	    (ps-output " RLC "))
+	(ps-output-string str)
+	(ps-output (format " %d %d %d RBC "
+			   (nth 1 elt) (nth 2 elt) (nth 3 elt)))))
+    (setq elements (cdr elements)))
+  (ps-output "EC\n"))
+    
+(defun ps-mule-prepare-cmpchar-font (char font-type)
+  (let* ((ps-mule-current-charset (char-charset char))
+	 (font-spec (ps-mule-get-font-spec ps-mule-current-charset font-type))
+	 (encoding (ps-mule-font-spec-encoding font-spec))
+	 (str (char-to-string char)))
+    (cond (font-spec
+	   (if (coding-system-p encoding)
+	       (setq str (encode-coding-string str encoding))
+	     (if (functionp encoding)
+		 (setq str (funcall encoding str))
+	       (if encoding
+		   (error "Invalid coding system or function: %s" encoding))))
+	   (setq str (string-as-unibyte str))
+	   (if (ps-mule-font-spec-src font-spec)
+	       (ps-mule-prepare-font font-spec str ps-mule-current-charset)
+	     (ps-set-font ps-current-font)))
+
+	  ((eq ps-mule-current-charset 'latin-iso8859-1)
+	   (ps-set-font ps-current-font)
+	   (setq str
+		 (string-as-unibyte (encode-coding-string str 'iso-latin-1))))
+
+	  (t
+	   ;; No font for CHAR.
+	   (ps-set-font ps-current-font)
+	   (setq str " ")))
+    str))
+
+;; Bitmap font support
+
+(defvar ps-mule-bitmap-prologue-generated nil)
+
+(defconst ps-mule-bitmap-prologue
+  "%%%% Bitmap font handler
+
+/str7 7 string def		% working area
+
+%% We grow the dictionary one bunch (1024 entries) by one.
+/BitmapDictArray 256 array def
+/BitmapDictLength 1024 def
+/BitmapDictIndex -1 def
+
+/NewBitmapDict {		% --  |-  --
+    /BitmapDictIndex BitmapDictIndex 1 add def
+    BitmapDictArray BitmapDictIndex BitmapDictLength dict put
+} bind def
+
+%% Make at least one dictionary.
+NewBitmapDict
+
+/AddBitmap {			% gloval-charname bitmap-data  |-  --
+    BitmapDictArray BitmapDictIndex get
+    dup length BitmapDictLength ge {
+	pop
+	NewBitmapDict
+	BitmapDictArray BitmapDictIndex get
+    } if
+    3 1 roll put
+} bind def
+
+/GetBitmap {			% gloval-charname  |-  bitmap-data
+    0 1 BitmapDictIndex { BitmapDictArray exch get begin } for
+    load
+    0 1 BitmapDictIndex { pop end } for
+} bind def
+
+%% Return a global character name which can be used as a key in the
+%% bitmap dictionary.
+/GlobalCharName {		% fontidx code1 code2  |-  gloval-charname
+    exch 256 mul add exch 65536 mul add 16777216 add 16 str7 cvrs 0 66 put
+    str7 cvn
+} bind def
+    
+%% Character code holder for a 2-byte character.
+/FirstCode -1 def
+
+%% Glyph rendering procedure
+/BuildGlyphCommon {		% fontdict charname  |-  --
+    1 index /FontDimension get 1 eq { /FirstCode 0 store } if
+    NameIndexDict exch get	% STACK: fontdict charcode
+    FirstCode 0 lt { %ifelse
+	%% This is the first byte of a 2-byte character.  Just
+	%% remember it for the moment.
+	/FirstCode exch store
+	pop
+	0 0 setcharwidth
+    } {
+	1 index /FontSize get /size exch def
+	1 index /FontIndex get exch FirstCode exch
+	GlobalCharName GetBitmap /bmp exch def
+	%% bmp == [ DWIDTH BBX-WIDTH BBX-HEIGHT BBX-XOFF BBX-YOFF BITMAP ]
+	Cmpchar { %ifelse
+	    /FontMatrix get [ exch { size div } forall ] /mtrx exch def
+	    bmp 3 get bmp 4 get mtrx transform
+	    /LLY exch def pop
+	    bmp 1 get bmp 3 get add bmp 2 get bmp 4 get add mtrx transform
+	    /URY exch def pop
+	} {
+	    pop
+	} ifelse
+	/FirstCode -1 store
+
+	bmp 0 get size div 0		% wx wy
+	setcharwidth			% We can't use setcachedevice here.
+
+	bmp 1 get 0 gt bmp 2 get 0 gt and {
+	    bmp 1 get bmp 2 get		% width height
+	    true			% polarity
+	    [ size 0 0 size neg bmp 3 get neg bmp 2 get bmp 4 get add ] % matrix
+	    bmp 5 1 getinterval cvx	% datasrc
+	    imagemask
+	} if
+    } ifelse
+} bind def    
+
+/BuildCharCommon {
+    1 index /Encoding get exch get
+    1 index /BuildGlyph get exec
+} bind def
+
+%% Bitmap font creater
+
+%% Common Encoding shared by all bitmap fonts.
+/EncodingCommon 256 array def
+%% Mapping table from character name to character code.
+/NameIndexDict 256 dict def
+0 1 255 { %for
+    /idx exch def
+    /idxname idx 256 add 16 (XXX) cvrs dup 0 67 put cvn def % `C' == 67
+    EncodingCommon idx idxname put
+    NameIndexDict idxname idx put
+} for
+
+/GlobalFontIndex 0 def
+
+%% fontname dimension fontsize relative-compose baseline-offset fbbx  |-  --
+/BitmapFont {
+    14 dict begin
+    /FontBBox exch def
+    /BaselineOffset exch def
+    /RelativeCompose exch def
+    /FontSize exch def
+    /FontBBox [ FontBBox { FontSize div } forall ] def
+    /FontDimension exch def
+    /FontIndex GlobalFontIndex def
+    /FontType 3 def
+    /FontMatrix matrix def
+    /Encoding EncodingCommon def
+    /BuildGlyph { BuildGlyphCommon } def
+    /BuildChar { BuildCharCommon } def
+    currentdict end
+    definefont pop
+    /GlobalFontIndex GlobalFontIndex 1 add def
+} bind def
+
+%% Define a new bitmap font.
+%% fontname dimension fontsize relative-compose baseline-offset fbbx  |-  --
+/NF {
+    /fbbx exch def
+    %% Convert BDF's FontBoundingBox to PostScript's FontBBox
+    [ fbbx 2 get fbbx 3 get
+      fbbx 2 get fbbx 0 get add fbbx 3 get fbbx 1 get add ]
+    BitmapFont
+} bind def
+
+%% Define a glyph for the specified font and character.
+/NG {				% fontname charcode bitmap-data  |-  --
+    /bmp exch def
+    exch findfont dup /BaselineOffset get bmp 4 get add bmp exch 4 exch put
+    /FontIndex get exch
+    dup 256 idiv exch 256 mod GlobalCharName
+    bmp AddBitmap
+} bind def
+%%%% End of bitmap font handler
+
+")
+
+;; External library support.
+
+;; The following three functions are to be called from external
+;; libraries which support bitmap fonts (e.g. `bdf') to get
+;; appropriate PostScript code.
+
+(defun ps-mule-generate-bitmap-prologue ()
+  (unless ps-mule-bitmap-prologue-generated
+    (setq ps-mule-bitmap-prologue-generated t)
+    (list ps-mule-bitmap-prologue)))
+
+(defun ps-mule-generate-bitmap-font (&rest args)
+  (list (apply 'format "/%s %d %f %S %d %S NF\n" args)))
+
+(defun ps-mule-generate-bitmap-glyph (font-name code dwidth bbx bitmap)
+  (format "/%s %d [ %d %d %d %d %d <%s> ] NG\n"
+	  font-name code
+	  dwidth (aref bbx 0) (aref bbx 1) (aref bbx 2) (aref bbx 3)
+	  bitmap))
+
+;; Mule specific initializers.
+
+(defun ps-mule-initialize ()
+  "Produce Poscript code in the prologue part for multibyte characters."
+  (setq ps-mule-current-charset 'ascii
+	ps-mule-font-cache nil
+	ps-mule-prologue-generated nil
+	ps-mule-cmpchar-prologue-generated nil
+	ps-mule-bitmap-prologue-generated nil)
+  (mapcar (function (lambda (x) (setcar (cdr x) nil)))
+	  ps-mule-external-libraries))
+
+(defun ps-mule-begin (from to)
+  (if (and (boundp 'enable-multibyte-characters)
+	   enable-multibyte-characters)
+      ;; Initialize `ps-mule-charset-list'.  If some characters aren't
+      ;; printable, warn it.
+      (let ((charsets (delete 'ascii (find-charset-region from to))))
+	(setq ps-mule-charset-list charsets)
+	(save-excursion
+	  (goto-char from)
+	  (if (search-forward "\200" to t)
+	      (setq ps-mule-charset-list
+		    (cons 'composition ps-mule-charset-list))))
+	(if (and (catch 'tag
+		   (while charsets
+		     (if (or (eq (car charsets) 'composition)
+			     (ps-mule-printable-p (car charsets)))
+			 (setq charsets (cdr charsets))
+		       (throw 'tag t))))
+		 (not (y-or-n-p "Font for some characters not found, continue anyway? ")))
+	    (error "Printing cancelled"))))
+
+  (if ps-mule-charset-list
+      (let ((l ps-mule-charset-list)
+	    font-spec)
+	(unless ps-mule-prologue-generated
+	  (ps-output-prologue ps-mule-prologue)
+	  (setq ps-mule-prologue-generated t))
+	;; If external functions are necessary, generate prologues for them.
+	(while l
+	  (if (and (eq (car l) 'composition)
+		   (not ps-mule-cmpchar-prologue-generated))
+	      (progn
+		(ps-output-prologue ps-mule-cmpchar-prologue)
+		(setq ps-mule-cmpchar-prologue-generated t))
+	    (if (setq font-spec (ps-mule-get-font-spec (car l) 'normal))
+		(ps-mule-init-external-library font-spec)))
+	  (setq l (cdr l)))))
+
+  ;; If ASCII font is also specified in ps-mule-font-info-database,
+  ;; use it istead of what specified in ps-font-info-database.
+  (let ((font-spec (ps-mule-get-font-spec 'ascii 'normal)))
+    (if font-spec
+	(progn
+	  (unless ps-mule-prologue-generated
+	    (ps-output-prologue ps-mule-prologue)
+	    (setq ps-mule-prologue-generated t))
+	  (ps-mule-init-external-library font-spec)
+	  (let ((font (ps-font-alist 'ps-font-for-text))
+		(i 0))
+	    (while font
+	      (let ((ps-current-font i))
+		;; Be sure to download a glyph for SPACE in advance.
+		(ps-mule-prepare-font
+		 (ps-mule-get-font-spec 'ascii (car font))
+		 " " 'ascii 'no-setfont))
+	      (setq font (cdr font) i (1+ i))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun ps-line-lengths-internal ()
   "Display the correspondence between a line length and a font size,
 using the current ps-print setup.
@@ -2984,16 +4002,14 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-output-string-prim (string)
   (insert "(")				;insert start-string delimiter
   (save-excursion			;insert string
-    (insert string))
+    (insert (string-as-unibyte string)))
   ;; Find and quote special characters as necessary for PS
   ;; This skips everything except control chars, nonascii chars,
   ;; (, ) and \.
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
-      (if (> (char-bytes special) 1)
-	  (forward-char)
-	(delete-char 1)
-	(insert (aref ps-string-escape-codes special)))))
+      (delete-char 1)
+      (insert (aref ps-string-escape-codes special))))
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
 
@@ -3012,16 +4028,28 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-output-list (the-list)
   (mapcar 'ps-output the-list))
 
+;; Output strings in the list ARGS in the PostScript prologue part.
+(defun ps-output-prologue (args)
+  (ps-output 'prologue (if (stringp args) (list args) args)))
+
 (defun ps-flush-output ()
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
     (while ps-output-head
       (let ((it (car ps-output-head)))
-	(if (not (eq t it))
-	    (insert it)
+	(cond
+	 ((eq t it)
 	  (setq ps-output-head (cdr ps-output-head))
-	  (ps-output-string-prim (car ps-output-head))))
+	  (ps-output-string-prim (car ps-output-head)))
+	 ((eq 'prologue it)
+	  (setq ps-output-head (cdr ps-output-head))
+	  (save-excursion
+	    (search-backward "\nBeginDoc")
+	    (forward-char 1)
+	    (apply 'insert (car ps-output-head))))
+	 (t
+	  (insert it))))
       (setq ps-output-head (cdr ps-output-head))))
   (ps-init-output-queue))
 
@@ -3322,6 +4350,8 @@ page-height == bm + print-height + tm - ho - hh
       (setq font (cdr font)
 	    i (1+ i))))
 
+  (ps-mule-initialize)
+
   (ps-output "\nBeginDoc\n\n"
 	     "%%EndPrologue\n"))
 
@@ -3355,13 +4385,21 @@ page-height == bm + print-height + tm - ho - hh
   (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
 	ps-page-count 0
 	ps-control-or-escape-regexp
-	(cond ((eq ps-print-control-characters '8-bit)
-	       "[\000-\037\177-\377]")
-	      ((eq ps-print-control-characters 'control-8-bit)
-	       "[\000-\037\177-\237]")
-	      ((eq ps-print-control-characters 'control)
-	       "[\000-\037\177]")
-	      (t "[\t\n\f]"))))
+	(if ps-mule-charset-list
+	    (cond ((eq ps-print-control-characters '8-bit)
+		   "[^\040-\176]")
+		  ((eq ps-print-control-characters 'control-8-bit)
+		   (string-as-multibyte "[^\040-\176\240-\377]"))
+		  ((eq ps-print-control-characters 'control)
+		   (string-as-multibyte "[^\040-\176\200-\377]"))
+		  (t (string-as-multibyte "[^\000-\011\013\015-\377")))
+	  (cond ((eq ps-print-control-characters '8-bit)
+		 (string-as-unibyte "[\000-\037\177-\377]"))
+		((eq ps-print-control-characters 'control-8-bit)
+		 (string-as-unibyte "[\000-\037\177-\237]"))
+		((eq ps-print-control-characters 'control)
+		 "[\000-\037\177]")
+		(t "[\t\n\f]")))))
 
 (defmacro ps-page-number ()
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
@@ -3398,7 +4436,8 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-begin-page ()
   (ps-get-page-dimensions)
   (setq ps-width-remaining  ps-print-width
-	ps-height-remaining ps-print-height)
+	ps-height-remaining ps-print-height
+	ps-mule-current-charset 'ascii)
 
   (ps-header-page)
 
@@ -3455,7 +4494,13 @@ EndDSCPage\n"))
   (let* ((wrappoint (ps-find-wrappoint from to
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
-	 (string (buffer-substring-no-properties from to)))
+	 (string (buffer-substring-no-properties from to))
+	 (font-spec
+	  (ps-mule-get-font-spec
+	   'ascii
+	   (car (nth ps-current-font (ps-font-alist 'ps-font-for-text))))))
+    (and font-spec
+	 (ps-mule-prepare-font font-spec string 'ascii))
     (ps-output-string string)
     (ps-output " S\n")
     wrappoint))
@@ -3491,7 +4536,8 @@ EndDSCPage\n"))
 		       ))))))
 
 (defun ps-set-font (font)
-  (ps-output (format "/f%d F\n" (setq ps-current-font font))))
+  (setq ps-last-font (format "f%d" (setq ps-current-font font)))
+  (ps-output (format "/%s F\n" ps-last-font)))
 
 (defun ps-set-bg (color)
   (if (setq ps-current-bg color)
@@ -3532,6 +4578,8 @@ EndDSCPage\n"))
     (ps-output (number-to-string effects) " EF\n")
     (setq ps-current-effect effects)))
 
+  (setq ps-mule-current-charset 'ascii)
+
   ;; Starting at the beginning of the specified region...
   (save-excursion
     (goto-char from)
@@ -3540,19 +4588,26 @@ EndDSCPage\n"))
     ;; pagefeeds, control characters, and plot each chunk.
     (while (< from to)
       (if (re-search-forward ps-control-or-escape-regexp to t)
-	  ;; region with some control characters
+	  ;; region with some control characters or some multibyte characters
 	  (let* ((match-point (match-beginning 0))
 		 (match (char-after match-point)))
-	    (ps-plot 'ps-basic-plot-string from (1- (point)) bg-color)
+	    (when (< from match-point)
+	      (unless (eq ps-mule-current-charset 'ascii)
+		(ps-set-font ps-current-font)
+		(setq ps-mule-current-charset 'ascii))
+	      (ps-plot 'ps-basic-plot-string from match-point bg-color))
 	    (cond
 	     ((= match ?\t)		; tab
 	      (let ((linestart (save-excursion (beginning-of-line) (point))))
 		(forward-char -1)
 		(setq from (+ linestart (current-column)))
-		(if (re-search-forward "[ \t]+" to t)
-		    (ps-plot 'ps-basic-plot-whitespace
-			     from (+ linestart (current-column))
-			     bg-color))))
+		(when (re-search-forward "[ \t]+" to t)
+		  (unless (eq ps-mule-current-charset 'ascii)
+		    (ps-set-font ps-current-font)
+		    (setq ps-mule-current-charset 'ascii))
+		  (ps-plot 'ps-basic-plot-whitespace
+			   from (+ linestart (current-column))
+			   bg-color))))
 
 	     ((= match ?\n)		; newline
 	      (ps-next-line))
@@ -3563,11 +4618,21 @@ EndDSCPage\n"))
 	      (or (and (= (char-after (1- match-point)) ?\n)
 		       (= ps-height-remaining ps-print-height))
 		  (ps-next-page)))
+
+	     ((> match 255)		; a multibyte character
+	      (let ((charset (char-charset match)))
+		(or (eq charset 'composition)
+		    (ps-mule-skip-same-charset charset))
+		(setq ps-mule-current-charset charset)
+		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
 					; characters from ^@ to ^_ and
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
-	;; region without control characters
+	;; region without control characters nor multibyte characters
+	(when (not (eq ps-mule-current-charset 'ascii))
+	  (ps-set-font  ps-current-font)
+	  (setq ps-mule-current-charset 'ascii))
 	(ps-plot 'ps-basic-plot-string from to bg-color)
 	(setq from to)))))
 
@@ -3696,18 +4761,29 @@ If FACE is not a valid face name, it is used default face."
 	;; Kludge-compatible:
 	(memq face kind-list))))
 
-(defun ps-face-bold-p (face)
-  (if (eq ps-print-emacs-type 'emacs)
-      (or (face-bold-p face)
-	  (memq face ps-bold-faces))
-    (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold" ps-bold-faces)))
 
-(defun ps-face-italic-p (face)
-  (if (eq ps-print-emacs-type 'emacs)
-      (or (face-italic-p face)
-	  (memq face ps-italic-faces))
-    (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
-	(ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces))))
+(cond ((eq ps-print-emacs-type 'emacs)  ; emacs
+
+       (defun ps-face-bold-p (face)
+	 (or (face-bold-p face)
+	     (memq face ps-bold-faces)))
+
+       (defun ps-face-italic-p (face)
+	 (or (face-italic-p face)
+	     (memq face ps-italic-faces)))
+       )
+					; xemacs
+					; lucid
+					; epoch
+      (t				; epoch
+       (defun ps-face-bold-p (face)
+	 (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold" ps-bold-faces))
+
+       (defun ps-face-italic-p (face)
+	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
+	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces)))
+       ))
+
 
 (defun ps-face-underlined-p (face)
   (or (face-underline-p face)
@@ -3859,7 +4935,19 @@ If FACE is not a valid face name, it is used default face."
 
        ((eq ps-print-emacs-type 'emacs)
 	(let ((property-change from)
-	      (overlay-change from))
+	      (overlay-change from)
+	      (save-buffer-invisibility-spec buffer-invisibility-spec)
+	      (buffer-invisibility-spec
+	       (and (listp buffer-invisibility-spec)
+		    (let ((seq buffer-invisibility-spec)
+			  elt res)
+		      (while seq
+			(setq elt (car seq)
+			      seq (cdr seq))
+			(or (eq elt 'invisible)
+			    (and (listp elt) (eq (car elt) 'invisible))
+			    (setq res (cons elt res))))
+		      (nreverse seq)))))
 	  (while (< from to)
 	    (if (< property-change to)	; Don't search for property change
 					; unless previous search succeeded.
@@ -3880,10 +4968,10 @@ If FACE is not a valid face name, it is used default face."
 		  (cond ((let ((prop (get-text-property from 'invisible)))
 			   ;; Decide whether this invisible property
 			   ;; really makes the text invisible.
-			   (if (eq buffer-invisibility-spec t)
+			   (if (eq save-buffer-invisibility-spec t)
 			       (not (null prop))
-			     (or (memq prop buffer-invisibility-spec)
-				 (assq prop buffer-invisibility-spec))))
+			     (or (memq prop save-buffer-invisibility-spec)
+				 (assq prop save-buffer-invisibility-spec))))
 			 'emacs--invisible--face)
 			((get-text-property from 'face))
 			(t 'default)))
@@ -3898,14 +4986,15 @@ If FACE is not a valid face name, it is used default face."
 					     0)))
 		  (and (or overlay-invisible overlay-face)
 		       (> overlay-priority face-priority)
-		       (setq face (cond ((if (eq buffer-invisibility-spec t)
-					     (not (null overlay-invisible))
-					   (or (memq overlay-invisible
-						     buffer-invisibility-spec)
-					       (assq overlay-invisible
-						     buffer-invisibility-spec)))
-					 nil)
-					((and face overlay-face)))
+		       (setq face
+			     (cond ((if (eq save-buffer-invisibility-spec t)
+					(not (null overlay-invisible))
+				      (or (memq overlay-invisible
+						save-buffer-invisibility-spec)
+					  (assq overlay-invisible
+						save-buffer-invisibility-spec)))
+				    nil)
+				   ((and face overlay-face)))
 			     face-priority overlay-priority)))
 		(setq overlays (cdr overlays))))
 	    ;; Plot up to this record.
@@ -3927,7 +5016,6 @@ If FACE is not a valid face name, it is used default face."
 	(narrow-to-region from to)
 	(and ps-razzle-dazzle
 	     (message "Formatting...%3d%%" (setq ps-razchunk 0)))
-	(set-buffer buffer)
 	(setq ps-source-buffer buffer
 	      ps-spool-buffer (get-buffer-create ps-spool-buffer-name))
 	(ps-init-output-queue)
@@ -3948,6 +5036,7 @@ If FACE is not a valid face name, it is used default face."
 		(save-excursion
 		  (set-buffer ps-source-buffer)
 		  (if needs-begin-file (ps-begin-file))
+		  (ps-mule-begin from to)
 		  (ps-begin-job)
 		  (ps-begin-page))
 		(set-buffer ps-source-buffer)
@@ -3988,6 +5077,9 @@ If FACE is not a valid face name, it is used default face."
 
 	(and ps-razzle-dazzle (message "Formatting...done"))))))
 
+;; To avoid compilation gripes
+(defvar dos-ps-printer nil)
+
 ;; Permit dynamic evaluation at print time of `ps-lpr-switches'.
 (defun ps-do-despool (filename)
   (if (or (not (boundp 'ps-spool-buffer))
@@ -4013,14 +5105,12 @@ If FACE is not a valid face name, it is used default face."
 		      (list (concat "-P" ps-printer-name)))
 		 ps-lpr-switches)))
 	  (if (and (memq system-type '(ms-dos windows-nt))
-		   (or (and (boundp 'dos-ps-printer)
-			    (stringp (symbol-value 'dos-ps-printer)))
-		       (stringp (symbol-value 'ps-printer-name))))
+		   (or (stringp dos-ps-printer)
+		       (stringp ps-printer-name)))
 	      (write-region (point-min) (point-max)
-			    (or (and (boundp 'dos-ps-printer)
-				     (stringp (symbol-value 'dos-ps-printer))
-				     (symbol-value 'dos-ps-printer))
-				(symbol-value 'ps-printer-name))
+			    (if (stringp  dos-ps-printer)
+				dos-ps-printer
+			      ps-printer-name)
 			    t 0)
 	    (apply 'call-process-region
 		   (point-min) (point-max) ps-lpr-command nil
