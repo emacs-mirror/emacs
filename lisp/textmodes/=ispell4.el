@@ -493,6 +493,7 @@ L lookup; Q quit\n")
     (while flag
       (ispell-show-choices word message first-line)
       (message "Ispell command: ")
+      (undo-boundary)
       (let ((c (downcase (read-char)))
 	    replacement)
 	(cond ((and (>= c ?0)
