@@ -1,6 +1,6 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.4) $
+ * $HopeName: MMsrc!meter.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * TRANSGRESSIONS
@@ -92,7 +92,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 
 void MeterEmit(Meter meter)
 {
-  EVENT_PUDDUU(MeterValues, meter, meter->count, meter->total,
-               meter->meanSquared, meter->max, meter->min);
+  EVENT_PDDUUU(MeterValues, meter, meter->total, meter->meanSquared,
+               meter->count, meter->max, meter->min);
   UNUSED(meter); /* @@@@ hack */
 }
