@@ -1194,7 +1194,7 @@ This function should be in the list `comint-output-filter-functions'."
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
 	 (scroll comint-scroll-to-bottom-on-output))
-    (if (and process scroll (not (window-minibuffer-p selected)))
+    (if (and process (not (window-minibuffer-p selected)))
 	(walk-windows
 	 (function (lambda (window)
 	   (if (eq (window-buffer window) current)
