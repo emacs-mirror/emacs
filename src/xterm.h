@@ -1054,6 +1054,8 @@ extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object))
 extern int frame_update_line_height P_ ((struct frame *));
 extern int compute_glyph_face P_ ((struct frame *, int, int));
 extern int compute_glyph_face_1 P_ ((struct frame *, Lisp_Object, int));
+extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
+				   unsigned long *, int));
 
 /* Defined in xmenu.c */
 
