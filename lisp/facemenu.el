@@ -187,7 +187,8 @@ when they are created.")
   (let ((map (make-sparse-keymap "Face")))
     (define-key map [dc] (cons "Display Colors" 'list-colors-display))
     (define-key map [df] (cons "Display Faces" 'list-faces-display))
-    (define-key map [rm] (cons "Remove Props" 'facemenu-remove-all))
+    (define-key map [dp] (cons "List Properties" 'list-text-properties-at))
+    (define-key map [rm] (cons "Remove Properties" 'facemenu-remove-all))
     (define-key map [s1] (list "-----------------"))
     (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
     (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
@@ -335,6 +336,20 @@ This sets the `read-only' text property; it can be undone with
     (remove-text-properties 
      start end '(face nil invisible nil intangible nil 
 		      read-only nil category nil))))
+
+;;;###autoload
+(defun list-text-properties-at (p)
+  "Pop up a buffer listing text-properties at LOCATION."
+  (interactive "d")
+  (let ((props (text-properties-at p)))
+    (if (null props)
+	(message "None")
+      (with-output-to-temp-buffer "*Text Properties*"
+	(princ (format "Text properties at %d:\n\n" p))
+	(while props
+	  (princ (format "%-20s %S\n"
+			 (car props) (car (cdr props))))
+	  (setq props (cdr (cdr props))))))))
 
 ;;;###autoload
 (defun facemenu-read-color (prompt)
