@@ -654,7 +654,7 @@ User options are structured into \"groups\".
 Initially the top-level group `Emacs' and its immediate subgroups
 are shown; the contents of those subgroups are initially hidden."
   (interactive)
-  (customize-groupx 'emacs))
+  (customize-group 'emacs))
 
 ;;;###autoload
 (defun customize-group (group)
