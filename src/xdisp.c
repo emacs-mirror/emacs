@@ -710,8 +710,6 @@ static int try_scrolling P_ ((Lisp_Object, int, int, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
 static int message_log_check_duplicate P_ ((int, int, int, int));
-int invisible_p P_ ((Lisp_Object, Lisp_Object));
-int invisible_ellipsis_p P_ ((Lisp_Object, Lisp_Object));
 static void push_it P_ ((struct it *));
 static void pop_it P_ ((struct it *));
 static void sync_frame_with_window_matrix_rows P_ ((struct window *));
@@ -1429,7 +1427,7 @@ check_window_end (w)
    at character position CHARPOS.  CHARPOS < 0 means that no buffer
    position is specified which is useful when the iterator is assigned
    a position later.  BYTEPOS is the byte position corresponding to
-   CHARPOS.  BYTEPOS <= 0 means compute it from CHARPOS.
+   CHARPOS.  BYTEPOS < 0 means compute it from CHARPOS.
 
    If ROW is not null, calls to produce_glyphs with IT as parameter
    will produce glyphs in that row.
@@ -1535,7 +1533,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
-    = (!NILP (Vtransient_mark_mode) 
+    = (!NILP (Vtransient_mark_mode)
        && !NILP (current_buffer->mark_active)
        && XMARKER (current_buffer->mark)->buffer != 0);
 
@@ -1672,14 +1670,14 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
-  if (charpos > 0)
+  if (charpos >= BUF_BEG (current_buffer))
     {
       it->end_charpos = ZV;
       it->face_id = -1;
       IT_CHARPOS (*it) = charpos;
       
       /* Compute byte position if not specified.  */
-      if (bytepos <= 0)
+      if (bytepos < charpos)
 	IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
       else
 	IT_BYTEPOS (*it) = bytepos;
@@ -7991,6 +7989,7 @@ hscroll_window_tree (window)
 		      &text_area_width, &text_area_height);
 
 	  /* Scroll when cursor is inside this scroll margin.  */
+	  /* Shouldn't we export this `5' for customization ?  -stef  */
 	  hscroll_margin = 5 * CANON_X_UNIT (XFRAME (w->frame));
 	  
 	  if ((XFASTINT (w->hscroll)
@@ -14501,6 +14500,36 @@ display_string (string, lisp_string, face_string, face_string_pos,
 
 
 
+#define DOLIST(var, list, code)				\
+  {							\
+    register Lisp_Object tail;				\
+    for (tail = list; CONSP (tail); tail = XCDR (tail))	\
+      {							\
+	var = XCAR (tail);				\
+	code;						\
+      }							\
+  }
+
+/* Loop through the properties in PROPVAL and call CODE for each.
+   CODE can access the current element in `propelt'.  */
+
+#define LOOP_PROPVAL(var, propval, code)			\
+  {								\
+    var = (propval);						\
+    code;							\
+    								\
+    if (CONSP (propval))					\
+      {								\
+	register Lisp_Object tail;				\
+	for (tail = propval; CONSP (tail); tail = XCDR (tail))	\
+	  {							\
+	    var = XCAR (tail);					\
+	    code;						\
+	  }							\
+      }								\
+    return 0;							\
+  }
+
 /* This is like a combination of memq and assq.  Return 1 if PROPVAL
    appears as an element of LIST or as the car of an element of LIST.
    If PROPVAL is a list, compare each element against LIST in that
@@ -14512,37 +14541,13 @@ invisible_p (propval, list)
      register Lisp_Object propval;
      Lisp_Object list;
 {
-  register Lisp_Object tail, proptail;
-  
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
-    {
-      register Lisp_Object tem;
-      tem = XCAR (tail);
-      if (EQ (propval, tem))
-	return 1;
-      if (CONSP (tem) && EQ (propval, XCAR (tem)))
-	return 1;
-    }
-  
-  if (CONSP (propval))
-    {
-      for (proptail = propval; CONSP (proptail); proptail = XCDR (proptail))
-	{
-	  Lisp_Object propelt;
-	  propelt = XCAR (proptail);
-	  for (tail = list; CONSP (tail); tail = XCDR (tail))
-	    {
-	      register Lisp_Object tem;
-	      tem = XCAR (tail);
-	      if (EQ (propelt, tem))
-		return 1;
-	      if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-		return 1;
-	    }
-	}
-    }
-  
-  return 0;
+  register Lisp_Object propelt, tem;
+  LOOP_PROPVAL (propelt, propval,
+		DOLIST (tem, list,
+			if (EQ (propelt, tem))
+			  return 1;
+			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+			  return 1;));
 }
 
 
@@ -14557,31 +14562,27 @@ invisible_ellipsis_p (propval, list)
      register Lisp_Object propval;
      Lisp_Object list;
 {
-  register Lisp_Object tail, proptail;
-  
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
-    {
-      register Lisp_Object tem;
-      tem = XCAR (tail);
-      if (CONSP (tem) && EQ (propval, XCAR (tem)))
-	return ! NILP (XCDR (tem));
-    }
-  
-  if (CONSP (propval))
-    for (proptail = propval; CONSP (proptail); proptail = XCDR (proptail))
-      {
-	Lisp_Object propelt;
-	propelt = XCAR (proptail);
-	for (tail = list; CONSP (tail); tail = XCDR (tail))
-	  {
-	    register Lisp_Object tem;
-	    tem = XCAR (tail);
-	    if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-	      return ! NILP (XCDR (tem));
-	  }
-      }
-  
-  return 0;
+  register Lisp_Object propelt, tem;
+  LOOP_PROPVAL (propelt, propval,
+		DOLIST (tem, list,
+			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+			  return !NILP (XCDR (tem))));
+}
+
+/* As above but for "completely" invisible (no ellipsis).  */
+
+int
+invisible_noellipsis_p (propval, list)
+     register Lisp_Object propval;
+     Lisp_Object list;
+{
+  register Lisp_Object propelt, tem;
+  LOOP_PROPVAL (propelt, propval,
+		DOLIST (tem, list,
+			if (EQ (propelt, tem))
+			  return 1;
+			if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+			  return NILP (XCDR (tem))));
 }
 
 
@@ -14801,7 +14802,7 @@ and is used only on frames for which no explicit name has been set\n\
     = Vframe_title_format
     = Fcons (intern ("multiple-frames"),
 	     Fcons (build_string ("%b"),
-		    Fcons (Fcons (build_string (""),
+		    Fcons (Fcons (empty_string,
 				  Fcons (intern ("invocation-name"),
 					 Fcons (build_string ("@"),
 						Fcons (intern ("system-name"),
@@ -14856,8 +14857,7 @@ vertical margin.");
     "List of functions to call to fontify regions of text.\n\
 Each function is called with one argument POS.  Functions must\n\
 fontify a region starting at POS in the current buffer, and give\n\
-fontified regions the property `fontified'.\n\
-This variable automatically becomes buffer-local when set.");
+fontified regions the property `fontified'.");
   Vfontification_functions = Qnil;
   Fmake_variable_buffer_local (Qfontification_functions);
 
