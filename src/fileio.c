@@ -3503,7 +3503,8 @@ actually used.")
 		  current_buffer->enable_multibyte_characters = Qnil;
 		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		  val = call1 (Vset_auto_coding_function, make_number (nread));
+		  val = call2 (Vset_auto_coding_function,
+			       filename, make_number (nread));
 		  set_buffer_internal (prev);
 		  /* Discard the unwind protect for recovering the
                      current buffer.  */
@@ -4034,8 +4035,8 @@ actually used.")
 	      current_buffer->enable_multibyte_characters = Qnil;
 	      record_unwind_protect (set_auto_coding_unwind,
 				     prev_multibyte);
-	      val = call1 (Vset_auto_coding_function,
-			   make_number (inserted));
+	      val = call2 (Vset_auto_coding_function,
+			   filename, make_number (inserted));
 	      /* Discard the unwind protect for recovering the
 		 error of Vset_auto_coding_function.  */
 	      specpdl_ptr--;
@@ -4291,7 +4292,7 @@ This does code conversion according to the value of\n\
       val = Qnil;
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
-    else if (NILP (current_buffer->enable_multibyte_characters))
+    else
       {
 	/* If the variable `buffer-file-coding-system' is set locally,
 	   it means that the file was read with some kind of code
@@ -4303,37 +4304,42 @@ This does code conversion according to the value of\n\
 	   format if the default value of `buffer-file-coding-system'
 	   tells that it is not Unix-like (LF only) format.  */
 	val = current_buffer->buffer_file_coding_system;
-	if (NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
+	if (NILP (val)
+	    || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
 	  {
-	    struct coding_system coding_temp;
-
-	    setup_coding_system (Fcheck_coding_system (val), &coding_temp);
-	    if (coding_temp.eol_type == CODING_EOL_CRLF
-		|| coding_temp.eol_type == CODING_EOL_CR)
+	    if (NILP (current_buffer->enable_multibyte_characters))
 	      {
-		setup_coding_system (Qraw_text, &coding);
-		coding.eol_type = coding_temp.eol_type;
+		setup_coding_system (Fcheck_coding_system (val), &coding);
+		setup_raw_text_coding_system (&coding);
 		goto done_setup_coding;
 	      }
 	    val = Qnil;
 	  }
-      }
-    else
-      {
-	Lisp_Object args[7], coding_systems;
 
-	args[0] = Qwrite_region; args[1] = start; args[2] = end;
-	args[3] = filename; args[4] = append; args[5] = visit;
-	args[6] = lockname;
-	coding_systems = Ffind_operation_coding_system (7, args);
-	val = (CONSP (coding_systems) && !NILP (XCONS (coding_systems)->cdr)
-	       ? XCONS (coding_systems)->cdr
-	       : current_buffer->buffer_file_coding_system);
-	/* Confirm that VAL can surely encode the current region.  */
-	if (!NILP (Ffboundp (Vselect_safe_coding_system_function)))
+	if (NILP (val))
+	  {
+	    /* Check file-coding-system-alist.  */
+	    Lisp_Object args[7], coding_systems;
+
+	    args[0] = Qwrite_region; args[1] = start; args[2] = end;
+	    args[3] = filename; args[4] = append; args[5] = visit;
+	    args[6] = lockname;
+	    coding_systems = Ffind_operation_coding_system (7, args);
+	    if (CONSP (coding_systems) && !NILP (XCONS (coding_systems)->cdr))
+	      val = XCONS (coding_systems)->cdr;
+	  }
+
+	if (NILP (val))
+	  /* If we still have not decided a coding system, use the
+	     default value of buffer-file-coding-system.  */
+	  val = current_buffer->buffer_file_coding_system;
+	    
+	if (! NILP (val)
+	    && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
+	  /* Confirm that VAL can surely encode the current region.  */
 	  val = call3 (Vselect_safe_coding_system_function, start, end, val);
       }
-    setup_coding_system (Fcheck_coding_system (val), &coding); 
+    setup_coding_system (Fcheck_coding_system (val), &coding);
 
   done_setup_coding:
     if (!STRINGP (start) && !NILP (current_buffer->selective_display))
@@ -5646,9 +5652,11 @@ for its argument.");
   DEFVAR_LISP ("set-auto-coding-function",
 	       &Vset_auto_coding_function,
     "If non-nil, a function to call to decide a coding system of file.\n\
-One argument is passed to this function: the length of a file contents\n\
-following the point.\n\
-This function should return a coding system to decode the file contents\n\
+Two arguments are passed to this function: the file name\n\
+and the length of a file contents following the point.\n\
+This function should return a coding system to decode the file contents.\n\
+It should check the file name against `auto-coding-alist'.\n\
+If no coding system is decided, it should check a coding system\n\
 specified in the heading lines with the format:\n\
 	-*- ... coding: CODING-SYSTEM; ... -*-\n\
 or local variable spec of the tailing lines with `coding:' tag.");
