@@ -1,4 +1,4 @@
-;;; w32-win.el --- parse switches controlling interface with W32 window system.
+;;; w32-win.el --- parse switches controlling interface with W32 window system
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 

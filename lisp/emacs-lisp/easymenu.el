@@ -1,9 +1,9 @@
-;;; easymenu.el --- support the easymenu interface for defining a menu.
+;;; easymenu.el --- support the easymenu interface for defining a menu
 
 ;; Copyright (C) 1994, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
-;; Author: rms
+;; Author: Richard Stallman <rms@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

@@ -22,7 +22,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;;; Code:
+;;; Commentary:
+
+;;; Code:
 
 (define-key function-key-map "\e[A" [up])
 (define-key function-key-map "\e[B" [down])
@@ -45,3 +47,5 @@
 (define-key function-key-map "\e[23~" [f11])
 (define-key function-key-map "\e[24~" [f12])
 (define-key function-key-map "\e[29~" [print])
+
+;;; xterm.el ends here

@@ -1,3 +1,24 @@
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* allout.el: A fix to follow coding conventions.
+
+	* find-lisp.el: A fix to follow coding conventions.
+
+	* term/w32-win.el: A fix to follow coding conventions.
+
+	* textmodes/sgml-mode.el: A fix to follow coding conventions.
+
+	* term/xterm.el: A fix to follow coding conventions.
+
+	* term/news.el: A fix to follow coding conventions.
+
+	* emulation/vi.el: A fix to follow coding conventions, Maintainer:
+	header line fixed.
+
+	* sun-curs.el: Fix Maintainer: header line.
+
+	* emacs-lisp/easymenu.el: Address of the author added.
+
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired.el (dired-insert-set-properties): Fix invalid mouse-face

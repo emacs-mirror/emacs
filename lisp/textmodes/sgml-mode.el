@@ -5,7 +5,6 @@
 ;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
-;; Maintainer: ???
 ;; Keywords: wp, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
@@ -363,7 +362,7 @@ varables of same name)."
 	(setq face (funcall skeleton-transformation face))
 	(setq facemenu-end-add-face (concat "</" face ">"))
 	(concat "<" face ">"))
-    (error "Face not configured for %s mode." mode-name)))
+    (error "Face not configured for %s mode" mode-name)))
 
 
 ;;;###autoload
@@ -1386,4 +1385,5 @@ Can be used as a value for `html-mode-hook'."
    \n))
 
 (provide 'sgml-mode)
+
 ;;; sgml-mode.el ends here

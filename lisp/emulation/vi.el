@@ -1,14 +1,15 @@
-;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs.
+;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs
 
 ; This file is in the public domain because the authors distributed it
 ; without a copyright notice before the US signed the Bern Convention.
 
+;; This file is part of GNU Emacs.
+
 ;; Author: Neal Ziring <nz@rsch.wisc.edu>
 ;;	Felix S. T. Wu <wu@crys.wisc.edu>
-;; Maintainer: none
 ;; Keywords: emulations
 
-;;; Commentary: 
+;;; Commentary:
 
 ; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
 ; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)

@@ -1,9 +1,9 @@
-;;; find-lisp.el --- Emulation of find in Emacs Lisp
+;;; find-lisp.el --- emulation of find in Emacs Lisp
 
-;; Author:  Peter Breton
+;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
-;; Time-stamp: <2000-10-04 00:17:29 pbreton>
+;; Time-stamp: <2001-07-16 12:42:35 pavel>
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
@@ -356,8 +356,8 @@ It is a function which takes two arguments, the directory and its parent."
 
 (provide 'find-lisp)
 
-;;; find-lisp.el ends here
-
 ;; Local Variables:
 ;; autocompile: t
 ;; End:
+
+;;; find-lisp.el ends here

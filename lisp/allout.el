@@ -1,11 +1,11 @@
-;;; allout.el --- Extensive outline mode for use alone and with other modes.
+;;; allout.el --- extensive outline mode for use alone and with other modes
 
 ;; Copyright (C) 1992, 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.27 2001/02/26 12:07:48 gerd Exp $||
+;; Version: $Id: allout.el,v 1.28 2001/07/02 10:45:54 eliz Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;;_* Commentary:
+;;; Commentary:
 
 ;; Allout outline mode provides extensive outline formatting and
 ;; and manipulation beyond standard emacs outline mode.  It provides
@@ -59,6 +59,8 @@
 ;;        Just `ESC-x eval-current-buffer' to give it a whirl.
 
 ;; Ken Manheimer	klm@python.org
+
+;;; Code:
 
 ;;;_* Provide
 (provide 'outline)
@@ -507,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.27 $"))
+  (let ((rcs-rev "$Revision: 1.28 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -1982,7 +1984,7 @@ DONT-COMPLAIN is non-nil."
 	(progn (goto-char last-good)
 	       (if (interactive-p) (outline-end-of-prefix))
 	       (if (not dont-complain)
-		   (error "Can't ascend past outermost level.")
+		   (error "Can't ascend past outermost level")
 		 (if (interactive-p) (outline-end-of-prefix))
 		 nil))
       (if (interactive-p) (outline-end-of-prefix))
@@ -2126,7 +2128,7 @@ Returns resulting position, else nil if none found."
       (if (not (interactive-p))
 	  nil
 	(outline-end-of-prefix)
-	(error "Hit %s level %d topic, traversed %d of %d requested."
+	(error "Hit %s level %d topic, traversed %d of %d requested"
 	       (if backward "first" "last")
 	       (outline-recent-depth)
 	       (- (abs start-arg) arg)
@@ -3143,7 +3145,7 @@ itself.  The are STARTING-DEPTH, STARTING-POINT, and INDEX."
     (and on-starting-call
          moving-outwards
          (> 0 (+ starting-depth relative-depth))
-         (error "Attempt to shift topic out beyond level 1."))	;;; ====>
+         (error "Attempt to shift topic out beyond level 1"))	;;; ====>
 
     (cond ((= starting-depth new-depth)
            ;; We're at depth to work on this one:
@@ -3718,7 +3720,7 @@ expose this topic and its siblings."
     (if (<= (outline-current-depth) 0)
 	;; Outside any topics - try to get to the first:
 	(if (not (outline-next-heading))
-	    (error "No topics.")
+	    (error "No topics")
 	  ;; got to first, outermost topic - set to expose it and siblings:
 	  (message "Above outermost topic - exposing all.")
 	  (outline-flag-region (point-min)(point-max) ?\n))
@@ -3740,7 +3742,7 @@ siblings, even if the target topic is already closed."
   (let ((from (point))
 	(orig-eol (progn (end-of-line)
 			 (if (not (outline-goto-prefix))
-			     (error "No topics found.")
+			     (error "No topics found")
 			   (end-of-line)(point)))))
     (outline-flag-current-subtree ?\r)
     (goto-char from)
@@ -4025,7 +4027,7 @@ Examples:
   (list 'save-excursion
 	'(if (not (or (outline-goto-prefix)
 		      (outline-next-heading)))
-	     (error "outline-new-exposure: Can't find any outline topics."))
+	     (error "outline-new-exposure: Can't find any outline topics"))
 	(list 'outline-expose-topic (list 'quote spec))))
 ;;;_   > outline-exposure '()
 (defmacro outline-exposure (&rest spec)
@@ -4036,7 +4038,7 @@ and retains start position."
   (list 'save-excursion
 	'(if (not (or (outline-goto-prefix)
 		      (outline-next-heading)))
-	     (error "Can't find any outline topics."))
+	     (error "Can't find any outline topics"))
 	(cons 'outline-old-expose-topic
 	      (mapcar (function (lambda (x) (list 'quote x))) spec))))
 
@@ -4767,4 +4769,4 @@ so pass them along when appropriate."
 ;;;outline-layout: (0 : -1 -1 0)
 ;;;End:
 
-;; allout.el ends here
+;;; allout.el ends here
