@@ -164,6 +164,9 @@ Lisp_Object unread_command_events;
    events until a non-ASCII event is acceptable as input.  */
 Lisp_Object unread_switch_frame;
 
+/* A mask of extra modifier bits to put into every keyboard char.  */
+int extra_keyboard_modifiers;
+
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
 
@@ -1312,6 +1315,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && XTYPE (c) == Lisp_Int && XINT (c) < 0)
     Fkill_emacs (make_number (1));
+
+  /* Test for ControlMask and Mod1Mask.  */
+  if (extra_keyboard_modifiers & 4)
+    c &= ~0140;
+  if (extra_keyboard_modifiers & 8)
+    c |= 0200;
 
  non_reread:
 
@@ -4333,6 +4342,14 @@ Otherwise, menu prompting uses the echo area.");
     "Character to see next line of menu prompt.\n\
 Type this character while in a menu prompt to rotate around the lines of it.");
   XSET (menu_prompt_more_char, Lisp_Int, ' ');
+
+  DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
+    "A mask of additional modifier keys to use with every keyboard character.\n\
+These bits follow the convention for X windows,\n\
+but the control and meta bits work even when you are not using X:\n\
+  1 -- shift bit      2 -- lock bit\n\
+  4 -- control bit    8 -- meta bit.");
+  extra_keyboard_modifiers = 0;
 }
 
 keys_of_keyboard ()
