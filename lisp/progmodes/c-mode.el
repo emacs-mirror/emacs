@@ -84,6 +84,9 @@
 (define-key c-mode-map [menu-bar c forward-stmt]
   '("Forward Statement" . c-end-of-statement))
 
+(put 'comment-region 'menu-enable 'mark-active)
+(put 'c-macro-expand 'menu-enable 'mark-active)
+
 (autoload 'c-macro-expand "cmacexp"
   "Display the result of expanding all C macros occurring in the region.
 The expansion is entirely correct because it uses the C preprocessor."
