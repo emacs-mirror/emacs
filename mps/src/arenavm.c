@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.7) $
+ * $HopeName: MMsrc!arenavm.c(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.7) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.8) $");
 
 
 /* Space Arena Projection
@@ -75,23 +75,23 @@ typedef struct PageStruct {     /* page structure */
 #if 0
 static Bool (BTGet)(BT bt, BI i)
 {
-  Size wi = i >> WORD_SHIFT;            /* word index */
-  Size bi = i & (WORD_WIDTH - 1);       /* bit index */
+  Size wi = i >> MPS_WORD_SHIFT;            /* word index */
+  Size bi = i & (MPS_WORD_WIDTH - 1);       /* bit index */
   return (bt[wi] >> bi) & 1;
 }
 #endif /* 0 */
 
 #define BTGet(bt, i) \
-  (((bt)[(i)>>WORD_SHIFT] >> ((i)&(WORD_WIDTH-1))) & 1)
+  (((bt)[(i)>>MPS_WORD_SHIFT] >> ((i)&(MPS_WORD_WIDTH-1))) & 1)
 
 
 /* BTSet -- set a bool in a bool table */
 
 static void BTSet(BT bt, BI i, Bool b)
 {
-  Size bi = i & (WORD_WIDTH - 1);       /* bit index */
+  Size bi = i & (MPS_WORD_WIDTH - 1);       /* bit index */
   Word mask = ~((Word)1 << bi);
-  Size wi = i >> WORD_SHIFT;            /* word index */
+  Size wi = i >> MPS_WORD_SHIFT;            /* word index */
   bt[wi] = (bt[wi] & mask) | ((Word)b << bi);
 }
 
@@ -148,7 +148,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
    * 
    * p_size is the page-aligned size of the page table.
    */
-  f_words = SizeAlignUp(arena->pages, WORD_WIDTH) >> WORD_SHIFT;
+  f_words = SizeAlignUp(arena->pages, MPS_WORD_WIDTH) >> MPS_WORD_SHIFT;
   f_size = SizeAlignUp(f_words * sizeof(Word), arena->pageSize);
   p_size = SizeAlignUp(arena->pages * sizeof(PageStruct), arena->pageSize);
   arena->tablesSize = f_size + p_size;
@@ -173,7 +173,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
    * word).  Note that some zones are discontiguous in the arena if the
    * size is not a power of 2.
    */
-  space->zoneShift = SizeFloorLog2(size >> WORD_SHIFT);
+  space->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
 
   /* Sign the arena. */
   arena->sig = ArenaSig;
@@ -226,7 +226,7 @@ Bool ArenaCheck(Arena arena)
   CHECKD(VM, &arena->vmStruct);
   CHECKL(arena->base != (Addr)0);
   CHECKL(arena->base < arena->limit);
-  CHECKL(arena->pageShift <= WORD_WIDTH);
+  CHECKL(arena->pageShift <= MPS_WORD_WIDTH);
   CHECKL(arena->pageSize == 1uL << arena->pageShift);
   CHECKL(VMAlign() == arena->pageSize);
   CHECKL(arena->pages == 
@@ -239,7 +239,7 @@ Bool ArenaCheck(Arena arena)
            AddrAdd(arena->base, arena->tablesSize));
   CHECKL(arena->freeTable != NULL);
   CHECKL((Addr)arena->freeTable >= arena->base);
-  CHECKL((Addr)&arena->freeTable[(arena->pages + WORD_WIDTH-1)>>WORD_SHIFT] <=
+  CHECKL((Addr)&arena->freeTable[(arena->pages + MPS_WORD_WIDTH-1)>>MPS_WORD_SHIFT] <=
            arena->limit);
   /* .improve.check-table: Could check the consistency of the tables. */
   return TRUE;

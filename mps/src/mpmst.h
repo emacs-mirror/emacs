@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.14) $
+ * $HopeName: MMsrc!mpmst.h(trunk.15) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -38,6 +38,7 @@
 #ifndef mpmst_h
 #define mpmst_h
 
+#include "config.h"
 #include "mpmtypes.h"
 
 #if defined(MPS_OS_W3)
@@ -193,7 +194,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
 
 #define VMSig           ((Sig)0x519FEE33)
 
-#ifdef TARGET_VM_RM
+#ifdef VM_RM			/* impl.h.config */
 
 typedef struct VMStruct {       /* Real Memory fake VM; impl.c.vmrm */
   Sig sig;                      /* design.mps.sig */
@@ -284,7 +285,7 @@ typedef struct SegStruct {      /* segment structure */
 
 #define ArenaSig        ((Sig)0x519A7E9A)
 
-#ifdef TARGET_ARENA_ANSI
+#ifdef ARENA_ANSI
 
 /* This is the arena structure used by the ANSI-based  */
 /* arena implementation, impl.c.arenaan. */
@@ -295,7 +296,7 @@ typedef struct ArenaStruct {    /* ANSI arena structure */
   Size committed;               /* total committed (alloced by pools) memory */
 } ArenaStruct;
 
-#else /* TARGET_ARENA_ANSI not */
+#else /* ARENA_ANSI not */
 
 /* This is the arena structure used by the virtual memory based */
 /* arena implementation, impl.c.arenavm. */
@@ -318,7 +319,7 @@ typedef struct ArenaStruct {    /* VM arena structure */
   Index tablePages;             /* number of pages occupied by tables */
 } ArenaStruct;
 
-#endif /* TARGET_ARENA_ANSI */
+#endif /* ARENA_ANSI */
 
 
 /* APStruct -- allocation point structure
