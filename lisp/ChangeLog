@@ -1,11 +1,22 @@
+2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* jit-lock.el (jit-lock-defer-time): New var.
+	(jit-lock-defer-timer, jit-lock-buffers): New vars.
+	(jit-lock-mode): Initialize them.  Cancel the timers more carefully.
+	(jit-lock-function): Defer fontification if requested.
+	(jit-lock-stealth-chunk-start): Pay attention to the new non-nil value.
+	(jit-lock-stealth-fontify): Check the new `jit-lock-defer-multiline'
+	text property.
+	(jit-lock-deferred-fontify): New fun.
+
 2001-11-20  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-interaction-mode):
 	Set local-abbrev-table to lisp-mode-abbrev-table.
 
-	* emacs-lisp/re-builder.el (reb-mode): 
+	* emacs-lisp/re-builder.el (reb-mode):
 	Don't use define-derived-mode.  Call kill-all-local-variables.
-	
+
 	* emacs-lisp/lisp-mode.el (lisp-mode, emacs-lisp-mode):
 	Don't use define-derived-mode.
 
@@ -56,7 +67,7 @@
 	(fill-region-as-paragraph): Use them.
 	Use an end marker instead of eob.
 	Ignore whitespace-only fill-prefixes when indenting according to mode.
-	Simply the loop that searches for spaces backwards.
+	Simplify the loop that searches for spaces backwards.
 
 	* textmodes/picture.el (picture-vertical-step)
 	(picture-horizontal-step): Don't use defconst for variables.
