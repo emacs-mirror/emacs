@@ -85,6 +85,10 @@ char *previous_echo_glyphs;
 /* Nonzero means truncate lines in all windows less wide than the frame */
 int truncate_partial_width_windows;
 
+/* Nonzero means we have more than one non-minibuffer-only frame.
+   Not guaranteed to be accurate except while parsing frame-title-format.  */
+int multiple_frames;
+
 Lisp_Object Vglobal_mode_string;
 
 /* Marker for where to display an arrow on top of the buffer text.  */
@@ -92,6 +96,12 @@ Lisp_Object Voverlay_arrow_position;
 
 /* String to display for the arrow.  */
 Lisp_Object Voverlay_arrow_string;
+
+/* Like mode-line-format, but for the titlebar on a visible frame.  */
+Lisp_Object Vframe_title_format;
+
+/* Like mode-line-format, but for the titlebar on an iconified frame.  */
+Lisp_Object Vicon_title_format;
 
 /* Values of those variables at last redisplay.  */
 static Lisp_Object last_arrow_position, last_arrow_string;
@@ -394,31 +404,53 @@ echo_area_display ()
 }
 
 #ifdef HAVE_X_WINDOWS
-/* I'm trying this out because I saw Unimpress use it, but it's
-   possible that this may mess adversely with some window managers.  -jla
+static char frame_title_buf[512];
+static char *frame_title_ptr;
 
-   Wouldn't it be nice to use something like mode-line-format to
-   describe frame titles?  -JimB  */
+static int
+store_frame_title (str, mincol, maxcol)
+     char *str;
+     int mincol, maxcol;
+{
+  char *limit;
+  if (maxcol < 0 || maxcol >= sizeof(frame_title_buf))
+    maxcol = sizeof (frame_title_buf);
+  limit = &frame_title_buf[maxcol];
+  while (*str != '\0' && frame_title_ptr < limit)
+    *frame_title_ptr++ = *str++;
+  while (frame_title_ptr < &frame_title_buf[mincol])
+    *frame_title_ptr++ = ' ';
+  return frame_title_ptr - frame_title_buf;
+}
 
-/* Change the title of the frame to the name of the buffer displayed
-   in the currently selected window.  Don't do this for minibuffer frames,
-   and don't do it when there's only one non-minibuffer frame.  */
 static void
 x_consider_frame_title (frame)
      Lisp_Object frame;
 {
+  Lisp_Object fmt;
+  struct buffer *obuf;
+  int len;
   FRAME_PTR f = XFRAME (frame);
 
-  if (FRAME_X_P (f) && ! FRAME_MINIBUF_ONLY_P (f))
-    {
-      Lisp_Object title;
-
-      title = Qnil;
-      if (! EQ (Fnext_frame (frame, Qnil), frame))
-	title = XBUFFER (XWINDOW (f->selected_window)->buffer)->name;
-
-      x_implicitly_set_name (f, title, Qnil);
-    }
+  if (!FRAME_X_P (f) || FRAME_MINIBUF_ONLY_P (f) || f->explicit_name)
+    return;
+  multiple_frames = !EQ (Fnext_frame (frame, Qnil), frame);
+  obuf = current_buffer;
+  Fset_buffer (XWINDOW (f->selected_window)->buffer);
+  fmt = (FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format);
+  frame_title_ptr = frame_title_buf;
+  len = display_mode_element (XWINDOW (f->selected_window), 0, 0, 0,
+			      0, sizeof (frame_title_buf), fmt);
+  frame_title_ptr = 0;
+  set_buffer_internal (obuf);
+  /* Set the name only if it's changed.  This avoids consing
+     in the common case where it hasn't.  (If it turns out that we've
+     already wasted too much time by walking through the list with
+     display_mode_element, then we might need to optimize at a higher
+     level than this.)  */
+  if (! STRINGP (f->name) || XSTRING (f->name)->size != len
+      || bcmp (frame_title_buf, XSTRING (f->name)->data, len) != 0)
+    x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
 }
 #endif
 
@@ -2681,8 +2713,11 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    if (this - 1 != last)
 	      {
 		register int lim = --this - last + hpos;
-		hpos = display_string (w, vpos, last, -1, hpos, 0, 1,
-				       hpos, min (lim, maxendcol));
+		if (frame_title_ptr)
+		  hpos = store_frame_title (last, hpos, min (lim, maxendcol));
+		else
+		  hpos = display_string (w, vpos, last, -1, hpos, 0, 1,
+					 hpos, min (lim, maxendcol));
 	      }
 	    else /* c == '%' */
 	      {
@@ -2707,11 +2742,15 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 					       spec_width, maxendcol,
 					       Vglobal_mode_string);
 		else if (c != 0)
-		  hpos = display_string (w, vpos,
-					 decode_mode_spec (w, c,
-							   maxendcol - hpos),
-					 -1,
-					 hpos, 0, 1, spec_width, maxendcol);
+		  {
+		    char *spec = decode_mode_spec (w, c, maxendcol - hpos);
+		    if (frame_title_ptr)
+		      hpos = store_frame_title (spec, spec_width, maxendcol);
+		    else
+		      hpos = display_string (w, vpos, spec, -1,
+					     hpos, 0, 1,
+					     spec_width, maxendcol);
+		  }
 	      }
 	  }
       }
@@ -2731,9 +2770,15 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    /* If value is a string, output that string literally:
 	       don't check for % within it.  */
 	    if (XTYPE (tem) == Lisp_String)
-	      hpos = display_string (w, vpos, XSTRING (tem)->data,
-				     XSTRING (tem)->size,
-				     hpos, 0, 1, minendcol, maxendcol);
+	      {
+		if (frame_title_ptr)
+		  hpos = store_frame_title (XSTRING (tem)->data,
+					    minendcol, maxendcol);
+		else
+		  hpos = display_string (w, vpos, XSTRING (tem)->data,
+					 XSTRING (tem)->size,
+					 hpos, 0, 1, minendcol, maxendcol);
+	      }
 	    /* Give up right away for nil or t.  */
 	    else if (!EQ (tem, elt))
 	      { elt = tem; goto tail_recurse; }
@@ -2822,13 +2867,19 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 
     default:
     invalid:
-      return (display_string (w, vpos, "*invalid*", -1, hpos, 0, 1,
-			      minendcol, maxendcol));
+      if (frame_title_ptr)
+	hpos = store_frame_title ("*invalid*", minendcol, maxendcol);
+      else
+	hpos = display_string (w, vpos, "*invalid*", -1, hpos, 0, 1,
+			       minendcol, maxendcol);
+      return hpos;
     }
 
- end:
   if (minendcol > hpos)
-    hpos = display_string (w, vpos, "", 0, hpos, 0, 1, minendcol, maxendcol);
+    if (frame_title_ptr)
+      hpos = store_frame_title ("", minendcol, maxendcol);
+    else
+      hpos = display_string (w, vpos, "", 0, hpos, 0, 1, minendcol, maxendcol);
   return hpos;
 }
 
@@ -2846,6 +2897,7 @@ decode_mode_spec (w, c, maxwidth)
   Lisp_Object obj;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = (char *) FRAME_TEMP_GLYPHS (f)->total_contents;
+  struct buffer *b = XBUFFER (w->buffer);
 
   obj = Qnil;
   if (maxwidth > FRAME_WIDTH (f))
@@ -2854,7 +2906,7 @@ decode_mode_spec (w, c, maxwidth)
   switch (c)
     {
     case 'b': 
-      obj = current_buffer->name;
+      obj = b->name;
 #if 0
       if (maxwidth >= 3 && XSTRING (obj)->size > maxwidth)
 	{
@@ -2867,7 +2919,7 @@ decode_mode_spec (w, c, maxwidth)
       break;
 
     case 'f': 
-      obj = current_buffer->filename;
+      obj = b->filename;
 #if 0
       if (NILP (obj))
 	return "[none]";
@@ -2895,7 +2947,7 @@ decode_mode_spec (w, c, maxwidth)
 	  return "??";
 
 	/* If the buffer is very big, don't waste time.  */
-	if (ZV - BEGV > line_number_display_limit)
+	if (BUF_ZV (b) - BUF_BEGV (b) > line_number_display_limit)
 	  {
 	    w->base_line_pos = Qnil;
 	    w->base_line_number = Qnil;
@@ -2912,7 +2964,7 @@ decode_mode_spec (w, c, maxwidth)
 	else
 	  {
 	    line = 1;
-	    linepos = BEGV;
+	    linepos = BUF_BEGV (b);
 	  }
 
 	/* Count lines from base line to window start position.  */
@@ -2924,15 +2976,15 @@ decode_mode_spec (w, c, maxwidth)
 	   or too far away, or if we did not have one.
 	   "Too close" means it's plausible a scroll-down would
 	   go back past it.  */
-	if (startpos == BEGV)
+	if (startpos == BUF_BEGV (b))
 	  {
 	    XFASTINT (w->base_line_number) = topline;
-	    XFASTINT (w->base_line_pos) = BEGV;
+	    XFASTINT (w->base_line_pos) = BUF_BEGV (b);
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
-		 || linepos == BEGV)
+		 || linepos == BUF_BEGV (b))
 	  {
-	    int limit = BEGV;
+	    int limit = BUF_BEGV (b);
 	    int position;
 	    int distance = (height * 2 + 30) * 200;
 
@@ -2969,38 +3021,38 @@ decode_mode_spec (w, c, maxwidth)
       break;
 
     case 'm': 
-      obj = current_buffer->mode_name;
+      obj = b->mode_name;
       break;
 
     case 'n':
-      if (BEGV > BEG || ZV < Z)
+      if (BUF_BEGV (b) > BUF_BEG (b) || BUF_ZV (b) < BUF_Z (b))
 	return " Narrow";
       break;
 
     case '*':
-      if (!NILP (current_buffer->read_only))
+      if (!NILP (b->read_only))
 	return "%";
-      if (MODIFF > current_buffer->save_modified)
+      if (BUF_MODIFF (b) > b->save_modified)
 	return "*";
       return "-";
 
     case '+':
       /* This differs from %* only for a modified read-only buffer.  */
-      if (MODIFF > current_buffer->save_modified)
+      if (BUF_MODIFF (b) > b->save_modified)
 	return "*";
-      if (!NILP (current_buffer->read_only))
+      if (!NILP (b->read_only))
 	return "%";
       return "-";
 
     case '&':
       /* This differs from %* in ignoring read-only-ness.  */
-      if (MODIFF > current_buffer->save_modified)
+      if (BUF_MODIFF (b) > b->save_modified)
 	return "*";
       return "-";
 
     case 's':
       /* status of process */
-      obj = Fget_buffer_process (Fcurrent_buffer ());
+      obj = Fget_buffer_process (w->buffer);
       if (NILP (obj))
 	return "no process";
 #ifdef subprocesses
@@ -3010,7 +3062,7 @@ decode_mode_spec (w, c, maxwidth)
 
     case 't':			/* indicate TEXT or BINARY */
 #ifdef MSDOS
-      return NILP (current_buffer->buffer_file_type) ? "T" : "B";
+      return NILP (b->buffer_file_type) ? "T" : "B";
 #else /* not MSDOS */
       return "T";
 #endif /* not MSDOS */
@@ -3018,20 +3070,20 @@ decode_mode_spec (w, c, maxwidth)
     case 'p':
       {
 	int pos = marker_position (w->start);
-	int total = ZV - BEGV;
+	int total = BUF_ZV (b) - BUF_BEGV (b);
 
-	if (XFASTINT (w->window_end_pos) <= Z - ZV)
+	if (XFASTINT (w->window_end_pos) <= BUF_Z (b) - BUF_ZV (b))
 	  {
-	    if (pos <= BEGV)
+	    if (pos <= BUF_BEGV (b))
 	      return "All";
 	    else
 	      return "Bottom";
 	  }
-	else if (pos <= BEGV)
+	else if (pos <= BUF_BEGV (b))
 	  return "Top";
 	else
 	  {
-	    total = ((pos - BEGV) * 100 + total - 1) / total;
+	    total = ((pos - BUF_BEGV (b)) * 100 + total - 1) / total;
 	    /* We can't normally display a 3-digit number,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
@@ -3045,24 +3097,24 @@ decode_mode_spec (w, c, maxwidth)
     case 'P':
       {
 	int toppos = marker_position (w->start);
-	int botpos = Z - XFASTINT (w->window_end_pos);
-	int total = ZV - BEGV;
+	int botpos = BUF_Z (b) - XFASTINT (w->window_end_pos);
+	int total = BUF_ZV (b) - BUF_BEGV (b);
 
-	if (botpos >= ZV)
+	if (botpos >= BUF_ZV (b))
 	  {
-	    if (toppos <= BEGV)
+	    if (toppos <= BUF_BEGV (b))
 	      return "All";
 	    else
 	      return "Bottom";
 	  }
 	else
 	  {
-	    total = ((botpos - BEGV) * 100 + total - 1) / total;
+	    total = ((botpos - BUF_BEGV (b)) * 100 + total - 1) / total;
 	    /* We can't normally display a 3-digit number,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
 	      total = 99;
-	    if (toppos <= BEGV)
+	    if (toppos <= BUF_BEGV (b))
 	      sprintf (decode_mode_spec_buf, "Top%2d%%", total);
 	    else
 	      sprintf (decode_mode_spec_buf, "%2d%%", total);
@@ -3100,7 +3152,7 @@ decode_mode_spec (w, c, maxwidth)
 	*p = 0;
 	return decode_mode_spec_buf;
       }
-      
+
     case '-':
       {
 	register char *p;
@@ -3117,7 +3169,7 @@ decode_mode_spec (w, c, maxwidth)
 	return decode_mode_spec_buf;
       }
     }
-  
+
   if (XTYPE (obj) == Lisp_String)
     return (char *) XSTRING (obj)->data;
   else
@@ -3479,6 +3531,33 @@ If this is zero, point is always centered after it moves off frame.");
   DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
     "*Non-nil means highlight region even in nonselected windows.");
   highlight_nonselected_windows = 1;
+
+  DEFVAR_BOOL ("multiple-frames", &multiple_frames,
+    "Non-nil means more than one frame is in use, not counting minibuffer frames.\n\
+Not guaranteed to be accurate except while parsing frame-title-format.");
+
+  DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
+    "Template for displaying the titlebar of visible frames.\n\
+\(Assuming the window manager supports this feature.)\n\
+This variable has the same structure as `mode-line-format' (which see),\n\
+and is used only on frames for which no explicit name has been set\n\
+\(see `modify-frame-parameters').");
+  DEFVAR_LISP ("icon-title-format", &Vicon_title_format,
+    "Template for displaying the titlebar of an iconified frame.\n\
+\(Assuming the window manager supports this feature.)\n\
+This variable has the same structure as `mode-line-format' (which see),\n\
+and is used only on frames for which no explicit name has been set\n\
+\(see `modify-frame-parameters').");
+  Vicon_title_format
+    = Vframe_title_format
+    = Fcons (intern ("multiple-frames"),
+	     Fcons (build_string ("%b"),
+		    Fcons (Fcons (build_string (""),
+				  Fcons (intern ("invocation-name"),
+					 Fcons (build_string ("@"),
+						Fcons (intern ("system-name"),
+							       Qnil)))),
+			   Qnil)));
 }
 
 /* initialize the window system */
