@@ -56,7 +56,7 @@
 	(if (memq window-system '(x w32))
 	    (make-face-x-resource-internal face))))
     (when (and doc (null (face-documentation face)))
-      (set-face-documentation face doc))
+      (set-face-documentation face (purecopy doc)))
     (custom-handle-all-keywords face args 'custom-face)
     (run-hooks 'custom-define-hook))
   face)
