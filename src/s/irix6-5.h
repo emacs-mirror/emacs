@@ -2,6 +2,12 @@
 #define IRIX6_5
 #include "irix5-0.h"
 
+/* David Starks-Browning <starksb@ebi.ac.uk> reports this is necessary
+   for building Emacs on IRIX64 6.5 IP27 mips with GCC 2.95.2.  */
+#if __GNUC__ && __GNUC_MINOR__ >= 95
+#undef LD_SWITCH_SYSTEM
+#endif
+
 /* Irix 6 tries to do 64 bits, but doesn't do it fully,
    so inhibit that.  */
 #define IRIX_FORCE_32_BITS
