@@ -1,5 +1,9 @@
 2001-03-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (free_frame_menubar): Set the frame's menubar_widget to
+	NULL after destroying it, otherwise XTread_socket can access a
+	destroyed widget when input is unblocked.
+
 	* xfns.c (x_set_foreground_color): Set the background of the
 	cursor GC.
 	
