@@ -53,33 +53,34 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 		 (and (>= (length keys) 2)
 		      (eq (aref keys 0) meta-prefix-char)
 		      (eq (aref keys 1) ?x)))
-	     (princ "You have invoked the disabled command ")
-	   (princ "You have typed ")
-	   (princ (key-description keys))
-	   (princ ", invoking disabled command ")))
-       (princ this-command)
-       (princ ":\n")
+	     (princ (format "You have invoked the disabled command %s.\n"
+			    (symbol-name this-command)))
+	   (princ (format "You have typed %s, invoking disabled command %s.\n"
+			  (key-description keys) (symbol-name this-command)))))
        ;; Print any special message saying why the command is disabled.
        (if (stringp (get this-command 'disabled))
-	   (princ (get this-command 'disabled)))
-       ;; Keep only the first paragraph of the documentation.
-       (save-excursion
-	 (set-buffer "*Help*")
-	 (goto-char (point-max))
-	 (save-excursion
-	   (princ (or (condition-case ()
-			  (documentation this-command)
-			(error nil))
-		      "<< not documented >>")))
-	 (if (search-forward "\n\n" nil t)
-	     (delete-region (1- (point)) (point-max))
-	   (goto-char (point-max))))
-       (princ "\n\n")
+	   (princ (get this-command 'disabled))
+	 (princ "It is disabled because new users often find it confusing.\n")
+	 (princ "Here's the first part of its description:\n\n")
+	 ;; Keep only the first paragraph of the documentation.
+	 (with-current-buffer "*Help*"
+	   (goto-char (point-max))
+	   (let ((start (point)))
+	     (save-excursion
+	       (princ (or (condition-case ()
+			      (documentation this-command)
+			    (error nil))
+			  "<< not documented >>")))
+	     (if (search-forward "\n\n" nil t)
+		 (delete-region (match-beginning 0) (point-max)))
+	     (goto-char (point-max))
+	     (indent-rigidly start (point) 3))))
+       (princ "\n\nDo you want to use this command anyway?\n\n")
        (princ "You can now type
-Space to try the command just this once, but leave it disabled,
-Y to try it and enable it (no questions if you use it again),
-! to try it and enable all commands in this session, or
-N to do nothing (command remains disabled).")
+Y   to try it and enable it (no questions if you use it again).
+N   to cancel--don't try the command, and it remains disabled.
+SPC to try the command just this once, but leave it disabled.
+!   to try it, and enable all disabled commands for this session only.")
        (save-excursion
 	(set-buffer standard-output)
 	(help-mode)))
