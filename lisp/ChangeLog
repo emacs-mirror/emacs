@@ -1,3 +1,22 @@
+2000-05-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el: Fix keywords.
+
+	* simple.el (fill-comment, comment-column, comment-start)
+	(comment-start-skip, comment-end, comment-indent-function)
+	(block-comment-start, block-comment-end, indent-for-comment)
+	(set-comment-column, kill-comment, comment-padding, comment-region)
+	(comment-multi-line, indent-new-comment-line): Remove.
+
+	* bindings.el (esc-map): Change ; to comment-dwim and use the new
+	function names for comment operations.
+
+	* newcomment.el: Add abundant autoload cookies.
+	(comment-style): Don't depend on runtime data at compile-time.
+	(comment-indent-hook): Remove.
+	(comment-indent): Check if comment-indent-hook is bound.
+	(comment-region): Docstring fix.
+
 2000-05-25  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/elp.el (elp-restore-function): Don't use obsolete
