@@ -44,7 +44,12 @@ typedef unsigned long SIZE;
 #define NULL ((POINTER) 0)
 
 extern POINTER start_of_data ();
+#ifdef DATA_SEG_BITS
+#define EXCEEDS_LISP_PTR(ptr) \
+  (((unsigned int) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
+#else
 #define EXCEEDS_LISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
+#endif
 
 #ifdef BSD
 #ifndef DATA_SEG_BITS
