@@ -3071,6 +3071,9 @@ EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 4);
 #endif /* HAVE_X_WINDOWS */
 
+/* Defined in xsmfns.c */
+extern void syms_of_xsmfns P_ ((void));
+
 /* Defined in xselect.c */
 extern void syms_of_xselect P_ ((void));
 
