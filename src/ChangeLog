@@ -1,3 +1,20 @@
+2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	Add support for hash-tables.
+	(Ftry_completion): Return t even if the string appears multiple times.
+
+	* fns.c (Fnconc): Use XCDR.
+	(Fprovide): Use CONSP and XCDR.
+	(HASH_KEY, HASH_VALUE, HASH_NEXT, HASH_HASH, HASH_INDEX)
+	(HASH_TABLE_SIZE): Delete: moved to lisp.h.
+	(Fmake_hash_table): Accept `:size nil'.
+	(Fmakehash): Delete: moved to subr.el.
+	(syms_of_fns): Don't defsubr makehash.
+
+	* lisp.h (HASH_KEY, HASH_VALUE, HASH_NEXT, HASH_HASH, HASH_INDEX)
+	(HASH_TABLE_SIZE): Move from fns.c.
+
 2002-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (make_cursor_line_fully_visible): Don't try short scrolls.
@@ -48,8 +65,8 @@
 	* macterm.c (do_ae_open_documents) [MAC_OSX]: Call FSpMakeFSRef
 	and FSRefMakePath to convert FSSpec returned with Apple Event to
 	Posix pathname.
-	(mac_initialize) [TARGET_API_MAC_CARBON]: Call
-	init_required_apple_events and disable the `Quit' menu item
+	(mac_initialize) [TARGET_API_MAC_CARBON]:
+	Call init_required_apple_events and disable the `Quit' menu item
 	provided automatically by the Carbon Toolbox.
 
 2002-07-01  Dave Love  <fx@gnu.org>
