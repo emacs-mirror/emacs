@@ -2516,8 +2516,12 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
     {
       Lisp_Object list = Valternate_fontname_alist;
 
-      if (fonts) xfree (fonts);
-      
+      if (*pfonts)
+        {
+          xfree (*pfonts);
+          *pfonts = 0;
+        }
+
       while (CONSP (list))
 	{
 	  Lisp_Object entry = XCAR (list);
