@@ -5241,11 +5241,11 @@ x_lower_frame (f)
 }
 
 static void
-XTframe_raise_lower (f, raise)
+XTframe_raise_lower (f, raise_flag)
      FRAME_PTR f;
-     int raise;
+     int raise_flag;
 {
-  if (raise)
+  if (raise_flag)
     x_raise_frame (f);
   else
     x_lower_frame (f);
