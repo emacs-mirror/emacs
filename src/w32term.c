@@ -9530,7 +9530,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
   cursor_non_selected 
-    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows
+    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
 				  w->buffer));
   new_cursor_width = -1;
   if (cursor_in_echo_area

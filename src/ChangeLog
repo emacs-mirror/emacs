@@ -1,3 +1,7 @@
+2001-11-05  Sam Steingold  <sds@gnu.org>
+
+	* w32term.c (x_display_and_set_cursor): Fix w32 compilation error.
+
 2001-11-05  Andreas Schwab  <schwab@suse.de>
 
 	* sound.c (sound_perror): Save errno from being clobbered.
@@ -35,14 +39,14 @@
 
 	* buffer.c (Fbuffer_local_value): New function.
 	(syms_of_buffer): defsubr it.
-	
+
 	* xterm.c, w32term.c (x_display_and_set_cursor): Use buffer-local
 	value of `cursor-in-non-selected-windows'.
 
 	* lisp.h (Qcursor_in_non_selected_windows): New declaration.
 	* xdisp.c (Qcursor_in_non_selected_windows): New variable.
 	(syms_of_xdisp): Initialize it.
-	
+
 2001-11-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (Fx_create_frame): Doc fix.
@@ -331,7 +335,7 @@
 
 	* xterm.c (x_after_update_window_line): Clear internal border
 	in different circumstances.
-	
+
 	* xterm.c (XTread_socket) <KeyPress>: Don't use
 	STRING_CHAR_AND_LENGTH if nchars == nbytes.  From Kenichi Handa
 	<handa@etl.go.jp>.
@@ -344,7 +348,7 @@
 2001-10-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_build_heuristic_mask): Use x_alloc_image_color.
-	
+
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
 	a loop counter.
 
@@ -355,7 +359,7 @@
 	* keyboard.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
 	Fix typos in comments.
-	
+
 	* emacs.c (bug_reporting_address): New function.
 	Use it when displaying usage message.
 
