@@ -88,6 +88,26 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Auto Revert mode is now more careful to avoid excessive reverts and
+other potential problems when deciding which non-file buffers to
+revert.  This matters especially if Global Auto Revert mode is enabled
+and `global-auto-revert-non-file-buffers' is non-nil.  Auto Revert
+mode will only revert a non-file buffer if the buffer has a non-nil
+`revert-buffer-function' and a non-nil `buffer-stale-function', which
+decides whether the buffer should be reverted.  Currently, this means
+that auto reverting works for Dired buffers (although this may not
+work properly on all operating systems) and for the Buffer Menu.
+
+** If the new user option `auto-revert-check-vc-info' is non-nil, Auto
+Revert mode reliably updates version control info (such as the version
+control number in the mode line), in all version controlled buffers in
+which it is active.  If the option is nil, the default, then this info
+only gets updated whenever the buffer gets reverted.
+
+** New command `Buffer-menu-toggle-files-only' toggles display of file
+buffers only in the Buffer Menu.  It is bound to `T' in Buffer Menu
+mode.
+
 ** The URL package is now part of Emacs.
 
 ** M-x compile has become more robust and reliable
