@@ -1312,7 +1312,7 @@ This coding system does not support extended segments of CTEXT."
 ;; compound-text-with-extensions, see mule.el.  Note that this should
 ;; not have a mime-charset property, to prevent it from showing up
 ;; close to the beginning of coding systems ordered by priority.
-(define-coding-system 'ctext-no-compositions 2 ?x
+(define-coding-system 'ctext-no-compositions
  "Compound text based generic encoding for decoding unknown messages.
 
 Like `compound-text', but does not produce escape sequences for compositions."
