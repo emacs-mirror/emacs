@@ -2121,6 +2121,14 @@ displays a buffer menu.  This option turns the buffer menu off.
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
 
++++
+** Support for `movemail' from GNU mailutils was added to Rmail.
+This version of `movemail' allows to read mail from a wide range of
+mailbox formats, including remote POP3 and IMAP4 mailboxes with or
+without TLS encryption.  If GNU mailutils is installed on the system
+and its version of `movemail' can be found in exec-path, it will be
+used instead of the native one.
+
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
 This enables Emacs to work better with programs that need to track
