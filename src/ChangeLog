@@ -1,5 +1,11 @@
+2004-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Look for non-nil `cursor' property
+	in overlay or text-property strings; set cursor on corresponding
+	glyph rather than at end of the string.
+
 2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-	
+
 	* term/mac-win.el: Add ASCII equivalents for some function keys.
 	(mode-line-frame-identification): Sync with x-win.el.
 

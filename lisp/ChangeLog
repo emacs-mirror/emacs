@@ -1,3 +1,14 @@
+2004-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--rectangle-set-corners): Ensure that
+	point is set (and displayed) inside rectangle.
+	(cua--rectangle-operation): Fix for highlight of empty lines.
+	(cua--highlight-rectangle): Fix highlight for tabs.
+	Position cursor at left/right edge of rectangle using new `cursor'
+	property on overlay strings.
+	(cua--indent-rectangle): Don't tabify.
+	(cua-rotate-rectangle): Ignore that point has moved.
+
 2004-09-02  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-buffer-name): Compare major
