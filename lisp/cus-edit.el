@@ -611,6 +611,8 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-menu)
 
+;;;###autoload (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
+
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
 ITEMS should be a `custom-group' property.
@@ -825,7 +827,7 @@ are shown; the contents of those subgroups are initially hidden."
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
-	(switch-to-buffer name)
+	(pop-to-buffer name)
       (custom-buffer-create (list (list group 'custom-group))
 			    name
 			    (concat " for group "
@@ -851,7 +853,7 @@ are shown; the contents of those subgroups are initially hidden."
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
 	(let ((window (selected-window)))
-	  (switch-to-buffer-other-window name)
+	  (pop-to-buffer-other-window name)
 	  (select-window window))
       (custom-buffer-create-other-window
        (list (list group 'custom-group))
@@ -1072,7 +1074,7 @@ SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
   (kill-buffer (get-buffer-create name))
-  (switch-to-buffer (get-buffer-create name))
+  (pop-to-buffer (get-buffer-create name))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1084,8 +1086,13 @@ SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
   (kill-buffer (get-buffer-create name))
-  (let ((window (selected-window)))
-    (switch-to-buffer-other-window (get-buffer-create name))
+  (let ((window (selected-window))
+	(pop-up-windows t)
+	(special-display-buffer-names nil)
+	(special-display-regexps nil)
+	(same-window-buffer-names nil)
+	(same-window-regexps nil))
+    (pop-to-buffer (get-buffer-create name))
     (custom-buffer-create-internal options description)
     (select-window window)))
 
@@ -1207,7 +1214,7 @@ Reset all values in this buffer to their standard settings."
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
     (kill-buffer (get-buffer-create name))
-    (switch-to-buffer (get-buffer-create name)))
+    (pop-to-buffer (get-buffer-create name)))
   (custom-mode)
   (widget-insert "\
 Square brackets show active fields; type RET or click mouse-1
