@@ -185,6 +185,7 @@ directory name and the cdr is the actual files to list.")
 	       "-[-r][-w].[-r][-w][xs][-r][-w]."
 	       "-[-r][-w].[-r][-w].[-r][-w][xst]")
 	     "\\|"))
+(defvar dired-re-perms "-[-r][-w].[-r][-w].[-r][-w].")
 (defvar dired-re-dot "^.* \\.\\.?$")
 
 (defvar dired-subdir-alist nil
@@ -1360,7 +1361,14 @@ Returns the new value of the alist."
 	  new-dir-name)
       (goto-char (point-min))
       (setq dired-subdir-alist nil)
-      (while (re-search-forward dired-subdir-regexp nil t)
+      (while (and (re-search-forward dired-subdir-regexp nil t)
+		  ;; Avoid taking a file name ending in a colon
+		  ;; as a subdir name.
+		  (not (save-excursion
+			 (goto-char (match-beginning 0))
+			 (beginning-of-line)
+			 (forward-char 2)
+			 (looking-at dired-re-perms))))
 	(save-excursion
 	  (goto-char (match-beginning 1))
 	  (setq new-dir-name
