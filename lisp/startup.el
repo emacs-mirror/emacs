@@ -580,81 +580,71 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
 
-;; Handle the X-like command line parameters "-fg", "-bg", "-name", etc.
+;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
-  (let ((rest nil))
+  (let (rest)
     (message "%s" args)
     (while (and args
 		(not (equal (car args) "--")))
-      (let* ((this (car args))
-	     (orig-this this)
-	     completion argval)
-	(setq args (cdr args))
+      (let* ((argi (pop args))
+	     (orig-argi argi)
+	     argval completion)
 	;; Check for long options with attached arguments
 	;; and separate out the attached option argument into argval.
-	(if (string-match "^--[^=]*=" this)
-	    (setq argval (substring this (match-end 0))
-		  this (substring this 0 (1- (match-end 0)))))
-	(when (string-match "^--" this)
-	  (setq completion (try-completion this tty-long-option-alist))
+	(when (string-match "^\\(--[^=]*\\)=" argi)
+          (setq argval (substring argi (match-end 0))
+                argi (match-string 1 argi)))
+	(when (string-match "^--" argi)
+	  (setq completion (try-completion argi tty-long-option-alist))
 	  (if (eq completion t)
 	      ;; Exact match for long option.
-	      (setq this (cdr (assoc this tty-long-option-alist)))
+	      (setq argi (cdr (assoc argi tty-long-option-alist)))
 	    (if (stringp completion)
 		(let ((elt (assoc completion tty-long-option-alist)))
 		  ;; Check for abbreviated long option.
 		  (or elt
-		      (error "Option `%s' is ambiguous" this))
-		  (setq this (cdr elt)))
+		      (error "Option `%s' is ambiguous" argi))
+		  (setq argi (cdr elt)))
 	      ;; Check for a short option.
-	      (setq argval nil this orig-this))))
-	(cond ((or (string= this "-fg") (string= this "-foreground"))
-	       (or argval (setq argval (car args) args (cdr args)))
-	       (setq default-frame-alist
-		     (cons (cons 'foreground-color argval)
-			   default-frame-alist)))
-	      ((or (string= this "-bg") (string= this "-background"))
-	       (or argval (setq argval (car args) args (cdr args)))
-	       (setq default-frame-alist
-		     (cons (cons 'background-color argval)
-			   default-frame-alist)))
-	      ((or (string= this "-T") (string= this "-name"))
-	       (or argval (setq argval (car args) args (cdr args)))
-	       (setq default-frame-alist
-		     (cons
-		      (cons 'title
-			    (if (stringp argval)
-				argval
-			      (let ((case-fold-search t)
-				    i)
-				(setq argval (invocation-name))
+	      (setq argval nil
+                    argi orig-argi))))
+	(cond ((member argi '("-fg" "-foreground"))
+	       (push (cons 'foreground-color (or argval (pop args)))
+                     default-frame-alist))
+	      ((member argi '("-bg" "-background"))
+	       (push (cons 'background-color (or argval (pop args)))
+                     default-frame-alist))
+	      ((member argi '("-T" "-name"))
+	       (unless argval (setq argval (pop args)))
+	       (push (cons 'title
+                           (if (stringp argval)
+                               argval
+                             (let ((case-fold-search t)
+                                   i)
+                               (setq argval (invocation-name))
 
-				;; Change any . or * characters in name to
-				;; hyphens, so as to emulate behavior on X.
-				(while
-				    (setq i (string-match "[.*]" argval))
-				  (aset argval i ?-))
-				argval)))
-		      default-frame-alist)))
-	      ((or (string= this "-r")
-		   (string= this "-rv")
-		   (string= this "-reverse"))
-	       (setq default-frame-alist
-		     (cons '(reverse . t)
-			   default-frame-alist)))
-	      ((string= this "-color")
-	       (if (null argval)
-		   (setq argval 8))	; default --color means 8 ANSI colors
-	       (setq default-frame-alist
-		     (cons (cons 'tty-color-mode
-				 (cond
-				  ((numberp argval) argval)
-				  ((string-match "-?[0-9]+" argval)
-				   (string-to-number argval))
-				  (t (intern argval))))
-			   default-frame-alist)))
-	      (t (setq rest (cons this rest))))))
-      (nreverse rest)))
+                               ;; Change any . or * characters in name to
+                               ;; hyphens, so as to emulate behavior on X.
+                               (while
+                                   (setq i (string-match "[.*]" argval))
+                                 (aset argval i ?-))
+                               argval)))
+                     default-frame-alist))
+	      ((member argi '("-r" "-rv" "-reverse"))
+	       (push '(reverse . t)
+                     default-frame-alist))
+	      ((equal argi "-color")
+	       (unless argval (setq argval 8)) ; default --color means 8 ANSI colors
+	       (push (cons 'tty-color-mode
+                           (cond
+                            ((numberp argval) argval)
+                            ((string-match "-?[0-9]+" argval)
+                             (string-to-number argval))
+                            (t (intern argval))))
+                     default-frame-alist))
+	      (t
+               (push argi rest)))))
+    (nreverse rest)))
 
 (defun command-line ()
   (setq command-line-default-directory default-directory)
@@ -680,14 +670,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
     (cond ((eq vc nil))			;don't do anything if not set
-	  ((or (string= vc "t")
-	       (string= vc "numbered"))
+	  ((member vc '("t" "numbered"))
 	   (setq version-control t))
-	  ((or (string= vc "nil")
-	       (string= vc "existing"))
+	  ((member vc '("nil" "existing"))
 	   (setq version-control nil))
-	  ((or (string= vc "never")
-	       (string= vc "simple"))
+	  ((member vc '("never" "simple"))
 	   (setq version-control 'never))))
 
   ;;! This has been commented out; I currently find the behavior when
@@ -700,15 +687,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; end-of-line formats that aren't native to this platform.
   (cond
    ((memq system-type '(ms-dos windows-nt emx))
-    (setq eol-mnemonic-unix "(Unix)")
-    (setq eol-mnemonic-mac  "(Mac)"))
+    (setq eol-mnemonic-unix "(Unix)"
+          eol-mnemonic-mac  "(Mac)"))
    ;; Both Mac and Unix EOLs are now "native" on Mac OS so keep the
    ;; abbreviated strings `/' and `:' set in coding.c for them.
    ((eq system-type 'macos)
     (setq eol-mnemonic-dos  "(DOS)"))
-   (t	; this is for Unix/GNU/Linux systems
-    (setq eol-mnemonic-dos  "(DOS)")
-    (setq eol-mnemonic-mac  "(Mac)")))
+   (t                                   ; this is for Unix/GNU/Linux systems
+    (setq eol-mnemonic-dos  "(DOS)"
+          eol-mnemonic-mac  "(Mac)")))
 
   ;; Read window system's init file if using a window system.
   (condition-case error
@@ -726,21 +713,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  (apply 'concat (cdr error))
 	(if (memq 'file-error (get (car error) 'error-conditions))
 	    (format "%s: %s"
-		     (nth 1 error)
-		     (mapconcat (lambda (obj) (prin1-to-string obj t))
-				(cdr (cdr error)) ", "))
+                    (nth 1 error)
+                    (mapconcat (lambda (obj) (prin1-to-string obj t))
+                               (cdr (cdr error)) ", "))
 	  (format "%s: %s"
-		   (get (car error) 'error-message)
-		   (mapconcat (lambda (obj) (prin1-to-string obj t))
-			      (cdr error) ", "))))
+                  (get (car error) 'error-message)
+                  (mapconcat (lambda (obj) (prin1-to-string obj t))
+                             (cdr error) ", "))))
       'external-debugging-output)
      (terpri 'external-debugging-output)
      (setq window-system nil)
      (kill-emacs)))
 
   ;; Windowed displays do this inside their *-win.el.
-  (when (and (not (display-graphic-p))
-	     (not noninteractive))
+  (unless (or (display-graphic-p) noninteractive)
     (setq command-line-args (tty-handle-args command-line-args)))
 
   (set-locale-environment nil)
@@ -750,7 +736,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (while args
       (setcar args
 	      (decode-coding-string (car args) locale-coding-system t))
-      (setq args (cdr args))))
+      (pop args)))
 
   (let ((done nil)
 	(args (cdr command-line-args)))
@@ -759,22 +745,23 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; either from the environment or from the options.
     (setq init-file-user (if noninteractive nil (user-login-name)))
     ;; If user has not done su, use current $HOME to find .emacs.
-    (and init-file-user (string= init-file-user (user-real-login-name))
+    (and init-file-user
+         (equal init-file-user (user-real-login-name))
 	 (setq init-file-user ""))
 
     ;; Process the command-line args, and delete the arguments
     ;; processed.  This is consistent with the way main in emacs.c
     ;; does things.
     (while (and (not done) args)
-      (let ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
-			("--debug-init") ("--iconic") ("--icon-type")))
-	    (argi (pop args))
-	    (argval nil))
+      (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
+                         ("--debug-init") ("--iconic") ("--icon-type")))
+             (argi (pop args))
+             (orig-argi argi)
+             argval)
 	;; Handle --OPTION=VALUE format.
-	(when (and (string-match "\\`--" argi)
-		   (string-match "=" argi))
+	(when (string-match "^\\(--[^=]*\\)=" argi)
 	  (setq argval (substring argi (match-end 0))
-		argi (substring argi 0 (match-beginning 0))))
+                argi (match-string 1 argi)))
 	(unless (equal argi "--")
 	  (let ((completion (try-completion argi longopts)))
 	    (if (eq completion t)
@@ -784,54 +771,54 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		    (or elt
 			(error "Option `%s' is ambiguous" argi))
 		    (setq argi (substring (car elt) 1)))
-		(setq argval nil)))))
+		(setq argval nil
+                      argi orig-argi)))))
 	(cond
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
 	 ((member argi '("-u" "-user"))
-	  (or argval
-	      (setq argval (pop args)))
-	  (setq init-file-user argval
+	  (setq init-file-user (or argval (pop args))
 		argval nil))
-	 ((string-equal argi "-no-site-file")
+	 ((equal argi "-no-site-file")
 	  (setq site-run-file nil))
-	 ((string-equal argi "-debug-init")
+	 ((equal argi "-debug-init")
 	  (setq init-file-debug t))
-	 ((string-equal argi "-iconic")
+	 ((equal argi "-iconic")
 	  (push '(visibility . icon) initial-frame-alist))
-	 ((or (string-equal argi "-icon-type")
-	      (string-equal argi "-i")
-	      (string-equal argi "-itype"))
+	 ((member argi '("-icon-type" "-i" "-itype"))
 	  (push '(icon-type . t) default-frame-alist))
 	 ;; Push the popped arg back on the list of arguments.
-	 (t (push argi args) (setq done t)))
+	 (t
+          (push argi args)
+          (setq done t)))
 	;; Was argval set but not used?
 	(and argval
 	     (error "Option `%s' doesn't allow an argument" argi))))
 
     ;; Re-attach the program name to the front of the arg list.
-    (and command-line-args (setcdr command-line-args args)))
+    (and command-line-args
+         (setcdr command-line-args args)))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (if (and (not noninteractive)
-	   (or (not (memq window-system '(x w32)))
-	       (> (frame-parameter nil 'menu-bar-lines) 0)))
-      (menu-bar-mode t))
+  (unless (or noninteractive
+              (and (memq window-system '(x w32))
+                   (<= (frame-parameter nil 'menu-bar-lines) 0)))
+    (menu-bar-mode t))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
-  (when (and (not noninteractive)
-	     (display-graphic-p)
-	     (> (frame-parameter nil 'tool-bar-lines) 0))
+  (unless (or noninteractive
+              (not (display-graphic-p))
+              (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because window-system isn't set.
-  (when (and (not noninteractive)
-	     (not (eq system-type 'ms-dos))
-	     (memq window-system '(x w32)))
+  (unless (or noninteractive
+              (eq system-type 'ms-dos)
+              (not (memq window-system '(x w32))))
     (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
@@ -850,19 +837,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (setq-default normal-erase-is-backspace t)
       (normal-erase-is-backspace-mode 1)))
 
-  (when (and (not noninteractive)
-	     (display-graphic-p)
-	     (fboundp 'x-show-tip))
+  (unless (or noninteractive
+              (not (display-graphic-p))
+              (not (fboundp 'x-show-tip)))
     (setq-default tooltip-mode t)
     (tooltip-mode 1))
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
-  (or (memq window-system '(x w32))
-      ;; We do this regardles of whether the terminal supports colors
-      ;; or not, since they can switch that support on or off in
-      ;; mid-session by setting the tty-color-mode frame parameter.
-      (tty-register-default-colors))
+  (unless (memq window-system '(x w32))
+    ;; We do this regardles of whether the terminal supports colors
+    ;; or not, since they can switch that support on or off in
+    ;; mid-session by setting the tty-color-mode frame parameter.
+    (tty-register-default-colors))
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
@@ -872,9 +859,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
                               (assq 'tool-bar-lines default-frame-alist))))
       (setq tool-bar-originally-present
-            (not (or (null tool-bar-lines)
-                     (null (cdr tool-bar-lines))
-                     (eq 0 (cdr tool-bar-lines)))))))
+            (and tool-bar-lines
+                 (cdr tool-bar-lines)
+                 (not (eq 0 (cdr tool-bar-lines)))))))
 
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
 	(old-font-list-limit font-list-limit)
@@ -957,19 +944,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			      (sit-for 1))
 			    (setq user-init-file source))))
 
-		      (when (and (stringp custom-file)
-				 (not (assoc custom-file load-history)))
-			;; If the .emacs file has set `custom-file' but hasn't
-			;; loaded the file yet, let's load it.
-			(load custom-file t t))
+		      (when (stringp custom-file)
+                        (unless (assoc custom-file load-history)
+                          ;; If the .emacs file has set `custom-file' but hasn't
+                          ;; loaded the file yet, let's load it.
+                          (load custom-file t t)))
 
-		      (or inhibit-default-init
-			  (let ((inhibit-startup-message nil))
-			    ;; Users are supposed to be told their rights.
-			    ;; (Plus how to get help and how to undo.)
-			    ;; Don't you dare turn this off for anyone
-			    ;; except yourself.
-			    (load "default" t t)))))))))
+		      (unless inhibit-default-init
+                        (let ((inhibit-startup-message nil))
+                          ;; Users are supposed to be told their rights.
+                          ;; (Plus how to get help and how to undo.)
+                          ;; Don't you dare turn this off for anyone
+                          ;; except yourself.
+                          (load "default" t t)))))))))
 	(if init-file-debug
 	    ;; Do this without a condition-case if the user wants to debug.
 	    (funcall inner)
@@ -1055,15 +1042,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
-  (and term-file-prefix (not noninteractive) (not window-system)
-       (let ((term (getenv "TERM"))
-	     hyphend)
-	 (while (and term
-		     (not (load (concat term-file-prefix term) t t)))
-	   ;; Strip off last hyphen and what follows, then try again
-	   (if (setq hyphend (string-match "[-_][^-_]+$" term))
-	       (setq term (substring term 0 hyphend))
-	     (setq term nil)))))
+  (unless (or noninteractive
+              window-system
+              (null term-file-prefix))
+    (let ((term (getenv "TERM"))
+          hyphend)
+      (while (and term
+                  (not (load (concat term-file-prefix term) t t)))
+        ;; Strip off last hyphen and what follows, then try again
+        (setq term
+              (if (setq hyphend (string-match "[-_][^-_]+$" term))
+                  (substring term 0 hyphend)
+                nil)))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
@@ -1079,7 +1069,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
-  (if (and (boundp 'x-session-previous-id) (stringp x-session-previous-id))
+  (if (and (boundp 'x-session-previous-id)
+           (stringp x-session-previous-id))
       (emacs-session-restore x-session-previous-id)))
 
 (defcustom initial-scratch-message (purecopy "\
@@ -1528,7 +1519,7 @@ normal otherwise."
 	   user-init-file
 	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
 		    (equal inhibit-startup-echo-area-message
-			   (if (string= init-file-user "")
+			   (if (equal init-file-user "")
 			       (user-login-name)
 			     init-file-user)))
 	       ;; Wasn't set with custom; see if .emacs has a setq.
@@ -1544,7 +1535,7 @@ normal otherwise."
 			     "inhibit-startup-echo-area-message[ \t\n]+"
 			     (regexp-quote
 			      (prin1-to-string
-			       (if (string= init-file-user "")
+			       (if (equal init-file-user "")
 				   (user-login-name)
 				 init-file-user)))
 			     "[ \t\n]*)")
@@ -1555,199 +1546,189 @@ normal otherwise."
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.
-  (if init-file-had-error
-      (sit-for 2))
+  (when init-file-had-error
+    (sit-for 2))
 
-  (if command-line-args-left
-      ;; We have command args; process them.
-      (let ((dir command-line-default-directory)
-	    (file-count 0)
-	    first-file-buffer
-	    tem
-	    just-files ;; t if this follows the magic -- option.
-	    ;; This includes our standard options' long versions
-	    ;; and long versions of what's on command-switch-alist.
-	    (longopts
-	     (append '(("--funcall") ("--load") ("--insert") ("--kill")
-		       ("--directory") ("--eval") ("--execute") ("--no-splash")
-		       ("--find-file") ("--visit") ("--file"))
-		     (mapcar (lambda (elt)
-			       (list (concat "-" (car elt))))
-			     command-switch-alist)))
-	    (line 0)
-	    (column 0))
+  (when command-line-args-left
+    ;; We have command args; process them.
+    (let ((dir command-line-default-directory)
+          (file-count 0)
+          first-file-buffer
+          tem
+          ;; The directories listed in --directory/-L options will *appear*
+          ;; at the front of `load-path' in the order they appear on the
+          ;; command-line.  We cannot do this by *placing* them at the front
+          ;; in the order they appear, so we need this variable to hold them,
+          ;; temporarily.
+          extra-load-path
+          just-files ;; t if this follows the magic -- option.
+          ;; This includes our standard options' long versions
+          ;; and long versions of what's on command-switch-alist.
+          (longopts
+           (append '(("--funcall") ("--load") ("--insert") ("--kill")
+                     ("--directory") ("--eval") ("--execute") ("--no-splash")
+                     ("--find-file") ("--visit") ("--file"))
+                   (mapcar (lambda (elt)
+                             (list (concat "-" (car elt))))
+                           command-switch-alist)))
+          (line 0)
+          (column 0))
 
-	;; Add the long X options to longopts.
-	(dolist (tem command-line-x-option-alist)
-	  (if (string-match "^--" (car tem))
-	      (push (list (car tem)) longopts)))
+      ;; Add the long X options to longopts.
+      (dolist (tem command-line-x-option-alist)
+        (if (string-match "^--" (car tem))
+            (push (list (car tem)) longopts)))
 
-	;; Loop, processing options.
-	(while (and command-line-args-left)
-	  (let* ((argi (car command-line-args-left))
-		 (orig-argi argi)
-		 argval completion
-		 ;; List of directories specified in -L/--directory,
-		 ;; in reverse of the order specified.
-		 extra-load-path
-		 (initial-load-path load-path))
-	    (setq command-line-args-left (cdr command-line-args-left))
+      ;; Loop, processing options.
+      (while command-line-args-left
+        (let* ((argi (car command-line-args-left))
+               (orig-argi argi)
+               argval completion)
+          (setq command-line-args-left (cdr command-line-args-left))
 
-	    ;; Do preliminary decoding of the option.
-	    (if just-files
-		;; After --, don't look for options; treat all args as files.
-		(setq argi "")
-	      ;; Convert long options to ordinary options
-	      ;; and separate out an attached option argument into argval.
-	      (if (string-match "^--[^=]*=" argi)
-		  (setq argval (substring argi (match-end 0))
-			argi (substring argi 0 (1- (match-end 0)))))
-	      (if (equal argi "--")
-		  (setq completion nil)
-		(setq completion (try-completion argi longopts)))
-	      (if (eq completion t)
-		  (setq argi (substring argi 1))
-		(if (stringp completion)
-		    (let ((elt (assoc completion longopts)))
-		      (or elt
-			  (error "Option `%s' is ambiguous" argi))
-		      (setq argi (substring (car elt) 1)))
-		  (setq argval nil argi orig-argi))))
+          ;; Do preliminary decoding of the option.
+          (if just-files
+              ;; After --, don't look for options; treat all args as files.
+              (setq argi "")
+            ;; Convert long options to ordinary options
+            ;; and separate out an attached option argument into argval.
+            (when (string-match "^\\(--[^=]*\\)=" argi)
+              (setq argval (substring argi (match-end 0))
+                    argi (match-string 1 argi)))
+            (if (equal argi "--")
+                (setq completion nil)
+              (setq completion (try-completion argi longopts)))
+            (if (eq completion t)
+                (setq argi (substring argi 1))
+              (if (stringp completion)
+                  (let ((elt (assoc completion longopts)))
+                    (or elt
+                        (error "Option `%s' is ambiguous" argi))
+                    (setq argi (substring (car elt) 1)))
+                (setq argval nil
+                      argi orig-argi))))
 
-	    ;; Execute the option.
-	    (cond ((setq tem (assoc argi command-switch-alist))
-		   (if argval
-		       (let ((command-line-args-left
-			      (cons argval command-line-args-left)))
-			 (funcall (cdr tem) argi))
-		     (funcall (cdr tem) argi)))
+          ;; Execute the option.
+          (cond ((setq tem (assoc argi command-switch-alist))
+                 (if argval
+                     (let ((command-line-args-left
+                            (cons argval command-line-args-left)))
+                       (funcall (cdr tem) argi))
+                   (funcall (cdr tem) argi)))
 
-		  ((string-equal argi "-no-splash")
-		   (setq inhibit-startup-message t))
+                ((equal argi "-no-splash")
+                 (setq inhibit-startup-message t))
 
-		  ((member argi '("-f"	;what the manual claims
-				  "-funcall"
-				  "-e")) ; what the source used to say
-		   (if argval
-		       (setq tem (intern argval))
-		     (setq tem (intern (car command-line-args-left)))
-		     (setq command-line-args-left (cdr command-line-args-left)))
-		   (if (arrayp (symbol-function tem))
-		       (command-execute tem)
-		     (funcall tem)))
+                ((member argi '("-f"	; what the manual claims
+                                "-funcall"
+                                "-e"))  ; what the source used to say
+                 (setq tem (intern (or argval (pop command-line-args-left))))
+                 (if (arrayp (symbol-function tem))
+                     (command-execute tem)
+                   (funcall tem)))
 
-		  ((member argi '("-eval" "-execute"))
-		   (if argval
-		       (setq tem argval)
-		     (setq tem (car command-line-args-left))
-		     (setq command-line-args-left (cdr command-line-args-left)))
-		   (eval (read tem)))
-		  ;; Set the default directory as specified in -L.
+                ((member argi '("-eval" "-execute"))
+                 (eval (read (or argval (pop command-line-args-left)))))
+                ;; Set the default directory as specified in -L.
 
-		  ((member argi '("-L" "-directory"))
-		   (if argval
-		       (setq tem argval)
-		     (setq tem (car command-line-args-left)
-			   command-line-args-left (cdr command-line-args-left)))
-		   (setq tem (command-line-normalize-file-name tem))
-		   (setq extra-load-path
-			 (cons (expand-file-name tem) extra-load-path))
-		   (setq load-path (append (nreverse extra-load-path)
-					   initial-load-path)))
+                ((member argi '("-L" "-directory"))
+                 (setq tem (or argval (pop command-line-args-left)))
+                 ;; We will reverse `extra-load-path' and prepend it to
+                 ;; `load-path' after all the arguments have been processed.
+                 (push
+                  (expand-file-name (command-line-normalize-file-name tem))
+                  extra-load-path))
 
-		  ((member argi '("-l" "-load"))
-		   (if argval
-		       (setq tem argval)
-		     (setq tem (car command-line-args-left)
-			   command-line-args-left (cdr command-line-args-left)))
-		   (let ((file (command-line-normalize-file-name tem)))
-		     ;; Take file from default dir if it exists there;
-		     ;; otherwise let `load' search for it.
-		     (if (file-exists-p (expand-file-name file))
-			 (setq file (expand-file-name file)))
-		     (load file nil t)))
+                ((member argi '("-l" "-load"))
+                 (let* ((file (command-line-normalize-file-name
+                               (or argval (pop command-line-args-left))))
+                        ;; Take file from default dir if it exists there;
+                        ;; otherwise let `load' search for it.
+                        (file-ex (expand-file-name file)))
+                   (when (file-exists-p file-ex)
+                     (setq file file-ex))
+                   (load file nil t)))
 
-		  ((string-equal argi "-insert")
-		   (if argval
-		       (setq tem argval)
-		     (setq tem (car command-line-args-left)
-			   command-line-args-left (cdr command-line-args-left)))
-		   (or (stringp tem)
-		       (error "File name omitted from `-insert' option"))
-		   (insert-file-contents (command-line-normalize-file-name tem)))
+                ((equal argi "-insert")
+                 (setq tem (or argval (pop command-line-args-left)))
+                 (or (stringp tem)
+                     (error "File name omitted from `-insert' option"))
+                 (insert-file-contents (command-line-normalize-file-name tem)))
 
-		  ((string-equal argi "-kill")
-		   (kill-emacs t))
+                ((equal argi "-kill")
+                 (kill-emacs t))
 
-		  ((string-match "^\\+[0-9]+\\'" argi)
-		   (setq line (string-to-int argi)))
+                ((string-match "^\\+[0-9]+\\'" argi)
+                 (setq line (string-to-int argi)))
 
-		  ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-		   (setq line (string-to-int (match-string 1 argi))
-			 column (string-to-int (match-string 2 argi))))
+                ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
+                 (setq line (string-to-int (match-string 1 argi))
+                       column (string-to-int (match-string 2 argi))))
 
-		  ((setq tem (assoc argi command-line-x-option-alist))
-		   ;; Ignore X-windows options and their args if not using X.
-		   (setq command-line-args-left
-			 (nthcdr (nth 1 tem) command-line-args-left)))
+                ((setq tem (assoc argi command-line-x-option-alist))
+                 ;; Ignore X-windows options and their args if not using X.
+                 (setq command-line-args-left
+                       (nthcdr (nth 1 tem) command-line-args-left)))
 
-		  ((member argi '("-find-file" "-file" "-visit"))
-		   ;; An explicit option to specify visiting a file.
-		   (if argval
-		       (setq tem argval)
-		     (setq tem (car command-line-args-left)
-			   command-line-args-left (cdr command-line-args-left)))
-		   (unless (stringp tem)
-		     (error "File name omitted from `%s' option" argi))
-		   (setq file-count (1+ file-count))
-		   (let ((file (expand-file-name
-				(command-line-normalize-file-name tem) dir)))
-		     (if (= file-count 1)
-			 (setq first-file-buffer (find-file file))
-		       (find-file-other-window file)))
-		   (or (zerop line)
-		       (goto-line line))
-		   (setq line 0)
-		   (unless (< column 1)
-		     (move-to-column (1- column)))
-		   (setq column 0))
+                ((member argi '("-find-file" "-file" "-visit"))
+                 ;; An explicit option to specify visiting a file.
+                 (setq tem (or argval (pop command-line-args-left)))
+                 (unless (stringp tem)
+                   (error "File name omitted from `%s' option" argi))
+                 (setq file-count (1+ file-count))
+                 (let ((file (expand-file-name
+                              (command-line-normalize-file-name tem) dir)))
+                   (if (= file-count 1)
+                       (setq first-file-buffer (find-file file))
+                     (find-file-other-window file)))
+                 (or (zerop line)
+                     (goto-line line))
+                 (setq line 0)
+                 (unless (< column 1)
+                   (move-to-column (1- column)))
+                 (setq column 0))
 
-		  ((equal argi "--")
-		   (setq just-files t))
-		  (t
-		   ;; We have almost exhausted our options. See if the
-		   ;; user has made any other command-line options available
-		   (let ((hooks command-line-functions)	;; lrs 7/31/89
-			 (did-hook nil))
-		     (while (and hooks
-				 (not (setq did-hook (funcall (car hooks)))))
-		       (setq hooks (cdr hooks)))
-		     (if (not did-hook)
-		       ;; Ok, presume that the argument is a file name
-			 (progn
-			   (if (string-match "\\`-" argi)
-			       (error "Unknown option `%s'" argi))
-			   (setq file-count (1+ file-count))
-			   (let ((file
-				  (expand-file-name
-				   (command-line-normalize-file-name orig-argi)
-				   dir)))
-			     (if (= file-count 1)
-				 (setq first-file-buffer (find-file file))
-			       (find-file-other-window file)))
-			   (or (zerop line)
-			       (goto-line line))
-			   (setq line 0)
-			   (unless (< column 1)
-			     (move-to-column (1- column)))
-			   (setq column 0))))))))
-	;; If 3 or more files visited, and not all visible,
-	;; show user what they all are.  But leave the last one current.
-	(and (> file-count 2)
-	     (not noninteractive)
-	     (not inhibit-startup-buffer-menu)
-	     (or (get-buffer-window first-file-buffer)
-		 (list-buffers)))))
+                ((equal argi "--")
+                 (setq just-files t))
+                (t
+                 ;; We have almost exhausted our options. See if the
+                 ;; user has made any other command-line options available
+                 (let ((hooks command-line-functions) ;; lrs 7/31/89
+                       (did-hook nil))
+                   (while (and hooks
+                               (not (setq did-hook (funcall (car hooks)))))
+                     (setq hooks (cdr hooks)))
+                   (if (not did-hook)
+                       ;; Presume that the argument is a file name.
+                       (progn
+                         (if (string-match "\\`-" argi)
+                             (error "Unknown option `%s'" argi))
+                         (setq file-count (1+ file-count))
+                         (let ((file
+                                (expand-file-name
+                                 (command-line-normalize-file-name orig-argi)
+                                 dir)))
+                           (if (= file-count 1)
+                               (setq first-file-buffer (find-file file))
+                             (find-file-other-window file)))
+                         (or (zerop line)
+                             (goto-line line))
+                         (setq line 0)
+                         (unless (< column 1)
+                           (move-to-column (1- column)))
+                         (setq column 0))))))))
+
+      ;; See --directory/-L option above.
+      (when extra-load-path
+        (setq load-path (append (nreverse extra-load-path) load-path)))
+
+      ;; If 3 or more files visited, and not all visible,
+      ;; show user what they all are.  But leave the last one current.
+      (and (> file-count 2)
+           (not noninteractive)
+           (not inhibit-startup-buffer-menu)
+           (or (get-buffer-window first-file-buffer)
+               (list-buffers)))))
 
   ;; Maybe display a startup screen.
   (when (and (not inhibit-startup-message) (not noninteractive)
@@ -1789,7 +1770,7 @@ normal otherwise."
     ;; If *scratch* is selected and it is empty, insert an
     ;; initial message saying not to create a file there.
     (when (and initial-scratch-message
-	       (string= (buffer-name) "*scratch*")
+	       (equal (buffer-name) "*scratch*")
 	       (= 0 (buffer-size)))
       (insert initial-scratch-message)
       (set-buffer-modified-p nil))
