@@ -1,3 +1,27 @@
+2001-01-25  Francesco Potorti`  <pot@potorti.it>
+
+	* etags.c (struct tok): Renamed from struct token.
+	(token): Renamed from tok.
+	(structtype): Make it a local variable.
+	[DEBUG]: Use assert.
+	(xrnew): Change the synopsis.
+	(typedefs_or_cplusplus): Renamed from typedefs_and_cplusplus.
+	(grow_linebuffer): Don't call xrnew when not needed.
+	(token): buffer renamed to line.
+	(C_entries): Three calls to inibuffer moved here from main.
+	(C_entries): Removed all references to var methodlen, delete it.
+	(linebuffer_setlen): Was grow_buffer, now also sets len.
+	(consider_token, C_entries, Pascal_functions): Use it.
+	(C_entries): Preventing problems relative to extern "C".
+	(C_entries): Can tag more than one variable or func separated by
+	comma when --declarations is used.
+	(C_entries): More accurate tagging of members and declarations.
+	(yacc_rules): Was global, made local to C_entries.
+	(next_token_is_func): Removed.
+	(fvdef): New constants fdefunkey, fdefunname.
+	(consider_token, C_entries): Use them.
+	(C_entries): Build proper lisp names for Emacs DEFUNs.
+
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (xfree): New function.
