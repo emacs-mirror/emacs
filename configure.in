@@ -353,7 +353,7 @@ case "${canonical}" in
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
   ;;
-  ## HP/UX 7, 8 and 9 are supported on these machines.
+  ## HP/UX 7, 8, 9, and 10 are supported on these machines.
   m68*-hp-hpux* )
     case "`uname -r`" in
       ## Someone's system reports A.B8.05 for this.
@@ -361,6 +361,7 @@ case "${canonical}" in
       *.B8.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.08.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.09.* ) machine=hp9000s300 opsys=hpux9 ;;
+      *.10.* ) machine=hp9000s300 opsys=hpux9shr ;;
       *) machine=hp9000s300 opsys=hpux ;;
     esac
   ;;
@@ -377,6 +378,9 @@ case "${canonical}" in
   ;;
   hppa*-hp-hpux9* )
     machine=hp800 opsys=hpux9
+  ;;
+  hppa*-hp-hpux10* )
+    machine=hp800 opsys=hpux9shr
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
