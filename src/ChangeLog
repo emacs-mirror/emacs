@@ -1,3 +1,10 @@
+2001-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xterm.c (x_free_frame_resources) [USE_X_TOOLKIT]: Remove all the
+	scroll bars of the frame before deleting the frame itself.  If the
+	frame has a widget, delete the frame with XtDestroyWidget, and do
+	not call XDestroyWindow before that.
+
 2001-12-06  Kim F. Storm  <storm@cua.dk>
 
 	* xfns.c (x_report_frame_params): Return actual fringe widths.
