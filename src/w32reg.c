@@ -40,13 +40,16 @@ w32_get_string_resource (name, class, dwexptype)
   DWORD dwType;
   DWORD cbData;
   BOOL ok = FALSE;
+  HKEY hive = HKEY_CURRENT_USER;
   
+ trykey:
+
   BLOCK_INPUT;
   
-  /* Check both the current user and the local machine to see if we have any resources */
-  
-  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS
-      || RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+  /* Check both the current user and the local machine to see if we have
+     any resources */
+
+  if (RegOpenKeyEx (hive, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       char *keyname;
       
@@ -76,13 +79,19 @@ w32_get_string_resource (name, class, dwexptype)
   
   if (!ok) 
     {
-      if (lpvalue) xfree (lpvalue);
+      if (lpvalue)
+	{
+	  xfree (lpvalue);
+	  lpvalue = NULL;
+	}
+      if (hive == HKEY_CURRENT_USER)
+	{
+	  hive = HKEY_LOCAL_MACHINE;
+	  goto trykey;
+	}
       return (NULL);
     } 
-  else 
-    {
-      return (lpvalue);
-    }
+  return (lpvalue);
 }
 
 /* Retrieve the string resource specified by NAME with CLASS from
