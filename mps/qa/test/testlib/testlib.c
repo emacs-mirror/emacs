@@ -1,6 +1,7 @@
 /* some useful functions for testing the MPS */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <math.h>
 #include "testlib.h"
@@ -155,7 +156,7 @@ void verror(const char *format, va_list args)
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
- exit(1);
+ abort();
 }
 
 /* asserts(1=0, "Axiom violation.");
@@ -174,7 +175,7 @@ void asserts(int expr, const char *format, ...)
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
   va_end(args);
-  exit(1);
+  abort();
  }
 }
 
