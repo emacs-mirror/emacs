@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund (espensk@stud.cs.uit.no)
 ;; Keywords: languages
@@ -59,6 +59,10 @@
 ;; as well as to bug-gnu-emacs@prep.ai.mit.edu.
 
 ;;; Code:
+
+(defgroup pascal nil
+  "Major mode for editing Pascal source in Emacs"
+  :group 'languages)
 
 (defvar pascal-mode-abbrev-table nil
   "Abbrev table in use in Pascal-mode buffers.")
@@ -170,58 +174,85 @@
      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t)))
   "Additional expressions to highlight in Pascal mode.")
 
-(defvar pascal-indent-level 3
-  "*Indentation of Pascal statements with respect to containing block.")
+(defcustom pascal-indent-level 3
+  "*Indentation of Pascal statements with respect to containing block."
+  :type 'integer
+  :group 'pascal)
 
-(defvar pascal-case-indent 2
-  "*Indentation for case statements.")
+(defcustom pascal-case-indent 2
+  "*Indentation for case statements."
+  :type 'integer
+  :group 'pascal)
 
-(defvar pascal-auto-newline nil
-  "*Non-nil means automatically newline after semicolons and the punctuation
-mark after an end.")
+(defcustom pascal-auto-newline nil
+  "*Non-nil means automatically insert newlines in certain cases.
+These include after semicolons and after the punctuation mark after an `end'."
+  :type 'boolean
+  :group 'pascal)
 
-(defvar pascal-tab-always-indent t
-  "*Non-nil means TAB in Pascal mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used.")
+(defcustom pascal-tab-always-indent t
+  "*Non-nil means TAB in Pascal mode should always reindent the current line.
+If this is nil, TAB inserts a tab if it is at the end of the line
+and follows non-whitespace text."
+  :type 'boolean
+  :group 'pascal)
 
-(defvar pascal-auto-endcomments t
-  "*Non-nil means a comment { ... } is set after the ends which ends cases and
-functions. The name of the function or case will be set between the braces.")
+(defcustom pascal-auto-endcomments t
+  "*Non-nil means automatically insert comments after certain `end's.
+Specifically, this is done after the ends of cases statements and functions.
+The name of the function or case is included between the braces."
+  :type 'boolean
+  :group 'pascal)
 
-(defvar pascal-auto-lineup '(all)
+(defcustom pascal-auto-lineup '(all)
   "*List of contexts where auto lineup of :'s or ='s should be done.
 Elements can be of type: 'paramlist', 'declaration' or 'case', which will
 do auto lineup in parameterlist, declarations or case-statements
 respectively. The word 'all' will do all lineups. '(case paramlist) for
 instance will do lineup in case-statements and parameterlist, while '(all)
-will do all lineups.")
+will do all lineups."
+  :type '(repeat (choice (const all)
+			 (const paramlist)
+			 (const declaration)
+			 (const case)))
+  :group 'pascal)
 
-(defvar pascal-toggle-completions nil
+(defcustom pascal-toggle-completions nil
   "*Non-nil means \\<pascal-mode-map>\\[pascal-complete-word] should try all possible completions one by one.
 Repeated use of \\[pascal-complete-word] will show you all of them.
 Normally, when there is more than one possible completion,
-it displays a list of all possible completions.")
+it displays a list of all possible completions."
+  :type 'boolean
+  :group 'pascal)
 
-(defvar pascal-type-keywords
+(defcustom pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
   "*Keywords for types used when completing a word in a declaration or parmlist.
-\(eg. integer, real, char.)  The types defined within the Pascal program
-will be completed runtime, and should not be added to this list.")
+These include integer, real, char, etc.
+The types defined within the Pascal program
+are handled in another way, and should not be added to this list."
+  :type '(repeat (string :tag "Keyword"))
+  :group 'pascal)
 
-(defvar pascal-start-keywords
+(defcustom pascal-start-keywords
   '("begin" "end" "function" "procedure" "repeat" "until" "while"
     "read" "readln" "reset" "rewrite" "write" "writeln")
   "*Keywords to complete when standing at the first word of a statement.
-\(eg. begin, repeat, until, readln.)
+These are keywords such as begin, repeat, until, readln.
 The procedures and variables defined within the Pascal program
-will be completed runtime and should not be added to this list.")
+are handled in another way,  and should not be added to this list."
+  :type '(repeat (string :tag "Keyword"))
+  :group 'pascal)
 
-(defvar pascal-separator-keywords
+(defcustom pascal-separator-keywords
   '("downto" "else" "mod" "div" "then")
   "*Keywords to complete when NOT standing at the first word of a statement.
-\(eg. downto, else, mod, then.) 
-Variables and function names defined within the
-Pascal program are completed runtime and should not be added to this list.")
+These are keywords such as downto, else, mod, then.
+Variables and function names defined within the Pascal program
+are handled in another way, and should not be added to this list."
+  :type '(repeat (string :tag "Keyword"))
+  :group 'pascal)
+
 
 ;;;
 ;;;  Macros
