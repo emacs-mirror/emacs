@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "../src/ccl.h"
 #endif
 
-/*** EMACS' INTERNAL FORMAT section ***/
+/*** EMACS' INTERNAL FORMAT (emacs-mule) section ***/
 
 /* All code (1-byte) of Emacs' internal format is classified into one
    of the followings.  See also `charset.h'.  */
@@ -199,11 +199,11 @@ enum coding_type
     coding_type_no_conversion,	/* A coding system which requires no
 				   conversion for reading and writing
 				   including end-of-line format.  */
-    coding_type_internal,	/* A coding system used in Emacs'
+    coding_type_emacs_mule,	/* A coding system used in Emacs'
 				   buffer and string.  Requires no
 				   conversion for reading and writing
 				   except for end-of-line format.  */
-    coding_type_automatic,	/* A coding system which requires
+    coding_type_undecided,	/* A coding system which requires
 				   automatic detection of a real
 				   coding system.  */
     coding_type_sjis,		/* SJIS coding system for Japanese.  */
@@ -220,7 +220,7 @@ enum coding_type
 #define CODING_EOL_CRLF	1	/* Sequence of carriage-return and
 				   line-feed.  */
 #define CODING_EOL_CR	2	/* Carriage-return only.  */
-#define CODING_EOL_AUTOMATIC 3	/* This value is used to denote the
+#define CODING_EOL_UNDECIDED 3	/* This value is used to denote the
 				   eol-type is not yet decided.  */
 
 /* Character composition status while encoding/decoding.  */
@@ -307,12 +307,12 @@ struct coding_system
    representation of a visible character (text).  */
 #define CODING_REQUIRE_TEXT_CONVERSION(coding)	\
   ((coding)->type != coding_type_no_conversion  	\
-   && (coding)->type != coding_type_internal)
+   && (coding)->type != coding_type_emacs_mule)
 
 /* Return 1 if the coding-system CODING requires conversion of the
    format of end-of-line.  */
 #define CODING_REQUIRE_EOL_CONVERSION(coding)	\
-  ((coding)->eol_type != CODING_EOL_AUTOMATIC  	\
+  ((coding)->eol_type != CODING_EOL_UNDECIDED  	\
    && (coding)->eol_type != CODING_EOL_LF)
 
 /* Return 1 if the coding-system CODING requires some conversion.  */
@@ -321,7 +321,7 @@ struct coding_system
    || CODING_REQUIRE_EOL_CONVERSION (coding))
 
 /* Index for each coding category in `coding_category_table' */
-#define CODING_CATEGORY_IDX_INTERNAL	0
+#define CODING_CATEGORY_IDX_EMACS_MULE	0
 #define CODING_CATEGORY_IDX_SJIS	1
 #define CODING_CATEGORY_IDX_ISO_7	2
 #define CODING_CATEGORY_IDX_ISO_8_1	3
@@ -333,7 +333,7 @@ struct coding_system
 
 /* Definitions of flag bits returned by the function
    detect_coding_mask ().  */
-#define CODING_CATEGORY_MASK_INTERNAL	(1 << CODING_CATEGORY_IDX_INTERNAL)
+#define CODING_CATEGORY_MASK_EMACS_MULE	(1 << CODING_CATEGORY_IDX_EMACS_MULE)
 #define CODING_CATEGORY_MASK_SJIS	(1 << CODING_CATEGORY_IDX_SJIS)
 #define CODING_CATEGORY_MASK_ISO_7	(1 << CODING_CATEGORY_IDX_ISO_7)
 #define CODING_CATEGORY_MASK_ISO_8_1	(1 << CODING_CATEGORY_IDX_ISO_8_1)
@@ -344,7 +344,7 @@ struct coding_system
 /* This value is returned if detect_coding_mask () find nothing other
    than ASCII characters.  */
 #define CODING_CATEGORY_MASK_ANY  	\
-  (  CODING_CATEGORY_MASK_INTERNAL	\
+  (  CODING_CATEGORY_MASK_EMACS_MULE	\
    | CODING_CATEGORY_MASK_SJIS	  	\
    | CODING_CATEGORY_MASK_ISO_7	  	\
    | CODING_CATEGORY_MASK_ISO_8_1 	\

@@ -3165,9 +3165,9 @@ This does code conversion according to the value of\n\
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
       && (! CODING_REQUIRE_CONVERSION (&coding)
-	  || (coding.type == coding_type_automatic
+	  || (coding.type == coding_type_undecided
 	      && ! CODING_REQUIRE_EOL_CONVERSION (&coding))
-	  || (coding.eol_type == CODING_EOL_AUTOMATIC
+	  || (coding.eol_type == CODING_EOL_UNDECIDED
 	      && ! CODING_REQUIRE_TEXT_CONVERSION (&coding))))
     {
       int same_at_start = BEGV;
@@ -3200,7 +3200,7 @@ This does code conversion according to the value of\n\
 	  else if (nread == 0)
 	    break;
 
-	  if (coding.type == coding_type_automatic)
+	  if (coding.type == coding_type_undecided)
 	    detect_coding (&coding, buffer, nread);
 	  if (CODING_REQUIRE_TEXT_CONVERSION (&coding))
 	    /* We found that the file should be decoded somehow.
@@ -3210,7 +3210,7 @@ This does code conversion according to the value of\n\
 	      break;
 	    }
 
-	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
+	  if (coding.eol_type == CODING_EOL_UNDECIDED)
 	    detect_eol (&coding, buffer, nread);
 	  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
 	    /* We found that the format of eol should be decoded.

@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 /*** TABLE OF CONTENTS ***
 
   1. Preamble
-  2. Emacs' internal format handlers
+  2. Emacs' internal format (emacs-mule) handlers
   3. ISO2022 handlers
   4. Shift-JIS and BIG5 handlers
   5. End-of-line handlers
@@ -38,10 +38,11 @@ Boston, MA 02111-1307, USA.  */
   Coding system is an encoding mechanism of one or more character
   sets.  Here's a list of coding systems which Emacs can handle.  When
   we say "decode", it means converting some other coding system to
-  Emacs' internal format, and when we say "encode", it means
-  converting Emacs' internal format to some other coding system.
+  Emacs' internal format (emacs-internal), and when we say "encode",
+  it means converting the coding system emacs-mule to some other
+  coding system.
 
-  0. Emacs' internal format
+  0. Emacs' internal format (emacs-mule)
 
   Emacs itself holds a multi-lingual character in a buffer and a string
   in a special format.  Details are described in the section 2.
@@ -106,7 +107,7 @@ Boston, MA 02111-1307, USA.  */
   template of these functions.  */
 #if 0
 int
-detect_coding_internal (src, src_end)
+detect_coding_emacs_mule (src, src_end)
      unsigned char *src, *src_end;
 {
   ...
@@ -116,11 +117,11 @@ detect_coding_internal (src, src_end)
 /*** GENERAL NOTES on `decode_coding_XXX ()' functions ***
 
   These functions decode SRC_BYTES length text at SOURCE encoded in
-  CODING to Emacs' internal format.  The resulting text goes to a
-  place pointed by DESTINATION, the length of which should not exceed
-  DST_BYTES.  The bytes actually processed is returned as *CONSUMED.
-  The return value is the length of the decoded text.  Below is a
-  template of these functions.  */
+  CODING to Emacs' internal format (emacs-mule).  The resulting text
+  goes to a place pointed by DESTINATION, the length of which should
+  not exceed DST_BYTES.  The bytes actually processed is returned as
+  *CONSUMED.  The return value is the length of the decoded text.
+  Below is a template of these functions.  */
 #if 0
 decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
      struct coding_system *coding;
@@ -134,12 +135,12 @@ decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
 
 /*** GENERAL NOTES on `encode_coding_XXX ()' functions ***
 
-  These functions encode SRC_BYTES length text at SOURCE of Emacs
-  internal format to CODING.  The resulting text goes to a place
-  pointed by DESTINATION, the length of which should not exceed
-  DST_BYTES.  The bytes actually processed is returned as *CONSUMED.
-  The return value is the length of the encoded text.  Below is a
-  template of these functions.  */
+  These functions encode SRC_BYTES length text at SOURCE of Emacs'
+  internal format (emacs-mule) to CODING.  The resulting text goes to
+  a place pointed by DESTINATION, the length of which should not
+  exceed DST_BYTES.  The bytes actually processed is returned as
+  *CONSUMED.  The return value is the length of the encoded text.
+  Below is a template of these functions.  */
 #if 0
 encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
      struct coding_system *coding;
@@ -293,7 +294,7 @@ Lisp_Object coding_category_table[CODING_CATEGORY_IDX_MAX];
 
 /* Table of names of symbol for each coding-category.  */
 char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
-  "coding-category-internal",
+  "coding-category-emacs-mule",
   "coding-category-sjis",
   "coding-category-iso-7",
   "coding-category-iso-8-1",
@@ -317,7 +318,7 @@ Lisp_Object Qcharacter_unification_table;
 Lisp_Object Vcharset_revision_alist;
 
 
-/*** 2. Emacs internal format handlers ***/
+/*** 2. Emacs internal format (emacs-mule) handlers ***/
 
 /* Emacs' internal format for encoding multiple character sets is a
    kind of multi-byte encoding, i.e. encoding a character by a sequence
@@ -364,10 +365,10 @@ enum emacs_code_class_type emacs_code_class[256];
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
    Check if a text is encoded in Emacs' internal format.  If it is,
-   return CODING_CATEGORY_MASK_INTERNAL, else return 0.  */
+   return CODING_CATEGORY_MASK_EMASC_MULE, else return 0.  */
 
 int
-detect_coding_internal (src, src_end)
+detect_coding_emacs_mule (src, src_end)
      unsigned char *src, *src_end;
 {
   unsigned char c;
@@ -423,7 +424,7 @@ detect_coding_internal (src, src_end)
 	  break;
 	}
     }
-  return CODING_CATEGORY_MASK_INTERNAL;
+  return CODING_CATEGORY_MASK_EMACS_MULE;
 }
 
 
@@ -1457,7 +1458,7 @@ encode_coding_iso2022 (coding, source, destination,
 		   coding->spec.iso2022.current_designation,
 		   sizeof coding->spec.iso2022.initial_designation);
 	  if (coding->eol_type == CODING_EOL_LF
-	      || coding->eol_type == CODING_EOL_AUTOMATIC)
+	      || coding->eol_type == CODING_EOL_UNDECIDED)
 	    *dst++ = ISO_CODE_LF;
 	  else if (coding->eol_type == CODING_EOL_CRLF)
 	    *dst++ = ISO_CODE_CR, *dst++ = ISO_CODE_LF;
@@ -1814,7 +1815,7 @@ encode_coding_sjis_big5 (coding, source, destination,
 
 	case EMACS_linefeed_code:
 	  if (coding->eol_type == CODING_EOL_LF
-	      || coding->eol_type == CODING_EOL_AUTOMATIC)
+	      || coding->eol_type == CODING_EOL_UNDECIDED)
 	    *dst++ = '\n';
 	  else if (coding->eol_type == CODING_EOL_CRLF)
 	    *dst++ = '\r', *dst++ = '\n';
@@ -1970,7 +1971,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes, consumed)
   switch (coding->eol_type)
     {
     case CODING_EOL_LF:
-    case CODING_EOL_AUTOMATIC:
+    case CODING_EOL_UNDECIDED:
       produced = (src_bytes > dst_bytes) ? dst_bytes : src_bytes;
       bcopy (source, destination, produced);
       if (coding->selective)
@@ -2036,13 +2037,14 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes, consumed)
    `element[0]' contains information to be set in `coding->type'.  The
    value and its meaning is as follows:
 
-   0 -- coding_system_internal
-   1 -- coding_system_sjis
-   2 -- coding_system_iso2022
-   3 -- coding_system_big5
-   4 -- coding_system_ccl
-   nil -- coding_system_no_conversion
-   t -- coding_system_automatic
+   0 -- coding_type_emacs_mule
+   1 -- coding_type_sjis
+   2 -- coding_type_iso2022
+   3 -- coding_type_big5
+   4 -- coding_type_ccl encoder/decoder written in CCL
+   nil -- coding_type_no_conversion
+   t -- coding_type_undecided (automatic conversion on decoding,
+   			       no-conversion on encoding)
 
    `element[4]' contains information to be set in `coding->flags' and
    `coding->spec'.  The meaning varies by `coding->type'.
@@ -2127,7 +2129,7 @@ setup_coding_system (coding_system, coding)
     goto label_invalid_coding_system;
 
   if (VECTORP (eol_type))
-    coding->eol_type = CODING_EOL_AUTOMATIC;
+    coding->eol_type = CODING_EOL_UNDECIDED;
   else if (XFASTINT (eol_type) == 1)
     coding->eol_type = CODING_EOL_CRLF;
   else if (XFASTINT (eol_type) == 2)
@@ -2139,7 +2141,7 @@ setup_coding_system (coding_system, coding)
   switch (XFASTINT (type))
     {
     case 0:
-      coding->type = coding_type_internal;
+      coding->type = coding_type_emacs_mule;
       break;
 
     case 1:
@@ -2309,7 +2311,7 @@ setup_coding_system (coding_system, coding)
 
     default:
       if (EQ (type, Qt))
-	coding->type = coding_type_automatic;
+	coding->type = coding_type_undecided;
       else
 	coding->type = coding_type_no_conversion;
       break;
@@ -2330,11 +2332,11 @@ setup_coding_system (coding_system, coding)
    because they use the same range of codes.  So, at first, coding
    systems are categorized into 7, those are:
 
-   o coding-category-internal
+   o coding-category-emacs-mule
 
    	The category for a coding system which has the same code range
 	as Emacs' internal format.  Assigned the coding-system (Lisp
-	symbol) `internal' by default.
+	symbol) `emacs-mule' by default.
 
    o coding-category-sjis
 
@@ -2439,13 +2441,13 @@ detect_coding_mask (src, src_bytes)
        or a leading code of Emacs.  */
     mask = (detect_coding_iso2022 (src, src_end)
 	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_internal (src, src_end));
+	    | detect_coding_emacs_mule (src, src_end));
 
   else if (c < 0xA0)
     /* C is the first byte of SJIS character code,
        or a leading-code of Emacs.  */
     mask = (detect_coding_sjis (src, src_end)
-	    | detect_coding_internal (src, src_end));
+	    | detect_coding_emacs_mule (src, src_end));
 
   else
     /* C is a character of ISO2022 in graphic plane right,
@@ -2511,7 +2513,7 @@ detect_coding (coding, src, src_bytes)
 
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by SRC
    is encoded.  Return one of CODING_EOL_LF, CODING_EOL_CRLF,
-   CODING_EOL_CR, and CODING_EOL_AUTOMATIC.  */
+   CODING_EOL_CR, and CODING_EOL_UNDECIDED.  */
 
 int
 detect_eol_type (src, src_bytes)
@@ -2534,7 +2536,7 @@ detect_eol_type (src, src_bytes)
 	    return CODING_EOL_CR;
 	}
     }
-  return CODING_EOL_AUTOMATIC;
+  return CODING_EOL_UNDECIDED;
 }
 
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by SRC
@@ -2550,7 +2552,7 @@ detect_eol (coding, src, src_bytes)
   Lisp_Object val;
   int eol_type = detect_eol_type (src, src_bytes);
 
-  if (eol_type == CODING_EOL_AUTOMATIC)
+  if (eol_type == CODING_EOL_UNDECIDED)
     /*  We found no end-of-line in the source text.  */
     return;
 
@@ -2578,10 +2580,10 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
       return 0;
     }
 
-  if (coding->type == coding_type_automatic)
+  if (coding->type == coding_type_undecided)
     detect_coding (coding, source, src_bytes);
 
-  if (coding->eol_type == CODING_EOL_AUTOMATIC)
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
     detect_eol (coding, source, src_bytes);
 
   coding->carryover_size = 0;
@@ -2594,10 +2596,10 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
       *consumed = produced;
       break;
 
-    case coding_type_internal:
-    case coding_type_automatic:
+    case coding_type_emacs_mule:
+    case coding_type_undecided:
       if (coding->eol_type == CODING_EOL_LF
-	  ||  coding->eol_type == CODING_EOL_AUTOMATIC)
+	  ||  coding->eol_type == CODING_EOL_UNDECIDED)
 	goto label_no_conversion;
       produced = decode_eol (coding, source, destination,
 			     src_bytes, dst_bytes, consumed);
@@ -2659,10 +2661,10 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
       *consumed = produced;
       break;
 
-    case coding_type_internal:
-    case coding_type_automatic:
+    case coding_type_emacs_mule:
+    case coding_type_undecided:
       if (coding->eol_type == CODING_EOL_LF
-	  ||  coding->eol_type == CODING_EOL_AUTOMATIC)
+	  ||  coding->eol_type == CODING_EOL_UNDECIDED)
 	goto label_no_conversion;
       produced = encode_eol (coding, source, destination,
 			     src_bytes, dst_bytes, consumed);
@@ -2835,7 +2837,7 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 2, 0,
   "Detect coding-system of the text in the region between START and END.\n\
 Return a list of possible coding-systems ordered by priority.\n\
-If only ASCII characters are found, it returns `automatic-conversion'\n\
+If only ASCII characters are found, it returns `undecided'\n\
  or its subsidiary coding-system according to a detected end-of-line format.")
   (b, e)
      Lisp_Object b, e;
@@ -2853,8 +2855,8 @@ If only ASCII characters are found, it returns `automatic-conversion'\n\
 
   if (coding_mask == CODING_CATEGORY_MASK_ANY)
     {
-      val = intern ("automatic-conversion");
-      if (eol_type != CODING_EOL_AUTOMATIC)
+      val = intern ("undecided");
+      if (eol_type != CODING_EOL_UNDECIDED)
 	{
 	  Lisp_Object val2 = Fget (val, Qeol_type);
 	  if (VECTORP (val2))
@@ -2884,7 +2886,7 @@ If only ASCII characters are found, it returns `automatic-conversion'\n\
       val = Qnil;
       for (; !NILP (val2); val2 = XCONS (val2)->cdr)
 	{
-	  if (eol_type == CODING_EOL_AUTOMATIC)
+	  if (eol_type == CODING_EOL_UNDECIDED)
 	    val = Fcons (XCONS (val2)->car, val);
 	  else
 	    {
@@ -2914,7 +2916,7 @@ shrink_conversion_area (begp, endp, coding, encodep)
   register unsigned char *beg_addr = *begp, *end_addr = *endp;
 
   if (coding->eol_type != CODING_EOL_LF
-      && coding->eol_type != CODING_EOL_AUTOMATIC)
+      && coding->eol_type != CODING_EOL_UNDECIDED)
     /* Since we anyway have to convert end-of-line format, it is not
        worth skipping at most 100 bytes or so.  */
     return;
@@ -2924,8 +2926,8 @@ shrink_conversion_area (begp, endp, coding, encodep)
       switch (coding->type)
 	{
 	case coding_type_no_conversion:
-	case coding_type_internal:
-	case coding_type_automatic:
+	case coding_type_emacs_mule:
+	case coding_type_undecided:
 	  /* We need no conversion.  */
 	  *begp = *endp;
 	  return;
@@ -2962,7 +2964,7 @@ shrink_conversion_area (begp, endp, coding, encodep)
 	  /* We need no conversion.  */
 	  *begp = *endp;
 	  return;
-	case coding_type_internal:
+	case coding_type_emacs_mule:
 	  if (coding->eol_type == CODING_EOL_LF)
 	    {
 	      /* We need no conversion.  */
@@ -3461,7 +3463,7 @@ init_coding_once ()
 {
   int i;
 
-  /* Emacs internal format specific initialize routine.  */ 
+  /* Emacs' internal format specific initialize routine.  */ 
   for (i = 0; i <= 0x20; i++)
     emacs_code_class[i] = EMACS_control_code;
   emacs_code_class[0x0A] = EMACS_linefeed_code;
