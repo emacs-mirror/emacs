@@ -44,9 +44,9 @@ static long difftm ();
 /* Some static data, and a function to initialize it for each run */
 
 Lisp_Object Vsystem_name;
-Lisp_Object Vuser_real_name;	/* login name of current user ID */
-Lisp_Object Vuser_full_name;	/* full name of current user */
-Lisp_Object Vuser_name;		/* user name from LOGNAME or USER */
+Lisp_Object Vuser_real_login_name;	/* login name of current user ID */
+Lisp_Object Vuser_full_name;		/* full name of current user */
+Lisp_Object Vuser_login_name;		/* user name from LOGNAME or USER */
 
 void
 init_editfns ()
@@ -71,9 +71,9 @@ init_editfns ()
   /* We let the real user name default to "root" because that's quite
      accurate on MSDOG and because it lets Emacs find the init file.
      (The DVX libraries override the Djgpp libraries here.)  */
-  Vuser_real_name = build_string (pw ? pw->pw_name : "root");
+  Vuser_real_login_name = build_string (pw ? pw->pw_name : "root");
 #else
-  Vuser_real_name = build_string (pw ? pw->pw_name : "unknown");
+  Vuser_real_login_name = build_string (pw ? pw->pw_name : "unknown");
 #endif
 
   /* Get the effective user name, by consulting environment variables,
@@ -90,13 +90,13 @@ init_editfns ()
       pw = (struct passwd *) getpwuid (geteuid ());
       user_name = (char *) (pw ? pw->pw_name : "unknown");
     }
-  Vuser_name = build_string (user_name);
+  Vuser_login_name = build_string (user_name);
 
   /* If the user name claimed in the environment vars differs from
      the real uid, use the claimed name to find the full name.  */
-  tem = Fstring_equal (Vuser_name, Vuser_real_name);
+  tem = Fstring_equal (Vuser_login_name, Vuser_real_login_name);
   if (NILP (tem))
-    pw = (struct passwd *) getpwnam (XSTRING (Vuser_name)->data);
+    pw = (struct passwd *) getpwnam (XSTRING (Vuser_login_name)->data);
   
   p = (unsigned char *) (pw ? USER_FULL_NAME : "unknown");
   q = (unsigned char *) index (p, ',');
@@ -108,10 +108,11 @@ init_editfns ()
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      r = (unsigned char *) alloca (strlen (p) + XSTRING (Vuser_name)->size + 1);
+      r = (unsigned char *) alloca (strlen (p)
+				    + XSTRING (Vuser_login_name)->size + 1);
       bcopy (p, r, q - p);
       r[q - p] = 0;
-      strcat (r, XSTRING (Vuser_name)->data);
+      strcat (r, XSTRING (Vuser_login_name)->data);
       r[q - p] = UPCASE (r[q - p]);
       strcat (r, q + 1);
       Vuser_full_name = build_string (r);
@@ -516,11 +517,11 @@ with that uid, or nil if there is no such user.")
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
-  if (INTEGERP (Vuser_name))
+  if (INTEGERP (Vuser_login_name))
     init_editfns ();
 
   if (NILP (uid))
-    return Vuser_name;
+    return Vuser_login_name;
 
   CHECK_NUMBER (uid, 0);
   pw = (struct passwd *) getpwuid (XINT (uid));
@@ -537,9 +538,9 @@ This ignores the environment variables LOGNAME and USER, so it differs from\n\
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
-  if (INTEGERP (Vuser_name))
+  if (INTEGERP (Vuser_login_name))
     init_editfns ();
-  return Vuser_real_name;
+  return Vuser_real_login_name;
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
@@ -2283,10 +2284,10 @@ syms_of_editfns ()
   DEFVAR_LISP ("user-full-name", &Vuser_full_name,
 	       "The full name of the user logged in.");
 
-  DEFVAR_LISP ("user-name", &Vuser_name,
+  DEFVAR_LISP ("user-login-name", &Vuser_login_name,
 	       "The user's name, taken from environment variables if possible.");
 
-  DEFVAR_LISP ("user-real-name", &Vuser_real_name,
+  DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
 	       "The user's name, based upon the real uid only.");
 
   defsubr (&Schar_equal);
