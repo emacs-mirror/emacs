@@ -1417,8 +1417,7 @@ the associations of one copy without affecting the other:
 
 @smallexample
 @group
-(setcdr (assq 3 needles-per-cluster)
-        '("Martian Vacuum Pine"))
+(setcdr (assq 3 copy) '("Martian Vacuum Pine"))
 (cdr (assq 3 needles-per-cluster))
      @result{} ("Pitch Pine")
 @end group
