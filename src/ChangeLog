@@ -1,3 +1,8 @@
+2001-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mocklisp.c (Fml_if, Fml_provide_prefix_argument)
+	(Finsert_string): Avoid the multi-line string literals warning.
+
 2001-10-22  Miles Bader  <miles@gnu.org>
 
 	* doc.c (Vhelp_manyarg_func_alist): Variable removed.
