@@ -1457,15 +1457,48 @@ Replaces `category' properties with their defined properties."
 	(set-text-properties start end nil)
       (remove-list-of-text-properties start end yank-excluded-properties))))
 
-(defun insert-for-yank (&rest strings)
-  "Insert STRINGS at point, stripping some text properties.
-Strip text properties from the inserted text
-according to `yank-excluded-properties'.
-Otherwise just like (insert STRINGS...)."
-  (let ((opoint (point)))
-    (apply 'insert strings)
-    (remove-yank-excluded-properties opoint (point))))
+(defvar yank-undo-function)
 
+(defun insert-for-yank (string)
+  "Insert STRING at point, stripping some text properties.
+Strip text properties from the inserted text according to
+`yank-excluded-properties'.  Otherwise just like (insert STRING).
+
+If STRING has a non-nil yank-handler property on the first character,
+the normal insert behaviour is modified in various ways.  The value of
+the yank-handler property must be a list with one to five elements
+with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO COMMAND).
+When FUNCTION is present and non-nil, it is called instead of `insert'
+ to insert the string.  FUNCTION takes one argument--the object to insert.
+If PARAM is present and non-nil, it replaces STRING as the object
+ passed to FUNCTION (or `insert'); for example, if FUNCTION is
+ `yank-rectangle', PARAM may be a list of strings to insert as a
+ rectangle.
+If NOEXCLUDE is present and non-nil, the normal removal of the
+ yank-excluded-properties is not performed; instead FUNCTION is
+ responsible for removing those properties.  This may be necessary
+ if FUNCTION adjusts point before or after inserting the object.
+If UNDO is present and non-nil, it is a function that will be called
+ by `yank-pop' to undo the insertion of the current object.  It is
+ called with two arguments 
+ FUNCTION may set `yank-undo-function' to override this.
+If COMMAND is present and non-nil, `this-command' is set to COMMAND
+ after calling FUNCTION (or insert).  Note that setting `this-command'
+ to a value different from `yank' will prevent `yank-pop' from undoing
+ this yank."
+  (let* ((method (get-text-property 0 'yank-handler string))
+	 (param (or (nth 1 method) string))
+	 (opoint (point)))
+    (setq yank-undo-function (nth 3 method)) ;; UNDO
+    (if (nth 0 method) ;; FUNCTION
+	(funcall (car method) param)
+      (setq opoint (point))
+      (insert param))
+    (unless (nth 2 method) ;; NOEXCLUDE
+      (remove-yank-excluded-properties opoint (point)))
+    (if (nth 4 method) ;; COMMAND
+	(setq this-command (nth 4 method)))))
+    
 (defun insert-buffer-substring-no-properties (buf &optional start end)
   "Insert before point a substring of buffer BUFFER, without text properties.
 BUFFER may be a buffer or a buffer name.
