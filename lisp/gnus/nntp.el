@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000
+;;        1997, 1998, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -752,11 +752,22 @@ noticing asynchronous data.")
   (nntp-possibly-change-group nil server)
   (save-excursion
     (set-buffer nntp-server-buffer)
-    (prog1
-	(nntp-send-command
-	 "^\\.\r?\n" "NEWGROUPS"
-	 (format-time-string "%y%m%d %H%M%S" (date-to-time date)))
-      (nntp-decode-text))))
+    (let* ((time (date-to-time date))
+	   (ls (- (cadr time) (nth 8 (decode-time time)))))
+      (cond ((< ls 0)
+	     (setcar time (1- (car time)))
+	     (setcar (cdr time) (+ ls 65536)))
+	    ((>= ls 65536)
+	     (setcar time (1+ (car time)))
+	     (setcar (cdr time) (- ls 65536)))
+	    (t
+	     (setcar (cdr time) ls)))
+      (prog1
+	  (nntp-send-command
+	   "^\\.\r?\n" "NEWGROUPS"
+	   (format-time-string "%y%m%d %H%M%S" time)
+	   "GMT")
+	(nntp-decode-text)))))
 
 (deffoo nntp-request-post (&optional server)
   (nntp-possibly-change-group nil server)
