@@ -3,7 +3,7 @@
 /* Get most of the stuff from bsd4.3 */
 #include "bsd4-3.h"
 
-#ifdef __alpha__
+#if defined (__alpha__) && !defined (__ELF__)
 #define NO_SHARED_LIBS
 #endif
 
