@@ -1,3 +1,12 @@
+2005-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Links and Mouse-1): Rename section from Enabling
+	Mouse-1 to Following Links.  Change xrefs.
+	Add examples for define-button-type and define-widget.
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Clarify mouse-1 and follow-link functionality.
+
 2005-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Enabling Mouse-1 to Follow Links): Redo prev. change.
