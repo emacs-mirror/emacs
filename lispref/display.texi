@@ -2356,6 +2356,14 @@ display specification of the form @code{(margin right-margin)} or
 use that display specification along with the display specification for
 the image.
 
+  If you put such a display specification directly on text in the
+buffer, the specified margin display appears @emph{instead of} that
+buffer text itself.  To put something in the margin @emph{in
+association with} certain buffer text without preventing or altering
+the display of that text, put a @code{before-string} property on the
+text and put the display specification on the contents of the
+before-string.
+
   Before the display margins can display anything, you must give
 them a nonzero width.  The usual way to do that is to set these
 variables:
