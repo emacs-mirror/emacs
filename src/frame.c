@@ -1137,7 +1137,10 @@ DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
 If omitted, FRAME defaults to the selected frame.\n\
 A frame may not be deleted if its minibuffer is used by other frames.\n\
 Normally, you may not delete a frame if all other frames are invisible,\n\
-but if the second optional argument FORCE is non-nil, you may do so.")
+but if the second optional argument FORCE is non-nil, you may do so.\n\
+\n\
+This function runs `delete-frame-hook' before actually deleting the\n\
+frame.  The hook is called with one argument FRAME.")
   (frame, force)
      Lisp_Object frame, force;
 {
@@ -1169,14 +1172,6 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     error ("Attempt to delete the only frame");
 #endif
 
-  if (!NILP (Vrun_hooks))
-    {
-      Lisp_Object args[2];
-      args[0] = intern ("delete-frame-hook");
-      args[1] = frame;
-      Frun_hook_with_args (2, args);
-    }
-
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
   if (FRAME_HAS_MINIBUF_P (XFRAME (frame)))
@@ -1196,6 +1191,15 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
 	    error ("Attempt to delete a surrogate minibuffer frame");
 	}
+    }
+
+  /* Run `delete-frame-hook'.  */
+  if (!NILP (Vrun_hooks))
+    {
+      Lisp_Object args[2];
+      args[0] = intern ("delete-frame-hook");
+      args[1] = frame;
+      Frun_hook_with_args (2, args);
     }
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
