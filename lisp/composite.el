@@ -158,13 +158,17 @@ follows (the point `*' corresponds to both reference points):
 (defun compose-region (start end &optional components modification-func)
   "Compose characters in the current region.
 
+Characters are composed relatively, i.e. composed by overstricking or
+stacking depending on ascent, descent and other properties.
+
 When called from a program, expects these four arguments.
 
 First two arguments START and END are positions (integers or markers)
 specifying the region.
 
 Optional 3rd argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.
+sequence (vector, list, or string) of integers.  In this case,
+characters are composed not relatively but according to COMPONENTS.
 
 If it is a character, it is an alternate character to display instead
 of the text in the region.
