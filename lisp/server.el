@@ -232,7 +232,8 @@ Prefix arg means just kill any existing server communications subprocess."
 				  default-file-name-coding-system)))
 	  client nowait
 	  (files nil)
-	  (lineno 1))
+	  (lineno 1)
+	  (columnno 0))
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))	  
       (if (string-match "^Error: " request)
@@ -249,9 +250,15 @@ Prefix arg means just kill any existing server communications subprocess."
 		  (setq request (substring request (match-end 0)))
 		  (if (string-match "\\`-nowait" arg)
 		      (setq nowait t)
-		    (if (string-match "\\`\\+[0-9]+\\'" arg)
-			;; ARG is a line number option.
-			(setq lineno (read (substring arg 1)))
+		    (cond
+    			;; ARG is a line number option.
+		     ((string-match "\\`\\+[0-9]+\\'" arg)
+		      (setq lineno (string-to-int (substring arg 1))))
+		     ;; ARG is line number:column option. 
+		     ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
+		      (setq lineno (string-to-int (match-string 1 arg))
+			    columnno (string-to-int (match-string 2 arg))))
+		     (t
 		      ;; ARG is a file name.
 		      ;; Collapse multiple slashes to single slashes.
 		      (setq arg (command-line-normalize-file-name arg))
@@ -270,9 +277,10 @@ Prefix arg means just kill any existing server communications subprocess."
 		      (if coding-system
 			  (setq arg (decode-coding-string arg coding-system)))
 		      (setq files
-			    (cons (list arg lineno)
+			    (cons (list arg lineno columnno)
 				  files))
-		      (setq lineno 1)))))
+		      (setq lineno 1)
+		      (setq columnno 0))))))
 	      (server-visit-files files client nowait)
 	      ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
 	      (if (null (cdr client))
@@ -293,7 +301,7 @@ Prefix arg means just kill any existing server communications subprocess."
 
 (defun server-visit-files (files client &optional nowait)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
-FILES is an alist whose elements are (FILENAME LINENUMBER).
+FILES is an alist whose elements are (FILENAME LINENUMBER COLUMNNUMBER).
 NOWAIT non-nil means this client is not waiting for the results,
 so don't mark these buffers specially, just visit them normally."
   ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
@@ -325,6 +333,9 @@ so don't mark these buffers specially, just visit them normally."
 		  (goto-line (nth 1 (car files))))
 	      (set-buffer (find-file-noselect filen))
 	      (goto-line (nth 1 (car files)))
+	      (let ((column-number (nth 2 (car files))))
+		(when (> column-number 0)
+		  (move-to-column (1- column))))
 	      (run-hooks 'server-visit-hook)))
 	  (if (not nowait)
 	      (setq server-buffer-clients
