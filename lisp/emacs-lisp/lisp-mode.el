@@ -95,7 +95,7 @@
 	  (set-syntax-table lisp-mode-syntax-table)))
   (setq local-abbrev-table lisp-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat page-delimiter "\\|$" ))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -731,8 +731,8 @@ and initial semicolons."
 	   (point)))
 
 	;; Lines with only semicolons on them can be paragraph boundaries.
-	(let ((paragraph-start (concat paragraph-start "\\|^[ \t;]*$"))
-	      (paragraph-separate (concat paragraph-start "\\|^[ \t;]*$"))
+	(let ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
+	      (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
 	      (fill-prefix comment-fill-prefix))
 	  (fill-paragraph justify))))
     t))
