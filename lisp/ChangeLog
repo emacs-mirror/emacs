@@ -1,5 +1,10 @@
 2000-10-26  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* simple.el (undo): Correctly distinguish between numeric and
+	non-numeric prefix args in non-transient-mark-mode, as per the doc
+	string.  When in transient-mark-mode, treat all prefix-args as
+	numeric.
+
 	* simple.el (previous-matching-history-element): Position point on
 	match.  Handle N == 0 correctly.  Miscellaneous cleanup.
 
