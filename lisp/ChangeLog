@@ -1,3 +1,7 @@
+2003-01-27  David Ponce  <david@dponce.com>
+
+	* makefile.w32-in (update-subdirs-SH): Create lisp/subdirs.el.
+
 2003-01-27  Juanma Barranquero  <lektu@terra.es>
 
 	* filesets.el (filesets-file-open): Fix typo.

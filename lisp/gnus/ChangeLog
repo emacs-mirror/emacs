@@ -1,3 +1,7 @@
+2003-01-27  Juanma Barranquero  <lektu@terra.es>
+
+	* imap.el (imap-mailbox-status): Fix typo.
+
 2003-01-16  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-sum.el (gnus-alter-header-function): Add type and group.
