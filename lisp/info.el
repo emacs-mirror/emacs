@@ -108,11 +108,21 @@ variable INFOPATH to initialize it, or `Info-default-directory-list'
 if there is no INFOPATH variable in the environment.
 
 When `Info-directory-list' is initialized from the value of
-`Info-default-directory-list', the first element of the resulting
+`Info-default-directory-list', and Emacs is installed in one of the
+standard directories, the directory of Info files that come with Emacs
+is put last (so that local Info files override standard ones).
+
+When `Info-directory-list' is initialized from the value of
+`Info-default-directory-list', and Emacs is not installed in one
+of the standard directories, the first element of the resulting
 list is the directory where Emacs installs the Info files that
 come with it.  This is so that Emacs's own manual, which suits the
-version of Emacs you are using, will always be found first.  (If
-you want to override that, set INFOPATH in the environment.)
+version of Emacs you are using, will always be found first.  This
+is useful when you install an experimental version of Emacs without
+removing the standard installation.
+
+If you want to override the order of directories in
+`Info-default-directory-list', set INFOPATH in the environment.
 
 If you run the Emacs executable from the `src' directory in the Emacs
 source tree, and INFOPATH is not defined, the `info' directory in the
