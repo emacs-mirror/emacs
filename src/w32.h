@@ -48,3 +48,6 @@ extern void prepare_standard_handles (int in, int out,
 extern void reset_standard_handles (int in, int out, 
 				    int err, HANDLE handles[4]);
 
+/* Return the string resource associated with KEY of type TYPE.  */
+extern LPBYTE nt_get_resource (char *key, LPDWORD type);
+
