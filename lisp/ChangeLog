@@ -1,3 +1,11 @@
+2001-04-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hexl.el (hexl-scroll-up): If scrolling gets outside the hexl
+	region, position point on the first or last 16-byte group.
+	(hexl-mode-map): Bind C-Home and C-End to hexl-beginning-of-buffer
+	and hexl-end-of-buffer.  Bind End and Home to hexl-end-of-line and
+	hexl-beginning-of-line.
+
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-head): Use splash8.xpm for color
