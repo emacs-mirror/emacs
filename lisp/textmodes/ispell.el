@@ -2863,7 +2863,12 @@ Standard ispell choices are then available."
 (defun ispell ()
   "Interactively check a region or buffer for spelling errors.
 If `transient-mark-mode' is on, and a region is active, spell-check
-that region.  Otherwise spell-check the buffer."
+that region.  Otherwise spell-check the buffer.
+
+Ispell dictionaries are not distributed with Emacs.  If you are
+looking for a dictionary, please see the distribution of the GNU ispell
+program, or do an Internet search; there are various dictionaries
+available on the net."
   (interactive)
   (if (and transient-mark-mode mark-active)
       (ispell-region (region-beginning) (region-end))
