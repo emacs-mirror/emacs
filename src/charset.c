@@ -633,10 +633,11 @@ map_charset_chars (c_function, function, charset_symbol, arg)
   
 DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 3, 0,
        doc: /* Call FUNCTION for each characters in CHARSET.
-FUNCTION is called with three arguments; FROM, TO, and the 3rd optional
+FUNCTION is called with an argument RANGE and the 2nd optional
 argument ARG.
-FROM and TO indicates a range of character sequence that are contained
-in CHARSET.  */)
+
+RANGE is a cons (FROM .  TO), where FROM and TO indicates a range of
+character sequence that are contained in CHARSET.  */)
      (function, charset, arg)
        Lisp_Object function, charset, arg;
 {
