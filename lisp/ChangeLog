@@ -1,3 +1,8 @@
+2000-08-12  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-send-string, comint-send-region): Make into
+	real functions.  Snapshot the prompt before sending.
+
 2000-08-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-find-emacs-command-nodes): Rewrite to use
