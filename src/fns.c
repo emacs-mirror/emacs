@@ -4309,56 +4309,18 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
 }
 
 
-DEFUN ("makehash", Fmakehash, Smakehash, 0, MANY, 0,
+DEFUN ("makehash", Fmakehash, Smakehash, 0, 1, 0,
        "Create a new hash table.\n\
 Optional first argument TEST specifies how to compare keys in\n\
 the table.  Predefined tests are `eq', `eql', and `equal'.  Default\n\
-is `eql'.  New tests can be defined with `define-hash-table-test'.\n\
-\n\
-The rest of the optional arguments are keyword/value pairs.  The\n\
-following are recognized:\n\
-\n\
-:SIZE SIZE -- A hint as to how many elements will be put in the table.
-Default is 65.\n\
-\n\
-:REHASH-SIZE REHASH-SIZE - Indicates how to expand the table when\n\
-it fills up.  If REHASH-SIZE is an integer, add that many space.\n\
-If it is a float, it must be > 1.0, and the new size is computed by\n\
-multiplying the old size with that factor.  Default is 1.5.\n\
-\n\
-:REHASH-THRESHOLD THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
-Resize the hash table when ratio of the number of entries in the table.\n\
-Default is 0.8.\n\
-\n\
-:WEAKNESS WEAK -- WEAK must be one of nil, t, `key', or `value'.\n\
-If WEAK is not nil, the table returned is a weak table.  Key/value\n\
-pairs are removed from a weak hash table when their key, value or both\n\
-(WEAK t) are otherwise unreferenced.  Default is nil.")
-  (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+is `eql'.  New tests can be defined with `define-hash-table-test'.")
+  (test)
+     Lisp_Object test;
 {
-  Lisp_Object args2[nargs + 6];
-  int i, j;
-
-  i = j = 0;
-  
-  /* Recognize TEST argument.  */
-  if (SYMBOLP (args[i])
-      && !EQ (args[i], QCrehash_size)
-      && !EQ (args[i], QCrehash_threshold)
-      && !EQ (args[i], QCweakness)
-      && !EQ (args[i], QCsize))
-    {
-      args2[j++] = QCtest;
-      args2[j++] = args[i++];
-    }
-
-  /* Copy remaining arguments.  */
-  while (i < nargs)
-    args2[j++] = args[i++];
-
-  return Fmake_hash_table (j, args2);
+  Lisp_Object args[2];
+  args[0] = QCtest;
+  args[1] = test;
+  return Fmake_hash_table (2, args);
 }
 
 
