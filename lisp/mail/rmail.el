@@ -371,7 +371,7 @@ the variable `rmail-mime-feature'.")
 
 ;;;###autoload
 (defvar rmail-mime-charset-pattern
-  "^content-type:[ ]*text/plain;[ ]*charset=\\([^ \t\n]+\\)"
+  "^content-type:[ ]*text/plain;[ \t\n]*charset=\"?\\([^ \t\n\"]+\\)\"?"
   "Regexp to match MIME-charset specification in a header of message.
 The first parenthesized expression should match the MIME-charset name.")
 
