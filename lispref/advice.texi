@@ -1,0 +1,544 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1998 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/advising
+@node Advising Functions, Debugging, Byte Compilation, Top
+@chapter Advising Emacs Lisp Functions
+@cindex advising functions
+
+  The @dfn{advice} feature lets you add to the existing definition of a
+function, by @dfn{advising the function}.  This a clean method for a
+library to customize functions defined by other parts of Emacs---cleaner
+than redefining the function in the usual way.
+
+  Each piece of advice can be enabled or disabled explicitly.  The
+enabled pieces of advice for any given function actually take effect
+when you activate advice for that function, or when that function is
+subsequently defined or redefined.
+
+@menu
+* Defining Advice::
+* Computed Advice::
+* Activation of Advice::
+* Enabling Advice::
+* Preactivation::
+* Argument Access in Advice::
+* Combined Definition::
+@end menu
+
+@node Defining Advice
+@section Defining Advice
+
+  To define a piece of advice, use the macro @code{defadvice}.  A call
+to @code{defadvice} has the following syntax, which is based on the
+syntax of @code{defun}/@code{defmacro} but adds more:
+
+@findex defadvice
+@example
+(defadvice @var{function} (@var{class} @var{name}
+                         @r{[}@var{position}@r{]} @r{[}@var{arglist}@r{]}
+                         @var{flags}...)
+  @r{[}@var{documentation-string}@r{]}
+  @r{[}@var{interactive-form}@r{]}
+  @var{body-forms}...)
+@end example
+
+@noindent
+Here, @var{function} is the name of the function (or macro or special
+form) to be advised.  From now on, we will write just ``function'' when
+describing the entity being advised, but this always includes macros and
+special forms.
+
+The argument @var{name} is the name of the advice, a non-@code{nil}
+symbol.  The advice name uniquely identifies one piece of advice, within all
+the pieces of advice in a particular class for a particular
+@var{function}.  The name allows you to refer to the piece of
+advice---to redefine it, or to enable or disable it.
+
+Where an ordinary definition has an argument list, an advice definition
+needs several kinds of information.
+
+@var{class} specifies the class of the advice---one of @code{before},
+@code{after}, or @code{around}.  Before-advice runs before the function
+itself; after-advice runs after the function itself; around-advice is
+wrapped around the execution of the function itself.  After-advice and
+around-advice can override the return value by setting
+@code{ad-return-value}.
+
+Around-advice specifies where the ``original'' function definition
+should go by means of the special symbol @code{ad-do-it}.  Where this
+symbol occurs inside the around-advice body, it is replaced with a
+@code{progn} containing the forms of the surrounded code.  If the
+around-advice does not use @code{ad-do-it}, then the original function
+definition is never run.  This provides a way to override the original
+definition completely.  (It also overrides lower-positioned pieces of
+around-advice).
+
+The optional @var{position} specifies where, in the current list of
+advice of the specified @var{class}, this new advice should be placed.
+It should be either @code{first}, @code{last} or a number that
+specifies a zero-based position (@code{first} is equivalent to 0).  If
+no position is specified, the default is @code{first}.  The
+@var{position} value is ignored when redefining an existing piece of
+advice.
+
+The optional @var{arglist} can be used to define the argument list for
+the sake of advice.  This argument list should of course be compatible
+with the argument list of the original function, otherwise functions
+that call the advised function with the original argument list in mind
+will break.  If more than one piece of advice specifies an argument
+list, then the first one (the one with the smallest position) found in
+the list of all classes of advice will be used.
+
+@var{flags} is a list of symbols that specify further information about
+how to use this piece of advice.  Here are the valid symbols and their
+meanings:
+
+@table @code
+@item activate
+Activate all the advice for @var{function} after making this definition.
+This is ignored when @var{function} itself is not defined yet (which is
+known as @dfn{forward advice}).
+
+@item protect
+Protect this piece of advice against non-local exits and errors in
+preceding code and advice.
+
+@item compile
+Says that the combined definition which implements advice should be
+byte-compiled.  This flag is ignored unless @code{activate} is also
+specified.
+
+@item disable
+Disable this piece of advice, so that it will not be used
+unless subsequently explicitly enabled.
+
+@item preactivate
+Activate advice for @var{function} when this @code{defadvice} is
+compiled or macroexpanded.  This generates a compiled advised definition
+according to the current advice state, which will be used during
+activation if appropriate.
+
+This is useful only if this @code{defadvice} is byte-compiled.
+@end table
+
+The optional @var{documentation-string} serves to document this piece of
+advice.  If the @code{documentation} function gets the documentation
+for @var{function} when its advice is active, the result will combine
+the documentation strings of all the advice with that of the original
+function.
+
+The optional @var{interactive-form} form can be supplied to change the
+interactive behavior of the original function.  If more than one piece
+of advice has an @var{interactive-form}, then the first one (the one
+with the smallest position) found among all the advice takes precedence.
+
+The possibly empty list of @var{body-forms} specifies the body of the
+advice.  The body of an advice can access or change the arguments, the
+return value, the binding environment, and perform any other kind of
+side effect.
+
+@strong{Warning:} When you advise a macro, keep in mind that macros are
+expanded when a program is compiled, not when a compiled program is run.
+All subroutines used by the advice need to be available when the byte
+compiler expands the macro.
+
+@node Computed Advice
+@section Computed Advice
+
+The macro @code{defadvice} resembles @code{defun} in that the code for
+the advice, and all other information about it, are explicitly stated in
+the source code.  You can also create advice whose details are computed,
+using the function @code{ad-add-advice}.
+
+@defun ad-add-advice function advice class position
+Calling @code{ad-add-advice} adds @var{advice} as a piece of advice to
+@var{function} in class @var{class}.  The argument @var{advice}  has
+this form:
+
+@example
+(@var{name} @var{protected} @var{enabled} @var{definition})
+@end example
+
+Here @var{protected} and @var{enabled} are flags, and @var{definition}
+is an expression that says what the advice should do.
+
+If @var{function} already has one or more pieces of advice in the
+specified @var{class}, then @var{position} specifies where in the list
+to put the new piece of advice.  The value of @var{position} can either
+be @code{first}, @code{last}, or a number (counting from 0 at the
+beginning of the list).  Numbers outside the range are mapped to the
+closest extreme position.
+
+If @var{function} already has a piece of @var{advice} with the same
+name, then the position argument is ignored and the old advice is
+replaced with the new one.
+@end defun
+
+@node Activation of Advice
+@section Activation of Advice
+@cindex activating advice
+
+By default, advice does not take effect when you define it---only when
+you @dfn{activate} advice for the function that was advised.  You can
+request the activation of advice for a function when you define the
+advice, by specifying the @code{activate} flag in the @code{defadvice}.
+But normally you activate the advice for a function by calling the
+function @code{ad-activate} or one of the other activation commands
+listed below.
+
+Separating the activation of advice from the act of defining it permits
+you to add several pieces of advice to one function efficiently, without
+redefining the function over and over as each advice is added.  More
+importantly, it permits defining advice for a function before that
+function is actually defined.
+
+When a function is first activated, its original definition is saved,
+and all enabled pieces of advice for that function are combined with the
+original definition to make a new definition.  This definition is
+installed, and optionally byte-compiled as well, depending on conditions
+described below.
+
+In all of the commands to activate advice, if @var{compile} is @code{t},
+the command also compiles the combined definition which implements the
+advice.
+
+@deffn Command ad-activate function &optional compile
+This command activates the advice for @var{function}.
+@end deffn
+
+To activate a function whose advice is already active is not a no-op.
+It is a useful operation which puts into effect any changes in advice
+since the previous activation of the same function.
+
+@deffn Command ad-deactivate function
+This command deactivates the advice for @var{function}.
+@end deffn
+
+@deffn Command ad-activate-all &optional compile
+This command activates the advice for all functions.
+@end deffn
+
+@deffn Command ad-deactivate-all
+This command deactivates the advice for all functions.
+@end deffn
+
+@deffn Command ad-activate-regexp regexp &optional compile
+This command activates all pieces of advice whose names match
+@var{regexp}.  More precisely, it activates all advice for any function
+which has at least one piece of advice that matches @var{regexp}.
+@end deffn
+
+@deffn Command ad-deactivate-regexp regexp
+This command deactivates the advice for all functions whose names match
+@var{regexp}.  More precisely, it deactivates all advice for any
+function which has at least one piece of advice that matches
+@var{regexp}.
+@end deffn
+
+@deffn Command ad-update-regexp regexp &optional compile
+This command activates pieces of advice whose names match @var{regexp},
+but only those that are already activated.
+@end deffn
+
+@deffn Command ad-stop-advice
+Turn off automatic advice activation when a function is defined or
+redefined.
+@end deffn
+
+@deffn Command ad-start-advice
+Turn off automatic advice activation when a function is defined or
+redefined.
+@end deffn
+
+@defopt ad-default-compilation-action
+This variable controls whether to compile the combined definition
+that results from activating advice for a function.
+@end defopt
+
+  If the advised definition was constructed during ``preactivation'' (see
+below), then that definition must already be compiled, because it was
+constructed during byte-compilation of the file that contained the
+@code{defadvice} with the @code{preactivate} flag.
+
+@node Enabling Advice
+@section Enabling and Disabling Advice
+
+  Each piece of advice has a flag that says whether it is enabled or
+not.  By enabling or disabling a piece of advice, you can turn it off
+and on without having to undefine and redefine it.  For example, here is
+how to disable a particular piece of advice named @code{my-advice} for
+the function @code{foo}:
+
+@example
+(ad-disable-advice 'foo 'before 'my-advice)
+@end example
+
+  This call by itself only changes the enable flag for this piece of
+advice.  To make this change take effect in the advised definition, you
+must activate the advice for @code{foo} again:
+
+@example
+(ad-activate 'foo)
+@end example
+
+@deffn Command ad-disable-advice function class name
+This command disables the piece of advice named @var{name} in class
+@var{class} on @var{function}.
+@end deffn
+
+@deffn Command ad-enable-advice function class name
+This command enables the piece of advice named @var{name} in class
+@var{class} on @var{function}.
+@end deffn
+
+  You can also disable many pieces of advice at once using a regular
+expression.
+
+@deffn Command ad-disable-regexp regexp
+This command disables all pieces of advice whose names match
+@var{regexp}, in all classes, on all functions.
+@end deffn
+
+@deffn Command ad-enable-regexp regexp
+This command enables all pieces of advice whose names match
+@var{regexp}, in all classes, on all functions.
+@end deffn
+
+@node Preactivation
+@section Preactivation
+
+  Constructing a combined definition to execute advice is moderately
+expensive.  When a library advises many functions, this can make loading
+the library slow.  In that case, you can use @dfn{preactivation} to
+construct suitable combined definitions in advance.
+
+  To use preactivation, specify the @code{preactivate} flag when you
+define the advice with @code{defadvice}.  This @code{defadvice} call
+creates a combined definition which embodies this piece of advice
+(whether enabled or not) plus any other currently enabled advice for the
+same function, and the function's own definition.  If the
+@code{defadvice} is compiled, that compiles the combined definition
+also.
+
+  When the function is subsequently activated, if the enabled advice for
+the function matches what was used to make this combined
+definition. then the existing combined definition is used, and there is
+no need to construct one.  Thus, preactivation never causes wrong
+results---but it may fail to do any good, if the enabled advice at the
+time of activation doesn't match.
+
+  Here are some symptoms that can indicate that a preactivation did not
+work properly, because of a mismatch.
+
+@itemize @bullet
+@item
+Activation of the advised
+function takes longer than usual.
+@item
+The byte-compiler gets
+loaded while an advised function gets activated.
+@item
+@code{byte-compile} is included in the value of @code{features} even
+though you did not ever explicitly use the byte-compiler.
+@end itemize
+
+Compiled preactivated advice works properly even if the function itself
+is not defined until later; however, the function needs to be defined
+when you @emph{compile} the preactivated advice.
+
+There is no elegant way to find out why preactivated advice is not being
+used.  What you can do is to trace the function
+@code{ad-cache-id-verification-code} (with the function
+@code{trace-function-background}) before the advised function is
+activated.  After activation, check the value returned by
+@code{ad-cache-id-verification-code} for that function: @code{verified}
+means that the preactivated advice was used, while other values give
+some information about why they were considered inappropriate.
+
+  @strong{Warning:} There is one known case that can make preactivation
+fail, in that a preconstructed combined definition is used even though
+it fails to match the current state of advice.  This can happen when two
+packages define different pieces of advice with the same name, in the
+same class, for the same function.  But you should avoid that anyway.
+
+@node Argument Access in Advice
+@section Argument Access in Advice
+
+  The simplest way to access the arguments of an advised function in the
+body of a piece of advice is to use the same names that the function
+definition uses.  To do this, you need to know the names of the argument
+variables of the original function.
+
+  While this simple method is sufficient in many cases, it has a
+disadvantage: it is not robust, because it hard-codes the argument names
+into the advice.  If the definition of the original function changes,
+the advice might break.
+
+  A more robust method is to use macros that are translated into the
+proper access forms at activation time, i.e., when constructing the
+advised definition.  Access macros access actual arguments by position
+regardless of how these actual argument get distributed onto the
+argument variables of a function.  This is robust because in Emacs Lisp
+the meaning of an argument is strictly determined by its position in the
+argument list.
+
+@defmac ad-get-arg position
+This returns the actual argument that was supplied at @var{position}.
+@end defmac
+
+@defmac ad-get-args position
+This returns the list of actual arguments supplied starting at
+@var{position}.
+@end defmac
+
+@defmac ad-set-arg position value
+This sets the value of the actual argument at @var{position} to
+@var{value}
+@end defmac
+
+@defmac ad-set-args position value-list
+This sets the list of actual arguments starting at @var{position} to
+@var{value-list}.
+@end defmac
+
+  Now an example.  Suppose the function @code{foo} is defined as
+
+@example
+(defun foo (x y &optional z &rest r) ...)
+@end example
+
+@noindent
+and is then called with
+
+@example
+(foo 0 1 2 3 4 5 6)
+@end example
+
+@noindent
+which means that @var{x} is 0, @var{y} is 1, @var{z} is 2 and @var{r} is
+@code{(3 4 5 6)} within the body of @code{foo}.  Here is what
+@code{ad-get-arg} and @code{ad-get-args} return in this case:
+
+@example
+(ad-get-arg 0) @result{} 0
+(ad-get-arg 1) @result{} 1
+(ad-get-arg 2) @result{} 2
+(ad-get-arg 3) @result{} 3
+(ad-get-args 2) @result{} (2 3 4 5 6)
+(ad-get-args 4) @result{} (4 5 6)
+@end example
+
+  Setting arguments also makes sense in this example:
+
+@example
+(ad-set-arg 5 "five")
+@end example
+
+@noindent
+has the effect of changing the sixth argument to @code{"five"}.  If this
+happens in advice executed before the body of @code{foo} is run, then
+@var{r} will be @code{(3 4 "five" 6)} within that body.
+
+  Here is an example of setting a tail of the argument list:
+
+@example
+(ad-set-args 0 '(5 4 3 2 1 0))
+@end example
+
+@noindent
+If this happens in advice executed before the body of @code{foo} is run,
+then within that body, @var{x} will be 5, @var{y} will be 4, @var{z}
+will be 3, and @var{r} will be @code{(2 1 0)} inside the body of
+@code{foo}.
+
+  These argument constructs are not really implemented as Lisp macros.
+Instead they are implemented specially by the advice mechanism.
+
+@subsection Definition of Subr Argument Lists
+
+  When the advice facility constructs the combined definition, it needs
+to know the argument list of the original function.  This is not always
+possible for primitive functions.  When advice cannot determine the
+argument list, it uses @code{(&rest ad-subr-args)}, which always works
+but is inefficient because it constructs a list of the argument values.
+You can use @code{ad-define-subr-args} to declare the proper argument
+names for a primitive function:
+
+@defun ad-define-subr-args function arglist
+This function specifies that @var{arglist} should be used as the
+argument list for function @var{function}.
+@end defun
+
+For example,
+
+@example
+(ad-define-subr-args 'fset '(sym newdef))
+@end example
+
+@noindent
+specifies the argument list for the function @code{fset}.
+
+@node Combined Definition
+@section The Combined Definition
+
+  Suppose that a function has @var{n} pieces of before-advice, @var{m}
+pieces of around-advice and @var{k} pieces of after-advice.  Assuming no
+piece of advice is protected, the combined definition produced to
+implement the advice for a function looks like this:
+
+@example
+(lambda @var{arglist}
+  @r{[} @r{[}@var{advised-docstring}@r{]} @r{[}(interactive ...)@r{]} @r{]}
+  (let (ad-return-value)
+    @r{before-0-body-form}...
+         ....
+    @r{before-@var{n}-1-body-form}...
+    @r{around-0-body-form}...
+       @r{around-1-body-form}...
+             ....
+          @r{around-@var{m}-1-body-form}...
+             (setq ad-return-value
+                   @r{apply original definition to @var{arglist}})
+          @r{other-around-@var{m}-1-body-form}...
+             ....
+       @r{other-around-1-body-form}...
+    @r{other-around-0-body-form}...
+    @r{after-0-body-form}...
+          ....
+    @r{after-@var{k}-1-body-form}...
+    ad-return-value))
+@end example
+
+Macros are redefined as macros, which means adding @code{macro} to
+the beginning of the combined definition.
+
+The interactive form is present if the original function or some piece
+of advice specifies one.  When an interactive primitive function is
+advised, a special method is used: to call the primitive with
+@code{call-interactively} so that it will read its own arguments.
+In this case, the advice cannot access the arguments.
+
+The body forms of the various advice in each class are assembled
+according to their specified order.  The forms of around-advice @var{l}
+are included in one of the forms of around-advice @var{l} @minus{} 1.
+
+The innermost part of the around advice onion is 
+
+@display
+apply original definition to @var{arglist}
+@end display
+
+@noindent
+whose form depends on the type of the original function.  The variable
+@code{ad-return-value} is set to whatever this returns.  The variable is
+visible to all pieces of advice, which can access and modify it before
+it is actually returned from the advised function.
+
+The semantic structure of advised functions that contain protected
+pieces of advice is the same.  The only difference is that
+@code{unwind-protect} forms ensure that the protected advice gets
+executed even if some previous piece of advice had an error or a
+non-local exit.  If any around-advice is protected, then the whole
+around-advice onion is protected as a result.
