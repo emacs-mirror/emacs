@@ -266,6 +266,7 @@ FILE should be in a form suitable for passing to `locate-library'."
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)
     (shrink-window-if-larger-than-buffer)
+    (finder-mode)
     (finder-summary)))
 
 (defun finder-current-item ()
