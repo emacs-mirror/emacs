@@ -1,3 +1,7 @@
+1999-12-09  Dave Love  <fx@gnu.org>
+
+	* frame.h: (PIX_TYPE) [! HAVE_X_WINDOWS]: Define PIX_TYPE.
+
 1999-12-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c: Remove conditional compilation on `standalone'.
