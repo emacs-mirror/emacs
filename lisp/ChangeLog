@@ -1,3 +1,7 @@
+2000-12-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mh-utils.el (mh-find-path): Set read-mail-command.
+
 2000-12-15  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* dabbrev.el (dabbrev--last-case-pattern): Value is now
