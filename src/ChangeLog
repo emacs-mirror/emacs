@@ -1,5 +1,9 @@
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (build_desired_tool_bar_string): Correct the computation
+	of the size needed for the tool bar string.  For the last image,
+	use a `display' property that reaches to the end of the string.
+
 	* xselect.c (selection_request_dpyinfo): New variable.
 	(x_handle_selection_request): Set it.
 	(x_selection_request_lisp_error): Don't call
