@@ -152,6 +152,8 @@ Lisp_Object Qauto_composed;
 Lisp_Object Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
 
+EXFUN (Fremove_list_of_text_properties, 4);
+
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
 
