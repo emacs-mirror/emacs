@@ -2311,9 +2311,11 @@ x_set_vertical_scroll_bars (f, arg, oldval)
     {
       FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = NILP (arg) ?
 	vertical_scroll_bar_none :
-	EQ (Qright, arg)
-	? vertical_scroll_bar_right 
-	: vertical_scroll_bar_left;
+	/* Put scroll bars on the right by default, as is conventional
+           on MS-Windows.  */
+	EQ (Qleft, arg)
+	? vertical_scroll_bar_left 
+	: vertical_scroll_bar_right;
 
       /* We set this parameter before creating the window for the
 	 frame, so we can get the geometry right from the start.
@@ -3656,6 +3658,75 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	f->output_data.w32->menubar_active = 0;
       goto dflt;
 
+    case WM_MEASUREITEM:
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f)
+	{
+	  MEASUREITEMSTRUCT * pMis = (MEASUREITEMSTRUCT *) lParam;
+
+	  if (pMis->CtlType == ODT_MENU)
+	    {
+	      /* Work out dimensions for popup menu titles. */
+	      char * title = (char *) pMis->itemData;
+	      HDC hdc = GetDC (hwnd);
+	      HFONT menu_font = GetCurrentObject (hdc, OBJ_FONT);
+	      LOGFONT menu_logfont;
+	      HFONT old_font;
+	      SIZE size;
+
+	      GetObject (menu_font, sizeof (menu_logfont), &menu_logfont);
+	      menu_logfont.lfWeight = FW_BOLD;
+	      menu_font = CreateFontIndirect (&menu_logfont);
+	      old_font = SelectObject (hdc, menu_font);
+
+	      GetTextExtentPoint32 (hdc, title, strlen (title), &size);
+	      pMis->itemWidth = size.cx;
+	      pMis->itemHeight = GetSystemMetrics (SM_CYMENUSIZE);
+	      if (pMis->itemHeight < size.cy)
+		pMis->itemHeight = size.cy;
+
+	      SelectObject (hdc, old_font);
+	      DeleteObject (menu_font);
+	      ReleaseDC (hwnd, hdc);
+	      return TRUE;
+	    }
+	}
+      return 0;
+
+    case WM_DRAWITEM:
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f)
+	{
+	  DRAWITEMSTRUCT * pDis = (DRAWITEMSTRUCT *) lParam;
+
+	  if (pDis->CtlType == ODT_MENU)
+	    {
+	      /* Draw popup menu title. */
+	      char * title = (char *) pDis->itemData;
+	      HDC hdc = pDis->hDC;
+	      HFONT menu_font = GetCurrentObject (hdc, OBJ_FONT);
+	      LOGFONT menu_logfont;
+	      HFONT old_font;
+
+	      GetObject (menu_font, sizeof (menu_logfont), &menu_logfont);
+	      menu_logfont.lfWeight = FW_BOLD;
+	      menu_font = CreateFontIndirect (&menu_logfont);
+	      old_font = SelectObject (hdc, menu_font);
+
+	      /* Always draw title as if not selected.  */
+	      ExtTextOut (hdc,
+			  pDis->rcItem.left + GetSystemMetrics (SM_CXMENUCHECK),
+			  pDis->rcItem.top,
+			  ETO_OPAQUE, &pDis->rcItem,
+			  title, strlen (title), NULL);
+
+	      SelectObject (hdc, old_font);
+	      DeleteObject (menu_font);
+	      return TRUE;
+	    }
+	}
+      return 0;
+
 #if 0
       /* Still not right - can't distinguish between clicks in the
 	 client area of the frame from clicks forwarded from the scroll
@@ -3800,6 +3871,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	else if (button_state & RMOUSE)
 	  flags |= TPM_RIGHTBUTTON;
 	
+	/* Remember we did a SetCapture on the initial mouse down event,
+	   so for safety, we make sure the capture is cancelled now.  */
+	ReleaseCapture ();
+
 	/* Use menubar_active to indicate that WM_INITMENU is from
            TrackPopupMenu below, and should be ignored.  */
 	f = x_window_to_frame (dpyinfo, hwnd);
@@ -3823,12 +3898,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 		retval = 0;
 	      }
 	    button_state = 0;
-
-	    /* Remember we did a SetCapture on the initial mouse down
-	       event, but window focus will usually have changed to the
-	       popup menu before we released the mouse button.  For
-	       safety, we make sure the capture is cancelled now.  */
-	    ReleaseCapture ();
 	  }
 	else
 	  {
