@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/09/12 16:35:18 $
+;; Date: $Date: 2002/09/12 16:56:54 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -1592,7 +1592,7 @@ file name."
 	idlwave-shell-command-line-to-execute nil
 	idlwave-shell-bp-alist nil
 	idlwave-shell-calling-stack-index 0
-	idlwave-idlwave_routine_info-compile nil)
+	idlwave-idlwave_routine_info-compiled nil)
   (idlwave-shell-delete-temp-files)
   (idlwave-shell-display-line nil)
   (idlwave-shell-update-bp-overlays) ; kill old overlays
