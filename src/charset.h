@@ -574,7 +574,7 @@ if (1)									   \
     if (STRING_MULTIBYTE (STRING))					   \
       {									   \
 	unsigned char *ptr = SDATA (STRING) + BYTEIDX;			   \
-	int space_left = XSTRING (STRING)->size_byte - BYTEIDX;		   \
+	int space_left = SBYTES (STRING) - BYTEIDX;			   \
 	int actual_len;							   \
 									   \
 	OUTPUT = STRING_CHAR_AND_LENGTH (ptr, space_left, actual_len);	   \
@@ -591,7 +591,7 @@ else
 if (1)									      \
   {									      \
     unsigned char *fetch_string_char_ptr = SDATA (STRING) + BYTEIDX;	      \
-    int fetch_string_char_space_left = XSTRING (STRING)->size_byte - BYTEIDX; \
+    int fetch_string_char_space_left = SBYTES (STRING) - BYTEIDX;	      \
     int actual_len;							      \
     									      \
     OUTPUT								      \
