@@ -6,6 +6,9 @@
 
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (syms_of_xfaces) [DEBUG_X_COLORS]: Defsubr dump_colors
+	only if HAVE_X_WINDOWS.
+
 	* keymap.c (describe_buffer_bindings): Add `\f\n' in front
 	of titles.
 
