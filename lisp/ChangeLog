@@ -1,3 +1,7 @@
+2002-05-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* indent.el (indent-rigidly): Mention how to remove all indentation.
+
 2002-05-21  Colin Walters  <walters@gnu.org>
 
 	* international/mule-diag.el (describe-char-after): Order display
