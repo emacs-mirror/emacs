@@ -41,13 +41,15 @@ Boston, MA 02111-1307, USA.  */
    it is safe to use SIGIO.  */
 #ifndef NOT_C_CODE
 #ifdef emacs
+#ifdef HAVE_VERSION_H
 #include <linux/version.h>
 
 #if LINUX_VERSION_CODE > 0x10200
 #define LINUX_SIGIO_DOES_WORK
-#endif
-#endif
-#endif
+#endif /* LINUX_VERSION_CODE > 0x10200 */
+#endif /* HAVE_VERSION_H */
+#endif /* emacs */
+#endif /* NOT_C_CODE */
 
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'p' means it is /dev/ptyp0  */
@@ -219,8 +221,12 @@ Boston, MA 02111-1307, USA.  */
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
 
+#if 0 /* bobg@ipost.com reports that terminal type unknown, used by
+	 comint.el, is broken "on Linux".  I don't know which system
+	 or version he means.  */
 #ifdef HAVE_NCURSES
 #define TERMINFO
+#endif
 #endif
 
 #define HAVE_SYSVIPC
