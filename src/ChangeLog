@@ -1,5 +1,8 @@
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (auto_save_error): Add parameter ERROR.  Show the
+	error in the message.
+
 	* keyboard.c (Fread_key_sequence): Don't start the busy cursor
 	timer after having read a key.  It's not good for code reading
 	several keys in a loop, like an input method.
