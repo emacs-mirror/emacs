@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.22 1997/10/24 16:53:20 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.23 1997/10/24 17:30:54 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -72,7 +72,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.22 1997/10/24 16:53:20 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.23 1997/10/24 17:30:54 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -245,6 +245,16 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.23  1997/10/24  17:30:54  os10000
+;; Added three suggestions from Carsten
+;; Dominik <dominik@strw.LeidenUniv.nl>:
+;;
+;; - recommend autoloading instead of require
+;; - inserting from different buffer didn't work
+;;   (now fixed -- I pray)
+;; - provided public entry point to insert items
+;;   from normal lisp code
+;;
 ;; Revision 1.22  1997/10/24  16:53:20  os10000
 ;; Paul Stodghill <stodghil@CS.Cornell.EDU> writes:
 ;;
@@ -979,7 +989,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
         (goto-char (point-min))
         (and (search-forward "todo-cats:" nil t)
              (replace-match "todo-categories:"))
-        (make-local-variable todo-categories)
+        (make-local-variable 'todo-categories)
         (setq todo-categories todo-cats)))
   (beginning-of-line)
   (todo-category-select))
