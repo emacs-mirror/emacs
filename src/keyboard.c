@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03,04
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -6747,31 +6747,13 @@ read_avail_input (expected)
 }
 #endif /* not VMS */
 
-#ifdef SIGIO   /* for entire page */
-/* Note SIGIO has been undef'd if FIONREAD is missing.  */
-
-static SIGTYPE
-input_available_signal (signo)
-     int signo;
+void
+handle_async_input ()
 {
-  /* Must preserve main program's value of errno.  */
-  int old_errno = errno;
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
-
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signo, input_available_signal);
-#endif /* USG */
-
-#ifdef BSD4_1
-  sigisheld (SIGIO);
-#endif
-
-  if (input_available_clear_time)
-    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+  interrupt_input_pending = 0;
 
   while (1)
     {
@@ -6787,6 +6769,36 @@ input_available_signal (signo)
       select_alarmed = 1;  /* Force the select emulator back to life */
 #endif
     }
+}
+
+#ifdef SIGIO   /* for entire page */
+/* Note SIGIO has been undef'd if FIONREAD is missing.  */
+
+static SIGTYPE
+input_available_signal (signo)
+     int signo;
+{
+  /* Must preserve main program's value of errno.  */
+  int old_errno = errno;
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (signo, input_available_signal);
+#endif /* USG */
+
+#ifdef BSD4_1
+  sigisheld (SIGIO);
+#endif
+
+  if (input_available_clear_time)
+    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+
+#ifdef SYNC_INPUT
+  interrupt_input_pending = 1;
+#else
+  handle_async_input ();
+#endif
 
 #ifdef BSD4_1
   sigfree ();
@@ -6805,7 +6817,7 @@ void
 reinvoke_input_signal ()
 {
 #ifdef SIGIO
-  kill (getpid (), SIGIO);
+  handle_async_input ();
 #endif
 }
 
