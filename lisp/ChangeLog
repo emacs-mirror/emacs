@@ -20,6 +20,12 @@
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
 	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
 
+2004-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gud.el (gud-pdb-command-name): Change default to
+	"pydb".
+
+
 2004-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only, ielm-prompt): Expand docstring.
