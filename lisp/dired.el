@@ -2364,13 +2364,6 @@ If on a subdir line, redisplay that subdirectory.  In that case,
 a prefix arg lets you edit the `ls' switches used for the new listing."
   t)
 
-(autoload 'dired-string-replace-match "dired-aux"
-  "Replace first match of REGEXP in STRING with NEWTEXT.
-If it does not match, nil is returned instead of the new string.
-Optional arg LITERAL means to take NEWTEXT literally.
-Optional arg GLOBAL means to replace all matches."
-  t)
-
 (autoload 'dired-create-directory "dired-aux"
   "Create a directory called DIRECTORY."
   t)
