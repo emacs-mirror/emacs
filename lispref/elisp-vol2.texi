@@ -117,8 +117,8 @@ This file documents GNU Emacs Lisp.
 
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-This version is newer than edition 2.1 of the GNU Emacs Lisp Reference
-Manual.  It corresponds to Emacs Version 19.19.
+This is edition 2.3 of the GNU Emacs Lisp Reference
+Manual.  It corresponds to Emacs Version 19.25.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in ==> intro.texi <==
 @c huh?  i only found three real places where the edition is stated, and
@@ -129,7 +129,7 @@ Published by the Free Software Foundation
 675 Massachusetts Avenue
 Cambridge, MA 02139 USA
 
-Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -179,10 +179,10 @@ instead of in the original English.
 @sp 1
 @center @titlefont{Reference Manual}
 @sp 2
-@center GNU Emacs Version 19.19
+@center GNU Emacs Version 19.25
 @center for Unix Users
 @sp 1
-@center Edition 2.1, September 1993
+@center Edition 2.3, June 1994
 @sp 2
 @center @titlefont{Volume 2}
 @sp 3
@@ -190,12 +190,12 @@ instead of in the original English.
 @center and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.1 @*
-Revised for Emacs Version 19.19,@*
-September, 1993.@*
+Edition 2.3 @*
+Revised for Emacs Version 19.25,@*
+June, 1994.@*
 @sp 2
 ISBN 1-882114-40-X
 
@@ -230,8 +230,8 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains the edition 2.1 of the GNU Emacs Lisp Reference
-Manual, corresponding to GNU Emacs version 19.19.
+This Info file contains the edition 2.3 of the GNU Emacs Lisp Reference
+Manual, corresponding to GNU Emacs version 19.25.
 @end ifinfo
 
 @menu
