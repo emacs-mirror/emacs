@@ -163,7 +163,7 @@ bootstrap-lisp-1:
 	cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean; cd ..
 
 bootstrap-lisp:
-	cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/b-emacs.exe; cd ..
+	cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=${top_srcdir}/src/b-emacs.exe lisp=${top_srcdir}/lisp; cd ..
 
 bootstrap-src:
 	cd src; $(MAKE) $(MFLAGS) bootstrap; cd ..
