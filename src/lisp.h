@@ -510,7 +510,7 @@ struct PERDISPLAY
 
     /* The finalized section of the macro starts at kbd_macro_buffer and
        ends before this.  This is not the same as kbd_macro_ptr, because
-       we advance this to kbd_macro_pointer when a key's command is complete.
+       we advance this to kbd_macro_ptr when a key's command is complete.
        This way, the keystrokes for "end-kbd-macro" are not included in the
        macro.  */
     Lisp_Object *kbd_macro_end;
@@ -518,8 +518,11 @@ struct PERDISPLAY
     /* Allocated size of kbd_macro_buffer.  */
     int kbd_macro_bufsize;
 
+    /* Last anonymous kbd macro defined.  */
+    Lisp_Object Vlast_kbd_macro;
+
     /* Placeholder for future vars that will be moved here.  */
-    Lisp_Object unused[20];
+    Lisp_Object unused[19];
 
     /* Nonzero means echo each character as typed.  */
     int immediate_echo;
