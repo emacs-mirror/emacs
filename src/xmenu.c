@@ -1507,8 +1507,6 @@ free_frame_menubar (f)
 
 #ifdef USE_X_TOOLKIT
 
-extern unsigned int x_mouse_grabbed;
-
 /* We need a unique id for each widget handled by the Lucid Widget
    library.  This includes the frame main windows, popup menu and
    dialog box.  */
@@ -1988,7 +1986,7 @@ xdialog_show (f, menubarp, keymaps, title, error)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now
      or track this in the loop above.  */
-  x_mouse_grabbed = 0;
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 #endif
 
   /* Unread any events that we got but did not handle.  */
@@ -2224,9 +2222,9 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   /* All set and ready to fly.  */
   XMenuRecompute (FRAME_X_DISPLAY (f), menu);
   dispwidth = DisplayWidth (FRAME_X_DISPLAY (f),
-			    XDefaultScreen (FRAME_X_DISPLAY (f)));
+			    FRAME_X_DISPLAY_INFO (f)->screen);
   dispheight = DisplayHeight (FRAME_X_DISPLAY (f),
-			      XDefaultScreen (FRAME_X_DISPLAY (f)));
+			      FRAME_X_DISPLAY_INFO (f)->screen);
   x = min (x, dispwidth);
   y = min (y, dispheight);
   x = max (x, 1);
@@ -2308,7 +2306,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
      (The oldXMenu code doesn't track this info for us.)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now.  */
-  x_mouse_grabbed = 0;
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 #endif
 
   return entry;
