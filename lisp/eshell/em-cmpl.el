@@ -277,13 +277,11 @@ to writing a completion function."
   ;; `pcomplete-arg-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
-  (make-local-hook 'eshell-mode-hook)
   (add-hook 'eshell-mode-hook
 	    (function
 	     (lambda ()
 	       (set (make-local-variable 'pcomplete-arg-quote-list)
 		    eshell-special-chars-outside-quoting))) nil t)
-  (make-local-hook 'pcomplete-quote-arg-hook)
   (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
   (define-key eshell-mode-map [(meta tab)] 'lisp-complete-symbol)
   (define-key eshell-mode-map [(meta control ?i)] 'lisp-complete-symbol)
