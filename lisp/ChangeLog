@@ -1,3 +1,34 @@
+2001-04-23  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-day-required): If the time
+	required for a particular day is not set, use `timeclock-workday'.
+	(timeclock-find-discrep): Added some sample code in a comment.
+
+	* eshell/eshell.el (eshell-command): Made a few changes so that
+	`eshell-command' could be called programmatically.
+
+	* eshell/esh-mode.el: Moved `eshell-non-interactive-p' to
+	eshell.el.
+
+	* eshell/eshell.el (eshell-non-interactive-p): Moved this variable
+	here.
+
+2001-04-22  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el: Updated copyright.
+	(timeclock-generate-report): Don't report the daily or two-week
+	total, if no time has been worked in that period.
+	(timeclock-find-discrep): Moved call to `file-readable-p'; removed
+	final computational form, which was unnecessary; corrected a
+	parsing problem when timeclock-relative was nil.
+
+2001-04-22  Kahlil Hodgson <kahlil@discus.anu.edu.au>
+
+	* calendar/timeclock.el (timeclock-modeline-display): Check if
+	`list-entry' is null.
+	(timeclock-use-display-time): The first argument to `set-variable'
+	must be a symbol.
+
 2001-04-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (diary-entry-marker)
