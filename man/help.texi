@@ -53,11 +53,11 @@ This works like @kbd{C-h a}, but it also searches for user options and
 other variables, in case the feature you are looking for is controlled
 by an option, not a command.  @xref{Apropos}.
 
-@item C-h i emacs @key{RET} i @var{topic} @key{RET}
+@item C-h i m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
 Press @key{,} repetitively until you find what you are looking for.
 
-@item C-h i emacs @key{RET} s @var{topic} @key{RET}
+@item C-h i m emacs @key{RET} s @var{topic} @key{RET}
 This works like the previous command, but it searches for @var{topic}
 (which can be a regular expression) in the @emph{text} of the manual
 rather than in its indices.
