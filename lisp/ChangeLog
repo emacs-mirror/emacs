@@ -1,3 +1,8 @@
+2002-01-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/flyspell.el (flyspell-check-pre-word-p): Prevent
+	delaying when executing keyboard macros.
+
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* help-mode.el (help-xref-go-back): Restore POSITION in proper buffer
@@ -7608,7 +7613,7 @@
 2001-04-11  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* eshell/em-hist.el (eshell-previous-matching-input):
-	Don't display "History item" if the the minibuffer is active.
+	Don't display "History item" if the minibuffer is active.
 
 2001-04-11  Gerd Moellmann  <gerd@gnu.org>
 
@@ -11799,7 +11804,7 @@
 	functions.  Add some IN-FILTER and OUT-FILTER functions in the few
 	cases they're needed.
 
-	* wid-edit.el (checkbox): Add a small `X' to the the :on-glyph, so
+	* wid-edit.el (checkbox): Add a small `X' to the :on-glyph, so
 	that it's distinguishable from the :off-glyph on dark-background
 	displays.  Set its background color too.
 
