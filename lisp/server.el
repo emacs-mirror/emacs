@@ -75,6 +75,8 @@
 (defvar server-process nil 
   "the current server process")
 
+(defvar server-previous-string "")
+
 (defvar server-clients nil
   "List of current server clients.
 Each element is (CLIENTID FILES...) where CLIENTID is a string
@@ -144,9 +146,14 @@ Prefix arg means just kill any existing server communications subprocess."
 ;Format of STRING is "Client: CLIENTID PATH PATH PATH... \n"
 (defun server-process-filter (proc string)
   (server-log string)
-  (if (not (eq 0 (string-match "Client: " string)))
-      nil
+  (setq string (concat server-previous-string string))
+  (if (not (and (eq ?\n (aref string (1- (length string))))
+		(eq 0 (string-match "Client: " string))))
+      ;; If input is not complete, save it for later.
+      (setq server-previous-string string)
+    ;; If it is complete, process it now, and discard what was saved.
     (setq string (substring string (match-end 0)))
+    (setq server-previous-string "")
     (let ((client (list (substring string 0 (string-match " " string))))
 	  (files nil)
 	  (lineno 1))
