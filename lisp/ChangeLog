@@ -1,3 +1,16 @@
+2000-08-10  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-send-input): Make the newline boundary overlay
+	rear-nonsticky.  Use `insert' instead of `insert-before-markers'.
+	(comint-output-filter): Use `insert' instead of
+	`insert-before-markers'.  Extend comint-last-output-overlay when
+	necessary since we can't rely on insert-before-markers to do it.
+	* gud.el (gud-filter): Use `with-current-buffer' instead of
+	save-excursion when inserting the output, so that point gets
+	updated correctly; the old method relied on a rather dodgy
+	side-effect of comint-output-filter to avoid the effect of
+	save-excursion.
+
 2000-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (recover-file): Call insert-directory instead of
