@@ -372,11 +372,10 @@ internal_self_insert (c, noautofill)
 	 we fill columns with spaces, if C is wider than C2, we delete
 	 C2 and several characters following C2.  */
 
-      /* A code at `point'.  Since this is checked only against
-         NEWLINE and TAB, we don't need a character code but only the
-         first byte of multi-byte form.  */
-      unsigned char c2 = FETCH_BYTE (PT_BYTE);
-      /* A column the cursor should be placed at after this insertion.
+      /* This is the character after point.  */
+      int c2 = FETCH_CHAR (PT_BYTE);
+
+      /* Column the cursor should be placed at after this insertion.
          The correct value should be calculated only when necessary.  */
       int target_clm = 0;
 
@@ -391,9 +390,8 @@ internal_self_insert (c, noautofill)
 	      && ! (c2 == '\t'
 		    && XINT (current_buffer->tab_width) > 0
 		    && XFASTINT (current_buffer->tab_width) < 20
-		    && ((NILP (current_buffer->enable_multibyte_characters)
-			 ? (target_clm = current_column () + 1)
-			 : (target_clm = current_column () + WIDTH_BY_CHAR_HEAD (str[0]))),
+		    && (target_clm = (current_column () 
+				      + XINT (Fchar_width (make_number (c2)))),
 			target_clm % XFASTINT (current_buffer->tab_width)))))
 	{
 	  int pos = PT;
@@ -453,7 +451,7 @@ internal_self_insert (c, noautofill)
 
   if (chars_to_delete)
     {
-      string = make_string (str, len);
+      string = make_multibyte_string (str, 1, len);
       if (spaces_to_insert)
 	{
 	  tem = Fmake_string (make_number (spaces_to_insert),
