@@ -1,6 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
-;; Copyright (C) 1986, 87, 92, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000
+;;	 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -307,6 +308,7 @@ so don't mark these buffers specially, just visit them normally."
 	  ;; deleted file, offer to write it.
 	  (let* ((filen (car (car files)))
 		 (obuf (get-file-buffer filen)))
+	    (push filen file-name-history)
 	    (if (and obuf (set-buffer obuf))
 		(cond ((file-exists-p filen)
 		       (if (or (not (verify-visited-file-modtime obuf))
