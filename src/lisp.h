@@ -1725,7 +1725,7 @@ extern Lisp_Object Fskip_chars_forward (), Fskip_chars_backward ();
 /* defined in minibuf.c */
 
 extern Lisp_Object last_minibuf_string;
-extern Lisp_Object read_minibuf (), Fcompleting_read ();
+extern Lisp_Object Fcompleting_read ();
 extern Lisp_Object Fread_from_minibuffer ();
 extern Lisp_Object Fread_variable (), Fread_buffer (), Fread_key_sequence ();
 extern Lisp_Object Fread_minibuffer (), Feval_minibuffer ();
