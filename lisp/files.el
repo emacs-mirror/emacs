@@ -980,7 +980,7 @@ and local variable specifications in the file are ignored.
 Automatic uncompression is also disabled.
 
 You cannot absolutely rely on this function to result in
-visiting the file literally.  If Emacs already has a buffer \
+visiting the file literally.  If Emacs already has a buffer
 which is visiting the file, you get the existing buffer,
 regardless of whether it was created literally or not.
 
