@@ -1705,7 +1705,12 @@ so the buffer is truly empty after this.")
   ()
 {
   Fwiden ();
-  del_range (BEG, Z);
+  
+  if (INTEGERP (current_buffer->minibuffer_prompt_length))
+    del_range (XINT (current_buffer->minibuffer_prompt_length), Z);
+  else
+    del_range (BEG, Z);
+
   current_buffer->last_window_start = 1;
   /* Prevent warnings, or suspension of auto saving, that would happen
      if future size is less than past size.  Use of erase-buffer
