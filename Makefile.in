@@ -461,7 +461,7 @@ clean: FRC
 top_distclean=\
 	rm -f config.status config.cache config.log ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
-	(cd lock && (rm * || true))
+	(cd lock && (rm -f * || true))
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
