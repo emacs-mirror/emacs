@@ -42,6 +42,12 @@
   "*If non-nil, mouse yank commands yank at point instead of at click."
   :type 'boolean
   :group 'mouse)
+
+(defcustom mouse-drag-copy-region t
+  "*If non-nil, mouse drag copies region to kill-ring."
+  :type 'boolean
+  :group 'mouse)
+
 
 ;; Provide a mode-specific menu on a mouse button.
 
@@ -612,8 +618,9 @@ This should be bound to a mouse drag event."
     ;; Don't set this-command to kill-region, so that a following
     ;; C-w will not double the text in the kill ring.
     ;; Ignore last-command so we don't append to a preceding kill.
-    (let (this-command last-command deactivate-mark)
-      (copy-region-as-kill (mark) (point)))
+    (when mouse-drag-copy-region
+      (let (this-command last-command deactivate-mark)
+	(copy-region-as-kill (mark) (point))))
     (mouse-set-region-1)))
 
 (defun mouse-set-region-1 ()
@@ -827,8 +834,9 @@ If the click is in the echo area, display the `*Messages*' buffer."
 		  (push-mark region-commencement t t)
 		  (goto-char region-termination)
 		  ;; Don't let copy-region-as-kill set deactivate-mark.
-		  (let (deactivate-mark)
-		    (copy-region-as-kill (point) (mark t)))
+		  (when mouse-drag-copy-region
+		    (let (deactivate-mark)
+		      (copy-region-as-kill (point) (mark t))))
 		  (let ((buffer (current-buffer)))
 		    (mouse-show-mark)
 		    ;; mouse-show-mark can call read-event,
