@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2003 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -527,22 +527,17 @@ This variable is local in all buffers, once set.")
 	      menulist (delq imenu--rescan-item menulist)))
     (setq tail menulist)
     (dolist (item tail)
-      (if (imenu--subalist-p item)
-	  (setq keep-at-top (cons item keep-at-top)
-		menulist (delq item menulist))))
+      (when (imenu--subalist-p item)
+	(push item keep-at-top)
+	(setq menulist (delq item menulist))))
     (if imenu-sort-function
-	(setq menulist
-	      (sort
-	       (copy-sequence menulist)
-	       imenu-sort-function)))
+	(setq menulist (sort menulist imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)
-	(let ((count 0))
-	  (setq menulist
-		(mapcar
-		 (function
-		  (lambda (menu)
-		    (cons (format "From: %s" (caar menu)) menu)))
-		 (imenu--split menulist imenu-max-items)))))
+	(setq menulist
+	      (mapcar
+	       (lambda (menu)
+		 (cons (format "From: %s" (caar menu)) menu))
+	       (imenu--split menulist imenu-max-items))))
     (cons title
 	  (nconc (nreverse keep-at-top) menulist))))
 
@@ -634,19 +629,18 @@ as a way for the user to ask to recalculate the buffer's index alist."
 	alist)
        t))
 
-(defun imenu--create-keymap-1 (title alist)
-  (let ((counter 0))
-    (list* 'keymap title
-	   (mapcar
-	    (lambda (item)
-	      (list* (car item) (car item)
-		     (cond
-		      ((imenu--subalist-p item)
-		       (imenu--create-keymap-1 (car item) (cdr item)))
-		      (t
-		       `(lambda () (interactive)
-			  (imenu--menubar-select ',item))))))
-	    alist))))
+(defun imenu--create-keymap (title alist &optional cmd)
+  (list* 'keymap title
+	 (mapcar
+	  (lambda (item)
+	    (list* (car item) (car item)
+		   (cond
+		    ((imenu--subalist-p item)
+		     (imenu--create-keymap (car item) (cdr item) cmd))
+		    (t
+		     `(lambda () (interactive)
+			,(if cmd `(,cmd ',item) (list 'quote item)))))))
+	  alist)))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
@@ -717,25 +711,25 @@ Their results are gathered into an index alist."
 	 (error "This buffer cannot use `imenu-default-create-index-function'"))))
 
 ;; Not used and would require cl at run time
-;;; (defun imenu--flatten-index-alist (index-alist &optional concat-names prefix)
-;;;   ;; Takes a nested INDEX-ALIST and returns a flat index alist.
-;;;   ;; If optional CONCAT-NAMES is non-nil, then a nested index has its
-;;;   ;; name and a space concatenated to the names of the children.
-;;;   ;; Third argument PREFIX is for internal use only.
-;;;   (mapcan
-;;;    (lambda (item)
-;;;      (let* ((name (car item))
-;;; 	    (pos (cdr item))
-;;; 	    (new-prefix (and concat-names
-;;; 			     (if prefix
-;;; 				 (concat prefix imenu-level-separator name)
-;;; 			       name))))
-;;;        (cond
-;;; 	((or (markerp pos) (numberp pos))
-;;; 	 (list (cons new-prefix pos)))
-;;; 	(t
-;;; 	 (imenu--flatten-index-alist pos new-prefix)))))
-;;;    index-alist))
+;; (defun imenu--flatten-index-alist (index-alist &optional concat-names prefix)
+;;   ;; Takes a nested INDEX-ALIST and returns a flat index alist.
+;;   ;; If optional CONCAT-NAMES is non-nil, then a nested index has its
+;;   ;; name and a space concatenated to the names of the children.
+;;   ;; Third argument PREFIX is for internal use only.
+;;   (mapcan
+;;    (lambda (item)
+;;      (let* ((name (car item))
+;; 	    (pos (cdr item))
+;; 	    (new-prefix (and concat-names
+;; 			     (if prefix
+;; 				 (concat prefix imenu-level-separator name)
+;; 			       name))))
+;;        (cond
+;; 	((or (markerp pos) (numberp pos))
+;; 	 (list (cons new-prefix pos)))
+;; 	(t
+;; 	 (imenu--flatten-index-alist pos new-prefix)))))
+;;    index-alist))
 
 ;;;
 ;;; Generic index gathering function.
@@ -905,10 +899,10 @@ INDEX-ALIST is the buffer index and EVENT is a mouse event.
 Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
   (setq index-alist (imenu--split-submenus index-alist))
   (let* ((menu (imenu--split-menu index-alist (or title (buffer-name))))
-	 (map (imenu--create-keymap-1 (car menu)
-				      (if (< 1 (length (cdr menu)))
-					  (cdr menu)
-					(cdr (car (cdr menu)))))))
+	 (map (imenu--create-keymap (car menu)
+				    (cdr (if (< 1 (length (cdr menu)))
+					     menu
+					   (car (cdr menu)))))))
     (popup-menu map event)))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
@@ -1001,10 +995,11 @@ This value becomes local in every buffer when it is set.")
 	  (setq index-alist (imenu--split-submenus index-alist))
 	  (setq menu (imenu--split-menu index-alist
 					(buffer-name)))
-	  (setq menu1 (imenu--create-keymap-1 (car menu)
-					      (if (< 1 (length (cdr menu)))
-						  (cdr menu)
-						(cdr (car (cdr menu))))))
+	  (setq menu1 (imenu--create-keymap (car menu)
+					    (cdr (if (< 1 (length (cdr menu)))
+						     menu
+						   (car (cdr menu))))
+					    'imenu--menubar-select))
 	  (setq old (lookup-key (current-local-map) [menu-bar index]))
 	  (setcdr old (cdr menu1)))))))
 
