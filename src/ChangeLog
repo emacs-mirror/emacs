@@ -1,3 +1,8 @@
+2001-06-14  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_window_id): When EOB is visible, don't treat
+	insertion at EOB as if it were "off the bottom of the screen."
+
 2001-06-11  Andrew Innes  <andrewi@gnu.org>
 
 	* w32proc.c (create_child): Add new parameter is_gui_app.

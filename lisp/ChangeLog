@@ -1,3 +1,10 @@
+2001-06-14  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (keep-lines-read-args): Return just a regexp.
+	Provide nil for the region args.
+	(keep-lines, flush-lines, how-many): 
+	Calculate the defaults for the region here, when args are nil.
+
 2001-06-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* rot13.el (rot13-other-window): Some more doc fix.
@@ -17,6 +24,13 @@
 	* textmodes/texinfo.el (texinfo-mode-syntax-table): Change syntax
 	of " and \ to "." (punctuation).
 	* textmodes/texinfmt.el (texinfo-format-syntax-table): Likewise.
+
+2001-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/backquote.el (backquote-process): Handle `[,@SYMBOL].
+
+	* simple.el (shell-command-on-region): Never kill the
+	*Shell Command Output* buffer.
 
 2001-06-13  Stefan Monnier  <monnier@cs.yale.edu>
 
