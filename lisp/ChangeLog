@@ -1,3 +1,9 @@
+2003-01-20  Markus Rost  <rost@math.ohio-state.edu>
+
+	* ls-lisp.el (ls-lisp-use-insert-directory-program): Make default
+	value system dependent.
+	(ls-lisp-support-shell-wildcards): Add autoload cookie.
+
 2003-01-19  Kim F. Storm  <storm@cua.dk>
 
 	* msb.el: Use `dir' instead of `path' everywhere.
