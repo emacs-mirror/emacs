@@ -148,23 +148,16 @@ directory name of the directory where the `.emacs' file was looked for.")
 	   (setq version-control 'never))))
 
   ;; Choose a good default value for split-window-keep-point.
-  (setq split-window-keep-point (> (baud-rate) 2400))
+  (setq split-window-keep-point (> baud-rate 2400))
 
   ;; Read window system's init file if using a window system.
   (if (and window-system (not noninteractive))
-      (condition-case data
-	  (load (concat term-file-prefix
-			(symbol-name window-system)
-			"-win")
-		;; Every window system should have a startup file;
-		;; barf if we can't find it.
-		nil t)
-	(error
-	 (let ((standard-output 'external-debugging-output))
-	   (princ "Error initializing window system: ")
-	   (prin1 data)
-	   (terpri)
-	   (kill-emacs)))))
+      (load (concat term-file-prefix
+		    (symbol-name window-system)
+		    "-win")
+	    ;; Every window system should have a startup file;
+	    ;; barf if we can't find it.
+	    nil t))
 
   (let ((done nil)
 	(args (cdr command-line-args)))
