@@ -335,7 +335,7 @@ Return (point-min) if current buffer is not a mini-buffer.")
   Lisp_Object end = Ffield_end (beg, Qnil);
   
   if (XINT (end) == ZV && NILP (Fget_char_property (beg, Qfield, Qnil)))
-    return make_number (beg);
+    return beg;
   else
     return end;
 }

@@ -1,5 +1,8 @@
 2001-10-07  Ken Raeburn  <raeburn@gnu.org>
 
+	* minibuf.c (Fminibuffer_prompt_end): Don't apply make_number to a
+	Lisp_Object.
+
 	* lisp.h (Ffield_end): Declare.
 
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
