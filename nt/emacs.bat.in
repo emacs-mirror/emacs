@@ -4,12 +4,12 @@ REM Here begins emacs.bat.in
 REM Set OS specific values.
 set ARCH_SAVE=%PROCESSOR_ARCHITECTURE%
 set PROCESSOR_ARCHITECTURE=
-if "%ARCH_SAVE%" == "%PROCESSOR_ARCHITECTURE%" goto win95
+if "%ARCH_SAVE%" == "%PROCESSOR_ARCHITECTURE%" goto windows95
 set PROCESSOR_ARCHITECTURE=%ARCH_SAVE%
 set SHELL=cmd
 goto next
 
-:win95
+:windows95
 set SHELL=command
 
 :next

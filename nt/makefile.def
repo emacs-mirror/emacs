@@ -58,7 +58,7 @@ MSVCNT11        = 0
 # We're on Windows NT
 CPU		= $(PROCESSOR_ARCHITECTURE)
 CONFIG_H	= config.nt
-OS_TYPE		= winnt
+OS_TYPE		= windowsnt
 ! if "$(PROCESSOR_ARCHITECTURE)" == "x86"
 ARCH		= i386
 CPU		= i386
@@ -82,11 +82,11 @@ ARCH		= ppc
 ARCH		= i386
 CPU		= i386
 CONFIG_H	= config.nt
-OS_TYPE		= win95
+OS_TYPE		= windows95
 !endif
 
 # Include ntwin32.mak.  So far, this file seems to be supported by every
-# Microsoft compiler on NT and Win95 and properly defines the executable
+# Microsoft compiler on NT and Windows 95 and properly defines the executable
 # names and libraries necessary to build Emacs.  I do not have access 
 # to any other vendor compilers, so I do not know if they supply this 
 # file, too.  For now I'll assume that they do.
@@ -153,7 +153,7 @@ $(BLD):         $(OBJDIR)
 CP		= copy
 CP_DIR		= xcopy /f/r/i/e/d
 
-!if "$(OS_TYPE)" == "win95"
+!if "$(OS_TYPE)" == "windows95"
 DEL		= deltree /y
 DEL_TREE	= deltree /y
 !else
