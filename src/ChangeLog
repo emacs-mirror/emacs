@@ -1,3 +1,7 @@
+2002-10-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* process.c (Fformat_network_address): Fix int/Lisp_Object mixup.
+
 2002-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* editfns.c (overlays_around, get_pos_property): New funs.
@@ -211,10 +215,17 @@
 
 	* fns.c (Flength): Doc fix.
 
+2002-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (keyremap): New struct.
+	(read_key_sequence): Use it: globally replace keytran_foo with
+	keytran.foo and fkey_foo with fkey.foo.  Rename temp vars
+	keytran_next and fkey_next to just `next'.
+
 2002-10-04  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (keycode_to_xkeysym_table): Change return to be
-	treated like an X keysym
+	treated like an X keysym.
 
 2002-10-03  Jan D.  <jan.h.d@swipnet.se>
 
