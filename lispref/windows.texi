@@ -455,7 +455,7 @@ offering various criteria for the choice.
 
 @defun get-lru-window &optional frame
 This function returns the window least recently ``used'' (that is,
-selected).  If full-width windows are present, it only considers
+selected).  If any full-width windows are present, it only considers
 these.  The selected window is always the most recently used window.
 
 The selected window can be the least recently used window if it is the
