@@ -1737,6 +1737,7 @@ shut_down_emacs (sig, no_x, stuff)
 #endif
 
   check_glyph_memory ();
+  check_message_stack ();
 
 #ifdef MSDOS
   dos_cleanup ();
