@@ -1,3 +1,15 @@
+2003-02-13  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Change the policy of background/foreground default
+	color.
+	(ps-print-version): New version number (6.5.9).
+	(ps-default-fg, ps-default-bg): Adjust default value.
+	(ps-begin-file, ps-begin-job): ps-default-fg and ps-default-bg
+	variables now use `t' to indicate the use of Emacs session
+	background/foreground color.
+	(ps-output-string-prim): If index out of range, insert hexadecimal
+	representation of character.
+
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (where-is): Rename remap-command to command-remapping.
