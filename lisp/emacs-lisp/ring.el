@@ -84,8 +84,8 @@ item to make room."
 	    (set-car (cdr ring) tl)))))
 
 (defun comint-mod (n m)
-  "Returns N mod M. M is positive. Answer is guaranteed to be non-negative, 
-and less than m."
+  "Returns N mod M.  M is positive.
+Answer is guaranteed to be non-negative, and less than m."
   (let ((n (% n m)))
     (if (>= n 0) n
 	(+ n
