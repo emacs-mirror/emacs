@@ -1,5 +1,8 @@
 2002-04-03  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/mailabbrev.el (mail-abbrev-complete-alias):
+	Call mail-abbrev-make-syntax-table.
+
 	* format.el (format-deannotate-region): Doc fix.
 
 	* enriched.el (enriched-face-ans): Delete special treatment
