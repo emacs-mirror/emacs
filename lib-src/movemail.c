@@ -143,7 +143,12 @@ static char *mail_spool_name ();
 extern int errno;
 #endif
 char *strerror ();
-extern char *rindex ();
+#ifdef HAVE_INDEX
+extern char *index __P ((const char *, int));
+#endif
+#ifdef HAVE_RINDEX
+extern char *rindex __P((const char *, int));
+#endif
 
 void fatal ();
 void error ();
