@@ -1342,7 +1342,7 @@ before calling this function on it, like this.\n\
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XFRAME (frame), x, y);
 #else
-#if defined(MSDOS) && defined(HAVE_MOUSE)
+#if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
@@ -1374,7 +1374,7 @@ before calling this function on it, like this.\n\
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_pixel_position (XFRAME (frame), x, y);
 #else
-#if defined(MSDOS) && defined(HAVE_MOUSE)
+#if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
