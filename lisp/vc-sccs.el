@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.17 2002/10/08 20:24:21 monnier Exp $
+;; $Id: vc-sccs.el,v 1.18 2002/11/12 19:50:54 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -88,8 +88,12 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;;; The definition should be at beginning of line (for Help and etags).
-;;;###autoload(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
+;;; The autoload cookie below places vc-sccs-registered directly into
+;;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
+;;; every file that is visited.  The definition is repeated below
+;;; so that Help and etags can find it.
+
+;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
 (defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
 
 (defun vc-sccs-state (file)
