@@ -2,6 +2,9 @@
 
 	* fns.c (copy_hash_table): Remove unused variable `v'.
 
+	* fontset.c (fontset_font_pattern): Remove unused variable
+	`family_registry'.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* m/news-risc.h (BROKEN_PROTOTYPES): Defined.
