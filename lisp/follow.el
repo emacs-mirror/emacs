@@ -5,9 +5,9 @@
 ;; Author: Anders Lindgren <andersl@csd.uu.se>
 ;; Maintainer: Anders Lindgren <andersl@csd.uu.se>
 ;; Created: 25 May 1995
-;; Version: 1.6
+;; Version: 1.7
 ;; Keywords: display, window, minor-mode
-;; Date: 20 Feb 1996
+;; Date: 27 May 1997
 
 ;; This file is part of GNU Emacs.
 
@@ -49,7 +49,7 @@
 ;; side-by-side window are used. The user can, with the help of Follow
 ;; mode, use two full-height windows as though they would have been
 ;; one. Imagine yourself editing a large function, or section of text,
-;; and beeing able to use 144 lines instead of the normal 72... (your
+;; and being able to use 144 lines instead of the normal 72... (your
 ;; mileage may vary).
 
 ;; The latest version, and a demonstration, are avaiable at:
@@ -467,7 +467,7 @@ Used by `follow-window-size-change'.")
 (eval-when-compile (require 'reporter))
 
 (defun follow-submit-feedback ()
-  "Sumbit feedback on Follow mode to the author: andersl@csd.uu.se"
+  "Submit feedback on Follow mode to the author: andersl@csd.uu.se"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on Follow mode? ")
@@ -729,7 +729,7 @@ Follow mode comes to its prime when used on a large screen and two
 side-by-side window are used. The user can, with the help of Follow
 mode, use two full-height windows as though they would have been
 one. Imagine yourself editing a large function, or section of text,
-and beeing able to use 144 lines instead of the normal 72... (your
+and being able to use 144 lines instead of the normal 72... (your
 mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
@@ -2206,7 +2206,11 @@ report this using the `follow-submit-feedback' function."
     ;; return to the original window.
     (if return-to-orig-win
 	(select-window orig-win))
-    (set-buffer old-buffer))
+    ;; Restore the orignal buffer, unless the filter explicitly
+    ;; changed buffer or killed the old buffer.
+    (if (and (eq buf (current-buffer))
+	     (buffer-name old-buffer))
+	(set-buffer old-buffer)))
   
   (follow-invalidate-cache)
 
@@ -2340,8 +2344,8 @@ report this using the `follow-submit-feedback' function."
 ;;; called from other places, e.g. `post-command-hook' and
 ;;; `post-command-idle-hook'.
 
-;; If this function is called it is to late for this window, but
-;; we might save other windows from beeing recentered.
+;; If this function is called it is too late for this window, but
+;; we might save other windows from being recentered.
 
 (if (and follow-avoid-tail-recenter-p (boundp 'window-scroll-functions))
     (add-hook 'window-scroll-functions 'follow-avoid-tail-recenter t))
