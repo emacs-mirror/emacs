@@ -584,15 +584,46 @@ popped up to accept a comment."
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
-(defun vc-comment-to-change-log ()
-  "Update change log from VC change comments entered for the current file.
-See `vc-update-change-log'."
+(defun vc-comment-to-change-log (&optional whoami file-name)
+  "Enter last VC comment into change log file for current buffer's file.
+Optional arg (interactive prefix) non-nil means prompt for user name and site.
+Second arg is file name of change log.  \
+If nil, uses `change-log-default-name'."
   (interactive)
-  (let ((log (find-change-log)))
-    (if log
-	(vc-update-change-log
-	 (file-relative-name buffer-file-name
-			     (file-name-directory (expand-file-name log)))))))
+  (let (;; Extract the comment first so we get any error before doing anything.
+	(comment (ring-ref vc-comment-ring 0))
+	;; Don't let add-change-log-entry insert anything but the file name.
+	(add-log-current-defun-function 'ignore)
+	end)
+    ;; Call add-log to do half the work.
+    (if (interactive-p)
+	;; This is better than repeating its interactive spec here.
+	(call-interactively 'add-change-log-entry-other-window)
+      (add-change-log-entry-other-window whoami file-name))
+    ;; Insert the VC comment, leaving point before it.
+    (setq end (save-excursion (insert comment) (point-marker)))
+    (if (looking-at "\\s *\\s(")
+	;; It starts with an open-paren, as in "(foo): Frobbed."
+	;; So remove the ": " add-change-log-entry-other-window inserted.
+	(delete-char -2))
+    ;; Canonicalize the white space between the file name and comment.
+    (just-one-space)
+    ;; Indent rest of the text the same way add-log indented the first line.
+    (let ((indentation (current-indentation)))
+      (save-excursion
+	(while (< (point) end)
+	  (forward-line 1)
+	  (indent-to indentation))
+	;; Canonicalize the white space at the end of the entry so it is
+	;; separated from the next entry by a single blank line.
+	(delete-char (- (skip-syntax-backward " ")))
+	(or (eobp) (looking-at "\n\n")
+	    (insert "\n"))))
+    ;; Fill the inserted text, preserving open-parens at bol.
+    (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
+	  (paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
+      (fill-region (point) end))))
+
 
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry."
