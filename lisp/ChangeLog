@@ -1,3 +1,12 @@
+2001-01-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (tool-bar-images-pixel-height): New variable.
+	(command-line): After loading the user's init file, when
+	tool-bar-mode is on, increase the frame's size by some lines for
+	the tool-bar.
+
+	* frame.el (frame-initialize): Create the initial frame invisible.
+	
 2001-01-24  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* language/chinese.el (chinese-iso-8bit): MIME:GB2312.
