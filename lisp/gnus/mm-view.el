@@ -64,7 +64,7 @@
     (set-extent-property annot 'duplicable t)))
 
 (eval-and-compile
-  (if (string-match "XEmacs" (emacs-version))
+  (if (featurep 'xemacs)
       (defalias 'mm-inline-image 'mm-inline-image-xemacs)
     (defalias 'mm-inline-image 'mm-inline-image-emacs)))
 
@@ -251,13 +251,12 @@
 	 handle
 	 `(lambda ()
 	    (let (buffer-read-only)
-	      (condition-case nil
+	      (if (fboundp 'remove-specifier)
 		  ;; This is only valid on XEmacs.
 		  (mapcar (lambda (prop)
 			    (remove-specifier
 			     (face-property 'default prop) (current-buffer)))
-			  '(background background-pixmap foreground))
-		(error nil))
+			  '(background background-pixmap foreground)))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
 (defun mm-display-inline-fontify (handle mode)
