@@ -2343,9 +2343,7 @@ some_mouse_moved ()
 
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
-   kbd_buffer_get_event retrieves them.
-   mouse_moved indicates when the mouse has moved again, and
-   *mouse_position_hook provides the mouse position.  */
+   kbd_buffer_get_event retrieves them.  */
 
 /* Return true iff there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
