@@ -48,7 +48,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "commands.h"
 
-#include "systerm.h"
+#include "systty.h"
 
 #ifndef O_RDWR
 #define O_RDWR 2
@@ -558,7 +558,7 @@ main (argc, argv, envp)
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
-  "Exit the Emacs job and kill it.  Ask for confirmation, without argument.\n\
+  "Exit the Emacs job and kill it.\n\
 If ARG is an integer, return ARG as the exit program code.\n\
 If ARG is a  string, stuff it as keyboard input.\n\n\
 The value of `kill-emacs-hook', if not void,\n\
@@ -768,8 +768,10 @@ syms_of_emacs ()
   DEFVAR_BOOL ("noninteractive", &noninteractive1,
     "Non-nil means Emacs is running without interactive terminal.");
 
-  Vkill_emacs_hook = Qnil;
-
   DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
-    "Hook to be run whenever kill-emacs is called.");
+    "Hook to be run whenever kill-emacs is called.\n\
+Since kill-emacs may be invoked when the terminal is disconnected (or\n\
+in other similar situations), functions placed on this hook should not\n\
+not expect to be able to interact with the user.");
+  Vkill_emacs_hook = Qnil;
 }
