@@ -1,6 +1,18 @@
+2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c [HAVE_XAW3D]: Include ThreeD.h for XtNbeNiceToColormap.
+	(x_create_toolkit_scroll_bar): Test XtNbeNiceToColormap before using it.
+	Use XtNtopShadowPixel and XtNbottomShadowPixel.
+	(x_set_toolkit_scroll_bar_thumb): Remove ugly old hack that didn't
+	really work and that breaks with some versions of Xaw3d.
+
 2005-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Fix previous change.
+
+2005-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (search_embedded_absfilename): Fix last change.
 
 2005-03-25  Kenichi Handa  <handa@m17n.org>
 
@@ -30,7 +42,7 @@
 
 2005-03-26  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
-	* w32term.h (x_output): add focus_state.
+	* w32term.h (x_output): Add focus_state.
 
 	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
 	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
