@@ -1,5 +1,8 @@
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-search): In the condition-case handler for
+	`error', set isearch-invalid-regexp to the whole error message.
+
 	* subr.el (eval-after-load): Call load-symbol-file-load-history to
 	ensure that eval-after-load works for files dumped with Emacs.
 
