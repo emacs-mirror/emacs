@@ -1,3 +1,16 @@
+2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* autorevert.el (auto-revert-tail-mode)
+	(auto-revert-tail-mode-text, auto-revert-tail-pos): New vars.
+	(auto-revert-mode): Turn off auto-revert-tail-mode, so we're not
+	in both at the same time.
+	(auto-revert-tail-mode): New command.
+	(turn-on-auto-revert-tail-mode, auto-revert-tail-handler): New funs.
+	(auto-revert-handler): Revert only either tail or whole file.
+
+	* bindings.el (mode-line-mode-menu): Fix alphabetical ordering and
+	add auto-revert-tail-mode.
+
 2004-07-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  Change name of some funs.
