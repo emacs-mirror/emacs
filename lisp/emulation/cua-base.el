@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997,98,99,200,01,02,03  Free Software Foundation, Inc.
+;; Copyright (C) 1997,98,99,200,01,02,03,04  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua
@@ -413,29 +413,101 @@ Can be toggled by [M-p] while the rectangle is active,"
 				       "red")
   "Normal (non-overwrite) cursor color.
 Also used to indicate that rectangle padding is not in effect.
-Default is to load cursor color from initial or default frame parameters."
+Default is to load cursor color from initial or default frame parameters.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
   :initialize 'custom-initialize-default
-  :type 'color
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-read-only-cursor-color "darkgreen"
   "*Cursor color used in read-only buffers, if non-nil.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "*Cursor color used when overwrite mode is set, if non-nil.
 Also used to indicate that rectangle padding is in effect.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-global-mark-cursor-color "cyan"
   "*Indication for active global mark.
 Will change cursor color to specified color if string.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 
@@ -893,7 +965,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     forward-word backward-word
     end-of-line beginning-of-line
     end-of-buffer beginning-of-buffer
-    scroll-up scroll-down
+    scroll-up scroll-down cua-scroll-up cua-scroll-down
     forward-sentence backward-sentence
     forward-paragraph backward-paragraph)
   "List of standard movement commands.
@@ -903,26 +975,72 @@ Extra commands should be added to `cua-movement-commands'")
   "User may add additional movement commands to this list.")
 
 
+;;; Scrolling commands which does not signal errors at top/bottom
+;;; of buffer at first key-press (instead moves to top/bottom
+;;; of buffer).
+
+(defun cua-scroll-up (&optional arg)
+  "Scroll text of current window upward ARG lines; or near full screen if no ARG.
+If window cannot be scrolled further, move cursor to bottom line instead.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen."
+  (interactive "P")
+  (cond
+   ((eq arg '-) (cua-scroll-down nil))
+   ((< (prefix-numeric-value arg) 0)
+    (cua-scroll-down (- (prefix-numeric-value arg))))
+   ((eobp)
+    (scroll-up arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-up arg)
+      (end-of-buffer (goto-char (point-max)))))))
+
+(defun cua-scroll-down (&optional arg)
+  "Scroll text of current window downward ARG lines; or near full screen if no ARG.
+If window cannot be scrolled further, move cursor to top line instead.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen."
+  (interactive "P")
+  (cond
+   ((eq arg '-) (cua-scroll-up nil))
+   ((< (prefix-numeric-value arg) 0)
+    (cua-scroll-up (- (prefix-numeric-value arg))))
+   ((bobp)
+    (scroll-down arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-down arg)
+      (beginning-of-buffer (goto-char (point-min)))))))
+
 ;;; Cursor indications
 
 (defun cua--update-indications ()
-  (let ((cursor
-	 (cond
-	  ((and cua--global-mark-active
-		(stringp cua-global-mark-cursor-color))
-	   cua-global-mark-cursor-color)
-	  ((and buffer-read-only
-		(stringp cua-read-only-cursor-color))
-	   cua-read-only-cursor-color)
-	  ((and (stringp cua-overwrite-cursor-color)
-		(or overwrite-mode
-		    (and cua--rectangle (cua--rectangle-padding))))
-	   cua-overwrite-cursor-color)
-	  (t cua-normal-cursor-color))))
-    (if (and cursor
-	     (not (equal cursor (frame-parameter nil 'cursor-color))))
-	(set-cursor-color cursor))
-    cursor))
+  (let* ((cursor
+	  (cond
+	   ((and cua--global-mark-active
+		 cua-global-mark-cursor-color)
+	    cua-global-mark-cursor-color)
+	   ((and buffer-read-only
+		 cua-read-only-cursor-color)
+	    cua-read-only-cursor-color)
+	   ((and cua-overwrite-cursor-color
+		 (or overwrite-mode
+		     (and cua--rectangle (cua--rectangle-padding))))
+	    cua-overwrite-cursor-color)
+	   (t cua-normal-cursor-color)))
+	 (color (if (consp cursor) (cdr cursor) cursor))
+	 (type (if (consp cursor) (car cursor) cursor)))
+    (if (and color
+	     (stringp color)
+	     (not (equal color (frame-parameter nil 'cursor-color))))
+	(set-cursor-color color))
+    (if (and type
+	     (symbolp type)
+	     (not (eq type (frame-parameter nil 'cursor-type))))
+	(setq default-cursor-type type))))
 
 
 ;;; Pre-command hook
@@ -1108,6 +1226,10 @@ Extra commands should be added to `cua-movement-commands'")
   (define-key cua-global-keymap [remap undo]		'cua-undo)
   (define-key cua-global-keymap [remap advertised-undo]	'cua-undo)
 
+  ;; scrolling
+  (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
+  (define-key cua-global-keymap [remap scroll-down]	'cua-scroll-down)
+
   (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
   (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
   (define-key cua--cua-keys-keymap [(control z)] 'undo)
@@ -1189,7 +1311,9 @@ paste (in addition to the normal emacs bindings)."
 	(add-hook 'post-command-hook 'cua--post-command-handler)
 	(if (and cua-enable-modeline-indications (not (assoc 'cua-mode minor-mode-alist)))
 	    (setq minor-mode-alist (cons '(cua-mode cua--status-string) minor-mode-alist)))
-	)
+	(if cua-enable-cursor-indications
+	    (cua--update-indications)))
+
     (remove-hook 'pre-command-hook 'cua--pre-command-handler)
     (remove-hook 'post-command-hook 'cua--post-command-handler))
 

@@ -622,9 +622,15 @@ This follows the rule [28] in the XML specifications."
 ;;**
 ;;*******************************************************************
 
-(defun xml-debug-print (xml)
+(defun xml-debug-print (xml &optional indent-string)
+  "Outputs the XML in the current buffer.
+XML can be a tree or a list of nodes.
+The first line is indented with the optional INDENT-STRING."
+  (setq indent-string (or indent-string ""))
   (dolist (node xml)
-    (xml-debug-print-internal node "")))
+    (xml-debug-print-internal node indent-string)))
+
+(defalias 'xml-print 'xml-debug-print)
 
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
@@ -639,22 +645,26 @@ The first line is indented with INDENT-STRING."
       (insert ?\  (symbol-name (caar attlist)) "=\"" (cdar attlist) ?\")
       (setq attlist (cdr attlist)))
 
-    (insert ?>)
-
     (setq tree (xml-node-children tree))
 
-    ;;  output the children
-    (dolist (node tree)
-      (cond
-       ((listp node)
-	(insert ?\n)
-	(xml-debug-print-internal node (concat indent-string "  ")))
-       ((stringp node) (insert node))
-       (t
-	(error "Invalid XML tree"))))
+    (if (null tree)
+	(insert ?/ ?>)
+      (insert ?>)
 
-    (insert ?\n indent-string
-	    ?< ?/ (symbol-name (xml-node-name xml)) ?>)))
+      ;;  output the children
+      (dolist (node tree)
+	(cond
+	 ((listp node)
+	  (insert ?\n)
+	  (xml-debug-print-internal node (concat indent-string "  ")))
+	 ((stringp node) (insert node))
+	 (t
+	  (error "Invalid XML tree"))))
+
+      (when (not (and (null (cdr tree))
+		      (stringp (car tree))))
+	(insert ?\n indent-string))
+      (insert ?< ?/ (symbol-name (xml-node-name xml)) ?>))))
 
 (provide 'xml)
 

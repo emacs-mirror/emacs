@@ -850,14 +850,16 @@ line-number before indenting."
 
 (defsubst f90-get-present-comment-type ()
   "If point lies within a comment, return the string starting the comment.
-For example, \"!\" or \"!!\"."
+For example, \"!\" or \"!!\", followed by the appropriate amount of
+whitespace, if any."
+  ;; Include the whitespace for consistent auto-filling of comment blocks.
   (save-excursion
     (when (f90-in-comment)
       (beginning-of-line)
-      (re-search-forward "!+" (line-end-position))
+      (re-search-forward "!+[ \t]*" (line-end-position))
       (while (f90-in-string)
-        (re-search-forward "!+" (line-end-position)))
-      (match-string 0))))
+        (re-search-forward "!+[ \t]*" (line-end-position)))
+      (match-string-no-properties 0))))
 
 (defsubst f90-equal-symbols (a b)
   "Compare strings A and B neglecting case and allowing for nil value."
@@ -1519,6 +1521,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
   (cond ((f90-in-string)
          (insert "&\n&"))
         ((f90-in-comment)
+         (delete-horizontal-space 'backwards) ; remove trailing whitespace
          (insert "\n" (f90-get-present-comment-type)))
         (t (insert "&")
            (or no-update (f90-update-line))

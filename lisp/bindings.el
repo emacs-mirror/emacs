@@ -460,7 +460,7 @@ Menu of mode operations in the mode line.")
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
-		    'face '(:weight bold)
+		    'face 'Buffer-menu-buffer-face
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'local-map mode-line-buffer-identification-keymap)))
@@ -944,6 +944,13 @@ language you are using."
 (global-set-key [C-backspace] 'kill-word)
 ;; This is "move to the clipboard", or as close as we come.
 (global-set-key [S-delete] 'kill-region)
+
+(global-set-key [C-M-left]  'backward-sexp)
+(global-set-key [C-M-right] 'forward-sexp)
+(global-set-key [C-M-up]    'backward-up-list)
+(global-set-key [C-M-down]  'down-list)
+(global-set-key [C-M-home]  'beginning-of-defun)
+(global-set-key [C-M-end]   'end-of-defun)
 
 (define-key esc-map "\C-f" 'forward-sexp)
 (define-key esc-map "\C-b" 'backward-sexp)

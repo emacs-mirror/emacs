@@ -36,7 +36,7 @@
 
 ;;;###autoload
 (defcustom diff-switches "-c"
-  "*A string or list of strings specifying switches to be be passed to diff."
+  "*A string or list of strings specifying switches to be passed to diff."
   :type '(choice string (repeat string))
   :group 'diff)
 

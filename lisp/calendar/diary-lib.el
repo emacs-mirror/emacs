@@ -1859,6 +1859,155 @@ names."
       "Forms to highlight in diary-mode")
 
 
+;; Following code from Dave Love <fx@gnu.org>.
+;; Import Outlook-format appointments from mail messages in Gnus or
+;; Rmail using command `diary-from-outlook'.  This, or the specialized
+;; functions `diary-from-outlook-gnus' and `diary-from-outlook-rmail',
+;; could be run from hooks to notice appointments automatically (in
+;; which case they will prompt about adding to the diary).  The
+;; message formats recognized are customizable through
+;; `diary-outlook-formats'.
+
+(defcustom diary-outlook-formats
+  '(
+    ;; When: 11 October 2001 12:00-14:00 (GMT) Greenwich Mean Time : Dublin, ...
+    ;; [Current UK format?  The timezone is meaningless.  Sometimes the
+    ;; Where is missing.]
+    ("When: \\([0-9]+ [[:alpha:]]+ [0-9]+\\) \
+\\([^ ]+\\) [^\n]+
+\[^\n]+
+\\(?:Where: \\([^\n]+\\)\n+\\)?
+\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*"
+     . "\\1\n \\2 %s, \\3")
+    ;; When: Tuesday, April 30, 2002 03:00 PM-03:30 PM (GMT) Greenwich Mean ...
+    ;; [Old UK format?]
+    ("^When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \\([0-9]\\{4\\}\\) \
+\\([^ ]+\\) [^\n]+
+\[^\n]+
+\\(?:Where: \\([^\n]+\\)\\)?\n+"
+     . "\\2 \\1 \\3\n \\4 %s, \\5")
+    (
+     ;; German format, apparently.
+     "^Zeit: [^ ]+, +\\([0-9]+\\)\. +\\([[:upper:]][[:lower:]][[:lower:]]\\)[^ ]* +\\([0-9]+\\) +\\([^ ]+\\).*$"
+     . "\\1 \\2 \\3\n \\4 %s"))
+  "Alist of regexps matching message text and replacement text.
+
+The regexp must match the start of the message text containing an
+appointment, but need not include a leading `^'.  If it matches the
+current message, a diary entry is made from the corresponding
+template.  If the template is a string, it should be suitable for
+passing to `replace-match', and so will have occurrences of `\\D' to
+substitute the match for the Dth subexpression.  It must also contain
+a single `%s' which will be replaced with the text of the message's
+Subject field.  Any other `%' characters must be doubled, so that the
+template can be passed to `format'.
+
+If the template is actually a function, it is called with the message
+body text as argument, and may use `match-string' etc. to make a
+template following the rules above."
+  :type '(alist :key-type (regexp :tag "Regexp matching time/place")
+		:value-type (choice
+			     (string :tag "Template for entry")
+			     (function :tag "Unary function providing template")))
+  :version "21.4"
+  :group 'diary)
+
+
+;; Dynamically bound.
+(defvar body)
+(defvar subject)
+
+(defun diary-from-outlook-internal (&optional test-only)
+  "Snarf a diary entry from a message assumed to be from MS Outlook.
+Assumes `body' is bound to a string comprising the body of the message and
+`subject' is bound to a string comprising its subject.
+Arg TEST-ONLY non-nil means return non-nil if and only if the
+message contains an appointment, don't make a diary entry."
+  (catch 'finished
+    (let (format-string)
+      (dotimes (i (length diary-outlook-formats))
+	(when (eq 0 (string-match (car (nth i diary-outlook-formats))
+				  body))
+	  (unless test-only
+	    (setq format-string (cdr (nth i diary-outlook-formats)))
+	    (save-excursion
+	      (save-window-excursion
+		;; Fixme: References to optional fields in the format
+		;; are treated literally, not replaced by the empty
+		;; string.  I think this is an Emacs bug.
+		(make-diary-entry
+		 (format (replace-match (if (functionp format-string)
+					    (funcall format-string body)
+					  format-string)
+					t nil (match-string 0 body))
+			 subject))
+		(save-buffer))))
+	  (throw 'finished t))))
+    nil))
+
+(defun diary-from-outlook ()
+  "Maybe snarf diary entry from current Outlook-generated message.
+Currently knows about Gnus and Rmail modes."
+  (interactive)
+  (let ((func (cond
+	       ((eq major-mode 'rmail-mode)
+		#'diary-from-outlook-rmail)
+	       ((memq major-mode '(gnus-summary-mode gnus-article-mode))
+		#'diary-from-outlook-gnus)
+	       (t (error "Don't know how to snarf in `%s'" major-mode)))))
+    (if (interactive-p)
+	(call-interactively func)
+      (funcall func))))
+
+
+(defvar gnus-article-mime-handles)
+(defvar gnus-article-buffer)
+
+(autoload 'gnus-fetch-field "gnus-util")
+(autoload 'gnus-narrow-to-body "gnus")
+(autoload 'mm-get-part "mm-decode")
+
+(defun diary-from-outlook-gnus ()
+  "Maybe snarf diary entry from Outlook-generated message in Gnus.
+Add this to `gnus-article-prepare-hook' to notice appointments
+automatically."
+  (interactive)
+  (with-current-buffer gnus-article-buffer
+    (let ((subject (gnus-fetch-field "subject"))
+	  (body (if gnus-article-mime-handles
+		    ;; We're multipart.  Don't get confused by part
+		    ;; buttons &c.  Assume info is in first part.
+		    (mm-get-part (nth 1 gnus-article-mime-handles))
+		  (save-restriction
+		    (gnus-narrow-to-body)
+		    (buffer-string)))))
+      (when (diary-from-outlook-internal t)
+	(when (or (interactive-p)
+                  (y-or-n-p "Snarf diary entry? "))
+	  (diary-from-outlook-internal)
+	  (message "Diary entry added"))))))
+
+(custom-add-option 'gnus-article-prepare-hook 'diary-from-outlook-gnus)
+
+
+(defvar rmail-buffer)
+
+(defun diary-from-outlook-rmail ()
+  "Maybe snarf diary entry from Outlook-generated message in Rmail."
+  (interactive)
+  (with-current-buffer rmail-buffer
+    (let ((subject (mail-fetch-field "subject"))
+	  (body (buffer-substring (save-excursion
+				    (rfc822-goto-eoh)
+				    (point))
+				  (point-max))))
+      (when (diary-from-outlook-internal t)
+	(when (or (interactive-p)
+                  (y-or-n-p "Snarf diary entry? "))
+	  (diary-from-outlook-internal)
+	  (message "Diary entry added"))))))
+
+
 (provide 'diary-lib)
 
 ;;; arch-tag: 22dd506e-2e33-410d-9ae1-095a0c1b2010

@@ -4423,7 +4423,7 @@ be a predicate function such as `yes-or-no-p'."
   :type '(choice (const :tag "Ask with yes-or-no-p" yes-or-no-p)
 		 (const :tag "Ask with y-or-n-p" y-or-n-p)
 		 (const :tag "Don't confirm" nil))
-  :group 'emacs
+  :group 'convenience
   :version "21.1")
 
 (defun save-buffers-kill-emacs (&optional arg)

@@ -65,7 +65,7 @@
 (defcustom smerge-diff-switches
   (append '("-d" "-b")
 	  (if (listp diff-switches) diff-switches (list diff-switches)))
-  "*A list of strings specifying switches to be be passed to diff.
+  "*A list of strings specifying switches to be passed to diff.
 Used in `smerge-diff-base-mine' and related functions."
   :group 'smerge
   :type '(repeat string))
@@ -324,7 +324,7 @@ according to `smerge-match-conflict'.")
 	      ;; Out of range
 	      (popup-menu smerge-mode-menu)
 	    ;; Install overlay.
-	    (setq o (make-overlay (match-beginning i) (match-end i)))  
+	    (setq o (make-overlay (match-beginning i) (match-end i)))
 	    (unwind-protect
 		(progn
 		  (overlay-put o 'face 'highlight)
@@ -512,7 +512,7 @@ An error is raised if not inside a conflict."
 	    (unwind-protect
 		(add-text-properties start end smerge-text-properties)
 	      (restore-buffer-modified-p m)))
-              
+
 	  (store-match-data (list start end
 				  mine-start mine-end
 				  base-start base-end

@@ -64,7 +64,10 @@ With prefix arg, prompt for second argument SWITCHES,
 				   (if default
 				       (concat "(default " default ") ")
 				     ""))
-			   (dired-current-directory) default t)
+			   (if default
+			       (dired-current-directory)
+			     (dired-dwim-target-directory))
+			   default t)
 	   (if current-prefix-arg
 	       (read-string "Options for diff: "
 			    (if (stringp diff-switches)
@@ -185,6 +188,18 @@ List has a form of (file-name full-file-name (attribute-list))"
              (file-attributes full-file-name))))
    (directory-files dir)))
 
+
+(defun dired-touch-initial (files)
+  "Create initial input value for `touch' command."
+  (let (initial)
+    (while files
+      (let ((current (nth 5 (file-attributes (car files)))))
+        (if (and initial (not (equal initial current)))
+            (setq initial (current-time) files nil)
+          (setq initial current))
+        (setq files (cdr files))))
+    (format-time-string "%Y%m%d%H%M.%S" initial)))
+
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
   ;; Change file attributes (mode, group, owner, timestamp) of marked files and
   ;; refresh their file lines.
@@ -196,7 +211,8 @@ List has a form of (file-name full-file-name (attribute-list))"
 	 (new-attribute
 	  (dired-mark-read-string
 	   (concat "Change " attribute-name " of %s to: ")
-	   nil op-symbol arg files))
+	   (if (eq op-symbol 'touch) (dired-touch-initial files))
+	   op-symbol arg files))
 	 (operation (concat program " " new-attribute))
 	 failures)
     (setq failures

@@ -147,14 +147,13 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (require 'find-func)
+		   (when (eq file 'C-source)
+		     (setq file
+			   (help-C-file-name (indirect-function fun) 'fun)))
 		   ;; Don't use find-function-noselect because it follows
 		   ;; aliases (which fails for built-in functions).
 		   (let ((location
-			  (cond
-			   ((bufferp file) (cons file fun))
-			   ((string-match "\\`src/\\(.*\\.c\\)" file)
-			    (help-find-C-source fun (match-string 1 file) 'fun))
-			   (t (find-function-search-for-symbol fun nil file)))))
+			  (find-function-search-for-symbol fun nil file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
@@ -162,11 +161,9 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-variable-def
   :supertype 'help-xref
   'help-function (lambda (var &optional file)
-		   (let ((location
-			  (cond
-			   ((string-match "\\`src/\\(.*\\.c\\)" file)
-			    (help-find-C-source var (match-string 1 file) 'var))
-			   (t (find-variable-noselect var file)))))
+		   (when (eq file 'C-source)
+		     (setq file (help-C-file-name var 'var)))
+		   (let ((location (find-variable-noselect var file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy"mouse-2, RET: find variable's definition"))

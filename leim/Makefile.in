@@ -117,13 +117,13 @@ GREEK=${srcdir}/quail/greek.elc
 
 RUSSIAN=${srcdir}/quail/cyrillic.elc ${srcdir}/quail/cyril-jis.elc
 
-MISC= \
+OTHERS= \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc \
 	${srcdir}/quail/georgian.elc
 
-MISC-DIC=\
+MISC= \
 	quail/tsang-b5.elc	\
 	quail/quick-b5.elc	\
 	quail/tsang-cns.elc	\
@@ -137,17 +137,17 @@ CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
 EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
-WORLD=${ASIA} ${EUROPEAN} ${MISC} ${MISC-DIC} ${UNICODE}
+WORLD=${ASIA} ${EUROPEAN} ${OTHERS} ${MISC} ${UNICODE}
 
-TIT=${CHINESE-TIT}
-NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
+TIT-MISC=${CHINESE-TIT} ${MISC}
+NON-TIT-MISC=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
 
 .SUFFIXES: .elc .el
 
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} ${WORLD} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -158,38 +158,48 @@ ${SUBDIRS}:
 	mkdir $@
 	touch stamp-subdir
 
-# The rules which generate ${TIT} and ${MISC-DIC} files create them all
-# in one go.  So we need to prevent parallel execution for that target,
-# otherwise Emacs complains about files being locked.  .NOTPARALLEL is
-# for GNU Make, .NO_PARALLEL is for other Make's.
-.NOTPARALLEL: ${TIT} ${MISC-DIC}
+TIT-SOURCES= \
+	CXTERM-DIC/4Corner.tit \
+	CXTERM-DIC/ARRAY30.tit \
+	CXTERM-DIC/CCDOSPY.tit \
+	CXTERM-DIC/ECDICT.tit \
+	CXTERM-DIC/ETZY.tit \
+	CXTERM-DIC/PY-b5.tit \
+	CXTERM-DIC/Punct-b5.tit \
+	CXTERM-DIC/Punct.tit \
+	CXTERM-DIC/QJ-b5.tit \
+	CXTERM-DIC/QJ.tit \
+	CXTERM-DIC/SW.tit \
+	CXTERM-DIC/TONEPY.tit \
+	CXTERM-DIC/ZOZY.tit
 
-.NO_PARALLEL: ${TIT} ${MISC-DIC}
+changed.tit: ${TIT-SOURCES}
+	echo "0" > $@
 
-# Rule to generate quail/*.el from CXTERM-DIC/*.tit.
-# The "if [ -f $@ ]; then true; " part prevents parallel Make's
-# which don't honor .NOTPARALLEL, such as SGI's Make, from running
-# this rule many times, one each for every file it creates.
-${TIT}:
-	if [ -d quail ]; then true; else make quail; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	  --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	  -f batch-byte-compile ${TIT:.elc=.el}; fi
+MISC-SOURCES= \
+	MISC-DIC/CTLau-b5.html \
+	MISC-DIC/CTLau.html \
+	MISC-DIC/cangjie-table.b5 \
+	MISC-DIC/cangjie-table.cns \
+	MISC-DIC/pinyin.map \
+	MISC-DIC/ziranma.cin
 
-# Rule to generate quail/*.el from MISC-DIC/*.
-${MISC-DIC}:
-	if [ -d quail ]; then true; else make quail; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	    -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/quail \
-	  -f batch-byte-compile ${MISC-DIC:.elc=.el}; fi
+changed.misc: ${MISC-SOURCES}
+	echo "0" > $@
 
-leim-list.el: ${SUBDIRS} ${WORLD}
+leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc
+	if [ `(cat changed.tit)` = 0 ] ; then \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	    -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
+	  echo "1" > changed.tit; \
+	else true; fi
+	if [ `(cat changed.misc)` = 0 ] ; then \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	    -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
+	  echo "1" > changed.misc; \
+	else true; fi
+	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
+	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
@@ -223,8 +233,8 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	rm -f ${TIT} ${TIT:.elc=.el} ${MISC-DIC} ${MISC-DIC:.elc=.el} \
-		leim-list.el
+	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
+		leim-list.el changed.tit changed.misc
 
 distclean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
