@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@freesoft.cz>
 ;; Version:    4.4
@@ -84,6 +84,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
 (defcustom tildify-string-alist
   '((latex-mode . "~")
     (tex-mode . latex-mode)
+    (plain-tex-mode . latex-mode)
     (sgml-mode . "&nbsp;")
     (html-mode . sgml-mode)
     (t . " "))

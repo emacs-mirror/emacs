@@ -1,3 +1,8 @@
+2000-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Check for newlines, 
+	not end of line, which includes CR.
+
 2000-11-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (Ffind_coding_systems_region_internal): Be sure to
