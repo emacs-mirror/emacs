@@ -836,7 +836,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	      event events key ignore
 	      x-lost-selection-hooks)
 	  (add-hook 'x-lost-selection-hooks
-		    '(lambda (seltype)
+		    (lambda (seltype)
 		       (if (eq seltype 'PRIMARY)
 			   (progn (setq ignore t)
 				  (throw 'mouse-show-mark t)))))
@@ -2054,8 +2054,8 @@ and selects that window."
 ;; This file contains the functionality of the old mldrag.el.
 (defalias 'mldrag-drag-mode-line 'mouse-drag-mode-line)
 (defalias 'mldrag-drag-vertical-line 'mouse-drag-vertical-line)
-(make-obsolete 'mldrag-drag-mode-line 'mouse-drag-mode-line)
-(make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line)
+(make-obsolete 'mldrag-drag-mode-line 'mouse-drag-mode-line "21.1")
+(make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line "21.1")
 (provide 'mldrag)
 
 ;;; mouse.el ends here
