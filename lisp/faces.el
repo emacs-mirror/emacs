@@ -1071,7 +1071,7 @@ of a global face.  Value is the new attribute value."
 If optional argument FRAME Is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
     (completing-read (format "Set font attributes of face `%s' from font: " face)
-		     (mapcar 'list (x-list-fonts "*" nil frame)))))
+		     (x-list-fonts "*" nil frame))))
 
 
 (defun read-all-face-attributes (face &optional frame)
@@ -1833,7 +1833,9 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((((type tty))
+  '((t
+     :inherit mode-line)
+    (((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
      ;; good when combined with inverse-video mode-lines and multiple
      ;; windows.  Underlining looks better, and is more consistent with
@@ -1843,41 +1845,37 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
+     :inverse-video nil	       ;Override the value inherited from mode-line.
      :underline t)
     (((class color grayscale) (background light))
      :background "grey90" :foreground "grey20"
-     :box nil
-     :inherit mode-line)
+     :box nil)
     (((class color grayscale) (background dark))
      :background "grey20" :foreground "grey90"
-     :box nil
-     :inherit mode-line)
+     :box nil)
     (((class mono) (background light))
      :background "white" :foreground "black"
      :inverse-video nil
      :box nil
-     :underline t
-     :inherit mode-line)
+     :underline t)
     (((class mono) (background dark))
      :background "black" :foreground "white"
      :inverse-video nil
      :box nil
-     :underline t
-     :inherit mode-line))
+     :underline t))
   "Basic header-line face."
   :version "21.1"
   :group 'basic-faces)
 
 
 (defface tool-bar
-  '((((type x w32 mac) (class color))
+  '((t
      :box (:line-width 1 :style released-button)
-     :background "grey75" :foreground "black")
+     :foreground "black")
+    (((type x w32 mac) (class color))
+     :background "grey75")
     (((type x) (class mono))
-     :box (:line-width 1 :style released-button)
-     :background "grey" :foreground "black")
-    (t
-     ()))
+     :background "grey"))
   "Basic tool-bar face."
   :version "21.1"
   :group 'basic-faces)
