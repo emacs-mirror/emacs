@@ -2723,6 +2723,10 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
   (concat "^-[^t" dired-ls-sorting-switches "]+$")
   "Regexp recognized by dired to set `by name' mode.")
 
+(defvar dired-sort-inhibit nil
+  "Non-nil means the Dired sort command is disabled.
+The idea is to set this buffer-locally in special Dired buffers.")
+
 (defun dired-sort-set-modeline ()
   ;; Set modeline display according to dired-actual-switches.
   ;; Modeline display of "by name" or "by date" guarantees the user a
@@ -2742,6 +2746,8 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
   "Toggle between sort by date/name and refresh the dired buffer.
 With a prefix argument you can edit the current listing switches instead."
   (interactive "P")
+  (when dired-sort-inhibit
+    (error "Cannot sort this Dired buffer"))
   (if arg
       (dired-sort-other
        (read-string "ls switches (must contain -l): " dired-actual-switches))
