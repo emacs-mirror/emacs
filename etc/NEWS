@@ -397,8 +397,12 @@ the buffer whose process should be used from the mini-buffer.
 
 ** Changes to Rmail mode
 
-RET is now bound in the Rmail summary to rmail-summary-goto-msg, like
-`j'.
+*** RET is now bound in the Rmail summary to rmail-summary-goto-msg,
+like `j'.
+
+*** There is a new user-option `rmail-digest-end-regexp' that can be
+used to specify a regular expression matching the end of a digest
+message.
 
 ** Changes to TeX mode
 
