@@ -488,7 +488,8 @@ This is in addition to the primary selection.")
 
 (defun x-select-text (text &optional push)
   (if x-select-enable-clipboard 
-      (win32-set-clipboard-data text)))
+      (win32-set-clipboard-data text))
+  (setq x-last-selected-text text))
     
 ;;; Return the value of the current selection.
 ;;; Consult the selection, then the cut buffer.  Treat empty strings
@@ -501,7 +502,15 @@ This is in addition to the primary selection.")
 	    (setq text (win32-get-clipboard-data))
 	  (error (message "win32-get-clipboard-data:%s" c)))
 	(if (string= text "") (setq text nil))
-	text)))
+	(cond
+	 ((not text) nil)
+	 ((eq text x-last-selected-text) nil)
+	 ((string= text x-last-selected-text)
+	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
+	  (setq x-last-selected-text text)
+	  nil)
+	 (t
+	  (setq x-last-selected-text text))))))
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
