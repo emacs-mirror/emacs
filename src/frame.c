@@ -363,7 +363,12 @@ to that frame.")
       && CONSP (XCONS (frame)->cdr))
     frame = XCONS (XCONS (frame)->cdr)->car;
 
-  CHECK_LIVE_FRAME (frame, 0);
+  /* This used to say CHECK_LIVE_FRAME, but apparently it's possible for
+     a switch-frame event to arrive after a frame is no longer live,
+     especially when deleting the initial frame during startup.  */
+  CHECK_FRAME (frame, 0);
+  if (! FRAME_LIVE_P (XFRAME (frame)))
+    return Qnil;
 
   if (selected_frame == XFRAME (frame))
     return frame;
