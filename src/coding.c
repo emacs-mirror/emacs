@@ -4037,7 +4037,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
 	      if (!iso2022_examined_p
 		  && (priorities[i] & try & CODING_CATEGORY_MASK_ISO))
 		{
-		  mask |= detect_coding_iso2022 (src, src_end);
+		  mask |= detect_coding_iso2022 (src, src_end, multibytep);
 		  iso2022_examined_p = 1;
 		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_SJIS)
@@ -7107,7 +7107,7 @@ syms_of_coding ()
      But don't staticpro it here--that is done in alloc.c.  */
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
   Fput (Qsafe_chars, Qchar_table_extra_slots, make_number (0));
-  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (1));
+  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (2));
 
   Qvalid_codes = intern ("valid-codes");
   staticpro (&Qvalid_codes);
@@ -7226,7 +7226,8 @@ the file contents.
 If VAL is a cons of coding systems, the car part is used for decoding,
 and the cdr part is used for encoding.
 If VAL is a function symbol, the function must return a coding system
-or a cons of coding systems which are used as above.
+or a cons of coding systems which are used as above.  The function gets
+the arguments with which `find-operation-coding-systems' was called.
 
 See also the function `find-operation-coding-system'
 and the variable `auto-coding-alist'.  */);
