@@ -1,5 +1,8 @@
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/feedmail.el (feedmail-queue-send-edit-prompt-help): 
+	Call get-buffer-window first second arg `visible'.
+
 	* international/mule-diag.el (list-input-methods-1): Output 
 	something that's independent of Emacs' version.
 
