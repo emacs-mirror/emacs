@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.29) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!amcss.c(trunk.30) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 #include "fmtdy.h"
@@ -188,15 +188,17 @@ static void *test(void *arg, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
 
+  randomize(argc, argv);
+
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-  adjust_collection_freq(0.0);
+  adjust_collection_freq(0.2);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
