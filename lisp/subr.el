@@ -475,7 +475,7 @@ The normal global definition of the character ESC indirects to this keymap.")
 The normal global definition of the character C-x indirects to this keymap.")
 
 (defvar ctl-x-4-map (make-sparse-keymap)
-  "Keymap for subcommands of C-x 4")
+  "Keymap for subcommands of C-x 4.")
 (defalias 'ctl-x-4-prefix ctl-x-4-map)
 (define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
