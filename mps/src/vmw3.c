@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.28) $
+ * $HopeName: MMsrc!vmw3.c(trunk.29) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.28) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.29) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -288,16 +288,14 @@ Res VMMap(VM vm, Addr base, Addr limit)
    * map are unmapped using VirtualQuery. */
 
   b = VirtualAlloc((LPVOID)base, (DWORD)AddrOffset(base, limit),
-       MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+                   MEM_COMMIT, PAGE_EXECUTE_READWRITE);
   if(b == NULL)
     return ResMEMORY;
-
   AVER((Addr)b == base);        /* base should've been aligned */
 
   vm->mapped += AddrOffset(base, limit);
 
   EVENT_PAA(VMMap, vm, base, limit);
-
   return ResOK;
 }
 
@@ -318,7 +316,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   /* .improve.query-unmap: Could check that the pages we are about
    * to unmap are mapped using VirtualQuery. */
 
-  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit), MEM_DECOMMIT);
+  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit),
+                  MEM_DECOMMIT);
   AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 

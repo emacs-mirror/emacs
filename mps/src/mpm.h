@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(MMdevel_drj_arena_hysteresis.2) $
+ * $HopeName: MMsrc!mpm.h(trunk.118) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -975,36 +975,6 @@ extern Size VMMapped(VM vm);
 
 /* Stack Probe */
 extern void StackProbe(Word depth);
-
-/* Splay Trees */
-extern Bool SplayTreeCheck(SplayTree tree);
-extern Bool SplayNodeCheck(SplayNode node);
-extern void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
-                          SplayUpdateNodeMethod updateNode);
-extern void SplayNodeInit(SplayNode node);
-extern void SplayNodeFinish(SplayNode node);
-extern void SplayTreeFinish(SplayTree tree);
-extern Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key);
-extern Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key);
-extern Res SplayTreeSearch(SplayNode *nodeReturn,
-                           SplayTree tree, void *key );
-extern Res SplayTreeNeighbours(SplayNode *leftReturn, 
-                               SplayNode *rightReturn,
-                               SplayTree tree, void *key);
-extern SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey);
-extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode, 
-                               void *oldKey);
-extern Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
-                           SplayTestNodeMethod testNode,
-                           SplayTestTreeMethod testTree,
-                           void *closureP, unsigned long closureS);
-extern Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
-                          SplayTestNodeMethod testNode,
-                          SplayTestTreeMethod testTree,
-                          void *closureP, unsigned long closureS);
-extern void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key);
-extern Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
-                             SplayNodeDescribeMethod nodeDescribe);
 
 
 #endif /* mpm_h */
