@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.9 $
+;; Version: $Revision: 1.10 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 05:26:51 $|$Revision: 1.9 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:02:03 $|$Revision: 1.10 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.10  1994/05/22  20:02:03  tromey
+; Fixed bug with M-;.
+; Wrote bug-reporting code.
+;
 ; Revision 1.9  1994/05/22  05:26:51  tromey
 ; Fixes for imenu.
 ;
@@ -185,8 +189,6 @@
 ;;   line individually.
 ;; * tcl-figure-type should stop at "beginning of line" (only ws
 ;;   before point, and no "\" on previous line).  (see tcl-real-command-p).
-;; * Fix beginning-of-defun.  I believe this will be fully possible in
-;;   FSF Emacs 19.23
 ;; * overrides some comint keybindings; fix.
 ;; * Trailing \ will eat blank lines.  Should deal with this.
 ;;   (this would help catch some potential bugs).
@@ -202,7 +204,7 @@
 
 (require 'comint)
 
-(defconst tcl-version "$Revision$")
+(defconst tcl-version "$Revision: 1.10 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -337,7 +339,7 @@ quoted for Tcl.")
   '("Tcl"
     ["Beginning of function" tcl-beginning-of-defun t]
     ["End of function" tcl-end-of-defun t]
-    ["Mark function" mark-tcl-function t]
+    ["Mark function" tcl-mark-defun t]
     ["Indent region" indent-region t]
     ["Comment region" comment-region t]
     ["Uncomment region" tcl-uncomment-region t]
@@ -355,9 +357,10 @@ quoted for Tcl.")
 ;; later decide to add it to inferior Tcl mode as well.
 (defun tcl-add-fsf-menu (map)
   (define-key map [menu-bar] (make-sparse-keymap))
+  ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
   (define-key map [menu-bar tcl]
-    (cons "Tcl" (make-lucid-menu-keymap "Tcl" tcl-lucid-menu))))
+    (cons "Tcl" (make-lucid-menu-keymap "Tcl" (cdr tcl-lucid-menu)))))
 
 (defun tcl-fill-mode-map ()
   (define-key tcl-mode-map "{" 'tcl-electric-char)
@@ -371,7 +374,7 @@ quoted for Tcl.")
   ;; FIXME.
   (define-key tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
   ;; FIXME.
-  (define-key tcl-mode-map "\e\C-h" 'mark-tcl-function)
+  (define-key tcl-mode-map "\e\C-h" 'tcl-mark-defun)
   (define-key tcl-mode-map "\e\C-q" 'indent-tcl-exp)
   (define-key tcl-mode-map "\177" 'backward-delete-char-untabify)
   (define-key tcl-mode-map "\t" 'tcl-indent-command)
@@ -650,12 +653,30 @@ An end of a defun is found by moving forward from the beginning of one."
 	  'beginning-of-defun
 	'tcl-internal-beginning-of-defun))
 
-;; Only FSF Emacs 19 works correctly using end-of-defun.  Emacs 18 and
-;; Lucid need our own function.
+;; Ditto end-of-defun.
 (fset 'tcl-end-of-defun
-      (if (and tcl-using-emacs-19 (not tcl-using-lemacs-19))
+      (if tcl-using-emacs-19
 	  'end-of-defun
 	'tcl-internal-end-of-defun))
+
+;; Internal mark-defun that is used for losing Emacsen.
+(defun tcl-internal-mark-defun ()
+  "Put mark at end of Tcl function, point at beginning."
+  (interactive)
+  (push-mark (point))
+  (tcl-end-of-defun)
+  (if tcl-using-emacs-19
+      (push-mark (point) nil t)
+    (push-mark (point)))
+  (tcl-beginning-of-defun)
+  (backward-paragraph))
+
+;; In GNU Emacs 19.23 and later, mark-defun works as advertised.  I
+;; don't know about Lucid Emacs, so for now it and Emacs 18 just lose.
+(fset 'tcl-mark-defun
+      (if tcl-using-emacs-19.23
+	  'mark-defun
+	'tcl-internal-mark-defun))
 
 
 
@@ -1092,19 +1113,6 @@ Returns nil if line starts inside a string, t if in a comment."
 		       (goto-char expr-start)
 		     (goto-char containing-sexp))
 		   (+ (current-indentation) tcl-indent-level)))))))))
-
-
-
-(defun mark-tcl-function ()
-  "Put mark at end of Tcl function, point at beginning."
-  (interactive)
-  (push-mark (point))
-  (tcl-end-of-defun)
-  (if tcl-using-emacs-19
-      (push-mark (point) nil t)
-    (push-mark (point)))
-  (tcl-beginning-of-defun)
-  (backward-paragraph))
 
 
 
