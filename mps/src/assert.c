@@ -1,23 +1,17 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
  * $HopeName$
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * This source provides the AssertFail function which is
  * invoked by the assertion macros (see impl.h.assert).
  * It also provides for user-installed assertion failure handlers.
- *
- *
- * NOTES
- *
- * .note.assert-buffer: The Assertion Buffer is not used.  In the future
- * we probably ought to use it. (see .buffer.* below)
  */
 
 #include "check.h"
 #include "mpm.h"
 
-SRCID(assert, "$HopeName$");
+SRCID(assert, "$HopeName: MMsrc!assert.c(trunk.11) $");
 
 
 /* CheckLevel -- Control check level 
@@ -28,19 +22,6 @@ SRCID(assert, "$HopeName$");
 
 unsigned CheckLevel = CheckSHALLOW;
 
-
-/* Assertion buffer
- *
- * .buffer.purpose: the assertion buffer serves two purposes:
- * .buffer.purpose.modify: assertion strings are picked apart and
- * modified before being passed to assertion handlers, this
- * buffer is used to do that.
- * .buffer.purpose.store: Debuggers, post-mortem dumps, etc, can retrieve the
- * assertion text even if for some reason printing the text out failed.
- * [note this is not used, see .note.buffer]
- */
-
-char AssertBuffer[ASSERT_BUFFER_SIZE];
 
 static void AssertLib(const char *cond, const char *id,
                       const char *file, unsigned line)
@@ -59,12 +40,15 @@ static void AssertLib(const char *cond, const char *id,
   mps_lib_abort();
 }
 
-static AssertHandler handler = AssertLib;
+
+static AssertHandler handler = &AssertLib;
+
 
 AssertHandler AssertDefault(void)
 {
-  return AssertLib;
+  return &AssertLib;
 }
+
 
 AssertHandler AssertInstall(AssertHandler new)
 {
@@ -80,9 +64,8 @@ AssertHandler AssertInstall(AssertHandler new)
  * calls the installed assertion handler, if it is not NULL.  If
  * handler returns the progam continues.
  */
-
 void AssertFail1(const char *s)
 {
-  if(handler != NULL)
+  if (handler != NULL)
     (*handler)(s, "", "", 0);
 }

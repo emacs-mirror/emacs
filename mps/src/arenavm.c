@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.68) $
+ * $HopeName: MMsrc!arenavm.c(trunk.69) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.68) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.69) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -899,6 +899,7 @@ static Serial vmGenOfSegPref(VMArena vmArena, SegPref pref)
   Serial gen;
 
   AVER(pref->isGen);
+  UNUSED(vmArena);
 
   gen = pref->gen;
   if (gen >= VMArenaGenCount) {
@@ -1489,7 +1490,7 @@ static void VMFree(Addr base, Size size, Pool pool)
     Tract tract = PageTract(page);
     AVER(TractPool(tract) == pool);
 
-    TractFinish(PageTract(page));
+    TractFinish(tract);
     PagePool(page) = NULL;
     PageType(page) = PageTypeSpare;
   }
