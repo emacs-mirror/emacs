@@ -1,3 +1,7 @@
+2001-11-07  Miles Bader  <miles@gnu.org>
+
+	* paren.el (show-paren-match-face): Add dark-background variant.
+
 2001-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* play/gomoku.el (gomoku): Doc fix.
