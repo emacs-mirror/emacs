@@ -1394,9 +1394,12 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-fancy-prefix-other-key (arg)
   (interactive "P")
-  (if (or (not (integerp last-command-char))
-	  (and (>= last-command-char 0) (< last-command-char ? )
-	       (not (eq last-command-char meta-prefix-char))))
+  (if (and
+       (not (eq last-command-char 'tab))
+       (not (eq last-command-char 'M-tab))
+       (or (not (integerp last-command-char))
+           (and (>= last-command-char 0) (< last-command-char ? )
+                (not (eq last-command-char meta-prefix-char)))))
      (calc-wrapper))  ; clear flags if not a Calc command.
   (calc-unread-command)
   (setq overriding-terminal-local-map nil))
