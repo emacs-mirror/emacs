@@ -153,7 +153,7 @@ Boston, MA 02111-1307, USA.  */
 /* GNU/Linux usually has crt0.o in a non-standard place */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 #else
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
+#define START_FILES pre-crt0.o /alt/usr/lib/crt1.o /alt/usr/lib/crti.o
 #endif
 
 #ifdef __ELF__
@@ -199,7 +199,7 @@ Boston, MA 02111-1307, USA.  */
 #else
 #undef LIB_GCC
 #define LIB_GCC
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
+#define LIB_STANDARD -lgcc -lc -lgcc /alt/usr/lib/crtn.o
 #endif
 
 /* Don't use -g in test compiles in configure.
