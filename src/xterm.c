@@ -7657,8 +7657,8 @@ fast_find_position (w, pos, hpos, vpos, x, y, stop)
 
 
 /* Find the position of the glyph for position POS in OBJECT in
-   window W's current matrix, and return in *X/*Y the pixel
-   coordinates, and return in *HPOS/*VPOS the column/row of the glyph.
+   window W's current matrix, and return in *X, *Y the pixel
+   coordinates, and return in *HPOS, *VPOS the column/row of the glyph.
 
    RIGHT_P non-zero means return the position of the right edge of the
    glyph, RIGHT_P zero means return the left edge position.
@@ -10848,14 +10848,14 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
 	      if (f)
 		{
+#ifndef USE_X_TOOLKIT
                   /* If there is a pending resize for fullscreen, don't
                      do this one, the right one will come later.
 		     The toolkit version doesn't seem to need this, but we
-		     need to reset it below. */
+		     need to reset it below.  */
                   int dont_resize =
                     ((f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
                      && FRAME_NEW_WIDTH (f) != 0);
-#ifndef USE_X_TOOLKIT
 		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
 		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
                   if (dont_resize)
