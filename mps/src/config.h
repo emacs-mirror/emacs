@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.25) $
+ * $HopeName: MMsrc!config.h(trunk.26) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -88,22 +88,29 @@
  */
 
 #if defined(CONFIG_VAR_HI)      /* Hot, Internal; variety.hi */
+#define MPS_VARIETY_STRING      "hi"
 #define MPS_HOT
 #define MPS_HOT_RED
 #elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
+#define MPS_VARIETY_STRING      "ci"
 #define MPS_COOL
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
+#define MPS_VARIETY_STRING      "ti"
 #define EVENT
 #define MPS_COOL
 #elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
+#define MPS_VARIETY_STRING      "he"
 #define MPS_HOT
 #define MPS_HOT_RED
 #elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
+#define MPS_VARIETY_STRING      "ce"
 #define MPS_COOL
 #elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
+#define MPS_VARIETY_STRING      "wi"
 #define MPS_HOT
 #define MPS_HOT_WHITE
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
+#define MPS_VARIETY_STRING      "ii"
 #define MPS_HOT
 #define MPS_HOT_RED
 #define EVENT
@@ -150,6 +157,7 @@
 #define ARENA_DEFAULT_REFSET            BS_UPPER_HALF(RefSet)
 
 #if defined(CONFIG_PROD_EPCORE)
+#define MPS_PROD_STRING         "epcore"
 #define MPS_PROD_EPCORE
 #define ARENA_SIZE              ((Size)2<<20)
 #define AMC_SIZE_LIMIT          ARENA_SIZE
@@ -158,6 +166,7 @@
 #define PROTECTION_NONE
 
 #elif defined(CONFIG_PROD_DYLAN)
+#define MPS_PROD_STRING         "dylan"
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
 #define AMC_SIZE_LIMIT          ((Size)64<<20)  /* experimentally reasonable limit */
@@ -165,6 +174,7 @@
 #define PROTECTION
 
 #elif defined(CONFIG_PROD_MPS)
+#define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
 #define ARENA_SIZE              ((Size)2<<20)
