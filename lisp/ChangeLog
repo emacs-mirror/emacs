@@ -1,3 +1,7 @@
+2005-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-print): Omit command from M-x ... RET.
+
 2005-03-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler): Handle just MI case.
@@ -37,7 +41,7 @@
 
 2005-03-03  Stephan Stahl  <stahl@eos.franken.de> (tiny change)
 
-	* progmodes/which-func.el (which-function): 
+	* progmodes/which-func.el (which-function):
 	Specify NOERROR when calling imenu--make-index-alist.
 
 2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
