@@ -880,11 +880,14 @@ run `normal-mode' explicitly."
 				  ("\\.ml\\'" . lisp-mode)))
   "\
 Alist of filename patterns vs corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION t).
-Visiting a file whose name matches REGEXP causes FUNCTION to be called.
-If the element has the form (REGEXP FUNCTION t), then after calling
-FUNCTION, we delete the suffix that matched REGEXP and search the list
-again for another match.")
+Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
+\(NON-NIL stands for anything that is not nil; the value does not matter.)
+Visiting a file whose name matches REGEXP specifies FUNCTION as the
+mode function to use.  FUNCTION will be called, unless it is nil.
+
+If the element has the form (REGEXP FUNCTION NON-NIL), then after
+calling FUNCTION (if it's not nil), we delete the suffix that matched
+REGEXP and search the list again for another match.")
 
 (defconst interpreter-mode-alist
   '(("perl" . perl-mode)
