@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.4 2000/06/11 22:35:19 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.5 2000/06/13 19:06:07 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -162,7 +162,7 @@ in `cvs-default-ignore-marks'."
   "*Ask for confirmation before removing files.
 Non-nil means that PCL-CVS will ask confirmation before removing files
 except for files whose content can readily be recovered from the repository.
-A value of LIST means that the list of files to be deleted will be
+A value of `list' means that the list of files to be deleted will be
 displayed when asking for confirmation."
   :group 'pcl-cvs
   :type '(choice (const list)
@@ -300,34 +300,31 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (defvar cvs-menu
   '("CVS"
-    ["Open File.."		cvs-mode-find-file	t]
-    [" ..Other Window"		cvs-mode-find-file-other-window	t]
-    ["Interactive Merge"	cvs-mode-imerge		t]
-    ["Interactive Diff"		cvs-mode-idiff		t]
-    ["View Diff"		cvs-mode-diff		(cvs-enabledp 'diff)]
-    ["Diff with Vendor"		cvs-mode-diff-vendor	t]
-    ["Diff with Backup"		cvs-mode-diff-backup	t]
-    ["View Log"			cvs-mode-log		t]
-    ["View Status"		cvs-mode-status		t]
+    ["Open file.."		cvs-mode-find-file	t]
+    [" ..other window"		cvs-mode-find-file-other-window	t]
+    ["Interactive merge"	cvs-mode-imerge		t]
+    ["Interactive diff"		cvs-mode-idiff		t]
+    ["View diff"		cvs-mode-diff		(cvs-enabledp 'diff)]
+    ["Diff with vendor"		cvs-mode-diff-vendor	t]
+    ["Diff with backup"		cvs-mode-diff-backup	t]
+    ["View log"			cvs-mode-log		t]
+    ["View status"		cvs-mode-status		t]
+    ["View tag tree"		cvs-mode-tree		t]
     "----"
+    ["Insert"			cvs-mode-insert]
     ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
-    ["Re-Examine"		cvs-mode-examine	t]
+    ["Re-examine"		cvs-mode-examine	t]
     ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
-    ["Undo Changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
+    ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
     ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
     ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
     ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
     ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
     "----"
-    ["Mark All"			cvs-mode-mark-all-files	t]
-    ["Unmark All"		cvs-mode-unmark-all-files t]
-    ["Hide Handled"		cvs-mode-remove-handled	t]
+    ["Mark all"			cvs-mode-mark-all-files	t]
+    ["Unmark all"		cvs-mode-unmark-all-files t]
+    ["Hide handled"		cvs-mode-remove-handled	t]
     "----"
-    ;; ["Update Directory"		cvs-update		t]
-    ;; ["Examine Directory"	cvs-examine		t]
-    ;; ["Status Directory"		cvs-status		t]
-    ;; ["Checkout Module"		cvs-checkout		t]
-    ;; "----"
     ["Quit"			cvs-mode-quit		t]
     ))
 
