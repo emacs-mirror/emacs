@@ -1,4 +1,4 @@
-;;; cookie.el --- retrieve random phrases from fortune cookie files
+;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
