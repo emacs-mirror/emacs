@@ -1,3 +1,12 @@
+2002-05-12  Richard M. Stallman  <rms@gnu.org>
+
+	* ansi-color.el (ansi-color-get-face): Avoid add-to-list on local var.
+	(ansi-color-apply-sequence): Avoid duplicates in combined face list.
+
+	* dired-aux.el (dired-show-file-type): Use -- to say FILE's not option.
+
+	* subr.el (functionp): Catch errors in indirect-function.
+
 2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Unfold folded lines before
