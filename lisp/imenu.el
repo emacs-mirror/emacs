@@ -966,7 +966,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
     (and mouse-triggered
 	 (not (equal last-nonmenu-event '(menu-bar)))
 	 (let ((window (posn-window (event-start last-nonmenu-event))))
-	   (or (framep window) (select-window window))))
+	   (or (framep window) (null window) (select-window window))))
     ;; Create a list for this buffer only when needed.
     (while (eq result t)
       (setq index-alist (if alist alist (imenu--make-index-alist)))
