@@ -149,6 +149,7 @@ that you visit a subnode before getting to the end of the menu.
 Setting this option to nil results in behavior similar to the stand-alone
 Info reader program, which visits the first subnode from the menu only
 when you hit the end of the current node."
+  :version "21.4"
   :type 'boolean
   :group 'info)
 
