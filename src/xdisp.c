@@ -861,9 +861,11 @@ static void display_tool_bar_line P_ ((struct it *));
 		      Window display dimensions
  ***********************************************************************/
 
-/* Return the window-relative maximum y + 1 for glyph rows displaying
-   text in window W.  This is the height of W minus the height of a
-   mode line, if any.  */
+/* Return the bottom boundary y-position for text lines in window W.
+   This is the first y position at which a line cannot start.
+   It is relative to the top of the window.
+
+   This is the height of W minus the height of a mode line, if any.  */
 
 INLINE int
 window_text_bottom_y (w)
@@ -11514,7 +11516,10 @@ row_containing_pos (w, charpos, start, end, dy)
       /* Give up if we have gone too far.  */
       if (end && row >= end)
 	return NULL;
-      if (MATRIX_ROW_BOTTOM_Y (row) >= last_y)
+      /* This formerly returned if they were equal.
+	 I think that both quantities are of a "last plus one" type;
+	 if so, when they are equal, the row is within the screen. -- rms.  */
+      if (MATRIX_ROW_BOTTOM_Y (row) > last_y)
 	return NULL;
 
       /* If it is in this row, return this row.  */
@@ -11734,6 +11739,8 @@ try_window_id (w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  else
+	    abort ();
 	  return 1;
 	}
     }
@@ -11773,6 +11780,8 @@ try_window_id (w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  else
+	    abort ();
 	  return 2;
 	}
     }
