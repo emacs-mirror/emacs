@@ -6,18 +6,11 @@ AC_PREREQ(2.0)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
-bindir='${exec_prefix}/bin'
-datadir='${prefix}/share'
-sharedstatedir='${prefix}/com'
-libexecdir='${exec_prefix}/libexec'
-mandir='${prefix}/man/man1'
-infodir='${prefix}/info'
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${sharedstatedir}/emacs/lock'
-archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 AC_ARG_WITH(gcc,
@@ -270,6 +263,9 @@ case "${canonical}" in
   ;;
   mips-dec-osf* )
     machine=pmax opsys=osf1
+  ;;
+  mips-dec-mach_bsd4.3* )
+    machine=pmax opsys=mach-bsd4-3
   ;;
 
   ## Motorola Delta machines
@@ -529,6 +525,11 @@ case "${canonical}" in
     NON_GNU_CC="cc -systype bsd43"
     NON_GNU_CPP="cc -systype bsd43 -E"
   ;;
+  mips-mips-riscos5* )
+    machine=mips4 opsys=riscos5
+    NON_GNU_CC="cc -systype bsd43"
+    NON_GNU_CPP="cc -systype bsd43 -E"
+  ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
   ;;
@@ -653,7 +654,8 @@ case "${canonical}" in
       ## The Sun386 didn't get past 4.0.
       i[345]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
-      *-sunos4.1.[3-9]* | *-sunos4shr*  ) opsys=sunos4shr
+      *-sunos4.1.[3-9]* )
+		opsys=sunos4shr
 		NON_GNU_CPP=/usr/lib/cpp
 		;;
       *-sunos4* | *-sunos ) opsys=sunos4-1
@@ -988,6 +990,22 @@ HAVE_X_MENU=no
 case ${HAVE_X11} in
   yes ) HAVE_X_MENU=yes ;;
 esac
+
+if test "${opsys}" = "hpux9"; then
+  case "${x_libraries}" in
+    *X11R4* )
+      opsysfile="s/hpux9-x11r4.h"
+      ;;
+  esac
+fi
+
+if test "${opsys}" = "hpux9shr"; then
+  case "${x_libraries}" in
+    *X11R4* )
+      opsysfile="s/hpux9shxr4.h"
+      ;;
+  esac
+fi
 
 #### Extract some information from the operating system and machine files.
 
