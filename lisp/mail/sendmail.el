@@ -341,6 +341,7 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (make-local-variable 'paragraph-start)
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
+  (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'mail-mode-fill-paragraph)
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
