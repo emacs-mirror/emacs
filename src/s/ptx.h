@@ -50,7 +50,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef TCPIP_INSTALLED
 #define HAVE_SOCKETS
-#define HAVE_SELECT
 #else
 #undef subprocesses
 #endif
@@ -73,9 +72,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* No <sioctl.h> */
 #define NO_SIOCTL_H
-
-/* PTX has timeval */
-#define HAVE_TIMEVAL
 
 /* If we have X windows, configure should find gettimeofday in -lX11.
    Since we emulate gettimeofday below, we really have it anyway.  */
