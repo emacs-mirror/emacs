@@ -162,6 +162,11 @@ instead (which see).")
 ;; Customization Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defgroup generic nil
+  "Define simple major modes with comment and font-lock support."
+  :prefix "generic-"
+  :group 'extensions)
+
 (defcustom generic-use-find-file-hook t
   "*If non-nil, add a hook to enter default-generic-mode automatically
 if the first few lines of a file in fundamental mode start with a hash 
@@ -499,13 +504,10 @@ Some generic modes are defined in `generic-x.el'."
 	(setq
 	 generic-font-lock-expressions
 	 (append
-	  (list
-	   (list
-	    (concat 
-	     "\\(\\<"
-	     (mapconcat 'identity keywords "\\>\\|\\<")
-	     "\\>\\)") 
-	    1 'font-lock-keyword-face))
+	  (list (let ((regexp (regexp-opt keywords)))
+		  (list (concat "\\<\\(" regexp "\\)\\>")
+			1
+			'font-lock-keyword-face)))
 	  generic-font-lock-expressions)))
     ;; Other font-lock expressions
     (and font-lock-expressions
@@ -570,20 +572,16 @@ This hook is NOT installed by default."
 (defun generic-make-keywords-list (keywords-list face &optional prefix suffix)
   "Return a regular expression matching the specified keywords.
 The regexp is highlighted with FACE."
-  ;; Sanity checks
-  ;; Don't check here; face may not be defined yet
-  ;;   (if (not (facep face))
-  ;;       (error "Face %s is not defined" (princ face)))
   (and (not (listp keywords-list))
        (error "Keywords argument must be a list of strings"))
-  (list
-   (concat 
-    (or prefix "")
-    "\\(\\<"
-    (mapconcat 'identity keywords-list "\\>\\|\\<")
-    "\\>\\)"
-    (or suffix "")
-    ) 1 face))
+  (list (concat (or prefix "")
+		"\\<\\("
+		;; Use an optimized regexp.
+		(regexp-opt keywords-list t)
+		"\\)\\>"
+		(or suffix ""))
+	1
+	face)))
 
 (provide 'generic)
 
