@@ -1083,7 +1083,6 @@ popup_get_selection (initial_event, dpyinfo, id)
       else if (event.type == KeyPress
 	       && dpyinfo->display == event.xbutton.display)
 	{
-	  lw_destroy_all_widgets (id); 
 	  popup_activated_flag = 0;
 	  break;
 	}
@@ -1862,13 +1861,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id);
 
-#if 0
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
-     I observer that is not so. -- rms.  */
-  /* Make sure the menu disappears.  */
+     Nowadays the menu disappears ok, all right, but
+     we need to delete the widgets or multiple ones will pile up.  */
   lw_destroy_all_widgets (menu_id); 
-#endif
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2079,6 +2076,8 @@ xdialog_show (f, keymaps, title, error)
 
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
+
+  lw_destroy_all_widgets (dialog_id); 
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
