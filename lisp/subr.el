@@ -153,7 +153,7 @@ If N is bigger than the length of X, return X."
 	   x))))
 
 (defun remove (elt seq)
-  "Return a copy of SEQ with all occurences of ELT removed.
+  "Return a copy of SEQ with all occurrences of ELT removed.
 SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   (if (nlistp seq)
       ;; If SEQ isn't a list, there's no need to copy SEQ because
@@ -162,7 +162,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
     (delete elt (copy-sequence seq))))
 
 (defun remq (elt list)
-  "Return a copy of LIST with all occurences of ELT removed.
+  "Return a copy of LIST with all occurrences of ELT removed.
 The comparison is done with `eq'."
   (if (memq elt list)
       (delq elt (copy-sequence list))
