@@ -1,3 +1,9 @@
+2005-03-19  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* recentf.el (recentf-cleanup-remote): New variable.
+	(recentf-cleanup): Use it to conditionally check availablity of
+	remote files.
+
 2005-03-19  Joe Edmonds <joe-bugs-debian-org@elem.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Recognize `@' in
