@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.15 2001/09/19 20:08:17 rms Exp $
+@comment $Id: info.texi,v 1.16 2001/09/19 20:21:02 rms Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -75,7 +75,10 @@ license to the document, as described in section 6 of the license.
 @node Top
 @top Info: An Introduction
 
-Info is a program for reading documentation, which you are using now.
+Info is a program, which you are using now, for reading documentation of
+computer programs.  The GNU Project distributes most of its on-line
+manuals in the Info format, so you need a program called @dfn{Info
+reader} to read the manuals.  One of such programs you are using now.
 
 @ifinfo
 If you are new to Info and want to learn how to use it, type the
@@ -395,7 +398,7 @@ beginning.
 >> Try that now.  (We have put in enough verbiage to push this past
    the first screenful, but screens are so big nowadays that perhaps it
    isn't enough.  You may need to shrink your Emacs or Info window.)
-   Then come back, with @key{SCS}s.
+   Then come back, with @key{SPS}s.
 @end format
 
   If your screen is very tall, all of this node might fit at once.
