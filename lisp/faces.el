@@ -1125,7 +1125,7 @@ The sample text is a string that comes from the variable
 	   "Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
 	   "\\[help-follow] on a face name to customize it\n"
-	   "or on its sample text for a decription of the face.\n\n")))
+	   "or on its sample text for a description of the face.\n\n")))
 	(setq help-xref-stack nil)
 	(while faces
 	  (setq face (car faces))
