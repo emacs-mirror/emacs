@@ -886,7 +886,7 @@ x_set_frame_parameters (f, alist)
 	f->display.x->win_gravity = NorthWestGravity;
 
 	/* Actually set that position, and convert to absolute.  */
-	x_set_offset (f, leftpos, toppos, 0);
+	x_set_offset (f, leftpos, toppos, 1);
       }
 
     if ((!NILP (icon_left) || !NILP (icon_top))
@@ -949,8 +949,10 @@ x_real_positions (f, xptr, yptr)
 				 /* Child of win.  */
 				 &child);
 
+#if 0  /* The values seem to be right without this and wrong with.  */
 	  win_x += f->display.x->border_width;
 	  win_y += f->display.x->border_width;
+#endif
 	}
 
       /* It is possible for the window returned by the XQueryNotify
