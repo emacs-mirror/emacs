@@ -142,6 +142,9 @@ This keymap should be kept in a global variable named
 @code{@var{modename}-mode-map}.  Normally the library that defines the
 mode sets this variable.
 
+@xref{Tips for Defining}, for advice about how to write the code to set
+up the mode's keymap variable.
+
 @item
 @cindex syntax tables in modes
 The mode may have its own syntax table or may share one with other
