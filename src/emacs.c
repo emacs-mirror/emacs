@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
+#include "buffer.h"
 
 #include "systty.h"
 #include "blockinput.h"
@@ -741,29 +742,6 @@ main (argc, argv, envp)
 
   inhibit_window_system = 0;
 
-  {
-    int inhibit_unibyte = 0;
-
-    /* --multibyte overrides EMACS_UNIBYTE.  */
-    if (argmatch (argv, argc, "-no-unibyte", "--no-unibyte", 4, NULL, &skip_args)
-	|| argmatch (argv, argc, "-multibyte", "--multibyte", 4, NULL, &skip_args))
-      inhibit_unibyte = 1;
-  
-    /* --unibyte requests that we set up to do everything with single-byte
-       buffers and strings.  We need to handle this before calling
-       init_lread, init_editfns and other places that generate Lisp strings
-       from text in the environment.  */
-    if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args)
-	|| argmatch (argv, argc, "-no-multibyte", "--no-multibyte", 4, NULL, &skip_args)
-	|| (getenv ("EMACS_UNIBYTE") && !inhibit_unibyte))
-      {
-	Lisp_Object symbol;
-	symbol = intern ("default-enable-multibyte-characters");
-	Fset (symbol, Qnil);
-	Fset_default (symbol, Qnil);
-      }
-  }
-
   /* Handle the -t switch, which specifies filename to use as terminal */
   {
     char *term;
@@ -997,6 +975,59 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_eval ();
   init_data ();
   running_asynch_code = 0;
+
+  /* Handle --unibyte and the EMACS_UNIBYTE envvar,
+     but not while dumping.  */
+  if (
+#ifndef CANNOT_DUMP
+      ! noninteractive || initialized
+#else
+      1
+#endif
+      )
+    {
+      int inhibit_unibyte = 0;
+
+      /* --multibyte overrides EMACS_UNIBYTE.  */
+      if (argmatch (argv, argc, "-no-unibyte", "--no-unibyte", 4, NULL, &skip_args)
+	  || argmatch (argv, argc, "-multibyte", "--multibyte", 4, NULL, &skip_args))
+	inhibit_unibyte = 1;
+
+      /* --unibyte requests that we set up to do everything with single-byte
+	 buffers and strings.  We need to handle this before calling
+	 init_lread, init_editfns and other places that generate Lisp strings
+	 from text in the environment.  */
+      if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args)
+	  || argmatch (argv, argc, "-no-multibyte", "--no-multibyte", 4, NULL, &skip_args)
+	  || (getenv ("EMACS_UNIBYTE") && !inhibit_unibyte))
+	{
+	  Lisp_Object old_log_max;
+	  Lisp_Object symbol, tail;
+
+	  symbol = intern ("default-enable-multibyte-characters");
+	  Fset (symbol, Qnil);
+
+	  /* Erase pre-dump messages in *Messages* now so no abort.  */
+	  old_log_max = Vmessage_log_max;
+	  XSETFASTINT (Vmessage_log_max, 0);
+	  message_dolog ("", 0, 1, 0);
+	  Vmessage_log_max = old_log_max;
+
+	  for (tail = Fbuffer_list (); CONSP (tail);
+	       tail = XCONS (tail)->cdr)
+	    {
+	      Lisp_Object buffer;
+
+	      buffer = XCONS (tail)->car;
+	      /* Verify that all buffers are empty now, as they
+		 ought to be.  */
+	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))
+		abort ();
+	      /* It is safe to do this crudely in an empty buffer.  */
+	      XBUFFER (buffer)->enable_multibyte_characters = Qnil;
+	    }
+	}
+    }
 
 #ifdef MSDOS
   /* Call early 'cause init_environment needs it.  */
@@ -1265,13 +1296,13 @@ struct standard_args standard_args[] =
 #ifdef VMS
   { "-map", "--map-data", 100, 0 },
 #endif
-  { "-no-unibyte", "--no-unibyte", 96, 0 },
-  { "-multibyte", "--multibyte", 96, 0 },
-  { "-unibyte", "--unibyte", 95, 0 },
-  { "-no-multibyte", "--no-multibyte", 95, 0 },
   { "-t", "--terminal", 90, 1 },
   { "-d", "--display", 80, 1 },
   { "-display", 0, 80, 1 },
+  { "-no-unibyte", "--no-unibyte", 76, 0 },
+  { "-multibyte", "--multibyte", 76, 0 },
+  { "-unibyte", "--unibyte", 75, 0 },
+  { "-no-multibyte", "--no-multibyte", 75, 0 },
   { "-nw", "--no-windows", 70, 0 },
   { "-batch", "--batch", 60, 0 },
   { "-q", "--no-init-file", 50, 0 },
