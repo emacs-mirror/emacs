@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.41) $
+ * $HopeName: MMsrc!config.h(trunk.42) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -160,7 +160,7 @@
 #define ARENA_CONTROL_EXTENDBY  ((Size)4096)
 #define ARENA_CONTROL_AVGSIZE   ((Size)32)
 #define ARENA_CONTROL_MAXSIZE   ((Size)65536)
-#define ARENA_POLL_MAX          (65536.0)
+#define ArenaPollALLOCTIME (65536.0)
 #define ARENA_LD_LENGTH         ((Size)4)
 #define ARENA_ZONESHIFT         ((Shift)20)
 
@@ -173,19 +173,13 @@
 /* Stack configuration */
 
 /* Currently StackProbe has a useful implementation only on
- * Intel platforms and only when using Microsoft build tools
- * (builder.mv) */
+ * Intel platforms and only when using Microsoft build tools (builder.mv)
+ */
 #if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
 #define STACK_PROBE_DEPTH       ((Word)500)
 #else
 #define STACK_PROBE_DEPTH       ((Word)0)
 #endif /* MPS_ARCH_I3 */
-
-
-/* ANSI Arena Configuration -- see impl.c.arenaan */
-
-#define ARENA_ANSI_ALIGN        ((Align)4096)
-#define ARENA_ANSI_ZONESHIFT    ((Shift)20)
 
 
 /* Shield Configuration -- see impl.c.shield */
@@ -203,9 +197,9 @@
 
 /* Tracer Configuration -- see impl.c.trace */
 
-#define TRACE_MAX               ((Size)1)
+#define TraceLIMIT ((size_t)1)
 /* I count 4 function calls to scan, 10 to copy. */
-#define TRACE_COPY_SCAN_RATIO   ((double)1.5)
+#define TraceCopyScanRATIO (1.5)
 
 
 
@@ -218,9 +212,7 @@
 #define EventStringLengthMAX ((size_t)255) /* Not including NUL */
 
 
-/* Assert Buffer
- *
- * The Assert Buffer lives in assert.c */
+/* Assert Buffer */
 
 #define ASSERT_BUFFER_SIZE      ((Size)512)
 
