@@ -1,3 +1,7 @@
+2003-02-12  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (file-truename): Revert change from 2002-11-27.
+
 2003-02-12  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* help-fns.el (describe-function-1): Change output for keyboard
