@@ -1941,7 +1941,7 @@ Give a blank topic name to go to the Index node itself."
 				(regexp-quote name)) nil t)
 	    ;; Find a function definition with a return type.
 	    (re-search-forward (format
-                                "[a-zA-Z]+: [a-zA-Z0-9_]+ %s\\( \\|$\\)"
+                                "[a-zA-Z]+: [a-zA-Z0-9_ *&]+ %s\\( \\|$\\)"
                                 (regexp-quote name)) nil t)
 	    (search-forward (format "`%s'" name) nil t)
 	    (and (string-match "\\`.*\\( (.*)\\)\\'" name)
