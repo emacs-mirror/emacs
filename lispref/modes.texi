@@ -1082,6 +1082,12 @@ and the frame title.
   The mode line is usually displayed in inverse video; see
 @code{mode-line-inverse-video} in @ref{Inverse Video}.
 
+  A window that is just one line tall does not display either a mode
+line or a header line, even if the variables call for one.  A window
+that is two lines tall cannot display both a mode line and a header
+line at once; if the variables call for both, only the mode line
+actually appears.
+
 @menu
 * Mode Line Data::        The data structure that controls the mode line.
 * Mode Line Variables::   Variables used in that data structure.
