@@ -1,3 +1,7 @@
+2001-02-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (next-line): Goto end-of-line before inserting a newline.
+
 2001-02-05  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (insert-image-file): When visiting an image, also
