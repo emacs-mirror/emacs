@@ -1,3 +1,8 @@
+2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Added reference to the new
+	`etags --help --lang=LANG' option.
+
 2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* tramp.texi (External transfer methods): New method `smb'.  From

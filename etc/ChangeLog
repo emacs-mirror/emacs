@@ -1,3 +1,8 @@
+2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Added reference to the new `etags --help --lang=LANG'
+	option.
+
 2003-01-08  Bill Wohler  <wohler@newt.com>
 
 	* MH-E-NEWS: Upgraded to MH-E version 7.1.
