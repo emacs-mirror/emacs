@@ -928,29 +928,30 @@ This exists as a variable so it can be set locally in certain buffers.")
 		      (mouse-face (overlay-get overlay 'mouse-face)))
 		 (unwind-protect
 		     (let ((track-mouse t))
-		       (overlay-put overlay
-				    'face widget-button-pressed-face)
-		       (overlay-put overlay 
-				    'mouse-face widget-button-pressed-face)
-		       (unless (widget-apply button :mouse-down-action event)
-			 (while (not (button-release-event-p event))
-			   (setq event (widget-read-event)
-				 pos (widget-event-point event))
-			   (if (and pos
-				    (eq (get-char-property pos 'button)
-					button))
-			       (progn 
-				 (overlay-put overlay 
-					      'face
-					      widget-button-pressed-face)
-				 (overlay-put overlay 
-					      'mouse-face 
-					      widget-button-pressed-face))
-			     (overlay-put overlay 'face face)
-			     (overlay-put overlay 'mouse-face mouse-face))))
-		       (when (and pos 
-				  (eq (get-char-property pos 'button) button))
-			 (widget-apply-action button event)))
+		       (save-excursion
+			 (overlay-put overlay
+				      'face widget-button-pressed-face)
+			 (overlay-put overlay 
+				      'mouse-face widget-button-pressed-face)
+			 (unless (widget-apply button :mouse-down-action event)
+			   (while (not (button-release-event-p event))
+			     (setq event (widget-read-event)
+				   pos (widget-event-point event))
+			     (if (and pos
+				      (eq (get-char-property pos 'button)
+					  button))
+				 (progn 
+				   (overlay-put overlay 
+						'face
+						widget-button-pressed-face)
+				   (overlay-put overlay 
+						'mouse-face 
+						widget-button-pressed-face))
+			       (overlay-put overlay 'face face)
+			       (overlay-put overlay 'mouse-face mouse-face))))
+			 (when (and pos 
+				    (eq (get-char-property pos 'button) button))
+			   (widget-apply-action button event))))
 		   (overlay-put overlay 'face face)
 		   (overlay-put overlay 'mouse-face mouse-face)))
 	     (let ((up t)
