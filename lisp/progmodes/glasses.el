@@ -62,6 +62,7 @@
 
 (defgroup glasses nil
   "Make unreadable code likeThis(one) readable."
+  :version "21.1"
   :group 'tools)
 
 
@@ -128,7 +129,7 @@ separators too."
 (defun glasses-custom-set (symbol value)
   "Set value of the variable SYMBOL to VALUE and update overlay categories.
 Used in :set parameter of some customized glasses variables."
-  (set symbol value)
+  (set-default symbol value)
   (glasses-set-overlay-properties))
 
 
@@ -249,11 +250,16 @@ recognized according to the current value of the variable `glasses-separator'."
   "Mode variable for `glasses-mode'.")
 (make-variable-buffer-local 'glasses-mode)
 
-(add-to-list 'minor-mode-alist '(glasses-mode " o^o"))
+(add-to-list 'minor-mode-alist
+	     (list 'glasses-mode
+		   (propertize " o^o"
+			       'local-map (make-mode-line-mouse2-map
+					   'glasses-mode)
+			       'help-echo "mouse-2: turn off Glasses mode")))
 
 
 ;;;###autoload
-(defun glasses-mode (arg)
+(defun glasses-mode (&optional arg)
   "Minor mode for making identifiers likeThis readable.
 When this mode is active, it tries to add virtual separators (like underscores)
 at places they belong to."
