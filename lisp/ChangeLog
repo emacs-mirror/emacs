@@ -1,3 +1,12 @@
+2002-10-10  Simon Josefsson  <jas@extundo.com>
+
+	* browse-url.el (browse-url-mozilla): Doc fix.
+
+2002-10-10  Steve Youngs  <youngs@xemacs.org>
+
+	* browse-url.el (browse-url-mozilla-new-window-is-tab): New.
+	(browse-url-mozilla): Use it.
+
 2002-10-11  Miles Bader  <miles@gnu.org>
 
 	* vc-cvs.el (vc-cvs-parse-entry): Don't barf when an `Entries'
