@@ -1,5 +1,9 @@
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
+	* info.el (info-apropos): New function.
+	(Info-mode-menu): Add it.
+	(Info-find-node, Info-find-node-2): Grok apropos virtual file.
+
 	* help-mode.el (help-make-xrefs): Recognize aliased variable with
 	inherited docstring.
 

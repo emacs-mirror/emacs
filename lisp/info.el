@@ -498,9 +498,13 @@ it says do not attempt further (recursive) error recovery."
   (if (stringp filename)
       (let (temp temp-downcase found)
         (setq filename (substitute-in-file-name filename))
-        (if (string= (downcase filename) "dir")
-            (setq found t)
-          (let ((dirs (if (string-match "^\\./" filename)
+	(cond 
+	 ((string= (downcase filename) "dir")
+	  (setq found t))
+	 ((string= filename "apropos")
+	  (setq found 'apropos))
+	 (t
+	  (let ((dirs (if (string-match "^\\./" filename)
                           ;; If specified name starts with `./'
                           ;; then just try current directory.
                           '("./")
@@ -538,7 +542,7 @@ it says do not attempt further (recursive) error recovery."
 				temp (car (car suffix-list)) nil)))
 			 (setq found temp)))
                   (setq suffix-list (cdr suffix-list))))
-              (setq dirs (cdr dirs)))))
+              (setq dirs (cdr dirs))))))
         (if found
             (setq filename found)
           (error "Info file %s does not exist" filename))))
@@ -686,10 +690,14 @@ a case-insensitive match is tried."
                     Info-current-file-completions nil
                     buffer-file-name nil)
               (erase-buffer)
-              (if (eq filename t)
-                  (Info-insert-dir)
+	      (cond
+	       ((eq filename t)
+		(Info-insert-dir))
+	       ((eq filename 'apropos)
+		(insert-buffer-substring " *info-apropos*"))
+	       (t
                 (info-insert-file-contents filename nil)
-                (setq default-directory (file-name-directory filename)))
+                (setq default-directory (file-name-directory filename))))
               (set-buffer-modified-p nil)
               ;; See whether file has a tag table.  Record the location if yes.
               (goto-char (point-max))
@@ -724,7 +732,11 @@ a case-insensitive match is tried."
                       (set-marker Info-tag-table-marker pos)))
                 (set-marker Info-tag-table-marker nil))
               (setq Info-current-file
-                    (if (eq filename t) "dir" filename))))
+		    (cond
+		     ((eq filename t) "dir")
+		     ((eq filename 'apropos) "apropos")
+		     (t filename)))
+	      ))
         ;; Use string-equal, not equal, to ignore text props.
         (if (string-equal nodename "*")
             (progn (setq Info-current-node nodename)
@@ -2124,6 +2136,61 @@ Give a blank topic name to go to the Index node itself."
 	(progn (beginning-of-line) t)  ;; non-nil for recursive call
       (goto-char (point-min)))))
 
+;;;###autoload
+(defun info-apropos (string)
+  "Grovel indices of all known Info files on your system for STRING.
+Build a menu of the possible matches."
+  (interactive "sIndex apropos: ")
+  (unless (string= string "")
+    (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^.]+\\)."
+			   (regexp-quote string)))
+	  (ohist Info-history)
+	  (current-node Info-current-node)
+	  (current-file Info-current-file)
+	  manuals matches temp-file node)
+      (let ((Info-fontify-maximum-menu-size 0)
+	    Info-use-header-lines
+	    Info-hide-note-references)
+	(Info-directory)
+	(message "Searching indices...")
+	(goto-char (point-min))
+	(re-search-forward "\\* Menu: *\n" nil t)
+	(while (re-search-forward "\\*.*: (\\([^)]+\\))" nil t)
+	  (add-to-list 'manuals (match-string 1)))
+	(dolist (manual manuals)
+	  (message "Searching %s" manual)
+	  (condition-case nil
+	      (save-excursion
+		(Info-find-node manual "Top")
+		(when (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
+		  (goto-char (match-beginning 1))
+		  (Info-goto-node (Info-extract-menu-node-name))
+		  (while
+		      (progn
+			(goto-char (point-min))
+			(while (re-search-forward pattern nil t)
+			  (add-to-list 'matches
+				       (list (match-string 1)
+					     (match-string 2)
+					     manual)))
+			(and (setq node (Info-extract-pointer "next" t))
+			     (string-match "\\<Index\\>" node)))
+		    (Info-goto-node node))))
+	    (error nil))))
+      (Info-goto-node (concat "(" current-file ")" current-node))
+      (setq Info-history ohist)
+      (message "Searching indices...done")
+      (if (null matches)
+	  (message "No matches found")
+	(with-current-buffer (get-buffer-create " *info-apropos*")
+	  (erase-buffer)
+	  (insert "\n\nFile: apropos, Node: Top, Up: (dir)\n")
+	  (insert "* Menu: \nNodes whose indices contain \"" string "\"\n\n")
+	  (dolist (entry matches)
+	    (insert "* " (car entry) " [" (nth 2 entry)
+		    "]: (" (nth 2 entry) ")" (nth 1 entry) ".\n")))
+	(Info-find-node "apropos" "top")))))
+
 (defun Info-undefined ()
   "Make command be undefined in Info."
   (interactive)
@@ -2343,7 +2410,9 @@ if point is in a menu item description, follow that menu item."
     ["Lookup a String" Info-index
      :help "Look for a string in the index items"]
     ["Next Matching Item" Info-index-next
-     :help "Look for another occurrence of previous item"])
+     :help "Look for another occurrence of previous item"]
+    ["Lookup a string in all indices" info-apropos
+     :help "Look for a string in the indices of all manuals"])
    ["Edit" Info-edit :help "Edit contents of this node"
     :active Info-enable-edit]
    ["Copy Node Name" Info-copy-current-node-name
