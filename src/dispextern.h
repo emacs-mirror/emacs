@@ -1292,7 +1292,7 @@ struct face
   unsigned background_defaulted_p : 1;
 
   /* 1 means that either no color is specified for underlining or that
-     the the specified color couldn't be loaded.  Use the foreground
+     the specified color couldn't be loaded.  Use the foreground
      color when drawing in that case. */
   unsigned underline_defaulted_p : 1; 
 
