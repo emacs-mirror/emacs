@@ -578,7 +578,7 @@ It is passed through FILTER before we look at it."
 (defun gud-gdb-goto-stackframe (text token indent)
   "Goto the stackframe described by TEXT, TOKEN, and INDENT."
   (speedbar-with-attached-buffer
-   (gud-basic-call (concat "frame " (nth 1 token)))
+   (gud-basic-call (concat "server frame " (nth 1 token)))
    (sit-for 1)))
 
 (defvar gud-gdb-fetched-stack-frame nil
@@ -599,7 +599,7 @@ It is passed through FILTER before we look at it."
   "Extract the current stack frame out of the GUD GDB BUFFER."
   (let ((newlst nil)
 	(fetched-stack-frame-list
-	 (gud-gdb-run-command-fetch-lines "backtrace" buffer)))
+	 (gud-gdb-run-command-fetch-lines "server backtrace" buffer)))
     (if (and (car fetched-stack-frame-list)
 	     (string-match "No stack" (car fetched-stack-frame-list)))
 	;; Go into some other mode???
