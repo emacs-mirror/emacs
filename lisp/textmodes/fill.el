@@ -572,7 +572,10 @@ argument to it), and if it returns non-nil, we simply return its value."
 	   (let ((function fill-paragraph-function)
 		 fill-paragraph-function)
 	     (funcall function arg)))
-      (let ((before (point)))
+      (let ((before (point))
+	    ;; If fill-paragraph is called recursively,
+	    ;; don't give fill-paragraph-function a second chance.
+	    fill-paragraph-function)
 	(save-excursion
 	  (forward-paragraph)
 	  (or (bolp) (newline 1))
