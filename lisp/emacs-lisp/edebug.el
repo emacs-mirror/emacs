@@ -1624,30 +1624,28 @@ expressions; a `progn' form will be returned enclosing these forms."
 ;; user may want to define macros or functions with the same names.
 ;; We could use an internal obarray for these primitive specs.
 
-(mapcar 
- (function (lambda (pair)
-	     (put (car pair) 'edebug-form-spec (cdr pair))))
- '((&optional . edebug-match-&optional)
-   (&rest . edebug-match-&rest)
-   (&or . edebug-match-&or)
-   (form . edebug-match-form)
-   (sexp . edebug-match-sexp)
-   (body . edebug-match-body)
-   (&define . edebug-match-&define)
-   (name . edebug-match-name)
-   (:name . edebug-match-colon-name)
-   (arg . edebug-match-arg)
-   (def-body . edebug-match-def-body)
-   (def-form . edebug-match-def-form)
-   ;; Less frequently used:
-   ;; (function . edebug-match-function)
-   (lambda-expr . edebug-match-lambda-expr)
-   (&not . edebug-match-&not)
-   (&key . edebug-match-&key)
-   (place . edebug-match-place)
-   (gate . edebug-match-gate)
-   ;;   (nil . edebug-match-nil)  not this one - special case it.
-   ))
+(dolist (pair '((&optional . edebug-match-&optional)
+		(&rest . edebug-match-&rest)
+		(&or . edebug-match-&or)
+		(form . edebug-match-form)
+		(sexp . edebug-match-sexp)
+		(body . edebug-match-body)
+		(&define . edebug-match-&define)
+		(name . edebug-match-name)
+		(:name . edebug-match-colon-name)
+		(arg . edebug-match-arg)
+		(def-body . edebug-match-def-body)
+		(def-form . edebug-match-def-form)
+		;; Less frequently used:
+		;; (function . edebug-match-function)
+		(lambda-expr . edebug-match-lambda-expr)
+		(&not . edebug-match-&not)
+		(&key . edebug-match-&key)
+		(place . edebug-match-place)
+		(gate . edebug-match-gate)
+		;;   (nil . edebug-match-nil)  not this one - special case it.
+		))
+  (put (car pair) 'edebug-form-spec (cdr pair)))
 
 (defun edebug-match-symbol (cursor symbol)
   ;; Match a symbol spec.
@@ -1972,7 +1970,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 (def-edebug-spec def-edebug-spec
   ;; Top level is different from lower levels.
-  (&define :name edebug-spec name 
+  (&define :name edebug-spec name
 	   &or "nil" edebug-spec-p "t" "0" (&rest edebug-spec)))
 
 (def-edebug-spec edebug-spec-list
@@ -2009,6 +2007,13 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   def-body))
 (def-edebug-spec defmacro
   (&define name lambda-list def-body))
+(def-edebug-spec define-derived-mode
+  (&define name name stringp [&optional stringp] def-body))
+(def-edebug-spec define-minor-mode
+  (&define name stringp def-body))
+;; This plain doesn't work ;-(   -sm
+;; (def-edebug-spec define-skeleton
+;;   (&define name stringp def-body))
 
 (def-edebug-spec arglist lambda-list)  ;; deprecated - use lambda-list.
 
