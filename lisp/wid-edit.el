@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9901
+;; Version: 1.9903
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -108,6 +108,27 @@ and `end-open' if it should sticky to the front."
 	(erase-buffer buf)
 	(display-error obj buf)
 	(buffer-string buf)))))
+
+(when (let ((a "foo"))
+	(put-text-property 1 2 'foo 1 a)
+	(put-text-property 1 2 'bar 2 a)
+	(set-text-properties 1 2 nil a)
+	(text-properties-at 1 a))
+  ;; XEmacs 20.2 and earlier had a buggy set-text-properties.
+  (defun set-text-properties (start end props &optional buffer-or-string)
+    "Completely replace properties of text from START to END.
+The third argument PROPS is the new property list.
+The optional fourth argument, BUFFER-OR-STRING,
+is the string or buffer containing the text."
+    (map-extents #'(lambda (extent ignored)
+		     (remove-text-properties
+		      start end
+		      (list (extent-property extent 'text-prop)
+			    nil)
+		      buffer-or-string)
+		     nil)
+		 buffer-or-string start end nil nil 'text-prop)
+    (add-text-properties start end props buffer-or-string)))
 
 ;;; Customization.
 
@@ -253,10 +274,16 @@ minibuffer."
 (defun widget-specify-text (from to)
   ;; Default properties.
   (add-text-properties from to (list 'read-only t
+				     ;; Emacs is sticky.
 				     'front-sticky t
-				     'start-open t
-				     'end-open t
-				     'rear-nonsticky nil)))
+				     'rear-nonsticky nil
+				     ;; XEmacs is non-sticky.
+				     'start-open nil
+				     'end-open nil
+				     ;; This is because `insert'
+				     ;; inherit sticky text properties
+				     ;; in XEmacs but not in Emacs. 
+				     )))
 
 (defun widget-specify-field (widget from to)
   ;; Specify editable button for WIDGET between FROM and TO.
@@ -351,21 +378,18 @@ minibuffer."
 					    'face face)))
     (add-text-properties to (1+ to) (list 'local-map map
 					  'keymap map))))
-
 (defun widget-specify-button (widget from to)
   ;; Specify button for WIDGET between FROM and TO.
   (let ((face (widget-apply widget :button-face-get))
-	(help-echo (widget-get widget :help-echo))
-	(help-property (if (featurep 'balloon-help)
-			   'balloon-help
-			 'help-echo)))
+	(help-echo (widget-get widget :help-echo)))
     (unless (or (null help-echo) (stringp help-echo))
       (setq help-echo 'widget-mouse-help))
     (add-text-properties from to (list 'button widget
 				       'mouse-face widget-mouse-face
 				       'start-open t
 				       'end-open t
-				       help-property help-echo
+				       'balloon-help help-echo
+				       'help-echo help-echo
 				       'face face))))
 
 (defun widget-mouse-help (extent)
@@ -1051,7 +1075,7 @@ With optional ARG, move across that many fields."
   "Kill to end of field or end of line, whichever is first."
   (interactive)
   (let ((field (get-text-property (point) 'field))
-	(newline (save-excursion (search-forward "\n")))
+	(newline (save-excursion (forward-line 1)))
 	(next (next-single-property-change (point) 'field)))
     (if (and field (> newline next))
 	(kill-region (point) next)
@@ -1661,9 +1685,6 @@ If END is omitted, it defaults to the length of LIST."
 		      (eq (char-after (1- to)) ?\ ))
 	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
-	    (when (string-match "XEmacs" emacs-version)
-	      ;; XEmacs 20.1 bug: b-s-n-p doesn't clear all properties. 
-	      (setq result (format "%s" result)))
 	    (when secret
 	      (let ((index 0))
 		(while (< (+ from index) to)

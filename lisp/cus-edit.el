@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9901
+;; Version: 1.9903
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -1141,8 +1141,7 @@ If non-nil and not the symbol `long', only show first word."
       (insert "   ")
       (push (widget-create-child-and-convert 
 	     widget 'choice-item 
-	     :help-echo "\
-Change the state of this item."
+	     :help-echo "Change the state of this item."
 	     :format (if hidden "%t" "%[%t%]")
 	     :button-prefix 'widget-push-button-prefix
 	     :button-suffix 'widget-push-button-suffix
@@ -1214,19 +1213,24 @@ Change the state of this item."
 	 (level (widget-get widget :custom-level)))
     (cond ((eq escape ?l)
 	   (when level 
+	     (insert-char ?\  (1- level))
 	     (if (eq state 'hidden)
-		 (insert-char ?- (* 2 level))
-	       (insert "/" (make-string (1- (* 2 level)) ?-)))))
+		 (insert-char ?- (1+ level))
+	       (insert "/")
+	       (insert-char ?- level))))
 	  ((eq escape ?e)
 	   (when (and level (not (eq state 'hidden)))
-	     (insert "\n\\" (make-string (1- (* 2 level)) ?-) " "
-		     (widget-get widget :tag) " group end ")
-	     (insert (make-string (- 75 (current-column)) ?-) "/\n")))
+	     (insert "\n")
+	     (insert-char ?\  (1- level))
+	     (insert "\\")
+	     (insert-char ?-  level)
+	     (insert " " (widget-get widget :tag) " group end ")
+	     (insert-char ?- (- 75 (current-column) level))
+	     (insert "/\n")))
 	  ((eq escape ?-)
-	   (when level 
-	     (if (eq state 'hidden)
-		 (insert-char ?- (- 77 (current-column)))		 
-	       (insert (make-string (- 76 (current-column)) ?-) "\\"))))
+	   (when (and level (not (eq state 'hidden)))
+	     (insert-char ?- (- 76 (current-column) level))
+	     (insert "\\")))
 	  ((eq escape ?L)
 	   (push (widget-create-child-and-convert
 		  widget 'visibility
