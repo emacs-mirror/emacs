@@ -1016,7 +1016,7 @@ x_report_frame_params (f, alistptr)
   sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
-  store_in_alist (alistptr, Qicon_name, f->display.x->icon_name);
+  store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);
   store_in_alist (alistptr, Qvisibility,
 		  (FRAME_VISIBLE_P (f) ? Qt
@@ -1462,8 +1462,8 @@ x_set_icon_type (f, arg, oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f,
-			  (char *) XSTRING ((!NILP (f->display.x->icon_name)
-					     ? f->display.x->icon_name
+			  (char *) XSTRING ((!NILP (f->icon_name)
+					     ? f->icon_name
 					     : f->name))->data);
   else
     result = x_bitmap_icon (f, arg);
@@ -1519,7 +1519,7 @@ x_set_icon_name (f, arg, oldval)
   else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
     return;
 
-  f->display.x->icon_name = arg;
+  f->icon_name = arg;
 
   if (f->display.x->icon_bitmap != 0)
     return;
@@ -1527,8 +1527,8 @@ x_set_icon_name (f, arg, oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) XSTRING ((!NILP (f->display.x->icon_name)
-					   ? f->display.x->icon_name
+			(char *) XSTRING ((!NILP (f->icon_name)
+					   ? f->icon_name
 					   : f->name))->data);
 
   if (result)
@@ -1760,9 +1760,7 @@ x_set_name (f, name, explicit)
 	text.format = 8;
 	text.nitems = XSTRING (name)->size;
 
-	icon_name = (!NILP (f->display.x->icon_name)
-		     ? f->display.x->icon_name
-		     : name);
+	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
 
 	icon.value = XSTRING (icon_name)->data;
 	icon.encoding = XA_STRING;
@@ -2748,10 +2746,9 @@ x_icon (f, parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f,
-	       (char *) XSTRING ((!NILP (f->display.x->icon_name)
-				  ? f->display.x->icon_name
-				  : f->name))->data);
+  x_text_icon (f, (char *) XSTRING ((!NILP (f->icon_name)
+				     ? f->icon_name
+				     : f->name))->data);
 
   UNBLOCK_INPUT;
 }
@@ -2913,10 +2910,10 @@ This function is an internal primitive--use `make-frame' instead.")
   bzero (f->display.x, sizeof (struct x_display));
   f->display.x->icon_bitmap = -1;
 
-  f->display.x->icon_name
+  f->icon_name
     = x_get_arg (parms, Qicon_name, "iconName", "Title", string);
-  if (! STRINGP (f->display.x->icon_name))
-    f->display.x->icon_name = Qnil;
+  if (! STRINGP (f->icon_name))
+    f->icon_name = Qnil;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #ifdef MULTI_KBOARD
