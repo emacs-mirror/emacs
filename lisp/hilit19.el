@@ -1247,7 +1247,7 @@ number of backslashes."
    ;; formulas
    ("[^\\]\\\\("  "\\\\)" formula)                   ; \( \)
    ("[^\\]\\\\\\[" "\\\\\\]" formula)                ; \[ \]
-   ("[^\\$]\\($\\($[^$]*\\$\\|[^$]*\\)\\$\\)" 1 formula) ; '$...$' or '$$...$$'
+   ("[^\\$]\\(\\$\\(\\$[^$]*\\$\\|[^$]*\\)\\$\\)" 1 formula) ; '$...$' or '$$...$$'
    
    ;; things that bring in external files
    ("\\\\\\(include\\|input\\|bibliography\\){" "}" include)
