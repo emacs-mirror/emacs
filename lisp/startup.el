@@ -655,6 +655,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (when (and (not noninteractive)
 	     (memq window-system '(x w32))
+	     (image-type-available-p 'xpm)
 	     (> (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode t))
 
