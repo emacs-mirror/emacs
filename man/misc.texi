@@ -1842,7 +1842,7 @@ new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
 
-@node Emulation, Dissociated Press, Recursive Edit, Top
+@node Emulation, Hyperlinking, Recursive Edit, Top
 @section Emulation
 @cindex emulating other editors
 @cindex other editors
@@ -1915,6 +1915,11 @@ and @kbd{S-insert} respectively.
 The @code{s-region} package provides similar, but less complete,
 facilities.
 
+@item TPU (DEC VMS editor)
+@findex tpu-edt-on
+@cindex TPU
+@kbd{M-x tpu-edt-on} turns on emulation of the TPU editor emulating EDT.
+
 @item vi (Berkeley editor)
 @findex viper-mode
 Viper is the newest emulator for vi.  It implements several levels of
@@ -1959,7 +1964,123 @@ not use it.
 keybindings.
 @end table
 
-@node Dissociated Press, Amusements, Emulation, Top
+@node Hyperlinking, Dissociated Press, Emulation, Top
+@section Hyperlinking and Navigation Features
+
+@cindex hyperlinking
+@cindex URLs
+@cindex navigation
+Various modes documented elsewhere have hypertext features whereby you
+can follow links, usually with @kbd{mouse-2} or @kbd{RET} on the text of
+the link.  Info mode, Help mode and the Dired-like modes are examples.
+The Tags facility (@pxref{Tags}) links between source files.
+
+Other non-mode-specific facilities are available to follow links from
+the current buffer in a context-sensitive fashion.
+
+@table @asis
+@item Browse-URL (follow URLs)
+@cindex World Wide Web
+@findex browse-url
+@findex browse-url-at-point
+@findex browse-url-at-mouse
+@vindex browse-url-browser-function
+@cindex Browse-URL
+@cindex URLs
+The Browse-URL package provides facilities for following URLs specifying
+links on the World Wide Web.  Usually this works by invoking a web
+browser, but you can, for instance, invoke @code{compose-mail} from
+@samp{mailto:} URLs.  Packages such as Gnus may make active links from
+URLs themselves.  Otherwise you can use @kbd{M-x browse-url} to follow a
+link, defaulting to the URL at point.  Other commands are available
+which you might like to bind to keys, such as @code{browse-url-at-point}
+and @code{browse-url-at-mouse}.
+
+You can customize Browse-URL's behaviour via various options in the
+@samp{browse-url} Customize group, particularly
+@code{browse-url-browser-function}.  You can invoke actions dependent on
+the type of URL by defining @code{browse-url-browser-function} as an
+association list.  The package's commentary available via @kbd{C-h p}
+provides more information.  Packages with facilities for following URLs
+generally should use Browse-URL, so customizing the Browse-URL group
+should be sufficient to determine how they all work.
+
+@item Goto-address (activate URLs)
+@findex goto-address
+@cindex Goto-address
+@cindex URLs, activating
+You can arrange to activate URLs in any buffer with @kbd{M-x
+goto-address}.  It may be useful to add @code{goto-address} to hooks
+invoked when buffers are displayed in particular modes.
+@code{rmail-show-message-hook} is the appropriate hook if you use Rmail,
+or @code{mh-show-mode-hook} if you use MH.
+
+@item FFAP (find at point)
+@findex ffap
+@findex find-file-at-point
+@findex ffap
+@findex ffap-bindings
+@cindex FFAP
+The package @samp{ffap} provides functions for finding files and URLs at
+point.  Specifically, @code{find-file-at-point} (abbreviated as
+@code{ffap}) can be used as as replacement for @kbd{M-x find-file}.  A
+set of default bindings can be set up by the function
+@code{ffap-bindings}.  The package's commentary available via @kbd{C-h
+p} provides more information.
+
+@item Find-func (find function and variable definitions)
+@findex find-function
+@findex find-function-on-key
+@findex find-variable
+@findex auto-compression-mode
+@cindex examples of Lisp functions
+@cindex Lisp examples
+@cindex Find-func
+@cindex Lisp definitions
+@cindex definitions, locating in sources
+@cindex tags
+The Find-func package provides convenient facilities for finding the
+definitions of Emacs Lisp functions and variables.  It has a somewhat
+similar function to the Tags facility (@pxref{Tags}) but uses Emacs's
+introspective facilities which maintain information about loaded
+libraries.  In contrast to Tags, it only works for functions and
+variables with definitions which are already loaded but it relates to
+the code actually running and doesn't require maintaining tags files.
+
+You need to have the Lisp source (@samp{.el}) files available on your
+load path along with the compiled (@samp{.elc}) versions for this to
+work.  The sources may be compressed if you turn on
+@samp{auto-compression-mode}.
+
+The commands available include @kbd{M-x find-function} to find the
+definition of a named function, @kbd{find-function-on-key} to find the
+definition of the function bound to a key and @kbd{find-variable} to
+find a variable's definition.  These only work for things defined in
+Lisp source files, not primitive functions or variables defined
+primitively in the Emacs layer implemented in C.
+
+Find-func is useful for finding examples of how to do things if you want
+to write an Emacs Lisp extension similar to some existing function.
+
+@item Imenu (indexing in a buffer)
+The Imenu package provides navigation amongst items indexed in the current
+buffer.  @xref{Imenu}.
+
+@item Info-lookup (finding documentation of items)
+@cindex Info
+@cindex documentation lookup
+The Info-lookup package provides a major mode-sensitive facility for
+looking up definitions in Info indexes.  @xref{Documentation}.
+
+@item Speedbar (navigation bar)
+@findex speedbar
+@cindex browser
+Speedbar maintains a frame in which files, and locations in files are
+displayed.  @xref{Speedbar}.
+
+@end table
+
+@node Dissociated Press, Amusements, Hyperlinking, Top
 @section Dissociated Press
 
 @findex dissociated-press
