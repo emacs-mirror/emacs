@@ -2,6 +2,7 @@
 
 /* Get the correct __FreeBSD_version, even if this is before that was
    defined. */
+#ifndef __FreeBSD_version 
 #ifndef __FreeBSD__
 #define __FreeBSD_version 199401
 #elif __FreeBSD__ == 1
@@ -9,6 +10,7 @@
 #else
 #include <osreldate.h>
 #endif
+#endif /* !defined __FreeBSD_version */
 
 /* '__FreeBSD__' is defined by the preprocessor on FreeBSD-1.1 and up.
    Earlier versions do not have shared libraries, so inhibit them.
