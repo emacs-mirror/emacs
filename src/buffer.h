@@ -386,6 +386,9 @@ struct buffer
     /* This holds the point value before the last scroll operation.
        Explicitly setting point sets this to nil.  */
     Lisp_Object point_before_scroll;
+
+    /* Truename of the visited file, or nil.  */
+    Lisp_Object file_truename;
   };
 
 /* This points to the current buffer.  */
