@@ -1,3 +1,8 @@
+2002-08-30  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Delete process buffer
+	unless s-debug-info is enabled.
+
 2002-08-29  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-update): Use `minibufferp'.  Expand `caddr'.
