@@ -568,7 +568,7 @@ The result is stored in `iswitchb-common-match-string'."
 	       ;; found something to complete, so put it in the minibuffer.
 	       (progn
 		 (setq iswitchb-rescan nil)
-		 (delete-region (point-min) (point))
+		 (delete-region (minibuffer-prompt-end) (point))
 		 (insert  res))
 	     ;; else nothing to complete
 	     (iswitchb-completion-help)
