@@ -1,3 +1,10 @@
+2004-06-17  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/ewoc.el (ewoc-create, ewoc-map, ewoc-locate)
+	(ewoc-invalidate, ewoc-collect): Doc fixes.
+	(ewoc--create-node, ewoc--delete-node-internal):
+	Fix typos in docstring.
+
 2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (buffer-stale-function): Add hyperlink to emacs-xtra
