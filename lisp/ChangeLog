@@ -1,3 +1,19 @@
+2003-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/reftex-parse.el (reftex-all-document-files):
+	Add autoload cookie.
+
+	* textmodes/reftex.el (reftex-all-document-files): Delete autoload.
+	(reftex-scanning-info-available-p): Add autoload cookie.
+
+	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
+	Delete duplicate aset on standard-display-table.
+
+	* view.el (view-file): If existing buffer's major mode is special,
+	don't go into view mode.
+
+	* dired.el (dired-move-to-filename-regexp): Allow quote in months.
+
 2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Do not do hidden

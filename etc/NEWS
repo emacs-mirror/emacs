@@ -89,6 +89,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** M-x view-file and commands that use it now avoid interfering
+with special modes such as Tar mode.
+
 +++
 ** The old bindings C-M-delete and C-M-backspace have been deleted,
 since there are situations where one or the other will shut down
