@@ -714,6 +714,31 @@ static tr_stack *mapping_stack_pointer;
   } while (0)
 
 
+/* Set C to the character code made from CHARSET and CODE.  This is
+   like MAKE_CHAR but check the validity of CHARSET and CODE.  If they
+   are not valid, set C to (CODE & 0xFF) because that is usually the
+   case that CCL_ReadMultibyteChar2 read an invalid code and it set
+   CODE to that invalid byte.  */
+
+#define CCL_MAKE_CHAR(charset, code, c)				\
+  do {								\
+    if (charset == CHARSET_ASCII)				\
+      c = code & 0xFF;						\
+    else if (CHARSET_DEFINED_P (charset)			\
+	     && (code & 0x7F) >= 32				\
+	     && (code < 256 || ((code >> 7) & 0x7F) >= 32))	\
+      {								\
+	int c1 = code & 0x7F, c2 = 0;				\
+								\
+	if (code >= 256)					\
+	  c2 = c1, c1 = (code >> 7) & 0x7F;			\
+	c = MAKE_NON_ASCII_CHAR (charset, c1, c2);		\
+      }								\
+    else							\
+      c = code & 0xFF;					\
+  } while (0)
+
+
 /* Execute CCL code on SRC_BYTES length text at SOURCE.  The resulting
    text goes to a place pointed by DESTINATION, the length of which
    should not exceed DST_BYTES.  The bytes actually processed is
@@ -1205,16 +1230,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      break;
 
 	    case CCL_TranslateCharacter:
-	      i = reg[RRR]; /* charset */
-	      if (i == CHARSET_ASCII)
-		i = reg[rrr];
-	      else if (CHARSET_DIMENSION (i) == 1)
-		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
-	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
-		i = ((i - 0x8F) << 14) | (reg[rrr] & 0x3FFF);
-	      else
-		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
-
+	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
 	      op = translate_char (GET_TRANSLATION_TABLE (reg[Rrr]),
 				   i, -1, 0, 0);
 	      SPLIT_CHAR (op, reg[RRR], i, j);
@@ -1227,16 +1243,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_TranslateCharacterConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
-	      i = reg[RRR]; /* charset */
-	      if (i == CHARSET_ASCII)
-		i = reg[rrr];
-	      else if (CHARSET_DIMENSION (i) == 1)
-		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
-	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
-		i = ((i - 0x8F) << 14) | (reg[rrr] & 0x3FFF);
-	      else
-		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
-
+	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
 	      op = translate_char (GET_TRANSLATION_TABLE (op), i, -1, 0, 0);
 	      SPLIT_CHAR (op, reg[RRR], i, j);
 	      if (j != -1)
