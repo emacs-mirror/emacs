@@ -258,7 +258,7 @@ Pokud opravdu chcete pøíkaz vyzkou¹et, stisknìte mezerník jako odpovìï
 na tuto otázku.  Obyèejnì, jestli¾e nechcete deaktivovaný pøíkaz
 provést, odpovìzte na tuto otázku pomocí "n".
 
->> Stisknìte <ESC> : (co¾ je deaktivovaný pøíkaz),
+>> Stisknìte C-x C-l (co¾ je deaktivovaný pøíkaz),
    pak na otázku odpovìzte n.
 
 

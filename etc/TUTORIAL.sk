@@ -260,7 +260,7 @@ Ak naozaj chcete príkaz vyskú¹a», stlaète medzerník ako odpoveï
 na túto otázku.  Zvyèajne, ak nechcete deaktivovaný príkaz
 vykona», odpovedzte na túto otázku pomocou "n".
 
->> Stlaète <ESC> : (èo je deaktivovaný príkaz),
+>> Stlaète C-x C-l (èo je deaktivovaný príkaz),
    potom na otázku odpovedzte n.
 
 

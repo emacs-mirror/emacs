@@ -268,7 +268,7 @@ Si usted realmente quiere intentar el comando, oprima espacio como repuesta
 a la pregunta. Normalmente, si usted no quiere ejecutar el comando 
 desactivado, conteste la pregunta con "n".
 
->> Escriba C-x C-1 (que es un comando desactivado), a continuación escriba
+>> Escriba C-x C-l (que es un comando desactivado), a continuación escriba
    n para responder la pregunta.
 
 
