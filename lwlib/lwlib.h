@@ -32,6 +32,35 @@ typedef enum _change_type
   STRUCTURAL_CHANGE = 3
 } change_type;
 
+enum button_type
+{
+  BUTTON_TYPE_NONE,
+  BUTTON_TYPE_TOGGLE,
+  BUTTON_TYPE_RADIO
+};
+
+/* Menu separator types.  */
+
+enum menu_separator
+{
+  /* These values are Motif compatible.  */
+  SEPARATOR_NO_LINE,
+  SEPARATOR_SINGLE_LINE,
+  SEPARATOR_DOUBLE_LINE,
+  SEPARATOR_SINGLE_DASHED_LINE,
+  SEPARATOR_DOUBLE_DASHED_LINE,
+  SEPARATOR_SHADOW_ETCHED_IN,
+  SEPARATOR_SHADOW_ETCHED_OUT,
+  SEPARATOR_SHADOW_ETCHED_IN_DASH,
+  SEPARATOR_SHADOW_ETCHED_OUT_DASH,
+
+  /* The following are supported by XEmacs' Lucid menus.  */
+  SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
+  SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
+  SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
+  SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH
+};
+
 typedef struct _widget_value
 {
   /* name of widget */
@@ -46,6 +75,8 @@ typedef struct _widget_value
   Boolean	selected;
   /* true if was edited (maintained by get_value) */
   Boolean	edited;
+  /* The type of a button.  */
+  enum button_type button_type;
   /* true if has changed (maintained by lw library) */
   change_type	change;
   /* true if this widget itself has changed,
@@ -118,5 +149,13 @@ void lw_allow_resizing (/* Widget w, Boolean flag */);
 void lw_set_main_areas (/* Widget parent,
 			   Widget menubar,
 			   Widget work_area */);
+
+/* Value is non-zero if LABEL is a menu separator.  If it is, *TYPE is
+   set to an appropriate enumerator of type enum menu_separator.
+   MOTIF_P non-zero means map separator types not supported by Motif
+   to similar ones that are supported.  */
+
+int lw_separator_p (/* char *label, enum menu_separator *type,
+		    int motif_p */);
 
 #endif /* LWLIB_H */
