@@ -1492,7 +1492,7 @@ where FACE is a valid face specification, as it can be used with
 	;; show user what they all are.  But leave the last one current.
 	(and (> file-count 2)
 	     (not noninteractive)
-	     (not inhibit-startup-buffer-menu)	   
+	     (not inhibit-startup-buffer-menu)
 	     (or (get-buffer-window first-file-buffer)
 		 (list-buffers))))
 
@@ -1503,7 +1503,8 @@ where FACE is a valid face specification, as it can be used with
 	       (string= (buffer-name) "*scratch*")
 	       ;; Don't display startup screen if init file
 	       ;; has started some sort of server.
-	       (null (process-list))
+	       (not (and (fboundp 'process-list)
+			 (process-list)))
 	       ;; Don't display startup screen if init file
 	       ;; has inserted some text in *scratch*.
 	       (= 0 (buffer-size)))
