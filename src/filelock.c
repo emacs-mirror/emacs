@@ -240,17 +240,15 @@ current_lock_owner (owner, lfname)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */
-      
-      if (owner->pid > 0
+      else if (owner->pid > 0
                && (kill (owner->pid, 0) >= 0 || errno == EPERM))
         ret = 1; /* An existing process on this machine owns it.  */
-      
       /* The owner process is dead or has a strange pid (<=0), so try to
          zap the lockfile.  */
-      if (unlink (lfname) < 0)
+      else if (unlink (lfname) < 0)
         ret = -1;
-      
-      ret = 0;
+      else
+	ret = 0;
     }
   else
     { /* If we wanted to support the check for stale locks on remote machines,
