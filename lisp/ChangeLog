@@ -1,3 +1,7 @@
+2001-09-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-intersects-p): Fix end checks.
+
 2001-09-11  Eli Zaretskii  <a34785@is.elta.co.il>
 
 	* gud.el (dbx) <gud-dbx-use-stopformat-p>: Move this case into the
