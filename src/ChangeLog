@@ -1,3 +1,8 @@
+2002-05-03  Colin Walters  <walters@verbum.org>
+
+	* callproc.c (Vgame_score_directory): Renamed to
+	Vshared_game_score_directory.
+
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* s/gnu.h [emacs]: Include stdio.h.
