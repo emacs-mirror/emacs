@@ -99,7 +99,7 @@
    switches, so this also works with older versions that don't implement
    -z combreloc.  */
 
-#define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
+#define LD_SWITCH_SYSTEM_TEMACS -Wl,-z,nocombreloc
 
 #endif /* __ELF__ */
 
