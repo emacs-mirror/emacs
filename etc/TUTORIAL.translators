@@ -12,10 +12,10 @@ TUTORIAL.nl: Pieter Schoenmakers <tiggr@tiggr.net>
 TUTORIAL.pl: Beatę Wierzchołowską <beataw@orient.uw.edu.pl>
              Janusz S. Bien <jsbien@mail.uw.edu.pl>
 TUTORIAL.ro: Tudor Hulubei <tudor@gnu.org>
-TUTORIAL.se: Mats Lidell  <mats.lidell@eua.ericsson.se>
+TUTORIAL.se: Mats Lidell <matsl@contactor.se>
 TUTORIAL.sk: Miroslav Vaško <vasko@debian.cz>
              Pavel Janík <Pavel@Janik.cz>
-TUTORIAL.sl: Primož Peterlin <peterlin@biofiz.mf.uni-lj.si>
+TUTORIAL.sl: Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>
 TUTORIAL.th: Virach Sornlertlamvanich <virach@nectec.or.th>
 
 ;;; Local Variables:
