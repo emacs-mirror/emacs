@@ -65,7 +65,6 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 
 @cindex Perl mode
 @cindex Icon mode
-@cindex Awk mode
 @cindex Makefile mode
 @cindex Tcl mode
 @cindex CPerl mode
@@ -82,7 +81,7 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @cindex PostScript mode
   The existing programming language major modes include Lisp, Scheme (a
 variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
-Awk, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
+AWK, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
 format), Icon, IDL (CORBA), IDLWAVE, Java, Metafont (@TeX{}'s
 companion for font creation), Modula2, Objective-C, Octave, Pascal,
 Perl, Pike, PostScript, Prolog, Simula, Tcl, and VHDL.  There is
@@ -104,7 +103,7 @@ whitespace consists of spaces or tabs.  Use @kbd{C-b C-d} to delete a
 tab character before point, in these modes.
 
   Separate manuals are available for the modes for Ada (@pxref{Top, , Ada
-Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
+Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL/Pike/AWK
 (@pxref{Top, , CC Mode, ccmode, CC Mode}) and the IDLWAVE modes
 (@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).
 
@@ -446,15 +445,16 @@ modes and C and related modes.)  @key{TAB} with a numeric argument
 reindents the current line as usual, then reindents by the same amount
 all the lines in the parenthetical grouping starting on the current
 line.  It is clever, though, and does not alter lines that start
-inside strings, or C preprocessor lines when in C mode.
+inside strings.  Neither does it alter C preprocessor lines when in C
+mode, but it does reindent any continuation lines that may be attached
+to them.
 
 @findex indent-code-rigidly
   You can also perform this operation on the region, using the command
 @kbd{M-x indent-code-rigidly}.  It rigidly shifts all the lines in the
 region sideways, like @code{indent-rigidly} does (@pxref{Indentation
 Commands}).  It doesn't alter the indentation of lines that start
-inside a comment or a string, unless the region starts inside that
-comment or string.
+inside a string, unless the region also starts inside that string.
 
 @node Lisp Indent
 @subsection Customizing Lisp Indentation
@@ -507,14 +507,15 @@ declaration (@code{c-indent-defun}).
 @kindex C-M-q @r{(C mode)}
 @findex c-indent-exp
 Reindent each line in the balanced expression that follows point
-(@code{c-indent-exp}).  A prefix argument inhibits error checking and
-warning messages about invalid syntax.
+(@code{c-indent-exp}).  A prefix argument inhibits warning messages
+about invalid syntax.
 
 @item @key{TAB}
 @findex c-indent-command
 Reindent the current line, and/or in some cases insert a tab character
 (@code{c-indent-command}).
 
+@vindex c-tab-always-indent
 If @code{c-tab-always-indent} is @code{t}, this command always reindents
 the current line and does nothing else.  This is the default.
 
@@ -524,8 +525,7 @@ otherwise, it inserts a tab (or the equivalent number of spaces,
 if @code{indent-tabs-mode} is @code{nil}).
 
 Any other value (not @code{nil} or @code{t}) means always reindent the
-line, and also insert a tab if within a comment, a string, or a
-preprocessor directive.
+line, and also insert a tab if within a comment or a string.
 @end table
 
   To reindent the whole current buffer, type @kbd{C-x h C-M-\}.  This
@@ -539,18 +539,19 @@ to the front of the block and then reindents it all.
 @subsection Customizing C Indentation
 @cindex style (for indentation)
 
-  C mode and related modes use a simple yet flexible mechanism for
-customizing indentation.  The mechanism works in two steps: first it
-classifies the line syntactically according to its contents and context;
-second, it associates each kind of syntactic construct with an
-indentation offset based on your selected @dfn{style}.
+  C mode and related modes use a flexible mechanism for customizing
+indentation.  C mode indents a source line in two steps: first it
+classifies the line syntactically according to its contents and
+context; second, it determines the indentation offset associated by
+your selected @dfn{style} with the syntactic construct and adds this
+onto the indentation of the @dfn{anchor statement}.
 
 @table @kbd
-@item M-x c-set-style @key{RET} @var{style} @key{RET}
-Select predefined indentation style @var{style}.
+@item C-c . @key{RET} @var{style} @key{RET}
+Select a predefined style @var{style} (@code{c-set-style}).
 @end table
 
-  A style is a named collection of indentation customizations that can
+  A @dfn{style} is a named collection of customizations that can
 be used in C mode and the related modes.  Emacs comes with several
 predefined styles, including @code{gnu}, @code{k&r}, @code{bsd},
 @code{stroustrup}, @code{linux}, @code{python}, @code{java},
@@ -561,19 +562,21 @@ modes.  To find out what a style looks like, select it and reindent
 some code, e.g., by typing @key{C-M-q} at the start of a function
 definition.
 
+@kindex C-c . @r{(C mode)}
 @findex c-set-style
-  To choose a style for the current buffer, use the command @kbd{M-x
-c-set-style}.  Specify a style name as an argument (case is not
-significant).  This command affects the current buffer only, and it
-affects only future invocations of the indentation commands; it does
-not reindent the code in the buffer.  To reindent the whole buffer in
-the new style, you can type @kbd{C-x h C-M-\}.
+  To choose a style for the current buffer, use the command @kbd{C-c
+.}.  Specify a style name as an argument (case is not significant).
+This command affects the current buffer only, and it affects only
+future invocations of the indentation commands; it does not reindent
+the code in the buffer.  To reindent the whole buffer in the new
+style, you can type @kbd{C-x h C-M-\}.
 
 @vindex c-default-style
   You can also set the variable @code{c-default-style} to specify the
-default style for various major modes.  Its value should be an alist,
-in which each element specifies one major mode and which indentation
-style to use for it.  For example,
+default style for various major modes.  Its value should be either the
+style's name (a string) or an alist, in which each element specifies
+one major mode and which indentation style to use for it.  For
+example,
 
 @example
 (setq c-default-style
@@ -848,18 +851,20 @@ also do spell checking on comments with Flyspell Prog mode
   The comment commands in this table insert, kill and align comments.
 They are described in this section and following sections.
 
-@table @kbd
-@item M-;
+@table @asis
+@item @kbd{M-;}
 Insert or realign comment on current line; alternatively, comment or
 uncomment the region (@code{comment-dwim}).
-@item C-u M-;
+@item @kbd{C-u M-;}
 Kill comment on current line (@code{comment-kill}).
-@item C-x ;
+@item @kbd{C-x ;}
 Set comment column (@code{comment-set-column}).
-@item C-M-j
+@item @kbd{C-M-j}
+@itemx @kbd{M-j}
 Like @key{RET} followed by inserting and aligning a comment
 (@code{comment-indent-new-line}).
-@item M-x comment-region
+@item @kbd{M-x comment-region}
+@itemx @kbd{C-c C-c} (in C-like modes)
 Add or remove comment delimiters on all the lines in the region.
 @end table
 
@@ -937,17 +942,20 @@ is indented like a line of code.
 @subsection Multiple Lines of Comments
 
 @kindex C-M-j
+@kindex M-j
 @cindex blank lines in programs
 @findex comment-indent-new-line
   If you are typing a comment and wish to continue it on another line,
-you can use the command @kbd{C-M-j} (@code{comment-indent-new-line}).
-This terminates the comment you are typing, creates a new blank line
-afterward, and begins a new comment indented under the old one.  When
-Auto Fill mode is on, going past the fill column while typing a comment
-causes the comment to be continued in just this fashion.  If point is
-not at the end of the line when @kbd{C-M-j} is typed, the text on
-the rest of the line becomes part of the new comment line.
+you can use the command @kbd{C-M-j} or @kbd{M-j}
+(@code{comment-indent-new-line}).  This terminates the comment you are
+typing, creates a new blank line afterward, and begins a new comment
+indented under the old one.  When Auto Fill mode is on, going past the
+fill column while typing a comment causes the comment to be continued
+in just this fashion.  If point is not at the end of the line when you
+type the command, the text on the rest of the line becomes part of the
+new comment line.
 
+@kindex C-c C-c (C mode)
 @findex comment-region
   To turn existing lines into comment lines, use the @kbd{M-x
 comment-region} command.  It adds comment delimiters to the lines that start
@@ -970,12 +978,13 @@ if within a defun, it must be three.
 @vindex comment-column
 @kindex C-x ;
 @findex comment-set-column
-  The comment column is stored in the variable @code{comment-column}.  You
-can set it to a number explicitly.  Alternatively, the command @kbd{C-x ;}
-(@code{comment-set-column}) sets the comment column to the column point is
-at.  @kbd{C-u C-x ;} sets the comment column to match the last comment
-before point in the buffer, and then does a @kbd{M-;} to align the
-current line's comment under the previous one.
+  The @dfn{comment column}, the column at which Emacs tries to place
+comments, is stored in the variable @code{comment-column}.  You can
+set it to a number explicitly.  Alternatively, the command @kbd{C-x ;}
+(@code{comment-set-column}) sets the comment column to the column
+point is at.  @kbd{C-u C-x ;} sets the comment column to match the
+last comment before point in the buffer, and then does a @kbd{M-;} to
+align the current line's comment under the previous one.
 
   The variable @code{comment-column} is per-buffer: setting the variable
 in the normal fashion affects only the current buffer, but there is a
@@ -990,7 +999,7 @@ Make sure this regexp does not match the null string.  It may match more
 than the comment starting delimiter in the strictest sense of the word;
 for example, in C mode the value of the variable is
 @c This stops M-q from breaking the line inside that @code.
-@code{@w{"/\\*+ *\\|//+ *""}}, which matches extra stars and spaces
+@code{@w{"/\\*+ *\\|//+ *"}}, which matches extra stars and spaces
 after the @samp{/*} itself, and accepts C++ style comments also.
 (Note that @samp{\\} is needed in Lisp syntax to include a @samp{\} in
 the string, which is needed to deny the first star its special meaning
@@ -1006,21 +1015,21 @@ into the comment.  In C mode, @code{comment-start} has the value
 
 @vindex comment-padding
   The variable @code{comment-padding} specifies how many spaces
-@code{comment-region} should insert on each line between the
-comment delimiter and the line's original text.  The default is 1,
-to insert one space.
+@code{comment-region} should insert on each line between the comment
+delimiter and the line's original text.  The default is 1, to insert
+one space.  @code{nil} means 0.  Alternatively, @code{comment-padding}
+can hold the actual string to insert.
 
 @vindex comment-multi-line
   The variable @code{comment-multi-line} controls how @kbd{C-M-j}
-(@code{indent-new-comment-line}) behaves when used inside a comment.  If
-@code{comment-multi-line} is @code{nil}, as it normally is, then the
-comment on the starting line is terminated and a new comment is started
-on the new following line.  If @code{comment-multi-line} is not
-@code{nil}, then the new following line is set up as part of the same
-comment that was found on the starting line.  This is done by not
-inserting a terminator on the old line, and not inserting a starter on
-the new line.  In languages where multi-line comments work, the choice
-of value for this variable is a matter of taste.
+(@code{indent-new-comment-line}) behaves when used inside a comment.
+Specifically, when @code{comment-multi-line} is @code{nil} (the
+default value), the command inserts a comment terminator, begins a new
+line, and finally inserts a comment starter.  Otherwise it does not
+insert the terminator and starter, so it effectively continues the
+current comment across multiple lines.  In languages that allow
+multi-line comments, the choice of value for this variable is a matter
+of taste.
 
 @vindex comment-indent-function
   The variable @code{comment-indent-function} should contain a function
@@ -1064,7 +1073,7 @@ symbol---which Info files to look in, and which indices to search.
 You can also use @kbd{M-x info-lookup-file} to look for documentation
 for a file name.
 
-  This feature currently supports the modes Awk, Autoconf, Bison, C,
+  This feature currently supports the modes AWK, Autoconf, Bison, C,
 Emacs Lisp, LaTeX, M4, Makefile, Octave, Perl, Scheme, and Texinfo,
 provided you have installed the relevant Info files, which are
 typically available with the appropriate GNU package.
@@ -1081,7 +1090,7 @@ still useful to read manual pages.
 
 @findex manual-entry
   You can read the man page for an operating system command, library
-function, or system call, with the @kbd{M-x manual-entry} command.  It
+function, or system call, with the @kbd{M-x man} command.  It
 runs the @code{man} program to format the man page; if the system
 permits, it runs @code{man} asynchronously, so that you can keep on
 editing while the page is being formatted.  (On MS-DOS and MS-Windows
@@ -1393,25 +1402,27 @@ Mode}).  The Foldout package provides folding-editor features
 @cindex CORBA IDL mode
 @cindex Objective C mode
 @cindex C++ mode
+@cindex AWK mode
 @cindex mode, Java
 @cindex mode, C
+@cindex mode, C++
 @cindex mode, Objective C
 @cindex mode, CORBA IDL
 @cindex mode, Pike
+@cindex mode, AWK
 
   This section gives a brief description of the special features
-available in C, C++, Objective-C, Java, CORBA IDL, and Pike modes.
+available in C, C++, Objective-C, Java, CORBA IDL, Pike and AWK modes.
 (These are called ``C mode and related modes.'')  @xref{Top, , CC Mode,
 ccmode, CC Mode}, for a more extensive description of these modes
 and their special features.
 
 @menu
-* Motion in C::         Commands to move by C statements, etc.
-* Electric C::          Colon and other chars can automatically reindent.
-* Hungry Delete::       A more powerful DEL command.
-* Other C Commands::    Filling comments, viewing expansion of macros,
-                          and other neat features.
-* Comments in C::       Options for customizing comment style.
+* Motion in C::                 Commands to move by C statements, etc.
+* Electric C::                  Colon and other chars can automatically reindent.
+* Hungry Delete::               A more powerful DEL command.
+* Other C Commands::            Filling comments, viewing expansion of macros,
+                                and other neat features.
 @end menu
 
 @node Motion in C
@@ -1421,15 +1432,29 @@ and their special features.
 related modes.
 
 @table @code
+@item M-x c-beginning-of-defun
+@itemx M-x c-end-of-defun
+@findex c-beginning-of-defun
+@findex c-end-of-defun
+Move point to the beginning or end of the current function or
+top-level definition.  These are found by searching for the least
+enclosing braces.  (By contrast, @code{beginning-of-defun} and
+@code{end-of-defun} search for braces in column zero.)  If you are
+editing code where the opening brace of a function isn't placed in
+column zero, you may wish to bind @code{C-M-a} and @code{C-M-e} to
+these commands.  @xref{Moving by Defuns}.
+
 @item C-c C-u
 @kindex C-c C-u @r{(C mode)}
 @findex c-up-conditional
 Move point back to the containing preprocessor conditional, leaving the
 mark behind.  A prefix argument acts as a repeat count.  With a negative
 argument, move point forward to the end of the containing
-preprocessor conditional.  When going backwards, @code{#elif} is treated
-like @code{#else} followed by @code{#if}.  When going forwards,
-@code{#elif} is ignored.@refill
+preprocessor conditional.
+
+@samp{#elif} is equivalent to @samp{#else} followed by @samp{#if}, so
+the function will stop at a @samp{#elif} when going backward, but not
+when going forward.
 
 @item C-c C-p
 @kindex C-c C-p @r{(C mode)}
@@ -1446,27 +1471,22 @@ behind.  A prefix argument acts as a repeat count.  With a negative
 argument, move backward.
 
 @item M-a
-@kindex ESC a
+@kindex M-a (C mode)
 @findex c-beginning-of-statement
 Move point to the beginning of the innermost C statement
 (@code{c-beginning-of-statement}).  If point is already at the beginning
 of a statement, move to the beginning of the preceding statement.  With
 prefix argument @var{n}, move back @var{n} @minus{} 1 statements.
 
-If point is within a string or comment, or next to a comment (only
-whitespace between them), this command moves by sentences instead of
-statements.
-
-When called from a program, this function takes three optional
-arguments: the numeric prefix argument, a buffer position limit
-(don't move back before that place), and a flag that controls whether
-to do sentence motion when inside of a comment.
+In comments or in strings which span more than one line, this command
+moves by sentences instead of statements.
 
 @item M-e
-@kindex ESC e
+@kindex M-e (C mode)
 @findex c-end-of-statement
-Move point to the end of the innermost C statement; like @kbd{M-a}
-except that it moves in the other direction (@code{c-end-of-statement}).
+Move point to the end of the innermost C statement or sentence; like
+@kbd{M-a} except that it moves in the other direction
+(@code{c-end-of-statement}).
 
 @item M-x c-backward-into-nomenclature
 @findex c-backward-into-nomenclature
@@ -1530,12 +1550,14 @@ Insert a double colon scope operator at point, without reindenting the
 line or adding any newlines (@code{c-scope-operator}).
 @end table
 
+@vindex c-electric-pound-behavior
   The electric @kbd{#} key reindents the line if it appears to be the
 beginning of a preprocessor directive.  This happens when the value of
 @code{c-electric-pound-behavior} is @code{(alignleft)}.  You can turn
 this feature off by setting @code{c-electric-pound-behavior} to
 @code{nil}.
 
+@vindex c-hanging-braces-alist
    The variable @code{c-hanging-braces-alist} controls the insertion of
 newlines before and after inserted braces.  It is an association list
 with elements of the following form: @code{(@var{syntactic-symbol}
@@ -1550,6 +1572,7 @@ to determine where newlines are inserted: either before the brace,
 after, or both.  If not found, the default is to insert a newline both
 before and after braces.
 
+@vindex c-hanging-colons-alist
    The variable @code{c-hanging-colons-alist} controls the insertion of
 newlines before and after inserted colons.  It is an association list
 with elements of the following form: @code{(@var{syntactic-symbol}
@@ -1562,6 +1585,7 @@ where newlines are inserted: either before the brace, after, or both.
 If the syntactic symbol is not found in this list, no newlines are
 inserted.
 
+@vindex c-cleanup-list
    Electric characters can also delete newlines automatically when the
 auto-newline feature is enabled.  This feature makes auto-newline more
 acceptable, by deleting the newlines in the most common cases where you
@@ -1613,6 +1637,7 @@ whitespace.
 
 @node Hungry Delete
 @subsection Hungry Delete Feature in C
+@cindex hungry deletion (C Mode)
 
   When the @dfn{hungry-delete} feature is enabled (indicated by
 @samp{/h} or @samp{/ah} in the mode line after the mode name), a single
@@ -1642,6 +1667,21 @@ hungry-delete feature is enabled.
 @subsection Other Commands for C Mode
 
 @table @kbd
+@item M-x c-context-line-break
+@findex c-context-line-break
+This command inserts a line break and indents the new line in a manner
+appropriate to the context.  In normal code, it does the work of
+@kbd{C-j} (@code{newline-and-indent}), in a C preprocessor line it
+additionally inserts a @samp{\} at the line break, and within comments
+it's like @kbd{M-j} (@code{c-indent-new-comment-line}).
+
+@code{c-context-line-break} isn't bound to a key by default, but it
+needs a binding to be useful.  The following code will bind it to
+@kbd{C-j}.
+@example
+(define-key c-mode-base-map "\C-j" 'c-context-line-break)
+@end example
+
 @item C-M-h
 Put mark at the end of a function definition, and put point at the
 beginning (@code{c-mark-function}).
@@ -1702,6 +1742,7 @@ directs how the line is indented.
 @itemx M-x global-cwarn-mode
 @findex cwarn-mode
 @findex global-cwarn-mode
+@vindex global-cwarn-mode
 @cindex CWarn mode
 @cindex suspicious constructions in C, C++
 CWarn minor mode highlights certain suspicious C and C++ constructions:
@@ -1739,42 +1780,6 @@ current buffer.  Typically this will be the header file corresponding
 to a C/C++ source file, or vice versa.  The variable
 @code{ff-related-file-alist} specifies how to compute related file
 names.
-@end table
-
-@node Comments in C
-@subsection Comments in C Modes
-
-   C mode and related modes use a number of variables for controlling
-comment format.
-
-@table @code
-@item c-comment-only-line-offset
-@vindex c-comment-only-line-offset
-Extra offset for line which contains only the start of a comment.  It
-can be either an integer or a cons cell of the form
-@code{(@var{non-anchored-offset} . @var{anchored-offset})}, where
-@var{non-anchored-offset} is the amount of offset given to
-non-column-zero anchored comment-only lines, and @var{anchored-offset}
-is the amount of offset to give column-zero anchored comment-only lines.
-Just an integer as value is equivalent to @code{(@var{val} . 0)}.
-
-@item c-comment-start-regexp
-@vindex c-comment-start-regexp
-This buffer-local variable specifies how to recognize the start of a comment.
-
-@item c-hanging-comment-ender-p
-@vindex c-hanging-comment-ender-p
-If this variable is @code{nil}, @code{c-fill-paragraph} leaves the
-comment terminator of a block comment on a line by itself.  The default
-value is @code{t}, which puts the comment-end delimiter @samp{*/} at the
-end of the last line of the comment text.
-
-@item c-hanging-comment-starter-p
-@vindex c-hanging-comment-starter-p
-If this variable is @code{nil}, @code{c-fill-paragraph} leaves the
-starting delimiter of a block comment on a line by itself.  The default
-value is @code{t}, which puts the comment-start delimiter @samp{/*} at
-the beginning of the first line of the comment text.
 @end table
 
 @node Fortran
