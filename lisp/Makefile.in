@@ -124,9 +124,8 @@ updates: update-subdirs autoloads finder-data custom-deps
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
 
-TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
-	${ETAGS} -o TAGS-LISP \
-	  $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
+TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
+	${ETAGS} -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
 
 .el.elc: subdirs.el
 	-EMACSLOADPATH=$(lisp) $(emacs) -f batch-byte-compile $<
