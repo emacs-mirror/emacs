@@ -4343,12 +4343,8 @@ XTread_socket (sd, bufp, numchars, expected)
 	      goto OTHER;
 
 	    case ConfigureNotify:
-	      f = x_any_window_to_frame (dpyinfo, event.xconfigure.window);
-	      if (f
-#ifdef USE_X_TOOLKIT
-		  && (event.xconfigure.window == XtWindow (f->output_data.x->widget))
-#endif
-		  )
+	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
+	      if (f)
 		{
 #ifndef USE_X_TOOLKIT
 		  /* In the toolkit version, change_frame_size
@@ -4372,43 +4368,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		    }
 #endif
 
-		  /* Formerly, in the USE_X_TOOLKIT version,
-		     we did not test send_event here.  */
-		  if (1
-#ifndef USE_X_TOOLKIT
-		      && ! event.xconfigure.send_event
-#endif
-		      )
-		    {
-		      Window win, child;
-		      int win_x, win_y;
-
-		      /* Find the position of the outside upper-left corner of
-			 the window, in the root coordinate system.  Don't
-			 refer to the parent window here; we may be processing
-			 this event after the window manager has changed our
-			 parent, but before we have reached the ReparentNotify.  */
-		      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-					     /* From-window, to-window.  */
-					     event.xconfigure.window,
-					     FRAME_X_DISPLAY_INFO (f)->root_window,
-
-					     /* From-position, to-position.  */
-					     -event.xconfigure.border_width,
-					     -event.xconfigure.border_width,
-					     &win_x, &win_y,
-
-					     /* Child of win.  */
-					     &child);
-		      event.xconfigure.x = win_x;
-		      event.xconfigure.y = win_y;
-		    }
-
 		  f->output_data.x->pixel_width = event.xconfigure.width;
 		  f->output_data.x->pixel_height = event.xconfigure.height;
-		  f->output_data.x->left_pos = event.xconfigure.x;
-		  f->output_data.x->top_pos = event.xconfigure.y;
 
 		  /* What we have now is the position of Emacs's own window.
 		     Convert that to the position of the window manager window.  */
@@ -4417,17 +4378,17 @@ XTread_socket (sd, bufp, numchars, expected)
 		    x_real_positions (f, &x, &y);
 		    f->output_data.x->left_pos = x;
 		    f->output_data.x->top_pos = y;
-		    /* Formerly we did not do this in the USE_X_TOOLKIT
-		       version.  Let's try making them the same.  */
-/* #ifndef USE_X_TOOLKIT */
+#if 0
 		    if (y != event.xconfigure.y)
 		      {
+#endif
 			/* Since the WM decorations come below top_pos now,
 			   we must put them below top_pos in the future.  */
 			f->output_data.x->win_gravity = NorthWestGravity;
 			x_wm_set_size_hint (f, (long) 0, 0);
+#if 0
 		      }
-/* #endif */
+#endif
 		  }
 		}
 	      goto OTHER;
@@ -5030,8 +4991,8 @@ x_check_errors (dpy, format)
     error (format, XSTRING (x_error_message_string)->data);
 }
 
-/* Nonzero if we had any X protocol errors on DPY
-   since we did x_catch_errors.  */
+/* Nonzero if we had any X protocol errors
+   since we did x_catch_errors on DPY.  */
 
 int
 x_had_errors_p (dpy)
@@ -5041,6 +5002,15 @@ x_had_errors_p (dpy)
   XSync (dpy, False);
 
   return XSTRING (x_error_message_string)->data[0] != 0;
+}
+
+/* Forget about any errors we have had, since we did x_catch_errors on DPY.  */
+
+int
+x_clear_errors (dpy)
+     Display *dpy;
+{
+  XSTRING (x_error_message_string)->data[0] = 0;
 }
 
 /* Stop catching X protocol errors and let them make Emacs die.
@@ -5301,6 +5271,11 @@ x_calc_absolute_position (f)
   int flags = f->output_data.x->size_hint_flags;
   int this_window;
 
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (! ((flags & XNegative) || (flags & YNegative)))
+    return;
+
 #ifdef USE_X_TOOLKIT
   this_window = XtWindow (f->output_data.x->widget);
 #else
@@ -5308,21 +5283,47 @@ x_calc_absolute_position (f)
 #endif
 
   /* Find the position of the outside upper-left corner of
-     the inner window, with respect to the outer window.  */
+     the inner window, with respect to the outer window.
+     But do this only if we will need the results.  */
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
     {
+      int count;
+
       BLOCK_INPUT;
-      XTranslateCoordinates (FRAME_X_DISPLAY (f),
+      count = x_catch_errors (FRAME_X_DISPLAY (f));
+      while (1)
+	{
+	  x_clear_errors (FRAME_X_DISPLAY (f));
+	  XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-			     /* From-window, to-window.  */
-			     this_window,
-			     f->output_data.x->parent_desc,
+				 /* From-window, to-window.  */
+				 this_window,
+				 f->output_data.x->parent_desc,
 
-			     /* From-position, to-position.  */
-			     0, 0, &win_x, &win_y,
+				 /* From-position, to-position.  */
+				 0, 0, &win_x, &win_y,
 
-			     /* Child of win.  */
-			     &child);
+				 /* Child of win.  */
+				 &child);
+	  if (x_had_errors_p (FRAME_X_DISPLAY (f)))
+	    {
+	      Window newroot, newparent = 0xdeadbeef;
+	      Window *newchildren;
+	      int nchildren;
+
+	      if (! XQueryTree (FRAME_X_DISPLAY (f), this_window, &newroot,
+				&newparent, &newchildren, &nchildren))
+		break;
+
+	      XFree (newchildren);
+
+	      f->output_data.x->parent_desc = newparent;
+	    }
+	  else
+	    break;
+	}
+
+      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
       UNBLOCK_INPUT;
     }
 
@@ -5627,16 +5628,6 @@ x_make_frame_visible (f)
 
   if (! FRAME_VISIBLE_P (f))
     {
-      /* We test FRAME_GARBAGED_P here to make sure we don't
-	 call x_set_offset a second time
-	 if we get to x_make_frame_visible a second time
-	 before the window gets really visible.  */
-      if (! FRAME_ICONIFIED_P (f)
-	  && ! f->output_data.x->asked_for_visible)
-	x_set_offset (f, f->output_data.x->left_pos, f->output_data.x->top_pos, 0);
-
-      f->output_data.x->asked_for_visible = 1;
-
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
@@ -5661,9 +5652,21 @@ x_make_frame_visible (f)
   {
     Lisp_Object frame;
     int count = input_signal_count;
+    int orig_left = f->output_data.x->left_pos;
+    int orig_top = f->output_data.x->top_pos;
 
     /* This must come after we set COUNT.  */
     UNBLOCK_INPUT;
+
+    /* We test asked_for_visible here to make sure we don't
+       call x_set_offset a second time
+       if we get to x_make_frame_visible a second time
+       before the window gets really visible.  */
+    if (! FRAME_ICONIFIED_P (f)
+	&& ! f->output_data.x->asked_for_visible)
+      x_set_offset (f, orig_left, orig_top, 0);
+
+    f->output_data.x->asked_for_visible = 1;
 
     XSETFRAME (frame, f);
 
