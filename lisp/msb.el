@@ -1114,9 +1114,8 @@ variable `msb-menu-cond'."
 		 (mapcar
 		  (lambda (frame)
 		    (nconc
-		     (list frame
-			   (cdr (assq 'name
-				      (frame-parameters frame)))
+		     (list (frame-parameter frame 'name)
+			   (frame-parameter frame 'name)
 			   (cons nil nil))
 		     'menu-bar-select-frame))
 		  frames)))))
