@@ -1887,8 +1887,6 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
 	'("Sort by Number" . gnus-summary-sort-by-number))
   (define-key gnus-summary-mode-map [menu-bar sort sort-by-subject]
 	'("Sort by Subject" . gnus-summary-sort-by-subject))
-  (define-key gnus-summary-mode-map [menu-bar sort sort-summary]
-	'("Sort Summary" . gnus-summary-sort-summary))
 
   (define-key gnus-summary-mode-map [menu-bar show/hide]
 	(cons "Show/Hide" (make-sparse-keymap "show/hide")))
