@@ -1,3 +1,8 @@
+2003-10-23  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Added correct realname
+	for Francesco Potort,Al(B.
+
 2003-10-23  Dave Love  <fx@gnu.org>
 
 	* mail/mail-extr.el (mail-extr-ignore-single-names): Add :version.
@@ -61,7 +66,7 @@
 
 2003-10-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-move-outside-of-entry): 
+	* textmodes/bibtex.el (bibtex-move-outside-of-entry):
 	Move backward only if point was not inside an entry.
 
 2003-10-21  Richard M. Stallman  <rms@gnu.org>
