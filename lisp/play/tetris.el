@@ -150,7 +150,10 @@ Element 0 is ignored."
 (defvar tetris-score-y (+ tetris-next-y 6)
   "Y position of score.")
 
-(defvar tetris-score-file (concat temporary-file-directory "tetris-scores")
+;; It is not safe to put this in /tmp.
+;; Someone could make a symlink in /tmp 
+;; pointing to a file you don't want to clobber.
+(defvar tetris-score-file "~/.tetris-scores")
 ;; anybody with a well-connected server want to host this?
 ;(defvar tetris-score-file "/anonymous@ftp.pgt.com:/pub/cgw/tetris-scores"
   "File for holding high scores.")
