@@ -917,7 +917,8 @@ In either case, the output is inserted after point (leaving mark after it)."
 	       (substring signal 0 -1))))
 
 (defun shell-command-on-region (start end command
-				      &optional output-buffer replace)
+				      &optional output-buffer replace
+				      error-buffer)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.
@@ -929,8 +930,8 @@ is encoded in the same coding system that will be used to save the file,
 `buffer-file-coding-system'.  If the output is going to replace the region,
 then it is decoded from that same coding system.
 
-The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE.
-If REPLACE is non-nil, that means insert the output
+The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE,
+ERROR-BUFFER.  If REPLACE is non-nil, that means insert the output
 in place of text from START to END, putting point and mark around it.
 Noninteractive callers can specify coding systems by binding
 `coding-system-for-read' and `coding-system-for-write'.
@@ -946,7 +947,11 @@ that says to put the output in some other buffer.
 If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
 If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in the current buffer.
-In either case, the output is inserted after point (leaving mark after it)."
+In either case, the output is inserted after point (leaving mark after it).
+
+If optional fifth argument ERROR-BUFFER is non-nil, it is a buffer
+or buffer name to which to direct the command's standard error output.
+If it is nil, error output is mingled with regular output."
   (interactive (let ((string
 		      ;; Do this before calling region-beginning
 		      ;; and region-end, in case subprocess output
@@ -960,6 +965,11 @@ In either case, the output is inserted after point (leaving mark after it)."
 		       string
 		       current-prefix-arg
 		       current-prefix-arg)))
+  (let ((error-file
+	 (if error-buffer 
+	     (concat (file-name-directory temp-file-name-pattern)
+		     (make-temp-name "scor"))
+	   nil)))
   (if (or replace
 	  (and output-buffer
 	       (not (or (bufferp output-buffer) (stringp output-buffer))))
@@ -969,8 +979,11 @@ In either case, the output is inserted after point (leaving mark after it)."
 	;; Don't muck with mark unless REPLACE says we should.
 	(goto-char start)
 	(and replace (push-mark))
-	(call-process-region start end shell-file-name t t nil
-			     shell-command-switch command)
+	(call-process-region start end shell-file-name t
+			     (if error-file
+				 (list t error-file)
+			       t)
+			     nil shell-command-switch command)
 	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
 	       (kill-buffer shell-buffer)))
@@ -990,17 +1003,22 @@ In either case, the output is inserted after point (leaving mark after it)."
 		     (delete-region (max start end) (point-max))
 		     (delete-region (point-min) (min start end))
 		     (call-process-region (point-min) (point-max)
-					  shell-file-name t t nil
-					  shell-command-switch command)
+					  shell-file-name t 
+					  (if error-file
+					      (list t error-file)
+					    t)
+					  nil shell-command-switch command)
 		     (setq success t))
 	    ;; Clear the output buffer, then run the command with output there.
 	    (save-excursion
 	      (set-buffer buffer)
 	      (setq buffer-read-only nil)
 	      (erase-buffer))
-	    (call-process-region start end shell-file-name
-				 nil buffer nil
-				 shell-command-switch command)
+	    (call-process-region start end shell-file-name nil
+				 (if error-file
+				     (list buffer error-file)
+				   buffer)
+				 nil shell-command-switch command)
 	    (setq success t))
 	;; Report the amount of output.
 	(let ((lines (save-excursion
@@ -1023,7 +1041,13 @@ In either case, the output is inserted after point (leaving mark after it)."
 		 (save-excursion
 		   (set-buffer buffer)
 		   (goto-char (point-min)))
-		 (display-buffer buffer))))))))
+		 (display-buffer buffer)))))))
+  (if (and error-file (file-exists-p error-file))
+      (save-excursion
+	(set-buffer (get-buffer-create error-buffer))
+    ;; Do no formatting while reading error file, for fear of looping.
+	(format-insert-file error-file nil)
+	(delete-file error-file)))))
        
 (defun shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string."
