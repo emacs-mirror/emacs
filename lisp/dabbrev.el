@@ -128,16 +128,15 @@ Set this to nil if no characters should be skipped."
 		 (const :tag "off" nil))
   :group 'dabbrev)
 
-;; I recommend that you set this to nil.
 (defcustom dabbrev-case-fold-search 'case-fold-search
-  "*Non-nil if dabbrev searches should ignore case.
+  "*Control whether dabbrev searches should ignore case.
 A value of nil means case is significant.
-
-The value of this variable is an expression; it is evaluated
-and the resulting value determines the decision.
-For example: setting this to `case-fold-search' means evaluate that
-variable to see whether its value is nil."
-  :type 'sexp
+A value of `case-fold-search' means case is significant
+ if `case-fold-search' is nil.
+Any other non-nil version means case is not significant."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "like search" 'case-fold-search))
   :group 'dabbrev)
 
 (defcustom dabbrev-upcase-means-case-search nil
@@ -145,23 +144,21 @@ variable to see whether its value is nil."
 nil means case fold search, non-nil means case sensitive search.
 
 This variable has an effect only when the value of
-`dabbrev-case-fold-search' evaluates to t."
+`dabbrev-case-fold-search' says to ignore case."
   :type 'boolean
   :group 'dabbrev)
 
-;; I recommend that you set this to nil.
 (defcustom dabbrev-case-replace 'case-replace
-  "*Non-nil means dabbrev should preserve case when expanding the abbreviation.
-More precisely, it preserves the case pattern of the abbreviation as you
-typed it--as opposed to the case pattern of the expansion that is copied.
-The value of this variable is an expression; it is evaluated
-and the resulting value determines the decision.
-For example, setting this to `case-replace' means evaluate that
-variable to see if its value is t or nil.
+  "*Controls whether dabbrev preserves case when expanding the abbreviation.
+A value of nil means preserve case.
+A value of `case-replace' means preserve case if `case-replace' is nil.
+Any other non-nil version means do not preserve case.
 
 This variable has an effect only when the value of
-`dabbrev-case-fold-search' evaluates to t."
-  :type 'sexp
+`dabbrev-case-fold-search' specifies to ignore case."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "like M-x query-replace" 'case-replace))
   :group 'dabbrev)
 
 (defcustom dabbrev-abbrev-char-regexp nil
@@ -349,9 +346,11 @@ if there is a suitable one already."
 	 (dabbrev-check-all-buffers
 	  (and arg (= (prefix-numeric-value arg) 16)))
 	 (abbrev (dabbrev--abbrev-at-point))
-	 (ignore-case-p  (and (eval dabbrev-case-fold-search)
-			      (or (not dabbrev-upcase-means-case-search)
-				  (string= abbrev (downcase abbrev)))))
+	 (ignore-case-p (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+				 case-fold-search
+			       dabbrev-case-fold-search)
+			     (or (not dabbrev-upcase-means-case-search)
+				 (string= abbrev (downcase abbrev)))))
 	 (my-obarray dabbrev--last-obarray)
 	 init)
     (save-excursion
@@ -521,7 +520,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (or expansion
 	  (setq expansion
 		(dabbrev--find-expansion abbrev direction
-					 (and (eval dabbrev-case-fold-search)
+					 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+						  case-fold-search
+						dabbrev-case-fold-search)
 					      (or (not dabbrev-upcase-means-case-search)
 						  (string= abbrev (downcase abbrev))))))))
     (cond
@@ -557,7 +558,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       ;; set dabbrev--last-case-pattern.
       (and record-case-pattern
 	   (setq dabbrev--last-case-pattern
-		 (and (eval dabbrev-case-fold-search)
+		 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+			  case-fold-search
+			dabbrev-case-fold-search)
 		      (not dabbrev-upcase-means-case-search)
 		      (equal abbrev (upcase abbrev)))))
 
@@ -791,10 +794,14 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 ;;; EXPANSION is the expansion substring.
 (defun dabbrev--substitute-expansion (old abbrev expansion)
   ;;(undo-boundary)
-  (let ((use-case-replace (and (eval dabbrev-case-fold-search)
+  (let ((use-case-replace (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+				   case-fold-search
+				 dabbrev-case-fold-search)
 			       (or (not dabbrev-upcase-means-case-search)
 				   (string= abbrev (downcase abbrev)))
-			       (eval dabbrev-case-replace))))
+			       (if (eq dabbrev-case-replace 'case-replace)
+				   case-replace
+				 dabbrev-case-replace))))
     (and nil use-case-replace
 	 (setq old (concat abbrev (or old "")))
 	 (setq expansion (concat abbrev expansion)))
