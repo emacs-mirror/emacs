@@ -1,3 +1,8 @@
+1999-11-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* syntax.c: Remove whitespace after open or in front of closing
+	parentheses.
+
 1999-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Compute needed height differently.
