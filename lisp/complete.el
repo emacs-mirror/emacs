@@ -178,7 +178,21 @@ Word-delimiters for the purposes of Partial Completion are \"-\", \"_\",
   (interactive)
   (if (PC-was-meta-key)
       (minibuffer-complete)
-    (PC-do-completion nil)))
+    ;; If the previous command was not this one,
+    ;; never scroll, always retry completion.
+    (or (eq last-command this-command)
+	(setq minibuffer-scroll-window nil))
+    (let ((window minibuffer-scroll-window))
+      ;; If there's a fresh completion window with a live buffer,
+      ;; and this command is repeated, scroll that window.
+      (if (and window (window-buffer window)
+	       (buffer-name (window-buffer window)))
+	  (save-excursion
+	    (set-buffer (window-buffer window))
+	    (if (pos-visible-in-window-p (point-max) window)
+		(set-window-start window (point-min) nil)
+	      (scroll-other-window)))
+	(PC-do-completion nil)))))
 
 
 (defun PC-complete-word ()
