@@ -1,3 +1,9 @@
+2001-03-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (activate-input-method): If
+	current-input-method-title is set by activating INPUT-METHOD,
+	respect that value.
+
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/dunnet.el (dun-mode): Set major-mode to `dun-mode'.
