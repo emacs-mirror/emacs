@@ -570,6 +570,9 @@ an alist of attribute/value pairs."
       (if (looking-at "usage")
 	  (error "Incorrect ldapsearch invocation")
 	(message "Parsing results... ")
+	;; Skip error message when retrieving attribute list
+	(if (looking-at "Size limit exceeded")
+	    (forward-line 1))
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
@@ -580,13 +583,16 @@ an alist of attribute/value pairs."
 	  (while (looking-at "^\\(\\w*\\)[=:\t ]+\\(<[\t ]*file://\\)?\\(.*\\)$")
 	    (setq name (match-string 1)
 		  value (match-string 3))
-	    (save-excursion
-	      (set-buffer bufval)
-	      (erase-buffer)
-	      (set-buffer-multibyte nil)
-	      (insert-file-contents-literally value)
-	      (delete-file value)
-	      (setq value (buffer-string)))
+	    ;; Do not try to open non-existent files
+	    (if (equal value "")
+		(setq value " ")
+	      (save-excursion
+		(set-buffer bufval)
+		(erase-buffer)
+		(set-buffer-multibyte nil)
+		(insert-file-contents-literally value)
+		(delete-file value)
+		(setq value (buffer-string))))
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))
