@@ -1005,6 +1005,32 @@ init_environment (char ** argv)
 	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
+      /* Handle running emacs from the build directory: src/oo-spd/i386/  */
+
+      /* FIXME: should use substring of get_emacs_configuration ().
+	 But I don't think the Windows build supports alpha, mips etc
+         anymore, so have taken the easy option for now.  */
+      else if (p && stricmp (p, "\\i386") == 0)
+	{
+	  *p = 0;
+	  p = strrchr (modname, '\\');
+	  if (p != NULL)
+	    {
+	      *p = 0;
+	      p = strrchr (modname, '\\');
+	      if (p && stricmp (p, "\\src") == 0)
+		{
+		  char buf[SET_ENV_BUF_SIZE];
+
+		  *p = 0;
+		  for (p = modname; *p; p++)
+		    if (*p == '\\') *p = '/';
+
+		  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+		  _putenv (strdup (buf));
+		}
+	    }
+	}
     }
 
     for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
