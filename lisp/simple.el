@@ -3491,6 +3491,21 @@ or go back to just one window (by deleting all but the selected window)."
 	 (bury-buffer))))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
+
+(defcustom input-mode-8-bit nil
+  "Toggle whether 8-bit keyboard input is accepted.
+This may be useful for inputting non-ASCII characters if your keyboard
+can generate them.
+Setting this variable directly does not take effect;
+use either M-x customize or the function `set-input-mode'."
+  :set (lambda (symbol value)
+	 (let ((mode (current-input-mode)))
+	   (set-input-mode (nth 0 mode) (nth 1 mode) value)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :version "21.1"
+  :link '(custom-manual "Single-Byte European Support")
+  :group 'keyboard)
 
 (defcustom mail-user-agent 'sendmail-user-agent
   "*Your preference for a mail composition package.
