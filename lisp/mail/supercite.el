@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    FSF
@@ -796,7 +796,7 @@ The number of lines left is specified by `sc-blank-lines-after-headers'."
 	    nonentry-func '(sc-mail-nuke-header-line)))
      ;; we never get far enough to interpret a frame if s-n-m-h == 'none
      ((eq sc-nuke-mail-headers 'none))
-     (t (error "Illegal value for sc-nuke-mail-headers: %s"
+     (t (error "Invalid value for sc-nuke-mail-headers: %s"
 	       sc-nuke-mail-headers))
      )					; end-cond
     (append

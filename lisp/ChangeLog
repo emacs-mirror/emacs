@@ -7,6 +7,7 @@
 	* emulation/vip.el: Replace `illegal' with `invalid'.
 	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
 	`invalid'.
+	* mail/supercite.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
