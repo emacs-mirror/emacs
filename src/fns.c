@@ -60,6 +60,8 @@ Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
 
+extern Lisp_Object Qinput_method_function;
+
 static int internal_equal ();
 
 extern long get_random ();
@@ -2353,6 +2355,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
   int count = specpdl_ptr - specpdl;
 
   specbind (Qcursor_in_echo_area, Qt);
+  specbind (Qinput_method_function, Qnil);
 
   map = Fsymbol_value (intern ("query-replace-map"));
 
