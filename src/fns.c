@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3076,12 +3076,12 @@ The normal messages at start and end of loading FILENAME are suppressed.")
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
   tem = Fmemq (feature, Vfeatures);
-
-  LOADHIST_ATTACH (Fcons (Qrequire, feature));
   
   if (NILP (tem))
     {
       int count = specpdl_ptr - specpdl;
+
+      LOADHIST_ATTACH (Fcons (Qrequire, feature));
 
       /* Value saved here is to be restored into Vautoload_queue */
       record_unwind_protect (un_autoload, Vautoload_queue);

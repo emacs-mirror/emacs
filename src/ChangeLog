@@ -1,3 +1,8 @@
+2002-11-29  Dave Love  <fx@gnu.org>
+
+	* fns.c (Frequire): Don't call LOADHIST_ATTACH if feature was
+	already provided.
+
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
 	* s/sol2-8.h: New file.
