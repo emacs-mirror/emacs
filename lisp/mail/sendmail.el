@@ -120,7 +120,7 @@ The alias definitions in the file have this form:
 nil means use indentation.")
 (defvar mail-indentation-spaces 3
   "*Number of spaces to insert at the beginning of each cited line.
-Used by `mail-yank-original' via `mail-yank-cite'.")
+Used by `mail-yank-original' via `mail-indent-citation'.")
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
