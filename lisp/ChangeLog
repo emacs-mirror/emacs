@@ -1,3 +1,7 @@
+2000-07-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el: Don't require `dired-aux'.
+
 2000-07-10  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* dired-aux.el (dired-show-file-type): New function.
@@ -16,7 +20,7 @@
 
 2000-07-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* bindings.el: Bind ´[delete]' to delete-char.
+	* bindings.el: Bind `[delete]' to delete-char.
 
 	* dired.el (dired-find-alternate-file): New function.
 	(dired-mode-map): Bind `a' to dired-find-alternate-file.
