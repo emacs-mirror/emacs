@@ -1485,7 +1485,7 @@ lw_separator_p (label, type, motif_p)
      enum menu_separator *type;
      int motif_p;
 {
-  int separator_p;
+  int separator_p = 0;
 
   if (strlen (label) >= 3
       && bcmp (label, "--:", 3) == 0)
