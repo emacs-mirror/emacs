@@ -869,7 +869,7 @@ for decoding and encoding files, process I/O, etc."
 
 ;; Make all multibyte characters self-insert.
 (set-char-table-range (nth 1 global-map)
-		      (cons (make-char 'unicode 128) (max-char))
+		      (cons (decode-char 'ucs 128) (max-char))
 		      'self-insert-command)
 
 (aset latin-extra-code-table ?\222 t)
