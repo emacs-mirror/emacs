@@ -51,44 +51,59 @@
 
 ;; All these overrides should go *before* the (require 'crisp) statement.
 
+(defgroup crisp nil
+  "Emulator for CRiSP and Brief key bindings."
+  :prefix "crisp-"
+  :group 'emulations)
+
 ;; local variables
 
 (defvar crisp-mode-map (copy-keymap (current-global-map))
   "Local keymap for CRiSP emulation mode.
 All the emulation bindings are done here instead of globally.")
 
-(defvar crisp-mode-modeline-string " *CRiSP*"
-  "String to display in the modeline when CRiSP emulation mode is enabled.")
+(defcustom crisp-mode-modeline-string " *CRiSP*"
+  "String to display in the modeline when CRiSP emulation mode is enabled."
+  :type 'string
+  :group 'crisp)
 
 (defvar crisp-mode-original-keymap (copy-keymap (current-global-map))
   "The original keymap before CRiSP emulation mode remaps anything.
 This keymap is restored when CRiSP emulation mode is disabled.")
 
-(defvar crisp-mode-enabled nil
+(defcustom crisp-mode-enabled nil
   "Track status of CRiSP emulation mode.
 A value of nil means CRiSP mode is not enabled.  A value of t
-indicates CRiSP mode is enabled.")
+indicates CRiSP mode is enabled."
+  :type 'boolean
+  :group 'crisp)
 
-(defvar crisp-override-meta-x t
+(defcustom crisp-override-meta-x t
   "Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
 Normally the CRiSP emulator rebinds M-x to save-buffers-exit-emacs
 and provides the usual M-x functionality on the F10 key.
 
 If this variable is nil when you start the CRiSP emulator, it
-does not alter the binding of M-x.")
+does not alter the binding of M-x."
+  :type 'boolean
+  :group 'crisp)
 
-(defvar crisp-load-scroll-all t
+(defcustom crisp-load-scroll-all t
   "Controls loading of the Scroll All mode in the CRiSP emulator.
 Its Default behavior is to load and enable the Scroll All minor mode
 package when enabling the CRiSP emulator.
 
 If this variable is nil when you start the CRiSP emulator, it
-does not load Scroll All.")
+does not load Scroll All."
+  :type 'boolean
+  :group 'crisp)
 
-(defvar crisp-load-hook nil
-  "Hooks to run after loadint the CRiSP emulator package.")
+(defcustom crisp-load-hook nil
+  "Hooks to run after loadint the CRiSP emulator package."
+  :type 'hook
+  :group 'crisp)
 
-(defvar crisp-version "crisp.el release 1.1/$Revision: 1.5 $"
+(defvar crisp-version "crisp.el release 1.1/$Revision: 1.6 $"
   "The release number and RCS version for the CRiSP emulator.")
 
 (defvar crisp-last-last-command nil

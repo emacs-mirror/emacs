@@ -28,9 +28,13 @@
 ;; documented in the Emacs user's manual.
 
 ;;; Code:
+(defgroup sendmail nil
+  "Mail sending commands for Emacs."
+  :prefix "mail-"
+  :group 'mail)
 
 ;;;###autoload
-(defvar mail-from-style 'angles "\
+(defcustom mail-from-style 'angles "\
 *Specifies how \"From:\" fields look.
 
 If `nil', they contain just the return address like:
@@ -38,22 +42,30 @@ If `nil', they contain just the return address like:
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
 If `angles', they look like:
-	Elvis Parsley <king@grassland.com>")
+	Elvis Parsley <king@grassland.com>"
+  :type '(choice (const nil) (const parens) (const angles))
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-self-blind nil "\
+(defcustom mail-self-blind nil "\
 *Non-nil means insert BCC to self in messages to be sent.
 This is done when the message is initialized,
-so you can remove or alter the BCC field to override the default.")
+so you can remove or alter the BCC field to override the default."
+  :type 'boolean
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-interactive nil "\
+(defcustom mail-interactive nil "\
 *Non-nil means when sending a message wait for and display errors.
-nil means let mailer mail back a message to report errors.")
+nil means let mailer mail back a message to report errors."
+  :type 'boolean
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:" "\
-*Delete these headers from old message when it's inserted in a reply.")
+(defcustom mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:" "\
+*Delete these headers from old message when it's inserted in a reply."
+  :type 'regexp
+  :group 'sendmail)
 
 ;; Useful to set in site-init.el
 ;;;###autoload
@@ -63,8 +75,10 @@ The headers should be delimited by a line whose contents
 match the variable `mail-header-separator'.")
 
 ;;;###autoload
-(defvar mail-header-separator "--text follows this line--" "\
-*Line used to separate headers from text in messages being composed.")
+(defcustom mail-header-separator "--text follows this line--" "\
+*Line used to separate headers from text in messages being composed."
+  :type 'string
+  :group 'sendmail)
 
 ;; Set up mail-header-separator for use as a category text property.
 (put 'mail-header-separator 'rear-nonsticky '(category))
@@ -76,33 +90,43 @@ match the variable `mail-header-separator'.")
 ;;;(put 'mail-header-separator 'read-only t)
 
 ;;;###autoload
-(defvar mail-archive-file-name nil "\
+(defcustom mail-archive-file-name nil "\
 *Name of file to write all outgoing messages in, or nil for none.
-This can be an inbox file or an Rmail file.")
+This can be an inbox file or an Rmail file."
+  :type '(choice file (const nil))
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-default-reply-to nil
+(defcustom mail-default-reply-to nil
   "*Address to insert as default Reply-to field of outgoing messages.
 If nil, it will be initialized from the REPLYTO environment variable
-when you first send mail.")
+when you first send mail."
+  :type '(choice (const nil) string)
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-alias-file nil
+(defcustom mail-alias-file nil
   "*If non-nil, the name of a file to use instead of `/usr/lib/aliases'.
 This file defines aliases to be expanded by the mailer; this is a different
 feature from that of defining aliases in `.mailrc' to be expanded in Emacs.
-This variable has no effect unless your system uses sendmail as its mailer.")
+This variable has no effect unless your system uses sendmail as its mailer."
+  :type '(choice (const nil) file)
+  :group 'sendmail)
 
 ;;;###autoload
-(defvar mail-personal-alias-file "~/.mailrc"
+(defcustom mail-personal-alias-file "~/.mailrc"
   "*If non-nil, the name of the user's personal mail alias file.
 This file typically should be in same format as the `.mailrc' file used by
 the `Mail' or `mailx' program.
-This file need not actually exist.")
+This file need not actually exist."
+  :type '(choice (const nil) file)
+  :group 'sendmail)
 
-(defvar mail-setup-hook nil
+(defcustom mail-setup-hook nil
   "Normal hook, run each time a new outgoing mail message is initialized.
-The function `mail-setup' runs this hook.")
+The function `mail-setup' runs this hook."
+  :type 'hook
+  :group 'sendmail)
 
 (defvar mail-aliases t
   "Alist of mail address aliases,
@@ -115,12 +139,17 @@ The alias definitions in the file have this form:
 (defvar mail-alias-modtime nil
   "The modification time of your mail alias file when it was last examined.")
 
-(defvar mail-yank-prefix nil
+(defcustom mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
-nil means use indentation.")
-(defvar mail-indentation-spaces 3
+nil means use indentation."
+  :type '(choice (const nil) string)
+  :group 'sendmail)
+
+(defcustom mail-indentation-spaces 3
   "*Number of spaces to insert at the beginning of each cited line.
-Used by `mail-yank-original' via `mail-indent-citation'.")
+Used by `mail-yank-original' via `mail-indent-citation'."
+  :type 'integer
+  :group 'sendmail)
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
@@ -130,14 +159,16 @@ text as modified.
 This is a normal hook, misnamed for historical reasons.
 It is semi-obsolete and mail agents should no longer use it.")
 
-(defvar mail-citation-hook nil
+(defcustom mail-citation-hook nil
   "*Hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
 And each hook function should leave point and mark around the citation
 text as modified.
 
 If this hook is entirely empty (nil), a default action is taken
-instead of no action.")
+instead of no action."
+  :type 'hook
+  :group 'sendmail)
 
 (defvar mail-abbrevs-loaded nil)
 (defvar mail-mode-map nil)
@@ -154,12 +185,16 @@ removed from alias expansions."
   nil)
 
 ;;;###autoload
-(defvar mail-signature nil
+(defcustom mail-signature nil
   "*Text inserted at end of mail buffer when a message is initialized.
-If t, it means to insert the contents of the file `mail-signature-file'.")
+If t, it means to insert the contents of the file `mail-signature-file'."
+  :type '(choice (const nil) (const t) string)
+  :group 'sendmail)
 
-(defvar mail-signature-file "~/.signature"
-  "*File containing the text inserted at end of mail buffer.")
+(defcustom mail-signature-file "~/.signature"
+  "*File containing the text inserted at end of mail buffer."
+  :type 'file
+  :group 'sendmail)
 
 (defvar mail-reply-action nil)
 (defvar mail-send-actions nil
@@ -167,25 +202,31 @@ If t, it means to insert the contents of the file `mail-signature-file'.")
 (put 'mail-reply-action 'permanent-local t)
 (put 'mail-send-actions 'permanent-local t)
 
-(defvar mail-default-headers nil
+(defcustom mail-default-headers nil
   "*A string containing header lines, to be inserted in outgoing messages.
 It is inserted before you edit the message,
-so you can edit or delete these lines.")
+so you can edit or delete these lines."
+  :type '(choice (const nil) string)
+  :group 'sendmail)
 
-(defvar mail-bury-selects-summary t
+(defcustom mail-bury-selects-summary t
   "*If non-nil, try to show RMAIL summary buffer after returning from mail.
 The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
 the RMAIL summary buffer before returning, if it exists and this variable
-is non-nil.")
+is non-nil."
+  :type 'boolean
+  :group 'sendmail)
 
 ;; I find that this happens so often, for innocent reasons,
 ;; that it is not acceptable to bother the user about it -- rms.
-(defvar mail-send-nonascii t
+(defcustom mail-send-nonascii t
   "*Specify whether to allow sending non-ASCII characters in mail.
 If t, that means do allow it.  nil means don't allow it.
 `query' means ask the user each time.
 Including non-ASCII characters in a mail message can be problematical
-for the recipient, who may not know how to decode them properly.")
+for the recipient, who may not know how to decode them properly."
+  :type '(choice (const t) (const nil) (const query))
+  :group 'sendmail)
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
@@ -245,8 +286,10 @@ actually occur.")
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
-(defvar mail-send-hook nil
-  "Normal hook run before sending mail, in Mail mode.")
+(defcustom mail-send-hook nil
+  "Normal hook run before sending mail, in Mail mode."
+  :type 'hook
+  :group 'sendmail)
 
 (defun sendmail-sync-aliases ()
   (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))

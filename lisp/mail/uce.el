@@ -104,11 +104,18 @@
 (require 'sendmail)
 (require 'rmail)
 
-(defvar uce-setup-hook nil
-  "Hook to run after UCE rant message is composed.
-This hook is run after mail-setup-hook, which is run as well.")
+(defgroup uce nil
+  "Facilitate reply to unsolicited commercial email."
+  :prefix "uce-"
+  :group 'mail)
 
-(defvar uce-message-text 
+(defcustom uce-setup-hook nil
+  "Hook to run after UCE rant message is composed.
+This hook is run after mail-setup-hook, which is run as well."
+  :type 'hook
+  :group 'uce)
+
+(defcustom uce-message-text 
   "Recently, I have received an Unsolicited Commercial E-mail from you.
 I do not like UCE's and I would like to inform you that sending
 unsolicited messages to someone while he or she may have to pay for
@@ -141,27 +148,37 @@ to spam address email, and will remove people who put the word `remove'
 on beginning of some line from the spamming list.  So, when you set it
 up, it might be a good idea to actually use this feature.
 
-Value nil means insert no text by default, lets you type it in.")
+Value nil means insert no text by default, lets you type it in."
+  :type 'string
+  :group 'uce)
 
-(defvar uce-uce-separator
+(defcustom uce-uce-separator
   "----- original unsolicited commercial email follows -----"
   "Line that will begin quoting of the UCE.
-Value nil means use no separator.")
+Value nil means use no separator."
+  :type '(choice (const nil) string)
+  :group 'uce)
 
-(defvar uce-signature mail-signature
+(defcustom uce-signature mail-signature
 "Text to put as your signature after the note to UCE sender.  
 Value nil means none, t means insert ~/.signature file (if it happens
 to exist), if this variable is a string this string will be inserted
-as your signature.")
+as your signature."
+  :type '(choice (const nil) (const t) string)
+  :group 'uce)
 
-(defvar uce-default-headers
+(defcustom uce-default-headers
   "Errors-To: nobody@localhost\nPrecedence: bulk\n"
   "Additional headers to use when responding to a UCE with \\[uce-reply-to-uce].
-These are mostly meant for headers that prevent delivery errors reporting.")
+These are mostly meant for headers that prevent delivery errors reporting."
+  :type 'string
+  :group 'uce)
 
-(defvar uce-subject-line
+(defcustom uce-subject-line
   "Spam alert: unsolicited commercial e-mail"
-  "Subject of the message that will be sent in response to a UCE.")
+  "Subject of the message that will be sent in response to a UCE."
+  :type 'string
+  :group 'uce)
 
 (defun uce-reply-to-uce (&optional ignored)
   "Send reply to UCE in Rmail.

@@ -208,36 +208,51 @@
 ;;; Code:
 
 
+(defgroup mail-extr nil
+  "Extract full name and address from RFC 822 mail header."
+  :prefix "mail-extr-"
+  :group 'mail)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; User configuration variable definitions.
 ;;
 
-(defvar mail-extr-guess-middle-initial nil
+(defcustom mail-extr-guess-middle-initial nil
   "*Whether to try to guess middle initial from mail address.
 If true, then when we see an address like \"John Smith <jqs@host.com>\"
-we will assume that \"John Q. Smith\" is the fellow's name.")
+we will assume that \"John Q. Smith\" is the fellow's name."
+  :type 'boolean
+  :group 'mail-extr)
 
-(defvar mail-extr-ignore-single-names t
+(defcustom mail-extr-ignore-single-names t
   "*Whether to ignore a name that is just a single word.
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
-we will act as though we couldn't find a full name in the address.")
+we will act as though we couldn't find a full name in the address."
+  :type 'boolean
+  :group 'mail-extr)
 
 ;; Matches a leading title that is not part of the name (does not
 ;; contribute to uniquely identifying the person).
-(defvar mail-extr-full-name-prefixes
+(defcustom mail-extr-full-name-prefixes
   (purecopy
    "\\(Prof\\|D[Rr]\\|Mrs?\\|Rev\\|Rabbi\\|SysOp\\|LCDR\\)\\.?[ \t\n]")
   "*Matches prefixes to the full name that identify a person's position.
 These are stripped from the full name because they do not contribute to
-uniquely identifying the person.")
+uniquely identifying the person."
+  :type 'regexp
+  :group 'mail-extr)
 
-(defvar mail-extr-@-binds-tighter-than-! nil
-  "*Whether the local mail transport agent looks at ! before @.")
+(defcustom mail-extr-@-binds-tighter-than-! nil
+  "*Whether the local mail transport agent looks at ! before @."
+  :type 'boolean
+  :group 'mail-extr)
 
-(defvar mail-extr-mangle-uucp nil
+(defcustom mail-extr-mangle-uucp nil
   "*Whether to throw away information in UUCP addresses
-by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
+by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
+  :type 'boolean
+  :group 'mail-extr)
 
 ;;----------------------------------------------------------------------
 ;; what orderings are meaningful?????

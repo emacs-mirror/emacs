@@ -57,18 +57,26 @@
 ;;;; Code:
 
 ;;; User variables:
+(defgroup find-function nil
+  "Find the definition of the elisp function near point."
+  :prefix "find-function"
+  :group 'lisp)
 
-(defvar find-function-function 'function-at-point
+(defcustom find-function-function 'function-at-point
   "*The function used by `find-function' to select the function near
 point.
 
-For example `function-at-point' or `function-called-at-point'.")
+For example `function-at-point' or `function-called-at-point'."
+  :type 'function
+  :group 'find-function)
 
-(defvar find-function-source-path nil
+(defcustom find-function-source-path nil
   "The default list of directories where find-function searches.
 
 If this variable is `nil' then find-function searches `load-path' by
-default.")
+default."
+  :type '(repeat directory)
+  :group 'find-function)
 
 
 ;;; Functions:

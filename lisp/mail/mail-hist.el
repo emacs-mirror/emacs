@@ -56,6 +56,11 @@
 ;;; Code:
 (require 'ring)
 
+(defgroup mail-hist nil
+  "Headers and message body history for outgoing mail."
+  :prefix "mail-hist-"
+  :group 'mail)
+
 ;;;###autoload
 (defun mail-hist-define-keys ()
   "Define keys for accessing mail header history.  For use in hooks."
@@ -72,13 +77,17 @@
 Used for knowing which history list to look in when the user asks for
 previous/next input.")
 
-(defvar mail-hist-history-size (or kill-ring-max 1729)
+(defcustom mail-hist-history-size (or kill-ring-max 1729)
   "*The maximum number of elements in a mail field's history.
-Oldest elements are dumped first.")
+Oldest elements are dumped first."
+  :type 'integer
+  :group 'mail-hist)
 
 ;;;###autoload
-(defvar mail-hist-keep-history t
-  "*Non-nil means keep a history for headers and text of outgoing mail.")
+(defcustom mail-hist-keep-history t
+  "*Non-nil means keep a history for headers and text of outgoing mail."
+  :type 'boolean
+  :group 'mail-hist)
 
 ;; For handling repeated history requests
 (defvar mail-hist-access-count 0)
@@ -182,9 +191,11 @@ HEADER is a string without the colon."
   (setq header (downcase header))
   (cdr (assoc header mail-hist-header-ring-alist)))
 
-(defvar mail-hist-text-size-limit nil
+(defcustom mail-hist-text-size-limit nil
   "*Don't store any header or body with more than this many characters.
-If the value is nil, that means no limit on text size.")
+If the value is nil, that means no limit on text size."
+  :type '(choice (const nil) integer)
+  :group 'mail-hist)
 
 (defun mail-hist-text-too-long-p (text)
   "Return t if TEXT does not exceed mail-hist's size limit.
