@@ -1,8 +1,8 @@
-# ==== S7PPAC MPW MAKE FILE ====
+# impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.3) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.4) $
 #
-# Copyright (C) 1996 Harlequin Group, all rights reserved
+# Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
 #
 
 # This only knows about making the mmsw libraries for MM/EP-core.
@@ -11,7 +11,7 @@
 #
 #  BuildProgram -d Variety mmsw
 #
-# (this builds mmsw_RO.o and mmsw_DP.o)
+# (this builds mmsw_HE.o and mmsw_CI.o)
 #
 # to clean everything else away:
 #
@@ -32,7 +32,8 @@ mmsw_{Variety}.o Ä assert{OSffx} ring{OSffx} mpm{OSffx} ¶
                    poolmv{OSffx} root{OSffx} format{OSffx} buffer{OSffx} ¶
                    lockan{OSffx} ref{OSffx} trace{OSffx} than{OSffx} ¶
                    protsw{OSffx} shield{OSffx} mpsisw{OSffx} ld{OSffx} ¶
-                   ssan{OSffx} poolepdl{OSffx} action{OSffx} seg{OSffx}
+                   ssan{OSffx} poolepdl{OSffx} action{OSffx} seg{OSffx} ¶
+                   poolmrg{OSffx} message{OSffx}
 	PPCLink {Deps} -xm l -o {Targ} -sym on
 
 cleanall Ä
@@ -40,8 +41,7 @@ cleanall Ä
 
 clean Ä
 	Delete Å.c.Å.o
-	
+
 mmsw Ä
-	BuildProgram -d Variety=RO mmsw_RO.o
-	BuildProgram -d Variety=DP mmsw_DP.o
-	
+	BuildProgram -d Variety=HE mmsw_HE.o
+	BuildProgram -d Variety=CI mmsw_CI.o
