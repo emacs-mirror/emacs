@@ -1,3 +1,9 @@
+2000-08-29  Dave Love  <fx@gnu.org>
+
+	* mouse.el (mouse-major-mode-menu): Use local-key-binding.
+	(mouse-popup-menubar): Add minor mode menus.
+	(popup-menu): Check for lookup-key returning number.
+
 2000-08-29  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-send-input): Create overlays using the proper
