@@ -4,7 +4,7 @@
 
 ;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp:	<2000/10/24 10:35:58 vinicius>
+;; Time-stamp:	<2000/10/28 09:34:15 Vinicius>
 ;; Version:	2.1
 ;; Keywords:	internal
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
@@ -250,6 +250,10 @@ column (column 0) is located at left corner."
   (customize-group 'columns))
 
 
+(defmacro delimit-columns-str (str)
+  `(if (stringp ,str) ,str ""))
+
+
 ;;;###autoload
 (defun delimit-columns-region (start end)
   "Prettify all columns in a text region.
@@ -257,25 +261,15 @@ column (column 0) is located at left corner."
 START and END delimits the text region."
   (interactive "*r")
   (let ((delimit-columns-str-before
-	 (if (stringp delimit-columns-str-before)
-	     delimit-columns-str-before
-	   ""))
+	 (delimit-columns-str delimit-columns-str-before))
 	(delimit-columns-str-separator
-	 (if (stringp delimit-columns-str-separator)
-	     delimit-columns-str-separator
-	   " "))
+	 (delimit-columns-str delimit-columns-str-separator))
 	(delimit-columns-str-after
-	 (if (stringp delimit-columns-str-after)
-	     delimit-columns-str-after
-	   ""))
+	 (delimit-columns-str delimit-columns-str-after))
 	(delimit-columns-before
-	 (if (stringp delimit-columns-before)
-	     delimit-columns-before
-	   ""))
+	 (delimit-columns-str delimit-columns-before))
 	(delimit-columns-after
-	 (if (stringp delimit-columns-after)
-	     delimit-columns-after
-	   ""))
+	 (delimit-columns-str delimit-columns-after))
 	(delimit-columns-start
 	 (if (and (integerp delimit-columns-start)
 		  (>= delimit-columns-start 0))
@@ -323,25 +317,15 @@ START and END delimits the text region."
 START and END delimits the corners of text rectangle."
   (interactive "*r")
   (let ((delimit-columns-str-before
-	 (if (stringp delimit-columns-str-before)
-	     delimit-columns-str-before
-	   ""))
+	 (delimit-columns-str delimit-columns-str-before))
 	(delimit-columns-str-separator
-	 (if (stringp delimit-columns-str-separator)
-	     delimit-columns-str-separator
-	   " "))
+	 (delimit-columns-str delimit-columns-str-separator))
 	(delimit-columns-str-after
-	 (if (stringp delimit-columns-str-after)
-	     delimit-columns-str-after
-	   ""))
+	 (delimit-columns-str delimit-columns-str-after))
 	(delimit-columns-before
-	 (if (stringp delimit-columns-before)
-	     delimit-columns-before
-	   ""))
+	 (delimit-columns-str delimit-columns-before))
 	(delimit-columns-after
-	 (if (stringp delimit-columns-after)
-	     delimit-columns-after
-	   ""))
+	 (delimit-columns-str delimit-columns-after))
 	(delimit-columns-start
 	 (if (and (integerp delimit-columns-start)
 		  (>= delimit-columns-start 0))
