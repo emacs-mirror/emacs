@@ -521,7 +521,7 @@ main (int argc, char ** argv)
 	      if (cmdline)
 		warn ("warning: %s ignored because of -c\n", *argv);
 	    }
-	  else if (((*argv)[1] == 'e' || (*argv[1] == 'E')) && ((*argv)[2] == ':'))
+	  else if (((*argv)[1] == 'e' || (*argv[1]) == 'E') && ((*argv)[2] == ':'))
 	    {
 	      int requested_envsize = atoi (*argv + 3);
 	      /* Enforce a reasonable minimum size, as above.  */
