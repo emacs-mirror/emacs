@@ -2165,7 +2165,8 @@ read1 (readcharfun, pch, first_in_list)
 	int next_char = READCHAR;
 	UNREAD (next_char);
 
-	if (next_char <= 040)
+	if (next_char <= 040
+	    || index ("\"'`,(", next_char))
 	  {
 	    *pch = c;
 	    return Qnil;
