@@ -182,6 +182,7 @@ make_frame (mini_p)
 #ifdef MULTI_KBOARD
   f->kboard = initial_kboard;
 #endif
+  f->namebuf = 0;
 
   root_window = make_window ();
   if (mini_p)
