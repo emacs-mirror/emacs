@@ -2913,6 +2913,14 @@ START and END specify the portion of the current buffer to be copied."
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
 (put 'mark-inactive 'error-message "The mark is not active now")
 
+(defvar activate-mark-hook nil
+  "Hook run when the mark becomes active.
+It is also run at the end of a command, if the mark is active and
+it is possible that the region may have changed")
+
+(defvar deactivate-mark-hook nil
+  "Hook run when the mark becomes inactive.")
+
 (defun mark (&optional force)
   "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
@@ -3004,6 +3012,7 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
     (if (or arg (null mark) (/= mark (point)))
 	(push-mark nil nomsg t)
       (setq mark-active t)
+      (run-hooks 'activate-mark-hook)
       (unless nomsg
 	(message "Mark activated")))))
 
