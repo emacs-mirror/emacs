@@ -931,7 +931,8 @@ extern int gc_cons_threshold;
  Normally every link of the chain is an automatic variable of a function,
  and its `val' points to some argument or local variable of the function.
  On exit to the function, the chain is set back to the value it had on entry.
- This way, no link remains in the chain when the stack frame containing the link disappears.
+ This way, no link remains in the chain when the stack frame containing the
+ link disappears.
 
  Every function that can call Feval must protect in this fashion all
  Lisp_Object variables whose contents will be used again. */
