@@ -2331,6 +2331,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      else if (nread == -1 && errno == EWOULDBLOCK)
 		;
 #endif
+	      /* ISC 4.1 defines both EWOULDBLOCK and O_NONBLOCK,
+		 and Emacs uses O_NONBLOCK, so what we get is EAGAIN.  */
 #ifdef O_NONBLOCK
 	      else if (nread == -1 && errno == EAGAIN)
 		;
