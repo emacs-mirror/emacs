@@ -129,18 +129,18 @@ It creates the Imenu index for the buffer, if necessary."
 (defun which-func-update ()
   ;; Update the string containing the current function.
   (condition-case info
-    (progn
-      (if (not (setq which-func-current (which-function)))
-          (setq which-func-current which-func-unknown))
-      (if (not (string= which-func-current which-func-previous))
-        (progn
-          (force-mode-line-update)
-          (setq which-func-previous which-func-current))))
+      (progn
+	(if (not (setq which-func-current (which-function)))
+	    (setq which-func-current which-func-unknown))
+	(if (not (string= which-func-current which-func-previous))
+	  (progn
+	    (force-mode-line-update)
+	    (setq which-func-previous which-func-current))))
     (error
      (ding)
      (remove-hook 'post-command-hook 'which-func-update)
      (which-func-mode -1)   ; Function mode off
-     (message "Error in which-func-update: %s" info)))
+     (message "Error in which-func-update: %s" info))))
 
 (defun which-func-mode (&optional arg)
   "Toggle Which Function mode, globally.
