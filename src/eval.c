@@ -1946,13 +1946,15 @@ funcall_lambda (fun, nargs, arg_vector)
     {
       QUIT;
       next = Fcar (syms_left);
+      while (XTYPE (next) != Lisp_Symbol)
+	next = Fsignal (Qinvalid_function, Fcons (fun, Qnil));
       if (EQ (next, Qand_rest))
 	rest = 1;
       else if (EQ (next, Qand_optional))
 	optional = 1;
       else if (rest)
 	{
-	  specbind (Fcar (syms_left), Flist (nargs - i, &arg_vector[i]));
+	  specbind (next, Flist (nargs - i, &arg_vector[i]));
 	  i = nargs;
 	}
       else if (i < nargs)
@@ -2006,6 +2008,8 @@ specbind (symbol, value)
 {
   extern void store_symval_forwarding (); /* in eval.c */
   Lisp_Object ovalue;
+
+  CHECK_SYMBOL (symbol, 0);
 
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
