@@ -2081,19 +2081,33 @@ change the invisible header text."
 	(message "Counting messages...done")))))
 	
 (defun rmail-set-message-counters-counter (&optional stop)
-  (while (search-backward "\n\^_\^L\n" stop t)
-    (forward-char 1)
-    (setq messages-head (cons (point-marker) messages-head))
-    (save-excursion
-      (setq deleted-head
-	    (cons (if (search-backward ", deleted,"
-				       (prog1 (point)
-					 (forward-line 2))
-				       t)
-		      ?D ?\ )
-		  deleted-head)))
-    (if (zerop (% (setq total-messages (1+ total-messages)) 20))
-	(message "Counting messages...%d" total-messages))))
+  (let ((start (point))
+	next)
+    (while (search-backward "\n\^_\^L" stop t)
+      ;; Detect messages that have been added with DOS line endings and
+      ;; convert the line endings for such messages.
+      (setq next (point))
+      (if (looking-at "\n\^_\^L\r\n")
+	  (let ((buffer-read-only nil)
+		(buffer-undo t))
+	    (message "Counting messages...(converting line endings)")
+	    (save-excursion
+	      (goto-char start)
+	      (while (search-backward "\r\n" next t)
+		(delete-char 1)))))
+      (setq start next)
+      (forward-char 1)
+      (setq messages-head (cons (point-marker) messages-head))
+      (save-excursion
+	(setq deleted-head
+	      (cons (if (search-backward ", deleted,"
+					 (prog1 (point)
+					   (forward-line 2))
+					 t)
+			?D ?\ )
+		    deleted-head)))
+      (if (zerop (% (setq total-messages (1+ total-messages)) 20))
+	  (message "Counting messages...%d" total-messages)))))
 
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
