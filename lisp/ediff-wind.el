@@ -96,6 +96,7 @@ In this case, Ediff will use those frames to display these buffers.")
        ;; this blocks queries from  window manager as to where to put
        ;; ediff's control frame. we put the frame outside the display,
        ;; so the initial frame won't jump all over the screen
+       '(user-position . t)
        (cons 'top  (if (fboundp 'ediff-display-pixel-height)
 		       (1+ (ediff-display-pixel-height))
 		     3000))
