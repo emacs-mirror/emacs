@@ -1165,11 +1165,13 @@ help buffer."
   (interactive)
   (help-follow (1- (point-max))))
 
-(defun help-follow (pos)
+(defun help-follow (&optional pos)
   "Follow cross-reference at POS, defaulting to point.
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
+  (unless pos
+    (setq pos (point)))
   (let* ((help-data
 	  (or (and (not (= pos (point-max)))
 		   (get-text-property pos 'help-xref))
