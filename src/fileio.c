@@ -980,7 +980,11 @@ PREFIX should be an absolute file name.
 
 There is a race condition between calling `make-temp-name' and creating the
 file which opens all kinds of security holes.  For that reason, you should
-probably use `make-temp-file' instead.  */)
+probably use `make-temp-file' instead, except in three circumstances:
+
+* If you are creating the file in the user's home directory.
+* If you are creating a directory rather than an ordinary file.
+* If you are taking special precautions as `make-temp-file' does.  */)
      (prefix)
      Lisp_Object prefix;
 {
