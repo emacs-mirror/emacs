@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
@@ -145,6 +145,11 @@
 ;; In Dired, to display the file named on the current line:
 ;; M-x browse-url-of-dired-file RET
 
+;; To activate URLs in a region of a buffer such the URLs are diplayed
+;; in one face if the URL has not been visited, another if the URL has
+;; been visited and yet anothe if the mouse is hovering over the URL:
+;; M-x browse-url-activate-urls RET
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customisation (~/.emacs)
 
@@ -213,11 +218,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'thingatpt)
-                   (require 'term)
-		   (require 'dired)
-                   (require 'executable)
-		   (require 'w3-auto nil t))
+(eval-and-compile
+  (progn
+    (require 'thingatpt)
+    (require 'term)
+    (require 'dired)
+    (require 'executable)
+    (require 'w3-auto nil t)))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -389,8 +396,8 @@ commands reverses the effect of this variable.  Requires Netscape version
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING using `replace-match', not treating STRING
 literally.  All pairs are applied in the order given.  The default
-value converts ange-ftp/EFS-style file names into ftp URLs and prepends
-`file:' to any file name beginning with `/'.
+value converts ange-ftp/EFS-style paths into ftp URLs and prepends
+`file:' to any path beginning with `/'.
 
 For example, adding to the default a specific translation of an ange-ftp
 address to an HTTP URL:
@@ -546,6 +553,9 @@ down (this *won't* always work)."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defvar browse-url-visited-urls nil
+  "A list of activated URLs that have been visited in a browser.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
@@ -699,9 +709,13 @@ Doesn't let you edit the URL like `browse-url'.  Variable
   (interactive "P")
   (let ((url (browse-url-url-at-point)))
     (if url
-	(browse-url url (if arg
-			    (not browse-url-new-window-flag)
-			  browse-url-new-window-flag))
+        (progn
+          (browse-url url (if arg
+                              (not browse-url-new-window-flag)
+                            browse-url-new-window-flag))
+          (unless (member url browse-url-visited-urls)
+            (setq browse-url-visited-urls
+                  (append (list url) browse-url-visited-urls))))
       (error "No URL found"))))
 
 ;;;###autoload
@@ -1282,6 +1296,87 @@ Default to the URL around or before point."
   (message "Sending URL to KDE...")
   (apply #'start-process `(,(concat "KDE" url) nil ,browse-url-kde-program
 			   ,@browse-url-kde-args ,url)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Setting up text to be browsed.
+
+(defvar browse-url-activation-alist nil
+  "A per buffer cache of overlays that mark URLs in the buffer.")
+
+(defun browse-url-activate-urls (start end &optional face visited-face mouse-face keymap)
+  "Activate the URLs in the region of the current buffer bracketed by START and END.
+This creates an overlay on each URL in the region. FACE, if provided,
+marks a URL that has not yet been visited.  If FACE is nil then the
+'bold' face is used.  VISITED-FACE, if provided, marks a URL that has
+already been visited.  If VISITED-FACE is nil then the `bold-italic'
+face is used.  MOUSE-FACE, if provided is the face that will appear
+when the mouse is hovering over the URL.  If MOUSE-FACE is nil then
+the 'highlight' face is used.
+
+If KEYMAP is non-nil it specifies a keymap that determines when to
+send the URL to the browser, otherwise a local keymap will be set up
+on the URL that sets up mouse button 2 and newline as the input to
+send the URL to the browser."
+  (save-excursion
+
+    (let ((overlays (cdr (assoc (current-buffer) browse-url-activation-alist)))
+          (unarmed-face (or face 'bold))
+          (visited-face (or visited-face 'bold-italic))
+          (armed-face (or mouse-face 'highlight))
+          overlay-list url normal-face overlay bounds)
+
+      ;; Clear the cache of URL overlays for the current buffer.
+      (mapcar 'delete-overlay overlays)
+
+      ;; Copy the cached overlays to be handed out as needed.
+      (setq overlay-list overlays)
+
+      ;; Determine if we should set up a keymap on the URLs
+      (unless keymap
+
+        ;; Go ahead and set up a local keymap defaulting to the
+        ;; browse-url functions for sending the URL to a browser.
+        (setq keymap (make-sparse-keymap))
+        (define-key keymap [mouse-2] 'browse-url-at-mouse)
+        (define-key keymap "\r" 'browse-url-at-point))
+
+      ;; Determine if there are any more URLs in the region following
+      ;; the headers.
+      (goto-char start)
+      (while (re-search-forward thing-at-point-url-regexp end t)
+
+        ;; There are.  Get the URL.
+        (setq bounds (thing-at-point-bounds-of-url-at-point)
+              url (buffer-substring (car bounds) (cdr bounds)))
+
+        ;; Get an overlay (from the cache if possible).
+        (if (null overlay-list)
+
+            ;; Create an overlay to use for the current URL that
+            ;; highlights the URL and provides a keymap for sending
+            ;; the URL to a browser via a mouse button 2 keypress or a
+            ;; newline press.
+            (progn
+              (setq overlay (make-overlay (car bounds) (cdr bounds)))
+              (if (null overlays)
+                  (setq overlays (list overlay)
+                        browse-url-activation-alist
+                        (append (list (cons (current-buffer) overlays))
+                                browse-url-activation-alist))
+                (setq overlays (append (list overlay) overlays)))
+              (overlay-put overlay 'mouse-face armed-face)
+              (overlay-put overlay 'local-map keymap))
+
+          ;; Grab an overlay from the cache.
+          (setq overlay (car overlay-list)
+                overlay-list (cdr overlay-list))
+          (move-overlay overlay (car bounds) (cdr bounds)))
+
+        ;; Select the normal face based on whether or not the URL has
+        ;; been visited.
+        (overlay-put overlay 'face (if (member url browse-url-visited-urls)
+                                       visited-face
+                                     unarmed-face))))))
 
 (provide 'browse-url)
 
