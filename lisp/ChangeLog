@@ -1,56 +1,62 @@
+1999-11-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (end-of-buffer): Use window-end to find the window end
+	instead of vertical-motion because this handles variable-height
+	lines correctly.
+
 1999-11-01  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff.el: version change.
+	* ediff.el: Version change.
 	
-	* ediff-util.el (ediff-cleanup-mess): fixed the case of dead windows.
+	* ediff-util.el (ediff-cleanup-mess): Fixed the case of dead windows.
 	make sure you are in a good frame before deleting other
 	windows.
-	(ediff-file-checked-in-p): don't consider CVS
+	(ediff-file-checked-in-p): Don't consider CVS
 	files checked in.
 	(ediff-make-temp-file,ediff-make-empty-tmp-file):  Make sure you
 	are writing to a newly created empty file.
 
-	* ediff-mult.el (ediff-show-session-group-hook): new default.
+	* ediff-mult.el (ediff-show-session-group-hook): New default.
 
 	* ediff-vers.el (ediff-pcl-cvs-view-revision):
-	first cd to the file directory. reportedly works
+	First cd to the file directory. reportedly works
 	better with remote files.
 
 	* ediff-vers.el (ediff-pcl-cvs-internal, ediff-pcl-cvs-merge-internal):
-	use file-name-nondirectory when passing files to CVS.
+	Use file-name-nondirectory when passing files to CVS.
 	
-	* ediff-diff.el (ediff-cmp-options): new var.
+	* ediff-diff.el (ediff-cmp-options): New var.
 	(ediff-same-file-contents): use ediff-cmp-options.
 	
 	* ediff-ptch.el (ediff-prompt-for-patch-buffer,
-	ediff-get-patch-buffer): use current buffer if it appears to be a
+	ediff-get-patch-buffer): Use current buffer if it appears to be a
 	patch.
 	
 	* viper-keym.el: Fixed calls to viper-ex,
 	change key C-cg to C-cC-g
 
-	* viper-util.el (viper-nontrivial-find-file-function): deleted.
-	(viper-glob-unix-files, viper-glob-mswindows-files): new functions.
+	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
+	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
 	(viper-save-cursor-color,viper-restore-cursor-color):
-	improved cursor color handling.
+	Improved cursor color handling.
 	(viper-get-saved-cursor-color-in-replace-mode,
-	viper-get-saved-cursor-color-in-insert-mode): new functions for
+	viper-get-saved-cursor-color-in-insert-mode): New functions for
 	better cursor color handling.
 
 	* viper-ex.el (ex-read,ex-edit):
-	fixes for correct interpretation of #,%.
-	(viper-ex): now works correctly when called from other functions.
-	(viper-glob-function): new variable.
-	(viper-ex): save excursion before doing :global.
+	Fixes for correct interpretation of #,%.
+	(viper-ex): Now works correctly when called from other functions.
+	(viper-glob-function): New variable.
+	(viper-ex): Save excursion before doing :global.
 
-	* viper-mous.el (viper-counting-clicks-p): bug fixes.
+	* viper-mous.el (viper-counting-clicks-p): Bug fixes.
 	
 	* viper-cmd.el (viper-post-command-sentinel,
 	viper-insert-state-post-command-sentinel,
-	viper-insert-state-pre-command-sentinel): takes better care of
+	viper-insert-state-pre-command-sentinel): Takes better care of
 	 cursor colors.
 	
-        * viper.el: version change.
+        * viper.el: Version change.
 
 1999-10-31  Rajesh Vaidheeswarran  <rv@dsmit.com>
 
