@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000 Free Software
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2094,6 +2094,8 @@ If no reference to follow, moves to the next node, or up if none."
      :help "Look for another occurrence of previous item"])
    ["Edit" Info-edit :help "Edit contents of this node"
     :active Info-enable-edit]
+   ["Copy Node Name" Info-copy-current-node-name
+    :help "Copy the name of the current node into the kill ring"]
    ["Exit" Info-exit :help "Stop reading Info"]))
 
 
@@ -2179,6 +2181,22 @@ If no reference to follow, moves to the next node, or up if none."
 	(setq Info-menu-last-node (list Info-current-file Info-current-node)))
     ;; Try to avoid entering infinite beep mode in case of errors.
     (error (ding))))
+
+
+(defun Info-copy-current-node-name ()
+  "Put the name of the current info node into the kill ring.
+The name of the info file is prepended to the node name in parentheses."
+  (interactive)
+  (unless Info-current-node
+    (error "No current info node"))
+  (kill-new
+   (concat "("
+	   (file-name-nondirectory
+	    (if (stringp Info-current-file)
+		Info-current-file
+	      (or buffer-file-name "")))
+	   ")"
+	   Info-current-node)))
 
 
 ;; Info mode is suitable only for specially formatted data.
