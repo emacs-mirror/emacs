@@ -774,7 +774,7 @@ can use
 @end smallexample
 
 @noindent
-and your diary will show 
+and the fancy diary will show
 @smallexample
 Ruth & Ed's anniversary
 @end smallexample
@@ -792,14 +792,42 @@ example,
 @end smallexample
 
 @noindent
-causes your diary to show
+causes the fancy diary to show
 
 @smallexample
 Rake leaves
 @end smallexample
 
 @noindent
-on October 22, November 22, and December 22 of any year.
+on October 22, November 22, and December 22 of every year.
+
+@findex diary-float
+  The function @code{diary-float} allows you to describe diary entries
+that apply to dates like the third Friday of November, or the last
+Tuesday in April.  The parameters are the @var{month}, @var{dayname},
+and an index @var{n}. The entry appears on the @var{n}th @var{dayname}
+of @var{month}, where @var{dayname}=0 means Sunday, 1 means Monday, and
+so on.  If @var{n} is negative it counts backward from the end of
+@var{month}.  The value of @var{month} can be a list of months, a single
+month, or @code{t} to specify all months.  You can also use an optional
+parameter @var{day} to specify the @var{n}th @var{dayname} of
+@var{month} on or after/before @var{day}; the value of @{day} defaults
+to 1 if @var{n} is positive and to the last day of @var{month} if
+@var{n} is negative.  For example,
+
+@smallexample
+%%(diary-float t 1 -1) Pay rent
+@end smallexample
+
+@noindent
+causes the fancy diary to show
+
+@smallexample
+Pay rent
+@end smallexample
+
+@noindent
+on the last Monday of every month.
 
   The generality of sexp diary entries lets you specify any diary entry
 that you can describe algorithmically.  A sexp diary entry contains an
