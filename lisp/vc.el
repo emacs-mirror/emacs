@@ -1326,7 +1326,7 @@ files in or below it."
            (read-string (if rel2-default
 			    (concat "Newer version: (default "
 				    rel2-default ") ")
-			  "Newer version: ")
+			  "Newer version (default: current source): ")
 			nil nil rel2-default))))
   (if (string-equal rel1 "") (setq rel1 nil))
   (if (string-equal rel2 "") (setq rel2 nil))
