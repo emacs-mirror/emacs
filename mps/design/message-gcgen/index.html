@@ -226,7 +226,7 @@ the arena queue (at the end of the trace).</p>
   <dd> <p> Public interface.  Returns the message type for gc gen
   messages. </p> </dd>
 
-  <dt> <p><code> const char *mps_message_gc_generation_id(mps_arena_t,
+  <dt> <p><code> const char *mps_message_gc_generation_name(mps_arena_t,
   mps_message_t)</code></p> </dt>
 
   <dd> <p> Public interface.  Returns a string pointer that identifies
@@ -235,7 +235,7 @@ the arena queue (at the end of the trace).</p>
   message has not been discarded (with
   <code>mps_message_discard</code>). </p>
   
-  <p> The string should be of the form: "[" <em>pool-class</em>
+  <p> The string should be of the form: "[" <em>pool-class</em> ":"
   <em>pool-instance-number</em> "," <em>generation-number</em> "]" </p> </dd>
 
   <dt> <p><code>size_t mps_message_gc_generation_condemned_size(mps_arena_t,
