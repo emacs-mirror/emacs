@@ -426,6 +426,12 @@ main (argc, argv, envp)
   init_alloc ();
   init_eval ();
   init_data ();
+
+  /* egetenv is a pretty low-level facility, which may get called in
+     many circumstances; it seems flimsy to put off initializing it
+     until calling init_callproc.  */
+  set_process_environment ();
+
   init_lread ();
 
   init_cmdargs (argc, argv, skip_args);	/* Create list Vcommand_line_args */
