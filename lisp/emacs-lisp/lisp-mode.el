@@ -592,6 +592,7 @@ of the start of the containing expression."
 (put 'condition-case 'lisp-indent-function 2)
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
+(put 'eval-after-load 'lisp-indent-function 1)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.
