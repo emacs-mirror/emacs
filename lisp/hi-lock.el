@@ -334,7 +334,9 @@ list maintained for regexps, global history maintained for faces.
   (unless hi-lock-mode (hi-lock-mode))
   (or (facep face) (setq face 'rwl-yellow))
   (hi-lock-set-pattern
-   (list (concat "^.*" regexp ".*$") (list 0 (list 'quote face) t))))
+   ;; The \\(?:...\\) grouping construct ensures that a leading ^, +, * or ?
+   ;; or a trailing $ in REGEXP will be interpreted correctly.
+   (list (concat "^.*\\(?:" regexp "\\).*$") (list 0 (list 'quote face) t))))
 
 
 ;;;###autoload
