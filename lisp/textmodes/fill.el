@@ -37,6 +37,9 @@ A value of nil means that any change in indentation starts a new paragraph.")
 (defconst sentence-end-double-space t
   "*Non-nil means a single space does not end a sentence.")
 
+(defconst colon-double-space nil
+  "*Non-nil means put two spaces after a colon when filling.")
+
 (defvar fill-paragraph-function nil
   "Mode-specific function to fill a paragraph.")
 
@@ -63,6 +66,10 @@ If Adaptive Fill mode is enabled, whatever text matches this pattern
 on the second line of a paragraph is used as the standard indentation
 for the paragraph.  If the paragraph has just one line, the indentation
 is taken from that line.")
+
+(defun adaptive-fill-function nil
+  "*Function to call to choose a fill prefix for a paragraph.
+This function is used when `adaptive-fill-regexp' does not match.")
 
 (defun current-fill-column ()
   "Return the fill-column to use for this line.
@@ -111,6 +118,8 @@ Remove indentation from each line."
 	    (skip-chars-backward " ]})\"'")
 	    (cond ((and sentence-end-double-space
 			(memq (preceding-char) '(?. ?? ?!)))  2)
+		  ((and colon-double-space
+			(= (preceding-char) ?:))  2)
 		  ((char-equal (preceding-char) ?\n)  0)
 		  (t 1))))
        (match-end 0)))
@@ -187,12 +196,15 @@ space does not end a sentence, so don't break a line there."
 	      (if (>= (point) to)
 		  (goto-char firstline)))
 	    (move-to-left-margin)
-	    (let ((start (point)))
-	      (re-search-forward adaptive-fill-regexp)
-	      (setq fill-prefix (buffer-substring start (point)))
-	      (set-text-properties 0 (length fill-prefix) nil
-				   fill-prefix))
-	    ))
+	    (let ((start (point))
+		  (eol (save-excursion (end-of-line) (point)))
+		  temp)
+	      (if (not (looking-at paragraph-start))
+		  (cond ((re-search-forward adaptive-fill-regexp nil t)
+			 (setq fill-prefix
+			       (buffer-substring-no-properties start (point))))
+			((setq temp (funcall adaptive-fill-function))
+			 (setq fill-prefix temp)))))))
 
       (save-restriction
 	(goto-char from)
