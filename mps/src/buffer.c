@@ -1,38 +1,33 @@
-/*  impl.c.buffer
+/* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- *                  ALLOCATION BUFFER IMPLEMENTATION
+ * $HopeName: MMsrc!buffer.c(trunk.7) $
+ * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
- *  $HopeName: MMsrc!buffer.c(trunk.6) $
+ * Since allocation buffers are exposed, most of the documentation
+ * is in the interface (buffer.h).  This comment documents the
+ * internal interface, between the pool and the buffer
+ * implementation.
+ * 
+ * The pool must allocate the buffer descriptor and initialize it by
+ * calling BufferInit.  The descriptor this creates will fall
+ * through to the fill method on the first allocation.  In general,
+ * pools should not assign resources to the buffer until the first
+ * allocation, since the buffer may never be used.
+ * 
+ * The pool may update the base, init, alloc, and limit fields when
+ * the fallback methods are called.  In addition, the pool may set
+ * the limit to zero at any time.  The effect of this is either:
+ * 
+ *   1. cause the _next_ allocation in the buffer to fall through to
+ *      the buffer fill method, and allow the buffer to be flushed
+ *      and relocated;
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *   2. cause the buffer trip method to be called if the client was
+ *      between reserve and commit.
  *
- *  This is the implementation of allocation buffers.
- *
- *  Since allocation buffers are exposed, most of the documentation
- *  is in the interface (buffer.h).  This comment documents the
- *  internal interface, between the pool and the buffer
- *  implementation.
- *
- *  The pool must allocate the buffer descriptor and initialize it
- *  by calling BufferInit.  The descriptor this creates will fall
- *  through to the fill method on the first allocation.  In
- *  general, pools should not assign resources to the buffer until
- *  the first allocation, since the buffer may never be used.
- *
- *  The pool may update the base, init, alloc, and limit fields when
- *  the fallback methods are called.  In addition, the pool may set
- *  the limit to zero at any time.  The effect of this is either:
- *
- *    1. cause the _next_ allocation in the buffer to fall through to
- *       the buffer fill method, and allow the buffer to be flushed
- *       and relocated;
- *
- *    2. cause the buffer trip method to be called if the client was
- *       between reserve and commit.
- *
- *  A buffer may not be relocated under other circumstances because
- *  there is a race between updating the descriptor and the client
- *  allocation sequence.
+ * A buffer may not be relocated under other circumstances because
+ * there is a race between updating the descriptor and the client
+ * allocation sequence.
  */
 
 #include "std.h"
@@ -43,8 +38,7 @@
 #include "shield.h"
 #include "trace.h"
 
-SRCID("$HopeName: MMsrc!buffer.c(trunk.6) $");
-
+SRCID("$HopeName: MMsrc!buffer.c(trunk.7) $");
 
 
 DequeNode BufferPoolDeque(Buffer buffer)
@@ -52,7 +46,6 @@ DequeNode BufferPoolDeque(Buffer buffer)
   AVER(ISVALID(Buffer, buffer));
   return &buffer->poolDeque;
 }
-
 
 Pool BufferPool(Buffer buffer)
 {
@@ -73,15 +66,14 @@ Ap BufferAp(Buffer buffer)
   return &buffer->ap;
 }
 
-Buffer BufferOfAp(Ap ap)  /* outside space lock */
+/* This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+Buffer BufferOfAp(Ap ap)
 {
-  Buffer buffer;
-
-  buffer = PARENT(BufferStruct, ap, ap);
-  return buffer;
+  return PARENT(BufferStruct, ap, ap);
 }
 
-Space BufferSpace(Buffer buffer) /* outside space lock */
+/* This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+Space BufferSpace(Buffer buffer)
 {
   return buffer->space;
 }
@@ -96,7 +88,6 @@ Error BufferCreate(Buffer *bufferReturn, Pool pool)
   return (*pool->class->bufferCreate)(bufferReturn, pool);
 }
 
-
 void BufferDestroy(Buffer buffer)
 {
   Pool pool;
@@ -104,15 +95,13 @@ void BufferDestroy(Buffer buffer)
   AVER(ISVALID(Buffer, buffer));
 
   pool = BufferPool(buffer);
-  AVER(pool->class->bufferDestroy != NULL);
 
+  AVER(pool->class->bufferDestroy != NULL);
   AVER(buffer->ap.init == buffer->ap.alloc);
 
-  (*pool->class->bufferDestroy)(buffer);
+  (*pool->class->bufferDestroy)(pool, buffer);
 }
 
-
-#ifdef DEBUG
 
 Bool BufferIsValid(Buffer buffer, ValidationType validParam)
 {
@@ -123,8 +112,6 @@ Bool BufferIsValid(Buffer buffer, ValidationType validParam)
   AVER(buffer->ap.init <= buffer->ap.alloc);
   AVER(buffer->ap.alloc <= buffer->ap.limit || buffer->ap.limit == 0);
   /* buffer->space */
-  AVER(buffer->fill != NULL);
-  AVER(buffer->trip != NULL);
   /* AVER(buffer->alignment == BufferPool(buffer)->alignment); */
   AVER(IsPoT(buffer->alignment));
   AVER(IsAligned(buffer->alignment, buffer->base));
@@ -133,8 +120,6 @@ Bool BufferIsValid(Buffer buffer, ValidationType validParam)
   AVER(IsAligned(buffer->alignment, buffer->ap.limit));
   return TRUE;
 }
-
-#endif
 
 
 void BufferSet(Buffer buffer, Addr base, Addr init, Addr limit)
@@ -184,8 +169,7 @@ Bool BufferIsReady(Buffer buffer)
 }
 
 
-void BufferInit(Buffer buffer, Pool pool,
-                BufferFillMethod fill, BufferTripMethod trip)
+void BufferInit(Buffer buffer, Pool pool)
 {
   AVER(ISVALID(Pool, pool));
   AVER(buffer != NULL);
@@ -195,12 +179,12 @@ void BufferInit(Buffer buffer, Pool pool,
   buffer->ap.alloc = 0;
   buffer->ap.limit = 0;
   buffer->space = PoolSpace(pool);
-  buffer->fill = fill;
-  buffer->trip = trip;
   buffer->alignment = pool->alignment;
   buffer->exposed = FALSE;
   buffer->p = NULL;
   buffer->i = 0;
+  buffer->shieldMode = ProtNONE;
+  buffer->grey = TraceSetEmpty;
 
   DequeNodeInit(&buffer->poolDeque);
   DequeAppend(&pool->bufferDeque, &buffer->poolDeque);
@@ -214,6 +198,8 @@ void BufferInit(Buffer buffer, Pool pool,
 void BufferFinish(Buffer buffer)
 {
   AVER(ISVALID(Buffer, buffer));
+  AVER(BufferIsReset(buffer));
+  AVER(buffer->exposed == FALSE);
 
   DequeNodeRemove(&buffer->poolDeque);
 
@@ -256,6 +242,7 @@ Error BufferReserve(Addr *pReturn, Buffer buffer, Addr size)
 Error BufferFill(Addr *pReturn, Buffer buffer, Addr size)
 {
   Error e;
+  Pool pool;
 
   AVER(pReturn != NULL);
   AVER(ISVALID(Buffer, buffer));
@@ -263,15 +250,13 @@ Error BufferFill(Addr *pReturn, Buffer buffer, Addr size)
   AVER(IsAligned(BufferPool(buffer)->alignment, size));
   AVER(BufferIsReady(buffer));
 
-  e = (*buffer->fill)(pReturn, buffer, size);
+  pool = BufferPool(buffer);
+  e = (*pool->class->bufferFill)(pReturn, pool, buffer, size);
   
   AVER(ISVALID(Buffer, buffer));
 
-  SpacePoll(BufferSpace(buffer));
-
   return e;
 }
-
 
 
 /* After initializing the proto-object, the mutator calls commit to */
@@ -317,33 +302,39 @@ Bool BufferCommit(Buffer buffer, Addr p, Addr size)
 
 Bool BufferTrip(Buffer buffer, Addr p, Addr size)
 {
+  Pool pool;
+
   AVER(ISVALID(Buffer, buffer));
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buffer)->alignment, size));
   
-  return (*buffer->trip)(buffer, p, size);
+  pool = BufferPool(buffer);
+  return (*pool->class->bufferTrip)(pool, buffer, p, size);
 }
 
 
-void BufferShieldExpose(Buffer buffer)
+void BufferExpose(Buffer buffer)
 {
+  Pool pool;
+
   AVER(ISVALID(Buffer, buffer));
+  AVER(BufferPool(buffer)->class->bufferExpose != NULL);
+
   buffer->exposed = TRUE;
-
-  /* @@@@ Assumes that the buffer buffers a segment. */
-  if(!BufferIsReset(buffer))
-    ShieldExpose(BufferSpace(buffer), buffer->base);
+  pool = BufferPool(buffer);
+  (*pool->class->bufferExpose)(pool, buffer);
 }
 
-void BufferShieldCover(Buffer buffer)
+void BufferCover(Buffer buffer)
 {
+  Pool pool;
+
   AVER(ISVALID(Buffer, buffer));
+  AVER(BufferPool(buffer)->class->bufferCover != NULL);
 
   buffer->exposed = FALSE;
-
-  /* @@@@ Assumes that the buffer buffers a segment. */
-  if(!BufferIsReset(buffer))
-    ShieldCover(BufferSpace(buffer), buffer->base);
+  pool = BufferPool(buffer);
+  (*pool->class->bufferCover)(pool, buffer);
 }
 
 
@@ -357,7 +348,7 @@ Error BufferDescribe(Buffer buffer, LibStream stream)
             "  Pool %p\n"
             "  alignment %lu\n"
             "  base 0x%lX  init 0x%lX  alloc 0x%lX  limit 0x%lX\n"
-            "  fill %p  trip %p\n"
+            "  grey 0x%lX  shieldMode %lu"
             "} Buffer %p\n",
             (void *)buffer,
             (void *)BufferPool(buffer),
@@ -366,8 +357,8 @@ Error BufferDescribe(Buffer buffer, LibStream stream)
             (unsigned long)buffer->ap.init,
             (unsigned long)buffer->ap.alloc,
             (unsigned long)buffer->ap.limit,
-            (void *)buffer->fill,
-            (void *)buffer->trip,
+            (unsigned long)buffer->grey,
+            (unsigned long)buffer->shieldMode,
             (void *)buffer);
 
   return ErrSUCCESS;
