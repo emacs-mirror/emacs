@@ -1,4 +1,4 @@
-2002-05-01  Kim F. Storm  <storm@filanet.dk>
+2002-05-01  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--pre-command-handler): Only
 	interpret delete-selection property if mark-active.
