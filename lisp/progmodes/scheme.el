@@ -171,22 +171,28 @@
 
 (defvar scheme-mode-line-process "")
 
-(defvar scheme-mode-map
-  (let ((map (make-sparse-keymap "Scheme")))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map [menu-bar scheme] 
-      (cons "Scheme"
-	    ;; Copy the shared menu rather than inheriting it, so that
-	    ;; we can put the Scheme-specific items at the end.
-	    (let ((menu (copy-keymap lisp-shared-menu)))
-	      (define-key-after menu [s1] '("--"))
-	      (define-key-after menu [run-scheme]
-		'("Run Inferior Scheme" . run-scheme))
-	      menu)))
-    map)
+(defvar scheme-mode-map nil
   "Keymap for Scheme mode.
-All items in `lisp-mode-shared-map' and `lisp-shared-menu' are copied
-into this map.")
+All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(unless scheme-mode-map
+  (let ((map (make-sparse-keymap "Scheme")))
+    (setq scheme-mode-map (make-sparse-keymap))
+    (set-keymap-parent scheme-mode-map lisp-mode-shared-map)
+    (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key scheme-mode-map [menu-bar scheme]
+      (cons "Scheme" map))
+    (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
+    (define-key map [uncomment-region]
+      '("Uncomment Out Region" . (lambda (beg end)
+                                   (interactive "r")
+                                   (comment-region beg end '(4)))))
+    (define-key map [comment-region] '("Comment Out Region" . comment-region))
+    (define-key map [indent-region] '("Indent Region" . indent-region))
+    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
+    (put 'comment-region 'menu-enable 'mark-active)
+    (put 'uncomment-region 'menu-enable 'mark-active)
+    (put 'indent-region 'menu-enable 'mark-active)))
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)
@@ -256,12 +262,6 @@ See `run-hooks'."
   "Normal hook run when entering `dsssl-mode'.
 See `run-hooks'."
   :type 'hook
-  :group 'scheme)
-
-;; This is shared by cmuscheme and xscheme.
-(defcustom scheme-program-name "scheme"
-  "*Program invoked by the `run-scheme' command."
-  :type 'string
   :group 'scheme)
 
 (defvar dsssl-imenu-generic-expression
