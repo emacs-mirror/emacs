@@ -80,6 +80,9 @@ and \"-de\" when dehexlfying a buffer.")
 (defvar hexl-mode-old-local-map)
 (defvar hexl-mode-old-mode-name)
 (defvar hexl-mode-old-major-mode)
+(defvar hexl-mode-old-write-contents-hooks)
+(defvar hexl-mode-old-require-final-newline)
+(defvar hexl-mode-old-syntax-table)
 
 ;; routines
 
@@ -157,8 +160,10 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 \\[describe-bindings] for advanced commands."
   (interactive "p")
   (if (eq major-mode 'hexl-mode)
-      (error "You are already in hexl mode.")
-    (kill-all-local-variables)
+      (error "You are already in hexl mode")
+
+    ;; We do not turn off the old major mode; instead we just
+    ;; override most of it.  That way, we can restore it perfectly.
     (make-local-variable 'hexl-mode-old-local-map)
     (setq hexl-mode-old-local-map (current-local-map))
     (use-local-map hexl-mode-map)
@@ -171,19 +176,28 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (setq hexl-mode-old-major-mode major-mode)
     (setq major-mode 'hexl-mode)
 
+    (make-local-variable 'hexl-mode-old-syntax-table)
+    (setq hexl-mode-old-syntax-table (syntax-table))
+    (set-syntax-table (standard-syntax-table))
+
+    (make-local-variable 'hexl-mode-old-write-contents-hooks)
+    (setq hexl-mode-old-write-contents-hooks write-contents-hooks)
     (make-local-variable 'write-contents-hooks)
     (add-hook 'write-contents-hooks 'hexl-save-buffer)
 
+    (make-local-variable 'hexl-mode-old-require-final-newline)
+    (setq hexl-mode-old-require-final-newline require-final-newline)
+    (make-local-variable 'require-final-newline)
+    (setq require-final-newline nil)
+
+    ;; Add hooks to rehexlify or dehexlify on various events.
     (make-local-hook 'after-revert-hook)
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
+    (make-local-hook 'change-major-mode-hook)
+    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
+
     (make-local-variable 'hexl-max-address)
-
-    (make-local-variable 'change-major-mode-hook)
-    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer)
-
-    (make-local-variable 'require-final-newline)
-    (setq require-final-newline nil)
 
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
@@ -257,8 +271,15 @@ With arg, don't unhexlify buffer."
 	(remove-hook 'write-contents-hook 'hexl-save-buffer)
 	(set-buffer-modified-p modified)
 	(goto-char original-point)))
+
+  (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
+  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+
+  (setq write-contents-hooks hexl-mode-old-write-contents-hooks)
+  (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (use-local-map hexl-mode-old-local-map)
+  (set-syntax-table hexl-mode-old-syntax-table)
   (setq major-mode hexl-mode-old-major-mode)
   (force-mode-line-update))
 
