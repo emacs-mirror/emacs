@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.26) $
+ * $HopeName: MMsrc!mpmst.h(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -345,7 +345,7 @@ typedef struct ArenaStruct {    /* VM arena structure */
   Shift pageShift;              /* log2 of page size, for shifts */
   Index pages;                  /* number of pages in table */
   Page pageTable;               /* the page table */
-  BT freeTable;                 /* page free table */
+  BT allocTable;                /* page allocation table */
   Size tablesSize;              /* size of area occupied by tables */
   Index tablePages;             /* number of pages occupied by tables */
 } ArenaStruct;
