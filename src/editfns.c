@@ -3310,9 +3310,8 @@ Use %% to put a single % into the output.")
 
 	  if (STRINGP (args[n]))
 	    {
-	      int padding, nbytes;
+	      int padding, nbytes, start, end;
 	      int width = lisp_string_width (args[n], -1, NULL, NULL);
-	      int start = nchars;
 
 	      /* If spec requires it, pad on right with spaces.  */
 	      padding = minlen - width;
@@ -3320,9 +3319,11 @@ Use %% to put a single % into the output.")
 		while (padding-- > 0)
 		  {
 		    *p++ = ' ';
-		    nchars++;
+		    ++nchars;
 		  }
 
+	      start = nchars;
+	      
 	      if (p > buf
 		  && multibyte
 		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
@@ -3334,6 +3335,7 @@ Use %% to put a single % into the output.")
 				  STRING_MULTIBYTE (args[n]), multibyte);
 	      p += nbytes;
 	      nchars += XSTRING (args[n])->size;
+	      end = nchars;
 
 	      if (negative)
 		while (padding-- > 0)
@@ -3354,7 +3356,7 @@ Use %% to put a single % into the output.")
 		    }
 
 		  info[n].start = start;
-		  info[n].end = nchars;
+		  info[n].end = end;
 		}
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
