@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
@@ -185,39 +185,39 @@ is nil, REGEXP matches only half a hunk.")
 	       (t
 		(cons msg code))))))
 
+;; prompt if prefix arg present
+(defun diff-switches ()
+  (if current-prefix-arg
+      (read-string "Diff switches: "
+		   (if (stringp diff-switches)
+		       diff-switches
+		     (mapconcat 'identity diff-switches " ")))))
+
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
   "Find and display the differences between OLD and NEW files.
 Interactively the current buffer's file name is the default for NEW
 and a backup file for NEW is the default for OLD.
-With prefix arg, prompt for diff switches.
-If NO-ASYNC is non-nil, call diff synchronously."
+If NO-ASYNC is non-nil, call diff synchronously.
+With prefix arg, prompt for diff switches."
   (interactive
-   (nconc
-    (let (oldf newf)
-      (nreverse
-       (list
-	(setq newf (buffer-file-name)
-	      newf (if (and newf (file-exists-p newf))
-		       (read-file-name
-			(concat "Diff new file: (default "
-				(file-name-nondirectory newf) ") ")
-			nil newf t)
-		     (read-file-name "Diff new file: " nil nil t)))
-	(setq oldf (file-newest-backup newf)
-	      oldf (if (and oldf (file-exists-p oldf))
-		       (read-file-name
-			(concat "Diff original file: (default "
-				(file-name-nondirectory oldf) ") ")
-			(file-name-directory oldf) oldf t)
-		     (read-file-name "Diff original file: "
-				     (file-name-directory newf) nil t))))))
-    (if current-prefix-arg
-	(list (read-string "Diff switches: "
-			   (if (stringp diff-switches)
-			       diff-switches
-			     (mapconcat 'identity diff-switches " "))))
-      nil)))
+   (let (oldf newf)
+     (setq newf (buffer-file-name)
+	   newf (if (and newf (file-exists-p newf))
+		    (read-file-name
+		     (concat "Diff new file: (default "
+			     (file-name-nondirectory newf) ") ")
+		     nil newf t)
+		  (read-file-name "Diff new file: " nil nil t)))
+     (setq oldf (file-newest-backup newf)
+	   oldf (if (and oldf (file-exists-p oldf))
+		    (read-file-name
+		     (concat "Diff original file: (default "
+			     (file-name-nondirectory oldf) ") ")
+		     (file-name-directory oldf) oldf t)
+		  (read-file-name "Diff original file: "
+				  (file-name-directory newf) nil t)))
+     (list oldf newf (diff-switches))))
   (setq new (expand-file-name new)
 	old (expand-file-name old))
   (let ((old-alt (file-local-copy old))
@@ -227,21 +227,19 @@ If NO-ASYNC is non-nil, call diff synchronously."
 	(let ((compilation-process-setup-function 'diff-process-setup)
 	      (command
 	       (mapconcat 'identity
-			  (append (list diff-command)
-				  ;; Use explicitly specified switches
-				  (if switches
-				      (if (consp switches)
-					  switches (list switches))
-				    ;; If not specified, use default.
-				    (if (consp diff-switches)
-					diff-switches
-				      (list diff-switches)))
-				  (if (or old-alt new-alt)
-				      (list "-L" old "-L" new))
-				  (list
-				   (shell-quote-argument (or old-alt old)))
-				  (list
-				   (shell-quote-argument (or new-alt new))))
+			  `(,diff-command
+			    ;; Use explicitly specified switches
+			    ,@(if switches
+				  (if (listp switches)
+				      switches (list switches))
+				;; If not specified, use default.
+				(if (listp diff-switches)
+				    diff-switches
+				  (list diff-switches)))
+			    ,@(if (or old-alt new-alt)
+				  (list "-L" old "-L" new))
+			    ,(shell-quote-argument (or old-alt old))
+			    ,(shell-quote-argument (or new-alt new)))
 			  " ")))
 	  (setq buf
 		(compile-internal command
@@ -270,15 +268,10 @@ If NO-ASYNC is non-nil, call diff synchronously."
   "Diff this file with its backup file or vice versa.
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
-The backup file is the first file given to `diff'."
+The backup file is the first file given to `diff'.
+With prefix arg, prompt for diff switches."
   (interactive (list (read-file-name "Diff (file with backup): ")
-		     (if current-prefix-arg
-			 (read-string "Diff switches: "
-				      (if (stringp diff-switches)
-					  diff-switches
-					(mapconcat 'identity
-						   diff-switches " ")))
-		       nil)))
+		     (diff-switches)))
   (let (bak ori)
     (if (backup-file-name-p file)
 	(setq bak file
