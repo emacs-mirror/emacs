@@ -1249,8 +1249,11 @@ See documentation of variable `tags-file-name'."
   "Display list of tags in file FILE.
 FILE should not contain a directory specification
 unless it has one in the tags table."
-  (interactive (list (completing-read "List tags in file: " nil
-				      'tags-table-files t nil)))
+  (interactive (list (completing-read "List tags in file: "
+				      (save-excursion
+					(visit-tags-table-buffer)
+					(mapcar 'list (tags-table-files)))
+				      nil t nil)))
   (with-output-to-temp-buffer "*Tags List*"
     (princ "Tags in file ")
     (princ file)
