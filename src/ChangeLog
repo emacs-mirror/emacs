@@ -1,3 +1,8 @@
+2003-01-10  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (pure_alloc): Correct alignment for Lisp_Floats.
+	Reported by Berthold Gunreben <b.gunreben@web.de>.
+
 2003-01-10  Dave Love  <fx@gnu.org>
 
 	* composite.c (syms_of_composite): Make composition_hash_table
