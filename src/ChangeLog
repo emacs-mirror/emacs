@@ -1,3 +1,35 @@
+2002-02-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_autoselect_window_p): New variable.
+	(syms_of_w32term): DEFVAR_BOOL and initialize it.
+	(note_mouse_movement): Use it.
+
+	* w32fns.c (w32_load_system_font): Never set fonts_changed_p to zero.
+
+	* w32bdf.c (w32_load_bdf_font): Maybe set fonts_changed_p.
+
+	* w32fns.c (Qfullscreen, Qfullwidth, Qfullheight, Qfullboth):
+	New variables.
+	(syms_of_w32fns): Intern and staticpro them.
+	(x_frame_parms) <"fullscreen">: New parameter.
+	(x_fullscreen_move, x_set_fullscreen): New functions.
+	(x_set_frame_parameters): Support Qfullscreen.
+	(x_real_positions): Save x/y_pixels_diff frame params. 
+	(x_figure_window_size): Support full-screen frames.
+	(Fx_create_frame): Default the fullscreen parameter.
+
+	* w32term.c (x_check_fullscreen, x_check_fullscreen_move) 
+	(x_fullscreen_adjust): New functions.
+	(w32_read_socket) <WM_WINDOWPOSCHANGED>:  Don't	resize to
+	fullscreen.  Call x_check_fullscreen_move, and set the
+ 	want_fullscreen member of output_data.w32
+	<WM_ACTIVATE, WM_ACTIVATEAPP>: Call x_check_fullscreen.
+
+	* w32term.h: New enum for FULLSCREEN_* constants.
+	(struct w32_output): New members want_fullscreen, x_pixels_diff,
+	y_pixels_diff, x_pixels_outer_diff, and y_pixels_outer_diff.
+	(x-fullscreen-adjust): New prototype.
+
 2002-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* frame.c: (Vmouse_highlight): New variable.

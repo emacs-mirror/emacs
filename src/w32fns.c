@@ -270,6 +270,11 @@ Lisp_Object Qw32_charset_mac;
 Lisp_Object Qw32_charset_unicode;
 #endif
 
+Lisp_Object Qfullscreen;
+Lisp_Object Qfullwidth;
+Lisp_Object Qfullheight;
+Lisp_Object Qfullboth;
+
 extern Lisp_Object Qtop;
 extern Lisp_Object Qdisplay;
 extern Lisp_Object Qtool_bar_lines;
@@ -681,6 +686,7 @@ static void x_change_window_heights P_ ((Lisp_Object, int));
 /* TODO: Native Input Method support; see x_create_im.  */
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -734,7 +740,8 @@ static struct x_frame_parm_table x_frame_parms[] =
   {"screen-gamma", x_set_screen_gamma},
   {"line-spacing", x_set_line_spacing},
   {"left-fringe", x_set_fringe_width},
-  {"right-fringe", x_set_fringe_width}
+  {"right-fringe", x_set_fringe_width},
+  {"fullscreen", x_set_fullscreen},
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -750,6 +757,27 @@ init_x_parm_symbols ()
 	  make_number (i));
 }
 
+/* Really try to move where we want to be in case of fullscreen.  Some WMs
+   moves the window where we tell them.  Some (mwm, twm) moves the outer
+   window manager window there instead.
+   Try to compensate for those WM here. */
+static void
+x_fullscreen_move (f, new_top, new_left)
+     struct frame *f;
+     int new_top;
+     int new_left;
+{
+  if (new_top != f->output_data.w32->top_pos
+      || new_left != f->output_data.w32->left_pos)
+    {
+      int move_x = new_left;
+      int move_y = new_top;
+
+      f->output_data.w32->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
+      x_set_offset (f, move_x, move_y, 1);
+    }
+}
+
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing;
    otherwise call the `x_set_...' function for that parameter.  */
@@ -778,6 +806,7 @@ x_set_frame_parameters (f, alist)
   int i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
+  int fullscreen_is_being_set = 0;
 
   struct gcpro gcpro1, gcpro2;
 
@@ -835,11 +864,13 @@ x_set_frame_parameters (f, alist)
       val = values[p];
       if (EQ (prop, Qforeground_color)
 	  || EQ (prop, Qbackground_color)
-	  || EQ (prop, Qfont))
+	  || EQ (prop, Qfont)
+	  || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
 
 	  old_value = get_frame_param (f, prop);
+	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
 
 	  if (NILP (Fequal (val, old_value)))
 	    {
@@ -876,7 +907,8 @@ x_set_frame_parameters (f, alist)
 	icon_left = val;
       else if (EQ (prop, Qforeground_color)
 	       || EQ (prop, Qbackground_color)
-	       || EQ (prop, Qfont))
+	       || EQ (prop, Qfont)
+	       || EQ (prop, Qfullscreen))
 	/* Processed above.  */
 	continue;
       else
@@ -927,6 +959,21 @@ x_set_frame_parameters (f, alist)
       icon_top = Fcdr (Fassq (Qicon_top, f->param_alist));
       if (NILP (icon_top))
 	XSETINT (icon_top, 0);
+    }
+
+  if (FRAME_VISIBLE_P (f) && fullscreen_is_being_set)
+    {
+            /* If the frame is visible already and the fullscreen parameter is
+         being set, it is too late to set WM manager hints to specify
+         size and position.
+         Here we first get the width, height and position that applies to
+         fullscreen.  We then move the frame to the appropriate
+         position.  Resize of the frame is taken care of in the code after
+         this if-statement. */
+      int new_left, new_top;
+      
+      x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
+      x_fullscreen_move (f, new_top, new_left);
     }
 
   /* Don't set these parameters unless they've been explicitly
@@ -1032,18 +1079,19 @@ x_real_positions (f, xptr, yptr)
      int *xptr, *yptr;
 {
   POINT pt;
+  RECT rect;
 
-  {
-      RECT rect;
-      
-      GetClientRect(FRAME_W32_WINDOW(f), &rect);
-      AdjustWindowRect(&rect, f->output_data.w32->dwStyle, FRAME_EXTERNAL_MENU_BAR(f));
-      
-      pt.x = rect.left;
-      pt.y = rect.top;
-  }
+  GetClientRect(FRAME_W32_WINDOW(f), &rect);
+  AdjustWindowRect(&rect, f->output_data.w32->dwStyle, FRAME_EXTERNAL_MENU_BAR(f));
+
+  pt.x = rect.left;
+  pt.y = rect.top;
 
   ClientToScreen (FRAME_W32_WINDOW(f), &pt);
+
+  /* Remember x_pixels_diff and y_pixels_diff.  */
+  f->output_data.w32->x_pixels_diff = pt.x - rect.left;
+  f->output_data.w32->y_pixels_diff = pt.y - rect.top;
 
   *xptr = pt.x;
   *yptr = pt.y;
@@ -1964,6 +2012,25 @@ x_set_line_spacing (f, new_value, old_value)
 			    Fcons (new_value, Qnil)));
   if (FRAME_VISIBLE_P (f))
     redraw_frame (f);
+}
+
+
+/* Change the `fullscreen' frame parameter of frame F.  OLD_VALUE is
+   the previous value of that parameter, NEW_VALUE is the new value. */
+
+static void
+x_set_fullscreen (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  if (NILP (new_value))
+    f->output_data.w32->want_fullscreen = FULLSCREEN_NONE;
+  else if (EQ (new_value, Qfullboth))
+    f->output_data.w32->want_fullscreen = FULLSCREEN_BOTH;
+  else if (EQ (new_value, Qfullwidth))
+    f->output_data.w32->want_fullscreen = FULLSCREEN_WIDTH;
+  else if (EQ (new_value, Qfullheight))
+    f->output_data.w32->want_fullscreen = FULLSCREEN_HEIGHT;
 }
 
 
@@ -3285,7 +3352,9 @@ x_figure_window_size (f, parms)
        : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.w32->font)));
+
   x_compute_fringe_widths (f, 0);
+
   f->output_data.w32->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.w32->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
@@ -3354,6 +3423,22 @@ x_figure_window_size (f, parms)
 	window_prompting |= USPosition;
       else
 	window_prompting |= PPosition;
+    }
+
+  if (f->output_data.w32->want_fullscreen != FULLSCREEN_NONE)
+    {
+      int left, top;
+      int width, height;
+
+      /* It takes both for some WM:s to place it where we want */
+      window_prompting = USPosition | PPosition;
+      x_fullscreen_adjust (f, &width, &height, &top, &left);
+      f->width = width;
+      f->height = height;
+      f->output_data.w32->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
+      f->output_data.w32->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
+      f->output_data.w32->left_pos = left;
+      f->output_data.w32->top_pos = top;
     }
 
   return window_prompting;
@@ -5564,6 +5649,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
@@ -5959,10 +6046,10 @@ w32_load_system_font (f,fontname,size)
 
     /* Set global flag fonts_changed_p to non-zero if the font loaded
        has a character with a smaller width than any other character
-       before, or if the font loaded has a smalle>r height than any
+       before, or if the font loaded has a smaller height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
-    fonts_changed_p = x_compute_min_glyph_bounds (f);
+    fonts_changed_p |= x_compute_min_glyph_bounds (f);
     UNBLOCK_INPUT;
     return fontp;
   }
@@ -14487,9 +14574,6 @@ syms_of_w32fns ()
 
   w32_visible_system_caret_hwnd = NULL;
 
-  /* The section below is built by the lisp expression at the top of the file,
-     just above where these variables are declared.  */
-  /*&&& init symbols here &&&*/
   Qauto_raise = intern ("auto-raise");
   staticpro (&Qauto_raise);
   Qauto_lower = intern ("auto-lower");
@@ -14556,7 +14640,14 @@ syms_of_w32fns ()
   staticpro (&Qcenter);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
-  /* This is the end of symbol initialization.  */
+  Qfullscreen = intern ("fullscreen");
+  staticpro (&Qfullscreen);
+  Qfullwidth = intern ("fullwidth");
+  staticpro (&Qfullwidth);
+  Qfullheight = intern ("fullheight");
+  staticpro (&Qfullheight);
+  Qfullboth = intern ("fullboth");
+  staticpro (&Qfullboth);
 
   Qhyper = intern ("hyper");
   staticpro (&Qhyper);
@@ -14572,6 +14663,7 @@ syms_of_w32fns ()
   staticpro (&Qcontrol);
   Qshift = intern ("shift");
   staticpro (&Qshift);
+  /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky

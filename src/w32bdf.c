@@ -790,6 +790,13 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
     fontp->relative_compose = bdf_font->relative_compose;
     fontp->default_ascent = bdf_font->default_ascent;
 
+    /* Set global flag fonts_changed_p to non-zero if the font loaded
+       has a character with a smaller width than any other character
+       before, or if the font loaded has a smaller height than any
+       other font loaded before.  If this happens, it will make a
+       glyph matrix reallocation necessary.  */
+    fonts_changed_p |= x_compute_min_glyph_bounds (f);
+
     UNBLOCK_INPUT;
     dpyinfo->n_fonts++;
     return fontp;
