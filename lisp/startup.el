@@ -141,8 +141,6 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setq default-directory (abbreviate-file-name default-directory))
     (unwind-protect
 	(command-line)
-      ;; Run the site-start library if it exists.
-      (load "site-start" t t)
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
@@ -212,6 +210,11 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setcdr command-line-args args))
 
   (run-hooks 'before-init-hook)
+
+  ;; Run the site-start library if it exists.  The point of this file is
+  ;; that it is run before .emacs.  There is no point in doing this after
+  ;; .emacs; that is useless.
+  (load "site-start" t t)
 
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
