@@ -280,6 +280,9 @@ is okay.  See `mode-line-format'.")
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
+;; We have base64 functions built in now.
+(add-to-list 'features 'base64)
+
 (define-key esc-map "\t" 'complete-symbol)
 
 (defun complete-symbol (arg)
