@@ -45,7 +45,7 @@
 *If non-nil, function to guess name of current function from surrounding text.
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
 instead) with no arguments.  It returns a string or nil if it cannot guess."
-  :type 'boolean
+  :type 'function
   :group 'change-log)
 
 ;;;###autoload
