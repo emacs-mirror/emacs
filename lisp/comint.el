@@ -367,6 +367,8 @@ This is to work around a bug in Emacs process signaling.")
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
 (put 'comint-ptyp 'permanent-local t)
 
+(put 'comint-mode 'mode-class 'special)
+
 (defun comint-mode ()
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
