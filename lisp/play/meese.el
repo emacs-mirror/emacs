@@ -1,4 +1,7 @@
-;; meese.el --- protect the impressionable young minds of America...NOT!
+;; meese.el --- protect the impressionable young minds of America
+
+;; Maintainer: FSF
+;; Last-Modified: 20 May 1988
 
 (defun protect-innocence-hook ()
   (if (and (equal (file-name-nondirectory buffer-file-name) "sex.6")

@@ -1,8 +1,13 @@
 ;;; mhspool.el --- MH folder access using NNTP for GNU Emacs
 
+;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
+
+;; $Header: mhspool.el,v 1.5 90/03/23 13:25:23 umerin Locked $
+
 ;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
-;; $Header: mhspool.el,v 1.5 90/03/23 13:25:23 umerin Locked $
 
 ;; This file is part of GNU Emacs.
 
@@ -21,7 +26,7 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(require 'nntp)
+;; Commentary:
 
 ;; This package enables you to read mail or articles in MH folders, or
 ;; articles saved by GNUS. In any case, the file names of mail or
@@ -33,6 +38,10 @@
 ;; `~/Mail', the file must be a file named `.newsrc-:Mail'. (There is
 ;; no way to specify hierarchical directory now.) In this case, the
 ;; name of the NNTP server passed to GNUS must be `:Mail'.
+
+;; Code:
+
+(require 'nntp)
 
 (defvar mhspool-list-directory-switches '("-R")
   "*Switches for `nntp-request-list' to pass to `ls' for gettting file lists.

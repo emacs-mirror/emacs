@@ -1,5 +1,10 @@
 ;;; netunam.el --- HP-UX RFA Commands
 
+;; Author: CPH <cph@zurich.ai.mit.edu>
+;; Last-Modified: 31 Oct 1989
+
+;;; $Header: netunam.el,v 1.3 88/12/21 16:32:23 GMT cph Exp $
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,9 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Author: cph@zurich.ai.mit.edu
-
-;;; $Header: netunam.el,v 1.3 88/12/21 16:32:23 GMT cph Exp $
+;;; Code:
 
 (defconst rfa-node-directory "/net/"
   "Directory in which RFA network special files are stored.

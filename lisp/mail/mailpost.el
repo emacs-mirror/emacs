@@ -1,15 +1,20 @@
-;;; post.el --- RMAIL coupler to /usr/uci/post mailer
+;;; mailpost.el --- RMAIL coupler to /usr/uci/post mailer
+
+;; Author: Gary Delp <delp@huey.Udel.Edu>
+;; Maintainer: FSF
+;; Created: 13 Jan 1986
+;; Last-Modified: 30 May 1992
+
+;; This is in the public domain
+;; since Delp distributed it without a copyright notice in 1986.
+
+;;; Commentary:
 
 ;; Yet another mail interface.  this for the rmail system to provide
 ;;  the missing sendmail interface on systems without /usr/lib/sendmail,
 ;;   but with /usr/uci/post.
-;;
-;; created by: Gary Delp <delp at huey.Udel.Edu>
-;;             Mon Jan 13 14:45:12 1986
-;;
-;;
-;; This is in the public domain
-;; since Delp distributed it without a copyright notice in 1986.
+
+;;; Code:
 
 ;; (setq send-mail-function 'post-mail-send-it)
 

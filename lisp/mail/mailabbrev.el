@@ -1,9 +1,12 @@
+;;; mailabbrev.el --- abbrev-expansion of mail aliases.
+
+;; Author: Jamie Zawinski <jwz@lucid.com>
+;;	Roland McGrath <roland@gnu.ai.mit.edu>
+;; Created: 19 Oct 90
+;; Last-Modified: 13 Jun 92
+
 ;;; ??? We must get papers for this or delete it.
-;;; Abbrev-expansion of mail aliases.
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
-;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
-;;; Modified: 5 apr 92, Roland McGrath <roland@gnu.ai.mit.edu>
-;;; Last change 13-jun-92. jwz
 
 ;;; This file is part of GNU Emacs.
 
@@ -20,6 +23,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; This file ensures that, when the point is in a To:, CC:, BCC:, or From: 
 ;;; field, word-abbrevs are defined for each of your mail aliases.  These
@@ -139,6 +144,8 @@
 ;;;    -  Remove the autoload of expand-mail-aliases from the file sendmail.el;
 ;;;    -  Remove the autoload of build-mail-aliases from the file sendmail.el;
 ;;;    -  Add an autoload of define-mail-alias to loaddefs.el.
+
+;;; Code:
 
 (require 'sendmail)
 

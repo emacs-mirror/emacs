@@ -1,16 +1,19 @@
-;;; 
 ;;; modula2.el --- Modula-2 editing support package
-;; The authors distributed this in without a copyright notice
-;; back in 1988, so it is in the public domain.
 
-; Author Mick Jordan
-; amended Peter Robinson
-; ported to GNU Michael Schmidt
-;;;From: "Michael Schmidt" <michael@pbinfo.UUCP>
-;;;Modified by Tom Perrine <Perrin@LOGICON.ARPA> (TEP)
+;; Author: Michael Schmidt <michael@pbinfo.UUCP> 
+;;	Tom Perrine <Perrin@LOGICON.ARPA>
+;; Last-Modified: 30 May 1992 
 
+;; The authors distributed this without a copyright notice
+;; back in 1988, so it is in the public domain.  The original included
+;; the following credit:
 
-;;; Added by TEP
+;; Author Mick Jordan
+;; amended Peter Robinson
+
+;;; Code:
+
+;;; Added by Tom Perrine (TEP)
 (defvar m2-mode-syntax-table nil
   "Syntax table in use in Modula-2 buffers.")
 

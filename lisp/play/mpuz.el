@@ -1,7 +1,9 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs
 
-;;; by Philippe Schnoebelen <phs@lifia.imag.fr>
-;;; Last modified on 11 Nov 1990
+;; Author: Philippe Schnoebelen <phs@lifia.imag.fr>
+;; Last-Modified: 11 Nov 1990
+;; Keywords: games
+
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -20,6 +22,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Code:
 
 (random t)				; randomize
 
