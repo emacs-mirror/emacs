@@ -3504,7 +3504,7 @@ else
 int main() {
 
 /* Ultrix mips cc rejects this.  */
-typedef int charset[2]; const charset x = {0,0};
+typedef int charset[2]; const charset x;
 /* SunOS 4.1.1 cc rejects this.  */
 char const *const *ccp;
 char **p;
@@ -5370,9 +5370,9 @@ rm -f conftest*
 fi
 if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  echo $ac_n "checking for png_set_expand in -lpng""... $ac_c" 1>&6
-echo "configure:5375: checking for png_set_expand in -lpng" >&5
-ac_lib_var=`echo png'_'png_set_expand | sed 'y%./+-%__p_%'`
+  echo $ac_n "checking for png_get_channels in -lpng""... $ac_c" 1>&6
+echo "configure:5375: checking for png_get_channels in -lpng" >&5
+ac_lib_var=`echo png'_'png_get_channels | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -5384,10 +5384,10 @@ cat > conftest.$ac_ext <<EOF
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char png_set_expand();
+char png_get_channels();
 
 int main() {
-png_set_expand()
+png_get_channels()
 ; return 0; }
 EOF
 if { (eval echo configure:5394: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -5652,7 +5652,7 @@ else
 #include "confdefs.h"
 #include <alloca.h>
 int main() {
-void *p = alloca(2 * sizeof(int));
+char *p = alloca(2 * sizeof(int));
 ; return 0; }
 EOF
 if { (eval echo configure:5659: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -9277,7 +9277,7 @@ fi; done
 
 EOF
 cat >> $CONFIG_STATUS <<EOF
-CPP="$CPP" CPPFLAGS="$CPPFLAGS"
+GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 
@@ -9358,4 +9358,5 @@ EOF
 chmod +x $CONFIG_STATUS
 rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
+
 

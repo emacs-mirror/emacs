@@ -3,6 +3,9 @@
 	* configure.in (HAVE_PNG): Check for the presence of
 	png_get_channels to rule out older PNG libs.
 
+	* configure.in (AC_OUTPUT): Arrange to emit definitions of
+	GCC and NON_GNU_CPP into config.status.
+
 2000-11-20  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix last change.
