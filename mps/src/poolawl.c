@@ -1,7 +1,7 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.63) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolawl.c(trunk.64) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -41,7 +41,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.63) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.64) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -54,7 +54,7 @@ SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.63) $");
  */
 
 
-/* Per-segment statistics maintained between segment scans*/
+/* Per-segment statistics maintained between segment scans */
 
 typedef struct AWLStatSegStruct {
   Count sameAccesses;  /* accesses involving same address as last access */
@@ -72,16 +72,21 @@ typedef struct AWLStatTotalStruct {
 } AWLStatTotalStruct, *AWLStatTotal;
 
 
-/* design.mps.poolawl.poolstruct */
+/* AWLStruct -- AWL pool structure
+ *
+ * See design.mps.poolawl.poolstruct
+ */
+
 typedef struct AWLStruct {
   PoolStruct poolStruct;
   Shift alignShift;
   ActionStruct actionStruct;
-  double lastCollected;
+  Size size;                /* allocated size in bytes */
+  Size survivors;           /* allocated size after last collection in bytes */
   Serial gen;               /* associated generation (for SegAlloc) */
-  Sig sig;
   Count succAccesses;       /* number of successive single accesses */
   AWLStatTotalStruct stats;
+  Sig sig;
 } AWLStruct, *AWL;
 
 
@@ -129,11 +134,14 @@ typedef struct AWLSegStruct {
 
 #define SegAWLSeg(seg)             ((AWLSeg)(seg))
 
+
 /* AWLSegSeg -- convert AWLSeg to generic Seg  */
 
 #define AWLSegSeg(awlseg)          ((Seg)(awlseg))
 
+
 extern SegClass EnsureAWLSegClass(void);
+
 
 static Bool AWLSegCheck(AWLSeg awlseg)
 {
@@ -161,7 +169,7 @@ static void AWLStatSegInit(AWLSeg awlseg)
 
 static void AWLStatTotalInit(AWL awl)
 {
-  AVERT(AWL, awl);
+  /* Can't check awl, because it hasn't been initialized. */
 
   awl->stats.goodScans = 0;
   awl->stats.badScans = 0;
@@ -409,6 +417,8 @@ static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
 }
 
 
+/* AWLSegCreate -- Create a new segment of at least given size */
+
 static Res AWLSegCreate(AWLSeg *awlsegReturn,
                         RankSet rankSet, Pool pool, Size size,
                         Bool reservoirPermit)
@@ -454,6 +464,8 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
 }
 
 
+/* AWLSegAlloc -- allocate an object in a given segment */
+
 static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
                         AWLSeg awlseg, AWL awl, Size size)
 {
@@ -476,11 +488,14 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
   if(!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n)) {
     return FALSE;
   }
+  awl->size += size;
   *baseReturn = AddrAdd(SegBase(seg), i << awl->alignShift);
   *limitReturn = AddrAdd(SegBase(seg), j << awl->alignShift);
   return TRUE;
 }
 
+
+/* AWLInit -- initialize an AWL pool */
 
 static Res AWLInit(Pool pool, va_list arg)
 {
@@ -498,11 +513,13 @@ static Res AWLInit(Pool pool, va_list arg)
   pool->format = format;
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
-  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
   awl->gen = AWLGen;
-  awl->sig = AWLSig;
+  awl->size = (Size)0;
+  awl->survivors = (Size)0;
+
   awl->succAccesses = 0;
   AWLStatTotalInit(awl);
+  awl->sig = AWLSig;
 
   AVERT(AWL, awl);
   EVENT_PP(PoolInitAWL, pool, format);
@@ -1003,6 +1020,8 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
+/* AWLReclaim -- reclaim dead objects in an AWL segment */
+
 static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 {
   Addr base;
@@ -1012,6 +1031,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   Count oldFree;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
+  Size freed; /* amount reclaimed, in bytes */
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -1021,10 +1041,6 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   awlseg = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
-
-  /* The following line is necessary to avoid a spurious AWL collection */
-  /* after an AMC Gen1 collection */
-  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
 
   base = SegBase(seg);
 
@@ -1065,12 +1081,17 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   }
   AVER(i == awlseg->grains);
 
-  trace->reclaimSize += (awlseg->free - oldFree) << awl->alignShift;
+  freed = (awlseg->free - oldFree) << awl->alignShift;
+  awl->size -= freed; awl->survivors = awl->size;
+  trace->reclaimSize += freed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
+  /* @@@@ never frees a segment */
 }
 
+
+/* AWLTraceBegin -- note trace start */
 
 static Res AWLTraceBegin(Pool pool, Trace trace)
 {
@@ -1081,7 +1102,7 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
   AVERT(AWL, awl);
   AVERT(Trace, trace);
 
-  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
+  awl->survivors = awl->size; /* stop attempts to restart */
   return ResOK;
 }
 
@@ -1125,13 +1146,20 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 }
 
 
-/* AWLBenefit -- calculate the benefit of starting an AWL-only collection */
+/* AWLBenefit -- calculate the benefit of starting an AWL-only collection
+ *
+ * This is mostly for tests that only have AWL, but in pathological
+ * situations AMC allocation might stop while AWL goes on.  Normally,
+ * most allocation is in AMC, and we want AMC to start the collections,
+ * as that collects younger generations too.  Just see of AWL has grown
+ * enough since last collection (since it's a non-moving pool, this is
+ * the nearest analog to capacity).
+ */
 
 static double AWLBenefit(Pool pool, Action action)
 {
   AWL awl;
-  Arena arena;
-  double f;             /* frequency of collection, in kB of alloc */
+  double c;             /* frequency of collection, in kB of alloc */
 
   AVERT(Pool, pool);
   awl = PoolPoolAWL(pool);
@@ -1140,26 +1168,19 @@ static double AWLBenefit(Pool pool, Action action)
   AVER(awl == ActionAWL(action));
 
   switch(awl->gen) {
-  case 0: f = AMCGen0Frequency; break;
-  case 1: f = AMCGen1Frequency; break;
-  case 2: f = AMCGen2Frequency; break;
+  case 0: c = TraceGen0Size; break;
+  case 1: c = TraceGen1Size; break;
+  case 2: c = TraceGen2Size; break;
   default:
-    if(awl->gen == AMCGenFinal) {
-      f = 1e99; /* Don't ever collect the final generation. */
+    if(awl->gen == TraceFinalGen) {
+      return 0.0; /* Don't ever collect the final generation. */
     } else {
-      f = AMCGen2Frequency + AMCGen2plusFrequencyMultiplier * awl->gen;
+      c = TraceGen2Size + TraceGen2plusSizeMultiplier * awl->gen;
     }
     break;
   }
 
-  /* When we have both AMC and AWL we want AMC to do the driving of */
-  /* the collections, as that collects younger generations too. */
-  /* So we make AWL's collections a little less frequent. */
-  f += 1;
-
-  arena = PoolArena(pool);
-
-  return (ArenaMutatorAllocSize(arena) - awl->lastCollected) - f * 1024uL;
+  return (awl->size - awl->survivors) - c * 1024.0;
 }
 
 
@@ -1251,6 +1272,8 @@ mps_class_t mps_class_awl(void)
 }
 
 
+/* AWLCheck -- check an AWL pool */
+
 static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
@@ -1258,10 +1281,7 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == EnsureAWLPoolClass());
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
-  /* This useful check cannot be made because ArenaMutatorAllocSize */
-  /* is not monotonic.  See request.dylan.160070. */
-  /* CHECKL(ArenaMutatorAllocSize(awl->poolStruct.arena) */
-  /*        >= awl->lastCollected); */
+  CHECKL(awl->size >= awl->survivors);
 
   /* 30 is just a sanity check really, not a constraint */
   CHECKL(0 <= awl->gen && awl->gen <= 30);

@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.132) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpm.h(trunk.133) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
@@ -538,27 +538,28 @@ extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
-/* Collection control parameters */
-/* Defined here, because they are used by more than one module. */
-/* There are two sets of frequencies, for inside and outside ramp */
-/* mode (except for the ramp generation itself). */
-/* They have the wrong names because they originally came from AMC, */
-/* and binary compatibility is required for external clients. */
 
-extern unsigned long AMCGen0Frequency;
-extern unsigned long AMCGen1Frequency;
-extern unsigned long AMCGen2Frequency;
-extern unsigned long AMCGen2plusFrequencyMultiplier;
-extern unsigned long AMCRampGenFrequency;
-extern unsigned long AMCGen0RampmodeFrequency;
-extern unsigned long AMCGen1RampmodeFrequency;
-extern unsigned long AMCGen2RampmodeFrequency;
-extern unsigned long AMCGen2plusRampmodeFrequencyMultiplier;
-extern Serial AMCRampGenFollows;
-extern Serial AMCGenFinal;
+/* Collection control parameters */
+
+/* There are two sets of sizes, for inside and outside ramp */
+/* mode (except for the ramp generation itself). */
+
+extern unsigned long TraceGen0Size;
+extern unsigned long TraceGen1Size;
+extern unsigned long TraceGen2Size;
+extern unsigned long TraceGen2plusSizeMultiplier;
+extern unsigned long TraceRampGenSize;
+extern unsigned long TraceGen0RampmodeSize;
+extern unsigned long TraceGen1RampmodeSize;
+extern unsigned long TraceGen2RampmodeSize;
+extern unsigned long TraceGen2plusRampmodeSizeMultiplier;
+extern Serial TraceRampGenFollows;
+extern Serial TraceTopGen; /* highest generation to use */
+extern Serial TraceFinalGen;
 
 extern double TraceGen0IncrementalityMultiple;
 extern double TraceMortalityEstimate;
+
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
 
