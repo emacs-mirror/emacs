@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.22 2002/01/05 17:21:06 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.23 2002/02/25 22:04:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -50,28 +50,6 @@ If nil, VC itself computes this value when it is first needed."
   "*Extra switches for registering a file in RCS.
 A string or list of strings.  These are passed to the checkin program
 by \\[vc-rcs-register]."
-  :type '(choice (const :tag "None" nil)
-		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
-  :version "21.1"
-  :group 'vc)
-
-(defcustom vc-rcs-checkin-switches nil
-  "*A string or list of strings specifying extra switches for RCS checkin.
-These are passed to the checkin program by \\[vc-rcs-checkin]."
-  :type '(choice (const :tag "None" nil)
-		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
-  :version "21.1"
-  :group 'vc)
-
-(defcustom vc-rcs-checkout-switches nil
-  "*A string or list of strings specifying extra switches for RCS checkout.
-These are passed to the checkout program by \\[vc-rcs-checkout]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -254,7 +232,7 @@ the RCS command (in that order).
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
     (let ((subdir (expand-file-name "RCS" (file-name-directory file)))
-	  (switches (list
+	  (switches (append
 		     (if (stringp vc-register-switches)
 			 (list vc-register-switches)
 		       vc-register-switches)
