@@ -89,7 +89,7 @@ that's how we tell where the answer ends."
   "Append STRING to the TQ's buffer; then process the new data."
   (let ((old-buffer (current-buffer)))
     (unwind-protect
-	(save-match-data
+	(progn
 	  (set-buffer (tq-buffer tq))
 	  (goto-char (point-max))
 	  (insert string)
