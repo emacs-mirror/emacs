@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (c) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -654,13 +654,13 @@ This is called whenever you create a new face."
   (let* (name
 	 symbol
 	 docstring
-	 (key (cdr (assoc face facemenu-keybindings)))
+	 (key (cdr (assoc face-or-color facemenu-keybindings)))
 	 function menu-val)
     (if (symbolp face-or-color)
 	(setq name (symbol-name face-or-color)
 	      symbol face-or-color)
       (setq name face-or-color
-	    face (intern name)))
+	    symbol (intern name)))
     (cond ((eq menu 'facemenu-foreground-menu)
 	   (setq docstring
 		 (format "Select foreground color %s for subsequent insertion."
