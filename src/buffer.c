@@ -1610,6 +1610,10 @@ Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
     "Non-nil if self-insertion should replace existing text.\n\
+If non-nil and not `overwrite-mode-binary', self-insertion still\n\
+inserts at the end of a line, and inserts when point is before a tab,\n\
+unless that tab is displaying as only one space.\n\
+If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,

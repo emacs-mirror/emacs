@@ -256,7 +256,8 @@ struct buffer
 #endif
     /* Alist of (FUNCTION . STRING) for each minor mode enabled in buffer. */
     Lisp_Object minor_modes;
-    /* t if "self-insertion" should overwrite */
+    /* t if "self-insertion" should overwrite; `binary' if it should also
+       overwrite newlines and tabs - for editing executables and the like.  */
     Lisp_Object overwrite_mode;
     /* non-nil means abbrev mode is on.  Expand abbrevs automatically. */
     Lisp_Object abbrev_mode;
