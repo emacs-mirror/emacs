@@ -268,8 +268,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq comment-indent-function 'perl-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords perl-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(perl-font-lock-keywords))
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
