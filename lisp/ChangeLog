@@ -1,3 +1,9 @@
+2001-03-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* term/x-win.el (x-handle-xrm-switch): Accept more than one -xrm
+	switch, like xterm, and concat resource strings, with a newline
+	between them.
+
 2001-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/codepage.el (cp770-decode-table) 
