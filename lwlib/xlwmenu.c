@@ -33,6 +33,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 static int pointer_grabbed;
 static XEvent menu_post_event;
 
+XFontStruct *xlwmenu_default_font;
+
 static char 
 xlwMenuTranslations [] = 
 "<BtnDown>:	start()\n\
@@ -1059,15 +1061,13 @@ release_shadow_gcs (mw)
 }
 
 static void
-XlwMenuInitialize (request, new, args, num_args)
+XlwMenuInitialize (request, mw, args, num_args)
      Widget request;
-     Widget new;
+     XlwMenuWidget mw;
      ArgList args;
      Cardinal *num_args;
 {
   /* Get the GCs and the widget size */
-  XlwMenuWidget mw = (XlwMenuWidget)new;
-  
   XSetWindowAttributes xswa;
   int mask;
   
@@ -1090,6 +1090,12 @@ XlwMenuInitialize (request, new, args, num_args)
 						      gray_bits, gray_width,
 						      gray_height, 1, 0, 1);
   
+  /* I don't understand why this ends up 0 sometimes,
+     but it does.  This kludge works around it.
+     Can anyone find a real fix?   -- rms.  */
+  if (mw->menu.font == 0)
+    mw->menu.font = xlwmenu_default_font;
+
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
   
