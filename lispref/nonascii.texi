@@ -157,7 +157,7 @@ This variable specifies the amount to add to a non-@sc{ascii} character
 when converting unibyte text to multibyte.  It also applies when
 @code{self-insert-command} inserts a character in the unibyte
 non-@sc{ascii} range, 128 through 255.  However, the function
-@code{insert-char} does not perform this conversion.
+@code{insert} and @code{insert-char} do not perform this conversion.
 
 The right value to use to select character set @var{cs} is @code{(-
 (make-char @var{cs}) 128)}.  If the value of
@@ -169,7 +169,7 @@ value for the Latin 1 character set, rather than zero.
 This variable provides a more general alternative to
 @code{nonascii-insert-offset}.  You can use it to specify independently
 how to translate each code in the range of 128 through 255 into a
-multibyte character.  The value should be a vector, or @code{nil}.
+multibyte character.  The value should be a char-table, or @code{nil}.
 If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @end defvar
 
@@ -200,7 +200,10 @@ This function leaves the buffer contents unchanged when viewed as a
 sequence of bytes.  As a consequence, it can change the contents viewed
 as characters; a sequence of two bytes which is treated as one character
 in multibyte representation will count as two characters in unibyte
-representation.
+representation.  Character codes 128 through 159 are an exception.  They
+are represented by one byte in a unibyte buffer, but when the buffer is
+set to multibyte, they are converted to two-byte sequences, and vice
+versa.
 
 This function sets @code{enable-multibyte-characters} to record which
 representation is in use.  It also adjusts various data in the buffer
@@ -244,7 +247,7 @@ encoding and decoding (@pxref{Explicit Encoding}).  Some other character
 codes cannot occur at all in multibyte text.  Only the @sc{ascii} codes
 0 through 127 are truly legitimate in both representations.
 
-@defun char-valid-p charcode
+@defun char-valid-p charcode &optional genericp
 This returns @code{t} if @var{charcode} is valid for either one of the two
 text representations.
 
@@ -256,6 +259,10 @@ text representations.
 (char-valid-p 2248)
      @result{} t
 @end example
+
+If the optional argument @var{genericp} is non-nil, this function
+returns @code{t} if @var{charcode} is a generic character
+(@pxref{Generic Character}).
 @end defun
 
 @node Character Sets
@@ -299,8 +306,9 @@ belongs to.
 This function returns the charset property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the same
 as the property list of that symbol.  Charset properties are used for
-special purposes within Emacs; for example, @code{x-charset-registry}
-helps determine which fonts to use (@pxref{Font Selection}).
+special purposes within Emacs; for example,
+@code{preferred-coding-system} helps determine which coding system to
+use to encode characters in a charset.
 @end defun
 
 @node Chars and Bytes
@@ -312,12 +320,13 @@ helps determine which fonts to use (@pxref{Font Selection}).
   In multibyte representation, each character occupies one or more
 bytes.  Each character set has an @dfn{introduction sequence}, which is
 normally one or two bytes long.  (Exception: the @sc{ascii} character
-set has a zero-length introduction sequence.)  The introduction sequence
-is the beginning of the byte sequence for any character in the character
-set.  The rest of the character's bytes distinguish it from the other
-characters in the same character set.  Depending on the character set,
-there are either one or two distinguishing bytes; the number of such
-bytes is called the @dfn{dimension} of the character set.
+set and the @sc{eight-bit-graphic} character set have a zero-length
+introduction sequence.)  The introduction sequence is the beginning of
+the byte sequence for any character in the character set.  The rest of
+the character's bytes distinguish it from the other characters in the
+same character set.  Depending on the character set, there are either
+one or two distinguishing bytes; the number of such bytes is called the
+@dfn{dimension} of the character set.
 
 @defun charset-dimension charset
 This function returns the dimension of @var{charset}; at present, the
@@ -357,14 +366,8 @@ values is the character set's dimension.
      @result{} (latin-iso8859-1 72)
 (split-char 65)
      @result{} (ascii 65)
-@end example
-
-Unibyte non-@sc{ascii} characters are considered as part of
-the @code{ascii} character set:
-
-@example
-(split-char 192)
-     @result{} (ascii 192)
+(split-char 128)
+     @result{} (eight-bit-control 128)
 @end example
 @end defun
 
@@ -395,9 +398,14 @@ For example:
      @result{} 2176
 (char-valid-p 2176)
      @result{} nil
+(char-valid-p 2176 t)
+     @result{} t
 (split-char 2176)
      @result{} (latin-iso8859-1 0)
 @end example
+
+The character sets @sc{ascii}, @sc{eight-bit-control}, and
+@sc{eight-bit-graphic} don't have corresponding generic characters.
 
 @node Scanning Charsets
 @section Scanning for Character Sets
@@ -599,14 +607,16 @@ to a subprocess.
 @end defvar
 
 @defvar save-buffer-coding-system
-This variable specifies the coding system for saving the buffer---but it
-is not used for @code{write-region}.
+This variable specifies the coding system for saving the buffer (by
+overriding @code{buffer-file-coding-system}).  Note that it is not used
+for @code{write-region}.
 
 When a command to save the buffer starts out to use
-@code{save-buffer-coding-system}, and that coding system cannot handle
+@code{buffer-file-coding-system} (or @code{save-buffer-coding-system}),
+and that coding system cannot handle
 the actual text in the buffer, the command asks the user to choose
 another coding system.  After that happens, the command also updates
-@code{save-buffer-coding-system} to represent the coding system that the
+@code{buffer-file-coding-system} to represent the coding system that the
 user specified.
 @end defvar
 
@@ -632,7 +642,8 @@ selections for the window system.  @xref{Window System Selections}.
 @defun coding-system-list &optional base-only
 This function returns a list of all coding system names (symbols).  If
 @var{base-only} is non-@code{nil}, the value includes only the
-base coding systems.  Otherwise, it includes variant coding systems as well.
+base coding systems.  Otherwise, it includes alias and variant coding
+systems as well.
 @end defun
 
 @defun coding-system-p object
