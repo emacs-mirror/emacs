@@ -294,7 +294,9 @@ Default value, nil, means edit the string instead."
     (define-key map " " 'isearch-whitespace-chars)
     (define-key map [?\S-\ ] 'isearch-whitespace-chars)
 
-    (define-key map "\C-w" 'isearch-yank-word-or-char)
+    (define-key map "\C-b" 'isearch-del-char)
+    (define-key map "\C-f" 'isearch-yank-char)
+    (define-key map "\C-w" 'isearch-yank-word)
     (define-key map "\C-y" 'isearch-yank-line)
 
     ;; Define keys for regexp chars * ? |.
@@ -448,12 +450,15 @@ With a prefix argument, do an incremental regular expression search instead.
 As you type characters, they add to the search string and are found.
 The following non-printing keys are bound in `isearch-mode-map'.
 
-Type \\[isearch-delete-char] to cancel characters from end of search string.
+Type \\[isearch-delete-char] to cancel last input item from end of search string.
+Type \\[isearch-del-char] to cancel last character from end of search string.
 Type \\[isearch-exit] to exit, leaving point at location found.
 Type LFD (C-j) to match end of line.
 Type \\[isearch-repeat-forward] to search again forward,\
  \\[isearch-repeat-backward] to search again backward.
-Type \\[isearch-yank-word-or-char] to yank word from buffer onto end of search\
+Type \\[isearch-yank-char] to yank character from buffer onto end of search\
+ string and search for it.
+Type \\[isearch-yank-word] to yank word from buffer onto end of search\
  string and search for it.
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
@@ -486,7 +491,7 @@ To use a different input method for searching, type
 you want to use.
 
 The above keys, bound in `isearch-mode-map', are often controlled by
- options; do M-x apropos on search-.* to find them.
+ options; do \\[apropos] on search-.* to find them.
 Other control and meta characters terminate the search
  and are then executed normally (depending on `search-exit-option').
 Likewise for function keys and mouse button events.
@@ -789,7 +794,7 @@ The following additional command keys are active while editing.
 \\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
 \\<isearch-mode-map>
-If first char entered is \\[isearch-yank-word-or-char], then do word search instead."
+If first char entered is \\[isearch-yank-word], then do word search instead."
 
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
@@ -1053,6 +1058,16 @@ If no previous match was done, just beep."
     (isearch-pop-state))
   (isearch-update))
 
+(defun isearch-del-char ()
+  "Discard last character and move point back.
+If there is no previous character, just beep."
+  (interactive)
+  (if (equal isearch-string "")
+      (ding)
+    (setq isearch-string (substring isearch-string 0 -1)
+          isearch-message (mapconcat 'isearch-text-char-description
+                                     isearch-string "")))
+  (isearch-search-and-update))
 
 (defun isearch-yank-string (string)
   "Pull STRING into search string."
@@ -1114,7 +1129,7 @@ might return the position of the end of the line."
      (buffer-substring-no-properties (point) (funcall jumpform)))))
 
 (defun isearch-yank-char ()
-  "Pull next letter from buffer into search string."
+  "Pull next character from buffer into search string."
   (interactive)
   (isearch-yank-internal (lambda () (forward-char 1) (point))))
 
@@ -1142,9 +1157,8 @@ might return the position of the end of the line."
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.
   (when (or isearch-success
-	    ;; unsuccessful regexp search may become
-	    ;;  successful by addition of characters which
-	    ;;  make isearch-string valid
+	    ;; Unsuccessful regexp search may become successful by
+	    ;; addition of characters which make isearch-string valid
 	    isearch-regexp
 	    ;; If the string was found but was completely invisible,
 	    ;; it might now be partly visible, so try again.
@@ -1471,7 +1485,9 @@ Isearch mode."
            (command-execute scroll-command)
            (let ((ab-bel (isearch-string-out-of-window isearch-point)))
              (if ab-bel
-                 (isearch-back-into-window (eq ab-bel 'above) isearch-point)))
+                 (isearch-back-into-window (eq ab-bel 'above) isearch-point)
+               (or (eq (point) isearch-point)
+                   (goto-char isearch-point))))
            (isearch-update))
 	  (search-exit-option
 	   (let (window)
