@@ -1,6 +1,12 @@
 2003-03-13  Andreas Schwab  <schwab@suse.de>
 
+	* data.c (long_to_cons): Fix type of top.
+
+	* xselect.c (selection_data_to_lisp_data): Use int instead of
+	long for an integer of size 4.
+
 	* gtkutil.c (xg_update_frame_menubar): Add missing return value.
+	(xg_tool_bar_help_callback): Likewise.
 
 2003-03-12  Andreas Schwab  <schwab@suse.de>
 
