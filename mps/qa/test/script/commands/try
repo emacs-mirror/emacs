@@ -13,6 +13,6 @@
 require "require";
 
 foreach $testfile (@qa_args) {
- &try_test($testfile, "yes", "results");
+ &try_test($testfile);
 }
 
