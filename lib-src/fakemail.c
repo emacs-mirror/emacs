@@ -169,7 +169,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -410,7 +410,7 @@ close_the_streams ()
     no_problems = (no_problems &&
 		   ((*rem->action) (rem->handle) == 0));
   the_streams = ((stream_list) NULL);
-  return (no_problems ? 0 : 1);
+  return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 void
@@ -667,7 +667,7 @@ read_header ()
       if (next_line == ((line_list *) NULL))
 	{
 	  /* Not a valid header */
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
       *next_line = new_list ();
       (*next_line)->string = alloc_string (length);
@@ -753,3 +753,5 @@ main (argc, argv)
 
 /* arch-tag: acb0afa6-315a-4c5b-b9e3-def5725c8783
    (do not change this comment) */
+
+/* fakemail.c ends here */
