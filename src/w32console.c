@@ -123,25 +123,18 @@ clear_to_end (void)
 void
 clear_frame (void)
 {
-  SMALL_RECT scroll;
-  COORD	     dest;
-  CHAR_INFO  fill;
   FRAME_PTR  f = PICK_FRAME ();
-  
+  COORD	     dest;
+  int        n, r;
+
   hl_mode (0);
   
-  scroll.Top = 0;
-  scroll.Bottom = FRAME_HEIGHT (f) - 1;
-  scroll.Left = 0;
-  scroll.Right = FRAME_WIDTH (f) - 1;
-  
-  dest.Y = FRAME_HEIGHT (f);
-  dest.X = 0;
-  
-  fill.Char.AsciiChar = 0x20;
-  fill.Attributes = char_attr;
-  
-  ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
+  n = FRAME_HEIGHT (f) * FRAME_WIDTH (f);
+  dest.X = dest.Y = 0;
+
+  FillConsoleOutputAttribute (cur_screen, char_attr, n, dest, &r);
+  FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
+
   move_cursor (0, 0);
 }
 
@@ -347,6 +340,9 @@ write_glyphs (register GLYPH *string, register int len)
   char *chars;
   int i;
   
+  if (len <= 0)
+    return;
+
   attrs = alloca (len * sizeof (*attrs));
   chars = alloca (len * sizeof (*chars));
   if (attrs == NULL || chars == NULL)
