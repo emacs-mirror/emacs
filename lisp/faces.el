@@ -308,16 +308,16 @@ If the optional fourth argument NEW-FRAME is given,
 copy the information from face OLD-FACE on frame FRAME
 to NEW-FACE on frame NEW-FRAME."
   (or new-frame (setq new-frame frame))
-  (setq old-face (internal-get-face old-face frame))
-  (let* ((inhibit-quit t)
-	 (new-face (or (internal-find-face new-face new-frame)
-		       (make-face new-face))))
+  (let ((inhibit-quit t))
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (copy-face old-face new-face (car frames))
 	    (setq frames (cdr frames)))
 	  (copy-face old-face new-face t))
+      (setq old-face (internal-get-face old-face frame))
+      (setq new-face (or (internal-find-face new-face new-frame)
+			 (make-face new-face)))
       (set-face-font new-face (face-font old-face frame) new-frame)
       (set-face-foreground new-face (face-foreground old-face frame) new-frame)
       (set-face-background new-face (face-background old-face frame) new-frame)
