@@ -255,13 +255,25 @@ DEFUN ("asin", Fasin, Sasin, 1, 1, 0,
   return make_float (d);
 }
 
-DEFUN ("atan", Fatan, Satan, 1, 1, 0,
-       doc: /* Return the inverse tangent of ARG.  */)
-     (arg)
-     register Lisp_Object arg;
+DEFUN ("atan", Fatan, Satan, 1, 2, 0,
+       doc: /* Return the inverse tangent of the arguments.
+If only one argument Y is given, return the inverse tangent of Y.
+If two arguments Y and X are given, return the inverse tangent of Y
+divided by X, i.e. the angle in radians between the vector (X, Y)
+and the x-axis.  */)
+     (y, x)
+     register Lisp_Object y, x;
 {
-  double d = extract_float (arg);
-  IN_FLOAT (d = atan (d), "atan", arg);
+  double d = extract_float (y);
+
+  if (NILP (x))
+    IN_FLOAT (d = atan (d), "atan", y);
+  else
+    {
+      double d2 = extract_float (x);
+
+      IN_FLOAT2 (d = atan2 (d, d2), "atan", y, x);
+    }
   return make_float (d);
 }
 
