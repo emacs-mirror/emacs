@@ -1,6 +1,7 @@
 2001-11-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_bar_cursor): Get glyph's face.
+	(note_mouse_highlight): Fix type of variable `ignore'.
 
 2001-11-17  Andreas Schwab  <schwab@suse.de>
 
