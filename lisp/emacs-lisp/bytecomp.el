@@ -3220,16 +3220,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(setq byte-compile-bound-variables
 	      (cons var byte-compile-bound-variables)))
     (byte-compile-body-do-effect
-     (list
-      ;; Just as a real defvar would, but only in top-level forms.
-      (when (null byte-compile-current-form)
-	`(push ',var current-load-list))
-      (when (and string (null byte-compile-current-form))
-	`(put ',var 'variable-documentation ,string))
-      (if (cdr (cdr form))
-	  (if (eq (car form) 'defconst)
-	      `(setq ,var ,value)
-	    `(if (boundp ',var) ',var (setq ,var ,value))))))))
+     (list (if (cdr (cdr form))
+	       (if (eq (car form) 'defconst)
+		   (list 'setq var value)
+		 (list 'or (list 'boundp (list 'quote var))
+		       (list 'setq var value))))
+	   ;; Put the defined variable in this library's load-history entry
+	   ;; just as a real defvar would.
+	   (list 'setq 'current-load-list
+		 (list 'cons (list 'quote var)
+		       'current-load-list))
+	   (if string
+	       (list 'put (list 'quote var) ''variable-documentation string))
+	   (list 'quote var)))))
 
 (defun byte-compile-autoload (form)
   (and (byte-compile-constp (nth 1 form))
