@@ -1245,9 +1245,7 @@ Lisp_Object
 set_text_properties (start, end, properties, object, signal_after_change_p)
      Lisp_Object start, end, properties, object, signal_after_change_p;
 {
-  register INTERVAL i, unchanged;
-  register INTERVAL prev_changed = NULL_INTERVAL;
-  register int s, len;
+  register INTERVAL i;
   Lisp_Object ostart, oend;
 
   ostart = start;
