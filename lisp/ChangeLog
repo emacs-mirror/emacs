@@ -1,5 +1,11 @@
 2003-01-18  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/fill.el (fill-comment-paragraph): Fix simplistic
+	regexp-concatenation.
+
+	* add-log.el (add-change-log-entry): Don't leave space at eol.
+	(add-log-current-defun): Perl functions names can't have (or {.
+
 	* progmodes/sh-script.el (sh-indent-line): Use indent-line-to.
 	(sh-non-closing-paren): New const.
 	(sh-case, sh-while-getopts): Use it to make props non-sticky.

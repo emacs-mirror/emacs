@@ -1,3 +1,7 @@
+2003-01-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* charset.h (Funibyte_char_to_multibyte): Export.
+
 2003-01-18  Jan D.  <jan.h.d@swipnet.se>
 
 	* xmenu.c (mouse_position_for_popup): New function.
@@ -118,8 +122,7 @@
 
 2003-01-10  Dave Love  <fx@gnu.org>
 
-	* composite.c (syms_of_composite): Make composition_hash_table
-	weak.
+	* composite.c (syms_of_composite): Make composition_hash_table weak.
 
 2003-01-09  Kim F. Storm  <storm@cua.dk>
 
@@ -131,11 +134,11 @@
 	* xfns.c (Fx_file_dialog): Call XtAppNextEvent and x_dispatch_event
 	instead of XtAppProcessEvent.
 
-	* xterm.c (handle_one_xevent): New function
-	(x_dispatch_event): New function
+	* xterm.c (handle_one_xevent): New function.
+	(x_dispatch_event): New function.
 	(XTread_socket): Call handle_one_xevent.
 
-	* xterm.h (FRAME_OUTER_TO_INNER_DIFF_X/Y): Added
+	* xterm.h (FRAME_OUTER_TO_INNER_DIFF_X/Y): New.
 
 	* xmenu.c (Fx_popup_menu): If popping up at mouse position,
 	call XQueryPointer to get coordinates.
@@ -143,7 +146,6 @@
 	let popup_deactivate_callback do that.  Needed for Motif.
 	Call x_dispatch_event instead of XtDispatchEvent.
 	(xmenu_show): Calculate root coordinate from frame top/left position.
-
 
 2003-01-08  Kim F. Storm  <storm@cua.dk>
 
@@ -175,10 +177,11 @@
 	scroll_conservatively case.  If scrolling that much doesn't change
 	STARTP, move it down one line.
 
-	* xdisp.c (redisplay_window): Pass last_line_misfit arg to try_scrolling.
-	Make it 1 after make_cursor_line_fully_visible fails.
+	* xdisp.c (redisplay_window): Pass last_line_misfit arg to
+	try_scrolling.  Make it 1 after make_cursor_line_fully_visible fails.
 
-	* xdisp.c (setup_echo_area_for_printing): Kill Emacs if no selected frame.
+	* xdisp.c (setup_echo_area_for_printing): Kill Emacs if no
+	selected frame.
 
 	* keymap.c (apropos_predicate, apropos_accumulate): Make them static.
 	(syms_of_keymap): staticpro them.
@@ -237,9 +240,8 @@
 
 	* data.c (Fmakunbound, Ffmakunbound, Fmake_variable_buffer_local)
 	(Fsetq_default, Fmake_local_variable, Fkill_local_variable)
-	(Fmake_variable_frame_local, Faset, Fnumber_to_string)
-	(Fstring_to_number, Fminus): Mention the returned value in the doc
-	strings.
+	(Fmake_variable_frame_local, Faset, Fnumber_to_string, Fminus)
+	(Fstring_to_number): Mention the returned value in the doc strings.
 
 2002-12-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -256,11 +258,11 @@
 
 2002-12-22  Steven Tamm  <steventamm@mac.com>
 
-	* macmenu.c (MIN_POPUP_SUBMENU_ID): Added
-	(mac_menu_show): Added support for hierarchical popup menus
-	(add_menu_item): Removed indentation support
-	(fill_submenu, fill_menu): Now creates hierarchical menus
-	instead of using indentation
+	* macmenu.c (MIN_POPUP_SUBMENU_ID): Add.
+	(mac_menu_show): Add support for hierarchical popup menus.
+	(add_menu_item): Remove indentation support.
+	(fill_submenu, fill_menu): Create hierarchical menus
+	instead of using indentation.
 
 2002-12-22  Richard M. Stallman  <rms@gnu.org>
 
@@ -338,8 +340,8 @@
 	purpose at this time is to set the global variables
 	g_b_init_is_windows_9x, g_b_init_open_process_token,
 	g_b_init_get_token_information, g_b_init_lookup_account_sid, and
-	g_b_init_get_sid_identifier_authority to 0 on startup.  Called
-	from main.
+	g_b_init_get_sid_identifier_authority to 0 on startup.
+	Called from main.
 
 	* w32.c (is_windows_9x): Perform initialization only if
 	g_b_init_is_windows_9x is equal to 0.  On initialization set
@@ -358,19 +360,17 @@
 	set g_b_init_lookup_account_sid equal to 1.
 
 	* w32.c (get_sid_identifier_authority): Perform initialization
-	only if g_b_init_get_sid_identifier_authority is equal to 0.  On
-	initialization  set g_b_init_get_sid_identifier_authority equal to
-	1.
+	only if g_b_init_get_sid_identifier_authority is equal to 0.
+	On initialization set g_b_init_get_sid_identifier_authority equal to 1.
 
 	* w32fns.c (globals_of_w32fns): New function. Used to initialize
 	those global variables that must always be initialized on startup
-	even when the global variable initialized is non zero.  Its
-	primary purpose at this time is to initialize the global variable
+	even when the global variable initialized is non zero.
+	Its primary purpose at this time is to initialize the global variable
 	track_mouse_event_fn.
 
 	* w32fns.c (w32_wnd_proc):  Remove initialization of
-	track_mouse_event_fn from the handler for the WM_SETFOCUS
-	message.
+	track_mouse_event_fn from the handler for the WM_SETFOCUS message.
 
 	* w32fns.c (syms_of_w32fns): Call globals_of_w32fns.
 
