@@ -300,16 +300,19 @@ This works wheher or not the table is is Unicode-based or
  "Ukrainian" `((coding-system koi8-u)
 	      (coding-priority koi8-u)
 	       (nonascii-translation
-		. ,(get 'cyrillic-koi8-r-nonascii-translation-table
+		. ,(get 'cyrillic-koi8-u-nonascii-translation-table
 			'translation-table))
 	       (input-method . "ukrainian-computer")
 	      (features code-pages)
 	      (documentation
-	       . "Support for Ukrainian with koi8-u character set."))
+	       . "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ stuff
 
+;; Fixme: It's unclear what's the correct table.  I've found
+;; statements both that it's the same as cp866 and somewhat different,
+;; but nothing that looks definitive.
 (defvar cyrillic-alternativnyj-decode-table
   [
    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
@@ -336,7 +339,7 @@ This works wheher or not the table is is Unicode-based or
    ?$,2 4(B  ?$,2 T(B  ?$,2 L(B  ?$,2 <(B  ?$,2  (B  ?$,2 \(B  ?$,2 ~(B  ?$,2 (B  ?$,2 z(B  ?$,2 t(B  ?$,2!)(B  ?$,2!&(B  ?$,2! (B  ?$,2 p(B  ?$,2!,(B  ?$,2!'(B
    ?$,2!((B  ?$,2!$(B  ?$,2!%(B  ?$,2 y(B  ?$,2 x(B  ?$,2 r(B  ?$,2 s(B  ?$,2!+(B  ?$,2!*(B  ?$,2 8(B  ?$,2 ,(B  ?$,2!H(B  ?$,2!D(B  ?$,2!L(B  ?$,2!P(B  ?$,2!@(B
    ?,L`(B  ?,La(B  ?,Lb(B  ?,Lc(B  ?,Ld(B  ?,Le(B  ?,Lf(B  ?,Lg(B  ?,Lh(B  ?,Li(B  ?,Lj(B  ?,Lk(B  ?,Ll(B  ?,Lm(B  ?,Ln(B  ?,Lo(B
-   ?,L!(B  ?,Lq(B  ?,L$(B  ?,Lt(B  ?,L'(B  ?,Lw(B  ?,L.(B  ?,L~(B  248 249 250 251 ?,Lp(B  253 254 ?,L (B]
+   ?,L!(B  ?,Lq(B  ?,L$(B  ?,Lt(B  ?,L'(B  ?,Lw(B  ?,L.(B  ?,L~(B  ?,A0(B  ?$,1s"(B  ?,A7(B  ?$,1x:(B  ?,Lp(B  ?,A$(B  ?$,2!`(B  ?,L (B]
   "Cyrillic ALTERNATIVNYJ decoding table.")
 
 (let ((table (make-translation-table-from-vector
@@ -372,6 +375,8 @@ This works wheher or not the table is is Unicode-based or
 
 (cyrillic-unify-encoding 'cyrillic-alternativnyj-encode-table)
 
+;; Fixme: Check the cp866 here and in alias below.  See comment on the
+;; decode table above.
 (make-coding-system
  'cyrillic-alternativnyj 4 ?A
  "ALTERNATIVNYJ (CP866) 8-bit encoding for Cyrillic."
