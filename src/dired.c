@@ -137,23 +137,20 @@ directory_files_internal (directory, full, match, nosort, attrs)
      int attrs;
 {
   DIR *d;
-  int dirnamelen;
-  Lisp_Object list, name, dirfilename;
-  Lisp_Object encoded_directory;
+  int directory_nbytes;
+  Lisp_Object list, dirfilename, encoded_directory;
   Lisp_Object handler;
   struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
-  GCPRO1 (match);
+  list = encoded_directory = dirfilename = Qnil;
+  GCPRO5 (match, directory, list, dirfilename, encoded_directory);
   directory = Fexpand_file_name (directory, Qnil);
-  UNGCPRO;
-  GCPRO2 (match, directory);
   dirfilename = Fdirectory_file_name (directory);
-  UNGCPRO;
 
   if (!NILP (match))
     {
@@ -172,8 +169,10 @@ directory_files_internal (directory, full, match, nosort, attrs)
 #endif
     }
 
+  /* Note: ENOCDE_FILE and DECODE_FILE can GC because they can run
+     run_pre_post_conversion_on_str which calls Lisp directly and
+     indirectly.  */
   dirfilename = ENCODE_FILE (dirfilename);
-
   encoded_directory = ENCODE_FILE (directory);
 
   /* Now *bufp is the compiled form of MATCH; don't call anything
@@ -184,7 +183,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
      have to make sure it gets closed, and setting up an
      unwind_protect to do so would be a pain.  */
   d = opendir (XSTRING (dirfilename)->data);
-  if (! d)
+  if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
   /* Unfortunately, we can now invoke expand-file-name and
@@ -194,32 +193,38 @@ directory_files_internal (directory, full, match, nosort, attrs)
 			 Fcons (make_number (((unsigned long) d) >> 16),
 				make_number (((unsigned long) d) & 0xffff)));
 
-  list = Qnil;
-  dirnamelen = STRING_BYTES (XSTRING (directory));
+  directory_nbytes = STRING_BYTES (XSTRING (directory));
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
-  if (dirnamelen == 0
-      || !IS_ANY_SEP (XSTRING (directory)->data[dirnamelen - 1]))
+  if (directory_nbytes == 0
+      || !IS_ANY_SEP (XSTRING (directory)->data[directory_nbytes - 1]))
     needsep = 1;
 #endif /* not VMS */
-
-  GCPRO2 (encoded_directory, list);
 
   /* Loop reading blocks */
   while (1)
     {
       DIRENTRY *dp = readdir (d);
 
-      if (!dp) break;
+      if (dp == NULL)
+	break;
+      
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  int len;
 	  int wanted = 0;
+	  Lisp_Object name, finalname;
+	  struct gcpro gcpro1, gcpro2;
 
 	  len = NAMLEN (dp);
-	  name = DECODE_FILE (make_string (dp->d_name, len));
+	  name = finalname = make_string (dp->d_name, len);
+	  GCPRO2 (finalname, name);
+	  
+	  /* Note: ENCODE_FILE can GC; it should protect its argument,
+	     though.  */
+	  name = DECODE_FILE (name);
 	  len = STRING_BYTES (XSTRING (name));
 
 	  /* Now that we have unwind_protect in place, we might as well
@@ -229,37 +234,40 @@ directory_files_internal (directory, full, match, nosort, attrs)
 
 	  if (NILP (match)
 	      || (0 <= re_search (bufp, XSTRING (name)->data, len, 0, len, 0)))
-	    {
-	      wanted = 1;
-	    }
+	    wanted = 1;
 
 	  immediate_quit = 0;
 
 	  if (wanted)
 	    {
-	      Lisp_Object finalname;
-
-	      finalname = name;
 	      if (!NILP (full))
 		{
-		  int afterdirindex = dirnamelen;
-		  int total = len + dirnamelen;
-		  int nchars;
 		  Lisp_Object fullname;
+		  int nbytes = len + directory_nbytes + needsep;
+		  int nchars;
 
-		  fullname = make_uninit_multibyte_string (total + needsep,
-							   total + needsep);
+		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
 		  bcopy (XSTRING (directory)->data, XSTRING (fullname)->data,
-			 dirnamelen);
+			 directory_nbytes);
+		  
 		  if (needsep)
-		    XSTRING (fullname)->data[afterdirindex++] = DIRECTORY_SEP;
+		    XSTRING (fullname)->data[directory_nbytes + 1]
+		      = DIRECTORY_SEP;
+		  
 		  bcopy (XSTRING (name)->data,
-			 XSTRING (fullname)->data + afterdirindex, len);
-		  nchars = chars_in_text (XSTRING (fullname)->data,
-					  afterdirindex + len);
+			 XSTRING (fullname)->data + directory_nbytes + needsep,
+			 len);
+		  
+		  nchars = chars_in_text (XSTRING (fullname)->data, nbytes);
+
+		  /* Some bug somewhere.  */
+		  if (nchars > nbytes)
+		    abort ();
+		      
 		  XSTRING (fullname)->size = nchars;
-		  if (nchars == STRING_BYTES (XSTRING (fullname)))
+		  if (nchars == nbytes)
 		    SET_STRING_BYTES (XSTRING (fullname), -1);
+		  
 		  finalname = fullname;
 		}
 
@@ -267,19 +275,24 @@ directory_files_internal (directory, full, match, nosort, attrs)
 		{
 		  /* Construct an expanded filename for the directory entry.
 		     Use the decoded names for input to Ffile_attributes.  */
-		  Lisp_Object decoded_fullname;
-		  Lisp_Object fileattrs;
+		  Lisp_Object decoded_fullname, fileattrs;
+		  struct gcpro gcpro1, gcpro2;
 
+		  decoded_fullname = fileattrs = Qnil;
+		  GCPRO2 (decoded_fullname, fileattrs);
+
+		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
 		  fileattrs = Ffile_attributes (decoded_fullname);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
+		  UNGCPRO;
 		}
 	      else
-		{
-		  list = Fcons (finalname, list);
-		}
+		list = Fcons (finalname, list);
 	    }
+
+	  UNGCPRO;
 	}
     }
 
@@ -288,13 +301,11 @@ directory_files_internal (directory, full, match, nosort, attrs)
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
 
-  UNGCPRO;
-  if (!NILP (nosort))
-    return list;
-  if (attrs)
-    return Fsort (Fnreverse (list), Qfile_attributes_lessp);
-  else
-    return Fsort (Fnreverse (list), Qstring_lessp);
+  if (NILP (nosort))
+    list = Fsort (Fnreverse (list),
+		  attrs ? Qfile_attributes_lessp : Qstring_lessp);
+  
+  RETURN_UNGCPRO (list);
 }
 
 
