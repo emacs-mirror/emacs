@@ -689,9 +689,13 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	    ;; Non-Posix systems don't always have dired-free-space-program,
 	    ;; but might have an equivalent system call.
 	    (if (fboundp 'file-system-info)
-		(insert
-		 (format "%.0f"
-			 (/ (nth 2 (file-system-info dir-or-list)) 1024)))
+		(let ((beg (point))
+		      (fsinfo (file-system-info dir-or-list)))
+		  (if fsinfo
+		      (insert
+		       (format "%.0f" (/ (nth 2 fsinfo) 1024)))
+		    ;; file-system-info failed; delete " free ".
+		    (delete-region (- beg 7) beg)))
 	      (let ((beg (point)))
 		(condition-case nil
 		    (if (zerop (call-process dired-free-space-program nil t nil
