@@ -1,5 +1,8 @@
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dired.el (dired-free-space-program, dired-free-space-args):
+	Aliases for back-compatibility.
+
 	* info.el (Info-select-node): If Info-use-header-line is nil, set
 	header-line-format to nil.
 	(Info-fontify-node): Don't put a keymap text property on the
