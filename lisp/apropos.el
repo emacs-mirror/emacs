@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -103,12 +103,14 @@ for the regexp; the part that matches gets displayed in this font."
 
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-buffer-map)
+    ;; Use `apropos-follow' instead of just using the button
+    ;; definition of RET, so that users can use it anywhere in an
+    ;; apropos item, not just on top of a button.
     (define-key map "\C-m" 'apropos-follow)
     (define-key map " "    'scroll-up)
     (define-key map "\177" 'scroll-down)
     (define-key map "q"    'quit-window)
-    (define-key map [mouse-2] 'apropos-mouse-follow)
-    (define-key map [down-mouse-2] nil)
     map)
   "Keymap used in Apropos mode.")
 
@@ -126,6 +128,49 @@ for the regexp; the part that matches gets displayed in this font."
 
 (defvar apropos-item ()
   "Current item in or for `apropos-accumulator'.")
+
+
+;;; Button types used by apropos
+
+(define-button-type 'apropos-symbol
+  'face apropos-symbol-face
+  'help-echo "mouse-2, RET: Display more help on this symbol."
+  'action #'apropos-symbol-button-display-help)
+
+(define-button-type 'apropos-label
+  'help-echo "mouse-2, RET: Display more help on this symbol."
+  'action #'apropos-label-button-display-help)
+
+(defun apropos-symbol-button-display-help (button)
+  "Display further help for the `apropos-symbol' button BUTTON."
+  (button-activate
+   (or (apropos-next-label-button (button-start button))
+       (error "There is nothing to follow for `%s'" (button-label button)))))
+
+(defun apropos-label-button-display-help (button)
+  "Display further help for the `apropos-label' button BUTTON."
+  (funcall (button-get button 'apropos-action)
+	   (button-get button 'apropos-symbol)))
+
+(defun apropos-next-label-button (pos)
+  "Returns the next `apropos-label' button after POS, or nil if there's none.
+Will also return nil if more than one `apropos-symbol' button is encountered
+before finding a label."
+  (let* ((button (next-button pos 1 nil t))
+	 (already-hit-symbol nil)
+	 (button-type (and button (button-get button 'type))))
+    (while (and button
+		(not (eq button-type 'apropos-label))
+		(or (not (eq button-type 'apropos-symbol))
+		    (not already-hit-symbol)))
+      (when (eq button-type 'apropos-symbol)
+	(setq already-hit-symbol t))
+      (setq button (next-button (button-start button)))
+      (when button
+	(setq button-type (button-get button 'type))))
+    (and (eq button-type 'apropos-label)
+	 button)))
+
 
 ;;;###autoload
 (define-derived-mode apropos-mode fundamental-mode "Apropos"
@@ -504,22 +549,16 @@ alphabetically by symbol name; but this function also sets
     (setq apropos-accumulator
 	  (sort apropos-accumulator (lambda (a b)
 				      (string-lessp (car a) (car b)))))
-    (setq apropos-label-properties
-	  (if (and apropos-label-face
-		   (symbolp apropos-label-face))
-	      `(face ,apropos-label-face
-		     mouse-face highlight
-		     help-echo "mouse-2: display help on this item")))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
-	    symbol item point1 point2)
+	    symbol item)
 	(set-buffer standard-output)
 	(apropos-mode)
 	(if (display-mouse-p)
 	    (insert "If moving the mouse over text changes the text's color,\n"
 		    (substitute-command-keys
-		     "you can click \\[apropos-mouse-follow] on that text to get more information.\n")))
+		     "you can click \\[push-button] on that text to get more information.\n")))
 	(insert "In this buffer, go to the name of the command, or function,"
 		" or variable,\n"
 		(substitute-command-keys
@@ -528,10 +567,13 @@ alphabetically by symbol name; but this function also sets
 	  (or (not spacing) (bobp) (terpri))
 	  (setq apropos-item (car p)
 		symbol (car apropos-item)
-		p (cdr p)
-		point1 (point))
-	  (princ symbol)		        ; print symbol name
-	  (setq point2 (point))
+		p (cdr p))
+	  (insert-text-button (symbol-name symbol)
+			      'type 'apropos-symbol
+			      ;; Can't use default, since user may have
+			      ;; changed the variable!
+			      ;; Just say `no' to variables containing faces!
+			      'face apropos-symbol-face)
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
 	       (commandp symbol)
@@ -577,13 +619,6 @@ alphabetically by symbol name; but this function also sets
 		 (put-text-property (- (point) 3) (point)
 				    'face apropos-keybinding-face)))
 	  (terpri)
-	  ;; only now so we don't propagate text attributes all over
-	  (put-text-property point1 point2 'item
-			     (if (eval `(or ,@(cdr apropos-item)))
-				 (car apropos-item)
-			       apropos-item))
-	  (if apropos-symbol-face
-	      (put-text-property point1 point2 'face apropos-symbol-face))
 	  (apropos-print-doc 'describe-function 1
 			     (if (commandp symbol)
 				 "Command"
@@ -623,51 +658,26 @@ alphabetically by symbol name; but this function also sets
   (if (stringp (setq i (nth i apropos-item)))
       (progn
 	(insert "  ")
-	(put-text-property (- (point) 2) (1- (point))
-			   'action action)
-	(insert str ": ")
-	(if apropos-label-properties
-	    (add-text-properties (- (point) (length str) 2)
-				 (1- (point))
-				 apropos-label-properties))
+	(insert-text-button str
+			    'type 'apropos-label
+			    ;; Can't use the default button face, since
+			    ;; user may have changed the variable!
+			    ;; Just say `no' to variables containing faces!
+			    'face apropos-label-face
+			    'apropos-symbol (car apropos-item)
+			    'apropos-action action
+			    str)
+	(insert ": ")
 	(insert (if do-keys (substitute-command-keys i) i))
 	(or (bolp) (terpri)))))
 
 
-(defun apropos-mouse-follow (event)
-  (interactive "e")
-  (let ((other (if (eq (current-buffer) (get-buffer "*Apropos*"))
-		   ()
-		 (current-buffer))))
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-start event))))
-      (goto-char (posn-point (event-start event)))
-      (or (and (not (eobp)) (get-text-property (point) 'mouse-face))
-	  (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
-	  (error "There is nothing to follow here"))
-      (apropos-follow other))))
-
-
-(defun apropos-follow (&optional other)
+(defun apropos-follow ()
+  "Invokes any button at point, otherwise invokes the nearest label button."
   (interactive)
-  (let* (;; Properties are always found at the beginning of the line.
-	 (bol (save-excursion (beginning-of-line) (point)))
-	 ;; If there is no `item' property here, look behind us.
-	 (item (get-text-property bol 'item))
-	 (item-at (if item nil (previous-single-property-change bol 'item)))
-	 ;; Likewise, if there is no `action' property here, look in front.
-	 (action (get-text-property bol 'action))
-	 (action-at (if action nil (next-single-property-change bol 'action))))
-    (and (null item) item-at
-	 (setq item (get-text-property (1- item-at) 'item)))
-    (and (null action) action-at
-	 (setq action (get-text-property action-at 'action)))
-    (if (not (and item action))
-	(error "There is nothing to follow here"))
-    (if (consp item) (error "There is nothing to follow in `%s'" (car item)))
-    (if other (set-buffer other))
-    (funcall action item)))
-
+  (button-activate
+   (or (apropos-next-label-button (line-beginning-position))
+       (error "There is nothing to follow here"))))
 
 
 (defun apropos-describe-plist (symbol)
@@ -682,6 +692,7 @@ alphabetically by symbol name; but this function also sets
     (insert (apropos-format-plist symbol "\n  "))
     (princ ")")
     (print-help-return-message)))
+
 
 (provide 'apropos)
 
