@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.3 1992/08/08 22:58:39 rms Exp roland $	
+;;	$Id: vc.el,v 1.4 1992/09/27 01:31:15 roland Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -73,6 +73,10 @@ The value is only computed when needed to avoid an expensive search.")
 (defvar vc-mistrust-permissions 'file-symlink-p
   "*Don't assume that permissions and ownership track version-control status.")
 
+;;;###autoload
+(defvar vc-checkin-hook nil
+  "*List of functions called after a vc-checkin is done.  See `runs-hooks'.")
+
 ;; Header-insertion hair
 
 (defvar vc-header-alist
@@ -94,6 +98,7 @@ is sensitive to blank lines.")
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
+(defvar vc-log-after-operation-hook nil)
 
 (defconst vc-name-assoc-file "VC-names")
 
@@ -383,7 +388,7 @@ level to check it in under."
 (defun vc-checkin (file &optional rev comment)
   "Check in the file specified by FILE.
 The optional argument REV may be a string specifying the new version level
-(if nil increment the current level).  The file is either retained with write
+\(if nil increment the current level).  The file is either retained with write
 permissions zeroed, or deleted (according to the value of vc-keep-workfiles).
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
@@ -391,9 +396,10 @@ popped up to accept a comment."
   (vc-log-mode)
   (narrow-to-region (point-max) (point-max))
   (vc-mode-line file (file-name-nondirectory file))
-  (setq vc-log-operation 'vc-backend-checkin)
-  (setq vc-log-file file)
-  (setq vc-log-version rev)
+  (setq vc-log-operation 'vc-backend-checkin
+	vc-log-file file
+	vc-log-version rev
+	vc-log-after-operation-hook 'vc-checkin-hook)
   (message "Enter log message.  Type C-c C-c when done.")
   (if comment
       (progn
@@ -429,6 +435,7 @@ popped up to accept a comment."
   (bury-buffer "*VC-log*")
   ;; Now make sure we see the expanded headers
   (vc-resynch-window buffer-file-name vc-keep-workfiles)
+  (run-hooks vc-log-after-operation-hook)
   )
 
 ;; Code for access to the comment ring
@@ -764,19 +771,23 @@ The mark is left at the end of the text prepended to the change log.
 With prefix arg of C-u, only find log entries for the current buffer's file.
 With any numeric prefix arg, find log entries for all files currently visited.
 From a program, any arguments are passed to the `rcs2log' script."
-  (interactive (cond ((consp current-prefix-arg) ;C-u
-		      (list buffer-file-name))
-		     (current-prefix-arg ;Numeric argument.
-		      (let ((files nil)
-			    (buffers (buffer-list))
-			    file)
-			(while buffers
-			  (setq file (buffer-file-name (car buffers)))
-			  (and file
-			       (setq file (vc-name file))
-			       (setq files (cons file files)))
-			  (setq buffers (cdr buffers)))
-			files))))
+  (interactive
+   (cond ((consp current-prefix-arg)	;C-u
+	  (list buffer-file-name))
+	 (current-prefix-arg		;Numeric argument.
+	  (let ((files nil)
+		(buffers (buffer-list))
+		file)
+	    (while buffers
+	      (setq file (buffer-file-name (car buffers)))
+	      (and file (vc-backend-deduce file)
+		   (setq files (cons (if (equal (file-name-directory file)
+						default-directory)
+					 (file-name-nondirectory file)
+				       file)
+				     files)))
+	      (setq buffers (cdr buffers)))
+	    files))))
   (find-file-other-window "ChangeLog")
   (vc-buffer-sync)
   (undo-boundary)
