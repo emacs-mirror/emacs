@@ -489,7 +489,8 @@
 	  (setq left 'r7)))
 
     ;; Now EXPR has the form (LEFT OP RIGHT).
-    (if (eq rrr left)
+    (if (and (eq rrr left)
+	     (< op (length ccl-assign-arith-table)))
 	;; Compile this SET statement as `(RRR OP= RIGHT)'.
 	(if (integerp right)
 	    (progn
