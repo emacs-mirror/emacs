@@ -672,22 +672,6 @@ It does this even if not called interactively.  To prevent the request
 for confirmation, clear the modified flag before calling
 @code{kill-buffer}.  @xref{Buffer Modification}.
 
-@vindex kill-buffer-query-functions
-You can program additional requests for confirmation.  After confirming
-unsaved changes, @code{kill-buffer} calls the functions in the list
-@code{kill-buffer-query-functions}, in order of appearance, with no
-arguments.  The buffer being killed is the current buffer when they are
-called.  The idea is that these functions ask for confirmation from the
-user for various nonstandard reasons.  If any of them returns
-non-@code{nil}, the buffer is not killed.
-
-@c Emacs 19 feature
-@vindex kill-buffer-hook
-Just before actually killing the buffer, after asking all questions,
-@code{kill-buffer} runs the normal hook @code{kill-buffer-hook}.  The
-buffer to be killed is current when the hook functions run.
-@xref{Hooks}.
-
 Killing a buffer that is already dead has no effect.
 
 @smallexample
@@ -702,6 +686,30 @@ Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
      @result{} nil
 @end smallexample
 @end deffn
+
+@defvar kill-buffer-query-functions
+After confirming unsaved changes, @code{kill-buffer} calls the functions
+in the list @code{kill-buffer-query-functions}, in order of appearance,
+with no arguments.  The buffer being killed is the current buffer when
+they are called.  The idea is that these functions ask for confirmation
+from the user for various nonstandard reasons.  If any of them returns
+non-@code{nil}, @code{kill-buffer} spares the buffer's life.
+@end defvar
+
+@defvar kill-buffer-hook
+This is a normal hook run by @code{kill-buffer} after asking all the
+questions it is going to ask, just before actually killing the buffer.
+The buffer to be killed is current when the hook functions run.
+@xref{Hooks}.
+@end defvar
+
+@defvar buffer-offer-save
+This variable, if non-@code{nil} in a particular buffer, tells
+@code{save-buffers-kill-emacs} and @code{save-some-buffers} to offer to
+save that buffer, just as they offer to save file-visiting buffers.  The
+variable @code{buffer-offer-save} automatically becomes buffer-local
+when set for any reason.  @xref{Buffer-Local Variables}.
+@end defvar
 
 @node Current Buffer
 @section The Current Buffer
