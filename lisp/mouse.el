@@ -258,7 +258,7 @@ and selects that window."
 	  (window (posn-window (event-start event))))
       (if buf
 	  (progn
-	    (select-window window)
+	    (or (framep window) (select-window window))
 	    (switch-to-buffer buf))))))
 
 ;;; These need to be rewritten for the new scroll bar implementation.
