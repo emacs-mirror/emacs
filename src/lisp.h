@@ -1889,14 +1889,15 @@ extern void syms_of_syntax P_ ((void));
 extern void sweep_weak_hash_tables P_ ((void));
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
+extern Lisp_Object QCtest, QCweakness, Qequal;
 unsigned sxhash P_ ((Lisp_Object, int));
 Lisp_Object make_hash_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object));
 Lisp_Object copy_hash_table P_ ((struct Lisp_Hash_Table *));
 int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
-void hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
-		   unsigned));
+int hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
+		  unsigned));
 void hash_remove P_ ((struct Lisp_Hash_Table *, Lisp_Object));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
 void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
@@ -2062,6 +2063,8 @@ extern void message_log_maybe_newline P_ ((void));
 extern void update_echo_area P_ ((void));
 extern void truncate_echo_area P_ ((int));
 extern void redisplay P_ ((void));
+extern int check_point_in_composition
+	P_ ((struct buffer *, int, struct buffer *, int));
 extern void redisplay_preserve_echo_area P_ ((void));
 extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
