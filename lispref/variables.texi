@@ -1067,6 +1067,11 @@ foo
      @result{} 5
 @end group
 @end example
+
+Making a variable buffer-local within a @code{let}-binding for that
+variable does not work.  This is because @code{let} does not distinguish
+between different kinds of bindings; it knows only which variable the
+binding was made for.
 @end deffn
 
 @deffn Command make-variable-buffer-local variable
