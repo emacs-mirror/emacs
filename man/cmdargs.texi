@@ -140,8 +140,9 @@ the initial Emacs frame.
 
 @item -nw
 @itemx --no-windows
-Don't communicate directly with X, disregarding the @env{DISPLAY}
-environment variable even if it is set.
+Don't communicate directly with the window system, disregarding the
+@env{DISPLAY} environment variable even if it is set.  This forces Emacs
+to run as if the display were a character terminal.
 
 @need 3000
 @cindex batch mode
@@ -631,16 +632,21 @@ displays the entire font @samp{6x13}.
 @node Colors X
 @appendixsec Window Color Options
 @cindex color of window (X Windows)
+@cindex text colors, from command line
 
+@findex list-colors-display
+@cindex available colors
   On a color display, you can specify which color to use for various
 parts of the Emacs display.  To find out what colors are available on
-your system, look at the @file{/usr/lib/X11/rgb.txt} file.  If you do
-not specify colors, the default for the background is white and the
-default for all other colors is black.  On a monochrome display, the
-foreground is black, the background is white, and the border is gray if
-the display supports that.
+your system, type @kbd{M-x list-colors-display}, or press
+@kbd{C-mouse-2} and select @samp{Display Colors} from the pop-up menu.
+If you do not specify colors, on windowed displays the default for the
+background is white and the default for all other colors is black.  On a
+monochrome display, the foreground is black, the background is white,
+and the border is gray if the display supports that.  On terminals, the
+background is usually black and the foreground is white.
 
-  Here is a list of the options for specifying colors:
+  Here is a list of the command-line options for specifying colors:
 
 @table @samp
 @item -fg @var{color} 
@@ -672,6 +678,9 @@ emacs -ms coral -cr 'slate blue' &
 
   You can reverse the foreground and background colors through the
 @samp{-r} option or with the X resource @samp{reverseVideo}.
+
+  When Emacs display is on a character terminal, it supports the
+@samp{-fg}, @code{-bg}, and @code{-rv} options.
 
 @node Window Size X
 @appendixsec Options for Window Geometry
