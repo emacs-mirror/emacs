@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; Provides a buffer-local minor mode (toggled by M-x hl-line-mode)
-;; and a global minor mode (toggled by M-x global-hl-line-mode) to
+;; Provides a local minor mode (toggled by M-x hl-line-mode) and
+;; a global minor mode (toggled by M-x global-hl-line-mode) to
 ;; highlight, on a suitable terminal, the line on which point is.  The
 ;; global mode highlights the current line in the selected window only
 ;; (except when the minibuffer window is selected).  This was
@@ -51,10 +51,6 @@
 ;; the overlay unconditionally in case the command changes the
 ;; selected window.  (It does so rather than keeping track of changes
 ;; in the selected window).
-
-;; You could make variable `global-hl-line-mode' buffer-local and set
-;; it to nil to avoid highlighting specific buffers, when the global
-;; mode is used.
 
 ;;; Code:
 
