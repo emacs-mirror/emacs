@@ -51,4 +51,9 @@
 #undef KERNEL_FILE
 #define KERNEL_FILE "/vmunix"
 
+/* System's malloc, realloc, calloc and so on have bad prototypes,
+   using char * instead of void *, so tell gmalloc not to use the
+   prototypes.  */
+#define BROKEN_PROTOTYPES
+
 #endif /* not NEWSOS5 */
