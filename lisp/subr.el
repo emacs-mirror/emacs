@@ -263,6 +263,12 @@ Non-strings in LIST are ignored."
     (setq list (cdr list)))
   list)
 
+(defmacro with-lexical-binding (&rest body)
+  "Execute the statements in BODY using lexical binding."
+  `(let ((internal-interpreter-environment internal-interpreter-environment))
+     (setq internal-interpreter-environment '(t))
+     ,@body))
+
 
 ;;;; Keymap support.
 
@@ -675,6 +681,176 @@ POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (nth 3 position))
+
+
+;;;; Keyboard menu prompting
+
+(defvar key-menu-event-face 'underline
+  "Face used to highlight the events in the keyboard-menu prompt.
+Used by `key-menu-prompt'.")
+(defvar key-menu-initial-separator "  "
+  "String used to separate a keyboard-menu prompt from the first key description.
+Used by `key-menu-prompt'.")
+(defvar key-menu-separator ",  "
+  "String used to separate adjacent keyboard-menu key descriptions.
+Used by `key-menu-prompt'.")
+(defvar key-menu-long-prompt-line-prefix "    "
+  "A prefix for entry lines when the menu prompt is very long.
+Used by `key-menu-prompt'.")
+
+(defvar key-menu-format-entry-function nil
+  "If non-nil, a function to format a single entry in a keyboard-menu.
+The function should return a string representing the entry, and will be
+given the following arguments:
+  (EVENT PROMPT &OPTIONAL BINDING TOGGLE-TYPE TOGGLE-STATE)
+  EVENT is the key to be pressed
+  PROMPT is a string describing the entry
+  BINDING is a `global' binding for this function
+  TOGGLE-TYPE may be either nil, `:radio', or `:toggle'
+  If TOGGLE-TYPE is non-nil, TOGGLE-STATE is that toggle's state.")
+
+(defvar key-menu-more-prompt (propertize "--more--" 'face '(:inverse-video t))
+  "Appended to the last line of a keyboard-menu indicating more lines follow.")
+
+(defun key-menu-format-entry (event prompt
+				    &optional binding toggle-type toggle-state)
+  "Return a string representing a single keyboard-menu binding.
+The arguments are:
+  EVENT is the key to be pressed
+  PROMPT is a string describing the entry
+  BINDING is a `global' binding for this function
+  TOGGLE-TYPE may be either nil, `:radio', or `:toggle'
+  If TOGGLE-TYPE is non-nil, TOGGLE-STATE is that toggle's state."
+  (if (eq event (aref prompt 0))
+      (format "%s%s"
+	      (propertize (char-to-string event)
+			  'face key-menu-event-face)
+	      (substring prompt 1))
+    (format "%s = %s"
+	    (propertize (char-to-string event)
+			'face key-menu-event-face)
+	    prompt)))
+
+(defun key-menu-format-prompt (prompt entries max-width max-height)
+  (let* ((prompt-width (string-width prompt))
+	 (cur-line "")
+	 (prefix nil)
+	 (prefix-width
+	  ;; a guess, at first
+	  (+ prompt-width (string-width key-menu-initial-separator)))
+	 (sep "")
+	 (string prompt)
+	 (cur-height 0)
+	 (cur-line-width prefix-width)
+	 (more-width (string-width key-menu-more-prompt)))
+    (while (and entries (< cur-height max-height))
+      (let* ((entry
+	      (pop entries))
+	     (entry-string
+	      (apply
+	       (or key-menu-format-entry-function #'key-menu-format-entry)
+	       entry))
+	     (entry-width
+	      (string-width entry-string))
+	     (appended-width
+	      (+ cur-line-width (string-width sep) entry-width)))
+	;; If this is the first line, first see if we'd be better off
+	;; wrapping right after the prompt (because the prompt string is
+	;; unusually long).  Note that we only do so if there are (1)
+	;; less than 4 entries already on the first line, and (2) the
+	;; prompt is greater than 12 characters wide; these values are
+	;; completely arbitrary.
+	(when (and (eq string prompt)
+		   (>= appended-width max-width)
+		   (> prompt-width (/ max-width 4))
+		   (> max-height 1))
+	  ;; Wrap after the prompt
+	  (setq cur-line-width (- cur-line-width prefix-width))
+	  (setq prefix key-menu-long-prompt-line-prefix
+		prefix-width (string-width prefix))
+	  (setq string (concat string "\n")
+		cur-line-width (+ cur-line-width prefix-width)
+		appended-width (+ cur-line-width (string-width sep) entry-width)
+		cur-height (1+ cur-height)))
+	;; See if we have to wrap before the current entry (note that
+	;; this might happen even if we just wrapped after the prompt
+	;; above).
+	(if (if (or (< (1+ cur-height) max-height) (null entries))
+		(< appended-width max-width)
+	      (< (+ appended-width more-width) max-width))
+	    ;; It's OK to append the current entry, so do so
+	    (setq cur-line (concat cur-line sep entry-string)
+		  cur-line-width appended-width)
+	  ;; We have to wrap the current line first, and then append it
+	  (if prefix
+	      (setq string (concat string prefix cur-line))
+	    (setq string (concat string key-menu-initial-separator cur-line)
+		  prefix (make-string prefix-width ? )))
+	  (setq cur-height (1+ cur-height))
+	  (if (< cur-height max-height)
+	      ;; Start a new line
+	      (setq cur-line entry-string
+		    cur-line-width (+ entry-width prefix-width)
+		    string (concat string "\n"))
+	    ;; Have to give up, because there's no more room.
+	    (setq string (concat string
+				 (make-string (- max-width
+						 cur-line-width
+						 (string-width
+						  key-menu-more-prompt)
+						 1)
+					      ? )
+				 key-menu-more-prompt))
+	    ;; Put back ENTRY for later consideration
+	    (push entry entries)))
+	;; Update sep to the normal inter-entry value
+	(setq sep key-menu-separator)))
+    ;; The final menu
+    (unless entries
+      ;; tack on the last line
+      (unless prefix
+	(setq prefix key-menu-initial-separator))
+      (setq string (concat string prefix cur-line)))
+    ;; Return a list of the menu string and any remaining entries
+    (cons string entries)))
+
+
+(defun key-menu-prompt (menu)
+  "Display the keyboard-menu MENU, and read the user's response.
+This function is appropiate for `key-menu-prompt-function', which see."
+  (let* ((prompt (concat (car menu) ":"))
+	 (frame (window-frame (minibuffer-window)))
+	 (max-width (frame-width frame))
+	 (max-height
+	  (cond ((or (not resize-mini-windows)
+		     (not (numberp max-mini-window-height)))
+		 1)
+		((integerp max-mini-window-height)
+		 max-mini-window-height)
+		(t
+		 (max 1 (truncate (* (frame-height frame)
+				     max-mini-window-height))))))
+	 (answer nil)
+	 (entries (cdr menu))
+	 (cur-entries entries)
+	 (prev-entries-stack nil))
+    (while (null answer)
+      (let* ((page
+	      (key-menu-format-prompt prompt cur-entries max-width max-height))
+	     (next-entries (cdr page)))
+	(setq answer (read-char (car page)))
+	(when (or next-entries prev-entries-stack)
+	  (cond ((eq answer ? )
+		 (push cur-entries prev-entries-stack)
+		 (setq cur-entries (or next-entries entries))
+		 (setq answer nil))
+		((eq answer ?\C-?)
+		 (setq cur-entries (or (pop prev-entries-stack) entries))
+		 (setq answer nil))))))
+    answer))
+
+;; `key-menu-prompt-function' is defined in src/keyboard.c
+(setq key-menu-prompt-function 'key-menu-prompt)
 
 
 ;;;; Obsolescent names for functions.
@@ -1904,17 +2080,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defun functionp (object)
-  "Non-nil iff OBJECT is a type of object that can be called as a function."
-  (or (and (symbolp object) (fboundp object)
-	   (condition-case nil
-	       (setq object (indirect-function object))
-	     (error nil))
-	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (subrp object) (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
 
 (defun interactive-form (function)
   "Return the interactive form of FUNCTION.

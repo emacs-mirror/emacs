@@ -1,3 +1,8 @@
+2002-06-12  Miles Bader  <miles@gnu.org>
+
+	* subr.el (functionp): Function removed (now a subr).
+	* help-fns.el (describe-function-1): Handle interpreted closures.
+
 2002-06-11  Richard M. Stallman  <rms@gnu.org>
 
 	* format.el (format-alist): Document new element PRESERVE.
