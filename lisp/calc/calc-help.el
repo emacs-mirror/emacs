@@ -178,15 +178,15 @@ C-w  Describe how there is no warranty for Calc."
 		       (if (= (buffer-size) 0)
 			   (progn
 			     (message "Reading Calc summary from manual...")
-			     (save-window-excursion
-			       (save-excursion
-				 (calc-info-goto-node "Summary")
-				 (goto-char (point-min))
-				 (forward-line 1)
-				 (copy-to-buffer "*Calc Summary*"
-						 (point) (point-max))
-                                 (if Info-history
-                                     (Info-last))))))
+                             (require 'info nil t)
+                             (with-temp-buffer
+                               (Info-mode)
+                               (Info-goto-node "(Calc)Summary")
+                               (goto-char (point-min))
+                               (forward-line 1)
+                               (copy-to-buffer "*Calc Summary*"
+                                               (point) (point-max)))
+                             (setq buffer-read-only t)))
                        (goto-char (point-min))
                        (setq case-fold-search nil)
                        (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
