@@ -4116,6 +4116,9 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
 			   || keysym == XK_Delete
+#ifdef XK_ISO_Left_Tab
+			   || keysym == XK_ISO_Left_Tab
+#endif
 			   || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
 			   || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
