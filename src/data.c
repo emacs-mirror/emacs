@@ -209,7 +209,7 @@ for example, (type-of 1) returns `integer'.")
       return Qcons;
 
     case Lisp_Misc:
-      switch (XMISC (object)->type)
+      switch (XMISCTYPE (object))
 	{
 	case Lisp_Misc_Marker:
 	  return Qmarker;
@@ -695,7 +695,7 @@ do_symval_forwarding (valcontents)
   register Lisp_Object val;
   int offset;
   if (MISCP (valcontents))
-    switch (XMISC (valcontents)->type)
+    switch (XMISCTYPE (valcontents))
       {
       case Lisp_Misc_Intfwd:
 	XSETINT (val, *XINTFWD (valcontents)->intvar);
@@ -731,7 +731,7 @@ store_symval_forwarding (sym, valcontents, newval)
   switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
     case Lisp_Misc:
-      switch (XMISC (valcontents)->type)
+      switch (XMISCTYPE (valcontents))
 	{
 	case Lisp_Misc_Intfwd:
 	  CHECK_NUMBER (newval, 1);
@@ -848,7 +848,7 @@ find_symbol_value (sym)
 
   if (MISCP (valcontents))
     {
-      switch (XMISC (valcontents)->type)
+      switch (XMISCTYPE (valcontents))
 	{
 	case Lisp_Misc_Intfwd:
 	  XSETINT (val, *XINTFWD (valcontents)->intvar);
@@ -1192,7 +1192,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
     return sym;
   if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
-      XMISC (XSYMBOL (sym)->value)->type = Lisp_Misc_Buffer_Local_Value;
+      XMISCTYPE (XSYMBOL (sym)->value) = Lisp_Misc_Buffer_Local_Value;
       return sym;
     }
   if (EQ (valcontents, Qunbound))
@@ -1200,7 +1200,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   tem = Fcons (Qnil, Fsymbol_value (sym));
   XCONS (tem)->car = tem;
   newval = allocate_misc ();
-  XMISC (newval)->type = Lisp_Misc_Buffer_Local_Value;
+  XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->car = XSYMBOL (sym)->value;
   XBUFFER_LOCAL_VALUE (newval)->cdr = Fcons (Fcurrent_buffer (), tem);
   XSYMBOL (sym)->value = newval;
@@ -1247,7 +1247,7 @@ Use `make-local-hook' instead.")
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
       XCONS (tem)->car = tem;
       newval = allocate_misc ();
-      XMISC (newval)->type = Lisp_Misc_Some_Buffer_Local_Value;
+      XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->car = XSYMBOL (sym)->value;
       XBUFFER_LOCAL_VALUE (newval)->cdr = Fcons (Qnil, tem);
       XSYMBOL (sym)->value = newval;
