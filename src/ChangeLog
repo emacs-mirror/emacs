@@ -1,5 +1,11 @@
 2001-08-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_set_glyph_string_background_width): Set the glyph
+	string's background width so that multi-line mouse-face is drawn
+	to the right edge of the window.
+	(show_mouse_face): Set the row's mouse_face_p flag after drawing
+	glyphs.
+
 	* dispnew.c (direct_output_for_insert): Set updated_area
 	before insering/writing glyphs.
 
