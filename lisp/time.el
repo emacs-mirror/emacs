@@ -74,7 +74,9 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	    (append global-mode-string '(display-time-string))))
   (timer-set-time display-time-timer (current-time) display-time-interval)
   (timer-set-function display-time-timer 'display-time-event-handler)
-  (timer-activate display-time-timer))
+  (timer-activate display-time-timer)
+  ;; When you get new mail, clear "Mail" from the mode line.
+  (add-hook 'rmail-get-new-mail-hook 'display-time-event-handler))
 
 (defvar display-time-string-forms
   '((if display-time-day-and-date
@@ -102,6 +104,15 @@ For example, the form
 would give mode line times like `94/12/30 21:07:48 (UTC)'.")
 
 (defun display-time-event-handler ()
+  (display-time-update)
+  ;; Do redisplay right now, if no input pending.
+  (sit-for 0))
+
+;; Update the display-time info for the mode line
+;; but don't redisplay right now.  This is used for
+;; things like Rmail `g' that want to force an update
+;; which can wait for the next redisplay.
+(defun display-time-update ()
   (let* ((now (current-time))
 	 (time (current-time-string now))
          (load (condition-case ()
@@ -152,9 +163,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
     ;; This is inside the let binding, but we are not going to document
     ;; what variables are available.
     (run-hooks 'display-time-hook))
-  (force-mode-line-update)
-  ;; Do redisplay right now, if no input pending.
-  (sit-for 0))
+  (force-mode-line-update))
 
 (defun display-time-file-nonempty-p (file)
   (and (file-exists-p file)
