@@ -1523,18 +1523,19 @@ the comment's starting delimiter.")
 		 ;; position at the end of the first pair.
 		 (if (match-end 1)
 		     (goto-char (match-end 1))
-		   ;; If comment-start-skip matched a string with internal
-		   ;; whitespace (not final whitespace) then the delimiter
-		   ;; start at the end of that whitespace.
-		   ;; Otherwise, it starts at the beginning of what was matched.
-		   (skip-chars-backward " \t" (match-beginning 0))
-		   (skip-chars-backward "^ \t" (match-beginning 0)))))
+		   ;; If comment-start-skip matched a string with
+		   ;; internal whitespace (not final whitespace) then
+		   ;; the delimiter start at the end of that
+		   ;; whitespace.  Otherwise, it starts at the
+		   ;; beginning of what was matched.
+		   (skip-syntax-backward " " (match-beginning 0))
+		   (skip-syntax-backward "^ " (match-beginning 0)))))
       (setq begpos (point))
       ;; Compute desired indent.
       (if (= (current-column)
-	     (if comment-indent-hook
-		 (funcall comment-indent-hook)
-	       (funcall comment-indent-function)))
+	     (setq indent (if comment-indent-hook
+			      (funcall comment-indent-hook)
+			    (funcall comment-indent-function))))
 	  (goto-char begpos)
 	;; If that's different from current, change it.
 	(skip-chars-backward " \t")
