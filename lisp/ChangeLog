@@ -1,3 +1,8 @@
+2001-06-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (IT-unicode-translations): New variable.
+	(IT-setup-unicode-display): New function.
+
 2001-06-01  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Handle before-string and after-string overlay properties
