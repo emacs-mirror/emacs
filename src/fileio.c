@@ -2394,6 +2394,7 @@ If VISIT is non-nil, BEG and END must be nil.")
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
+  int handled = 0;
 
   val = Qnil;
   p = Qnil;
@@ -2411,6 +2412,7 @@ If VISIT is non-nil, BEG and END must be nil.")
   if (!NILP (handler))
     {
       val = call5 (handler, Qinsert_file_contents, filename, visit, beg, end);
+      handled = 1;
       goto handled;
     }
 
@@ -2541,7 +2543,10 @@ If VISIT is non-nil, BEG and END must be nil.")
 #ifdef APOLLO
       stat (XSTRING (filename)->data, &st);
 #endif
-      current_buffer->modtime = st.st_mtime;
+
+      if (! handled)
+	current_buffer->modtime = st.st_mtime;
+
       current_buffer->save_modified = MODIFF;
       current_buffer->auto_save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
@@ -2559,7 +2564,7 @@ If VISIT is non-nil, BEG and END must be nil.")
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
     }
 
-  if (NILP (visit) && total > 0)
+  if (inserted > 0 && NILP (visit) && total > 0)
     signal_after_change (point, 0, inserted);
   
   if (inserted > 0)
