@@ -682,46 +682,9 @@ This is in addition to the primary selection.")
 			 (aref xlfd-fields xlfd-regexp-registry-subnum))
 		(new-fontset font (x-complement-fontset-spec xlfd-fields nil))
 	      ;; Create a fontset from FONT.  The fontset name is
-	      ;; generated from FONT.  Create style variants of the
-	      ;; fontset too.  Font names in the variants are
-	      ;; generated automatially unless X resources
-	      ;; XXX.attribyteFont explicitly specify them.
-	      (let ((styles (mapcar 'car x-style-funcs-alist))
-		    (faces '(bold italic bold-italic))
-		    face face-font fontset fontset-spec)
-		(while faces
-		  (setq face (car faces))
-		  (setq face-font (x-get-resource (concat (symbol-name face)
-							  ".attributeFont")
-						  "Face.AttributeFont"))
-		  (if face-font
-		      (setq styles (cons (cons face face-font)
-					 (delq face styles))))
-		  (setq faces (cdr faces)))
-		(aset xlfd-fields xlfd-regexp-foundry-subnum nil)
-		(aset xlfd-fields xlfd-regexp-family-subnum nil)
-		(aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
-		(aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
-		;; The fontset name should have concrete values in
-		;; weight and slant field.
-		(let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
-		      (slant (aref xlfd-fields xlfd-regexp-slant-subnum))
-		      xlfd-temp)
-		  (if (and (or (not weight) (string-match "[*?]*" weight))
-			   (setq xlfd-temp
-				 (x-decompose-font-name resolved-name)))
-		      (aset xlfd-fields xlfd-regexp-weight-subnum
-			    (aref xlfd-temp xlfd-regexp-weight-subnum)))
-		  (if (and (or (not slant) (string-match "[*?]*" slant))
-			   (or xlfd-temp
-			       (setq xlfd-temp
-				     (x-decompose-font-name resolved-name))))
-		      (aset xlfd-fields xlfd-regexp-slant-subnum
-			    (aref xlfd-temp xlfd-regexp-slant-subnum))))
-		(setq fontset (x-compose-font-name xlfd-fields))
-		(create-fontset-from-fontset-spec
-		 (concat fontset ", ascii:" font) styles)
-		))))))
+	      ;; generated from FONT.
+	      (create-fontset-from-ascii-font font
+					      resolved-name "startup"))))))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
