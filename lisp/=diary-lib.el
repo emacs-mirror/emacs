@@ -124,8 +124,8 @@ The list entries have the form ((month day year) string).  If the variable
 \(consisting of the empty string) for a date with no diary entries.
 
 After the list is prepared, the hooks `nongregorian-diary-listing-hook',
-`list-diary-entries-hook', and `diary-display-hook' are run.  These hooks
-have the following distinct roles:
+`list-diary-entries-hook', `diary-display-hook', and `diary-hook' are run.
+These hooks have the following distinct roles:
 
     `nongregorian-diary-listing-hook' can cull dates from the diary
         and each included file.  Usually used for Hebrew or Islamic
@@ -133,10 +133,16 @@ have the following distinct roles:
 
     `list-diary-entries-hook' adds or manipulates diary entries from
         external sources.  Used, for example, to include diary entries
-        from other files or to sort the diary entries.  Invoked *once* only.
+        from other files or to sort the diary entries.  Invoked *once* only,
+        before the display hook is run.
 
-    `diary-display-hook' does the actual display of information.  Could be
-        used also for an appointment notification function."
+    `diary-display-hook' does the actual display of information.  If this is
+        nil, simple-diary-display will be used.  Use add-hook to set this to
+        fancy-diary-display, if desired.  If you want no diary display, use
+        add-hook to set this to ignore.
+
+    `diary-hook' is run last.  This can be used for an appointment
+        notification function."
 
   (if (< 0 number)
       (let* ((original-date date);; save for possible use in the hooks
@@ -239,8 +245,11 @@ have the following distinct roles:
           (set-syntax-table old-diary-syntax-table))
         (goto-char (point-min))
         (run-hooks 'nongregorian-diary-listing-hook
-                   'list-diary-entries-hook
-                   'diary-display-hook)
+                   'list-diary-entries-hook)
+        (if diary-display-hook
+            (run-hooks 'diary-display-hook)
+          (simple-diary-display))
+        (run-hooks 'diary-hook)
         diary-entries-list))))
 
 (defun include-other-diary-files ()
@@ -263,7 +272,8 @@ changing the variable `diary-include-string'."
                        (buffer-substring (match-beginning 2) (match-end 2))))
           (diary-list-include-blanks nil)
           (list-diary-entries-hook 'include-other-diary-files)
-          (diary-display-hook nil))
+          (diary-display-hook 'ignore)
+          (diary-hook nil))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
