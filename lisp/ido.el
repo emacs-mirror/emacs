@@ -3808,15 +3808,19 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 
 ;;; Helper functions for other programs
 
+(put 'dired-do-rename 'ido 'ignore)
+
 ;;;###autoload
 (defun ido-read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
 See `read-file-name' for additional parameters."
   (cond
   ((or (eq predicate 'file-directory-p)
+       (eq (get this-command 'ido) 'dir)
        (memq this-command ido-read-file-name-as-directory-commands))
    (ido-read-directory-name prompt dir default-filename mustmatch initial))
-  ((and (not (memq this-command ido-read-file-name-non-ido))
+  ((and (not (eq (get this-command 'ido) 'ignore))
+	(not (memq this-command ido-read-file-name-non-ido))
 	(or (null predicate) (eq predicate 'file-exists-p)))
    (let* (filename
 	  ido-saved-vc-hb
