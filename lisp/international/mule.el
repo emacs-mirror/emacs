@@ -24,10 +24,10 @@
 
 ;;; Code:
 
-(defconst mule-version "3.0 (MOMIJINOGA)" "\
+(defconst mule-version "4.0 (HANANOEN)" "\
 Version number and name of this version of MULE (multilingual environment).")
 
-(defconst mule-version-date "1998.1.1" "\
+(defconst mule-version-date "1998.7.1" "\
 Distribution date of this version of MULE (multilingual environment).")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
