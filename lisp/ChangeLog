@@ -1,3 +1,8 @@
+2000-10-21  Andrew Innes  <andrewi@gnu.org>
+
+	* w32-fns.el (make-auto-save-file-name): Don't apply conversion to
+	remote (ange-ftp) file names.
+
 2000-10-21  Miles Bader  <miles@gnu.org>
 
 	* window.el (fit-window-to-buffer): New function.

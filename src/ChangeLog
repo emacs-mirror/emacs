@@ -1,3 +1,73 @@
+2000-10-21  Andrew Innes  <andrewi@gnu.org>
+
+	* w32gui.h (w32_char_font_type): Move enum from w32term.c
+
+	* w32term.h: Extern decl for w32_cache_char_metrics.
+
+	* w32bdf.c (w32_load_bdf_font): Call w32_cache_char_metrics.
+
+	* w32fns.c (w32_load_system_font): Call w32_cache_char_metrics.
+	(w32_unload_font): Free per_char array if present.
+
+	* w32term.c (w32_per_char_metric): Remove HDC argument.  Use
+	cached information in emulated XFontStruct to handle common cases
+	quickly.  Do not allocate XCharStruct for return.
+	(w32_native_per_char_metric): New function.
+	(w32_bdf_per_char_metric): Fill in supplied XCharStruct instead of
+	allocating one.
+	(x_produce_glyphs): Don't get an HDC.  Change calls to
+	w32_per_char_metric to match arg change above.  Remove calls to
+	free results.
+	(w32_get_glyph_overhangs): Ditto.
+	(w32_cache_char_metrics): New function.
+
+	* makefile.w32-in: Change .obj to .$(O) in all dependencies.
+	($(BLD)/casefiddle.$(O)): Remove compile command.
+	($(BLD)/gmalloc.$(O)): Remove compile command.
+	($(BLD)/dispnew.obj): 
+	($(BLD)/keyboard.obj): 
+	($(BLD)/w32inevt.obj): 
+	($(BLD)/w32bdf.obj): 
+	($(BLD)/alloc.obj): 
+	($(BLD)/buffer.obj): 
+	($(BLD)/editfns.obj): 
+	($(BLD)/emacs.obj): 
+	($(BLD)/fileio.obj): 
+	($(BLD)/fns.obj): 
+	($(BLD)/indent.obj): 
+	($(BLD)/insdel.obj): 
+	($(BLD)/intervals.obj): 
+	($(BLD)/minibuf.obj): 
+	($(BLD)/print.obj): 
+	($(BLD)/scroll.obj): 
+	($(BLD)/sysdep.obj): 
+	($(BLD)/textprop.obj): 
+	($(BLD)/widget.obj): 
+	($(BLD)/xdisp.obj): Add dependency on w32gui.h.
+	($(BLD)/term.obj): Add dependency on dispextern.h.
+
+	* makefile.nt ($(BLD)\dispnew.obj): 
+	($(BLD)\keyboard.obj): 
+	($(BLD)\w32inevt.obj): 
+	($(BLD)\w32bdf.obj): 
+	($(BLD)\alloc.obj): 
+	($(BLD)\buffer.obj): 
+	($(BLD)\editfns.obj): 
+	($(BLD)\emacs.obj): 
+	($(BLD)\fileio.obj): 
+	($(BLD)\fns.obj): 
+	($(BLD)\indent.obj): 
+	($(BLD)\insdel.obj): 
+	($(BLD)\intervals.obj): 
+	($(BLD)\minibuf.obj): 
+	($(BLD)\print.obj): 
+	($(BLD)\scroll.obj): 
+	($(BLD)\sysdep.obj): 
+	($(BLD)\textprop.obj): 
+	($(BLD)\widget.obj): 
+	($(BLD)\xdisp.obj): Add dependency on w32gui.h.
+	($(BLD)\term.obj): Add dependency on dispextern.h
+
 2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* minibuf.c (Fminibuffer_complete): Call Fpos_visible_in_window_p

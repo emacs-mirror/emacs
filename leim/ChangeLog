@@ -1,3 +1,25 @@
+2000-10-21  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt ($(TIT)): Add $(SUBDIRS) as dependents, instead
+	of conditional invocation of make.
+	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
+	files to .elc.
+	($(TIT)): Adjusted for the above change.
+	(clean mostlyclean): Likewise.
+	(.el.elc): New target.
+
+	* makefile.w32-in ($(TIT)): Add $(SUBDIRS) as dependents, instead
+	of conditional invocation of make.
+	(TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
+	files to .elc.
+	($(TIT)): Adjusted for the above change.
+	(clean mostlyclean): Likewise.
+	(.el.elc): New target.
+
 2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (${TIT}, clean): Don't use shell `command`
