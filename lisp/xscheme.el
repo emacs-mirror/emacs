@@ -76,7 +76,7 @@ Is processed with `substitute-command-keys' first."
 When called, the current buffer will be the Scheme process-buffer."
   :type 'hook
   :group 'xscheme
-  :version 20.3)
+  :version "20.3")
 
 (defun xscheme-evaluation-commands (keymap)
   (define-key keymap "\e\C-x" 'xscheme-send-definition)
