@@ -12286,7 +12286,11 @@ redisplay_window (window, just_this_one_p)
     {
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       move_it_vertically_backward (&it, 0);
+#if 0
+      /* I think this assert is bogus if buffer contains
+	 invisible text or images.  KFS.  */
       xassert (IT_CHARPOS (it) <= PT);
+#endif
       it.current_y = 0;
     }
 
