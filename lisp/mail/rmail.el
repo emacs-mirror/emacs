@@ -647,11 +647,12 @@ Instead, these commands are available:
 (defun rmail-variables ()
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
+  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
    '(rmail-font-lock-keywords t nil nil nil
-     (rmail-fontify-buffer-function rmail-unfontify-buffer-function nil nil
-      (fast-lock-mode))))
-  (setq font-lock-defaults '(rmail-font-lock-keywords t))
+     (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
+     (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+     (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
   (make-local-variable 'rmail-deleted-vector)
@@ -2532,17 +2533,22 @@ This has an effect only if a summary buffer exists.")
 
 (defun rmail-fontify-buffer-function ()
   ;; This function's symbol is bound to font-lock-fontify-buffer-function.
-  (if (and (boundp 'lazy-lock-mode) lazy-lock-mode)
-      (setq font-lock-fontify-buffer-function
-	    'font-lock-default-fontify-buffer)
-    (make-local-hook 'rmail-show-message-hook)
-    (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
-    (rmail-fontify-message)))
+  (make-local-hook 'rmail-show-message-hook)
+  (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
+  (rmail-fontify-message)
+  (setq font-lock-fontified t))
 
 (defun rmail-unfontify-buffer-function ()
   ;; This function's symbol is bound to font-lock-fontify-unbuffer-function.
-  (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
-  (font-lock-default-unfontify-buffer))
+  (let ((modified (buffer-modified-p))
+	(buffer-undo-list t) (inhibit-read-only t)
+	before-change-functions after-change-functions
+	buffer-file-name buffer-file-truename)
+    (save-restriction
+      (widen)
+      (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
+      (remove-text-properties (point-min) (point-max) '(rmail-fontified nil))
+      (font-lock-default-unfontify-buffer))))
 
 (defun rmail-fontify-message ()
   ;; Fontify the current message if it is not already fontified.
