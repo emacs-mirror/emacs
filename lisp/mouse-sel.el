@@ -264,8 +264,9 @@ See documentation for mouse-select for more details.
 This should be bound to a down-mouse event."
   (interactive "e")
   (if EVENT (select-window (posn-window (event-end EVENT))))
-  (let* ((min (if (and EVENT mark-active) (region-beginning) (point)))
-	 (max (if (and EVENT mark-active) (region-end) (point)))
+  (let* ((use-region (and (or EVENT transient-mark-mode) mark-active))
+	 (min (if use-region (region-beginning) (point)))
+	 (max (if use-region (region-end) (point)))
 	 (orig-window (selected-window))
 	 (orig-window-frame (window-frame orig-window))
 	 (top (nth 1 (window-edges orig-window)))
