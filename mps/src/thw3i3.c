@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.6) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.8) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -59,21 +59,21 @@
  *
  */
 
-#if !defined(MPS_OS_NT) || !defined(MPS_ARCH_I3) /* .i3 .nt */
-#error "Compiling thntmvi3 when MPS_OS_NT or MPS_ARCH_I3 not defined."
-#endif
-
 #include "std.h"
-#include "deque.h"
-#include "trace.h"
 #include "ref.h"
 #include "pool.h"
 #include "space.h"
+#include "trace.h"
 #include "th.h"
 #include "ss.h"
+
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3) /* .i3 .nt */
+#error "Compiling thnti3 when MPS_OS_W3 or MPS_ARCH_I3 not defined."
+#endif
+
 #include <windows.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!thnti3.c(trunk.8) $");
 
 
 typedef struct ThreadStruct {
