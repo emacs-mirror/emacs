@@ -2681,16 +2681,24 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       (while clauses
 	(let* ((clause (car clauses))
                (condition (car clause)))
-          (cond ((not (symbolp condition))
+          (cond ((not (or (symbolp condition)
+			  (and (listp condition)
+			       (let ((syms condition) (ok t))
+				 (while syms
+				   (if (not (symbolp (car syms)))
+				       (setq ok nil))
+				   (setq syms (cdr syms)))
+				 ok))))
                  (byte-compile-warn
-                   "%s is not a symbol naming a condition (in condition-case)"
+                   "%s is not a condition name or list of such (in condition-case)"
                    (prin1-to-string condition)))
-                ((not (or (eq condition 't)
-			  (and (stringp (get condition 'error-message))
-			       (consp (get condition 'error-conditions)))))
-                 (byte-compile-warn
-                   "%s is not a known condition name (in condition-case)" 
-                   condition)))
+;;                ((not (or (eq condition 't)
+;;			  (and (stringp (get condition 'error-message))
+;;			       (consp (get condition 'error-conditions)))))
+;;                 (byte-compile-warn
+;;                   "%s is not a known condition name (in condition-case)" 
+;;                   condition))
+		)
 	  (setq compiled-clauses
 		(cons (cons condition
 			    (byte-compile-top-level-body
