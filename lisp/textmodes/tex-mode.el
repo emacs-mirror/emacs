@@ -499,7 +499,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    (bold (regexp-opt '("textbf" "textsc" "textup"
 				"boldsymbol" "pmb") t))
 	    (italic (regexp-opt '("textit" "textsl" "emph") t))
-	    (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
+	    ;; FIXME: unimplemented yet.
+	    ;; (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
 	    ;;
 	    ;; Names of commands whose arg should be fontified as a citation.
 	    (citations (regexp-opt
@@ -713,6 +714,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defvar latex-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map tex-mode-map)
+    (define-key map "\C-c\C-s" 'latex-split-block)
     map)
   "Keymap for `latex-mode'.  See also `tex-mode-map'.")
 
@@ -745,15 +747,7 @@ Inherits `shell-mode-map' with a few additions.")
 
 ;; This would be a lot simpler if we just used a regexp search,
 ;; but then it would be too slow.
-;;;###autoload
-(defun tex-mode ()
-  "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
-Tries to determine (by looking at the beginning of the file) whether
-this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
-`latex-mode', or `slitex-mode', respectively.  If it cannot be determined,
-such as if there are no commands in the file, the value of `tex-default-mode'
-says which mode to use."
-  (interactive)
+(defun tex-guess-mode ()
   (let ((mode tex-default-mode) slash comment)
     (save-excursion
       (goto-char (point-min))
@@ -778,6 +772,27 @@ says which mode to use."
 		'plain-tex-mode))))
     (funcall mode)))
 
+;; `tex-mode' plays two roles: it's the parent of several sub-modes
+;; but it's also the function that chooses between those submodes.
+;; To tell the difference between those two cases where the function
+;; might be called, we check `delay-mode-hooks'.
+;;;###autoload
+(define-derived-mode tex-mode text-mode "generic-TeX"
+  (tex-common-initialization))
+(fset 'tex-mode
+      `(lambda ()
+	 "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
+Tries to determine (by looking at the beginning of the file) whether
+this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
+`latex-mode', or `slitex-mode', respectively.  If it cannot be determined,
+such as if there are no commands in the file, the value of `tex-default-mode'
+says which mode to use."
+	 (interactive)
+	 (if delay-mode-hooks
+	     ;; We're called from one of the children already.
+	     (funcall ,(symbol-function 'tex-mode))
+	   (tex-guess-mode))))
+
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)
 ;;;###autoload
@@ -786,7 +801,7 @@ says which mode to use."
 (defalias 'LaTeX-mode 'latex-mode)
 
 ;;;###autoload
-(define-derived-mode plain-tex-mode text-mode "TeX"
+(define-derived-mode plain-tex-mode tex-mode "TeX"
   "Major mode for editing files of input for plain TeX.
 Makes $ and } display the characters they match.
 Makes \" insert `` when it seems to be the beginning of a quotation,
@@ -826,15 +841,13 @@ tex-show-queue-command
 Entering Plain-tex mode runs the hook `text-mode-hook', then the hook
 `tex-mode-hook', and finally the hook `plain-tex-mode-hook'.  When the
 special subshell is initiated, the hook `tex-shell-hook' is run."
-  (tex-common-initialization)
-  (setq tex-command tex-run-command)
-  (setq tex-start-of-header "%\\*\\*start of header")
-  (setq tex-end-of-header "%\\*\\*end of header")
-  (setq tex-trailer "\\bye\n")
-  (run-hooks 'tex-mode-hook))
+  (set (make-local-variable 'tex-command) tex-run-command)
+  (set (make-local-variable 'tex-start-of-header) "%\\*\\*start of header")
+  (set (make-local-variable 'tex-end-of-header) "%\\*\\*end of header")
+  (set (make-local-variable 'tex-trailer) "\\bye\n"))
 
 ;;;###autoload
-(define-derived-mode latex-mode text-mode "LaTeX"
+(define-derived-mode latex-mode tex-mode "LaTeX"
   "Major mode for editing files of input for LaTeX.
 Makes $ and } display the characters they match.
 Makes \" insert `` when it seems to be the beginning of a quotation,
@@ -874,16 +887,16 @@ tex-show-queue-command
 Entering Latex mode runs the hook `text-mode-hook', then
 `tex-mode-hook', and finally `latex-mode-hook'.  When the special
 subshell is initiated, `tex-shell-hook' is run."
-  (tex-common-initialization)
-  (setq tex-command latex-run-command)
-  (setq tex-start-of-header "\\\\document\\(style\\|class\\)")
-  (setq tex-end-of-header "\\\\begin\\s-*{document}")
-  (setq tex-trailer "\\end\\s-*{document}\n")
+  (set (make-local-variable 'tex-command) latex-run-command)
+  (set (make-local-variable 'tex-start-of-header)
+       "\\\\document\\(style\\|class\\)")
+  (set (make-local-variable 'tex-end-of-header) "\\\\begin\\s-*{document}")
+  (set (make-local-variable 'tex-trailer) "\\end\\s-*{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
   (setq paragraph-start
-	(concat "[\f%]\\|[ \t]*\\($\\|\\$\\$\\|"
+	(concat "[ \t]*\\(\\$\\$\\|"
 		"\\\\[][]\\|"
 		"\\\\" (regexp-opt (append
 				    (mapcar 'car latex-section-alist)
@@ -913,8 +926,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
-  (set (make-local-variable 'skeleton-end-hook) nil)
-  (run-hooks 'tex-mode-hook))
+  (set (make-local-variable 'skeleton-end-hook) nil))
 
 ;;;###autoload
 (define-derived-mode slitex-mode latex-mode "SliTeX"
@@ -962,7 +974,6 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\documentclass{slides}"))
 
 (defun tex-common-initialization ()
-  (set-syntax-table tex-mode-syntax-table)
   ;; Regexp isearch should accept newline and formfeed as whitespace.
   (set (make-local-variable 'search-whitespace-regexp) "[ \t\r\n\f]+")
   ;; A line containing just $$ is treated as a paragraph separator.
@@ -1069,8 +1080,7 @@ on the line for the invalidity you want to see."
 	(num-matches 0))
     (with-output-to-temp-buffer "*Occur*"
       (princ "Mismatches:\n")
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(occur-mode)
 	;; This won't actually work...Really, this whole thing should
 	;; be rewritten instead of being a hack on top of occur.
@@ -1087,8 +1097,7 @@ on the line for the invalidity you want to see."
 		  (forward-char 2))
 	      (goto-char (setq prev-end (point-min))))
 	    (or (tex-validate-region (point) end)
-		(let* ((oend end)
-		       (end (save-excursion (forward-line 1) (point)))
+		(let* ((end (line-beginning-position 2))
 		       start tem)
 		  (beginning-of-line)
 		  (setq start (point))
@@ -1844,7 +1853,6 @@ The last line of the buffer is displayed on
 line LINE of the window, or centered if LINE is nil."
   (interactive "P")
   (let ((tex-shell (get-buffer "*tex-shell*"))
-	(old-buffer (current-buffer))
 	(window))
     (if (null tex-shell)
 	(message "No TeX output buffer")
@@ -1971,7 +1979,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defun latex-indent (&optional arg)
   (if (and (eq (get-text-property (line-beginning-position) 'face)
 	       tex-verbatim-face))
-      (indent-relative)
+      'noindent
     (with-syntax-table tex-latex-indent-syntax-table
       ;; TODO: Rather than ignore $, we should try to be more clever about it.
       (let ((indent
@@ -2058,6 +2066,63 @@ There might be text before point."
 		 (min (current-column) (+ tex-indent-arg col))
 	       (skip-syntax-forward " ")
 	       (current-column))))))))))
+;;; DocTeX support
+
+(defun doctex-font-lock-^^A ()
+  (if (eq (char-after (line-beginning-position)) ?\%)
+      (progn
+	(put-text-property
+	 (1- (match-beginning 1)) (match-beginning 1)
+	 'syntax-table
+	 (if (= (1+ (line-beginning-position)) (match-beginning 1))
+	     ;; The `%' is a single-char comment, which Emacs
+	     ;; syntax-table can't deal with.  We could turn it
+	     ;; into a non-comment, or use `\n%' or `%^' as the comment.
+	     ;; Instead, we include it in the ^^A comment.
+	     (eval-when-compile (string-to-syntax "< b"))
+	   (eval-when-compile (string-to-syntax ">"))))
+	(let ((end (line-end-position)))
+	  (if (< end (point-max))
+	      (put-text-property
+	       end (1+ end)
+	       'syntax-table
+	       (eval-when-compile (string-to-syntax "> b")))))
+	(eval-when-compile (string-to-syntax "< b")))))
+
+(defun doctex-font-lock-syntactic-face-function (state)
+  ;; Mark DocTeX documentation, which is parsed as a style A comment
+  ;; starting in column 0.
+  (if (or (nth 3 state) (nth 7 state)
+	  (not (memq (char-before (nth 8 state))
+		     '(?\n nil))))
+      ;; Anything else is just as for LaTeX.
+      (tex-font-lock-syntactic-face-function state)
+    font-lock-doc-face))
+
+(defvar doctex-font-lock-syntactic-keywords
+  (append
+   tex-font-lock-syntactic-keywords
+   ;; For DocTeX comment-in-doc.
+   `(("\\(\\^\\)\\^A" (1 (doctex-font-lock-^^A))))))
+
+(defvar doctex-font-lock-keywords
+  (append tex-font-lock-keywords
+	  '(("^%<[^>]*>" (0 font-lock-preprocessor-face t)))))
+
+;;;###autoload
+(define-derived-mode doctex-mode latex-mode "DocTeX"
+  "Major mode to edit DocTeX files."
+  (setq font-lock-defaults
+	(cons (append (car font-lock-defaults) '(doctex-font-lock-keywords))
+	      (mapcar
+	       (lambda (x)
+		 (case (car-safe x)
+		   (font-lock-syntactic-keywords
+		    (cons (car x) 'doctex-font-lock-syntactic-keywords))
+		   (font-lock-syntactic-face-function
+		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
+		   (t x)))
+	       (cdr font-lock-defaults)))))
 
 (run-hooks 'tex-mode-load-hook)
 
