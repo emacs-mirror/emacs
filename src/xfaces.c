@@ -2249,7 +2249,8 @@ pixel_point_size (f, pixel)
 /* Return a rescaling ratio of a font of NAME.  */
 
 static double
-font_rescale_ratio (char *name)
+font_rescale_ratio (name)
+     char *name;
 {
   Lisp_Object tail, elt;  
 
