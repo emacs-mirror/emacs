@@ -703,7 +703,7 @@ and their encoded form is inserted byte by byte."
 	   (hexl-insert-char ch num))
 	  ((eq charset 'unknown)
 	   (error
-	    "0x%x -- invalid character code; use \\[hexl-insert-hex-string]."
+	    "0x%x -- invalid character code; use \\[hexl-insert-hex-string]"
 	    ch))
 	  (t
 	   (let ((encoded (encode-coding-char ch coding))
@@ -723,7 +723,7 @@ and their encoded form is inserted byte by byte."
 		     ch internal-hex))
 		   (setq encoded internal)
 		 (error
-		  "Can't encode `0x%x' with this buffer's coding system; try \\[hexl-insert-hex-string]."
+		  "Can't encode `0x%x' with this buffer's coding system; try \\[hexl-insert-hex-string]"
 		  ch)))
 	     (while (> num 0)
 	       (mapc
@@ -744,7 +744,7 @@ and their encoded form is inserted byte by byte."
 
 CH must be a unibyte character whose value is between 0 and 255."
   (if (or (< ch 0) (> ch 255))
-      (error "Invalid character 0x%x -- must be in the range [0..255]."))
+      (error "Invalid character 0x%x -- must be in the range [0..255]"))
   (let ((address (hexl-current-address t)))
     (while (> num 0)
       (let ((hex-position
