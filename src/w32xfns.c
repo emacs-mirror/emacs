@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include "lisp.h"
+#include "frame.h"
 #include "blockinput.h"
 #include "w32term.h"
 #include "windowsx.h"
@@ -29,38 +30,78 @@ Boston, MA 02111-1307, USA.  */
 #define myalloc(cb) GlobalAllocPtr (GPTR, cb)
 #define myfree(lp) GlobalFreePtr (lp)
 
-CRITICAL_SECTION critsect;
+CRITICAL_SECTION critsect[ CRIT_TOTAL ];
 extern HANDLE keyboard_handle;
-HANDLE hEvent = NULL;
+HANDLE h_input_available = NULL;
 
 void 
 init_crit ()
 {
-  InitializeCriticalSection (&critsect);
-  keyboard_handle = hEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
-}
+  int i;
 
-void 
-enter_crit ()
-{
-  EnterCriticalSection (&critsect);
-}
-
-void 
-leave_crit ()
-{
-  LeaveCriticalSection (&critsect);
+  for (i = 0; i < CRIT_TOTAL; i++)
+    InitializeCriticalSection (&critsect[i]);
+  /* For safety, h_input_available should only be reset by get_next_msg
+     when the input queue is empty, so make it a manual reset event. */
+  keyboard_handle = h_input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
 }
 
 void 
 delete_crit ()
 {
-  DeleteCriticalSection (&critsect);
-  if (hEvent)
+  int i;
+
+  for (i = 0; i < CRIT_TOTAL; i++)
+    DeleteCriticalSection (&critsect[i]);
+  if (h_input_available)
     {
-      CloseHandle (hEvent);
-      hEvent = NULL;
+      CloseHandle (h_input_available);
+      h_input_available = NULL;
     }
+}
+
+/* Get a DC for frame and select palette for drawing; force an update of
+   all frames if palette's mapping changes.  */
+HDC
+GetFrameDC (FRAME_PTR f)
+{
+  HDC hDC;
+
+  enter_crit (CRIT_GDI);
+
+  hDC = GetDC (f->output_data.win32->window_desc);
+
+  if (!NILP (Vwin32_enable_palette))
+    f->output_data.win32->h_old_palette =
+      SelectPalette (hDC, one_win32_display_info.h_palette, FALSE);
+  else
+    f->output_data.win32->h_old_palette = NULL;
+
+  if (RealizePalette (hDC))
+    {
+      Lisp_Object frame, framelist;
+      FOR_EACH_FRAME (framelist, frame)
+	{
+	  SET_FRAME_GARBAGED (XFRAME (frame));
+	}
+    }
+
+  return hDC;
+}
+
+int
+ReleaseFrameDC (FRAME_PTR f, HDC hDC)
+{
+  int ret;
+
+  if (f->output_data.win32->h_old_palette)
+    SelectPalette (hDC, f->output_data.win32->h_old_palette, FALSE);
+
+  ret = ReleaseDC (f->output_data.win32->window_desc, hDC);
+
+  leave_crit (CRIT_GDI);
+
+  return ret;
 }
 
 typedef struct int_msg
@@ -80,15 +121,15 @@ get_next_msg (lpmsg, bWait)
 {
   BOOL bRet = FALSE;
   
-  enter_crit ();
+  enter_crit (CRIT_MSG);
   
   /* The while loop takes care of multiple sets */
   
   while (!nQueue && bWait)
     {
-      leave_crit ();
-      WaitForSingleObject (hEvent, INFINITE);
-      enter_crit ();
+      leave_crit (CRIT_MSG);
+      WaitForSingleObject (h_input_available, INFINITE);
+      enter_crit (CRIT_MSG);
     }
   
   if (nQueue)
@@ -107,8 +148,11 @@ get_next_msg (lpmsg, bWait)
 
       bRet = TRUE;
     }
+
+  if (nQueue == 0)
+    ResetEvent (h_input_available);
   
-  leave_crit ();
+  leave_crit (CRIT_MSG);
   
   return (bRet);
 }
@@ -119,26 +163,23 @@ post_msg (lpmsg)
 {
   int_msg * lpNew = (int_msg *) myalloc (sizeof (int_msg));
 
-  if (!lpNew) return (FALSE);
+  if (!lpNew)
+    return (FALSE);
 
   bcopy (lpmsg, &(lpNew->w32msg), sizeof (Win32Msg));
   lpNew->lpNext = NULL;
 
-  enter_crit ();
+  enter_crit (CRIT_MSG);
 
   if (nQueue++)
-    {
-      lpTail->lpNext = lpNew;
-    }
+    lpTail->lpNext = lpNew;
   else 
-    {
-      lpHead = lpNew;
-      SetEvent (hEvent);
-    }
+    lpHead = lpNew;
 
   lpTail = lpNew;
+  SetEvent (h_input_available);
     
-  leave_crit ();
+  leave_crit (CRIT_MSG);
 
   return (TRUE);
 }
