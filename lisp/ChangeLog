@@ -1,16 +1,25 @@
+2001-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): 
+	Make no arg by default in an interactive call,
+	so that repeating the command toggles again.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Cope with atoms as args.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* jka-compr.el (jka-compr-partial-uncompress): Use null-device
-	instead of a literal /dev/null.  Reported by Jens Schmidt
-	<schmidt@mathematik.uni-kl.de>.
+	instead of a literal /dev/null.
+
+	* Makefile.in (distclean): Remove Makefile in the build
+	directory, not in the source directory.
+
+2001-12-21  Simon Josefsson  <jas@extundo.com>.
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Use
 	with-temp-buffer instead of find-file-noselect, and bind
 	coding-system-for-read to no-conversion when reading the queued
-	messages.  From Simon Josefsson <jas@extundo.com>.
-
-	* Makefile.in (distclean): Remove Makefile in the build
-	directory, not in the source directory.
+	messages.
 
 2001-12-20  Werner Lemberg  <wl@gnu.org>
 
