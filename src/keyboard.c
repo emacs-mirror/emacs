@@ -310,6 +310,7 @@ Lisp_Object Vdeferred_action_list;
 
 /* Function to call to handle deferred actions, when there are any.  */
 Lisp_Object Vdeferred_action_function;
+Lisp_Object Qdeferred_action_function;
 
 /* File in which we write all commands we read.  */
 FILE *dribble;
@@ -1261,7 +1262,7 @@ command_loop_1 ()
 	safe_run_hooks (Qpost_command_hook);
 
       if (!NILP (Vdeferred_action_list))
-	call0 (Vdeferred_action_function);
+	safe_run_hooks (Qdeferred_action_function);
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -6077,6 +6078,9 @@ syms_of_keyboard ()
 
   Qpost_command_hook = intern ("post-command-hook");
   staticpro (&Qpost_command_hook);
+
+  Qdeferred_action_function = intern ("deferred-action-function");
+  staticpro (&Qdeferred_action_function);
 
   Qcommand_hook_internal = intern ("command-hook-internal");
   staticpro (&Qcommand_hook_internal);
