@@ -4432,10 +4432,10 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   ZV_BYTE -= len_byte;
   Z_BYTE -= len_byte;
 
-  if (GPT - BEG < beg_unchanged)
-    beg_unchanged = GPT - BEG;
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
+  if (GPT - BEG < BEG_UNCHANGED)
+    BEG_UNCHANGED = GPT - BEG;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   for (;;)
     {
