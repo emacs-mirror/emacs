@@ -1,3 +1,69 @@
+2002-05-20  Ken Raeburn  <raeburn@gnu.org>
+
+	Change symbol structure to contain a lisp object for the symbol
+	name:
+	* lisp.h (struct Lisp_Symbol): Replace field "name" with a lisp
+	object field named "xname".
+	(SYMBOL_NAME): New macro.
+	* abbrev.c (write_abbrev): Use SYMBOL_NAME instead of XSYMBOL and
+	name field.
+	* alloc.c (Fmake_symbol): Set symbol xname field instead of name.
+	(mark_object, gc_sweep): Use symbol xname field and XSTRING
+	instead of name field.
+	* buffer.c (buffer_slot_type_mismatch): Use XSTRING and
+	SYMBOL_NAME instead of XSYMBOL and name field.
+	* callint.c (Fcall_interactively): Use XSTRING and SYMBOL_NAME
+	instead of XSYMBOL and name field.
+	* charset.c (Fdefine_charset, Fdeclare_equiv_charset): Use XSTRING
+	and SYMBOL_NAME instead of XSYMBOL and name field.
+	* coding.c (Fread_coding_system, code_convert_region1)
+	(code_convert_string1, code_convert_string_norecord)
+	(Ffind_operation_coding_system): Use SYMBOL_NAME instead of
+	XSYMBOL and name field.
+	* data.c (Fkeywordp, Fsymbol_name, store_symval_forwarding) 
+	(Fmake_variable_buffer_local, Fmake_local_variable) 
+	(Fmake_variable_frame_local): Use SYMBOL_NAME and XSTRING instead
+	of XSYMBOL and name field.
+	* editfns.c (Fformat): Use SYMBOL_NAME and XSTRING instead of
+	XSYMBOL and name field.
+	* emacs.c (shut_down_emacs) [#if 0]: Use SYMBOL_NAME and XSTRING
+	instead of XSYMBOL and name field.
+	* eval.c (do_autoload): Use SYMBOL_NAME and XSTRING instead of
+	XSYMBOL and name field.
+	* fns.c (Fstring_equal, Fstring_lessp, Frequire, sxhash): Use
+	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+	* fontset.c (Fset_fontset_font): Use SYMBOL_NAME and XSTRING
+	instead of XSYMBOL and name field.
+	* keyboard.c (echo_char, record_char, parse_modifiers_uncached) 
+	(parse_modifiers, apply_modifiers, Fevent_convert_list) 
+	(parse_solitary_modifier, Fexecute_extended_command): Use
+	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+	* keymap.c (silly_event_symbol_error, Fsingle_key_description) 
+	(Fdescribe_buffer_bindings): Use SYMBOL_NAME and XSTRING instead
+	of XSYMBOL and name field.
+	(describe_command, describe_translation): Use SYMBOL_NAME and
+	assignment instead of XSYMBOL and name field and XSETSTRING.
+	* lread.c (Fintern_soft, oblookup): Use SYMBOL_NAME and XSTRING
+	instead of XSYMBOL and name field.
+	(Funintern): Use SYMBOL_NAME and assignment instead of XSYMBOL and
+	name field and XSETSTRING.
+	* macfns.c (parse_image_spec): Use SYMBOL_NAME and XSTRING instead
+	of XSYMBOL and name field.
+	* minibuf.c (Fread_command, Fread_variable): Use SYMBOL_NAME and
+	assignment instead of XSYMBOL and name field and XSETSTRING.
+	* print.c (print_error_message, print_object): Use SYMBOL_NAME and
+	XSTRING instead of XSYMBOL and name field.
+	* process.c (set_socket_options, Fsignal_process): Use SYMBOL_NAME
+	and XSTRING instead of XSYMBOL and name field.
+	* w32fns.c (parse_image_spec, w32_parse_hot_key): Use SYMBOL_NAME
+	and XSTRING instead of XSYMBOL and name field.
+	* xfaces.c (merge_face_vector_with_property): Use SYMBOL_NAME and
+	XSTRING instead of XSYMBOL and name field.
+	* xfns.c (parse_image_spec): Use SYMBOL_NAME and XSTRING instead
+	of XSYMBOL and name field.
+	* xselect.c (symbol_to_x_atom, x_get_foreign_selection): Use
+	SYMBOL_NAME and XSTRING instead of XSYMBOL and name field.
+
 2002-05-19  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (LISP_MAKE_RVALUE): Delete disabled version, making XCAR
