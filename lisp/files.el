@@ -1250,9 +1250,10 @@ If `enable-local-variables' is nil, this function does not check for a
 				(switch-to-buffer-other-frame (current-buffer))))))
 			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
 					    (file-name-nondirectory buffer-file-name)))))))
-	  (while result
-	    (hack-one-local-variable (car (car result)) (cdr (car result)))
-	    (setq result (cdr result)))))))
+	  (let ((enable-local-eval enable-local-eval))
+	    (while result
+	      (hack-one-local-variable (car (car result)) (cdr (car result)))
+	      (setq result (cdr result))))))))
 
 (defvar hack-local-variables-hook nil
   "Normal hook run after processing a file's local variables specs.
