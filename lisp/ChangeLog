@@ -1,3 +1,12 @@
+2004-05-04  Juanma Barranquero  <lektu@terra.es>
+
+	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
+	C-c <left> and C-c <right>, respectively (the previous bindings
+	conflict with prev-buffer, next-buffer).
+
+	* ehelp.el (electric-help-command-loop, electric-help-undefined)
+	(electric-help-help): Check against unmapped commands.
+
 2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-progress-message): Fix docstring.
@@ -56,7 +65,7 @@
 
 2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/compile.el (compilation-gcpro): New var
+	* progmodes/compile.el (compilation-gcpro): New var.
 	(compilation-fake-loc): Use it.
 	(compilation-forget-errors): Reset it.
 
