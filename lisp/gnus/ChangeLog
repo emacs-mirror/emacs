@@ -1,3 +1,15 @@
+2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el: Don't autoload former message-utils variables.
+	(message-strip-subject-trailing-was): Changed doc string.
+
+	* nnweb.el: Fixes for `gnus-group-make-web-group'.
+	(nnweb-type-definition): Don't add "hl=en" in `address'.  Added
+	`base'.
+	(nnweb-google-search): Add "hl=en" here.
+	(nnweb-google-parse-1, nnweb-google-create-mapping): Don't
+	hardcode URL.
+
 2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-get-reply-headers, message-followup):
