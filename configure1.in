@@ -797,6 +797,11 @@ case "${configuration}" in
     machine=tandem-s2 opsys=usg5-3
   ;;
 
+  ## Tektronix XD88
+  m88k-tektronix-sysv3 )
+  machine=tekXD88 opsys=usg5-3
+  ;;
+
   ## Tektronix 16000 box (6130?)
   ns16k-tektronix-bsd* )
     machine=ns16000 opsys=bsd4-2
