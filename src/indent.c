@@ -354,7 +354,6 @@ current_column ()
   register int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
-  int stopchar;
 
   if (PT == last_known_column_point
       && MODIFF == last_known_column_modified)
@@ -1609,7 +1608,7 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
      Lisp_Object from, frompos, to, topos;
      Lisp_Object width, offsets, window;
 {
-  Lisp_Object bufpos, hpos, vpos, prevhpos, contin;
+  Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
   int hscroll, tab_offset;
 
