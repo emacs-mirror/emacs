@@ -13,7 +13,7 @@
 	* textmodes/paragraphs.el (mark-paragraph): Clarify doc.
 	Clarify error message.
 
-2001-11-29  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-11-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* textmodes/paragraphs.el (mark-paragraph): Allow prefix arg.
 
@@ -497,7 +497,7 @@
 
 	* international/encoded-kb.el: Don't alter minor-map-alist.
 
-2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-11-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-save-file-name-transforms): Put remote files in
 	temporary-file-directory rather than /tmp.
@@ -6080,7 +6080,7 @@
 2001-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-additional-directory-list): Doc fix.  Suggested by
-	Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>.
+	Kai Gro,A_(Bjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>.
 
 2001-04-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
