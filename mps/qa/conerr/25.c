@@ -1,6 +1,8 @@
-/* test free in pool not supporting alloc (n.b. this means no alloc at the moment)
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = free in pool not supporting alloc (n.b. this means no alloc at the moment)
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

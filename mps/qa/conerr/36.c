@@ -1,6 +1,8 @@
-/* test destroy AP between reserve and commit
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = destroy AP between reserve and commit
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

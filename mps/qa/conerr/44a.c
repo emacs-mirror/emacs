@@ -1,6 +1,8 @@
-/* test create register root without registering thread
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = create register root without registering thread
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

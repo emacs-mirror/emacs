@@ -1,6 +1,8 @@
-/* test register thread twice
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = register thread twice
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

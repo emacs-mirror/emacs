@@ -1,6 +1,8 @@
-/* test destroy an uncreated pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = destroy an uncreated pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

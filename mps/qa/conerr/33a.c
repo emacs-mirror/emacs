@@ -1,6 +1,8 @@
-/* test create an AP with a rank not supported by its pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create an AP with a rank not supported by its pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"
