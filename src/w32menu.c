@@ -1354,7 +1354,7 @@ get_frame_menubar_event (f, num)
   if (NILP (items = FRAME_MENU_BAR_ITEMS (f)))
     items = FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
   
-  for (i = 0; i < XVECTOR (items)->size; i += 3)
+  for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
       Lisp_Object event;
 	
@@ -1398,7 +1398,7 @@ set_frame_menubar (f, first_time)
   
   discard_menu_items (&mm);
 
-  for (i = 0; i < XVECTOR (items)->size; i += 3)
+  for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
       Lisp_Object string;
       int keymaps;
