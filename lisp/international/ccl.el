@@ -1280,7 +1280,7 @@ SET :=	(REG = EXPRESSION)
 
 EXPRESSION := ARG | (EXPRESSION OPERATOR ARG)
 
-;; Evaluate EXPRESSION.  If the result is nonzeor, execute
+;; Evaluate EXPRESSION.  If the result is nonzero, execute
 ;; CCL_BLOCK_0.  Otherwise, execute CCL_BLOCK_1.
 IF :=	(if EXPRESSION CCL_BLOCK_0 CCL_BLOCK_1)
 
