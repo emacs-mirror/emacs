@@ -545,7 +545,10 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 						  
     ;; If FILENAME starts with the abbreviated homedir,
     ;; make it start with `~' instead.
-    (if (string-match abbreviated-home-dir filename)
+    (if (and (string-match abbreviated-home-dir filename)
+	     ;; If the home dir is just /, don't change it.
+	     (not (and (= (match-end 0) 1)
+		       (= (aref filename 0) ?/))))
 	(setq filename
 	      (concat "~"
 		      ;; If abbreviated-home-dir ends with a slash,
