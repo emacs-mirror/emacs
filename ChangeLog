@@ -1,3 +1,7 @@
+2001-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (bootstrap-lisp): Don't suppress error messages.
+
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* AUTHORS: Regenerate.
