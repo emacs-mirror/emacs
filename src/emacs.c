@@ -850,7 +850,11 @@ shut_down_emacs (sig, no_x, stuff)
 #endif
 
 #ifdef HAVE_X_WINDOWS
-  if (!noninteractive && EQ (Vwindow_system, intern ("x")) && ! no_x)
+  /* It's not safe to call intern here.  Maybe we are crashing.  */
+  if (!noninteractive && SYMBOLP (Vwindow_system)
+      && XSYMBOL (Vwindow_system)->name->size == 1
+      && XSYMBOL (Vwindow_system)->name->data[0] == 'x'
+      && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */
 
@@ -1008,7 +1012,7 @@ syms_of_emacs ()
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
     "Value is string indicating configuration Emacs was built for.");
-  Vsystem_configuration = build_string (CONFIGURATION);
+  Vsystem_configuration = build_string (EMACS_CONFIGURATION);
 
   DEFVAR_BOOL ("noninteractive", &noninteractive1,
     "Non-nil means Emacs is running without interactive terminal.");
