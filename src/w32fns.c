@@ -49,6 +49,10 @@ Lisp_Object Vwin32_color_map;
 /* Non nil if alt key presses are passed on to Windows.  */
 Lisp_Object Vwin32_pass_alt_to_system;
 
+/* Non nil if alt key is translated to meta_modifier, nil if it is translated
+   to alt_modifier.  */
+Lisp_Object Vwin32_alt_is_meta;
+
 /* Non nil if left window, right window, and application key events
    are passed on to Windows.  */
 Lisp_Object Vwin32_pass_optional_keys_to_system;
@@ -2650,7 +2654,8 @@ win32_get_modifiers ()
 {
   return (((GetKeyState (VK_SHIFT)&0x8000)   ? shift_modifier  : 0) |
 	  ((GetKeyState (VK_CONTROL)&0x8000) ? ctrl_modifier   : 0) |
-	  ((GetKeyState (VK_MENU)&0x8000)    ? meta_modifier   : 0));
+          ((GetKeyState (VK_MENU)&0x8000)    ? 
+	   ((NILP (Vwin32_alt_is_meta)) ? alt_modifier : meta_modifier) : 0));
 }
 
 void 
@@ -5001,6 +5006,11 @@ syms_of_win32fns ()
 When non-nil, for example, alt pressed and released and then space will\n\
 open the System menu.  When nil, Emacs silently swallows alt key events.");
   Vwin32_pass_alt_to_system = Qnil;
+
+  DEFVAR_LISP ("win32-alt-is-meta", &Vwin32_alt_is_meta,
+	       "Non-nil if the alt key is to be considered the same as the meta key.\n\
+When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.");
+  Vwin32_alt_is_meta = Qt;
 
   DEFVAR_LISP ("win32-pass-optional-keys-to-system", 
 	       &Vwin32_pass_optional_keys_to_system,
