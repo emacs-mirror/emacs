@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -1051,8 +1051,7 @@ Returns the compilation buffer created."
 	  (goto-char (point-max)))
       ;; Pop up the compilation buffer.
       (setq outwin (display-buffer outbuf nil t))
-      (save-excursion
-	(set-buffer outbuf)
+      (with-current-buffer outbuf
 	(compilation-mode name-of-mode)
 	;; In what way is it non-ergonomic ?  -stef
 	;; (toggle-read-only 1) ;;; Non-ergonomic.
@@ -1144,19 +1143,13 @@ exited abnormally with code %d\n"
        ;; If window is alone in its frame, aside from a minibuffer,
        ;; don't change its height.
        (not (eq window (frame-root-window (window-frame window))))
-       ;; This save-excursion prevents us from changing the current buffer,
-       ;; which might not be the same as the selected window's buffer.
-       (save-excursion
-	 (let ((w (selected-window)))
-	   (unwind-protect
-	       (progn
-		 (select-window window)
-		 (enlarge-window (- compilation-window-height
-				    (window-height))))
-	     ;; The enlarge-window above may have deleted W, if
-	     ;; compilation-window-height is large enough.
-	     (when (window-live-p w)
-	       (select-window w)))))))
+       ;; This save-current-buffer prevents us from changing the current
+       ;; buffer, which might not be the same as the selected window's buffer.
+       (save-current-buffer
+	 (save-selected-window
+	   (select-window window)
+	   (enlarge-window (- compilation-window-height
+			      (window-height)))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))
