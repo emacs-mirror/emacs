@@ -1,3 +1,8 @@
+2001-05-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/mule-cmds.el (inactivate-input-method): Set
+	input-method-function to nil.
+
 2001-05-29  Sam Steingold  <sds@gnu.org>
 
 	* faces.el (face-valid-attribute-values): Bind `valid' directly
