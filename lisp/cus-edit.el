@@ -248,7 +248,7 @@
 
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
-  :link '(custom-manual "(custom)Top")
+  :link '(custom-manual "(elisp)Customization")
   :link '(url-link :tag "Development Page" 
 		   "http://www.dina.kvl.dk/~abraham/custom/")
   :prefix "custom-"
@@ -3337,7 +3337,7 @@ The format is suitable for use with `easy-menu-define'."
     ["Reset to Current" Custom-reset-current t]
     ["Reset to Saved" Custom-reset-saved t]
     ["Reset to Standard Settings" Custom-reset-standard t]
-    ["Info" (Info-goto-node "(custom)The Customization Buffer") t]))
+    ["Info" (Info-goto-node "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()
   "Go to the parent group listed at the top of this buffer.
