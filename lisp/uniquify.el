@@ -167,25 +167,25 @@ contains the name of the directory which the buffer is visiting.")
 (defvar uniquify-possibly-resolvable nil)
 
 (defvar uniquify-managed nil
-  "Non-nil if the name of this buffer is managed by uniquify.")
+  "Non-nil if the name of this buffer is managed by uniquify.
+It actually holds the list of `uniquify-item's corresponding to the conflict.")
 (make-variable-buffer-local 'uniquify-managed)
 (put 'uniquify-managed 'permanent-local t)
 
 ;;; Main entry point.
 
-(defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
+(defun uniquify-rationalize-file-buffer-names (newbuffile newbuf)
   "Make file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
 Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
   (interactive)
-  (when newbuffile
-    (setq newbuffile (expand-file-name (directory-file-name newbuffile))))
+  (setq newbuffile (expand-file-name (directory-file-name newbuffile)))
   (let ((fix-list nil)
-	(base (and newbuffile (file-name-nondirectory newbuffile))))
+	(base (file-name-nondirectory newbuffile)))
     (dolist (buffer (buffer-list))
       (let ((bufname (buffer-name buffer))
-	    bfn rawname)
+	    bfn)
 	(when (and (not (and uniquify-ignore-buffers-re
 			     (string-match uniquify-ignore-buffers-re
 					   bufname)))
@@ -194,20 +194,15 @@ Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
 		       (eq buffer newbuf))
 		   (setq bfn (if (eq buffer newbuf) newbuffile
 			       (uniquify-buffer-file-name buffer)))
-		   (setq rawname (file-name-nondirectory bfn))
-		   (or (null base) (equal rawname base)))
+		   (equal (file-name-nondirectory bfn) base))
 	  (when (setq bfn (file-name-directory bfn)) ;Strip off the `base'.
 	    (setq bfn (directory-file-name bfn)))    ;Strip trailing slash.
-	  (push (uniquify-make-item rawname bfn buffer
-				    (uniquify-get-proposed-name rawname bfn))
+	  (push (uniquify-make-item base bfn buffer
+				    (uniquify-get-proposed-name base bfn))
 		fix-list))))
-    ;; Mark the new buffer as managed.
-    (when newbuf
-      (with-current-buffer newbuf
-	(setq uniquify-managed t)))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
-    (uniquify-rationalize-a-list fix-list)))
+    (uniquify-rationalize fix-list)))
 
 ;; uniquify's version of buffer-file-name; result never contains trailing slash
 (defun uniquify-buffer-file-name (buffer)
@@ -228,6 +223,30 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		  (if (consp dired-directory)
 		      (car dired-directory)
 		    dired-directory)))))))))
+
+(defun uniquify-rerationalize-w/o-cb (fix-list)
+  "Re-rationalize the buffers in FIX-LIST, but ignoring current-buffer."
+  (let ((new-fix-list nil))
+    (dolist (item fix-list)
+      (let ((buf (uniquify-item-buffer item)))
+	(unless (or (eq buf (current-buffer)) (not (buffer-live-p buf)))
+	  ;; Reset the proposed names.
+	  (setf (uniquify-item-proposed item)
+		(uniquify-get-proposed-name (uniquify-item-base item)
+					    (uniquify-item-dirname item)))
+	  (push item new-fix-list))))
+    (when new-fix-list
+      (uniquify-rationalize new-fix-list))))
+
+(defun uniquify-rationalize (fix-list)
+  ;; Set up uniquify to re-rationalize after killing/renaming
+  ;; if there is a conflict.
+  (dolist (fix fix-list)
+    (with-current-buffer (uniquify-item-buffer fix)
+      (setq uniquify-managed fix-list)))
+  ;; If uniquify-min-dir-content is 0, this will end up just
+  ;; passing fix-list to uniquify-rationalize-conflicting-sublist.
+  (uniquify-rationalize-a-list fix-list))
 
 (defun uniquify-item-greaterp (item1 item2)
   (string-lessp (uniquify-item-proposed item2)
@@ -356,17 +375,14 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 (defadvice rename-buffer (after rename-buffer-uniquify activate)
   "Uniquify buffer names with parts of directory name."
+  (uniquify-maybe-rerationalize-w/o-cb)
   (if (null (ad-get-arg 1))		; no UNIQUE argument.
       ;; Mark this buffer so it won't be renamed by uniquify.
       (setq uniquify-managed nil)
     (when uniquify-buffer-name-style
-      (if uniquify-after-kill-buffer-p
-	  ;; call with no argument; rationalize vs. old name as well as new
-	  (progn (setq uniquify-managed t)
-		 (uniquify-rationalize-file-buffer-names))
-	;; call with argument: rationalize vs. new name only
-	(uniquify-rationalize-file-buffer-names
-	 (uniquify-buffer-file-name (current-buffer)) (current-buffer)))
+      ;; Rerationalize w.r.t the new name.
+      (uniquify-rationalize-file-buffer-names
+       (uniquify-buffer-file-name (current-buffer)) (current-buffer))
       (setq ad-return-value (buffer-name (current-buffer))))))
 
 (defadvice create-file-buffer (after create-file-buffer-uniquify activate)
@@ -385,27 +401,17 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 ;; (This ought to set some global variables so the work is done only for
 ;; buffers with names similar to the deleted buffer.  -MDE)
 
-(defun uniquify-delay-rationalize-file-buffer-names ()
-  "Add `delayed-uniquify-rationalize-file-buffer-names' to `post-command-hook'.
-For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
-  (if (and uniquify-managed
+(defun uniquify-maybe-rerationalize-w/o-cb ()
+  "Re-rationalize buffer names, ignoring current buffer.
+For use on `kill-buffer-hook'."
+  (if (and (cdr uniquify-managed)
 	   uniquify-buffer-name-style
-	   uniquify-after-kill-buffer-p
-	   ;; Rationalizing is costly, so don't do it for temp buffers.
-	   (uniquify-buffer-file-name (current-buffer)))
-      (add-hook 'post-command-hook
-		'uniquify-delayed-rationalize-file-buffer-names)))
-
-(defun uniquify-delayed-rationalize-file-buffer-names ()
-  "Rerationalize buffer names and remove self from `post-command-hook'.
-See also `delay-rationalize-file-buffer-names' for hook setter."
-  (uniquify-rationalize-file-buffer-names)
-  (remove-hook 'post-command-hook
-	       'uniquify-delayed-rationalize-file-buffer-names))
+	   uniquify-after-kill-buffer-p)
+      (uniquify-rerationalize-w/o-cb uniquify-managed)))
 
 ;; Ideally we'd like to add it buffer-locally, but that doesn't work
 ;; because kill-buffer-hook is not permanent-local :-(
-(add-hook 'kill-buffer-hook 'uniquify-delay-rationalize-file-buffer-names)
+(add-hook 'kill-buffer-hook 'uniquify-maybe-rerationalize-w/o-cb)
 
 (provide 'uniquify)
 ;;; uniquify.el ends here
