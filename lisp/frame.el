@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
-;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -803,7 +803,11 @@ frame's display)."
      ((memq frame-type '(x mac))
       t)    ;; We assume X and Mac *always* have a pointing device
      (t
-      (featurep 'xt-mouse)))))
+      (or (and (featurep 'xt-mouse)
+	       xterm-mouse-mode)
+	  ;; t-mouse is distributed with the GPM package.  It doesn't have
+	  ;; a toggle.
+	  (featurep 't-mouse))))))
 
 (defun display-popup-menus-p (&optional display)
   "Return non-nil if popup menus are supported on DISPLAY.
