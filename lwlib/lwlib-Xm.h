@@ -31,4 +31,7 @@ xm_popup_menu (Widget widget);
 void
 xm_pop_instance (widget_instance* instance, Boolean up);
 
+void
+xm_set_main_areas (Widget parent, Widget menubar, Widget work_area);
+
 #endif /* LWLIB_XM_H */
