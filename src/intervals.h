@@ -129,7 +129,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Macro determining whether the properties of an interval being
    inserted should be merged with the properties of the text where
    they are being inserted. */
-#define MERGE_INSERTIONS(i) 0
+#define MERGE_INSERTIONS(i) 1
 
 /* Macro determining if an invisible interval should be displayed
    as a special glyph, or not at all. */
@@ -150,8 +150,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Macros to tell whether insertions before or after this interval
    should stick to it. */
-#define FRONT_STICKY_P(i) ((i)->front_sticky != 0)
-#define END_STICKY_P(i) ((i)->rear_sticky != 0)
+/* Replace later with cache access */
+/*#define FRONT_STICKY_P(i) ((i)->front_sticky != 0)
+  #define END_STICKY_P(i) ((i)->rear_sticky != 0)*/
+#define FRONT_STICKY_P(i) \
+  (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qfront_sticky)))
+#define END_NONSTICKY_P(i) \
+  (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qrear_nonsticky)))
 
 
 /* Declared in alloc.c */
@@ -180,6 +185,7 @@ extern INTERVAL balance_intervals ();
 extern INLINE void copy_intervals_to_string ();
 extern INTERVAL copy_intervals ();
 extern Lisp_Object textget ();
+extern Lisp_Object textget_direct ();
 extern Lisp_Object get_local_map ();
 
 /* Declared in textprop.c */
@@ -195,9 +201,12 @@ extern Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have. */
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-extern Lisp_Object Qinvisible, Qread_only;
+extern Lisp_Object Qinvisible, Qhidden, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
+
+/* Sticky properties */
+extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 extern Lisp_Object Ftext_properties_at ();
 extern Lisp_Object Fnext_property_change (), Fprevious_property_change ();
