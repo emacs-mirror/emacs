@@ -1,3 +1,8 @@
+2003-01-10  Dave Love  <fx@gnu.org>
+
+	* composite.c (syms_of_composite): Make composition_hash_table
+	weak.
+
 2003-01-10  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (check_face_attributes, generate_ascii_font_name)
