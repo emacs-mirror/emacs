@@ -379,7 +379,7 @@ digest-doc: ${srcdir}/digest-doc.c
 sorted-doc: ${srcdir}/sorted-doc.c ${ALLOCA}
 	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
 
-b2m: ${srcdir}/b2m.c ../src/config.h
+b2m: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
 	   $(GETOPTOBJS) $(LOADLIBES) -o b2m 
 
