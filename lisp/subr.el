@@ -486,10 +486,7 @@ function, it is changed to a list of functions."
     (if (or (not (listp old)) (eq (car old) 'lambda))
 	(set hook (list old))))
   (or (if (consp function)
-	  ;; Clever way to tell whether a given lambda-expression
-	  ;; is equal to anything in the hook.
-	  (let ((tail (assoc (cdr function) (symbol-value hook))))
-	    (equal function tail))
+	  (member function (symbol-value hook))
 	(memq function (symbol-value hook)))
       (set hook 
 	   (if append
@@ -508,7 +505,7 @@ list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
     (let ((hook-value (symbol-value hook)))
       (if (consp hook-value)
 	  (setq hook-value (delete function hook-value))
-	(if (eq hook-value function)
+	(if (equal hook-value function)
 	    (setq hook-value nil)))
       (set hook hook-value))))
 
