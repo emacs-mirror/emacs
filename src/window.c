@@ -1023,7 +1023,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 	  else break;
 	}
     }
-  /* Which windows are acceptible?
+  /* Which windows are acceptable?
      Exit the loop and accept this window if
      this isn't a minibuffer window,
      or we're accepting all minibuffer windows,
@@ -1042,7 +1042,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
    due to limits in the Unix cpp.
 
 DEFUN ("previous-window", Ffoo, Sfoo, 0, 3, 0,
-  "Return the window preceeding WINDOW in canonical ordering of windows.\n\
+  "Return the window preceding WINDOW in canonical ordering of windows.\n\
 If omitted, WINDOW defaults to the selected window.\n\
 \n\
 Optional second arg MINIBUF t means count the minibuffer window even\n\
@@ -1185,7 +1185,7 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 	    window = tem;
 	}
     }
-  /* Which windows are acceptible?
+  /* Which windows are acceptable?
      Exit the loop and accept this window if
      this isn't a minibuffer window,
      or we're accepting all minibuffer windows,
@@ -2988,7 +2988,7 @@ struct saved_window
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
-  "T if OBJECT is a window-configration object.")
+  "T if OBJECT is a window-configuration object.")
   (obj)
      Lisp_Object obj;
 {
