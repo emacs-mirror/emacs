@@ -1,4 +1,4 @@
-;;; mh-pick.el --- make a search pattern and search for a message in mh-e
+;;; mh-pick.el --- make a search pattern and search for a message in MH-E
 
 ;; Copyright (C) 1993, 1995, 2001 Free Software Foundation, Inc.
 
@@ -26,21 +26,24 @@
 
 ;;; Commentary:
 
-;; Internal support for mh-e package.
+;; Internal support for MH-E package.
 
 ;;; Change Log:
 
-;; $Id: mh-pick.el,v 1.11 2001/12/29 00:10:41 wohler Exp $
+;; $Id: mh-pick.el,v 1.21 2002/11/05 21:43:16 wohler Exp $
 
 ;;; Code:
 
-(provide 'mh-pick)
 (require 'mh-e)
 (require 'easymenu)
 (require 'gnus-util)
 
-(defvar mh-pick-mode-hook nil
-  "Invoked in `mh-pick-mode' on a new pattern.")
+;;; Hooks
+
+(defcustom mh-pick-mode-hook nil
+  "Invoked upon entry to `mh-pick-mode'."
+  :type 'hook
+  :group 'mh-hook)
 
 ;;; Internal variables:
 
@@ -51,6 +54,7 @@
 
 (defun mh-search-folder (folder)
   "Search FOLDER for messages matching a pattern.
+This function uses the MH command `pick' to do the work.
 Add the messages found to the sequence named `search'."
   (interactive (list (mh-prompt-for-folder "Search"
 					   mh-current-folder
@@ -60,10 +64,13 @@ Add the messages found to the sequence named `search'."
 	  (not (y-or-n-p "Reuse pattern? ")))
       (mh-make-pick-template)
     (message ""))
-  (setq mh-searching-folder folder))
+  (setq mh-searching-folder folder)
+  (message "%s" (substitute-command-keys
+		 (concat "Type \\[mh-do-pick-search] to search messages, "
+			 "\\[mh-help] for help."))))
 
 (defun mh-make-pick-template ()
-  ;; Initialize the current buffer with a template for a pick pattern.
+  "Initialize the current buffer with a template for a pick pattern."
   (erase-buffer)
   (insert "From: \n"
 	  "To: \n"
@@ -75,10 +82,35 @@ Add the messages found to the sequence named `search'."
   (goto-char (point-min))
   (end-of-line))
 
+;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+(easy-menu-define
+  mh-pick-menu mh-pick-mode-map "Menu for MH-E pick-mode"
+  '("Pick"
+    ["Execute the Search"       mh-do-pick-search t]))
+
+
+;;; Help Messages
+;;; Group messages logically, more or less.
+(defvar mh-pick-mode-help-messages
+  '((nil
+     "Search messages:  \\[mh-do-pick-search]\n"
+     "Move to a field by typing C-c C-f C-<field>\n"
+     "where <field> is the first letter of the desired field."))
+  "Key binding cheat sheet.
+
+This is an associative array which is used to show the most common commands.
+The key is a prefix char. The value is one or more strings which are
+concatenated together and displayed in the minibuffer if ? is pressed after
+the prefix character. The special key nil is used to display the
+non-prefixed commands.
+
+The substitutions described in `substitute-command-keys' are performed as
+well.")
+
 (put 'mh-pick-mode 'mode-class 'special)
 
 (define-derived-mode mh-pick-mode fundamental-mode "MH-Pick"
-  "Mode for creating search templates in mh-e.\\<mh-pick-mode-map>
+  "Mode for creating search templates in MH-E.\\<mh-pick-mode-map>
 
 After each field name, enter the pattern to search for.  If a field's
 value does not matter for the search, leave it empty.  To search the
@@ -87,13 +119,16 @@ Each non-empty field must be matched for a message to be selected.
 To effect a logical \"or\", use \\[mh-search-folder] multiple times.
 When you have finished, type  \\[mh-do-pick-search]  to do the search.
 
-This mode runs the hook `mh-pick-mode-hook'.
+The value of `mh-pick-mode-hook' is a list of functions to be called,
+with no arguments, upon entry to this mode.
 
 \\{mh-pick-mode-map}"
 
   (make-local-variable 'mh-searching-folder)
-  (easy-menu-add mh-pick-menu))
-
+  (easy-menu-add mh-pick-menu)
+  (make-local-variable 'mh-help-messages)
+  (setq mh-help-messages mh-pick-mode-help-messages)
+  (run-hooks 'mh-pick-mode-hook))
 
 (defun mh-do-pick-search ()
   "Find messages that match the qualifications in the current pattern buffer.
@@ -104,7 +139,6 @@ Add the messages found to the sequence named `search'."
 	(searching-buffer mh-searching-folder)
 	range
 	msgs
-	(finding-messages t)
 	(pattern nil)
 	(new-buffer nil))
     (save-excursion
@@ -134,17 +168,16 @@ Add the messages found to the sequence named `search'."
     (mh-add-msgs-to-seq msgs 'search)
     (delete-other-windows)))
 
-
-(defun mh-seq-from-command (folder seq seq-command)
-  ;; In FOLDER, make a sequence named SEQ by executing COMMAND.
-  ;; COMMAND is a list.  The first element is a program name
-  ;; and the subsequent elements are its arguments, all strings.
+(defun mh-seq-from-command (folder seq command)
+  "In FOLDER, make a sequence named SEQ by executing COMMAND.
+COMMAND is a list.  The first element is a program name
+and the subsequent elements are its arguments, all strings."
   (let ((msg)
 	(msgs ())
 	(case-fold-search t))
     (save-excursion
       (save-window-excursion
-	(if (eq 0 (apply 'mh-exec-cmd-quiet nil seq-command))
+	(if (eq 0 (apply 'mh-exec-cmd-quiet nil command))
 	    ;; "pick" outputs one number per line
 	    (while (setq msg (car (mh-read-msg-list)))
 	      (setq msgs (cons msg msgs))
@@ -153,17 +186,16 @@ Add the messages found to the sequence named `search'."
       (setq msgs (nreverse msgs))	;put in ascending order
       msgs)))
 
-
 (defun mh-next-pick-field (buffer)
-  ;; Return the next piece of a pick argument that can be extracted from the
-  ;; BUFFER.
-  ;; Return a list like ("--fieldname" "pattern") or ("-search" "bodypat")
-  ;; or NIL if no pieces remain.
+  "Return the next piece of a pick argument extracted from BUFFER.
+Return a list like (\"--fieldname\" \"pattern\") or (\"-search\" \"bodypat\")
+or nil if no pieces remain."
   (set-buffer buffer)
   (let ((case-fold-search t))
     (cond ((eobp)
 	   nil)
-	  ((re-search-forward "^\\([a-z][^: \t\n]*\\):[ \t]*\\([a-z0-9].*\\)$" nil t)
+	  ((re-search-forward "^\\([a-z][^: \t\n]*\\):[ \t]*\\([a-z0-9].*\\)$"
+			      nil t)
 	   (let* ((component
 		   (format "--%s"
 			   (downcase (buffer-substring (match-beginning 1)
@@ -180,8 +212,12 @@ Add the messages found to the sequence named `search'."
 	  (t
 	   nil))))
 
+
+
 ;;; Build the pick-mode keymap:
+;;; If this changes, modify mh-pick-mode-help-messages accordingly, above.
 (gnus-define-keys  mh-pick-mode-map
+  "\C-c?"		mh-help
   "\C-c\C-c"		mh-do-pick-search
   "\C-c\C-f\C-b"	mh-to-field
   "\C-c\C-f\C-c"	mh-to-field
@@ -198,10 +234,10 @@ Add the messages found to the sequence named `search'."
   "\C-c\C-fs"		mh-to-field
   "\C-c\C-ft"		mh-to-field)
 
-;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
-(easy-menu-define
-  mh-pick-menu mh-pick-mode-map "Menu for mh-e pick-mode"
-  '("Pick"
-    ["Execute the Search"       mh-do-pick-search t]))
+(provide 'mh-pick)
+
+;;; Local Variables:
+;;; sentence-end-double-space: nil
+;;; End:
 
 ;;; mh-pick.el ends here

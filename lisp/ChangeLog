@@ -1,3 +1,18 @@
+2002-11-29  Bill Wohler  <wohler@newt.com>
+
+	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
+	mail/mh-mime.el, mail/mh-pick.el, mail/mh-seq.el,
+	mail/mh-utils.el, mail/mh-xemacs-compat.el: Upgraded to MH-E
+	version 7.0.
+
+	* mail/mh-index.el, mail/mh-speed.el: New files for indexed
+	searches and speedbar support in MH-E version 7.0.
+
+	* toolbar/reply-all.pbm, toolbar/reply-all.xpm,
+	toolbar/reply-from.pbm, toolbar/reply-from.xpm,
+	toolbar/reply-to.pbm, toolbar/reply-to.xpm: New toolbar images for
+	MH-E version 7.0.
+
 2002-11-29   Markus Rost  <rost@math.ohio-state.edu>
 
 	* mwheel.el (mouse-wheel-inhibit-click-time): Fix custom type.

@@ -1,4 +1,4 @@
-;;; mh-funcs.el --- mh-e functions not everyone will use right away
+;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
 ;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
 
@@ -26,18 +26,21 @@
 
 ;;; Commentary:
 
-;; Internal support for mh-e package.
-;; Putting these functions in a separate file lets mh-e start up faster,
+;; Internal support for MH-E package.
+;; Putting these functions in a separate file lets MH-E start up faster,
 ;; since less Lisp code needs to be loaded all at once.
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.12 2002/04/07 19:20:56 wohler Exp $
+;; $Id: mh-funcs.el,v 1.28 2002/11/11 23:01:27 mbaushke Exp $
 
 ;;; Code:
 
-(provide 'mh-funcs)
 (require 'mh-e)
+
+;;; autoload
+(autoload 'mh-notate-seq "mh-seq")
+(autoload 'mh-speed-invalidate-map "mh-speed")
 
 ;;; customization
 
@@ -54,7 +57,7 @@ For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
 (defvar mh-note-printed "P"
   "String whose first character is used to notate printed messages.")
 
-;;; functions
+;;; Functions
 
 (defun mh-burst-digest ()
   "Burst apart the current message, which should be a digest.
@@ -73,11 +76,10 @@ digest are inserted into the folder after that message."
     (mh-goto-cur-msg)
     (message "Bursting digest...done")))
 
-
 (defun mh-copy-msg (msg-or-seq folder)
   "Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
-Default is the displayed message.  If optional prefix argument is
-provided, then prompt for the message sequence."
+Default is the displayed message. If optional prefix argument is provided,
+then prompt for the message sequence."
   (interactive (list (if current-prefix-arg
 			 (mh-read-seq-default "Copy" t)
 			 (mh-get-msg-num t))
@@ -90,7 +92,9 @@ provided, then prompt for the message sequence."
 (defun mh-kill-folder ()
   "Remove the current folder and all included messages.
 Removes all of the messages (files) within the specified current folder,
-and then removes the folder (directory) itself."
+and then removes the folder (directory) itself.
+The value of `mh-folder-list-change-hook' is a list of functions to be called,
+with no arguments, after the folders has been removed."
   (interactive)
   (if (yes-or-no-p (format "Remove folder %s (and all included messages)?"
                            mh-current-folder))
@@ -101,6 +105,8 @@ and then removes the folder (directory) itself."
 	(mh-exec-cmd-daemon "rmf" folder)
 	(setq mh-folder-list
 	      (delq (assoc folder mh-folder-list) mh-folder-list))
+        (when (boundp 'mh-speed-folder-map)
+          (mh-speed-invalidate-map folder))
 	(run-hooks 'mh-folder-list-change-hook)
 	(message "Folder %s removed" folder)
 	(mh-set-folder-modified-p nil)	; so kill-buffer doesn't complain
@@ -110,6 +116,8 @@ and then removes the folder (directory) itself."
 	    (kill-buffer folder)))
       (message "Folder not removed")))
 
+;; Avoid compiler warning...
+(defvar view-exit-action)
 
 (defun mh-list-folders ()
   "List mail folders."
@@ -120,7 +128,7 @@ and then removes the folder (directory) itself."
 	(set-buffer temp-buffer)
 	(erase-buffer)
 	(message "Listing folders...")
-	(mh-exec-cmd-output "folders" t (if mh-recursive-folders
+	(mh-exec-cmd-output "folders" t (if mh-recursive-folders-flag
 					    "-recurse"
 					  "-norecurse"))
 	(goto-char (point-min))
@@ -128,12 +136,11 @@ and then removes the folder (directory) itself."
 	(setq view-exit-action 'kill-buffer)
 	(message "Listing folders...done")))))
 
-
 (defun mh-pack-folder (range)
   "Renumber the messages of a folder to be 1..n.
-First, offer to execute any outstanding commands for the current folder.
-If optional prefix argument provided, prompt for the RANGE of messages
-to display after packing.  Otherwise, show the entire folder."
+First, offer to execute any outstanding commands for the current folder. If
+optional prefix argument provided, prompt for the RANGE of messages to display
+after packing. Otherwise, show the entire folder."
   (interactive (list (if current-prefix-arg
 			 (mh-read-msg-range
 			  "Range to scan after packing [all]? ")
@@ -142,17 +149,18 @@ to display after packing.  Otherwise, show the entire folder."
   (mh-goto-cur-msg)
   (message "Packing folder...done"))
 
-
 (defun mh-pack-folder-1 (range)
-  ;; Close and pack the current folder.
+  "Close and pack the current folder.
+Display the given RANGE of messages after packing. If RANGE is nil, show the
+entire folder."
   (mh-process-or-undo-commands mh-current-folder)
   (message "Packing folder...")
   (mh-set-folder-modified-p t)		; lock folder while packing
   (save-excursion
     (mh-exec-cmd-quiet t "folder" mh-current-folder "-pack"
 		       "-norecurse" "-fast"))
+  (mh-reset-threads-and-narrowing)
   (mh-regenerate-headers range))
-
 
 (defun mh-pipe-msg (command include-headers)
   "Pipe the current message through the given shell COMMAND.
@@ -171,7 +179,6 @@ Otherwise just send the message's body without the headers."
       (let ((default-directory message-directory))
 	(shell-command-on-region (point) (point-max) command nil)))))
 
-
 (defun mh-page-digest ()
   "Advance displayed message to next digested message."
   (interactive)
@@ -187,7 +194,6 @@ Otherwise just send the message's body without the headers."
     (search-backward "\n\n" nil t)
     (forward-line 2)
     (mh-recenter 0)))
-
 
 (defun mh-page-digest-backwards ()
   "Back up displayed message to previous digested message."
@@ -205,12 +211,11 @@ Otherwise just send the message's body without the headers."
 	(forward-line 2))
     (mh-recenter 0)))
 
-
 (defun mh-print-msg (msg-or-seq)
   "Print MSG-OR-SEQ (default: displayed message) on printer.
 If optional prefix argument provided, then prompt for the message sequence.
 The variable `mh-lpr-command-format' is used to generate the print command.
-The messages are formatted by mhl.  See the variable `mhl-formfile'."
+The messages are formatted by mhl. See the variable `mhl-formfile'."
   (interactive (list (if current-prefix-arg
 			 (reverse (mh-seq-to-msgs
 				   (mh-read-seq-default "Print" t)))
@@ -244,7 +249,7 @@ The messages are formatted by mhl.  See the variable `mhl-formfile'."
 				       msg-or-seq)
 			         (format "Sequence from %s"
 					 mh-current-folder)))))))
-    (if mh-print-background
+    (if mh-print-background-flag
 	(mh-exec-cmd-daemon shell-file-name "-c" print-command)
       (call-process shell-file-name nil nil nil "-c" print-command))
     (if (numberp msg-or-seq)
@@ -255,17 +260,15 @@ The messages are formatted by mhl.  See the variable `mhl-formfile'."
 	(message "Printing message...done")
         (message "Printing sequence...done"))))
 
-
 (defun mh-msg-filenames (msgs &optional folder)
-  ;; Return a list of file names for MSGS in FOLDER (default current folder).
+  "Return a list of file names for MSGS in FOLDER (default current folder)."
   (mapconcat (function (lambda (msg) (mh-msg-filename msg folder))) msgs " "))
-
 
 (defun mh-sort-folder (&optional extra-args)
   "Sort the messages in the current folder by date.
 Calls the MH program sortm to do the work.
-The arguments in the list `mh-sortm-args' are passed to sortm
-if the optional argument EXTRA-ARGS is given."
+The arguments in the list `mh-sortm-args' are passed to sortm if the optional
+argument EXTRA-ARGS is given."
   (interactive "P")
   (mh-process-or-undo-commands mh-current-folder)
   (setq mh-next-direction 'forward)
@@ -275,12 +278,11 @@ if the optional argument EXTRA-ARGS is given."
   (message "Sorting folder...done")
   (mh-scan-folder mh-current-folder "all"))
 
-
 (defun mh-undo-folder (&rest ignore)
   "Undo all pending deletes and refiles in current folder.
 Argument IGNORE is deprecated."
   (interactive)
-  (cond ((or mh-do-not-confirm
+  (cond ((or mh-do-not-confirm-flag
 	     (yes-or-no-p "Undo all commands in folder? "))
 	 (setq mh-delete-list nil
 	       mh-refile-list nil
@@ -291,7 +293,6 @@ Argument IGNORE is deprecated."
 	(t
 	 (message "Commands not undone.")
 	 (sit-for 2))))
-
 
 (defun mh-store-msg (directory)
   "Store the file(s) contained in the current message into DIRECTORY.
@@ -313,7 +314,8 @@ Default directory is the last directory used, or initially the value of
 The buffer can contain a shar file or uuencoded file.
 Default directory is the last directory used, or initially the value of
 `mh-store-default-directory' or the current directory."
-  (interactive (list (let ((udir (or mh-store-default-directory default-directory)))
+  (interactive (list (let ((udir (or mh-store-default-directory
+				     default-directory)))
 		       (read-file-name "Store buffer in directory: "
 				       udir udir nil))))
   (let ((store-directory (expand-file-name directory))
@@ -362,5 +364,42 @@ Default directory is the last directory used, or initially the value of
       (set-buffer log-buffer)
       (mh-handle-process-error command value))
     (insert "\n(mh-store finished)\n")))
+
+
+
+;;; Help Functions
+
+(defun mh-ephem-message (string)
+  "Display STRING in the minibuffer momentarily."
+  (message "%s" string)
+  (sit-for 5)
+  (message ""))
+
+(defun mh-help ()
+  "Display cheat sheet for the MH-Folder commands in minibuffer."
+  (interactive)
+  (mh-ephem-message
+   (substitute-command-keys
+    (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
 	
+(defun mh-prefix-help ()
+  "Display cheat sheet for the commands of the current prefix in minibuffer."
+  (interactive)
+  ;; We got here because the user pressed a `?', but he pressed a prefix key
+  ;; before that. Since the the key vector starts at index 0, the index of the
+  ;; last keystroke is length-1 and thus the second to last keystroke is at
+  ;; length-2. We use that information to obtain a suitable prefix character
+  ;; from the recent keys.
+  (let* ((keys (recent-keys))
+	 (prefix-char (elt keys (- (length keys) 2))))
+    (mh-ephem-message
+     (substitute-command-keys
+      (mapconcat 'identity (cdr (assoc prefix-char mh-help-messages)) "")))))
+
+(provide 'mh-funcs)
+
+;;; Local Variables:
+;;; sentence-end-double-space: nil
+;;; End:
+
 ;;; mh-funcs.el ends here

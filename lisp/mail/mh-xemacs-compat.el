@@ -28,76 +28,35 @@
 
 ;;; Change Log:
 
-;; $Id: mh-xemacs-compat.el,v 1.7 2002/04/07 19:20:55 wohler Exp $
+;; $Id: mh-xemacs-compat.el,v 1.12 2002/11/02 19:56:50 wohler Exp $
 
 ;;; Code:
+
+;;; Some requires:
+(require 'rfc822)
 
 ;;; Simple compatibility:
 
 (unless (fboundp 'match-string-no-properties)
-  (defalias 'match-string-no-properties 'match-string))
+  (defsubst match-string-no-properties (match)
+    (buffer-substring-no-properties
+     (match-beginning match) (match-end match))))
 
-;;; Functions from simple.el of Emacs-21.1
-;;; simple.el --- basic editing commands for Emacs
+(unless (fboundp 'line-beginning-position)
+  (defalias 'line-beginning-position 'point-at-bol))
+(unless (fboundp 'line-end-position)
+  (defalias 'line-end-position 'point-at-eol))
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
-;;        Free Software Foundation, Inc.
+(unless (fboundp 'timerp)
+  (defalias 'timerp 'itimerp))
+(unless (fboundp 'cancel-timer)
+  (defalias 'cancel-timer 'delete-itimer))
 
-(defun rfc822-goto-eoh ()
-  ;; Go to header delimiter line in a mail message, following RFC822 rules
-  (goto-char (point-min))
-  (while (looking-at "^[^: \n]+:\\|^[ \t]")
-    (forward-line 1))
-  (point))
-
-;;; Functions from sendmail.el of Emacs-21.1
-;;; sendmail.el --- mail sending commands for Emacs.
-
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001
-;;   Free Software Foundation, Inc.
-
-(defun mail-header-end ()
-  "Return the buffer location of the end of headers, as a number."
-  (save-restriction
-    (widen)
-    (save-excursion
-      (rfc822-goto-eoh)
-      (point))))
-
-(defun mail-mode-fill-paragraph (arg)
-  ;; Do something special only if within the headers.
-  (if (< (point) (mail-header-end))
-      (let (beg end fieldname)
-	(when (prog1 (re-search-backward "^[-a-zA-Z]+:" nil 'yes)
-		(setq beg (point)))
-	(setq fieldname
-		(downcase (buffer-substring beg (1- (match-end 0))))))
-	(forward-line 1)
-	;; Find continuation lines and get rid of their continuation markers.
-	(while (looking-at "[ \t]")
-	  (delete-horizontal-space)
-	  (forward-line 1))
-	(setq end (point-marker))
-	(goto-char beg)
-	;; If this field contains addresses,
-	;; make sure we can fill after each address.
-	(if (member fieldname
-		    '("to" "cc" "bcc" "from" "reply-to"
-		      "resent-to" "resent-cc" "resent-bcc"
-		      "resent-from" "resent-reply-to"))
-	    (while (search-forward "," end t)
-	      (or (looking-at "[ \t]")
-		  (insert " "))))
-	(fill-region-as-paragraph beg end)
-	;; Mark all lines except the first as continuations.
-	(goto-char beg)
-	(forward-line 1)
-	(while (< (point) end)
-	  (insert "  ")
-	  (forward-line 1))
-	(move-marker end nil)
-	t)))
 
 (provide 'mh-xemacs-compat)
+
+;;; Local Variables:
+;;; sentence-end-double-space: nil
+;;; End:
 
 ;;; mh-xemacs-compat.el ends here
