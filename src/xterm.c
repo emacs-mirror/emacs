@@ -346,8 +346,7 @@ static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
 
-static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
-			       GC, int));
+static void x_clip_to_row P_ ((struct window *, struct glyph_row *, GC));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
@@ -675,7 +674,7 @@ x_after_update_window_line (desired_row)
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    0, y, width, height, False);
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    f->output_data.x->pixel_width - width,
+		    FRAME_PIXEL_WIDTH (f) - width,
 		    y, width, height, False);
       UNBLOCK_INPUT;
     }
@@ -694,7 +693,7 @@ x_draw_fringe_bitmap (w, row, p)
   struct face *face = p->face;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, gc, 1);
+  x_clip_to_row (w, row, gc);
 
   if (p->bx >= 0)
     {
@@ -2078,9 +2077,10 @@ x_draw_glyph_string_box (s)
   if (s->row->full_width_p
       && !s->w->pseudo_window_p)
     {
-      last_x += FRAME_X_RIGHT_FRINGE_WIDTH (s->f);
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (s->f))
-	last_x += FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
+      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
+      if (s->area != RIGHT_MARGIN_AREA
+	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
+	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
     }
 
   /* The glyph that may have a right box line.  */
@@ -2468,7 +2468,7 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (CANON_X_UNIT (s->f), s->background_width);
+      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
@@ -2821,12 +2821,12 @@ XTflash (f)
 
     {
       /* Get the height not including a menu bar widget.  */
-      int height = CHAR_TO_PIXEL_HEIGHT (f, FRAME_HEIGHT (f));
+      int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
       /* Height of each line to flash.  */
       int flash_height = FRAME_LINE_HEIGHT (f);
       /* These will be the left and right margins of the rectangles.  */
       int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int flash_right = PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+      int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
 
       int width;
 
@@ -2854,7 +2854,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOL_BAR_LINES (f) * CANON_Y_UNIT (f)),
+			   + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
@@ -2908,7 +2908,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOL_BAR_LINES (f) * CANON_Y_UNIT (f)),
+			   + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
@@ -3000,8 +3000,6 @@ x_scroll_run (w, run)
      without mode lines.  Include in this box the left and right
      fringe of W.  */
   window_box (w, -1, &x, &y, &width, &height);
-  width += FRAME_X_FRINGE_WIDTH (f);
-  x -= FRAME_X_LEFT_FRINGE_WIDTH (f);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -3576,14 +3574,12 @@ glyph_rect (f, x, y, rect)
   Lisp_Object window;
   int found = 0;
 
-  window = window_from_coordinates (f, x, y, 0, 0);
+  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
   if (!NILP (window))
     {
       struct window *w = XWINDOW (window);
       struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
       struct glyph_row *end = r + w->current_matrix->nrows - 1;
-
-      frame_to_window_pixel_xy (w, &x, &y);
 
       for (; !found && r < end && r->enabled_p; ++r)
 	if (r->y >= y)
@@ -3804,7 +3800,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 		gx = win_x;
 		gy = win_y;
 
-		/* Arrange for the division in PIXEL_TO_CHAR_COL etc. to
+		/* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
 		   round down even for negative values.  */
 		if (gx < 0)
 		  gx -= width - 1;
@@ -4590,7 +4586,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      its size, the update will often happen too late.
      If you don't believe it, check out revision 1.650 of xterm.c to see
      what hoops we were going through and the still poor behavior we got.  */
-  portion = XFASTINT (XWINDOW (bar->window)->height) * 30;
+  portion = WINDOW_TOTAL_LINES (XWINDOW (bar->window)) * 30;
   /* When the thumb is at the bottom, position == whole.
      So we need to increase `whole' to make space for the thumb.  */
   whole += portion;
@@ -4958,37 +4954,32 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
-  int window_x, window_y, window_width, window_height;
+  int window_y, window_height;
 
   /* Get window dimensions.  */
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, -1, 0, &window_y, 0, &window_height);
   top = window_y;
-  width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+  width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-    left = XINT (w->left) + XINT (w->width) - FRAME_SCROLL_BAR_COLS (f);
-  else
-    left = XFASTINT (w->left);
-  left *= CANON_X_UNIT (f);
-  left += FRAME_INTERNAL_BORDER_WIDTH (f);
+  left = WINDOW_SCROLL_BAR_AREA_X (w);
 
   /* Compute the width of the scroll bar which might be less than
      the width of the area reserved for the scroll bar.  */
-  if (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0)
-    sb_width = FRAME_SCROLL_BAR_PIXEL_WIDTH (f);
+  if (WINDOW_CONFIG_SCROLL_BAR_WIDTH (w) > 0)
+    sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
   else
     sb_width = width;
 
   /* Compute the left edge of the scroll bar.  */
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     sb_left = left + width - sb_width - (width - sb_width) / 2;
   else
     sb_left = left + (width - sb_width) / 2;
 #else
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     sb_left = left + width - sb_width;
   else
     sb_left = left;
@@ -5073,11 +5064,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	 previous mode line display is cleared after C-x 2 C-x 1, for
 	 example.  */
       {
-	int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+	int area_width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
 	int rest = area_width - sb_width;
 	if (rest > 0 && height > 0)
 	  {
-	    if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
+	    if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
 	      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    left + area_width -  rest, top,
 			    rest, height, False);
@@ -5864,8 +5855,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
             if (f)
               {
-                f->output_data.x->left_pos = new_x;
-                f->output_data.x->top_pos = new_y;
+                f->left_pos = new_x;
+                f->top_pos = new_y;
               }
           }
 #ifdef HACK_EDITRES
@@ -5992,8 +5983,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           int x, y;
           f->output_data.x->parent_desc = event.xreparent.parent;
           x_real_positions (f, &x, &y);
-          f->output_data.x->left_pos = x;
-          f->output_data.x->top_pos = y;
+          f->left_pos = x;
+          f->top_pos = y;
         }
       goto OTHER;
       break;
@@ -6012,9 +6003,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
               SET_FRAME_GARBAGED (f);
             }
           else
-            expose_frame (x_window_to_frame (dpyinfo,
-                                             event.xexpose.window),
-                          event.xexpose.x, event.xexpose.y,
+            expose_frame (f,
+			  event.xexpose.x, event.xexpose.y,
                           event.xexpose.width, event.xexpose.height);
         }
       else
@@ -6659,7 +6649,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
                 window = window_from_coordinates (f,
                                                   event.xmotion.x, event.xmotion.y,
-                                                  0, 0);
+                                                  0, 0, 0, 0);
 
                 /* Window will be selected only when it is not selected now and
                    last mouse movement event was not in it.  Minibuffer window
@@ -6730,11 +6720,12 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
              do this one, the right one will come later.
              The toolkit version doesn't seem to need this, but we
              need to reset it below.  */
-          int dont_resize =
-            ((f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
-             && FRAME_NEW_WIDTH (f) != 0);
-          int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
-          int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
+          int dont_resize 
+	    = ((f->want_fullscreen & FULLSCREEN_WAIT)
+	       && f->new_text_cols != 0);
+          int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, event.xconfigure.height);
+          int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, event.xconfigure.width);
+
           if (dont_resize)
             goto OTHER;
 
@@ -6745,10 +6736,10 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           /* Even if the number of character rows and columns has
              not changed, the font size may have changed, so we need
              to check the pixel dimensions as well.  */
-          if (columns != f->width
-              || rows != f->height
-              || event.xconfigure.width != f->output_data.x->pixel_width
-              || event.xconfigure.height != f->output_data.x->pixel_height)
+          if (columns != FRAME_COLS (f)
+              || rows != FRAME_LINES (f)
+              || event.xconfigure.width != FRAME_PIXEL_WIDTH (f)
+              || event.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
               change_frame_size (f, rows, columns, 0, 1, 0);
               SET_FRAME_GARBAGED (f);
@@ -6757,28 +6748,25 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 #endif /* not USE_GTK */
 #endif
 
-          f->output_data.x->pixel_width = event.xconfigure.width;
-          f->output_data.x->pixel_height = event.xconfigure.height;
+          FRAME_PIXEL_WIDTH (f) = event.xconfigure.width;
+          FRAME_PIXEL_HEIGHT (f) = event.xconfigure.height;
 
 #ifdef USE_GTK
           /* GTK creates windows but doesn't map them.
              Only get real positions and check fullscreen when mapped. */
           if (FRAME_GTK_OUTER_WIDGET (f)
               && GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))
+#endif
             {
-#endif
-          /* What we have now is the position of Emacs's own window.
-             Convert that to the position of the window manager window.  */
-          x_real_positions (f, &f->output_data.x->left_pos,
-                            &f->output_data.x->top_pos);
+	      /* What we have now is the position of Emacs's own window.
+		 Convert that to the position of the window manager window.  */
+	      x_real_positions (f, &f->left_pos, &f->top_pos);
 
-          x_check_fullscreen_move (f);
-          if (f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
-            f->output_data.x->want_fullscreen &=
-              ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
-#ifdef USE_GTK
+	      x_check_fullscreen_move (f);
+	      if (f->want_fullscreen & FULLSCREEN_WAIT)
+		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
             }
-#endif
+
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
             xic_set_statusarea (f);
@@ -6788,7 +6776,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
             {
               /* Since the WM decorations come below top_pos now,
                  we must put them below top_pos in the future.  */
-              f->output_data.x->win_gravity = NorthWestGravity;
+              f->win_gravity = NorthWestGravity;
               x_wm_set_size_hint (f, (long) 0, 0);
             }
         }
@@ -6816,13 +6804,13 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           {
             /* Is this in the tool-bar?  */
             if (WINDOWP (f->tool_bar_window)
-                && XFASTINT (XWINDOW (f->tool_bar_window)->height))
+                && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
               {
                 Lisp_Object window;
                 int x = event.xbutton.x;
                 int y = event.xbutton.y;
 
-                window = window_from_coordinates (f, x, y, 0, 1);
+                window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
                 if (EQ (window, f->tool_bar_window))
                   {
 		    if (event.xbutton.type == ButtonPress)
@@ -6905,7 +6893,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
             /* Verify the event is really within the menu bar
                and not just sent to it due to grabbing.  */
             && event.xbutton.x >= 0
-            && event.xbutton.x < f->output_data.x->pixel_width
+            && event.xbutton.x < FRAME_PIXEL_WIDTH (f)
             && event.xbutton.y >= 0
             && event.xbutton.y < f->output_data.x->menubar_height
             && event.xbutton.same_screen)
@@ -7206,39 +7194,28 @@ XTread_socket (sd, bufp, numchars, expected)
 
 /* Set clipping for output in glyph row ROW.  W is the window in which
    we operate.  GC is the graphics context to set clipping in.
-   WHOLE_LINE_P non-zero means include the areas used for truncation
-   mark display and alike in the clipping rectangle.
 
    ROW may be a text row or, e.g., a mode line.  Text rows must be
    clipped to the interior of the window dedicated to text display,
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (w, row, gc, whole_line_p)
+x_clip_to_row (w, row, gc)
      struct window *w;
      struct glyph_row *row;
      GC gc;
-     int whole_line_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   XRectangle clip_rect;
-  int window_x, window_y, window_width, window_height;
+  int window_y, window_width;
 
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, -1, 0, &window_y, &window_width, 0);
 
   clip_rect.x = WINDOW_TO_FRAME_PIXEL_X (w, 0);
   clip_rect.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   clip_rect.y = max (clip_rect.y, window_y);
   clip_rect.width = window_width;
   clip_rect.height = row->visible_height;
-
-  /* If clipping to the whole line, including trunc marks, extend
-     the rectangle to the left and increase its width.  */
-  if (whole_line_p)
-    {
-      clip_rect.x -= FRAME_X_LEFT_FRINGE_WIDTH (f);
-      clip_rect.width += FRAME_X_FRINGE_WIDTH (f);
-    }
 
   XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, &clip_rect, 1, Unsorted);
 }
@@ -7279,7 +7256,7 @@ x_draw_hollow_cursor (w, row)
   wd = cursor_glyph->pixel_width - 1;
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
-    wd = min (CANON_X_UNIT (f), wd);
+    wd = min (FRAME_COLUMN_WIDTH (f), wd);
   w->phys_cursor_width = wd;
 
   /* The foreground of cursor_gc is typically the same as the normal
@@ -7293,7 +7270,7 @@ x_draw_hollow_cursor (w, row)
   gc = dpyinfo->scratch_cursor_gc;
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  x_clip_to_row (w, row, gc, 0);
+  x_clip_to_row (w, row, gc);
   XDrawRectangle (dpy, FRAME_X_WINDOW (f), gc, x, y, wd, h);
   XSetClipMask (dpy, gc, None);
 }
@@ -7365,7 +7342,7 @@ x_draw_bar_cursor (w, row, width, kind)
       width = min (cursor_glyph->pixel_width, width);
 
       w->phys_cursor_width = width;
-      x_clip_to_row (w, row, gc, 0);
+      x_clip_to_row (w, row, gc);
 
       if (kind == BAR_CURSOR)
 	  XFillRectangle (dpy, window, gc,
@@ -7884,46 +7861,44 @@ x_new_font (f, fontname)
   if (!fontp)
     return Qnil;
 
-  f->output_data.x->font = (XFontStruct *) (fontp->font);
-  f->output_data.x->baseline_offset = fontp->baseline_offset;
-  f->output_data.x->fontset = -1;
+  FRAME_FONT (f) = (XFontStruct *) (fontp->font);
+  FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
+  FRAME_FONTSET (f) = -1;
+
+  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
 
   /* Compute the scroll bar width in character columns.  */
-  if (f->scroll_bar_pixel_width > 0)
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
-      int wid = FONT_WIDTH (f->output_data.x->font);
-      f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f)
+	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
     }
   else
     {
-      int wid = FONT_WIDTH (f->output_data.x->font);
-      f->scroll_bar_cols = (14 + wid - 1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
     }
 
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
       XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
-		f->output_data.x->font->fid);
+		FRAME_FONT (f)->fid);
       XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
-		f->output_data.x->font->fid);
+		FRAME_FONT (f)->fid);
       XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		f->output_data.x->font->fid);
-
-      frame_update_line_height (f);
+		FRAME_FONT (f)->fid);
 
       /* Don't change the size of a tip frame; there's no point in
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-	x_set_window_size (f, 0, f->width, f->height);
+	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
-  else
-    /* If we are setting a new frame's font for the first time,
-       there are no faces yet, so this font's height is the line height.  */
-    f->output_data.x->line_height = FONT_HEIGHT (f->output_data.x->font);
 
   return build_string (fontp->full_name);
 }
@@ -7944,7 +7919,7 @@ x_new_fontset (f, fontsetname)
   if (fontset < 0)
     return Qnil;
 
-  if (f->output_data.x->fontset == fontset)
+  if (FRAME_FONTSET (f) == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
@@ -7956,7 +7931,7 @@ x_new_fontset (f, fontsetname)
     return Qnil;
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
-  f->output_data.x->fontset = fontset;
+  FRAME_FONTSET (f) = fontset;
 
 #ifdef HAVE_X_I18N
   if (FRAME_XIC (f)
@@ -8191,7 +8166,7 @@ x_calc_absolute_position (f)
 {
   Window child;
   int win_x = 0, win_y = 0;
-  int flags = f->output_data.x->size_hint_flags;
+  int flags = f->size_hint_flags;
   int this_window;
 
   /* We have nothing to do if the current position
@@ -8249,13 +8224,13 @@ x_calc_absolute_position (f)
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->output_data.x->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-				  - 2 * f->output_data.x->border_width - win_x
-				  - PIXEL_WIDTH (f)
-				  + f->output_data.x->left_pos);
+    f->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
+		   - 2 * f->border_width - win_x
+		   - FRAME_PIXEL_WIDTH (f)
+		   + f->left_pos);
 
   {
-    int height = PIXEL_HEIGHT (f);
+    int height = FRAME_PIXEL_HEIGHT (f);
 
 #if defined USE_X_TOOLKIT && defined USE_MOTIF
     /* Something is fishy here.  When using Motif, starting Emacs with
@@ -8274,17 +8249,17 @@ x_calc_absolute_position (f)
 #endif
 
   if (flags & YNegative)
-    f->output_data.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-				 - 2 * f->output_data.x->border_width
-				 - win_y
-				 - height
-				 + f->output_data.x->top_pos);
+    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
+		  - 2 * f->border_width
+		  - win_y
+		  - height
+		  + f->top_pos);
   }
 
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
-  f->output_data.x->size_hint_flags &= ~ (XNegative | YNegative);
+  f->size_hint_flags &= ~ (XNegative | YNegative);
 }
 
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
@@ -8303,30 +8278,30 @@ x_set_offset (f, xoff, yoff, change_gravity)
 
   if (change_gravity > 0)
     {
-      f->output_data.x->top_pos = yoff;
-      f->output_data.x->left_pos = xoff;
-      f->output_data.x->size_hint_flags &= ~ (XNegative | YNegative);
+      f->top_pos = yoff;
+      f->left_pos = xoff;
+      f->size_hint_flags &= ~ (XNegative | YNegative);
       if (xoff < 0)
-	f->output_data.x->size_hint_flags |= XNegative;
+	f->size_hint_flags |= XNegative;
       if (yoff < 0)
-	f->output_data.x->size_hint_flags |= YNegative;
-      f->output_data.x->win_gravity = NorthWestGravity;
+	f->size_hint_flags |= YNegative;
+      f->win_gravity = NorthWestGravity;
     }
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  modified_left = f->output_data.x->left_pos;
-  modified_top = f->output_data.x->top_pos;
+  modified_left = f->left_pos;
+  modified_top = f->top_pos;
 #if 0 /* Running on psilocin (Debian), and displaying on the NCD X-terminal,
 	 this seems to be unnecessary and incorrect.  rms, 4/17/97.  */
   /* It is a mystery why we need to add the border_width here
      when the frame is already visible, but experiment says we do.  */
   if (change_gravity != 0)
     {
-      modified_left += f->output_data.x->border_width;
-      modified_top += f->output_data.x->border_width;
+      modified_left += f->border_width;
+      modified_top += f->border_width;
     }
 #endif
 
@@ -8341,12 +8316,11 @@ static void
 x_check_fullscreen (f)
      struct frame *f;
 {
-  if (f->output_data.x->want_fullscreen & FULLSCREEN_BOTH)
+  if (f->want_fullscreen & FULLSCREEN_BOTH)
     {
       int width, height, ign;
 
-      x_real_positions (f, &f->output_data.x->left_pos,
-                        &f->output_data.x->top_pos);
+      x_real_positions (f, &f->left_pos, &f->top_pos);
 
       x_fullscreen_adjust (f, &width, &height, &ign, &ign);
 
@@ -8354,14 +8328,14 @@ x_check_fullscreen (f)
          when setting WM manager hints.
          If the frame is visible already, the position is checked by
          x_check_fullscreen_move. */
-      if (f->width != width || f->height != height)
+      if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
           SET_FRAME_GARBAGED (f);
           cancel_mouse_face (f);
 
           /* Wait for the change of frame size to occur */
-          f->output_data.x->want_fullscreen |= FULLSCREEN_WAIT;
+          f->want_fullscreen |= FULLSCREEN_WAIT;
         }
     }
 }
@@ -8376,22 +8350,21 @@ static void
 x_check_fullscreen_move (f)
      struct frame *f;
 {
-  if (f->output_data.x->want_fullscreen & FULLSCREEN_MOVE_WAIT)
+  if (f->want_fullscreen & FULLSCREEN_MOVE_WAIT)
   {
-    int expect_top = f->output_data.x->top_pos;
-    int expect_left = f->output_data.x->left_pos;
+    int expect_top = f->top_pos;
+    int expect_left = f->left_pos;
 
-    if (f->output_data.x->want_fullscreen & FULLSCREEN_HEIGHT)
+    if (f->want_fullscreen & FULLSCREEN_HEIGHT)
       expect_top = 0;
-    if (f->output_data.x->want_fullscreen & FULLSCREEN_WIDTH)
+    if (f->want_fullscreen & FULLSCREEN_WIDTH)
       expect_left = 0;
 
-    if (expect_top != f->output_data.x->top_pos
-        || expect_left != f->output_data.x->left_pos)
+    if (expect_top != f->top_pos || expect_left != f->left_pos)
       x_set_offset (f, expect_left, expect_top, 1);
 
     /* Just do this once */
-    f->output_data.x->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
+    f->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
   }
 }
 
@@ -8410,19 +8383,19 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
   int pixelwidth, pixelheight;
 
   check_frame_size (f, &rows, &cols);
-  f->output_data.x->vertical_scroll_bar_extra
+  f->scroll_bar_actual_width
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
-       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
-       ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
+       : FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
+       ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
+       : (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)));
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
-  pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
+  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
-  f->output_data.x->win_gravity = NorthWestGravity;
+  f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
   XSync (FRAME_X_DISPLAY (f), False);
@@ -8443,8 +8416,8 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
   change_frame_size (f, rows, cols, 0, 1, 0);
-  PIXEL_WIDTH (f) = pixelwidth;
-  PIXEL_HEIGHT (f) = pixelheight;
+  FRAME_PIXEL_WIDTH (f) = pixelwidth;
+  FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
      receive in the ConfigureNotify event; if we get what we asked
@@ -8518,14 +8491,14 @@ x_set_mouse_position (f, x, y)
 {
   int pix_x, pix_y;
 
-  pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->output_data.x->font) / 2;
-  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->output_data.x->line_height / 2;
+  pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
 
   if (pix_x < 0) pix_x = 0;
-  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
+  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
 
   if (pix_y < 0) pix_y = 0;
-  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
+  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
 
   BLOCK_INPUT;
 
@@ -8652,7 +8625,7 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.x->asked_for_visible)
-	x_set_offset (f, f->output_data.x->left_pos, f->output_data.x->top_pos, 0);
+	x_set_offset (f, f->left_pos, f->top_pos, 0);
 
       f->output_data.x->asked_for_visible = 1;
 
@@ -8690,8 +8663,8 @@ x_make_frame_visible (f)
        will set it when they are handled.  */
     int previously_visible = f->output_data.x->has_been_visible;
 
-    original_left = f->output_data.x->left_pos;
-    original_top = f->output_data.x->top_pos;
+    original_left = f->left_pos;
+    original_top = f->top_pos;
 
     /* This must come after we set COUNT.  */
     UNBLOCK_INPUT;
@@ -8708,7 +8681,7 @@ x_make_frame_visible (f)
        and we don't want to override it.  */
 
     if (! FRAME_VISIBLE_P (f) && ! FRAME_ICONIFIED_P (f)
-	&& f->output_data.x->win_gravity == NorthWestGravity
+	&& f->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
 	Drawable rootw;
@@ -8949,7 +8922,7 @@ x_iconify_frame (f)
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
   if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
-    x_set_offset (f, f->output_data.x->left_pos, f->output_data.x->top_pos, 0);
+    x_set_offset (f, f->left_pos, f->top_pos, 0);
 
   /* Since we don't know which revision of X we're running, we'll use both
      the X11R3 and X11R4 techniques.  I don't know if this is a good idea.  */
@@ -9164,8 +9137,8 @@ x_wm_set_size_hint (f, flags, user_position)
   /* Setting PMaxSize caused various problems.  */
   size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
-  size_hints.x = f->output_data.x->left_pos;
-  size_hints.y = f->output_data.x->top_pos;
+  size_hints.x = f->left_pos;
+  size_hints.y = f->top_pos;
 
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
@@ -9174,16 +9147,16 @@ x_wm_set_size_hint (f, flags, user_position)
   size_hints.height = widget_height;
   size_hints.width = widget_width;
 #else /* not USE_X_TOOLKIT */
-  size_hints.height = PIXEL_HEIGHT (f);
-  size_hints.width = PIXEL_WIDTH (f);
+  size_hints.height = FRAME_PIXEL_HEIGHT (f);
+  size_hints.width = FRAME_PIXEL_WIDTH (f);
 #endif /* not USE_X_TOOLKIT */
 
-  size_hints.width_inc = FONT_WIDTH (f->output_data.x->font);
-  size_hints.height_inc = f->output_data.x->line_height;
+  size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
+  size_hints.height_inc = FRAME_LINE_HEIGHT (f);
   size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - CHAR_TO_PIXEL_WIDTH (f, 0);
+    = FRAME_X_DISPLAY_INFO (f)->width - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
   size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - CHAR_TO_PIXEL_HEIGHT (f, 0);
+    = FRAME_X_DISPLAY_INFO (f)->height - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
   /* Calculate the base and minimum sizes.
 
@@ -9194,8 +9167,8 @@ x_wm_set_size_hint (f, flags, user_position)
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
 
-    base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
-    base_height = CHAR_TO_PIXEL_HEIGHT (f, 0);
+    base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
     check_frame_size (f, &min_rows, &min_cols);
 
@@ -9270,7 +9243,7 @@ x_wm_set_size_hint (f, flags, user_position)
 #endif
 
 #ifdef PWinGravity
-  size_hints.win_gravity = f->output_data.x->win_gravity;
+  size_hints.win_gravity = f->win_gravity;
   size_hints.flags |= PWinGravity;
 
   if (user_position)
