@@ -197,7 +197,7 @@ main (argc, argv)
 
 #ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_SYSTEM_LOCK
-  /* Use a lock file named /usr/spool/mail/$USER.lock:
+  /* Use a lock file named after our first argument with .lock appended:
      If it exists, the mail file is locked.  */
   /* Note: this locking mechanism is *required* by the mailer
      (on systems which use it) to prevent loss of mail.
@@ -206,7 +206,7 @@ main (argc, argv)
      WILL occasionally cause loss of mail due to timing errors!
 
      So, if creation of the lock file fails
-     due to access permission on /usr/spool/mail,
+     due to access permission on the mail spool directory,
      you simply MUST change the permission
      and/or make movemail a setgid program
      so it can create lock files properly.
