@@ -180,7 +180,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 void
 shrink_regexp_cache ()
 {
-  struct regexp_cache *cp, **cpp;
+  struct regexp_cache *cp;
 
   for (cp = searchbuf_head; cp != 0; cp = cp->next)
     {
@@ -949,7 +949,6 @@ trivial_regexp_p (regexp)
 {
   int len = STRING_BYTES (XSTRING (regexp));
   unsigned char *s = XSTRING (regexp)->data;
-  unsigned char c;
   while (--len >= 0)
     {
       switch (*s++)
@@ -1527,7 +1526,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
-  int infinity, limit, k, stride_for_teases = 0;
+  int infinity, limit, stride_for_teases = 0;
   register int *BM_tab;
   int *BM_tab_base;
   register unsigned char *cursor, *p_limit;  
