@@ -116,15 +116,23 @@ main (argc, argv)
   char *prog_name;
   char *emacs_path;
   char *p;
+  int quiet = 0;
 
   /* If no args specified, use our location to set emacs_path.  */
 #if 0
   if (argc < 2 || argc > 3)
     {
-      fprintf (stderr, "usage: addpm emacs_path [icon_path]\n");
+      fprintf (stderr, "usage: addpm [/q] [emacs_path [icon_path]]\n");
       exit (1);
     }
 #endif
+
+  if (argc > 1 && argv[1][0] == '/' && argv[1][1] == 'q')
+    {
+      quiet = 1;
+      --argc;
+      ++argv;
+    }
 
   if (argc > 1)
     emacs_path = argv[1];
@@ -151,21 +159,24 @@ main (argc, argv)
 	}
 
       /* Tell user what we are going to do.  */
-      {
-	int result;
+      if (!quiet)
+	{
+	  int result;
 
-	char msg[ MAX_PATH ];
-	sprintf (msg, "Install Emacs at %s?\n", emacs_path);
-	result = MessageBox (NULL, msg, "Install Emacs", MB_OKCANCEL | MB_ICONQUESTION);
-	if (result != IDOK)
-	  {
-	    fprintf (stderr, "Install cancelled\n");
-	    exit (1);
-	  }
-      }
+	  char msg[ MAX_PATH ];
+	  sprintf (msg, "Install Emacs at %s?\n", emacs_path);
+	  result = MessageBox (NULL, msg, "Install Emacs",
+			       MB_OKCANCEL | MB_ICONQUESTION);
+	  if (result != IDOK)
+	    {
+	      fprintf (stderr, "Install cancelled\n");
+	      exit (1);
+	    }
+	}
     }
 
-  prog_name = add_registry (emacs_path) ? "runemacs.exe" : "emacs.bat";
+  add_registry (emacs_path);
+  prog_name =  "runemacs.exe";
 
   DdeInitialize (&idDde, (PFNCALLBACK)DdeCallback, APPCMD_CLIENTONLY, 0);
 
