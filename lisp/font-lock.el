@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
-;; Author: jwz, then rms, then sm <simon@gnu.ai.mit.edu>
+;; Author: jwz, then rms, then sm <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
 
@@ -319,7 +319,8 @@ MATCH-HIGHLIGHT should be of the form:
  (MATCH FACENAME OVERRIDE LAXMATCH)
 
 Where MATCHER can be either the regexp to search for, or the function name to
-call to make the search (called with one argument, the limit of the search).
+call to make the search (called with one argument, the limit of the search) and
+return non-nil if it succeeds (and set `match-data' appropriately).
 MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is the
 subexpression of MATCHER to be highlighted.  MATCH can be calculated via the
 function `regexp-opt-depth'.  FACENAME is an expression whose value is the face
@@ -341,6 +342,10 @@ For example, an element of the form highlights (if not already highlighted):
  (\"foo\\\\|bar\" 0 foo-bar-face t)
 			Occurrences of either \"foo\" or \"bar\" in the value
 			of `foo-bar-face', even if already highlighted.
+ (fubar-match 1 fubar-face)
+			The first subexpression within all occurrences of
+			whatever the function `fubar-match' finds and matches
+			in the value of `fubar-face'.
 
 MATCH-ANCHORED should be of the form:
 
@@ -1926,9 +1931,11 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "save-match-data" "save-current-buffer" "unwind-protect"
 		    "condition-case" "track-mouse" "dont-compile"
 		    "eval-after-load" "eval-and-compile" "eval-when-compile"
-		    "eval-when" "with-output-to-temp-buffer" "with-timeout"
-		    "with-current-buffer" "with-temp-buffer"
-		    "with-temp-file") t)
+		    "eval-when"
+		    "with-current-buffer" "with-electric-help"
+		    "with-output-to-string" "with-output-to-temp-buffer"
+		    "with-temp-buffer" "with-temp-file"
+		    "with-timeout") t)
 	     "\\>")
 	    1)
       ;;
@@ -2415,7 +2422,7 @@ See also `c++-font-lock-extra-types'.")
 		       ;; This is `c++-type-spec' from below.  (Hint hint!)
 		       "\\(\\sw+\\)"				; The instance?
 		       "\\([ \t]*<\\([^>\n]+\\)[ \t*&]*>\\)?"	; Or template?
-		       "\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)?"	; Or member?
+		       "\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)*"	; Or member?
 		       ;; Match any trailing parenthesis.
 		       "[ \t]*\\((\\)?")))
     (save-match-data
@@ -2463,7 +2470,7 @@ See also `c++-font-lock-extra-types'.")
        ;; class membership.  See and sync the above function
        ;; `font-lock-match-c++-style-declaration-item-and-skip-to-next'.
        (c++-type-suffix (concat "\\([ \t]*<\\([^>\n]+\\)[ \t*&]*>\\)?"
-				"\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)?"))
+				"\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)*"))
        ;; If the string is a type, it may be followed by the cruft above.
        (c++-type-spec (concat "\\(\\sw+\\)\\>" c++-type-suffix))
        ;;
