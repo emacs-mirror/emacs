@@ -109,7 +109,7 @@
 ;; type SPC at the end of the abbrev before moving away) then you can do
 ;;
 ;;  (add-hook
-;;   'mail-setup-hook
+;;   'mail-mode-hook
 ;;   (lambda ()
 ;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
 ;;				 mail-mode-map global-map)
@@ -124,7 +124,7 @@
 ;; Thanks to Harald Hanche-Olsen, Michael Ernst, David Loeffler, and
 ;; Noah Friedman for suggestions and bug reports.
 
-;; To use this package, do (add-hook 'mail-setup-hook 'mail-abbrevs-setup).
+;; To use this package, do (add-hook 'mail-mode-hook 'mail-abbrevs-setup).
 
 ;;; Code:
 
@@ -185,11 +185,11 @@ no aliases, which is represented by this being a table with no entries.)")
   (abbrev-mode 1))
 
 (defun mail-abbrevs-enable ()
-  (add-hook 'mail-setup-hook 'mail-abbrevs-setup))
+  (add-hook 'mail-mode-hook 'mail-abbrevs-setup))
 
 (defun mail-abbrevs-disable ()
   "Turn off use of the `mailabbrev' package."
-  (remove-hook 'mail-setup-hook 'mail-abbrevs-setup)
+  (remove-hook 'mail-mode-hook 'mail-abbrevs-setup)
   (abbrev-mode (if (default-value 'abbrev-mode) 1 -1)))
 
 ;;;###autoload
