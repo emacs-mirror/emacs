@@ -474,7 +474,7 @@ static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
 			      int, int));
 static int x_face_list_fonts P_ ((struct frame *, char *,
-				  struct font_name *, int, int));
+				  struct font_name **, int, int));
 static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
@@ -2435,10 +2435,10 @@ sort_fonts (f, fonts, nfonts, cmpfn)
    fonts that we can't parse.  Value is the number of fonts found.  */
 
 static int
-x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
+x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
      struct frame *f;
      char *pattern;
-     struct font_name *fonts;
+     struct font_name **pfonts;
      int nfonts, try_alternatives_p;
 {
   int n, nignored;
@@ -2447,7 +2447,10 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
      better to do it the other way around. */
   Lisp_Object lfonts;
   Lisp_Object lpattern, tem;
+  struct font_name *fonts = 0;
+  int num_fonts = nfonts;
 
+  *pfonts = 0;
   lpattern = build_string (pattern);
 
   /* Get the list of fonts matching PATTERN.  */
@@ -2459,10 +2462,13 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
   lfonts = x_list_fonts (f, lpattern, -1, nfonts);
 #endif
 
+  if (nfonts < 0 && CONSP (lfonts))
+    num_fonts = Flength (lfonts);
+  
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
   n = nignored = 0;
-  for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
+  for (tem = lfonts; CONSP (tem) && n < num_fonts; tem = XCDR (tem))
     {
       Lisp_Object elt, tail;
       const char *name = SDATA (XCAR (tem));
@@ -2480,6 +2486,12 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 	  ++nignored;
 	  continue;
 	}
+
+      if (! fonts)
+        {
+          *pfonts = (struct font_name *) xmalloc (num_fonts * sizeof **pfonts);
+          fonts = *pfonts;
+        }
 
       /* Make a copy of the font name.  */
       fonts[n].name = xstrdup (name);
@@ -2504,6 +2516,8 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
     {
       Lisp_Object list = Valternate_fontname_alist;
 
+      if (fonts) xfree (fonts);
+      
       while (CONSP (list))
 	{
 	  Lisp_Object entry = XCAR (list);
@@ -2527,7 +2541,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 		    already with no success.  */
 		 && (strcmp (SDATA (name), pattern) == 0
 		     || (n = x_face_list_fonts (f, SDATA (name),
-						fonts, nfonts, 0),
+						pfonts, nfonts, 0),
 			 n == 0)))
 	    patterns = XCDR (patterns);
 	}
@@ -2556,17 +2570,17 @@ sorted_font_list (f, pattern, cmpfn, fonts)
 
   /* Get the list of fonts matching pattern.  100 should suffice.  */
   nfonts = DEFAULT_FONT_LIST_LIMIT;
-  if (INTEGERP (Vfont_list_limit) && XINT (Vfont_list_limit) > 0)
-    nfonts = XFASTINT (Vfont_list_limit);
+  if (INTEGERP (Vfont_list_limit))
+    nfonts = XINT (Vfont_list_limit);
 
-  *fonts = (struct font_name *) xmalloc (nfonts * sizeof **fonts);
-  nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1);
+  *fonts = NULL;
+  nfonts = x_face_list_fonts (f, pattern, fonts, nfonts, 1);
 
   /* Sort the resulting array and return it in *FONTS.  If no
      fonts were found, make sure to set *FONTS to null.  */
   if (nfonts)
     sort_fonts (f, *fonts, nfonts, cmpfn);
-  else
+  else if (*fonts)
     {
       xfree (*fonts);
       *fonts = NULL;
@@ -2834,23 +2848,10 @@ are fixed-pitch.  */)
   Lisp_Object result;
   struct gcpro gcpro1;
   int count = SPECPDL_INDEX ();
-  int limit;
 
-  /* Let's consider all fonts.  Increase the limit for matching
-     fonts until we have them all.  */
-  for (limit = 500;;)
-    {
-      specbind (intern ("font-list-limit"), make_number (limit));
-      nfonts = font_list (f, Qnil, Qnil, Qnil, &fonts);
-
-      if (nfonts == limit)
-	{
-	  free_font_names (fonts, nfonts);
-	  limit *= 2;
-	}
-      else
-	break;
-    }
+  /* Let's consider all fonts.  */
+  specbind (intern ("font-list-limit"), make_number (-1));
+  nfonts = font_list (f, Qnil, Qnil, Qnil, &fonts);
 
   result = Qnil;
   GCPRO1 (result);
@@ -2897,7 +2898,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
   CHECK_STRING (pattern);
 
   if (NILP (maximum))
-    maxnames = 2000;
+    maxnames = -1;
   else
     {
       CHECK_NATNUM (maximum);

@@ -1,3 +1,14 @@
+2003-02-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_list_fonts): If maxnames is less than 0, get all font
+	names.
+
+	* xfaces.c (x_face_list_fonts): Allocate struct font_name here.
+	(sorted_font_list): Moved allocation of struct font_name to
+	x_face_list_fonts.
+	(Fx_font_family_list): Set font-list-limit to -1 to get all font names.
+	(Fx_list_fonts): Set maxnames to -1 to get all font names.
+
 2003-02-18  Kim F. Storm  <storm@cua.dk>
 
 	* lread.c (read1): Fix last change; "`" is not always special.

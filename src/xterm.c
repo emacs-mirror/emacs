@@ -14536,8 +14536,28 @@ x_list_fonts (f, pattern, size, maxnames)
 	{
 	  /* We try at least 10 fonts because XListFonts will return
 	     auto-scaled fonts at the head.  */
-	  names = XListFonts (dpy, SDATA (pattern), max (maxnames, 10),
-			      &num_fonts);
+          if (maxnames < 0)
+            {
+              int limit;
+
+              for (limit = 500;;)
+                {
+                  names = XListFonts (dpy, SDATA (pattern), limit, &num_fonts);
+                  if (num_fonts == limit)
+                    {
+                      BLOCK_INPUT;
+                      XFreeFontNames (names);
+                      UNBLOCK_INPUT;
+                      limit *= 2;
+                    }
+                  else
+                    break;
+                }
+            }
+          else
+            names = XListFonts (dpy, SDATA (pattern), max (maxnames, 10),
+                                &num_fonts);
+
 	  if (x_had_errors_p (dpy))
 	    {
 	      /* This error is perhaps due to insufficient memory on X
