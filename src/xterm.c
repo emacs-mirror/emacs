@@ -8729,7 +8729,6 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
 
     /* Draw the handle itself.  */
     XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
-
 		    /* x, y, width, height */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + start,
@@ -8875,12 +8874,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   
+      /* Clear areas not covered by the scroll bar because of
+	 VERTICAL_SCROLL_BAR_WIDTH_TRIM.  */
       if (VERTICAL_SCROLL_BAR_WIDTH_TRIM)
 	{
-	  /* Clear areas not covered by the scroll bar.  This makes sure a
-	     previous mode line display is cleared after C-x 2 C-x 1, for
-	     example.  Non-toolkit scroll bars are as wide as the area
-	     reserved for scroll bars - trim at both sides.  */
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 			height, False);
@@ -8889,6 +8886,19 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 			height, False);
 	}
+
+      /* Clear areas not covered by the scroll bar because it's not as
+	 wide as the area reserved for it .  This makes sure a
+	 previous mode line display is cleared after C-x 2 C-x 1, for
+	 example.  */
+      {
+	int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+	int rest = area_width - sb_width;
+	if (rest > 0)
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			left + area_width -  rest, 0,
+			rest, max (height, 1), False);
+      }
       
       /* Move/size the scroll bar window.  */
       if (mask)
