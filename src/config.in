@@ -19,6 +19,12 @@ file named COPYING.  Among other things, the copyright notice
 and this notice must be preserved on all copies.  */
 
 
+/* No code in Emacs #includes config.h twice, but some of the code
+   intended to work with other packages as well (like gmalloc.c) 
+   think they can include it as many times as they like.  */
+#ifndef EMACS_CONFIG_H
+#define EMACS_CONFIG_H
+
 
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
 /* #define HAVE_X_WINDOWS */
@@ -165,3 +171,12 @@ and this notice must be preserved on all copies.  */
 #ifndef SIGTYPE
 #define SIGTYPE void
 #endif
+
+#ifndef THIS_IS_YMAKEFILE
+/* Some of the files of Emacs which are intended for use with other
+   programs assume that if you have a config.h file, you must declare
+   the type of getenv.  */
+extern char *getenv ();
+#endif
+
+#endif /* EMACS_CONFIG_H */
