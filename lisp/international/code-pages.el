@@ -55,56 +55,9 @@
 
 ;;; Code:
 
-(defun cp-make-translation-table (v)
-  "Return a translation table made from 128-long vector V.
-V comprises characters encodable by mule-utf-8."
-  (let ((encoding-vector (make-vector 256 0)))
-    (dotimes (i 128)
-      (aset encoding-vector i i))
-    (dotimes (i 128)
-      (aset encoding-vector (+ i 128) (aref v i)))
-    (make-translation-table-from-vector encoding-vector)))
-
-(defun cp-valid-codes (v)
-  "Derive a valid-codes list for translation vector V.
-See `make-coding-system'."
-  (let (pairs
-	(i 128)				; index into v
-	(start 0)			; start of a valid range
-	(end 127))			; end of a valid range
-    (while (< i 256)
-      (if (aref v (- i 128))		; start or extend range
-	  (progn
-	    (setq end i)
-	    (unless start (setq start i)))
-	(if start
-	    (push (cons start end) pairs))
-	(setq start nil))
-      (setq i (1+ i)))
-    (if start (push (cons start end) pairs))
-    (nreverse pairs)))
-
-(defun cp-fix-safe-chars (cs)
-  "Remove `char-coding-system-table' entries from previous definition of CS.
-CS is a base coding system or alias."
-  (when (coding-system-p cs)
-    (let ((chars (coding-system-get cs 'safe-chars)))
-      (map-char-table
-       (lambda (k v)
-	 (if (and v (not (eq v t)))
-	     (aset char-coding-system-table
-		   k
-		   (remq cs (aref char-coding-system-table v)))))
-       chars))))
-
 ;; Fix things that have been, or might be done by codepage.el.
 (eval-after-load "codepage"
   '(progn
-
-     (dolist (cs '(cp857 cp861 cp1253 cp852 cp866 cp437 cp855 cp869 cp775
-		   cp862 cp864 cp1250 cp863 cp865 cp1251 cp737 cp1257 cp850
-		   cp860 cp851 720))
-       (cp-fix-safe-chars cs))
 
 ;; Semi-dummy version for the stuff in codepage.el which we don't
 ;; define here.  (Used by mule-diag.)
@@ -170,50 +123,30 @@ V is a 128-long vector of characters to translate the upper half of
 the charactert set.  DOC-STRING and MNEMONIC are used as the
 corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ?* is used."
-  (let* ((encoder (intern (format "encode-%s" name)))
-	 (decoder (intern (format "decode-%s" name)))
-	 (ccl-decoder
-	  (ccl-compile
-	   `(4
-	     ((loop
-	       (read r1)
-	       (if (r1 < 128) ;; ASCII
-		   (r0 = ,(charset-id 'ascii))
-		 (if (r1 < 160)
-		     (r0 = ,(charset-id 'eight-bit-control))
-		   (r0 = ,(charset-id 'eight-bit-graphic))))
-	       (translate-character ,decoder r0 r1)
-	       (write-multibyte-character r0 r1)
-	       (repeat))))))
-	 (ccl-encoder
-	  (ccl-compile
-	   `(1
-	     ((loop
-	       (read-multibyte-character r0 r1)
-	       (translate-character ,encoder r0 r1)
-	       (write-repeat r1)))))))
-    `(let ((translation-table (cp-make-translation-table ,v))
-	   (codes (cp-valid-codes ,v)))
-       (define-translation-table ',decoder translation-table)
-       (define-translation-table ',encoder
-	 (char-table-extra-slot translation-table 0))
-       (cp-fix-safe-chars ',name)
-       (make-coding-system
-	',name 4 ,(or mnemonic ?*)
-	(or ,doc-string (format "%s encoding" ',name))
-	(cons ,ccl-decoder ,ccl-encoder)
-	(list (cons 'safe-chars (get ',encoder 'translation-table))
-	      (cons 'valid-codes codes)
-	      (cons 'mime-charset ',name)))
-       (push (list ',name
-		   nil			; charset list
-		   ',decoder
-		   (let (l)		; code range
-		     (dolist (elt (reverse codes))
-		       (push (cdr elt) l)
-		       (push (car elt) l))
-		     (list l)))
-	     non-iso-charset-alist))))
+  `(progn
+     (define-charset ',name ""
+       :dimension 1
+       :code-space [ 0 255 ]
+       :ascii-compatible-p t
+       :map ,(let ((len 0)
+		   map)
+	       (dotimes (i 128)
+		 (if (aref v i) (setq len (1+ len))))
+	       (setq map (make-vector (* len 2) nil))
+	       (setq len 0)
+	       (dotimes (i 128)
+		 (when (aref v i)
+		   (aset map len (+ 128 i))
+		   (aset map (1+ len) (aref v i))
+		   (setq len (+ len 2))))
+	       map))
+
+     (define-coding-system ',name
+       ,(or doc-string "")
+       :coding-type 'charset
+       :mnemonic ,(or mnemonic ?*)
+       :charset-list '(,name)
+       :plist '(mime-charset ,name))))
 
 
 ;; These tables were mostly derived by running somthing like
