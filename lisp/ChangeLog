@@ -1,4 +1,7 @@
-2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
+2000-10-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.el (tab-always-indent): New var.
+	(indent-for-tab-command): Use it.
 
 	* files.el (set-auto-mode): Ignore unknown -*- mode -*- rather than
 	raise an error.  This way it can still defaults to a sane value.
