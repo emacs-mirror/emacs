@@ -27,10 +27,17 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 
 /* Define this temporarily to hunt a bug.  If defined, the size of
-   strings is always recorded in sdata structures so that it can be
-   compared to the sizes recorded in Lisp strings.  */
+   strings is redundantly recorded in sdata structures so that it can
+   be compared to the sizes recorded in Lisp strings.  */
 
 #define GC_CHECK_STRING_BYTES 1
+
+/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
+   memory.  Can do this only if using gmalloc.c.  */
+
+#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
+#undef GC_MALLOC_CHECK
+#endif
 
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
@@ -278,7 +285,7 @@ enum mem_type
   MEM_TYPE_VECTOR
 };
 
-#if GC_MARK_STACK
+#if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 #include <stdio.h>		/* For fprintf.  */
@@ -289,7 +296,64 @@ enum mem_type
 
 Lisp_Object Vdead;
 
-struct mem_node;
+#ifdef GC_MALLOC_CHECK
+
+enum mem_type allocated_mem_type;
+int dont_register_blocks;
+
+#endif /* GC_MALLOC_CHECK */
+
+/* A node in the red-black tree describing allocated memory containing
+   Lisp data.  Each such block is recorded with its start and end
+   address when it is allocated, and removed from the tree when it
+   is freed.
+
+   A red-black tree is a balanced binary tree with the following
+   properties:
+
+   1. Every node is either red or black.
+   2. Every leaf is black.
+   3. If a node is red, then both of its children are black.
+   4. Every simple path from a node to a descendant leaf contains
+   the same number of black nodes.
+   5. The root is always black.
+
+   When nodes are inserted into the tree, or deleted from the tree,
+   the tree is "fixed" so that these properties are always true.
+
+   A red-black tree with N internal nodes has height at most 2
+   log(N+1).  Searches, insertions and deletions are done in O(log N).
+   Please see a text book about data structures for a detailed
+   description of red-black trees.  Any book worth its salt should
+   describe them.  */
+
+struct mem_node
+{
+  struct mem_node *left, *right, *parent;
+
+  /* Start and end of allocated region.  */
+  void *start, *end;
+
+  /* Node color.  */
+  enum {MEM_BLACK, MEM_RED} color;
+  
+  /* Memory type.  */
+  enum mem_type type;
+};
+
+/* Base address of stack.  Set in main.  */
+
+Lisp_Object *stack_base;
+
+/* Root of the tree describing allocated Lisp memory.  */
+
+static struct mem_node *mem_root;
+
+/* Sentinel node of the tree.  */
+
+static struct mem_node mem_z;
+#define MEM_NIL &mem_z
+
 static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
 static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
@@ -316,7 +380,7 @@ static INLINE struct mem_node *mem_find P_ ((void *));
 static void check_gcpros P_ ((void));
 #endif
 
-#endif /* GC_MARK_STACK != 0 */
+#endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
 
 /* Recording what needs to be marked for gc.  */
 
@@ -515,13 +579,18 @@ lisp_malloc (nbytes, type)
   register void *val;
 
   BLOCK_INPUT;
+
+#ifdef GC_MALLOC_CHECK
+  allocated_mem_type = type;
+#endif
+  
   val = (void *) malloc (nbytes);
 
-#if GC_MARK_STACK
+#if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
-  
+   
   UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full ();
@@ -549,7 +618,7 @@ lisp_free (block)
 {
   BLOCK_INPUT;
   free (block);
-#if GC_MARK_STACK
+#if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   mem_delete (mem_find (block));
 #endif
   UNBLOCK_INPUT;
@@ -584,8 +653,29 @@ emacs_blocked_free (ptr)
      void *ptr;
 {
   BLOCK_INPUT;
+
+#ifdef GC_MALLOC_CHECK
+  {
+    struct mem_node *m;
+  
+    m = mem_find (ptr);
+    if (m == MEM_NIL || m->start != ptr)
+      {
+	fprintf (stderr,
+		 "Freeing `%p' which wasn't allocated with malloc\n", ptr);
+	abort ();
+      }
+    else
+      {
+	/* fprintf (stderr, "free %p...%p (%p)\n", m->start, m->end, ptr); */
+	mem_delete (m);
+      }
+  }
+#endif /* GC_MALLOC_CHECK */
+  
   __free_hook = old_free_hook;
   free (ptr);
+  
   /* If we released our reserve (due to running out of memory),
      and we have a fair amount free once again,
      try to set aside another reserve in case we run out once more.  */
@@ -632,10 +722,34 @@ emacs_blocked_malloc (size)
 #else
     __malloc_extra_blocks = malloc_hysteresis;
 #endif
+
   value = (void *) malloc (size);
+
+#ifdef GC_MALLOC_CHECK
+  {
+    struct mem_node *m = mem_find (value);
+    if (m != MEM_NIL)
+      {
+	fprintf (stderr, "Malloc returned %p which is already in use\n",
+		 value);
+	fprintf (stderr, "Region in use is %p...%p, %u bytes, type %d\n",
+		 m->start, m->end, (char *) m->end - (char *) m->start,
+		 m->type);
+	abort ();
+      }
+
+    if (!dont_register_blocks)
+      {
+	mem_insert (value, (char *) value + max (1, size), allocated_mem_type);
+	allocated_mem_type = MEM_TYPE_NON_LISP;
+      }
+  }
+#endif /* GC_MALLOC_CHECK */
+  
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
 
+  /* fprintf (stderr, "%p malloc\n", value); */
   return value;
 }
 
@@ -651,7 +765,48 @@ emacs_blocked_realloc (ptr, size)
 
   BLOCK_INPUT;
   __realloc_hook = old_realloc_hook;
+
+#ifdef GC_MALLOC_CHECK
+  if (ptr)
+    {
+      struct mem_node *m = mem_find (ptr);
+      if (m == MEM_NIL || m->start != ptr)
+	{
+	  fprintf (stderr,
+		   "Realloc of %p which wasn't allocated with malloc\n",
+		   ptr);
+	  abort ();
+	}
+
+      mem_delete (m);
+    }
+  
+  /* fprintf (stderr, "%p -> realloc\n", ptr); */
+  
+  /* Prevent malloc from registering blocks.  */
+  dont_register_blocks = 1;
+#endif /* GC_MALLOC_CHECK */
+
   value = (void *) realloc (ptr, size);
+
+#ifdef GC_MALLOC_CHECK
+  dont_register_blocks = 0;
+
+  {
+    struct mem_node *m = mem_find (value);
+    if (m != MEM_NIL)
+      {
+	fprintf (stderr, "Realloc returns memory that is already in use\n");
+	abort ();
+      }
+
+    /* Can't handle zero size regions in the red-black tree.  */
+    mem_insert (value, (char *) value + max (size, 1), MEM_TYPE_NON_LISP);
+  }
+  
+  /* fprintf (stderr, "%p <- realloc\n", value); */
+#endif /* GC_MALLOC_CHECK */
+  
   __realloc_hook = emacs_blocked_realloc;
   UNBLOCK_INPUT;
 
@@ -2375,61 +2530,6 @@ make_event_array (nargs, args)
 			   C Stack Marking
  ************************************************************************/
 
-#if GC_MARK_STACK
-
-
-/* Base address of stack.  Set in main.  */
-
-Lisp_Object *stack_base;
-
-/* A node in the red-black tree describing allocated memory containing
-   Lisp data.  Each such block is recorded with its start and end
-   address when it is allocated, and removed from the tree when it
-   is freed.
-
-   A red-black tree is a balanced binary tree with the following
-   properties:
-
-   1. Every node is either red or black.
-   2. Every leaf is black.
-   3. If a node is red, then both of its children are black.
-   4. Every simple path from a node to a descendant leaf contains
-   the same number of black nodes.
-   5. The root is always black.
-
-   When nodes are inserted into the tree, or deleted from the tree,
-   the tree is "fixed" so that these properties are always true.
-
-   A red-black tree with N internal nodes has height at most 2
-   log(N+1).  Searches, insertions and deletions are done in O(log N).
-   Please see a text book about data structures for a detailed
-   description of red-black trees.  Any book worth its salt should
-   describe them.  */
-
-struct mem_node
-{
-  struct mem_node *left, *right, *parent;
-
-  /* Start and end of allocated region.  */
-  void *start, *end;
-
-  /* Node color.  */
-  enum {MEM_BLACK, MEM_RED} color;
-  
-  /* Memory type.  */
-  enum mem_type type;
-};
-
-/* Root of the tree describing allocated Lisp memory.  */
-
-static struct mem_node *mem_root;
-
-/* Sentinel node of the tree.  */
-
-static struct mem_node mem_z;
-#define MEM_NIL &mem_z
-
-
 /* Initialize this part of alloc.c.  */
 
 static void
@@ -2501,7 +2601,13 @@ mem_insert (start, end, type)
 #endif /* GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS */
 
   /* Create a new node.  */
+#ifdef GC_MALLOC_CHECK
+  x = (struct mem_node *) _malloc_internal (sizeof *x);
+  if (x == NULL)
+    abort ();
+#else
   x = (struct mem_node *) xmalloc (sizeof *x);
+#endif
   x->start = start;
   x->end = end;
   x->type = type;
@@ -2522,6 +2628,7 @@ mem_insert (start, end, type)
 
   /* Re-establish red-black tree properties.  */
   mem_insert_fixup (x);
+
   return x;
 }
 
@@ -2721,7 +2828,12 @@ mem_delete (z)
   
   if (y->color == MEM_BLACK)
     mem_delete_fixup (x);
+
+#ifdef GC_MALLOC_CHECK
+  _free_internal (y);
+#else
   xfree (y);
+#endif
 }
 
 
@@ -2961,6 +3073,7 @@ live_buffer_p (m, p)
 	  && !NILP (((struct buffer *) p)->name));
 }
 
+#if GC_MARK_STACK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
@@ -4907,7 +5020,7 @@ init_alloc_once ()
 {
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
   pure_bytes_used = 0;
-#if GC_MARK_STACK
+#if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();
   Vdead = make_pure_string ("DEAD", 4, 4, 0);
 #endif
