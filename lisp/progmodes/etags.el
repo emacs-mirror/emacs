@@ -3,6 +3,7 @@
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
@@ -190,8 +191,8 @@ nil means it has not yet been computed; use `tags-table-files' to do so.")
 
 ;; Hooks for file formats.
 
-(defvar tags-table-format-hooks '(etags-recognize-tags-table
-				  tags-recognize-empty-tags-table)
+(defvar tags-table-format-functions '(etags-recognize-tags-table
+				      tags-recognize-empty-tags-table)
   "Hook to be called in a tags table buffer to identify the type of tags table.
 The functions are called in order, with no arguments,
 until one returns non-nil.  The function should make buffer-local bindings
@@ -242,7 +243,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
   ;; are global.
 
   ;; Value is t if we have found a valid tags table buffer.
-  (run-hook-with-args-until-success 'tags-table-format-hooks))
+  (run-hook-with-args-until-success 'tags-table-format-functions))
 
 ;;;###autoload
 (defun visit-tags-table (file &optional local)
