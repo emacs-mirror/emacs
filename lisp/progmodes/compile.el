@@ -157,7 +157,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
     ("\\([-a-zA-Z._]+: ?\\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\
-\\([) \t]\\|:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 2 3 6)
+\\([) \t]\\|:\\(\\([0-9]+:\\)\\|[0-9]*[^:0-9]\\)\\)" 2 3 6)
 
     ;; Microsoft C/C++:
     ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
