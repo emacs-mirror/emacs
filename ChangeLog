@@ -1,3 +1,8 @@
+2002-11-07  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): Fix shell variable usage.  Handle
+	separate-build-dir case.
+
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): Add doublequotes to make it
