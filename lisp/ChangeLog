@@ -1,3 +1,7 @@
+2002-03-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eshell/esh-ext.el (eshell-binary-suffixes): Use exec-suffixes.
+
 2002-03-18  Richard M. Stallman  <rms@gnu.org>
 
 	* menu-bar.el (menu-bar-options-menu): Cope if
@@ -10,7 +14,7 @@
 
 	* files.el (list-directory): Set default-directory at the end.
 
-	* dabbrev.el (dabbrev--goto-start-of-abbrev): 
+	* dabbrev.el (dabbrev--goto-start-of-abbrev):
 	Put a limit on field-beginning search.
 
 2002-03-17  Simon Josefsson  <jas@extundo.com>
@@ -25,6 +29,13 @@
 	* net/browse-url.el: Put * in user option doc strings.
 
 2002-03-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-xml-mode): Renamed from sgml-xml.
+	(sgml-xml-guess): Simplify.
+	(sgml-mode-common): Remove (move into sgml-mode).
+	(sgml-mode): Add code from sgml-mode-common.
+	Remove redundant setting of indent-line-function.
+	Don't set skeleton-transformation when in XML mode.
 
 	* international/mule-diag.el (describe-char-after):
 	Use `internal-describe-syntax-value' again (got lost somewhere).
