@@ -3425,11 +3425,23 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 (defun assoc-ignore-case (key alist)
-  "Like `assoc', but assumes KEY is a string and ignores case when comparing."
-  (setq key (downcase key))
+  "Like `assoc', but ignores differences in case and text representation.
+KEY must be a string.  Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
   (let (element)
     (while (and alist (not element))
-      (if (equal key (downcase (car (car alist))))
+      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil t))
+	  (setq element (car alist)))
+      (setq alist (cdr alist)))
+    element))
+
+(defun assoc-ignore-representation (key alist)
+  "Like `assoc', but ignores differences in text representation.
+KEY must be a string.  
+Unibyte strings are converted to multibyte for comparison."
+  (let (element)
+    (while (and alist (not element))
+      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil))
 	  (setq element (car alist)))
       (setq alist (cdr alist)))
     element))
