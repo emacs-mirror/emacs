@@ -61,19 +61,6 @@ Changes since $OLD
 
 EOF
 
-cvs -q diff -b -r $oldtag -r $newtag $(find -name ChangeLog|sort) |
-    sed -n -e 's/^=\+/======/p' -e 's/^> //p' -e 's/^diff.*//p' \
-	-e 's/^RCS file: .cvsroot.emacs.emacs.\(.*\),v/\1/p' |
-    sed -n -e "/^======$/ {
-                N
-                N
-                h
-                d
-               }
-               H
-               s/.*//
-               x
-               s/^\n//
-	       p"
+make-changelog-diff $oldtag $newtag
 
 echo " announcement created in $outfile" >&2
