@@ -310,6 +310,11 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(defcustom diary-file-name-prefix-function (function (lambda (str) str))
+  "*The function that will take a diary file name and return the desired prefix."
+  :type 'string
+  :group 'diary)
+
 ;;;###autoload
 (defcustom calendar-load-hook nil
   "*List of functions to be called after the calendar is first loaded.
@@ -495,6 +500,36 @@ details, see the documentation for the variable `list-diary-entries-hook'."
   "*The string indicating inclusion of another file of diary entries.
 See the documentation for the function `include-other-diary-files'."
   :type 'string
+  :group 'diary)
+
+(defcustom diary-glob-file-regexp-prefix "^\\#"
+  "*The regular expression that gets pre-pended to each of the attribute-regexp's for file-wide specifiers."
+  :type 'regexp
+  :group 'diary)
+
+(defcustom diary-face-attrs '(
+			      (" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
+			      (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
+			      (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
+			      (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
+			      (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
+			      (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
+			      (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
+			      (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
+			      (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
+			      (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
+			      (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
+			      (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+;Unsupported			      (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
+;Unsupported			      (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
+			      )
+  "*A list of (regexp regnum attr attrtype) lists where the regexp says how to find the tag, the regnum says which parenthetical sub-regexp this regexp looks for, and the attr says which attribute of the face (or that this _is_ a face) is being modified."
+  :type 'sexp
+  :group 'diary)
+
+(defcustom diary-file-name-prefix nil
+  "If non-nil then each entry in the diary list will be prefixed with the name of the file in which it was defined."
+  :type 'boolean
   :group 'diary)
 
 ;;;###autoload
@@ -1816,7 +1851,8 @@ Or, for optional MON, YR."
       ;; Adjust the window to exactly fit the displayed calendar
       (fit-window-to-buffer))
     (sit-for 0)
-    (if font-lock-mode
+    (if (and (boundp 'font-lock-mode)
+	     font-lock-mode)
 	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
          (mark-calendar-holidays)
@@ -2556,21 +2592,46 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
 
 (defun mark-visible-calendar-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
-MARK is either a single-character string or a face.
+MARK is a single-character string, a list of face attributes/values, or a face.
 MARK defaults to `diary-entry-marker'."
   (if (calendar-date-is-legal-p date)
       (save-excursion
         (set-buffer calendar-buffer)
         (calendar-cursor-to-visible-date date)
-        (let ((mark (or mark diary-entry-marker)))
-          (if (stringp mark)
-              (let ((buffer-read-only nil))
-                (forward-char 1)
-                (delete-char 1)
-                (insert mark)
-                (forward-char -2))
-	    (overlay-put
-             (make-overlay (1- (point)) (1+ (point))) 'face mark))))))
+	(let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
+			(and (listp mark) (> (length mark) 0) mark) ; attr list
+			(and (facep mark) mark) ; face-name
+			diary-entry-marker)))
+	  (if (facep mark)
+	      (progn ; face or an attr-list that contained a face
+		(overlay-put
+		 (make-overlay (1- (point)) (1+ (point))) 'face mark))
+	    (if (and (stringp mark)
+		     (= (length mark) 1)) ; single-char
+		(let ((buffer-read-only nil))
+		  (forward-char 1)
+		  (delete-char 1)
+		  (insert mark)
+		  (forward-char -2))
+	      (progn ; attr list 
+		(setq temp-face 
+		      (make-symbol (apply 'concat "temp-face-" 
+					  (mapcar '(lambda (sym) 
+						     (cond ((symbolp sym) (symbol-name sym))
+							   ((numberp sym) (int-to-string sym))
+							   (t sym))) mark))))
+		(make-face temp-face)
+		;; Remove :face info from the mark, copy the face info into temp-face
+		(setq faceinfo mark)
+		(while (setq faceinfo (memq :face faceinfo))
+		  (copy-face (read (nth 1 faceinfo)) temp-face)
+		  (setcar faceinfo nil)
+		  (setcar (cdr faceinfo) nil))
+		(setq mark (delq nil mark))
+		;; Apply the font aspects
+		(apply 'set-face-attribute temp-face nil mark)
+		(overlay-put
+		 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
