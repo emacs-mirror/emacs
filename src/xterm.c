@@ -1453,8 +1453,8 @@ x_new_focus_frame (frame)
 
 #if 0
       selected_frame = frame;
-      XSET (XWINDOW (selected_frame->selected_window)->frame,
-	    Lisp_Frame, selected_frame);
+      XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
+		 selected_frame);
       Fselect_window (selected_frame->selected_window);
       choose_minibuf_frame ();
 #endif /* ! 0 */
@@ -1743,9 +1743,9 @@ construct_mouse_click (result, event, f)
     XFASTINT (result->x) = column;
     XFASTINT (result->y) = row;
 #endif
-    XSET (result->x, Lisp_Int, event->x);
-    XSET (result->y, Lisp_Int, event->y);
-    XSET (result->frame_or_window, Lisp_Frame, f);
+    XSETINT (result->x, event->x);
+    XSETINT (result->y, event->y);
+    XSETFRAME (result->frame_or_window, f);
   }
 }
 
@@ -1760,16 +1760,16 @@ construct_menu_click (result, event, f)
   /* Make the event type no_event; we'll change that when we decide
      otherwise.  */
   result->kind = mouse_click;
-  XSET (result->code, Lisp_Int, event->button - Button1);
+  XSETINT (result->code, event->button - Button1);
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (event->state)
 		       | (event->type == ButtonRelease
 			  ? up_modifier 
 			  : down_modifier));
 
-  XSET (result->x, Lisp_Int, event->x);
-  XSET (result->y, Lisp_Int, -1);
-  XSET (result->frame_or_window, Lisp_Frame, f);
+  XSETINT (result->x, event->x);
+  XSETINT (result->y, -1);
+  XSETFRAME (result->frame_or_window, f);
 }
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -1937,7 +1937,7 @@ note_mouse_highlight (f, x, y)
 	  clear_mouse_face ();
 
 	  /* Is this char mouse-active?  */
-	  XSET (position, Lisp_Int, pos);
+	  XSETINT (position, pos);
 
 	  len = 10;
 	  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
@@ -1996,9 +1996,8 @@ note_mouse_highlight (f, x, y)
 	      int ignore;
 
 	      beginning = Fmarker_position (w->start);
-	      XSET (end, Lisp_Int,
-		    (BUF_Z (XBUFFER (w->buffer))
-		     - XFASTINT (w->window_end_pos)));
+	      XSETINT (end, (BUF_Z (XBUFFER (w->buffer))
+			     - XFASTINT (w->window_end_pos)));
 	      before
 		= Fprevious_single_property_change (make_number (pos + 1),
 						    Qmouse_face,
@@ -2319,8 +2318,8 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	    *bar_window = Qnil;
 	    *part = 0;
 	    *f = f1;
-	    XSET (*x, Lisp_Int, win_x);
-	    XSET (*y, Lisp_Int, win_y);
+	    XSETINT (*x, win_x);
+	    XSETINT (*y, win_y);
 	    *time = last_mouse_movement_time;
 	  }
       }
@@ -2420,21 +2419,21 @@ x_scroll_bar_create (window, top, left, width, height)
 		      mask, &a));
   }
 
-  XSET (bar->window, Lisp_Window, window);
-  XSET (bar->top,    Lisp_Int, top);
-  XSET (bar->left,   Lisp_Int, left);
-  XSET (bar->width,  Lisp_Int, width);
-  XSET (bar->height, Lisp_Int, height);
-  XSET (bar->start,  Lisp_Int, 0);
-  XSET (bar->end,    Lisp_Int, 0);
+  XSETWINDOW (bar->window, window);
+  XSETINT (bar->top, top);
+  XSETINT (bar->left, left);
+  XSETINT (bar->width, width);
+  XSETINT (bar->height, height);
+  XSETINT (bar->start, 0);
+  XSETINT (bar->end, 0);
   bar->dragging = Qnil;
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (frame);
   bar->prev = Qnil;
-  XSET (FRAME_SCROLL_BARS (frame), Lisp_Vector, bar);
+  XSETVECTOR (FRAME_SCROLL_BARS (frame), bar);
   if (! NILP (bar->next))
-    XSET (XSCROLL_BAR (bar->next)->prev, Lisp_Vector, bar);
+    XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
   XMapWindow (x_current_display, SCROLL_BAR_X_WINDOW (bar));
 
@@ -2495,8 +2494,8 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     }
 
     /* Store the adjusted setting in the scroll bar.  */
-    XSET (bar->start, Lisp_Int, start);
-    XSET (bar->end, Lisp_Int, end);
+    XSETINT (bar->start, start);
+    XSETINT (bar->end, end);
 
     /* Clip the end position, just for display.  */
     if (end > top_range)
@@ -2571,10 +2570,10 @@ x_scroll_bar_move (bar, top, left, width, height)
 			mask, &wc);
   }
 
-  XSET (bar->left,   Lisp_Int, left);
-  XSET (bar->top,    Lisp_Int, top);
-  XSET (bar->width,  Lisp_Int, width);
-  XSET (bar->height, Lisp_Int, height);
+  XSETINT (bar->left, left);
+  XSETINT (bar->top, top);
+  XSETINT (bar->width, width);
+  XSETINT (bar->height, height);
 
   UNBLOCK_INPUT;
 }
@@ -2653,7 +2652,7 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
 	}
     }
 
-  XSET (window->vertical_scroll_bar, Lisp_Vector, bar);
+  XSETVECTOR (window->vertical_scroll_bar, bar);
 }
 
 
@@ -2724,9 +2723,9 @@ XTredeem_scroll_bar (window)
 
     bar->next = FRAME_SCROLL_BARS (f);
     bar->prev = Qnil;
-    XSET (FRAME_SCROLL_BARS (f), Lisp_Vector, bar);
+    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
     if (! NILP (bar->next))
-      XSET (XSCROLL_BAR (bar->next)->prev, Lisp_Vector, bar);
+      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
   }
 }
 
@@ -2832,7 +2831,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
        holding it.  */
     if (event->type == ButtonPress
 	&& emacs_event->part == scroll_bar_handle)
-      XSET (bar->dragging, Lisp_Int, y - XINT (bar->start));
+      XSETINT (bar->dragging, y - XINT (bar->start));
 #endif
 
     /* If the user has released the handle, set it to its final position.  */
@@ -2853,12 +2852,12 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
     if (emacs_event->part == scroll_bar_handle)
       emacs_event->x = bar->start;
     else
-      XSET (emacs_event->x, Lisp_Int, y);
+      XSETINT (emacs_event->x, y);
 #else
-    XSET (emacs_event->x, Lisp_Int, y);
+    XSETINT (emacs_event->x, y);
 #endif
 
-    XSET (emacs_event->y, Lisp_Int, top_range);
+    XSETINT (emacs_event->y, top_range);
   }
 }
 
@@ -2874,7 +2873,7 @@ x_scroll_bar_note_movement (bar, event)
   last_mouse_movement_time = event->xmotion.time;
 
   mouse_moved = 1;
-  XSET (last_mouse_scroll_bar, Lisp_Vector, bar);
+  XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
   if (! GC_NILP (bar->dragging))
@@ -2965,8 +2964,8 @@ x_scroll_bar_report_motion (f, bar_window, part, x, y, time)
       else
 	*part = scroll_bar_below_handle;
 
-      XSET (*x, Lisp_Int, win_y);
-      XSET (*y, Lisp_Int, top_range);
+      XSETINT (*x, win_y);
+      XSETINT (*y, top_range);
 
       mouse_moved = 0;
       last_mouse_scroll_bar = Qnil;
@@ -3257,7 +3256,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  abort ();
 
 			bufp->kind = delete_window_event;
-			XSET (bufp->frame_or_window, Lisp_Frame, f);
+			XSETFRAME (bufp->frame_or_window, f);
 			bufp++;
 
 			count += 1;
@@ -3563,7 +3562,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      temp_buffer[temp_index++] = keysym;
 		      bufp->kind = non_ascii_keystroke;
 		      bufp->code = keysym;
-		      XSET (bufp->frame_or_window, Lisp_Frame, f);
+		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 		      bufp->timestamp = event.xkey.time;
 		      bufp++;
@@ -3581,7 +3580,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  temp_buffer[temp_index++] = copy_buffer[i];
 			  bufp->kind = ascii_keystroke;
 			  bufp->code = copy_buffer[i];
-			  XSET (bufp->frame_or_window, Lisp_Frame, f);
+			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
@@ -4960,7 +4959,7 @@ x_make_frame_visible (f)
     /* This must come after we set COUNT.  */
     UNBLOCK_INPUT;
 
-    XSET (frame, Lisp_Frame, f);
+    XSETFRAME (frame, f);
 
     while (1)
       {
