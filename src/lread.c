@@ -353,8 +353,10 @@ Return t if file exists.")
      since it would try to load a directory as a Lisp file */
   if (XSTRING (str)->size > 0)
     {
+      GCPRO1 (str);
       fd = openp (Vload_path, str, !NILP (nosuffix) ? "" : ".elc:.el:",
 		  &found, 0);
+      UNGCPRO;
     }
 
   if (fd < 0)
@@ -505,7 +507,9 @@ openp (path, str, suffix, storeptr, exec_only)
   int want_size;
   register Lisp_Object filename;
   struct stat st;
+  struct gcpro gcpro1;
 
+  GCPRO1 (str);
   if (storeptr)
     *storeptr = Qnil;
 
@@ -563,7 +567,7 @@ openp (path, str, suffix, storeptr, exec_only)
 		  /* We succeeded; return this descriptor and filename.  */
 		  if (storeptr)
 		    *storeptr = build_string (fn);
-		  return fd;
+		  RETURN_UNGCPRO (fd);
 		}
 	    }
 
@@ -572,10 +576,11 @@ openp (path, str, suffix, storeptr, exec_only)
 	    break;
 	  nsuffix += lsuffix + 1;
 	}
-      if (absolute) return -1;
+      if (absolute)
+	RETURN_UNGCPRO (-1);
     }
 
-  return -1;
+  RETURN_UNGCPRO (-1);
 }
 
 
