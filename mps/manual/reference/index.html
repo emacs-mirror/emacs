@@ -64,6 +64,138 @@
 
 <h2> <a id="section-3" name="section-3">3. Reference</a> </h2>
 
+<ul>
+<li> <code><a href="#MPS_ARCH_AL">MPS_ARCH_AL</a></code> </li>
+<li> <code><a href="#MPS_ARCH_M6">MPS_ARCH_M6</a></code> </li>
+<li> function <code><a href="#mps_fix">mps_fix</a></code> </li>
+<li> macro <code><a href="#MPS_FIX1">MPS_FIX1</a></code> </li>
+<li> macro <code><a href="#MPS_FIX12">MPS_FIX12</a></code> </li>
+<li> macro <code><a href="#MPS_FIX2">MPS_FIX2</a></code> </li>
+<li> macro <code><a href="#MPS_FIX_CALL">MPS_FIX_CALL</a></code> </li>
+<li> constant <code><a href="#MPS_RES_LIMIT">MPS_RES_LIMIT</a></code> </li>
+<li> constant <code><a href="#MPS_RES_MEMORY">MPS_RES_MEMORY</a></code> </li>
+<li> <code><a href="#MPS_RES_PARAM">MPS_RES_PARAM</a></code> </li>
+<li> <code><a href="#MPS_RM_CONST">MPS_RM_CONST</a></code> </li>
+<li> <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code> </li>
+<li> <code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code> </li>
+<li> function <code><a href="#mps_sac_alloc">mps_sac_alloc</a></code> </li>
+<li> macro <code><a href="#MPS_SAC_ALLOC_FAST">MPS_SAC_ALLOC_FAST</a></code> </li>
+<li> constant <code><a href="#MPS_SAC_CLASS_LIMIT">MPS_SAC_CLASS_LIMIT</a></code> </li>
+<li> function <code><a href="#mps_sac_free">mps_sac_free</a></code> </li>
+<li> macro <code><a href="#MPS_SAC_FREE_FAST">MPS_SAC_FREE_FAST</a></code> </li>
+<li> macro <code><a href="#MPS_SCAN_BEGIN">MPS_SCAN_BEGIN</a></code> </li>
+<li> macro <code><a href="#MPS_SCAN_END">MPS_SCAN_END</a></code> </li>
+<li> type <code><a href="#MPS_T_WORD">MPS_T_WORD</a></code> </li>
+<li> constant <code><a href="#MPS_WORD_SHIFT">MPS_WORD_SHIFT</a></code> </li>
+<li> constant <code><a href="#MPS_WORD_WIDTH">MPS_WORD_WIDTH</a></code> </li>
+<li> type <code><a href="#mps_addr_t">mps_addr_t</a></code> </li>
+<li> type <code><a href="#mps_align_t">mps_align_t</a></code> </li>
+<li> function <code><a href="#mps_alloc">mps_alloc</a></code> </li>
+<li> <code><a href="#mps_alloc_pattern_ramp">mps_alloc_pattern_ramp</a></code> </li>
+<li> <code><a href="#mps_alloc_pattern_ramp_collect_all">mps_alloc_pattern_ramp_collect_all</a></code> </li>
+<li> <code><a href="#mps_amc_apply">mps_amc_apply</a></code> </li>
+<li> <code><a href="#mps_ap_alloc_pattern_begin">mps_ap_alloc_pattern_begin</a></code> </li>
+<li> <code><a href="#mps_ap_alloc_pattern_end">mps_ap_alloc_pattern_end</a></code> </li>
+<li> function <code><a href="#mps_ap_alloc_pattern_reset">mps_ap_alloc_pattern_reset</a></code> </li>
+<li> function <code><a href="#mps_ap_frame_pop">mps_ap_frame_pop</a></code> </li>
+<li> function <code><a href="#mps_ap_frame_push">mps_ap_frame_push</a></code> </li>
+<li> function <code><a href="#mps_arena_clamp">mps_arena_clamp</a></code> </li>
+<li> function <code><a href="#mps_arena_class_cl">mps_arena_class_cl</a></code> </li>
+<li> type <code><a href="#mps_arena_class_t">mps_arena_class_t</a></code> </li>
+<li> function <code><a href="#mps_arena_class_vm">mps_arena_class_vm</a></code> </li>
+<li> function <code><a href="#mps_arena_class_vmnz">mps_arena_class_vmnz</a></code> </li>
+<li> function <code><a href="#mps_arena_collect">mps_arena_collect</a></code> </li>
+<li> function <code><a href="#mps_arena_commit_limit">mps_arena_commit_limit</a></code> </li>
+<li> function <code><a href="#mps_arena_commit_limit_set">mps_arena_commit_limit_set</a></code> </li>
+<li> Function <code><a href="#mps_arena_committed">mps_arena_committed</a></code> </li>
+<li> function <code><a href="#mps_arena_create">mps_arena_create</a></code> </li>
+<li> function <code><a href="#mps_arena_create_v">mps_arena_create_v</a></code> </li>
+<li> function <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code> </li>
+<li> function <code><a href="#mps_arena_park">mps_arena_park</a></code> </li>
+<li> function <code><a href="#mps_arena_release">mps_arena_release</a></code> </li>
+<li> function <code><a href="#mps_arena_roots_walk">mps_arena_roots_walk</a></code> </li>
+<li> function <code><a href="#mps_arena_spare_commit_limit">mps_arena_spare_commit_limit</a></code> </li>
+<li> function <code><a href="#mps_arena_spare_commit_limit_set">mps_arena_spare_commit_limit_set</a></code> </li>
+<li> function <code><a href="#mps_arena_spare_committed">mps_arena_spare_committed</a></code> </li>
+<li> function <code><a href="#mps_assert_default">mps_assert_default</a></code> </li>
+<li> function <code><a href="#mps_assert_install">mps_assert_install</a></code> </li>
+<li> type <code><a href="#mps_assert_t">mps_assert_t</a></code> </li>
+<li> function <code><a href="#mps_bool_t">mps_bool_t</a></code> </li>
+<li> function <code><a href="#mps_class_amc">mps_class_amc</a></code> </li>
+<li> <code><a href="#mps_class_epdl_debug">mps_class_epdl_debug</a></code> </li>
+<li> <code><a href="#mps_class_epdr_debug">mps_class_epdr_debug</a></code> </li>
+<li> <code><a href="#mps_class_mv2">mps_class_mv2</a></code> </li>
+<li> function <code><a href="#mps_class_mvff">mps_class_mvff</a></code> </li>
+<li> function <code><a href="#mps_class_snc">mps_class_snc</a></code> </li>
+<li> Type <code><a href="#mps_class_t">mps_class_t</a></code> </li>
+<li> function <code><a href="#mps_finalize">mps_finalize</a></code> </li>
+<li> type <code><a href="#mps_fmt_A_s">mps_fmt_A_s</a></code> </li>
+<li> type <code><a href="#mps_fmt_A_t">mps_fmt_A_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_B_s">mps_fmt_B_s</a></code> </li>
+<li> Type <code><a href="#mps_fmt_B_t">mps_fmt_B_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_auto_header_s">mps_fmt_auto_header_s</a></code> </li>
+<li> type <code><a href="#mps_fmt_class_t">mps_fmt_class_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_copy_t">mps_fmt_copy_t</a></code> </li>
+<li> function <code><a href="#mps_fmt_create_A">mps_fmt_create_A</a></code> </li>
+<li> function <code><a href="#mps_fmt_create_B">mps_fmt_create_B</a></code> </li>
+<li> function <code><a href="#mps_fmt_create_auto_header">mps_fmt_create_auto_header</a></code> </li>
+<li> type <code><a href="#mps_fmt_fwd_t">mps_fmt_fwd_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_isfwd_t">mps_fmt_isfwd_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_pad_t">mps_fmt_pad_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_scan_t">mps_fmt_scan_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_skip_t">mps_fmt_skip_t</a></code> </li>
+<li> type <code><a href="#mps_fmt_t">mps_fmt_t</a></code> </li>
+<li> type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> </li>
+<li> function <code><a href="#mps_free">mps_free</a></code> </li>
+<li> function <code><a href="#mps_lib_memcmp">mps_lib_memcmp</a></code> </li>
+<li> function <code><a href="#mps_lib_memcpy">mps_lib_memcpy</a></code> </li>
+<li> function <code><a href="#mps_lib_memset">mps_lib_memset</a></code> </li>
+<li> <code><a href="#mps_lib_telemetry_control">mps_lib_telemetry_control</a></code> </li>
+<li> <code><a href="#mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code> </li>
+<li> <code><a href="#mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code> </li>
+<li> <code><a href="#mps_message_sollection_stats_not_condemned_size">mps_message_sollection_stats_not_condemned_size</a></code> </li>
+<li> function <code><a href="#mps_message_discard">mps_message_discard</a></code> </li>
+<li> function <code><a href="#mps_message_finalization_ref">mps_message_finalization_ref</a></code> </li>
+<li> function <code><a href="#mps_message_gc_condemned_size">mps_message_gc_condemned_size</a></code> </li>
+<li> function <code><a href="#mps_message_gc_live_size">mps_message_gc_live_size</a></code> </li>
+<li> function <code><a href="#mps_message_gc_not_condemned_size">mps_message_gc_not_condemned_size</a></code> </li>
+<li> function <code><a href="#mps_message_get">mps_message_get</a></code> </li>
+<li> <code><a href="#mps_message_poll">mps_message_poll</a></code> </li>
+<li> function <code><a href="#mps_message_queue_type">mps_message_queue_type</a></code> </li>
+<li> type <code><a href="#mps_message_t">mps_message_t</a></code> </li>
+<li> function <code><a href="#mps_message_type">mps_message_type</a></code> </li>
+<li> <code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code> </li>
+<li> function <code><a href="#mps_message_type_disable">mps_message_type_disable</a></code> </li>
+<li> function <code><a href="#mps_message_type_enable">mps_message_type_enable</a></code> </li>
+<li> function <code><a href="#mps_message_type_finalization">mps_message_type_finalization</a></code> </li>
+<li> function <code><a href="#mps_message_type_gc">mps_message_type_gc</a></code> </li>
+<li> type <code><a href="#mps_message_type_t">mps_message_type_t</a></code> </li>
+<li> function <code><a href="#mps_pool_check_fenceposts">mps_pool_check_fenceposts</a></code> </li>
+<li> structure <code><a href="#mps_pool_debug_option_s">mps_pool_debug_option_s</a></code> </li>
+<li> function <code><a href="#mps_rank_ambig">mps_rank_ambig</a></code> </li>
+<li> function <code><a href="#mps_rank_exact">mps_rank_exact</a></code> </li>
+<li> type <code><a href="#mps_rank_t">mps_rank_t</a></code> </li>
+<li> function <code><a href="#mps_rank_weak">mps_rank_weak</a></code> </li>
+<li> type <code><a href="#mps_reg_scan_t">mps_reg_scan_t</a></code> </li>
+<li> type <code><a href="#mps_res_t">mps_res_t</a></code> </li>
+<li> function <code><a href="#mps_root_create">mps_root_create</a></code> </li>
+<li> function <code><a href="#mps_root_create_fmt">mps_root_create_fmt</a></code> </li>
+<li> function <code><a href="#mps_root_create_reg">mps_root_create_reg</a></code> </li>
+<li> function <code><a href="#mps_root_create_table">mps_root_create_table</a></code> </li>
+<li> function <code><a href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code> </li>
+<li> type <code><a href="#mps_root_scan_t">mps_root_scan_t</a></code> </li>
+<li> type <code><a href="#mps_roots_stepper_t">mps_roots_stepper_t</a></code> </li>
+<li> type <code><a href="#mps_sac_classes_s">mps_sac_classes_s</a></code> </li>
+<li> function <code><a href="#mps_sac_create">mps_sac_create</a></code> </li>
+<li> function <code><a href="#mps_sac_destroy">mps_sac_destroy</a></code> </li>
+<li> function <code><a href="#mps_sac_flush">mps_sac_flush</a></code> </li>
+<li> type <code><a href="#mps_sac_t">mps_sac_t</a></code> </li>
+<li> function <code><a href="#mps_stack_scan_ambig">mps_stack_scan_ambig</a></code> </li>
+<li> function <code><a href="#mps_telemetry_control">mps_telemetry_control</a></code> </li>
+<li> function <code><a href="#mps_telemetry_flush">mps_telemetry_flush</a></code> </li>
+<li> function <code><a href="#mps_telemetry_intern">mps_telemetry_intern</a></code> </li>
+<li> function <code><a href="#mps_telemetry_label">mps_telemetry_label</a></code> </li>
+</ul>
 
 <h3> <code><a id="MPS_ARCH_AL" name="MPS_ARCH_AL">MPS_ARCH_AL</a></code> </h3>
 
@@ -98,19 +230,19 @@
 <pre>
 #ifdef MPS_ARCH_AL
 
-typedef struct RegisterFile { 
-  unsigned long v0; 
+typedef struct RegisterFile {
+  unsigned long v0;
   unsigned long t0, t1, t2, t3, t4, t5, t6, t7;
-  unsigned long s0, s1, s2, s3, s4, s5; 
-  unsigned long fp; 
+  unsigned long s0, s1, s2, s3, s4, s5;
+  unsigned long fp;
   unsigned long a0, a1, a2, a3, a4, a5;
-  unsigned long t8, t9, t10, t11; 
-  unsigned long ra; 
-  unsigned long t12; 
+  unsigned long t8, t9, t10, t11;
+  unsigned long ra;
+  unsigned long t12;
   unsigned long at, gp, sp, zero;
-  unsigned long fir; 
-  unsigned psr; 
-} RegisterFile; 
+  unsigned long fir;
+  unsigned psr;
+} RegisterFile;
 
 #endif /* MPS_ARCH_AL */
 </pre>
@@ -165,15 +297,15 @@ typedef struct RegisterFile {
 <h4> Example </h4>
 
 <pre>
-#ifdef MPS_ARCH_M6 
+#ifdef MPS_ARCH_M6
 
-typedef struct RegisterFile { 
-  unsigned long d[8]; 
-  unsigned long a[8]; 
-  unsigned long usp, msp, isp, pc, sr; 
-} RegisterFile; 
+typedef struct RegisterFile {
+  unsigned long d[8];
+  unsigned long a[8];
+  unsigned long usp, msp, isp, pc, sr;
+} RegisterFile;
 
-#endif /* MPS_ARCH_M6 */ 
+#endif /* MPS_ARCH_M6 */
 </pre>
 
 
@@ -241,19 +373,19 @@ typedef struct RegisterFile {
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) 
-{ 
-  size_t i; 
+mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
+{
+  size_t i;
 
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
-  for(i = 0; i &lt; length; ++i) { 
-    res = mps_fix(ss, &amp;array[i]); 
-    if(res != MPS_RES_OK) return res; 
-  } 
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
+  for(i = 0; i &lt; length; ++i) {
+    res = mps_fix(ss, &amp;array[i]);
+    if(res != MPS_RES_OK) return res;
+  }
 
-  return res; 
-} 
+  return res;
+}
 </pre>
 
 
@@ -317,28 +449,28 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, Array object, size_t length) 
-{ 
-  size_t i; 
-  
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
-  MPS_SCAN_BEGIN(ss) 
-  for(i = 0; i &lt; length; ++i) { 
-    mps_addr_t ref = array[i]; 
-    if(MPS_FIX1(ss, ref)) { 
-      /* if(((Object*)ref)-&gt;type == ScannableType) { */ 
-      /* You can do something here, but in the end, you must call MPS_FIX2. */ 
-      res = MPS_FIX2(ss, &amp;array[i]); 
+mps_res_t scan_array(mps_ss_t ss, Array object, size_t length)
+{
+  size_t i;
+
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
+  MPS_SCAN_BEGIN(ss)
+  for(i = 0; i &lt; length; ++i) {
+    mps_addr_t ref = array[i];
+    if(MPS_FIX1(ss, ref)) {
+      /* if(((Object*)ref)-&gt;type == ScannableType) { */
+      /* You can do something here, but in the end, you must call MPS_FIX2. */
+      res = MPS_FIX2(ss, &amp;array[i]);
       if(res != MPS_RES_OK)
-        return res; 
-      /* } */ 
-    } 
-  } 
-  MPS_SCAN_END(ss); 
-  
-  return res; 
-} 
+        return res;
+      /* } */
+    }
+  }
+  MPS_SCAN_END(ss);
+
+  return res;
+}
 </pre>
 
 
@@ -403,21 +535,21 @@ mps_res_t scan_array(mps_ss_t ss, Array object, size_t length)
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) { 
-  size_t i; 
-  
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
-  MPS_SCAN_BEGIN(ss) 
-  for(i = 0; i &lt; length; ++i) { 
-    res = MPS_FIX(ss, &amp;array[i]); 
-    if(res != MPS_RES_OK) 
-      return res; 
-  } 
-  MPS_SCAN_END(ss); 
-  
-  return res; 
-} 
+mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
+  size_t i;
+
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
+  MPS_SCAN_BEGIN(ss)
+  for(i = 0; i &lt; length; ++i) {
+    res = MPS_FIX(ss, &amp;array[i]);
+    if(res != MPS_RES_OK)
+      return res;
+  }
+  MPS_SCAN_END(ss);
+
+  return res;
+}
 </pre>
 
 
@@ -490,27 +622,27 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, Array object, size_t length) { 
-  size_t i; 
-  
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
-  MPS_SCAN_BEGIN(ss) 
-  for(i = 0; i &lt; length; ++i) { 
-    mps_addr_t ref = array[i]; 
-    if(MPS_FIX1(ss, ref)) { 
-      /* if(((Object*)ref)-&gt;type == ScannableType) { */ 
-      /* You can do something here, but in the end, you must call MPS_FIX2. */ 
-      res = MPS_FIX2(ss, &amp;array[i]); 
+mps_res_t scan_array(mps_ss_t ss, Array object, size_t length) {
+  size_t i;
+
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
+  MPS_SCAN_BEGIN(ss)
+  for(i = 0; i &lt; length; ++i) {
+    mps_addr_t ref = array[i];
+    if(MPS_FIX1(ss, ref)) {
+      /* if(((Object*)ref)-&gt;type == ScannableType) { */
+      /* You can do something here, but in the end, you must call MPS_FIX2. */
+      res = MPS_FIX2(ss, &amp;array[i]);
       if(res != MPS_RES_OK)
-        return res; 
-      /* } */ 
-    } 
-  } 
-  MPS_SCAN_END(ss); 
-  
-  return res; 
-} 
+        return res;
+      /* } */
+    }
+  }
+  MPS_SCAN_END(ss);
+
+  return res;
+}
 </pre>
 
 
@@ -593,7 +725,7 @@ mps_res_t foo_scan(mps_ss_t scan_state, mps_addr_t base, mps_addr_t limit)
   MPS_SCAN_END(scan_state);
   return MPS_RES_OK;
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -632,14 +764,14 @@ mps_res_t foo_scan(mps_ss_t scan_state, mps_addr_t base, mps_addr_t limit)
 <h4> Example </h4>
 
 <pre>
-  switch(mps_alloc(&amp;(mps_addr_t)object, pool, size)) { 
+  switch(mps_alloc(&amp;(mps_addr_t)object, pool, size)) {
   case MPS_RES_LIMIT:
-    bomb("The MPS has reached an internal limit"); 
-    break; 
-  
+    bomb("The MPS has reached an internal limit");
+    break;
+
     /* ... */
 
-  } 
+  }
 </pre>
 
 
@@ -724,14 +856,14 @@ mps_res_t foo_scan(mps_ss_t scan_state, mps_addr_t base, mps_addr_t limit)
 <h4> Example </h4>
 
 <pre>
-  switch( res = mps_pool_create_v(&amp;pool, arena, class, params) ) { 
+  switch( res = mps_pool_create_v(&amp;pool, arena, class, params) ) {
   case MPS_RES_PARAM:
-    bomb("Can't make a pool with those specifications"); 
-    break; 
+    bomb("Can't make a pool with those specifications");
+    break;
 
     /* ... */
 
-   } 
+   }
 </pre>
 
 
@@ -787,9 +919,9 @@ mps_res_t foo_scan(mps_ss_t scan_state, mps_addr_t base, mps_addr_t limit)
   res = mps_root_create_table(&amp;mmRoot,
                               arena,
                               MPS_RANK_EXACT,
-                              MPS_RM_CONST, 
+                              MPS_RM_CONST,
                               (mps_addr_t)&amp;Objects,
-                              rootCOUNT); 
+                              rootCOUNT);
 </pre>
 
 
@@ -912,8 +1044,8 @@ mps_res_t foo_scan(mps_ss_t scan_state, mps_addr_t base, mps_addr_t limit)
 <h4> Example </h4>
 
 <pre>
-res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(), 
-                            MPS_RM_PROT | MPS_RM_PROT_INNER, 
+res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
+                            MPS_RM_PROT | MPS_RM_PROT_INNER,
                             (mps_addr_t)&amp;Objects, rootCOUNT);
 </pre>
 
@@ -1002,7 +1134,7 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
   /* use foo */
 
   mps_sac_free(sac, p, FooSIZE);
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -1054,9 +1186,9 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <tr>
 
   <td> <code>res_o</code> </td>
-  
+
   <td> <code><a href="#mps_res_t">mps_res_t</a></code> </td>
-  
+
   <td> an lvalue to hold the result code </td>
 
 </tr>
@@ -1064,9 +1196,9 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <tr>
 
   <td> <code>p_o</code> </td>
-  
+
   <td> <code><a href="#mps_addr_t">mps_addr_t</a></code> </td>
-  
+
   <td> an lvalue to hold the address of the new block </td>
 
 </tr>
@@ -1074,19 +1206,19 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <tr>
 
   <td> <code>sac</code> </td>
-  
+
   <td> <code><a href="#mps_sac_t">mps_sac_t</a></code> </td>
-  
+
   <td> the segregated allocation cache </td>
-  
+
 </tr>
 
 <tr>
 
   <td> <code>size</code> </td>
-  
+
   <td> <code>size_t</code> </td>
-  
+
   <td> the size of the block requested </td>
 
 </tr>
@@ -1094,9 +1226,9 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <tr>
 
   <td> <code>has_reservoir_permit</code> </td>
-  
+
   <td> <code><a href="#mps_bool_t">mps_bool_t</a></code> </td>
-  
+
   <td> regulates access to the reservoir </td>
 
 </tr>
@@ -1140,7 +1272,7 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
   /* use foo */
 
   MPS_SAC_FREE_FAST(sac, p, FooSIZE);
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -1214,7 +1346,7 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
     printf("Failed to create the allocation cache!");
     exit(1);
   }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -1272,9 +1404,9 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <h4> Description </h4>
 
 <p>
-  This function frees an object using the cache given. If the cache would become too full,some blocks are returned to the associated pool. 
+  This function frees an object using the cache given. If the cache would become too full,some blocks are returned to the associated pool.
   <code>size</code>
-  should be the size that wasspecified when the object was allocated (the cache knows what the real size of the block is). Theobject must have been allocated through a segregated allocation cache with the same class structure,attached to the same pool. 
+  should be the size that wasspecified when the object was allocated (the cache knows what the real size of the block is). Theobject must have been allocated through a segregated allocation cache with the same class structure,attached to the same pool.
 </p>
 
 <p> The client is responsible for synchronising the access to the cache, but if the cachedecides to access the pool, the MPS will properly synchronize with any other threads that might beaccessing the same pool. </p>
@@ -1296,7 +1428,7 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
   /* use foo */
 
   mps_sac_free(sac, p, FooSIZE);
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -1341,35 +1473,35 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <table>
   <tr>
     <td>
-      <code>sac</code> 
+      <code>sac</code>
     </td>
     <td>
-      <code><a href="#mps_sac_t">mps_sac_t</a></code> 
+      <code><a href="#mps_sac_t">mps_sac_t</a></code>
     </td>
     <td>
-      the segregated allocation cache 
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <code>p</code> 
-    </td>
-    <td>
-      <code><a href="#mps_addt_t">mps_addt_t</a></code> 
-    </td>
-    <td>
-      the address of the object to be freed 
+      the segregated allocation cache
     </td>
   </tr>
   <tr>
     <td>
-      <code>size</code> 
+      <code>p</code>
     </td>
     <td>
-      <code> size_t</code> 
+      <code><a href="#mps_addt_t">mps_addt_t</a></code>
     </td>
     <td>
-      the size of the object 
+      the address of the object to be freed
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <code>size</code>
+    </td>
+    <td>
+      <code> size_t</code>
+    </td>
+    <td>
+      the size of the object
     </td>
   </tr>
 </table>
@@ -1388,9 +1520,9 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <h4> Description </h4>
 
 <p>
-  This macro frees an object using the cache given. If the cache would become too full, someblocks are returned to the associated pool. 
+  This macro frees an object using the cache given. If the cache would become too full, someblocks are returned to the associated pool.
   <code>size</code>
-  should be the size that was specifiedwhen the object was allocated (the cache knows what the real size of the block is). The objects musthave been allocated through a segregated allocation cache with the same class structure, attachedto the same pool. 
+  should be the size that was specifiedwhen the object was allocated (the cache knows what the real size of the block is). The objects musthave been allocated through a segregated allocation cache with the same class structure, attachedto the same pool.
 </p>
 
 <p> The client is responsible for synchronizing the access to the cache, but if the cachedecides to access the pool, the MPS will properly synchronize with any other threads that might beaccessing the same pool. </p>
@@ -1413,7 +1545,7 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
   /* use foo */
 
   MPS_SAC_FREE_FAST(sac, p, FooSIZE);
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -1471,22 +1603,22 @@ res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) 
-{ 
-  size_t i; 
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
+mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
+{
+  size_t i;
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
 
-  MPS_SCAN_BEGIN(ss) 
-  for(i = 0; i &lt; length; ++i) { 
-    res = MPS_FIX12(ss, &amp;array[i]); 
+  MPS_SCAN_BEGIN(ss)
+  for(i = 0; i &lt; length; ++i) {
+    res = MPS_FIX12(ss, &amp;array[i]);
     if(res != MPS_RES_OK)
-      return res; 
-  } 
-  MPS_SCAN_END(ss); 
+      return res;
+  }
+  MPS_SCAN_END(ss);
 
-  return res; 
-} 
+  return res;
+}
 </pre>
 
 
@@ -1541,21 +1673,21 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
 <h4> Example </h4>
 
 <pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) { 
-  size_t i; 
-  mps_res_t res; 
-  mps_addr_t *array = (mps_addr_t *)object; 
+mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
+  size_t i;
+  mps_res_t res;
+  mps_addr_t *array = (mps_addr_t *)object;
 
-  MPS_SCAN_BEGIN(ss) 
-  for(i = 0; i &lt; length; ++i) { 
-    res = MPS_FIX12(ss, &amp;array[i]); 
+  MPS_SCAN_BEGIN(ss)
+  for(i = 0; i &lt; length; ++i) {
+    res = MPS_FIX12(ss, &amp;array[i]);
     if(res != MPS_RES_OK)
-      return res; 
-  } 
-  MPS_SCAN_END(ss); 
+      return res;
+  }
+  MPS_SCAN_END(ss);
 
-  return res; 
-} 
+  return res;
+}
 </pre>
 
 
@@ -1718,14 +1850,14 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
 
 <pre>
 {
-  mps_addr_t new_block; 
-  mps_res_t res; 
-  thingy *tp; 
+  mps_addr_t new_block;
+  mps_res_t res;
+  thingy *tp;
 
-  res = mps_pool_alloc(&amp;new_block, pool, sizeof(thingy)); 
-  if(res != MPS_RES_OK) return res; 
+  res = mps_pool_alloc(&amp;new_block, pool, sizeof(thingy));
+  if(res != MPS_RES_OK) return res;
   tp = new_block;
-  
+
   /* ... */
 }
 </pre>
@@ -1781,8 +1913,8 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
 <h4> Example </h4>
 
 <pre>
-mps_align_t floatAlign = 4; 
-mps_align_t doubleFloatAlign = 8; 
+mps_align_t floatAlign = 4;
+mps_align_t doubleFloatAlign = 8;
 </pre>
 
 
@@ -1854,7 +1986,7 @@ mps_align_t doubleFloatAlign = 8;
 
   /* p now contains the result, which is the address of the new block */
   /* in this case. */
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -1908,11 +2040,11 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-{ 
-  mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  do_lots_of_work(); 
-  mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-} 
+{
+  mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  do_lots_of_work();
+  mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+}
 </pre>
 
 
@@ -1974,12 +2106,12 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-{ 
-  mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp_collect_all()); 
-  do_lots_of_work(); 
-  mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp_collect_all()); 
-  wait_for_collection_statistics_while_doing_other_allocation(); 
-} 
+{
+  mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp_collect_all());
+  do_lots_of_work();
+  mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp_collect_all());
+  wait_for_collection_statistics_while_doing_other_allocation();
+}
 </pre>
 
 
@@ -2131,25 +2263,25 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-{ 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+{
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  do_some_work(); /* Leaves stuff lying around */ 
+  do_some_work(); /* Leaves stuff lying around */
 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  do_some_more_work(); /* Tidies up after itself */ 
+  do_some_more_work(); /* Tidies up after itself */
 
-  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  tidy_up_first_work(); 
+  tidy_up_first_work();
 
-  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
-} 
+  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
+}
 </pre>
 
 
@@ -2206,25 +2338,25 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-{ 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+{
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  do_some_work(); /* Leaves stuff lying around */ 
+  do_some_work(); /* Leaves stuff lying around */
 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  do_some_more_work(); /* Tidies up after itself */ 
+  do_some_more_work(); /* Tidies up after itself */
 
-  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  tidy_up_first_work(); 
+  tidy_up_first_work();
 
-  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
-} 
+  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
+}
 </pre>
 
 
@@ -2279,30 +2411,30 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-{ 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+{
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  do_some_work(); /* Leaves stuff lying around */ 
+  do_some_work(); /* Leaves stuff lying around */
 
-  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
+  res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
 
-  res = do_some_more_work(); /* Tidies up after itself */ 
-  if(res != mps_res_ok) { 
-    res = mps_ap_alloc_pattern_reset(ap); 
-    assert(res == mps_res_ok); 
-    return; 
-  } 
+  res = do_some_more_work(); /* Tidies up after itself */
+  if(res != mps_res_ok) {
+    res = mps_ap_alloc_pattern_reset(ap);
+    assert(res == mps_res_ok);
+    return;
+  }
 
   res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
-  assert(res == mps_res_ok); 
+  assert(res == mps_res_ok);
 
-  tidy_up_first_work(); 
+  tidy_up_first_work();
 
-  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp()); 
-  assert(res == mps_res_ok); 
-} 
+  res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
+  assert(res == mps_res_ok);
+}
 </pre>
 
 
@@ -2549,27 +2681,27 @@ mps_align_t doubleFloatAlign = 8;
 <h4> Example </h4>
 
 <pre>
-mps_arena_t arena; 
+mps_arena_t arena;
 
-int main(void) 
-{ 
-  void *block; 
+int main(void)
+{
+  void *block;
   mps_res_t res;
 
-  block = malloc(ARENA_SIZE); 
-  if(block == NULL) { 
+  block = malloc(ARENA_SIZE);
+  if(block == NULL) {
     printf("Not enough memory!");
-    exit(1); 
-  } 
+    exit(1);
+  }
 
   res = mps_arena_create(&amp;arena, mps_arena_class_cl(), ARENA_SIZE, block);
-  if(res != MPS_RES_OK) { 
+  if(res != MPS_RES_OK) {
     printf("ARENA_SIZE too small");
-    exit(2); 
-  } 
+    exit(2);
+  }
 
-  /* rest of program */ 
-} 
+  /* rest of program */
+}
 </pre>
 
 
@@ -2705,7 +2837,7 @@ int main(void)
   /* rest of program */
 
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -2726,7 +2858,7 @@ int main(void)
 
                            mps_arena_class_t arena_class_vm,
 
-                           size_t size)</pre> 
+                           size_t size)</pre>
 
 <p> <code>size</code> is the initial amount of virtual address space, in bytes, that the arenawill reserve (this space is initially reserved so that the arena can subsequently use it withoutinterference from other parts of the program, but most of it is not committed, so it don't requireany RAM or backing store). The arena may allocate more virtual address space beyond this initialreservation as and when it deems it necessary. The MPS is most efficient if you reserve an addressspace that is several times larger than your peak memory usage. </p>
 
@@ -2798,7 +2930,7 @@ int main(void)
   /* rest of program */
 
 }
-</pre> 
+</pre>
 
 <p>  </p>
 
@@ -2998,7 +3130,7 @@ do {
   if(res != MPS_RES_OK)
     flush_caches();
 } while(res != MPS_RES_OK);
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -3129,7 +3261,7 @@ do {
 <p> <code>...</code> initialization arguments for the arena class </p>
 
 
-<h4>Initial/Default Values</h4> 
+<h4>Initial/Default Values</h4>
 
 <p> Different for each arena class. See <code>mps_arena_class_*</code>. </p>
 
@@ -3211,7 +3343,7 @@ int main(void)
 <p> <code>args</code> initialization arguments for the arena class </p>
 
 
-<h4>Initial/Default Values</h4> 
+<h4>Initial/Default Values</h4>
 
 <p> Different for each arena class. See <code>mps_arena_class_*</code>. </p>
 
@@ -3267,9 +3399,9 @@ int main(void)
 <h4> Type </h4>
 
 <pre>
-extern void mps_arena_formatted_objects_walk(mps_arena_t, 
-  mps_formatted_objects_stepper_t, void *, 
-  size_t); 
+extern void mps_arena_formatted_objects_walk(mps_arena_t,
+  mps_formatted_objects_stepper_t, void *,
+  size_t);
 </pre>
 
 
@@ -3467,9 +3599,9 @@ extern void mps_arena_formatted_objects_walk(mps_arena_t,
 <h4> Type </h4>
 
 <pre>
-  extern void mps_arena_roots_walk(mps_arena_t, 
-  mps_roots_stepper_t, void *, 
-  size_t); 
+  extern void mps_arena_roots_walk(mps_arena_t,
+  mps_roots_stepper_t, void *,
+  size_t);
 </pre>
 
 
@@ -3982,7 +4114,7 @@ const char *file, unsigned int line)
     mps_ld_reset(&amp;ld, space);
     mps_ld_add(&amp;ld, space, obj);
   }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -4119,7 +4251,7 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdl_debug(),
   printf("Error creating pool!");
   exit(2);
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -4190,7 +4322,7 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
   printf("Error creating pool!");
   exit(2);
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -4260,11 +4392,11 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 <p> The MV2 pool class manually manages variable-sized, unformatted objects. The MV2 pool usesan allocation policy termed "temporal fit". Temporal fit attempts to place consecutive allocationsnext to each other. It relies on delaying reuse as long as possible to permit freed blocks tocoalesce, thus maximizing the number of consecutive allocations that can be co-located. Temporal fitpermits a very fast allocator and a deallocator competitive in speed with all other known policies. </p>
 
 <p>
-  Temporal fit is intended to take advantage of knowledge of object lifetimes, either 
+  Temporal fit is intended to take advantage of knowledge of object lifetimes, either
   <cite>
     apriori
   </cite>
-  knowledge or knowledge acquired by profiling. The best performance of the MV2 poolwill be achieved by allocating objects with similar expected deathtimes together. 
+  knowledge or knowledge acquired by profiling. The best performance of the MV2 poolwill be achieved by allocating objects with similar expected deathtimes together.
 </p>
 
 <p> A simple policy can be implemented to take advantage of MV2: Object size is typicallywell-correlated with object life-expectancy, and birthtime plus lifetime gives deathtime, soallocating objects of similar size sequentially from the same pool instance should result in objectsallocated close to each other dying at about the same time. </p>
@@ -4277,11 +4409,11 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 <h4> Example </h4>
 
 <pre>
-  if(mps_pool_create(&amp;pool, arena, mps_class_mv2(), 8, 32, 256, 70, 20) 
-     != MPS_RES_OK) { 
+  if(mps_pool_create(&amp;pool, arena, mps_class_mv2(), 8, 32, 256, 70, 20)
+     != MPS_RES_OK) {
    printf("Error creating pool!");
-   exit(2); 
- } 
+   exit(2);
+ }
 </pre>
 
 <h4> Error Handling </h4>
@@ -4305,10 +4437,10 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 <p> The MV2 pool class has five creation parameters: </p>
 
 <pre>
-  mps_res_t mps_pool_create(mps_pool_t * pool, mps_arena_t arena, 
-  mps_class_t mv2_class, size_t minimum_size, 
-  size_t mean_size, size_t maximum_size, 
-  mps_count_t reserve_depth mps_count_t fragmentation_limit); 
+  mps_res_t mps_pool_create(mps_pool_t * pool, mps_arena_t arena,
+  mps_class_t mv2_class, size_t minimum_size,
+  size_t mean_size, size_t maximum_size,
+  mps_count_t reserve_depth mps_count_t fragmentation_limit);
 </pre>
 
 <p> Sizes </p>
@@ -4414,7 +4546,7 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 <p> MVFF pools implement a first-fit policy, and can be configured to be functionally equivalentto an EPDL or EPDR pool, but with better overall performance. The pool requires six parameters topool creation: </p>
 
 <ul>
- 
+
   <li><p> <code><a href="#mps_size_t">mps_size_t</a></code> extendBy -- The size of segment to allocate by default; </p></li>
 
   <li><p> <code><a href="#mps_size_t">mps_size_t</a></code> avgSize -- The average size of objects to be allocated; </p></li>
@@ -4430,9 +4562,9 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 </ul>
 
 <p>
-  The alignment is the alignment of ranges that can be allocated and freed. If an unalignedsize is passed to <code><a href="#mps_alloc">mps_alloc</a></code> or <code><a href="#mps_free">mps_free</a></code>, it will be rounded up to the pool's alignment. The minimumalignment supported by pools of this class is 
+  The alignment is the alignment of ranges that can be allocated and freed. If an unalignedsize is passed to <code><a href="#mps_alloc">mps_alloc</a></code> or <code><a href="#mps_free">mps_free</a></code>, it will be rounded up to the pool's alignment. The minimumalignment supported by pools of this class is
   <code>
-    sizeof(void *)</code>. 
+    sizeof(void *)</code>.
 </p>
 
 <p> The three boolean parameters should be set to (0, 0, 1) to emulate EPDL, and (1, 1, 1) toemulate EPDR. No other settings of these parameters is currently recommended. </p>
@@ -4445,11 +4577,11 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 <h4> Example </h4>
 
 <pre>
-  if(mps_pool_create(&amp;pool, arena, mps_class_mvff(), 8 * 1024, 135, 4, 0, 0, 1) 
-     != MPS_RES_OK) { 
+  if(mps_pool_create(&amp;pool, arena, mps_class_mvff(), 8 * 1024, 135, 4, 0, 0, 1)
+     != MPS_RES_OK) {
     printf("Error creating pool!");
-    exit(2); 
-  } 
+    exit(2);
+  }
 </pre>
 
 
@@ -4616,12 +4748,12 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdr_debug(),
 
 <p>
   <code>arena</code>
-  -- the arena in which the object lives 
+  -- the arena in which the object lives
 </p>
 
 <p>
   <code>object_ref</code>
-  -- a pointer to a pointer to the object to be finalized 
+  -- a pointer to a pointer to the object to be finalized
   </p>
 
 
@@ -4704,7 +4836,7 @@ typedef struct mps_fmt_A_s {
   mps_fmt_isfwd_t isfwd;
   mps_fmt_pad_t   pad;
 } mps_fmt_A_s;
-</pre> 
+</pre>
 
 
 <h4> Resources </h4>
@@ -4744,7 +4876,7 @@ mps_fmt_t create_format(mps_arena_t arena)
 
   return my_format;
 }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -4784,7 +4916,7 @@ typedef struct mps_fmt_A_s {
 } mps_fmt_A_s;
 
 typedef struct mps_fmt_A_s *mps_fmt_A_t;
-</pre> 
+</pre>
 
 
 <h4> Resources </h4>
@@ -4840,7 +4972,7 @@ typedef struct mps_fmt_B_s {
   mps_fmt_pad_t   pad;
   mps_fmt_class_t mps_class;
 } mps_fmt_B_s;
-</pre> 
+</pre>
 
 
 <h4> Resources </h4>
@@ -4874,7 +5006,7 @@ mps_fmt_t create_format(mps_arena_t arena)
 
   return my_format;
 }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -4918,7 +5050,7 @@ typedef struct mps_fmt_B_s {
   mps_fmt_pad_t   pad;
   mps_fmt_class_t class;
 } mps_fmt_B_s;
-</pre> 
+</pre>
 
 
 <h4> Type </h4>
@@ -4982,7 +5114,7 @@ typedef struct mps_fmt_auto_header_s {
   mps_fmt_pad_t   pad;
   size_t          mps_headerSize;
 } mps_fmt_auto_header_s;
-</pre> 
+</pre>
 </blockquote>
 
 
@@ -5007,7 +5139,7 @@ typedef struct mps_fmt_auto_header_s {
   <code class="source">
     align
   </code>
-  is an integer value defines the alignment of objectsallocated with this format. It should be large enough to satisfy the alignment requirements of anyfield in the objects, and it cannot be larger than the arena alignment. 
+  is an integer value defines the alignment of objectsallocated with this format. It should be large enough to satisfy the alignment requirements of anyfield in the objects, and it cannot be larger than the arena alignment.
 </p>
 
 <p> <code><a href="#mps_headerSize">mps_headerSize</a></code> is the size of the header, i.e., the offset of aclient pointer from the base the memory block. For details of the methods, consult the referencepages for the type of each method. </p>
@@ -5028,7 +5160,7 @@ mps_fmt_t create_format(mps_arena_t arena)
 
   return format;
 }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -5093,10 +5225,10 @@ mps_fmt_t create_format(mps_arena_t arena)
 <h4> Example </h4>
 
 <pre>
-mps_addr_t my_class_method(mps_addr_t object) { 
-  my_object_generic_t generic_object = object; 
-  return (mps_addr_t)(generic_object.class); 
-} 
+mps_addr_t my_class_method(mps_addr_t object) {
+  my_object_generic_t generic_object = object;
+  return (mps_addr_t)(generic_object.class);
+}
 </pre>
 
 
@@ -5212,17 +5344,17 @@ void my_copy_method(mps_addr_t old, mps_addr_t new)
 
 <p>
   <code>fmt_o</code>
-  - the address of a variable to hold the new format 
+  - the address of a variable to hold the new format
 </p>
 
 <p>
   <code>arena</code>
-  - the arena in which to create the format 
+  - the arena in which to create the format
 </p>
 
 <p>
   <code>fmt_A</code>
-  - format description of variety A 
+  - format description of variety A
   </p>
 
 
@@ -5244,12 +5376,12 @@ void my_copy_method(mps_addr_t old, mps_addr_t new)
 <h4> Example </h4>
 
 <pre>
-mps_fmt_t create_format(mps_arena_t arena) 
-{ 
-  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy,&amp;my_fwd, 
-    &amp;my_isfwd, &amp;my_pad }; 
-  mps_fmt my_format; 
-  mps_res_t res; 
+mps_fmt_t create_format(mps_arena_t arena)
+{
+  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy,&amp;my_fwd,
+    &amp;my_isfwd, &amp;my_pad };
+  mps_fmt my_format;
+  mps_res_t res;
 
   res = mps_fmt_create_A(&amp;my_format, arena, &amp;my_format_A);
   if(res != MPS_RES_OK) {
@@ -5257,8 +5389,8 @@ mps_fmt_t create_format(mps_arena_t arena)
     exit(1);
   }
 
-  return my_format; 
-} 
+  return my_format;
+}
 </pre>
 
 
@@ -5336,7 +5468,7 @@ mps_fmt_t create_format(mps_arena_t arena)
 
   return my_format;
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -5376,17 +5508,17 @@ mps_fmt_t create_format(mps_arena_t arena)
 
 <p>
   <code>fmt_o</code>
-  - the address of a variable to hold the new format 
+  - the address of a variable to hold the new format
 </p>
 
 <p>
   <code>arena</code>
-  - the arena in which to create the format 
+  - the arena in which to create the format
 </p>
 
 <p>
   <code>fmt_st</code>
-  - format description of variety auto_header 
+  - format description of variety auto_header
   </p>
 
 
@@ -5408,18 +5540,18 @@ mps_fmt_t create_format(mps_arena_t arena)
 <h4> Example </h4>
 
 <pre>
-mps_fmt_t create_format(mps_arena_t arena) 
-{ 
-  mps_fmt_auto_header_s format_desc = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_fwd, 
-    &amp;my_isfwd, &amp;my_pad, HEADER_SIZE }; 
-  mps_fmt format; 
-  mps_res_t res; 
+mps_fmt_t create_format(mps_arena_t arena)
+{
+  mps_fmt_auto_header_s format_desc = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_fwd,
+    &amp;my_isfwd, &amp;my_pad, HEADER_SIZE };
+  mps_fmt format;
+  mps_res_t res;
 
-  res = mps_fmt_create_auto_header(&amp;format, arena, &amp;format_desc); 
-  assert(res != MPS_RES_OK); 
+  res = mps_fmt_create_auto_header(&amp;format, arena, &amp;format_desc);
+  assert(res != MPS_RES_OK);
 
-  return format; 
-} 
+  return format;
+}
 </pre>
 
 
@@ -5492,28 +5624,28 @@ mps_fmt_t create_format(mps_arena_t arena)
 <h4> Example </h4>
 
 <pre>
-/* define the function */ 
+/* define the function */
 
-void example_fwd(mps_addr_t old, mps_addr_t new) 
-{ 
-  /* ... */ 
-} 
+void example_fwd(mps_addr_t old, mps_addr_t new)
+{
+  /* ... */
+}
 
-/* also define example_scan, example_skip, etc */ 
-/* store pointer to function in the format variant struct */ 
-struct mps_fmt_B_s example_fmt_B = { 
-  4, /* align */ 
-  example_scan, 
-  example_skip, 
-  example_copy, 
-  example_fwd, 
-  example_isfwd, 
-  example_pad, 
-  example_class 
-}; 
+/* also define example_scan, example_skip, etc */
+/* store pointer to function in the format variant struct */
+struct mps_fmt_B_s example_fmt_B = {
+  4, /* align */
+  example_scan,
+  example_skip,
+  example_copy,
+  example_fwd,
+  example_isfwd,
+  example_pad,
+  example_class
+};
 
-/* The (address of the) example_fmt_B object can now be passed to */ 
-/* mps_fmt_create_B to create a format. */ 
+/* The (address of the) example_fmt_B object can now be passed to */
+/* mps_fmt_create_B to create a format. */
 </pre>
 
 
@@ -5560,11 +5692,11 @@ struct mps_fmt_B_s example_fmt_B = {
 <h4> Returned Values </h4>
 
 <p>
-  Either a null pointer to indicate the object at 
+  Either a null pointer to indicate the object at
   <code>addr</code>
-  has not been relocated, orthe new location of the object if there is a forwarding marker at 
+  has not been relocated, orthe new location of the object if there is a forwarding marker at
   <code>addr</code>
-  indicating thatthe object has been relocated. 
+  indicating thatthe object has been relocated.
 </p>
 
 
@@ -5673,17 +5805,17 @@ struct mps_fmt_B_s example_fmt_B = {
 
 <p>
   <code>scan_state</code>
-  a scan state 
+  a scan state
 </p>
 
 <p>
   <code>base</code>
-  a client pointer to the first object in the block to be scanned 
+  a client pointer to the first object in the block to be scanned
 </p>
 
 <p>
   <code>limit</code>
-  a client pointer to the object just beyond the end of the block 
+  a client pointer to the object just beyond the end of the block
 </p>
 
 
@@ -5755,7 +5887,7 @@ mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
   return res;
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -5795,7 +5927,7 @@ mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
 <p>
   <code>obj</code>
-  the client pointer to the object to be skipped 
+  the client pointer to the object to be skipped
 </p>
 
 
@@ -5820,11 +5952,11 @@ mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
 <pre>
 mps_addr_t my_skip_method(mps_addr_t object)
-{ 
-  char *p = (char *)object; 
-  my_object_t my_object = (my_object_t)object; 
-  return((mps_addr_t)(p + my_object-&gt;length)); 
-} 
+{
+  char *p = (char *)object;
+  my_object_t my_object = (my_object_t)object;
+  return((mps_addr_t)(p + my_object-&gt;length));
+}
 </pre>
 
 
@@ -5880,7 +6012,7 @@ mps_addr_t my_skip_method(mps_addr_t object)
 #include "mpscamc.h"
 #include &lt;stdlib.h&gt;
 
-struct mps_fmt_A_s fmt_A_s = { 
+struct mps_fmt_A_s fmt_A_s = {
   (mps_align_t)4,
   scan, skip, copy, move, isMoved, pad
 };
@@ -6523,12 +6655,12 @@ void go(mps_space_t space)
 
 <p>
   <code>arena</code>
-  -- the arena 
+  -- the arena
 </p>
 
 <p>
   <code>message</code>
-  -- the message 
+  -- the message
 </p>
 
 
@@ -6660,7 +6792,7 @@ void go(mps_space_t space)
 
 <p>
   <code class="source">
-    message</code>-- a message of a message type that supports this method 
+    message</code>-- a message of a message type that supports this method
 </p>
 
 
@@ -6783,14 +6915,14 @@ void go(mps_space_t space)
   <code class="source">
     arena
   </code>
-  -- the arena 
+  -- the arena
 </p>
 
 <p>
   <code class="source">
     message
   </code>
-  -- a message of a message type that supports this method 
+  -- a message of a message type that supports this method
 </p>
 
 
@@ -6847,17 +6979,17 @@ void go(mps_space_t space)
 
 <p>
   <code>message_return</code>
-  -- the handle to the message that was removed from the queue 
+  -- the handle to the message that was removed from the queue
 </p>
 
 <p>
   <code>arena</code>
-  -- the arena 
+  -- the arena
 </p>
 
 <p>
   <code>message_type</code>
-  -- the type of message 
+  -- the type of message
 </p>
 
 
@@ -6876,7 +7008,7 @@ void go(mps_space_t space)
 <p>
   If there is a message of the specified type on the message queue of the specified arena,then this function removes one such message from the queue, returns a handle to it via the<code>message_return
   </code>
-  argument, and returns true. Otherwise it returns false. 
+  argument, and returns true. Otherwise it returns false.
 </p>
 
 
@@ -6915,7 +7047,7 @@ void go(mps_space_t space)
 
 <p>
   <code>arena</code>
-  -- the arena whose message queue you are interested in 
+  -- the arena whose message queue you are interested in
 </p>
 
 
@@ -7174,26 +7306,26 @@ void go(mps_space_t space)
 <h4> Example </h4>
 
 <pre>
-{ 
-  mps_message_type_t type; 
-  
-  if(mps_message_queue_type(&amp;type, arena)) { 
-    if(type == mps_message_type_collection_stats()) { 
-      size_t live, condemned, not_condemned; 
-      mps_message_t message; 
-      mps_bool_t got_message; 
-      got_message = mps_message_get(&amp;message, arena, type); 
-      assert(got_message); 
-      live = mps_message_collection_stats_live_size(message); 
-      condemned = mps_message_collection_stats_condemned_size(message); 
-      not_condemned = mps_message_collection_stats_not_condemned_size(message); 
-      mps_message_discard(arena, message); 
-      process_collection_stats(live, condemned, not_condemned); 
-    } else { 
-      unknown_message_type(); 
-    } 
-  } 
-} 
+{
+  mps_message_type_t type;
+
+  if(mps_message_queue_type(&amp;type, arena)) {
+    if(type == mps_message_type_collection_stats()) {
+      size_t live, condemned, not_condemned;
+      mps_message_t message;
+      mps_bool_t got_message;
+      got_message = mps_message_get(&amp;message, arena, type);
+      assert(got_message);
+      live = mps_message_collection_stats_live_size(message);
+      condemned = mps_message_collection_stats_condemned_size(message);
+      not_condemned = mps_message_collection_stats_not_condemned_size(message);
+      mps_message_discard(arena, message);
+      process_collection_stats(live, condemned, not_condemned);
+    } else {
+      unknown_message_type();
+    }
+  }
+}
 </pre>
 
 
@@ -7402,17 +7534,17 @@ void go(mps_space_t space)
 <h4> Example </h4>
 
 <pre>
-{ 
-  mps_message_type_t type; 
-  
-  if( mps_message_queue_type(&amp;type, arena) ) { 
-    if(type == mps_message_type_finalization()) { 
-      process_finalization_message_from_queue(); 
-    } else { 
-      unknown_message_type(); 
-    } 
-  } 
-} 
+{
+  mps_message_type_t type;
+
+  if( mps_message_queue_type(&amp;type, arena) ) {
+    if(type == mps_message_type_finalization()) {
+      process_finalization_message_from_queue();
+    } else {
+      unknown_message_type();
+    }
+  }
+}
 </pre>
 
 <h4> See Also </h4>
@@ -7622,19 +7754,19 @@ typedef struct mps_pool_debug_option_s {
   void *fence_template;
   size_t fence_size;
 } mps_pool_debug_option_s;
-</pre> 
+</pre>
 
 
 <h4> Members </h4>
 
 <p>
   <code>fence_template</code>
-  the template for fencepost contents 
+  the template for fencepost contents
 </p>
 
 <p>
   <code>fence_size</code>
-  the size of the template in bytes 
+  the size of the template in bytes
 </p>
 
 
@@ -7659,7 +7791,7 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdl_debug(),
    != MPS_RES_OK) {
   printf("Error creating pool!"); exit(2);
 }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -7994,14 +8126,14 @@ if(mps_pool_create(&amp;pool, arena, mps_class_epdl_debug(),
 <h4> Example </h4>
 
 <pre>
-mps_addr_t p; 
-mps_res_t res; 
+mps_addr_t p;
+mps_res_t res;
 
-res = mps_alloc(&amp;p, pool, sizeof(struct spong)); 
-if(res != MPS_RES_OK) { 
-  handle_memory_error(res); 
-  abort(); 
-} 
+res = mps_alloc(&amp;p, pool, sizeof(struct spong));
+if(res != MPS_RES_OK) {
+  handle_memory_error(res);
+  abort();
+}
 </pre>
 
 <p> For more examples, s ee doc.mps.ref-man.if-conv. </p>
@@ -8087,7 +8219,7 @@ int main(void)
     exit(1);
 
   /* ... */
-} 
+}
 </pre>
 
 
@@ -8166,27 +8298,27 @@ int main(void)
 <h4> Example </h4>
 
 <pre>
-static mps_root_t mmRoot; 
-SegmentDescriptor DataSegment; 
+static mps_root_t mmRoot;
+SegmentDescriptor DataSegment;
 
-int main(void) 
-{ 
-  mps_res_t res; 
+int main(void)
+{
+  mps_res_t res;
 
-  /* ... */ 
+  /* ... */
 
-  res = mps_root_create_fmt(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0, 
-    &amp;scan_objs, 
-    (mps_addr_t)DataSegment.base, 
-    (mps_addr_t) (DataSegment.base + SegmentLength) ); 
+  res = mps_root_create_fmt(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+    &amp;scan_objs,
+    (mps_addr_t)DataSegment.base,
+    (mps_addr_t) (DataSegment.base + SegmentLength) );
 
-  /* see doc of mps_fmt_scan_t for definition of scan_objs */ 
+  /* see doc of mps_fmt_scan_t for definition of scan_objs */
 
   if(res != MPS_RES_OK)
-    exit( EXIT_FAILURE ); 
+    exit( EXIT_FAILURE );
 
-  /* ... */ 
-} 
+  /* ... */
+}
 </pre>
 
 
@@ -8267,24 +8399,24 @@ int main(void)
 <h4> Example </h4>
 
 <pre>
-typedef struct { 
-  mps_root_t mmRoot; 
-  mps_thr_t thread; 
+typedef struct {
+  mps_root_t mmRoot;
+  mps_thr_t thread;
   /* ...  */
-} ThreadLocals; 
+} ThreadLocals;
 
-void InitThread(ThreadLocals *thr) 
-{ 
-  /* This is a hack to find the bottom of the stack. */ 
-  void *stackBottom=&stackBottom; 
+void InitThread(ThreadLocals *thr)
+{
+  /* This is a hack to find the bottom of the stack. */
+  void *stackBottom=&stackBottom;
 
-  mps_thread_reg(&amp;thr-&gt;thread, arena); 
-  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t) 0, 
-    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0); 
+  mps_thread_reg(&amp;thr-&gt;thread, arena);
+  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t) 0,
+    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0);
 
   /* ...  */
 
-} 
+}
 </pre>
 
 
@@ -8377,7 +8509,7 @@ int main(void)
     exit(1);
 
   /* ... */
-} 
+}
 </pre>
 
 
@@ -8427,9 +8559,9 @@ int main(void)
 <p> base a pointer to the vector of references that is being registered </p>
 
 <p>
-  size the number of references in the vector being registered 
+  size the number of references in the vector being registered
   <br />
-  mask any element that has any of the bits in mask set is ignored 
+  mask any element that has any of the bits in mask set is ignored
 </p>
 
 
@@ -8471,7 +8603,7 @@ int main(void)
     exit(1);
 
   /* ... */
-} 
+}
 </pre>
 
 
@@ -8555,7 +8687,7 @@ static mps_res_t rootScanner(mps_ss_t ss, void * p, size_t s)
 
   return res;
 }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -8590,7 +8722,7 @@ static mps_res_t rootScanner(mps_ss_t ss, void * p, size_t s)
 
 <p>
   <code>typedef void (*mps_roots_stepper_t)( mps_addr_t *, mps_root_t, void *, size_t )</code>
-</p> 
+</p>
 
 
 <h4> Arguments </h4>
@@ -8668,7 +8800,7 @@ typedef struct mps_sac_classes_s {
   size_t mps_cached_count;
   unsigned mps_frequency;
 } mps_sac_classes_s;
-</pre> 
+</pre>
 
 
 <h4> Resources </h4>
@@ -8684,9 +8816,9 @@ typedef struct mps_sac_classes_s {
 
 <p>
   <code>cached_count</code>
-  is advice to the MPS on how many blocks to cache, not an absolutelimit. The cache policy tries to accommodate fluctuations in the population and minimize the cost ofresponding to client requests; the purpose of this parameter is to limit how much memory the clientis willing to set aside for this purpose. However, a 
+  is advice to the MPS on how many blocks to cache, not an absolutelimit. The cache policy tries to accommodate fluctuations in the population and minimize the cost ofresponding to client requests; the purpose of this parameter is to limit how much memory the clientis willing to set aside for this purpose. However, a
   <code>cached_count</code>
-  of zero prevents anycaching of blocks falling into that class. 
+  of zero prevents anycaching of blocks falling into that class.
 </p>
 
 <p> The MPS automatically provides an "overlarge" class for arbitrarily large objects above thelargest class described. Allocations falling into the overlarge class are not cached. </p>
@@ -8703,7 +8835,7 @@ typedef struct mps_sac_classes_s {
     printf("Failed to create the allocation cache!");
     exit(1);
   }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -8780,7 +8912,7 @@ typedef struct mps_sac_classes_s {
     printf("Failed to create the allocation cache!");
     exit(1);
   }
-</pre> 
+</pre>
 
 
 <h4> Error Handling </h4>
@@ -8858,7 +8990,7 @@ typedef struct mps_sac_classes_s {
 
   mps_sac_destroy(sac);
   mps_pool_destroy(pool);
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -8944,7 +9076,7 @@ typedef struct mps_sac_classes_s {
   mps_sac_flush(sac_large);
 
   /* Use sac_small. */
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -9005,7 +9137,7 @@ typedef struct mps_sac_classes_s {
     printf("Failed to create the allocation cache!");
     exit(1);
   }
-</pre> 
+</pre>
 
 
 <h4> See Also </h4>
@@ -9072,23 +9204,23 @@ typedef struct mps_sac_classes_s {
 <h4> Example </h4>
 
 <pre>
-typedef struct { 
-  mps_root_t mmRoot; 
-  mps_thr_t thread; 
+typedef struct {
+  mps_root_t mmRoot;
+  mps_thr_t thread;
   /* ... */
-} ThreadLocals; 
+} ThreadLocals;
 
-void InitThread(ThreadLocals *thr) 
-{ 
-  /* This is a hack to find the bottom of the stack. */ 
-  void *stackBottom=&stackBottom; 
+void InitThread(ThreadLocals *thr)
+{
+  /* This is a hack to find the bottom of the stack. */
+  void *stackBottom=&stackBottom;
 
-  mps_thread_reg(&amp;thr-&gt;thread, arena); 
-  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t)0, 
-    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0) 
+  mps_thread_reg(&amp;thr-&gt;thread, arena);
+  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
+    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0)
 
   /* ... */
-} 
+}
 </pre>
 
 
@@ -9353,11 +9485,11 @@ void InitThread(ThreadLocals *thr)
 <h4> Example </h4>
 
 <pre>
-  mps_thr_t this_thread; 
-  mps_res_t res; 
+  mps_thr_t this_thread;
+  mps_res_t res;
 
-  res = mps_thread_reg(&amp;this_thread, space); 
-  if(res != MPS_RES_OK) return res; 
+  res = mps_thread_reg(&amp;this_thread, space);
+  if(res != MPS_RES_OK) return res;
 </pre>
 
 
@@ -9386,10 +9518,20 @@ void InitThread(ThreadLocals *thr)
 <tr valign="top">
 
   <td>2002-06-17</td>
-  
+
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
 
   <td> Removed Global Graphics specific entries for confidential sources not included in open source release. </td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2002-06-18</td>
+
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
+
+  <td> Added contents table to section 3.</td>
 
 </tr>
 
@@ -9433,3 +9575,4 @@ void InitThread(ThreadLocals *thr)
 </body>
 
 </html>
+
