@@ -1229,10 +1229,10 @@ where they were found."
 
 (defun etags-tags-completion-table ()
   (let ((table (make-vector 511 0))
-	(point-max (/ (float (point-max)) 100.0))
-	(msg-fmt (format 
-		  "Making tags completion table for %s...%%d%%%%"
-		  buffer-file-name)))
+	(progress-reporter
+	 (make-progress-reporter
+	  (format "Making tags completion table for %s..." buffer-file-name)
+	  (point-min) (point-max))))
     (save-excursion
       (goto-char (point-min))
       ;; This monster regexp matches an etags tag line.
@@ -1253,7 +1253,7 @@ where they were found."
 			   (buffer-substring (match-beginning 5) (match-end 5))
 			 ;; No explicit tag name.  Best guess.
 			 (buffer-substring (match-beginning 3) (match-end 3)))
-		  (message msg-fmt (/ (point) point-max)))
+		  (progress-reporter-update progress-reporter (point)))
 		table)))
     table))
 
@@ -1433,11 +1433,12 @@ where they were found."
     (tags-with-face 'highlight (princ buffer-file-name))
     (princ "':\n\n"))
   (goto-char (point-min))
-  (let ((point-max (/ (float (point-max)) 100.0)))
+  (let ((progress-reporter (make-progress-reporter
+			    (format "Making tags apropos buffer for `%s'..."
+				    string)
+			    (point-min) (point-max))))
     (while (re-search-forward string nil t)
-      (message "Making tags apropos buffer for `%s'...%d%%"
-	       string
-	       (/ (point) point-max))
+      (progress-reporter-update progress-reporter (point))
       (beginning-of-line)
 
       (let* ( ;; Get the local value in the tags table
