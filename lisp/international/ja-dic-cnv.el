@@ -377,7 +377,7 @@ The name of generated file is specified by the variable `ja-dic-filename'."
 	(set-buffer buf)
 	(insert-buffer-substring skkbuf 1 pos))
       (insert "\n"
-	      ";;; Code:\n\n(eval-when-compile (require 'skkdic-cnv))\n\n")
+	      ";;; Code:\n\n(eval-when-compile (require 'ja-dic-cnv))\n\n")
 
       ;; Generate the body part of working buffer.
       (set-buffer skkbuf)
