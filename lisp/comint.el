@@ -137,6 +137,20 @@
 ;;  comint-completion-autolist		boolean		completion behavior
 ;;  comint-completion-recexact		boolean		...
 
+(defgroup comint nil
+  "General command interpreter in a window stuff."
+  :group 'processes)
+
+(defgroup comint-completion nil
+  "Completion facilities in comint"
+  :group 'comint)
+
+(defgroup comint-source nil
+  "Source finding facilities in comint"
+  :prefix "comint-"
+  :group 'comint)
+
+
 (defvar comint-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
 Defaults to \"^\", the null string at BOL.
@@ -162,7 +176,7 @@ For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
 
 This is a good thing to set in mode hooks.")
 
-(defvar comint-input-autoexpand nil
+(defcustom comint-input-autoexpand nil
   "*If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
@@ -171,30 +185,55 @@ If the value is `history', then the expansion is only when inserting
 into the buffer's input ring.  See also `comint-magic-space' and
 `comint-dynamic-complete'.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const input)
+		 (const history))
+  :group 'comint)
 
-(defvar comint-input-ignoredups nil
+(defface comint-input-face '((((class color)
+			      (background dark))
+			     (:foreground "red"))
+			    (((class color)
+			      (background light))
+			     (:foreground "blue"))
+			    (t 
+			     (:bold t)))
+  "How to display user input for comint shells."
+  :group 'comint)
+
+(defcustom comint-input-ignoredups nil
   "*If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'comint)
 
-(defvar comint-input-ring-file-name nil
+(defcustom comint-input-ring-file-name nil
   "*If non-nil, name of the file to read/write input history.
 See also `comint-read-input-ring' and `comint-write-input-ring'.
 
-This variable is buffer-local, and is a good thing to set in mode hooks.")
+This variable is buffer-local, and is a good thing to set in mode hooks."
+  :type 'boolean
+  :group 'comint)
 
-(defvar comint-scroll-to-bottom-on-input nil
+(defcustom comint-scroll-to-bottom-on-input nil
   "*Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 
 The default is nil.
 
-See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local.")
+See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local."
+  :type '(choice (const :tag "off" nil)
+		 (const t)
+		 (const all)
+		 (const this))
+  :group 'comint)
 
-(defvar comint-scroll-to-bottom-on-output nil
+(defcustom comint-scroll-to-bottom-on-output nil
   "*Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
@@ -203,34 +242,49 @@ If `others', scroll only those that are not the selected window.
 The default is nil.
 
 See variable `comint-scroll-show-maximum-output' and function
-`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
+`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
+  :type '(choice (const :tag "off" nil)
+		 (const t)
+		 (const all)
+		 (const this)
+		 (const others))
+  :group 'comint)
 
-(defvar comint-scroll-show-maximum-output nil
+(defcustom comint-scroll-show-maximum-output nil
   "*Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `comint-scroll-to-bottom-on-output' and function
-`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
+`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
+  :type 'boolean
+  :group 'comint)
 
-(defvar comint-buffer-maximum-size 1024
+(defcustom comint-buffer-maximum-size 1024
   "*The maximum size in lines for comint buffers.
 Comint buffers are truncated from the top to be no greater than this number, if
-the function `comint-truncate-buffer' is on `comint-output-filter-functions'.")
+the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
+  :type 'integer
+  :group 'comint)
 
 (defvar comint-input-ring-size 32
   "Size of input history ring.")
 
-(defvar comint-process-echoes nil
+(defcustom comint-process-echoes nil
   "*If non-nil, assume that the subprocess echoes any input.
 If so, delete one copy of the input so that only one copy eventually
 appears in the buffer.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'comint)
 
-(defvar comint-password-prompt-regexp
+;; AIX puts the name of the person being su'd to in from of the prompt.
+(defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|^\\)[Pp]assword\\|pass phrase\\):\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
-This is used by `comint-watch-for-password-prompt'.")
+This is used by `comint-watch-for-password-prompt'."
+  :type 'regexp
+  :group 'comint)
 
 ;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
@@ -239,6 +293,18 @@ This function is called when return is typed while the point is in old text.
 It returns the text to be submitted as process input.  The default is
 `comint-get-old-input-default', which grabs the current line, and strips off
 leading text matching `comint-prompt-regexp'.")
+
+;; XEmacs - fsf doesn't have this, and I think it ought to default to 't'
+;; because it's good idiot-proof interface.  --stig
+(defcustom comint-append-old-input t
+  "*If nil, old text selected by \\[comint-send-input] is re-sent immediately.
+If non-nil, the old text is appended to the end of the buffer,
+and a prompting message is printed.
+
+This flag does not affect the behavior of \\[comint-send-input]
+after the process output mark."
+  :type 'boolean
+  :group 'comint)
 
 (defvar comint-dynamic-complete-functions
   '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
@@ -277,20 +343,26 @@ massage the input string, put a different function here.
 `comint-simple-send' just sends the string plus a newline.
 This is called from the user command `comint-send-input'.")
 
-(defvar comint-eol-on-send t
+(defcustom comint-eol-on-send t
   "*Non-nil means go to the end of the line before sending input.
-See `comint-send-input'.")
+See `comint-send-input'."
+  :type 'boolean
+  :group 'comint)
 
-(defvar comint-mode-hook '()
+(defcustom comint-mode-hook '()
   "Called upon entry into comint-mode
-This is run before the process is cranked up.")
+This is run before the process is cranked up."
+  :type 'hook
+  :group 'comint)
 
-(defvar comint-exec-hook '()
+(defcustom comint-exec-hook '()
   "Called each time a process is exec'd by `comint-exec'.
 This is called after the process is cranked up.  It is useful for things that
 must be done each time a process is executed in a comint mode buffer (e.g.,
 `(process-kill-without-query)').  In contrast, the `comint-mode-hook' is only
-executed once when the buffer is created.")
+executed once when the buffer is created."
+  :type 'hook
+  :group 'comint)
 
 (defvar comint-mode-map nil)
 
@@ -1813,27 +1885,35 @@ See `comint-prompt-regexp'."
 ;; Commands like this are fine things to put in load hooks if you
 ;; want them present in specific modes.
 
-(defvar comint-completion-autolist nil
+(defcustom comint-completion-autolist nil
   "*If non-nil, automatically list possibilities on partial completion.
-This mirrors the optional behavior of tcsh.")
+This mirrors the optional behavior of tcsh."
+  :type 'boolean
+  :group 'comint-completion)
 
-(defvar comint-completion-addsuffix t
+(defcustom comint-completion-addsuffix t
   "*If non-nil, add a `/' to completed directories, ` ' to file names.
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
-This mirrors the optional behavior of tcsh.")
+This mirrors the optional behavior of tcsh."
+  :type 'boolean
+  :group 'comint-completion)
 
-(defvar comint-completion-recexact nil
+(defcustom comint-completion-recexact nil
   "*If non-nil, use shortest completion if characters cannot be added.
 This mirrors the optional behavior of tcsh.
 
-A non-nil value is useful if `comint-completion-autolist' is non-nil too.")
+A non-nil value is useful if `comint-completion-autolist' is non-nil too."
+  :type 'boolean
+  :group 'comint-completion)
 
-(defvar comint-completion-fignore nil
+(defcustom comint-completion-fignore nil
   "*List of suffixes to be disregarded during file completion.
 This mirrors the optional behavior of bash and tcsh.
 
-Note that this applies to `comint-dynamic-complete-filename' only.")
+Note that this applies to `comint-dynamic-complete-filename' only."
+  :type '(repeat (string :tag "Suffix"))
+  :group 'comint-completion)
 
 (defvar comint-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
@@ -1849,7 +1929,7 @@ directory tracking functions.")
 This is a good thing to set in mode hooks.")
 
 (defvar comint-file-name-quote-list nil
-  "List of characters to quote with `\\' when in a file name.
+  "List of characters to quote with `\' when in a file name.
 
 This is a good thing to set in mode hooks.")
 
