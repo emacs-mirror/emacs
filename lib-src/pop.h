@@ -36,7 +36,6 @@ struct _popserver
   int buffer_size, buffer_index;
   int in_multi;
   int trash_started;
-  void *extra;
 };
 
 typedef struct _popserver *popserver;
@@ -48,30 +47,6 @@ typedef struct _popserver *popserver;
 #define POP_NO_KERBEROS	(1<<0)
 #define POP_NO_HESIOD	(1<<1)
 #define POP_NO_GETPASS 	(1<<2)
-#define POP_NO_GSSAPI	(1<<3)	/* don't use the GSSAPI */
-#define POP_NO_NOPROT	(1<<4)	/* prohibit no protection; this *only* */
-				/* makes sense if you use GSSAPI */
-#define POP_NO_INTEG	(1<<5)	/* don't use plain integrity */
-#define POP_NO_ENCRYPT	(1<<6)	/* don't use encryption */
-
-/*
- * GSSAPI documentation
- *
- * This version will attempt to perform a GSSAPI handshake first; if this
- * fails, then it will attempt standard POP authentication.  Note that
- * library conflicts may prevent the use of this with the Kerberos
- * kpop hack.
- *
- * If you specify POP_NO_NOPROT and this library is unable to provide either
- * integrity protection or encryption, pop_open() will fail.  The pop_open()
- * call will attempt the highest level protection available; i.e., if both
- * server and client support encryption (and you do not provide the
- * POP_NO_ENCRYPT flag), that will be used; if both server and client support
- * integrity protection (and you do not provide the POP_NO_INTEG flag), that
- * will be used.  If neither of these are available, and you have not
- * specified the POP_NO_NOPROT flag, then this will be a normal, unprotected
- * connection.
- */
 
 #ifdef __STDC__
 #define _ARGS(a) a

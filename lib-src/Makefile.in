@@ -205,21 +205,12 @@ MOVE_FLAGS=
 # ifdef HAVE_LIBCOM_ERR
 	COM_ERRLIB = -lcom_err
 # endif
-# ifdef HAVE_LIBGSSAPI_KRB5
-	GSSAPI_KRB5LIB = -lgssapi_krb5
-# endif
-#endif /* KERBEROS */
+#endif /* KERBEROS
 
-#ifdef HAVE_LIBGSSAPI
-	GSSAPILIB = -lgssapi
-#endif
+/* If HESIOD is defined, set this to "-lhesiod". */
+HESIODLIB=
 
-#ifdef HESIOD
-HESIODLIB= -lhesiod
-#endif
-
-MOVE_LIBS=$(GSSAPI_KRB5LIB) $(GSSAPILIB) $(KRB4LIB) $(DESLIB) $(KRB5LIB) \
-	$(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
+MOVE_LIBS=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
 #ifdef HAVE_LIBMAIL
 LIBMAIL=-lmail
