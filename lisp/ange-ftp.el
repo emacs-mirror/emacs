@@ -1826,6 +1826,10 @@ on the gateway machine to do the ftp instead."
     (setq ange-ftp-process-result-line "")
 
     (setq comint-prompt-regexp "^ftp> ")
+    (make-local-variable 'comint-password-prompt-regexp)
+    ;; This is a regexp that can't match anything.
+    ;; ange-ftp has its own ways of handling passwords.
+    (setq comint-password-prompt-regexp "^a\\'z")
     (make-local-variable 'paragraph-start)
     (setq paragraph-start comint-prompt-regexp)))
 
