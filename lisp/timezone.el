@@ -277,7 +277,7 @@ Return a list suitable as an argument to current-time-zone,
 or nil if the date cannot be thus represented.
 DATE is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((current-time-origin 719162)
+  (let* ((current-time-origin 719163)
 	    ;; (timezone-absolute-from-gregorian 1 1 1970)
 	 (days (- date current-time-origin))
 	 (seconds-per-day (float 86400))
