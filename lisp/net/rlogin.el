@@ -1,12 +1,12 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 97, 1998, 2002 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.45 2000/01/31 18:07:17 fx Exp $
+;; $Id: rlogin.el,v 1.1 2000/03/20 12:52:39 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -189,8 +189,7 @@ variable."
                    (user-login-name)))
          (buffer-name (if (string= user (user-login-name))
                           (format "*rlogin-%s*" host)
-                        (format "*rlogin-%s@%s*" user host)))
-	 proc)
+                        (format "*rlogin-%s@%s*" user host))))
 
     (cond ((null buffer))
 	  ((stringp buffer)
@@ -205,28 +204,8 @@ variable."
     (setq buffer (get-buffer-create buffer-name))
     (pop-to-buffer buffer-name)
 
-    (cond
-     ((comint-check-proc buffer-name))
-     (t
+    (unless (comint-check-proc buffer-name)
       (comint-exec buffer buffer-name rlogin-program nil args)
-      (setq proc (get-buffer-process buffer))
-      ;; Set process-mark to point-max in case there is text in the
-      ;; buffer from a previous exited process.
-      (set-marker (process-mark proc) (point-max))
-
-      ;; comint-output-filter-functions is treated like a hook: it is
-      ;; processed via run-hooks or run-hooks-with-args in later versions
-      ;; of emacs.
-      ;; comint-output-filter-functions should already have a
-      ;; permanent-local property, at least in emacs 19.27 or later.
-      (cond
-       ((fboundp 'make-local-hook)
-        (make-local-hook 'comint-output-filter-functions)
-        (add-hook 'comint-output-filter-functions 'rlogin-carriage-filter
-                  nil t))
-       (t
-        (make-local-variable 'comint-output-filter-functions)
-        (add-hook 'comint-output-filter-functions 'rlogin-carriage-filter)))
 
       (rlogin-mode)
 
@@ -246,7 +225,7 @@ variable."
                 ((null rlogin-directory-tracking-mode))
                 (t
                  (cd-absolute (concat comint-file-name-prefix "~/"))))
-        (error nil))))))
+        (error nil)))))
 
 (put 'rlogin-mode 'mode-class 'special)
 
@@ -325,17 +304,6 @@ local one share the same directories (through NFS)."
       (setq posn (match-end 0)))
     (set-match-data (match-data))
     (nreverse list)))
-
-(defun rlogin-carriage-filter (string)
-  (let* ((point-marker (point-marker))
-         (end (process-mark (get-buffer-process (current-buffer))))
-         (beg (or (and (boundp 'comint-last-output-start)
-                       comint-last-output-start)
-                  (- end (length string)))))
-    (goto-char beg)
-    (while (search-forward "\C-m" end t)
-      (delete-char -1))
-    (goto-char point-marker)))
 
 (defun rlogin-send-Ctrl-C ()
   (interactive)
