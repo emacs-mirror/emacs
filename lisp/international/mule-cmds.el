@@ -289,6 +289,7 @@ CHARSETS is a list of character sets."
 	  (and (= (length charsets) 1)
 	       (eq 'ascii (car charsets))))
       '(undecided)
+    (setq charsets (delq 'composition charsets))
     (let ((l coding-system-list)
 	  (charset-prefered-codings
 	   (mapcar (function
