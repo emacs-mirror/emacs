@@ -1,5 +1,8 @@
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (pos_visible_p): Take into account that CHARPOS maybe
+	in or at the start of invisible text.
+
 	* dispnew.c (update_window): Don't check_current_matrix_flags.
 
 2001-01-01  Jason Rumney  <jasonr@gnu.org>
