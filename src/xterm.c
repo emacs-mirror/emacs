@@ -2978,8 +2978,7 @@ x_scroll_bar_clear (f)
 {
   Lisp_Object bar;
 
-  for (bar = FRAME_SCROLL_BARS (f);
-       XTYPE (bar) == Lisp_Vector;
+  for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
        bar = XSCROLL_BAR (bar)->next)
     XClearArea (x_current_display, SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
 		0, 0, 0, 0, True);
