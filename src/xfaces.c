@@ -1376,7 +1376,7 @@ tty_defined_color (f, color_name, color_def, alloc)
   color_def->green = 0;
 
   if (*color_name)
-    status = tty_lookup_color (f, build_string (color_name), color_def, 0);
+    status = tty_lookup_color (f, build_string (color_name), color_def, NULL);
 
   if (color_def->pixel == FACE_TTY_DEFAULT_COLOR && *color_name)
     {
@@ -2108,7 +2108,7 @@ face_value (table, dim, symbol)
 static INLINE int
 face_numeric_value (table, dim, symbol)
      struct table_entry *table;
-     int dim;
+     size_t dim;
      Lisp_Object symbol;
 {
   struct table_entry *p = face_value (table, dim, symbol);
@@ -4953,17 +4953,7 @@ If FRAME is omitted or nil, use the selected frame.  */)
      Lisp_Object face1, face2, frame;
 {
   int equal_p;
-  struct frame *f;
   Lisp_Object lface1, lface2;
-
-  if (EQ (frame, Qt))
-    f = NULL;
-  else
-    /* Don't use check_x_frame here because this function is called
-       before X frames exist.  At that time, if FRAME is nil,
-       selected_frame will be used which is the frame dumped with
-       Emacs.  That frame is not an X frame.  */
-    f = frame_or_selected_frame (frame, 2);
 
   lface1 = lface_from_face_name (NULL, face1, 1);
   lface2 = lface_from_face_name (NULL, face2, 1);
