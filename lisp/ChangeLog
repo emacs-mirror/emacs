@@ -9,7 +9,7 @@
 
 	* mouse.el (mouse-drag-header-line): Don't allow resizing a
 	window by dragging a header-line at the top of the frame; that's
-	confusing because the header-lien doesn't move.
+	confusing because the header-line doesn't move.
 	(mouse-drag-mode-line-1): Use event-* and posn-* functions instead
 	of treating the event as a list.  Some cleanup.
 
@@ -37,6 +37,47 @@
 	Use `pop-to-buffer' instead of `switch-to-buffer-other-window'.
 
 	* comint.el (comint-watch-for-password-prompt): Use STRING as a prompt.
+
+2000-10-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/compile.el (compile-collect-regexps): Use dolist and push.
+
+	* which-func.el (which-func-format): Remove spurious space.
+	(which-func-mode): Don't make it permanent-local.
+	(which-func-ff-hook): Allow which-func-maxout to be nil.
+	(which-func-update): Simplify a bit.  Only run if which-func-mode is t.
+	(which-func-mode): Simplify.
+	Use post-command-idle-hook rather than post-command-hook.
+	Go through all buffers and update their state.
+	(which-function): Also try add-log-current-defun-function.
+
+	* vc.el (with-vc-properties): Use conses rather than length-2 lists.
+	(vc-checkout, vc-finish-steal, vc-checkin, vc-revert-file):
+	Update call to with-vc-properties accordingly.
+	(vc-comment-search-reverse, vc-comment-search-forward): Docstring fix.
+	(vc-revert-buffer): More careful about window selection and deletion.
+	(vc-switch-backend): Slight reorg to avoid calling `registered' twice.
+
+	* pcvs.el (cvs-ediff-exit-hook): Expect delete-window to fail.
+	(cvs-retrieve-revision): Reuse a pre-existing buffer.
+	(cvs-dired-action): Change the default to quickdir.
+
+	* newcomment.el (comment-indent): Delegate to indent-according-to-mode
+	if comment-indent-function returns nil.
+	(comment-indent-default): New function.
+	(comment-indent-function): Use it and document the new semantics.
+
+	* image-file.el: Docstring fixes.
+
+	* help.el (help-xref-on-pp): Use match-string.
+	(describe-variable): New arg BUFFER.
+	Store the current buffer in the help-xref-stack.
+	(temp-buffer-resize-mode): Use define-minor-mode.
+
+	* jit-lock.el (jit-lock-mode): Use jit-lock-defer-contextually
+	consistently with its docstring.
+	Set jit-lock-first-unfontify-pos in an idempotent way.
+	(jit-lock-register): Autoload and add arg CONTEXTUAL.
 
 2000-10-05  Alex Schroeder  <alex@gnu.org>
 
