@@ -253,15 +253,23 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
-install: ${SUBDIR} do-install ;
+install: ${SUBDIR} do-install install-arch-dep install-arch-indep;
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
-do-install: mkdir
+install-arch-dep: mkdir
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
 	    archlibdir=${archlibdir})
+	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
+	-chmod 1755  ${bindir}/emacs-${version}
+	rm -f ${bindir}/emacs
+	-ln ${bindir}/emacs-${version} ${bindir}/emacs
+
+### Note that we copy the DOC-* files from the build etc directory
+### as well as lots of things from ${srcdir}/etc.
+install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   if [ `(cd $$1 && pwd)` != `(cd $${dir} && pwd)` ] ; then \
@@ -301,10 +309,6 @@ do-install: mkdir
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
-	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
-	-chmod 1755  ${bindir}/emacs-${version}
-	rm -f ${bindir}/emacs
-	-ln ${bindir}/emacs-${version} ${bindir}/emacs
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
