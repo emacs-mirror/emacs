@@ -1,3 +1,7 @@
+2000-11-16  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* net/ange-ftp.el (ange-ftp-file-modtime): Don't use `caddr'.
+
 2000-11-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* window.el (fit-window-to-buffer): Be sure to acquire at least
