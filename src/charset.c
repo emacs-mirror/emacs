@@ -1,6 +1,7 @@
 /* Basic multilingual character support.
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -160,13 +161,10 @@ invalid_character (c)
 /* Store multi-byte form of the character C in STR.  The caller should
    allocate at least 4-byte area at STR in advance.  Returns the
    length of the multi-byte form.  If C is an invalid character code,
-   signal an error.
-
-   Use macro `CHAR_STRING (C, STR)' instead of calling this function
-   directly if C can be an ASCII character.  */
+   return -1.  */
 
 int
-char_to_string (c, str)
+char_to_string_1 (c, str)
      int c;
      unsigned char *str;
 {
@@ -176,7 +174,7 @@ char_to_string (c, str)
     {
       /* Multibyte character can't have a modifier bit.  */
       if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
-	invalid_character (c);
+	return -1;
 
       /* For Meta, Shift, and Control modifiers, we need special care.  */
       if (c & CHAR_META)
@@ -211,6 +209,7 @@ char_to_string (c, str)
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }
+  
   if (SINGLE_BYTE_CHAR_P (c))
     {
       if (ASCII_BYTE_P (c) || c >= 0xA0)
@@ -237,7 +236,7 @@ char_to_string (c, str)
 		      : LEADING_CODE_PRIVATE_22)));
       *p++ = charset;
       if (c1 > 0 && c1 < 32 || c2 > 0 && c2 < 32)
-	invalid_character (c);
+	return -1;
       if (c1)
 	{
 	  *p++ = c1 | 0x80;
@@ -246,10 +245,32 @@ char_to_string (c, str)
 	}
     }
   else
-    invalid_character (c);
+    return -1;
 
   return (p - str);
 }
+
+
+/* Store multi-byte form of the character C in STR.  The caller should
+   allocate at least 4-byte area at STR in advance.  Returns the
+   length of the multi-byte form.  If C is an invalid character code,
+   signal an error.
+
+   Use macro `CHAR_STRING (C, STR)' instead of calling this function
+   directly if C can be an ASCII character.  */
+
+int
+char_to_string (c, str)
+     int c;
+     unsigned char *str;
+{
+  int len;
+  len = char_to_string_1 (c, str);
+  if (len == -1)
+    invalid_character (c);
+  return len;
+}
+
 
 /* Return the non-ASCII character corresponding to multi-byte form at
    STR of length LEN.  If ACTUAL_LEN is not NULL, store the byte
