@@ -37,7 +37,8 @@
 	also be done locally.
 	(vc-diff): With a prefix argument, don't require that it's called
 	from a buffer under version control.
-
+	(diff-switches): Remove duplicate definition.
+	
 	* vc-cvs.el (vc-cvs-diff-tree): New function.
 
 2001-10-21  Miles Bader  <miles@gnu.org>
