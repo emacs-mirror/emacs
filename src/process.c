@@ -1043,7 +1043,8 @@ BUFFER is the buffer or (buffer-name) to associate with the process.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer.
 Third arg is program file name.  It is searched for in PATH.
-Remaining arguments are strings to give program as arguments.  */)
+Remaining arguments are strings to give program as arguments.
+usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
