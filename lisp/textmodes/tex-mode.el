@@ -381,7 +381,7 @@ subshell is initiated, `tex-shell-hook' is run."
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
   (setq paragraph-start "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$\\|\
-^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
 ^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
@@ -390,7 +390,7 @@ subshell is initiated, `tex-shell-hook' is run."
 ^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
 ^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
   (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
-^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
 ^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
@@ -454,7 +454,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
   (setq paragraph-start "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$\\|\
-^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
 ^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
@@ -463,7 +463,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 ^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
 ^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
   (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
-^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|^\\\\\\]\\|\
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
 ^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
@@ -917,6 +917,7 @@ The value of `tex-command' specifies the command to use to run TeX."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
+  (display-buffer (process-buffer (get-process "tex-shell")))
   (or tex-zap-file
       (setq tex-zap-file (tex-generate-zap-file-name)))
   (let* ((temp-buffer (get-buffer-create " TeX-Output-Buffer"))
@@ -989,6 +990,7 @@ This function is more useful than \\[tex-buffer] when you need the
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))
+    (display-buffer (process-buffer (get-process "tex-shell")))
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-command tex-out-file))
   (setq tex-last-buffer-texed (current-buffer))
@@ -1108,6 +1110,7 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
+  (display-buffer (process-buffer (get-process "tex-shell")))
   (tex-send-command tex-show-queue-command))
 
 (defun tex-bibtex-file ()
@@ -1116,6 +1119,7 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
+  (display-buffer (process-buffer (get-process "tex-shell")))
   (let ((tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
