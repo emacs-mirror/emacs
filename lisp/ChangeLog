@@ -1,3 +1,8 @@
+2002-04-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* cus-start.el: Rename `autoselect-window' to
+	`mouse-autoselect-window'.
+
 2002-04-02  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (hack-one-local-variable):
