@@ -1191,6 +1191,11 @@ EDITOR="emacsclient --alternate-editor vi +%d %s"
 The environment variable @var{ALTERNATE_EDITOR} has the same effect, but
 the value of the @samp{--alternate-editor} takes precedence.
 
+@pindex emacs.bash
+Alternatively, the file @file{etc/emacs.bash} defines a function for
+@command{bash} which will use a running Emacs server or start one if
+none exists.
+
 @menu
 * Invoking emacsclient::
 @end menu
@@ -1875,13 +1880,15 @@ editors.  Standard facilities can emulate these:
 @findex crisp-mode
 @vindex crisp-override-meta-x
 @findex scroll-all-mode
-Turn on keybindings to emulate the CRiSP/Brief editor with @kbd{M-x
-crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs unless you
-change the user option @code{crisp-override-meta-x}.  You can also load
-the @code{scroll-all} package to emulate CRiSP's scroll-all feature
-(scrolling all windows together).  Do this either with @kbd{M-x
-scroll-all-mode} or set the user option @code{crisp-load-scroll-all} to
-load it along with @code{crisp-mode}.
+@cindex CRiSP mode
+@cindex Brief emulation
+@cindex mode, CRiSP
+You can turn on keybindings to emulate the CRiSP/Brief editor with
+@kbd{M-x crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs
+unless you change the user option @code{crisp-override-meta-x}.  You can
+also use the command @kbd{M-x scroll-all-mode} or set the user option
+@code{crisp-load-scroll-all} to emulate CRiSP's scroll-all feature
+(scrolling all windows together).
 
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
@@ -1896,17 +1903,22 @@ buffers or major modes while in EDT emulation.
 
 @item `PC' bindings
 @findex pc-bindings-mode
-@kbd{M-x pc-bindings-mode} sets up certain key bindings for `PC
-compatibility'---what people are often used to on PCs---as follows:
+@cindex `PC' key bindings
+The command @kbd{M-x pc-bindings-mode} sets up certain key bindings for
+`PC compatibility'---what people are often used to on PCs---as follows:
 @kbd{Delete} and its variants) delete forward instead of backward,
 @kbd{C-Backspace} kills backward a word (as @kbd{C-Delete} normally
 would), @kbd{M-Backspace} does undo, @kbd{Home} and @kbd{End} move to
 beginning and end of line, @kbd{C-Home} and @kbd{C-End} move to
 beginning and end of buffer and @kbd{C-Escape} does @code{list-buffers}.
 
-@item PC selection mode
+@item PC Selection mode
 @findex pc-selection-mode
-@kbd{M-x pc-selction-mode} emulates the mark, copy, cut and paste
+@cindex PC Selection minor mode
+@cindex mode, PC selection
+@cindex selection, `PC'
+The command @kbd{M-x pc-selction-mode} turns on a global minor mode
+which emulates the mark, copy, cut and paste
 look-and-feel of Motif programs (which is the same as the Macintosh GUI
 and MS-Windows).  It makes the keybindings of PC mode and also modifies
 the bindings of the cursor keys and the @kbd{next}, @kbd{prior},
@@ -1983,72 +1995,161 @@ keybindings.
 Various modes documented elsewhere have hypertext features whereby you
 can follow links, usually with @kbd{mouse-2} or @kbd{RET} on the text of
 the link.  Info mode, Help mode and the Dired-like modes are examples.
-The Tags facility (@pxref{Tags}) links between source files.
+The Tags facility links between uses and definitions in source files,
+see @ref{Tags}.  Imenu provides navigation amongst items indexed in the
+current buffer, see @ref{Imenu}.  Info-lookup provides mode-specific
+lookup of definitions in Info indexes, see @ref{Documentation}.
+Speedbar maintains a frame in which links to files, and locations in
+files are displayed, see @ref{Speedbar}.
 
-Other non-mode-specific facilities are available to follow links from
-the current buffer in a context-sensitive fashion.
+Other non-mode-specific facilities described in this section enable
+following links from the current buffer in a context-sensitive fashion.
 
-@table @asis
-@item Browse-URL (follow URLs)
+@menu
+* Browse-URL::                  Following URLs.
+* Goto-address::                Activating URLs.
+* FFAP::                        Finding files etc. at point.
+* Find-func::                   Finding function and variable definitions.
+@end menu
+
+@node Browse-URL
+@subsection  Following URLs
 @cindex World Wide Web
+@cindex Web
 @findex browse-url
 @findex browse-url-at-point
 @findex browse-url-at-mouse
-@vindex browse-url-browser-function
 @cindex Browse-URL
 @cindex URLs
+
+@table @kbd
+@item M-x browse-url @key{RET} @var{url} @key{ret}
+Load a URL into a Web browser.
+@end table
+
 The Browse-URL package provides facilities for following URLs specifying
 links on the World Wide Web.  Usually this works by invoking a web
-browser, but you can, for instance, invoke @code{compose-mail} from
-@samp{mailto:} URLs.  Packages such as Gnus may make active links from
-URLs themselves.  Otherwise you can use @kbd{M-x browse-url} to follow a
-link, defaulting to the URL at point.  Other commands are available
-which you might like to bind to keys, such as @code{browse-url-at-point}
-and @code{browse-url-at-mouse}.
+browser but you can, for instance, arrange to invoke @code{compose-mail}
+from @samp{mailto:} URLs.  Packages such as Gnus may make active links
+from URLs themselves.  Otherwise you can use @kbd{M-x browse-url} to
+follow a link, defaulting to the URL at point.  Other commands are
+available which you might like to bind to keys, such as
+@code{browse-url-at-point} and @code{browse-url-at-mouse}.
 
+@vindex browse-url-browser-function
 You can customize Browse-URL's behaviour via various options in the
-@samp{browse-url} Customize group, particularly
+@code{browse-url} Customize group, particularly
 @code{browse-url-browser-function}.  You can invoke actions dependent on
 the type of URL by defining @code{browse-url-browser-function} as an
 association list.  The package's commentary available via @kbd{C-h p}
 provides more information.  Packages with facilities for following URLs
-generally should use Browse-URL, so customizing the Browse-URL group
-should be sufficient to determine how they all work.
+should use Browse-URL, so customizing options in the @code{browse-url}
+group should be sufficient to determine how they all work in that
+respect.
 
-@item Goto-address (activate URLs)
+@node Goto-address
+@subsection Activating URLs
 @findex goto-address
 @cindex Goto-address
 @cindex URLs, activating
+
+@table @kbd
+@item M-x goto-address
+Activate URLs and e-mail addresses in the current buffer.
+@end table
+
 You can arrange to activate URLs in any buffer with @kbd{M-x
 goto-address}.  It may be useful to add @code{goto-address} to hooks
 invoked when buffers are displayed in particular modes.
 @code{rmail-show-message-hook} is the appropriate hook if you use Rmail,
 or @code{mh-show-mode-hook} if you use MH.
 
-@item FFAP (find at point)
+@node FFAP
+@subsection Finding Files and URLs at Point
 @findex ffap
 @findex find-file-at-point
 @findex ffap
-@findex ffap-bindings
+@findex ffap-dired-at-point
+@findex ffap-next
+@findex ffap-menu
 @cindex FFAP
-The package @samp{ffap} provides functions for finding files and URLs at
-point.  Specifically, @code{find-file-at-point} (abbreviated as
-@code{ffap}) can be used as as replacement for @kbd{M-x find-file}.  A
-set of default bindings can be set up by the function
-@code{ffap-bindings}.  The package's commentary available via @kbd{C-h
-p} provides more information.
+@cindex URLs
+@cindex finding file at point
 
-@item Find-func (find function and variable definitions)
+@table @kbd
+@item M-x ffap @key{RET} @var{filename} @key{RET}
+Find @var{filename}, guessing a default from text around point.
+@item M-x ffap-next
+Search buffer for next file or URL, and run `ffap'.  With single prefix
+arg, search backwards, with double arg wrap search forwards, with triple
+arg wrap search backwards.
+@item M-x ffap-menu
+Put up a menu of files and URLs mentioned in current buffer and try to
+fetch the selected one.
+@item M-x ffap-dired-at-point
+Start Dired, defaulting to file at point.
+@end table
+
+The command @kbd{M-x find-file-at-point} (or @kbd{M-x ffap}) can be used
+as a replacement for @kbd{M-x find-file}.  With a prefix argument it
+behaves as @kbd{M-x find-file}.  Otherwise it tries to guess a default
+file or URL from the text around point.  In the case of a URL, it will
+invoke @code{browse-url} rather than finding a file.  This is useful for
+following references in mail or news buffers, @file{README}s,
+@file{MANIFEST}s, and so on.  The @samp{ffap} package's
+commentary available via @kbd{C-h p} and the @code{ffap} Custom group
+provide details.
+
+@cindex FFAP minor mode
+@findex ffap-mode
+You can turn on FFAP minor mode to make the following key bindings and
+to install hooks for using @code{ffap} in Rmail, Gnus and VM article
+buffers.
+
+@table @kbd
+@item C-x C-f
+@kindex C-x C-f @r{(FFAP)}
+@kbd{find-file-at-point};
+@item C-x 4 f
+@kindex C-x 4 f @r{(FFAP)}
+@code{ffap-other-window}, analagous to @kbd{M-x find-file-other-window};
+@item C-x 5 f
+@kindex C-x 5 f @r{(FFAP)}
+@code{ffap-other-frame}, analagous to @kbd{M-x find-file-other-frame};
+@item C-x d
+@kindex C-x d @r{(FFAP)}
+@code{ffap-dired-at-point}, analogous to @kbd{M-x dired};
+@item S-mouse-3
+@kindex S-mouse-3 @r{(FFAP)}
+@code{ffap-at-mouse} finds the file guessed from text around the position
+of a mouse click;
+@item C-S-mouse-3
+@kindex C-S-mouse-3 @r{(FFAP)}
+@code{ffap-menu} puts up a selectable menu of files and URLs mentioned in
+the current buffer.
+@end table
+
+@node Find-func
+@subsection Finding Function and Variable Definitions
 @findex find-function
 @findex find-function-on-key
 @findex find-variable
-@findex auto-compression-mode
 @cindex examples of Lisp functions
 @cindex Lisp examples
 @cindex Find-func
 @cindex Lisp definitions
 @cindex definitions, locating in sources
 @cindex tags
+
+@table @kbd
+@item M-x find-function @key{RET} @var{function} @key{RET}
+Find the definition of the @var{function} at point.
+@item M-x find-variable @key{RET} @var{variable} @key{RET}
+Find the definition of the @var{variable} at point.
+@item M-x find-function-on-key @var{key}
+Find the definition of the function that @var{key} invokes.
+@end table
+
 The Find-func package provides convenient facilities for finding the
 definitions of Emacs Lisp functions and variables.  It has a somewhat
 similar function to the Tags facility (@pxref{Tags}) but uses Emacs's
@@ -2059,8 +2160,8 @@ the code actually running and doesn't require maintaining tags files.
 
 You need to have the Lisp source (@samp{.el}) files available on your
 load path along with the compiled (@samp{.elc}) versions for this to
-work.  The sources may be compressed if you turn on
-@samp{auto-compression-mode}.
+work.  You can use compressed source files if you turn on
+@code{auto-compression-mode}.
 
 The commands available include @kbd{M-x find-function} to find the
 definition of a named function, @kbd{find-function-on-key} to find the
@@ -2071,24 +2172,6 @@ primitively in the Emacs layer implemented in C.
 
 Find-func is useful for finding examples of how to do things if you want
 to write an Emacs Lisp extension similar to some existing function.
-
-@item Imenu (indexing in a buffer)
-The Imenu package provides navigation amongst items indexed in the current
-buffer.  @xref{Imenu}.
-
-@item Info-lookup (finding documentation of items)
-@cindex Info
-@cindex documentation lookup
-The Info-lookup package provides a major mode-sensitive facility for
-looking up definitions in Info indexes.  @xref{Documentation}.
-
-@item Speedbar (navigation bar)
-@findex speedbar
-@cindex browser
-Speedbar maintains a frame in which files, and locations in files are
-displayed.  @xref{Speedbar}.
-
-@end table
 
 @node Dissociated Press, Amusements, Hyperlinking, Top
 @section Dissociated Press
@@ -2175,6 +2258,12 @@ puzzle with letters standing for digits in a code that you must
 guess---to guess a value, type a letter and then the digit you think it
 stands for.  The aim of @code{5x5} is to fill in all the squares.
 
+@findex decipher
+@cindex ciphers
+@cindex cryptanalysis
+@kbd{M-x decipher} helps you to cryptanalyze a buffer which is encrypted
+in a simple monoalphabetic substitution cipher.
+
 @findex dunnet
   @kbd{M-x dunnet} runs an adventure-style exploration game, which is
 a bigger sort of puzzle.
@@ -2189,10 +2278,30 @@ unique olfactory cues from each of the four directions.
 @cindex Life
 @kbd{M-x life} runs Conway's `Life' cellular automaton.
 
+@findex morse-region
+@findex unmorse-region
+@cindex Morse code
+@cindex --/---/.-./.../.
+@kbd{M-x morse-region} converts text in a region to Morse code and
+@kbd{M-x unmorse-region} converts it back.  No cause for remorse.
+
+@findex pong
+@cindex Pong game
+@kbd{M-x pong} plays an implementation of the game Pong, bouncing the
+ball off opposing bats.
+
 @findex solitaire
 @cindex solitaire
 @kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
 across other pegs.
+
+@findex studlify-region
+@cindex StudlyCaps
+@kbd{M-x studlify-region} studlify-cases the region, that is
+
+@example
+M-x stUdlIfY-RegioN stUdlIfY-CaSeS thE region.
+@end example
 
 @findex tetris
 @cindex Tetris
