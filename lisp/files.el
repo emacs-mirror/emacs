@@ -703,16 +703,10 @@ The buffer is not selected, just returned to the caller."
 	  (condition-case ()
 	      (insert-file-contents filename t)
 	    (file-error
-	     (setq error t)
 	     ;; Run find-file-not-found-hooks until one returns non-nil.
-	     (let ((hooks find-file-not-found-hooks))
-	       (while (and hooks
-			   (not (and (funcall (car hooks))
-				     ;; If a hook succeeded, clear error.
-				     (progn (setq error nil)
-					    ;; Also exit the loop.
-					    t))))
-		 (setq hooks (cdr hooks))))))
+	     (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
+		 ;; If they fail too, set error.
+		 (setq error t))))
 	  ;; Find the file's truename, and maybe use that as visited name.
 	  (setq buffer-file-truename truename)
 	  (setq buffer-file-number number)
@@ -787,7 +781,7 @@ Finishes by calling the functions in `find-file-hooks'."
     (if (and auto-save-default (not noauto))
 	(auto-save-mode t)))
   (normal-mode t)
-  (mapcar 'funcall find-file-hooks))
+  (run-hooks 'find-file-hooks))
 
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
@@ -1635,15 +1629,12 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	       (save-excursion
 		 (goto-char (point-max))
 		 (insert ?\n)))
-	  (let ((hooks (append write-contents-hooks local-write-file-hooks
-			       write-file-hooks))
-		(done nil))
-	    (while (and hooks
-			(not (setq done (funcall (car hooks)))))
-	      (setq hooks (cdr hooks)))
-	    ;; If a hook returned t, file is already "written".
-	    (cond ((not done)
-		   (setq setmodes (basic-save-buffer-1)))))
+	  (or (run-hook-with-args-until-success 'write-contents-hooks)
+	      (run-hook-with-args-until-success 'local-write-file-hooks)
+	      (run-hook-with-args-until-success 'write-file-hooks)
+	      ;; If a hook returned t, file is already "written".
+	      ;; Otherwise, write it the usual way now.
+	      (setq setmodes (basic-save-buffer-1)))
 	  (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
 	  (if setmodes
 	      (condition-case ()
@@ -2229,12 +2220,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	     (or (not active)
 		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
        ;; Query the user for other things, perhaps.
-       (let ((functions kill-emacs-query-functions)
-	     (yes t))
-	 (while (and functions yes)
-	   (setq yes (and yes (funcall (car functions))))
-	   (setq functions (cdr functions)))
-	 yes)
+       (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (kill-emacs)))
 
 (define-key ctl-x-map "\C-f" 'find-file)
