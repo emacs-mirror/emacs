@@ -108,7 +108,7 @@ and width.
 * Parameter Access::       How to change a frame's parameters.
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
 * X Frame Parameters::     Individual parameters documented.
-* Size And Position::      Changing the size and position of a frame.
+* Size and Position::      Changing the size and position of a frame.
 @end menu
 
 @node Parameter Access
@@ -174,10 +174,12 @@ The screen position of the left edge, in pixels.
 The screen position of the top edge, in pixels.
 
 @item height
-The height of the frame contents, in pixels.
+The height of the frame contents, in characters.  (To get the height in
+pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 
 @item width
-The width of the frame contents, in pixels.
+The width of the frame contents, in characters.  (To get the height in
+pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
 @item window-id
 The number of the X window for the frame.
@@ -260,7 +262,7 @@ application's window.  (It is not certain this will be implemented; try
 it and see if it works.)
 @end table
 
-@node Size And Position
+@node Size and Position
 @subsection Frame Size And Position
 
   You can read or change the size and position of a frame using the
@@ -300,12 +302,12 @@ the selected frame.
 @end defun
 
 @defun set-frame-size frame cols rows
-This function sets the size of @var{frame}, measured in
-characters; @var{cols} and @var{rows} specify the new width and height.
+This function sets the size of @var{frame}, measured in characters;
+@var{cols} and @var{rows} specify the new width and height.
 
-To set the size with values measured in pixels, use
-@code{modify-frame-parameters} to set the @code{width} and @code{height}
-parameters.  @xref{X Frame Parameters}.
+To set the size based on values measured in pixels, use
+@code{frame-char-height} and @code{frame-char-width} to convert
+them to units of characters.
 @end defun
 
   The old-fashioned functions @code{set-screen-height} and
@@ -402,17 +404,22 @@ direction.
 @node Frames and Windows
 @section Frames and Windows
 
-All the non-minibuffer windows in a frame are arranged in a tree of
-subdivisions; the root of this tree is available via the function
-@code{frame-root-window}.  Each window is part of one and
-only one frame; you can get the frame with @code{window-frame}.
-
-@defun frame-root-window frame
-This returns the root window of frame @var{frame}.
-@end defun
+  Each window is part of one and only one frame; you can get the frame
+with @code{window-frame}.
 
 @defun window-frame window
 This function returns the frame that @var{window} is on.
+@end defun
+
+  All the non-minibuffer windows in a frame are arranged in a cyclic
+order.  The order runs from the frame's top window, which is at the
+upper left corner, down and to the right, until it reaches the window at
+the lower right corner (always the minibuffer window, if the frame has
+one), and then it moves back to the top.
+
+@defun frame-top-window frame
+This returns the topmost, leftmost window of frame @var{frame}.
+This is a window
 @end defun
 
 At any time, exactly one window on any frame is @dfn{selected within the
@@ -689,21 +696,26 @@ give access to the current position of the mouse.
 @defun mouse-position
 This function returns a description of the position of the mouse.  The
 value looks like @code{(@var{frame} @var{x} . @var{y})}, where @var{x}
-and @var{y} are integers giving the position in pixels relative to the
-top left corner of the inside of @var{frame}.
+and @var{y} are integers giving the position in characters relative to
+the top left corner of the inside of @var{frame}.
 @end defun
 
 @defun set-mouse-position frame x y
 This function @dfn{warps the mouse} to position @var{x}, @var{y} in
 frame @var{frame}.  The arguments @var{x} and @var{y} are integers,
-giving the position in pixels relative to the top left corner of the
+giving the position in characters relative to the top left corner of the
 inside of @var{frame}.
+@end defun
 
-@cindex warping the mouse
-@cindex mouse warping
-Warping the mouse means changing the screen position of the mouse as if
-the user had moved the physical mouse---thus simulating the effect of
-actual mouse motion.
+@defun mouse-pixel-position
+This function is like @code{mouse-position} except that it returns
+coordinates in units of pixels rather than units of characters.
+@end defun
+
+@defun set-mouse-pixel-position frame x y
+This function warps the mouse like @code{set-mouse-position} except that
+@var{x} and @var{y} are in units of pixels rather than units of
+characters.  These coordinates are not required to be within the frame.
 @end defun
 
 @need 3000
@@ -724,8 +736,8 @@ where the user actuated the button) or a list of this form:
 @end example
 
 @noindent
-where @var{xoffset} and @var{yoffset} are positions measured in
-characters, counting from the top left corner of @var{window}'s frame.
+where @var{xoffset} and @var{yoffset} are coordinates, measured in
+pixels, counting from the top left corner of @var{window}'s frame.
 
 If @var{position} is @code{t}, it means to use the current mouse
 position.  If @var{position} is @code{nil}, it means to precompute the
@@ -779,17 +791,33 @@ what selection the user makes.  The argument @var{contents} specifies
 the alternatives to offer; it has this format:
 
 @example
-(@var{title} (@var{string} @var{value})@dots{})
+(@var{title} (@var{string} . @var{value})@dots{})
 @end example
 
 @noindent
 which looks like the list that specifies a single pane for
 @code{x-popup-menu}.
 
+The return value is @var{value} from the chosen alternative.
+
+An element of the list may be just a string instead of a cons cell
+@code{(@var{string} . @var{value})}.  That makes a box that cannot
+be selected.
+
+If @code{nil} appears in the list, it separates the left-hand items from
+the right-hand items; items that precede the @code{nil} appear on the
+left, and items that follow the @code{nil} appear on the right.  If you
+don't include a @code{nil} in the list, then approximately half the
+items appear on each side.
+
 Dialog boxes always appear in the center of a frame; the argument
 @var{position} specifies which frame.  The possible values are as in
 @code{x-popup-menu}, but the precise coordinates don't matter; only the
 frame matters.
+
+If your Emacs executable does not use an X toolkit, then it cannot
+display a real dialog box; so instead it displays the same items in a
+pop-up menu in the center of the frame.
 @end defun
 
 @node X Selections
@@ -1011,4 +1039,5 @@ width and height of an X Window frame, measured in pixels.
 
 @item
 x-pointer-shape, x-nontext-pointer-shape, x-mode-pointer-shape.
+x-cross-pointer-shape.
 @end ignore
