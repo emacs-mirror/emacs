@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2004-06-13 14:22:25 teirllm>
+;; Maintainer's Time-stamp: <2004-06-13 19:04:36 teirllm>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -243,6 +243,7 @@ of the time-stamped file itself.")
 A template in a file can be automatically updated with a new time stamp
 every time you save the file.  Add this line to your .emacs file:
     (add-hook 'before-save-hook 'time-stamp)
+or customize `before-save-hook' through Custom.
 Normally the template must appear in the first 8 lines of a file and
 look like one of the following:
       Time-stamp: <>
