@@ -67,6 +67,41 @@ or nil if current info file is not split into subfiles.")
   "Marker pointing at beginning of current Info file's tag table.
 Marker points nowhere if file has no tag table.")
 
+(defvar Info-index-alternatives nil
+  "List of possible matches for last Info-index command.")
+
+(defvar Info-suffix-list '( (""        . nil)
+			    (".info"   . nil)
+			    (".Z"      . "uncompress")
+			    (".Y"      . "unyabba")
+			    (".z"      . "gunzip")
+			    (".info.Z" . "uncompress")
+			    (".info.Y" . "unyabba")
+			    (".z"      . "gunzip"))
+  "List of file name suffixes and associated decoding commands.
+Each entry should be (SUFFIX . STRING); the file is given to
+the command as standard input.  If STRING is nil, no decoding is done.")
+
+(defun info-insert-file-contents (filename &optional visit)
+  "Insert the contents of an info file in the current buffer.
+Do the right thing if the file has been compressed or zipped."
+  (if (null (catch 'ok
+	      (mapcar
+	       (function
+		(lambda (x)
+		  (let ((compressed (concat filename (car x))))
+		    (if (file-exists-p compressed)
+			(progn
+			  (insert-file-contents compressed visit)
+			  (if (cdr x)
+			      (let ((buffer-read-only nil))
+				(shell-command-on-region
+				 (point-min) (point-max) (cdr x) t)))
+			  (throw 'ok t))))))
+	       Info-suffix-list)
+	      nil))
+      (error "Can't find %s or any compressed version of it!" filename)))
+
 ;;;###autoload
 (defun info (&optional file)
   "Enter Info, the documentation browser.
@@ -118,15 +153,19 @@ to read a file name from the minibuffer."
 	      (setq temp-downcase
 		    (expand-file-name (downcase filename) (car dirs)))
 	      ;; Try several variants of specified name.
-	      ;; Try downcasing, appending `.info', or both.
-	      (cond ((file-exists-p temp)
-		     (setq found temp))
-		    ((file-exists-p temp-downcase)
-		     (setq found temp-downcase))
-		    ((file-exists-p (concat temp ".info"))
-		     (setq found (concat temp ".info")))
-		    ((file-exists-p (concat temp-downcase ".info"))
-		     (setq found (concat temp-downcase ".info"))))
+	      (catch 'foundit
+		(mapcar
+		 (function
+		  (lambda (x)
+		    (if (file-exists-p (concat temp (car x)))
+			(progn
+			  (setq found temp)
+			  (throw 'foundit nil)))
+		    (if (file-exists-p (concat temp-downcase (car x)))
+			(progn
+			  (setq found temp-downcase)
+			  (throw 'foundit nil)))))
+		 Info-suffix-list))
 	      (setq dirs (cdr dirs)))))
 	(if found
 	    (setq filename found)
@@ -151,11 +190,12 @@ to read a file name from the minibuffer."
 	    (let ((buffer-read-only nil))
 	      (setq Info-current-file nil
 		    Info-current-subfile nil
+		    Info-index-alternatives nil
 		    buffer-file-name nil)
 	      (erase-buffer)
 	      (if (eq filename t)
 		  (Info-insert-dir)
-		(insert-file-contents filename t)
+		(info-insert-file-contents filename t)
 		(setq default-directory (file-name-directory filename)))
 	      (set-buffer-modified-p nil)
 	      ;; See whether file has a tag table.  Record the location if yes.
@@ -381,7 +421,7 @@ to read a file name from the minibuffer."
 	  (setq buffer-file-name nil)
 	  (widen)
 	  (erase-buffer)
-	  (insert-file-contents lastfilename)
+	  (info-insert-file-contents lastfilename)
 	  (set-buffer-modified-p nil)
 	  (setq Info-current-subfile lastfilename)))
     (goto-char (point-min))
@@ -870,6 +910,98 @@ N is the digit argument used to invoke this command."
       (scroll-down))
   )
 
+(defun Info-index (topic)
+  "Look up a string in the index for this file.
+The index is defined as the first node in the top-level menu whose
+name contains the word \"Index\", plus any immediately following
+nodes whose names also contain the word \"Index\".
+If there are no exact matches to the specified topic, this chooses
+the first match which is a case-insensitive substring of a topic.
+Use the `,' command to see the other matches.
+Give a blank topic name to go to the Index node itself."
+  (interactive "sIndex topic: ")
+  (let ((orignode Info-current-node)
+	(rnode nil)
+	(pattern (format "\n\\* \\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ t]*\\([0-9]*\\)"
+			 (regexp-quote topic)))
+	node)
+    (Info-goto-node "Top")
+    (or (search-forward "\n* menu:" nil t)
+	(error "No index"))
+    (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
+	(error "No index"))
+    (goto-char (match-beginning 1))
+    (let ((Info-keeping-history nil))
+      (Info-goto-node (Info-extract-menu-node-name)))
+    (or (equal topic "")
+	(let ((matches nil)
+	      (exact nil)
+	      (Info-keeping-history nil)
+	      found)
+	  (while
+	      (progn
+		(goto-char (point-min))
+		(while (re-search-forward pattern nil t)
+		  (setq matches
+			(cons (list (buffer-substring (match-beginning 1)
+						      (match-end 1))
+				    (buffer-substring (match-beginning 2)
+						      (match-end 2))
+				    Info-current-node
+				    (string-to-int (concat "0"
+							   (buffer-substring
+							    (match-beginning 3)
+							    (match-end 3)))))
+			      matches)))
+		(and (setq node (Info-extract-pointer "next" t))
+		     (string-match "\\<Index\\>" node)))
+	    (Info-goto-node node))
+	  (or matches
+	      (progn
+		(Info-last)
+		(error "No \"%s\" in index" topic)))
+	  ;; Here it is a feature that assoc is case-sensitive.
+	  (while (setq found (assoc topic matches))
+	    (setq exact (cons found exact)
+		  matches (delq found matches)))
+	  (setq Info-index-alternatives (nconc exact (nreverse matches)))
+	  (Info-index-next 0)))))
+
+(defun Info-index-next (num)
+  "Go to the next matching index item from the last `i' command."
+  (interactive "p")
+  (or Info-index-alternatives
+      (error "No previous `i' command in this file"))
+  (while (< num 0)
+    (setq num (+ num (length Info-index-alternatives))))
+  (while (> num 0)
+    (setq Info-index-alternatives
+	  (nconc (cdr Info-index-alternatives)
+		 (list (car Info-index-alternatives)))
+	  num (1- num)))
+  (Info-goto-node (nth 1 (car Info-index-alternatives)))
+  (if (> (nth 3 (car Info-index-alternatives)) 0)
+      (forward-line (nth 3 (car Info-index-alternatives)))
+    (forward-line 3)  ; don't search in headers
+    (let ((name (car (car Info-index-alternatives))))
+      (if (or (re-search-forward (format
+				  "\\(Function\\|Command\\): %s\\( \\|$\\)"
+				  (regexp-quote name)) nil t)
+	      (search-forward (format "`%s'" name) nil t)
+	      (and (string-match "\\`.*\\( (.*)\\)\\'" name)
+		   (search-forward
+		    (format "`%s'" (substring name 0 (match-beginning 1)))
+		    nil t))
+	      (search-forward name nil t))
+	  (beginning-of-line)
+	(goto-char (point-min)))))
+  (message "Found \"%s\" in %s.  %s"
+	   (car (car Info-index-alternatives))
+	   (nth 2 (car Info-index-alternatives))
+	   (if (cdr Info-index-alternatives)
+	       "(Press `,' for more)"
+	     "(Only match)")))
+
 (defun Info-undefined ()
   "Make command be undefined in Info."
   (interactive)
@@ -991,13 +1123,16 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "f" 'Info-follow-reference)
   (define-key Info-mode-map "g" 'Info-goto-node)
   (define-key Info-mode-map "h" 'Info-help)
+  (define-key Info-mode-map "i" 'Info-index)
   (define-key Info-mode-map "l" 'Info-last)
   (define-key Info-mode-map "m" 'Info-menu)
   (define-key Info-mode-map "n" 'Info-next)
   (define-key Info-mode-map "p" 'Info-prev)
   (define-key Info-mode-map "q" 'Info-exit)
   (define-key Info-mode-map "s" 'Info-search)
+  (define-key Info-mode-map "t" 'Info-top)
   (define-key Info-mode-map "u" 'Info-up)
+  (define-key Info-mode-map "," 'Info-index-next)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
   (define-key Info-mode-map [mouse-3] 'Info-follow-nearest-node)
   )
@@ -1023,6 +1158,8 @@ Selecting other nodes:
 \\[Info-directory]	Go to the Info directory node.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
 \\[Info-last]	Move to the last node you were at.
+\\[Info-index]	Look up a topic in this file's Index and move to that node.
+\\[Info-index-next]	(comma) Move to the next match from a previous `i' command.
 
 Moving within a node:
 \\[scroll-up]	Normally, scroll forward a full screen.  If the end of the buffer is
@@ -1056,6 +1193,7 @@ Advanced commands:
   (make-local-variable 'Info-current-node)
   (make-local-variable 'Info-tag-table-marker)
   (make-local-variable 'Info-history)
+  (make-local-variable 'Info-index-alternatives)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 
