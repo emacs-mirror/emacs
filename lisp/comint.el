@@ -24,7 +24,6 @@
 ;;; merge them into the master source.
 ;;;     - Olin Shivers (shivers@cs.cmu.edu)
 
-;;; This hopefully generalises shell mode, lisp mode, tea mode, soar mode,...
 ;;; This file defines a general command-interpreter-in-a-buffer package
 ;;; (comint mode). The idea is that you can build specific process-in-a-buffer
 ;;; modes on top of comint mode -- e.g., lisp, shell, scheme, T, soar, ....
@@ -1183,13 +1182,10 @@ it just adds completion characters to the end of the filename."
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================
-;;; Several gnu packages (tex-mode, background, dbx, gdb, kermit, prolog, 
-;;; telnet are some) use the shell package as clients. Most of them would
-;;; be better off using the comint package, but they predate it. 
+;;; The code in the Emacs 19 distribution has all been modified to use comint
+;;; where needed.  However, there are `third-party' packages out there that
+;;; still use the old shell mode.  Here's a guide to conversion.
 ;;;
-;;; Altering these packages to use comint mode should greatly
-;;; improve their functionality, and is fairly easy.
-;;; 
 ;;; Renaming variables
 ;;; Most of the work is renaming variables and functions. These are the common
 ;;; ones:
