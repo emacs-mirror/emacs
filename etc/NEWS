@@ -410,9 +410,6 @@ screen size.  (For now, this does not work with some window managers.)
 ** Info-index offers completion.
 
 ---
-** shell-mode now supports programmable completion using `pcomplete'.
-
----
 ** Emacs now tries to set up buffer coding systems for HTML/XML files
 automatically.
 
