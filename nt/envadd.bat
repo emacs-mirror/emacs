@@ -42,3 +42,7 @@ rem Eat the "/C"
 shift
 rem Now, run the command line
 %1 %2 %3 %4 %5 %6 %7 %8 %9
+
+goto skipArchTag
+   arch-tag: 148c5181-dbce-43ae-bba6-1cc6e2a9ea75
+:skipArchTag
