@@ -8629,7 +8629,7 @@ xaw_jump_callback (widget, client_data, call_data)
    i.e. line or page up or down.  WIDGET is the Xaw scroll bar
    widget.  CLIENT_DATA is a pointer to the scroll_bar structure for
    the scroll bar.  CALL_DATA is an integer specifying the action that
-   has taken place.  It's magnitude is in the range 0..height of the
+   has taken place.  Its magnitude is in the range 0..height of the
    scroll bar.  Negative values mean scroll towards buffer start.
    Values < height of scroll bar mean line-wise movement.  */
 
@@ -8639,7 +8639,8 @@ xaw_scroll_callback (widget, client_data, call_data)
      XtPointer client_data, call_data;
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
-  int position = (int) call_data;
+  /* Fixme: Check this.  */
+  long position = (long) call_data;
   Dimension height;
   int part;
 
@@ -10647,8 +10648,18 @@ XTread_socket (sd, bufp, numchars, expected)
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = keysym;
-			  if (! EQ ((c = Fgethash (make_number (keysym),
-						   Vx_keysym_table, Qnil)),
+			  /* First deal with keysyms which have
+			     defined translations to characters.  */
+			  if (keysym > 0 && keysym < 128)
+			    /* Fixme: Is this always right?  It avoids
+			       explicitly decoding each ASCII character.  */
+			    {
+			      bufp->kind = ascii_keystroke;
+			      bufp->code = c;			      
+			    }
+			  else if (! EQ ((c = Fgethash (make_number (keysym),
+							Vx_keysym_table,
+							Qnil)),
 				    Qnil))
 			    {
 			      bufp->kind = (ASCII_CHAR_P (c)
@@ -10657,6 +10668,9 @@ XTread_socket (sd, bufp, numchars, expected)
 			      bufp->code = c;
 			    }
 			  else
+			    /* Not a character keysym.
+			       make_lispy_event will convert it to a
+			       symbolic key.  */
 			    {
 			      bufp->kind = non_ascii_keystroke;
 			      bufp->code = keysym;
@@ -10672,7 +10686,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			  numchars--;
 			}
 		      else if (numchars > nbytes)
-			{
+			{	/* Raw characters, not keysym.  */
 			  register int i;
 			  register int c;
 			  int nchars, len;
@@ -10685,26 +10699,26 @@ XTread_socket (sd, bufp, numchars, expected)
 			      temp_buffer[temp_index++] = copy_bufptr[i];
 			    }
 
-			    { 
-			      /* Decode the input data.  */
-			      coding.destination
-				= (unsigned char *) malloc (nbytes);
-			      if (! coding.destination)
-				break;
-			      coding.dst_bytes = nbytes;
-			      coding.mode |= CODING_MODE_LAST_BLOCK;
-			      decode_coding_c_string (&coding, copy_bufptr,
-						      nbytes, Qnil);
-			      nbytes = coding.produced;
-			      nchars = coding.produced_char;
-			      if (copy_bufsiz < nbytes)
-				{
-				  copy_bufsiz = nbytes;
-				  copy_bufptr = (char *) alloca (nbytes);
-				}
-			      bcopy (coding.destination, copy_bufptr, nbytes);
-			      free (coding.destination);
-			    }
+			  { 
+			    /* Decode the input data.  */
+			    coding.destination
+			      = (unsigned char *) malloc (nbytes);
+			    if (! coding.destination)
+			      break;
+			    coding.dst_bytes = nbytes;
+			    coding.mode |= CODING_MODE_LAST_BLOCK;
+			    decode_coding_c_string (&coding, copy_bufptr,
+						    nbytes, Qnil);
+			    nbytes = coding.produced;
+			    nchars = coding.produced_char;
+			    if (copy_bufsiz < nbytes)
+			      {
+				copy_bufsiz = nbytes;
+				copy_bufptr = (char *) alloca (nbytes);
+			      }
+			    bcopy (coding.destination, copy_bufptr, nbytes);
+			    free (coding.destination);
+			  }
 
 			  /* Convert the input data to a sequence of
 			     character events.  */
@@ -15301,9 +15315,9 @@ default is nil, which is the same as `super'.  */);
 
   DEFVAR_LISP ("x-keysym-table", &Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vx_keysym_table = make_hash_table (Qeql, make_number (800),
-				     make_number (DEFAULT_REHASH_SIZE),
-				     make_number (DEFAULT_REHASH_THRESHOLD),
+  Vx_keysym_table = make_hash_table (Qeql, make_number (900),
+				     make_float (DEFAULT_REHASH_SIZE),
+				     make_float (DEFAULT_REHASH_THRESHOLD),
 				     Qnil, Qnil, Qnil);
 }
 
