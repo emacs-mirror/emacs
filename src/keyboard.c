@@ -1948,6 +1948,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    abort ();
 	  *tailp = Fcons (c, Qnil);
 	  kb->kbd_queue_has_data = 1;
+	  c = Qnil;
 	  if (single_kboard)
 	    goto wrong_kboard;
 	  current_kboard = kb;
