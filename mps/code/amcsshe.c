@@ -5,6 +5,7 @@
  */
 
 #include "fmthe.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -44,100 +45,6 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static mps_addr_t bogusRoots[bogusRootsCOUNT];
 
-
-
-static mps_word_t *ww = NULL;
-static mps_word_t *tvw;
-
-
-static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
-                                mps_word_t es, mps_word_t vf)
-{
-  /* VERSION- ... VB------ reserved ES---VF- */
-  return((version << (MPS_WORD_WIDTH - 8)) |
-	 (vb << 16) |
-	 (es << 3) |
-	 vf);
-}
-
-
-static mps_res_t init(mps_addr_t addr, size_t size,
-                      mps_addr_t *refs, size_t nr_refs)
-{
-
-  /* Make sure the size is aligned. */
-  if ((size & (ALIGN-1)) != 0) return MPS_RES_PARAM;
-
-  if (ww == NULL) {
-    ww = malloc(sizeof(mps_word_t) * (BASIC_WRAPPER_SIZE + 1));
-    if (ww == NULL) return MPS_RES_MEMORY;
-    tvw = malloc(sizeof(mps_word_t) * BASIC_WRAPPER_SIZE);
-    if (tvw == NULL) {
-      free(ww);
-      return MPS_RES_MEMORY;
-    }
-
-    /* Build a wrapper wrapper. */
-    ww[WW] = (mps_word_t)ww;
-    ww[WC] = (mps_word_t)ww;     /* dummy class */
-    ww[WM] = (1 << 2) | 1;       /* dummy subtype_mask */
-    ww[WF] = ((WS - 1) << 2) | 2;
-    ww[WV] = dylan_make_WV(2, 0, 0, 0);
-    ww[WS] = (1 << 2) | 1;
-    ww[WP] = 1;
-
-    /* Build a wrapper for traceable vectors. */
-    tvw[WW] = (mps_word_t)ww;
-    tvw[WC] = (mps_word_t)ww;    /* dummy class */
-    tvw[WM] = (1 << 2) | 1;      /* dummy subtype_mask */
-    tvw[WF] = 0;                 /* no fixed part */
-    tvw[WV] = dylan_make_WV(2, 0, 0, 2); /* traceable variable part */
-    tvw[WS] = 1;                 /* no patterns */
-  }
-
-  /* If there is enough room, make a vector, otherwise just */
-  /* make a padding object. */
-
-  if (size >= sizeof(mps_word_t) * 2) {
-    mps_word_t *p = (mps_word_t *)addr;
-    mps_word_t i, t = (size / sizeof(mps_word_t)) - 2;
-
-    p[0] = (mps_word_t)tvw;     /* install vector wrapper */
-    p[1] = (t << 2) | 1;        /* tag the vector length */
-    for(i = 0; i < t; ++i) {
-      mps_word_t r = rnd();
-
-      if (r & 1)
-        p[2+i] = ((r & ~(mps_word_t)3) | 1); /* random int */
-      else
-        p[2+i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */
-    }
-  } else {
-    die(MPS_RES_FAIL, "small object");
-  }
-
-  return MPS_RES_OK;
-}
-
-
-static void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
-{
-  mps_word_t *p = (mps_word_t *)addr;
-  mps_word_t t = p[1] >> 2;
-
-  /* If the object is a vector, update a random entry. */
-  if (p[0] == (mps_word_t)tvw && t > 0) {
-    mps_word_t r = rnd();
-    size_t i = 2 + (rnd() % t);
-
-    if (r & 1)
-      p[i] = ((r & ~(mps_word_t)3) | 1); /* random int */
-    else
-      p[i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */
-  }
-}
-
-
 static mps_addr_t make(void)
 {
   size_t length = rnd() % (2*avLEN);
@@ -150,7 +57,7 @@ static mps_addr_t make(void)
     if (res)
       die(res, "MPS_RESERVE_BLOCK");
     userP = (mps_addr_t)((char*)p + headerSIZE);
-    res = init(userP, size, exactRoots, exactRootsCOUNT);
+    res = dylan_init(userP, size, exactRoots, exactRootsCOUNT);
     if (res)
       die(res, "dylan_init");
     ((int*)p)[0] = realHeader;

@@ -191,8 +191,9 @@ SNC = poolsnc.c
 POOLN = pooln.c
 MVFF = poolmvff.c
 TESTLIB = testlib.c
-FMTDY = fmtdy.c
-FMTDYTST = fmtdy.c fmtdytst.c
+FMTDY = fmtdy.c fmtno.c
+FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
+FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c eventpro.c table.c
@@ -262,7 +263,7 @@ TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTDYTSTDEP = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d)
+FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -277,7 +278,7 @@ endif
 # %%TARGET: Add the target to the all dependencies, if it uses the
 # CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
 
-all: mpmss sacss amcss amcsshe amsss segsmss awlut awluthe \
+all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
      finalcv arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest \
@@ -289,7 +290,7 @@ swall: mmsw.a epvmss replaysw epdss
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut awluthe \
+testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
          mpsicv lockcov poolncv locv qs finalcv arenacv \
          abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
@@ -304,7 +305,7 @@ testrunep: epvmss epdss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth \
+mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
   finalcv arenacv bttest teletest epvmss epdss \
   abqtest cbstest btcv mv2test \
@@ -393,10 +394,13 @@ $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
-	$(PFM)/$(VARIETY)/fmthe.o $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTHETSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
+	$(FMTHETSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
@@ -411,7 +415,7 @@ $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
-	$(PFM)/$(VARIETY)/fmthe.o $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+        $(FMTHETSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
