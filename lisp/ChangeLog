@@ -1,3 +1,8 @@
+2004-09-15  Miles Bader  <miles@gnu.org>
+
+	* generic.el (generic-make-keywords-list): Use symbol rather than
+	word anchors in regexp.
+
 2004-09-14  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* ibuf-ext.el (define-ibuffer-filter filename): If buffer has
