@@ -1172,6 +1172,7 @@ without any interpretation."
    ;; Give temporary modes such as isearch a chance to turn off.
    (run-hooks 'mouse-leave-buffer-hook)
    (setq this-command 'yank)
+   (mouse-set-point click)
    (term-send-raw-string (current-kill (cond
 					((listp arg) 0)
 					((eq arg '-) -1)
