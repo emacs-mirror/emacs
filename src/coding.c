@@ -318,6 +318,9 @@ Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
 Lisp_Object Qstart_process, Qopen_network_stream;
 Lisp_Object Qtarget_idx;
 
+Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
+Lisp_Object Qinterrupted, Qinsufficient_memory;
+
 int coding_system_require_warning;
 
 Lisp_Object Vselect_safe_coding_system_function;
@@ -347,7 +350,8 @@ Lisp_Object Vcoding_system_for_read;
 Lisp_Object Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
 Lisp_Object Vlast_coding_system_used;
-
+/* Set to non-nil when an error is detected while code conversion.  */
+Lisp_Object Vlast_code_conversion_error;
 /* A vector of length 256 which contains information about special
    Latin codes (especially for dealing with Microsoft codes).  */
 Lisp_Object Vlatin_extra_code_table;
@@ -406,6 +410,8 @@ Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
 
 
+static void record_conversion_result (struct coding_system *coding,
+				      enum coding_result_code result);
 static int detect_coding_utf_8 P_ ((struct coding_system *,
 				    struct coding_detection_info *info));
 static void decode_coding_utf_8 P_ ((struct coding_system *));
@@ -718,40 +724,52 @@ static struct coding_system coding_categories[coding_category_max];
 
 /* Safely get one byte from the source text pointed by SRC which ends
    at SRC_END, and set C to that byte.  If there are not enough bytes
-   in the source, it jumps to `no_more_source'.  The caller
-   should declare and set these variables appropriately in advance:
-	src, src_end, multibytep
-*/
+   in the source, it jumps to `no_more_source'.  If multibytep is
+   nonzero, and a multibyte character is found at SRC, set C to the
+   negative value of the character code.  The caller should declare
+   and set these variables appropriately in advance:
+	src, src_end, multibytep */
 
-#define ONE_MORE_BYTE(c)					\
-  do {								\
-    if (src == src_end)						\
-      {								\
-	if (src_base < src)					\
-	  coding->result = CODING_RESULT_INSUFFICIENT_SRC;	\
-	goto no_more_source;					\
-      }								\
-    c = *src++;							\
-    if (multibytep && (c & 0x80))				\
-      {								\
-	if ((c & 0xFE) != 0xC0)					\
-	  error ("Undecodable char found");			\
-	c = ((c & 1) << 6) | *src++;				\
-      }								\
-    consumed_chars++;						\
+#define ONE_MORE_BYTE(c)				\
+  do {							\
+    if (src == src_end)					\
+      {							\
+	if (src_base < src)				\
+	  record_conversion_result			\
+	    (coding, CODING_RESULT_INSUFFICIENT_SRC);	\
+	goto no_more_source;				\
+      }							\
+    c = *src++;						\
+    if (multibytep && (c & 0x80))			\
+      {							\
+	if ((c & 0xFE) == 0xC0)				\
+	  c = ((c & 1) << 6) | *src++;			\
+	else						\
+	  {						\
+	    c = - string_char (--src, &src, NULL);	\
+	    record_conversion_result			\
+	      (coding, CODING_RESULT_INVALID_SRC);	\
+	  }						\
+      }							\
+    consumed_chars++;					\
   } while (0)
 
 
-#define ONE_MORE_BYTE_NO_CHECK(c)		\
-  do {						\
-    c = *src++;					\
-    if (multibytep && (c & 0x80))		\
-      {						\
-	if ((c & 0xFE) != 0xC0)			\
-	  error ("Undecodable char found");	\
-	c = ((c & 1) << 6) | *src++;		\
-      }						\
-    consumed_chars++;				\
+#define ONE_MORE_BYTE_NO_CHECK(c)			\
+  do {							\
+    c = *src++;						\
+    if (multibytep && (c & 0x80))			\
+      {							\
+	if ((c & 0xFE) == 0xC0)				\
+	  c = ((c & 1) << 6) | *src++;			\
+	else						\
+	  {						\
+	    c = - string_char (--src, &src, NULL);	\
+	    record_conversion_result			\
+	      (coding, CODING_RESULT_INVALID_SRC);	\
+	  }						\
+      }							\
+    consumed_chars++;					\
   } while (0)
 
 
@@ -838,6 +856,31 @@ static struct coding_system coding_categories[coding_category_max];
     EMIT_TWO_BYTES (c3, c4);			\
   } while (0)
 
+
+static void
+record_conversion_result (struct coding_system *coding,
+			  enum coding_result_code result)
+{
+  coding->result = result;
+  switch (result)
+    {
+    case CODING_RESULT_INSUFFICIENT_SRC:
+      Vlast_code_conversion_error = Qinsufficient_source;
+      break;
+    case CODING_RESULT_INCONSISTENT_EOL:
+      Vlast_code_conversion_error = Qinconsistent_eol;
+      break;
+    case CODING_RESULT_INVALID_SRC:
+      Vlast_code_conversion_error = Qinvalid_source;
+      break;
+    case CODING_RESULT_INTERRUPT:
+      Vlast_code_conversion_error = Qinterrupted;
+      break;
+    case CODING_RESULT_INSUFFICIENT_MEM:
+      Vlast_code_conversion_error = Qinsufficient_memory;
+      break;
+    }
+}
 
 #define CODING_DECODE_CHAR(coding, src, src_base, src_end, charset, code, c) \
   do {									     \
@@ -971,7 +1014,7 @@ alloc_destination (coding, nbytes, dst)
     coding_alloc_by_making_gap (coding, nbytes);
   else
     coding_alloc_by_realloc (coding, nbytes);
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding_set_destination (coding);
   dst = coding->destination + offset;
   return dst;
@@ -1049,12 +1092,11 @@ detect_coding_utf_8 (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
-  int incomplete;
 
   detect_info->checked |= CATEGORY_MASK_UTF_8;
   /* A coding system of this category is always ASCII compatible.  */
@@ -1064,13 +1106,12 @@ detect_coding_utf_8 (coding, detect_info)
     {
       int c, c1, c2, c3, c4;
 
-      incomplete = 0;
+      src_base = src;
       ONE_MORE_BYTE (c);
-      if (UTF_8_1_OCTET_P (c))
+      if (c < 0 || UTF_8_1_OCTET_P (c))
 	continue;
-      incomplete = 1;
       ONE_MORE_BYTE (c1);
-      if (! UTF_8_EXTRA_OCTET_P (c1))
+      if (c1 < 0 || ! UTF_8_EXTRA_OCTET_P (c1))
 	break;
       if (UTF_8_2_OCTET_LEADING_P (c))
 	{
@@ -1078,7 +1119,7 @@ detect_coding_utf_8 (coding, detect_info)
 	  continue;
 	}
       ONE_MORE_BYTE (c2);
-      if (! UTF_8_EXTRA_OCTET_P (c2))
+      if (c2 < 0 || ! UTF_8_EXTRA_OCTET_P (c2))
 	break;
       if (UTF_8_3_OCTET_LEADING_P (c))
 	{
@@ -1086,7 +1127,7 @@ detect_coding_utf_8 (coding, detect_info)
 	  continue;
 	}
       ONE_MORE_BYTE (c3);
-      if (! UTF_8_EXTRA_OCTET_P (c3))
+      if (c3 < 0 || ! UTF_8_EXTRA_OCTET_P (c3))
 	break;
       if (UTF_8_4_OCTET_LEADING_P (c))
 	{
@@ -1094,7 +1135,7 @@ detect_coding_utf_8 (coding, detect_info)
 	  continue;
 	}
       ONE_MORE_BYTE (c4);
-      if (! UTF_8_EXTRA_OCTET_P (c4))
+      if (c4 < 0 || ! UTF_8_EXTRA_OCTET_P (c4))
 	break;
       if (UTF_8_5_OCTET_LEADING_P (c))
 	{
@@ -1107,7 +1148,7 @@ detect_coding_utf_8 (coding, detect_info)
   return 0;
 
  no_more_source:
-  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
     {
       detect_info->rejected |= CATEGORY_MASK_UTF_8;
       return 0;
@@ -1143,14 +1184,18 @@ decode_coding_utf_8 (coding)
 	break;
 
       ONE_MORE_BYTE (c1);
-      if (UTF_8_1_OCTET_P(c1))
+      if (c1 < 0)
+	{
+	  c = - c1;
+	}
+      else if (UTF_8_1_OCTET_P(c1))
 	{
 	  c = c1;
 	}
       else
 	{
 	  ONE_MORE_BYTE (c2);
-	  if (! UTF_8_EXTRA_OCTET_P (c2))
+	  if (c2 < 0 || ! UTF_8_EXTRA_OCTET_P (c2))
 	    goto invalid_code;
 	  if (UTF_8_2_OCTET_LEADING_P (c1))
 	    {
@@ -1164,7 +1209,7 @@ decode_coding_utf_8 (coding)
 	  else
 	    {
 	      ONE_MORE_BYTE (c3);
-	      if (! UTF_8_EXTRA_OCTET_P (c3))
+	      if (c3 < 0 || ! UTF_8_EXTRA_OCTET_P (c3))
 		goto invalid_code;
 	      if (UTF_8_3_OCTET_LEADING_P (c1))
 		{
@@ -1177,7 +1222,7 @@ decode_coding_utf_8 (coding)
 	      else
 		{
 		  ONE_MORE_BYTE (c4);
-		  if (! UTF_8_EXTRA_OCTET_P (c4))
+		  if (c4 < 0 || ! UTF_8_EXTRA_OCTET_P (c4))
 		    goto invalid_code;
 		  if (UTF_8_4_OCTET_LEADING_P (c1))
 		    {
@@ -1189,7 +1234,7 @@ decode_coding_utf_8 (coding)
 		  else
 		    {
 		      ONE_MORE_BYTE (c5);
-		      if (! UTF_8_EXTRA_OCTET_P (c5))
+		      if (c5 < 0 || ! UTF_8_EXTRA_OCTET_P (c5))
 			goto invalid_code;
 		      if (UTF_8_5_OCTET_LEADING_P (c1))
 			{
@@ -1271,7 +1316,7 @@ encode_coding_utf_8 (coding)
 	  produced_chars++;
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -1331,7 +1376,7 @@ detect_coding_utf_16 (coding, detect_info)
 				| CATEGORY_MASK_UTF_16_BE_NOSIG
 				| CATEGORY_MASK_UTF_16_LE_NOSIG);
     }
-  else
+  else if (c1 >= 0 && c2 >= 0)
     {
       unsigned char b1[256], b2[256];
       int b1_variants = 1, b2_variants = 1;
@@ -1341,8 +1386,11 @@ detect_coding_utf_16 (coding, detect_info)
       b1[c1]++, b2[c2]++;
       for (n = 0; n < 256 && src < src_end; n++)
 	{
+	  src_base = src;
 	  ONE_MORE_BYTE (c1);
 	  ONE_MORE_BYTE (c2);
+	  if (c1 < 0 || c2 < 0)
+	    break;
 	  if (! b1[c1++]) b1_variants++;
 	  if (! b2[c2++]) b2_variants++;
 	}
@@ -1412,7 +1460,18 @@ decode_coding_utf_16 (coding)
 	break;
 
       ONE_MORE_BYTE (c1);
+      if (c1 < 0)
+	{
+	  *charbuf++ = -c1;
+	  continue;
+	}
       ONE_MORE_BYTE (c2);
+      if (c2 < 0)
+	{
+	  *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	  *charbuf++ = -c2;
+	  continue;
+	}
       c = (endian == utf_16_big_endian
 	   ? ((c1 << 8) | c2) : ((c2 << 8) | c1));
       if (surrogate)
@@ -1508,7 +1567,7 @@ encode_coding_utf_16 (coding)
 	    EMIT_FOUR_BYTES (c1 & 0xFF, c1 >> 8, c2 & 0xFF, c2 >> 8);
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced = dst - coding->destination;
   coding->produced_char += produced_chars;
   return 0;
@@ -1593,7 +1652,7 @@ char emacs_mule_bytes[256];
 int
 emacs_mule_char (coding, src, nbytes, nchars, id)
      struct coding_system *coding;
-     unsigned char *src;
+     const unsigned char *src;
      int *nbytes, *nchars, *id;
 {
   const unsigned char *src_end = coding->source + coding->src_bytes;
@@ -1605,58 +1664,78 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
   int consumed_chars = 0;
 
   ONE_MORE_BYTE (c);
-  switch (emacs_mule_bytes[c])
+  if (c < 0)
     {
-    case 2:
-      if (! (charset = emacs_mule_charset[c]))
-	goto invalid_code;
-      ONE_MORE_BYTE (c);
-      code = c & 0x7F;
-      break;
-
-    case 3:
-      if (c == EMACS_MULE_LEADING_CODE_PRIVATE_11
-	  || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
+      c = -c;
+      charset = emacs_mule_charset[0];
+    }
+  else
+    {
+      switch (emacs_mule_bytes[c])
 	{
-	  ONE_MORE_BYTE (c);
+	case 2:
 	  if (! (charset = emacs_mule_charset[c]))
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
+	  if (c < 0)
+	    goto invalid_code;
 	  code = c & 0x7F;
-	}
-      else
-	{
-	  if (! (charset = emacs_mule_charset[c]))
+	  break;
+
+	case 3:
+	  if (c == EMACS_MULE_LEADING_CODE_PRIVATE_11
+	      || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (c < 0 || ! (charset = emacs_mule_charset[c]))
+		goto invalid_code;
+	      ONE_MORE_BYTE (c);
+	      if (c < 0)
+		goto invalid_code;
+	      code = c & 0x7F;
+	    }
+	  else
+	    {
+	      if (! (charset = emacs_mule_charset[c]))
+		goto invalid_code;
+	      ONE_MORE_BYTE (c);
+	      if (c < 0)
+		goto invalid_code;
+	      code = (c & 0x7F) << 8;
+	      ONE_MORE_BYTE (c);
+	      if (c < 0)
+		goto invalid_code;
+	      code |= c & 0x7F;
+	    }
+	  break;
+
+	case 4:
+	  ONE_MORE_BYTE (c);
+	  if (c < 0 || ! (charset = emacs_mule_charset[c]))
 	    goto invalid_code;
 	  ONE_MORE_BYTE (c);
+	  if (c < 0)
+	    goto invalid_code;
 	  code = (c & 0x7F) << 8;
 	  ONE_MORE_BYTE (c);
+	  if (c < 0)
+	    goto invalid_code;
 	  code |= c & 0x7F;
+	  break;
+
+	case 1:
+	  code = c;
+	  charset = CHARSET_FROM_ID (ASCII_BYTE_P (code)
+				     ? charset_ascii : charset_eight_bit);
+	  break;
+
+	default:
+	  abort ();
 	}
-      break;
-
-    case 4:
-      ONE_MORE_BYTE (c);
-      if (! (charset = emacs_mule_charset[c]))
+      c = DECODE_CHAR (charset, code);
+      if (c < 0)
 	goto invalid_code;
-      ONE_MORE_BYTE (c);
-      code = (c & 0x7F) << 8;
-      ONE_MORE_BYTE (c);
-      code |= c & 0x7F;
-      break;
-
-    case 1:
-      code = c;
-      charset = CHARSET_FROM_ID (ASCII_BYTE_P (code)
-				 ? charset_ascii : charset_eight_bit);
-      break;
-
-    default:
-      abort ();
     }
-  c = DECODE_CHAR (charset, code);
-  if (c < 0)
-    goto invalid_code;
   *nbytes = src - src_base;
   *nchars = consumed_chars;
   if (id)
@@ -1680,13 +1759,12 @@ detect_coding_emacs_mule (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int c;
   int found = 0;
-  int incomplete;
 
   detect_info->checked |= CATEGORY_MASK_EMACS_MULE;
   /* A coding system of this category is always ASCII compatible.  */
@@ -1694,10 +1772,10 @@ detect_coding_emacs_mule (coding, detect_info)
 
   while (1)
     {
-      incomplete = 0;
+      src_base = src;
       ONE_MORE_BYTE (c);
-      incomplete = 1;
-
+      if (c < 0)
+	continue;
       if (c == 0x80)
 	{
 	  /* Perhaps the start of composite character.  We simple skip
@@ -1745,7 +1823,7 @@ detect_coding_emacs_mule (coding, detect_info)
   return 0;
 
  no_more_source:
-  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
     {
       detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
       return 0;
@@ -1842,10 +1920,14 @@ detect_coding_emacs_mule (coding, detect_info)
     int nbytes, nchars;							\
 									\
     ONE_MORE_BYTE (c);							\
+    if (c < 0)								\
+      goto invalid_code;						\
     nbytes = c - 0xA0;							\
     if (nbytes < 3)							\
       goto invalid_code;						\
     ONE_MORE_BYTE (c);							\
+    if (c < 0)								\
+      goto invalid_code;						\
     nchars = c - 0xA0;							\
     from = coding->produced + char_offset;				\
     to = from + nchars;							\
@@ -1952,8 +2034,12 @@ decode_coding_emacs_mule (coding)
 	break;
 
       ONE_MORE_BYTE (c);
-
-      if (c < 0x80)
+      if (c < 0)
+	{
+	  *charbuf++ = -c;
+	  char_offset++;
+	}
+      else if (c < 0x80)
 	{
 	  *charbuf++ = c;
 	  char_offset++;
@@ -1961,6 +2047,8 @@ decode_coding_emacs_mule (coding)
       else if (c == 0x80)
 	{
 	  ONE_MORE_BYTE (c);
+	  if (c < 0)
+	    goto invalid_code;
 	  if (c - 0xF2 >= COMPOSITION_RELATIVE
 	      && c - 0xF2 <= COMPOSITION_WITH_RULE_ALTCHARS)
 	    DECODE_EMACS_MULE_21_COMPOSITION (c);
@@ -2130,7 +2218,7 @@ encode_coding_emacs_mule (coding)
 	    }
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -2430,6 +2518,7 @@ detect_coding_iso_2022 (coding, detect_info)
 
   while (rejected != CATEGORY_MASK_ISO)
     {
+      src_base = src;
       ONE_MORE_BYTE (c);
       switch (c)
 	{
@@ -2543,6 +2632,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	  goto check_extra_latin;
 
 	default:
+	  if (c < 0)
+	    continue;
 	  if (c < 0x80)
 	    {
 	      single_shifting = 0;
@@ -2816,6 +2907,8 @@ decode_coding_iso_2022 (coding)
 	break;
 
       ONE_MORE_BYTE (c1);
+      if (c1 < 0)
+	goto invalid_code;
 
       /* We produce at most one character.  */
       switch (iso_code_class [c1])
@@ -3186,7 +3279,7 @@ decode_coding_iso_2022 (coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
       continue;
@@ -3745,7 +3838,7 @@ encode_coding_iso_2022 (coding)
       ASSURE_DESTINATION (safe_room);
       ENCODE_RESET_PLANE_AND_REGISTER ();
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   CODING_ISO_BOL (coding) = bol_designation;
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
@@ -3798,13 +3891,12 @@ detect_coding_sjis (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
   int c;
-  int incomplete;
 
   detect_info->checked |= CATEGORY_MASK_SJIS;
   /* A coding system of this category is always ASCII compatible.  */
@@ -3812,9 +3904,8 @@ detect_coding_sjis (coding, detect_info)
 
   while (1)
     {
-      incomplete = 0;
+      src_base = src;
       ONE_MORE_BYTE (c);
-      incomplete = 1;
       if (c < 0x80)
 	continue;
       if ((c >= 0x81 && c <= 0x9F) || (c >= 0xE0 && c <= 0xEF))
@@ -3833,7 +3924,7 @@ detect_coding_sjis (coding, detect_info)
   return 0;
 
  no_more_source:
-  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
     {
       detect_info->rejected |= CATEGORY_MASK_SJIS;
       return 0;
@@ -3851,13 +3942,12 @@ detect_coding_big5 (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
   int c;
-  int incomplete;
 
   detect_info->checked |= CATEGORY_MASK_BIG5;
   /* A coding system of this category is always ASCII compatible.  */
@@ -3865,9 +3955,8 @@ detect_coding_big5 (coding, detect_info)
 
   while (1)
     {
-      incomplete = 0;
+      src_base = src;
       ONE_MORE_BYTE (c);
-      incomplete = 1;
       if (c < 0x80)
 	continue;
       if (c >= 0xA1)
@@ -3884,7 +3973,7 @@ detect_coding_big5 (coding, detect_info)
   return 0;
 
  no_more_source:
-  if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
+  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
     {
       detect_info->rejected |= CATEGORY_MASK_BIG5;
       return 0;
@@ -3932,7 +4021,8 @@ decode_coding_sjis (coding)
 	break;
 
       ONE_MORE_BYTE (c);
-
+      if (c < 0)
+	goto invalid_code;
       if (c < 0x80)
 	charset = charset_roman;
       else
@@ -3975,7 +4065,7 @@ decode_coding_sjis (coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
     }
@@ -4023,6 +4113,8 @@ decode_coding_big5 (coding)
 
       ONE_MORE_BYTE (c);
 
+      if (c < 0)
+	goto invalid_code;
       if (c < 0x80)
 	charset = charset_roman;
       else
@@ -4053,7 +4145,7 @@ decode_coding_big5 (coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
     }
@@ -4143,7 +4235,7 @@ encode_coding_sjis (coding)
 	    EMIT_ONE_ASCII_BYTE (code & 0x7F);
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -4214,7 +4306,7 @@ encode_coding_big5 (coding)
 	    EMIT_ONE_ASCII_BYTE (code & 0x7F);
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -4233,7 +4325,7 @@ detect_coding_ccl (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
@@ -4252,8 +4344,10 @@ detect_coding_ccl (coding, detect_info)
   while (1)
     {
       int c;
+
+      src_base = src;
       ONE_MORE_BYTE (c);
-      if (! valids[c])
+      if (c < 0 || ! valids[c])
 	break;
       if ((valids[c] > 1))
 	found = CATEGORY_MASK_CCL;
@@ -4329,16 +4423,16 @@ decode_coding_ccl (coding)
   switch (ccl.status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
-      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+      record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
       break;
     case CCL_STAT_SUSPEND_BY_DST:
       break;
     case CCL_STAT_QUIT:
     case CCL_STAT_INVALID_CMD:
-      coding->result = CODING_RESULT_INTERRUPT;
+      record_conversion_result (coding, CODING_RESULT_INTERRUPT);
       break;
     default:
-      coding->result = CODING_RESULT_SUCCESS;
+      record_conversion_result (coding, CODING_RESULT_SUCCESS);
       break;
     }
   coding->consumed_char += consumed_chars;
@@ -4390,17 +4484,17 @@ encode_coding_ccl (coding)
   switch (ccl.status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
-      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+      record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
       break;
     case CCL_STAT_SUSPEND_BY_DST:
-      coding->result = CODING_RESULT_INSUFFICIENT_DST;
+      record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_DST);
       break;
     case CCL_STAT_QUIT:
     case CCL_STAT_INVALID_CMD:
-      coding->result = CODING_RESULT_INTERRUPT;
+      record_conversion_result (coding, CODING_RESULT_INTERRUPT);
       break;
     default:
-      coding->result = CODING_RESULT_SUCCESS;
+      record_conversion_result (coding, CODING_RESULT_SUCCESS);
       break;
     }
 
@@ -4422,7 +4516,7 @@ decode_coding_raw_text (coding)
   coding->chars_at_source = 1;
   coding->consumed_char = 0;
   coding->consumed = 0;
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
 }
 
 static int
@@ -4500,7 +4594,7 @@ encode_coding_raw_text (coding)
 	  produced_chars = dst - (coding->destination + coding->dst_bytes);
 	}
     }
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -4515,7 +4609,7 @@ detect_coding_charset (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  const unsigned char *src = coding->source, *src_base = src;
+  const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
@@ -4535,7 +4629,10 @@ detect_coding_charset (coding, detect_info)
     {
       int c;
 
+      src_base = src;
       ONE_MORE_BYTE (c);
+      if (c < 0)
+	continue;
       if (NILP (AREF (valids, c)))
 	break;
       if (c >= 0x80)
@@ -4584,6 +4681,8 @@ decode_coding_charset (coding)
 	break;
 
       ONE_MORE_BYTE (c);
+      if (c < 0)
+	goto invalid_code;
       code = c;
 
       val = AREF (valids, c);
@@ -4643,7 +4742,7 @@ decode_coding_charset (coding)
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
-      *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      *charbuf++ = c < 0 ? -c : ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
     }
@@ -4714,7 +4813,7 @@ encode_coding_charset (coding)
 	}
     }
 
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
@@ -5480,7 +5579,8 @@ produce_chars (coding)
 			{
 			  if (src == src_end)
 			    {
-			      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+			      record_conversion_result
+				(coding, CODING_RESULT_INSUFFICIENT_SRC);
 			      goto no_more_source;
 			    }
 			  if (*src == '\n')
@@ -5669,7 +5769,7 @@ produce_charset (coding, charbuf)
       }									\
     if (! coding->charbuf)						\
       {									\
-	coding->result = CODING_RESULT_INSUFFICIENT_MEM;		\
+	record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_MEM); \
 	return coding->result;						\
       }									\
     coding->charbuf_size = size;					\
@@ -5759,7 +5859,7 @@ decode_coding (coding)
   coding->consumed = coding->consumed_char = 0;
   coding->produced = coding->produced_char = 0;
   coding->chars_at_source = 0;
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->errors = 0;
 
   ALLOC_CONVERSION_WORK_AREA (coding);
@@ -5798,6 +5898,7 @@ decode_coding (coding)
 	  /* Flush out unprocessed data as binary chars.  We are sure
 	     that the number of data is less than the size of
 	     coding->charbuf.  */
+	  coding->charbuf_used = 0;
 	  while (nbytes-- > 0)
 	    {
 	      int c = *src++;
@@ -6076,7 +6177,7 @@ encode_coding (coding)
 
   coding->consumed = coding->consumed_char = 0;
   coding->produced = coding->produced_char = 0;
-  coding->result = CODING_RESULT_SUCCESS;
+  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->errors = 0;
 
   ALLOC_CONVERSION_WORK_AREA (coding);
@@ -6125,10 +6226,17 @@ make_conversion_work_buffer (multibyte)
   struct buffer *current;
 
   if (reused_workbuf_in_use++)
-    name = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
+    {
+      name = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
+      workbuf = Fget_buffer_create (name);
+    }
   else
-    name = Vcode_conversion_workbuf_name;
-  workbuf = Fget_buffer_create (name);
+    {
+      name = Vcode_conversion_workbuf_name;
+      workbuf = Fget_buffer_create (name);
+      if (NILP (Vcode_conversion_reused_workbuf))
+	Vcode_conversion_reused_workbuf = workbuf;
+    }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));
   Ferase_buffer ();      
@@ -6389,7 +6497,8 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	    = (unsigned char *) xrealloc (destination, coding->produced);
 	  if (! destination)
 	    {
-	      coding->result = CODING_RESULT_INSUFFICIENT_DST;
+	      record_conversion_result (coding,
+					CODING_RESULT_INSUFFICIENT_DST);
 	      unbind_to (count, Qnil);
 	      return;
 	    }
@@ -6419,7 +6528,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 			  saved_pt_byte + (coding->produced - bytes));
     }
 
-  unbind_to (count, Qnil);
+  unbind_to (count, coding->dst_object);
 }
 
 
@@ -7363,9 +7472,6 @@ code_convert_region (start, end, coding_system, dst_object, encodep, norecord)
   if (! norecord)
     Vlast_coding_system_used = CODING_ID_NAME (coding.id);
 
-  if (coding.result != CODING_RESULT_SUCCESS)
-    error ("Code conversion error: %d", coding.result);
-
   return (BUFFERP (dst_object)
 	  ? make_number (coding.produced_char)
 	  : coding.dst_object);
@@ -7452,9 +7558,6 @@ code_convert_string (string, coding_system, dst_object,
     decode_coding_object (&coding, string, 0, 0, chars, bytes, dst_object);
   if (! norecord)
     Vlast_coding_system_used = CODING_ID_NAME (coding.id);
-
-  if (coding.result != CODING_RESULT_SUCCESS)
-    error ("Code conversion error: %d", coding.result);
 
   return (BUFFERP (dst_object)
 	  ? make_number (coding.produced_char)
@@ -8740,6 +8843,12 @@ syms_of_coding ()
   ASET (Vcoding_category_table, coding_category_undecided,
 	intern ("coding-category-undecided"));
 
+  DEFSYM (Qinsufficient_source, "insufficient-source");
+  DEFSYM (Qinconsistent_eol, "inconsistent-eol");
+  DEFSYM (Qinvalid_source, "invalid-source");
+  DEFSYM (Qinterrupted, "interrupted");
+  DEFSYM (Qinsufficient_memory, "insufficient-memory");
+
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);
@@ -8834,6 +8943,23 @@ the value of `buffer-file-coding-system' is used.  */);
 	       doc: /*
 Coding system used in the latest file or process I/O.  */);
   Vlast_coding_system_used = Qnil;
+
+  DEFVAR_LISP ("last-code-conversion-error", &Vlast_code_conversion_error,
+	       doc: /*
+Error status of the last code conversion.
+
+When an error was detected in the last code conversion, this variable
+is set to one of the following symbols.
+  `insufficient-source'
+  `inconsistent-eol'
+  `invalid-source'
+  `interrupted'
+  `insufficient-memory'
+When no error was detected, the value doesn't change.  So, to check
+the error status of a code conversion by this variable, you must
+explicitly set this variable to nil before performing code
+conversion.  */);
+  Vlast_code_conversion_error = Qnil;
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
 	       doc: /*
