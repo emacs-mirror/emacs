@@ -791,6 +791,26 @@ is the buffer position of the start of the containing expression."
                normal-indent))))))
 
 (defun lisp-indent-function (indent-point state)
+  "This function is the normal value of the variable `lisp-indent-function'.
+It is used when indenting a line within a function call, to see if the
+called function says anything special about how to indent the line.
+
+INDENT-POINT is the position where the user typed TAB, or equivalent.
+Point is located at the point to indent under (for default indentation);
+STATE is the `parse-partial-sexp' state for that position.
+
+If the current line is in a call to a Lisp function
+which has a non-nil property `lisp-indent-function',
+that specifies how to do the indentation.  The property value can be
+* `defun', meaning indent `defun'-style;
+* an integer N, meaning indent the first N arguments specially
+like ordinary function arguments and then indent any further
+aruments like a body;
+* a function to call just as this function was called.
+If that function returns nil, that means it doesn't specify
+the indentation.
+
+This function also returns nil meaning don't specify the indentation."
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
