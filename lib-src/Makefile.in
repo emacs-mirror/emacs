@@ -15,7 +15,8 @@ SHELL = /bin/sh
 # ==================== Things `configure' might edit ====================
 
 CC=cc
-DEFS=-g
+CFLAGS=-g
+ALLOCA=
 C_SWITCH_SYSTEM=
 LOADLIBES=
 version=version-not-set
@@ -101,7 +102,9 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### Some other files - those shared with other GNU utilities - need
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
-CFLAGS=${DEFS} ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src
+ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src ${CFLAGS}
+.c.o:
+      ${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
 
 all: ${EXECUTABLES}
 
@@ -180,91 +183,91 @@ test-distrib: ${srcdir}/test-distrib.c
 	$(CC) -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-GETOPTOBJS = getopt.o getopt1.o
+GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
 GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
 getopt.o: getopt.c getopt.h
 getopt1.o: getopt1.c getopt.h
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS)
-	$(CC) ${CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
+	$(CC) ${ALL_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
 ctags: ${srcdir}/etags.c $(GETOPTDEPS)
-	$(CC) ${CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
+	$(CC) ${ALL_CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
 
 wakeup: ${srcdir}/wakeup.c
-	$(CC) ${CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
+	$(CC) ${ALL_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
 
 make-docfile: ${srcdir}/make-docfile.c
-	$(CC) ${CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
+	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
 
 digest-doc: ${srcdir}/digest-doc.c
-	$(CC) ${CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
+	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
 
 sorted-doc: ${srcdir}/sorted-doc.c
-	$(CC) ${CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
+	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
 
 b2m: ${srcdir}/b2m.c ../src/config.h
-	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
+	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
 
 movemail: ${srcdir}/movemail.c ../src/config.h
-	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/movemail.c $(LOADLIBES) -o movemail
+	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/movemail.c $(LOADLIBES) -o movemail
 
 cvtmail: ${srcdir}/cvtmail.c
-	$(CC) ${CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
+	$(CC) ${ALL_CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
 
 fakemail: ${srcdir}/fakemail.c ../src/config.h
-	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
+	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
 yow: ${srcdir}/yow.c ../src/paths.h
-	$(CC) ${CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
+	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
 
 env: ${srcdir}/env.c ../src/config.h
-	$(CC) -DEMACS -I${srcdir}/../src ${CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
+	$(CC) -DEMACS -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
 
 emacsserver: ${srcdir}/emacsserver.c ../src/config.h
-	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
+	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
 
 emacsclient: ${srcdir}/emacsclient.c ../src/config.h
-	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
+	$(CC) -I${srcdir}/../src ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
 
 hexl: ${srcdir}/hexl.c
-	$(CC) ${CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
+	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 getdate.o: ${srcdir}/getdate.y ../src/config.h
 	${YACC} ${YFLAGS} ${srcdir}/getdate.y
-	$(CC) -I${srcdir}/../src $(CFLAGS) -c y.tab.c
+	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) -c y.tab.c
 	mv y.tab.o getdate.o
 timer.o: ${srcdir}/timer.c ../src/config.h
-	$(CC) -c -I${srcdir}/../src $(CFLAGS) ${srcdir}/timer.c
+	$(CC) -c -I${srcdir}/../src $(ALL_CFLAGS) ${srcdir}/timer.c
 timer: getdate.o timer.o
-	$(CC) -I${srcdir}/../src $(CFLAGS) getdate.o timer.o -o timer
+	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) getdate.o timer.o -o timer
 
 make-path: ${srcdir}/make-path.c
-	$(CC) $(CFLAGS) ${srcdir}/make-path.c -o make-path
+	$(CC) $(ALL_CFLAGS) ${srcdir}/make-path.c -o make-path
 
 # These are NOT included in INSTALLABLES or UTILITIES.
 # See ../src/ymakefile.
 emacstool: ${srcdir}/emacstool.c
-	$(CC) ${srcdir}/emacstool.c -o emacstool ${CFLAGS} \
+	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
 
 # For SUN Japanese Language Environment
 nemacstool: ${srcdir}/emacstool.c
-	$(CC) -o nemacstool -DJLE ${CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o nemacstool -DJLE ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
 
 xvetool: ${srcdir}/emacstool.c
-	$(CC) -o xvetool -DXVIEW ${CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o xvetool -DXVIEW ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
 xveterm: ${srcdir}/emacstool.c
-	$(CC) -o xveterm -DXVIEW -DTTERM ${CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
 aixcc: ${srcdir}/aixcc.c
-	$(CC) $(CFLAGS) -o aixcc ${srcdir}/aixcc.c
+	$(CC) $(ALL_CFLAGS) -o aixcc ${srcdir}/aixcc.c
 
 aixcc.c: ${srcdir}/aixcc.lex
 	lex ${srcdir}/aixcc.lex
