@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.57) $
+ * $HopeName: MMsrc!arenavm.c(trunk.58) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -32,7 +32,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.57) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.58) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -2006,8 +2006,16 @@ static void VMArenaPurgeLatentPages(VMArena vmArena)
 	    tablePageLimitIndex(chunk,
 	                        TablePageIndexBase(chunk, tablePage));
 	}
-	VMArenaFindLatentRanges(chunk, pageBase, pageLimit,
-	                        VMArenaUnmapLatentRange, NULL, 0);
+	if(pageBase < pageLimit) {
+	  VMArenaFindLatentRanges(chunk, pageBase, pageLimit,
+				  VMArenaUnmapLatentRange, NULL, 0);
+	} else {
+	  /* Only happens for last page occupied by the page table */
+	  /* and only then when that last page has just the tail end */
+	  /* part of the last page descriptor and nothing more. */
+	  AVER(pageBase == pageLimit);
+	  AVER(tablePage == chunk->pageTablePages - 1);
+	}
 	BTSet(chunk->noLatentPages, tablePage);
 	pageBase = pageLimit;
       }
