@@ -1800,7 +1800,9 @@ With argument, kill comments on that many lines starting with this one."
       (setq count (1- count)))))
 
 (defun comment-region (beg end &optional arg)
-  "Comment the region; third arg numeric means use ARG comment characters.
+  "Comment or uncomment each line in the region.
+With just C-u prefix arg, uncomment each line in region.
+Numeric prefix arg ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 Comments are terminated on each line, even for syntax in which newline does
 not end the comment.  Blank lines do not get comments."
@@ -1808,36 +1810,62 @@ not end the comment.  Blank lines do not get comments."
   ;; comment-end at the end then typing it, C-x C-x, closing it, C-x C-x
   ;; is easy enough.  No option is made here for other than commenting
   ;; every line.
-  (interactive "r\np")
+  (interactive "r\nP")
   (or comment-start (error "No comment syntax is defined"))
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
   (save-excursion
     (save-restriction
-      (let ((cs comment-start) (ce comment-end))
-        (cond ((not arg) (setq arg 1))
-              ((> arg 1)
-               (while (> (setq arg (1- arg)) 0)
-                 (setq cs (concat cs comment-start)
-                       ce (concat ce comment-end)))))
+      (let ((cs comment-start) (ce comment-end)
+	    numarg)
+        (if (consp arg) (setq numarg t)
+	  (setq numarg (prefix-numeric-value arg))
+	  ;; For positive arg > 1, replicate the comment delims now,
+	  ;; then insert the replicated strings just once.
+	  (while (> numarg 1)
+	    (setq cs (concat cs comment-start)
+		  ce (concat ce comment-end))
+	    (setq numarg (1- numarg))))
+	;; Loop over all lines from BEG to END.
         (narrow-to-region beg end)
         (goto-char beg)
         (while (not (eobp))
-          (if (< arg 0)
-              (let ((count arg))
-                (while (and (> 1 (setq count (1+ count)))
-                            (looking-at (regexp-quote cs)))
-                  (delete-char (length cs)))
-                (if (string= "" ce) ()
-                  (setq count arg)
-                  (while (> 1 (setq count (1+ count)))
-                    (end-of-line)
-                    ;; this is questionable if comment-end ends in whitespace
-                    ;; that is pretty brain-damaged though
-                    (skip-chars-backward " \t")
-                    (backward-char (length ce))
-                    (if (looking-at (regexp-quote ce))
-                        (delete-char (length ce)))))
+          (if (or (eq numarg t) (< numarg 0))
+	      (progn
+		;; Delete comment start from beginning of line.
+		(if (eq numarg t)
+		    (while (looking-at (regexp-quote cs))
+		      (delete-char (length cs)))
+		  (let ((count numarg))
+		    (while (and (> 1 (setq count (1+ count)))
+				(looking-at (regexp-quote cs)))
+		      (delete-char (length cs)))))
+		;; Delete comment end from end of line.
+                (if (string= "" ce)
+		    nil
+		  (if (eq numarg t)
+		      (progn
+			(end-of-line)
+			;; This is questionable if comment-end ends in
+			;; whitespace.  That is pretty brain-damaged,
+			;; though.
+			(skip-chars-backward " \t")
+			(if (and (>= (- (point) (point-min)) (length ce))
+				 (save-excursion
+				   (backward-char (length ce))
+				   (looking-at (regexp-quote ce))))
+			    (delete-char (- (length ce)))))
+		    (setq count numarg)
+		    (while (> 1 (setq count (1+ count)))
+		      (end-of-line)
+		      ;; this is questionable if comment-end ends in whitespace
+		      ;; that is pretty brain-damaged though
+		      (skip-chars-backward " \t")
+		      (save-excursion
+			(backward-char (length ce))
+			(if (looking-at (regexp-quote ce))
+			    (delete-char (length ce)))))))
 		(forward-line 1))
+	    ;; Insert at beginning and at end.
             (if (looking-at "[ \t]*$") ()
               (insert cs)
               (if (string= "" ce) ()
@@ -1849,7 +1877,7 @@ not end the comment.  Blank lines do not get comments."
   "Move backward until encountering the end of a word.
 With argument, do this that many times.
 In programs, it is faster to call `forward-word' with negative arg."
-  (interactive "p")
+  (INTERACTIVE "p")
   (forward-word (- arg)))
 
 (defun mark-word (arg)
