@@ -380,10 +380,13 @@ command @kbd{M-x partial-completion-mode} or customize the option
 @code{partial-completion-mode}.  Unless the option
 @code{PC-disable-includes} is @code{t}, Partial Completion mode also
 extends @kbd{M-x find-file} so that the @samp{<@dots{}>} sequence is
-interpreted as a file on the path @code{PC-include-file-path}.  When
-this mode is active, the Meta versions of the @kbd{TAB}, @kbd{SPC},
-@kbd{RET} and @kbd{?} keys act as those keys do by default for
-completion.
+interpreted as a file on the path @code{PC-include-file-path} and
+partial completion of file names is possible.  Partial completion of
+directories in file names requires @samp{*}s to indicate the
+completions: @file{/u*/b*/f*} might expand to @file{/usr/bin/foo}.  When
+Partial Completion mode is active, the Meta versions of the @kbd{TAB},
+@kbd{SPC}, @kbd{RET} and @kbd{?} keys act as those keys do by default
+for completion.
 
 @cindex Icomplete mode
 @findex icomplete-mode
