@@ -4511,8 +4511,9 @@ actually used.  */)
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object));
+static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object build_annotations_2 P_ ((Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object));
 
 /* If build_annotations switched buffers, switch back to BUF.
    Kill the temporary buffer that was selected in the meantime.
@@ -4705,7 +4706,7 @@ This does code conversion according to the value of
 
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (! NILP (mustbenew) && !EQ (mustbenew, Qexcl))
+  if (!NILP (mustbenew) && !EQ (mustbenew, Qexcl))
     barf_or_query_if_file_exists (filename, "overwrite", 1, 0, 1);
 
   if (STRINGP (visit))
@@ -4713,8 +4714,6 @@ This does code conversion according to the value of
   else
     visit_file = filename;
   UNGCPRO;
-
-  annotations = Qnil;
 
   if (NILP (lockname))
     lockname = visit_file;
@@ -4755,7 +4754,20 @@ This does code conversion according to the value of
   count1 = specpdl_ptr - specpdl;
 
   given_buffer = current_buffer;
-  annotations = build_annotations (start, end, coding.pre_write_conversion);
+  annotations = build_annotations (start, end);
+  if (current_buffer != given_buffer)
+    {
+      XSETFASTINT (start, BEGV);
+      XSETFASTINT (end, ZV);
+    }
+
+  UNGCPRO;
+
+  GCPRO5 (start, filename, annotations, visit_file, lockname);
+
+  given_buffer = current_buffer;
+  annotations = build_annotations_2 (start, end,
+				     coding.pre_write_conversion, annotations);
   if (current_buffer != given_buffer)
     {
       XSETFASTINT (start, BEGV);
@@ -5065,8 +5077,8 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
    as save-excursion would do.  */
 
 static Lisp_Object
-build_annotations (start, end, pre_write_conversion)
-     Lisp_Object start, end, pre_write_conversion;
+build_annotations (start, end)
+     Lisp_Object start, end;
 {
   Lisp_Object annotations;
   Lisp_Object p, res;
@@ -5127,6 +5139,18 @@ build_annotations (start, end, pre_write_conversion)
 	annotations = merge (annotations, res, Qcar_less_than_car);
     }
 
+  UNGCPRO;
+  return annotations;
+}
+
+static Lisp_Object
+build_annotations_2 (start, end, pre_write_conversion, annotations)
+     Lisp_Object start, end, pre_write_conversion, annotations;
+{
+  struct gcpro gcpro1;
+  Lisp_Object res;
+
+  GCPRO1 (annotations);
   /* At last, do the same for the function PRE_WRITE_CONVERSION
      implied by the current coding-system.  */
   if (!NILP (pre_write_conversion))
