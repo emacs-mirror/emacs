@@ -1184,23 +1184,23 @@ DEFUN ("composite-char-component", Fcmpchar_component, Scmpchar_component,
 
 DEFUN ("composite-char-composition-rule", Fcmpchar_cmp_rule, Scmpchar_cmp_rule,
        2, 2, 0,
-  "Return the IDXth composition rule embedded in composite character CHARACTER.
-The returned rule is for composing the IDXth component
-on the (IDX-1)th component.  If IDX is 0, the returned value is always 255.")
-  (character, idx)
-     Lisp_Object character, idx;
+  "Return the Nth composition rule embedded in composite character CHARACTER.\n\
+The returned rule is for composing the Nth component\n\
+on the (N-1)th component.  If N is 0, the returned value is always 255.")
+  (character, n)
+     Lisp_Object character, n;
 {
   int id, i;
 
   CHECK_NUMBER (character, 0);
-  CHECK_NUMBER (idx, 1);
+  CHECK_NUMBER (n, 1);
 
   id = COMPOSITE_CHAR_ID (XINT (character));
   if (id < 0 || id >= n_cmpchars)
     error ("Invalid composite character: %d", XINT (character));
-  i = XINT (idx);
+  i = XINT (n);
   if (i > cmpchar_table[id]->glyph_len)
-    args_out_of_range (character, idx);
+    args_out_of_range (character, n);
 
   return make_number (cmpchar_table[id]->cmp_rule[i]);
 }
