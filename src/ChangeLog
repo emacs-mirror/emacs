@@ -1,5 +1,8 @@
 2003-06-06  Kenichi Handa  <handa@m17n.org>
 
+	* charset.c (Fset_charset_priority): Pay attention to dumplicated
+	arguments.
+
 	* coding.c (QCcategory): New variable.
 	(syms_of_coding): Defsym it.  Set all elements of
 	Vcoding_category_table and their symbol values.
