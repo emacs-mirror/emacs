@@ -1821,7 +1821,8 @@ since only regular expressions have distinguished subexpressions.")
 			   make_number (search_regs.start[sub]));
       after = Fsubstring (string, make_number (search_regs.end[sub]), Qnil);
 
-      /* Do case substitution into NEWTEXT if desired.  */
+      /* Substitute parts of the match into NEWTEXT
+	 if desired.  */
       if (NILP (literal))
 	{
 	  int lastpos = -1;
@@ -1856,6 +1857,8 @@ since only regular expressions have distinguished subexpressions.")
 		    }
 		  else if (c == '\\')
 		    delbackslash = 1;
+		  else
+		    error ("Invalid use of `\\' in replacement text");
 		}
 	      if (substart >= 0)
 		{
@@ -1888,6 +1891,7 @@ since only regular expressions have distinguished subexpressions.")
 	  newtext = concat2 (accum, middle);
 	}
 
+      /* Do case substitution in NEWTEXT if desired.  */
       if (case_action == all_caps)
 	newtext = Fupcase (newtext);
       else if (case_action == cap_initial)
@@ -1929,8 +1933,10 @@ since only regular expressions have distinguished subexpressions.")
 		       make_number (search_regs.start[c - '0'] + offset),
 		       make_number (search_regs.end[c - '0'] + offset));
 		}
-	      else
+	      else if (c == '\\')
 		insert_char (c);
+	      else
+		error ("Invalid use of `\\' in replacement text");
 	    }
 	  else
 	    insert_char (c);
