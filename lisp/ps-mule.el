@@ -3,11 +3,11 @@
 ;; Copyright (C) 1998,99,00,2001 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; 	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2001/03/16 18:50:59 Handa>
+;; Time-stamp: <2001/08/07 13:50:53 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -1362,9 +1362,12 @@ NewBitmapDict
 (defun ps-mule-encode-header-string (string fonttag)
   "Generate PostScript code for ploting STRING by font FONTTAG.
 FONTTAG should be a string \"/h0\" or \"/h1\"."
-  (setq string (if (multibyte-string-p string)
-		   (copy-sequence string)
-		 (string-make-multibyte string)))
+  (setq string (cond ((not (stringp string))
+		      "")
+		     ((multibyte-string-p string)
+		      (copy-sequence string))
+		     (t
+		      (string-make-multibyte string))))
   (when ps-mule-header-charsets
     (if (eq (car ps-mule-header-charsets) 'latin-iso8859-1)
 	;; Latin1 characters can be printed by the standard PostScript
