@@ -167,6 +167,9 @@ struct window
        If it is a buffer, it means don't display the line number
        as long as the window shows that buffer.  */
     Lisp_Object base_line_pos;
+    /* If we have highlighted the region (or any part of it),
+       this is the mark position that we used, as an integer.  */
+    Lisp_Object region_showing;
   };
 
 /* 1 if W is a minibuffer window.  */
