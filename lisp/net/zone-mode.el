@@ -93,7 +93,7 @@ Zone-mode does two things:
 	- fontification"
 
   (make-local-hook 'write-file-hooks)
-  (add-hook 'write-file-hooks 'zone-mode-update-serial-hook)
+  (add-hook 'write-file-hooks 'zone-mode-update-serial-hook nil t)
 
   (if (null zone-mode-syntax-table)
       (zone-mode-load-time-setup)) ;; should have been run at load-time
