@@ -3467,8 +3467,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 }
 
 /* Apropos - finding all symbols whose names match a regexp.		*/
-Lisp_Object apropos_predicate;
-Lisp_Object apropos_accumulate;
+static Lisp_Object apropos_predicate;
+static Lisp_Object apropos_accumulate;
 
 static void
 apropos_accum (symbol, string)
@@ -3491,15 +3491,16 @@ Return list of symbols found.  */)
      (regexp, predicate)
      Lisp_Object regexp, predicate;
 {
+  Lisp_Object tem;
   struct gcpro gcpro1, gcpro2;
   CHECK_STRING (regexp);
   apropos_predicate = predicate;
-  GCPRO2 (apropos_predicate, apropos_accumulate);
   apropos_accumulate = Qnil;
   map_obarray (Vobarray, apropos_accum, regexp);
-  apropos_accumulate = Fsort (apropos_accumulate, Qstring_lessp);
-  UNGCPRO;
-  return apropos_accumulate;
+  tem = Fsort (apropos_accumulate, Qstring_lessp);
+  apropos_accumulate = Qnil;
+  apropos_predicate = Qnil;
+  return tem;
 }
 
 void
@@ -3507,6 +3508,10 @@ syms_of_keymap ()
 {
   Qkeymap = intern ("keymap");
   staticpro (&Qkeymap);
+  staticpro (&apropos_predicate);
+  staticpro (&apropos_accumulate);
+  apropos_predicate = Qnil;
+  apropos_accumulate = Qnil;
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */
