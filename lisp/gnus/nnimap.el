@@ -812,9 +812,11 @@ function is generally only called when Gnus is shutting down."
   ;; BEWARE: we used to use string-as-multibyte here which is braindead
   ;; because it will turn accidental emacs-mule-valid byte sequences
   ;; into multibyte chars.  --Stef
-  (funcall (if (and (fboundp 'string-to-multibyte)
-		    (subrp (symbol-function 'string-to-multibyte)))
-	       'string-to-multibyte
+  ;; Reverted, braindead got 7.5 out of 10 on imdb, so it can't be
+  ;; that bad. --Simon
+  (funcall (if (and (fboundp 'string-as-multibyte)
+		    (subrp (symbol-function 'string-as-multibyte)))
+	       'string-as-multibyte
 	     'identity)
 	   (or string "")))
 
