@@ -1,3 +1,13 @@
+2001-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* which-func.el (which-func-maxout): Increase default to 500000.
+	(which-function-mode): This is now the "real" name of the function.
+	(which-func-mode): Now an alias.
+	(which-func-mode-global): Name deleted.
+
+	* progmodes/hideshow.el (hs-minor-mode-map): Use mouse-2, not
+	button-2, when binding hs-mouse-toggle-hiding.
+
 2001-06-26  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
 
 	* mail/rmail.el (rmail-msg-restore-non-pruned-header): New
