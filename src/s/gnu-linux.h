@@ -246,7 +246,7 @@ Boston, MA 02111-1307, USA.  */
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
 #define LIBS_SYSTEM
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE -D_XOPEN_SOURCE
+#define C_SWITCH_SYSTEM -D_BSD_SOURCE
 #endif
 
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
