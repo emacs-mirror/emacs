@@ -259,30 +259,46 @@ description of @code{mapconcat} in @ref{Mapping Functions},
 Lists}.
 @end defun
 
-@defun split-string string separators
+@defun split-string string separators omit-nulls
 This function splits @var{string} into substrings at matches for the regular
 expression @var{separators}.  Each match for @var{separators} defines a
 splitting point; the substrings between the splitting points are made
-into a list, which is the value returned by @code{split-string}.
+into a list, which is the value returned by @code{split-string}.  If
+@var{omit-nulls} is @code{t}, null strings will be removed from the
+result list.  Otherwise, null strings are left in the result.
 If @var{separators} is @code{nil} (or omitted),
-the default is @code{"[ \f\t\n\r\v]+"}.
+the default is the value of @code{split-string-default-separators}.
 
-For example,
+@defvar split-string-default-separators
+The default value of @var{separators} for @code{split-string}, initially
+@samp{"[ \f\t\n\r\v]+"}.
+
+As a special case, when @var{separators} is @code{nil} (or omitted),
+null strings are always omitted from the result.  Thus:
+
+@example
+(split-string "  two words ")
+@result{} ("two" "words")
+@end example
+
+The result is not @samp{("" "two" "words" "")}, which would rarely be
+useful.  If you need such a result, use an explict value for
+@var{separators}:
+
+@example
+(split-string "  two words " split-string-default-separators)
+@result{} ("" "two" "words" "")
+@end example
+
+More examples:
 
 @example
 (split-string "Soup is good food" "o")
 @result{} ("S" "up is g" "" "d f" "" "d")
+(split-string "Soup is good food" "o" t)
+@result{} ("S" "up is g" "d f" "d")
 (split-string "Soup is good food" "o+")
 @result{} ("S" "up is g" "d f" "d")
-@end example
-
-When there is a match adjacent to the beginning or end of the string,
-this does not cause a null string to appear at the beginning or end
-of the list:
-
-@example
-(split-string "out to moo" "o+")
-@result{} ("ut t" " m")
 @end example
 
 Empty matches do count, when not adjacent to another match:
