@@ -1908,7 +1908,12 @@ lisp_data_to_selection_data (display, obj,
     }
   else if (STRINGP (obj))
     {
-      xassert (! STRING_MULTIBYTE (obj));
+      if (SCHARS (obj) < SBYTES (obj))
+	/* OBJ is a multibyte string containing a non-ASCII char.  */
+	Fsignal (Qerror, /* Qselection_error */
+		 Fcons (build_string
+			("Non-ASCII string must be encoded in advance"),
+			Fcons (obj, Qnil)));
       if (NILP (type))
 	type = QSTRING;
       *format_ret = 8;
