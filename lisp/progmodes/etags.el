@@ -1196,6 +1196,7 @@ where they were found."
 	       (find-tag-tag-order . (tag-exact-file-name-match-p
                                       tag-file-name-match-p
 				      tag-exact-match-p
+				      tag-implicit-name-match-p
 				      tag-symbol-match-p
 				      tag-word-match-p
 				      tag-partial-file-name-match-p
@@ -1504,6 +1505,17 @@ where they were found."
 	   (eq (char-after (- (point) (length tag) 1)) ?\177))
       ;; We are not on the explicit tag name, but perhaps it follows.
       (looking-at (concat "[^\177\n]*\177" (regexp-quote tag) "\001"))))
+
+;; t if point is at a tag line that has an implicit name.
+;; point should be just after a string that matches TAG.
+(defun tag-implicit-name-match-p (tag)
+  ;; Look at the comment of the make_tag function in lib-src/etags.c for
+  ;; a textual description of the four rules.
+  (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
+       (looking-at "[ \t()=,;]?\177")	;rules #2 and #4
+       (save-excursion
+	 (backward-char (1+ (length tag)))
+	 (looking-at "[\n \t()=,;]"))))	;rule #3
 
 ;; t if point is at a tag line that matches TAG as a symbol.
 ;; point should be just after a string that matches TAG.
