@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.19 2000/12/06 19:36:20 fx Exp $
+;; Revision: $Id: pcvs.el,v 1.20 2000/12/08 16:58:45 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1069,25 +1069,13 @@ Full documentation is in the Texinfo file."
   "Display help for various PCL-CVS commands."
   (interactive)
   (if (eq last-command 'cvs-help)
-      (describe-function 'cvs-mode)   ; would need minor-mode for cvs-edit-mode
+      (describe-function 'cvs-mode)   ; would need minor-mode for log-edit-mode
     (message
      (substitute-command-keys
       "`\\[cvs-help]':help `\\[cvs-mode-add]':add `\\[cvs-mode-commit]':commit \
 `\\[cvs-mode-diff-map]':diff* `\\[cvs-mode-log]':log \
 `\\[cvs-mode-remove]':remove `\\[cvs-mode-status]':status \
 `\\[cvs-mode-undo]':undo"))))
-
-(defun cvs-mode-diff-help ()
-  "Display help for various PCL-CVS diff commands."
-  (interactive)
-  (if (eq last-command 'cvs-mode-diff-help)
-      (describe-function 'cvs-mode)	; no better docs for diff stuff?
-    (message
-     (substitute-command-keys
-      "`\\[cvs-mode-diff]':diff `\\[cvs-mode-idiff]':idiff \
-`\\[cvs-mode-diff-head]':head `\\[cvs-mode-diff-vendor]':vendor \
-`\\[cvs-mode-diff-backup]':backup `\\[cvs-mode-idiff-other]':other \
-`\\[cvs-mode-imerge]':imerge"))))
 
 ;; Move around in the buffer
 
@@ -1290,7 +1278,7 @@ If FILE is non-nil, directory entries won't be selected."
 	     (apply 'cvs-mode-marked -cvs-mode-files-args)))))
 
 ;;;
-;;; Interface between CVS-Edit and PCL-CVS
+;;; Interface between Log-Edit and PCL-CVS
 ;;;
 
 (defun cvs-mode-commit-setup ()
@@ -1303,20 +1291,20 @@ If FILE is non-nil, directory entries won't be selected."
 The user will be asked for a log message in a buffer.
 The buffer's mode and name is determined by the \"message\" setting
   of `cvs-buffer-name-alist'.
-The POSTPROC specified there (typically `cvs-edit') is then called,
+The POSTPROC specified there (typically `log-edit') is then called,
   passing it the SETUP argument."
   (interactive "P")
   ;; It seems that the save-excursion that happens if I use the better
   ;; form of `(cvs-mode! (lambda ...))' screws up a couple things which
-  ;; end up being rather annoying (like cvs-edit-mode's message being
+  ;; end up being rather annoying (like log-edit-mode's message being
   ;; displayed in the wrong minibuffer).
   (cvs-mode!)
-  (pop-to-buffer (cvs-temp-buffer "message" 'normal 'nosetup))
-  (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
-  (let ((lbd list-buffers-directory)
+  (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
+	(lbd list-buffers-directory)
 	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
-		      'cvs-edit)))
-    (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist)
+		      'log-edit)))
+    (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist buf)
+    (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
     (set (make-local-variable 'list-buffers-directory) lbd)))
 
 (defun cvs-commit-minor-wrap (buf f)
