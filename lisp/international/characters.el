@@ -287,7 +287,9 @@
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?h)
 
 (map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2121 #x227E)
-(map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2621 #x297E)
+(map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2621 #x277E)
+(map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2830 #x287E)
+(map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2930 #x297E)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2330 #x2339)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2341 #x235A)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2361 #x237A)
@@ -769,18 +771,24 @@
     (set-char-table-range char-width-table
 			  (cons (car elt) (cdr elt))
 			  2)))
-(map-charset-chars
- #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'japanese-jisx0208)
-(map-charset-chars
- #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'japanese-jisx0212)
-(map-charset-chars
- #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'japanese-jisx0213-1)
-(map-charset-chars
- #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'japanese-jisx0213-2)
+;; Fixme: Doing this affects non-CJK characters through unification,
+;; but presumably CJK users expect those characters to be
+;; double-width when using these charsets.
+;; (map-charset-chars
+;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+;;  'japanese-jisx0208)
+;; (map-charset-chars
+;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+;;  'japanese-jisx0212)
+;; (map-charset-chars
+;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+;;  'japanese-jisx0213-1)
+;; (map-charset-chars
+;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+;;  'japanese-jisx0213-2)
+;; (map-charset-chars
+;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
+;;  'korean-ksc5601)
 
 ;; Other double width
 (map-charset-chars
@@ -795,9 +803,6 @@
 (map-charset-chars
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
-(map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'korean-ksc5601)
 
 (optimize-char-table (standard-case-table))
 (optimize-char-table char-width-table)
