@@ -2288,6 +2288,15 @@ but the contents viewed as characters do change.  */)
   if (!modified_p && !NILP (Fbuffer_modified_p (Qnil)))
     Fset_buffer_modified_p (Qnil);
 
+  /* Update coding systems of this buffer's process (if any).  */
+  {
+    Lisp_Object process;
+
+    process = Fget_buffer_process (Fcurrent_buffer ());
+    if (PROCESSP (process))
+      setup_process_coding_systems (process);
+  }
+
   return flag;
 }
 
