@@ -22,8 +22,6 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; CRiSP is a registered trademark of Foxtrot Systems Ltd.
-
 ;;; Commentary:
 
 ;; Keybindings and minor functions to duplicate the functionality and
@@ -58,8 +56,6 @@
 
 ;; Code:
 
-(require 'cl)
-
 ;; local variables
 
 (defgroup crisp nil
@@ -92,7 +88,7 @@ indicates CRiSP mode is enabled."
 
 (defcustom crisp-override-meta-x t
   "*Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
-Normally the CRiSP emulator rebinds M-x to save-buffers-exit-emacs and
+Normally the CRiSP emulator rebinds M-x to `save-buffers-exit-emacs', and
 provides the usual M-x functionality on the F10 key.  If this variable
 is non-nil, M-x will exit Emacs."
   :type 'boolean
@@ -121,44 +117,25 @@ does not load the scroll-all package."
 
 ;; Silence the byte-compiler.
 (defvar crisp-last-last-command nil
-  "The previous value of last-command.")
+  "The previous value of `last-command'.")
 
 ;; The cut and paste routines are different between XEmacs and Emacs
 ;; so we need to set up aliases for the functions.
 
-(if (and (not (fboundp 'copy-primary-selection))
-	 (fboundp 'clipboard-kill-ring-save))
-    (defalias 'copy-primary-selection 'clipboard-kill-ring-save))
+(defalias 'crisp-set-clipboard
+  (if (fboundp 'clipboard-kill-ring-save)
+      'clipboard-kill-ring-save
+    'copy-primary-selection))
 
-(if (and (not (fboundp 'kill-primary-selection))
-	 (fboundp 'clipboard-kill-region))
-    (defalias 'kill-primary-selection 'clipboard-kill-region))
+(defalias 'crisp-kill-region
+  (if (fboundp 'clipboard-kill-region)
+      'clipboard-kill-region
+    'kill-primary-selection))
 
-(if (and (not (fboundp 'yank-clipboard-selection))
-	 (fboundp 'clipboard-yank))
-    (defalias 'yank-clipboard-selection 'clipboard-yank))
-
-;; 'mark-something is very useful for marking arbitrary areas
-;; so I stole it from simple.el in XEmacs.
-
-(if (not (fboundp 'mark-something))
-    (defun mark-something (mark-fn movement-fn arg)
-  "Compatibility function swiped from XEmacs."
-  (let (newmark (pushp t))
-    (save-excursion
-      (if (and (eq last-command mark-fn) (mark))
-	  ;; Extend the previous state in the same direction:
-	  (progn
-	    (if (< (mark) (point)) (setq arg (- arg)))
-	    (goto-char (mark))
-	    (setq pushp nil)))
-      (funcall movement-fn arg)
-      (setq newmark (point)))
-    (if pushp
-	(push-mark newmark nil t)
-      ;; Do not mess with the mark stack, but merely adjust the previous state:
-      (set-mark newmark)
-      (activate-region)))))
+(defalias 'crisp-yank-clipboard
+  (if (fboundp 'clipboard-yank)
+      'clipboard-yank
+    'yank-clipboard-selection))
 
 ;; force transient-mark-mode in Emacs, so that the marking routines
 ;; work as expected.  If the user turns off transient mark mode,
@@ -169,7 +146,7 @@ does not load the scroll-all package."
 (if (fboundp 'transient-mark-mode)
     (transient-mark-mode t))
 
-(defun region-active ()
+(defun crisp-region-active ()
   "Compatibility function to test for an active region."
   (if (boundp 'zmacs-region-active-p)
       zmacs-region-active-p
@@ -212,10 +189,10 @@ does not load the scroll-all package."
 (define-key crisp-mode-map [(kp-subtract)]  'crisp-kill-line)
 ;; just to cover all the bases (GNU Emacs, for instance)
 (define-key crisp-mode-map [(f24)]          'crisp-kill-line)
-(define-key crisp-mode-map [(insert)]       'yank-clipboard-selection)
-(define-key crisp-mode-map [(f16)]          'copy-primary-selection) ; copy on Sun5 kbd
-(define-key crisp-mode-map [(f20)]          'kill-primary-selection) ; cut on Sun5 kbd 
-(define-key crisp-mode-map [(f18)]          'yank-clipboard-selection) ; paste on Sun5 kbd
+(define-key crisp-mode-map [(insert)]       'crisp-yank-clipboard)
+(define-key crisp-mode-map [(f16)]          'crisp-set-clipboard) ; copy on Sun5 kbd
+(define-key crisp-mode-map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd 
+(define-key crisp-mode-map [(f18)]          'crisp-yank-clipboard) ; paste on Sun5 kbd
 
 (define-key crisp-mode-map [(control f)]    'fill-paragraph-or-region)
 (define-key crisp-mode-map [(meta d)]       (lambda ()
@@ -295,17 +272,27 @@ If ARG, insert results at point."
 (defun crisp-mark-line (arg)
   "Put mark at the end of line.  Arg works as in `end-of-line'."
   (interactive "p")
-  (mark-something 'crisp-mark-line 'end-of-line arg))
+  (save-excursion
+    (if (and (eq last-command 'crisp-mark-line) (mark))
+	;; Extend the previous state in the same direction:
+	(progn
+	  (if (< (mark) (point)) (setq arg (- arg)))
+	  (goto-char (mark))
+	  (end-of-line arg)
+	  ;; Do not mess with the mark stack, but merely adjust the previous state:
+	  (set-mark (point)))
+      (end-of-line arg)
+      (push-mark (point) nil t))))
 
 (defun crisp-kill-line (arg)
   "Mark and kill line(s).
 Marks from point to end of the current line (honoring prefix arguments),
 copies the region to the kill ring and clipboard, and then deletes it."
   (interactive "*p")
-  (if (region-active)
-      (call-interactively 'kill-primary-selection)
+  (if (crisp-region-active)
+      (call-interactively 'crisp-kill-region)
     (crisp-mark-line arg)
-    (call-interactively 'kill-primary-selection)))
+    (call-interactively 'crisp-kill-region)))
 
 (defun crisp-copy-line (arg)
   "Mark and copy line(s).
@@ -313,10 +300,10 @@ Marks from point to end of the current line (honoring prefix arguments),
 copies the region to the kill ring and clipboard, and then deactivates
 the region."
   (interactive "*p")
-    (if (region-active)
-	(call-interactively 'copy-primary-selection)
+    (if (crisp-region-active)
+	(call-interactively 'crisp-set-clipboard)
       (crisp-mark-line arg)
-      (call-interactively 'copy-primary-selection))
+      (call-interactively 'crisp-set-clipboard))
     ;; clear the region after the operation is complete
     ;; XEmacs does this automagically, Emacs doesn't.
     (if (boundp 'mark-active)
