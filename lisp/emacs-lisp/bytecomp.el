@@ -1465,8 +1465,8 @@ With argument, insert value in current buffer after the form."
     (let ((print-escape-newlines t)
 	  (print-length nil)
 	  (print-level nil)
-	  (print-readably t)	; print #[] for bytecode, 'x for (quote x)
-	  (print-gensym nil))	; this is too dangerous for now
+	  (print-quoted t)
+	  (print-gensym t))
       (princ "\n" outbuffer)
       (prin1 form outbuffer)
       nil)))
@@ -1514,8 +1514,8 @@ list that represents a doc string reference.
 	       (prin1 name outbuffer)))
 	 (insert (car info))
 	 (let ((print-escape-newlines t)
-	       (print-readably t)	; print #[] for bytecode, 'x for (quote x)
-	       (print-gensym nil)	; this is too dangerous for now
+	       (print-quoted t)
+	       (print-gensym t)
 	       (index 0))
 	   (prin1 (car form) outbuffer)
 	   (while (setq form (cdr form))
