@@ -471,6 +471,7 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
+  (setq local-abbrev-table text-mode-abbrev-table)
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (setq buffer-offer-save t)
@@ -1547,7 +1548,7 @@ The seventh argument ACTIONS is a list of actions to take
     ;; "#<RANDOM-STUFF>#" to the buffer name, where RANDOM-STUFF
     ;; is the result of (make-temp-name "").
     (setq non-random-len
-	  (- (length file-name) (length (make-temp-name "")) 1))
+	  (- (length file-name) (length (make-temp-name ""))))
     (setq wildcard (concat (substring file-name 0 non-random-len) "*"))
     (if (null (file-expand-wildcards wildcard))
 	(message "There are no auto-saved drafts to recover")
@@ -1631,15 +1632,12 @@ you can move to one of them and type C-c C-c to recover that one."
 		  ;; ls-lisp instead).
 		  (dired-noselect file-name
 				  (concat dired-listing-switches "t"))))
-	     (save-excursion
-	       (set-buffer dispbuf)
-	       (let ((buffer-read-only nil))
-		 (goto-char (point-min))
-		 (forward-line)
-		 (kill-line 2)
-		 (dired-move-to-filename)
-		 (setq dispbuf (rename-buffer "*Directory*" t))))
-	     (display-buffer dispbuf t)
+	     (save-selected-window
+	       (select-window (display-buffer dispbuf t))
+	       (goto-char (point-min))
+	       (forward-line 2)
+	       (dired-move-to-filename)
+	       (setq dispbuf (rename-buffer "*Directory*" t)))
 	     (if (not (yes-or-no-p
 		       (format "Recover mail draft from auto save file %s? "
 			       file-name)))
