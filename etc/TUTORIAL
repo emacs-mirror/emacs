@@ -84,10 +84,9 @@ time, so it would be of great benefit if you learn them now.
 >> Move into the line with C-f's and then up with C-p's.
    See what C-p does when the cursor is in the middle of the line.
 
-Each of text line ends with a Newline character, which serves to
-separate it from the following line.  The last line in your file ought
-to have a Newline at the end (but Emacs does not require it to have
-one).
+Each text line ends with a Newline character, which serves to separate
+it from the following line.  The last line in your file ought to have
+a Newline at the end (but Emacs does not require it to have one).
 
 >> Try to C-b at the beginning of a line.  It should move to
    the end of the previous line.  This is because it moves back
