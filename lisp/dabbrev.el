@@ -134,7 +134,7 @@ A value of `case-fold-search' means case is significant
 Any other non-nil version means case is not significant."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "like search" 'case-fold-search))
+		 (const :tag "like search" case-fold-search))
   :group 'dabbrev)
 
 (defcustom dabbrev-upcase-means-case-search nil
@@ -156,7 +156,7 @@ This variable has an effect only when the value of
 `dabbrev-case-fold-search' specifies to ignore case."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "like M-x query-replace" 'case-replace))
+		 (const :tag "like M-x query-replace" case-replace))
   :group 'dabbrev)
 
 (defcustom dabbrev-abbrev-char-regexp nil
