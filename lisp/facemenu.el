@@ -30,11 +30,6 @@
 ;; rather than the general Face submenu.  Such faces can also be created on
 ;; demand from the "Other..." menu items.
 
-;;; Installation:
-;; Put this file somewhere on emacs's load-path, and put
-;;   (require 'facemenu)
-;; in your .emacs file.
-
 ;;; Usage:
 ;; Selecting a face from the menu or typing the keyboard equivalent will
 ;; change the region to use that face.  If you use transient-mark-mode and the
@@ -146,12 +141,12 @@ changing it.")
     (define-key map [fg]       (cons "Foreground Color" facemenu-foreground-menu))
     (define-key map [face]     (cons "Face" facemenu-face-menu))
     map)
-  "Facemenu top-level menu keymap")
+  "Facemenu top-level menu keymap.")
 
 (defvar facemenu-keymap (make-sparse-keymap "Set face")
   "Map for keyboard face-changing commands.
 `Facemenu-update' fills in the keymap according to the bindings
-requested in facemenu-keybindings.")
+requested in `facemenu-keybindings'.")
 
 ;;; Internal Variables
 
@@ -170,7 +165,7 @@ variables."
   (interactive)
   
   ;; Global bindings:
-  (define-key global-map [C-down-mouse-3] facemenu-menu)
+  (define-key global-map [C-down-mouse-2] facemenu-menu)
   (if facemenu-key (define-key global-map facemenu-key facemenu-keymap))
 
   ;; Add each defined face to the menu.
