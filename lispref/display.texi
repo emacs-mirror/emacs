@@ -2450,6 +2450,31 @@ XPM format.
 types:
 
 @table @code
+@item :file @var{file}
+The @code{:file} property specifies to load the image from file
+@var{file}.  If @var{file} is not an absolute file name, it is expanded
+in @code{data-directory}.
+
+@item :data @var{data}
+The @code{:data} property specifies the actual contents of the image.
+Each image must use either @code{:data} or @code{:file}, but not both.
+For most image types, the value of the @code{:data} property should be a
+string containing the image data; we recommend using a unibyte string.
+
+Before using @code{:data}, look for further information in the section
+below describing the specific image format.  For some image types,
+@code{:data} may not be supported; for some, it allows other data types;
+for some, @code{:data} alone is not enough, so you need to use other
+image properties along with @code{:data}.
+
+@item :margin @var{margin}
+The @code{:margin} property specifies how many pixels to add as an
+extra margin around the image.  The value, @var{margin}, must be a a
+non-negative number, or a pair @code{(@var{x} . @var{y})} of such
+numbers.  If it is a pair, @var{x} specifies how many pixels to add
+horizontally, and @var{y} specifies how many pixels to add vertically.
+If @code{:margin} is not specified, the default is zero.
+
 @item :ascent @var{ascent}
 The @code{:ascent} property specifies the amount of the image's
 height to use for its ascent---that is, the part above the baseline.
@@ -2465,14 +2490,6 @@ at the position of the image, in the manner specified by the text
 properties and overlays that apply to the image.
 
 If this property is omitted, it defaults to 50.
-
-@item :margin @var{margin}
-The @code{:margin} property specifies how many pixels to add as an
-extra margin around the image.  The value, @var{margin}, must be a
-non-negative number, or a pair @code{(@var{x} . @var{y})} of such
-numbers.  If it is a pair, @var{x} specifies how many pixels to add
-horizontally, and @var{y} specifies how many pixels to add vertically.
-If @code{:margin} is not specified, the default is zero.
 
 @item :relief @var{relief}
 The @code{:relief} property, if non-@code{nil}, adds a shadow rectangle
@@ -2572,23 +2589,6 @@ specifying the color to assume for the background of the image.
 If @var{mask} is nil, remove a mask from the image, if it has one.  Images
 in some formats include a mask which can be removed by specifying
 @code{:mask nil}.
-
-@item :file @var{file}
-The @code{:file} property specifies to load the image from file
-@var{file}.  If @var{file} is not an absolute file name, it is expanded
-in @code{data-directory}.
-
-@item :data @var{data}
-The @code{:data} property specifies the actual contents of the image.
-Each image must use either @code{:data} or @code{:file}, but not both.
-For most image types, the value of the @code{:data} property should be a
-string containing the image data; we recommend using a unibyte string.
-
-Before using @code{:data}, look for further information in the section
-below describing the specific image format.  For some image types,
-@code{:data} may not be supported; for some, it allows other data types;
-for some, @code{:data} alone is not enough, so you need to use other
-image properties along with @code{:data}.
 @end table
 
 @defun image-mask-p spec &optional frame
