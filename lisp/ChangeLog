@@ -1,9 +1,13 @@
-2002-08-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Andrew Choi  <akochoi@shaw.ca>
+
+	* term/mac-win.el: Set keys to enable mouse wheel support.
+
+2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.8.
 	(tramp-perl-encode, tramp-perl-encode): Double the backslashes.
 
-2002-08-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.7.
 	(tramp-perl-encode-with-module, tramp-perl-decode-with-module) 
@@ -17,7 +21,7 @@
 	(f90-font-lock-keywords-2): Fix `implicit type(foo)' case.
 	(f90-type-def-re): Fix value.
 
-2002-08-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.6.
 	(tramp-default-method): Change to "ssh" from "sm".
@@ -111,7 +115,7 @@
 	(update-subdirs-CMD): Generate the right list of subdirectories.  From
 	Tak Ota <Takaaki.Ota@am.sony.com>.
 
-2002-07-30  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: New version 2.0.5.
 	(tramp-methods): Remove inline encoding method parameters.  The
@@ -257,7 +261,7 @@
 	* ps-print.el: Update copyright year.
 	(ps-begin-cut-regexp, ps-end-cut-regexp): Fix type.
 
-2002-07-26  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-26  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* eshell/eshell.el (eshell): Numeric prefix arg means to switch
 	to the session with that number.  Old behavior still available

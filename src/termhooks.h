@@ -242,9 +242,9 @@ enum event_kind
 				   the mouse click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-#ifdef WINDOWSNT
+#if defined(WINDOWSNT) || defined(MAC_OSX)
   MOUSE_WHEEL_EVENT,		/* A mouse-wheel event is generated 
-				   on WINDOWSNT by a 
+				   on WINDOWSNT or MAC_OSX by a 
 				   wheel on a mouse (e.g., MS Intellimouse).
 				   The event contains a delta that corresponds
 				   to the amount and direction that the wheel
@@ -259,6 +259,8 @@ enum event_kind
 				   the wheel event occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the wheel event.  */
+#endif
+#ifdef WINDOWSNT
   LANGUAGE_CHANGE_EVENT,	/* A LANGUAGE_CHANGE_EVENT is generated
 				   on WINDOWSNT when the keyboard layout
 				   or input language is changed by the

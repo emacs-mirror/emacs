@@ -58,6 +58,10 @@ Boston, MA 02111-1307, USA.  */
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #undef init_process
 #define init_process emacs_init_process
+/* USE_CARBON_EVENTS determines if the Carbon Event Manager is used to
+   obtain events from the event queue.  If set to 0, WaitNextEvent is
+   used instead.  */
+#define USE_CARBON_EVENTS 1
 #else /* not MAC_OSX */
 #include <Quickdraw.h>
 #include <ToolUtils.h>
@@ -105,6 +109,15 @@ Boston, MA 02111-1307, USA.  */
 #include "coding.h"
 
 #define BETWEEN(X, LOWER, UPPER)  ((X) >= (LOWER) && (X) < (UPPER))
+
+/* Set of macros that handle mapping of Mac modifier keys to emacs.  */
+#define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
+			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
+#define macShiftKey    (shiftKey)
+#define macMetaKey     (NILP (Vmac_reverse_ctrl_meta) ?			\
+			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
+			: controlKey)
+#define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
 
 
 /* Fringe bitmaps.  */
@@ -10092,108 +10105,21 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
-#if 0 /* MAC_TODO: really no iconify on Mac */
-  int result;
-  Lisp_Object type;
-
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
+#if 0
+  /* Review:  Since window is still visible in dock, still allow updates? */
   if (f->async_iconified)
     return;
+#endif
 
   BLOCK_INPUT;
 
-  FRAME_SAMPLE_VISIBILITY (f);
-
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
-
-#ifdef USE_X_TOOLKIT
-
-  if (! FRAME_VISIBLE_P (f))
-    {
-      if (! EQ (Vx_no_window_manager, Qt))
-	x_wm_set_window_state (f, IconicState);
-      /* This was XtPopup, but that did nothing for an iconified frame.  */
-      XtMapWidget (f->output_data.x->widget);
-      /* The server won't give us any event to indicate
-	 that an invisible frame was changed to an icon,
-	 so we have to record it here.  */
-      f->iconified = 1;
-      f->visible = 1;
-      f->async_iconified = 1;
-      f->async_visible = 0;
-      UNBLOCK_INPUT;
-      return;
-    }
-
-  result = XIconifyWindow (FRAME_X_DISPLAY (f),
-			   XtWindow (f->output_data.x->widget),
-			   DefaultScreen (FRAME_X_DISPLAY (f)));
+  CollapseWindow (FRAME_MAC_WINDOW (f), true);
+  
   UNBLOCK_INPUT;
-
-  if (!result)
-    error ("Can't notify window manager of iconification");
-
-  f->async_iconified = 1;
-  f->async_visible = 0;
-
-
-  BLOCK_INPUT;
-  XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
-#else /* not USE_X_TOOLKIT */
-
-  /* Make sure the X server knows where the window should be positioned,
-     in case the user deiconifies with the window manager.  */
-  if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
-    x_set_offset (f, f->output_data.x->left_pos, f->output_data.x->top_pos, 0);
-
-  /* Since we don't know which revision of X we're running, we'll use both
-     the X11R3 and X11R4 techniques.  I don't know if this is a good idea.  */
-
-  /* X11R4: send a ClientMessage to the window manager using the
-     WM_CHANGE_STATE type.  */
-  {
-    XEvent message;
-
-    message.xclient.window = FRAME_X_WINDOW (f);
-    message.xclient.type = ClientMessage;
-    message.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_change_state;
-    message.xclient.format = 32;
-    message.xclient.data.l[0] = IconicState;
-
-    if (! XSendEvent (FRAME_X_DISPLAY (f),
-		      DefaultRootWindow (FRAME_X_DISPLAY (f)),
-		      False,
-		      SubstructureRedirectMask | SubstructureNotifyMask,
-		      &message))
-      {
-	UNBLOCK_INPUT_RESIGNAL;
-	error ("Can't notify window manager of iconification");
-      }
-  }
-
-  /* X11R3: set the initial_state field of the window manager hints to
-     IconicState.  */
-  x_wm_set_window_state (f, IconicState);
-
-  if (!FRAME_VISIBLE_P (f))
-    {
-      /* If the frame was withdrawn, before, we must map it.  */
-      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-    }
-
-  f->async_iconified = 1;
-  f->async_visible = 0;
-
-  XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
-#endif /* not USE_X_TOOLKIT */
-#endif /* MAC_TODO */
 }
 
 
@@ -11560,8 +11486,17 @@ static long app_sleep_time = WNE_SLEEP_AT_RESUME;
 
 Boolean	terminate_flag = false;
 
-/* true if using command key as meta key */
+/* True if using command key as meta key.  */
 Lisp_Object Vmac_command_key_is_meta;
+
+/* True if the ctrl and meta keys should be reversed.  */
+Lisp_Object Vmac_reverse_ctrl_meta;
+
+#if USE_CARBON_EVENTS
+/* True if the mouse wheel button (i.e. button 4) should map to
+   mouse-2, instead of mouse-3.  */
+Lisp_Object Vmac_wheel_button_is_mouse_2;
+#endif
 
 /* convert input from Mac keyboard (assumed to be in Mac Roman coding)
    to this text encoding */
@@ -11577,13 +11512,23 @@ Lisp_Object drag_and_drop_file_list;
 Point saved_menu_event_location;
 
 /* Apple Events */
-static void init_required_apple_events(void);
+static void init_required_apple_events (void);
 static pascal OSErr
-do_ae_open_application(const AppleEvent *, AppleEvent *, long);
+do_ae_open_application (const AppleEvent *, AppleEvent *, long);
 static pascal OSErr
-do_ae_print_documents(const AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_open_documents(AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_quit_application(AppleEvent *, AppleEvent *, long);
+do_ae_print_documents (const AppleEvent *, AppleEvent *, long);
+static pascal OSErr do_ae_open_documents (AppleEvent *, AppleEvent *, long);
+static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
+
+/* Drag and Drop */
+static OSErr init_mac_drag_n_drop ();
+static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference); 
+
+#if USE_CARBON_EVENTS
+/* Preliminary Support for the OSX Services Menu */
+static OSStatus mac_handle_service_event (EventHandlerCallRef,EventRef,void*);
+static void init_service_handler ();
+#endif
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -11592,6 +11537,104 @@ extern void check_alarm ();
 extern void initialize_applescript();
 extern void terminate_applescript();
 
+static unsigned int 
+#if USE_CARBON_EVENTS
+mac_to_emacs_modifiers (UInt32 mods)
+#else
+mac_to_emacs_modifiers (EventModifiers mods)
+#endif
+{
+  unsigned int result = 0;
+  if (mods & macShiftKey)
+    result |= shift_modifier;
+  if (mods & macCtrlKey)
+    result |= ctrl_modifier;
+  if (mods & macMetaKey)
+    result |= meta_modifier;
+  if (NILP (Vmac_command_key_is_meta) && (mods & macAltKey))
+    result |= alt_modifier;
+  return result;
+}
+
+#if USE_CARBON_EVENTS
+/* Obtains the event modifiers from the event ref and then calls
+   mac_to_emacs_modifiers.  */
+static int 
+mac_event_to_emacs_modifiers (EventRef eventRef) 
+{
+  UInt32 mods = 0;
+  GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
+		    sizeof (UInt32), NULL, &mods);
+  return mac_to_emacs_modifiers (mods);
+}
+
+/* Given an event ref, return the code to use for the mouse button
+   code in the emacs input_event.  */
+static int
+mac_get_mouse_btn (EventRef ref) 
+{
+  EventMouseButton result = kEventMouseButtonPrimary;
+  GetEventParameter (ref, kEventParamMouseButton, typeMouseButton, NULL,
+		    sizeof (EventMouseButton), NULL, &result);
+  switch (result) 
+    {
+    case kEventMouseButtonPrimary:
+      return 0;
+    case kEventMouseButtonSecondary:
+      return NILP (Vmac_wheel_button_is_mouse_2) ? 2 : 1; 
+    case kEventMouseButtonTertiary:
+    case 4:  /* 4 is the number for the mouse wheel button */
+      return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2; 
+    default:
+      return 0;
+    }
+}
+
+/* Normally, ConvertEventRefToEventRecord will correctly handle all
+   events.  However the click of the mouse wheel is not converted to a
+   mouseDown or mouseUp event.  This calls ConvertEventRef, but then
+   checks to see if it is a mouse up or down carbon event that has not
+   been converted, and if so, converts it by hand (to be picked up in
+   the XTread_socket loop).  */
+static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec) 
+{
+  Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
+  /* Do special case for mouse wheel button.  */
+  if (!result && GetEventClass (eventRef) == kEventClassMouse) 
+    { 
+      UInt32 kind = GetEventKind (eventRef);
+      if (kind == kEventMouseDown && !(eventRec->what == mouseDown)) 
+	{
+	  eventRec->what = mouseDown;
+	  result=1;
+	}
+      if (kind == kEventMouseUp && !(eventRec->what == mouseUp)) 
+	{
+	  eventRec->what = mouseUp;
+	  result=1;
+	}
+      if (result) 
+	{
+	  /* Need where and when.  */
+	  UInt32 mods;
+	  GetEventParameter (eventRef, kEventParamMouseLocation,
+			     typeQDPoint, NULL, sizeof (Point),
+			     NULL, &eventRec->where);
+	  /* Use two step process because new event modifiers are
+	     32-bit and old are 16-bit.  Currently, only loss is
+	     NumLock & Fn. */
+	  GetEventParameter (eventRef, kEventParamKeyModifiers,
+			     typeUInt32, NULL, sizeof (UInt32),
+			     NULL, &mods);
+	  eventRec->modifiers = mods;
+	  
+	  eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
+	}
+    }
+  return result;
+}
+
+#endif
 
 static void
 do_get_menus (void)
@@ -12019,6 +12062,13 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   SetPort (save_port);
 }
 
+/* Initialize Drag And Drop to allow files to be dropped onto emacs frames */
+static OSErr
+init_mac_drag_n_drop ()
+{
+  OSErr result = InstallReceiveHandler (mac_do_receive_drag, 0L, NULL);
+  return result;
+}
 
 /* Intialize AppleEvent dispatcher table for the required events.  */
 void
@@ -12092,6 +12142,102 @@ init_required_apple_events ()
     abort ();
 }
 
+#if USE_CARBON_EVENTS
+
+void init_service_handler()
+{
+  EventTypeSpec specs[] = {{kEventClassService, kEventServiceGetTypes},
+			   {kEventClassService, kEventServiceCopy},
+			   {kEventClassService, kEventServicePaste}};
+  InstallApplicationEventHandler (NewEventHandlerUPP (mac_handle_service_event),
+				  3, specs, NULL, NULL);
+}
+
+/*
+   MAC_TODO: Check to see if this is called by AEProcessDesc...
+ */
+OSStatus mac_handle_service_event (EventHandlerCallRef callRef,
+				   EventRef event, void *data)
+{
+  OSStatus err = noErr; 
+  switch (GetEventKind (event))
+    {
+    case kEventServiceGetTypes: 
+      {
+	CFMutableArrayRef copyTypes, pasteTypes;
+	CFStringRef type;
+	Boolean selection = true;
+	/*
+	  GetEventParameter(event, kEventParamServicePasteTypes,
+	  typeCFMutableArrayRef, NULL,
+	  sizeof (CFMutableArrayRef), NULL, &pasteTypes);
+	*/
+	GetEventParameter(event, kEventParamServiceCopyTypes,
+			  typeCFMutableArrayRef, NULL,
+			  sizeof (CFMutableArrayRef), NULL, &copyTypes);
+	type = CreateTypeStringWithOSType (kScrapFlavorTypeText);
+	if (type) {
+	  CFArrayAppendValue (copyTypes, type);
+	  //CFArrayAppendValue (pasteTypes, type);
+	  CFRelease (type);
+	}
+      }
+    case kEventServiceCopy:
+      {
+	ScrapRef currentScrap, specificScrap;
+	char * buf = "";
+	Size byteCount = 0;
+
+	GetCurrentScrap (&currentScrap);
+
+	err = GetScrapFlavorSize (currentScrap, kScrapFlavorTypeText, &byteCount);
+	if (err == noErr)
+	  {
+	    void *buffer = xmalloc (byteCount);
+	    if (buffer != NULL)
+	      {
+		GetEventParameter (event, kEventParamScrapRef, typeScrapRef, NULL,
+				   sizeof (ScrapRef), NULL, &specificScrap);
+	      
+		err = GetScrapFlavorData (currentScrap, kScrapFlavorTypeText,
+					  &byteCount, buffer);
+		if (err == noErr)
+		  PutScrapFlavor (specificScrap, kScrapFlavorTypeText,
+				  kScrapFlavorMaskNone, byteCount, buffer);
+		xfree (buffer);
+	      } 
+	  }
+	err = noErr;
+      }
+    case kEventServicePaste:
+      {
+	/*
+	// Get the current location
+        Size     byteCount;
+        ScrapRef specificScrap;
+        GetEventParameter(event, kEventParamScrapRef, typeScrapRef, NULL,
+			  sizeof(ScrapRef), NULL, &specificScrap);
+        err = GetScrapFlavorSize(specificScrap, kScrapFlavorTypeText, &byteCount);
+        if (err == noErr) {
+	  void * buffer = xmalloc(byteCount);
+	  if (buffer != NULL ) {
+	    err = GetScrapFlavorData(specificScrap, kScrapFlavorTypeText, 
+				     &byteCount, buffer);
+	    if (err == noErr) {
+	      // Actually place in the buffer
+	      BLOCK_INPUT;
+	      // Get the current "selection" string here
+	      UNBLOCK_INPUT;
+	    }
+	  }
+	  xfree(buffer);
+        }
+        */
+      }   
+    }
+  return err;
+}
+#endif
 
 /* Open Application Apple Event */
 static pascal OSErr
@@ -12184,6 +12330,83 @@ error_exit:
 descriptor_error_exit:
   /* InvalRect(&(gFrontMacWindowP->mWP->portRect)); */
   return err;
+}
+
+
+static pascal OSErr mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
+					 DragReference theDrag)
+{
+  short items;
+  short index;
+  FlavorFlags theFlags;
+  Point mouse;
+  OSErr result;
+  ItemReference theItem;
+  HFSFlavor data;
+  FSRef fref;
+  Size size = sizeof (HFSFlavor);
+
+  drag_and_drop_file_list = Qnil;
+  GetDragMouse (theDrag, &mouse, 0L);
+  CountDragItems (theDrag, &items);
+  for (index = 1; index <= items; index++) 
+    {
+      /* Only handle file references.  */
+      GetDragItemReferenceNumber (theDrag, index, &theItem);
+      result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
+      if (result == noErr)
+	{
+#ifdef MAC_OSX
+	  FSRef frref;
+#else
+	  Str255 path_name;
+#endif
+	  Str255 unix_path_name;
+	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
+#ifdef MAC_OSX
+	  /* Use Carbon routines, otherwise it converts the file name
+	     to /Macintosh HD/..., which is not correct. */
+	  FSpMakeFSRef (&data.fileSpec, &fref);
+	  if (! FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name)));
+#else
+	  if (path_from_vol_dir_name (path_name, 255, data.fileSpec.vRefNum,
+				      data.fileSpec.parID, data.fileSpec.name) &&
+	      mac_to_posix_pathname (path_name, unix_path_name, 255))
+#endif
+            drag_and_drop_file_list = Fcons (build_string (unix_path_name),
+					     drag_and_drop_file_list);
+	}
+      else
+	return;
+    }
+  /* If there are items in the list, construct an event and post it to
+     the queue like an interrupt using kbd_buffer_store_event.  */
+  if (!NILP (drag_and_drop_file_list)) 
+    {
+      struct input_event event;
+      Lisp_Object frame;
+      struct frame *f = ((mac_output *) GetWRefCon(window))->mFP;
+      SetPort (GetWindowPort (window));
+      GlobalToLocal (&mouse);
+
+      event.kind = DRAG_N_DROP_EVENT;
+      event.code = 0;
+      event.modifiers = 0;
+      event.timestamp = TickCount () * (1000 / 60);
+      XSETINT (event.x, mouse.h);
+      XSETINT (event.y, mouse.v);
+      XSETFRAME (frame, f);
+      event.frame_or_window = Fcons (frame, drag_and_drop_file_list);
+      event.arg = Qnil;
+      /* Post to the interrupt queue */
+      kbd_buffer_store_event (&event);
+      /* MAC_TODO: Mimic behavior of windows by switching contexts to Emacs */
+      {
+	ProcessSerialNumber psn;
+	GetCurrentProcess (&psn);
+	SetFrontProcess (&psn);
+      }
+    }
 }
 
 
@@ -12334,7 +12557,12 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
 int
 XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 {
-  int count = 0;
+  int count = 0; 
+#if USE_CARBON_EVENTS
+  OSStatus rneResult;
+  EventRef eventRef;
+  EventMouseButton mouseBtn;
+#endif
   EventRecord er;
   int the_modifiers;
   EventMask event_mask;
@@ -12380,7 +12608,52 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
   if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
     event_mask -= highLevelEventMask;
 
+#if USE_CARBON_EVENTS
+  rneResult = ReceiveNextEvent (0, NULL, 
+				expected ? TicksToEventTime(app_sleep_time) : 0,
+				true, &eventRef);
+  if (!rneResult)
+    {
+      /* Handle new events */
+      if (!mac_convert_event_ref (eventRef, &er)) 
+	switch (GetEventClass (eventRef)) 
+	  {
+	  case kEventClassMouse:
+	    if (GetEventKind (eventRef) == kEventMouseWheelMoved) 
+	      {
+		SInt32 delta;
+		Point point;
+		WindowPtr window_ptr = FrontWindow ();
+		struct mac_output *mwp = (mac_output *) GetWRefCon (window_ptr);
+		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
+				  typeSInt32, NULL, sizeof (SInt32),
+				  NULL, &delta);
+		GetEventParameter(eventRef, kEventParamMouseLocation,
+				  typeQDPoint, NULL, sizeof (Point),
+				  NULL, &point);
+		bufp->kind = MOUSE_WHEEL_EVENT;
+		bufp->code = delta;
+		bufp->modifiers = mac_event_to_emacs_modifiers(eventRef);
+		SetPort (GetWindowPort (window_ptr));
+		GlobalToLocal (&point);
+		XSETINT (bufp->x, point.h);
+		XSETINT (bufp->y, point.v);
+		XSETFRAME (bufp->frame_or_window, mwp->mFP);
+		bufp->timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
+		count++;
+	      }
+	    else
+	      SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+
+	    break;
+	  default:
+	    /* Send the event to the appropriate receiver.  */
+	    SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+	  }
+      else
+#else
   if (WaitNextEvent (event_mask, &er, (expected ? app_sleep_time : 0L), NULL))
+#endif /* USE_CARBON_EVENTS */
     switch (er.what)
       {
       case mouseDown:
@@ -12388,6 +12661,11 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	{
 	  WindowPtr window_ptr = FrontWindow ();
 	  SInt16 part_code;
+
+#if USE_CARBON_EVENTS
+	  /* This is needed to correctly */
+	  SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+#endif
 
           if (mouse_tracking_in_progress == mouse_tracking_scroll_bar
 	      && er.what == mouseUp)
@@ -12404,11 +12682,20 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	      GlobalToLocal (&mouse_loc);
 		  
+#if USE_CARBON_EVENTS
+	      bufp->code = mac_get_mouse_btn (eventRef);
+#else
 	      bufp->code = 0;  /* only one mouse button */
+#endif
               bufp->kind = SCROLL_BAR_CLICK_EVENT;
               bufp->frame_or_window = tracked_scroll_bar->window;
               bufp->part = scroll_bar_handle;
-              bufp->modifiers = up_modifier;
+#if USE_CARBON_EVENTS
+	      bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+	      bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
+              bufp->modifiers |= up_modifier;
 	      bufp->timestamp = er.when * (1000 / 60);
 	        /* ticks to milliseconds */
 
@@ -12461,7 +12748,12 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 #else
 		  control_part_code = FindControl (mouse_loc, window_ptr, &ch);
 #endif		  
+
+#if USE_CARBON_EVENTS
+		  bufp->code = mac_get_mouse_btn (eventRef);
+#else		  
 	          bufp->code = 0;  /* only one mouse button */
+#endif
 		  XSETINT (bufp->x, mouse_loc.h);
 		  XSETINT (bufp->y, mouse_loc.v);
 		  bufp->timestamp = er.when * (1000 / 60);
@@ -12501,13 +12793,19 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		        mouse_tracking_in_progress = mouse_tracking_none;
 	            }
 	      	  		
+#if USE_CARBON_EVENTS
+		  bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+		  bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
+
 	          switch (er.what)
 		    {
 		    case mouseDown:
-		      bufp->modifiers = down_modifier;
+		      bufp->modifiers |= down_modifier;
 		      break;
 		    case mouseUp:
-		      bufp->modifiers = up_modifier;
+		      bufp->modifiers |= up_modifier;
 		      break;
 		    }
 								
@@ -12559,6 +12857,9 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
       case updateEvt:
       case osEvt:
       case activateEvt:
+#if USE_CARBON_EVENTS
+	SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+#endif	
     	do_events (&er);
 	break;
 	
@@ -12579,11 +12880,21 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	    {
 	      bufp->code = 0xff00 | xkeysym;
 	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
-	    }	      
+	    }	   
+	  else if (!NILP (Vmac_reverse_ctrl_meta) && (er.modifiers & controlKey))
+	    {
+	      /* This is a special case to deal with converting from
+		 a control character to non-control character */
+	      int new_modifiers = er.modifiers & ~controlKey;
+	      int new_keycode = keycode | new_modifiers;	      
+	      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+	      unsigned long some_state = 0;
+	      bufp->code = KeyTranslate (kchr_ptr, new_keycode, &some_state) & 0xff;
+	      bufp->kind = ASCII_KEYSTROKE_EVENT;
+	    }
 	  else
 	    {
-	      if (er.modifiers
-		  & (NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
+	      if (er.modifiers & macMetaKey)
 	        {
 	          /* This code comes from Keyboard Resource, Appendix
 		     C of IM - Text.  This is necessary since shift is
@@ -12597,6 +12908,16 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	          bufp->code = KeyTranslate (kchr_ptr, new_keycode,
 					     &some_state) & 0xff;
 	        }
+#if USE_CARBON_EVENTS
+	      else if (er.modifiers & cmdKey &&
+		       (NILP (Vmac_command_key_is_meta)))
+		{
+		  /* If this is a command key (and we are not overriding it),
+		     send back to the operating system  */
+		  SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+		  break;
+		}
+#endif
 	      else
 	        bufp->code = er.message & charCodeMask;
 	      bufp->kind = ASCII_KEYSTROKE_EVENT;
@@ -12654,24 +12975,12 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
               }
 	  }
 
-	the_modifiers = 0;
-	if (er.modifiers & shiftKey)
-	  the_modifiers |= shift_modifier;
-	if (er.modifiers & controlKey)
-	  the_modifiers |= ctrl_modifier;
-	/* Use option or command key as meta depending on value of
-	   mac-command-key-is-meta.  */
-	if (er.modifiers
-	    & (NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
-	  the_modifiers |= meta_modifier;
- 
-	/* If the Mac option key is meta, then make Emacs recognize
-	   the Mac command key as alt.  */
-	if (NILP (Vmac_command_key_is_meta) && (er.modifiers & cmdKey))
-	  the_modifiers |= alt_modifier;
-
-	bufp->modifiers	= the_modifiers;
-				
+#if USE_CARBON_EVENTS
+	bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+	bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
+	
 	{
 	  mac_output *mwp
 	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
@@ -12706,7 +13015,11 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
             bufp->code = 0;
             bufp->timestamp = er.when * (1000 / 60);
 	      /* ticks to milliseconds */
-            bufp->modifiers = 0;
+#if USE_CARBON_EVENTS
+	    bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+	    bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
 
             XSETINT (bufp->x, 0);
             XSETINT (bufp->y, 0);
@@ -12732,10 +13045,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
             
             count++;
           }
-        
       default:
 	break;
       }
+#if USE_CARBON_EVENTS
+      ReleaseEvent (eventRef);
+    }
+#endif
 
   /* If the focus was just given to an autoraising frame,
      raise it now.  */
@@ -12847,7 +13163,6 @@ NewMacWindow (FRAME_PTR fp)
     if (!(mwp->mWP = GetNewCWindow (WINDOW_RESOURCE, NULL, (WindowPtr) -1)))
       abort ();
   
-
   SetWRefCon (mwp->mWP, (long) mwp);
     /* so that update events can find this mac_output struct */
   mwp->mFP = fp;  /* point back to emacs frame */
@@ -13183,6 +13498,12 @@ mac_initialize ()
 #if TARGET_API_MAC_CARBON
   init_required_apple_events ();
 
+  init_mac_drag_n_drop ();
+
+#if USE_CARBON_EVENTS
+  init_service_handler ();
+#endif
+
   DisableMenuCommand (NULL, kHICommandQuit);
 #endif
 }
@@ -13252,6 +13573,19 @@ to 4.1, set this to nil.  */);
     doc: /* Non-nil means that the command key is used as the Emacs meta key.
 Otherwise the option key is used.  */);
   Vmac_command_key_is_meta = Qt;
+
+  DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
+    doc: /* Non-nil means that the control and meta keys are reversed.  This is
+	    useful for non-standard keyboard layouts.  */);
+  Vmac_reverse_ctrl_meta = Qnil;
+
+#if USE_CARBON_EVENTS
+  DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,
+   doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
+the right click will be mouse-3.
+Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
+  Vmac_wheel_button_is_mouse_2 = Qt;
+#endif
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     doc: /* One of the Text Encoding Base constant values defined in the

@@ -234,6 +234,16 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; or bold bitmap versions will not display these variants correctly.
 (setq scalable-fonts-allowed t)
 
+;; Make suspend-emacs [C-z] collapse the current frame
+(substitute-key-definition 'suspend-emacs 'iconify-frame
+			   global-map)
+ 
+;; Support mouse-wheel scrolling
+(autoload 'mwheel-scroll "mwheel")
+(global-set-key [mouse-wheel] 'mwheel-scroll)
+(global-set-key [C-mouse-wheel] 'mwheel-scroll)
+(global-set-key [S-mouse-wheel] 'mwheel-scroll)
+
 ;; (prefer-coding-system 'mac-roman)
 
 ;;
