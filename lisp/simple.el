@@ -951,7 +951,7 @@ In either case, the output is inserted after point (leaving mark after it)."
       standard-output
       (call-process shell-file-name nil t nil shell-command-switch command))))
 
-(defconst universal-argument-map
+(defvar universal-argument-map
   (let ((map (make-sparse-keymap)))
     (define-key map [t] 'universal-argument-other-key)
     (define-key map (vector meta-prefix-char t) 'universal-argument-other-key)
@@ -1144,7 +1144,7 @@ interact nicely with `interprogram-cut-function' and
 interaction; you may want to use them instead of manipulating the kill
 ring directly.")
 
-(defconst kill-ring-max 30
+(defvar kill-ring-max 30
   "*Maximum length of kill ring before oldest elements are thrown away.")
 
 (defvar kill-ring-yank-pointer nil
@@ -1525,13 +1525,13 @@ store it in a Lisp variable.  Example:
 (make-variable-buffer-local 'mark-ring)
 (put 'mark-ring 'permanent-local t)
 
-(defconst mark-ring-max 16
+(defvar mark-ring-max 16
   "*Maximum size of mark ring.  Start discarding off end if gets this big.")
 
 (defvar global-mark-ring nil
   "The list of saved global marks, most recent first.")
 
-(defconst global-mark-ring-max 16
+(defvar global-mark-ring-max 16
   "*Maximum size of global mark ring.  \
 Start discarding off end if gets this big.")
 
@@ -1707,7 +1707,7 @@ to use and more reliable (no dependence on goal column, etc.)."
     (line-move (- arg)))
   nil)
 
-(defconst track-eol nil
+(defvar track-eol nil
   "*Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
 The beginning of a blank line does not count as the end of a line.")
@@ -2073,43 +2073,43 @@ With argument 0, interchanges line point is in with line mark is in."
     (delete-char (length word1))
     (insert word2)))
 
-(defconst comment-column 32
+(defvar comment-column 32
   "*Column to indent right-margin comments to.
 Setting this variable automatically makes it local to the current buffer.
 Each mode establishes a different default value for this variable; you
 can set the value for a particular mode using that mode's hook.")
 (make-variable-buffer-local 'comment-column)
 
-(defconst comment-start nil
+(defvar comment-start nil
   "*String to insert to start a new comment, or nil if no comment syntax.")
 
-(defconst comment-start-skip nil
+(defvar comment-start-skip nil
   "*Regexp to match the start of a comment plus everything up to its body.
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
 
-(defconst comment-end ""
+(defvar comment-end ""
   "*String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 
-(defconst comment-indent-hook nil
+(defvar comment-indent-hook nil
   "Obsolete variable for function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
-(defconst comment-indent-function
+(defvar comment-indent-function
   '(lambda () comment-column)
   "Function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
-(defconst block-comment-start nil
+(defvar block-comment-start nil
   "*String to insert to start a new comment on a line by itself.
 If nil, use `comment-start' instead.
 Note that the regular expression `comment-start-skip' should skip this string
 as well as the `comment-start' string.")
 
-(defconst block-comment-end nil
+(defvar block-comment-end nil
   "*String to insert to end a new comment on a line by itself.
 Should be an empty string if comments are terminated by end-of-line.
 If nil, use `comment-end' instead.")
@@ -2350,12 +2350,12 @@ or adjacent to a word."
 		 (buffer-substring start end)))
 	(buffer-substring start end)))))
 
-(defconst fill-prefix nil
+(defvar fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
 Setting this variable automatically makes it local to the current buffer.")
 (make-variable-buffer-local 'fill-prefix)
 
-(defconst auto-fill-inhibit-regexp nil
+(defvar auto-fill-inhibit-regexp nil
   "*Regexp to match lines which should not be auto-filled.")
 
 ;; This function is the auto-fill-function of a buffer
@@ -2502,7 +2502,7 @@ Just \\[universal-argument] as argument means to use the current column."
 	 (error "set-fill-column requires an explicit argument")))
   (message "fill-column set to %d" fill-column))
 
-(defconst comment-multi-line nil
+(defvar comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
 on new line, with no new terminator or starter.
 This is obsolete because you might as well use \\[newline-and-indent].")
@@ -2683,13 +2683,13 @@ in the mode line."
 nil means don't show it (but the open-paren can still be shown
 when it is off screen.")
 
-(defconst blink-matching-paren-distance 12000
+(defvar blink-matching-paren-distance 12000
   "*If non-nil, is maximum distance to search for matching open-paren.")
 
-(defconst blink-matching-delay 1
+(defvar blink-matching-delay 1
   "*The number of seconds that `blink-matching-open' will delay at a match.")
 
-(defconst blink-matching-paren-dont-ignore-comments nil
+(defvar blink-matching-paren-dont-ignore-comments nil
   "*Non-nil means `blink-matching-paren' should not ignore comments.")
 
 (defun blink-matching-open ()
