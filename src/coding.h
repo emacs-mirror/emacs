@@ -234,8 +234,12 @@ enum coding_type
     coding_type_iso2022,	/* Any coding system of ISO2022
 				   variants.  */
     coding_type_big5,		/* BIG5 coding system for Chinese.  */
-    coding_type_ccl		/* The coding system of which decoder
+    coding_type_ccl,		/* The coding system of which decoder
 				   and encoder are written in CCL.  */
+    coding_type_raw_text	/* A coding system for a text
+				   containing ramdom 8-bit code which
+				   does not require code conversion
+				   except for end-of-line format. */
   };
 
 /* Formats of end-of-line.  */
@@ -246,6 +250,9 @@ enum coding_type
 #define CODING_EOL_CR	2	/* Carriage-return only.  */
 #define CODING_EOL_UNDECIDED 3	/* This value is used to denote the
 				   eol-type is not yet decided.  */
+#define CODING_EOL_INCONSISTENT 4 /* This value is used to denote the
+				     eol-type is not consistent
+				     through the file.  */
 
 /* Character composition status while encoding/decoding.  */
 #define COMPOSING_NO		 0 /* not composing */
@@ -330,17 +337,19 @@ struct coding_system
 
 /* Return 1 if coding system CODING never requires any code conversion.  */
 #define CODING_REQUIRE_NO_CONVERSION(coding)		\
-  (((coding)->type == coding_type_no_conversion		\
-    || (coding)->type == coding_type_emacs_mule)	\
-   && (coding)->eol_type == CODING_EOL_LF)
+  ((coding)->type == coding_type_no_conversion		\
+   || (((coding)->type == coding_type_emacs_mule	\
+	|| (coding)->type == coding_type_raw_text)	\
+       && (coding)->eol_type == CODING_EOL_LF))
 
 /* Return 1 if coding system CODING may not require code conversion.  */
 #define CODING_MAY_REQUIRE_NO_CONVERSION(coding)	\
-  (((coding)->type == coding_type_no_conversion		\
-    || (coding)->type == coding_type_emacs_mule		\
-    || (coding)->type == coding_type_undecided)		\
-   && ((coding)->eol_type == CODING_EOL_LF		\
-       || (coding)->eol_type == CODING_EOL_UNDECIDED))
+  ((coding)->type == coding_type_no_conversion		\
+   || (((coding)->type == coding_type_emacs_mule	\
+	|| (coding)->type == coding_type_undecided	\
+	|| (coding)->type == coding_type_raw_text)	\
+       && ((coding)->eol_type == CODING_EOL_LF		\
+	   || (coding)->eol_type == CODING_EOL_UNDECIDED)))
 
 /* Index for each coding category in `coding_category_table' */
 #define CODING_CATEGORY_IDX_EMACS_MULE	0
@@ -351,8 +360,9 @@ struct coding_system
 #define CODING_CATEGORY_IDX_ISO_7_ELSE	5
 #define CODING_CATEGORY_IDX_ISO_8_ELSE	6
 #define CODING_CATEGORY_IDX_BIG5	7
-#define CODING_CATEGORY_IDX_BINARY	8
-#define CODING_CATEGORY_IDX_MAX		9
+#define CODING_CATEGORY_IDX_RAW_TEXT	8
+#define CODING_CATEGORY_IDX_BINARY	9
+#define CODING_CATEGORY_IDX_MAX		10
 
 /* Definitions of flag bits returned by the function
    detect_coding_mask ().  */
@@ -363,6 +373,7 @@ struct coding_system
 #define CODING_CATEGORY_MASK_ISO_8_2	(1 << CODING_CATEGORY_IDX_ISO_8_2)
 #define CODING_CATEGORY_MASK_ISO_7_ELSE	(1 << CODING_CATEGORY_IDX_ISO_7_ELSE)
 #define CODING_CATEGORY_MASK_ISO_8_ELSE	(1 << CODING_CATEGORY_IDX_ISO_8_ELSE)
+#define CODING_CATEGORY_MASK_RAW_TEXT	(1 << CODING_CATEGORY_IDX_RAW_TEXT)
 #define CODING_CATEGORY_MASK_BIG5	(1 << CODING_CATEGORY_IDX_BIG5)
 #define CODING_CATEGORY_MASK_BINARY	(1 << CODING_CATEGORY_IDX_BINARY)
 
