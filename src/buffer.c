@@ -1548,6 +1548,17 @@ set_buffer_internal_1 (b)
   register Lisp_Object tail, valcontents;
   Lisp_Object tem;
 
+#ifdef REL_ALLOC_MMAP
+  if (b->text->beg == NULL)
+    {
+      BLOCK_INPUT;
+      BUFFER_REALLOC (BUF_BEG_ADDR (b),
+		      (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b)
+		       + BUF_GAP_SIZE (b) + 1));
+      UNBLOCK_INPUT;
+    }
+#endif /* REL_ALLOC_MMAP */
+  
   if (current_buffer == b)
     return;
 
