@@ -1052,7 +1052,7 @@ If `enable-local-variables' is nil, this function does not check for a
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
-	((or (eq var 'eval)
+	((or (memq var '(eval file-name-handler-alist after-load-alist))
 	     (string-match "-hooks?$\\|-functions?$" (symbol-name var)))
 	 (if (and (not (string= (user-login-name) "root"))
 		  (or (eq enable-local-eval t)
