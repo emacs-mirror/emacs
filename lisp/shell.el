@@ -249,7 +249,7 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-font-lock-keywords
   (list (cons shell-prompt-pattern 'font-lock-keyword-face)
 	'("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
-	'("^[^ \t\n]+:.*$" . font-lock-string-face)
+	'("^[^ \t\n]+:.*" . font-lock-string-face)
 	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
   "Additional expressions to highlight in Shell mode.")
 
