@@ -1,3 +1,8 @@
+2002-04-08  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (reset-language-environment): Handle
+	coding-systems not being defined yet.
+
 2002-04-07  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-checkin): Pass the required argument to `error'.
