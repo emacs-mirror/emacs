@@ -1,3 +1,8 @@
+2002-01-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* buffer.c (Fkill_all_local_variables): Increment
+	`update_mode_lines' only once.
+
 2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lisp.h (adjust_after_replace_noundo)
