@@ -116,7 +116,7 @@ rest of the command.  Once echoing has started, the rest of the command
 echoes immediately as you type it.  This behavior is designed to give
 confident users fast response, while giving hesitant users maximum
 feedback.  You can change this behavior by setting a variable
-(@pxref{Display Vars}).
+(@pxref{Display Custom}).
 
 @cindex error message in the echo area
   If a command cannot be executed, it may print an @dfn{error message} in

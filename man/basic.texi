@@ -500,7 +500,7 @@ scrolling is in use, and optionally in all side-by-side windows
 (@pxref{Windows}).  You can enable or disable truncation for a
 particular buffer with the command @kbd{M-x toggle-truncate-lines}.
 
-  @xref{Display Vars}, for additional variables that affect how text is
+  @xref{Display Custom}, for additional variables that affect how text is
 displayed.
 
 @node Position Info
