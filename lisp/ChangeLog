@@ -5,13 +5,16 @@
 
 2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
 
-	Autorevert: Add support to detect changed dired buffers.
+	Autorevert: Add support to detect changed dired buffers and for
+	VC controlled files.
 	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
 	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
 	(auto-revert-handler, auto-revert-active-p): New functions.
 	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
 	and `auto-revert-active-p'.
-	(eval-when-compile): Defvar dired-directory.
+	(eval-when-compile): Defvar dired-directory and vc-mode.
+	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
+	(auto-revert-handler-vc): New functions.
 
 2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
 
