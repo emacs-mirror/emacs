@@ -1216,8 +1216,10 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 	       (setq ,current-message (current-message))
 	       (message "%s" ,temp-message))
 	     ,@body)
-	 (and ,temp-message ,current-message
-	      (message "%s" ,current-message))))))
+	 (and ,temp-message
+	      (if ,current-message
+		  (message "%s" ,current-message)
+		(message nil)))))))
 
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
