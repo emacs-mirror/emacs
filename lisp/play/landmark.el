@@ -1,9 +1,16 @@
-;;;_landmark.el --- Landmark learning neural network
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;;;_ landmark.el --- neural-network robot that learns landmarks
+
+;; Copyright (c) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon <brannon@rana.usc.edu>
 ;; Created: December 16, 1996 - first release to usenet
 ;; Keywords: gomoku neural network adaptive search chemotaxis
+
+;;;_* Usage
+;;; Just type
+;;;   M-x eval-current-buffer
+;;;   M-x lm-test-run
+
 
 ;; This file is part of GNU Emacs.
 
@@ -22,10 +29,6 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;;_* Usage
-;;; Just type 
-;;;   M-x eval-current-buffer
-;;;   M-x lm-test-run
 
 ;;;_* Commentary
 ;;; Lm is a relatively non-participatory game in which a robot
@@ -36,7 +39,7 @@
 ;;; future. If the smell of the tree decreases, the robots weights are
 ;;; adjusted to discourage a correct move.
 
-;;; In layman's terms, the search space is initially flat. The point
+;;; In laymen's terms, the search space is initially flat. The point
 ;;; of training is to "turn up the edges of the search space" so that
 ;;; the robot rolls toward the center.
 
@@ -52,44 +55,20 @@
 ;;; west will be improved when they shouldn't
 
 ;;; For further references see
-;;; http://rana.usc.edu:8376/~yuri/CS564/hw5.html
-
-
-
-
-
-
-
-
-
-
+;;; http://rana.usc.edu:8376/~brannon/warez/yours-truly/lm/
+;;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
+;;; concise problem description.
 
 ;;;_* Provide
 
 (provide 'lm)
 
-
-
-
-
-
-
 ;;;_* Require
 (require 'cl)
 
-
-
-
-
-
 ;;;_* From Gomoku
 
-
-
-
-
 ;;;_ +  THE BOARD.
-
 
 ;; The board is a rectangular grid. We code empty squares with 0, X's with 1
 ;; and O's with 6. The rectangle is recorded in a one dimensional vector
@@ -114,6 +93,19 @@
 (defvar lm-draw-limit nil
   ;; This is usually set to 70% of the number of squares.
   "After how many moves will Emacs offer a draw?")
+
+(defvar lm-cx 0
+  "This is the x coordinate of the center of the board.")
+
+(defvar lm-cy 0
+  "This is the y coordinate of the center of the board.")
+
+(defvar lm-m 0
+  "This is the x dimension of the playing board.")
+
+(defvar lm-n 0
+  "This is the y dimension of the playing board.")
+
 
 (defun lm-xy-to-index (x y)
   "Translate X, Y cartesian coords into the corresponding board index."
@@ -142,8 +134,22 @@
       (aset lm-board i -1)		; and also all k*(width+1)
       (setq i (+ i lm-board-width 1)))))
 
+;;;_ +  DISPLAYING THE BOARD.
 
+;; You may change these values if you have a small screen or if the squares
+;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
 
+(defconst lm-square-width 2
+  "*Horizontal spacing between squares on the Lm board.")
+
+(defconst lm-square-height 1
+  "*Vertical spacing between squares on the Lm board.")
+
+(defconst lm-x-offset 3
+  "*Number of columns between the Lm board and the side of the window.")
+
+(defconst lm-y-offset 1
+  "*Number of lines between the Lm board and the top of the window.")
 
 
 ;;;_ +  LM MODE AND KEYMAP.
@@ -250,9 +256,6 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   (setq font-lock-defaults '(lm-font-lock-keywords t))
   (toggle-read-only t)
   (run-hooks 'lm-mode-hook))
-
-
-
 
 
 ;;;_ +  THE SCORE TABLE.
@@ -506,9 +509,9 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 				      square -1 1 dval)))
 
 (defun lm-update-score-in-direction (left right square dx dy dval)
-  "Update scores for all squares in the qtuples starting between the LEFTth
-square and the RIGHTth after SQUARE, along the DX, DY direction, considering
-that DVAL has been added on SQUARE."
+  "Update scores for all squares in the qtuples in range.
+That is, those between the LEFTth square and the RIGHTth after SQUARE,
+along the DX, DY direction, considering that DVAL has been added on SQUARE."
   ;; We always have LEFT <= 0, RIGHT <= 0 and DEPL > 0 but we may very well
   ;; have LEFT > RIGHT, indicating that no qtuple contains SQUARE along that
   ;; DX,DY direction.
@@ -588,12 +591,12 @@ that DVAL has been added on SQUARE."
 	lm-board-height  m
 	lm-vector-length (1+ (* (+ m 2) (1+ n)))
 	lm-draw-limit    (/ (* 7 n m) 10))
-  (setq lm-emacs-won	     nil
-	lm-game-history	     nil
-	lm-number-of-moves	     0
+  (setq lm-emacs-won	         nil
+	lm-game-history	         nil
+	lm-number-of-moves	 0
 	lm-number-of-human-moves 0
 	lm-emacs-played-first    nil
-	lm-human-took-back	     nil
+	lm-human-took-back	 nil
 	lm-human-refused-draw    nil)
   (lm-init-display n m)		; Display first: the rest takes time
   (lm-init-score-table)		; INIT-BOARD requires that the score
@@ -635,9 +638,13 @@ that DVAL has been added on SQUARE."
   (setq lm-emacs-is-computing nil))
 
 
-
 ;;;_ +  SESSION CONTROL.
 
+(defvar lm-number-of-trials 0
+  "The number of times that landmark has been run.")
+
+(defvar lm-sum-of-moves 0
+  "The total number of moves made in all games.")
 
 (defvar lm-number-of-emacs-wins 0
   "Number of games Emacs won in this session.")
@@ -651,55 +658,11 @@ that DVAL has been added on SQUARE."
 
 (defun lm-terminate-game (result)
   "Terminate the current game with RESULT."
-  (message
-   (cond
-    ((eq result 'emacs-won)
-     (setq lm-number-of-emacs-wins (1+ lm-number-of-emacs-wins))
-     (cond ((< lm-number-of-moves 20)
-	    "This was a REALLY QUICK win.")
-	   (lm-human-refused-draw
-	    "I won... Too bad you refused my offer of a draw !")
-	   (lm-human-took-back
-	    "I won... Taking moves back will not help you !")
-	   ((not lm-emacs-played-first)
-	    "I won... Playing first did not help you much !")
-	   ((and (zerop lm-number-of-human-wins)
-		 (zerop lm-number-of-draws)
-		 (> lm-number-of-emacs-wins 1))
-	    "I'm becoming tired of winning...")
-	   ("I won.")))
-    ((eq result 'human-won)
-     (setq lm-number-of-human-wins (1+ lm-number-of-human-wins))
-     (concat "OK, you won this one."
-	     (cond
-	      (lm-human-took-back
-	       "  I, for one, never take my moves back...")
-	      (lm-emacs-played-first
-	       ".. so what ?")
-	      ("  Now, let me play first just once."))))
-    ((eq result 'human-resigned)
-     (setq lm-number-of-emacs-wins (1+ lm-number-of-emacs-wins))
-     "So you resign.  That's just one more win for me.")
-    ((eq result 'nobody-won)
-     (setq lm-number-of-draws (1+ lm-number-of-draws))
-     (concat "This is a draw.  "
-	     (cond
-	      (lm-human-took-back
-	       "I, for one, never take my moves back...")
-	      (lm-emacs-played-first
-	       "Just chance, I guess.")
-	      ("Now, let me play first just once."))))
-    ((eq result 'draw-agreed)
-     (setq lm-number-of-draws (1+ lm-number-of-draws))
-     (concat "Draw agreed.  "
-	     (cond
-	      (lm-human-took-back
-	       "I, for one, never take my moves back...")
-	      (lm-emacs-played-first
-	       "You were lucky.")
-	      ("Now, let me play first just once."))))
-    ((eq result 'crash-game)
-     "Sorry, I have been interrupted and cannot resume that game...")))
+  (setq lm-number-of-trials (1+ lm-number-of-trials))
+  (setq lm-sum-of-moves (+ lm-sum-of-moves lm-number-of-moves))
+  (if (eq result 'crash-game)
+      (message
+       "Sorry, I have been interrupted and cannot resume that game..."))
   (lm-display-statistics)
   ;;(ding)
   (setq lm-game-in-progress nil))
@@ -712,12 +675,7 @@ that DVAL has been added on SQUARE."
   (lm-prompt-for-other-game))
 
 
-
-
-
 ;;;_ +  INTERACTIVE COMMANDS.
-
-
 
 (defun lm-emacs-plays ()
   "Compute Emacs next move and play it."
@@ -781,7 +739,7 @@ that DVAL has been added on SQUARE."
 		     lm-square-height)
 		  1)
 	     lm-board-height))))
-  
+
 (defun lm-mouse-play (click)
   "Play at the square where you click."
   (interactive "e")
@@ -858,8 +816,6 @@ If the game is finished, this command requests for another game."
    (t
     (lm-terminate-game 'human-resigned)))) ; OK. Accept it
 
-
-
 ;;;_ + PROMPTING THE HUMAN PLAYER.
 
 (defun lm-prompt-for-move ()
@@ -874,32 +830,15 @@ If the game is finished, this command requests for another game."
 (defun lm-prompt-for-other-game ()
   "Ask for another game, and start it."
   (if (y-or-n-p "Another game ")
-      (lm lm-board-width lm-board-height)
+      (if (y-or-n-p "Retain learned weights ")
+	  (lm 2)
+	(lm 1))
     (message "Chicken !")))
 
 (defun lm-offer-a-draw ()
-  "Offer a draw and return T if Human accepted it."
+  "Offer a draw and return t if Human accepted it."
   (or (y-or-n-p "I offer you a draw. Do you accept it ")
       (not (setq lm-human-refused-draw t))))
-
-
-
-;;;_ +  DISPLAYING THE BOARD.
-
-;; You may change these values if you have a small screen or if the squares
-;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
-
-(defconst lm-square-width 2
-  "*Horizontal spacing between squares on the Lm board.")
-
-(defconst lm-square-height 1
-  "*Vertical spacing between squares on the Lm board.")
-
-(defconst lm-x-offset 3
-  "*Number of columns between the Lm board and the side of the window.")
-
-(defconst lm-y-offset 1
-  "*Number of lines between the Lm board and the top of the window.")
 
 
 (defun lm-max-width ()
@@ -920,13 +859,6 @@ If the game is finished, this command requests for another game."
   (let ((inhibit-point-motion-hooks t))
     (1+ (/ (- (count-lines 1 (point)) lm-y-offset (if (bolp) 0 1))
 	   lm-square-height))))
-(defun my-lm-point-y ()
-  (interactive)
-  "Return the board row where point is."
-  (let ((inhibit-point-motion-hooks t))
-    (message (format "%S"
-	      (1+ (/ (- (count-lines 1 (point)) lm-y-offset (if (bolp) 0 1))
-		     lm-square-height))))))
 
 (defun lm-point-square ()
   "Return the index of the square point is on."
@@ -1022,12 +954,11 @@ If the game is finished, this command requests for another game."
   ;; We store this string in the mode-line-process local variable.
   ;; This is certainly not the cleanest way out ...
   (setq mode-line-process
-	(format ": Won %d, lost %d%s"
-		lm-number-of-human-wins
-		lm-number-of-emacs-wins
-		(if (zerop lm-number-of-draws)
-		    ""
-		  (format ", drew %d" lm-number-of-draws))))
+	(format ": Trials: %d, Avg#Moves: %d"
+		lm-number-of-trials
+		(if (zerop lm-number-of-trials)
+		    0
+		  (/ lm-sum-of-moves lm-number-of-trials))))
   (force-mode-line-update))
 
 (defun lm-switch-to-window ()
@@ -1042,7 +973,6 @@ If the game is finished, this command requests for another game."
       (lm-mode))))
 
 
-
 ;;;_ + CROSSING WINNING QTUPLES.
 
 ;; When someone succeeds in filling a qtuple, we draw a line over the five
@@ -1051,14 +981,14 @@ If the game is finished, this command requests for another game."
 ;; who won. The solution is to scan the board along all four directions.
 
 (defun lm-find-filled-qtuple (square value)
-  "Return T if SQUARE belongs to a qtuple filled with VALUEs."
+  "Return t if SQUARE belongs to a qtuple filled with VALUEs."
   (or (lm-check-filled-qtuple square value 1 0)
       (lm-check-filled-qtuple square value 0 1)
       (lm-check-filled-qtuple square value 1 1)
       (lm-check-filled-qtuple square value -1 1)))
 
 (defun lm-check-filled-qtuple (square value dx dy)
-  "Return T if SQUARE belongs to a qtuple filled  with VALUEs along DX, DY."
+  "Return t if SQUARE belongs to a qtuple filled with VALUEs along DX, DY."
   (let ((a 0) (b 0)
 	(left square) (right square)
 	(depl (lm-xy-to-index dx dy)))
@@ -1091,10 +1021,10 @@ If the game is finished, this command requests for another game."
 				    (skip-chars-forward " \t")
 				    (point))))
 	  ((= dx 0)			; Vertical
-	   (let ((n 1)
+	   (let ((lm-n 1)
 		 (column (current-column)))
-	     (while (< n lm-square-height)
-	       (setq n (1+ n))
+	     (while (< lm-n lm-square-height)
+	       (setq lm-n (1+ lm-n))
 	       (forward-line 1)
 	       (indent-to column)
 	       (insert-and-inherit ?|))))
@@ -1107,7 +1037,6 @@ If the game is finished, this command requests for another game."
 			(forward-line (/ lm-square-height 2))))
 	   (insert-and-inherit ?\\))))))
   (sit-for 0))				; Display NOW
-
 
 
 ;;;_ + CURSOR MOTION.
@@ -1162,43 +1091,50 @@ If the game is finished, this command requests for another game."
 
 (provide 'lm)
 
-  
-(defun lm-xy-to-index (x y)
-  "Translate X, Y cartesian coords into the corresponding board index."
-  (+ (* y lm-board-width) x y))
 
-(defun lm-index-to-x (index)
-  "Return corresponding x-coord of board INDEX."
-  (% index (1+ lm-board-width)))
+;;;_ + Simulation variables
 
-(defun lm-index-to-y (index)
-  "Return corresponding y-coord of board INDEX."
-  (/ index (1+ lm-board-width)))
+;;;_  - lm-nvar
+(defvar lm-nvar 0.0075
+  "Not used.
+Affects a noise generator which was used in an earlier incarnation of
+this program to add a random element to the way moves were made.")
+;;;_  - lists of cardinal directions
+;;;_   :
+(defvar lm-ns '(lm-n lm-s)
+  "Used when doing something relative to the north and south axes.")
+(defvar lm-ew '(lm-e lm-w)
+  "Used when doing something relative to the east and west axes.")
+(defvar lm-directions '(lm-n lm-s lm-e lm-w)
+  "The cardinal directions.")
+(defvar lm-8-directions
+  '((lm-n) (lm-n lm-w) (lm-w) (lm-s lm-w)
+    (lm-s) (lm-s lm-e) (lm-e) (lm-n lm-e))
+  "The full 8 possible directions.")
 
-
-
-
-
-
-
+(defvar lm-number-of-moves
+  "The number of moves made by the robot so far.")
 
 
 ;;;_* Terry's mods to create lm.el
 
-
-
-
-
 ;;;_ + Debugging things
 (setq debug-on-error t)
 ;;;(setq lm-debug nil)
-(setq lm-debug t)
+(defvar lm-debug nil
+  "If non-nil, debugging is printed.")
+(defvar lm-one-moment-please nil
+  "If non-nil, print \"One moment please\" when a new board is generated.
+The drawback of this is you don't see how many moves the last run took
+because it is overwritten by \"One moment please\".")
+(defvar lm-output-moves t
+  "If non-nil, output number of moves so far on a move-by-move basis.")
 
-(defun lm-maybe-debug ()
 
-    (if lm-debug
-	(progn (lm-print-wts) (lm-blackbox) (lm-print-y,s,noise)
-	(lm-print-smell))))
+(defun lm-weights-debug ()
+  (if lm-debug
+      (progn (lm-print-wts) (lm-blackbox) (lm-print-y,s,noise)
+	     (lm-print-smell))))
 
 ;;;_  - Printing various things
 (defun lm-print-distance-int (direction)
@@ -1315,47 +1251,23 @@ If the game is finished, this command requests for another game."
   (interactive)
   (mapc 'lm-print-wts-int lm-directions))
 
-
-
-
-
-;;;_ + Simulation variables
-
-;;;_  - lm-nvar
-(defvar lm-nvar 0.0075 "affects a noise generator which was used in an
-earlier incarnation of this program to add a random element to the way
-moves were made. not used")
-;;;_  - lists of cardinal directions
-;;;_   : 
-(defvar lm-ns '(lm-n lm-s) "used when doing something relative to the
-  north and south axes")
-(defvar lm-ew '(lm-e lm-w) "used when doing something relative to the
-  north and south axes")
-(defvar lm-directions '(lm-n lm-s lm-e lm-w) "the cardinal directions")
-(defvar lm-8-directions '(
-			   (lm-n)     (lm-n lm-w)    (lm-s)
-			   (lm-s lm-w)  (lm-e)       (lm-s lm-e)
-			   (lm-n lm-w)  (lm-w)) 
-  "the full 8 possible directions.")
 ;;;_  - learning parameters
-(defvar lm-bound 0.005 "the maximum that w0j may be.")
-(defvar lm-c 1.0 "a factor applied to modulate the increase in
-wij. used in the function lm-update-normal-weights")
-(defvar lm-c-naught 0.5 "a factor applied to modulate the increase in
-w0j. used in the function lm-update-naught-weights" )
+(defvar lm-bound 0.005
+  "The maximum that w0j may be.")
+(defvar lm-c 1.0
+  "A factor applied to modulate the increase in wij.
+Used in the function lm-update-normal-weights.")
+(defvar lm-c-naught 0.5
+  "A factor applied to modulate the increase in w0j.
+Used in the function lm-update-naught-weights.")
 (defvar lm-initial-w0 0.0)
 (defvar lm-initial-wij 0.0)
-(defvar lm-no-payoff 0 "the amount of simulation cycles that have
-occurred with no movement. used to move the robot when he is stuck in
-a rut for some reason")
-(defvar lm-max-stall-time 3 "the maximum of amount of simulation
-cycles that the robot can get stuck in a place before lm-random-move
-is called to push him out of it")
-
-
-
-
-
+(defvar lm-no-payoff 0
+  "The amount of simulation cycles that have occurred with no movement.
+Used to move the robot when he is stuck in a rut for some reason.")
+(defvar lm-max-stall-time 2
+  "The maximum number of cycles that the robot can remain stuck in a place.
+After this limit is reached, lm-random-move is called to push him out of it.")
 
 
 ;;;_ + Randomizing functions
@@ -1365,45 +1277,33 @@ is called to push him out of it")
       -1
     1))
 ;;;_   : lm-very-small-random-number ()
-(defun lm-very-small-random-number ()
-  (/
-   (* (/ (random 900000) 900000.0) .0001)))
+;(defun lm-very-small-random-number ()
+;  (/
+;   (* (/ (random 900000) 900000.0) .0001)))
 ;;;_   : lm-randomize-weights-for (direction)
 (defun lm-randomize-weights-for (direction)
-  (mapc '(lambda (target-direction) 
+  (mapc '(lambda (target-direction)
 	     (put direction
-		  target-direction 
+		  target-direction
 		  (* (lm-flip-a-coin) (/  (random 10000) 10000.0))))
 	  lm-directions))
 ;;;_   : lm-noise ()
 (defun lm-noise ()
   (* (- (/ (random 30001) 15000.0) 1) lm-nvar))
 
-(defun lm-randomize-weights-for (direction)
-  (mapc '(lambda (target-direction) 
-	     (put direction
-		  target-direction 
-		  (* (lm-flip-a-coin) (/  (random 10000) 10000.0))))
-	  lm-directions))
-					      
-
-
-
 ;;;_   : lm-fix-weights-for (direction)
 (defun lm-fix-weights-for (direction)
-  (mapc '(lambda (target-direction) 
+  (mapc '(lambda (target-direction)
 	     (put direction
-		  target-direction 
+		  target-direction
 		  lm-initial-wij))
 	  lm-directions))
-					      
-
 
 
 ;;;_ + Plotting functions
 ;;;_  - lm-plot-internal (sym)
 (defun lm-plot-internal (sym)
-  (lm-plot-square (lm-xy-to-index 
+  (lm-plot-square (lm-xy-to-index
 		   (get sym 'x)
 		   (get sym 'y))
 		   (get sym 'sym)))
@@ -1412,8 +1312,8 @@ is called to push him out of it")
   (setq lm-cx (/ lm-board-width  2))
   (setq lm-cy (/ lm-board-height 2))
 
-  (put 'lm-n    'x lm-cx)  
-  (put 'lm-n    'y 1)  
+  (put 'lm-n    'x lm-cx)
+  (put 'lm-n    'y 1)
   (put 'lm-n    'sym 2)
 
   (put 'lm-tree 'x lm-cx)
@@ -1462,10 +1362,9 @@ is called to push him out of it")
       0)))
 
 
-
 ;;;_ + Learning (neural) functions
 (defun lm-f (x)
-  (cond 
+  (cond
    ((> x lm-bound) lm-bound)
    ((< x 0.0) 0.0)
    (t x)))
@@ -1482,29 +1381,28 @@ is called to push him out of it")
 	     (put direction target-direction
 		  (+
 		   (get direction target-direction)
-		   (* lm-c 
-		      (- (get 'z 't) (get 'z 't-1)) 
+		   (* lm-c
+		      (- (get 'z 't) (get 'z 't-1))
 		      (get target-direction 'y_t)
 		      (get direction 'smell)))))
 	  lm-directions))
-	     
+
 (defun lm-update-naught-weights (direction)
   (mapc '(lambda (target-direction)
 	     (put direction 'w0
-		  (lm-f 
+		  (lm-f
 		   (+
 		    (get direction 'w0)
 		    (* lm-c-naught
-		       (- (get 'z 't) (get 'z 't-1)) 
+		       (- (get 'z 't) (get 'z 't-1))
 		       (get direction 'y_t))))))
 	  lm-directions))
-
 
 
 ;;;_ + Statistics gathering and creating functions
 
 (defun lm-calc-current-smells ()
-  (mapc '(lambda (direction) 
+  (mapc '(lambda (direction)
 	     (put direction 'smell (calc-smell-internal direction)))
 	  lm-directions))
 
@@ -1516,21 +1414,19 @@ is called to push him out of it")
     (setf lm-no-payoff 0)))
 
 (defun lm-store-old-y_t ()
-  (mapc '(lambda (direction) 
+  (mapc '(lambda (direction)
 	     (put direction 'y_t-1 (get direction 'y_t)))
 	  lm-directions))
 
 
-
-;;;_ + Functions to move robot 
-      
+;;;_ + Functions to move robot
 
 (defun lm-confidence-for (target-direction)
   (+
    (get target-direction 'w0)
    (reduce '+
     (mapcar '(lambda (direction)
-	       (* 
+	       (*
 		(get direction target-direction)
 		(get direction 'smell))
 			)
@@ -1538,7 +1434,7 @@ is called to push him out of it")
 
 
 (defun lm-calc-confidences ()
-  (mapc '(lambda (direction) 
+  (mapc '(lambda (direction)
 	     (put direction 's (lm-confidence-for direction)))
 	     lm-directions))
 
@@ -1546,11 +1442,13 @@ is called to push him out of it")
   (if (and (= (get 'lm-n 'y_t) 1.0) (= (get 'lm-s 'y_t) 1.0))
       (progn
 	(mapc '(lambda (dir) (put dir 'y_t 0)) lm-ns)
-	(message "n-s normalization.")))
+	(if lm-debug
+	    (message "n-s normalization."))))
   (if (and (= (get 'lm-w 'y_t) 1.0) (= (get 'lm-e 'y_t) 1.0))
       (progn
 	(mapc '(lambda (dir) (put dir 'y_t 0)) lm-ew)
-	(message "e-w normalization")))
+	(if lm-debug
+	    (message "e-w normalization"))))
 
   (mapc '(lambda (pair)
 	     (if (> (get (car pair) 'y_t) 0)
@@ -1561,11 +1459,13 @@ is called to push him out of it")
 	    (lm-e forward-char)
 	    (lm-w backward-char)))
   (lm-plot-square (lm-point-square) 1)
-  (incf lm-moves))
+  (incf lm-number-of-moves)
+  (if lm-output-moves
+      (message (format "Moves made: %d" lm-number-of-moves))))
 
 
 (defun lm-random-move ()
-  (mapc 
+  (mapc
    '(lambda (direction) (put direction 'y_t 0))
    lm-directions)
   (dolist (direction (nth (random 8) lm-8-directions))
@@ -1590,12 +1490,10 @@ is called to push him out of it")
 
     (mapc 'lm-update-normal-weights lm-directions)
     (mapc 'lm-update-naught-weights lm-directions)
-    (lm-maybe-debug))
-
-  (let ((lm-res-str (format "%S moves." lm-moves)))
     (if lm-debug
-	(lm-print-moves lm-res-str))
-    (message (format "%S moves." lm-moves))))
+	(lm-weights-debug)))
+  (lm-terminate-game nil))
+
 
 ;;;_  - lm-start-robot ()
 (defun lm-start-robot ()
@@ -1630,17 +1528,17 @@ If the game is finished, this command requests for another game."
 
 	       (mapc 'lm-update-normal-weights lm-directions)
 	       (mapc 'lm-update-naught-weights lm-directions)
-	       (lm-maybe-debug)
 	       (lm-amble-robot)
 	       )))))))
 
 
-
 ;;;_ + Misc functions
 ;;;_  - lm-init (auto-start save-weights)
+(defvar lm-tree-r "")
+
 (defun lm-init (auto-start save-weights)
 
-  (setq lm-moves 0)
+  (setq lm-number-of-moves 0)
 
   (lm-plot-landmarks)
 
@@ -1680,8 +1578,7 @@ If the game is finished, this command requests for another game."
       (progn
 	(lm-goto-xy (1+ (random lm-board-width)) (1+ (random lm-board-height)))
 	(lm-start-robot))))
-    
-    
+
 
 ;;;_  - something which doesn't work
 ; no-a-worka!!
@@ -1702,16 +1599,13 @@ If the game is finished, this command requests for another game."
 
   (setq lm-tree-r       (* (sqrt (+ (square lm-cx) (square lm-cy))) 1.5))
 
-  (mapc '(lambda (direction) 
+  (mapc '(lambda (direction)
 	     (put direction 'r (* lm-cx 1.1)))
 	lm-ew)
-  (mapc '(lambda (direction) 
+  (mapc '(lambda (direction)
 	     (put direction 'r (* lm-cy 1.1)))
 	lm-ns)
   (put 'lm-tree 'r lm-tree-r))
-
-
-
 
 
 ;;;_ + lm-test-run ()
@@ -1727,11 +1621,9 @@ If the game is finished, this command requests for another game."
     (lm 2)))
 
 
-
 ;;;_ + lm: The function you invoke to play
 
-;;;###autoload
-(defun landmark (parg)
+(defun lm (parg)
   "Start an Lm game.
 If a game is in progress, this command allows you to resume it.
 Here is the relation between prefix args and game options:
@@ -1743,11 +1635,11 @@ none / 1   | yes                   | no
        3   | no                    | yes
        4   | no                    | no
 
-You start by moving to a square and typing \\[lm-start-robot].
+You start by moving to a square and typing \\[lm-start-robot]
 Use \\[describe-mode] for more info."
   (interactive "p")
 
-  (setf n nil m nil)
+  (setf lm-n nil lm-m nil)
   (lm-switch-to-window)
   (cond
    (lm-emacs-is-computing
@@ -1756,29 +1648,31 @@ Use \\[describe-mode] for more info."
 	(<= lm-number-of-moves 2))
     (let ((max-width (lm-max-width))
 	  (max-height (lm-max-height)))
-      (or n (setq n max-width))
-      (or m (setq m max-height))
-      (cond ((< n 1)
+      (or lm-n (setq lm-n max-width))
+      (or lm-m (setq lm-m max-height))
+      (cond ((< lm-n 1)
 	     (error "I need at least 1 column"))
-	    ((< m 1)
+	    ((< lm-m 1)
 	     (error "I need at least 1 row"))
-	    ((> n max-width)
-	     (error "I cannot display %d columns in that window" n)))
-      (if (and (> m max-height)
-	       (not (eq m lm-saved-board-height))
+	    ((> lm-n max-width)
+	     (error "I cannot display %d columns in that window" lm-n)))
+      (if (and (> lm-m max-height)
+	       (not (eq lm-m lm-saved-board-height))
 	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
-	       (not (y-or-n-p (format "Do you really want %d rows " m))))
-	  (setq m max-height)))
-    (message "One moment, please...")
-    (lm-start-game n m)))
-  (eval (cons 'lm-init 
-	      (cond 
-	       ((= parg 1)  '(t nil))
-	       ((= parg 2)  '(t t))
-	       ((= parg 3)  '(nil t))
-	       ((= parg 4)  '(nil nil))
-	       (t '(nil t))))))
-	       
+	       (not (y-or-n-p (format "Do you really want %d rows " lm-m))))
+	  (setq lm-m max-height)))
+    (if lm-one-moment-please
+	(message "One moment, please..."))
+    (lm-start-game lm-n lm-m)
+    (eval (cons 'lm-init
+		(cond
+		 ((= parg 1)  '(t nil))
+		 ((= parg 2)  '(t t))
+		 ((= parg 3)  '(nil t))
+		 ((= parg 4)  '(nil nil))
+		 (t '(nil t))))))))
+
+
 ;;;_ + Local variables
 
 ;;; The following `outline-layout' local variable setting:
@@ -1789,6 +1683,5 @@ Use \\[describe-mode] for more info."
 ;;;Local variables:
 ;;;outline-layout: (0 : -1 -1 0)
 ;;;End:
-
 
 ;;; landmark.el ends here
