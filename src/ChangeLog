@@ -1,3 +1,8 @@
+2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (make_lispy_event): Check integerness and fix
+	Lisp_Object/int mixup.
+
 2001-11-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fns.c (copy_hash_table): Remove unused variable `v'.
