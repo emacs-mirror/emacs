@@ -37,7 +37,7 @@
 
 (defgroup nroff nil
   "Nroff mode."
-  :group 'editing
+  :group 'wp
   :prefix "nroff-")
 
 (defvar nroff-mode-abbrev-table nil
