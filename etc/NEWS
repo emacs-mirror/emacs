@@ -1988,9 +1988,23 @@ specify image slice (X Y WIDTH HEIGHT).
 *** New function insert-sliced-image inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
-*** Trailing newlines no longer contribute to the height of a display
-row; instead the height of the newline glyph is reduced.  This allows
-sliced images to use a height less than the default line height.
+** New line-spacing property for newline characters
+
+A newline may now have a line-spacing text property, that may be used
+to control the height of the corresponding display row.
+
+If the property value is t, the newline does not contribute to the
+height of the display row; instead the height of the newline glyph is
+reduced.  This can be used to tile small images or image slices
+without adding blank areas between the images.
+
+If the property value is an integer, the value is used as additional
+space to put after the display line; this overrides the default frame
+line-spacing and any buffer local value of the line-spacing variable.
+
+If the property value is a float, the value is multiplied by the
+current height of the display row to determine the additional space
+to put after the display line.
 
 ** Enhancements to stretch display properties
 
