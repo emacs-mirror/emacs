@@ -2320,7 +2320,6 @@ setup_coding_system (coding_system, coding)
   int i;
 
   /* At first, set several fields to default values.  */
-  coding->require_flushing = 0;
   coding->last_block = 0;
   coding->selective = 0;
   coding->composing = 0;
@@ -2378,27 +2377,49 @@ setup_coding_system (coding_system, coding)
     }
 
   if (VECTORP (eol_type))
-    coding->eol_type = CODING_EOL_UNDECIDED;
+    {
+      coding->eol_type = CODING_EOL_UNDECIDED;
+      coding->common_flags = CODING_REQUIRE_DETECTION_MASK;
+    }
   else if (XFASTINT (eol_type) == 1)
-    coding->eol_type = CODING_EOL_CRLF;
+    {
+      coding->eol_type = CODING_EOL_CRLF;
+      coding->common_flags
+	= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
+    }
   else if (XFASTINT (eol_type) == 2)
-    coding->eol_type = CODING_EOL_CR;
+    {
+      coding->eol_type = CODING_EOL_CR;
+      coding->common_flags
+	= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
+    }
   else
-    coding->eol_type = CODING_EOL_LF;
+    {
+      coding->eol_type = CODING_EOL_LF;
+      coding->common_flags = 0;
+    }
 
   type = XVECTOR (coding_spec)->contents[0];
   switch (XFASTINT (type))
     {
     case 0:
       coding->type = coding_type_emacs_mule;
+      if (!NILP (coding->post_read_conversion))
+	coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
+      if (!NILP (coding->pre_write_conversion))
+	coding->common_flags |= CODING_REQUIRE_ENCODING_MASK;
       break;
 
     case 1:
       coding->type = coding_type_sjis;
+      coding->common_flags
+	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       break;
 
     case 2:
       coding->type = coding_type_iso2022;
+      coding->common_flags
+	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       {
 	Lisp_Object val, temp;
 	Lisp_Object *flags;
@@ -2550,11 +2571,13 @@ setup_coding_system (coding_system, coding)
 			   ? 2 : 0)));
 	    }
       }
-      coding->require_flushing = 1;
+      coding->common_flags |= CODING_REQUIRE_FLUSHING_MASK;
       break;
 
     case 3:
       coding->type = coding_type_big5;
+      coding->common_flags
+	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       coding->flags
 	= (NILP (XVECTOR (coding_spec)->contents[4])
 	   ? CODING_FLAG_BIG5_HKU
@@ -2563,6 +2586,8 @@ setup_coding_system (coding_system, coding)
 
     case 4:
       coding->type = coding_type_ccl;
+      coding->common_flags
+	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       {
 	Lisp_Object val = XVECTOR (coding_spec)->contents[4];
 	if (CONSP  (val)
@@ -2575,7 +2600,7 @@ setup_coding_system (coding_system, coding)
 	else
 	  goto label_invalid_coding_system;
       }
-      coding->require_flushing = 1;
+      coding->common_flags |= CODING_REQUIRE_FLUSHING_MASK;
       break;
 
     case 5:
@@ -2584,7 +2609,10 @@ setup_coding_system (coding_system, coding)
 
     default:
       if (EQ (type, Qt))
-	coding->type = coding_type_undecided;
+	{
+	  coding->type = coding_type_undecided;
+	  coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
+	}
       else
 	coding->type = coding_type_no_conversion;
       break;
@@ -2593,6 +2621,7 @@ setup_coding_system (coding_system, coding)
 
  label_invalid_coding_system:
   coding->type = coding_type_no_conversion;
+  coding->common_flags = 0;
   coding->eol_type = CODING_EOL_LF;
   coding->symbol = coding->pre_write_conversion = coding->post_read_conversion
     = Qnil;
@@ -3434,7 +3463,7 @@ code_convert_region (b, e, coding, encodep)
       insval = call1 (coding->post_read_conversion, make_number (len));
       CHECK_NUMBER (insval, 0);
       if (pos >= beg + len)
-	pos = beg + XINT (insval);
+	pos += XINT (insval) - len;
       else if (pos > beg)
 	pos = beg;
       TEMP_SET_PT (pos);
