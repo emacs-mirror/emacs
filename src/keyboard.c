@@ -2183,7 +2183,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  int sec, usec;
 	  double duration = extract_float (Vecho_keystrokes);
 	  sec = (int) duration;
-	  usec += (duration - sec) * 1000000;
+	  usec = (duration - sec) * 1000000;
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (sec, usec, 1, 1, 0);
