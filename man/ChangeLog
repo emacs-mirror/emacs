@@ -1,5 +1,7 @@
 2003-02-23  Simon Josefsson  <jas@extundo.com>
 
+	* cmdargs.texi (General Variables): Document SMTPSERVER.
+
 	* smtpmail.texi: New file.
 
 	* sending.texi: Remove SMTP node.
