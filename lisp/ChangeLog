@@ -1,5 +1,7 @@
 2002-04-22  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (after-find-file): Use %s to output MSG.
+
 	* dired.el (dired-mouse-find-file-other-window):
 	Handle events that move out of the window.
 
