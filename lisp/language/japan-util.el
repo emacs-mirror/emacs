@@ -32,10 +32,8 @@
   ;; By default, we use 'japanese-iso-8bit for file names.  But, the
   ;; following prefer-coding-system will override it.
   (setq default-file-name-coding-system 'japanese-iso-8bit)
-  (cond ((eq system-type 'ms-dos)
-	 (prefer-coding-system 'japanese-shift-jis))
-	((eq system-type 'usg-unix-v)
-	 (prefer-coding-system 'japanese-iso-8bit))))
+  (if (memq system-type '(windows-nt ms-dos cygwin))
+      (prefer-coding-system 'japanese-shift-jis)))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
