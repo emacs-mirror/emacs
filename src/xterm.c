@@ -3333,7 +3333,68 @@ process_expose_from_menu (event)
 
   UNBLOCK_INPUT;
 }
+
+/* Define a queue to save up SelectionRequest events for later handling.  */
 
+struct selection_event_queue
+  {
+    XEvent event;
+    struct selection_event_queue *next;
+  };
+
+static struct selection_event_queue *queue;
+
+/* Nonzero means queue up certain events--don't process them yet.  */
+static int x_queue_selection_requests;
+
+/* Queue up an X event *EVENT, to be processed later.  */
+
+static void
+x_queue_event (event)
+     XEvent *event;
+{
+  struct selection_event_queue *queue_tmp
+    = (struct selection_event_queue *) malloc (sizeof (struct selection_event_queue));
+
+  if (queue_tmp != NULL) 
+    {
+      queue_tmp->event = *event;
+      queue_tmp->next = queue;
+      queue = queue_tmp;
+    }
+}
+
+/* Take all the queued events and put them back
+   so that they get processed afresh.  */
+
+static void
+x_unqueue_events ()
+{
+  while (queue != NULL) 
+    {
+      struct selection_event_queue *queue_tmp = queue;
+      XPutBackEvent (XDISPLAY &queue_tmp->event);
+      queue = queue_tmp->next;
+      free ((char *)queue_tmp);
+    }
+}
+
+/* Start queuing SelectionRequest events.  */
+
+void
+x_start_queuing_selection_requests ()
+{
+  x_queue_selection_requests++;
+}
+
+/* Stop queuing SelectionRequest events.  */
+
+void
+x_stop_queuing_selection_requests ()
+{
+  x_queue_selection_requests--;
+  x_unqueue_events ();
+}
 
 /* The main X event-reading loop - XTread_socket.  */
 
@@ -3564,24 +3625,27 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (!x_window_to_frame (event.xselectionrequest.owner))
 	    goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  {
-	    XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
+	  if (x_queue_selection_requests)
+	    x_queue_event (&event);
+	  else
+	    {
+	      XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
 
-	    if (numchars == 0)
-	      abort ();
+	      if (numchars == 0)
+		abort ();
 
-	    bufp->kind = selection_request_event;
-	    SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
-	    SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
-	    SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
-	    SELECTION_EVENT_TARGET (bufp) = eventp->target;
-	    SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
-	    SELECTION_EVENT_TIME (bufp) = eventp->time;
-	    bufp++;
+	      bufp->kind = selection_request_event;
+	      SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+	      SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
+	      SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+	      SELECTION_EVENT_TARGET (bufp) = eventp->target;
+	      SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
+	      SELECTION_EVENT_TIME (bufp) = eventp->time;
+	      bufp++;
 
-	    count += 1;
-	    numchars -= 1;
-	  }
+	      count += 1;
+	      numchars -= 1;
+	    }
 	  break;
 
 	case PropertyNotify:
