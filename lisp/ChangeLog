@@ -1,3 +1,8 @@
+2002-05-20  Miles Bader  <miles@gnu.org>
+
+	* files.el (find-file-read-args): Don't trash existing value of
+	`minibuffer-setup-hook', just add our hook to it.
+
 2002-05-19  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/ucs-tables.el (unify-8859-on-encoding-mode)
@@ -230,7 +235,7 @@
 	(occur-engine): If there are no more matches, then finish
 	searching the current buffer.
 
-2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* net/ange-ftp.el (ange-ftp-try-passive-mode)
 	(ange-ftp-passive-host-alist): Change :version attributes to be
@@ -272,7 +277,7 @@
 
 	* subr.el (functionp): Catch errors in indirect-function.
 
-2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Unfold folded lines before
 	parsing.
@@ -355,7 +360,7 @@
 
 	* wid-edit.el (checkbox): New check-mark image.
 
-2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-running-xemacs): Fix last change.
 
@@ -375,7 +380,7 @@
 	(filesets-menu-path, filesets-menu-before, filesets-menu-in-menu):
 	Defvar them to nil if running in Emacs.
 
-2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (make-flyspell-overlay): Add help text
 	to flyspell overlays.
@@ -630,7 +635,7 @@
 	Only interpret delete-selection property if mark-active.
 	(cua-mode): Fixed require in defcustom.
 
-2002-05-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-menu.el (cal-menu-x-popup-menu): Fix argument of
 	error call.
@@ -765,7 +770,7 @@
 
 	* language/viet-util.el: Update Commentary section.
 
-2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-data): Doc fix.
 	(filesets-running-xemacs): Define even when compiling.
@@ -830,7 +835,7 @@
 	* replace.el (occur-revert-arguments):
 	Renamed from occur-revert-properties.  All uses changed.
 
-2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* recentf.el (recentf-menu-before): Use string to specify path in
 	the menu.
