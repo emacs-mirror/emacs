@@ -1,6 +1,6 @@
 ;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 4.
 
-;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
+;;Copyright (C) 1990, 1991, 1993 Free Software Foundation, Inc.
 
 ;; Keywords: wp
 
@@ -245,10 +245,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
       (error "Can't find buffer"))
   ;; Deactivate the mark, because we'll do it anyway if we change something,
   ;; and a region highlight while in the Ispell loop is distracting.
-  (if transient-mark-mode
-      (progn
-	(setq mark-active nil)
-	(run-hooks 'deactivate-mark-hook)))
+  (deactivate-mark)
   (save-excursion
     (set-buffer buf)
     (let ((filename buffer-file-name)
