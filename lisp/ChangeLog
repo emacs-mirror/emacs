@@ -1,3 +1,12 @@
+2001-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* dabbrev.el: Add doc strings for some functions.
+	(dabbrev--eliminate-newlines): New variable.
+	(dabbrev--substitute-expansion): Convert newlines to spaces
+	if dabbrev--eliminate-newlines is set.
+	If abbrev and expansion are both all-lower-case,
+	leave dabbrev--last-case-pattern nil.
+
 2001-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmail.el (rmail-message-regexp-p): Use rfc822-goto-eoh
