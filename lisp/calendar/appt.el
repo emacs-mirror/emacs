@@ -30,7 +30,7 @@
 ;;           appointments from ~/diary file.
 ;;
 ;;;
-;;; Thanks to  Edward M. Reingold for much help and many suggestions, 
+;;; Thanks to  Edward M. Reingold for much help and many suggestions,
 ;;; And to many others for bug fixes and suggestions.
 ;;;
 ;;;
@@ -75,7 +75,7 @@
 ;;;  at 12:01am for those who do not logout every day or are programming
 ;;;  late.
 ;;;
-;;; Brief internal description - Skip this if your not interested!
+;;; Brief internal description - Skip this if you are not interested!
 ;;;
 ;;; The function appt-make-list creates the appointments list which appt-check
 ;;; reads. This is all done automatically.
@@ -327,7 +327,7 @@ The following variables control appointment notification:
 							     (current-time)))
 			  (funcall
 			   appt-disp-window-function
-			   min-to-app new-time
+			   (number-to-string min-to-app) new-time
 			   (car (cdr (car appt-time-msg-list))))
 
 			  (run-at-time
@@ -345,7 +345,9 @@ The following variables control appointment notification:
 
 		  (when appt-display-mode-line
 		    (setq appt-mode-string
-			  (concat  " App't in " min-to-app " min. ")))
+			  (concat  " App't in "
+				   (number-to-string min-to-app)
+				   " min. ")))
 
 		  ;; When an appointment is reached,
 		  ;; delete it from the list.
@@ -369,8 +371,8 @@ The following variables control appointment notification:
 		     (sit-for 0)))))))))
 
 
-;; Display appointment message in a separate buffer.
 (defun appt-disp-window (min-to-app new-time appt-msg)
+  "Display appointment message APPT-MSG in a separate buffer."
   (require 'electric)
 
   ;; Make sure we're not in the minibuffer
@@ -412,23 +414,21 @@ The following variables control appointment notification:
 Usually just deletes the appointment buffer."
   (let ((window (get-buffer-window appt-buffer-name t)))
     (and window
-	 (or (and (fboundp 'frame-root-window)
-		  (eq window (frame-root-window (window-frame window))))
+	 (or (eq window (frame-root-window (window-frame window)))
 	     (delete-window window))))
   (kill-buffer appt-buffer-name)
   (if appt-audible
       (beep 1)))
 
-;; Select the lowest window on the frame.
 (defun appt-select-lowest-window ()
+"Select the lowest window on the frame."
   (let* ((lowest-window (selected-window))
-	 (bottom-edge (car (cdr (cdr (cdr (window-edges))))))
+	 (bottom-edge (nth 3 (window-edges)))
          (last-window (previous-window))
          (window-search t))
     (while window-search
       (let* ((this-window (next-window))
-             (next-bottom-edge (car (cdr (cdr (cdr 
-                                               (window-edges this-window)))))))
+             (next-bottom-edge (nth 3 (window-edges this-window))))
         (if (< bottom-edge next-bottom-edge)
             (progn
               (setq bottom-edge next-bottom-edge)
@@ -443,7 +443,7 @@ Usually just deletes the appointment buffer."
 
 ;;;###autoload
 (defun appt-add (new-appt-time new-appt-msg)
-  "Add an appointment for the day at TIME and issue MESSAGE.
+  "Add an appointment for the day at NEW-APPT-TIME and issue message NEW-APPT-MSG.
 The time should be in either 24 hour format or am/pm format."
 
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
@@ -454,8 +454,7 @@ The time should be in either 24 hour format or am/pm format."
   (let* ((appt-time-string (concat new-appt-time " " new-appt-msg))
          (appt-time (list (appt-convert-time new-appt-time)))
          (time-msg (cons appt-time (list appt-time-string))))
-    (setq appt-time-msg-list (append appt-time-msg-list
-                                     (list time-msg)))
+    (setq appt-time-msg-list (nconc appt-time-msg-list (list time-msg)))
     (setq appt-time-msg-list (appt-sort-list appt-time-msg-list)))) 
 
 ;;;###autoload
@@ -476,22 +475,22 @@ The time should be in either 24 hour format or am/pm format."
     (message "")))
                  
 
-;; Create the appointments list from todays diary buffer.
-;; The time must be at the beginning of a line for it to be
-;; put in the appointments list.
-;;                02/23/89
-;;                  12:00pm lunch
-;;                 Wednesday
-;;                   10:00am group meeting
-;; We assume that the variables DATE and NUMBER
-;; hold the arguments that list-diary-entries received.
-;; They specify the range of dates that the diary is being processed for.
-
 (eval-when-compile (defvar number)
 		   (defvar original-date)
 		   (defvar diary-entries-list))
 ;;;###autoload
 (defun appt-make-list ()
+  "Create the appointments list from todays diary buffer.
+The time must be at the beginning of a line for it to be
+put in the appointments list.
+  02/23/89
+    12:00pm lunch
+   Wednesday
+     10:00am group meeting
+We assume that the variables DATE and NUMBER
+hold the arguments that `list-diary-entries' received.
+They specify the range of dates that the diary is being processed for."
+
   ;; We have something to do if the range of dates that the diary is
   ;; considering includes the current date.
   (if (and (not (calendar-date-compare
@@ -529,9 +528,7 @@ The time should be in either 24 hour format or am/pm format."
 		  (while (string-match
 			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?.*" 
 			  time-string)
-		    (let* ((appt-time-string (substring time-string
-							(match-beginning 0)
-							(match-end 0))))
+		    (let* ((appt-time-string (match-string 0 time-string)))
 
 		      (if (< (match-end 0) (length time-string))
 			  (setq new-time-string (substring time-string 
@@ -543,14 +540,12 @@ The time should be in either 24 hour format or am/pm format."
 				    time-string)
 
 		      (let* ((appt-time (list (appt-convert-time 
-					       (substring time-string
-							  (match-beginning 0)
-							  (match-end 0)))))
+					       (match-string 0 time-string))))
 			     (time-msg (cons appt-time
 					     (list appt-time-string))))
 			(setq time-string new-time-string)
-			(setq appt-time-msg-list (append appt-time-msg-list
-							 (list time-msg)))))))
+			(setq appt-time-msg-list (nconc appt-time-msg-list
+							(list time-msg)))))))
 		(setq entry-list (cdr entry-list)))))
 	(setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
 
@@ -572,11 +567,11 @@ The time should be in either 24 hour format or am/pm format."
 		(setq appt-comp-time (car (car (car appt-time-msg-list))))))))))
   
 
-;;Simple sort to put the appointments list in order.
-;;Scan the list for the smallest element left in the list.
-;;Append the smallest element left into the new list, and remove
-;;it from the original list.
 (defun appt-sort-list (appt-list)
+  "Simple sort to put the appointments list APPT-LIST in order.
+Scan the list for the smallest element left in the list.
+Append the smallest element left into the new list, and remove
+it from the original list."
   (let ((order-list nil))
     (while appt-list
       (let* ((element (car appt-list))
@@ -588,7 +583,7 @@ The time should be in either 24 hour format or am/pm format."
             (setq element (car tmp-list))
             (setq element-time (car (car element))))
           (setq tmp-list (cdr tmp-list)))
-        (setq order-list (append order-list (list element)))
+        (setq order-list (nconc order-list (list element)))
         (setq appt-list (delq element appt-list))))
     order-list))
 
@@ -600,16 +595,13 @@ The time should be in either 24 hour format or am/pm format."
         (hr 0)
         (min 0))
 
-    (string-match ":[0-9][0-9]" time2conv)
+    (string-match ":\\([0-9][0-9]\\)" time2conv)
     (setq min (string-to-int 
-               (substring time2conv 
-                          (+ (match-beginning 0) 1) (match-end 0))))
+               (match-string 1 time2conv)))
   
     (string-match "[0-9]?[0-9]:" time2conv)
     (setq hr (string-to-int 
-              (substring time2conv 
-                         (match-beginning 0)
-                         (match-end 0))))
+              (match-string 0 time2conv)))
   
     ;; convert the time appointment time into 24 hour time
   
