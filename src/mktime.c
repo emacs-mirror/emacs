@@ -196,7 +196,7 @@ __mktime_internal (tp, convert, offset)
 
   /* The maximum number of probes (calls to CONVERT) should be enough
      to handle any combinations of time zone rule changes, solar time,
-     and leap seconds.  Posix.1 prohibits leap seconds, but some hosts
+     and leap seconds.  POSIX.1 prohibits leap seconds, but some hosts
      have them anyway.  */
   int remaining_probes = 4;
 

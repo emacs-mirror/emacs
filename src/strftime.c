@@ -885,6 +885,11 @@ my_strftime (s, maxsize, format, tp)
 	  cpy (buf + sizeof (buf) - bufp, bufp);
 	  break;
 
+	case 'F':
+	  if (modifier != 0)
+	    goto bad_format;
+	  subfmt = "%Y-%m-%d";
+	  goto subformat;
 
 	case 'H':
 	  if (modifier == 'E')
@@ -1031,6 +1036,7 @@ my_strftime (s, maxsize, format, tp)
 	  add (1, *p = '\t');
 	  break;
 
+	case 'f':
 	case 'u':		/* POSIX.2 extension.  */
 	  DO_NUMBER (1, (tp->tm_wday - 1 + 7) % 7 + 1);
 
