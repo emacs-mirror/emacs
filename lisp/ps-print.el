@@ -2367,6 +2367,14 @@ StandardEncoding 46 82 getinterval aload pop
   /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
   % ---- save the state of the document (useful for ghostscript!)
   /docState save def
+  % ---- [andrewi] set PageSize based on chosen dimensions
+  /setpagedevice where {
+    pop
+    1 dict dup
+      /PageSize [ PrintPageWidth LeftMargin RightMargin add add
+                  LandscapePageHeight ] put
+    setpagedevice
+  } if
   % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
   /JackGhostscript where {
     pop 1 27.7 29.7 div scale
@@ -4528,10 +4536,10 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output "} def\n/printLocalBackground {\n} def\n")
 
   ;; Header fonts
-  (ps-output (format "/h0 %s /%s DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
+  (ps-output (format "/h0 %s (%s) cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
 		     ps-header-title-font-size (ps-font 'ps-font-for-header
 							'bold))
-	     (format "/h1 %s /%s DefFont\n" ; /h1 12 /Helvetica DefFont
+	     (format "/h1 %s (%s) cvn DefFont\n" ; /h1 12 /Helvetica DefFont
 		     ps-header-font-size (ps-font 'ps-font-for-header
 						  'normal)))
 
@@ -4541,7 +4549,7 @@ page-height == bm + print-height + tm - ho - hh
   (let ((font (ps-font-alist 'ps-font-for-text))
 	(i 0))
     (while font
-      (ps-output (format "/f%d %s /%s DefFont\n"
+      (ps-output (format "/f%d %s (%s) cvn DefFont\n"
 			 i
 			 ps-font-size
 			 (ps-font 'ps-font-for-text (car (car font)))))
@@ -4554,8 +4562,7 @@ page-height == bm + print-height + tm - ho - hh
 
   (ps-mule-initialize)
 
-  (ps-output "\nBeginDoc\n\n"
-	     "%%EndPrologue\n"))
+  (ps-output "%%EndPrologue\n%%BeginSetup\nBeginDoc\n%%EndSetup\n\n")))
 
 (defun ps-header-dirpart ()
   (let ((fname (buffer-file-name)))
