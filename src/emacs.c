@@ -263,6 +263,10 @@ Display options:\n\
 --background-color, -bg COLOR	window background color\n\
 --border-color, -bd COLOR	main border color\n\
 --border-width, -bw WIDTH	width of main border\n\
+--color=MODE			color mode for character terminals;\n\
+				MODE defaults to `auto', and can also\n\
+				be `never', `auto', `always',\n\
+				or a mode name like `ansi8'\n\
 --cursor-color, -cr COLOR	color of the Emacs cursor indicating point\n\
 --display, -d DISPLAY		use X server DISPLAY\n\
 --font, -fn FONT		default font; must be fixed-width\n\
@@ -1677,6 +1681,7 @@ struct standard_args standard_args[] =
   { "-reverse", 0, 5, 0 },
   { "-hb", "--horizontal-scroll-bars", 5, 0 },
   { "-vb", "--vertical-scroll-bars", 5, 0 },
+  { "-color", "--color", 5, 0},
   /* These have the same priority as ordinary file name args,
      so they are not reordered with respect to those.  */
   { "-L", "--directory", 0, 1 },
