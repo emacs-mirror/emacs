@@ -4,7 +4,7 @@
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
-;; Keywords: multilingual, input method, Czech
+;; Keywords: i18n, multilingual, input method, Czech
 
 ;; This file is part of GNU Emacs.
 
