@@ -119,8 +119,7 @@ calls."
   :group 'hi-lock-interactive-text-highlighting)
 
 (defface hi-yellow
-  '((((background dark))
-     (:background "yellow" :foreground "black"))
+  '((((background dark)) (:background "yellow" :foreground "black"))
     (t (:background "yellow")))
   "Default face for hi-lock mode."
   :group 'hi-lock-faces)
@@ -478,7 +477,7 @@ Optional argument END is maximum excursion."
   (interactive)
   (font-lock-unfontify-buffer)
   (cond
-   (jit-lock-mode nil)
+   (jit-lock-mode (jit-lock-refontify))
    ;; Need a better way, since this assumes too much about lazy lock.
    (lazy-lock-mode
     (let ((windows (get-buffer-window-list (current-buffer) 'nomini t)))
@@ -528,5 +527,3 @@ Optional argument END is maximum excursion."
 (provide 'hi-lock)
 
 ;;; hi-lock.el ends here
-
-
