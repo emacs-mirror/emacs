@@ -23,7 +23,9 @@
    - structure the opcode space into opcode+flag.
    - merge with glibc's regex.[ch].
    - replace (succeed_n + jump_n + set_number_at) with something that doesn't
-     need to modify the compiled regexp.
+     need to modify the compiled regexp so that re_match can be reentrant.
+   - get rid of on_failure_jump_smart by doing the optimization in re_comp
+     rather than at run-time, so that re_match can be reentrant.
 */
 
 /* AIX requires this to be the first thing in the file. */
@@ -1487,9 +1489,8 @@ do {									\
   if (reg == -1)							\
     {									\
       /* It's a counter.  */						\
-      /* Here, we discard `const', which makes re_match non-reentrant.	\
-         Gcc gives a warning for it, which is good.  */			\
-      unsigned char *ptr = POP_FAILURE_POINTER ();			\
+      /* Here, we discard `const', making re_match non-reentrant.  */	\
+      unsigned char *ptr = (unsigned char*) POP_FAILURE_POINTER ();	\
       reg = POP_FAILURE_INT ();						\
       STORE_NUMBER (ptr, reg);						\
       DEBUG_PRINT3 ("     Pop counter %p = %d\n", ptr, reg);		\
@@ -5276,9 +5277,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 			mcnt, p + mcnt);
 	  {
 	    re_char *p1 = p; /* Next operation.  */
-	    /* Please don't add casts to try and shut up GCC.  */
-	    unsigned char *p2 = p + mcnt; /* Destination of the jump.  */
-	    unsigned char *p3 = p - 3; /* Location of the opcode.  */
+	    /* Here, we discard `const', making re_match non-reentrant.  */
+	    unsigned char *p2 = (unsigned char*) p + mcnt; /* Jump dest.  */
+	    unsigned char *p3 = (unsigned char*) p - 3; /* opcode location.  */
 
 	    p -= 3;		/* Reset so that we will re-execute the
 				   instruction once it's been changed. */
@@ -5328,8 +5329,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  /* Originally, mcnt is how many times we HAVE to succeed.  */
 	  if (mcnt != 0)
 	    {
-	      /* Please don't add a cast to try and shut up GCC.  */
-	      unsigned char *p2 = p + 2; /* Location of the counter.  */
+	      /* Here, we discard `const', making re_match non-reentrant.  */
+	      unsigned char *p2 = (unsigned char*) p + 2; /* counter loc.  */
 	      mcnt--;
 	      p += 4;
 	      PUSH_NUMBER (p2, mcnt);
@@ -5347,8 +5348,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  /* Originally, this is how many times we CAN jump.  */
 	  if (mcnt != 0)
 	    {
-	      /* Please don't add a cast to try and shut up GCC.  */
-	      unsigned char *p2 = p + 2; /* Location of the counter.  */
+	       /* Here, we discard `const', making re_match non-reentrant.  */
+	      unsigned char *p2 = (unsigned char*) p + 2; /* counter loc.  */
 	      mcnt--;
 	      PUSH_NUMBER (p2, mcnt);
 	      goto unconditional_jump;
@@ -5364,8 +5365,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    DEBUG_PRINT1 ("EXECUTING set_number_at.\n");
 
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	    /* Please don't add a cast to try and shut up GCC.  */
-	    p2 = p + mcnt;
+	    /* Here, we discard `const', making re_match non-reentrant.  */
+	    p2 = (unsigned char*) p + mcnt;
 	    /* Signedness doesn't matter since we only copy MCNT's bits .  */
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    DEBUG_PRINT3 ("  Setting %p to %d.\n", p2, mcnt);
