@@ -1893,8 +1893,7 @@ and selects that window."
     (if (assoc "Default" elt)
 	(delete (assoc "Default" elt) elt))
     (setcdr elt
-	    (cons (list "Default"
-			(cdr (assq 'font (frame-parameters (selected-frame)))))
+	    (cons (list "Default" default)
 		  (cdr elt)))))
 
 (defvar x-fixed-font-alist
