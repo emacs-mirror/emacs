@@ -881,14 +881,16 @@ This face is used for mode lines.  By default, it's drawn with shadows
 for a ``raised'' effect on window systems, and drawn as the inverse of
 the default face on non-windowed terminals.  @xref{Display Custom}.
 @item header-line
-Similar to @code{modeline} for a window's header line.
+Similar to @code{modeline} for a window's header line.  Most modes
+don't use the header line, but the Info mode does.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
+For example, mouse-sensitive text is highlighted using this face.
 @item region
 This face is used for displaying a selected region (when Transient Mark
 mode is enabled---see below).
 @item secondary-selection
-This face is used for displaying a secondary selection (@pxref{Secondary
+This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
 @item bold
 This face uses a bold variant of the default font, if it has one.
@@ -901,9 +903,12 @@ This face underlines text.
 @item fixed-pitch
 The basic fixed-pitch face.
 @item fringe
-The face for the fringes to the left and right of windows under X.
+@cindex fringe
+The face for the fringes to the left and right of windows on graphic
+displays.  (The fringes are the narrow portions of the Emacs frame
+between the text area and the frame's border.)
 @item scroll-bar
-This face determines the colors of the scroll bar.
+This face determines the visual appearance of the scroll bar.
 @item border
 This face determines the color of the frame border.
 @item cursor
