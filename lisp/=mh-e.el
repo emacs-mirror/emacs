@@ -48,7 +48,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@bbn.com
-(defconst mh-e-RCS-id "$Header: mh-e.el,v 3.6.1.1 93/05/30 07:36:57 gildea Exp $")
+(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.10 1993/05/30 22:56:31 rms Exp rms $")
 
 ;;; Code:
 
@@ -2155,7 +2155,7 @@ yanked message will be deleted."
 	(if mh-delete-yanked-msg-window
 	    (delete-windows-on mh-show-buffer))
 	(set-buffer mh-show-buffer)	; Find displayed message
-	(let ((mh-ins-str (cond ((mark)
+	(let ((mh-ins-str (cond ((mark t)
 				 (buffer-substring (region-beginning)
 						   (region-end)))
 				((eq 'body mh-yank-from-start-of-msg)
