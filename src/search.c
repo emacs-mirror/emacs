@@ -225,7 +225,7 @@ looking_at_1 (string, posix)
   CHECK_STRING (string, 0);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : 0),
+			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
 			  posix);
 
   immediate_quit = 1;
@@ -324,7 +324,7 @@ string_match_1 (regexp, string, start, posix)
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? DOWNCASE_TABLE : 0),
+			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
 			  posix);
   immediate_quit = 1;
   re_match_object = string;
@@ -1422,6 +1422,7 @@ since only regular expressions have distinguished subexpressions.")
   register int c, prevc;
   int inslen;
   int sub;
+  int opoint;
 
   CHECK_STRING (newtext, 0);
 
@@ -1615,11 +1616,18 @@ since only regular expressions have distinguished subexpressions.")
       return concat3 (before, newtext, after);
     }
 
+  /* Record point, the move (quietly) to the start of the match.  */
+  if (PT > search_regs.start[sub])
+    opoint = PT - ZV;
+  else
+    opoint = PT;
+
+  temp_set_point (search_regs.start[sub], current_buffer);
+
   /* We insert the replacement text before the old text, and then
      delete the original text.  This means that markers at the
      beginning or end of the original will float to the corresponding
      position in the replacement.  */
-  SET_PT (search_regs.start[sub]);
   if (!NILP (literal))
     Finsert_and_inherit (1, &newtext);
   else
@@ -1666,6 +1674,16 @@ since only regular expressions have distinguished subexpressions.")
     Fupcase_region (make_number (PT - inslen), make_number (PT));
   else if (case_action == cap_initial)
     Fupcase_initials_region (make_number (PT - inslen), make_number (PT));
+
+  /* Put point back where it was in the text.  */
+  if (opoint < 0)
+    temp_set_point (opoint + ZV, current_buffer);
+  else
+    temp_set_point (opoint, current_buffer);
+
+  /* Now move point "officially" to the start of the inserted replacement.  */
+  move_if_not_intangible (search_regs.start[sub]);
+  
   return Qnil;
 }
 
