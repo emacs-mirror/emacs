@@ -1,0 +1,111 @@
+						-*- text -*-
+For an order form for all Emacs and FSF distributions deliverable from
+the USA, see the file `ORDERS' in this directory (etc/ in the GNU
+Emacs distribution or /pub/gnu/GNUinfo on ftp.gnu.org).  For a
+European order form, see `ORDERS.EUROPE'.  For a Japan order form,
+see `ORDERS.JAPAN'.
+
+	   GNU Emacs availability information, April 1998
+Copyright (C) 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1995, 1998
+	   Free Software Foundation, Inc.
+
+	Permission is granted to anyone to make or distribute
+	verbatim copies of this document provided that the
+	copyright notice and this permission notice are preserved.
+
+GNU Emacs is legally owned by the Free Software Foundation, but we
+regard the foundation more as its custodian on behalf of the public.
+
+In the GNU project, when we speak of "free software", this refers to
+liberty, not price.  Specifically, it refers to the users' freedom to
+study, copy, change and improve the software.  Sometimes users pay
+money for copies of GNU software, and sometimes they get copies at no
+charge.  But regardless of how they got the software, or whether it
+was modified by anyone else along the way, they have the freedom to
+copy and change it--those freedoms are what "free software" means.
+
+The precise conditions for copying and modification are stated in the
+document "GNU General Public License," a copy of which is required to
+be distributed with every copy of GNU Emacs.  It is usually in a file
+named `COPYING' in the same directory as this file.  These conditions
+are designed to make sure that everyone who has a copy of GNU Emacs
+(including modified versions) has the freedom to redistribute and
+change it.
+
+If you do not know anyone to get a copy of GNU Emacs from, you can
+order a cd-rom from the Free Software Foundation.  We distribute Emacs
+versions 19 and 20.  We also distribute nicely typeset copies of the
+Emacs user manual, Emacs Lisp Reference Manual, the Emacs reference
+card, etc.  See file `ORDERS'.
+
+If you have Internet access, you can copy the latest Emacs
+distribution from hosts, such as ftp.gnu.org.  There are several
+ways to do this; see the file `FTP' for more information.  Even
+better, get the latest version of the file from `/pub/gnu/GNUinfo/FTP'
+on ftp.gnu.org for the most current arrangements.  It may also be
+possible to copy Emacs via uucp; the file `FTP' contains information
+on that too.
+
+Emacs has been run on both Berkeley Unix and System V Unix, on a
+variety of types of cpu.  It also works on VMS and on Apollo
+computers, though with some deficiencies that reflect problems in
+these operating systems.  See the file `MACHINES' in this directory
+(see above) for a full list of machines that GNU Emacs has been tested
+on, with machine-specific installation notes and warnings.  There is
+also Demacs that works on newer MS-DOS machines (see file `ORDERS').
+
+Note that there is significant variation between Unix systems
+supposedly running the same version of Unix; it is possible that what
+works in GNU Emacs for me does not work on your system due to such an
+incompatibility.  Since I must avoid reading Unix source code, I
+cannot even guess what such problems may exist.
+
+GNU Emacs is distributed with no warranty (see the General Public
+License for full details, in the file `COPYING' in this directory (see
+above)), and neither I nor the Free Software Foundation promises any
+kind of support or assistance to users.  The foundation keeps a list
+of people who are willing to offer support and assistance for hire.
+See the file `SERVICE'.  You can get the latest version from
+ftp.gnu.org in file `/pub/gnu/GNUinfo/SERVICE'.
+
+However, we plan to continue to improve GNU Emacs and keep it
+reliable, so please send me any complaints and suggestions you have.
+I will probably fix anything that I consider a malfunction.  I may
+make improvements that are suggested, but I may choose not to.
+Improving Emacs is not my highest priority now.
+
+If you are on the Internet, report bugs to bug-gnu-emacs@gnu.org.
+Otherwise, phone or write the Foundation at:
+
+	Free Software Foundation
+	59 Temple Place - Suite 330
+	Boston, MA  02111-1307
+	Voice:  +1-617-542-5942
+	Fax:    +1-617-542-2652
+
+General questions about the GNU Project can be asked of
+gnu@gnu.org.
+
+If you are a computer manufacturer, I encourage you to ship a copy of
+GNU Emacs with every computer you deliver.  The same copying
+permission terms apply to computer manufacturers as to everyone else.
+You should consider making a donation to help support the GNU project;
+if you estimate what it would cost to distribute some commercial
+product and divide it by five, that is a good amount.
+
+If you like GNU Emacs, please express your satisfaction with a
+donation: send me or the Foundation what you feel Emacs has been worth
+to you.  If you are glad that I developed GNU Emacs and distribute it
+as freeware, rather than following the obstructive and antisocial
+practices typical of software developers, reward me.  If you would
+like the Foundation to develop more free software, contribute.
+
+Your donations will help to support the development of additional GNU
+software.  GNU/Linux systems (variants of GNU, based on the kernel
+Linux) have millions of users, but there is still much to be done.
+For more information on GNU, see the file `GNU' in this directory (see
+above).
+
+			Richard M Stallman
+			Chief GNUisance,
+			President of the Free Software Foundation
