@@ -1,3 +1,10 @@
+2004-08-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS: Import from the v5_10 branch of the Gnus repository.
+
+	* NEWS (Gnus package): Gnus includes Sieve and PGG.  Gnus changes
+	are described in GNUS-NEWS.
+
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.xpm, gnus-pointer.xbm, gnus-pointer.xpm: Import from the
