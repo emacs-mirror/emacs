@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97 Free Software
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2119,79 +2119,176 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 ;;; Speedbar support:
 ;; These functions permit speedbar to display the "tags" in the
 ;; current info node.
+(eval-when-compile (require 'speedbar))
 
-(eval-when-compile (require 'speedbspec))
+(defvar Info-speedbar-key-map nil
+  "Keymap used when in the info display mode.")
 
-(defvar Info-last-speedbar-node nil
-  "Last node viewed with speedbar in the form '(NODE FILE).")
+(defun Info-install-speedbar-variables ()
+  "Install those variables used by speedbar to enhance Info."
+  (if Info-speedbar-key-map
+      nil
+    (setq Info-speedbar-key-map (speedbar-make-specialized-keymap))
+
+    ;; Basic tree features
+    (define-key Info-speedbar-key-map "e" 'speedbar-edit-line)
+    (define-key Info-speedbar-key-map "\C-m" 'speedbar-edit-line)
+    (define-key Info-speedbar-key-map "+" 'speedbar-expand-line)
+    (define-key Info-speedbar-key-map "-" 'speedbar-contract-line)
+    )
+
+  (speedbar-add-expansion-list '("Info" Info-speedbar-menu-items
+				 Info-speedbar-key-map
+				 Info-speedbar-hierarchy-buttons)))
 
 (defvar Info-speedbar-menu-items
-  '(["Browse Item On Line" speedbar-edit-line t])
+  '(["Browse Node" speedbar-edit-line t]
+    ["Expand Node" speedbar-expand-line
+     (save-excursion (beginning-of-line)
+		     (looking-at "[0-9]+: *.\\+. "))]
+    ["Contract Node" speedbar-contract-line
+     (save-excursion (beginning-of-line)
+		     (looking-at "[0-9]+: *.-. "))]
+    )
   "Additional menu-items to add to speedbar frame.")
 
+;; Make sure our special speedbar major mode is loaded
+(if (featurep 'speedbar)
+    (Info-install-speedbar-variables)
+  (add-hook 'speedbar-load-hook 'Info-install-speedbar-variables))
+
+;;; Info hierarchy display method
+;;;###autoload
+(defun Info-speedbar-browser ()
+  "Initialize speedbar to display an info node browser.
+This will add a speedbar major display mode."
+  (interactive)
+  (require 'speedbar)
+  ;; Make sure that speedbar is active
+  (speedbar-frame-mode 1)
+  ;; Now, throw us into Info mode on speedbar.
+  (speedbar-change-initial-expansion-list "Info")
+  )
+
+(defun Info-speedbar-hierarchy-buttons (directory depth &optional node)
+  "Display an Info directory hierarchy in speedbar.
+DIRECTORY is the current directory in the attached frame.
+DEPTH is the current indentation depth.
+NODE is an optional argument that is used to represent the
+specific node to expand."
+  (if (and (not node)
+	   (save-excursion (goto-char (point-min))
+			   (looking-at "Info Nodes:")))
+      ;; Update our "current node" maybe?
+      nil
+    ;; We cannot use the generic list code, that depends on all leaves
+    ;; being known at creation time.
+    (if (not node)
+	(speedbar-with-writable (insert "Info Nodes:\n")))
+    (let ((completions nil))
+      (setq completions
+	    (Info-speedbar-fetch-file-nodes (or node '"(dir)top")))
+      (if completions
+	  (speedbar-with-writable
+	   (while completions
+	     (speedbar-make-tag-line 'bracket ?+ 'Info-speedbar-expand-node
+				     (cdr (car completions))
+				     (car (car completions))
+				     'Info-speedbar-goto-node
+				     (cdr (car completions))
+				     'info-xref depth)
+	     (setq completions (cdr completions)))
+	   t)
+	nil))))
+  
+(defun Info-speedbar-goto-node (text node indent)
+  "When user clicks on TEXT, goto an info NODE.
+The INDENT level is ignored."
+    (select-frame speedbar-attached-frame)
+    (let* ((buff (or (get-buffer "*info*")
+		     (progn (info) (get-buffer "*info*"))))
+	   (bwin (get-buffer-window buff 0)))
+      (if bwin
+	  (progn
+	    (select-window bwin)
+	    (raise-frame (window-frame bwin)))
+	(if speedbar-power-click
+	    (let ((pop-up-frames t)) (select-window (display-buffer buff)))
+	  (select-frame speedbar-attached-frame)
+	  (switch-to-buffer buff)))
+      (let ((junk (string-match "^(\\([^)]+\\))\\([^.]+\\)$" node))
+	    (file (match-string 1 node))
+	    (node (match-string 2 node)))
+	(Info-find-node file node)
+	;; If we do a find-node, and we were in info mode, restore
+	;; the old default method.  Once we are in info mode, it makes
+	;; sense to return to whatever method the user was using before.
+	(if (string= speedbar-initial-expansion-list-name "Info")
+	    (speedbar-change-initial-expansion-list
+	     speedbar-previously-used-expansion-list-name)))))
+
+(defun Info-speedbar-expand-node (text token indent)
+  "Expand the node the user clicked on.
+TEXT is the text of the button we clicked on, a + or - item.
+TOKEN is data related to this node (NAME . FILE).
+INDENT is the current indentation depth."
+  (cond ((string-match "+" text)	;we have to expand this file
+	 (speedbar-change-expand-button-char ?-)
+	 (if (speedbar-with-writable
+	       (save-excursion
+		 (end-of-line) (forward-char 1)
+		 (Info-speedbar-hierarchy-buttons nil (1+ indent) token)))
+	     (speedbar-change-expand-button-char ?-)
+	   (speedbar-change-expand-button-char ??)))
+	((string-match "-" text)	;we have to contract this node
+	 (speedbar-change-expand-button-char ?+)
+	 (speedbar-delete-subblock indent))
+	(t (error "Ooops... not sure what to do")))
+  (speedbar-center-buffer-smartly))
+
+(defun Info-speedbar-fetch-file-nodes (nodespec)
+  "Fetch the subnodes from the info NODESPEC.
+NODESPEC is a string of the form: (file)node.
+Optional THISFILE represends the filename of"
+  (save-excursion
+    ;; Set up a buffer we can use to fake-out Info.
+    (set-buffer (get-buffer-create "*info-browse-tmp*"))
+    (if (not (equal major-mode 'Info-mode))
+	(Info-mode))
+    ;; Get the node into this buffer
+    (let ((junk (string-match "^(\\([^)]+\\))\\([^.]+\\)$" nodespec))
+	  (file (match-string 1 nodespec))
+	  (node (match-string 2 nodespec)))
+      (Info-find-node file node))
+    ;; Scan the created buffer
+    (goto-char (point-min))
+    (let ((completions nil)
+	  (thisfile (progn (string-match "^(\\([^)]+\\))" nodespec)
+			   (match-string 1 nodespec))))
+      ;; Always skip the first one...
+      (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+      (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+	(let ((name (match-string 1)))
+	  (if (looking-at " *\\(([^)]+)[^.\n]+\\)\\.")
+	      (setq name (cons name (match-string 1)))
+	    (if (looking-at " *\\(([^)]+)\\)\\.")
+		(setq name (cons name (concat (match-string 1) "Top")))
+	      (if (looking-at " \\([^.]+\\).")
+		  (setq name
+			(cons name (concat "(" thisfile ")" (match-string 1))))
+		(setq name (cons name (concat "(" thisfile ")" name))))))
+	  (setq completions (cons name completions))))
+      (nreverse completions))))
+
+;;; Info mode node listing
 (defun Info-speedbar-buttons (buffer)
   "Create a speedbar display to help navigation in an Info file.
 BUFFER is the buffer speedbar is requesting buttons for."
-  (goto-char (point-min))
-  (if (and (looking-at "<Directory>")
-	   (save-excursion
-	     (set-buffer buffer)
-	     (and (equal (car Info-last-speedbar-node) Info-current-node)
-		  (equal (cdr Info-last-speedbar-node) Info-current-file))))
-      nil
-    (erase-buffer)
-    (speedbar-insert-button "<Directory>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-directory)
-    (speedbar-insert-button "<Top>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-top-node)
-    (speedbar-insert-button "<Last>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-last)
-    (speedbar-insert-button "<Up>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-up)
-    (speedbar-insert-button "<Next>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-next)
-    (speedbar-insert-button "<Prev>" 'info-xref 'highlight
-			    'Info-speedbar-button
-			    'Info-prev)
-    (let ((completions nil))
-      (save-excursion
-	(set-buffer buffer)
-	(setq Info-last-speedbar-node
-	      (cons Info-current-node Info-current-file))
-	(goto-char (point-min))
-	;; Always skip the first one...
-	(re-search-forward "\n\\* +\\([^:\t\n]*\\):" nil t)
-	(while (re-search-forward "\n\\* +\\([^:\t\n]*\\):" nil t)
-	  (setq completions (cons (buffer-substring (match-beginning 1)
-						    (match-end 1))
-				  completions))))
-      (setq completions (nreverse completions))
-      (while completions
-	(speedbar-make-tag-line nil nil nil nil
-				(car completions) 'Info-speedbar-menu
-				nil 'info-node 0)
-	(setq completions (cdr completions))))))
-
-(defun Info-speedbar-button (text token indent)
-  "Called when user clicks <Directory> from speedbar.
-TEXT, TOKEN, and INDENT are unused."
-  (speedbar-with-attached-buffer
-   (funcall token)
-   (setq Info-last-speedbar-node nil)
-   (speedbar-update-contents)))
-
-(defun Info-speedbar-menu (text token indent)
-  "Goto the menu node specified in TEXT.
-TOKEN and INDENT are not used."
-  (speedbar-with-attached-buffer
-   (Info-menu text)
-   (setq Info-last-speedbar-node nil)
-   (speedbar-update-contents)))
+  (if (save-excursion (goto-char (point-min))
+		      (not (looking-at "Info Nodes:")))
+      (erase-buffer))
+  (Info-speedbar-hierarchy-buttons nil 0)
+  )
 
 (provide 'info)
 
