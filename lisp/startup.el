@@ -1033,8 +1033,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
-  (if (and (stringp x-session-previous-id) (stringp x-session-id))
-      (emacs-session-restore)))
+  (if (and (boundp 'x-session-previous-id) (stringp x-session-previous-id))
+      (emacs-session-restore x-session-previous-id)))
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
