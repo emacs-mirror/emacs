@@ -1,3 +1,11 @@
+2002-12-04  Richard M. Stallman  <rms@gnu.org>
+
+	* sysdep.c (fcntl.h): Test only HAVE_FCNTL_H.
+
+	* fileio.c (fcntl.h): Test only HAVE_FCNTL_H.
+
+	* alloca.c: Don't use #error.
+
 2002-12-03  Dave Love  <fx@gnu.org>
 
 	* buffer.c (Qucs_set_table_for_input): New.

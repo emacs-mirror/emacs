@@ -1,3 +1,20 @@
+2002-12-04  Richard M. Stallman  <rms@gnu.org>
+
+	* gud.el (gud-menu-map): Delete CVS conflict markers.
+
+	* progmodes/cc-vars.el: Simply require wid-edit and custom
+	in eval-when-compile.
+
+	* progmodes/cc-menus.el: Don't require imenu.
+
+	* progmodes/cc-langs.el: Don't require cl.
+	(c-delete-duplicates): New function.  Use instead of delete-duplicates.
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-obsolete-var):
+	Add an else-clause to the if to avoid confused compiler warning.
+
+	* tooltip.el (tooltip-gud-tips-p): Undo previous change.
+
 2002-12-03  Dave Love  <fx@gnu.org>
 
 	* international/ucs-tables.el (ucs-unify-8859, ucs-unify-8859)

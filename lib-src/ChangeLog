@@ -1,3 +1,30 @@
+2002-12-04  Richard M. Stallman  <rms@gnu.org>
+
+	* Update getopt from gnulib version; changes described below.
+
+	* getopt1.c: Conditionally find getopt.h.
+	[_LIBC] (getopt_long, getopt_long_only): Do libc_hidden_def.
+
+	* getopt.c (const): Move outside !HAVE_CONFIG_H conditional.
+	(libintl.h): Include this if _LIBC.  Otherwise include gettext.h.
+	(wchar.h): Include, maybe.		     
+	(attribute_hidden): Define if not defind.
+	(__getopt_initialized): Use attribute_hidden.
+	(__libc_argc, __libc_argv): Renamed from original_argc, etc.
+	(__getopt_nonoption_flags, nonoption_flags_max_len, nonoption_flags_len):
+	Conditional on USE_NONOPTION_FLAGS.
+	(SWAP_FLAGS): New definitions.
+	(exchange): Test USE_NONOPTION_FLAGS.
+	(_getopt_initialize): Test USE_NONOPTION_FLAGS.
+	(_getopt_internal): Error if argc < 1.  New local var print_errors.
+	Improve test for ambiguous long option.
+	Add LIBIO support for error message output.
+	(NONOPTION_P): Test USE_NONOPTION_FLAGS.
+
+	* getopt.h: Maybe include ctype.h.
+	Treat __cplusplus like __STDC__.
+	(decls): Use __ in arg names.
+
 2002-12-02  Stephen Eglen  <stephen@gnu.org>
 
 	* emacsclient.c (main): Tell user how to start server within Emacs
