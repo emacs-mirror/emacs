@@ -2,8 +2,9 @@
 
 #define IRIX5
 
-/* We want BSD style signals. */
-#define _BSD_SIGNALS
+#undef sigsetmask  /* use sys_sigsetmask */
+#undef _longjmp /* use system versions, not conservative aliases */
+#undef _setjmp 
 
 #define SETPGRP_RELEASES_CTTY
 
