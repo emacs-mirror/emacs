@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P10003.2/D11.2, except for
    internationalization features.)
 
-   Copyright (C) 1993, 1994-1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -3534,8 +3534,9 @@ re_compile_fastmap (bufp)
 		 multibyte character in the range table. */
 	      int c, count;
 
-	      /* Make P points the range table. */
-	      p += CHARSET_BITMAP_SIZE (&p[-2]);
+	      /* Make P points the range table.  `+ 2' is to skip flag
+                 bits for a character class.  */
+	      p += CHARSET_BITMAP_SIZE (&p[-2]) + 2;
 
 	      /* Extract the number of ranges in range table into COUNT.  */
 	      EXTRACT_NUMBER_AND_INCR (count, p);
