@@ -1,3 +1,7 @@
+2002-11-19  Karl Fogel  <kfogel@red-bean.com>
+
+	* autogen.sh: New file.
+
 2002-11-15  Dave Love  <fx@gnu.org>
 
 	* configure.in: Tidy up various quoting issues throughout.  Use
