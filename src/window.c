@@ -290,53 +290,16 @@ DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 
      Lisp_Object window;
 {
   struct window *w = decode_window (window);
-  return (MINI_WINDOW_P (w) ? Qt : Qnil);
-}
-
-
-/* Return true if POS is fully visible in the window W.  If W's end
-   position is not known, then return false.  */
-
-static int
-pos_fully_visible_in_window_p (pos, w)
-     int pos;
-     struct window *w;
-{
-  struct glyph_row *first_row = &w->desired_matrix->rows[0];
-  struct glyph_row *last_row;
-
-  if (pos < first_row->start.pos.charpos)
-    /* POS is before the beginning of W.  */
-    return 0;
-  else if (pos < first_row->end.pos.charpos)
-    /* POS is on the first row of W, so see if that row is fully visible.  */
-    return !MATRIX_ROW_PARTIALLY_VISIBLE_P (first_row);
-
-  if (NILP (w->window_end_valid))
-    /* We can't determine where the end is, so we don't know.  */
-    return 0;
-
-  last_row = &w->desired_matrix->rows[XFASTINT (w->window_end_vpos)];
-
-  if (pos < last_row->start.pos.charpos)
-    /* POS is somewhere in the middle of the window, not on the first or
-       last row, so it must be visible.  */
-    return 1;
-  else if (pos >= last_row->end.pos.charpos)
-    /* POS is after the end of W.  */
-    return 0;
-  else
-    /* POS is on the last row of W, so see if that row is fully visible.  */
-    return !MATRIX_ROW_PARTIALLY_VISIBLE_P (last_row);
+  return MINI_WINDOW_P (w) ? Qt : Qnil;
 }
 
 
 DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
   Spos_visible_in_window_p, 0, 3, 0,
   "Return t if position POS is currently on the frame in WINDOW.\n\
-Returns nil if that position is scrolled vertically out of view.\n\
+Return nil if that position is scrolled vertically out of view.\n\
 If FULLY is non-nil, then only return t when POS is completely visible.\n\
-POS defaults to point; WINDOW, to the selected window.")
+POS defaults to point; WINDOW defaults to the selected window.")
   (pos, window, fully)
      Lisp_Object pos, window, fully;
 {
@@ -345,6 +308,7 @@ POS defaults to point; WINDOW, to the selected window.")
   register struct buffer *buf;
   struct text_pos top;
   Lisp_Object in_window;
+  int fully_p;
 
   if (NILP (pos))
     posint = PT;
@@ -358,21 +322,24 @@ POS defaults to point; WINDOW, to the selected window.")
   buf = XBUFFER (w->buffer);
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
-  /* If position above window, it's not visible.  */
+  /* If position is above window start, it's not visible.  */
   if (posint < CHARPOS (top))
     in_window = Qnil;
   else if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf)
 	   && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (buf)
 	   && posint < BUF_Z (buf) - XFASTINT (w->window_end_pos))
-    /* If frame is up to date, and POSINT is < window end pos, use
-       that info.  This doesn't work for POSINT == end pos, because
-       the window end pos is actually the position _after_ the last
-       char in the window.  */
     {
-      if (NILP (fully) || pos_fully_visible_in_window_p (posint, w))
-	in_window = Qt;
+      /* If frame is up-to-date, and POSINT is < window end pos, use
+	 that info.  This doesn't work for POSINT == end pos, because
+	 the window end pos is actually the position _after_ the last
+	 char in the window.  */
+      if (!NILP (fully))
+	{
+	  pos_visible_p (w, posint, &fully_p);
+	  in_window = fully_p ? Qt : Qnil;
+	}
       else
-	in_window = Qnil;
+	in_window = Qt;
     }
   else if (posint > BUF_ZV (buf))
     in_window = Qnil;
@@ -381,26 +348,15 @@ POS defaults to point; WINDOW, to the selected window.")
     in_window = Qnil;
   else
     {
-      struct it it;
-      start_display (&it, w, top);
-      move_it_to (&it, posint, 0, it.last_visible_y, -1,
- 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-      if (IT_CHARPOS (it) == posint)
-	{
-	  if (NILP (fully))
-	    in_window = Qt;
-	  else
-	    {
-	      struct glyph_row *pos_row = &w->desired_matrix->rows[it.vpos];
-	      return MATRIX_ROW_PARTIALLY_VISIBLE_P(pos_row) ? Qnil : Qt;
-	    }
-	}
+      if (pos_visible_p (w, posint, &fully_p))
+	in_window = NILP (fully) || fully_p ? Qt : Qnil;
       else
 	in_window = Qnil;
     }
 
   return in_window;
 }
+
 
 static struct window *
 decode_window (window)
