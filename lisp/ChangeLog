@@ -8,6 +8,53 @@
 	* emacs-lisp/bytecomp.el (byte-compile-get-constant):
 	For strings, do compare text properties.
 
+2004-03-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compile-auto-highlight)
+	(compilation-error-list, compilation-old-error-list)
+	(compilation-parse-errors-function, compilation-parsing-end)
+	(compilation-error-message, compilation-directory-stack)
+	(compilation-enter-directory-regexp-alist)
+	(compilation-leave-directory-regexp-alist)
+	(compilation-file-regexp-alist, compilation-nomessage-regexp-alist)
+	(compilation-current-file, compilation-regexps): Remove vars.
+
+	(compile-error-at-point, compilation-error-filedata)
+	(compilation-error-filedata-file-name, compile-reinitialize-errors)
+	(compilation-next-error-locus, compilation-forget-errors)
+	(count-regexp-groupings, compilation-parse-errors)
+	(compile-collect-regexps, compile-buffer-substring): Remove funs.
+
+	(compile-internal): Make obsolete.
+
+	(compilation-first-column, compilation-error)
+	(compilation-directory-matcher, compilation-page-delimiter)
+	(compilation-mode-font-lock-keywords, compilation-debug)
+	(compilation-error-face, compilation-warning-face)
+	(compilation-info-face, compilation-line-face)
+	(compilation-column-face, compilation-enter-directory-face)
+	(compilation-leave-directory-face, compilation-skip-threshold)
+	(compilation-skip-visited, compilation-context-lines): New vars.
+
+	(compilation-warning-face, compilation-info-face)
+	(compilation-message-face): New faces.
+
+	(compilation-error-regexp-alist-alist): New constant.
+
+	(compilation-face, compilation-directory-properties)
+	(compilation-assq, compilation-error-properties, compilation-start)
+	(define-compilation-mode, compilation-loop)
+	(compilation-set-window): New functions.
+
+	(compile): Additional argument for interactive compiles like TeX.
+
+	* progmodes/grep.el (kill-grep): Move here from compile.el
+	(grep-error, grep-hit-face, grep-error-face)
+	(grep-mode-font-lock-keywords): New variables.
+	(grep-regexp-alist): Simplify regexp and add `binary' case.
+	(grep-mode): New mode.
+	(grep-process-setup): Simplify.
+
 2004-03-11  Jason Rumney  <jasonr@gnu.org>
 
 	* net/ldap.el (ldap-search-internal): Handle file URLs with drive
