@@ -3,9 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.2
+;; Version: 5.3
 
-;;	$Id: vc.el,v 1.27 1993/03/16 21:09:56 eggert Exp eric $	
+;;	$Id: vc.el,v 1.28 1993/03/17 13:58:48 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This mode is fully documented in the Emacs user's manual.
+;;
 ;; This was designed and implemented by Eric Raymond <esr@snark.thyrsus.com>.
 ;; Paul Eggert <eggert@twinsun.com>, Sebastian Kremer <sk@thp.uni-koeln.de>,
 ;; and Richard Stallman contributed valuable criticism, support, and testing.
@@ -38,6 +40,9 @@
 ;;
 ;; Proper function of the SCCS diff commands requires the shellscript vcdiff
 ;; to be installed somewhere on Emacs's path for executables.
+;;
+;; If your site uses the ChangeLog convention supported by Emacs, the
+;; function vc-comment-to-changelog should prove a useful checkin hook.
 ;;
 ;; This code depends on call-process passing back the subprocess exit
 ;; status.  Thus, you need Emacs 18.58 or later to run it.
@@ -104,6 +109,7 @@ is sensitive to blank lines.")
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-checkout-writeable-buffer-hook 'vc-checkout-writeable-buffer)
+(defvar vc-parent-buffer nil)
 
 (defvar vc-log-file)
 (defvar vc-log-version)
@@ -149,11 +155,13 @@ the master name of FILE; this is appended to an optional list of FLAGS."
   (setq file (expand-file-name file))
   (if vc-command-messages
       (message "Running %s on %s..." command file))
-  (let ((obuf (current-buffer))
+  (let ((obuf (current-buffer)) (camefrom (current-buffer))
 	(squeezed nil)
 	(vc-file (and file (vc-name file)))
 	status)
     (set-buffer (get-buffer-create "*vc*"))
+    (make-local-variable 'vc-parent-buffer)
+    (setq vc-parent-buffer camefrom)
     (erase-buffer)
 
     ;; This is so that command arguments typed in the *vc* buffer will
@@ -165,10 +173,8 @@ the master name of FILE; this is appended to an optional list of FLAGS."
      flags)
     (if vc-file
 	(setq squeezed (append squeezed (list vc-file))))
-    (let
-	((default-directory (file-name-directory (or file "./"))))
-      (setq status (apply 'call-process command nil t nil squeezed))
-      )
+    (let ((default-directory (file-name-directory (or file "./"))))
+      (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
     (previous-line 1)
     (if (or (not (integerp status)) (< okstatus status))
@@ -290,6 +296,8 @@ read-only copy of the changed file is left in place afterwards.
    If the file is registered and locked by someone else, you are given
 the option to steal the lock."
   (interactive "P")
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (if buffer-file-name
       (let
 	  (do-update owner version
@@ -392,8 +400,10 @@ the option to steal the lock."
 FILE is the unmodified name of the file.  REV should be the base version
 level to check it in under."
   (if vc-initial-comment
-      (progn
+      (let ((camefrom (current-buffer)))
 	(pop-to-buffer (get-buffer-create "*VC-log*"))
+	(make-local-variable 'vc-parent-buffer)
+	(setq vc-parent-buffer camefrom)
 	(vc-log-mode)
 	(narrow-to-region (point-max) (point-max))
 	(vc-mode-line file (file-name-nondirectory file))
@@ -435,6 +445,10 @@ level to check it in under."
 
 (defun vc-checkout (file &optional writeable)
   "Retrieve a copy of the latest version of the given file."
+  ;; If ftp is on this system and the name matches the ange-ftp format
+  ;; for a remote file, the user is trying something that won't work.
+  (if (and (string-match "^/[^/:]+:" file) (vc-find-binary "ftp"))
+      (error "Sorry, you can't check out files over FTP"))
   (vc-backend-checkout file writeable)
   (if (string-equal file buffer-file-name)
       (vc-resynch-window file t t))
@@ -447,7 +461,10 @@ The optional argument REV may be a string specifying the new version level
 permissions zeroed, or deleted (according to the value of vc-keep-workfiles).
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
-  (pop-to-buffer (get-buffer-create "*VC-log*"))
+  (let ((camefrom (current-buffer)))
+    (pop-to-buffer (get-buffer-create "*VC-log*"))
+    (make-local-variable 'vc-parent-buffer)
+    (setq vc-parent-buffer camefrom))
   (vc-log-mode)
   (narrow-to-region (point-max) (point-max))
   (vc-mode-line file (file-name-nondirectory file))
@@ -460,6 +477,16 @@ popped up to accept a comment."
       (progn
 	(insert comment)
 	(vc-finish-logentry))))
+
+;;; Here is a checkin hook that may prove useful to sites using the
+;;; ChangeLog facility supported by Emacs.
+(defun vc-comment-to-changelog ()
+  (let ((log (find-change-log)))
+    (if log
+	(let ((default-directory (or (file-name-directory log)
+				     default-directory)))
+	  (vc-update-change-log
+	   (file-relative-name buffer-file-name))))))
 
 (defun vc-finish-logentry ()
   "Complete the operation implied by the current log entry."
@@ -557,6 +584,8 @@ popped up to accept a comment."
 (defun vc-diff (historic)
   "Display diffs between file versions."
   (interactive "P")
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (if historic
       (call-interactively 'vc-version-diff)
     (let ((file buffer-file-name)
@@ -567,6 +596,7 @@ popped up to accept a comment."
 	  (message "No changes to %s since latest version." file)
 	(pop-to-buffer "*vc*")
 	(vc-backend-diff file nil)
+	(vc-shrink-to-fit)
 	(goto-char (point-min))
 	)
       (not unchanged)
@@ -582,8 +612,10 @@ files in or below it."
   (if (string-equal rel1 "") (setq rel1 nil))
   (if (string-equal rel2 "") (setq rel2 nil))
   (if (file-directory-p file)
-      (progn
+      (let ((camefrom (current-buffer)))
 	(set-buffer (get-buffer-create "*vc-status*"))
+	(make-local-variable 'vc-parent-buffer)
+	(setq vc-parent-buffer camefrom)
 	(erase-buffer)
 	(insert "Diffs between "
 		(or rel1 "last version checked in")
@@ -625,6 +657,8 @@ files in or below it."
 Headers desired are inserted at the start of the buffer, and are pulled from
 the variable vc-header-alist"
   (interactive)
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (save-excursion
     (save-restriction
       (widen)
@@ -755,10 +789,13 @@ levels in the snapshot."
 (defun vc-print-log ()
   "List the change log of the current buffer in a window."
   (interactive)
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (if (and buffer-file-name (vc-name buffer-file-name))
       (progn
 	(vc-backend-print-log buffer-file-name)
 	(pop-to-buffer (get-buffer-create "*vc*"))
+	(vc-shrink-to-fit)
 	(goto-char (point-min))
 	)
     (error "There is no version-control master associated with this buffer")
@@ -771,6 +808,8 @@ levels in the snapshot."
 This asks for confirmation if the buffer contents are not identical
 to that version."
   (interactive)
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (let ((file buffer-file-name)
 	(obuf (current-buffer)) (changed (vc-diff nil)))
     (if (and changed (or vc-suppress-confirm
@@ -790,6 +829,8 @@ to that version."
 (defun vc-cancel-version (norevert)
   "Undo your latest checkin."
   (interactive "P")
+  (if vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
   (let ((target (concat (vc-latest-version (buffer-file-name))))
 	(yours (concat (vc-your-latest-version)))
 	(prompt (if (string-equal yours target)
