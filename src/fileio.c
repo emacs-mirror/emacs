@@ -2323,8 +2323,8 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 		 Fcons (build_string ("File already exists"),
 			Fcons (absname, Qnil)));
       GCPRO1 (absname);
-      tem = format1 ("File %s already exists; %s anyway? ",
-		     SDATA (absname), querystring);
+      tem = format2 ("File %s already exists; %s anyway? ",
+		     absname, build_string (querystring));
       if (quick)
 	tem = Fy_or_n_p (tem);
       else
