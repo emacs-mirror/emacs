@@ -38,6 +38,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
 #include "xterm.h"
+#include <X11/cursorfont.h>
 
 #ifndef USG
 /* Load sys/types.h if not already loaded.
@@ -89,6 +90,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "disptab.h"
 #include "buffer.h"
+#include "window.h"
 
 #ifdef HAVE_X11
 #define XMapWindow XMapRaised		/* Raise them when mapping. */
@@ -105,8 +107,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Nonzero means we must reprint all windows
    because 1) we received an ExposeWindow event
-   or 2) we received too many ExposeRegion events to record.  */
+   or 2) we received too many ExposeRegion events to record.
 
+   This is never needed under X11.  */
 static int expose_all_windows;
 
 /* Nonzero means we must reprint all icon windows.  */
@@ -159,6 +162,9 @@ Lisp_Object invocation_name;
 
 Display *x_current_display;
 
+/* The cursor to use for vertical scrollbars on x_current_display.  */
+static Cursor x_vertical_scrollbar_cursor;
+
 /* Frame being updated by update_frame.  */
 /* This is set by XTupdate_begin and looked at by all the
    XT functions.  It is zero while not inside an update.
@@ -168,8 +174,17 @@ Display *x_current_display;
 static struct frame *updating_frame;
 
 /* The frame (if any) which has the X window that has keyboard focus.
-   Zero if none.  This is examined by Ffocus_frame in frame.c.  */
+   Zero if none.  This is examined by Ffocus_frame in frame.c.  Note
+   that a mere EnterNotify event can set this; if you need to know the
+   last frame specified in a FocusIn or FocusOut event, use
+   x_focus_event_frame.  */
 struct frame *x_focus_frame;
+
+/* The last frame mentioned in a FocusIn or FocusOut event.  This is
+   separate from x_focus_frame, because whether or not LeaveNotify
+   events cause us to lose focus depends on whether or not we have
+   received a FocusIn event for it.  */
+struct frame *x_focus_event_frame;
 
 /* The frame which currently has the visual highlight, and should get
    keyboard input (other sorts of input have the frame encoded in the
@@ -260,7 +275,9 @@ static int XTcursor_to ();
 static int XTclear_end_of_line ();
 
 
-/* These hooks are called by update_frame at the beginning and end
+/* Starting and ending updates. 
+
+   These hooks are called by update_frame at the beginning and end
    of a frame update.  We record in `updating_frame' the identity
    of the frame being updated, so that the XT... functions do not
    need to take a frame as argument.  Most of the XT... functions
@@ -289,7 +306,9 @@ XTupdate_begin (f)
   UNBLOCK_INPUT;
 }
 
+#ifndef HAVE_X11
 static void x_do_pending_expose ();
+#endif
 
 static
 XTupdate_end (f)
@@ -304,9 +323,8 @@ XTupdate_end (f)
   BLOCK_INPUT;
 #ifndef HAVE_X11
   dumpqueue ();
-#endif /* HAVE_X11 */
-  adjust_scrollbars (f);
   x_do_pending_expose ();
+#endif /* HAVE_X11 */
 
   x_display_cursor (f, 1);
 
@@ -356,8 +374,8 @@ XTreset_terminal_modes ()
 /*  XTclear_frame ();  */
 }
 
-/* Set the nominal cursor position of the frame:
-   where display update commands will take effect.
+/* Set the nominal cursor position of the frame.
+   This is where display update commands will take effect.
    This does not affect the place where the cursor-box is displayed.  */
 
 static int
@@ -524,8 +542,8 @@ dumpglyphs (f, left, top, gp, n, hl, font)
 }
 #endif /* ! 0 */
 
-/* Output some text at the nominal frame cursor position,
-   advancing the cursor over the text.
+/* Output some text at the nominal frame cursor position.
+   Advance the cursor over the text.
    Output LEN glyphs at START.
 
    `highlight', set up by XTreassert_line_highlight or XTchange_line_highlight,
@@ -577,7 +595,8 @@ XTwrite_glyphs (start, len)
   UNBLOCK_INPUT;
 }
 
-/* Erase the current text line from the nominal cursor position (inclusive)
+/* Clear to the end of the line.
+   Erase the current text line from the nominal cursor position (inclusive)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
   
@@ -758,8 +777,9 @@ XTring_bell ()
     }
 }
 
-/* Insert and delete character are not supposed to be used
-   because we are supposed to turn off the feature of using them.  */
+/* Insert and delete character.
+   These are not supposed to be used because we are supposed to turn
+   off the feature of using them.  */
 
 static 
 XTinsert_glyphs (start, len)
@@ -794,8 +814,8 @@ XTset_terminal_window (n)
     flexlines = n;
 }
 
-/* Perform an insert-lines operation, inserting N lines
-   at a vertical position curs_y.  */
+/* Perform an insert-lines operation.
+   Insert N lines at a vertical position curs_y.  */
 
 static void
 stufflines (n)
@@ -955,6 +975,7 @@ XTins_del_lines (vpos, n)
   UNBLOCK_INPUT;
 }
 
+/* Support routines for exposure events.  */
 static void clear_cursor ();
 
 /* Output into a rectangle of an X-window (for frame F)
@@ -1072,10 +1093,11 @@ dumpqueue ()
 }
 #endif /* HAVE_X11 */
 
-/* Process all expose events that are pending.
+/* Process all expose events that are pending, for X10.
    Redraws the cursor if necessary on any frame that
    is not in the process of being updated with update_frame.  */
 
+#ifndef HAVE_X11
 static void
 x_do_pending_expose ()
 {
@@ -1139,6 +1161,7 @@ x_do_pending_expose ()
     dumpqueue ();
 #endif /* ! defined (HAVE_X11) */
 }
+#endif
 
 #ifdef HAVE_X11
 static void
@@ -1245,9 +1268,9 @@ x_new_focus_frame (frame)
 }
 
 
-/* The focus has changed, or we have make a frame's selected window
-   point to a window on a different frame (this happens with global
-   minibuffer frames).  Shift the highlight as appropriate.  */
+/* The focus has changed, or we have redirected a frame's focus to
+   another frame (this happens when a frame uses a surrogate
+   minibuffer frame).  Shift the highlight as appropriate.  */
 static void
 XTframe_rehighlight ()
 {
@@ -1255,10 +1278,15 @@ XTframe_rehighlight ()
 
   if (x_focus_frame)
     {
-      x_highlight_frame = XFRAME (FRAME_FOCUS_FRAME (x_focus_frame));
-      if (x_highlight_frame->display.nothing == 0)
-	XSET (FRAME_FOCUS_FRAME (x_focus_frame), Lisp_Frame,
-	      (x_highlight_frame = x_focus_frame));
+      x_highlight_frame =
+	((XTYPE (FRAME_FOCUS_FRAME (x_focus_frame)) == Lisp_Frame)
+	 ? XFRAME (FRAME_FOCUS_FRAME (x_focus_frame))
+	 : x_focus_frame);
+      if (! FRAME_LIVE_P (x_highlight_frame))
+	{
+	  FRAME_FOCUS_FRAME (x_focus_frame) = Qnil;
+	  x_highlight_frame = x_focus_frame;
+	}
     }
   else
     x_highlight_frame = 0;
@@ -1271,114 +1299,6 @@ XTframe_rehighlight ()
 	frame_highlight (x_highlight_frame);
     }
 }
-
-enum window_type
-{
-  no_window,
-  scrollbar_window,
-  text_window,
-};
-
-/* Position of the mouse in characters */
-unsigned int x_mouse_x, x_mouse_y;
-
-/* Offset in buffer of character under the pointer, or 0. */
-extern int mouse_buffer_offset;
-
-extern int buffer_posn_from_coords ();
-
-/* Symbols from xfns.c to denote the different parts of a window.  */
-extern Lisp_Object Qmodeline_part, Qtext_part;
-
-#if 0
-/* Set *RESULT to an emacs input_event corresponding to MOTION_EVENT.
-   F is the frame in which the event occurred.
-
-   WINDOW_TYPE says whether the event happened in a scrollbar window
-   or a text window, affecting the format of the event created.
-
-   PART specifies which part of the scrollbar the event happened in,
-   if WINDOW_TYPE == scrollbar_window.
-
-   If the mouse is over the same character as the last time we checked,
-   don't return an event; set result->kind to no_event.  */
-
-static void
-notice_mouse_movement (result, motion_event, f, window_type, part)
-     struct input_event *result;
-     XMotionEvent motion_event;
-     struct frame *f;
-     int window_type;
-     Lisp_Object part;
-{
-  int x, y, root_x, root_y, pix_x, pix_y;
-  unsigned int keys_and_buttons;
-  Window w, root_window;
-
-  /* Unless we decide otherwise below, return a non-event.  */
-  result->kind = no_event;
-  
-  if (XQueryPointer (x_current_display,
-		     FRAME_X_WINDOW (f),
-		     &root_window, &w,
-		     &root_x, &root_y, &pix_x, &pix_y,
-		     &keys_and_buttons)
-      == False)
-    return;
-
-#if 0
-  if (w == None)   /* Mouse no longer in window. */
-    return Qnil;
-#endif /* ! 0 */
-
-  pixel_to_glyph_translation (f, pix_x, pix_y, &x, &y);
-  if (x == x_mouse_x && y == x_mouse_y)
-    return;
-
-  x_mouse_x = x;
-  x_mouse_y = y;
-
-  /* What sort of window are we in now?  */
-  if (window_type == text_window)            /* Text part */
-    {
-      int modeline_p;
-
-      Vmouse_window = window_from_coordinates (f, x, y, &modeline_p);
-
-      if (XTYPE (Vmouse_window) == Lisp_Window)
-	mouse_buffer_offset
-	  = buffer_posn_from_coords (XWINDOW (Vmouse_window), x, y);
-      else
-	mouse_buffer_offset = 0;
-
-      if (EQ (Vmouse_window, Qnil))
-	Vmouse_frame_part = Qnil;
-      else if (modeline_p)
-	Vmouse_frame_part = Qmodeline_part;
-      else
-	Vmouse_frame_part = Qtext_part;
-      
-      result->kind = window_sys_event;
-      result->code = Qmouse_moved;
-
-      return;
-    }
-  else if (window_type == scrollbar_window)  /* Scrollbar */
-    {
-      Vmouse_window = f->selected_window;
-      mouse_buffer_offset = 0;
-      Vmouse_frame_part = part;
-
-      result->kind = window_sys_event;
-      result->code = Qmouse_moved;
-
-      return;
-    }
-
-  return;
-}
-#endif /* ! 0 */
-
 
 /* Mouse clicks and mouse movement.  Rah.  */
 #ifdef HAVE_X11
@@ -1531,30 +1451,21 @@ x_convert_modifiers (state)
 	  | ((state & x_meta_mod_mask)		       ? meta_modifier  : 0));
 }
 
-extern struct frame *x_window_to_scrollbar ();
-extern Lisp_Object Vmouse_event;
-
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
    If the event is a button press, then note that we have grabbed
-   the mouse.
-
-   If PART and PREFIX are 0, then the event occurred in the text part;
-   otherwise it happened in a scrollbar. */
+   the mouse.  */
 
 static Lisp_Object
-construct_mouse_click (result, event, f, part, prefix)
+construct_mouse_click (result, event, f)
      struct input_event *result;
      XButtonEvent *event;
      struct frame *f;
-     int prefix;
-     Lisp_Object part;
 {
-  /* Initialize those fields text and scrollbar clicks hold in common.
-     Make the event type no_event; we'll change that when we decide
+  /* Make the event type no_event; we'll change that when we decide
      otherwise.  */
-  result->kind = no_event;
-  XSET (result->code, Lisp_Int, event->button);
+  result->kind = mouse_click;
+  XSET (result->code, Lisp_Int, event->button - Button1);
   result->timestamp = event->time;
   result->modifiers = (x_convert_modifiers (event->state)
 		       | (event->type == ButtonRelease
@@ -1575,33 +1486,14 @@ construct_mouse_click (result, event, f, part, prefix)
 	Vmouse_depressed = Qnil;
     }
 
-  if (! NILP (part))		/* Scrollbar event */
-    {
-      int pos, len;
+  {
+    int row, column;
 
-      pos = event->y - (f->display.x->v_scrollbar_width - 2);
-      x_mouse_x = pos;
-      len = ((FONT_HEIGHT (f->display.x->font) * f->height)
-	     + f->display.x->internal_border_width
-	     - (2 * (f->display.x->v_scrollbar_width - 2)));
-      x_mouse_y = len;
-
-      result->kind = scrollbar_click;
-      result->part = part;
-      XSET (result->x, Lisp_Int, (f->display.x->top_pos - event->y));
-      XSET (result->y, Lisp_Int, f->display.x->pixel_height);
-      result->frame = f;
-    }
-  else				/* Text Window Event */
-    {
-      int row, column;
-
-      pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL);
-      result->kind = mouse_click;
-      XFASTINT (result->x) = column;
-      XFASTINT (result->y) = row;
-      result->frame = f;
-    }
+    pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL);
+    XFASTINT (result->x) = column;
+    XFASTINT (result->y) = row;
+    result->frame = f;
+  }
 }
 
 
@@ -1627,6 +1519,15 @@ construct_mouse_click (result, event, f, part, prefix)
 /* Where the mouse was last time we reported a mouse event.  */
 static FRAME_PTR last_mouse_frame;
 static XRectangle last_mouse_glyph;
+
+/* If the last-checked mouse motion was in a scrollbar, this is that
+   scrollbar, the part being dragged, and the limits it is moving in.
+   Otherwise, this is zero.  */
+static struct scrollbar *last_mouse_bar;
+static FRAME_PTR last_mouse_bar_frame;
+static enum scrollbar_part last_mouse_part;
+static int last_mouse_scroll_range_start;
+static int last_mouse_scroll_range_end;
 
 /* This is a hack.  We would really prefer that XTmouse_position would
    return the time associated with the position it returns, but there
@@ -1679,8 +1580,10 @@ note_mouse_position (frame, event)
    */
 
 static void
-XTmouse_position (f, x, y, time)
+XTmouse_position (f, bar, part, x, y, time)
      FRAME_PTR *f;
+     struct scrollbar **bar;
+     enum scrollbar_part *part;
      Lisp_Object *x, *y;
      unsigned long *time;
 {
@@ -1724,17 +1627,35 @@ XTmouse_position (f, x, y, time)
          try instead.  */
       guess = root;
 
-  *f = last_mouse_frame = x_window_to_frame (guess);
-  if (! *f)
-    *x = *y = Qnil;
+  if (last_mouse_bar)
+    {
+      *f = last_mouse_bar_frame;
+      *bar = last_mouse_bar;
+      *part = last_mouse_part;
+
+      if (iy < last_mouse_scroll_range_start)
+	iy = last_mouse_scroll_range_start;
+      if (iy > last_mouse_scroll_range_end)
+	iy = last_mouse_scroll_range_end;
+      XSETINT (*x, iy - last_mouse_scroll_range_start);
+      XSETINT (*y, (last_mouse_scroll_range_end
+		    - last_mouse_scroll_range_start));
+    }
   else
     {
-      pixel_to_glyph_coords (*f, ix, iy, &ix, &iy, &last_mouse_glyph);
-      XSET (*x, Lisp_Int, ix);
-      XSET (*y, Lisp_Int, iy);
+      *f = last_mouse_frame = x_window_to_frame (guess);
+      if (! *f)
+	*x = *y = Qnil;
+      else
+	{
+	  pixel_to_glyph_coords (*f, ix, iy, &ix, &iy, &last_mouse_glyph);
+	  XSET (*x, Lisp_Int, ix);
+	  XSET (*y, Lisp_Int, iy);
+	}
     }
 
   mouse_moved = 0;
+  last_mouse_bar = 0;
 
   /* I don't know how to find the time for the last movement; it seems
      like XQueryPointer ought to return it, but it doesn't.  So, we'll
@@ -1750,6 +1671,472 @@ XTmouse_position (f, x, y, time)
 #define XEvent XKeyPressedEvent
 #endif /* ! defined (HAVE_X11) */
 
+/* Scrollbar support.  */
+
+/* Map an X window that implements a scroll bar to the struct
+   scrollbar representing it.  */
+static struct scrollbar *
+x_window_to_scrollbar (window_id)
+     Window window_id;
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+
+  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      struct scrollbar *bar;
+      Lisp_Object frame = XCONS (tail)->car;
+
+      /* All elements of Vframe_list should be frames.  */
+      if (XTYPE (frame) != Lisp_Frame)
+	abort ();
+
+      /* Scan this frame's scrollbar list for a scrollbar with the
+         right window ID.  */
+      for (bar = XFRAME (frame)->display.x->vertical_scrollbars;
+	   bar;
+	   bar = bar->next)
+	if (bar->window == window_id)
+	  return bar;
+    }
+
+  return 0;
+}
+
+
+/* Open a new X window to serve as a scrollbar.  */
+static struct scrollbar *
+x_scrollbar_create (frame, top, left, width, height)
+     FRAME_PTR frame;
+     int top, left, width, height;
+{
+  struct x_display *d = frame->display.x;
+
+  /* We can't signal a malloc error from within redisplay, so call
+     malloc instead of xmalloc.  */
+  struct scrollbar *bar =
+    (struct scrollbar *) malloc (sizeof (struct scrollbar));
+
+  if (! bar)
+    return 0;
+
+  BLOCK_INPUT;
+
+  {
+    XSetWindowAttributes a;
+    unsigned long mask;
+
+    a.background_pixel = d->background_pixel;
+    a.border_pixel = d->foreground_pixel;
+    a.event_mask = (KeyPressMask
+		    | ButtonPressMask | ButtonReleaseMask
+		    | ButtonMotionMask);
+    a.cursor = x_vertical_scrollbar_cursor;
+
+    mask = (CWBackPixel | CWBorderPixel | CWEventMask | CWCursor);
+
+    bar->window =
+      XCreateWindow (x_current_display, FRAME_X_WINDOW (frame),
+
+		     /* Position and size of scrollbar.  */
+		     top, left, width, height,
+
+		     /* Border width, depth, class, and visual.  */
+		     1, CopyFromParent, CopyFromParent, CopyFromParent,
+
+		     /* Attributes.  */
+		     mask, &a);
+  }
+
+  bar->frame = frame;
+  bar->top = top;
+  bar->left = left;
+  bar->width = width;
+  bar->height = height;
+  bar->start = bar->end = 0;
+  bar->judge_timestamp = d->judge_timestamp;
+  bar->dragging = -1;
+
+  /* Add bar to its frame's list of scroll bars.  */
+  bar->next = d->vertical_scrollbars;
+  d->vertical_scrollbars = bar;
+
+  XMapWindow (x_current_display, bar->window);
+
+  UNBLOCK_INPUT;
+}
+
+/* Draw BAR's handle in the proper position.  */
+static void
+x_scrollbar_set_handle (bar, start, end)
+     struct scrollbar *bar;
+     int start, end;
+{
+  BLOCK_INPUT;
+
+  {
+    int inside_width = (bar->width
+			- VERTICAL_SCROLLBAR_LEFT_BORDER
+			- VERTICAL_SCROLLBAR_RIGHT_BORDER);
+    int inside_height = (bar->height
+			 - VERTICAL_SCROLLBAR_TOP_BORDER
+			 - VERTICAL_SCROLLBAR_BOTTOM_BORDER);
+
+    /* Make sure the values are reasonable, and try to preserve
+       the distance between start and end.  */
+    if (end < start)
+      end = start;
+    if (start < VERTICAL_SCROLLBAR_TOP_BORDER)
+      {
+	end = VERTICAL_SCROLLBAR_TOP_BORDER + (end - start);
+	start = VERTICAL_SCROLLBAR_TOP_BORDER;
+      }
+    if (end > bar->height - VERTICAL_SCROLLBAR_BOTTOM_BORDER)
+      {
+	start = ((bar->height - VERTICAL_SCROLLBAR_BOTTOM_BORDER)
+		 - (end - start));
+	end = bar->height - VERTICAL_SCROLLBAR_BOTTOM_BORDER;
+      }
+    if (start < VERTICAL_SCROLLBAR_TOP_BORDER)
+      start = VERTICAL_SCROLLBAR_TOP_BORDER;
+
+    /* Draw the empty space above the handle.  */
+    XClearArea (x_current_display, bar->window,
+
+		/* x, y, width, height, and exposures.  */
+		VERTICAL_SCROLLBAR_LEFT_BORDER,
+		VERTICAL_SCROLLBAR_TOP_BORDER,
+		inside_width + 1, start + 1,
+		False);
+
+    /* Draw the handle itself.  */
+    XFillRectangle (x_current_display, bar->window,
+		    bar->frame->display.x->normal_gc,
+
+		    /* x, y, width, height */
+		    VERTICAL_SCROLLBAR_LEFT_BORDER, start,
+		    inside_width, (end - start) + 1);
+
+
+    /* Draw the empty space below the handle.  */
+    XClearArea (x_current_display, bar->window,
+
+		/* x, y, width, height, and exposures.  */
+		VERTICAL_SCROLLBAR_LEFT_BORDER,
+		VERTICAL_SCROLLBAR_TOP_BORDER + end,
+		inside_width + 1, (inside_height - end) + 1,
+		False);
+
+    bar->start = start;
+    bar->end = end;
+  }
+
+  UNBLOCK_INPUT;
+}
+
+/* Remove the scrollbar BAR.  */
+static void
+x_scrollbar_remove (bar)
+     struct scrollbar *bar;
+{
+  BLOCK_INPUT;
+
+  /* Remove bar from the frame's list.  */
+  {
+    struct scrollbar **ptr;
+
+    for (ptr = &bar->frame->display.x->vertical_scrollbars;
+	 *ptr;
+	 ptr = &(*ptr)->next)
+      if (*ptr == bar)
+	{
+	  *ptr = bar->next;
+	  break;
+	}
+  }
+
+  /* Destroy the window.  */
+  XDestroyWindow (x_current_display, bar->window);
+
+  /* Free the storage.  */
+  free (bar);
+
+  UNBLOCK_INPUT;
+}
+
+static void
+x_scrollbar_move (bar, top, left, width, height)
+     struct scrollbar *bar;
+     int top, left, width, height;
+{
+  BLOCK_INPUT;
+
+  {
+    XWindowChanges wc;
+    unsigned int mask = 0;
+
+    wc.x = left;
+    wc.y = top;
+    wc.width = width;
+    wc.height = height;
+
+    if (left != bar->left)     mask |= CWX;
+    if (top != bar->top)       mask |= CWY;
+    if (width != bar->width)   mask |= CWWidth;
+    if (height != bar->height) mask |= CWHeight;
+
+    XConfigureWindow (x_current_display, bar->window, mask, &wc);
+  }
+
+  UNBLOCK_INPUT;
+}
+
+/* Set BAR to be the vertical scroll bar for WINDOW.  Set its handle
+   to indicate that we are displaying PORTION characters out of a
+   total of WHOLE characters, starting at POSITION.  Return BAR.  If
+   BAR is zero, create a new scrollbar and return a pointer to it.  */
+static struct scrollbar *
+XTset_scrollbar (bar, window, portion, whole, position)
+     struct scrollbar *bar;
+     struct window *window;
+     int portion, whole, position;
+{
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+  struct x_display *d = f->display.x;
+  int top = XINT (window->top);
+  int left = WINDOW_VERTICAL_SCROLLBAR_COLUMN (window);
+  int height = WINDOW_VERTICAL_SCROLLBAR_HEIGHT (window);
+
+  /* Where should this scrollbar be, pixelwise?  */
+  int pixel_top  = (d->internal_border_width + top  * FONT_HEIGHT (d->font));
+  int pixel_left = (d->internal_border_width + left * FONT_WIDTH  (d->font));
+  int pixel_width = VERTICAL_SCROLLBAR_PIXEL_WIDTH (f);
+  int pixel_height = VERTICAL_SCROLLBAR_PIXEL_HEIGHT (f, height);
+
+  /* Does the scrollbar exist yet?  */
+  if (! bar)
+    bar = x_scrollbar_create (f,
+			      pixel_top, pixel_left,
+			      pixel_width, pixel_height);
+  else
+    /* It may just need to be moved and resized.  */
+    x_scrollbar_move (bar, pixel_top, pixel_left, pixel_width, pixel_height);
+
+  /* Set the scrollbar's current state, unless we're currently being
+     dragged.  */
+
+  if (bar && bar->dragging == -1)
+    {
+      int inside_height = (pixel_height
+			   - VERTICAL_SCROLLBAR_TOP_BORDER
+			   - VERTICAL_SCROLLBAR_BOTTOM_BORDER);
+      int start = (position * inside_height) / whole;
+      int end = ((position + portion) * inside_height) / whole;
+
+      x_scrollbar_set_handle (bar, start, end);
+    }
+
+  return bar;
+}
+
+/* The following three hooks are used when we're doing a thorough
+   redisplay of the frame.  We don't explicitly know which scrollbars
+   are going to be deleted, because keeping track of when windows go
+   away is a real pain - can you say set-window-configuration?
+   Instead, we just assert at the beginning of redisplay that *all*
+   scrollbars are to be removed, and then save scrollbars from the
+   firey pit when we actually redisplay their window.  */
+
+/* Arrange for all scrollbars on FRAME to be removed at the next call
+   to `*judge_scrollbars_hook'.  A scrollbar may be spared if
+   `*redeem_scrollbar_hook' is applied to it before the judgement.  */
+static void 
+XTcondemn_scrollbars (frame)
+     FRAME_PTR frame;
+{
+  /* Any scrollbars which don't get caught up to this will be deleted.  */
+  frame->display.x->judge_timestamp++;
+}
+
+/* Unmark BAR for deletion in this judgement cycle.  */
+static void
+XTredeem_scrollbar (bar)
+     struct scrollbar *bar;
+{
+  bar->judge_timestamp = bar->frame->display.x->judge_timestamp;
+}
+
+/* Remove all scrollbars on FRAME that haven't been saved since the
+   last call to `*condemn_scrollbars_hook'.  */
+static void
+XTjudge_scrollbars(frame)
+     FRAME_PTR frame;
+{
+  int judge_timestamp = frame->display.x->judge_timestamp;
+  struct scrollbar *bar, *next;
+
+  for (bar = frame->display.x->vertical_scrollbars; bar; bar = next)
+    {
+      next = bar->next;
+      if (bar->judge_timestamp < judge_timestamp)
+	x_scrollbar_remove (bar);
+    }
+}
+
+
+/* Handle an Expose or GraphicsExpose event on a scrollbar.  */
+static void
+x_scrollbar_expose (bar, event)
+     struct scrollbar *bar;
+     XEvent *event;
+{
+  BLOCK_INPUT;
+
+  x_scrollbar_set_handle (bar, bar->start, bar->end);
+
+  /* Draw the extra-thick border on the right.  */
+  XFillRectangle (x_current_display, bar->window,
+		  bar->frame->display.x->normal_gc,
+
+		  /* x, y, width, height */
+		  bar->width - VERTICAL_SCROLLBAR_RIGHT_BORDER, 0,
+		  VERTICAL_SCROLLBAR_RIGHT_BORDER, bar->height + 1);
+
+  UNBLOCK_INPUT;
+}
+
+/* Handle an exposure event which might be over the extra scrollbar space.  */
+static void
+x_scrollbar_background_expose (frame, event)
+     FRAME_PTR frame;
+     XEvent *event;
+{
+  /* Where is the extra scrollbar space, anyway?  */
+  int width = VERTICAL_SCROLLBAR_PIXEL_WIDTH (frame);
+  int height = PIXEL_HEIGHT (frame);
+  int x = PIXEL_WIDTH (frame) - width;
+  int y = 0;
+
+  BLOCK_INPUT;
+
+  /* Clear it out.  */
+  XClearArea (x_current_display, FRAME_X_WINDOW (frame),
+
+	      /* x, y, width, height, expose */
+	      x, y, width+1, height+1, False);
+
+  /* Draw the border.  */
+  XDrawRectangle (x_current_display, FRAME_X_WINDOW (frame),
+		  frame->display.x->normal_gc,
+		  x, y, width, height);
+
+  /* Draw the extra-thick border on the right edge.  */
+  XFillRectangle (x_current_display, FRAME_X_WINDOW (frame),
+		 frame->display.x->normal_gc,
+		 x + width - VERTICAL_SCROLLBAR_RIGHT_BORDER, 0,
+		 VERTICAL_SCROLLBAR_RIGHT_BORDER, height + 1);
+
+  UNBLOCK_INPUT;
+}
+
+/* Handle a mouse click on the scrollbar BAR.  If *EMACS_EVENT's kind
+   is set to something other than no_event, it is enqueued.  */
+static void
+x_scrollbar_handle_click (bar, event, emacs_event)
+     struct scrollbar *bar;
+     XEvent *event;
+     struct input_event *emacs_event;
+{
+  emacs_event->kind = scrollbar_click;
+  XSETINT (emacs_event->code, event->xbutton.button - Button1);
+  emacs_event->modifiers =
+    (x_convert_modifiers (event->xbutton.state)
+     | (event->type == ButtonRelease
+	? up_modifier
+	: down_modifier));
+  emacs_event->part =
+    ((event->xbutton.x < bar->start) ? scrollbar_above_handle
+     : (event->xbutton.x < bar->end) ? scrollbar_handle
+     : scrollbar_below_handle);
+  emacs_event->scrollbar = bar;
+
+  if (event->xbutton.y < VERTICAL_SCROLLBAR_TOP_BORDER)
+    event->xbutton.y = VERTICAL_SCROLLBAR_TOP_BORDER;
+  if (event->xbutton.y > bar->height - VERTICAL_SCROLLBAR_BOTTOM_BORDER)
+    event->xbutton.y = bar->height - VERTICAL_SCROLLBAR_BOTTOM_BORDER;
+  XSETINT (emacs_event->x,
+	   event->xbutton.y - VERTICAL_SCROLLBAR_TOP_BORDER);
+  XSETINT (emacs_event->y,
+	   (bar->height
+	    - VERTICAL_SCROLLBAR_TOP_BORDER
+	    - VERTICAL_SCROLLBAR_BOTTOM_BORDER));
+
+  emacs_event->frame = bar->frame;
+  emacs_event->timestamp = event->xbutton.time;
+
+  if (event->type == ButtonPress
+      && emacs_event->part == scrollbar_handle)
+    bar->dragging = event->xbutton.x - bar->start;
+  else
+    {
+      int new_start = event->xbutton.x - bar->dragging;
+      int new_end = new_start + (bar->end - bar->start);
+
+      x_scrollbar_set_handle (bar, new_start, new_end);
+      bar->dragging = -1;
+    }
+}
+
+
+/* Handle some mouse motion while someone is dragging the scrollbar.  */
+static void
+x_scrollbar_handle_motion (bar, event)
+     struct scrollbar *bar;
+     XEvent *event;
+{
+  last_mouse_movement_time = event->xmotion.time;
+
+  mouse_moved = 1;
+  last_mouse_bar = bar;
+  last_mouse_bar_frame = bar->frame;
+  last_mouse_part = (bar->dragging == -1 ? scrollbar_handle
+		     : (event->xbutton.x < bar->start) ? scrollbar_above_handle
+		     : (event->xbutton.x < bar->end) ? scrollbar_handle
+		     : scrollbar_below_handle);
+  last_mouse_scroll_range_start = bar->top + VERTICAL_SCROLLBAR_TOP_BORDER;
+  last_mouse_scroll_range_end = (bar->top
+				 + bar->height
+				 - VERTICAL_SCROLLBAR_BOTTOM_BORDER);
+
+  /* If we're dragging the bar, display it.  */
+  if (bar->dragging != -1)
+    {
+      /* Where should the handle be now?  */
+      int new_start = event->xmotion.x - bar->dragging;
+
+      if (new_start != bar->start)
+	{
+	  int new_end = new_start + (bar->end - bar->start);
+	
+	  x_scrollbar_set_handle (bar, new_start, new_end);
+	}
+    }
+
+  /* Call XQueryPointer so we'll get an event the next time the mouse
+     moves and we can see *still* on the same position.  */
+  {
+    int dummy;
+      
+    XQueryPointer (event->xmotion.display, event->xmotion.window,
+		   (Window *) &dummy, (Window *) &dummy,
+		   &dummy, &dummy, &dummy, &dummy,
+		   (unsigned int *) &dummy);
+  }
+}
+
+
+
+/* The main X event-reading loop - XTread_socket.  */
 
 /* Timestamp of enter window event.  This is only used by XTread_socket,
    but we have to put it out here, since static variables within functions
@@ -1931,19 +2318,35 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  SET_FRAME_GARBAGED (f);
 		}
 	      else
-		dumprectangle (x_window_to_frame (event.xexpose.window),
-			       event.xexpose.x, event.xexpose.y,
-			       event.xexpose.width, event.xexpose.height);
+		{
+		  dumprectangle (x_window_to_frame (event.xexpose.window),
+				 event.xexpose.x, event.xexpose.y,
+				 event.xexpose.width, event.xexpose.height);
+		  x_scrollbar_background_expose (f, &event);
+		}
+	    }
+	  else
+	    {
+	      struct scrollbar *bar
+		= x_window_to_scrollbar (event.xexpose.window);
+
+	      if (bar)
+		x_scrollbar_expose (bar, &event);
 	    }
 	  break;
 
 	case GraphicsExpose:	/* This occurs when an XCopyArea's
 				  source area was obscured or not
 				  available.*/
-	  dumprectangle (x_window_to_frame (event.xgraphicsexpose.drawable),
-			 event.xgraphicsexpose.x, event.xgraphicsexpose.y,
-			 event.xgraphicsexpose.width,
-			 event.xgraphicsexpose.height);
+	  f = x_window_to_frame (event.xgraphicsexpose.drawable);
+	  if (f)
+	    {
+	      dumprectangle (f,
+			     event.xgraphicsexpose.x, event.xgraphicsexpose.y,
+			     event.xgraphicsexpose.width,
+			     event.xgraphicsexpose.height);
+	      x_scrollbar_background_expose (f, &event);
+	    }
 	  break;
 
 	case NoExpose:		/* This occurs when an XCopyArea's
@@ -2000,20 +2403,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 #ifdef HAVE_X11
 	case UnmapNotify:
-	  {
-	    XWMHints *hints;
-
-	    f = x_window_to_frame (event.xunmap.window);
-	    if (f)		/* F may no longer exist if
+	  f = x_window_to_frame (event.xunmap.window);
+	  if (f)		/* F may no longer exist if
 				   the frame was deleted.  */
-	      {
-		/* While a frame is unmapped, display generation is
-		   disabled; you don't want to spend time updating a
-		   display that won't ever be seen.  */
-		f->async_visible = 0;
-		x_mouse_x = x_mouse_y = -1;
-	      }
-	  }
+	    {
+	      /* While a frame is unmapped, display generation is
+		 disabled; you don't want to spend time updating a
+		 display that won't ever be seen.  */
+	      f->async_visible = 0;
+	    }
 	  break;
 
 	case MapNotify:
@@ -2046,6 +2444,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef HAVE_X11
 	case KeyPress:
 	  f = x_window_to_frame (event.xkey.window);
+
 	  if (f != 0)
 	    {
 	      KeySym keysym;
@@ -2165,18 +2564,18 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif /* ! defined (HAVE_X11) */
 
 #ifdef HAVE_X11
+
+	  /* Here's a possible interpretation of the whole
+	     FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If you get a
+	     FocusIn event, you have to get a FocusOut event before you
+	     relinquish the focus.  If you haven't received a FocusIn event,
+	     then a mere LeaveNotify is enough to free you.  */
+
 	case EnterNotify:
 	  f = x_window_to_frame (event.xcrossing.window);
 
-	  if (event.xcrossing.detail == NotifyInferior)	/* Left Scrollbar */
-	    ;
-	  else if (event.xcrossing.focus)		/* Entered Window */
+	  if (event.xcrossing.focus)		/* Entered Window */
 	    {
-	      /* If we decide we want to generate an event to be seen
-		 by the rest of Emacs, we put it here.  */
-	      struct input_event emacs_event;
-	      emacs_event.kind = no_event;
-
 	      /* Avoid nasty pop/raise loops. */
 	      if (f && (!(f->auto_raise)
 			|| !(f->auto_lower)
@@ -2185,58 +2584,45 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  x_new_focus_frame (f);
 		  enter_timestamp = event.xcrossing.time;
 		}
-#if 0
-	      else if ((f = x_window_to_scrollbar (event.xcrossing.window,
-						   &part, &prefix)))
-		/* Fake a motion event */
-		notice_mouse_movement (&emacs_event,
-				       event.xmotion, f, scrollbar_window,
-				       part);
-#endif /* ! 0 */
-
-#if 0
-	      if (! EQ (Vx_send_mouse_movement_events, Qnil)
-		  && numchars >= 1
-		  && emacs_event.kind != no_event)
-		{
-		  bcopy (&emacs_event, bufp, sizeof (struct input_event));
-		  bufp++;
-		  count++;
-		  numchars--;
-		}
-#endif /* ! 0 */
 	    }
 	  else if (f == x_focus_frame)
 	    x_new_focus_frame (0);
-#if 0
-	  else if (f = x_window_to_frame (event.xcrossing.window))
-	    x_mouse_frame = f;
-#endif /* ! 0 */
 
 	  break;
 
 	case FocusIn:
 	  f = x_window_to_frame (event.xfocus.window);
+	  if (event.xfocus.detail != NotifyPointer) 
+	    x_focus_event_frame = f;
 	  if (f)
 	    x_new_focus_frame (f);
 	  break;
 
-	case LeaveNotify:
-	  if (event.xcrossing.detail != NotifyInferior
-	      && event.xcrossing.subwindow == None
-	      && event.xcrossing.mode == NotifyNormal)
-	    {
-	      f = x_window_to_frame (event.xcrossing.window);
 
-	      if (event.xcrossing.focus)
+	case LeaveNotify:
+	  f = x_window_to_frame (event.xcrossing.window);
+
+	  if (event.xcrossing.focus)
+	    {
+	      if (! x_focus_event_frame)
+		x_new_focus_frame (0);
+	      else
 		x_new_focus_frame (f);
-	      else if (f == x_focus_frame)
+	    }
+	  else 
+	    {
+	      if (f == x_focus_event_frame)
+		x_focus_event_frame = 0;
+	      if (f == x_focus_frame)
 		x_new_focus_frame (0);
 	    }
 	  break;
 
 	case FocusOut:
 	  f = x_window_to_frame (event.xfocus.window);
+	  if (event.xfocus.detail != NotifyPointer
+	      && f == x_focus_event_frame)
+	    x_focus_event_frame = 0;
 	  if (f && f == x_focus_frame)
 	    x_new_focus_frame (0);
 	  break;
@@ -2283,13 +2669,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    f = x_window_to_frame (event.xmotion.window);
 	    if (f)
 	      note_mouse_position (f, &event.xmotion);
-#if 0
-	    else if ((f = x_window_to_scrollbar (event.xmotion.window,
-						 &part, &prefix)))
+	    else
 	      {
-		What should go here?
+		struct scrollbar *bar =
+		  x_window_to_scrollbar (event.xmotion.window);
+
+		if (bar)
+		  x_scrollbar_handle_motion (bar, &event);
 	      }
-#endif /* ! 0 */
 	  }
 	  break;
 
@@ -2300,14 +2687,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    if (!f)
 	      break;
 
-	    columns = ((event.xconfigure.width -
-			(2 * f->display.x->internal_border_width)
-			- f->display.x->v_scrollbar_width)
-		       / FONT_WIDTH (f->display.x->font));
-	    rows = ((event.xconfigure.height -
-		     (2 * f->display.x->internal_border_width)
-		     - f->display.x->h_scrollbar_height)
-		    / FONT_HEIGHT (f->display.x->font));
+	    columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
+	    rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
 
 	    /* Even if the number of character rows and columns has
 	       not changed, the font size may have changed, so we need
@@ -2318,7 +2699,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		|| event.xconfigure.height != f->display.x->pixel_height)
 	      {
 		change_frame_size (f, rows, columns, 0, 1);
-		x_resize_scrollbars (f);
 		SET_FRAME_GARBAGED (f);
 	      }
 
@@ -2339,21 +2719,19 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    f = x_window_to_frame (event.xbutton.window);
 	    if (f)
-	      if (!x_focus_frame || (f == x_focus_frame))
-		construct_mouse_click (&emacs_event,
-				       &event, f, Qnil, 0);
-	      else
-		continue;
+	      {
+		if (!x_focus_frame || (f == x_focus_frame))
+		  construct_mouse_click (&emacs_event,
+					 &event, f, Qnil, 0);
+	      }
 	    else
-	      if ((f = x_window_to_scrollbar (event.xbutton.window,
-					      &part, &prefix)))
-		{
-		  if (!x_focus_frame || (selected_frame == x_focus_frame))
-		    construct_mouse_click (&emacs_event,
-					   &event, f, part, prefix);
-		  else
-		    continue;
-		}
+	      {
+		struct scrollbar *bar =
+		  x_window_to_scrollbar (event.xbutton.window);
+
+		if (bar)
+		  x_scrollbar_handle_click (bar, &event, &emacs_event);
+	      }
 
 	    if (numchars >= 1 && emacs_event.kind != no_event)
 	      {
@@ -2452,8 +2830,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif /* ! defined (HAVE_SELECT) */
 #endif /* ! 0 */
 
+#ifndef HAVE_X11
   if (updating_frame == 0)
     x_do_pending_expose ();
+#endif
 
   UNBLOCK_INPUT;
   return count;
@@ -2525,6 +2905,9 @@ x_read_exposes ()
 #endif /* HAVE_X11 */
 
 
+/* Drawing the cursor.  */
+
+
 /* Draw a hollow box cursor.  Don't change the inside of the box.  */
 
 static void
@@ -2573,7 +2956,7 @@ clear_cursor (f)
 {
   int mask;
 
-  if (! f->visible
+  if (! FRAME_VISIBLE_P (f)
       || f->phys_cursor_x < 0)
     return;
 
@@ -2608,7 +2991,7 @@ x_display_bar_cursor (f, on)
   register int y1;
   register int y2;
 
-  if (! f->visible || (! on && f->phys_cursor_x < 0))
+  if (! FRAME_VISIBLE_P (f) || (! on && f->phys_cursor_x < 0))
     return;
 
 #ifdef HAVE_X11
@@ -2685,7 +3068,7 @@ x_display_box_cursor (f, on)
       curs_y = FRAME_CURSOR_Y (f);
     }
 
-  if (! f->visible)
+  if (! FRAME_VISIBLE_P (f))
     return;
 
   /* If cursor is off and we want it off, return quickly.  */
@@ -2950,6 +3333,10 @@ x_error_quitter (display, error)
 {
   char buf[256];
 
+  /* While we're testing Emacs 19, we'll just dump core whenever we
+     get an X error, so we can figure out why it happened.  */
+  abort ();
+
   /* Note that there is no real way portable across R3/R4 to get the 
      original error handler.  */
 
@@ -3041,6 +3428,8 @@ x_trace_wire ()
 #endif /* ! 0 */
 
 
+/* Changing the font of the frame.  */
+
 /* Set the font of the x-window specified by frame F
    to the font named NEWNAME.  This is safe to use
    even before F has an actual x-window.  */
@@ -3171,6 +3560,8 @@ x_new_font (f, newname)
 }
 #endif /* ! defined (HAVE_X11) */
 
+/* X Window sizes and positions.  */
+
 x_calc_absolute_position (f)
      struct frame *f;
 {
@@ -3227,10 +3618,12 @@ x_set_window_size (f, cols, rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  pixelwidth =  (cols * FONT_WIDTH (f->display.x->font) + 2 * ibw
-		 + f->display.x->v_scrollbar_width);
-  pixelheight = (rows * FONT_HEIGHT (f->display.x->font) + 2 * ibw
-		 + f->display.x->h_scrollbar_height);
+  f->display.x->vertical_scrollbar_extra =
+    (FRAME_HAS_VERTICAL_SCROLLBARS (f)
+     ? VERTICAL_SCROLLBAR_PIXEL_WIDTH (f)
+     : 0);
+  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
+  pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
 #ifdef HAVE_X11
   x_wm_set_size_hint (f, 0);
@@ -3261,6 +3654,7 @@ x_set_resize_hint (f)
 }
 #endif /* HAVE_X11 */
 
+/* Mouse warping, focus shifting, raising and lowering.  */
 
 x_set_mouse_position (f, x, y)
      struct frame *f;
@@ -3270,28 +3664,20 @@ x_set_mouse_position (f, x, y)
 
   x_raise_frame (f);
 
-  if (x < 0)
-    pix_x = (FRAME_WIDTH (f)
-             * FONT_WIDTH (f->display.x->font)
-             + 2 * f->display.x->internal_border_width
-             + f->display.x->v_scrollbar_width) / 2;
-  else
-    pix_x = x * FONT_WIDTH (f->display.x->font) + 2; /* add 2 pixels to each
-       						 dimension to move the
-       						 mouse into the char
-       						 cell */
+  pix_x = (f->display.x->internal_border_width
+	   + x * FONT_WIDTH (f->display.x->font)
+	   + FONT_WIDTH (f->display.x->font) / 2);
+  pix_y = (f->display.x->internal_border_width
+	   + y * FONT_HEIGHT (f->display.x->font)
+	   + FONT_HEIGHT (f->display.x->font) / 2);
 
-  if (y < 0)
-    pix_y = (FRAME_HEIGHT (f)
-             * FONT_HEIGHT (f->display.x->font)
-             + 2 * f->display.x->internal_border_width
-             + f->display.x->h_scrollbar_height) / 2;
-  else
-    pix_y = y * FONT_HEIGHT (f->display.x->font) + 2;
+  if (pix_x < 0) pix_x = 0;
+  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
+
+  if (pix_y < 0) pix_y = 0;
+  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
 
   BLOCK_INPUT;
-  x_mouse_x = x;
-  x_mouse_y = y;
 
   XWarpMousePointer (FRAME_X_WINDOW (f), pix_x, pix_y);
   UNBLOCK_INPUT;
@@ -3368,7 +3754,7 @@ x_make_frame_visible (f)
 	x_wm_set_window_state (f, NormalState);
 
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
-      if (f->display.x->v_scrollbar != 0 || f->display.x->h_scrollbar != 0)
+      if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
 #else /* ! defined (HAVE_X11) */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
@@ -3535,6 +3921,8 @@ x_destroy_window (f, displ)
     x_highlight_frame = 0;
 }
 
+/* Manage event queues for X10.  */
+
 #ifndef HAVE_X11
 
 /* Manage event queues.
@@ -3607,6 +3995,8 @@ mouse_event_pending_p ()
 }
 #endif /* HAVE_X11 */
 
+/* Setting window manager hints.  */
+
 #ifdef HAVE_X11
 
 x_wm_set_size_hint (f, prompting)
@@ -3626,19 +4016,14 @@ x_wm_set_size_hint (f, prompting)
   size_hints.width = PIXEL_WIDTH (f);
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = FONT_HEIGHT (f->display.x->font);
-  size_hints.max_width =
-    (x_screen_width - ((2 * f->display.x->internal_border_width)
-		       + f->display.x->v_scrollbar_width));
-  size_hints.max_height =
-    (x_screen_height - ((2 * f->display.x->internal_border_width)
-			+ f->display.x->h_scrollbar_height));
+  size_hints.max_width  = PIXEL_TO_CHAR_WIDTH  (f, x_screen_width);
+  size_hints.max_height = PIXEL_TO_CHAR_HEIGHT (f, x_screen_height);
+    
   {
     int base_width, base_height;
 
-    base_width = ((2 * f->display.x->internal_border_width)
-		  + f->display.x->v_scrollbar_width);
-    base_height = ((2 * f->display.x->internal_border_width)
-		   + f->display.x->h_scrollbar_height);
+    base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
+    base_height = CHAR_TO_PIXEL_HEIGHT (f, 0);
 
     {
       int min_rows = 0, min_cols = 0;
@@ -3731,6 +4116,8 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 }
 
 
+/* Initialization.  */
+
 void
 x_term_init (display_name)
      char *display_name;
@@ -3784,7 +4171,11 @@ x_term_init (display_name)
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings ();
-  
+
+  /* Get the scrollbar cursor.  */
+  x_vertical_scrollbar_cursor =
+    XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
+
   /* Watch for PropertyNotify events on the root window; we use them
      to figure out when to invalidate our cache of the cut buffers.  */
   x_watch_cut_buffer_cache ();
@@ -3839,8 +4230,12 @@ x_term_init (display_name)
   read_socket_hook = XTread_socket;
   cursor_to_hook = XTcursor_to;
   reassert_line_highlight_hook = XTreassert_line_highlight;
-  frame_rehighlight_hook = XTframe_rehighlight;
   mouse_position_hook = XTmouse_position;
+  frame_rehighlight_hook = XTframe_rehighlight;
+  set_vertical_scrollbar_hook = XTset_scrollbar;
+  condemn_scrollbars_hook = XTcondemn_scrollbars;
+  redeem_scrollbar_hook = XTredeem_scrollbar;
+  judge_scrollbars_hook = XTjudge_scrollbars;
   
   scroll_region_ok = 1;		/* we'll scroll partial frames */
   char_ins_del_ok = 0;		/* just as fast to write the line */
