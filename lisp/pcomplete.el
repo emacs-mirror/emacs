@@ -582,8 +582,7 @@ dynamic-complete-functions are kept.  For comint mode itself, this is
 		    (symbol-value completef-sym))))
     (if elem
 	(setcar elem 'pcomplete)
-      (nconc (symbol-value completef-sym)
-	     (list 'pcomplete)))))
+      (add-to-list completef-sym 'pcomplete))))
 
 ;;;###autoload
 (defun pcomplete-shell-setup ()
