@@ -71,7 +71,8 @@ customizing the variable `eshell-modules-list'."
 ;; documentation can be provided when the user customize's
 ;; `eshell-modules-list'.
 (eval-when-compile
-  (when (and byte-compile-current-file
+  (when (and (boundp 'byte-compile-current-file)
+	     byte-compile-current-file
 	     (equal (file-name-nondirectory byte-compile-current-file)
 		    "esh-module.el"))
     (let* ((directory (file-name-directory byte-compile-current-file))
