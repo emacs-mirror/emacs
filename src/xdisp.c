@@ -2520,7 +2520,7 @@ try_window_id (window)
   int selective = (INTEGERP (current_buffer->selective_display)
 		   ? XINT (current_buffer->selective_display)
 		   : !NILP (current_buffer->selective_display) ? -1 : 0);
-
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
   int delta;
@@ -2600,7 +2600,10 @@ try_window_id (window)
       val.tab_offset = bp.tab_offset + bp.prevhpos - width;
       did_motion = 1;
       pos--;
-      DEC_POS (pos_byte);
+      if (multibyte)
+	DEC_POS (pos_byte);
+      else
+	pos_byte--;
     }
 
   bp.vpos = vpos;
@@ -2864,7 +2867,10 @@ try_window_id (window)
 	  val.hpos = xp.prevhpos - width + lmargin;
 	  val.tab_offset = xp.tab_offset + bp.prevhpos - width;
 	  pos--;
-	  DEC_POS (pos_byte);
+	  if (multibyte)
+	    DEC_POS (pos_byte);
+	  else
+	    pos_byte--;
 	}
 
       blank_end_of_window = 1;
@@ -3117,6 +3123,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
   register GLYPH *leftmargin;
   register GLYPH *p1prev;
   register GLYPH *p1start;
+  GLYPH *p1_wide_column_end = (GLYPH *) 0;
   int prevpos, prevpos_byte;
   int *charstart;
   FRAME_PTR f = XFRAME (w->frame);
@@ -3270,11 +3277,12 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       if (left_edge->vpos > vpos
           || left_edge->hpos > 0)
         {
-          pos = left_edge->bufpos;
-	  /* Since this should not be a valid multibyte character, we
-             can decrease POS by 1.  */
-	  pos--;
-	  pos_byte = left_edge->bytepos - 1;
+          pos = left_edge->bufpos - 1;
+	  pos_byte = left_edge->bytepos;
+	  if (multibyte)
+	    DEC_POS (pos_byte);
+	  else
+	    pos_byte--;
           hpos = left_edge->prevhpos;
         }
       else
@@ -3326,6 +3334,8 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 
   while (p1 < endp)
     {
+      int eat_following_binary_data;
+
       if (pos >= pause)
 	{
 	  int e_t_h;
@@ -3531,6 +3541,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	break;
 
       p1prev = p1;
+      p1_wide_column_end = (GLYPH *) 0;
 
       if (multibyte)
 	c = STRING_CHAR_AND_LENGTH (p, limit_byte - pos_byte, len), p += len;
@@ -3712,24 +3723,32 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       else if (len == 1)
 	{
 	  /* C is not a multibyte character.  */
-	  if (p1 >= leftmargin)
-	    *p1 = (fix_glyph
-		   (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-			&& GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
-			? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-		    current_face)
-		   | rev_dir_bit);
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face) | rev_dir_bit;
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = (MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face)
-		   | rev_dir_bit);
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face) | rev_dir_bit;
-	  p1++;
+	  eat_following_binary_data = multibyte && BASE_LEADING_CODE_P (c);
+	  
+	label_display_binary_data:
+	  do {
+	    if (p1 >= leftmargin && p1 < endp)
+	      *p1 = (fix_glyph
+		     (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+			  && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
+			  ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+		      current_face)
+		     | rev_dir_bit);
+	    p1++;
+	    if (p1 >= leftmargin && p1 < endp)
+	      *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face) | rev_dir_bit;
+	    p1++;
+	    if (p1 >= leftmargin && p1 < endp)
+	      *p1 = (MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face)
+		     | rev_dir_bit);
+	    p1++;
+	    if (p1 >= leftmargin && p1 < endp)
+	      *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face) | rev_dir_bit;
+	    p1++;
+	  } while (eat_following_binary_data
+		   && (pos_byte + len) < limit_byte
+		   && ! CHAR_HEAD_P (*p)
+		   && ((c = *p++), len++));
 	}
       else
 	{
@@ -3745,6 +3764,17 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	      if (p1 >= leftmargin && p1 < endp)
 		*p1 = g, g |= GLYPH_MASK_PADDING;
 	      p1++;
+	    }
+
+	  p1_wide_column_end = p1;
+	  /* Check if binary data follows it.  */
+	  if (pos_byte + len < limit_byte
+	      && ! CHAR_HEAD_P (*p))
+	    {
+	      eat_following_binary_data = 1;
+	      c = *p++;
+	      len++;
+	      goto label_display_binary_data;
 	    }
 	}
 
@@ -3811,17 +3841,17 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	  pos = prevpos;
 	  pos_byte = prevpos_byte;
 
-	  if (len == 1)
-	    /* C is not a multi-byte character.  We can break it and
-	       start from the middle column in the next line.  So,
-	       adjust VAL.HPOS to skip the columns output on this
-	       line.  */
+	  if (p1_wide_column_end < endp)
+	    /* As ENDP is not in the middle of wide-column character,
+	       we can break the line at ENDP and start from the middle
+	       column in the next line.  So, adjust VAL.HPOS to skip
+	       the columns output on this line.  */
 	    val.hpos += p1prev - endp;
 	  else
 	    {
-	      /* C is a multibyte character.  Since we can't broke it
-		 in the middle, the whole character should be driven
-		 into the next line.  */
+	      /* We displayed a wide-column character at around ENDP.
+		 Since we can't broke it in the middle, the whole
+		 character should be driven into the next line.  */
 	      /* As the result, the actual columns occupied by the
 		 text on this line is less than WIDTH.  VAL.TAB_OFFSET
 		 must be adjusted.  */
@@ -3897,7 +3927,10 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	      *p1++ = fix_glyph (f, continuer, 0);
 	      val.vpos = 0;
 	      lastpos--;
-	      DEC_POS (lastpos_byte);
+	      if (multibyte)
+		DEC_POS (lastpos_byte);
+	      else
+		lastpos_byte--;
 	      val.tab_offset = taboffset + width;
 	    }
 	}
