@@ -1122,6 +1122,9 @@ tty_defined_color (f, color_name, color_def, alloc)
 	color_idx = FACE_TTY_DEFAULT_BG_COLOR;
     }
 
+  if (color_idx != FACE_TTY_DEFAULT_COLOR)
+    status = 1;
+
   color_def->pixel = color_idx;
   color_def->red = red;
   color_def->green = green;
