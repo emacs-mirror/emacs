@@ -634,7 +634,7 @@ Thus, you can use times obtained from `current-time'\n\
 and from `file-attributes'.\n\
 \n\
 Some operating systems cannot provide all this information to Emacs;\n\
-in this case, current-time-zone will return a list containing nil for\n\
+in this case, `current-time-zone' returns a list containing nil for\n\
 the data it can't find.")
   (specified_time)
      Lisp_Object specified_time;
@@ -643,13 +643,15 @@ the data it can't find.")
   struct tm *t;
 
   if (lisp_time_argument (specified_time, &value)
-      && (t = gmtime(&value)) != 0)
+      && (t = gmtime (&value)) != 0)
     {
-      struct tm gmt = *t;  /* Make a copy, in case localtime modifies *t.  */
+      struct tm gmt;
       long offset;
       char *s, buf[6];
-      t = localtime(&value);
-      offset = difftm(t, &gmt);
+
+      gmt = *t;		/* Make a copy, in case localtime modifies *t.  */
+      t = localtime (&value);
+      offset = difftm (t, &gmt);
       s = 0;
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
