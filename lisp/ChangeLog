@@ -1,3 +1,10 @@
+2002-05-03  Colin Walters  <walters@verbum.org>
+
+	* play/gamegrid.el (gamegrid-user-score-file-directory): New
+	variable.
+	(gamegrid-add-score-with-update-game-score): Use
+	`shared-game-score-directory'.  Correctly handle non-setuid case.
+
 2002-05-02  Colin Walters  <walters@verbum.org>
 
 	* replace.el (occur-mode-map): Bind "q" to `delete-window'.
