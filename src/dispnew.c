@@ -534,9 +534,6 @@ get_display_line (frame, vpos, hpos)
   if (vpos < 0)
     abort ();
 
-  if ((desired_glyphs->enable[vpos]) && desired_glyphs->used[vpos] > hpos)
-    abort ();
-
   if (! desired_glyphs->enable[vpos])
     {
       desired_glyphs->used[vpos] = 0;
@@ -1400,12 +1397,14 @@ update_frame (f, force, inhibit_hairy_id)
 void
 quit_error_check ()
 {
+#if 0
   if (FRAME_DESIRED_GLYPHS (selected_frame) == 0)
     return;
   if (FRAME_DESIRED_GLYPHS (selected_frame)->enable[0])
     abort ();
   if (FRAME_DESIRED_GLYPHS (selected_frame)->enable[FRAME_HEIGHT (selected_frame) - 1])
     abort ();
+#endif
 }
 
 /* Decide what insert/delete line to do, and do it */
