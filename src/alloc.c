@@ -3687,7 +3687,7 @@ DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
 Returns info on amount of space in use:\n\
  ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)\n\
   (USED-MARKERS . FREE-MARKERS) USED-STRING-CHARS USED-VECTOR-SLOTS\n\
-  (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS\n\
+  (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS)\n\
   (USED-STRINGS . FREE-STRINGS))\n\
 Garbage collection happens automatically if you cons more than\n\
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.")
@@ -3701,7 +3701,7 @@ Garbage collection happens automatically if you cons more than\n\
   char stack_top_variable;
   register int i;
   int message_p;
-  Lisp_Object total[7];
+  Lisp_Object total[8];
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -3921,13 +3921,13 @@ Garbage collection happens automatically if you cons more than\n\
 		    make_number (total_free_symbols));
   total[2] = Fcons (make_number (total_markers),
 		    make_number (total_free_markers));
-  total[3] = Fcons (make_number (total_string_size),
-		    make_number (total_vector_size));
-  total[4] = Fcons (make_number (total_floats),
+  total[3] = make_number (total_string_size);
+  total[4] = make_number (total_vector_size);
+  total[5] = Fcons (make_number (total_floats),
 		    make_number (total_free_floats));
-  total[5] = Fcons (make_number (total_intervals),
+  total[6] = Fcons (make_number (total_intervals),
 		    make_number (total_free_intervals));
-  total[6] = Fcons (make_number (total_strings),
+  total[7] = Fcons (make_number (total_strings),
 		    make_number (total_free_strings));
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
@@ -3946,7 +3946,7 @@ Garbage collection happens automatically if you cons more than\n\
     }
 #endif
 
-  return Flist (7, total);
+  return Flist (sizeof total / sizeof *total, total);
 }
 
 
