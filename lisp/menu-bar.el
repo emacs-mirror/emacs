@@ -47,7 +47,7 @@
 
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
-(define-key menu-bar-edit-menu [choose-selection]
+(define-key menu-bar-edit-menu [choose-next-paste]
   '("Choose Next Paste" . mouse-menu-choose-yank))
 (define-key menu-bar-edit-menu [paste] '("Paste" . yank))
 (define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
@@ -126,7 +126,7 @@ A subsequent \\[yank] yanks the choice just selected."
 		       kill-ring))
 	 (arg (x-popup-menu event 
 			    (list "Yank Menu"
-				  (cons "Pick Selection" menu)))))
+				  (cons "Choose Next Yank" menu)))))
     ;; A mouse click outside the menu returns nil.
     ;; Avoid a confusing error from passing nil to rotate-yank-pointer.
     ;; XXX should this perhaps do something other than simply return? -rm
