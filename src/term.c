@@ -1983,7 +1983,138 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
   return TN_max_colors > 0 ? Qt : Qnil;
 }
 
+#ifndef WINDOWSNT
 
+/* Save or restore the default color-related capabilities of this
+   terminal.  */
+static void
+tty_default_color_capabilities (save)
+     int save;
+{
+  static char
+    *default_orig_pair, *default_set_foreground, *default_set_background;
+  static int default_max_colors, default_max_pairs, default_no_color_video;
+
+  if (save)
+    {
+      if (default_orig_pair)
+	xfree (default_orig_pair);
+      default_orig_pair = TS_orig_pair ? xstrdup (TS_orig_pair) : NULL;
+
+      if (default_set_foreground)
+	xfree (default_set_foreground);
+      default_set_foreground = TS_set_foreground ? xstrdup (TS_set_foreground)
+			       : NULL;
+
+      if (default_set_background)
+	xfree (default_set_background);
+      default_set_background = TS_set_background ? xstrdup (TS_set_background)
+			       : NULL;
+
+      default_max_colors = TN_max_colors;
+      default_max_pairs = TN_max_pairs;
+      default_no_color_video = TN_no_color_video;
+    }
+  else
+    {
+      TS_orig_pair = default_orig_pair;
+      TS_set_foreground = default_set_foreground;
+      TS_set_background = default_set_background;
+      TN_max_colors = default_max_colors;
+      TN_max_pairs = default_max_pairs;
+      TN_no_color_video = default_no_color_video;
+    }
+}
+
+/* Setup one of the standard tty color schemes according to MODE.
+   MODE's value is generally the number of colors which we want to
+   support; zero means set up for the default capabilities, the ones
+   we saw at term_init time; -1 means turn off color support.  */
+void
+tty_setup_colors (mode)
+     int mode;
+{
+  switch (mode)
+    {
+      case -1:	 /* no colors at all */
+	TN_max_colors = 0;
+	TN_max_pairs = 0;
+	TN_no_color_video = 0;
+	TS_set_foreground = TS_set_background = TS_orig_pair = NULL;
+	break;
+      case 0:	 /* default colors, if any */
+      default:
+	tty_default_color_capabilities (0);
+	break;
+      case 8:	/* 8 standard ANSI colors */
+	TS_orig_pair = "\033[0m";
+#ifdef TERMINFO
+	TS_set_foreground = "\033[3%p1%dm";
+	TS_set_background = "\033[4%p1%dm";
+#else
+	TS_set_foreground = "\033[3%dm";
+	TS_set_background = "\033[4%dm";
+#endif
+	TN_max_colors = 8;
+	TN_max_pairs = 64;
+	TN_no_color_video = 0;
+	break;
+    }
+}
+
+void
+set_tty_color_mode (f, val)
+     struct frame *f;
+     Lisp_Object val;
+{
+  Lisp_Object color_mode_spec, current_mode_spec, tem;
+  Lisp_Object color_mode, current_mode;
+  int mode, old_mode;
+  extern Lisp_Object Qtty_color_mode;
+  Lisp_Object tty_color_mode_alist;
+
+  tty_color_mode_alist = Fintern_soft (build_string ("tty-color-mode-alist"),
+				       Qnil);
+
+  if (NATNUMP (val))
+    color_mode = val;
+  else
+    {
+      if (NILP (tty_color_mode_alist))
+	color_mode_spec = Qnil;
+      else
+	color_mode_spec = Fassq (val, XSYMBOL (tty_color_mode_alist)->value);
+      current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
+
+      if (CONSP (color_mode_spec))
+	color_mode = XCDR (color_mode_spec);
+      else
+	color_mode = Qnil;
+    }
+  if (CONSP (current_mode_spec))
+    current_mode = XCDR (current_mode_spec);
+  else
+    current_mode = Qnil;
+  if (NATNUMP (color_mode))
+    mode = XINT (color_mode);
+  else
+    mode = 0;	/* meaning default */
+  if (NATNUMP (current_mode))
+    old_mode = XINT (current_mode);
+  else
+    old_mode = 0;
+
+  if (mode != old_mode)
+    {
+      tty_setup_colors (mode);
+      /*  This recomputes all the faces given the new color
+	  definitions.  */
+      call0 (intern ("tty-set-up-initial-frame-faces"));
+      redraw_frame (f);
+    }
+}
+
+#endif /* !WINDOWSNT */
 
 
 /***********************************************************************
@@ -2171,6 +2302,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
       if (TN_no_color_video == -1)
 	TN_no_color_video = 0;
     }
+
+  tty_default_color_capabilities (1);
 
   MagicWrap = tgetflag ("xn");
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
