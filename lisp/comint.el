@@ -555,6 +555,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
+  (define-key comint-mode-map "\C-c\C-s" 'comint-write-output)
   ;; Mouse Buttons:
   (define-key comint-mode-map [mouse-2] 'comint-insert-clicked-input)
   ;; Menu bars:
