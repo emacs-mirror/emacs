@@ -655,16 +655,20 @@ For example:
        ["Select" gnus-group-select-group (gnus-group-group-name)]
        ["See old articles" (gnus-group-select-group 'all)
 	:keys "C-u SPC" :active (gnus-group-group-name)]
-       ["Catch up" gnus-group-catchup-current (gnus-group-group-name)]
+       ["Catch up" gnus-group-catchup-current :active (gnus-group-group-name)
+	:help "Mark unread articles in the current group as read"]
        ["Catch up all articles" gnus-group-catchup-current-all
 	(gnus-group-group-name)]
        ["Check for new articles" gnus-group-get-new-news-this-group
-	(gnus-group-group-name)]
+	:active (gnus-group-group-name)
+	:help "Check for new messages in current group"]
        ["Toggle subscription" gnus-group-unsubscribe-current-group
 	(gnus-group-group-name)]
-       ["Kill" gnus-group-kill-group (gnus-group-group-name)]
+       ["Kill" gnus-group-kill-group :active (gnus-group-group-name)
+	:help "Kill (remove) current group"]
        ["Yank" gnus-group-yank-group gnus-list-of-killed-groups]
-       ["Describe" gnus-group-describe-group (gnus-group-group-name)]
+       ["Describe" gnus-group-describe-group :active (gnus-group-group-name)
+	:help "Display description of the current group"]
        ["Fetch FAQ" gnus-group-fetch-faq (gnus-group-group-name)]
        ;; Actually one should check, if any of the marked groups gives t for
        ;; (gnus-check-backend-function 'request-expire-articles ...)
@@ -790,7 +794,8 @@ For example:
 	["Brew SOUP" gnus-group-brew-soup (fboundp 'gnus-soup-pack-packet)])
        ["Send a mail" gnus-group-mail t]
        ["Post an article..." gnus-group-post-news t]
-       ["Check for new news" gnus-group-get-new-news t]
+       ["Check for new news" gnus-group-get-new-news
+	:help "Get newly arrived articles"]
        ["Activate all groups" gnus-activate-all-groups t]
        ["Restart Gnus" gnus-group-restart t]
        ["Read init file" gnus-group-read-init-file t]
@@ -806,10 +811,32 @@ For example:
        ["Flush score cache" gnus-score-flush-cache t]
        ["Toggle topics" gnus-topic-mode t]
        ["Send a bug report" gnus-bug t]
-       ["Exit from Gnus" gnus-group-exit t]
+       ["Exit from Gnus" gnus-group-exit
+	:help "Quit reading news"]
        ["Exit without saving" gnus-group-quit t]))
 
     (gnus-run-hooks 'gnus-group-menu-hook)))
+
+(defun gnus-group-make-tool-bar ()
+  (when (and (fboundp 'tool-bar-add-item-from-menu)
+	     (default-value 'tool-bar-mode)
+	     (not (lookup-key gnus-group-mode-map [tool-bar])))
+    (let ((tool-bar-map (make-sparse-keymap)))
+      (tool-bar-add-item-from-menu
+       'gnus-group-get-new-news "get-news" gnus-group-mode-map)
+      (tool-bar-add-item-from-menu
+       'gnus-group-get-new-news-this-group "gnntg" gnus-group-mode-map)
+      (tool-bar-add-item-from-menu
+       'gnus-group-catchup-current "catchup" gnus-group-mode-map)
+      (tool-bar-add-item-from-menu
+       'gnus-group-describe-group "describe-group" gnus-group-mode-map)
+      (tool-bar-add-item "subscribe" 'gnus-group-subscribe 'subscribe
+			 :help "Subscribe to the current group")
+      (tool-bar-add-item "unsubscribe" 'gnus-group-unsubscribe 'unsubscribe
+			 :help "Unsubscribe from the current group")
+      (tool-bar-add-item-from-menu
+       'gnus-group-exit "exit-gnus" gnus-group-mode-map)
+      (define-key gnus-group-mode-map [tool-bar] tool-bar-map))))
 
 (defun gnus-group-mode ()
   "Major mode for reading news.
@@ -830,7 +857,8 @@ The following commands are available:
 \\{gnus-group-mode-map}"
   (interactive)
   (when (gnus-visual-p 'group-menu 'menu)
-    (gnus-group-make-menu-bar))
+    (gnus-group-make-menu-bar)
+    (gnus-group-make-tool-bar))
   (kill-all-local-variables)
   (gnus-simplify-mode-line)
   (setq major-mode 'gnus-group-mode)
