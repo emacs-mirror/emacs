@@ -36,9 +36,7 @@
 
 (require 'cus-face)
 (require 'wid-edit)
-(require 'easymenu)
 (eval-when-compile
-  (require 'cl)
   (defvar custom-versions-load-alist))	; from cus-load
 
 (condition-case nil
@@ -385,7 +383,6 @@ IF REGEXP is not a string, return it unchanged."
     regexp))
 
 (defun custom-variable-prompt ()
-  ;; Code stolen from `help.el'.
   "Prompt for a variable, defaulting to the variable at point.
 Return a list suitable for use in `interactive'."
    (let ((v (variable-at-point))
@@ -399,7 +396,7 @@ Return a list suitable for use in `interactive'."
 			  (and (boundp symbol)
 			       (or (get symbol 'custom-type)
 				   (get symbol 'custom-loads)
-				   (user-variable-p symbol)))) t))
+				   (get symbol 'standard-value)))) t))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
