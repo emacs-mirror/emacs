@@ -556,7 +556,7 @@ Emacs so that it isn't compiled with `-O5'.
 
 * Compiling on AIX 4.3.x or 4.4 fails.
 
-This could happen if you use /bin/c89 as youir compiler, instead of
+This could happen if you use /bin/c89 as your compiler, instead of
 the default `cc'.  /bin/c89 treats certain warnings, such as benign
 redefinitions of macros, as errors, and fails the build.  A solution
 is to use the default compiler `cc'.
