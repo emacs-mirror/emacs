@@ -1819,7 +1819,8 @@ make_string_from_bytes (contents, nchars, nbytes)
 
 /* Make a string from NCHARS characters occupying NBYTES bytes at
    CONTENTS.  The argument MULTIBYTE controls whether to label the
-   string as multibyte.  */
+   string as multibyte.  If NCHARS is negative, it counts the number of
+   characters by itself.  */
 
 Lisp_Object
 make_specified_string (contents, nchars, nbytes, multibyte)
@@ -1828,6 +1829,14 @@ make_specified_string (contents, nchars, nbytes, multibyte)
      int multibyte;
 {
   register Lisp_Object val;
+
+  if (nchars < 0)
+    {
+      if (multibyte)
+	nchars = multibyte_chars_in_text (contents, nbytes);
+      else
+	nchars = nbytes;
+    }
   val = make_uninit_multibyte_string (nchars, nbytes);
   bcopy (contents, SDATA (val), nbytes);
   if (!multibyte)
