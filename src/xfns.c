@@ -995,12 +995,12 @@ x_set_menu_bar_lines (f, value, oldval)
   x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
 }
 
-/* Change the name of frame F to ARG.  If ARG is nil, set F's name to
+/* Change the name of frame F to NAME.  If NAME is nil, set F's name to
        x_id_name.
 
    If EXPLICIT is non-zero, that indicates that lisp code is setting the
-       name; if ARG is a string, set F's name to ARG and set
-       F->explicit_name; if ARG is Qnil, then clear F->explicit_name.
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
 
    If EXPLICIT is zero, that indicates that Emacs redisplay code is
        suggesting a new name, which lisp code should override; if
