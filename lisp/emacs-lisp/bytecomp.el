@@ -1486,6 +1486,7 @@ list that represents a doc string reference.
 	 ;; Insert the doc string, and make it a comment with #@LENGTH.
 	 (and (>= (nth 1 info) 0)
 	      dynamic-docstrings
+	      (not byte-compile-compatibility)
 	      (progn
 		;; Make the doc string start at beginning of line
 		;; for make-docfile's sake.
