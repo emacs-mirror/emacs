@@ -99,7 +99,7 @@ and `current-time-string' are two valid values."
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
     ;;
     ;; Acknowledgements.
-    ("^\t\\(From\\|Reported by\\)" 1 font-lock-comment-face)
+    ("^\t\\(From\\|Patch by\\|Reported by\\)" 1 font-lock-comment-face)
     )
   "Additional expressions to highlight in Change Log mode.")
 
@@ -143,7 +143,7 @@ If nil, use local time.")
 
 (defun change-log-name ()
   (or change-log-default-name
-      (if (eq system-type 'vax-vms) 
+      (if (eq system-type 'vax-vms)
 	  "$CHANGE_LOG$.TXT"
 	"ChangeLog")))
 
@@ -175,7 +175,7 @@ If 'change-log-default-name' is nil, behave as though it were 'ChangeLog'
 \(or whatever we use on this operating system).
 
 If 'change-log-default-name' contains a leading directory component, then
-simply find it in the current directory.  Otherwise, search in the current 
+simply find it in the current directory.  Otherwise, search in the current
 directory and its successive parents for a file so named.
 
 Once a file is found, `change-log-default-name' is set locally in the
@@ -212,7 +212,7 @@ current buffer to the complete file name."
 			     (not (string= (file-name-directory file1)
 					   parent-dir))))
 	    ;; Move up to the parent dir and try again.
-	    (setq file1 (expand-file-name 
+	    (setq file1 (expand-file-name
 			 (file-name-nondirectory (change-log-name))
 			 parent-dir)))
 	  ;; If we found a change log in a parent, use that.
@@ -327,7 +327,7 @@ never append to an existing entry.  Today's date is calculated according to
 	  (undo-boundary)
 	  (insert (if (save-excursion
 			(beginning-of-line 1)
-			(looking-at "\\s *$")) 
+			(looking-at "\\s *$"))
 		      ""
 		    " ")
 		  "(" defun "): "))
@@ -619,7 +619,7 @@ Has a preference of looking backwards."
 ;; followed by the string END; move to the end of that match.
 (defun get-method-definition-1 (end)
   (setq get-method-definition-md
-	(concat get-method-definition-md 
+	(concat get-method-definition-md
 		(buffer-substring (match-beginning 1) (match-end 1))
 		end))
   (goto-char (match-end 0)))
