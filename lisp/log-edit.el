@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.7 2000/06/02 23:03:31 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.8 2000/10/24 11:27:41 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -63,7 +63,7 @@
   :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode
 	     (if (boundp 'vc-log-mode-map) vc-log-mode-map)))
 
-(defcustom log-edit-confirm t
+(defcustom log-edit-confirm 'changed
   "*If non-nil, `log-edit-done' will request confirmation.
 If 'changed, only request confirmation if the list of files has
   changed since the beginning of the log-edit session."
@@ -151,7 +151,7 @@ when this variable is set to nil.")
 ;;;###autoload
 (defun log-edit (callback &optional setup listfun &rest ignore)
   "Setup a buffer to enter a log message.
-The buffer will be put in `log-edit-mode'.
+\\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
 Mark and point will be set around the entire contents of the
 buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
