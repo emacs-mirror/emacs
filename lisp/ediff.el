@@ -367,6 +367,22 @@
 ;;;###autoload
 (defalias 'ediff 'ediff-files)
 
+;;;###autoload
+(defun ediff-backup (file)
+  "Run Ediff on FILE and its backup file.
+Uses the latest backup, if there are several numerical backups.
+If this file is a backup, `ediff' it with its original."
+  (interactive (list (read-file-name "Ediff (file with backup): ")))
+  ;; The code is taken from `diff-backup'.
+  (require 'diff)
+  (let (bak ori)
+    (if (backup-file-name-p file)
+	(setq bak file
+	      ori (file-name-sans-versions file))
+      (setq bak (or (diff-latest-backup-file file)
+		    (error "No backup found for %s" file))
+	    ori file))
+    (ediff-files bak ori)))
 
 ;;;###autoload
 (defun ediff-buffers (buffer-A buffer-B &optional startup-hooks job-name)
