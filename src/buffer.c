@@ -4197,7 +4197,7 @@ and behaviors of various editing commands.");
 		     &current_buffer->buffer_file_coding_system, Qnil,
     "Coding system to be used for encoding the buffer contents on saving.\n\
 If it is nil, the buffer is saved without any code conversion unless\n\
-some coding system is specified in file-coding-system-alist\n\
+some coding system is specified in `file-coding-system-alist'\n\
 for the buffer file.\n\
 \n\
 This variable is never applied to a way of decoding\n\
