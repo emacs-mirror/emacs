@@ -315,9 +315,7 @@ shell it really is."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (const :tag "No Arguments" nil)
 			       (string :tag "Arguments")
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 (defcustom sh-imenu-generic-expression
@@ -498,9 +496,7 @@ This is buffer-local in every such buffer.")
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (const :tag "require" t)
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 
@@ -515,9 +511,7 @@ First grouping matches the variable name.  This is upto and including the `='
 sign.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice regexp
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 
@@ -639,9 +633,7 @@ Note that on some systems not all builtins are available or some are
 implemented as aliases.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (repeat string)
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 
@@ -663,9 +655,7 @@ system, the distinction here has been based on whether they influence the
 flow of control or syntax.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (repeat string)
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 
@@ -702,9 +692,7 @@ flow of control or syntax.  See `sh-feature'."
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (repeat string)
-			       (cons :format "Evaluate: %v"
-				     (const :format "" eval)
-				     sexp))))
+			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
 

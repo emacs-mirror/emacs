@@ -1,3 +1,56 @@
+2004-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (breakpoint-enabled-icon, breakpoint-disabled-icon): 
+	Initialize margin area images to nil.
+	(breakpoint-bitmap): New defvar for breakpoint fringe bitmaps.
+	(breakpoint-enabled-bitmap-face)
+	(breakpoint-disabled-bitmap-face): New faces for bpt in fringe.
+	(gdb-info-breakpoints-custom): Use gdb-remove-breakpoint-icons.
+	(gdb-info-breakpoints-custom): Use gdb-put-breakpoint-icon.
+	(gdb-mouse-toggle-breakpoint): Handle bpt in fringe.
+	(gdb-reset): Use gdb-remove-breakpoint-icons.
+	(gdb-put-string): Add dprop arg to specify alternative display
+	property (for setting fringe bitmap).
+	(gdb-remove-strings): Doc fix.
+	(gdb-put-breakpoint-icon): New defun which displays a breakpoint
+	icon in fringe (if available), or else as icon or text in display
+	margin.  Creates necessary icons in breakpoint-bitmap,
+	breakpoint-enabled-icon, and/or breakpoint-disabled-icon.  Also
+	make left window margin if required.
+	(gdb-remove-breakpoint-icons): New defun to remove breakpoint
+	icons inserted by gdb-put-breakpoint-icon.  Remove left margin if
+	no longer needed.
+	(gdb-assembler-custom): Use gdb-remove-breakpoint-icons and
+	gdb-put-breakpoint-icon.
+	(gdb-assembler-mode): Don't set left-margin-width here.
+
+2004-02-27  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el: In scheme-mode symbol regexp, disallow backquote and
+        comma, so that it DTRT in macros.
+
+2004-02-27  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* progmodes/sh-script.el (sh-shell-arg)
+	(sh-require-final-newline, sh-assignment-regexp, sh-builtins)
+	(sh-leading-keywords, sh-other-keywords): Fix custom type.
+
+2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (face-spec-set-match-display): Add a new  attribute,
+	`min-colors'. 
+	(region, highlight, secondary-selection): Use `min-colors`.
+
+	* custom.el (defface): Add documentation for `min-colors'.
+
+	* font-lock.el (font-lock-comment-face, font-lock-string-face)
+	(font-lock-keyword-face, font-lock-function-name-face)
+	(font-lock-variable-name-face, font-lock-constant-face): Use
+	`min-colors`.
+
+	* isearch.el (isearch, isearch-lazy-highlight-face): Use
+	`min-colors'. 
+
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ebnf2ps.el: Doc fix.  For compatibility with Emacs 20, define

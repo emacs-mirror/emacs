@@ -8016,8 +8016,9 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
-XTread_socket (struct input_event *bufp, int numchars, int expected)
+XTread_socket (int sd, int expected, struct input_event *hold_quit)
 {
+  struct input_event inev;
   int count = 0;
 #if USE_CARBON_EVENTS
   OSStatus rneResult;
@@ -8042,9 +8043,6 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  if (numchars <= 0)
-    abort ();
-
   /* Don't poll for events to process (specifically updateEvt) if
      window update currently already in progress.  A call to redisplay
      (in do_window_update) can be preempted by another call to
@@ -8063,7 +8061,9 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
      event to nil because keyboard.c protects incompletely processed
      event from being garbage collected by placing them in the
      kbd_buffer_gcpro vector.  */
-  bufp->arg = Qnil;
+  EVENT_INIT (inev);
+  inev.kind = NO_EVENT;
+  inev.arg = Qnil;
 
   event_mask = everyEvent;
   if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
@@ -8101,18 +8101,17 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		GetEventParameter(eventRef, kEventParamMouseLocation,
 				  typeQDPoint, NULL, sizeof (Point),
 				  NULL, &point);
-		bufp->kind = WHEEL_EVENT;
-		bufp->code = 0;
-		bufp->modifiers = (mac_event_to_emacs_modifiers(eventRef)
-				   | ((delta < 0) ? down_modifier
-				                  : up_modifier));
+		inev.kind = WHEEL_EVENT;
+		inev.code = 0;
+		inev.modifiers = (mac_event_to_emacs_modifiers(eventRef)
+				  | ((delta < 0) ? down_modifier
+				     : up_modifier));
 		SetPort (GetWindowPort (window_ptr));
 		GlobalToLocal (&point);
-		XSETINT (bufp->x, point.h);
-		XSETINT (bufp->y, point.v);
-		XSETFRAME (bufp->frame_or_window, mwp->mFP);
-		bufp->timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
-		count++;
+		XSETINT (inev.x, point.h);
+		XSETINT (inev.y, point.v);
+		XSETFRAME (inev.frame_or_window, mwp->mFP);
+		inev.timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
 	      }
 	    else
 	      SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
@@ -8161,28 +8160,27 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 	      GlobalToLocal (&mouse_loc);
 
 #if USE_CARBON_EVENTS
-	      bufp->code = mac_get_mouse_btn (eventRef);
+	      inev.code = mac_get_mouse_btn (eventRef);
 #else
-	      bufp_.code = mac_get_emulate_btn (er.modifiers);
+	      inev.code = mac_get_emulate_btn (er.modifiers);
 #endif
-              bufp->kind = SCROLL_BAR_CLICK_EVENT;
-              bufp->frame_or_window = tracked_scroll_bar->window;
-              bufp->part = scroll_bar_handle;
+              inev.kind = SCROLL_BAR_CLICK_EVENT;
+              inev.frame_or_window = tracked_scroll_bar->window;
+              inev.part = scroll_bar_handle;
 #if USE_CARBON_EVENTS
-	      bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	      inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	      bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	      inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
-              bufp->modifiers |= up_modifier;
-	      bufp->timestamp = er.when * (1000 / 60);
+              inev.modifiers |= up_modifier;
+	      inev.timestamp = er.when * (1000 / 60);
 	        /* ticks to milliseconds */
 
-              XSETINT (bufp->x, tracked_scroll_bar->left + 2);
-              XSETINT (bufp->y, mouse_loc.v - 24);
+              XSETINT (inev.x, tracked_scroll_bar->left + 2);
+              XSETINT (inev.y, mouse_loc.v - 24);
               tracked_scroll_bar->dragging = Qnil;
               mouse_tracking_in_progress = mouse_tracking_none;
               tracked_scroll_bar = NULL;
-              count++;
               break;
             }
 
@@ -8196,9 +8194,8 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		  struct frame *f = ((mac_output *)
 				     GetWRefCon (FrontWindow ()))->mFP;
 		  saved_menu_event_location = er.where;
-		  bufp->kind = MENU_BAR_ACTIVATE_EVENT;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  count++;
+		  inev.kind = MENU_BAR_ACTIVATE_EVENT;
+		  XSETFRAME (inev.frame_or_window, f);
 		}
 	      break;
 
@@ -8229,13 +8226,13 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 #endif
 
 #if USE_CARBON_EVENTS
-		  bufp->code = mac_get_mouse_btn (eventRef);
+		  inev.code = mac_get_mouse_btn (eventRef);
 #else
-		  bufp_.code = mac_get_emulate_btn (er.modifiers);
+		  inev.code = mac_get_emulate_btn (er.modifiers);
 #endif
-		  XSETINT (bufp->x, mouse_loc.h);
-		  XSETINT (bufp->y, mouse_loc.v);
-		  bufp->timestamp = er.when * (1000 / 60);
+		  XSETINT (inev.x, mouse_loc.h);
+		  XSETINT (inev.y, mouse_loc.v);
+		  inev.timestamp = er.when * (1000 / 60);
 		    /* ticks to milliseconds */
 
 #if TARGET_API_MAC_CARBON
@@ -8247,7 +8244,7 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		      struct scroll_bar *bar = (struct scroll_bar *)
 			GetControlReference (ch);
 		      x_scroll_bar_handle_click (bar, control_part_code, &er,
-						 bufp);
+						 &inev);
 		      if (er.what == mouseDown
 			  && control_part_code == kControlIndicatorPart)
 		        {
@@ -8264,22 +8261,22 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		  else
 	            {
 		      Lisp_Object window;
-		      
-		      bufp->kind = MOUSE_CLICK_EVENT;
-		      XSETFRAME (bufp->frame_or_window, mwp->mFP);
+
+	              inev.kind = MOUSE_CLICK_EVENT;
+		      XSETFRAME (inev.frame_or_window, mwp->mFP);
 		      if (er.what == mouseDown)
 			mouse_tracking_in_progress
 			  = mouse_tracking_mouse_movement;
 		      else
 			mouse_tracking_in_progress = mouse_tracking_none;
-		      window = window_from_coordinates (mwp->mFP, bufp->x, bufp->y, 0, 0, 0, 1);
+		      window = window_from_coordinates (mwp->mFP, inev.x, inev.y, 0, 0, 0, 1);
 		      
 		      if (EQ (window, mwp->mFP->tool_bar_window))
 			{
 			  if (er.what == mouseDown)
-			    handle_tool_bar_click (mwp->mFP, bufp->x, bufp->y, 1, 0);
+			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 1, 0);
 			  else
-			    handle_tool_bar_click (mwp->mFP, bufp->x, bufp->y, 0,
+			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 0,
 #if USE_CARBON_EVENTS
 						   mac_event_to_emacs_modifiers (eventRef)
 #else
@@ -8291,22 +8288,20 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		    }
 
 #if USE_CARBON_EVENTS
-		  bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+		  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-		  bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+		  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
 	          switch (er.what)
 		    {
 		    case mouseDown:
-		      bufp->modifiers |= down_modifier;
+		      inev.modifiers |= down_modifier;
 		      break;
 		    case mouseUp:
-		      bufp->modifiers |= up_modifier;
+		      inev.modifiers |= up_modifier;
 		      break;
 		    }
-
-	          count++;
 	        }
 	      break;
 
@@ -8327,10 +8322,9 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 	    case inGoAway:
 	      if (TrackGoAway (window_ptr, er.where))
 	        {
-	          bufp->kind = DELETE_WINDOW_EVENT;
-	          XSETFRAME (bufp->frame_or_window,
+	          inev.kind = DELETE_WINDOW_EVENT;
+	          XSETFRAME (inev.frame_or_window,
 			     ((mac_output *) GetWRefCon (window_ptr))->mFP);
- 	          count++;
 	        }
 	      break;
 
@@ -8399,8 +8393,8 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 
 	  if (keycode_to_xkeysym (keycode, &xkeysym))
 	    {
-	      bufp->code = 0xff00 | xkeysym;
-	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
+	      inev.code = 0xff00 | xkeysym;
+	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    }
 	  else
 	    {
@@ -8419,12 +8413,12 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		  int new_keycode = keycode | new_modifiers;
 		  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
 		  unsigned long some_state = 0;
-		  bufp->code = KeyTranslate (kchr_ptr, new_keycode,
-					     &some_state) & 0xff;
+		  inev.code = KeyTranslate (kchr_ptr, new_keycode,
+					    &some_state) & 0xff;
 		}
 	      else
-		bufp->code = er.message & charCodeMask;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
+		inev.code = er.message & charCodeMask;
+	      inev.kind = ASCII_KEYSTROKE_EVENT;
 	    }
 	}
 
@@ -8435,7 +8429,7 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 	   Mac keyboard to be used to enter non-ASCII iso-latin-1
 	   characters directly.  */
 	if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	    && bufp->kind == ASCII_KEYSTROKE_EVENT && bufp->code >= 128)
+	    && inev.kind == ASCII_KEYSTROKE_EVENT && inev.code >= 128)
 	  {
 	    static TECObjectRef converter = NULL;
 	    OSStatus the_err = noErr;
@@ -8464,7 +8458,7 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 
 	    if (the_err == noErr)
 	      {
-		unsigned char ch = bufp->code;
+		unsigned char ch = inev.code;
 		ByteCount actual_input_length, actual_output_length;
 		unsigned char outch;
 
@@ -8475,25 +8469,23 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 		if (convert_status == noErr
 		    && actual_input_length == 1
 		    && actual_output_length == 1)
-		  bufp->code = outch;
+		  inev.code = outch;
 	      }
 	  }
 
 #if USE_CARBON_EVENTS
-	bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
 	{
 	  mac_output *mwp
 	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
-	  XSETFRAME (bufp->frame_or_window, mwp->mFP);
+	  XSETFRAME (inev.frame_or_window, mwp->mFP);
 	}
 
-	bufp->timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
-
-	count++;
+	inev.timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 	break;
 
       case kHighLevelEvent:
@@ -8521,21 +8513,21 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
             if (wp && is_emacs_window(wp))
 	        f = ((mac_output *) GetWRefCon (wp))->mFP;
 
-            bufp->kind = DRAG_N_DROP_EVENT;
-            bufp->code = 0;
-            bufp->timestamp = er.when * (1000 / 60);
+            inev.kind = DRAG_N_DROP_EVENT;
+            inev.code = 0;
+            inev.timestamp = er.when * (1000 / 60);
 	      /* ticks to milliseconds */
 #if USE_CARBON_EVENTS
-	    bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	    bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
-            XSETINT (bufp->x, 0);
-            XSETINT (bufp->y, 0);
+            XSETINT (inev.x, 0);
+            XSETINT (inev.y, 0);
 
             XSETFRAME (frame, f);
-            bufp->frame_or_window = Fcons (frame, drag_and_drop_file_list);
+            inev.frame_or_window = Fcons (frame, drag_and_drop_file_list);
 
             /* Regardless of whether Emacs was suspended or in the
                foreground, ask it to redraw its entire screen.
@@ -8552,8 +8544,6 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 #else /* not TARGET_API_MAC_CARBON */
               InvalRect (&(wp->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
-
-            count++;
           }
       default:
 	break;
@@ -8622,8 +8612,13 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
       }
   }
 
-  UNBLOCK_INPUT;
+  if (inev.kind != NO_EVENT)
+    {
+      kbd_buffer_store_event_hold (&inev, hold_quit);
+      count++;
+    }
 
+  UNBLOCK_INPUT;
   return count;
 }
 

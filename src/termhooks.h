@@ -489,10 +489,11 @@ struct display
      there is available input on at least one of the currently opened
      display devices -- but not necessarily on this device.
      Therefore, in most cases EXPECTED should be simply ignored.
-  */
+
+     XXX This documentation needs to be updated.  */
   int (*read_socket_hook) P_ ((struct display *display,
-                               struct input_event *buf,
-                               int size, int expected));
+                               int expected,
+                               struct input_event *hold_quit));
 
   /* Called when a frame's display becomes entirely up to date.  */
   void (*frame_up_to_date_hook) P_ ((struct frame *));

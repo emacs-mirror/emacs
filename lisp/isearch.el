@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
@@ -2128,26 +2128,30 @@ A value of nil means highlight all matches."
   :group 'isearch)
 
 (defface isearch
-  '((((type tty pc) (class color))
-     (:background "magenta4" :foreground "cyan1"))
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      ;; The background must not be too dark, for that means
      ;; the character is hard to see when the cursor is there.
      (:background "magenta2" :foreground "lightskyblue1"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "palevioletred2" :foreground "brown4"))
+    (((class color) (min-colors 16))
+     (:background "magenta4" :foreground "cyan1"))
+    (((class color) (min-colors 8))
+     (:background "magenta4" :foreground "cyan1"))
     (t (:inverse-video t)))
   "Face for highlighting Isearch matches."
   :group 'isearch-faces)
 (defvar isearch 'isearch)
 
 (defface isearch-lazy-highlight-face
-  '((((type tty pc) (class color))
-     (:background "turquoise3"))
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "paleturquoise"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "paleturquoise4"))
+    (((class color) (min-colors 16))
+     (:background "turquoise3"))
+    (((class color) (min-colors 8))
+     (:background "turquoise3"))
     (t (:underline t)))
   "Face for lazy highlighting of Isearch matches other than the current one."
   :group 'isearch-faces)

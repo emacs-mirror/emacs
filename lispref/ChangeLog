@@ -1,3 +1,8 @@
+2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* display.texi (Defining Faces): Add description for min-colors.
+	Update example.
+
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* abbrevs.texi: Various corrections and clarifications in addition

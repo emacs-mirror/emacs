@@ -1623,6 +1623,10 @@ What kinds of colors the frame supports---either @code{color},
 @item background
 The kind of background---either @code{light} or @code{dark}.
 
+@item min-colors
+An integer that represents the minimum number of colors the frame should
+support, it is compared with the result of @code{display-color-cells}.
+
 @item supports
 Whether or not the frame can display the face attributes given in
 @var{value}@dots{} (@pxref{Face Attributes}).  See the documentation
@@ -1644,17 +1648,20 @@ frame must match one of the @var{value}s specified for it in
 
 @example
 @group
-(defface region
-  `((((type tty) (class color))
-     (:background "blue" :foreground "white"))
+  '((((class color) (min-colors 88) (background dark))
+     :background "blue3")
 @end group
+    (((class color) (min-colors 88) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 8))
+     :background "blue" :foreground "white")
     (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "blue"))
-    (((class color) (background light))
-     (:background "lightblue"))
-    (t (:background "gray")))
+     :inverse-video t)
+    (t :background "gray"))
 @group
   "Basic face for highlighting the region."
   :group 'basic-faces)

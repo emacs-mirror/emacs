@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1314,6 +1314,8 @@ If FRAME is nil, the current FRAME is used."
 				  (not (featurep 'motif)))
 			     (and (memq 'x-toolkit options)
 				  (featurep 'x-toolkit))))
+			((eq req 'min-colors)
+			 (>= (display-color-cells frame) (car options)))
 			((eq req 'class)
 			 (memq (frame-parameter frame 'display-type) options))
 			((eq req 'background)
@@ -1892,14 +1894,18 @@ created."
       (append minibuffer-prompt-properties (list 'face 'minibuffer-prompt)))
 
 (defface region
-  '((((type tty) (class color))
+  '((((class color) (min-colors 88) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 88) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 8))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
      :inverse-video t)
-    (((class color) (background dark))
-     :background "blue3")
-    (((class color) (background light))
-     :background "lightgoldenrod2")
     (t :background "gray"))
   "Basic face for highlighting the region."
   :version "21.1"
@@ -1990,24 +1996,32 @@ created."
 
 
 (defface highlight
-  '((((type tty) (class color))
-     :background "green" :foreground "black")
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      :background "darkseagreen2")
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      :background "darkolivegreen")
+    (((class color) (min-colors 16) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 16) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 8))
+     :background "green" :foreground "black")
     (t :inverse-video t))
   "Basic face for highlighting."
   :group 'basic-faces)
 
 
 (defface secondary-selection
-  '((((type tty) (class color))
-     :background "cyan" :foreground "black")
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      :background "yellow")
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      :background "SkyBlue4")
+    (((class color) (min-colors 16) (background light))
+     :background "yellow")
+    (((class color) (min-colors 16) (background dark))
+     :background "SkyBlue4")
+    (((class color) (min-colors 8))
+     :background "cyan" :foreground "black")
     (t :inverse-video t))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)

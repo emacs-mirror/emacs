@@ -1916,7 +1916,12 @@ adjust_point_for_property (last_pt, modified)
 		      : (PT < last_pt ? beg : end));
 	      check_composition = check_display = 1;
 	    }
+#if 0 /* This assertion isn't correct, because SET_PT may end up setting
+	 the point to something other than its argument, due to
+	 point-motion hooks, intangibility, etc.  */
 	  xassert (PT == beg || PT == end);
+#endif
+
 	  /* Pretend the area doesn't exist if the buffer is not
 	     modified.  */
 	  if (!modified && !ellipsis && beg < end)
@@ -3516,8 +3521,31 @@ void
 kbd_buffer_store_event (event)
      register struct input_event *event;
 {
+  kbd_buffer_store_event_hold (event, 0);
+}
+
+/* Store EVENT obtained at interrupt level into kbd_buffer, fifo.
+
+   If HOLD_QUIT is 0, just stuff EVENT into the fifo.
+   Else, if HOLD_QUIT.kind != NO_EVENT, discard EVENT.
+   Else, if EVENT is a quit event, store the quit event
+   in HOLD_QUIT, and return (thus ignoring further events).
+
+   This is used in read_avail_input to postpone the processing
+   of the quit event until all subsequent input events have been
+   parsed (and discarded).
+ */
+
+void
+kbd_buffer_store_event_hold (event, hold_quit)
+     register struct input_event *event;
+     struct input_event *hold_quit;
+{
   if (event->kind == NO_EVENT)
     abort ();
+
+  if (hold_quit && hold_quit->kind != NO_EVENT)
+    return;
 
   if (event->kind == ASCII_KEYSTROKE_EVENT)
     {
@@ -3560,6 +3588,12 @@ kbd_buffer_store_event (event)
 	    }
 #endif
 
+	  if (hold_quit)
+	    {
+	      bcopy (event, (char *) hold_quit, sizeof (*event));
+	      return;
+	    }
+
 	  /* If this results in a quit_char being returned to Emacs as
 	     input, set Vlast_event_frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
@@ -3589,7 +3623,9 @@ kbd_buffer_store_event (event)
      Just ignore the second one.  */
   else if (event->kind == BUFFER_SWITCH_EVENT
 	   && kbd_fetch_ptr != kbd_store_ptr
-	   && kbd_store_ptr->kind == BUFFER_SWITCH_EVENT)
+	   && ((kbd_store_ptr == kbd_buffer
+		? kbd_buffer + KBD_BUFFER_SIZE - 1
+		: kbd_store_ptr - 1)->kind) == BUFFER_SWITCH_EVENT)
     return;
 
   if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
@@ -3648,24 +3684,22 @@ kbd_buffer_store_event (event)
 
    Value is the number of input_events generated.  */
 
-int
-gen_help_event (bufp, size, help, frame, window, object, pos)
-     struct input_event *bufp;
-     int size;
+void
+gen_help_event (help, frame, window, object, pos)
      Lisp_Object help, frame, object, window;
      int pos;
 {
-  if (size >= 1)
-    {
-      bufp->kind = HELP_EVENT;
-      bufp->frame_or_window = frame;
-      bufp->arg = object;
-      bufp->x = WINDOWP (window) ? window : frame;
-      bufp->y = help;
-      bufp->code = pos;
-      return 1;
-    }
-  return 0;
+  struct input_event event;
+
+  EVENT_INIT (event);
+
+  event.kind = HELP_EVENT;
+  event.frame_or_window = frame;
+  event.arg = object;
+  event.x = WINDOWP (window) ? window : frame;
+  event.y = help;
+  event.code = pos;
+  kbd_buffer_store_event (&event);
 }
 
 
@@ -6570,15 +6604,7 @@ record_asynch_buffer_change ()
    only when SIGIO is blocked.
 
    Returns the number of keyboard chars read, or -1 meaning
-   this is a bad time to try to read input.
-
-   Typically, there are just a few available input events to be read
-   here, so we really don't need to allocate and initialize a big
-   buffer of input_events as we used to do.  Instead, we just allocate
-   a small buffer of input events -- and then poll for more input if we
-   read a full buffer of input events.  */
-
-#define NREAD_INPUT_EVENTS 512
+   this is a bad time to try to read input.  */
 
 static int
 read_avail_input (expected)
@@ -6600,59 +6626,47 @@ read_avail_input (expected)
           int discard = 0;
           int nr;
 
-          do {
-            struct input_event buf[NREAD_INPUT_EVENTS];
+          struct input_event hold_quit;
 
-            for (i = 0; i < NREAD_INPUT_EVENTS; i++)
-              EVENT_INIT (buf[i]);
+          EVENT_INIT (hold_quit);
+          hold_quit.kind = NO_EVENT;
 
-            /* No need for FIONREAD or fcntl; just say don't wait.  */
-            nr = (*d->read_socket_hook) (d, buf, NREAD_INPUT_EVENTS, expected);
+          /* No need for FIONREAD or fcntl; just say don't wait.  */
+          while (nr = (*d->read_socket_hook) (d, expected, &hold_quit), nr > 0)
+            {
+              nread += nr;
+              expected = 0;
+            }
+          
+          if (nr == -1)          /* Not OK to read input now. */
+            {
+              err = 1;
+            }
+          else if (nr == -2)          /* Non-transient error. */
+            {
+              /* The display device terminated; it should be closed. */
+              
+              /* Kill Emacs if this was our last display. */
+              if (! display_list->next_display)
+                /* Formerly simply reported no input, but that
+                   sometimes led to a failure of Emacs to terminate.
+                   SIGHUP seems appropriate if we can't reach the
+                   terminal.  */
+                /* ??? Is it really right to send the signal just to
+                   this process rather than to the whole process
+                   group?  Perhaps on systems with FIONREAD Emacs is
+                   alone in its group.  */
+                kill (getpid (), SIGHUP);
+              
+              /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
+              if (d->delete_display_hook)
+                (*d->delete_display_hook) (d);
+              else
+                delete_display (d);
+            }
 
-            if (nr > 0)
-              {
-                /* We've got input. */
-                nread += nr;
-                expected = 0;
-
-                /* Scan the chars for C-g and store them in kbd_buffer.  */
-                for (i = 0; !discard && i < nr; i++)
-                  {
-                    kbd_buffer_store_event (&buf[i]);
-                    /* Don't look at input that follows a C-g too closely.
-                       This reduces lossage due to autorepeat on C-g.  */
-                    if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-                        && buf[i].code == quit_char)
-                      discard = 1;
-                  }
-              }
-            else if (nr == -1)          /* Not OK to read input now. */
-              {
-                err = 1;
-              }
-            else if (nr == -2)          /* Non-transient error. */
-              {
-                /* The display device terminated; it should be closed. */
-
-                /* Kill Emacs if this was our last display. */
-                if (! display_list->next_display)
-                  /* Formerly simply reported no input, but that
-                     sometimes led to a failure of Emacs to terminate.
-                     SIGHUP seems appropriate if we can't reach the
-                     terminal.  */
-                  /* ??? Is it really right to send the signal just to
-                     this process rather than to the whole process
-                     group?  Perhaps on systems with FIONREAD Emacs is
-                     alone in its group.  */
-                  kill (getpid (), SIGHUP);
-
-                /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
-                if (d->delete_display_hook)
-                  (*d->delete_display_hook) (d);
-                else
-                  delete_display (d);
-              }
-          } while (nr == NREAD_INPUT_EVENTS);
+          if (hold_quit.kind != NO_EVENT)
+            kbd_buffer_store_event (&hold_quit);
         }
 
       d = next;
@@ -6672,13 +6686,13 @@ read_avail_input (expected)
 
 int
 tty_read_avail_input (struct display *display,
-                      struct input_event *buf,
-                      int numchars, int expected)
+                      int expected,
+                      struct input_event *hold_quit)
 {
-  /* Using numchars here avoids reading more than the buf can
-     really hold.  That may prevent loss of characters on some systems
-     when input is stuffed at us.  */
-  unsigned char cbuf[numchars];
+  /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
+     the kbd_buffer can really hold.  That may prevent loss
+     of characters on some systems when input is stuffed at us.  */
+  unsigned char cbuf[KBD_BUFFER_SIZE - 1];
   int n_to_read, i;
   struct tty_display_info *tty = display->display_info.tty;
   int nread = 0;
@@ -6785,19 +6799,28 @@ tty_read_avail_input (struct display *display,
 
   for (i = 0; i < nread; i++)
     {
-      buf[i].kind = ASCII_KEYSTROKE_EVENT;
-      buf[i].modifiers = 0;
+      struct input_event buf;
+      EVENT_INIT (buf);
+      buf.kind = ASCII_KEYSTROKE_EVENT;
+      buf.modifiers = 0;
       if (tty->meta_key == 1 && (cbuf[i] & 0x80))
-        buf[i].modifiers = meta_modifier;
+        buf.modifiers = meta_modifier;
       if (tty->meta_key != 2)
         cbuf[i] &= ~0x80;
-
-      buf[i].code = cbuf[i];
+      
+      buf.code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it. */
-      buf[i].frame_or_window = tty->top_frame;
-      buf[i].arg = Qnil;
+      buf.frame_or_window = tty->top_frame;
+      buf.arg = Qnil;
+      
+      kbd_buffer_store_event (&buf);
+      /* Don't look at input that follows a C-g too closely.
+         This reduces lossage due to autorepeat on C-g.  */
+      if (buf.kind == ASCII_KEYSTROKE_EVENT
+          && buf.code == quit_char)
+        break;
     }
 
   return nread;

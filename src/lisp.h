@@ -2380,7 +2380,6 @@ extern void redisplay P_ ((void));
 extern int check_point_in_composition
 	P_ ((struct buffer *, int, struct buffer *, int));
 extern void redisplay_preserve_echo_area P_ ((int));
-extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern void prepare_menu_bars P_ ((void));
 
 void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));

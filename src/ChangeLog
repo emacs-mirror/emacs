@@ -1,3 +1,91 @@
+2004-02-28  Miles Bader  <miles@gnu.org>
+
+	* keyboard.c (adjust_point_for_property): #ifdef-out dodgy xassert.
+
+2004-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (kbd_buffer_store_event_hold): New function to store
+	an event into kbd fifo, but with special handling of quit event;
+	a quit event is saved for later, and further events are discarded
+	until the saved quit event has been processed.
+	(kbd_buffer_store_event): Use kbd_buffer_store_event_hold.
+	(gen_help_event): Store help event in kbd fifo.
+	(NREAD_INPUT_EVENTS): Remove.
+	(read_avail_input): Adapt to new read_socket_hook interface.
+	Remove allocation and initialization of local input_event buffer,
+	as read_socket_hook stores events directly in fifo.  Allocate and
+	initialize local hold_quit event to handle postponed quit event
+	(and store it if set by kbd_buffer_store_event_hold).
+
+	* keyboard.h (kbd_buffer_store_event_hold): Add prototype.
+	(gen_help_event): Fix prototype.
+
+	* macterm.c (XTread_socket):  Remove bufp_r and
+	numcharsp args.  Add hold_quit arg.
+	Rework to use just one, local, inev input_event. Store inev
+	directly in fifo using kbd_buffer_store_event_hold.
+
+	* sysdep.c (BUFFER_SIZE_FACTOR): Remove.
+	(read_input_waiting): Adapt to new read_socket_hook interface.
+	Remove allocation and initialization of local input_event buffer,
+	as read_socket_hook stores events directly in fifo.  Allocate and
+	initialize local hold_quit event to handle postponed quit event
+	(and store it if set by kbd_buffer_store_event_hold).
+
+	* term.c (read_socket_hook): Fix arg list. 
+
+	* termhooks.h (read_socket_hook): Fix prototype.
+
+	* w32inevt.c (w32_console_read_socket): Remove bufp_r and
+	numcharsp args.  Add hold_quit arg.
+	Rework to use just one, local, inev input_event. Store inev
+	directly in fifo using kbd_buffer_store_event_hold.
+
+	* w32inevt.h (w32_console_mouse_position): Fix prototype.
+
+	* w32term.c (w32_read_socket): Remove bufp_r and numcharsp args.
+	Add hold_quit arg. Rework to use just one, local, inev
+	input_event. Store inev directly in fifo using
+	kbd_buffer_store_event_hold.  Update count in one place.
+	Postpone call to gen_help_event until inev is stored; use new
+	local do_help for this.
+	Remove local emacs_event in handing of ButtonPress event; just use
+	inev instead (so no reason to copy it later).
+
+	* xsmfns.c (x_session_check_input): Remove numchars arg.
+
+	* xterm.c (x_focus_changed, x_detect_focus_change): Remove
+	numchars arg.  Always store event into bufp arg.  Return nothing.
+	Callers changed accordingly.
+	(glyph_rect): Simplify.
+	(STORE_KEYSYM_FOR_DEBUG): New macro.
+	(SET_SAVED_MENU_EVENT): Use inev instead of bufp, etc.
+	(current_bufp, current_numcharsp) [USE_GTK]: Remove.
+	(current_hold_quit) [USE_GTK]: Add.
+	(event_handler_gdk): Adapt to new handle_one_xevent.
+	(handle_one_xevent): Remove bufp_r and numcharsp args.
+	Add hold_quit arg. Rework to use just one, local, inev
+	input_event. Store inev directly in fifo using
+	kbd_buffer_store_event_hold.  Update count in one place.
+	Postpone call to gen_help_event until inev is stored; use new
+	local do_help for this.
+	Simplify handling of keysyms (consolidate common code).  Fix bug
+	where count was updated with nchars instead of nbytes.
+	Remove local emacs_event in handing of ButtonPress event; just use
+	inev instead (so no reason to copy it later).
+	Remove `out' label.  Rename label `ret' to `done'; add various
+	`goto done' to clarify code flow in deeply nested blocks.
+	(x_dispatch_event): Simplify as handle_one_xevent now calls
+	kbd_buffer_store_event itself.
+	(XTread_socket): Remove bufp_r and numcharsp args. Add hold_quit
+	arg.  Call handle_one_xevent with new arglist.  Store event from
+	x_session_check_input in fifo.
+	[USE_GTK]: Setup current_hold_quit.
+	Decrement handling_signal before unblocking input.
+	(x_initialize) [USE_GTK]: Initialize current_count.
+
+	* xterm.h (x_session_check_input): Fix prototype.
+
 2004-02-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 	
 	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add `-framework
