@@ -11,7 +11,7 @@
 	(easy-mmode-defmap, easy-mmode-defsyntax, easy-mmode-define-derived-mode):
 	New macros.
 
-2000-09-01  Didier Verna  <didier@xemacs.org>
+2000-03-09  Didier Verna  <didier@xemacs.org>
 
 	* rect.el (replace-rectangle): New function.
 
