@@ -1,5 +1,8 @@
 2002-10-31  Kim F. Storm  <storm@cua.dk>
 
+	* shell.el (explicit-bash-args): Bash 1.x doesn't grook
+	--noediting option; added run-time check to exclude it.
+
 	* info.el (Info-follow-reference, Info-next-reference)
 	(Info-prev-reference, Info-try-follow-nearest-node): Bind
 	inhibit-point-motion-hooks to t while parsing reference.
