@@ -1534,7 +1534,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	    error ("Nesting too deep for parser");
 	  curlevel->prev = -1;
 	  curlevel->last = -1;
-	  if (!--targetdepth) goto done;
+	  if (targetdepth != depth) goto done;
 	  break;
 
 	case Sclose:
@@ -1544,7 +1544,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	  if (curlevel != levelstart)
 	    curlevel--;
 	  curlevel->prev = curlevel->last;
-	  if (!++targetdepth) goto done;
+	  if (targetdepth != depth) goto done;
 	  break;
 
 	case Sstring:
