@@ -723,7 +723,7 @@ If N is negative, find the previous or Nth previous match."
 	(cond ((= narg -1)
 	       (setq elt minibuffer-default))
 	      ((= narg 0)
-	       (setq elt minibuffer-text-before-history)
+	       (setq elt (or minibuffer-text-before-history ""))
 	       (setq minibuffer-text-before-history nil))
 	      (t (setq elt (nth (1- minibuffer-history-position)
 				(symbol-value minibuffer-history-variable)))))
