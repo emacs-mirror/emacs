@@ -499,7 +499,7 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
   "Start editing the terminal emulator buffer with ordinary Emacs commands."
   (interactive)
   (terminal-edit-mode)
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   ;; Make mode line update.
   (if (eq (key-binding "\C-c\C-c") 'terminal-cease-edit)
       (message "Editing: Type C-c C-c to return to Terminal")
@@ -589,7 +589,7 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
   (set-process-filter te-process te-more-old-filter)
   (goto-char te-more-old-point)
   (setq mode-line-format te-more-old-mode-line-format)
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   (let ((buffer-read-only nil))
     (cond ((eobp))
 	  (terminal-more-break-insertion
@@ -993,8 +993,7 @@ move to start of new line, clear to end of line."
 	  (setq te-pending-output-info "")
 	(setq te-pending-output-info (format "(%dK chars output pending) "
 					     (/ (+ length 512) 1024))))))
-  ;; update mode line
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 
 (defun te-sentinel (process message)
