@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.36) $
+ * $HopeName: MMsrc!pool.c(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.36) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.37) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -33,13 +33,13 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->bufferEmpty));
   CHECKL(FUNCHECK(class->bufferFinish));
   CHECKL(FUNCHECK(class->traceBegin));
-  CHECKL(FUNCHECK(class->condemn));
+  CHECKL(FUNCHECK(class->whiten));
   CHECKL(FUNCHECK(class->grey));
   CHECKL(FUNCHECK(class->scan));
   CHECKL(FUNCHECK(class->fix));
   CHECKL(FUNCHECK(class->reclaim));
-  CHECKL(FUNCHECK(class->traceEnd));
   CHECKL(FUNCHECK(class->benefit));
+  CHECKL(FUNCHECK(class->act));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(class->endSig == PoolClassSig);
   return TRUE;
@@ -250,26 +250,22 @@ void PoolFree(Pool pool, Addr old, Size size)
   EVENT_PAW(PoolFree, pool, old, size);
 }
 
-Res PoolTraceBegin(Pool pool, Trace trace, Action action)
+Res PoolTraceBegin(Pool pool, Trace trace)
 {
   AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
-  return (*pool->class->traceBegin)(pool, trace, action);
+  AVER(PoolArena(pool) == trace->arena);
+  return (*pool->class->traceBegin)(pool, trace);
 }
 
-Res PoolCondemn(Pool pool, Trace trace, Seg seg, Action action)
+Res PoolWhiten(Pool pool, Trace trace, Seg seg)
 {  
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
-  AVERT(Action, action);
-  AVER(pool->arena == trace->arena);
+  AVER(PoolArena(pool) == trace->arena);
   AVER(SegPool(seg) == pool);
-  return (*pool->class->condemn)(pool, trace, seg, action);
+  return (*pool->class->whiten)(pool, trace, seg);
 }
 
 void PoolGrey(Pool pool, Trace trace, Seg seg)
@@ -349,17 +345,6 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   (*pool->class->reclaim)(pool, trace, seg);
 }
 
-void PoolTraceEnd(Pool pool, Trace trace, Action action)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
-  (*pool->class->traceEnd)(pool, trace, action);
-}
-
 
 double PoolBenefit(Pool pool, Action action)
 {
@@ -367,6 +352,15 @@ double PoolBenefit(Pool pool, Action action)
   AVERT(Action, action);
   AVER(action->pool == pool);
   return (*pool->class->benefit)(pool, action);
+}
+
+
+Res PoolAct(Pool pool, Action action)
+{
+  AVERT(Pool, pool);
+  AVERT(Action, action);
+  AVER(action->pool == pool);
+  return (*pool->class->act)(pool, action);
 }
 
 
@@ -606,35 +600,39 @@ Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
   return WriteF(stream, "  No class-specific description available.\n", NULL);
 }
 
-Res PoolNoTraceBegin(Pool pool, Trace trace, Action action)
+Res PoolNoTraceBegin(Pool pool, Trace trace)
 {
   AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
+  AVER(PoolArena(pool) == trace->arena);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-Res PoolTrivTraceBegin(Pool pool, Trace trace, Action action)
+Res PoolTrivTraceBegin(Pool pool, Trace trace)
 {
   AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
+  AVER(PoolArena(pool) == trace->arena);
   return ResOK;
 }
 
-Res PoolNoCondemn(Pool pool, Trace trace, Seg seg, Action action)
+Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
-  AVERT(Action, action);
+
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+
+  return ResOK;
+}
+
+Res PoolNoWhiten(Pool pool, Trace trace, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
   NOTREACHED;
   return ResUNIMPL;
 }
@@ -705,27 +703,6 @@ void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
   NOTREACHED;
 }
 
-void PoolNoTraceEnd(Pool pool, Trace trace, Action action)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
-  NOTREACHED;
-}
-
-void PoolTrivTraceEnd(Pool pool, Trace trace, Action action)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(trace->action == action);
-  AVER(action->pool == pool);
-  AVER(pool->arena == trace->arena);
-}
-
 double PoolNoBenefit(Pool pool, Action action)
 {
   AVERT(Pool, pool);
@@ -733,4 +710,67 @@ double PoolNoBenefit(Pool pool, Action action)
   AVER(action->pool == pool);
   NOTREACHED;
   return (double)0;
+}
+
+Res PoolNoAct(Pool pool, Action action)
+{
+  AVERT(Pool, pool);
+  AVERT(Action, action);
+  AVER(action->pool == pool);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+/* PoolCollectAct -- perform the action of collecting the entire pool
+ *
+ * @@@@ This should be in a module such as collect.c, but this is a
+ * short term patch for change.dylan.sunflower.10.170440.
+ */
+
+Res PoolCollectAct(Pool pool, Action action)
+{
+  Trace trace;
+  Res res;
+  Arena arena;
+  Ring ring, node, nextNode;
+  Seg seg;
+
+  AVERT(Pool, pool);
+  AVERT(Action, action);
+
+  arena = PoolArena(pool);
+
+  res = TraceCreate(&trace, arena);
+  if(res != ResOK)
+    goto failCreate;
+
+  res = PoolTraceBegin(action->pool, trace);
+  if(res != ResOK)
+    goto failBegin;
+  
+  /* Identify the condemned set and turn it white. */
+  ring = PoolSegRing(pool);
+  RING_FOR(node, ring, nextNode) {
+    seg = SegOfPoolRing(node);
+
+    res = TraceAddWhite(trace, seg);
+    if(res != ResOK)
+      goto failAddWhite;
+  }
+
+  TraceStart(trace);
+  if(res != ResOK)
+    goto failStart;
+
+  return ResOK;
+
+failStart:
+  NOTREACHED;
+failAddWhite:
+  NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
+failBegin:
+  TraceDestroy(trace);
+failCreate:
+  return res;
 }

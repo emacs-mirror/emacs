@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.48) $
+ * $HopeName: MMsrc!trace.c(trunk.49) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.48) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.49) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -94,6 +94,43 @@ Bool TraceCheck(Trace trace)
 }
 
 
+/* TraceAddWhite -- add a segment to the white set of a trace */
+
+Res TraceAddWhite(Trace trace, Seg seg)
+{
+  Res res;
+  Pool pool;
+
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(!TraceSetIsMember(SegWhite(seg), trace->ti)); /* .start.black */
+
+  pool = SegPool(seg);
+  AVERT(Pool, pool);
+
+  /* Give the pool the opportunity to turn the segment white. */
+  /* If it fails, unwind. */
+  res = PoolWhiten(pool, trace, seg);
+  if(res != ResOK)
+    return res;
+
+  /* Add the segment to the approximation of the white set the */
+  /* pool made it white. */
+  if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
+    trace->white = RefSetUnion(trace->white,
+                               RefSetOfSeg(trace->arena, seg));
+    trace->condemned += SegSize(seg);
+    /* if the pool is a moving GC, then condemned objects may move */
+    if(pool->class->attr & AttrMOVINGGC) {
+      trace->mayMove = RefSetUnion(trace->mayMove, 
+                                   RefSetOfSeg(PoolArena(pool), seg));
+    }
+  }
+
+  return ResOK;
+}
+
+
 /* TraceStart -- condemn a set of objects and start collection
  *
  * TraceStart should be passed a trace with state TraceINIT, i.e.
@@ -105,62 +142,23 @@ Bool TraceCheck(Trace trace)
  * it easy to destroy traces half-way through.
  */
 
-static Res TraceStart(Trace trace, Action action)
+Res TraceStart(Trace trace)
 {
-  Res res;
   Ring ring, node;
   Arena arena;
   Seg seg;
-  Pool pool;
+  Res res;
 
   AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER((action->pool->class->attr & AttrGC) != 0);
   AVER(trace->state == TraceINIT);
-  AVER(trace->white == RefSetEMPTY);
 
-  /* Identify the condemned set and turn it white. */
   arena = trace->arena;
-  pool = action->pool;
-
-  EVENT_PPP(TraceStart, trace, pool, action);
-  ring = PoolSegRing(pool);
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
-    seg = SegOfPoolRing(node);
-
-    AVER(!TraceSetIsMember(SegWhite(seg), trace->ti)); /* .start.black */
-
-    /* Give the pool the opportunity to turn the segment white. */
-    /* If it fails, unwind. */
-    res = PoolCondemn(pool, trace, seg, action);
-    if(res != ResOK) goto failCondemn;
-
-    /* Add the segment to the approximation of the white set */
-    /* if and only if the pool made it white. */
-    if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
-      trace->white = RefSetUnion(trace->white, RefSetOfSeg(arena, seg));
-      trace->condemned += SegSize(seg);
-      /* if the pool is a moving GC, then condemned objects may move */
-      if(pool->class->attr & AttrMOVINGGC) {
-        trace->mayMove =
-	  RefSetUnion(trace->mayMove, RefSetOfSeg(arena, seg));
-      }
-    }
-
-    node = next;
-  }
 
   /* If there is nothing white then there can be nothing grey, */
-  /* so everything is black and we can proceed straight to */
-  /* reclaim.  We have to reclaim because we want to guarantee */
-  /* to the pool that for every condemn there will be a reclaim. */
-  /* @@@@ We can also shortcut if there is nothing grey. */
-  /* @@@@ This should be in design. */
+  /* so everything is black and we can finish the trace immediately. */
   if(trace->white == RefSetEMPTY) {
     arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
-    trace->state = TraceRECLAIM;
+    trace->state = TraceFINISHED;
     trace->rate = (Size)1;
     return ResOK;
   }
@@ -231,21 +229,12 @@ static Res TraceStart(Trace trace, Action action)
 
   trace->state = TraceUNFLIPPED;
 
+  /* All traces must flip at beginning at the moment. */
+  res = TraceFlip(trace);
+  if(res != ResOK)
+    return res;
+
   return ResOK;
-
-  /* PoolCondemn failed, possibly half-way through whitening the condemned */
-  /* set.  This loop empties the white set again. */ 
-failCondemn:
-  ring = PoolSegRing(pool);
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
-    seg = SegOfPoolRing(node);
-    SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
-    node = next;
-  }
-
-  return res;
 }
 
 
@@ -265,17 +254,15 @@ failCondemn:
  * objects dynamically.
  */
 
-Res TraceCreate(Trace *traceReturn, Arena arena, Action action)
+Res TraceCreate(Trace *traceReturn, Arena arena)
 {
   TraceId ti;
   Trace trace;
-  Res res;
 
   AVER(TRACE_MAX == 1);         /* .single-collection */
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
-  AVERT(Action, action);
 
   /* Find a free trace ID */
   for(ti = 0; ti < TRACE_MAX; ++ti)
@@ -290,7 +277,6 @@ found:
   arena->busyTraces = TraceSetAdd(arena->busyTraces, ti);
 
   trace->arena = arena;
-  trace->action = action;
   trace->white = RefSetEMPTY;
   trace->mayMove = RefSetEMPTY;
   trace->ti = ti;
@@ -302,22 +288,8 @@ found:
   trace->sig = TraceSig;
   AVERT(Trace, trace);
 
-  res = PoolTraceBegin(action->pool, trace, action);
-  if(res != ResOK) goto failBegin;
-  
-  res = TraceStart(trace, action);
-  if(res != ResOK) goto failStart;
-
   *traceReturn = trace;
-  EVENT_PPPU(TraceCreate, arena, action, trace, ti);
   return ResOK;
-
-failStart:
-  PoolTraceEnd(action->pool, trace, action);
-failBegin:
-  trace->sig = SigInvalid;              /* design.mps.arena.trace.invalid */
-  arena->busyTraces = TraceSetDel(arena->busyTraces, ti);
-  return res;
 }
 
 
@@ -333,16 +305,69 @@ failBegin:
 void TraceDestroy(Trace trace)
 {
   AVERT(Trace, trace);
+
   AVER(trace->state == TraceFINISHED);
   
-  PoolTraceEnd(trace->action->pool, trace, trace->action);
-  
-  trace->sig = SigInvalid;              /* design.mps.arena.trace.invalid */
+  trace->sig = SigInvalid;
   trace->arena->busyTraces =
     TraceSetDel(trace->arena->busyTraces, trace->ti);
   trace->arena->flippedTraces =
     TraceSetDel(trace->arena->flippedTraces, trace->ti);
   EVENT_P(TraceDestroy, trace);
+}
+
+
+/* TraceSegGreyen -- turn a segment more grey
+ *
+ * Adds the trace set ts to the greyness of the segment and adjusts
+ * the shielding on the segment appropriately.  (If it causes the
+ * segment to become grey for a flipped trace the shield is raised.)
+ * @@@@ Why does it seem to be write and a read barrier?
+ */
+
+void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts)
+{
+  TraceSet segGrey, newGrey;
+ 
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+  AVER(TraceSetCheck(ts));
+ 
+  segGrey = SegGrey(seg);
+  newGrey = TraceSetUnion(segGrey, ts);
+  if(newGrey != segGrey) {
+    /* The read barrier should only really be raised when the */
+    /* segment is grey for some flipped trace, i.e. */
+    /* if(TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY) */
+    /* But this requires Flip to raise it when flippedTraces changes, */
+    /* which it does not do at present. */
+    ShieldRaise(arena, seg, AccessREAD);
+ 
+    /* Temporary hack to add to grey list for */
+    /* change.dylan.sunflower.7.170421. */
+    AVER(RankSetIsSingle(SegRankSet(seg)));
+    if(segGrey == RefSetEMPTY) {
+      switch(SegRankSet(seg)) {
+      case RankSetSingle(RankAMBIG):
+        RingInsert(&arena->greyRing[RankAMBIG], SegGreyRing(seg));
+        break;
+      case RankSetSingle(RankEXACT):
+        RingInsert(&arena->greyRing[RankEXACT], SegGreyRing(seg));
+        break;
+      case RankSetSingle(RankFINAL):
+        RingInsert(&arena->greyRing[RankFINAL], SegGreyRing(seg));
+        break;
+      case RankSetSingle(RankWEAK):
+        RingInsert(&arena->greyRing[RankWEAK], SegGreyRing(seg));
+        break;
+      default:
+        NOTREACHED;
+        break;
+      }
+    }
+  }
+  SegSetGrey(seg, newGrey);
+  EVENT_PPU(TraceSegGreyen, arena, seg, ts);
 }
 
 
@@ -382,7 +407,7 @@ static void TraceFlipBuffers(Arena arena)
 
 /* TraceFlip -- blacken the mutator */
 
-static Res TraceFlip(Trace trace)
+Res TraceFlip(Trace trace)
 {
   Ring ring;
   Ring node, nextNode;
@@ -888,7 +913,8 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
     ref = *p++;
     if(!TRACE_FIX1(ss, ref)) goto loop;
     res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK) goto loop;
+    if(res == ResOK)
+      goto loop;
     return res;
   out:
     AVER(p == limit);
@@ -937,7 +963,8 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
     if(((Word)ref & mask) != 0) goto loop;
     if(!TRACE_FIX1(ss, ref)) goto loop;
     res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK) goto loop;
+    if(res == ResOK)
+      goto loop;
     return res;
   out:
     AVER(p == limit);

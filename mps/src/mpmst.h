@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.36) $
+ * $HopeName: MMsrc!mpmst.h(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -86,14 +86,14 @@ typedef struct PoolClassStruct {
   PoolBufferEmptyMethod bufferEmpty;      /* out-of-line commit */
   PoolBufferFinishMethod bufferFinish;  /* additional buffer finish */
   PoolTraceBeginMethod traceBegin;
-  PoolCondemnMethod condemn;    /* condemn (some or all) objects */
+  PoolWhitenMethod whiten;      /* whiten objects in a segment */
   PoolGreyMethod grey;          /* grey non-white objects */
   PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
   PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
-  PoolTraceEndMethod traceEnd;
-  PoolBenefitMethod benefit;
+  PoolBenefitMethod benefit;    /* calculate benefit of action */
+  PoolActMethod act;            /* do an action */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   Sig endSig;                   /* .class.end-sig */
 } PoolClassStruct;
@@ -478,11 +478,10 @@ typedef struct TraceStruct {
   Sig sig;                      /* design.mps.sig */
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
-  Action action;                /* the action that launched the trace */
   RefSet white;                 /* superset of refs in white set */
   RefSet mayMove;		/* superset of refs in moving set */
   TraceState state;             /* current state of trace */
-  Size condemned;               /* condemned set size */
+  Size condemned;               /* condemned bytes */
   Size foundation;              /* initial grey set size */
   Size rate;                    /* bytes to scan per increment */
 } TraceStruct;
@@ -555,6 +554,7 @@ typedef struct ArenaStruct {
   LockStruct lockStruct;        /* arena's lock */
   Size pollThreshold;           /* design.mps.arena.poll */
   Bool insidePoll;              /* design.mps.arena.poll */
+  Bool clamped;                 /* prevent background activity */
   Size actionInterval;          /* design.mps.arena.poll.interval */
   double allocTime;             /* "time" in allocated bytes */
 
