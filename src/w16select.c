@@ -77,11 +77,21 @@ static Lisp_Object Vnext_selection_coding_system;
 
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */
-
 static struct {
   unsigned long size;
   unsigned short rm_segment;
 } clipboard_xfer_buf_info;
+
+/* The last text we put into the clipboard.  This is used to prevent
+   passing back our own text from the clipboard, instead of using the
+   kill ring.  The former is undesirable because the clipboard data
+   could be MULEtilated by inappropriately chosen
+   (next-)selection-coding-system.  For this reason, we must store the
+   text *after* it was encoded/Unix-to-DOS-converted.  */
+static unsigned char *last_clipboard_text;
+
+/* The size of allocated storage for storing the clipboard data.  */
+static size_t clipboard_storage_size;
 
 /* Emulation of `__dpmi_int' and friends for DJGPP v1.x  */
 
@@ -291,6 +301,18 @@ set_clipboard_data (Format, Data, Size, Raw)
       _farnspokeb (buf_offset, '\0');
     }
 
+  /* Stash away the data we are about to put into the clipboard, so we
+     could later check inside get_clipboard_data whether the clipboard
+     still holds our data.  */
+  if (clipboard_storage_size < truelen)
+    {
+      clipboard_storage_size = truelen + 100;
+      last_clipboard_text =
+	(char *) xrealloc (last_clipboard_text, clipboard_storage_size);
+    }
+  if (last_clipboard_text)
+    dosmemget (xbuf_addr, truelen, last_clipboard_text);
+
   /* Calls Int 2Fh/AX=1703h with:
 	             DX = WinOldAp-Supported Clipboard format
                      ES:BX = Pointer to data
@@ -306,6 +328,10 @@ set_clipboard_data (Format, Data, Size, Raw)
   __dpmi_int(0x2f, &regs);
 
   free_xfer_buf ();
+
+  /* If the above failed, invalidate the local copy of the clipboard.  */
+  if (regs.x.ax == 0)
+    *last_clipboard_text = '\0';
 
   /* Zero means success, otherwise (1 or 2) it's an error.  */
   return regs.x.ax > 0 ? 0 : 1;
@@ -370,6 +396,14 @@ get_clipboard_data (Format, Data, Size, Raw)
   __dpmi_int(0x2f, &regs);
   if (regs.x.ax != 0)
     {
+      unsigned char null_char = '\0';
+      unsigned long xbuf_beg = xbuf_addr;
+
+      /* If last_clipboard_text is NULL, we don't want to slow down
+	 the next loop by an additional test.  */
+      register unsigned char *lcdp =
+	last_clipboard_text == NULL ? &null_char : last_clipboard_text;
+	
       /* Copy data from low memory, remove CR
 	 characters before LF if needed.  */
       _farsetsel (_dos_ds);
@@ -377,12 +411,17 @@ get_clipboard_data (Format, Data, Size, Raw)
 	{
 	  register unsigned char c = _farnspeekb (xbuf_addr++);
 
+	  if (*lcdp == c)
+	    lcdp++;
+
 	  if ((*dp++ = c) == '\r' && !Raw && _farnspeekb (xbuf_addr) == '\n')
 	    {
 	      dp--;
 	      *dp++ = '\n';
 	      xbuf_addr++;
 	      last_block--;	/* adjust the beginning of the last 32 bytes */
+	      if (*lcdp == '\n')
+		lcdp++;
 	    }
 	  /* Windows reportedly rounds up the size of clipboard data
 	     (passed in SIZE) to a multiple of 32.  We therefore bail
@@ -391,6 +430,14 @@ get_clipboard_data (Format, Data, Size, Raw)
 	  else if (c == '\0' && dp > last_block)
 	    break;
 	}
+
+      /* If the text in clipboard is identical to what we put there
+	 last time set_clipboard_data was called, pretend there's no
+	 data in the clipboard.  This is so we don't pass our own text
+	 from the clipboard.  */
+      if (last_clipboard_text &&
+	  xbuf_addr - xbuf_beg == (long)(lcdp - last_clipboard_text))
+	dp = (unsigned char *)Data + 1;
     }
 
   free_xfer_buf ();
