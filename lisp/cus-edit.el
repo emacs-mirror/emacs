@@ -2873,14 +2873,18 @@ Optional EVENT is the location for the menu."
   "Prepare for saving WIDGET's face attributes, but don't write `.emacs'."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
-	 (value (widget-value child))
+	 (value (custom-post-filter-face-spec (widget-value child)))
 	 (comment-widget (widget-get widget :comment-widget))
 	 (comment (widget-value comment-widget)))
     (when (equal comment "")
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
-    (face-spec-set symbol value)
+    (if (face-spec-choose value)
+	(face-spec-set symbol value)
+      ;; face-set-spec ignores empty attribute lists, so just give it
+      ;; something harmless instead.
+      (face-spec-set symbol '((t :foreground unspecified))))
     (put symbol 'saved-face value)
     (put symbol 'customized-face nil)
     (put symbol 'face-comment comment)
