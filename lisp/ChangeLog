@@ -1,3 +1,9 @@
+2004-04-05  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New option.
+	(gdb-ann3, gdb-send, gdb-starting, gdb-stopping)
+	(gdb-setup-windows): Only use separate IO buffer if required.
+
 2004-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* term.el (term-is-xemacs): Remove.
