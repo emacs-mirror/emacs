@@ -5896,7 +5896,9 @@ DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        0, 1, 0,
        doc: /* Get width and type of scroll bars of window WINDOW.
 If WINDOW is omitted or nil, use the currently selected window.
-Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).  */)
+Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).
+If WIDTH is nil or TYPE is t, the window is using the frame's corresponding
+value.  */)
      (window)
      Lisp_Object window;
 {
