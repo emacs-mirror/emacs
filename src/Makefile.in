@@ -873,7 +873,9 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
   ${dotdot}/lisp/international/ccl.elc \
-  ${dotdot}/lisp/international/codepage.elc
+  ${dotdot}/lisp/international/codepage.elc \
+  ${dotdot}/lisp/mouse.elc ${dotdot}/lisp/international/fontset.elc \
+  ${dotdot}/lisp/x-dnd.elc ${dotdot}/lisp/term/x-win.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
