@@ -534,6 +534,31 @@ update_compositions (from, to, check_mask)
     }
 }
 
+
+/* Modify composition property values in LIST destructively.  LIST is
+   a list as returned from text_property_list.  Change values to the
+   top-level copies of them so that none of them are `eq'.  */
+
+void
+make_composition_value_copy (list)
+     Lisp_Object list;
+{
+  Lisp_Object plist, val;
+
+  for (; CONSP (list); list = XCDR (list))
+    {
+      plist = XCAR (XCDR (XCDR (XCAR (list))));
+      while (CONSP (plist) && CONSP (XCDR (plist)))
+	{
+	  if (EQ (XCAR (plist), Qcomposition)
+	      && (val = XCAR (XCDR (plist)), CONSP (val)))
+	    XCAR (XCDR (plist)) = Fcons (XCAR (val), XCDR (val));
+	  plist = XCDR (XCDR (plist));
+	}
+    }
+}
+
+
 /* Make text in the region between START and END a composition that
    has COMPONENTS and MODIFICATION-FUNC.
 
