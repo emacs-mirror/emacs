@@ -142,8 +142,6 @@ Special commands:
     )
   (make-local-variable 'comment-end)
   (setq comment-end "")
-  (make-local-variable 'comment-column)
-  (setq comment-column 32)
   (setq fill-prefix "\t")
   (run-hooks 'asm-mode-hook))
 
