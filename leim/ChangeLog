@@ -1,3 +1,8 @@
+2002-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
+	Don't define "~," at all.
+
 2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* quail/latin-pre.el (latin-2-prefix): Add ,BL(B and ,Bl(B.

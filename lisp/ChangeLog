@@ -1,3 +1,58 @@
+2002-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el: Require sendmail only at compile time.
+	(mail-mode-header-syntax-table): Var deleted.
+	(mail-abbrev-syntax-table): Init to nil, will compute when needed.
+	(sendmail-pre-abbrev-expand-hook): Only temporarily change
+	local-abbrev-table and the syntax table.
+	Compute mail-abbrev-syntax-table if that has not been done.
+
+	* progmodes/compile.el (grep-compute-defaults): Definition moved up.
+
+	* emacs-lisp/debug.el (debugger-frame-offset): Var deleted.
+	(debugger-frame-number): Figure out the offset directly.
+	(debugger-setup-buffer): Don't use debugger-frame-offset.
+	(debugger-frame, debugger-frame-clear): Likewise.
+	(debugger-jump): Don't alter debugger-frame-offset.
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Replace foo-p as var name with foo-flag, not foo-p-flag.
+
+	* hilit-chg.el (highlight-changes-active-string): Default to +Chg.
+	(highlight-changes-passive-string): Default to -Chg.
+	(highlight-changes-global-modes): Doc fix.
+
+	* dired.el (dired-get-filename): Add /: when appropriate
+	to avoid taking a local name as remote.
+
+	* files.el (file-name-non-special): Add special handling for
+	file-name-sans-versions, file-name-completion, and
+	file-name-all-completions.
+
+	* isearch.el (isearch-update): Don't update display in kbd macro.
+	(isearch-lazy-highlight-new-loop): Do nothing in kbd macro.
+
+	* subr.el (force-mode-line-update): Doc fix.
+
+	* subr.el (atomic-change-group, prepare-change-group) 
+	(activate-change-group, accept-change-group, cancel-change-group):
+	New functions.
+
+	* simple.el (undo-get-state, undo-revert-to-state): Fns deleted.
+	(transpose-subr-1): Use atomic-change-group.
+
+	* subr.el (add-minor-mode): Include the mode's lighter string
+	in the minor mode menu item name.
+
+	* mail/rmail.el (rmail-toggle-header): Avoid possibly slow call to
+	rmail-count-screen-lines starting from (point-min).
+
+	* startup.el (use-fancy-splash-screens-p): Need 19 lines,
+	beyond the image height, to use the fancy splash screen.
+
+	* textmodes/text-mode.el (text-mode-hook-identify): Function deleted.
+	(text-mode): Set text-mode-variant here.
+
 2002-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* play/pong.el (pong-height): Don't use height that exceeds the

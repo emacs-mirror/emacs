@@ -416,6 +416,63 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** Atomic change groups.
+
+To perform some changes in the current buffer "atomically" so that
+they either all succeed or are all undone, use `atomic-change-group'
+around the code that makes changes.  For instance:
+
+  (atomic-change-group
+    (insert foo)
+    (delete-region x y))
+
+If an error (or other nonlocal exit) occurs inside the body of
+`atomic-change-group', it unmakes all the changes in that buffer that
+were during the execution of the body.  The change group has no effect
+on any other buffers--any such changes remain.
+
+If you need something more sophisticated, you can directly call the
+lower-level functions that `atomic-change-group' uses.  Here is how.
+
+To set up a change group for one buffer, call `prepare-change-group'.
+Specify the buffer as argument; it defaults to the current buffer.
+This function returns a "handle" for the change group.  You must save
+the handle to activate the change group and then finish it.
+
+Before you change the buffer again, you must activate the change
+group.  Pass the handle to `activate-change-group' afterward to
+do this.
+
+After you make the changes, you must finish the change group.  You can
+either accept the changes or cancel them all.  Call
+`accept-change-group' to accept the changes in the group as final;
+call `cancel-change-group' to undo them all.
+
+You should use `unwind-protect' to make sure the group is always
+finished.  The call to `activate-change-group' should be inside the
+`unwind-protect', in case the user types C-g just after it runs.
+(This is one reason why `prepare-change-group' and
+`activate-change-group' are separate functions.)  Once you finish the
+group, don't use the handle again--don't try to finish the same group
+twice.
+
+To make a multibuffer change group, call `prepare-change-group' once
+for each buffer you want to cover, then use `nconc' to combine the
+returned values, like this:
+
+  (nconc (prepare-change-group buffer-1)
+         (prepare-change-group buffer-2))
+
+You can then activate the multibuffer change group with a single call
+to `activate-change-group', and finish it with a single call to
+`accept-change-group' or `cancel-change-group'.
+
+Nested use of several change groups for the same buffer works as you
+would expect.  Non-nested use of change groups for the same buffer
+will lead to undesirable results, so don't let it happen; the first
+change group you start for any given buffer should be the last one
+finished.
+
 ** New function substring-no-properties.
 
 +++
