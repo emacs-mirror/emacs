@@ -127,7 +127,22 @@ See the documentation of `quail-define-package' for the other elements.")
   (nth 0 quail-current-package))
 (defsubst quail-title ()
   "Return the title of the current Quail package."
-  (nth 1 quail-current-package))
+  (let ((title (nth 1 quail-current-package)))
+    ;; TITLE may be a string or a list.  If it is a list, each element
+    ;; is a string or the form (VAR STR1 STR2), and the interpretation
+    ;; of the list is the same as that of mode-line-format.
+    (if (stringp title)
+	title
+      (condition-case nil
+	  (mapconcat
+	   (lambda (x) 
+	     (cond ((stringp x) x)
+		   ((and (listp x) (symbolp (car x)) (= (length x) 3))
+		    (if (symbol-value (car x))
+			(nth 1 x) (nth 2 x)))
+		   (t "")))
+	   title "")
+	(error "")))))
 (defsubst quail-map ()
   "Return the translation map of the current Quail package."
   (nth 2 quail-current-package))
