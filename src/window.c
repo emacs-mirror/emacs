@@ -88,6 +88,9 @@ Lisp_Object Vspecial_display_regexps;
 /* Function to pop up a special frame.  */
 Lisp_Object Vspecial_display_function;
 
+/* Hook run at end of temp_output_buffer_show.  */
+Lisp_Object Qtemp_buffer_show_hook;
+
 /* Fdisplay_buffer always splits the largest window 
    if that window is more than this high.  */
 int split_height_threshold;
@@ -2035,6 +2038,9 @@ temp_output_buffer_show (buf)
       set_marker_restricted (w->start, make_number (1), buf);
       set_marker_restricted (w->pointm, make_number (1), buf);
     }
+
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qtemp_buffer_show_hook);
 }
 
 static
@@ -3249,6 +3255,9 @@ syms_of_window ()
 
   Qwindow_live_p = intern ("window-live-p");
   staticpro (&Qwindow_live_p);
+
+  Qtemp_buffer_show_hook = intern ("Qtemp-buffer-show-hook");
+  staticpro (&Qtemp_buffer_show_hook);
 
 #ifndef MULTI_FRAME
   /* Make sure all windows get marked */
