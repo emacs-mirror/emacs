@@ -1,3 +1,8 @@
+2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* faces.el (frame-set-background-mode): `unspecified' &c are
+	symbols, not strings.
+
 2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/tty-colors.el (color-name-rgb-alist): Add a comment
