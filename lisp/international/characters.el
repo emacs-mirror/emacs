@@ -284,7 +284,8 @@
   (while (< row 127)
     (modify-category-entry (make-char 'japanese-jisx0208 row) ?C)
     (setq row (1+ row))))
-(let ((chars '(?ー ?゛ ?゜)))
+(modify-category-entry ?ー ?K)
+(let ((chars '(?゛ ?゜)))
   (while chars
     (modify-category-entry (car chars) ?K)
     (modify-category-entry (car chars) ?H)
