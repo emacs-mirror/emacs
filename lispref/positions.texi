@@ -327,13 +327,13 @@ This function moves point to the beginning of the current line.  With an
 argument @var{count} not @code{nil} or 1, it moves forward
 @var{count}@minus{}1 lines and then to the beginning of the line.
 
-This command does not move point across a field boundary
+This function does not move point across a field boundary
 (@pxref{Fields}) unless doing so would move beyond there to a
-different line; if @var{count} is @code{nil} or 1, and point starts at
-a field boundary, point does not move.  To ignore field boundaries,
-either bind @code{inhibit-field-text-motion} to @code{t}, or use the
-@code{forward-line} function instead.  For instance,
-@code{(forward-line 0)} does the same thing as
+different line; therefore, if @var{count} is @code{nil} or 1, and
+point starts at a field boundary, point does not move.  To ignore
+field boundaries, either bind @code{inhibit-field-text-motion} to
+@code{t}, or use the @code{forward-line} function instead.  For
+instance, @code{(forward-line 0)} does the same thing as
 @code{(beginning-of-line)}, except that it ignores field boundaries.
 
 If this function reaches the end of the buffer (or of the accessible
@@ -352,11 +352,11 @@ This function moves point to the end of the current line.  With an
 argument @var{count} not @code{nil} or 1, it moves forward
 @var{count}@minus{}1 lines and then to the end of the line.
 
-This command does not move point across a field boundary
+This function does not move point across a field boundary
 (@pxref{Fields}) unless doing so would move beyond there to a
-different line; if @var{count} is @code{nil} or 1, and point starts at
-a field boundary, point does not move.  To ignore field boundaries,
-bind @code{inhibit-field-text-motion} to @code{t}.
+different line; therefore, if @var{count} is @code{nil} or 1, and
+point starts at a field boundary, point does not move.  To ignore
+field boundaries, bind @code{inhibit-field-text-motion} to @code{t}.
 
 If this function reaches the end of the buffer (or of the accessible
 portion, if narrowing is in effect), it positions point there.  No error
