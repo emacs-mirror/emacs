@@ -409,16 +409,17 @@ This can take a while for large buffers."
 
 (defun font-lock-set-defaults ()
   "Set `font-lock-keywords' to something appropriate for this mode."
-  (setq font-lock-keywords
-	(cond ((eq major-mode 'lisp-mode)	lisp-font-lock-keywords)
-	      ((eq major-mode 'emacs-lisp-mode)	lisp-font-lock-keywords)
-	      ((eq major-mode 'c-mode)		c-font-lock-keywords)
-	      ((eq major-mode 'c++-c-mode)	c-font-lock-keywords)
-	      ((eq major-mode 'c++-mode)	c++-font-lock-keywords)
-	      ((eq major-mode 'perl-mode)	perl-font-lock-keywords)
-	      ((eq major-mode 'tex-mode)	tex-font-lock-keywords)
-	      ((eq major-mode 'texinfo-mode)	texi-font-lock-keywords)
-	      (t nil))))
+  (if (not font-lock-keywords)		; if not already set.
+      (setq font-lock-keywords
+	    (cond ((eq major-mode 'lisp-mode)	    lisp-font-lock-keywords)
+		  ((eq major-mode 'emacs-lisp-mode) lisp-font-lock-keywords)
+		  ((eq major-mode 'c-mode)	    c-font-lock-keywords)
+		  ((eq major-mode 'c++-c-mode)	    c-font-lock-keywords)
+		  ((eq major-mode 'c++-mode)	    c++-font-lock-keywords)
+		  ((eq major-mode 'perl-mode) 	    perl-font-lock-keywords)
+		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
+		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
+		  (t nil))))
 
 (defconst lisp-font-lock-keywords-1
  '(;;
