@@ -26,26 +26,29 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements a calendar window.  It generates a
-;; calendar for the current month, together with the previous and coming
-;; months, or for any other three-month period.  The calendar can be scrolled
-;; forward and backward in the window to show months in the past or future;
-;; the cursor can move forward and backward by days, weeks, or months, making
-;; it possible, for instance, to jump to the date a specified number of days,
-;; weeks, or months from the date under the cursor.  The user can display a
-;; list of holidays and other notable days for the period shown; the notable
-;; days can be marked on the calendar, if desired.  The user can also specify
-;; that dates having corresponding diary entries (in a file that the user
-;; specifies) be marked; the diary entries for any date can be viewed in a
-;; separate window.  The diary and the notable days can be viewed
-;; independently of the calendar.  Dates can be translated from the (usual)
-;; Gregorian calendar to the day of the year/days remaining in year, to the
-;; ISO commercial calendar, to the Julian (old style) calendar, to the Hebrew
-;; calendar, to the Islamic calendar, to the French Revolutionary calendar, to
-;; the Mayan calendar, to the Chinese calendar, to the Coptic calendar, to the
-;; Ethiopic calendar, and to the astronomical (Julian) day number.  When
-;; floating point is available, times of sunrise/sunset can be displayed, as
-;; can the phases of the moon.  Appointment notification for diary entries is
+;; This collection of functions implements a calendar window.  It
+;; generates a calendar for the current month, together with the
+;; previous and coming months, or for any other three-month period.
+;; The calendar can be scrolled forward and backward in the window to
+;; show months in the past or future; the cursor can move forward and
+;; backward by days, weeks, or months, making it possible, for
+;; instance, to jump to the date a specified number of days, weeks, or
+;; months from the date under the cursor.  The user can display a list
+;; of holidays and other notable days for the period shown; the
+;; notable days can be marked on the calendar, if desired.  The user
+;; can also specify that dates having corresponding diary entries (in
+;; a file that the user specifies) be marked; the diary entries for
+;; any date can be viewed in a separate window.  The diary and the
+;; notable days can be viewed independently of the calendar.  Dates
+;; can be translated from the (usual) Gregorian calendar to the day of
+;; the year/days remaining in year, to the ISO commercial calendar, to
+;; the Julian (old style) calendar, to the Hebrew calendar, to the
+;; Islamic calendar, to the Baha'i calendar, to the French
+;; Revolutionary calendar, to the Mayan calendar, to the Chinese
+;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
+;; the astronomical (Julian) day number.  When floating point is
+;; available, times of sunrise/sunset can be displayed, as can the
+;; phases of the moon.  Appointment notification for diary entries is
 ;; available.  Calendar printing via LaTeX is available.
 
 ;; The following files are part of the calendar/diary code:
@@ -56,6 +59,7 @@
 ;;       cal-dst.el                    Daylight savings time rules
 ;;       cal-hebrew.el                 Hebrew calendar
 ;;       cal-islam.el                  Islamic calendar
+;;       cal-bahai.el                  Baha'i calendar
 ;;       cal-iso.el                    ISO calendar
 ;;       cal-julian.el                 Julian/astronomical calendars
 ;;       cal-mayan.el                  Mayan calendars
@@ -317,6 +321,16 @@ calendar."
   :group 'diary)
 
 ;;;###autoload
+(defcustom all-bahai-calendar-holidays nil
+  "*If nil, show only major holidays from the Baha'i calendar.
+These are the days on which work and school must be suspended.
+
+If t, show all the holidays that would appear in a complete Baha'i
+calendar."
+  :type 'boolean
+  :group 'holidays)
+
+;;;###autoload
 (defcustom calendar-load-hook nil
   "*List of functions to be called after the calendar is first loaded.
 This is the place to add key bindings to `calendar-mode-map'."
@@ -463,21 +477,23 @@ Diary entries can be based on Lisp sexps.  For example, the diary entry
 
       %%(diary-block 11 1 1990 11 10 1990) Vacation
 
-causes the diary entry \"Vacation\" to appear from November 1 through November
-10, 1990.  Other functions available are `diary-float', `diary-anniversary',
-`diary-cyclic', `diary-day-of-year', `diary-iso-date', `diary-french-date',
-`diary-hebrew-date', `diary-islamic-date', `diary-mayan-date',
+causes the diary entry \"Vacation\" to appear from November 1 through
+November 10, 1990.  Other functions available are `diary-float',
+`diary-anniversary', `diary-cyclic', `diary-day-of-year',
+`diary-iso-date', `diary-french-date', `diary-hebrew-date',
+`diary-islamic-date', `diary-bahai-date', `diary-mayan-date',
 `diary-chinese-date', `diary-coptic-date', `diary-ethiopic-date',
 `diary-persian-date', `diary-yahrzeit', `diary-sunrise-sunset',
-`diary-phases-of-moon', `diary-parasha', `diary-omer', `diary-rosh-hodesh',
-and `diary-sabbath-candles'.  See the documentation for the function
-`list-sexp-diary-entries' for more details.
+`diary-phases-of-moon', `diary-parasha', `diary-omer',
+`diary-rosh-hodesh', and `diary-sabbath-candles'.  See the
+documentation for the function `list-sexp-diary-entries' for more
+details.
 
-Diary entries based on the Hebrew and/or the Islamic calendar are also
-possible, but because these are somewhat slow, they are ignored
-unless you set the `nongregorian-diary-listing-hook' and the
-`nongregorian-diary-marking-hook' appropriately.  See the documentation
-for these functions for details.
+Diary entries based on the Hebrew, the Islamic and/or the Baha'i
+calendar are also possible, but because these are somewhat slow, they
+are ignored unless you set the `nongregorian-diary-listing-hook' and
+the `nongregorian-diary-marking-hook' appropriately.  See the
+documentation for these functions for details.
 
 Diary files can contain directives to include the contents of other files; for
 details, see the documentation for the variable `list-diary-entries-hook'."
@@ -499,6 +515,12 @@ details, see the documentation for the variable `list-diary-entries-hook'."
 ;;;###autoload
 (defcustom islamic-diary-entry-symbol "I"
   "*Symbol indicating a diary entry according to the Islamic calendar."
+  :type 'string
+  :group 'diary)
+
+;;;###autoload
+(defcustom bahai-diary-entry-symbol "B"
+  "*Symbol indicating a diary entry according to the Baha'i calendar."
   :type 'string
   :group 'diary)
 
@@ -554,8 +576,9 @@ See the documentation for the function `list-sexp-diary-entries'."
 ;;;###autoload
 (defcustom abbreviated-calendar-year t
   "*Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
-For the Gregorian calendar; similarly for the Hebrew and Islamic calendars.
-If this variable is nil, years must be written in full."
+For the Gregorian calendar; similarly for the Hebrew, Islamic and
+Baha'i calendars.  If this variable is nil, years must be written in
+full."
   :type 'boolean
   :group 'diary)
 
@@ -796,12 +819,15 @@ diary buffer, set the variable `diary-list-include-blanks' to t."
 ;;;###autoload
 (defcustom nongregorian-diary-listing-hook nil
   "*List of functions called for listing diary file and included files.
-As the files are processed for diary entries, these functions are used to cull
-relevant entries.  You can use either or both of `list-hebrew-diary-entries'
-and `list-islamic-diary-entries'.  The documentation for these functions
+As the files are processed for diary entries, these functions are used
+to cull relevant entries.  You can use either or both of
+`list-hebrew-diary-entries', `list-islamic-diary-entries' and
+`list-bahai-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(list-hebrew-diary-entries list-islamic-diary-entries)
+  :options '(list-hebrew-diary-entries
+	     list-islamic-diary-entries
+	     list-bahai-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -825,12 +851,15 @@ function `include-other-diary-files' as part of `list-diary-entries-hook'."
 ;;;###autoload
 (defcustom nongregorian-diary-marking-hook nil
   "*List of functions called for marking diary file and included files.
-As the files are processed for diary entries, these functions are used to cull
-relevant entries.  You can use either or both of `mark-hebrew-diary-entries'
-and `mark-islamic-diary-entries'.  The documentation for these functions
+As the files are processed for diary entries, these functions are used
+to cull relevant entries.  You can use either or both of
+`mark-hebrew-diary-entries', `mark-islamic-diary-entries' and
+`mark-bahai-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(mark-hebrew-diary-entries mark-islamic-diary-entries)
+  :options '(mark-hebrew-diary-entries
+	     mark-islamic-diary-entries
+	     mark-bahai-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -1068,6 +1097,48 @@ See the documentation for `calendar-holidays' for details."
   :group 'holidays)
 
 ;;;###autoload
+(put 'bahai-holidays 'risky-local-variable t)
+;;;###autoload
+(defcustom bahai-holidays
+  '((holiday-fixed
+     3 21
+     (format "Baha'i New Year (Naw-Ruz) %d" (- displayed-year (1- 1844))))
+    (holiday-fixed  4 21 "First Day of Ridvan")
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 22 "Second Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 23 "Third Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 24 "Fourth Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 25 "Fifth Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 26 "Sixth Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 27 "Seventh Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 28 "Eighth Day of Ridvan"))
+    (holiday-fixed  4 29 "Ninth Day of Ridvan")
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  4 30 "Tenth Day of Ridvan"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed  5  1 "Eleventh Day of Ridvan"))
+    (holiday-fixed  5  2 "Twelfth Day of Ridvan")
+    (holiday-fixed  5 23 "Declaration of the Bab")
+    (holiday-fixed  5 29 "Ascension of Baha'u'llah")
+    (holiday-fixed  7  9 "Martyrdom of the Bab")
+    (holiday-fixed 10 20 "Birth of the Bab")
+    (holiday-fixed 11 12 "Birth of Baha'u'llah")
+    (if all-bahai-calendar-holidays
+	(holiday-fixed 11 26 "Day of the Covenant"))
+    (if all-bahai-calendar-holidays
+	(holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
+  "*Baha'i holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+
+;;;###autoload
 (put 'solar-holidays 'risky-local-variable t)
 ;;;###autoload
 (defcustom solar-holidays
@@ -1104,15 +1175,16 @@ See the documentation for `calendar-holidays' for details."
 (defcustom calendar-holidays
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
-          oriental-holidays solar-holidays)
+          bahai-holidays oriental-holidays solar-holidays)
   "*List of notable days for the command \\[holidays].
 
-Additional holidays are easy to add to the list, just put them in the list
-`other-holidays' in your .emacs file.  Similarly, by setting any of
-`general-holidays', `local-holidays' `christian-holidays', `hebrew-holidays',
-`islamic-holidays', `oriental-holidays', or `solar-holidays' to nil in your
-.emacs file, you can eliminate unwanted categories of holidays.  The intention
-is that (in the US) `local-holidays' be set in site-init.el and
+Additional holidays are easy to add to the list, just put them in the
+list `other-holidays' in your .emacs file.  Similarly, by setting any
+of `general-holidays', `local-holidays' `christian-holidays',
+`hebrew-holidays', `islamic-holidays', `bahai-holidays',
+`oriental-holidays', or `solar-holidays' to nil in your .emacs file,
+you can eliminate unwanted categories of holidays.  The intention is
+that (in the US) `local-holidays' be set in site-init.el and
 `other-holidays' be set by the user.
 
 Entries on the list are expressions that return (possibly empty) lists of
@@ -1128,6 +1200,7 @@ Several basic functions are provided for this purpose:
                                DAYNAME after/before MONTH DAY.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
+    (holiday-bahai MONTH DAY STRING)   a fixed date on the Baha'i calendar
     (holiday-julian MONTH DAY STRING)  a fixed date on the Julian calendar
     (holiday-sexp SEXP STRING) SEXP is a Gregorian-date-valued expression
                                in the variable `year'; if it evaluates to
@@ -1155,6 +1228,11 @@ add the Islamic feast celebrating Mohammed's birthday use
      (holiday-islamic 3 12 \"Mohammed's Birthday\")
 
 since the Islamic months are numbered from 1 starting with Muharram.  To
+add an entry for the Baha'i festival of Ridvan, use
+
+     (holiday-bahai 2 13 \"Festival of Ridvan\")
+
+since the Baha'i months are numbered from 1 starting with Baha.  To
 add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
      (holiday-julian 4 2 \"Jefferson's Birthday\")
@@ -1680,6 +1758,14 @@ Driven by the variable `calendar-date-display-form'.")
   "String of Islamic date of Gregorian date."
   t)
 
+(autoload 'calendar-print-bahai-date "cal-bahai"
+  "Show the Baha'i date equivalents of date."
+  t)
+
+(autoload 'calendar-bahai-date-string "cal-bahai"
+  "String of Baha'i date of Gregorian date."
+  t)
+
 (autoload 'calendar-goto-hebrew-date "cal-hebrew"
   "Move cursor to Hebrew date date."
   t)
@@ -1800,6 +1886,21 @@ to the date indicated by point."
 
 (autoload 'insert-yearly-islamic-diary-entry "cal-islam"
   "Insert an annual diary entry for the day of the Islamic year corresponding
+to the date indicated by point."
+  t)
+
+(autoload 'insert-bahai-diary-entry "cal-bahai"
+  "Insert a diary entry for the Baha'i date corresponding to the date
+indicated by point."
+  t)
+
+(autoload 'insert-monthly-bahai-diary-entry "cal-bahai"
+  "Insert a monthly diary entry for the day of the Baha'i month corresponding
+to the date indicated by point."
+  t)
+
+(autoload 'insert-yearly-bahai-diary-entry "cal-bahai"
+  "Insert an annual diary entry for the day of the Baha'i year corresponding
 to the date indicated by point."
   t)
 
@@ -2066,6 +2167,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "ga"  'calendar-goto-astro-day-number)
   (define-key calendar-mode-map "gh"  'calendar-goto-hebrew-date)
   (define-key calendar-mode-map "gi"  'calendar-goto-islamic-date)
+  (define-key calendar-mode-map "gb"  'calendar-goto-bahai-date)
   (define-key calendar-mode-map "gC"  'calendar-goto-chinese-date)
   (define-key calendar-mode-map "gk"  'calendar-goto-coptic-date)
   (define-key calendar-mode-map "ge"  'calendar-goto-ethiopic-date)
@@ -2106,6 +2208,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "pa"  'calendar-print-astro-day-number)
   (define-key calendar-mode-map "ph"  'calendar-print-hebrew-date)
   (define-key calendar-mode-map "pi"  'calendar-print-islamic-date)
+  (define-key calendar-mode-map "pb"  'calendar-print-bahai-date)
   (define-key calendar-mode-map "pf"  'calendar-print-french-date)
   (define-key calendar-mode-map "pm"  'calendar-print-mayan-date)
   (define-key calendar-mode-map "po"  'calendar-print-other-dates)
@@ -2122,6 +2225,9 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "iid" 'insert-islamic-diary-entry)
   (define-key calendar-mode-map "iim" 'insert-monthly-islamic-diary-entry)
   (define-key calendar-mode-map "iiy" 'insert-yearly-islamic-diary-entry)
+  (define-key calendar-mode-map "iBd" 'insert-bahai-diary-entry)
+  (define-key calendar-mode-map "iBm" 'insert-monthly-bahai-diary-entry)
+  (define-key calendar-mode-map "iBy" 'insert-yearly-bahai-diary-entry)
   (define-key calendar-mode-map "?"   'calendar-goto-info-node)
   (define-key calendar-mode-map "tm" 'cal-tex-cursor-month)
   (define-key calendar-mode-map "tM" 'cal-tex-cursor-month-landscape)
@@ -2907,6 +3013,9 @@ Defaults to today's date if DATE is not given."
                         (let ((i (calendar-islamic-date-string date)))
                           (if (not (string-equal i ""))
                               (format "Islamic date (before sunset): %s" i)))
+			(let ((b (calendar-bahai-date-string date)))
+			  (if (not (string-equal b ""))
+			      (format "Baha'i date (before sunset): %s" b)))
                         (format "Chinese date: %s"
                                 (calendar-chinese-date-string date))
                         (let ((c (calendar-coptic-date-string date)))
