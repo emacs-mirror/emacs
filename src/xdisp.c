@@ -5480,9 +5480,20 @@ setup_echo_area_for_printing (multibyte_p)
 
       message_buf_print = 1;
     }
-  else if (current_buffer != XBUFFER (echo_area_buffer[0]))
-    /* Someone switched buffers between print requests.  */
-    set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+  else
+    {
+      if (NILP (echo_area_buffer[0]))
+	{
+	  if (EQ (echo_area_buffer[1], echo_buffer[0]))
+	    echo_area_buffer[0] = echo_buffer[1]; 
+	  else
+	    echo_area_buffer[0] = echo_buffer[0];
+	}
+      
+      if (current_buffer != XBUFFER (echo_area_buffer[0]))
+	/* Someone switched buffers between print requests.  */
+	set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+    }
 }
 
 
@@ -10264,7 +10275,7 @@ try_window_id (w)
   /* Scroll the display.  Do it before changing the current matrix so
      that xterm.c doesn't get confused about where the cursor glyph is
      found.  */
-  if (dy)
+  if (dy && run.height)
     {
       update_begin (f);
 	  
