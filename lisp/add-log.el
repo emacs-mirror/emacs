@@ -27,7 +27,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'fortran))
+(eval-when-compile
+  (require 'fortran)
+  (require 'cl))
 
 (defgroup change-log nil
   "Change log maintenance"
@@ -123,6 +125,30 @@ If this is nil, the default is to use the file's name
 relative to the directory of the change log file."
   :type 'function
   :group 'change-log)
+
+
+(defcustom change-log-version-info-enabled nil
+  "*If non-nil, enable recording version numbers with the changes."
+  :version "21.1"
+  :type 'boolean
+  :group 'change-log)
+
+(defcustom change-log-version-number-regexp-list
+  (let ((re    "\\([0-9]+\.[0-9.]+\\)"))
+    (list
+     ;;  (defconst ad-version "2.15"
+     (concat "^(def[^ \t\n]+[ \t]+[^ \t\n][ \t]\"" re)
+     ;; Revision: pcl-cvs.el,v 1.72 1999/09/05 20:21:54 monnier Exp
+     (concat "^;+ *Revision: +[^ \t\n]+[ \t]+" re)
+     ;; SCCS @(#)igrep.el 2.83
+     (concat "SCCS[ \t]+@(#).*[ \t]+" re)
+     ))
+  "*List of regexps to search for version number.
+Note: The search is conducted only within 10%, at the beginning of the file."
+  :version "21.1"
+  :type '(repeat regexp)
+  :group 'change-log)
+
 
 (defvar change-log-font-lock-keywords
   '(;;
@@ -222,6 +248,52 @@ If nil, use local time.")
 			    (file-name-as-directory name))
 	name))))
 
+(defun change-log-version-rcs (rcs-string &optional end)
+  "Search for plain RCS-STRING from whole buffer up till END.
+The surrounding $ characters fro RCS-STRING are added in this function;
+provide argument e.g. as \"Id\"."
+  (let (str)
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward
+	     (concat "[$]" rcs-string ":[^\n$]+[$]")
+	     end t)
+	(setq str (match-string 0))
+	(when (string-match "[0-9]+\.[0-9.]+" str)
+	  (match-string 0 str))))))
+
+(defun change-log-version-number-search ()
+  "Return version number for the file by searchin version control tags."
+  (let* ((size (buffer-size))
+	 (end
+	  ;;  The version number can be anywhere in the file, but restrict
+	  ;;  search to the file beginning: 10% should be enough to prevent
+	  ;;  some mishits.
+	  ;;
+	  ;;  Apply percentage only if buffer size is bigger than approx 100 lines
+	  (if (> size (* 100 80))
+	      (/ (* (buffer-size) 10) 100)
+	    size))
+	 version)
+
+    ;; Search RCS, CVS version strings
+
+    (dolist (choice '("Revision" "Id"))
+      (when (setq version (change-log-version-rcs choice end))
+	(return)))
+
+    (unless version
+      (dolist (regexp change-log-version-number-regexp-list)
+	(save-excursion
+	  (goto-char (point-min))
+	  (when (re-search-forward regexp end t)
+	    (setq version (match-string 1))
+	    (return)))))
+
+      version
+      ))
+
+
 ;;;###autoload
 (defun find-change-log (&optional file-name)
   "Find a change log file for \\[add-change-log-entry] and return the name.
@@ -310,7 +382,10 @@ non-nil, otherwise in local time."
 	      (read-input "Mailing address: " add-log-mailing-address))))
   (let ((defun (funcall (or add-log-current-defun-function
 			    'add-log-current-defun)))
-	bound entry)
+	(version (and change-log-version-info-enabled
+		      (change-log-version-number-search)))
+	bound
+	entry)
 
     (setq file-name (expand-file-name (find-change-log file-name)))
 
@@ -385,7 +460,8 @@ non-nil, otherwise in local time."
 	   (insert "\n\n\n")
 	   (forward-line -2)
 	   (indent-to left-margin)
-	   (insert "* " (or entry ""))))
+	   (insert "* " (or entry ""))
+	   ))
     ;; Now insert the function name, if we have one.
     ;; Point is at the entry for this file,
     ;; either at the end of the line or at the first blank line.
@@ -398,7 +474,10 @@ non-nil, otherwise in local time."
 			(looking-at "\\s *$"))
 		      ""
 		    " ")
-		  "(" defun "): "))
+		  "(" defun "): "
+		  (if version
+		      (concat version " ")
+		    "")))
       ;; No function name, so put in a colon unless we have just a star.
       (if (not (save-excursion
 		 (beginning-of-line 1)
