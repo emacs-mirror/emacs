@@ -88,7 +88,7 @@ Returns MARKER.")
   /* If position is nil or a marker that points nowhere,
      make this marker point nowhere.  */
   if (NILP (pos)
-      || (XTYPE (pos) == Lisp_Marker && !XMARKER (pos)->buffer))
+      || (MARKERP (pos) && !XMARKER (pos)->buffer))
     {
       unchain_marker (marker);
       return marker;
@@ -145,7 +145,7 @@ set_marker_restricted (marker, pos, buffer)
   /* If position is nil or a marker that points nowhere,
      make this marker point nowhere.  */
   if (NILP (pos) ||
-      (XTYPE (pos) == Lisp_Marker && !XMARKER (pos)->buffer))
+      (MARKERP (pos) && !XMARKER (pos)->buffer))
     {
       unchain_marker (marker);
       return marker;
@@ -271,14 +271,11 @@ at that position in the current buffer.")
 
   while (1)
     {
-      if (XTYPE (marker) == Lisp_Int
-	  || XTYPE (marker) == Lisp_Marker)
+      if (INTEGERP (marker) || MARKERP (marker))
 	{
 	  new = Fmake_marker ();
 	  Fset_marker (new, marker,
-		       ((XTYPE (marker) == Lisp_Marker)
-			? Fmarker_buffer (marker)
-			: Qnil));
+		       (MARKERP (marker) ? Fmarker_buffer (marker) : Qnil));
 	  return new;
 	}
       else
