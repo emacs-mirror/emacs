@@ -383,10 +383,9 @@ Other major modes are defined by comparison with this one."
   "Evaluate EXPRESSION and print value in minibuffer.
 Value is also consed on to front of the variable `values'."
   (interactive
-   (let* ((minibuffer-history-sexp-flag t))
-     (list (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))))
+   (list (read-from-minibuffer "Eval: "
+			       nil read-expression-map t
+			       'read-expression-history)))
   (setq values (cons (eval expression) values))
   (prin1 (car values) t))
 
@@ -394,11 +393,10 @@ Value is also consed on to front of the variable `values'."
   "Prompting with PROMPT, let user edit COMMAND and eval result.
 COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
-  (let* ((minibuffer-history-sexp-flag t)
-	 (command (read-from-minibuffer prompt
-					(prin1-to-string command)
-					read-expression-map t
-					'(command-history . 1))))
+  (let ((command (read-from-minibuffer prompt
+				       (prin1-to-string command)
+				       read-expression-map t
+				       '(command-history . 1))))
     (eval command)))
 
 (defun repeat-complex-command (arg)
