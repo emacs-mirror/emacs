@@ -1871,6 +1871,12 @@ If this is nil, extra highlighting can be \"manually\" removed with
   :type 'number
   :group 'isearch-lazy-highlight)
 
+(defcustom isearch-lazy-highlight-max 20
+  "*Maximum number of matches to highlight."
+  :type '(choice (const :tag "All" nil)
+		 (integer :tag "Some"))
+  :group 'isearch-lazy-highlight)
+
 (defgroup isearch-faces nil
   "Lazy highlighting feature for incremental search."
   :version "21.1"
@@ -1961,7 +1967,10 @@ Attempt to do the search exactly the way the pending isearch would."
 
 (defun isearch-lazy-highlight-update ()
   "Find and highlight the next match in the lazy highlighting loop."
-  (when (not isearch-invalid-regexp)
+  (when (and (not isearch-invalid-regexp)
+	     (or (null isearch-lazy-highlight-max)
+		 (< (length isearch-lazy-highlight-overlays)
+		    isearch-lazy-highlight-max)))
     (save-excursion
       (save-match-data
         (goto-char (if isearch-forward
