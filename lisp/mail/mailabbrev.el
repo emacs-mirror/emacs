@@ -317,7 +317,7 @@ If DEFINITION contains multiple addresses, separate them with commas."
   (setq name (downcase name))
   ;; use an abbrev table instead of an alist for mail-abbrevs.
   (let ((abbrevs-changed abbrevs-changed))  ; protect this from being changed.
-    (define-abbrev mail-abbrevs name definition 'mail-abbrev-expand-hook)))
+    (define-abbrev mail-abbrevs name definition 'mail-abbrev-expand-hook 0 t)))
 
 
 (defun mail-resolve-all-aliases ()
@@ -418,7 +418,12 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
        (looking-at mail-abbrev-mode-regexp))
      ;;
      ;; ...and are we in the headers?
-     (< (point) (mail-header-end)))))
+     (< (point)
+	(save-restriction
+	  (widen)
+	  (save-excursion
+	    (rfc822-goto-eoh)
+	    (point)))))))
 
 (defvar mail-mode-abbrev-table) ; quiet the compiler
 
@@ -464,6 +469,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 			      (if (equal value _)
 				  (set-char-table-range tab key w))))
 		  tab)
+		 (modify-syntax-entry ?@ "w" tab)
 		 (setq mail-abbrev-syntax-table tab)))
 
 	     ;; If the character just typed was non-alpha-symbol-syntax,
