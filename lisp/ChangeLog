@@ -1,5 +1,9 @@
 2004-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/sendmail.el (mail-bury): Don't delete the frame where the
+	mail was being composed if the terminal cannot display more than
+	one frame; instead, switch to previous frame.
+
 	* mail/rmail.el (rmail-mail-new-frame): Doc fix.
 	(rmail-start-mail): Support rmail-mail-new-frame even on
 	terminals that can display only one frame at a time.
