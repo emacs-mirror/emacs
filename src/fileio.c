@@ -170,7 +170,7 @@ Lisp_Object Vauto_save_file_format;
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Function to be called to decide a coding system of a reading file.  */
-Lisp_Object Vauto_file_coding_system_function;
+Lisp_Object Vset_auto_coding_function;
 
 /* Functions to be called to process text properties in inserted file.  */
 Lisp_Object Vafter_insert_file_functions;
@@ -3149,20 +3149,35 @@ This does code conversion according to the value of\n\
       val = Qemacs_mule;
     else
       {
-	if (SYMBOLP (Vauto_file_coding_system_function)
-	    && !NILP (Fboundp (Vauto_file_coding_system_function)))
+	if (SYMBOLP (Vset_auto_coding_function)
+	    && !NILP (Fboundp (Vset_auto_coding_function)))
 	  {
-	    /* Find a coding system specified in a few lines at the
-	       head of the file.  We assume that the fist 1K bytes is
-	       sufficient fot this purpose.  */
-	    int nread = read (fd, read_buf, 1024);
+	    /* Find a coding system specified in the heading two lines
+	       or in the tailing several lines of the file.  We assume
+	       that the 1K-byte and 3K-byte for heading and tailing
+	       respectively are sufficient fot this purpose.  */
+	    int how_many, nread;
+
+	    if (st.st_size <= (1024 * 4))
+	      nread = read (fd, read_buf, 1024 * 4);
+	    else
+	      {
+		nread = read (fd, read_buf, 1024);
+		if (nread >= 0)
+		  {
+		    if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
+		      report_file_error ("Setting file position",
+					 Fcons (filename, Qnil));
+		    nread += read (fd, read_buf + nread, 1024 * 3);
+		  }
+	      }
 	 
 	    if (nread < 0)
 	      error ("IO error reading %s: %s",
 		     XSTRING (filename)->data, strerror (errno));
 	    else if (nread > 0)
 	      {
-		val = call1 (Vauto_file_coding_system_function,
+		val = call1 (Vset_auto_coding_function,
 			     make_string (read_buf, nread));
 		/* Rewind the file for the actual read done later.  */
 		if (lseek (fd, 0, 0) < 0)
@@ -5180,15 +5195,16 @@ The function `find-file-name-handler' checks this list for a handler\n\
 for its argument.");
   Vfile_name_handler_alist = Qnil;
 
-  DEFVAR_LISP ("auto-file-coding-system-function",
-	       &Vauto_file_coding_system_function,
+  DEFVAR_LISP ("set-auto-coding-function",
+	       &Vset_auto_coding_function,
     "If non-nil, a function to call to decide a coding system of file.\n\
-One argument is passed to this function: the string of the first\n\
-few lines of a file to be read.\n\
+One argument is passed to this function: the string of concatination\n\
+or the heading 1K-byte and the tailing 3K-byte of a file to be read.\n\
 This function should return a coding system to decode the file contents\n\
 specified in the heading lines with the format:\n\
-	-*- ... coding: CODING-SYSTEM; ... -*-");
-  Vauto_file_coding_system_function = Qnil;
+	-*- ... coding: CODING-SYSTEM; ... -*-\n\
+or local variable spec of the tailing lines with `coding:' tag.");
+  Vset_auto_coding_function = Qnil;
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
     "A list of functions to be called at the end of `insert-file-contents'.\n\
