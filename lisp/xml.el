@@ -727,14 +727,9 @@ This follows the rule [28] in the XML specifications."
 				(match-string 1 this-part)))))))
 
 	(cond ((null children)
-	       (if (and (eq (length expansion) 1)
-			(stringp (cadr expansion)))
-		   (setq children (concat prev-part expansion))
-		 (if (stringp (car expansion))
-		     (setq children
-			   (list (concat prev-part (car expansion))
-				 (append (cdr expansion))))
-		   (setq children (append expansion prev-part)))))
+	       ;; FIXME: If we have an entity that expands into XML, this won't work.
+	       (setq children
+		     (concat prev-part expansion)))
 	      ((stringp children)
 	       (if (stringp expansion)
 		   (setq children (concat children prev-part expansion))
