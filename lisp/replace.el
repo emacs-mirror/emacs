@@ -1,5 +1,5 @@
 ;; Replace commands for Emacs.
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -17,6 +17,9 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+;;;###autoload (defconst case-replace t "\
+;;;###autoload *Non-nil means query-replace should preserve case in replacements.")
 
 ;;;###autoload
 (defun query-replace (from-string to-string &optional arg)
