@@ -1,3 +1,10 @@
+2004-11-30  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* url-http.el (url-http-handle-cookies): Bind `url-current-object'
+	to `url-http-cookies-sources' so that cookies are attributed to
+	proper domain.
+	(url-http): Make local variable `url-http-cookies-sources'.
+
 2004-11-28  Andreas Schwab  <schwab@suse.de>
 
 	* url-http.el (url-http-create-request): Don't add newline after
