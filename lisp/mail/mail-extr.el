@@ -299,7 +299,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; You will also notice the consideration for the
 ;; Swedish/Finnish/Norwegian character set.
 (defconst mail-extr-all-letters-but-separators
-  (purecopy "][A-Za-z{|}'~0-9`\240-\377"))
+  (purecopy "][[:alnum:]{|}'~`"))
 
 ;; Any character that can occur in a name in an RFC822 address including
 ;; the separator (hyphen and possibly period) for multipart names.
@@ -309,11 +309,11 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 
 ;; Any character that can start a name.
 ;; Keep this set as minimal as possible.
-(defconst mail-extr-first-letters (purecopy "A-Za-z\240-\377"))
+(defconst mail-extr-first-letters (purecopy "[:alpha:]"))
 
 ;; Any character that can end a name.
 ;; Keep this set as minimal as possible.
-(defconst mail-extr-last-letters (purecopy "A-Za-z\240-\377`'."))
+(defconst mail-extr-last-letters (purecopy "[:alpha:]`'."))
 
 (defconst mail-extr-leading-garbage
   (purecopy (format "[^%s]+" mail-extr-first-letters)))
