@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/25 20:17:43 vinicius>
+;; Time-stamp: <2004/02/28 17:58:16 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -28,7 +28,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 (defconst ebnf-version "4.0"
-  "ebnf2ps.el, v 4.0 <2004/02/24 vinicius>
+  "ebnf2ps.el, v 4.0 <2004/02/28 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -302,7 +302,7 @@ Please send all bug fixes and enhancements to
 ;;			`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 ;;
 ;;    `abnf'		ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.faqs.org/rfcs/rfc2234.html'
+;;			`http://www.ietf.org/rfc/rfc2234.txt'
 ;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
@@ -1654,7 +1654,7 @@ Valid values are:
 		`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 
    `abnf'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.faqs.org/rfcs/rfc2234.html'
+		`http://www.ietf.org/rfc/rfc2234.txt'
 		(\"Augmented BNF for Syntax Specifications: ABNF\").
 
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
