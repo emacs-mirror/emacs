@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.34 $")
+(defconst ange-ftp-version "$Revision: 1.35 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2437,6 +2437,8 @@ a listing, then return nil."
     (cond
      ((looking-at "^total [0-9]+$")
       (forward-line 1)
+      ;; Some systems put in a blank line here.
+      (if (eolp) (forward-line 1))
       (ange-ftp-ls-parser))
      ((looking-at "[^\n]+\\( not found\\|: Not a directory\\)\n\\'")
       ;; It's an ls error message.
