@@ -1,7 +1,12 @@
-2001-11-25  Simon Josefsson  <jas@extundo.com>
+2001-11-25  Richard M. Stallman  <rms@gnu.org>
+
+	* language/devan-util.el: Comment out parts of the file
+	which apparently are garbled.
+
+2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mail/smtpmail.el (smtpmail-deduce-address-list): Don't use
-	insert-string.  Suggested by Pavel@Janik.cz (Pavel Jan,Bm(Bk).
+	insert-string.
 
 2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -44,7 +49,8 @@
 2001-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (command-line-1): Don't do startup screen
-	if a subprocess is running.
+	if a subprocess is running.  Call the startup screen buffer
+	"GNU Emacs".  Make a special mode-line-format for it.
 
 	* net/browse-url.el (browse-url-galeon-new-window-is-tab): New var.
 	(browse-url-galeon): Use that variable.
