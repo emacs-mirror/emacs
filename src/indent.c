@@ -676,8 +676,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
   /* The next buffer pos where we should consult the width run cache. */
   int next_width_run = from;
+  Lisp_Object window;
 
   XSETBUFFER (buffer, current_buffer);
+  XSETWINDOW (window, win);
 
   width_run_cache_on_off ();
   if (dp == buffer_display_table ())
@@ -747,8 +749,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      }
 	    /* if the `invisible' property is set, we can skip to
 	       the next property change */
-	    prop = Fget_char_property (position, Qinvisible,
-				       Fcurrent_buffer ());
+	    prop = Fget_char_property (position, Qinvisible, window);
 	    if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	      pos = next_boundary;
 	  }
