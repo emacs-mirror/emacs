@@ -668,6 +668,13 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 			 (t (assoc* key sym :test test))))
 	  sym str)))
 
+;; These variables are just kept for compatibility with code
+;; byte-compiled by Emacs-20.
+(defvar cl-builtin-gethash (symbol-function 'gethash))
+(defvar cl-builtin-remhash (symbol-function 'remhash))
+(defvar cl-builtin-clrhash (symbol-function 'clrhash))
+(defvar cl-builtin-maphash (symbol-function 'maphash))
+
 (defun cl-gethash (key table &optional def)
   "Look up KEY in HASH-TABLE; return corresponding value, or DEFAULT."
   (if (consp table)
