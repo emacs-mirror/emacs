@@ -34,6 +34,24 @@
 
 	* buffer.c (Fset_buffer_multibyte): Fix previous change.
 
+2003-06-01  David Ponce  <david@dponce.com>
+
+	* termhooks.h (enum event_kind): Added new WHEEL_EVENT event.
+	Declare MOUSE_WHEEL_EVENT only if MAC_OSX defined.
+
+	* keyboard.c (Qmouse_wheel): Declare only if MAC_OSX defined.
+	(mouse_wheel_syms, lispy_mouse_wheel_names): Likewise.
+	(discard_mouse_events): Discard WHEEL_EVENT events too.
+	(lispy_wheel_names, wheel_syms): New.
+	(syms_of_keyboard): Init and staticpro `wheel_syms'.  Init and
+	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX
+	defined.
+	(make_lispy_event): Added WHEEL_EVENT handler.
+
+	* w32term.c (construct_mouse_wheel): Construct WHEEL_EVENT.
+	(w32_read_socket): Map w32 WM_MOUSEWHEEL events to Emacs
+	WHEEL_EVENT events.
+
 2003-05-31  John Paul Wallington  <jpw@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): byte-run, float-sup, map-ynp, and
