@@ -1547,6 +1547,7 @@ extern Lisp_Object save_excursion_restore (), save_restriction_restore ();
 extern Lisp_Object Fchar_to_string ();
 
 /* defined in buffer.c */
+extern int overlay_touches_p ();
 extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
 extern Lisp_Object Fget_buffer (), Fget_buffer_create (), Fset_buffer ();
 extern Lisp_Object Fbarf_if_buffer_read_only ();
