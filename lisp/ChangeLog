@@ -1,3 +1,7 @@
+2000-11-05  Andrew Innes  <andrewi@gnu.org>
+
+	* w32-fns.el (w32-version): New function.
+
 2000-11-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/awk-mode.el: Update copyright.

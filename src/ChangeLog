@@ -1,3 +1,21 @@
+2000-11-05  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (x_produce_glyphs): Fix typo in enum name.
+
+	* sysdep.c (read_input_waiting): Remove extraneous argument to
+	read_socket_hook.
+
+	* w32fns.c (Fx_server_version): Include w32_build_number in the
+	return list.
+
+	* w32heap.c (w32_build_number): New variable.
+	(cache_system_info): Set it.
+
+	* w32heap.h (w32_build_number): Add extern.
+
+	* emacs.c (syms_of_emacs): Update docstring for
+	system-configuration, to reflect the actual usage on MS-Windows.
+
 2000-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (read_char) <wrong_kboard>: Make sure that we
