@@ -679,6 +679,32 @@ Return the number of headers removed."
 	     (1+ max)))))
       (message-sort-headers-1))))
 
+(defmacro message-y-or-n-p (question show &rest text)
+  "Ask QUESTION, displaying the rest of the arguments in a temporary buffer."
+  `(message-talkative-question 'y-or-n-p ,question ,show ,@text))
+
+(defun message-talkative-question (ask question show &rest text)
+  "Call FUNCTION with argument QUESTION, displaying the rest of the arguments in a temporary buffer if SHOW.  
+The following arguments may contain lists of values."
+  (if (and show
+	   (setq text (message-flatten-list text)))
+      (save-window-excursion
+	(save-excursion
+	  (with-output-to-temp-buffer " *MESSAGE information message*"
+	    (set-buffer " *MESSAGE information message*")
+	    (mapcar 'princ text)
+	    (goto-char (point-min))))
+	(funcall ask question))
+    (funcall ask question)))
+
+(defun message-flatten-list (&rest list)
+  (message-flatten-list-1 list))
+
+(defun message-flatten-list-1 (list)
+  (cond ((consp list) 
+	 (apply 'nconc (mapcar 'message-flatten-list-1 list)))
+	(list
+	 (list list))))
 
 
 ;;;
@@ -2963,35 +2989,6 @@ Do a `tab-to-tab-stop' if not in those headers."
 	    (display-completion-list (sort completions 'string<)))
 	  (goto-char (point-min))
 	  (pop-to-buffer cur)))))))
-
-;;; Help stuff.
-
-(defmacro message-y-or-n-p (question show &rest text)
-  "Ask QUESTION, displaying the rest of the arguments in a temporary buffer."
-  `(message-talkative-question 'y-or-n-p ,question ,show ,@text))
-
-(defun message-talkative-question (ask question show &rest text)
-  "Call FUNCTION with argument QUESTION, displaying the rest of the arguments in a temporary buffer if SHOW.  
-The following arguments may contain lists of values."
-  (if (and show
-	   (setq text (message-flatten-list text)))
-      (save-window-excursion
-	(save-excursion
-	  (with-output-to-temp-buffer " *MESSAGE information message*"
-	    (set-buffer " *MESSAGE information message*")
-	    (mapcar 'princ text)
-	    (goto-char (point-min))))
-	(funcall ask question))
-    (funcall ask question)))
-
-(defun message-flatten-list (&rest list)
-  (message-flatten-list-1 list))
-
-(defun message-flatten-list-1 (list)
-  (cond ((consp list) 
-	 (apply 'append (mapcar 'message-flatten-list-1 list)))
-	(list
-	 (list list))))
 
 (run-hooks 'message-load-hook)
 
