@@ -101,6 +101,9 @@ struct kboard
     /* Alist of system-specific X windows key symbols.  */
     Lisp_Object Vsystem_key_alist;
 
+    /* Cache for modify_event_symbol.  */
+    Lisp_Object system_key_syms;
+
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object Vdefault_minibuffer_frame;
 
