@@ -1,3 +1,10 @@
+2000-12-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (save_frame_matrix, restore_frame_matrix): Removed.
+	(save_or_restore_current_matrix): New function for the same
+	purpose, but more efficient.
+	(adjust_frame_glyphs_for_frame_redisplay): Use it.
+
 2000-12-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (syms_of_xdisp): Fix last change.
