@@ -36,10 +36,15 @@
 
 ;;;###autoload
 (defvar tex-directory "."
-  "*Directory in which temporary files are left.
+  "*Directory in which temporary files are written.
 You can make this `/tmp' if your TEXINPUTS has no relative directories in it
 and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 `\\input' commands with relative directories.")
+
+;;;###autoload
+(defvar tex-main-file
+  "*The main TeX source file which includes this buffer's file.
+The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil.")
 
 ;;;###autoload
 (defvar tex-offer-save t
@@ -1046,10 +1051,11 @@ See \\[tex-file] for an alternative."
 This function is more useful than \\[tex-buffer] when you need the
 `.aux' file of LaTeX to have the correct name."
   (interactive)
-  (let ((tex-out-file
-         (if (buffer-file-name)
-             (file-name-nondirectory (buffer-file-name))
-           (error "Buffer does not seem to be associated with any file")))
+  (let ((source-file
+	 (or tex-main-file 
+	     (if (buffer-file-name)
+		 (file-name-nondirectory (buffer-file-name))
+	       (error "Buffer does not seem to be associated with any file"))))
 	(file-dir (file-name-directory (buffer-file-name))))
     (if tex-offer-save
         (save-some-buffers))
@@ -1057,7 +1063,7 @@ This function is more useful than \\[tex-buffer] when you need the
         (tex-kill-job)
       (tex-start-shell))
     (tex-send-command tex-shell-cd-command file-dir)
-    (tex-send-command tex-command tex-out-file))
+    (tex-send-command tex-command source-file))
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer))
   (setq tex-print-file (buffer-file-name)))
