@@ -183,7 +183,7 @@ we're in the GUD buffer)."
   ;; This used to use path-separator instead of ":";
   ;; however, we found that on both Windows 32 and MSDOS
   ;; a colon is correct here.
-  (concat "\032\032\\([^" ":" "\n]*\\)" ":"
+  (concat "\032\032\\(.:?[^" ":" "\n]*\\)" ":"
 	  "\\([0-9]*\\)" ":" ".*\n"))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
