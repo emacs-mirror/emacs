@@ -1,4 +1,4 @@
-;;; hexl-mode.el --- edit a file in a hex dump format using the hexl filter.
+;;; hexl.el --- edit a file in a hex dump format using the hexl filter.
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
@@ -62,11 +62,13 @@ and \"-de\" when dehexlfying a buffer.")
 (defvar hexl-options (format "-hex %s" hexl-iso)
   "Options to hexl-program that suit your needs.")
 
-(defvar hexlify-command (format "%s %s" hexl-program hexl-options)
+(defvar hexlify-command
+  (format "%s%s %s" exec-directory hexl-program hexl-options)
   "The command to use to hexlify a buffer.  It is the concatination of
 `hexl-program' and `hexl-options'.")
 
-(defvar dehexlify-command (format "%s -de %s" hexl-program hexl-options)
+(defvar dehexlify-command
+  (format "%s%s -de %s" exec-directory hexl-program hexl-options)
   "The command to use to unhexlify a buffer.  It is the concatination of
 `hexl-program', the option \"-de\", and `hexl-options'.")
 
