@@ -1,3 +1,13 @@
+2000-07-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/vms-pmail.el: Change maintainer to FSF.
+
+	* net/goto-addr.el: Change maintainer to FSF.
+
+	* recentf.el: Update from author.
+
+	* info.el (Info-title-face-alist): Removed.
+	
 2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/eshell.el (eshell): Replace links to eshell.info with
@@ -52,7 +62,7 @@
 
 2000-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* mouse.el (mouse-major-mode-menu-1): get the submenu with lookup-key.
+	* mouse.el (mouse-major-mode-menu-1): Get the submenu with lookup-key.
 
 2000-07-16  Dave Love  <fx@gnu.org>
 

@@ -1,3 +1,11 @@
+2000-07-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloca.c (free) [emacs && EMACS_FREE]: Define as EMACS_FREE.
+
+	* Makefile.in: Add dependencies on dispextern.h.
+	(alloca.o): Don't define malloc and define EMACS_FREE instead of
+	`free'; both can conflict with system header files.
+
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (MAKE_CHAR): Return reasonable code even if CHARSET is

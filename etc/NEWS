@@ -1325,7 +1325,8 @@ and event names in angle brackets.
 
 ** If the variable `message-truncate-lines' is bound to t around a
 call to `message', the echo area will not be resized to display that
-message; it will be truncated instead.
+message; it will be truncated instead, as it was done in 20.x.
+Default value is nil.
 
 ** The user option line-number-display-limit can now be set to nil,
 meaning no limit.
