@@ -316,8 +316,7 @@ This is an interface to the function `load'."
   (interactive "sLoad library: ")
   (load library))
 
-;; OTHER is the other file to be compared.
-(defun file-local-copy (file)
+(defun file-local-copy (file &optional buffer)
   "Copy the file FILE into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
