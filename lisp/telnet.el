@@ -183,7 +183,7 @@ rejecting one login and prompting for the again for a username and password.")
 Communication with HOST is recorded in a buffer *HOST-telnet*.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen telnet connection to host: ")
-  (let* ((comint-delimiter-argument-list '(" " "\t"))
+  (let* ((comint-delimiter-argument-list '(?\  ?\t))
          (name (concat (comint-arguments host 0 nil) "-telnet" ))
 	 (buffer (get-buffer (concat "*" name "*"))))
     (if (and buffer (get-buffer-process buffer))
