@@ -457,7 +457,9 @@ Emacs, but is unlikely to be what you really want now."
 	(t
 	 (let (codings)
 	   (dolist (cs (coding-system-list t))
-	     (let ((cs-charsets (coding-system-get cs :charset-list))
+	     (let ((cs-charsets (and (eq 'charset
+					 (coding-system-get cs :coding-type))
+				     (coding-system-get cs :charset-list)))
 		   (charsets charsets))
 	       (if (coding-system-get cs :ascii-compatible-p)
 		   (add-to-list 'cs-charsets 'ascii))
