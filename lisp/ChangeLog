@@ -1,3 +1,8 @@
+2001-03-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-ccl):
+	Reduce making temporary vector (suggested by by Dave Love).
+
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (transient-mark-mode): Mention ESC ESC ESC in the doc
