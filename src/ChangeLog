@@ -322,6 +322,10 @@
 	* gtkutil.c (xg_initialize): Install bindings for C-g so that
 	dialogs and menus pop down.
 
+2004-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region): Fix calculation of `ratio'.
+
 2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Make the value of
