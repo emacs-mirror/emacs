@@ -1995,9 +1995,11 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0, i_byte = 0; i < leni;)
 	{
 	  int c;
-	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte)
+	  int i_before = i;
+
+	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte);
 	  XSETFASTINT (dummy, c);
-	  vals[i] = call1 (fn, dummy);
+	  vals[i_before] = call1 (fn, dummy);
 	}
     }
   else   /* Must be a list, since Flength did not get an error */
