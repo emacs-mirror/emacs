@@ -1,5 +1,7 @@
 2000-12-06  Dave Love  <fx@gnu.org>
 
+	* md5.h (__P): Don't define -- it comes from config.h.
+
 	* strftime.c: Change some #if foo to #ifdef foo.
 
 2000-12-06  Andrew Innes  <andrewi@gnu.org>

@@ -1,5 +1,14 @@
 2000-12-06  Dave Love  <fx@gnu.org>
 
+	* newcomment.el (comment-region, comment-dwim): Doc fix.
+
+	* textmodes/texinfo.el: Require tex-mode when compiling.
+	(texinfo-update-node): Doc fix.
+	(texinfo-imenu-generic-expression): Add @anchor.
+	(texinfo-font-lock-keywords): Add @uref.
+	(texinfo-inside-macro-p): Don't use ignore-errors.
+	(texinfo-insert-quote): Match more contexts.
+
 	* international/mule.el (decode-char, encode-char): Doc fix.
 	(auto-coding-alist): Customize.
 
