@@ -1437,72 +1437,75 @@ With argument, insert value in current buffer after the form."
       nil)))
 
 (defun byte-compile-output-docform (preface name info form specindex quoted)
-  ;; Print a form with a doc string.  INFO is (prefix doc-index postfix).
-  ;; If PREFACE and NAME are non-nil, print them too,
-  ;; before INFO and the FORM but after the doc string itself.
-  ;; If SPECINDEX is non-nil, it is the index in FORM
-  ;; of the function bytecode string.  In that case,
-  ;; we output that argument and the following argument (the constants vector)
-  ;; together, for lazy loading.
-  ;; QUOTED says that we have to put a quote before the
-  ;; list that represents a doc string reference.
-  ;; `autoload' needs that.
-  (set-buffer
-   (prog1 (current-buffer)
-     (set-buffer outbuffer)
-     (let (position)
+  "Print a form with a doc string.  INFO is (prefix doc-index postfix).
+If PREFACE and NAME are non-nil, print them too,
+before INFO and the FORM but after the doc string itself.
+If SPECINDEX is non-nil, it is the index in FORM
+of the function bytecode string.  In that case,
+we output that argument and the following argument (the constants vector)
+together, for lazy loading.
+QUOTED says that we have to put a quote before the
+list that represents a doc string reference.
+`autoload' needs that."
+  ;; We need to examine byte-compile-dynamic-docstrings
+  ;; in the input buffer (now current), not in the output buffer.
+  (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
+    (set-buffer
+     (prog1 (current-buffer)
+       (set-buffer outbuffer)
+       (let (position)
 
-       ;; Insert the doc string, and make it a comment with #@LENGTH.
-       (and (>= (nth 1 info) 0)
-	    byte-compile-dynamic-docstrings
-	    (progn
-	      ;; Make the doc string start at beginning of line
-	      ;; for make-docfile's sake.
-	      (insert "\n")
-	      (setq position
-		    (byte-compile-output-as-comment
-		     (nth (nth 1 info) form) nil))
-	      ;; If the doc string starts with * (a user variable),
-	      ;; negate POSITION.
-	      (if (and (stringp (nth (nth 1 info) form))
-		       (> (length (nth (nth 1 info) form)) 0)
-		       (eq (aref (nth (nth 1 info) form) 0) ?*))
-		  (setq position (- position)))))
+	 ;; Insert the doc string, and make it a comment with #@LENGTH.
+	 (and (>= (nth 1 info) 0)
+	      dynamic-docstrings
+	      (progn
+		;; Make the doc string start at beginning of line
+		;; for make-docfile's sake.
+		(insert "\n")
+		(setq position
+		      (byte-compile-output-as-comment
+		       (nth (nth 1 info) form) nil))
+		;; If the doc string starts with * (a user variable),
+		;; negate POSITION.
+		(if (and (stringp (nth (nth 1 info) form))
+			 (> (length (nth (nth 1 info) form)) 0)
+			 (eq (aref (nth (nth 1 info) form) 0) ?*))
+		    (setq position (- position)))))
 
-       (if preface
-	   (progn
-	     (insert preface)
-	     (prin1 name outbuffer)))
-       (insert (car info))
-       (let ((print-escape-newlines t)
-	     (print-readably t)		; print #[] for bytecode, 'x for (quote x)
-	     (print-gensym nil)	; this is too dangerous for now
-	     (index 0))
-	 (prin1 (car form) outbuffer)
-	 (while (setq form (cdr form))
-	   (setq index (1+ index))
-	   (insert " ")
-	   (cond ((and (numberp specindex) (= index specindex))
-		  (let ((position
-			 (byte-compile-output-as-comment
-			  (cons (car form) (nth 1 form))
-			  t)))
-		    (princ (format "(#$ . %d) nil" position) outbuffer)
-		    (setq form (cdr form))
-		    (setq index (1+ index))))
-		 ((= index (nth 1 info))
-		  (if position
-		      (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
-				     position)
-			     outbuffer)
-		    (let ((print-escape-newlines nil))
-		      (goto-char (prog1 (1+ (point))
-				   (prin1 (car form) outbuffer)))
-		      (insert "\\\n")
-		      (goto-char (point-max)))))
-		 (t
-		  (prin1 (car form) outbuffer)))))
-       (insert (nth 2 info)))))
+	 (if preface
+	     (progn
+	       (insert preface)
+	       (prin1 name outbuffer)))
+	 (insert (car info))
+	 (let ((print-escape-newlines t)
+	       (print-readably t)	; print #[] for bytecode, 'x for (quote x)
+	       (print-gensym nil)	; this is too dangerous for now
+	       (index 0))
+	   (prin1 (car form) outbuffer)
+	   (while (setq form (cdr form))
+	     (setq index (1+ index))
+	     (insert " ")
+	     (cond ((and (numberp specindex) (= index specindex))
+		    (let ((position
+			   (byte-compile-output-as-comment
+			    (cons (car form) (nth 1 form))
+			    t)))
+		      (princ (format "(#$ . %d) nil" position) outbuffer)
+		      (setq form (cdr form))
+		      (setq index (1+ index))))
+		   ((= index (nth 1 info))
+		    (if position
+			(princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
+				       position)
+			       outbuffer)
+		      (let ((print-escape-newlines nil))
+			(goto-char (prog1 (1+ (point))
+				     (prin1 (car form) outbuffer)))
+			(insert "\\\n")
+			(goto-char (point-max)))))
+		   (t
+		    (prin1 (car form) outbuffer)))))
+	 (insert (nth 2 info))))))
   nil)
 
 (defun byte-compile-keep-pending (form &optional handler)
