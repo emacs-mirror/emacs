@@ -1030,7 +1030,7 @@ paste (in addition to the normal Emacs bindings)."
    :help "Read your mail and reply to it"))
 
 (defun menu-bar-read-mail ()
-  "Read manu using `read-mail-command'."
+  "Read mail using `read-mail-command'."
   (interactive)
   (call-interactively read-mail-command))
 
