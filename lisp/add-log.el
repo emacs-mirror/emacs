@@ -239,12 +239,12 @@ Runs `change-log-mode-hook'."
 	fill-column 74)
   (use-local-map change-log-mode-map)
   ;; Let each entry behave as one paragraph:
-  (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
-  (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
+  (set (make-local-variable 'paragraph-start) "^\\s *$\\|^\f")
+  (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^\f\\|^\\sw")
   ;; Let all entries for one day behave as one page.
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
-  (set (make-local-variable 'page-delimiter) "^\\<\\|^")
+  (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
   (set (make-local-variable 'version-control) 'never)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (run-hooks 'change-log-mode-hook))
