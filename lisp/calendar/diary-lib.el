@@ -1197,33 +1197,34 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
               (m2 (extract-calendar-month last))
               (d2 (extract-calendar-day last))
               (y2 (extract-calendar-year last)))
-         (or (and (= m1 m2); only possible base dates in one month
-                  (or (and (listp month) (memq m1 month))
-                      (= m1 month)
-                      (eq month t))
-                  (let ((d (or day (if (> n 0)
-                                       1
-                                     (calendar-last-day-of-month m1 y1)))))
-                    (and (<= d1 day) (<= day d2))))
-             (and (< m1 m2); only possible base dates straddle two months
-                  (or
-                   ; m1, d1 works is a base date
-                   (and
-                    (or (and (listp month) (memq m1 month))
-                        (= m1 month)
-                        (eq month t))
-                    (<= d1 (or day (if (> n 0)
-                                       1
-                                     (calendar-last-day-of-month m1 y1)))))
-                   ; m2, d2 works is a base date
-                   (and (or (and (listp month) (memq m2 month))
-                            (= m2 month)
-                            (eq month t))
-                        (<= (or day (if (> n 0)
-                                        1
-                                      (calendar-last-day-of-month m2 y2)))
-                            d2)))))
-         entry)))
+	 (if (or (and (= m1 m2)		; only possible base dates in one month
+		      (or (and (listp month) (memq m1 month))
+			  (eq month t)
+			  (= m1 month))
+		      (let ((d (or day (if (> n 0)
+					   1
+					 (calendar-last-day-of-month m1 y1)))))
+			(and (<= d1 d) (<= d d2))))
+		 ;; only possible base dates straddle two months
+		 (and (< m1 m2)
+		      (or
+		       ;; m1, d1 works is a base date
+		       (and
+			(or (and (listp month) (memq m1 month))
+			    (eq month t)
+			    (= m1 month))
+			(<= d1 (or day (if (> n 0)
+					   1
+					 (calendar-last-day-of-month m1 y1)))))
+		       ;; m2, d2 works is a base date
+		       (and (or (and (listp month) (memq m2 month))
+				(eq month t)
+				(= m2 month))
+			    (<= (or day (if (> n 0)
+					    1
+					  (calendar-last-day-of-month m2 y2)))
+				d2)))))
+	     entry))))
 
 (defun diary-anniversary (month day year)
   "Anniversary diary entry.
