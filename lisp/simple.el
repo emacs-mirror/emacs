@@ -2103,7 +2103,7 @@ the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
 This is the primitive for programs to kill text (as opposed to deleting it).
-Supply two arguments, character numbers indicating the stretch of text
+Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
