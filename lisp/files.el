@@ -1282,7 +1282,13 @@ run `normal-mode' explicitly."
     ;; _emacs following a directory delimiter
     ;; in MsDos syntax
     ("[:/]_emacs\\'" . emacs-lisp-mode)
-    ("\\.ml\\'" . lisp-mode))
+    ("\\.ml\\'" . lisp-mode)
+    ("\\.asn$" . snmp-mode)
+    ("\\.mib$" . snmp-mode)
+    ("\\.smi$" . snmp-mode)
+    ("\\.as2$" . snmpv2-mode)
+    ("\\.mi2$" . snmpv2-mode)
+    ("\\.sm2$" . snmpv2-mode))
   "\
 Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
