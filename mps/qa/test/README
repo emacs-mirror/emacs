@@ -1,6 +1,7 @@
 $HopeName: MMQA_harness!README(trunk.1) $
 
-This is release tray of the MMQA test harness.
-Run 'perl qa help' for (very limited) help, or ask
-Richard Tucker <rit> to explain things.
+This is the trunk of the QA harness for MM testing.
+To run tests, you should use the latest version --
+checkout MMQA_harness!(MMQA_tray).
+
 
