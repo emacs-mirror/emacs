@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.18 2002/10/04 15:25:22 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.19 2002/10/10 13:01:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -115,6 +115,7 @@ Used in `smerge-diff-base-mine' and related functions."
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
     ("p" . smerge-prev)
+    ("r" . smerge-resolve)
     ("a" . smerge-keep-all)
     ("b" . smerge-keep-base)
     ("o" . smerge-keep-other)
@@ -248,6 +249,21 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
 	(dolist (m match-data) (if m (move-marker m nil)))
 	(mapc (lambda (m) (if m (move-marker m nil))) ends)))))
 
+(defvar smerge-resolve-function
+  (lambda () (error "Don't know how to resolve"))
+  "Mode-specific merge function.
+The function is called with no argument and with the match data set
+according to `smerge-match-conflict'.")
+
+(defun smerge-resolve ()
+  "Resolve the conflict at point intelligently.
+This relies on mode-specific knowledge and thus only works in
+some major modes.  Uses `smerge-resolve-function' to do the actual work."
+  (interactive)
+  (smerge-match-conflict)
+  (funcall smerge-resolve-function)
+  (smerge-auto-leave))
+
 (defun smerge-keep-base ()
   "Revert to the base version."
   (interactive)
@@ -317,7 +333,7 @@ An error is raised if not inside a conflict."
 
 	       (start (match-beginning 0))
 	       (mine-start (match-end 0))
-	       (filename (match-string 1))
+	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
 	       (_ (assert (< orig-point (match-end 0))))
