@@ -1364,7 +1364,7 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
   "Visit the source for the error message at point.
 Use this command in a compilation log buffer.  Sets the mark at point there."
   (interactive (list last-input-event))
-  (mouse-set-point event)
+  (if event (posn-set-point (event-end event)))
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (if (get-text-property (point) 'directory)
