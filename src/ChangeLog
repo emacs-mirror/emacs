@@ -1,3 +1,7 @@
+1999-11-02  Dave Love  <fx@gnu.org>
+
+	* eval.c (init_eval): Conditionalize declaration of gcpro_level.
+
 1999-11-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (QCuser_data): New.
