@@ -1,3 +1,34 @@
+2003-05-31  Juanma Barranquero  <lektu@terra.es>
+
+	* misc.el (mark-beginning-of-buffer, mark-end-of-buffer)
+	(upcase-char, forward-to-word, backward-to-word): Moved from
+	unused.el.
+
+	* unused.el: Deleted (contents moved to misc.el).
+
+	* options.el:
+	* emacs-lisp/float.el:
+	* textmodes/scribe.el: Moved to obsolete.
+
+	* byte-run.el:
+	* derived.el:
+	* float-sup.el:
+	* map-ynp.el:
+	* regi.el:
+	* timer.el:
+	* warnings.el: Moved to emacs-lisp.
+
+	* enriched.el: Moved to textmodes.
+
+	* textmodes/outline.el: Moved to lisp.
+
+	* which-func.el: Moved to progmodes.
+
+2003-05-31  Tom Wurgler  <twurgler@goodyear.com>  (tiny change)
+
+	* subr.el (looking-back): New function to check for regular
+	expression before point.
+
 2003-05-30  Mark A. Hershberger  <mah@everybody.org>  (tiny change)
 
 	* xml.el (xml-parse-tag): Fix bug: Handle both styles
