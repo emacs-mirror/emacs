@@ -69,7 +69,15 @@ enum define_coding_ccl_arg_index
     coding_arg_ccl_max
   };
 
+/* Hash table for all coding systems.  Keys are coding system symbols
+   and values are spec vectors of the corresponding coding system.  A
+   spec vector has the form [ ATTRS ALIASES EOL-TYPE ].  ATTRS is a
+   vector of attribute of the coding system.  ALIASES is a list of
+   aliases (symbols) of the coding system.  EOL-TYPE is `unix', `dos',
+   `mac' or a vector of coding systems (symbols).  */
+
 extern Lisp_Object Vcoding_system_hash_table;
+
 
 /* Enumeration of coding system type.  */
 
@@ -147,6 +155,8 @@ enum coding_attr_index
   };
 
 
+/* Macros to access an element of an attribute vector.  */
+
 #define CODING_ATTR_BASE_NAME(attrs)	AREF (attrs, coding_attr_base_name)
 #define CODING_ATTR_TYPE(attrs)		AREF (attrs, coding_attr_type)
 #define CODING_ATTR_CHARSET_LIST(attrs)	AREF (attrs, coding_attr_charset_list)
@@ -166,27 +176,44 @@ enum coding_attr_index
 #define CODING_ATTR_SAFE_CHARSETS(attrs)AREF (attrs, coding_attr_safe_charsets)
 
 
+/* Return the name of a coding system specified by ID.  */
+#define CODING_ID_NAME(id) \
+  (HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id))
+
+/* Return the attribute vector of a coding system specified by ID.  */
+
 #define CODING_ID_ATTRS(id)	\
   (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 0))
+
+/* Return the list of aliases of a coding system specified by ID.  */
 
 #define CODING_ID_ALIASES(id)	\
   (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 1))
 
+/* Return the eol-type of a coding system specified by ID.  */
+
 #define CODING_ID_EOL_TYPE(id)	\
   (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 2))
 
-#define CODING_ID_NAME(id) \
-  (HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id))
+
+/* Return the spec vector of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_SPEC(coding_system_symbol)	\
   (Fgethash (coding_system_symbol, Vcoding_system_hash_table, Qnil))
+
+
+/* Return the ID of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_ID(coding_system_symbol)			\
   hash_lookup (XHASH_TABLE (Vcoding_system_hash_table),		\
 	       coding_system_symbol, NULL)
 
+/* Return 1 iff CODING_SYSTEM_SYMBOL is a coding system.  */
+
 #define CODING_SYSTEM_P(coding_system_symbol)	\
   (! NILP (CODING_SYSTEM_SPEC (coding_system_symbol)))
+
+/* Check if X is a coding system or not.  */
 
 #define CHECK_CODING_SYSTEM(x)				\
   do {							\
@@ -195,6 +222,9 @@ enum coding_attr_index
   } while (0)
 
 
+/* Check if X is a coding system or not.  If it is, set SEPC to the
+   spec vector of the coding system.  */
+
 #define CHECK_CODING_SYSTEM_GET_SPEC(x, spec)		\
   do {							\
     spec = CODING_SYSTEM_SPEC (x);			\
@@ -202,6 +232,9 @@ enum coding_attr_index
       x = wrong_type_argument (Qcoding_system_p, (x));	\
   } while (0)
 
+
+/* Check if X is a coding system or not.  If it is, set ID to the
+   ID of the coding system.  */
 
 #define CHECK_CODING_SYSTEM_GET_ID(x, id)			\
   do								\
@@ -248,6 +281,8 @@ enum coding_result_code
 
 #define CODING_MODE_FIXED_DESTINATION		0x10
 
+/* If set, it means that the encoding routines produces some safe
+   ASCII characters (usually '?') for unsupported characters.  */
 #define CODING_MODE_SAFE_ENCODING		0x20
 
 /* Structure of the field `spec.iso_2022' in the structure
@@ -374,6 +409,8 @@ struct coding_system
   Lisp_Object dst_object;
   unsigned char *destination;
 
+  /* Set to 1 iff the source of conversion is not in the member
+     `charbuf', but at `src_object'.  */
   int chars_at_source;
 
   /* If an element is non-negative, it is a character code.
@@ -621,6 +658,8 @@ extern void decode_coding_object P_ ((struct coding_system *,
 extern void encode_coding_object P_ ((struct coding_system *,
 				      Lisp_Object, EMACS_INT, EMACS_INT,
 				      EMACS_INT, EMACS_INT, Lisp_Object));
+
+/* Macros for backward compatibility.  */
 
 #define decode_coding_region(coding, from, to)		\
   decode_coding_object (coding, Fcurrent_buffer (),	\
