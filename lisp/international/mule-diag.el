@@ -80,7 +80,8 @@ The FINAL-CHAR column contains an ISO-2022's <final-char> to use for
 With prefix arg, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref (list #'list-character-sets arg) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (if arg
 	  (list-character-sets-2)
@@ -113,8 +114,7 @@ but still shows the full information."
 	(insert "------\t------------\t\t\t--------------\t- -- ----------\n")
 
 	;; Insert body sorted by charset IDs.
-	(list-character-sets-1 'id)
-	(help-setup-xref (list #'list-character-sets arg) (interactive-p))))))
+	(list-character-sets-1 'id)))))
 
 
 ;; Sort character set list by SORT-KEY.
@@ -122,13 +122,13 @@ but still shows the full information."
 (defun sort-listed-character-sets (sort-key)
   (if sort-key
       (save-excursion
+	(help-setup-xref (list #'list-character-sets nil) t)
 	(let ((buffer-read-only nil))
 	  (goto-char (point-min))
 	  (re-search-forward "[0-9][0-9][0-9]")
 	  (beginning-of-line)
 	  (delete-region (point) (point-max))
-	  (list-character-sets-1 sort-key)
-	  (help-setup-xref (list #'list-character-sets nil) t)))))
+	  (list-character-sets-1 sort-key)))))
 
 (defun charset-multibyte-form-string (charset)
   (let ((info (charset-info charset)))
@@ -487,9 +487,9 @@ detailed meanings of these arguments."
   (or (charsetp charset)
       (error "Invalid charset: %S" charset))
   (let ((info (charset-info charset)))
-    (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
+    (help-setup-xref (list #'describe-character-set charset) (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
 	(insert "Character set: " (symbol-name charset)
 		(format " (ID:%d)\n\n" (aref info 0)))
 	(insert (aref info 13) "\n\n")	; description
@@ -509,10 +509,7 @@ detailed meanings of these arguments."
 	  (when coding
 	    (insert (format "preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
-	    (help-xref-button 0 'help-coding-system coding)))
-	(help-setup-xref (list #'describe-character-set charset)
-			 (interactive-p))
-	))))
+	    (help-xref-button 0 'describe-coding-system coding)))))))
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
@@ -556,7 +553,10 @@ which font is being used for displaying the character."
 		      (format "%d" (nth 1 split))
 		    (format "%d %d" (nth 1 split) (nth 2 split)))))
 	      ("syntax"
-	       ,(nth 2 (assq (char-syntax char) syntax-code-table)))
+	       ,(let ((syntax (aref (syntax-table) char)))
+		  (with-temp-buffer
+		    (internal-describe-syntax-value syntax)
+		    (buffer-string))))
 	      ("category"
 	       ,@(let ((category-set (char-category-set char)))
 		   (if (not category-set)
@@ -594,7 +594,9 @@ which font is being used for displaying the character."
 	  (dolist (elt item-list)
 	    (insert (format formatter (car elt)))
 	    (dolist (clm (cdr elt))
-	      (when (>= (+ (current-column) (string-width clm) 1)
+	      (when (>= (+ (current-column)
+			   (or (string-match "\n" clm)
+			       (string-width clm)) 1)
 			(frame-width))
 		(insert "\n")
 		(indent-to (1+ max-width)))
@@ -666,7 +668,9 @@ which font is being used for displaying the character."
   (interactive "zDescribe coding system (default, current choices): ")
   (if (null coding-system)
       (describe-current-coding-system)
-    (with-output-to-temp-buffer "*Help*"
+    (help-setup-xref (list #'describe-coding-system coding-system)
+		     (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
       (let ((coding-spec (coding-system-spec coding-system)))
 	(princ "Type: ")
@@ -731,8 +735,7 @@ which font is being used for displaying the character."
 	  (princ "\n  ")
 	  (princ prewrite)
 	  (princ "\n")))
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(let ((charsets (coding-system-get coding-system 'safe-charsets)))
 	  (when (and (not (memq (coding-system-base coding-system)
 				'(raw-text emacs-mule)))
@@ -746,9 +749,7 @@ eight-bit-control and eight-bit-graphic.\n")
 		(search-backward (symbol-name (car charsets)))
 		(help-xref-button 0 'help-character-set (car charsets))
 		(goto-char (point-max))
-		(setq charsets (cdr charsets))))))
-	(help-setup-xref (list #'describe-coding-system coding-system)
-			 (interactive-p))))))
+		(setq charsets (cdr charsets))))))))))
 
 
 ;;;###autoload
@@ -844,8 +845,7 @@ at the place of `..':
       (princ "  encoding: ")
       (print-coding-system-briefly (cdr default-process-coding-system)))
 
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
 
       (princ "\nPriority order for recognizing coding systems when reading files:\n")
       (let ((l coding-category-list)
@@ -1170,9 +1170,9 @@ This shows which font is used for which character(s)."
       (setq fontset (cdr (assq 'font (frame-parameters)))))
   (if (not (setq fontset (query-fontset fontset)))
       (error "Current frame is using font, not fontset"))
-  (with-output-to-temp-buffer "*Help*"
-    (save-excursion
-      (set-buffer standard-output)
+  (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
+    (with-current-buffer standard-output
       (print-fontset fontset t))))
 
 ;;;###autoload
@@ -1184,10 +1184,10 @@ see the function `describe-fontset' for the format of the list."
   (interactive "P")
   (if (not (and window-system (fboundp 'fontset-list)))
       (error "No fontsets being used")
-    (with-output-to-temp-buffer "*Help*"
-      (save-excursion
+    (help-setup-xref (list #'list-fontsets arg) (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
 	;; This code is duplicated near the end of mule-diag.
-	(set-buffer standard-output)
 	(let ((fontsets
 	       (sort (fontset-list)
 		     (function (lambda (x y)
@@ -1259,8 +1259,7 @@ character sets, and fontsets (if Emacs is running under a window
 system which uses fontsets)."
   (interactive)
   (with-output-to-temp-buffer "*Mule-Diagnosis*"
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (insert "###############################################\n"
 	      "### Current Status of Multilingual Features ###\n"
 	      "###############################################\n\n"
@@ -1348,8 +1347,7 @@ The file is saved in the directory `data-directory'."
 	(error "Can't write to file %s" file))
     (setq buf (find-file-noselect file))
     (save-window-excursion
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(setq buffer-read-only nil)
 	(erase-buffer)
 	(list-character-sets-2)
@@ -1371,8 +1369,7 @@ The file is saved in the directory `data-directory'."
 	(error "Can't write to file %s" file))
     (setq buf (find-file-noselect file))
     (save-window-excursion
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(setq buffer-read-only nil)
 	(erase-buffer)
 	(list-coding-systems t)
