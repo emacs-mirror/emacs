@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.21) $
+ * $HopeName: MMsrc!mpm.h(trunk.22) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  */
 
@@ -13,6 +13,7 @@
 
 #include "mpmtypes.h"
 #include "mpmst.h"
+#include "event.h"
 #include "lock.h"
 #include "th.h"
 #include "poolmv.h"

@@ -1,7 +1,7 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.17) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(trunk.18) $
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
  * .design: design.mps.type
@@ -65,6 +65,7 @@ typedef struct ArenaStruct *Arena;      /* impl.c.arena* */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
+typedef Word EventType;                 /* impl.c.event */
 
 
 /* Pool*Method -- see design.mps.class-interface */
@@ -176,7 +177,6 @@ enum {
   RootFMT
 };
 
-
 /* Boolean Constants -- see design.mps.type.bool */
 
 enum {
@@ -212,5 +212,26 @@ typedef unsigned long WriteFU;
 typedef unsigned long WriteFB;
 typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
+
+
+/* These names are intended to be mnemonic. They are derived from selected
+ * letters as indicated, using the transliteration in design.mps.sig. 
+ */
+
+#define EventEventTime     ((EventType)0xEF213E77) /* EVent TIME */
+#define EventSpaceCreate   ((EventType)0xEF5BCC4E) /* EVent SPaCe CREate */
+#define EventSpaceDestroy  ((EventType)0xEF5BCDE5) /* EVent SPaCe DEStroy */
+#define EventPoolInit      ((EventType)0xEFB01191) /* EVent POoL INIt */
+#define EventPoolFinish    ((EventType)0xEFB01F19) /* EVent POoL FINish */
+#define EventPoolAlloc     ((EventType)0xEFB01A11) /* EVent POoL ALLoc */
+#define EventPoolFree      ((EventType)0xEFB01F4E) /* EVent POoL FREe */
+#define EventArenaCreate   ((EventType)0xEFA49C4E) /* EVent AReNa CREate */
+#define EventArenaDestroy  ((EventType)0xEFA49DE5) /* EVent AReNa DEStroy */
+#define EventSegAlloc      ((EventType)0xEF5E9A11) /* EVent SEG ALLoc */
+#define EventSegFree	   ((EventType)0xEF5E9F4E) /* EVent SEG FREe */
+#define EventVMCreate      ((EventType)0xEFF3C4EA) /* EVent VM CREAte */
+#define EventVMDestroy     ((EventType)0xEFF3DE52) /* EVent VM DESTroy */
+#define EventVMMap         ((EventType)0xEFF33AB7) /* EVent VM MAP */
+#define EventVMUnmap       ((EventType)0xEFF3093B) /* EVent VM UNMaP */
 
 #endif /* mpmtypes_h */
