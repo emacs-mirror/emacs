@@ -1,3 +1,8 @@
+2002-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (in-is13194-devanagari): Fix
+	:post-read-conversion and :pre-write-conversion.
+
 2002-10-16  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (charset): Supply doc, :tag.
