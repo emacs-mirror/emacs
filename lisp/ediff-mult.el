@@ -126,6 +126,7 @@ Useful commands:
      h:\tmark session for hiding (toggle)
      x:\thide marked sessions; with prefix arg: unhide
      m:\tmark session for a non-hiding operation (toggle)
+ uh/um:\tunmark all sessions marked for hiding/operation
  n,SPC:\tnext session
  p,DEL:\tprevious session
      E:\tbrowse Ediff on-line manual
@@ -293,7 +294,11 @@ buffers."
   (define-key ediff-meta-buffer-map  [delete]  'ediff-previous-meta-item)
   (define-key ediff-meta-buffer-map  [backspace]  'ediff-previous-meta-item)
   (or (ediff-one-filegroup-metajob)
-      (define-key ediff-meta-buffer-map "=" 'ediff-meta-mark-equal-files))
+      (progn
+	(define-key ediff-meta-buffer-map "=" nil)
+	(define-key ediff-meta-buffer-map "==" 'ediff-meta-mark-equal-files)
+	(define-key ediff-meta-buffer-map "=m" 'ediff-meta-mark-equal-files)
+	(define-key ediff-meta-buffer-map "=h" 'ediff-meta-mark-equal-files)))
   (if ediff-no-emacs-help-in-control-buffer
       (define-key ediff-meta-buffer-map  "\C-h"  'ediff-previous-meta-item))
   (if ediff-emacs-p
@@ -682,17 +687,23 @@ behavior."
 
 	    (or (ediff-one-filegroup-metajob jobname)
 		(ediff-draw-dir-diffs ediff-dir-difference-list))
-	    (define-key ediff-meta-buffer-map "h" 'ediff-mark-for-hiding)
+	    (define-key 
+	      ediff-meta-buffer-map "h" 'ediff-mark-for-hiding-at-pos)
+	    (define-key ediff-meta-buffer-map "x" 'ediff-hide-marked-sessions)
+	    (define-key 
+	      ediff-meta-buffer-map "m" 'ediff-mark-for-operation-at-pos)
+	    (define-key ediff-meta-buffer-map "u" nil)
 	    (define-key
-	      ediff-meta-buffer-map "x" 'ediff-hide-marked-sessions)
-	    (define-key ediff-meta-buffer-map "m" 'ediff-mark-for-operation)
+	      ediff-meta-buffer-map "um" 'ediff-unmark-all-for-operation)
+	    (define-key 
+	      ediff-meta-buffer-map "uh" 'ediff-unmark-all-for-hiding)
 	    (cond ((ediff-collect-diffs-metajob jobname)
 		   (define-key
 		     ediff-meta-buffer-map "P" 'ediff-collect-custom-diffs))
 		  ((ediff-patch-metajob jobname)
 		   (define-key
 		     ediff-meta-buffer-map "P" 'ediff-meta-show-patch)))
-	    (define-key ediff-meta-buffer-map "u" 'ediff-up-meta-hierarchy)
+	    (define-key ediff-meta-buffer-map "^" 'ediff-up-meta-hierarchy)
 	    (define-key ediff-meta-buffer-map "D" 'ediff-show-dir-diffs)))
 
       (if (eq ediff-metajob-name 'ediff-registry)
@@ -802,11 +813,13 @@ behavior."
 	     (insert
 	      "     P:\tshow patch appropriately for the context (session or group)\n")))
       (insert
-       "     u:\tshow parent session group\n")
+       "     ^:\tshow parent session group\n")
       (or (ediff-one-filegroup-metajob)
 	  (insert
 	   "     D:\tshow differences among directories\n"
-	   "     =:\tmark identical files in each session\n\n"))
+	   "    ==:\tfor each session, show which files are identical\n"
+	   "    =h:\tlike ==, but also marks those sessions for hiding\n"
+	   "    =m:\tlike ==, but also marks those sessions for operation\n\n"))
 
       (insert "\n")
       (if (and (stringp regexp) (> (length regexp) 0))
@@ -1257,28 +1270,37 @@ Useful commands:
     (if (numberp session-number)
 	(ediff-overlay-put overl 'ediff-meta-session-number session-number))))
 
-(defun ediff-mark-for-hiding (unmark)
+(defun ediff-mark-for-hiding-at-pos (unmark)
   "Mark session for hiding. With prefix arg, unmark."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
 	 (meta-buf (ediff-event-buffer last-command-event))
 	 ;; ediff-get-meta-info gives error if meta-buf or pos are invalid
 	 (info (ediff-get-meta-info meta-buf pos))
-	 (session-buf (ediff-get-session-buffer info))
 	 (session-number (ediff-get-session-number-at-pos pos)))
-    (if (eq (ediff-get-session-status info) ?H)
-	(setq unmark t))
-    (if unmark
-	(ediff-set-session-status info nil)
-      (if (ediff-buffer-live-p session-buf)
-	  (error "Can't hide active session, %s" (buffer-name session-buf)))
-      (ediff-set-session-status info ?H))
-    (or unmark
-	(ediff-next-meta-item 1))
-    (ediff-update-meta-buffer meta-buf nil session-number)
+    (ediff-mark-session-for-hiding info unmark)
+    (ediff-next-meta-item 1)
+    (save-excursion
+      (ediff-update-meta-buffer meta-buf nil session-number))
     ))
 
-(defun ediff-mark-for-operation (unmark)
+;; Returns whether session was marked or unmarked
+(defun ediff-mark-session-for-hiding (info unmark)
+  (let ((session-buf (ediff-get-session-buffer info))
+	ignore)
+    (cond ((eq unmark 'mark) (setq unmark nil))
+	  ((eq (ediff-get-session-status info) ?H) (setq unmark t))
+	  (unmark  ; says unmark, but the marker is different from H
+	   (setq ignore t)))
+    (cond (ignore)
+	  (unmark (ediff-set-session-status info nil))
+;;;   (if (ediff-buffer-live-p session-buf)
+;;;	  (error "Can't hide active session, %s" (buffer-name session-buf)))
+	  (t (ediff-set-session-status info ?H))))
+  unmark)
+  
+
+(defun ediff-mark-for-operation-at-pos (unmark)
   "Mark session for a group operation. With prefix arg, unmark."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
@@ -1286,15 +1308,26 @@ Useful commands:
 	 ;; ediff-get-meta-info gives error if meta-buf or pos are invalid
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (session-number (ediff-get-session-number-at-pos pos)))
-    (if (eq (ediff-get-session-status info) ?*)
-	(setq unmark t))
-    (if unmark
-	(ediff-set-session-status info nil)
-      (ediff-set-session-status info ?*))
-    (or unmark
-	(ediff-next-meta-item 1))
-    (ediff-update-meta-buffer meta-buf nil session-number)
+    (ediff-mark-session-for-operation info unmark)
+    (ediff-next-meta-item 1)
+    (save-excursion
+      (ediff-update-meta-buffer meta-buf nil session-number))
     ))
+
+
+;; returns whether session was unmarked.
+;; remember: this is a toggle op
+(defun ediff-mark-session-for-operation (info unmark)
+  (let (ignore)
+    (cond ((eq unmark 'mark) (setq unmark nil))
+	  ((eq (ediff-get-session-status info) ?*) (setq unmark t))
+	  (unmark  ; says unmark, but the marker is different from *
+	   (setq ignore t)))
+    (cond (ignore)
+	  (unmark (ediff-set-session-status info nil))
+	  (t (ediff-set-session-status info ?*))))
+  unmark)
+
 
 (defun ediff-hide-marked-sessions (unhide)
   "Hide marked sessions. With prefix arg, unhide."
@@ -1980,11 +2013,31 @@ If this is a session registry buffer then just bury it."
 	(ediff-patch-file-internal meta-patchbuf file startup-hooks)))))
 
 
+(defun ediff-unmark-all-for-operation ()
+  "Unmark all sessions marked for operation."
+  (interactive)
+  (let ((list (cdr ediff-meta-list)))
+    (while (setq elt (car list))
+      (ediff-mark-session-for-operation elt 'unmark)
+      (setq list (cdr list))))
+  (ediff-update-meta-buffer (current-buffer) 'must-redraw))
+
+(defun ediff-unmark-all-for-hiding ()
+  "Unmark all sessions marked for hiding."
+  (interactive)
+  (let ((list (cdr ediff-meta-list)))
+    (while (setq elt (car list))
+      (ediff-mark-session-for-hiding elt 'unmark)
+      (setq list (cdr list))))
+  (ediff-update-meta-buffer (current-buffer) 'must-redraw))
+
+
 (defun ediff-meta-mark-equal-files ()
   "Run though the session list and mark identical files.
 This is used only for sessions that involve 2 or 3 files at the same time."
   (interactive)
   (let ((list (cdr ediff-meta-list))
+	marked1 marked2 marked3
 	fileinfo1 fileinfo2 fileinfo3 elt)
     (while (setq elt (car list))
       (setq fileinfo1 (ediff-get-session-objA elt)
@@ -1994,24 +2047,38 @@ This is used only for sessions that involve 2 or 3 files at the same time."
       (ediff-set-file-eqstatus fileinfo2 nil)
       (ediff-set-file-eqstatus fileinfo3 nil)
 
-      (ediff-mark-if-equal fileinfo1 fileinfo2)
+      (setq marked1 t
+	    marked2 t
+	    marked3 t)
+      (or (ediff-mark-if-equal fileinfo1 fileinfo2)
+	  (setq marked1 nil))
       (if (ediff-metajob3)
 	  (progn
-	    (ediff-mark-if-equal fileinfo1 fileinfo3)
-	    (ediff-mark-if-equal fileinfo2 fileinfo3)))
+	    (or (ediff-mark-if-equal fileinfo1 fileinfo3)
+		(setq marked2 nil))
+	    (or (ediff-mark-if-equal fileinfo2 fileinfo3)
+		(setq marked3 nil))))
+      (if (and marked1 marked2 marked3)
+	  (cond ((eq last-command-char ?h)
+		 (ediff-mark-session-for-hiding elt 'mark))
+		((eq last-command-char ?m)
+		 (ediff-mark-session-for-operation elt 'mark))
+		))
       (setq list (cdr list))))
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 ;; mark files 1 and 2 as equal, if they are.
+;; returns t, if something was marked
 (defun ediff-mark-if-equal (fileinfo1 fileinfo2)
   (let ((f1 (car fileinfo1))
 	(f2 (car fileinfo2)))
-    (or (file-directory-p f1)
-	(file-directory-p f2)
-	(if (ediff-same-file-contents f1 f2)
-	    (progn
-	      (ediff-set-file-eqstatus fileinfo1 t)
-	      (ediff-set-file-eqstatus fileinfo2 t))))))
+    (cond ((file-directory-p f1) nil)
+	  ((file-directory-p f2) nil)
+	  ((ediff-same-file-contents f1 f2)
+	   (ediff-set-file-eqstatus fileinfo1 t)
+	   (ediff-set-file-eqstatus fileinfo2 t)
+	   t))
+    ))
 
 
 
