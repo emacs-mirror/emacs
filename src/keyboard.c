@@ -10079,6 +10079,8 @@ syms_of_keyboard ()
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
 
+  last_point_position_buffer = Qnil;
+
   {
     struct event_head *p;
 
