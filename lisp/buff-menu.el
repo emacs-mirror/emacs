@@ -415,4 +415,94 @@ The current window remains selected."
             (delete-char 1)
             (insert char))))))
 
+
+
+(define-key ctl-x-map "\C-b" 'list-buffers)
+
+(defun list-buffers (&optional files-only)
+  "Display a list of names of existing buffers.
+The list is displayed in a buffer named `*Buffer List*'.
+Note that buffers with names starting with spaces are omitted.
+Non-null optional arg FILES-ONLY means mention only file buffers.
+
+The M column contains a * for buffers that are modified.
+The R column contains a % for buffers that are read-only."
+  (interactive "P")
+  (let ((old-buffer (current-buffer))
+	(blist-buffer (get-buffer-create "*Buffer List*"))
+	(desired-point nil))
+    (with-output-to-temp-buffer "*Buffer List*"
+      (set-buffer standard-output)
+      (princ "\
+ MR Buffer           Size  Mode         File
+ -- ------           ----  ----         ----
+")
+      (let ((bl (buffer-list)))
+	(while bl
+	  (let* ((buffer (car bl))
+		 (name (buffer-name buffer))
+		 (file (buffer-file-name buffer)))
+	    (cond
+	     ;; Don't mention internal buffers.
+	     ((string= (substring name 0 1) " "))
+	     ;; Maybe don't mention buffers without files.
+	     ((and files-only (not file)))
+	     ;; Otherwise output info.
+	     (t
+	      ;; Identify current buffer.
+	      (if (eq buffer old-buffer)
+		  (progn
+		    (setq desired-point (point))
+		    (princ "."))
+		(princ " "))
+	      ;; Identify modified buffers.
+	      (princ (if (buffer-modified-p buffer) "*" " "))
+	      ;; Handle readonly status.  The output buffer is special
+	      ;; cased to be readonly; it is actually made so at a later
+	      ;; date.
+	      (princ (if (or (eq buffer standard-output) buffer-read-only)
+			 "% "
+		       "  "))
+	      (princ name)
+	      (indent-to 17 2)
+	      (let (size
+		    mode
+		    (excess (- (current-column) 17)))
+		(save-excursion
+		  (set-buffer buffer)
+		  (setq size (format "%8d" (buffer-size)))
+		  ;; Ack -- if looking at the *Buffer List* buffer,
+		  ;; always use "Buffer Menu" mode.  Otherwise the
+		  ;; first time the buffer is created, the mode will
+		  ;; be wrong.
+		  (setq mode (if (eq buffer standard-output)
+				 "Buffer Menu"
+			       mode-name))
+		  (while (and (> excess 0) (= (aref size 0) ?\ ))
+		    (setq size (substring size 1))
+		    (setq excess (1- excess))))
+		(princ size)
+		(indent-to 27 1)
+		(princ mode))
+	      (indent-to 40 1)
+	      (if file
+		  (princ file)
+		;; No visited file.  Check local value of
+		;; list-buffers-directory.
+		(save-excursion
+		  (set-buffer buffer)
+		  (if (and (boundp list-buffers-directory)
+			   list-buffers-directory)
+		      (princ list-buffers-directory))))
+	      (princ "\n"))))
+	  (setq bl (cdr bl)))))
+    ;; DESIRED-POINT doesn't have to be set; it is not when the
+    ;; current buffer is not displayed for some reason.
+    (save-excursion
+      (set-buffer blist-buffer)
+      (Buffer-menu-mode)
+      (and desired-point
+	   (goto-char desired-point))
+      (setq ZZZ (point)))))
+
 ;;; buff-menu.el ends here
