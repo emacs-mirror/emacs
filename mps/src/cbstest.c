@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.9) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.10) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -18,7 +18,7 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.9) $");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.10) $");
 
 
 #define ArraySize ((Size)123456)
@@ -193,7 +193,7 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
 }
 
 
-static Word random(Word limit)
+static Word cbsRnd(Word limit)
 {
   /* Not very uniform, but never mind. */
   return (Word)rnd() % limit;
@@ -273,15 +273,15 @@ static void randomRange(Addr *baseReturn, Addr *limitReturn,
                 /* after base */
   Index limit;  /* a randomly chosen value in (base, limit]. */
 
-  base = random(ArraySize);
+  base = cbsRnd(ArraySize);
 
   do {
     end = nextEdge(allocTable, ArraySize, base);
-  } while(end < ArraySize && random(2) == 0); /* p=0.5 exponential */
+  } while(end < ArraySize && cbsRnd(2) == 0); /* p=0.5 exponential */
 
   Insist(end > base);
 
-  limit = base + 1 + random(end - base);
+  limit = base + 1 + cbsRnd(end - base);
 
   *baseReturn = addrOfIndex(block, base);
   *limitReturn = addrOfIndex(block, limit);
@@ -612,7 +612,7 @@ extern int main(int argc, char *argv[])
 
   checkCBS(cbs, allocTable, dummyBlock);
   for(i = 0; i < NOperations; i++) {
-    switch(random(3)) {
+    switch(cbsRnd(3)) {
     case 0: {
       randomRange(&base, &limit, allocTable, dummyBlock);
       allocate(cbs, dummyBlock, allocTable, base, limit);
@@ -622,9 +622,9 @@ extern int main(int argc, char *argv[])
       deallocate(cbs, dummyBlock, allocTable, base, limit);
     } break;
     case 2: {
-      size = random(ArraySize / 10) + 1;
-      high = random(2) ? TRUE : FALSE;
-      switch(random(6)) {
+      size = cbsRnd(ArraySize / 10) + 1;
+      high = cbsRnd(2) ? TRUE : FALSE;
+      switch(cbsRnd(6)) {
       case 0:
       case 1:
       case 2: findDelete = CBSFindDeleteNONE; break;
