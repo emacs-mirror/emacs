@@ -551,7 +551,7 @@ forms are elided.
                          (1+ var)
                          (list 'testing (backtrace))))))))
 
-     @result{} nil
+     @result{} (testing nil)
 @end group
 
 @group
