@@ -1,3 +1,10 @@
+2002-11-14   Markus Rost  <rost@math.ohio-state.edu>
+
+	* custom.el (custom-declare-group): Remove unnecessary line of
+	code.
+	
+	* cus-dep.el (custom-make-dependencies): Bind load-file-name.
+
 2002-11-14  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/diary-lib.el (make-diary-entry): Allow for local variables
