@@ -47,4 +47,5 @@ xmakefile: ymakefile config.h
 	rm -f junk.c
 
 tags TAGS:
-	etags [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el
+	etags [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el \
+	      ../external-lisp/*.el
