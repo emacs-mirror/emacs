@@ -6569,7 +6569,10 @@ to the string.  */)
       if (NILP (current_buffer->enable_multibyte_characters))
 	return Qnil;
       p = CHAR_POS_ADDR (from);
-      pend = CHAR_POS_ADDR (to);
+      if (to == GPT)
+	pend = GPT_ADDR;
+      else
+	pend = CHAR_POS_ADDR (to);
     }
   else
     {
