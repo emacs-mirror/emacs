@@ -877,8 +877,8 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   if (*p)
     {
       int len;
-      int character = STRING_CHAR_AND_LENGTH (p, XSTRING (newentry)->size - 1,
-					      len);
+      int character = (STRING_CHAR_AND_LENGTH
+		       (p, STRING_BYTES (XSTRING (newentry)) - 1, len));
       XSETINT (match, character);
       if (XFASTINT (match) == ' ')
 	match = Qnil;
