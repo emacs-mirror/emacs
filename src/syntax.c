@@ -1307,7 +1307,9 @@ except that `]' is never special and `\\' quotes `^', `-' or `\\'
  (but not as the end of a range; quoting is never needed there).
 Thus, with arg "a-zA-Z", this skips letters stopping before first nonletter.
 With arg "^a-zA-Z", skips nonletters stopping before first letter.
-Returns the distance traveled, either zero or positive.  */)
+Returns the distance traveled, either zero or positive.
+Note that char classes, e.g. `[:alpha:]', are not currently supported;
+they will be treated as literals.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
@@ -2994,7 +2996,7 @@ See the info node `(elisp)Syntax Properties' for a description of the
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
 	       &open_paren_in_column_0_is_defun_start,
-	       doc: /* Non-nil means an open paren in column 0 denotes the start of a defun.  */);
+	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
   defsubr (&Ssyntax_table_p);
