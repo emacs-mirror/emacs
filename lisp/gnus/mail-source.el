@@ -2,7 +2,6 @@
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Maintainer: bugs@gnus.org
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.

@@ -2,7 +2,6 @@
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Maintainer: bugs@gnu.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.

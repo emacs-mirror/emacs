@@ -3,7 +3,6 @@
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Maintainer: bugs@gnus.org
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
