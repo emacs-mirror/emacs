@@ -2,6 +2,12 @@
 
 #include "bsd4-3.h"
 
+#ifndef __bsdi__
+#define __bsdi__ 1
+#endif
+
+#define DECLARE_GETPWUID_WITH_UID_T
+
 #define SIGNALS_VIA_CHARACTERS
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
