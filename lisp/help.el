@@ -26,10 +26,10 @@
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
-(define-key global-map help-key 'help-command)
+(define-key global-map (char-to-string help-char) 'help-command)
 (fset 'help-command help-map)
 
-(define-key help-map help-char 'help-for-help)
+(define-key help-map (char-to-string help-char) 'help-for-help)
 (define-key help-map "?" 'help-for-help)
 
 (define-key help-map "\C-c" 'describe-copying)

@@ -221,7 +221,7 @@ Does not execute select, save, or delete commands."
   (ding)
   (message (if (and (eq (key-binding "\C-c\C-c") 'Electric-buffer-menu-quit)
 		    (eq (key-binding " ") 'Electric-buffer-menu-select)
-		    (eq (key-binding help-key) 'Helper-help)
+		    (eq (key-binding (char-to-string help-char)) 'Helper-help)
 		    (eq (key-binding "?") 'Helper-describe-bindings))
 	       (substitute-command-keys "Type C-c C-c to exit, Space to select, \\[Helper-help] for help, ? for commands")
 	     (substitute-command-keys "\
