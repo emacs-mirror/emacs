@@ -1193,7 +1193,7 @@ is used to further constrain the set of candidates.  */)
 	  if (!NILP (predicate))
 	    {
 	      if (EQ (predicate, Qcommandp))
-		tem = Fcommandp (elt);
+		tem = Fcommandp (elt, Qnil);
 	      else
 		{
 		  GCPRO4 (tail, string, eltstring, bestmatch);
@@ -1420,7 +1420,7 @@ are ignored unless STRING itself starts with a space.  */)
 	  if (!NILP (predicate))
 	    {
 	      if (EQ (predicate, Qcommandp))
-		tem = Fcommandp (elt);
+		tem = Fcommandp (elt, Qnil);
 	      else
 		{
 		  GCPRO4 (tail, eltstring, allmatches, string);
