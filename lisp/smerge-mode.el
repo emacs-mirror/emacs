@@ -179,16 +179,13 @@ Used in `smerge-diff-base-mine' and related functions."
      :help "Use Ediff to resolve the conflicts"
      :active (smerge-check 1)]
     ["Auto Resolve" smerge-resolve
-     :help "Use mode-provided resolution function"
-     :active (and (smerge-check 1) (local-variable-p 'smerge-resolve-function))]
+     :help "Try auto-resolution heuristics"
+     :active (smerge-check 1)]
     ["Combine" smerge-combine-with-next
      :help "Combine current conflict with next"
      :active (smerge-check 1)]
     ))
 
-(easy-mmode-defmap smerge-context-menu-map
-  `(([down-mouse-3] . smerge-activate-context-menu))
-  "Keymap for context menu appeared on conflicts area.")
 (easy-menu-define smerge-context-menu nil
   "Context menu for mine area in `smerge-mode'."
   '(nil
@@ -246,15 +243,22 @@ Can be nil if the style is undecided, or else:
 
 
 (defun smerge-keep-all ()
-  "Keep all three versions.
-Convenient for the kind of conflicts that can arise in ChangeLog files."
+  "Concatenate all versions."
   (interactive)
   (smerge-match-conflict)
-  (replace-match (concat (or (match-string 1) "")
-			 (or (match-string 2) "")
-			 (or (match-string 3) ""))
-		 t t)
-  (smerge-auto-leave))
+  (let ((mb2 (or (match-beginning 2) (point-max)))
+	(me2 (or (match-end 2) (point-min))))
+    (delete-region (match-end 3) (match-end 0))
+    (delete-region (max me2 (match-end 1)) (match-beginning 3))
+    (if (and (match-end 2) (/= (match-end 1) (match-end 3)))
+	(delete-region (match-end 1) (match-beginning 2)))
+    (delete-region (match-beginning 0) (min (match-beginning 1) mb2))
+    (smerge-auto-leave)))
+
+(defun smerge-keep-n (n)
+  ;; We used to use replace-match, but that did not preserve markers so well.
+  (delete-region (match-end n) (match-end 0))
+  (delete-region (match-beginning 0) (match-beginning n)))
 
 (defun smerge-combine-with-next ()
   "Combine the current conflict with the next one."
@@ -310,32 +314,30 @@ according to `smerge-match-conflict'.")
   "Pop up the Smerge mode context menu under mouse."
   (interactive "e")
   (if (and smerge-mode
-          (save-excursion (mouse-set-point event) (smerge-check 1)))
+	   (save-excursion (mouse-set-point event) (smerge-check 1)))
       (progn
-       (mouse-set-point event)
-       (smerge-match-conflict)
-       (let ((i (smerge-get-current))
-	     o)
-	 (if (<= i 0)
-	     ;; Out of range
-	     (popup-menu smerge-mode-menu)
-	   ;; Install overlay.
-	   (setq o (make-overlay (match-beginning i) (match-end i)))  
-	   (unwind-protect
-	       (progn
-		 (overlay-put o 'face 'highlight)
-		 (sit-for 0)
-		 (popup-menu (if (smerge-check 2) 
-				 smerge-mode-menu
-			       smerge-context-menu)))
-	     ;; Delete overlay.
-	     (delete-overlay o)))))
+	(mouse-set-point event)
+	(smerge-match-conflict)
+	(let ((i (smerge-get-current))
+	      o)
+	  (if (<= i 0)
+	      ;; Out of range
+	      (popup-menu smerge-mode-menu)
+	    ;; Install overlay.
+	    (setq o (make-overlay (match-beginning i) (match-end i)))  
+	    (unwind-protect
+		(progn
+		  (overlay-put o 'face 'highlight)
+		  (sit-for 0)		;Display the new highlighting.
+		  (popup-menu smerge-context-menu))
+	      ;; Delete overlay.
+	      (delete-overlay o)))))
     ;; There's no conflict at point, the text-props are just obsolete.
     (save-excursion
       (let ((beg (re-search-backward smerge-end-re nil t))
-           (end (re-search-forward smerge-begin-re nil t)))
-       (smerge-remove-props (or beg (point-min)) (or end (point-max)))
-       (push event unread-command-events)))))
+	    (end (re-search-forward smerge-begin-re nil t)))
+	(smerge-remove-props (or beg (point-min)) (or end (point-max)))
+	(push event unread-command-events)))))
 
 (defun smerge-resolve ()
   "Resolve the conflict at point intelligently.
@@ -344,7 +346,24 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   (smerge-remove-props)
-  (funcall smerge-resolve-function)
+  (cond
+   ;; Trivial diff3 -A non-conflicts.
+   ((and (eq (match-end 1) (match-end 3))
+	 (eq (match-beginning 1) (match-beginning 3)))
+    ;; FIXME: Add "if [ diff -b MINE OTHER ]; then select OTHER; fi"
+    (smerge-keep-n 3))
+   ((and (match-end 2)
+	 ;; FIXME: Add "diff -b BASE MINE | patch OTHER".
+	 ;; FIXME: Add "diff -b BASE OTHER | patch MINE".
+	 nil)
+    )
+   ((and (not (match-end 2))
+	 ;; FIXME: Add "diff -b"-based refinement.
+	 nil)
+    )
+   (t
+    ;; Mode-specific conflict resolution.
+    (funcall smerge-resolve-function)))
   (smerge-auto-leave))
 
 (defun smerge-keep-base ()
@@ -353,7 +372,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-match-conflict)
   (smerge-ensure-match 2)
   (smerge-remove-props)
-  (replace-match (match-string 2) t t)
+  (smerge-keep-n 2)
   (smerge-auto-leave))
 
 (defun smerge-keep-other ()
@@ -362,7 +381,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-match-conflict)
   ;;(smerge-ensure-match 3)
   (smerge-remove-props)
-  (replace-match (match-string 3) t t)
+  (smerge-keep-n 3)
   (smerge-auto-leave))
 
 (defun smerge-keep-mine ()
@@ -371,7 +390,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-match-conflict)
   ;;(smerge-ensure-match 1)
   (smerge-remove-props)
-  (replace-match (match-string 1) t t)
+  (smerge-keep-n 1)
   (smerge-auto-leave))
 
 (defun smerge-get-current ()
@@ -389,7 +408,7 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (let ((i (smerge-get-current)))
     (if (<= i 0) (error "Not inside a version")
       (smerge-remove-props)
-      (replace-match (match-string i) t t)
+      (smerge-keep-n i)
       (smerge-auto-leave))))
 
 (defun smerge-kill-current ()
@@ -399,11 +418,15 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (let ((i (smerge-get-current)))
     (if (<= i 0) (error "Not inside a version")
       (smerge-remove-props)
-      (replace-match (mapconcat
-		      (lambda (j)
-			(match-string j))
-		      (remove i '(1 2 3)) "") t t)
-      (smerge-auto-leave))))
+      (let ((left nil))
+	(dolist (n '(3 2 1))
+	  (if (and (match-end n) (/= (match-end n) (match-end i)))
+	      (push n left)))
+	(if (and (cdr left)
+		 (/= (match-end (car left)) (match-end (cadr left))))
+	    (ding)			;We don't know how to do that.
+	  (smerge-keep-n (car left))
+	  (smerge-auto-leave))))))
 
 (defun smerge-diff-base-mine ()
   "Diff 'base' and 'mine' version in current conflict region."
@@ -567,7 +590,7 @@ buffer names."
       (goto-char (point-min))
       (while (smerge-find-conflict)
 	(when (match-beginning 2) (setq base t))
-	(replace-match (match-string 1) t t))
+	(smerge-keep-n 1))
       (buffer-enable-undo)
       (set-buffer-modified-p nil)
       (funcall mode))
@@ -577,7 +600,7 @@ buffer names."
       (insert-buffer-substring buf)
       (goto-char (point-min))
       (while (smerge-find-conflict)
-	(replace-match (match-string 3) t t))
+	(smerge-keep-n 3))
       (buffer-enable-undo)
       (set-buffer-modified-p nil)
       (funcall mode))
@@ -590,7 +613,9 @@ buffer names."
 	(insert-buffer-substring buf)
 	(goto-char (point-min))
 	(while (smerge-find-conflict)
-	  (replace-match (or (match-string 2) "") t t))
+	  (if (match-end 2)
+	      (smerge-keep-n 2)
+	    (delete-region (match-beginning 0) (match-end 0))))
 	(buffer-enable-undo)
 	(set-buffer-modified-p nil)
 	(funcall mode)))
