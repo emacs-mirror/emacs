@@ -57,7 +57,7 @@ record_insert (beg, length)
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
-  if (MODIFF <= current_buffer->save_modified)
+  if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
   /* If this is following another insertion and consecutive with it
@@ -105,7 +105,7 @@ record_delete (beg, length)
   at_boundary = (CONSP (current_buffer->undo_list)
 		 && NILP (XCONS (current_buffer->undo_list)->car));
 
-  if (MODIFF <= current_buffer->save_modified)
+  if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
   if (point == beg + length)
@@ -146,6 +146,7 @@ record_change (beg, length)
 record_first_change ()
 {
   Lisp_Object high, low;
+  struct buffer *base_buffer = current_buffer;
 
   if (EQ (current_buffer->undo_list, Qt))
     return;
@@ -154,8 +155,11 @@ record_first_change ()
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
-  XSETFASTINT (high, (current_buffer->modtime >> 16) & 0xffff);
-  XSETFASTINT (low, current_buffer->modtime & 0xffff);
+  if (base_buffer->base_buffer)
+    base_buffer = base_buffer->base_buffer;
+
+  XSETFASTINT (high, (base_buffer->modtime >> 16) & 0xffff);
+  XSETFASTINT (low, base_buffer->modtime & 0xffff);
   current_buffer->undo_list = Fcons (Fcons (Qt, Fcons (high, low)), current_buffer->undo_list);
 }
 
@@ -187,7 +191,7 @@ record_property_change (beg, length, prop, value, buffer)
   if (boundary)
     Fundo_boundary ();
 
-  if (MODIFF <= current_buffer->save_modified)
+  if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
   XSETINT (lbeg, beg);
@@ -380,14 +384,19 @@ Return what remains of the list.")
 		  /* Element (t high . low) records previous modtime.  */
 		  Lisp_Object high, low;
 		  int mod_time;
+		  struct buffer *base_buffer = current_buffer;
 
 		  high = Fcar (cdr);
 		  low = Fcdr (cdr);
 		  mod_time = (XFASTINT (high) << 16) + XFASTINT (low);
+
+		  if (current_buffer->base_buffer)
+		    base_buffer = current_buffer->base_buffer;
+
 		  /* If this records an obsolete save
 		     (not matching the actual disk file)
 		     then don't mark unmodified.  */
-		  if (mod_time != current_buffer->modtime)
+		  if (mod_time != base_buffer->modtime)
 		    break;
 #ifdef CLASH_DETECTION
 		  Funlock_buffer ();
