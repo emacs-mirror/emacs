@@ -914,9 +914,12 @@ If `kill-whole-line' is non-nil, then kill the whole line
 when given no argument at the beginning of a line."
   (interactive "P")
   (kill-region (point)
-	       ;; Don't shift point before doing the delete; that way,
-	       ;; undo will record the right position of point.
-	       (save-excursion
+	       ;; It is better to move point to the other end of the kill
+	       ;; before killing.  That way, in a read-only buffer, point
+	       ;; moves across the text that is copied to the kill ring.
+	       ;; The choice has no effect on undo now that undo records
+	       ;; the value of point from before the command was run.
+	       (progn
 		 (if arg
 		     (forward-line (prefix-numeric-value arg))
 		   (if (eobp)
@@ -1037,6 +1040,9 @@ yanking point; just return the Nth kill forward."
 
 ;;;; Commands for manipulating the kill ring.
 
+(defvar kill-read-only-ok nil
+  "*Non-nil means don't signal an error for killing read-only text.")
+
 (defun kill-region (beg end)
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
@@ -1059,10 +1065,13 @@ to make one entry in the kill ring."
    ;; If the buffer is read-only, we should beep, in case the person
    ;; just isn't aware of this.  However, there's no harm in putting
    ;; the region's text in the kill ring, anyway.
-   ((and buffer-read-only (not inhibit-read-only))
+   ((or (and buffer-read-only (not inhibit-read-only))
+	(text-property-not-all beg end 'read-only nil))
     (copy-region-as-kill beg end)
     ;; This should always barf, and give us the correct error.
-    (barf-if-buffer-read-only))
+    (if kill-read-only-ok
+	(message "Read only text copied to kill ring")
+      (barf-if-buffer-read-only)))
 
    ;; In certain cases, we can arrange for the undo list and the kill
    ;; ring to share the same string object.  This code does that.
@@ -1998,7 +2007,7 @@ In programs, it is faster to call `forward-word' with negative arg."
   "Kill characters forward until encountering the end of a word.
 With argument, do this that many times."
   (interactive "p")
-  (kill-region (point) (save-excursion (forward-word arg) (point))))
+  (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
   "Kill characters backward until encountering the end of a word.
