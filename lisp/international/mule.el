@@ -711,7 +711,7 @@ See also the command `set-keyboard-coding-system'.")
 (defun set-keyboard-coding-system (coding-system)
   "Set coding system for keyboard input to CODING-SYSTEM.
 In addition, this command enables Encoded-kbd minor mode.
-\(If CODING-SYSTEM is nil, Encoded-bkd mode is turned off.)
+\(If CODING-SYSTEM is nil, Encoded-kbd mode is turned off.)
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command."
