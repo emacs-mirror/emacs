@@ -936,6 +936,277 @@ will read from standard input and mark the produced tags as belonging to
 the file FILE.
 
 +++
+** CC Mode changes.
+
+*** Font lock support.
+CC Mode now provides font lock support for all its languages.  This
+supersedes the font lock patterns that have been in the core font lock
+package for C, C++, Java and Objective-C.  Like indentation, font
+locking is done in a uniform way across all languages (except the new
+AWK mode - see below).  That means that the new font locking will be
+different from the old patterns in various details for most languages.
+
+The main goal of the font locking in CC Mode is accuracy, to provide a
+dependable aid in recognizing the various constructs.  Some, like
+strings and comments, are easy to recognize while others like
+declarations and types can be very tricky.  CC Mode can go to great
+lengths to recognize declarations and casts correctly, especially when
+the types aren't recognized by standard patterns.  This is a fairly
+demanding analysis which can be slow on older hardware, and it can
+therefore be disabled by choosing a lower decoration level with the
+variable font-lock-maximum-decoration.
+
+Note that the most demanding font lock level has been tuned with lazy
+fontification in mind, i.e.  there should be a support mode that waits
+with the fontification until the text is actually shown
+(e.g. Just-in-time Lock mode, which is the default, or Lazy Lock
+mode).  Fontifying a file with several thousand lines in one go can
+take the better part of a minute.
+
+**** The (c|c++|objc|java|idl|pike)-font-lock-extra-types variables
+are now used by CC Mode to recognize identifiers that are certain to
+be types.  (They are also used in cases that aren't related to font
+locking.)  At the maximum decoration level, types are often recognized
+properly anyway, so these variables should be fairly restrictive and
+not contain patterns for uncertain types.
+
+**** Support for documentation comments.
+There is a "plugin" system to fontify documentation comments like
+Javadoc and the markup within them.  It's independent of the host
+language, so it's possible to e.g. turn on Javadoc font locking in C
+buffers.  See the variable c-doc-comment-style for details.
+
+Currently two kinds of doc comment styles are recognized: Suns Javadoc
+and Autodoc which is used in Pike.  This is by no means a complete
+list of the most common tools; if your doc comment extractor of choice
+is missing then please drop a note to bug-cc-mode@gnu.org.
+
+**** Better handling of C++ templates.
+As a side effect of the more accurate font locking, C++ templates are
+now handled much better.  The angle brackets that delimit them are
+given parenthesis syntax so that they can be navigated like other
+parens.
+
+This also improves indentation of templates, although there still is
+work to be done in that area.  E.g. it's required that multiline
+template clauses are written in full and then refontified to be
+recognized, and the indentation of nested templates is a bit odd and
+not as configurable as it ought to be.
+
+**** Improved handling of Objective-C and CORBA IDL.
+Especially the support for Objective-C and IDL has gotten an overhaul.
+The special "@" declarations in Objective-C are handled correctly.
+All the keywords used in CORBA IDL, PSDL, and CIDL are recognized and
+handled correctly, also wrt indentation.
+
+*** Support for the AWK language.
+Support for the AWK language has been introduced.  The implementation is
+based around GNU AWK version 3.1, but it should work pretty well with
+any AWK.  As yet, not all features of CC Mode have been adapted for AWK.
+Here is a summary:
+
+**** Indentation Engine
+The CC Mode indentation engine fully supports AWK mode.
+
+AWK mode handles code formatted in the conventional AWK fashion: `{'s
+which start actions, user-defined functions, or compound statements are
+placed on the same line as the associated construct; the matching `}'s
+are normally placed under the start of the respective pattern, function
+definition, or structured statement.
+
+The predefined indentation functions haven't yet been adapted for AWK
+mode, though some of them may work serendipitously.  There shouldn't be
+any problems writing custom indentation functions for AWK mode.
+
+The command C-c C-q (c-indent-defun) hasn't yet been adapted for AWK,
+though in practice it works properly nearly all the time.  Should it
+fail, explicitly set the region around the function (using C-u C-SPC:
+C-M-h probably won't work either) then do C-M-\ (indent-region).
+
+**** Font Locking
+There is a single level of font locking in AWK mode, rather than the
+three distinct levels the other modes have.  There are several
+idiosyncrasies in AWK mode's font-locking due to the peculiarities of
+the AWK language itself.
+
+**** Comment Commands
+M-; (indent-for-comment) works fine.  None of the other CC Mode
+comment formatting commands have yet been adapted for AWK mode.
+
+**** Movement Commands
+Most of the movement commands work in AWK mode.  The most important
+exceptions are M-a (c-beginning-of-statement) and M-e
+(c-end-of-statement) which haven't yet been adapted.
+
+The notion of "defun" has been augmented to include AWK pattern-action
+pairs.  C-M-a (c-awk-beginning-of-defun) and C-M-e (c-awk-end-of-defun)
+recognise these pattern-action pairs, as well as user defined
+functions.
+
+**** Auto-newline Insertion and Clean-ups
+Auto-newline insertion hasn't yet been adapted for AWK.  Some of
+the clean-ups can actually convert good AWK code into syntactically
+invalid code.  These features are best disabled in AWK buffers.
+
+*** New syntactic symbols in IDL mode.
+The top level constructs "module" and "composition" (from CIDL) are
+now handled like "namespace" in C++: They are given syntactic symbols
+module-open, module-close, inmodule, composition-open,
+composition-close, and incomposition.
+
+*** New functions to do hungry delete without enabling hungry delete mode.
+The functions c-hungry-backspace and c-hungry-delete-forward can be
+bound to keys to get this feature without toggling a mode.
+Contributed by Kevin Ryde.
+
+*** Better control over require-final-newline.
+The variable that controls how to handle a final newline when the
+buffer is saved, require-final-newline, is now customizable on a
+per-mode basis through c-require-final-newline.  The default is to set
+it to t only in languages that mandate a final newline in source files
+(C, C++ and Objective-C).
+
+*** Slight API change for the syntactic context used by lineup functions.
+The syntactic context stored in c-syntactic-context has been changed
+to allow more information.  This might affect custom lineup functions,
+but only if they use that variable directly.  See its docstring for
+more details.
+
+*** API changes for derived modes.
+There have been extensive changes "under the hood" which can affect
+derived mode writers.  Some of these changes are likely to cause
+incompatibilities with existing derived modes, but on the other hand
+care has now been taken to make it possible to extend and modify CC
+Mode with less risk of such problems in the future.
+
+**** New language variable system.
+See the comment blurb near the top of cc-langs.el.
+
+**** New initialization functions.
+The initialization procedure has been split up into more functions to
+give better control: c-basic-common-init, c-font-lock-init, and
+c-init-language-vars.
+
+*** Changes in analysis of nested syntactic constructs.
+The syntactic analysis engine has better handling of cases where
+several syntactic constructs appear nested on the same line.  They are
+now handled as if each construct started on a line of its own.
+
+This means that CC Mode now indents some cases differently, and
+although it's more consistent there might be cases where the old way
+gave results that's more to one's liking.  So if you find a situation
+where you think that the indentation has become worse, please report
+it to bug-cc-mode@gnu.org.
+
+**** New syntactic symbol substatement-label.
+This symbol is used when a label is inserted between a statement and
+its substatement.  E.g:
+
+    if (x)
+      x_is_true:
+        do_stuff();
+
+*** Better handling of multiline macros.
+
+**** Syntactic indentation inside macros.
+The contents of multiline #define's are now analyzed and indented
+syntactically just like other code.  This can be disabled by the new
+variable c-syntactic-indentation-in-macros.  A new syntactic symbol
+cpp-define-intro has been added to control the initial indentation
+inside #define's.
+
+**** New lineup function c-lineup-cpp-define.
+Now used by default to line up macro continuation lines.  The behavior
+of this function closely mimics the indentation one gets if the macro
+is indented while the line continuation backslashes are temporarily
+removed.  If syntactic indentation in macros is turned off, it works
+much line c-lineup-dont-change, which was used earlier, but handles
+empty lines within the macro better.
+
+**** Automatically inserted newlines continues the macro if used within one.
+This applies to the newlines inserted by the auto-newline mode, and to
+c-context-line-break and c-context-open-line.
+
+**** Better alignment of line continuation backslashes.
+c-backslash-region tries to adapt to surrounding backslashes.  New
+variable c-backslash-max-column which put a limit on how far out
+backslashes can be moved.
+
+**** Automatic alignment of line continuation backslashes.
+This is controlled by the new variable c-auto-align-backslashes.  It
+affects c-context-line-break, c-context-open-line and newlines
+inserted in auto-newline mode.
+
+**** Line indentation works better inside macros.
+Regardless whether syntactic indentation and syntactic indentation
+inside macros are enabled or not, line indentation now ignores the
+line continuation backslashes.  This is most noticeable when syntactic
+indentation is turned off and there are empty lines (save for the
+backslash) in the macro.
+
+*** indent-for-comment is more customizable.
+The behavior of M-; (indent-for-comment) is now configurable through
+the variable c-indent-comment-alist.  The indentation behavior based
+on the preceding code on the line, e.g. to get two spaces after #else
+and #endif but indentation to comment-column in most other cases
+(something which was hardcoded earlier).
+
+*** New function c-context-open-line.
+It's the open-line equivalent of c-context-line-break.
+
+*** New lineup functions
+
+**** c-lineup-string-cont
+This lineup function lines up a continued string under the one it
+continues.  E.g:
+
+result = prefix + "A message "
+                  "string.";      <- c-lineup-string-cont
+
+**** c-lineup-cascaded-calls
+Lines up series of calls separated by "->" or ".".
+
+**** c-lineup-knr-region-comment
+Gives (what most people think is) better indentation of comments in
+the "K&R region" between the function header and its body.
+
+**** c-lineup-gcc-asm-reg
+Provides better indentation inside asm blocks.  Contributed by Kevin
+Ryde.
+
+**** c-lineup-argcont
+Lines up continued function arguments after the preceding comma.
+Contributed by Kevin Ryde.
+
+*** Better caching of the syntactic context.
+CC Mode caches the positions of the opening parentheses (of any kind)
+of the lists surrounding the point.  Those positions are used in many
+places as anchor points for various searches.  The cache is now
+improved so that it can be reused to a large extent when the point is
+moved.  The less it moves, the less needs to be recalculated.
+
+The effect is that CC Mode should be fast most of the time even when
+opening parens are hung (i.e. aren't in column zero).  It's typically
+only the first time after the point is moved far down in a complex
+file that it'll take noticeable time to find out the syntactic
+context.
+
+*** Statements are recognized in a more robust way.
+Statements are recognized most of the time even when they occur in an
+"invalid" context, e.g. in a function argument.  In practice that can
+happen when macros are involved.
+
+*** Improved the way c-indent-exp chooses the block to indent.
+It now indents the block for the closest sexp following the point
+whose closing paren ends on a different line.  This means that the
+point doesn't have to be immediately before the block to indent.
+Also, only the block and the closing line is indented; the current
+line is left untouched.
+
+*** Added toggle for syntactic indentation.
+The function c-toggle-syntactic-indentation can be used to toggle
+syntactic indentation.
+
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
