@@ -5805,12 +5805,16 @@ run_pre_post_conversion_on_str (str, coding, encodep)
      int encodep;
 {
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   int multibyte = STRING_MULTIBYTE (str);
+  Lisp_Object old_deactivate_mark;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
   record_unwind_protect (code_convert_region_unwind, Qnil);
-  GCPRO1 (str);
+  /* It is not crucial to specbind this.  */
+  old_deactivate_mark = Vdeactivate_mark;
+  GCPRO2 (str, old_deactivate_mark);
+
   temp_output_buffer_setup (" *code-converting-work*");
   set_buffer_internal (XBUFFER (Vstandard_output));
   /* We must insert the contents of STR as is without
@@ -5830,6 +5834,7 @@ run_pre_post_conversion_on_str (str, coding, encodep)
       call1 (coding->post_read_conversion, make_number (Z - BEG));
     }
   inhibit_pre_post_conversion = 0;
+  Vdeactivate_mark = old_deactivate_mark;
   str = make_buffer_string (BEG, Z, 1);
   return unbind_to (count, str);
 }
