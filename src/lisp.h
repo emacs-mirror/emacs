@@ -2577,7 +2577,6 @@ EXFUN (Fkey_description, 1);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 4);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int));
-extern Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object));
 extern Lisp_Object get_keymap_1 P_ ((Lisp_Object, int, int));
@@ -2589,7 +2588,6 @@ extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
 extern int current_minor_maps P_ ((Lisp_Object **, Lisp_Object **));
 extern void initial_define_key P_ ((Lisp_Object, int, char *));
 extern void initial_define_lispy_key P_ ((Lisp_Object, char *, char *));
-extern void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern void syms_of_keymap P_ ((void));
 extern void keys_of_keymap P_ ((void));
 
