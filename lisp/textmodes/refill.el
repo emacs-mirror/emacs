@@ -221,7 +221,9 @@ With prefix arg, turn Refill mode on iff arg is positive.
 When Refill mode is on, the current paragraph will be formatted when
 changes are made within it.  Self-inserting characters only cause
 refilling if they would cause auto-filling."
-  nil " Refill" '(("\177" . backward-delete-char-untabify))
+  :group 'refill
+  :lighter " Refill"
+  :keymap '(("\177" . backward-delete-char-untabify))
   ;; Remove old state if necessary
   (when refill-ignorable-overlay
     (delete-overlay refill-ignorable-overlay)
