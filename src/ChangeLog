@@ -1,3 +1,10 @@
+2002-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Don't call try_window here.
+	(redisplay_window): Never redisplay minibuffer when inactive.
+
+	* window.c (select_window_1): Undo 9/21 change.
+
 2002-12-22  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (XTread_socket): Call KeyTranslate for control and

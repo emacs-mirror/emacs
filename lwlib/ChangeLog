@@ -1,3 +1,10 @@
+2002-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xlwmenu.c (pop_new_stack_if_no_contents): Do nothing if
+	new_depth is 1.
+	(remap_menubar): Don't look in new_stack[0].
+	(Left): At level 1, do the same thing Right does.
+
 2002-11-21  Dave Love  <fx@gnu.org>
 
 	* lwlib-Xaw.c [PROTOTYPES]: Provide ISO C arglists for functions

@@ -1,3 +1,28 @@
+2002-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (add-to-invisibility-spec): If it was t, start it out at (t).
+
+	* textmodes/texinfmt.el (tex-start-of-header, tex-end-of-header): 
+	Add defvars.
+
+	* textmodes/tex-mode.el (tex-print): Call shell-quote-argument
+	on the file name.
+
+	* textmodes/outline.el (outline-next-visible-heading): 
+	When going forward, test outline-invisible-p at start of header.
+
+2002-12-22  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/makeinfo.el (makeinfo-buffer): Display result using
+	Info-mode.
+	(makeinfo-compilation-sentinel-buffer, makeinfo-current-node):
+	New functions.
+	(makeinfo-compile): Add a sentinel parameter.
+	(makeinfo-compilation-sentinel-region): Renamed from
+	makeinfo-compilation-sentinel, and makeinfo-temp-file now never nil.
+	(makeinfo-region): Use this.
+	* info.el (Info-revert-find-node): New function.
+
 2002-12-22  Nick Roberts  <nick@nick.uklinux.net>
 
 	* tooltip.el (tooltip-gud-tips): Output tooltip without switching
