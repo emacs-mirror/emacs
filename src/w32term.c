@@ -4762,9 +4762,7 @@ x_iconify_frame (f)
   BLOCK_INPUT;
 
   /* Simulate the user minimizing the frame.  */
-  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
-
-  f->async_iconified = 1;
+  SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
 
   UNBLOCK_INPUT;
 }
