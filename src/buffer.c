@@ -313,6 +313,7 @@ The value is never nil.")
   BUF_ZV (b) = 1;
   BUF_Z (b) = 1;
   BUF_MODIFF (b) = 1;
+  BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
   BUF_INTERVALS (b) = 0;
 
