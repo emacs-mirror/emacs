@@ -1,4 +1,5 @@
 ;; reftex.el --- Minor mode for doing \label, \ref and \cite in LaTeX
+
 ;; Copyright (c) 1997 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
@@ -527,16 +528,16 @@
 
 (defcustom reftex-label-alist nil
   "Alist with information on environments for \\label-\\ref use.
-See the definition of reftex-label-alist-builtin for examples. This variable
+See the definition of `reftex-label-alist-builtin' for examples.  This variable
 should define additions and changes to the default.  The only things you MUST
-NOT change is that '?s' is the type indicator for section labels and SPACE is
-for the 'any' label type. These are hard-coded at other places in the code.
+NOT change is that `?s' is the type indicator for section labels and SPACE is
+for the 'any' label type.  These are hard-coded at other places in the code.
 
-Changes to this variable after reftex.el has been loaded become only
+Changes to this variable after RefTeX has been loaded only become
 effective when RefTeX is reset with \\[reftex-reset-mode].
 
 Each list entry is a list describing an environment or macro carrying a
-label. The elements of each list entry are:
+label.  The elements of each list entry are:
 
 0.  Name of the environment (like \"table\") or macro (like \"\\\\myfig\").
     Special names: `section' for section labels, `any' to define a group
@@ -546,35 +547,36 @@ label. The elements of each list entry are:
 
 1.  Type indicator character, like ?t.
     The type indicator is a single character used in prompts for
-    label types. It must be a printable character. The same character
+    label types.  It must be a printable character.  The same character
     may occur several times in this list, to cover cases in which different
     environments carry the same label type (like equation and eqnarray).
 
 2.  Label prefix string, like \"tab:\".
-    The prefix is a short string used as the start of a label. It may be the
+    The prefix is a short string used as the start of a label.  It may be the
     empty string.
 
-3.  Format string for reference insert in buffer. Each %s will be replaced by
-    the label (yes, several %s can be in there, so that you can set this to:
-    \"\\ref{%s} on page~\\pageref{%s}\").
-    When the format starts with ~, whitespace before point will be removed so
-    that the reference cannot be separated from the word before it.
+3.  Format string for reference insert in buffer.  Each `%s' will be
+    replaced by the label (you can use more than one several `%s', so
+    that you can set this to: \"\\ref{%s} on page~\\pageref{%s}\").
+    When the format starts with `~', whitespace before point will be
+    removed so that the reference cannot be separated from the word
+    before it.
 
 4.  Indication on how to find the short context.
-    - If `nil', use the text following the \\label{...} macro.
-    - If `t', use
+    - If nil, use the text following the \\label{...} macro.
+    - If t, use
        - text following the \\begin{...} statement of environments
          (not a good choice in in eqnarray or enumerate environments!)
        - the section heading for section labels.
        - the begin of the macro for macros.
-    - If a string, use as regexp to search *backward* from the label. Context
-      is then the text following the end of the match. E.g. putting this to
+    - If a string, use as regexp to search *backward* from the label.  Context
+      is then the text following the end of the match.  E.g. putting this to
       \"\\\\\\\\caption{\" will use the beginning of the caption in a figure
-      or table environment. \"\\\\\\\\begin{eqnarray}\\\\|\\\\\\\\\\\\\\\\\"
+      or table environment.  \"\\\\\\\\begin{eqnarray}\\\\|\\\\\\\\\\\\\\\\\"
       works for eqnarrays.
     - If a function, call this function with the name of the environment/macro
-      as argument. On call, point will be just after the \\label macro. The
-      function is expected to return a suitable context string. It should
+      as argument.  On call, point will be just after the \\label macro.  The
+      function is expected to return a suitable context string.  It should
       throw an exception (error) when failing to find context.
       Consider the following example, which would return the 10 characters
       following the label as context:
@@ -584,12 +586,12 @@ label. The elements of each list entry are:
               (buffer-substring (point) (+ 10 (point)))
             (error \"Buffer too small\")))
 
-    Setting the variable reftex-use-text-after-label-as-context to t overrides
-    the setting here.
+    Setting the variable `reftex-use-text-after-label-as-context' to t
+    overrides the setting here.
 
-5.  List of magic words which identify a reference to be of this type. If the
+5.  List of magic words which identify a reference to be of this type.  If the
     word before point is equal to one of these words when calling
-    reftex-reference, the label list offered will be automatically restricted
+    `reftex-reference', the label list offered will be automatically restricted
     to labels of the correct type.
 
 If the type indicator characters of two or more entries are the same, RefTeX
@@ -597,10 +599,10 @@ will use
  - the first non-nil format and prefix
  - the magic words of all involved entries.
 
-Any list entry may also be a symbol. If that has an association in
+Any list entry may also be a symbol.  If that has an association in
 reftex-label-alist-builtin, the cdr of that association is spliced into the
-list. See the AMSTeX configuration example in the comment section of
-reftex.el."
+list.  See the AMSTeX configuration example in the comment section of
+`reftex.el'."
   :group 'reftex-defining-label-environments
   :set 'reftex-set-dirty
   :type '(list 
@@ -1101,10 +1103,14 @@ mode reset is done on the next occasion."
   '(reftex-label-numbers-symbol reftex-list-of-labels-symbol
                                reftex-bibfile-list-symbol))
 
-;; Silence warnings about TeX-master, which is defined in AUCTeX
+;; Silence warnings about TeX-master, which is defined in AUCTeX.
 (defvar TeX-master)
 
-;; Alist connecting master file names with the corresponding lisp symbols
+;; Silence additional warnings.
+(defvar tex-main-file)
+(defvar outline-minor-mode)
+
+;; Alist connecting master file names with the corresponding Lisp symbols.
 (defvar reftex-master-index-list nil)
 
 ;; Last index used for a master file
