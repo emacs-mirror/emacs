@@ -3261,15 +3261,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
 	{
 	  /* If we end up with the same color as before, try adding
 	     delta to the RGB values.  */
-	  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
-	  
-	  /* If display has an immutable color map, freeing colors is
-	     not necessary and some servers don't allow it.  So don't
-	     do it.  */
-	  if (class != StaticColor
-	      && class != StaticGray
-	      && class != TrueColor)
-	    XFreeColors (display, cmap, &new.pixel, 1, 0);
+	  x_free_colors (f, &new.pixel, 1);
 	  
 	  new.red = min (0xffff, delta + color.red);
 	  new.green = min (0xffff, delta + color.green);
@@ -3320,11 +3312,7 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
     {
       /* If display has an immutable color map, freeing colors is not
 	 necessary and some servers don't allow it.  So don't do it.  */
-      int class = dpyinfo->visual->class;
-      if (class != StaticColor
-	  && class != StaticGray
-	  && class != TrueColor)
-	XFreeColors (dpy, cmap, &relief->pixel, 1, 0);
+      x_free_colors (f, &relief->pixel, 1);
       relief->allocated_p = 0;
     }
 
