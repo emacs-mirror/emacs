@@ -2477,18 +2477,14 @@ it were the arg to `interactive' (which see) to interactively read the value."
   "Choose the completion that point is in or next to."
   (interactive)
   (let (beg end)
-    (skip-chars-forward "^ \t\n")
-    (while (looking-at " [^ \n\t]")
-      (forward-char 1)
-      (skip-chars-forward "^ \t\n"))
-    (setq end (point))
-    (skip-chars-backward "^ \t\n")
-    (while (and (= (preceding-char) ?\ )
-		(not (and (> (point) (1+ (point-min)))
-			  (= (char-after (- (point) 2)) ?\ ))))
-      (backward-char 1)
-      (skip-chars-backward "^ \t\n"))
-    (setq beg (point))
+    (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
+	(setq end (point) beg (1+ (point))))
+    (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
+	(setq end (1- (point)) beg(point)))
+    (if (null beg)
+	(error "No completion here"))
+    (setq beg (previous-single-property-change beg 'mouse-face))
+    (setq end (next-single-property-change end 'mouse-face))
     (choose-completion-string (buffer-substring beg end))))
 
 ;; Delete the longest partial match for STRING
@@ -2544,6 +2540,8 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq major-mode 'completion-list-mode)
   (run-hooks 'completion-list-mode-hook))
 
+(defvar completion-fixup-function nil)
+
 (defun completion-setup-function ()
   (save-excursion
     (let ((mainbuf (current-buffer)))
@@ -2559,10 +2557,13 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
 	       "In this buffer, type \\[choose-completion] to \
 select the completion near point.\n\n"))
       (forward-line 1)
-      (if window-system
-	  (while (re-search-forward "[^ \t\n]+\\( [^ \t\n]+\\)*" nil t)
-	    (put-text-property (match-beginning 0) (point)
-			       'mouse-face 'highlight))))))
+      (while (re-search-forward "[^ \t\n]+\\( [^ \t\n]+\\)*" nil t)
+	(let ((beg (match-beginning 0))
+	      (end (point)))
+	  (if completion-fixup-function
+	      (funcall completion-fixup-function))
+	  (put-text-property beg (point) 'mouse-face 'highlight)
+	  (goto-char end))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
