@@ -1096,6 +1096,16 @@ itself as a pre-command hook."
 	   (set-default symbol value)
 	   (setq display-busy-cursor value)))
 
+(defcustom busy-cursor-delay-seconds 1
+  "*Seconds to wait before displaying a busy-cursor."
+  :tag "Busy-cursor delay"
+  :type 'integer
+  :group 'cursor
+  :get #'(lambda (symbol) busy-cursor-delay)
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (setq busy-cursor-delay value)))
+
 
 (defcustom show-cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected-windows.
