@@ -9,7 +9,7 @@
 
    This program is intended to be used with the lisp package called
    timer.el.  It was written anonymously in 1990.  This version was
-   documented and rewritten for portability by esr@snark,thyrsus.com,
+   documented and rewritten for portability by esr@snark.thyrsus.com,
    Aug 7 1992.  */
 
 #include <stdio.h>
@@ -124,6 +124,13 @@ notify ()
   time_t now, tdiff, waitfor = -1;
   register struct event *ep;
 
+  /* If an alarm timer runs out while this function is executing,
+     it could get called recursively.  This would be bad, because
+     it's not re-entrant.  So we must try to suspend the signal. */
+#ifdef sigmask
+  sighold(SIGIO);
+#endif
+
   now = time ((time_t *) NULL);
 
   for (ep = events; ep < events + num_events; ep++)
@@ -137,8 +144,8 @@ notify ()
 
 	/* We now have a hole in the event array; fill it with the last
 	   event.  */
-	ep->token = events[num_events].token;
-	ep->reply_at = events[num_events].reply_at;
+	ep->token = events[num_events - 1].token;
+	ep->reply_at = events[num_events - 1].reply_at;
 	num_events--;
 
 	/* We ought to scan this event again.  */
@@ -154,6 +161,10 @@ notify ()
   /* If there are no more events, we needn't bother setting an alarm.  */
   if (num_events > 0)
     alarm (waitfor);
+
+#ifdef sigmask
+  sigrelse(SIGIO);
+#endif
 }
 
 void
@@ -276,7 +287,8 @@ main (argc, argv)
     }
 #endif /* USG */
 
-  while (1) pause ();
+  for (;;)
+      pause ();
 }
 
 /* timer.c ends here */
