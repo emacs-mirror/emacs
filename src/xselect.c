@@ -1736,9 +1736,8 @@ x_handle_selection_notify (event)
 }
 
 
-DEFUN ("x-own-selection-internal",
-       Fx_own_selection_internal, Sx_own_selection_internal,
-  2, 2, 0,
+DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
+  Sx_own_selection_internal, 2, 2, 0,
   "Assert an X selection of the given TYPE with the given VALUE.\n\
 TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names, since that's what X expects.)\n\
@@ -1759,8 +1758,8 @@ anything that the functions on `selection-converter-alist' know about.")
    simply return our selection value.  If we are not the owner, this
    will block until all of the data has arrived.  */
 
-DEFUN ("x-get-selection-internal",
-  Fx_get_selection_internal, Sx_get_selection_internal, 2, 2, 0,
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
+  Sx_get_selection_internal, 2, 2, 0,
   "Return text selected from some X window.\n\
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names, since that's what X expects.)\n\
@@ -1807,8 +1806,8 @@ TYPE is the type of data desired, typically `STRING'.")
   return val;
 }
 
-DEFUN ("x-disown-selection-internal",
-  Fx_disown_selection_internal, Sx_disown_selection_internal, 1, 2, 0,
+DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
+  Sx_disown_selection_internal, 1, 2, 0,
   "If we own the selection SELECTION, disown it.\n\
 Disowning it means there is no such selection.")
   (selection, time)

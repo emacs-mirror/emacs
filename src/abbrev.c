@@ -417,9 +417,8 @@ describe_abbrev (sym, stream)
   Fterpri (stream);
 }
 
-DEFUN ("insert-abbrev-table-description",
-  Finsert_abbrev_table_description, Sinsert_abbrev_table_description,
-  1, 2, 0,
+DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,
+  Sinsert_abbrev_table_description, 1, 2, 0,
   "Insert before point a full description of abbrev table named NAME.\n\
 NAME is a symbol whose value is an abbrev table.\n\
 If optional 2nd arg READABLE is non-nil, a human-readable description\n\

@@ -3353,8 +3353,8 @@ save_window_save (window, vector, i)
   return i;
 }
 
-DEFUN ("current-window-configuration",
-	Fcurrent_window_configuration, Scurrent_window_configuration, 0, 1, 0,
+DEFUN ("current-window-configuration", Fcurrent_window_configuration,
+  Scurrent_window_configuration, 0, 1, 0,
   "Return an object representing the current window configuration of FRAME.\n\
 If FRAME is nil or omitted, use the selected frame.\n\
 This describes the number of windows, their sizes and current buffers,\n\

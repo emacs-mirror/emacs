@@ -1942,8 +1942,8 @@ not `make-local-variable'.")
   return Qnil;
 }
       
-DEFUN ("run-hook-with-args",
-  Frun_hook_with_args, Srun_hook_with_args, 1, MANY, 0,
+DEFUN ("run-hook-with-args", Frun_hook_with_args,
+  Srun_hook_with_args, 1, MANY, 0,
   "Run HOOK with the specified arguments ARGS.\n\
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil\n\
 value, that value may be a function or a list of functions to be\n\
@@ -1963,9 +1963,8 @@ not `make-local-variable'.")
   return run_hook_with_args (nargs, args, to_completion);
 }
 
-DEFUN ("run-hook-with-args-until-success",
-  Frun_hook_with_args_until_success, Srun_hook_with_args_until_success,
-  1, MANY, 0,
+DEFUN ("run-hook-with-args-until-success", Frun_hook_with_args_until_success,
+  Srun_hook_with_args_until_success, 1, MANY, 0,
   "Run HOOK with the specified arguments ARGS.\n\
 HOOK should be a symbol, a hook variable.  Its value should\n\
 be a list of functions.  We call those functions, one by one,\n\
@@ -1982,9 +1981,8 @@ not `make-local-variable'.")
   return run_hook_with_args (nargs, args, until_success);
 }
 
-DEFUN ("run-hook-with-args-until-failure",
-  Frun_hook_with_args_until_failure, Srun_hook_with_args_until_failure,
-  1, MANY, 0,
+DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
+  Srun_hook_with_args_until_failure, 1, MANY, 0,
   "Run HOOK with the specified arguments ARGS.\n\
 HOOK should be a symbol, a hook variable.  Its value should\n\
 be a list of functions.  We call those functions, one by one,\n\

@@ -1159,9 +1159,8 @@ Any other markers at the point of insertion also end up after the text.")
   return Qnil;
 }
 
-DEFUN ("insert-before-markers-and-inherit",
-  Finsert_and_inherit_before_markers, Sinsert_and_inherit_before_markers,
-  0, MANY, 0,
+DEFUN ("insert-before-markers-and-inherit", Finsert_and_inherit_before_markers,
+  Sinsert_and_inherit_before_markers, 0, MANY, 0,
   "Insert text at point, relocating markers and inheriting properties.\n\
 Point moves forward so that it ends up after the inserted text.\n\
 Any other markers at the point of insertion also end up after the text.")
