@@ -53,6 +53,44 @@
 	(change-log-version-rcs): Renamed.  Was
 	change-log-search-vc-number.
 
+1999-12-26  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
+	
+	* progmodes/hideshow.el: Generally, synch w/ maintainer
+	version 5.9.
+
+	(hs-show-hidden-short-form): Delete var; hard-code uses as `t'.
+	
+	(hs-minor-mode-hook): Don't initialize.
+	
+	(hs-special-modes-alist): Rewrite value and docstring.
+	
+	(hs-minor-mode-prefix): Delete unused var.
+	
+	(hs-block-start-mdata-select): New var, buffer local.
+	
+	(hs-headline): New var.
+	
+	(hs-match-data, hs-forward-sexp): New funcs.
+	
+	(hs-hide-comment-region): New func.
+	
+	(hs-discard-overlays, hs-flag-region, hs-hide-block-at-point,
+	hs-safety-is-job-n, hs-hide-initial-comment-block,
+	hs-inside-comment-p, hs-grok-mode-type, hs-find-block-beginning,
+	hs-hide-level-recursive, hs-life-goes-on, hs-already-hidden-p,
+	hs-c-like-adjust-block-beginning, hs-hide-all, hs-show-all,
+	hs-hide-block, hs-show-block, hs-show-region, hs-hide-level,
+	hs-mouse-toggle-hiding, hs-minor-mode): Rewrite.
+	
+	(hs-isearch-show): Renamed from `hs-isearch-open-invisible'.
+	(hs-isearch-show-temporary): New funcs.
+	
+	(hs-show-block-at-point, java-hs-forward-sexp): Delete funcs.
+	
+	(hs-hide-all, hs-mouse-toggle-hiding): Don't autoload.
+	
+	When constructing menu, use `[(shift button2)]' notation.
+
 1999-12-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* jka-compr.el (jka-compr-info-file-magic-bytes): New function.
