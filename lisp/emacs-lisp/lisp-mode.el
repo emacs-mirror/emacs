@@ -425,9 +425,6 @@ alternative printed representations that can be displayed."
 (defun last-sexp-toggle-display (&optional arg)
   "Toggle between abbreviated and unabbreviated printed representations."
   (interactive "P")
-  ;; Normally this command won't be called at end of line.
-  ;; But when the end of the line is also the end of the buffer,
-  ;; it does get called.  For consistency, pretend it was not called.
   (save-restriction
     (widen)
     (let ((value (get-text-property (point) 'printed-value)))
