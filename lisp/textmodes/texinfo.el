@@ -530,7 +530,18 @@ value of `texinfo-mode-hook'."
   (make-local-variable 'tex-first-line-header-regexp)
   (setq tex-first-line-header-regexp "^\\\\input")
   (make-local-variable 'tex-trailer)
-  (setq tex-trailer "@bye\n"))
+  (setq tex-trailer "@bye\n")
+
+  ;; Prevent filling certain lines, in addition to ones specified
+  ;; by the user.
+  (let ((prevent-filling "^@\\(def\\|multitable\\)"))
+    (make-local-variable 'auto-fill-inhibit-regexp)
+    (if (null auto-fill-inhibit-regexp)
+	(setq auto-fill-inhibit-regexp prevent-filling)
+      (setq auto-fill-inhibit-regexp
+	    (concat "\\(" auto-fill-inhibit-regexp "\\)\\|\\("
+		    prevent-filling "\\)")))))
+		  
 
 
 ;;; Insert string commands
