@@ -1,7 +1,7 @@
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-ignore-directories-merge): Doc fix.
-	(ido-max-prompt-width): Renamed from ido-max-prompt-path.
+	(ido-max-file-prompt-width): Renamed from ido-max-prompt-path.
 	(ido-enable-last-directory-history): Doc fix.
 	(ido-work-directory-list-ignore-regexps): Doc fix.
 	(ido-enable-tramp-completion): Doc fix.
