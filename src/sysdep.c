@@ -3313,7 +3313,7 @@ emacs_read (fildes, buf, nbyte)
 int
 emacs_write (fildes, buf, nbyte)
      int fildes;
-     char *buf;
+     const char *buf;
      unsigned int nbyte;
 {
   register int rtnval, bytes_written;
