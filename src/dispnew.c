@@ -328,7 +328,7 @@ line_hash_code (m, vpos)
   if (!m->enable[vpos])
     return 0;
 
-  /* Give all lighlighted lines the same hash code
+  /* Give all highlighted lines the same hash code
      so as to encourage scrolling to leave them in place.  */
   if (m->highlight[vpos])
     return -1;
@@ -833,7 +833,7 @@ cancel_my_columns (w)
    They may return 0 meaning nothing was done if anything is difficult,
    or 1 meaning the output was performed properly.
    They assume that the frame was up to date before the buffer
-   change being displayed.  THey make various other assumptions too;
+   change being displayed.  They make various other assumptions too;
    see command_loop_1 where these are called.  */
 
 int
@@ -1245,8 +1245,8 @@ count_blanks (r)
      register GLYPH *r;
 {
   register GLYPH *p = r;
-  while (*r++ == SPACEGLYPH);
-  return r - p - 1;
+  while (*p++ == SPACEGLYPH);
+  return p - r - 1;
 }
 
 static int
