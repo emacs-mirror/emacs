@@ -1,7 +1,8 @@
 2000-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (insert-directory-safely): New function.
-	(recover-file): Use it instead of insert-directory.
+	(recover-file): Use it instead of insert-directory.  From Markus
+	Rost <markus.rost@mathematik.uni-regensburg.de> 
 
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
