@@ -1205,21 +1205,6 @@ and selects that window."
 
 ;; Choose a completion with the mouse.
 
-;; Delete the longest partial match for STRING
-;; that can be found before POINT.
-(defun mouse-delete-max-match (string)
-  (let ((opoint (point))
-	(len (min (length string)
-		  (- (point) (point-min)))))
-    (goto-char (- (point) (length string)))
-    (while (and (> len 0)
-		(let ((tail (buffer-substring (point)
-					      (+ (point) len))))
-		  (not (string= tail (substring string 0 len)))))
-      (setq len (1- len))
-      (forward-char 1))
-    (delete-char len)))
-
 (defun mouse-choose-completion (event)
   "Click on an alternative in the `*Completions*' buffer to choose it."
   (interactive "e")
@@ -1239,14 +1224,7 @@ and selects that window."
       (select-window (posn-window (event-start event)))
       (bury-buffer)
       (select-window owindow))
-    (set-buffer buffer)
-    (mouse-delete-max-match choice)
-    (insert choice)
-    ;; Update point in the window that BUFFER is showing in.
-    (let ((window (get-buffer-window buffer t)))
-      (set-window-point window (point)))
-    (and (equal buffer (window-buffer (minibuffer-window)))
-	 (minibuffer-complete-and-exit))))
+    (choose-completion-string choice buffer)))
 
 ;; Font selection.
 
