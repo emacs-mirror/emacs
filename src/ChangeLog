@@ -1,3 +1,13 @@
+2001-06-11  Andrew Innes  <andrewi@gnu.org>
+
+	* w32proc.c (create_child): Add new parameter is_gui_app.
+	(w32_executable_type): Add new parameter is_gui_app.
+	(sys_spawnve): Use it.
+	(sys_kill): Fake ^C for SIGINT, and ^Break (if possible) for
+	SIGQUIT.  This matches better how the signals are interpreted by
+	MSVC compiled programs.
+	(syms_of_ntproc): Update docstring.
+
 2001-06-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (clear_mouse_face): Reset dpyinfo->mouse_face_overlay as
