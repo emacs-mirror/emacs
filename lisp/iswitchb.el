@@ -304,7 +304,7 @@ If this value is N, and N is greater than the number of matching
 buffers, the first N/2 and the last N/2 matching buffers are
 shown.  This can greatly speed up iswitchb if you have a
 multitude of buffers open."
-  :type '(choice (const :tag "Disable" nil) integer)
+  :type '(choice (const :tag "Show all" nil) integer)
   :group 'iswitchb)
 
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
