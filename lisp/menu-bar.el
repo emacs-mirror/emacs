@@ -105,7 +105,7 @@
 		    pending-undo-list)
 	     buffer-undo-list)))
 
-(define-key global-map [menu-bar buffer] '("Buffers" . mouse-buffer-menu))
+(define-key global-map [menu-bar buffer] '("Buffers" . mouse-menu-bar-buffers))
 
 (defvar complex-buffers-menu-p nil
   "*Non-nil says, offer a choice of actions after you pick a buffer.
@@ -117,7 +117,7 @@ If this is 10, then only the ten most-recently-selected buffers are shown.
 If this is nil, then all buffers are shown.
 A large number or nil slows down menu responsiveness.")
 
-(defun mouse-buffer-menu (event)
+(defun mouse-menu-bar-buffers (event)
   "Pop up a menu of buffers for selection with the mouse.
 This switches buffers in the window that you clicked on,
 and selects that window."
