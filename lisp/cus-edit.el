@@ -950,11 +950,7 @@ values have changed since the previous major Emacs release.
 
 With argument SINCE-VERSION (a string), customize all user option
 variables that were added (or their meanings were changed) since that
-version.
-
-Custom version numbers are actually associated to symbols. A symbol
-with version number VERSION will be listed with all its definitions as
-custom variable, face, or group."
+version."
 
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
@@ -970,9 +966,9 @@ custom variable, face, or group."
   ;; custom-load-symbol for this.
   (put 'custom-versions-load-alist 'custom-loads nil)
   (dolist (elt custom-versions-load-alist)
-     (if (customize-version-lessp since-version (car elt))
-	 (dolist (load (cdr elt))
-	   (custom-add-load 'custom-versions-load-alist load))))
+    (if (customize-version-lessp since-version (car elt))
+	(dolist (load (cdr elt))
+	  (custom-add-load 'custom-versions-load-alist load))))
   (custom-load-symbol 'custom-versions-load-alist)
   (put 'custom-versions-load-alist 'custom-loads nil)
 
@@ -3287,7 +3283,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 (defun custom-group-value-create (widget)
   "Insert a customize group for WIDGET in the current buffer."
   (unless (eq (widget-get widget :custom-state) 'hidden)
-      (custom-load-widget widget))
+    (custom-load-widget widget))
   (let* ((state (widget-get widget :custom-state))
 	 (level (widget-get widget :custom-level))
 	 ;; (indent (widget-get widget :indent))
