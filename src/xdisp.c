@@ -1036,7 +1036,7 @@ try_window_id (window)
 
   /* Find position before which nothing is changed.  */
   bp = *compute_motion (start, 0, lmargin,
-			beg_unchanged + 1, 10000, 10000, width, hscroll,
+			beg_unchanged + 1, height + 1, 0, width, hscroll,
 			pos_tab_offset (w, start));
   if (bp.vpos >= height)
     {
@@ -1046,6 +1046,9 @@ try_window_id (window)
 	     We don't need to change the screen at all.
 	     But we need to update window_end_pos to account for
 	     any change in buffer size.  */
+	  bp = *compute_motion (start, 0, lmargin,
+				Z, height, 0,
+				width, hscroll, pos_tab_offset (w, start));
 	  XFASTINT (w->window_end_vpos) = height;
 	  XFASTINT (w->window_end_pos) = Z - bp.bufpos;
 	  return 1;
