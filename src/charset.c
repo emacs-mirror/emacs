@@ -219,7 +219,7 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 	  str++;
 	  if (c >= LEADING_CODE_PRIVATE_11)
 	    charset = *str++;
-	  if (char_bytes <= bytes && CHARSET_DEFINED_P (charset))
+	  if (CHARSET_DEFINED_P (charset) && char_bytes <= bytes)
 	    {
 	      c1 = *str++ & 0x7f;
 	      if (CHARSET_DIMENSION (charset) == 2)
@@ -447,6 +447,9 @@ update_charset_table (charset_id, dimension, chars, width, direction,
       leading_code_ext = charset;
     } 
 
+  if (BYTES_BY_CHAR_HEAD (leading_code_base) != bytes)
+    error ("Invalid dimension for the charset-ID %d", charset);
+
   CHARSET_TABLE_INFO (charset, CHARSET_ID_IDX) = charset_id;
   CHARSET_TABLE_INFO (charset, CHARSET_BYTES_IDX) = make_number (bytes);
   CHARSET_TABLE_INFO (charset, CHARSET_DIMENSION_IDX) = dimension;
@@ -496,8 +499,6 @@ update_charset_table (charset_id, dimension, chars, width, direction,
   if (charset != CHARSET_ASCII
       && charset < MIN_CHARSET_PRIVATE_DIMENSION1)
     {
-      /* Update tables bytes_by_char_head and width_by_char_head.  */
-      bytes_by_char_head[leading_code_base] = bytes;
       width_by_char_head[leading_code_base] = XINT (width);
 
       /* Update table emacs_code_class.  */
@@ -1808,15 +1809,23 @@ init_charset_once ()
   bzero (cmpchar_hash_table, sizeof cmpchar_hash_table);
   cmpchar_table_size = n_cmpchars = 0;
 
-  for (i = 0; i < 256; i++)
+  for (i = 0; i < 128; i++)
     BYTES_BY_CHAR_HEAD (i) = 1;
+  for (i = MIN_CHARSET_OFFICIAL_DIMENSION1;
+       i <= MAX_CHARSET_OFFICIAL_DIMENSION1; i++)
+    BYTES_BY_CHAR_HEAD (i) = 2;
+  for (i = MIN_CHARSET_OFFICIAL_DIMENSION2;
+       i <= MAX_CHARSET_OFFICIAL_DIMENSION2; i++)
+    BYTES_BY_CHAR_HEAD (i) = 3;
   BYTES_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_11) = 3;
   BYTES_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_12) = 3;
   BYTES_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_21) = 4;
   BYTES_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_22) = 4;
-  /* The following doesn't reflect the actual bytes, but just to tell
+  /* The followings don't reflect the actual bytes, but just to tell
      that it is a start of a multibyte character.  */
   BYTES_BY_CHAR_HEAD (LEADING_CODE_COMPOSITION) = 2;
+  BYTES_BY_CHAR_HEAD (0x9E) = 2;
+  BYTES_BY_CHAR_HEAD (0x9F) = 2;
 
   for (i = 0; i < 128; i++)
     WIDTH_BY_CHAR_HEAD (i) = 1;
