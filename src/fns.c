@@ -330,7 +330,7 @@ with the original.")
 
       copy = Fmake_char_table (XCHAR_TABLE (arg)->purpose, Qnil);
       /* Copy all the slots, including the extra ones.  */
-      bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
+      bcopy (XVECTOR (arg)->contents, XVECTOR (copy)->contents,
 	     ((XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK)
 	      * sizeof (Lisp_Object)));
 
