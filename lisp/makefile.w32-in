@@ -267,11 +267,11 @@ recompile: doit
 bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
 
 bootstrap-clean-CMD:
-	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
+#	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
 	-for %f in (. $(WINS)) do for %g in (%f\*.elc) do @$(DEL) %g
 
 bootstrap-clean-SH:
-	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+#	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
 	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
 
 # Generate/update files for the bootstrap process.
