@@ -4,9 +4,13 @@
 
 2003-01-13  David Ponce  <david@dponce.com>
 
+	* ruler-mode.el (ruler-mode): Cleanup buffer local variable
+	`header-line-format' if it didn't exist when `ruler-mode' was enabled.
+
+2003-01-13  Masatake YAMATO  <jet@gyve.org>
+
 	* ruler-mode.el (ruler-mode-comment-column-char)
-	(ruler-mode-goal-column-char)
-	(ruler-mode-set-goal-column-ding-flag)
+	(ruler-mode-goal-column-char, ruler-mode-set-goal-column-ding-flag)
 	(ruler-mode-mouse-current-grab-object): New variables.
 	(ruler-mode-comment-column-face, ruler-mode-goal-column-face): New
 	faces.
@@ -17,8 +21,6 @@
 	(ruler-mode-map): [header-line down-mouse-2] Bound to
 	`ruler-mode-mouse-grab-any-column' instead of
 	`ruler-mode-mouse-set-fill-column'.
-	(ruler-mode): Cleanup buffer local variable `header-line-format' if it
-	didn't exist when `ruler-mode' was enabled.
 	(ruler-mode-ruler-help-echo): Updated its value.
 	(ruler-mode-ruler-help-echo-when-goal-column): New help string used when
 	goal-column is already set.
