@@ -1,5 +1,8 @@
 2000-06-19  Ken Raeburn  <raeburn@gnu.org>
 
+	* xfns.c (jpeg_load): Fetch error-handling data first, then fill
+	in the custom handler pointer.
+
 	* keyboard.c (follow_key, read_key_sequence): Use XUINT on key
 	value, or checks for CHAR_META can fail when Lisp_Object is a
 	union type.

@@ -8211,8 +8211,8 @@ jpeg_load (f, img)
 
   /* Customize libjpeg's error handling to call my_error_exit when an
      error is detected.  This function will perform a longjmp.  */
-  mgr.pub.error_exit = my_error_exit;
   cinfo.err = jpeg_std_error (&mgr.pub);
+  mgr.pub.error_exit = my_error_exit;
   
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
     {
