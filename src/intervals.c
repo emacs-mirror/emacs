@@ -1311,8 +1311,9 @@ set_point (position, buffer)
   /* We run point-left and point-entered hooks here, iff the
      two intervals are not equivalent.  These hooks take
      (old_point, new_point) as arguments.  */
-  if (! intervals_equal (from, to)
-      || ! intervals_equal (fromprev, toprev))
+  if (NILP (Vinhibit_point_motion_hooks)
+      && (! intervals_equal (from, to)
+	  || ! intervals_equal (fromprev, toprev)))
     {
       Lisp_Object leave_after, leave_before, enter_after, enter_before;
 
