@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.21) $
+ * $HopeName: MMsrc!amcss.c(trunk.22) $
  * Copyright (C) 1996, 1998 Harlequin Group, all rights reserved
  */
 
@@ -50,6 +50,13 @@ static mps_addr_t make(void)
   } while(!mps_commit(ap, p, size));
 
   return p;
+}
+
+static void test_stepper(mps_addr_t object, void *p, size_t s)
+{
+  (*(unsigned long *)p)++;
+  testlib_unused(s);
+  testlib_unused(object);
 }
 
 
@@ -102,6 +109,13 @@ static void *test(void *arg, size_t s)
       for(r = 0; r < exactRootsCOUNT; ++r)
         assert(exactRoots[r] == objNULL ||
                dylan_check(exactRoots[r]));
+      if(collections == collectionsCOUNT / 2) {
+        unsigned long object_count = 0;
+        mps_arena_park(arena);
+	mps_arena_release(arena);
+	mps_amc_apply(pool, test_stepper, &object_count, 0);
+	printf("mps_amc_apply stepped on %lu objects.\n", object_count);
+      }
     }
 
     if(rnd() & 1)
