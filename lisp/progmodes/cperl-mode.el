@@ -455,11 +455,7 @@ know about them.")
 install choose-color.el, available from
    ftp://ftp.math.ohio-state.edu/pub/users/ilya/emacs/
 
-Emacs had a _very_ restricted syntax parsing engine until RMS's Emacs
-20.1.  Most problems below are corrected starting from this version of
-Emacs, and all of them should go with (future) RMS's version 20.3.
-
-Note that even with newer Emacsen interaction of `font-lock' and
+Even with newer Emacsen interaction of `font-lock' and
 syntaxification is not cleaned up.  You may get slightly different
 colors basing on the order of fontification and syntaxification.  This
 might be corrected by setting `cperl-syntaxify-by-font-lock' to t, but
@@ -485,7 +481,7 @@ to insert it as $ {aaa} (legal in perl5, not in perl4).
 Similar problems arise in regexps, when /(\\s|$)/ should be rewritten
 as /($|\\s)/.  Note that such a transposition is not always possible.
 
-The solution is to upgrade your Emacs.  Note that RMS's 20.2 has some
+The solution is to upgrade your Emacs.  Note that Emacs 20.2 has some
 bugs related to `syntax-table' text properties.  Patches are available
 on the main CPerl download site, and on CPAN.
 
@@ -1307,7 +1303,7 @@ or as help on variables `cperl-tips', `cperl-problems',
        (not cperl-msb-fixed)
        (cperl-msb-fix))
   (if (featurep 'easymenu)
-      (easy-menu-add cperl-menu))	; A NOP in RMS Emacs.
+      (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (run-hooks 'cperl-mode-hook)
   ;; After hooks since fontification will break this
   (if cperl-pod-here-scan 
