@@ -2,6 +2,9 @@
 
 	* files.el: Recognize temporary crontab files.
 
+	* info.el: Require jka-compr when compiling.
+	(Info-suffix-list): Add bzip2 files (non-ms-dos only).
+
 1999-10-04  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add x-stretch-cursor, indicate-empty-lines,
