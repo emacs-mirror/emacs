@@ -1,3 +1,9 @@
+2001-10-02  Miles Bader  <miles@gnu.org>
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): Remove reference to non-existant
+	argument OBJECT from doc-string.
+
 2001-10-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): Set row's ends_in_newline_from_string_p.
