@@ -1,3 +1,10 @@
+2000-08-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* startup.el (normal-top-level): Look in each dir in load-path for
+	a leim-list.el file too.  This assures of loading leim-list.el
+	that is created at Emacs installation time even if a user have his
+	own leim-list.el.
+
 2000-08-17  Miles Bader  <miles@gnu.org>
 
 	* hi-lock.el (hi-yellow, hi-pink, hi-green, hi-blue): Force the
