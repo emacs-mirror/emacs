@@ -739,7 +739,7 @@ The buffer is not selected, just returned to the caller."
 	  (dired-noselect (if find-file-visit-truename
 			      (abbreviate-file-name (file-truename filename))
 			    filename))
-	(error "%s is a directory." filename))
+	(error "%s is a directory" filename))
     (let* ((buf (get-file-buffer filename))
 	   (truename (abbreviate-file-name (file-truename filename)))
 	   (number (nthcdr 10 (file-attributes truename)))
