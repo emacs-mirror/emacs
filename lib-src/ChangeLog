@@ -1,3 +1,10 @@
+2002-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (WINNT_SUPPORT, MOUSE_SUPPORT, lisp): Revert to
+	using .elc files.
+	(lisp): Sync with list in src/Makefile.in
+	(VMS_SUPPORT, MSDOS_SUPPORT): Define, so DOC files can be shared.
+
 2002-02-10  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs-checkin: Use `sort -k 2', not `sort +1', as POSIX 1003.1-2001

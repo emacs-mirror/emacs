@@ -2,6 +2,7 @@
 
 	* Makefile.in (WINNT_SUPPORT) [WINDOWSNT]: Add w32-vars.elc
 	and disp-table.elc.
+	(lisp): Add emacs-lisp/backquote.elc.
 
 2002-02-24  Kim F. Storm  <storm@cua.dk>
 
