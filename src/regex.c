@@ -4763,19 +4763,19 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 #ifdef emacs
 	case before_dot:
 	  DEBUG_PRINT1 ("EXECUTING before_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) >= point)
+	  if (PTR_CHAR_POS ((unsigned char *) d) >= PT)
 	    goto fail;
 	  break;
 
 	case at_dot:
 	  DEBUG_PRINT1 ("EXECUTING at_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) != point)
+	  if (PTR_CHAR_POS ((unsigned char *) d) != PT)
 	    goto fail;
 	  break;
 
 	case after_dot:
 	  DEBUG_PRINT1 ("EXECUTING after_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) <= point)
+	  if (PTR_CHAR_POS ((unsigned char *) d) <= PT)
 	    goto fail;
 	  break;
 
