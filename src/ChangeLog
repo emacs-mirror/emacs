@@ -1,3 +1,8 @@
+2000-10-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* alloc.c (Fgarbage_collect): Prevent compiler warning for a call
+	to `mark_object'.
+
 2000-10-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (forw_comment): Match nestedness of ender/starter.
