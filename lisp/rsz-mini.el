@@ -6,8 +6,6 @@
 ;;         Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
-;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;; $Id: rsz-mini.el,v 1.12 1996/11/14 18:49:50 kwzh Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
