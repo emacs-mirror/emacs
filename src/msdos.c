@@ -1397,7 +1397,7 @@ mouse_get_pos (f, insist, bar_window, part, x, y, time)
   *bar_window = Qnil;
   gettimeofday (&tv, NULL);
   mouse_get_xy (&ix, &iy);
-  mouse_moved = 0;
+  selected_frame->mouse_moved = 0;
   *x = make_number (ix);
   *y = make_number (iy);
   *time = tv.tv_usec;
@@ -1409,7 +1409,7 @@ mouse_check_moved ()
   int x, y;
 
   mouse_get_xy (&x, &y);
-  mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
+  selected_frame->mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
   mouse_last_x = x;
   mouse_last_y = y;
 }
@@ -1737,9 +1737,9 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   while (!leave)
     {
       mouse_check_moved ();
-      if (mouse_moved)
+      if (selected_frame->mouse_moved)
 	{
-	  mouse_moved = 0;
+	  selected_frame->mouse_moved = 0;
 	  result = XM_IA_SELECT;
 	  mouse_get_xy (&x, &y);
 	  for (i = 0; i < statecount; i++)
