@@ -3445,7 +3445,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 
 Lisp_Object
 display_x_get_resource (dpyinfo, attribute, class, component, subclass)
-     struct x_display_info *dpyinfo;
+     Display_Info *dpyinfo;
      Lisp_Object attribute, class, component, subclass;
 {
   return xrdb_get_resource (dpyinfo->xrdb,
