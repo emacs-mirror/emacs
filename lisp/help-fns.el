@@ -323,6 +323,9 @@ The usage info is built from ARGLIST.  DOC can be nil."
 						 function)))))
 		   usage)
 		 (car usage))
+ 		((or (stringp def)
+ 		     (vectorp def))
+		 (format "\nMacro: %s" (format-kbd-macro def)))
 		(t "[Missing arglist.  Please make a bug report.]")))
 	(terpri))
       (let ((obsolete (and
