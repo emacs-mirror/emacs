@@ -1016,6 +1016,7 @@ REGEXP and search the list again for another match.")
 
 (defconst interpreter-mode-alist
   '(("perl" . perl-mode)
+    ("perl5" . perl-mode)
     ("wish" . tcl-mode)
     ("wishx" . tcl-mode)
     ("tcl" . tcl-mode)
