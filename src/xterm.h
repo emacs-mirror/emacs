@@ -280,6 +280,7 @@ struct x_display
   PIX_TYPE cursor_pixel;
   PIX_TYPE border_pixel;
   PIX_TYPE mouse_pixel;
+  PIX_TYPE cursor_foreground_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
 #ifdef HAVE_X11
