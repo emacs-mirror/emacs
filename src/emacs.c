@@ -731,6 +731,18 @@ main (argc, argv, envp)
 
   inhibit_window_system = 0;
 
+  /* --unibyte requests that we set up to do everything with single-byte
+     buffers and strings.  We need to handle this before calling
+     init_lread, init_editfns and other places that generate Lisp strings
+     from text in the environment.  */
+  if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args))
+    {
+      Lisp_Object symbol;
+      symbol = intern ("default-enable-multibyte-characters");
+      Fset (symbol, Qnil);
+      Fset_default (symbol, Qnil);
+    }
+
   /* Handle the -t switch, which specifies filename to use as terminal */
   {
     char *term;
@@ -1232,6 +1244,7 @@ struct standard_args standard_args[] =
 #ifdef VMS
   { "-map", "--map-data", 100, 0 },
 #endif
+  { "-unibyte", "--unibyte", 95, 0 },
   { "-t", "--terminal", 90, 1 },
   { "-d", "--display", 80, 1 },
   { "-display", 0, 80, 1 },
