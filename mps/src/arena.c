@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.22) $
+ * $HopeName: MMsrc!arena.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -35,7 +35,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.22) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.23) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -356,7 +356,6 @@ void ArenaDestroy(Arena arena)
 
   AVERT(Arena, arena);
   AVER(!arena->insidePoll);
-  AVER(arena->insideShield);
 
   /* Detach the arena from the global list. */
   LockClaim(&arenaRingLock);
