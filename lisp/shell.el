@@ -1,8 +1,8 @@
 ;;; shell.el --- specialized comint.el for running the shell.
-;;; Copyright (C) 1988, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Adapted-by: Simon Marshall <s.marshall@dcs.hull.ac.uk>
+;; Maintainer: Simon Marshall <s.marshall@dcs.hull.ac.uk>
 ;; Keywords: processes
 
 ;;; This file is part of GNU Emacs.
@@ -292,8 +292,8 @@ M-x dirtrack-toggle turns directory tracking on and off.
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `shell-mode-hook' (in that order).  Before each input, the hooks on
-`comint-input-sentinel-functions' are run.  After each shell output, the hooks
-on `comint-output-sentinel-functions' are run.
+`comint-input-filter-functions' are run.  After each shell output, the hooks
+on `comint-output-filter-functions' are run.
 
 Variables `shell-cd-regexp', `shell-pushd-regexp' and `shell-popd-regexp'
 are used to match their respective commands, while `shell-pushd-tohome',
@@ -308,7 +308,7 @@ the behavior of command name completion.
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
 the initialisation of the input ring history, and history expansion.
 
-Variables `comint-output-sentinel-functions', a hook, and
+Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input',and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
 buffer."
@@ -327,7 +327,7 @@ buffer."
   (setq shell-last-dir nil)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
-  (add-hook 'comint-output-sentinel-functions 'shell-directory-tracker)
+  (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; shell-dependent assignments.
   (let ((shell (car (process-command (get-buffer-process (current-buffer))))))
@@ -450,7 +450,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		     (shell-process-cd (substitute-in-file-name arg1))))
 	      (setq start (progn (string-match "[;\\s ]*" str end) ; skip again
 				 (match-end 0)))))
-	(error (message "Couldn't cd")))))
+	(error "Couldn't cd"))))
 
 ;;; popd [+n]
 (defun shell-process-popd (arg)
@@ -466,7 +466,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	     (setq shell-dirstack (cdr ds))
 	     (shell-dirstack-message)))
 	  (t
-	   (error (message "Couldn't popd."))))))
+	   (error "Couldn't popd")))))
 
 ;; Return DIR prefixed with comint-file-name-prefix as appropriate.
 (defsubst shell-prefixed-directory-name (dir)
