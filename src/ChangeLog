@@ -1,3 +1,8 @@
+2004-07-15  David Kastrup  <dak@gnu.org>
+
+	* search.c (syms_of_search): staticpro
+	`saved_last_thing_searched'.  Apparently fixes an abort condition.
+
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
