@@ -82,11 +82,13 @@ HANDLE  keyboard_handle;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
- * someone hits ^C in a 'suspended' session (child shell).  */
+   someone hits ^C in a 'suspended' session (child shell).
+   Also ignore Ctrl-Break signals.  */
+
 BOOL
 ctrl_c_handler (unsigned long type)
 {
-  return (type == CTRL_C_EVENT) ? TRUE : FALSE;
+  return (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT);
 }
 
 /* If we're updating a frame, use it as the current frame
