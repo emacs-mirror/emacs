@@ -470,20 +470,18 @@ Other major modes are defined by comparison with this one."
   "Minibuffer keymap used for reading Lisp expressions.")
 (define-key read-expression-map "\M-\t" 'lisp-complete-symbol)
 
-(put 'eval-expression 'disabled t)
-
 (defvar read-expression-history nil)
 
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
-(defun eval-expression (expression)
+(defun eval-expression (eval-expression-arg)
   "Evaluate EXPRESSION and print value in minibuffer.
 Value is also consed on to front of the variable `values'."
   (interactive
    (list (read-from-minibuffer "Eval: "
 			       nil read-expression-map t
 			       'read-expression-history)))
-  (setq values (cons (eval expression) values))
+  (setq values (cons (eval eval-expression-arg) values))
   (prin1 (car values) t))
 
 (defun edit-and-eval-command (prompt command)
