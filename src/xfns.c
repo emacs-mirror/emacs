@@ -3011,6 +3011,18 @@ DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 0, 0,
     }
 }
 
+DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
+  0, 0, 0,
+  "Return t if the X screen currently in use supports grayscale.")
+  ()
+{
+  check_x ();
+
+  return (x_screen_planes > 2
+	  && (screen_visual->class == StaticGray
+	      || screen_visual->class == GrayScale));
+}
+
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
   0, 1, 0,
   "Returns the width in pixels of the display FRAME is on.")
@@ -4486,8 +4498,9 @@ or when you set the mouse color.");
   defsubr (&Sx_contour_region);
   defsubr (&Sx_uncontour_region);
 #endif
-  defsubr (&Sx_display_color_p);
   defsubr (&Sx_list_fonts);
+  defsubr (&Sx_display_color_p);
+  defsubr (&Sx_display_grayscale_p);
   defsubr (&Sx_color_defined_p);
   defsubr (&Sx_color_values);
   defsubr (&Sx_server_max_request_size);
