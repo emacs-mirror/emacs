@@ -176,7 +176,7 @@ mouse event, and the number of elements in items is less than
 `widget-menu-max-size', a popup menu will be used, otherwise the
 minibuffer."
   (cond ((and (< (length items) widget-menu-max-size)
-	      event (fboundp 'x-popup-menu) window-system)
+	      event (fboundp 'x-popup-menu) (display-mouse-p))
 	 ;; We are in Emacs-19, pressed by the mouse
 	 (x-popup-menu event
 		       (list title (cons "" items))))
@@ -1818,7 +1818,7 @@ when he invoked the menu."
   ;; Return non-nil if we need a menu.
   (let ((args (widget-get widget :args))
 	(old (widget-get widget :choice)))
-    (cond ((not window-system)
+    (cond ((not (display-popup-menus-p))
 	   ;; No place to pop up a menu.
 	   nil)
 	  ((not (or (fboundp 'x-popup-menu) (fboundp 'popup-menu)))
