@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.7) $
+ * $HopeName: MMsrc!mpm.h(MMdevel_lib.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -15,7 +15,7 @@
 #include "poolmv.h"
 #include "poolmfs.h"
 #include "ss.h"
-#include "lib.h"
+#include "mpslib.h"
 
 
 /* AVER, AVERT -- MPM assertions
@@ -80,6 +80,8 @@ extern Shift SizeFloorLog2(Size size);
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), a))
 
+extern Res WriteF(mps_lib_FILE *stream, ...);
+
 
 /* Ring Interface -- see impl.c.ring */
 
@@ -143,7 +145,7 @@ extern Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
-extern Res PoolDescribe(Pool pool, Lib_FILE *stream);
+extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 
 extern Space (PoolSpace)(Pool pool);
 #define PoolSpace(pool)         ((pool)->space)
@@ -185,8 +187,8 @@ extern Res PoolNoBufferFill(Addr *baseReturn, Pool pool, Buffer buffer, Size siz
 extern Bool PoolNoBufferTrip(Pool pool, Buffer buffer, Addr base, Size size);
 extern void PoolNoBufferExpose(Pool pool, Buffer buffer);
 extern void PoolNoBufferCover(Pool pool, Buffer buffer);
-extern Res PoolNoDescribe(Pool pool, Lib_FILE *stream);
-extern Res PoolTrivDescribe(Pool pool, Lib_FILE *stream);
+extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
+extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoCondemn(RefSet *condemnedReturn, Pool pool, Space space, TraceId ti);
 extern void PoolNoGrey(Pool pool, Space space, TraceId ti);
 extern Res PoolNoScan(ScanState ss, Pool pool, Bool *finishedReturn);
@@ -268,7 +270,7 @@ extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
 extern Res SpaceCreate(Space *spaceReturn, Addr base, Size size);
 extern void SpaceDestroy(Space space);
 extern Bool SpaceCheck(Space space);
-extern Res SpaceDescribe(Space space, Lib_FILE *stream);
+extern Res SpaceDescribe(Space space, mps_lib_FILE *stream);
 extern Bool SpaceAccess(Addr addr, AccessSet mode);
 extern void SpaceEnter(Space space);
 extern void SpaceLeave(Space space);
@@ -307,7 +309,7 @@ extern Bool SegCheck(Seg seg);
 extern Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
-extern Res BufferDescribe(Buffer buffer, Lib_FILE *stream);
+extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
@@ -341,6 +343,7 @@ extern Res FormatCreate(Format *formatReturn, Space space,
                         FormatPadMethod pad);
 extern void FormatDestroy(Format format);
 extern Space FormatSpace(Format format);
+extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 
 
 /* Reference Interface -- see impl.c.ref */
@@ -407,7 +410,7 @@ extern Res RootCreate(Root *rootReturn, Space space,
                         void *p, size_t s);
 extern void RootDestroy(Root root);
 extern Bool RootCheck(Root root);
-extern Res RootDescribe(Root root, Lib_FILE *stream);
+extern Res RootDescribe(Root root, mps_lib_FILE *stream);
 extern Bool RootIsAtomic(Root root);
 extern Rank RootRank(Root root);
 extern void RootGrey(Root root, Space space, TraceId ti);
