@@ -566,10 +566,8 @@ main (argc, argv, envp)
 #ifdef DOUG_LEA_MALLOC
   if (initialized)
     {
-      extern void r_alloc_reinit ();
       malloc_set_state (malloc_state_ptr);
       free (malloc_state_ptr);
-      r_alloc_reinit ();
     }
 #endif
 
