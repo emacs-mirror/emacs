@@ -392,39 +392,21 @@ to get different commands to edit and resubmit."
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)
 
-(define-key minibuffer-local-map "\en" 'next-history-element)
-(define-key minibuffer-local-ns-map "\en" 'next-history-element)
-(define-key minibuffer-local-ns-map "\en" 'next-history-element)
-(define-key minibuffer-local-completion-map "\en" 'next-history-element)
-(define-key minibuffer-local-completion-map "\en" 'next-history-element)
-(define-key minibuffer-local-must-match-map "\en" 'next-history-element)
-
-(define-key minibuffer-local-map "\ep" 'previous-history-element)
-(define-key minibuffer-local-ns-map "\ep" 'previous-history-element)
-(define-key minibuffer-local-ns-map "\ep" 'previous-history-element)
-(define-key minibuffer-local-completion-map "\ep" 'previous-history-element)
-(define-key minibuffer-local-completion-map "\ep" 'previous-history-element)
-(define-key minibuffer-local-must-match-map "\ep" 'previous-history-element)
-
-(define-key minibuffer-local-map "\er" 'previous-matching-history-element)
-(define-key minibuffer-local-ns-map "\er" 'previous-matching-history-element)
-(define-key minibuffer-local-ns-map "\er" 'previous-matching-history-element)
-(define-key minibuffer-local-completion-map "\er"
-  'previous-matching-history-element)
-(define-key minibuffer-local-completion-map "\er"
-  'previous-matching-history-element)
-(define-key minibuffer-local-must-match-map "\er"
-  'previous-matching-history-element)
-
-(define-key minibuffer-local-map "\es" 'next-matching-history-element)
-(define-key minibuffer-local-ns-map "\es" 'next-matching-history-element)
-(define-key minibuffer-local-ns-map "\es" 'next-matching-history-element)
-(define-key minibuffer-local-completion-map "\es"
-  'next-matching-history-element)
-(define-key minibuffer-local-completion-map "\es"
-  'next-matching-history-element)
-(define-key minibuffer-local-must-match-map "\es"
-  'next-matching-history-element)
+(mapcar
+ (function (lambda (key-and-command)
+	     (mapcar
+	      (function (lambda (keymap)
+			  (define-key (symbol-value keymap)
+			    (car key-and-command)
+			    (cdr key-and-command))))
+	      '(minibuffer-local-map
+		minibuffer-local-ns-map
+		minibuffer-local-completion-map
+		minibuffer-local-must-match-map))))
+ '(("\en" . next-history-element) ([next] . next-history-element)
+   ("\ep" . previous-history-element) ([prior] . previous-history-element)
+   ("\er" . previous-matching-history-element)
+   ("\es" . next-matching-history-element)))
 
 (put 'previous-matching-history-element 'enable-recursive-minibuffers t)
 (defun previous-matching-history-element (regexp n)
@@ -872,10 +854,6 @@ yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
 				 (funcall interprogram-paste-function))))
-;;; RMS: Turn off the interprogram paste feature 
-;;; because currently it is wedged: it is always
-;;; giving a null string.
-    (setq interprogram-paste nil)
     (if interprogram-paste
 	(progn
 	  ;; Disable the interprogram cut function when we add the new
