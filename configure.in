@@ -647,10 +647,7 @@ case "${canonical}" in
       ## The Sun386 didn't get past 4.0.
       i[345]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
-      *-sunos4.1.3*	  ) opsys=sunos4-1-3
-		NON_GNU_CPP=/usr/lib/cpp
-		;;
-      *-sunos4shr*	  ) opsys=sunos4shr
+      *-sunos4.1.3* | *-sunos4shr*  ) opsys=sunos4shr
 		NON_GNU_CPP=/usr/lib/cpp
 		;;
       *-sunos4* | *-sunos ) opsys=sunos4-1
