@@ -1,3 +1,8 @@
+2001-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (EMACS): Use $(THISDIR) to make emacs.exe path
+	absolute.
+
 2001-02-06  David M. Koppelman <koppel@ee.lsu.edu>
 
 	* hi-lock.el (hi-lock-mode): Toggling hi-lock-mode now affects all
