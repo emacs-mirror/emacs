@@ -480,7 +480,11 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 			       (or display
 				   (frame-parameter nil 'display)
 				   (getenv "DISPLAY")
-				   (error "Please specify display"))))
+				   (error "Please specify display"))
+			       (list (cons 'client proc))))
+		  ;; XXX We need to ensure the client parameter is
+		  ;; really set because Emacs forgets initialization
+		  ;; parameters for X frames at the moment.
 		  (modify-frame-parameters frame (list (cons 'client proc)))
 		  (select-frame frame)
 		  (server-client-set client 'frame frame)
@@ -513,8 +517,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (setq request (substring request (match-end 0)))
 		    (unless (server-client-get client 'version)
 		      (error "Protocol error; make sure you use the correct version of emacsclient"))
-		    (setq frame (make-frame-on-tty tty type))
-		    (modify-frame-parameters frame (list (cons 'client proc)))
+		    (setq frame (make-frame-on-tty tty type (list (cons 'client proc))))
 		    (select-frame frame)
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (frame-tty-name frame))
@@ -891,10 +894,10 @@ function consults the environment of the Emacs process.
 
 If FRAME is nil or missing, then the selected frame is used."
   (when (not frame) (setq frame (selected-frame)))
-  (let ((clients (server-clients-with 'frame frame)) env)
-    (if (null clients)
+  (let ((client (frame-parameter frame 'client)) env)
+    (if (null client)
 	(getenv variable)
-      (setq env (server-client-get (car clients) 'environment))
+      (setq env (server-client-get client 'environment))
       (if (null env)
 	  (getenv variable)
 	(cdr (assoc variable env))))))
