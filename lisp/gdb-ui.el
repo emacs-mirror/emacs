@@ -179,7 +179,7 @@ The following interactive lisp functions help control operation :
   ;;
   (run-hooks 'gdba-mode-hook))
 
-(defcustom gdb-use-colon-colon-notation t
+(defcustom gdb-use-colon-colon-notation nil
   "Non-nil means use FUNCTION::VARIABLE format to display variables in the
 speedbar."
   :type 'boolean
@@ -188,6 +188,7 @@ speedbar."
 (defun gud-watch ()
   "Watch expression at point."
   (interactive)
+  (require 'tooltip)
   (let ((expr (tooltip-identifier-from-point (point))))
     (if (and (string-equal gdb-current-language "c")
 	     gdb-use-colon-colon-notation)
@@ -214,6 +215,7 @@ speedbar."
 			 (match-string 3)
 			 nil nil)))
 	  (push var gdb-var-list)
+	  (setq speedbar-update-flag t)
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
@@ -304,26 +306,28 @@ speedbar."
   (gdb-set-pending-triggers
    (delq 'gdb-var-update (gdb-get-pending-triggers))))
 
-(defun gdb-var-delete (text token indent)
-  "Delete watched expression."
+(defun gdb-var-delete ()
+  "Delete watched expression from the speedbar."
   (interactive)
-  (when (eq indent 0)
-    (string-match "\\(\\S-+\\)" text)
-    (let* ((expr (match-string 1 text))
-	   (var (assoc expr gdb-var-list))
-	   (varnum (cadr var)))
-      (gdb-enqueue-input
-       (list (concat "server interpreter mi \"-var-delete " varnum "\"\n")
-	     'ignore))
-      (setq gdb-var-list (delq var gdb-var-list))
-      (dolist (varchild gdb-var-list)
-	(if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
-	    (setq gdb-var-list (delq varchild gdb-var-list)))))
-    (setq gdb-var-changed t)))
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+      (let ((text (speedbar-line-text)))
+	(string-match "\\(\\S-+\\)" text)
+	(let* ((expr (match-string 1 text))
+	       (var (assoc expr gdb-var-list))
+	       (varnum (cadr var)))
+	  (unless (string-match "\\." varnum)
+	    (gdb-enqueue-input
+	     (list (concat "server interpreter mi \"-var-delete "
+			   varnum "\"\n")
+		   'ignore))
+	    (setq gdb-var-list (delq var gdb-var-list))
+	    (dolist (varchild gdb-var-list)
+	      (if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
+		  (setq gdb-var-list (delq varchild gdb-var-list))))
+	    (setq gdb-var-changed t))))))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar"
-  (interactive)
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (cadr var)) (value))
     (setq value (read-string "New value: "))
@@ -1013,15 +1017,27 @@ static char *magick[] = {
 0 0 0 1 0 1 0 1 0 0"
   "PBM data used for disabled breakpoint icon.")
 
-(defvar breakpoint-enabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data :ascent 100)
-		(:type pbm :data ,breakpoint-enabled-pbm-data :ascent 100)))
+(defvar breakpoint-enabled-icon nil
   "Icon for enabled breakpoint in display margin")
 
-(defvar breakpoint-disabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled :ascent 100)
-		(:type pbm :data ,breakpoint-disabled-pbm-data :ascent 100)))
+(defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin")
+
+(defvar breakpoint-bitmap nil
+  "Bitmap for breakpoint in fringe")
+
+(defface breakpoint-enabled-bitmap-face
+  '((t
+     :inherit fringe
+     :foreground "red"))
+  "Face for enabled breakpoint icon in fringe.")
+
+(defface breakpoint-disabled-bitmap-face
+  '((t
+     :inherit fringe
+     :foreground "grey60"))
+  "Face for disabled breakpoint icon in fringe.")
+
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
@@ -1032,9 +1048,7 @@ static char *magick[] = {
       (with-current-buffer buffer
 	(if (and (eq gud-minor-mode 'gdba)
 		 (not (string-match "^\*" (buffer-name))))
-	    (if (display-images-p)
-		(remove-images (point-min) (point-max))
-	      (gdb-remove-strings (point-min) (point-max))))))
+	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
 	(goto-char (point-min))
@@ -1060,35 +1074,11 @@ static char *magick[] = {
 			  (save-current-buffer
 			    (set (make-local-variable 'gud-minor-mode) 'gdba)
 			    (set (make-local-variable 'tool-bar-map)
-				 gud-tool-bar-map)
-			    (setq left-margin-width 2)
-			    (if (get-buffer-window (current-buffer))
-				(set-window-margins (get-buffer-window
-						     (current-buffer))
-						    left-margin-width
-						    right-margin-width)))
+				 gud-tool-bar-map))
 			  ;; only want one breakpoint icon at each location
 			  (save-excursion
 			    (goto-line (string-to-number line))
-			    (let ((start (progn (beginning-of-line)
-						(- (point) 1)))
-				  (end (progn (end-of-line) (+ (point) 1))))
-			      (if (display-images-p)
-				  (progn
-				    (remove-images start end)
-				    (if (eq ?y flag)
-					(put-image breakpoint-enabled-icon
-						   (+ start 1)
-						   "breakpoint icon enabled"
-						   'left-margin)
-				      (put-image breakpoint-disabled-icon
-						 (+ start 1)
-						 "breakpoint icon disabled"
-						 'left-margin)))
-				(gdb-remove-strings start end)
-				(if (eq ?y flag)
-				    (gdb-put-string "B" (+ start 1))
-				  (gdb-put-string "b" (+ start 1))))))))))))
+			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
@@ -1102,7 +1092,10 @@ static char *magick[] = {
 	(with-selected-window (posn-window posn)
 	  (save-excursion
 	    (goto-char (posn-point posn))
-	    (if (posn-object posn)
+	    (if (or (posn-object posn)
+		    (and breakpoint-bitmap
+			 (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
+			     breakpoint-bitmap)))
 		(gud-remove nil)
 	      (gud-break nil)))))))
 
@@ -1622,13 +1615,13 @@ the source buffer."
   (other-window 1)
   (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (if (and gdb-view-source
-	   (eq gdb-selected-view 'source))
-      (switch-to-buffer
+  (switch-to-buffer
+   (if (and gdb-view-source
+	    (eq gdb-selected-view 'source))
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
-    (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	 (gud-find-file gdb-main-file))
+     (gdb-get-create-buffer 'gdb-assembler-buffer)))
   (setq gdb-source-window (get-buffer-window (current-buffer)))
   (split-window-horizontally)
   (other-window 1)
@@ -1668,13 +1661,13 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if (and gdb-view-source
-	   (eq gdb-selected-view 'source))
-	(switch-to-buffer
+    (switch-to-buffer
+     (if (and gdb-view-source
+	      (eq gdb-selected-view 'source))
 	 (if gud-last-last-frame
 	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file)))
-      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	   (gud-find-file gdb-main-file))
+       (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
@@ -1687,18 +1680,10 @@ This arrangement depends on the value of `gdb-many-windows'."
 	  (if (memq gud-minor-mode '(gdba pdb))
 	      (if (string-match "^\*.+*$" (buffer-name))
 		  (kill-buffer nil)
-		(if (display-images-p)
-		    (remove-images (point-min) (point-max))
-		  (gdb-remove-strings (point-min) (point-max)))
-		(setq left-margin-width 0)
+		(gdb-remove-breakpoint-icons (point-min) (point-max) t)
 		(setq gud-minor-mode nil)
 		(kill-local-variable 'tool-bar-map)
-		(setq gud-running nil)
-		(if (get-buffer-window (current-buffer))
-		    (set-window-margins (get-buffer-window
-					 (current-buffer))
-					left-margin-width
-					right-margin-width))))))))
+		(setq gud-running nil)))))))
 
 (defun gdb-source-info ()
   "Find the source file where the program starts and displays it with related
@@ -1721,17 +1706,15 @@ buffers."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if gdb-view-source
-      (switch-to-buffer
-       (if gud-last-last-frame
-	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
-      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+    (switch-to-buffer
+     (if gdb-view-source
+	 (gud-find-file gdb-main-file)
+       (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
 ;;from put-image
-(defun gdb-put-string (putstring pos)
+(defun gdb-put-string (putstring pos &optional dprop)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is
@@ -1739,7 +1722,8 @@ PUTSTRING."
   (let ((gdb-string "x")
 	(buffer (current-buffer)))
     (let ((overlay (make-overlay pos pos buffer))
-	  (prop (list (list 'margin 'left-margin) putstring)))
+	  (prop (or dprop
+		    (list (list 'margin 'left-margin) putstring))))
       (put-text-property 0 (length gdb-string) 'display prop gdb-string)
       (overlay-put overlay 'put-break t)
       (overlay-put overlay 'before-string gdb-string))))
@@ -1747,7 +1731,7 @@ PUTSTRING."
 ;;from remove-images
 (defun gdb-remove-strings (start end &optional buffer)
   "Remove strings between START and END in BUFFER.
-Remove only strings that were put in BUFFER with calls to `put-string'.
+Remove only strings that were put in BUFFER with calls to `gdb-put-string'.
 BUFFER nil or omitted means use the current buffer."
   (unless buffer
     (setq buffer (current-buffer)))
@@ -1757,6 +1741,72 @@ BUFFER nil or omitted means use the current buffer."
 	(when (overlay-get overlay 'put-break)
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
+
+(defun gdb-put-breakpoint-icon (enabled)
+  (let ((start (progn (beginning-of-line) (- (point) 1)))
+	(end (progn (end-of-line) (+ (point) 1))))
+    (gdb-remove-breakpoint-icons start end)
+    (if (display-images-p)
+	(if (>= (car (window-fringes)) 8)
+	    (gdb-put-string 
+	     nil (1+ start)
+	     `(left-fringe 
+	       ,(or breakpoint-bitmap
+		    (setq breakpoint-bitmap
+			  (define-fringe-bitmap
+			    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")))
+	       ,(if enabled
+		    'breakpoint-enabled-bitmap-face
+		  'breakpoint-disabled-bitmap-face)))
+	  (when (< left-margin-width 2)
+	    (save-current-buffer
+	      (setq left-margin-width 2)
+	      (if (get-buffer-window (current-buffer))
+		  (set-window-margins (get-buffer-window
+				       (current-buffer))
+				      left-margin-width
+				      right-margin-width))))
+	  (put-image
+	   (if enabled
+	       (or breakpoint-enabled-icon
+		   (setq breakpoint-enabled-icon
+			 (find-image `((:type xpm :data 
+					      ,breakpoint-xpm-data
+					      :ascent 100 :pointer hand)
+				       (:type pbm :data
+					      ,breakpoint-enabled-pbm-data
+					      :ascent 100 :pointer hand)))))
+	     (or breakpoint-disabled-icon
+		 (setq breakpoint-disabled-icon
+		       (find-image `((:type xpm :data
+					    ,breakpoint-xpm-data
+					    :conversion disabled
+					    :ascent 100)
+				     (:type pbm :data
+					    ,breakpoint-disabled-pbm-data
+					    :ascent 100))))))
+	   (+ start 1) nil 'left-margin))
+      (when (< left-margin-width 2)
+	(save-current-buffer
+	  (setq left-margin-width 2)
+	  (if (get-buffer-window (current-buffer))
+	      (set-window-margins (get-buffer-window
+				   (current-buffer))
+				  left-margin-width
+				  right-margin-width))))
+      (gdb-put-string (if enabled "B" "b") (1+ start)))))
+
+(defun gdb-remove-breakpoint-icons (start end &optional remove-margin)
+  (gdb-remove-strings start end)
+  (if (display-images-p)
+      (remove-images start end))
+  (when remove-margin
+    (setq left-margin-width 0)
+    (if (get-buffer-window (current-buffer))
+	(set-window-margins (get-buffer-window
+			     (current-buffer))
+			    left-margin-width
+			    right-margin-width))))
 
 (defun gdb-put-arrow (putstring pos)
   "Put arrow string PUTSTRING in the left margin in front of POS
@@ -1811,9 +1861,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (setq gdb-arrow-position (point))
 		  (gdb-put-arrow "=>" (point))))))
       ;; remove all breakpoint-icons in assembler buffer before updating.
-      (if (display-images-p)
-	  (remove-images (point-min) (point-max))
-	(gdb-remove-strings (point-min) (point-max))))
+      (gdb-remove-breakpoint-icons (point-min) (point-max)))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
@@ -1830,24 +1878,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (with-current-buffer buffer
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
-		      (let ((start (progn (beginning-of-line) (- (point) 1)))
-			    (end (progn (end-of-line) (+ (point) 1))))
-			(if (display-images-p)
-			    (progn
-			      (remove-images start end)
-			      (if (eq ?y flag)
-				  (put-image breakpoint-enabled-icon
-					     (+ start 1)
-					     "breakpoint icon enabled"
-					     'left-margin)
-				(put-image breakpoint-disabled-icon
-					   (+ start 1)
-					   "breakpoint icon disabled"
-					   'left-margin)))
-			  (gdb-remove-strings start end)
-			  (if (eq ?y flag)
-			      (gdb-put-string "B" (+ start 1))
-			    (gdb-put-string "b" (+ start 1)))))))))))
+		      (gdb-put-breakpoint-icon (eq flag ?y))))))))
     (if (not (equal gdb-current-address "main"))
 	(set-window-point (get-buffer-window buffer) gdb-arrow-position))))
 
@@ -1862,7 +1893,6 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
-  (setq left-margin-width 2)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)

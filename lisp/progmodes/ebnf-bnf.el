@@ -1,12 +1,13 @@
 ;;; ebnf-bnf.el --- parser for EBNF
 
-;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Free Sofware Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/02/22 14:25:06 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:29:48 jbarranquero>
-;; Version: 1.7
+;; Version: 1.8
 
 ;; This file is part of GNU Emacs.
 
@@ -462,9 +463,9 @@ See documentation for variable `ebnf-bnf-lex'."
 	'integer)
        ;; special: ?special?
        ((eq token 'special)
-	(setq ebnf-bnf-lex (concat "?"
+	(setq ebnf-bnf-lex (concat (and ebnf-special-show-delimiter "?")
 				   (ebnf-string " ->@-~" ?\? "special")
-				   "?"))
+				   (and ebnf-special-show-delimiter "?")))
 	'special)
        ;; terminal: "string"
        ((eq token 'terminal)

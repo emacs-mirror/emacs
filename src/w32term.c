@@ -715,29 +715,41 @@ w32_draw_fringe_bitmap (w, row, p)
       SaveDC (hdc);
 
       horig_obj = SelectObject (compat_hdc, pixmap);
-      SetTextColor (hdc, face->background);
-      SetBkColor (hdc, p->cursor_p
-		        ? (p->overlay_p ? face->background
-			   : f->output_data.w32->cursor_pixel)
-			   : face->foreground);
 
       /* Paint overlays transparently.  */
       if (p->overlay_p)
 	{
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		DSTINVERT);
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		MERGEPAINT);
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		DSTINVERT);
+	  HBRUSH h_brush, h_orig_brush;
+
+	  SetTextColor (hdc, BLACK_PIX_DEFAULT (f));
+	  SetBkColor (hdc, WHITE_PIX_DEFAULT (f));
+	  h_brush = CreateSolidBrush (face->foreground);
+	  h_orig_brush = SelectObject (hdc, h_brush);
+
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  DSTINVERT);
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  0x2E064A);
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  DSTINVERT);
+
+	  SelectObject (hdc, h_orig_brush);
+	  DeleteObject (h_brush);
 	}
       else
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		SRCCOPY);
+	{
+	  SetTextColor (hdc, face->background);
+	  SetBkColor (hdc, (p->cursor_p
+			    ? f->output_data.w32->cursor_pixel
+			    : face->foreground));
+
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  SRCCOPY);
+	}
 
       SelectObject (compat_hdc, horig_obj);
       DeleteDC (compat_hdc);
@@ -4110,8 +4122,6 @@ static short temp_buffer[100];
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
 
-   Events representing keys are stored in buffer BUFP,
-   which can hold up to NUMCHARS characters.
    We return the number of characters stored into the buffer,
    thus pretending to be `read'.
 
@@ -4127,11 +4137,10 @@ static short temp_buffer[100];
 */
 
 int
-w32_read_socket (sd, bufp, numchars, expected)
+w32_read_socket (sd, expected, hold_quit)
      register int sd;
-     /* register */ struct input_event *bufp;
-     /* register */ int numchars;
      int expected;
+     struct input_event *hold_quit;
 {
   int count = 0;
   int check_visibility = 0;
@@ -4151,13 +4160,17 @@ w32_read_socket (sd, bufp, numchars, expected)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  if (numchars <= 0)
-    abort ();                   /* Don't think this happens. */
-
   /* TODO: tool-bars, ghostscript integration, mouse
      cursors. */
   while (get_next_msg (&msg, FALSE))
     {
+      struct input_event inev;
+      int do_help = 0;
+
+      EVENT_INIT (inev);
+      inev.kind = NO_EVENT;
+      inev.arg = Qnil;
+
       switch (msg.msg.message)
 	{
 	case WM_PAINT:
@@ -4186,12 +4199,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 		     visibility changes properly.  */
 		  if (f->iconified)
 		    {
-		      bufp->kind = DEICONIFY_EVENT;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->arg = Qnil;
-		      bufp++;
-		      count++;
-		      numchars--;
+		      inev.kind = DEICONIFY_EVENT;
+		      XSETFRAME (inev.frame_or_window, f);
 		    }
 		  else if (! NILP (Vframe_list)
 			   && ! NILP (XCDR (Vframe_list)))
@@ -4221,17 +4230,10 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	  if (f)
 	    {
-	      if (numchars == 0)
-		abort ();
-
-	      bufp->kind = LANGUAGE_CHANGE_EVENT;
-	      XSETFRAME (bufp->frame_or_window, f);
-	      bufp->arg = Qnil;
-	      bufp->code = msg.msg.wParam;
-	      bufp->modifiers = msg.msg.lParam & 0xffff;
-	      bufp++;
-	      count++;
-	      numchars--;
+	      inev.kind = LANGUAGE_CHANGE_EVENT;
+	      XSETFRAME (inev.frame_or_window, f);
+	      inev.code = msg.msg.wParam;
+	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
 	  break;
 
@@ -4250,15 +4252,11 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
-	      bufp->code = msg.msg.wParam;
-	      bufp->modifiers = msg.dwModifiers;
-	      XSETFRAME (bufp->frame_or_window, f);
-	      bufp->arg = Qnil;
-	      bufp->timestamp = msg.msg.time;
-	      bufp++;
-	      numchars--;
-	      count++;
+	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+	      inev.code = msg.msg.wParam;
+	      inev.modifiers = msg.dwModifiers;
+	      XSETFRAME (inev.frame_or_window, f);
+	      inev.timestamp = msg.msg.time;
 	    }
 	  break;
 
@@ -4277,15 +4275,11 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
-	      bufp->code = msg.msg.wParam;
-	      bufp->modifiers = msg.dwModifiers;
-	      XSETFRAME (bufp->frame_or_window, f);
-	      bufp->arg = Qnil;
-	      bufp->timestamp = msg.msg.time;
-	      bufp++;
-	      numchars--;
-	      count++;
+	      inev.kind = ASCII_KEYSTROKE_EVENT;
+	      inev.code = msg.msg.wParam;
+	      inev.modifiers = msg.dwModifiers;
+	      XSETFRAME (inev.frame_or_window, f);
+	      inev.timestamp = msg.msg.time;
 	    }
 	  break;
 
@@ -4331,13 +4325,10 @@ w32_read_socket (sd, bufp, numchars, expected)
 		     iff it is active.  */
 		  if (WINDOWP(window)
 		      && !EQ (window, last_window)
-		      && !EQ (window, selected_window)
-		      && numchars > 0)
+		      && !EQ (window, selected_window))
 		    {
-		      bufp->kind = SELECT_WINDOW_EVENT;
-		      bufp->frame_or_window = window;
-		      bufp->arg = Qnil;
-		      ++bufp, ++count, --numchars;
+		      inev.kind = SELECT_WINDOW_EVENT;
+		      inev.frame_or_window = window;
 		    }
 
 		  last_window=window;
@@ -4355,27 +4346,8 @@ w32_read_socket (sd, bufp, numchars, expected)
              has changed, generate a HELP_EVENT.  */
           if (help_echo_string != previous_help_echo_string ||
 	      (!NILP (help_echo_string) && !STRINGP (help_echo_string) && f->mouse_moved))
-            {
-              Lisp_Object frame;
-              int n;
+	    do_help = 1;
 
-	      if (help_echo_string == Qnil)
-		{
-		  help_echo_object = help_echo_window = Qnil;
-		  help_echo_pos = -1;
-		}
-
-              if (f)
-                XSETFRAME (frame, f);
-              else
-                frame = Qnil;
-
-              any_help_event_p = 1;
-              n = gen_help_event (bufp, numchars, help_echo_string, frame,
-				  help_echo_window, help_echo_object,
-				  help_echo_pos);
-              bufp += n, count += n, numchars -= n;
-            }
           break;
 
 	case WM_LBUTTONDOWN:
@@ -4389,12 +4361,9 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  {
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
-            struct input_event emacs_event;
             int tool_bar_p = 0;
 	    int button;
 	    int up;
-
-            emacs_event.kind = NO_EVENT;
 
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
@@ -4404,35 +4373,29 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	    if (f)
 	      {
-                construct_mouse_click (&emacs_event, &msg, f);
+                construct_mouse_click (&inev, &msg, f);
 
                 /* Is this in the tool-bar?  */
                 if (WINDOWP (f->tool_bar_window)
                     && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
                   {
                     Lisp_Object window;
-		    int x = XFASTINT (emacs_event.x);
-		    int y = XFASTINT (emacs_event.y);
+		    int x = XFASTINT (inev.x);
+		    int y = XFASTINT (inev.y);
 
                     window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
 
                     if (EQ (window, f->tool_bar_window))
                       {
-                        w32_handle_tool_bar_click (f, &emacs_event);
+                        w32_handle_tool_bar_click (f, &inev);
                         tool_bar_p = 1;
                       }
                   }
 
-                if (!tool_bar_p)
-                  if (!dpyinfo->w32_focus_frame
-                      || f == dpyinfo->w32_focus_frame
-                      && (numchars >= 1))
-                    {
-                      construct_mouse_click (bufp, &msg, f);
-                      bufp++;
-                      count++;
-                      numchars--;
-                    }
+                if (tool_bar_p
+		    || (dpyinfo->w32_focus_frame
+			&& f == dpyinfo->w32_focus_frame))
+		  inev.kind = NO_EVENT;
 	      }
 
 	    parse_button (msg.msg.message, HIWORD (msg.msg.wParam),
@@ -4470,15 +4433,11 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    if (f)
 	      {
 
-		if ((!dpyinfo->w32_focus_frame
-		     || f == dpyinfo->w32_focus_frame)
-		    && (numchars >= 1))
+		if (!dpyinfo->w32_focus_frame
+		    || f == dpyinfo->w32_focus_frame)
 		  {
 		    /* Emit an Emacs wheel-up/down event.  */
-		    construct_mouse_wheel (bufp, &msg, f);
-		    bufp++;
-		    count++;
-		    numchars--;
+		    construct_mouse_wheel (&inev, &msg, f);
 		  }
 		/* Ignore any mouse motion that happened before this
 		   event; any subsequent mouse-movement Emacs events
@@ -4495,12 +4454,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
 	  if (f)
-	    {
-	      construct_drag_n_drop (bufp, &msg, f);
-	      bufp++;
-	      count++;
-	      numchars--;
-	    }
+	    construct_drag_n_drop (&inev, &msg, f);
 	  break;
 
 	case WM_VSCROLL:
@@ -4508,15 +4462,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    struct scroll_bar *bar =
 	      x_window_to_scroll_bar ((HWND)msg.msg.lParam);
 
-	    if (bar && numchars >= 1)
-	      {
-		if (w32_scroll_bar_handle_click (bar, &msg, bufp))
-		  {
-		    bufp++;
-		    count++;
-		    numchars--;
-		  }
-	      }
+	    if (bar)
+	      w32_scroll_bar_handle_click (bar, &msg, &inev);
 	    break;
 	  }
 
@@ -4592,12 +4539,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  f->async_visible = 0;
 		  f->async_iconified = 1;
 
-		  bufp->kind = ICONIFY_EVENT;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  bufp->arg = Qnil;
-		  bufp++;
-		  count++;
-		  numchars--;
+		  inev.kind = ICONIFY_EVENT;
+		  XSETFRAME (inev.frame_or_window, f);
 		  break;
 
 		case SIZE_MAXIMIZED:
@@ -4622,12 +4565,8 @@ w32_read_socket (sd, bufp, numchars, expected)
                       f->left_pos = x;
                       f->top_pos = y;
 
-		      bufp->kind = DEICONIFY_EVENT;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->arg = Qnil;
-		      bufp++;
-		      count++;
-		      numchars--;
+		      inev.kind = DEICONIFY_EVENT;
+		      XSETFRAME (inev.frame_or_window, f);
 		    }
 		  else if (! NILP (Vframe_list)
 			   && ! NILP (XCDR (Vframe_list)))
@@ -4695,16 +4634,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		 Otherwise, the startup message is cleared when
 		 the mouse leaves the frame.  */
 	      if (any_help_event_p)
-		{
-		  Lisp_Object frame;
-		  int n;
-
-		  XSETFRAME (frame, f);
-		  help_echo_string = Qnil;
-		  n = gen_help_event (bufp, numchars,
-				      Qnil, frame, Qnil, Qnil, 0);
-		  bufp += n, count += n, numchars -= n;
-		}
+		do_help = -1;
 	    }
 	  break;
 
@@ -4754,16 +4684,7 @@ w32_read_socket (sd, bufp, numchars, expected)
                  Otherwise, the startup message is cleared when
                  the mouse leaves the frame.  */
               if (any_help_event_p)
-                {
-                  Lisp_Object frame;
-                  int n;
-
-                  XSETFRAME (frame, f);
-                  help_echo_string = Qnil;
-                  n = gen_help_event (bufp, numchars,
-                                      Qnil, frame, Qnil, Qnil, 0);
-                  bufp += n, count += n, numchars -=n;
-                }
+		do_help = -1;
             }
 
 	  dpyinfo->grabbed = 0;
@@ -4775,15 +4696,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	  if (f)
 	    {
-	      if (numchars == 0)
-		abort ();
-
-	      bufp->kind = DELETE_WINDOW_EVENT;
-	      XSETFRAME (bufp->frame_or_window, f);
-	      bufp->arg = Qnil;
-	      bufp++;
-	      count++;
-	      numchars--;
+	      inev.kind = DELETE_WINDOW_EVENT;
+	      XSETFRAME (inev.frame_or_window, f);
 	    }
 	  break;
 
@@ -4792,15 +4706,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	  if (f)
 	    {
-	      if (numchars == 0)
-		abort ();
-
-	      bufp->kind = MENU_BAR_ACTIVATE_EVENT;
-	      XSETFRAME (bufp->frame_or_window, f);
-	      bufp->arg = Qnil;
-	      bufp++;
-	      count++;
-	      numchars--;
+	      inev.kind = MENU_BAR_ACTIVATE_EVENT;
+	      XSETFRAME (inev.frame_or_window, f);
 	    }
 	  break;
 
@@ -4841,6 +4748,42 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      prepend_msg (&msg);
 	    }
 	  break;
+	}
+
+      if (inev.kind != NO_EVENT)
+	{
+	  kbd_buffer_store_event_hold (&inev, hold_quit);
+	  count++;
+	}
+
+      if (do_help
+	  && !(hold_quit && hold_quit->kind != NO_EVENT))
+	{
+	  Lisp_Object frame;
+
+	  if (f)
+	    XSETFRAME (frame, f);
+	  else
+	    frame = Qnil;
+
+	  if (do_help > 0)
+	    {
+	      if (help_echo_string == Qnil)
+		{
+		  help_echo_object = help_echo_window = Qnil;
+		  help_echo_pos = -1;
+		}
+	      
+	      any_help_event_p = 1;
+	      gen_help_event (help_echo_string, frame, help_echo_window,
+			      help_echo_object, help_echo_pos);
+	    }
+	  else
+	    {
+	      help_echo_string = Qnil;
+	      gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+	    }
+	  count++;
 	}
     }
 
@@ -5133,6 +5076,9 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	 cursor remains invisible.  */
       if (w32_use_visible_system_caret)
 	{
+	  /* Call to erase_phys_cursor here seems to use the
+	     wrong values of w->phys_cursor, as they have been
+	     overwritten before this function was called. */
 	  if (w->phys_cursor_type != NO_CURSOR)
 	    erase_phys_cursor (w);
 

@@ -6,13 +6,12 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.37 2003/10/27 00:01:25 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 Free Software Foundation, Inc.
 
 @quotation
@@ -829,12 +828,16 @@ between local and remote links.
   The introductory course is almost over; please continue
 a little longer to learn some intermediate-level commands.
 
-  Most Info files have an index, which is actually a large node that
-contains nothing but a menu.  The menu has one menu item for each
-topic listed in the index.  You can find the index node from the main
-menu of the file, with the @kbd{m} command; then you can use the
-@kbd{m} command again in the index node to go to the node that
-describes the topic.
+  Most Info files have an index, which is actually a large node
+containing little but a menu.  The menu has one menu item for each
+topic listed in the index.  (As a special feature, menus for indices
+may also include the line number within the node of the index entry.
+This allows Info readers to go to the exact line of an entry, not just
+the start of the containing node.)
+
+  You can get to the index from the main menu of the file with the
+@kbd{m} command; then you can use the @kbd{m} command again in the
+index node to go to the node that describes the topic you want.
 
   There is also a short-cut Info command, @kbd{i}, which does all of
 that for you.  It searches the index for a given topic (a string) and
@@ -1046,7 +1049,7 @@ options, and key sequences that the program provides.  If you are
 looking for a description of a command, an option, or a key, just type
 their names when @kbd{i} prompts you for a topic.  For example, if you
 want to read the description of what the @kbd{C-f} key does, type
-@kbd{iC-f@key{RET}}.  Here @kbd{C-f} are 3 literal characters
+@kbd{i C - f @key{RET}}.  Here @kbd{C-f} are 3 literal characters
 @samp{C}, @samp{-}, and @samp{f}, not the ``Control-f'' command key
 you type inside Emacs to run the command bound to @kbd{C-f}.
 

@@ -178,18 +178,13 @@ union Lisp_Object
     struct
       {
 	EMACS_INT val  : VALBITS;
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
       } s;
     struct
       {
 	EMACS_UINT val : VALBITS;
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
       } u;
-    struct
-      {
-	EMACS_UINT val		: VALBITS;
-	enum Lisp_Type type	: GCTYPEBITS;
-      } gu;
   }
 Lisp_Object;
 
@@ -204,19 +199,14 @@ union Lisp_Object
 
     struct
       {
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_UINT val : VALBITS;
       } u;
-    struct
-      {
-	enum Lisp_Type type	: GCTYPEBITS;
-	EMACS_UINT val		: VALBITS;
-      } gu;
   }
 Lisp_Object;
 
@@ -2395,7 +2385,6 @@ extern void redisplay P_ ((void));
 extern int check_point_in_composition
 	P_ ((struct buffer *, int, struct buffer *, int));
 extern void redisplay_preserve_echo_area P_ ((int));
-extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern void prepare_menu_bars P_ ((void));
 
 void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));

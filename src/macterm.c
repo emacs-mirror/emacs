@@ -35,29 +35,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef MAC_OSX
-#undef mktime
-#undef DEBUG
-#undef free
-#undef malloc
-#undef realloc
-/* Macros max and min defined in lisp.h conflict with those in
-   precompiled header Carbon.h.  */
-#undef max
-#undef min
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#undef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#undef init_process
-#define init_process emacs_init_process
 /* USE_CARBON_EVENTS determines if the Carbon Event Manager is used to
    obtain events from the event queue.  If set to 0, WaitNextEvent is
    used instead.  */
@@ -303,7 +280,9 @@ static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
+static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
+				   enum text_cursor_kinds));
+
 static void x_clip_to_row P_ ((struct window *, struct glyph_row *, GC));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
@@ -327,15 +306,12 @@ extern void set_frame_menubar (FRAME_PTR, int, int);
 
 /* X display function emulation */
 
-static void
+void
 XFreePixmap (display, pixmap)
-     Display *display;
+     Display *display;		/* not used */
      Pixmap pixmap;
 {
-  PixMap *p = (PixMap *) pixmap;
-
-  xfree (p->baseAddr);
-  xfree (p);
+  DisposeGWorld (pixmap); 
 }
 
 
@@ -347,9 +323,9 @@ mac_set_forecolor (unsigned long color)
 {
   RGBColor fg_color;
 
-  fg_color.red = RED_FROM_ULONG (color) * 256;
-  fg_color.green = GREEN_FROM_ULONG (color) * 256;
-  fg_color.blue = BLUE_FROM_ULONG (color) * 256;
+  fg_color.red = RED16_FROM_ULONG (color);
+  fg_color.green = GREEN16_FROM_ULONG (color);
+  fg_color.blue = BLUE16_FROM_ULONG (color);
 
   RGBForeColor (&fg_color);
 }
@@ -363,9 +339,9 @@ mac_set_backcolor (unsigned long color)
 {
   RGBColor bg_color;
 
-  bg_color.red = RED_FROM_ULONG (color) * 256;
-  bg_color.green = GREEN_FROM_ULONG (color) * 256;
-  bg_color.blue = BLUE_FROM_ULONG (color) * 256;
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
 
   RGBBackColor (&bg_color);
 }
@@ -399,6 +375,23 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
 
   MoveTo (x1, y1);
   LineTo (x2, y2);
+}
+
+void
+mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
+     Display *display;
+     Pixmap p;
+     GC gc;
+     int x1, y1, x2, y2;
+{
+  SetGWorld (p, NULL);
+
+  mac_set_colors (gc);
+
+  LockPixels (GetGWorldPixMap (p));
+  MoveTo (x1, y1);
+  LineTo (x2, y2);
+  UnlockPixels (GetGWorldPixMap (p));
 }
 
 /* Mac version of XClearArea.  */
@@ -479,7 +472,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
   Rect r;
 
   bitmap.rowBytes = sizeof(unsigned short);
-  bitmap.baseAddr = bits;
+  bitmap.baseAddr = (char *)bits;
   SetRect (&(bitmap.bounds), 0, 0, width, height);
 
 #if TARGET_API_MAC_CARBON
@@ -489,18 +482,13 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 #endif
 
   mac_set_colors (gc);
-  SetRect (&r, x, y, x + bitmap.bounds.right, y + bitmap.bounds.bottom);
+  SetRect (&r, x, y, x + width, y + height);
 
 #if TARGET_API_MAC_CARBON
-  {
-    PixMapHandle pmh;
-
-    LockPortBits (GetWindowPort (w));
-    pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (&bitmap, (BitMap *) *pmh, &(bitmap.bounds), &r,
-	      overlay_p ? srcOr : srcCopy, 0);
-    UnlockPortBits (GetWindowPort (w));
-  }
+  LockPortBits (GetWindowPort (w));
+  CopyBits (&bitmap, GetPortBitMapForCopyBits (GetWindowPort (w)),
+	    &(bitmap.bounds), &r, overlay_p ? srcOr : srcCopy, 0);
+  UnlockPortBits (GetWindowPort (w));
 #else /* not TARGET_API_MAC_CARBON */
   CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
@@ -546,6 +534,23 @@ mac_reset_clipping (display, w)
 }
 
 
+/* XBM bits seem to be backward within bytes compared with how
+   Mac does things.  */
+static unsigned char
+reflect_byte (orig)
+     unsigned char orig;
+{
+  int i;
+  unsigned char reflected = 0x00;
+  for (i = 0; i < 8; i++)
+    {
+      if (orig & (0x01 << i))
+	reflected |= 0x80 >> i;
+    }
+  return reflected;
+}
+
+
 /* Mac replacement for XCreateBitmapFromBitmapData.  */
 
 static void
@@ -554,18 +559,19 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
      char *bits;
      int w, h;
 {
-  int bytes_per_row, i, j;
+  int i, j, w1;
+  char *p;
 
-  bitmap->rowBytes = (w + 15) / 16 * 2;  /* must be on word boundary */
+  w1 = (w + 7) / 8;         /* nb of 8bits elt in X bitmap */
+  bitmap->rowBytes = ((w + 15) / 16) * 2; /* nb of 16bits elt in Mac bitmap */
   bitmap->baseAddr = xmalloc (bitmap->rowBytes * h);
-  if (!bitmap->baseAddr)
-    abort ();
-
   bzero (bitmap->baseAddr, bitmap->rowBytes * h);
   for (i = 0; i < h; i++)
-    for (j = 0; j < w; j++)
-      if (BitTst (bits, i * w + j))
-        BitSet (bitmap->baseAddr, i * bitmap->rowBytes * 8 + j);
+    {
+      p = bitmap->baseAddr + i * bitmap->rowBytes;
+      for (j = 0; j < w1; j++)
+        *p++ = reflect_byte (*bits++);
+    }
 
   SetRect (&(bitmap->bounds), 0, 0, w, h);
 }
@@ -577,6 +583,67 @@ mac_free_bitmap (bitmap)
 {
   xfree (bitmap->baseAddr);
 }
+
+
+Pixmap
+XCreatePixmap (display, w, width, height, depth)
+     Display *display;		/* not used */
+     WindowPtr w;
+     unsigned int width, height;
+     unsigned int depth;	/* not used */
+{
+  Pixmap pixmap;
+  Rect r;
+  QDErr err;
+
+#if TARGET_API_MAC_CARBON
+  SetPort (GetWindowPort (w));
+#else
+  SetPort (w);
+#endif
+
+  SetRect (&r, 0, 0, width, height);
+  err = NewGWorld (&pixmap, depth, &r, NULL, NULL, 0);
+  if (err != noErr)
+    return NULL;
+  return pixmap;
+}
+
+
+Pixmap
+XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
+     Display *display;		/* not used */
+     WindowPtr w;
+     char *data;
+     unsigned int width, height;
+     unsigned long fg, bg;
+     unsigned int depth;	/* not used */
+{
+  Pixmap pixmap;
+  BitMap bitmap;
+
+  pixmap = XCreatePixmap (display, w, width, height, depth);
+  if (pixmap == NULL)
+    return NULL;
+
+  SetGWorld (pixmap, NULL);
+  mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
+  mac_set_forecolor (fg);
+  mac_set_backcolor (bg);
+  LockPixels (GetGWorldPixMap (pixmap));
+#if TARGET_API_MAC_CARBON
+  CopyBits (&bitmap, GetPortBitMapForCopyBits (pixmap),
+	    &bitmap.bounds, &bitmap.bounds, srcCopy, 0);
+#else /* not TARGET_API_MAC_CARBON */
+  CopyBits (&bitmap, &(((GrafPtr)pixmap)->portBits),
+	    &bitmap.bounds, &bitmap.bounds, srcCopy, 0);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (pixmap));
+  mac_free_bitmap (&bitmap);
+
+  return pixmap;
+}
+
 
 /* Mac replacement for XFillRectangle.  */
 
@@ -600,6 +667,26 @@ XFillRectangle (display, w, gc, x, y, width, height)
   SetRect (&r, x, y, x + width, y + height);
 
   PaintRect (&r); /* using foreground color of gc */
+}
+
+
+static void
+mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
+     Display *display;
+     Pixmap p;
+     GC gc;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetGWorld (p, NULL);
+  mac_set_colors (gc);
+  SetRect (&r, x, y, x + width, y + height);
+
+  LockPixels (GetGWorldPixMap (p));
+  PaintRect (&r); /* using foreground color of gc */
+  UnlockPixels (GetGWorldPixMap (p));
 }
 
 
@@ -638,20 +725,15 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
-#if 0 /* MAC_TODO: draw a rectangle in a PixMap */
   Rect r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
+  SetGWorld (p, NULL);
   mac_set_colors (gc);
-  SetRect (&r, x, y, x + width, y + height);
+  SetRect (&r, x, y, x + width + 1, y + height + 1);
 
+  LockPixels (GetGWorldPixMap (p));
   FrameRect (&r); /* using foreground color of gc */
-#endif /* 0 */
+  UnlockPixels (GetGWorldPixMap (p));
 }
 
 
@@ -766,23 +848,66 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
   SetPort (dest);
 #endif
 
-  mac_set_colors (gc);
+  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
+  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
+
+  ForeColor (blackColor);
+  BackColor (whiteColor);
+
+  LockPixels (GetGWorldPixMap (src));
+#if TARGET_API_MAC_CARBON
+  LockPortBits (GetWindowPort (dest));
+  CopyBits (GetPortBitMapForCopyBits (src),
+	    GetPortBitMapForCopyBits (GetWindowPort (dest)),
+	    &src_r, &dest_r, srcCopy, 0);
+  UnlockPortBits (GetWindowPort (dest));
+#else /* not TARGET_API_MAC_CARBON */
+  CopyBits (&(((GrafPtr)src)->portBits), &(dest->portBits),
+	    &src_r, &dest_r, srcCopy, 0);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (src));
+}
+
+
+static void
+mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
+			 width, height, dest_x, dest_y)
+     Display *display;
+     Pixmap src, mask;
+     WindowPtr dest;
+     GC gc;
+     int src_x, src_y;
+     unsigned int width, height;
+     int dest_x, dest_y;
+{
+  Rect src_r, dest_r;
+
+#if TARGET_API_MAC_CARBON
+  SetPort (GetWindowPort (dest));
+#else
+  SetPort (dest);
+#endif
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
-#if TARGET_API_MAC_CARBON
-  {
-    PixMapHandle pmh;
+  ForeColor (blackColor);
+  BackColor (whiteColor);
 
-    LockPortBits (GetWindowPort (dest));
-    pmh = GetPortPixMap (GetWindowPort (dest));
-    CopyBits ((BitMap *) &src, (BitMap *) *pmh, &src_r, &dest_r, srcCopy, 0);
-    UnlockPortBits (GetWindowPort (dest));
-  }
+  LockPixels (GetGWorldPixMap (src));
+  LockPixels (GetGWorldPixMap (mask));
+#if TARGET_API_MAC_CARBON
+  LockPortBits (GetWindowPort (dest));
+  CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
+	    GetPortBitMapForCopyBits (GetWindowPort (dest)),
+	    &src_r, &src_r, &dest_r);
+  UnlockPortBits (GetWindowPort (dest));
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits ((BitMap *) &src, &(dest->portBits), &src_r, &dest_r, srcCopy, 0);
+  CopyMask (&(((GrafPtr)src)->portBits), &(((GrafPtr)mask)->portBits),
+	    &(dest->portBits), &src_r, &src_r, &dest_r);
 #endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (mask));
+  UnlockPixels (GetGWorldPixMap (src));
 }
 
 
@@ -817,7 +942,6 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
 {
 #if TARGET_API_MAC_CARBON
   Rect gw_r, src_r, dest_r;
-  PixMapHandle pmh;
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
@@ -828,8 +952,10 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   BackColor (whiteColor);
 
   LockPortBits (GetWindowPort (w));
-  pmh = GetPortPixMap (GetWindowPort (w));
-  CopyBits ((BitMap *) *pmh, (BitMap *) *pmh, &src_r, &dest_r, srcCopy, 0);
+  {
+    const BitMap *bitmap = GetPortBitMapForCopyBits (GetWindowPort (w));
+    CopyBits (bitmap, bitmap, &src_r, &dest_r, srcCopy, 0);
+  }
   UnlockPortBits (GetWindowPort (w));
 
   mac_set_colors (gc);
@@ -872,25 +998,67 @@ static void
 mac_copy_area_to_pixmap (display, src, dest, gc, src_x, src_y, width, height,
                      dest_x, dest_y)
      Display *display;
-     Pixmap src;
-     Pixmap dest;
+     Pixmap src, dest;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
      int dest_x, dest_y;
 {
   Rect src_r, dest_r;
-  int src_right = ((PixMap *) src)->bounds.right;
-  int src_bottom = ((PixMap *) src)->bounds.bottom;
-  int w = src_right - src_x;
-  int h = src_bottom - src_y;
 
-  mac_set_colors (gc);
+  SetGWorld (dest, NULL);
+  ForeColor (blackColor);
+  BackColor (whiteColor);
 
-  SetRect (&src_r, src_x, src_y, src_right, src_bottom);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + w, dest_y + h);
+  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
+  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
-  CopyBits ((BitMap *) &src, (BitMap *) &dest, &src_r, &dest_r, srcCopy, 0);
+  LockPixels (GetGWorldPixMap (src));
+  LockPixels (GetGWorldPixMap (dest));
+#if TARGET_API_MAC_CARBON
+  CopyBits (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (dest),
+	    &src_r, &dest_r, srcCopy, 0);
+#else /* not TARGET_API_MAC_CARBON */
+  CopyBits (&(((GrafPtr)src)->portBits), &(((GrafPtr)dest)->portBits),
+	    &src_r, &dest_r, srcCopy, 0);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (dest));
+  UnlockPixels (GetGWorldPixMap (src));
+}
+
+
+static void
+mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
+				   width, height, dest_x, dest_y)
+     Display *display;
+     Pixmap src, mask, dest;
+     GC gc;
+     int src_x, src_y;
+     unsigned int width, height;
+     int dest_x, dest_y;
+{
+  Rect src_r, dest_r;
+
+  SetGWorld (dest, NULL);
+  ForeColor (blackColor);
+  BackColor (whiteColor);
+
+  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
+  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
+
+  LockPixels (GetGWorldPixMap (src));
+  LockPixels (GetGWorldPixMap (mask));
+  LockPixels (GetGWorldPixMap (dest));
+#if TARGET_API_MAC_CARBON
+  CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
+	    GetPortBitMapForCopyBits (dest), &src_r, &src_r, &dest_r);
+#else /* not TARGET_API_MAC_CARBON */
+  CopyMask (&(((GrafPtr)src)->portBits), &(((GrafPtr)mask)->portBits),
+	    &(((GrafPtr)dest)->portBits), &src_r, &src_r, &dest_r);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (dest));
+  UnlockPixels (GetGWorldPixMap (mask));
+  UnlockPixels (GetGWorldPixMap (src));
 }
 
 
@@ -947,7 +1115,7 @@ XGetGCValues (void* ignore, XGCValues *gc,
 
 /* Mac replacement for XSetForeground.  */
 
-static void
+void
 XSetForeground (display, gc, color)
      Display *display;
      GC gc;
@@ -2139,6 +2307,21 @@ x_copy_dpy_color (dpy, cmap, pixel)
 
 #endif /* MAC_TODO */
 
+
+/* Brightness beyond which a color won't have its highlight brightness
+   boosted.
+
+   Nominally, highlight colors for `3d' faces are calculated by
+   brightening an object's color by a constant scale factor, but this
+   doesn't yield good results for dark colors, so for colors who's
+   brightness is less than this value (on a scale of 0-255) have to
+   use an additional additive factor.
+
+   The value here is set so that the default menu-bar/mode-line color
+   (grey75) will not have its highlights changed at all.  */
+#define HIGHLIGHT_COLOR_DARK_BOOST_LIMIT 187
+
+
 /* Allocate a color which is lighter or darker than *COLOR by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as COLOR, try a color where all RGB
@@ -2154,12 +2337,42 @@ mac_alloc_lighter_color (f, color, factor, delta)
      int delta;
 {
   unsigned long new;
+  long bright;
+
+  /* On Mac, RGB values are 0-255, not 0-65535, so scale delta. */
+  delta /= 256;
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
   xassert (factor >= 0);
   new = RGB_TO_ULONG (min (0xff, (int) (factor * RED_FROM_ULONG (*color))),
                     min (0xff, (int) (factor * GREEN_FROM_ULONG (*color))),
                     min (0xff, (int) (factor * BLUE_FROM_ULONG (*color))));
+
+  /* Calculate brightness of COLOR.  */
+  bright = (2 * RED_FROM_ULONG (*color) + 3 * GREEN_FROM_ULONG (*color)
+            + BLUE_FROM_ULONG (*color)) / 6;
+
+  /* We only boost colors that are darker than
+     HIGHLIGHT_COLOR_DARK_BOOST_LIMIT.  */
+  if (bright < HIGHLIGHT_COLOR_DARK_BOOST_LIMIT)
+    /* Make an additive adjustment to NEW, because it's dark enough so
+       that scaling by FACTOR alone isn't enough.  */
+    {
+      /* How far below the limit this color is (0 - 1, 1 being darker).  */
+      double dimness = 1 - (double)bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
+      /* The additive adjustment.  */
+      int min_delta = delta * dimness * factor / 2;
+
+      if (factor < 1)
+        new = RGB_TO_ULONG (max (0, min (0xff, (int) (RED_FROM_ULONG (*color)) - min_delta)),
+			    max (0, min (0xff, (int) (GREEN_FROM_ULONG (*color)) - min_delta)),
+			    max (0, min (0xff, (int) (BLUE_FROM_ULONG (*color)) - min_delta)));
+      else
+        new = RGB_TO_ULONG (max (0, min (0xff, (int) (min_delta + RED_FROM_ULONG (*color)))),
+			    max (0, min (0xff, (int) (min_delta + GREEN_FROM_ULONG (*color)))),
+			    max (0, min (0xff, (int) (min_delta + BLUE_FROM_ULONG (*color)))));
+    }
+
   if (new == *color)
     new = RGB_TO_ULONG (max (0, min (0xff, (int) (delta + RED_FROM_ULONG (*color)))),
                       max (0, min (0xff, (int) (delta + GREEN_FROM_ULONG (*color)))),
@@ -2204,7 +2417,8 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
   pixel = background;
-  if (mac_alloc_lighter_color (f, &pixel, factor, delta))
+  if (dpyinfo->n_planes != 1
+      && mac_alloc_lighter_color (f, &pixel, factor, delta))
     {
       relief->allocated_p = 1;
       xgcv.foreground = relief->pixel = pixel;
@@ -2234,6 +2448,10 @@ x_setup_relief_colors (s)
 
   if (s->face->use_box_color_for_shadows_p)
     color = s->face->box_color;
+  else if (s->first_glyph->type == IMAGE_GLYPH
+	   && s->img->pixmap
+	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
+    color = IMAGE_BACKGROUND (s->img, s->f, 0);
   else
     {
       XGCValues xgcv;
@@ -2267,9 +2485,11 @@ static void
 x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
 		    raised_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p, raised_p;
      Rect *clip_rect;
 {
+  Display *dpy = FRAME_MAC_DISPLAY (f);
+  Window window = FRAME_MAC_WINDOW (f);
   int i;
   GC gc;
 
@@ -2277,41 +2497,41 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc = f->output_data.mac->white_relief.gc;
   else
     gc = f->output_data.mac->black_relief.gc;
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), clip_rect);
+  mac_set_clip_rectangle (dpy, window, clip_rect);
 
   /* Top.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
+    XDrawLine (dpy, window, gc,
 	       left_x + i * left_p, top_y + i,
-	       right_x + 1 - i * right_p, top_y + i);
+	       right_x - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
+      XDrawLine (dpy, window, gc,
 		 left_x + i, top_y + i, left_x + i, bottom_y - i);
 
-  mac_reset_clipping (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_reset_clipping (dpy, window);
   if (raised_p)
     gc = f->output_data.mac->black_relief.gc;
   else
     gc = f->output_data.mac->white_relief.gc;
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+  mac_set_clip_rectangle (dpy, window,
 			  clip_rect);
 
   /* Bottom.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
+    XDrawLine (dpy, window, gc,
 	       left_x + i * left_p, bottom_y - i,
-	       right_x + 1 - i * right_p, bottom_y - i);
+	       right_x - i * right_p, bottom_y - i);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
-		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+      XDrawLine (dpy, window, gc,
+		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
 
-  mac_reset_clipping (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_reset_clipping (dpy, window);
 }
 
 
@@ -2326,7 +2546,7 @@ static void
 x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 		 left_p, right_p, clip_rect)
      struct glyph_string *s;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
      Rect *clip_rect;
 {
   XGCValues xgcv;
@@ -2336,21 +2556,21 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 
   /* Top.  */
   XFillRectangle (s->display, s->window, &xgcv,
-		  left_x, top_y, right_x - left_x, width);
+		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
     XFillRectangle (s->display, s->window, &xgcv,
-		    left_x, top_y, width, bottom_y - top_y);
+		    left_x, top_y, width, bottom_y - top_y + 1);
 
   /* Bottom.  */
   XFillRectangle (s->display, s->window, &xgcv,
-		  left_x, bottom_y - width, right_x - left_x, width);
+		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
     XFillRectangle (s->display, s->window, &xgcv,
-		    right_x - width, top_y, width, bottom_y - top_y);
+		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
   mac_reset_clipping (s->display, s->window);
 }
@@ -2385,9 +2605,9 @@ x_draw_glyph_string_box (s)
   width = abs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
-  right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
-	      ? last_x - 1
-	      : min (last_x, s->x + s->background_width) - 1));
+  right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
+	     ? last_x - 1
+	     : min (last_x, s->x + s->background_width) - 1);
   top_y = s->y;
   bottom_y = top_y + s->height - 1;
 
@@ -2438,39 +2658,36 @@ x_draw_image_foreground (s)
 
   if (s->img->pixmap)
     {
-#if 0 /* MAC_TODO: image mask */
       if (s->img->mask)
 	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
+	  Rect nr;
 	  XRectangle clip_rect, image_rect, r;
 
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
-
-	  get_glyph_string_clip_rect (s, &clip_rect);
+	  get_glyph_string_clip_rect (s, &nr);
+	  CONVERT_TO_XRECT (clip_rect, nr);
 	  image_rect.x = x;
 	  image_rect.y = y;
 	  image_rect.width = s->img->width;
 	  image_rect.height = s->img->height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
-		       r.x - x, r.y - y, r.width, r.height, r.x, r.y);
+	    mac_copy_area_with_mask (s->display, s->img->pixmap, s->img->mask,
+				     s->window, s->gc, r.x - x, r.y - y,
+				     r.width, r.height, r.x, r.y);
 	}
       else
-#endif /* MAC_TODO */
 	{
-	  mac_copy_area (s->display, s->img->pixmap, s->window, s->gc,
-		       0, 0, s->img->width, s->img->height, x, y);
+	  Rect nr;
+	  XRectangle clip_rect, image_rect, r;
+
+	  get_glyph_string_clip_rect (s, &nr);
+	  CONVERT_TO_XRECT (clip_rect, nr);
+	  image_rect.x = x;
+	  image_rect.y = y;
+	  image_rect.width = s->img->width;
+	  image_rect.height = s->img->height;
+	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
+	    mac_copy_area (s->display, s->img->pixmap, s->window, s->gc,
+			   r.x - x, r.y - y, r.width, r.height, r.x, r.y);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2492,7 +2709,6 @@ x_draw_image_foreground (s)
     mac_draw_rectangle (s->display, s->window, s->gc, x, y,
 		      s->img->width - 1, s->img->height - 1);
 }
-
 
 
 /* Draw a relief around the image glyph string S.  */
@@ -2567,30 +2783,12 @@ x_draw_image_foreground_1 (s, pixmap)
 
   if (s->img->pixmap)
     {
-#if 0 /* MAC_TODO: image mask */
       if (s->img->mask)
-	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
-
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
-
-	  XCopyArea (s->display, s->img->pixmap, pixmap, s->gc,
-		     0, 0, s->img->width, s->img->height, x, y);
-	  XSetClipMask (s->display, s->gc, None);
-	}
+	mac_copy_area_with_mask_to_pixmap (s->display, s->img->pixmap,
+					   s->img->mask, pixmap, s->gc,
+					   0, 0, s->img->width, s->img->height,
+					   x, y);
       else
-#endif /* MAC_TODO */
 	{
 	  mac_copy_area_to_pixmap (s->display, s->img->pixmap, pixmap, s->gc,
 		               0, 0, s->img->width, s->img->height, x, y);
@@ -2605,15 +2803,16 @@ x_draw_image_foreground_1 (s, pixmap)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x - r, y - r,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	      mac_draw_rectangle (s->display, s->window, s->gc, x - r, y - r,
+				  s->img->width + r*2 - 1,
+				  s->img->height + r*2 - 1);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
     mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x, y,
-		              s->img->width - 1, s->img->height - 1);
+				  s->img->width - 1, s->img->height - 1);
 }
 
 
@@ -2646,7 +2845,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
 	     |   s->face->box
 	     |
 	     |     +-------------------------
-	     |     |  s->img->vmargin
+	     |     |  s->img->margin
 	     |     |
 	     |     |       +-------------------
 	     |     |       |  the image
@@ -2665,6 +2864,7 @@ x_draw_image_glyph_string (s)
 
   height = s->height - 2 * box_line_vwidth;
 
+
   /* Fill background with face under the image.  Do it only if row is
      taller than image or if image has a clip mask to reduce
      flickering.  */
@@ -2672,9 +2872,7 @@ x_draw_image_glyph_string (s)
   if (height > s->img->height
       || s->img->hmargin
       || s->img->vmargin
-#if 0 /* TODO: image mask */
       || s->img->mask
-#endif
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
@@ -2684,25 +2882,21 @@ x_draw_image_glyph_string (s)
 	x = s->x;
 
       y = s->y + box_line_vwidth;
-#if 0 /* TODO: image mask */
+
       if (s->img->mask)
 	{
 	  /* Create a pixmap as large as the glyph string.  Fill it
 	     with the background color.  Copy the image to it, using
 	     its mask.  Copy the temporary pixmap to the display.  */
-	  Screen *screen = FRAME_X_SCREEN (s->f);
-	  int depth = DefaultDepthOfScreen (screen);
+	  int depth = one_mac_display_info.n_planes;
 
 	  /* Create a pixmap as large as the glyph string.  */
  	  pixmap = XCreatePixmap (s->display, s->window,
 				  s->background_width,
 				  s->height, depth);
 
-	  /* Don't clip in the following because we're working on the
-	     pixmap.  */
-	  XSetClipMask (s->display, s->gc, None);
-
 	  /* Fill the pixmap with the background color/stipple.  */
+#if 0 /* TODO: stipple */
 	  if (s->stippled_p)
 	    {
 	      /* Fill background with a stipple pattern.  */
@@ -2712,18 +2906,19 @@ x_draw_image_glyph_string (s)
 	      XSetFillStyle (s->display, s->gc, FillSolid);
 	    }
 	  else
+#endif
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground | GCBackground,
 			    &xgcv);
 	      XSetForeground (s->display, s->gc, xgcv.background);
-	      XFillRectangle (s->display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
+	      mac_fill_rectangle_to_pixmap (s->display, pixmap, s->gc,
+					    0, 0, s->background_width,
+					    s->height);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
       else
-#endif
 	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
 
       s->background_filled_p = 1;
@@ -2735,7 +2930,7 @@ x_draw_image_glyph_string (s)
       x_draw_image_foreground_1 (s, pixmap);
       x_set_glyph_string_clipping (s);
       mac_copy_area (s->display, pixmap, s->window, s->gc,
-		   0, 0, s->background_width, s->height, s->x, s->y);
+		     0, 0, s->background_width, s->height, s->x, s->y);
       mac_reset_clipping (s->display, s->window);
       XFreePixmap (s->display, pixmap);
     }
@@ -2772,10 +2967,10 @@ x_draw_stretch_glyph_string (s)
       /* Clear rest using the GC of the original non-cursor face.  */
       if (width < s->background_width)
 	{
-	  GC gc = s->face->gc;
 	  int x = s->x + width, y = s->y;
 	  int w = s->background_width - width, h = s->height;
 	  Rect r;
+	  GC gc;
 
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
@@ -2835,7 +3030,6 @@ x_draw_glyph_string (s)
       x_set_glyph_string_gc (s->next);
       x_set_glyph_string_clipping (s->next);
       x_draw_glyph_string_background (s->next, 1);
-
     }
 
   /* Set up S->gc, set clipping and draw S.  */
@@ -2872,7 +3066,7 @@ x_draw_glyph_string (s)
       if (s->for_overlaps_p)
 	s->background_filled_p = 1;
       else
-        x_draw_glyph_string_background (s, 0);
+	x_draw_glyph_string_background (s, 0);
       x_draw_glyph_string_foreground (s);
       break;
 
@@ -2949,9 +3143,9 @@ x_draw_glyph_string (s)
 	    }
 	}
 
-      /* Draw relief.  */
+      /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
-        x_draw_glyph_string_box (s);
+	x_draw_glyph_string_box (s);
     }
 
   /* Reset clipping.  */
@@ -2970,7 +3164,6 @@ mac_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
 		   x, y, width, height,
 		   x + shift_by, y);
 }
-
 
 /* Delete N glyphs at the nominal cursor position.  Not implemented
    for X frames.  */
@@ -3025,6 +3218,7 @@ x_clear_frame ()
    sure it's available.  If it isn't, we just won't do visual bells.  */
 
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
+
 
 /* Subtract the `struct timeval' values X and Y, storing the result in
    *RESULT.  Return 1 if the difference is negative, otherwise 0.  */
@@ -3129,7 +3323,7 @@ XTring_bell ()
    This, and those operations, are used only within an update
    that is bounded by calls to x_update_begin and x_update_end.  */
 
-void
+static void
 XTset_terminal_window (n)
      register int n;
 {
@@ -3165,7 +3359,7 @@ x_scroll_run (w, run)
 
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
-     fringes of W.  */
+     fringe of W.  */
   window_box (w, -1, &x, &y, &width, &height);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
@@ -3287,8 +3481,6 @@ static void
 XTframe_rehighlight (frame)
      struct frame *frame;
 {
-
-
   x_frame_rehighlight (FRAME_X_DISPLAY_INFO (frame));
 }
 
@@ -4429,13 +4621,6 @@ x_draw_hollow_cursor (w, row)
   struct glyph *cursor_glyph;
   GC gc;
 
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
-  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-       + row->ascent - w->phys_cursor_ascent);
-  h = row->height - 1;
-
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
   cursor_glyph = get_phys_cursor_glyph (w);
@@ -4450,6 +4635,20 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
+  w->phys_cursor_width = wd;
+
+  /* Compute frame-relative coordinates from window-relative
+     coordinates.  */
+  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
+
+  /* Compute the proper height and ascent of the rectangle, based
+     on the actual glyph.  Using the full height of the row looks
+     bad when there are tall images on that row.  */
+  h = max (FRAME_LINE_HEIGHT (f), cursor_glyph->ascent + cursor_glyph->descent);
+  if (h < row->height)
+    y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
+  h--;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -4476,35 +4675,49 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row, width)
+x_draw_bar_cursor (w, row, width, kind)
      struct window *w;
      struct glyph_row *row;
      int width;
+     enum text_cursor_kinds kind;
 {
-  /* If cursor hpos is out of bounds, don't draw garbage.  This can
-     happen in mini-buffer windows when switching between echo area
-     glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
+  struct frame *f = XFRAME (w->frame);
+  struct glyph *cursor_glyph;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
+    return;
+
+  /* If on an image, draw like a normal cursor.  That's usually better
+     visible than drawing a bar, esp. if the image is large so that
+     the bar might not be in the window.  */
+  if (cursor_glyph->type == IMAGE_GLYPH)
     {
-      struct frame *f = XFRAME (w->frame);
-      struct glyph *cursor_glyph;
-      GC gc;
-      int x;
-      unsigned long mask;
+      struct glyph_row *row;
+      row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+    }
+  else
+    {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+      Window window = FRAME_MAC_WINDOW (f);
+      GC gc = FRAME_MAC_DISPLAY_INFO (f)->scratch_cursor_gc;
+      unsigned long mask = GCForeground | GCBackground;
+      struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
       XGCValues xgcv;
-      Display *dpy;
-      Window window;
 
-      cursor_glyph = get_phys_cursor_glyph (w);
-      if (cursor_glyph == NULL)
-	return;
-
-      xgcv.background = f->output_data.mac->cursor_pixel;
-      xgcv.foreground = f->output_data.mac->cursor_pixel;
-      mask = GCForeground | GCBackground;
-      dpy = FRAME_MAC_DISPLAY (f);
-      window = FRAME_MAC_WINDOW (f);
-      gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
+      /* If the glyph's background equals the color we normally draw
+	 the bar cursor in, the bar cursor in its normal color is
+	 invisible.  Use the glyph's foreground color instead in this
+	 case, on the assumption that the glyph's colors are chosen so
+	 that the glyph is legible.  */
+      if (face->background == f->output_data.mac->cursor_pixel)
+	xgcv.background = xgcv.foreground = face->foreground;
+      else
+	xgcv.background = xgcv.foreground = f->output_data.mac->cursor_pixel;
 
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
@@ -4516,14 +4729,24 @@ x_draw_bar_cursor (w, row, width)
 
       if (width < 0)
 	width = FRAME_CURSOR_WIDTH (f);
+      width = min (cursor_glyph->pixel_width, width);
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      w->phys_cursor_width = width;
       x_clip_to_row (w, row, gc);
-      XFillRectangle (dpy, window, gc,
-		      x,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      min (cursor_glyph->pixel_width, width),
-		      row->height);
+
+      if (kind == BAR_CURSOR)
+	XFillRectangle (dpy, window, gc,
+			WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			width, row->height);
+      else
+	XFillRectangle (dpy, window, gc,
+			WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+						 row->height - width),
+			cursor_glyph->pixel_width,
+			width);
+
       mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
     }
 }
@@ -4565,7 +4788,6 @@ mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
   if (on_p)
     {
       w->phys_cursor_type = cursor_type;
-      w->phys_cursor_width = cursor_width;
       w->phys_cursor_on_p = 1;
 
       if (glyph_row->exact_window_width_line_p
@@ -4573,9 +4795,8 @@ mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	{
 	  glyph_row->cursor_in_fringe_p = 1;
 	  draw_fringe_bitmap (w, glyph_row, 0);
-	  return;
 	}
-
+      else
       switch (cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
@@ -4586,13 +4807,16 @@ mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	  draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 	  break;
 
-	case HBAR_CURSOR:
-	  /* TODO.  For now, just draw bar cursor. */
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, cursor_width);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
+	  break;
+
+	case HBAR_CURSOR:
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
+	  w->phys_cursor_width = 0;
 	  break;
 
 	default:
@@ -5117,6 +5341,8 @@ x_make_frame_visible (f)
 	FRAME_SAMPLE_VISIBILITY (f);
       }
   }
+#else
+  UNBLOCK_INPUT;
 #endif /* MAC_TODO */
 }
 
@@ -5173,10 +5399,10 @@ x_iconify_frame (f)
 }
 
 
-/* Destroy the X window of frame F.  */
+/* Free X resources of frame F.  */
 
 void
-x_destroy_window (f)
+x_free_frame_resources (f)
      struct frame *f;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
@@ -5186,18 +5412,21 @@ x_destroy_window (f)
   DisposeWindow (FRAME_MAC_WINDOW (f));
 
   free_frame_menubar (f);
-  free_frame_faces (f);
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+
+  x_free_gcs (f);
 
   xfree (f->output_data.mac);
-  f->output_data.mac = 0;
+  f->output_data.mac = NULL;
+
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;
   if (f == dpyinfo->x_focus_event_frame)
     dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-
-  dpyinfo->reference_count--;
 
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
@@ -5212,6 +5441,21 @@ x_destroy_window (f)
 
   UNBLOCK_INPUT;
 }
+
+
+/* Destroy the X window of frame F.  */
+
+void
+x_destroy_window (f)
+     struct frame *f;
+{
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+  x_free_frame_resources (f);
+
+  dpyinfo->reference_count--;
+}
+
 
 /* Setting window manager hints.  */
 
@@ -5478,6 +5722,7 @@ char **font_name_table = NULL;
 int font_name_table_size = 0;
 int font_name_count = 0;
 
+#if 0
 /* compare two strings ignoring case */
 static int
 stricmp (const char *s, const char *t)
@@ -5557,13 +5802,53 @@ mac_font_match (char *mf, char *xf)
           && wildstrieq (m_charset, x_charset))
          || mac_font_pattern_match (mf, xf);
 }
+#endif
+
+static Lisp_Object Qbig5, Qcn_gb, Qsjis, Qeuc_kr;
+
+static void
+decode_mac_font_name (char *name, int size, short scriptcode)
+{
+  Lisp_Object coding_system;
+  struct coding_system coding;
+  char *buf;
+
+  switch (scriptcode)
+    {
+    case smTradChinese:
+      coding_system = Qbig5;
+      break;
+    case smSimpChinese:
+      coding_system = Qcn_gb;
+      break;
+    case smJapanese:
+      coding_system = Qsjis;
+      break;
+    case smKorean:
+      coding_system = Qeuc_kr;
+      break;        
+    default:
+      return;
+    }
+
+  setup_coding_system (coding_system, &coding);
+  coding.src_multibyte = 0;
+  coding.dst_multibyte = 1;
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.composing = COMPOSITION_DISABLED;
+  buf = (char *) alloca (size);
+
+  decode_coding (&coding, name, buf, strlen (name), size - 1);
+  bcopy (buf, name, coding.produced);
+  name[coding.produced] = '\0';
+}
 
 
 static char *
 mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
 {
   char foundry[32], family[32], cs[32];
-  char xf[255], *result, *p;
+  char xf[256], *result, *p;
 
   if (sscanf (name, "%31[^-]-%31[^-]-%31s", foundry, family, cs) != 3)
     {
@@ -5622,6 +5907,8 @@ static void
 x_font_name_to_mac_font_name (char *xf, char *mf)
 {
   char foundry[32], family[32], weight[20], slant[2], cs[32];
+  Lisp_Object coding_system = Qnil;
+  struct coding_system coding;
 
   strcpy (mf, "");
 
@@ -5631,13 +5918,29 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
               foundry, family, weight, slant, cs) != 5)
     return;
 
-  if (strcmp (cs, "big5-0") == 0 || strcmp (cs, "gb2312.1980-0") == 0
-      || strcmp (cs, "jisx0208.1983-sjis") == 0
-      || strcmp (cs, "jisx0201.1976-0") == 0
-      || strcmp (cs, "ksc5601.1989-0") == 0 || strcmp (cs, "mac-roman") == 0)
-    strcpy(mf, family);
+  if (strcmp (cs, "big5-0") == 0)
+    coding_system = Qbig5;
+  else if (strcmp (cs, "gb2312.1980-0") == 0)
+    coding_system = Qcn_gb;
+  else if (strcmp (cs, "jisx0208.1983-sjis") == 0
+	   || strcmp (cs, "jisx0201.1976-0") == 0)
+    coding_system = Qsjis;
+  else if (strcmp (cs, "ksc5601.1989-0") == 0)
+    coding_system = Qeuc_kr;
+  else if (strcmp (cs, "mac-roman") == 0)
+    strcpy (mf, family);
   else
-    sprintf(mf, "%s-%s-%s", foundry, family, cs);
+    sprintf (mf, "%s-%s-%s", foundry, family, cs);
+
+  if (!NILP (coding_system))
+    {
+      setup_coding_system (coding_system, &coding);
+      coding.src_multibyte = 1;
+      coding.dst_multibyte = 1;
+      coding.mode |= CODING_MODE_LAST_BLOCK;
+      encode_coding (&coding, family, mf, strlen (family), sizeof (Str32) - 1);
+      mf[coding.produced] = '\0';
+    }
 }
 
 
@@ -5701,36 +6004,45 @@ init_font_name_table ()
 	  if (FMGetFontFamilyName (ff, name) != noErr)
 	    break;
 	  p2cstr (name);
+	  if (*name == '.')
+	    continue;
 
 	  sc = FontToScript (ff);
+	  decode_mac_font_name (name, sizeof (name), sc);
 
 	  /* Point the instance iterator at the current font family.  */
-	  if (FMResetFontFamilyInstanceIterator(ff, &ffii) != noErr)
+	  if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
 	    break;
 
 	  while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
 		 == noErr)
-	    if (size == 0)
-	      {
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      style, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      italic, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      bold, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      italic | bold,
-							      sc));
-	      }
-	    else
-	      {
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      style, sc));
-		if (smJapanese == sc)
+	    {
+	      /* Both jisx0208.1983-sjis and jisx0201.1976-0 parts are
+		 contained in Apple Japanese (SJIS) font.  */
+	    again:
+	      if (size == 0)
+		{
 		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								style,
-								-smJapanese));
-	      }
+								style, sc));
+		  add_font_name_table_entry (mac_to_x_fontname (name, size,
+								italic, sc));
+		  add_font_name_table_entry (mac_to_x_fontname (name, size,
+								bold, sc));
+		  add_font_name_table_entry (mac_to_x_fontname (name, size,
+								italic | bold,
+								sc));
+		}
+	      else
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      style, sc));
+	      if (sc == smJapanese)
+		{
+		  sc = -smJapanese;
+		  goto again;
+		}
+	      else if (sc == -smJapanese)
+		sc = smJapanese;
+	    }
 	}
 
       /* Dispose of the iterators.  */
@@ -5772,6 +6084,7 @@ init_font_name_table ()
 
 	  TextFont (fontnum);
 	  scriptcode = FontToScript (fontnum);
+	  decode_mac_font_name (name, sizeof (name), scriptcode);
 	  do
 	    {
 	      HLock (font_handle);
@@ -5806,9 +6119,9 @@ init_font_name_table ()
 					     assc_entry->fontSize,
 					     assc_entry->fontStyle,
 					     scriptcode);
-		      /* Both jisx0208.1983-sjis and
-			 jisx0201.1976-sjis parts are contained in
-			 Apple Japanese (SJIS) font.  */
+		      /* Both jisx0208.1983-sjis and jisx0201.1976-0
+			 parts are contained in Apple Japanese (SJIS)
+			 font.  */
 		      if (smJapanese == scriptcode)
 			{
 			  font_name_table[font_name_count++]
@@ -5835,6 +6148,145 @@ init_font_name_table ()
 }
 
 
+enum xlfd_scalable_field_index
+  {
+    XLFD_SCL_PIXEL_SIZE,
+    XLFD_SCL_POINT_SIZE,
+    XLFD_SCL_AVGWIDTH,
+    XLFD_SCL_LAST
+  };
+
+static int xlfd_scalable_fields[] =
+  {
+    6,				/* PIXEL_SIZE */
+    7,				/* POINT_SIZE */
+    11,				/* AVGWIDTH */
+    -1
+  };
+
+static Lisp_Object
+mac_do_list_fonts (pattern, maxnames)
+     char *pattern;
+     int maxnames;
+{
+  int i, n_fonts = 0;
+  Lisp_Object font_list = Qnil, pattern_regex, fontname;
+  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
+  char scaled[256];
+  char *ptr;
+  int scl_val[XLFD_SCL_LAST], *field, *val;
+
+  for (i = 0; i < XLFD_SCL_LAST; i++)
+    scl_val[i] = -1;
+
+  /* If the pattern contains 14 dashes and one of PIXEL_SIZE,
+     POINT_SIZE, and AVGWIDTH fields is explicitly specified, scalable
+     fonts are scaled according to the specified size.  */
+  ptr = pattern;
+  i = 0;
+  field = xlfd_scalable_fields;
+  val = scl_val;
+  if (*ptr == '-')
+    do
+      {
+	ptr++;
+	if (i == *field)
+	  {
+	    if ('1' <= *ptr && *ptr <= '9')
+	      {
+		*val = *ptr++ - '0';
+		while ('0' <= *ptr && *ptr <= '9' && *val < 10000)
+		  *val = *val * 10 + *ptr++ - '0';
+		if (*ptr != '-')
+		  *val = -1;
+	      }
+	    field++;
+	    val++;
+	  }
+	ptr = strchr (ptr, '-');
+	i++;
+      }
+    while (ptr && i < 14);
+
+  if (i == 14 && ptr == NULL)
+    {
+      if (scl_val[XLFD_SCL_POINT_SIZE] > 0)
+	{
+	  scl_val[XLFD_SCL_PIXEL_SIZE] = scl_val[XLFD_SCL_POINT_SIZE] / 10;
+	  scl_val[XLFD_SCL_AVGWIDTH] = scl_val[XLFD_SCL_POINT_SIZE];
+	}
+      else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0)
+	{
+	  scl_val[XLFD_SCL_POINT_SIZE] =
+	    scl_val[XLFD_SCL_AVGWIDTH] = scl_val[XLFD_SCL_PIXEL_SIZE] * 10;
+	}
+      else if (scl_val[XLFD_SCL_AVGWIDTH] > 0)
+	{
+	  scl_val[XLFD_SCL_PIXEL_SIZE] = scl_val[XLFD_SCL_AVGWIDTH] / 10;
+	  scl_val[XLFD_SCL_POINT_SIZE] = scl_val[XLFD_SCL_AVGWIDTH];
+	}
+    }
+  else
+    scl_val[XLFD_SCL_PIXEL_SIZE] = -1;
+
+  ptr = regex;
+  *ptr++ = '^';
+
+  /* Turn pattern into a regexp and do a regexp match.  */
+  for (; *pattern; pattern++)
+    {
+      if (*pattern == '?')
+        *ptr++ = '.';
+      else if (*pattern == '*')
+        {
+          *ptr++ = '.';
+          *ptr++ = '*';
+        }
+      else
+        *ptr++ = tolower (*pattern);
+    }
+  *ptr = '$';
+  *(ptr + 1) = '\0';
+
+  pattern_regex = build_string (regex);
+
+  for (i = 0; i < font_name_count; i++)
+    {
+      fontname = build_string (font_name_table[i]);
+      if (fast_string_match (pattern_regex, fontname) >= 0)
+	{
+	  font_list = Fcons (fontname, font_list);
+
+          n_fonts++;
+          if (maxnames > 0 && n_fonts >= maxnames)
+            break;
+	}
+      else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
+	       && (ptr = strstr (font_name_table[i], "-0-0-75-75-m-0-")))
+	{
+	  int former_len = ptr - font_name_table[i];
+
+	  memcpy (scaled, font_name_table[i], former_len);
+	  sprintf (scaled + former_len,
+		   "-%d-%d-75-75-m-%d-%s",
+		   scl_val[XLFD_SCL_PIXEL_SIZE],
+		   scl_val[XLFD_SCL_POINT_SIZE],
+		   scl_val[XLFD_SCL_AVGWIDTH],
+		   ptr + sizeof ("-0-0-75-75-m-0-") - 1);
+	  fontname = build_string (scaled);
+	  if (fast_string_match (pattern_regex, fontname) >= 0)
+	    {
+	      font_list = Fcons (fontname, font_list);
+	      
+	      n_fonts++;
+	      if (maxnames > 0 && n_fonts >= maxnames)
+		break;
+	    }
+	}
+    }
+  return font_list;
+}
+
 /* Return a list of at most MAXNAMES font specs matching the one in
    PATTERN.  Cache matching fonts for patterns in
    dpyinfo->name_list_element to avoid looking them up again by
@@ -5847,11 +6299,7 @@ x_list_fonts (struct frame *f,
               int size,
               int maxnames)
 {
-  char *ptnstr;
   Lisp_Object newlist = Qnil, tem, key;
-  int n_fonts = 0;
-  int i;
-  struct gcpro gcpro1, gcpro2;
   struct mac_display_info *dpyinfo = f ? FRAME_MAC_DISPLAY_INFO (f) : NULL;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
@@ -5870,26 +6318,9 @@ x_list_fonts (struct frame *f,
 	}
     }
 
-  ptnstr = SDATA (pattern);
-
-  GCPRO2 (pattern, newlist);
-
-  /* Scan and matching bitmap fonts.  */
-  for (i = 0; i < font_name_count; i++)
-    {
-      if (mac_font_pattern_match (font_name_table[i], ptnstr))
-        {
-          newlist = Fcons (build_string (font_name_table[i]), newlist);
-
-          n_fonts++;
-          if (maxnames > 0 && n_fonts >= maxnames)
-            break;
-        }
-    }
+  newlist = mac_do_list_fonts (SDATA (pattern), maxnames);
 
   /* MAC_TODO: add code for matching outline fonts here */
-
-  UNGCPRO;
 
   if (dpyinfo)
     {
@@ -6050,14 +6481,12 @@ XLoadQueryFont (Display *dpy, char *fontname)
     name = fontname;
   else
     {
-      for (i = 0; i < font_name_count; i++)
-        if (mac_font_pattern_match (font_name_table[i], fontname))
-          break;
+      Lisp_Object matched_fonts;
 
-      if (i >= font_name_count)
-        return NULL;
-
-      name = font_name_table[i];
+      matched_fonts = mac_do_list_fonts (fontname, 1);
+      if (NILP (matched_fonts))
+	return NULL;
+      name = SDATA (XCAR (matched_fonts));
     }
 
   GetPort (&port);  /* save the current font number used */
@@ -6179,7 +6608,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
         for (c = 0x20; c <= 0xff; c++)
           {
             font->per_char[c - 0x20] = font->max_bounds;
-            font->per_char[c - 0x20].width = CharWidth (c);
+            font->per_char[c - 0x20].width =
+	      font->per_char[c - 0x20].rbearing = CharWidth (c);
           }
       }
     }
@@ -7586,8 +8016,9 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
-XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
+XTread_socket (int sd, int expected, struct input_event *hold_quit)
 {
+  struct input_event inev;
   int count = 0;
 #if USE_CARBON_EVENTS
   OSStatus rneResult;
@@ -7612,9 +8043,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  if (numchars <= 0)
-    abort ();
-
   /* Don't poll for events to process (specifically updateEvt) if
      window update currently already in progress.  A call to redisplay
      (in do_window_update) can be preempted by another call to
@@ -7633,7 +8061,9 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
      event to nil because keyboard.c protects incompletely processed
      event from being garbage collected by placing them in the
      kbd_buffer_gcpro vector.  */
-  bufp->arg = Qnil;
+  EVENT_INIT (inev);
+  inev.kind = NO_EVENT;
+  inev.arg = Qnil;
 
   event_mask = everyEvent;
   if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
@@ -7671,18 +8101,17 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		GetEventParameter(eventRef, kEventParamMouseLocation,
 				  typeQDPoint, NULL, sizeof (Point),
 				  NULL, &point);
-		bufp->kind = WHEEL_EVENT;
-		bufp->code = 0;
-		bufp->modifiers = (mac_event_to_emacs_modifiers(eventRef)
-				   | ((delta < 0) ? down_modifier
-				                  : up_modifier));
+		inev.kind = WHEEL_EVENT;
+		inev.code = 0;
+		inev.modifiers = (mac_event_to_emacs_modifiers(eventRef)
+				  | ((delta < 0) ? down_modifier
+				     : up_modifier));
 		SetPort (GetWindowPort (window_ptr));
 		GlobalToLocal (&point);
-		XSETINT (bufp->x, point.h);
-		XSETINT (bufp->y, point.v);
-		XSETFRAME (bufp->frame_or_window, mwp->mFP);
-		bufp->timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
-		count++;
+		XSETINT (inev.x, point.h);
+		XSETINT (inev.y, point.v);
+		XSETFRAME (inev.frame_or_window, mwp->mFP);
+		inev.timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
 	      }
 	    else
 	      SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
@@ -7731,28 +8160,27 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	      GlobalToLocal (&mouse_loc);
 
 #if USE_CARBON_EVENTS
-	      bufp->code = mac_get_mouse_btn (eventRef);
+	      inev.code = mac_get_mouse_btn (eventRef);
 #else
-	      bufp_.code = mac_get_emulate_btn (er.modifiers);
+	      inev.code = mac_get_emulate_btn (er.modifiers);
 #endif
-              bufp->kind = SCROLL_BAR_CLICK_EVENT;
-              bufp->frame_or_window = tracked_scroll_bar->window;
-              bufp->part = scroll_bar_handle;
+              inev.kind = SCROLL_BAR_CLICK_EVENT;
+              inev.frame_or_window = tracked_scroll_bar->window;
+              inev.part = scroll_bar_handle;
 #if USE_CARBON_EVENTS
-	      bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	      inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	      bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	      inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
-              bufp->modifiers |= up_modifier;
-	      bufp->timestamp = er.when * (1000 / 60);
+              inev.modifiers |= up_modifier;
+	      inev.timestamp = er.when * (1000 / 60);
 	        /* ticks to milliseconds */
 
-              XSETINT (bufp->x, tracked_scroll_bar->left + 2);
-              XSETINT (bufp->y, mouse_loc.v - 24);
+              XSETINT (inev.x, tracked_scroll_bar->left + 2);
+              XSETINT (inev.y, mouse_loc.v - 24);
               tracked_scroll_bar->dragging = Qnil;
               mouse_tracking_in_progress = mouse_tracking_none;
               tracked_scroll_bar = NULL;
-              count++;
               break;
             }
 
@@ -7766,9 +8194,8 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		  struct frame *f = ((mac_output *)
 				     GetWRefCon (FrontWindow ()))->mFP;
 		  saved_menu_event_location = er.where;
-		  bufp->kind = MENU_BAR_ACTIVATE_EVENT;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  count++;
+		  inev.kind = MENU_BAR_ACTIVATE_EVENT;
+		  XSETFRAME (inev.frame_or_window, f);
 		}
 	      break;
 
@@ -7799,13 +8226,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 #endif
 
 #if USE_CARBON_EVENTS
-		  bufp->code = mac_get_mouse_btn (eventRef);
+		  inev.code = mac_get_mouse_btn (eventRef);
 #else
-		  bufp_.code = mac_get_emulate_btn (er.modifiers);
+		  inev.code = mac_get_emulate_btn (er.modifiers);
 #endif
-		  XSETINT (bufp->x, mouse_loc.h);
-		  XSETINT (bufp->y, mouse_loc.v);
-		  bufp->timestamp = er.when * (1000 / 60);
+		  XSETINT (inev.x, mouse_loc.h);
+		  XSETINT (inev.y, mouse_loc.v);
+		  inev.timestamp = er.when * (1000 / 60);
 		    /* ticks to milliseconds */
 
 #if TARGET_API_MAC_CARBON
@@ -7817,7 +8244,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		      struct scroll_bar *bar = (struct scroll_bar *)
 			GetControlReference (ch);
 		      x_scroll_bar_handle_click (bar, control_part_code, &er,
-						 bufp);
+						 &inev);
 		      if (er.what == mouseDown
 			  && control_part_code == kControlIndicatorPart)
 		        {
@@ -7833,32 +8260,48 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		    }
 		  else
 	            {
-	              bufp->kind = MOUSE_CLICK_EVENT;
-		      XSETFRAME (bufp->frame_or_window, mwp->mFP);
+		      Lisp_Object window;
+
+	              inev.kind = MOUSE_CLICK_EVENT;
+		      XSETFRAME (inev.frame_or_window, mwp->mFP);
 		      if (er.what == mouseDown)
-		        mouse_tracking_in_progress
+			mouse_tracking_in_progress
 			  = mouse_tracking_mouse_movement;
 		      else
-		        mouse_tracking_in_progress = mouse_tracking_none;
-	            }
+			mouse_tracking_in_progress = mouse_tracking_none;
+		      window = window_from_coordinates (mwp->mFP, inev.x, inev.y, 0, 0, 0, 1);
+		      
+		      if (EQ (window, mwp->mFP->tool_bar_window))
+			{
+			  if (er.what == mouseDown)
+			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 1, 0);
+			  else
+			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 0,
+#if USE_CARBON_EVENTS
+						   mac_event_to_emacs_modifiers (eventRef)
+#else
+						   er.modifiers
+#endif
+						   );
+			  break;
+			}
+		    }
 
 #if USE_CARBON_EVENTS
-		  bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+		  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-		  bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+		  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
 	          switch (er.what)
 		    {
 		    case mouseDown:
-		      bufp->modifiers |= down_modifier;
+		      inev.modifiers |= down_modifier;
 		      break;
 		    case mouseUp:
-		      bufp->modifiers |= up_modifier;
+		      inev.modifiers |= up_modifier;
 		      break;
 		    }
-
-	          count++;
 	        }
 	      break;
 
@@ -7879,10 +8322,9 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	    case inGoAway:
 	      if (TrackGoAway (window_ptr, er.where))
 	        {
-	          bufp->kind = DELETE_WINDOW_EVENT;
-	          XSETFRAME (bufp->frame_or_window,
+	          inev.kind = DELETE_WINDOW_EVENT;
+	          XSETFRAME (inev.frame_or_window,
 			     ((mac_output *) GetWRefCon (window_ptr))->mFP);
- 	          count++;
 	        }
 	      break;
 
@@ -7951,8 +8393,8 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	  if (keycode_to_xkeysym (keycode, &xkeysym))
 	    {
-	      bufp->code = 0xff00 | xkeysym;
-	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
+	      inev.code = 0xff00 | xkeysym;
+	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    }
 	  else
 	    {
@@ -7971,12 +8413,12 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		  int new_keycode = keycode | new_modifiers;
 		  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
 		  unsigned long some_state = 0;
-		  bufp->code = KeyTranslate (kchr_ptr, new_keycode,
-					     &some_state) & 0xff;
+		  inev.code = KeyTranslate (kchr_ptr, new_keycode,
+					    &some_state) & 0xff;
 		}
 	      else
-		bufp->code = er.message & charCodeMask;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
+		inev.code = er.message & charCodeMask;
+	      inev.kind = ASCII_KEYSTROKE_EVENT;
 	    }
 	}
 
@@ -7987,7 +8429,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	   Mac keyboard to be used to enter non-ASCII iso-latin-1
 	   characters directly.  */
 	if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	    && bufp->kind == ASCII_KEYSTROKE_EVENT && bufp->code >= 128)
+	    && inev.kind == ASCII_KEYSTROKE_EVENT && inev.code >= 128)
 	  {
 	    static TECObjectRef converter = NULL;
 	    OSStatus the_err = noErr;
@@ -8016,7 +8458,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	    if (the_err == noErr)
 	      {
-		unsigned char ch = bufp->code;
+		unsigned char ch = inev.code;
 		ByteCount actual_input_length, actual_output_length;
 		unsigned char outch;
 
@@ -8027,25 +8469,23 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		if (convert_status == noErr
 		    && actual_input_length == 1
 		    && actual_output_length == 1)
-		  bufp->code = outch;
+		  inev.code = outch;
 	      }
 	  }
 
 #if USE_CARBON_EVENTS
-	bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
 	{
 	  mac_output *mwp
 	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
-	  XSETFRAME (bufp->frame_or_window, mwp->mFP);
+	  XSETFRAME (inev.frame_or_window, mwp->mFP);
 	}
 
-	bufp->timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
-
-	count++;
+	inev.timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 	break;
 
       case kHighLevelEvent:
@@ -8073,21 +8513,21 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
             if (wp && is_emacs_window(wp))
 	        f = ((mac_output *) GetWRefCon (wp))->mFP;
 
-            bufp->kind = DRAG_N_DROP_EVENT;
-            bufp->code = 0;
-            bufp->timestamp = er.when * (1000 / 60);
+            inev.kind = DRAG_N_DROP_EVENT;
+            inev.code = 0;
+            inev.timestamp = er.when * (1000 / 60);
 	      /* ticks to milliseconds */
 #if USE_CARBON_EVENTS
-	    bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
+	    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	    bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
+	    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 
-            XSETINT (bufp->x, 0);
-            XSETINT (bufp->y, 0);
+            XSETINT (inev.x, 0);
+            XSETINT (inev.y, 0);
 
             XSETFRAME (frame, f);
-            bufp->frame_or_window = Fcons (frame, drag_and_drop_file_list);
+            inev.frame_or_window = Fcons (frame, drag_and_drop_file_list);
 
             /* Regardless of whether Emacs was suspended or in the
                foreground, ask it to redraw its entire screen.
@@ -8104,8 +8544,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 #else /* not TARGET_API_MAC_CARBON */
               InvalRect (&(wp->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
-
-            count++;
           }
       default:
 	break;
@@ -8174,8 +8612,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
       }
   }
 
-  UNBLOCK_INPUT;
+  if (inev.kind != NO_EVENT)
+    {
+      kbd_buffer_store_event_hold (&inev, hold_quit);
+      count++;
+    }
 
+  UNBLOCK_INPUT;
   return count;
 }
 
@@ -8352,12 +8795,16 @@ mac_initialize_display_info ()
   dpyinfo->reference_count = 0;
   dpyinfo->resx = 75.0;
   dpyinfo->resy = 75.0;
-  dpyinfo->n_planes = 1;
-  dpyinfo->n_cbits = 16;
+  dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
+  for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
+    if (HasDepth (main_device_handle, dpyinfo->n_planes,
+		  gdDevType, dpyinfo->color_p))
+      break;
   dpyinfo->height = (**main_device_handle).gdRect.bottom;
   dpyinfo->width = (**main_device_handle).gdRect.right;
   dpyinfo->grabbed = 0;
   dpyinfo->root_window = NULL;
+  dpyinfo->image_cache = make_image_cache ();
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
@@ -8695,6 +9142,18 @@ syms_of_macterm ()
 
   Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
   staticpro (&Qmac_ready_for_drag_n_drop);
+
+  Qbig5 = intern ("big5");
+  staticpro (&Qbig5);
+
+  Qcn_gb = intern ("cn-gb");
+  staticpro (&Qcn_gb);
+
+  Qsjis = intern ("sjis");
+  staticpro (&Qsjis);
+
+  Qeuc_kr = intern ("euc-kr");
+  staticpro (&Qeuc_kr);
 
   DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);

@@ -48,3 +48,29 @@ Questions, requests, and bug reports about the CVS versions of Emacs
 should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
 or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
 send it to the proper place.
+
+
+Note on using SSH to access the CVS repository from inside emacs
+----------------------------------------------------------------
+
+Write access to the CVS repository requires using SSH v2.
+
+If you execute cvs commands inside emacs, specifically if you use
+pcl-cvs, output from CVS may be lost due to a problem in the
+interface between ssh, cvs, and emacs.  Corrupted checkins are
+also been reported to have happened.
+
+To fix the problem, save the following script into a file, make it
+executable, and set CVS_RSH to the file name of the script:
+
+#!/bin/bash
+exec 2> >(exec cat >&2 2>/dev/null)
+exec ssh "$@"
+
+This may be combined with the following entry in ~/.ssh/config to
+simplify accessing the CVS repository:
+
+Host subversions.gnu.org
+     Protocol 2
+     ForwardX11 no
+     User YOUR_USERID

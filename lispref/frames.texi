@@ -1503,6 +1503,7 @@ This function returns the contents of cut buffer number @var{n}.
 If omitted @var{n} defaults to 0.
 @end defun
 
+@anchor{Definition of x-set-cut-buffer}
 @defun x-set-cut-buffer string &optional push
 This function stores @var{string} into the first cut buffer (cut buffer
 0).  If @var{push} is @code{nil}, only the first cut buffer is changed.

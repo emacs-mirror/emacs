@@ -1,6 +1,7 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004
+;;  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -305,6 +306,10 @@ following REQ are defined:
 
 `background' (what color is used for the background text)
   Should be one of `light' or `dark'.
+
+`min-colors' (the minimum number of colors the frame should support)
+  Should be an integer, it is compared with the result of
+  `display-color-cells'.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."

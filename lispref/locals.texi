@@ -79,7 +79,7 @@ use, but we don't try to list them all here.
 @xref{Comments,,, emacs, The GNU Emacs Manual}.
 
 @item default-directory
-@xref{System Environment}.
+@xref{File Name Expansion}.
 
 @item defun-prompt-regexp
 @xref{List Motion}.

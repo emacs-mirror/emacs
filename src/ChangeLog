@@ -57,6 +57,396 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-02-28  Miles Bader  <miles@gnu.org>
+
+	* keyboard.c (adjust_point_for_property): #ifdef-out dodgy xassert.
+
+2004-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (kbd_buffer_store_event_hold): New function to store
+	an event into kbd fifo, but with special handling of quit event;
+	a quit event is saved for later, and further events are discarded
+	until the saved quit event has been processed.
+	(kbd_buffer_store_event): Use kbd_buffer_store_event_hold.
+	(gen_help_event): Store help event in kbd fifo.
+	(NREAD_INPUT_EVENTS): Remove.
+	(read_avail_input): Adapt to new read_socket_hook interface.
+	Remove allocation and initialization of local input_event buffer,
+	as read_socket_hook stores events directly in fifo.  Allocate and
+	initialize local hold_quit event to handle postponed quit event
+	(and store it if set by kbd_buffer_store_event_hold).
+
+	* keyboard.h (kbd_buffer_store_event_hold): Add prototype.
+	(gen_help_event): Fix prototype.
+
+	* macterm.c (XTread_socket):  Remove bufp_r and
+	numcharsp args.  Add hold_quit arg.
+	Rework to use just one, local, inev input_event. Store inev
+	directly in fifo using kbd_buffer_store_event_hold.
+
+	* sysdep.c (BUFFER_SIZE_FACTOR): Remove.
+	(read_input_waiting): Adapt to new read_socket_hook interface.
+	Remove allocation and initialization of local input_event buffer,
+	as read_socket_hook stores events directly in fifo.  Allocate and
+	initialize local hold_quit event to handle postponed quit event
+	(and store it if set by kbd_buffer_store_event_hold).
+
+	* term.c (read_socket_hook): Fix arg list. 
+
+	* termhooks.h (read_socket_hook): Fix prototype.
+
+	* w32inevt.c (w32_console_read_socket): Remove bufp_r and
+	numcharsp args.  Add hold_quit arg.
+	Rework to use just one, local, inev input_event. Store inev
+	directly in fifo using kbd_buffer_store_event_hold.
+
+	* w32inevt.h (w32_console_mouse_position): Fix prototype.
+
+	* w32term.c (w32_read_socket): Remove bufp_r and numcharsp args.
+	Add hold_quit arg. Rework to use just one, local, inev
+	input_event. Store inev directly in fifo using
+	kbd_buffer_store_event_hold.  Update count in one place.
+	Postpone call to gen_help_event until inev is stored; use new
+	local do_help for this.
+	Remove local emacs_event in handing of ButtonPress event; just use
+	inev instead (so no reason to copy it later).
+
+	* xsmfns.c (x_session_check_input): Remove numchars arg.
+
+	* xterm.c (x_focus_changed, x_detect_focus_change): Remove
+	numchars arg.  Always store event into bufp arg.  Return nothing.
+	Callers changed accordingly.
+	(glyph_rect): Simplify.
+	(STORE_KEYSYM_FOR_DEBUG): New macro.
+	(SET_SAVED_MENU_EVENT): Use inev instead of bufp, etc.
+	(current_bufp, current_numcharsp) [USE_GTK]: Remove.
+	(current_hold_quit) [USE_GTK]: Add.
+	(event_handler_gdk): Adapt to new handle_one_xevent.
+	(handle_one_xevent): Remove bufp_r and numcharsp args.
+	Add hold_quit arg. Rework to use just one, local, inev
+	input_event. Store inev directly in fifo using
+	kbd_buffer_store_event_hold.  Update count in one place.
+	Postpone call to gen_help_event until inev is stored; use new
+	local do_help for this.
+	Simplify handling of keysyms (consolidate common code).  Fix bug
+	where count was updated with nchars instead of nbytes.
+	Remove local emacs_event in handing of ButtonPress event; just use
+	inev instead (so no reason to copy it later).
+	Remove `out' label.  Rename label `ret' to `done'; add various
+	`goto done' to clarify code flow in deeply nested blocks.
+	(x_dispatch_event): Simplify as handle_one_xevent now calls
+	kbd_buffer_store_event itself.
+	(XTread_socket): Remove bufp_r and numcharsp args. Add hold_quit
+	arg.  Call handle_one_xevent with new arglist.  Store event from
+	x_session_check_input in fifo.
+	[USE_GTK]: Setup current_hold_quit.
+	Decrement handling_signal before unblocking input.
+	(x_initialize) [USE_GTK]: Initialize current_count.
+
+	* xterm.h (x_session_check_input): Fix prototype.
+
+2004-02-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	
+	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add `-framework
+	QuickTime'.
+	
+	* dispextern.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	
+	* emacs.c (main) [HAVE_CARBON]: Call init_xfns.
+	
+	* macgui.h [MAC_OSX]: Include Carbon/Carbon.h.
+	(mktime, DEBUG, Z, free, malloc, realloc, max, min)
+	(init_process) [MAC_OSX] : Avoid conflicts with Carbon/Carbon.h.
+	[!MAC_OSX]: Include QDOffscreen.h and Controls.h.
+	(INFINITY) [MAC_OSX]: Avoid conflict with definition in math.h.
+	(Bitmap): Remove typedef.
+	(Pixmap): Change int to GWorldPtr.
+
+	* macmenu.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	
+	* macterm.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	(RED16_FROM_ULONG, GREEN16_FROM_ULONG, BLUE16_FROM_ULONG): New
+	#define to extract 16-bit depth color components from unsigned
+	long representation.
+	(PIX_MASK_DRAW, PIX_MASK_RETAIN): New #define to represent pixel
+	colors used for masks.
+	(struct mac_display_info): Add color_p.  Remove n_cbits.
+	
+	* macfns.c: Include sys/types.h and sys/stat.h.
+	[MAC_OSX]: Do not include Carbon/Carbon.h (now in macgui.h).
+	Include QuickTime/QuickTime.h.
+	(XCreatePixmap, XCreatePixmapFromBitmapData, XFreePixmap)
+	(XSetForeground, mac_draw_line_to_pixmap): Add externs for
+	functions defined in macterm.c.
+	(XImagePtr): New typedef.  Corresponds to XImage * in xfns.c.
+	(ZPixmap): New #define for compatibility with xfns.c.
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(x_create_x_image_and_pixmap, x_destroy_x_image, x_put_x_image)
+	(find_image_fsspec, image_load_qt_1, image_load_quicktime): New
+	functions.
+	(four_corners_best, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, unwind_create_frame, x_disable_image,
+	(x_edge_detection, init_color_table, colors_in_color_table,
+	(lookup_rgb_color, lookup_pixel_color, postprocess_image)
+	(x_put_x_image, slurp_file, xbm_scan, xbm_load, xbm_load_image)
+	(xbm_image_p, xbm_read_bitmap_data, xbm_file_p, x_to_xcolors)
+	(x_from_xcolors, x_detect_edges): New declarations (from xfns.c).
+	(mac_color_map_lookup, x_to_mac_color): Fix Lisp_Object/unsigned
+	long mixup.
+	(mac_defined_color, x_to_x_colors): Use RED16_FROM_ULONG etc.
+	(x_decode_color): Don't use n_cbits (in struct mac_display_info).
+	(x_set_foreground_color, x_set_cursor_color): Sync with w32fns.c.
+	(x_set_cursor_type, Fxw_color_values, valid_image_p)
+	(image_value_type, parse_image_spec, image_ascent, x_clear_image)
+	(x_alloc_image_color, clear_image_cache, lookup_image)
+	(x_find_image_file, xbm_read_bitmap_file_data)
+	(enum xbm_keyword_index, xbm_format, xbm_image_p, xbm_scan)
+	(xbm_read_bitmap_data, xbm_load, pbm_image_p, pbm_scan_number)
+	(enum pbm_keyword_index, pbm_format, enum png_keyword_index)
+	(png_format, png_image_p, enum jpeg_keyword_index, jpeg_format)
+	(jpeg_image_p, enum tiff_keyword_index, tiff_format, tiff_image_p)
+	(enum gif_keyword_index, gif_format, gif_image_p): Sync with
+	xfns.c.
+	(x_make_gc): Sync with xfns.c.  Enclose unused `border_tile' with
+	#if 0.
+	(x_free_gcs): Sync with xfns.c.  Enclose unused `border_tile' with
+	#if 0.  Free white_relief.gc and black_relief.gc.
+	(unwind_create_frame, x_emboss, x_laplace, x_edge_detection): New
+	functions (from xfns.c).
+	(Fx_create_frame): Record unwind_create_frame.
+	(Fxw_display_color_p): Use dpyinfo->color_p.
+	(Fx_display_grayscale_p, Fx_display_planes): Don't use
+	dpyinfo->n_cbits.
+	(Fx_display_color_cells): Use dpyinfo->n_planes;
+	(QCmatrix, QCcolor_adjustment, QCmask, Qemboss, Qedge_detection)
+	(Qheuristic, cross_disabled_images, emboss_matrix)
+	(laplace_matrix): New variables (from xfns.c).
+	(Fimage_size, Fimage_mask_p, four_corners_best, image_background)
+	(x_clear_image_1, postprocess_image, slurp_file, xbm_load_image)
+	(xbm_file_p, x_to_xcolors, x_from_xcolors, x_detect_edges)
+	(image_background_transparent): New function (from xfns.c).  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(image_load_quicktime): Add declaration.
+	[MAC_OSX] (image_load_quartz2d): Likewise.
+	[MAC_OSX] (CGImageCreateWithPNGDataProviderProcType): New typedef.
+	[MAC_OSX] (MyCGImageCreateWithPNGDataProvider): New variable.
+	[MAC_OSX] (init_image_func_pointer, image_load_quartz2d): New
+	functions.
+	(xbm_load_image_from_file, x_laplace_read_row)
+	(x_laplace_write_row, pbm_read_file): Remove functions.
+	[HAVE_XPM] (enum xpm_keyword_index, xpm_format, xpm_image_p)
+	(xpm_load): Sync with xfns.c (although XPM is not supported yet).
+	(colors_in_color_table): Sync with xfns.c (although not used).
+	(lookup_rgb_color): Don't lookup color table.  Just do gamma
+	correction.
+	(COLOR_INTENSITY): New #define (from xfns.c).
+	(x_disable_image): New function (from xfns.c).  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(x_build_heuristic_mask): Sync with xfns.c.  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(HAVE_PBM): Remove #ifdef.
+	(pbm_load): Sync with xfns.c.  Set img->width and img->height
+	before IMAGE_BACKGROUND.
+	(png_image_p, png_load): Don't enclose declarations with #if
+	HAVE_PNG.
+	(Qpng, enum png_keyword_index, png_format, png_type, png_image_p):
+	Don't enclose with #if HAVE_PNG.
+	[!HAVE_PNG] (png_load) [MAC_OSX]: Use image_load_quartz2d if a
+	symbol _CGImageCreateWithPNGDataProvider is defined.  Otherwise
+	use image_load_quicktime.
+	[!HAVE_PNG] (png_load) [!MAC_OSX]: Use image_load_quicktime.
+	[HAVE_PNG] (png_load): Sync with xfns.c.  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(jpeg_image_p, jpeg_load): Don't enclose declarations with #if
+	HAVE_JPEG.
+	(Qjpeg, enum jpeg_keyword_index, jpeg_format, jpeg_type)
+	(jpeg_image_p): Don't enclose with #if HAVE_JPEG.
+	[!HAVE_JPEG] (jpeg_load) [MAC_OSX]: Use image_load_quartz2d.
+	[!HAVE_JPEG] (jpeg_load) [!MAC_OSX]: Use image_load_quicktime.
+	[HAVE_JPEG] (jpeg_load): Sync with xfns.c.
+	(tiff_image_p, tiff_load): Don't enclose declarations with #if
+	HAVE_TIFF.
+	(Qtiff, enum tiff_keyword_index, tiff_format, tiff_type)
+	(tiff_image_p): Don't enclose with #if HAVE_TIFF.
+	[!HAVE_TIFF] (tiff_load): Use image_load_quicktime.
+	[HAVE_TIFF] (tiff_error_handler, tiff_warning_handler): New
+	functions (from xfns.c).
+	[HAVE_TIFF] (tiff_load): Sync with xfns.c.
+	(gif_image_p, gif_load): Don't enclose declarations with #if
+	HAVE_GIF.
+	(Qgif, enum gif_keyword_index, gif_format, gif_type, gif_image_p):
+	Don't enclose with #if HAVE_GIF.
+	[!HAVE_GIF] (gif_load): Use Quicktime Movie Toolbox if it is
+	animated gif.  Otherwise use image_load_quicktime.
+	[HAVE_GIF] (gif_lib.h): Temporarily define DrawText as
+	gif_DrawText to avoid conflict with QuickdrawText.h.
+	[HAVE_GIF] (gif_load): Sync with xfns.c.
+	(enum gs_keyword_index, gs_format, gs_image_p, gs_load)
+	[HAVE_GHOSTSCRIPT] (x_kill_gs_process): Sync with xfns.c (although
+	Ghostscript is not supported yet).
+	(syms_of_macfns): Initialize Qemboss, Qedge_detection, Qheuristic,
+	QCmatrix, QCcolor_adjustment, and QCmask.  Add DEFVAR_BOOL
+	cross_disabled_images (from xfns.c).  Remove #if 0 for supported
+	image types.  Remove #if HAVE_JPEG, HAVE_TIFF, HAVE_GIF, and
+	HAVE_PNG.  Add defsubr for Simage_size and Simage_mask_p.
+	(init_xfns): Remove #if HAVE_JPEG, HAVE_TIFF, HAVE_GIF, and
+	HAVE_PNG.  Call EnterMovies to support animated gifs.  Call
+	init_image_func_pointer to bind a symbol
+	_CGImageCreateWithPNGDataProvider if it is defined.
+	
+	* macterm.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	(x_draw_bar_cursor): Sync declaration with xterm.c.
+	(XFreePixmap, mac_draw_rectangle_to_pixmap, mac_copy_area)
+	(mac_copy_area_to_pixmap): Implementation with GWorld (offscreen
+	graphics).
+	(mac_set_forecolor, mac_set_backcolor): Use RED16_FROM_ULONG etc.
+	(mac_draw_line_to_pixmap, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, mac_fill_rectangle_to_pixmap)
+	(mac_copy_area_with_mask, mac_copy_area_with_mask_to_pixmap): New
+	functions.
+	(mac_draw_bitmap) [TARGET_API_MAC_CARBON]: Use
+	GetPortBitMapForCopyBits instead of the cast to Bitmap *.  Cast
+	bits to char *.
+	(reflect_byte): New function (from w32fns.c).
+	(mac_create_bitmap_from_bitmap_data): Use it and don't stuff bits
+	due to byte alignment.
+	(mac_scroll_area) [TARGET_API_MAC_CARBON]: Use
+	GetPortBitMapForCopyBits instead of the cast to Bitmap *.
+	(XSetForeground): Remove static (now used in macfns.c).
+	(HIGHLIGHT_COLOR_DARK_BOOST_LIMIT): New #define (from w32term.c).
+	(mac_alloc_lighter_color, x_destroy_window): Sync with w32term.c.
+	(x_setup_relief_color, x_setup_relief_colors, x_draw_box_rect)
+	(x_draw_glyph_string_box, x_draw_image_foreground)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string)
+	(x_draw_stretch_glyph_string, x_draw_glyph_string)
+	(x_draw_hollow_cursor, x_draw_bar_cursor, mac_draw_window_cursor):
+	Sync with xterm.c.
+	(x_draw_relief_rect): Sync with xterm.c.  Make 1 pixel shorter
+	than the xterm.c version when a strictly horizontal or vertical
+	line is drawn.
+	(XTset_terminal_window): Add static.
+	(x_make_frame_visible): Add UNBLOCK_INPUT.
+	(x_free_frame_resources): New funcion (from xterm.c).
+	(XTread_socket): Call handle_tool_bar_click if mouse up/down event
+	occurs in tool bar area.
+	(mac_initialize_display_info): Remove dpyinfo->n_cbits.  Set
+	dpyinfo->color_p.  Determine dpyinfo->n_planes using HasDepth.
+	Initialize image cache.
+	(stricmp, wildstrieq, mac_font_pattern_match, mac_font_match):
+	Enclose unused functions with #if 0.
+	(Qbig5, Qcn_gb, Qsjis, Qeuc_kr): New variables.
+	(decode_mac_font_name): New function to apply code conversions
+	from a mac font name to an XLFD font name according to its script
+	code.
+	(x_font_name_to_mac_font_name): Apply code conversion from an XLFD
+	font name to a mac font name according to REGISTRY and ENCODING
+	fields.
+	(init_font_name_table) [TARGET_API_MAC_CARBON]: Don't use a font
+	whose name starts with `.'.
+	(init_font_name_table): Use decode_mac_font_name.  Add both
+	jisx0208.1983-sjis and jisx0201.1976-0 entries if the script code
+	of a font is smJapanese.
+	(mac_do_list_fonts): New function to list fonts that match a given
+	pattern.
+	(x_list_fonts, XLoadQueryFont): Use it.
+	(XLoadQueryFont): Set rbearing field for each variable width
+	character to avoid needless redraw.
+	(syms_of_macterm): Initialize Qbig5, Qcn_gb, Qsjis, and Qeuc_kr.
+
+2004-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (NREAD_INPUT_EVENTS): Temporarily increase to 512
+	as read_socket_hook handler on X aborts if buffer is too small
+	and W32 handler doesn't always check buffer limit.
+
+	* xdisp.c (handle_single_display_prop): Handle left-fringe and
+	right-fringe similar to a display margin image.  Specifically,
+	the characters having the fringe prop are no longer shown, and
+	we use IT_IMAGE/next_element_from_image with image_id = -1 to
+	do this.  Set fringe bitmap face_id in it->face_id.
+	(produce_image_glyph): Handle image_id < 0 as "no image" case, but
+	still realize it->face (i.e. the fringe bitmap face).
+
+2004-02-25  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (check_it): Check string/string_pos consistency.
+	(init_iterator): Initialize string-related fields properly.
+
+2004-02-11  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (produce_image_glyph): Force negative descents to zero.
+
+2004-02-10  Miles Bader  <miles@gnu.org>
+
+	* xfns.c (lookup_image): Remove xassert(!interrupt_input_blocked);
+	BLOCK_INPUT can be nested, so it doesn't make much sense.
+
+2004-02-24  Michael Mauger <mmaug@yahoo.com>
+
+	* w32fns.c (slurp_file, xbm_scan, xbm_load_image)
+	(xbm_read_bitmap_data): Use unsigned char for image data.
+
+2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrev.c (Finsert_abbrev_table_description): Doc fix.
+
+2004-02-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Draw overlaid bitmaps
+	correctly over other bitmaps.
+
+2004-02-21  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs.c (USAGE1): Split into two halves.
+	(USAGE2): Second half of the old USAGE1.
+	(USAGE3): Renamed from USAGE2.
+	(USAGE4): Renamed from USAGE3.
+
+2004-02-21  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (USAGE1): Add --no-desktop.  Move --display from USAGE2.
+	Fix --multibyte.  Move --help, --version to USAGE2.  Add alias
+	--file.  Fix -f, -l.  Sort options.  Untabify.
+	(USAGE2): Add -hb.  Fix --name, --title.  Sort options.  Untabify.
+
+2004-02-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* category.c (Fdefine_category, Fcategory_docstring)
+	(Fget_unused_category, Fset_category_table)
+	(Fcategory_set_mnemonics): Doc fixes.
+
+2004-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c: Undo 2004-02-16 and 2004-02-17 changes.
+	The following changes are relative to the 2004-01-21 revision.
+	(NREAD_INPUT_EVENTS): Define as max number of input events to read
+	in one call to read_socket_hook.  Value is 8.
+	(read_avail_input): Separate and rework handling of read_socket_hook
+	and non-read_socket_hook cases.  Use smaller input_event buffer
+	in read_socket_hook case, and repeat if full buffer is read.  Use
+	new local variable 'discard' to skip input after C-g.
+	In non-read_socket_hook case, just use a single input_event, and
+	call kbd_buffer_store_event on the fly for each character.
+
+2004-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (union Lisp_Object): Give a more precise type for `type'.
+	Remove unused `gu' alternative.
+
+2004-02-19  Andreas Schwab  <schwab@suse.de>
+
+	* fringe.c (Fdefine_fringe_bitmap): Use && instead of & to avoid
+	warning.
+
+2004-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type, display_and_set_cursor):
+	Fix last change.
+
 2004-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (fast_find_position): Fix return value of new version;
@@ -98,9 +488,9 @@
 
 2004-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* data.c (Fbyteorder): 
-	* fringe.c (Fdefine_fringe_bitmap): 
-	* xdisp.c (handle_single_display_prop): 
+	* data.c (Fbyteorder):
+	* fringe.c (Fdefine_fringe_bitmap):
+	* xdisp.c (handle_single_display_prop):
 	* xselect.c (x_handle_dnd_message): Lisp_Object/int mixup.
 
 2004-02-16  Jason Rumney  <jasonr@gnu.org>
@@ -113,7 +503,7 @@
 	controlling emulation of a three button mouse with option and
 	command keys.
 	(Qreverse, mac_get_enumlated_btn): Handle the emulation
-	(mac_event_to_emacs_modifiers, XTread_socket): Ditto
+	(mac_event_to_emacs_modifiers, XTread_socket): Ditto.
 
 2004-02-15  Kim F. Storm  <storm@cua.dk>
 

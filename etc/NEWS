@@ -88,6 +88,15 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+---
+** The saveplace.el package now filters out unreadable files.
+When you exit Emacs, the saved positions in visited files no longer
+include files that aren't readable, e.g. files that don't exist.
+Customize the new option `save-place-forget-unreadable-files' to nil
+to get the old behavior.  The new options `save-place-save-skipped'
+and `save-place-skip-check-regexp' allow further fine-tuning of this
+feature.
+
 ** On window systems, lines which are exactly as wide as the window
 (not counting the final newline character) are no longer broken into
 two lines on the display (with just the newline on the second line).
@@ -703,6 +712,13 @@ than 8 colors.  For example, for `xterm', 16-color, 88-color, and
 256-color modes are supported.  Emacs automatically notes at startup
 the extended number of colors, and defines the appropriate entries for
 all of these colors.
+
++++
+*** Emacs now uses the full range of available colors for the default
+faces when running on a color terminal, including 16-, 88-, and
+256-color xterms.  This means that when you run "emacs -nw" on an
+88-color or 256-color xterm, you will see essentially the same face
+colors as on X.
 
 ---
 *** There's a new support for colors on `rxvt' terminal emulator.
@@ -1813,6 +1829,13 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
++++
+** New face attribute `min-colors' can be used to tailor the face color
+to the number of colors supported by a display, and define the
+foreground and background colors accordingly so that they look best on
+a terminal that supports at least this many colors.  This is now the
+preferred method for defining default faces in a way that makes a good
+use of the capabilities of the display.
 
 ** New function 'define-fringe-bitmap' can now be used to change the
 built-in fringe bitmaps, as well as create new fringe bitmaps.
@@ -1871,6 +1894,7 @@ before saving buffers.  This allows packages to perform various final
 tasks, for example; it can be used by the copyright package to make
 sure saved files have the current year in any copyright headers.
 
++++
 ** The function `insert-for-yank' now supports strings where the
 `yank-handler' property does not span the first character of the
 string.  The old behavior is available if you call

@@ -505,7 +505,7 @@ that uses or sets the mark."
       (save-excursion
 	(save-restriction
 	  (widen)
-	  (message "line %d (narrowed line %d)" 
+	  (message "line %d (narrowed line %d)"
 		   (+ n (line-number-at-pos start) -1) n))))))
 
 (defun count-lines (start end)
@@ -1779,8 +1779,8 @@ programs.
 The function takes one or two arguments.
 The first argument, TEXT, is a string containing
 the text which should be made available.
-The second, PUSH, if non-nil means this is a \"new\" kill;
-nil means appending to an \"old\" kill.")
+The second, optional, argument PUSH, has the same meaning as the
+similar argument to `x-set-cut-buffer', which see.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
@@ -1793,7 +1793,8 @@ text that other programs have provided for pasting.
 The function should be called with no arguments.  If the function
 returns nil, then no other program has provided such text, and the top
 of the Emacs kill ring should be used.  If the function returns a
-string, that string should be put in the kill ring as the latest kill.
+string, then the caller of the function \(usually `current-kill')
+should put this string in the kill ring as the latest kill.
 
 Note that the function should return a string only if a program other
 than Emacs has provided a string for pasting; if Emacs provided the
@@ -1834,7 +1835,7 @@ the front of the kill ring, rather than being added to the list.
 Optional third arguments YANK-HANDLER controls how the STRING is later
 inserted into a buffer; see `insert-for-yank' for details.
 When a yank handler is specified, STRING must be non-empty (the yank
-handler is stored as a `yank-handler' text property on STRING).
+handler, if non-nil, is stored as a `yank-handler' text property on STRING).
 
 When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
@@ -1861,11 +1862,12 @@ argument should still be a \"useful\" string for such uses."
 (defun kill-append (string before-p &optional yank-handler)
   "Append STRING to the end of the latest kill in the kill ring.
 If BEFORE-P is non-nil, prepend STRING to the kill.
-Optional third argument YANK-HANDLER specifies the yank-handler text
-property to be set on the combined kill ring string.  If the specified
-yank-handler arg differs from the yank-handler property of the latest
-kill string, this function adds the combined string to the kill
-ring as a new element, instead of replacing the last kill with it.
+Optional third argument YANK-HANDLER, if non-nil, specifies the
+yank-handler text property to be set on the combined kill ring
+string.  If the specified yank-handler arg differs from the
+yank-handler property of the latest kill string, this function
+adds the combined string to the kill ring as a new element,
+instead of replacing the last kill with it.
 If `interprogram-cut-function' is set, pass the resulting kill to it."
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
@@ -1934,8 +1936,9 @@ If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring.
 
-In Lisp code, optional third arg YANK-HANDLER specifies the yank-handler
-text property to be set on the killed text.  See `insert-for-yank'."
+In Lisp code, optional third arg YANK-HANDLER, if non-nil,
+specifies the yank-handler text property to be set on the killed
+text.  See `insert-for-yank'."
   (interactive "r")
   (condition-case nil
       (let ((string (delete-and-extract-region beg end)))
@@ -1945,7 +1948,8 @@ text property to be set on the killed text.  See `insert-for-yank'."
 	      (kill-append string (< end beg) yank-handler)
 	    (kill-new string nil yank-handler)))
 	(when (or string (eq last-command 'kill-region))
-	  (setq this-command 'kill-region)))
+	  (setq this-command 'kill-region))
+	nil)
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters
      ;; in the region, are read-only.
@@ -1957,7 +1961,7 @@ text property to be set on the killed text.  See `insert-for-yank'."
      (setq this-command 'kill-region)
      ;; This should barf, if appropriate, and give us the correct error.
      (if kill-read-only-ok
-	 (message "Read only text copied to kill ring")
+	 (progn (message "Read only text copied to kill ring") nil)
        ;; Signal an error if the buffer is read-only.
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
@@ -2051,7 +2055,7 @@ Function is called with two parameters, START and END corresponding to
 the value of the mark and point; it is guaranteed that START <= END.
 Normally set from the UNDO element of a yank-handler; see `insert-for-yank'.")
 
-(defun yank-pop (arg)
+(defun yank-pop (&optional arg)
   "Replace just-yanked stretch of killed text with a different stretch.
 This command is allowed only immediately after a `yank' or a `yank-pop'.
 At such a time, the region contains a stretch of reinserted
@@ -2068,6 +2072,7 @@ comes the newest one."
   (if (not (eq last-command 'yank))
       (error "Previous command was not a yank"))
   (setq this-command 'yank)
+  (unless arg (setq arg 1))
   (let ((inhibit-read-only t)
 	(before (< (point) (mark t))))
     (if before
@@ -2103,7 +2108,7 @@ See also the command \\[yank-pop]."
   (push-mark (point))
   (insert-for-yank (current-kill (cond
 				  ((listp arg) 0)
-				  ((eq arg '-) -1)
+				  ((eq arg '-) -2)
 				  (t (1- arg)))))
   (if (consp arg)
       ;; This is like exchange-point-and-mark, but doesn't activate the mark.

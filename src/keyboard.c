@@ -1928,7 +1928,12 @@ adjust_point_for_property (last_pt, modified)
 		      : (PT < last_pt ? beg : end));
 	      check_composition = check_display = 1;
 	    }
+#if 0 /* This assertion isn't correct, because SET_PT may end up setting
+	 the point to something other than its argument, due to
+	 point-motion hooks, intangibility, etc.  */
 	  xassert (PT == beg || PT == end);
+#endif
+
 	  /* Pretend the area doesn't exist if the buffer is not
 	     modified.  */
 	  if (!modified && !ellipsis && beg < end)
@@ -3519,8 +3524,31 @@ void
 kbd_buffer_store_event (event)
      register struct input_event *event;
 {
+  kbd_buffer_store_event_hold (event, 0);
+}
+
+/* Store EVENT obtained at interrupt level into kbd_buffer, fifo.
+
+   If HOLD_QUIT is 0, just stuff EVENT into the fifo.
+   Else, if HOLD_QUIT.kind != NO_EVENT, discard EVENT.
+   Else, if EVENT is a quit event, store the quit event
+   in HOLD_QUIT, and return (thus ignoring further events).
+
+   This is used in read_avail_input to postpone the processing
+   of the quit event until all subsequent input events have been
+   parsed (and discarded).
+ */
+
+void
+kbd_buffer_store_event_hold (event, hold_quit)
+     register struct input_event *event;
+     struct input_event *hold_quit;
+{
   if (event->kind == NO_EVENT)
     abort ();
+
+  if (hold_quit && hold_quit->kind != NO_EVENT)
+    return;
 
   if (event->kind == ASCII_KEYSTROKE_EVENT)
     {
@@ -3563,6 +3591,12 @@ kbd_buffer_store_event (event)
 	    }
 #endif
 
+	  if (hold_quit)
+	    {
+	      bcopy (event, (char *) hold_quit, sizeof (*event));
+	      return;
+	    }
+
 	  /* If this results in a quit_char being returned to Emacs as
 	     input, set Vlast_event_frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
@@ -3592,7 +3626,9 @@ kbd_buffer_store_event (event)
      Just ignore the second one.  */
   else if (event->kind == BUFFER_SWITCH_EVENT
 	   && kbd_fetch_ptr != kbd_store_ptr
-	   && kbd_store_ptr->kind == BUFFER_SWITCH_EVENT)
+	   && ((kbd_store_ptr == kbd_buffer
+		? kbd_buffer + KBD_BUFFER_SIZE - 1
+		: kbd_store_ptr - 1)->kind) == BUFFER_SWITCH_EVENT)
     return;
 
   if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
@@ -3651,24 +3687,22 @@ kbd_buffer_store_event (event)
 
    Value is the number of input_events generated.  */
 
-int
-gen_help_event (bufp, size, help, frame, window, object, pos)
-     struct input_event *bufp;
-     int size;
+void
+gen_help_event (help, frame, window, object, pos)
      Lisp_Object help, frame, object, window;
      int pos;
 {
-  if (size >= 1)
-    {
-      bufp->kind = HELP_EVENT;
-      bufp->frame_or_window = frame;
-      bufp->arg = object;
-      bufp->x = WINDOWP (window) ? window : frame;
-      bufp->y = help;
-      bufp->code = pos;
-      return 1;
-    }
-  return 0;
+  struct input_event event;
+
+  EVENT_INIT (event);
+
+  event.kind = HELP_EVENT;
+  event.frame_or_window = frame;
+  event.arg = object;
+  event.x = WINDOWP (window) ? window : frame;
+  event.y = help;
+  event.code = pos;
+  kbd_buffer_store_event (&event);
 }
 
 
@@ -4985,7 +5019,7 @@ make_lispy_position (f, x, y, time)
 	{
 	  Lisp_Object string;
 	  int charpos;
-	  
+
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
 	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
@@ -5468,7 +5502,7 @@ make_lispy_event (event)
       {
 	Lisp_Object position;
 	Lisp_Object head;
-	
+
 	/* Build the position as appropriate for this mouse click.  */
 	struct frame *f = XFRAME (event->frame_or_window);
 
@@ -6556,14 +6590,6 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
-/* We make the read_avail_input buffer static to avoid zeroing out the
-   whole struct input_event buf on every call.  */
-static struct input_event read_avail_input_buf[KBD_BUFFER_SIZE];
-
-/* I don't know whether it is necessary, but make read_avail_input 
-   re-entrant.  */
-static int in_read_avail_input = 0;
-
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6580,22 +6606,27 @@ static int
 read_avail_input (expected)
      int expected;
 {
-  struct input_event *buf = read_avail_input_buf;
-  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
-  int nread;
-
-  /* Trivial hack to make read_avail_input re-entrant.  */
-  if (in_read_avail_input++)
-    {
-      buf = tmp_buf;
-      for (i = 0; i < KBD_BUFFER_SIZE; i++)
-	EVENT_INIT (buf[i]);
-    }
+  int nread = 0;
 
   if (read_socket_hook)
-    /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE, expected);
+    {
+      int discard = 0;
+      int nr;
+      struct input_event hold_quit;
+
+      EVENT_INIT (hold_quit);
+      hold_quit.kind = NO_EVENT;
+
+      /* No need for FIONREAD or fcntl; just say don't wait.  */
+      while (nr = (*read_socket_hook) (input_fd, expected, &hold_quit), nr > 0)
+	{
+	  nread += nr;
+	  expected = 0;
+	}
+      if (hold_quit.kind != NO_EVENT)
+	kbd_buffer_store_event (&hold_quit);
+    }
   else
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
@@ -6606,16 +6637,12 @@ read_avail_input (expected)
 
       /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
-      --in_read_avail_input;
       return 0;
 #else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
-	{
-	  --in_read_avail_input;
-	  return 0;
-	}
+	return 0;
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
@@ -6633,10 +6660,7 @@ read_avail_input (expected)
 	    n_to_read = 0;
 	}
       if (n_to_read == 0)
-	{
-	  --in_read_avail_input;
-	  return 0;
-	}
+	return 0;
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
@@ -6703,34 +6727,27 @@ read_avail_input (expected)
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
 	{
-	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
-	  buf[i].modifiers = 0;
+	  struct input_event buf;
+	  EVENT_INIT (buf);
+	  buf.kind = ASCII_KEYSTROKE_EVENT;
+	  buf.modifiers = 0;
 	  if (meta_key == 1 && (cbuf[i] & 0x80))
-	    buf[i].modifiers = meta_modifier;
+	    buf.modifiers = meta_modifier;
 	  if (meta_key != 2)
 	    cbuf[i] &= ~0x80;
 
-	  buf[i].code = cbuf[i];
-	  buf[i].frame_or_window = selected_frame;
-	  buf[i].arg = Qnil;
+	  buf.code = cbuf[i];
+	  buf.frame_or_window = selected_frame;
+	  buf.arg = Qnil;
+
+	  kbd_buffer_store_event (&buf);
+	  /* Don't look at input that follows a C-g too closely.
+	     This reduces lossage due to autorepeat on C-g.  */
+	  if (buf.kind == ASCII_KEYSTROKE_EVENT
+	      && buf.code == quit_char)
+	    break;
 	}
     }
-
-  /* Scan the chars for C-g and store them in kbd_buffer.  */
-  for (i = 0; i < nread; i++)
-    {
-      kbd_buffer_store_event (&buf[i]);
-      /* Don't look at input that follows a C-g too closely.
-	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-	  && buf[i].code == quit_char)
-	break;
-    }
-
-  /* Clear used events */
-  if (--in_read_avail_input == 0)
-    for (i = 0; i < nread; i++)
-      EVENT_INIT (buf[i]);
 
   return nread;
 }
@@ -8264,7 +8281,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
      int do_funcall;
 {
   Lisp_Object next;
-  
+
   next = access_keymap (map, key, 1, 0, 1);
 
   /* Handle symbol with autoload definition.  */
@@ -8279,7 +8296,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
       && (!NILP (Farrayp (XSYMBOL (next)->function))
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
-	    
+
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
      its value instead.  */
@@ -9293,7 +9310,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* Adjust the function-key-map counters.  */
 	      fkey.end += diff;
 	      fkey.start += diff;
-	      
+
 	      goto replay_sequence;
 	    }
 	}
@@ -10562,14 +10579,6 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
-#ifndef VMS
-  {
-    int i;
-    for (i = 0; i < KBD_BUFFER_SIZE; i++)
-      EVENT_INIT (read_avail_input_buf[i]);
-  }
-#endif
-
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
@@ -11309,7 +11318,7 @@ keys_of_keyboard ()
   /* Handling it at such a low-level causes read_key_sequence to get
    * confused because it doesn't realize that the current_buffer was
    * changed by read_char.
-   * 
+   *
    * initial_define_lispy_key (Vspecial_event_map, "select-window",
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",

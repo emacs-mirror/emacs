@@ -151,11 +151,13 @@ Strings will be separated from each other by SPACE lines."
       (setq list-of-strings (cdr list-of-strings)))))
 
 ;;;###autoload
-(defun animate-birthday-present ()
-  "Display Sarah's birthday present in a new buffer."
-  (interactive)
+(defun animate-birthday-present (&optional name)
+  "Display one's birthday present in a new buffer.
+You can specify the one's name by NAME; the default value is \"Sarah\"."
+  (interactive (list (read-string "Name (default \"Sarah\"): "
+				  nil nil "Sarah")))
   ;; Make a suitable buffer to display the birthday present in.
-  (switch-to-buffer (get-buffer-create "*Sarah*"))
+  (switch-to-buffer (get-buffer-create (format "*%s*" name)))
   (erase-buffer)
   ;; Display the empty buffer.
   (sit-for 0)
@@ -164,7 +166,7 @@ Strings will be separated from each other by SPACE lines."
   (setq indent-tabs-mode nil)
 
   (animate-string "Happy Birthday," 6)
-  (animate-string "Sarah" 7)
+  (animate-string (format "%s" name) 7)
 
   (sit-for 1)
 

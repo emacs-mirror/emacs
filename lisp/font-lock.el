@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
@@ -1560,24 +1560,34 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; But now we do it the custom way.  Note that `defface' will not overwrite any
 ;; faces declared above via `custom-declare-face'.
 (defface font-lock-comment-face
-  '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
-    (((class grayscale) (background light))
+  '((((class grayscale) (background light))
      (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
      (:foreground "LightGray" :weight bold :slant italic))
-    (((class color) (background light)) (:foreground "Firebrick"))
-    (((class color) (background dark)) (:foreground "chocolate1"))
+    (((class color) (min-colors 88) (background light)) 
+     (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark)) 
+     (:foreground "chocolate1"))
+    (((class color) (min-colors 16) (background light)) 
+     (:foreground "red"))
+    (((class color) (min-colors 16) (background dark)) 
+     (:foreground "red1"))
+    (((class color) (min-colors 8) (background light)) 
+     (:foreground "red"))
+    (((class color) (min-colors 8) (background dark)) 
+     (:foreground "red1"))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-string-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "DimGray" :slant italic))
+  '((((class grayscale) (background light)) (:foreground "DimGray" :slant italic))
     (((class grayscale) (background dark)) (:foreground "LightGray" :slant italic))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
+    (((class color) (min-colors 88) (background light)) (:foreground "RosyBrown"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSalmon"))
+    (((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+    (((class color) (min-colors 8)) (:foreground "green"))
     (t (:slant italic)))
   "Font Lock mode face used to highlight strings."
   :group 'font-lock-highlighting-faces)
@@ -1588,71 +1598,84 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-keyword-face
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
+  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (background light)) (:foreground "Purple"))
-    (((class color) (background dark)) (:foreground "Cyan"))
+    (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
+    (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Font Lock mode face used to highlight keywords."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-builtin-face
-  '((((type tty) (class color)) (:foreground "blue" :weight light))
-    (((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
+  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (background light)) (:foreground "Orchid"))
-    (((class color) (background dark)) (:foreground "LightSteelBlue"))
+    (((class color) (min-colors 88) (background light)) (:foreground "Orchid"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSteelBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
+    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
     (t (:weight bold)))
   "Font Lock mode face used to highlight builtins."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-function-name-face
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-variable-name-face
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
+  '((((class grayscale) (background light))
      (:foreground "Gray90" :weight bold :slant italic))
     (((class grayscale) (background dark))
      (:foreground "DimGray" :weight bold :slant italic))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 88) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight variable names."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-type-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "Gray90" :weight bold))
+  '((((class grayscale) (background light)) (:foreground "Gray90" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (background light)) (:foreground "ForestGreen"))
-    (((class color) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 88) (background light)) (:foreground "ForestGreen"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 8)) (:foreground "green"))
     (t (:weight bold :underline t)))
   "Font Lock mode face used to highlight type and classes."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-constant-face
-  '((((type tty) (class color)) (:foreground "magenta"))
-    (((class grayscale) (background light))
+  '((((class grayscale) (background light))
      (:foreground "LightGray" :weight bold :underline t))
     (((class grayscale) (background dark))
      (:foreground "Gray50" :weight bold :underline t))
-    (((class color) (background light)) (:foreground "CadetBlue"))
-    (((class color) (background dark)) (:foreground "Aquamarine"))
+    (((class color) (min-colors 88) (background light)) (:foreground "CadetBlue"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Aquamarine"))
+    (((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
+    (((class color) (min-colors 8)) (:foreground "magenta"))
     (t (:weight bold :underline t)))
   "Font Lock mode face used to highlight constants and labels."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
-  '((((type tty) (class color)) (:foreground "red"))
-    (((class color) (background light)) (:foreground "Red" :weight bold))
-    (((class color) (background dark)) (:foreground "Pink" :weight bold))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Red" :weight bold))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 16) (background light)) (:foreground "Red" :weight bold))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))    (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-highlighting-faces)

@@ -305,11 +305,18 @@ t means that there is no stack, and we are in display-file mode.")
 
     (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
-    (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)))
+    (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
+    (define-key gud-speedbar-key-map "D" 'gdb-var-delete)))
+
 
 (defvar gud-speedbar-menu-items
   ;; Note to self.  Add expand, and turn off items when not available.
-  '(["Jump to stack frame" speedbar-edit-line t])
+  '(["Jump to stack frame" speedbar-edit-line 
+     (with-current-buffer gud-comint-buffer (not (eq gud-minor-mode 'gdba)))]
+    ["Edit value" speedbar-edit-line 
+     (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))]
+    ["Delete expression" gdb-var-delete 
+     (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))])
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
@@ -353,8 +360,7 @@ off the specialized speedbar mode."
 		(speedbar-make-tag-line 'bracket char
 					'gdb-speedbar-expand-node varnum
 					(concat (car var) "\t" (nth 3 var))
-					'gdb-var-delete
-					nil nil depth)))
+					nil nil nil depth)))
 	    (setq var-list (cdr var-list))))
 	(setq gdb-var-changed nil)))
      (t (if (and (save-excursion
@@ -450,10 +456,13 @@ off the specialized speedbar mode."
        ;; Set the accumulator to the remaining text.
        gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
+    ;; Check for annotations and change gud-minor-mode to 'gdba if
+    ;; they are found.
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (when (string-equal (match-string 1 gud-marker-acc) "prompt")
 	(require 'gdb-ui)
 	(gdb-prompt nil))
+
       (setq
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.

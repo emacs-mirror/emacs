@@ -642,8 +642,7 @@ maybe_generate_resize_event ()
 }
 
 int
-w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
-			 int expected)
+w32_console_read_socket (int sd, int expected, struct input_event *hold_quit)
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;
@@ -670,27 +669,31 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	  return nev;
         }
 
-      while (nev > 0 && numchars > 0)
+      while (nev > 0)
         {
+	  struct input_event inev;
+
+	  EVENT_INIT (inev);
+	  inev.kind = NO_EVENT;
+	  inev.arg = Qnil;
+
 	  switch (queue_ptr->EventType)
             {
             case KEY_EVENT:
-	      add = key_event (&queue_ptr->Event.KeyEvent, bufp, &isdead);
+	      add = key_event (&queue_ptr->Event.KeyEvent, &inev, &isdead);
 	      if (add == -1) /* 95.7.25 by himi */
 		{
 		  queue_ptr--;
 		  add = 1;
 		}
-	      bufp += add;
-	      ret += add;
-	      numchars -= add;
+	      if (add)
+		kbd_buffer_store_event_hold (&inev, hold_quit);
 	      break;
 
             case MOUSE_EVENT:
-	      add = do_mouse_event (&queue_ptr->Event.MouseEvent, bufp);
-	      bufp += add;
-	      ret += add;
-	      numchars -= add;
+	      add = do_mouse_event (&queue_ptr->Event.MouseEvent, &inev);
+	      if (add)
+		kbd_buffer_store_event_hold (&inev, hold_quit);
 	      break;
 
             case WINDOW_BUFFER_SIZE_EVENT:

@@ -255,7 +255,7 @@ occur on the first Tuesday after the first Monday in November of years
 divisible by 4:
 
 @smallexample
-(holiday-sexp (if (= 0 (% year 4))
+(holiday-sexp '(if (= 0 (% year 4))
                    (calendar-gregorian-from-absolute
                     (1+ (calendar-dayname-on-or-before
                           1 (+ 6 (calendar-absolute-from-gregorian

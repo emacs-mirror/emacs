@@ -1,3 +1,45 @@
+2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* display.texi (Defining Faces): Add description for min-colors.
+	Update example.
+
+2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrevs.texi: Various corrections and clarifications in addition
+	to the following:
+	(Abbrev Tables): Delete add-abbrev (as suggested by RMS).
+
+2004-02-22  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar.texi (Holiday Customizing): Quote arg of holiday-sexp.
+
+2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi: Various small changes in addition to the following:
+	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
+	to delete-horizontal-space.
+	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	description of yank-handler text property at various places.
+
+	* frames.texi (Window System Selections): Add anchor.
+
+	* syntax.texi (Syntax Table Functions): Clarify and correct
+	descriptions of make-syntax-table and copy-syntax-table.
+	(Motion and Syntax): Clarify SYNTAXES argument to
+	skip-syntax-forward.
+	(Parsing Expressions): Mention that the return value of
+	parse-partial-sexp is currently a list of ten rather than nine
+	elements.
+	(Categories): Various corrections and clarifications.
+
+2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Marker Insertion Types): Minor change.
+
+	* locals.texi (Standard Buffer-Local Variables):
+	* commands.texi (Interactive Codes, Using Interactive):
+	* functions.texi (Related Topics): Fix xrefs.
+
 2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Sets And Lists): Update description of delete-dups.

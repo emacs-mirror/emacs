@@ -1,12 +1,13 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/02/25 20:17:43 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003/08/08 23:09:36 vinicius>
-;; Version: 3.6.1
+;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -26,14 +27,14 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.6.1"
-  "ebnf2ps.el, v 3.6.1 <2001/09/24 vinicius>
+(defconst ebnf-version "4.0"
+  "ebnf2ps.el, v 4.0 <2004/02/24 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <vinicius@cpqd.com.br>.
+	Vinicius Jose Latorre <viniciusjl@ig.com.br>.
 ")
 
 
@@ -72,10 +73,16 @@ Please send all bug fixes and enhancements to
 ;; ebnf2ps provides six commands for generating PostScript syntactic chart
 ;; images of Emacs buffers:
 ;;
+;;	ebnf-print-directory
+;;	ebnf-print-file
 ;;	ebnf-print-buffer
 ;;	ebnf-print-region
+;;	ebnf-spool-directory
+;;	ebnf-spool-file
 ;;	ebnf-spool-buffer
 ;;	ebnf-spool-region
+;;	ebnf-eps-directory
+;;	ebnf-eps-file
 ;;	ebnf-eps-buffer
 ;;	ebnf-eps-region
 ;;
@@ -110,12 +117,16 @@ Please send all bug fixes and enhancements to
 ;; you'll be asked to confirm the exit; this is modeled on the confirmation
 ;; that Emacs uses for modified buffers.
 ;;
-;; The word "buffer" or "region" in the command name determines how much of the
-;; buffer is printed:
+;; The word "directory", "file", "buffer" or "region" in the command name
+;; determines how much of the buffer is printed:
 ;;
-;;	buffer  - Print the entire buffer.
+;;	directory  - Read files in the directory and print them.
 ;;
-;;	region  - Print just the current region.
+;;	file       - Read file and print it.
+;;
+;;	buffer     - Print the entire buffer.
+;;
+;;	region     - Print just the current region.
 ;;
 ;; Two ebnf- command examples:
 ;;
@@ -126,9 +137,10 @@ Please send all bug fixes and enhancements to
 ;;			     spool the image in Emacs to send to the printer
 ;;			     later.
 ;;
-;; Note that `ebnf-eps-buffer' and `ebnf-eps-region' never spool the EPS image,
-;; so they don't use the ps-print spooling mechanism.  See section "Actions in
-;; Comments" for an explanation about EPS file generation.
+;; Note that `ebnf-eps-directory', `ebnf-eps-file', `ebnf-eps-buffer' and
+;; `ebnf-eps-region' never spool the EPS image, so they don't use the ps-print
+;; spooling mechanism.  See section "Actions in Comments" for an explanation
+;; about EPS file generation.
 ;;
 ;;
 ;; Invoking Ebnf2ps
@@ -223,14 +235,30 @@ Please send all bug fixes and enhancements to
 ;;           .
 ;;
 ;;    non_terminal = "[!#%&'*-,0-:<>@-Z\\\\^-z~\\240-\\377]+".
+;;    ;; that is, a valid non_terminal accepts decimal digits, letters (upper
+;;    ;; and lower), 8-bit accentuated characters,
+;;    ;; "!", "#", "%", "&", "'", "*", "+", ",", ":",
+;;    ;; "<", ">", "@", "\", "^", "_", "`" and "~".
 ;;
 ;;    terminal = "\\([^\"\\]\\|\\\\[ -~\\240-\\377]\\)+".
+;;    ;; that is, a valid terminal accepts any printable character (including
+;;    ;; 8-bit accentuated characters) except `"', as `"' is used to delimit a
+;;    ;; terminal.  Also, accepts escaped characters, that is, a character
+;;    ;; pair starting with `\' followed by a printable character, for
+;;    ;; example: \", \\. 
 ;;
-;;    special = "[^?\\n\\000-\\010\\016-\\037\\177-\\237]*".
+;;    special = "[^?\\000-\\010\\012-\\037\\177-\\237]*".
+;;    ;; that is, a valid special accepts any printable character (including
+;;    ;; 8-bit accentuated characters) and tabs except `?', as `?' is used to
+;;    ;; delimit a special.
 ;;
 ;;    integer = "[0-9]+".
+;;    ;; that is, an integer is a sequence of one or more decimal digits.
 ;;
 ;;    comment = ";" "[^\\n\\000-\\010\\016-\\037\\177-\\237]*" "\\n".
+;;    ;; that is, a comment starts with the character `;' and terminates at end
+;;    ;; of line.  Also, it only accepts printable characters (including 8-bit
+;;    ;; accentuated characters) and tabs.
 ;;
 ;; Try to use the above EBNF to test ebnf2ps.
 ;;
@@ -272,6 +300,10 @@ Please send all bug fixes and enhancements to
 ;;			setting:
 ;;			`ebnf-terminal-regexp', `ebnf-case-fold-search',
 ;;			`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
+;;
+;;    `abnf'		ebnf2ps recognizes the syntax described in the URL:
+;;			`http://www.faqs.org/rfcs/rfc2234.html'
+;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
 ;;			`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
@@ -545,6 +577,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-terminal-border-color'		Specify border color for terminal box.
 ;;
+;; `ebnf-production-name-p'		Non-nil means production name will be
+;;					printed.
+;;
 ;; `ebnf-sort-production'		Specify how productions are sorted.
 ;;
 ;; `ebnf-production-font'		Specify production font.
@@ -561,6 +596,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-non-terminal-border-color'	Specify border color for non-terminal
 ;;					box.
+;;
+;; `ebnf-special-show-delimiter'	Non-nil means special delimiter
+;;					(character `?') is shown.
 ;;
 ;; `ebnf-special-font'			Specify special font.
 ;;
@@ -629,9 +667,15 @@ Please send all bug fixes and enhancements to
 ;;					default terminal, non-terminal or
 ;;					special.
 ;;
+;; `ebnf-file-suffix-regexp'		Specify file name suffix that contains
+;;					EBNF.
+;;
 ;; `ebnf-eps-prefix'			Specify EPS prefix file name.
 ;;
 ;; `ebnf-use-float-format'		Non-nil means use `%f' float format.
+;;
+;; `ebnf-stop-on-error'			Non-nil means signal error and stop.
+;;					Nil means signal error and continue.
 ;;
 ;; `ebnf-yac-ignore-error-recovery'	Non-nil means ignore error recovery.
 ;;
@@ -695,21 +739,24 @@ Please send all bug fixes and enhancements to
 ;; `ebnf-insert-style'	Insert a new style NAME with inheritance INHERITS and
 ;;			values VALUES.
 ;;
+;; `ebnf-delete-style'	Delete style NAME.
+;;
 ;; `ebnf-merge-style'	Merge values of style NAME with style VALUES.
 ;;
-;; `ebnf-apply-style'	Set STYLE to current style.
+;; `ebnf-apply-style'	Set STYLE as the current style.
 ;;
 ;; `ebnf-reset-style'	Reset current style.
 ;;
-;; `ebnf-push-style'	Push the current style and set STYLE to current style.
+;; `ebnf-push-style'	Push the current style and set STYLE as the current
+;;			style. 
 ;;
-;; `ebnf-pop-style'	Pop a style and set it to current style.
+;; `ebnf-pop-style'	Pop a style and set it as the current style.
 ;;
-;; These commands helps to put together a lot of variable settings in a group
+;; These commands help to put together a lot of variable settings in a group
 ;; and name this group.  So when you wish to apply these settings it's only
 ;; needed to give the name.
 ;;
-;; There is also a notion of simple inheritance of style; so if you declare
+;; There is also a notion of simple inheritance of style; so, if you declare
 ;; that a style A inherits from a style B, all settings of B is applied first
 ;; and then the settings of A is applied.  This is useful when you wish to
 ;; modify some aspects of an existing style, but at same time wish to keep it
@@ -994,6 +1041,17 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
+;;    - `ebnf-production-name-p', `ebnf-stop-on-error',
+;;	`ebnf-file-suffix-regexp'and `ebnf-special-show-delimiter' variables.
+;;    - `ebnf-delete-style', `ebnf-eps-file' and `ebnf-eps-directory'
+;;	commands.
+;;    - some docs fix.
+;;
+;; Thanks to Matthew K. Junker <junker@alum.mit.edu> for the suggestion to deal
+;; with some Bison features (%right, %left and %prec pragmas).  His suggestion
+;; was extended to deal with %nonassoc pragma too.
+;;
 ;; Thanks to all who emailed comments.
 ;;
 ;;
@@ -1006,6 +1064,22 @@ Please send all bug fixes and enhancements to
 
 (and (string< ps-print-version "5.2.3")
      (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
+
+
+;; to avoid gripes with Emacs 20
+(eval-and-compile
+  (or (fboundp 'assq-delete-all)
+      (defun assq-delete-all (key alist)
+	"Delete from ALIST all elements whose car is KEY.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+	(let ((tail alist))
+	  (while tail
+	    (if (and (consp (car tail))
+		     (eq (car (car tail)) key))
+		(setq alist (delq (car tail) alist)))
+	    (setq tail (cdr tail)))
+	  alist))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1138,6 +1212,12 @@ Valid values are:
   :type '(radio :tag "Sequence Justification"
 		(const left) (const right) (other :tag "center" center))
   :group 'ebnf-displacement)
+
+
+(defcustom ebnf-special-show-delimiter t
+  "*Non-nil means special delimiter (character `?') is shown."
+  :type 'boolean
+  :group 'ebnf-special)
 
 
 (defcustom ebnf-special-font '(7 Courier "Black" "Gray95" bold italic)
@@ -1332,6 +1412,12 @@ See documentation for `ebnf-non-terminal-shape'."
   :group 'ebnf-terminal)
 
 
+(defcustom ebnf-production-name-p t
+  "*Non-nil means production name will be printed."
+  :type 'boolean
+  :group 'ebnf-production)
+
+
 (defcustom ebnf-sort-production nil
   "*Specify how productions are sorted.
 
@@ -1482,14 +1568,28 @@ Valid values are:
 						  |*
 						  *
 
+   `semi-up-hollow'		   `semi-up-full'
+		  *				  *
+		  |*				  |*
+		  | *				  |X*
+		==+==*				==+==*
+
+   `semi-down-hollow'		   `semi-down-full'
+		==+==*				==+==*
+		  | *				  |X*
+		  |*				  |*
+		  *				  *
+
    `user'	See also documentation for variable `ebnf-user-arrow'.
 
 Any other value is treated as `none'."
   :type '(radio :tag "Arrow Shape"
-		(const none)        (const semi-up)
-		(const semi-down)   (const simple)
-		(const transparent) (const hollow)
-		(const full)        (const user))
+		(const none)             (const semi-up)
+		(const semi-down)        (const simple)
+		(const transparent)      (const hollow)
+		(const full)             (const semi-up-hollow)
+		(const semi-down-hollow) (const semi-up-full)
+		(const semi-down-full)   (const user))
   :group 'ebnf-shape)
 
 
@@ -1553,6 +1653,10 @@ Valid values are:
 		`ebnf-terminal-regexp', `ebnf-case-fold-search',
 		`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 
+   `abnf'	ebnf2ps recognizes the syntax described in the URL:
+		`http://www.faqs.org/rfcs/rfc2234.html'
+		(\"Augmented BNF for Syntax Specifications: ABNF\").
+
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
 		`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 		(\"International Standard of the ISO EBNF Notation\").
@@ -1567,7 +1671,7 @@ Valid values are:
 
 Any other value is treated as `ebnf'."
   :type '(radio :tag "Syntax"
-		(const ebnf) (const iso-ebnf) (const yacc))
+		(const ebnf) (const abnf) (const iso-ebnf) (const yacc))
   :group 'ebnf-syntactic)
 
 
@@ -1638,6 +1742,14 @@ It's only used when `ebnf-syntax' is `iso-ebnf'."
   :group 'ebnf-syntactic)
 
 
+(defcustom ebnf-file-suffix-regexp "\.[Bb][Nn][Ff]$"
+  "*Specify file name suffix that contains EBNF.
+
+See `ebnf-eps-directory' command."
+  :type 'regexp
+  :group 'ebnf2ps)
+
+
 (defcustom ebnf-eps-prefix "ebnf--"
   "*Specify EPS prefix file name.
 
@@ -1704,6 +1816,12 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
   :group 'ebnf2ps)
 
 
+(defcustom ebnf-stop-on-error nil
+  "*Non-nil means signal error and stop. Nil means signal error and continue."
+  :type 'boolean
+  :group 'ebnf2ps)
+
+
 (defcustom ebnf-yac-ignore-error-recovery nil
   "*Non-nil means ignore error recovery.
 
@@ -1763,6 +1881,34 @@ The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
 
 
 ;;;###autoload
+(defun ebnf-print-directory (&optional directory)
+  "Generate and print a PostScript syntactic chart image of DIRECTORY.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed.
+
+See also `ebnf-print-buffer'."
+  (interactive
+   (list (read-file-name "Directory containing EBNF files (print): "
+			 nil default-directory)))
+  (ebnf-directory 'ebnf-print-buffer directory))
+
+
+;;;###autoload
+(defun ebnf-print-file (file &optional do-not-kill-buffer-when-done)
+  "Generate and print a PostScript syntactic chart image of the file FILE.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after process termination.
+
+See also `ebnf-print-buffer'."
+  (interactive "fEBNF file to generate PostScript and print from: ")
+  (ebnf-file 'ebnf-print-buffer file do-not-kill-buffer-when-done))
+
+
+;;;###autoload
 (defun ebnf-print-buffer (&optional filename)
   "Generate and print a PostScript syntactic chart image of the buffer.
 
@@ -1789,6 +1935,34 @@ Like `ebnf-print-buffer', but prints just the current region."
 
 
 ;;;###autoload
+(defun ebnf-spool-directory (&optional directory)
+  "Generate and spool a PostScript syntactic chart image of DIRECTORY.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed.
+
+See also `ebnf-spool-buffer'."
+  (interactive
+   (list (read-file-name "Directory containing EBNF files (spool): "
+			 nil default-directory)))
+  (ebnf-directory 'ebnf-spool-buffer directory))
+
+
+;;;###autoload
+(defun ebnf-spool-file (file &optional do-not-kill-buffer-when-done)
+  "Generate and spool a PostScript syntactic chart image of the file FILE.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after process termination.
+
+See also `ebnf-spool-buffer'."
+  (interactive "fEBNF file to generate PostScript and spool from: ")
+  (ebnf-file 'ebnf-spool-buffer file do-not-kill-buffer-when-done))
+
+
+;;;###autoload
 (defun ebnf-spool-buffer ()
   "Generate and spool a PostScript syntactic chart image of the buffer.
 Like `ebnf-print-buffer' except that the PostScript image is saved in a
@@ -1807,6 +1981,34 @@ Like `ebnf-spool-buffer', but spools just the current region.
 Use the command `ebnf-despool' to send the spooled images to the printer."
   (interactive "r")
   (ebnf-generate-region from to 'ebnf-generate))
+
+
+;;;###autoload
+(defun ebnf-eps-directory (&optional directory)
+  "Generate EPS files from EBNF files in DIRECTORY.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed.
+
+See also `ebnf-eps-buffer'."
+  (interactive
+   (list (read-file-name "Directory containing EBNF files (EPS): "
+			 nil default-directory)))
+  (ebnf-directory 'ebnf-eps-buffer directory))
+
+
+;;;###autoload
+(defun ebnf-eps-file (file &optional do-not-kill-buffer-when-done)
+  "Generate an EPS file from EBNF file FILE.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after EPS generation.
+
+See also `ebnf-eps-buffer'."
+  (interactive "fEBNF file to generate EPS file from: ")
+  (ebnf-file 'ebnf-eps-buffer file do-not-kill-buffer-when-done))
 
 
 ;;;###autoload
@@ -1883,7 +2085,8 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
    "
 ;;; ebnf2ps.el version %s
 
-\(setq ebnf-special-font                %s
+\(setq ebnf-special-show-delimiter      %S
+      ebnf-special-font                %s
       ebnf-special-shape               %s
       ebnf-special-shadow              %S
       ebnf-special-border-width        %S
@@ -1910,6 +2113,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       ebnf-non-terminal-shadow         %S
       ebnf-non-terminal-border-width   %S
       ebnf-non-terminal-border-color   %S
+      ebnf-production-name-p           %S
       ebnf-sort-production             %s
       ebnf-production-font             %s
       ebnf-arrow-shape                 %s
@@ -1925,6 +2129,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       ebnf-syntax                      %s
       ebnf-iso-alternative-p           %S
       ebnf-iso-normalize-p             %S
+      ebnf-file-suffix-regexp          %S
       ebnf-eps-prefix                  %S
       ebnf-entry-percentage            %S
       ebnf-color-p                     %S
@@ -1932,6 +2137,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       ebnf-line-color                  %S
       ebnf-debug-ps                    %S
       ebnf-use-float-format            %S
+      ebnf-stop-on-error               %S
       ebnf-yac-ignore-error-recovery   %S
       ebnf-ignore-empty-rule           %S
       ebnf-optimize                    %S)
@@ -1939,6 +2145,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 ;;; ebnf2ps.el - end of settings
 "
    ebnf-version
+   ebnf-special-show-delimiter
    (ps-print-quote ebnf-special-font)
    (ps-print-quote ebnf-special-shape)
    ebnf-special-shadow
@@ -1966,6 +2173,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
    ebnf-non-terminal-shadow
    ebnf-non-terminal-border-width
    ebnf-non-terminal-border-color
+   ebnf-production-name-p
    (ps-print-quote ebnf-sort-production)
    (ps-print-quote ebnf-production-font)
    (ps-print-quote ebnf-arrow-shape)
@@ -1981,6 +2189,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
    (ps-print-quote ebnf-syntax)
    ebnf-iso-alternative-p
    ebnf-iso-normalize-p
+   ebnf-file-suffix-regexp
    ebnf-eps-prefix
    ebnf-entry-percentage
    ebnf-color-p
@@ -1988,6 +2197,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
    ebnf-line-color
    ebnf-debug-ps
    ebnf-use-float-format
+   ebnf-stop-on-error
    ebnf-yac-ignore-error-recovery
    ebnf-ignore-empty-rule
    ebnf-optimize))
@@ -2007,7 +2217,8 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 
 (defconst ebnf-style-custom-list
-  '(ebnf-special-font
+  '(ebnf-special-show-delimiter
+    ebnf-special-font
     ebnf-special-shape
     ebnf-special-shadow
     ebnf-special-border-width
@@ -2034,6 +2245,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
     ebnf-non-terminal-shadow
     ebnf-non-terminal-border-width
     ebnf-non-terminal-border-color
+    ebnf-production-name-p
     ebnf-sort-production
     ebnf-production-font
     ebnf-arrow-shape
@@ -2049,6 +2261,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
     ebnf-syntax
     ebnf-iso-alternative-p
     ebnf-iso-normalize-p
+    ebnf-file-suffix-regexp
     ebnf-eps-prefix
     ebnf-entry-percentage
     ebnf-color-p
@@ -2056,6 +2269,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
     ebnf-line-color
     ebnf-debug-ps
     ebnf-use-float-format
+    ebnf-stop-on-error
     ebnf-yac-ignore-error-recovery
     ebnf-ignore-empty-rule
     ebnf-optimize)
@@ -2066,6 +2280,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
   '(;; EBNF default
     (default
       nil
+      (ebnf-special-show-delimiter      . t)
       (ebnf-special-font          . '(7 Courier "Black" "Gray95" bold italic))
       (ebnf-special-shape               . 'bevel)
       (ebnf-special-shadow              . nil)
@@ -2093,6 +2308,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       (ebnf-non-terminal-shadow         . nil)
       (ebnf-non-terminal-border-width   . 1.0)
       (ebnf-non-terminal-border-color   . "Black")
+      (ebnf-production-name-p           . t)
       (ebnf-sort-production             . nil)
       (ebnf-production-font             . '(10 Helvetica "Black" "White" bold))
       (ebnf-arrow-shape                 . 'hollow)
@@ -2108,6 +2324,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       (ebnf-syntax                      . 'ebnf)
       (ebnf-iso-alternative-p           . nil)
       (ebnf-iso-normalize-p             . nil)
+      (ebnf-file-suffix-regexp          . "\.[Bb][Nn][Ff]$")
       (ebnf-eps-prefix                  . "ebnf--")
       (ebnf-entry-percentage            . 0.5)
       (ebnf-color-p   . (or (fboundp 'x-color-values) ; Emacs
@@ -2116,6 +2333,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       (ebnf-line-color                  . "Black")
       (ebnf-debug-ps                    . nil)
       (ebnf-use-float-format            . t)
+      (ebnf-stop-on-error               . nil)
       (ebnf-yac-ignore-error-recovery   . nil)
       (ebnf-ignore-empty-rule           . nil)
       (ebnf-optimize                    . nil))
@@ -2125,6 +2343,10 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
      (ebnf-justify-sequence            . 'left)
      (ebnf-lex-comment-char            . ?\#)
      (ebnf-lex-eop-char                . ?\;))
+    ;; ABNF default
+    (abnf
+     default
+     (ebnf-syntax                      . 'abnf))
     ;; ISO EBNF default
     (iso-ebnf
      default
@@ -2138,19 +2360,31 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 Each element has the following form:
 
-   (CUSTOM INHERITS (VAR . VALUE)...)
+   (NAME INHERITS (VAR . VALUE)...)
 
-CUSTOM is a symbol name style.
-INHERITS is a symbol name style from which the current style inherits the
-context.  If INHERITS is nil, means that there is no inheritance.
-VAR is a valid ebnf2ps symbol custom variable.  See `ebnf-style-custom-list'
-for valid symbol variable.
-VALUE is a sexp which it'll be evaluated to set the value to VAR.  So, don't
-forget to quote symbols and constant lists.  See `default' style for an
-example.
+Where:
 
-Don't handle this variable directly.  Use functions `ebnf-insert-style' and
-`ebnf-merge-style'.")
+NAME		is a symbol name style.
+
+INHERITS	is a symbol name style from which the current style inherits
+		the context.  If INHERITS is nil, means that there is no
+		inheritance.
+
+		This is a simple inheritance of style; so if you declare that a
+		style A inherits from a style B, all settings of B is applied
+		first and then the settings of A is applied.  This is useful
+		when you wish to modify some aspects of an existing style, but
+		at same time wish to keep it unmodified.
+
+VAR		is a valid ebnf2ps symbol custom variable.
+		See `ebnf-style-custom-list' for valid symbol variable.
+
+VALUE		is a sexp which it'll be evaluated to set the value to VAR.
+		So, don't forget to quote symbols and constant lists.
+		See `default' style for an example.
+
+Don't handle this variable directly.  Use functions `ebnf-insert-style',
+`ebnf-delete-style' and `ebnf-merge-style'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2159,8 +2393,10 @@ Don't handle this variable directly.  Use functions `ebnf-insert-style' and
 
 ;;;###autoload
 (defun ebnf-insert-style (name inherits &rest values)
-  "Insert a new style NAME with inheritance INHERITS and values VALUES."
-  (interactive)
+  "Insert a new style NAME with inheritance INHERITS and values VALUES.
+
+See `ebnf-style-database' documentation."
+  (interactive "SStyle name: \nSStyle inherits from: \nXStyle values: ")
   (and (assoc name ebnf-style-database)
        (error "Style name already exists: %s" name))
   (or (assoc inherits ebnf-style-database)
@@ -2171,9 +2407,28 @@ Don't handle this variable directly.  Use functions `ebnf-insert-style' and
 
 
 ;;;###autoload
+(defun ebnf-delete-style (name)
+  "Delete style NAME.
+
+See `ebnf-style-database' documentation."
+  (interactive "SDelete style name: ")
+  (or (assoc name ebnf-style-database)
+      (error "Style name doesn't exist: %s" name))
+  (let ((db ebnf-style-database))
+    (while db
+      (and (eq (nth 1 (car db)) name)
+	   (error "Style name `%s' is inherited by `%s' style"
+		  name (nth 0 (car db))))
+      (setq db (cdr db))))
+  (setq ebnf-style-database (assq-delete-all name ebnf-style-database)))
+
+
+;;;###autoload
 (defun ebnf-merge-style (name &rest values)
-  "Merge values of style NAME with style VALUES."
-  (interactive)
+  "Merge values of style NAME with style VALUES.
+
+See `ebnf-style-database' documentation."
+  (interactive "SStyle name: \nXStyle values: ")
   (let ((style (or (assoc name ebnf-style-database)
 		   (error "Style name does'nt exist: %s" name)))
 	(merge (ebnf-check-style-values values))
@@ -2193,10 +2448,12 @@ Don't handle this variable directly.  Use functions `ebnf-insert-style' and
 
 ;;;###autoload
 (defun ebnf-apply-style (style)
-  "Set STYLE to current style.
+  "Set STYLE as the current style.
 
-It returns the old style symbol."
-  (interactive)
+It returns the old style symbol.
+
+See `ebnf-style-database' documentation."
+  (interactive "SApply style: ")
   (prog1
       ebnf-current-style
     (and (ebnf-apply-style1 style)
@@ -2207,18 +2464,22 @@ It returns the old style symbol."
 (defun ebnf-reset-style (&optional style)
   "Reset current style.
 
-It returns the old style symbol."
-  (interactive)
+It returns the old style symbol.
+
+See `ebnf-style-database' documentation."
+  (interactive "SReset style: ")
   (setq ebnf-stack-style nil)
   (ebnf-apply-style (or style 'default)))
 
 
 ;;;###autoload
 (defun ebnf-push-style (&optional style)
-  "Push the current style and set STYLE to current style.
+  "Push the current style and set STYLE as the current style.
 
-It returns the old style symbol."
-  (interactive)
+It returns the old style symbol.
+
+See `ebnf-style-database' documentation."
+  (interactive "SPush style: ")
   (prog1
       ebnf-current-style
     (setq ebnf-stack-style (cons ebnf-current-style ebnf-stack-style))
@@ -2228,9 +2489,11 @@ It returns the old style symbol."
 
 ;;;###autoload
 (defun ebnf-pop-style ()
-  "Pop a style and set it to current style.
+  "Pop a style and set it as the current style.
 
-It returns the old style symbol."
+It returns the old style symbol.
+
+See `ebnf-style-database' documentation."
   (interactive)
   (prog1
       (ebnf-apply-style (car ebnf-stack-style))
@@ -2249,7 +2512,7 @@ It returns the old style symbol."
 (defun ebnf-check-style-values (values)
   (let (style)
     (while values
-      (and (memq (car values) ebnf-style-custom-list)
+      (and (memq (caar values) ebnf-style-custom-list)
 	   (setq style (cons (car values) style)))
       (setq values (cdr values)))
     (nreverse style)))
@@ -2297,14 +2560,18 @@ documentation.")
 
 
 (defconst ebnf-arrow-shape-alist
-  '((none        . 0)
-    (semi-up     . 1)
-    (semi-down   . 2)
-    (simple      . 3)
-    (transparent . 4)
-    (hollow      . 5)
-    (full        . 6)
-    (user        . 7))
+  '((none             . 0)
+    (semi-up          . 1)
+    (semi-down        . 2)
+    (simple           . 3)
+    (transparent      . 4)
+    (hollow           . 5)
+    (full             . 6)
+    (semi-up-hollow   . 7)
+    (semi-up-full     . 8)
+    (semi-down-hollow . 9)
+    (semi-down-full   . 10)
+    (user             . 11))
   "Alist associating values for `ebnf-arrow-shape'.
 
 See documentation for `ebnf-arrow-shape'.")
@@ -2464,19 +2731,39 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 
 /ArrowPath{c newpath moveto Arrow closepath}bind def
 
+/UpPath
+{c newpath moveto
+ hT2 neg 0   rmoveto
+ 0       hT4 rlineto
+ hT2 hT4 neg rlineto
+ closepath
+}bind def
+
+/DownPath
+{c newpath moveto
+ hT2 neg 0   rmoveto
+ 0   hT4 neg rlineto
+ hT2     hT4 rlineto
+ closepath
+}bind def
+
 %>Right Arrow: RA
 %    \\
 % *---+
 %    /
 /RA-vector
-[{}					% 0 - none
- {hT2 neg hT4 rlineto}			% 1 - semi-up
- {Down}					% 2 - semi-down
- {Arrow}				% 3 - simple
- {Gstroke ArrowPath}			% 4 - transparent
- {Gstroke ArrowPath 1 FillGray}		% 5 - hollow
- {Gstroke ArrowPath LineColor FillRGB}	% 6 - full
- {Gstroke gsave UserArrow grestore}	% 7 - user
+[{}					% 0  - none
+ {hT2 neg hT4 rlineto}			% 1  - semi-up
+ {Down}					% 2  - semi-down
+ {Arrow}				% 3  - simple
+ {Gstroke ArrowPath}			% 4  - transparent
+ {Gstroke ArrowPath 1 FillGray}		% 5  - hollow
+ {Gstroke ArrowPath LineColor FillRGB}	% 6  - full
+ {Gstroke UpPath 1 FillGray}		% 7  - semi-up-hollow
+ {Gstroke UpPath LineColor FillRGB}	% 8  - semi-up-full
+ {Gstroke DownPath 1 FillGray}		% 9  - semi-down-hollow
+ {Gstroke DownPath LineColor FillRGB}	% 10 - semi-down-full
+ {Gstroke gsave UserArrow grestore}	% 11 - user
 ]def
 
 /RA
@@ -3168,10 +3455,11 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 {xyp
  neg yp add /yw exch def
  xp add T sub /xw exch def
- /Effect EffectP def
- /fP F ForegroundP SetRGB BackgroundP aload pop true BG S
- /Effect 0 def
- ( :) S false BG
+ dup length 0 gt	% empty string ==> no production name
+ {/Effect EffectP def
+  /fP F ForegroundP SetRGB BackgroundP aload pop true BG S
+  /Effect 0 def
+  ( :) S false BG}if
  xw yw moveto
  hT EL RA
  xp yw moveto
@@ -3909,11 +4197,15 @@ end
 (defun ebnf-generate-production (production)
   (ebnf-message-info "Generating")
   (run-hooks 'ebnf-production-hook)
-  (ps-output-string (ebnf-node-name production))
+  (ps-output-string (if ebnf-production-name-p
+			(ebnf-node-name production)
+		      ""))
   (ps-output " "
 	     (ebnf-format-float
 	      (ebnf-node-width production)
-	      (+ ebnf-basic-height
+	      (+ (if ebnf-production-name-p
+		     ebnf-basic-height
+		   0.0)
 		 (ebnf-node-entry (ebnf-node-production production))))
 	     " BOP\n")
   (ebnf-node-generation (ebnf-node-production production))
@@ -4102,6 +4394,35 @@ end
 ;; Internal functions
 
 
+(defun ebnf-directory (fun &optional directory)
+  "Process files in DIRECTORY applying function FUN on each file.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed."
+  (let ((files (directory-files (or directory default-directory)
+				t ebnf-file-suffix-regexp)))
+    (while files
+      (set-buffer (find-file-noselect (car files)))
+      (funcall fun)
+      (setq buffer-backed-up t)		    ; Do not back it up.
+      (save-buffer)			    ; Just save new version.
+      (kill-buffer (current-buffer))
+      (setq files (cdr files)))))
+
+
+(defun ebnf-file (fun file &optional do-not-kill-buffer-when-done)
+  "Process file FILE applying function FUN.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after process termination."
+  (set-buffer (find-file-noselect file))
+  (funcall fun)
+  (or do-not-kill-buffer-when-done
+      (kill-buffer (current-buffer))))
+
+
 ;; function `ebnf-range-regexp' is used to avoid a bug of `skip-chars-forward'
 ;; on version 20.4.1, that is, it doesn't accept ranges like "\240-\377" (or
 ;; "\177-\237"), but it accepts the character sequence from \240 to \377 (or
@@ -4143,6 +4464,7 @@ end
 (defun ebnf-generate-region (from to gen-func)
   (run-hooks 'ebnf-hook)
   (let ((ebnf-limit (max from to))
+	(error-msg "SYNTAX")
 	the-point)
     (save-excursion
       (save-restriction
@@ -4150,20 +4472,38 @@ end
 	  (condition-case data
 	      (let ((tree (ebnf-parse-and-sort (min from to))))
 		(when gen-func
-		  (funcall gen-func
-			   (ebnf-dimensions
-			    (ebnf-optimize
-			     (ebnf-eliminate-empty-rules tree))))))
+		  (setq error-msg "EMPTY RULES"
+			tree      (ebnf-eliminate-empty-rules tree))
+		  (setq error-msg "OPTMIZE"
+			tree      (ebnf-optimize tree))
+		  (setq error-msg "DIMENSIONS"
+			tree      (ebnf-dimensions tree))
+		  (setq error-msg "GENERATION")
+		  (funcall gen-func tree))
+		(setq error-msg nil))	; here it's ok
 	    ;; handler
 	    ((quit error)
 	     (ding)
-	     (setq the-point (max (1- (point)) (point-min)))
-	     (message (error-message-string data)))))))
+	     (setq the-point (max (1- (point)) (point-min))
+		   error-msg (concat error-msg ": "
+				     (error-message-string data)
+				     ", "
+				     (and (string= error-msg "SYNTAX")
+					  (format "at position %d "
+						  the-point))
+				     (format "in buffer \"%s\"."
+					     (buffer-name)))))))))
     (cond
-     (the-point
-      (goto-char the-point))
+     ;; error occurred
+     (error-msg
+      (goto-char the-point)
+      (if ebnf-stop-on-error
+	  (error error-msg)
+	(message error-msg)))
+     ;; generated output OK
      (gen-func
       nil)
+     ;; syntax checked OK
      (t
       (message "EBNF syntactic analysis: NO ERRORS.")))))
 
@@ -4267,6 +4607,15 @@ end
   (ebnf-font-select font 'line-height))
 
 
+(defconst ebnf-syntax-alist
+  ;; 0.syntax  1.parser         2.initializer
+  '((iso-ebnf  ebnf-iso-parser  ebnf-iso-initialize)
+    (yacc      ebnf-yac-parser  ebnf-yac-initialize)
+    (abnf      ebnf-abn-parser  ebnf-abn-initialize)
+    (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize))
+  "Alist associating ebnf syntax with a parser and a initializer.")
+
+
 (defun ebnf-begin-job ()
   (ps-printing-region nil nil nil)
   (if ebnf-use-float-format
@@ -4276,15 +4625,10 @@ end
 	  ebnf-message-float "%s"))
   (ebnf-otz-initialize)
   ;; to avoid compilation gripes when calling autoloaded functions
-  (funcall (cond ((eq ebnf-syntax 'iso-ebnf)
-		  (setq ebnf-parser-func 'ebnf-iso-parser)
-		  'ebnf-iso-initialize)
-		 ((eq ebnf-syntax 'yacc)
-		  (setq ebnf-parser-func 'ebnf-yac-parser)
-		  'ebnf-yac-initialize)
-		 (t
-		  (setq ebnf-parser-func 'ebnf-bnf-parser)
-		  'ebnf-bnf-initialize)))
+  (let ((init (or (assoc ebnf-syntax ebnf-syntax-alist)
+		  (assoc 'ebnf ebnf-syntax-alist))))
+    (setq ebnf-parser-func (nth 1 init))
+    (funcall (nth 2 init)))
   (and ebnf-terminal-regexp		; ensures that it's a string or nil
        (not (stringp ebnf-terminal-regexp))
        (setq ebnf-terminal-regexp nil))
@@ -4588,12 +4932,16 @@ end
   (ebnf-message-info "Calculating dimensions")
   (ebnf-node-dimension-func (ebnf-node-production production))
   (let* ((prod   (ebnf-node-production production))
-	 (height (+ ebnf-font-height-P
+	 (height (+ (if ebnf-production-name-p
+			ebnf-font-height-P
+		      0.0)
+		    ebnf-line-width ebnf-line-width
 		    ebnf-basic-height
 		    (ebnf-node-height prod))))
     (ebnf-node-entry  production height)
     (ebnf-node-height production height)
     (ebnf-node-width  production (+ (ebnf-node-width prod)
+				    ebnf-line-width
 				    ebnf-horizontal-space))))
 
 
@@ -4850,7 +5198,7 @@ end
 
 ;; [one-or-more  width-fun dim-fun entry height width element separator]
 ;; [zero-or-more width-fun dim-fun entry height width element separator]
-(defun ebnf-list-width (or-more width)
+(defun ebnf-element-width (or-more width)
   (setq width (- width ebnf-horizontal-space))
   (ebnf-node-list or-more
 		  (ebnf-justify-list or-more
@@ -4881,7 +5229,10 @@ end
        ;; right justify terms
        ((eq ebnf-justify-sequence 'right)
 	(ebnf-justify node seq seq-width width nil))
-       ;; centralize terms
+       ;; centralize terms -- element
+       ((vectorp seq)
+	(ebnf-adjust-width seq width))
+       ;; centralize terms -- list
        (t
 	(let ((the-width (/ (- width seq-width) (length seq)))
 	      (lis seq))
@@ -5040,10 +5391,11 @@ end
 	  0.0
 	  0.0
 	  (let ((len (length name)))
-	    (cond ((> len 2) name)
-		  ((= len 2) (concat " " name))
-		  ((= len 1) (concat " " name " "))
-		  (t         "   ")))
+	    (cond ((> len 3) name)
+		  ((= len 3) (concat name " "))
+		  ((= len 2) (concat " " name " "))
+		  ((= len 1) (concat " " name "  "))
+		  (t         "    ")))
 	  ebnf-default-p))
 
 
@@ -5063,7 +5415,7 @@ end
 
 (defun ebnf-make-or-more1 (gen-func dim-func list-part sep-part)
   (vector gen-func
-	  'ebnf-list-width
+	  'ebnf-element-width
 	  dim-func
 	  0.0
 	  0.0
@@ -5119,14 +5471,25 @@ end
 	  exception))
 
 
-(defun ebnf-make-repeat (times primary)
+(defun ebnf-make-repeat (times primary &optional upper)
   (vector 'ebnf-generate-repeat
 	  'ignore
 	  'ebnf-repeat-dimension
 	  0.0
 	  0.0
 	  0.0
-	  (concat times " *")
+	  (cond ((and times upper)	; L * U, L * L
+		 (if (string= times upper)
+		     (if (string= times "")
+			 " * "
+		       times)
+		   (concat times " * " upper)))
+		(times			; L *
+		 (concat times " *"))
+		(upper			; * U
+		 (concat "* " upper))
+		(t			; *
+		 " * "))
 	  primary))
 
 
@@ -5198,13 +5561,13 @@ end
 		)))))
 
 
-(defun ebnf-token-repeat (times repeat)
+(defun ebnf-token-repeat (times repeat &optional upper)
   (if (null (cdr repeat))
       ;; n * EMPTY ==> EMPTY
       repeat
     ;; n * term
     (cons (car repeat)
-	  (ebnf-make-repeat times (cdr repeat)))))
+	  (ebnf-make-repeat times (cdr repeat) upper))))
 
 
 (defun ebnf-token-optional (body)
@@ -5262,6 +5625,12 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
+
+(autoload 'ebnf-abn-parser            "ebnf-abn"
+  "ABNF parser.")
+
+(autoload 'ebnf-abn-initialize        "ebnf-abn"
+  "Initialize ABNF token table.")
 
 (autoload 'ebnf-bnf-parser            "ebnf-bnf"
   "EBNF parser.")

@@ -1164,7 +1164,7 @@ example, to include American presidential elections, which occur on the first
 Tuesday after the first Monday in November of years divisible by 4, add
 
      (holiday-sexp
-       (if (zerop (% year 4))
+       '(if (zerop (% year 4))
            (calendar-gregorian-from-absolute
              (1+ (calendar-dayname-on-or-before
                    1 (+ 6 (calendar-absolute-from-gregorian
@@ -1924,12 +1924,15 @@ Or, for optional MON, YR."
         (run-hooks 'today-invisible-calendar-hook)))))
 
 (defun generate-calendar (month year)
-  "Generate a three-month Gregorian calendar centered around MONTH, YEAR.
-A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
-Note that while calendars can be displayed for years BC, some functions (eg
-motion, complex holiday functions) will not work correctly for such dates."
-  (setq displayed-month month)
-  (setq displayed-year year)
+  "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
+;;; A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
+;;; Note that while calendars for years BC could be displayed as it
+;;; stands, almost all other calendar functions (eg holidays) would 
+;;; at best have unpredictable results for such dates.
+  (if (< (+ month (* 12 (1- year))) 2)
+      (error "Months before February, 1 AD are not available"))
+  (setq displayed-month month
+        displayed-year year)
   (erase-buffer)
   (increment-calendar-month month year -1)
   (calendar-for-loop i from 0 to 2 do
@@ -1941,7 +1944,7 @@ motion, complex holiday functions) will not work correctly for such dates."
 The calendar is inserted at the top of the buffer in which point is currently
 located, but indented INDENT spaces.  The indentation is done from the first
 character on the line and does not disturb the first INDENT characters on the
-line.  A negative YEAR is interpreted as BC; -1 being 1 BC, and so on."
+line."
   (let* ((blank-days;; at start of month
           (mod
            (- (calendar-day-of-week (list month 1 year))
@@ -2538,18 +2541,18 @@ If optional NODAY is t, does not ask for day, but just returns
 \(month nil year); if NODAY is any other non-nil value the value returned is
 \(month year)"
   (let* ((year (calendar-read
-                "Year: "
-                (lambda (x) (not (zerop x)))
+                "Year (>0): "
+                (lambda (x) (> x 0))
                 (int-to-string (extract-calendar-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
          (completion-ignore-case t)
-         (month (cdr (assoc-ignore-case
+         (month (cdr (assoc-string
                        (completing-read
                         "Month name: "
                         (mapcar 'list (append month-array nil))
                         nil t)
-                      (calendar-make-alist month-array 1))))
+                      (calendar-make-alist month-array 1) t)))
          (last (calendar-last-day-of-month month year)))
     (if noday
         (if (eq noday t)

@@ -4135,16 +4135,6 @@ update_window (w, force_p)
 	  changed_p = 1;
 	}
 
-      /* Update the header line after scrolling because a new header
-	 line would otherwise overwrite lines at the top of the window
-	 that can be scrolled.  */
-      if (header_line_row && header_line_row->enabled_p)
-	{
-	  header_line_row->y = 0;
-	  update_window_line (w, 0, &mouse_face_overwritten_p);
-	  changed_p = 1;
-	}
-
       /* Update the rest of the lines.  */
       for (n_updated = 0; row < end && (force_p || !input_pending); ++row)
 	if (row->enabled_p)
@@ -4180,6 +4170,16 @@ update_window (w, force_p)
       paused_p = row < end;
 
     set_cursor:
+
+      /* Update the header line after scrolling because a new header
+	 line would otherwise overwrite lines at the top of the window
+	 that can be scrolled.  */
+      if (header_line_row && header_line_row->enabled_p)
+	{
+	  header_line_row->y = 0;
+	  update_window_line (w, 0, &mouse_face_overwritten_p);
+	  changed_p = 1;
+	}
 
       /* Fix the appearance of overlapping/overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)

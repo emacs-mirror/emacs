@@ -113,7 +113,7 @@ The format of each entry is
 (put 'eshell-predicate-alist 'risky-local-variable t)
 
 (defcustom eshell-modifier-alist
-  '((?e . '(lambda (lst)
+  '((?E . '(lambda (lst)
 	     (mapcar
 	      (function
 	       (lambda (str)
@@ -207,7 +207,7 @@ EXAMPLES:
   "Eshell modifier quick reference:
 
 FOR SINGLE ARGUMENTS, or each argument of a list of strings:
-  e  evaluate again
+  E  evaluate again
   L  lowercase
   U  uppercase
   C  capitalize

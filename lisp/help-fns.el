@@ -547,7 +547,9 @@ BUFFER defaults to the current buffer."
 ;;;###autoload
 (defun describe-categories (&optional buffer)
   "Describe the category specifications in the current category table.
-The descriptions are inserted in a buffer, which is then displayed."
+The descriptions are inserted in a buffer, which is then displayed.
+If BUFFER is non-nil, then describe BUFFER's category table instead.
+BUFFER should be a buffer or a buffer name."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
   (help-setup-xref (list #'describe-categories buffer) (interactive-p))

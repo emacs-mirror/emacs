@@ -2044,6 +2044,9 @@ window_loop (type, obj, mini, frames)
 	    if (EQ (w->buffer, obj))
 	      {
 		mark_window_display_accurate (window, 0);
+		w->update_mode_line = Qt;
+		XBUFFER (obj)->prevent_redisplay_optimizations_p = 1;
+		++update_mode_lines;
 		best_window = window;
 	      }
 	    break;
@@ -3462,12 +3465,18 @@ displaying that buffer.  */)
   if (NILP (object))
     {
       windows_or_buffers_changed++;
+      update_mode_lines++;
       return Qt;
     }
 
   if (WINDOWP (object))
     {
+      struct window *w = XWINDOW (object);
       mark_window_display_accurate (object, 0);
+      w->update_mode_line = Qt;
+      if (BUFFERP (w->buffer))
+	XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+      ++update_mode_lines;
       return Qt;
     }
     

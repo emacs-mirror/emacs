@@ -131,7 +131,7 @@ void (*insert_glyphs_hook) P_ ((struct glyph *, int));
 void (*write_glyphs_hook) P_ ((struct glyph *, int));
 void (*delete_glyphs_hook) P_ ((int));
 
-int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
+int (*read_socket_hook) P_ ((int, int, struct input_event *));
 
 void (*frame_up_to_date_hook) P_ ((struct frame *));
 
