@@ -761,12 +761,12 @@ For example, returns 1325 for 1:25pm.  Returns -9999 if no time is recognized.
 The recognized forms are XXXX or X:XX or XX:XX (military time), XXam or XXpm,
 and XX:XXam or XX:XXpm."
   (cond ((string-match;; Military time  
-          "^ *\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
+          "^[ \t]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
          (+ (* 100 (string-to-int
                     (substring s (match-beginning 1) (match-end 1))))
             (string-to-int (substring s (match-beginning 2) (match-end 2)))))
         ((string-match;; Hour only  XXam or XXpm
-          "^ *\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
+          "^[ \t]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
          (+ (* 100 (% (string-to-int
                          (substring s (match-beginning 1) (match-end 1)))
                         12))
@@ -774,7 +774,7 @@ and XX:XXam or XX:XXpm."
                               (substring s (match-beginning 2) (match-end 2)))
                 0 1200)))
         ((string-match;; Hour and minute  XX:XXam or XX:XXpm
-          "^ *\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+          "^[ \t]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
          (+ (* 100 (% (string-to-int
                          (substring s (match-beginning 1) (match-end 1)))
                         12))
@@ -1322,7 +1322,7 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
 (defun diary-ordinal-suffix (n)
   "Ordinal suffix for N. (That is, `st', `nd', `rd', or `th', as appropriate.)"
   (if (or (memq (% n 100) '(11 12 13))
-	  (< 3 (% n 10)))
+          (< 3 (% n 10)))
       "th"
     (aref ["th" "st" "nd" "rd"] (% n 10))))
 
