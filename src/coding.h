@@ -705,6 +705,10 @@ extern Lisp_Object Vdefault_process_coding_system;
    system.  */
 extern Lisp_Object Vselect_safe_coding_system_function;
 
+/* If nonzero, on writing a file, Vselect_safe_coding_system_function
+   is called even if Vcoding_system_for_write is non-nil.  */
+extern int coding_system_require_warning;
+
 /* Coding system for file names, or nil if none.  */
 extern Lisp_Object Vfile_name_coding_system;
 
