@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.64) $
+ * $HopeName: MMsrc!mpm.h(trunk.65) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -261,6 +261,8 @@ extern Arena (PoolArena)(Pool pool);
 extern Align (PoolAlignment)(Pool pool);
 #define PoolAlignment(pool)     ((pool)->alignment)
 
+extern double PoolMutatorAllocSize(Pool pool);
+
 extern Ring (PoolSegRing)(Pool pool);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 
@@ -518,6 +520,8 @@ Ref ArenaRead(Arena arena, Addr addr);
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
+
+extern double ArenaMutatorAllocSize(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 extern Res ArenaRetract(Arena, Addr base, Size size);
