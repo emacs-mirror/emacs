@@ -376,12 +376,16 @@ are used."
       ;; the local variables section if it's there.
       (if existing-buffer
 	  (set-buffer existing-buffer))
-      ;; We must read/write the file without any code conversion.
-      (let ((coding-system-for-read 'no-conversion))
+      ;; We must read/write the file without any code conversion,
+      ;; but still decode EOLs.
+      (let ((coding-system-for-read 'raw-text))
 	(set-buffer (find-file-noselect
 		     (expand-file-name generated-autoload-file
 				       (expand-file-name "lisp"
-							 source-directory)))))
+							 source-directory))))
+	;; This is to make generated-autoload-file have Unix EOLs, so
+	;; that it is portable to all platforms.
+	(setq buffer-file-coding-system 'raw-text-unix))
       (or (> (buffer-size) 0)
 	  (error "Autoloads file %s does not exist" buffer-file-name))
       (or (file-writable-p buffer-file-name)
