@@ -589,7 +589,7 @@ file is available, its content is also used.")
 
 (defvar gnus-use-generic-from nil
   "*If nil, prepend local host name to the defined domain in the From:
-field; if a string, use this; if non-nil, strip of the local host name.")
+field; if a string, use this; if non-nil, strip off the local host name.")
 
 (defvar gnus-use-generic-path nil
   "*If nil, use the NNTP server name in the Path: field; if stringp,
