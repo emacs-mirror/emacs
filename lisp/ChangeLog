@@ -1,3 +1,11 @@
+2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
+	(gud-gdba-marker-filter): Log the process input and output, if
+	required. (from Stefan Monnier)
+	(gdb-debug-log, gdb-enable-debug-log): New variables.
+	(gdb-post-prompt): Don't do gdb-var-update on Mac OS X.
+
 2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
