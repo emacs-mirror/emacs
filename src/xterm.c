@@ -3935,6 +3935,11 @@ x_new_font (f, fontname)
   font_names = (char **) XListFontsWithInfo (x_current_display, fontname,
 					     1024, &n_matching_fonts,
 					     &font_info);
+  /* Apparently it doesn't set n_matching_fonts to zero when it can't
+     find any matches; font_names == 0 is the only clue.  */
+  if (! font_names)
+    n_matching_fonts = 0;
+
   /* Don't just give up if n_matching_fonts is 0.
      Apparently there's a bug on Suns: XListFontsWithInfo can
      fail to find a font, but XLoadQueryFont may still find it.  */
