@@ -43,7 +43,8 @@
 
 (defvar fringe-bitmaps)
 
-(unless (get 'left-truncation 'fringe)
+(unless (or (not (boundp 'fringe-bitmaps))
+	    (get 'left-truncation 'fringe))
   (let ((bitmaps '(left-truncation right-truncation
 		   up-arrow down-arrow
 		   continued-line continuation-line
