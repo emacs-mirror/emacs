@@ -216,8 +216,7 @@ pounce directly on the real variables themselves.")
 	(require 'mode-motion)
 	(setq mode-motion-hook 'mode-motion-highlight-line)))
 
-     ((and (not (string-match "28.9" emacs-version)) 
-	   (not (string-match "29" emacs-version)))
+     ((< emacs-minor-version 30)
       ;; Remove the `intangible' prop.
       (let ((props (and (boundp 'gnus-hidden-properties) 
 			gnus-hidden-properties)))
