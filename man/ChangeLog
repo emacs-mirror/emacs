@@ -1,3 +1,7 @@
+2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calc.texi: New file.
+
 2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* glossary.texi (Glossary): Fix syntax.
