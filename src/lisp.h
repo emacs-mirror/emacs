@@ -565,7 +565,10 @@ struct Lisp_Float
 
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer. */
+#ifndef _UCHAR_T  /* Protect against something in ctab.h on AIX.  */
+#define _UCHAR_T
 typedef unsigned char UCHAR;
+#endif
 
 /* Meanings of slots in a Lisp_Compiled:  */
 
