@@ -1,3 +1,11 @@
+2005-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_foreground_color, x_set_background_color): Sync
+	with xfns.c.
+	(mac_window, x_create_tip_frame): Use XSetWindowBackground.
+	* macterm.c (XSetBackground, XSetWindowBackground): New functions.
+	* macterm.h (XSetBackground, XSetWindowBackground): Add externs.
+
 2005-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (Fposn_at_x_y): Add optional arg WHOLE.

@@ -602,6 +602,8 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
+extern void XSetBackground P_ ((Display *, GC, unsigned long));
+extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
 extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 					 int, int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));

@@ -1091,6 +1091,62 @@ XSetForeground (display, gc, color)
 }
 
 
+/* Mac replacement for XSetBackground.  */
+
+void
+XSetBackground (display, gc, color)
+     Display *display;
+     GC gc;
+     unsigned long color;
+{
+  gc->background = color;
+}
+
+
+/* Mac replacement for XSetWindowBackground.  */
+
+void
+XSetWindowBackground (display, w, color)
+     Display *display;
+     WindowPtr w;
+     unsigned long color;
+{
+#if !TARGET_API_MAC_CARBON
+  AuxWinHandle aw_handle;
+  CTabHandle ctab_handle;
+  ColorSpecPtr ct_table;
+  short ct_size;
+#endif
+  RGBColor bg_color;
+
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
+
+#if TARGET_API_MAC_CARBON
+  SetWindowContentColor (w, &bg_color);
+#else
+  if (GetAuxWin (w, &aw_handle))
+    {
+      ctab_handle = (*aw_handle)->awCTable;
+      HandToHand ((Handle *) &ctab_handle);
+      ct_table = (*ctab_handle)->ctTable;
+      ct_size = (*ctab_handle)->ctSize;
+      while (ct_size > -1)
+	{
+	  if (ct_table->value == 0)
+	    {
+	      ct_table->rgb = bg_color;
+	      CTabChanged (ctab_handle);
+	      SetWinColor (w, (WCTabHandle) ctab_handle);
+	    }
+	  ct_size--;
+	}
+    }
+#endif
+}
+
+
 /* Mac replacement for XSetFont.  */
 
 static void
