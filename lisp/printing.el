@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/13 21:36:38 vinicius>
+;; Time-stamp: <2004/11/14 14:38:36 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.3
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst pr-version "6.8.3"
-  "printing.el, v 6.8.3 <2004/11/13 vinicius>
+  "printing.el, v 6.8.3 <2004/11/14 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -2578,26 +2578,24 @@ It uses `pr-interactive-p' var (which see)."
 
   (defconst pr-menu-spec
     ;; Menu mapping:
-    ;;   unfortunately XEmacs doesn't support :active or :visible
-    ;;   for submenus, only for items.
-    ;;   It uses :included instead of :active or :visible.
+    ;;   unfortunately XEmacs doesn't support :active for submenus,
+    ;;   only for items.
+    ;;   So, it uses :included instead of :active.
     ;;   Also, XEmacs doesn't support :help tag.
     (let ((pr-:active  (if (eq ps-print-emacs-type 'emacs)
 			   :active	; GNU Emacs
 			 :included))	; XEmacs
-	  (pr-:visible (if (eq ps-print-emacs-type 'emacs)
-			   :visible	; GNU Emacs
-			 :included))	; XEmacs
-	  pr-:help)
-      (if (eq ps-print-emacs-type 'emacs)
-	  (defalias 'pr-:help #'(lambda (text) (list :help text))) ; GNU Emacs
-	(defalias 'pr-:help 'ignore))				   ; XEmacs
+	  (pr-:help    (if (eq ps-print-emacs-type 'emacs)
+			   #'(lambda (text) (list :help text)) ; GNU Emacs
+			 'ignore)))			       ; XEmacs
       `(
 	["Printing Interface" pr-interface
-	 ,@(pr-:help "Use buffer interface instead of menu interface")]
+	 ,@(funcall
+	    pr-:help "Use buffer interface instead of menu interface")]
 	"--"
-	("PostScript Preview" ,pr-:visible (pr-visible-p 'postscript)
-	 ,@(pr-:help "Preview PostScript instead of sending to printer")
+	("PostScript Preview" :included (pr-visible-p 'postscript)
+	 ,@(funcall
+	    pr-:help "Preview PostScript instead of sending to printer")
 	 ("Directory" ,pr-:active (not pr-spool-p)
 	  ["1-up"     (pr-ps-directory-preview 1   nil nil t) t]
 	  ["2-up"     (pr-ps-directory-preview 2   nil nil t) t]
@@ -2625,10 +2623,12 @@ It uses `pr-interactive-p' var (which see)."
 	 ("File"
 	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
 	   :keys "\\[pr-ps-file-preview]"
-	   ,@(pr-:help "Preview PostScript file")]
+	   ,@(funcall
+	      pr-:help "Preview PostScript file")]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
-	   ,@(pr-:help "Select PostScript utility")]
+	   ,@(funcall
+	      pr-:help "Select PostScript utility")]
 	  "--"
 	  ["1-up..."   (pr-ps-file-up-preview 1   t t) pr-ps-utility-alist]
 	  ["2-up..."   (pr-ps-file-up-preview 2   t t) pr-ps-utility-alist]
@@ -2638,21 +2638,26 @@ It uses `pr-interactive-p' var (which see)."
 	  "--"
 	  ["Landscape" pr-toggle-file-landscape
 	   :style toggle :selected pr-file-landscape
-	   ,@(pr-:help "Toggle landscape for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle landscape for PostScript file")
 	   :active pr-ps-utility-alist]
 	  ["Duplex"    pr-toggle-file-duplex
 	   :style toggle :selected pr-file-duplex
-	   ,@(pr-:help "Toggle duplex for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle duplex for PostScript file")
 	   :active pr-ps-utility-alist]
 	  ["Tumble"    pr-toggle-file-tumble
 	   :style toggle :selected pr-file-tumble
-	   ,@(pr-:help "Toggle tumble for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle tumble for PostScript file")
 	   :active (and pr-file-duplex pr-ps-utility-alist)])
 	 ["Despool..." (call-interactively 'pr-despool-preview)
 	  :active pr-spool-p :keys "\\[pr-despool-preview]"
-	  ,@(pr-:help "Despool PostScript buffer to printer or file (C-u)")])
-	("PostScript Print" ,pr-:visible (pr-visible-p 'postscript)
-	 ,@(pr-:help "Send PostScript to printer or file (C-u)")
+	  ,@(funcall
+	     pr-:help "Despool PostScript buffer to printer or file (C-u)")])
+	("PostScript Print" :included (pr-visible-p 'postscript)
+	 ,@(funcall
+	    pr-:help "Send PostScript to printer or file (C-u)")
 	 ("Directory"
 	  ["1-up"     (pr-ps-directory-ps-print 1   nil nil t) t]
 	  ["2-up"     (pr-ps-directory-ps-print 2   nil nil t) t]
@@ -2680,10 +2685,12 @@ It uses `pr-interactive-p' var (which see)."
 	 ("File"
 	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
 	   :keys "\\[pr-ps-file-ps-print]"
-	   ,@(pr-:help "Send PostScript file to printer")]
+	   ,@(funcall
+	      pr-:help "Send PostScript file to printer")]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
-	   ,@(pr-:help "Select PostScript utility")]
+	   ,@(funcall
+	      pr-:help "Select PostScript utility")]
 	  "--"
 	  ["1-up..."   (pr-ps-file-up-ps-print 1   t t) pr-ps-utility-alist]
 	  ["2-up..."   (pr-ps-file-up-ps-print 2   t t) pr-ps-utility-alist]
@@ -2693,38 +2700,46 @@ It uses `pr-interactive-p' var (which see)."
 	  "--"
 	  ["Landscape" pr-toggle-file-landscape
 	   :style toggle :selected pr-file-landscape
-	   ,@(pr-:help "Toggle landscape for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle landscape for PostScript file")
 	   :active pr-ps-utility-alist]
 	  ["Duplex"    pr-toggle-file-duplex
 	   :style toggle :selected pr-file-duplex
-	   ,@(pr-:help "Toggle duplex for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle duplex for PostScript file")
 	   :active pr-ps-utility-alist]
 	  ["Tumble"    pr-toggle-file-tumble
 	   :style toggle :selected pr-file-tumble
-	   ,@(pr-:help "Toggle tumble for PostScript file")
+	   ,@(funcall
+	      pr-:help "Toggle tumble for PostScript file")
 	   :active (and pr-file-duplex pr-ps-utility-alist)])
 	 ["Despool..." (call-interactively 'pr-despool-ps-print)
 	  :active pr-spool-p :keys "\\[pr-despool-ps-print]"
-	  ,@(pr-:help "Despool PostScript buffer to printer or file (C-u)")])
+	  ,@(funcall
+	     pr-:help "Despool PostScript buffer to printer or file (C-u)")])
 	["PostScript Printers" pr-update-menus
 	 :active pr-ps-printer-alist :included (pr-visible-p 'postscript)
-	 ,@(pr-:help "Select PostScript printer")]
+	 ,@(funcall
+	    pr-:help "Select PostScript printer")]
 	"--"
-	("Printify" ,pr-:visible (pr-visible-p 'text)
-	 ,@(pr-:help
+	("Printify" :included (pr-visible-p 'text)
+	 ,@(funcall
+	    pr-:help
 	    "Replace non-printing chars with printable representations.")
 	 ["Directory" pr-printify-directory t]
 	 ["Buffer"    pr-printify-buffer    t]
 	 ["Region"    pr-printify-region    (ps-mark-active-p)])
-	("Print" ,pr-:visible (pr-visible-p 'text)
-	 ,@(pr-:help "Send text to printer")
+	("Print" :included (pr-visible-p 'text)
+	 ,@(funcall
+	    pr-:help "Send text to printer")
 	 ["Directory" pr-txt-directory t]
 	 ["Buffer"    pr-txt-buffer    t]
 	 ["Region"    pr-txt-region    (ps-mark-active-p)]
 	 ["Mode"      pr-txt-mode      (pr-mode-alist-p)])
 	["Text Printers" pr-update-menus
 	 :active pr-txt-printer-alist :included (pr-visible-p 'text)
-	 ,@(pr-:help "Select text printer")]
+	 ,@(funcall
+	    pr-:help "Select text printer")]
 	"--"
 	["Landscape"               pr-toggle-landscape
 	 :style toggle :selected ps-landscape-mode
@@ -2750,8 +2765,9 @@ It uses `pr-interactive-p' var (which see)."
 	["Upside-Down"             pr-toggle-upside-down
 	 :style toggle :selected ps-print-upside-down
 	 :included (pr-visible-p 'postscript-options)]
-	("Print All Pages" ,pr-:visible (pr-visible-p 'postscript-options)
-	 ,@(pr-:help "Select odd/even pages/sheets to print")
+	("Print All Pages" :included (pr-visible-p 'postscript-options)
+	 ,@(funcall
+	    pr-:help "Select odd/even pages/sheets to print")
 	 ["All Pages"   (pr-even-or-odd-pages nil)
 	  :style radio :selected (eq ps-even-or-odd-pages nil)]
 	 ["Even Pages"  (pr-even-or-odd-pages 'even-page)
@@ -2766,15 +2782,18 @@ It uses `pr-interactive-p' var (which see)."
 	["Spool Buffer"            pr-toggle-spool
 	 :style toggle :selected pr-spool-p
 	 :included (pr-visible-p 'postscript-process)
-	 ,@(pr-:help "Toggle PostScript spooling")]
+	 ,@(funcall
+	    pr-:help "Toggle PostScript spooling")]
 	["Print with faces"        pr-toggle-faces
 	 :style toggle :selected pr-faces-p
 	 :included (pr-visible-p 'postscript-process)
-	 ,@(pr-:help "Toggle PostScript printing with faces")]
+	 ,@(funcall
+	    pr-:help "Toggle PostScript printing with faces")]
 	["Print via Ghostscript" pr-toggle-ghostscript
 	 :style toggle :selected pr-print-using-ghostscript
 	 :included (pr-visible-p 'postscript-process)
-	 ,@(pr-:help "Toggle PostScript generation using ghostscript")]
+	 ,@(funcall
+	    pr-:help "Toggle PostScript generation using ghostscript")]
 	"--"
 	["Auto Region" pr-toggle-region
 	 :style toggle :selected pr-auto-region
@@ -2786,11 +2805,11 @@ It uses `pr-interactive-p' var (which see)."
 	 :style toggle :selected pr-menu-lock
 	 :included (pr-visible-p 'printing)]
 	"--"
-	("Customize" ,pr-:visible (pr-visible-p 'help)
+	("Customize" :included (pr-visible-p 'help)
 	 ["printing" pr-customize       t]
 	 ["ps-print" ps-print-customize t]
 	 ["lpr"      lpr-customize      t])
-	("Show Settings" ,pr-:visible (pr-visible-p 'help)
+	("Show Settings" :included (pr-visible-p 'help)
 	 ["printing" pr-show-pr-setup  t]
 	 ["ps-print" pr-show-ps-setup  t]
 	 ["lpr"      pr-show-lpr-setup t])

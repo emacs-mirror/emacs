@@ -1,3 +1,7 @@
+2004-11-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-menu-spec): Adjust menu specification.
+
 2004-11-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  Insert :version tag into all defcustom.
