@@ -1222,6 +1222,31 @@ The returned value is a Quail map specific to KEY."
 (defun quail-error (&rest args)
   (signal 'quail-error (apply 'format args)))
 
+
+;; Convert input string STR to a list of events while interleaving
+;; with the following special events:
+;;	(compose-last-chars LEN COMPONENTS)
+;;	(quail-advice INPUT-STRING)
+
+(defun quail-input-string-to-events (str)
+  (let* ((events (string-to-list str))
+	 (len (length str))
+	 (idx len)
+	 composition from to)
+    (while (and (> idx 0)
+		(setq composition (find-composition idx 0 str t)))
+      (setq from (car composition) to (nth 1 composition))
+      (setcdr (nthcdr (1- to) events)
+	      (cons (list 'compose-last-chars (- to from)
+			  (and (not (nth 3 composition)) (nth 2 composition)))
+		    (nthcdr to events)))
+      (setq idx (1- from)))
+    (if (or (get-text-property 0 'advice str)
+	    (next-single-property-change 0 'advice str))
+	(setq events
+	      (nconc events (list (list 'quail-advice str)))))
+    events))
+
 (defvar quail-translating nil)
 (defvar quail-converting nil)
 (defvar quail-conversion-str nil)
@@ -1240,9 +1265,14 @@ The returned value is a Quail map specific to KEY."
 	       (not input-method-use-echo-area))
 	  (quail-show-guidance-buf))
       (unwind-protect
-	  (if (quail-conversion-keymap)
-	      (quail-start-conversion key)
-	    (quail-start-translation key))
+	  (let ((input-string (if (quail-conversion-keymap)
+				  (quail-start-conversion key)
+				(quail-start-translation key))))
+	    (when (and (stringp input-string)
+		       (> (length input-string) 0))
+	      (if input-method-exit-on-first-char
+		  (list (aref input-string 0))
+		(quail-input-string-to-events input-string))))
 	(quail-delete-overlays)
 	(if (buffer-live-p quail-guidance-buf)
 	    (save-excursion
@@ -1271,7 +1301,8 @@ The returned value is a Quail map specific to KEY."
 		     (overlay-end quail-overlay))))
 
 (defun quail-start-translation (key)
-  "Start translation of the typed character KEY by the current Quail package."
+  "Start translation of the typed character KEY by the current Quail package.
+Return the input string."
   ;; Check the possibility of translating KEY.
   ;; If KEY is nil, we can anyway start translation.
   (if (or (and (integerp key)
@@ -1315,49 +1346,17 @@ The returned value is a Quail map specific to KEY."
 		    (string-to-list (this-single-command-raw-keys)))
 	      (setq quail-translating nil))))
 	(quail-delete-region)
-	(if (and quail-current-str (> (length quail-current-str) 0))
-	    (let* ((len (length quail-current-str))
-		   (idx 0)
-		   (val (find-composition 0 len quail-current-str))
-		   (advice (get-text-property idx 'advice quail-current-str))
-		   char)
-	      ;; If the selected input has `advice' function, generate
-	      ;; a special event (quail-advice QUAIL-CURRENT-STR).
-	      (if advice
-		  (setq generated-events
-			(cons (list 'quail-advice quail-current-str)
-			      generated-events)))
-	      ;; Push characters in quail-current-str one by one to
-	      ;; generated-events while interleaving it with a special
-	      ;; event (compose-last-chars LEN) at each composition
-	      ;; end.
-	      (while (<= idx len)
-		(when (and val (= idx (nth 1 val)))
-		  (setq generated-events
-			(cons (list 'compose-last-chars (- idx (car val)))
-			      generated-events))
-		  (setq val (find-composition idx len quail-current-str)))
-		(when (< idx len)
-		  (setq char (aref quail-current-str idx))
-		  (or enable-multibyte-characters
-		      (setq char (multibyte-char-to-unibyte char)))
-		  (setq generated-events (cons char generated-events)))
-		(setq idx (1+ idx)))
-	      ;; Reorder generated-events.
-	      (setq generated-events (nreverse generated-events))))
-	(if (and input-method-exit-on-first-char generated-events)
-	    (list (car generated-events))
-	  generated-events))
+	quail-current-str)
 
     ;; Since KEY doesn't start any translation, just return it.
     ;; But translate KEY if necessary.
-    (if (and (integerp key)
-	     (quail-kbd-translate))
+    (if (quail-kbd-translate)
 	(setq key (quail-keyboard-translate key)))
-    (list key)))
+    (char-to-string key)))
 
 (defun quail-start-conversion (key)
-  "Start conversion of the typed character KEY by the current Quail package."
+  "Start conversion of the typed character KEY by the current Quail package.
+Return the input string."
   ;; Check the possibility of translating KEY.
   ;; If KEY is nil, we can anyway start translation.
   (if (or (and (integerp key)
@@ -1424,21 +1423,13 @@ The returned value is a Quail map specific to KEY."
 	    (delete-region (overlay-start quail-conv-overlay)
 			   (overlay-end quail-conv-overlay)))
 	(if (> (length quail-conversion-str) 0)
-	    (setq generated-events
-		  (string-to-list
-		   (if enable-multibyte-characters
-		       quail-conversion-str
-		     (string-make-unibyte quail-conversion-str)))))
-	(if (and input-method-exit-on-first-char generated-events)
-	    (list (car generated-events))
-	  generated-events))
+	    quail-conversion-str))
 
     ;; Since KEY doesn't start any translation, just return it.
     ;; But translate KEY if necessary.
-    (if (and (integerp key)
-	     (quail-kbd-translate))
+    (if (quail-kbd-translate)
 	(setq key (quail-keyboard-translate key)))
-    (list key)))
+    (char-to-string key)))
 
 (defun quail-terminate-translation ()
   "Terminate the translation of the current key."
