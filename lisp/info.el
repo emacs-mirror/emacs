@@ -657,10 +657,10 @@ is preserved, if possible."
 	     (equal old-nodename Info-current-node))
 	(progn
 	  ;; note goto-line is no good, we want to measure from point-min
-	  (beginning-of-buffer)
+	  (goto-char (point-min))
 	  (forward-line wline)
 	  (set-window-start (selected-window) (point))
-	  (beginning-of-buffer)
+	  (goto-char (point-min))
 	  (forward-line pline)
 	  (move-to-column pcolumn))
       ;; only add to the history when coming from a different file+node
