@@ -572,16 +572,17 @@ value of this flag.")
   ;; if that wasn't already done.
   (cond
    ((eq (vc-backend file) 'RCS)
-    (set-buffer (get-buffer-create "*vc-info*"))
-    (vc-insert-file (vc-name file) "^desc")
-    (vc-parse-buffer 
-     (list '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
-	   (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
-			 "date[ \t]+\\([0-9.]+\\);[ \t]+"
-			 "author[ \t]+"
-			 (regexp-quote (user-login-name)) ";") 1 2))
-     file
-     '(vc-latest-version vc-your-latest-version)))
+    (save-excursion
+      (set-buffer (get-buffer-create "*vc-info*"))
+      (vc-insert-file (vc-name file) "^desc")
+      (vc-parse-buffer 
+       (list '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
+	     (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
+			   "date[ \t]+\\([0-9.]+\\);[ \t]+"
+			   "author[ \t]+"
+			   (regexp-quote (user-login-name)) ";") 1 2))
+       file
+       '(vc-latest-version vc-your-latest-version))))
    (t (vc-fetch-master-properties file))
    ))
 
