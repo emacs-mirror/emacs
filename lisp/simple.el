@@ -1335,8 +1335,12 @@ store it in a Lisp variable.  Example:
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
 	(set-marker (mark-marker) pos (current-buffer)))
-    (deactivate-mark)
-    (set-marker (mark-marker) pos (current-buffer))))
+    ;; Normally we never clear mark-active except in Transient Mark mode.
+    ;; But when we actually clear out the mark value too,
+    ;; we must clear mark-active in any mode.
+    (setq mark-active nil)
+    (run-hooks 'deactivate-mark-hook)
+    (set-marker (mark-marker) nil)))
 
 (defvar mark-ring nil
   "The list of saved former marks of the current buffer,
