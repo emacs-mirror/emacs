@@ -413,7 +413,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		     (if (> arg 0) -1
 			 (if (< arg 0) 1 0))))
 	   (setq comint-input-ring-index
-		 (ring-mod (+ comint-input-ring-index arg) len))
+		 (mod (+ comint-input-ring-index arg) len))
 	   (message "%d" (1+ comint-input-ring-index))
 	   (insert (ring-ref comint-input-ring comint-input-ring-index))))))
 
@@ -450,11 +450,11 @@ If N is negative, find the next or Nth next match."
     (while (/= arg 0)
       (let ((prev n))
 	;; Step once.
-	(setq n (ring-mod (+ n motion) len))
+	(setq n (mod (+ n motion) len))
 	;; If we haven't reached a match, step some more.
 	(while (and (< n len)
 		    (not (string-match regexp (ring-ref comint-input-ring n))))
-	  (setq n (ring-mod (+ n motion) len))
+	  (setq n (mod (+ n motion) len))
 	  ;; If we have gone all the way around in this search, error.
 	  (if (= n prev)
 	      (error "Not found"))))
