@@ -2763,7 +2763,8 @@ and (2) it puts less data in the undo list.")
      is deemed to be a text file.  */
   {
     struct gcpro gcpro1;
-    Lisp_Object code = Qnil;
+    Lisp_Object code;
+    code = Qnil;
     GCPRO1 (filename);
     code = call1 (Qfind_buffer_file_type, filename);
     UNGCPRO;
