@@ -191,9 +191,15 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     prompt = build_string ("");
 
   if (!enable_recursive_minibuffers
-      && minibuf_level > 0
-      && (EQ (selected_window, minibuf_window)))
-    error ("Command attempted to use minibuffer while in minibuffer");
+      && minibuf_level > 0)
+    {
+      if (EQ (selected_window, minibuf_window))
+	error ("Command attempted to use minibuffer while in minibuffer");
+      else
+	/* If we're in another window, cancel the minibuffer that's active.  */
+	Fthrow (Qexit,
+		build_string ("Command attempted to use minibuffer while in minibuffer"));
+    }
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
