@@ -555,7 +555,7 @@ otherwise pop it")
 ;; these ops are new to v19
 
 ;; To unbind back to the beginning of this frame.
-;; Not used yet, but wil be needed for tail-recursion elimination.
+;; Not used yet, but will be needed for tail-recursion elimination.
 (byte-defop 146  0 byte-unbind-all)
 
 ;; these ops are new to v19
@@ -1946,7 +1946,10 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   ;; Note that even (quote foo) must be parsed just as any subr by the
   ;; interpreter, so quote should be compiled into byte-code in some contexts.
   ;; What to leave uncompiled:
-  ;;	lambda	-> a single atom.
+  ;;	lambda	-> never.  we used to leave it uncompiled if the body was
+  ;;		   a single atom, but that causes confusion if the docstring
+  ;;		   uses the (file . pos) syntax.  Besides, now that we have
+  ;;		   the Lisp_Compiled type, the compiled form is faster.
   ;;	eval	-> atom, quote or (function atom atom atom)
   ;;	progn	-> as <<same-as-eval>> or (progn <<same-as-eval>> atom)
   ;;	file	-> as progn, but takes both quotes and atoms, and longer forms.
@@ -1955,7 +1958,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	tmp body)
     (cond
      ;; #### This should be split out into byte-compile-nontrivial-function-p.
-     ((or (nthcdr (if (eq output-type 'file) 50 8) byte-compile-output)
+     ((or (eq output-type 'lambda)
+	  (nthcdr (if (eq output-type 'file) 50 8) byte-compile-output)
 	  (assq 'TAG byte-compile-output) ; Not necessary, but speeds up a bit.
 	  (not (setq tmp (assq 'byte-return byte-compile-output)))
 	  (progn
@@ -1990,8 +1994,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		     (or (eq output-type 'file)
 			 (not (delq nil (mapcar 'consp (cdr (car body))))))))
 	      (setq rest (cdr rest)))
-	    rest)
-	  (and (consp (car body)) (eq output-type 'lambda)))
+	    rest))
       (let ((byte-compile-vector (byte-compile-constants-vector)))
 	(list 'byte-code (byte-compile-lapcode byte-compile-output)
 	      byte-compile-vector byte-compile-maxdepth)))
