@@ -50,13 +50,21 @@
 Makes them run 2 or 3 times slower.  Set this non-nil if you have a fast
 machine.")
 
+(defun apropos-worthy-symbol-p (symbol)
+  "Return non-nil if SYMBOL is not worthless."
+  (or (fboundp symbol)
+      (boundp symbol)
+      (symbol-plist symbol)))
+
 ;;;###autoload
 (defun apropos (regexp &optional do-all pred no-header)
   "Show all symbols whose names contain matches for REGEXP.
 If optional argument DO-ALL is non-nil (prefix argument if interactive),
 or if `apropos-do-all' is non-nil, does more (time-consuming) work such as
 showing key bindings.  Optional argument PRED is called with each symbol, and
-if it returns nil, the symbol is not shown.
+if it returns nil, the symbol is not shown.  If PRED is nil, the
+default predicate is that the symbol has a value, function definition
+or property list.
 
 Optional argument NO-HEADER means don't print `Function:' or `Variable:'
 in the output.
@@ -64,6 +72,7 @@ in the output.
 Returns list of symbols and documentation found."
   (interactive "sApropos (regexp): \nP")
   (setq do-all (or apropos-do-all do-all))
+  (setq pred (or pred 'apropos-worthy-symbol-p))
   (let ((apropos-accumulate (apropos-internal regexp pred)))
     (if (null apropos-accumulate)
 	(message "No apropos matches for `%s'" regexp)
