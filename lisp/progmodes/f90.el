@@ -1,9 +1,9 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
-;; Last Change: Dec 29 1998
+;; Maintainer: Dave Love <fx@gnu.org>
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -74,7 +74,7 @@
 
 ;; To customize the f90-mode for your taste, use, for example:
 ;;    (you don't have to specify values for all the parameters below)
-;;(setq f90-mode-hook
+;;(add-hook 'f90-mode-hook
 ;;      '(lambda () (setq f90-do-indent 3
 ;;                        f90-if-indent 3
 ;;                        f90-type-indent 3
@@ -95,7 +95,6 @@
 ;;                  )
 ;;       ;;The rest is not default.
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
-;;       (turn-on-font-lock)         ; for highlighting
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
 ;;           (f90-change-keywords f90-auto-keyword-case))
@@ -151,7 +150,7 @@
 
 (defgroup f90 nil
   "Fortran-90 mode"
-  :group 'fortran)
+  :group 'languages)
 
 (defgroup f90-indent nil
   "Fortran-90 indentation"
@@ -774,6 +773,12 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
     (define-abbrev f90-mode-abbrev-table  "`wr"  "write" nil)
     (setq abbrevs-changed ac)))
 
+(defcustom f90-mode-hook nil
+  "Hook run by F90 mode."
+  :type 'hook
+  :options '(f90-add-imenu-menu)
+  :group 'f90)
+
 ;;;###autoload
 (defun f90-mode ()
   "Major mode for editing Fortran 90 code in free format.
@@ -881,6 +886,8 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'imenu-case-fold-search) t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression f90-imenu-generic-expression)
+  (set (make-local-variable 'add-log-current-defun-function)
+       #'f90-current-defun)
   (run-hooks 'f90-mode-hook)
   (if f90-startup-message
       (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
@@ -1740,6 +1747,12 @@ Any other key combination is executed normally."
 	      (or (string= saveword (buffer-substring back-point ref-point))
 		  (setq modified t))))
 	(or modified (set-buffer-modified-p nil))))))
+
+
+(defun f90-current-defun ()
+  "Function to use for `add-log-current-defun-function' in F90 mode."
+  (save-excursion
+    (nth 1 (f90-beginning-of-subprogram))))
 
 (provide 'f90)
 
