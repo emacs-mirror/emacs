@@ -1786,7 +1786,7 @@ For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
 For values specific to the separate minibuffer frame, see\n\
  `minibuffer-frame-alist'.\n\
 The `menu-bar-lines' element of the list controls whether new frames\n\
- have menu bars; `menu-bar-mode' works by altering this element.")
+ have menu bars; `menu-bar-mode' works by altering this element.");
   Vdefault_frame_alist = Qnil;
 
   defsubr (&Sframep);
