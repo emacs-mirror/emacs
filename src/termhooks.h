@@ -25,32 +25,36 @@ Boston, MA 02111-1307, USA.  */
 /* If nonzero, send all terminal output characters to this stream also.  */
 extern FILE *termscript;
 
+/* Only use prototypes when lisp.h has been included.  */
+#ifndef P_
+#define P_(X) ()
+#endif
 
 /* Text display hooks.  */
 
-extern int (*cursor_to_hook) ();
-extern int (*raw_cursor_to_hook) ();
+extern void (*cursor_to_hook) P_ ((int, int));
+extern void (*raw_cursor_to_hook) P_ ((int, int));
 
-extern int (*clear_to_end_hook) ();
-extern int (*clear_frame_hook) ();
-extern int (*clear_end_of_line_hook) ();
+extern void (*clear_to_end_hook) P_ ((void));
+extern void (*clear_frame_hook) P_ ((void));
+extern void (*clear_end_of_line_hook) P_ ((int));
 
-extern int (*ins_del_lines_hook) ();
+extern void (*ins_del_lines_hook) P_ ((int, int));
 
-extern int (*change_line_highlight_hook) ();
-extern int (*reassert_line_highlight_hook) ();
+extern void (*change_line_highlight_hook) P_ ((int, int, int));
+extern void (*reassert_line_highlight_hook) P_ ((int, int));
 
-extern int (*insert_glyphs_hook) ();
-extern int (*write_glyphs_hook) ();
-extern int (*delete_glyphs_hook) ();
+extern void (*insert_glyphs_hook) P_ ((GLYPH *, int));
+extern void (*write_glyphs_hook) P_ ((GLYPH *, int));
+extern void (*delete_glyphs_hook) P_ ((int));
 
-extern int (*ring_bell_hook) ();
+extern void (*ring_bell_hook) P_ ((void));
 
-extern int (*reset_terminal_modes_hook) ();
-extern int (*set_terminal_modes_hook) ();
-extern int (*update_begin_hook) ();
-extern int (*update_end_hook) ();
-extern int (*set_terminal_window_hook) ();
+extern void (*reset_terminal_modes_hook) P_ ((void));
+extern void (*set_terminal_modes_hook) P_ ((void));
+extern void (*update_begin_hook) P_ ((struct frame *));
+extern void (*update_end_hook) P_ ((struct frame *));
+extern void (*set_terminal_window_hook) P_ ((int));
 
 
 
@@ -82,12 +86,12 @@ enum scroll_bar_part {
 
    This should clear mouse_moved until the next motion
    event arrives.  */
-extern void (*mouse_position_hook) ( /* FRAME_PTR *f,
+extern void (*mouse_position_hook) P_ ((struct frame **f, int,
 					Lisp_Object *bar_window,
 					enum scroll_bar_part *part,
 					Lisp_Object *x,
 					Lisp_Object *y,
-					unsigned long *time */ );
+					unsigned long *time));
 
 /* The window system handling code should set this if the mouse has
    moved since the last call to the mouse_position_hook.  Calling that
@@ -97,7 +101,7 @@ extern int mouse_moved;
 /* When a frame's focus redirection is changed, this hook tells the
    window system code to re-decide where to put the highlight.  Under
    X, this means that Emacs lies about where the focus is.  */
-extern void (*frame_rehighlight_hook) ( /* void */ );
+extern void (*frame_rehighlight_hook) P_ ((struct frame *));
 
 /* If we're displaying frames using a window system that can stack
    frames on top of each other, this hook allows you to bring a frame
@@ -109,7 +113,7 @@ extern void (*frame_rehighlight_hook) ( /* void */ );
    If RAISE is non-zero, F is brought to the front, before all other
    windows.  If RAISE is zero, F is sent to the back, behind all other
    windows.  */
-extern void (*frame_raise_lower_hook) ( /* FRAME_PTR f, int raise */ );
+extern void (*frame_raise_lower_hook) P_ ((struct frame *f, int raise));
 
 
 /* Scroll bar hooks.  */
@@ -140,8 +144,8 @@ extern void (*frame_raise_lower_hook) ( /* FRAME_PTR f, int raise */ );
    of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
    have a scroll bar, create one for it.  */
 extern void (*set_vertical_scroll_bar_hook)
-            ( /* struct window *window,
-	         int portion, int whole, int position */ );
+            P_ ((struct window *window,
+	         int portion, int whole, int position));
 
 
 /* The following three hooks are used when we're doing a thorough
@@ -164,11 +168,11 @@ extern void (*set_vertical_scroll_bar_hook)
    If non-zero, this hook should be safe to apply to any frame,
    whether or not it can support scroll bars, and whether or not it is
    currently displaying them.  */
-extern void (*condemn_scroll_bars_hook)( /* FRAME_PTR *frame */ );
+extern void (*condemn_scroll_bars_hook) P_ ((struct frame *frame));
 
 /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
    Note that it's okay to redeem a scroll bar that is not condemned.  */
-extern void (*redeem_scroll_bar_hook)( /* struct window *window */ );
+extern void (*redeem_scroll_bar_hook) P_ ((struct window *window));
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
    last call to `*condemn_scroll_bars_hook'.  
@@ -181,16 +185,10 @@ extern void (*redeem_scroll_bar_hook)( /* struct window *window */ );
    If non-zero, this hook should be safe to apply to any frame,
    whether or not it can support scroll bars, and whether or not it is
    currently displaying them.  */
-extern void (*judge_scroll_bars_hook)( /* FRAME_PTR *FRAME */ );
+extern void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
 
 
 /* Input queue declarations and hooks.  */
-
-/* Called to read input events.  */
-extern int (*read_socket_hook) ();
-
-/* Called when a frame's display becomes entirely up to date.  */
-extern int (*frame_up_to_date_hook) ();
 
 /* Expedient hack: only provide the below definitions to files that
    are prepared to handle lispy things.  CONSP is defined iff lisp.h
@@ -322,6 +320,12 @@ struct input_event
      does not overlap with it.  */
   Lisp_Object frame_or_window;
 };
+
+/* Called to read input events.  */
+extern int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
+
+/* Called when a frame's display becomes entirely up to date.  */
+extern void (*frame_up_to_date_hook) P_ ((struct frame *));
 
 /* This is used in keyboard.c, to tell how many buttons we will need
    to track the positions of.  */

@@ -515,6 +515,8 @@ extern int decode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
 extern int encode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
+extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
+				    int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void detect_coding P_ ((struct coding_system *, unsigned char *, int));

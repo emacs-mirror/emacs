@@ -222,6 +222,7 @@ extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
 extern void move_if_not_intangible P_ ((int));
 extern Lisp_Object get_local_map P_ ((int, struct buffer *));
 extern INTERVAL update_interval P_ ((INTERVAL, int));
+extern void set_intervals_multibyte P_ ((int));
 
 /* Defined in xdisp.c */
 extern int invisible_ellipsis_p P_ ((Lisp_Object, Lisp_Object));
@@ -247,13 +248,19 @@ extern Lisp_Object Vdefault_text_properties;
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
-extern Lisp_Object Fget_char_property (), Fget_text_property ();
-extern Lisp_Object Ftext_properties_at ();
-extern Lisp_Object Fnext_property_change (), Fprevious_property_change ();
-extern Lisp_Object Fadd_text_properties (), Fset_text_properties ();
-extern Lisp_Object Fremove_text_properties (), Ferase_text_properties ();
-extern Lisp_Object Ftext_property_any (), Ftext_property_not_all ();
-extern Lisp_Object copy_text_properties ();
+EXFUN (Fget_char_property, 3);
+EXFUN (Fget_text_property, 3);
+EXFUN (Ftext_properties_at, 2);
+EXFUN (Fnext_property_change, 3);
+EXFUN (Fprevious_property_change, 3);
+EXFUN (Fadd_text_properties, 4);
+EXFUN (Fset_text_properties, 4);
+EXFUN (Fremove_text_properties, 4);
+EXFUN (Ftext_property_any, 5);
+EXFUN (Ftext_property_not_all, 5);
+extern Lisp_Object copy_text_properties P_ ((Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object));
 
 extern void syms_of_textprop ();
 

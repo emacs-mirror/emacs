@@ -76,3 +76,6 @@ extern int interrupt_input_pending;
 
 #define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
+
+/* Defined in keyboard.c */
+extern void reinvoke_input_signal P_ ((void));

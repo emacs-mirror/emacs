@@ -292,7 +292,7 @@ extern Lisp_Object Vkeyboard_translate_table;
 extern Lisp_Object map_prompt P_ ((Lisp_Object));
 
 
-extern int parse_menu_item ();
+extern int parse_menu_item P_ ((Lisp_Object, int, int));
 
 extern void echo_now P_ ((void));
 extern void init_kboard P_ ((KBOARD *));

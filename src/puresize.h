@@ -63,6 +63,8 @@ Boston, MA 02111-1307, USA.  */
 #define CHECK_IMPURE(obj) \
   { if (PURE_P (obj))	  \
       pure_write_error (); }
+
+extern void pure_write_error P_ ((void));
 
 /* Define PURE_P.  */
 
