@@ -691,111 +691,140 @@ Buffer local variable.")
 
 ;;; faces -mm
 
+(defmacro term-ignore-error (body)
+  `(condition-case nil
+       (progn @,body)
+     (error nil)))
 
-(defvar term-default-fg-color "azure3")
-(defvar term-default-bg-color "SkyBlue4")
+(defvar term-default-fg-color "SkyBlue")
+(defvar term-default-bg-color "LightBlue")
 
+(when (fboundp 'make-face)
 ;;; --- Simple faces ---
-(make-face 'term-default-fg)
-(make-face 'term-default-bg)
-(make-face 'term-default-fg-inv)
-(make-face 'term-default-bg-inv)
-(make-face 'term-bold)
-(make-face 'term-underline)
-(make-face 'term-invisible)
-(make-face 'term-invisible-inv)
+  (make-face 'term-default-fg)
+  (make-face 'term-default-bg)
+  (make-face 'term-default-fg-inv)
+  (make-face 'term-default-bg-inv)
+  (make-face 'term-bold)
+  (make-face 'term-underline)
+  (make-face 'term-invisible)
+  (make-face 'term-invisible-inv)
 
-(copy-face 'default 'term-default-fg)
-(copy-face 'default 'term-default-bg)
-(set-face-foreground 'term-default-fg term-default-fg-color)
-(set-face-background 'term-default-bg term-default-bg-color)
+  (copy-face 'default 'term-default-fg)
+  (copy-face 'default 'term-default-bg)
+  (term-ignore-error
+   (set-face-foreground 'term-default-fg term-default-fg-color))
+  (term-ignore-error
+   (set-face-background 'term-default-bg term-default-bg-color))
 
-(copy-face 'default 'term-default-fg-inv)
-(copy-face 'default 'term-default-bg-inv)
-(set-face-foreground 'term-default-fg-inv term-default-bg-color)
-(set-face-background 'term-default-bg-inv term-default-fg-color)
+  (copy-face 'default 'term-default-fg-inv)
+  (copy-face 'default 'term-default-bg-inv)
+  (term-ignore-error
+   (set-face-foreground 'term-default-fg-inv term-default-bg-color))
+  (term-ignore-error
+   (set-face-background 'term-default-bg-inv term-default-fg-color))
 
-(copy-face 'default 'term-invisible)
-(set-face-background 'term-invisible term-default-bg-color)
-(set-face-background 'term-invisible term-default-bg-color)
+  (copy-face 'default 'term-invisible)
+  (term-ignore-error
+   (set-face-background 'term-invisible term-default-bg-color))
 
-(copy-face 'default 'term-invisible-inv)
-(set-face-background 'term-invisible-inv term-default-fg-color)
-(set-face-background 'term-invisible-inv term-default-fg-color)
+  (copy-face 'default 'term-invisible-inv)
+  (term-ignore-error
+   (set-face-background 'term-invisible-inv term-default-fg-color))
 
-(copy-face 'default 'term-bold)
-(make-face-bold 'term-bold)
+  (copy-face 'default 'term-bold)
+  (copy-face 'default 'term-underline)
 
-(copy-face 'default 'term-underline)
-(set-face-underline-p 'term-underline t)
+  ;; Set the colors of the new faces.
+  (term-ignore-error
+   (make-face-bold 'term-bold))
+
+  (term-ignore-error
+   (set-face-underline-p 'term-underline t))
 
 ;;; --- Fg faces ---
-(make-face 'term-black)
-(make-face 'term-red)
-(make-face 'term-green)
-(make-face 'term-yellow)
-(make-face 'term-blue)
-(make-face 'term-magenta)
-(make-face 'term-cyan)
-(make-face 'term-white)
+  (make-face 'term-black)
+  (make-face 'term-red)
+  (make-face 'term-green)
+  (make-face 'term-yellow)
+  (make-face 'term-blue)
+  (make-face 'term-magenta)
+  (make-face 'term-cyan)
+  (make-face 'term-white)
 
-(copy-face 'default 'term-black)
-(set-face-foreground 'term-black "black")
-(copy-face 'default 'term-red)
-(set-face-foreground 'term-red "red")
-(copy-face 'default 'term-green)
-(set-face-foreground 'term-green "green")
-(copy-face 'default 'term-yellow)
-(set-face-foreground 'term-yellow "yellow")
-(copy-face 'default 'term-blue)
-(set-face-foreground 'term-blue "blue")
-(copy-face 'default 'term-magenta)
-(set-face-foreground 'term-magenta "magenta")
-(copy-face 'default 'term-cyan)
-(set-face-foreground 'term-cyan "cyan")
-(copy-face 'default 'term-white)
-(set-face-foreground 'term-white "white")
+  (copy-face 'default 'term-black)
+  (term-ignore-error
+   (set-face-foreground 'term-black "black"))
+  (copy-face 'default 'term-red)
+  (term-ignore-error
+   (set-face-foreground 'term-red "red"))
+  (copy-face 'default 'term-green)
+  (term-ignore-error
+   (set-face-foreground 'term-green "green"))
+  (copy-face 'default 'term-yellow)
+  (term-ignore-error
+   (set-face-foreground 'term-yellow "yellow"))
+  (copy-face 'default 'term-blue)
+  (term-ignore-error
+   (set-face-foreground 'term-blue "blue"))
+  (copy-face 'default 'term-magenta)
+  (term-ignore-error
+   (set-face-foreground 'term-magenta "magenta"))
+  (copy-face 'default 'term-cyan)
+  (term-ignore-error
+   (set-face-foreground 'term-cyan "cyan"))
+  (copy-face 'default 'term-white)
+  (term-ignore-error
+   (set-face-foreground 'term-white "white"))
 
 ;;; --- Bg faces ---
-(make-face 'term-blackbg)
-(make-face 'term-redbg)
-(make-face 'term-greenbg)
-(make-face 'term-yellowbg)
-(make-face 'term-bluebg)
-(make-face 'term-magentabg)
-(make-face 'term-cyanbg)
-(make-face 'term-whitebg)
+  (make-face 'term-blackbg)
+  (make-face 'term-redbg)
+  (make-face 'term-greenbg)
+  (make-face 'term-yellowbg)
+  (make-face 'term-bluebg)
+  (make-face 'term-magentabg)
+  (make-face 'term-cyanbg)
+  (make-face 'term-whitebg)
 
-(copy-face 'default 'term-blackbg)
-(set-face-background 'term-blackbg "black")
-(copy-face 'default 'term-redbg)
-(set-face-background 'term-redbg "red")
-(copy-face 'default 'term-greenbg)
-(set-face-background 'term-greenbg "green")
-(copy-face 'default 'term-yellowbg)
-(set-face-background 'term-yellowbg "yellow")
-(copy-face 'default 'term-bluebg)
-(set-face-background 'term-bluebg "blue")
-(copy-face 'default 'term-magentabg)
-(set-face-background 'term-magentabg "magenta")
-(copy-face 'default 'term-cyanbg)
-(set-face-background 'term-cyanbg "cyan")
-(copy-face 'default 'term-whitebg)
-(set-face-background 'term-whitebg "white")
+  (copy-face 'default 'term-blackbg)
+  (term-ignore-error
+   (set-face-background 'term-blackbg "black"))
+  (copy-face 'default 'term-redbg)
+  (term-ignore-error
+   (set-face-background 'term-redbg "red"))
+  (copy-face 'default 'term-greenbg)
+  (term-ignore-error
+   (set-face-background 'term-greenbg "green"))
+  (copy-face 'default 'term-yellowbg)
+  (term-ignore-error
+   (set-face-background 'term-yellowbg "yellow"))
+  (copy-face 'default 'term-bluebg)
+  (term-ignore-error
+   (set-face-background 'term-bluebg "blue"))
+  (copy-face 'default 'term-magentabg)
+  (term-ignore-error
+   (set-face-background 'term-magentabg "magenta"))
+  (copy-face 'default 'term-cyanbg)
+  (term-ignore-error
+   (set-face-background 'term-cyanbg "cyan"))
+  (copy-face 'default 'term-whitebg)
+  (term-ignore-error
+   (set-face-background 'term-whitebg "white")))
 
-(setq ansi-term-fg-faces-vector
+(defvar ansi-term-fg-faces-vector
   [term-default-fg term-black term-red term-green term-yellow  term-blue
    term-magenta term-cyan term-white])
 
-(setq ansi-term-bg-faces-vector
+(defvar ansi-term-bg-faces-vector
   [term-default-bg term-blackbg term-redbg term-greenbg term-yellowbg
    term-bluebg term-magentabg term-cyanbg term-whitebg])
 
-(setq ansi-term-inv-bg-faces-vector
+(defvar ansi-term-inv-bg-faces-vector
   [term-default-fg-inv term-black term-red term-green term-yellow  term-blue
    term-magenta term-cyan term-white])
 
-(setq ansi-term-inv-fg-faces-vector
+(defvar ansi-term-inv-fg-faces-vector
   [term-default-bg-inv term-blackbg term-redbg term-greenbg term-yellowbg
    term-bluebg term-magentabg term-cyanbg term-whitebg])
 
@@ -2962,46 +2991,46 @@ See `term-prompt-regexp'."
 ;;; have any bold/underline/fg/bg/reverse combination. -mm
 
 (defun term-handle-colors-array (parameter)
-    (cond
+  (cond
 
 ;;; Bold
-		((eq parameter 1)
-		 (setq term-ansi-current-bold 1))
+   ((eq parameter 1)
+    (setq term-ansi-current-bold 1))
 
 ;;; Underline
-		((eq parameter 4)
-		 (setq term-ansi-current-underline 1))
+   ((eq parameter 4)
+    (setq term-ansi-current-underline 1))
 
 ;;; Blink (unsupported by Emacs), will be translated to bold.
 ;;; This may change in the future though.
-		((eq parameter 5)
-		 (setq term-ansi-current-bold 1))
+   ((eq parameter 5)
+    (setq term-ansi-current-bold 1))
 
 ;;; Reverse
- 	    ((eq parameter 7)
-		 (setq term-ansi-current-reverse 1))
+   ((eq parameter 7)
+    (setq term-ansi-current-reverse 1))
 
 ;;; Invisible
- 	    ((eq parameter 8)
-		 (setq term-ansi-current-invisible 1))
+   ((eq parameter 8)
+    (setq term-ansi-current-invisible 1))
 
- 		((and (>= parameter 30) (<= parameter 37))
-          (setq term-ansi-current-color (- parameter 29)))
+   ((and (>= parameter 30) (<= parameter 37))
+    (setq term-ansi-current-color (- parameter 29)))
 
- 		((and (>= parameter 40) (<= parameter 47))
-          (setq term-ansi-current-bg-color (- parameter 39)))
+   ((and (>= parameter 40) (<= parameter 47))
+    (setq term-ansi-current-bg-color (- parameter 39)))
 
 ;;; 0 (Reset) or unknown (reset anyway)
- 	    (t
-		   (setq term-current-face
-				 (list 'term-default-fg 'term-default-bg))
-		   (setq term-ansi-current-underline 0)
-		   (setq term-ansi-current-bold 0)
-		   (setq term-ansi-current-reverse 0)
-		   (setq term-ansi-current-color 0)
-		   (setq term-ansi-current-invisible 0)
-		   (setq term-ansi-face-alredy-done 1)
-		   (setq term-ansi-current-bg-color 0)))
+   (t
+    (setq term-current-face
+	  (list 'term-default-fg 'term-default-bg))
+    (setq term-ansi-current-underline 0)
+    (setq term-ansi-current-bold 0)
+    (setq term-ansi-current-reverse 0)
+    (setq term-ansi-current-color 0)
+    (setq term-ansi-current-invisible 0)
+    (setq term-ansi-face-alredy-done 1)
+    (setq term-ansi-current-bg-color 0)))
 
 ;	(message "Debug: U-%d R-%d B-%d I-%d D-%d F-%d B-%d"
 ;		   term-ansi-current-underline
@@ -3013,50 +3042,48 @@ See `term-prompt-regexp'."
 ;		   term-ansi-current-bg-color)
 
 
-	(if (= term-ansi-face-alredy-done 0)
-		  (if (= term-ansi-current-reverse 1)
-			  (progn
-				(if (= term-ansi-current-invisible 1)
-					(if (= term-ansi-current-color 0)
-						(setq term-current-face
-							  '(term-default-bg-inv term-default-fg))
-					  (setq term-current-face
-							(list (elt ansi-term-inv-fg-faces-vector term-ansi-current-color)
-								  (elt ansi-term-inv-bg-faces-vector term-ansi-current-color))))
-				  ;; No need to bother with anything else if it's invisible
-				  (progn
-					(setq term-current-face
-						  (list (elt ansi-term-inv-fg-faces-vector term-ansi-current-color)
-								(elt ansi-term-inv-bg-faces-vector term-ansi-current-bg-color)))
-					(if (= term-ansi-current-bold 1)
-						(setq term-current-face
-							  (append '(term-bold) term-current-face)))
-					(if (= term-ansi-current-underline 1)
-						(setq term-current-face
-							  (append '(term-underline) term-current-face))))))
-			(progn
-			  (if (= term-ansi-current-invisible 1)
-				  (if (= term-ansi-current-bg-color 0)
-					  (setq term-current-face
-							'(term-default-fg-inv term-default-bg))
-					(setq term-current-face
-						  (list (elt ansi-term-fg-faces-vector term-ansi-current-bg-color)
-								(elt ansi-term-bg-faces-vector term-ansi-current-bg-color))))
-				;; No need to bother with anything else if it's invisible
-				(progn
-				  (setq term-current-face
-                    (list (elt ansi-term-fg-faces-vector term-ansi-current-color)
-						  (elt ansi-term-bg-faces-vector term-ansi-current-bg-color)))
-				  (if (= term-ansi-current-bold 1)
-					  (setq term-current-face
-							(append '(term-bold) term-current-face)))
-				  (if (= term-ansi-current-underline 1)
-					  (setq term-current-face
-							(append '(term-underline) term-current-face))))))))
+  (if (= term-ansi-face-alredy-done 0)
+      (if (= term-ansi-current-reverse 1)
+	  (progn
+	    (if (= term-ansi-current-invisible 1)
+		(if (= term-ansi-current-color 0)
+		    (setq term-current-face
+			  '(term-default-bg-inv term-default-fg))
+		  (setq term-current-face
+			(list (elt ansi-term-inv-fg-faces-vector term-ansi-current-color)
+			      (elt ansi-term-inv-bg-faces-vector term-ansi-current-color))))
+	      ;; No need to bother with anything else if it's invisible
+	      (progn
+		(setq term-current-face
+		      (list (elt ansi-term-inv-fg-faces-vector term-ansi-current-color)
+			    (elt ansi-term-inv-bg-faces-vector term-ansi-current-bg-color)))
+		(if (= term-ansi-current-bold 1)
+		    (setq term-current-face
+			  (append '(term-bold) term-current-face)))
+		(if (= term-ansi-current-underline 1)
+		    (setq term-current-face
+			  (append '(term-underline) term-current-face))))))
+	(if (= term-ansi-current-invisible 1)
+	    (if (= term-ansi-current-bg-color 0)
+		(setq term-current-face
+		      '(term-default-fg-inv term-default-bg))
+	      (setq term-current-face
+		    (list (elt ansi-term-fg-faces-vector term-ansi-current-bg-color)
+			  (elt ansi-term-bg-faces-vector term-ansi-current-bg-color))))
+	  ;; No need to bother with anything else if it's invisible
+	  (setq term-current-face
+		(list (elt ansi-term-fg-faces-vector term-ansi-current-color)
+		      (elt ansi-term-bg-faces-vector term-ansi-current-bg-color)))
+	  (if (= term-ansi-current-bold 1)
+	      (setq term-current-face
+		    (append '(term-bold) term-current-face)))
+	  (if (= term-ansi-current-underline 1)
+	      (setq term-current-face
+		    (append '(term-underline) term-current-face))))))
 
 ;	(message "Debug %S" term-current-face)
 
-	(setq term-ansi-face-alredy-done 0))
+  (setq term-ansi-face-alredy-done 0))
 
 
 ;;; Handle a character assuming (eq terminal-state 2) -
@@ -3123,25 +3150,15 @@ See `term-prompt-regexp'."
 ;;; Modified to allow ansi coloring -mm
    ;; \E[m - Set/reset standard mode
    ((eq char ?m)
-	(progn
-;	  (message "Debug: Current param stack 4)%d 3)%d 2)%d 1)%d 0)%d"
-;     	     term-terminal-previous-parameter-4
-;            term-terminal-previous-parameter-3
-;  			 term-terminal-previous-parameter-2
-;  			 term-terminal-previous-parameter
-;			 term-terminal-parameter)
-
-   	  (if (= term-terminal-more-parameters 1)
-     	     (progn (if (>= term-terminal-previous-parameter-4 0)
-  					(term-handle-colors-array term-terminal-previous-parameter-4))
-                  (if (>= term-terminal-previous-parameter-3 0)
-  					(term-handle-colors-array term-terminal-previous-parameter-3))
-                  (if (>= term-terminal-previous-parameter-2 0)
-  					(term-handle-colors-array term-terminal-previous-parameter-2))
-   				  (term-handle-colors-array term-terminal-previous-parameter)))
-		(term-handle-colors-array term-terminal-parameter)))
-
-
+    (when (= term-terminal-more-parameters 1)
+      (if (>= term-terminal-previous-parameter-4 0)
+	  (term-handle-colors-array term-terminal-previous-parameter-4))
+      (if (>= term-terminal-previous-parameter-3 0)
+	  (term-handle-colors-array term-terminal-previous-parameter-3))
+      (if (>= term-terminal-previous-parameter-2 0)
+	  (term-handle-colors-array term-terminal-previous-parameter-2))
+      (term-handle-colors-array term-terminal-previous-parameter))
+    (term-handle-colors-array term-terminal-parameter))
 
    ;; \E[6n - Report cursor position
    ((eq char ?n)
