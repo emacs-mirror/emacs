@@ -1,3 +1,8 @@
+2002-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* rfn-eshadow.el (read-file-name-electric-shadow-mode): Fix typos
+	in docstring.
+
 2002-05-07  Colin Walters  <walters@verbum.org>
 
 	* replace.el (occur-unfontify-region-function): Delete.
