@@ -5075,7 +5075,8 @@ get_next_display_element (it)
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c)
 			  || (!NILP (Vshow_nonbreak_escape)
-			      && (it->c == 0x8ad || it->c == 0x8a0)))
+			      && (it->c == 0x8ad || it->c == 0x8a0
+				  || it->c == 0xf2d || it->c == 0xf20)))
 		       : (it->c >= 127
 			  && (!unibyte_display_via_language_environment
 			      || it->c == unibyte_char_to_multibyte (it->c)))))
