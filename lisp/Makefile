@@ -5,7 +5,7 @@
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = emacs
+EMACS = ../src/emacs
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
@@ -112,9 +112,9 @@ $(DONTCOMPILE:.el=.elc):
 compile-files: subdirs.el doit
 	find . -name "*.elc" -print | xargs chmod +w;		\
 	wd=.; $(setwins);					\
-	elpat=`echo $$wins | tr '[ 	]' '[\012\012]' | 	\
+	elpat=`echo $$wins | tr ' 	' '\012\012' | 	\
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) | tr '[	 ]' '[\012\012]' | sort | uniq -u`; \
+	els=`echo $$elpat $(DONTCOMPILE) | tr '	 ' '\012\012' | sort | uniq -u`; \
 	echo $$els; \
 	EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$els
 
