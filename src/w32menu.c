@@ -24,9 +24,9 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "termhooks.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
-#include "keyboard.h"
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
@@ -846,7 +846,7 @@ on the left of the dialog box and all following items on the right.\n\
       /* Use the mouse's current position.  */
       FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
-      int part;
+      enum scroll_bar_part part;
       unsigned long time;
       Lisp_Object x, y;
 
@@ -2116,7 +2116,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 }
 
 /* Construct native Windows menu(bar) based on widget_value tree.  */
-static int
+int
 fill_in_menu (HMENU menu, widget_value *wv)
 {
   int items_added = 0;
