@@ -1,7 +1,27 @@
 2000-10-06  Dave Love  <fx@gnu.org>
 
+	* textmodes/fill.el (sentence-end-double-space) 
+	(sentence-end-without-period):  Doc fix.
+	(adaptive-fill-regexp): Purecopy.
+	(unjustify-current-line): Use line-end-position.
+	(fill-individual-paragraphs-prefix): Use line-beginning-position.
+
+	* net/eudc-vars.el (eudc): Add :version, :link.
+
+	* international/mule-conf.el (file-coding-system-alist): Use \',
+	not $.
+
+	* emacs-lisp/find-func.el (find-function-regexp): Remove spurion.
+	Fix for define-minor-mode.
+	(function-at-point): Alias to function-called-at-point.
+
+	* custom.el (custom-declare-variable, custom-set-variables): Use mapc.
+
+	* simple.el (backward-word): Doc fix.
+
 	* image-file.el (image-file-name-regexp): image-file-regexps ->
 	image-file-name-regexps.
+	(image-file-name-extensions): Add pbm.
 
 2000-10-06  Gerd Moellmann  <gerd@gnu.org>
 
