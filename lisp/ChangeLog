@@ -1,3 +1,7 @@
+2000-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (face-font-registry-alternatives): New user-option.
+
 2000-11-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/texinfo.el (texinfo-block-default): New var.

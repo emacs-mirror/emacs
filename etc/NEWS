@@ -1825,6 +1825,10 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
++++
+** The user-option `face-font-registry-alternatives' specifies
+alternative font registry names to try when looking for a font.
+
 ** Function `md5' calculates the MD5 "message digest"/"checksum",
 currently using the `md5sum' program.
 
@@ -2882,9 +2886,10 @@ that font selection first tries to find a good match for the font
 width specified by a face, then---within fonts with that width---tries
 to find a best match for the specified font height, etc.
 
-Setting `face-alternative-font-family-alist' allows the user to
-specify alternative font families to try if a family specified by a
-face doesn't exist.
+Setting `face-font-family-alternatives' allows the user to specify
+alternative font families to try if a family specified by a face
+doesn't exist.  Likewise, `face-font-registry-alternatives' allows to
+specify alternative font registry names to try.
 
 +++
 **** Scalable fonts

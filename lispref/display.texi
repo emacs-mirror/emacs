@@ -1857,8 +1857,8 @@ default one.  But if you put @code{:slant} before @code{:height}, the
 quite right.
 @end defvar
 
-@defvar face-alternative-font-family-alist
-@tindex face-alternative-font-family-alist
+@defvar face-font-family-alternatives
+@tindex face-font-family-alternatives
 This variable lets you specify alternative font families to try, if a
 given family is specified and doesn't exist.  Each element should have
 this form:
@@ -1870,6 +1870,21 @@ this form:
 If @var{family} is specified but not available, Emacs will try the other
 families given in @var{alternate-families}, one by one, until it finds a
 family that does exist.
+@end defvar
+
+@defvar face-font-registry-alternatives
+@tindex face-font-registry-alternatives
+This variable lets you specify alternative font registries to try, if a
+given registry is specified and doesn't exist.  Each element should have
+this form:
+
+@example
+(@var{registry} @var{alternate-registries}@dots{})
+@end example
+
+If @var{registry} is specified but not available, Emacs will try the
+other registries given in @var{alternate-registries}, one by one,
+until it finds a registry that does exist.
 @end defvar
 
   Emacs can make use of scalable fonts, but by default it does not use
