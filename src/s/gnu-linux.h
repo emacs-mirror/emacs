@@ -59,6 +59,42 @@ Boston, MA 02111-1307, USA.  */
 
 #define FIRST_PTY_LETTER 'p'
 
+#ifdef HAVE_DEV_PTMX
+
+/* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
+   rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
+   work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
+   (x<2) but I'm not sure.   fnf@cygnus.com */
+/* This sets the name of the slave side of the PTY.  On SysVr4,
+   grantpt(3) forks a subprocess, so keep sigchld_handler() from
+   intercepting that death.  If any child but grantpt's should die
+   within, it should be caught after sigrelse(2). */
+
+#undef FIRST_PTY_LETTER
+#define FIRST_PTY_LETTER 'z'
+
+/* This sets the name of the master side of the PTY. */
+#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
+
+#undef PTY_TTY_NAME_SPRINTF
+#define PTY_TTY_NAME_SPRINTF			\
+  {						\
+    char *ptsname (), *ptyname;			\
+						\
+    sigblock (sigmask (SIGCLD));		\
+    if (grantpt (fd) == -1)			\
+      { close (fd); return -1; }		\
+    sigunblock (sigmask (SIGCLD));		\
+    if (unlockpt (fd) == -1)			\
+      { close (fd); return -1; }		\
+    if (!(ptyname = ptsname (fd)))		\
+      { close (fd); return -1; }		\
+    strncpy (pty_name, ptyname, sizeof (pty_name)); \
+    pty_name[sizeof (pty_name) - 1] = 0;	\
+  }
+
+#endif /* HAVE_DEV_PTMX */
+
 /*
  *	Define HAVE_TERMIOS if the system provides POSIX-style
  *	functions and macros for terminal control.
