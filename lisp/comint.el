@@ -1878,13 +1878,21 @@ This function could be in the list `comint-output-filter-functions'."
 
 (defun comint-send-string (process string)
   "Like `process-send-string', but also does extra bookkeeping for comint mode."
-  (with-current-buffer (process-buffer process)
+  (if process
+      (with-current-buffer (if (processp process)
+			       (process-buffer process)
+			     (get-buffer process))
+	(comint-snapshot-last-prompt))
     (comint-snapshot-last-prompt))
   (process-send-string process string))
 
 (defun comint-send-region (process start end)
   "Like `process-send-region', but also does extra bookkeeping for comint mode."
-  (with-current-buffer (process-buffer process)
+  (if process
+      (with-current-buffer (if (processp process)
+			       (process-buffer process)
+			     (get-buffer process))
+	(comint-snapshot-last-prompt))
     (comint-snapshot-last-prompt))
   (process-send-region process start end))
 
