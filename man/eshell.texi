@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.3 2000/10/16 18:24:30 eliz Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.4 2000/10/29 05:13:09 johnw Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999-2000  Free Software Foundation, Inc.
@@ -521,7 +521,7 @@ Allow for a bash-compatible syntax, such as:
 
 @example
 alias arg=blah
-function arg () { blah $* }
+function arg () @{ blah $* @}
 @end example
 
 @item @samp{for i in 1 2 3 @{ grep -q a b && *echo has it @} | wc -l} outputs result after prompt
@@ -651,12 +651,12 @@ Invalid regexp: "Unmatched ( or \\("
 With @command{zsh}, the glob above expands to all files named
 @file{Root} in directories named @file{CVS}.
 
-@item Typing @samp{echo ${locate locate}/bin<TAB>} results in a Lisp error
+@item Typing @samp{echo $@{locate locate@}/bin<TAB>} results in a Lisp error
 
 Perhaps it should interpolate all permutations, and make that the
 globbing result, since otherwise hitting return here will result in
 ``(list of filenames)/bin'', which is never valuable.  Thus, one could
-@command{cat} only C backup files by using @samp{ls ${identity *.c}~}.
+@command{cat} only C backup files by using @samp{ls $@{identity *.c@}~}.
 In that case, having an alias command name @command{glob} for
 @command{identity} would be useful.
 
