@@ -1,3 +1,29 @@
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Add support for LaTeX.
+
+	* calc/calc-ext.el: Add calc-latex-language to autoloads.
+	(calc-mode-map): Add calc-latex-language.
+
+	* calc/calc-lang.el (calc-latex-language, math-latex-parse-frac)
+	(math-latex-print-frac): New functions.
+	(math-oper-table, math-function-table, math-variable-table)
+	(math-complex-format, math-input-filter): Add latex properties.
+	(calc-set-language): Set math-expr-special-function-mapping.
+
+	* calc/calc-prog.el (calc-edit-user-syntax, calc-fix-token-name)
+	(calc-write-parse-table-part):  Add LaTeX support.
+
+	* calc/calc.el (calc-language): Adjust docstring.
+	(calc-set-mode-line): Add LaTeX support.
+	(math-expr-special-function-mapping): New variable.
+
+	* calc/calccomp.el (math-compose-expr, math-compose-rows):
+	Add LaTeX support.
+	(math-compose-expr): Add support for special functions.
+
+	* calc/calc-help.el (calc-d-prefix-help): Add LaTeX.
+
 2005-01-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-memory-address)
