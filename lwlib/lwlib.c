@@ -526,8 +526,10 @@ merge_widget_value (val1, val2, level)
 	  EXPLAIN (val1->name, change, INVISIBLE_CHANGE, "(contents change)",
 		   0, 0);
 	  change = max (change, INVISIBLE_CHANGE);
+#if 0 /* This was replaced by the August 9 1996 change in lwlib-Xm.c.  */
 #ifdef USE_MOTIF
 	  change = max (merged_contents->change, change);
+#endif
 #endif
 	}
       
