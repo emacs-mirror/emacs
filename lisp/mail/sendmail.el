@@ -753,7 +753,7 @@ the user from the mailer."
   (let (end
 	(case-fold-search t))
     (goto-char (point-min))
-    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
+    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
     (setq end (match-beginning 0))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" (regexp-quote field) ":") end t)
