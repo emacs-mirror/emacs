@@ -81,7 +81,7 @@ ARCH		= ppc
 # We're on Windows 95
 ARCH		= i386
 CPU		= i386
-CONFIG_H	= config.w95
+CONFIG_H	= config.nt
 OS_TYPE		= win95
 !endif
 
