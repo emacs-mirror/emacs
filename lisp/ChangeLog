@@ -1,5 +1,11 @@
 2004-05-09  Juanma Barranquero  <lektu@terra.es>
 
+	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
+	Don't use CL-style default args.
+
+	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
+	(cvs-get-marked): Remove redundant arglist info.
+
 	* help-fns.el (help-highlight-arguments): Don't try to highlight
 	missing or autoloaded arglists.  Accept structured arguments, like
 	the first ones of `do' and `flet'.
