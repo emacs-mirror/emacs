@@ -732,16 +732,16 @@ find_charset_in_str (str, len, charsets, table, cmpcharp)
 
 	  if (cmpchar_id >= 0)
 	    {
-	      struct cmpchar_info *cmpcharp = cmpchar_table[cmpchar_id];
+	      struct cmpchar_info *cmp_p = cmpchar_table[cmpchar_id];
 	      int i;
 
-	      for (i = 0; i < cmpcharp->glyph_len; i++)
+	      for (i = 0; i < cmp_p->glyph_len; i++)
 		{
-		  c = cmpcharp->glyph[i];
+		  c = cmp_p->glyph[i];
 		  if (!NILP (table))
 		    {
 		      if ((c = translate_char (table, c, 0, 0, 0)) < 0)
-			c = cmpcharp->glyph[i];
+			c = cmp_p->glyph[i];
 		    }
 		  if ((charset = CHAR_CHARSET (c)) < 0)
 		    charset = CHARSET_ASCII;
@@ -751,8 +751,13 @@ find_charset_in_str (str, len, charsets, table, cmpcharp)
 		      num += 1;
 		    }
 		}
-	      str += cmpcharp->len;
-	      len -= cmpcharp->len;
+	      str += cmp_p->len;
+	      len -= cmp_p->len;
+	      if (cmpcharp && !charsets[CHARSET_COMPOSITION])
+		{
+		  charsets[CHARSET_COMPOSITION] = 1;
+		  num += 1;
+		}
 	      continue;
 	    }
 
@@ -786,6 +791,8 @@ DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
        2, 3, 0,
   "Return a list of charsets in the region between BEG and END.\n\
 BEG and END are buffer positions.\n\
+If the region contains any composite character,\n\
+`composition' is included in the returned list.\n\
 Optional arg TABLE if non-nil is a translation table to look up.")
   (beg, end, table)
      Lisp_Object beg, end, table;
@@ -817,7 +824,7 @@ Optional arg TABLE if non-nil is a translation table to look up.")
   while (1)
     {
       find_charset_in_str (BYTE_POS_ADDR (from_byte), stop_byte - from_byte,
-			   charsets, table, 0);
+			   charsets, table, 1);
       if (stop < to)
 	{
 	  from = stop, from_byte = stop_byte;
@@ -837,6 +844,8 @@ Optional arg TABLE if non-nil is a translation table to look up.")
 DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        1, 2, 0,
   "Return a list of charsets in STR.\n\
+If the string contains any composite characters,\n\
+`composition' is included in the returned list.\n\
 Optional arg TABLE if non-nil is a translation table to look up.")
   (str, table)
      Lisp_Object str, table;
@@ -854,7 +863,7 @@ Optional arg TABLE if non-nil is a translation table to look up.")
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   find_charset_in_str (XSTRING (str)->data, STRING_BYTES (XSTRING (str)),
-		       charsets, table, 0);
+		       charsets, table, 1);
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
@@ -1311,7 +1320,9 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
       p += len;
     }
 
-  val = make_string_from_bytes (buf, n, p - buf);
+  /* Here, we can't use make_string_from_bytes because of byte
+     combining problem.  */
+  val = make_string (buf, p - buf);
   return val;
 }
 
