@@ -1212,11 +1212,11 @@ The symbol `error' should normally be one of them.\n\
 DATA should be a list.  Its elements are printed as part of the error message.\n\
 If the signal is handled, DATA is made available to the handler.\n\
 See also the function `condition-case'.")
-     /* When memory is full, ERROR-SYMBOL is nil,
-	and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).  */
   (error_symbol, data)
      Lisp_Object error_symbol, data;
 {
+  /* When memory is full, ERROR-SYMBOL is nil,
+     and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).  */
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
   extern int gc_in_progress;
