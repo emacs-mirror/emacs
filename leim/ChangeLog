@@ -1,3 +1,10 @@
+2000-02-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in: Make this the no-leim Makefile.  Move the
+	leim Makefile.in to ../leim-Makefile.in as it originally was.
+
+	* Makefile.noleim: Removed.
+
 2000-01-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/hanja.el (korean-hanja): Add an entry for "wod".

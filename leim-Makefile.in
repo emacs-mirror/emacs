@@ -1,0 +1,185 @@
+# Makefile for leim subdirectory in GNU Emacs.
+# Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+# Licensed to the Free Software Foundation.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+# Avoid trouble on systems where the `SHELL' variable might be
+# inherited from the environment.
+SHELL = /bin/sh
+
+# Here are the things that we expect ../configure to edit.
+version=@version@
+prefix=@prefix@
+datadir=@datadir@
+srcdir=@srcdir@
+
+# Where to install LEIM files.
+INSTALLDIR=${datadir}/emacs/${version}/leim
+
+# On Xenix and the IBM RS6000, double-dot gets screwed up.
+dot = .
+
+# Which Emacs to use to convert TIT files to Emacs Lisp files,
+# byte-compile Emacs Lisp files, and generate the file leim-list.el.
+BUILT-EMACS = ${dot}${dot}/src/emacs
+
+buildlisppath=${srcdir}/${dot}${dot}/lisp
+
+# How to run Emacs.
+RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
+
+# Subdirectories to be made if ${srcdir} is different from the current
+# directory.
+SUBDIRS=quail
+
+# Files generated from TIT dictionaries for Chinese GB character set.
+TIT-GB=\
+	quail/CTLau.el		\
+	quail/CCDOSPY.el	\
+	quail/Punct.el		\
+	quail/PY.el		\
+	quail/QJ.el		\
+	quail/SW.el		\
+	quail/TONEPY.el		\
+	quail/ZIRANMA.el
+
+# Files generated from TIT dictionaries for Chinese BIG5 character set.
+TIT-BIG5=\
+	quail/4Corner.el	\
+	quail/ARRAY30.el	\
+	quail/CTLauB.el		\
+	quail/ECDICT.el		\
+	quail/ETZY.el		\
+	quail/Punct-b5.el	\
+	quail/PY-b5.el		\
+	quail/QJ-b5.el		\
+	quail/ZOZY.el
+
+CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
+
+NON-TIT-GB=${srcdir}/quail/py-punct.el
+
+NON-TIT-BIG5=${srcdir}/quail/quick-b5.el ${srcdir}/quail/tsang-b5.el \
+	     ${srcdir}/quail/pypunct-b5.el
+
+NON-TIT-CNS=${srcdir}/quail/quick-cns.el ${srcdir}/quail/tsang-cns.el
+
+CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5} ${NON-TIT-CNS}
+
+CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
+
+CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5} 
+
+CHINESE-CNS=${NON-TIT-CNS} 
+
+JAPANESE=${srcdir}/quail/japanese.el ${srcdir}/skk/skkdic.el
+
+KOREAN=	${srcdir}/quail/hangul.el	\
+	${srcdir}/quail/hangul3.el	\
+	${srcdir}/quail/hanja.el	\
+	${srcdir}/quail/hanja-jis.el	\
+	${srcdir}/quail/symbol-ksc.el
+
+THAI=${srcdir}/quail/thai.el
+
+VIETNAMESE=${srcdir}/quail/viqr.el
+
+LAO=${srcdir}/quail/lao.el ${srcdir}/quail/lrt.el
+
+INDIAN=${srcdir}/quail/devanagari.el
+
+TIBETAN=${srcdir}/quail/tibetan.el
+
+LATIN=${srcdir}/quail/latin-pre.el ${srcdir}/quail/latin-post.el
+
+SLAVIC= \
+	${srcdir}/quail/czech.el \
+	${srcdir}/quail/slovak.el
+
+GREEK=${srcdir}/quail/greek.el
+
+RUSSIAN=${srcdir}/quail/cyrillic.el ${srcdir}/quail/cyril-jis.el
+
+MISC= \
+	${srcdir}/quail/ethiopic.el \
+	${srcdir}/quail/ipa.el \
+	${srcdir}/quail/hebrew.el
+
+CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
+EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
+ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
+EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
+WORLD=${ASIA} ${EUROPEAN} ${MISC}
+
+TIT=${CHINESE-TIT}
+NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
+
+all: ${BUILT-EMACS} ${SUBDIRS} ${TIT} leim-list.el
+
+# To ensure that we can run Emacs.  This target is ignored (never
+# being hit) if a user changes default value of EMACS.
+${dot}${dot}/src/emacs:
+	cd ../src; ${MAKE} ${MFLAGS} emacs
+
+${SUBDIRS}:
+	mkdir $@
+	touch stamp-subdir
+
+# Rule to generate quail/*.el from CXTERM-DIC/*.tit.
+${TIT}:
+	if [ -d quail ]; then true; else make quail; fi
+	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
+	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
+	    -f batch-byte-compile ${TIT}
+
+leim-list.el: ${SUBDIRS} ${WORLD}
+	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	    --eval "(update-leim-list-file \".\")" ; \
+	else \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	    --eval "(update-leim-list-file \".\" \"${srcdir}\")" ; \
+	fi
+
+install: all
+	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	  rm -rf ${INSTALLDIR}/leim-list.el; \
+	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
+	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
+	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
+	    tar -cf - leim-list.el quail skk \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	  else \
+	    tar -cf - leim-list.el quail \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	    cd ${srcdir}; \
+	    tar -cf - quail/* skk \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	  fi; \
+	else true; fi
+	-chmod -R a+r ${INSTALLDIR}
+
+clean mostlyclean:
+	ELC=`echo ${TIT} | sed 's/\.el/.elc/g'`; \
+	rm -f ${TIT} $$ELC leim-list.el
+
+distclean maintainer-clean:
+	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
+	rm -f Makefile
