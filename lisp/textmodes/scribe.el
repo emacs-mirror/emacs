@@ -112,7 +112,7 @@ These should match up with `scribe-open-parenthesis'.")
 ;;;###autoload
 (defun scribe-mode ()
   "Major mode for editing files of Scribe (a text formatter) source.
-Scribe-mode is similar text-mode, with a few extra commands added.
+Scribe-mode is similar to text-mode, with a few extra commands added.
 \\{scribe-mode-map}
 
 Interesting variables:
