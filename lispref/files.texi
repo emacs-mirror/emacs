@@ -717,15 +717,21 @@ or directories unless otherwise noted.
   These functions test for permission to access a file in specific ways.
 
 @defun file-exists-p filename
-This function returns @code{t} if a file named @var{filename} appears to
-exist.  This does not mean you can necessarily read the file, only that
-you can find out its attributes.  (On Unix and GNU/Linux, this is true
-if the file exists and you have execute permission on the containing
-directories, regardless of the protection of the file itself.)
+This function returns @code{t} if a file named @var{filename} appears
+to exist.  This does not mean you can necessarily read the file, only
+that you can find out its attributes.  (On Unix and GNU/Linux, this is
+true if the file exists and you have execute permission on the
+containing directories, regardless of the protection of the file
+itself.)
 
 If the file does not exist, or if fascist access control policies
 prevent you from finding the attributes of the file, this function
 returns @code{nil}.
+
+Directories are files, so @code{file-exists-p} returns @code{t} when
+given a directory name.  However, symbolic links are treated
+specially; @code{file-exists-p} returns @code{t} for a symbolic link
+name only if the target file exists.
 @end defun
 
 @defun file-readable-p filename
@@ -1476,7 +1482,7 @@ This function returns the nondirectory part of @var{filename}.
 This function returns @var{filename}'s final ``extension,'' if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  It returns @code{nil} for extensionless file
-names such as @file{foo}.  If @var{period} is non-nil, then the
+names such as @file{foo}.  If @var{period} is non-@code{nil}, then the
 returned value includes the period that delimits the extension, and if
 @var{filename} has no extension, the value is @code{""}.  If the last
 component of a file name begins with a @samp{.}, that @samp{.} doesn't
