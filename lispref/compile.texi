@@ -110,7 +110,9 @@ program that suggest a problem but are not necessarily erroneous.
   Be careful when writing macro calls in files that you may someday
 byte-compile.  Macro calls are expanded when they are compiled, so the
 macros must already be defined for proper compilation.  For more
-details, see @ref{Compiling Macros}.
+details, see @ref{Compiling Macros}.  If a program does not work the
+same way when compiled as it does when interpreted, erroneous macro
+definitions are one likely cause (@pxref{Problems with Macros}).
 
   Normally, compiling a file does not evaluate the file's contents or
 load the file.  But it does execute any @code{require} calls at top
