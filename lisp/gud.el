@@ -1009,28 +1009,28 @@ comint mode, which see."
 
 (defun gud-filter (proc string)
   ;; Here's where the actual buffer insertion is done
-  (let ((inhibit-quit t) 
-	output)
-    (save-excursion
-      (set-buffer (process-buffer proc))
-      ;; If we have been so requested, delete the debugger prompt.
-      (if (marker-buffer gud-delete-prompt-marker)
-	  (progn
-	    (delete-region (process-mark proc) gud-delete-prompt-marker)
-	    (set-marker gud-delete-prompt-marker nil)))
-      ;; Save the process output, checking for source file markers.
-      (setq output (gud-marker-filter string))
-      ;; Check for a filename-and-line number.
-      ;; Don't display the specified file
-      ;; unless (1) point is at or after the position where output appears
-      ;; and (2) this buffer is on the screen.
-      (if (and gud-last-frame
-	       (>= (point) (process-mark proc))
-	       (get-buffer-window (current-buffer)))
-	  (gud-display-frame))
-      ;; Let the comint filter do the actual insertion.
-      ;; That lets us inherit various comint features.
-      (comint-output-filter proc output))))
+  (let (output)
+    (if (buffer-name (process-buffer proc))
+	(save-excursion
+	  (set-buffer (process-buffer proc))
+	  ;; If we have been so requested, delete the debugger prompt.
+	  (if (marker-buffer gud-delete-prompt-marker)
+	      (progn
+		(delete-region (process-mark proc) gud-delete-prompt-marker)
+		(set-marker gud-delete-prompt-marker nil)))
+	  ;; Save the process output, checking for source file markers.
+	  (setq output (gud-marker-filter string))
+	  ;; Check for a filename-and-line number.
+	  ;; Don't display the specified file
+	  ;; unless (1) point is at or after the position where output appears
+	  ;; and (2) this buffer is on the screen.
+	  (if (and gud-last-frame
+		   (>= (point) (process-mark proc))
+		   (get-buffer-window (current-buffer)))
+	      (gud-display-frame))
+	  ;; Let the comint filter do the actual insertion.
+	  ;; That lets us inherit various comint features.
+	  (comint-output-filter proc output)))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
