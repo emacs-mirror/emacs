@@ -161,7 +161,7 @@ install: all
 	    tar -cf - leim-list.el quail \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	    cd ${srcdir}; \
-	    tar -cf - quail skk \
+	    tar -cf - quail/* skk \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
 	else true; fi
