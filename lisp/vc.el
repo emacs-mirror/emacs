@@ -190,7 +190,7 @@ If nil, VC itself computes this value when it is first needed.")
 (defvar vc-dired-mode nil)
 (make-variable-buffer-local 'vc-dired-mode)
 
-(defvar vc-comment-ring nil)
+(defvar vc-comment-ring (make-ring vc-maximum-comment-ring-size))
 (defvar vc-comment-ring-index nil)
 (defvar vc-last-comment-match nil)
 
@@ -297,7 +297,7 @@ If nil, VC itself computes this value when it is first needed.")
   (fillarray vc-file-prop-obarray nil)
   ;; Note: there is potential for minor lossage here if there is an open
   ;; log buffer with a nonzero local value of vc-comment-ring-index.
-  (setq vc-comment-ring nil))
+  (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
 
 (defun vc-file-clear-masterprops (file)
   ;; clear all properties of FILE that were retrieved
@@ -1006,8 +1006,6 @@ If nil, uses `change-log-default-name'."
 	;; Comment too long?
 	(vc-backend-logentry-check vc-log-file)
 	;; Record the comment in the comment ring
-	(if (null vc-comment-ring)
-	    (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
 	(ring-insert vc-comment-ring (buffer-string))
 	))
   ;; Sync parent buffer in case the user modified it while editing the comment.
