@@ -523,15 +523,10 @@ earlier by `easy-menu-define' or `easy-menu-create-menu'."
       (easy-menu-define-key map (easy-menu-intern (car item))
 			    (cdr item) before)
     (if (or (keymapp item)
-	    (and (symbolp item) (keymapp (symbol-value item))))
+	    (and (symbolp item) (keymapp (symbol-value item))
+		 (setq item (symbol-value item))))
 	;; Item is a keymap, find the prompt string and use as item name.
-	(let ((tail (easy-menu-get-map item nil)) name)
-	  (if (not (keymapp item)) (setq item tail))
-	  (while (and (null name) (consp (setq tail (cdr tail)))
-		      (not (keymapp tail)))
-	    (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
-	      (setq tail (cdr tail))))
-	  (setq item (cons name item))))
+	(setq item (cons (keymap-prompt item) item)))
     (easy-menu-do-add-item map item before)))
 
 (defun easy-menu-item-present-p (map path name)
