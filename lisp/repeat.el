@@ -93,8 +93,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
 (defcustom repeat-too-dangerous '(kill-this-buffer)
@@ -277,9 +275,20 @@ can be modified by the global variable `repeat-on-final-keystroke'."
                                      "inserted before auto-fill"
                                      "clobbered it, sorry")))))))
             (setq repeat-num-input-keys-at-self-insert num-input-keys)
-            (loop repeat (prefix-numeric-value repeat-arg) do
-                  (repeat-self-insert insertion)))
-        (call-interactively real-last-command)))
+	    ;; If the self-insert had a repeat count, INSERTION
+	    ;; includes that many copies of the same character.
+	    ;; So use just the first character
+	    ;; and repeat it the right number of times.
+	    (setq insertion (substring insertion 0 1))
+	    (let ((count (prefix-numeric-value repeat-arg))
+		  (i 0))
+	      (while (< i count)
+		(repeat-self-insert insertion)
+		(setq i (1+ i)))))
+	(if (or (stringp real-last-command)
+		(vectorp real-last-command))
+	    (execute-kbd-macro real-last-command)
+	  (call-interactively real-last-command))))
     (when repeat-repeat-char
       ;; A simple recursion here gets into trouble with max-lisp-eval-depth
       ;; on long sequences of repetitions of a command like `forward-word'
