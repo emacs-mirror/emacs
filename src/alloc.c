@@ -552,7 +552,7 @@ xrealloc (block, size)
 }
 
 
-/* Like free but block interrupt input..  */
+/* Like free but block interrupt input.  */
 
 void
 xfree (block)
@@ -711,7 +711,7 @@ struct ablocks
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
-  (1 & (int) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+  (1 & (long) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
 #endif
 
 /* The list of free ablock.   */
@@ -738,7 +738,8 @@ lisp_align_malloc (nbytes, type)
 
   if (!free_ablock)
     {
-      int i, aligned;
+      int i;
+      EMACS_INT aligned; /* int gets warning casting to 64-bit pointer.  */
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
@@ -791,17 +792,17 @@ lisp_align_malloc (nbytes, type)
 	  abase->blocks[i].x.next_free = free_ablock;
 	  free_ablock = &abase->blocks[i];
 	}
-      ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
+      ABLOCKS_BUSY (abase) = (struct ablocks *) (long) aligned;
 
       eassert (0 == ((EMACS_UINT)abase) % BLOCK_ALIGN);
       eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
       eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
       eassert (ABLOCKS_BASE (abase) == base);
-      eassert (aligned == (int)ABLOCKS_BUSY (abase));
+      eassert (aligned == (long) ABLOCKS_BUSY (abase));
     }
 
   abase = ABLOCK_ABASE (free_ablock);
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (int) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (long) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
 
@@ -833,11 +834,11 @@ lisp_align_free (block)
   ablock->x.next_free = free_ablock;
   free_ablock = ablock;
   /* Update busy count.  */
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (int) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
   
-  if (2 > (int) ABLOCKS_BUSY (abase))
+  if (2 > (long) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
-      int i = 0, aligned = (int) ABLOCKS_BUSY (abase);
+      int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
       struct ablock **tem = &free_ablock;
       struct ablock *atop = &abase->blocks[aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1];
 
@@ -1130,14 +1131,10 @@ int n_interval_blocks;
 static void
 init_intervals ()
 {
-  interval_block
-    = (struct interval_block *) lisp_malloc (sizeof *interval_block,
-					     MEM_TYPE_NON_LISP);
-  interval_block->next = 0;
-  bzero ((char *) interval_block->intervals, sizeof interval_block->intervals);
-  interval_block_index = 0;
+  interval_block = NULL;
+  interval_block_index = INTERVAL_BLOCK_SIZE;
   interval_free_list = 0;
-  n_interval_blocks = 1;
+  n_interval_blocks = 0;
 }
 
 
@@ -2724,13 +2721,10 @@ int n_symbol_blocks;
 void
 init_symbol ()
 {
-  symbol_block = (struct symbol_block *) lisp_malloc (sizeof *symbol_block,
-						      MEM_TYPE_SYMBOL);
-  symbol_block->next = 0;
-  bzero ((char *) symbol_block->symbols, sizeof symbol_block->symbols);
-  symbol_block_index = 0;
+  symbol_block = NULL;
+  symbol_block_index = SYMBOL_BLOCK_SIZE;
   symbol_free_list = 0;
-  n_symbol_blocks = 1;
+  n_symbol_blocks = 0;
 }
 
 
@@ -2810,13 +2804,10 @@ int n_marker_blocks;
 void
 init_marker ()
 {
-  marker_block = (struct marker_block *) lisp_malloc (sizeof *marker_block,
-						      MEM_TYPE_MISC);
-  marker_block->next = 0;
-  bzero ((char *) marker_block->markers, sizeof marker_block->markers);
-  marker_block_index = 0;
+  marker_block = NULL;
+  marker_block_index = MARKER_BLOCK_SIZE;
   marker_free_list = 0;
-  n_marker_blocks = 1;
+  n_marker_blocks = 0;
 }
 
 /* Return a newly allocated Lisp_Misc object, with no substructure.  */
@@ -4351,12 +4342,7 @@ returns nil, because real GC can't be done.  */)
 
   /* clear_marks (); */
 
-  /* Mark all the special slots that serve as the roots of accessibility.
-
-     Usually the special slots to mark are contained in particular structures.
-     Then we know no slot is marked twice because the structures don't overlap.
-     In some cases, the structures point to the slots to be marked.
-     For these, we use MARKBIT to avoid double marking of the slot.  */
+  /* Mark all the special slots that serve as the roots of accessibility.  */
 
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
@@ -4369,11 +4355,7 @@ returns nil, because real GC can't be done.  */)
     register struct gcpro *tail;
     for (tail = gcprolist; tail; tail = tail->next)
       for (i = 0; i < tail->nvars; i++)
-	if (!XMARKBIT (tail->var[i]))
-	  {
-	    mark_object (tail->var[i]);
-	    XMARK (tail->var[i]);
-	  }
+	mark_object (tail->var[i]);
   }
 #endif
 
@@ -4395,21 +4377,14 @@ returns nil, because real GC can't be done.  */)
     }
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
-      if (!XMARKBIT (*backlist->function))
-	{
-	  mark_object (*backlist->function);
-	  XMARK (*backlist->function);
-	}
+      mark_object (*backlist->function);
+
       if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
 	i = 0;
       else
 	i = backlist->nargs - 1;
       for (; i >= 0; i--)
-	if (!XMARKBIT (backlist->args[i]))
-	  {
-	    mark_object (backlist->args[i]);
-	    XMARK (backlist->args[i]);
-	  }
+	mark_object (backlist->args[i]);
     }
   mark_kboards ();
 
@@ -4475,24 +4450,10 @@ returns nil, because real GC can't be done.  */)
      || GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES)
   {
     register struct gcpro *tail;
-
-    for (tail = gcprolist; tail; tail = tail->next)
-      for (i = 0; i < tail->nvars; i++)
-	XUNMARK (tail->var[i]);
   }
 #endif
 
   unmark_byte_stack ();
-  for (backlist = backtrace_list; backlist; backlist = backlist->next)
-    {
-      XUNMARK (*backlist->function);
-      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
-	i = 0;
-      else
-	i = backlist->nargs - 1;
-      for (; i >= 0; i--)
-	XUNMARK (backlist->args[i]);
-    }
   VECTOR_UNMARK (&buffer_defaults);
   VECTOR_UNMARK (&buffer_local_symbols);
 
@@ -4677,7 +4638,6 @@ mark_object (arg)
   int cdr_count = 0;
 
  loop:
-  XUNMARK (obj);
 
   if (PURE_POINTER_P (XPNTR (obj)))
     return;
@@ -5744,3 +5704,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
+
+/* arch-tag: 6695ca10-e3c5-4c2c-8bc3-ed26a7dda857
+   (do not change this comment) */
