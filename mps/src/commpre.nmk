@@ -1,14 +1,14 @@
-# ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+# impl.nmk.commpre: FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName$
-# Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+# $HopeName: MMsrc!commpre.nmk(trunk.17) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
-# This makefile fragment is included in more specific
+# .description: This makefile fragment is included in more specific
 # makefiles for platforms which use the "mv" builder.  This is
 # the first of two common makefile fragements (the other is commpost.nmk).
-# Alas due to shortcomings in nmake it is not possible to use only one
+# Alas, due to shortcomings in nmake, it is not possible to use only one
 # common fragment.
 #
 # %%PART: Add a new parameter for the files included in the part
@@ -84,17 +84,14 @@ ECHO = echo
 
 
 # C FLAGS
-# %%VARIETY: Define a macro containing the set of flags for the new variety.
 
-# All compilations
-# /MD means compile for multi-threaded environment with separate C library DLL
-# /MDd means compile for a debugging environment otherwise like /MD
+# /MD means compile for multi-threaded environment with separate C library DLL.
 # /MT means compile for multi-threaded environment.
 # /ML means compile for single-threaded environment.
-# some C flags depend on the target we are building.
+# A 'd' at the end means compile for debugging.
 
 !ifdef TARGET
-!if "$(TARGET)" == "mmsw.lib"
+!if "$(TARGET)" == "mmsw.lib" || "$(TARGET)" == "epvmss.exe" || "$(TARGET)" == "replaysw.exe"
 CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
 CFLAGSTARGETPOST = 
 CRTFLAGSW = /MD
@@ -103,24 +100,7 @@ CRTFLAGSC = /MDd
 LINKFLAGSWHITE = msvcrt.lib
 LINKFLAGSHOT = msvcrtd.lib
 LINKFLAGSCOOL = msvcrtd.lib
-!elseif "$(TARGET)" == "epvmss.exe"
-CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
-CFLAGSTARGETPOST = 
-CRTFLAGSW = /MD
-CRTFLAGSH = /MDd
-CRTFLAGSC = /MDd
-LINKFLAGSWHITE = msvcrt.lib
-LINKFLAGSHOT = msvcrtd.lib
-LINKFLAGSCOOL = msvcrtd.lib
-!elseif "$(TARGET)" == "replaysw.exe"
-CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
-CFLAGSTARGETPOST = 
-CRTFLAGSW = /MD
-CRTFLAGSH = /MDd
-CRTFLAGSC = /MDd
-LINKFLAGSWHITE = msvcrt.lib
-LINKFLAGSHOT = msvcrtd.lib
-LINKFLAGSCOOL = msvcrtd.lib
+
 !elseif "$(TARGET)" == "mmdw.lib"
 # /Oy- is actually 86-specific, but Dylan is only built for that platform
 CFLAGSTARGETPRE = /DCONFIG_PROD_DYLAN 
@@ -132,15 +112,25 @@ LINKFLAGSWHITE = libcmt.lib
 LINKFLAGSHOT = libcmt.lib
 LINKFLAGSCOOL = libcmt.lib
 
+!elseif "$(TARGET)" == "mps_conf.lib" || "$(TARGET)" == "amcsshe.exe"
+CFLAGSTARGETPRE = /DCONFIG_PROD_CONFIGURA
+CFLAGSTARGETPOST =
+CRTFLAGSW = /ML
+CRTFLAGSH = /ML
+CRTFLAGSC = /MLd
+LINKFLAGSWHITE = libc.lib
+LINKFLAGSHOT = libc.lib
+LINKFLAGSCOOL = libcd.lib
+
 !else
 CFLAGSTARGETPRE = /DCONFIG_PROD_MPS
 CFLAGSTARGETPOST =
 CRTFLAGSW = /MT
 CRTFLAGSH = /MT
-CRTFLAGSC = /MT
+CRTFLAGSC = /MTd
 LINKFLAGSWHITE = libcmt.lib
 LINKFLAGSHOT = libcmt.lib
-LINKFLAGSCOOL = libcmt.lib
+LINKFLAGSCOOL = libcmtd.lib
 !endif
 !endif
 
@@ -154,7 +144,7 @@ CFLAGSINTERNAL = /Z7
 CFLAGSEXTERNAL = 
 
 # The combinations of variety
-# @@@@ TI is a temporary telemetry variety
+# %%VARIETY: Define a macro containing the set of flags for the new variety.
 CFWE = /DCONFIG_VAR_WE $(CRTFLAGSW)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
 CFWI = /DCONFIG_VAR_WI $(CRTFLAGSW)  $(CFLAGSHOT)  $(CFLAGSINTERNAL)
 CFHE = /DCONFIG_VAR_HE $(CRTFLAGSH)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
