@@ -913,7 +913,6 @@ search multiple buffers.  There is also a new command
 buffers to search by their filename.  Internally, Occur mode has been
 rewritten, and now uses font-lock, among other changes.
 
-+++
 ** The default values of paragraph-start and indent-line-function have
 been changed to reflect those used in Text mode rather than those used
 in Indented-Text mode.
@@ -931,6 +930,7 @@ commands now allow `\?' in the replacement string to specify a
 position where the replacement string can be edited for each
 replacement.
 
++++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
 can optionally enable mouse highlighting only after you move the
