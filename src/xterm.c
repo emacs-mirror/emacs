@@ -10884,7 +10884,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			int area;
 
 			window = window_from_coordinates (f,
-							  XINT (event.xmotion.x), XINT (event.xmotion.y),
+							  event.xmotion.x, event.xmotion.y,
 							  &area, 0);
 
 			/* Window will be selected only when it is not selected now and
