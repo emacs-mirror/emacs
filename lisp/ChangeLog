@@ -1,10 +1,29 @@
+2003-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Delete space *after*
+	reindenting the first line.
+
 2003-10-25  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (widget-default-delete): Always delete child widgets.
 
+2003-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-indent): Don't call indent-according-to-mode
+	if the line has code.
+	Don't try to line up with something that's too far left.
+
+	* progmodes/octave-mod.el (octave-comment-start): Simplify.
+	(octave-mode-syntax-table): Add % as a comment starter.
+	(octave-point): Remove.
+	(octave-in-comment-p, octave-in-string-p)
+	(octave-not-in-string-or-comment-p, calculate-octave-indent)
+	(octave-blink-matching-block-open, octave-auto-fill):
+	Use line-(beginning|end)-position instead.
+
 2003-10-23  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* emacs-lisp/authors.el (authors-aliases): Added correct realname
+	* emacs-lisp/authors.el (authors-aliases): Add correct realname
 	for Francesco Potort,Al(B.
 
 2003-10-23  Dave Love  <fx@gnu.org>
@@ -20,7 +39,7 @@
 
 	* gdb-ui.el (gdb-current-language): New variable.
 	(gdb-update-flag): Remove variable.
-	(gud-watch,gdb-frame-handler): Adapt for other languages (Fortran).
+	(gud-watch, gdb-frame-handler): Adapt for other languages (Fortran).
 	(gdb-take-last-elt): Remove function.
 	(gdb-dequeue-input): Avoid recursion by not using gdb-take-last-elt.
 	(gdb-post-prompt): Check for variable object changes here.
