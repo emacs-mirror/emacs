@@ -280,7 +280,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   (let ((folder mh-current-folder)
 	(clean-message-header mh-clean-message-header)
 	(show-window (get-buffer-window mh-show-buffer)))
-    (if (not (eql (next-window (minibuffer-window)) (selected-window)))
+    (if (not (eq (next-window (minibuffer-window)) (selected-window)))
 	(delete-other-windows))		; force ourself to the top window
     (mh-in-show-buffer (mh-show-buffer)
       (if (and show-window
@@ -434,8 +434,8 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   ;; Like recenter but with two improvements: nil arg means recenter,
   ;; and only does anything if the current buffer is in the selected
   ;; window.  (Commands like save-some-buffers can make this false.)
-  (if (eql (get-buffer-window (current-buffer))
-	   (selected-window))
+  (if (eq (get-buffer-window (current-buffer))
+	  (selected-window))
       (recenter (if arg arg '(t)))))
 
 
@@ -714,7 +714,7 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
 	   (setq read-name (format "+%s" read-name))))
     (setq folder-name read-name)
     (cond ((and (> (length folder-name) 0)
-		(eql (aref folder-name (1- (length folder-name))) ?/))
+		(eq (aref folder-name (1- (length folder-name))) ?/))
 	   (setq folder-name (substring folder-name 0 -1))))
     (let ((new-file-p (not (file-exists-p (mh-expand-file-name folder-name)))))
       (cond ((and new-file-p
@@ -816,9 +816,9 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
   ;; Return non-NIL if NAME is possibly the name of a folder.
   ;; A name (a string or symbol) can be a folder name if it begins with "+".
   (if (symbolp name)
-      (eql (aref (symbol-name name) 0) ?+)
+      (eq (aref (symbol-name name) 0) ?+)
     (and (> (length name) 0)
-	 (eql (aref name 0) ?+))))
+	 (eq (aref name 0) ?+))))
 
 
 ;;; Issue commands to MH.
@@ -924,7 +924,7 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
   ;; STATUS is return value from call-process.
   ;; Program output is in current buffer.
   ;; If output is too long to include in error message, display the buffer.
-  (cond ((eql status 0)			;success
+  (cond ((eq status 0)			;success
 	 status)
 	((stringp status)		;kill string
 	 (error "%s: %s" command status))
