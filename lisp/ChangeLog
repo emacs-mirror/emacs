@@ -1,7 +1,15 @@
+2004-05-30  Juanma Barranquero  <lektu@terra.es>
+
+	* dos-fns.el (convert-standard-filename):
+	* files.el (convert-standard-filename):
+	* w32-fns.el (convert-standard-filename):
+	Rework docstring (wording by Eli Zaretskii and Kai Grossjohann).
+
 2004-05-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
 	Sync with Tramp.
 
-	* net/tramp.el (tramp-let-maybe): ReportReverse args of `get'.
+	* net/tramp.el (tramp-let-maybe): Reverse args of `get'.
 	(tramp-let-maybe): Move to an earlier spot in the file.  Patch by
 	Andreas Schwab.
 
