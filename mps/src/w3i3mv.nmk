@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.49) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.50) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -10,7 +10,7 @@ PFMDEFS = /DWIN32 /D_WINDOWS
 MPM = <assert> <ring> <mpm> <bt> \
       <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
-      <ref> <trace> <protw3> <shield> <vmw3> \
+      <ref> <trace> <protw3> <prmcw3i3> <shield> <vmw3> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <action> <seg> <poolmrg> <message>
 SW  = <assert> <ring> <mpm> <bt> \
