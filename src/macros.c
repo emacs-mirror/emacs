@@ -119,8 +119,8 @@ macro before appending to it. */)
 	{
 	  Lisp_Object c;
 	  c = Faref (current_kboard->Vlast_kbd_macro, make_number (i));
-	  if (cvt && INTEGERP (c) && (XINT (c) & 0x80))
-	    c = XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
+	  if (cvt && NATNUMP (c) && (XFASTINT (c) & 0x80))
+	    XSETFASTINT (c, CHAR_META | (XFASTINT (c) & ~0x80));
 	  current_kboard->kbd_macro_buffer[i] = c;
 	}
 
