@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4748,13 +4748,13 @@ sweep_weak_table (h, remove_entries_p)
 		  /* Make sure key and value survive.  */
 		  if (!key_known_to_survive_p)
 		    {
-		      mark_object (&HASH_KEY (h, i));
+		      mark_object (HASH_KEY (h, i));
 		      marked = 1;
 		    }
 
 		  if (!value_known_to_survive_p)
 		    {
-		      mark_object (&HASH_VALUE (h, i));
+		      mark_object (HASH_VALUE (h, i));
 		      marked = 1;
 		    }
 		}
