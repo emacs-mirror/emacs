@@ -1,3 +1,18 @@
+2001-07-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_get_glyph_string_clip_rect): Minor cleanup.
+
+	* dispnew.c (shift_glyph_matrix, blank_row): Fix computation
+	of row's visible height.
+
+	* xdisp.c (init_from_display_pos): If POS is in an overlay string,
+	deal with the first overlay string having an image `display'
+	property.
+	(try_window_reusing_current_matrix, compute_line_metrics): Fix
+	compuation of row's visible height for the case that part of the
+	row is invisible above and part of the row is at the same time
+	invisible below the window.
+
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x-show-tip): Doc fix.
