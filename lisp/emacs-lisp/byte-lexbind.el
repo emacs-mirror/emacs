@@ -120,7 +120,7 @@ where:
 	    ;; Find the bound variables
 	    (dolist (clause (cadr form))
 	      (let ((var (if (consp clause) (car clause) clause)))
-		(unless (memq var special)
+		(unless (or (specialp var) (memq var special))
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
 	    (unless (null (byte-compile-lforminfo-vars lforminfo))
@@ -134,7 +134,7 @@ where:
 		(when (and (consp clause) lforminfo)
 		  (byte-compile-lforminfo-analyze lforminfo (cadr clause)
 						  special nil))
-		(unless (memq var special)
+		(unless (or (specialp var) (memq var special))
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
 	    (unless (null (byte-compile-lforminfo-vars lforminfo))

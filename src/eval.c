@@ -3359,6 +3359,17 @@ usage: (curry FUN &rest ARGS)  */)
   return Fvector (nargs, args);
 }
 
+DEFUN ("specialp", Fspecialp, Sspecialp, 1, 1, 0,
+       doc: /* Return non-nil if SYMBOL's global binding has been declared special.
+A special variable is one that will be bound dynamically, even in a
+context where binding is lexical by default.  */)
+  (symbol)
+     Lisp_Object symbol;
+{
+   CHECK_SYMBOL (symbol);
+   return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
+}
+
 
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
@@ -3685,6 +3696,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
   defsubr (&Scurry);
+  defsubr (&Sspecialp);
   defsubr (&Sfunctionp);
 }
 

@@ -1,3 +1,8 @@
+2004-04-10  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-compute-lforminfo):
+	Look at variable's global specialp state too.
+
 2004-04-09  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Default

@@ -1,3 +1,8 @@
+2004-04-10  Miles Bader  <miles@gnu.org>
+
+	* eval.c (Fspecialp): New function.
+	(syms_of_eval): Initialize it.
+
 2004-04-03  Miles Bader  <miles@gnu.org>
 
 	* eval.c (Feval): If a variable isn't bound lexically, fall back
