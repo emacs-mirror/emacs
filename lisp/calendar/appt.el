@@ -44,8 +44,7 @@
 ;;; pending appointment based on their diary file.
 ;;;
 ;;;
-;;; ******* It is necessary to invoke 'display-time' ********
-;;; *******  and 'diary' for this to work properly.  ********
+;;; ******* It is necessary to invoke 'diary' for this to work properly.  ****
 ;;; 
 ;;; A message will be displayed in the mode line of the emacs buffer
 ;;; and (if the user desires) the terminal will beep and display a message
@@ -60,14 +59,16 @@
 ;;; In order to use, the following should be in your .emacs file in addition to
 ;;; creating a diary file and invoking calendar:
 ;;;
-;;;    Set some options
-;;; (setq view-diary-entries-initially t)
-;;; (setq appt-issue-message t)
+;;; To enable appointment reminders, the following lines are required:
+;;;   (add-hook 'diary-hook 'appt-make-list)
+;;;   (let ((diary-display-hook 'ignore))
+;;;     (diary))
+;;; You can replace the last two with just (diary)
+;;; if you want to display the diary as well.
 ;;;
-;;;   The following three lines are required:
-;;; (display-time)
-;;; (add-hook 'diary-hook 'appt-make-list)
-;;;
+;;; Before that, you can also set some options if you want
+;;;   (setq view-diary-entries-initially t)
+;;;   (setq appt-issue-message t)
 ;;; 
 ;;;  This is an example of what can be in your diary file:
 ;;; Monday
@@ -173,6 +174,12 @@ This will occur at midnight when the appointment list is updated."
   :type 'boolean
   :group 'appt)
 
+(defcustom appt-interval 60
+  "*Interval in seconds between checking for appointments."
+  :type 'integer
+  :group 'appt
+  :version "20.3")
+
 (defvar appt-time-msg-list nil
   "The list of appointments for today.
 Use `appt-add' and `appt-delete' to add and delete appointments from list.
@@ -196,6 +203,9 @@ The number before each time/message is the time in minutes from midnight.")
 (defvar appt-delete-window-function 'appt-delete-window
   "Function called to remove appointment window and buffer.")
 
+(defvar appt-mode-string nil
+  "String to display in the mode line for an appointment.")
+
 (defun appt-check ()
   "Check for an appointment and update the mode line.
 Note: the time must be the first thing in the line in the diary
@@ -212,46 +222,43 @@ Example:
 
 The following variables control the action of the notification:
 
-appt-issue-message
-	If T, the diary buffer is checked for appointments.
+`appt-issue-message'
+	If t, the diary buffer is checked for appointments.
 
-appt-message-warning-time
+`appt-message-warning-time'
 	Variable used to determine if appointment message
 	should be displayed.
 
-appt-audible
+`appt-audible'
 	Variable used to determine if appointment is audible.
 	Default is t.
 
-appt-visible
+`appt-visible'
 	Variable used to determine if appointment message should be
-	displayed in the mini-buffer. Default is t.
+	displayed in the mini-buffer.  Default is t.
 
-appt-msg-window
+`appt-msg-window'
 	Variable used to determine if appointment message
-	should temporarily appear in another window. Mutually exclusive
-	to appt-visible.
+	should temporarily appear in another window.  Mutually exclusive
+	to `appt-visible'.
 
-appt-display-duration
+`appt-display-duration'
 	The number of seconds an appointment message
 	is displayed in another window.
 
-appt-display-interval
+`appt-display-interval'
 	The number of minutes to wait between checking the appointments
 	list.
 
-appt-disp-window-function 
-    	Function called to display appointment window. You can customize
+`appt-disp-window-function '
+    	Function called to display appointment window.  You can customize
 	appt.el by setting this variable to a function different from the
 	one provided with this package.
   
-appt-delete-window-function 
+`appt-delete-window-function '
     	Function called to remove appointment window and buffer.  You can
 	customize appt.el by setting this variable to a function different
-	from the one provided with this package.
-
-This function is run from the loadst process for display time.
-Therefore, you need to have `(display-time)' in your .emacs file."
+	from the one provided with this package."
 
 
   (if (or (= appt-display-interval 1)
@@ -314,55 +321,39 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 		  ;; issue warning if the appointment time is 
 		  ;; within appt-message-warning time
 
-		  (if (and (<= min-to-app appt-message-warning-time)
-			   (>= min-to-app 0))
-		      (progn
-			(if appt-msg-window
-			    (progn
-			      (string-match
-			       "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
-			       display-time-string)
-
-			      (setq new-time (substring display-time-string 
-							(match-beginning 0)
-							(match-end 0)))
-			      (funcall
-			       appt-disp-window-function
-			       min-to-app new-time
-			       (car (cdr (car appt-time-msg-list))))
+		  (when (and (<= min-to-app appt-message-warning-time)
+			     (>= min-to-app 0))
+		    (if appt-msg-window
+			(progn
+			  (setq new-time (format-time-string "%a %b %e "
+							     (current-time)))
+			  (funcall
+			   appt-disp-window-function
+			   min-to-app new-time
+			   (car (cdr (car appt-time-msg-list))))
 			      
-			      (run-at-time
-			       (format "%d sec" appt-display-duration)
-			       nil
-			       appt-delete-window-function))
+			  (run-at-time
+			   (format "%d sec" appt-display-duration)
+			   nil
+			   appt-delete-window-function))
 			  ;;; else
 
-			  (if appt-visible
-			      (message "%s" 
-				       (car (cdr (car appt-time-msg-list)))))
+		      (if appt-visible
+			  (message "%s" 
+				   (car (cdr (car appt-time-msg-list)))))
 
-			  (if appt-audible
-			      (beep 1)))
+		      (if appt-audible
+			  (beep 1)))
 
-			(if appt-display-mode-line
-			    (progn
-			      (string-match
-			       "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" 
-			       display-time-string)
+		    (when appt-display-mode-line
+		      (setq appt-mode-string
+			    (concat  "App't in " min-to-app " min. "))
+		      (force-mode-line-update t)
+		      (sit-for 0))
 
-			      (setq new-time (substring display-time-string 
-							(match-beginning 0)
-							(match-end 0)))
-			      (setq display-time-string
-				    (concat  "App't in "
-					     min-to-app " min. " new-time " "))
-
-			      (force-mode-line-update t)
-			      (sit-for 0)))
-
-			(if (= min-to-app 0)
-			    (setq appt-time-msg-list
-				  (cdr appt-time-msg-list))))))))))))
+		    (if (= min-to-app 0)
+			(setq appt-time-msg-list
+			      (cdr appt-time-msg-list)))))))))))
 
 
 ;; Display appointment message in a separate buffer.
@@ -392,6 +383,7 @@ Therefore, you need to have `(display-time)' in your .emacs file."
     (setq mode-line-format 
 	  (concat "-------------------- Appointment in "
 		  min-to-app " minutes. " new-time " %-"))
+    (erase-buffer)
     (insert-string appt-msg)
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
@@ -612,7 +604,14 @@ The time should be in either 24 hour format or am/pm format."
     (setq conv-time (+ (* hr 60) min))
     conv-time))
 
-(add-hook 'display-time-hook 'appt-check)
+(defvar appt-timer nil
+  "Timer used for diary appointment notifications (`appt-check').")
+
+(setq appt-timer (run-at-time t appt-interval 'appt-check))
+
+(or global-mode-string (setq global-mode-string '("")))
+(or (memq 'appt-mode-string global-mode-string)
+    (setq global-mode-string
+	  (append global-mode-string '(appt-mode-string))))
 
 ;;; appt.el ends here
-
