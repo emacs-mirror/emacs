@@ -1,3 +1,8 @@
+2002-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fminibuffer_selected_window): New function.
+	(syms_of_window): Defsubr it.
+
 2002-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* window.h (struct window): New member phys_cursor_width.
