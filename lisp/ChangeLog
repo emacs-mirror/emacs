@@ -1,3 +1,9 @@
+2000-01-09 Sun  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* add-log.el (add-log-current-defun): Call
+	`add-log-current-defun-function'.  Try matches at level 0 and
+	level 1.  Strip whitespace from defun found.
+	
 2000-01-10  John Wiegley  <johnw@gnu.org>
 
 	* allout.el (isearch-done/outline-provisions): Added `edit'
