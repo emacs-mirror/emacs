@@ -1,3 +1,11 @@
+2003-08-11  Karl Fogel  <kfogel@red-bean.com>
+
+	* menu-bar.el (menu-bar-options-menu): Supply a body for the
+	[save-place] binding in the Options menu.  Have it require
+	'saveplace' and then toggle the variable manually, to avoid an an
+	unbound variable error.  Thanks to <Sebastien.Kirche@sage.com>
+	for the bug report.
+
 2003-08-11  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-insert-field, gdb-array-format1)

@@ -870,7 +870,12 @@ PROPS are additional properties."
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
 			"Saving place in files %s"
-			"Visit files of previous session when restarting Emacs"))
+			"Visit files of previous session when restarting Emacs"
+                        (require 'saveplace)
+                        ;; Do it by name, to avoid a free-variable
+                        ;; warning during byte compilation.
+                        (set-default
+                         'save-place (not (symbol-value 'save-place)))))
 
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
