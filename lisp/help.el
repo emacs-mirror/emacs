@@ -1523,7 +1523,7 @@ out of view."
      (funcall . "(funcall FUNCTION &rest ARGUMENTS)")
      (append . "(append &rest SEQUENCES)")
      (concat . "(concat &rest SEQUENCES)")
-     (vconcat . "(vconcat vconcat)")
+     (vconcat . "(vconcat &rest SEQUENCES)")
      (nconc . "(nconc &rest LISTS)")
      (widget-apply . "(widget-apply WIDGET PROPERTY &rest ARGS)")
      (make-hash-table . "(make-hash-table &rest KEYWORD-ARGS)")
