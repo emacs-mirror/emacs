@@ -580,20 +580,29 @@ argument causes us to read a file name and use that file as the inbox."
 ;; the  rmail-break-forwarded-messages  feature is not implemented
 (defun rmail-convert-to-babyl-format ()
   (let ((count 0) start
-	(case-fold-search nil))
+	(case-fold-search nil)
+	(invalid-input-resync
+	 (function (lambda ()
+		     (message "Invalid Babyl format in inbox!")
+		     (sit-for 1)
+		     ;; Try to get back in sync with a real message.
+		     (if (re-search-forward
+			  (concat mmdf-delim1 "\\|^From") nil t)
+			 (beginning-of-line)
+		       (goto-char (point-max)))))))
     (goto-char (point-min))
     (save-restriction
       (while (not (eobp))
 	(cond ((looking-at "BABYL OPTIONS:");Babyl header
-	       (search-forward "\n\^_")
-	       (delete-region (point-min) (point)))
+	       (if (search-forward "\n\^_" nil t)
+		   ;; If we find the proper terminator, delete through there.
+		   (delete-region (point-min) (point))
+		 (funcall invalid-input-resync)
+		 (delete-region (point-min) (point)))
 	      ;; Babyl format message
 	      ((looking-at "\^L")
 	       (or (search-forward "\n\^_" nil t)
-		   (progn
-		     (message "Invalid Babyl format in inbox!")
-		     (sit-for 1)
-		     (goto-char (point-max))))
+		   (funcall invalid-input-resync))
 	       (setq count (1+ count))
 	       ;; Make sure there is no extra white space after the ^_
 	       ;; at the end of the message.
