@@ -61,7 +61,8 @@
 
 ;;; Code:
 
-(require 'browse-url)
+(require 'thingatpt)
+(autoload 'browse-url-url-at-point "browse-url")
 
 (defgroup goto-address nil
   "Click to browse URL or to send to e-mail address."
@@ -71,13 +72,13 @@
 
 ;;; I don't expect users to want fontify'ing without highlighting.
 (defcustom goto-address-fontify-p t
-  "*If t, URLs and e-mail addresses in buffer are fontified.
+  "*Non-nil means URLs and e-mail addresses in buffer are fontified.
 But only if `goto-address-highlight-p' is also non-nil."
   :type 'boolean
   :group 'goto-address)
 
 (defcustom goto-address-highlight-p t
-  "*If t, URLs and e-mail addresses in buffer are highlighted."
+  "*Non-nil means URLs and e-mail addresses in buffer are highlighted."
   :type 'boolean
   :group 'goto-address)
 
@@ -90,11 +91,11 @@ But only if `goto-address-highlight-p' is also non-nil."
   "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
-(defvar goto-address-url-regexp
-  (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
-	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
-	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
-	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
+(defvar goto-address-url-regexp thing-at-point-url-regexp
+;;;   (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
+;;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
+;;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
+;;; 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
   "A regular expression probably matching a URL.")
 
 (defvar goto-address-highlight-keymap
@@ -105,22 +106,22 @@ But only if `goto-address-highlight-p' is also non-nil."
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
 (defcustom goto-address-url-face 'bold
-  "*Face to use for URLs."
+  "Face to use for URLs."
   :type 'face
   :group 'goto-address)
 
 (defcustom goto-address-url-mouse-face 'highlight
-  "*Face to use for URLs when the mouse is on them."
+  "Face to use for URLs when the mouse is on them."
   :type 'face
   :group 'goto-address)
 
 (defcustom goto-address-mail-face 'italic
-  "*Face to use for e-mail addresses."
+  "Face to use for e-mail addresses."
   :type 'face
   :group 'goto-address)
 
 (defcustom goto-address-mail-mouse-face 'secondary-selection
-  "*Face to use for e-mail addresses when the mouse is on them."
+  "Face to use for e-mail addresses when the mouse is on them."
   :type 'face
   :group 'goto-address)
 
@@ -160,7 +161,7 @@ and `goto-address-fontify-p'."
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
 		(overlay-put this-overlay
-			     'help-echo "mouse-2: follow URL")
+			     'help-echo "mouse-2: mail this address")
                 (overlay-put this-overlay
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t))))))))
@@ -176,17 +177,8 @@ Send mail to address at position of mouse click.  See documentation for
 there, then load the URL at or before the position of the mouse click."
   (interactive "e")
   (save-excursion
-    (let ((posn (event-start event)))
-      (set-buffer (window-buffer (posn-window posn)))
-      (goto-char (posn-point posn))
-      (let ((address
-	     (save-excursion (goto-address-find-address-at-point))))
-	(if (string-equal address "")
-	    (let ((url (browse-url-url-at-point)))
-	      (if (string-equal url "")
-		  (error "No e-mail address or URL found")
-		(browse-url url)))
-            (compose-mail address))))))
+    (mouse-set-point event)
+    (goto-address-at-point)))
 
 ;;;###autoload
 (defun goto-address-at-point ()
@@ -197,25 +189,23 @@ there, then load the URL at or before point."
   (interactive)
   (save-excursion
     (let ((address (save-excursion (goto-address-find-address-at-point))))
-      (if (string-equal address "")
-	  (let ((url (browse-url-url-at-point)))
-	    (if (string-equal url "")
-		(error "No e-mail address or URL found")
-	      (browse-url url)))
-          (compose-mail address)))))
+      (if address
+	  (compose-mail address)
+	(let ((url (browse-url-url-at-point)))
+	  (if url
+	      (browse-url url)
+	    (error "No e-mail address or URL found")))))))
 
 (defun goto-address-find-address-at-point ()
   "Find e-mail address around or before point.
 Then search backwards to beginning of line for the start of an e-mail
-address.  If no e-mail address found, return the empty string."
-  (let ((bol (save-excursion (beginning-of-line) (point))))
-    (re-search-backward "[^-_A-z0-9.@]" bol 'lim)
-    (if (or (looking-at goto-address-mail-regexp)  ; already at start
-	    (let ((eol (save-excursion (end-of-line) (point))))
-	      (and (re-search-forward goto-address-mail-regexp eol 'lim)
-		   (goto-char (match-beginning 0)))))
-	(buffer-substring (match-beginning 0) (match-end 0))
-      "")))m
+address.  If no e-mail address found, return nil."
+  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (if (or (looking-at goto-address-mail-regexp)	; already at start
+	  (and (re-search-forward goto-address-mail-regexp
+				  (line-end-position) 'lim)
+	       (goto-char (match-beginning 0))))
+      (match-string-no-properties 0)))
 
 ;;;###autoload
 (defun goto-address ()
