@@ -113,9 +113,6 @@ choose_minibuf_frame ()
   if (selected_frame != 0
       && !EQ (minibuf_window, selected_frame->minibuffer_window))
     {
-#if defined(MSDOS) && !defined(HAVE_X_WINDOWS) && !defined(MULTI_FRAME)
-      selected_frame->minibuffer_window = minibuf_window;
-#else
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
       if (NILP (selected_frame->minibuffer_window))
@@ -124,7 +121,6 @@ choose_minibuf_frame ()
       Fset_window_buffer (selected_frame->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
       minibuf_window = selected_frame->minibuffer_window;
-#endif
     }
 }
 
