@@ -725,7 +725,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   bsize = SBYTES (string);
   bufp = buf = (unsigned char *) xmalloc (bsize);
 
-  strp = (unsigned char *) SDATA (string);
+  strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))
     {
       if (strp[0] == '\\' && strp[1] == '=')
@@ -761,7 +761,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  start = strp;
 	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) SDATA (string)
+	  while ((strp - SDATA (string)
 		  < SBYTES (string))
 		 && *strp != ']')
 	    strp++;
@@ -770,7 +770,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;		/* skip ] */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) SDATA (string);
+	  idx = strp - SDATA (string);
 	  tem = Fintern (make_string (start, length_byte), Qnil);
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
@@ -821,8 +821,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  start = strp;
 	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) SDATA (string)
-		  < SCHARS (string))
+	  while ((strp - SDATA (string) < SCHARS (string))
 		 && *strp != '}' && *strp != '>')
 	    strp++;
 
@@ -830,7 +829,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;			/* skip } or > */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) SDATA (string);
+	  idx = strp - SDATA (string);
 
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
