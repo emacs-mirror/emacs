@@ -1,5 +1,5 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (c) 1991,1993 Free Software Foundation, Inc.
+   Copyright (c) 1991, 1993, 1996 Free Software Foundation, Inc.
    Written by Jonathan Kamens, jik@security.ov.com.
 
 This file is part of GNU Emacs.
@@ -37,8 +37,17 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include <sys/types.h>
+#ifdef WINDOWSNT
+#include "ntlib.h"
+#include <winsock.h>
+#undef SOCKET_ERROR
+#else
 #include <netinet/in.h>
 #include <sys/socket.h>
+#define recv(s,buf,len,flags) read(s,buf,len)
+#define send(s,buf,len,flags) write(s,buf,len)
+#define closesocket close
+#endif
 #include <pop.h>
 
 #ifdef sun
@@ -88,8 +97,10 @@ extern char *krb_realmofhost (/* char * */);
 #endif /* ! KRB5 */
 #endif /* KERBEROS */
 
+#ifndef WINDOWSNT
 #if !defined(HAVE_H_ERRNO) || !defined(HAVE_CONFIG_H)
 extern int h_errno;
+#endif
 #endif
 
 static int socket_connection (/* char *, int */);
@@ -106,7 +117,11 @@ static char *find_crlf (/* char * */);
 #define ERROR_MAX 80		/* a pretty arbitrary size */
 #define POP_PORT 110
 #define KPOP_PORT 1109
+#ifdef WINDOWSNT
+#define POP_SERVICE "pop3"	/* we don't want the POP2 port! */
+#else
 #define POP_SERVICE "pop"
+#endif
 #ifdef KERBEROS
 #ifdef KRB5
 #define KPOP_SERVICE "k5pop";
@@ -269,6 +284,7 @@ pop_open (host, username, password, flags)
   server->buffer_index = 0;
   server->buffer_size = GETLINE_MIN;
   server->in_multi = 0;
+  server->trash_started = 0;
 
   if (getok (server))
     return (0);
@@ -939,6 +955,10 @@ pop_quit (server)
   return (ret);
 }
 
+#ifdef WINDOWSNT
+static int have_winsock = 0;
+#endif
+
 /*
  * Function: socket_connection
  *
@@ -981,6 +1001,14 @@ socket_connection (host, flags)
 #endif /* KERBEROS */
 
   int try_count = 0;
+
+#ifdef WINDOWSNT
+  {
+    WSADATA winsockData;
+    if (WSAStartup (0x101, &winsockData) == 0)
+      have_winsock = 1;
+  }
+#endif
 
   do
     {
@@ -1056,7 +1084,7 @@ socket_connection (host, flags)
      
   if (! *hostent->h_addr_list)
     {
-      (void) close (sock);
+      (void) closesocket (sock);
       strcpy (pop_error, CONNECT_ERROR);
       strncat (pop_error, strerror (errno),
 	       ERROR_MAX - sizeof (CONNECT_ERROR));
@@ -1077,7 +1105,7 @@ socket_connection (host, flags)
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, error_message (rem),
 		   ERROR_MAX - sizeof(KRB_ERROR));
-	  (void) close (sock);
+	  (void) closesocket (sock);
 	  return (-1);
 	}
 
@@ -1134,7 +1162,7 @@ socket_connection (host, flags)
 	  if (err_ret)
 	    krb5_free_error (err_ret);
 
-	  (void) close (sock);
+	  (void) closesocket (sock);
 	  return (-1);
 	}
 #else  /* ! KRB5 */	  
@@ -1151,7 +1179,7 @@ socket_connection (host, flags)
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, krb_err_txt[rem],
 		   ERROR_MAX - sizeof (KRB_ERROR));
-	  (void) close (sock);
+	  (void) closesocket (sock);
 	  return (-1);
 	}
 #endif /* KRB5 */
@@ -1243,8 +1271,8 @@ getline (server)
 	      return (0);
 	    }
 	}
-      ret = read (server->file, server->buffer + server->data,
-		  server->buffer_size - server->data - 1);
+      ret = recv (server->file, server->buffer + server->data,
+		  server->buffer_size - server->data - 1, 0);
       if (ret < 0)
 	{
 	  strcpy (pop_error, GETLINE_ERROR);
@@ -1349,7 +1377,7 @@ fullwrite (fd, buf, nbytes)
   int ret;
 
   cp = buf;
-  while ((ret = write (fd, cp, nbytes)) > 0)
+  while ((ret = send (fd, cp, nbytes, 0)) > 0)
     {
       cp += ret;
       nbytes -= ret;
@@ -1468,10 +1496,16 @@ pop_trash (server)
 {
   if (server->file >= 0)
     {
+#ifdef WINDOWSNT
+      /* avoid recursion; sendline can call pop_trash */
+      if (server->trash_started)
+	return;
+      server->trash_started = 1;
+#endif
       sendline (server, "RSET");
       sendline (server, "QUIT");
 
-      close (server->file);
+      closesocket (server->file);
       server->file = -1;
       if (server->buffer)
 	{
@@ -1479,6 +1513,11 @@ pop_trash (server)
 	  server->buffer = 0;
 	}
     }
+
+#ifdef WINDOWSNT
+  if (have_winsock)
+    WSACleanup ();
+#endif
 }
 
 /* Return a pointer to the first CRLF in IN_STRING,
