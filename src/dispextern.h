@@ -974,7 +974,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
    or a control char, or an overlay string.  */
 
 #define MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P(ROW)	\
-     ((ROW)->end.dpvec_index >= 0			\
+     ((ROW)->end.dpvec_index > 0			\
       || (ROW)->end.overlay_string_index >= 0		\
       || (ROW)->ends_in_middle_of_char_p)
 
@@ -986,7 +986,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 /* Non-zero if ROW starts in the middle of a character.  See above.  */
 
 #define MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P(ROW)	\
-     ((ROW)->start.dpvec_index >= 0			\
+     ((ROW)->start.dpvec_index > 0			\
       || (ROW)->starts_in_middle_of_char_p		\
       || ((ROW)->start.overlay_string_index >= 0	\
 	  && (ROW)->start.string_pos.charpos > 0))
