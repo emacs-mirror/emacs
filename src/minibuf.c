@@ -333,7 +333,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
        >= XFASTINT (XWINDOW (minibuf_window)->top))
       && !noninteractive)
     {
-      FRAME_CURSOR_X (selected_frame) = 0;
+      FRAME_CURSOR_X (selected_frame)
+	= FRAME_LEFT_SCROLL_BAR_WIDTH (selected_frame);
       update_frame (selected_frame, 1, 1);
     }
 
