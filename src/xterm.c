@@ -4059,6 +4059,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		else if (event.type == ButtonPress)
 		  {
 		    last_mouse_press_frame = Qnil;
+		    goto OTHER;
 		  }
 #ifdef USE_MOTIF /* This should do not harm for Lucid,
 		    but I am trying to be cautious.  */
@@ -4072,6 +4073,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			    SET_SAVED_BUTTON_EVENT;
 			  }
 		      }
+		    else 
+		      goto OTHER;
 		  }
 #endif /* USE_MOTIF */
 		else
