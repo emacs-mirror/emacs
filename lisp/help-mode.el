@@ -76,13 +76,39 @@ The format is (FUNCTION ARGS...).")
 		(button-get button 'help-function)
 		(button-get button 'help-args)))
 
-;; Make some button types that all use the same naming conventions
-(dolist (help-type '("function" "variable" "face"
-		     "coding-system" "input-method" "character-set"))
-  (define-button-type (intern (purecopy (concat "help-" help-type)))
-    :supertype 'help-xref
-    'help-function (intern (concat "describe-" help-type))
-    'help-echo (purecopy (concat "mouse-2, RET: describe this " help-type))))
+;; These 6 calls to define-button-type were generated in a dolist
+;; loop, but that is bad because it means these button types don't
+;; have an easily found definition.
+
+(define-button-type 'help-function
+  :supertype 'help-xref
+  'help-function 'describe-function
+  'help-echo (purecopy "mouse-2, RET: describe this function"))
+
+(define-button-type 'help-variable
+  :supertype 'help-xref
+  'help-function 'describe-variable
+  'help-echo (purecopy "mouse-2, RET: describe this variable"))
+
+(define-button-type 'help-face
+  :supertype 'help-xref
+  'help-function 'describe-face
+  'help-echo (purecopy "mouse-2, RET: describe this face"))
+
+(define-button-type 'help-coding-system
+  :supertype 'help-xref
+  'help-function 'describe-coding-system
+  'help-echo (purecopy "mouse-2, RET: describe this coding system"))
+
+(define-button-type 'help-input-method
+  :supertype 'help-xref
+  'help-function 'describe-input-method
+  'help-echo (purecopy "mouse-2, RET: describe this input method"))
+
+(define-button-type 'help-character-set
+  :supertype 'help-xref
+  'help-function 'describe-character-set
+  'help-echo (purecopy "mouse-2, RET: describe this character set"))
 
 ;; make some more ideosyncratic button types
 
