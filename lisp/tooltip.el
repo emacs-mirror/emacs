@@ -84,10 +84,14 @@ Do so after `tooltip-short-delay'."
 
 
 (defcustom tooltip-x-offset nil
-  "Specify an X offset for the display of tooltips.
+  "Specify an X offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
-when it pops up."
+when it pops up.  If the value is nil, the default offset is 5
+pixels.
+
+If `tooltip-frame-parameters' includes the `left' parameter,
+the value of `tooltip-x-offset' is ignored."
   :tag "X offset"
   :type '(choice (const :tag "Default" nil)
 		 (integer :tag "Offset" :value 1))
@@ -95,10 +99,14 @@ when it pops up."
 
 
 (defcustom tooltip-y-offset nil
-  "Specify an Y offset for the display of tooltips.
+  "Specify a Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
-when it pops up."
+when it pops up.  If the value is nil, the default offset is -10
+pixels.
+
+If `tooltip-frame-parameters' includes the `top' parameter,
+the value of `tooltip-y-offset' is ignored."
   :tag "Y offset"
   :type '(choice (const :tag "Default" nil)
 		 (integer :tag "Offset" :value 1))
@@ -109,7 +117,10 @@ when it pops up."
   '((name . "tooltip")
     (internal-border-width . 5)
     (border-width . 1))
-  "Frame parameters used for tooltips."
+  "Frame parameters used for tooltips.
+
+If `left' or `top' parameters are included, they specify the absolute
+position to pop up the tooltip."
   :type 'sexp
   :tag "Frame Parameters"
   :group 'tooltip)
@@ -330,7 +341,15 @@ change the existing association.  Value is the resulting alist."
 
 
 (defun tooltip-show (text)
-  "Show a tooltip window at the current mouse position displaying TEXT."
+  "Show a tooltip window displaying TEXT.
+
+Text larger than `x-max-tooltip-size' (which see) is clipped.
+
+If the alist in `tooltip-frame-parameters' includes `left' and `top'
+parameters, they determine the x and y position where the tooltip
+is displayed.  Otherwise, the tooltip pops at offsets specified by
+`tooltip-x-offset' and `tooltip-y-offset' from the current mouse
+position."
   (if tooltip-use-echo-area
       (message "%s" text)
     (condition-case error
