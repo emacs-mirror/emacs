@@ -632,7 +632,7 @@ This makes no difference if the hook is not buffer-local.
 To make a hook variable buffer-local, always use
 `make-local-hook', not `make-local-variable'."
   (if (or (not (boundp hook))		;unbound symbol, or
-	  (not (default-boundp 'hook))
+	  (not (default-boundp hook))
 	  (null (symbol-value hook))	;value is nil, or
 	  (null function))		;function is nil, then
       nil				;Do nothing.
