@@ -1185,6 +1185,7 @@ where FACE is a valid face specification, as it can be used with
   (setq tab-width 20)
   (let ((old-hourglass display-hourglass)
 	(splash-buffer (current-buffer))
+	(old-minor-mode-map-alist minor-mode-map-alist)
 	timer)
     (catch 'stop-splashing
       (unwind-protect
@@ -1195,6 +1196,7 @@ where FACE is a valid face specification, as it can be used with
 	    (define-key map [mode-line t] 'ignore)
 	    (setq cursor-type nil
 		  display-hourglass nil
+		  minor-mode-map-alist nil
 		  buffer-undo-list t
 		  mode-line-format (propertize "---- %b %-" 
 					       'face '(:weight bold))
@@ -1205,7 +1207,8 @@ where FACE is a valid face specification, as it can be used with
 					splash-buffer))
 	    (recursive-edit))
 	  (cancel-timer timer)
-	  (setq display-hourglass old-hourglass)
+	  (setq display-hourglass old-hourglass
+		minor-mode-map-alist old-minor-mode-map-alist)
 	  (kill-buffer splash-buffer)))))
 
 
