@@ -84,23 +84,38 @@ TYPE should be `list' or `vector'."
   string)
 
 ;;;###autoload
-(defun truncate-string-to-width (str end-column &optional start-column padding)
+(defun truncate-string-to-width (str end-column
+				     &optional start-column padding ellipsis)
   "Truncate string STR to end at column END-COLUMN.
-The optional 3rd arg START-COLUMN, if non-nil, specifies
-the starting column; that means to return the characters occupying
-columns START-COLUMN ... END-COLUMN of STR.
+The optional 3rd arg START-COLUMN, if non-nil, specifies the starting
+column; that means to return the characters occupying columns
+START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and START-COLUMN
+are specified in terms of character display width in the current
+buffer; see also `char-width'.
 
-The optional 4th arg PADDING, if non-nil, specifies a padding character
-to add at the end of the result if STR doesn't reach column END-COLUMN,
-or if END-COLUMN comes in the middle of a character in STR.
-PADDING is also added at the beginning of the result
-if column START-COLUMN appears in the middle of a character in STR.
+The optional 4th arg PADDING, if non-nil, specifies a padding
+character (which should have a display width of 1) to add at the end
+of the result if STR doesn't reach column END-COLUMN, or if END-COLUMN
+comes in the middle of a character in STR.  PADDING is also added at
+the beginning of the result if column START-COLUMN appears in the
+middle of a character in STR.
 
 If PADDING is nil, no padding is added in these cases, so
-the resulting string may be narrower than END-COLUMN."
+the resulting string may be narrower than END-COLUMN.
+
+If ELLIPSIS is non-nil, it should be a string which will replace the
+end of STR (including any padding) if it extends beyond END-COLUMN,
+unless the display width of STR is equal to or less than the display
+width of ELLIPSIS.  If it is non-nil and not a string, then ELLIPSIS
+defaults to \"...\"."
   (or start-column
       (setq start-column 0))
-  (let ((len (length str))
+  (when (and ellipsis (not (stringp ellipsis)))
+    (setq ellipsis "..."))
+  (let ((str-len (length str))
+	(str-width (string-width str))
+	(ellipsis-len (if ellipsis (length ellipsis) 0))
+	(ellipsis-width (if ellipsis (string-width ellipsis) 0))
 	(idx 0)
 	(column 0)
 	(head-padding "") (tail-padding "")
@@ -110,14 +125,17 @@ the resulting string may be narrower than END-COLUMN."
 	  (setq ch (aref str idx)
 		column (+ column (char-width ch))
 		idx (1+ idx)))
-      (args-out-of-range (setq idx len)))
+      (args-out-of-range (setq idx str-len)))
     (if (< column start-column)
 	(if padding (make-string end-column padding) "")
-      (if (and padding (> column start-column))
-	  (setq head-padding (make-string (- column start-column) padding)))
+      (when (and padding (> column start-column))
+	(setq head-padding (make-string (- column start-column) padding)))
       (setq from-idx idx)
-      (if (< end-column column)
-	  (setq idx from-idx)
+      (when (>= end-column column)
+	(if (and (< end-column str-width)
+		 (> str-width ellipsis-width))
+	    (setq end-column (- end-column ellipsis-width))
+	  (setq ellipsis ""))
 	(condition-case nil
 	    (while (< column end-column)
 	      (setq last-column column
@@ -125,15 +143,67 @@ the resulting string may be narrower than END-COLUMN."
 		    ch (aref str idx)
 		    column (+ column (char-width ch))
 		    idx (1+ idx)))
-	  (args-out-of-range (setq idx len)))
-	(if (> column end-column)
-	    (setq column last-column idx last-idx))
-	(if (and padding (< column end-column))
-	    (setq tail-padding (make-string (- end-column column) padding))))
-      (setq str (substring str from-idx idx))
-      (if padding
-	  (concat head-padding str tail-padding)
-	str))))
+	  (args-out-of-range (setq idx str-len)))
+	(when (> column end-column)
+	  (setq column last-column
+		idx last-idx))
+	(when (and padding (< column end-column))
+	  (setq tail-padding (make-string (- end-column column) padding))))
+      (concat head-padding (substring str from-idx idx)
+	      tail-padding ellipsis))))
+
+;;; Test suite for truncate-string-to-width
+;; (dolist (test '((("" 0) . "")
+;; 		(("x" 1) . "x")
+;; 		(("xy" 1) . "x")
+;; 		(("xy" 2 1) . "y")
+;; 		(("xy" 0) . "")
+;; 		(("xy" 3) . "xy")
+;; 		(("$AVP(B" 0) . "")
+;; 		(("$AVP(B" 1) . "")
+;; 		(("$AVP(B" 2) . "$AVP(B")
+;; 		(("$AVP(B" 1 nil ? ) . " ")
+;; 		(("$AVPND(B" 3 1 ? ) . "  ")
+;; 		(("x$AVP(Bx" 2) . "x")
+;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
+;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
+;; 		(("x$AVP(Bx" 4 1) . "$AVP(Bx")
+;; 		(("kor$(CGQ(Be$(C1[(Ban" 8 1 ? ) . "or$(CGQ(Be$(C1[(B")
+;; 		(("kor$(CGQ(Be$(C1[(Ban" 7 2 ? ) . "r$(CGQ(Be ")
+;; 		(("" 0 nil nil "...") . "")
+;; 		(("x" 3 nil nil "...") . "x")
+;; 		(("$AVP(B" 3 nil nil "...") . "$AVP(B")
+;; 		(("foo" 3 nil nil "...") . "foo")
+;; 		(("foo" 2 nil nil "...") . "fo") ;; XEmacs failure?
+;; 		(("foobar" 6 0 nil "...") . "foobar")
+;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
+;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
+;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
+;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 15 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo")
+;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(B...")
+;; 		(("x" 3 nil nil "$(0GnM$(B") . "x")
+;; 		(("$AVP(B" 2 nil nil "$(0GnM$(B") . "$AVP(B")
+;; 		(("$AVP(B" 1 nil ?x "$(0GnM$(B") . "x") ;; XEmacs error
+;; 		(("$AVPND(B" 3 nil ?  "$(0GnM$(B") . "$AVP(B ") ;; XEmacs error
+;; 		(("foobarbaz" 4 nil nil  "$(0GnM$(B") . "$(0GnM$(B")
+;; 		(("foobarbaz" 5 nil nil  "$(0GnM$(B") . "f$(0GnM$(B")
+;; 		(("foobarbaz" 6 nil nil  "$(0GnM$(B") . "fo$(0GnM$(B")
+;; 		(("foobarbaz" 8 3 nil "$(0GnM$(B") . "b$(0GnM$(B")
+;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 4 ?x "$BF|K\8l(B") . "xe$B$KF|K\8l(B")
+;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 13 4 ?x "$BF|K\8l(B") . "xex$BF|K\8l(B")
+;; 		))
+;;   (let (ret)
+;;     (condition-case e 
+;; 	(setq ret (apply #'truncate-string-to-width (car test)))
+;;       (error (setq ret e)))
+;;     (unless (equal ret (cdr test))
+;;       (error "%s: expected %s, got %s"
+;; 	     (prin1-to-string (cons 'truncate-string-to-width (car test)))
+;; 	     (prin1-to-string (cdr test))
+;; 	     (if (consp ret)
+;; 		 (format "error: %s: %s" (car ret)
+;; 			 (prin1-to-string (cdr ret)))
+;; 	       (prin1-to-string ret))))))
 
 ;;; For backward compatibility ...
 ;;;###autoload
@@ -299,5 +369,9 @@ language environment LANG-ENV."
 
 
 (provide 'mule-util)
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
 
 ;;; mule-util.el ends here
