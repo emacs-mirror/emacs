@@ -175,6 +175,7 @@
   "List of alternate names for colors.")
 
 (defun msdos-color-translate (name)
+  "Translate color specification in NAME into something DOS terminal groks."
   (setq name (downcase name))
   (let* ((len (length name))
 	 (val (- (length x-colors)
@@ -232,7 +233,33 @@
 	       (and
 		(string-match "[1-4]\\'" name)
 		(msdos-color-translate
-		 (substring name 0 (match-beginning 0)))))))))
+		 (substring name 0 (match-beginning 0))))))
+	(and (= len 7)	;; X-style "#XXYYZZ" color spec
+	     (eq (aref name 0) ?#)
+	     (member (aref name 1)
+		     '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+			  ?A ?B ?C ?D ?E ?F ?a ?b ?c ?d ?e ?f))
+	     (msdos-color-translate
+	      (msdos-approximate-color (string-to-number
+					(substring name 1) 16)))))))
+
+(defun msdos-approximate-color (num)
+  "Return a DOS color name which is the best approximation for the number NUM."
+  (let ((color-values msdos-color-values)
+	(candidate (car msdos-color-values))
+	(best-distance 16777216)	;; 0xFFFFFF + 1
+	best-color)
+    (while candidate
+      (let* ((values (cdr candidate))
+	     (value (+ (lsh (car values) 16)
+		       (lsh (car (cdr values)) 8)
+		       (nth 2 values))))
+	 (if (< (abs (- value num)) best-distance)
+	     (setq best-distance (abs (- value num))
+		   best-color (car candidate))))
+      (setq color-values (cdr color-values))
+      (setq candidate (car color-values)))
+    best-color))
 ;; ---------------------------------------------------------------------------
 ;; We want to delay setting frame parameters until the faces are setup
 (defvar default-frame-alist nil)
