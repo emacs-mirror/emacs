@@ -108,11 +108,13 @@ Face used for group or summary buffer mouse highlighting.
 The line beneath the mouse pointer will be highlighted with this
 face.")
 	(name . gnus-mouse-face)
-	(calculate . (if (gnus-visual-p 'mouse-face 'highlight)
-			 (if (boundp 'gnus-mouse-face)
-			     gnus-mouse-face
-			   'highlight)
-		       'default))
+	(calculate . (condition-case ()
+			 (if (gnus-visual-p 'mouse-face 'highlight)
+			     (if (boundp 'gnus-mouse-face)
+				 gnus-mouse-face
+			       'highlight)
+			   'default))
+		   (error 'default))
 	(type . face))
        ((tag . "Article Display")
 	(doc . "Controls how the article buffer will look.
