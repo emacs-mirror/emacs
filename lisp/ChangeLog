@@ -1,3 +1,8 @@
+2003-05-11  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (info-lookup-make-completions): Allow colons in index
+	entries by looking for ": " to terminate, as per latest info.el.
+
 2003-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-indent): Try to align to adjacent comments.
