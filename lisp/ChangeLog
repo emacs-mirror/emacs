@@ -1,3 +1,8 @@
+2003-01-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* Makefile.in (bootstrap-after): New target.
+	(bootstrap): Move finder-data, custom-deps to bootstrap-after.
+
 2003-01-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* info.el (Info-index-next): Use "(`,' tries to find next)" for

@@ -1,3 +1,7 @@
+2003-01-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* Makefile.in (bootstrap): Make bootstrap-after.
+
 2003-01-20  Jan D.  <jan.h.d@swipnet.se>
 
 	* configure.in: Fix --with-gtk.
