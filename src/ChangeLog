@@ -1,3 +1,13 @@
+2001-12-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (_widget_value): Make `help' field a Lisp_Object. Add
+	comment to explain where the struct came from.
+	(single_submenu, w32_menu_show): Set `help' field as Lisp_Object.
+	(add_menu_item): Process pop-up menus first to avoid memory leak.
+	(add_menu_item, w32_menu_display_help): Use `help' field as
+	Lisp_Object.
+	(w32_free_submenu_strings): Only free owner-drawn strings.
+
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
