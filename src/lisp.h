@@ -2755,9 +2755,6 @@ extern Lisp_Object set_text_properties P_ ((Lisp_Object, Lisp_Object,
 					    Lisp_Object, Lisp_Object,
 					    Lisp_Object));
 
-/* defined in intervals.c */
-extern Lisp_Object get_local_map P_ ((int, struct buffer *));
-
 /* defined in xmenu.c */
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 2);
