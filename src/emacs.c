@@ -167,7 +167,7 @@ fatal_error_signal (sig)
 
 #ifdef SIGDANGER
 
-/* Handle bus errors, illegal instruction, etc. */
+/* Handler for SIGDANGER.  */
 SIGTYPE
 memory_warning_signal (sig)
      int sig;
