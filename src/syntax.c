@@ -173,7 +173,8 @@ One argument, a syntax table.")
   table = check_syntax_table (table);
   current_buffer->syntax_table = table;
   /* Indicate that this buffer now has a specified syntax table.  */
-  current_buffer->local_var_flags |= buffer_local_flags.syntax_table;
+  current_buffer->local_var_flags
+    |= XFASTINT (buffer_local_flags.syntax_table);
   return table;
 }
 
