@@ -14,18 +14,17 @@
 
 	* frame.h (struct frame): Replace desired_tool_bar_items,
 	current_tool_bar_items, n_desired_tool_bar_items,
-	n_current_tool_bar_items removed with tool_bar_items and
-	n_tool_bar_items.
+	n_current_tool_bar_items with tool_bar_items and n_tool_bar_items.
 
 	* frame.c (make_frame): Change initialization of tool bar
 	items accordingly.
 
 	* xterm.c (x_handle_tool_bar_click, note_tool_bar_highlight):
-	Change references to mambers deleted from struct frame to use the
+	Change references to members deleted from struct frame to use the
 	new ones.
 
 	* xdisp.c (update_tool_bar, build_desired_tool_bar_string): Change
-	references to mambers deleted from struct frame to use the new
+	references to members deleted from struct frame to use the new
 	ones.
 
 	* dispnew.c (update_frame): Do nothing with frame's tool bar
@@ -34,7 +33,7 @@
 	* alloc.c (mark_object) <frame>: Mark tool bar items differently.
 
 	* w32term.c (x_tool_bar_item, w32_handle_tool_bar_click)
-	(note_tool_bar_highlight): Change references to mambers deleted
+	(note_tool_bar_highlight): Change references to members deleted
 	from struct frame to use the new ones.
 
 2000-11-23  Miles Bader  <miles@gnu.org>
