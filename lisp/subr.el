@@ -178,8 +178,11 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		(setq inner-def (symbol-function inner-def)))
 	      (if (eq defn olddef)
 		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
-		;; Avoid recursively rescanning a keymap being scanned.
 		(if (and (keymapp defn)
+			 ;; Avoid recursively scanning
+			 ;; where KEYMAP does not have a submap.
+			 (keymapp (lookup-key keymap prefix1))
+			 ;; Avoid recursively rescanning keymap being scanned.
 			 (not (memq inner-def
 				    key-substitution-in-progress)))
 		    ;; If this one isn't being scanned already,
@@ -212,6 +215,7 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 			(define-key keymap prefix1
 			  (nconc (nreverse skipped) newdef))
 		      (if (and (keymapp defn)
+			       (keymapp (lookup-key keymap prefix1))
 			       (not (memq inner-def
 					  key-substitution-in-progress)))
 			  (substitute-key-definition olddef newdef keymap
