@@ -173,9 +173,6 @@ THINGS TO DO
    >
    >     This also happens when I start a new frame in an xterm.
 
-** Fix interactive use of temacs.  There are face-related SEGVs, most
-   likely because of changes in realize_default_face, realize_face.
-
 ** Very strange bug: visible-bell does not work on secondary
    terminals.  This might be something xterm (konsole) specific.
 
@@ -607,5 +604,10 @@ DIARY OF CHANGES
    Romain Francoise)
 
    (Fixed, there was a keyboard initialization problem.)
+
+-- Fix interactive use of temacs.  There are face-related SEGVs, most
+   likely because of changes in realize_default_face, realize_face.
+
+   (Fixed.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

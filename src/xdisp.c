@@ -2037,7 +2037,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      attribute changes of named faces, recompute them.  When running
      in batch mode, the face cache of the initial frame is null.  If
      we happen to get called, make a dummy face cache.  */
-  if (noninteractive && FRAME_FACE_CACHE (it->f) == NULL)
+  if (FRAME_FACE_CACHE (it->f) == NULL)
     init_frame_faces (it->f);
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
