@@ -112,12 +112,6 @@ Return a modified address list."
 	(progn (require 'rfc822)
 	       (mapconcat 'identity (rfc822-addresses address) ", "))
       (let (pos)
-       (string-match "\\`[ \t\n]*" address)
-       ;; strip surrounding whitespace
-       (setq address (substring address
-				(match-end 0)
-				(string-match "[ \t\n]*\\'" address
-					      (match-end 0))))
 
        ;; Detect nested comments.
        (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
@@ -148,6 +142,13 @@ Return a modified address list."
 	   (setq address
 		 (mail-string-delete address
 				     pos (match-end 0)))))
+
+       ;; strip surrounding whitespace
+       (string-match "\\`[ \t\n]*" address)
+       (setq address (substring address
+				(match-end 0)
+				(string-match "[ \t\n]*\\'" address
+					      (match-end 0))))
 
        ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
        (setq pos 0)
