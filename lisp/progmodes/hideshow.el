@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.31
+;; Maintainer-Version: n/a (presently)
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -58,7 +58,7 @@
 ;;
 ;; (load-library "hideshow")
 ;; (add-hook 'X-mode-hook               ; other modes similarly
-;;           '(lambda () (hs-minor-mode 1)))
+;;           (lambda () (hs-minor-mode 1)))
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
@@ -133,10 +133,7 @@
 ;; variable `hs-special-modes-alist'.  Packages that use hideshow should
 ;; do something like:
 ;;
-;;   (let ((my-mode-hs-info '(my-mode "{{" "}}" ...)))
-;;     (if (not (member my-mode-hs-info hs-special-modes-alist))
-;;         (setq hs-special-modes-alist
-;;               (cons my-mode-hs-info hs-special-modes-alist))))
+;;   (add-to-list 'hs-special-modes-alist '(my-mode "{{" "}}" ...))
 ;;
 ;; If you have an entry that works particularly well, consider
 ;; submitting it for inclusion in hideshow.el.  See docstring for
@@ -180,9 +177,9 @@
 ;;     In the case of `vc-diff', here is a less invasive workaround:
 ;;
 ;;     (add-hook 'vc-before-checkin-hook
-;;               '(lambda ()
-;;                  (goto-char (point-min))
-;;                  (hs-show-block)))
+;;               (lambda ()
+;;                 (goto-char (point-min))
+;;                 (hs-show-block)))
 ;;
 ;;     Unfortunately, these workarounds do not restore hideshow state.
 ;;     If someone figures out a better way, please let me know.
@@ -265,8 +262,7 @@ This has effect iff `search-invisible' is set to `open'."
   '((c-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
     (bibtex-mode ("^@\\S(*\\(\\s(\\)" 1))
-    (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    )
+    (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning))
   "*Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
@@ -543,10 +539,15 @@ as cdr."
     (let ((q (point)))
       (when (or (looking-at hs-c-start-regexp)
                 (re-search-backward hs-c-start-regexp (point-min) t))
+        ;; first get to the beginning of this comment...
+        (while (and (not (bobp))
+                    (= (point) (progn (forward-comment -1) (point))))
+          (forward-char -1))
+        ;; ...then extend backwards
         (forward-comment (- (buffer-size)))
         (skip-chars-forward " \t\n\f")
         (let ((p (point))
-              (not-hidable nil))
+              (hidable t))
           (beginning-of-line)
           (unless (looking-at (concat "[ \t]*" hs-c-start-regexp))
             ;; we are in this situation: (example)
@@ -571,13 +572,13 @@ as cdr."
             (when (or (not (looking-at hs-c-start-regexp))
                       (> (point) q))
               ;; we cannot hide this comment block
-              (setq not-hidable t)))
+              (setq hidable nil)))
           ;; goto the end of the comment
           (forward-comment (buffer-size))
           (skip-chars-backward " \t\n\f")
           (end-of-line)
           (when (>= (point) q)
-            (list (if not-hidable nil p) (point))))))))
+            (list (and hidable p) (point))))))))
 
 (defun hs-grok-mode-type ()
   "Set up hideshow variables for new buffers.
