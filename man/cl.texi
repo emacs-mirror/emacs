@@ -79,7 +79,7 @@ included in a translation approved by the author instead of in the
 original English.
 @end titlepage
 
-@node Top, Overview,, (dir)
+@node Top, Overview, (dir), (dir)
 @chapter Common Lisp Extensions
 
 @noindent
@@ -99,7 +99,6 @@ does assume a basic familiarity with Emacs Lisp.
 * Numbers::              Predicates, functions, random numbers
 * Sequences::            Mapping, functions, searching, sorting
 * Lists::                `cadr', `sublis', `member*', `assoc*', etc.
-* Hash Tables::          `make-hash-table', `gethash', etc.
 * Structures::           `defstruct'
 * Assertions::           `check-type', `assert', `ignore-errors'.
 
@@ -271,11 +270,11 @@ Info files in the @file{info/} directory or another suitable place.
 
 You may instead wish to leave this package's components all in
 their own directory, and then add this directory to your
-@code{load-path} and (Emacs 19 only) @code{Info-directory-list}.
+@code{load-path} and @code{Info-directory-list}.
 Add the directory to the front of the list so the old @dfn{CL}
 package and its documentation are hidden.
 
-@node Naming Conventions, , Installation, Overview
+@node Naming Conventions,  , Installation, Overview
 @section Naming Conventions
 
 @noindent
@@ -300,16 +299,10 @@ by @code{cl-}.  Here is a complete list of functions @emph{not}
 prefixed by @code{cl-} which were not taken from Common Lisp:
 
 @example
-member        remove        remq
 floatp-safe   lexical-let   lexical-let*
 callf         callf2        letf          letf*
-defsubst*     defalias      add-hook      eval-when-compile
+defsubst*
 @end example
-
-@noindent
-(Most of these are Emacs 19 features provided to Emacs 18 users,
-or introduced, like @code{remq}, for reasons of symmetry
-with similar features.)
 
 The following simple functions and macros are defined in @file{cl.el};
 they do not cause other components like @file{cl-extra} to be loaded.
@@ -350,7 +343,6 @@ and the @code{eval-when} construct.
 @menu
 * Argument Lists::       `&key', `&aux', `defun*', `defmacro*'.
 * Time of Evaluation::   The `eval-when' construct.
-* Function Aliases::     The `defalias' function.
 @end menu
 
 @iftex
@@ -383,7 +375,7 @@ called @var{name}; @pxref{Blocks and Exits}.
 This is just like @code{defun*}, except that the function that
 is defined is automatically proclaimed @code{inline}, i.e.,
 calls to it may be expanded into in-line code by the byte compiler.
-This is analogous to the @code{defsubst} form in Emacs 19;
+This is analogous to the @code{defsubst} form;
 @code{defsubst*} uses a different method (compiler macros) which
 works in all version of Emacs, and also generates somewhat more
 efficient inline expansions.  In particular, @code{defsubst*}
@@ -583,7 +575,7 @@ If the optimization quality @code{safety} is set to 0
 arguments and invalid keyword arguments is disabled.  By default,
 argument lists are rigorously checked.
 
-@node Time of Evaluation, Function Aliases, Argument Lists, Program Structure
+@node Time of Evaluation,  , Argument Lists, Program Structure
 @section Time of Evaluation
 
 @noindent
@@ -671,7 +663,7 @@ certain top-level forms, like @code{defmacro} (sort-of) and
 (compile load eval) @dots{})}.
 @end defspec
 
-Emacs 19 includes two special forms related to @code{eval-when}.
+Emacs includes two special forms related to @code{eval-when}.
 One of these, @code{eval-when-compile}, is not quite equivalent to
 any @code{eval-when} construct and is described below.
 
@@ -732,23 +724,6 @@ Byte-compiled, the above defun will result in the following code
           --temp--))
 @end example
 @end defspec
-
-@node Function Aliases, , Time of Evaluation, Program Structure
-@section Function Aliases
-
-@noindent
-This section describes a feature from GNU Emacs 19 which this
-package makes available in other versions of Emacs.
-
-@defun defalias symbol function
-This function sets @var{symbol}'s function cell to @var{function}.
-It is equivalent to @code{fset}, except that in GNU Emacs 19 it also
-records the setting in @code{load-history} so that it can be undone
-by a later @code{unload-feature}.
-
-In other versions of Emacs, @code{defalias} is a synonym for
-@code{fset}.
-@end defun
 
 @node Predicates, Control Structure, Program Structure, Top
 @chapter Predicates
@@ -890,7 +865,7 @@ names.  @xref{Conditionals}.  @xref{Assertions}.  The @code{map},
 @code{concatenate}, and @code{merge} functions take type-name
 arguments to specify the type of sequence to return.  @xref{Sequences}.
 
-@node Equality Predicates, , Type Predicates, Predicates
+@node Equality Predicates,  , Type Predicates, Predicates
 @section Equality Predicates
 
 @noindent
@@ -902,7 +877,7 @@ This function is almost the same as @code{eq}, except that if @var{a}
 and @var{b} are numbers of the same type, it compares them for numeric
 equality (as if by @code{equal} instead of @code{eq}).  This makes a
 difference only for versions of Emacs that are compiled with
-floating-point support, such as Emacs 19.  Emacs floats are allocated
+floating-point support.  Emacs floats are allocated
 objects just like cons cells, which means that @code{(eq 3.0 3.0)}
 will not necessarily be true---if the two @code{3.0}s were allocated
 separately, the pointers will be different even though the numbers are
@@ -942,11 +917,7 @@ respects.  First, Common Lisp's @code{equalp} also compares
 in this package since Emacs does not distinguish between integers
 and characters.  In keeping with the idea that strings are less
 vector-like in Emacs Lisp, this package's @code{equalp} also will
-not compare strings against vectors of integers.  Finally, Common
-Lisp's @code{equalp} compares hash tables without regard to
-ordering, whereas this package simply compares hash tables in
-terms of their underlying structure (which means vectors for Lucid
-Emacs 19 hash tables, or lists for other hash tables).
+not compare strings against vectors of integers.
 @end defun
 
 Also note that the Common Lisp functions @code{member} and @code{assoc}
@@ -1091,7 +1062,6 @@ to standard Common Lisp.
 
 @item
 The following Emacs-specific functions are also @code{setf}-able.
-(Some of these are defined only in Emacs 19 or only in Lucid Emacs.)
 
 @smallexample
 buffer-file-name                  marker-position          
@@ -1424,7 +1394,7 @@ blocks for other macros like @code{incf}, @code{pushnew}, and
 macros are used in the processing of symbol macros;
 @pxref{Macro Bindings}.
 
-@node Customizing Setf, , Modify Macros, Generalized Variables
+@node Customizing Setf,  , Modify Macros, Generalized Variables
 @subsection Customizing Setf
 
 @noindent
@@ -1859,7 +1829,7 @@ function, or a use of its name quoted by @code{quote} or
 @code{function} to be passed on to, say, @code{mapcar}.
 @end defspec
 
-@node Macro Bindings, , Function Bindings, Variable Bindings
+@node Macro Bindings,  , Function Bindings, Variable Bindings
 @subsection Macro Bindings
 
 @noindent
@@ -2064,8 +2034,8 @@ just as in Common Lisp.
 Because they are implemented in terms of Emacs Lisp @code{catch}
 and @code{throw}, blocks have the same overhead as actual
 @code{catch} constructs (roughly two function calls).  However,
-Zawinski and Furuseth's optimizing byte compiler (standard in
-Emacs 19) will optimize away the @code{catch} if the block does
+the optimizing byte compiler will optimize away the @code{catch} 
+if the block does
 not in fact contain any @code{return} or @code{return-from} calls
 that jump to it.  This means that @code{do} loops and @code{defun*}
 functions which don't use @code{return} don't pay the overhead to
@@ -2562,11 +2532,8 @@ is the opposite word of the word following @code{the}) to cause
 hash table entry.
 
 @item for @var{var} being the key-codes of @var{keymap}
-This clause iterates over the entries in @var{keymap}.  In GNU Emacs
-18 and 19, keymaps are either alists or vectors, and key-codes are
-integers or symbols.  In Lucid Emacs 19, keymaps are a special new
-data type, and key-codes are symbols or lists of symbols.  The
-iteration does not enter nested keymaps or inherited (parent) keymaps.
+This clause iterates over the entries in @var{keymap}.
+The iteration does not enter nested keymaps or inherited (parent) keymaps.
 You can use @samp{the key-bindings} to access the commands bound to
 the keys rather than the key codes, and you can add a @code{using}
 clause to access both the codes and the bindings together.
@@ -2580,8 +2547,8 @@ them permanently.  You can add a @samp{using (key-bindings ...)}
 clause to get the command bindings as well.
 
 @item for @var{var} being the overlays [of @var{buffer}] @dots{}
-This clause iterates over the Emacs 19 ``overlays'' or Lucid
-Emacs ``extents'' of a buffer (the clause @code{extents} is synonymous
+This clause iterates over the ``overlays'' of a buffer
+(the clause @code{extents} is synonymous
 with @code{overlays}).  If the @code{of} term is omitted, the current
 buffer is used.
 This clause also accepts optional @samp{from @var{pos}} and
@@ -2595,13 +2562,11 @@ of start and end positions, where one start position is always equal
 to the previous end position.  The clause allows @code{of},
 @code{from}, @code{to}, and @code{property} terms, where the latter
 term restricts the search to just the specified property.  The
-@code{of} term may specify either a buffer or a string.  This
-clause is useful only in GNU Emacs 19; in other versions, all
-buffers and strings consist of a single interval.
+@code{of} term may specify either a buffer or a string.
 
 @item for @var{var} being the frames
 This clause iterates over all frames, i.e., X window system windows
-open on Emacs files.  This clause works only under Emacs 19.  The
+open on Emacs files.  The
 clause @code{screens} is a synonym for @code{frames}.  The frames
 are visited in @code{next-frame} order starting from
 @code{selected-frame}.
@@ -2809,7 +2774,7 @@ accumulate into the same place.  From Steele:
      @result{} (fred bob ken sue alice joe kris sunshine june)
 @end example
 
-@node Other Clauses, , Accumulation Clauses, Loop Facility
+@node Other Clauses,  , Accumulation Clauses, Loop Facility
 @subsection Other Clauses
 
 @noindent
@@ -2960,7 +2925,7 @@ and data-type specifiers.  Naturally, the @code{for} clauses which
 iterate over keymaps, overlays, intervals, frames, windows, and
 buffers are Emacs-specific extensions.
 
-@node Multiple Values, , Loop Facility, Control Structure
+@node Multiple Values,  , Loop Facility, Control Structure
 @section Multiple Values
 
 @noindent
@@ -3096,7 +3061,7 @@ Most of the Common Lisp declarations are not currently useful in
 Emacs Lisp, as the byte-code system provides little opportunity
 to benefit from type information, and @code{special} declarations
 are redundant in a fully dynamically-scoped Lisp.  A few
-declarations are meaningful when the optimizing Emacs 19 byte
+declarations are meaningful when the optimizing byte
 compiler is being used, however.  Under the earlier non-optimizing
 compiler, these declarations will effectively be ignored.
 
@@ -3187,14 +3152,12 @@ function call.
 
 The following declarations are all equivalent.  Note that the
 @code{defsubst} form is a convenient way to define a function
-and declare it inline all at once, but it is available only in
-Emacs 19.
+and declare it inline all at once.
 
 @example
 (declaim (inline foo bar))
 (eval-when (compile load eval) (proclaim '(inline foo bar)))
-(proclaim-inline foo bar)      ; Lucid Emacs only
-(defsubst foo (...) ...)       ; instead of defun; Emacs 19 only
+(defsubst foo (...) ...)       ; instead of defun
 @end example
 
 @strong{Note:}  This declaration remains in effect after the
@@ -3226,7 +3189,7 @@ and @code{safety}.  The value of a quality should be an integer from
 0 to 3, with 0 meaning ``unimportant'' and 3 meaning ``very important.''
 The default level for both qualities is 1.
 
-In this package, with the Emacs 19 optimizing compiler, the
+In this package, with the optimizing compiler, the
 @code{speed} quality is tied to the @code{byte-compile-optimize}
 flag, which is set to @code{nil} for @code{(speed 0)} and to
 @code{t} for higher settings; and the @code{safety} quality is
@@ -3361,7 +3324,7 @@ out the property and value cells.
 @secno=2
 @end iftex
 
-@node Creating Symbols, , Property Lists, Symbols
+@node Creating Symbols,  , Property Lists, Symbols
 @section Creating Symbols
 
 @noindent
@@ -3492,14 +3455,14 @@ square root of the argument.
 @defun floor* number &optional divisor
 This function implements the Common Lisp @code{floor} function.
 It is called @code{floor*} to avoid name conflicts with the
-simpler @code{floor} function built-in to Emacs 19.
+simpler @code{floor} function built-in to Emacs.
 
 With one argument, @code{floor*} returns a list of two numbers:
 The argument rounded down (toward minus infinity) to an integer,
 and the ``remainder'' which would have to be added back to the
 first return value to yield the argument again.  If the argument
 is an integer @var{x}, the result is always the list @code{(@var{x} 0)}.
-If the argument is an Emacs 19 floating-point number, the first
+If the argument is a floating-point number, the first
 result is a Lisp integer and the second is a Lisp float between
 0 (inclusive) and 1 (exclusive).
 
@@ -3554,7 +3517,7 @@ of @code{truncate}.
 These definitions are compatible with those in the Quiroz
 @file{cl.el} package, except that this package appends @samp{*}
 to certain function names to avoid conflicts with existing
-Emacs 19 functions, and that the mechanism for returning
+Emacs functions, and that the mechanism for returning
 multiple values is different.
 
 @iftex
@@ -3622,7 +3585,7 @@ This predicate returns @code{t} if @var{object} is a
 @code{random-state} object, or @code{nil} otherwise.
 @end defun
 
-@node Implementation Parameters, , Random Numbers, Numbers
+@node Implementation Parameters,  , Random Numbers, Numbers
 @section Implementation Parameters
 
 @noindent
@@ -3645,12 +3608,12 @@ might be slow, the code for initializing them is kept in a separate
 function that must be called before the parameters can be used.
 
 @defun cl-float-limits
-This function makes sure that the Common Lisp floating-point
-parameters like @code{most-positive-float} have been initialized.
-Until it is called, these parameters will be @code{nil}.  If this
-version of Emacs does not support floats (e.g., most versions of
-Emacs 18), the parameters will remain @code{nil}.  If the parameters
-have already been initialized, the function returns immediately.
+This function makes sure that the Common Lisp floating-point parameters
+like @code{most-positive-float} have been initialized.  Until it is
+called, these parameters will be @code{nil}.  If this version of Emacs
+does not support floats, the parameters will remain @code{nil}.  If the
+parameters have already been initialized, the function returns
+immediately.
 
 The algorithm makes assumptions that will be valid for most modern
 machines, but will fail if the machine's arithmetic is extremely
@@ -3804,7 +3767,7 @@ backwards.  (Some functions, like @code{mapcar*} and @code{every},
 @emph{do} specify exactly the order in which the function is called
 so side effects are perfectly acceptable in those cases.)
 
-Strings in GNU Emacs 19 may contain ``text properties'' as well
+Strings may contain ``text properties'' as well
 as character data.  Except as noted, it is undefined whether or
 not text properties are preserved by sequence functions.  For
 example, @code{(remove* ?A @var{str})} may or may not preserve
@@ -4039,20 +4002,6 @@ non-destructive and destructive list operations in Emacs Lisp.
 The predicate-oriented functions @code{remove-if}, @code{remove-if-not},
 @code{delete-if}, and @code{delete-if-not} are defined similarly.
 
-@defun remove item list
-This function removes from @var{list} all elements which are
-@code{equal} to @var{item}.  This package defines it for symmetry
-with @code{delete}, even though @code{remove} is not built-in to
-Emacs 19.
-@end defun
-
-@defun remq item list
-This function removes from @var{list} all elements which are
-@code{eq} to @var{item}.  This package defines it for symmetry
-with @code{delq}, even though @code{remq} is not built-in to
-Emacs 19.
-@end defun
-
 @defun remove-duplicates seq @t{&key :test :test-not :key :start :end :from-end}
 This function returns a copy of @var{seq} with duplicate elements
 removed.  Specifically, if two elements from the sequence match
@@ -4158,7 +4107,7 @@ if no matches were found.  If @code{:from-end} is true, the
 function finds the @emph{rightmost} matching subsequence.
 @end defun
 
-@node Sorting Sequences, , Searching Sequences, Sequences
+@node Sorting Sequences,  , Searching Sequences, Sequences
 @section Sorting Sequences
 
 @defun sort* seq predicate @t{&key :key}
@@ -4215,7 +4164,7 @@ a merged sequence which is (stably) sorted according to
 @var{predicate}.
 @end defun
 
-@node Lists, Hash Tables, Sequences, Top
+@node Lists, Structures, Sequences, Top
 @chapter Lists
 
 @noindent
@@ -4414,7 +4363,7 @@ are compared by @code{eql} by default; you can use the @code{:test},
 @xref{Sequences}.
 
 Note that this function's name is suffixed by @samp{*} to avoid
-the incompatible @code{member} function defined in Emacs 19.
+the incompatible @code{member} function defined in Emacs.
 (That function uses @code{equal} for comparisons; it is equivalent
 to @code{(member* @var{item} @var{list} :test 'equal)}.)
 @end defun
@@ -4497,7 +4446,7 @@ of @var{list2}, i.e., whether every element of @var{list1}
 also appears in @var{list2}.
 @end defun
 
-@node Association Lists, , Lists as Sets, Lists
+@node Association Lists,  , Lists as Sets, Lists
 @section Association Lists
 
 @noindent
@@ -4541,160 +4490,11 @@ This is equivalent to @code{(nconc (mapcar* 'cons @var{keys} @var{values})
 @var{alist})}.
 @end defun
 
-@node Hash Tables, Structures, Lists, Top
-@chapter Hash Tables
-
-@noindent
-A @dfn{hash table} is a data structure that maps ``keys'' onto
-``values.''  Keys and values can be arbitrary Lisp data objects.
-Hash tables have the property that the time to search for a given
-key is roughly constant; simpler data structures like association
-lists take time proportional to the number of entries in the list.
-
-@defun make-hash-table @t{&key :test :size}
-This function creates and returns a hash-table object whose
-function for comparing elements is @code{:test} (@code{eql}
-by default), and which is allocated to fit about @code{:size}
-elements.  The @code{:size} argument is purely advisory; the
-table will stretch automatically if you store more elements in
-it.  If @code{:size} is omitted, a reasonable default is used.
-
-Common Lisp allows only @code{eq}, @code{eql}, @code{equal},
-and @code{equalp} as legal values for the @code{:test} argument.
-In this package, any reasonable predicate function will work,
-though if you use something else you should check the details of
-the hashing function described below to make sure it is suitable
-for your predicate.
-
-Some versions of Emacs (like Lucid Emacs 19) include a built-in
-hash table type; in these versions, @code{make-hash-table} with
-a test of @code{eq} will use these built-in hash tables.  In all
-other cases, it will return a hash-table object which takes the
-form of a list with an identifying ``tag'' symbol at the front.
-All of the hash table functions in this package can operate on
-both types of hash table; normally you will never know which
-type is being used.
-
-This function accepts the additional Common Lisp keywords
-@code{:rehash-size} and @code{:rehash-threshold}, but it ignores
-their values.
-@end defun
-
-@defun gethash key table &optional default
-This function looks up @var{key} in @var{table}.  If @var{key}
-exists in the table, in the sense that it matches any of the existing
-keys according to the table's test function, then the associated value
-is returned.  Otherwise, @var{default} (or @code{nil}) is returned.
-
-To store new data in the hash table, use @code{setf} on a call to
-@code{gethash}.  If @var{key} already exists in the table, the
-corresponding value is changed to the stored value.  If @var{key}
-does not already exist, a new entry is added to the table and the
-table is reallocated to a larger size if necessary.  The @var{default}
-argument is allowed but ignored in this case.  The situation is
-exactly analogous to that of @code{get*}; @pxref{Property Lists}.
-@end defun
-
-@defun remhash key table
-This function removes the entry for @var{key} from @var{table}.
-If an entry was removed, it returns @code{t}.  If @var{key} does
-not appear in the table, it does nothing and returns @code{nil}.
-@end defun
-
-@defun clrhash table
-This function removes all the entries from @var{table}, leaving
-an empty hash table.
-@end defun
-
-@defun maphash function table
-This function calls @var{function} for each entry in @var{table}.
-It passes two arguments to @var{function}, the key and the value
-of the given entry.  The return value of @var{function} is ignored;
-@var{maphash} itself returns @code{nil}.  @xref{Loop Facility}, for
-an alternate way of iterating over hash tables.
-@end defun
-
-@defun hash-table-count table
-This function returns the number of entries in @var{table}.
-@strong{Warning:}  The current implementation of Lucid Emacs 19
-hash-tables does not decrement the stored @code{count} when
-@code{remhash} removes an entry.  Therefore, the return value of
-this function is not dependable if you have used @code{remhash}
-on the table and the table's test is @code{eq}.  A slower, but
-reliable, way to count the entries is @code{(loop for x being the
-hash-keys of @var{table} count t)}.
-@end defun
-
-@defun hash-table-p object
-This function returns @code{t} if @var{object} is a hash table,
-@code{nil} otherwise.  It recognizes both types of hash tables
-(both Lucid Emacs built-in tables and tables implemented with
-special lists.)
-@end defun
-
-Sometimes when dealing with hash tables it is useful to know the
-exact ``hash function'' that is used.  This package implements
-hash tables using Emacs Lisp ``obarrays,'' which are the same
-data structure that Emacs Lisp uses to keep track of symbols.
-Each hash table includes an embedded obarray.  Key values given
-to @code{gethash} are converted by various means into strings,
-which are then looked up in the obarray using @code{intern} and
-@code{intern-soft}.  The symbol, or ``bucket,'' corresponding to
-a given key string includes as its @code{symbol-value} an association
-list of all key-value pairs which hash to that string.  Depending
-on the test function, it is possible for many entries to hash to
-the same bucket.  For example, if the test is @code{eql}, then the
-symbol @code{foo} and two separately built strings @code{"foo"} will
-create three entries in the same bucket.  Search time is linear
-within buckets, so hash tables will be most effective if you arrange
-not to store too many things that hash the same.
-
-The following algorithm is used to convert Lisp objects to hash
-strings:
-
-@itemize @bullet
-@item
-Strings are used directly as hash strings.  (However, if the test
-function is @code{equalp}, strings are @code{downcase}d first.)
-
-@item
-Symbols are hashed according to their @code{symbol-name}.
-
-@item
-Integers are hashed into one of 16 buckets depending on their value
-modulo 16.  Floating-point numbers are truncated to integers and
-hashed modulo 16.
-
-@item
-Cons cells are hashed according to their @code{car}s; nonempty vectors
-are hashed according to their first element.
-
-@item
-All other types of objects hash into a single bucket named @code{"*"}.
-@end itemize
-
-@noindent
-Thus, for example, searching among many buffer objects in a hash table
-will devolve to a (still fairly fast) linear-time search through a
-single bucket, whereas searching for different symbols will be very
-fast since each symbol will, in general, hash into its own bucket.
-
-The size of the obarray in a hash table is automatically adjusted
-as the number of elements increases.
-
-As a special case, @code{make-hash-table} with a @code{:size} argument
-of 0 or 1 will create a hash-table object that uses a single association
-list rather than an obarray of many lists.  For very small tables this
-structure will be more efficient since lookup does not require
-converting the key to a string or looking it up in an obarray.
-However, such tables are guaranteed to take time proportional to
-their size to do a search.
-
 @iftex
 @chapno=18
 @end iftex
 
-@node Structures, Assertions, Hash Tables, Top
+@node Structures, Assertions, Lists, Top
 @chapter Structures
 
 @noindent
@@ -5241,22 +5041,7 @@ do check their keyword arguments for validity.
 @appendixsec Optimizing Compiler
 
 @noindent
-The byte-compiler that comes with Emacs 18 normally fails to expand
-macros that appear in top-level positions in the file (i.e., outside
-of @code{defun}s or other enclosing forms).  This would have
-disastrous consequences to programs that used such top-level macros
-as @code{defun*}, @code{eval-when}, and @code{defstruct}.  To
-work around this problem, the @dfn{CL} package patches the Emacs
-18 compiler to expand top-level macros.  This patch will apply to
-your own macros, too, if they are used in a top-level context.
-The patch will not harm versions of the Emacs 18 compiler which
-have already had a similar patch applied, nor will it affect the
-optimizing Emacs 19 byte-compiler written by Jamie Zawinski and
-Hallvard Furuseth.  The patch is applied to the byte compiler's
-code in Emacs' memory, @emph{not} to the @file{bytecomp.elc} file
-stored on disk.
-
-Use of the Emacs 19 compiler is highly recommended; many of the Common
+Use of the optimizing Emacs compiler is highly recommended; many of the Common
 Lisp macros emit
 code which can be improved by optimization.  In particular,
 @code{block}s (whether explicit or implicit in constructs like
@@ -5356,7 +5141,7 @@ The @code{member}, @code{floor}, @code{ceiling}, @code{truncate},
 by @samp{*} in this package to avoid collision with existing
 functions in Emacs.  The older package simply
 redefined these functions, overwriting the built-in meanings and
-causing serious portability problems with Emacs 19.  (Some more
+causing serious portability problems.  (Some more
 recent versions of the Quiroz package changed the names to
 @code{cl-member}, etc.; this package defines the latter names as
 aliases for @code{member*}, etc.)
@@ -5432,7 +5217,7 @@ package.  The newer @code{floor*} and friends return their two
 results in a list rather than as multiple values.  Note that
 older versions of the old package used the unadorned names
 @code{floor}, @code{ceiling}, etc.; @code{cl-compat} cannot use
-these names because they conflict with Emacs 19 built-ins.
+these names because they conflict with Emacs built-ins.
 
 @node Porting Common Lisp, Function Index, Old CL Compatibility, Top
 @appendix Porting Common Lisp
@@ -5575,7 +5360,7 @@ Emacs Lisp's @code{format} would rarely be useful.
 @item
 Vector constants use square brackets in Emacs Lisp, but
 @code{#(a b c)} notation in Common Lisp.  To further complicate
-matters, Emacs 19 introduces its own @code{#(} notation for
+matters, Emacs has its own @code{#(} notation for
 something entirely different---strings with properties.
 
 @item
@@ -5651,7 +5436,7 @@ recursion.
 
 @printindex fn
 
-@node Variable Index, , Function Index, Top
+@node Variable Index,  , Function Index, Top
 @unnumbered Variable Index
 
 @printindex vr
