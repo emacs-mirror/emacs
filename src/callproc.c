@@ -222,8 +222,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int bufsize = 16384;
   int count = SPECPDL_INDEX ();
 
-  register unsigned char **new_argv
-    = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
+  register const unsigned char **new_argv
+    = (const unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
   struct buffer *old = current_buffer;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
