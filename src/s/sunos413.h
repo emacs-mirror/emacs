@@ -7,8 +7,12 @@
 #undef SYSTEM_MALLOC
 #endif
 
+#if 0 /* This causes failure in process_send_signal (tcgetattr loses)
+	 and may also cause hanging at Emacs startup when parent
+	 is not a job control shell.  */
 /* murray@chemical-eng.edinburgh.ac.uk says this works, and avoids
    the problem of spurious ^M in subprocess output.  */
 #define HAVE_TERMIOS
 /* This enables some #undefs in systty.h.  */
 #define BSD_TERMIOS
+#endif
