@@ -626,6 +626,8 @@ You can set this variable in hooks in your init file -- eg:
 ;;; **********************************************************************
 
 
+;;;###autoload (define-key global-map "\M-$" 'ispell-word)
+
 ;;;###autoload
 (defun ispell-word (&optional following quietly)
   "Check spelling of word under or before the cursor.
