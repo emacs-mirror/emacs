@@ -1381,3 +1381,21 @@ function goes at the end of the hook list and will be executed last.
 @defun remove-hook hook function 
 This function removes @var{function} from the hook variable @var{hook}.
 @end defun
+
+If you make a hook variable buffer-local, copy its value before you use
+@code{add-hook} or @code{remove-hook} to change it.  For example,
+
+@example
+(defun my-major-mode ()
+  @dots{}
+  (make-local-variable 'foo-hook)
+  (if (boundp 'foo-hook)
+      (setq foo-hook (copy-sequence foo-hook)))
+  (add-hook 'foo-hook 'my-foo-function)"
+  @dots{}
+  )
+@end example
+
+Otherwise you may accidentally alter the list structure that forms part
+of the global value of the hook variable.
+
