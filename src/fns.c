@@ -2897,9 +2897,11 @@ into shorter lines.")
 }
 
 DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
-       1, 1, 0,
-       "Base64-encode STRING and return the result.")
-     (string)
+       1, 2, 0,
+       "Base64-encode STRING and return the result.\n\
+Optional second argument NO-LINE-BREAK means do not break long lines\n\
+into shorter lines.")
+     (string, no_line_break)
      Lisp_Object string;
 {
   int allength, length, encoded_length;
@@ -2918,7 +2920,7 @@ DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
     encoded = (char *) xmalloc (allength);
 
   encoded_length = base64_encode_1 (XSTRING (string)->data,
-				    encoded, length, 0);
+				    encoded, length, NILP (no_line_break));
   if (encoded_length > allength)
     abort ();
 
