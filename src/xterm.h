@@ -541,7 +541,7 @@ struct scroll_bar {
    from the edges of the scroll bar.  These are widths by which we
    inset the handle boundaries from the scroll bar edges.  */
 #define VERTICAL_SCROLL_BAR_LEFT_BORDER (2)
-#define VERTICAL_SCROLL_BAR_RIGHT_BORDER (3)
+#define VERTICAL_SCROLL_BAR_RIGHT_BORDER (2)
 #define VERTICAL_SCROLL_BAR_TOP_BORDER (2)
 #define VERTICAL_SCROLL_BAR_BOTTOM_BORDER (2)
 
