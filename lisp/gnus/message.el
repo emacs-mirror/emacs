@@ -655,7 +655,7 @@ The default is `abbrev', which uses mailabbrev.  nil switches
 mail aliases off.")
 
 (defcustom message-auto-save-directory
-  (nnheader-concat message-directory "drafts/")
+  (file-name-as-directory (nnheader-concat message-directory "drafts"))
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
@@ -3620,6 +3620,9 @@ than 988 characters long, and if they are not, trim them until they are."
 (defun message-set-auto-save-file-name ()
   "Associate the message buffer with a file in the drafts directory."
   (when message-auto-save-directory
+    (unless (file-directory-p
+	     (directory-file-name message-auto-save-directory))
+      (make-directory message-auto-save-directory))
     (if (gnus-alive-p)
 	(setq message-draft-article
 	      (nndraft-request-associate-buffer "drafts"))
@@ -4476,24 +4479,6 @@ regexp varstr."
 	   (set (make-local-variable (car local))
 		(cdr local)))))
      locals)))
-
-;;; Miscellaneous functions
-
-;; stolen (and renamed) from nnheader.el
-(if (fboundp 'subst-char-in-string)
-    (defsubst message-replace-chars-in-string (string from to)
-      (subst-char-in-string from to string))
-  (defun message-replace-chars-in-string (string from to)
-    "Replace characters in STRING from FROM to TO."
-    (let ((string (substring string 0))	;Copy string.
-	  (len (length string))
-	  (idx 0))
-      ;; Replace all occurrences of FROM with TO.
-      (while (< idx len)
-	(when (= (aref string idx) from)
-	  (aset string idx to))
-	(setq idx (1+ idx)))
-      string)))
 
 ;;;
 ;;; MIME functions
