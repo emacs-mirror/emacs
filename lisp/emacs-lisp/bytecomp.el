@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.27 $")
+(defconst byte-compile-version "$Revision: 2.28 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -489,8 +489,6 @@ Each element is (INDEX . VALUE)")
 (byte-defop  94 -1 byte-min)
 (byte-defop  95 -1 byte-mult) ; v19 only
 (byte-defop  96  1 byte-point)
-(byte-defop  97  0 byte-save-current-buffer
-  "To make a binding to record the current buffer")
 (byte-defop  98  0 byte-goto-char)
 (byte-defop  99  0 byte-insert)
 (byte-defop 100  1 byte-point-max)
@@ -507,7 +505,8 @@ Each element is (INDEX . VALUE)")
 (byte-defop 111  1 byte-bobp)
 (byte-defop 112  1 byte-current-buffer)
 (byte-defop 113  0 byte-set-buffer)
-(byte-defop 114  1 byte-read-char-OBSOLETE)
+(byte-defop 114  0 byte-save-current-buffer
+  "To make a binding to record the current buffer")
 (byte-defop 115  0 byte-set-mark-OBSOLETE)
 (byte-defop 116  1 byte-interactive-p)
 
