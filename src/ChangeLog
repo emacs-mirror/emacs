@@ -1,5 +1,8 @@
 2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xdisp.c (build_desired_tool_bar_string): Remove unused variable
+	`Qlaplace'.
+
 	* fileio.c: Remove unused code.
 
 2001-10-22  Miles Bader  <miles@gnu.org>
