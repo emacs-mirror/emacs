@@ -516,9 +516,11 @@ load_descriptor_unwind (oldlist)
 void
 close_load_descs ()
 {
+#ifndef WINDOWSNT
   Lisp_Object tail;
   for (tail = load_descriptor_list; !NILP (tail); tail = XCONS (tail)->cdr)
     close (XFASTINT (XCONS (tail)->car));
+#endif
 }
 
 static int
@@ -1003,6 +1005,9 @@ read_escape (readcharfun)
   register int c = READCHAR;
   switch (c)
     {
+    case -1:
+      error ("End of file");
+
     case 'a':
       return '\007';
     case 'b':
