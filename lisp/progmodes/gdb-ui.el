@@ -177,7 +177,7 @@ detailed description of this mode.
 
   (setq comint-input-sender 'gdb-send)
   ;;
-  ;; (re-)initialise
+  ;; (re-)initialize
   (setq gdb-current-address "main")
   (setq gdb-previous-address nil)
   (setq gdb-previous-frame nil)
@@ -1950,13 +1950,15 @@ BUFFER nil or omitted means use the current buffer."
     map))
 
 (defvar gdb-assembler-font-lock-keywords
-  '(("[^\$]0x[0-9a-f]+" . font-lock-constant-face)
-    ("^\\(0x*[0-9a-f]+\\) ?\\(<\\(\\sw+\\)\\+[0-9]+>\\)?:[ \t]+\\(\\sw+\\)"
-     (1 font-lock-constant-face) 
-     (3 font-lock-function-name-face) 
+  '(;; <__function.name+n>
+    ("<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
+     (1 font-lock-function-name-face))
+    ;; 0xNNNNNNNN <__function.name+n>: opcode
+    ("^0x[0-9a-f]+ \\(<\\(\\(\\sw\\|[_.]\\)+\\)\\+[0-9]+>\\)?:[ \t]+\\(\\sw+\\)"
      (4 font-lock-keyword-face))
+    ;; %register(at least i386)
     ("%\\sw+" . font-lock-variable-name-face)
-    ("^\\(Dump of assembler code for function\\) \\(.+\\):" 
+    ("^\\(Dump of assembler code for function\\) \\(.+\\):"
      (1 font-lock-comment-face)
      (2 font-lock-function-name-face))
     ("^\\(End of assembler dump\\.\\)" . font-lock-comment-face))

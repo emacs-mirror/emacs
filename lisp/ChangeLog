@@ -1,3 +1,9 @@
+2004-10-24  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords): Handle
+	periods and underscores in a function name.
+	Remove the address fontification.
+
 2004-10-24 Masatake YAMATO <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-font-lock-keywords): Use
