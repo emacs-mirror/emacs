@@ -65,9 +65,13 @@ A string or list of strings passed to the checkin program by
   :version "21.4"
   :group 'vc)
 
-(defcustom vc-svn-diff-switches nil
-  "*A string or list of strings specifying extra switches for svn diff under VC."
-    :type '(choice (const :tag "None" nil)
+(defcustom vc-svn-diff-switches
+  t			   ;`svn' doesn't support common args like -c or -b.
+  "String or list of strings specifying extra switches for svn diff under VC.
+If nil, use the value of `vc-diff-switches'.
+If you want to force an empty list of arguments, use t."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
