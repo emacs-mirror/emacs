@@ -144,13 +144,22 @@ where XXX is a hexadecimal representation of CODE-n and YYY is a
 hexadecimal representation of CHAR-n.  A line starting with `#' is a
 comment line.
 
-`:parents'
+`:subset'
+
+VALUE must be a list:
+	( PARENT MIN-CODE MAX-CODE OFFSET )
+PARENT is a parent charset.  MIN-CODE and MAX-CODE specify the range
+of characters inherited from the parent.  OFFSET is an integer value
+to add to a code point of the parent charset to get the corresponding
+code point of this charset.
+
+`:superset'
 
 VALUE must be a list of parent charsets.  The charset inherits
 characters from them.  Each element of the list may be a cons (PARENT
 . OFFSET), where PARENT is a parent charset, and OFFSET is an offset
-value to add to a code point of this charset to get the corresponding
-code point of PARENT.
+value to add to a code point of PARENT to get the corresponding code
+point of this charset.
 
 `:unify-map'
 
@@ -175,7 +184,8 @@ attribute."
 			       :invalid-code
 			       :code-offset
 			       :map
-			       :parents
+			       :subset
+			       :superset
 			       :unify-map
 			       :plist))))
 
