@@ -1,7 +1,7 @@
 #  Makefile for GNU Emacs on Windows NT
-#  Copyright (c) 1992, 1993, 1994 Free Software Foundation, Inc.
-#   Tim Fleehart (apollo@online.com)
-#   Geoff Voelker (voelker@cs.washington.edu)
+#  Copyright (c) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+#   Tim Fleehart (apollo@online.com)            17-Apr-92
+#   Geoff Voelker (voelker@cs.washington.edu)   11-20-93
 #
 #  This file is part of GNU Emacs.
 #  
@@ -29,7 +29,7 @@
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
 #
-LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc -Zi
+LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc
 
 EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
@@ -103,13 +103,17 @@ OBJ2 =  $(BLD)\nt.obj           \
 	$(BLD)\intervals.obj    \
 	$(BLD)\ralloc.obj       \
 	$(BLD)\textprop.obj     \
-	$(BLD)\vm-limit.obj
+	$(BLD)\vm-limit.obj	\
+	$(BLD)\region-cache.obj	\
+	$(BLD)\strftime.obj
 
 LIBS =  $(TLIB)                         \
 	$(SYS_LIB_DIR)\setargv.obj      \
 	$(SYS_LIB_DIR)\kernel32.lib     \
 	$(SYS_LIB_DIR)\advapi32.lib     \
-	$(SYS_LIB_DIR)\libc.lib
+	$(SYS_LIB_DIR)\user32.lib	\
+	$(SYS_LIB_DIR)\libc.lib		\
+	$(COMPAT_LIB)
 
 #
 # Build the executable and dump it.
@@ -120,16 +124,25 @@ all:            $(BLD) $(EMACS)
 # Headers we would preprocess if we could.
 #
 PREPARED_HEADERS = config.h paths.h
-config.h:	..\nt\src\config.h
-		cp ..\nt\src\config.h config.h
-paths.h:	..\nt\src\paths.h
-		cp ..\nt\src\paths.h paths.h
+config.h:	..\nt\config.h
+		cp ..\nt\config.h config.h
+paths.h:	..\nt\paths.h
+		cp ..\nt\paths.h paths.h
+
+#
+# Make sure we have the DOC file in the right place.
+#
+DOC		= obj\etc\DOC
+$(DOC):;	cd ..\lib-src 
+		- del /q DOC
+		$(MAKE) -f makefile.nt all
+		cd ..\src
 
 #
 # The dumped executable
 #
 emacs:          $(EMACS)
-$(EMACS):       $(PREPARED_HEADERS) $(TEMACS)
+$(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 		cd $(BLD)
 		temacs.exe -batch -l loadup dump
 		cd ..\..
@@ -137,8 +150,8 @@ $(EMACS):       $(PREPARED_HEADERS) $(TEMACS)
 #
 # The undumped executable
 #
-temacs:         $(BLD) $(TEMACS)
-$(TEMACS):      $(LIBS) $(TOBJ)
+temacs:         $(TEMACS)
+$(TEMACS):      $(BLD) $(TLIB) $(TOBJ)
 		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(LIBS)
 
 #
@@ -166,8 +179,8 @@ install:        all
 # Maintenance
 # 
 clean:;         - del /q *~
-		- delnode /q deleted
-		- delnode /q obj
+		- $(DEL_TREE) deleted
+		- $(DEL_TREE) obj
 
 #
 # These files are the ones that compile conditionally on CANNOT_DUMP...
