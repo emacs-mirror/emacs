@@ -1050,6 +1050,9 @@ See documentation of variable `tags-file-name'."
 	(pat (concat (if (eq selective-display t)
 			 "\\(^\\|\^m\\)" "^")
 		     (regexp-quote (car tag-info)))))
+    ;; The character position in the tags table is 0-origin.
+    ;; Convert it to a 1-origin Emacs character position.
+    (if startpos (setq startpos (1+ startpos)))
     ;; If no char pos was given, try the given line number.
     (or startpos
 	(if (car (cdr tag-info))
