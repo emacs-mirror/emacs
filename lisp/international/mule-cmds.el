@@ -213,6 +213,7 @@ This also sets the following values:
 	;; CODING-SYSTEM is no-conversion or undecided.
 	(error "Can't prefer the coding system `%s'" coding-system))
     (set coding-category (or base coding-system))
+    (update-iso-coding-systems)
     (if (not (eq coding-category (car coding-category-list)))
 	;; We must change the order.
 	(setq coding-category-list
@@ -222,6 +223,113 @@ This also sets the following values:
 	(message "Highest priority is set to %s (base of %s)"
 		 base coding-system))
     (set-default-coding-systems (or base coding-system))))
+
+(defun list-subset-p (list1 list2)
+  "Return non-nil if all elements in LIST1 are included in LIST2.
+Comparison done with EQ."
+  (catch 'tag
+    (while list1
+      (or (memq (car list1) list2)
+	  (throw 'tag nil))
+      (setq list1 (cdr list1)))
+    t))
+
+(defun find-safe-coding-system (from to)
+  "Return a list of proper coding systems to encode a text between FROM and TO.
+All coding systems in the list can safely encode any multibyte characters
+in the text.
+
+If the text contains no multibyte charcters, return a list of a single
+element `undecided'.
+
+Kludgy feature: if FROM is a string, the string is the target text,
+and TO is ignored."
+  (let ((charset-list (if (stringp from) (find-charset-string from)
+			(find-charset-region from to))))
+    (if (and (= (length charset-list) 1)
+	     (eq 'ascii (car charset-list)))
+	'(undecided)
+      (let ((l coding-system-list)
+	    (prefered-codings
+	     (mapcar (function
+		      (lambda (x)
+			(get-charset-property x 'prefered-coding-system)))
+		     charset-list))
+	    codings coding safe)
+	(while l
+	  (setq coding (car l) l (cdr l))
+	  (if (and (eq coding (coding-system-base coding))
+		   (setq safe (coding-system-get coding 'safe-charsets))
+		   (or (eq safe t)
+		       (list-subset-p charset-list safe)))
+	      ;; We put the higher priority to coding systems included
+	      ;; in PREFERED-CODINGS, and within them, put the higher
+	      ;; priority to coding systems which support smaller
+	      ;; number of charsets.
+	      (let ((priority
+		     (logior (if (coding-system-get coding 'mime-charset)
+				 256 0)
+			     (if (memq coding prefered-codings) 128 0)
+			     (if (> (coding-system-type coding) 0) 64 0)
+			     (if (consp safe) (- 64 (length safe)) 0))))
+		(setq codings (cons (cons priority coding) codings)))))
+	(mapcar 'cdr
+		(sort codings (function (lambda (x y) (> (car x) (car y))))))
+	))))
+
+(defun select-safe-coding-system (from to &optional default-coding-system)
+  "Return a coding system which can encode a text between FROM and TO.
+
+Optional arg DEFAULT-CODING-SYSTEM specifies a coding system to be
+checked at first.  If omitted, buffer-file-coding-system of the
+current buffer is used.
+
+If the text contains some multibyte characters and
+DEFAULT-CODING-SYSTEM can't encode them, ask a user to select one from
+a list of coding systems which can encode the text, and return the
+selected one.
+
+In other cases, return DEFAULT-CODING-SYSTEM.
+
+Kludgy feature: if FROM is a string, the string is the target text,
+and TO is ignored."
+  (or default-coding-system
+      (setq default-coding-system buffer-file-coding-system))
+  (let ((safe-coding-systems (find-safe-coding-system from to)))
+    (if (or (eq (car safe-coding-systems) 'undecided)
+	    (and default-coding-system
+		 (memq (coding-system-base default-coding-system)
+		       safe-coding-systems)))
+	default-coding-system
+
+      ;; Ask a user to select a proper coding system.
+      (save-window-excursion
+	;; At first, show a helpful message.
+	(with-output-to-temp-buffer "*Warning*"
+	  (save-excursion
+	    (set-buffer standard-output)
+	    (insert (format "\
+The target text contains a multibyte character which can't be
+encoded safely by the coding system %s.
+
+Please select one from the following safe coding systems:\n"
+			    default-coding-system))
+	    (let ((pos (point))
+		  (fill-prefix "  "))
+	      (mapcar (function (lambda (x) (princ "  ") (princ x)))
+		      safe-coding-systems)
+	      (fill-region-as-paragraph pos (point)))))
+
+	;; Read a coding system.
+	(let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+				   safe-coding-systems))
+	       (name (completing-read
+		      (format "Select coding system (default %s): "
+			      (car safe-coding-systems))
+		      safe-names nil t nil nil (car (car safe-names)))))
+	  (intern name))))))
+
+(setq select-safe-coding-system-function 'select-safe-coding-system)
 
 
 ;;; Language support staffs.
@@ -244,37 +352,38 @@ KEY is a symbol denoting the kind of required information."
     (if lang-slot
 	(cdr (assq key (cdr lang-slot))))))
 
-(defun set-language-info (language-name key info)
+(defun set-language-info (language-name key info
+					&optional describe-map setup-map)
   "Set for LANGUAGE-NAME the information INFO under KEY.
 KEY is a symbol denoting the kind of information.
-INFO is any Lisp object which contains the actual information.
+INFO is any Lisp object which contains the actual information specific
+  to LANGUAGE-NAME.
 
 Currently, the following KEYs are used by Emacs:
 
-charset: list of symbols whose values are charsets specific to the language.
+charset: list of charsets.
 
-coding-system: list of coding systems specific to the language.
+coding-system: list of coding systems.
+
+coding-priority: list of coding systems ordered by priority.
 
 tutorial: a tutorial file name written in the language.
 
 sample-text: one line short text containing characters of the language.
 
 documentation: t or a string describing how Emacs supports the language.
-      If a string is specified, it is shown before any other information
-      of the language by the command `describe-language-environment'.
+  If a string is specified, it is shown before any other information
+  of the language by the command `describe-language-environment'.
 
 setup-function: a function to call for setting up environment
-       convenient for a user of the language.
-
-If KEY is documentation or setup-function, you can also specify
-a cons cell as INFO, in which case, the car part should be
-a normal value as INFO for KEY (as described above),
-and the cdr part should be a symbol whose value is a menu keymap
-in which an entry for the language is defined.  But, only the car part
-is actually set as the information.
+  convenient for a user of the language.
 
 We will define more KEYs in the future.  To avoid conflict,
-if you want to use your own KEY values, make them start with `user-'."
+if you want to use your own KEY values, make them start with `user-'.
+
+Optional 4th and 5th args DESCRIBE-MAP and SETUP-MAP are keymaps to
+register LANGUAGE-NAME in the menu of `Mule'->`Describe Language
+Environment' and `Mule'->`Setup Language Environment' respectively."
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
   (let (lang-slot key-slot)
@@ -289,36 +398,57 @@ if you want to use your own KEY values, make them start with `user-'."
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
     ;; Setup menu.
     (cond ((eq key 'documentation)
-	   (define-key-after
-	     (if (consp info)
-		 (prog1 (symbol-value (cdr info))
-		   (setq info (car info)))
-	       describe-language-environment-map)
-	     (vector (intern language-name))
-	     (cons language-name 'describe-specified-language-support)
-	     t))
+	   (define-key-after describe-map (vector (intern language-name))
+	     (cons language-name 'describe-specified-language-support) t))
 	  ((eq key 'setup-function)
-	   (define-key-after
-	     (if (consp info)
-		 (prog1 (symbol-value (cdr info))
-		   (setq info (car info)))
-	       setup-language-environment-map)
-	     (vector (intern language-name))
-	     (cons language-name 'setup-specified-language-environment)
-	     t)))
+	   (define-key-after setup-map (vector (intern language-name))
+	     (cons language-name 'setup-specified-language-environment) t)))
 
     (setcdr key-slot info)
     ))
 
-(defun set-language-info-alist (language-name alist)
+(defun set-language-info-alist (language-name alist &optional parents)
   "Set for LANGUAGE-NAME the information in ALIST.
 ALIST is an alist of KEY and INFO.  See the documentation of
-`set-langauge-info' for the meanings of KEY and INFO."
+`set-langauge-info' for the meanings of KEY and INFO.
+
+Optional arg PARENTS is a list of parent language environments ordered
+from the highest to the lower.  If it is nil, we make LANGUAGE-NAME
+the top level language environment."
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
-  (while alist
-    (set-language-info language-name (car (car alist)) (cdr (car alist)))
-    (setq alist (cdr alist))))
+  (let ((describe-map describe-language-environment-map)
+	(setup-map setup-language-environment-map))
+    (if parents
+	(let ((l parents)
+	      map parent-symbol parent)
+	  (while l
+	    (if (symbolp (setq parent-symbol (car l)))
+		(setq parent (symbol-name parent))
+	      (setq parent parent-symbol parent-symbol (intern parent)))
+	    (setq map (lookup-key describe-map (vector parent-symbol)))
+	    (if (not map)
+		(progn
+		  (setq map (intern (format "describe-%s-environment-map"
+					    (downcase parent))))
+		  (define-prefix-command map)
+		  (define-key-after describe-map (vector parent-symbol)
+		    (cons parent map) t)))
+	    (setq describe-map (symbol-value map))
+	    (setq map (lookup-key setup-map (vector parent-symbol)))
+	    (if (not map)
+		(progn
+		  (setq map (intern (format "setup-%s-environment-map"
+					    (downcase parent))))
+		  (define-prefix-command map)
+		  (define-key-after setup-map (vector parent-symbol)
+		    (cons parent map) t)))
+	    (setq setup-map (symbol-value map))
+	    (setq l (cdr l)))))
+    (while alist
+      (set-language-info language-name (car (car alist)) (cdr (car alist))
+			 describe-map setup-map)
+      (setq alist (cdr alist)))))
 
 (defun read-language-name (key prompt &optional default)
   "Read language name which has information for KEY, prompting with PROMPT.
@@ -697,6 +827,19 @@ and sometimes other things."
   (funcall (get-language-info language-name 'setup-function))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
+
+(defun set-language-environment-coding-systems (language-name)
+  "Do various coding system setups for language environment LANGUAGE-NAME."
+  (let* ((priority (get-language-info language-name 'coding-priority))
+	 (default-coding (car priority)))
+    (if priority
+	(let ((categories (mapcar 'coding-system-category priority)))
+	  (set-default-coding-systems default-coding)
+	  (set-coding-priority categories)
+	  (while priority
+	    (set (car categories) (car priority))
+	    (setq priority (cdr priority) categories (cdr categories)))
+	  (update-iso-coding-systems)))))
 
 ;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
