@@ -478,13 +478,18 @@ contains expressions rather than strings.")
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive
-   (let ((enable-recursive-minibuffers t)
-	 (minibuffer-history-sexp-flag nil))
-     (list (read-from-minibuffer "Previous element matching (regexp): "
-				 nil
-				 minibuffer-local-map
-				 nil
-				 'minibuffer-history-search-history)
+   (let* ((enable-recursive-minibuffers t)
+	  (minibuffer-history-sexp-flag nil)
+	  (regexp (read-from-minibuffer "Previous element matching (regexp): "
+					nil
+					minibuffer-local-map
+					nil
+					'minibuffer-history-search-history)))
+     ;; Use the last regexp specified, by default, if input is empty.
+     (list (if (string= regexp "")
+	       (setcar minibuffer-history-search-history
+		       (nth 1 minibuffer-history-search-history))
+	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (let ((history (symbol-value minibuffer-history-variable))
 	prevpos
@@ -518,13 +523,18 @@ If N is negative, find the next or Nth next match."
 With prefix argument N, search for Nth next match.
 If N is negative, find the previous or Nth previous match."
   (interactive
-   (let ((enable-recursive-minibuffers t)
-	 (minibuffer-history-sexp-flag nil))
-     (list (read-from-minibuffer "Next element matching (regexp): "
-				 nil
-				 minibuffer-local-map
-				 nil
-				 'minibuffer-history-search-history)
+   (let* ((enable-recursive-minibuffers t)
+	  (minibuffer-history-sexp-flag nil)
+	  (regexp (read-from-minibuffer "Next element matching (regexp): "
+					nil
+					minibuffer-local-map
+					nil
+					'minibuffer-history-search-history)))
+     ;; Use the last regexp specified, by default, if input is empty.
+     (list (if (string= regexp "")
+	       (setcar minibuffer-history-search-history
+		       (nth 1 minibuffer-history-search-history))
+	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (previous-matching-history-element regexp (- n)))
 
