@@ -63,7 +63,8 @@ machine.")
 ;;;###autoload
 (defun apropos (regexp &optional do-all pred)
   "Show all symbols whose names contain matches for REGEXP.
-If optional argument DO-ALL is non-nil, does more (time-consuming) work such as
+If optional argument DO-ALL is non-nil (prefix argument if interactive),
+or if `apropos-do-all' is non-nil, does more (time-consuming) work such as
 showing key bindings.  Optional argument PRED is called with each symbol, and
 if it returns nil, the symbol is not shown.
 
@@ -107,7 +108,8 @@ Returns list of symbols and documentation found."
 ;;;###autoload
 (defun super-apropos (regexp &optional do-all)
   "Show symbols whose names/documentation contain matches for REGEXP.
-If optional argument DO-ALL is non-nil, does more (time-consuming) work such as
+If optional argument DO-ALL is non-nil (prefix argument if interactive),
+or if `apropos-do-all' is non-nil, does more (time-consuming) work such as
 showing key bindings and documentation that is not stored in the documentation
 file.
 
