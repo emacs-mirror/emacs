@@ -215,13 +215,6 @@ following in your `.emacs' file:
     ;; some random value higher than 9600    
     (setq baud-rate 19200))
 
-;; XEmacs apparently call this `buffer-substring-without-properties',
-;; sigh.
-(or (fboundp 'buffer-substring-no-properties)
-    (if (fboundp 'buffer-substring-without-properties)
-        (fset 'buffer-substring-no-properties
-              'buffer-substring-without-properties)
-      (fset 'buffer-substring-no-properties 'buffer-substring)))
 
 
 ;;; Keymap stuff:
@@ -1097,10 +1090,8 @@ of the old one in the permanent bookmark record."
          )
     (if (or
          (file-exists-p file)
-         ;; else try some common compression extensions
-         ;; and Emacs better handle it right!
-         ;; Sigh: I think it may *not* be handled at the moment.  What
-         ;; to do about this?
+         ;; Else try some common compression extensions, which Emacs
+         ;; usually handles right.  I hope.
          (setq file
                (or
                 (let ((altname (concat file ".Z")))
@@ -1111,7 +1102,9 @@ of the old one in the permanent bookmark record."
                        altname))
                 (let ((altname (concat file ".z")))
                   (and (file-exists-p altname)
-                       altname)))))
+                       altname))
+                ;; Check VC incarnations, preparatory to checkout
+                (if (vc-backend file) file nil))))
         (save-excursion
           (save-window-excursion
             (if info-node
