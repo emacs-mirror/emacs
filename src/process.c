@@ -3082,7 +3082,10 @@ read_process_output (proc, channel)
 	  insert_before_markers (temp_buf, nbytes);
 	}
       else
-	insert_1_both (chars, nchars, nbytes, 0, 1, 1);
+	{
+	  insert_1_both (chars, nchars, nbytes, 0, 1, 1);
+	  signal_after_change (opoint, 0, PT - opoint);
+	}
       set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
       update_mode_lines++;
