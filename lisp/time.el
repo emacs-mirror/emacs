@@ -213,9 +213,11 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	 (mail (and (stringp mail-spool-file)
 		    (or (null display-time-server-down-time)
 			;; If have been down for 20 min, try again.
-			(> (- (nth 1 (current-time))
-			      display-time-server-down-time)
-			   1200))
+			(> (- (nth 1 now) display-time-server-down-time)
+			   1200)
+			(and (< (nth 1 now) display-time-server-down-time)
+			     (> (- (nth 1 now) display-time-server-down-time)
+				-64336)))
 		    (let ((start-time (current-time)))
 		      (prog1
 			  (display-time-file-nonempty-p mail-spool-file)
