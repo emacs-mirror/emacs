@@ -1284,13 +1284,14 @@ update_menu_bar (f, save_match_data)
   if (update_mode_lines)
     w->update_mode_line = Qt;
 
-  if (
+  if (FRAME_X_P (f)
+      ?
 #ifdef FRAME_EXTERNAL_MENU_BAR
       FRAME_EXTERNAL_MENU_BAR (f) 
 #else
       FRAME_MENU_BAR_LINES (f) > 0
 #endif
-      )
+      : FRAME_MENU_BAR_LINES (f) > 0)
     {
       /* If the user has switched buffers or windows, we need to
 	 recompute to reflect the new bindings.  But we'll
@@ -1329,7 +1330,8 @@ update_menu_bar (f, save_match_data)
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
-	  set_frame_menubar (f, 0, 0);
+	  if (FRAME_X_P (f))
+	    set_frame_menubar (f, 0, 0);
 #endif /* USE_X_TOOLKIT || HAVE_NTGUI */
 
 	  unbind_to (count, Qnil);
@@ -1741,11 +1743,14 @@ done:
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (update_mode_line
+      && (FRAME_X_P (f)
+	  ?
 #ifdef FRAME_EXTERNAL_MENU_BAR
-      && FRAME_EXTERNAL_MENU_BAR (f) 
+	  FRAME_EXTERNAL_MENU_BAR (f) 
 #else
-      && FRAME_MENU_BAR_LINES (f) > 0
+	  FRAME_MENU_BAR_LINES (f) > 0
 #endif
+	  : FRAME_MENU_BAR_LINES (f) > 0)
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     display_menu_bar (w);
 
@@ -1894,7 +1899,7 @@ try_window_id (window)
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
   int delta;
-  int tab_offset, epto;
+  int tab_offset, epto, old_tick;
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
@@ -2139,9 +2144,15 @@ try_window_id (window)
      to account for passing the line that that character really starts in.  */
   if (val.hpos < lmargin)
     tab_offset += width;
+  old_tick = MODIFF;
   while (vpos < stop_vpos)
     {
       val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset);
+      /* If display_text_line ran a hook and changed some text,
+	 redisplay all the way to bottom of buffer
+	 So that we show the changes.  */
+      if (old_tick != MODIFF)
+	stop_vpos = height;
       tab_offset += width;
       if (val.vpos) tab_offset = 0;
       if (pos != val.bufpos)
@@ -2712,10 +2723,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
 	  /* Figure out where (if at all) the
 	     redisplay_end_trigger-hook should run.  */
-	  if (MARKERP (current_buffer->redisplay_end_trigger))
-	    e_t_h = marker_position (current_buffer->redisplay_end_trigger);
-	  else if (INTEGERP (current_buffer->redisplay_end_trigger))
-	    e_t_h = XINT (current_buffer->redisplay_end_trigger);
+	  if (MARKERP (w->redisplay_end_trigger))
+	    e_t_h = marker_position (w->redisplay_end_trigger);
+	  else if (INTEGERP (w->redisplay_end_trigger))
+	    e_t_h = XINT (w->redisplay_end_trigger);
 	  else
 	    e_t_h = ZV;
 
@@ -2723,8 +2734,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	     run the hook.  */
 	  if (pos >= e_t_h && e_t_h != ZV)
 	    {
-	      call1 (Vrun_hooks, Qredisplay_end_trigger_hook);
-	      current_buffer->redisplay_end_trigger = Qnil;
+	      Frun_hooks (1, &Qredisplay_end_trigger_hook);
+	      w->redisplay_end_trigger = Qnil;
 	      e_t_h = ZV;
 	    }
 
@@ -3159,23 +3170,11 @@ display_menu_bar (w)
   int i;
 
 #if !defined (USE_X_TOOLKIT) && !defined (HAVE_NTGUI)
-  if (FRAME_MENU_BAR_LINES (f) <= 0)
+  if (FRAME_X_P (f))
     return;
+#endif /* not USE_X_TOOLKIT and not HAVE_NTGUI */
 
   get_display_line (f, vpos, 0);
-
-#if 0
-  /* Show in the menu bar how to invoke it.  */
-  if (!FRAME_X_P (f))
-    {
-      hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
-			     "M-`", 3,
-			     hpos, 0, 0, hpos, maxendcol);
-      /* Put 2 spaces after it.  */
-      hpos = display_string (w, vpos, "", 0, hpos, 0, 0,
-			     hpos + 2, maxendcol);
-    }
-#endif
 
   items = FRAME_MENU_BAR_ITEMS (f);
   for (i = 0; i < XVECTOR (items)->size; i += 3)
@@ -3212,7 +3211,6 @@ display_menu_bar (w)
   vpos++;
   while (vpos < FRAME_MENU_BAR_LINES (f))
     get_display_line (f, vpos++, 0);
-#endif /* not USE_X_TOOLKIT && not HAVE_NTGUI */
 }
 
 /* Display the mode line for window w */
@@ -4007,6 +4005,7 @@ display_string (w, vpos, string, length, hpos, truncate,
      int mincol, maxcol;
 {
   register int c;
+  int truncated;
   register GLYPH *p1;
   int hscroll = XINT (w->hscroll);
   int tab_width = XINT (XBUFFER (w->buffer)->tab_width);
@@ -4059,7 +4058,10 @@ display_string (w, vpos, string, length, hpos, truncate,
   if (maxcol >= 0 && mincol > maxcol)
     mincol = maxcol;
 
-  while (p1 < end)
+  /* We set truncated to 1 if we get stopped by trying to pass END
+     (that is, trying to pass MAXCOL.)  */
+  truncated = 0;
+  while (1)
     {
       if (length == 0)
 	break;
@@ -4070,6 +4072,12 @@ display_string (w, vpos, string, length, hpos, truncate,
       /* Unspecified length (null-terminated string).  */
       else if (c == 0)
 	break;
+
+      if (p1 >= end)
+	{
+	  truncated = 1;
+	  break;
+	}
 
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
@@ -4124,7 +4132,7 @@ display_string (w, vpos, string, length, hpos, truncate,
 	}
     }
 
-  if (c && length > 0)
+  if (truncated)
     {
       p1 = end;
       if (truncate) *p1++ = fix_glyph (f, truncate, 0);
