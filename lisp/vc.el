@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.319 2001/11/12 23:01:17 sds Exp $
+;; $Id: vc.el,v 1.320 2001/11/15 10:31:17 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -726,13 +726,12 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 SETTINGS is an association list of property/value pairs.  After
 executing FORM, set those properties from SETTINGS that have not yet
 been updated to their corresponding values."
-  `(let ((vc-touched-properties (list t))
-	 (filename ,file))
+  `(let ((vc-touched-properties (list t)))
      ,form
      (mapcar (lambda (setting)
 	       (let ((property (car setting)))
 		 (unless (memq property vc-touched-properties)
-		   (put (intern filename vc-file-prop-obarray)
+		   (put (intern ,file vc-file-prop-obarray)
 			property (cdr setting)))))
 	     ,settings)))
 
@@ -751,17 +750,20 @@ Check in FILE with COMMENT (a string) after BODY has been executed.
 FILE is passed through `expand-file-name'; BODY executed within
 `save-excursion'.  If FILE is not under version control, or locked by
 somebody else, signal error."
-  `(let ((file (expand-file-name ,file)))
-     (or (vc-backend file)
-	 (error (format "File not under version control: `%s'" file)))
-     (unless (vc-editable-p file)
-       (let ((state (vc-state file)))
-	 (if (stringp state) (error (format "`%s' is locking `%s'" state file))
-	   (vc-checkout file t))))
-     (save-excursion
-       ,@body)
-     (vc-checkin file nil ,comment)))
-(put 'with-vc-file 'indent-function 1)
+  (let ((filevar (make-symbol "file")))
+    `(let ((,filevar (expand-file-name ,file)))
+       (or (vc-backend ,filevar)
+           (error (format "File not under version control: `%s'" file)))
+       (unless (vc-editable-p ,filevar)
+         (let ((state (vc-state ,filevar)))
+           (if (stringp state) 
+               (error (format "`%s' is locking `%s'" state ,filevar))
+             (vc-checkout ,filevar t))))
+       (save-excursion
+         ,@body)
+       (vc-checkin ,filevar nil ,comment))))
+
+(put 'with-vc-file 'lisp-indent-function 2)
 
 ;;;###autoload
 (defmacro edit-vc-file (file comment &rest body)
@@ -769,12 +771,15 @@ somebody else, signal error."
 Checkin with COMMENT after executing BODY.
 This macro uses `with-vc-file', passing args to it.
 However, before executing BODY, find FILE, and after BODY, save buffer."
-  `(with-vc-file
-    ,file ,comment
-    (set-buffer (find-file-noselect ,file))
-    ,@body
-    (save-buffer)))
-(put 'edit-vc-file 'indent-function 1)
+  (let ((filevar (make-symbol "file")))
+    `(let ((,filevar (expand-file-name ,file)))
+       (with-vc-file
+        ,filevar ,comment
+        (set-buffer (find-file-noselect ,filevar))
+        ,@body
+        (save-buffer)))))
+
+(put 'edit-vc-file 'lisp-indent-function 2)
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
