@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.36 2002/12/16 00:26:22 rost Exp $||
+;; Version: $Id: allout.el,v 1.37 2002/12/16 00:42:23 rost Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.36 $"))
+  (let ((rcs-rev "$Revision: 1.37 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -984,10 +984,11 @@ the following two lines in your emacs init file:
 	   (if (interactive-p)
 	       (message "Allout outline mode auto-activation inhibited.")))
 	  ((eq mode 'report)
-	   (if (not (memq hook find-file-hooks))
-	       (allout-init nil)
-	     ;; Just punt and use the reports from each of the modes:
-	     (allout-init (symbol-value curr-mode))))
+	   (if (memq hook find-file-hooks)
+	       ;; Just punt and use the reports from each of the modes:
+	       (allout-init (symbol-value curr-mode))
+	     (allout-init nil)
+	     (message "Allout outline mode auto-activation inhibited.")))
 	  (t (add-hook 'find-file-hooks hook)
 	     (set curr-mode		; `set', not `setq'!
 		  (cond ((eq mode 'activate)
@@ -4735,7 +4736,7 @@ function.  If HOOK is void, it is first set to nil."
 
 GNU XEmacs takes two optional args, while mainline GNU Emacs does not,
 so pass them along when appropriate."
-  (if (string-match " XEmacs " emacs-version)
+  (if (featurep 'xemacs)
       (mark-marker force buffer)
     (mark-marker)))
 
