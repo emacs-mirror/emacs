@@ -1,3 +1,7 @@
+2000-10-22  Dave Love  <fx@gnu.org>
+
+	* textmodes/refill.el: New file.
+
 2000-10-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-version-backup-file-name): New optional args 
