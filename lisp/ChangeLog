@@ -1,5 +1,25 @@
 2002-05-26  Dave Love  <fx@gnu.org>
 
+	* mule-cmds.el (encode-coding-char): Use
+	find-coding-systems-string.  Don't use make-char.
+
+	* mule-diag.el (describe-current-coding-system): Fix
+	aliases listing.
+	(print-iso-2022-flags): Deleted.
+	(print-designation): Partly re-written.
+	(describe-coding-system): Deal with iso-2022 designations, flags.
+	Fix shift_jis case.
+	(describe-char-after): Use characterp.  Print explicit unicode.
+	Remove some obsolete code.
+
+	* mule-conf.el: Doc fixes.  Remove redundant
+	:long-name properties.  Re-order charset priorities.
+	(binary): New alias.
+	(iso-8859-16): Fix nickname.
+	(define-iso-single-byte-charset): Un-define after use.
+
+2002-05-26  Dave Love  <fx@gnu.org>
+
 	* international/mule.el (coding-system-iso-2022-flags): Revert
 	last change.
 
