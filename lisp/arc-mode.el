@@ -556,6 +556,8 @@ archive.
       (make-local-variable 'archive-file-list-start)
       (make-local-variable 'archive-file-list-end)
       (make-local-variable 'archive-file-name-indent)
+      ;; Always edit an archive file in unibyte mode.
+      (set-buffer-multibyte nil)
       (archive-summarize nil)
       (setq buffer-read-only t))))
 
