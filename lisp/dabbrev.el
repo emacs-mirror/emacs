@@ -88,7 +88,7 @@
 ;;  [tromey]	Tom Tromey <tromey@busco.lanl.gov>
 ;;  [Rolf]	Rolf Schreiber <rolf@mathematik.uni-stuttgart.de>
 ;;  [Petri]	Petri Raitio <per@tekla.fi>
-;;  [ejb]	Jay Berkenbilt <ejb@ERA.COM>
+;;  [ejb]	Jay Berkenbilt <ejb@ql.org>
 ;;  [hawley]	Bob Hawley <rth1@quartet.mt.att.com>
 ;;  ... and to all the people who have participated in the beta tests.
 
@@ -192,8 +192,13 @@ Dabbrev always searches the current buffer first.  Then, if
 designated by `dabbrev-select-buffers-function'.
 
 Then, if `dabbrev-check-all-buffers' is non-nil, dabbrev searches
-all the other buffers."
+all the other buffers, except those named in `dabbrev-ignored-buffer-names'."
   :type 'boolean
+  :group 'dabbrev)
+
+(defcustom dabbrev-ignored-buffer-names '("*Messages")
+  "*List of buffer names that dabbrev should not check."
+  :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev)
 
 (defcustom dabbrev-check-other-buffers t
@@ -754,7 +759,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			(nreverse
 			 (dabbrev-filter-elements
 			  buffer (buffer-list)
-			  (not (memq buffer dabbrev--friend-buffer-list))))
+			  (and (not (member (buffer-name buffer)
+					    dabbrev-ignored-buffer-names))
+			       (not (memq buffer dabbrev--friend-buffer-list)))))
 			dabbrev--friend-buffer-list
 			(append dabbrev--friend-buffer-list
 				non-friend-buffer-list)))))
