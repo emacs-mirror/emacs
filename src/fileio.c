@@ -2178,7 +2178,7 @@ Only the 12 low bits of MODE are used.")
   return Qnil;
 }
 
-DEFUN ("set-default-file-mode", Fset_default_file_mode, Sset_default_file_mode, 1, 1, 0,
+DEFUN ("set-default-file-modes", Fset_default_file_modes, Sset_default_file_modes, 1, 1, 0,
     "Set the file permission bits for newly created files.\n\
 The argument MODE should be an integer; only the low 9 bits are used.\n\
 This setting is inherited by subprocesses.")
@@ -2192,7 +2192,7 @@ This setting is inherited by subprocesses.")
   return Qnil;
 }
 
-DEFUN ("default-file-mode", Fdefault_file_mode, Sdefault_file_mode, 0, 0, 0,
+DEFUN ("default-file-modes", Fdefault_file_modes, Sdefault_file_modes, 0, 0, 0,
     "Return the default file protection for created files.\n\
 The value is an integer.")
   ()
@@ -3333,8 +3333,8 @@ for its argument.");
   defsubr (&Sfile_accessible_directory_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
-  defsubr (&Sset_default_file_mode);
-  defsubr (&Sdefault_file_mode);
+  defsubr (&Sset_default_file_modes);
+  defsubr (&Sdefault_file_modes);
   defsubr (&Sfile_newer_than_file_p);
   defsubr (&Sinsert_file_contents);
   defsubr (&Swrite_region);
