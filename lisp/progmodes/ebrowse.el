@@ -1061,7 +1061,7 @@ if for some reason a circle is in the inheritance graph."
     (setf ebrowse-tree-mode-map map)
     (suppress-keymap map)
 
-    (when window-system
+    (when (display-mouse-p)
       (define-key map [down-mouse-3] 'ebrowse-mouse-3-in-tree-buffer)
       (define-key map [mouse-2] 'ebrowse-mouse-2-in-tree-buffer)
       (define-key map [down-mouse-1] 'ebrowse-mouse-1-in-tree-buffer))
@@ -2160,7 +2160,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
     (setf ebrowse-member-mode-map map)
     (suppress-keymap map)
 
-  (when window-system
+  (when (display-mouse-p)
     (define-key map [down-mouse-3] 'ebrowse-member-mouse-3)
     (define-key map [mouse-2] 'ebrowse-member-mouse-2))
 
