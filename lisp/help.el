@@ -493,71 +493,74 @@ C-w print information on absence of warranty for GNU Emacs."
 				obarray 'fboundp t))
      (list (if (equal val "")
 	       fn (intern val)))))
-  (with-output-to-temp-buffer "*Help*"
-    (prin1 function)
-    (princ ": ")
-    (let* ((def (symbol-function function))
-	   file-name
-	   (beg (if (commandp def) "an interactive " "a ")))
-      (princ (cond ((or (stringp def)
-			(vectorp def))
-		    "a keyboard macro")
-		   ((subrp def)
-		    (concat beg "built-in function"))
-		   ((byte-code-function-p def)
-		    (concat beg "compiled Lisp function"))
-		   ((symbolp def)
-		    (format "alias for `%s'" def))
-		   ((eq (car-safe def) 'lambda)
-		    (concat beg "Lisp function"))
-		   ((eq (car-safe def) 'macro)
-		    "a Lisp macro")
-		   ((eq (car-safe def) 'mocklisp)
-		    "a mocklisp function")
-		   ((eq (car-safe def) 'autoload)
-		    (setq file-name (nth 1 def))
-		    (format "%s autoloaded Lisp %s"
-			    (if (commandp def) "an interactive" "an")
-			    (if (nth 4 def) "macro" "function")
-			    ))
-		   (t "")))
-      (or file-name
-	  (setq file-name (describe-function-find-file function)))
-      (if file-name
-	  (progn
-	    (princ " in `")
-	    ;; We used to add .el to the file name,
-	    ;; but that's completely wrong when the user used load-file.
-	    (princ file-name)
-	    (princ "'")))
-      (princ ".")
-      (terpri)
-      (let ((arglist (cond ((byte-code-function-p def)
-			    (car (append def nil)))
-			   ((eq (car-safe def) 'lambda)
-			    (nth 1 def))
-			   (t t))))
-	(if (listp arglist)
-	    (progn
-	      (princ (cons function
-			   (mapcar (lambda (arg)
-				     (if (memq arg '(&optional &rest))
-					 arg
-				       (intern (upcase (symbol-name arg)))))
-				   arglist)))
-	      (terpri))))
-      (let ((doc (documentation function)))
-	(if doc
-	    (progn (terpri)
-		   (princ doc))
-	  (princ "not documented"))))
-    (print-help-return-message)
-    (save-excursion
-      (set-buffer standard-output)
-      (help-mode)
-      ;; Return the text we displayed.
-      (buffer-string))))
+  (if function
+      (with-output-to-temp-buffer "*Help*"
+	(prin1 function)
+	(princ ": ")
+	(let* ((def (symbol-function function))
+	       file-name
+	       (beg (if (commandp def) "an interactive " "a ")))
+	  (princ (cond ((or (stringp def)
+			    (vectorp def))
+			"a keyboard macro")
+		       ((subrp def)
+			(concat beg "built-in function"))
+		       ((byte-code-function-p def)
+			(concat beg "compiled Lisp function"))
+		       ((symbolp def)
+			(format "alias for `%s'" def))
+		       ((eq (car-safe def) 'lambda)
+			(concat beg "Lisp function"))
+		       ((eq (car-safe def) 'macro)
+			"a Lisp macro")
+		       ((eq (car-safe def) 'mocklisp)
+			"a mocklisp function")
+		       ((eq (car-safe def) 'autoload)
+			(setq file-name (nth 1 def))
+			(format "%s autoloaded Lisp %s"
+				(if (commandp def) "an interactive" "an")
+				(if (nth 4 def) "macro" "function")
+				))
+		       (t "")))
+	  (or file-name
+	      (setq file-name (describe-function-find-file function)))
+	  (if file-name
+	      (progn
+		(princ " in `")
+		;; We used to add .el to the file name,
+		;; but that's completely wrong when the user used load-file.
+		(princ file-name)
+		(princ "'")))
+	  (princ ".")
+	  (terpri)
+	  (let ((arglist (cond ((byte-code-function-p def)
+				(car (append def nil)))
+			       ((eq (car-safe def) 'lambda)
+				(nth 1 def))
+			       (t t))))
+	    (if (listp arglist)
+		(progn
+		  (princ (cons function
+			       (mapcar (lambda (arg)
+					 (if (memq arg '(&optional &rest))
+					     arg
+					   (intern (upcase (symbol-name arg)))))
+				       arglist)))
+		  (terpri))))
+	  (let ((doc (documentation function)))
+	    (if doc
+		(progn (terpri)
+		       (princ doc))
+	      (princ "not documented"))))
+	(print-help-return-message)
+	(save-excursion
+	  (set-buffer standard-output)
+	  (help-mode)
+	  ;; Return the text we displayed.
+	  (buffer-string)))
+    (message "You didn't specify a function")))
 
+;; We return 0 if we can't find a variable to return.
 (defun variable-at-point ()
   (condition-case ()
       (let ((stab (syntax-table)))
@@ -570,9 +573,10 @@ C-w print information on absence of warranty for GNU Emacs."
 		  (forward-sexp -1))
 	      (skip-chars-forward "'")
 	      (let ((obj (read (current-buffer))))
-		(and (symbolp obj) (boundp obj) obj)))
+		(or (and (symbolp obj) (boundp obj) obj)
+		    0)))
 	  (set-syntax-table stab)))
-    (error nil)))
+    (error 0)))
 
 (defun describe-variable (variable)
   "Display the full documentation of VARIABLE (a symbol).
@@ -581,38 +585,40 @@ Returns the documentation as a string, also."
    (let ((v (variable-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read (if v
+     (setq val (completing-read (if (symbolp v)
 				    (format "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray 'boundp t))
      (list (if (equal val "")
 	       v (intern val)))))
-  (with-output-to-temp-buffer "*Help*"
-    (prin1 variable)
-    (if (not (boundp variable))
-        (princ " is void")
-      (princ "'s value is ")
-      (prin1 (symbol-value variable)))
-    (terpri)
-    (if (local-variable-p variable)
-	(progn
-	  (princ (format "Local in buffer %s; " (buffer-name)))
-	  (if (not (default-boundp variable))
-	      (princ "globally void")
-	    (princ "global value is ")
-	    (prin1 (default-value variable)))
-	  (terpri)))
-    (terpri)
-    (princ "Documentation:")
-    (terpri)
-    (let ((doc (documentation-property variable 'variable-documentation)))
-      (princ (or doc "not documented as a variable.")))
-    (print-help-return-message)
-    (save-excursion
-      (set-buffer standard-output)
-      (help-mode)
-      ;; Return the text we displayed.
-      (buffer-string))))
+  (if (symbolp variable)
+      (with-output-to-temp-buffer "*Help*"
+	(prin1 variable)
+	(if (not (boundp variable))
+	    (princ " is void")
+	  (princ "'s value is ")
+	  (prin1 (symbol-value variable)))
+	(terpri)
+	(if (local-variable-p variable)
+	    (progn
+	      (princ (format "Local in buffer %s; " (buffer-name)))
+	      (if (not (default-boundp variable))
+		  (princ "globally void")
+		(princ "global value is ")
+		(prin1 (default-value variable)))
+	      (terpri)))
+	(terpri)
+	(princ "Documentation:")
+	(terpri)
+	(let ((doc (documentation-property variable 'variable-documentation)))
+	  (princ (or doc "not documented as a variable.")))
+	(print-help-return-message)
+	(save-excursion
+	  (set-buffer standard-output)
+	  (help-mode)
+	  ;; Return the text we displayed.
+	  (buffer-string)))
+    (message "You did not specify a variable")))
 
 (defun where-is (definition)
   "Print message listing key sequences that invoke specified command.
