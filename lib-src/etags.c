@@ -45,14 +45,11 @@ extern char *alloca ();
 
 extern char *malloc (), *realloc ();
 extern char *getenv ();
-extern char *index (), *rindex ();
 extern char *strcpy (), *strncpy ();
 extern int strcmp ();
 
-#ifdef hpux
-#define NEED_INDEX 1
-#define NEED_RINDEX 1
-#endif
+char *etags_index (), *etags_rindex ();
+char *savenstr ();
 
 /* Define the symbol ETAGS to make the program "etags",
  which makes emacs-style tag tables by default.
@@ -873,7 +870,11 @@ process_file (file)
   struct stat stat_buf;
 
   stat (file, &stat_buf);
-  if (!(stat_buf.st_mode & S_IFREG) || !(stat_buf.st_mode & S_IFLNK))
+  if (!(stat_buf.st_mode & S_IFREG)
+#ifdef S_IFLNK
+      || !(stat_buf.st_mode & S_IFLNK)
+#endif
+      )
     {
       fprintf (stderr, "Skipping %s: it is not a regular file.\n", file);
       return;
@@ -886,7 +887,7 @@ process_file (file)
     }
   if (emacs_tags_format)
     {
-      char *cp = rindex (file, '/');
+      char *cp = etags_rindex (file, '/');
       if (cp)
 	++cp;
       else
@@ -957,7 +958,7 @@ find_entries (file)
       return;
     }
   curfile = savestr (file);
-  cp = rindex (file, '.');
+  cp = etags_rindex (file, '.');
 
   header_file = (cp && (streq (cp + 1, "h")));
 
@@ -1100,9 +1101,9 @@ pfnote (name, is_func, rewritten, linestart, linelen, lno, cno)
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (!emacs_tags_format && !cxref_style && streq (name, "main"))
     {
-      fp = rindex (curfile, '/');
+      fp = etags_rindex (curfile, '/');
       name = concat ("M", fp == 0 ? curfile : fp + 1, "");
-      fp = rindex (name, '.');
+      fp = etags_rindex (name, '.');
       if (fp && fp[1] != '\0' && fp[2] == '\0')
 	*fp = 0;
       rewritten = TRUE;
@@ -2031,6 +2032,10 @@ PF_funcs (fi)
 	  if (tail ("subroutine"))
 	    getit ();
 	  continue;
+	case 'e':
+	  if (tail ("entry"))
+	    getit ();
+	  continue;
 	case 'p':
 	  if (tail ("program"))
 	    {
@@ -2541,34 +2546,25 @@ TEX_funcs (fi)
     TEX_toktab = TEX_decode_env ("TEXTAGS", TEX_defenv);
 
   while (!feof (fi))
-    {
+    {			/* Scan each line in file */
       lineno++;
       linecharno = charno;
       charno += readline (&lb, fi);
       dbp = lb.buffer;
       lasthit = dbp;
+      while (dbp = etags_index (dbp, TEX_esc))	/* Look at each escape in line */
+	{
+	  register int i;
 
-      while (!feof (fi))
-	{			/* Scan each line in file */
-	  lineno++;
-	  linecharno = charno;
-	  charno += readline (&lb, fi);
-	  dbp = lb.buffer;
+	  if (!*(++dbp))
+	    break;
+	  linecharno += dbp - lasthit;
 	  lasthit = dbp;
-	  while (dbp = index (dbp, TEX_esc))	/* Look at each escape in line */
+	  i = TEX_Token (lasthit);
+	  if (0 <= i)
 	    {
-	      register int i;
-
-	      if (!*(++dbp))
-		break;
-	      linecharno += dbp - lasthit;
-	      lasthit = dbp;
-	      i = TEX_Token (lasthit);
-	      if (0 <= i)
-		{
-		  TEX_getit (lasthit, TEX_toktab[i].len);
-		  break;	/* We only save a line once */
-		}
+	      TEX_getit (lasthit, TEX_toktab[i].len);
+	      break;	/* We only save a line once */
 	    }
 	}
     }
@@ -2621,7 +2617,6 @@ TEX_decode_env (evarname, defenv)
      char *defenv;
 {
   register char *env, *p;
-  extern char *savenstr (), *index ();
 
   struct TEX_tabent *tab;
   int size, i;
@@ -2635,15 +2630,16 @@ TEX_decode_env (evarname, defenv)
 
   /* Allocate a token table */
   for (size = 1, p = env; p;)
-    if ((p = index (p, ':')) && *(++p))
+    if ((p = etags_index (p, ':')) && *(++p))
       size++;
-  tab = xnew (size, struct TEX_tabent);
+  /* Add 1 to leave room for null terminator.  */
+  tab = xnew (size + 1, struct TEX_tabent);
 
   /* Unpack environment string into token table. Be careful about */
   /* zero-length strings (leading ':', "::" and trailing ':') */
   for (i = 0; *env;)
     {
-      p = index (env, ':');
+      p = etags_index (env, ':');
       if (!p)			/* End of environment string. */
 	p = env + strlen (env);
       if (p - env > 0)
@@ -2690,7 +2686,7 @@ TEX_getit (name, len)
 }
 
 /* If the text at CP matches one of the tag-defining TeX command names,
-   return the index of that command in TEX_toktab.
+   return the etags_index of that command in TEX_toktab.
    Otherwise return -1.  */
 
 /* Keep the capital `T' in `Token' for dumb truncating compilers
@@ -2813,7 +2809,7 @@ substr (sub, s)
      char *sub;
      char *s;
 {
-  while (*s && (s = index (s, *sub)))
+  while (*s && (s = etags_index (s, *sub)))
     if (prestr (sub, s))
       return (TRUE);
     else
@@ -2906,7 +2902,6 @@ savenstr (cp, len)
   return dp;
 }
 
-#ifdef NEED_RINDEX
 /*
  * Return the ptr in sp at which the character c last
  * appears; NULL if not found
@@ -2915,7 +2910,7 @@ savenstr (cp, len)
  */
 
 char *
-rindex (sp, c)
+etags_rindex (sp, c)
      register char *sp, c;
 {
   register char *r;
@@ -2928,10 +2923,8 @@ rindex (sp, c)
   } while (*sp++);
   return (r);
 }
-#endif /* not NEED_RINDEX */
 
 
-#ifdef NEED_INDEX
 /*
  * Return the ptr in sp at which the character c first
  * appears; NULL if not found
@@ -2940,7 +2933,7 @@ rindex (sp, c)
  */
 
 char *
-index (sp, c)
+etags_index (sp, c)
      register char *sp, c;
 {
   do
@@ -2950,8 +2943,6 @@ index (sp, c)
   } while (*sp++);
   return (NULL);
 }
-
-#endif /* not NEED_INDEX */
 
 /* Print error message and exit.  */
 
