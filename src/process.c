@@ -3618,6 +3618,7 @@ text to PROCESS after you call this function.")
     send_process (proc, "\004", 1, Qnil);
   else
     {
+#ifdef HAVE_SHUTDOWN
       /* If this is a network connection, or socketpair is used
 	 for communication with the subprocess, call shutdown to cause EOF.
 	 (In some old system, shutdown to socketpair doesn't work.
@@ -3628,6 +3629,9 @@ text to PROCESS after you call this function.")
       /* In case of socketpair, outfd == infd, so don't close it.  */
       if (XINT (XPROCESS (proc)->outfd) != XINT (XPROCESS (proc)->infd))
 	close (XINT (XPROCESS (proc)->outfd));
+#else /* not HAVE_SHUTDOWN */
+      close (XINT (XPROCESS (proc)->outfd));
+#endif /* not HAVE_SHUTDOWN */
       XSETINT (XPROCESS (proc)->outfd, open (NULL_DEVICE, O_WRONLY));
     }
 #endif /* VMS */
