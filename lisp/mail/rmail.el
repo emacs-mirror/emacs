@@ -151,12 +151,19 @@ Called with region narrowed to the message, including headers.")
 (defvar rmail-overlay-list nil)
 
 (defvar rmail-font-lock-keywords
-  '(("^\\(From\\|Sender\\):" . font-lock-function-name-face)
-    ("^Reply-To:.*$" . font-lock-function-name-face)
-    ("^Subject:" . font-lock-comment-face)
-    ("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
-    ("^[ \t]*\\sw*[>|}].*$" . font-lock-reference-face)		; Citation.
-    ("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$" . font-lock-string-face))
+  (eval-when-compile
+    (let* ((cite-prefix "A-Za-z") (cite-suffix (concat cite-prefix "0-9_.@-")))
+      (list
+       '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
+       '("^Reply-To:.*$" . font-lock-function-name-face)
+       '("^Subject:" . font-lock-comment-face)
+       '("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
+       (cons (concat "^[ \t]*"
+		     "\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+		     "[>|}].*")
+	     'font-lock-reference-face)
+       '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
+	 . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
 
 ;; These are used by autoloaded rmail-summary.
