@@ -211,6 +211,9 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	(if (documentation defn)
 	    (princ (documentation defn))
 	  (princ "not documented"))
+	(save-excursion
+	  (set-buffer standard-output)
+	  (help-mode))
 	(print-help-return-message)))))
 
 (defun describe-mode ()
@@ -248,6 +251,9 @@ describes the minor mode."
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))
     (print-help-return-message)))
 
 ;; So keyboard macro definitions are documented correctly
@@ -320,7 +326,8 @@ of the key sequence that ran this command."
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
-	(insert "\n")))
+	(insert "\n"))
+      (help-mode))
     (print-help-return-message)))
 
 (defalias 'help 'help-for-help)
@@ -461,8 +468,11 @@ C-w print information on absence of warranty for GNU Emacs."
 	(princ "not documented"))
       )
     (print-help-return-message)
-    ;; Return the text we displayed.
-    (save-excursion (set-buffer standard-output) (buffer-string))))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode)
+      ;; Return the text we displayed.
+      (buffer-string))))
 
 (defun variable-at-point ()
   (condition-case ()
@@ -510,8 +520,11 @@ Returns the documentation as a string, also."
 	  (princ (substitute-command-keys doc))
 	(princ "not documented as a variable.")))
     (print-help-return-message)
-    ;; Return the text we displayed.
-    (save-excursion (set-buffer standard-output) (buffer-string))))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode)
+      ;; Return the text we displayed.
+      (buffer-string))))
 
 (defun where-is (definition)
   "Print message listing key sequences that invoke specified command.
