@@ -80,6 +80,8 @@
 #define BSD_SYSTEM 199103
 #elif __FreeBSD__ == 2
 #define BSD_SYSTEM 199306
+#elif __FreeBSD__ == 3
+#define BSD_SYSTEM 199506
 #endif
 
 #define WAITTYPE int
