@@ -32,8 +32,8 @@ Boston, MA 02111-1307, USA.  */
 #ifdef __osf__
 #include <string.h>
 #include <stdlib.h>
-extern long *xmalloc();
 #endif
+extern long *xmalloc();
 
 #if defined (USE_LUCID)
 #include "lwlib-Xlw.h"
@@ -49,6 +49,7 @@ extern long *xmalloc();
 #include "lwlib-Xol.h"
 #endif
 #if defined (USE_XAW)
+#include <X11/Xaw/Paned.h>
 #include "lwlib-Xaw.h"
 #endif
 
@@ -77,6 +78,7 @@ char *lwlib_toolkit_type = "lucid";
 static void
 instantiate_widget_instance (/* widget_instance* instance */);
 
+void
 lwlib_memset (address, value, length)
      char *address;
      int value;
@@ -88,6 +90,7 @@ lwlib_memset (address, value, length)
     address[i] = value;
 }
 
+void
 lwlib_bcopy (from, to, length)
      char *from;
      char *to;
