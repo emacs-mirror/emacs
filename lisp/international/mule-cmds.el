@@ -309,7 +309,10 @@ systems set by this function will use that type of EOL conversion.
 This command does not change the default value of terminal coding system
 for MS-DOS terminal, because DOS terminals only support a single coding
 system, and Emacs automatically sets the default to that coding system at
-startup."
+startup.
+
+Such a coding system that requires automatic detection of text
+encoding (e.g. undecided, unix) can't be preferred."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
