@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.142) $
+ * $HopeName: MMsrc!mpm.h(trunk.143) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -501,23 +501,28 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
   ((ArenaClass)SUPERCLASS(className))
 
 extern AbstractArenaClass AbstractArenaClassGet(void);
+extern Bool ArenaClassCheck(ArenaClass class);
+
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
 extern void ArenaDestroy(Arena arena);
-extern void ArenaInit(Arena arena, Lock lock, ArenaClass class);
+extern Res ArenaInit(Arena arena, Lock lock, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
+extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode,
 			MutatorFaultContext context);
 
-extern Bool ArenaAllocCheck(Arena arena);
-extern Res ArenaAllocCreate(Arena *arenaReturn, ArenaClass class, va_list args);
-extern void ArenaAllocInit(Arena arena, ArenaClass class);
-extern void ArenaAllocDestroy(Arena arena);
-extern void ArenaAllocFinish(Arena arena);
-extern Bool ArenaClassCheck(ArenaClass class);
-extern Res ArenaAllocDescribe(Arena arena, mps_lib_FILE *stream);
-extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
+extern void ArenaAnnounce(Arena arena);
+extern void ArenaDenounce(Arena arena);
+
+extern Bool GlobalsCheck(Globals arena);
+extern Res GlobalsInit(Globals arena, Lock lock);
+extern void GlobalsFinish(Globals arena);
+extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream);
+
+#define ArenaGlobals(arena) (&(arena)->globals)
+#define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
@@ -607,7 +612,8 @@ extern Res ArenaFinalize(Arena arena, Ref obj);
 
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
-extern Reservoir ArenaReservoir(Arena arena);
+#define ArenaReservoir(arena) (&(arena)->reservoirStruct)
+
 extern Bool ReservoirCheck(Reservoir reservoir);
 extern Res ReservoirInit(Reservoir reservoir, Arena arena);
 extern void ReservoirFinish (Reservoir reservoir);

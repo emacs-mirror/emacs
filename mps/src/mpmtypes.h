@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.88) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.89) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -26,6 +26,7 @@
 
 typedef unsigned long Sig;              /* design.mps.sig */
 typedef int Res;                        /* design.mps.type.res */
+
 typedef void (*Fun)(void);              /* design.mps.type.fun */
 typedef MPS_T_WORD Word;                /* design.mps.type.word */
 typedef unsigned char Byte;             /* design.mps.type.byte */
@@ -38,6 +39,7 @@ typedef unsigned Shift;                 /* design.mps.type.shift */
 typedef unsigned Serial;                /* design.mps.type.serial */
 typedef Addr Ref;                       /* design.mps.type.ref */
 typedef void *Pointer;                  /* design.mps.type.pointer */
+
 typedef Word RefSet;                    /* design.mps.refset */
 typedef Word ZoneSet;                   /* design.mps.refset */
 typedef unsigned Rank;
@@ -51,6 +53,7 @@ typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef unsigned FormatVariety;         
 typedef int RootVar;                    /* design.mps.type.rootvar */
+
 typedef Word *BT;                       /* design.mps.bt */
 typedef struct BootBlockStruct *BootBlock; /* impl.c.boot */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
@@ -88,6 +91,7 @@ typedef int SegPrefKind;                /* design.mps.pref, impl.c.locus */
 typedef struct ArenaClassStruct *ArenaClass; /* design.mps.arena */
 typedef ArenaClass AbstractArenaClass;  /* impl.c.arena */
 typedef struct ArenaStruct *Arena;      /* design.mps.arena */
+typedef struct GlobalsStruct *Globals;  /* design.mps.arena */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
