@@ -540,8 +540,11 @@ language.aff file \(e.g., english.aff\).")
 ;;;###autoload
 (defconst ispell-menu-map-needed	; make sure this is not Lucid Emacs
   (and (not ispell-menu-map)
-       ;; make sure this isn't Lucid Emacs
-       (featurep 'menu-bar) (string-lessp "19" emacs-version)))
+;;; This is commented out because it fails in Emacs.
+;;; due to the fact that menu-bar is loaded much later than loaddefs.
+;;;       ;; make sure this isn't Lucid Emacs
+;;;       (featurep 'menu-bar)
+       (string-lessp "19" emacs-version)))
 
 
 ;;; setup dictionary
