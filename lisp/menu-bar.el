@@ -73,10 +73,6 @@ A large number or nil slows down menu responsiveness.")
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
 
-(define-key menu-bar-tools-menu [ediff-doc]
-  '("Ediff Manual..." . ediff-documentation))
-(define-key menu-bar-tools-menu [eregistry]
-  '("List Ediff Sessions..." . ediff-show-registry))
 (define-key menu-bar-tools-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
