@@ -2202,11 +2202,11 @@ The value of this variable is used when Font Lock mode is turned on."
   :type 'font-lock-extra-types-widget
   :group 'font-lock-extra-types)
 
-(defcustom c++-font-lock-extra-types '("string")
+(defcustom c++-font-lock-extra-types '("string" "wchar_t")
   "*List of extra types to fontify in C++ mode.
 Each list item should be a regexp not containing word-delimiters.
-For example, a value of (\"string\") means the word string is treated as a type
-name.
+For example, a value of (\"string\" \"wchar_t\") means the words string and
+wchar_t are treated as type names.
 
 The value of this variable is used when Font Lock mode is turned on."
   :type 'font-lock-extra-types-widget
@@ -2442,7 +2442,9 @@ See also `c++-font-lock-extra-types'.")
 		    "union" "enum" "signed" "unsigned" "short" "long"
 		    "int" "char" "float" "double" "void" "volatile" "const"
 		    "inline" "friend" "bool" "virtual" "complex" "template"
-		    "namespace" "using"))))
+		    "namespace" "using"
+		    ;; Mark Mitchell <mmitchell@usa.net> says these are new.
+		    "explicit" "mutable"))))
 	   c++-font-lock-extra-types)
 	  "\\|"))
        ;;
