@@ -20283,8 +20283,8 @@ expose_window (w, fr)
 	      r.x, r.y, r.width, r.height));
 
       /* Convert to window coordinates.  */
-      r.x = FRAME_TO_WINDOW_PIXEL_X (w, r.x);
-      r.y = FRAME_TO_WINDOW_PIXEL_Y (w, r.y);
+      r.x -= WINDOW_LEFT_EDGE_X (w);
+      r.y -= WINDOW_TOP_EDGE_Y (w);
 
       /* Turn off the cursor.  */
       if (!w->pseudo_window_p
