@@ -1225,7 +1225,7 @@ case "${window_system}" in
 	echo "  Using Open-Look toolkit."
 	;;	
       * )
-	USE_X_TOOLKIT=no
+	USE_X_TOOLKIT=none
 	echo "  Using Xlib directly."
       ;;
     esac
@@ -1233,13 +1233,13 @@ case "${window_system}" in
   x10 )
     HAVE_X_WINDOWS=yes
     HAVE_X11=no
-    USE_X_TOOLKIT=no
+    USE_X_TOOLKIT=none
     echo "  Using X10."
   ;;
   none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
-    USE_X_TOOLKIT=no
+    USE_X_TOOLKIT=none
     echo "  Using no window system."
   ;;
 esac
@@ -1449,7 +1449,7 @@ AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC})
 if [ "${HAVE_X_WINDOWS}" = "yes" ] ; then
   ] AC_DEFINE(HAVE_X_WINDOWS) [
 fi
-if [ "${USE_X_TOOLKIT}" != "no" ] ; then
+if [ "${USE_X_TOOLKIT}" != "none" ] ; then
   ] AC_DEFINE(USE_X_TOOLKIT) [
 fi
 if [ "${HAVE_X11}" = "yes" ] ; then
@@ -1534,8 +1534,8 @@ Configured for \`${canonical}'.
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
-  What window system should Emacs use?                    ${window_system}${x_includes+
-  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}
+  What window system should Emacs use?                    ${window_system}
+  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}${x_includes+
   Where do we find X Windows header files?                }${x_includes}${x_libraries+
   Where do we find X Windows libraries?                   }${x_libraries}
 
@@ -1586,8 +1586,7 @@ echo creating src/Makefile
 
 [
 echo '
-#include "'${srcdir}'/src/'${opsysfile}'"
-#include "'${srcdir}'/src/'${machfile}'"
+#include "config.h"
 #ifndef LIBS_MACHINE
 #define LIBS_MACHINE
 #endif
@@ -1596,10 +1595,9 @@ echo '
 #endif
 configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
 ' > ${tempcname}
-${CPP} -Isrc ${tempcname} \
+eval `${CPP} -Isrc -I${srcdir}/src ${tempcname} \
        | grep 'configure___' \
-       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/' > foofoo1
-eval `cat foofoo1`
+       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
 
 cat lib-src/Makefile | sed -e "s/@libsrc_libs@/$libsrc_libs/" > lib-src/Makefoo
