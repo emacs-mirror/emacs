@@ -56,7 +56,7 @@
 ;; --display DISPNAME        This option is handled by emacs.c
 ;; -------------------------
 ;; -nw                       Do not use a windows system (but use the
-;; --no-windows              terminal instead.)
+;; --no-window-system        terminal instead.)
 ;;                           This option is handled by emacs.c
 ;; -------------------------
 ;; -batch                    Execute noninteractively (messages go to stdout,
