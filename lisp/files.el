@@ -3549,8 +3549,7 @@ non-nil, it is called instead of rereading visited file contents."
 			  (if auto-save-p 'emacs-mule-unix
 			    (or coding-system-for-read
 				buffer-file-coding-system))))
-		     ;; This force
-		     ;; after-insert-file-set-buffer-file-coding-system
+		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.
 		     (kill-local-variable 'buffer-file-coding-system)
