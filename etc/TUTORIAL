@@ -259,7 +259,7 @@ If you really want to try the command, type Space in answer to the
 question.  Normally, if you do not want to execute the disabled
 command, answer the question with "n".
 
->> Type <ESC> : (which is a disabled command),
+>> Type C-x C-l (which is a disabled command),
    then type n to answer the question.
 
 
