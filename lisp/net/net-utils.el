@@ -1,5 +1,7 @@
 ;;; net-utils.el --- Network functions
 
+;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
