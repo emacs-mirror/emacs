@@ -478,6 +478,7 @@ No diary entry if there is no sunset on that date."
         (if light (format "%s Sabbath candle lighting"
                           (solar-time-string light date))))))
 
+;;;###autoload
 (defun solar-equinoxes-solstices ()
   "Date and time of equinoxes and solstices, if visible in the calendar window.
 Requires floating point."
