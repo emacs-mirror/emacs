@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -648,7 +648,7 @@ and `:slant'.  When called interactively, prompt for the face and font."
 FRAME nil or not specified means change face on all frames.
 When called interactively, prompt for the face and color."
   (interactive (read-face-and-attribute :background))
-  (set-face-attribute face frame :background color))
+  (set-face-attribute face frame :background (or color 'unspecified)))
 
 
 (defun set-face-foreground (face color &optional frame)
@@ -656,7 +656,7 @@ When called interactively, prompt for the face and color."
 FRAME nil or not specified means change face on all frames.
 When called interactively, prompt for the face and color."
   (interactive (read-face-and-attribute :foreground))
-  (set-face-attribute face frame :foreground color))
+  (set-face-attribute face frame :foreground (or color 'unspecified)))
 
 
 (defun set-face-stipple (face stipple &optional frame)
@@ -669,7 +669,7 @@ Alternatively, STIPPLE may be a list of the form (WIDTH HEIGHT DATA)
 where WIDTH and HEIGHT are the size in pixels,
 and DATA is a string, containing the raw bits of the bitmap."
   (interactive (read-face-and-attribute :stipple))
-  (set-face-attribute face frame :stipple stipple))
+  (set-face-attribute face frame :stipple (or stipple 'unspecified)))
 
 
 (defun set-face-underline (face underline &optional frame)
