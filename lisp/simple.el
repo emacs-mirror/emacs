@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -4044,14 +4044,20 @@ For more details, see `delete-key-deletes-forward'."
   (cond ((or (memq window-system '(x w32 mac pc))
 	     (memq system-type '(ms-dos windows-nt)))
 	 (let ((bindings 
-		`(([delete] [backspace] delete-char delete-backward-char)
-		  ([C-delete] [C-backspace] kill-word backward-kill-word)
+		`(([C-delete] [C-backspace] kill-word backward-kill-word)
 		  ([M-delete] [M-backspace] kill-word backward-kill-word)
 		  ([C-M-delete] [C-M-backspace] kill-sexp backward-kill-sexp)
-		  (,esc-map [C-delete] [C-backspace] kill-sexp
-			    backward-kill-sexp)
-		  (,isearch-mode-map [backspace] [delete] isearch-delete-char
-				     isearch-other-control-char))))
+		  (,esc-map
+		   [C-delete] [C-backspace]
+		   kill-sexp backward-kill-sexp))))
+
+	   (if delete-key-deletes-forward
+	       (progn
+		 (define-key function-key-map [delete] [?\C-d])
+		 (define-key function-key-map [backspace] [?\C-?]))
+	     (define-key function-key-map [delete] [?\C-?])
+	     (define-key function-key-map [backspace] [?\C-?]))
+
 	   (dolist (binding bindings)
 	     (let ((map global-map))
 	       (when (keymapp (car binding))
