@@ -1,3 +1,9 @@
+2005-01-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
+	(gdb-goto-breakpoint): Make breakpoint handling work on template
+	functions in C++. Reported by Martin Reed <mjreed@essex.ac.uk>
+
 2005-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* descr-text.el: Add more keywords.
