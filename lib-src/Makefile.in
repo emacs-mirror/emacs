@@ -318,7 +318,7 @@ make-path: ${srcdir}/make-path.c ../src/config.h
 	$(CC) $(ALL_CFLAGS) ${srcdir}/make-path.c -o make-path
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
-   See ../src/ymakefile.  */
+   See ../src/Makefile.in.in.  */
 emacstool: ${srcdir}/emacstool.c
 	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
