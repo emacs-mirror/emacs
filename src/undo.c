@@ -557,6 +557,8 @@ Return what remains of the list.  */)
 	      else if (EQ (car, Qapply))
 		{
 		  /* Element (apply FUN . ARGS) means call FUN to undo.  */
+		  struct buffer *save_buffer = current_buffer;
+
 		  car = Fcar (cdr);
 		  cdr = Fcdr (cdr);
 		  if (INTEGERP (car))
@@ -582,6 +584,9 @@ Return what remains of the list.  */)
 		    }
 		  else
 		    apply1 (car, cdr);
+
+		  if (save_buffer != current_buffer)
+		    error ("Undo function switched buffer");
 		  did_apply = 1;
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
