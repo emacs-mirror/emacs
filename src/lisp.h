@@ -729,12 +729,6 @@ extern void defvar_int ();
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
 
-#define DEFVARLISP(lname, vname, doc) defvar_lisp (lname, vname)
-#define DEFVARBOOL(lname, vname, doc) defvar_bool (lname, vname)
-#define DEFVARINT(lname, vname, doc) defvar_int (lname, vname)
-#define DEFVARPERBUFFER(lname, vname, doc)  \
- defvar_per_buffer (lname, vname)
-
 #define DEFVAR_LISP(lname, vname, doc) defvar_lisp (lname, vname)
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
@@ -948,7 +942,7 @@ extern Lisp_Object Fsymbol_function (), Fsymbol_plist (), Fsymbol_name ();
 extern Lisp_Object indirect_function (), Findirect_function ();
 extern Lisp_Object Ffset (), Fsetplist ();
 extern Lisp_Object Fsymbol_value (), find_symbol_value (), Fset ();
-extern Lisp_Object Fdefault_value (), Fset_default ();
+extern Lisp_Object Fdefault_value (), Fset_default (), Fdefault_boundp ();
 
 extern Lisp_Object Faref (), Faset (), Farray_length ();
 
@@ -965,6 +959,8 @@ extern Lisp_Object wrong_type_argument ();
 #ifdef LISP_FLOAT_TYPE
 extern Lisp_Object Ffloat_to_int(), Fint_to_float();
 extern double extract_float();
+extern Lisp_Object make_float ();
+extern Lisp_Object Ffloat ();
 #endif /* LISP_FLOAT_TYPE */
 
 /* Defined in fns.c */
@@ -974,7 +970,7 @@ extern Lisp_Object Fidentity (), Frandom ();
 extern Lisp_Object Flength ();
 extern Lisp_Object Fappend (), Fconcat (), Fvconcat (), Fcopy_sequence ();
 extern Lisp_Object Fsubstring ();
-extern Lisp_Object Fnthcdr (), Fmemq (), Fassq (), Fassoc ();
+extern Lisp_Object Fnth (), Fnthcdr (), Fmemq (), Fassq (), Fassoc ();
 extern Lisp_Object Frassq (), Fdelq (), Fsort ();
 extern Lisp_Object Freverse (), Fnreverse (), Fget (), Fput (), Fequal ();
 extern Lisp_Object Ffillarray (), Fnconc (), Fmapcar (), Fmapconcat ();
@@ -982,6 +978,7 @@ extern Lisp_Object Fy_or_n_p (), do_yes_or_no_p ();
 extern Lisp_Object Ffeaturep (), Frequire () , Fprovide ();
 extern Lisp_Object concat2 (), nconc2 ();
 extern Lisp_Object assq_no_quit ();
+extern Lisp_Object Fcopy_alist ();
 
 /* Defined in alloc.c */
 extern Lisp_Object Vpurify_flag;
@@ -992,6 +989,7 @@ extern Lisp_Object make_array (), make_uninit_string ();
 extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
+extern Lisp_Object Fmake_byte_code ();
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
@@ -1072,6 +1070,12 @@ extern Lisp_Object Ffile_name_as_directory ();
 extern Lisp_Object Fexpand_file_name (), Ffile_name_nondirectory ();
 extern Lisp_Object Fsubstitute_in_file_name ();
 extern Lisp_Object Ffile_symlink_p ();
+extern Lisp_Object Fverify_visited_file_modtime ();
+extern Lisp_Object Ffile_exists_p ();
+extern Lisp_Object Fdirectory_file_name ();
+extern Lisp_Object Ffile_name_directory ();
+extern Lisp_Object expand_and_dir_to_file ();
+extern Lisp_Object Ffile_accessible_directory_p ();
 
 /* Defined in abbrev.c */
 
@@ -1183,10 +1187,15 @@ extern Lisp_Object Fdocumentation (), Fdocumentation_property ();
 
 /* defined in bytecode.c */
 extern Lisp_Object Qbytecode;
+extern Lisp_Object Fbyte_code ();
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
 extern Lisp_Object Fexecute_kbd_macro ();
+
+/* defined in undo.c */
+extern Lisp_Object Fundo_boundary ();
+extern Lisp_Object truncate_undo_list ();
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
