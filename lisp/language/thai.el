@@ -42,7 +42,7 @@
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (charset thai-tis620)
-	  (coding-system thai-tis620)
+	  (coding-system thai-tis620 iso-8859-11 cp874)
 	  (coding-priority thai-tis620)
 	  (nonascii-translation . tis620-2533)
 	  (input-method . "thai-kesmanee")
