@@ -1,3 +1,8 @@
+2000-01-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* tmm.el (tmm-goto-completions): Adapt to prompt being part
+	of mini-buffer.
+
 2000-01-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-update): Removed the
