@@ -1,3 +1,292 @@
+2000-05-20  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are to handle 8-bit characters in a
+	multibyte buffer/string without facing with byte combining
+	problem.  Two new charsets eight-bit-control (for 0x80..0x9F) and
+	eight-bit-graphic (for 0xA0..0xFF) are introduced.
+
+	* Makefile.in (fns.o): Depend on charset.h.
+
+	* alloc.c (Fmake_byte_code): If BYTECODE-STRING is multibyte,
+	convert it to unibyte.
+	(make_string): Use parse_str_as_multibyte, not chars_in_text.
+
+	* buffer.c (advance_to_char_boundary): Don't use DEC_POS to find a
+	apparent char boundary.
+	(Fset_buffer_multibyte): Convert 8-bit characters in the range
+	0x80..0x9F to/from multibyte form.
+
+	* bytecode.c (Fbyte_code): If arg BYTESTR is multibyte, convert it
+	to unibyte.
+
+	* callproc.c (Fcall_process): Always encode an argument string if
+	it is multibyte.  Setup src_multibyte and dst_multibyte members of
+	process_coding properly.
+
+	* category.c (Fmodify_category_entry): Use SPLIT_CHAR, not
+	SPLIT_NON_ASCII_CHAR.
+
+	* ccl.c (CCL_WRITE_CHAR): Be sure to write single byte characters
+	as is.
+	(CCL_MAKE_CHAR): Use MAKE_CHAR, not MAKE_NON_ASCII_CHAR.
+
+	* charset.c (Qeight_bit_control, Qeight_bit_graphic): New
+	variables.
+	(SPLIT_CHARACTER_SEQ): This macro deleted.
+	(SPLIT_MULTIBYTE_SEQ): Assume that multibyte sequence at STR is
+	valid.
+	(CHAR_COMPONENTS_VALID_P): Handle new charsets; eight-bit-control
+	and eight-bit-graphic.
+	(char_to_string): Likewise.  Signal an error for too large
+	character code.
+	(char_printable_p): Return 0 for 8-bit characters.
+	(update_charset_table): Update iso_charset_table only when a final
+	character is non-negative.
+	(find_charset_in_text): Renamed from find_charset_in_str.
+	Arguments and return value changed.  Callers changed.
+	(Fdefine_charset): Args ISO-FINAL-CHAR and ISO-GRAPHIC-PLANE can
+	be -1 if CHARSET is used only internally.
+	(Fmake_char_internal): Handle new charsets; eight-bit-control and
+	eight-bit-graphic.
+	(Fcharset_after): Simplified.
+	(char_valid_p): Use SPLIT_CHAR, not SPLIT_NON_ASCII_CHAR.
+	(char_bytes): Return 2 for chars of the range 0xA0..0xFF.
+	(multibyte_chars_in_text): Simplified by assuming there's no
+	invalid multibyte sequence.
+	(parse_str_as_multibyte, str_as_multibyte, str_to_multibyte,
+	str_as_unibyte): New functions.
+	(Fstring): Simpified by assuming that byte combining never
+	happens.
+	(init_charset_once): Initialization for
+	LEADING_CODE_8_BIT_CONTROL.
+	(syms_of_charset): Intern and staticpro Qeight_bit_control and
+	Qeight_bit_graphic.  Include them in Vcharset_list.  Make charsets
+	eight-bit-control and eight-bit-graphic.
+
+	* charset.h (LEADING_CODE_8_BIT_CONTROL, CHARSET_8_BIT_CONTROL,
+	CHARSET_8_BIT_GRAPHIC): New macros.
+	(SINGLE_BYTE_CHAR_P): Make it faster by using casting.
+	(CHARSET_ISO_GRAPHIC_PLANE): Use XINT instead of XFASTINT.
+	(CHARSET_REVERSE_CHARSET): Likewise.
+	(CHARSET_VALID_P): Handle new charsets; eight-bit-control and
+	eight-bit-graphic.
+	(BYTES_BY_CHAR_HEAD, WIDTH_BY_CHAR_HEAD): Optimize for ASCII.
+	(CHAR_CHARSET, MAKE_CHAR, SPLIT_CHAR, CHAR_BYTES): Likewise.
+	(PARSE_MULTIBYTE_SEQ) [BYTE_COMBINING_DEBUG]: Abort if we
+	encounter an invalid multibyte sequence.
+	(PARSE_MULTIBYTE_SEQ) [not BYTE_COMBINING_DEBUG]: Assume multibyte
+	sequence is always valid.
+	(MAKE_NON_ASCII_CHAR, SPLIT_NON_ASCII_CHAR): These macros Deleted.
+	(UNIBYTE_STR_AS_MULTIBYTE_P, MULTIBYTE_STR_AS_UNIBYTE_P): New
+	macros.
+	(CHAR_STRING): For 8-bit characters, call char_to_string.
+	(INC_POS) [not BYTE_COMBINING_DEBUG]: Faster version.  Assume
+	multibyte sequence is always valid.
+	(BUF_INC_POS) [not BYTE_COMBINING_DEBUG]: Likewise.
+	(parse_str_as_multibyte, str_as_multibyte, str_to_multibyte,
+	str_as_unibyte): Extern them.
+	(BCOPY_SHORT): Fix a bug.
+	(CHAR_LEN): This macro deleted.  Callers changed to use
+	CHAR_BYTES.
+	(FETCH_STRING_CHAR_ADVANCE): Check multibyteness of STRING.
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): New macro.
+	(FETCH_CHAR_ADVANCE): Check multibyteness of the current buffer.
+
+	* coding.c (ONE_MORE_BYTE, TWO_MORE_BYTES): Set coding->resutl to
+	CODING_FINISH_INSUFFICIENT_SRC if there's not enough source.
+	(ONE_MORE_CHAR, EMIT_CHAR, EMIT_ONE_BYTE, EMIT_TWO_BYTE,
+	EMIT_BYTES): New macros.
+	(THREE_MORE_BYTES, DECODE_CHARACTER_ASCII,
+	DECODE_CHARACTER_DIMENSION1, DECODE_CHARACTER_DIMENSION2): These
+	macros deleted.
+	(CHECK_CODE_RANGE_A0_FF): This macro deleted.
+	(detect_coding_emacs_mule): Use UNIBYTE_STR_AS_MULTIBYTE_P to
+	check the validity of multibyte sequence.
+	(decode_coding_emacs_mule): New function.
+	(encode_coding_emacs_mule): New macro.
+	(detect_coding_iso2022): Use ONE_MORE_BYTE to fetch a byte from
+	the source.
+	(DECODE_ISO_CHARACTER): Just return a character code.
+	(DECODE_COMPOSITION_START): Set coding->result instead of result.
+	(decode_coding_iso2022, decode_coding_sjis_big5, decode_eol): Use
+	EMIT_CHAR to produced decoded characters.  Exit the loop only by
+	macros ONE_MORE_BYTE or EMIT_CHAR.  Don't handle the case of last
+	block here.
+	(ENCODE_ISO_CHARACTER): Don't translate character here.  Produce
+	only position codes for an invalid character.
+	(encode_designation_at_bol): Return new destination pointer.  5th
+	arg DSTP is changed to DST.
+	(encode_coding_iso2022, decode_coding_sjis_big5): Get a character
+	from the source by ONE_MORE_CHAR.  Don't handle the case of last
+	block here.
+	(DECODE_SJIS_BIG5_CHARACTER, ENCODE_SJIS_BIG5_CHARACTER): These
+	macros deleted.
+	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8,
+	detect_coding_utf_16, detect_coding_ccl): Use ONE_MORE_BYTE and
+	TWO_MORE_BYTES to fetch a byte from the source.
+	(encode_eol): Pay attention to coding->src_multibyte.
+	(detect_coding, detect_eol): Preserve members src_multibyte and
+	dst_multibyte.
+	(DECODING_BUFFER_MAG): Return 2 even for coding_type_raw_text.
+	(encoding_buffer_size): Set magnification to 3 for all coding
+	systems that require encoding.
+	(ccl_coding_driver): For decoding, be sure that the result is
+	valid multibyte sequence.
+	(decode_coding): Initialize coding->errors and coding->result.
+	For emacs-mule, call decode_coding_emacs_mule.  For no-conversion
+	and raw-text, always call decode_eol.  Handle the case of last
+	block here.  If not coding->dst_multibyte, convert the resulting
+	sequence to unibyte.
+	(encode_coding): Initialize coding->errors and coding->result.
+	For emacs-mule, call encode_coding_emacs_mule.  For no-conversion
+	and raw-text, always call encode_eol.  Handle the case of last
+	block here.
+	(shrink_decoding_region, shrink_encoding_region): Detect cases
+	that we can't skip data more rigidly.
+	(code_convert_region): Setup src_multibyte and dst_multibyte
+	members of coding.  For decoding, if the buffer is multibyte,
+	convert the source sequence to unibyte in advance.  For encoding,
+	if the buffer is multibyte, convert the resulting sequence to
+	multibyte afterward.
+	(run_pre_post_conversion_on_str): New function.
+	(code_convert_string): Deleted and divided into the following two.
+	(decode_coding_string, encode_coding_string): New functions.
+	(code_convert_string1, code_convert_string_norecord): Call one of
+	above.
+	(Fdecode_sjis_char, Fdecode_big5_char): Use MAKE_CHAR instead of
+	MAKE_NON_ASCII_CHAR.
+	(Fset_terminal_coding_system_internal,
+	Fset_safe_terminal_coding_system_internal): Setup src_multibyte
+	and dst_multibyte members.
+	(init_coding_once): Initialize iso_code_class with new enum
+	ISO_control_0 and ISO_control_1.
+
+	* coding.h (enum iso_code_class_type): Member ISO_control_code is
+	devided into ISO_control_0 and ISO_control_1.
+	(struct coding_system): New members src_multibyte, dst_multibyte,
+	errors, and result.  Delete member fake_multibyte.
+	(CODING_REQUIRE_DECODING): Return 1 if coding->dst_multibyte is
+	nonzero.
+	(CODING_REQUIRE_ENCODING): Return 1 if coding->src_multibyte is
+	nonzero.
+
+	* data.c (Faref): Use SPLIT_CHAR instead of SPLIT_NON_ASCII_CHAR.
+	(Faset): Likewise.
+
+	* editfns.c (Fformat): Be sure to convert 8-bit characters to
+	multibyte form.
+	(Ftranspose_region) [BYTE_COMBINING_DEBUG]: Abort if byte
+	combining occurs.
+	(Ftranspose_region): Delete codes for handling byte combining.
+
+	* fileio.c (Finsert_file_contents): Setup src_multibyte and
+	dst_multibyte members of coding.  On handling REPLACE on unibyte
+	buffer, convert the result of decode_coding to unibyte.  On
+	inserting into a mutibyte buffer, always call code_convert_region.
+	(e_write): Setup cdoing->src_multibyte according to the
+	multibyteness of the source (buffer or string).
+
+	* fns.c (concat): Handle 8-bit characters correctly.
+	(Fstring_as_unibyte): Be sure to make all 8-bit characters in
+	unibyte in the result.
+	(Fstring_as_multibyte): Be sure to make all 8-bit characters in
+	valid multibyte form in the result.
+	(map_char_table): Use MAKE_CHAR instead of MAKE_NON_ASCII_CHAR.
+	(Fbase64_encode_region, Fbase64_encode_string): If base64_encode_1
+	return -1, signal an error.
+	(base64_encode_1): New arg MULTIBYTE.  Get each character by
+	CHAR_STRING_AND_LENGTH if MULTIBYTE is nonzero.  If a multibyte
+	character is found, return -1.
+	(Fbase64_decode_region): Delete codes for handling byte-combining.
+	Treat each decoded byte as a unibyte character.
+	(Fbase64_decode_string): Return unibyte string.
+	(Fcompare_strings, concat, string_byte_to_char): Use
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK instead off
+	FETCH_STRING_CHAR_ADVANCE.
+	(Fstring_lessp): Use FETCH_STRING_CHAR_ADVANCE unconditionally.
+	(mapcar1): If SEQ is string, always use FETCH_STRING_CHAR_ADVANCE.
+
+	* fontset.c (fontset_ref): Use SPLIT_CHAR instead of
+	SPLIT_NON_ASCII_CHAR.
+	(fontset_ref_via_base, fontset_set): Likewise
+
+	* insdel.c (adjust_markers_for_record_delete): Deleted.
+	(adjust_markers_for_insert): Argument changed.  Caller changed.
+	(adjust_markers_for_replace): Likewise.
+	(ADJUST_CHAR_POS, combine_bytes, byte_combining_error,
+	CHECK_BYTE_COMBINING_FOR_INSERT): Deleted.
+	(copy_text): Delete unused local varialbe c_save.  For converting
+	to multibyte, be sure to make all 8-bit characters in valid
+	multibyte form.
+	(count_size_as_multibyte): Handle 8-bit characters correctly.
+	(insert_1_both, insert_from_string_1, insert_from_buffer_1,
+	adjust_after_replace, replace_range, del_range_2)
+	[BYTE_COMBINING_DEBUG]: Abort if byte combining occurs.
+	(insert_1_both, insert_from_string_1, insert_from_buffer_1,
+	adjust_after_replace, replace_range, del_range_2) Delete codes for
+	handling byte combining.
+	(adjust_before_replace): Deleted.
+	
+	* keymap.c (Fsingle_key_description): Use SPLIT_CHAR instead of
+	SPLIT_NON_ASCII_CHAR.
+	(describe_vector): Use MAKE_CHAR instead of MAKE_NON_ASCII_CHAR.
+	(Faccessible_keymaps): Use FETCH_STRING_CHAR_ADVANCE
+	unconditionally.
+	(Fkey_description): Likewise.
+
+	* lread.c (read1): On reading multibyte string, be sure to make
+	all 8-bit chararacters in valid multibyte form.
+	(readchar): Use FETCH_STRING_CHAR_ADVANCE unconditionally.
+
+	* print.c (print_object): Use FETCH_STRING_CHAR_ADVANCE
+	unconditionally.
+
+	* process.c (Fstart_process): GCPRO current_dir before calling
+	Ffind_operation_coding_system.  Encode arguments here.
+	(create_process): Don't encode arguments here.  Setup
+	src_multibyte and dst_multibyte members of struct coding.
+	(read_process_output): Setup src_multibyte and dst_multibyte
+	members of struct coding.  If the output is to multibyte buffer,
+	always decode the output of the process.  Adjust the
+	representation of 8-bit characters to the multibyteness of the
+	output.
+	(send_process): Setup coding->src_multibyte according to the
+	multibyteness of the source.
+
+	* search.c (wordify): Use FETCH_STRING_CHAR_ADVANCE
+	unconditionally.
+	(Freplace_match): Use FETCH_STRING_CHAR_ADVANCE and
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK appropriately.
+
+	* term.c (produce_special_glyphs): Use CHAR_BYTES instead of
+	CHAR_LEN.
+
+	* w16select.c (Fw16_set_clipboard_data): Setup members
+	src_multibyte and dst_multibyte of coding.  Adjusted for the
+	change for find_charset_in_str.
+	(Fw16_get_clipboard_data): Likewise.
+
+	* w32fns.c (w32_to_x_font): Setup members src_multibyte and
+	dst_multibyte of coding.
+	(x_to_w32_font): Likewise.
+
+	* w32select.c (Fw32_set_clipboard_data): Setup members
+	src_multibyte and dst_multibyte of coding.  Adjusted for the
+	change for find_charset_in_str.
+	(Fw32_get_clipboard_data): Likewise.
+
+	* xdisp.c (get_next_display_element): Handle 8-bit characters
+	correctly.
+	(next_element_from_display_vector): Use CHAR_BYTES instead of
+	CHAR_LEN.
+	(disp_char_vector): Use SPLIT_CHAR instead of
+	SPLIT_NON_ASCII_CHAR.
+
+	* xselect.c (selection_data_to_lisp_data): Setup members
+	src_multibyte and dst_multibyte of coding.  Adjusted for the
+	change for find_charset_in_str.
+	(lisp_data_to_selection_data): Likewise.
+
 2000-05-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (Fbury_buffer): Avoid trouble from burying a killed

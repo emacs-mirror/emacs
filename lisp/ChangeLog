@@ -1,3 +1,17 @@
+2000-05-20  Kenichi HANDA  <handa@etl.go.jp>
+
+	* mail/rmail.el (rmail-decode-quoted-printable): Use delete-region
+	and insert, not subst-char-in-region.
+
+	* international/mule-diag.el (list-character-sets-1): Handle
+	charsets eight-bit-control and eight-bit-graphic.
+	(list-iso-charset-chars): Likewise.
+	(list-block-of-chars): If CHARSET is not chat-table, insert 8-bit
+	charactes as is.  Use indent-to to align characters.
+
+	* international/mule-cmds.el (find-multibyte-characters): Never
+	exclude charsets eight-bit-control and eight-bit-graphic.
+
 2000-05-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/ada-mode.el (ada-mode, ada-create-case-exception):
