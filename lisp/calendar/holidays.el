@@ -155,8 +155,11 @@ holidays are found, nil if not."
       (increment-calendar-month m1 y1 -1)
       (increment-calendar-month m2 y2 1)
       (calendar-set-mode-line
-            (format "Notable Dates from %s, %d to %s, %d%%-"
-                    (calendar-month-name m1) y1 (calendar-month-name m2) y2))
+       (if (= y1 y2)
+           (format "Notable Dates from %s to %s, %d%%-"
+                   (calendar-month-name m1) (calendar-month-name m2) y2)
+         (format "Notable Dates from %s, %d to %s, %d%%-"
+                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
       (erase-buffer)
       (insert
        (mapconcat
