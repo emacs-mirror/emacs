@@ -1,11 +1,11 @@
 ;;; 5x5.el -- Simple little puzzle game.
 
-;; Copyright (C) 1999 Free Software Foundationm, Inc.
+;; Copyright (C) 1999 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@hagbard.demon.co.uk>
 ;; Maintainer: Dave Pearson <davep@hagbard.demon.co.uk>
 ;; Created: 1998-10-03
-;; Version: $Revision: 1.1 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: games puzzles
 
 ;; This file is part of GNU Emacs.
@@ -133,6 +133,10 @@
     (define-key map [right]                   #'5x5-right)
     (define-key map [(control a)]             #'5x5-bol)
     (define-key map [(control e)]             #'5x5-eol)
+    (define-key map [(control p)]             #'5x5-up)
+    (define-key map [(control n)]             #'5x5-down)
+    (define-key map [(control b)]             #'5x5-left)
+    (define-key map [(control f)]             #'5x5-right)
     (define-key map [home]                    #'5x5-bol)
     (define-key map [end]                     #'5x5-eol)
     (define-key map [prior]                   #'5x5-first)
@@ -196,7 +200,7 @@ Start new game            \\[5x5-new-game]
 New game with random grid \\[5x5-randomize]
 Random cracker            \\[5x5-crack-randomly]
 Mutate current cracker    \\[5x5-crack-mutating-current]
-Mutaue best cracker       \\[5x5-crack-mutating-best]
+Mutate best cracker       \\[5x5-crack-mutating-best]
 Mutate xor cracker        \\[5x5-crack-xor-mutate]
 Quit current game         \\[5x5-quit-game]"
 
