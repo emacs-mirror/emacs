@@ -830,8 +830,7 @@ DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
 \(The alternative is a variable used internally in a Lisp program.)
 Determined by whether the first character of the documentation
 for the variable is `*' or if the variable is customizable (has a non-nil
-value of any of `custom-type', `custom-loads' or `standard-value'
-on its property list).  */)
+value of `standard-value' or of `custom-autoload' on its property list).  */)
      (variable)
      Lisp_Object variable;
 {
@@ -852,10 +851,9 @@ on its property list).  */)
       && INTEGERP (XCDR (documentation))
       && XINT (XCDR (documentation)) < 0)
     return Qt;
-  /* Customizable?  */
-  if ((!NILP (Fget (variable, intern ("custom-type"))))
-      || (!NILP (Fget (variable, intern ("custom-loads"))))
-      || (!NILP (Fget (variable, intern ("standard-value")))))
+  /* Customizable?  See `custom-variable-p'. */
+  if ((!NILP (Fget (variable, intern ("standard-value"))))
+      || (!NILP (Fget (variable, intern ("custom-autoload")))))
     return Qt;
   return Qnil;
 }  
