@@ -772,54 +772,60 @@ In either case, the output is inserted after point (leaving mark after it)."
   (interactive (list (read-from-minibuffer "Shell command: "
 					   nil nil nil 'shell-command-history)
 		     current-prefix-arg))
-  (if (and output-buffer
-	   (not (or (bufferp output-buffer)  (stringp output-buffer))))
-      (progn (barf-if-buffer-read-only)
-	     (push-mark)
-	     ;; We do not use -f for csh; we will not support broken use of
-	     ;; .cshrcs.  Even the BSD csh manual says to use
-	     ;; "if ($?prompt) exit" before things which are not useful
-	     ;; non-interactively.  Besides, if someone wants their other
-	     ;; aliases for shell commands then they can still have them.
-	     (call-process shell-file-name nil t nil
-			   shell-command-switch command)
-	     ;; This is like exchange-point-and-mark, but doesn't
-	     ;; activate the mark.  It is cleaner to avoid activation,
-	     ;; even though the command loop would deactivate the mark
-	     ;; because we inserted text.
-	     (goto-char (prog1 (mark t)
-			  (set-marker (mark-marker) (point)
-				      (current-buffer)))))
-    ;; Preserve the match data in case called from a program.
-    (save-match-data
-      (if (string-match "[ \t]*&[ \t]*$" command)
-	  ;; Command ending with ampersand means asynchronous.
-	  (let ((buffer (get-buffer-create
-			 (or output-buffer "*Async Shell Command*")))
-		(directory default-directory)
-		proc)
-	    ;; Remove the ampersand.
-	    (setq command (substring command 0 (match-beginning 0)))
-	    ;; If will kill a process, query first.
-	    (setq proc (get-buffer-process buffer))
-	    (if proc
-		(if (yes-or-no-p "A command is running.  Kill it? ")
-		    (kill-process proc)
-		  (error "Shell command in progress")))
-	    (save-excursion
-	      (set-buffer buffer)
-	      (setq buffer-read-only nil)
-	      (erase-buffer)
-	      (display-buffer buffer)
-	      (setq default-directory directory)
-	      (setq proc (start-process "Shell" buffer shell-file-name 
-					shell-command-switch command))
-	      (setq mode-line-process '(":%s"))
-	      (require 'shell) (shell-mode)
-	      (set-process-sentinel proc 'shell-command-sentinel)
-	      ))
-	(shell-command-on-region (point) (point) command nil)
-	))))
+  ;; Look for a handler in case default-directory is a remote file name.
+  (let ((handler
+	 (find-file-name-handler (directory-file-name default-directory)
+				 'shell-command)))
+    (if handler
+	(funcall handler 'shell-command command output-buffer)
+      (if (and output-buffer
+	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
+	  (progn (barf-if-buffer-read-only)
+		 (push-mark)
+		 ;; We do not use -f for csh; we will not support broken use of
+		 ;; .cshrcs.  Even the BSD csh manual says to use
+		 ;; "if ($?prompt) exit" before things which are not useful
+		 ;; non-interactively.  Besides, if someone wants their other
+		 ;; aliases for shell commands then they can still have them.
+		 (call-process shell-file-name nil t nil
+			       shell-command-switch command)
+		 ;; This is like exchange-point-and-mark, but doesn't
+		 ;; activate the mark.  It is cleaner to avoid activation,
+		 ;; even though the command loop would deactivate the mark
+		 ;; because we inserted text.
+		 (goto-char (prog1 (mark t)
+			      (set-marker (mark-marker) (point)
+					  (current-buffer)))))
+	;; Preserve the match data in case called from a program.
+	(save-match-data
+	  (if (string-match "[ \t]*&[ \t]*$" command)
+	      ;; Command ending with ampersand means asynchronous.
+	      (let ((buffer (get-buffer-create
+			     (or output-buffer "*Async Shell Command*")))
+		    (directory default-directory)
+		    proc)
+		;; Remove the ampersand.
+		(setq command (substring command 0 (match-beginning 0)))
+		;; If will kill a process, query first.
+		(setq proc (get-buffer-process buffer))
+		(if proc
+		    (if (yes-or-no-p "A command is running.  Kill it? ")
+			(kill-process proc)
+		      (error "Shell command in progress")))
+		(save-excursion
+		  (set-buffer buffer)
+		  (setq buffer-read-only nil)
+		  (erase-buffer)
+		  (display-buffer buffer)
+		  (setq default-directory directory)
+		  (setq proc (start-process "Shell" buffer shell-file-name 
+					    shell-command-switch command))
+		  (setq mode-line-process '(":%s"))
+		  (require 'shell) (shell-mode)
+		  (set-process-sentinel proc 'shell-command-sentinel)
+		  ))
+	    (shell-command-on-region (point) (point) command nil)
+	    ))))))
 
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself.
