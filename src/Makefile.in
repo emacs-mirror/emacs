@@ -1170,10 +1170,10 @@ sunfns.o: sunfns.c buffer.h window.h $(config_h)
 ${libsrc}emacstool: ${libsrc}emacstool.c
 	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool
 mostlyclean:
-	rm -f temacs prefix-args core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs prefix-args core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 clean: mostlyclean
-	rm -f emacs-* emacs
+	rm -f emacs-* emacs bootstrap-emacs
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
