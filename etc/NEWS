@@ -29,6 +29,7 @@ between ISO 8859 character sets (`unification') on encoding
 `unify-8859-on-encoding-mode' is useful and safe, but
 `unify-8859-on-decoding-mode' can cause text to change when you read
 it and write it out again without edits, so it is not generally advisable.
+By default `unify-8859-on-encoding-mode' is turned on.
 
 ** The default value of selection-coding-system is now
 compound-text-with-extensions.
