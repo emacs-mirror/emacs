@@ -1,5 +1,11 @@
 2002-05-26  Colin Walters  <walters@verbum.org>
 
+	* startup.el (command-line): Use `when', `unless'.
+	(command-line-1): New argument "--nosplash".  Handle it.
+
+	* startup.el (inhibit-splash-screen): New variable alias for
+	`inhibit-startup-message'.
+
 	* replace.el (perform-replace): Document return value.  Use `pop'.
 
 2002-05-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
