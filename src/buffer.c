@@ -2313,7 +2313,8 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, NULL, NULL);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+			   (int *) 0, (int *) 0);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -2343,7 +2344,8 @@ If there are no more overlay boundaries after POS, return (point-max).")
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
      endpos gets the position where the next overlay starts.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos, NULL);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+			   &endpos, (int *) 0);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
@@ -2383,7 +2385,8 @@ If there are no more overlay boundaries after POS, return (point-min).")
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
      prevpos gets the position of an overlay end.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, NULL, &prevpos);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+			   (int *) 0, &prevpos);
 
   /* If any of these overlays starts before endpos,
      maybe use its starting point instead.  */
