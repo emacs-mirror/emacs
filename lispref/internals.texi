@@ -339,6 +339,12 @@ beginning and end of garbage collection.  The default value is
 @code{nil}, meaning there are no such messages.
 @end defopt
 
+@defvar post-gc-hook
+This is a normal hook that is run at the end of garbage collection.
+Garbage collection is inhibited while the hook functions run, so be
+careful writing them.
+@end defvar
+
 @defopt gc-cons-threshold
 The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
