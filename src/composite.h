@@ -127,13 +127,19 @@ extern Lisp_Object composition_temp;
 	->contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
-   reference point code) and NREF (new reference point code).  Don't
-   check RULE_CODE, always set GREF and NREF to valid values.  */
-#define COMPOSITION_DECODE_RULE(rule_code, gref, nref)	\
-  do {							\
-    gref = (rule_code) / 12;				\
-    if (gref > 12) gref = 11;				\
-    nref = (rule_code) % 12;				\
+   reference point code), NREF (new reference point code), XOFF
+   (horizontal offset) YOFF (vertical offset).  Don't check RULE_CODE,
+   always set GREF and NREF to valid values.  By side effect,
+   RULE_CODE is modified.  */
+
+#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+  do {									\
+    xoff = (rule_code) >> 16;						\
+    yoff = ((rule_code) >> 8) & 0xFF;					\
+    rule_code &= 0xFF;							\
+    gref = (rule_code) / 12;						\
+    if (gref > 12) gref = 11;						\
+    nref = (rule_code) % 12;						\
   } while (0)
 
 /* Return encoded composition rule for the pair of global reference
@@ -159,6 +165,8 @@ struct composition {
 
   /* Width, ascent, and descent pixels of the composition.  */
   short pixel_width, ascent, descent;
+
+  short lbearing, rbearing;
 
   /* How many columns the overall glyphs occupy on the screen.  This
      gives an approximate value for column calculation in
