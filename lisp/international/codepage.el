@@ -88,7 +88,11 @@ variety is actually just an alias for the -unix variety)."
 		       (repeat)))))
 	   (ccl-encoder-dos
 	    (ccl-compile
-	     `(1 (loop (read-multibyte-character r0 r1)
+	     ;; The 2 here supplies the buf_magnification parameter for
+	     ;; the CCL program.  Since the -dos coding system generates
+	     ;; \r\n for each \n, a factor of 2 covers even the worst case
+	     ;; of empty lines with a single \n.
+	     `(2 (loop (read-multibyte-character r0 r1)
 		       (if (r1 == ?\n)
 			   (write ?\r)
 			 (if (r0 != ,(charset-id 'ascii))
