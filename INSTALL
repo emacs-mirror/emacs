@@ -334,7 +334,11 @@ to enable it to write the lock files.  We believe this is safe.
 10) You are done!  You can remove executables and object files from
 the build directory by typing `make clean'.  To also remove the files
 that `configure' created (so you can compile Emacs for a different
-configuration), type `make distclean'.
+configuration), type `make distclean'.  If you don't need some, or all
+of the input methods from the Leim package, you can remove the
+unneeded files in the leim/quail, leim/skk, and leim/skk-dic
+subdirectories of your site's lisp directory (usually
+/usr/local/share/emacs/VERSION/).
 
 
 
