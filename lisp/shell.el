@@ -648,7 +648,7 @@ command again."
 	     (setcar ds dir))
 	(setq msg (concat msg (directory-file-name dir) " "))
 	(setq ds (cdr ds))))
-    (message msg)))
+    (message "%s" msg)))
 
 (defun shell-forward-command (&optional arg)
   "Move forward across ARG shell command(s).  Does not cross lines.
