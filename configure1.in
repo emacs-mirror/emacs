@@ -1018,6 +1018,7 @@ case "${canonical}" in
       *-sco3.2v4* )		opsys=sco4 ;;
       *-bsd386* )		opsys=bsd386 ;;
       *-386bsd* )	        opsys=386bsd ;;
+      *-freebsd* )	        opsys=freebsd ;;
       *-netbsd* )	        opsys=netbsd ;;
       *-nextstep* )             opsys=mach2 ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
