@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000 Free Software Foundation
+;; Copyright (C) 1994, 2000, 2001 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -63,12 +63,16 @@
 	     (down-where (nth 1 down-data))
 	     (down-binding (key-binding (if (symbolp down-where)
 					    (vector down-where down-command)
-					  (vector down-command)))))
-	(or (and (eq (read-char) ?\e)
-		 (eq (read-char) ?\[)
-		 (eq (read-char) ?M))
-	    (error "Unexpected escape sequence from XTerm"))
-	(let* ((click (xterm-mouse-event))
+					  (vector down-command))))
+	     (is-click (string-match "^mouse" (symbol-name (car down)))))
+	    
+	(unless is-click
+	  (unless (and (eq (read-char) ?\e)
+		       (eq (read-char) ?\[)
+		       (eq (read-char) ?M))
+	    (error "Unexpected escape sequence from XTerm")))
+
+	(let* ((click (if is-click down (xterm-mouse-event)))
 	       (click-command (nth 0 click))
 	       (click-data (nth 1 click))
 	       (click-where (nth 1 click-data)))
@@ -111,9 +115,9 @@
 
 (defun xterm-mouse-event ()
   "Convert XTerm mouse event to Emacs mouse event."
-  (let* ((type (- (read-char) ? ))
-	 (x (- (read-char) ?  1))
-	 (y (- (read-char) ?  1))
+  (let* ((type (- (read-char) #o40))
+	 (x (- (read-char) #o40 1))
+	 (y (- (read-char) #o40 1))
 	 (point (cons x y))
 	 (window (window-at x y))
 	 (where (if window
@@ -137,10 +141,18 @@
 				       (max 0 (1- (window-hscroll)))))
 		    (point))
 		where))
-	 (mouse (intern (if (eq type 3)
-			    (format "mouse-%d" (+ 1 xterm-mouse-last))
-			  (setq xterm-mouse-last type)
-			  (format "down-mouse-%d" (+ 1 type))))))
+	 (mouse (intern 
+		 ;; For buttons > 3, the release-event looks
+		 ;; differently (see xc/programs/xterm/button.c,
+		 ;; function EditorButton), and there seems to come in
+		 ;; a release-event only, no down-event.
+		 (cond ((>= type 64)
+			(format "mouse-%d" (- type 60)))
+		       ((= type 3)
+			(format "mouse-%d" (+ 1 xterm-mouse-last)))
+		       (t
+			(setq xterm-mouse-last type)
+			(format "down-mouse-%d" (+ 1 type)))))))
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
     (list mouse
