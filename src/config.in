@@ -134,6 +134,11 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBKRB
 #undef HAVE_LIBDES
 
+/* Mail-file locking */
+#undef HAVE_LIBMAIL
+#undef HAVE_MAILLOCK_H
+#undef HAVE_TOUCHLOCK
+
 #undef HAVE_ALLOCA_H
 
 #undef HAVE_GETTIMEOFDAY
