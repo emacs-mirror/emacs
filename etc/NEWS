@@ -1969,6 +1969,20 @@ strings that have been consed so far.
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
 
+
+** The function `image-size' can be used to determine the size of an
+image.
+
+- Function: image-size SPEC &optional PIXELS FRAME
+
+Return the size of an image as a pair (WIDTH . HEIGHT).
+
+SPEC is an image specification.  PIXELS non-nil means return sizes
+measured in pixels, otherwise return sizes measured in canonical
+character units (fractions of the width/height of the frame's default
+font).  FRAME is the frame on which the image will be displayed.
+FRAME nil or omitted means use the selected frame.
+
 ** The function `find-image' can be used to find a usable image
 satisfying one of a list of specifications.
 

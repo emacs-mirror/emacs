@@ -1,3 +1,39 @@
+2000-06-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* eshell/*.el: Change spelling of the Free Software Foundation.
+
+	* eshell/esh-toggle.el: Removed.
+
+	* Makefile.in (DONTCOMPILE): Add eshell/esh-group.el.
+
+	* menu-bar.el (menu-bar-tools-menu): Call read-mail-command
+	interactively.
+
+2000-06-26  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-interactive-mode-map): Use `kbd' in calls to
+	`define-key'; instead of checking `(emacs-version)' check for
+	`set-keymap-parent' and `set-keymap-name' directly.  Add entries
+	for `;' and `o' which might be electric.
+
+	(sql-electric-stuff): New user option.
+	(sql-magic-go): New function which uses `sql-electric-stuff'.
+	(sql-magic-semicolon): New function which uses
+	`sql-electric-stuff'.
+
+	(sql-accumulate-and-indent): Insert newline if `comint-accumulate'
+	is not fboundp.
+
+	(sql-oracle-options): New variable.
+	(sql-oracle): Use it.
+
+	(sql-imenu-generic-expression): Doc change.
+	(sql-find-sqli-buffer): Make sure the default-value of sql-buffer
+	is used.
+
+	(sql-informix): Added command line parameter "-" to force
+	sql-informix-program to use stdout.
+
 2000-06-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/codepage.el (cp-coding-system-for-codepage-1): Doc

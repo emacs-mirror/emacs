@@ -1,3 +1,8 @@
+2000-06-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fimage_size): New function.
+	(syms_of_xfns): Defsubr it.
+
 2000-06-26  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (decode_coding_string): Re-fetch STRING_BYTES after
