@@ -2008,6 +2008,12 @@ kbd_buffer_get_event ()
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
+      else if (event->kind == buffer_switch_event)
+	{
+	  /* The value doesn't matter here; only the type is tested.  */
+	  XSET (obj, Lisp_Buffer, current_buffer);
+	  kbd_fetch_ptr = event + 1;
+	}
       /* Just discard these, by returning nil.
 	 (They shouldn't be found in the buffer,
 	 but on some machines it appears they do show up.)  */
@@ -3249,6 +3255,14 @@ gobble_input (expected)
 #endif
     read_avail_input (expected);
 #endif
+}
+
+record_asynch_buffer_change ()
+{
+  struct input_event event;
+  event.kind = buffer_switch_event;
+  event.frame_or_window = Qnil;
+  kbd_buffer_store_event (&event);
 }
 
 #ifndef VMS
