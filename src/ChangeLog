@@ -1,3 +1,7 @@
+2001-11-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keymap.c (access_keymap): Remove unused variables `c1' and `c2'.
+
 2001-11-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_window_to_frame): Remove irrelevant TODO comment.
