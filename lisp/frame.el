@@ -246,9 +246,13 @@ These supersede the values given in `default-frame-alist'.")
 	      (while (not (cdr (assq 'visibility
 				     (frame-parameters frame-initial-frame))))
 		(sleep-for 1))
+	      (setq parms (frame-parameters frame-initial-frame))
+	      ;; Get rid of `name' unless it was specified explicitly before.
+	      (or (assq 'name frame-initial-frame-alist)
+		  (setq parms (delq (assq 'name parms) parms)))
 	      (setq parms (append initial-frame-alist
 				  default-frame-alist
-				  (frame-parameters frame-initial-frame)
+				  parms
 				  nil))
 	      ;; Get rid of `reverse', because that was handled
 	      ;; when we first made the frame.
