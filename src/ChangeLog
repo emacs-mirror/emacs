@@ -1,5 +1,9 @@
 2000-06-10  Kenichi Handa  <handa@etl.go.jp>
 
+	* regex.c (MAKE_CHAR) [!emacs]: Dummy macro for non-Emacs env.
+	(regex_compile): Fix the code for handling the case of single byte
+	char and multibyte char being mixed in a range within [...].
+
 	* fileio.c (Finsert_file_contents): Be sure to setup src_multibyte
 	and dst_multibyte members of coding.
 
