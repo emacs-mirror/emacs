@@ -1,3 +1,37 @@
+2001-09-10  Dave Love  <fx@gnu.org>
+
+	* international/latin-9.el: Give pilcrow punctuation syntax.
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Doc
+	fix.
+	(latin1-display-ucs-per-lynx): New option.
+	(latin1-display-ucs-per-lynx): New command.
+
+	* international/mule-diag.el: Doc fixes.
+	(non-iso-charset-alist): Add mac-roman.  Don't add entries for
+	charsets already in it.
+	(list-non-iso-charset-chars): Check for null `charsets'.  Don't
+	tabulate points 0-127.
+
+	* international/codepages.el ("codepage"): Add eval-after-load
+	stuff.
+	(non-iso-charset-alist): New variable.
+	(cp-make-coding-system): Fix valid-codes.  Update
+	`non-iso-charset-alist'.
+	(cp855): Fix a code point (recode bug).
+	(cyrillic-alternativnyj, alternativnyj): New aliases.
+	(koi8-u, koi8-r): Add mode-line indicator.
+	(cp737, koi8-t, iso-latin-10, iso-8859-16, latin-10)
+	(arabic-iso-8bit, iso-8859-6, iso-latin-6, iso-8859-10, latin-6)
+	(iso-latin-7, latin-7, iso-8859-13, georgian-ps, cp720): New
+	coding systems.
+	(cp-supported-codepages, codepage-setup): New functions.
+	(cp-make-translation-table): Simplify.
+	(cp-fix-safe-chars): New function.  Use it in several places to
+	reset effects of any previous definitions.
+	(koi8-r): Make this the base name, since it's the preferred MIME
+	name.
+
 2001-06-18  Dave Love  <fx@gnu.org>
 
 	* international/codepages.el (cp-make-translation-table): Fix

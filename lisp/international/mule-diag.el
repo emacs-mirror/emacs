@@ -1,4 +1,4 @@
-;;; mule-diag.el --- Show diagnosis of multilingual environment (Mule)
+;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -21,6 +21,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 ;;; General utility function
 
@@ -243,7 +247,11 @@ but still shows the full information."
 		     (charset-description charset))))))
 
 (defvar non-iso-charset-alist
-  `((viscii
+  `((mac-roman
+     nil
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
      (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
      viet-viscii-nonascii-translation-table
      ((0 255)))
@@ -315,14 +323,15 @@ of the first byte, and the cdr part is the ranges of the second byte.")
     ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
     ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
     ;; are mapped to.
-    (setq non-iso-charset-alist
-	  (cons (list (intern (concat "cp" (car elt)))
-		      (list 'ascii (cdr elt))
-		      `(lambda (code)
-			 (decode-codepage-char ,(string-to-int (car elt))
-					       code))
-		      (list (list 0 255)))
-		non-iso-charset-alist))))
+    (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
+      (setq non-iso-charset-alist
+	    (cons (list (intern (concat "cp" (car elt)))
+			(list 'ascii (cdr elt))
+			`(lambda (code)
+			   (decode-codepage-char ,(string-to-int (car elt))
+						 code))
+			(list (list 0 255)))
+		  non-iso-charset-alist)))))
 
 
 ;; A variable to hold charset input history.
@@ -332,7 +341,7 @@ of the first byte, and the cdr part is the ranges of the second byte.")
 ;;;###autoload
 (defun read-charset (prompt &optional default-value initial-input)
   "Read a character set from the minibuffer, prompting with string PROMPT.
-It reads an Emacs' character set listed in the variable `charset-list'
+It reads an Emacs character set listed in the variable `charset-list'
 or a non-ISO character set listed in the variable
 `non-iso-charset-alist'.
 
@@ -341,10 +350,9 @@ DEFAULT-VALUE, if non-nil, is the default value.
 INITIAL-INPUT, if non-nil, is a string inserted in the minibuffer initially.
 See the documentation of the function `completing-read' for the
 detailed meanings of these arguments."
-  (let* ((table (append (mapcar (function (lambda (x) (list (symbol-name x))))
+  (let* ((table (append (mapcar (lambda (x) (list (symbol-name x)))
 				charset-list)
-			(mapcar (function (lambda (x)
-					    (list (symbol-name (car x)))))
+			(mapcar (lambda (x) (list (symbol-name (car x))))
 				non-iso-charset-alist)))
 	 (charset (completing-read prompt table
 				   nil t initial-input 'charset-history
@@ -431,16 +439,17 @@ detailed meanings of these arguments."
     (or slot
 	(error "Unknown external charset: %s" charset))
     (insert (format "Characters in non-ISO charset %s.\n" charset))
-    (insert "They are mapped to: "
-	    (mapconcat #'symbol-name charsets ", ")
-	    "\n")
+    (if charsets
+	(insert "They are mapped to: "
+		(mapconcat #'symbol-name charsets ", ")
+		"\n"))
     (while ranges
       (setq range (car ranges) ranges (cdr ranges))
       (if (integerp (car range))
 	  ;; The form of RANGES is (FROM1 TO1 FROM2 TO2 ...).
 	  (while range
 	    (list-block-of-chars translate-method
-				 0 (car range) (nth 1 range))
+				 0 (max 128 (car range)) (nth 1 range))
 	    (setq range (nthcdr 2 range)))
 	;; The form of RANGES is ((FROM1-1 TO1-1 ...) . (FROM2-1 TO2-1 ...)).
 	(let ((row-range (car range))
@@ -460,7 +469,10 @@ detailed meanings of these arguments."
 
 ;;;###autoload
 (defun list-charset-chars (charset)
-  "Display a list of characters in the specified character set."
+  "Display a list of characters in the specified character set.
+This can list both Emacs `official' (ISO standard) charsets and the
+characters encoded by various Emacs coding systems which correspond to
+PC `codepages' etc.  See `non-iso-charset-alist'."
   (interactive (list (read-charset "Character set: ")))
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
@@ -739,9 +751,12 @@ which font is being used for displaying the character."
       (save-excursion
 	(set-buffer standard-output)
 	(let ((charsets (coding-system-get coding-system 'safe-charsets)))
-	  (when charsets
+	  (when (and (not (memq (coding-system-base coding-system)
+				'(raw-text emacs-mule)))
+		     charsets)
 	    (if (eq charsets t)
-		(insert "This coding system can encode all charsets.\n")
+		(insert "This coding system can encode all charsets except for
+eight-bit-control and eight-bit-graphic.\n")
 	      (insert "This coding system encodes the following charsets:\n ")
 	      (while charsets
 		(insert " " (symbol-name (car charsets)))
@@ -879,13 +894,12 @@ at the place of `..':
 	(while categories
 	  (setq coding-system (symbol-value (car categories)))
 	  (mapcar
-	   (function
-	    (lambda (x)
-	      (if (and (not (eq x coding-system))
-		       (coding-system-get x 'no-initial-designation)
-		       (let ((flags (coding-system-flags x)))
-			 (not (or (aref flags 10) (aref flags 11)))))
-		  (setq codings (cons x codings)))))
+	   (lambda (x)
+	     (if (and (not (eq x coding-system))
+		      (coding-system-get x 'no-initial-designation)
+		      (let ((flags (coding-system-flags x)))
+			(not (or (aref flags 10) (aref flags 11)))))
+		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
 	      (let ((max-col (frame-width))
@@ -1192,9 +1206,9 @@ see the function `describe-fontset' for the format of the list."
 	(set-buffer standard-output)
 	(let ((fontsets
 	       (sort (fontset-list)
-		     (function (lambda (x y)
-				 (string< (fontset-plain-name x)
-					  (fontset-plain-name y)))))))
+		     (lambda (x y)
+		       (string< (fontset-plain-name x)
+				(fontset-plain-name y))))))
 	  (while fontsets
 	    (if arg
 		(print-fontset (car fontsets) nil)
@@ -1233,7 +1247,7 @@ Emacs again, you should be able to use various input methods."))
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
-		(function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
+		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
     (let ((l input-method-alist)
 	  language elt)
       (while l
