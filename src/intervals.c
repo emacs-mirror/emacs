@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,7 +77,7 @@ create_root_interval (parent)
 			   - BUF_BEG (XBUFFER (parent)));
       CHECK_TOTAL_LENGTH (new);
       BUF_INTERVALS (XBUFFER (parent)) = new;
-      new->position = 1;
+      new->position = BEG;
     }
   else if (STRINGP (parent))
     {
@@ -121,20 +121,21 @@ merge_properties (source, target)
   MERGE_INTERVAL_CACHE (source, target);
 
   o = source->plist;
-  while (! EQ (o, Qnil))
+  while (CONSP (o))
     {
-      sym = Fcar (o);
+      sym = XCAR (o);
       val = Fmemq (sym, target->plist);
 
       if (NILP (val))
 	{
-	  o = Fcdr (o);
-	  val = Fcar (o);
+	  o = XCDR (o);
+	  CHECK_CONS (o);
+	  val = XCAR (o);
 	  target->plist = Fcons (sym, Fcons (val, target->plist));
-	  o = Fcdr (o);
+	  o = XCDR (o);
 	}
       else
-	o = Fcdr (Fcdr (o));
+	o = Fcdr (XCDR (o));
     }
 }
 
@@ -159,13 +160,13 @@ intervals_equal (i0, i1)
     abort ();
   i1_len /= 2;
   i0_cdr = i0->plist;
-  while (!NILP (i0_cdr))
+  while (CONSP (i0_cdr))
     {
       /* Lengths of the two plists were unequal.  */
       if (i1_len == 0)
 	return 0;
 
-      i0_sym = Fcar (i0_cdr);
+      i0_sym = XCAR (i0_cdr);
       i1_val = Fmemq (i0_sym, i1->plist);
 
       /* i0 has something i1 doesn't.  */
@@ -173,11 +174,12 @@ intervals_equal (i0, i1)
 	return 0;
 
       /* i0 and i1 both have sym, but it has different values in each.  */
-      i0_cdr = Fcdr (i0_cdr);
-      if (! EQ (Fcar (Fcdr (i1_val)), Fcar (i0_cdr)))
+      i0_cdr = XCDR (i0_cdr);
+      CHECK_CONS (i0_cdr);
+      if (!EQ (Fcar (Fcdr (i1_val)), XCAR (i0_cdr)))
 	return 0;
 
-      i0_cdr = Fcdr (i0_cdr);
+      i0_cdr = XCDR (i0_cdr);
       i1_len--;
     }
 
@@ -666,8 +668,8 @@ find_interval (tree, position)
       else
 	{
 	  tree->position
-	    = (position - relative_position /* the left edge of *tree */
-	       + LEFT_TOTAL_LENGTH (tree)); /* the left edge of this interval */
+	    = (position - relative_position /* left edge of *tree.  */
+	       + LEFT_TOTAL_LENGTH (tree)); /* left edge of this interval.  */
 
 	  return tree;
 	}
@@ -1125,19 +1127,19 @@ merge_properties_sticky (pleft, pright)
   rrear  = textget (pright, Qrear_nonsticky);
 
   /* Go through each element of PRIGHT.  */
-  for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+  for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
     {
       Lisp_Object tmp;
 
-      sym = Fcar (tail1);
+      sym = XCAR (tail1);
 
       /* Sticky properties get special treatment.  */
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
 
-      rval = Fcar (Fcdr (tail1));
-      for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
-	if (EQ (sym, Fcar (tail2)))
+      rval = Fcar (XCDR (tail1));
+      for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
+	if (EQ (sym, XCAR (tail2)))
 	  break;
 
       /* Indicate whether the property is explicitly defined on the left.
@@ -1183,24 +1185,24 @@ merge_properties_sticky (pleft, pright)
     }
 
   /* Now go through each element of PLEFT.  */
-  for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+  for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
     {
       Lisp_Object tmp;
 
-      sym = Fcar (tail2);
+      sym = XCAR (tail2);
 
       /* Sticky properties get special treatment.  */
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
 
       /* If sym is in PRIGHT, we've already considered it.  */
-      for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
-	if (EQ (sym, Fcar (tail1)))
+      for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
+	if (EQ (sym, XCAR (tail1)))
 	  break;
       if (! NILP (tail1))
 	continue;
 
-      lval = Fcar (Fcdr (tail2));
+      lval = Fcar (XCDR (tail2));
 
       /* Even if lrear or rfront say nothing about the stickiness of
 	 SYM, Vtext_property_default_nonsticky may give default
@@ -1728,6 +1730,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+	/* Shouldn't be necessary.  -stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
@@ -1741,7 +1744,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-	  BUF_INTERVALS (buffer)->position = 1;
+	  BUF_INTERVALS (buffer)->position = BEG;
 
 	  /* Explicitly free the old tree here?  */
 
@@ -1763,7 +1766,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
        about inserting properly.  For now, just waste the old intervals.  */
     {
       BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
-      BUF_INTERVALS (buffer)->position = 1;
+      BUF_INTERVALS (buffer)->position = BEG;
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1963,7 +1966,7 @@ adjust_for_invis_intang (pos, test_offs, adj, test_intang)
 	 such that an insertion at POS would inherit it.  */
       && (NILP (invis_overlay)
 	  /* Invisible property is from a text-property.  */
-	  ? (text_property_stickiness (Qinvisible, make_number (pos))
+	  ? (text_property_stickiness (Qinvisible, make_number (pos), Qnil)
 	     == (test_offs == 0 ? 1 : -1))
 	  /* Invisible property is from an overlay.  */
 	  : (test_offs == 0
@@ -2338,7 +2341,15 @@ get_local_map (position, buffer, type)
     --position;
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
+  /* First check if the CHAR has any property.  This is because when
+     we click with the mouse, the mouse pointer is really pointing
+     to the CHAR after POS.  */
   prop = Fget_char_property (lispy_position, type, lispy_buffer);
+  /* If not, look at the POS's properties.  This is necessary because when
+     editing a field with a `local-map' property, we want insertion at the end
+     to obey the `local-map' property.  */
+  if (NILP (prop))
+    prop = get_pos_property (lispy_position, type, lispy_buffer);
 
   BUF_BEGV (buffer) = old_begv;
   BUF_ZV (buffer) = old_zv;
