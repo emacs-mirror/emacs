@@ -1,5 +1,13 @@
 2001-03-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (make_lispy_event, make_lispy_movement): Adjust
+	calls to buffer_posn_from_coords to new format.
+
+	* dispextern.h (buffer_posn_from_coords): Adjust prototype.
+
+	* dispnew.c (buffer_posn_from_coords): Add parameters OBJECT and
+	POS; return void.
+
 	* fileio.c (Fwrite_region) [DOS_NT]: Remove O_TRUNC from open
 	flags argument to emacs_open; it seems to conflict with O_EXCL.
 

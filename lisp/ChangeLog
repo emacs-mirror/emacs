@@ -1,3 +1,8 @@
+2001-03-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* comint.el (comint-insert-clicked-input): Use the last key
+	from this-command-keys to lookup the global key definition.
+
 2001-03-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Add category `j' for
