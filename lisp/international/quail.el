@@ -1955,19 +1955,10 @@ or in a newly created frame (if the selected frame has no other windows)."
   ;; Update guidance buffer.
   (if (quail-require-guidance-buf)
       (let ((guidance (quail-guidance)))
-	(if (not (and (eq (selected-frame) (window-frame (minibuffer-window)))
-		      (eq (selected-frame) (window-frame quail-guidance-win))))
-	    ;; The guidance window is not show in this frame, show it
-	    (quail-show-guidance-buf)
-	  ;; Make sure the height of the guidance window is OK --
-	  ;; sometimes, if the minibuffer window expands due to user
-	  ;; input (for instance if the newly inserted character is in a
-	  ;; different font), it will cause the guidance window to be
-	  ;; only partially visible.  We force a redisplay first because
-	  ;; this automatic expansion doesn't happen until then, and we
-	  ;; want to see the window sizes after the expansion.
-	  (sit-for 0)
-	  (set-window-text-height quail-guidance-win 1))
+	(unless (and (eq (selected-frame) (window-frame (minibuffer-window)))
+		     (eq (selected-frame) (window-frame quail-guidance-win)))
+	  ;; The guidance window is not show in this frame, show it
+	  (quail-show-guidance-buf))
 	(cond ((or (eq guidance t)
 		   (consp guidance))
 	       ;; Show the current possible translations.
@@ -1980,7 +1971,16 @@ or in a newly created frame (if the selected frame has no other windows)."
 		 (save-excursion
 		   (set-buffer quail-guidance-buf)
 		   (erase-buffer)
-		   (insert key)))))))
+		   (insert key)))))
+	  ;; Make sure the height of the guidance window is OK --
+	  ;; sometimes, if the minibuffer window expands due to user
+	  ;; input (for instance if the newly inserted character is in a
+	  ;; different font), it will cause the guidance window to be
+	  ;; only partially visible.  We force a redisplay first because
+	  ;; this automatic expansion doesn't happen until then, and we
+	  ;; want to see the window sizes after the expansion.
+	  (sit-for 0)
+	  (fit-window-to-buffer quail-guidance-win nil 1))))
 
   ;; Update completion buffer if displayed now.  We highlight the
   ;; selected candidate string in *Completion* buffer if any.
