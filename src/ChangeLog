@@ -1,5 +1,7 @@
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_catch_errors_unwind): Do not XSync if display has closed.
+
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)
 	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
 	(x_top_window_to_frame): Return 0 if wdesc is None.
