@@ -732,6 +732,9 @@ r_alloc_sbrk (size)
   register bloc_ptr b;
   POINTER address;
 
+  if (! r_alloc_initialized)
+    r_alloc_init ();
+
   if (! use_relocatable_buffers)
     return (*real_morecore) (size);
 
@@ -894,6 +897,9 @@ r_alloc_free (ptr)
 {
   register bloc_ptr dead_bloc;
 
+  if (! r_alloc_initialized)
+    r_alloc_init ();
+
   dead_bloc = find_bloc (ptr);
   if (dead_bloc == NIL_BLOC)
     abort ();
@@ -923,6 +929,9 @@ r_re_alloc (ptr, size)
 {
   register bloc_ptr bloc;
 
+  if (! r_alloc_initialized)
+    r_alloc_init ();
+
   bloc = find_bloc (ptr);
   if (bloc == NIL_BLOC)
     abort ();
@@ -946,6 +955,9 @@ void
 r_alloc_freeze (size)
      long size;
 {
+  if (! r_alloc_initialized)
+    r_alloc_init ();
+
   /* If already frozen, we can't make any more room, so don't try.  */
   if (r_alloc_freeze_level > 0)
     size = 0;
@@ -1011,7 +1023,7 @@ r_alloc_init ()
 #ifdef DEBUG
 #include <assert.h>
 
-int
+void
 r_alloc_check ()
 {
   int found = 0;
