@@ -612,7 +612,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
 
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
-      && !char_property_eq (Qfield, new_pos, old_pos)
+      && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
+	  || !NILP (Fget_char_property (old_pos, Qfield, Qnil)))
       && (NILP (inhibit_capture_property)
 	  || NILP (Fget_char_property(old_pos, inhibit_capture_property, Qnil))))
     /* NEW_POS is not within the same field as OLD_POS; try to
