@@ -282,7 +282,10 @@ DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_posi
   "Return the character position of the first character on the current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, return that position.\n\
-This function does not move point.")
+This function does not move point.\n\n\
+In the minibuffer, if point is not within the prompt,\n\
+the return value is never within the prompt either.")
+
   (n)
      Lisp_Object n;
 {
@@ -297,6 +300,12 @@ This function does not move point.")
   orig_byte = PT_BYTE;
   Fforward_line (make_number (XINT (n) - 1));
   end = PT;
+
+  if (INTEGERP (current_buffer->minibuffer_prompt_length)
+      && orig >= XFASTINT (current_buffer->minibuffer_prompt_length)
+      && end < XFASTINT (current_buffer->minibuffer_prompt_length))
+    end = XFASTINT (current_buffer->minibuffer_prompt_length);
+
   SET_PT_BOTH (orig, orig_byte);
 
   return make_number (end);
