@@ -1,3 +1,17 @@
+2001-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-make-forward-subject): Argument decoded.
+	(message-forward): Use it when digest.
+
+	* gnus-uu.el (gnus-uu-grab-articles): Shoot down original article
+	buffer.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Don't share menu bar
+	in Emacs.
+
+	* gnus-art.el (gnus-article-make-menu-bar): Make
+	gnus-article-post-menu.
+
 2001-02-06  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-encode-region): Remove redundant code

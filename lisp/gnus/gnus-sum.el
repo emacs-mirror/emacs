@@ -1315,6 +1315,8 @@ increase the score of each group you read."
 
 (put 'gnus-summary-mode 'mode-class 'special)
 
+(defvar gnus-article-commands-menu)
+
 (when t
   ;; Non-orthogonal keys
 
@@ -1815,9 +1817,15 @@ increase the score of each group you read."
        gnus-summary-article-menu gnus-summary-mode-map ""
        (cons "Article" innards))
 
-      (easy-menu-define
-       gnus-article-commands-menu gnus-article-mode-map ""
-       (cons "Commands" innards)))
+      (if (not (keymapp gnus-summary-article-menu))
+	  (easy-menu-define
+	    gnus-article-commands-menu gnus-article-mode-map ""
+	    (cons "Commands" innards))
+	;; in Emacs, don't share menu.
+	(setq gnus-article-commands-menu 
+	      (copy-keymap gnus-summary-article-menu))
+	(define-key gnus-article-mode-map [menu-bar commands]
+	  (cons "Commands" gnus-article-commands-menu))))
 
     (easy-menu-define
      gnus-summary-thread-menu gnus-summary-mode-map ""

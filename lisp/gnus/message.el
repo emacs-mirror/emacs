@@ -4160,7 +4160,7 @@ The form is: Fwd: Subject, where Subject is the original subject of
 the message."
   (concat "Fwd: " subject))
 
-(defun message-make-forward-subject ()
+(defun message-make-forward-subject (&optional decoded)
   "Return a Subject header suitable for the message in the current buffer."
   (save-excursion
     (save-restriction
@@ -4169,7 +4169,9 @@ the message."
 	    (subject (message-fetch-field "Subject")))
 	(setq subject
 	      (if subject
-		  (mail-decode-encoded-word-string subject)
+		  (if decoded 
+		      subject
+		    (mail-decode-encoded-word-string subject))
 		""))
 	(if message-wash-forwarded-subjects
 	    (setq subject (message-wash-subject subject)))
@@ -4191,9 +4193,9 @@ the message."
 Optional NEWS will use news to forward instead of mail.
 Optional DIGEST will use digest to forward."
   (interactive "P")
-  (let* ((cur (current-buffer))
-	 (subject (message-make-forward-subject))
-	 art-beg)
+  (let ((cur (current-buffer))
+	(subject (message-make-forward-subject digest))
+	art-beg)
     (if news
 	(message-news nil subject)
       (message-mail nil subject))

@@ -1,6 +1,6 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
+;;        2001 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Created: 2 Oct 1993
@@ -531,7 +531,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	      n nil))
     (gnus-setup-message 'forward
       (setq gnus-uu-digest-from-subject nil)
-      (setq gnus-uu-digest-buffer 
+      (setq gnus-uu-digest-buffer
 	    (gnus-get-buffer-create " *gnus-uu-forward*"))
       (gnus-uu-decode-save n file)
       (switch-to-buffer gnus-uu-digest-buffer)
@@ -878,7 +878,7 @@ When called interactively, prompt for REGEXP."
 	      ;; These two are necessary for XEmacs 19.12 fascism.
 	      (put-text-property (point-min) (point-max) 'invisible nil)
 	      (put-text-property (point-min) (point-max) 'intangible nil))
-	    (when (and message-forward-as-mime 
+	    (when (and message-forward-as-mime
 		       message-forward-show-mml
 		       gnus-uu-digest-buffer)
 	      (mm-enable-multibyte)
@@ -921,7 +921,7 @@ When called interactively, prompt for REGEXP."
 		(insert sorthead)
 		(goto-char (point-min))
 		(when (re-search-forward "^Subject: \\(.*\\)$" nil t)
-		  (setq subj (buffer-substring (match-beginning 1) 
+		  (setq subj (buffer-substring (match-beginning 1)
 					       (match-end 1))))
 		(goto-char (point-max))
 		(insert body))
@@ -965,7 +965,7 @@ When called interactively, prompt for REGEXP."
 		(with-current-buffer gnus-uu-digest-buffer
 		  (goto-char (point-max))
 		  (insert-buffer "*gnus-uu-body*"))
-	      (let ((coding-system-for-write mm-text-coding-system) 
+	      (let ((coding-system-for-write mm-text-coding-system)
 		    (file-name-coding-system nnmail-pathname-coding-system))
 		(write-region
 		 (point-min) (point-max) gnus-uu-saved-article-name t)))))
@@ -1393,6 +1393,9 @@ When called interactively, prompt for REGEXP."
 	  (while article-series
 	    (gnus-summary-tick-article (pop article-series) t)))))
 
+    ;; The original article buffer is hosed, shoot it down.
+    (gnus-kill-buffer gnus-original-article-buffer)
+
     result-files))
 
 (defun gnus-uu-grab-view (file)
@@ -1570,7 +1573,7 @@ Gnus might fail to display all of it.")
 	      (unless
 		  (unwind-protect
 		      (with-current-buffer buffer
-			(insert (substitute-command-keys 
+			(insert (substitute-command-keys
 				 gnus-uu-unshar-warning))
 			(goto-char (point-min))
 			(display-buffer buffer)
