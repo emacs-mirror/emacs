@@ -1,5 +1,8 @@
 2001-08-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (redisplay_internal): Add a check for the last
+	displayed message.
+	
 	* xdisp.c (message_cleared_p): New variable.
 	(clear_message): Set message_cleared_p when clearing the current
 	message.

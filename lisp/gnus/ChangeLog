@@ -1,3 +1,8 @@
+2001-08-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* mm-view.el (autoload): Don't autoload `diff-mode' if it's 
+	already fboundp.  Add INTERACTIVE arg to autoload form. 
+
 2001-08-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-start.el (gnus-startup-file-coding-system): Revert to binary.
