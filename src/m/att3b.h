@@ -156,3 +156,8 @@ extern int sign_extend_temp;
 #if u3b2
 #define NEED_PTEM_H
 #endif /* u3b2 */
+
+/* 3b2 does not have memmove, I'm told.  */
+/* It is safe to have no parens around the args in the safe_bcopy call,
+   and parens would screw up the prototype decl for memmove.  */
+#define	memmove(d, s, n) safe_bcopy (s, d, n)
