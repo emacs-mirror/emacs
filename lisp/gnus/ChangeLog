@@ -1,3 +1,53 @@
+2002-10-18  Dave Love  <fx@gnu.org>
+
+	* mm-util.el (mm-mime-mule-charset-alist): Require when compiling.
+	(mm-auto-save-coding-system): Prefer utf-8-emacs coding system to
+	emacs-mule.
+	(mm-find-mime-charset-region): Fix :mime-charset part.
+	(mm-mule-charset-to-mime-charset, mm-charset-to-coding-system)
+	(mm-mime-charset, mm-find-mime-charset-region): Look for
+	`:mime-charset' property of coding systems before `mime-charset'.
+	(mm-mule4-p, mm-enable-multibyte-mule4, mm-disable-multibyte-mule4)
+	(mm-with-unibyte-current-buffer-mule4): Deleted.
+	(mm-point-at-bol, mm-point-at-eol, mm-insert-byte)
+	(multibyte-char-to-unibyte): New.
+
+	* rfc2047.el (message-posting-charset): defvar when compiling.
+	(ietf-drums, gnus-util): Don't require.
+	(rfc2047-header-encoding-alist): Add `address-mime' part.  Doc
+	fixes.
+	(rfc2047-charset-encoding-alist): Use B for iso-8859-7,
+	iso-8859-8.
+	(rfc2047-q-encoding-alist): Augment header list.
+	(rfc2047-encoding-type): New.
+	(rfc2047-dissect-region): Deleted.
+	(rfc2047-encode-region, rfc2047-encode):  Rewritten to take
+	account of rfc2047 rules with respect to rfc2822 tokens and to do
+	encoding in place rather than by passing strings.
+	(rfc2047-encode-message-header): Don't include header name field
+	in encoding.  Add `address-mime' case and bind
+	rfc2047-encoding-type for `mime' case.
+	(rfc2047-encode-string): Doc fix.
+	(rfc2047-encode): Use longer chunks for base64.
+	(rfc2047-fold-region): Insert single characters, not strings.
+	(rfc2047-encoded-word-regexp): Wrap in eval-and-compile.
+	(rfc2047-decode-region): Avoid consing regexp in loop.
+
+	* gnus-sum.el (gnus-summary-mode, gnus-summary-display-article)
+	(gnus-summary-select-article, gnus-summary-edit-article): Use
+	mm-{en,dis}able-multibyte, not mm-{en,dis}able-multibyte-mule4.
+
+	* message.el (message-forward-make-body): Use
+	mm-{en,dis}able-multibyte, not mm-{en,dis}able-multibyte-mule4.
+
+	* qp.el (quoted-printable-encode-region): Use mm-insert-byte.
+	Maybe use string-to-multibyte.  Avoid find-charset-region.  Cope
+	with encoding Emacs 22 eight-bit chars.
+
+	* mm-bodies.el (mm-body-7-or-8): Don't special-case Mule.
+	(mm-encode-body): Just call mm-encode-coding-region in encoding
+	case.
+
 2002-10-17  Juanma Barranquero  <lektu@terra.es>
 
 	* nnweb.el (nnweb-dejanews-create-mapping)
@@ -10972,6 +11022,6 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+    Copyright (C) 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
