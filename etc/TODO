@@ -160,6 +160,7 @@
   They should use find-file-literally and `no-conversion' instead.
 
 * Investigate using GNU Lightning or similar system for incremental
-  (`JIT') compilation.
+  compilation of selected bytecode functions to subrs.  Converting CCL
+  programs to native code is probably the first thing to try, though.
 
 * Add a feature to Info similar to "info --apropos SUBJECT".
