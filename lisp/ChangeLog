@@ -1,3 +1,10 @@
+2002-07-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* add-log.el (add-log-mailing-address): Fix type.  Can be a
+	string.
+
+	* ido.el (ido-separator): Fix type.
+
 2002-07-23  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (DONTCOMPILE): Remove cus-start.el.
