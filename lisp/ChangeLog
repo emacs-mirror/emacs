@@ -1,3 +1,8 @@
+2003-01-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* dired.el (dired-garbage-files-regexp): Add `.aux$'.  These are
+	produced by TeX.
+
 2003-01-07  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-checkout): Fix the check whether we are on a
