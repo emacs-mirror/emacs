@@ -6573,7 +6573,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  original_uppercase = key;
 	  original_uppercase_position = t - 1;
 
-	  if (XINT (new_key) & shift_modifier)
+	  if (XINT (key) & shift_modifier)
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
 	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
