@@ -1,3 +1,11 @@
+2003-02-10  Juanma Barranquero  <lektu@terra.es>
+
+	* buffers.texi (Current Buffer): Describe `save-current-buffer' as a
+	special form, not a macro.  From Jesper Harder <harder@ifa.au.dk>.
+
+	* text.texi (Insertion): Don't show COUNT argument of `insert-char' as
+	optional.  From Jesper Harder <harder@ifa.au.dk>.
+
 2002-01-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (VERSION): Set to 2.8.

@@ -340,7 +340,7 @@ inserted text falls outside the overlay; if a nonempty overlay ends at
 the insertion point, the inserted text falls inside that overlay.
 @end defun
 
-@defun insert-char character &optional count inherit
+@defun insert-char character count &optional inherit
 This function inserts @var{count} instances of @var{character} into the
 current buffer before point.  The argument @var{count} should be a
 number (@code{nil} means 1), and @var{character} must be a character.
