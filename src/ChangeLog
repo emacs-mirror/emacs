@@ -1,6 +1,10 @@
 2002-10-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
+	(detect_coding_charset): If only ASCII bytes are found, return 0.
+	(detect_coding_system): Fix previous change.
+	(Fdefine_coding_system_internal): Setup CODING_ATTR_ASCII_COMPAT
+	(attrs) correctly.
 
 2002-10-15  Dave Love  <fx@gnu.org>
 
