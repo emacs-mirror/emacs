@@ -1,5 +1,8 @@
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_glyphs): Don't check for cursor overwriting
+	in full-width rows.
+	
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing of area not covered by scroll bar.
 
