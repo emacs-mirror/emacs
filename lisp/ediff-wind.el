@@ -745,7 +745,7 @@ into icons, regardless of the window manager.")
 	    ;; fed up, no appropriate frame
 	    (progn
 	      ;;(redraw-display)
-	      (select-frame (ediff-make-frame '((unsplittable)))))))))
+	      (select-frame (make-frame '((unsplittable)))))))))
 
 ;; Prepare or refresh control frame
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)
