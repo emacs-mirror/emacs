@@ -218,7 +218,7 @@ column specified by the variable `left-margin'."
   "Delete characters backward, changing tabs into spaces.
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
 Interactively, ARG is the prefix arg (default 1)
-and KILLP is t if prefix arg is was specified."
+and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
   (let ((count arg))
     (save-excursion
