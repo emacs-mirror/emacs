@@ -152,6 +152,9 @@ or when the frame is resized.
 ** The X resource useXIM can be used to turn off use of XIM, which may
 speed up Emacs with slow networking to the X server.
 
+If the configure option `--without-xim' was used to turn off use of
+XIM by default, the X resource useXIM can be used to turn it on.
+
 ** `describe-char' can show data from the Unicode database file.  See
 user option `unicode-data'.
 

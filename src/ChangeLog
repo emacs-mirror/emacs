@@ -2,6 +2,7 @@
 
 	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if emacs
 	was configured with --without-xim.
+	(x_term_init) [!USE_XIM]: Use `useXIM' resource to turn on XIM.
 
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 

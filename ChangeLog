@@ -1,3 +1,8 @@
+2003-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Describe new
+	functionality of --without-xim.
+
 2003-06-29  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix XRegisterIMInstantiateCallback check for gcc.
