@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.10) $
+# $HopeName: MMsrc!commpre.nmk(trunk.11) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -49,28 +49,28 @@
 !IFNDEF PFMDEFS
 !ERROR commpre.nmk: PFMDEFS not defined
 !ENDIF
-!IFNDEF MPMOBJ
+!IFNDEF MPM
 !ERROR commpre.nmk: MPM not defined
 !ENDIF
-!IFNDEF PLINTHOBJ
+!IFNDEF PLINTH
 !ERROR commpre.nmk: PLINTH not defined
 !ENDIF
-!IFNDEF LOOBJ
+!IFNDEF LO
 !ERROR commpre.nmk: LO not defined
 !ENDIF
-!IFNDEF AMCOBJ
+!IFNDEF AMC
 !ERROR commpre.nmk: AMC not defined
 !ENDIF
-!IFNDEF AMSOBJ
+!IFNDEF AMS
 !ERROR commpre.nmk: AMS not defined
 !ENDIF
-!IFNDEF DWOBJ
+!IFNDEF DW
 !ERROR commpre.nmk: DW not defined
 !ENDIF
-!IFNDEF SWOBJ
+!IFNDEF SW
 !ERROR commpre.nmk: SW not defined
 !ENDIF
-!IFNDEF TESTLIBOBJ
+!IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined
 !ENDIF
 
@@ -100,7 +100,8 @@ CFLAGSTARGET = /ML /DCONFIG_PROD_EPCORE
 !elseif "$(TARGET)" == "epvmss.exe"
 CFLAGSTARGET = /ML /DCONFIG_PROD_EPCORE
 !elseif "$(TARGET)" == "mmdw.lib"
-CFLAGSTARGET = /MT /DCONFIG_PROD_DYLAN
+# /Oy- is actually 86-specific, but Dylan is only built for that platform
+CFLAGSTARGET = /MT /DCONFIG_PROD_DYLAN /Oy-
 !else
 CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 !endif
@@ -109,7 +110,7 @@ CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 CFLAGSCOMMON = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGET)
 
 # Flags for use in the variety combinations
-CFLAGSHOT = /O2 /DNDEBUG /Oy-
+CFLAGSHOT = /O2 /DNDEBUG
 CFLAGSCOOL = 
 CFLAGSINTERNAL = /Z7
 CFLAGSEXTERNAL = 
