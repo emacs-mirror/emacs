@@ -130,4 +130,9 @@ memory_warnings (start, warnfun)
 
   warn_function = warnfun;
   __after_morecore_hook = check_memory_limits;
+
+#ifdef WINDOWSNT
+  /* Force data limit to be recalculated on each run.  */
+  lim_data = 0;
+#endif
 }
