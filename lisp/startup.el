@@ -270,6 +270,10 @@ It also follows `emacs-startup-hook'.  This hook exists for users to set,
 so as to override the definitions made by the terminal-specific file.
 Emacs never sets this variable itself.")
 
+(defvar inhibit-startup-hooks nil
+  "Non-nil means don't run `term-setup-hook' and `emacs-startup-hook'.
+This is because we already did so.")
+
 (defvar keyboard-type nil
   "The brand of keyboard you are using.
 This variable is used to define
@@ -496,9 +500,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 				       auto-save-list-file-prefix
 				       (emacs-pid)
 				       (system-name))))))))
-	(run-hooks 'emacs-startup-hook)
-	(and term-setup-hook
-	     (run-hooks 'term-setup-hook))
+	(unless inhibit-startup-hooks
+	  (run-hooks 'emacs-startup-hook)
+	  (and term-setup-hook
+	       (run-hooks 'term-setup-hook)))
 
 	;; Don't do this if we failed to create the initial frame,
 	;; for instance due to a dense colormap.
@@ -1755,10 +1760,10 @@ normal otherwise."
     ;; If there are no switches to process, we might as well
     ;; run this hook now, and there may be some need to do it
     ;; before doing any output.
+    (run-hooks 'emacs-startup-hook)
     (and term-setup-hook
 	 (run-hooks 'term-setup-hook))
-    ;; Don't let the hook be run twice.
-    (setq term-setup-hook nil)
+    (setq inhibit-startup-hooks t)
 
     ;; It's important to notice the user settings before we
     ;; display the startup message; otherwise, the settings
