@@ -1214,6 +1214,17 @@ and nil is returned.")
       SET_PT (XINT (count) > 0 ? ZV : BEGV);
       return Qnil;
     }
+
+  /* If in a mini-buffer and moving backwards, stop in front of the
+     prompt if we are currently in front of it.  This prevents
+     accidentially moving into the read-only prompt.  */
+  if (INTEGERP (current_buffer->minibuffer_prompt_length))
+    {
+      int prompt_end = XFASTINT (current_buffer->minibuffer_prompt_length);
+      if (PT > prompt_end && val < prompt_end)
+	val = prompt_end;
+    }
+  
   SET_PT (val);
   return Qt;
 }
