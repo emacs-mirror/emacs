@@ -697,14 +697,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		    ;; If we loaded a compiled file, set
 		    ;; `user-init-file' to the source version if that
 		    ;; exists.
-		    (if (and user-init-file
-			     (equal (file-name-extension user-init-file)
-				    "elc"))
-			(let ((el (concat (file-name-sans-extension
-					   user-init-file)
-					  ".el")))
-			  (if (file-exists-p el)
-			      (setq user-init-file el))))
+		    (when (and user-init-file
+			       (equal (file-name-extension user-init-file)
+				      "elc")
+			       (file-exists-p user-init-file-1))
+		      (when (file-newer-than-file-p
+			     user-init-file-1 user-init-file)
+			(message "Warning: %s is newer than %s"
+				 user-init-file-1 user-init-file)
+			(sit-for 1))
+		      (setq user-init-file user-init-file-1))
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
