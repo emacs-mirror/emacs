@@ -38,22 +38,27 @@
     (princ "\nSelective display glyph sequence: ")
     (prin1 (aref dt 260))
     (princ "\nCharacter display glyph sequences:\n")
-    (let ((vector (make-vector 256 nil))
-	  (i 0))
-      (while (< i 256)
-	(aset vector i (aref dt i))
-	(setq i (1+ i)))
-      (describe-vector vector))
+    (save-excursion
+      (set-buffer standard-output)
+      (let ((vector (make-vector 256 nil))
+	    (i 0))
+	(while (< i 256)
+	  (aset vector i (aref dt i))
+	  (setq i (1+ i)))
+	(describe-vector vector)))
     (print-help-return-message)))
 
 ;;;###autoload
 (defun describe-current-display-table ()
-   "Describe the display table in use in the selected window and buffer."
-   (interactive)
-   (describe-display-table
-    (or (window-display-table (selected-window))
-	buffer-display-table
-	standard-display-table)))
+  "Describe the display table in use in the selected window and buffer."
+  (interactive)
+  (let ((disptab
+	 (or (window-display-table (selected-window))
+	     buffer-display-table
+	     standard-display-table)))
+    (if disptab
+	(describe-display-table disptab)
+      (message "No display table"))))
 
 ;;;###autoload
 (defun make-display-table ()
