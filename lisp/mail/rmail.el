@@ -397,10 +397,10 @@ This is set to nil by default.")
   "*If non-nil, RMAIL uses MIME feature.
 If the value is t, RMAIL automatically shows MIME decoded message.
 If the value is neither t nor nil, RMAIL does not show MIME decoded message
-until a user explicitly require it."
+until a user explicitly requires it."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil)
-		 (sexp :tag "When Asked" :format "%t\n" ask))
+		 (sexp :tag "when asked" :format "%t\n" ask))
   :group 'rmail)
 
 ;;;###autoload
