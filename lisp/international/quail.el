@@ -1294,8 +1294,6 @@ The returned value is a Quail map specific to KEY."
 	    (setq unread-command-events (cons key unread-command-events)))
 	(while quail-translating
 	  (set-buffer-modified-p modified-p)
-	  ;; Hide '... loaded' message.
-	  (message nil)
 	  (let* ((keyseq (read-key-sequence
 			  (and input-method-use-echo-area
 			       (concat input-method-previous-message
