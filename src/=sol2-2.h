@@ -1,3 +1,6 @@
+/* casper@fwi.uva.nl says this file is not needed
+   and sol2.h should work.  */
+
 #include "sol2.h"
 
 /* Take care of libucb.a as well as X Windows.  */
