@@ -1,3 +1,8 @@
+2000-07-14  Sam Steingold  <sds@gnu.org>
+
+	* xfaces.c (realize_x_face): Fix the last patch:
+	check `default_face' before dereferencing.
+
 2000-07-14  Dave Love  <fx@gnu.org>
 
 	* syntax.c (back_comment): Add null default in switch for pcc.
@@ -5,7 +10,7 @@
 2000-07-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (realize_x_face): Make fontset using the base of the
-	default'face's fontset, not using the default fontset.
+	default_face's fontset, not using the default fontset.
 
 	* coding.c (inhibit_iso_escape_detection): New variable.
 	(syms_of_coding): Make it a Lisp variable.
@@ -29,7 +34,7 @@
 	(kbd_buffer_get_event): Construct the Lisp help-event differently.
 	(read_char): Call show_help_echo with new parameters.
 
-	* keyboard.h (gen_help_event, kbd_buffer_store_help_event): 
+	* keyboard.h (gen_help_event, kbd_buffer_store_help_event):
 	Add prototypes.
 
 	* xterm.c (help_echo_object, help_echo_pos): New variables.
@@ -132,7 +137,7 @@
 	* fontset.c (AREF, ASIZE): Remove definitions.
 
 	* fns.c (AREF): Remove definition.
-	
+
 	* composite.c (AREF): Remove definition.
 
 2000-07-12  Gerd Moellmann  <gerd@gnu.org>
@@ -243,7 +248,7 @@
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (window_loop): Add missing gcpro1 local variable.
-	
+
 	* window.c (Fwindow_list): Reverse list at the end.
 	(candidate_window_p): Add parameter OWINDOW.  ALL_FRAMES nil
 	means allow windows on OWINDOW's frame, only.
@@ -260,7 +265,7 @@
 	(Fsignal): Abort if handling_signal is non-zero.
 
 	* lisp.h (handling_signal): External declaration.
-	
+
 	* s/freebsd.h (WAITTYPE, WRETCODE): Put in #if 0.
 
 2000-07-05  Ken Raeburn  <raeburn@gnu.org>
@@ -293,7 +298,7 @@
 	* syswait.h: Use the autoconf recommended approach.  Old code
 	#if'd out in case we need to revert.
 
-	* config.in (HAVE_SYS_WAIT_H): Added. 
+	* config.in (HAVE_SYS_WAIT_H): Added.
 
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
 
@@ -333,9 +338,9 @@
 	(read_char): Use it.
 	(follow_key): Pass `autoload' to get_keyelt.
 
-	* xterm.c (note_mode_line_highlight, note_mouse_highlight) 
+	* xterm.c (note_mode_line_highlight, note_mouse_highlight)
 	(note_tool_bar_highlight, XTread_socket):
-	* msdos.c (IT_note_mode_line_highlight, IT_note_mouse_highlight) 
+	* msdos.c (IT_note_mode_line_highlight, IT_note_mouse_highlight)
 	(dos_rawgetc):
 	* w32term.c (note_mode_line_highlight, note_mouse_highlight)
 	(note_tool_bar_highlight, w32_read_socket):
@@ -359,7 +364,7 @@
 	similar.
 
 	* dispnew.c (clear_glyph_row): Add debug code in #if 0.
-	
+
 	* dispextern.h: Add some comments.
 
 	* window.c (add_window_to_list): Add parameter LIST.
@@ -411,7 +416,7 @@
 
 	* m/macppc.h (LINKER, LD_SWITCH_MACHINE) [LINUX]: Define.
 
-	* fns.c (sweep_weak_table): Mark only objects that are not 
+	* fns.c (sweep_weak_table): Mark only objects that are not
 	marked already.
 
 	* frame.c (next_frame, prev_frame): If MINIBUF is a window,
@@ -482,7 +487,7 @@
 
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (xim_initialize) [!USE_XIM]: Don't set up the 
+	* xterm.c (xim_initialize) [!USE_XIM]: Don't set up the
 	display info for XIM.
 	(xim_open_dpy): Likewise.
 	(xim_close_dpy): Don't free the display info's XIM.
@@ -581,13 +586,13 @@
 	* xrdb.c (x_load_resources): Add default resource for scroll bar's
 	trough color and main window's background color.
 
-	* xfns.c (Fx_file_dialog) [HAVE_MOTIF_2_1]: Handle events 
+	* xfns.c (Fx_file_dialog) [HAVE_MOTIF_2_1]: Handle events
 	differently.
 
 	* xterm.h (Xt_app_con): External declaration.
 
 	* widget.c (EmacsFrameRealize): Fix typo.
-	
+
 	* widget.c (EmacsFrameRealize): Remove SubstructureRedirectMask.
 
 	* xdisp.c (handle_stop): Initialize it->add_overlay_start to zero.
@@ -619,7 +624,7 @@
 
 2000-06-21  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (GETLOADAVG_OBJ): Removed -- LIBOBJS does it. 
+	* Makefile.in (GETLOADAVG_OBJ): Removed -- LIBOBJS does it.
 
 2000-06-21  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -651,7 +656,7 @@
 	* fns.c (make_hash_table, maybe_resize_hash_table):
 	Cast arg of next_almost_prime.
 
-	* tparam.c [emacs]: Include lisp.h. 
+	* tparam.c [emacs]: Include lisp.h.
 
 	* termcap.c [emacs]: Test HAVE_FCNTL_H, not USG5.  Include lisp.h
 	and unistd.h.
@@ -662,13 +667,13 @@
 	property should be treated as intangible by looking at its
 	value.
 
-	* xdisp.c (single_display_prop_intangible_p) 
+	* xdisp.c (single_display_prop_intangible_p)
 	(display_prop_intangible_p): New functions.
 
 	* dispextern.h (display_prop_intangible_p): Add prototype.
 
 	* xdisp.c (dump_glyph_row): Show type of glyph->object.
-	
+
 	* s/isc4-0.h (sigblock): Redefined to pass a pointer as second
 	argument to sigprocmask.
 
@@ -12485,7 +12490,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	The first line of the following paragraph was garbled for an
 	unknown reason.  It couldn't be fully reconstructed.
-	
+
 	* xterm.c (XTread_socket, XTset_terminal_window): Ditto.
 	(x_lower_frame): Ditto.
 	(x_scroll_bar_clear): Ditto.
@@ -13773,14 +13778,14 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	based on text properties for an overlay string.
 	(next_element_from_overlay_string): Check invisible and face text
 	properties.
-	
+
 	(set_iterator_to_next_overlay_string): Restore face id before
 	overlay strings when no more overlay strings are found to return.
 	Initialize next_ovstr_.*check_pos for each new overlay string
-	
+
 	A line in the following paragraph was garbled for an unknown
 	reason.  It couldn't be fully reconstructed.
-	
+
 	(compute_base_face): Made public.
 	(merge_face_list): Ditto.
 	(intern_computed_face): Ditto.
