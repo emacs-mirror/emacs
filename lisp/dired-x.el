@@ -254,8 +254,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "*(" 'dired-mark-sexp)
 (define-key dired-mode-map "*." 'dired-mark-extension)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
-(define-key dired-mode-map "T" 'dired-do-toggle)
-(define-key dired-mode-map "*t" 'dired-do-toggle)
 (define-key dired-mode-map "w" 'dired-copy-filename-as-kill)
 (define-key dired-mode-map "\M-g" 'dired-goto-file)
 (define-key dired-mode-map "\M-G" 'dired-goto-subdir)
@@ -291,7 +289,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   \\[dired-man]\t-- run man on file
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
   \\[dired-omit-toggle]\t-- toggle omitting of files
-  \\[dired-do-toggle]\t-- toggle marks
   \\[dired-mark-sexp]\t-- mark by lisp expression
   \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring.
   \t   You can feed it to other commands using \\[yank].
@@ -484,33 +481,6 @@ buffer and try again."
   "Like \\[dired-jump] (dired-jump) but in other window."
   (interactive)
   (dired-jump t))
-
-;;; TOGGLE.
-;;; Toggle marked files with unmarked files.
-
-(defun dired-do-toggle ()
-  "Toggle marks.
-That is, currently marked files become unmarked and vice versa.
-Files marked with other flags (such as `D') are not affected.
-`.' and `..' are never toggled.
-As always, hidden subdirs are not affected."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (let (buffer-read-only)
-      (while (not (eobp))
-        (or (dired-between-files)
-            (looking-at dired-re-dot)
-            ;; use subst instead of insdel because it does not move
-            ;; the gap and thus should be faster and because
-            ;; other characters are left alone automatically
-            (apply 'subst-char-in-region
-                   (point) (1+ (point))
-                   (if (eq ?\040 (following-char)) ; SPC
-                       (list ?\040 dired-marker-char)
-                     (list dired-marker-char ?\040))))
-        (forward-line 1)))))
-
 
 ;;; COPY NAMES OF MARKED FILES INTO KILL-RING.
 
