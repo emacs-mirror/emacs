@@ -1,16 +1,15 @@
-/* impl.c.pooln: NULL POOL
+/* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.15) $
+ * $HopeName: MMsrc!pooln.c(trunk.16) $
  * Copyright(C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
- * This is the implementation of the null pool class.  Begin null it
- * all functions are implemented in a trivial manner.
+ * .readership: MPS developers
  */
 
 #include "mpm.h"
 #include "pooln.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.15) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.16) $");
 
 
 typedef struct PoolNStruct {
@@ -34,6 +33,7 @@ static Res NInit(Pool pool, va_list args)
   return ResOK;
 }
 
+
 static void NFinish(Pool pool)
 {
   PoolN poolN;
@@ -45,11 +45,13 @@ static void NFinish(Pool pool)
   /* Finish pool-specific structures. */
 }
 
+
 Pool (PoolNPool)(PoolN poolN)
 {
   AVERT(PoolN, poolN);
   return &poolN->poolStruct;
 }
+
 
 static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 {
@@ -65,6 +67,7 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size)
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
 
+
 static void NFree(Pool pool, Addr old, Size size)
 {
   PoolN poolN;
@@ -79,7 +82,8 @@ static void NFree(Pool pool, Addr old, Size size)
   NOTREACHED;  /* can't allocate, should never free */
 }
 
-static Res NBufferInit(Pool pool, Buffer buffer)
+
+static Res NBufferInit(Pool pool, Buffer buffer, va_list args)
 {
   PoolN poolN;
 
@@ -87,10 +91,11 @@ static Res NBufferInit(Pool pool, Buffer buffer)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  UNUSED(buffer);
+  UNUSED(buffer); UNUSED(args);
 
   return ResLIMIT;  /* limit of nil buffers exceeded */
 }
+
 
 static void NBufferFinish(Pool pool, Buffer buffer)
 {
@@ -105,6 +110,7 @@ static void NBufferFinish(Pool pool, Buffer buffer)
 
   NOTREACHED;  /* can't create, so shouldn't destroy */
 }
+
 
 static Res NBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
                        Pool pool, Buffer buffer, Size size)
@@ -125,6 +131,7 @@ static Res NBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   return ResUNIMPL;
 }
 
+
 static void NBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
@@ -143,10 +150,11 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  UNUSED(stream);
+  UNUSED(stream); /* @@@@ should output something here */
 
   return ResOK;
 }
+
 
 static Res NWhiten(Pool pool, Trace trace, Seg seg)
 {
@@ -164,6 +172,7 @@ static Res NWhiten(Pool pool, Trace trace, Seg seg)
   return ResUNIMPL;
 }
 
+
 static void NGrey(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
@@ -176,6 +185,7 @@ static void NGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
 }
 
+
 static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
   PoolN poolN;
@@ -187,6 +197,7 @@ static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 }
+
 
 static Res NScan(ScanState ss, Pool pool, Seg seg)
 {
@@ -201,6 +212,7 @@ static Res NScan(ScanState ss, Pool pool, Seg seg)
 
   return ResOK;
 }
+
 
 static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
@@ -218,6 +230,7 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   return ResFAIL;
 }
 
+
 static void NReclaim(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
@@ -230,6 +243,7 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   /* all unmarked and white objects reclaimed */
 }
+
 
 static PoolClassStruct PoolClassNStruct = {
   PoolClassSig,                         /* sig */
@@ -258,10 +272,12 @@ static PoolClassStruct PoolClassNStruct = {
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 
+
 PoolClass PoolClassN(void)
 {
   return &PoolClassNStruct;
 }
+
 
 Bool PoolNCheck(PoolN poolN)
 {
@@ -272,4 +288,3 @@ Bool PoolNCheck(PoolN poolN)
 
   return TRUE;
 }
-
