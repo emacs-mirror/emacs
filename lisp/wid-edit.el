@@ -7,6 +7,23 @@
 ;; Version: 1.84
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
 ;;; Commentary:
 ;;
 ;; See `widget.el'.
@@ -575,7 +592,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child (parent type)
   "Create widget of TYPE."
-  (let ((widget (copy-list type)))
+  (let ((widget (copy-sequence type)))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
       (widget-put widget :indent (+ (or (widget-get parent :indent) 0)
@@ -586,7 +603,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child-value (parent type value)
   "Create widget of TYPE with value VALUE."
-  (let ((widget (copy-list type)))
+  (let ((widget (copy-sequence type)))
     (widget-put widget :value (widget-apply widget :value-to-internal value))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
@@ -607,7 +624,7 @@ The optional ARGS are additional keyword arguments."
   ;; Don't touch the type.
   (let* ((widget (if (symbolp type) 
 		     (list type)
-		   (copy-list type)))
+		   (copy-sequence type)))
 	 (current widget)
 	 (keys args))
     ;; First set the :args keyword.
@@ -1650,7 +1667,7 @@ With optional ARG, move across that many fields."
 (defun widget-checklist-match-inline (widget values)
   ;; Find the values which match a type in the checklist.
   (let ((greedy (widget-get widget :greedy))
-	(args (copy-list (widget-get widget :args)))
+	(args (copy-sequence (widget-get widget :args)))
 	found rest)
     (while values
       (let ((answer (widget-checklist-match-up args values)))
@@ -1671,7 +1688,7 @@ With optional ARG, move across that many fields."
   ;; Find the vals which match a type in the checklist.
   ;; Return an alist of (TYPE MATCH).
   (let ((greedy (widget-get widget :greedy))
-	(args (copy-list (widget-get widget :args)))
+	(args (copy-sequence (widget-get widget :args)))
 	found)
     (while vals
       (let ((answer (widget-checklist-match-up args vals)))
@@ -2058,7 +2075,7 @@ With optional ARG, move across that many fields."
 (defun widget-editable-list-delete-at (widget child)
   ;; Delete child from list of children.
   (save-excursion
-    (let ((buttons (copy-list (widget-get widget :buttons)))
+    (let ((buttons (copy-sequence (widget-get widget :buttons)))
 	  button
 	  (inhibit-read-only t)
 	  after-change-functions)
