@@ -1,3 +1,31 @@
+2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (Qwrite_region_annotate_functions): New var.
+	(build_annotations): Use it to process the global part of the hook.
+	(syms_of_fileio): Init and staticpro it.
+
+	* keyboard.c (safe_run_hooks_error): Display a message instead of
+	silently ignoring the error.
+
+2003-05-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (input_available_signal): Mark static.
+	(menu_bar_items): Use map_keymap.
+	(menu_bar_one_keymap): Remove.
+	(menu_bar_item): Adjust arglist (for use in map_keymap).
+	Properly hide a second binding when not both are keymaps.
+
+	* xmenu.c (struct skp): New struct, to pass args through map_keymap.
+	(single_keymap_panes): Use it and map_keymap.
+	(single_menu_item): Use skp as well.
+
+	* keymap.h (map_keymap_function_t): New type.
+	(map_keymap): Declare.
+
+	* keymap.c (map_keymap_item, map_keymap_char_table_item, map_keymap)
+	(map_keymap_call, Fmap_keymap): New functions.
+	(syms_of_keymap): Defsubr map-keymap.
+
 2003-05-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_dialog, make_widget_for_menu_item)
