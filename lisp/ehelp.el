@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Copyright (C) 1986, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, extensions
@@ -52,6 +52,11 @@
 (defcustom electric-help-shrink-window t
   "If set, adjust help window sizes to buffer sizes when displaying help."
   :type 'boolean
+  :group 'electric-help)
+
+(defcustom electric-help-mode-hook nil
+  "Hook run by `with-electric-help' after initializing the buffer."
+  :type 'hook
   :group 'electric-help)
 
 (put 'electric-help-undefined 'suppress-keymap t)
