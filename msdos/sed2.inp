@@ -14,6 +14,13 @@
 #define HAVE_STRUCT_UTIMBUF 1\
 #define LOCALTIME_CACHE 1\
 #define HAVE_TZSET 1\
+#define HAVE_LOGB 1\
+#define HAVE_FREXP 1\
+#define HAVE_FMOD 1\
+#define HAVE_RINT 1\
+#define HAVE_CBRT 1\
+#define HAVE_FPATHCONF 1\
+#define HAVE_SETRLIMIT 1\
 #else /* not __DJGPP__ > 1 */
 /^#undef STDC_HEADERS *$/s/undef/define/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/
