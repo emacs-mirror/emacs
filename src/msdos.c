@@ -195,8 +195,15 @@ them.  This happens with wheeled mice on Windows 9X, for example.")
   (nbuttons)
      Lisp_Object nbuttons;
 {
+  int n;
+
   CHECK_NUMBER (nbuttons, 0);
-  mouse_setup_buttons (XINT (nbuttons));
+  n = XINT (nbuttons);
+  if (n < 2 || n > 3)
+    Fsignal (Qargs_out_of_range,
+	     Fcons (build_string ("only 2 or 3 mouse buttons are supported"),
+		    Fcons (nbuttons, Qnil)));
+  mouse_setup_buttons (n);
   return Qnil;
 }
 
