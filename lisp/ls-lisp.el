@@ -105,12 +105,12 @@ The switches that work are: A a c i r S s t u"
 		  (ls-lisp-handle-switches file-alist switches))
 	    (while file-alist
 	      (setq elt (car file-alist)
-		    short (car elt)
-		    attr  (cdr elt)
 		    file-alist (cdr file-alist)
-		    fil (concat dir short)
-		    sum (+ sum (nth 7 attr)))
-	      (insert (ls-lisp-format short attr switches)))
+		    short (car elt)
+		    attr (cdr elt))
+	      (and attr
+		   (setq sum (+ sum (nth 7 attr)))
+		   (insert (ls-lisp-format short attr switches))))
 	    ;; Fill in total size of all files:
 	    (save-excursion
 	      (search-backward "total \007")
