@@ -367,7 +367,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	{
 	  Lisp_Object spec_buffer;
 	  spec_buffer = buffer;
-	  buffer = Fget_buffer (buffer);
+	  buffer = Fget_buffer_create (buffer);
 	  /* Mention the buffer name for a better error message.  */
 	  if (NILP (buffer))
 	    CHECK_BUFFER (spec_buffer, 2);
