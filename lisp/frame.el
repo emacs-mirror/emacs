@@ -514,9 +514,7 @@ A negative ARG moves in the opposite order."
       (setq arg (1+ arg)))
     (raise-frame frame)
     (select-frame frame)
-    (set-mouse-position (selected-frame) (1- (frame-width)) 0)
-    (if (fboundp 'unfocus-frame)
-	(unfocus-frame))))
+    (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
 
 ;;;; Frame configurations
 
