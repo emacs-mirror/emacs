@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/10/24 04:05:22 $|$Revision: 1.52 $
+;; |$Date: 1993/11/24 01:22:40 $|$Revision: 1.53 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1295,7 +1295,7 @@ If there is no completion possible, say so and continue searching."
 	    (setq isearch-other-end
 		  (if isearch-forward (match-beginning 0) (match-end 0)))))
 
-    (quit (isearch-unread ?\C-g)
+    (quit (isearch-unread (nth 3 (current-input-mode)))
 	  (setq isearch-success nil))
 
     (invalid-regexp 
