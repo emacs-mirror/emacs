@@ -7450,8 +7450,10 @@ If omitted or nil, that stands for the selected frame's display.")
   else
     cap = GetDeviceCaps (hdc,NUMCOLORS);
 
+  /* We force 24+ bit depths to 24-bit, both to prevent an overflow
+     and because probably is more meaningful on Windows anyway */
   if (cap < 0)
-    cap = 1 << (dpyinfo->n_planes * dpyinfo->n_cbits);
+    cap = 1 << min(dpyinfo->n_planes * dpyinfo->n_cbits, 24);
   
   ReleaseDC (dpyinfo->root_window, hdc);
   
