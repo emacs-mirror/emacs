@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -440,7 +440,7 @@ ENDFUN should return the end position (with or without moving point)."
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
-	   (if (looking-at ,re) (incf count))
+	   (if (looking-at ,re) (setq count (1+ count)))
 	   (if (not (re-search-forward ,re nil t count))
 	       (if (looking-at ,re)
 		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
