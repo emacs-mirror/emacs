@@ -1,3 +1,8 @@
+2000-07-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (setup_coding_system): Don't override the explicitly
+	specified designations.
+
 2000-07-15  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (char_property_eq, char_property_stickiness): Renamed

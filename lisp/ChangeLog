@@ -1,7 +1,11 @@
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/european.el (compound-text): Force katakana-jisx0201 to
+	be designated to G1.
+
 	* international/mule-conf.el (oldjis-newjis-jisroman-ascii): Don't
 	translate some national variant characters of latin-jisx0201.
+	(x-ctext): Force katakana-jisx0201 to be designated to G1.
 
 	* international/kkc.el (kkc-after-update-conversion-functions):
 	New variable.
