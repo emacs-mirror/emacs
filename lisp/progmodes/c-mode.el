@@ -947,7 +947,7 @@ If within a string or comment, move by sentences instead of statements."
   (interactive)
   (push-mark (point))
   (end-of-defun)
-  (push-mark (point))
+  (push-mark (point) nil t)
   (beginning-of-defun)
   (backward-paragraph))
 
