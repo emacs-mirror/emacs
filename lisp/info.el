@@ -2866,20 +2866,22 @@ the variable `Info-file-list-for-emacs'."
 		(skip-syntax-backward " ")
 		(setq other-tag
 		      (cond
-		       ((or (<= (point) (point-min))
-			    (memq (char-after (1- (point))) '( ?\. ?! )))
-			"See ")
-		       ((memq (char-after (1- (point))) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
-			"see ")
-		       (t nil)))
+		       ((memq (char-before) '(nil ?\. ?! ))
+			"See "
+		       ((memq (char-before) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
+			"see ")))
 		(goto-char next))
 	      (if hide-tag
 		  (add-text-properties (match-beginning 1) (match-end 1)
 				       '(invisible t)))
-	      (add-text-properties (match-beginning 2) (match-end 2)
-				   '(font-lock-face info-xref
-						    mouse-face highlight
-						    help-echo "mouse-2: go to this node"))
+	      (add-text-properties
+	       (match-beginning 2) (match-end 2)
+	       (cons 'help-echo
+		     (cons (if (match-end 4)
+			       (concat "mouse-2: go to " (match-string 4))
+			     "mouse-2: go to this node")
+			   '(font-lock-face info-xref
+			     mouse-face highlight))))
 	      (when (eq Info-hide-note-references t)
 		(add-text-properties (match-beginning 3) (match-end 3)
 				     '(invisible t)))
@@ -2915,10 +2917,15 @@ the variable `Info-file-list-for-emacs'."
 		  (put-text-property (match-beginning 0)
 				     (1+ (match-beginning 0))
 				     'font-lock-face 'info-menu-5))
-	      (add-text-properties (match-beginning 1) (match-end 1)
-				   '(font-lock-face info-xref
-				     mouse-face highlight
-				     help-echo "mouse-2: go to this node"))
+	      (add-text-properties
+	       (match-beginning 1) (match-end 1)
+	       (cons 'help-echo
+		     (cons
+		      (if (match-end 3)
+			  (concat "mouse-2: go to " (match-string 3))
+			"mouse-2: go to this node")
+		      '(font-lock-face info-xref
+			mouse-face highlight))))
 	      (when (eq Info-hide-note-references t)
 		(put-text-property (match-beginning 2) (match-beginning 4)
 				   'invisible t)
