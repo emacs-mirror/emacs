@@ -1,3 +1,8 @@
+2002-06-12  Andreas Schwab  <schwab@suse.de>
+
+	* frames.texi (Initial Parameters, Resources): Fix references to
+	the Emacs manual.
+
 2002-05-13  Kim F. Storm  <storm@cua.dk>
 
 	* variables.texi (Intro to Buffer-Local): Updated warning and
