@@ -61,6 +61,11 @@ main ()
 #include <ctype.h>
 #include <time.h>
 #include <pwd.h>
+
+/* This is to declare cuserid.  */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 /* Type definitions */
 
@@ -368,9 +373,9 @@ make_file_preface ()
   user_length = strlen (temp);
   the_user = alloc_string (user_length + 1);
   strcpy (the_user, temp);
-  the_string = alloc_string (3 + prefix_length +
-			     user_length +
-			     date_length);
+  the_string = alloc_string (3 + prefix_length
+			     + user_length
+			     + date_length);
   temp = the_string;
   strcpy (temp, FROM_PREFIX);
   temp = &temp[prefix_length];
