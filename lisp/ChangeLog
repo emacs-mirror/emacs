@@ -1,3 +1,21 @@
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (event-start, event-end): Doc fix.
+	(posn-window, posn-x-y, posn-timestamp): Simplify doc.
+	(posn-area, posn-actual-col-row, posn-object): New defuns.
+	(posn-col-row): Simplify doc.  Rewrite to use cond.
+	(posn-point): Also return buffer position for events outside text
+	area (that info is now present in the event position).
+
+	* mouse.el: Bind mouse-1 on left-fringe and right-fringe to
+	mouse-set-point so that hscroll still works now that clicks on
+	fringes generate specific mouse events.  
+	(mouse-set-point): Note that it now works in fringes and margins
+	too due to new semantics of posn-point in fringes and margins.
+
+	* gdb-ui.el (gdb-mouse-toggle-breakpoint): New defun.
+	(gdba): Bind it to [left-margin mouse-1] and [left-fringe mouse-1].
+
 2003-11-20  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (gud-gdba-command-name): Find gdb command via PATH.
