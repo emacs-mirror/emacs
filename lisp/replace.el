@@ -80,7 +80,8 @@ If `query-replace-interactive' is non-nil, the last incremental search
 string is used as FROM-STRING--you don't have to specify it with the
 minibuffer.
 
-Preserves case in each replacement if `case-replace' and `case-fold-search'
+Replacement transfers the case of the old text to the new text,
+if `case-replace' and `case-fold-search'
 are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
@@ -220,13 +221,18 @@ which will run faster and will not set the mark or print anything."
 (defun keep-lines (regexp)
   "Delete all lines except those containing matches for REGEXP.
 A match split across lines preserves all the lines it lies in.
-Applies to all lines after point."
+Applies to all lines after point.
+
+If REGEXP contains upper case characters (excluding those preceded by `\\'),
+the matching is case-sensitive."
   (interactive (list (read-from-minibuffer
 		      "Keep lines (containing match for regexp): "
 		      nil nil nil 'regexp-history nil t)))
   (save-excursion
     (or (bolp) (forward-line 1))
-    (let ((start (point)))
+    (let ((start (point))
+	  (case-fold-search  (and case-fold-search
+				  (isearch-no-upper-case-p regexp t))))
       (while (not (eobp))
 	;; Start is first char not preserved by previous match.
 	(if (not (re-search-forward regexp nil 'move))
@@ -247,25 +253,35 @@ Applies to all lines after point."
 (defun flush-lines (regexp)
   "Delete lines containing matches for REGEXP.
 If a match is split across lines, all the lines it lies in are deleted.
-Applies to lines after point."
+Applies to lines after point.
+
+If REGEXP contains upper case characters (excluding those preceded by `\\'),
+the matching is case-sensitive."
   (interactive (list (read-from-minibuffer
 		      "Flush lines (containing match for regexp): "
 		      nil nil nil 'regexp-history nil t)))
-  (save-excursion
-    (while (and (not (eobp))
-		(re-search-forward regexp nil t))
-      (delete-region (save-excursion (goto-char (match-beginning 0))
-				     (beginning-of-line)
-				     (point))
-		     (progn (forward-line 1) (point))))))
+  (let ((case-fold-search (and case-fold-search
+			       (isearch-no-upper-case-p regexp t))))
+    (save-excursion
+      (while (and (not (eobp))
+		  (re-search-forward regexp nil t))
+	(delete-region (save-excursion (goto-char (match-beginning 0))
+				       (beginning-of-line)
+				       (point))
+		       (progn (forward-line 1) (point)))))))
 
 (defalias 'count-matches 'how-many)
 (defun how-many (regexp)
-  "Print number of matches for REGEXP following point."
+  "Print number of matches for REGEXP following point.
+
+If REGEXP contains upper case characters (excluding those preceded by `\\'),
+the matching is case-sensitive."
   (interactive (list (read-from-minibuffer
 		      "How many matches for (regexp): "
 		      nil nil nil 'regexp-history nil t)))
-  (let ((count 0) opoint)
+  (let ((count 0) opoint
+	(case-fold-search  (and case-fold-search
+				(isearch-no-upper-case-p regexp t))))
     (save-excursion
      (while (and (not (eobp))
 		 (progn (setq opoint (point))
