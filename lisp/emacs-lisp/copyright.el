@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992-1995, 1998 Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de
 ;;		 fax (+49 69) 7588-2389
@@ -30,22 +30,35 @@
 
 ;;; Code:
 
-(defvar copyright-limit 2000
+(defgroup copyright nil
+  "Update the copyright notice in current buffer."
+  :group 'tools)
+
+(defcustom copyright-limit 2000
   "*Don't try to update copyright beyond this position unless interactive.
-`nil' means to search whole buffer.")
+`nil' means to search whole buffer."
+  :group 'copyright
+  :type '(choice (integer :tag "Limit")
+		 (const :tag "No limit")))
 
 
-(defvar copyright-regexp
+(defcustom copyright-regexp
   "\\([Å©\251]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
 \\|[Cc]opyright\\s *:?\\s *[Å©\251]\\)\
 \\s *\\([1-9][-0-9, ']*[0-9]+\\) "
   "*What your copyright notice looks like.
-The second \\( \\) construct must match the years.")
+The second \\( \\) construct must match the years."
+  :group 'copyright
+  :type 'regexp)
 
 
-(defvar copyright-query 'function
+(defcustom copyright-query 'function
   "*If non-`nil', ask user before changing copyright.
-When this is `function', only ask when called non-interactively.")
+When this is `function', only ask when called non-interactively."
+  :group 'copyright
+  :type '(choice (const :tag "Do not ask")
+		 (const :tag "Ask" t)
+		 (const :tag "Ask unless interactive" function)))
 
 
 (defconst copyright-current-year (substring (current-time-string) -4)
