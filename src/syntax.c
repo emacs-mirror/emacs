@@ -498,7 +498,7 @@ Currently, any char-table counts as a syntax table.")
      Lisp_Object object;
 {
   if (CHAR_TABLE_P (object)
-      && XCHAR_TABLE (object)->purpose == Qsyntax_table)
+      && EQ (XCHAR_TABLE (object)->purpose, Qsyntax_table))
     return Qt;
   return Qnil;
 }
@@ -508,7 +508,7 @@ check_syntax_table (obj)
      Lisp_Object obj;
 {
   if (!(CHAR_TABLE_P (obj)
-	&& XCHAR_TABLE (obj)->purpose == Qsyntax_table))
+	&& EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table)))
     wrong_type_argument (Qsyntax_table_p, obj);
 }   
 
@@ -735,11 +735,11 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   p = XSTRING (newentry)->data;
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
-    error ("invalid syntax description letter: %c", c);
+    error ("invalid syntax description letter: %c", XINT (c));
 
   if (code == Sinherit)
     {
-      SET_RAW_SYNTAX_ENTRY (syntax_table, c, Qnil);
+      SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), Qnil);
       return Qnil;
     }
 
@@ -791,7 +791,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
     /* Since we can't use a shared object, let's make a new one.  */
     newentry = Fcons (make_number (val), match);
     
-  SET_RAW_SYNTAX_ENTRY (syntax_table, c, newentry);
+  SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), newentry);
 
   return Qnil;
 }
@@ -836,7 +836,7 @@ describe_syntax (value)
       return;
     }
 
-  code = (enum syntaxcode) (first & 0377);
+  code = (enum syntaxcode) (XINT (first) & 0377);
   start1 = (XINT (first) >> 16) & 1;
   start2 = (XINT (first) >> 17) & 1;
   end1 = (XINT (first) >> 18) & 1;
