@@ -66,11 +66,6 @@
 (defvar telnet-program "telnet"
   "Program to run to open a telnet connection.")
 
-(defvar rsh-program
-  (if (memq system-type '(hpux usg-unix-v)) 
-      "remsh" "rsh")
-  "Program to run for opening a remote shell.")
-
 (defvar telnet-initial-count -50
   "Initial value of `telnet-count'.  Should be set to the negative of the
 number of terminal writes telnet will make setting up the host connection.")
@@ -227,7 +222,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat host "-rsh" )))
-    (switch-to-buffer (make-comint name rsh-program nil host))
+    (switch-to-buffer (make-comint name remote-shell-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
