@@ -1,3 +1,10 @@
+2000-01-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (syms_of_xfaces): Change Sface_color_gray_p to
+	Scolor_gray_p, Sface_color_supported_p to Scolor_supported_p.
+
+	* s/hpux9.h (NO_EDITRES): Define even if HAVE_LIBXMU.
+
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (handle_single_display_prop) [HAVE_WINDOW_SYSTEM]: No
