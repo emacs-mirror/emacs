@@ -29,11 +29,6 @@
 ;; appt.el - visible and/or audible notification of
 ;;           appointments from ~/diary file.
 ;;
-;;
-;; Comments, corrections, and improvements should be sent to
-;; Neil M. Mager
-;; Net                     <neilm@juliet.ll.mit.edu>
-;; Voice                   (617) 981-4803
 ;;;
 ;;; Thanks to  Edward M. Reingold for much help and many suggestions, 
 ;;; And to many others for bug fixes and suggestions.
