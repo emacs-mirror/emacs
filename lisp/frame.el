@@ -665,6 +665,9 @@ that is beyond the control of Emacs and this command has no effect on it."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
 
+(defvar scroll-bar-side 'left
+  "*Specify which side scroll bars should be on.  Value is `left' or `right'.")
+
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
 With arg, turn vertical scroll bars on if and only if arg is positive."
@@ -675,7 +678,9 @@ With arg, turn vertical scroll bars on if and only if arg is positive."
 			   (frame-parameters (selected-frame))))
 		-1 1)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'vertical-scroll-bars (> arg 0)))))
+			   (list (cons 'vertical-scroll-bars
+				       (if (> arg 0)
+					   scroll-bar-side)))))
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
@@ -712,10 +717,6 @@ should use `set-frame-width' instead."
 
 
 ;;;; Key bindings
-(defvar ctl-x-5-map (make-sparse-keymap)
-  "Keymap for frame commands.")
-(defalias 'ctl-x-5-prefix ctl-x-5-map)
-(define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 (define-key ctl-x-5-map "2" 'make-frame-command)
 (define-key ctl-x-5-map "0" 'delete-frame)
