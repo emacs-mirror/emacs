@@ -24,6 +24,9 @@
 
 ;;; Commentary:
 
+;; This file defines korean-hanja keyboards:
+;; - hanja input method with hangul keyboard type 2
+
 ;;; Code:
 
 (require 'quail)
@@ -348,7 +351,6 @@
  ("wka"	"岑暫潛箴簪蠶")
  ("wkq"	"雜")
  ("wkd"	"丈仗匠場墻壯奬將帳庄張掌暲杖樟檣欌漿牆狀獐璋章粧腸臟臧莊葬蔣薔藏裝贓醬長障")
- ("Od"	"爭箏諍錚")
  ("wo"	"再哉在宰才材栽梓渽滓災縡裁財載齋齎")
  ("wod"	"爭箏諍錚")
  ("wj"	"佇低儲咀姐底抵杵楮樗沮渚狙猪疽箸紵苧菹著藷詛貯躇這邸雎齟")
