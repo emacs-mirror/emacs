@@ -472,7 +472,7 @@ Meta and Alt:
 ** A French translation of the Emacs Tutorial is available.
 
 ---
-** Indentation of simple and extended loop forms han been added to the
+** Indentation of simple and extended loop forms has been added to the
 cl-indent package.  The new user options
 `lisp-loop-keyword-indentation', `lisp-loop-forms-indentation', and
 `lisp-simple-loop-indentation' can be used to customize the
