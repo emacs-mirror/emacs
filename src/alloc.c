@@ -99,7 +99,7 @@ int pureptr;
 char *pending_malloc_warning;
 
 /* Pre-computed signal argument for use when memory is exhausted.  */
-static Lisp_Object memory_signal_data;
+Lisp_Object memory_signal_data;
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -2224,7 +2224,8 @@ which includes both saved text and other data.");
 
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
-  memory_signal_data = Fcons (build_string ("Memory exhausted"), Qnil);
+  memory_signal_data
+    = Fcons (Qerror, Fcons (build_string ("Memory exhausted"), Qnil));
   staticpro (&memory_signal_data);
 
   defsubr (&Scons);
