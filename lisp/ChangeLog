@@ -1,3 +1,42 @@
+2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	Sync with Tramp 2.0.43.
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime): Remove
+	outdated comment.
+	(tramp-locked, tramp-locker): New variables for implementing a
+	global lock.
+	(tramp-sh-file-name-handler): Use them to implement the global
+	lock.
+	
+2004-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (all): Code cleanup.  Change all `tramp-handle-xxx'
+	calls to respective `xxx` calls.
+	(tramp-process-alive-regexp): Precise doc string.
+	(tramp-multi-action-process-alive): New defun.
+	(tramp-multi-actions): Use it.
+	(tramp-handle-find-backup-file-name): `copy-tree' is available
+	since Emacs 21.4 only (XEmacs has it).  Implementation rewritten
+	in order to avoid this function.
+	(tramp-handle-write-region): Set current buffer.  If connection
+	wasn't open, `file-modes' has changed it accidently.  Reported by
+	David Kastrup <dak@gnu.org>.
+	(tramp-enter-password, tramp-read-passwd): New arguments USER and
+	HOST.
+	(tramp-action-password, tramp-multi-action-password): Apply it.
+	(tramp-open-connection-rsh): If a port is given, the Tramp buffer
+	name must still contain the port number.  Otherwise, we have two
+	Tramp buffers, with all the confusion.  Reported by Myron Selby
+	<myron@xytech.com> and Rolf Dubitzky
+	<Dubitzky@physi.uni-heidelberg.de>.
+
+	* net/tramp-smb.el (tramp-smb-open-connection): Apply USER and
+	HOST to `tramp-enter-passwd'.
+
+	* net/tramp-vc.el (all): Code cleanup.  Change all
+	`tramp-handle-xxx' calls to respective `xxx` calls.
+	
 2004-07-17  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* emacs-lisp/testcover.el: New category "potentially-1valued" for
