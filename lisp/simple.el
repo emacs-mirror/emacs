@@ -993,9 +993,6 @@ as an argument limits undo to changes within the current region."
     ;; undo operation, so we can skip them later on.
     ;; I don't know how to do that in the undo-in-region case.
     (unless undo-in-region
-      (when (eval-when-compile (fboundp 'assert))
-	(assert (or (null pending-undo-list) (car pending-undo-list)))
-	(assert (car buffer-undo-list)))
       (puthash buffer-undo-list pending-undo-list undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
