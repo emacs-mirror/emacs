@@ -2097,6 +2097,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec with-output-to-string t)
 (def-edebug-spec with-current-buffer t)
 (def-edebug-spec combine-after-change-calls t)
+(def-edebug-spec delay-mode-hooks t)
 (def-edebug-spec with-temp-file t)
 (def-edebug-spec with-temp-buffer t)
 (def-edebug-spec with-temp-message t)
@@ -3348,23 +3349,23 @@ go to the end of the last sexp, or if that is the same point, then step."
 (defun edebug-instrument-function (func)
   ;; Func should be a function symbol.
   ;; Return the function symbol, or nil if not instrumented.
-  (let ((func-marker))
-    (setq func-marker (get func 'edebug))
+  (let ((func-marker (get func 'edebug)))
     (cond
      ((markerp func-marker)
       ;; It is uninstrumented, so instrument it.
-      (save-excursion
-	(set-buffer (marker-buffer func-marker))
+      (with-current-buffer (marker-buffer func-marker)
 	(goto-char func-marker)
 	(edebug-eval-top-level-form)
 	func))
      ((consp func-marker)
       (message "%s is already instrumented." func)
       func)
-     (t 
-      ;; We could try harder, e.g. do a tags search.
-      (error "Don't know where %s is defined" func)
-      nil))))
+     (t
+      (let ((loc (find-function-noselect func)))
+	(with-current-buffer (car loc)
+	  (goto-char (cdr loc))
+	  (edebug-eval-top-level-form)
+	  func))))))
 
 (defun edebug-instrument-callee ()
   "Instrument the definition of the function or macro about to be called.  
