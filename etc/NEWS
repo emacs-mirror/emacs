@@ -1130,6 +1130,10 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** New function `decode-coding-region-as-inserted-from-file' can be
+called to decode a region as if it is read from a file without
+decoding.
+
 ** New function `optimize-char-coding-system-table' can be called
 after making changes to `char-coding-system-table'.
 
