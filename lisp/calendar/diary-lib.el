@@ -258,6 +258,27 @@ search."
       (list entry ret-attr))))
 
 
+;; This can be removed once the kill/yank treatment of invisible text
+;; (see etc/TODO) is fixed. -- gm
+(defcustom diary-header-line-flag t
+  "*If non-nil, `simple-diary-display' will show a header line.
+The format of the header is specified by `diary-header-line-format'."
+  :group   'diary
+  :type    'boolean
+  :version "21.4")
+
+(defcustom diary-header-line-format
+  '(:eval (calendar-string-spread
+           (list (if selective-display
+                     "Selective display active - press \"s\" in calendar \
+before edit/copy"
+                   "Diary"))
+           ?\ (frame-width)))
+  "*Format of the header line displayed by `simple-diary-display'.
+Only used if `diary-header-line-flag' is non-nil."
+  :group   'diary
+  :type    'sexp
+  :version "21.4")
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
@@ -311,6 +332,8 @@ These hooks have the following distinct roles:
 	  (setq file-glob-attrs (nth 1 (diary-pull-attrs nil "")))
           (setq selective-display t)
           (setq selective-display-ellipses nil)
+          (if diary-header-line-flag
+              (setq header-line-format diary-header-line-format))
           (setq old-diary-syntax-table (syntax-table))
           (set-syntax-table diary-syntax-table)
           (unwind-protect
