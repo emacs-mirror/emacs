@@ -74,7 +74,7 @@
 	(push i chars)
 	(setq i (1+ i)))
       (while (< i 127)
-	(push (+ i 128) chars)
+	(push (decode-char 'eight-bit (+ i 128)) chars)
 	(setq i (1+ i)))
       (apply 'string (nreverse chars)))))
 
