@@ -187,8 +187,9 @@ xaw_destroy_instance (instance)
 }
 
 void
-xaw_popup_menu (widget)
+xaw_popup_menu (widget, event)
      Widget widget;
+     XEvent *event;
 {
   /* An Athena menubar has not been implemented. */
   return;
