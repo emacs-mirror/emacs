@@ -610,6 +610,8 @@ extern void SegClassMixInNoSplitMerge(SegClass class);
 #define SEG_SUPERCLASS(className) \
   ((SegClass)SUPERCLASS(className))
 
+#define ClassOfSeg(seg) ((seg)->class)
+
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
 extern Addr (SegLimit)(Seg seg);

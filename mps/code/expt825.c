@@ -6,6 +6,15 @@
  *
  * DESIGN
  *
+ * Just a copy of finaltest.c with the following modifcations:
+ * maxtreeDEPTH is 2 rather than 12.  This makes the test run and fail
+ * much more quickly.
+ *
+ * After trees have been created and finalized, call
+ * mps_arena_unsafe_expose_remember_protection / restore.  If the bug
+ * is present then this sequence will fail.
+ *
+ *
  * DEPENDENCIES
  *
  * This test uses the dylan object format, but the reliance on this
