@@ -10,6 +10,13 @@
 	(list-colors-duplicates): New function.
 	(facemenu-color-name-equal): Delete function.
 
+	* facemenu.el (list-colors-print): New function created from code
+	in list-colors-display.  Print #RRGGBB at the window right edge.
+	(list-colors-display): When temp-buffer-show-function is not
+	defined, call list-colors-print from temp-buffer-show-hook
+	to get the right value of window-width in list-colors-print
+	after the buffer is displayed.
+
 2005-01-12  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (search-highlight, isearch, isearch-lazy-highlight):
