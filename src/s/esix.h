@@ -15,7 +15,6 @@
 
 /* If using Roell's X server, define X11R4 */
 #ifdef X11R4			/* Roell's X server */
-#define HAVE_GETTIMEOFDAY /* Thomas Roell's X11R4 lib defines gettimeofday */
 #define select sys_select /* Emacs select() not good enough? */
 #undef LIBX11_SYSTEM
 #define LIBX11_SYSTEM -lpt

@@ -174,12 +174,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 			  4800, 9600, 19200, 38400 }
 
 /*
- *	Define HAVE_GETTIMEOFDAY if gettimeofday() system call is available.
- */
-
-#define HAVE_GETTIMEOFDAY
-
-/*
  *	Define NLIST_STRUCT if the system has nlist.h
  */
 

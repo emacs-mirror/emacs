@@ -224,8 +224,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Some additional system facilities exist.  */
 
-#define HAVE_GETTIMEOFDAY
-
 #define HAVE_VFORK
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
