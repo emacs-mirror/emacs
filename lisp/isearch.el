@@ -1161,7 +1161,7 @@ and the meta character is unread so that it applies to editing the string."
 	       ;; directly to avoid the input method and keyboard
 	       ;; coding system translating it.
 	       (if (and (integerp key)
-			(>= key ?\ ) (< key 256))
+			(>= key ?\ ) (/= key 127) (< key 256))
 		   (progn
 		     (isearch-process-search-char key)
 		     (setq keylist (cdr keylist)))
