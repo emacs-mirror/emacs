@@ -43,7 +43,7 @@ which specify the range to operate on."
      (goto-char (min start end))
      (while (< (point) end1)
        (or (looking-at "[_\^@- ]")
-	   (insert "_"))
+	   (insert "_\b"))
        (forward-char 1)))))
 
 ;;;###autoload
@@ -56,7 +56,7 @@ which specify the range to operate on."
    (let ((end1 (make-marker)))
      (move-marker end1 (max start end))
      (goto-char (min start end))
-     (while (re-search-forward "_\\|_" end1 t)
+     (while (re-search-forward "_\b\\|\b_" end1 t)
        (delete-char -2)))))
 
 ;;; underline.el ends here
