@@ -1,3 +1,10 @@
+2001-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* help.el (view-order-manuals): Use goto-address.
+
+	* startup.el (command-line-1): Add info about ordering manuals
+	to the not so fancy splash screens.
+
 2001-02-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-default-workfile-unchanged-p, 
