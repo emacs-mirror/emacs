@@ -74,7 +74,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define NO_SOCK_SIGIO */
 
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__OpenBSD__)
 #define ORDINARY_LINK
 #endif
 
