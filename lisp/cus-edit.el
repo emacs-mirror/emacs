@@ -1993,7 +1993,9 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;; the global custom one
 (defun custom-comment-show (widget)
   (widget-put widget :comment-shown t)
+  (trace-to-stderr (format "1: %s\n" (widget-value widget)))
   (custom-redraw widget)
+  (trace-to-stderr (format "2: %s\n" (widget-value widget)))
   (widget-setup))
 
 (defun custom-comment-invisible-p (widget)
@@ -3447,11 +3449,12 @@ to the new custom file.  This will preserve your existing customizations."
 
 (defun custom-file ()
   "Return the file name for saving customizations."
-  (setq custom-file
-	(or custom-file
-	    user-init-file
-	    (read-file-name "File for customizations: "
-			    "~/" nil nil ".emacs"))))
+  (if (null user-init-file)
+      ;; Started with -q, i.e. the file containing Custom settings
+      ;; hasn't been read.  Saving settings there would overwrite
+      ;; other settings.
+      (error "Saving settings when running -q would overwrite existing settings")
+    (setq custom-file (or custom-file user-init-file))))
 
 (defun custom-save-delete (symbol)
   "Visit `custom-file' and delete all calls to SYMBOL from it.
