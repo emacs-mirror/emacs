@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.47) $
+ * $HopeName: MMsrc!mpm.h(trunk.48) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -461,6 +461,22 @@ extern Res ArenaCollect(Arena arena);
 
 extern Res ArenaAlloc(void **baseReturn, Arena arena, Size size);
 extern void ArenaFree(Arena arena, void *base, Size size);
+
+/* == Peek/Poke
+ *
+ * These are provided so that modules in the MPS can make
+ * occasional access to client data.
+ * They perform the appropriate shield and summary manipulations
+ * that are necessary */
+
+/* Peek reads a value from our managed heap */
+extern Word ArenaPeek(Arena arena, Addr addr);
+/* addr must be in seg */
+extern Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
+/* Poke stores a value into our managed heap */
+extern void ArenaPoke(Arena arena, Addr addr, Word word);
+/* addr must be in seg */
+extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word);
 
 #define ArenaPoolRing(arena)    (&(arena)->poolRing)
 #define ArenaRootRing(arena)    (&(arena)->rootRing)

@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.24) $
+ * $HopeName: MMsrc!mps.h(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -351,8 +351,8 @@ extern void mps_message_finalization_ref(mps_addr_t *,
 
 /* Finalization */
 
-extern mps_res_t mps_finalize(mps_arena_t, mps_addr_t);
-extern void mps_definalize(mps_arena_t, mps_addr_t);
+extern mps_res_t mps_finalize(mps_arena_t, mps_addr_t *);
+extern void mps_definalize(mps_arena_t, mps_addr_t *);
 
 
 /* Scanner Support */

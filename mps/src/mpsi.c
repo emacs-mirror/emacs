@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.29) $
+ * $HopeName: MMsrc!mpsi.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.29) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.30) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1016,21 +1016,23 @@ mps_word_t mps_collections(mps_arena_t mps_arena)
 /* mps_finalize -- register for finalize
  */
 
-mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t obj)
+mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t *refref)
 {
   Res res;
+  Addr object;
   Arena arena = (Arena)mps_arena;
 
   ArenaEnter(arena);
 
-  res = ArenaFinalize(arena, (Addr)obj);
+  object = (Addr)ArenaPeek(arena, (Addr)refref);
+  res = ArenaFinalize(arena, object);
 
   ArenaLeave(arena);
 
   return res;
 }
 
-void mps_definalize(mps_arena_t arena, mps_addr_t obj)
+void mps_definalize(mps_arena_t arena, mps_addr_t *refref)
 {
   /* Not yet implemented */
   NOTREACHED;
@@ -1156,9 +1158,6 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   ArenaEnter(arena);
   AVERT(Arena, arena);
   MessageFinalizationRef(&ref, arena, message);
+  ArenaPoke(arena, (Addr)mps_addr_return, (Word)ref);
   ArenaLeave(arena);
-
-  /* Must be outside arena in case mps_addr_return is */
-  /* write-protected. */
-  *mps_addr_return = (mps_addr_t)ref;
 }
