@@ -36,8 +36,8 @@
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'viper-util)
 	(load "viper-util.el" nil nil 'nosuffix))
-    (or (featurep 'viper)
-	(load "viper.el" nil nil 'nosuffix))
+    (or (featurep 'viper-cmd)
+	(load "viper-cmd.el" nil nil 'nosuffix))
     ))
 ;; end pacifier
 
@@ -396,7 +396,7 @@ this command."
 (defun vip-mouse-catch-frame-switch (event arg)
   "Catch the event of switching frame.
 Usually is bound to a 'down-mouse' event to work properly. See sample
-bindings in viper.el and in the Viper manual."
+bindings in the Viper manual."
   (interactive "e\nP")
   (setq vip-frame-of-focus nil)
   ;; pass prefix arg along to vip-mouse-click-search/insert-word

@@ -652,15 +652,6 @@ Should be set in `~/.vip' file.")
 (defconst vip-replace-state-id	"<R> "
   "Mode line tag identifying the Replace mode of Viper.")
 
-;; Viper changes the default mode-line-buffer-identification
-(setq-default mode-line-buffer-identification '(" %b"))
-
-;; Variable displaying the current Viper state in the mode line.
-(vip-deflocalvar vip-mode-string vip-emacs-state-id)
-(or (memq 'vip-mode-string global-mode-string)
-    (setq global-mode-string
-	  (append '("" vip-mode-string) (cdr global-mode-string))))
-
 
 (defvar vip-vi-state-hook nil
   "*Hooks run just before the switch to Vi mode is completed.")

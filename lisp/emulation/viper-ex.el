@@ -41,8 +41,8 @@
 	(load "viper-util.el" nil nil 'nosuffix))
     (or (featurep 'viper-keym)
 	(load "viper-keym.el" nil nil 'nosuffix))
-    (or (featurep 'viper)
-	(load "viper.el" nil nil 'nosuffix))
+    (or (featurep 'viper-cmd)
+	(load "viper-cmd.el" nil nil 'nosuffix))
     ))
 ;; end pacifier
 
