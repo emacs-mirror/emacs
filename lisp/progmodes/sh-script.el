@@ -794,11 +794,12 @@ with your script for an edit-interpret-debug cycle."
   "Function to get simple fontification based on `sh-font-lock-keywords'.
 This adds rules for comments and assignments."
   (sh-feature sh-font-lock-keywords
-	      (lambda (list)
-		`((,(sh-feature sh-assignment-regexp)
-		   1 font-lock-variable-name-face)
-		  ,@keywords
-		  ,@list))))
+	      (when (stringp (sh-feature sh-assignment-regexp))
+		(lambda (list)
+		  `((,(sh-feature sh-assignment-regexp)
+		     1 font-lock-variable-name-face)
+		    ,@keywords
+		    ,@list)))))
 
 (defun sh-font-lock-keywords-1 (&optional builtins)
   "Function to get better fontification including keywords."
