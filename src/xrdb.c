@@ -113,7 +113,11 @@ x_get_customization_string (db, name, class)
   result = x_get_string_resource (db, full_name, full_class);
 
   if (result)
-    return strcpy ((char *) malloc (strlen (result) + 1), result);
+    {
+      char *copy = (char *) malloc (strlen (result) + 1);
+      strcpy (copy, result);
+      return copy;
+    }
   else
     return 0;
 }
