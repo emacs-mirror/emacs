@@ -404,7 +404,9 @@ and source-file directory for your debugger."
 			       nil nil
 			       '(gud-sdb-history . 1))))
   (if (and gud-sdb-needs-tags
-	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
+	   (not (and (boundp 'tags-file-name)
+		     (stringp tags-file-name)
+		     (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
   (gud-overload-functions '((gud-massage-args . gud-sdb-massage-args)
 			    (gud-marker-filter . gud-sdb-marker-filter)
