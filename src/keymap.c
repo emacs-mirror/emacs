@@ -914,7 +914,7 @@ copy_keymap_item (elt)
   return res;
 }
 
-void
+static void
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
 {
