@@ -153,19 +153,6 @@ Boston, MA 02111-1307, USA.  */
 #  include <stdlib.h>
 # endif
 
-/* Hack alert!  For reasons unknown to mankind the string.h file insists
-   on defining bcopy etc. as taking char pointers as arguments.  With
-   Emacs this produces an endless amount of warning which are harmless,
-   but tends to flood the real errors.  This hack works around this problem
-   by not prototyping.  */
-#define bcopy string_h_bcopy
-#define bzero string_h_bzero
-#define bcmp  string_h_bcmp
-#include <string.h>
-#undef bcopy
-#undef bzero
-#undef bcmp
-
 /* We need to prototype these for the lib-src programs even if we don't
    use the system malloc for the Emacs proper.  */
 #ifdef _MALLOC_INTERNAL
