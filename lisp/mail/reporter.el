@@ -61,7 +61,7 @@
 ;; I've set up a mailing list to report bugs or suggest enhancements,
 ;; etc. This list's intended audience is elisp package authors who are
 ;; using reporter and want to stay current with releases. Here are the
-;; relevent addresses:
+;; relevant addresses:
 ;;
 ;; Administrivia: reporter-request@anthem.nlm.nih.gov
 ;; Submissions:   reporter@anthem.nlm.nih.gov
@@ -101,7 +101,7 @@ prompt, you should `let' bind this variable to t before calling
 buffer-local so you should never just `setq' it.")
 
 (defvar reporter-dont-compact-list nil
-  "Interface variable controlling compating of list values.
+  "Interface variable controlling compacting of list values.
 When non-nil, this must be a list of variable symbols.  When a
 variable containing a list value is formatted in the bug report mail
 buffer, it normally is compacted so that its value fits one the fewest
