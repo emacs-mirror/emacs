@@ -67,7 +67,7 @@ char *display = NULL;
    is not running.  --alternate-editor.   */
 const char * alternate_editor = NULL;
 
-/* If non-NULL, thefilename of the UNIX socket */
+/* If non-NULL, the filename of the UNIX socket.  */
 char *socket_name = NULL;
 
 void print_help_and_exit ();
