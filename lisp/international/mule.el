@@ -308,7 +308,8 @@ See also the documentation of `make-char'."
 Return nil if such a character is not supported.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and the result is
-translated through the char table `utf-8-translation-table-for-decode'.
+translated through the char table `utf-8-translation-table-for-decode'
+if the variable `utf-8-fragment-on-decoding' is non-nil.
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.   Currently not supported and just ignored."
@@ -331,7 +332,9 @@ and CODE-POINT to a character.   Currently not supported and just ignored."
 	       (setq code-point (- code-point #xe000))
 	       (make-char 'mule-unicode-e000-ffff
 			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32))))))
-      (if (and c (aref utf-8-translation-table-for-decode c))
+      (if (and c
+	       utf-8-fragment-on-decoding
+	       (aref utf-8-translation-table-for-decode c))
 	  (aref utf-8-translation-table-for-decode c)
 	c)))))
 
@@ -842,6 +845,11 @@ following properties are recognized:
   file.  Each element of the list is an integer or a cons of integer.
   In the former case, the integer value is a valid byte code.  In the
   latter case, the integers specify the range of valid byte codes.
+
+  o composition (meaningful only when TYPE is 0 or 2)
+
+  If the value is non-nil, the coding system preserves information of
+  composition.
 
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
