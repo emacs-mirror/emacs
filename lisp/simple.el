@@ -1901,7 +1901,7 @@ The argument is used for internal purposes; do not supply one."
 
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
-  '(read-only invisible intangible field mouse-face local-map keymap)
+  '(read-only invisible intangible field mouse-face help-echo local-map keymap)
   "*Text properties to discard when yanking."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'editing
