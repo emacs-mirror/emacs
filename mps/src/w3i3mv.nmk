@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.14) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.15) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -21,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.14) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.15) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -186,6 +186,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\release\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\release\)
 DWOBJ = $(DWOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=nti3mv\release\)
+LOOBJ = $(LOOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\release\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -201,6 +203,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\devel\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\devel\)
 DWOBJ = $(DWOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=nti3mv\devel\)
+LOOBJ = $(LOOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\devel\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -214,6 +218,10 @@ MPMOBJ0 = $(MPM:<=nti3mv\cover\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\cover\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=nti3mv\devel\)
+DWOBJ = $(DWOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=nti3mv\devel\)
+LOOBJ = $(LOOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\cover\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 !ENDIF
@@ -303,7 +311,7 @@ $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(LOOBJ) $(PFM)\$(VARIETY)\lo.obj
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(LOOBJ)
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
