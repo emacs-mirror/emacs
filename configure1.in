@@ -585,7 +585,7 @@ case "${configuration}" in
   i386-ibm-aix1.1 )
     machine=ibmps2-aix opsys=usg5-2-2
   ;;
-  i386-ibm-aix1.2 )
+  i386-ibm-aix1.[23] | i386-ibm-aix* )
     machine=ibmps2-aix opsys=usg5-3
   ;;
   rs6000-ibm-aix3.1 )
