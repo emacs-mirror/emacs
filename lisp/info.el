@@ -2336,6 +2336,8 @@ Advanced commands:
   (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
   (setq buffer-read-only t)
+  (set (make-local-variable 'font-lock-defaults)
+       '(nil t nil nil nil (font-lock-core-only . t)))
   (make-local-variable 'Info-current-file)
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
