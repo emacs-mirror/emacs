@@ -1447,15 +1447,19 @@ try_window (window, pos)
       if (val.vpos) tab_offset = 0;
       vpos++;
       if (pos != val.bufpos)
-	last_text_vpos
-	  /* Next line, unless prev line ended in end of buffer with no cr */
-	  = vpos - (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
+	{
+	  last_text_vpos = vpos;
+	  /* Next line, unless prev line ended in end of buffer with no cr.  */
+	  if (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
 #ifdef USE_TEXT_PROPERTIES
-				 || ! NILP (Fget_char_property (val.bufpos-1,
-								Qinvisible,
-								window))
+			   || ! NILP (Fget_char_property
+				      (val.bufpos-1,
+				       Qinvisible,
+				       XWINDOW (window)->buffer))
 #endif
-				 ));
+			   ))
+	    --last_text_vpos;
+	}
       pos = val.bufpos;
     }
 
@@ -2252,17 +2256,17 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	     the next property change */
 	  while (pos == next_invisible && pos < end)
 	    {
-	      Lisp_Object position, limit, endpos, prop, ww;
+	      Lisp_Object position, limit, endpos, prop;
 	      XSETFASTINT (position, pos);
-	      XSETWINDOW (ww, w);
-	      prop = Fget_char_property (position, Qinvisible, ww);
+	      prop = Fget_char_property (position, Qinvisible, w->buffer);
 	      /* This is just an estimate to give reasonable
 		 performance; nothing should go wrong if it is too small.  */
 	      limit = Fnext_overlay_change (position);
 	      if (XFASTINT (limit) > pos + 50)
 		XSETFASTINT (limit, pos + 50);
 	      endpos = Fnext_single_property_change (position, Qinvisible,
-						Fcurrent_buffer (), limit);
+						     Fcurrent_buffer (),
+						     limit);
 	      if (INTEGERP (endpos))
 		next_invisible = XINT (endpos);
 	      else
