@@ -231,18 +231,18 @@ of bindings, look at the documentation of @code{isearch-mode} with
 
   Vertical scrolling during incremental search can be enabled by
 setting the customizable variable @code{isearch-allow-scroll} to a
-non-nil value.
+non-@code{nil} value.
 
   You can then use the vertical scroll-bar or certain keyboard
 commands such as @kbd{@key{PRIOR}} (@code{scroll-down}),
 @kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter})
 within the search, thus letting you see more of the text near the
 current match.  You must run these commands via their key sequences to
-stay in the search - typing M-x @var{comand-name} will always
+stay in the search---typing M-x @var{comand-name} will always
 terminate a search.
 
   You can give prefix arguments to these commands in the usual way.
-The current match cannot be scrolled out of the window - this is
+The current match cannot be scrolled out of the window---this is
 intentional.
 
   Several other commands, such as @kbd{C-x 2}
@@ -847,7 +847,7 @@ history matching commands (@pxref{Minibuffer History}).
 @vindex isearch-allow-scroll
 
 Scrolling, etc., during incremental search is enabled by setting the
-customizable variable @code{isearch-allow-scroll} to a non-nil value.
+customizable variable @code{isearch-allow-scroll} to a non-@code{nil} value.
 
 @c See Subject: Info file:  How do I get an itemized list without blank lines?
 @c Date: Sat, 12 Apr 2003 09:45:31 +0000  in gnu.emacs.help
@@ -893,7 +893,7 @@ For example:
 
 You should only thus configure commands which are ``safe'': i.e., they
 won't leave emacs in an inconsistent state when executed within a
-search - that is to say, the following things may be changed by a
+search---that is to say, the following things may be changed by a
 command only temporarily, and must be restored before the command
 finishes:
 
@@ -913,7 +913,7 @@ not itself attempt an incremental search.  It may, however, change the
 window's size, or create or delete other windows and frames.
 
 Note that an attempt by a command to scroll the text
-@emph{horizontally} won't work, although it will do no harm - any such
+@emph{horizontally} won't work, although it will do no harm---any such
 scrolling will be overriden and nullified by the display code.
 
 @node Replace, Other Repeating Search, Configuring Scrolling, Search

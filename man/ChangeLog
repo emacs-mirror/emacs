@@ -1,3 +1,8 @@
+2004-06-29  Jesper Harder  <harder@ifa.au.dk>
+
+	* ses.texi, viper.texi, search.texi, flymake.texi, faq.texi:
+	* eshell.texi, ediff.texi, calendar.texi: Markup fixes.
+
 2004-06-25  Richard M. Stallman  <rms@gnu.org>
 
 	* search.texi (Regexp Replace): Rewrite description of \# \, and \?.

@@ -475,7 +475,7 @@ An alist specifying methods to display attribute values.  Each member of
 the list is of the form @code{(@var{name} . @var{func})} where
 @var{name} is a lowercased string naming a directory attribute
 (translated according to @code{eudc-user-attribute-names-alist} if
-@code{eudc-use-raw-directory-names} is non-nil) and @var{func} a
+@code{eudc-use-raw-directory-names} is non-@code{nil}) and @var{func} a
 function that will be passed the corresponding attribute values for
 display.
 @end defvar

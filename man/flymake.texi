@@ -542,7 +542,7 @@ lines in the buffer using the accumulated error information.
 
 Syntax check is considered possible if there's an entry in
 @code{flymake-allowed-file-name-masks} matching buffer's filename and
-its @code{init-function} returns non-nil value.
+its @code{init-function} returns non-@code{nil} value.
 
 Two syntax check modes are distinguished:
 

@@ -1067,7 +1067,7 @@ the only such group-level operation is the creation of a multi-file patch.
 @vindex ediff-autostore-merges
 For group sessions created to merge files, Ediff can store all merges
 automatically in a directory.  The user is asked to specify such directory
-if the value of @code{ediff-autostore-merges} is non-nil.  If the value is
+if the value of @code{ediff-autostore-merges} is non-@code{nil}.  If the value is
 @code{nil}, nothing is done to the merge buffers---it will be the user's
 responsibility to save them.  If the value is @code{t}, the user will be
 asked where to save the merge buffers in all merge jobs, even those that do
@@ -2338,11 +2338,11 @@ The second of the data buffers being compared.
 @item ediff-buffer-C
 In three-way comparisons, this is the third buffer being compared.
 In merging, this is the merge buffer.
-In two-way comparison, this variable is nil.
+In two-way comparison, this variable is @code{nil}.
 
 @item ediff-window-A
 The window displaying buffer A.  If buffer A is not visible, this variable
-is nil or it may be a dead window.
+is @code{nil} or it may be a dead window.
 
 @item ediff-window-B
 The window displaying buffer B.
@@ -2351,9 +2351,9 @@ The window displaying buffer B.
 The window displaying buffer C, if any.
 
 @item ediff-control-frame
-A dedicated frame displaying the control buffer, if it exists.
-It is non-nil only if Ediff uses the multiframe display, i.e., when the
-control buffer is in its own frame.
+A dedicated frame displaying the control buffer, if it exists.  It is
+non-@code{nil} only if Ediff uses the multiframe display, i.e., when
+the control buffer is in its own frame.
 @end table
 
 @node Credits, Index, Customization, Top
