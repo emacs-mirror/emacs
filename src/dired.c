@@ -66,6 +66,8 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif /* not NONSYSTEM_DIR_LIBRARY */
 
+#include <sys/stat.h>
+
 #ifndef MSDOS
 #define DIRENTRY struct direct
 
@@ -90,6 +92,9 @@ extern struct direct *readdir ();
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
 extern struct re_pattern_buffer *compile_pattern ();
+
+/* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
+extern void filemodestring P_ ((struct stat *, char *));
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
