@@ -1,3 +1,10 @@
+2001-07-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* w32menu.c (menubar_selection_callback, w32_menu_show):
+	Initialize `entry' to nil.
+	(w32_dialog_show): Remove unused `save_wv' variable.
+	(name_is_separator): Recognize "--:foo" and "--foo-bar".
+
 2001-07-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_cursor_movement): Prevent a warning from GCC 3.0.
@@ -5,14 +12,14 @@
 	* fileio.c (unwind_read): Print a message when discarding inserted
 	text or switching the buffer to unibyte.  Change parameter.
 	(Finsert_file_contents): Don't pass VISIT to unwind_read.
-	
+
 	* fileio.c (unwind_read): New function.
 	(Finsert_file_contents): Record it as unwind-function for
 	the case that reading is interrupted by C-g.
 
 2001-07-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (update_window): Don't skip the header-line 
+	* dispnew.c (update_window): Don't skip the header-line
 	update when scrolling_window returns 0.
 
 	* xfaces.c (unload_color): Do nothing if PIXEL is -1.
@@ -60,8 +67,7 @@
 	(unbind_to): Handle unbinding a frame-local variable.
 
 	* xdisp.c (compute_line_metrics): On ttys, subtract continuation
-	glyphs and truncation glyphs at the end of a row from its pixel
-	width.
+	glyphs and truncation glyphs at the end of a row from its pixel width.
 	(dump_glyph_row): Print row's continuation_lines_width.
 	(try_window_id): Take the shortcut if ZV is visible in the
 	window, but there are actually no changes at ZV.
