@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.68) $
+# $HopeName: MMsrc!comm.gmk(trunk.69) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -237,15 +237,25 @@ POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
 MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
 SWOBJ = $(SW:%.c=$(PFM)/$(VARIETY)/%.o)
+
 # The following hack for SWDEP only creates those dependencies when
-# mmsw.a is being built.
+# a SW target is being built.
 ifdef TARGET
 ifeq ($(TARGET),mmsw.a)
+SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
+else
+ifeq ($(TARGET),epvmss)
+SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
+else
+ifeq ($(TARGET),depend)
 SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
 else
 SWDEP =
 endif
 endif
+endif
+endif
+
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -523,10 +533,15 @@ endif
 
 # Library
 
+ifndef RANLIB
+RANLIB = :
+endif
+
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
 	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
 
 # Executable
 
