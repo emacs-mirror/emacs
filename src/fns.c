@@ -2659,7 +2659,7 @@ The key is always a possible IDX argument to `aref'.  */)
 
   CHECK_CHAR_TABLE (char_table);
 
-  map_char_table (NULL, function, char_table, char_table, 0, indices);
+  map_char_table (call2, Qnil, char_table, function, 0, indices);
   return Qnil;
 }
 
