@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;; Copyright (C) 1994,1995,1996,1997 Free Software Foundation
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
 ;; Maintainer: Dan Nicolaescu <done@ece.arizona.edu>
@@ -75,13 +75,13 @@
   :prefix "hs-"
   :group 'languages)
 
-;;;#autoload
+;;;###autoload
 (defcustom hs-hide-comments-when-hiding-all t 
   "Hide the comments too when you do an `hs-hide-all'." 
   :type 'boolean
   :group 'hideshow)
 
-;;;#autoload
+;;;###autoload
 (defcustom hs-show-hidden-short-form t
   "Leave only the first line visible in a hidden block.
 If t only the first line is visible when a block is in the hidden state, 
@@ -155,7 +155,7 @@ This error is usually signaled by `hs-show-block'.  One of four values:
 
 Values other than these four will be interpreted as `signal'.") 
 
-;;;#autoload
+;;;###autoload
 (defvar hs-special-modes-alist 
   '((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
