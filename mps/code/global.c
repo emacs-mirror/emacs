@@ -36,6 +36,9 @@ SRCID(global, "$Id$");
 static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 
+/* forward declarations */
+void arenaEnterLock(Arena, void (*)(Lock));
+void arenaLeaveLock(Arena, void (*)(Lock));
 
 /* ArenaControlPool -- get the control pool */
 
@@ -421,15 +424,31 @@ void (ArenaEnter)(Arena arena)
 #else
 void ArenaEnter(Arena arena)
 {
-  AVER(CHECKT(Arena, arena));
-
-  StackProbe(StackProbeDEPTH);
-  LockClaim(ArenaGlobals(arena)->lock);
-  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
-  ShieldEnter(arena);
+  arenaEnterLock(arena, LockClaim);
 }
 #endif
 
+void arenaEnterLock(Arena arena, void (*lock)(Lock))
+{
+  /* This check is safe to do outside the lock.  Unless the client
+     is also calling ArenaDestroy, but that's a protocol violation by
+     the client if so. */
+  AVER(CHECKT(Arena, arena));
+
+  StackProbe(StackProbeDEPTH);
+  lock(ArenaGlobals(arena)->lock);
+  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
+  ShieldEnter(arena);
+}
+
+/* Same as ArenaEnter, but for the few functions that need to be
+   reentrant with respect to some part of the MPS.
+   For example, mps_arena_has_addr. */
+
+void ArenaEnterRecursive(Arena arena)
+{
+  arenaEnterLock(arena, LockClaimRecursive);
+}
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
 
@@ -442,13 +461,22 @@ void (ArenaLeave)(Arena arena)
 #else
 void ArenaLeave(Arena arena)
 {
-  AVERT(Arena, arena);
-  ShieldLeave(arena);
-  ProtSync(arena);              /* <design/prot/#if.sync> */
-  LockReleaseMPM(ArenaGlobals(arena)->lock);
+  arenaLeaveLock(arena, LockReleaseMPM);
 }
 #endif
 
+void arenaLeaveLock(Arena arena, void (*unlock)(Lock))
+{
+  AVERT(Arena, arena);
+  ShieldLeave(arena);
+  ProtSync(arena);              /* <design/prot/#if.sync> */
+  unlock(ArenaGlobals(arena)->lock);
+}
+
+void ArenaLeaveRecursive(Arena arena)
+{
+  arenaLeaveLock(arena, LockReleaseRecursive);
+}
 
 /* mps_exception_info -- pointer to exception info
  *

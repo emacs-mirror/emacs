@@ -463,6 +463,8 @@ extern void (ArenaLeave)(Arena arena);
 #define ArenaLeave(arena)  UNUSED(arena)
 #endif
 
+extern void ArenaEnterRecursive(Arena arena);
+extern void ArenaLeaveRecursive(Arena arena);
 
 extern void (ArenaPoll)(Globals globals);
 #ifdef MPS_PROD_EPCORE

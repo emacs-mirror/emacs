@@ -451,10 +451,13 @@ mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
     Bool b;
     Arena arena = (Arena)mps_arena;
 
-    ArenaEnter(arena);
+    /* One of the few functions that can be called
+       during the call to an MPS function.  IE this function
+       can be called when walking the heap. */
+    ArenaEnterRecursive(arena);
     AVERT(Arena, arena);
     b = ArenaHasAddr(arena, (Addr)p);
-    ArenaLeave(arena);
+    ArenaLeaveRecursive(arena);
     return b;
 }
 
