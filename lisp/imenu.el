@@ -47,6 +47,7 @@
 ;;  [dean] - Dean Andrews ada@unison.com
 ;;  [alon] - Alon Albert al@mercury.co.il 
 ;;  [greg] - Greg Thompson gregt@porsche.visix.COM
+;;  [kai] - Kai Grossjohann grossjoh@linus.informatik.uni-dortmund.de
 
 ;;; Code
 (eval-when-compile (require 'cl))
@@ -474,16 +475,25 @@ See 'imenu' for more information."
   "Jump to a place in the buffer chosen using a buffer menu or mouse menu.
 See `imenu-choose-buffer-index' for more information."
   (interactive)
-  (let ((index-item (imenu-choose-buffer-index)))
+  (let ((index-item (save-restriction 
+		      (widen)
+		      (imenu-choose-buffer-index))))
     (and index-item
 	 (progn
 	   (push-mark)
 	   (cond
 	    ((markerp (cdr index-item))
+	     (if (or ( > (marker-position (cdr index-item)) (point-min))
+		     ( < (marker-position (cdr index-item)) (point-max)))
+		 ;; widen if outside narrowing
+		 (widen))
 	     (goto-char (marker-position (cdr index-item))))
 	    (t
+	     (if (or ( > (cdr index-item) (point-min))
+		     ( < (cdr index-item) (point-max)))
+		 ;; widen if outside narrowing
+		 (widen))
 	     (goto-char (cdr index-item))))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
