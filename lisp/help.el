@@ -666,7 +666,7 @@ Argument is a command definition, usually a symbol with a function definition."
       (message "%s is not on any key" definition)))
   nil)
 
-(defun locate-library (library &optional nosuffix path)
+(defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `M-x load-library'
 to find the file that `M-x load-library RET LIBRARY RET' would load.
@@ -675,35 +675,41 @@ to the specified name LIBRARY.
 
 If the optional third arg PATH is specified, that list of directories
 is used instead of `load-path'."
-  (interactive "sLocate library: ")
-  (catch 'answer
-    (mapcar
-     '(lambda (dir)
-	(mapcar
-	 '(lambda (suf)
-	    (let ((try (expand-file-name (concat library suf) dir)))
-	      (and (file-readable-p try)
-		   (null (file-directory-p try))
-		   (progn
-		     (message "Library is file %s" try)
-		     (throw 'answer try)))))
-	 (if nosuffix
-	     '("")
-	   (let ((basic '(".elc" ".el" ""))
-		 (compressed '(".Z" ".gz" "")))
-	     ;; If autocompression mode is on,
-	     ;; consider all combinations of library suffixes
-	     ;; and compression suffixes.
-	     (if (rassq 'jka-compr-handler file-name-handler-alist)
-		 (apply 'nconc
-			(mapcar '(lambda (compelt)
-				   (mapcar '(lambda (baselt)
-					      (concat baselt compelt))
-					   basic))
-				compressed))
-	       basic)))))
-     (or path load-path))
-    (message "No library %s in search path" library)
-    nil))
+  (interactive (list (read-string "Locate library: ")
+		     nil nil
+		     t))
+  (let (result)
+    (catch 'answer
+      (mapcar
+       '(lambda (dir)
+	  (mapcar
+	   '(lambda (suf)
+	      (let ((try (expand-file-name (concat library suf) dir)))
+		(and (file-readable-p try)
+		     (null (file-directory-p try))
+		     (progn
+		       (setq result try)
+		       (throw 'answer try)))))
+	   (if nosuffix
+	       '("")
+	     (let ((basic '(".elc" ".el" ""))
+		   (compressed '(".Z" ".gz" "")))
+	       ;; If autocompression mode is on,
+	       ;; consider all combinations of library suffixes
+	       ;; and compression suffixes.
+	       (if (rassq 'jka-compr-handler file-name-handler-alist)
+		   (apply 'nconc
+			  (mapcar '(lambda (compelt)
+				     (mapcar '(lambda (baselt)
+						(concat baselt compelt))
+					     basic))
+				  compressed))
+		 basic)))))
+       (or path load-path)))
+    (and interactive-call
+	 (if result
+	     (message "Library is file %s" result)
+	   (message "No library %s in search path" library)))
+    result))
 
 ;;; help.el ends here
