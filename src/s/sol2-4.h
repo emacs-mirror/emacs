@@ -21,3 +21,8 @@
 #define LD_SWITCH_SYSTEM -L /usr/ccs/lib \
  `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX` -R /usr/dt/lib -L /usr/dt/lib
 #endif /* GCC */
+
+/* Gregory Neil Shapiro <gshapiro@hhmi.org> reports the Motif header files
+   are in this directory on Solaris 2.4.  */
+#define C_SWITCH_X_SYSTEM -I/usr/dt/include
+
