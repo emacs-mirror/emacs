@@ -5,7 +5,7 @@
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages
 ;; Version: 1.4
-;; X-URL: http://www.fmi.uni-passau.de/~wedler/antlr-mode/
+;; X-URL: http://antlr-mode.sourceforge.net/
 
 ;; This file is part of GNU Emacs.
 
@@ -77,7 +77,7 @@
 
 ;; Bug fixes, bug reports, improvements, and suggestions are strongly
 ;; appreciated.  Please check the newest version first:
-;;   http://www.fmi.uni-passau.de/~wedler/antlr-mode/changes.html
+;;   http://antlr-mode.sourceforge.net/
 
 ;;; Installation:
 
@@ -149,7 +149,7 @@
   "Major mode for ANTLR grammar files."
   :group 'languages
   :link '(emacs-commentary-link "antlr-mode.el")
-  :link '(url-link "http://www.fmi.uni-passau.de/~wedler/antlr-mode/")
+  :link '(url-link "http://antlr-mode.sourceforge.net/")
   :prefix "antlr-")
 
 (defconst antlr-version "1.4"
