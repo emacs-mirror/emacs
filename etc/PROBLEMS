@@ -570,38 +570,9 @@ this problem by putting this in your `.emacs' file:
 
  (setq ange-ftp-ftp-program-args '("-i" "-n" "-g" "-v" "--prompt" "")
 
-
-* The latest released version of the W3 package doesn't run properly
-with Emacs 21 and needs work.  However, these problems are already
-fixed in W3's CVS.  The patch below is reported to make w3-4.0pre.46
-work.
-
-Some users report they are unable to byte-compile W3 with Emacs 21.
-If the patches below don't help to resolve your problems, install the
-CVS version of W3, which should be compatible with Emacs 21.
-
-diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-display.el w3-4.0pre.46-new/lisp/w3-display.el
---- w3-4.0pre.46-orig/lisp/w3-display.el	Sun Nov 14 22:00:12 1999
-+++ w3-4.0pre.46-new/lisp/w3-display.el	Thu Dec 14 14:59:15 2000
-@@ -181,7 +181,8 @@
- 		(dispatch-event (next-command-event)))
- 	    (error nil))))
-      (t
--      (if (and (not (sit-for 0)) (input-pending-p))
-+      ;; modified for GNU Emacs 21 by bob@rattlesnake.com on 2000 Dec 14
-+      (if  (and (not (sit-for 0)) nil)
- 	  (condition-case ()
- 	      (progn
- 		(setq w3-pause-keystroke
-diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-e21.el w3-4.0pre.46-new/lisp/w3-e21.el
---- w3-4.0pre.46-orig/lisp/w3-e21.el	Thu Jan  1 00:00:00 1970
-+++ w3-4.0pre.46-new/lisp/w3-e21.el	Thu Dec 14 14:54:58 2000
-@@ -0,0 +1,5 @@
-+;;; w3-e21.el ---   ** required for GNU Emacs 21 **
-+;; Added by bob@rattlesnake.com on 2000 Dec 14
-+
-+(require 'w3-e19)
-+(provide 'w3-e21)
+* Some versions of the W3 package released before Emacs 21.1 don't run
+properly with Emacs 21.  These problems are fixed in W3 version
+4.0pre.47.
 
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
@@ -615,7 +586,7 @@ the default `cc'.  /bin/c89 treats certain warnings, such as benign
 redefinitions of macros, as errors, and fails the build.  A solution
 is to use the default compiler `cc'.
 
-* The PSGML package uses the obsolete variables
+* Old versions of the PSGML package use the obsolete variables
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  Please use PSGML 1.2.3 or later.
 
