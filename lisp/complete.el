@@ -409,7 +409,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	  (setq p compl)
 	  (while p
 	    (and (string-match regex (car p))
-		 (setq poss (cons (car p) poss)))
+		 (progn
+		   (set-text-properties 0 (length (car p)) '() (car p))
+		   (setq poss (cons (car p) poss))))
 	    (setq p (cdr p)))))
 
       ;; Now we have a list of possible completions
@@ -463,7 +465,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	;; Is the actual string one of the possible completions?
 	(setq p (and (not (eq mode 'help)) poss))
 	(while (and p
-		    (not (equal (car p) basestr)))
+		    (not (string-equal (car p) basestr)))
 	  (setq p (cdr p)))
 	(and p (null mode)
 	     (PC-temp-minibuffer-message " [Complete, but not unique]"))
@@ -507,8 +509,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 					     (delete-char 1)
 					     (setq end (1- end))))
 				      (setq improved t))
-				    ;; Use format to discard text properties.
-				    (insert (format "%s" (substring prefix i (1+ i))))
+				    (insert (substring prefix i (1+ i)))
 				    (setq end (1+ end)))
 				  (setq i (1+ i)))
 				(or pt (equal (point) beg)
