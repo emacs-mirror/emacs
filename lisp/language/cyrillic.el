@@ -58,7 +58,7 @@
  'cyrillic-iso-8bit 2 ?5
  "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)."
  '(ascii cyrillic-iso8859-5  nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii cyrillic-iso8859-5)
    (mime-charset . iso-8859-5)))
 
