@@ -116,13 +116,12 @@
 
   "List of language-specific customizations for the ISO Accents mode.
 
-Each element of the list is of the form (LANGUAGE ENABLE LIST).
+Each element of the list is of the form (LANGUAGE PREFIXES LIST).
 
 LANGUAGE is a string naming the language.
 
-ENABLE is a list of characters that will be used as accent prefixes.
-It will be the value of the `iso-accents-enable' variable
-if you select this language.
+PREFIXES is a list of characters that will be used as accent prefixes.
+It is currently not used.
 
 LIST is a list of accent translations.  It will be the value of the
 `iso-accents-list' variable.")
@@ -140,10 +139,21 @@ Setting this variable makes it local to the current buffer.
 See the function `iso-accents-mode'.")
 (make-variable-buffer-local 'iso-accents-mode)
 
+(defvar iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
+  "*List of accent keys that become prefixes in ISO Accents mode.
+The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
+accent keys.  If you set this variable to a list in which some of those
+characters are missing, the missing ones do not act as accents.
+
+Note that if you specify a language with `iso-accents-customize',
+that can also turn off certain prefixes (whichever ones are not needed in
+the language you choose).")
+
 (defun iso-accents-accent-key (prompt)
   "Modify the following character by adding an accent to it."
   ;; Pick up the accent character.
-  (if iso-accents-mode
+  (if (and iso-accents-mode
+	   (memq last-input-char iso-accents-enable))
       (iso-accents-compose prompt)
     (char-to-string last-input-char)))
 
@@ -182,14 +192,6 @@ See the function `iso-accents-mode'.")
       ;; Otherwise, advance and schedule the second key for execution.
       (setq unread-command-events (list second-char))
       (vector first-char))))
-
-(defvar iso-accents-enable nil
-  "*List of accent keys that become prefixes in ISO Accents mode.
-The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
-accent keys.  For certain languages, it is better to use a subset of
-the accent characters.  Do not set this variable directly;
-instead, define a language in `iso-languages' and then specify that
-language with `iso-accents-customize'.")
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
@@ -241,21 +243,27 @@ It selects the customization based on the specifications in the
 `iso-languages' variable."
   (interactive (list (completing-read "Language: " iso-languages nil t)))
   (let ((table (assoc language iso-languages))
-	c)
+	all-accents tail)
     (if (not table)
 	(error "Unknown language")
       (setq iso-language language)
-      (setq iso-accents-enable (car (cdr table)))
       (setq iso-accents-list (car (cdr (cdr table))))
       (if key-translation-map
 	  (substitute-key-definition
 	   'iso-accents-accent-key nil key-translation-map)
 	(setq key-translation-map (make-sparse-keymap)))
-      (setq c iso-accents-enable)
-      (while c
-	(define-key
-	  key-translation-map (char-to-string (car c)) 'iso-accents-accent-key)
-	(setq c (cdr c))))))
+      ;; Find all the characters that are used as accent prefixes
+      ;; in this language, and set up translation for them.
+      (setq tail iso-accents-list)
+      (while tail
+	(or (memq (car (car tail)) all-accents)
+	    (setq all-accents (cons (car (car tail)) all-accents)))
+	(setq tail (cdr tail)))
+      (setq tail all-accents)
+      (while tail
+	(define-key key-translation-map (char-to-string (car tail))
+	  'iso-accents-accent-key)
+	(setq tail (cdr tail))))))
 
 (defun iso-accentuate (start end)
   "Convert two-character sequences in region into accented characters.
@@ -327,11 +335,7 @@ Noninteractively, this operates on text from START to END."
 		(insert (car (cdr (car entry)))))
 	    (forward-char 1)))))))
 
-;; Set up the default settings, but don't override
-;; iso-accents-enable if the user has already set it.
-(let ((old iso-accents-enable))
-  (iso-accents-customize "default")
-  (if old
-      (setq iso-accents-enable old)))
+;; Set up the default settings.
+(iso-accents-customize "default")
 
 ;;; iso-acc.el ends here
