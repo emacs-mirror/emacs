@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996, 1997, 2000 Free software Foundation, Inc.
+Copyright (c) 1992, 1994, 1996, 1997, 2000, 2001 Free software Foundation, Inc.
 See the end of the file for copying permissions.
 
 
@@ -21,21 +21,14 @@ maybe perform some of the steps manually.  The more detailed
 description in the rest of the sections of this guide will help you do
 that, so please refer to them if the simple procedure does not work.
 
-  1. If you want to be able to input international characters which
-     your keyboard doesn't support directly (i.e. you cannot type
-     them at the shell prompt), download the leim-M.N.tar.gz
-     distribution and unpack it into the same directory where you have
-     unpacked the main Emacs distribution.  See ADDITIONAL
-     DISTRIBUTION FILES, below, for more about this.
+  1. Make sure your system has at least 120 MB of free disk space.
 
-  2. Make sure your system has at least 120 MB of free disk space.
-
-  3a. `cd' to the directory where you unpacked Emacs and invoke the
+  2a. `cd' to the directory where you unpacked Emacs and invoke the
       `configure' script:
 
 		 ./configure
 
-  3b. Alternatively, create a separate directory, outside the source
+  2b. Alternatively, create a separate directory, outside the source
       directory, where you want to build Emacs, and invoke `configure'
       from there:
 
@@ -44,7 +37,7 @@ that, so please refer to them if the simple procedure does not work.
       where SOURCE-DIR is the top-level Emacs source directory.  This
       may not work unless you use GNU make.
 
-  4. When `configure' finishes, it prints several lines of details
+  3. When `configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
      looking for anything suspicious, such as wrong CPU and operating
      system names, wrong places for headers or libraries, missing
@@ -62,24 +55,24 @@ that, so please refer to them if the simple procedure does not work.
      If the details printed by `configure' don't make any sense to
      you, assume that `configure' did its job and proceed.
 
-  5. If you need to run the `configure' script more than once (e.g.,
+  4. If you need to run the `configure' script more than once (e.g.,
      with some non-default options), always clean the source
      directories before running `configure' again:
 
 		make distclean 
 		./configure
 
-  6. Invoke the `make' program:
+  5. Invoke the `make' program:
 
 		 make
 
-  7. If `make' succeeds, it will build an executable program `emacs'
+  6. If `make' succeeds, it will build an executable program `emacs'
      in the `src' directory.  You can try this program, to make sure
      it works:
 
 		 src/emacs -q
 
-  8. Assuming that the program `src/emacs' starts and displays its
+  7. Assuming that the program `src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
      files into their installation directories:
 
@@ -97,26 +90,6 @@ that, so please refer to them if the simple procedure does not work.
 
 
 ADDITIONAL DISTRIBUTION FILES
-
-* leim-M.N.tar.gz
-
-The Emacs Lisp code for input methods for various international
-character scripts allows you to input characters in scripts which are
-not directly supported by your keyboard. It is distributed in a
-separate tar file because it amounts to a significant fraction of the
-size of the distribution.  This tar file is called leim-M.N.tar.gz,
-with the same version number as Emacs, and it unpacks into the
-directory emacs-M.N/leim.
-
-You should unpack leim-M.N.tar.gz into the same directory where you
-have previously unpacked the main Emacs distribution.  It fills in the
-contents of one subdirectory, which is present in the main Emacs
-distribution only in dummy form.
-
-Once you have unpacked the Leim tar file into the Emacs source tree,
-building and installing Emacs automatically installs the input method
-support as well.  If you have built Emacs without unpacking Leim
-first, just unpack Leim, build Emacs again, and install it again.
 
 * intlfonts-VERSION.tar.gz
 
@@ -207,13 +180,12 @@ insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in', or possibly when
 running the final dumped Emacs.
  
-Building Emacs requires about 95 MB of disk space (including the Emacs
-sources), or 130 MB if Leim is used.  Once installed, Emacs occupies
-about 60 MB (70 MB with Leim) in the file system where it is
-installed; this includes the executable files, Lisp libraries,
-miscellaneous data files, and on-line documentation.  If the building
-and installation take place in different directories, then the
-installation procedure momentarily requires 95+60 MB (130+70 MB).
+Building Emacs requires about 130 MB of disk space (including the
+Emacs sources) Once installed, Emacs occupies about 70 MB in the file
+system where it is installed; this includes the executable files, Lisp
+libraries, miscellaneous data files, and on-line documentation.  If
+the building and installation take place in different directories,
+then the installation procedure momentarily requires 130+70 MB.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file offers hints for
@@ -805,14 +777,6 @@ To unpack Emacs with djtar, type this command:
 (This assumes that the Emacs distribution is called `emacs.tgz' on
 your system.)
 
-If you need to type international characters, you will need to unpack
-the Leim distribution (see the description near the beginning of this
-file).  You unpack it from the same directory where you unpacked
-Emacs.  To unpack Leim with djtar, assuming the Leim distribution is
-called `leim.tgz', type this command:
-
-    djtar -x leim.tgz
-
 If you want to print international characters, install the intlfonts
 distribution.  For this, create a directory called `fonts' under the
 Emacs top-level directory (usually called `emacs-XX.YY') created by
@@ -864,11 +828,10 @@ sibling directory called bin.  For example, if you build in directory
 /emacs/lib-src to the directory /emacs/bin, so you can then delete the
 subdirectories /emacs/src and /emacs/lib-src if you wish.  The only
 subdirectories you need to keep are bin, lisp, etc and info.  (If you
-installed Leim, keep the leim subdirectory, and if you installed
-intlfonts, keep the fonts directory and all its subdirectories as well.)
-The bin subdirectory should be added to your PATH.  The msdos
-subdirectory includes a PIF and an icon file for Emacs which you might
-find useful if you run Emacs under MS Windows.
+installed intlfonts, keep the fonts directory and all its
+subdirectories as well.)  The bin subdirectory should be added to your
+PATH.  The msdos subdirectory includes a PIF and an icon file for
+Emacs which you might find useful if you run Emacs under MS Windows.
 
 Emacs on MSDOS finds the lisp, etc and info directories by looking in
 ../lisp, ../etc and ../info, starting from the directory where the
