@@ -554,17 +554,29 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 ;;;###autoload
 (defun hexlify-buffer ()
-  "Convert a binary buffer to hexl format."
+  "Convert a binary buffer to hexl format.
+This discards the buffer's undo information."
   (interactive)
+  (and buffer-undo-list
+       (or (y-or-n-p "Converting to hexl format discards undo info; ok? ")
+	   (error "Aborted")))
+  (setq buffer-undo-list nil)
   (let ((binary-process-output nil) ; for Ms-Dos
-	(binary-process-input t))
+	(binary-process-input t)
+	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) hexlify-command t)))
 
 (defun dehexlify-buffer ()
-  "Convert a hexl format buffer to binary."
+  "Convert a hexl format buffer to binary.
+This discards the buffer's undo information."
   (interactive)
+  (and buffer-undo-list
+       (or (y-or-n-p "Converting from hexl format discards undo info; ok? ")
+	   (error "Aborted")))
+  (setq buffer-undo-list nil)
   (let ((binary-process-output t) ; for Ms-Dos
-	(binary-process-input nil))
+	(binary-process-input nil)
+	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
 (defun hexl-char-after-point ()
