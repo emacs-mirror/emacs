@@ -3786,8 +3786,8 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 
 	      /* Written out as an if-else to avoid testing `translate'
 		 inside the loop.  */
-	            if (RE_TRANSLATE_P (translate))
-{
+	      if (RE_TRANSLATE_P (translate))
+		{
 		  if (multibyte)
 		    while (range > lim)
 		      {
