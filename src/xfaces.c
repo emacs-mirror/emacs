@@ -288,8 +288,9 @@ Lisp_Object Qframe_update_face_colors;
 
 /* Names of basic faces.  */
 
-Lisp_Object Qdefault, Qmode_line, Qtool_bar, Qregion, Qfringe;
+Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
+extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
@@ -6580,8 +6581,6 @@ syms_of_xfaces ()
   staticpro (&Qface_alias);
   Qdefault = intern ("default");
   staticpro (&Qdefault);
-  Qmode_line = intern ("mode-line");
-  staticpro (&Qmode_line);
   Qtool_bar = intern ("tool-bar");
   staticpro (&Qtool_bar);
   Qregion = intern ("region");
