@@ -3314,7 +3314,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	    thissize = 30;
 	    if (*format == 'c'
-		&& (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
+		&& (! ASCII_CHAR_P (XINT (args[n]))
 		    || XINT (args[n]) == 0))
 	      {
 		if (! multibyte)
