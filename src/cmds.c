@@ -320,10 +320,20 @@ internal_self_insert (c1, noautofill)
       && PT > BEGV && SYNTAX (FETCH_CHAR (PT - 1)) == Sword)
     {
       int modiff = MODIFF;
-      Fexpand_abbrev ();
-      /* We can't trust the value of Fexpand_abbrev,
-	 but if Fexpand_abbrev changed the buffer,
-	 assume it expanded something.  */
+      Lisp_Object sym;
+
+      sym = Fexpand_abbrev ();
+
+      /* If we expanded an abbrev which has only a hook,
+	 return right away--don't really self-insert.  */
+      if (! NILP (sym) && ! NILP (XSYMBOL (sym)->function))
+	{
+	  Lisp_Object prop;
+	  prop = Fget (sym, intern ("no-self-insert"));
+	  if (! NILP (prop))
+	    return Qnil;
+	}
+
       if (MODIFF != modiff)
 	hairy = 2;
     }
