@@ -1,3 +1,7 @@
+2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist (nt): Add subdirs.el to the list of distributed files.
+
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in (machine): Add an entry for
