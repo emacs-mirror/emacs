@@ -1,5 +1,12 @@
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/reftex-global.el (reftex-query-replace-document)
+	(reftex-change-label): Doc fix.
+
+	* dired-aux.el (dired-do-query-replace-regexp): Doc fix.
+
+	* progmodes/etags.el (tags-query-replace): Doc fix.
+
 	* progmodes/compile.el (compile-internal): Fix previous change.
 
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
