@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -28,6 +29,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
+  (require 'cc-defs)
   (require 'cc-vars)
   (require 'cc-engine)
   (require 'cc-langs))
@@ -57,7 +59,7 @@
 	    (beginning-of-line)
 	    (looking-at "[ \t]*)"))
 	  (progn (goto-char (match-end 0))
-		 (forward-sexp -1)
+		 (c-forward-sexp -1)
 		 (forward-char 1)
 		 (c-forward-syntactic-ws)
 		 (- (current-column) langelem-col))
@@ -111,9 +113,8 @@
 	(let (opencol spec)
 	  (beginning-of-line)
 	  (backward-up-list 1)
-	  (setq spec (if (fboundp 'c-looking-at-special-brace-list)
-			 (c-looking-at-special-brace-list)))
-	  (if spec (goto-char (car spec)))
+	  (setq spec (c-looking-at-special-brace-list))
+	  (if spec (goto-char (car (car spec))))
 	  (setq opencol (current-column))
 	  (forward-char 1)
 	  (if spec (progn
@@ -194,9 +195,7 @@
       (beginning-of-line)
       (skip-chars-forward " \t")
       (if (and (eq (following-char) ?{)
-	       (condition-case nil
-		   (progn (forward-sexp) t)
-		 (error nil))
+	       (c-safe (progn (c-forward-sexp) t))
 	       (<= (point) eol)
 	       (eq (preceding-char) ?}))
 	  c-basic-offset
@@ -291,7 +290,11 @@
 	(if (c-in-literal (cdr langelem))
 	    (forward-char 1)
 	  (setq donep t)))
-      (if (not (eq (char-after) ?=))
+      (if (or (not (eq (char-after) ?=))
+	      (save-excursion
+		(forward-char 1)
+		(c-forward-syntactic-ws (c-point 'eol))
+		(eolp)))
 	  ;; there's no equal sign on the line
 	  c-basic-offset
 	;; calculate indentation column after equals and ws, unless
@@ -324,7 +327,7 @@
 			       (current-column)))
            (target-col (progn
 			 (forward-char)
-			 (forward-sexp)
+			 (c-forward-sexp)
 			 (skip-chars-forward " \t")
 			 (if (eolp)
 			     (+ open-bracket-col c-basic-offset)
@@ -373,6 +376,26 @@
 	    (+ curcol (- prev-col-column (current-column)))
 	  c-basic-offset)))))
 
+(defun c-lineup-inexpr-block (langelem)
+  ;; This function lines up the block for the various constructs that
+  ;; uses a block inside an expression.  For constructs matching
+  ;; c-lambda-key and c-inexpr-block-key, indentation to the column of
+  ;; the beginning of the match is added.  For standalone statement
+  ;; blocks, indentation to the column of the opening brace is added.
+  (save-excursion
+    (back-to-indentation)
+    (let ((res (or (c-looking-at-inexpr-block)
+		   (if (c-safe (backward-up-list 1)
+			       (eq (char-after) ?{))
+		       (c-looking-at-inexpr-block)))))
+      (if (not res)
+	  0
+	(goto-char (cdr res))
+	(- (current-column)
+	   (progn
+	     (back-to-indentation)
+	     (current-column)))))))
+
 (defun c-lineup-dont-change (langelem)
   ;; Do not change the indentation of the current line
   (save-excursion
@@ -394,7 +417,7 @@ ACTION associated with `block-close' syntax."
 	       (setq langelem (assq 'block-close c-syntactic-context))
 	       (progn (goto-char (cdr langelem))
 		      (if (eq (char-after) ?{)
-			  (c-safe (forward-sexp -1)))
+			  (c-safe (c-forward-sexp -1)))
 		      (looking-at "\\<do\\>[^_]")))
 	  '(before)
 	'(before after)))))

@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -27,10 +28,14 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; Pull in Imenu when compiling, if it exists
+(eval-when-compile
+  (condition-case nil
+      (require 'imenu)
+    (error nil)))
+
 
 ;; imenu integration
-(eval-when-compile (require 'imenu))
-
 (defvar cc-imenu-c-prototype-macro-regexp nil
   "RE matching macro names used to conditionally specify function prototypes.
 
@@ -117,7 +122,10 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
          "^"                                  ; beginning of line is required
          "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a `template <...>'
          "class[ \t]+"
-         "\\([a-zA-Z0-9_]+\\)"                ; the string we want to get
+         "\\("                                ; the string we want to get
+         "[a-zA-Z0-9_]+"                      ; class name
+         "\\(<[^>]+>\\)?"                     ; possibly explicitely specialized
+         "\\)"
          "[ \t]*[:{]"
          )) 2)))
   "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
@@ -137,8 +145,8 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        "\\([A-Za-z0-9_-]+[ \t]*[[]?[]]?\\)"
        "\\([ \t]\\)"
        "\\([A-Za-z0-9_-]+\\)"		      ; the string we want to get
-       "\\([ \t]*\\)("
-       "\\([][a-zA-Z,_1-9\n \t]*\\)"   ; arguments
+       "\\([ \t]*\\)+("
+       "\\([a-zA-Z,_1-9\n \t]*[[]?[]]?\\)*"   ; arguments
        ")[ \t]*"
 ;       "[^;(]"
        "[,a-zA-Z_1-9\n \t]*{"               
@@ -307,7 +315,7 @@ Example:
 	 (if (fboundp 'buffer-substring-no-properties)
 	     'buffer-substring-no-properties
 	   'buffer-substring)))
-    (goto-char (point-max)) 
+    (goto-char (point-max))
     (imenu-progress-message stupid 0)
     ;;
     (while (re-search-backward cc-imenu-objc-generic-expression nil t)
@@ -385,6 +393,10 @@ Example:
     ;;
     toplist
     ))
+
+;(defvar cc-imenu-pike-generic-expression
+;  ())
+; FIXME: Please contribute one!
 
 
 (provide 'cc-menus)

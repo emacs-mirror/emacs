@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -28,7 +29,12 @@
 ;; Boston, MA 02111-1307, USA.
 
 
+;; explicit compile-time dependencies
+(eval-when-compile
+  (require 'cc-defs))
+
 
+;; Warning: don't eval-defun this constant or you'll break style inheritance.
 (defconst c-style-alist
   '(("gnu"
      (c-basic-offset . 2)
@@ -41,6 +47,7 @@
 			 (statement-cont . +)
 			 (arglist-intro . c-lineup-arglist-intro-after-paren)
 			 (arglist-close . c-lineup-arglist)
+			 (inline-open . 0)
 			 ))
      (c-special-indent-hook . c-gnu-impose-minimum)
      (c-comment-continuation-stars . "")
@@ -104,6 +111,7 @@
      (c-basic-offset  . 8)
      (c-comment-only-line-offset . 0)
      (c-hanging-braces-alist . ((brace-list-open)
+				(brace-entry-open)
 				(substatement-open after)
 				(block-close . c-snug-do-while)))
      (c-cleanup-list . (brace-else-brace))
@@ -126,6 +134,7 @@
      (c-hanging-braces-alist . ((brace-list-open)
 				(brace-list-intro)
 				(brace-list-close)
+				(brace-entry-open)
 				(substatement-open after)
 				(block-close . c-snug-do-while)
 				))
@@ -284,7 +293,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 
 
 (defconst c-offsets-alist
-  '((string                . -1000)
+  '((string                . c-lineup-dont-change)
     (c                     . c-lineup-C-comments)
     (defun-open            . 0)
     (defun-close           . 0)
@@ -308,6 +317,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (brace-list-close      . 0)
     (brace-list-intro      . +)
     (brace-list-entry      . 0)
+    (brace-entry-open      . 0)
     (statement             . 0)
     ;; some people might prefer
     ;;(statement             . c-lineup-runin-statements)
@@ -324,6 +334,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (label                 . 2)
     (do-while-closure      . 0)
     (else-clause           . 0)
+    (catch-clause          . 0)
     (comment-intro         . c-lineup-comment)
     (arglist-intro         . +)
     (arglist-cont          . 0)
@@ -344,6 +355,10 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (namespace-close       . 0)
     (innamespace           . +)
     (template-args-cont    . +)
+    (inlambda              . c-lineup-inexpr-block)
+    (lambda-intro-cont     . +)
+    (inexpr-statement      . 0)
+    (inexpr-class          . +)
     )
   "Association list of syntactic element symbols and indentation offsets.
 As described below, each cons cell in this list has the form:
@@ -380,6 +395,13 @@ is called with a single argument containing the cons of the syntactic
 element symbol and the relative indent point.  The function should
 return an integer offset.
 
+OFFSET can also be a list, in which case it is recursively evaluated
+using the semantics described above.  The first element of the list to 
+return a non-nil value succeeds.  If none of the elements returns a
+non-nil value, then what happends depends on the value of
+`c-strict-syntax-p'.  When `c-strict-syntax-p' is nil, then an offset
+of zero is used, otherwise an error is generated.
+
 Here is the current list of valid syntactic element symbols:
 
  string                 -- inside multi-line string
@@ -411,6 +433,8 @@ Here is the current list of valid syntactic element symbols:
  brace-list-close       -- close brace of an enum or static array list
  brace-list-intro       -- first line in an enum or static array list
  brace-list-entry       -- subsequent lines in an enum or static array list
+ brace-entry-open       -- subsequent lines in an enum or static array
+                           list that start with an open brace.
  statement              -- a C (or like) statement
  statement-cont         -- a continuation of a C (or like) statement
  statement-block-intro  -- the first line in a new statement block
@@ -423,6 +447,7 @@ Here is the current list of valid syntactic element symbols:
  label                  -- any ordinary label
  do-while-closure       -- the `while' that ends a do/while construct
  else-clause            -- the `else' of an if/else construct
+ catch-clause           -- the `catch' or `finally' of a try/catch construct
  comment-intro          -- a line containing only a comment introduction
  arglist-intro          -- the first line in an argument list
  arglist-cont           -- subsequent argument list lines when no
@@ -450,7 +475,37 @@ Here is the current list of valid syntactic element symbols:
  innamespace            -- analogous to `inextern-lang' syntactic
                            symbol, but used inside C++ namespace constructs
  template-args-cont     -- C++ template argument list continuations
+ inlambda               -- in the header or body of a lambda function
+ lambda-intro-cont      -- continuation of the header of a lambda function
+ inexpr-statement       -- the statement is inside an expression
+ inexpr-class           -- the class is inside an expression
 ")
+
+(defun c-evaluate-offset (offset langelem symbol)
+  ;; offset can be a number, a function, a variable, a list, or one of
+  ;; the symbols + or -
+  (cond
+   ((eq offset '+)         (setq offset c-basic-offset))
+   ((eq offset '-)         (setq offset (- c-basic-offset)))
+   ((eq offset '++)        (setq offset (* 2 c-basic-offset)))
+   ((eq offset '--)        (setq offset (* 2 (- c-basic-offset))))
+   ((eq offset '*)         (setq offset (/ c-basic-offset 2)))
+   ((eq offset '/)         (setq offset (/ (- c-basic-offset) 2)))
+   ((functionp offset)     (setq offset (funcall offset langelem)))
+   ((listp offset)
+    (setq offset
+	  (let (done)
+	    (while (and (not done) offset)
+	      (setq done (c-evaluate-offset (car offset) langelem symbol)
+		    offset (cdr offset)))
+	    (if (not done)
+		(if c-strict-syntax-p
+		    (error "No offset found for syntactic symbol %s" symbol)
+		  0)
+	      done))))
+   ((not (numberp offset)) (setq offset (symbol-value offset)))
+   )
+  offset)
 
 (defun c-get-offset (langelem)
   ;; Get offset from LANGELEM which is a cons cell of the form:
@@ -462,30 +517,20 @@ Here is the current list of valid syntactic element symbols:
 	 (relpos (cdr langelem))
 	 (match  (assq symbol c-offsets-alist))
 	 (offset (cdr-safe match)))
-    ;; offset can be a number, a function, a variable, or one of the
-    ;; symbols + or -
-    (cond
-     ((not match)
-      (if c-strict-syntax-p
-	  (error "don't know how to indent a %s" symbol)
-	(setq offset 0
-	      relpos 0)))
-     ((eq offset '+)         (setq offset c-basic-offset))
-     ((eq offset '-)         (setq offset (- c-basic-offset)))
-     ((eq offset '++)        (setq offset (* 2 c-basic-offset)))
-     ((eq offset '--)        (setq offset (* 2 (- c-basic-offset))))
-     ((eq offset '*)         (setq offset (/ c-basic-offset 2)))
-     ((eq offset '/)         (setq offset (/ (- c-basic-offset) 2)))
-     ((functionp offset)     (setq offset (funcall offset langelem)))
-     ((not (numberp offset)) (setq offset (symbol-value offset)))
-     )
+    (if (not match)
+	(if c-strict-syntax-p
+	    (error "No offset found for syntactic symbol %s" symbol)
+	  (setq offset 0
+		relpos 0))
+      (setq offset (c-evaluate-offset offset langelem symbol)))
     (+ (if (and relpos
 		(< relpos (c-point 'bol)))
 	   (save-excursion
 	     (goto-char relpos)
 	     (current-column))
 	 0)
-       offset)))
+       (c-evaluate-offset offset langelem symbol))
+    ))
 
 
 (defvar c-read-offset-history nil)
@@ -493,12 +538,13 @@ Here is the current list of valid syntactic element symbols:
 (defun c-read-offset (langelem)
   ;; read new offset value for LANGELEM from minibuffer. return a
   ;; legal value only
-  (let* ((oldoff (cdr-safe (assq langelem c-offsets-alist)))
-	 (defstr (format "(default %s): " oldoff))
-	 (errmsg (concat "Offset must be int, func, var, "
-			 "or in [+,-,++,--,*,/] "
-			 defstr))
-	 (prompt (concat "Offset " defstr))
+  (let* ((oldoff  (cdr-safe (assq langelem c-offsets-alist)))
+	 (symname (symbol-name langelem))
+	 (defstr  (format "(default %s): " oldoff))
+	 (errmsg  (concat "Offset must be int, func, var, list, "
+			  "or [+,-,++,--,*,/] "
+			  defstr))
+	 (prompt (concat symname " offset " defstr))
 	 offset input interned raw)
     (while (not offset)
       (setq input (completing-read prompt obarray 'fboundp nil nil
@@ -563,8 +609,9 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
       (eq offset '/)
       (integerp offset)
       (functionp offset)
+      (listp offset)
       (boundp offset)
-      (error "Offset must be int, func, var, or in [+,-,++,--,*,/]: %s"
+      (error "Offset must be int, func, var, list, or in [+,-,++,--,*,/]: %s"
 	     offset))
   (let ((entry (assq symbol c-offsets-alist)))
     (if entry
@@ -574,50 +621,46 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 	(error "%s is not a valid syntactic symbol." symbol))))
   (c-keep-region-active))
 
-
 
+(defun c-copy-tree (tree)
+  (if (consp tree)
+      (cons (c-copy-tree (car tree))
+            (c-copy-tree (cdr tree)))
+    tree))
+
 (defun c-initialize-builtin-style ()
   ;; Dynamically append the default value of most variables. This is
   ;; crucial because future c-set-style calls will always reset the
   ;; variables first to the `cc-mode' style before instituting the new
   ;; style.  Only do this once!
-  (c-initialize-cc-mode t)
-  (or (assoc "cc-mode" c-style-alist)
-      (assoc "user" c-style-alist)
-      (progn
-	(c-add-style "user"
-		     (mapcar
-		      (function
-		       (lambda (var)
-			 (let ((val (symbol-value var)))
-			   (cons var (c-copy-tree val)))))
-		      '(c-backslash-column
-			c-basic-offset
-			c-cleanup-list
-			c-comment-only-line-offset
-			c-electric-pound-behavior
-			c-hanging-braces-alist
-			c-hanging-colons-alist
-			c-hanging-comment-starter-p
-			c-hanging-comment-ender-p
-			c-offsets-alist
-			)))
-	(c-add-style "cc-mode" '("user"))
-	;; the default style is now GNU.  This can be overridden in
-	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
-	(c-set-style c-default-style)))
-  (if c-style-variables-are-local-p
-      (c-make-styles-buffer-local)))
+  (unless (get 'c-initialize-builtin-style 'is-run)
+    (put 'c-initialize-builtin-style 'is-run t)
+    (c-initialize-cc-mode)
+    (or (assoc "cc-mode" c-style-alist)
+	(assoc "user" c-style-alist)
+	(progn
+	  (c-add-style "user"
+		       (mapcar
+			(function
+			 (lambda (var)
+			   (let ((val (symbol-value var)))
+			     (cons var (c-copy-tree val)))))
+			'(c-backslash-column
+			  c-basic-offset
+			  c-cleanup-list
+			  c-comment-only-line-offset
+			  c-electric-pound-behavior
+			  c-hanging-braces-alist
+			  c-hanging-colons-alist
+			  c-hanging-comment-starter-p
+			  c-hanging-comment-ender-p
+			  c-offsets-alist
+			  )))
+	  (c-add-style "cc-mode" '("user"))
+	  ))
+    (if c-style-variables-are-local-p
+	(c-make-styles-buffer-local))))
 
-(defun c-copy-tree (tree)
-  (if (consp tree)
-      (if (consp (cdr tree))
-	  (cons (c-copy-tree (car tree))
-		(cons (c-copy-tree (cadr tree))
-		      (c-copy-tree (cddr tree))))
-	(cons (c-copy-tree (car tree))
-	      (c-copy-tree (cdr tree))))
-    tree))
 
 (defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.

@@ -2,14 +2,15 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages oop
 
-(defconst c-version "5.21"
+(defconst c-version "5.25"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -35,13 +36,15 @@
 ;;; Commentary:
 
 ;; This package provides GNU Emacs major modes for editing C, C++,
-;; Objective-C, Java and IDL code.  As of the latest Emacs and XEmacs
-;; releases, it is the default package for editing these languages.
-;; This package is called "CC Mode", and should be spelled exactly
-;; this way.  It supports K&R and ANSI C, ANSI C++, Objective-C, Java,
-;; and CORBA's IDL with a consistent indentation model across all
-;; modes.  This indentation model is intuitive and very flexible, so
-;; that almost any desired style of indentation can be supported.
+;; Objective-C, Java, IDL and Pike code.  As of the latest Emacs and
+;; XEmacs releases, it is the default package for editing these
+;; languages.  This package is called "CC Mode", and should be spelled
+;; exactly this way.
+
+;; CC Mode supports K&R and ANSI C, ANSI C++, Objective-C, Java,
+;; CORBA's IDL, and Pike with a consistent indentation model across
+;; all modes.  This indentation model is intuitive and very flexible,
+;; so that almost any desired style of indentation can be supported.
 ;; Installation, usage, and programming details are contained in an
 ;; accompanying texinfo manual.
 
@@ -51,17 +54,20 @@
 ;; NOTE: This mode does not perform font-locking (a.k.a syntactic
 ;; coloring, keyword highlighting, etc.) for any of the supported
 ;; modes.  Typically this is done by a package called font-lock.el
-;; which I do *not* maintain.  You should contact the Emacs
+;; which we do *not* maintain.  You should contact the Emacs or XEmacs
 ;; maintainers for questions about coloring or highlighting in any
 ;; language mode.
 
 ;; To submit bug reports, type "C-c C-b".  These will be sent to
-;; bug-gnu-emacs@prep.ai.mit.edu as well as cc-mode-help@python.org,
-;; and I'll read about them there (the former is mirrored as the
-;; Usenet newsgroup gnu.emacs.bug).  Questions can sent to
-;; help-gnu-emacs@prep.ai.mit.edu (mirrored as gnu.emacs.help) and/or
-;; cc-mode-help@python.org.  Please do not send bugs or questions to
-;; my personal account.
+;; bug-gnu-emacs@gnu.org (mirrored as the Usenet newsgroup
+;; gnu.emacs.bug) as well as bug-cc-mode@gnu.org, which directly
+;; contacts the CC Mode maintainers.  Questions can sent to
+;; help-gnu-emacs@gnu.org (mirrored as gnu.emacs.help) and/or
+;; bug-cc-mode@gnu.org.  The old CC Mode contact address,
+;; cc-mode-help@python.org is currently still active, but its use is
+;; discouraged.  Please use bug-cc-mode@gnu.org instead.  Please do
+;; not send bugs or questions to our personal accounts; we reserve the
+;; right to ignore such email!
 
 ;; Many, many thanks go out to all the folks on the beta test list.
 ;; Without their patience, testing, insight, code contributions, and
@@ -70,27 +76,27 @@
 ;; You can get the latest version of CC Mode, including PostScript
 ;; documentation and separate individual files from:
 ;;
-;;     http://www.python.org/ftp/emacs/
-
-;; Or if you don't have access to the World Wide Web, through
-;; anonymous ftp from:
+;;     http://www.python.org/emacs/cc-mode/
 ;;
-;;    ftp://ftp.python.org/pub/emacs
+;; You can join a moderated CC Mode announcement-only mailing list by
+;; visiting
+;;
+;;    http://www.python.org/mailman/listinfo/cc-mode-announce
 
 ;;; Code:
 
 
-(require 'cc-defs)
+(defvar c-buffer-is-cc-mode nil
+  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
+Otherwise, this variable is nil. I.e. this variable is non-nil for
+`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode',
+`pike-mode', and any other non-CC Mode mode that calls
+`c-initialize-cc-mode' (e.g. `awk-mode').")
+(make-variable-buffer-local 'c-buffer-is-cc-mode)
+(put 'c-buffer-is-cc-mode 'permanent-local t)
 
-;; sigh.  give in to the pressure, but make really sure all the
-;; definitions we need are here
-(if (or (not (fboundp 'functionp))
-	(not (fboundp 'char-before))
-	(not (c-safe (char-after) t))
-	(not (fboundp 'when))
-	(not (fboundp 'unless)))
-    (require 'cc-mode-19))
-
+(eval-and-compile
+  (require 'cc-defs))
 (require 'cc-menus)
 (require 'cc-vars)
 (require 'cc-engine)
@@ -98,15 +104,6 @@
 (require 'cc-align)
 (require 'cc-styles)
 (require 'cc-cmds)
-
-(defvar c-buffer-is-cc-mode nil
-  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
-Otherwise, this variable is nil.  I.e. this variable is non-nil for
-`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode', and any
-other non-CC Mode mode that calls `c-initialize-cc-mode'
-\(e.g. `awk-mode').")
-(make-variable-buffer-local 'c-buffer-is-cc-mode)
-(put 'c-buffer-is-cc-mode 'permanent-local t)
 
 
 
@@ -118,16 +115,20 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
 ;; (c-initialize-cc-mode)
 
 ;;;###autoload
-(defun c-initialize-cc-mode (&optional skip-styles)
+(defun c-initialize-cc-mode ()
   (setq c-buffer-is-cc-mode t)
-  (let ((initprop 'cc-mode-is-initialized))
-    ;; run the initialization hook, but only once
-    (or (get 'c-initialize-cc-mode initprop)
-	(progn
-	  (or skip-styles
-	      (c-initialize-builtin-style))
-	  (run-hooks 'c-initialization-hook)
-	  (put 'c-initialize-cc-mode initprop t)))
+  (let ((initprop 'cc-mode-is-initialized)
+	c-initialization-ok)
+    (unless (get 'c-initialize-cc-mode initprop)
+      (put 'c-initialize-cc-mode initprop t)
+      (c-initialize-builtin-style)
+      (unwind-protect
+	  (progn
+	    (run-hooks 'c-initialization-hook)
+	    (setq c-initialization-ok t))
+	;; Will try initialization hooks again if they failed.
+	(unless c-initialization-ok
+	  (put 'c-initialize-cc-mode initprop nil))))
     ))
 
 
@@ -163,7 +164,8 @@ Key bindings:
 	c-baseclass-key nil
 	c-comment-start-regexp c-C++-comment-start-regexp
 	imenu-generic-expression cc-imenu-c-generic-expression
-        imenu-case-fold-search nil)
+	imenu-case-fold-search nil
+	)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
   (c-update-modeline))
@@ -200,10 +202,12 @@ Key bindings:
 	c-conditional-key c-C++-conditional-key
 	c-comment-start-regexp c-C++-comment-start-regexp
 	c-class-key c-C++-class-key
+	c-extra-toplevel-key c-C++-extra-toplevel-key
 	c-access-key c-C++-access-key
 	c-recognize-knr-p nil
 	imenu-generic-expression cc-imenu-c++-generic-expression
-        imenu-case-fold-search nil)
+	imenu-case-fold-search nil
+	)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c++-mode-hook)
   (c-update-modeline))
@@ -288,11 +292,11 @@ Key bindings:
  	c-baseclass-key nil
 	c-recognize-knr-p nil
  	c-access-key c-Java-access-key
+	c-inexpr-class-key c-Java-inexpr-class-key
 	;defun-prompt-regexp c-Java-defun-prompt-regexp
 	imenu-generic-expression cc-imenu-java-generic-expression
-        imenu-case-fold-search nil
+	imenu-case-fold-search nil
 	)
-  (c-set-style "java")
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'java-mode-hook)
   (c-update-modeline))
@@ -328,7 +332,8 @@ Key bindings:
 	comment-end ""
 	c-conditional-key c-C++-conditional-key
 	c-comment-start-regexp c-C++-comment-start-regexp
-	c-class-key c-C++-class-key
+	c-class-key c-IDL-class-key
+	c-extra-toplevel-key c-IDL-extra-toplevel-key
 	c-access-key c-C++-access-key
 	c-recognize-knr-p nil
 ;;	imenu-generic-expression cc-imenu-c++-generic-expression
@@ -339,11 +344,56 @@ Key bindings:
   (c-update-modeline))
 
 
+;;;###autoload
+(defun pike-mode ()
+  "Major mode for editing Pike code.
+To submit a problem report, enter `\\[c-submit-bug-report]' from an
+idl-mode buffer.  This automatically sets up a mail buffer with
+version information already added.  You just need to add a description
+of the problem, including a reproducible test case, and send the
+message.
+
+To see what version of CC Mode you are running, enter `\\[c-version]'.
+
+The hook variable `pike-mode-hook' is run with no args, if that value
+is bound and has a non-nil value.  Also the common hook
+`c-mode-common-hook' is run first.
+
+Key bindings:
+\\{pike-mode-map}"
+  (interactive)
+  (c-initialize-cc-mode)
+  (kill-all-local-variables)
+  (set-syntax-table pike-mode-syntax-table)
+  (setq major-mode 'pike-mode
+ 	mode-name "Pike"
+ 	local-abbrev-table pike-mode-abbrev-table)
+  (use-local-map pike-mode-map)
+  (c-common-init)
+  (setq comment-start "// "
+ 	comment-end   ""
+ 	c-conditional-key c-Pike-conditional-key
+  	c-class-key c-Pike-class-key
+	c-method-key nil
+ 	c-baseclass-key nil
+	c-recognize-knr-p nil
+ 	c-access-key c-Pike-access-key
+	c-lambda-key c-Pike-lambda-key
+	c-inexpr-block-key c-Pike-inexpr-block-key
+	c-special-brace-lists c-Pike-special-brace-lists
+	;imenu-generic-expression cc-imenu-java-generic-expression ;FIXME
+	;imenu-case-fold-search nil ;FIXME
+	)
+  (run-hooks 'c-mode-common-hook)
+  (run-hooks 'pike-mode-hook)
+  (c-update-modeline))
+
+
 ;; bug reporting
 
 (defconst c-mode-help-address
-  "bug-gnu-emacs@prep.ai.mit.edu, cc-mode-help@python.org"
-  "Address for CC Mode bug reports.")
+  "bug-gnu-emacs@gnu.org, bug-cc-mode@gnu.org"
+  "Addresses for CC Mode bug reports.")
 
 (defun c-version ()
   "Echo the current version of CC Mode in the minibuffer."
@@ -373,6 +423,7 @@ Key bindings:
 		    ((eq major-mode 'c-mode)    "C")
 		    ((eq major-mode 'objc-mode) "ObjC")
 		    ((eq major-mode 'java-mode) "Java")
+		    ((eq major-mode 'pike-mode) "Pike")
 		    )
 	      ")")
       (let ((vars (list
@@ -394,6 +445,10 @@ Key bindings:
 		   'c-label-minimum-indentation
 		   'defun-prompt-regexp
 		   'tab-width
+		   'comment-column
+		   ;; A brain-damaged XEmacs only variable that, if
+		   ;; set to nil can cause all kinds of chaos.
+		   'signal-error-on-buffer-boundary
 		   )))
 	(if (not (boundp 'defun-prompt-regexp))
 	    (delq 'defun-prompt-regexp vars)
@@ -402,7 +457,10 @@ Key bindings:
        (lambda ()
 	 (insert
 	  "Buffer Style: " style "\n\n"
-	  (if hook
+	  (if (and hook
+		   (or (/= (length hook) 1)
+		       (not (eq (car hook) 'c-gnu-impose-minimum))
+		       ))
 	      (concat "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 		      "c-special-indent-hook is set to '"
 		      (format "%s" hook)

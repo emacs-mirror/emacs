@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -27,14 +28,18 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+(eval-when-compile
+  (require 'cc-defs))
+
 (require 'custom)
 
 
 (defcustom c-strict-syntax-p nil
   "*If non-nil, all syntactic symbols must be found in `c-offsets-alist'.
 If the syntactic symbol for a particular line does not match a symbol
-in the offsets alist, an error is generated, otherwise no error is
-reported and the syntactic symbol is ignored."
+in the offsets alist, or if no non-nil offset value can be determined
+for a symbol, an error is generated, otherwise no error is reported
+and the syntactic symbol is ignored."
   :type 'boolean
   :group 'c)
 
@@ -48,14 +53,23 @@ reported and the syntactic symbol is ignored."
   :type 'integer
   :group 'c)
 
+;; This widget will show up in newer versions of the Custom library
+(or (get 'other 'widget-type)
+    (define-widget 'other 'sexp
+      "Matches everything, but doesn't let the user edit the value.
+Useful as last item in a `choice' widget."
+      :tag "Other"
+      :format "%t%n"
+      :value 'other))
+
 (defcustom c-tab-always-indent t
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.  If nil,
 hitting TAB indents the current line if point is at the left margin or
 in the line's indentation, otherwise it insert a `real' tab character
-\(see note\).  If other than nil or t, then tab is inserted only
-within literals -- defined as comments and strings -- and inside
-preprocessor directives, but line is always reindented.
+\(see note\).  If the symbol `other', then tab is inserted only within
+literals -- defined as comments and strings -- and inside preprocessor
+directives, but the line is always reindented.
 
 Note: The value of `indent-tabs-mode' will determine whether a real
 tab character will be inserted, or the equivalent number of space.
@@ -69,7 +83,7 @@ by the `c-comment-only-line-offset' variable."
 	  :format "%{C Tab Always Indent%}:\n   The TAB key:\n%v"
 	  (const :tag "always indents, never inserts TAB" t)
 	  (const :tag "indents in left margin, otherwise inserts TAB" nil)
-	  (const :tag "inserts TAB in literals, otherwise indent" other))
+	  (other :tag "inserts TAB in literals, otherwise indent" other))
   :group 'c)
 
 (defcustom c-insert-tab-function 'insert-tab
@@ -129,7 +143,11 @@ mode name.  Valid symbols are:
                         Clean up occurs when the open-brace after the
                         `else' is typed.
  brace-elseif-brace  -- similar to brace-else-brace, but cleans up
-                        `} else if {' constructs.
+                        `} else if (...) {' constructs.  Clean up occurs
+                        both after the open parenthesis and after the
+                        open brace.
+ brace-catch-brace   -- similar to brace-elseif-brace, but cleans up
+                        `} catch (...) {' constructs.
  empty-defun-braces  -- cleans up empty defun braces by placing the
                         braces on the same line.  Clean up occurs when
 			the defun closing brace is typed.
@@ -150,16 +168,20 @@ mode name.  Valid symbols are:
   :type '(set
 	  :extra-offset 8
 	  (const :tag "Put `} else {' on one line" brace-else-brace)
-	  (const :tag "Put `} else if {' on one line" brace-elseif-brace)
+	  (const :tag "Put `} else if (...) {' on one line" brace-elseif-brace)
+	  (const :tag "Put `} catch (...) {' on one line" brace-catch-brace)
 	  (const :tag "Put empty defun braces on one line" empty-defun-braces)
 	  (const :tag "Put `},' in aggregates on one line" list-close-comma)
 	  (const :tag "Put C++ style `::' on one line" scope-operator))
   :group 'c)
 
 (defcustom c-hanging-braces-alist '((brace-list-open)
+				    (brace-entry-open)
 				    (substatement-open after)
 				    (block-close . c-snug-do-while)
 				    (extern-lang-open after)
+				    (inexpr-class-open after)
+				    (inexpr-class-close before)
 				    )
   "*Controls the insertion of newlines before and after braces.
 This variable contains an association list with elements of the
@@ -175,8 +197,12 @@ SYNTACTIC-SYMBOL can be any of: defun-open, defun-close, class-open,
 class-close, inline-open, inline-close, block-open, block-close,
 substatement-open, statement-case-open, extern-lang-open,
 extern-lang-close, brace-list-open, brace-list-close,
-brace-list-intro, or brace-list-entry. See `c-offsets-alist' for
-details.
+brace-list-intro, brace-entry-open, inexpr-class-open, or
+inexpr-class-close.  See `c-offsets-alist' for details, except for
+inexpr-class-open and inexpr-class-close, which doesn't have any
+corresponding symbols there.  Those two symbols are used for the
+opening and closing braces, respectively, of anonymous inner classes
+in Java.
 
 ACTION can be either a function symbol or a list containing any
 combination of the symbols `before' or `after'.  If the list is empty,
@@ -198,7 +224,8 @@ syntactic context for the brace line."
 			(const substatement-open) (const statement-case-open)
 			(const extern-lang-open) (const extern-lang-close)
 			(const brace-list-open) (const brace-list-close)
-			(const brace-list-intro) (const brace-list-entry))
+			(const brace-list-intro) (const brace-entry-open)
+			(const inexpr-class-open) (const inexpr-class-close))
 		(choice :tag "Action"
 			(set :format "Insert a newline %v"
 			     :extra-offset 38
@@ -310,19 +337,42 @@ this variable to nil."
   :group 'c)
 
 (defcustom c-default-style "gnu"
-  "*Style which gets installed by default.
+  "*Style which gets installed by default when a file is visited.
 
 The value of this variable can be any style defined in
-`c-style-alist', including styles you add, if you add them before CC
-Mode gets initialized.  Note that if you set any CC Mode variables in
-the top-level of your .emacs file (i.e. *not* in a hook), these get
-incorporated into the `user' style so you would need to add:
+`c-style-alist', including styles you add.  The value can also be an
+association list of major mode symbols to style names.
 
-  (setq c-default-style \"user\")
+When the value is a string, all CC Mode major modes will install this
+style by default, except `java-mode', which always installs the
+\"java\" style (this is for backwards compatibility).
+
+When the value is an alist, the named style is installed.  If the
+major mode is not listed in the alist, then the symbol `other' is
+looked up in the alist, and if found, the associated style is used.
+If `other' is not found in the alist, then \"gnu\" style is used.
+
+Note that if you set any CC Mode variables in the top-level of your
+.emacs file (i.e. *not* in a hook), these get incorporated into the
+`user' style, so you would need to add:
+
+  (setq c-default-style '((other . \"user\")))
 
 to see your customizations.  This is also true if you use the Custom
-interface -- be sure to set the default style to `user'."
-  :type 'string
+interface -- be sure to set the default style to `user'.
+
+Finally, the default style gets installed before your mode hooks run,
+so you can always override the use of `c-default-style' by making
+calls to `c-set-style' in the appropriate mode hook."
+  :type '(choice string
+		 (repeat :tag "" :menu-tag "Major mode list"
+		  (cons :tag ""
+		   (choice :tag "Mode"
+			   (const c-mode) (const c++-mode) (const objc-mode)
+			   (const java-mode) (const idl-mode)
+			   (const pike-mode) (const other))
+		   (string :tag "Style")
+		   )))
   :group 'c)
 
 (defcustom c-style-variables-are-local-p nil
@@ -387,15 +437,14 @@ This hook is only run once per Emacs session and can be used as a
   :type 'hook
   :group 'c)
 
-(defcustom c-enable-xemacs-performance-kludge-p t
+(defcustom c-enable-xemacs-performance-kludge-p nil
   "*Enables a XEmacs only hack that may improve speed for some coding styles.
 For styles that hang top-level opening braces (as is common with JDK
 Java coding styles) this can improve performance between 3 and 60
 times for core indentation functions (e.g. `c-parse-state').  For
 styles that conform to the Emacs recommendation of putting these
-braces in column zero, this may slightly degrade performance in some
-situations, but only by a few percentage points.  This variable only
-has effect in XEmacs.")
+braces in column zero, this can degrade performance about as much.
+This variable only has effect in XEmacs.")
 
 
 ;; Non-customizable variables, still part of the interface to CC Mode

@@ -1,9 +1,9 @@
 ;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Author:     1994-1997 Barry A. Warsaw
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    August 1994, split from cc-mode.el
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -40,6 +40,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cc-defs)
   (require 'cc-styles)
   (require 'cc-engine))
 
@@ -114,7 +115,7 @@ This is in addition to c-continued-statement-offset.")
 	      ;; line
 	      (progn
 		(if (eq (char-before) ?\))
-		    (forward-sexp -1))
+		    (c-forward-sexp -1))
 		;; Get initial indentation of the line we are on.
 		(current-indentation)))))
       (- bocm-lossage curcol))))

@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
-;; Authors:    1992-1997 Barry A. Warsaw
+;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
-;; Maintainer: cc-mode-help@python.org
+;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -29,7 +30,8 @@
 
 
 
-(require 'cc-defs)
+(eval-when-compile
+  (require 'cc-defs))
 
 ;; Regular expressions and other values which must be parameterized on
 ;; a per-language basis.
@@ -54,8 +56,10 @@
 ;; keywords introducing class definitions.  language specific
 (defconst c-C-class-key "\\(struct\\|union\\)")
 (defconst c-C++-class-key "\\(class\\|struct\\|union\\)")
-(defconst c-C-extra-toplevel-key "\\(extern\\)[^_]")
-(defconst c-C++-extra-toplevel-key "\\(extern\\|namespace\\)[^_]")
+(defconst c-IDL-class-key "\\(class\\|struct\\|union\\|interface\\)")
+(defconst c-C-extra-toplevel-key "\\(extern\\)")
+(defconst c-C++-extra-toplevel-key "\\(extern\\|namespace\\)")
+(defconst c-IDL-extra-toplevel-key "\\(module\\)")
 
 (defconst c-ObjC-class-key
   (concat
@@ -70,9 +74,11 @@
    "\\(" c-protection-key "\\s +\\)?"
    "\\(interface\\|class\\)\\s +"
    c-symbol-key				      ;name of the class
-   "\\(\\s *extends\\s *" c-symbol-key "\\)?" ;maybe followed by superclass 
+   "\\(\\s *extends\\s *" c-symbol-key "\\)?" ;maybe followed by superclass
    ;;"\\(\\s *implements *[^{]+{\\)?"	      ;maybe the adopted protocols list
    ))
+
+(defconst c-Pike-class-key "class")
 
 (defvar c-class-key c-C-class-key)
 (make-variable-buffer-local 'c-class-key)
@@ -87,12 +93,14 @@
 (defconst c-C++-access-key (concat c-protection-key "[ \t]*:"))
 (defconst c-ObjC-access-key (concat "@" c-protection-key))
 (defconst c-Java-access-key nil)
+(defconst c-Pike-access-key nil)
 
 
 ;; keywords introducing conditional blocks
 (defconst c-C-conditional-key nil)
 (defconst c-C++-conditional-key nil)
 (defconst c-Java-conditional-key nil)
+(defconst c-Pike-conditional-key nil)
 
 (let ((all-kws "for\\|if\\|do\\|else\\|while\\|switch")
       (exc-kws "\\|try\\|catch")
@@ -101,7 +109,8 @@
       (back    "\\)\\b[^_]"))
   (setq c-C-conditional-key (concat front all-kws back)
 	c-C++-conditional-key (concat front all-kws exc-kws back)
-	c-Java-conditional-key (concat front all-kws exc-kws thr-kws back)))
+	c-Java-conditional-key (concat front all-kws exc-kws thr-kws back)
+	c-Pike-conditional-key (concat front all-kws "\\|foreach" back)))
 
 (defvar c-conditional-key c-C-conditional-key)
 (make-variable-buffer-local 'c-conditional-key)
@@ -166,6 +175,30 @@
 (defconst c-Java-javadoc-paragraph-start
   "@\\(author\\|exception\\|param\\|return\\|see\\|version\\)")
 
+;; Regexp that starts lambda constructs.
+(defvar c-lambda-key nil)
+(make-variable-buffer-local 'c-lambda-key)
+(defconst c-Pike-lambda-key "\\<lambda\\>")
+
+;; Regexp that are followed by a statement block in expressions.
+(defvar c-inexpr-block-key nil)
+(make-variable-buffer-local 'c-inexpr-block-key)
+(defconst c-Pike-inexpr-block-key "\\<\\(catch\\|gauge\\)\\>")
+
+;; Regexp that may be followed by an anonymous class in expressions.
+(defvar c-inexpr-class-key nil)
+(make-variable-buffer-local 'c-inexpr-class-key)
+(defconst c-Java-inexpr-class-key "\\<new\\>")
+
+;; List of open- and close-chars that makes up a pike-style brace
+;; list, ie for a `([ ])' list there should be a cons (?\[ . ?\]) in
+;; this list.
+(defvar c-special-brace-lists nil)
+(make-variable-buffer-local 'c-special-brace-lists)
+(defconst c-Pike-special-brace-lists '((?{ . ?})
+				       (?\[ . ?\])
+				       (?< . ?>)))
+
 
 
 ;; internal state variables
@@ -188,11 +221,6 @@
 
 
 
-(defun c-use-java-style ()
-  "Institutes `java' indentation style.
-For use with the variable `java-mode-hook'."
-  (c-set-style "java"))
-
 (defun c-common-init ()
   ;; Common initializations for all modes.
   ;; these variables should always be buffer local; they do not affect
@@ -212,6 +240,7 @@ For use with the variable `java-mode-hook'."
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-level)
   (make-local-variable 'adaptive-fill-regexp)
+  (make-local-variable 'adaptive-fill-mode)
   (make-local-variable 'imenu-generic-expression) ;set in the mode functions
   ;; X/Emacs 20 only
   (and (boundp 'comment-line-break-function)
@@ -235,7 +264,8 @@ For use with the variable `java-mode-hook'."
 	comment-start-skip "/\\*+ *\\|// *"
 	comment-multi-line nil
 	comment-line-break-function 'c-comment-line-break-function
-	adaptive-fill-regexp nil)
+	adaptive-fill-regexp nil
+	adaptive-fill-mode nil)
   ;; we have to do something special for c-offsets-alist so that the
   ;; buffer local value has its own alist structure.
   (setq c-offsets-alist (copy-alist c-offsets-alist))
@@ -249,7 +279,17 @@ For use with the variable `java-mode-hook'."
   (or (assq 'c-auto-hungry-string minor-mode-alist)
       (setq minor-mode-alist
 	    (cons '(c-auto-hungry-string c-auto-hungry-string)
-		  minor-mode-alist))))
+		  minor-mode-alist)))
+  ;; now set the mode style based on c-default-style
+  (c-set-style (if (stringp c-default-style)
+		   (if (c-major-mode-is 'java-mode)
+		       "java"
+		     c-default-style)
+		 (or (cdr (assq major-mode c-default-style))
+		     (cdr (assq 'other c-default-style))
+		     "gnu")))
+  )
+
 
 (defun c-postprocess-file-styles ()
   "Function that post processes relevant file local variables.
@@ -277,6 +317,9 @@ Note that the style variables are always made local to the buffer."
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
 
 
+(defvar c-mode-base-map ()
+  "Keymap shared by all CC Mode related modes.")
+
 ;; Common routines
 (defun c-make-inherited-keymap ()
   (let ((map (make-sparse-keymap)))
@@ -325,9 +368,6 @@ Note that the style variables are always made local to the buffer."
   (modify-syntax-entry ?\^m "> b" table))
 
 
-(defvar c-mode-base-map ()
-  "Keymap shared by all CC Mode related modes.")
-
 (if c-mode-base-map
     nil
   ;; TBD: should we even worry about naming this keymap. My vote: no,
@@ -340,6 +380,8 @@ Note that the style variables are always made local to the buffer."
   (define-key c-mode-base-map ";"         'c-electric-semi&comma)
   (define-key c-mode-base-map "#"         'c-electric-pound)
   (define-key c-mode-base-map ":"         'c-electric-colon)
+  (define-key c-mode-base-map "("         'c-electric-paren)
+  (define-key c-mode-base-map ")"         'c-electric-paren)
   ;; Separate M-BS from C-M-h.  The former should remain
   ;; backward-kill-word.
   (define-key c-mode-base-map [(control meta h)] 'c-mark-function)
@@ -396,26 +438,27 @@ Note that the style variables are always made local to the buffer."
 (defvar c-c++-menu nil)
 (defvar c-objc-menu nil)
 (defvar c-java-menu nil)
+(defvar c-pike-menu nil)
 
 (defun c-mode-menu (modestr)
   (let ((m
-	 '(["Comment Out Region"     comment-region (mark t)]
+	 '(["Comment Out Region"     comment-region (c-region-is-active-p)]
 	   ["Uncomment Region"
 	    (comment-region (region-beginning) (region-end) '(4))
-	    (mark t)]
+	    (c-region-is-active-p)]
 	   ["Fill Comment Paragraph" c-fill-paragraph t]
 	   "---"
 	   ["Indent Expression"      c-indent-exp
 	    (memq (char-after) '(?\( ?\[ ?\{))]
-	   ["Indent Line"            c-indent-command t]
+	   ["Indent Line or Region"  c-indent-line-or-region t]
 	   ["Up Conditional"         c-up-conditional t]
 	   ["Backward Conditional"   c-backward-conditional t]
 	   ["Forward Conditional"    c-forward-conditional t]
 	   ["Backward Statement"     c-beginning-of-statement t]
 	   ["Forward Statement"      c-end-of-statement t]
 	   "---"
-	   ["Macro Expand Region"    c-macro-expand (mark t)]
-	   ["Backslashify"           c-backslash-region (mark t)]
+	   ["Macro Expand Region"    c-macro-expand (c-region-is-active-p)]
+	   ["Backslashify"           c-backslash-region (c-region-is-active-p)]
 	   )))
     (cons modestr m)))
 
@@ -563,6 +606,33 @@ Note that the style variables are always made local to the buffer."
 
 (easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands"
 		  (c-mode-menu "IDL"))
+
+
+;; Support for Pike
+
+(defvar pike-mode-abbrev-table nil
+  "Abbreviation table used in pike-mode buffers.")
+(define-abbrev-table 'pike-mode-abbrev-table ())
+
+(defvar pike-mode-map ()
+  "Keymap used in pike-mode buffers.")
+(if pike-mode-map
+    nil
+  (setq pike-mode-map (c-make-inherited-keymap))
+  ;; additional bindings
+  (define-key pike-mode-map "\C-c\C-e" 'c-macro-expand))
+
+;;;###autoload
+(defvar pike-mode-syntax-table nil
+  "Syntax table used in pike-mode buffers.")
+(if pike-mode-syntax-table
+    ()
+  (setq pike-mode-syntax-table (make-syntax-table))
+  (c-populate-syntax-table pike-mode-syntax-table)
+  (modify-syntax-entry ?@ "." pike-mode-syntax-table))
+
+(easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
+		  (c-mode-menu "Pike"))
 
 
 
