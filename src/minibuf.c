@@ -75,6 +75,8 @@ Lisp_Object Vminibuffer_history_position;
 
 Lisp_Object Qminibuffer_history;
 
+Lisp_Object Qread_file_name_internal;
+
 /* Normal hook for entry to minibuffer.  */
 
 Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
@@ -1175,6 +1177,19 @@ is added, provided that matches some possible completion.")
     int buffer_length, completion_length;
 
     tem = Fbuffer_string ();
+    /* If reading a file name,
+       expand any $ENVVAR refs in the buffer and in TEM.  */
+    if (EQ (Vminibuffer_completion_table, Qread_file_name_internal))
+      {
+	Lisp_Object substituted;
+	substituted = Fsubstitute_in_file_name (tem);
+	if (! EQ (substituted, tem))
+	  {
+	    tem = substituted;
+	    Ferase_buffer ();
+	    insert_from_string (tem, 0, XSTRING (tem)->size);
+	  }
+      }
     buffer_string = XSTRING (tem)->data;
     completion_string = XSTRING (completion)->data;
     buffer_length = XSTRING (tem)->size; /* ie ZV - BEGV */
@@ -1388,6 +1403,9 @@ syms_of_minibuf ()
   minibuf_prompt = 0;
   minibuf_save_vector_size = 5;
   minibuf_save_vector = (struct minibuf_save_data *) malloc (5 * sizeof (struct minibuf_save_data));
+
+  Qread_file_name_internal = intern ("read-file-name-internal");
+  staticpro (&Qread_file_name_internal);
 
   Qminibuffer_completion_table = intern ("minibuffer-completion-table");
   staticpro (&Qminibuffer_completion_table);
