@@ -831,7 +831,7 @@ and added as a submenu of the \"Edit\" menu.")
 		    :help "Supply explicit path to dictionary"))
       (define-key ispell-menu-map [ispell-kill-ispell]
 	'(menu-item "Kill Process" ispell-kill-ispell
-		    :enable (and ispell-process
+		    :enable (and (boundp 'ispell-process) ispell-process
 				 (eq (ispell-process-status) 'run))
 		    :help "Terminate Ispell subprocess"))
       (define-key ispell-menu-map [ispell-pdict-save]
@@ -2637,9 +2637,9 @@ Returns the sum shift due to changes in word replacements."
 		      (setq recheck-region ispell-filter
 			    ispell-filter nil ; save filter
 			    shift (ispell-region
-				  word-start
-				  (+ word-start (length replace-word))
-				  t shift))
+				   word-start
+				   (+ word-start (length replace-word))
+				   t shift))
 		      (if (null shift)	; quitting check.
 			  (setq shift 0))
 		      (set-marker ispell-region-end region-end)
@@ -2653,8 +2653,8 @@ Returns the sum shift due to changes in word replacements."
 	      ;; Move line-start across word...
 	      ;; new shift function does this now...
 	      ;;(set-marker line-start (+ line-start
-		;;			(- (length replace)
-		;;			   (length (car poss)))))
+	      ;;			(- (length replace)
+	      ;;			   (length (car poss)))))
 	      ))
 	    (if (not ispell-quit)
 		(let (message-log-max)
@@ -2940,10 +2940,10 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	       "   \\|\t"))
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
-	     ((featurep 'supercite)	; sc 3.0
+	     ((functionp 'sc-cite-regexp) ; sc 3.0
 	      (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
 		      (ispell-non-empty-string sc-reference-tag-string)))
-	     ((featurep 'sc)		; sc 2.3
+	     ((boundp 'sc-cite-regexp)	; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
 		      (ispell-non-empty-string sc-reference-tag-string)))
 	     ((or (equal major-mode 'news-reply-mode) ;GNUS 4 & below
