@@ -7682,9 +7682,11 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		GetEventParameter(eventRef, kEventParamMouseLocation,
 				  typeQDPoint, NULL, sizeof (Point),
 				  NULL, &point);
-		bufp->kind = MOUSE_WHEEL_EVENT;
-		bufp->code = delta;
-		bufp->modifiers = mac_event_to_emacs_modifiers(eventRef);
+		bufp->kind = WHEEL_EVENT;
+		bufp->code = 0;
+		bufp->modifiers = (mac_event_to_emacs_modifiers(eventRef)
+				   | ((delta < 0) ? down_modifier
+				                  : up_modifier));
 		SetPort (GetWindowPort (window_ptr));
 		GlobalToLocal (&point);
 		XSETINT (bufp->x, point.h);
