@@ -401,7 +401,7 @@ The following variables control appointment notification:
 	  (concat "-------------------- Appointment in "
 		  min-to-app " minutes. " new-time " %-"))
     (erase-buffer)
-    (insert-string appt-msg)
+    (insert appt-msg)
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (raise-frame (selected-frame))
