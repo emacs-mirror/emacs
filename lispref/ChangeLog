@@ -1,3 +1,8 @@
+2005-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Buffer Contents): Add filter-buffer-substring and
+	buffer-substring-filters.
+
 2005-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* anti.texi (Antinews): Mention `G' interactive code.
