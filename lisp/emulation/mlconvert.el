@@ -107,11 +107,11 @@
 
 (ml-expansion 'defun "ml-defun")
 (ml-expansion 'if "ml-if")
-(ml-expansion 'setq '(lambda ()
+(ml-expansion 'setq (lambda ()
 		       (if (looking-at "setq[ \t\n]+buffer-modified-p")
 			   (replace-match "set-buffer-modified-p"))))
 
-;;(ml-expansion 'while '(lambda ()
+;;(ml-expansion 'while (lambda ()
 ;;			 (let ((end (progn (forward-sexp 2) (point-marker)))
 ;;			       (start (progn (forward-sexp -1) (point))))
 ;;			   (let ((cond (buffer-substring start end)))
@@ -167,10 +167,10 @@
 (ml-expansion 'delete-white-space "delete-horizontal-space")
 (ml-expansion 'widen-region "widen")
 
-(ml-expansion 'forward-word '(lambda ()
+(ml-expansion 'forward-word (lambda ()
 			       (if (looking-at "forward-word[ \t\n]*)")
 				   (replace-match "forward-word 1)"))))
-(ml-expansion 'backward-word '(lambda ()
+(ml-expansion 'backward-word (lambda ()
 			       (if (looking-at "backward-word[ \t\n]*)")
 				   (replace-match "backward-word 1)"))))
 
