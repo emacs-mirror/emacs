@@ -1,3 +1,17 @@
+2004-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl.el (cl-cannot-unload): New function.
+	(cl-unload-hook): Defvar this to run cl-cannot-unload.
+
+	* mail/rmail.el (rmail-get-new-mail): New local rsf-number-of-spam.
+	Call rmail-spam-filter.  Delete and expunge spam.
+	Print number of spam messages deleted.
+	Save and restore the deletion status of old messages when reading
+	new mail with spam filter, so that expunging spam does not expunge
+	msgs deleted by the user.
+	(rmail-only-expunge): added an optional argument dont-show to
+	prevent showing message after expunge.
+
 2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/cl.el (declare): Add `fmakunbound' for `declare'.
