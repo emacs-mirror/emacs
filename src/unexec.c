@@ -178,6 +178,8 @@ int need_coff_header = 1;
 #ifdef MSDOS
 #if __DJGPP__ > 1
 #include <fcntl.h>  /* for O_RDONLY, O_RDWR */
+#include <crt0.h>   /* for _crt0_startup_flags and its bits */
+static int save_djgpp_startup_flags;
 #endif
 #include <coff.h>
 #define filehdr external_filehdr
@@ -884,6 +886,11 @@ copy_text_and_data (new, a_out)
   /* Dump the original table of exception handlers, not the one
      where our exception hooks are registered.  */
   __djgpp_exception_toggle ();
+
+  /* Switch off startup flags that might have been set at runtime
+     and which might change the way that dumped Emacs works.  */
+  save_djgpp_startup_flags = _crt0_startup_flags;
+  _crt0_startup_flags &= ~(_CRT0_FLAG_NO_LFN | _CRT0_FLAG_NEARPTR);
 #endif
 #endif
 
@@ -905,6 +912,9 @@ copy_text_and_data (new, a_out)
 #if __DJGPP__ >= 2
   /* Restore our exception hooks.  */
   __djgpp_exception_toggle ();
+
+  /* Restore the startup flags.  */
+  _crt0_startup_flags = save_djgpp_startup_flags;
 #endif
 #endif
 
