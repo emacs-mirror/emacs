@@ -1,3 +1,8 @@
+2004-02-16  Richard Sharman  <rsharman@pobox.com>
+
+	* hilit-chg.el: Use require instead of eval-and-compile.
+	(highlight-compare-buffers): New function.
+
 2004-02-16  John Basrai  <jbasrai@comcast.net>  (tiny change)
 
 	* man.el (Man-fontify-manpage): Render section headings in

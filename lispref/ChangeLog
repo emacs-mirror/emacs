@@ -1,3 +1,7 @@
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* processes.texi (Low-Level Network): Fix a typo.
+
 2004-02-12  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Fringes): Use consistent wording.
