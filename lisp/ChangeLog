@@ -1,3 +1,11 @@
+2002-04-24  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* progmodes/cc-cmds.el (c-mask-comment): More fixes when used
+	from `c-do-auto-fill' and point is at or near the limit of the
+	comment.  Fixed bug when the prefix from `c-guess-fill-prefix'
+	is longer than the text on the first line of the comment when
+	it's masked.
+
 2002-04-24  Miles Bader  <miles@gnu.org>
 
 	* menu-bar.el (menu-bar-update-buffers-1): Make sure
