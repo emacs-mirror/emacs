@@ -1,3 +1,19 @@
+2002-04-13  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Finsert_file_contents): 
+	Don't call temp_output_buffer_setup--do just part, by hand.
+
+	* coding.c (run_pre_post_conversion_on_str):
+	Don't call temp_output_buffer_setup--do just part, by hand.
+
+	* keyboard.c (command_loop_1): Don't call start_hourglass
+	or cancel_hourglass when executing a macro.
+
+	* marker.c (count_markers): New function.
+
+	* xdisp.c (display_mode_element): Don't let mode_line_proptrans_alist
+	grow without limit.  Move recently used elements to the front.
+
 2002-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* unexelf.c (unexec) [__sgi]: Undo the change from 2002-01-20.
