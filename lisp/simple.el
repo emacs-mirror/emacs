@@ -1139,6 +1139,9 @@ to make one entry in the kill ring."
     (copy-region-as-kill beg end)
     (delete-region beg end))))
 
+;; copy-region-as-kill no longer sets this-command, because it's confusing
+;; to get two copies of the text when the user accidentally types M-w and
+;; then corrects it with the intended C-w.
 (defun copy-region-as-kill (beg end)
   "Save the region as if killed, but don't kill it.
 If `interprogram-cut-function' is non-nil, also save the text for a window
