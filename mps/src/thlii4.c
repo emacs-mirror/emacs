@@ -1,12 +1,12 @@
 /*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
  *
- *  $HopeName: $
+ *  $HopeName: MMsrc!thlii3.c(trunk.1) $
  *  Copyright (C) 2000 Harlequin Ltd, all rights reserved
  *
- *  This is a pthreads implementation of the threads manager.
- *  See design.mps.thread-manager.
+ * .purpose: This is a pthreads implementation of the threads manager.
+ * This supports the impl.h.th
  *
- *  This supports the impl.h.th
+ * .design: See design.mps.thread-manager.
  *
  * .thread.id: The thread id is used to identify the current thread.
  *
@@ -47,8 +47,10 @@
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii3, "$HopeName: $");
+SRCID(thlii3, "$HopeName: MMsrc!thlii3.c(trunk.1) $");
 
+
+/* ThreadStruct -- thread desriptor */
 
 typedef struct ThreadStruct {    /* PThreads thread structure */
   Sig sig;                       /* design.mps.sig */
@@ -60,6 +62,8 @@ typedef struct ThreadStruct {    /* PThreads thread structure */
   struct sigcontext *scpSusp;    /* Context if thread is suspended */
 } ThreadStruct;
 
+
+/* ThreadCheck -- check a thread */
 
 Bool ThreadCheck(Thread thread)
 {
@@ -77,6 +81,8 @@ Bool ThreadCheckSimple(Thread thread)
   return TRUE;
 }
 
+
+/* ThreadRegister -- register a thread with an arena */
 
 Res ThreadRegister(Thread *threadReturn, Arena arena)
 {
@@ -114,6 +120,8 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 }
 
 
+/* ThreadDeregister -- deregister a thread from an arena */
+
 void ThreadDeregister(Thread thread, Arena arena)
 {
   AVERT(Thread, thread);
@@ -131,8 +139,8 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-/*  Map over threads on ring calling f on each one except the
- *  current thread.
+/*  mapThreadRing -- map over threads on ring calling a function on each one
+ *                   except the current thread
  */
 
 static void mapThreadRing(Ring threadRing, void (*func)(Thread))
@@ -151,6 +159,10 @@ static void mapThreadRing(Ring threadRing, void (*func)(Thread))
   }
 }
 
+
+/* ThreadRingSuspend -- suspend all threads on a ring, expect the current one */
+
+
 static void threadSuspend(Thread thread)
 {
   /* .error.suspend */
@@ -163,10 +175,16 @@ static void threadSuspend(Thread thread)
     thread->scpSusp = NULL;
 }
 
+
+
 void ThreadRingSuspend(Ring threadRing)
 {
   mapThreadRing(threadRing, threadSuspend);
 }
+
+
+/* ThreadRingResume -- resume all threads on a ring (expect the current one) */
+
 
 static void threadResume(Thread thread)
 {
@@ -187,6 +205,8 @@ void ThreadRingResume(Ring threadRing)
 }
 
 
+/* ThreadRingThread -- return the thread at the given ring element */
+
 Thread ThreadRingThread(Ring threadRing)
 {
   Thread thread;
@@ -197,14 +217,19 @@ Thread ThreadRingThread(Ring threadRing)
 }
 
 
-/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
+/* ThreadArena -- get the arena of a thread
+ *
+ * Must be thread-safe.  See design.mps.interface.c.thread-safety.
+ */
+
 Arena ThreadArena(Thread thread)
 {
-  /* Can't AVER thread as that would not be thread-safe */
-  /* AVERT(Thread, thread); */
+  /* Can't check thread as that would not be thread-safe. */
   return thread->arena;
 }
 
+
+/* ThreadScan -- scan the state of a thread (stack and regs) */
 
 Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 {
@@ -275,5 +300,3 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 
   return ResOK;
 }
-
-
