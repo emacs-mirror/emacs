@@ -1151,6 +1151,31 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     return Qnil;
 }
 
+/* Used when C code wants a resource value.  */
+
+char *
+x_get_resource_string (attribute, class)
+     char *attribute, *class;
+{
+  register char *value;
+  char *name_key;
+  char *class_key;
+
+  /* Allocate space for the components, the dots which separate them,
+     and the final '\0'.  */
+  name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
+			      + strlen (attribute) + 2);
+  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+			       + strlen (class) + 2);
+
+  sprintf (name_key, "%s.%s",
+	   XSTRING (Vinvocation_name)->data,
+	   attribute);
+  sprintf (class_key, "%s.%s", EMACS_CLASS, class);
+
+  return x_get_string_resource (xrdb, name_key, class_key);
+}
+
 #else	/* X10 */
 
 DEFUN ("x-get-default", Fx_get_default, Sx_get_default, 1, 1, 0,
