@@ -36,6 +36,7 @@
 	(encode_char): Adjusted for the change of
 	Fdefine_charset_internal.
 	(syms_of_charset): Likewise.
+	(Ffind_charset_string): Setup the vector `charsets' correctly.
 
 	* chartab.c (sub_char_table_ref_and_range): New arg defalt.  Fix
 	the previous change.

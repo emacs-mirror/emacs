@@ -1,3 +1,19 @@
+2002-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-update-leim-list-file): Force
+	writing the file by iso-2022-7bit.
+
+	* international/titdic-cnv.el (miscdic-convert): Force writing the
+	file by iso-2022-7bit.
+
+	* international/mule.el (define-charset): Change the attribute
+	:parents to :subset or :superset.
+
+	* international/mule-conf.el: Adjusted for the change of
+	define-charset (:parent -> :subset or :superset).
+
+	* international/characters.el: Fix the last change.
+
 2002-06-11  Dave Love  <fx@gnu.org>
 
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)

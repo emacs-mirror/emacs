@@ -49,7 +49,7 @@ Distribution date of this version of MULE (multilingual environment).")
   "Define NAME (symbol) as a charset with DOCSTRING.
 The remaining arguments must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE
 may be any symbol.  The following have special meanings, and one of
-`:code-offset', `:map', `:parents' must be specified.
+`:code-offset', `:map', `:subset', `:superset' must be specified.
 
 `:short-name'
 
