@@ -1015,12 +1015,12 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 	  message_dolog ("", 0, 1, 0);
 	  Vmessage_log_max = old_log_max;
 
-	  for (tail = Fbuffer_list (); CONSP (tail);
+	  for (tail = Vbuffer_alist; CONSP (tail);
 	       tail = XCONS (tail)->cdr)
 	    {
 	      Lisp_Object buffer;
 
-	      buffer = XCONS (tail)->car;
+	      buffer = Fcdr (XCONS (tail)->car);
 	      /* Verify that all buffers are empty now, as they
 		 ought to be.  */
 	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))
@@ -1839,11 +1839,11 @@ see `kill-emacs-query-functions' instead.");
 
 #ifdef SIGUSR1
   DEFVAR_LISP ("signal-USR1-hook", &Vsignal_USR1_hook,
-    "Hook to be run whenever emacs recieves a USR1 signal");
+    "Hook to be run whenever emacs receives a USR1 signal");
   Vsignal_USR1_hook = Qnil;
 #ifdef SIGUSR2
   DEFVAR_LISP ("signal-USR2-hook", &Vsignal_USR2_hook,
-    "Hook to be run whenever emacs recieves a USR2 signal");
+    "Hook to be run whenever emacs receives a USR2 signal");
   Vsignal_USR2_hook = Qnil;
 #endif
 #endif
