@@ -1,3 +1,13 @@
+2002-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (adjust_point_for_property): Handle `display' prop on
+	overlays.  Also handle `invisible' prop.
+
+2002-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* coding.c (decode_coding_emacs_mule, decode_coding_iso2022)
+	(decode_coding_sjis_big5, decode_eol): Allow lone \r in DOS EOL.
+
 2002-11-01  Andreas Schwab  <schwab@suse.de>
 
 	* editfns.c (Fmessage): Revert last change to properly handle %%
