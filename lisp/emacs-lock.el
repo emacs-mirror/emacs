@@ -74,7 +74,7 @@ If t is found, signal error and display the locked buffer name."
       (error "Buffer `%s' is locked, can't delete it" (buffer-name))))
 
 ; These next defuns make it so if you exit a shell that is locked,  the lock
-; is shut off for that shell so you can exit emacs.  same for telnet.
+; is shut off for that shell so you can exit emacs.  Same for telnet.
 ; Also, if a shell or a telnet buffer was locked and the process killed,
 ; turn the lock back on again if the process is restarted.
 
@@ -85,7 +85,7 @@ If t is found, signal error and display the locked buffer name."
 (defun emacs-lock-clear-sentinel (proc str)
   (if emacs-lock-from-exiting
       (progn
-        (setq emacs-lock-from-exiting nil)
+	(setq emacs-lock-from-exiting nil)
 	(setq emacs-lock-buffer-locked t)
 	(message "Buffer is now unlocked"))
     (setq emacs-lock-buffer-locked nil)))
