@@ -3783,19 +3783,25 @@ These functions are called in order with four arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
 MINI-P - non-nil iff BUFFER is a minibuffer,  and
-BASE-SIZE - the part of BUFFER which isn't part of completion.
+BASE-SIZE - the number of characters in BUFFER before
+the string being completed.
+
 If a function in the list returns non-nil, that function is supposed
 to have inserted the CHOICE in the BUFFER, and possibly exited
-the minibuffer; no further functions will be called.")
+the minibuffer; no further functions will be called.
 
-;; Switch to BUFFER and insert the completion choice CHOICE.
-;; BASE-SIZE, if non-nil, says how many characters of BUFFER's text
-;; to keep.  If it is nil, use choose-completion-delete-max-match instead.
+If all functions in the list return nil, that means to use
+the default method of inserting the completion in BUFFER.")
 
-;; If BUFFER is the minibuffer, exit the minibuffer
-;; unless it is reading a file name and CHOICE is a directory,
-;; or completion-no-auto-exit is non-nil.
 (defun choose-completion-string (choice &optional buffer base-size)
+  "Switch to BUFFER and insert the completion choice CHOICE.
+BASE-SIZE, if non-nil, says how many characters of BUFFER's text
+to keep.  If it is nil, use choose-completion-delete-max-match instead."
+
+  ;; If BUFFER is the minibuffer, exit the minibuffer
+  ;; unless it is reading a file name and CHOICE is a directory,
+  ;; or completion-no-auto-exit is non-nil.
+
   (let ((buffer (or buffer completion-reference-buffer))
 	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
