@@ -317,7 +317,7 @@ appropriately.
 multibyte strings should not be noticeable, since inserting them in
 unibyte buffers converts them to unibyte automatically.  However, if
 this does make a difference, you can force a particular Lisp file to be
-interpreted as unibyte by writing @samp{-*-coding: raw-text;-*-} in a
+interpreted as unibyte by writing @samp{-*-unibyte: t;-*-} in a
 comment on the file's first line.  With that designator, the file will
 be unconditionally be interpreted as unibyte, even in an ordinary
 multibyte Emacs session.
