@@ -2043,7 +2043,7 @@ beginning and `after-revert-hook' at the end."
 	   (after-find-file nil nil t))
 	  (t (error "Recover-file cancelled.")))))
 
-(defun multiple-recover ()
+(defun recover-session ()
   "Recover auto save files from a previous Emacs session.
 This command first displays a Dired buffer showing you the
 previous sessions that you could recover from.
