@@ -88,6 +88,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** Support for the SQLite interpreter has been added to sql.el by calling
+'sql-sqlite'.
+
 ** BibTeX mode:
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 *** bibtex-maintain-sorted-entries can take values `plain',
@@ -1327,7 +1330,7 @@ numbers.  For instance, (number-sequence 4 9) returns (4 5 6 7 8 9).
 By default, the separation is 1, but you can specify a different separation
 as the third argument.  (number-sequence 1.5 6 2) returns (1.5 3.5 5.5).
 
-** `file-chase-links' now takes an optional second argument LIMIT which 
+** `file-chase-links' now takes an optional second argument LIMIT which
 specifies the maximum number of links to chase through.  If after that
 many iterations the file name obtained is still a symbolic link,
 `file-chase-links' returns it anyway.
@@ -2033,7 +2036,7 @@ This is particularly good because the intangible property often has
 unexpected side-effects since the property applies to everything
 (including `goto-char', ...) whereas this new code is only run after
 post-command-hook and thus does not care about intermediate states.
-	
+
 ** Only one of the beginning or end of an invisible, intangible region is
 considered an acceptable value for point; which one is determined by
 examining how the invisible/intangible properties are inherited when new

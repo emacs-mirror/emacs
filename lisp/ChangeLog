@@ -1,3 +1,7 @@
+2003-06-17  Pinku Surana  <surana@rcn.com>
+
+	* progmodes/sql.el: Add support for SQLite interpreter.
+
 2003-06-17  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	Version 2.0.35 of Tramp released.
