@@ -1,3 +1,8 @@
+2001-12-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* gnus-mlspl.el (gnus-group-split-fancy): Doc fix (add reference
+	to variable, follow doc-string conventions).
+
 2001-12-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-view.el: Partially sync with the Gnus CVS.
