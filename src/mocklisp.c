@@ -1,5 +1,5 @@
 /* Mocklisp compatibility functions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -140,7 +140,9 @@ DEFUN ("ml-provide-prefix-argument", Fml_provide_prefix_argument, Sml_provide_pr
 {
   struct gcpro gcpro1;
   GCPRO1 (args);
-  Vcurrent_prefix_arg = Feval (Fcar (args));
+  if (!current_perdisplay)
+    abort ();
+  current_perdisplay->Vcurrent_prefix_arg = Feval (Fcar (args));
   UNGCPRO;
   return Feval (Fcar (Fcdr (args)));
 }
@@ -156,11 +158,13 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
   struct gcpro gcpro1;
 
   /* Set `arg' in case we call a built-in function that looks at it.  Still are a few. */
-  if (NILP (Vcurrent_prefix_arg))
+  if (!current_perdisplay)
+    abort ();
+  tem = current_perdisplay->Vcurrent_prefix_arg;
+  if (NILP (tem))
     i = 1;
   else
     {
-      tem = Vcurrent_prefix_arg;
       if (CONSP (tem))
 	tem = Fcar (tem);
       if (EQ (tem, Qminus))
