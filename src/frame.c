@@ -114,6 +114,7 @@ Lisp_Object Qface_set_after_frame_default;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
+Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
 Lisp_Object Vdelete_frame_functions;
@@ -3217,13 +3218,11 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	   ? vertical_scroll_bar_left
 	   : EQ (Qright, arg)
 	   ? vertical_scroll_bar_right
-#ifdef HAVE_NTGUI
-	   /* MS-Windows has scroll bars on the right by default.  */
-	   : vertical_scroll_bar_right
-#else
-	   : vertical_scroll_bar_left
-#endif
-	   );
+	   : EQ (Qleft, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_left
+	   : EQ (Qright, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_right
+	   : vertical_scroll_bar_none);
 
       /* We set this parameter before creating the X window for the
 	 frame, so we can get the geometry right from the start.
@@ -4031,6 +4030,19 @@ The `menu-bar-lines' element of the list controls whether new frames
  have menu bars; `menu-bar-mode' works by altering this element.
 Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
+
+  DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
+	       doc: /* Default position of scroll bars on this window-system.  */);
+#ifdef HAVE_WINDOW_SYSTEM
+#if defined(HAVE_NTGUI) || defined(HAVE_CARBON)
+  /* MS-Windows has scroll bars on the right by default.  */
+  Vdefault_frame_scroll_bars = Qright;
+#else
+  Vdefault_frame_scroll_bars = Qleft;
+#endif
+#else
+  Vdefault_frame_scroll_bars = Qnil;
+#endif
 
   Qinhibit_default_face_x_resources
     = intern ("inhibit-default-face-x-resources");
