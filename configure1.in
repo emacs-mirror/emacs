@@ -889,6 +889,9 @@ case "${canonical}" in
   mips-sony-bsd* )
     machine=news-risc opsys=bsd4-3
   ;;
+  mips-sony-newsos* )
+    machine=mips opsys=newsos5
+  ;;
 
   ## Stride
   m68*-stride-sysv* )
