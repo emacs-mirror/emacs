@@ -387,10 +387,7 @@ typedef struct
    prototype (if we are ANSI), and once without (if we aren't) -- we
    use the following macro to declare argument types.  This
    unfortunately clutters up the declarations a bit, but I think it's
-   worth it.
-   
-   We may also have to undo `const' if we are not ANSI -- but if it has
-   already been defined, as by Autoconf's AC_CONST, don't do anything.  */
+   worth it.  */
 
 #if __STDC__
 
@@ -399,18 +396,6 @@ typedef struct
 #else /* not __STDC__ */
 
 #define _RE_ARGS(args) ()
-
-#ifndef USING_AUTOCONF
-
-#ifndef HAVE_CONST
-#define const
-#else
-#if !HAVE_CONST
-#define const
-#endif
-#endif
-
-#endif /* not USING_AUTOCONF */
 
 #endif /* not __STDC__ */
 
