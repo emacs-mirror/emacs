@@ -568,8 +568,9 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 	    }
 	  else
 	    {
-	      m->charpos += diff_chars;
-	      m->bytepos += diff_bytes;
+	      m->charpos = min (from + new_chars, m->charpos + diff_chars);
+	      m->bytepos = min (from_byte + new_bytes,
+				m->bytepos + diff_bytes);
 	    }
 	}
       else if (m->bytepos >= from_byte)
@@ -1188,8 +1189,8 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
     offset_intervals (current_buffer, PT, nchars);
 
   if (!inherit && BUF_INTERVALS (current_buffer) != 0)
-    Fset_text_properties (make_number (PT), make_number (PT + nchars),
-			  Qnil, Qnil);
+    set_text_properties (make_number (PT), make_number (PT + nchars),
+			 Qnil, Qnil, Qnil);
 
   {
     int pos = PT, pos_byte = PT_BYTE;
