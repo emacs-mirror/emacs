@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -458,7 +458,8 @@ redisplay ()
 				 XFASTINT (w->width) - 1
 				 - (XFASTINT (w->width) + XFASTINT (w->left)
 				    != SCREEN_WIDTH (selected_screen)),
-				 XINT (w->hscroll), 0);
+				 XINT (w->hscroll),
+				 pos_tab_offset (w, tlbufpos));
 	  if (pos.vpos < 1)
 	    {
 	      SCREEN_CURSOR_X (selected_screen)
