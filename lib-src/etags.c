@@ -3250,16 +3250,16 @@ absolute_filename (file, cwd)
 		    return ".";
 		}
 	      slashp = cp;
+	      continue;
 	    }
 	  else if (slashp[2] == '/' || slashp[2] == '\0')
 	    {
 	      strcpy (slashp, slashp + 2);
+	      continue;
 	    }
 	}
-      else
-	{
-	  slashp = etags_strchr (slashp + 1, '/');
-	}
+
+      slashp = etags_strchr (slashp + 1, '/');
     }
 
   return res;
