@@ -40,16 +40,15 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
   QCUT_BUFFER4, QCUT_BUFFER5, QCUT_BUFFER6, QCUT_BUFFER7;
 #endif
 
-Lisp_Object Vx_lost_selection_hooks;
-Lisp_Object Vx_sent_selection_hooks;
+static Lisp_Object Vx_lost_selection_hooks;
+static Lisp_Object Vx_sent_selection_hooks;
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
    than this.  The max-request-size is usually around 64k, so if you want
    emacs to use incremental selection transfers when the selection is 
    smaller than that, set this.  I added this mostly for debugging the
-   incremental transfer stuff, but it might improve server performance.
- */
+   incremental transfer stuff, but it might improve server performance.  */
 #define MAX_SELECTION_QUANTUM 0xFFFFFF
 
 #ifdef HAVE_X11R4
@@ -72,22 +71,19 @@ unsigned long last_event_timestamp;
    If there is an entry in this alist, then it can be assumed that Emacs owns
     that selection.
    The only (eq) parts of this list that are visible from Lisp are the
-    selection-values.
- */
-Lisp_Object Vselection_alist;
+    selection-values.  */
+static Lisp_Object Vselection_alist;
 
 /* This is an alist whose CARs are selection-types (whose names are the same
    as the names of X Atoms) and whose CDRs are the names of Lisp functions to
    call to convert the given Emacs selection value to a string representing 
    the given selection type.  This is for Lisp-level extension of the emacs
-   selection handling.
- */
-Lisp_Object Vselection_converter_alist;
+   selection handling.  */
+static Lisp_Object Vselection_converter_alist;
 
 /* If the selection owner takes too long to reply to a selection request,
-   we give up on it.  This is in milliseconds (0 = no timeout.)
- */
-int x_selection_timeout;
+   we give up on it.  This is in milliseconds (0 = no timeout.)  */
+static int x_selection_timeout;
 
 /* Utility functions */
 
