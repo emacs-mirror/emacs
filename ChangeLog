@@ -1648,7 +1648,7 @@ line.  Change logs above this notice are those for the 21.x code line.
 1996-04-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* config.bat: Set djgpp-ver, and unset it at the end.
-	Add a number ofconditionals for DJGPP version 2.
+	Add a number of conditionals for DJGPP version 2.
 	Rename label libsrc2 to libsrc3.
 	Substitute for LDFLAGS in src/Makefile.
 	Substitute for ALL_CFLAGS in lib-src/Makefile.
