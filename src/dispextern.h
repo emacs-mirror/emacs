@@ -2556,6 +2556,9 @@ int window_box_left P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
 int estimate_mode_line_height P_ ((struct frame *, enum face_id));
+void pixel_to_glyph_coords P_ ((struct frame *, int, int, int *, int *,
+				NativeRectangle *, int));
+int glyph_to_pixel_coords P_ ((struct window *, int, int, int *, int *));
 void mark_window_display_accurate P_ ((Lisp_Object, int));
 void redisplay_preserve_echo_area P_ ((int));
 void set_cursor_from_row P_ ((struct window *, struct glyph_row *,
