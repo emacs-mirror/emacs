@@ -6,24 +6,24 @@
 @node Standard Hooks, Antinews, Standard Keymaps, Top
 @appendix Standard Hooks
 
-The following is a list of hook variables which let you provide
+The following is a list of hook variables that let you provide
 functions to be called from within Emacs on suitable occasions. 
 
-Most of these variables have names ending with @samp{-hook} are
-@dfn{normal hooks}, that are run with @code{run-hooks}.  The value of
-such a hook is a list of functions.  The recommended way to put a new
+Most of these variables have names ending with @samp{-hook}.  They are
+@dfn{normal hooks}, run by means of @code{run-hooks}.  The value of such
+a hook is a list of functions.  The recommended way to put a new
 function on such a hook is to call @code{add-hook}.  @xref{Hooks}, for
 more information about using hooks.
 
 The variables whose names end in @samp{-function} have single functions
 as their values.  Usually there is a specific reason why the variable is
-not a normal hook, such as, the need to pass an argument to the
-function.  (In older Emacs versions, some of these variables had
-names ending in @samp{-hook} even though they were not normal hooks.)
+not a normal hook, such as the need to pass arguments to the function.
+(In older Emacs versions, some of these variables had names ending in
+@samp{-hook} even though they were not normal hooks.)
 
-The variables whose names end in @samp{-hooks} have lists of functions
-as their values, but these functions are called in a special way (they
-are passed arguments, or else their values are used).
+The variables whose names end in @samp{-hooks} or @samp{-functions} have
+lists of functions as their values, but these functions are called in a
+special way (they are passed arguments, or else their values are used).
 
 @c !!! need  xref  to where each hook is documented or else document it
 @c by specifying what is expected, and when it is called relative to

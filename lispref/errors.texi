@@ -8,15 +8,15 @@
 
   Here is the complete list of the error symbols in standard Emacs,
 grouped by concept.  The list includes each symbol's message (on the
-@code{error-message} property of the symbol), and a cross reference to a
+@code{error-message} property of the symbol) and a cross reference to a
 description of how the error can occur.
 
-  Each error symbol has an @code{error-conditions} property which is a
-list of symbols.  Normally, this list includes the error symbol itself,
+  Each error symbol has an @code{error-conditions} property that is a
+list of symbols.  Normally this list includes the error symbol itself
 and the symbol @code{error}.  Occasionally it includes additional
-symbols, which are intermediate classifications, narrower than @code{error}
-but broader than a single error symbol.  For example, all the errors
-in accessing files have the condition @code{file-error}.
+symbols, which are intermediate classifications, narrower than
+@code{error} but broader than a single error symbol.  For example, all
+the errors in accessing files have the condition @code{file-error}.
 
   As a special exception, the error symbol @code{quit} does not have the
 condition @code{error}, because quitting is not considered an error.
@@ -62,9 +62,9 @@ This is not a @code{file-error}.@*
 @xref{Input Functions}.
 
 @item file-error
-This error, and its subcategories, do not have
-error-strings, because the error message is constructed from the data
-items alone when the error condition @code{file-error} is present.@*
+This error and its subcategories do not have error-strings, because the
+error message is constructed from the data items alone when the error
+condition @code{file-error} is present.@*
 @xref{Files}.
 
 @item file-locked     
@@ -77,7 +77,7 @@ This is a @code{file-error}.@*
 
 @item file-supersession
 This is a @code{file-error}.@*
-@xref{Buffer Modification}.
+@xref{Modification Time}.
 
 @item invalid-function
 @code{"Invalid function"}@*

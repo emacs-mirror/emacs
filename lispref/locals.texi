@@ -8,9 +8,9 @@
 @c The title "Standard Buffer-Local Variables" is too long for
 @c smallbook. --rjc 30mar92
 
-  The table below shows all of the variables that are automatically
-local (when set) in each buffer in Emacs Version 18 with the common
-packages loaded.
+  The table below lists the general-purpose Emacs variables that are
+automatically local (when set) in each buffer.  Many Lisp packages
+define such variables for their internal use; we don't list them here.
 
 @table @code
 @item abbrev-mode

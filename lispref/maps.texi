@@ -8,7 +8,7 @@
 
 The following symbols are used as the names for various keymaps.
 Some of these exist when Emacs is first started, others are
-only loaded when their respective mode is used.  This is not
+loaded only when their respective mode is used.  This is not
 an exhaustive list.
 
 Almost all of these maps are used as local maps.  Indeed, of the modes
@@ -22,7 +22,7 @@ A full keymap used by Buffer Menu mode.
 
 @item c-mode-map
 @vindex c-mode-map
-A sparse keymap used in C mode as a local map.
+A sparse keymap used by C mode.
 
 @item command-history-map
 @vindex command-history-map
@@ -64,7 +64,7 @@ A full keymap used by Electric Command History mode.
 
 @item emacs-lisp-mode-map
 @vindex emacs-lisp-mode-map
-A sparse keymap used in Emacs Lisp mode.
+A sparse keymap used by Emacs Lisp mode.
 
 @item function-key-map
 @vindex function-key-map
@@ -96,16 +96,16 @@ search.
 
 @item key-translation-map
 @vindex key-translation-map
-Another keymap for translating keys.  This one overrides ordinary key
-bindings.
+A keymap for translating keys.  This one overrides ordinary key
+bindings, unlike @code{function-key-map}.
 
 @item lisp-interaction-mode-map
 @vindex lisp-interaction-mode-map
-A sparse keymap used in Lisp mode.
+A sparse keymap used by Lisp mode.
 
 @item lisp-mode-map
 @vindex lisp-mode-map
-A sparse keymap used in Lisp mode.
+A sparse keymap used by Lisp mode.
 
 @item mode-specific-map
 The keymap for characters following @kbd{C-c}.  Note, this is in the
@@ -115,7 +115,7 @@ where it describes the main use of the @kbd{C-c} prefix key.
 
 @item occur-mode-map
 @vindex occur-mode-map
-A local keymap used in Occur mode.
+A local keymap used by Occur mode.
 
 @item query-replace-map
 A local keymap used for responses in @code{query-replace} and related
