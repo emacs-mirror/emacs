@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part I [calc-misc.el]
+;;; calc-misc.el --- miscellaenous functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc.el.
 (require 'calc)
@@ -121,8 +126,8 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	    (calc-quit)
 	    (calc nil calc-full-mode nil))))
     (message (if calc-full-mode
-		 "Now using full screen for Calc."
-	       "Now using partial screen for Calc."))))
+		 "Now using full screen for Calc"
+	       "Now using partial screen for Calc"))))
 
 (defun calc-other-window ()
   "Invoke the Calculator in another window."
@@ -630,8 +635,8 @@ loaded and the keystroke automatically re-typed."
 	    ((equal a '(var inf var-inf)) t))
     (> a 0)))
 
-(defalias math-fixnump 'integerp)
-(defalias math-fixnatnump 'natnump)
+(defalias 'math-fixnump 'integerp)
+(defalias 'math-fixnatnump 'natnump)
 
 
 ;;; True if A is an even integer.  [P R R] [Public]
@@ -678,7 +683,7 @@ loaded and the keystroke automatically re-typed."
 	 (math-scale-int (nth 1 a) (nth 2 a)))
 	(t (calc-extensions)
 	   (math-trunc-fancy a))))
-(defalias calcFunc-trunc 'math-trunc)
+(defalias 'calcFunc-trunc 'math-trunc)
 
 ;;; Coerce A to be an integer (by truncation toward minus infinity).  [I N]
 (defun math-floor (a &optional prec)    ;  [Public]
@@ -693,7 +698,7 @@ loaded and the keystroke automatically re-typed."
 	   (math-trunc a)))
 	(t (calc-extensions)
 	   (math-floor-fancy a))))
-(defalias calcFunc-floor 'math-floor)
+(defalias 'calcFunc-floor 'math-floor)
 
 
 (defun math-imod (a b)   ; [I I I] [Public]
@@ -821,7 +826,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (mail nil calc-bug-address topic)
   (goto-char (point-max))
   (insert "\nIn Calc " calc-version ", Emacs " (emacs-version) "\n\n")
-  (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
-(defalias calc-report-bug 'report-calc-bug)
+  (message (substitute-command-keys "Type \\[mail-send] to send bug report")))
+(defalias 'calc-report-bug 'report-calc-bug)
 
 ;;; calc-misc.el ends here
