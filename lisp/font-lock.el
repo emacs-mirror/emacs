@@ -97,7 +97,7 @@
 
 ;;;###autoload
 (defvar font-lock-maximum-decoration nil
-  "*If non-nil, the maximum decoration level for fontifying.
+  "*Maximum decoration level for fontification.
 If nil, use the default decoration (typically the minimum available).
 If t, use the maximum decoration available.
 If a number, use that level of decoration (or if not available the maximum).
@@ -109,7 +109,7 @@ available for buffers in `c-mode', and level 1 decoration otherwise.")
 
 ;;;###autoload
 (defvar font-lock-maximum-size (* 250 1024)
-  "*If non-nil, the maximum size for buffers for fontifying.
+  "*Maximum size of a buffer for buffer fontification.
 Only buffers less than this can be fontified when Font Lock mode is turned on.
 If nil, means size is irrelevant.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
@@ -516,12 +516,12 @@ Turn on only if the buffer mode supports it and the terminal can display it."
 ;; `major-mode-hook' is simpler), but maybe someone can come up with another
 ;; solution? --sm.
 
-(defvar font-lock-cache-buffers nil)		; For remembering buffers.
-(defvar change-major-mode-hook nil)		; Make sure it's not void.
+(defvar font-lock-buffers nil)		; For remembering buffers.
+(defvar change-major-mode-hook nil)	; Make sure it's not void.
 
 ;;;###autoload
 (defvar font-lock-global-modes t
-  "*List of modes for which Font Lock mode is automatically turned on.
+  "*Modes for which Font Lock mode is automatically turned on.
 Global Font Lock mode is controlled by the `global-font-lock-mode' command.
 If nil, means no modes have Font Lock mode automatically turned on.
 If t, all modes that support Font Lock mode have it automatically turned on.
@@ -546,7 +546,7 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	(remove-hook 'change-major-mode-hook 'font-lock-change-major-mode)
       (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
       (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-      (setq font-lock-cache-buffers (buffer-list)))
+      (setq font-lock-buffers (buffer-list)))
     (if message
 	(message "Global Font Lock mode is now %s." (if off-p "OFF" "ON")))
     (not off-p)))
@@ -557,23 +557,23 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
   ;; major mode is being changed.  Run `turn-on-font-lock-if-enabled' after the
   ;; current command has finished.
   (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-  (add-to-list 'font-lock-cache-buffers (current-buffer)))
+  (add-to-list 'font-lock-buffers (current-buffer)))
 
 (defun turn-on-font-lock-if-enabled ()
   ;; Gross hack warning: Delicate readers should avert eyes now.
   ;; Turn on Font Lock mode if it's one of `font-lock-global-modes'.
   (remove-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-  (while font-lock-cache-buffers
-    (if (buffer-live-p (car font-lock-cache-buffers))
+  (while font-lock-buffers
+    (if (buffer-live-p (car font-lock-buffers))
 	(save-excursion
-	  (set-buffer (car font-lock-cache-buffers))
+	  (set-buffer (car font-lock-buffers))
 	  (if (or (eq font-lock-global-modes t)
 		  (if (eq (car-safe font-lock-global-modes) 'not)
 		      (not (memq major-mode (cdr font-lock-global-modes)))
 		    (memq major-mode font-lock-global-modes)))
 	      (let (inhibit-quit)
 		(turn-on-font-lock)))))
-    (setq font-lock-cache-buffers (cdr font-lock-cache-buffers))))
+    (setq font-lock-buffers (cdr font-lock-buffers))))
 
 ;; End of Global Font Lock mode.
 
@@ -1051,41 +1051,40 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   (font-lock-make-faces)
   ;; Set fontification defaults.
   (make-local-variable 'font-lock-fontified)
-  (if font-lock-keywords
-      nil
-    (let* ((defaults (or font-lock-defaults
-			 (cdr (assq major-mode font-lock-defaults-alist))))
-	   (keywords
-	    (font-lock-choose-keywords (nth 0 defaults)
-	     (font-lock-value-in-major-mode font-lock-maximum-decoration))))
-      ;; Regexp fontification?
-      (setq font-lock-keywords (if (fboundp keywords)
-				   (funcall keywords)
-				 (eval keywords)))
-      ;; Syntactic fontification?
-      (if (nth 1 defaults)
-	  (set (make-local-variable 'font-lock-keywords-only) t))
-      ;; Case fold during regexp fontification?
-      (if (nth 2 defaults)
-	  (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
-      ;; Syntax table for regexp and syntactic fontification?
-      (if (nth 3 defaults)
-	  (let ((slist (nth 3 defaults)))
-	    (set (make-local-variable 'font-lock-syntax-table)
-		 (copy-syntax-table (syntax-table)))
-	    (while slist
-	      (modify-syntax-entry (car (car slist)) (cdr (car slist))
-				   font-lock-syntax-table)
-	      (setq slist (cdr slist)))))
-      ;; Syntax function for syntactic fontification?
-      (if (nth 4 defaults)
-	  (set (make-local-variable 'font-lock-beginning-of-syntax-function)
-	       (nth 4 defaults)))
-      ;; Variable alist?
-      (let ((alist (nthcdr 5 defaults)))
-	(while alist
-	  (set (make-local-variable (car (car alist))) (cdr (car alist)))
-	  (setq alist (cdr alist)))))))
+  (if (member font-lock-keywords '(nil (t)))
+      (let* ((defaults (or font-lock-defaults
+			   (cdr (assq major-mode font-lock-defaults-alist))))
+	     (keywords
+	      (font-lock-choose-keywords (nth 0 defaults)
+	       (font-lock-value-in-major-mode font-lock-maximum-decoration))))
+	;; Regexp fontification?
+	(setq font-lock-keywords (if (fboundp keywords)
+				     (funcall keywords)
+				   (eval keywords)))
+	;; Syntactic fontification?
+	(if (nth 1 defaults)
+	    (set (make-local-variable 'font-lock-keywords-only) t))
+	;; Case fold during regexp fontification?
+	(if (nth 2 defaults)
+	    (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
+	;; Syntax table for regexp and syntactic fontification?
+	(if (nth 3 defaults)
+	    (let ((slist (nth 3 defaults)))
+	      (set (make-local-variable 'font-lock-syntax-table)
+		   (copy-syntax-table (syntax-table)))
+	      (while slist
+		(modify-syntax-entry (car (car slist)) (cdr (car slist))
+				     font-lock-syntax-table)
+		(setq slist (cdr slist)))))
+	;; Syntax function for syntactic fontification?
+	(if (nth 4 defaults)
+	    (set (make-local-variable 'font-lock-beginning-of-syntax-function)
+		 (nth 4 defaults)))
+	;; Variable alist?
+	(let ((alist (nthcdr 5 defaults)))
+	  (while alist
+	    (set (make-local-variable (car (car alist))) (cdr (car alist)))
+	    (setq alist (cdr alist)))))))
 
 (defun font-lock-unset-defaults ()
   "Unset fontification defaults.  See `font-lock-set-defaults'."
