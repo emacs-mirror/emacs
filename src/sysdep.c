@@ -1294,8 +1294,8 @@ init_sys_modes ()
 /* cus-start.el complains if delete-exited-processes is not defined */
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
-    "*Non-nil means delete processes immediately when they exit.\n\
-nil means don't delete them until `list-processes' is run.");
+	       doc: /* *Non-nil means delete processes immediately when they exit.
+nil means don't delete them until `list-processes' is run.  */);
   delete_exited_processes = 0;
 #endif
 #endif /* not macintosh */
