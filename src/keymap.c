@@ -1048,7 +1048,9 @@ DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
   "Find all keymaps accessible via prefix characters from KEYMAP.\n\
 Returns a list of elements of the form (KEYS . MAP), where the sequence\n\
 KEYS starting from KEYMAP gets you to MAP.  These elements are ordered\n\
-so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
+so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).\n\
+An optional argument PREFIX, if non-nil, should be a key sequence;\n\
+then the value includes only maps for prefixes that start with PREFIX.")
   (startmap, prefix)
      Lisp_Object startmap, prefix;
 {
