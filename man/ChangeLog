@@ -1,3 +1,7 @@
+2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (emacsman): New target.
+
 2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mule.texi (Fontsets): Remove the description of variable

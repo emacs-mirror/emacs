@@ -1,3 +1,7 @@
+2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* TUTORIAL.fr: New file.  From ,AI(Bric Jacoboni <jaco@teaser.fr>.
+
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile (mostlyclean, clean, distclean, maintainer-clean):
