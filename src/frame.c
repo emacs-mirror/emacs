@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003, 2004
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -911,7 +911,12 @@ DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
 Subsequent editing commands apply to its selected window.
 The selection of FRAME lasts until the next time the user does
 something to select a different frame, or until the next time this
-function is called.  */)
+function is called.  If you are using a window system, the previously
+selected frame may be restored as the selected frame after return to
+the command loop, because it still may have the window system's input
+focus.  On a text-only terminal, the next redisplay will display FRAME.
+
+This function returns FRAME, or nil if FRAME has been deleted.  */)
   (frame, no_enter)
     Lisp_Object frame, no_enter;
 {
@@ -1039,6 +1044,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
        Sset_frame_selected_window, 2, 2, 0,
        doc: /* Set the selected window of frame object FRAME to WINDOW.
+Return WINDOW.
 If FRAME is nil, the selected frame is used.
 If FRAME is the selected frame, this makes WINDOW the selected window.  */)
      (frame, window)
@@ -1937,7 +1943,11 @@ DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p,
        doc: /* Return t if FRAME is now \"visible\" (actually in use for display).
 A frame that is not \"visible\" is not updated and, if it works through
 a window system, it may not show at all.
-Return the symbol `icon' if frame is visible only as an icon.  */)
+Return the symbol `icon' if frame is visible only as an icon.
+
+On a text-only terminal, all frames are considered visible, whether
+they are currently being displayed or not, and this function returns t
+for all frames.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -1977,7 +1987,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 
 DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
        doc: /* Bring FRAME to the front, so it occludes any frames it overlaps.
-If FRAME is invisible, make it visible.
+If FRAME is invisible or iconified, make it visible.
 If you don't specify a frame, the selected frame is used.
 If Emacs is displaying on an ordinary terminal or some other device which
 doesn't support multiple overlapping frames, this function does nothing.  */)

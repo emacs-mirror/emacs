@@ -532,7 +532,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 ;;;; Creation of additional frames, and other frame miscellanea
 
 (defun modify-all-frames-parameters (alist)
-  "Modify all current and future frames parameters according to ALIST.
+  "Modify all current and future frames' parameters according to ALIST.
 This changes `default-frame-alist' and possibly `initial-frame-alist'.
 See help of `modify-frame-parameters' for more information."
   (let (element)			;; temp
@@ -856,6 +856,8 @@ where
   "Restore the frames to the state described by CONFIGURATION.
 Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION.
+However, this function does not restore deleted frames.
+
 Ordinarily, this function deletes all existing frames not
 listed in CONFIGURATION.  But if optional second argument NODELETE
 is given and non-nil, the unwanted frames are iconified instead."
