@@ -600,6 +600,8 @@ Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\ ))
   (let ((buffer-read-only nil)
+	;; Don't modify the undo list at all.
+	(buffer-undo-list t)
 	(modified (buffer-modified-p))
 	(name buffer-file-name)
 	insert-end)
