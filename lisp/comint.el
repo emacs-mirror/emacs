@@ -124,13 +124,13 @@
 ;;;     comint-input-send	- function         ...
 ;;;     comint-eol-on-send	- boolean          ...
 ;;;     comint-process-echoes   - boolean          ...
-;;;     comint-scroll-to-bottom-on-input - symbol For scroll behaviour
+;;;     comint-scroll-to-bottom-on-input - symbol For scroll behavior
 ;;;     comint-scroll-to-bottom-on-output - symbol    ...
 ;;;     comint-scroll-show-maximum-output - boolean   ...
 ;;;
 ;;; Comint mode non-buffer local variables:
 ;;;     comint-completion-addsuffix - boolean   For file name completion
-;;;     comint-completion-autolist  - boolean       behaviour
+;;;     comint-completion-autolist  - boolean       behavior
 ;;;     comint-completion-recexact  - boolean       ...
 
 (defvar comint-prompt-regexp "^"
@@ -161,7 +161,7 @@ This is a good thing to set in mode hooks.")
 
 (defvar comint-input-autoexpand 'history
   "*If non-nil, expand input command history references on completion.
-This mirrors the optional behaviour of the tcsh (its autoexpand and histlit).
+This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
 If the value is `input', then the expansion is seen on input.
 If the value is `history', then the expansion is only when inserting
@@ -172,7 +172,7 @@ This variable is buffer-local.")
 
 (defvar comint-input-ignoredups nil
   "*If non-nil, don't add input matching the last on the input ring.
-This mirrors the optional behaviour of the bash.
+This mirrors the optional behavior of bash.
 
 This variable is buffer-local.")
 
@@ -193,7 +193,7 @@ The default nil.
 See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local.")
 
 (defvar comint-scroll-to-bottom-on-output 
-  (if (> baud-rate 9600) 'this)
+  nil
   "*Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
@@ -1197,17 +1197,18 @@ This function should be in the list `comint-output-filter-functions'."
     (if (and process scroll (not (window-minibuffer-p selected)))
 	(walk-windows
 	 (function (lambda (window)
-	   (if (and (eq (window-buffer window) current)
-		    (or (eq scroll t) (eq scroll 'all)
-			(and (eq scroll 'this) (eq selected window))
-			(and (eq scroll 'others) (not (eq selected window)))))
+	   (if (eq (window-buffer window) current)
 	       (progn
 		 (select-window window)
-		 ;; If point WAS at process mark in this window,
-		 ;; keep it at process mark.
-		 (and (>= (point) (- (process-mark process) (length string)))
-		      (< (point) (process-mark process))
-		      (goto-char (process-mark process)))
+		 (if (or (eq scroll t) (eq scroll 'all)
+			 ;; Maybe user wants point to jump to the end.
+			 (and (eq scroll 'this) (eq selected window))
+			 (and (eq scroll 'others) (not (eq selected window)))
+			 ;; If point was at the end, keep it at the end.
+			 (and (>= (point)
+				  (- (process-mark process) (length string)))
+			      (< (point) (process-mark process))))
+		     (goto-char (process-mark process)))
 		 ;; Optionally scroll so that the text
 		 ;; ends at the bottom of the window.
 		 (if (and comint-scroll-show-maximum-output
@@ -1714,15 +1715,15 @@ See `comint-prompt-regexp'."
 
 (defvar comint-completion-autolist nil
   "*If non-nil, automatically list possiblities on partial completion.
-This mirrors the optional behaviour of the tcsh.")
+This mirrors the optional behavior of tcsh.")
 
 (defvar comint-completion-addsuffix t
   "*If non-nil, add a `/' to completed directories, ` ' to file names.
-This mirrors the optional behaviour of the tcsh.")
+This mirrors the optional behavior of tcsh.")
 
 (defvar comint-completion-recexact nil
   "*If non-nil, use shortest completion if characters cannot be added.
-This mirrors the optional behaviour of the tcsh.
+This mirrors the optional behavior of tcsh.
 
 A non-nil value is useful if `comint-completion-autolist' is non-nil too.")
 
