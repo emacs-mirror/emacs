@@ -104,14 +104,19 @@ first will be printed into the backtrace buffer."
 			       (forward-line 1)
 			       (point)))
 	      (debugger-reenable)
+	      ;; lambda is for debug-on-call when a function call is next.
+	      ;; debug is for debug-on-entry function called.
 	      (cond ((memq (car debugger-args) '(lambda debug))
 		     (insert "Entering:\n")
 		     (if (eq (car debugger-args) 'debug)
 			 (progn
-			   (backtrace-debug 4 t)
+			   ;; Skip the frames for backtrace-debug, byte-code,
+			   ;; and debug.
+			   (backtrace-debug 3 t)
 			   (delete-char 1)
 			   (insert ?*)
 			   (beginning-of-line))))
+		    ;; Exiting a function.
 		    ((eq (car debugger-args) 'exit)
 		     (insert "Return value: ")
 		     (setq debugger-value (nth 1 debugger-args))
@@ -120,12 +125,15 @@ first will be printed into the backtrace buffer."
 		     (delete-char 1)
 		     (insert ? )
 		     (beginning-of-line))
+		    ;; Debugger entered for an error.
 		    ((eq (car debugger-args) 'error)
 		     (insert "Signalling: ")
 		     (prin1 (nth 1 debugger-args) (current-buffer))
 		     (insert ?\n))
+		    ;; debug-on-call, when the next thing is an eval.
 		    ((eq (car debugger-args) t)
 		     (insert "Beginning evaluation of function call form:\n"))
+		    ;; User calls debug directly.
 		    (t
 		     (prin1 (if (eq (car debugger-args) 'nil)
 				(cdr debugger-args) debugger-args)
