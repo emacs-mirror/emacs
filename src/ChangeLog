@@ -1,5 +1,7 @@
 2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacs.c: Use argv[0] instead of emacs when -t was specified.
+
 	* keyboard.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
 	Fix typos in comments.
