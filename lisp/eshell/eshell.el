@@ -389,7 +389,7 @@ With prefix ARG, insert output into the current buffer at point."
 	      (message "(There was no command output)")
 	      (kill-buffer buf))
 	     ((= len 1)
-	      (message (buffer-string))
+	      (message "%s" (buffer-string))
 	      (kill-buffer buf))
 	     (t
 	      (save-selected-window
