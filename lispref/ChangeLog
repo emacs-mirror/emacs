@@ -1,3 +1,8 @@
+2005-02-23  Lute Kamstra  <lute@gnu.org>
+
+	* display.texi (Managing Overlays): overlay-buffer returns nil for
+	deleted overlays.
+
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.texi (Basic Completion): Allow symbols in addition to
