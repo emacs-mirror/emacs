@@ -820,6 +820,7 @@ For example:
 
 (defvar gnus-group-toolbar-map nil)
 
+;; Emacs 21 tool bar.  Should be no-op otherwise.
 (defun gnus-group-make-tool-bar ()
   (if (and (fboundp 'tool-bar-add-item-from-menu)
 	   (default-value 'tool-bar-mode)
