@@ -98,7 +98,6 @@ arriving, or after."
 (defun eshell-prompt-initialize ()
   "Initialize the prompting code."
   (unless eshell-non-interactive-p
-    (make-local-hook 'eshell-post-command-hook)
     (add-hook 'eshell-post-command-hook 'eshell-emit-prompt nil t)
 
     (make-local-variable 'eshell-prompt-regexp)
