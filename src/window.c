@@ -5008,7 +5008,7 @@ the return value is nil.  Otherwise the value is t.")
          when the frame's old selected window has been deleted.  */
       if (f != selected_frame && FRAME_WINDOW_P (f))
 	do_switch_frame (WINDOW_FRAME (XWINDOW (data->root_window)),
-			 Qnil, 0);
+			 0, 0);
 #endif
 
       /* Set the screen height to the value it had before this function.  */
@@ -5056,7 +5056,7 @@ the return value is nil.  Otherwise the value is t.")
 	 Fselect_window above totally superfluous; it still sets f's
 	 selected window.  */
       if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-	do_switch_frame (data->selected_frame, Qnil, 0);
+	do_switch_frame (data->selected_frame, 0, 0);
 
       if (! NILP (Vwindow_configuration_change_hook)
 	  && ! NILP (Vrun_hooks))
