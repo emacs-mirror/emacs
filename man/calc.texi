@@ -4757,10 +4757,11 @@ or 24 hours.
 @end smallexample
 
 @noindent
-In this last step, Calc has found a new number which, when multiplied
-by 5 modulo 24, produces the original number, 21.  If @var{m} is prime
-it is always possible to find such a number.  For non-prime @var{m}
-like 24, it is only sometimes possible.
+In this last step, Calc has divided by 5 modulo 24; i.e., it has found a
+new number which, when multiplied by 5 modulo 24, produces the original
+number, 21.  If @var{m} is prime and the divisor is not a multiple of
+@var{m}, it is always possible to find such a number.  For non-prime
+@var{m} like 24, it is only sometimes possible. 
 
 @smallexample
 @group
