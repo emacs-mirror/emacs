@@ -1,3 +1,18 @@
+2001-05-08  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-workday-remaining): Changed
+	logic for determining how much time is remaining.
+	(timeclock-workday-elapsed): Don't accept a "relative" argument
+	for the current day's elapsed time.  What could that have meant?
+	(timeclock-workday-elapsed-string): No "relative" argument
+	anymore.
+	(timeclock-when-to-leave): Changed logic, similarly to what was
+	done for `timeclock-workday-remaining'.
+	(timeclock-find-discrep): Removed "today-only" argument, which had
+	no meaning.  Fixed some more math problems.  The function now
+	returns a three member list: (TOTAL-TIME-DISCREPANCY
+	TODAYS-TIME-DISCREPANCY TODAYS-ELAPSED-TIME).
+
 2001-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w32-fns.el (convert-standard-filename): Start replacing slashes
