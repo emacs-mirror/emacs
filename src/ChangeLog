@@ -1,3 +1,9 @@
+2000-04-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (xpm_load) [DEBUG_X_COLORS]: Register colors.
+
+	* s/freebsd.h (LD_SWITCH_SYSTEM): Add `-L /usr/local/lib'.
+
 2000-04-14  Dave Love  <fx@gnu.org>
 
 	* s/aix3-1.h, s/bsd4-2.h, s/bsd4-3.h, s/cxux.h, s/dgux.h, s/gnu.h:
@@ -20,7 +26,7 @@
 
 2000-04-14  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (LIBS, IBOBJS): New variable.
+	* Makefile.in (LIBS, LIBOBJS): New variable.
 	(INTERVAL_SRC): Convert to make variable.
 	(INTERVAL_OBJ, MKTIME_OBJ, FLOAT_SUPPORT, FACE_SUPPORT)
 	(HAVE_X_WINDOWS, OBJECTS_SYSTEM): Remove.
