@@ -5524,6 +5524,13 @@ x_scroll_run (w, run)
   updated_window = w;
   x_clear_cursor (w);
 
+#if 0
+  /* The following fixes a bug where Emacs is partially obscured by
+     another Window.  It works perfectly in the CVS head, but leaves
+     a false cursor behind under certain conditions in 21.2.  It's not
+     obvious why, but the blinking cursor seems to pause for an extra
+     second after scrolling in 21.2, and it is when the cursor is moved
+     within that brief period that it gets left behind.  */
   {
     RECT from;
     RECT to;
@@ -5548,6 +5555,13 @@ x_scroll_run (w, run)
     if (!EqualRgn (combined, expect_dirty))
       SET_FRAME_GARBAGED (f);
   }
+#else
+  {
+    HDC hdc = get_frame_dc (f);
+    BitBlt (hdc, x, to_y, width, height, hdc, x, from_y, SRCCOPY);
+    release_frame_dc (f, hdc);
+  }
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -7391,7 +7405,8 @@ show_mouse_face (dpyinfo, draw)
 	      x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 			     start_hpos, end_hpos, draw, 0);
 
-	      row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
+	      row->mouse_face_p
+		= draw == DRAW_MOUSE_FACE || draw == DRAW_IMAGE_RAISED;
 	    }
 	}
 
