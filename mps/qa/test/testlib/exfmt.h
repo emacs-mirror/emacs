@@ -27,6 +27,32 @@ extern int splurgeassoc; /* write to associated objects (but don't change) */
 
 extern mps_addr_t exfmt_root;
 
+/* the counters are visible so that I can check whether things
+   get moved etc
+*/
+
+enum {
+ SCANCALL_COUNT,
+ SCANOBJ_COUNT, /* = read objects scanned */
+ SCANPAD_COUNT, /* = pads scanned */
+ SCANHEART_COUNT, /* = hearts scanned */
+ COPY_COUNT,
+ SKIP_COUNT,
+ FWD_COUNT,
+ ISFWD_COUNT,
+ RESERVE_COUNT,
+ ALLOC_COUNT,
+ DYING_REFERENCE_COUNT,
+ PAD_COUNT /* must come last or array sizes will be too small */
+};
+
+extern int counters[PAD_COUNT+1];
+extern int prevcounters[PAD_COUNT+1];
+extern int maxcounters[PAD_COUNT+1];
+
+long int maxcopy;
+int freeze;
+
 /* the object format is visible so tests that want to
    can hack around with it
 */
