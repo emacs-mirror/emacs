@@ -124,8 +124,7 @@ new value."
 	 (set-default variable value)
 	 (and (boundp 'help-at-pt-timer)
 	      help-at-pt-timer
-	      (timer-set-idle-time help-at-pt-timer value t)))
-  :version "21.4")
+	      (timer-set-idle-time help-at-pt-timer value t))))
 
 ;;;###autoload
 (defun help-at-pt-cancel-timer ()
@@ -228,8 +227,7 @@ properties, to enable buffer local values."
 	       (help-at-pt-cancel-timer)
 	     (help-at-pt-set-timer)))
   :set-after '(help-at-pt-timer-delay)
-  :require 'help-at-pt
-  :version "21.4")
+  :require 'help-at-pt)
 
 ;; Function for use in `help-at-pt-set-timer'.
 (defun help-at-pt-maybe-display ()
