@@ -154,6 +154,13 @@ int auto_saving;
    a new file with the same mode as the original */
 int auto_save_mode_bits;
 
+/* The symbol bound to coding-system-for-read when
+   insert-file-contents is called for recovering a file.  This is not
+   an actual coding system name, but just an indicator to tell
+   insert-file-contents to use `emacs-mule' with a special flag for
+   auto saving and recovering a file.  */
+Lisp_Object Qauto_save_coding;
+
 /* Coding system for file names, or nil if none.  */
 Lisp_Object Vfile_name_coding_system;
 
@@ -3764,7 +3771,20 @@ actually used.  */)
 	}
     }
 
-  if (BEG < Z)
+  if (EQ (Vcoding_system_for_read, Qauto_save_coding))
+    {
+      /* We use emacs-mule for auto saving... */
+      setup_coding_system (Qemacs_mule, &coding);
+      /* ... but with the special flag to indicate to read in a
+	 multibyte sequence for eight-bit-control char as is.  */
+      coding.flags = 1;
+      coding.src_multibyte = 0;
+      coding.dst_multibyte
+	= !NILP (current_buffer->enable_multibyte_characters);
+      coding.eol_type = CODING_EOL_LF;
+      coding_system_decided = 1;
+    }
+  else if (BEG < Z)
     {
       /* Decide the coding system to use for reading the file now
          because we can't use an optimized method for handling
@@ -4663,7 +4683,14 @@ choose_write_coding_system (start, end, filename,
   Lisp_Object val;
 
   if (auto_saving)
-    val = Qnil;
+    {
+      /* We use emacs-mule for auto saving... */
+      setup_coding_system (Qemacs_mule, coding);
+      /* ... but with the special flag to indicate not to strip off
+	 leading code of eight-bit-control chars.  */
+      coding->flags = 1;
+      goto done_setup_coding;
+    }
   else if (!NILP (Vcoding_system_for_write))
     {
       val = Vcoding_system_for_write;
@@ -6294,6 +6321,7 @@ syms_of_fileio ()
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
+  Qauto_save_coding = intern ("auto-save-coding");
 
   staticpro (&Qexpand_file_name);
   staticpro (&Qsubstitute_in_file_name);
@@ -6326,6 +6354,7 @@ syms_of_fileio ()
   staticpro (&Qwrite_region);
   staticpro (&Qverify_visited_file_modtime);
   staticpro (&Qset_visited_file_modtime);
+  staticpro (&Qauto_save_coding);
 
   Qfile_name_history = intern ("file-name-history");
   Fset (Qfile_name_history, Qnil);
