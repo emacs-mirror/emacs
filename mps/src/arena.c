@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.14) $
+ * $HopeName: MMsrc!arena.c(trunk.16) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.14) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.16) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -900,6 +900,14 @@ Res ArenaRetract(Arena arena, Addr base, Size size)
   EVENT_PAW(ArenaRetract, arena, base, size);
 
   return ResOK;
+}
+
+Bool ArenaIsReservedAddr(Arena arena, Addr addr)
+{
+  AVERT(Arena, arena);
+  /* addr is arbitrary */
+
+  return (*arena->class->isReserved)(arena, addr);
 }
 
 /* .seg.critical: These segment functions are low-level and used 
