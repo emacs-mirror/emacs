@@ -829,8 +829,18 @@ used except, e.g., when other requirements force a safer encoding
 (digitally signed messages require 7bit encoding).  Besides the normal
 @acronym{MIME} encodings, @code{qp-or-base64} may be used to indicate that for
 each case the most efficient of quoted-printable and base64 should be
-used.  You can override this setting on a per-message basis by using
-the @code{encoding} @acronym{MML} tag (@pxref{MML Definition}).
+used.
+
+@code{qp-or-base64} has another effect.  It will fold long lines so that
+MIME parts may not be broken by MTA.  So do @code{quoted-printable} and
+@code{base64}.
+
+Note that it affects body encoding only when a part is a raw forwarded
+message (which will be made by @code{gnus-summary-mail-forward} with the
+arg 2 for example) or is neither the @samp{text/*} type nor the
+@samp{message/*} type.  Even though in those cases, you can override
+this setting on a per-message basis by using the @code{encoding}
+@acronym{MML} tag (@pxref{MML Definition}).
 
 @item mm-use-ultra-safe-encoding
 @vindex mm-use-ultra-safe-encoding
@@ -1299,11 +1309,6 @@ library does.
 The following variables are tweakable:
 
 @table @code
-@item rfc2047-default-charset
-@vindex rfc2047-default-charset
-Characters in this charset should not be decoded by this library.
-This defaults to @code{iso-8859-1}.
-
 @item rfc2047-header-encoding-alist
 @vindex rfc2047-header-encoding-alist
 This is an alist of header / encoding-type pairs.  Its main purpose is
@@ -1311,9 +1316,10 @@ to prevent encoding of certain headers.
 
 The keys can either be header regexps, or @code{t}.
 
-The values can be either @code{nil}, in which case the header(s) in
-question won't be encoded, or @code{mime}, which means that they will be
-encoded.
+The values can be @code{nil}, in which case the header(s) in question
+won't be encoded, @code{mime}, which means that they will be encoded, or
+@code{address-mime}, which means the header(s) will be encoded carefully
+assuming they contain addresses.
 
 @item rfc2047-charset-encoding-alist
 @vindex rfc2047-charset-encoding-alist
@@ -1325,13 +1331,6 @@ specifies which charset should use which encoding.
 @vindex rfc2047-encoding-function-alist
 This is an alist of encoding / function pairs.  The encodings are
 @code{Q}, @code{B} and @code{nil}.
-
-@item rfc2047-q-encoding-alist
-@vindex rfc2047-q-encoding-alist
-The @code{Q} encoding isn't quite the same for all headers.  Some
-headers allow a narrower range of characters, and that is what this
-variable is for.  It's an alist of header regexps / allowable character
-ranges.
 
 @item rfc2047-encoded-word-regexp
 @vindex rfc2047-encoded-word-regexp
