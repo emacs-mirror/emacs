@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.3) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -86,7 +86,7 @@ static void ap_create_v_test(mps_pool_t pool, mps_rank_t rank, ...)
   mps_ap_t apt;
   va_list args;
 
-  va_start(args, pool);
+  va_start(args, rank);
   die(mps_ap_create_v(&apt, pool, rank, args), "ap_create_v");
   va_end(args);
   mps_ap_destroy(apt);
