@@ -1121,7 +1121,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  newpos = skip_invisible (pos, &next_boundary, to, window);
 
 	  if (newpos >= to)
-	    goto after_loop;
+	    {
+	      pos = min (to, newpos);
+	      goto after_loop;
+	    }
 
 	  if (newpos != pos_here)
 	    {
