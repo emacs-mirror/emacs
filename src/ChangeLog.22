@@ -1,3 +1,41 @@
+2004-03-04  Kenichi Handa  <handa@m17n.org>
+
+	The following changes are to support for bi-directional text
+	displaying.
+
+	* Makefile.in (obj): Include bidi.o.
+	(bidi.o): New target.
+	(xdisp.o): Depend on bidi.h.
+
+	* bidi.c: New file.
+
+	* buffer.h (struct buffer): Member name direction_reversed is
+	changed to orientation_reversed.  New member
+	enable_bidi_display.
+
+	* buffer.c (init_buffer_once): Adjusted for the above change.
+	(syms_of_buffer): Declarations of Lisp variables
+	default-direction-reversed and direction_reversed are deleted.
+	New declarations for Lisp vairables default-orientation-reversed
+	and default-enable-bidi-display, orientation_reversed,
+	enable_bidi_display.
+
+	* dispextern.h (BIDI_MAXLEVEL): New macro.
+	(bidi_type_t, bidi_dir_t): New types.
+	(bidi_saved_info, bidi_stack, bidi_it): New structs.
+	(struct it): New members bidi_p and bidi_it.
+	(bidi_init_it): Extern it.
+	(bidi_get_next_char_visually): Extern it.
+
+	* dispnew.c (direct_output_forward_char): Give up if we need bidi
+	processing or buffer's orientation is right-to-left.
+
+	* xdisp.c (init_iterator): Initialize it->bidi_p.
+	(reseat_1): Cal bidi_init_it and bidi_get_next_char_visually if
+	necessary.
+	(set_iterator_to_next): Cal bidi_get_next_char_visually if
+	necessary.
+
 2004-03-03  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fface_font): New optional arg CHARACTER.
