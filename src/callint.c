@@ -161,6 +161,7 @@ check_mark ()
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 2, 0,
   "Call FUNCTION, reading args according to its interactive calling specs.\n\
+Return the value FUNCTION returns.\n\
 The function contains a specification of how to do the argument reading.\n\
 In the case of user-defined functions, this is specified by placing a call\n\
 to the function `interactive' at the top level of the function body.\n\
