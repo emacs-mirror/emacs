@@ -291,16 +291,20 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
 				       hankaku)))))))
 
 ;;;###autoload
-(defun japanese-zenkaku-region (from to)
+(defun japanese-zenkaku-region (from to &optional katakana-only)
   "Convert hankaku' chars in the region to Japanese `zenkaku' chars.
 `Zenkaku' chars belong to `japanese-jisx0208'
-`Hankaku' chars belong to `ascii' or `japanese-jisx0201-kana'."
-  (interactive "r")
+`Hankaku' chars belong to `ascii' or `japanese-jisx0201-kana'.
+Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char."
+  (interactive "r\nP")
   (save-restriction
     (narrow-to-region from to)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "\\ca\\|\\ck" nil t)
+      (while (or (and katakana-only
+		      (re-search-forward "\\ck" nil t))
+		 (and (not katakana-only)
+		      (re-search-forward "\\ca\\|\\ck" nil t)))
 	(let* ((hankaku (preceding-char))
 	       (composition (get-char-code-property hankaku 'kana-composition))
 	       next slot)
