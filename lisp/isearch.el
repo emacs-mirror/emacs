@@ -238,25 +238,25 @@ and `lazy-highlight-interval')."
 (defcustom lazy-highlight-cleanup t
   "*Controls whether to remove extra highlighting after a search.
 If this is nil, extra highlighting can be \"manually\" removed with
-\\[isearch-lazy-highlight-cleanup]."
+\\[lazy-highlight-cleanup]."
   :type 'boolean
   :group 'lazy-highlight)
 (defvaralias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
-(make-obsolete-variable 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
+(make-obsolete-variable 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup "22.1")
 
 (defcustom lazy-highlight-initial-delay 0.25
   "*Seconds to wait before beginning to lazily highlight all matches."
   :type 'number
   :group 'lazy-highlight)
 (defvaralias 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay)
-(make-obsolete-variable 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay)
+(make-obsolete-variable 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay "22.1")
 
 (defcustom lazy-highlight-interval 0 ; 0.0625
   "*Seconds between lazily highlighting successive matches."
   :type 'number
   :group 'lazy-highlight)
 (defvaralias 'isearch-lazy-highlight-interval 'lazy-highlight-interval)
-(make-obsolete-variable 'isearch-lazy-highlight-interval 'lazy-highlight-interval)
+(make-obsolete-variable 'isearch-lazy-highlight-interval 'lazy-highlight-interval "22.1")
 
 (defcustom lazy-highlight-max-at-a-time 20
   "*Maximum matches to highlight at a time (for `lazy-highlight').
@@ -267,7 +267,7 @@ A value of nil means highlight all matches."
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
 (defvaralias 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time)
-(make-obsolete-variable 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time)
+(make-obsolete-variable 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time "22.1")
 
 (defface lazy-highlight
   '((((class color) (min-colors 88) (background light))
@@ -284,7 +284,7 @@ A value of nil means highlight all matches."
 (put 'isearch-lazy-highlight-face 'face-alias 'lazy-highlight)
 (defvar lazy-highlight-face 'lazy-highlight)
 (defvaralias 'isearch-lazy-highlight-face 'lazy-highlight-face)
-(make-obsolete-variable 'isearch-lazy-highlight-face 'lazy-highlight-face)
+(make-obsolete-variable 'isearch-lazy-highlight-face 'lazy-highlight-face "22.1")
 
 ;; Define isearch-mode keymap.
 
@@ -768,7 +768,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight)
-  (isearch-lazy-highlight-cleanup lazy-highlight-cleanup)
+  (lazy-highlight-cleanup lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
     (if isearch-window-configuration
@@ -2329,7 +2329,7 @@ since they have special meaning in a regexp."
 (defvar isearch-lazy-highlight-case-fold-search nil)
 (defvar isearch-lazy-highlight-regexp nil)
 
-(defun isearch-lazy-highlight-cleanup (&optional force)
+(defun lazy-highlight-cleanup (&optional force)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
 FORCE non-nil means do it whether or not `lazy-highlight-cleanup'
 is nil.  This function is called when exiting an incremental search if
@@ -2343,6 +2343,9 @@ is nil.  This function is called when exiting an incremental search if
   (when isearch-lazy-highlight-timer
     (cancel-timer isearch-lazy-highlight-timer)
     (setq isearch-lazy-highlight-timer nil)))
+
+(defalias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
+(make-obsolete 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup "22.1")
 
 (defun isearch-lazy-highlight-new-loop (beg end)
   "Cleanup any previous `lazy-highlight' loop and begin a new one.
@@ -2365,7 +2368,7 @@ by other Emacs features."
                  (not (= (window-end)   ; Window may have been split/joined.
                          isearch-lazy-highlight-window-end))))
     ;; something important did indeed change
-    (isearch-lazy-highlight-cleanup t) ;kill old loop & remove overlays
+    (lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (when (not isearch-error)
       (setq isearch-lazy-highlight-start-limit beg
 	    isearch-lazy-highlight-end-limit end)
@@ -2443,7 +2446,7 @@ Attempt to do the search exactly the way the pending isearch would."
 			;; non-zero-length match
 			(let ((ov (make-overlay mb me)))
 			  (push ov isearch-lazy-highlight-overlays)
-			  (overlay-put ov 'face isearch-lazy-highlight-face)
+			  (overlay-put ov 'face lazy-highlight-face)
 			  (overlay-put ov 'priority 0) ;lower than main overlay
 			  (overlay-put ov 'window (selected-window))))
 		      (if isearch-forward
