@@ -1,3 +1,8 @@
+2000-12-20  Miles Bader  <miles@gnu.org>
+
+	* international/quail.el (quail-help): Resize the help window
+	again after it has all its contents.  Remove unneeded progn.
+
 2000-12-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* pcmpl-linux.el: Fix copy/paste error.
