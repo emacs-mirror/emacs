@@ -1803,6 +1803,30 @@ call3 (fn, arg, arg1, arg2)
 #endif /* not NO_ARG_ARRAY */
 }
 
+/* Call function fn with arguments arg, arg1, arg2, arg3 */
+/* ARGSUSED */
+Lisp_Object
+call4 (fn, arg, arg1, arg2, arg3)
+     Lisp_Object fn, arg, arg1, arg2, arg3;
+{
+  struct gcpro gcpro1;
+#ifdef NO_ARG_ARRAY
+  Lisp_Object args[5];
+  args[0] = fn;
+  args[1] = arg;
+  args[2] = arg1;
+  args[3] = arg2;
+  args[4] = arg3;
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 5;
+  RETURN_UNGCPRO (Ffuncall (5, args));
+#else /* not NO_ARG_ARRAY */
+  GCPRO1 (fn);
+  gcpro1.nvars = 5;
+  RETURN_UNGCPRO (Ffuncall (5, &fn));
+#endif /* not NO_ARG_ARRAY */
+}
+
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
   "Call first argument as a function, passing remaining arguments to it.\n\
 Thus, (funcall 'cons 'x 'y) returns (x . y).")

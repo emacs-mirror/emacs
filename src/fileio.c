@@ -1748,7 +1748,8 @@ This is what happens in interactive use with M-x.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
-    return call3 (handler, Qrename_file, filename, newname);
+    return call4 (handler, Qrename_file,
+		  filename, newname, ok_if_already_exists);
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
