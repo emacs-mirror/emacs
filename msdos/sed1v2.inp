@@ -50,6 +50,7 @@ s/\.h\.in/.h-in/
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	else mv \.\/\.gdbinit/d
 /^	#/d
+/^	cd.*make-docfile/s!$!; cd ${dot}${dot}/src!
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/
