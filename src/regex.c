@@ -4661,7 +4661,7 @@ mutually_exclusive_p (bufp, p1, p2)
     case wordbeg:
     case syntaxspec:
       return ((re_opcode_t) *p1 == notsyntaxspec
-	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+	      && p1[1] == (op2 == wordbeg ? Sword : p2[1]));
 
     case wordbound:
       return (((re_opcode_t) *p1 == notsyntaxspec
