@@ -1039,7 +1039,7 @@ Bind this in case the user sets it to nil."
 ;; of the sort that is found in pointers in nodes.
 
 (defun Info-goto-node (nodename &optional fork)
-  "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME.
+  "Go to info node named NODENAME.  Give just NODENAME or (FILENAME)NODENAME.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new info buffer.
 If FORK is a string, it is the name to use for the new buffer."
