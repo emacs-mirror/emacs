@@ -305,12 +305,6 @@ composed.")
     (buffer-substring (match-beginning 0) (match-end 0))))
 
 
-;; Serves as an interface to `mail' (sendmail.el), but when the user
-;; answers "no" to discarding an unsent message, it gives an error.
-(defun reporter-mail (&rest args)
-  (or (apply 'mail args)
-      (error "Bug report aborted")))
-
 (defun reporter-compose-outgoing ()
   ;; compose the outgoing mail buffer, and return the selected
   ;; paradigm, with the current-buffer tacked onto the beginning of
@@ -319,11 +313,11 @@ composed.")
 	 (compose (get mail-user-agent 'composefunc)))
     ;; Sanity check.  If this fails then we'll try to use the SENDMAIL
     ;; protocol, otherwise we must signal an error.
-    (if (not (and compose (fboundp compose)))
+    (if (not (and compose (functionp compose)))
 	(progn
 	  (setq agent 'sendmail-user-agent
 		compose (get agent 'composefunc))
-	  (if (not (and compose (fboundp compose)))
+	  (if (not (and compose (functionp compose)))
 	      (error "Could not find a valid `mail-user-agent'")
 	    (ding)
 	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'"
