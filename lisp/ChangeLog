@@ -1,3 +1,14 @@
+2003-09-04  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
+	being displayed in GUD buffer.
+	(gdb-idle-input-queue): Remove var. Use just one queue.
+	(gdb-enqueue-idle-input,gdb-dequeue-idle-input): Remove
+	functions. Use just one queue.
+	(gdb-prompt, gdb-subprompt, def-gdb-auto-update-trigger)
+	(gdb-invalidate-assembler, gdb-get-current-frame): Modify
+	functions. Use just one queue.
+
 2003-09-04  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add blink-cursor-alist.
