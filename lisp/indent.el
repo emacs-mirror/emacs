@@ -53,7 +53,7 @@ Function to indent current line.")
     (if abbrev-mode
 	(expand-abbrev))
     (if indent-tabs-mode
-	(insert ?\t count)
+	(insert-char ?\t count)
       (indent-to (* tab-width (+ count (/ (current-column) tab-width)))))))
 
 (defun indent-rigidly (start end arg)
