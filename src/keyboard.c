@@ -3678,7 +3678,7 @@ reorder_modifiers (symbol)
   Lisp_Object parsed;
 
   parsed = parse_modifiers (symbol);
-  return apply_modifiers (XINT (XCONS (XCONS (parsed)->cdr)->car),
+  return apply_modifiers ((int) XINT (XCONS (XCONS (parsed)->cdr)->car),
 			  XCONS (parsed)->car);
 }
 
