@@ -1,3 +1,9 @@
+2002-10-29  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-mouse-popup-menu): Set point before popping
+	up filter groups menu.  Preserve point unless a menu command has
+	moved it from point clicked.
+
 2002-10-29  David Kastrup  <dak@lola.goethe.zz>
 
 	* calc/calc.el (calc-any-evaltos): Initialize to nil, since
