@@ -1446,7 +1446,11 @@ FROM can be a generic character (see `make-char').  In this case, TO is
 a generic character containing the same number of characters, or a
 ordinary character.  If FROM and TO are both generic characters, all
 characters belonging to FROM are translated to characters belonging to TO
-without changing their position code(s)."
+without changing their position code(s).
+
+The arguments and forms in each argument are processed in the given
+order, and if a previous form already translates TO to some other
+character, say TO-ALT, FROM is also translated to TO-ALT."
   (let ((table (make-char-table 'translation-table))
 	revlist)
     (while args
