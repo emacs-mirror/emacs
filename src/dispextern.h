@@ -2238,7 +2238,7 @@ void forall_images_in_image_cache P_ ((struct frame *,
 int valid_image_p P_ ((Lisp_Object));
 void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));
-extern struct frame *tip_frame;
+extern Lisp_Object tip_frame;
 extern Window tip_window;
 EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
