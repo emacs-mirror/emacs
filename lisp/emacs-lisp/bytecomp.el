@@ -2610,6 +2610,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 save-restriction)
 (byte-defop-compiler-1 save-window-excursion)
 (byte-defop-compiler-1 with-output-to-temp-buffer)
+(byte-defop-compiler-1 track-mouse)
 
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
@@ -2623,6 +2624,15 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
+
+(defun byte-compile-track-mouse (form)
+  (byte-compile-form
+   (list
+    'funcall
+    (list 'quote
+	  (list 'lambda nil
+		(list 'track-mouse
+		      (byte-compile-top-level (nth 1 form))))))))
 
 (defun byte-compile-condition-case (form)
   (let* ((var (nth 1 form))
