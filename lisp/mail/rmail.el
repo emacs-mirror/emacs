@@ -488,7 +488,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; This binding is necessary because we much decide if we
 	 ;; need code conversion while the buffer is unibyte
 	 ;; (i.e. enable-multibyte-characters is nil).
-	 (rmail-enable-multibyte (default-value 'enable-multibyte-characters))
+         (rmail-enable-multibyte
+          (if existed 
+	      (with-current-buffer existed enable-multibyte-characters)
+            (default-value 'enable-multibyte-characters)))
 	 ;; Since the file may contain messages of different encodings
 	 ;; at the tail (non-BYBYL part), we can't decode them at once
 	 ;; on reading.  So, at first, we read the file without text
@@ -966,15 +969,27 @@ Instead, these commands are available:
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
-  (let ((revert-buffer-function (default-value 'revert-buffer-function)))
+  (let* ((revert-buffer-function (default-value 'revert-buffer-function))
+	 (rmail-enable-multibyte enable-multibyte-characters)
+	 ;; See similar code in `rmail'.
+	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text)))
     ;; Call our caller again, but this time it does the default thing.
     (if (revert-buffer arg noconfirm)
 	;; If the user said "yes", and we changed something,
 	;; reparse the messages.
 	(progn
+	  (rmail-mode-2)
+	  ;; Convert all or part to Babyl file if possible.
 	  (rmail-convert-file)
+	  ;; We have read the file as raw-text, so the buffer is set to
+	  ;; unibyte.  Make it multibyte if necessary.
+	  (if (and rmail-enable-multibyte
+		   (not enable-multibyte-characters))
+	      (set-buffer-multibyte t))
 	  (goto-char (point-max))
-	  (rmail-mode)))))
+	  (rmail-set-message-counters)
+	  (rmail-show-message rmail-total-messages)
+	  (run-hooks 'rmail-mode-hook)))))
 
 ;; Return a list of files from this buffer's Mail: option.
 ;; Does not assume that messages have been parsed.
