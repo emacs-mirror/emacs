@@ -263,7 +263,7 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"german-postfix\"."))
+but the default input method is set to \"german-postfix\"."))
  '("European"))
 
 (set-language-info-alist
@@ -291,8 +291,8 @@ but default input method is set to \"german-postfix\"."))
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"spanish-postfix\",
-and select's the Spanish tutorial."))
+but the default input method is set to \"spanish-postfix\",
+and it selects the Spanish tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -307,7 +307,8 @@ and select's the Spanish tutorial."))
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
-but select's the Dutch tutorial."))
+but the default input method is set to \"dutch\",
+and it selects the Dutch tutorial."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
