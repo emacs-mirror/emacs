@@ -1,5 +1,9 @@
 2002-03-31  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (file-expand-wildcards): Use save-match-data.
+
+	* files.el (format-alist): Mark as risky.
+	
 	* simple.el (kill-new): Doc fix.
 
 	* emacs-lisp/byte-opt.el (side-effect-free-fns)
