@@ -41,7 +41,7 @@ Default is system-dependent, and is the same as used by Rmail.")
   "*Seconds between updates of time in the mode line.")
 
 (defvar display-time-24hr-format nil
-  "*Non-nill indicates time should be displayed as hh:mm, 0 <= hh <= 23.
+  "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
 Nil means 1 <= hh <= 12, and an AM/PM suffix is used.")
 
 (defvar display-time-string nil)
@@ -126,18 +126,25 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
          (mail-spool-file (or display-time-mail-file
                               (getenv "MAIL")
                               (concat rmail-spool-directory
-                                      (or (getenv "LOGNAME")
-                                          (getenv "USER")
-                                          (user-login-name)))))
-         (mail (and (file-exists-p mail-spool-file)
-                    (display-time-file-nonempty-p mail-spool-file)))
+                                      (user-login-name))))
+	 (mail (and (or (null display-time-server-down-time)
+			;; If have been down for 20 min, try again.
+			(> (- (nth 1 (current-time))
+			      display-time-server-down-time)
+			   1200))
+		    (let ((start-time (current-time)))
+		      (prog1
+			  (display-time-file-nonempty-p mail-spool-file)
+			(if (> (- (nth 1 (current-time)) (nth 1 start-time))
+			       20)
+			    ;; Record that mail file is not accessible.
+			    (setq display-time-server-down-time 
+				  (nth 1 (current-time)))
+			  ;; Record that mail file is accessible.
+			  (setq display-time-server-down-time nil))))))
          (24-hours (substring time 11 13))
          (hour (string-to-int 24-hours))
-         (12-hours (int-to-string (if (> hour 12)
-                                      (- hour 12)
-                                    (if (= hour 0)
-                                        12
-                                      hour))))
+         (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
