@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.  You must have autoconf
-dnl version 1.8 or later.
+dnl version 1.9 or later.
 dnl
 dnl The following text appears in the resulting `configure' script,
 dnl explaining how to rebuild it.
@@ -876,7 +876,7 @@ case "${canonical}" in
   mips-siemens-sysv* )
     machine=mips-siemens opsys=usg5-4
     NON_GNU_CC=/usr/ccs/bin/cc
-    NON_GNU_CPP=/usr/ccs/bin/cc -E
+    NON_GNU_CPP="/usr/ccs/bin/cc -E"
   ;;
 
   ## Silicon Graphics machines
