@@ -34,7 +34,6 @@
 ;; - nested comments in sgml-mode are not properly quoted.
 ;; - single-char nestable comment-start can only do the "\\s<+" stuff
 ;;   if the corresponding closing marker happens to be right.
-;; - comment-box in TeXinfo generate bogus comments @ccccc@
 ;; - uncomment-region with a numeric argument can render multichar
 ;;   comment markers invalid.
 ;; - comment-indent or comment-region when called inside a comment
@@ -614,7 +613,7 @@ If N is `re', a regexp is returned instead, that would match
 
 ;;;###autoload
 (defun uncomment-region (beg end &optional arg)
-  "Uncomment each line in the BEG..END region.
+  "Uncomment each line in the BEG .. END region.
 The numeric prefix ARG can specify a number of chars to remove from the
 comment markers."
   (interactive "*r\nP")
@@ -624,6 +623,9 @@ comment markers."
     (goto-char beg)
     (setq end (copy-marker end))
     (let ((numarg (prefix-numeric-value arg))
+	  (ccs comment-continue)
+	  (srei (comment-padright ccs 're))
+	  (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
 	  spt)
       (while (and (< (point) end)
 		  (setq spt (comment-search-forward end t)))
@@ -635,19 +637,21 @@ comment markers."
 			(error "Can't find the comment end"))
 		      (point)))
 	       (box nil)
-	       (ccs comment-continue)
-	       (srei (comment-padright ccs 're))
-	       (sre (and srei (concat "^\\s-*?\\(" srei "\\)"))))
+	       (box-equal nil))	   ;Whether we might be using `=' for boxes.
 	  (save-restriction
 	    (narrow-to-region spt ept)
+
 	    ;; Remove the comment-start.
 	    (goto-char ipt)
 	    (skip-syntax-backward " ")
-	    ;; Check for special `=' used sometimes in comment-box.
-	    (when (and (= (- (point) (point-min)) 1) (looking-at "=\\{7\\}"))
-	      (skip-chars-forward "="))
 	    ;; A box-comment starts with a looong comment-start marker.
-	    (when (> (- (point) (point-min) (length comment-start)) 7)
+	    (when (and (or (and (= (- (point) (point-min)) 1)
+				(setq box-equal t)
+				(looking-at "=\\{7\\}")
+				(not (eq (char-before (point-max)) ?\n))
+				(skip-chars-forward "="))
+			   (> (- (point) (point-min) (length comment-start)) 7))
+		       (> (count-lines (point-min) (point-max)) 2))
 	      (setq box t))
 	    (when (looking-at (regexp-quote comment-padding))
 	      (goto-char (match-end 0)))
@@ -660,7 +664,7 @@ comment markers."
 	    ;; Remove the end-comment (and leading padding and such).
 	    (goto-char (point-max)) (comment-enter-backward)
 	    ;; Check for special `=' used sometimes in comment-box.
-	    (when (= (- (point-max) (point)) 1)
+	    (when (and box-equal (not (eq (char-before (point-max)) ?\n)))
 	      (let ((pos (point)))
 		;; skip `=' but only if there are at least 7.
 		(when (> (skip-chars-backward "=") -7) (goto-char pos))))
