@@ -1,3 +1,7 @@
+2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+
+	* configure.in: Added test for X Session Management (HAVE_X_SM).
+
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (install-arch-indep): Use umask 022 for DOC* and lisp/.

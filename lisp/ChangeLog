@@ -1,3 +1,14 @@
+2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+
+	* startup.el (command-line): Add call to emacs-session-restore if
+	both x-session-id and x-session-previous-id are strings
+
+	* term/x-win.el (x-handle-smid): New function.
+	(emacs-session-filename): New function.
+	(emacs-session-save): New function.
+	(emacs-save-session-functions): New variable.
+	(emacs-session-restore): New function.
+
 2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (shell-command-on-region): Call push-mark with

@@ -1,3 +1,7 @@
+2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+
+	* os.texi (Session Management): New node about X Session management.
+
 2002-01-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* elisp.texi (VERSION): Set to 2.9.  Update the version of Emacs
