@@ -100,6 +100,11 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
+#ifdef HAVE_X11XTR6
+/* So we can do setlocale.  */
+#include <locale.h>
+#endif
+
 #define min(a,b) ((a)<(b) ? (a) : (b))
 #define max(a,b) ((a)>(b) ? (a) : (b))
 
@@ -1816,7 +1821,7 @@ note_mouse_movement (frame, event)
 
   if (event->window != FRAME_X_WINDOW (frame))
     {
-      mouse_moved = 1;
+      frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
 
       note_mouse_highlight (frame, -1, -1);
@@ -1839,7 +1844,7 @@ note_mouse_movement (frame, event)
 	   || event->y < last_mouse_glyph.y
 	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
-      mouse_moved = 1;
+      frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
 
       note_mouse_highlight (frame, event->x, event->y);
@@ -2268,7 +2273,13 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
       Window dummy_window;
       int dummy;
 
-      mouse_moved = 0;
+      Lisp_Object frame, tail;
+
+      /* Clear the mouse-moved flag for every frame on this display.  */
+      FOR_EACH_FRAME (tail, frame)
+	if (FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
+	  XFRAME (frame)->mouse_moved = 0;
+
       last_mouse_scroll_bar = Qnil;
 
       /* Figure out which root window we're on.  */
@@ -2955,9 +2966,11 @@ x_scroll_bar_note_movement (bar, event)
      struct scroll_bar *bar;
      XEvent *event;
 {
+  FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
+
   last_mouse_movement_time = event->xmotion.time;
 
-  mouse_moved = 1;
+  f->mouse_moved = 1;
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
@@ -3053,7 +3066,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
       XSETINT (*x, win_y);
       XSETINT (*y, top_range);
 
-      mouse_moved = 0;
+      f->mouse_moved = 0;
       last_mouse_scroll_bar = Qnil;
     }
 
@@ -4069,14 +4082,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 /* Drawing the cursor.  */
 
 
-/* Draw a hollow box cursor.  Don't change the inside of the box.  */
+/* Draw a hollow box cursor on frame F at X, Y.
+   Don't change the inside of the box.  */
 
 static void
-x_draw_box (f)
+x_draw_box (f, x, y)
      struct frame *f;
+     int x, y;
 {
-  int left = CHAR_TO_PIXEL_COL (f, curs_x);
-  int top  = CHAR_TO_PIXEL_ROW (f, curs_y);
+  int left = CHAR_TO_PIXEL_COL (f, x);
+  int top  = CHAR_TO_PIXEL_ROW (f, y);
   int width = FONT_WIDTH (f->display.x->font);
   int height = f->display.x->line_height;
 
@@ -4122,15 +4137,16 @@ x_draw_single_glyph (f, row, column, glyph, highlight)
 }
 
 static void
-x_display_bar_cursor (f, on)
+x_display_bar_cursor (f, on, x, y)
      struct frame *f;
      int on;
+     int x, y;
 {
   struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      frames; in the latter case, the frame may be in the midst of
-     changing its size, and curs_x and curs_y may be off the frame.  */
+     changing its size, and x and y may be off the frame.  */
   if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
@@ -4140,8 +4156,8 @@ x_display_bar_cursor (f, on)
   /* If there is anything wrong with the current cursor state, remove it.  */
   if (f->phys_cursor_x >= 0
       && (!on
-	  || f->phys_cursor_x != curs_x
-	  || f->phys_cursor_y != curs_y
+	  || f->phys_cursor_x != x
+	  || f->phys_cursor_y != y
 	  || f->display.x->current_cursor != bar_cursor))
     {
       /* Erase the cursor by redrawing the character underneath it.  */
@@ -4157,19 +4173,19 @@ x_display_bar_cursor (f, on)
 	  || (f->display.x->current_cursor != bar_cursor)))
     {
       f->phys_cursor_glyph
-	= ((current_glyphs->enable[curs_y]
-	    && curs_x < current_glyphs->used[curs_y])
-	   ? current_glyphs->glyphs[curs_y][curs_x]
+	= ((current_glyphs->enable[y]
+	    && x < current_glyphs->used[y])
+	   ? current_glyphs->glyphs[y][x]
 	   : SPACEGLYPH);
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      f->display.x->cursor_gc,
-		      CHAR_TO_PIXEL_COL (f, curs_x),
-		      CHAR_TO_PIXEL_ROW (f, curs_y),
+		      CHAR_TO_PIXEL_COL (f, x),
+		      CHAR_TO_PIXEL_ROW (f, y),
 		      max (f->display.x->cursor_width, 1),
 		      f->display.x->line_height);
 
-      f->phys_cursor_x = curs_x;
-      f->phys_cursor_y = curs_y;
+      f->phys_cursor_x = x;
+      f->phys_cursor_y = y;
 
       f->display.x->current_cursor = bar_cursor;
     }
@@ -4180,19 +4196,19 @@ x_display_bar_cursor (f, on)
 
 
 /* Turn the displayed cursor of frame F on or off according to ON.
-   If ON is nonzero, where to put the cursor is specified
-   by F->cursor_x and F->cursor_y.  */
+   If ON is nonzero, where to put the cursor is specified by X and Y.  */
 
 static void
-x_display_box_cursor (f, on)
+x_display_box_cursor (f, on, x, y)
      struct frame *f;
      int on;
+     int x, y;
 {
   struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      frames; in the latter case, the frame may be in the midst of
-     changing its size, and curs_x and curs_y may be off the frame.  */
+     changing its size, and x and y may be off the frame.  */
   if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
@@ -4206,8 +4222,8 @@ x_display_box_cursor (f, on)
      erase it.  */
   if (f->phys_cursor_x >= 0
       && (!on
-	  || f->phys_cursor_x != curs_x
-	  || f->phys_cursor_y != curs_y
+	  || f->phys_cursor_x != x
+	  || f->phys_cursor_y != y
 	  || (f->display.x->current_cursor != hollow_box_cursor
 	      && (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame))))
     {
@@ -4257,24 +4273,24 @@ x_display_box_cursor (f, on)
 	      && f == FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)))
     {
       f->phys_cursor_glyph
-	= ((current_glyphs->enable[curs_y]
-	    && curs_x < current_glyphs->used[curs_y])
-	   ? current_glyphs->glyphs[curs_y][curs_x]
+	= ((current_glyphs->enable[y]
+	    && x < current_glyphs->used[y])
+	   ? current_glyphs->glyphs[y][x]
 	   : SPACEGLYPH);
       if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
 	{
-	  x_draw_box (f);
+	  x_draw_box (f, x, y);
 	  f->display.x->current_cursor = hollow_box_cursor;
 	}
       else
 	{
-	  x_draw_single_glyph (f, curs_y, curs_x,
+	  x_draw_single_glyph (f, y, x,
 			       f->phys_cursor_glyph, 2);
 	  f->display.x->current_cursor = filled_box_cursor;
 	}
 
-      f->phys_cursor_x = curs_x;
-      f->phys_cursor_y = curs_y;
+      f->phys_cursor_x = x;
+      f->phys_cursor_y = y;
     }
 
   if (updating_frame != f)
@@ -4302,9 +4318,9 @@ x_display_cursor (f, on)
     }
 
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
-    x_display_box_cursor (f, on);
+    x_display_box_cursor (f, on, curs_x, curs_y);
   else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
-    x_display_bar_cursor (f, on);
+    x_display_bar_cursor (f, on, curs_x, curs_y);
   else
     /* Those are the only two we have implemented!  */
     abort ();
@@ -4321,13 +4337,10 @@ x_update_cursor (f, on)
 {
   BLOCK_INPUT;
 
-  curs_x = f->phys_cursor_x;
-  curs_y = f->phys_cursor_y;
-
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
-    x_display_box_cursor (f, on);
+    x_display_box_cursor (f, on, f->phys_cursor_x, f->phys_cursor_y);
   else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
-    x_display_bar_cursor (f, on);
+    x_display_bar_cursor (f, on, f->phys_cursor_x, f->phys_cursor_y);
   else
     /* Those are the only two we have implemented!  */
     abort ();
@@ -5750,6 +5763,11 @@ x_term_init (display_name, xrm_option, resource_name)
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
+
+#ifdef HAVE_X11XTR6
+    setlocale (LC_NUMERIC, "C");
+    setlocale (LC_TIME, "C");
+#endif
   }
 
 #else /* not USE_X_TOOLKIT */
