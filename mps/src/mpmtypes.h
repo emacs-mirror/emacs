@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.48) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.49) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -278,9 +278,11 @@ enum {
 };
 
 
-/* Result Codes -- see design.mps.type.res */
-/* These definitions must match impl.h.mps.res. */
-/* This is checked by impl.c.mpsi.check. */
+/* .result-codes: Result Codes -- see design.mps.type.res */
+/* These definitions must match impl.h.mps.result-codes. */
+/* This is checked by impl.c.mpsi.check.rc. */
+/* Changing this list entails changing the list in */
+/* impl.h.mps.result-codes and the check in impl.c.mpsi.check.rc */
 
 enum {
   ResOK = 0,
@@ -289,7 +291,8 @@ enum {
   ResMEMORY,
   ResLIMIT,
   ResUNIMPL,
-  ResIO
+  ResIO,
+  ResCOMMIT_LIMIT
 };
 
 
