@@ -826,24 +826,23 @@ Returns the compilation buffer created."
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
 	(if (fboundp 'start-process)
-	    (let* ((process-environment process-environment)
+ 	    (let* ((process-environment
+		    (append
+		     (if (and (boundp 'system-uses-terminfo)
+			      system-uses-terminfo)
+			 (list "TERM=dumb" "TERMCAP="
+			       (format "COLUMNS=%d" (window-width)))
+		       (list "TERM=emacs"
+			     (format "TERMCAP=emacs:co#%d:tc=unknown:"
+				     (window-width))))
+		     ;; Set the EMACS variable, but
+		     ;; don't override users' setting of $EMACS.
+		     (if (getenv "EMACS")
+			 process-environment
+		       (cons "EMACS=t" process-environment))))
 		   (proc (start-process-shell-command (downcase mode-name)
 						      outbuf
 						      command)))
-	      ;; Set the terminal type
-	      (setq process-environment
-		    (if (and (boundp 'system-uses-terminfo)
-			     system-uses-terminfo)
-			(list "TERM=dumb" "TERMCAP="
-			      (format "COLUMNS=%d" (window-width)))
-		      (list "TERM=emacs"
-			    (format "TERMCAP=emacs:co#%d:tc=unknown:"
-				    (window-width)))))
-	      ;; Set the EMACS variable, but
-	      ;; don't override users' setting of $EMACS.
-	      (or (getenv "EMACS")
-		  (setq process-environment
-			(cons "EMACS=t" process-environment)))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
