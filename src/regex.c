@@ -1153,29 +1153,30 @@ typedef struct
     /* Push the info, starting with the registers.  */			\
     DEBUG_PRINT1 ("\n");						\
 									\
-    for (this_reg = lowest_active_reg; this_reg <= highest_active_reg;	\
-         this_reg++)							\
-      {									\
-	DEBUG_PRINT2 ("  Pushing reg: %d\n", this_reg);			\
-        DEBUG_STATEMENT (num_regs_pushed++);				\
+    if (!RE_NO_POSIX_BACKTRACKING & bufp->syntax)			\
+      for (this_reg = lowest_active_reg; this_reg <= highest_active_reg; \
+	   this_reg++)							\
+	{								\
+	  DEBUG_PRINT2 ("  Pushing reg: %d\n", this_reg);		\
+	  DEBUG_STATEMENT (num_regs_pushed++);				\
 									\
-	DEBUG_PRINT2 ("    start: 0x%x\n", regstart[this_reg]);		\
-        PUSH_FAILURE_POINTER (regstart[this_reg]);			\
-                                                                        \
-	DEBUG_PRINT2 ("    end: 0x%x\n", regend[this_reg]);		\
-        PUSH_FAILURE_POINTER (regend[this_reg]);			\
+	  DEBUG_PRINT2 ("    start: 0x%x\n", regstart[this_reg]);	\
+	  PUSH_FAILURE_POINTER (regstart[this_reg]);			\
 									\
-	DEBUG_PRINT2 ("    info: 0x%x\n      ", reg_info[this_reg]);	\
-        DEBUG_PRINT2 (" match_null=%d",					\
-                      REG_MATCH_NULL_STRING_P (reg_info[this_reg]));	\
-        DEBUG_PRINT2 (" active=%d", IS_ACTIVE (reg_info[this_reg]));	\
-        DEBUG_PRINT2 (" matched_something=%d",				\
-                      MATCHED_SOMETHING (reg_info[this_reg]));		\
-        DEBUG_PRINT2 (" ever_matched=%d",				\
-                      EVER_MATCHED_SOMETHING (reg_info[this_reg]));	\
-	DEBUG_PRINT1 ("\n");						\
-        PUSH_FAILURE_ELT (reg_info[this_reg].word);			\
-      }									\
+	  DEBUG_PRINT2 ("    end: 0x%x\n", regend[this_reg]);		\
+	  PUSH_FAILURE_POINTER (regend[this_reg]);			\
+									\
+	  DEBUG_PRINT2 ("    info: 0x%x\n      ", reg_info[this_reg]);	\
+	  DEBUG_PRINT2 (" match_null=%d",				\
+			REG_MATCH_NULL_STRING_P (reg_info[this_reg]));	\
+	  DEBUG_PRINT2 (" active=%d", IS_ACTIVE (reg_info[this_reg]));	\
+	  DEBUG_PRINT2 (" matched_something=%d",			\
+			MATCHED_SOMETHING (reg_info[this_reg]));	\
+	  DEBUG_PRINT2 (" ever_matched=%d",				\
+			EVER_MATCHED_SOMETHING (reg_info[this_reg]));	\
+	  DEBUG_PRINT1 ("\n");						\
+	  PUSH_FAILURE_ELT (reg_info[this_reg].word);			\
+	}								\
 									\
     DEBUG_PRINT2 ("  Pushing  low active reg: %d\n", lowest_active_reg);\
     PUSH_FAILURE_INT (lowest_active_reg);				\
@@ -1212,9 +1213,11 @@ typedef struct
 #define MAX_FAILURE_ITEMS ((num_regs - 1) * NUM_REG_ITEMS + NUM_NONREG_ITEMS)
 
 /* We actually push this many items.  */
-#define NUM_FAILURE_ITEMS						\
-  ((highest_active_reg - lowest_active_reg + 1) * NUM_REG_ITEMS 	\
-    + NUM_NONREG_ITEMS)
+#define NUM_FAILURE_ITEMS				\
+  (((RE_NO_POSIX_BACKTRACKING & bufp->syntax		\
+     ? 0 : highest_active_reg - lowest_active_reg + 1)	\
+    * NUM_REG_ITEMS)					\
+   + NUM_NONREG_ITEMS)
 
 /* How many items can still be added to the stack without overflowing it.  */
 #define REMAINING_AVAIL_SLOTS ((fail_stack).size - (fail_stack).avail)
@@ -1272,19 +1275,20 @@ typedef struct
   low_reg = (unsigned) POP_FAILURE_INT ();				\
   DEBUG_PRINT2 ("  Popping  low active reg: %d\n", low_reg);		\
 									\
-  for (this_reg = high_reg; this_reg >= low_reg; this_reg--)		\
-    {									\
-      DEBUG_PRINT2 ("    Popping reg: %d\n", this_reg);			\
+  if (!RE_NO_POSIX_BACKTRACKING & bufp->syntax)				\
+    for (this_reg = high_reg; this_reg >= low_reg; this_reg--)		\
+      {									\
+	DEBUG_PRINT2 ("    Popping reg: %d\n", this_reg);		\
 									\
-      reg_info[this_reg].word = POP_FAILURE_ELT ();			\
-      DEBUG_PRINT2 ("      info: 0x%x\n", reg_info[this_reg]);		\
+	reg_info[this_reg].word = POP_FAILURE_ELT ();			\
+	DEBUG_PRINT2 ("      info: 0x%x\n", reg_info[this_reg]);	\
 									\
-      regend[this_reg] = (const char *) POP_FAILURE_POINTER ();		\
-      DEBUG_PRINT2 ("      end: 0x%x\n", regend[this_reg]);		\
+	regend[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
+	DEBUG_PRINT2 ("      end: 0x%x\n", regend[this_reg]);		\
 									\
-      regstart[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
-      DEBUG_PRINT2 ("      start: 0x%x\n", regstart[this_reg]);		\
-    }									\
+	regstart[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
+	DEBUG_PRINT2 ("      start: 0x%x\n", regstart[this_reg]);	\
+      }									\
 									\
   set_regs_matched_done = 0;						\
   DEBUG_STATEMENT (nfailure_points_popped++);				\
