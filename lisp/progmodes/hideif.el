@@ -351,7 +351,7 @@ that form should be displayed.")
 
 ; pattern to match initial identifier, !, &&, ||, (, or ).
 ; Added ==, + and -: garyo@avs.com 8/9/94
-(defconst hif-token-regexp "^\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|\\w+\\)")
+(defconst hif-token-regexp "^\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|[<>]=?\\|\\w+\\)")
 (defconst hif-end-of-comment "\\*/")
 
 
@@ -403,6 +403,10 @@ that form should be displayed.")
 			((string-equal token "defined") 'hif-defined)
 			((string-equal token "(") 'lparen)
 			((string-equal token ")") 'rparen)
+			((string-equal token ">") 'hif-greater)
+			((string-equal token "<") 'hif-less)
+			((string-equal token ">=") 'hif-greater-equal)
+			((string-equal token "<=") 'hif-less-equal)
 			((string-equal token "+") 'hif-plus)
 			((string-equal token "-") 'hif-minus)
 			(t (intern token)))
@@ -448,10 +452,11 @@ that form should be displayed.")
     result))
 
 (defun hif-eq-expr ()
-  "Parse an eq-expr : math | eq-expr '=='|'!=' math."
+  "Parse an eq-expr : math | eq-expr `=='|`!='|`<'|`>'|`>='|`<=' math."
   (let ((result (hif-math))
 	(eq-token nil))
-    (while (or (eq token 'equal) (eq token 'hif-notequal))
+    (while (memq token '(equal hif-notequal hif-greater hif-less
+			       hif-greater-equal hif-less-equal))
       (setq eq-token token)
       (hif-nexttoken)
       (setq result (list eq-token result (hif-math))))
@@ -524,7 +529,18 @@ that form should be displayed.")
 (defun hif-notequal (a b)
   "Like (not (equal A B)) but as one symbol."
   (not (equal a b)))
-
+(defun hif-greater (a b)
+  "Simple comparison."
+  (> (hif-mathify a) (hif-mathify b)))
+(defun hif-less (a b)
+  "Simple comparison."
+  (< (hif-mathify a) (hif-mathify b)))
+(defun hif-greater-equal (a b)
+  "Simple comparison."
+  (>= (hif-mathify a) (hif-mathify b)))
+(defun hif-less-equal (a b)
+  "Simple comparison."
+  (<= (hif-mathify a) (hif-mathify b)))
 ;;;----------- end of parser -----------------------
 
 
