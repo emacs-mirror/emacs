@@ -260,7 +260,7 @@ sufficient position codes, return a generic character which stands for
 all characters or group of characters in the character set.
 A generic character can be used to index a char table (e.g. syntax-table).
 If CODE1 or CODE2 are invalid (out of range), this function signals an error."
-  (make-char-internal (charset-id charset) c1 c2))
+  (make-char-internal (charset-id charset) code1 code2))
 
 (put 'make-char 'byte-compile
      (function 
