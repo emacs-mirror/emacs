@@ -1062,8 +1062,8 @@ a case-insensitive match is tried."
 	  ;; into the menu in the like-named node in the main buffer.
 	  (apply 'insert-buffer-substring (cdr node))))
       (Info-dir-remove-duplicates)
-      ;; Kill all the buffers we just made.
-      (mapc 'kill-buffer buffers)
+      ;; Kill all the buffers we just made, including the special one excised.
+      (mapc 'kill-buffer (cons buffer buffers))
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
