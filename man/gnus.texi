@@ -5188,7 +5188,7 @@ even though I haven't heard of anybody wanting it to go to the
 previous (unread) article, I'm sure there are people that want that as
 well.
 
-Multiply these five behaviours by five different marking commands, and
+Multiply these five behaviors by five different marking commands, and
 you get a potentially complex set of variable to control what each
 command should do.
 
@@ -15018,7 +15018,7 @@ disconnected, and synchronize these flags when you plug back in.
 Gnus keep track of flag changes when reading nnimap groups under the
 Agent by default.  When you plug back in, by default Gnus will check if
 you have any changed any flags and ask if you wish to synchronize these
-with the server.  This behaviour is customizable with
+with the server.  This behavior is customizable with
 @code{gnus-agent-synchronize-flags}.
 
 @vindex gnus-agent-synchronize-flags

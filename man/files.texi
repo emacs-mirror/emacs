@@ -536,7 +536,7 @@ be @file{eval.c~}.
 
 @vindex make-backup-file-name-function
 @vindex backup-directory-alist
-  You can change this behaviour by defining the variable
+  You can change this behavior by defining the variable
 @code{make-backup-file-name-function} to a suitable function.
 Alternatively you can customize the variable
 @code{backup-directory-alist} to specify that files matching certain

@@ -2123,7 +2123,7 @@ which you might like to bind to keys, such as
 @code{browse-url-at-point} and @code{browse-url-at-mouse}.
 
 @vindex browse-url-browser-function
-  You can customize Browse-URL's behaviour via various options in the
+  You can customize Browse-URL's behavior via various options in the
 @code{browse-url} Customize group, particularly
 @code{browse-url-browser-function}.  You can invoke actions dependent
 on the type of URL by defining @code{browse-url-browser-function} as

@@ -330,7 +330,7 @@ fingers backwards, this can be quite relieving too.
   This is done by binding the first key (@pxref{(emacs)Rebinding}) of
 the pair to @code{skeleton-pair-insert-maybe} instead of
 @code{self-insert-command}.  The ``maybe'' comes from the fact that
-this at-first surprising behaviour is initially turned off.  To enable
+this at-first surprising behavior is initially turned off.  To enable
 it, you must set @code{skeleton-pair} to some non-@code{nil} value.
 And even then, a positive argument (@pxref{(emacs)Arguments}) will
 make this key behave like a self-inserting key
@@ -347,7 +347,7 @@ character is part of a word.  If you want pairing to occur even then, set
 parenthesis @samp{(}, the square bracket @samp{[}, the brace
 @samp{@{}, the pointed bracket @samp{<} and the backquote @samp{`} all
 pair with the symmetrical character.  All other characters pair
-themselves.  This behaviour can be modified by the variable
+themselves.  This behavior can be modified by the variable
 @code{skeleton-pair-alist}.  This is in fact an alist of skeletons
 (@pxref{Skeleton Language}), with the first part of each sublist
 matching the typed character.  This is the position of the interactor,
@@ -646,7 +646,7 @@ completions in succession.
 
 Which ones to try, and in which order, is determined by the contents of
 the customizable option @code{hippie-expand-try-functions-list}.  Much
-customization of the expansion behaviour can be made by changing the
+customization of the expansion behavior can be made by changing the
 order of, removing, or inserting new functions in this list.  Given a
 positive numeric argument, @kbd{M-x hippie-expand} jumps directly that
 number of functions forward in this list.  Given some other argument (a

@@ -463,7 +463,7 @@ The section on init files says how to arrange this permanently for yourself.
 
   Refill minor mode provides support for keeping paragraphs filled as
 you type or modify them in other ways.  It provides an effect similar
-to typical word processor behaviour.  This works by running a
+to typical word processor behavior.  This works by running a
 paragraph-filling command at suitable times.
 
   When you are typing text, only characters which normally trigger
