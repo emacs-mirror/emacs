@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.13 $
+;; Version: $Revision: 1.14 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:17:15 $|$Revision: 1.13 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:18:28 $|$Revision: 1.14 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.14  1994/05/22  20:18:28  tromey
+; Even more compile stuff.
+;
 ; Revision 1.13  1994/05/22  20:17:15  tromey
 ; Moved emacs version checking code to very beginning.
 ;
@@ -236,7 +239,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.13 $")
+(defconst tcl-version "$Revision: 1.14 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -369,7 +372,8 @@ quoted for Tcl.")
     ["Send file to Tcl process" tcl-load-file t]
     ["Restart Tcl process with file" tcl-restart-with-file t]
     "----"
-    ["Tcl help" tcl-help-on-word t])
+    ["Tcl help" tcl-help-on-word t]
+    ["Send bug report" tcl-submit-bug-report t])
   "Lucid Emacs menu for Tcl mode.")
 
 ;; GNU Emacs does menus via keymaps.  Do it in a function in case we
@@ -378,8 +382,11 @@ quoted for Tcl.")
   (define-key map [menu-bar] (make-sparse-keymap))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
-  (define-key map [menu-bar tcl]
-    (cons "Tcl" (make-lucid-menu-keymap "Tcl" (cdr tcl-lucid-menu)))))
+  (let ((menu (make-lucid-menu-keymap "Tcl" (cdr tcl-lucid-menu))))
+    (define-key map [menu-bar tcl] (cons "Tcl" menu))
+    ;; The following is intended to compute the key sequence
+    ;; information for the menu.  It doesn't work.
+    (x-popup-menu nil menu)))
 
 (defun tcl-fill-mode-map ()
   (define-key tcl-mode-map "{" 'tcl-electric-char)
@@ -399,6 +406,7 @@ quoted for Tcl.")
   (define-key tcl-mode-map "\t" 'tcl-indent-command)
   (define-key tcl-mode-map "\M-;" 'tcl-indent-for-comment)
   (define-key tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
+  (define-key tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
   (and (fboundp 'comment-region)
        (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
   (define-key tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
@@ -422,6 +430,7 @@ quoted for Tcl.")
   (define-key inferior-tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
   (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
   (define-key inferior-tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
+  (define-key inferior-tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
   (define-key inferior-tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
   (define-key inferior-tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
   (define-key inferior-tcl-mode-map "\C-c\C-l" 'tcl-load-file)
