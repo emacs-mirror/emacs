@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/07/16 12:22:59 $
+;; Date: $Date: 2001/12/01 13:14:33 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -69,7 +69,7 @@
 ;;
 ;; I don't plan on implementing directory tracking by watching the IDL
 ;; commands entered at the prompt, since too often an IDL procedure
-;; will change the current directory. If you want the the idl process
+;; will change the current directory. If you want the idl process
 ;; buffer to match the IDL current working just execute `M-x
 ;; idlwave-shell-resync-dirs' (bound to "\C-c\C-d\C-w" by default.)
 ;;

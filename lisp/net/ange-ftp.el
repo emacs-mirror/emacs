@@ -2310,7 +2310,7 @@ and NOWAIT."
   "^[A-Z0-9._][A-Z0-9._][A-Z0-9._][A-Z0-9._]:$")
 
 (defun ange-ftp-guess-host-type (host user)
-  "Guess at the the host type of HOST.
+  "Guess at the host type of HOST.
 Works by doing a pwd and examining the directory syntax."
   (let ((host-type (ange-ftp-host-type host))
 	(key (concat host "/" user "/~")))

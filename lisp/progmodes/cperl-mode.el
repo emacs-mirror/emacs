@@ -2617,7 +2617,7 @@ and closing parentheses and brackets.."
 		       (if (eq (preceding-char) ?\))
 			   (forward-sexp -1))
 		       ;; In the case it starts a subroutine, indent with
-		       ;; respect to `sub', not with respect to the the
+		       ;; respect to `sub', not with respect to the
 		       ;; first thing on the line, say in the case of
 		       ;; anonymous sub in a hash.
 		       ;;

@@ -352,8 +352,8 @@ the tasks accomplished by such tools."
 The buffer used for Eshell sessions is determined by the value of
 `eshell-buffer-name'.  If there is already an Eshell session active in
 that buffer, Emacs will simply switch to it.  Otherwise, a new session
-will begin.  A new session is always created if the the prefix
-argument ARG is specified.  Returns the buffer selected (or created)."
+will begin.  A new session is always created if the prefix argument
+ARG is specified.  Returns the buffer selected (or created)."
   (interactive "P")
   (assert eshell-buffer-name)
   (let ((buf (if arg

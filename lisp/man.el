@@ -1048,7 +1048,7 @@ Returns t if section is found, nil otherwise."
   (Man-find-section (aheadsym Man-sections-alist)))
 
 (defun Man-goto-see-also-section ()
-  "Move point the the \"SEE ALSO\" section.
+  "Move point to the \"SEE ALSO\" section.
 Actually the section moved to is described by `Man-see-also-regexp'."
   (interactive)
   (if (not (Man-find-section Man-see-also-regexp))

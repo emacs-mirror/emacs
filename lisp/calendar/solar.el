@@ -418,7 +418,7 @@ local date.  The second component of date should be an integer."
 Corresponding value is nil if there is no sunrise/sunset."
   (let* (; first, get the exact moment of local noon.
          (exact-local-noon (solar-exact-local-noon date))
-         ; get the the time from the 2000 epoch.
+         ; get the time from the 2000 epoch.
          (t0 (solar-julian-ut-centuries (car exact-local-noon)))
          ; store the sidereal time at Greenwich at midnight of UT time.
          ; find if summer or winter slightly above the equator

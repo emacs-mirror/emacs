@@ -297,7 +297,7 @@ The functions come in the following groups.
 
 (defun ogonek-read-encoding (prompt default-name-var)
   "Read encoding name with completion based on `ogonek-name-encoding-alist'.
-Store the name in the the parameter-variable DEFAULT-NAME-VAR.
+Store the name in the parameter-variable DEFAULT-NAME-VAR.
 PROMPT is a string to be shown when the user is asked for a name."
  (let ((encoding 
         (completing-read 

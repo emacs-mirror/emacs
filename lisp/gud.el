@@ -239,7 +239,7 @@ t means that there is no stack, and we are in display-file mode.")
 (defvar gud-speedbar-menu-items
   ;; Note to self.  Add expand, and turn off items when not available.
   '(["Jump to stack frame" speedbar-edit-line t])
-  "Additional menu items to add the the speedbar frame.")
+  "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
 (if (featurep 'speedbar)

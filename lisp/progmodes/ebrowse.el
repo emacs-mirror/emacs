@@ -3324,7 +3324,7 @@ from point as default.  Value is a list (CLASS-NAME MEMBER-NAME)."
 			   (completing-read prompt alist nil nil member-name)))
 		   (completion-result (try-completion name alist)))
 	      ;; Cannot rely on `try-completion' returning T for exact
-	      ;; matches!  it returns the the name as a string.
+	      ;; matches!  it returns the name as a string.
 	      (unless (setq member-info (gethash name members))
 		(if (y-or-n-p "No exact match found.  Try substrings? ")
 		    (setq name 

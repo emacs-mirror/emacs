@@ -3066,7 +3066,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 		     (mm-handle-id handle)))))
 
 (defun gnus-mime-copy-part (&optional handle)
-  "Put the the MIME part under point into a new buffer."
+  "Put the MIME part under point into a new buffer."
   (interactive)
   (gnus-article-check-buffer)
   (let* ((handle (or handle (get-text-property (point) 'gnus-data)))

@@ -2073,7 +2073,7 @@ report this using the `follow-submit-feedback' function."
 		  (cond
 		   ;; The window was moved. Move it back and
 		   ;; select a new.  If no better could be found,
-		   ;; we stick the the new start position.  This
+		   ;; we stick to the new start position.  This
 		   ;; is used when the original process filter
 		   ;; tries to position the cursor at the bottom
 		   ;; of the window.  Example: `lyskom'.

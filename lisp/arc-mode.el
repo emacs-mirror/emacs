@@ -88,7 +88,7 @@
 ;;             Each member header points to the next.  The archive is
 ;;             terminated by a bogus header with a zero next link.
 ;; -------------------------------------
-;; HOOKS: `foo' means one the the supported archive types.
+;; HOOKS: `foo' means one of the supported archive types.
 ;;
 ;; archive-mode-hook
 ;; archive-foo-mode-hook

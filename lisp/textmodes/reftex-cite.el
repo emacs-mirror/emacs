@@ -299,7 +299,7 @@
               (reftex-parse-bibtex-entry nil start (point)))
           nil)))))
 
-;; Parse the thebibliography environment
+;; Parse the bibliography environment
 (defun reftex-extract-bib-entries-from-thebibliography (files)
   ;; Extract bib-entries from the \begin{thebibliography} environment.
   ;; Parsing is not as good as for the BibTeX database stuff.

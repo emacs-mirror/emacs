@@ -579,7 +579,7 @@ checkdoc status window instead of the usual behavior."
 Searching starts at START-HERE.  SHOWSTATUS expresses the verbosity
 of the search, and wether ending the search will auto-exit this function.
 FINDFUNC is a symbol representing a function that will position the
-cursor, and return error message text to present the the user.  It is
+cursor, and return error message text to present to the user.  It is
 assumed that the cursor will stop just before a major sexp, which will
 be highlighted to present the user with feedback as to the offending
 style."

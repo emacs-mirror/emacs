@@ -523,7 +523,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 ;;; which keeps the size of the virtual active list the same as
 ;;; the sum of the component active lists.
 ;;; To achieve fair mixing of the groups, the last article in
-;;; each of N component groups will be in the the last N articles
+;;; each of N component groups will be in the last N articles
 ;;; in the virtual group.
 
 ;;; If you have 3 components A, B and C, with articles 1-8, 1-5, and 6-7

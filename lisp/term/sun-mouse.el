@@ -594,8 +594,8 @@ and the resulting value is returned.  Generally these FORMs are
 evaluated for their side-effects rather than their values.
   If the selected form is a menu or a symbol whose value is a menu, 
 then it is displayed and evaluated as a pullright menu item.
-  If the the FORM of the first ITEM is nil, the STRING of the item
-is used as a label for the menu, i.e. it's inverted and not selectable."
+  If the FORM of the first ITEM is nil, the STRING of the item is
+used as a label for the menu, i.e. it's inverted and not selectable."
 
   (if (symbolp menu) (setq menu (symbol-value menu)))
   (eval (sun-menu-internal *menu-window* *menu-x* *menu-y* 4 menu)))

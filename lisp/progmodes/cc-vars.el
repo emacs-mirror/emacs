@@ -672,8 +672,8 @@ can always override the use of `c-default-style' by making calls to
        ;; decl start if the first inherit clause hangs and it's not a
        ;; func-local inherit clause (when does that occur?).
        (block-open            . 0)
-       ;; Relpos: Inexpr statement: Boi at the the preceding
-       ;; paren.  Otherwise: None.
+       ;; Relpos: Inexpr statement: Boi at the preceding paren.
+       ;; Otherwise: None.
        (block-close           . 0)
        ;; Relpos: At the open brace if it's at boi.  Otherwise boi at
        ;; the start of the statement the open brace hangs on, or boi

@@ -538,7 +538,7 @@ MSG is either a help string to display, or nil to cancel the display."
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.
 This is installed on the hook `tooltip-hook', which is run when
-the the timer with ID `tooltip-timeout-id' fires.
+the timer with ID `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message)
