@@ -36,6 +36,9 @@
 		(coding-priority mule-utf-8)
 		(input-method . "kannada-itrans")
 		(features knd-util)
+		(sample-text
+		 . (kannada-compose-string
+		    (copy-sequence "Kannada (4$,43Ov#4z0$,1>u14$,44Kv#4zv#4M0$,1?(?M?(14$,43sv#4z0$,1?!1(B)	4$,44Kv#4z0$,1?(14$,44hv#4zv#40$,1?.14$,44qv#4{v#3Q0$,1?8?M>u?>14$,44av#4z0$,1?01(B")))
 		(documentation . "\
 Kannada language and script is supported in this language
 environment.")) 
