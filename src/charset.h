@@ -579,11 +579,12 @@ extern int iso_charset_table[2][2][128];
    character boundary.  This macro relies on the fact that *GPT_ADDR
    and *Z_ADDR are always accessible and the values are '\0'.  No
    range checking of POS.  */
-#define INC_POS(pos)			     	\
-  do {					     	\
-    unsigned char *p = POS_ADDR (pos) + 1;	\
-    pos++;				     	\
-    while (!CHAR_HEAD_P (p)) p++, pos++;	\
+#define INC_POS(pos)				\
+  do {						\
+    unsigned char *p = POS_ADDR (pos);		\
+    pos++;					\
+    if (*p++ >= 0x80)				\
+      while (!CHAR_HEAD_P (p)) p++, pos++;	\
   } while (0)
 
 /* Decrease the buffer point POS of the current buffer to the previous
@@ -591,11 +592,13 @@ extern int iso_charset_table[2][2][128];
 #define DEC_POS(pos)					      	\
   do {							      	\
     unsigned char *p, *p_min;				      	\
-    if (--pos < GPT)					      	\
+    int pos_saved = --pos;				      	\
+    if (pos < GPT)					      	\
       p = BEG_ADDR + pos - 1, p_min = BEG_ADDR;		      	\
     else						      	\
       p = BEG_ADDR + GAP_SIZE + pos - 1, p_min = GAP_END_ADDR;	\
     while (p > p_min && !CHAR_HEAD_P (p)) p--, pos--;		\
+    if (*p < 0x80 && pos != pos_saved) pos = pos_saved;		\
   } while (0)
 
 #endif /* emacs */
