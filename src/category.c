@@ -119,10 +119,11 @@ DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
 
 DEFUN ("get-unused-category", Fget_unused_category, Sget_unused_category,
        0, 1, 0,
-       doc: /* Return a category which is not yet defined in CATEGORY-TABLE.  If no
-category remains available, return nil.  The optional argument CATEGORY-TABLE
-specifies which category table to modify; it defaults to the current
-buffer's category table.  */)
+       doc: /* Return a category which is not yet defined in CATEGORY-TABLE.
+If no category remains available, return nil.
+The optional argument CATEGORY-TABLE
+specifies which category table to modify;
+it defaults to the current buffer's category table.  */)
      (table)
      Lisp_Object table;
 {
