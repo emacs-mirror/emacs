@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!31.c(trunk.4) $
  summary = regression test for request.dylan.170459 (scanning and buffers in AWL)
  language = c
  link = testlib.o awlfmt.o
@@ -12,7 +12,9 @@ END_HEADER
 #include "mpscamc.h"
 #include "awlfmt.h"
 
+
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -27,7 +29,6 @@ static void test(void)
  mycell *a, *b, *c;
 
  int i;
- int j;
 
  alloccomments = 1;
  fixcomments = 1;
@@ -73,7 +74,8 @@ static void test(void)
 
  for(i=0; i<1000; i++) {
   b = allocdumb(apamc, 0x400*1024, 0);
-  comment("%i of 1000.", j);
+  if (i % 50 == 0)
+    comment("%d of 1000.", i);
  }
 
  mps_ap_destroy(apawl);
@@ -95,8 +97,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
