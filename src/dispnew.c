@@ -36,7 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "indent.h"
 
-#include "systerm.h"
+#include "systty.h"
 #include "systime.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -874,6 +874,7 @@ direct_output_for_insert (g)
       || (XINT (w->hscroll) && hpos == XFASTINT (w->left))
     
   /* Give up if cursor outside window (in minibuf, probably) */
+      || cursor_in_echo_area
       || FRAME_CURSOR_Y (frame) < XFASTINT (w->top)
       || FRAME_CURSOR_Y (frame) >= XFASTINT (w->top) + XFASTINT (w->height)
 
@@ -922,7 +923,8 @@ direct_output_forward_char (n)
 	  && (FRAME_CURSOR_X (frame) + 1
 	      >= (XFASTINT (w->left) + XFASTINT (w->width)
 		  - (XFASTINT (w->width) < FRAME_WIDTH (frame))
-		  - 1))))
+		  - 1)))
+      || cursor_in_echo_area)
     return 0;
 
   FRAME_CURSOR_X (frame) += n;
@@ -1052,18 +1054,41 @@ update_frame (f, force, inhibit_hairy_id)
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (!pause)
     {
-      if (cursor_in_echo_area)
+      if (cursor_in_echo_area
+	  && FRAME_HAS_MINIBUF_P (f))
 	{
-	  if (f == selected_frame
-	      && cursor_in_echo_area < 0)
-	    cursor_to (FRAME_HEIGHT (f) - 1, 0);
-	  else if (f == selected_frame
-		   && ! current_frame->enable[FRAME_HEIGHT (f) - 1])
-	    cursor_to (FRAME_HEIGHT (f) - 1, 0);
+	  int top = XINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
+	  int row, col;
+
+	  if (cursor_in_echo_area < 0)
+	    {
+	      row = top;
+	      col = 0;
+	    }
 	  else
-	    cursor_to (FRAME_HEIGHT (f) - 1,
-		       min (FRAME_WIDTH (f) - 1,
-			    current_frame->used[FRAME_HEIGHT (f) - 1]));
+	    {
+	      /* If the minibuffer is several lines high, find the last
+		 line that has any text on it.  */
+	      row = FRAME_HEIGHT (f);
+	      do 
+		{
+		  row--;
+		  if (current_frame->enable[row])
+		    col = current_frame->used[row];
+		  else
+		    col = 0;
+		}
+	      while (row > top && col == 0);
+
+	      if (col >= FRAME_WIDTH (f))
+		{
+		  col = 0;
+		  if (row < FRAME_HEIGHT (f) - 1)
+		    row++;
+		}
+	    }
+
+	  cursor_to (row, col);
 	}
       else
 	cursor_to (FRAME_CURSOR_Y (f), max (min (FRAME_CURSOR_X (f),
