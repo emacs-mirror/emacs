@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.6.3
+;; Version: 1.6.5
 ;; Keywords: comm languages processes
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
@@ -531,6 +531,8 @@ Based on `comint-mode-map'.")
     (modify-syntax-entry ?\f "> b" table)
     ;; single quotes (') quotes delimit strings
     (modify-syntax-entry ?' "\"" table)
+    ;; backslash is no escape character
+    (modify-syntax-entry ?\\ "." table)
     table)
   "Syntax table used in `sql-mode' and `sql-interactive-mode'.")
 
@@ -1115,7 +1117,15 @@ determine where the strings should be sent to.  You can set the
 value of `sql-buffer' using \\[sql-set-sqli-buffer].
 
 For information on how to create multiple SQLi buffers, see
-`sql-interactive-mode'."
+`sql-interactive-mode'.
+
+Note that SQL doesn't have an escape character unless you specify
+one.  If you specify backslash as escape character in SQL,
+you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
+
+\(add-hook 'sql-mode-hook
+          (lambda ()
+	    (modify-syntax-entry ?\\\\ \".\" sql-mode-syntax-table)))"
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'sql-mode)
