@@ -123,8 +123,14 @@ walk file trees.")
   "*A string or list of strings specifying switches to be be passed to diff.")
 
 ;;;###autoload
+(defvar vc-before-checkin-hook nil
+  "*Normal hook (list of functions) run before a file gets checked in.  
+See `run-hooks'.")
+
+;;;###autoload
 (defvar vc-checkin-hook nil
-  "*List of functions called after a checkin is done.  See `run-hooks'.")
+  "*Normal hook (List of functions) run after a checkin is done.
+See `run-hooks'.")
 
 ;; Header-insertion hair
 
@@ -861,6 +867,12 @@ merge in the changes into your working copy."
   ;; Remember the file's buffer in vc-parent-buffer (current one if no file).
   ;; AFTER-HOOK specifies the local value for vc-log-operation-hook.
   (let ((parent (if file (find-file-noselect file) (current-buffer))))
+    (if vc-before-checkin-hook
+        (if file
+            (save-excursion 
+              (set-buffer parent)
+              (run-hooks 'vc-before-checkin-hook))
+          (run-hooks 'vc-before-checkin-hook)))
     (if comment
 	(set-buffer (get-buffer-create "*VC-log*"))
       (pop-to-buffer (get-buffer-create "*VC-log*")))
