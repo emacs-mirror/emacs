@@ -1,3 +1,8 @@
+2002-09-19  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (ielm-eval-input): Call `error-message-string' instead
+	of the non-existent `ielm-format-error'.
+
 2002-09-18  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mark-pop-up): Doc fix.
