@@ -1314,11 +1314,6 @@ copy_text_properties (start, end, src, pos, dest, prop)
 void
 syms_of_textprop ()
 {
-  DEFVAR_INT ("interval-balance-threshold", &interval_balance_threshold,
-	      "Threshold for rebalancing interval trees, expressed as the\n\
-percentage by which the left interval tree should not differ from the right.");
-  interval_balance_threshold = 8;
-
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
 	       "If non-nil, don't call the text property values of\n\
 `point-left' and `point-entered'.");
