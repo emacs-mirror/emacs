@@ -53,8 +53,7 @@ extern Lisp_Object internal_last_event_frame;
 /* Macros for dealing with lispy events.  */
 
 /* True iff EVENT has data fields describing it (i.e. a mouse click).  */
-#define EVENT_HAS_PARAMETERS(event) \
-  (XTYPE (event) == Lisp_Cons)
+#define EVENT_HAS_PARAMETERS(event) (CONSP (event))
 
 /* Extract the head from an event.
    This works on composite and simple events.  */
