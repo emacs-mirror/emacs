@@ -2697,6 +2697,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif
 	  break;
 
+	case ReparentNotify:
+	  f = x_window_to_frame (event.xreparent.window);
+	  if (f)
+	    f->display.x->parent_desc = event.xreparent.parent;
+	  break;
+
 	case Expose:
 	  f = x_window_to_frame (event.xexpose.window);
 	  if (f)
@@ -3090,21 +3096,18 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  SET_FRAME_GARBAGED (f);
 		}
 
-	      if (! event.xconfigure.send_event
-		  /* Sometimes we get root-relative coordinates
-		     even tho send_event is 0.
-		     This is not a perfectly reliable way of distinguishing,
-		     but it does the right thing except in a case
-		     where it doesn't hurt much to be wrong.  */
-		  && event.xconfigure.x < 20)
+	      if (! event.xconfigure.send_event)
 		{
 		  Window win, child;
 		  int win_x, win_y;
 
+		  /* Coords are relative to the parent.
+		     Convert them to root-relative.  */
 		  XTranslateCoordinates (x_current_display,
 			       
 					 /* From-window, to-window.  */
-					 event.xconfigure.window, ROOT_WINDOW,
+					 f->display.x->parent_desc,
+					 ROOT_WINDOW,
 
 					 /* From-position, to-position.  */
 					 event.xconfigure.x,
