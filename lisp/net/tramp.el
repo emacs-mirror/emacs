@@ -3484,6 +3484,10 @@ password!  You must use an inline transfer method in this case.
 Sadly, the transfer method cannot be switched on the fly, instead you
 must specify the right method in the file name.
 
+Kludgy feature: if HOST has the form \"xx#yy\", then yy is assumed to
+be a port number for ssh, and \"-p yy\" will be added to the list of
+arguments, and xx will be used as the host name to connect to.
+
 * Actually, the rsh program to be used can be specified in the
   method parameters, see the variable `tramp-methods'."
   (save-match-data
@@ -3494,25 +3498,26 @@ must specify the right method in the file name.
 	(tramp-message 7 "Opening connection for %s@%s using %s..." 
 		       user host method)
       (tramp-message 7 "Opening connection at %s using %s..." host method))
-    (let ((process-environment (copy-sequence process-environment)))
+    (let ((process-environment (copy-sequence process-environment))
+	  (bufnam (tramp-buffer-name multi-method method user host))
+	  (buf (tramp-get-buffer multi-method method user host))
+	  (rsh-program (tramp-get-rsh-program multi-method method))
+	  (rsh-args (tramp-get-rsh-args multi-method method)))
+      ;; The following should be changed.  We need a more general
+      ;; mechanism to parse extra host args.
+      (when (string-match "\\([^#]*\\)#\\(.*\\)" host)
+	(setq rsh-args (cons "-p" (cons (match-string 2 host) rsh-args)))
+	(setq host (match-string 1 host)))
       (setenv "TERM" tramp-terminal-type)
       (let* ((default-directory (tramp-temporary-file-directory))
              (coding-system-for-read (unless (and (not (featurep 'xemacs))
                                                   (> emacs-major-version 20))
                                        tramp-dos-coding-system))
              (p (if user
-                    (apply #'start-process
-                           (tramp-buffer-name multi-method method user host)
-                           (tramp-get-buffer multi-method method user host)
-                           (tramp-get-rsh-program multi-method method) 
-                           host "-l" user
-                           (tramp-get-rsh-args multi-method method))
-                  (apply #'start-process
-                         (tramp-buffer-name multi-method method user host)
-                         (tramp-get-buffer multi-method method user host)
-                         (tramp-get-rsh-program multi-method method) 
-                         host
-                         (tramp-get-rsh-args multi-method method))))
+                    (apply #'start-process bufnam buf rsh-program  
+                           host "-l" user rsh-args)
+                  (apply #'start-process bufnam buf rsh-program 
+                         host rsh-args)))
              (found nil))
         (process-kill-without-query p)
         (tramp-message 9 "Waiting 60s for shell or passwd prompt from %s" host)

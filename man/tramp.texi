@@ -11,7 +11,7 @@
 @c Version values, for easy modification
 @c NOTE: The 'UPDATED' value is updated by the 'time-stamp' function.
 @c       If you change it by hand, the modifications will not stay.
-@set VERSION $Revision: 1.2 $
+@set VERSION $Revision: 1.3 $
 @set UPDATED Monday, 17 June, 2002
 
 
@@ -639,6 +639,12 @@ There are also two variants, @option{sm1} and @option{sm2} that use the
 @command{ssh1} and @command{ssh2} commands explicitly. If you don't know
 what these are, you do not need these options.
 
+All the methods based on @command{ssh} have an additional kludgy
+feature: you can specify a host name which looks like @file{host#42}
+(the real host name, then a hash sign, then a port number).  This
+means to connect to the given host but to also pass @code{-p 42} as
+arguments to the @command{ssh} command.
+
 
 @item @option{tm}  ---  @command{telnet} with @command{mimencode}
 
@@ -662,12 +668,14 @@ Connect to the remote host with @command{ssh} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
 between the machines.
 
-As with the @command{ssh} and base64 option above, this provides the
-@option{su1} and @option{su2} methods to explicitly select an ssh
-version.
+As with the @command{ssh} and base64 option (@option{sm}) above, this
+provides the @option{su1} and @option{su2} methods to explicitly
+select an ssh version.
 
 Note that this method does not invoke the @command{su} program, see
 below for methods which use that.
+
+This supports the @command{-p} kludge.
 
 
 @item @option{tu}  ---  @command{telnet} with @command{uuencode}
@@ -723,6 +731,8 @@ invoked from an Emacs buffer, tells them that it is not allocating a
 pseudo tty.  When this happens, the login shell is wont to not print
 any shell prompt, which confuses @tramp{} mightily.
 
+This supports the @command{-p} kludge.
+
 
 @item @option{km} --- @command{krlogin} with @command{mimencode}
 
@@ -738,6 +748,9 @@ remote host.
 
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
+
+CCC: Does @command{plink} support the @command{-p} option?  Tramp
+will support that, anyway.
 
 @item @option{plinkm} --- @command{plink} with @command{mimencode}
 
@@ -793,6 +806,11 @@ The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
 
+All the @command{ssh} based methods support the kludgy @command{-p}
+feature where you can specify a port number to connect to in the host
+name.  For example, the host name @file{host#42} tells Tramp to
+specify @command{-p 42} in the argument list for @command{ssh}.
+
 
 @item @option{rsync}  ---  @command{ssh} and @command{rsync}
 
@@ -807,6 +825,8 @@ the file exists only on one side of the connection.
 The @command{rsync} based method may be considerably faster than the
 @command{rcp} based methods when writing to the remote system. Reading
 files to the local machine is no faster than with a direct copy. 
+
+This method supports the @command{-p} hack.
 
 
 @item @option{scpx} --- @command{ssh} and @command{scp}
@@ -824,6 +844,8 @@ invoked from an Emacs buffer, tells them that it is not allocating a
 pseudo tty.  When this happens, the login shell is wont to not print
 any shell prompt, which confuses @tramp{} mightily.
 
+This method supports the @command{-p} hack.
+
 
 @item @option{pscp} --- @command{plink} and @command{pscp}
 
@@ -831,6 +853,8 @@ This method is similar to @option{scp}, but it uses the
 @command{plink} command to connect to the remote host, and it uses
 @command{pscp} for transferring the files.  These programs are part
 of PuTTY, an SSH implementation for Windows.
+
+CCC: Does @command{plink} support the @command{-p} hack?
 
 
 @item @option{fcp} --- @command{fsh} and @command{fcp}
