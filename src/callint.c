@@ -41,7 +41,7 @@ Lisp_Object Vmark_even_if_inactive;
 
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist;
+Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -302,22 +302,36 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	     look for elements that were computed with (region-beginning)
 	     or (region-end), and put those expressions into VALUES
 	     instead of the present values.  */
-	  car = Fcar (input);
-	  if (EQ (car, Qlist))
+	  if (CONSP (input))
 	    {
-	      Lisp_Object intail, valtail;
-	      for (intail = Fcdr (input), valtail = values;
-		   CONSP (valtail);
-		   intail = Fcdr (intail), valtail = Fcdr (valtail))
+	      car = XCONS (input)->car;
+	      /* Skip through certain special forms.  */
+	      while (EQ (car, Qlet) || EQ (car, Qletx)
+		     || EQ (car, Qsave_excursion))
 		{
-		  Lisp_Object elt;
-		  elt = Fcar (intail);
-		  if (CONSP (elt))
+		  while (CONSP (XCONS (input)->cdr))
+		    input = XCONS (input)->cdr;
+		  input = XCONS (input)->car;
+		  if (!CONSP (input))
+		    break;
+		  car = XCONS (input)->car;
+		}
+	      if (EQ (car, Qlist))
+		{
+		  Lisp_Object intail, valtail;
+		  for (intail = Fcdr (input), valtail = values;
+		       CONSP (valtail);
+		       intail = Fcdr (intail), valtail = Fcdr (valtail))
 		    {
-		      Lisp_Object presflag;
-		      presflag = Fmemq (Fcar (elt), preserved_fns);
-		      if (!NILP (presflag))
-			Fsetcar (valtail, Fcar (intail));
+		      Lisp_Object elt;
+		      elt = Fcar (intail);
+		      if (CONSP (elt))
+			{
+			  Lisp_Object presflag;
+			  presflag = Fmemq (Fcar (elt), preserved_fns);
+			  if (!NILP (presflag))
+			    Fsetcar (valtail, Fcar (intail));
+			}
 		    }
 		}
 	    }
@@ -696,6 +710,12 @@ syms_of_callint ()
 
   Qlist = intern ("list");
   staticpro (&Qlist);
+  Qlet = intern ("let");
+  staticpro (&Qlet);
+  Qletx = intern ("let*");
+  staticpro (&Qletx);
+  Qsave_excursion = intern ("save-excursion");
+  staticpro (&Qsave_excursion);
 
   Qminus = intern ("-");
   staticpro (&Qminus);
