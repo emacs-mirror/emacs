@@ -1,9 +1,9 @@
 ;;; mh-mime --- mh-e support for composing MIME messages
-;; Time-stamp: <95/04/20 19:16:22 gildea>
+;; Time-stamp: <95/08/19 16:45:17 gildea>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
-;; This file is part of GNU Emacs.
+;; This file is part of mh-e, part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.3 1995/04/10 00:20:00 kwzh Exp kwzh $
+;; $Id: mh-mime.el,v 1.4 1995/04/20 23:35:26 kwzh Exp kwzh $
 
 ;;; Code:
 
