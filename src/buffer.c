@@ -1304,13 +1304,13 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
   int inhibit_storing = 0;
 
   for (tail = current_buffer->overlays_before;
-       CONSP (tail);
+       XGCTYPE (tail) == Lisp_Cons;
        tail = XCONS (tail)->cdr)
     {
       int startpos;
 
       overlay = XCONS (tail)->car;
-      if (! OVERLAY_VALID (overlay))
+      if (XGCTYPE (overlay) == Lisp_Overlay)
 	abort ();
 
       start = OVERLAY_START (overlay);
@@ -1344,13 +1344,13 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
     }
 
   for (tail = current_buffer->overlays_after;
-       CONSP (tail);
+       XGCTYPE (tail) == Lisp_Cons;
        tail = XCONS (tail)->cdr)
     {
       int startpos;
 
       overlay = XCONS (tail)->car;
-      if (! OVERLAY_VALID (overlay))
+      if (XGCTYPE (overlay) == Lisp_Overlay)
 	abort ();
 
       start = OVERLAY_START (overlay);
