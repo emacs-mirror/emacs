@@ -380,15 +380,7 @@ Returns the compilation buffer created."
 	(setq mode-name name-of-mode)
 	(or (eq outwin (selected-window))
 	    (set-window-point outwin (point-min)))
-	(and compilation-window-height
-	     (= (window-width outwin) (frame-width))
-	     (let ((w (selected-window)))
-	       (unwind-protect
-		   (progn
-		     (select-window outwin)
-		     (enlarge-window (- compilation-window-height
-					(window-height))))
-		 (select-window w))))
+	(compilation-set-window-height outwin)
 	;; Start the compilation.
 	(if (fboundp 'start-process)
 	    (let ((proc (start-process-shell-command (downcase mode-name)
@@ -406,6 +398,21 @@ Returns the compilation buffer created."
 	  (message (format "Executing `%s'...done" command)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
+
+;; Set the height of WINDOW according to compilation-window-height.
+(defun compilation-set-window-height (window)
+  (and compilation-window-height
+       (= (window-width window) (frame-width (window-frame window)))
+       ;; If window is alone in its frame, aside from a minibuffer,
+       ;; don't change its height.
+       (not (eq window (frame-root-window (window-frame window))))
+       (let ((w (selected-window)))
+	 (unwind-protect
+	     (progn
+	       (select-window window)
+	       (enlarge-window (- compilation-window-height
+				  (window-height))))
+	   (select-window w)))))
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1044,9 +1051,11 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 
   ;; Show compilation buffer in other window, scrolled to this error.
   (let* ((pop-up-windows t)
-	 (w (display-buffer (marker-buffer (car next-error)))))
+	 (w (or (get-buffer-window (marker-buffer (car next-error)) 'visible)
+		(display-buffer (marker-buffer (car next-error))))))
     (set-window-point w (car next-error))
-    (set-window-start w (car next-error))))
+    (set-window-start w (car next-error))
+    (compilation-set-window-height w)))
 
 ;; Find a buffer for file FILENAME.
 ;; Search the directories in compilation-search-path.
