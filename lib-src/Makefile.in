@@ -12,16 +12,68 @@
 # inherited from the environment.
 SHELL = /bin/sh
 
+# ==================== Things `configure' might edit ====================
+
+CC=cc
+CONFIG_CFLAGS=-g
+LOADLIBES=
+version=version-not-set
+configname=configuration-name-not-set
+
+# ==================== Where To Install Things ====================
+
+# The default location for installation.  Everything is placed in
+# subdirectories of this directory.  The default values for many of
+# the variables below are expressed in terms of this one, so you may
+# not need to change them.
+prefix=/usr/local
+
+# Like `prefix', but used for architecture-specific files.
+exec_prefix=${prefix}
+
+# Where to install Emacs and other binaries that people will want to
+# run directly (like etags).
+bindir=${exec_prefix}/bin
+
+# Where to install and expect executable files to be run by Emacs
+# rather than directly by users, and other architecture-dependent
+# data.  ${archlibdir} is usually below this.
+libdir=${exec_prefix}/lib
+
+# Where to find the source code - setting this to anything but
+# . doesn't work yet.  The source code for Emacs's C kernel is
+# expected to be in ${srcdir}/src, and the source code for Emacs's
+# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# set by the configure script's `--srcdir' option.
+srcdir=.
+
+# ==================== Emacs-specific directories ====================
+
+# These variables hold the values Emacs will actually use.  They are
+# based on the values of the standard Make variables above.
+
+# Where to put executables to be run by Emacs rather than the user.
+# This path usually includes the Emacs version and configuration name,
+# so that multiple configurations for multiple versions of Emacs may
+# be installed at once.
+archlibdir=${libdir}/emacs/${version}/${configname}
+
+# ==================== Utility Programs for the Build ====================
+
 # Allow the user to specify the install program.
 INSTALL = install
-INSTALLFLAGS =
+INSTALLFLAGS = -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL}
+
+# ============================= Targets ==============================
 
 # Things that a user might actually run, which should be installed in bindir.
 INSTALLABLES = etags ctags emacsclient b2m 
 
 # Things that Emacs runs internally, or during the build process,
 # which should not be installed in bindir.
-UTILITIES= test-distrib wakeup make-docfile digest-doc sorted-doc \
+UTILITIES= test-distrib make-path wakeup make-docfile digest-doc sorted-doc \
 	movemail cvtmail fakemail yow env emacsserver hexl timer
 
 # Like UTILITIES, but they're not system-dependent, and should not be
@@ -30,80 +82,63 @@ SCRIPTS= rcs2log vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS}
 
-# These things are edited by ../configure; don't change anything before
-# or including the '='; everything after that gets blown away.
-CC=gcc
-CONFIG_CFLAGS= -g -O
-LOADLIBES=
+### We need to #define emacs to get the right versions of some files.
+### Some other files - those shared with other GNU utilities - need
+### HAVE_CONFIG_H #defined before they know they can take advantage of
+### the information in ../src/config.h.
+CFLAGS=${CONFIG_CFLAGS} -Demacs -DHAVE_CONFIG_H -I../src
 
-CFLAGS=${CONFIG_CFLAGS} -Demacs -I../src
+all: ${EXECUTABLES}
 
-all: ../arch-lib
-
-# We use rm -f so that rm won't try to ask questions during the build.
-../arch-lib: ${EXECUTABLES}
-	for file in ${EXECUTABLES} ; do \
-	  if [ -f $${file} ]; then \
-            if [ -f ../arch-lib/$${file} ]; then \
-	      rm -f ../arch-lib/$${file} ; \
-	    fi ; \
-	    ln $${file} ../arch-lib ; \
-          fi ; \
+### Install the internal utilities.  Until they are installed, we can
+### just run them directly from lib-src.
+${archlibdir}: all
+	@echo
+	@echo "Installing utilities run internally by Emacs."
+	./make-path ${archlibdir}
+	if [ `(cd ${archlibdir};/bin/pwd)` != `/bin/pwd` ]; then \
+	  for file in ${EXECUTABLES} ; do \
+	    cp $${file} ${archlibdir} ; \
+	    chmod 755 ${archlibdir}/$${file} ; \
+	  done ; \
+        fi
+	@echo
+	@echo "Changing the owner and group of Emacs's utility programs to \`bin'."
+	@echo "(You may ignore errors here if you don't care about this.)"
+	-for file in ${EXECUTABLES} ; do \
+	  chgrp bin ${archlibdir}/$${file} ; \
+	  chown bin ${archlibdir}/$${file} ; \
 	done
 
 # We don't need to install `wakeup' explicitly, because it will be copied when
 # this whole directory is copied.
-install: all
-	${INSTALL} ${INSTALLFLAGS} -c emacsclient ${BINDIR}/emacsclient
-	${INSTALL} ${INSTALLFLAGS} -c etags ${BINDIR}/etags
-	${INSTALL} ${INSTALLFLAGS} -c ctags ${BINDIR}/ctags
-	${INSTALL} ${INSTALLFLAGS} -c b2m ${BINDIR}/b2m
-	${INSTALL} ${INSTALLFLAGS} -c -m 444 emacs.1 ${MANDIR}/emacs.${MANEXT}
-
-install.sysv: all
-	-cp emacsclient ${BINDIR}/emacsclient.new
-	-chmod 755 ${BINDIR}/emacsclient.new
-	-chgrp bin ${BINDIR}/emacsclient.new
-	-chown bin ${BINDIR}/emacsclient.new
-	-mv ${BINDIR}/emacsclient.new ${BINDIR}/emacsclient
-	-cp etags ${BINDIR}/etags.new
-	-chmod 755 ${BINDIR}/etags.new
-	-chgrp bin ${BINDIR}/etags.new
-	-chown bin ${BINDIR}/etags.new
-	-mv ${BINDIR}/etags.new ${BINDIR}/etags
-	-cp ctags ${BINDIR}/ctags.new
-	-chmod 755 ${BINDIR}/ctags.new
-	-chgrp bin ${BINDIR}/ctags.new
-	-chown bin ${BINDIR}/ctags.new
-	-mv ${BINDIR}/ctags.new ${BINDIR}/ctags
-	-cp b2m ${BINDIR}/b2m.new
-	-chmod 755 ${BINDIR}/b2m.new
-	-chgrp bin ${BINDIR}/b2m.new
-	-chown bin ${BINDIR}/b2m.new
-	-mv ${BINDIR}/b2m.new ${BINDIR}/b2m
-	-cp emacs.1 ${MANDIR}/emacs.${MANEXT}.new
-	-chmod 444 ${MANDIR}/emacs.${MANEXT}.new
-	-mv ${MANDIR}/emacs.${MANEXT}.new ${MANDIR}/emacs.${MANEXT}
-
-install.xenix:
-	cp etags ctags emacsclient ${BINDIR}
-	chmod 755 ${BINDIR}/etags ${BINDIR}/ctags
-	chmod 755 ${BINDIR}/emacsclient
-	cp b2m ${BINDIR}
-	chmod 755 ${BINDIR}/b2m
-	cp emacs.1 ${MANDIR}/emacs.${MANEXT}
-	chmod 444 ${MANDIR}/emacs.${MANEXT}
-
+install: ${archlibdir}
+	@echo
+	@echo "Installing utilities for users to run."
+	for file in emacsclient etags ctags b2m ; do \
+	  cp $${file} ${bindir}/$${file}.new ; \
+	  chmod 755 ${bindir}/$${file}.new ; \
+        done
+	@echo
+	@echo "Changing the owner and group of utility programs to \`bin'."
+	@echo "(You may ignore errors here if you don't care about this.)"
+	-for file in emacsclient etags ctags b2m ; do \
+	  chgrp bin ${bindir}/$${file}.new ; \
+	  chown bin ${bindir}/$${file}.new ; \
+	  mv ${bindir}/$${file}.new ${bindir}/$${file} ; \
+        done
 
 clean mostlyclean:
 	-rm -f ${INSTALLABLES} ${UTILITIES} core *.o
 
 distclean:
-	-rm -f ${INSTALLABLES} ${UTILITIES} *~ \#* ../etc/DOC* core *.o
-	cd ../arch-lib; rm -f ${EXECUTABLES}
+	-rm -f ${INSTALLABLES} ${UTILITIES} ../etc/DOC* core *.o
 
 realclean: distclean
-	rm TAGS aixcc.c
+	-rm TAGS aixcc.c
+
+extraclean: realclean
+	-rm -f *~ \#*
 
 # Test the contents of the directory.
 check:
