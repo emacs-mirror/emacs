@@ -1,3 +1,14 @@
+2000-09-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-extract-pointer): Undo last change.
+	Instead, fix the position of the `bound' arg to re-search-backward.
+
+2000-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-extract-pointer):
+	Widen more carefully, to avoid finding pointers in other nodes.
+	(Info-index): Use push.
+
 2000-09-27 +00  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (set-frame-font): Remove call to obsolete function
@@ -42,11 +53,10 @@
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (frame-notice-user-settings): Don't add a
-	tool-bar-lines frame parameter to default-frame-alist in batch
-	mode.
+	tool-bar-lines frame parameter to default-frame-alist in batch mode.
 	
-	* frame.el (frame-notice-user-settings): Make tool-bar-mode and
-	default-frame-alist consistent.
+	* frame.el (frame-notice-user-settings):
+	Make tool-bar-mode and default-frame-alist consistent.
 
 	* toolbar/tool-bar.el (tool-bar-help): New function.
 
@@ -87,7 +97,6 @@
 
 	* progmodes/hideshow.el: Update author email address.
 	Generally, sync w/ maintainer version 5.22.
-
 	(hs-hide-all-non-comment-function): New var.
 	(hs-hide-hook, hs-show-hook, hs-minor-mode): Update docstrings.
 	(hs-hide-all): Use `hs-hide-all-non-comment-function'.
@@ -108,8 +117,7 @@
 
 	* vc-rcs.el (toplevel): Require `vc' when compiling.
 
-	* startup.el (fancy-splash-head): Use splash.pbm instead of
-	splash.xbm.
+	* startup.el (fancy-splash-head): Use splash.pbm instead of splash.xbm.
 
 2000-09-22  Andre Spiegel  <spiegel@gnu.org>
 
@@ -140,8 +148,8 @@
 	* add-log.el (change-log-date-face, change-log-name-face)
 	(change-log-email-face, change-log-file-face)
 	(change-log-list-face, change-log-conditionals-face)
-	(change-log-function-face, change-log-acknowledgement-face): New
-	faces, inheriting from font-lock faces.
+	(change-log-function-face, change-log-acknowledgement-face):
+	New faces, inheriting from font-lock faces.
 	(change-log-font-lock-keywords): Use them.
 
 2000-09-21  Dave Love  <fx@gnu.org>
@@ -165,8 +173,7 @@
 
 	* vc.el (vc-index-of, vc-transfer-file, vc-default-receive-file):
 	New functions.
-	(vc-next-action-on-file): Call vc-transfer-file at appropriate
-	places.
+	(vc-next-action-on-file): Call vc-transfer-file at appropriate places.
 	(vc-switch-backend): New function.
 	(vc-prefix-map): Bind `vc-switch-backend' to `b'.
 	(vc-register): Fix prompt.
@@ -181,8 +188,8 @@
 	(vc-rcs-fetch-master-state): With non-strict locking, compare file
 	contents in order to find the state.
 	(vc-rcs-checkin): Allow creation of branches with no changes.
-	(vc-rcs-unregister, vc-rcs-receive-file,
-	vc-rcs-set-non-strict-locking): New functions.
+	(vc-rcs-unregister, vc-rcs-receive-file)
+	(vc-rcs-set-non-strict-locking): New functions.
 
 	* vc-hooks.el (vc-name): Force correct computation of the value
 	in case it is missing.
