@@ -506,7 +506,7 @@ print_string (string, printcharfun)
 	for (i = 0; i < size; i++)
 	  PRINTCHAR (SREF (string, i));
       else
-	for (i = 0; i < size_byte; i++)
+	for (i = 0; i < size_byte; )
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
