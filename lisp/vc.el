@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.249 1999/06/15 17:40:09 kwzh Exp $
+;; $Id: vc.el,v 1.250 1999/06/30 07:16:14 spiegel Exp schwab $
 
 ;; This file is part of GNU Emacs.
 
@@ -2995,7 +2995,7 @@ THRESHOLD, nil otherwise"
              (vc-file-setprop file 'vc-workfile-version (match-string 1)))
          ;; get file status
 	 (if (re-search-forward 
-              (concat "^\\(\\([CMU]\\) \\)?" 
+              (concat "^\\(\\([CMUP]\\) \\)?" 
                       (regexp-quote (file-name-nondirectory file))
 		      "\\( already contains the differences between \\)?")
               nil t)
