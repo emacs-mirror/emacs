@@ -448,7 +448,7 @@ to implement dynamic menus."
 
 (defun easy-menu-add (menu &optional map)
   "Maybe precalculate equivalent key bindings.
-Do it if `easy-menu-precalculate-equivalent-keybindings' is on,"
+Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
 	(setq menu (symbol-value menu)))
