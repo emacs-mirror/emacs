@@ -137,6 +137,26 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
+;;; Override setting chosen at startup.
+(defun set-default-process-coding-system ()
+  ;; Most programs on Windows will accept Unix line endings on input
+  ;; (and some programs ported from Unix require it) but most will
+  ;; produce DOS line endings on output.
+  (setq default-process-coding-system
+	(if default-enable-multibyte-characters
+	    '(undecided-dos . undecided-unix)
+	  '(raw-text-dos . raw-text-unix)))
+  (or (w32-using-nt)
+      ;; On Windows 9x, make cmdproxy default to using DOS line endings
+      ;; for input, because command.com requires this.
+      (setq process-coding-system-alist
+	    `(("[cC][mM][dD][pP][rR][oO][xX][yY]"
+	       . ,(if default-enable-multibyte-characters
+		      '(undecided-dos . undecided-dos)
+		    '(raw-text-dos . raw-text-dos)))))))
+
+(add-hook 'before-init-hook 'set-default-process-coding-system)
+
 
 ;;; Basic support functions for managing Emacs' locale setting
 
