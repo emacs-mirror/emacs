@@ -11509,25 +11509,27 @@ row_containing_pos (w, charpos, start, end, dy)
 
   last_y = window_text_bottom_y (w) - dy;
 
-  while ((end == NULL || row < end)
-	 && MATRIX_ROW_BOTTOM_Y (row) < last_y
-	 && (MATRIX_ROW_END_CHARPOS (row) < charpos
+  while (1)
+    {
+      /* Give up if we have gone too far.  */
+      if (end && row >= end)
+	return NULL;
+      if (MATRIX_ROW_BOTTOM_Y (row) >= last_y)
+	return NULL;
+
+      /* If it is in this row, return this row.  */
+      if (! (MATRIX_ROW_END_CHARPOS (row) < charpos
 	     || (MATRIX_ROW_END_CHARPOS (row) == charpos
 		 /* The end position of a row equals the start
 		    position of the next row.  If CHARPOS is there, we
 		    would rather display it in the next line, except
 		    when this line ends in ZV.  */
 		 && !row->ends_at_zv_p
-		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))))
-    ++row;
-
-  /* Give up if CHARPOS not found.  */
-  if ((end && row >= end)
-      || charpos < MATRIX_ROW_START_CHARPOS (row)
-      || charpos > MATRIX_ROW_END_CHARPOS (row))
-    row = NULL;
-
-  return row;
+		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
+	  && charpos >= MATRIX_ROW_START_CHARPOS (row))
+	return row;
+      ++row;
+    }
 }
 
 
