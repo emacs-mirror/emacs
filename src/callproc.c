@@ -55,6 +55,7 @@ extern char *sys_errlist[];
 #include <paths.h>
 #include "process.h"
 #include "syssignal.h"
+#include "systty.h"
 
 #ifdef VMS
 extern noshare char **environ;
@@ -537,7 +538,8 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #else
   setpgrp (pid, pid);
 #endif /* USG */
-  setpgrp_of_tty (pid);
+  /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
+  EMACS_SET_TTY_PGRP (0, &pid);
 
 #ifdef vipc
   something missing here;
