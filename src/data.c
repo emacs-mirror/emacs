@@ -1801,7 +1801,7 @@ Both X and Y must be numbers or markers.")
       if (f2 == 0)
 	Fsignal (Qarith_error, Qnil);
 
-#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux) || defined (MSDOS)
+#ifdef HAVE_FMOD
       f1 = fmod (f1, f2);
 #else
       f1 = drem (f1, f2);
