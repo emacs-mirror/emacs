@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/05/03 08:27:40 $|$Revision: 1.66 $
+;; |$Date: 1994/05/03 22:34:16 $|$Revision: 1.67 $
 
 ;; This file is part of GNU Emacs.
 
@@ -669,11 +669,11 @@ The following additional command keys are active while editing.
 \\[exit-minibuffer] to resume incremental searching with the edited string.
 \\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
-\\[isearch-backward-exit-minibuffer] to resume isearching backward.
+\\[isearch-reverse-exit-minibuffer] to resume isearching backward.
 \\[isearch-ring-advance-edit] to replace the search string with the next item in the search ring.
 \\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
-
+\\<isearch-mode-map>
 If first char entered is \\[isearch-yank-word], then do word search instead."
 
   ;; This code is very hairy for several reasons, explained in the code.
@@ -1295,7 +1295,8 @@ If there is no completion possible, say so and continue searching."
   (and isearch-invalid-regexp ellipsis
        (condition-case ()
 	   (progn (re-search-forward isearch-string (point) t)
-		  (setq isearch-invalid-regexp nil))
+		  (setq isearch-invalid-regexp nil
+			isearch-within-brackets nil))
 	 (error nil)))
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
