@@ -1,3 +1,23 @@
+2005-01-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-memory-address)
+	(gdb-memory-repeat-count, gdb-memory-format, gdb-memory-unit)
+	(gdb-memory-mode-map, gdb-memory-format-keymap)
+	(gdb-memory-format-menu, gdb-memory-unit-keymap)
+	(gdb-memory-unit-menu): New variables for a buffer
+	that lets the user examine program memory.
+	(gdb-memory-set-address, gdb-memory-set-repeat-count)
+	(gdb-memory-format-binary, gdb-memory-format-octal)
+	(gdb-memory-format-unsigned, gdb-memory-format-signed)
+	(gdb-memory-format-hexadecimal, gdb-memory-format-menu)
+	(gdb-memory-format-menu-1, gdb-memory-unit-giant)
+	(gdb-memory-unit-word, gdb-memory-unit-halfword)
+	(gdb-memory-unit-byte, gdb-memory-unit-menu)
+	(gdb-memory-unit-menu-1, gdb-make-header-line-mouse-map)
+	(gdb-memory-mode, gdb-memory-buffer-name)
+	(gdb-display-memory-buffer, gdb-frame-memory-buffer):
+	New functions for above buffer.
+
 2005-01-30  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-bury-buffer): Function deleted.
