@@ -966,7 +966,7 @@ getloadavg (loadavg, nelem)
 	{
 	  /* Set the channel to close on exec, so it does not
 	     litter any child's descriptor table.  */
-#   ifdef FD_SETFD
+#   ifdef F_SETFD
 #    ifndef FD_CLOEXEC
 #     define FD_CLOEXEC 1
 #    endif
