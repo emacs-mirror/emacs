@@ -2096,7 +2096,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     if (!NILP (translation_table)					\
 	&& ((c_alt = translate_char (translation_table,			\
 				     -1, (charset), c1, c2)) >= 0))	\
-	  SPLIT_CHAR (c_alt, charset_alt, c1, c2);			\
+      SPLIT_CHAR (c_alt, charset_alt, c1, c2);				\
     if (charset_alt == CHARSET_ASCII || charset_alt < 0)		\
       DECODE_CHARACTER_ASCII (c1);					\
     else if (CHARSET_DIMENSION (charset_alt) == 1)			\
@@ -5018,8 +5018,7 @@ code_convert_string_norecord (string, coding_system, encodep)
 }
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
-  "Decode a JISX0208 character of shift-jis encoding.\n\
-CODE is the character code in SJIS.\n\
+  "Decode a Japanese character which has CODE in shift_jis encoding.\n\
 Return the corresponding character.")
   (code)
      Lisp_Object code;
@@ -5029,14 +5028,26 @@ Return the corresponding character.")
 
   CHECK_NUMBER (code, 0);
   s1 = (XFASTINT (code)) >> 8, s2 = (XFASTINT (code)) & 0xFF;
-  DECODE_SJIS (s1, s2, c1, c2);
-  XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_jisx0208, c1, c2));
+  if (s1 == 0)
+    {
+      if (s2 < 0xA0 || s2 > 0xDF)
+	error ("Invalid Shift JIS code: %s", XFASTINT (code));
+      XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_katakana_jisx0201, s2, 0));
+    }
+  else
+    {
+      if ((s1 < 0x80 || s1 > 0x9F && s1 < 0xE0 || s1 > 0xEF)
+	  || (s2 < 0x40 || s2 == 0x7F || s2 > 0xFC))
+	error ("Invalid Shift JIS code: %s", XFASTINT (code));
+      DECODE_SJIS (s1, s2, c1, c2);
+      XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_jisx0208, c1, c2));
+    }
   return val;
 }
 
 DEFUN ("encode-sjis-char", Fencode_sjis_char, Sencode_sjis_char, 1, 1, 0,
-  "Encode a JISX0208 character CHAR to SJIS coding system.\n\
-Return the corresponding character code in SJIS.")
+  "Encode a Japanese character CHAR to shift_jis encoding.\n\
+Return the corresponding code in SJIS.")
   (ch)
      Lisp_Object ch;
 {
@@ -5045,13 +5056,20 @@ Return the corresponding character code in SJIS.")
 
   CHECK_NUMBER (ch, 0);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
-  if (charset == charset_jisx0208)
+  if (charset == charset_jisx0208
+      && c1 > 0x20 && c1 < 0x7F && c2 > 0x20 && c2 < 0x7F)
     {
       ENCODE_SJIS (c1, c2, s1, s2);
       XSETFASTINT (val, (s1 << 8) | s2);
     }
+  else if (charset == charset_katakana_jisx0201
+	   && c1 > 0x20 && c2 < 0xE0)
+    {
+      XSETFASTINT (val, c1 | 0x80);
+    }
   else
-    XSETFASTINT (val, 0);
+    error ("Can't encode to shift_jis: %d", XFASTINT (ch));
+    
   return val;
 }
 
