@@ -178,7 +178,7 @@ which is at least the number of distinct elements.")
 }
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
-  "T if two strings have identical contents.\n\
+  "Return t if two strings have identical contents.\n\
 Case is significant, but text properties are ignored.\n\
 Symbols are also allowed; their print names are used instead.")
   (s1, s2)
@@ -191,14 +191,15 @@ Symbols are also allowed; their print names are used instead.")
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
 
-  if (XSTRING (s1)->size != XSTRING (s2)->size ||
-      bcmp (XSTRING (s1)->data, XSTRING (s2)->data, XSTRING (s1)->size))
+  if (XSTRING (s1)->size != XSTRING (s2)->size
+      || XSTRING (s1)->size_byte != XSTRING (s2)->size_byte
+      || bcmp (XSTRING (s1)->data, XSTRING (s2)->data, XSTRING (s1)->size_byte))
     return Qnil;
   return Qt;
 }
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
-  "T if first arg string is less than second in lexicographic order.\n\
+  "Return t if first arg string is less than second in lexicographic order.\n\
 Case is significant.\n\
 Symbols are also allowed; their print names are used instead.")
   (s1, s2)
@@ -217,16 +218,16 @@ Symbols are also allowed; their print names are used instead.")
 
   p1 = XSTRING (s1)->data;
   p2 = XSTRING (s2)->data;
-  end = XSTRING (s1)->size;
-  if (end > XSTRING (s2)->size)
-    end = XSTRING (s2)->size;
+  end = XSTRING (s1)->size_byte;
+  if (end > XSTRING (s2)->size_byte)
+    end = XSTRING (s2)->size_byte;
 
   for (i = 0; i < end; i++)
     {
       if (p1[i] != p2[i])
 	return p1[i] < p2[i] ? Qt : Qnil;
     }
-  return i < XSTRING (s2)->size ? Qt : Qnil;
+  return i < XSTRING (s2)->size_byte ? Qt : Qnil;
 }
 
 static Lisp_Object concat ();
@@ -379,14 +380,16 @@ concat (nargs, args, target_type, last_special)
      int last_special;
 {
   Lisp_Object val;
-  Lisp_Object len;
   register Lisp_Object tail;
   register Lisp_Object this;
   int toindex;
-  register int leni;
+  int toindex_byte;
+  register int result_len;
+  register int result_len_byte;
   register int argnum;
   Lisp_Object last_tail;
   Lisp_Object prev;
+  int some_multibyte;
 
   /* In append, the last arg isn't treated like the others */
   if (last_special && nargs > 0)
@@ -397,6 +400,7 @@ concat (nargs, args, target_type, last_special)
   else
     last_tail = Qnil;
 
+  /* Canonicalize each argument.  */
   for (argnum = 0; argnum < nargs; argnum++)
     {
       this = args[argnum];
@@ -410,56 +414,77 @@ concat (nargs, args, target_type, last_special)
 	}
     }
 
-  for (argnum = 0, leni = 0; argnum < nargs; argnum++)
+  /* Compute total length in chars of arguments in RESULT_LEN.
+     If desired output is a string, also compute length in bytes
+     in RESULT_LEN_BYTE, and determine in SOME_MULTIBYTE
+     whether the result should be a multibyte string.  */
+  result_len_byte = 0;
+  result_len = 0;
+  some_multibyte = 0;
+  for (argnum = 0; argnum < nargs; argnum++)
     {
+      int len;
       this = args[argnum];
-      len = Flength (this);
-      if ((VECTORP (this) || CONSP (this)) && target_type == Lisp_String)
-
+      len = XFASTINT (Flength (this));
+      if (target_type == Lisp_String)
 	{
 	  /* We must pay attention to a multibyte character which
-             takes more than one byte in string.  */
+	     takes more than one byte in string.  */
 	  int i;
 	  Lisp_Object ch;
+	  int this_len_byte;
 
 	  if (VECTORP (this))
-	    for (i = 0; i < XFASTINT (len); i++)
+	    for (i = 0; i < len; i++)
 	      {
 		ch = XVECTOR (this)->contents[i];
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		leni += XFASTINT (Fchar_bytes (ch));
+		this_len_byte = XFASTINT (Fchar_bytes (ch));
+		result_len_byte += this_len_byte;
+		if (this_len_byte > 1)
+		  some_multibyte = 1;
 	      }
-	  else
+	  else if (CONSP (this))
 	    for (; CONSP (this); this = XCONS (this)->cdr)
 	      {
 		ch = XCONS (this)->car;
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		leni += XFASTINT (Fchar_bytes (ch));
+		this_len_byte = XFASTINT (Fchar_bytes (ch));
+		result_len_byte += this_len_byte;
+		if (this_len_byte > 1)
+		  some_multibyte = 1;
 	      }
+	  else
+	    {
+	      result_len_byte += XSTRING (this)->size_byte;
+	      if (STRING_MULTIBYTE (this))
+		some_multibyte = 1;
+	    }
 	}
-      else
-	leni += XFASTINT (len);
+
+      result_len += len;
     }
 
-  XSETFASTINT (len, leni);
-
-  if (target_type == Lisp_Cons)
-    val = Fmake_list (len, Qnil);
-  else if (target_type == Lisp_Vectorlike)
-    val = Fmake_vector (len, Qnil);
-  else
-    val = Fmake_string (len, len);
-
-  /* In append, if all but last arg are nil, return last arg */
+  /* In `append', if all but last arg are nil, return last arg.  */
   if (target_type == Lisp_Cons && EQ (val, Qnil))
     return last_tail;
 
+  /* Create the output object.  */
+  if (target_type == Lisp_Cons)
+    val = Fmake_list (make_number (result_len), Qnil);
+  else if (target_type == Lisp_Vectorlike)
+    val = Fmake_vector (make_number (result_len), Qnil);
+  else
+    val = make_uninit_multibyte_string (result_len, result_len_byte);
+
+
+  /* Copy the contents of the args into the result.  */
   if (CONSP (val))
     tail = val, toindex = -1;		/* -1 in toindex is flag we are making a list */
   else
-    toindex = 0;
+    toindex = 0, toindex_byte = 0;
 
   prev = Qnil;
 
@@ -468,6 +493,7 @@ concat (nargs, args, target_type, last_special)
       Lisp_Object thislen;
       int thisleni;
       register unsigned int thisindex = 0;
+      register unsigned int thisindex_byte = 0;
 
       this = args[argnum];
       if (!CONSP (this))
@@ -475,76 +501,195 @@ concat (nargs, args, target_type, last_special)
 
       if (STRINGP (this) && STRINGP (val)
 	  && ! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	copy_text_properties (make_number (0), thislen, this,
+			      make_number (toindex), val, Qnil);
+
+      /* Between strings of the same kind, copy fast.  */
+      if (STRINGP (this) && STRINGP (val)
+	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
-	  copy_text_properties (make_number (0), thislen, this,
-				make_number (toindex), val, Qnil);
+	  int thislen_byte = XSTRING (this)->size_byte;
+	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
+		 XSTRING (this)->size_byte);
+	  toindex_byte += thislen_byte;
+	  toindex += thisleni;
 	}
+      else
+	/* Copy element by element.  */
+	while (1)
+	  {
+	    register Lisp_Object elt;
 
-      while (1)
-	{
-	  register Lisp_Object elt;
-
-	  /* Fetch next element of `this' arg into `elt', or break if
-             `this' is exhausted. */
-	  if (NILP (this)) break;
-	  if (CONSP (this))
-	    elt = XCONS (this)->car, this = XCONS (this)->cdr;
-	  else
-	    {
-	      if (thisindex >= thisleni) break;
-	      if (STRINGP (this))
-		XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
-	      else if (BOOL_VECTOR_P (this))
-		{
-		  int size_in_chars
-		    = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR - 1)
-		       / BITS_PER_CHAR);
-		  int byte;
-		  byte = XBOOL_VECTOR (val)->data[thisindex / BITS_PER_CHAR];
-		  if (byte & (1 << (thisindex % BITS_PER_CHAR)))
-		    elt = Qt;
-		  else
-		    elt = Qnil;
-		}
-	      else
-		elt = XVECTOR (this)->contents[thisindex++];
-	    }
-
-	  /* Store into result */
-	  if (toindex < 0)
-	    {
-	      XCONS (tail)->car = elt;
-	      prev = tail;
-	      tail = XCONS (tail)->cdr;
-	    }
-	  else if (VECTORP (val))
-	    XVECTOR (val)->contents[toindex++] = elt;
-	  else
-	    {
-	      while (!INTEGERP (elt))
-		elt = wrong_type_argument (Qintegerp, elt);
+	    /* Fetch next element of `this' arg into `elt', or break if
+	       `this' is exhausted. */
+	    if (NILP (this)) break;
+	    if (CONSP (this))
+	      elt = XCONS (this)->car, this = XCONS (this)->cdr;
+	    else
 	      {
-		int c = XINT (elt);
-		unsigned char work[4], *str;
-		int i = CHAR_STRING (c, work, str);
-
-#ifdef MASSC_REGISTER_BUG
-		/* Even removing all "register"s doesn't disable this bug!
-		   Nothing simpler than this seems to work. */
-		unsigned char *p = & XSTRING (val)->data[toindex];
-		bcopy (str, p, i);
-#else
-		bcopy (str, & XSTRING (val)->data[toindex], i);
-#endif
-		toindex += i;
+		if (thisindex >= thisleni) break;
+		if (STRINGP (this))
+		  {
+		    if (STRING_MULTIBYTE (this))
+		      {
+			int c;
+			FETCH_STRING_CHAR_ADVANCE (c, this,
+						   thisindex,
+						   thisindex_byte);
+			XSETFASTINT (elt, c);
+		      }
+		    else
+		      {
+			unsigned char c;
+			XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
+			if (some_multibyte && XINT (elt) >= 0200
+			    && XINT (elt) < 0400)
+			  {
+			    c = XINT (elt);
+			    copy_text (&c, &c, 1, 0, 1);
+			    XSETINT (elt, c);
+			  }
+		      }
+		  }
+		else if (BOOL_VECTOR_P (this))
+		  {
+		    int size_in_chars
+		      = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR - 1)
+			 / BITS_PER_CHAR);
+		    int byte;
+		    byte = XBOOL_VECTOR (val)->data[thisindex / BITS_PER_CHAR];
+		    if (byte & (1 << (thisindex % BITS_PER_CHAR)))
+		      elt = Qt;
+		    else
+		      elt = Qnil;
+		  }
+		else
+		  elt = XVECTOR (this)->contents[thisindex++];
 	      }
-	    }
-	}
+
+	    /* Store this element into the result.  */
+	    if (toindex < 0)
+	      {
+		XCONS (tail)->car = elt;
+		prev = tail;
+		tail = XCONS (tail)->cdr;
+	      }
+	    else if (VECTORP (val))
+	      XVECTOR (val)->contents[toindex++] = elt;
+	    else
+	      {
+		CHECK_NUMBER (elt, 0);
+		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
+		  {
+		    XSTRING (val)->data[toindex++] = XINT (elt);
+		    toindex_byte++;
+		  }
+		else
+		  /* If we have any multibyte characters,
+		     we already decided to make a multibyte string.  */
+		  {
+		    int c = XINT (elt);
+		    unsigned char work[4], *str;
+		    int i = CHAR_STRING (c, work, str);
+
+		    /* P exists as a variable
+		       to avoid a bug on the Masscomp C compiler.  */
+		    unsigned char *p = & XSTRING (val)->data[toindex_byte];
+		    bcopy (str, p, i);
+		    toindex_byte += i;
+		    toindex++;
+		  }
+	      }
+	  }
     }
   if (!NILP (prev))
     XCONS (prev)->cdr = last_tail;
 
   return val;
+}
+
+/* Return the character index corresponding to CHAR_INDEX in STRING.  */
+
+int
+string_char_to_byte (string, char_index)
+     Lisp_Object string;
+     int char_index;
+{
+  int i = 0, i_byte = 0;
+
+  if (! STRING_MULTIBYTE (string))
+    return char_index;
+
+  while (i < char_index)
+    {
+      int c;
+      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+    }
+
+  return i_byte;
+}
+
+/* Return the character index corresponding to BYTE_INDEX in STRING.  */
+
+int
+string_byte_to_char (string, byte_index)
+     Lisp_Object string;
+     int byte_index;
+{
+  int i = 0, i_byte = 0;
+
+  if (! STRING_MULTIBYTE (string))
+    return byte_index;
+
+  while (i_byte < byte_index)
+    {
+      int c;
+      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+    }
+
+  return i;
+}
+
+/* Convert STRING to a multibyte string.
+   Single-byte characters 0200 through 0377 are converted
+   by adding nonascii_insert_offset to each.  */
+
+Lisp_Object
+string_make_multibyte (string)
+     Lisp_Object string;
+{
+  unsigned char *buf;
+  int nbytes;
+
+  if (STRING_MULTIBYTE (string))
+    return string;
+
+  nbytes = count_size_as_multibyte (XSTRING (string)->data,
+				    XSTRING (string)->size);
+  buf = (unsigned char *) alloca (nbytes);
+  copy_text (XSTRING (string)->data, buf, XSTRING (string)->size_byte,
+	     0, 1);
+
+  return make_multibyte_string (buf, XSTRING (string)->size, nbytes);
+}
+
+/* Convert STRING to a single-byte string.  */
+
+Lisp_Object
+string_make_unibyte (string)
+     Lisp_Object string;
+{
+  unsigned char *buf;
+
+  if (! STRING_MULTIBYTE (string))
+    return string;
+
+  buf = (unsigned char *) alloca (XSTRING (string)->size);
+
+  copy_text (XSTRING (string)->data, buf, XSTRING (string)->size_byte,
+	     1, 0);
+
+  return make_unibyte_string (buf, XSTRING (string)->size);
 }
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
@@ -586,6 +731,9 @@ This function allows vectors as well as strings.")
 {
   Lisp_Object res;
   int size;
+  int size_byte;
+  int from_char, to_char;
+  int from_byte, to_byte;
 
   if (! (STRINGP (string) || VECTORP (string)))
     wrong_type_argument (Qarrayp, string);
@@ -593,32 +741,89 @@ This function allows vectors as well as strings.")
   CHECK_NUMBER (from, 1);
 
   if (STRINGP (string))
-    size = XSTRING (string)->size;
+    {
+      size = XSTRING (string)->size;
+      size_byte = XSTRING (string)->size_byte;
+    }
   else
     size = XVECTOR (string)->size;
 
   if (NILP (to))
-    XSETINT (to, size);
+    {
+      to_char = size;
+      to_byte = size_byte;
+    }
   else
-    CHECK_NUMBER (to, 2);
+    {
+      CHECK_NUMBER (to, 2);
 
-  if (XINT (from) < 0)
-    XSETINT (from, XINT (from) + size);
-  if (XINT (to) < 0)
-    XSETINT (to, XINT (to) + size);
-  if (!(0 <= XINT (from) && XINT (from) <= XINT (to)
-        && XINT (to) <= size))
-    args_out_of_range_3 (string, from, to);
+      to_char = XINT (to);
+      if (to_char < 0)
+	to_char += size;
+
+      if (STRINGP (string))
+	to_byte = string_char_to_byte (string, to_char);
+    }
+
+  from_char = XINT (from);
+  if (from_char < 0)
+    from_char += size;
+  if (STRINGP (string))
+    from_byte = string_char_to_byte (string, from_char);
+
+  if (!(0 <= from_char && from_char <= to_char && to_char <= size))
+    args_out_of_range_3 (string, make_number (from_char),
+			 make_number (to_char));
 
   if (STRINGP (string))
     {
-      res = make_string (XSTRING (string)->data + XINT (from),
-			 XINT (to) - XINT (from));
+      res = make_multibyte_string (XSTRING (string)->data + from_byte,
+				   to_char - from_char, to_byte - from_byte);
+      copy_text_properties (from_char, to_char, string,
+			    make_number (0), res, Qnil);
+    }
+  else
+    res = Fvector (to_char - from_char,
+		   XVECTOR (string)->contents + from_char);
+
+  return res;
+}
+
+/* Extract a substring of STRING, giving start and end positions
+   both in characters and in bytes.  */
+
+Lisp_Object
+substring_both (string, from, from_byte, to, to_byte)
+     Lisp_Object string;
+     int from, from_byte, to, to_byte;
+{
+  Lisp_Object res;
+  int size;
+  int size_byte;
+
+  if (! (STRINGP (string) || VECTORP (string)))
+    wrong_type_argument (Qarrayp, string);
+
+  if (STRINGP (string))
+    {
+      size = XSTRING (string)->size;
+      size_byte = XSTRING (string)->size_byte;
+    }
+  else
+    size = XVECTOR (string)->size;
+
+  if (!(0 <= from && from <= to && to <= size))
+    args_out_of_range_3 (string, make_number (from), make_number (to));
+
+  if (STRINGP (string))
+    {
+      res = make_multibyte_string (XSTRING (string)->data + from_byte,
+				   to - from, to_byte - from_byte);
       copy_text_properties (from, to, string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (XINT (to) - XINT (from),
-		   XVECTOR (string)->contents + XINT (from));
+    res = Fvector (to - from,
+		   XVECTOR (string)->contents + from);
 
   return res;
 }
@@ -1081,7 +1286,7 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.")
 }
 
 DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
-  "T if two Lisp objects have similar structure and contents.\n\
+  "Return t if two Lisp objects have similar structure and contents.\n\
 They must have the same data type.\n\
 Conses are compared by comparing the cars and the cdrs.\n\
 Vectors and strings are compared element by element.\n\
@@ -1191,8 +1396,10 @@ internal_equal (o1, o2, depth)
     case Lisp_String:
       if (XSTRING (o1)->size != XSTRING (o2)->size)
 	return 0;
+      if (XSTRING (o1)->size_byte != XSTRING (o2)->size_byte)
+	return 0;
       if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
-		XSTRING (o1)->size))
+		XSTRING (o1)->size_byte))
 	return 0;
       return 1;
     }
@@ -1250,7 +1457,7 @@ ARRAY is a vector, string, char-table, or bool-vector.")
     }
   return array;
 }
-
+
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
   "Return the subtype of char-table CHAR-TABLE.   The value is a symbol.")
@@ -1332,7 +1539,7 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
 
   return XCHAR_TABLE (char_table)->extras[XINT (n)] = value;
 }
-
+
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
   "Return the value in CHAR-TABLE for a range of characters RANGE.\n\
@@ -1454,7 +1661,6 @@ See also the documentation of make-char.")
     XCHAR_TABLE (char_table)->contents[code1] = value;
   return value;
 }
-
 
 /* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
    character or group of characters that share a value.
@@ -1483,8 +1689,11 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	  else
 	    call2 (function, make_number (i), elt);
 	}
+#if 0 /* If the char table has entries for higher characters,
+	 we should report them.  */
       if (NILP (current_buffer->enable_multibyte_characters))
 	return;
+#endif
       to = CHAR_TABLE_ORDINARY_SLOTS;
     }
   else
@@ -1597,9 +1806,9 @@ Only the last argument is not altered, and need not be a list.")
 }
 
 /* This is the guts of all mapping functions.
- Apply fn to each element of seq, one by one,
- storing the results into elements of vals, a C vector of Lisp_Objects.
- leni is the length of vals, which should also be the length of seq. */
+ Apply FN to each element of SEQ, one by one,
+ storing the results into elements of VALS, a C vector of Lisp_Objects.
+ LENI is the length of VALS, which should also be the length of SEQ.  */
 
 static void
 mapcar1 (leni, vals, fn, seq)
@@ -1630,11 +1839,26 @@ mapcar1 (leni, vals, fn, seq)
 	  vals[i] = call1 (fn, dummy);
 	}
     }
-  else if (STRINGP (seq))
+  else if (STRINGP (seq) && ! STRING_MULTIBYTE (seq))
     {
+      /* Single-byte string.  */
       for (i = 0; i < leni; i++)
 	{
 	  XSETFASTINT (dummy, XSTRING (seq)->data[i]);
+	  vals[i] = call1 (fn, dummy);
+	}
+    }
+  else if (STRINGP (seq))
+    {
+      /* Multi-byte string.  */
+      int len_byte = XSTRING (seq)->size_byte;
+      int i_byte;
+
+      for (i = 0, i_byte = 0; i < leni;)
+	{
+	  int c;
+	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte)
+	  XSETFASTINT (dummy, c);
 	  vals[i] = call1 (fn, dummy);
 	}
     }
@@ -1752,7 +1976,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 #endif /* HAVE_MENUS */
       cursor_in_echo_area = 1;
       choose_minibuf_frame ();
-      message_nolog ("%s(y or n) ", XSTRING (xprompt)->data);
+      message_with_string ("%s(y or n) ", xprompt, 0);
 
       if (minibuffer_auto_raise)
 	{
@@ -1815,8 +2039,8 @@ Also accepts Space to mean yes, or Delete to mean no.")
   if (! noninteractive)
     {
       cursor_in_echo_area = -1;
-      message_nolog ("%s(y or n) %c",
-		     XSTRING (xprompt)->data, answer ? 'y' : 'n');
+      message_with_string (answer ? "%s(y or n) y" : "%s(y or n) n",
+			   xprompt, 0);
     }
 
   unbind_to (count, Qnil);
