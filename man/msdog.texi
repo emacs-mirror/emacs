@@ -378,7 +378,7 @@ also use a printer shared by another machine by setting
 @code{"//joes_pc/hp4si"}.  (It doesn't matter whether you use forward
 slashes or backslashes here.)  To find out the names of shared printers,
 run the command @samp{net view} at a DOS command prompt to obtain a list
-of servers, and @samp{net view server-name} to see the names of printers
+of servers, and @samp{net view @var{server-name}} to see the names of printers
 (and directories) shared by that server.
 
   If you set @code{printer-name} to a file name, it's best to use an
