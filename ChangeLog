@@ -1,3 +1,7 @@
+2003-02-13  Robert J. Chassell  <bob@rattlesnake.com>  (tiny change)
+
+	* INSTALL (* Extra fonts): Say that Emacs doesn't include fonts.
+
 2003-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
