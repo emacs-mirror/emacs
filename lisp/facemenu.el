@@ -481,15 +481,16 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list
 of colors that the current display can handle."
   (interactive)
-  (if (and (null list) window-system)
-      (progn
-	(setq list (x-defined-colors))
-	;; Delete duplicate colors.
-	(let ((l list))
-	  (while (cdr l)
-	    (if (facemenu-color-equal (car l) (car (cdr l)))
-		(setcdr l (cdr (cdr l)))
-	      (setq l (cdr l)))))))
+  (when (null list)
+    (setq list (if window-system
+		   (x-defined-colors)
+		 (tty-defined-colors)))
+    ;; Delete duplicate colors.
+    (let ((l list))
+      (while (cdr l)
+	(if (facemenu-color-equal (car l) (car (cdr l)))
+	    (setcdr l (cdr (cdr l)))
+	  (setq l (cdr l))))))
   (with-output-to-temp-buffer "*Colors*"
     (save-excursion
       (set-buffer standard-output)
