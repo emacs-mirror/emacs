@@ -435,7 +435,7 @@ case "${canonical}" in
       *) machine=hp800 opsys=hpux ;;
     esac
   ;;
-  hppa-*-nextstep* )
+  hppa*-*-nextstep* )
     machine=hp800 opsys=nextstep
   ;;
 
