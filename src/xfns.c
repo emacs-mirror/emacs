@@ -3736,7 +3736,7 @@ This function is an internal primitive--use `make-frame' instead.")
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
 		       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("white"),
-			   "background", "Background", RES_TYPE_STRING);
+		       "background", "Background", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qmouse_color, build_string ("black"),
 		       "pointerColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qcursor_color, build_string ("black"),
