@@ -831,6 +831,9 @@ The seventh argument ACTIONS is a list of actions to take
       (setq default-directory (expand-file-name "~/")))
   (auto-save-mode auto-save-default)
   (mail-mode)
+  ;; Disconnect the buffer from its visited file
+  ;; (in case the user has actually visited a file *mail*).
+  (set-visited-file-name nil)
   (let (initialized)
     (and (not noerase)
 	 (or (not (buffer-modified-p))
@@ -856,7 +859,7 @@ The seventh argument ACTIONS is a list of actions to take
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)))
-	  (t (error "mail-recover cancelled.")))))
+	  (t (error "mail-recover cancelled")))))
 
 ;;;###autoload
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
