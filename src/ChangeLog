@@ -1,3 +1,8 @@
+2004-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_restore_composition): Check invalid
+	composition data more rigidly.
+
 2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fileio.c (Fread_file_name_internal): Correctly handle the case
