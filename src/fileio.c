@@ -1289,20 +1289,20 @@ See also the function `substitute-in-file-name'.  */)
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
 	      if (strcmp (nm, SDATA (name)) != 0)
-		name
-		  = make_specified_string (nm, -1, strlen (nm),
-					   STRING_MULTIBYTE (name));
+		name = make_specified_string (nm, -1, strlen (nm),
+					      STRING_MULTIBYTE (name));
 	    }
 	  else
 #endif
 	  /* drive must be set, so this is okay */
 	  if (strcmp (nm - 2, SDATA (name)) != 0)
 	    {
-	      name
-		= make_specified_string (nm - 2, -1, p - nm + 2,
-					 STRING_MULTIBYTE (name));
-	      SSET (name, 0, DRIVE_LETTER (drive));
-	      SSET (name, 1, ':');
+	      char temp[] = " :";
+
+	      name = make_specified_string (nm, -1, p - nm,
+					    STRING_MULTIBYTE (name));
+	      temp[0] = DRIVE_LETTER (drive);
+	      name = concat2 (build_string (temp), name);
 	    }
 	  return name;
 #else /* not DOS_NT */
