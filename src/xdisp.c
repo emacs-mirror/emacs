@@ -7631,7 +7631,7 @@ redisplay_internal (preserve_echo_area)
 	    clear_garbaged_frames ();
 	}
     }
-  else if (w == XWINDOW (minibuf_window)
+  else if (EQ (selected_window, minibuf_window)
 	   && (current_buffer->clip_changed
 	       || XFASTINT (w->last_modified) < MODIFF
 	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF)
@@ -7827,7 +7827,7 @@ redisplay_internal (preserve_echo_area)
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
 		  && !NILP (current_buffer->mark_active))
-	       && (w == XWINDOW (current_buffer->last_selected_window)
+	       && (EQ (selected_window, current_buffer->last_selected_window)
 		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
 	       && NILP (Vshow_trailing_whitespace)
@@ -8069,7 +8069,8 @@ update:
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
 	  w->region_showing = (!NILP (Vtransient_mark_mode)
-			       && (w == XWINDOW (current_buffer->last_selected_window)
+			       && (EQ (selected_window,
+				       current_buffer->last_selected_window)
 				   || highlight_nonselected_windows)
 			       && !NILP (XBUFFER (w->buffer)->mark_active)
 			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
