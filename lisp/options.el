@@ -67,16 +67,17 @@ Type \\[describe-mode] in that buffer for a list of commands."
 (put 'Edit-options-mode 'mode-class 'special)
 
 (defun Edit-options-mode ()
-  "Major mode for editing Emacs user option settings.
+  "\\<Edit-options-mode-map>\
+Major mode for editing Emacs user option settings.
 Special commands are:
-s -- set variable point points at.  New value read using minibuffer.
-x -- toggle variable, t -> nil, nil -> t.
-1 -- set variable to t.
-0 -- set variable to nil.
+\\[Edit-options-set] -- set variable point points at.  New value read using minibuffer.
+\\[Edit-options-toggle] -- toggle variable, t -> nil, nil -> t.
+\\[Edit-options-t] -- set variable to t.
+\\[Edit-options-nil] -- set variable to nil.
 Changed values made by these commands take effect immediately.
 
 Each variable description is a paragraph.
-For convenience, the characters p and n move back and forward by paragraphs."
+For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph] move back and forward by paragraphs."
   (kill-all-local-variables)
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (use-local-map Edit-options-mode-map)

@@ -23,7 +23,7 @@
   "Abbrev table used while in nroff mode.")
 
 (defvar nroff-mode-map nil
-     "Major mode keymap for nroff-mode buffers")
+     "Major mode keymap for nroff mode.")
 (if (not nroff-mode-map)
     (progn
       (setq nroff-mode-map (make-sparse-keymap))
@@ -37,8 +37,8 @@
 (defun nroff-mode ()
   "Major mode for editing text intended for nroff to format.
 \\{nroff-mode-map}
-Turning on Nroff mode runs text-mode-hook, then nroff-mode-hook.
-Also, try nroff-electric-mode, for automatically inserting
+Turning on Nroff mode runs `text-mode-hook', then `nroff-mode-hook'.
+Also, try `nroff-electric-mode', for automatically inserting
 closing requests for requests that are used in matched pairs."
   (interactive)
   (kill-all-local-variables)
@@ -165,7 +165,7 @@ An argument is a repeat count; negative means move forward."
 
 (defun electric-nroff-newline (arg)
   "Insert newline for nroff mode; special if electric-nroff mode.
-In electric-nroff-mode, if ending a line containing an nroff opening request,
+In `electric-nroff-mode', if ending a line containing an nroff opening request,
 automatically inserts the matching closing request after point."
   (interactive "P")
   (let ((completion (save-excursion
@@ -185,12 +185,11 @@ automatically inserts the matching closing request after point."
       (forward-char 1))))
 
 (defun electric-nroff-mode (&optional arg)
-  "Toggle nroff-electric-newline minor mode
-Nroff-electric-newline forces emacs to check for an nroff
-request at the beginning of the line, and insert the
-matching closing request if necessary.  
-This command toggles that mode (off->on, on->off), 
-with an argument, turns it on iff arg is positive, otherwise off."
+  "Toggle `nroff-electric-newline' minor mode.
+`nroff-electric-newline' forces Emacs to check for an nroff request at the
+beginning of the line, and insert the matching closing request if necessary.
+This command toggles that mode (off->on, on->off), with an argument,
+turns it on iff arg is positive, otherwise off."
   (interactive "P")
   (or (eq major-mode 'nroff-mode) (error "Must be in nroff mode"))
   (or (assq 'nroff-electric-mode minor-mode-alist)
