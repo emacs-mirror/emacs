@@ -6,6 +6,25 @@
 	(Special Diary Entries, Importing Diary): Change some xrefs to
 	point to emacs-xtra rather than elisp.
 
+	* emacs-xtra.texi (Calendar Customizing): Move
+	view-diary-entries-initially, view-calendar-holidays-initially,
+	mark-diary-entries-in-calendar, mark-holidays-in-calendar to main
+	Emacs Manual.
+	(Appt Customizing): Merge entire section into main Emacs Manual.
+	* calendar.texi: Update and reformat copyright.
+	(Holidays): Move view-calendar-holidays-initially,
+	mark-holidays-in-calendar here from emacs-xtra.
+	(Displaying the Diary): Move view-diary-entries-initially,
+	mark-diary-entries-in-calendar here from emacs-xtra.
+	(Appointments): Move appt-display-mode-line,
+	appt-display-duration, appt-disp-window-function,
+	appt-delete-window-function here from emacs-xtra.
+
+	* calendar.texi: Update and reformat copyright.
+	(Calendar/Diary): Menu now only on Mouse-3, not C-Mouse-3.
+	(Diary): Refer to `diary-file' rather than ~/diary.
+	(Diary Commands): Rename node to "Displaying the Diary".
+
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (Emacs Server): Fix the command for setting
