@@ -32,6 +32,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_MACHINE
 #endif
 
+#undef MOVEMAIL_NEEDS_BLESSING
+#ifndef MAIL_USE_FLOCK
+#ifndef MAIL_USE_LOCKF
+#define MOVEMAIL_NEEDS_BLESSING
+#endif
+#endif
+
+#ifdef MOVEMAIL_NEEDS_BLESSING
+#define BLESSMAIL blessmail
+#else
+#define BLESSMAIL
+#endif
+
 /* Avoid trouble on systems where the `SHELL' variable might be
    inherited from the environment.  */
 SHELL = /bin/sh
@@ -139,9 +152,15 @@ CPP_CFLAGS = ${C_SWITCH_SYSTEM} ${C_SWITCH_MACHINE} -Demacs -DHAVE_CONFIG_H \
 
 all: ${UTILITIES} ${INSTALLABLES}
 
+#ifdef MOVEMAIL_NEEDS_BLESSING
+blessmail: ../src/temacs
+	../src/temacs -batch -l blessmail.el
+	chmod +x blessmail
+#endif
+
 /* Install the internal utilities.  Until they are installed, we can
    just run them directly from lib-src.  */
-${archlibdir}: all
+${archlibdir}: all BLESSMAIL
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
@@ -153,6 +172,9 @@ ${archlibdir}: all
 	    (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file); \
 	  done ; \
 	fi
+#ifdef MOVEMAIL_NEEDS_BLESSING
+	./blessmail ${archlibdir}/movemail
+#endif
 
 /* We don't need to install `wakeup' explicitly, because it will be
    copied when this whole directory is copied.  */
