@@ -192,6 +192,283 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Redo one more thing that I didn't notice Daniel had undone.
+
+2004-04-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-source-window): Remove variable
+	(gdb-goto-breakpoint, gdb-display-buffer)
+	(gdb-display-source-buffer, gdb-view-source-function)
+	(gdb-view-assembler, gdb-setup-windows, gdb-restore-windows)
+	(gdb-source-info, gdb-frame-handler): Don't specify a window
+	for display.
+	(gdb-info-breakpoints-custom): Remove superfluous update of
+	assembler buffer.
+	(gdb-many-windows): Make settable outside gdb.
+
+2004-04-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-mode, fancy-diary-display-mode):
+	Derive from fundamental-mode rather than text-mode.
+
+2004-04-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-history): Doc fix.
+	(Info-history-list): New var.
+	(info-xref): Change magenta4 to blue, remove bold for dark and
+	light backgrounds, change bold to underline for non-color classes.
+	(info-xref-visited): New face.
+	(Info-fontify-visited-nodes): New custom.
+	(Info-hide-note-references): Add new value `hide'.  Doc fix.
+	(Info-reference-name): New var.
+	(Info-selection-hook): New custom.
+	(Info-edit-mode-hook): New var.
+	(Info-find-file): New fun.
+	(Info-find-node): Move part of code to Info-find-file.
+	(Info-find-node-2): Add anchors to Info-history-list.  Move point
+	to the place with the reference name if name is defined.
+	(Info-select-node): Add current node to Info-history-list.
+	(Info-goto-node): Switch to *info* from *info-history* *info-toc*.
+	(Info-search-whitespace-regexp): New custom.
+	(Info-search-case-fold): New var.
+	(Info-search): Add "case-sensitively" to the prompt.
+	Use Info-search-whitespace-regexp.  Set Info-search-case-fold.
+	(Info-search-case-sensitively, Info-search-next): New fun.
+	(Info-up): Move point to the menu item of the current node.
+	(Info-history): New fun. Add *info-history* to same-window-buffer-names.
+	(Info-toc): New fun.  Add *info-toc* to same-window-buffer-names.
+	(Info-insert-toc): New fun.
+	(Info-build-toc): New fun.
+	(Info-follow-reference): Add new arg `fork'.  Doc fix.
+	Replace [ \n\t]* by [ \n\t]+ in the *Note regexp.  For references
+	with the same name prefer the reference closest to point.
+	(Info-next-reference): Replace * by + in the *Note regexp.
+	Add regexp for http:// and ftp://.  Skip the *Note prefix.
+	(Info-prev-reference): Replace * by + in the *Note regexp.
+	Add regexp for http:// and ftp://.  Skip the *Note prefix.
+	(Info-follow-nearest-node): Add new arg `fork'.
+	(Info-try-follow-nearest-node): Add new arg `fork'.
+	Call browse-url for http:// and ftp:// references.
+	Set Info-reference-name for index entries.
+	(Info-mode-menu): Add menu items for Info-search-case-sensitively,
+	Info-search-next, Info-history, Info-toc, clone-buffer.
+	(Info-menu-update): Replace * by + in the *Note regexp.
+	(Info-mode): Add documentation for Info-history, Info-toc,
+	Info-search-case-sensitively, Info-search-next, clone-buffer.
+	(Info-fontify-menu-headers): Remove fun.  Move code to
+	Info-fontify-node.
+	(Info-fontify-node): Add docstring.  Add local vars
+	fontify-visited-p and not-fontified-p.  If not-fontified-p is t
+	then fontify header line, titles, menu headers, http and ftp
+	references, refill paragraphs.  If not-fontified-p is t or
+	fontify-visited-p is t then fontify cross references, menu items.
+	Fontify menu headers.  Fontify http and ftp references.
+	Change regexp for cross references to require whitespace after *Note,
+	add matching groups for file and node names.  Remove hack for quote.
+	Use display property for Info-hide-note-references=t.  Use fifth
+	or fourth match for help-echo.  Display visited nodes in a
+	different face.  Unhide file names of external references.
+	Unhide newlines.  Display visited menu items in a different face.
+
+2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el: Require CL.
+	(compilation-mode-font-lock-keywords): Re-install the "line as
+	function" patch.
+
+	* help-fns.el (help-C-source-directory): New var.
+	(help-subr-name, help-C-file-name, help-find-C-source): New funs.
+	(describe-function-1, describe-variable): Use them.
+
+	* help-mode.el (help-function-def, help-variable-def): Handle hyperrefs
+	to C source files specially.
+
+2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el: Require CL.
+	(compilation-mode-font-lock-keywords): Re-install the "line as
+	function" patch.
+
+	* help-fns.el (help-C-source-directory): New var.
+	(help-subr-name, help-C-file-name, help-find-C-source): New funs.
+	(describe-function-1, describe-variable): Use them.
+
+	* help-mode.el (help-function-def, help-variable-def): Handle hyperrefs
+	to C source files specially.
+
+2004-04-07  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* info.el (Info-hide-cookies-node): New function.
+	(Info-select-node): Use it.
+	(Info-display-images-node): Remove message with image file name.
+
+2004-04-07  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face, compilation-skip-threshold)
+	(compilation-skip-visited, compilation-context-lines):
+	Declare :version when added to Emacs.
+	(compilation-error-regexp-alist-alist): Extend caml and irix.
+	(compilation-setup): Fix if font-locked w/o font-lock-defaults.
+	(compilation-mode-font-lock-keywords): Temporarily undo line as
+	function patch, which wasn't ready.
+
+2004-04-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin1-disp.el (latin1-display-setup): Check each
+	character is displayable or not instead of calling
+	latin1-display-check-font.
+
+2004-04-06  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el (ethio-sera-being-called-by-w3):
+	New variable.
+	(ethio-sera-to-fidel-ethio): Check ethio-sera-being-called-by-w3
+	instead of sera-being-called-by-w3.
+	(ethio-fidel-to-sera-buffer): Likewise.
+	(ethio-find-file): Bind ethio-sera-being-called-by-w3 to t
+	instead of sera-being-called-by-w3.
+	(ethio-write-file): Likewise.
+
+2004-04-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Dox fix.
+
+2004-04-05  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New option.
+	(gdb-ann3, gdb-send, gdb-starting, gdb-stopping)
+	(gdb-setup-windows): Only use separate IO buffer if required.
+
+2004-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* term.el (term-is-xemacs): Remove.
+	(term-if-xemacs, term-ifnot-xemacs): Test (featurep 'xemacs).
+	(term-window-width): New function.
+	(term-mode, term-check-size): Use it.
+	(term-mode): Disable overflow-newline-into-fringe in term buffer.
+
+2004-04-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-add-parent-links): Change unbound variable
+	`symbol' to `name'.
+
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+	* info.el (info-apropos): New function.
+	(Info-mode-menu): Add it.
+	(Info-find-node, Info-find-node-2): Grok apropos virtual file.
+
+	* help-mode.el (help-make-xrefs): Recognize aliased variable with
+	inherited docstring.
+
+	* play/gamegrid.el (gamegrid-add-score-insecure): Use sort-fields.
+
+2004-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-comment-paragraph): Obey indent-tabs-mode.
+
+	* progmodes/compile.el (font-lock): Don't require any more.
+	(compilation-error-properties, compilation-start, compilation-sentinel)
+	(compilation-filter, next-error): Use with-current-buffer.
+	(compilation-skip-to-next-location, compilation-skip-threshold)
+	(compilation-skip-visited): Move to silence the byte-compiler.
+	(compilation-setup): Simplify.
+	(compilation-next-error): Use line-(beginning|end)-position.
+	Make sure `pt' is non-nil before using compilation-loop.
+	(compile-goto-error): Add optional event arg.  Use it.
+	(compile-mouse-goto-error): Make it an alias of compile-goto-error.
+	(compilation-minor-mode-map, compilation-shell-minor-mode-map):
+	Update the binding for mouse-2.
+	(first-error): Set compilation-current-error to nil rather than bob.
+	(compilation-parsing-end, compilation-parse-errors-function)
+	(compilation-error-list, compilation-old-error-list):
+	"New" compatibility variables.
+	(compile-buffer-substring, compilation-compat-error-properties)
+	(compilation-compat-parse-errors, compilation-forget-errors):
+	New compatibility functions.
+	(compilation-mode-font-lock-keywords): Use them.
+
+2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): If point (or a window
+	point) is at the end of the buffer, keep it there after
+	reverting.  This allows to tail a file.
+	Mention this in the `Commentary'.
+
+	* format.el (format-write-file): Add optional argument CONFIRM
+	and make it behave like the analogous argument to `write-file'.
+
+2004-04-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Doc fix.
+	(ebnf-version): New version number (4.2).
+	(ebnf-syntax): Customization and docstring fix.
+	(ebnf-eliminate-empty-rules, ebnf-optimize, ebnf-otz-initialize):
+	Put autoloaded funs before first use.
+	(ebnf-style-database): Add dtd entry.
+	(ebnf-syntax-alist): Add dtd initialization.
+	(ebnf-token-sequence): New fun.
+	(ebnf-comment-table): Add new comment action character.
+	(ebnf-dtd-parser, ebnf-dtd-initialize): Autoload funs from ebnf-dtd.
+
+	* progmodes/ebnf-dtd.el: New file, implement a parser for DTD (Data
+	Type Definition for XML).
+
+	* progmodes/ebnf-abn.el (ebnf-abn-concatenation):
+	* progmodes/ebnf-bnf.el (ebnf-sequence):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-concatenation):
+	* progmodes/ebnf-iso.el (ebnf-iso-single-definition):
+	* progmodes/ebnf-yac.el (ebnf-yac-sequence):
+	Code simplification: call ebnf-token-sequence.
+
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* calendar/timeclock.el (timeclock-relative)
+	(timeclock-get-project-function, timeclock-get-workday-function)
+	(timeclock-query-out, timeclock-when-to-leave)
+	(timeclock-when-to-leave-string, timeclock-log-data)
+	(timeclock-generate-report, timeclock-in): Doc fixes.
+
+2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url: Import the URL package from its repository.
+
+	* url/url-methods.el:
+	* url/url-parse.el: Don't require url-auto.
+
+2004-04-03  Andreas Schwab  <schwab@suse.de>
+
+	* diff-mode.el (diff-mode): Fix missing quote.
+
+2004-04-03  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-property-list): Add `font-lock-face'.
+
+	* dired.el (dired-font-lock-keywords): Fix permission regexps.
+
+2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text):
+	Use utf-16le on little endian machines and utf-16be otherwise.
+
+2004-04-02  David Kastrup  <dak@gnu.org>
+
+	* net/browse-url.el (browse-url-generic): Use call-process
+	instead of start-process to allow browsers that fork and detach.
+
+2004-04-01  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* compile.el (compilation-current-error): New var.
+	(compilation-setup, compile-mouse-goto-error)
+	(compile-goto-error, next-error): Use it.
+	(compilation-skip-to-next-location): Default to t, which gives
+	contiguous skipping like old compile (where this was redundant).
+	(compilation-next-error): Prevent previous-* commands from moving
+	back to message at or just before point.
+
 2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
@@ -199,6 +476,26 @@
 	(gdb-show-main): New option.
 	(gdba): Update documentation.
 	(gdb-source): Cover case of auto-display output.
+
+2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el: Delete obsolete autoload's and defvar's.
+	(auto-revert-check-vc-info): New user option.
+	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
+	(auto-revert-handler-vc): Delete.
+	(auto-revert-handler): Treat return value `fast' of
+	buffer-stale-function specially.  Check `auto-revert-check-vc-info'.
+
+	* buff-menu.el (Buffer-menu-mode): Make the buffer-stale-function
+	return `fast'.
+
+	* files.el (buffer-stale-function): Doc change.
+
+2004-03-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: New tip on Tips section.
+	(pr-version): New version number (6.7.4).
+	(pr-shell-file-name): Initialization fix.
 
 2004-03-31  Juri Linkov  <juri@jurta.org>
 
@@ -215,7 +512,7 @@
 
 2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
 
-	* dired.el (dired-move-to-filename-regexp): Add . to HH:MM.
+	* dired.el (dired-move-to-filename-regexp): Add `.' to HH:MM.
 
 2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -267,7 +564,7 @@
 	(ebnf-syntax): Adjust customization.
 	(ebnf-style-database): Add ebnfx entry.
 	(ebnf-syntax-alist): Add ebnfx initialization.
-	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoloaded funs from ebnf-ebx.
+	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoload funs from ebnf-ebx.
 
 	* printing.el: Doc fix.
 	(pr-version): New version number (6.7.3).
@@ -446,6 +743,10 @@
 2004-03-25  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el: Moved to progmodes.
+
+2004-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Disable yank-handler.
 
 2004-03-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -963,7 +1264,7 @@
 	* woman.el (woman-man.conf-path): Doc fix.
 	(woman-parse-man.conf): Also parse OPTIONAL_MANPATH.
 
-2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
+2004-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* sort.el (sort-columns): Remove ms-dos from the list of systems
 	where the external `sort' command is not used.
@@ -1471,7 +1772,7 @@
 	(yank-pop): Make its argument optional.
 	(yank): Make ARG `-' equivalent to `-1'.
 
-2004-02-17  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-get-new-mail): Don't reference
 	rmail-use-spam-filter if rmail-spam-filter is not loaded.
@@ -1482,7 +1783,7 @@
 	if one of global-auto-revert-non-file-buffers or autorevert-mode
 	is non-nil.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (delete-dups): A better implementation from Karl Heuer
 	<kwzh@gnu.org>.
@@ -1494,7 +1795,7 @@
 	* progmodes/icon.el (icon-indent-command): Ditto.
 	* textmodes/paragraphs.el (repunctuate-sentences): Ditto.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (grep-compute-defaults): Undo change from
 	2004-01-29: don't use executable-command-find-posix-p.
@@ -1533,7 +1834,7 @@
 	Change prefixes of all variables and functions from
 	rmail-spam-filter- or spam-filter- or rmail-spam- to rsf-.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* loadhist.el (unload-hook-features-list): New defvar.
 
@@ -1551,7 +1852,7 @@
 
 	* subr.el (match-string-no-properties): Use substring-no-properties.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/rx.el (rx-check, rx-check-any, rx-check-not)
 	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string):
@@ -1609,7 +1910,7 @@
 	* Makefile.in (TAGS, TAGS-LISP): Filter out of `els' only
 	loaddefs* and ldefs-boot*.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/mail-utils.el (rmail-dont-reply-to): Anchor user login name
 	and email address at the beginning and end of the address.
@@ -2415,7 +2716,7 @@
 	`Info node'.
 	(help-make-xrefs): Adapt to new value of `help-xref-info-regexp'.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Fix off-by-one
 	error in arguments to base64-decode-region.  Remove ^M characters
@@ -2428,7 +2729,7 @@
 	have only been distributed with Emacs for some years.
 	(texinfo-mode-hook): Customize.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Make the code
 	cleaner (suggested by Richard Stallman).
@@ -2524,7 +2825,7 @@
 
 	* generic.el (define-generic-mode): Doc fix.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (kill-some-buffers): Doc fix.
 
@@ -2542,7 +2843,7 @@
 	"@", as required by some ISP hosting service.  Fix defcustom
 	argument syntax errors that prevented use of customization.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xml.el (xml-get-attribute-or-nil): Doc fix.
 
@@ -2562,7 +2863,7 @@
 	(xml-get-attribute): Convert to defsubst, uses
 	xml-get-attribute-or-nil.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix.
 
@@ -2587,7 +2888,7 @@
 	* generic-x.el (etc-modules-conf-generic-mode): A more complete
 	set of keywords.
 
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (reset-language-environment)
 	(set-language-environment): Don't invoke fontset-related functions
@@ -3163,7 +3464,7 @@
 
 	* subr.el (add-hook): Fix last change.
 
-2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
+2003-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	If base64-decode-region signals an error, catch it and silently
@@ -3413,7 +3714,7 @@
 	(breakpoint-disabled-pbm-data): Make breakpoint icons 10x10
 	instead of 12x12.
 
-2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+2003-10-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Display a
 	message while converting to Babyl.
@@ -3513,7 +3814,7 @@
 	Rename from loadhist-hook-functions.
 	(loadhist-hook-functions): Now an alias.
 
-2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
+2003-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
 	file-name clashes on 8+3 filesystems.
@@ -3714,7 +4015,7 @@
 	* info.el (Info-find-index-name): Remove any "<n>" suffixes which
 	makeinfo appends to duplicate index entries.
 
-2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired-x.el (dired-clean-tex): Doc fix.
 
@@ -4127,7 +4428,7 @@
 	the number of files.  Bind the number of files to a local
 	variable.  Suggested by Kevin Rodgers <ihs_4664@yahoo.com>.
 
-2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc-hooks.el (vc-make-version-backup): Fix the change made on
 	2003-07-26: msdos-long-file-names is a function, not a variable.
@@ -4165,7 +4466,7 @@
 	category "|".
 	(kinsoku-longer): Test for end of buffer.
 
-2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	Detect quoted-printable- and base64-encoded messages and decode them

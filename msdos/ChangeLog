@@ -1,26 +1,26 @@
-2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
+2003-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (man lispref lispintro): Specify an explicit target
 	`info', like Makefile.in does.
 
-2003-08-31  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (srcdir): Use "command.com /c cd" to produce an
 	absolute file name of the current working directory.  This avoids
 	the warning from Make about circular dependencies.
 
-2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlisp.inp: Set FNCASE=y for all targets in the lisp directory,
 	so that CVS etc. file names are filtered out of the list of
 	subdirectories.
 
-2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed6.inp (elisp.dvi, index.texi): Replace Unix shell commands
 	with equivalent COMMAND.COM commands.
 
-2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
+2003-08-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (EXEEXT): Define to an empty string.
 

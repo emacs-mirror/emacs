@@ -1,5 +1,6 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 86,93,94,95,97,98,99, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98,99,2000,01,02,04
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -616,8 +617,7 @@ the same file name is found in the `data-directory'.  */)
 	*p = '_';
       p++;
     }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
+#else /* VMS4_4 */
   strcpy (name, sys_translate_unix (name));
 #endif /* VMS4_4 */
 #endif /* VMS */
@@ -663,6 +663,9 @@ the same file name is found in the `data-directory'.  */)
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
 		store_function_docstring (sym, pos + end + 1 - buf);
+
+	      else if (p[1] == 'S')
+		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
 		error ("DOC file invalid at position %d", pos);

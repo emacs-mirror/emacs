@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -60,7 +60,7 @@
 ;; `timeclock-modeline-display' again.
 
 ;; You may also want Emacs to ask you before exiting, if you are
-;; current working on a project.  This can be done either by setting
+;; currently working on a project.  This can be done either by setting
 ;; `timeclock-ask-before-exiting' to t using M-x customize (this is
 ;; the default), or by adding the following to your .emacs file:
 ;;
@@ -94,7 +94,7 @@
   :group 'timeclock)
 
 (defcustom timeclock-relative t
-  "*When reporting time, make it relative to `timeclock-workday'?
+  "*Whether to maken reported time relative to `timeclock-workday'.
 For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
@@ -107,7 +107,7 @@ previous days.  This only affects the timeclock modeline display."
 (defcustom timeclock-get-project-function 'timeclock-ask-for-project
   "*The function used to determine the name of the current project.
 When clocking in, and no project is specified, this function will be
-called to determine what the current project to be worked on is.
+called to determine what is the current project to be worked on.
 If this variable is nil, no questions will be asked."
   :type 'function
   :group 'timeclock)
@@ -115,7 +115,7 @@ If this variable is nil, no questions will be asked."
 (defcustom timeclock-get-reason-function 'timeclock-ask-for-reason
   "*A function used to determine the reason for clocking out.
 When clocking out, and no reason is specified, this function will be
-called to determine what the reason is.
+called to determine what is the reason.
 If this variable is nil, no questions will be asked."
   :type 'function
   :group 'timeclock)
@@ -123,17 +123,17 @@ If this variable is nil, no questions will be asked."
 (defcustom timeclock-get-workday-function nil
   "*A function used to determine the length of today's workday.
 The first time that a user clocks in each day, this function will be
-called to determine what the length of the current workday is.  If
+called to determine what is the length of the current workday.  If
 the return value is nil, or equal to `timeclock-workday', nothing special
 will be done.  If it is a quantity different from `timeclock-workday',
 however, a record will be output to the timelog file to note the fact that
-that day has a different length from the norm."
+that day has a length that is different from the norm."
   :type '(choice (const nil) function)
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
   "*If non-nil, ask if the user wants to clock out before exiting Emacs.
-This variable only has an effect if set with \\[customize]."
+This variable only has effect if set with \\[customize]."
   :set (lambda (symbol value)
 	 (if value
 	     (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
@@ -151,9 +151,9 @@ This variable only has an effect if set with \\[customize]."
 
 (defcustom timeclock-use-display-time t
   "*If non-nil, use `display-time-hook' for doing modeline updates.
-The advantage to this is that it means one less timer has to be set
-running amok in Emacs' process space.  The disadvantage is that it
-requires you to have `display-time' running.  If you don't want to use
+The advantage of this is that one less timer has to be set running
+amok in Emacs' process space.  The disadvantage is that it requires
+you to have `display-time' running.  If you don't want to use
 `display-time', but still want the modeline to show how much time is
 left, set this variable to nil.  Changing the value of this variable
 while timeclock information is being displayed in the modeline has no
@@ -240,7 +240,7 @@ The format of this list is (CODE TIME PROJECT).")
 Normally, timeclock assumes that you intend to work for
 `timeclock-workday' seconds every day.  Any days in which you work
 more or less than this amount is considered either a positive or
-negative discrepancy.  If you work in such a manner that the
+a negative discrepancy.  If you work in such a manner that the
 discrepancy is always brought back to zero, then you will by
 definition have worked an average amount equal to `timeclock-workday'
 each day.")
@@ -254,8 +254,8 @@ will be the same as `timeclock-discrepancy'.") ; ? gm
 
 (defvar timeclock-last-period nil
   "Integer representing the number of seconds in the last period.
-Note that you shouldn't access this value, but should use the function
-`timeclock-last-period' instead.")
+Note that you shouldn't access this value, but instead should use the
+function `timeclock-last-period'.")
 
 (defvar timeclock-mode-string nil
   "The timeclock string (optionally) displayed in the modeline.
@@ -343,7 +343,7 @@ weekend).  *If not called interactively, ARG should be the number of
 _seconds_ worked today*.  This feature only has effect the first time
 this function is called within a day.
 
-PROJECT as the project being clocked into.  If PROJECT is nil, and
+PROJECT is the project being clocked into.  If PROJECT is nil, and
 FIND-PROJECT is non-nil -- or the user calls `timeclock-in'
 interactively -- call the function `timeclock-get-project-function' to
 discover the name of the project."
@@ -446,17 +446,18 @@ worked today, ignoring the time worked on previous days."
 
 ;;;###autoload
 (defun timeclock-change (&optional arg project)
-  "Change to working on a different project, by clocking in then out.
-With a prefix ARG, consider the previous project as having been
-finished at the time of changeover.  PROJECT is the name of the last
-project you were working on."
+  "Change to working on a different project.
+This clocks out of the current project, then clocks in on a new one.
+With a prefix ARG, consider the previous project as finished at the
+time of changeover.  PROJECT is the name of the last project you were
+working on."
   (interactive "P")
   (timeclock-out arg)
   (timeclock-in nil project (interactive-p)))
 
 ;;;###autoload
 (defun timeclock-query-out ()
-  "Ask the user before clocking out.
+  "Ask the user whether to clock out.
 This is a useful function for adding to `kill-emacs-query-functions'."
   (and (equal (car timeclock-last-event) "i")
        (y-or-n-p "You're currently clocking time, clock out? ")
@@ -550,7 +551,7 @@ non-nil, the amount returned will be relative to past time worked."
 
 ;; Should today-only be removed in favour of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
-  "Return a time value representing at when the workday ends today.
+  "Return a time value representing the end of today's workday.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time."
   (timeclock-seconds-to-time
@@ -565,7 +566,7 @@ the time worked today, and not to past time."
 ;;;###autoload
 (defun timeclock-when-to-leave-string (&optional show-seconds
 						 today-only)
-  "Return a string representing at what time the workday ends today.
+  "Return a string representing the end of today's workday.
 This string is relative to the value of `timeclock-workday'.  If
 SHOW-SECONDS is non-nil, the value printed/returned will include
 seconds.  If TODAY-ONLY is non-nil, the value returned will be
@@ -852,8 +853,8 @@ i, o or O.  The meanings of the codes are:
 
   h  Set the required working time for the given day.  This must
      be the first entry for that day.  The COMMENT in this case is
-     the number of hours that must be worked.  Floating point
-     amounts are allowed.
+     the number of hours in this workday.  Floating point amounts
+     are allowed.
 
   i  Clock in.  The COMMENT in this case should be the name of the
      project worked on.
@@ -1144,7 +1145,7 @@ If optional argument TIME is non-nil, use that instead of the current time."
     (apply 'encode-time decoded)))
 
 (defun timeclock-geometric-mean (l)
-  "Compute the geometric mean of the list L."
+  "Compute the geometric mean of the values in the list L."
   (let ((total 0)
 	(count 0))
     (while l
@@ -1158,7 +1159,7 @@ If optional argument TIME is non-nil, use that instead of the current time."
 (defun timeclock-generate-report (&optional html-p)
   "Generate a summary report based on the current timelog file.
 By default, the report is in plain text, but if the optional argument
-HTML-P is non-nil html markup is added."
+HTML-P is non-nil, HTML markup is added."
   (interactive)
   (let ((log (timeclock-log-data))
 	(today (timeclock-day-base)))

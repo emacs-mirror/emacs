@@ -5,9 +5,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/29 20:23:29 vinicius>
+;; Time-stamp: <2004/04/03 16:50:46 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.2.1
+;; Version: 1.3
 
 ;; This file is part of GNU Emacs.
 
@@ -218,20 +218,10 @@
 		 factor (ebnf-yac-factor token))
       (setq seq (cons factor seq)))
     (cons token
-	  (cond
-	   ;; ignore error recovery
-	   ((and ebnf-yac-ignore-error-recovery ebnf-yac-error)
-	    nil)
-	   ;; null sequence
-	   ((null seq)
-	    (ebnf-make-empty))
-	   ;; sequence with only one element
-	   ((= (length seq) 1)
-	    (car seq))
-	   ;; a real sequence
-	   (t
-	    (ebnf-make-sequence (nreverse seq)))
-	   ))))
+	  (if (and ebnf-yac-ignore-error-recovery ebnf-yac-error)
+	      ;; ignore error recovery
+	      nil
+	    (ebnf-token-sequence seq)))))
 
 
 ;;; Factor = Name

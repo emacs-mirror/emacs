@@ -1,3 +1,19 @@
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* variables.texi (Variable Aliases): Mention
+	cyclic-variable-indirection.
+
+	* errors.texi (Standard Errors): Ditto.
+
+2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* backups.texi:  Various small changes in addition to:
+	(Making Backups): Mention return value of `backup-buffer'.
+	(Auto-Saving): Mention optional FORCE argument to
+	`delete-auto-save-file-if-necessary'.
+	(Reverting): Mention optional PRESERVE-MODES argument to
+	`revert-buffer'.  Correct description of `revert-buffer-function'.
+
 2004-03-22  Juri Linkov  <juri@jurta.org>
 
 	* sequences.texi (Sequence Functions): Replace xref to `Vectors'
@@ -578,7 +594,7 @@
 	* objects.texi (Integer Type): Update for extra bit of integer range.
 	(Character Type): Ditto.
 
-2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+2003-10-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* numbers.texi (Integer Basics): Add index entries for reading
 	numbers in hex, octal, and binary.

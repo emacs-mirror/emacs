@@ -19832,7 +19832,7 @@ clear_mouse_face (dpyinfo)
 {
   int cleared = 0;
 
-  if (!NILP (dpyinfo->mouse_face_window))
+  if (!dpyinfo->mouse_face_hidden && !NILP (dpyinfo->mouse_face_window))
     {
       show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
       cleared = 1;

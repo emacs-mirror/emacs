@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 93, 94, 98, 1999, 2000, 01, 02, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -217,6 +217,61 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
 			(intern (upcase name))))))
 		arglist)))
 
+(defvar help-C-source-directory
+  (let ((dir (expand-file-name "src" source-directory)))
+    (when (and (file-directory-p dir) (file-readable-p dir))
+      dir))
+  "Directory where the C source files of Emacs can be found.
+If nil, do not try to find the source code of functions and variables
+defined in C.")
+
+(defun help-subr-name (subr)
+  (let ((name (prin1-to-string subr)))
+    (if (string-match "\\`#<subr \\(.*\\)>\\'" name)
+	(match-string 1 name)
+      (error "Unexpected subroutine print name: %s" name))))
+
+(defun help-C-file-name (subr-or-var kind)
+  "Return the name of the C file where SUBR-OR-VAR is defined.
+KIND should be `var' for a variable or `subr' for a subroutine."
+  (let ((docbuf (get-buffer-create " *DOC*"))
+	(name (if (eq 'var kind)
+		  (concat "V" (symbol-name subr-or-var))
+		(concat "F" (help-subr-name subr-or-var)))))
+    (with-current-buffer docbuf
+      (goto-char (point-min))
+      (if (eobp)
+	  (insert-file-contents-literally
+	   (expand-file-name internal-doc-file-name doc-directory)))
+      (search-forward (concat "" name "\n"))
+      (re-search-backward "S\\(.*\\)")
+      (let ((file (match-string 1)))
+	(if (string-match "\\.\\(o\\|obj\\)\\'" file)
+	    (replace-match ".c" t t file)
+	  file)))))
+
+(defun help-find-C-source (fun-or-var file kind)
+  "Find the source location where SUBR-OR-VAR is defined in FILE.
+KIND should be `var' for a variable or `subr' for a subroutine."
+  (setq file (expand-file-name file help-C-source-directory))
+  (unless (file-readable-p file)
+    (error "The C source file %s is not available"
+	   (file-name-nondirectory file)))
+  (if (eq 'fun kind)
+      (setq fun-or-var (indirect-function fun-or-var)))
+  (with-current-buffer (find-file-noselect file)
+    (goto-char (point-min))
+    (unless (re-search-forward
+	     (if (eq 'fun kind)
+		 (concat "DEFUN[ \t\n]*([ \t\n]*\""
+			 (regexp-quote (help-subr-name fun-or-var))
+			 "\"")
+	       (concat "DEFVAR[A-Z_]*[ \t\n]*([ \t\n]*\""
+		       (regexp-quote (symbol-name fun-or-var))))
+	     nil t)
+      (error "Can't find source for %s" fun))
+    (cons (current-buffer) (match-beginning 0))))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
@@ -283,8 +338,10 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
 	    (when (re-search-backward
 		   "^;;; Generated autoloads from \\(.*\\)" nil t)
 	      (setq file-name (match-string 1)))))))
-    (cond
-     (file-name
+    (when (and (null file-name) (subrp def) help-C-source-directory)
+      ;; Find the C source file name.
+      (setq file-name (concat "src/" (help-C-file-name def 'subr))))
+    (when file-name
       (princ " in `")
       ;; We used to add .el to the file name,
       ;; but that's completely wrong when the user used load-file.
@@ -292,9 +349,9 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
       (princ "'")
       ;; Make a hyperlink to the library.
       (with-current-buffer standard-output
-	(save-excursion
+        (save-excursion
 	  (re-search-backward "`\\([^`']+\\)'" nil t)
-	  (help-xref-button 1 'help-function-def function file-name)))))
+	  (help-xref-button 1 'help-function-def function file-name))))
     (princ ".")
     (terpri)
     (when (commandp function)
@@ -503,6 +560,13 @@ it is displayed along with the global value."
 		      (when (re-search-backward
 			     "^;;; Generated autoloads from \\(.*\\)" nil t)
 			(setq file-name (match-string 1)))))))
+	      (when (and (null file-name)
+			 (integerp (get variable 'variable-documentation)))
+		;; It's a variable not defined in Elisp but in C.
+		(if help-C-source-directory
+		    (setq file-name
+			  (concat "src/" (help-C-file-name variable 'var)))
+		  (princ "\n\nDefined in core C code.")))
 	      (when file-name
 		(princ "\n\nDefined in `")
 		(princ file-name)

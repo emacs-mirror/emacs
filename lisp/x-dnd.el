@@ -336,7 +336,12 @@ WINDOW is the window where the drop happened.  ACTION is ignored.
 DATA is the moz-url, which is formatted as two strings separated by \r\n.
 The first string is the URL, the second string is the title of that URL.
 DATA is encoded in utf-16.  Decode the URL and call `x-dnd-handle-uri-list'."
-  (let* ((string (decode-coding-string data 'utf-16le))  ;; ALWAYS LE???
+  ;; Mozilla and applications based on it (Galeon for example) uses
+  ;; text/unicode, but it is impossible to tell if it is le or be.  Use what
+  ;; the machine Emacs runs on use.  This looses if dropping between machines
+  ;; with different endian, but it is the best we can do.
+  (let* ((coding (if (eq (byteorder) ?B) 'utf-16be 'utf-16le))
+	 (string (decode-coding-string data coding))
 	 (strings (split-string string "[\r\n]" t))
 	 ;; Can one drop more than one moz-url ??  Assume not.
 	 (url (car strings))
@@ -351,7 +356,9 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 (defun x-dnd-insert-utf16-text (window action text)
   "Decode the UTF-16 text and insert it at point.
 TEXT is the text as a string, WINDOW is the window where the drop happened."
-  (x-dnd-insert-text window action (decode-coding-string text 'utf-16le)))
+  ;; See comment in x-dnd-handle-moz-url about coding.
+  (let ((coding (if (eq (byteorder) ?B) 'utf-16be 'utf-16le)))
+    (x-dnd-insert-text window action (decode-coding-string text coding))))
 
 (defun x-dnd-insert-ctext (window action text)
   "Decode the compound text and insert it at point.

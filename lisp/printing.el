@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/03/28 23:37:38 vinicius>
+;; Time-stamp: <2004/04/05 23:41:49 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.3
+;; Version: 6.7.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.7.3"
-  "printing.el, v 6.7.3 <2004/03/28 vinicius>
+(defconst pr-version "6.7.4"
+  "printing.el, v 6.7.4 <2004/03/31 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -186,6 +186,17 @@ Please send all bug fixes and enhancements to
 ;;    message.  Instead, save the dynamic buffer to a file or copy it in
 ;;    another buffer and, then, print the file or the new static buffer.
 ;;    An example of dynamic buffer is the *Messages* buffer.
+;;
+;; 4. When running Emacs on Windows with cygwin, check if the
+;;    `pr-shell-file-name' variable is set to the proper shell.  This shell
+;;    will execute the commands to preview/print the buffer, file or directory.
+;;    Also check the setting of `pr-path-style' variable.
+;;    Probably, you should use:
+;;
+;;    (setq pr-shell-file-name "bash")
+;;    (setq pr-path-style 'unix)
+;;
+;;     And use / instead of \ when specifying a directory.
 ;;
 ;;
 ;; Using `printing'
@@ -2304,7 +2315,8 @@ It's used by `pr-interface'."
 
 
 (defcustom pr-shell-file-name
-  (if (eq pr-path-style 'windows)
+  (if (and (not pr-cygwin-system)
+	   ps-windows-system)
       "cmdproxy.exe"
     shell-file-name)
   "*Specify file name to load inferior shells from."

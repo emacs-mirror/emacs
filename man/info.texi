@@ -1076,6 +1076,12 @@ you type inside Emacs to run the command bound to @kbd{C-f}.
 
   In Emacs, @kbd{i} runs the command @code{Info-index}.
 
+@findex info-apropos
+If you don't know what manual documents something, try the @kbd{M-x
+info-apropos} command.  It prompts for a string and then looks up that
+string in all the indices of all the Info documents installed on your
+system.
+
 @kindex s @r{(Info mode)}
 @findex Info-search
   The @kbd{s} command allows you to search a whole file for a string.

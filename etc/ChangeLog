@@ -1,3 +1,11 @@
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* TODO: Remove index-apropos entry.
+
+2004-04-01  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Add Javanese.
+
 2004-03-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-prin1.ps: Clip the header and footer area, so text will not be

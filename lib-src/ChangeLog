@@ -1,3 +1,9 @@
+2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* make-docfile.c (xmalloc): Fix return type.
+	(put_filename): New fun.
+	(scan_file): Use it.
+
 2004-03-09  Juanma Barranquero  <lektu@terra.es>
 
 	* grep-changelog: Changes to support ChangeLog.10+.

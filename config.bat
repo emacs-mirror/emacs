@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001
+rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2004
 rem   Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
@@ -191,7 +191,7 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 rem   Create "makefile" from "makefile.in".
-sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
+sed -e "1,/== start of cpp stuff ==/s@^#[ 	].*$@@" <Makefile.in >junk.c
 gcc -E -traditional -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
 If "%DJGPP_VER%" == "2" goto libsrc-v2
 sed -f ../msdos/sed3.inp <makefile.new >Makefile

@@ -6190,8 +6190,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
       if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
         {
-          dpyinfo->mouse_face_hidden = 1;
           clear_mouse_face (dpyinfo);
+          dpyinfo->mouse_face_hidden = 1;
         }
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS

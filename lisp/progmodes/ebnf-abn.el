@@ -4,9 +4,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/03/18 23:49:58 vinicius>
+;; Time-stamp: <2004/04/03 16:43:57 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.0
+;; Version: 1.1
 
 ;; This file is part of GNU Emacs.
 
@@ -316,11 +316,7 @@
 		 term  (cdr term))
       (setq seq (cons term seq)))
     (cons token
-	  (if (= (length seq) 1)
-	      ;; sequence with only one element
-	      (car seq)
-	    ;; a real sequence
-	    (ebnf-make-sequence (nreverse seq))))))
+	  (ebnf-token-sequence seq))))
 
 
 ;;;    repetition     =  [repeat] element

@@ -88,12 +88,52 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** C-h v and C-h f commands now include a hyperlink to the C source for
+variables and functions defined in C (if the C source is available).
+
+** When used interactively, `format-write-file' now asks for confirmation
+before overwriting an existing file, unless a prefix argument is
+supplied.  This behavior is analogous to `write-file'.
+
+** You can now use Auto Revert mode to `tail' a file.
+If point is at the end of a file buffer before reverting, Auto Revert
+mode keeps it at the end after reverting.  Similarly if point is
+displayed at the end of a file buffer in any window, it will stay at
+the end of the buffer in that window.  This allows to tail a file:
+just put point at the end of the buffer and it will stay there.  This
+rule applies to file buffers.  For non-file buffers, the behavior may
+be mode dependent.
+
+** Auto Revert mode is now more careful to avoid excessive reverts and
+other potential problems when deciding which non-file buffers to
+revert.  This matters especially if Global Auto Revert mode is enabled
+and `global-auto-revert-non-file-buffers' is non-nil.  Auto Revert
+mode will only revert a non-file buffer if the buffer has a non-nil
+`revert-buffer-function' and a non-nil `buffer-stale-function', which
+decides whether the buffer should be reverted.  Currently, this means
+that auto reverting works for Dired buffers (although this may not
+work properly on all operating systems) and for the Buffer Menu.
+
+** If the new user option `auto-revert-check-vc-info' is non-nil, Auto
+Revert mode reliably updates version control info (such as the version
+control number in the mode line), in all version controlled buffers in
+which it is active.  If the option is nil, the default, then this info
+only gets updated whenever the buffer gets reverted.
+
+** New command `Buffer-menu-toggle-files-only' toggles display of file
+buffers only in the Buffer Menu.  It is bound to `T' in Buffer Menu
+mode.
+
 ** M-x compile has become more robust and reliable
 
 Quite a few more kinds of messages are recognized.  Messages that are
 recognized as warnings or informational come in orange or green, instead of
 red.  Informational messages are by default skipped with `next-error'
 (controlled by `compilation-skip-threshold').
+
+Location data is collected on the fly as the *compilation* buffer changes.
+This means you could modify messages to make them point to different files.
+This also means you can not go to locations of messages you may have deleted.
 
 The variable `compilation-error-regexp-alist' has now become customizable.  If
 you had added your own regexps to this, you'll probably need to include a
@@ -289,10 +329,15 @@ restores the previous value of `buffer-invisibility-spec'.
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
+** Info mode:
 +++
-** Info now hides node names in menus and cross references by default.
+*** Info now hides node names in menus and cross references by default.
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
+
+*** The new command `info-apropos' searches the indices of the known
+Info files on your system for a string, and builds a menu of the
+possible matches.
 
 ** Support for the SQLite interpreter has been added to sql.el by calling
 'sql-sqlite'.
@@ -648,7 +693,7 @@ feature is not enabled.
 select it (give it focus), the selected window and cursor position
 normally changes according to the mouse click position.  If you set
 the variable x-mouse-click-focus-ignore-position to t, the selected
-window and cursor position do not changes when you click on a frame
+window and cursor position do not change when you click on a frame
 to give it focus.
 
 +++
@@ -1647,6 +1692,8 @@ to view diffs or log entries directly from vc-annotate-mode:
 
 * New modes and packages in Emacs 21.4
 
+** The URL package (which had been part of W3) is now part of Emacs.
+
 +++
 ** The new global minor mode `size-indication-mode' (off by default)
 shows the size of accessible part of the buffer on the mode line.
@@ -2428,7 +2475,7 @@ file, you can put a `coding:' tags to override it.)
 ** The new function `merge-coding-systems' fills in unspecified aspects
 of one coding system from another coding system.
 
----
++++
 ** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
 specification.  Normally Emacs asks for confirmation before evaluating

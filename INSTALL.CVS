@@ -50,15 +50,15 @@ or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
 send it to the proper place.
 
 
-Note on using SSH to access the CVS repository from inside emacs
+Note on using SSH to access the CVS repository from inside Emacs
 ----------------------------------------------------------------
 
 Write access to the CVS repository requires using SSH v2.
 
-If you execute cvs commands inside emacs, specifically if you use
+If you execute cvs commands inside Emacs, specifically if you use
 pcl-cvs, output from CVS may be lost due to a problem in the
-interface between ssh, cvs, and emacs.  Corrupted checkins are
-also been reported to have happened.
+interface between ssh, cvs, and libc.  Corrupted checkins have
+also been rumored to have happened.
 
 To fix the problem, save the following script into a file, make it
 executable, and set CVS_RSH to the file name of the script:

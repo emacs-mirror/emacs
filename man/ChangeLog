@@ -1,3 +1,16 @@
+2004-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* custom.texi (File Variables): Add safe-local-eval-forms.
+
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.texi (Info Search): Add info-apropos.
+
+2004-04-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Reverting): Correct description of revert-buffer's
+	handling of point.
+
 2004-03-22  Juri Linkov  <juri@jurta.org>
 
 	* emacs.texi (Top): Add `Misc X'.

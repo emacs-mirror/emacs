@@ -1,3 +1,14 @@
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat (lib-src): Recognize comment lines in Makefile.in
+	that have a TAB after the #, to avoid errors in preprocessing with
+	GCC 3.3.3.
+
+2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Mention in comment that `make maintainer-clean'
+	deletes .elc files.
+
 2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* update-subdirs: Add local variables to prevent byte-compiling.
@@ -23,7 +34,7 @@
 
 	* INSTALL.CVS: Add info about ssh/cvs related problems and work-around.
 
-2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* make-dist: Don't link index.*perm and permute-index into tempdir.
 
@@ -48,7 +59,7 @@
 
 	* make-dist (tempdir): Include cursors in nt/icons.
 
-2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
 	clashes with install-sh on 8+3 filesystems.

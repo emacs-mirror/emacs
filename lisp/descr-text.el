@@ -99,8 +99,9 @@ if that value is non-nil."
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
-The `category' and `face' properties are made into widget buttons
-that call `describe-text-category' or `describe-face' when pushed."
+The `category', `face' and `font-lock-face' properties are made
+into widget buttons that call `describe-text-category' or
+`describe-face' when pushed."
   ;; Sort the properties by the size of their value.
   (dolist (elt (sort (let ((ret nil)
 			   (key nil)
@@ -110,7 +111,7 @@ that call `describe-text-category' or `describe-face' when pushed."
 			 (setq key (pop properties)
 			       val (pop properties)
 			       len 0)
-			 (unless (or (memq key '(category face))
+			 (unless (or (memq key '(category face font-lock-face))
 				     (widgetp val))
 			   (setq val (pp-to-string val)
 				 len (length val)))
@@ -128,7 +129,7 @@ that call `describe-text-category' or `describe-face' when pushed."
 			    :notify `(lambda (&rest ignore)
 				       (describe-text-category ',value))
 			    (format "%S" value)))
-            ((eq key 'face)
+            ((memq key '(face font-lock-face))
 	     (widget-create 'link
 			    :notify `(lambda (&rest ignore)
 				       (describe-face ',value))

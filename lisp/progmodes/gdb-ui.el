@@ -28,10 +28,11 @@
 ;; This mode acts as a graphical user interface to GDB. You can interact with
 ;; GDB through the GUD buffer in the usual way, but there are also further
 ;; buffers which control the execution and describe the state of your program.
-;; It separates the input/output of your program from that of GDB and displays
-;; expressions and their current values in their own buffers. It also uses
-;; features of Emacs 21 such as the display margin for breakpoints, and the
-;; toolbar (see the GDB Graphical Interface section in the Emacs info manual).
+;; It separates the input/output of your program from that of GDB, if
+;; required, and displays expressions and their current values in their own
+;; buffers. It also uses features of Emacs 21 such as the display margin for
+;; breakpoints, and the toolbar (see the GDB Graphical Interface section in
+;; the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
@@ -69,9 +70,16 @@
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
-If `gdb-many-windows' is nil (the default value) then gdb starts with
-just two windows : the GUD and the source buffer. If it is t the
-following layout will appear (keybindings given in relevant buffer) :
+If `gdb-many-windows' is nil (the default value) then gdb just
+pops up the GUD buffer unless `gdb-show-main' is t. In this case
+it starts with two windows: one displaying the GUD buffer and the
+other with the source file with the main routine of the debugee.
+
+If `gdb-many-windows' is t the layout below will appear
+regardless of the value of `gdb-show-main' unless
+`gdb-use-inferior-io-buffer' is nil when the source buffer
+occupies the full width of the frame. Keybindings are given in
+relevant buffer.
 
 ---------------------------------------------------------------------
                                GDB Toolbar
@@ -81,7 +89,7 @@ GUD buffer (I/O of GDB)           | Locals buffer
                                   |
                                   |
 ---------------------------------------------------------------------
-Source buffer                     | Input/Output (of debuggee) buffer
+Source buffer                     | Input/Output (of debugee) buffer
                                   | (comint-mode)
                                   |
                                   |
@@ -123,6 +131,11 @@ The following interactive lisp functions help control operation :
 
 (defcustom gdb-enable-debug-log nil
  "Non-nil means record the process input and output in `gdb-debug-log'."
+  :type 'boolean
+  :group 'gud)
+
+(defcustom gdb-use-inferior-io-buffer nil
+ "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
   :group 'gud)
 
@@ -176,7 +189,7 @@ The following interactive lisp functions help control operation :
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
   ;;
-  (gdb-clear-inferior-io)
+  (if gdb-use-inferior-io-buffer (gdb-clear-inferior-io))
   ;;
   (if (eq window-system 'w32)
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
@@ -309,7 +322,7 @@ speedbar."
 	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
 	   (list (concat "server interpreter mi \"-var-evaluate-expression "
-			 varnum "\"\n") 
+			 varnum "\"\n")
 		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,varnum t)))))))
   (gdb-set-pending-triggers
@@ -599,7 +612,9 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue output for a later time."
-  (gdb-enqueue-input (concat string "\n")))
+  (if gud-running
+      (process-send-string proc (concat string "\n"))
+    (gdb-enqueue-input (concat string "\n"))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -672,7 +687,10 @@ This filter may simply queue output for a later time."
 	 (match-string 1 args)
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
-  (setq gdb-view-source t))
+  (setq gdb-view-source t)
+;; cover for auto-display output which comes *before*
+;; stopped annotation
+    (if (eq (gdb-get-output-sink) 'inferior) (gdb-set-output-sink 'user)))
 
 (defun gdb-send-item (item)
   (if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
@@ -734,17 +752,19 @@ subprocess is now the program being debugged, not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
-	(gdb-set-output-sink 'inferior)))
+	(if gdb-use-inferior-io-buffer
+	    (gdb-set-output-sink 'inferior))))
      (t (error "Unexpected `starting' annotation")))))
 
 (defun gdb-stopping (ignored)
   "An annotation handler for `exited' and other annotations which say that I/O
 for the subprocess is now GDB, not the program being debugged."
-  (let ((sink (gdb-get-output-sink)))
-    (cond
-     ((eq sink 'inferior)
-      (gdb-set-output-sink 'user))
-     (t (error "Unexpected stopping annotation")))))
+  (if gdb-use-inferior-io-buffer
+      (let ((sink (gdb-get-output-sink)))
+	(cond
+	 ((eq sink 'inferior)
+	  (gdb-set-output-sink 'user))
+	 (t (error "Unexpected stopping annotation"))))))
 
 (defun gdb-frame-begin (ignored)
   (let ((sink (gdb-get-output-sink)))
@@ -1092,8 +1112,7 @@ static char *magick[] = {
 			  (save-excursion
 			    (goto-line (string-to-number line))
 			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
-	  (end-of-line)))))
-  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
+	  (end-of-line))))))
 
 (defun gdb-mouse-toggle-breakpoint (event)
   "Toggle breakpoint with mouse click in left margin."
@@ -1175,8 +1194,6 @@ static char *magick[] = {
     (gdb-enqueue-input
      (list (concat "server delete " (match-string 1) "\n") 'ignore))))
 
-(defvar gdb-source-window nil)
-
 (defun gdb-goto-breakpoint ()
   "Display the file in the source buffer at the breakpoint specified on the
 current line."
@@ -1189,11 +1206,10 @@ current line."
       (let ((line (match-string 2))
 	    (file (match-string 1)))
 	(save-selected-window
-	  (select-window gdb-source-window)
-	  (switch-to-buffer (find-file-noselect
-			     (if (file-exists-p file)
-				 file
-			       (expand-file-name file gdb-cdir))))
+	  (gdb-display-buffer (find-file-noselect
+			       (if (file-exists-p file)
+				   file
+				 (expand-file-name file gdb-cdir))))
 	  (goto-line (string-to-number line))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
@@ -1492,8 +1508,7 @@ the source buffer."
 	(progn
 	  (walk-windows
 	   #'(lambda (win)
-	      (if (or (eq gud-comint-buffer (window-buffer win))
-		      (eq gdb-source-window win))
+	      (if (eq gud-comint-buffer (window-buffer win))
 		  (set-window-dedicated-p win t))))
 	  (setq answer (get-buffer-window buf))
 	  (if (not answer)
@@ -1505,8 +1520,7 @@ the source buffer."
 		  (setq must-split t)))))
       (walk-windows
        #'(lambda (win)
-	  (if (or (eq gud-comint-buffer (window-buffer win))
-		  (eq gdb-source-window win))
+	  (if (eq gud-comint-buffer (window-buffer win))
 	      (set-window-dedicated-p win nil)))))
     (if must-split
 	(let* ((largest (get-largest-window))
@@ -1519,17 +1533,9 @@ the source buffer."
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
       (progn
-	(if (window-live-p gdb-source-window)
-	    (set-window-buffer gdb-source-window buffer)
-	  (gdb-display-buffer buffer)
-	  (setq gdb-source-window (get-buffer-window buffer)))
-	      gdb-source-window)
-    (if (window-live-p gdb-source-window)
-	(set-window-buffer gdb-source-window
-			   (gdb-get-buffer 'gdb-assembler-buffer))
-      (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
-	(gdb-display-buffer buf)
-	(setq gdb-source-window (get-buffer-window buf))))
+	(gdb-display-buffer buffer)
+	(get-buffer-window buffer))
+    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer))
     nil))
 
 
@@ -1597,24 +1603,28 @@ the source buffer."
 (defun gdb-view-source-function ()
   (interactive)
   (if gdb-view-source
-      (if gud-last-last-frame
-	  (set-window-buffer gdb-source-window
-			     (gud-find-file (car gud-last-last-frame)))
-	(set-window-buffer gdb-source-window (gud-find-file gdb-main-file))))
+      (gdb-display-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file))))
   (setq gdb-selected-view 'source))
 
 (defun gdb-view-assembler()
   (interactive)
-  (set-window-buffer gdb-source-window
-		     (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
   (setq gdb-selected-view 'assembler))
 
 ;(defun gdb-view-both()
 ;(interactive)
 ;(setq gdb-selected-view 'both))
 
-;; layout for all the windows
+(defcustom gdb-show-main nil
+  "Nil means don't display source file containing the main routine."
+  :type 'boolean
+  :group 'gud)
+
 (defun gdb-setup-windows ()
+  "Layout the window pattern for gdb-many-windows."
   (gdb-display-locals-buffer)
   (gdb-display-stack-buffer)
   (delete-other-windows)
@@ -1634,10 +1644,10 @@ the source buffer."
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file))
      (gdb-get-create-buffer 'gdb-assembler-buffer)))
-  (setq gdb-source-window (get-buffer-window (current-buffer)))
-  (split-window-horizontally)
-  (other-window 1)
-  (switch-to-buffer (gdb-inferior-io-name))
+  (when gdb-use-inferior-io-buffer
+    (split-window-horizontally)
+    (other-window 1)
+    (switch-to-buffer (gdb-inferior-io-name)))
   (other-window 1)
   (switch-to-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
@@ -1646,8 +1656,11 @@ the source buffer."
   (other-window 1))
 
 (defcustom gdb-many-windows nil
-  "Nil means that gdb starts with just two windows : the GUD and
-the source buffer."
+  "Nil (the default value) means just pops up the GUD buffer
+unless `gdb-show-main' is t. In this case it starts with two
+windows: one displaying the GUD buffer and the other with the
+source file with the main routine of the debugee. Non-nil means
+display the layout shown for `gdba'."
   :type 'boolean
   :group 'gud)
 
@@ -1658,7 +1671,9 @@ the source buffer."
 	(if (null arg)
 	    (not gdb-many-windows)
 	  (> (prefix-numeric-value arg) 0)))
-  (gdb-restore-windows))
+  (condition-case nil
+      (gdb-restore-windows)
+    (error nil)))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
@@ -1680,7 +1695,6 @@ This arrangement depends on the value of `gdb-many-windows'."
 	     (gud-find-file (car gud-last-last-frame))
 	   (gud-find-file gdb-main-file))
        (gdb-get-create-buffer 'gdb-assembler-buffer)))
-    (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
 (defun gdb-reset ()
@@ -1715,20 +1729,19 @@ buffers."
       (if (looking-at "\\S-*")
 	  (setq gdb-main-file (match-string 0)))
     (setq gdb-view-source nil))
-  (delete-other-windows)
-  (switch-to-buffer gud-comint-buffer)
   (if gdb-many-windows
       (gdb-setup-windows)
-    (gdb-display-breakpoints-buffer)
-    (delete-other-windows)
-    (split-window)
-    (other-window 1)
-    (switch-to-buffer
-     (if gdb-view-source
-	 (gud-find-file gdb-main-file)
-       (gdb-get-create-buffer 'gdb-assembler-buffer)))
-    (setq gdb-source-window (get-buffer-window (current-buffer)))
-    (other-window 1)))
+    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
+    (when gdb-show-main
+      (switch-to-buffer gud-comint-buffer)
+      (delete-other-windows)
+      (split-window)
+      (other-window 1)
+      (switch-to-buffer
+       (if gdb-view-source
+	   (gud-find-file gdb-main-file)
+	 (gdb-get-create-buffer 'gdb-assembler-buffer)))
+      (other-window 1))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop)
@@ -1765,9 +1778,9 @@ BUFFER nil or omitted means use the current buffer."
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
 	(if (>= (car (window-fringes)) 8)
-	    (gdb-put-string 
+	    (gdb-put-string
 	     nil (1+ start)
-	     `(left-fringe 
+	     `(left-fringe
 	       ,(or breakpoint-bitmap
 		    (setq breakpoint-bitmap
 			  (define-fringe-bitmap
@@ -1787,7 +1800,7 @@ BUFFER nil or omitted means use the current buffer."
 	   (if enabled
 	       (or breakpoint-enabled-icon
 		   (setq breakpoint-enabled-icon
-			 (find-image `((:type xpm :data 
+			 (find-image `((:type xpm :data
 					      ,breakpoint-xpm-data
 					      :ascent 100 :pointer hand)
 				       (:type pbm :data
@@ -1964,8 +1977,7 @@ BUFFER nil or omitted means use the current buffer."
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
-		(set-window-buffer
-		 gdb-source-window
+		(gdb-display-buffer
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))

@@ -44,6 +44,17 @@
 ;; seconds.  The check is aborted whenever the user actually uses
 ;; Emacs.  You should never even notice that this package is active
 ;; (except that your buffers will be reverted, of course).
+;;
+;; After reverting a file buffer, Auto Revert Mode normally puts point
+;; at the same position that a regular manual revert would.  However,
+;; there is one exception to this rule.  If point is at the end of the
+;; buffer before reverting, it stays at the end.  Similarly if point
+;; is displayed at the end of a file buffer in any window, it will stay
+;; at the end of the buffer in that window, even if the window is not
+;; selected.  This way, you can use Auto Revert Mode to `tail' a file.
+;; Just put point at the end of the buffer and it will stay there.
+;; These rules apply to file buffers. For non-file buffers, the
+;; behavior may be mode dependent.
 
 ;; Usage:
 ;;
@@ -70,14 +81,8 @@
 ;; Dependencies:
 
 (require 'timer)
-(autoload 'dired-get-filename "dired")
-(autoload 'vc-workfile-version "vc-hooks")
-(autoload 'vc-mode-line        "vc-hooks")
 
-(eval-when-compile
-  (defvar dired-directory)
-  (defvar vc-mode)
-  (require 'cl))
+(eval-when-compile (require 'cl))
 
 
 ;; Custom Group:
@@ -191,6 +196,27 @@ not necessarily make manual updates useless for non-file buffers."
   :group 'auto-revert
   :type 'hook)
 
+(defcustom auto-revert-check-vc-info nil
+  "If non-nil Auto Revert Mode reliably updates version control info.
+Auto Revert Mode updates version control info whenever the buffer
+needs reverting, regardless of the value of this variable.
+However, the version control state can change without changes to
+the work file.  If the change is made from the current Emacs
+session, all info is updated.  But if, for instance, a new
+version is checked in from outside the current Emacs session, the
+version control number in the mode line, as well as other version
+control related information, may not be properly updated.  If you
+are worried about this, set this variable to a non-nil value.
+
+This currently works by automatically updating the version
+control info every `auto-revert-interval' seconds.  Nevertheless,
+it should not cause excessive CPU usage on a reasonably fast
+machine, if it does not apply to too many version controlled
+buffers.  CPU usage depends on the version control system"
+  :group 'auto-revert
+  :type 'boolean
+  :version "21.4")
+
 (defvar global-auto-revert-ignore-buffer nil
   "*When non-nil, Global Auto-Revert Mode will not revert this buffer.
 
@@ -279,87 +305,44 @@ will use an up-to-date value of `auto-revert-interval'"
        (not (memq major-mode
 		  global-auto-revert-ignore-modes)))))
 
-(defun auto-revert-vc-cvs-file-version (file)
-  "Get version of FILE by reading control file on disk."
-  (let* ((control "CVS/Entries")
-	 (name	  (file-name-nondirectory file))
-	 (path	  (format "%s/%s"
-			  (file-name-directory file)
-			  control)))
-    (when (file-exists-p path)
-      (with-temp-buffer
-	(insert-file-contents-literally path)
-	(goto-char (point-min))
-	(when (re-search-forward
-	       ;; /file.txt/1.3/Mon Sep 15 18:43:20 2003//
-	       (format "%s/\\([.0-9]+\\)" (regexp-quote name))
-	       nil t)
-	  (match-string 1))))))
-
-(defun auto-revert-vc-buffer-p ()
-  "Check if buffer is version controlled."
-  (and (boundp 'vc-mode)
-       (string-match "[0-9]" (or vc-mode ""))))
-
-(defun auto-revert-handler-vc ()
-  "Check if version controlled buffer needs revert."
-  ;; [Emacs 1]
-  ;; 1. File is saved	  (*)
-  ;; 2. checkin is done 1.1 -> 1.2
-  ;; 3. VC reverts, so that updated version number is shown in mode line
-  ;;
-  ;; Suppose the same file has been opened in another Emacs and
-  ;; autorevert.el is on.
-  ;;
-  ;; [Emacs 2]
-  ;; 1. Step (1) is detected and buffer is reverted.
-  ;; 2. But check in does not always change the file in dis, but possibly only
-  ;;	control files like CVS/Entries
-  ;; 3. The buffer is not reverted to update VC version line.
-  ;;	Incorrect version number 1.1 is shown in this Emacs
-  ;;
-  (when (featurep 'vc)
-    (let* ((file	   (buffer-file-name))
-	   (backend	   (vc-backend (buffer-file-name)))
-	   (version-buffer (vc-workfile-version file)))
-      (when (stringp version-buffer)
-	(cond
-	 ((eq backend 'CVS)
-	  (let ((version-file
-		 (auto-revert-vc-cvs-file-version (buffer-file-name))))
-	    (and (stringp version-file)
-		 (not (string-match version-file version-buffer)))))
-	 ((eq backend 'RCS)
-	  ;; TODO:
-	  ))))))
-
 (defun auto-revert-handler ()
   "Revert current buffer, if appropriate.
 This is an internal function used by Auto-Revert Mode."
   (unless (buffer-modified-p)
-    (let (revert)
-      (cond
-       ((auto-revert-vc-buffer-p)
- 	(when (auto-revert-handler-vc)
- 	  (setq revert 'vc)))
-       ((or (and (buffer-file-name)
-		 (file-readable-p (buffer-file-name))
-		 (not (verify-visited-file-modtime (current-buffer))))
-	    (and (or auto-revert-mode global-auto-revert-non-file-buffers)
-		 revert-buffer-function
-		 (boundp 'buffer-stale-function)
-		 (functionp buffer-stale-function)
-		 (funcall buffer-stale-function t)))
-	(setq revert t)))
+    (let ((buffer (current-buffer)) revert eob eoblist)
+      (or (and buffer-file-name
+	       (file-readable-p buffer-file-name)
+	       (not (verify-visited-file-modtime buffer))
+	       (setq revert t))
+	  (and (or auto-revert-mode global-auto-revert-non-file-buffers)
+	       revert-buffer-function
+	       (boundp 'buffer-stale-function)
+	       (functionp buffer-stale-function)
+	       (setq revert (funcall buffer-stale-function t))))
       (when revert
-	(when auto-revert-verbose
+	(when (and auto-revert-verbose
+		   (not (eq revert 'fast)))
 	  (message "Reverting buffer `%s'." (buffer-name)))
+	;; If point (or a window point) is at the end of the buffer,
+	;; we want to keep it at the end after reverting.  This allows
+	;; to tail a file.
+	(when buffer-file-name
+	  (setq eob (eobp))
+	  (walk-windows
+	   #'(lambda (window)
+	       (and (eq (window-buffer window) buffer)
+		    (= (window-point window) (point-max))
+		    (push window eoblist)))
+	   'no-mini t))
 	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
-	;; `preserve-modes' avoids changing the (minor) modes.  But we
-	;; do want to reset the mode for VC, so we do it explicitly.
-	(vc-find-file-hook)
- 	(if (eq revert 'vc)
- 	    (vc-mode-line buffer-file-name))))))
+	(when buffer-file-name
+	  (when eob (goto-char (point-max)))
+	  (dolist (window eoblist)
+	    (set-window-point window (point-max)))))
+      ;; `preserve-modes' avoids changing the (minor) modes.  But we
+      ;; do want to reset the mode for VC, so we do it manually.
+      (when (or revert auto-revert-check-vc-info)
+	(vc-find-file-hook)))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.

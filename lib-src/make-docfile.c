@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 01, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -105,11 +105,11 @@ fatal (s1, s2)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
+void *
 xmalloc (size)
      unsigned int size;
 {
-  long *result = (long *) malloc (size);
+  void *result = (void *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -178,6 +178,22 @@ main (argc, argv)
   return (err_count > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
+/* Add a source file name boundary marker in the output file.  */
+void
+put_filename (filename)
+     char *filename;
+{
+  char *tmp = filename;
+  int len;
+  
+  while ((tmp = index (filename, '/')))
+    filename = tmp + 1;
+
+  putc (037, outfile);
+  putc ('S', outfile);
+  fprintf (outfile, "%s\n", filename);
+}
+
 /* Read file FILENAME and output its doc strings to outfile.  */
 /* Return 1 if file is not found, 0 if it is found.  */
 
@@ -186,6 +202,8 @@ scan_file (filename)
      char *filename;
 {
   int len = strlen (filename);
+
+  put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
     return scan_lisp_file (filename, READ_BINARY);
   else if (len > 3 && !strcmp (filename + len - 3, ".el"))

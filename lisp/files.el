@@ -3458,8 +3458,10 @@ The function you specify is responsible for updating (or preserving) point.")
   "Function to check whether a non-file buffer needs reverting.
 This should be a function with one optional argument NOCONFIRM.
 Auto Revert Mode sets NOCONFIRM to t.  The function should return
-non-nil if the buffer should be reverted.  The buffer is current
-when this function is called.
+non-nil if the buffer should be reverted.  A return value of
+`fast' means that the need for reverting was not checked, but
+that reverting the buffer is fast.  The buffer is current when
+this function is called.
 
 The idea behind the NOCONFIRM argument is that it should be
 non-nil if the buffer is going to be reverted without asking the

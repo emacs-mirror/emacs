@@ -936,7 +936,7 @@ a diff with \\[diff-reverse-direction]."
     (add-hook 'view-mode-hook
 	      `(lambda ()
 		 (setq minor-mode-overriding-map-alist
-		       (delq ,ro-bind minor-mode-overriding-map-alist)))
+		       (delq ',ro-bind minor-mode-overriding-map-alist)))
 	      nil t))
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)

@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001
+# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -38,12 +38,22 @@ handle SIGALRM ignore
 # Set up a mask to use.
 # This should be EMACS_INT, but in some cases that is a macro.
 # long ought to work in all cases right now.
-set $valmask = ((long)1 << gdb_valbits) - 1
-set $nonvalbits = gdb_emacs_intbits - gdb_valbits
+
+define xgetptr
+  set $ptr = (gdb_use_union ? $arg0.u.val : $arg0 & $valmask) | gdb_data_seg_bits
+end
+
+define xgetint
+  set $int = gdb_use_union ? $arg0.s.val : (gdb_use_lsb ? $arg0 : $arg0 << gdb_gctypebits) >> gdb_gctypebits
+end
+
+define xgettype
+  set $type = gdb_use_union ? $arg0.s.type : (enum Lisp_Type) (gdb_use_lsb ? $arg0 & $tagmask : $arg0 >> gdb_valbits)
+end
 
 # Set up something to print out s-expressions.
 define pr
-set debug_print ($)
+  set debug_print ($)
 end
 document pr
 Print the emacs s-expression which is $.
@@ -51,115 +61,135 @@ Works only when an inferior emacs is executing.
 end
 
 define xtype
-output (enum Lisp_Type) (($ >> gdb_valbits) & 0x7)
-echo \n
-output ((($ >> gdb_valbits) & 0x7) == Lisp_Misc ? (enum Lisp_Misc_Type) (((struct Lisp_Free *) (($ & $valmask) | gdb_data_seg_bits))->type) : (($ >> gdb_valbits) & 0x7) == Lisp_Vectorlike ? ($size = ((struct Lisp_Vector *) (($ & $valmask) | gdb_data_seg_bits))->size, (enum pvec_type) (($size & PVEC_FLAG) ? $size & PVEC_TYPE_MASK : 0)) : 0)
-echo \n
+  xgettype $
+  output $type
+  echo \n
+  if $type == Lisp_Misc
+    xmisctype
+  else
+    if $type == Lisp_Vectorlike
+      xvectype
+    end
+  end
 end
 document xtype
 Print the type of $, assuming it is an Emacs Lisp value.
 If the first type printed is Lisp_Vector or Lisp_Misc,
-the second line gives the more precise type.
-Otherwise the second line doesn't mean anything.
+a second line gives the more precise type.
 end
 
 define xvectype
-set $size = ((struct Lisp_Vector *) (($ & $valmask) | gdb_data_seg_bits))->size
-output (enum pvec_type) (($size & PVEC_FLAG) ? $size & PVEC_TYPE_MASK : 0)
-echo \n
+  xgetptr $
+  set $size = ((struct Lisp_Vector *) $ptr)->size
+  output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size
+  echo \n
 end
 document xvectype
-Print the vector subtype of $, assuming it is a vector or pseudovector.
+Print the size or vector subtype of $, assuming it is a vector or pseudovector.
 end
 
 define xmisctype
-output (enum Lisp_Misc_Type) (((struct Lisp_Free *) (($ & $valmask) | gdb_data_seg_bits))->type)
-echo \n
+  xgetptr $
+  output (enum Lisp_Misc_Type) (((struct Lisp_Free *) $ptr)->type)
+  echo \n
 end
 document xmisctype
 Print the specific type of $, assuming it is some misc type.
 end
 
 define xint
-print (($ & $valmask) << $nonvalbits) >> $nonvalbits
+  xgetint $
+  print $int
 end
 document xint
 Print $, assuming it is an Emacs Lisp integer.  This gets the sign right.
 end
 
 define xptr
-print (void *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (void *) $ptr
 end
 document xptr
 Print the pointer portion of $, assuming it is an Emacs Lisp value.
 end
 
 define xmarker
-print (struct Lisp_Marker *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Marker *) $ptr
 end
 document xmarker
 Print $ as a marker pointer, assuming it is an Emacs Lisp marker value.
 end
 
 define xoverlay
-print (struct Lisp_Overlay *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Overlay *) $ptr
 end
 document xoverlay
 Print $ as a overlay pointer, assuming it is an Emacs Lisp overlay value.
 end
 
 define xmiscfree
-print (struct Lisp_Free *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Free *) $ptr
 end
 document xmiscfree
 Print $ as a misc free-cell pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xintfwd
-print (struct Lisp_Intfwd *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Intfwd *) $ptr
 end
 document xintfwd
 Print $ as an integer forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xboolfwd
-print (struct Lisp_Boolfwd *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Boolfwd *) $ptr
 end
 document xboolfwd
 Print $ as a boolean forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xobjfwd
-print (struct Lisp_Objfwd *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Objfwd *) $ptr
 end
 document xobjfwd
 Print $ as an object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xbufobjfwd
-print (struct Lisp_Buffer_Objfwd *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Buffer_Objfwd *) $ptr
 end
 document xbufobjfwd
 Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xkbobjfwd
-print (struct Lisp_Kboard_Objfwd *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Kboard_Objfwd *) $ptr
 end
 document xkbobjfwd
 Print $ as a kboard-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xbuflocal
-print (struct Lisp_Buffer_Local_Value *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Buffer_Local_Value *) $ptr
 end
 document xbuflocal
 Print $ as a buffer-local-value pointer, assuming it is an Emacs Lisp Misc value.
 end
 
 define xsymbol
-print (struct Lisp_Symbol *) ((((int) $) & $valmask) | gdb_data_seg_bits)
-xprintsym $
+  xgetptr $
+  print (struct Lisp_Symbol *) $ptr
+  xprintsym $
+  echo \n
 end
 document xsymbol
 Print the name and address of the symbol $.
@@ -167,9 +197,10 @@ This command assumes that $ is an Emacs Lisp symbol value.
 end
 
 define xstring
-print (struct Lisp_String *) (($ & $valmask) | gdb_data_seg_bits)
-output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte < 0 ? $->size : $->size_byte)
-echo \n
+  xgetptr $
+  print (struct Lisp_String *) $ptr
+  output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte < 0 ? $->size : $->size_byte)
+  echo \n
 end
 document xstring
 Print the contents and address of the string $.
@@ -177,8 +208,9 @@ This command assumes that $ is an Emacs Lisp string value.
 end
 
 define xvector
-print (struct Lisp_Vector *) (($ & $valmask) | gdb_data_seg_bits)
-output ($->size > 50) ? 0 : ($->contents[0])@($->size)
+  xgetptr $
+  print (struct Lisp_Vector *) $ptr
+  output ($->size > 50) ? 0 : ($->contents[0])@($->size)
 echo \n
 end
 document xvector
@@ -187,32 +219,36 @@ This command assumes that $ is an Emacs Lisp vector value.
 end
 
 define xprocess
-print (struct Lisp_Process *) (($ & $valmask) | gdb_data_seg_bits)
-output *$
-echo \n
+  xgetptr $
+  print (struct Lisp_Process *) $ptr
+  output *$
+  echo \n
 end
 document xprocess
 Print the address of the struct Lisp_process which the Lisp_Object $ points to.
 end
 
 define xframe
-print (struct frame *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct frame *) $ptr
 end
 document xframe
 Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
 end
 
 define xcompiled
-print (struct Lisp_Vector *) (($ & $valmask) | gdb_data_seg_bits)
-output ($->contents[0])@($->size & 0xff)
+  xgetptr $
+  print (struct Lisp_Vector *) $ptr
+  output ($->contents[0])@($->size & 0xff)
 end
 document xcompiled
 Print $ as a compiled function pointer, assuming it is an Emacs Lisp compiled value.
 end
 
 define xwindow
-print (struct window *) (($ & $valmask) | gdb_data_seg_bits)
-printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
+  xgetptr $
+  print (struct window *) $ptr
+  printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
 end
 document xwindow
 Print $ as a window pointer, assuming it is an Emacs Lisp window value.
@@ -220,27 +256,30 @@ Print the window's position as "WIDTHxHEIGHT+LEFT+TOP".
 end
 
 define xwinconfig
-print (struct save_window_data *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct save_window_data *) $ptr
 end
 document xwinconfig
 Print $ as a window configuration pointer, assuming it is an Emacs Lisp window configuration value.
 end
 
 define xsubr
-print (struct Lisp_Subr *) (($ & $valmask) | gdb_data_seg_bits)
-output *$
-echo \n
+  xgetptr $
+  print (struct Lisp_Subr *) $ptr
+  output *$
+  echo \n
 end
 document xsubr
 Print the address of the subr which the Lisp_Object $ points to.
 end
 
 define xchartable
-print (struct Lisp_Char_Table *) (($ & $valmask) | gdb_data_seg_bits)
-printf "Purpose: "
-output (char*)&((struct Lisp_Symbol *) ((((int) $->purpose) & $valmask) | gdb_data_seg_bits))->name->data
-printf "  %d extra slots", ($->size & 0x1ff) - 388
-echo \n
+  xgetptr $
+  print (struct Lisp_Char_Table *) $ptr
+  printf "Purpose: "
+  xprintsym $->purpose
+  printf "  %d extra slots", ($->size & 0x1ff) - 388
+  echo \n
 end
 document xchartable
 Print the address of the char-table $, and its purpose.
@@ -248,9 +287,10 @@ This command assumes that $ is an Emacs Lisp char-table value.
 end
 
 define xboolvector
-print (struct Lisp_Bool_Vector *) (($ & $valmask) | gdb_data_seg_bits)
-output ($->size > 256) ? 0 : ($->data[0])@(($->size + 7)/ 8)
-echo \n
+  xgetptr $
+  print (struct Lisp_Bool_Vector *) $ptr
+  output ($->size > 256) ? 0 : ($->data[0])@(($->size + 7)/ 8)
+  echo \n
 end
 document xboolvector
 Print the contents and address of the bool-vector $.
@@ -258,9 +298,11 @@ This command assumes that $ is an Emacs Lisp bool-vector value.
 end
 
 define xbuffer
-print (struct buffer *) (($ & $valmask) | gdb_data_seg_bits)
-output ((struct Lisp_String *) ((($->name) & $valmask) | gdb_data_seg_bits))->data
-echo \n
+  xgetptr $
+  print (struct buffer *) $ptr
+  xgetptr $->name
+  output ((struct Lisp_String *) $ptr)->data
+  echo \n
 end
 document xbuffer
 Set $ as a buffer pointer, assuming it is an Emacs Lisp buffer value.
@@ -268,24 +310,26 @@ Print the name of the buffer.
 end
 
 define xhashtable
-print (struct Lisp_Hash_Table *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct Lisp_Hash_Table *) $ptr
 end
 document xhashtable
 Set $ as a hash table pointer, assuming it is an Emacs Lisp hash table value.
 end
 
 define xcons
-print (struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits)
-output/x *$
-echo \n
+  xgetptr $
+  print (struct Lisp_Cons *) $ptr
+  output/x *$
+  echo \n
 end
 document xcons
 Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define nextcons
-p $.cdr
-xcons
+  p $.cdr
+  xcons
 end
 document nextcons
 Print the contents of the next cell in a list.
@@ -293,28 +337,34 @@ This assumes that the last thing you printed was a cons cell contents
 (type struct Lisp_Cons) or a pointer to one.
 end
 define xcar
-print/x ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->car : 0)
+  xgetptr $
+  xgettype $
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car : 0)
 end
 document xcar
 Print the car of $, assuming it is an Emacs Lisp pair.
 end
 
 define xcdr
-print/x ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->cdr : 0)
+  xgetptr $
+  xgettype $
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
 end
 
 define xfloat
-print ((struct Lisp_Float *) (($ & $valmask) | gdb_data_seg_bits))->data
+  xgetptr $
+  print ((struct Lisp_Float *) $ptr)->data
 end
 document xfloat
 Print $ assuming it is a lisp floating-point number.
 end
 
 define xscrollbar
-print (struct scrollbar *) (($ & $valmask) | gdb_data_seg_bits)
+  xgetptr $
+  print (struct scrollbar *) $ptr
 output *$
 echo \n
 end
@@ -323,10 +373,11 @@ Print $ as a scrollbar pointer.
 end
 
 define xprintsym
-  set $sym = (struct Lisp_Symbol *) ((((int) $arg0) & $valmask) | gdb_data_seg_bits)
-  set $sym_name = ((struct Lisp_String *)(($sym->xname & $valmask) | gdb_data_seg_bits))
+  xgetptr $arg0
+  set $sym = (struct Lisp_Symbol *) $ptr
+  xgetptr $sym->xname
+  set $sym_name = (struct Lisp_String *) $ptr
   output ($sym_name->data[0])@($sym_name->size_byte < 0 ? $sym_name->size : $sym_name->size_byte)
-  echo \n
 end
 document xprintsym
   Print argument as a symbol.
@@ -335,14 +386,16 @@ end
 define xbacktrace
   set $bt = backtrace_list
   while $bt
-    set $type = (enum Lisp_Type) ((*$bt->function >> gdb_valbits) & 0x7)
+    xgettype (*$bt->function)
     if $type == Lisp_Symbol
-      xprintsym *$bt->function
+      xprintsym (*$bt->function)
+      echo \n
     else
       printf "0x%x ", *$bt->function
       if $type == Lisp_Vectorlike
-        set $size = ((struct Lisp_Vector *) ((*$bt->function & $valmask) | gdb_data_seg_bits))->size
-        output (enum pvec_type) (($size & PVEC_FLAG) ? $size & PVEC_TYPE_MASK : 0)
+	xgetptr (*$bt->function)
+        set $size = ((struct Lisp_Vector *) $ptr)->size
+        output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size
       else
         printf "Lisp type %d", $type
       end
@@ -358,16 +411,17 @@ document xbacktrace
 end
 
 define xreload
-  set $valmask = ((long)1 << gdb_valbits) - 1
-  set $nonvalbits = gdb_emacs_intbits - gdb_valbits
+  set $tagmask = (((long)1 << gdb_gctypebits) - 1)
+  set $valmask = gdb_use_lsb ? ~($tagmask) : ((long)1 << gdb_valbits) - 1
 end
 document xreload
   When starting Emacs a second time in the same gdb session under
-  FreeBSD 2.2.5, gdb 4.13, $valmask and $nonvalbits have lost
+  FreeBSD 2.2.5, gdb 4.13, $valmask have lost
   their values.  (The same happens on current (2000) versions of GNU/Linux
   with gdb 5.0.)
   This function reloads them.
 end
+xreload
 
 define hook-run
   xreload
