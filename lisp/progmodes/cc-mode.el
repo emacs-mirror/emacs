@@ -7,8 +7,10 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Version:    5.18
 ;; Keywords:   c languages oop
+
+(defconst c-version "5.19"
+  "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
 ;; NOTE: See the accompanying texinfo manual for details on using this mode!
@@ -326,9 +328,7 @@ Key bindings:
   (c-update-modeline))
 
 
-;; defuns for submitting bug reports
-(defconst c-version "5.18"
-  "CC Mode version number.")
+;; bug reporting
 
 (defconst c-mode-help-address
   "bug-gnu-emacs@prep.ai.mit.edu, cc-mode-help@python.org"
@@ -382,7 +382,7 @@ Key bindings:
 		   'c-hanging-comment-ender-p
 		   'c-indent-comments-syntactically-p
 		   'c-tab-always-indent
-		   'c-recognize-knr-p
+		   'c-comment-continuation-stars
 		   'c-label-minimum-indentation
 		   'defun-prompt-regexp
 		   'tab-width
