@@ -86,6 +86,6 @@ the WIDTH times as wide as FACE on FRAME.")
       /* We don't have to check fontsets.  */
       return args[0];
     args[1] = list_fontsets (f, pattern, size);
-    return Fnconc (make_number (2), args);
+    return Fnconc (2, args);
   }
 }
