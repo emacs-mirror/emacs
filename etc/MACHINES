@@ -599,6 +599,11 @@ IBM RT/PC (romp-ibm-bsd or romp-ibm-aix)
 
   window.c must not be compiled with -O on AIX.
 
+IBM System/390 running GNU/Linux (s390-*-linux-gnu)
+
+  As of Emacs 21.2, a 31-bit only version is supported on this
+  system.
+
 Integrated Solutions `Optimum V' (m68k-isi-bsd4.2 or -bsd4.3)
 
   18.52 said to work on some sort of ISI machine.
