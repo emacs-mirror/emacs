@@ -1476,12 +1476,15 @@ BEG and END may be integers or markers.")
   /* This puts it in the right list, and in the right order.  */
   recenter_overlay_lists (b, XINT (b->overlay_center));
 
+  /* We don't need to redisplay the region covered by the overlay, because
+     the overlay has no properties at the moment.  */
+
   return overlay;
 }
 
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.\n\
-If omitted, don't change OVERLAY's buffer.")
+If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.")
   (overlay, beg, end, buffer)
      Lisp_Object overlay, beg, end, buffer;
 {
@@ -1494,7 +1497,37 @@ If omitted, don't change OVERLAY's buffer.")
     buffer = Fmarker_buffer (OVERLAY_START (overlay));
   CHECK_BUFFER (buffer, 3);
 
+  CHECK_NUMBER_COERCE_MARKER (beg, 1);
+  CHECK_NUMBER_COERCE_MARKER (end, 1);
+
+  if (XINT (beg) > XINT (end))
+    {
+      Lisp_Object temp = beg;
+      beg = end; end = temp;
+    }
+
   b = XBUFFER (buffer);
+
+  /* Redisplay the area the overlay has just left, or just enclosed.  */
+  {
+    Lisp_Object o_beg = OVERLAY_START (overlay);
+    Lisp_Object o_end = OVERLAY_END   (overlay);
+    int change_beg, change_end;
+
+    o_beg = OVERLAY_POSITION (o_beg);
+    o_end = OVERLAY_POSITION (o_end);
+
+    if (XINT (o_beg) == XINT (beg))
+      redisplay_region (b, XINT (o_end), XINT (end));
+    else if (XINT (o_end) == XINT (end))
+      redisplay_region (b, XINT (o_beg), XINT (beg));
+    else
+      {
+	if (XINT (beg) < XINT (o_beg)) o_beg = beg;
+	if (XINT (end) > XINT (o_end)) o_end = end;
+	redisplay_region (b, XINT (o_beg), XINT (o_end));
+      }
+  }
 
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
@@ -1530,6 +1563,10 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
+
+  redisplay_region (b,
+		    OVERLAY_POSITION (OVERLAY_START (overlay)),
+		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
 
   return Qnil;
 }
@@ -1656,6 +1693,13 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 {
   Lisp_Object plist, tail;
 
+  if (!OVERLAY_VALID (overlay))
+    error ("Invalid overlay object");
+
+  redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
+		    OVERLAY_POSITION (OVERLAY_START (overlay)),
+		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
+  
   plist = Fcdr_safe (Fcdr_safe (overlay));
 
   for (tail = plist;
