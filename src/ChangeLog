@@ -1,3 +1,9 @@
+2003-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (pure_alloc): Corrected last change; now align the
+	pointer and adjust the size rather than aligning the size and
+	adjusting the pointer.  Use a goto to handle overflow exception.
+
 2003-01-11  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fset_process_contact): New function.
