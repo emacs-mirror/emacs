@@ -177,6 +177,8 @@ Accept any number of arguments, but ignore them."
 (fset 'beep 'ding) ;preserve lingual purtity
 (fset 'indent-to-column 'indent-to)
 (fset 'backward-delete-char 'delete-backward-char)
+(fset 'search-forward-regexp (symbol-function 're-search-forward))
+(fset 'search-backward-regexp (symbol-function 're-search-backward))
 
 (defvar global-map nil
   "Default global keymap mapping Emacs keyboard input into commands.
