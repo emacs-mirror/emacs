@@ -27,6 +27,10 @@
 ;;; Commentary:
 
 ;; Note that nowadays we expect info files to be made using makeinfo.
+;; In particular we make these assumptions:
+;;  - a menu item MAY contain colons but not colon-space ": "
+;;  - a menu item ending with ": " (but not ":: ") is an index entry
+;;  - a node name MAY NOT contain a colon
 
 ;;; Code:
 
@@ -584,7 +588,7 @@ which the match was found."
     (save-excursion
       (set-buffer (marker-buffer marker))
       (goto-char marker)
-    
+
       ;; Search tag table
       (beginning-of-line)
       (when (re-search-forward regexp nil t)
@@ -628,7 +632,7 @@ Value is the position at which a match was found, or nil if not found."
 	    (beginning-of-line)
 	    (setq found (point)))))
       found)))
-		  
+
 (defun Info-find-node-in-buffer (regexp)
   "Find a node or anchor in the current buffer.
 REGEXP is a regular expression matching nodes or references.  Its first
@@ -638,7 +642,7 @@ This function looks for a case-sensitive match first.  If none is found,
 a case-insensitive match is tried."
   (or (Info-find-node-in-buffer-1 regexp nil)
       (Info-find-node-in-buffer-1 regexp t)))
-  
+
 (defun Info-find-node-2 (filename nodename &optional no-going-back)
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
@@ -721,16 +725,16 @@ a case-insensitive match is tried."
 		(nodepos nil))
 
 	    (catch 'foo
-	      
+
 	      ;; First, search a tag table, if any
 	      (when (marker-position Info-tag-table-marker)
 		(let* ((m Info-tag-table-marker)
 		       (found (Info-find-in-tag-table m regexp)))
-		  
+
 		  (when found
 		    ;; FOUND is (ANCHOR POS MODE).
 		    (setq guesspos (nth 1 found))
-		    
+
 		    ;; If this is an indirect file, determine which
 		    ;; file really holds this node and read it in.
 		    (unless (eq (nth 2 found) 'Info-mode)
@@ -747,7 +751,7 @@ a case-insensitive match is tried."
 	      ;; Else we may have a node, which we search for:
 	      (goto-char (max (point-min)
 			      (- (byte-to-position guesspos) 1000)))
-	      
+
 	      ;; Now search from our advised position (or from beg of
 	      ;; buffer) to find the actual node.  First, check
 	      ;; whether the node is right where we are, in case the
@@ -991,7 +995,7 @@ a case-insensitive match is tried."
 	    (insert entry)
 	    (while (= (line-beginning-position 0) (1- (point)))
 	      (delete-region (1- (point)) (point))))
-      
+
 	  ;; Now remove duplicate entries under the same heading.
 	  (let ((seen nil)
 		(limit (point)))
@@ -2119,8 +2123,18 @@ If no reference to follow, moves to the next node, or up if none."
      ((setq node (Info-get-token (point) "\\*note[ \n]"
 				 "\\*note[ \n]\\([^:]*\\):"))
       (Info-follow-reference node))
+     ;; explicit node name
      ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
       (Info-goto-node node))
+     ;; index entry (Another approach is to combine this w/ the following cond
+     ;;              branch "other menu item", but that also requires fixing
+     ;;              Info-extract-menu-node-name -- stay tuned. --ttn)
+     ((Info-get-token (point) "\\* +" "\\* +\\(.*\\):[ \t]")
+      (save-excursion
+        (re-search-forward ":[ \t]")
+        (setq node (Info-following-node-name "^.")))
+      (Info-goto-node node))
+     ;; other menu item
      ((Info-get-token (point) "\\* +" "\\* +\\([^:]*\\):")
       (beginning-of-line)
       (forward-char 2)
@@ -2740,7 +2754,7 @@ the variable `Info-file-list-for-emacs'."
 			  (concat "No next, prev or up links  --  "
 				  (buffer-substring (point) header-end)))
 		  (setq header (buffer-substring (point) header-end))))
-	      
+
 	      (put-text-property (point-min) (1+ (point-min))
 				 'header-line header)
 	      ;; Hide the part of the first line
