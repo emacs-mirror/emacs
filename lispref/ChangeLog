@@ -1,5 +1,14 @@
-2003-09-26  Richard M. Stallman  <rms@gnu.org>
+2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
+	* modes.texi (Mode Line Data): Document the :propertize construct.
+	(Mode Line Variables): Reorder the descriptions of the variables
+	to match their order in the default mode-line-format.  
+	Describe the new variables mode-line-position and mode-line-modes.
+	Update the default values of mode-line-frame-identification,
+	minor-mode-alist, and default-mode-line-format.
+	(Properties in Mode): Mention the :propertize construct.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
 
 	* buffers.texi, commands.texi, debugging.texi, eval.texi: 
 	* loading.texi, minibuf.texi, text.texi, variables.texi:

@@ -1,3 +1,8 @@
+2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* bindings.el (mode-line-position): Mention size indication in
+	docstring.
+
 2003-09-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* calendar/parse-time.el (parse-time-string): Add autoload cookie.

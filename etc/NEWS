@@ -2539,6 +2539,10 @@ for color support on character terminal frames.  Its value can be a
 number of colors to support, or a symbol.  See the Emacs Lisp
 Reference manual for more detailed documentation.
 
++++
+** The new mode-line construct `(:propertize ELT PROPS...)' can be
+used to add text properties to mode-line elements.
+
 ** Mode line display ignores text properties in the value
 of a variable whose `risky-local-variables' property is nil.
 
