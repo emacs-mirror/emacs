@@ -552,9 +552,29 @@ x_set_frame_parameters (f, alist)
     if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
 	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
       Fset_frame_size (frame, width, height);
-    if ((NUMBERP (left) && XINT (left) != f->display.x->left_pos)
-	|| (NUMBERP (top) && XINT (top) != f->display.x->top_pos))
-      Fset_frame_position (frame, left, top);
+
+    if ((!NILP (left) || !NILP (top))
+	&& ! (NUMBERP (left) && XINT (left) == f->display.x->left_pos
+	      && NUMBERP (top) && XINT (top) == f->display.x->top_pos))
+      {
+	int leftpos = (NUMBERP (left) ? XINT (left) : 0);
+	int toppos = (NUMBERP (top) ? XINT (top) : 0);
+
+	/* Store the numeric value of the position.  */
+	f->display.x->top_pos = toppos;
+	f->display.x->left_pos = leftpos;
+
+	/* Record the signs.  */
+	f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
+	if (EQ (left, Qminus) || (NUMBERP (left) && XINT (left) < 0))
+	  f->display.x->size_hint_flags |= XNegative;
+	if (EQ (top, Qminus) || (NUMBERP (top) && XINT (top) < 0))
+	  f->display.x->size_hint_flags |= YNegative;
+	f->display.x->win_gravity = NorthWestGravity;
+
+	/* Actually set that position, and convert to absolute.  */
+	x_set_offset (f, leftpos, toppos, 0);
+      }
   }
 }
 
@@ -1255,7 +1275,13 @@ x_set_name (f, name, explicit)
 
   /* If NAME is nil, set the name to the x_id_name.  */
   if (NILP (name))
-    name = build_string (x_id_name);
+    {
+      /* Check for no change needed in this very common case
+	 before we do any consing.  */
+      if (!strcmp (x_id_name, XSTRING (f->name)->data))
+	return;
+      name = build_string (x_id_name);
+    }
   else
     CHECK_STRING (name, 0);
 
