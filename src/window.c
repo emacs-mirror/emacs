@@ -3810,7 +3810,7 @@ If there is only one window, it is split regardless of this value.");
   DEFVAR_LISP ("window-configuration-change-hook",
 	       &Vwindow_configuration_change_hook,
     "Functions to call when window configuration changes.\n\
-The selected frae is the one whose configuration has changed.");
+The selected frame is the one whose configuration has changed.");
   Vwindow_configuration_change_hook = Qnil;
 
   defsubr (&Sselected_window);
