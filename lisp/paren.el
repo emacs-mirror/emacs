@@ -1,6 +1,10 @@
 ;;; paren.el --- highlight matching paren.
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
+;;; Author: rms@gnu.ai.mit.edu
+;;; Maintainer: FSF
+;;; Keywords: languages, faces
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -61,7 +65,10 @@
 				     255))))))
 	;; If they don't properly match, don't show.
 	(if mismatch
-	    (setq pos nil))))
+	    (progn
+	      (message "Paren mismatch")
+;;;	      (setq pos nil)
+	      ))))
     (cond (pos
 	   (if show-paren-overlay
 	       (move-overlay show-paren-overlay (- pos dir) pos)
