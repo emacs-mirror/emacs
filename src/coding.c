@@ -8472,10 +8472,13 @@ usage: (define-coding-system-internal ...)  */)
 	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
 
       charset_list = XCDR (charset_list);
-      charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
-      if (CHARSET_DIMENSION (charset) != 2)
-	error ("Dimension of charset %s is not two",
-	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
+      if (! NILP (charset_list))
+	{
+	  charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
+	  if (CHARSET_DIMENSION (charset) != 2)
+	    error ("Dimension of charset %s is not two",
+		   SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
+	}
 
       category = coding_category_sjis;
       Vsjis_coding_system = name;
