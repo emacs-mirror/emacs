@@ -33,6 +33,7 @@ Emacs
 * Dired-X: (dired-x).   Dired Extra Features.
 * Ediff: (ediff).	A visual interface for comparing and merging programs.
 * Emacs-Xtra: (emacs-xtra).    Specialized Emacs features.
+* Org Mode: (org.info).	Outline-based notes management and organizer.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
@@ -65,6 +66,7 @@ Emacs
 * Tramp: (tramp).	Transparent Remote (file) Access, Multiple Protocol.
                           Edit remote files via a remote shell (rsh,
                           ssh, telnet).
+* URL: (url).           URL loading package.
 * Widget: (widget).     The "widget" package used by the Emacs Customization
                           facility.
 * WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
