@@ -149,11 +149,23 @@ fs_load_font (f, font_table, charset, fontname, fontset)
     /* No way to get fontname.  */
     return 0;
 
-  /* If a fontset is specified and we have already loaded some fonts
-     in the fontset, we need a font of appropriate size to be used
-     with the fonts.  */
-  if (fontsetp && fontsetp->size)
-    size = fontsetp->size * CHARSET_WIDTH (charset);
+  /* If CHARSET is not ASCII and FONTSET is specified, we must load a
+     font of appropriate size to be used with other fonts in this
+     fontset.  */
+  if (charset != CHARSET_ASCII && fontsetp)
+    {
+      /* If we have not yet loaded ASCII font of FONTSET, we must load
+	 it now to decided the size and height of this fontset.  */
+      if (fontsetp->size == 0)
+	{
+	  fontp = fs_load_font (f, font_table, CHARSET_ASCII, 0, fontset);
+	  if (!fontp)
+	    /* Any fontset should contain avairable ASCII.  */
+	    return 0;
+	}
+      /* Now we have surely decided the size of this fontset.  */
+      size = fontsetp->size * CHARSET_WIDTH (charset);
+    }
 
   fontp = (*load_font_func) (f, fontname, size);
 
@@ -168,7 +180,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
      not set by (*load_font_func).  */
   fontp->charset = charset;
 
-  if (fontp->encoding[1] != 4)
+  if (fontp->encoding[1] != FONT_ENCODING_NOT_DECIDED)
     {
       /* The font itself tells which code points to be used.  Use this
 	 encoding for all other charsets.  */
@@ -225,46 +237,51 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 	}
     }
 
+  /* If FONTSET is specified, setup various fields of it.  */
   if (fontsetp)
     {
       fontsetp->font_indexes[charset] = fontp->font_idx;
-      if (fontsetp->size == 0)
-	fontsetp->size = fontp->size / CHARSET_WIDTH (charset);
-
-      if (charset == CHARSET_ASCII
-	  && fontsetp->size != fontp->size)
+      if (charset == CHARSET_ASCII)
 	{
-	  /* When loading ASCII font of the different size from the
-	     size of FONTSET, we have to update the size of FONTSET.
-	     Since changing the size of FONTSET may make some fonts
-	     already loaded inappropriate to be used in FONTSET, we
-	     must delete the record of such fonts.  In that case, we
-	     also have to calculate the height of FONTSET from the
-	     remaining fonts.  */
-	  int i;
-
-	  fontsetp->size = fontp->size;
-	  fontsetp->height = fontp->height;
-	  for (i = CHARSET_ASCII + 1; i <= MAX_CHARSET; i++)
+	  /* Decide or change the size and height of this fontset.  */
+	  if (fontsetp->size == 0)
 	    {
-	      font_idx = fontsetp->font_indexes[i];
-	      if (font_idx >= 0)
-		{
-		  struct font_info *fontp2 = font_table + font_idx;
+	      fontsetp->size = fontp->size;
+	      fontsetp->height = fontp->height;
+	    }
+	  else if (fontsetp->size != fontp->size
+		   || fontsetp->height != fontp->height)
+	    {
+	      /* When loading ASCII font of the different size from
+		 the size of FONTSET, we have to update the size of
+		 FONTSET.  Since changing the size of FONTSET may make
+		 some fonts already loaded inappropriate to be used in
+		 FONTSET, we must delete the record of such fonts.  In
+		 that case, we also have to calculate the height of
+		 FONTSET from the remaining fonts.  */
+	      int i;
 
-		  if (fontp2->size != fontp->size * CHARSET_WIDTH (i))
-		    fontsetp->font_indexes[i] = FONT_NOT_OPENED;
-		  /* The following code should be disabled until Emacs
-		     supports variable height lines.  */
+	      fontsetp->size = fontp->size;
+	      fontsetp->height = fontp->height;
+	      for (i = CHARSET_ASCII + 1; i <= MAX_CHARSET; i++)
+		{
+		  font_idx = fontsetp->font_indexes[i];
+		  if (font_idx >= 0)
+		    {
+		      struct font_info *fontp2 = font_table + font_idx;
+
+		      if (fontp2->size != fontp->size * CHARSET_WIDTH (i))
+			fontsetp->font_indexes[i] = FONT_NOT_OPENED;
+		      /* The following code should be disabled until
+			 Emacs supports variable height lines.  */
 #if 0
-		  else if (fontsetp->height < fontp->height)
-		    fontsetp->height = fontp->height;
+		      else if (fontsetp->height < fontp->height)
+			fontsetp->height = fontp->height;
 #endif
+		    }
 		}
 	    }
 	}
-      else if (fontsetp->height < fontp->height)
-	fontsetp->height = fontp->height;
     }
 
   return fontp;
