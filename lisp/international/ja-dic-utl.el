@@ -88,8 +88,9 @@
       (setq heads (cdr heads)))
     l))
 
-(defconst skkdic-jisx0208-hiragana-block (cons (decode-char 'unicode #x3040)
-					       (decode-char 'unicode #x309F)))
+(defconst skkdic-jisx0208-hiragana-block
+  (cons (decode-char 'japanese-jisx0208 #x2421)
+	(decode-char 'japanese-jisx0208 #x247E)))
 
 (defun skkdic-lookup-key (seq len &optional postfix prefer-noun)
   "Return a list of conversion string for sequence SEQ of length LEN.
