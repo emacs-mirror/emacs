@@ -562,6 +562,9 @@ case "${canonical}" in
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
+  s390-*-linux-gnu)
+    machine=ibms390 opsys=gnu-linux
+  ;;
   rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
     machine=ibmrs6000 opsys=aix3-1
   ;;
