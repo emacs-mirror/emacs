@@ -1,3 +1,8 @@
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-find-bounds): Set the formula
+	bound on the line with the formula.
+
 2005-01-31  Kim F. Storm  <storm@cua.dk>
 
 	* ses.el (ses-create-cell-variable-range)
