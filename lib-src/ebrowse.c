@@ -1,6 +1,7 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-   Copyright (C) 1992,92,94,95,96,97,98,99,2000 Free Software Foundation Inc.
+   Copyright (C) 1992,92,94,95,96,97,98,99,2000,2001
+      Free Software Foundation Inc.
 
    Author: Gerd Moellmann <gerd@gnu.org>
    Maintainer: FSF
@@ -515,6 +516,7 @@ struct sym *parse_classname P_ ((void));
 struct sym *parse_qualified_ident_or_type P_ ((char **));
 void parse_qualified_param_ident_or_type P_ ((char **));
 int globals P_ ((int));
+void yyerror P_ ((char *, char *));
 
 
 
@@ -526,12 +528,11 @@ int globals P_ ((int));
    name and line number.  */
 
 void
-yyerror (format, a1, a2, a3, a4, a5)
-     char *format;
-     long a1, a2, a3, a4, a5;
+yyerror (format, s)
+     char *format, *s;
 {
   fprintf (stderr, "%s:%d: ", filename, yyline);
-  fprintf (stderr, format, a1, a2, a3, a4, a5);
+  fprintf (stderr, format, s);
   putc ('\n', stderr);
 }
 
@@ -546,7 +547,7 @@ xmalloc (nbytes)
   void *p = malloc (nbytes);
   if (p == NULL)
     {
-      yyerror ("out of memory");
+      yyerror ("out of memory", NULL);
       exit (1);
     }
   return p;
@@ -563,7 +564,7 @@ xrealloc (p, sz)
   p = realloc (p, sz);
   if (p == NULL)
     {
-      yyerror ("out of memory");
+      yyerror ("out of memory", NULL);
       exit (1);
     }
   return p;
@@ -1572,9 +1573,9 @@ yylex ()
                   if (!GET (c))
                     {
                       if (end_char == '\'')
-                        yyerror ("EOF in character constant");
+                        yyerror ("EOF in character constant", NULL);
                       else
-                        yyerror ("EOF in string constant");
+                        yyerror ("EOF in string constant", NULL);
                       goto end_string;
                     }
                   else switch (c)
@@ -1639,9 +1640,9 @@ yylex ()
 
                 case '\n':
                   if (end_char == '\'')
-                    yyerror ("newline in character constant");
+                    yyerror ("newline in character constant", NULL);
                   else
-                    yyerror ("newline in string constant");
+                    yyerror ("newline in string constant", NULL);
                   INCREMENT_LINENO;
                   break;
 
@@ -1795,7 +1796,7 @@ yylex ()
           else if (c == '.')
             {
               if (GET (c) != '.')
-                yyerror ("invalid token '..' ('...' assumed)");
+                yyerror ("invalid token '..' ('...' assumed)", NULL);
               UNGET ();
               return ELLIPSIS;
             }
@@ -3347,7 +3348,7 @@ globals (start_flags)
         }
 
       if (prev_in == in)
-        yyerror ("parse error");
+        yyerror ("parse error", NULL);
     }
 }
 
@@ -3439,7 +3440,7 @@ open_file (file)
      fp = fopen (file, "r");
 
   if (fp == NULL)
-    yyerror ("cannot open");
+    yyerror ("cannot open", NULL);
   
   return fp;
 }
@@ -3696,7 +3697,7 @@ main (argc, argv)
       yyout = fopen (out_filename, f_append ? "a" : "w");
       if (yyout == NULL)
 	{
-	  yyerror ("cannot open output file `%s'", (long)out_filename);
+	  yyerror ("cannot open output file `%s'", out_filename);
 	  exit (1);
 	}
     }
@@ -3724,7 +3725,7 @@ main (argc, argv)
           FILE *fp = fopen (input_filenames[i], "r");
           
           if (fp == NULL)
-            yyerror ("cannot open input file `%s'", (long)input_filenames[i]);
+            yyerror ("cannot open input file `%s'", input_filenames[i]);
           else
             {
 	      char *file;
