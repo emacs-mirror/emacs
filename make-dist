@@ -344,12 +344,12 @@ echo "Making links to \`src'"
      # test -f appears to succeed for a symlink
      if test -L ../${tempdir}/src/$file; then
        rm ../${tempdir}/src/$file
-       cp $file ../${tempdir}/src
+       cp -p $file ../${tempdir}/src
        chmod a-w ../${tempdir}/src/$file
      fi
    else
      rm ../${tempdir}/src/$file
-     cp $file ../${tempdir}/src
+     cp -p $file ../${tempdir}/src
      chmod a-w ../${tempdir}/src/$file
    fi
  done
