@@ -816,7 +816,8 @@ See documentation of variable `tags-file-name'."
 
 ;; Return non-nil iff the current buffer is a valid etags TAGS file.
 (defun etags-verify-tags-table ()
-  (= (char-after 1) ?\f))
+  ;; Use eq instead of = in case char-after returns nil.
+  (eq (char-after 1) ?\f))
 
 (defun etags-file-of-tag ()
   (save-excursion
