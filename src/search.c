@@ -236,36 +236,39 @@ looking_at_1 (string, posix)
      that make up the visible portion of the buffer. */
 
   p1 = BEGV_ADDR;
-  s1 = GPT - BEGV;
+  s1 = GPT_BYTE - BEGV_BYTE;
   p2 = GAP_END_ADDR;
-  s2 = ZV - GPT;
+  s2 = ZV_BYTE - GPT_BYTE;
   if (s1 < 0)
     {
       p2 = p1;
-      s2 = ZV - BEGV;
+      s2 = ZV_BYTE - BEGV_BYTE;
       s1 = 0;
     }
   if (s2 < 0)
     {
-      s1 = ZV - BEGV;
+      s1 = ZV_BYTE - BEGV_BYTE;
       s2 = 0;
     }
 
   re_match_object = Qnil;
   
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
-		  PT - BEGV, &search_regs,
-		  ZV - BEGV);
+		  PT_BYTE - BEGV_BYTE, &search_regs,
+		  ZV_BYTE - BEGV_BYTE);
   if (i == -2)
     matcher_overflow ();
 
   val = (0 <= i ? Qt : Qnil);
-  for (i = 0; i < search_regs.num_regs; i++)
-    if (search_regs.start[i] >= 0)
-      {
-	search_regs.start[i] += BEGV;
-	search_regs.end[i] += BEGV;
-      }
+  if (i >= 0)
+    for (i = 0; i < search_regs.num_regs; i++)
+      if (search_regs.start[i] >= 0)
+	{
+	  search_regs.start[i]
+	    = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
+	  search_regs.end[i]
+	    = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
+	}
   XSETBUFFER (last_thing_searched, current_buffer);
   immediate_quit = 0;
   return val;
@@ -514,7 +517,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
            the position of the last character before the next such
            obstacle --- the last character the dumb search loop should
            examine.  */
-        register int ceiling = end - 1;
+	int ceiling_byte = CHAR_TO_BYTE (end) - 1;
+	int start_byte = CHAR_TO_BYTE (start);
 
         /* If we're looking for a newline, consult the newline cache
            to see where we can avoid some scanning.  */
@@ -523,29 +527,31 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
             int next_change;
             immediate_quit = 0;
             while (region_cache_forward
-                   (current_buffer, newline_cache, start, &next_change))
-              start = next_change;
+                   (current_buffer, newline_cache, start_byte, &next_change))
+              start_byte = next_change;
             immediate_quit = allow_quit;
 
-            /* start should never be after end.  */
-            if (start >= end)
-              start = end - 1;
+            /* START should never be after END.  */
+            if (start_byte > ceiling_byte)
+              start_byte = ceiling_byte;
 
             /* Now the text after start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling = min (next_change - 1, ceiling);
+            ceiling_byte = min (next_change - 1, ceiling_byte);
           }
 
         /* The dumb loop can only scan text stored in contiguous
            bytes. BUFFER_CEILING_OF returns the last character
            position that is contiguous, so the ceiling is the
            position after that.  */
-        ceiling = min (BUFFER_CEILING_OF (start), ceiling);
+        ceiling_byte = min (BUFFER_CEILING_OF (start_byte), ceiling_byte);
 
         {
           /* The termination address of the dumb loop.  */ 
-          register unsigned char *ceiling_addr = POS_ADDR (ceiling) + 1;
-          register unsigned char *cursor = POS_ADDR (start);
+          register unsigned char *ceiling_addr
+	    = BYTE_POS_ADDR (ceiling_byte) + 1;
+          register unsigned char *cursor
+	    = BYTE_POS_ADDR (start_byte);
           unsigned char *base = cursor;
 
           while (cursor < ceiling_addr)
@@ -560,8 +566,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
                  the region from start to cursor is free of them. */
               if (target == '\n' && newline_cache)
                 know_region_cache (current_buffer, newline_cache,
-                                   start + scan_start - base,
-                                   start + cursor - base);
+                                   start_byte + scan_start - base,
+                                   start_byte + cursor - base);
 
               /* Did we find the target character?  */
               if (cursor < ceiling_addr)
@@ -569,20 +575,21 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
                   if (--count == 0)
                     {
                       immediate_quit = 0;
-                      return (start + cursor - base + 1);
+                      return BYTE_TO_CHAR (start_byte + cursor - base + 1);
                     }
                   cursor++;
                 }
             }
 
-          start += cursor - base;
+          start = BYTE_TO_CHAR (start_byte + cursor - base);
         }
       }
   else
     while (start > end)
       {
         /* The last character to check before the next obstacle.  */
-        register int ceiling = end;
+	int ceiling_byte = CHAR_TO_BYTE (end);
+	int start_byte = CHAR_TO_BYTE (start);
 
         /* Consult the newline cache, if appropriate.  */
         if (target == '\n' && newline_cache)
@@ -590,26 +597,26 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
             int next_change;
             immediate_quit = 0;
             while (region_cache_backward
-                   (current_buffer, newline_cache, start, &next_change))
-              start = next_change;
+                   (current_buffer, newline_cache, start_byte, &next_change))
+              start_byte = next_change;
             immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
-            if (start <= end)
-              start = end + 1;
+            if (start_byte <= ceiling_byte)
+              start_byte = ceiling_byte + 1;
 
             /* Now the text before start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling = max (next_change, ceiling);
+            ceiling_byte = max (next_change, ceiling_byte);
           }
 
         /* Stop scanning before the gap.  */
-        ceiling = max (BUFFER_FLOOR_OF (start - 1), ceiling);
+        ceiling_byte = max (BUFFER_FLOOR_OF (start_byte - 1), ceiling_byte);
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr = POS_ADDR (ceiling);
-          register unsigned char *cursor = POS_ADDR (start - 1);
+          register unsigned char *ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
+          register unsigned char *cursor = BYTE_POS_ADDR (start_byte - 1);
           unsigned char *base = cursor;
 
           while (cursor >= ceiling_addr)
@@ -623,8 +630,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
                  the region from after the cursor to start is free of them.  */
               if (target == '\n' && newline_cache)
                 know_region_cache (current_buffer, newline_cache,
-                                   start + cursor - base,
-                                   start + scan_start - base);
+                                   start_byte + cursor - base,
+                                   start_byte + scan_start - base);
 
               /* Did we find the target character?  */
               if (cursor >= ceiling_addr)
@@ -632,13 +639,13 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
                   if (++count >= 0)
                     {
                       immediate_quit = 0;
-                      return (start + cursor - base);
+                      return BYTE_TO_CHAR (start_byte + cursor - base);
                     }
                   cursor--;
                 }
             }
 
-          start += cursor - base;
+	  start = BYTE_TO_CHAR (start_byte + cursor - base);
         }
       }
 
@@ -646,6 +653,123 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
   if (shortage != 0)
     *shortage = count * direction;
   return start;
+}
+
+/* Search for COUNT instances of a line boundary, which means either a
+   newline or (if selective display enabled) a carriage return.
+   Start at START.  If COUNT is negative, search backwards.
+
+   We report the resulting position by calling TEMP_SET_PT_BOTH.
+
+   If we find COUNT instances. we position after (always after,
+   even if scanning backwards) the COUNTth match, and return 0.
+
+   If we don't find COUNT instances before reaching the end of the
+   buffer (or the beginning, if scanning backwards), we return
+   the number of line boundaries left unfound, and position at
+   the limit we bumped up against.
+
+   If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
+   except when inside redisplay.  */
+
+int
+scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
+     int start, start_byte;
+     int limit, limit_byte;
+     register int count;
+     int allow_quit;
+{
+  int direction = ((count > 0) ? 1 : -1);
+
+  register unsigned char *cursor;
+  unsigned char *base;
+
+  register int ceiling;
+  register unsigned char *ceiling_addr;
+
+  /* If we are not in selective display mode,
+     check only for newlines.  */
+  int selective_display = (!NILP (current_buffer->selective_display)
+			   && !INTEGERP (current_buffer->selective_display));
+
+  /* The code that follows is like scan_buffer
+     but checks for either newline or carriage return.  */
+
+  immediate_quit = allow_quit;
+
+  start_byte = CHAR_TO_BYTE (start);
+
+  if (count > 0)
+    {
+      while (start_byte < limit_byte)
+	{
+	  ceiling =  BUFFER_CEILING_OF (start_byte);
+	  ceiling = min (limit_byte - 1, ceiling);
+	  ceiling_addr = BYTE_POS_ADDR (ceiling) + 1;
+	  base = (cursor = BYTE_POS_ADDR (start_byte));
+	  while (1)
+	    {
+	      while (*cursor != '\n' && ++cursor != ceiling_addr)
+		;
+
+	      if (cursor != ceiling_addr)
+		{
+		  if (--count == 0)
+		    {
+		      immediate_quit = 0;
+		      start_byte = start_byte + cursor - base + 1;
+		      start = BYTE_TO_CHAR (start_byte);
+		      TEMP_SET_PT_BOTH (start, start_byte);
+		      return 0;
+		    }
+		  else
+		    if (++cursor == ceiling_addr)
+		      break;
+		}
+	      else
+		break;
+	    }
+	  start_byte += cursor - base;
+	}
+    }
+  else
+    {
+      int start_byte = CHAR_TO_BYTE (start);
+      while (start_byte > limit_byte)
+	{
+	  ceiling = BUFFER_FLOOR_OF (start_byte - 1);
+	  ceiling = max (limit_byte, ceiling);
+	  ceiling_addr = BYTE_POS_ADDR (ceiling) - 1;
+	  base = (cursor = BYTE_POS_ADDR (start_byte - 1) + 1);
+	  while (1)
+	    {
+	      while (--cursor != ceiling_addr && *cursor != '\n')
+		;
+
+	      if (cursor != ceiling_addr)
+		{
+		  if (++count == 0)
+		    {
+		      immediate_quit = 0;
+		      /* Return the position AFTER the match we found.  */
+		      start_byte = start_byte + cursor - base + 1;
+		      start = BYTE_TO_CHAR (start_byte);
+		      TEMP_SET_PT_BOTH (start, start_byte);
+		      return 0;
+		    }
+		}
+	      else
+		break;
+	    }
+	  /* Here we add 1 to compensate for the last decrement
+	     of CURSOR, which took it past the valid range.  */
+	  start_byte += cursor - base + 1;
+	}
+    }
+
+  TEMP_SET_PT_BOTH (limit, limit_byte);
+
+  return count * direction;
 }
 
 int
@@ -655,17 +779,10 @@ find_next_newline_no_quit (from, cnt)
   return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
 }
 
-int
-find_next_newline (from, cnt)
-     register int from, cnt;
-{
-  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 1);
-}
-
-
 /* Like find_next_newline, but returns position before the newline,
    not after, and only search up to TO.  This isn't just
    find_next_newline (...)-1, because you might hit TO.  */
+
 int
 find_before_next_newline (from, to, cnt)
      int from, to, cnt;
@@ -748,6 +865,8 @@ search_command (string, bound, noerror, count, direction, RE, posix)
   return make_number (np);
 }
 
+/* Return 1 if REGEXP it matches just one constant string.  */
+
 static int
 trivial_regexp_p (regexp)
      Lisp_Object regexp;
@@ -846,18 +965,18 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	 that make up the visible portion of the buffer. */
 
       p1 = BEGV_ADDR;
-      s1 = GPT - BEGV;
+      s1 = GPT_BYTE - BEGV_BYTE;
       p2 = GAP_END_ADDR;
-      s2 = ZV - GPT;
+      s2 = ZV_BYTE - GPT_BYTE;
       if (s1 < 0)
 	{
 	  p2 = p1;
-	  s2 = ZV - BEGV;
+	  s2 = ZV_BYTE - BEGV_BYTE;
 	  s1 = 0;
 	}
       if (s2 < 0)
 	{
-	  s1 = ZV - BEGV;
+	  s1 = ZV_BYTE - BEGV_BYTE;
 	  s2 = 0;
 	}
       re_match_object = Qnil;
@@ -875,12 +994,13 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	    }
 	  if (val >= 0)
 	    {
-	      j = BEGV;
 	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
-		    search_regs.start[i] += j;
-		    search_regs.end[i] += j;
+		    search_regs.start[i]
+		      = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
+		    search_regs.end[i]
+		      = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
 		  }
 	      XSETBUFFER (last_thing_searched, current_buffer);
 	      /* Set pos to the new position. */
@@ -905,12 +1025,13 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	    }
 	  if (val >= 0)
 	    {
-	      j = BEGV;
 	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
-		    search_regs.start[i] += j;
-		    search_regs.end[i] += j;
+		    search_regs.start[i]
+		      = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
+		    search_regs.end[i]
+		      = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
 		  }
 	      XSETBUFFER (last_thing_searched, current_buffer);
 	      pos = search_regs.end[0];
@@ -927,6 +1048,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
     }
   else				/* non-RE case */
     {
+      int pos_byte = CHAR_TO_BYTE (pos);
+      int lim_byte = CHAR_TO_BYTE (lim);
 #ifdef C_ALLOCA
       int BM_tab_space[0400];
       BM_tab = &BM_tab_space[0];
@@ -979,7 +1102,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
       /* it entirely if there is none. */  
 
       dirlen = len * direction;
-      infinity = dirlen - (lim + pos + len + len) * direction;
+      infinity = dirlen - (lim_byte + pos_byte + len + len) * direction;
       if (direction < 0)
 	pat = (base_pat += len - 1);
       BM_tab_base = BM_tab;
@@ -1023,32 +1146,33 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	  /* different. */
 	}
       infinity = dirlen - infinity;
-      pos += dirlen - ((direction > 0) ? direction : 0);
-      /* loop invariant - pos points at where last char (first char if reverse)
-	 of pattern would align in a possible match.  */
+      pos_byte += dirlen - ((direction > 0) ? direction : 0);
+      /* loop invariant - POS_BYTE points at where last char (first
+	 char if reverse) of pattern would align in a possible match.  */
       while (n != 0)
 	{
 	  /* It's been reported that some (broken) compiler thinks that
 	     Boolean expressions in an arithmetic context are unsigned.
 	     Using an explicit ?1:0 prevents this.  */
-	  if ((lim - pos - ((direction > 0) ? 1 : 0)) * direction < 0)
+	  if ((lim_byte - pos_byte - ((direction > 0) ? 1 : 0)) * direction
+	      < 0)
 	    return (n * (0 - direction));
 	  /* First we do the part we can by pointers (maybe nothing) */
 	  QUIT;
 	  pat = base_pat;
-	  limit = pos - dirlen + direction;
+	  limit = pos_byte - dirlen + direction;
 	  limit = ((direction > 0)
 		   ? BUFFER_CEILING_OF (limit)
 		   : BUFFER_FLOOR_OF (limit));
-	  /* LIMIT is now the last (not beyond-last!) value
-	     POS can take on without hitting edge of buffer or the gap.  */
+	  /* LIMIT is now the last (not beyond-last!) value POS_BYTE
+	     can take on without hitting edge of buffer or the gap.  */
 	  limit = ((direction > 0)
-		   ? min (lim - 1, min (limit, pos + 20000))
-		   : max (lim, max (limit, pos - 20000)));
-	  if ((limit - pos) * direction > 20)
+		   ? min (lim_byte - 1, min (limit, pos_byte + 20000))
+		   : max (lim_byte, max (limit, pos_byte - 20000)));
+	  if ((limit - pos_byte) * direction > 20)
 	    {
-	      p_limit = POS_ADDR (limit);
-	      p2 = (cursor = POS_ADDR (pos));
+	      p_limit = BYTE_POS_ADDR (limit);
+	      p2 = (cursor = BYTE_POS_ADDR (pos_byte));
 	      /* In this loop, pos + cursor - p2 is the surrogate for pos */
 	      while (1)		/* use one cursor setting as long as i can */
 		{
@@ -1104,7 +1228,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		    {
 		      cursor -= direction;
 
-		      set_search_regs (pos + cursor - p2 + ((direction > 0)
+		      set_search_regs (pos_byte + cursor - p2 + ((direction > 0)
 							    ? 1 - len : 0),
 				       len);
 
@@ -1117,19 +1241,19 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  else
 		    cursor += stride_for_teases; /* <sigh> we lose -  */
 		}
-	      pos += cursor - p2;
+	      pos_byte += cursor - p2;
 	    }
 	  else
 	    /* Now we'll pick up a clump that has to be done the hard */
 	    /* way because it covers a discontinuity */
 	    {
 	      limit = ((direction > 0)
-		       ? BUFFER_CEILING_OF (pos - dirlen + 1)
-		       : BUFFER_FLOOR_OF (pos - dirlen - 1));
+		       ? BUFFER_CEILING_OF (pos_byte - dirlen + 1)
+		       : BUFFER_FLOOR_OF (pos_byte - dirlen - 1));
 	      limit = ((direction > 0)
-		       ? min (limit + len, lim - 1)
-		       : max (limit - len, lim));
-	      /* LIMIT is now the last value POS can have
+		       ? min (limit + len, lim_byte - 1)
+		       : max (limit - len, lim_byte));
+	      /* LIMIT is now the last value POS_BYTE can have
 		 and still be valid for a possible match.  */
 	      while (1)
 		{
@@ -1137,59 +1261,59 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  /* speed because it will usually run only once. */
 		  /* (the reach is at most len + 21, and typically */
 		  /* does not exceed len) */    
-		  while ((limit - pos) * direction >= 0)
-		    pos += BM_tab[FETCH_BYTE (pos)];
+		  while ((limit - pos_byte) * direction >= 0)
+		    pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
 		  /* now run the same tests to distinguish going off the */
 		  /* end, a match or a phony match. */
-		  if ((pos - limit) * direction <= len)
+		  if ((pos_byte - limit) * direction <= len)
 		    break;	/* ran off the end */
 		  /* Found what might be a match.
-		     Set POS back to last (first if reverse) char pos.  */
-		  pos -= infinity;
+		     Set POS_BYTE back to last (first if reverse) pos.  */
+		  pos_byte -= infinity;
 		  i = dirlen - direction;
 		  while ((i -= direction) + direction != 0)
 		    {
-		      pos -= direction;
+		      pos_byte -= direction;
 		      if (pat[i] != (trt != 0
-				     ? XINT (trt[FETCH_BYTE (pos)])
-				     : FETCH_BYTE (pos)))
+				     ? XINT (trt[FETCH_BYTE (pos_byte)])
+				     : FETCH_BYTE (pos_byte)))
 			break;
 		    }
-		  /* Above loop has moved POS part or all the way
-		     back to the first char pos (last char pos if reverse).
+		  /* Above loop has moved POS_BYTE part or all the way
+		     back to the first pos (last pos if reverse).
 		     Set it once again at the last (first if reverse) char.  */
-		  pos += dirlen - i- direction;
+		  pos_byte += dirlen - i- direction;
 		  if (i + direction == 0)
 		    {
-		      pos -= direction;
+		      pos_byte -= direction;
 
-		      set_search_regs (pos + ((direction > 0) ? 1 - len : 0),
+		      set_search_regs (pos_byte + ((direction > 0) ? 1 - len : 0),
 				       len);
 
 		      if ((n -= direction) != 0)
-			pos += dirlen; /* to resume search */
+			pos_byte += dirlen; /* to resume search */
 		      else
 			return ((direction > 0)
 				? search_regs.end[0] : search_regs.start[0]);
 		    }
 		  else
-		    pos += stride_for_teases;
+		    pos_byte += stride_for_teases;
 		}
 	      }
 	  /* We have done one clump.  Can we continue? */
-	  if ((lim - pos) * direction < 0)
+	  if ((lim_byte - pos_byte) * direction < 0)
 	    return ((0 - n) * direction);
 	}
-      return pos;
+      return BYTE_TO_CHAR (pos_byte);
     }
 }
 
-/* Record beginning BEG and end BEG + LEN
+/* Record beginning BEG_BYTE and end BEG_BYTE + NBYTES
    for a match just found in the current buffer.  */
 
 static void
-set_search_regs (beg, len)
-     int beg, len;
+set_search_regs (beg_byte, nbytes)
+     int beg_byte, nbytes;
 {
   /* Make sure we have registers in which to store
      the match position.  */
@@ -1200,8 +1324,8 @@ set_search_regs (beg, len)
       search_regs.num_regs = 2;
     }
 
-  search_regs.start[0] = beg;
-  search_regs.end[0] = beg + len;
+  search_regs.start[0] = BYTE_TO_CHAR (beg_byte);
+  search_regs.end[0] = BYTE_TO_CHAR (beg_byte + nbytes);
   XSETBUFFER (last_thing_searched, current_buffer);
 }
 
@@ -1466,9 +1590,19 @@ since only regular expressions have distinguished subexpressions.")
 
   if (NILP (fixedcase))
     {
+      int beg;
       /* Decide how to casify by examining the matched text. */
 
-      last = search_regs.end[sub];
+      if (NILP (string))
+	last = CHAR_TO_BYTE (search_regs.end[sub]);
+      else
+	last = search_regs.end[sub];
+
+      if (NILP (string))
+	beg = CHAR_TO_BYTE (search_regs.start[sub]);
+      else
+	beg = search_regs.start[sub];
+
       prevc = '\n';
       case_action = all_caps;
 
@@ -1479,7 +1613,7 @@ since only regular expressions have distinguished subexpressions.")
       some_nonuppercase_initial = 0;
       some_uppercase = 0;
 
-      for (pos = search_regs.start[sub]; pos < last; pos++)
+      for (pos = beg; pos < last; pos++)
 	{
 	  if (NILP (string))
 	    c = FETCH_BYTE (pos);
@@ -1624,7 +1758,7 @@ since only regular expressions have distinguished subexpressions.")
   else
     opoint = PT;
 
-  temp_set_point (search_regs.start[sub], current_buffer);
+  TEMP_SET_PT (search_regs.start[sub]);
 
   /* We insert the replacement text before the old text, and then
      delete the original text.  This means that markers at the
@@ -1681,9 +1815,9 @@ since only regular expressions have distinguished subexpressions.")
 
   /* Put point back where it was in the text.  */
   if (opoint <= 0)
-    temp_set_point (opoint + ZV, current_buffer);
+    TEMP_SET_PT (opoint + ZV);
   else
-    temp_set_point (opoint, current_buffer);
+    TEMP_SET_PT (opoint);
 
   /* Now move point "officially" to the start of the inserted replacement.  */
   move_if_not_intangible (newpoint);
