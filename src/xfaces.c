@@ -133,6 +133,9 @@ int nfaces_allocated;
 /* The number of face-id's in use (same for all frames).  */
 int next_face_id;
 
+/* The number of the face to use to indicate the region.  */
+int region_face;
+
 #define FACE_DEFAULT (~0)
 
 Lisp_Object Qface, Qwindow, Qpriority;
@@ -616,12 +619,16 @@ sort_overlays (s1, s2)
    Store into *ENDPTR the position at which a different face is needed.
    This does not take account of glyphs that specify their own face codes.
    F is the frame in use for display, and W is a window displaying
-   the current buffer.  */
+   the current buffer.
+
+   REGION_BEG, REGION_END delimit the region, so it can be highlighted.  */
+
 int
-compute_char_face (f, w, pos, endptr)
+compute_char_face (f, w, pos, region_beg, region_end, endptr)
      struct frame *f;
      struct window *w;
      int pos;
+     int region_beg, region_end;
      int *endptr;
 {
   struct face face;
@@ -642,6 +649,8 @@ compute_char_face (f, w, pos, endptr)
   XSET (frame, Lisp_Frame, f);
 
   endpos = ZV;
+  if (pos < region_beg && region_beg < endpos)
+    endpos = region_beg;
 
   XFASTINT (position) = pos;
   prop = Fget_text_property (position, Qface, w->buffer);
@@ -666,7 +675,8 @@ compute_char_face (f, w, pos, endptr)
   *endptr = endpos;
 
   /* Optimize the default case.  */
-  if (noverlays == 0 && NILP (prop))
+  if (noverlays == 0 && NILP (prop)
+      && !(pos >= region_beg && pos < region_end))
     return 0;
 
   bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (struct face));
@@ -719,7 +729,8 @@ compute_char_face (f, w, pos, endptr)
 
   /* Sort the overlays into the proper order: increasing priority.  */
 
-  qsort (sortvec, noverlays, sizeof (struct sortvec), sort_overlays);
+  if (noverlays > 1)
+    qsort (sortvec, noverlays, sizeof (struct sortvec), sort_overlays);
 
   /* Now merge the overlay data in that order.  */
   for (i = 0; i < noverlays; i++)
@@ -740,6 +751,14 @@ compute_char_face (f, w, pos, endptr)
 	  if (oendpos < endpos)
 	    endpos = oendpos;
 	}
+    }
+
+  if (pos >= region_beg && pos < region_end)
+    {
+      if (region_end < endpos)
+	endpos = region_end;
+      if (region_face >= 0 && region_face < next_face_id)
+	merge_faces (FRAME_FACES (f) [region_face], &face);
     }
 
   xfree (overlay_vec);
@@ -938,6 +957,11 @@ syms_of_xfaces ()
   staticpro (&Qface);
   Qpriority = intern ("priority");
   staticpro (&Qpriority);
+
+  DEFVAR_INT ("region-face", &region_face,
+    "Face number to use to highlight the region\n\
+The region is highlighted with this face\n\
+when Transient Mark mode is enabled and the mark is active.");
 
   defsubr (&Sframe_face_alist);
   defsubr (&Sset_frame_face_alist);
