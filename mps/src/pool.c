@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.53) $
+ * $HopeName: MMsrc!pool.c(trunk.54) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.53) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.54) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -268,11 +268,15 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   res = (*pool->class->alloc)(pReturn, pool, size);
   if(res != ResOK)
     return res;
-
   /* Make sure that the allocated address was in the pool's memory. */
   /* .hasaddr.critical: The PoolHasAddr check is expensive, and in */
   /* allocation-bound programs this is on the critical path. */
   AVER_CRITICAL(PoolHasAddr(pool, *pReturn));
+
+  /* All PoolAllocs should advance the allocation clock, so we count */
+  /* it all in the fillMutatorSize field. */
+  pool->fillMutatorSize += size;
+  PoolArena(pool)->fillMutatorSize += size;
 
   EVENT_PAW(PoolAlloc, pool, *pReturn, size);
 
