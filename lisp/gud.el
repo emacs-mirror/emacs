@@ -989,6 +989,9 @@ directories if your program contains sources from more than one directory."
       (gud-make-debug-menu)
       buf)))
 
+(defvar perldb-command-name "perl"
+  "File name for executing Perl.")
+
 ;;;###autoload
 (defun perldb (command-line)
   "Run perldb on program FILE in buffer *gud-FILE*.
@@ -998,7 +1001,7 @@ and source-file directory for your debugger."
    (list (read-from-minibuffer "Run perldb (like this): "
 			       (if (consp gud-perldb-history)
 				   (car gud-perldb-history)
-				 "perl ")
+				 (concat perldb-command-name " "))
 			       nil nil
 			       '(gud-perldb-history . 1))))
 
