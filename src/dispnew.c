@@ -165,7 +165,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 }
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
-  "Redraw all frames marked as having their images garbled.")
+  "Clear and redisplay all visible frames."
   ()
 {
   Lisp_Object frame, tail;
@@ -173,7 +173,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (FRAME_GARBAGED_P (XFRAME (frame)) && FRAME_VISIBLE_P (XFRAME (frame)))
+      if (FRAME_VISIBLE_P (XFRAME (frame)))
 	Fredraw_frame (frame);
     }
   return Qnil;
@@ -189,7 +189,7 @@ redraw_frame (f)
 
 #else /* not MULTI_FRAME */
 
-DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
+DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   "Clear screen and output again what is supposed to appear on it.")
   ()
 {
