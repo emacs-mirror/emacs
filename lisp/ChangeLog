@@ -1,3 +1,8 @@
+2002-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (ccl-decode-mule-utf-8): Remove
+	unnecessary line.
+
 2002-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* language/thai.el (thai-tis620): Add `mime-charset' property.
