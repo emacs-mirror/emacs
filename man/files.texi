@@ -328,7 +328,7 @@ With prefix argument (@kbd{C-u}), mark the current buffer as changed.
 @item C-x C-w
 Save the current buffer in a specified file (@code{write-file}).
 @item M-x set-visited-file-name
-Change file the name under which the current buffer will be saved.
+Change the file name under which the current buffer will be saved.
 @end table
 
 @kindex C-x C-s
