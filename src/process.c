@@ -57,6 +57,17 @@ Boston, MA 02111-1307, USA.  */
 #ifdef NEED_NET_ERRNO_H
 #include <net/errno.h>
 #endif /* NEED_NET_ERRNO_H */
+
+/* Are local (unix) sockets supported?  */
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+#if !defined (AF_LOCAL) && defined (AF_UNIX)
+#define AF_LOCAL AF_UNIX
+#endif
+#ifdef AF_LOCAL
+#define HAVE_LOCAL_SOCKETS
+#include <sys/un.h>
+#endif
+#endif
 #endif /* HAVE_SOCKETS */
 
 /* TERM is a poor-man's SLIP, used on GNU/Linux.  */
@@ -113,7 +124,12 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
-Lisp_Object Qopen, Qclosed, Qconnect, Qfailed;
+Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
+Lisp_Object Qlocal;
+Lisp_Object QCname, QCbuffer, QChost, QCservice, QCfamily;
+Lisp_Object QClocal, QCremote, QCcoding;
+Lisp_Object QCserver, QCdatagram, QCnowait, QCnoquery, QCstop;
+Lisp_Object QCfilter, QCsentinel, QClog, QCoptions, QCfeature;
 Lisp_Object Qlast_nonmenu_event;
 /* Qexit is declared and initialized in eval.c.  */
 
@@ -122,8 +138,10 @@ Lisp_Object Qlast_nonmenu_event;
 
 #ifdef HAVE_SOCKETS
 #define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
+#define NETCONN1_P(p) (GC_CONSP ((p)->childp))
 #else
 #define NETCONN_P(p) 0
+#define NETCONN1_P(p) 0
 #endif /* HAVE_SOCKETS */
 
 /* Define first descriptor number available for subprocesses.  */
@@ -194,9 +212,38 @@ int update_tick;
 #endif /* NON_BLOCKING_CONNECT */
 #endif /* BROKEN_NON_BLOCKING_CONNECT */
 
+/* Define DATAGRAM_SOCKETS if datagrams can be used safely on
+   this system.  We need to read full packets, so we need a
+   "non-destructive" select.  So we require either native select,
+   or emulation of select using FIONREAD.  */
+
+#ifdef GNU_LINUX
+/* These are not yet in configure.in (they will be eventually)
+   -- so add them here temporarily.  ++kfs */
+#define HAVE_RECVFROM
+#define HAVE_SENDTO
+#define HAVE_GETSOCKNAME
+#endif
+
+#ifdef BROKEN_DATAGRAM_SOCKETS
+#undef DATAGRAM_SOCKETS
+#else
+#ifndef DATAGRAM_SOCKETS
+#ifdef HAVE_SOCKETS
+#if defined (HAVE_SELECT) || defined (FIONREAD)
+#if defined (HAVE_SENDTO) && defined (HAVE_RECVFROM) && defined (EMSGSIZE)
+#define DATAGRAM_SOCKETS
+#endif /* HAVE_SENDTO && HAVE_RECVFROM && EMSGSIZE */
+#endif /* HAVE_SELECT || FIONREAD */
+#endif /* HAVE_SOCKETS */
+#endif /* DATAGRAM_SOCKETS */
+#endif /* BROKEN_DATAGRAM_SOCKETS */
+
 #ifdef TERM
 #undef NON_BLOCKING_CONNECT
+#undef DATAGRAM_SOCKETS
 #endif
+
 
 #include "sysselect.h"
 
@@ -256,6 +303,19 @@ int proc_buffered_char[MAXDESC];
 /* Table of `struct coding-system' for each process.  */
 static struct coding_system *proc_decode_coding_system[MAXDESC];
 static struct coding_system *proc_encode_coding_system[MAXDESC];
+
+#ifdef DATAGRAM_SOCKETS
+/* Table of `partner address' for datagram sockets.  */
+struct sockaddr_and_len {
+  struct sockaddr *sa;
+  int len;
+} datagram_address[MAXDESC];
+#define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
+#define DATAGRAM_CONN_P(proc)	(datagram_address[XPROCESS (proc)->infd].sa != 0)
+#else
+#define DATAGRAM_CHAN_P(chan)	(0)
+#define DATAGRAM_CONN_P(proc)	(0)
+#endif
 
 static Lisp_Object get_process ();
 static void exec_sentinel ();
@@ -367,15 +427,15 @@ status_message (status)
 	return build_string ("finished\n");
       string = Fnumber_to_string (make_number (code));
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      return concat2 (build_string ("exited abnormally with code "),
-		      concat2 (string, string2));
+      return concat3 (build_string ("exited abnormally with code "),
+		      string, string2);
     }
   else if (EQ (symbol, Qfailed))
     {
       string = Fnumber_to_string (make_number (code));
       string2 = build_string ("\n");
-      return concat2 (build_string ("failed with code "),
-		      concat2 (string, string2));
+      return concat3 (build_string ("failed with code "),
+		      string, string2);
     }
   else
     return Fcopy_sequence (Fsymbol_name (symbol));
@@ -635,6 +695,7 @@ stop -- for a process stopped but continuable.
 exit -- for a process that has exited.
 signal -- for a process that has got a fatal signal.
 open -- for a network stream connection that is open.
+listen -- for a network stream server that is listening.
 closed -- for a network stream connection that is closed.
 connect -- when waiting for a non-blocking connection to complete.
 failed -- when a non-blocking connection has failed.
@@ -661,12 +722,14 @@ nil, indicating the current buffer's process.  */)
   status = p->status;
   if (CONSP (status))
     status = XCAR (status);
-  if (NETCONN_P (process))
+  if (NETCONN1_P (p))
     {
-      if (EQ (status, Qrun))
-	status = Qopen;
-      else if (EQ (status, Qexit))
+      if (EQ (status, Qexit))
 	status = Qclosed;
+      else if (EQ (p->command, Qt))
+	status = Qstop;
+      else if (EQ (status, Qrun))
+	status = Qopen;
     }
   return status;
 }
@@ -737,10 +800,15 @@ DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
      (process, buffer)
      register Lisp_Object process, buffer;
 {
+  struct Lisp_Process *p;
+
   CHECK_PROCESS (process);
   if (!NILP (buffer))
     CHECK_BUFFER (buffer);
-  XPROCESS (process)->buffer = buffer;
+  p = XPROCESS (process);
+  p->buffer = buffer;
+  if (NETCONN1_P (p))
+    p->childp = Fplist_put (p->childp, QCbuffer, buffer);
   return buffer;
 }
 
@@ -791,12 +859,13 @@ If the process has a filter, its buffer is not used for output.  */)
   
   if (XINT (p->infd) >= 0)
     {
-      if (EQ (filter, Qt))
+      if (EQ (filter, Qt) && !EQ (p->status, Qlisten))
 	{
 	  FD_CLR (XINT (p->infd), &input_wait_mask);
 	  FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
 	}
-      else if (EQ (XPROCESS (process)->filter, Qt))
+      else if (EQ (p->filter, Qt)
+	       && !EQ (p->command, Qt)) /* Network process not stopped. */
 	{
 	  FD_SET (XINT (p->infd), &input_wait_mask);
 	  FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
@@ -804,6 +873,8 @@ If the process has a filter, its buffer is not used for output.  */)
     }
   
   p->filter = filter;
+  if (NETCONN1_P (p))
+    p->childp = Fplist_put (p->childp, QCfilter, filter);
   return filter;
 }
 
@@ -899,32 +970,64 @@ the process output.  */)
   return XPROCESS (process)->inherit_coding_system_flag;
 }
 
-DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
-       Sprocess_kill_without_query, 1, 2, 0,
-       doc: /* Say no query needed if PROCESS is running when Emacs is exited.
-Optional second argument if non-nil says to require a query.
-Value is t if a query was formerly required.  */)
-     (process, value)
-     register Lisp_Object process, value;
+DEFUN ("set-process-query-on-exit-flag",
+       Fset_process_query_on_exit_flag, Sset_process_query_on_exit_flag,
+       2, 2, 0,
+       doc: /* Specify if query is needed for PROCESS when Emacs is exited.
+If the second argument FLAG is non-nil, emacs will query the user before
+exiting if PROCESS is running.  */)
+     (process, flag)
+     register Lisp_Object process, flag;
 {
-  Lisp_Object tem;
-
   CHECK_PROCESS (process);
-  tem = XPROCESS (process)->kill_without_query;
-  XPROCESS (process)->kill_without_query = Fnull (value);
-
-  return Fnull (tem);
+  XPROCESS (process)->kill_without_query = Fnull (flag);
+  return flag;
 }
 
-DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
+DEFUN ("process-query-on-exit-flag",
+       Fprocess_query_on_exit_flag, Sprocess_query_on_exit_flag,
        1, 1, 0,
-       doc: /* Return the contact info of PROCESS; t for a real child.
-For a net connection, the value is a cons cell of the form (HOST SERVICE).  */)
+       doc: /* Return the current value of query on exit flag for PROCESS.  */)
      (process)
      register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-  return XPROCESS (process)->childp;
+  return Fnull (XPROCESS (process)->kill_without_query);
+}
+
+#ifdef DATAGRAM_SOCKETS
+Lisp_Object Fprocess_datagram_address ();
+#endif
+
+DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
+       1, 2, 0,
+       doc: /* Return the contact info of PROCESS; t for a real child.
+For a net connection, the value depends on the optional KEY arg.
+If KEY is nil, value is a cons cell of the form (HOST SERVICE),
+if KEY is t, the complete contact information for the connection is
+returned, else the specific value for the keyword KEY is returned.
+See `make-network-process' for a list of keywords.  */)
+     (process, key)
+     register Lisp_Object process, key;
+{
+  Lisp_Object contact;
+
+  CHECK_PROCESS (process);
+  contact = XPROCESS (process)->childp;
+
+#ifdef DATAGRAM_SOCKETS
+  if (DATAGRAM_CONN_P (process)
+      && (EQ (key, Qt) || EQ (key, QCremote)))
+    contact = Fplist_put (contact, QCremote, 
+			  Fprocess_datagram_address (process));
+#endif
+
+  if (!NETCONN_P (process) || EQ (key, Qt))
+    return contact;
+  if (NILP (key))
+    return Fcons (Fplist_get (contact, QChost),
+		  Fcons (Fplist_get (contact, QCservice), Qnil));
+  return Fplist_get (contact, key);
 }
 
 #if 0 /* Turned off because we don't currently record this info
@@ -941,12 +1044,55 @@ a socket connection.  */)
 #endif
 
 Lisp_Object
-list_processes_1 ()
+list_processes_1 (query_only)
+     Lisp_Object query_only;
 {
   register Lisp_Object tail, tem;
   Lisp_Object proc, minspace, tem1;
   register struct Lisp_Process *p;
-  char tembuf[80];
+  char tembuf[300];
+  int w_proc, w_buffer, w_tty;
+  Lisp_Object i_status, i_buffer, i_tty, i_command;
+
+  w_proc = 4;    /* Proc   */
+  w_buffer = 6;  /* Buffer */
+  w_tty = 0;     /* Omit if no ttys */
+
+  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+    {
+      int i;
+
+      proc = Fcdr (Fcar (tail));
+      p = XPROCESS (proc);
+      if (NILP (p->childp))
+	continue;
+      if (!NILP (query_only) && !NILP (p->kill_without_query))
+	continue;
+      if (STRINGP (p->name)
+	  && ( i = XSTRING (p->name)->size, (i > w_proc)))
+	w_proc = i;
+      if (!NILP (p->buffer))
+	{
+	  if (NILP (XBUFFER (p->buffer)->name) && w_buffer < 8)
+	    w_buffer = 8;  /* (Killed) */
+	  else if ((i = XSTRING (XBUFFER (p->buffer)->name)->size, (i > w_buffer)))
+	    w_buffer = i;
+	}
+      if (STRINGP (p->tty_name)
+	  && (i = XSTRING (p->tty_name)->size, (i > w_tty)))
+	w_tty = i;
+    }
+
+  XSETFASTINT (i_status, w_proc + 1);
+  XSETFASTINT (i_buffer, XFASTINT (i_status) + 9);
+  if (w_tty)
+    {
+      XSETFASTINT (i_tty, XFASTINT (i_buffer) + w_buffer + 1);
+      XSETFASTINT (i_command, XFASTINT (i_buffer) + w_tty + 1);
+    } else {
+      i_tty = Qnil;
+      XSETFASTINT (i_command, XFASTINT (i_buffer) + w_buffer + 1);
+    }
 
   XSETFASTINT (minspace, 1);
 
@@ -955,9 +1101,25 @@ list_processes_1 ()
 
   current_buffer->truncate_lines = Qt;
 
-  write_string ("\
-Proc         Status   Buffer         Tty         Command\n\
-----         ------   ------         ---         -------\n", -1);
+  write_string ("Proc", -1);
+  Findent_to (i_status, minspace); write_string ("Status", -1);
+  Findent_to (i_buffer, minspace); write_string ("Buffer", -1);
+  if (!NILP (i_tty))
+    {
+      Findent_to (i_tty, minspace); write_string ("Tty", -1);
+    }
+  Findent_to (i_command, minspace); write_string ("Command", -1);
+  write_string ("\n", -1);
+
+  write_string ("----", -1);
+  Findent_to (i_status, minspace); write_string ("------", -1);
+  Findent_to (i_buffer, minspace); write_string ("------", -1);
+  if (!NILP (i_tty))
+    {
+      Findent_to (i_tty, minspace); write_string ("---", -1);
+    }
+  Findent_to (i_command, minspace); write_string ("-------", -1);
+  write_string ("\n", -1);
 
   for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
     {
@@ -967,9 +1129,11 @@ Proc         Status   Buffer         Tty         Command\n\
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
+      if (!NILP (query_only) && !NILP (p->kill_without_query))
+	continue;
 
       Finsert (1, &p->name);
-      Findent_to (make_number (13), minspace);
+      Findent_to (i_status, minspace);
 
       if (!NILP (p->raw_status_low))
 	update_status (p);
@@ -989,12 +1153,14 @@ Proc         Status   Buffer         Tty         Command\n\
 #endif
 	    Fprinc (symbol, Qnil);
 	}
-      else if (NETCONN_P (proc))
+      else if (NETCONN1_P (p))
 	{
-	  if (EQ (symbol, Qrun))
-	    write_string ("open", -1);
-	  else if (EQ (symbol, Qexit))
+	  if (EQ (symbol, Qexit))
 	    write_string ("closed", -1);
+	  else if (EQ (p->command, Qt))
+	    write_string ("stopped", -1);
+	  else if (EQ (symbol, Qrun))
+	    write_string ("open", -1);
 	  else
 	    Fprinc (symbol, Qnil);
 	}
@@ -1015,7 +1181,7 @@ Proc         Status   Buffer         Tty         Command\n\
       if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
 	remove_process (proc);
 
-      Findent_to (make_number (22), minspace);
+      Findent_to (i_buffer, minspace);
       if (NILP (p->buffer))
 	insert_string ("(none)");
       else if (NILP (XBUFFER (p->buffer)->name))
@@ -1023,19 +1189,39 @@ Proc         Status   Buffer         Tty         Command\n\
       else
 	Finsert (1, &XBUFFER (p->buffer)->name);
 
-      Findent_to (make_number (37), minspace);
+      if (!NILP (i_tty))
+	{
+	  Findent_to (i_tty, minspace);
+	  if (STRINGP (p->tty_name))
+	    Finsert (1, &p->tty_name);
+	}
 
-      if (STRINGP (p->tty_name))
-	Finsert (1, &p->tty_name);
-      else
-	insert_string ("(none)");
+      Findent_to (i_command, minspace);
 
-      Findent_to (make_number (49), minspace);
-
-      if (NETCONN_P (proc))
+      if (EQ (p->status, Qlisten))
+	{
+	  Lisp_Object port = Fplist_get (p->childp, QCservice);
+	  if (INTEGERP (port))
+	    port = Fnumber_to_string (port);
+	  sprintf (tembuf, "(network %s server on %s)\n",
+		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
+		   XSTRING (port)->data);
+	  insert_string (tembuf);
+	}
+      else if (NETCONN1_P (p))
         {
-	  sprintf (tembuf, "(network stream connection to %s)\n",
-		   XSTRING (XCAR (p->childp))->data);
+	  /* For a local socket, there is no host name,
+	     so display service instead.  */
+	  Lisp_Object host = Fplist_get (p->childp, QChost);
+	  if (!STRINGP (host))
+	    {
+	      host = Fplist_get (p->childp, QCservice);
+	      if (INTEGERP (host))
+		host = Fnumber_to_string (host);
+	    }
+	  sprintf (tembuf, "(network %s connection to %s)\n",
+		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
+		   XSTRING (host)->data);
 	  insert_string (tembuf);
         }
       else 
@@ -1056,14 +1242,17 @@ Proc         Status   Buffer         Tty         Command\n\
   return Qnil;
 }
 
-DEFUN ("list-processes", Flist_processes, Slist_processes, 0, 0, "",
+DEFUN ("list-processes", Flist_processes, Slist_processes, 0, 1, "P",
        doc: /* Display a list of all processes.
+If optional argument QUERY-ONLY is non-nil, only processes with
+the query-on-exit flag set will be listed.
 Any process listed as exited or signaled is actually eliminated
 after the listing is made.  */)
-     ()
+     (query_only)
+     Lisp_Object query_only;
 {
   internal_with_output_to_temp_buffer ("*Process List*",
-				       list_processes_1, Qnil);
+				       list_processes_1, query_only);
   return Qnil;
 }
 
@@ -1776,54 +1965,661 @@ create_process (process, new_argv, current_dir)
 }
 #endif /* not VMS */
 
+
 #ifdef HAVE_SOCKETS
 
-/* open a TCP network connection to a given HOST/SERVICE.  Treated
-   exactly like a normal process when reading and writing.  Only
+/* Convert an internal struct sockaddr to a lisp object (vector or string).
+   The address family of sa is not included in the result.  */
+
+static Lisp_Object
+conv_sockaddr_to_lisp (sa, len)
+     struct sockaddr *sa;
+     int len;
+{
+  Lisp_Object address;
+  int i;
+  unsigned char *cp;
+  register struct Lisp_Vector *p;
+
+  switch (sa->sa_family)
+    {
+    case AF_INET:
+      {
+	struct sockaddr_in *sin = (struct sockaddr_in *) sa;
+	len = sizeof (sin->sin_addr) + 1;
+	address = Fmake_vector (make_number (len), Qnil);
+	p = XVECTOR (address);
+	p->contents[--len] = make_number (ntohs (sin->sin_port));
+	cp = (unsigned char *)&sin->sin_addr;
+	break;
+      }
+#ifdef HAVE_LOCAL_SOCKETS
+    case AF_LOCAL:
+      {
+	struct sockaddr_un *sun = (struct sockaddr_un *) sa;
+	for (i = 0; i < sizeof (sun->sun_path); i++)
+	  if (sun->sun_path[i] == 0)
+	    break;
+	return make_unibyte_string (sun->sun_path, i);
+      }
+#endif
+    default:
+      len -= sizeof (sa->sa_family);
+      address = Fcons (make_number (sa->sa_family),
+		       Fmake_vector (make_number (len), Qnil));
+      p = XVECTOR (XCDR (address));
+      cp = (unsigned char *) sa + sizeof (sa->sa_family);
+      break;
+    }
+
+  i = 0;
+  while (i < len)
+    p->contents[i++] = make_number (*cp++);
+
+  return address;
+}
+
+
+/* Get family and required size for sockaddr structure to hold ADDRESS.  */
+
+static int
+get_lisp_to_sockaddr_size (address, familyp)
+     Lisp_Object address;
+     int *familyp;
+{
+  register struct Lisp_Vector *p;
+
+  if (VECTORP (address))
+    {
+      p = XVECTOR (address);
+      if (p->size == 5)
+	{
+	  *familyp = AF_INET;
+	  return sizeof (struct sockaddr_in);
+	}
+    }
+#ifdef HAVE_LOCAL_SOCKETS
+  else if (STRINGP (address))
+    {
+      *familyp = AF_LOCAL;
+      return sizeof (struct sockaddr_un);
+    }
+#endif
+  else if (CONSP (address) && INTEGERP (XCAR (address)) && VECTORP (XCDR (address)))
+    {
+      struct sockaddr *sa;
+      *familyp = XINT (XCAR (address));
+      p = XVECTOR (XCDR (address));
+      return p->size + sizeof (sa->sa_family);
+    }
+  return 0;
+}
+
+/* Convert an address object (vector or string) to an internal sockaddr.
+   Format of address has already been validated by size_lisp_to_sockaddr.  */
+
+static void
+conv_lisp_to_sockaddr (family, address, sa, len)
+     int family;
+     Lisp_Object address;
+     struct sockaddr *sa;
+     int len;
+{
+  register struct Lisp_Vector *p;
+  register unsigned char *cp;
+  register int i;
+
+  bzero (sa, len);
+  sa->sa_family = family;
+
+  if (VECTORP (address))
+    {
+      p = XVECTOR (address);
+      if (family == AF_INET)
+	{
+	  struct sockaddr_in *sin = (struct sockaddr_in *) sa;
+	  len = sizeof (sin->sin_addr) + 1;
+	  i = XINT (p->contents[--len]);
+	  sin->sin_port = htons (i);
+	  cp = (unsigned char *)&sin->sin_addr;
+	}
+    }
+  else if (STRINGP (address))
+    {
+#ifdef HAVE_LOCAL_SOCKETS
+      if (family == AF_LOCAL)
+	{
+	  struct sockaddr_un *sun = (struct sockaddr_un *) sa;
+	  cp = XSTRING (address)->data;
+	  for (i = 0; i < sizeof (sun->sun_path) && *cp; i++)
+	    sun->sun_path[i] = *cp++;
+	}
+#endif
+      return;
+    }
+  else
+    {
+      p = XVECTOR (XCDR (address));
+      cp = (unsigned char *)sa + sizeof (sa->sa_family);
+    }
+
+  for (i = 0; i < len; i++)
+    if (INTEGERP (p->contents[i]))
+      *cp++ = XFASTINT (p->contents[i]) & 0xff;
+}
+
+#ifdef DATAGRAM_SOCKETS
+DEFUN ("process-datagram-address", Fprocess_datagram_address, Sprocess_datagram_address,
+       1, 1, 0,
+       doc: /* Get the current datagram address associated with PROCESS.  */)
+       (process)
+       Lisp_Object process;
+{
+  int channel;
+
+  CHECK_PROCESS (process);
+
+  if (!DATAGRAM_CONN_P (process))
+    return Qnil;
+
+  channel = XPROCESS (process)->infd;
+  return conv_sockaddr_to_lisp (datagram_address[channel].sa,
+				datagram_address[channel].len);
+}
+
+DEFUN ("set-process-datagram-address", Fset_process_datagram_address, Sset_process_datagram_address,
+       2, 2, 0,
+       doc: /* Set the datagram address for PROCESS to ADDRESS.
+Returns nil upon error setting address, ADDRESS otherwise.  */)
+       (process, address)
+       Lisp_Object process, address;
+{
+  int channel;
+  int family, len;
+
+  CHECK_PROCESS (process);
+
+  if (!DATAGRAM_CONN_P (process))
+    return Qnil;
+
+  channel = XPROCESS (process)->infd;
+
+  len = get_lisp_to_sockaddr_size (address, &family);
+  if (datagram_address[channel].len != len)
+    return Qnil;
+  conv_lisp_to_sockaddr (family, address, datagram_address[channel].sa, len);
+  return address;
+}
+#endif
+
+
+static struct socket_options {
+  /* The name of this option.  Should be lowercase version of option
+     name without SO_ prefix. */ 
+  char *name;
+  /* Length of name.  */
+  int nlen;
+  /* Option level SOL_... */
+  int optlevel;
+  /* Option number SO_... */
+  int optnum;
+  enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_STR, SOPT_LINGER } opttype;
+} socket_options[] =
+  {
+#ifdef SO_BINDTODEVICE
+    { "bindtodevice", 12, SOL_SOCKET, SO_BINDTODEVICE, SOPT_STR },
+#endif
+#ifdef SO_BROADCAST
+    { "broadcast", 9, SOL_SOCKET, SO_BROADCAST, SOPT_BOOL },
+#endif
+#ifdef SO_DONTROUTE
+    { "dontroute", 9, SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL },
+#endif
+#ifdef SO_KEEPALIVE
+    { "keepalive", 9, SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL },
+#endif
+#ifdef SO_LINGER
+    { "linger", 6, SOL_SOCKET, SO_LINGER, SOPT_LINGER },
+#endif
+#ifdef SO_OOBINLINE
+    { "oobinline", 9, SOL_SOCKET, SO_OOBINLINE, SOPT_BOOL },
+#endif
+#ifdef SO_PRIORITY
+    { "priority", 8, SOL_SOCKET, SO_PRIORITY, SOPT_INT },
+#endif
+#ifdef SO_REUSEADDR
+    { "reuseaddr", 9, SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL },
+#endif
+    { 0, 0, 0, 0, SOPT_UNKNOWN }
+  };
+
+/* Process list of socket options OPTS on socket S.
+   Only check if options are supported is S < 0.
+   If NO_ERROR is non-zero, continue silently if an option
+   cannot be set.
+
+   Each element specifies one option.  An element is either a string
+   "OPTION=VALUE" or a cons (OPTION . VALUE) where OPTION is a string
+   or a symbol.  */
+
+static int
+set_socket_options (s, opts, no_error)
+     int s;
+     Lisp_Object opts;
+     int no_error;
+{
+  if (!CONSP (opts))
+    opts = Fcons (opts, Qnil);
+
+  while (CONSP (opts))
+    {
+      Lisp_Object opt;
+      Lisp_Object val;
+      char *name, *arg;
+      struct socket_options *sopt;
+      int optnum, opttype;
+      int ret = 0;
+
+      opt = XCAR (opts);
+      opts = XCDR (opts);
+
+      name = 0;
+      val = Qt;
+      if (CONSP (opt))
+	{
+	  val = XCDR (opt);
+	  opt = XCAR (opt);
+	}
+      if (STRINGP (opt))
+	name = (char *) XSTRING (opt)->data;
+      else if (SYMBOLP (opt))
+	name = (char *) XSYMBOL (opt)->name->data;
+      else {
+	error ("Mal-formed option list");
+	return 0;
+      }
+
+      if (strncmp (name, "no", 2) == 0)
+	{
+	  val = Qnil;
+	  name += 2;
+	}
+
+      arg = 0;
+      for (sopt = socket_options; sopt->name; sopt++)
+	if (strncmp (name, sopt->name, sopt->nlen) == 0)
+	  {
+	    if (name[sopt->nlen] == 0)
+	      break;
+	    if (name[sopt->nlen] == '=')
+	      {
+		arg = name + sopt->nlen + 1;
+		break;
+	      }
+	  }
+
+      switch (sopt->opttype)
+	{
+	case SOPT_BOOL:
+	  {
+	    int optval;
+	    if (s < 0)
+	      return 1;
+	    if (arg)
+	      optval = (*arg == '0' || *arg == 'n') ? 0 : 1;
+	    else if (INTEGERP (val))
+	      optval = XINT (val) == 0 ? 0 : 1;
+	    else
+	      optval = NILP (val) ? 0 : 1;
+	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			      &optval, sizeof (optval));
+	    break;
+	  }
+
+	case SOPT_INT:
+	  {
+	    int optval;
+	    if (arg)
+	      optval = atoi(arg);
+	    else if (INTEGERP (val))
+	      optval = XINT (val);
+	    else
+	      error ("Bad option argument for %s", name);
+	    if (s < 0)
+	      return 1;
+	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			      &optval, sizeof (optval));
+	    break;
+	  }
+
+	case SOPT_STR:
+	  {
+	    if (!arg)
+	      {
+		if (NILP (val))
+		  arg = "";
+		else if (STRINGP (val))
+		  arg = (char *) XSTRING (val)->data;
+		else if (XSYMBOL (val))
+		  arg = (char *) XSYMBOL (val)->name->data;
+		else 
+		  error ("Invalid argument to %s option", name);
+	      }
+	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			      arg, strlen (arg));
+	  }
+
+#ifdef SO_LINGER	    
+	case SOPT_LINGER:
+	  {
+	    struct linger linger;
+
+	    linger.l_onoff = 1;
+	    linger.l_linger = 0;
+
+	    if (s < 0)
+	      return 1;
+
+	    if (arg)
+	      {
+		if (*arg == 'n' || *arg == 't' || *arg == 'y')
+		  linger.l_onoff = (*arg == 'n') ? 0 : 1;
+		else
+		  linger.l_linger = atoi(arg);
+	      }
+	    else if (INTEGERP (val))
+	      linger.l_linger = XINT (val);
+	    else
+	      linger.l_onoff = NILP (val) ? 0 : 1;
+	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			      &linger, sizeof (linger));
+	    break;
+	  }
+#endif
+	default:
+	  if (s < 0)
+	    return 0;
+	  if (no_error)
+	    continue;
+	  error ("Unsupported option: %s", name);
+	}
+      if (ret < 0 && ! no_error)
+	  report_file_error ("Cannot set network option: %s", opt);
+    }
+  return 1;
+}
+
+DEFUN ("set-network-process-options",
+       Fset_network_process_options, Sset_network_process_options,
+       1, MANY, 0, 
+       doc: /* Set one or more options for network process PROCESS.
+Arguments are PROCESS &rest OPTIONS.
+Each option is either a string "OPT=VALUE" or a cons (OPT . VALUE).
+A boolean value is false if it either zero or nil, true otherwise.
+
+The following options are known.  Consult the relevant system manual
+pages for more information.
+
+bindtodevice=NAME -- bind to interface NAME, or remove binding if nil.
+broadcast=BOOL -- Allow send and receive of datagram broadcasts.
+dontroute=BOOL -- Only send to directly connected hosts.
+keepalive=BOOL -- Send keep-alive messages on network stream. 
+linger=BOOL or TIMEOUT -- Send queued messages before closing.
+oobinline=BOOL -- Place out-of-band data in receive data stream. 
+priority=INT -- Set protocol defined priority for sent packets.
+reuseaddr=BOOL -- Allow reusing a recently used address.  */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object process;
+  Lisp_Object opts;
+
+  process = args[0];
+  CHECK_PROCESS (process);
+  if (nargs > 1 && XPROCESS (process)->infd >= 0)
+    {
+      opts = Flist (nargs, args);
+      set_socket_options (XPROCESS (process)->infd, opts, 0);
+    }
+  return process;
+}
+
+/* Check whether a given KEY VALUE pair is supported on this system.  */
+
+static int
+network_process_featurep (key, value)
+       Lisp_Object key, value;
+{
+
+  if (EQ (key, QCnowait))
+    {
+#ifdef NON_BLOCKING_CONNECT
+      return 1;
+#else
+      return NILP (value);
+#endif
+    }
+
+  if (EQ (key, QCdatagram))
+    {
+#ifdef DATAGRAM_SOCKETS
+      return 1;
+#else
+      return NILP (value);
+#endif
+    }
+
+  if (EQ (key, QCfamily))
+    {
+      if (NILP (value))
+	return 1;
+#ifdef HAVE_LOCAL_SOCKETS
+      if (EQ (key, Qlocal))
+	return 1;
+#endif
+      return 0;
+    }
+
+  if (EQ (key, QCname))
+    return STRINGP (value);
+
+  if (EQ (key, QCbuffer))
+    return (NILP (value) || STRINGP (value) || BUFFERP (value));
+
+  if (EQ (key, QClocal) || EQ (key, QCremote))
+    {
+      int family;
+      return get_lisp_to_sockaddr_size (value, &family);
+    }
+
+  if (EQ (key, QChost))
+    return (NILP (value) || STRINGP (value));
+
+  if (EQ (key, QCservice))
+    {
+#ifdef HAVE_GETSOCKNAME
+      if (EQ (value, Qt))
+	return 1;
+#endif
+      return (INTEGERP (value) || STRINGP (value));
+    }
+
+  if (EQ (key, QCserver))
+    {
+#ifndef TERM
+      return 1;
+#else
+      return NILP (value);
+#endif
+    }
+
+  if (EQ (key, QCoptions))
+    return set_socket_options (-1, value, 0);
+
+  if (EQ (key, QCcoding))
+    return 1;
+  if (EQ (key, QCsentinel))
+    return 1;
+  if (EQ (key, QCfilter))
+    return 1;
+  if (EQ (key, QClog))
+    return 1;
+  if (EQ (key, QCnoquery))
+    return 1;
+  if (EQ (key, QCstop))
+    return 1;
+
+  return 0;
+}
+
+/* A version of request_sigio suitable for a record_unwind_protect.  */
+
+Lisp_Object
+unwind_request_sigio (dummy)
+     Lisp_Object dummy;
+{
+  if (interrupt_input)
+    request_sigio ();
+  return Qnil;
+}
+
+/* Create a network stream/datagram client/server process.  Treated
+   exactly like a normal process when reading and writing.  Primary
    differences are in status display and process deletion.  A network
    connection has no PID; you cannot signal it.  All you can do is
-   deactivate and close it via delete-process */
+   stop/continue it and deactivate/close it via delete-process */
 
-DEFUN ("open-network-stream", Fopen_network_stream, Sopen_network_stream, 
-       4, 7, 0, 
-       doc: /* Open a TCP connection for a service to a host.
-Returns a subprocess-object to represent the connection.
-Returns nil if a non-blocking connect is attempted on a system which
-cannot support that; in that case, the caller should attempt a
-normal connect instead.
+DEFUN ("make-network-process", Fmake_network_process, Smake_network_process, 
+       0, MANY, 0, 
+       doc: /* Create and return a network server or client process.
 
-Input and output work as for subprocesses; `delete-process' closes it.
-Args are NAME BUFFER HOST SERVICE FILTER SENTINEL NON-BLOCKING.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer.
-HOST is name of the host to connect to, or its IP address.
-SERVICE is name of the service desired, or an integer specifying a
- port number to connect to.   
-FILTER and SENTINEL are optional args specifying the filter and
- sentinel functions associated with the network stream.
-NON-BLOCKING is optional arg requesting an non-blocking connect.
- When non-nil, open-network-stream will return immediately without
- waiting for the connection to be made.  Instead, the sentinel function
- will be called with second matching "open" (if successful) or
- "failed" when the connect completes.  */)
-     (name, buffer, host, service, filter, sentinel, non_blocking)
-      Lisp_Object name, buffer, host, service, filter, sentinel, non_blocking;
+In emacs, network connections are represented by process objects, so
+input and output work as for subprocesses and `delete-process' closes
+a network connection.  However, a network process has no process id,
+it cannot be signalled, and the status codes are different from normal
+processes.
+
+Arguments are specified as keyword/argument pairs.  The following
+arguments are defined:
+
+:name NAME -- NAME is name for process.  It is modified if necessary
+to make it unique.
+
+:buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
+with the process.  Process output goes at end of that buffer, unless
+you specify an output stream or filter function to handle the output.
+BUFFER may be also nil, meaning that this process is not associated
+with any buffer.
+
+:host HOST -- HOST is name of the host to connect to, or its IP
+address.  The symbol `local' specifies the local host.  If specified
+for a server process, it must be a valid name or address for the local
+host, and only clients connecting to that address will be accepted.
+
+:service SERVICE -- SERVICE is name of the service desired, or an
+integer specifying a port number to connect to.  If SERVICE is t,
+a random port number is selected for the server.
+
+:family FAMILY -- FAMILY is the address (and protocol) family for the
+service specified by HOST and SERVICE.  The default address family is
+Inet (or IPv4) for the host and port number specified by HOST and
+SERVICE.  Other address families supported are:
+  local -- for a local (i.e. UNIX) address specified by SERVICE.
+
+:local ADDRESS -- ADDRESS is the local address used for the connection.
+This parameter is ignored when opening a client process. When specified
+for a server process, the FAMILY, HOST and SERVICE args are ignored.
+
+:remote ADDRESS -- ADDRESS is the remote partner's address for the
+connection.  This parameter is ignored when opening a stream server
+process.  For a datagram server process, it specifies the initial
+setting of the remote datagram address.  When specified for a client
+process, the FAMILY, HOST, and SERVICE args are ignored.
+
+The format of ADDRESS depends on the address family:
+- An IPv4 address is represented as an vector of integers [A B C D P]
+corresponding to numeric IP address A.B.C.D and port number P.
+- A local address is represented as a string with the address in the
+local address space.
+- An "unsupported family" address is represented by a cons (F . AV)
+where F is the family number and AV is a vector containing the socket
+address data with one element per address data byte.  Do not rely on
+this format in portable code, as it may depend on implementation
+defined constants, data sizes, and data structure alignment.
+
+:coding CODING -- CODING is coding system for this process.
+
+:datagram BOOL -- Create a datagram type connection if BOOL is
+non-nil.  Default is a stream type connection.
+
+:options OPTIONS -- Set the specified options for the network process.
+See `set-process-options' for details.
+
+:nowait BOOL -- If BOOL is non-nil for a stream type client process,
+return without waiting for the connection to complete; instead, the
+sentinel function will be called with second arg matching "open" (if
+successful) or "failed" when the connect completes.  Default is to use
+a blocking connect (i.e. wait) for stream type connections.
+
+:noquery BOOL -- Query the user unless BOOL is non-nil, and process is
+running when emacs is exited.
+
+:stop BOOL -- Start process in the `stopped' state if BOOL non-nil.
+In the stopped state, a server process does not accept new
+connections, and a client process does not handle incoming traffic.
+The stopped state is cleared by `continue-process' and set by
+`stop-process'.
+
+:filter FILTER -- Install FILTER as the process filter.
+
+:sentinel SENTINEL -- Install SENTINEL as the process sentinel.
+
+:log LOG -- Install LOG as the server process log function.  This
+function is called as when the server accepts a network connection from a
+client.  The arguments are SERVER, CLIENT, and MESSAGE, where SERVER
+is the server process, CLIENT is the new process for the connection,
+and MESSAGE is a string.
+
+:server BOOL -- if BOOL is non-nil, create a server process for the
+specified FAMILY, SERVICE, and connection type (stream or datagram).
+Default is a client process.
+
+A server process will listen for and accept connections from
+clients.  When a client connection is accepted, a new network process
+is created for the connection with the following parameters: 
+- The client's process name is constructed by concatenating the server
+process' NAME and a client identification string.
+- If the FILTER argument is non-nil, the client process will not get a
+separate process buffer; otherwise, the client's process buffer is a newly
+created buffer named after the server process' BUFFER name or process
+NAME concatenated with the client identification string.  
+- The connection type and the process filter and sentinel parameters are
+inherited from the server process' TYPE, FILTER and SENTINEL.
+- The client process' contact info is set according to the client's
+addressing information (typically an IP address and a port number).
+
+Notice that the FILTER and SENTINEL args are never used directly by
+the server process.  Also, the BUFFER argument is not used directly by
+the server process, but via `network-server-log-function' hook, a log
+of the accepted (and failed) connections may be recorded in the server
+process' buffer.
+
+The following special call returns t iff a given KEY VALUE
+pair is supported on this system:
+  (make-network-process :feature KEY VALUE)  */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
 {
   Lisp_Object proc;
+  Lisp_Object contact;
+  struct Lisp_Process *p;
 #ifdef HAVE_GETADDRINFO
-  struct addrinfo hints, *res, *lres;
-  char *portstring, portbuf[128];
+  struct addrinfo ai, *res, *lres;
+      struct addrinfo hints;
+      char *portstring, portbuf[128];
 #else /* HAVE_GETADDRINFO */
-  struct sockaddr_in address;
-  struct servent *svc_info;
-  struct hostent *host_info_ptr, host_info;
-  char *(addr_list[2]);
-  IN_ADDR numeric_addr;
-  int port;
   struct _emacs_addrinfo
   {
     int ai_family;
@@ -1834,149 +2630,312 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
     struct _emacs_addrinfo *ai_next;
   } ai, *res, *lres;
 #endif /* HAVE_GETADDRINFO */
+  struct sockaddr *sa = 0;
+  struct sockaddr_in address_in;
+#ifdef HAVE_LOCAL_SOCKETS
+  struct sockaddr_un address_un;
+#endif
+  int port;
   int ret = 0;
   int xerrno = 0;
   int s = -1, outch, inch;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
+  struct gcpro gcpro1;
   int retry = 0;
   int count = specpdl_ptr - specpdl;
   int count1;
-  int is_non_blocking = 0;
+  Lisp_Object QCaddress;  /* one of QClocal or QCremote */
+  Lisp_Object tem;
+  Lisp_Object name, buffer, host, service, address;
+  Lisp_Object filter, sentinel;
+  int is_non_blocking_client = 0;
+  int is_server = 0;
+  int socktype = SOCK_STREAM;
+  int family = -1;
 
-  if (!NILP (non_blocking))
+  if (nargs == 0)
+    return Qnil;
+
+  /* Handle :feature KEY VALUE query.  */
+  if (EQ (args[0], QCfeature))
     {
-#ifndef NON_BLOCKING_CONNECT
-      return Qnil;
-#else
-      non_blocking = Qt;  /* Instead of GCPRO */
-      is_non_blocking = 1;
-#endif
+      if (nargs != 3)
+	return Qnil;
+      return network_process_featurep (args[1], args[2]) ? Qt : Qnil;
     }
+
+  /* Save arguments for process-contact and clone-process.  */
+  contact = Flist (nargs, args);
+  GCPRO1 (contact);
 
 #ifdef WINDOWSNT
   /* Ensure socket support is loaded if available. */
   init_winsock (TRUE);
 #endif
 
-  /* Can only GCPRO 5 variables */
-  GCPRO6 (name, buffer, host, service, sentinel, filter);
-  CHECK_STRING (name);
-  CHECK_STRING (host);
+  /* :datagram BOOL */
+  tem = Fplist_get (contact, QCdatagram);
+  if (!NILP (tem))
+    {
+#ifndef DATAGRAM_SOCKETS
+      error ("Datagram connections not supported");
+#else
+      socktype = SOCK_DGRAM;
+#endif
+    }
 
-#ifdef HAVE_GETADDRINFO
-  /* SERVICE can either be a string or int.
-     Convert to a C string for later use by getaddrinfo.  */
-  if (INTEGERP (service))
+  /* :server BOOL */
+  tem = Fplist_get (contact, QCserver);
+  if (!NILP (tem))
     {
-      sprintf (portbuf, "%ld", (long) XINT (service));
-      portstring = portbuf;
+#ifdef TERM
+      error ("Network servers not supported");
+#else
+      is_server = 1;
+#endif
     }
-  else
+
+  /* Make QCaddress an alias for :local (server) or :remote (client).  */
+  QCaddress = is_server ? QClocal : QCremote;
+
+  /* :wait BOOL */
+  if (!is_server && socktype == SOCK_STREAM
+      && (tem = Fplist_get (contact, QCnowait), !NILP (tem)))
     {
-      CHECK_STRING (service);
-      portstring = XSTRING (service)->data;
+#ifndef NON_BLOCKING_CONNECT
+      error ("Non-blocking connect not supported");
+#else
+      is_non_blocking_client = 1;
+#endif
     }
-#else /* HAVE_GETADDRINFO */
+
+  name = Fplist_get (contact, QCname);
+  buffer = Fplist_get (contact, QCbuffer);
+  filter = Fplist_get (contact, QCfilter);
+  sentinel = Fplist_get (contact, QCsentinel);
+
+  CHECK_STRING (name);
+
+#ifdef TERM
+  /* Let's handle TERM before things get complicated ...   */
+  host = Fplist_get (contact, QChost);
+  CHECK_STRING (host);
+  
+  service = Fplist_get (contact, QCservice);
   if (INTEGERP (service))
     port = htons ((unsigned short) XINT (service));
   else
     {
+      struct servent *svc_info;
       CHECK_STRING (service);
       svc_info = getservbyname (XSTRING (service)->data, "tcp");
       if (svc_info == 0)
-	error ("Unknown service \"%s\"", XSTRING (service)->data);
+	error ("Unknown service: %s", XSTRING (service)->data);
       port = svc_info->s_port;
     }
-#endif /* HAVE_GETADDRINFO */
 
+  s = connect_server (0);
+  if (s < 0)
+    report_file_error ("error creating socket", Fcons (name, Qnil));
+  send_command (s, C_PORT, 0, "%s:%d", XSTRING (host)->data, ntohs (port));
+  send_command (s, C_DUMB, 1, 0);
+
+#else  /* not TERM */
+
+  /* Initialize addrinfo structure in case we don't use getaddrinfo.  */
+  ai.ai_socktype = socktype;
+  ai.ai_protocol = 0;
+  ai.ai_next = NULL;
+  res = &ai;
+
+  /* :local ADDRESS or :remote ADDRESS */
+  address = Fplist_get (contact, QCaddress);
+  if (!NILP (address))
+    {
+      host = service = Qnil;
+
+      if (!(ai.ai_addrlen = get_lisp_to_sockaddr_size (address, &family)))
+	error ("Malformed :address");
+      ai.ai_family = family;
+      ai.ai_addr = alloca (ai.ai_addrlen);
+      conv_lisp_to_sockaddr (family, address, ai.ai_addr, ai.ai_addrlen);
+      goto open_socket;
+    }
+
+  /* :family FAMILY -- nil (for Inet), local, or integer.  */
+  tem = Fplist_get (contact, QCfamily);
+  if (INTEGERP (tem))
+    family = XINT (tem);
+  else
+    {
+      if (NILP (tem))
+	family = AF_INET;
+#ifdef HAVE_LOCAL_SOCKETS
+      else if (EQ (tem, Qlocal))
+	family = AF_LOCAL;
+#endif
+    }
+  if (family < 0)
+    error ("Unknown address family");
+  ai.ai_family = family;
+
+  /* :service SERVICE -- string, integer (port number), or t (random port).  */
+  service = Fplist_get (contact, QCservice);
+
+#ifdef HAVE_LOCAL_SOCKETS
+  if (family == AF_LOCAL)
+    {
+      /* Host is not used.  */
+      host = Qnil;
+      CHECK_STRING (service);
+      bzero (&address_un, sizeof address_un);
+      address_un.sun_family = AF_LOCAL;
+      strncpy (address_un.sun_path, XSTRING (service)->data, sizeof address_un.sun_path);
+      ai.ai_addr = (struct sockaddr *) &address_un;
+      ai.ai_addrlen = sizeof address_un;
+      goto open_socket;
+    }
+#endif
+
+  /* :host HOST -- hostname, ip address, or 'local for localhost.  */
+  host = Fplist_get (contact, QChost);
+  if (!NILP (host))
+    {
+      if (EQ (host, Qlocal))
+	host = build_string ("localhost");
+      CHECK_STRING (host);
+    }
 
   /* Slow down polling to every ten seconds.
      Some kernels have a bug which causes retrying connect to fail
      after a connect.  Polling can interfere with gethostbyname too.  */
 #ifdef POLL_FOR_INPUT
-  record_unwind_protect (unwind_stop_other_atimers, Qnil);
-  bind_polling_period (10);
-#endif
-
-#ifndef TERM
-#ifdef HAVE_GETADDRINFO
-  immediate_quit = 1;
-  QUIT;
-  memset (&hints, 0, sizeof (hints));
-  hints.ai_flags = 0;
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_protocol = 0;
-  ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
-  if (ret)
-#ifdef HAVE_GAI_STRERROR
-    error ("%s/%s %s", XSTRING (host)->data, portstring, gai_strerror(ret));
-#else
-    error ("%s/%s getaddrinfo error %d", XSTRING (host)->data, portstring,
-	   ret);
-#endif
-  immediate_quit = 0;
-
-#else /* not HAVE_GETADDRINFO */
-
-  while (1)
+  if (socktype == SOCK_STREAM)
     {
-#if 0
-#ifdef TRY_AGAIN
-      h_errno = 0;
+      record_unwind_protect (unwind_stop_other_atimers, Qnil);
+      bind_polling_period (10);
+    }
 #endif
+
+#ifdef HAVE_GETADDRINFO
+  /* If we have a host, use getaddrinfo to resolve both host and service.
+     Otherwise, use getservbyname to lookup the service.  */
+  if (!NILP (host))
+    {
+
+      /* SERVICE can either be a string or int.
+	 Convert to a C string for later use by getaddrinfo.  */
+      if (EQ (service, Qt))
+	portstring = "0";
+      else if (INTEGERP (service))
+	{
+	  sprintf (portbuf, "%ld", (long) XINT (service));
+	  portstring = portbuf;
+	}
+      else
+	{
+	  CHECK_STRING (service);
+	  portstring = XSTRING (service)->data;
+	}
+
+      immediate_quit = 1;
+      QUIT;
+      memset (&hints, 0, sizeof (hints));
+      hints.ai_flags = 0;
+      hints.ai_family = NILP (Fplist_member (contact, QCfamily)) ? AF_UNSPEC : family;
+      hints.ai_socktype = socktype;
+      hints.ai_protocol = 0;
+      ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
+      if (ret)
+#ifdef HAVE_GAI_STRERROR
+	error ("%s/%s %s", XSTRING (host)->data, portstring, gai_strerror(ret));
+#else
+        error ("%s/%s getaddrinfo error %d", XSTRING (host)->data, portstring, ret);
 #endif
+      immediate_quit = 0;
+
+      goto open_socket;
+    }
+#endif /* HAVE_GETADDRINFO */
+
+  /* We end up here if getaddrinfo is not defined, or in case no hostname
+     has been specified (e.g. for a local server process).  */
+
+  if (EQ (service, Qt))
+    port = 0;
+  else if (INTEGERP (service))
+    port = htons ((unsigned short) XINT (service));
+  else
+    {
+      struct servent *svc_info;
+      CHECK_STRING (service);
+      svc_info = getservbyname (XSTRING (service)->data, 
+				(socktype == SOCK_DGRAM ? "udp" : "tcp"));
+      if (svc_info == 0)
+	error ("Unknown service: %s", XSTRING (service)->data);
+      port = svc_info->s_port;
+    }
+
+  bzero (&address_in, sizeof address_in);
+  address_in.sin_family = family;
+  address_in.sin_addr.s_addr = INADDR_ANY;
+  address_in.sin_port = port;
+
+#ifndef HAVE_GETADDRINFO
+  if (!NILP (host))
+    {
+      struct hostent *host_info_ptr;
+
+      /* gethostbyname may fail with TRY_AGAIN, but we don't honour that,
+	 as it may `hang' emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
       host_info_ptr = gethostbyname (XSTRING (host)->data);
       immediate_quit = 0;
-#if 0
-#ifdef TRY_AGAIN
-      if (! (host_info_ptr == 0 && h_errno == TRY_AGAIN))
-#endif
-#endif
-	break;
-      Fsleep_for (make_number (1), Qnil);
-    }
   
-  if (host_info_ptr == 0)
-    /* Attempt to interpret host as numeric inet address */
-    {
-      numeric_addr = inet_addr ((char *) XSTRING (host)->data);
-      if (NUMERIC_ADDR_ERROR)
-	error ("Unknown host \"%s\"", XSTRING (host)->data);
+      if (host_info_ptr)
+	{
+	  bcopy (host_info_ptr->h_addr, (char *) &address_in.sin_addr,
+		 host_info_ptr->h_length);
+	  family = host_info_ptr->h_addrtype;
+	  address_in.sin_family = family;
+	}
+      else
+	/* Attempt to interpret host as numeric inet address */
+	{
+	  IN_ADDR numeric_addr;
+	  numeric_addr = inet_addr ((char *) XSTRING (host)->data);
+	  if (NUMERIC_ADDR_ERROR)
+	    error ("Unknown host \"%s\"", XSTRING (host)->data);
 
-      host_info_ptr = &host_info;
-      host_info.h_name = 0;
-      host_info.h_aliases = 0;
-      host_info.h_addrtype = AF_INET;
-#ifdef h_addr
-      /* Older machines have only one address slot called h_addr.
-	 Newer machines have h_addr_list, but #define h_addr to
-	 be its first element.  */
-      host_info.h_addr_list = &(addr_list[0]);
-#endif
-      host_info.h_addr = (char*)(&numeric_addr);
-      addr_list[1] = 0;
-      /* numeric_addr isn't null-terminated; it has fixed length.  */
-      host_info.h_length = sizeof (numeric_addr);
+	  bcopy ((char *)&numeric_addr, (char *) &address_in.sin_addr,
+		 sizeof (address_in.sin_addr));
+	}
+
     }
-
-  bzero (&address, sizeof address);
-  bcopy (host_info_ptr->h_addr, (char *) &address.sin_addr,
-	 host_info_ptr->h_length);
-  address.sin_family = host_info_ptr->h_addrtype;
-  address.sin_port = port;
-
-  /* Emulate HAVE_GETADDRINFO for the loop over `res' below.  */
-  ai.ai_family = host_info_ptr->h_addrtype;
-  ai.ai_socktype = SOCK_STREAM;
-  ai.ai_protocol = 0;
-  ai.ai_addr = (struct sockaddr *) &address;
-  ai.ai_addrlen = sizeof address;
-  ai.ai_next = NULL;
-  res = &ai;
 #endif /* not HAVE_GETADDRINFO */
+
+  ai.ai_family = family;
+  ai.ai_addr = (struct sockaddr *) &address_in;
+  ai.ai_addrlen = sizeof address_in;
+
+ open_socket:
+
+  /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
+     when connect is interrupted.  So let's not let it get interrupted.
+     Note we do not turn off polling, because polling is only used
+     when not interrupt_input, and thus not normally used on the systems
+     which have this bug.  On systems which use polling, there's no way
+     to quit if polling is turned off.  */
+  if (interrupt_input
+      && !is_server && socktype == SOCK_STREAM)
+    {
+      /* Comment from KFS: The original open-network-stream code
+	 didn't unwind protect this, but it seems like the proper
+	 thing to do.  In any case, I don't see how it could harm to
+	 do this -- and it makes cleanup (using unbind_to) easier.  */
+      record_unwind_protect (unwind_request_sigio, Qnil);
+      unrequest_sigio ();
+    }
 
   /* Do this in case we never enter the for-loop below.  */
   count1 = specpdl_ptr - specpdl;
@@ -1991,8 +2950,13 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 	  continue;
 	}
 
+#ifdef DATAGRAM_SOCKETS
+      if (!is_server && socktype == SOCK_DGRAM)
+	break;
+#endif /* DATAGRAM_SOCKETS */
+
 #ifdef NON_BLOCKING_CONNECT
-      if (is_non_blocking)
+      if (is_non_blocking_client)
 	{
 #ifdef O_NONBLOCK
 	  ret = fcntl (s, F_SETFL, O_NONBLOCK);
@@ -2008,21 +2972,46 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 	    }
 	}
 #endif
-
-      /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
-	 when connect is interrupted.  So let's not let it get interrupted.
-	 Note we do not turn off polling, because polling is only used
-	 when not interrupt_input, and thus not normally used on the systems
-	 which have this bug.  On systems which use polling, there's no way
-	 to quit if polling is turned off.  */
-      if (interrupt_input)
-	unrequest_sigio ();
-
+      
       /* Make us close S if quit.  */
-      count1 = specpdl_ptr - specpdl;
       record_unwind_protect (close_file_unwind, make_number (s));
 
-    loop:
+      if (is_server)
+	{
+	  /* Configure as a server socket.  */
+#ifdef HAVE_LOCAL_SOCKETS
+	  if (family != AF_LOCAL)
+#endif
+	    {
+	      int optval = 1;
+	      if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
+		report_file_error ("Cannot set reuse option on server socket.", Qnil);
+	    }
+      
+	  if (bind (s, lres->ai_addr, lres->ai_addrlen))
+	    report_file_error ("Cannot bind server socket", Qnil);
+
+#ifdef HAVE_GETSOCKNAME
+	  if (EQ (service, Qt))
+	    {
+	      struct sockaddr_in sa1;
+	      int len1 = sizeof (sa1);
+	      if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
+		{
+		  ((struct sockaddr_in *)(lres->ai_addr))->sin_port = sa1.sin_port;
+		  service = make_number (sa1.sin_port);
+		  contact = Fplist_put (contact, QCservice, service);
+		}
+	    }
+#endif
+
+	  if (socktype == SOCK_STREAM && listen (s, 5))
+	    report_file_error ("Cannot listen on server socket", Qnil);
+
+	  break;
+	}
+
+    retry_connect:
 
       immediate_quit = 1;
       QUIT;
@@ -2046,7 +3035,6 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 
       if (ret == 0 || xerrno == EISCONN)
 	{
-	  is_non_blocking = 0;
 	  /* The unwind-protect will be discarded afterwards.
 	     Likewise for immediate_quit.  */
 	  break;
@@ -2054,11 +3042,11 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 
 #ifdef NON_BLOCKING_CONNECT
 #ifdef EINPROGRESS
-      if (is_non_blocking && xerrno == EINPROGRESS)
+      if (is_non_blocking_client && xerrno == EINPROGRESS)
 	break;
 #else
 #ifdef EWOULDBLOCK
-      if (is_non_blocking && xerrno == EWOULDBLOCK)
+      if (is_non_blocking_client && xerrno == EWOULDBLOCK)
 	break;
 #endif
 #endif
@@ -2067,7 +3055,7 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
       immediate_quit = 0;
 
       if (xerrno == EINTR)
-	goto loop;
+	goto retry_connect;
       if (xerrno == EADDRINUSE && retry < 20)
 	{
 	  /* A delay here is needed on some FreeBSD systems,
@@ -2075,62 +3063,79 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 	     and should be infrequent.  */
 	  Fsleep_for (make_number (1), Qnil);
 	  retry++;
-	  goto loop;
+	  goto retry_connect;
 	}
 
       /* Discard the unwind protect closing S.  */
       specpdl_ptr = specpdl + count1;
-      count1 = specpdl_ptr - specpdl;
-      
       emacs_close (s);
       s = -1;
     }
 
-#ifdef HAVE_GETADDRINFO
-  freeaddrinfo (res);
+  if (s >= 0)
+    {
+#ifdef DATAGRAM_SOCKETS
+      if (socktype == SOCK_DGRAM)
+	{
+	  if (datagram_address[s].sa)
+	    abort ();
+	  datagram_address[s].sa = (struct sockaddr *) xmalloc (lres->ai_addrlen);
+	  datagram_address[s].len = lres->ai_addrlen;
+	  if (is_server)
+	    {
+	      Lisp_Object remote;
+	      bzero (datagram_address[s].sa, lres->ai_addrlen);
+	      if (remote = Fplist_get (contact, QCremote), !NILP (remote))
+		{
+		  int rfamily, rlen;
+		  rlen = get_lisp_to_sockaddr_size (remote, &rfamily);
+		  if (rfamily == lres->ai_family && rlen == lres->ai_addrlen)
+		    conv_lisp_to_sockaddr (rfamily, remote,
+					   datagram_address[s].sa, rlen);
+		}
+	    }
+	  else
+	    bcopy (lres->ai_addr, datagram_address[s].sa, lres->ai_addrlen);
+	}
 #endif
+      contact = Fplist_put (contact, QCaddress, 
+			    conv_sockaddr_to_lisp (lres->ai_addr, lres->ai_addrlen));
+    }
+
+#ifdef HAVE_GETADDRINFO
+  if (res != &ai)
+    freeaddrinfo (res);
+#endif
+
+  immediate_quit = 0;
+
+  /* Discard the unwind protect for closing S, if any.  */
+  specpdl_ptr = specpdl + count1;
+
+  /* Unwind bind_polling_period and request_sigio.  */
+  unbind_to (count, Qnil);
 
   if (s < 0)
     {
-      if (interrupt_input)
-	request_sigio ();
-
       /* If non-blocking got this far - and failed - assume non-blocking is
 	 not supported after all.  This is probably a wrong assumption, but
-         the normal blocking calls to open-network-stream handles this error
-         better.  */
-      if (is_non_blocking)
-	{
-#ifdef POLL_FOR_INPUT
-	  unbind_to (count, Qnil);
-#endif
+	 the normal blocking calls to open-network-stream handles this error
+	 better.  */
+      if (is_non_blocking_client)
 	  return Qnil;
-	}
 
       errno = xerrno;
-      report_file_error ("connection failed",
-			 Fcons (host, Fcons (name, Qnil)));
+      if (is_server)
+	report_file_error ("make server process failed", contact);
+      else
+	report_file_error ("make client process failed", contact);
     }
-  
-  immediate_quit = 0;
 
-  /* Discard the unwind protect, if any.  */
-  specpdl_ptr = specpdl + count1;
+  tem = Fplist_get (contact, QCoptions);
+  if (!NILP (tem))
+    set_socket_options (s, tem, 1);
 
-#ifdef POLL_FOR_INPUT
-  unbind_to (count, Qnil);
-#endif
-
-  if (interrupt_input)
-    request_sigio ();
-
-#else /* TERM */
-  s = connect_server (0);
-  if (s < 0)
-    report_file_error ("error creating socket", Fcons (name, Qnil));
-  send_command (s, C_PORT, 0, "%s:%d", XSTRING (host)->data, ntohs (port));
-  send_command (s, C_DUMB, 1, 0);
-#endif /* TERM */
+#endif /* not TERM */
 
   inch = s;
   outch = s;
@@ -2149,24 +3154,30 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 #endif
 #endif
 
-  XPROCESS (proc)->childp = Fcons (host, Fcons (service, Qnil));
-  XPROCESS (proc)->command_channel_p = Qnil;
-  XPROCESS (proc)->buffer = buffer;
-  XPROCESS (proc)->sentinel = sentinel;
-  XPROCESS (proc)->filter = filter;
-  XPROCESS (proc)->command = Qnil;
-  XPROCESS (proc)->pid = Qnil;
-  XSETINT (XPROCESS (proc)->infd, inch);
-  XSETINT (XPROCESS (proc)->outfd, outch);
-  XPROCESS (proc)->status = Qrun;
+  p = XPROCESS (proc);
+
+  p->childp = contact;
+  p->buffer = buffer;
+  p->sentinel = sentinel;
+  p->filter = filter;
+  p->log = Fplist_get (contact, QClog);
+  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+    p->kill_without_query = Qt;
+  if ((tem = Fplist_get (contact, QCstop), !NILP (tem)))
+    p->command = Qt;
+  p->pid = Qnil;
+  XSETINT (p->infd, inch);
+  XSETINT (p->outfd, outch);
+  if (is_server && socktype == SOCK_STREAM)
+    p->status = Qlisten;
 
 #ifdef NON_BLOCKING_CONNECT
-  if (!NILP (non_blocking))
+  if (is_non_blocking_client)
     {
       /* We may get here if connect did succeed immediately.  However,
 	 in that case, we still need to signal this like a non-blocking
 	 connection.  */
-      XPROCESS (proc)->status = Qconnect;
+      p->status = Qconnect;
       if (!FD_ISSET (inch, &connect_wait_mask))
 	{
 	  FD_SET (inch, &connect_wait_mask);
@@ -2175,7 +3186,10 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
     }
   else
 #endif
-    if (!EQ (XPROCESS (proc)->filter, Qt))
+    /* A server may have a client filter setting of Qt, but it must
+       still listen for incoming connects unless it is stopped.  */
+    if ((!EQ (p->filter, Qt) && !EQ (p->command, Qt))
+	|| (EQ (p->status, Qlisten) && NILP (p->command)))
       {
 	FD_SET (inch, &input_wait_mask);
 	FD_SET (inch, &non_keyboard_wait_mask);
@@ -2184,6 +3198,10 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
   if (inch > max_process_desc)
     max_process_desc = inch;
 
+  tem = Fplist_member (contact, QCcoding);
+  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
+    tem = Qnil;  /* No error message (too late!).  */
+
   {
     /* Setup coding systems for communicating with the network stream.  */
     struct gcpro gcpro1;
@@ -2191,7 +3209,9 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
     Lisp_Object coding_systems = Qt;
     Lisp_Object args[5], val;
 
-    if (!NILP (Vcoding_system_for_read))
+    if (!NILP (tem))
+      val = XCAR (XCDR (tem));
+    else if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
     else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
 	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
@@ -2214,9 +3234,11 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 	else
 	  val = Qnil;
       }
-    XPROCESS (proc)->decode_coding_system = val;
+    p->decode_coding_system = val;
 
-    if (!NILP (Vcoding_system_for_write))
+    if (!NILP (tem))
+      val = XCAR (XCDR (tem));
+    else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (NILP (current_buffer->enable_multibyte_characters))
       val = Qnil;
@@ -2237,27 +3259,27 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 	else
 	  val = Qnil;
       }
-    XPROCESS (proc)->encode_coding_system = val;
+    p->encode_coding_system = val;
   }
 
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (XPROCESS (proc)->decode_coding_system,
+  setup_coding_system (p->decode_coding_system,
 		       proc_decode_coding_system[inch]);
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (XPROCESS (proc)->encode_coding_system,
+  setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
 
-  XPROCESS (proc)->decoding_buf = make_uninit_string (0);
-  XPROCESS (proc)->decoding_carryover = make_number (0);
-  XPROCESS (proc)->encoding_buf = make_uninit_string (0);
-  XPROCESS (proc)->encoding_carryover = make_number (0);
+  p->decoding_buf = make_uninit_string (0);
+  p->decoding_carryover = make_number (0);
+  p->encoding_buf = make_uninit_string (0);
+  p->encoding_carryover = make_number (0);
 
-  XPROCESS (proc)->inherit_coding_system_flag
-    = (NILP (buffer) || !inherit_process_coding_system
+  p->inherit_coding_system_flag
+    = (!NILP (tem) || NILP (buffer) || !inherit_process_coding_system
        ? Qnil : Qt);
 
   UNGCPRO;
@@ -2295,6 +3317,14 @@ deactivate_process (proc)
 
       XSETINT (p->infd, -1);
       XSETINT (p->outfd, -1);
+#ifdef DATAGRAM_SOCKETS
+      if (DATAGRAM_CHAN_P (inchannel))
+	{
+	  xfree (datagram_address[inchannel].sa);
+	  datagram_address[inchannel].sa = 0;
+	  datagram_address[inchannel].len = 0;
+	}
+#endif
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
       FD_CLR (inchannel, &non_keyboard_wait_mask);
@@ -2409,6 +3439,202 @@ Return non-nil iff we received any output before the timeout expired.  */)
   return
     (wait_reading_process_input (seconds, useconds, process, 0)
      ? Qt : Qnil);
+}
+
+/* Accept a connection for server process SERVER on CHANNEL.  */
+
+static int connect_counter = 0;
+
+static void
+server_accept_connection (server, channel)
+     Lisp_Object server;
+     int channel;
+{
+  Lisp_Object proc, caller, name, buffer;
+  Lisp_Object contact, host, service;
+  struct Lisp_Process *ps= XPROCESS (server);
+  struct Lisp_Process *p;
+  int s;
+  union u_sockaddr {
+    struct sockaddr sa;
+    struct sockaddr_in in;
+#ifdef HAVE_LOCAL_SOCKETS
+    struct sockaddr_un un;
+#endif
+  } saddr;
+  int len = sizeof saddr;
+
+  s = accept (channel, &saddr.sa, &len);
+
+  if (s < 0)
+    {
+      int code = errno;
+
+      if (code == EAGAIN)
+	return;
+#ifdef EWOULDBLOCK
+      if (code == EWOULDBLOCK)
+	return;
+#endif
+
+      if (!NILP (ps->log))
+	call3 (ps->log, server, Qnil,
+	       concat3 (build_string ("accept failed with code"),
+			Fnumber_to_string (make_number (code)),
+			build_string ("\n")));
+      return;
+    }
+
+  connect_counter++;
+
+  /* Setup a new process to handle the connection.  */
+
+  /* Generate a unique identification of the caller, and build contact
+     information for this process.  */
+  host = Qt;
+  service = Qnil;
+  switch (saddr.sa.sa_family)
+    {
+    case AF_INET:
+      {
+	Lisp_Object args[5];
+	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
+	args[0] = build_string ("%d.%d.%d.%d");
+	args[1] = make_number (*ip++);
+	args[2] = make_number (*ip++);
+	args[3] = make_number (*ip++);
+	args[4] = make_number (*ip++);
+	host = Fformat (5, args);
+	service = make_number (ntohs (saddr.in.sin_port));
+
+	args[0] = build_string (" <%s:%d>");
+	args[1] = host;
+	args[2] = service;
+	caller = Fformat (3, args);
+      }
+      break;
+
+#ifdef HAVE_LOCAL_SOCKETS
+    case AF_LOCAL:
+#endif
+    default:
+      caller = Fnumber_to_string (make_number (connect_counter));
+      caller = concat3 (build_string (" <*"), caller, build_string ("*>"));
+      break;
+    }
+
+  /* Create a new buffer name for this process if it doesn't have a
+     filter.  The new buffer name is based on the buffer name or
+     process name of the server process concatenated with the caller
+     identification.  */
+
+  if (!NILP (ps->filter) && !EQ (ps->filter, Qt))
+    buffer = Qnil;
+  else
+    {
+      buffer = ps->buffer;
+      if (!NILP (buffer))
+	buffer = Fbuffer_name (buffer);
+      else
+	buffer = ps->name;
+      if (!NILP (buffer))
+	{
+	  buffer = concat2 (buffer, caller);
+	  buffer = Fget_buffer_create (buffer);
+	}
+    }
+
+  /* Generate a unique name for the new server process.  Combine the
+     server process name with the caller identification.  */
+
+  name = concat2 (ps->name, caller);
+  proc = make_process (name);
+
+  chan_process[s] = proc;
+
+#ifdef O_NONBLOCK
+  fcntl (s, F_SETFL, O_NONBLOCK);
+#else
+#ifdef O_NDELAY
+  fcntl (s, F_SETFL, O_NDELAY);
+#endif
+#endif
+
+  p = XPROCESS (proc);
+
+  /* Build new contact information for this setup.  */
+  contact = Fcopy_sequence (ps->childp);
+  contact = Fplist_put (contact, QCserver, Qnil);
+  contact = Fplist_put (contact, QChost, host);
+  if (!NILP (service))
+    contact = Fplist_put (contact, QCservice, service);
+  contact = Fplist_put (contact, QCremote, 
+			conv_sockaddr_to_lisp (&saddr.sa, len));
+#ifdef HAVE_GETSOCKNAME
+  len = sizeof saddr;
+  if (getsockname (channel, &saddr.sa, &len) == 0)
+    contact = Fplist_put (contact, QClocal, 
+			  conv_sockaddr_to_lisp (&saddr.sa, len));
+#endif
+
+  p->childp = contact;
+  p->buffer = buffer;
+  p->sentinel = ps->sentinel;
+  p->filter = ps->filter;
+  p->command = Qnil;
+  p->pid = Qnil;
+  XSETINT (p->infd, s);
+  XSETINT (p->outfd, s);
+  p->status = Qrun;
+
+  /* Client processes for accepted connections are not stopped initially.  */
+  if (!EQ (p->filter, Qt))
+    {
+      FD_SET (s, &input_wait_mask);
+      FD_SET (s, &non_keyboard_wait_mask);
+    }
+
+  if (s > max_process_desc)
+    max_process_desc = s;
+
+  /* Setup coding system for new process based on server process.  
+     This seems to be the proper thing to do, as the coding system
+     of the new process should reflect the settings at the time the
+     server socket was opened; not the current settings. */
+
+  p->decode_coding_system = ps->decode_coding_system;
+  p->encode_coding_system = ps->encode_coding_system;
+
+  if (!proc_decode_coding_system[s])
+    proc_decode_coding_system[s]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  setup_coding_system (p->decode_coding_system,
+		       proc_decode_coding_system[s]);
+  if (!proc_encode_coding_system[s])
+    proc_encode_coding_system[s]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  setup_coding_system (p->encode_coding_system,
+		       proc_encode_coding_system[s]);
+
+  p->decoding_buf = make_uninit_string (0);
+  p->decoding_carryover = make_number (0);
+  p->encoding_buf = make_uninit_string (0);
+  p->encoding_carryover = make_number (0);
+
+  p->inherit_coding_system_flag
+    = (NILP (buffer) ? Qnil : ps->inherit_coding_system_flag);
+
+  if (!NILP (ps->log))
+      call3 (ps->log, server, proc,
+	     concat3 (build_string ("accept from "),
+		      (STRINGP (host) ? host : build_string ("-")),
+		      build_string ("\n")));
+
+  if (p->sentinel)
+    exec_sentinel (proc, 
+		   concat3 (build_string ("open from "),
+			    (STRINGP (host) ? host : build_string ("-")),
+			    build_string ("\n")));
 }
 
 /* This variable is different from waiting_for_input in keyboard.c.
@@ -2909,6 +4135,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      if (NILP (proc))
 		continue;
 
+	      /* If this is a server stream socket, accept connection.  */
+	      if (EQ (XPROCESS (proc)->status, Qlisten))
+		{
+		  server_accept_connection (proc, channel);
+		  continue;
+		}
+
 	      /* Read data from the process, starting with our
 		 buffered-ahead character if we have one.  */
 
@@ -2983,7 +4216,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    {
 	      struct Lisp_Process *p;
 	      struct sockaddr pname;
-	      socklen_t pnamelen = sizeof(pname);
+	      int pnamelen = sizeof(pname);
 
 	      FD_CLR (channel, &connect_wait_mask);
 	      if (--num_pending_connects < 0)
@@ -2999,7 +4232,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 	         So only use it on systems where it is known to work.  */
 	      {
-		socklen_t xlen = sizeof(xerrno);
+		int xlen = sizeof(xerrno);
 		if (getsockopt(channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
@@ -3028,7 +4261,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		     status_notify to do it later, it will read input
 		     from the process before calling the sentinel.  */
 		  exec_sentinel (proc, build_string ("open\n"));
-		  if (!EQ (p->filter, Qt))
+		  if (!EQ (p->filter, Qt) && !EQ (p->command, Qt))
 		    {
 		      FD_SET (XINT (p->infd), &input_wait_mask);
 		      FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
@@ -3106,6 +4339,7 @@ read_process_output (proc, channel)
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = XINT (p->decoding_carryover);
+  int readmax = 1024;
 
 #ifdef VMS
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
@@ -3137,18 +4371,39 @@ read_process_output (proc, channel)
       bcopy (vs->inputBuffer, chars + carryover, nbytes);
     }
 #else /* not VMS */
-  chars = (char *) alloca (carryover + 1024);
+
+#ifdef DATAGRAM_SOCKETS
+  /* A datagram is one packet; allow at least 1500+ bytes of data
+     corresponding to the typical Ethernet frame size.  */
+  if (DATAGRAM_CHAN_P (channel))
+    {
+      /* carryover = 0; */  /* Does carryover make sense for datagrams? */
+      readmax += 1024;
+    }
+#endif
+
+  chars = (char *) alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
     bcopy (XSTRING (p->decoding_buf)->data, chars, carryover);
 
+#ifdef DATAGRAM_SOCKETS
+  /* We have a working select, so proc_buffered_char is always -1.  */
+  if (DATAGRAM_CHAN_P (channel))
+    {
+      int len = datagram_address[channel].len;
+      nbytes = recvfrom (channel, chars + carryover, readmax - carryover,
+			 0, datagram_address[channel].sa, &len);
+    }
+  else
+#endif
   if (proc_buffered_char[channel] < 0)
-    nbytes = emacs_read (channel, chars + carryover, 1024 - carryover);
+    nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
   else
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  1023 - carryover);
+      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1 - carryover);
       if (nbytes < 0)
 	nbytes = 1;
       else
@@ -3614,9 +4869,20 @@ send_process (proc, buf, len, object)
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
+	      int outfd = XINT (XPROCESS (proc)->outfd);
 	      old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
-	      rv = emacs_write (XINT (XPROCESS (proc)->outfd),
-				(char *) buf, this);
+#ifdef DATAGRAM_SOCKETS
+	      if (DATAGRAM_CHAN_P (outfd))
+		{
+		  rv = sendto (outfd, (char *) buf, this,
+			       0, datagram_address[outfd].sa,
+			       datagram_address[outfd].len);
+		  if (rv < 0 && errno == EMSGSIZE)
+		    report_file_error ("sending datagram", Fcons (proc, Qnil));
+		}
+	      else
+#endif
+		rv = emacs_write (outfd, (char *) buf, this);
 	      signal (SIGPIPE, old_sigpipe);
 
 	      if (rv < 0)
@@ -4071,10 +5337,27 @@ See function `interrupt-process' for more details on usage.  */)
 
 DEFUN ("stop-process", Fstop_process, Sstop_process, 0, 2, 0,
        doc: /* Stop process PROCESS.  May be process or name of one.
-See function `interrupt-process' for more details on usage.  */)
+See function `interrupt-process' for more details on usage.  
+If PROCESS is a network process, inhibit handling of incoming traffic.  */)
      (process, current_group)
      Lisp_Object process, current_group;
 {
+#ifdef HAVE_SOCKETS
+  if (PROCESSP (process) && NETCONN_P (process))
+    {
+      struct Lisp_Process *p;
+  
+      p = XPROCESS (process);
+      if (NILP (p->command)
+	  && XINT (p->infd) >= 0)
+	{
+	  FD_CLR (XINT (p->infd), &input_wait_mask);
+	  FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	}
+      p->command = Qt;
+      return process;
+    }
+#endif
 #ifndef SIGTSTP
   error ("no SIGTSTP support");
 #else
@@ -4085,10 +5368,28 @@ See function `interrupt-process' for more details on usage.  */)
 
 DEFUN ("continue-process", Fcontinue_process, Scontinue_process, 0, 2, 0,
        doc: /* Continue process PROCESS.  May be process or name of one.
-See function `interrupt-process' for more details on usage.  */)
+See function `interrupt-process' for more details on usage.  
+If PROCESS is a network process, resume handling of incoming traffic.  */)
      (process, current_group)
      Lisp_Object process, current_group;
 {
+#ifdef HAVE_SOCKETS
+  if (PROCESSP (process) && NETCONN_P (process))
+    {
+      struct Lisp_Process *p;
+
+      p = XPROCESS (process);
+      if (EQ (p->command, Qt)
+	  && XINT (p->infd) >= 0
+	  && (!EQ (p->filter, Qt) || EQ (p->status, Qlisten)))
+	{
+	  FD_SET (XINT (p->infd), &input_wait_mask);
+	  FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
+	}
+      p->command = Qnil;
+      return process;
+    }
+#endif
 #ifdef SIGCONT
     process_send_signal (process, SIGCONT, current_group, 0);
 #else
@@ -4234,6 +5535,9 @@ text to PROCESS after you call this function.  */)
 {
   Lisp_Object proc;
   struct coding_system *coding;
+
+  if (DATAGRAM_CONN_P (process))
+    return process;
 
   proc = get_process (process);
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
@@ -4619,6 +5923,8 @@ status_notify ()
 	  /* If process is still active, read any output that remains.  */
 	  while (! EQ (p->filter, Qt)
 		 && ! EQ (p->status, Qconnect)
+		 && ! EQ (p->status, Qlisten)
+		 && ! EQ (p->command, Qt)  /* Network process not stopped.  */
 		 && XINT (p->infd) >= 0
 		 && read_process_output (proc, XINT (p->infd)) > 0);
 
@@ -4829,6 +6135,9 @@ init_process ()
     }
   bzero (proc_decode_coding_system, sizeof proc_decode_coding_system);
   bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
+#ifdef DATAGRAM_SOCKETS
+  bzero (datagram_address, sizeof datagram_address);
+#endif
 }
 
 void
@@ -4857,7 +6166,48 @@ syms_of_process ()
   staticpro (&Qconnect);
   Qfailed = intern ("failed");
   staticpro (&Qfailed);
+  Qlisten = intern ("listen");
+  staticpro (&Qlisten);
+  Qlocal = intern ("local");
+  staticpro (&Qlocal);
 
+  QCname = intern (":name");
+  staticpro (&QCname);
+  QCbuffer = intern (":buffer");
+  staticpro (&QCbuffer);
+  QChost = intern (":host");
+  staticpro (&QChost);
+  QCservice = intern (":service");
+  staticpro (&QCservice);
+  QCfamily = intern (":family");
+  staticpro (&QCfamily);
+  QClocal = intern (":local");
+  staticpro (&QClocal);
+  QCremote = intern (":remote");
+  staticpro (&QCremote);
+  QCcoding = intern (":coding");
+  staticpro (&QCcoding);
+  QCserver = intern (":server");
+  staticpro (&QCserver);
+  QCdatagram = intern (":datagram");
+  staticpro (&QCdatagram);
+  QCnowait = intern (":nowait");
+  staticpro (&QCnowait);
+  QCfilter = intern (":filter");
+  staticpro (&QCfilter);
+  QCsentinel = intern (":sentinel");
+  staticpro (&QCsentinel);
+  QClog = intern (":log");
+  staticpro (&QClog);
+  QCnoquery = intern (":noquery");
+  staticpro (&QCnoquery);
+  QCstop = intern (":stop");
+  staticpro (&QCstop);
+  QCoptions = intern (":options");
+  staticpro (&QCoptions);
+  QCfeature = intern (":feature");
+  staticpro (&QCfeature);
+    
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
 
@@ -4897,14 +6247,20 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sset_process_window_size);
   defsubr (&Sset_process_inherit_coding_system_flag);
   defsubr (&Sprocess_inherit_coding_system_flag);
-  defsubr (&Sprocess_kill_without_query);
+  defsubr (&Sset_process_query_on_exit_flag);
+  defsubr (&Sprocess_query_on_exit_flag);
   defsubr (&Sprocess_contact);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
 #ifdef HAVE_SOCKETS
-  defsubr (&Sopen_network_stream);
+  defsubr (&Sset_network_process_options);
+  defsubr (&Smake_network_process);
 #endif /* HAVE_SOCKETS */
+#ifdef DATAGRAM_SOCKETS
+  defsubr (&Sprocess_datagram_address);
+  defsubr (&Sset_process_datagram_address);
+#endif
   defsubr (&Saccept_process_output);
   defsubr (&Sprocess_send_region);
   defsubr (&Sprocess_send_string);
