@@ -6997,6 +6997,7 @@ note_mouse_highlight (f, x, y)
 
 	      /* Display it as active.  */
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	      cursor = None;
 	    }
 	  /* Handle the text property case.  */
 	  else if (!NILP (mouse_face) && BUFFERP (object))
@@ -7038,6 +7039,7 @@ note_mouse_highlight (f, x, y)
 
 	      /* Display it as active.  */
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	      cursor = None;
 	    }
 	  else if (!NILP (mouse_face) && STRINGP (object))
 	    {
@@ -7069,6 +7071,7 @@ note_mouse_highlight (f, x, y)
 		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
 					   glyph->face_id, 1);
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	      cursor = None;
 	    }
 	}
 
