@@ -1,6 +1,6 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -393,7 +393,9 @@ by `lisp-body-indent'."
            (define-setf-method . defun)
            (define-setf-expander . defun)
            (defmacro . defun) (defsubst . defun) (deftype . defun)
-           (defmethod   (4 4 (&whole 4 &rest 1) &body))
+	   ;; The following indents the first line of the body of a
+	   ;; defmethod wrong.
+           ;(defmethod   (4 4 (&whole 4 &rest 1) &body))
            (defpackage  (4 2))
            (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
                          &rest (&whole 2 &rest 1)))
