@@ -1697,7 +1697,7 @@ Transposing beyond buffer boundaries is an error.")
 {
   register int start1, end1, start2, end2,
   gap, len1, len_mid, len2;
-  char *start1_addr, *start2_addr, *temp;
+  unsigned char *start1_addr, *start2_addr, *temp;
 
 #ifdef USE_TEXT_PROPERTIES
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
@@ -1724,8 +1724,6 @@ Transposing beyond buffer boundaries is an error.")
       end2 = glumph;
     }
 
-  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
   len1 = end1 - start1;
   len2 = end2 - start2;
 
@@ -1755,6 +1753,19 @@ Transposing beyond buffer boundaries is an error.")
      a go!  I just didn't feel like doing it, so I will simply move
      the gap the minimum distance to get it out of the way, and then
      deal with an unbroken array.  */
+
+  /* Make sure the gap won't interfere, by moving it out of the text
+     we will operate on.  */
+  if (start1 < gap && gap < end2)
+    {
+      if (gap - start1 < end2 - gap)
+	move_gap (start1);
+      else
+	move_gap (end2);
+    }
+
+  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
+  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
       
   /* Hmmm... how about checking to see if the gap is large
      enough to use as the temporary storage?  That would avoid an
@@ -1765,13 +1776,6 @@ Transposing beyond buffer boundaries is an error.")
 
   if (end1 == start2)		/* adjacent regions */
     {
-      if ((start1 < gap) && (gap <= end2))
-        {
-          if ((gap - start1) < (end2 - gap) || (end2 == Z))
-            move_gap (start1);
-          else
-            move_gap (end2 + 1);
-        }
       modify_region (current_buffer, start1, end2);
       record_change (start1, len1 + len2);
 
@@ -1784,18 +1788,30 @@ Transposing beyond buffer boundaries is an error.")
       /* First region smaller than second.  */
       if (len1 < len2)
         {
-          temp = alloca (len2);
+	  /* We use alloca only if it is small,
+	     because we want to avoid stack overflow.  */
+	  if (len2 > 20000)
+	    temp = (unsigned char *) xmalloc (len2);
+	  else
+	    temp = (unsigned char *) alloca (len2);
           bcopy (start2_addr, temp, len2);
           bcopy (start1_addr, start1_addr + len2, len1);
           bcopy (temp, start1_addr, len2);
+	  if (len2 > 20000)
+	    free (temp);
         }
       else
 	/* First region not smaller than second.  */
         {
-          temp = alloca (len1);
+	  if (len1 > 20000)
+	    temp = (unsigned char *) xmalloc (len1);
+	  else
+	    temp = (unsigned char *) alloca (len1);
           bcopy (start1_addr, temp, len1);
           bcopy (start2_addr, start1_addr, len2);
           bcopy (temp, start1_addr + len2, len1);
+	  if (len1 > 20000)
+	    free (temp);
         }
 #ifdef USE_TEXT_PROPERTIES
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
@@ -1807,11 +1823,6 @@ Transposing beyond buffer boundaries is an error.")
   /* Non-adjacent regions, because end1 != start2, bleagh...  */
   else
     {
-      if (((start1 < gap) && (gap <= end1)) || (end2 == Z))
-        move_gap (start1);
-      else if ((start2 < gap) && (gap <= end2))
-        move_gap (end2 + 1);
-
       if (len1 == len2)
 	/* Regions are same size, though, how nice.  */
         {
@@ -1826,10 +1837,15 @@ Transposing beyond buffer boundaries is an error.")
           Fset_text_properties (start2, end2, Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
-          temp = alloca (len1);
+	  if (len1 > 20000)
+	    temp = (unsigned char *) xmalloc (len1);
+	  else
+	    temp = (unsigned char *) alloca (len1);
           bcopy (start1_addr, temp, len1);
           bcopy (start2_addr, start1_addr, len2);
           bcopy (temp, start2_addr, len1);
+	  if (len1 > 20000)
+	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, start2,
                                        len1, current_buffer, 0);
@@ -1851,12 +1867,17 @@ Transposing beyond buffer boundaries is an error.")
           Fset_text_properties (start1, end2, Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
-          temp = alloca (len_mid + len2); /* holds mid area & region 2 */
-          bcopy (start1_addr + len1, temp, len_mid);
-          bcopy (start2_addr, temp + len_mid, len2);
+	  /* holds region 2 */
+	  if (len2 > 20000)
+	    temp = (unsigned char *) xmalloc (len2);
+	  else
+	    temp = (unsigned char *) alloca (len2);
+          bcopy (start2_addr, temp, len2);
           bcopy (start1_addr, start1_addr + len_mid + len2, len1);
-          bcopy (temp + len_mid, start1_addr, len2);
-          bcopy (temp, start1_addr + len2, len_mid);
+          safe_bcopy (start1_addr + len1, start1_addr + len2, len_mid);
+          bcopy (temp, start1_addr, len2);
+	  if (len2 > 20000)
+	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
@@ -1880,12 +1901,17 @@ Transposing beyond buffer boundaries is an error.")
           Fset_text_properties (start1, end2, Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
-          temp = alloca (len_mid + len1); /* holds mid area & region 1 */
-          bcopy (start1_addr + len1, temp, len_mid);
-          bcopy (start1_addr, temp + len_mid, len1);
+	  /* holds region 1 */
+	  if (len1 > 20000)
+	    temp = (unsigned char *) xmalloc (len1);
+	  else
+	    temp = (unsigned char *) alloca (len1);
+          bcopy (start1_addr, temp, len1);
           bcopy (start2_addr, start1_addr, len2);
-          bcopy (temp + len_mid, start1_addr + len2 + len_mid, len1);
-          bcopy (temp, start1_addr + len2, len_mid);
+          bcopy (start1_addr + len1, start1_addr + len2, len_mid);
+          bcopy (temp, start1_addr + len2 + len_mid, len1);
+	  if (len1 > 20000)
+	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
