@@ -2393,8 +2393,12 @@ If @var{window} is @code{nil}, the selected window is used.
 package it in another list of the form @code{(when @var{condition} .
 @var{spec})}.  Then the specification @var{spec} applies only when
 @var{condition} evaluates to a non-@code{nil} value.  During the
-evaluation, point is temporarily set at the end position of the text
-having this conditional display specification.
+evaluation, @code{object} is bound to the string or buffer having the
+conditional @code{display} property.  @code{position} and
+@code{buffer-position} are bound to the position within @code{object}
+and the buffer position where the @code{display} property was found,
+respectively.  Both positions can be different when @code{object} is a
+string.
 
 @node Images
 @section Images
