@@ -219,6 +219,47 @@ reduced to be one."
 	(x-reduce-font-name name)
       name)))
 
+(defun register-alternate-fontnames (fontname)
+  "Register alternate fontnames for FONTNAME in `alternate-fontname-alist'.
+When Emacs fails to open FONTNAME, it tries to open alternate font
+registered in the variable `alternate-fontname-alist' (which see).
+
+For FONTNAME, the following three alternate fontnames are registered:
+  fontname which ignores style specification of FONTNAME,
+  fontname which ignores size specification of FONTNAME,
+  fontname which ignores both style and size specification of FONTNAME."
+  (unless (assoc fontname alternate-fontname-alist)
+    (let ((xlfd-fields (x-decompose-font-name fontname))
+	  style-ignored size-ignored both-ignored)
+      (when xlfd-fields
+	(aset xlfd-fields xlfd-regexp-foundry-subnum nil)
+	(aset xlfd-fields xlfd-regexp-family-subnum nil)
+
+	(let ((temp (copy-sequence xlfd-fields)))
+	  (aset temp xlfd-regexp-weight-subnum nil)
+	  (aset temp xlfd-regexp-slant-subnum nil)
+	  (aset temp xlfd-regexp-swidth-subnum nil)
+	  (aset temp xlfd-regexp-adstyle-subnum nil)
+	  (setq style-ignored (x-compose-font-name temp t)))
+
+	(aset xlfd-fields xlfd-regexp-pixelsize-subnum nil)
+	(aset xlfd-fields xlfd-regexp-pointsize-subnum nil)
+	(aset xlfd-fields xlfd-regexp-resx-subnum nil)
+	(aset xlfd-fields xlfd-regexp-resy-subnum nil)
+	(aset xlfd-fields xlfd-regexp-spacing-subnum nil)
+	(aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)
+	(setq size-ignored (x-compose-font-name xlfd-fields t))
+
+	(aset xlfd-fields xlfd-regexp-weight-subnum nil)
+	(aset xlfd-fields xlfd-regexp-slant-subnum nil)
+	(aset xlfd-fields xlfd-regexp-swidth-subnum nil)
+	(aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
+	(setq both-ignored (x-compose-font-name xlfd-fields t))
+
+	(setq alternate-fontname-alist
+	      (cons (list fontname style-ignored size-ignored both-ignored)
+		    alternate-fontname-alist))))))
+
 (defun x-complement-fontset-spec (xlfd-fields fontlist)
   "Complement FONTLIST for all charsets based on XLFD-FIELDS and return it.
 XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
@@ -227,48 +268,24 @@ FONTLIST is an alist of cons of charset and fontname.
 Fontnames for charsets not listed in FONTLIST are generated from
 XLFD-FIELDS and a property of x-charset-registry of each charset
 automatically."
-  (let ((charsets charset-list)
-	(style-ignored (copy-sequence xlfd-fields))
-	(size-ignored (copy-sequence xlfd-fields)))
-    (aset style-ignored xlfd-regexp-weight-subnum nil)
-    (aset style-ignored xlfd-regexp-slant-subnum nil)
-    (aset style-ignored xlfd-regexp-swidth-subnum nil)
-    (aset style-ignored xlfd-regexp-adstyle-subnum nil)
-    (aset size-ignored xlfd-regexp-pixelsize-subnum nil)
-    (aset size-ignored xlfd-regexp-pointsize-subnum nil)
-    (aset size-ignored xlfd-regexp-resx-subnum nil)
-    (aset size-ignored xlfd-regexp-resy-subnum nil)
-    (aset size-ignored xlfd-regexp-spacing-subnum nil)
-    (aset size-ignored xlfd-regexp-avgwidth-subnum nil)
+  (let ((charsets charset-list))
     (while charsets
       (let ((charset (car charsets)))
-	(if (null (assq charset fontlist))
-	    (let ((registry (get-charset-property charset
-						  'x-charset-registry))
-		  registry-val encoding-val fontname loose-fontname)
-	      (if (string-match "-" registry)
-		  ;; REGISTRY contains `CHARSET_ENCODING' field.
-		  (setq registry-val (substring registry 0 (match-beginning 0))
-			encoding-val (substring registry (match-end 0)))
-		(setq registry-val (concat registry "*")
-		      encoding-val "*"))
-	      (aset xlfd-fields xlfd-regexp-registry-subnum registry-val)
-	      (aset xlfd-fields xlfd-regexp-encoding-subnum encoding-val)
-	      (aset style-ignored xlfd-regexp-registry-subnum registry-val)
-	      (aset style-ignored xlfd-regexp-encoding-subnum encoding-val)
-	      (aset size-ignored xlfd-regexp-registry-subnum registry-val)
-	      (aset size-ignored xlfd-regexp-encoding-subnum encoding-val)
-	      (setq fontname (x-compose-font-name xlfd-fields t))
-	      (setq fontlist (cons (cons charset fontname) fontlist))
-	      (or (assoc fontname alternative-fontname-alist)
-		  (setq alternative-fontname-alist
-			(cons (list
-			       fontname
-			       (x-compose-font-name style-ignored t)
-			       (x-compose-font-name size-ignored t)
-			       (concat "*-" registry-val "-" encoding-val))
-			      alternative-fontname-alist)))
-	      )))
+	(unless (assq charset fontlist)
+	  (let ((registry (get-charset-property charset
+						'x-charset-registry))
+		registry-val encoding-val fontname loose-fontname)
+	    (if (string-match "-" registry)
+		;; REGISTRY contains `CHARSET_ENCODING' field.
+		(setq registry-val (substring registry 0 (match-beginning 0))
+		      encoding-val (substring registry (match-end 0)))
+	      (setq registry-val (concat registry "*")
+		    encoding-val "*"))
+	    (aset xlfd-fields xlfd-regexp-registry-subnum registry-val)
+	    (aset xlfd-fields xlfd-regexp-encoding-subnum encoding-val)
+	    (setq fontname (downcase (x-compose-font-name xlfd-fields)))
+	    (setq fontlist (cons (cons charset fontname) fontlist))
+	    (register-alternate-fontnames fontname))))
       (setq charsets (cdr charsets))))
 
   ;; Here's a trick for the charset latin-iso8859-1.  If font for
@@ -460,8 +477,16 @@ Return FONTSET if it is created successfully, else return nil."
 		      (funcall (car funcs) (car new-fontset-data)))
 	      (let ((l (cdr new-fontset-data)))
 		(while l
-		  (if (setq font (funcall (car funcs) (cdr (car l))))
-		      (setcdr (car l) font))
+		  (if (= (length funcs) 1)
+		      (setq font (funcall (car funcs) (cdr (car l))))
+		    (and (setq font (funcall (car funcs) (cdr (car l))))
+			 (not (equal font (cdr (car l))))
+			 (setq font2 (funcall (nth 1 funcs) font))
+			 (not (equal font2 font))
+			 (setq font font2)))
+		  (when font
+		    (setcdr (car l) font)
+		    (register-alternate-fontnames font))
 		  (setq l (cdr l))))
 	      (setq funcs (cdr funcs)))
 	    (new-fontset (car new-fontset-data) (cdr new-fontset-data))
