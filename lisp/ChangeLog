@@ -1,3 +1,7 @@
+2004-07-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (modify-all-frames-parameters): Minor doc fix.
+
 2004-07-23  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
 
 	* simple.el (completion-setup-function): Compute the common parts
