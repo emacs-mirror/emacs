@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.31 2002/01/08 20:00:19 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.33 2002/02/21 20:16:47 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -559,7 +559,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
   "Get a difference report using CVS between two versions of FILE."
-  (let (options status (diff-switches-list (vc-diff-switches-list cvs)))
+  (let (options status (diff-switches-list (vc-diff-switches-list 'CVS)))
     (if (string= (vc-workfile-version file) "0")
 	;; This file is added but not yet committed; there is no master file.
 	(if (or oldvers newvers)
@@ -605,7 +605,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
         (apply 'vc-do-command "*vc-diff*" 1 "cvs" nil "diff"
                (and rel1 (concat "-r" rel1))
                (and rel2 (concat "-r" rel2))
-               (vc-diff-switches-list cvs))))))
+               (vc-diff-switches-list 'CVS))))))
 
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
