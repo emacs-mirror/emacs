@@ -1048,7 +1048,7 @@ selected frame."
 	(invert-face face frame)
       (let (done)
 	(while (and colors (not done))
-	  (if (or (eq (car colors) t)
+	  (if (or (memq (car colors) '(t underline))
 		  (face-color-supported-p frame (car colors)
 					  (eq function 'set-face-background)))
 	      (if (cdr colors)
