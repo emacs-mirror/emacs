@@ -1,7 +1,7 @@
 2005-01-23  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fpos_visible_in_window_p): Simplify return value for
-	for partially visible rows.
+	partially visible rows.
 	(window_scroll_pixel_based): Adapt to that change.
 
 	* window.c (window_scroll_pixel_based): Force moving to next line

@@ -1,5 +1,8 @@
 2005-01-23  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (line-move): Adapt to new return value from
+	pos-visible-in-window-p.
+
 	* simple.el (line-move): Fix last change.  Check partial
 	visibility at point rather than at window-start.
 
