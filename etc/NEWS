@@ -2674,6 +2674,9 @@ meaning of each of the four elements:
      2		disabled and selected
      3		disabled and deselected
 
+If IMAGE is a single image specification, a Laplace edge-detection
+algorithm is used on that image to draw the image in disabled state.
+
 `:help HELP-STRING'.
 
 Gives a help string to display for the tool bar item.  This help
