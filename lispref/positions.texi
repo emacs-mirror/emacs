@@ -528,6 +528,24 @@ The value returned is the window line number point has moved to, with
 the top line in the window numbered 0.
 @end deffn
 
+@defun count-screen-lines &optional beg end count-final-newline window
+This function returns the number of the screen lines occupied by the
+text between positions @var{beg} and @var{end}.  These arguments default
+to the beginning and end of the accessible portion of the buffer.
+
+If region ends with a newline, it is significant if
+@var{count-final-newline} is non-@code{nil}.  Otherwise it is ignored.
+
+The argument @var{window} specifies the window used for obtaining
+parameters such as width, horizontal scrolling, and so on.  The default
+is the selected window.
+
+Like @code{vertical-motion}, @code{count-screen-lines} always uses the
+current buffer, regardless of which buffer is displayed in @var{window}.
+This makes possible to use @code{count-screen-lines} in any buffer,
+whether or not it is currently displayed in some window.
+@end defun
+
 @defun compute-motion from frompos to topos width offsets window
 This function scans the current buffer, calculating screen positions.
 It scans the buffer forward from position @var{from}, assuming that is
