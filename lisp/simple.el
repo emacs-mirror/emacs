@@ -369,7 +369,7 @@ Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables))
 
-(defvar read-expression-map (copy-keymap minibuffer-local-map)
+(defvar read-expression-map (cons 'keymap minibuffer-local-map)
   "Minibuffer keymap used for reading Lisp expressions.")
 (define-key read-expression-map "\M-\t" 'lisp-complete-symbol)
 
@@ -386,7 +386,7 @@ Value is also consed on to front of the variable `values'."
    (let* ((minibuffer-history-sexp-flag t))
      (list (read-from-minibuffer "Eval: "
 				 nil read-expression-map t
-				 'read-expression-history)))
+				 'read-expression-history))))
   (setq values (cons (eval expression) values))
   (prin1 (car values) t))
 
