@@ -1446,7 +1446,7 @@ init_sys_modes ()
       tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
 #else /* not VMS (BSD, that is) */
 #ifndef DOS_NT
-      Vtty_erase_char = tty.main.sg_erase;
+      XSETINT (Vtty_erase_char, tty.main.sg_erase);
       tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
       if (meta_key)
 	tty.main.sg_flags |= ANYP;
