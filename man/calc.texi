@@ -12186,16 +12186,16 @@ arguments from the stack.  For example, after @kbd{2 @key{RET} 3 +},
 the stack contains the sole number 5, but after @kbd{2 @key{RET} 3 K +},
 the stack contains the arguments and the result: @samp{2 3 5}.
 
-This works for all commands that take arguments off the stack.  As
-another example, @kbd{K a s} simplifies a formula, pushing the
-simplified version of the formula onto the stack after the original
-formula (rather than replacing the original formula).
-
-Note that you could get the same effect by typing @kbd{@key{RET} a s},
-copying the formula and then simplifying the copy.  One difference
-is that for a very large formula the time taken to format the
-intermediate copy in @kbd{@key{RET} a s} could be noticeable; @kbd{K a s}
-would avoid this extra work.
+With the exception of keyboard macros, this works for all commands that
+take arguments off the stack. (To avoid potentially unpleasant behavior,
+keyboard macros ignore the @kbd{K} prefix.)  As another example, @kbd{K
+a s} simplifies a formula, pushing the simplified version of the formula
+onto the stack after the original formula (rather than replacing the
+original formula).  Note that you could get the same effect by typing
+@kbd{@key{RET} a s}, copying the formula and then simplifying the copy.
+One difference is that for a very large formula the time taken to format
+the intermediate copy in @kbd{@key{RET} a s} could be noticeable; @kbd{K
+a s} would avoid this extra work.
 
 Even stack manipulation commands are affected.  @key{TAB} works by
 popping two values and pushing them back in the opposite order,
@@ -12207,13 +12207,6 @@ its sine using algebraic entry; to push the sine and keep the
 original argument you could use either @kbd{' sin($1)} or
 @kbd{K ' sin($)}.  @xref{Algebraic Entry}.  Also, the @kbd{s s}
 command is effectively the same as @kbd{K s t}.  @xref{Storing Variables}.
-
-Keyboard macros may interact surprisingly with the @kbd{K} prefix.
-If you have defined a keyboard macro to be, say, @samp{Q +} to add
-one number to the square root of another, then typing @kbd{K X} will
-execute @kbd{K Q +}, probably not what you expected.  The @kbd{K}
-prefix will apply to just the first command in the macro rather than
-the whole macro.
 
 If you execute a command and then decide you really wanted to keep
 the argument, you can press @kbd{M-@key{RET}} (@code{calc-last-args}).
