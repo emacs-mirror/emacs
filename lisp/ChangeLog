@@ -1,3 +1,56 @@
+2001-04-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Line and paragraph spacing feature.  Region to cut
+	out when printing.  Doc fix.
+	(ps-print-version): New version number (6.5).
+	(ps-line-spacing, ps-paragraph-spacing, ps-paragraph-regexp): New
+	vars.  Line and paragraph spacing feature.
+	(ps-begin-cut-regexp, ps-end-cut-regexp): New vars.  Region to cut
+	out when printing.
+	(ps-setup, ps-nb-pages, ps-get-page-dimensions, ps-begin-file)
+	(ps-get-font-size, ps-begin-job, ps-continue-line)
+	(ps-plot-region): Code fix.
+	(ps-print-prologue-2): Var eliminated.
+	(ps-line-spacing-internal, ps-paragraph-spacing-internal): New
+	internal vars.
+	(ps-get-size): New fun.
+	(ps-output-string-prim, ps-init-output-queue, ps-print-page-p)
+	(ps-next-line): Replace defun by defsubst.
+	(ps-mule-plot-string): Autoload doc fix.
+
+	* ps-bdf.el: XEmacs compatibility.  Doc fix.
+	(installation-directory, coding-system-for-read): Declare vars if
+	it's not declared yet.
+	(bdf-read-font-info, bdf-read-bitmap, bdf-get-bitmaps): Code fix.
+
+	* ps-mule.el: XEmacs compatibility.  Doc fix.
+	(leading-code-private-22): Declare var if it's not declared yet.
+	(charset-bytes, charset-dimension, charset-id, charset-width)
+	(find-charset-region, split-char, char-width, chars-in-region)
+	(forward-point, decompose-composite-char, encode-coding-string)
+	(coding-system-p, ccl-execute-on-string, define-ccl-program):
+	Define funs if not defined yet.
+	(encode-composition-rule, find-composition): Define funs if not
+	loaded yet.
+	(ps-mule-prologue): PostScript code fix.
+
+2001-04-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* ps-mule.el (ps-mule-generate-font): New arg HEADER-P.  If it is
+	non-nil, generate font for the header strings.
+	(ps-mule-prepare-font): Likewise.
+	(ps-mule-generate-glyphs): Likewise.
+	(ps-mule-string-encoding): Likewise.
+	(ps-mule-header-charsets): New variable.
+	(ps-mule-encode-header-string): New function.
+	(ps-mule-header-string-charsets): New function.
+	(ps-mule-begin-job): Check charsets in the header strings.  If there
+	are non-ASCII and non-Latin1 charsets, prepare fonts for them.
+
+	* ps-print.el (ps-generate-header-line): Encode the header string by
+	ps-mule-encode-header-string.
+	(ps-mule-encode-header-string): Declare autoload.
+
 2001-04-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (cursor-in-non-selected-windows): Replaces

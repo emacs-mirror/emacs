@@ -1,3 +1,13 @@
+2001-04-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: Line and paragraph spacing feature.
+	(LineHS, ParagraphHS, EffectUnderline, EffectStrikeou, EffectOverline)
+	(EffectShadow, EffectBox, EffectOutline): New vars.
+	(PSL, S, EF, printZebra, doColumnZebra, doZebra): Code fix.
+	(PHL, LHL): New funs.
+
+	* ps-prin2.ps: File eliminated.
+	
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* splash.pbm: New image from Luis Fernandes <elf@ee.ryerson.ca>.
