@@ -24,7 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <ctype.h>
-#undef NULL
 #include "config.h"
 #include "lisp.h"
 
