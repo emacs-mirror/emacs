@@ -1,3 +1,9 @@
+2002-04-03  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el (sgml-lexical-context)
+	(sgml-parse-tag-backward): Extend support for CDATA to include
+	conditional sections.
+
 2002-04-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el: Rename `autoselect-window' to
