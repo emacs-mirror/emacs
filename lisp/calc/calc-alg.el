@@ -1294,7 +1294,7 @@
 
 ;;; Simple operations on expressions.
 
-;;; Return number of ocurrences of thing in expr, or nil if none.
+;;; Return number of occurrences of thing in expr, or nil if none.
 (defun math-expr-contains-count (expr thing)
   (cond ((equal expr thing) 1)
 	((Math-primp expr) nil)

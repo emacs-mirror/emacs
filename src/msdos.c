@@ -5007,7 +5007,7 @@ static sigset_t pending_signals;
 typedef void (*sighandler_t)(int);
 static sighandler_t prev_handlers[320];
 
-/* A signal handler which just records that a signal occured
+/* A signal handler which just records that a signal occurred
    (it will be raised later, if and when the signal is unblocked).  */
 static void
 sig_suspender (signo)

@@ -1399,7 +1399,7 @@ to search backward for these macros.  When the first match is
 @code{\ee}, point is not in this environment.  When the first match is
 @code{\be}, point is in this environment and the function must return
 the beginning of the match.  To avoid scanning too far, we can also look
-for empty lines which cannot occure inside an equation environment.
+for empty lines which cannot occur inside an equation environment.
 Here is the setup:@refill
 
 @lisp

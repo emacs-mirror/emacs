@@ -11207,7 +11207,7 @@ pbm_scan_number (s, end)
 
 /* Read FILE into memory.  Value is a pointer to a buffer allocated
    with xmalloc holding FILE's contents.  Value is null if an error
-   occured.  *SIZE is set to the size of the file.  */
+   occurred.  *SIZE is set to the size of the file.  */
 
 static char *
 pbm_read_file (file, size)
