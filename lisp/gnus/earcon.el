@@ -1,6 +1,6 @@
 ;;; earcon.el --- sound effects for messages
 
-;; Copyright (C) 1996, 2000 Free Software Foundation
+;; Copyright (C) 1996, 2000, 2001 Free Software Foundation
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 
@@ -36,11 +36,6 @@
 (defgroup earcon nil
   "Turn ** sounds ** into noise."
   :group 'gnus-visual)
-
-(defcustom earcon-auto-play nil
-  "*When True, automatically play sounds as well as buttonize them."
-  :type 'boolean
-  :group 'earcon)
 
 (defcustom earcon-prefix "**"
   "*String denoting the start of an earcon."
