@@ -99,6 +99,11 @@
 
 ;;; Code:
 
+(defgroup perl nil
+  "Major mode for editing Perl code."
+  :prefix "perl-"
+  :group 'languages)
+
 (defvar perl-mode-abbrev-table nil
   "Abbrev table in use in perl-mode buffers.")
 (define-abbrev-table 'perl-mode-abbrev-table ())
@@ -218,35 +223,53 @@ The expansion is entirely correct because it uses the C preprocessor."
   "Default expressions to highlight in Perl mode.")
 
 
-(defvar perl-indent-level 4
-  "*Indentation of Perl statements with respect to containing block.")
-(defvar perl-continued-statement-offset 4
-  "*Extra indent for lines not starting new statements.")
-(defvar perl-continued-brace-offset -4
+(defcustom perl-indent-level 4
+  "*Indentation of Perl statements with respect to containing block."
+  :type 'integer
+  :group 'perl)
+(defcustom perl-continued-statement-offset 4
+  "*Extra indent for lines not starting new statements."
+  :type 'integer
+  :group 'perl)
+(defcustom perl-continued-brace-offset -4
   "*Extra indent for substatements that start with open-braces.
-This is in addition to `perl-continued-statement-offset'.")
-(defvar perl-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context.")
-(defvar perl-brace-imaginary-offset 0
-  "*Imagined indentation of an open brace that actually follows a statement.")
-(defvar perl-label-offset -2
-  "*Offset of Perl label lines relative to usual indentation.")
+This is in addition to `perl-continued-statement-offset'."
+  :type 'integer
+  :group 'perl)
+(defcustom perl-brace-offset 0
+  "*Extra indentation for braces, compared with other text in same context."
+  :type 'integer
+  :group 'perl)
+(defcustom perl-brace-imaginary-offset 0
+  "*Imagined indentation of an open brace that actually follows a statement."
+  :type 'integer
+  :group 'perl)
+(defcustom perl-label-offset -2
+  "*Offset of Perl label lines relative to usual indentation."
+  :type 'integer
+  :group 'perl)
 
-(defvar perl-tab-always-indent t
+(defcustom perl-tab-always-indent t
   "*Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
-nonwhite character on the line.")
+nonwhite character on the line."
+  :type 'boolean
+  :group 'perl)
 
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
-(defvar perl-tab-to-comment nil
+(defcustom perl-tab-to-comment nil
   "*Non-nil means TAB moves to eol or makes a comment in some cases.
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
-create a new comment.")
+create a new comment."
+  :type 'boolean
+  :group 'perl)
 
-(defvar perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
-  "*Lines starting with this regular expression are not auto-indented.")
+(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
+  "*Lines starting with this regular expression are not auto-indented."
+  :type 'regexp
+  :group 'perl)
 
 (defun perl-mode ()
   "Major mode for editing Perl code.

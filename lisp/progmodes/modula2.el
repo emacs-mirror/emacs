@@ -20,21 +20,34 @@
 
 ;;; Code:
 
+(defgroup modula2 nil
+  "Major mode for editing Modula-2 code."
+  :prefix "m2-"
+  :group 'languages)
+
 ;;; Added by Tom Perrine (TEP)
 (defvar m2-mode-syntax-table nil
   "Syntax table in use in Modula-2 buffers.")
 
-(defvar m2-compile-command "m2c"
-  "Command to compile Modula-2 programs")
+(defcustom m2-compile-command "m2c"
+  "Command to compile Modula-2 programs."
+  :type 'string
+  :group 'modula2)
 
-(defvar m2-link-command "m2l"
-  "Command to link Modula-2 programs")
+(defcustom m2-link-command "m2l"
+  "Command to link Modula-2 programs."
+  :type 'string
+  :group 'modula2)
 
-(defvar m2-link-name nil
-  "Name of the executable.")
+(defcustom m2-link-name nil
+  "Name of the Modula-2 executable."
+  :type '(choice (const nil) string)
+  :group 'modula2)
 
-(defvar m2-end-comment-column nil
-  "*Column for aligning the end of a comment, in Modula-2.")
+(defcustom m2-end-comment-column 75
+  "*Column for aligning the end of a comment, in Modula-2."
+  :type 'integer
+  :group 'modula2)
 
 (if m2-mode-syntax-table
     ()
@@ -89,7 +102,10 @@
     (define-key map "\C-c\C-c" 'm2-compile)
     (setq m2-mode-map map)))
 
-(defvar m2-indent 5 "*This variable gives the indentation in Modula-2-Mode")
+(defcustom m2-indent 5 
+  "*This variable gives the indentation in Modula-2-Mode."
+  :type 'integer
+  :group 'modula2)
   
 ;;;###autoload
 (defun modula-2-mode ()
@@ -123,7 +139,6 @@ followed by the first character of the construct.
   (make-local-variable 'comment-column)
   (setq comment-column 41)
   (make-local-variable 'm2-end-comment-column)
-  (setq m2-end-comment-column 75)
   (set-syntax-table m2-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "$\\|" page-delimiter))
