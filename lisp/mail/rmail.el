@@ -2524,8 +2524,7 @@ This has an effect only if a summary buffer exists.")
 	 (unwind-protect 
 	     (progn
 	       (select-window window)
-	       (enlarge-window (- rmail-summary-window-size
-				  (window-height))))
+	       (enlarge-window (- rmail-summary-window-size (window-height))))
 	   (select-window selected)))))
 
 ;;;; *** Rmail Local Fontification ***
@@ -2534,7 +2533,9 @@ This has an effect only if a summary buffer exists.")
   ;; This function's symbol is bound to font-lock-fontify-buffer-function.
   (make-local-hook 'rmail-show-message-hook)
   (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
-  (rmail-fontify-message)
+  ;; If we're already showing a message, fontify it now.
+  (if rmail-current-message (rmail-fontify-message))
+  ;; Prevent Font Lock mode from kicking in.
   (setq font-lock-fontified t))
 
 (defun rmail-unfontify-buffer-function ()
