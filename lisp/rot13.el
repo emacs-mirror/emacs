@@ -44,6 +44,7 @@
     table)
   "Char table for rot 13 display.")
 
+;;;###autoload
 (defun rot13-other-window ()
   "Display current buffer in rot 13 in another window."
   (interactive)
