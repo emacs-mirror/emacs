@@ -311,7 +311,11 @@ value of this flag.")
 
      ((eq (vc-backend file) 'CVS)
       (save-excursion
-	(vc-simple-command 0 "cvs" file "status")
+        ;; Call "cvs status" in the right directory, passing only the
+        ;; nondirectory part of the file name -- otherwise CVS might 
+        ;; silently give a wrong result.
+        (let ((default-directory (file-name-directory file)))
+          (vc-simple-command 0 "cvs" (file-name-nondirectory file) "status"))
 	(set-buffer (get-buffer "*vc-info*"))
 	(vc-parse-buffer     
 	 ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
@@ -778,10 +782,10 @@ For CVS, the full name of CVS/Entries is returned."
 				 (match-string 1))
 		;; If the file hasn't been modified since checkout,
 		;; store the checkout-time.
-		(setq mtime (nth 5 (file-attributes file)))
-		(if (string= (match-string 2) (vc-utc-string mtime))
-		    (vc-file-setprop file 'vc-checkout-time mtime)
-		  (vc-file-setprop file 'vc-checkout-time 0))
+		(let ((mtime (nth 5 (file-attributes file))))
+		  (if (string= (match-string 2) (vc-utc-string mtime))
+		      (vc-file-setprop file 'vc-checkout-time mtime)
+		    (vc-file-setprop file 'vc-checkout-time 0)))
 		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       (t (setq case-fold-search fold)  ;; restore the old value
 		  nil)))
