@@ -18,7 +18,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef USE_TEXT_PROPERTIES
+#ifndef NORMAL_FACE
 #include "dispextern.h"
+#endif
 
 #define NULL_INTERVAL 0
 #define INTERVAL_DEFAULT NULL_INTERVAL
@@ -135,7 +137,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Is this interval visible?  Replace later with cache access */
 #define INTERVAL_VISIBLE_P(i) \
-  (! NULL_INTERVAL_P (i) && ! NILP (Fmemq (Qinvisible, (i)->plist)))
+  (! NULL_INTERVAL_P (i) && NILP (Fmemq (Qinvisible, (i)->plist)))
 
 /* Is this interval writable?  Replace later with cache access */
 #define INTERVAL_WRITABLE_P(i) \
