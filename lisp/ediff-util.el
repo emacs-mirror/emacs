@@ -233,7 +233,7 @@ to invocation.")
   (define-key ediff-mode-map "wb"  'ediff-save-buffer)
   (define-key ediff-mode-map "wd"  'ediff-save-buffer)
   (define-key ediff-mode-map "="   'ediff-inferior-compare-regions)
-  (if (fboundp 'ediff-show-patch-diagnostics)
+  (if (and (fboundp 'ediff-show-patch-diagnostics) (ediff-patch-job))
       (define-key ediff-mode-map "P"  'ediff-show-patch-diagnostics))
   (if ediff-3way-job
       (progn
@@ -910,36 +910,40 @@ Does nothing if file-A and file-B are in different frames."
 On a dumb terminal, switches between ASCII highlighting and no highlighting." 
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (if (not (ediff-has-face-support-p))
-      (if (eq ediff-highlighting-style 'ascii)
-	  (progn
-	    (message "ASCII highlighting flags removed")
-	    (ediff-unselect-and-select-difference ediff-current-difference
-						  'unselect-only)
-	    (setq ediff-highlighting-style 'off))
-	(ediff-unselect-and-select-difference ediff-current-difference
-					      'select-only))
-    (ediff-unselect-and-select-difference ediff-current-difference
-					  'unselect-only)
-    ;; cycle through highlighting
-    (cond ((and ediff-use-faces ediff-highlight-all-diffs)
-	   (message "Unhighlighting unselected difference regions")
-	   (setq ediff-highlight-all-diffs nil))
-	  (ediff-use-faces
-	   (message "Highlighting with ASCII flags")
-	   (setq ediff-use-faces nil))
-	  (t
-	   (message "Re-highlighting all difference regions")
-	   (setq ediff-use-faces t
-		 ediff-highlight-all-diffs t)))
-		 
-    (if (and ediff-use-faces ediff-highlight-all-diffs)
-	(ediff-paint-background-regions)
-      (ediff-paint-background-regions 'unhighlight))
-    
-    (ediff-unselect-and-select-difference
-     ediff-current-difference 'select-only))
-  )
+
+  (ediff-unselect-and-select-difference
+   ediff-current-difference 'unselect-only)
+  ;; cycle through highlighting
+  (cond ((and ediff-use-faces
+	      (ediff-has-face-support-p)
+	      ediff-highlight-all-diffs)
+	 (message "Unhighlighting unselected difference regions")
+	 (setq ediff-highlight-all-diffs  nil
+	       ediff-highlighting-style  'face))
+	((or (and ediff-use-faces  (ediff-has-face-support-p)
+		  (eq ediff-highlighting-style 'face))       ; has face support
+	     (and (not (ediff-has-face-support-p))           ; no face support
+		  (eq ediff-highlighting-style 'off)))
+	 (message "Highlighting with ASCII flags")
+	 (setq ediff-highlighting-style  'ascii
+	       ediff-highlight-all-diffs  nil
+	       ediff-use-faces            nil))
+	((eq ediff-highlighting-style 'ascii)
+	 (message "ASCII highlighting flags removed")
+	 (setq ediff-highlighting-style  'off
+	       ediff-highlight-all-diffs  nil))
+	((ediff-has-face-support-p)   ; catch-all for cases with face support
+	 (message "Re-highlighting all difference regions")
+	 (setq ediff-use-faces            t
+	       ediff-highlighting-style  'face
+	       ediff-highlight-all-diffs  t)))
+  
+  (if (and ediff-use-faces ediff-highlight-all-diffs)
+      (ediff-paint-background-regions)
+    (ediff-paint-background-regions 'unhighlight))
+  
+  (ediff-unselect-and-select-difference
+   ediff-current-difference 'select-only))
 
   
 (defun ediff-toggle-autorefine ()
@@ -2909,23 +2913,22 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	   (ediff-buffer-live-p ediff-buffer-B)
 	   (ediff-valid-difference-p n))
       (progn
-	(if (and (ediff-has-face-support-p) ediff-use-faces)
-	    (progn
-	      (ediff-highlight-diff n)
-	      (setq ediff-highlighting-style 'face))
-	  (setq ediff-highlighting-style 'ascii)
-	  (ediff-place-flags-in-buffer
-	   'A ediff-buffer-A ediff-control-buffer n)
-	  (ediff-place-flags-in-buffer
-	   'B ediff-buffer-B ediff-control-buffer n)
-	  (if ediff-3way-job
-	      (ediff-place-flags-in-buffer
-	       'C ediff-buffer-C ediff-control-buffer n))
-	  (if (ediff-buffer-live-p ediff-ancestor-buffer)
-	      (ediff-place-flags-in-buffer
-	       'Ancestor ediff-ancestor-buffer
-	       ediff-control-buffer n))
-	  ) 
+	(cond
+	    ((and (ediff-has-face-support-p) ediff-use-faces)
+	       (ediff-highlight-diff n))
+	    ((eq ediff-highlighting-style 'ascii)
+	     (ediff-place-flags-in-buffer
+	      'A ediff-buffer-A ediff-control-buffer n)
+	     (ediff-place-flags-in-buffer
+	      'B ediff-buffer-B ediff-control-buffer n)
+	     (if ediff-3way-job
+		 (ediff-place-flags-in-buffer
+		  'C ediff-buffer-C ediff-control-buffer n))
+	     (if (ediff-buffer-live-p ediff-ancestor-buffer)
+		 (ediff-place-flags-in-buffer
+		  'Ancestor ediff-ancestor-buffer
+		  ediff-control-buffer n))
+	     )) 
 				       
 	(ediff-install-fine-diff-if-necessary n)
 	(run-hooks 'ediff-select-hook))))
@@ -2954,7 +2957,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		    ediff-ancestor-buffer
 		    (ediff-get-diff-overlay n 'Ancestor)))
 	       ))
-	(setq ediff-highlighting-style nil)
 	
 	;; unhighlight fine diffs
 	(ediff-set-fine-diff-properties ediff-current-difference 'default)
@@ -2983,8 +2985,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	  (setq ediff-current-difference n)
 	  ) ; end protected section
       
-      (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines))
-      )))
+      (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines)))
+    ))
 
 
 
@@ -3302,6 +3304,77 @@ Without an argument, it saves customized diff argument, if available
 	    )
     (save-buffer)))
 
+
+;; idea suggested by Hannu Koivisto <azure@iki.fi>
+(defun ediff-clone-buffer-for-region-comparison (buff region-name)
+  (let ((cloned-buff (ediff-make-cloned-buffer buff region-name))
+	(wind (ediff-get-visible-buffer-window buff))
+	(pop-up-windows t)
+	other-wind
+	msg-buf)
+    (ediff-with-current-buffer cloned-buff
+      (setq ediff-temp-indirect-buffer t))
+    (if (window-live-p wind)
+	(set-window-buffer wind cloned-buff))
+    (pop-to-buffer cloned-buff)
+    (with-temp-buffer
+      (erase-buffer)
+      (insert
+       (format "\n   *******  Mark a region in buffer %s  *******\n"
+	       (buffer-name cloned-buff)))
+      (insert
+       (format "\n\t      When done, type %s       Use %s to abort\n    "
+	       (ediff-format-bindings-of 'exit-recursive-edit)
+	       (ediff-format-bindings-of 'abort-recursive-edit)))
+      (goto-char (point-min))
+      (setq msg-buf (current-buffer))
+      (other-window 1)
+      (set-window-buffer (selected-window) msg-buf)
+      (shrink-window-if-larger-than-buffer)
+      (if (window-live-p wind)
+	  (select-window wind))
+      (condition-case nil
+	  (recursive-edit)
+	(quit
+	 (ediff-kill-buffer-carefully cloned-buff)))
+      )
+    cloned-buff))
+
+
+(defun ediff-clone-buffer-for-window-comparison (buff wind region-name)
+  (let ((cloned-buff (ediff-make-cloned-buffer buff region-name)))
+    (ediff-with-current-buffer cloned-buff
+      (setq ediff-temp-indirect-buffer t))
+    (set-window-buffer wind cloned-buff)
+    cloned-buff))
+
+(defun ediff-clone-buffer-for-current-diff-comparison (buff buf-type reg-name)
+  (let ((cloned-buff (ediff-make-cloned-buffer buff reg-name))
+	(reg-start (ediff-get-diff-posn buf-type 'beg))
+	(reg-end (ediff-get-diff-posn buf-type 'end)))
+    (ediff-with-current-buffer cloned-buff
+      ;; set region to be the current diff region
+      (goto-char reg-start)
+      (set-mark reg-end)
+      (setq ediff-temp-indirect-buffer t))
+    cloned-buff))
+  
+
+
+(defun ediff-make-cloned-buffer (buff region-name)
+  (ediff-make-indirect-buffer
+   buff (concat
+	 (if (stringp buff) buff (buffer-name buff))
+	 region-name (symbol-name (gensym)))))
+
+
+(defun ediff-make-indirect-buffer (base-buf indirect-buf-name)
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (make-indirect-buffer base-buf indirect-buf-name) ; xemacs
+   (make-indirect-buffer base-buf indirect-buf-name 'clone) ; emacs
+   ))
+
+
 ;; This function operates only from an ediff control buffer
 (defun ediff-compute-custom-diffs-maybe ()
   (let ((buf-A-file-name (buffer-file-name ediff-buffer-A))
@@ -3373,7 +3446,14 @@ Ediff Control Panel to restore highlighting."
 	(zmacs-regions t)
 	(ctl-buf (current-buffer))
 	quit-now
+	use-current-diff-p
 	begA begB endA endB bufA bufB)
+
+    (if (ediff-valid-difference-p ediff-current-difference)
+	(progn
+	  (ediff-set-fine-diff-properties ediff-current-difference 'default)
+	  (ediff-unhighlight-diff)))
+    (ediff-paint-background-regions 'unhighlight)
 
     (cond ((ediff-merge-job)
 	   (setq bufB ediff-buffer-C)
@@ -3440,8 +3520,14 @@ Ediff Control Panel to restore highlighting."
 		 bufB ediff-buffer-B
 		 possibilities nil)))
 
-    (setq bufA (ediff-clone-buffer-for-region-comparison
-		(buffer-name bufA) "-Region.A-"))
+    (if (and (ediff-valid-difference-p ediff-current-difference)
+	     (y-or-n-p "Compare currently highlighted difference regions? "))
+	(setq use-current-diff-p t))
+
+    (setq bufA (if use-current-diff-p
+		   (ediff-clone-buffer-for-current-diff-comparison
+		    bufA 'A "-Region.A-")
+		 (ediff-clone-buffer-for-region-comparison bufA "-Region.A-")))
     (ediff-with-current-buffer bufA
       (setq begA (region-beginning)
 	    endA (region-end))
@@ -3453,8 +3539,10 @@ Ediff Control Panel to restore highlighting."
       (or (eobp) (forward-char)) ; include the newline char
       (setq endA (point)))
 
-    (setq bufB (ediff-clone-buffer-for-region-comparison
-		(buffer-name bufB) "-Region.B-"))
+    (setq bufB (if use-current-diff-p
+		   (ediff-clone-buffer-for-current-diff-comparison
+		    bufB 'B "-Region.B-")
+		 (ediff-clone-buffer-for-region-comparison bufB "-Region.B-")))
     (ediff-with-current-buffer bufB
       (setq begB (region-beginning)
 	    endB (region-end))
@@ -3466,11 +3554,15 @@ Ediff Control Panel to restore highlighting."
       (or (eobp) (forward-char)) ; include the newline char
       (setq endB (point)))
 
+
     (ediff-regions-internal
      bufA begA endA bufB begB endB
-     nil			; setup-hook
-     'ediff-regions-linewise	; job name
-     nil			; no word mode
+     nil     	     	     	; setup-hook
+     (if use-current-diff-p	; job name
+	 'ediff-regions-wordwise
+       'ediff-regions-linewise)
+     (if use-current-diff-p	; word mode, if diffing current diff
+	 t nil)
      ;; setup param to pass to ediff-setup
      (list (cons 'ediff-split-window-function ediff-split-window-function)))
     ))

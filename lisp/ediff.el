@@ -851,55 +851,6 @@ If WIND-B is nil, use window next to WIND-A."
      buffer-A beg-A end-A buffer-B beg-B end-B
      startup-hooks job-name word-mode nil)))
      
-;; Suggested by Hannu Koivisto <azure@iki.fi>
-(defun ediff-clone-buffer-for-region-comparison (buff-name region-name)
-  (let ((cloned-buff (ediff-make-indirect-buffer
-		      buff-name
-		      (concat buff-name region-name
-			      (symbol-name (gensym)))))
-	(wind (ediff-get-visible-buffer-window buff-name))
-	(pop-up-windows t)
-	other-wind
-	msg-buf)
-    (ediff-with-current-buffer cloned-buff
-      (setq ediff-temp-indirect-buffer t))
-    (if (window-live-p wind)
-	(set-window-buffer wind cloned-buff))
-    (pop-to-buffer cloned-buff)
-    (with-temp-buffer
-      (erase-buffer)
-      (insert
-       (format "\n   *******  Mark a region in buffer %s  *******\n"
-	       (buffer-name cloned-buff)))
-      (insert
-       (format "\n\t      When done, type %s       Use %s to abort\n    "
-	       (ediff-format-bindings-of 'exit-recursive-edit)
-	       (ediff-format-bindings-of 'abort-recursive-edit)))
-      (goto-char (point-min))
-      (setq msg-buf (current-buffer))
-      (other-window 1)
-      (set-window-buffer (selected-window) msg-buf)
-      (shrink-window-if-larger-than-buffer)
-      (select-window wind)
-      (recursive-edit)
-      )
-    cloned-buff))
-
-(defun ediff-clone-buffer-for-window-comparison (buff wind region-name)
-  (let ((cloned-buff (ediff-make-indirect-buffer
-		      buff
-		      (concat (buffer-name buff)
-			      region-name (symbol-name (gensym))))))
-    (ediff-with-current-buffer cloned-buff
-      (setq ediff-temp-indirect-buffer t))
-    (set-window-buffer wind cloned-buff)
-    cloned-buff))
-
-(defun ediff-make-indirect-buffer (base-buf indirect-buf-name)
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (make-indirect-buffer base-buf indirect-buf-name) ; xemacs
-   (make-indirect-buffer base-buf indirect-buf-name 'clone) ; emacs
-   ))
 
 ;;;###autoload
 (defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
@@ -1237,7 +1188,7 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's latest version): "
+	    "Version 1 to merge (default: %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
@@ -1269,7 +1220,7 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's latest version): "
+	    "Version 1 to merge (default: %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
@@ -1385,7 +1336,7 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format "Version 1 to compare (default: %s's latest version): "
+	   (format "Version 1 to compare (default: %s's working version): "
 		   (file-name-nondirectory file)))
 	  rev2
 	  (read-string 

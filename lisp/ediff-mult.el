@@ -40,17 +40,25 @@
 ;;	3. Provide a list of pairs or triples of file names (or buffers,
 ;;	   depending on the particular Ediff operation you want to invoke)
 ;;	   in the following format:
-;;	  	(descriptor-header (nil nil (obj1 nil) (obj2 nil) (obj3 nil))
+;;	  	(HEADER (nil nil (obj1 nil) (obj2 nil) (obj3 nil))
 ;;                                 (...) ...)
 ;;         The function ediff-make-new-meta-list-element can be used to create
-;;         2nd and subsequent elements of that list.
-;;	   Actually, the format of this list is pretty much up to the
-;;	   developer.  The only thing is that it must be a list of lists,
-;;	   and the first list must describe the meta session, and subsequent
-;;	   elements must describe individual sessions.
-;;	   This descriptor-header must be a list of SIX elements (nil or
-;;         string).  The function ediff-redraw-registry-buffer displays the 
+;;         2nd and subsequent elements of that list (i.e., after the
+;;         description header). See ediff-make-new-meta-list-element for the
+;;         explanation of the two nil placeholders in such elements.
+;;
+;;         There is API for extracting the components of the members of the
+;;         above list. Search for `API for ediff-meta-list' for details.
+;;
+;;	   HEADER must be a list of SIX elements (nil or string):
+;;             (regexp metaobj1 metaobj2 metaobj3 merge-save-buffer
+;;              comparison-function)
+;;         The function ediff-redraw-registry-buffer displays the 
 ;;	   1st - 4th of these in the registry buffer. 
+;;         For some jobs some of the members of the header might be nil.
+;;         The meaning of metaobj1, metaobj2, and metaobj3 depend on the job.
+;;         Typically these are directories where the files to be compared are
+;;         found.
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
 ;;	   (which see) prepends the session group buffer to the descriptor, so
 ;;	   the descriptor becomes 7-long.
@@ -61,12 +69,16 @@
 ;;	   to any of Ediff major entries (such as ediff-files, epatch, etc.).
 ;;	   See how this is done in ediff-filegroup-action.
 ;;
-;;	   Session descriptions are of the form (obj1 obj2 obj3), which
-;;	   describe objects relevant to the session.  Usually they are names of
-;;	   files, but sometimes they may be other things.  For instance, obj3
-;;	   is nil for jobs that involve only two files.  For patch jobs, obj2
-;;	   and obj3 are markers that specify the patch corresponding to the
-;;	   file (whose name is obj1).
+;;	   Session descriptions are of the form
+;;            (nil nil (obj1 . nil) (obj2 . nil) (obj3 . nil))
+;;         which describe the objects relevant to the session.
+;;         Use ediff-make-new-meta-list-element to create these things.
+;;         Usually obj1/2/3 are names of files, but they may also be other
+;;         things for some jobs.  For instance, obj3 is nil for jobs that
+;;         involve only two files.  For patch jobs, obj2 and obj3 are markers
+;;     	   that specify the patch corresponding to the file
+;;         (whose name is obj1).
+;;         The nil's are placeholders, which are used internally by ediff.
 ;;	4. Write a function that makes a call to ediff-prepare-meta-buffer
 ;;	   passing all this info. 
 ;;	   You may be able to use ediff-directories-internal as a template.
@@ -278,6 +290,8 @@ buffers."
   (nth 3 elt))
 (defsubst ediff-get-session-objC (elt)
   (nth 4 elt))
+;; Take the "name" component of the object into acount. ObjA/C/B is of the form
+;; (name . equality-indicator)
 (defsubst ediff-get-session-objA-name (elt)
   (car (nth 2 elt)))
 (defsubst ediff-get-session-objB-name (elt)
@@ -293,16 +307,26 @@ buffers."
 ;; Create a new element for the meta list out of obj1/2/3, which usually are
 ;; files
 ;;
-;; The first nil in such an is later replaced with the session buffer.  The
-;; second nil is reserved for session status.
+;; The first nil in such an element is later replaced with the session buffer.
+;; The second nil is reserved for session status.
 ;;
 ;; Also, session objects A/B/C are turned into lists of the form (obj nil).
-;; This nill is a placeholder for eq-indicator. It is either nil or =.
+;; This nil is a placeholder for eq-indicator. It is either nil or =.
 ;; If it is discovered that this file is = to some other
 ;; file in the same session, eq-indicator is changed to `='.
 ;; Curently, the eq-indicator is used only for 2 and 3-file jobs.
 (defun ediff-make-new-meta-list-element (obj1 obj2 obj3)
   (list nil nil (list obj1 nil) (list obj2 nil) (list obj3 nil)))
+
+;; Constructs a meta list header.
+;; OBJA, OBJB, OBJC are usually directories involved, but can be different for
+;; different jobs. For instance, multifile patch has only OBJA, which is the
+;; patch buffer.
+(defun ediff-make-new-meta-list-header (regexp 
+					objA objB objC
+					merge-auto-store-dir
+					comparison-func)
+  (list regexp objA objB objC merge-auto-store-dir comparison-func))
 
 ;; The activity marker is either or + (active session, i.e., ediff is currently
 ;; run in it), or - (finished session, i.e., we've ran ediff in it and then
@@ -485,18 +509,31 @@ behavior."
 ;; If a file is a directory in dir1 but not dir2 (or vice versa), it is not
 ;; included in the intersection.  However, a regular file that is a dir in dir3
 ;; is included, since dir3 files are supposed to be ancestors for merging.
-;; Returns a list of the form:
-;;	(DIFF-LIST META-HEADER (f1 f2 f3) (f1 f2 f3) ...)
-;; dir3, f3 can be nil if intersecting only 2 directories.
 ;; If COMPARISON-FUNC is given, use it.  Otherwise, use string=
+;;
+;; Returns a list of the form:
+;;      (COMMON-PART DIFF-LIST)
+;; COMMON-PART is car and DIFF-LIST is cdr.
+;;
+;; COMMON-PART is of the form:
+;;	(META-HEADER (f1 f2 f3) (f1 f2 f3) ...)
+;; f3 can be nil if intersecting only 2 directories.
+;; Each triple (f1 f2 f3) represents the files to be compared in the
+;; corresponding ediff subsession.
+;;
 ;; DIFF-LIST is of the form:
 ;;	(META-HEADER (file . num) (file . num)...)
 ;; where num encodes the set of dirs where the file is found:
 ;; 2 - only dir1; 3 - only dir2; 5 - only dir3; 6 - dir1&2; 10 - dir1&3; etc.
-;; META-HEADER is of the form
-;;       It contains the meta info about this ediff operation
+;; META-HEADER:
+;;       Contains the meta info about this ediff operation
 ;;       (regexp dir1 dir2 dir3 merge-auto-store-dir comparison-func)
 ;;       Later the meta-buffer is prepended to this list.
+;;
+;; Some operations might use a different meta header. For instance,
+;; ediff-multifile-patch doesn't have dir2 and dir3, and regexp,
+;; comparison-func don't apply.
+;;
 (defun ediff-intersect-directories (jobname
 				    regexp dir1 dir2
 				    &optional
@@ -572,19 +609,19 @@ behavior."
 	    difflist)
     (setq difflist (cons
 		    ;; diff metalist header
-		    (list regexp
-			  auxdir1 auxdir2 auxdir3
-			  merge-autostore-dir
-			  comparison-func)
+		    (ediff-make-new-meta-list-header regexp
+						     auxdir1 auxdir2 auxdir3
+						     merge-autostore-dir
+						     comparison-func)
 		    difflist))
     
     (setq common-part
 	  (cons 
 	   ;; metalist header
-	   (list regexp
-		 auxdir1 auxdir2 auxdir3
-		 merge-autostore-dir
-		 comparison-func)
+	   (ediff-make-new-meta-list-header regexp
+					    auxdir1 auxdir2 auxdir3
+					    merge-autostore-dir
+					    comparison-func)
 	   (mapcar
 	    (lambda (elt) 
 	      (ediff-make-new-meta-list-element
@@ -652,7 +689,9 @@ behavior."
     (cons 
      ;; header -- has 6 elements. Meta buffer is prepended later by
      ;; ediff-prepare-meta-buffer 
-     (list regexp auxdir1 nil nil merge-autostore-dir nil)
+     (ediff-make-new-meta-list-header regexp
+				      auxdir1 nil nil
+				      merge-autostore-dir nil)
      (mapcar (lambda (elt) (ediff-make-new-meta-list-element
 			    (concat auxdir1 elt) nil nil))
 	     common))
@@ -2222,7 +2261,7 @@ If this is a session registry buffer then just bury it."
     (or (ediff-buffer-live-p session-buf) ; either an active patch session
 	(null session-buf)  		  ; or it is a virgin session
 	(error
-	 "Patch has been already applied to this file--cannot be repeated!"))
+	 "Patch has already been applied to this file -- can't repeat!"))
 
     (ediff-with-current-buffer meta-patchbuf
       (save-restriction

@@ -783,7 +783,10 @@ one optional arguments, diff-number to refine.")
 	
 ;; Interface to ediff-make-fine-diffs. Checks for auto-refine limit, etc.
 (defun ediff-install-fine-diff-if-necessary (n)
-  (cond ((eq ediff-auto-refine 'on)
+  (cond ((and (eq ediff-auto-refine 'on)
+	      ediff-use-faces
+	      (not (eq ediff-highlighting-style 'off))
+	      (not (eq ediff-highlighting-style 'ascii)))
 	 (if (and
 	      (> ediff-auto-refine-limit
 		 (- (ediff-get-diff-posn 'A 'end n)
@@ -1215,32 +1218,38 @@ delimiter regions"))
 (defvar ediff-forward-word-function 'ediff-forward-word
   "*Function to call to move to the next word.
 Used for splitting difference regions into individual words.")
+(make-variable-buffer-local 'ediff-forward-word-function)
 
 (defvar ediff-whitespace " \n\t\f"
   "*Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
+(make-variable-buffer-local 'ediff-whitespace)
 
 (defvar ediff-word-1
   (ediff-cond-compile-for-xemacs-or-emacs "a-zA-Z---_" "-[:word:]_")
   "*Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
+(make-variable-buffer-local 'ediff-word-1)
 
 (defvar ediff-word-2 "0-9.,"
   "*Characters that constitute words of type 2.
 More precisely, [ediff-word-2] is a regexp that matches type 2 words.
 See `ediff-forward-word' for more details.")
+(make-variable-buffer-local 'ediff-word-2)
 
 (defvar ediff-word-3 "`'?!:;\"{}[]()"
   "*Characters that constitute words of type 3.
 More precisely, [ediff-word-3] is a regexp that matches type 3 words.
 See `ediff-forward-word' for more details.")
+(make-variable-buffer-local 'ediff-word-3)
 
 (defvar ediff-word-4
   (concat "^" ediff-word-1 ediff-word-2 ediff-word-3 ediff-whitespace)
   "*Characters that constitute words of type 4.
 More precisely, [ediff-word-4] is a regexp that matches type 4 words.
 See `ediff-forward-word' for more details.")
+(make-variable-buffer-local 'ediff-word-4)
 
 ;; Split region along word boundaries. Each word will be on its own line.
 ;; Output to buffer out-buffer.

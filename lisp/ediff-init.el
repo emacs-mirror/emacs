@@ -78,7 +78,8 @@ that Ediff doesn't know about.")
 	(ediff-force-faces)
 	((ediff-color-display-p))
 	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
-	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
+	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))
+	))
 
 ;; toolbar support for emacs hasn't been implemented in ediff
 (defun ediff-has-toolbar-support-p ()
@@ -288,6 +289,9 @@ It needs to be killed when we quit the session.")
       ediff-merge-revisions
       ediff-merge-revisions-with-ancestor)))
 (ediff-defvar-local ediff-merge-job nil "")
+
+(defmacro ediff-patch-job ()
+  `(eq ediff-job-name 'epatch))
 
 (defmacro ediff-merge-with-ancestor-job ()
   `(memq
@@ -630,11 +634,6 @@ shown in brighter colors."
   :type 'boolean
   :group 'ediff-highlighting)
 
-;; A var local to each control panel buffer.  Indicates highlighting style
-;; in effect for this buffer: `face', `ascii', nil -- temporarily
-;; unhighlighted, `off' -- turned off \(on a dumb terminal only\).
-(ediff-defvar-local ediff-highlighting-style nil "")
-
 
 ;; The suffix of the control buffer name.
 (ediff-defvar-local ediff-control-buffer-suffix nil "")
@@ -807,6 +806,14 @@ to temp files when Ediff needs to find fine differences."
 	 (x-display-color-p))
 	)
     (error nil)))
+
+
+;; A var local to each control panel buffer.  Indicates highlighting style
+;; in effect for this buffer: `face', `ascii',
+;; `off' -- turned off \(on a dumb terminal only\).
+(ediff-defvar-local ediff-highlighting-style 
+  (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
+  "")
 
 
 (if (ediff-has-face-support-p)
