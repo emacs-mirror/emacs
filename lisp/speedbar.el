@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.22 1999/03/13 04:52:25 kwzh Exp kwzh $
+;; X-RCS: $Id: speedbar.el,v 1.23 1999/06/04 18:22:55 kwzh Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -2165,7 +2165,8 @@ INDEX is not used, but is required by the caller."
 			      'speedbar-directory-face
 			      'speedbar-highlight-face
 			      'speedbar-directory-buttons-follow
-			      (if (= (match-beginning 1) p)
+			      (if (and (= (match-beginning 1) p)
+                                       (not (char-equal (char-after (+ p 1)) ?:)))
 				  (expand-file-name "~/")  ;the tilde
 				(buffer-substring-no-properties
 				 p (match-end 0)))))
