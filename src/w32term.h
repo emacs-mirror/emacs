@@ -43,7 +43,7 @@ Boston, MA 02111-1307, USA.  */
 /* Special pseudo-codepages. */
 #define CP_8BIT      -1
 #define CP_UNICODE   -2
-#define CP_INVALID   -3
+#define CP_UNKNOWN   -3
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
