@@ -149,6 +149,59 @@ This is not required to be present for user-written mode annotations.")
 ;;; rather than using buffer-local variables because the latter are
 ;;; thrown away when a buffer changes major modes.
 
+(defvar calc-embedded-original-modes nil
+  "The mode settings for Calc buffer when put in embedded mode.")
+
+(defun calc-embedded-save-original-modes ()
+  "Save the current Calc modes when entereding embedded mode."
+  (let ((calcbuf (save-excursion
+                   (calc-create-buffer)
+                   (current-buffer)))
+        lang modes)
+    (if calcbuf
+        (with-current-buffer calcbuf
+          (setq lang
+                (cons calc-language calc-language-option))
+          (setq modes
+                (list (cons 'calc-display-just
+                            calc-display-just)
+                      (cons 'calc-display-origin
+                            calc-display-origin)))
+          (let ((v calc-embedded-mode-vars))
+            (while v
+              (let ((var (cdr (car v))))
+                (unless (memq var '(the-language the-display-just))
+                  (setq modes
+                        (cons (cons var (symbol-value var)) 
+                              modes))))
+              (setq v (cdr v))))
+          (setq calc-embedded-original-modes (cons lang modes)))
+      (setq calc-embedded-original-modes nil))))
+
+(defun calc-embedded-restore-original-modes ()
+  "Restore the original Calc modes when leaving embedded mode."
+  (let ((calcbuf (get-buffer "*Calculator*"))
+        (changed nil)
+        (lang (car calc-embedded-original-modes))
+        (modes (cdr calc-embedded-original-modes)))
+    (if (and calcbuf calc-embedded-original-modes)
+        (with-current-buffer calcbuf
+          (unless (and
+                   (equal calc-language (car lang))
+                   (equal calc-language-option (cdr lang)))
+            (calc-set-language (car lang) (cdr lang))
+            (setq changed t))
+          (while modes
+            (let ((mode (car modes)))
+              (unless (equal (symbol-value (car mode)) (cdr mode))
+                (set (car mode) (cdr mode))
+                (setq changed t)))
+            (setq modes (cdr modes)))
+          (when changed
+            (calc-refresh)
+            (calc-set-mode-line))))
+    (setq calc-embedded-original-modes nil)))
+
 ;; The variables calc-embed-outer-top, calc-embed-outer-bot, 
 ;; calc-embed-top and calc-embed-bot are
 ;; local to calc-do-embedded, calc-embedded-mark-formula,
@@ -193,6 +246,7 @@ This is not required to be present for user-written mode annotations.")
 		     buffer-read-only nil)
 	       (use-local-map (nth 1 mode))
 	       (set-buffer-modified-p (buffer-modified-p))
+               (calc-embedded-restore-original-modes)
 	       (or calc-embedded-quiet
 		   (message "Back to %s mode" mode-name))))
 
@@ -214,11 +268,13 @@ This is not required to be present for user-written mode annotations.")
 	  calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot
 	  info chg ident)
       (barf-if-buffer-read-only)
+      (calc-embedded-save-original-modes)
       (or calc-embedded-globals
 	  (calc-find-globals))
       (setq info (calc-embedded-make-info (point) nil t arg end obeg oend))
       (if (eq (car-safe (aref info 8)) 'error)
 	  (progn
+            (setq calc-embedded-original-modes nil)
 	    (goto-char (nth 1 (aref info 8)))
 	    (error (nth 2 (aref info 8)))))
       (let ((mode-line-buffer-identification mode-line-buffer-identification)
@@ -1200,7 +1256,27 @@ The command \\[yank] can retrieve it from there."
 		       (prin1-to-string (car values)) "]"
 		       calc-embedded-close-mode))))
 	      (setq vars (cdr vars)
-		    values (cdr values))))))))
+		    values (cdr values))))))
+    (when (and vars calc-embedded-original-modes (eq calc-mode-save-mode 'save))
+      (cond ((equal vars '(the-language))
+             (setcar calc-embedded-original-modes
+                     (cons calc-language calc-language-option)))
+            ((equal vars '(the-display-just))
+             (let* ((modes (cdr calc-embedded-original-modes))
+                    (just (assq 'calc-display-just modes))
+                    (origin (assq 'calc-display-origin modes)))
+               (if just
+                   (setcdr just calc-display-just))
+               (if origin
+                   (setcdr origin calc-display-origin))))
+            (t
+             (let ((modes (cdr calc-embedded-original-modes)))
+               (while vars
+                 (let* ((var (car vars))
+                        (cell (assq var modes)))
+                   (if cell
+                       (setcdr cell (symbol-value var))))
+                 (setq vars (cdr vars)))))))))
 
 (defun calc-embedded-var-change (var &optional buf)
   (if (symbolp var)
