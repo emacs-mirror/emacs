@@ -3185,13 +3185,11 @@ send_process_trap ()
 
 /* Send some data to process PROC.
    BUF is the beginning of the data; LEN is the number of characters.
-   OBJECT is the Lisp object that the data comes from.
+   OBJECT is the Lisp object that the data comes from.  If OBJECT is
+   nil or t, it means that the data comes from C string.
 
-   The data is encoded by PROC's coding-system for encoding before it
-   is sent.  But if the data ends at the middle of multi-byte
-   representation, that incomplete sequence of bytes are sent without
-   being encoded.  Should we store them in a buffer to prepend them to
-   the data send later? 
+   If OBJECT is not nil, the data is encoded by PROC's coding-system
+   for encoding before it is sent.
 
    This function can evaluate Lisp code and can garbage collect.  */
 
@@ -3228,7 +3226,8 @@ send_process (proc, buf, len, object)
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
-	  && !NILP (XBUFFER (object)->enable_multibyte_characters)))
+	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
+      || EQ (object, Qt))
     {
       coding->src_multibyte = 1;
       if (!EQ (coding->symbol, XPROCESS (proc)->encode_coding_system))
@@ -3242,11 +3241,20 @@ send_process (proc, buf, len, object)
     }
   else
     {
-      coding->src_multibyte = 0;
-        /* For sending a unibyte text, character code conversion
-	 should not take place but EOL conversion should.  So, setup
-	 raw-text or one of the subsidiary.  */
-      setup_raw_text_coding_system (coding);
+      /* For sending a unibyte text, character code conversion should
+	 not take place but EOL conversion should.  So, setup raw-text
+	 or one of the subsidiary if we have not yet done it.  */
+      if (coding->type != coding_type_raw_text)
+	{
+	  if (CODING_REQUIRE_FLUSHING (coding))
+	    {
+	      /* But, before changing the coding, we must flush out data.  */
+	      coding->mode |= CODING_MODE_LAST_BLOCK;
+	      send_process (proc, "", 0, Qt);
+	    }
+	  coding->src_multibyte = 0;
+	  setup_raw_text_coding_system (coding);
+	}
     }
   coding->dst_multibyte = 0;
 
