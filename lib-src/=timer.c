@@ -131,6 +131,7 @@ notify ()
     if (ep->reply_at <= now)
       {
 	fputs (ep->token, stdout);
+	putc ('\n', stdout);
 	fflush (stdout);
 	free (ep->token);
 
