@@ -46,8 +46,8 @@
 ;; Technical details of the Mayan calendrical calculations can be found in
 ;; ``Calendrical Calculations, Part II: Three Historical Calendars''
 ;; by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
-;; Report Number UIUCDCS-R-92-1743, Department of Computer Science,
-;; University of Illinois, April, 1992.
+;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
+;; pages 383-404.
 
 ;;; Code:
 

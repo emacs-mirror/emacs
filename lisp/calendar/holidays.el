@@ -38,8 +38,8 @@
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
 ;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
-;; Report Number UIUCDCS-R-92-1743, Department of Computer Science,
-;; University of Illinois, April, 1992.
+;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
+;; pages 383-404.
 
 ;; Hard copies of these two papers can be obtained by sending email to
 ;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
@@ -662,8 +662,9 @@ in the calendar window."
   (let ((visible)
         (p l))
     (while p
-      (if (calendar-date-is-visible-p (car (car p)))
-          (setq visible (append (list (car p)) visible)))
+      (and (car (car p))
+           (calendar-date-is-visible-p (car (car p)))
+           (setq visible (append (list (car p)) visible)))
       (setq p (cdr p)))
     visible))
 

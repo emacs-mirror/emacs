@@ -28,11 +28,11 @@
 ;; This collection of functions implements the features of calendar.el and
 ;; diary.el that deal with the French Revolutionary calendar.
 
-;; Technical details of the French Revolutionary calendrical calculations can
-;; be found in ``Calendrical Calculations, Part II: Three Historical
-;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
-;; Report Number UIUCDCS-R-92-1743, Department of Computer Science,
-;; University of Illinois, April, 1992.
+;; Technical details of the Mayan calendrical calculations can be found in
+;; ``Calendrical Calculations, Part II: Three Historical Calendars''
+;; by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
+;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
+;; pages 383-404.
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
