@@ -272,7 +272,7 @@ actually occur.")
 	    ;; Use EVAL to delay in case `mail-header-separator' gets changed.
 	    '(eval .
 	      (let ((separator (if (zerop (length mail-header-separator))
-				   " "
+				   " \\`\\' "
 				 (regexp-quote mail-header-separator))))
 		(cons (concat "^" separator "$") 'font-lock-warning-face)))
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
