@@ -2025,7 +2025,12 @@ change_frame_size (frame, newheight, newwidth, pretend, delay)
 
   FRAME_HEIGHT (frame) = newheight;
   FRAME_WIDTH (frame)  = newwidth;
-	
+
+  if (FRAME_CURSOR_X (frame) >= FRAME_WIDTH (frame))
+    FRAME_CURSOR_X (frame) = FRAME_WIDTH (frame) - 1;
+  if (FRAME_CURSOR_Y (frame) >= FRAME_HEIGHT (frame))
+    FRAME_CURSOR_Y (frame) = FRAME_HEIGHT (frame) - 1;
+
   remake_frame_glyphs (frame);
   calculate_costs (frame);
 }
