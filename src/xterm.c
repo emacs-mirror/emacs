@@ -3786,14 +3786,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    clear_mouse_face (dpyinfo);
 		  }
 	      }
-#if 0 /* This should be unnecessary, since the toolkit has no use
-	     for motion events that happen outside of the menu event loop,
-	     and it seems to cause the bug that mouse events stop coming
-	     after a while.  */
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
-#endif
 	      break;
 
 	    case ConfigureNotify:
