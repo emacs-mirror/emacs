@@ -906,6 +906,7 @@ Elements of the attribute list are:
 #endif
   char modes[10];
   Lisp_Object handler;
+  struct gcpro gcpro1;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -921,7 +922,9 @@ Elements of the attribute list are:
 	return call3 (handler, Qfile_attributes, filename, id_format);
     }
 
+  GCPRO1 (filename);
   encoded = ENCODE_FILE (filename);
+  UNGCPRO;
 
   if (lstat (SDATA (encoded), &s) < 0)
     return Qnil;
