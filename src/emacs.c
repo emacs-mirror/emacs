@@ -958,7 +958,9 @@ struct standard_args
 struct standard_args standard_args[] =
 {
   { "-nl", "--no-shared-memory", 100, 0 },
+#ifdef VMS
   { "-map", "--map-data", 100, 0 },
+#endif
   { "-t", "--terminal", 90, 1 },
   { "-d", "--display", 80, 1 },
   { "-display", 0, 80, 1 },
