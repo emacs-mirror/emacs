@@ -448,9 +448,9 @@ The return value is a string."
   (let* ((completion-ignore-case t)
 	 ;; This binding is necessary because input-method-history is
 	 ;; buffer local.
-	 (minibuffer-history input-method-history)
 	 (input-method (completing-read prompt input-method-alist
-					nil t nil nil default)))
+					nil t nil 'input-method-history
+					default)))
     (if (> (length input-method) 0)
 	input-method
       (if inhibit-null
@@ -498,7 +498,7 @@ and turn it on for the current buffer."
      (if (not enable-multibyte-characters)
 	 (error "Can't activate an input method while multibyte characters are disabled"))
      (list (read-input-method-name
-	    (if default "Input method (default %s): " "Input method: ")
+	    (if default "Select input method (default %s): " "Select input method: ")
 	    default t))))
   (activate-input-method input-method)
   (setq default-input-method input-method))
