@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 01, 02
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1874,7 +1874,10 @@ adjust_point_for_property (last_pt, modified)
   int beg, end;
   Lisp_Object val, overlay, tmp;
   int check_composition = 1, check_display = 1, check_invisible = 1;
+  int orig_pt = PT;
 
+  /* FIXME: cycling is probably not necessary because these properties
+     can't be usefully combined anyway.  */
   while (check_composition || check_display || check_invisible)
     {
       if (check_composition
@@ -1941,7 +1944,19 @@ adjust_point_for_property (last_pt, modified)
 	  /* Move away from the inside area.  */
 	  if (beg < PT && end > PT)
 	    {
-	      SET_PT (PT < last_pt ? beg : end);
+	      SET_PT ((orig_pt == PT && (last_pt < beg || last_pt > end))
+		      /* We haven't moved yet (so we don't need to fear
+			 infinite-looping) and we were outside the range
+			 before (so either end of the range still corresponds
+			 to a move in the right direction): pretend we moved
+			 less than we actually did, so that we still have
+			 more freedom below in choosing which end of the range
+			 to go to.  */
+		      ? (PT < last_pt ? end : beg)
+		      /* We either have moved already or the last point
+			 was already in the range: we don't get to choose
+			 which end of the range we have to go to.  */
+		      : (PT < last_pt ? beg : end));
 	      check_composition = check_display = 1;
 	    }
 	  xassert (PT == beg || PT == end);
