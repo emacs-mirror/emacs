@@ -108,18 +108,6 @@ This is only meaningful if you don't use the implicit checkout model
   :version "21.4"
   :group 'vc)
 
-(defcustom vc-mcvs-stay-local vc-cvs-stay-local
-  "*Non-nil means use local operations when possible for remote repositories.
-This avoids slow queries over the network and instead uses heuristics
-and past information to determine the current status of a file.
-The value can also be a regular expression to match against the host name
-of a repository; then VC only stays local for hosts that match it."
-  :type '(choice (const :tag "Always stay local" t)
-		 (string :tag "Host regexp")
-		 (const :tag "Don't stay local" nil))
-  :version "21.4"
-  :group 'vc)
-
 ;;;
 ;;; State-querying functions
 ;;;
