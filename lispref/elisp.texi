@@ -152,7 +152,6 @@ Reference Manual, corresponding to GNU Emacs version 22.1.
 
 * Processes::               Running and communicating with subprocesses.
 * Display::	            Features for controlling the screen display.
-* Calendar::		    Customizing the calendar and diary.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
 
@@ -973,7 +972,6 @@ Object Internals
 @include processes.texi
 
 @include display.texi
-@include calendar.texi
 @include os.texi
 
 @c MOVE to Emacs Manual:  include misc-modes.texi
