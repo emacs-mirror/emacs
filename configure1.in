@@ -935,7 +935,7 @@ esac
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "" )
-    echo "  No window system specifed.  Looking for X window system."
+    echo "  No window system specifed.  Looking for X11."
     window_system=none
     if [ -r /usr/lib/libX11.a \
 	 -o -d /usr/include/X11 \
