@@ -468,7 +468,8 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     user-mail-address
+						     (or mail-envelope-from
+							 user-mail-address)
 						     size-part
 						     body-part))
 
