@@ -227,7 +227,7 @@ The following key sequence may cause multilingual text insertion."
 ;;;###autoload
 (defun encoded-kbd-mode (&optional arg)
   "Toggle Encoded-kbd minor mode.
-With arg, turn Keyboard-kbd mode on in and only if arg is positive.
+With arg, turn Keyboard-kbd mode on if and only if arg is positive.
 
 When in Encoded-kbd mode, a text sent from a terminal keyboard
 is accepted as a multilingual text encoded in a coding system
@@ -283,19 +283,5 @@ set by the command `encoded-kbd-set-coding-system'"
     (setq describe-current-input-method-function nil)
     (setq current-input-method nil))
   (force-mode-line-update))
-
-;;;###autoload
-(defun encoded-kbd-set-coding-system (coding-system)
-  "Activate Encoded-kbd mode appropriately for a terminal using CODING-SYSTEM.
-If you specify nil for CODING-SYSTEM, Encoded-kbd mode is toggled off."
-  (interactive "zCoding system: ")
-  (if window-system
-      (error "Should run emacs on an ordinary terminal"))
-  (if (check-coding-system coding-system)
-      (progn
-	(set-keyboard-coding-system coding-system)
-	(encoded-kbd-mode 1))
-    (set-keyboard-coding-system nil)
-    (encoded-kbd-mode 0)))
 
 ;;; encoded-kb.el ends here
