@@ -1,3 +1,7 @@
+2000-03-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: Eliminate SkipFirstPage.
+
 2000-03-22  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin0.ps: Define command only for language level 1.

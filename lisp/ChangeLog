@@ -1,3 +1,23 @@
+2000-03-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Skip banner page fix.
+	(ps-print-version): New version number (5.1.2).
+	(ps-begin-file, ps-end-file, ps-generate): Code fix.
+	
+2000-03-23  Dave Pearson  <davep@davep.org>
+
+	* net/quickurl.el Changed the type of parameter passed to the
+	function defined by `quickurl-format-function'. Before only the
+	text of the URL was passed. Now the whole URL structure is passed
+	and the function is responsible for extracting the parts it
+	requires.  Changed the default of `quickurl-format-function'
+	accordingly.
+	(quickurl-insert): Changed the `funcall' of
+	`quickurl-format-function' to match the above change.
+	(quickurl-list-insert): Changed the `url' case so that it makes
+	use of `quickurl-format-function', previous to this the format was
+	hard wired.
+	
 2000-03-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el: Change some spellings for the X Window System.
