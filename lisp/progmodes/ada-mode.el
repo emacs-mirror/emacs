@@ -956,20 +956,20 @@ OLD-LEN indicates what the length of the replaced text was."
   "Returns t if inside a comment."
   (nth 4 (or parse-result
              (parse-partial-sexp
-              (save-excursion (beginning-of-line) (point)) (point)))))
+              (line-beginning-position) (point)))))
 
 (defsubst ada-in-string-p (&optional parse-result)
   "Returns t if point is inside a string.
 If parse-result is non-nil, use is instead of calling parse-partial-sexp."
   (nth 3 (or parse-result
              (parse-partial-sexp
-              (save-excursion (beginning-of-line) (point)) (point)))))
+              (line-beginning-position) (point)))))
 
 (defsubst ada-in-string-or-comment-p (&optional parse-result)
   "Returns t if inside a comment or string."
   (setq parse-result (or parse-result
                          (parse-partial-sexp
-                          (save-excursion (beginning-of-line) (point)) (point))))
+                          (line-beginning-position) (point))))
   (or (ada-in-string-p parse-result) (ada-in-comment-p parse-result)))
 
 
@@ -1071,7 +1071,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/05/04 13:55:51 $.
+This version was built on $Date: 2003/05/04 19:52:34 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
