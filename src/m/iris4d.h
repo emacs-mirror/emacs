@@ -174,6 +174,7 @@ Boston, MA 02111-1307, USA.  */
 #undef STACK_DIRECTION
 #define STACK_DIRECTION -1
 
+#ifndef _LP64
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
@@ -182,9 +183,8 @@ Boston, MA 02111-1307, USA.  */
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
 
-#define XMARKBIT(a) ((a) < 0)
-#define XSETMARKBIT(a,b) ((a) = ((a) & ~MARKBIT) | ((b) ? MARKBIT : 0))
 #define XUNMARK(a) ((a) = (((unsigned)(a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
+#endif /* _LP64 */
 
 #ifndef __GNUC__
 /* Turn off some "helpful" error checks for type mismatches
