@@ -194,6 +194,7 @@
 (ml-expansion 'get-tty-no-blanks-input "read-no-blanks-input")
 (ml-expansion 'get-tty-key "read-key")
 
+(ml-expansion 'concat "ml-concat")
 (ml-expansion 'c= "char-equal")
 (ml-expansion 'goto-character "goto-char")
 (ml-expansion 'substr "ml-substr")
