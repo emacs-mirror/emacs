@@ -159,7 +159,7 @@ static struct sensemode {
 
 /* On TERMIOS systems, the tcmumbleattr calls take care of these
    parameters, and it's a bad idea to use them (on AIX, it makes the
-   tty hang for a long time).
+   tty hang for a long time).  */
 #if defined (TIOCGLTC) && !defined (HAVE_TERMIOS)
 #define HAVE_LTCHARS
 #endif
