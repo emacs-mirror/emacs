@@ -207,12 +207,20 @@ and the file name is displayed in the echo area."
     (princ ".")
     (terpri)
     (when (commandp function)
-      (let ((keys (where-is-internal
-		   function overriding-local-map nil nil)))
+      (let* ((binding (and (symbolp function) (commandp function)
+			   (key-binding function nil t)))
+	     (remapped (and (symbolp binding) (commandp binding) binding))
+	     (keys (where-is-internal
+		   (or remapped function) overriding-local-map nil nil)))
+	(when remapped
+	  (princ "It is remapped to `")
+	  (princ (symbol-name remapped))
+	  (princ "'"))
 	(when keys
-	  (princ "It is bound to ")
+	  (princ (if remapped " which is bound to " "It is bound to "))
 	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
-	  (princ (mapconcat 'key-description keys ", "))
+	  (princ (mapconcat 'key-description keys ", ")))
+	(when (or remapped keys)
 	  (princ ".")
 	  (terpri))))
     ;; Handle symbols aliased to other symbols.
