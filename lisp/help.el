@@ -628,7 +628,12 @@ C-w Display information on absence of warranty for GNU Emacs."
 	  (with-current-buffer "*Help*"
 	    (save-excursion
 	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'find-function function)))))
+	      (help-xref-button 1 #'(lambda (arg)
+				      (let ((location
+					     (find-function-noselect arg)))
+					(display-buffer (nth 0 location))
+					(goto-char (nth 1 location))))
+				function)))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
