@@ -317,9 +317,9 @@ typedef struct frame *FRAME_PTR;
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
-   loop will set FRAME_VAR, a FRAME_PTR, to each frame in
+   loop will set FRAME_VAR, a Lisp_Object, to each frame in
    Vframe_list in succession and execute the statement.  LIST_VAR
-   should be a Lisp_Object; it is used to iterate through the
+   should be a Lisp_Object too; it is used to iterate through the
    Vframe_list.  
 
    If MULTI_FRAME isn't defined, then this loop expands to something which 
@@ -327,7 +327,7 @@ typedef struct frame *FRAME_PTR;
 #define FOR_EACH_FRAME(list_var, frame_var)			\
   for ((list_var) = Vframe_list;				\
        (CONSP (list_var)					\
-	&& (frame_var = XFRAME (XCONS (list_var)->car), 1));	\
+	&& (frame_var = XCONS (list_var)->car, 1));		\
        list_var = XCONS (list_var)->cdr)
 
 
@@ -412,16 +412,16 @@ extern int last_nonminibuf_frame;
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
-   loop will set FRAME_VAR, a FRAME_PTR, to each frame in
+   loop will set FRAME_VAR, a Lisp_Object, to each frame in
    Vframe_list in succession and execute the statement.  LIST_VAR
-   should be a Lisp_Object; it is used to iterate through the
+   should be a Lisp_Object too; it is used to iterate through the
    Vframe_list.  
 
    If MULTI_FRAME _is_ defined, then this loop expands to a real
    `for' loop which traverses Vframe_list using LIST_VAR and
    FRAME_VAR.  */
 #define FOR_EACH_FRAME(list_var, frame_var)			\
-  for (frame_var = (FRAME_PTR) 1; frame_var; frame_var = (FRAME_PTR) 0)
+  for (list_var = Qt; frame_var = selected_frame, ! NILP (list_var); list_var = Qnil)
 
 #endif /* not MULTI_FRAME */
 

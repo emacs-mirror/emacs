@@ -369,11 +369,10 @@ redisplay ()
      to know if their frames are visible.
      See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
   {
-    Lisp_Object tail;
-    FRAME_PTR f;
+    Lisp_Object tail, frame;
 
-    FOR_EACH_FRAME (tail, f)
-      FRAME_SAMPLE_VISIBILITY (f);
+    FOR_EACH_FRAME (tail, frame)
+      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
   }
 
   /* Notice any pending interrupt request to change frame size.  */
@@ -504,15 +503,16 @@ redisplay ()
 
   if (all_windows)
     {
-      Lisp_Object tail;
-      FRAME_PTR f;
+      Lisp_Object tail, frame;
 
       /* Recompute # windows showing selected buffer.
 	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
 
-      FOR_EACH_FRAME (tail, f)
+      FOR_EACH_FRAME (tail, frame)
 	{
+	  FRAME_PTR f = XFRAME (frame);
+
 	  /* Mark all the scroll bars to be removed; we'll redeem the ones
 	     we want when we redisplay their windows.  */
 	  if (condemn_scroll_bars_hook)
