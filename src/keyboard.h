@@ -37,15 +37,16 @@ extern Lisp_Object Vfunction_key_map;
 #define EVENT_HAS_PARAMETERS(event) \
   (XTYPE (event) == Lisp_Cons)
 
-/* Return the head of an event.  This works on composite and simple events.  */
+/* Extract the head from an event.
+   This works on composite and simple events.  */
 #define EVENT_HEAD(event) \
   (EVENT_HAS_PARAMETERS (event) ? XCONS (event)->car : (event))
 
-/* Return the starting and ending locations of a composite event.  */
+/* Extract the starting and ending positions from a composite event.  */
 #define EVENT_START(event) (XCONS (XCONS (event)->cdr)->car)
 #define EVENT_END(event) (XCONS (XCONS (XCONS (event)->cdr)->cdr)->car)
 
-/* Return the fields of a position.  */
+/* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCONS (posn)->car)
 #define POSN_BUFFER_POSN(posn) (XCONS (XCONS (posn)->cdr)->car)
 #define POSN_SCROLLBAR_BUTTON POSN_BUFFER_POSN
