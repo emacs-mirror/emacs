@@ -2767,7 +2767,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 	(compose-mail to subject others
 		      noerase nil
 		      yank-action sendactions)
-      (if (and window-system rmail-mail-new-frame)
+      (if (and (display-multi-frame-p) rmail-mail-new-frame)
 	  (prog1
 	      (compose-mail to subject others
 			    noerase 'switch-to-buffer-other-frame
