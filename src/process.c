@@ -1643,6 +1643,13 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       port = svc_info->s_port;
     }
 
+  /* Slow down polling to every ten seconds.
+     Some kernels have a bug which causes retrying connect to fail
+     after a connect.  Polling can interfere with gethostbyname too.  */
+#ifdef POLL_FOR_INPUT
+  bind_polling_period (10);
+#endif
+
 #ifndef TERM
   while (1)
     {
@@ -1696,13 +1703,6 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
      to quit if polling is turned off.  */
   if (interrupt_input)
     unrequest_sigio ();
-
-  /* Slow down polling to every ten seconds.
-     Some kernels have a bug which causes retrying connect to fail
-     after a connect.  */
-#ifdef POLL_FOR_INPUT
-  bind_polling_period (10);
-#endif
 
  loop:
   if (connect (s, (struct sockaddr *) &address, sizeof address) == -1
