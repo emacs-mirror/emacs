@@ -526,7 +526,7 @@ and those for buffer-specialised fontification functions,
 	    java-font-lock-keywords-2 java-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?$ . "w")) nil
 	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
+	    . java-font-lock-syntactic-face-function)
 	   (font-lock-mark-block-function . mark-defun))))
     (list
      (cons 'c-mode			c-mode-defaults)
@@ -2985,6 +2985,24 @@ See also `java-font-lock-extra-types'.")
 See also `java-font-lock-extra-types'.")
 
 ;; Provide ourselves:
+
+(defun java-font-lock-syntactic-face-function (state)
+  (save-excursion
+    (if (nth 3 state)
+	;; Check whether the string is properly terminated.
+	(let ((nstate (parse-partial-sexp (point) (line-end-position)
+					  nil nil state 'syntax-table)))
+	  (if (and (eolp) (nth 3 nstate))
+	      ;; We're inside a string, at EOL. The JLS says that:
+              ;; It is a compile-time error for a line terminator to
+              ;; appear after the opening " and before the closing
+              ;; matching ".
+	      font-lock-warning-face
+	    font-lock-string-face))
+      (goto-char (nth 8 state))
+      (if (looking-at "/\\*\\*")
+          font-lock-doc-face
+        font-lock-comment-face))))
 
 (provide 'font-lock)
 
