@@ -1018,6 +1018,7 @@ REGEXP and search the list again for another match.")
     ("tcl" . tcl-mode)
     ("tclsh" . tcl-mode)
     ("awk" . awk-mode)
+    ("mawk" . awk-mode)
     ("nawk" . awk-mode)
     ("gawk" . awk-mode)
     ("scm" . scheme-mode)
@@ -1172,7 +1173,7 @@ If `enable-local-variables' is nil, this function does not check for a
 		(let ((interpreter
 		       (save-excursion
 			 (goto-char (point-min))
-			 (if (looking-at "#! *\\([^ \t\n]*/bin/env +\\)?\\([^ \t\n]+\\)")
+			 (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
 			     (buffer-substring (match-beginning 2)
 					       (match-end 2))
 			   "")))
