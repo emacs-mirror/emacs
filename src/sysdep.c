@@ -279,6 +279,11 @@ init_baud_rate ()
       sg.c_cflag = B9600;
       tcgetattr (input_fd, &sg);
       ospeed = cfgetospeed (&sg);
+#ifdef USE_GETOBAUD
+      /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
+      if (ospeed == 0)
+        ospeed = getobaud (sg.c_cflag);
+#endif
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
       struct termio sg;
