@@ -333,22 +333,23 @@ it defaults to `insert'."
   (cond
    ((stringp target)
     (let ((redir (assoc target eshell-virtual-targets)))
-     (if redir
-	 (if (nth 2 redir)
-	     (funcall (nth 1 redir) mode)
-	   (nth 1 redir))
-       (let* ((exists (get-file-buffer target))
-	      (buf (find-file-noselect target t)))
-	 (with-current-buffer buf
-	   (if buffer-read-only
-	       (error "Cannot write to read-only file `%s'" target))
-	   (set (make-local-variable 'eshell-output-file-buffer)
-		(if (eq exists buf) 0 t))
-	   (cond ((eq mode 'overwrite)
-		  (erase-buffer))
-		 ((eq mode 'append)
-		  (goto-char (point-max))))
-	   (point-marker))))))
+      (if redir
+	  (if (nth 2 redir)
+	      (funcall (nth 1 redir) mode)
+	    (nth 1 redir))
+	(let* ((exists (get-file-buffer target))
+	       (buf (find-file-noselect target t)))
+	  (with-current-buffer buf
+	    (if buffer-read-only
+		(error "Cannot write to read-only file `%s'" target))
+	    (set (make-local-variable 'eshell-output-file-buffer)
+		 (if (eq exists buf) 0 t))
+	    (cond ((eq mode 'overwrite)
+		   (erase-buffer))
+		  ((eq mode 'append)
+		   (goto-char (point-max))))
+	    (point-marker))))))
+
    ((or (bufferp target)
 	(and (boundp 'eshell-buffer-shorthand)
 	     (symbol-value 'eshell-buffer-shorthand)
@@ -363,15 +364,18 @@ it defaults to `insert'."
 	      ((eq mode 'append)
 	       (goto-char (point-max))))
 	(point-marker))))
-   ((functionp target)
-    nil)
+
+   ((functionp target) nil)
+
    ((symbolp target)
     (if (eq mode 'overwrite)
 	(set target nil))
     target)
+
    ((or (eshell-processp target)
 	(markerp target))
     target)
+
    (t
     (error "Illegal redirection target: %s"
 	   (eshell-stringify target)))))
@@ -481,7 +485,8 @@ Returns what was actually sent, or nil if nothing was sent."
 	  (let ((moving (= (point) target)))
 	    (save-excursion
 	      (goto-char target)
-	      (setq object (eshell-stringify object))
+	      (unless (stringp object)
+		(setq object (eshell-stringify object)))
 	      (insert-and-inherit object)
 	      (set-marker target (point-marker)))
 	    (if moving
@@ -489,7 +494,8 @@ Returns what was actually sent, or nil if nothing was sent."
 
    ((eshell-processp target)
     (when (eq (process-status target) 'run)
-      (setq object (eshell-stringify object))
+      (unless (stringp object)
+	(setq object (eshell-stringify object)))
       (process-send-string target object)))
 
    ((consp target)
