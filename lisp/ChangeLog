@@ -1,3 +1,9 @@
+2004-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-backward-word): Optimize
+	`(backward-word)' to `(forward-word -1)', not `(forward-char -1)'.
+	Reported by <sri@asu.edu>.
+
 2004-10-10  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* vc.el (vc-annotate-mode): Remove variable.
