@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
 @chapter Searching and Replacement
@@ -165,12 +165,30 @@ search remains case-insensitive.
 
   The character @kbd{M-y} copies text from the kill ring into the search
 string.  It uses the same text that @kbd{C-y} as a command would yank.
+@kbd{mouse-2} in the echo area does the same.
 @xref{Yanking}.
 
   When you exit the incremental search, it sets the mark to where point
 @emph{was}, before the search.  That is convenient for moving back
 there.  In Transient Mark mode, incremental search sets the mark without
 activating it, and does so only if the mark is not already active.
+
+@cindex lazy search highlighting
+  By default, Isearch uses @dfn{lazy highlighting}.  All matches for
+the current search string in the buffer after the point where searching
+starts are highlighted.  The extra highlighting makes it easier to
+anticipate where the cursor will end up each time you press @kbd{C-s} or
+@kbd{C-r} to repeat a pending search.  Highlighting of these additional
+matches happens in a deferred fashion so as not to rob Isearch of its
+usual snappy response.
+@vindex isearch-lazy-highlight-cleanup
+By default the highlighting of matches is cleared when you end the
+search.  Customize the variable @code{isearch-lazy-highlight-cleanup} to
+avoid cleaning up automatically.  The command @kbd{M-x
+isearch-lazy-highlight-cleanup} can be used to clean up manually.
+@vindex isearch-lazy-highlight
+Customize the variable @code{isearch-lazy-highlight} to turn off this
+feature.
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
