@@ -1,3 +1,13 @@
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c: Include lisp.h, not ../src/lisp.h.
+	(make_drawing_gcs): Remove unused `xswa', `mask'.
+
+	* lwlib-Xlw.c: Include lisp.h, not ../src/lisp.h.
+	(lw_lucid_widget_p): Remove unused `mw'.
+	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]: Provide
+	ISO C arglists.
+
 2003-04-30  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* Makefile.in: Make things function properly in case both LessTif
