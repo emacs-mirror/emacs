@@ -407,7 +407,7 @@ Note that changing the size of one terminal frame automatically affects all.")
   return frame;
 }
 
-static Lisp_Object
+Lisp_Object
 do_switch_frame (frame, no_enter, track)
      Lisp_Object frame, no_enter;
      int track;
@@ -955,7 +955,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
   /* Don't let the frame remain selected.  */
   if (f == selected_frame)
-    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+    do_switch_frame (next_frame (frame, Qt), Qnil, 0);
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
@@ -1248,7 +1248,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (XFRAME (frame) == selected_frame)
-    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+    do_switch_frame (next_frame (frame, Qt), Qnil, 0)
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
