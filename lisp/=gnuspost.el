@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnuspost.el,v 1.15 1993/11/22 06:38:28 rms Exp rms $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnuspost.el,v 1.16 1993/11/22 06:44:12 rms Exp $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -187,6 +187,7 @@ Type \\[describe-mode] once editing the article to get a list of commands."
 		;; completing-read should not be used with
 		;; 'require-match functionality in order to allow use
 		;; of unknow distribution.
+		(gnus-read-distributions-file)
 		(setq distribution
 		      (if (consp gnus-distribution-list)
 			  (completing-read "Distribution: "
