@@ -59,6 +59,7 @@
       (modify-syntax-entry ?` "'   " table)
       (modify-syntax-entry ?' "'   " table)
       (modify-syntax-entry ?, "'   " table)
+      (modify-syntax-entry ?@ "'   " table)
       ;; Used to be singlequote; changed for flonums.
       (modify-syntax-entry ?. "_   " table)
       (modify-syntax-entry ?# "'   " table)
