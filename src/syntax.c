@@ -1133,9 +1133,21 @@ skip_chars (forwardp, syntaxp, string, lim)
 {
   register unsigned char *p, *pend;
   register unsigned int c;
+  register int ch;
   unsigned char fastmap[0400];
+  /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
+     of which codes don't fit in FASTMAP.  In that case, we set the
+     first byte of multibyte form (i.e. base leading-code) in FASTMAP
+     and set the actual ranges of characters in CHAR_RANGES.  In the
+     form "X-Y" of STRING, both X and Y must belong to the same
+     character set because a range striding across character sets is
+     meaningless.  */
+  int *char_ranges
+    = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
+  int n_char_ranges = 0;
   int negate = 0;
   register int i;
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   CHECK_STRING (string, 0);
 
@@ -1168,7 +1180,17 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   while (p != pend)
     {
-      c = *p++;
+      c = *p;
+      if (multibyte)
+	{
+	  ch = STRING_CHAR (p, pend - p);
+	  p += BYTES_BY_CHAR_HEAD (*p);
+	}
+      else
+	{
+	  ch = c;
+	  p++;
+	}
       if (syntaxp)
 	fastmap[syntax_spec_code[c]] = 1;
       else
@@ -1180,25 +1202,51 @@ skip_chars (forwardp, syntaxp, string, lim)
 	    }
 	  if (p != pend && *p == '-')
 	    {
+	      unsigned int ch2;
+
 	      p++;
 	      if (p == pend) break;
-	      while (c <= *p)
+	      if (SINGLE_BYTE_CHAR_P (ch))
+		while (c <= *p)
+		  {
+		    fastmap[c] = 1;
+		    c++;
+		  }
+	      else
 		{
-		  fastmap[c] = 1;
-		  c++;
+		  fastmap[c] = 1; /* C is the base leading-code.  */
+		  ch2 = STRING_CHAR (p, pend - p);
+		  if (ch <= ch2)
+		    char_ranges[n_char_ranges++] = ch,
+		    char_ranges[n_char_ranges++] = ch2;
 		}
-	      p++;
+	      p += multibyte ? BYTES_BY_CHAR_HEAD (*p) : 1;
 	    }
 	  else
-	    fastmap[c] = 1;
+	    {
+	      fastmap[c] = 1;
+	      if (!SINGLE_BYTE_CHAR_P (ch))
+		{
+		  char_ranges[n_char_ranges++] = ch;
+		  char_ranges[n_char_ranges++] = ch;
+		}
+	    }
 	}
     }
 
-  /* If ^ was the first character, complement the fastmap.  */
+  /* If ^ was the first character, complement the fastmap.  In
+     addition, as all multibyte characters have possibility of
+     matching, set all entries for base leading codes, which is
+     harmless even if SYNTAXP is 1.  */
 
   if (negate)
     for (i = 0; i < sizeof fastmap; i++)
-      fastmap[i] ^= 1;
+      {
+	if (!multibyte || !BASE_LEADING_CODE_P (i))
+	  fastmap[i] ^= 1;
+	else
+	  fastmap[i] = 1;
+      }
 
   {
     int start_point = PT;
@@ -1210,20 +1258,49 @@ skip_chars (forwardp, syntaxp, string, lim)
         SETUP_SYNTAX_TABLE (pos, forwardp ? 1 : -1);
 	if (forwardp)
 	  {
-	    while (pos < XINT (lim)
-		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+	    if (multibyte)
 	      {
-		pos++;
-		UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		while (pos < XINT (lim)
+		       && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+		  {
+		    INC_POS (pos);
+		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		  }
+	      }
+	    else
+	      {
+		while (pos < XINT (lim)
+		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
+		  {
+		    pos++;
+		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		  }
 	      }
 	  }
 	else
 	  {
-	    while (pos > XINT (lim)
-		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos - 1))])
+	    if (multibyte)
 	      {
-		pos--;
-		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		while (pos > XINT (lim))
+		  {
+		    int savepos = pos;
+		    DEC_POS (pos);
+		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+		      {
+			pos = savepos;
+			break;
+		      }
+		    UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		  }
+	      }
+	    else
+	      {
+		while (pos > XINT (lim)
+		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+		  {
+		    pos--;
+		    UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		  }
 	      }
 	  }
       }
@@ -1231,15 +1308,83 @@ skip_chars (forwardp, syntaxp, string, lim)
       {
 	if (forwardp)
 	  {
-	    while (pos < XINT (lim) && fastmap[FETCH_CHAR (pos)])
-	      pos++;
+	    if (multibyte)
+	      while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos))])
+		{
+		  if (!BASE_LEADING_CODE_P (c))
+		    pos++;
+		  else if (n_char_ranges)
+		    {
+		      /* We much check CHAR_RANGES for a multibyte
+			 character.  */
+		      ch = FETCH_MULTIBYTE_CHAR (pos);
+		      for (i = 0; i < n_char_ranges; i += 2)
+			if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
+			  break;
+		      if (!(negate ^ (i < n_char_ranges)))
+			break;
+
+		      INC_POS (pos);
+		    }
+		  else
+		    {
+		      if (!negate) break;
+		      INC_POS (pos);
+		    }
+		}
+	    else
+	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
+		pos++;
 	  }
 	else
 	  {
-	    while (pos > XINT (lim) && fastmap[FETCH_CHAR (pos - 1)])
-	      pos--;
+	    if (multibyte)
+	      while (pos > XINT (lim))
+		{
+		  int savepos = pos;
+		  DEC_POS (pos);
+		  if (fastmap[(c = FETCH_BYTE (pos))])
+		    {
+		      if (!BASE_LEADING_CODE_P (c))
+			;
+		      else if (n_char_ranges)
+			{
+			  /* We much check CHAR_RANGES for a multibyte
+			     character.  */
+			  ch = FETCH_MULTIBYTE_CHAR (pos);
+			  for (i = 0; i < n_char_ranges; i += 2)
+			    if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
+			      break;
+			  if (!(negate ^ (i < n_char_ranges)))
+			    {
+			      pos = savepos;
+			      break;
+			    }
+			}
+		      else
+			if (!negate)
+			  {
+			    pos = savepos;
+			    break;
+			  }
+		    }
+		  else
+		    {
+		      pos = savepos;
+		      break;
+		    }
+		}
+	    else
+	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
+		pos--;
 	  }
       }
+
+    if (multibyte
+	/* INC_POS or DEC_POS might have moved POS over LIM.  */
+	&& (forwardp ? (pos > XINT (lim)) : (pos < XINT (lim))))
+      pos = XINT (lim);
+
     SET_PT (pos);
     immediate_quit = 0;
 
