@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.357 2003/06/30 10:34:26 rms Exp $
+;; $Id: vc.el,v 1.358 2003/07/06 17:28:12 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -3029,6 +3029,8 @@ or OFFSET if present."
   "Return the current time, encoded as fractional days."
   (vc-annotate-convert-time (current-time)))
 
+(defvar vc-annotate-offset nil)
+
 (defun vc-annotate-display (&optional color-map offset)
   "Highlight `vc-annotate' output in the current buffer.
 COLOR-MAP, if present, overrides `vc-annotate-color-map'.
@@ -3037,8 +3039,6 @@ The annotations are relative to the current time, unless overridden by OFFSET."
       (set (make-local-variable 'vc-annotate-color-map) color-map))
   (set (make-local-variable 'vc-annotate-offset) offset)
   (font-lock-mode 1))
-
-(defvar vc-annotate-offset nil)
 
 (defun vc-annotate-lines (limit)
   (let (difference)
