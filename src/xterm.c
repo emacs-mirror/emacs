@@ -15085,7 +15085,7 @@ x_initialize ()
   /* Disable Window Change signals;  they are handled by X events.  */
 #ifdef SIGWINCH
   signal (SIGWINCH, SIG_DFL);
-#endif /* ! defined (SIGWINCH) */
+#endif /* SIGWINCH */
 
   signal (SIGPIPE, x_connection_signal);
 
