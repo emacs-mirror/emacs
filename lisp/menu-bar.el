@@ -526,10 +526,12 @@ Do the same for the keys of the same name."
     (cons "Cut" (cons "Delete text in region and copy it to the clipboard"
 		      'clipboard-kill-region)))
 
+  ;; These are Sun server keysyms for the Cut, Copy and Paste keys
+  ;; (also for XFree86 on Sun keyboard):
   (define-key global-map [f20] 'clipboard-kill-region)
   (define-key global-map [f16] 'clipboard-kill-ring-save)
   (define-key global-map [f18] 'clipboard-yank)
-  ;; X11R6 versions
+  ;; X11R6 versions:
   (define-key global-map [cut] 'clipboard-kill-region)
   (define-key global-map [copy] 'clipboard-kill-ring-save)
   (define-key global-map [paste] 'clipboard-yank))
@@ -665,12 +667,12 @@ PROPS are additional properties."
 
 (define-key menu-bar-showhide-menu [column-number-mode]
   (menu-bar-make-mm-toggle column-number-mode
-			   "Show Column Numbers"
+			   "Column Numbers"
 			   "Show the current column number in the mode line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
   (menu-bar-make-mm-toggle line-number-mode
-			   "Show Line Numbers"
+			   "Line Numbers"
 			   "Show the current line number in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
@@ -685,8 +687,8 @@ PROPS are additional properties."
   (customize-mark-as-set 'display-time-mode))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date and Time" showhide-date-time
-	      :help "Display date and time in the mode line"
+  '(menu-item "Date, Time and Mail" showhide-date-time
+	      :help "Display date, time, mail status in mode line"
 	      :button (:toggle . display-time-mode)))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
