@@ -2985,6 +2985,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
   "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1.")
 (make-obsolete-variable 'unread-command-event
   "use unread-command-events; this is now a list of events.")
+(make-obsolete-variable 'suspend-hook 'suspend-hooks)
 
 (provide 'byte-compile)
 
