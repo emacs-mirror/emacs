@@ -1,3 +1,8 @@
+2003-02-17  Markus Rost  <rost@math.ohio-state.edu>
+
+	* calendar/calendar.el (diary-file-name-prefix-function): Fix
+	custom type.
+
 2003-02-17  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-dir-state): Protect against DIR not being
