@@ -715,7 +715,8 @@ C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
 C-w to delete match and recursive edit,
 C-l to clear the screen, redisplay, and offer same replacement again,
 ! to replace all remaining matches with no more questions,
-^ to move point back to previous match."
+^ to move point back to previous match,
+E to edit the replacement string"
   "Help message while in query-replace")
 
 (defvar query-replace-map (make-sparse-keymap)
@@ -733,6 +734,7 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "n" 'skip)
 (define-key query-replace-map "Y" 'act)
 (define-key query-replace-map "N" 'skip)
+(define-key query-replace-map "E" 'edit-replacement)
 (define-key query-replace-map "," 'act-and-show)
 (define-key query-replace-map "q" 'exit)
 (define-key query-replace-map "\r" 'exit)
@@ -1011,6 +1013,16 @@ which will run faster and probably do exactly what you want."
 		       (if (and regexp-flag nonempty-match)
 			   (setq match-again (and (looking-at search-string)
 						  (match-data)))))
+		      
+		      ;; Edit replacement.
+		      ((eq def 'edit-replacement)
+		       (setq next-replacement
+			     (read-input "Edit replacement string: "
+					 next-replacement))
+		       (or replaced
+			   (replace-match next-replacement nocasify literal))
+		       (setq done t))
+		      
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
 		       (set-match-data
