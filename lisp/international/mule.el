@@ -1119,6 +1119,12 @@ Return the resulting coding system."
 		     first eol)))
     first))
 
+(defun autoload-coding-system (symbol form)
+  "Define SYMBOL as a coding-system that is defined on demand.
+
+FROM is a form to evaluate to define the coding-system."
+  (put symbol 'coding-system-define-form form))
+
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
