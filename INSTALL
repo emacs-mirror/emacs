@@ -212,11 +212,6 @@ all:
 clean:
 	rm -f *.pcf *.bdf
 
-If your X server for X font server supports TrueType fonts, you can
-directly use the downloaded fonts (without converting them to PCF as
-above).  But, in that case, you must give "Devanagari-CDAC" to the
-CHARSET_REGISTRY and CHARSET_ENCODING field of the devanagari font.
-
 
 DETAILED BUILDING AND INSTALLATION:
 

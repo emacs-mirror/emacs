@@ -1,5 +1,7 @@
 2002-09-30  Kenichi Handa  <handa@m17n.org>
 
+	* language/thai.el (thai-tis620): Add `mime-charset' property.
+
 	* language/indian.el: Don't register "ISO10646.*-1" in
 	font-ccl-encoder-alist.
 
