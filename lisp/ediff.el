@@ -1691,7 +1691,7 @@ rcs.el and want to use it instead of the standard vc.el.
 Note: both packages provide access to RCS, but only vc.el comes with Emacs
 distribution.")
 
-(defvar ediff-revision-key "="
+(defvar ediff-revision-key nil
   "Key to which `ediff-revision' is to be bound.")
   
 (defvar ediff-use-last-dir nil
@@ -2556,11 +2556,12 @@ and `ediff-revision-key' for customization.")))
 	  (progn
 	    (message "") ; kill the message from `locate-library'
 	    (require ediff-version-control-package)
-	    (define-key
-	      (cond ((eq ediff-version-control-package 'vc) vc-prefix-map)
-		    ((eq ediff-version-control-package 'rcs) global-map)
-		    (t  global-map))
-	      ediff-revision-key 'ediff-revision))
+	    (if ediff-revision-key
+		(define-key
+		  (cond ((eq ediff-version-control-package 'vc) vc-prefix-map)
+			((eq ediff-version-control-package 'rcs) global-map)
+			(t  global-map))
+		  ediff-revision-key 'ediff-revision)))
 	(or silent
 	    (error "Version control package %S.el not found. Use vc.el instead" 
 		   ediff-version-control-package)))))
