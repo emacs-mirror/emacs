@@ -1,5 +1,5 @@
 ;; File input and output commands for Emacs
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -147,7 +147,19 @@ functions are called.")
 (defvar write-file-hooks nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
-and the rest are not called.")
+and the rest are not called.
+These hooks are considered to pertain to the visited file.
+So this list is cleared if you change the visited file name.
+See also `write-contents-hooks'.")
+
+(defvar write-contents-hooks nil
+  "List of functions to be called before writing out a buffer to a file.
+If one of them returns non-nil, the file is considered already written
+and the rest are not called.
+These hooks are considered to pertain to the buffer's contents,
+not to the particular visited file; thus, `set-visited-file-name' does
+not clear this variable, but changing the major mode does clear it.
+See also `write-file-hooks'.")
 
 (defconst enable-local-variables t
   "*Control use of local-variables lists in files you visit.
@@ -932,7 +944,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	       (save-excursion
 		 (goto-char (point-max))
 		 (insert ?\n)))
-	  (let ((hooks write-file-hooks)
+	  (let ((hooks (append write-contents-hooks write-file-hooks))
 		(done nil))
 	    (while (and hooks
 			(not (setq done (funcall (car hooks)))))
@@ -1127,22 +1139,21 @@ or multiple mail buffers, etc."
 Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.")
 
-(defun revert-buffer (&optional arg noconfirm)
+(defun revert-buffer (&optional check-auto noconfirm)
   "Replace the buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
-If latest auto-save file is more recent than the visited file,
-asks user whether to use that instead.
-
-Optional first argument ARG means don't offer to use auto-save file.
-This is the prefix arg when called interactively.
+With a prefix argument, offer to revert from latest auto-save file, if
+that is more recent than the visited file.
+When called from lisp, this is the first argument, CHECK-AUTO; it is optional.
 Optional second argument NOCONFIRM means don't ask for confirmation at all.
 
-If `revert-buffer-function' value is non-nil, it is called to do the work."
+If the value of `revert-buffer-function' is non-nil, it is called to
+do the work."
   (interactive "P")
   (if revert-buffer-function
-      (funcall revert-buffer-function arg noconfirm)
+      (funcall revert-buffer-function (not check-auto) noconfirm)
     (let* ((opoint (point))
-	   (auto-save-p (and (null arg) (recent-auto-save-p)
+	   (auto-save-p (and check-auto (recent-auto-save-p)
 			     buffer-auto-save-file-name
 			     (file-readable-p buffer-auto-save-file-name)
 			     (y-or-n-p

@@ -1254,7 +1254,7 @@ syms_of_search ()
   register int i;
 
   searchbuf.allocated = 100;
-  searchbuf.buffer = (char *) malloc (searchbuf.allocated);
+  searchbuf.buffer = (unsigned char *) malloc (searchbuf.allocated);
   searchbuf.fastmap = search_fastmap;
 
   Qsearch_failed = intern ("search-failed");
