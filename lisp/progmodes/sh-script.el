@@ -120,19 +120,19 @@
     (define-key map [menu-bar insert] 
       (cons "Insert" (make-sparse-keymap "Insert")))
     (define-key map [menu-bar insert sh-while] 
-      '("While loop" . sh-while))
+      '("While Loop" . sh-while))
     (define-key map [menu-bar insert sh-until] 
-      '("Until loop" . sh-until))
+      '("Until Loop" . sh-until))
     (define-key map [menu-bar insert sh-select] 
-      '("Select statement" . sh-select))
+      '("Select Statement" . sh-select))
     (define-key map [menu-bar insert sh-indexed-loop] 
-      '("Indexed loop" . sh-indexed-loop))
+      '("Indexed Loop" . sh-indexed-loop))
     (define-key map [menu-bar insert sh-if] 
-      '("If statement" . sh-if))
+      '("If Statement" . sh-if))
     (define-key map [menu-bar insert sh-for] 
-      '("For loop" . sh-for))
+      '("For Loop" . sh-for))
     (define-key map [menu-bar insert sh-case] 
-      '("Case statement" . sh-case))
+      '("Case Statement" . sh-case))
     map)
   "Keymap used in Shell-Script mode.")
 
