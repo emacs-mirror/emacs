@@ -21,7 +21,7 @@
 ;;; 02139, USA.
 ;;;
 
-;;; Commentary;:
+;;; Commentary:
 
 ;; This code helps GNU Emacs maintainers keep the loaddefs.el file up to
 ;; date.  It interprets magic cookies of the form ";;;###autoload" in

@@ -67,7 +67,7 @@
 ;; Boy, that's a tough one.  Probably Hong Min, or maybe Emperor's
 ;; Choice (both in Chicago's Chinatown).  Well, both.  How about you?
 
-;;; Commentary on code:
+;;; Commentary:
 
 ;; bookmark alist format:
 ;;               (...

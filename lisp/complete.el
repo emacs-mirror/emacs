@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; Extended completion for the Emacs minibuffer.
 ;;
@@ -94,7 +94,7 @@
 ;; is supported in include file names.
 
 
-;; Code:
+;;; Code:
 
 (defvar PC-meta-flag t
   "*If nil, TAB does normal Emacs completion and M-TAB does Partial Completion.

@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; These are extensions to Emacs Lisp that provide a degree of
 ;; Common Lisp compatibility, beyond what is already built-in
@@ -42,7 +42,7 @@
 ;; See cl.el for Change Log.
 
 
-;; Code:
+;;; Code:
 
 ;; Require at load-time, but not when compiling cl-compat.
 (or (featurep 'cl) (require 'cl))

@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; These are extensions to Emacs Lisp that provide a degree of
 ;; Common Lisp compatibility, beyond what is already built-in
@@ -39,14 +39,14 @@
 ;; package which should always be present.
 
 
-;; Future notes:
+;;; Future notes:
 
 ;; Once Emacs 19 becomes standard, many things in this package which are
 ;; messy for reasons of compatibility can be greatly simplified.  For now,
 ;; I prefer to maintain one unified version.
 
 
-;; Change Log:
+;;; Change Log:
 
 ;; Version 2.02 (30 Jul 93):
 ;;  * Added "cl-compat.el" file, extra compatibility with old package.
@@ -92,7 +92,7 @@
 ;;  * First public release of this package.
 
 
-;; Code:
+;;; Code:
 
 (defvar cl-emacs-type (cond ((or (and (fboundp 'epoch::version)
 				      (symbol-value 'epoch::version))

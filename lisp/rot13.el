@@ -21,7 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; The single entry point, `rot13-other-window', performs a Caesar cipher
 ;; encrypt/decrypt on the current buffer and displays the result in another 

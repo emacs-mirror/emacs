@@ -18,7 +18,7 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;;; Commentary: ===========================================================
+;;; Commentary:
 ;;
 ;; This module provides multi-click mouse support for GNU Emacs versions
 ;; 19.18 and later.  I've tried to make it behave more like standard X
