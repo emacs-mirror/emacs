@@ -1,4 +1,4 @@
-;;; tooltip.el --- Show tooltip windows
+;;; tooltip.el --- show tooltip windows
 
 ;; Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 
