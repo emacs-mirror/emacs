@@ -379,22 +379,23 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (nargs > 4)
     {
       register int i;
+      struct gcpro gcpro1, gcpro2, gcpro3;
 
-      if (CODING_REQUIRE_ENCODING (&argument_coding))
-	{
-	  /* We must encode the arguments.  */
-	  struct gcpro gcpro1, gcpro2, gcpro3;
-
-	  GCPRO3 (infile, buffer, current_dir);
-	  for (i = 4; i < nargs; i++)
-	    {
-	      args[i] = code_convert_string (args[i], &argument_coding, 1, 0);
-	      setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
-	    }
-	  UNGCPRO;
-	}
+      GCPRO3 (infile, buffer, current_dir);
+      argument_coding.dst_multibyte = 0;
       for (i = 4; i < nargs; i++)
-	new_argv[i - 3] = XSTRING (args[i])->data;
+	{
+	  argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
+	  if (CODING_REQUIRE_ENCODING (&argument_coding))
+	    {
+	      /* We must encode this argument.  */
+	      args[i] = encode_coding_string (args[i], &argument_coding, 1);
+	      if (argument_coding.type == coding_type_ccl)
+		setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
+	    }
+	  new_argv[i - 3] = XSTRING (args[i])->data;
+	}
+      UNGCPRO;
       new_argv[nargs - 3] = 0;
     }
   else
@@ -702,6 +703,11 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  && !NILP (val))
 	setup_raw_text_coding_system (&process_coding);
     }
+  process_coding.src_multibyte = 0;
+  process_coding.dst_multibyte
+    = (BUFFERP (buffer)
+       ? ! NILP (XBUFFER (buffer)->enable_multibyte_characters)
+       : ! NILP (current_buffer->enable_multibyte_characters));
 
   immediate_quit = 1;
   QUIT;
@@ -748,8 +754,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	
 	if (!NILP (buffer))
 	  {
-	    if (! CODING_REQUIRE_DECODING (&process_coding))
-	      insert (bufptr, nread);
+	    if (! CODING_MAY_REQUIRE_DECODING (&process_coding))
+	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
 		int size = decoding_buffer_size (&process_coding, nread);
@@ -772,27 +778,20 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		    continue;
 		  }
 		if (process_coding.produced > 0)
-		  insert (decoding_buf, process_coding.produced);
+		  insert_1_both (decoding_buf, process_coding.produced_char,
+				 process_coding.produced, 0, 1, 0);
 		xfree (decoding_buf);
 		carryover = nread - process_coding.consumed;
 		if (carryover > 0)
-		  {
-		    /* As CARRYOVER should not be that large, we had
-		       better avoid overhead of bcopy.  */
-		    char *p = bufptr + process_coding.consumed;
-		    char *pend = p + carryover;
-		    char *dst = bufptr;
-
-		    while (p < pend) *dst++ = *p++;
-		  }
+		  /* As CARRYOVER should not be that large, we had
+		     better avoid overhead of bcopy.  */
+		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
+			       carryover);
 	      }
 	  }
+
 	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
-	  {
-	    if (carryover > 0)
-	      insert (bufptr, carryover);
-	    break;
-	  }
+	  break;
 
 	/* Make the buffer bigger as we continue to read more data,
 	   but not past 64k.  */
