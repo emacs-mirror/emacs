@@ -1,3 +1,8 @@
+2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): Call g_object_unref on
+	gpix and gmask just before return to avoid memory leak.
+
 2004-06-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (file_dialog_callback): Disable edit control if set

@@ -308,11 +308,8 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
                 }
             }
 
-          g_object_unref (G_OBJECT (gmask));
           g_object_unref (G_OBJECT (mask_buf));
         }
-
-      g_object_unref (G_OBJECT (gpix));
 
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
@@ -321,6 +318,9 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
 
       g_object_unref (G_OBJECT (icon_buf));
     }
+
+  g_object_unref (G_OBJECT (gpix));
+  if (gmask) g_object_unref (G_OBJECT (gmask));
 
   return GTK_WIDGET (old_widget);
 }
