@@ -50,7 +50,7 @@ license to the document, as described in section 6 of the license.
 @end titlepage
 
 @node Top, Overview, (dir), (dir)
-@chapter Common Lisp Extensions
+@chapter Overview
 
 @noindent
 This document describes a set of Emacs Lisp facilities borrowed from
