@@ -1,3 +1,10 @@
+2004-10-05  Jan D.  <jhd@ostrich.localdomain>
+
+	* config.in: Regenerate.
+
+	* Makefile.in (RUN_TEMACS): Check HAVE_RANDOM_HEAPSTART instead of
+	HAVE_EXECSHIELD.
+
 2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_find_modifier_meanings): Ignore any Super or Hyper for
