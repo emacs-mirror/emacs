@@ -1,3 +1,8 @@
+2004-09-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/paragraphs.el (use-hard-newlines): Make it into a
+	permanent local.
+
 2004-09-04  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-new-loop): Don't invoke
