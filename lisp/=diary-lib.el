@@ -1895,4 +1895,4 @@ A value of 0 in any position is a wildcard."
 
 (provide 'diary)
 
-;;; diary.el ends here
+;;; diary-lib.el ends here
