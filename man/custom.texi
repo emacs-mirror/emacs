@@ -13,10 +13,10 @@ Manual} for how to make more far-reaching changes.
   Customization that you do within Emacs normally affects only the
 particular Emacs session that you do it in--it does not persist
 between sessions unless you save the customization in a file such as
-@file{.emacs} or @file{.Xdefaults} that will change future sessions.
-@xref{Init File}.  In the customization buffer, if you use a
-command to save customizations for future sessions, this actually
-works by editing @file{.emacs} for you.
+@file{.emacs} or @file{.Xdefaults} that will affect future sessions.
+@xref{Init File}.  In the customization buffer, when you save
+customizations for future sessions, this actually works by editing
+@file{.emacs} for you.
 
 @menu
 * Minor Modes::		Each minor mode is one feature you can turn on
@@ -111,8 +111,9 @@ This requires a window system that can display multiple fonts.
 
   ISO Accents mode makes the characters @samp{`}, @samp{'}, @samp{"},
 @samp{^}, @samp{/} and @samp{~} combine with the following letter, to
-produce an accented letter in the ISO Latin-1 character set.
-@xref{Single-Byte Character Support}.
+produce an accented letter in the ISO Latin-1 character set.  The
+newer and more general feature of input methods more or less
+supersedes ISO Accents mode.  @xref{Single-Byte Character Support}.
 
   Outline minor mode provides the same facilities as the major mode
 called Outline mode; but since it is a minor mode instead, you can
@@ -359,12 +360,13 @@ Group]} field for a group creates a new customization buffer, which
 shows that group and its contents.  This field is a kind of hypertext
 link to another group.
 
-  The @code{Emacs} group includes a few user options itself, but most
-of them are in other groups.  By examining various groups, you will
-eventually find the options and faces that belong to the feature you
-are interested in customizing.  Then you can use the customization
-buffer to set them.  You can go straight to a particular group by name
-using the command @kbd{M-x customize-group}.
+  The @code{Emacs} group includes a few user options itself, but
+mainly it contains other groups, which contain more groups, which
+contain the user options.  By browsing the hierarchy of groups, you
+will eventually find the feature you are interested in customizing.
+Then you can use the customization buffer to set the options and faces
+pertaining to that feature.  You can also go straight to a particular
+group by name, using the command @kbd{M-x customize-group}.
 
 @findex customize-browse
   You can view the structure of customization groups on a larger scale
@@ -1619,12 +1621,14 @@ character, write it as a Lisp character constant: @samp{?} followed by
 the character as it would appear in a string.
 
   Here are examples of using vectors to rebind @kbd{C-=} (a control
-character not in ASCII), @kbd{H-a} (a Hyper character; ASCII doesn't
-have Hyper at all), @key{F7} (a function key), and @kbd{C-Mouse-1} (a
+character not in ASCII), @kbd{C-M-=} (not in ASCII because @kbd{C-=}
+is not), @kbd{H-a} (a Hyper character; ASCII doesn't have Hyper at
+all), @key{F7} (a function key), and @kbd{C-Mouse-1} (a
 keyboard-modified mouse button):
 
 @example
 (global-set-key [?\C-=] 'make-symbolic-link)
+(global-set-key [?\M-\C-=] 'make-symbolic-link)
 (global-set-key [?\H-a] 'make-symbolic-link)
 (global-set-key [f7] 'make-symbolic-link)
 (global-set-key [C-mouse-1] 'make-symbolic-link)
@@ -1871,16 +1875,16 @@ moment when you press it down for the second time, Emacs gets a
 events, if it has no binding).
 
 @vindex double-click-time
-  The variable @code{double-click-time} specifies how long may elapse
-between clicks that are recognized as a pair.  Its value is measured
-in milliseconds.  If the value is @code{nil}, double clicks are not
-detected at all.  If the value is @code{t}, then there is no time
-limit.
+  The variable @code{double-click-time} specifies how much time can
+elapse between clicks and still allow them to be grouped as a multiple
+click.  Its value is in units of milliseconds.  If the value is
+@code{nil}, double clicks are not detected at all.  If the value is
+@code{t}, then there is no time limit.
 
 @vindex double-click-fuzz
   The variable @code{double-click-fuzz} specifies how much the mouse
-may be moved between clicks that are recognized as a pair.  Its value
-is measured in pixels.
+can move between clicks still allow them to be grouped as a multiple
+click.  Its value is in units of pixels.
 
   The symbols for mouse events also indicate the status of the modifier
 keys, with the usual prefixes @samp{C-}, @samp{M-}, @samp{H-},
