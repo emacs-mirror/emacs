@@ -674,6 +674,8 @@ record_auto_save ()
 force_auto_save_soon ()
 {
   last_auto_save = - auto_save_interval - 1;
+
+  record_asynch_buffer_change ();
 }
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
@@ -3288,12 +3290,31 @@ gobble_input (expected)
 #endif
 }
 
+/* Put a buffer_switch_event in the buffer
+   so that read_key_sequence will notice the new current buffer.  */
+
 record_asynch_buffer_change ()
 {
   struct input_event event;
   event.kind = buffer_switch_event;
   event.frame_or_window = Qnil;
-  kbd_buffer_store_event (&event);
+
+  /* Make sure no interrupt happens while storing the event.  */
+#ifdef SIGIO
+  if (interrupt_input)
+    {
+      SIGMASKTYPE mask;
+      mask = sigblockx (SIGIO);
+      kbd_buffer_store_event (&event);
+      sigsetmask (mask);
+    }
+  else
+#endif
+    {
+      stop_polling ();
+      kbd_buffer_store_event (&event);
+      start_polling ();
+    }
 }
 
 #ifndef VMS
