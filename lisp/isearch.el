@@ -1699,7 +1699,7 @@ If there is no completion possible, say so and continue searching."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (if (or (null search-highlight) (null window-system))
+  (if (or (null search-highlight) (null (display-color-p)))
       nil
     (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
     (move-overlay isearch-overlay beg end (current-buffer))
