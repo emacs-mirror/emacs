@@ -3017,7 +3017,8 @@ logged in as user USER and cd'd to directory DIR."
 			(rest (substring name (match-end 0)))
 			(dir (ange-ftp-expand-dir host user tilda)))
 		   (if dir
-		       (setq name (concat dir rest))
+		       (setq name (if (string-equal dir "/")
+				      rest (concat dir rest)))
 		     (error "User \"%s\" is not known"
 			    (substring tilda 1)))))
 
