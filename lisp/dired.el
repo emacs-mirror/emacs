@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
-;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
-;; Version: 6
+;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,8 @@
 (defvar dired-listing-switches "-al"
   "*Switches passed to `ls' for dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
-may contain even `F', `b', `i' and `s'.")
+may contain even `F', `b', `i' and `s'.  See also the variable
+`dired-ls-F-marks-symlinks' concerning the `F' switch.")
 
 ; Don't use absolute paths as /bin should be in any PATH and people
 ; may prefer /usr/local/gnu/bin or whatever.  However, chown is
