@@ -622,7 +622,6 @@ with your script for an edit-interpret-debug cycle."
 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
-	comment-start-skip "#+[\t ]*"
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
@@ -638,13 +637,19 @@ with your script for an edit-interpret-debug cycle."
 						(current-column)))))
 	skeleton-filter 'sh-feature
 	skeleton-newline-indent-rigidly t)
-  (save-excursion
-    ;; Parse or insert magic number for exec, and set all variables depending
-    ;; on the shell thus determined.
-    (goto-char (point-min))
-    (and (zerop (buffer-size))
-	 (not buffer-read-only)
-	 (sh-set-shell sh-shell-file)))
+  ;; Parse or insert magic number for exec, and set all variables depending
+  ;; on the shell thus determined.
+  (let ((interpreter
+	 (save-excursion
+	   (goto-char (point-min))
+	   (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+	       (buffer-substring (match-beginning 2)
+				 (match-end 2)))))
+	elt)
+    (if interpreter
+	(sh-set-shell interpreter nil
+		      (and (zerop (buffer-size))
+			   (not buffer-read-only)))))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -691,7 +696,8 @@ This adds rules for comments and assignments."
 
 (defun sh-set-shell (shell &optional no-query-flag insert-flag)
   "Set this buffer's shell to SHELL (a string).
-Makes this script executable via `executable-set-magic'.
+Makes this script executable via `executable-set-magic', and sets up the
+proper starting #!-line, if INSERT-FLAG is non-nil.
 Calls the value of `sh-set-shell-hook' if set."
   (interactive (list (completing-read "Name or path of shell: "
 				      interpreter-mode-alist
@@ -701,7 +707,10 @@ Calls the value of `sh-set-shell-hook' if set."
   (setq sh-shell (intern (file-name-nondirectory shell))
 	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
 		     sh-shell))
-  (setq sh-shell-file (executable-set-magic shell (sh-feature sh-shell-arg)))
+  (if insert-flag
+      (setq sh-shell-file
+	    (executable-set-magic shell (sh-feature sh-shell-arg)
+				  no-query-flag insert-flag)))
   (setq require-final-newline (sh-feature sh-require-final-newline)
 ;;;	local-abbrev-table (sh-feature sh-abbrevs)
 	font-lock-keywords nil		; force resetting
