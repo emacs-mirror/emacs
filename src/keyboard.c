@@ -587,6 +587,7 @@ Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 extern Lisp_Object Qleft_margin, Qright_margin;
 extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object Qimage;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -4983,6 +4984,7 @@ make_lispy_position (f, x, y, time)
       struct window *w = XWINDOW (window);
       Lisp_Object object = Qnil;
       int textpos = -1, rx = -1, ry = -1;
+      int dx = -1, dy = -1;
 
       /* Set event coordinates to window-relative coordinates
 	 for constructing the Lisp event below.  */
@@ -4998,7 +5000,7 @@ make_lispy_position (f, x, y, time)
 
 	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
 	  rx = wx, ry = wy;
-	  string = mode_line_string (w, &rx, &ry, part, &charpos);
+	  string = mode_line_string (w, &rx, &ry, &dx, &dy, part, &charpos);
 	  if (STRINGP (string))
 	    object = Fcons (string, make_number (charpos));
 	  if (w == XWINDOW (selected_window))
@@ -5010,6 +5012,7 @@ make_lispy_position (f, x, y, time)
 	{
 	  posn = Qvertical_line;
 	  wx = -1;
+	  dx = 0;
 	}
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
@@ -5018,7 +5021,7 @@ make_lispy_position (f, x, y, time)
 	  
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
-	  string = marginal_area_string (w, &rx, &ry, part, &charpos);
+	  string = marginal_area_string (w, &rx, &ry, &dx, &dy, part, &charpos);
 	  if (STRINGP (string))
 	    object = Fcons (string, make_number (charpos));
 	}
@@ -5026,19 +5029,29 @@ make_lispy_position (f, x, y, time)
 	{
 	  posn = (part == ON_LEFT_FRINGE) ? Qleft_fringe : Qright_fringe;
 	  rx = 0;
+	  dx = wx;
+	  if (part == ON_RIGHT_FRINGE)
+	    dx -= (window_box_width (w, LEFT_MARGIN_AREA)
+		   + window_box_width (w, TEXT_AREA)
+		   + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		      ? window_box_width (w, RIGHT_MARGIN_AREA)
+		      : 0));
+	  else if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    dx -= window_box_width (w, LEFT_MARGIN_AREA);
 	}
 
       if (textpos < 0)
 	{
 	  Lisp_Object string;
 	  struct display_pos p;
+	  int dx2, dy2;
 	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
-	  buffer_posn_from_coords (w, &wx, &wy, &string, &p);
+	  buffer_posn_from_coords (w, &wx, &wy, &dx2, &dy2, &string, &p);
 	  textpos = CHARPOS (p.pos);
-	  if (rx < 0)
-	    rx = wx;
-	  if (ry < 0)
-	    ry = wy;
+	  if (rx < 0) rx = wx;
+	  if (ry < 0) ry = wy;
+	  if (dx < 0) dx = dx2;
+	  if (dy < 0) dy = dy2;
 
 	  if (NILP (posn))
 	    {
@@ -5046,6 +5059,8 @@ make_lispy_position (f, x, y, time)
 	      if (STRINGP (string))
 		object = Fcons (string,
 				make_number (CHARPOS (p.string_pos)));
+	      else if (CONSP (string) && EQ (XCAR (string), Qimage))
+		object = string;
 	    }
 	}
 
@@ -5053,7 +5068,9 @@ make_lispy_position (f, x, y, time)
 			  Fcons (make_number (textpos),
 				 Fcons (Fcons (make_number (rx),
 					       make_number (ry)),
-					Qnil)));
+					Fcons (Fcons (make_number (dx),
+						      make_number (dy)),
+					       Qnil))));
     }
   else if (f != 0)
     {
@@ -8813,6 +8830,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (EVENT_HAS_PARAMETERS (key))
 	{
 	  Lisp_Object kind;
+	  Lisp_Object string;
 
 	  kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
 	  if (EQ (kind, Qmouse_click))
@@ -8929,11 +8947,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  /* If on a mode line string with a local keymap,
 		     reconsider the key sequence with that keymap.  */
-		  if (CONSP (POSN_STRING (EVENT_START (key))))
+		  if (string = POSN_STRING (EVENT_START (key)),
+		      (CONSP (string) && STRINGP (XCAR (string))))
 		    {
-		      Lisp_Object string, pos, map, map2;
+		      Lisp_Object pos, map, map2;
 
-		      string = POSN_STRING (EVENT_START (key));
 		      pos = XCDR (string);
 		      string = XCAR (string);
                       if (XINT (pos) >= 0
@@ -8952,16 +8970,16 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  goto replay_key;
 		}
-	      else if (CONSP (POSN_STRING (EVENT_START (key)))
-		       && NILP (from_string))
+	      else if (NILP (from_string)
+		       && (string = POSN_STRING (EVENT_START (key)),
+			   (CONSP (string) && STRINGP (XCAR (string)))))
 		{
 		  /* For a click on a string, i.e. overlay string or a
 		     string displayed via the `display' property,
 		     consider `local-map' and `keymap' properties of
 		     that string.  */
-		  Lisp_Object string, pos, map, map2;
+		  Lisp_Object pos, map, map2;
 
-		  string = POSN_STRING (EVENT_START (key));
 		  pos = XCDR (string);
 		  string = XCAR (string);
 		  if (XINT (pos) >= 0
