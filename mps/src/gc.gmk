@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: !gc.gmk(trunk.10) $
+# $HopeName: MMsrc!gc.gmk(trunk.11) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -301,12 +301,6 @@ include $(STDDEP) $(MPMDEP) $(AMCDEP) $(LODEP)
 endif
 endif
 
-# Executable
-
-$(PFM)/$(VARIETY)/%:
-	$(ECHO) "$(PFM): $@"
-	gcc -o $@ $^ $(LIBS)
-
 # Library
 
 $(PFM)/$(VARIETY)/%.a:
@@ -314,5 +308,11 @@ $(PFM)/$(VARIETY)/%.a:
 	rm -f $@
 	ar rc $@ $^
 	ranlib $@
+
+# Executable
+
+$(PFM)/$(VARIETY)/%:
+	$(ECHO) "$(PFM): $@"
+	gcc -o $@ $^ $(LIBS)
 
 # End of makefile.
