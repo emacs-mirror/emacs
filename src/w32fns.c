@@ -7704,9 +7704,9 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
-       doc: /* This is a noop on W32 systems. */)
-  (on, display)
-    Lisp_Object display, on;
+       doc: /* This is a noop on W32 systems.  */)
+     (on, display)
+     Lisp_Object display, on;
 {
   return Qnil;
 }
