@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.27) $
+ * $HopeName: MMsrc!mpm.h(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -60,6 +60,9 @@ extern Bool (WordIsAligned)(Word word, Align align);
 extern Word (WordAlignUp)(Word word, Align align);
 #define WordAlignUp(w, a)       (((w) + (a) - 1) & ~((Word)(a) - 1))
 
+extern Word (WordAlignDown)(Word word, Align align);
+#define WordAlignDown(w, a)     ((w) & ~((Word)(a) - 1))
+
 extern Bool AlignCheck(Align align);
 
 extern Pointer (PointerAdd)(Pointer p, Size s);
@@ -80,6 +83,9 @@ extern Addr (AddrSub)(Addr addr, Size size);
 
 extern Size (AddrOffset)(Addr base, Addr limit);
 #define AddrOffset(b, l)        (PointerOffset((Pointer)b, (Pointer)l))
+
+extern Addr (AddrAlignDown)(Addr addr, Align align);
+#define AddrAlignDown(p, a)	((Addr)WordAlignDown((Word)p, a))
 
 
 /* Logs and Powers
@@ -317,6 +323,7 @@ extern void TraceAccess(Space space, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern void TraceSegGreyen(Space space, Seg seg, TraceSet ts);
+extern void TraceSetSummary(Space space, Seg seg, RefSet summary);
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
 
@@ -488,6 +495,8 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define RefSetIsMember(space, rs, addr) \
   BS_IS_MEMBER(rs, RefSetZone(space, addr))
 #define RefSetSuper(rs1, rs2)   BS_SUPER(rs1, rs2)
+#define RefSetDiff(rs1, rs2)	BS_DIFF(rs1, rs2)
+#define RefSetSub(rs1, rs2)	BS_SUB(rs1, rs2)
 
 extern RefSet RefSetOfSeg(Space space, Seg seg);
 

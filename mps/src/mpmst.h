@@ -1,10 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
-<<<<<<< fleece:trunk:src:mpmst.h
- * $HopeName: MMsrc!mpmst.h(trunk.22) $
-=======
- * $HopeName: MMsrc!mpmst.h(MMdevel_bufferscan.2) $
->>>>>>> 1.22.3.2
+ * $HopeName: MMsrc!mpmst.h(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -284,6 +280,7 @@ typedef struct SegStruct {      /* segment structure */
   RingStruct poolRing;          /* link in list of segs in pool */
 } SegStruct;
 
+
 /* SegPrefStruct -- segment preference structure
  * 
  * .seg-pref: segment users (pool class code) need a way of expressing
@@ -295,7 +292,9 @@ typedef struct SegStruct {      /* segment structure */
 typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* impl.h.misc.sig */
   Bool high;                    /* high or low */
+  RefSet refSet;                /* preferred RefSetOfSeg */
 } SegPrefStruct;
+
 
 /* ArenaStruct -- arena structure
  *
@@ -333,7 +332,6 @@ typedef struct ArenaStruct {    /* arena structure */
 
 /* Types used in ArenaStruct, but otherwise defined in impl.c.arenavm. */
 typedef struct PageStruct *Page;/* page type */
-typedef Word *ABT;              /* Arena bool table type */
 
 typedef struct ArenaStruct {    /* VM arena structure */
   Sig sig;                      /* design.mps.sig */
@@ -344,7 +342,7 @@ typedef struct ArenaStruct {    /* VM arena structure */
   Shift pageShift;              /* log2 of page size, for shifts */
   Index pages;                  /* number of pages in table */
   Page pageTable;               /* the page table */
-  ABT freeTable;                /* page free table */
+  BT freeTable;                 /* page free table */
   Size tablesSize;              /* size of area occupied by tables */
   Index tablePages;             /* number of pages occupied by tables */
 } ArenaStruct;
@@ -562,6 +560,7 @@ typedef struct ScanStateStruct {
   TraceSet traces;		/* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
+  RefSet fixed;			/* accumulated summary of fixed references */
 } ScanStateStruct;
 
 
