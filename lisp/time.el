@@ -57,27 +57,49 @@ If that file system seems to be up, the value is nil.")
 
 ;;;###autoload
 (defun display-time ()
-  "Display current time, load level, and mail flag in mode line of each buffer.
-Updates automatically every minute.
+  "Enable display of time, load level, and mail flag in mode lines.
+This display updates automatically every minute.
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
-After each update, `display-time-hook' is run with `run-hooks'."
+This runs the normal hook `display-time-hook' after each update."
   (interactive)
-  (setq display-time-string "")
-  (or global-mode-string (setq global-mode-string '("")))
-  (or (memq 'display-time-string global-mode-string)
-      (setq global-mode-string
-	    (append global-mode-string '(display-time-string))))
-  ;; Setup the time timer.
-  (and display-time-timer (cancel-timer display-time-timer))
-  (setq display-time-timer
-	;; Start timer at the beginning of the next minute.
-	(run-at-time (apply 'encode-time 60 (cdr (decode-time)))
-		     display-time-interval 'display-time-event-handler))
-  ;; Make the time appear right away.
-  (display-time-update)
-  ;; When you get new mail, clear "Mail" from the mode line.
-  (add-hook 'rmail-after-get-new-mail-hook 'display-time-event-handler))
+  (display-time-mode 1))
+
+;;;###autoload
+(defun display-time-mode (arg)
+  "Toggle display of time, load level, and mail flag in mode lines.
+With a numeric arg, enable this display if arg is positive.
+
+When this display is enabled, it updates automatically every minute.
+If `display-time-day-and-date' is non-nil, the current day and date
+are displayed as well.
+This runs the normal hook `display-time-hook' after each update."
+  (interactive "P")
+  (let ((on (if (null arg)
+		(not display-time-timer)
+	      (> (prefix-numeric-value arg) 0))))
+    (and display-time-timer (cancel-timer display-time-timer))
+    (setq display-time-timer nil)
+    (setq display-time-string "")
+    (or global-mode-string (setq global-mode-string '("")))
+    (if on
+	(progn
+	  (or (memq 'display-time-string global-mode-string)
+	      (setq global-mode-string
+		    (append global-mode-string '(display-time-string))))
+	  ;; Set up the time timer.
+	  (setq display-time-timer
+		;; Start timer at the beginning of the next minute.
+		(run-at-time (apply 'encode-time 60 (cdr (decode-time)))
+			     display-time-interval 'display-time-event-handler))
+	  ;; Make the time appear right away.
+	  (display-time-update)
+	  ;; When you get new mail, clear "Mail" from the mode line.
+	  (add-hook 'rmail-after-get-new-mail-hook
+		    'display-time-event-handler))
+      (remove-hook 'rmail-after-get-new-mail-hook
+		   'display-time-event-handler))))
+
 
 (defvar display-time-string-forms
   '((if display-time-day-and-date
