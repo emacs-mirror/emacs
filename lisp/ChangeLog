@@ -1,3 +1,8 @@
+2003-04-14  John Paul Wallington  <jpw@gnu.org>
+
+	* international/fontset.el (create-fontset-from-ascii-font): Doc fix.
+	(x-must-resolve-font-name): Fix error message typo.
+
 2003-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-previous-statement): Check for
