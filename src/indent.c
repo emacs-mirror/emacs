@@ -130,16 +130,16 @@ recompute_width_table (buf, disptab)
      struct Lisp_Vector *disptab;
 {
   int i;
-  struct Lisp_Vector *widthtab
-    = (VECTORP (buf->width_table)
-       ? XVECTOR (buf->width_table)
-       : XVECTOR (Fmake_vector (make_number (256), make_number (0))));
+  struct Lisp_Vector *widthtab;
 
+  if (!VECTORP (buf->width_table))
+    buf->width_table = Fmake_vector (make_number (256), make_number (0));
+  widthtab = XVECTOR (buf->width_table);
   if (widthtab->size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
-    widthtab->contents[i] = character_width (i, disptab);
+    XSETFASTINT (widthtab->contents[i], character_width (i, disptab));
 }
 
 /* Allocate or free the width run cache, as requested by the current
@@ -163,8 +163,6 @@ width_run_cache_on_off ()
       if (current_buffer->width_run_cache == 0)
         { 
           current_buffer->width_run_cache = new_region_cache ();
-          current_buffer->width_table = Fmake_vector (make_number (256),
-                                                      make_number (0));
           recompute_width_table (current_buffer, buffer_display_table ());
         }
     }
