@@ -653,9 +653,11 @@ part), the @w{@kbd{C-x =}} output does not describe a character after
 point.  The output might look like this:
 
 @smallexample
-point=26957 of 26956(100%)  column 0 
+point=26957 of 26956(100%)  column 0
 @end smallexample
 
+@cindex character set of character at point
+@cindex text properties at point
   @w{@kbd{C-u C-x =}} displays additional information about a
 character, including the character set name and the codes that
 identify the character within that character set; ASCII characters are
@@ -665,9 +667,10 @@ internally in the buffer and externally if you save the file.  It also
 shows the character's text properties, if any.
 
   Here's an example showing the Latin-1 character A with grave accent,
-in a buffer whose coding system is @code{iso-2022-7bit} and whose
+in a buffer whose coding system is @code{iso-2022-7bit}, whose
 terminal coding system is @code{iso-latin-1} (so the terminal actually
-displays the character as @samp{@`A}):
+displays the character as @samp{@`A}), and which has font-lock-mode
+(@pxref{Font Lock}) enabled:
 
 @smallexample
     character: @`A (04300, 2240, 0x8c0)
@@ -675,10 +678,13 @@ displays the character as @samp{@`A}):
 	       (Right-Hand Part of Latin Alphabet 1@dots{}
    code point: 64
        syntax: w 	which means: word
-     category: l:Latin  
+     category: l:Latin
   buffer code: 0x81 0xC0
     file code: ESC 2C 41 40 (encoded by coding system iso-2022-7bit)
 terminal code: C0
+
+Text properties
+  face: font-lock-variable-name-face  fontified: t
 @end smallexample
 
 @node Arguments
