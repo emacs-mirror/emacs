@@ -84,16 +84,17 @@ EXFUN (Fclear_face_cache, 1);
    where FAMILY, WEIGHT, SLANT, SWIDTH, ADSTYLE, REGISTRY, and
    FONT-NAME are strings.
 
-   ENCODING is a charset ID or a char-table that can convert
-   characters to glyph codes of the corresponding font.
+   ENCODING is a charset ID that can convert characters to glyph codes
+   of the corresponding font.
 
-   REPERTORY is a charset ID or nil.  If REPERTORY is a charset ID,
-   the repertory of the charset exactly matches with that of the font.
-   If REPERTORY is nil, we consult with the font itself to get the
-   repertory.
+   REPERTORY is a charset ID, a char-table, or nil.  If REPERTORY is a
+   charset ID, the repertory of the charset exactly matches with that
+   of the font.  If REPERTORY is a char-table, all characters who have
+   a non-nil value in the table are supported.  If REPERTORY is nil,
+   we consult with the font itself to get the repertory.
 
    ENCODING and REPERTORY are extracted from the variable
-   Vfont_encoding_alist by using a font name generated form FONT-SPEC
+   Vfont_encoding_alist by using a font name generated from FONT-SPEC
    (if it is a vector) or FONT-NAME as a key.
 
 
@@ -615,6 +616,13 @@ fontset_face (fontset, c, face, id)
 	    /* This font can't display C.  */
 	    continue;
 	}
+      else if (CHAR_TABLE_P (AREF (font_def, 2)))
+	{
+	  /* The repertory is specified by a char table.  */
+	  if (NILP (CHAR_TABLE_REF (AREF (font_def, 2), c)))
+	    /* This font can't display C.  */
+	    continue;
+	}
       else
 	{
 	  Lisp_Object slot;
@@ -1003,9 +1011,8 @@ find_font_encoding (fontname)
 	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
 	return (XCDR (elt));
     }
-  /* We don't know the encoding of this font.  Let's assume Unicode
-     encoding.  */
-  return Qunicode;
+  /* We don't know the encoding of this font.  */
+  return Qnil;
 }
 
 
@@ -1383,12 +1390,25 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     encoding = find_font_encoding ((char *) SDATA (font_spec));
   else
     encoding = find_font_encoding ((char *) SDATA (registry));
+  if (NILP (encoding))
+    /* We don't know how to use this font.  */
+    return Qnil;
   if (SYMBOLP (encoding))
-    encoding = repertory = CHARSET_SYMBOL_ID (encoding);
+    {
+      CHECK_CHARSET (encoding);
+      encoding = repertory = CHARSET_SYMBOL_ID (encoding);
+    }
   else
     {
       repertory = XCDR (encoding);
-      encoding = CHARSET_SYMBOL_ID (XCAR (encoding));
+      encoding = XCAR (encoding);
+      CHECK_CHARSET (encoding);
+      encoding = CHARSET_SYMBOL_ID (encoding);
+      if (! NILP (repertory) && SYMBOLP (repertory))
+	{
+	  CHECK_CHARSET (repertory);
+	  repertory = CHARSET_SYMBOL_ID (repertory);
+	}
     }
   font_def = Fmake_vector (make_number (3), font_spec);
   ASET (font_def, 1, encoding);
