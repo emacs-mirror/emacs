@@ -1,5 +1,10 @@
 2002-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/fill.el (fill-paragraph): Give up if there's no
+	paragraph at or after point.
+
+	* textmodes/paragraphs.el (forward-paragraph): Return the steps left.
+
 	* vc.el (vc-print-log): Unconditionally use `show-log-entry'.
 	(vc-default-show-log-entry): New fun.
 
