@@ -2409,6 +2409,8 @@ extern void ins_del_lines P_ ((int, int));
 extern int string_cost P_ ((char *));
 extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
+extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
+extern void tty_setup_colors P_ ((int));
 extern void term_init P_ ((char *));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
