@@ -151,6 +151,11 @@ Lisp_Object last_input_char;
 /* If not Qnil, an object to be read as the next command input.  */
 Lisp_Object unread_command_char;
 
+/* If not Qnil, this is a switch-frame event which we decided to put
+   off until the end of a key sequence.  This should be read as the
+   next command input, after any unread_command_char.  */
+Lisp_Object unread_switch_frame;
+
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
 
@@ -187,15 +192,16 @@ Lisp_Object last_command;
    instead of the actual command.  */
 Lisp_Object this_command;
 
-#ifdef MULTI_FRAME
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.
    command_loop_1 will select this frame before running the
    command bound to an event sequence, and read_key_sequence will
    toss the existing prefix if the user starts typing at a
-   new frame.  */
+   new frame.  
+
+   On a non-multi-frame Emacs, this will be either Qmacro or
+   selected_frame. */
 Lisp_Object Vlast_event_frame;
-#endif
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
@@ -284,6 +290,8 @@ Lisp_Object Qhscrollbar_part;
 Lisp_Object Qhslider_part;
 Lisp_Object Qhthumbleft_part;
 Lisp_Object Qhthumbright_part;
+
+Lisp_Object Qswitch_frame;
 
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
@@ -842,11 +850,13 @@ command_loop_1 ()
 
       ++num_input_keys;
 
+#if 0 /* This shouldn't be necessary, now that we have switch-frame events.  */
 #ifdef MULTI_FRAME
       /* Select the frame that the key sequence came from.  */
       if (XTYPE (Vlast_event_frame) == Lisp_Frame
 	  && XFRAME (Vlast_event_frame) != selected_frame)
 	Fselect_frame (Vlast_event_frame, Qnil);
+#endif
 #endif
 
       /* Now we have read a key sequence of length I,
@@ -1136,6 +1146,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto from_macro;
     }
 
+  if (!NILP (unread_switch_frame))
+    {
+      c = unread_switch_frame;
+      unread_switch_frame = Qnil;
+
+      /* This event should make it into this_command_keys, and get echoed
+	 again, so we go to reread, rather than reread_first.  */
+      goto reread;
+    }
+
   /* Save outer setjmp data, in case called recursively.  */
   save_getcjmp (save_jump);
 
@@ -1147,9 +1167,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (_setjmp (getcjmp))
     {
       XSET (c, Lisp_Int, quit_char);
-#ifdef MULTI_FRAME
       XSET (Vlast_event_frame, Lisp_Frame, selected_frame);
-#endif
 
       goto non_reread;
     }
@@ -1462,13 +1480,11 @@ kbd_buffer_store_event (event)
 	{
 	  extern SIGTYPE interrupt_signal ();
 
-#ifdef MULTI_FRAME
 	  /* If this results in a quit_char being returned to Emacs as
 	     input, set last-event-frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  Vlast_event_frame = FRAME_FOCUS_FRAME (event->frame);
-#endif
 
 	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
@@ -1509,6 +1525,7 @@ kbd_buffer_store_event (event)
 static Lisp_Object make_lispy_event ();
 static Lisp_Object make_lispy_movement ();
 static Lisp_Object modify_event_symbol ();
+static Lisp_Object make_lispy_switch_frame ();
 
 static Lisp_Object
 kbd_buffer_get_event ()
@@ -1564,20 +1581,34 @@ kbd_buffer_get_event ()
      mouse movement enabled and available.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
-      if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
-	kbd_fetch_ptr = kbd_buffer;
+      struct input_event *event;
+      Lisp_Object frame;
 
-#ifdef MULTI_FRAME
-      XSET (Vlast_event_frame, Lisp_Frame,
-	    XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame)));
-#endif
+      event = ((kbd_fetch_ptr <= kbd_buffer + KBD_BUFFER_SIZE)
+	       ? kbd_fetch_ptr
+	       : kbd_buffer);
 
-      last_event_timestamp = kbd_fetch_ptr->timestamp;
-      obj = make_lispy_event (kbd_fetch_ptr);
-      kbd_fetch_ptr->kind = no_event;
-      kbd_fetch_ptr++;
-      if (XTYPE (obj) == Lisp_Int)
-	XSET (obj, Lisp_Int, XINT (obj) & (meta_key ? 0377 : 0177));
+      last_event_timestamp = event->timestamp;
+      XSET (frame, Lisp_Frame, XFRAME (FRAME_FOCUS_FRAME (event->frame)));
+
+      /* If this event is on a different frame, return a switch-frame this
+	 time, and leave the event in the queue for next time.  */
+      if (! EQ (frame, Vlast_event_frame))
+	{
+	  Vlast_event_frame = frame;
+	  obj = make_lispy_switch_frame (frame);
+	}
+      else
+	{
+	  obj = make_lispy_event (event);
+	  if (XTYPE (obj) == Lisp_Int)
+	    XSET (obj, Lisp_Int, XINT (obj) & (meta_key ? 0377 : 0177));
+      
+	  /* Wipe out this event, to catch bugs.  */
+	  event->kind = no_event;
+
+	  kbd_fetch_ptr = event + 1;
+	}
     }
   else if (do_mouse_tracking && mouse_moved)
     {
@@ -1586,11 +1617,14 @@ kbd_buffer_get_event ()
       unsigned long time;
 
       (*mouse_position_hook) (&frame, &x, &y, &time);
-#ifdef MULTI_FRAME
-      XSET (Vlast_event_frame, Lisp_Frame, frame);
-#endif
 
-      obj = make_lispy_movement (frame, x, y, time);
+      if (frame != XFRAME (Vlast_event_frame))
+	{
+	  XSET (Vlast_event_frame, Lisp_Frame, frame);
+	  obj = make_lispy_switch_frame (Vlast_event_frame);
+	}
+      else
+	obj = make_lispy_movement (frame, x, y, time);
     }
   else
     /* We were promised by the above while loop that there was
@@ -1898,6 +1932,14 @@ make_lispy_movement (frame, x, y, time)
 }
 
 
+/* Construct a switch frame event.  */
+static Lisp_Object
+make_lispy_switch_frame (frame)
+     Lisp_Object frame;
+{
+  return Fcons (Qswitch_frame, Fcons (frame, Qnil));
+}
+
 
 /* Manipulating modifiers.  */
 
@@ -2122,7 +2164,10 @@ parse_modifiers (symbol)
 
    This is like apply_modifiers_uncached, but uses BASE's
    Qmodifier_cache property, if present.  It also builds
-   Qevent_symbol_elements properties, since it has that info anyway.  */
+   Qevent_symbol_elements properties, since it has that info anyway.
+
+   apply_modifiers copies the value of BASE's Qevent_kind property to
+   the modified symbol.  */
 static Lisp_Object
 apply_modifiers (modifiers, base)
      int modifiers;
@@ -2131,8 +2176,8 @@ apply_modifiers (modifiers, base)
   Lisp_Object cache, index, entry;
 
   /* The click modifier never figures into cache indices.  */
-  XFASTINT (index) = (modifiers & ~click_modifier);
   cache = Fget (base, Qmodifier_cache);
+  XFASTINT (index) = (modifiers & ~click_modifier);
   entry = Fassq (index, cache);
 
   if (CONSP (entry))
@@ -2155,6 +2200,9 @@ apply_modifiers (modifiers, base)
 	  Fcons (base, Fcons (index, Qnil)));
     Fput (new_symbol, Qevent_symbol_elements,
 	  Fcons (base, lispy_modifier_list (modifiers)));
+
+    /* This symbol is of the same kind as BASE.  */
+    Fput (new_symbol, Qevent_kind, Fget (new_symbol, Qevent_kind));
 
     return new_symbol;
   }
@@ -2710,8 +2758,8 @@ follow_key (key, nmaps, current, defs, next)
       for (i = 0; i < nmaps; i++)
 	if (! NILP (current[i]))
 	  {
-	    next[i] = get_keyelt (access_keymap (current[i],
-						 meta_prefix_char));
+	    next[i] =
+	      get_keyelt (access_keymap (current[i], meta_prefix_char, 1));
 
 	    /* Note that since we pass the resulting bindings through
 	       get_keymap_1, non-prefix bindings for meta-prefix-char
@@ -2730,7 +2778,7 @@ follow_key (key, nmaps, current, defs, next)
     {
       if (! NILP (current[i]))
 	{
-	  defs[i] = get_keyelt (access_keymap (current[i], key));
+	  defs[i] = get_keyelt (access_keymap (current[i], key, 1));
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
@@ -2752,7 +2800,7 @@ follow_key (key, nmaps, current, defs, next)
 	{
 	  if (! NILP (current[i]))
 	    {
-	      defs[i] = get_keyelt (access_keymap (current[i], key));
+	      defs[i] = get_keyelt (access_keymap (current[i], key, 1));
 	      if (! NILP (defs[i]))
 		first_binding = i;
 	    }
@@ -2842,6 +2890,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   int fkey_start = 0, fkey_end = 0;
   Lisp_Object fkey_map = Vfunction_key_map;
+
+  /* If we receive a ``switch-frame'' event in the middle of a key sequence,
+     we put it off for later.  While we're reading, we keep the event here.  */
+  Lisp_Object delayed_switch_frame = Qnil;
 
   last_nonmenu_event = Qnil;
 
@@ -2935,30 +2987,49 @@ read_key_sequence (keybuf, bufsize, prompt)
 	     Emacs 18 handles this by returning immediately with a
 	     zero, so that's what we'll do.  */
 	  if (XTYPE (key) == Lisp_Int && XINT (key) < 0)
-	    return 0;
+	    {
+	      unread_switch_frame = delayed_switch_frame;
+	      return 0;
+	    }
 	  
 	  Vquit_flag = Qnil;
 
 	  /* Clicks in non-text areas get prefixed by the symbol 
 	     in their CHAR-ADDRESS field.  For example, a click on
 	     the mode line is prefixed by the symbol `mode-line'.  */
-	  if (EVENT_HAS_PARAMETERS (key)
-	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)), Qmouse_click))
+	  if (EVENT_HAS_PARAMETERS (key))
 	    {
-	      Lisp_Object posn = POSN_BUFFER_POSN (EVENT_START (key));
-
-	      if (XTYPE (posn) == Lisp_Symbol)
+	      Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+	      if (EQ (kind, Qmouse_click))
 		{
-		  if (t + 1 >= bufsize)
-		    error ("key sequence too long");
-		  keybuf[t] = posn;
-		  keybuf[t+1] = key;
-		  mock_input = t + 2;
+		  Lisp_Object posn = POSN_BUFFER_POSN (EVENT_START (key));
 
-		  goto retry_key;
+		  if (XTYPE (posn) == Lisp_Symbol)
+		    {
+		      if (t + 1 >= bufsize)
+			error ("key sequence too long");
+		      keybuf[t] = posn;
+		      keybuf[t+1] = key;
+		      mock_input = t + 2;
+
+		      goto retry_key;
+		    }
+		}
+	      else if (EQ (kind, Qswitch_frame))
+		{
+		  /* If we're at the beginning of a key sequence, go
+		     ahead and return this event.  If we're in the
+		     midst of a key sequence, delay it until the end. */
+		  if (t > 0)
+		    {
+		      delayed_switch_frame = key;
+		      goto retry_key;
+		    }
 		}
 	    }
 
+#if 0	/* This shouldn't be necessary any more, now that we have
+	   switch-frame events.  */
 #ifdef MULTI_FRAME
 	  /* What buffer was this event typed/moused at?  */
 	  if (used_mouse_menu)
@@ -2999,7 +3070,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      goto restart;
 	    }
-#endif
+#endif /* MULTI_FRAME */
+#endif /* 0 */
 	}
 	  
       first_binding = (follow_key (key,
@@ -3087,15 +3159,16 @@ read_key_sequence (keybuf, bufsize, prompt)
 		 with meta_prefix_char.  I hate this.  */
 	      if (keybuf[fkey_end] & 0x80)
 		fkey_next =
-		  get_keymap_1 (get_keyelt
-				(access_keymap (fkey_map, meta_prefix_char)),
-				0);
+		  get_keymap_1
+		    ((get_keyelt
+		      (access_keymap (fkey_map, meta_prefix_char, 1))),
+		     0);
 	      else
 		fkey_next = fkey_map;
 
 	      fkey_next =
 		get_keyelt (access_keymap
-			    (fkey_next, keybuf[fkey_end++] & 0x7f));
+			    (fkey_next, keybuf[fkey_end++] & 0x7f, 1));
 
 	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
@@ -3135,6 +3208,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 			   ? defs[first_binding]
 			   : Qnil);
 
+  unread_switch_frame = delayed_switch_frame;
   return t;
 }
 
@@ -3773,7 +3847,8 @@ struct event_head head_table[] = {
   &Qhscrollbar_part, "hscrollbar-part",  &Qscrollbar_click,
   &Qhslider_part,    "hslider-part",     &Qscrollbar_click,
   &Qhthumbleft_part, "hthumbleft-part",  &Qscrollbar_click,
-  &Qhthumbright_part,"hthumbright-part", &Qscrollbar_click
+  &Qhthumbright_part,"hthumbright-part", &Qscrollbar_click,
+  &Qswitch_frame,    "switch-frame",     &Qswitch_frame
 };
 
 syms_of_keyboard ()
@@ -3802,7 +3877,7 @@ syms_of_keyboard ()
   Qvertical_line = intern ("vertical-line");
   staticpro (&Qvertical_line);
 
-  Qevent_kind = intern ("event-type");
+  Qevent_kind = intern ("event-kind");
   staticpro (&Qevent_kind);
   Qevent_symbol_elements = intern ("event-symbol-elements");
   staticpro (&Qevent_symbol_elements);
@@ -3850,6 +3925,9 @@ syms_of_keyboard ()
 
   mouse_syms = Qnil;
   staticpro (&mouse_syms);
+
+  unread_switch_frame = Qnil;
+  staticpro (&unread_switch_frame);
 
   defsubr (&Sread_key_sequence);
   defsubr (&Srecursive_edit);
@@ -3932,12 +4010,10 @@ Polling is automatically disabled in all other cases.");
     "*Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;
 
-#ifdef MULTI_FRAME
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
     "*The frame in which the most recently read event occurred.\n\
 If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
-#endif
 
   DEFVAR_LISP ("help-char", &help_char,
     "Character to recognize as meaning Help.\n\
