@@ -79,8 +79,12 @@
 	       (if (symbolp callback)
 		   (fset command callback)
 		 (fset command (list 'lambda () '(interactive) callback)))))
-	(if name 
-	    (define-key menu (vector (intern name)) (cons name command))))
+	(if (null command)
+	    ;; Handle inactive strings specially--allow any number
+	    ;; of identical ones.
+	    (setcdr menu (cons (list nil name) (cdr menu)))
+	  (if name 
+	      (define-key menu (vector (intern name)) (cons name command)))))
       (setq menu-items (cdr menu-items)))
     menu))
 
