@@ -4845,6 +4845,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       /* Hack to correct bug that allows Emacs frames to be resized
 	 below the Minimum Tracking Size.  */
       ((LPMINMAXINFO) lParam)->ptMinTrackSize.y++;
+      /* Hack to allow resizing the Emacs frame above the screen size.
+	 Note that Windows 9x limits coordinates to 16-bits.  */
+      ((LPMINMAXINFO) lParam)->ptMaxTrackSize.x = 32767;
+      ((LPMINMAXINFO) lParam)->ptMaxTrackSize.y = 32767;
       return 0;
 
     case WM_EMACS_CREATESCROLLBAR:
