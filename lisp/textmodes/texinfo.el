@@ -438,13 +438,6 @@ chapter."
 
 ;;; Texinfo mode
 
-;; Also defined in texnfo-upd.el but copied here to avoid having
-;; to require texnfo-upd.el.
-(defvar texinfo-chapter-level-regexp
-  "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
-  "Regular expression matching Texinfo chapter-level headings.
-This does not match `@node' and does not match the `@top' command.")
-
 ;;;###autoload
 (define-derived-mode texinfo-mode text-mode "Texinfo"
   "Major mode for editing Texinfo files.
@@ -516,7 +509,7 @@ value of `texinfo-mode-hook'."
   (setq page-delimiter
         (concat
          "^@node [ \t]*[Tt]op\\|^@\\("
-         texinfo-chapter-level-regexp
+         "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
          "\\)"))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
