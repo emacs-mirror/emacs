@@ -4,6 +4,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -31,8 +32,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'mm-util)
-
-(require 'message)
 
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."
@@ -281,6 +280,8 @@ be set in `.emacs' instead."
   (defalias 'gnus-delete-overlay 'delete-overlay)
   (defalias 'gnus-overlay-put 'overlay-put)
   (defalias 'gnus-move-overlay 'move-overlay)
+  (defalias 'gnus-overlay-buffer 'overlay-buffer)
+  (defalias 'gnus-overlay-start 'overlay-start)
   (defalias 'gnus-overlay-end 'overlay-end)
   (defalias 'gnus-extent-detached-p 'ignore)
   (defalias 'gnus-extent-start-open 'ignore)
@@ -840,7 +841,6 @@ be set in `.emacs' instead."
 
 ;;; Do the rest.
 
-(require 'custom)
 (require 'gnus-util)
 (require 'nnheader)
 
@@ -944,13 +944,16 @@ see the manual for details."
   :type 'gnus-select-method)
 
 (defcustom gnus-message-archive-method
-  `(nnfolder
-    "archive"
-    (nnfolder-directory ,(nnheader-concat message-directory "archive"))
-    (nnfolder-active-file
-     ,(nnheader-concat message-directory "archive/active"))
-    (nnfolder-get-new-mail nil)
-    (nnfolder-inhibit-expiry t))
+  (progn
+    ;; Don't require it at top level to avoid circularity.
+    (require 'message)
+    `(nnfolder
+      "archive"
+      (nnfolder-directory ,(nnheader-concat message-directory "archive"))
+      (nnfolder-active-file
+       ,(nnheader-concat message-directory "archive/active"))
+      (nnfolder-get-new-mail nil)
+      (nnfolder-inhibit-expiry t)))
   "*Method used for archiving messages you've sent.
 This should be a mail method.
 
@@ -1506,6 +1509,7 @@ If nil, no default charset is assumed when posting."
 
 ;;; Internal variables
 
+(defvar gnus-agent-gcc-header "X-Gnus-Agent-Gcc")
 (defvar gnus-agent-meta-information-header "X-Gnus-Agent-Meta-Information")
 (defvar gnus-group-get-parameter-function 'gnus-group-get-parameter)
 (defvar gnus-original-article-buffer " *Original Article*")
@@ -1514,6 +1518,9 @@ If nil, no default charset is assumed when posting."
 
 (defvar gnus-agent nil
   "Whether we want to use the Gnus agent or not.")
+
+(defvar gnus-agent-fetching nil
+  "Whether Gnus agent is in fetching mode.")
 
 (defvar gnus-command-method nil
   "Dynamically bound variable that says what the current backend is.")
