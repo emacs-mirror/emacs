@@ -1,4 +1,4 @@
 *.elc
+MANIFEST
 Makefile
 elc.tar.gz
-MANIFEST

@@ -585,6 +585,28 @@
 	* ielm.el (ielm-eval-input): Call `error-message-string' instead
 	of the non-existent `ielm-format-error'.
 
+2002-09-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-remove):
+	* emacs-lisp/ewoc.el (ewoc--node-branch): Add docstring.
+
+	* international/mule-diag.el (describe-coding-system):
+	Remove unused `coding-spec' variable.
+	(list-input-methods): Be more careful when setting up the help buffer.
+
+	* international/ucs-tables.el (unify-8859-on-encoding-mode):
+	Set init value to t to reflect reality.
+	(ucs-minibuffer-setup): Use minibuffer-selected-window.
+
+2002-09-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/make-mode.el (makefile-cleanup-continuations-p):
+	Rename to makefile-cleanup-continuations.
+	(makefile-mode): Use write-file-functions.
+	(makefile-fill-paragraph): Use match-string-no-properties.
+	(makefile-fill-paragraph): Use line-end-position.
+	(makefile-add-log-defun): Simplify.
+
 2002-09-18  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mark-pop-up): Doc fix.
@@ -620,14 +642,25 @@
 
 	* ielm.el: (*1, *2, *3): New variables.
 	(ielm-eval-input): Make temporary buffers current on entry and
-        exit to the let bindings for *, ** and ***.
+	exit to the let bindings for *, ** and ***.
 	(inferior-emacs-lisp-mode): Mention *1, *2 and *3 in the docstring.
-        Do not overrule global bindings for *, ** and ***.
+	Do not overrule global bindings for *, ** and ***.
 
 2002-09-18  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Find comment
 	boundaries before filling.
+
+2002-09-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* server.el (server-done): Fix harmlessly wrong arg to save-buffer.
+	(server-switch-buffer): Only select a different window if
+	next-buffer is non-nil.  Don't switch in a dedicated window.
+	If next-buffer is already displayed, reuse that window.
+
+	* diff-mode.el (diff-mode): Use compilation-minor-mode.
+	Don't unbind compilation-last-buffer after autoloading compile.el.
+	Hide the compilation-minor-mode bindings altogether.
 
 2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
