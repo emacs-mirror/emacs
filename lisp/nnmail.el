@@ -367,13 +367,19 @@ performed.")
 	;; and the actual inbox is /usr/spool/mail/foo/foo.
 	(if (file-directory-p inbox)
 	    (setq inbox (expand-file-name (user-login-name) inbox))))
-    (if popmail
-	(message "Getting mail from post office ...")
-      (if (or (and (file-exists-p tofile)
-		   (/= 0 (nth 7 (file-attributes tofile))))
-	      (and (file-exists-p inbox)
-		   (/= 0 (nth 7 (file-attributes inbox)))))
-	  (message "Getting mail from %s..." inbox)))
+    (cond
+     (popmail
+      (if (and rmail-pop-password-required (not rmail-pop-password))
+	  (setq rmail-pop-password
+		(rmail-read-passwd
+		 (format "Password for %s: "
+			 (substring tofile (+ popmail 3))))))
+      (message "Getting mail from post office ..."))
+     ((or (and (file-exists-p tofile)
+	       (/= 0 (nth 7 (file-attributes tofile))))
+	  (and (file-exists-p inbox)
+	       (/= 0 (nth 7 (file-attributes inbox)))))
+      (message "Getting mail from %s..." inbox)))
     ;; Set TOFILE if have not already done so, and
     ;; rename or copy the file INBOX to TOFILE if and as appropriate.
     (cond ((or (file-exists-p tofile) (and (not popmail)
@@ -398,9 +404,13 @@ performed.")
 	       (save-excursion
 		 (setq errors (generate-new-buffer " *nnmail loss*"))
 		 (buffer-disable-undo errors)
-		 (call-process
-		  (expand-file-name nnmail-movemail-program exec-directory)
-		  nil errors nil inbox tofile)
+		 (if rmail-pop-password
+		     (call-process
+		      (expand-file-name nnmail-movemail-program exec-directory)
+		      nil errors nil inbox tofile rmail-pop-password)
+		   (call-process
+		    (expand-file-name nnmail-movemail-program exec-directory)
+		    nil errors nil inbox tofile))
 		 (if (not (buffer-modified-p errors))
 		     ;; No output => movemail won
 		     nil
