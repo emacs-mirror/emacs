@@ -3721,21 +3721,22 @@ Automatically becomes buffer-local when set in any fashion.");
 		     Qnil,
     "Display table that controls display of the contents of current buffer.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
-The display table is a vector created with `make-display-table'.\n\
-The first 256 elements control how to display each possible text character.\n\
-Each value should be a vector of characters or nil;\n\
+The display table is a char-table created with `make-display-table'.\n\
+The ordinary char-table elements control how to display each possible text\n\
+character.  Each value should be a vector of characters or nil;\n\
 nil means display the character in the default fashion.\n\
-The remaining six elements control the display of\n\
-  the end of a truncated screen line (element 256, a single character);\n\
-  the end of a continued line (element 257, a single character);\n\
+There are six extra slots to control the display of\n\
+  the end of a truncated screen line (extra-slot 0, a single character);\n\
+  the end of a continued line (extra-slot 1, a single character);\n\
   the escape character used to display character codes in octal\n\
-    (element 258, a single character);\n\
-  the character used as an arrow for control characters (element 259,\n\
+    (extra-slot 2, a single character);\n\
+  the character used as an arrow for control characters (extra-slot 3,\n\
     a single character);\n\
-  the decoration indicating the presence of invisible lines (element 260,\n\
+  the decoration indicating the presence of invisible lines (extra-slot 4,\n\
     a vector of characters);\n\
   the character used to draw the border between side-by-side windows\n\
-    (element 261, a single character).\n\
+    (extra-slot 5, a single character).\n\
+See also the functions `display-table-slot' and `set-display-table-slot'.\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 #endif
