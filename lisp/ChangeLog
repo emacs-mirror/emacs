@@ -2,6 +2,7 @@
 
 	* term/x-win.el (emacs-session-restore): Take previous id as
 	an argument.
+	(emacs-session-save): Add comment that return t means cancel shutdown
 
 	* startup.el (command-line): Must check that x-session-previous-id
 	is bound also, for non-X platforms.

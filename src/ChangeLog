@@ -21,10 +21,11 @@
 
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
-	* xterm.h: Declare x_session_check_input and x_session_initialize.
+	* xterm.h: (x_session_check_input, x_session_initialize): Declared.
 
-	* xterm.c: Add calls to x_session_check_input and
-	x_session_initialize.
+	* xterm.c: (XTread_socket): Add call to x_session_check_input and
+	x_session_have_connection.
+	(x_initialize): Add call to x_session_initialize.
 
 	* termhooks.h (enum event_kind): Add save_session_event.
 
@@ -36,7 +37,9 @@
 
 	* config.in: Add HAVE_X_SM.
 
-	* Makefile.in: Add test for HAVE_X_SM and new file xsmfns.c
+	* Makefile.in: Add -lSM -lICE to LIBXT if HAVE_X_SM and not
+	USE_X_TOOLKIT.
+	New file xsmfns.c added to XOBJ.
 
 	* xsmfns.c: New file for X session management.
 
