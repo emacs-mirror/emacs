@@ -2,7 +2,7 @@
  *
  *                  ALLOCATION BUFFER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!buffer.c(trunk.2)$
+ *  $HopeName: MMsrc!buffer.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -70,10 +70,23 @@ Pool BufferPool(Buffer buffer)
   return pool;
 }
 
-
-static Space BufferSpace(Buffer buffer)
+Ap BufferAp(Buffer buffer)
 {
-  return PoolSpace(BufferPool(buffer));
+  AVER(ISVALID(Buffer, buffer));
+  return &buffer->ap;
+}
+
+Buffer BufferOfAp(Ap ap)  /* outside space lock */
+{
+  Buffer buffer;
+
+  buffer = PARENT(BufferStruct, ap, ap);
+  return buffer;
+}
+
+Space BufferSpace(Buffer buffer) /* outside space lock */
+{
+  return buffer->space;
 }
 
 
@@ -96,7 +109,7 @@ void BufferDestroy(Buffer buffer)
   pool = BufferPool(buffer);
   AVER(pool->class->bufferDestroy != NULL);
 
-  AVER(buffer->init == buffer->alloc);
+  AVER(buffer->ap.init == buffer->ap.alloc);
 
   (*pool->class->bufferDestroy)(buffer);
 }
@@ -112,17 +125,18 @@ Bool BufferIsValid(Buffer buffer, ValidationType validParam)
   AVER(buffer->sig == &BufferSigStruct);
 #endif
   AVER(ISVALIDNESTED(DequeNode, &buffer->poolDeque));
-  AVER(buffer->base <= buffer->init);
-  AVER(buffer->init <= buffer->alloc);
-  AVER(buffer->alloc <= buffer->limit || buffer->limit == 0);
+  AVER(buffer->base <= buffer->ap.init);
+  AVER(buffer->ap.init <= buffer->ap.alloc);
+  AVER(buffer->ap.alloc <= buffer->ap.limit || buffer->ap.limit == 0);
+  /* buffer->space */
   AVER(buffer->fill != NULL);
   AVER(buffer->trip != NULL);
   /* AVER(buffer->alignment == BufferPool(buffer)->alignment); */
   AVER(IsPoT(buffer->alignment));
   AVER(IsAligned(buffer->alignment, buffer->base));
-  AVER(IsAligned(buffer->alignment, buffer->init));
-  AVER(IsAligned(buffer->alignment, buffer->alloc));
-  AVER(IsAligned(buffer->alignment, buffer->limit));
+  AVER(IsAligned(buffer->alignment, buffer->ap.init));
+  AVER(IsAligned(buffer->alignment, buffer->ap.alloc));
+  AVER(IsAligned(buffer->alignment, buffer->ap.limit));
   return TRUE;
 }
 
@@ -134,9 +148,9 @@ void BufferSet(Buffer buffer, Addr base, Addr init, Addr limit)
   AVER(ISVALID(Buffer, buffer));
   
   buffer->base = base;
-  buffer->init = init;
-  buffer->alloc = init;
-  buffer->limit = limit;
+  buffer->ap.init = init;
+  buffer->ap.alloc = init;
+  buffer->ap.limit = limit;
 }
 
 
@@ -145,9 +159,9 @@ void BufferReset(Buffer buffer)
   AVER(ISVALID(Buffer, buffer));
   
   buffer->base = 0;
-  buffer->init = 0;
-  buffer->alloc = 0;
-  buffer->limit = 0;
+  buffer->ap.init = 0;
+  buffer->ap.alloc = 0;
+  buffer->ap.limit = 0;
 }
 
 
@@ -156,9 +170,9 @@ Bool BufferIsReset(Buffer buffer)
   AVER(ISVALID(Buffer, buffer));
   
   if(buffer->base == 0 &&
-     buffer->init == 0 &&
-     buffer->alloc == 0 &&
-     buffer->limit == 0)
+     buffer->ap.init == 0 &&
+     buffer->ap.alloc == 0 &&
+     buffer->ap.limit == 0)
     return TRUE;
   
   return FALSE;
@@ -169,7 +183,7 @@ Bool BufferIsReady(Buffer buffer)
 {
   AVER(ISVALID(Buffer, buffer));
   
-  if(buffer->init == buffer->alloc)
+  if(buffer->ap.init == buffer->ap.alloc)
     return TRUE;
   
   return FALSE;
@@ -183,9 +197,10 @@ void BufferInit(Buffer buffer, Pool pool,
   AVER(buffer != NULL);
 
   buffer->base = 0;
-  buffer->init = 0;
-  buffer->alloc = 0;
-  buffer->limit = 0;
+  buffer->ap.init = 0;
+  buffer->ap.alloc = 0;
+  buffer->ap.limit = 0;
+  buffer->space = PoolSpace(pool);
   buffer->fill = fill;
   buffer->trip = trip;
   buffer->alignment = pool->alignment;
@@ -234,11 +249,11 @@ Error BufferReserve(Addr *pReturn, Buffer buffer, Addr size)
   /* satisfy the request?  If so, just increase the alloc marker and */
   /* return a pointer to the area below it. */
 
-  next = buffer->alloc + size;
-  if(next > buffer->alloc && next <= buffer->limit)
+  next = buffer->ap.alloc + size;
+  if(next > buffer->ap.alloc && next <= buffer->ap.limit)
   {
-    buffer->alloc = next;
-    *pReturn = buffer->init;
+    buffer->ap.alloc = next;
+    *pReturn = buffer->ap.init;
     return ErrSUCCESS;
   }
   
@@ -288,13 +303,13 @@ Bool BufferCommit(Buffer buffer, Addr p, Addr size)
   /* must fail when trip is called.  The pool will also see */
   /* a pointer p which points to the invalid object at init. */
 
-  AVER(p == buffer->init);
-  AVER(buffer->init + size == buffer->alloc);
+  AVER(p == buffer->ap.init);
+  AVER(buffer->ap.init + size == buffer->ap.alloc);
     
   /* Atomically update the init pointer to declare that the object */
   /* is initialized (though it may be invalid if a flip occurred). */
 
-  buffer->init = buffer->alloc;
+  buffer->ap.init = buffer->ap.alloc;
   
   /* **** Memory barrier here on the DEC Alpha. */
 
@@ -305,7 +320,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Addr size)
 
   /* trip the buffer if a flip has occurred. */
 
-  if(buffer->limit == 0)
+  if(buffer->ap.limit == 0)
     return BufferTrip(buffer, p, size);
 
   /* No flip occurred, so succeed. */
@@ -332,7 +347,7 @@ void BufferShieldExpose(Buffer buffer)
   /* @@@@ Assumes that the buffer buffers a segment. */
   if(!BufferIsReset(buffer))
     ShieldExpose(SpaceShield(BufferSpace(buffer)),
-                 buffer->base, buffer->limit);
+                 buffer->base, buffer->ap.limit);
 }
 
 void BufferShieldCover(Buffer buffer)
@@ -344,7 +359,7 @@ void BufferShieldCover(Buffer buffer)
   /* @@@@ Assumes that the buffer buffers a segment. */
   if(!BufferIsReset(buffer))
     ShieldCover(SpaceShield(BufferSpace(buffer)),
-                buffer->base, buffer->limit);
+                buffer->base, buffer->ap.limit);
 }
 
 
@@ -364,9 +379,9 @@ Error BufferDescribe(Buffer buffer, LibStream stream)
             (void *)BufferPool(buffer),
             (unsigned long)buffer->alignment,
             (unsigned long)buffer->base,
-            (unsigned long)buffer->init,
-            (unsigned long)buffer->alloc,
-            (unsigned long)buffer->limit,
+            (unsigned long)buffer->ap.init,
+            (unsigned long)buffer->ap.alloc,
+            (unsigned long)buffer->ap.limit,
             (void *)buffer->fill,
             (void *)buffer->trip,
             (void *)buffer);
