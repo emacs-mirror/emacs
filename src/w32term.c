@@ -214,6 +214,13 @@ struct frame *pending_autoraise_frame;
 
 struct cursor_pos output_cursor;
 
+/* The handle of the frame that currently owns the system caret.  */
+HWND w32_system_caret_hwnd;
+int w32_system_caret_width;
+int w32_system_caret_height;
+int w32_system_caret_x;
+int w32_system_caret_y;
+
 /* Flag to enable Unicode output in case users wish to use programs
    like Twinbridge on '95 rather than installed system level support
    for Far East languages.  */
@@ -6460,6 +6467,9 @@ note_mouse_highlight (f, x, y)
   if (!WINDOWP (window))
     return;
 
+  /* Reset help_echo. It will get recomputed below.  */
+  help_echo = Qnil;
+
   /* Convert to window-relative pixel coordinates.  */
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
@@ -9482,6 +9492,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
+  int active_cursor = 1;
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      windows and frames; in the latter case, the frame or window may
@@ -9525,7 +9536,10 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
       else
-	new_cursor_type = HOLLOW_BOX_CURSOR;
+	{
+	  new_cursor_type = HOLLOW_BOX_CURSOR;
+	  active_cursor = 0;
+	}
     }
   else
     {
@@ -9533,6 +9547,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
           || w != XWINDOW (f->selected_window))
         {
 	  extern int cursor_in_non_selected_windows;
+	  active_cursor = 0;
 
           if (MINI_WINDOW_P (w) 
               || !cursor_in_non_selected_windows
@@ -9580,6 +9595,38 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.vpos = vpos;
       w->phys_cursor_type = new_cursor_type;
       w->phys_cursor_on_p = 1;
+
+      /* If this is the active cursor, we need to track it with the
+	 system caret, so third party software like screen magnifiers
+	 and speech synthesizers can follow the cursor.  */
+      if (active_cursor)
+	{
+	  HWND hwnd = FRAME_W32_WINDOW (f);
+
+	  struct glyph * cursor_glyph = get_phys_cursor_glyph (w);
+	  int caret_width = cursor_glyph->pixel_width;
+	  w32_system_caret_x
+	    = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+	  w32_system_caret_y
+	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
+	       + glyph_row->ascent - w->phys_cursor_ascent);
+
+	  /* If the size of the active cursor changed, destroy the old
+	     system caret.  */
+	  if (w32_system_caret_hwnd
+	      && (w32_system_caret_height != w->phys_cursor_height
+		  || w32_system_caret_width != caret_width))
+	    PostMessage (hwnd, WM_EMACS_DESTROY_CARET, NULL, NULL);
+
+	  if (!w32_system_caret_hwnd)
+	    {
+	      w32_system_caret_height = w->phys_cursor_height;
+	      w32_system_caret_width = caret_width;
+	    }
+
+	  /* Move the system caret.  */
+	  PostMessage (hwnd, WM_EMACS_TRACK_CARET, NULL, NULL);
+	}
 
       switch (new_cursor_type)
 	{
@@ -10785,6 +10832,12 @@ w32_initialize ()
   memory_below_frame = 0;       /* we don't remember what scrolls
 				   off the bottom */
   baud_rate = 19200;
+
+  w32_system_caret_hwnd = NULL;
+  w32_system_caret_height = 0;
+  w32_system_caret_width = 0;
+  w32_system_caret_x = 0;
+  w32_system_caret_y = 0;
 
   last_tool_bar_item = -1;
   any_help_event_p = 0;
