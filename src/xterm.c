@@ -473,7 +473,7 @@ static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
 			       GC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, XRectangle *));
 static void x_draw_row_bitmaps P_ ((struct window *, struct glyph_row *));
-static void note_overwritten_text_cursor P_ ((struct window *, int, int));
+static void notice_overwritten_cursor P_ ((struct window *, int, int));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
@@ -5311,7 +5311,7 @@ x_write_glyphs (start, len)
 		     &real_start, &real_end, 0);
 
   /* If we drew over the cursor, note that it is not visible any more.  */
-  note_overwritten_text_cursor (updated_window, real_start,
+  notice_overwritten_cursor (updated_window, real_start,
 				real_end - real_start);
 
   UNBLOCK_INPUT;
@@ -5368,7 +5368,7 @@ x_insert_glyphs (start, len)
   hpos = start - row->glyphs[updated_area];
   x_draw_glyphs (w, output_cursor.x, row, updated_area, hpos, hpos + len,
 		 DRAW_NORMAL_TEXT, &real_start, &real_end, 0);
-  note_overwritten_text_cursor (w, real_start, real_end - real_start);
+  notice_overwritten_cursor (w, real_start, real_end - real_start);
   
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
@@ -5447,7 +5447,7 @@ x_clear_end_of_line (to_x)
   
   /* Notice if the cursor will be cleared by this operation.  */
   if (!updated_row->full_width_p)
-    note_overwritten_text_cursor (w, output_cursor.hpos, -1);
+    notice_overwritten_cursor (w, output_cursor.hpos, -1);
 
   from_x = output_cursor.x;
      
@@ -11075,22 +11075,40 @@ XTread_socket (sd, bufp, numchars, expected)
 			     Text Cursor
  ***********************************************************************/
 
-/* Note if the text cursor of window W has been overwritten by a
+/* Notice if the text cursor of window W has been overwritten by a
    drawing operation that outputs N glyphs starting at HPOS in the
-   line given by output_cursor.vpos.  N < 0 means all the rest of the
-   line after HPOS has been written.  */
+   line given by output_cursor.vpos.
+
+   N < 0 means all the rest of the line after HPOS has been
+   written.  */
 
 static void
-note_overwritten_text_cursor (w, hpos, n)
+notice_overwritten_cursor (w, hpos, n)
      struct window *w;
      int hpos, n;
 {
   if (updated_area == TEXT_AREA
       && output_cursor.vpos == w->phys_cursor.vpos
-      && hpos <= w->phys_cursor.hpos
-      && (n < 0
-	  || hpos + n > w->phys_cursor.hpos))
-    w->phys_cursor_on_p = 0;
+      && output_cursor.x <= w->phys_cursor.x
+      && w->phys_cursor_on_p)
+    {
+      if (n < 0)
+	w->phys_cursor_on_p = 0;
+      else
+	{
+	  /* It depends on the width of the N glyphs written at HPOS
+	     if the cursor has been overwritten or not.  */
+	  struct glyph *glyph = &updated_row->glyphs[TEXT_AREA][hpos];
+	  struct glyph *end = glyph + n;
+	  int width = 0;
+
+	  for (; glyph < end; ++glyph)
+	    width += glyph->pixel_width;
+
+	  if (output_cursor.x + width > w->phys_cursor.x)
+	    w->phys_cursor_on_p = 0;
+	}
+    }
 }
 
 
