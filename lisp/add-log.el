@@ -486,15 +486,15 @@ Has a preference of looking backwards."
 (defun get-method-definition ()
   (let ((md "["))
     (save-excursion
-      (if (re-search-backward "^@implementation \\(.*\\)$" nil t)
+      (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)
 	  (get-method-definition-1 " ")))
     (save-excursion
       (cond
-       ((re-search-backward "^\\([-+]\\)[ \t\n\f\r]*\\(([^)]*)\\)?" nil t)
+       ((re-search-forward "^\\([-+]\\)[ \t\n\f\r]*\\(([^)]*)\\)?\\s-*" nil t)
 	(get-method-definition-1 "")
 	(while (not (looking-at "[{;]"))
 	  (looking-at
-	   "\\([^ ;{:\t\n\f\r]*:?\\)\\(([^)]*)\\)?[^ ;{:\t\n\f\r]*[ \t\n\f\r]*")
+	   "\\([A-Za-z_]*:?\\)\\s-*\\(([^)]*)\\)?[A-Za-z_]*[ \t\n\f\r]*")
 	  (get-method-definition-1 ""))
 	(concat md "]"))))))
 
