@@ -1961,7 +1961,7 @@ and NEW-NAME will be prompted for."
    (let ((entry (assoc (completing-read "Create group: " gnus-useful-groups
 					nil t)
 		       gnus-useful-groups)))
-     (list (cadr entry) (caddr entry))))
+     (list (cadr entry) (nth 2 entry))))
   (setq method (gnus-copy-sequence method))
   (let (entry)
     (while (setq entry (memq (assq 'eval method) method))
