@@ -1,6 +1,7 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -266,6 +267,11 @@ Default value, nil, means edit the string instead."
       ;; Several non-printing chars change the searching behavior.
       (define-key map "\C-s" 'isearch-repeat-forward)
       (define-key map "\C-r" 'isearch-repeat-backward)
+      ;; Define M-C-s and M-C-r like C-s and C-r so that the same key
+      ;; combinations can be used to repeat regexp isearches that can
+      ;; be used to start these searches.
+      (define-key map "\M-\C-s" 'isearch-repeat-forward)
+      (define-key map "\M-\C-r" 'isearch-repeat-backward)
       (define-key map "\177" 'isearch-delete-char)
       (define-key map "\C-g" 'isearch-abort)
       ;; This assumes \e is the meta-prefix-char.
