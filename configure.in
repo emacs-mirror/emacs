@@ -343,10 +343,16 @@ case "${canonical}" in
        [56].[0-9] ) machine=nh4000 opsys=cxux ;;
        [7].[0-9] ) machine=nh4000 opsys=cxux7 ;;
     esac
+    NON_GNU_CPP="/lib/cpp"
   ;;
   ## Harris ecx or gcx running CX/UX (Series 1200, Series 3000)
   m68k-harris-cxux* )
     machine=nh3000 opsys=cxux
+  ;;
+  ## Harris power pc NightHawk running Power UNIX (Series 6000)
+  powerpc-harris-powerunix )
+    machine=nh6000 opsys=powerunix
+    NON_GNU_CPP="cc -Xo -E -P"
   ;;
 
   ## Honeywell XPS100
@@ -670,7 +676,14 @@ case "${canonical}" in
 		opsys=sunos4shr
 		NON_GNU_CPP=/usr/lib/cpp
 		;;
-      *-sunos4* | *-sunos ) opsys=sunos4-1
+      *-sunos4.1.[3-9]*-noshare )
+		opsys=sunos4-1-3
+		NON_GNU_CPP=/usr/lib/cpp
+		NON_GCC_TEST_OPTIONS=-Bstatic
+		GCC_TEST_OPTIONS=-static
+		;;
+      *-sunos4* | *-sunos )
+		opsys=sunos4-1
 		NON_GCC_TEST_OPTIONS=-Bstatic
 		GCC_TEST_OPTIONS=-static
 		;;
@@ -689,7 +702,7 @@ case "${canonical}" in
 		RANLIB="ar -ts"
 		;;
       *-sunos5* | *-solaris* )
-		opsys=sol2
+		opsys=sol2-4
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
@@ -1239,6 +1252,7 @@ if test "${HAVE_X11}" = "yes"; then
 
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
 XScreenNumberOfScreen XSetWMProtocols)
+  AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
 fi
 
 if test "${USE_X_TOOLKIT}" != "none"; then
@@ -1299,7 +1313,7 @@ if test $emacs_cv_localtime_cache = yes; then
   AC_DEFINE(LOCALTIME_CACHE)
 fi
 
-if test $HAVE_TIMEVAL = yes; then
+if test "x$HAVE_TIMEVAL" = xyes; then
 AC_MSG_CHECKING(whether gettimeofday can't accept two arguments)
 AC_TRY_LINK([
 #ifdef TIME_WITH_SYS_TIME
