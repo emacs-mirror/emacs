@@ -836,7 +836,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
     (if (not (vc-registered file))
 	(vc-register verbose comment)
       (vc-recompute-state file)
-      (vc-mode-line file)
+      (if visited (vc-mode-line file))
       (setq state (vc-state file))
       (cond
        ;; up-to-date
@@ -1017,7 +1017,7 @@ merge in the changes into your working copy."
 		       (if (not (vc-up-to-date-p f)) "@" ""))
 		     files ""))
 		(vc-next-action-dired nil nil "dummy")
-	      (vc-start-entry nil nil nil
+	      (vc-start-entry nil nil nil nil
 			      "Enter a change comment for the marked files."
 			      'vc-next-action-dired))
 	    (throw 'nogo nil)))
@@ -1063,6 +1063,7 @@ first backend that could register the file is used."
                     ;; TODO: Use backend-specific init version.
                     vc-default-init-version)
                   (or comment (not vc-initial-comment))
+		  nil
                   "Enter initial comment."
 		  (lambda (file rev comment)
 		    (message "Registering %s... " file)
@@ -1151,19 +1152,24 @@ rather than user editing!"
 	    (vc-resynch-window file keep noquery)))))
   (vc-dired-resynch-file file))
 
-(defun vc-start-entry (file rev comment msg action &optional after-hook)
-  "Accept a comment for an operation on FILE revision REV.
+(defun vc-start-entry (file rev comment initial-contents msg action &optional after-hook)
+  "Accept a comment for an operation on FILE revision REV.  
 If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
-action on close to ACTION; otherwise, do action immediately.  Remember
-the file's buffer in `vc-parent-buffer' (current one if no file).
-AFTER-HOOK specifies the local value for vc-log-operation-hook."
-  (let ((parent (if file (find-file-noselect file) (current-buffer))))
+action on close to ACTION.  If COMMENT is a string and
+INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
+contents of the log entry buffer.  If COMMENT is a string and
+INITIAL-CONTENTS is nil, do action immediately as if the user had
+entered COMMENT.  If COMMENT is t, also do action immediately with an
+empty comment.  Remember the file's buffer in `vc-parent-buffer' 
+\(current one if no file).  AFTER-HOOK specifies the local value 
+for vc-log-operation-hook."
+  (let ((parent (or (and file (get-file-buffer file)) (current-buffer))))
     (if vc-before-checkin-hook
         (if file
             (with-current-buffer parent
               (run-hooks 'vc-before-checkin-hook))
           (run-hooks 'vc-before-checkin-hook)))
-    (if comment
+    (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create "*VC-log*"))
       (pop-to-buffer (get-buffer-create "*VC-log*")))
     (set (make-local-variable 'vc-parent-buffer) parent)
@@ -1176,14 +1182,14 @@ AFTER-HOOK specifies the local value for vc-log-operation-hook."
 	(setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
     (setq vc-log-version rev)
-    (if comment
-	(progn
-	  (erase-buffer)
-	  (if (eq comment t)
-	      (vc-finish-logentry t)
-	    (insert comment)
-	    (vc-finish-logentry nil)))
-      (message "%s  Type C-c C-c when done" msg))))
+    (erase-buffer)
+    (if (eq comment t)
+	(vc-finish-logentry t)
+      (if comment
+	  (insert comment))
+      (if (and comment (not initial-contents))
+	  (vc-finish-logentry nil)
+	(message "%s  Type C-c C-c when done" msg)))))
 
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
@@ -1238,18 +1244,20 @@ REV defaults to the latest revision."
   (vc-resynch-buffer file t t)
   (message "Stealing lock on %s...done" file))
 
-(defun vc-checkin (file &optional rev comment)
+(defun vc-checkin (file &optional rev comment initial-contents)
   "Check in FILE.
 The optional argument REV may be a string specifying the new version
 level (if nil increment the current level).  COMMENT is a comment
-string; if omitted, a buffer is popped up to accept a comment.
+string; if omitted, a buffer is popped up to accept a comment.  If
+INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial contents
+of the log entry buffer.
 
 If `vc-keep-workfiles' is nil, FILE is deleted afterwards, provided
 that the version control system supports this mode of operation.
 
 Runs the normal hook `vc-checkin-hook'."
   (vc-start-entry
-   file rev comment
+   file rev comment initial-contents
    "Enter a change comment."
    (lambda (file rev comment)
      (message "Checking in %s..." file)
@@ -1357,14 +1365,14 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 	     (delete-windows-on logbuf (selected-frame))
 	     ;; Kill buffer and delete any other dedicated windows/frames.
 	     (kill-buffer logbuf))
-	    (t (pop-to-buffer "*VC-log*")
-	       (bury-buffer)
-	       (pop-to-buffer tmp-vc-parent-buffer))))
+	    (logbuf (pop-to-buffer "*VC-log*")
+		    (bury-buffer)
+		    (pop-to-buffer tmp-vc-parent-buffer))))
     ;; Now make sure we see the expanded headers
-    (if buffer-file-name
-	(vc-resynch-buffer buffer-file-name vc-keep-workfiles t))
+    (if log-file 
+	(vc-resynch-buffer log-file vc-keep-workfiles t))
     (if vc-dired-mode
-        (dired-move-to-filename))
+      (dired-move-to-filename))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;; Code for access to the comment ring
@@ -2098,6 +2106,34 @@ allowed and simply skipped)."
 			       'show-log-entry
 			       ',(vc-workfile-version file))))))))
 
+(defun vc-default-comment-history (backend file)
+  "Return a string with all log entries that were made under BACKEND for FILE."
+  (if (vc-find-backend-function backend 'print-log)
+      (with-temp-buffer
+	(vc-call print-log file)
+	(vc-call wash-log file)
+	(buffer-string))))
+
+(defun vc-default-wash-log (backend file)
+  "Remove all non-comment information from log output.
+This default implementation works for RCS logs; backends should override
+it if their logs are not in RCS format."
+  (let ((separator (concat "^-+\nrevision [0-9.]+\ndate: .*\n"
+			   "\\(branches: .*;\n\\)?"
+			   "\\(\\*\\*\\* empty log message \\*\\*\\*\n\\)?")))
+    (goto-char (point-max)) (forward-line -1)
+    (while (looking-at "=*\n")
+      (delete-char (- (match-end 0) (match-beginning 0)))
+      (forward-line -1))
+    (goto-char (point-min))
+    (if (looking-at "[\b\t\n\v\f\r ]+")
+	(delete-char (- (match-end 0) (match-beginning 0))))
+    (goto-char (point-min))
+    (re-search-forward separator nil t)
+    (delete-region (point-min) (point))
+    (while (re-search-forward separator nil t)
+      (delete-region (match-beginning 0) (match-end 0)))))
+
 ;;;###autoload
 (defun vc-revert-buffer ()
   "Revert the current buffer's file back to the version it was based on.
@@ -2196,11 +2232,6 @@ VC's perspective on FILE, it does not register or unregister it."
   (vc-file-setprop file 'vc-backend backend)
   (vc-resynch-buffer file t t))
 
-(defun vc-index-of (backend)
-  "Return the index of BACKEND in vc-handled-backends."
-  (- (length vc-handled-backends) 
-     (length (memq backend vc-handled-backends))))
-
 ;;;autoload
 (defun vc-transfer-file (file new-backend)
   "Transfer FILE to another version control system NEW-BACKEND.  
@@ -2218,8 +2249,10 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (with-vc-properties
        file
        (vc-call-backend new-backend 'receive-file file 
-			(< (vc-index-of old-backend)
-			   (vc-index-of new-backend)))
+			;; set MOVE argument if new-backend
+			;; comes later in vc-handled-backends
+			(memq new-backend 
+			      (memq old-backend vc-handled-backends)))
        `((vc-backend ,new-backend))))
     (vc-resynch-buffer file t t)))
 
@@ -2231,9 +2264,7 @@ of the log entry buffer."
   (let ((old-backend (vc-backend file))
 	(rev (vc-workfile-version file))
 	(state (vc-state file))
-	(comment (and move
-		      (vc-find-backend-function old-backend 'comment-history)
-		      (vc-call 'comment-history file))))
+	(comment (and move (vc-call comment-history file))))
     (if move (vc-unregister file old-backend))
     (vc-file-clearprops file)
     (if (not (vc-call-backend backend 'registered file))
@@ -2250,10 +2281,7 @@ of the log entry buffer."
 		      (logior (file-modes file) 128)))
     (when (or move (eq state 'edited))
       (vc-file-setprop file 'vc-state 'edited)
-      ;; TODO: The comment history should actually become the
-      ;; initial contents of the log entry buffer.
-      (and comment (ring-insert vc-comment-ring comment))
-      (vc-checkin file))))
+      (vc-checkin file nil comment (stringp comment)))))
 
 (defun vc-rename-master (oldmaster newfile templates)
   "Rename OLDMASTER to be the master file for NEWFILE based on TEMPLATES."
