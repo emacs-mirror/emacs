@@ -1,5 +1,9 @@
 2001-09-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* ps-bdf.el (bdf-cache-file) <ms-dos>: Use _bdfcache.el, since
+	convert-standard-filename doesn't guarantee that the .el extension
+	is preserved.
+
 	* dos-fns.el (convert-standard-filename): Replace invalid
 	characters only after converting dash/underscore to a period.
 	(original-make-auto-save-file-name): New.
