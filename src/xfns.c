@@ -4591,7 +4591,7 @@ x_display_info_for_name (name)
 			 (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
-    error ("X server %s not responding", XSTRING (name)->data);
+    error ("Cannot connect to X server %s", XSTRING (name)->data);
 
   x_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 11);
@@ -4634,11 +4634,13 @@ terminate Emacs if we can't open the connection.")
   if (dpyinfo == 0)
     {
       if (!NILP (must_succeed))
-	fatal ("X server %s not responding.\n\
-Check the DISPLAY environment variable or use \"-d\"\n",
+	fatal ("Cannot connect to X server %s.\n\
+Check the DISPLAY environment variable or use `-d'.\n\
+Also use the `xhost' program to verify that it is set to permit\n\
+connections from your machine.\n",
 	       XSTRING (display)->data);
       else
-	error ("X server %s not responding", XSTRING (display)->data);
+	error ("Cannot connect to X server %s", XSTRING (display)->data);
     }
 
   x_in_use = 1;
