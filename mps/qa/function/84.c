@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_test_function!84.c(trunk.2) $
 TEST_HEADER
  summary = EPVM save, alloc, restore in one pool
  language = c
@@ -54,19 +54,18 @@ static void test(void)
 
  for (i=0; i<100000; i++) {
   if (i % 1000 ==0) {
-   comment("---------------------- Restore to zero.");
-   if (lev1 > 0) {
-    lev1 = 0;
-    mps_epvm_restore(pool1, lev1);
-   }
+   comment("%d of 1000", i);
+   lev1 = 0;
+   mps_epvm_restore(pool1, lev1);
+   lev1++;
+   mps_epvm_save(pool1);
   }
   j = ranint(40);
   switch (j)  {
    case 1:
-    if (lev1==0) break;
+    if (lev1==1) break;
     lev1--;
-    comment("Restore to %i", lev1);
-    while (ranint(2) && (lev1>0)) lev1--;
+    while (ranint(2) && (lev1>1)) lev1--;
     mps_epvm_restore(pool1, lev1);
     break;
    case 2:
@@ -75,7 +74,6 @@ static void test(void)
    case 4:
     if (lev1<MAX_SAVE) {
      lev1++;
-     comment("Save to %i", lev1);
      mps_epvm_save(pool1);
     }
     break;
