@@ -511,23 +511,6 @@ mac_reset_clipping (display, w)
 }
 
 
-/* XBM bits seem to be backward within bytes compared with how
-   Mac does things.  */
-static unsigned char
-reflect_byte (orig)
-     unsigned char orig;
-{
-  int i;
-  unsigned char reflected = 0x00;
-  for (i = 0; i < 8; i++)
-    {
-      if (orig & (0x01 << i))
-	reflected |= 0x80 >> i;
-    }
-  return reflected;
-}
-
-
 /* Mac replacement for XCreateBitmapFromBitmapData.  */
 
 static void
@@ -536,6 +519,11 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
      char *bits;
      int w, h;
 {
+  static unsigned char swap_nibble[16]
+    = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
+	0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
+	0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
+	0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
   int i, j, w1;
   char *p;
 
@@ -547,7 +535,12 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
     {
       p = bitmap->baseAddr + i * bitmap->rowBytes;
       for (j = 0; j < w1; j++)
-        *p++ = reflect_byte (*bits++);
+	{
+	  /* Bitswap XBM bytes to match how Mac does things.  */
+	  unsigned char c = *bits++;
+	  *p++ = (unsigned char)((swap_nibble[c & 0xf] << 4)
+				 | (swap_nibble[(c>>4) & 0xf]));;
+	}
     }
 
   SetRect (&(bitmap->bounds), 0, 0, w, h);
@@ -6256,7 +6249,7 @@ mac_do_list_fonts (pattern, maxnames)
   char *ptr;
   int scl_val[XLFD_SCL_LAST], *field, *val;
   char *longest_start, *cur_start, *nonspecial;
-  int longest_len, cur_len, exact;
+  int longest_len, exact;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
@@ -6318,7 +6311,7 @@ mac_do_list_fonts (pattern, maxnames)
   *ptr++ = '^';
 
   longest_start = cur_start = ptr;
-  longest_len = cur_len = 0;
+  longest_len = 0;
   exact = 1;
 
   /* Turn pattern into a regexp and do a regexp match.  Also find the
@@ -6327,12 +6320,11 @@ mac_do_list_fonts (pattern, maxnames)
     {
       if (*pattern == '?' || *pattern == '*')
 	{
-	  if (cur_len > longest_len)
+	  if (ptr - cur_start > longest_len)
 	    {
 	      longest_start = cur_start;
-	      longest_len = cur_len;
+	      longest_len = ptr - cur_start;
 	    }
-	  cur_len = 0;
 	  exact = 0;
 
 	  if (*pattern == '?')
@@ -6342,21 +6334,16 @@ mac_do_list_fonts (pattern, maxnames)
 	      *ptr++ = '.';
 	      *ptr++ = '*';
 	    }
+	  cur_start = ptr;
 	}
       else
-	{
-	  if (cur_len == 0)
-	    cur_start = ptr;
-	  cur_len++;
-
-	  *ptr++ = tolower (*pattern);
-	}
+	*ptr++ = tolower (*pattern);
     }
 
-  if (cur_len > longest_len)
+  if (ptr - cur_start > longest_len)
     {
       longest_start = cur_start;
-      longest_len = cur_len;
+      longest_len = ptr - cur_start;
     }
 
   *ptr = '$';
@@ -7086,7 +7073,7 @@ static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
 
 #if TARGET_API_MAC_CARBON
 /* Drag and Drop */
-static OSErr init_mac_drag_n_drop ();
+static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
 static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
 #endif
 
@@ -7098,7 +7085,7 @@ static void init_service_handler ();
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
 #endif
-void install_window_handler (WindowPtr);
+OSErr install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -7659,16 +7646,6 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-#if TARGET_API_MAC_CARBON
-/* Initialize Drag And Drop to allow files to be dropped onto emacs frames */
-static OSErr
-init_mac_drag_n_drop ()
-{
-  OSErr result = InstallReceiveHandler (mac_do_receive_drag, 0L, NULL);
-  return result;
-}
-#endif
-
 /* Intialize AppleEvent dispatcher table for the required events.  */
 void
 init_required_apple_events ()
@@ -7909,10 +7886,11 @@ mac_handle_window_event (next_handler, event, data)
 #endif	/* USE_CARBON_EVENTS */
 
 
-void
+OSErr
 install_window_handler (window)
      WindowPtr window;
 {
+  OSErr err = noErr;
 #if USE_CARBON_EVENTS
   EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowBoundsChanging}};
   static EventHandlerUPP handle_window_event_UPP = NULL;
@@ -7920,9 +7898,17 @@ install_window_handler (window)
   if (handle_window_event_UPP == NULL)
     handle_window_event_UPP = NewEventHandlerUPP (mac_handle_window_event);
 
-  InstallWindowEventHandler (window, handle_window_event_UPP,
-			     GetEventTypeCount (specs), specs, NULL, NULL);
+  err = InstallWindowEventHandler (window, handle_window_event_UPP,
+				   GetEventTypeCount (specs), specs,
+				   NULL, NULL);
 #endif
+#if TARGET_API_MAC_CARBON
+  if (err == noErr)
+    err = InstallTrackingHandler (mac_do_track_drag, window, NULL);
+  if (err == noErr)
+    err = InstallReceiveHandler (mac_do_receive_drag, window, NULL);
+#endif
+  return err;
 }
 
 
@@ -7942,6 +7928,17 @@ path_from_vol_dir_name (char *, int, short, long, char *);
 /* Called when we receive an AppleEvent with an ID of
    "kAEOpenDocuments".  This routine gets the direct parameter,
    extracts the FSSpecs in it, and puts their names on a list.  */
+#pragma options align=mac68k
+typedef struct SelectionRange {
+  short unused1; // 0 (not used)
+  short lineNum; // line to select (<0 to specify range)
+  long startRange; // start of selection range (if line < 0)
+  long endRange; // end of selection range (if line < 0)
+  long unused2; // 0 (not used)
+  long theDate; // modification date/time
+} SelectionRange;
+#pragma options align=reset
+
 static pascal OSErr
 do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 {
@@ -7950,10 +7947,18 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
   AEKeyword keyword;
   DescType actual_type;
   Size actual_size;
+  SelectionRange position;
 
   err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
   if (err != noErr)
     goto descriptor_error_exit;
+
+  err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
+  if (err == noErr)
+    drag_and_drop_file_list = Fcons (list3 (make_number (position.lineNum + 1),
+					    make_number (position.startRange + 1),
+					    make_number (position.endRange + 1)),
+				     drag_and_drop_file_list);
 
   /* Check to see that we got all of the required parameters from the
      event descriptor.  For an 'odoc' event this should just be the
@@ -8004,8 +8009,11 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 					fs.name) &&
 		mac_to_posix_pathname (path_name, unix_path_name, 255))
 #endif
-	      drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					       drag_and_drop_file_list);
+	      /* x-dnd functions expect undecoded filenames.  */
+	      drag_and_drop_file_list =
+		Fcons (make_unibyte_string (unix_path_name,
+					    strlen (unix_path_name)),
+		       drag_and_drop_file_list);
 	  }
       }
   }
@@ -8021,6 +8029,67 @@ descriptor_error_exit:
 
 
 #if TARGET_API_MAC_CARBON
+static pascal OSErr
+mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
+		   void *handlerRefCon, DragReference theDrag)
+{
+  static int can_accept;
+  short items;
+  short index;
+  ItemReference theItem;
+  FlavorFlags theFlags;
+  OSErr result;
+
+  switch (message)
+    {
+    case kDragTrackingEnterHandler:
+      CountDragItems (theDrag, &items);
+      can_accept = 1;
+      for (index = 1; index <= items; index++)
+	{
+	  GetDragItemReferenceNumber (theDrag, index, &theItem);
+	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
+	  if (result != noErr)
+	    {
+	      can_accept = 0;
+	      break;
+	    }
+	}
+      break;
+
+    case kDragTrackingEnterWindow:
+      if (can_accept)
+	{
+	  RgnHandle hilite_rgn = NewRgn ();
+	  Rect r;
+
+	  GetWindowPortBounds (window, &r);
+	  OffsetRect (&r, -r.left, -r.top);
+	  RectRgn (hilite_rgn, &r);
+	  ShowDragHilite (theDrag, hilite_rgn, true);
+	  DisposeRgn (hilite_rgn);
+	  SetThemeCursor (kThemeCopyArrowCursor);
+	}
+      break;
+
+    case kDragTrackingInWindow:
+      break;
+
+    case kDragTrackingLeaveWindow:
+      if (can_accept)
+	{
+	  HideDragHilite (theDrag);
+	  SetThemeCursor (kThemeArrowCursor);
+	}
+      break;
+
+    case kDragTrackingLeaveHandler:
+      break;
+    }
+
+  return noErr;
+}
+
 static pascal OSErr
 mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 		     DragReference theDrag)
@@ -8062,11 +8131,14 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 				      data.fileSpec.parID, data.fileSpec.name) &&
 	      mac_to_posix_pathname (path_name, unix_path_name, 255))
 #endif
-            drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					     drag_and_drop_file_list);
+	    /* x-dnd functions expect undecoded filenames.  */
+            drag_and_drop_file_list =
+	      Fcons (make_unibyte_string (unix_path_name,
+					  strlen (unix_path_name)),
+		     drag_and_drop_file_list);
 	}
       else
-	return;
+	continue;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
@@ -8075,12 +8147,14 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       struct input_event event;
       Lisp_Object frame;
       struct frame *f = mac_window_to_frame (window);
-      SetPortWindowPort (window);
+      SInt16 modifiers;
+
       GlobalToLocal (&mouse);
+      GetDragModifiers (theDrag, NULL, NULL, &modifiers);
 
       event.kind = DRAG_N_DROP_EVENT;
       event.code = 0;
-      event.modifiers = 0;
+      event.modifiers = mac_to_emacs_modifiers (modifiers);
       event.timestamp = TickCount () * (1000 / 60);
       XSETINT (event.x, mouse.h);
       XSETINT (event.y, mouse.v);
@@ -8095,7 +8169,11 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 	GetCurrentProcess (&psn);
 	SetFrontProcess (&psn);
       }
+
+      return noErr;
     }
+  else
+    return dragNotAcceptedErr;
 }
 #endif
 
@@ -9580,8 +9658,6 @@ mac_initialize ()
 
 #if TARGET_API_MAC_CARBON
   init_required_apple_events ();
-
-  init_mac_drag_n_drop ();
 
 #if USE_CARBON_EVENTS
   init_service_handler ();

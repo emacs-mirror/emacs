@@ -56,6 +56,12 @@ struct font_info
      (font->ascent + font->descent).  */
   int height;
 
+  /* Width of the space glyph of the font.  */
+  int space_width;
+
+  /* Average width of glyphs in the font.  */
+  int average_width;
+
   /* 1 iff `vertical-centering-font-regexp' matches this font name.
      In this case, we render characters at vartical center positions
      of lines.  */

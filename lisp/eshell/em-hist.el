@@ -840,7 +840,7 @@ If N is negative, find the next or Nth next match."
       (unless (minibuffer-window-active-p (selected-window))
 	(message "History item: %d" (- (ring-length eshell-history-ring) pos)))
        ;; Can't use kill-region as it sets this-command
-      (delete-region (save-excursion (eshell-bol) (point)) (point))
+      (delete-region eshell-last-output-end (point))
       (insert-and-inherit (eshell-get-history pos)))))
 
 (defun eshell-next-matching-input (regexp arg)

@@ -581,7 +581,7 @@ value of `texinfo-mode-hook'."
 	texinfo-chapter-level-regexp
 	"\\)\\>"))
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'indent-tabs-mode)
   (setq indent-tabs-mode nil)
   (make-local-variable 'paragraph-separate)

@@ -308,7 +308,7 @@ Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
-Lisp_Object Qline_height, Qtotal;
+Lisp_Object Qline_height;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
@@ -3286,7 +3286,7 @@ handle_display_prop (it)
 {
   Lisp_Object prop, object;
   struct text_pos *position;
-  /* Nonzero if some property replaces the display of the text itself.  */ 
+  /* Nonzero if some property replaces the display of the text itself.  */
   int display_replaced_p = 0;
 
   if (STRINGP (it->string))
@@ -3451,7 +3451,7 @@ handle_single_display_spec (it, spec, object, position,
     {
       if (!FRAME_WINDOW_P (it->f))
 	return 0;
-      
+
       it->font_height = XCAR (XCDR (spec));
       if (!NILP (it->font_height))
 	{
@@ -4594,6 +4594,9 @@ back_to_previous_visible_line_start (it)
 	    visible_p = 0;
 	}
 
+#if 0
+      /* Commenting this out fixes the bug described in
+	 http://www.math.ku.dk/~larsh/emacs/emacs-loops-on-large-images/test-case.txt.  */
       if (visible_p)
 	{
 	  struct it it2 = *it;
@@ -4601,6 +4604,7 @@ back_to_previous_visible_line_start (it)
 	  if (handle_display_prop (&it2) == HANDLED_RETURN)
 	    visible_p = 0;
 	}
+#endif
 
       /* Back one more newline if the current one is invisible.  */
       if (!visible_p)
@@ -18788,24 +18792,16 @@ produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
-/* Calculate line-height and line-spacing properties.
-   An integer value specifies explicit pixel value.
-   A float value specifies relative value to current face height.
-   A cons (float . face-name) specifies relative value to
-   height of specified face font.
-
-   Returns height in pixels, or nil.  */
+/* Get line-height and line-spacing property at point.
+   If line-height has format (HEIGHT TOTAL), return TOTAL
+   in TOTAL_HEIGHT.  */
 
 static Lisp_Object
-calc_line_height_property (it, prop, font, boff, total)
+get_line_height_property (it, prop)
      struct it *it;
      Lisp_Object prop;
-     XFontStruct *font;
-     int boff, *total;
 {
   Lisp_Object position, val;
-  Lisp_Object face_name = Qnil;
-  int ascent, descent, height, override;
 
   if (STRINGP (it->object))
     position = make_number (IT_STRING_CHARPOS (*it));
@@ -18814,32 +18810,43 @@ calc_line_height_property (it, prop, font, boff, total)
   else
     return Qnil;
 
-  val = Fget_char_property (position, prop, it->object);
+  return Fget_char_property (position, prop, it->object);
+}
 
-  if (NILP (val))
-    return val;
+/* Calculate line-height and line-spacing properties.
+   An integer value specifies explicit pixel value.
+   A float value specifies relative value to current face height.
+   A cons (float . face-name) specifies relative value to
+   height of specified face font.
 
-  if (total && CONSP (val) && EQ (XCAR (val), Qtotal))
-    {
-      *total = 1;
-      val = XCDR (val);
-    }
+   Returns height in pixels, or nil.  */
 
-  if (INTEGERP (val))
+
+static Lisp_Object
+calc_line_height_property (it, val, font, boff, override)
+     struct it *it;
+     Lisp_Object val;
+     XFontStruct *font;
+     int boff, override;
+{
+  Lisp_Object face_name = Qnil;
+  int ascent, descent, height;
+
+  if (NILP (val) || INTEGERP (val) || (override && EQ (val, Qt)))
     return val;
 
   if (CONSP (val))
     {
-      face_name = XCDR (val);
-      val = XCAR (val);
+      face_name = XCAR (val);
+      val = XCDR (val);
+      if (!NUMBERP (val))
+	val = make_number (1);
+      if (NILP (face_name))
+	{
+	  height = it->ascent + it->descent;
+	  goto scale;
+	}
     }
-  else if (SYMBOLP (val))
-    {
-      face_name = val;
-      val = Qnil;
-    }
-
-  override = EQ (prop, Qline_height);
 
   if (NILP (face_name))
     {
@@ -18882,6 +18889,8 @@ calc_line_height_property (it, prop, font, boff, total)
     }
 
   height = ascent + descent;
+
+ scale:
   if (FLOATP (val))
     height = (int)(XFLOAT_DATA (val) * height);
   else if (INTEGERP (val))
@@ -19094,12 +19103,22 @@ x_produce_glyphs (it)
 	     increase that height */
 
 	  Lisp_Object height;
+	  Lisp_Object total_height = Qnil;
 
 	  it->override_ascent = -1;
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  height = calc_line_height_property(it, Qline_height, font, boff, 0);
+	  height = get_line_height_property(it, Qline_height);
+	  /* Split (line-height total-height) list */
+	  if (CONSP (height)
+	      && CONSP (XCDR (height))
+	      && NILP (XCDR (XCDR (height))))
+	    {
+	      total_height = XCAR (XCDR (height));
+	      height = XCAR (height);
+	    }
+	  height = calc_line_height_property(it, height, font, boff, 1);
 
 	  if (it->override_ascent >= 0)
 	    {
@@ -19113,7 +19132,7 @@ x_produce_glyphs (it)
 	      it->descent = FONT_DESCENT (font) - boff;
 	    }
 
-	  if (EQ (height, make_number(0)))
+	  if (EQ (height, Qt))
 	    {
 	      if (it->descent > it->max_descent)
 		{
@@ -19149,25 +19168,31 @@ x_produce_glyphs (it)
 		  && XINT (height) > it->ascent + it->descent)
 		it->ascent = XINT (height) - it->descent;
 
-	      spacing = calc_line_height_property(it, Qline_spacing, font, boff, &total);
+	      if (!NILP (total_height))
+		spacing = calc_line_height_property(it, total_height, font, boff, 0);
+	      else
+		{
+		  spacing = get_line_height_property(it, Qline_spacing);
+		  spacing = calc_line_height_property(it, spacing, font, boff, 0);
+		}
 	      if (INTEGERP (spacing))
 		{
 		  extra_line_spacing = XINT (spacing);
-		  if (total)
+		  if (!NILP (total_height))
 		    extra_line_spacing -= (it->phys_ascent + it->phys_descent);
 		}
 	    }
 	}
       else if (it->char_to_display == '\t')
 	{
-	  int tab_width = it->tab_width * FRAME_COLUMN_WIDTH (it->f);
+	  int tab_width = it->tab_width * FRAME_SPACE_WIDTH (it->f);
 	  int x = it->current_x + it->continuation_lines_width;
 	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
 
 	  /* If the distance from the current position to the next tab
-	     stop is less than a canonical character width, use the
+	     stop is less than a space character width, use the
 	     tab stop after that.  */
-	  if (next_tab_x - x < FRAME_COLUMN_WIDTH (it->f))
+	  if (next_tab_x - x < FRAME_SPACE_WIDTH (it->f))
 	    next_tab_x += tab_width;
 
 	  it->pixel_width = next_tab_x - x;
@@ -22172,8 +22197,6 @@ syms_of_xdisp ()
   staticpro (&Qcenter);
   Qline_height = intern ("line-height");
   staticpro (&Qline_height);
-  Qtotal = intern ("total");
-  staticpro (&Qtotal);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
   QCrelative_width = intern (":relative-width");

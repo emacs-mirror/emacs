@@ -380,7 +380,7 @@ with no arguments, if that value is non-nil."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'simula-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "! ")
   (make-local-variable 'comment-end)

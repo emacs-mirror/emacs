@@ -69,15 +69,17 @@ move forward across N balanced expressions."
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
 
-(defun mark-sexp (&optional arg)
+(defun mark-sexp (&optional arg allow-extend)
   "Set mark ARG sexps from point.
 The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument.
-If this command is repeated or mark is active in Transient Mark mode,
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active, 
 it marks the next ARG sexps after the ones already marked."
-  (interactive "P")
-  (cond ((or (and (eq last-command this-command) (mark t))
-	     (and transient-mark-mode mark-active))
+  (interactive "P\np")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
 	 (setq arg (if arg (prefix-numeric-value arg)
 		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
@@ -289,14 +291,17 @@ is called as a function to find the defun's end."
 		(goto-char (point-min)))))
 	(setq arg (1+ arg))))))
 
-(defun mark-defun ()
+(defun mark-defun (&optional allow-extend)
   "Put mark at end of this defun, point at beginning.
 The defun marked is the one that contains point or follows point.
-If this command is repeated or mark is active in Transient Mark mode,
-it marks more defuns after the ones already marked."
-  (interactive)
-  (cond ((or (and (eq last-command this-command) (mark t))
-	     (and transient-mark-mode mark-active))
+
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active, 
+it marks the next defun after the ones already marked."
+  (interactive "p")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))

@@ -1042,22 +1042,26 @@ Here's an example of doing this:
 @end example
 
   Some ``variable names'' have special meanings in a local variables
-list: a value for the variable @code{mode} really sets the major mode,
-and a value for the variable @code{eval} is simply evaluated as an
-expression and the value is ignored.  @code{coding}, @code{unibyte},
-@code{mode} and @code{eval} are not real variables; setting variables
-named @code{coding}, @code{unibyte}, @code{mode} and @code{eval} in any
-other context has no special meaning.  @emph{If @code{mode} is used to
-set a major mode, it should be the first ``variable'' in the list.}
-Otherwise, the entries that precede it in the list of the local
-variables are likely to be ignored, since most modes kill all local
-variables as part of their initialization.
+list.  Specifying the ``variable'' @code{mode} really sets the major
+mode, while any value specified for the ``variable'' @code{eval} is
+simply evaluated as an expression (its value is ignored).  A value for
+@code{coding} specifies the coding system for character code
+conversion of this file, and a value of @code{t} for @code{unibyte}
+says to visit the file in a unibyte buffer.  These four ``variables''
+are not really variables; setting them in any other context has no
+special meaning.
 
-  You can use the @code{mode} ``variable'' to set minor modes as well as
-major modes; in fact, you can use it more than once, first to set the
-major mode and then to set minor modes which are specific to particular
-buffers.  But most minor modes should not be specified in the file in
-any fashion, because they represent user preferences.
+  @emph{If @code{mode} is used to set a major mode, it should be the
+first ``variable'' in the list.}  Otherwise, the entries that precede
+it will usually be ignored, since most modes kill all local variables
+as part of their initialization.
+
+  You can use the @code{mode} ``variable'' to set minor modes as well
+as the major modes; in fact, you can use it more than once, first to
+set the major mode and then to set minor modes which are specific to
+particular buffers.  But most minor modes should not be specified in
+the file at all, regardless of how, because they represent user
+preferences.
 
   For example, you may be tempted to try to turn on Auto Fill mode with
 a local variable list.  That is a mistake.  The choice of Auto Fill mode

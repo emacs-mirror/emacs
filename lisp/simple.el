@@ -1234,10 +1234,6 @@ Return 0 if current buffer is not a mini-buffer."
 (defvar undo-no-redo nil
   "If t, `undo' doesn't go through redo entries.")
 
-(defvar undo-list-saved nil
-  "The value of `buffer-undo-list' saved by the last undo command.")
-(make-variable-buffer-local 'undo-list-saved)
-
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -1266,7 +1262,9 @@ as an argument limits undo to changes within the current region."
 		 (let ((list buffer-undo-list))
 		   (while (eq (car list) nil)
 		     (setq list (cdr list)))
-		   (eq undo-list-saved list)))
+		   ;; If the last undo record made was made by undo
+		   ;; it shows nothing else happened in between.
+		   (gethash list undo-equiv-table)))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1320,7 +1318,6 @@ as an argument limits undo to changes within the current region."
 	(setq prev tail tail (cdr tail))))
     ;; Record what the current undo list says,
     ;; so the next command can tell if the buffer was modified in between.
-    (setq undo-list-saved buffer-undo-list)
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save))))
 
@@ -1328,9 +1325,8 @@ as an argument limits undo to changes within the current region."
   "Make BUFFER stop keeping undo information.
 No argument or nil as argument means do this for the current buffer."
   (interactive)
-  (with-current-buffer (get-buffer buffer)
-    (setq buffer-undo-list t
-	  undo-list-saved nil)))
+  (with-current-buffer (if buffer (get-buffer buffer) (current-buffer))
+    (setq buffer-undo-list t)))
 
 (defun undo-only (&optional arg)
   "Undo some previous changes.
@@ -1524,17 +1520,33 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
+(defvar undo-extra-outer-limit nil
+  "If non-nil, an extra level of size that's ok in an undo item.
+We don't ask the user about truncating the undo list until the
+current item gets bigger than this amount.")
+(make-variable-buffer-local 'undo-extra-outer-limit)
+
 ;; When the first undo batch in an undo list is longer than undo-outer-limit,
 ;; this function gets called to ask the user what to do.
 ;; Garbage collection is inhibited around the call,
 ;; so it had better not do a lot of consing.
 (setq undo-outer-limit-function 'undo-outer-limit-truncate)
 (defun undo-outer-limit-truncate (size)
-  (if (let (use-dialog-box)
-	(yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
-			     (buffer-name) size)))
-      (progn (setq buffer-undo-list nil) t)
-    nil))
+  (when (or (null undo-extra-outer-limit)
+	    (> size undo-extra-outer-limit))
+    ;; Don't ask the question again unless it gets even bigger.
+    ;; This applies, in particular, if the user quits from the question.
+    ;; Such a quit quits out of GC, but something else will call GC
+    ;; again momentarily.  It will call this function again,
+    ;; but we don't want to ask the question again.
+    (setq undo-extra-outer-limit (+ size 50000))
+    (if (let (use-dialog-box)
+	  (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+			       (buffer-name) size)))
+	(progn (setq buffer-undo-list nil)
+	       (setq undo-extra-outer-limit nil)
+	       t)
+      nil)))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
@@ -3577,15 +3589,17 @@ With argument, do this that many times."
   (interactive "p")
   (forward-word (- (or arg 1))))
 
-(defun mark-word (&optional arg)
+(defun mark-word (&optional arg allow-extend)
   "Set mark ARG words away from point.
 The place mark goes is the same place \\[forward-word] would
 move to with the same argument.
-If this command is repeated or mark is active in Transient Mark mode,
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active, 
 it marks the next ARG words after the ones already marked."
-  (interactive "P")
-  (cond ((or (and (eq last-command this-command) (mark t))
-	     (and transient-mark-mode mark-active))
+  (interactive "P\np")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
 	 (setq arg (if arg (prefix-numeric-value arg)
 		     (if (< (mark) (point)) -1 1)))
 	 (set-mark

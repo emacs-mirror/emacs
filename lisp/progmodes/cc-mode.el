@@ -557,7 +557,8 @@ This function does not do any hidden buffer changes."
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (make-local-variable 'require-final-newline)
-      (setq require-final-newline (cdr rfn)))))
+      (and (cdr rfn)
+	   (setq require-final-newline mode-require-final-newline)))))
 
 (defun c-postprocess-file-styles ()
   "Function that post processes relevant file local variables in CC Mode.

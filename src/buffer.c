@@ -5648,7 +5648,9 @@ A value of nil means to use the scroll bar width from the window's frame.  */);
   DEFVAR_PER_BUFFER ("vertical-scroll-bar", &current_buffer->vertical_scroll_bar_type,
 		     Qnil,
 		     doc: /* *Position of this buffer's vertical scroll bar.
-The value takes effect whenever you display this buffer in a window.
+The value takes effect whenever you tell a window to display this buffer;
+for instance, with `set-window-buffer' or when `display-buffer' displays it.
+
 A value of `left' or `right' means put the vertical scroll bar at that side
 of the window; a value of nil means don't show any vertical scroll bars.
 A value of t (the default) means do whatever the window's frame specifies.  */);

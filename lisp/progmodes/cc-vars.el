@@ -839,30 +839,28 @@ space."
   '((c-mode    . t)
     (c++-mode  . t)
     (objc-mode . t))
-  "*Controls whether a final newline is ensured when the file is saved.
-The value is an association list that for each language mode specifies
-the value to give to `require-final-newline' at mode initialization;
-see that variable for details about the value.  If a language isn't
-present on the association list, CC Mode won't set
-`require-final-newline' in buffers for that language."
+  "*Controls `require-final-newline' in C-related major modes.
+The value is an association list specifying, for each specific mode,
+whether to override `require-final-newline'.  If the cdr of the element
+is non-nil, that means to use `mode-require-final-newline' instead."
   :type `(set (cons :format "%v"
 		    (const :format "C     " c-mode)
-		    (symbol :format "%v" :value ,require-final-newline))
+		    (const t))
 	      (cons :format "%v"
 		    (const :format "C++   " c++-mode)
-		    (symbol :format "%v" :value ,require-final-newline))
+		    (const t))
 	      (cons :format "%v"
 		    (const :format "ObjC  " objc-mode)
-		    (symbol :format "%v" :value ,require-final-newline))
+		    (const t))
 	      (cons :format "%v"
 		    (const :format "Java  " java-mode)
-		    (symbol :format "%v" :value ,require-final-newline))
+		    (const t))
 	      (cons :format "%v"
 		    (const :format "IDL   " idl-mode)
-		    (symbol :format "%v" :value ,require-final-newline))
+		    (const t))
 	      (cons :format "%v"
 		    (const :format "Pike  " pike-mode)
-		    (symbol :format "%v" :value ,require-final-newline)))
+		    (const t)))
   :group 'c)
 
 (defcustom c-electric-pound-behavior nil

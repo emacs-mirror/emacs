@@ -1462,7 +1462,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'cperl-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-end)

@@ -1727,12 +1727,31 @@ function by default."
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-(defun after-insert-file-set-coding (inserted)
+;; This variable is set in these two cases:
+;;   (1) A file is read by a coding system specified explicitly.
+;;       after-insert-file-set-coding sets this value to
+;;       coding-system-for-read.
+;;   (2) A buffer is saved.
+;;       After writing, basic-save-buffer-1 sets this value to
+;;       last-coding-system-used.
+;; This variable is used for decoding in revert-buffer.
+(defvar buffer-file-coding-system-explicit nil
+  "The file coding system explicitly specified for the current buffer.
+Internal use only.")
+(make-variable-buffer-local 'buffer-file-coding-system-explicit)
+(put 'buffer-file-coding-system-explicit 'permanent-local t)
+
+(defun after-insert-file-set-coding (inserted &optional visit)
   "Set `buffer-file-coding-system' of current buffer after text is inserted.
 INSERTED is the number of characters that were inserted, as figured
 in the situation before this function.  Return the number of characters
 inserted, as figured in the situation after.  The two numbers can be
-different if the buffer has become unibyte."
+different if the buffer has become unibyte.
+The optional second arg VISIT non-nil means that we are visiting a file."
+  (if (and visit
+	   coding-system-for-read
+	   (not (eq coding-system-for-read 'auto-save-coding)))
+      (setq buffer-file-coding-system-explicit coding-system-for-read))
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
@@ -1893,7 +1912,7 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	  ;; Otherwise, if we can recognize the undo elt for the insertion,
 	  ;; remove it and get ready to replace it later.
 	  ;; In the mean time, turn off undo recording.
-	  (let ((last (car buffer-undo-list))) 
+	  (let ((last (car-safe buffer-undo-list))) 
 	    (if (and (consp last) (eql (car last) from) (eql (cdr last) to))
 		(setq undo-list-saved (cdr buffer-undo-list)
 		      buffer-undo-list t))))
@@ -1923,6 +1942,25 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	  (if undo-list-saved
 	      (setq buffer-undo-list
 		    (cons (cons from (point-max)) undo-list-saved))))))))
+
+(defun recode-region (start end new-coding coding)
+  "Re-decode the region (previously decoded by CODING) by NEW-CODING."
+  (interactive
+   (list (region-beginning) (region-end)
+	 (read-coding-system "Text was really in: ")
+	 (let ((coding (or buffer-file-coding-system last-coding-system-used)))
+	   (read-coding-system
+	    (concat "But was interpreted as"
+		    (if coding (format " (default %S): " coding) ": "))
+	    coding))))
+  (or (and new-coding coding)
+      (error "Coding system not specified"))
+  ;; Check it before we encode the region.
+  (check-coding-system new-coding)
+  (save-restriction
+    (narrow-to-region start end)
+    (encode-coding-region (point-min) (point-max) coding)
+    (decode-coding-region (point-min) (point-max) new-coding)))
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.

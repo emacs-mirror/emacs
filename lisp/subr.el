@@ -1022,7 +1022,7 @@ either an absolute file name, or a library name
 It can also be nil, if the definition is not associated with any file.
 
 If TYPE is nil, then any kind of definition is acceptable.
-If type is `defun' or `defvar', that specifies function
+If TYPE is `defun' or `defvar', that specifies function
 definition only or variable definition only."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol) (fboundp symbol)

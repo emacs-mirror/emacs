@@ -1,3 +1,205 @@
+2004-12-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calcVar-digit, calcVar-oper):  Remove the need
+	for "var-" at the beginning of the minibuffer.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (read-face-name):
+	Don't treat an attribute spec as a list of faces.
+
+	* simple.el (undo): Use undo-equiv-table to detect
+	unexpected changes since previous undo.
+	(undo-list-saved): Variable deleted.
+	(buffer-disable-undo): Don't alter undo-list-saved.
+
+	* files.el (require-final-newline): Allow `visit' and `visit-save'.
+	(mode-require-final-newline): New option.
+	(after-find-file): Handle require-final-newline with new values.
+	(basic-save-buffer): Handle new values of require-final-newline.
+
+	* progmodes/sh-script.el (sh-require-final-newline):
+	Alist value now controls whether to use mode-require-final-newline.
+	(sh-set-shell): Implement that new meaning.
+
+	* progmodes/cc-vars.el (c-require-final-newline): Fix custom type, doc.
+	* progmodes/cc-mode.el (c-common-init): Use mode-require-final-newline.
+	* progmodes/antlr-mode.el (antlr-mode): Use mode-require-final-newline.
+	Delete old-Emacs compatibility code.
+	(antlr-c-common-init): Function deleted.
+	
+	* net/snmp-mode.el (snmp-common-mode): Use mode-require-final-newline.
+	* progmodes/vhdl-mode.el (vhdl-mode): Use mode-require-final-newline.
+	* progmodes/simula.el (simula-mode): Use mode-require-final-newline.
+	* progmodes/python.el (python-mode): Use mode-require-final-newline.
+	* progmodes/perl-mode.el (perl-mode): Use mode-require-final-newline.
+	* progmodes/modula2.el (modula-2-mode): Use mode-require-final-newline.
+	* progmodes/mixal-mode.el (mixal-mode): Use mode-require-final-newline.
+	* progmodes/idlwave.el (idlwave-mode): Use mode-require-final-newline.
+	* progmodes/icon.el (icon-mode): Use mode-require-final-newline.
+	* progmodes/fortran.el (fortran-mode): Use mode-require-final-newline.
+	* progmodes/f90.el (f90-mode): Use mode-require-final-newline.
+	* progmodes/cperl-mode.el (cperl-mode): Use mode-require-final-newline.
+	* progmodes/cfengine.el (cfengine-mode): Use mode-require-final-newline.
+	* progmodes/ada-mode.el (ada-mode): Use mode-require-final-newline.
+	* textmodes/text-mode.el (text-mode): Use mode-require-final-newline.
+	* textmodes/texinfo.el (texinfo-mode): Use mode-require-final-newline.
+
+2004-12-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-graph-show-dumb): Mention C-cC-c as the
+	way to return to Calc.
+
+	* calc/calc-yank.el (calc-edit-mode): Mention C-cC-c as the way to
+	finish, C-xk as the way to cancel the edit.  Add cancel routine to
+	kill-buffer-hook.
+
+	* calc/calc.el (calc-same-interface, calc-quit): Remove obsolete
+	MacEdit code.
+
+	* calc/calc-prog.el: Remove obsolete MacEdit code.
+	(calc-macro-edit-algebraic, calc-macro-edit-variable)
+	(calc-macro-edit-variable-2, calc-macro-edit-quick-digit): Remove.
+
+2004-12-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el	(buffer-file-coding-system-explicit):
+	Renamed for explicit-buffer-file-coding-system.
+	(after-insert-file-set-coding): Adjusted for the above change.
+
+	* files.el (revert-buffer): Change
+	explicit-buffer-file-coding-system to
+	buffer-file-coding-system-explicit.
+	(basic-save-buffer-1): Likewise.
+
+2004-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-butlast-fn): Var deleted.
+	(artist-butlast, artist-last): Functions deleted.
+	(artist-ellipse-mirror-quadrant): Call last and butlast directly.
+	(artist-compute-key-compl-table): Call remq directly.
+	(artist-remove-nulls): Function deleted.
+	(artist-vaporize-lines, artist-flood-fill): Use push and pop directly.
+	(artist-push, artist-pop): Macro deleted.
+
+2004-12-30  Andreas Leue  <al@sphenon.de>
+
+	* textmodes/artist.el (artist-version): 1.2.6
+	(artist-prev-next-op-alist): New variable.
+	(artist-select-next-op-in-list): New function.
+	(artist-select-prev-op-in-list): New function.
+	(artist-make-prev-next-op-alist): New function.
+	(artist-is-in-op-list-p): New function.
+	(artist-get-first-non-nil-op): New function.
+	(artist-get-last-non-nil-op): New function.
+	(artist-mode-init): Call artist-get-last-non-nil-op to initialize
+ 	artist-prev-next-op-alist.
+	(artist-mode-map): Add binding for C-mouse-4 and C-mouse-5 to
+ 	change drawing operation.
+
+2004-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-tail-handler): Put in undo boundaries.
+
+2004-12-31  Masatake YAMATO  <jet@gyve.org>
+
+	* server.el (server-process-filter): Suppress `error', too.
+
+2004-12-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-copy-variable):  Fix mistyped variable
+	name.  Change the way a variable is displayed in a message.
+
+	* calc/calc-prog.el (calc-user-define-edit, calc-finish-macro-edit)
+	(calc-user-define-permanent, calc-execute-kbd-macro):
+	Replace old function MacEdit-parse-keys with edmacro-parse-keys.
+
+2004-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (basic-save-buffer-1): Set
+	explicit-buffer-file-coding-system to last-coding-system-used.
+	(revert-buffer): Pay attention to
+	explicit-buffer-file-coding-system (not buffer-file-coding-system)
+	on bind coding-system-for-read.
+
+	* international/mule.el (explicit-buffer-file-coding-system): New
+	buffer local variable.
+	(after-insert-file-set-coding): Set it to coding-system-for-read.
+
+2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-tail-mode): Doc fix for defvar.
+
+2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
+
+	* term/mac-win.el (mac-drag-n-drop): Handle drag-n-drop events
+	that include line numbers.
+
+2004-12-29  Milan Zamazal  <pdm@zamazal.org>
+
+	* files.el (hack-local-variables): If no PREFIX, set it to "^".
+	Redundant variable PREFIXLEN removed.
+
+2004-12-28  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* eshell/em-hist.el (eshell-previous-matching-input):
+	Start the deletion from the end of the output.
+
+2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require x-dnd.
+	(mac-drag-n-drop): Sync with W32 version.  Use x-dnd.el
+	functions.
+
+2004-12-29  David Kastrup  <dak@gnu.org>
+
+	* international/mule.el (decode-coding-inserted-region): Don't
+	barf if `buffer-undo-list' is already set to `t'.
+
+2004-12-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-user-define-formula): Put default values
+	for function names in prompts.
+	(calc-user-define-permanent, calc-user-define-composition)
+	(calc-user-define-formula): Remove the need for "calcFunc-" in the
+	default input for algebraic functions.
+
+2004-12-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command):
+	Fix omission bug: Call `vc-setup-buffer'.
+
+2004-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (recode-region): New function.
+
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo-extra-outer-limit): New variable.
+	(undo-outer-limit-truncate): Test and set it.
+
+	* emacs-lisp/lisp.el (mark-sexp, mark-defun): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* simple.el (mark-word): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* textmodes/paragraphs.el (mark-paragraph): New arg ALLOW-EXTEND
+	enables the feature to extend the existing region.
+
+	* startup.el (site-run-file): Don't allow setting it with Custom.
+
+	* simple.el (buffer-disable-undo): Fix previous change.
+
+2004-12-27  Masatake YAMATO  <jet@gyve.org>
+
+	* hexl.el (hexlify-buffer): Remove fontification here.
+	Use font lock mechanism instead.
+	(hexl-font-lock-keywords): New font lock kewords.
+	(hexl-mode-old-font-lock-keywords): New variable.
+	(hexl-mode): Store the old font lock keywords.
+	(hexl-mode-exit): Restore the old font lock keywords.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (undo): Fix previous change.
@@ -19,7 +221,7 @@
 	With --dired output format, detect and distinguish lines
 	that are really error messages.
 	(insert-directory-adj-pos): New function.
-	
+
 	* bookmark.el (bookmark-jump): Nice error if BOOKMARK is nil.
 
 	* battery.el (battery-mode-line-format): Remove initial spaces.
@@ -48,14 +250,14 @@
 	Now takes an arg TYPE to specify looking for a particular
 	type of definition only.
 
-	* emacs-lisp/debug.el (debugger-make-xrefs): 
+	* emacs-lisp/debug.el (debugger-make-xrefs):
 	Call symbol-file with `defun'.
 
-	* emacs-lisp/find-func.el (find-function-noselect): 
+	* emacs-lisp/find-func.el (find-function-noselect):
 	Call symbol-file with `defun'.
 	(find-variable-noselect): Call symbol-file with `defvar'.
 
-	* eshell/esh-cmd.el (eshell-find-alias-function): 
+	* eshell/esh-cmd.el (eshell-find-alias-function):
 	Call symbol-file with `defun'.
 
 	* eshell/esh-test.el (eshell-test-goto-func):
@@ -75,14 +277,14 @@
 	(undo): Set and test it.
 	(buffer-disable-undo): Moved here from buffer.c.
 	Clear out undo-list-saved.
-	
-	* international/mule.el (decode-coding-inserted-region): 
+
+	* international/mule.el (decode-coding-inserted-region):
 	Set buffer-undo-list in a correct and optimal way.
 
 	* progmodes/cperl-mode.el (cperl-find-bad-style): Use with-no-warnings.
 	(cperl-font-lock-unfontify-region-function): No need to save and
 	restore info, since font-lock.el does it for us.
-	
+
 	* ansi-color.el (save-buffer-state): Definition deleted.
 	(ansi-color-unfontify-region): Don't use save-buffer-state.
 
@@ -92,13 +294,13 @@
 
 2004-12-27  Kevin Ryde  <user42@zip.com.au>
 
-        * simple.el (next-matching-history-element): Use same
+	* simple.el (next-matching-history-element): Use same
 	`interactive' form as previous-matching-history-element.
 
-        * ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
+	* ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
         it can appear unencoded and has been seen from yahoo.
 
-2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>
+2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Send AUTH CRAM-MD5
 	in upper case.  Reported by Wojciech Polak <polak@gnu.org>.

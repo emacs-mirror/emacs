@@ -4673,30 +4673,32 @@ window_scroll_pixel_based (window, n, whole, noerror)
      not including the height of the header line if any.  */
   it.current_y = it.vpos = 0;
 
-  /* Preserve the screen position if we should.  */
-  if (preserve_y >= 0)
-    {
-      /* If we have a header line, take account of it.  */
-      if (WINDOW_WANTS_HEADER_LINE_P (w))
-	preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
+  /* Move PT out of scroll margins.
+     This code wants current_y to be zero at the window start position
+     even if there is a header line.  */
+  this_scroll_margin = max (0, scroll_margin);
+  this_scroll_margin = min (this_scroll_margin, XFASTINT (w->total_lines) / 4);
+  this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
 
-      move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
-      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
-    }
-  else
+  if (n > 0)
     {
-      /* Move PT out of scroll margins.
-	 This code wants current_y to be zero at the window start position
-	 even if there is a header line.  */
-      this_scroll_margin = max (0, scroll_margin);
-      this_scroll_margin = min (this_scroll_margin, XFASTINT (w->total_lines) / 4);
-      this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
-
-      if (n > 0)
+      /* We moved the window start towards ZV, so PT may be now
+	 in the scroll margin at the top.  */
+      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+      if (IT_CHARPOS (it) == PT && it.current_y >= this_scroll_margin)
+	/* We found PT at a legitimate height.  Leave it alone.  */
+	;
+      else if (preserve_y >= 0)
 	{
-	  /* We moved the window start towards ZV, so PT may be now
-	     in the scroll margin at the top.  */
-	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  /* If we have a header line, take account of it.  */
+	  if (WINDOW_WANTS_HEADER_LINE_P (w))
+	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
+
+	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
+	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+	}
+      else
+	{
 	  while (it.current_y < this_scroll_margin)
 	    {
 	      int prev = it.current_y;
@@ -4706,22 +4708,44 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	    }
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
-      else if (n < 0)
+    }
+  else if (n < 0)
+    {
+      int charpos, bytepos;
+
+      /* Save our position, for the preserve_y case.  */
+      charpos = IT_CHARPOS (it);
+      bytepos = IT_BYTEPOS (it);
+
+      /* We moved the window start towards BEGV, so PT may be now
+	 in the scroll margin at the bottom.  */
+      move_it_to (&it, PT, -1,
+		  it.last_visible_y - this_scroll_margin - 1, -1,
+		  MOVE_TO_POS | MOVE_TO_Y);
+
+      if (IT_CHARPOS (it) == PT)
+	/* We found PT before we found the display margin, so PT is ok.  */
+	;
+      else if (preserve_y >= 0)
 	{
-	  int charpos, bytepos;
+	  SET_TEXT_POS_FROM_MARKER (start, w->start);
+	  start_display (&it, w, start);
+	  /* If we have a header line, take account of it.  */
+	  if (WINDOW_WANTS_HEADER_LINE_P (w))
+	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
 
-	  /* We moved the window start towards BEGV, so PT may be now
-	     in the scroll margin at the bottom.  */
-	  move_it_to (&it, PT, -1,
-		      it.last_visible_y - this_scroll_margin - 1, -1,
-		      MOVE_TO_POS | MOVE_TO_Y);
-
+	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
+	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+	}
+      else
+	{
 	  /* Save our position, in case it's correct.  */
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 
 	  /* See if point is on a partially visible line at the end.  */
 	  move_it_by_lines (&it, 1, 1);
+
 	  if (it.current_y > it.last_visible_y)
 	    /* The last line was only partially visible, so back up two
 	       lines to make sure we're on a fully visible line.  */
@@ -6755,7 +6779,9 @@ If there is only one window, it is split regardless of this value.  */);
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-	       doc: /* *Non-nil means scroll commands move point to keep its screen line unchanged.  */);
+	       doc: /* *Non-nil means scroll commands move point to keep its screen line unchanged.
+This is only when it is impossible to keep point fixed and still
+scroll as specified.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",

@@ -1,3 +1,10 @@
+2004-12-27  Simon Josefsson  <jas@extundo.com>
+
+	* mm-bodies.el (mm-body-encoding): Don't permit 7-bit to be used
+	when mm-use-ultra-safe-encoding is enabled (e.g., for PGP/MIME)
+	and we have trailing white space.  Reported by Werner Koch
+	<wk@gnupg.org>.
+
 2004-12-17  Kim F. Storm  <storm@cua.dk>
 
 	* gnus-group.el (gnus-group-mode-map): Map follow-link to mouse-face.

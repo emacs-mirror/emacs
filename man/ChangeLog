@@ -1,3 +1,20 @@
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.texi (Shell Commands in Dired): Delete the ? example.
+
+	* display.texi (Scrolling): Correct scroll-preserve-screen-position.
+
+	* files.texi (Saving): Describe new require-final-newline features
+	and mode-require-final-newline.
+
+2004-12-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Mention C-cC-c as the way to finish editing throughout.
+
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (File Variables): Clarify previous change.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Mention Gtk+ 2.6 also, as that version is
@@ -16,7 +33,7 @@
 
 2004-12-20  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Types Tutorial): Emphasized that you can't divide by
+	* calc.texi (Types Tutorial): Emphasize that you can't divide by
 	zero.
 
 2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>

@@ -254,6 +254,9 @@ struct frame
   /* Canonical X unit.  Width of default font, in pixels.  */
   int column_width;
 
+  /* Widht of space glyph of default font, in pixels.  */
+  int space_width;
+
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
@@ -822,9 +825,13 @@ extern Lisp_Object selected_frame;
 #define FRAME_LINE_HEIGHT(F) ((F)->line_height)
 
 /* Canonical x-unit on frame F. 
-   This value currently equals the width of the default font of F.  */
+   This value currently equals the average width of the default font of F.  */
 
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)
+
+/* Space glyph width of the default font of frame F.  */
+
+#define FRAME_SPACE_WIDTH(F) ((F)->space_width)
 
 
 /* Pixel width of areas used to display truncation marks, continuation

@@ -170,7 +170,8 @@
 	  (arglist nil)
 	  (is-lambda (and (eq (car-safe form) 'calcFunc-lambda)
 			  (>= (length form) 2)))
-	  odef key keyname cmd cmd-base func calc-user-formula-alist is-symb)
+	  odef key keyname cmd cmd-base cmd-base-default
+          func calc-user-formula-alist is-symb)
      (if is-lambda
 	 (setq arglist (mapcar (function (lambda (x) (nth 1 x)))
 			       (nreverse (cdr (reverse (cdr form)))))
@@ -189,18 +190,25 @@
 			    (char-to-string key)
 			  (format "%03d" key)))
 	   odef (assq key (calc-user-key-map)))
+     (unless keyname
+       (setq keyname (format "%05d" (abs (% (random) 10000)))))
      (while
 	 (progn
-	   (setq cmd (completing-read "Define M-x command name: "
-				      obarray 'commandp nil
-				      (if (and odef (symbolp (cdr odef)))
-					  (symbol-name (cdr odef))
-					"calc-"))
-		 cmd-base (and (string-match "\\`calc-\\(.+\\)\\'" cmd)
-			       (math-match-substring cmd 1))
-		 cmd (and (not (or (string-equal cmd "")
-				   (string-equal cmd "calc-")))
-			  (intern cmd)))
+	   (setq cmd-base-default (concat "User-" keyname))
+           (setq cmd (completing-read 
+                      (concat "Define M-x command name (default: calc-"
+                              cmd-base-default
+                              "): ")
+                      obarray 'commandp nil
+                      (if (and odef (symbolp (cdr odef)))
+                          (symbol-name (cdr odef))
+                        "calc-")))
+           (if (or (string-equal cmd "")
+                   (string-equal cmd "calc-"))
+               (setq cmd (concat "calc-User-" keyname)))
+           (setq cmd-base (and (string-match "\\`calc-\\(.+\\)\\'" cmd)
+			       (math-match-substring cmd 1)))
+           (setq cmd (intern cmd))
 	   (and cmd
 		(fboundp cmd)
 		odef
@@ -210,24 +218,33 @@
 		      (concat "Replace previous definition for "
 			      (symbol-name cmd) "? ")
 		    "That name conflicts with a built-in Emacs function.  Replace this function? "))))))
-     (if (and key (not cmd))
-	 (setq cmd (intern (concat "calc-User-" keyname))))
      (while
 	 (progn
-	   (setq func (completing-read "Define algebraic function name: "
-				       obarray 'fboundp nil
-				       (concat "calcFunc-"
-					       (if cmd-base
-						   (if (string-match
-							"\\`User-.+" cmd-base)
-						       (concat
-							"User"
-							(substring cmd-base 5))
-						     cmd-base)
-						 "")))
-		 func (and (not (or (string-equal func "")
-				    (string-equal func "calcFunc-")))
-			   (intern func)))
+           (setq cmd-base-default     
+                 (if cmd-base
+                     (if (string-match
+                          "\\`User-.+" cmd-base)
+                         (concat
+                          "User"
+                          (substring cmd-base 5))
+                       cmd-base)
+                   (concat "User" keyname)))
+	   (setq func 
+                 (concat "calcFunc-"
+                         (completing-read 
+                          (concat "Define algebraic function name (default: "
+                                  cmd-base-default "): ")
+                          (mapcar (lambda (x) (substring x 9))
+                                  (all-completions "calcFunc-"
+                                                   obarray))
+                          (lambda (x) 
+                            (fboundp 
+                             (intern (concat "calcFunc-" x))))
+                          nil)))
+           (setq func
+                 (if (string-equal func "calcFunc-")
+                     (intern (concat "calcFunc-" cmd-base-default))
+                   (intern func)))
 	   (and func
 		(fboundp func)
 		(not (fboundp cmd))
@@ -238,11 +255,13 @@
 		      (concat "Replace previous definition for "
 			      (symbol-name func) "? ")
 		    "That name conflicts with a built-in Emacs function.  Replace this function? "))))))
+
      (if (not func)
 	 (setq func (intern (concat "calcFunc-User"
 				    (or keyname
 					(and cmd (symbol-name cmd))
 					(format "%05d" (% (random) 10000)))))))
+
      (if is-lambda
 	 (setq calc-user-formula-alist arglist)
        (while
@@ -359,8 +378,15 @@
    (if (eq calc-language 'unform)
        (error "Can't define formats for unformatted mode"))
    (let* ((comp (calc-top 1))
-	  (func (intern (completing-read "Define format for which function: "
-					 obarray 'fboundp nil "calcFunc-")))
+	  (func (intern 
+                 (concat "calcFunc-"
+                         (completing-read "Define format for which function: "
+                                          (mapcar (lambda (x) (substring x 9))
+                                                  (all-completions "calcFunc-"
+                                                                   obarray))
+                                          (lambda (x) 
+                                            (fboundp 
+                                             (intern (concat "calcFunc-" x))))))))
 	  (comps (get func 'math-compose-forms))
 	  entry entry2
 	  (arglist nil)
@@ -696,7 +722,7 @@
 					  (setcar mac new))))))))
 	     (let ((keys (progn (and (fboundp 'edit-kbd-macro)
 				     (edit-kbd-macro nil))
-				(fboundp 'MacEdit-parse-keys))))
+				(fboundp 'edmacro-parse-keys))))
 	       (calc-wrapper
 		(calc-edit-mode (list 'calc-finish-macro-edit
 				      (list 'quote def)
@@ -749,7 +775,7 @@
   (if (and keys (looking-at "\n")) (forward-line 1))
   (let* ((true-str (buffer-substring (point) (point-max)))
 	 (str true-str))
-    (if keys (setq str (MacEdit-parse-keys str)))
+    (if keys (setq str (edmacro-parse-keys str)))
     (if (symbolp (cdr def))
 	(if (stringp (symbol-function (cdr def)))
 	    (fset (cdr def) str)
@@ -760,128 +786,6 @@
 		  (aset (car mac) 1 str))
 	      (setcar mac str))))
       (setcdr def str))))
-
-;;; The following are hooks into the MacEdit package from macedit.el.
-(put 'calc-execute-extended-command 'MacEdit-print
-     (function (lambda ()
-		 (setq macro-str (concat "\excalc-" macro-str)))))
-
-(put 'calcDigit-start 'MacEdit-print
-     (function (lambda ()
-		 (if calc-algebraic-mode
-		     (calc-macro-edit-algebraic)
-		   (MacEdit-unread-chars key-last)
-		   (let ((str "")
-			 (min-bsp 0)
-			 ch last)
-		     (while (and (setq ch (MacEdit-read-char))
-				 (or (and (>= ch ?0) (<= ch ?9))
-				     (memq ch '(?\. ?e ?\_ ?n ?\: ?\# ?M
-						    ?o ?h ?\@ ?\"))
-				     (and (memq ch '(?\' ?m ?s))
-					  (string-match "[@oh]" str))
-				     (and (or (and (>= ch ?a) (<= ch ?z))
-					      (and (>= ch ?A) (<= ch ?Z)))
-					  (string-match
-					   "^[-+]?\\(1[1-9]\\|[2-9][0-9]\\)#"
-					   str))
-				     (and (memq ch '(?\177 ?\C-h))
-					  (> (length str) 0))
-				     (and (memq ch '(?+ ?-))
-					  (> (length str) 0)
-					  (eq (aref str (1- (length str)))
-					      ?e))))
-		       (if (or (and (>= ch ?0) (<= ch ?9))
-			       (and (or (not (memq ch '(?\177 ?\C-h)))
-					(<= (length str) min-bsp))
-				    (setq min-bsp (1+ (length str)))))
-			   (setq str (concat str (char-to-string ch)))
-			 (setq str (substring str 0 -1))))
-		     (if (memq ch '(32 10 13))
-			 (setq str (concat str (char-to-string ch)))
-		       (MacEdit-unread-chars ch))
-		     (insert "type \"")
-		     (MacEdit-insert-string str)
-		     (insert "\"\n"))))))
-
-(defun calc-macro-edit-algebraic ()
-  (MacEdit-unread-chars key-last)
-  (let ((str "")
-	(min-bsp 0))
-    (while (progn
-	     (MacEdit-lookup-key calc-alg-ent-map)
-	     (or (and (memq key-symbol '(self-insert-command
-					 calcAlg-previous))
-		      (< (length str) 60))
-		 (memq key-symbol
-			    '(backward-delete-char
-			      delete-backward-char
-			      backward-delete-char-untabify))
-		 (eq key-last 9)))
-      (setq macro-str (substring macro-str (length key-str)))
-      (if (or (eq key-symbol 'self-insert-command)
-	      (and (or (not (memq key-symbol '(backward-delete-char
-					       delete-backward-char
-					       backward-delete-char-untabify)))
-		       (<= (length str) min-bsp))
-		   (setq min-bsp (+ (length str) (length key-str)))))
-	  (setq str (concat str key-str))
-	(setq str (substring str 0 -1))))
-    (if (memq key-last '(10 13))
-	(setq str (concat str key-str)
-	      macro-str (substring macro-str (length key-str))))
-    (if (> (length str) 0)
-	(progn
-	  (insert "type \"")
-	  (MacEdit-insert-string str)
-	  (insert "\"\n")))))
-(put 'calc-algebraic-entry 'MacEdit-print 'calc-macro-edit-algebraic)
-(put 'calc-auto-algebraic-entry 'MacEdit-print 'calc-macro-edit-algebraic)
-
-(defun calc-macro-edit-variable (&optional no-cmd)
-  (let ((str "") ch)
-    (or no-cmd (insert (symbol-name key-symbol) "\n"))
-    (if (memq (MacEdit-peek-char) '(?\+ ?\- ?\* ?\/ ?^ ?\|))
-	(setq str (char-to-string (MacEdit-read-char))))
-    (if (and (setq ch (MacEdit-peek-char))
-	     (>= ch ?0) (<= ch ?9))
-	(insert "type \"" str
-		(char-to-string (MacEdit-read-char)) "\"\n")
-      (if (> (length str) 0)
-	  (insert "type \"" str "\"\n"))
-      (MacEdit-read-argument))))
-(put 'calc-store 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-into 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-neg 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-plus 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-minus 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-times 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-div 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-power 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-concat 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-inv 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-decr 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-incr 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-store-exchange 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-unstore 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-recall 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-let 'MacEdit-print 'calc-macro-edit-variable)
-(put 'calc-permanent-variable 'MacEdit-print 'calc-macro-edit-variable)
-
-(defun calc-macro-edit-variable-2 ()
-  (calc-macro-edit-variable)
-  (calc-macro-edit-variable t))
-(put 'calc-copy-variable 'MacEdit-print 'calc-macro-edit-variable-2)
-(put 'calc-declare-variable 'MacEdit-print 'calc-macro-edit-variable-2)
-
-(defun calc-macro-edit-quick-digit ()
-  (insert "type \"" key-str "\"  # " (symbol-name key-symbol) "\n"))
-(put 'calc-store-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
-(put 'calc-store-into-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
-(put 'calc-recall-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
-(put 'calc-select-part 'MacEdit-print 'calc-macro-edit-quick-digit)
-(put 'calc-clean-num 'MacEdit-print 'calc-macro-edit-quick-digit)
-
 
 (defun calc-finish-formula-edit (func)
   (let ((buf (current-buffer))
@@ -952,10 +856,24 @@
 		   (assq (downcase key) (calc-user-key-map))
 		   (and (eq key ?\')
 			(cons nil
+                              (intern
+                               (concat "calcFunc-"
+                                       (completing-read
+                                        (format "Record in %s the algebraic function: "
+                                                calc-settings-file)
+                                        (mapcar (lambda (x) (substring x 9))
+                                                (all-completions "calcFunc-"
+                                                                 obarray))
+                                        (lambda (x) 
+                                          (fboundp 
+                                           (intern (concat "calcFunc-" x))))
+                                        t)))))
+                   (and (eq key ?\M-x)
+			(cons nil
 			      (intern (completing-read
-				       (format "Record in %s the function: "
+				       (format "Record in %s the command: "
 					       calc-settings-file)
-				       obarray 'fboundp nil "calcFunc-"))))
+				       obarray 'fboundp nil "calc-"))))
 		   (error "No command defined for that key"))))
      (set-buffer (find-file-noselect (substitute-in-file-name
 				      calc-settings-file)))
@@ -979,7 +897,7 @@
 		  (vectorp (nth 1 (nth 3 fcmd)))
 		  (progn (and (fboundp 'edit-kbd-macro)
 			      (edit-kbd-macro nil))
-			 (fboundp 'MacEdit-parse-keys))
+			 (fboundp 'edmacro-parse-keys))
 		  (setq q-ok t)
 		  (aset (nth 1 (nth 3 fcmd)) 1 nil))
 	     (insert (setq str (prin1-to-string
@@ -1065,7 +983,7 @@
       (setq mac (or (aref mac 1)
 		    (aset mac 1 (progn (and (fboundp 'edit-kbd-macro)
 					    (edit-kbd-macro nil))
-				       (MacEdit-parse-keys (aref mac 0)))))))
+				       (edmacro-parse-keys (aref mac 0)))))))
   (if (< (prefix-numeric-value arg) 0)
       (execute-kbd-macro mac (- (prefix-numeric-value arg)))
     (if calc-executing-macro

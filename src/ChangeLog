@@ -1,27 +1,131 @@
+2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.
+
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Only look at
+	Vscroll_preserve_screen_position if the old PT can't be kept.
+	(syms_of_window) <scroll-preserve-screen-position>: Doc fix.
+
+2004-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_line_height_property): New function extracted from
+	original calc_line_height_property.
+	(calc_line_height_property): Rework.  Handle t and (nil . ratio).
+	(x_produce_glyphs): Use them to handle line-height and
+	line-spacing according to new height spec.
+	(Qtotal): Remove.
+	(syms_of_xdisp): Remove intern and staticpro for Qtotal.
+
+2004-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Don't use
+	current_buffer->buffer_file_coding_system even if REPLACE is
+	non-nil.  Call Qafter_insert_file_set_coding with the second arg
+	VISIT.
+
+	* fontset.h (struct font_info): New members space_width and
+	average_width.
+
+	* frame.h (struct frame): New member space_width.
+	(FRAME_SPACE_WIDTH): New macro.
+
+	* xterm.h (struct x_display_info): New member Xatom_AVERAGE_WIDTH.
+
+	* xterm.c (x_new_font): Set FRAME_COLUMN_WIDTH to
+	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
+	fontp-?space_width..
+	(x_load_font): Calculate fontp->space_width and
+	fontp->average_width.
+	(x_term_init): Initialize dpyinfo->Xatom_AVERAGE_WIDTH.
+
+	* xdisp.c (x_produce_glyphs): Calculate tab width by
+	FRAME_SPACE_WIDTH, not FRAME_COLUMN_WIDTH.
+
+2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
+
+	* macterm.c (SelectionRange): Add Xcode position apple event struct.
+	(do_ae_open_documents): Handle Xcode-style file position open
+	events.
+
+2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Correct typo.
+
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Doc fix.
+
+2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (install_window_handler): Modify extern to return OSErr
+	value.
+	(mac_window): Handle return value of install_window_handler.
+
+	* macterm.c (reflect_byte): Remove function.
+	(mac_create_bitmap_from_bitmap_data): Don't call reflect_byte.
+	Lookup table instead.
+	(mac_do_font_lists): Simplify calculation of the longest
+	nonspecial string.
+	(init_mac_drag_n_drop): Remove function	and declaration.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
+	init_mac_drag_n_drop.
+	(mac_do_track_drag): New function and declaration.
+	(install_window_handler): Return OSErr value.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Register
+	handlers for tracking/receiving drag-and-drop items.
+	(do_ae_open_documents): Generate unibyte strings for filenames.
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.  Reject
+	only non-filename items.  Set event modifiers.  Set return value.
+
+2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* coding.c (decode_coding): Fix previous change.
+
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (back_to_previous_visible_line_start):
+	Don't call handle_display_prop.
+
+2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* coding.c (decode_coding_XXX, decode_composition_emacs_mule)
+	(decode_coding_emacs_mule, encode_coding_emacs_mule)
+	(decode_coding_iso2022, encode_designation_at_bol)
+	(encode_coding_iso2022, decode_coding_sjis_big5, decode_eol)
+	(decode_coding): Constify arguments and local vars.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Only pop down dialogs
 	on C-g and Escape.
 	(popup_get_selection): Remove parameter down_on_keypress.
-	(create_and_show_popup_menu, create_and_show_dialog): Remove 
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
 	parameter down_on_keypress to popup_get_selection.
 
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h: Change HAVE_CARBON to MAC_OS.
 	(struct glyph_string): Likewise.
+
 	* emacs.c (main) [MAC_OS8]: Call mac_term_init instead of
 	mac_initialize.
+
 	* fileio.c (Fnext_read_file_uses_dialog_p, Fread_file_name):
 	Change TARGET_API_MAC_CARBON to HAVE_CARBON.
+
 	* fns.c (vector): Change MAC_OSX to MAC_OS.
+
 	* frame.c (x_set_frame_parameters, x_report_frame_params)
 	(x_set_fullscreen): Remove #ifndef HAVE_CARBON.
 	(x_set_border_width, Vdefault_frame_scroll_bars): Change
 	HAVE_CARBON to MAC_OS.
+
 	* image.c [MAC_OS]: Include sys/stat.h.
 	[MAC_OS && !MAC_OSX]: Include sys/param.h, ImageCompression.h, and
 	QuickTimeComponents.h.
+
 	* mac.c [!MAC_OSX] (mac_wait_next_event): Add extern.
 	[!MAC_OSX] (select): Use mac_wait_next_event.
 	[!MAC_OSX] (run_mac_command): Change EXEC_SUFFIXES to
@@ -40,6 +144,7 @@
 	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Use CFSocket and
 	RunLoop for simultaneously monitoring two kinds of inputs, window
 	events and process outputs, without periodically polling.
+
 	* macfns.c (mac_initialized): Remove extern.
 	(stricmp): Put in #if 0.  All callers changed to use xstricmp in
 	xfaces.c.
@@ -65,11 +170,13 @@
 	TARGET_API_MAC_CARBON'.
 	(mac_frame_parm_handlers): Set handlers for Qfullscreen.
 	(syms_of_macfns) [MAC_OSX]: Initialize mac_in_use to 0.
+
 	* macgui.h [!MAC_OSX]: Don't include Controls.h.  Include
 	Windows.h.
 	(Window): Typedef to WindowPtr and move outside `#if
 	TARGET_API_MAC_CARBON'.
 	(XSizeHints): New struct.
+
 	* macterm.c (x_update_begin, x_update_end)
 	[TARGET_API_MAC_CARBON]: Disable screen updates during update of a
 	frame.
@@ -125,12 +232,15 @@
 	Add entries to x_display_list and x_display_name_list.
 	(x_delete_display): New function.
 	(mac_initialize): Don't call mac_initialize_display_info.
-	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.	
+	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.
+
 	* macterm.h (check_mac): Add extern.
 	(struct mac_output): New member size_hints.
 	(FRAME_SIZE_HINTS): New macro.
 	(mac_unload_font): Add extern.
+
 	* xdisp.c (expose_window, expose_frame): Remove kludges for Mac.
+
 	* xfaces.c (clear_font_table) [MAC_OS]: call mac_unload_font.
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
@@ -148,7 +258,7 @@
 	(handle_single_display_spec): Renamed from handle_single_display_prop.
 	Rewritten to be easier to understand.
 
-	* Change in load-history format.  Functions now get (defun . NAME),
+	Change in load-history format.  Functions now get (defun . NAME),
 	and variables get just NAME.
 
 	* data.c (Fdefalias): Use (defun . FN_NAME) in LOADHIST_ATTACH.
@@ -287,7 +397,7 @@
 
 	* sysdep.c (select_alarm): Call SIGNAL_THREAD_CHECK.
 
-	* process.c (send_process_trap, sigchld_handler): Call 
+	* process.c (send_process_trap, sigchld_handler): Call
 	SIGNAL_THREAD_CHECK.
 
 	* data.c (arith_error): Call SIGNAL_THREAD_CHECK.

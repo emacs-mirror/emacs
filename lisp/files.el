@@ -273,13 +273,39 @@ Includes the new backup.  Must be > 0"
   :group 'backup)
 
 (defcustom require-final-newline nil
-  "*Value of t says silently ensure a file ends in a newline when it is saved.
-Non-nil but not t says ask user whether to add a newline when there isn't one.
-nil means don't add newlines."
-  :type '(choice (const :tag "Off" nil)
-		 (const :tag "Add" t)
+  "*Whether to add a newline automatically at the end of the file.
+
+A value of t means do this only when the file is about to be saved.
+A value of `visit' means do this right after the file is visited.
+A value of `visit-save' means do it at both of those times.
+Any other non-nil value means ask user whether to add a newline, when saving.
+nil means don't add newlines.
+
+Certain major modes set this locally to the value obtained
+from `mode-require-final-newline'."
+  :type '(choice (const :tag "When visiting" visit)
+		 (const :tag "When saving" t)
+		 (const :tag "When visiting or saving" visit-save)
+		 (const :tag "Never" nil)
 		 (other :tag "Ask" ask))
   :group 'editing-basics)
+
+(defcustom mode-require-final-newline t
+  "*Whether to add a newline at the end of the file, in certain major modes.
+Those modes set `require-final-newline' to this value when you enable them.
+They do so because they are used for files that are supposed
+to end in newlines, and the question is how to arrange that.
+
+A value of t means do this only when the file is about to be saved.
+A value of `visit' means do this right after the file is visited.
+A value of `visit-save' means do it at both of those times.
+Any other non-nil value means ask user whether to add a newline, when saving."
+  :type '(choice (const :tag "When visiting" visit)
+		 (const :tag "When saving" t)
+		 (const :tag "When visiting or saving" visit-save)
+		 (other :tag "Ask" ask))
+  :group 'editing-basics
+  :version "21.4")
 
 (defcustom auto-save-default t
   "*Non-nil says by default do auto-saving of every file-visiting buffer."
@@ -1627,6 +1653,15 @@ unless NOMODES is non-nil."
     (when (and view-read-only view-mode)
       (view-mode-disable))
     (normal-mode t)
+    ;; If requested, add a newline at the end of the file.
+    (and (memq require-final-newline '(visit visit-save))
+	 (> (point-max) (point-min))
+	 (/= (char-after (1- (point-max))) ?\n)
+	 (not (and (eq selective-display t)
+		   (= (char-after (1- (point-max))) ?\r)))
+	 (save-excursion
+	   (goto-char (point-max))
+	   (insert "\n")))
     (when (and buffer-read-only
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))
@@ -2183,7 +2218,7 @@ is specified, returning t if it is specified."
 						   buffer-file-name)
 						(concat "buffer "
 							(buffer-name))))))))))
-	  (let (prefix prefixlen suffix beg
+	  (let (prefix suffix beg
 		(enable-local-eval enable-local-eval))
 	    ;; The prefix is what comes before "local variables:" in its line.
 	    ;; The suffix is what comes after "local variables:" in its line.
@@ -2197,8 +2232,7 @@ is specified, returning t if it is specified."
 		      (buffer-substring (point)
 					(progn (beginning-of-line) (point)))))
 
-	    (if prefix (setq prefixlen (length prefix)
-			     prefix (regexp-quote prefix)))
+	    (setq prefix (if prefix (regexp-quote prefix) "^"))
 	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
 	    (forward-line 1)
 	    (let ((startpos (point))
@@ -3195,6 +3229,7 @@ Before and after saving the buffer, this function runs
 		   (not (and (eq selective-display t)
 			     (= (char-after (1- (point-max))) ?\r)))
 		   (or (eq require-final-newline t)
+		       (eq require-final-newline 'visit-save)
 		       (and require-final-newline
 			    (y-or-n-p
 			     (format "Buffer %s does not end in newline.  Add one? "
@@ -3239,7 +3274,8 @@ Before and after saving the buffer, this function runs
   (if save-buffer-coding-system
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
-    (basic-save-buffer-2)))
+    (basic-save-buffer-2))
+  (setq buffer-file-coding-system-explicit last-coding-system-used))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -3709,11 +3745,11 @@ non-nil, it is called instead of rereading visited file contents."
 			 (unlock-buffer)))
 		   (widen)
 		   (let ((coding-system-for-read
-			  ;; Auto-saved file shoule be read without
-			  ;; any code conversion.
-			  (if auto-save-p 'emacs-mule-unix
+			  ;; Auto-saved file shoule be read by Emacs'
+			  ;; internal coding.
+			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				buffer-file-coding-system))))
+				buffer-file-coding-system-explicit))))
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.

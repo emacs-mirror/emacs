@@ -3863,10 +3863,6 @@ actually used.  */)
 
       if (!NILP (Vcoding_system_for_read))
 	val = Vcoding_system_for_read;
-      else if (! NILP (replace))
-	/* In REPLACE mode, we can use the same coding system
-	   that was used to visit the file.  */
-	val = current_buffer->buffer_file_coding_system;
       else
 	{
 	  /* Don't try looking inside a file for a coding system
@@ -4645,7 +4641,8 @@ actually used.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call1 (Qafter_insert_file_set_coding, make_number (inserted));
+      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
+		      visit);
       if (! NILP (insval))
 	{
 	  CHECK_NUMBER (insval);

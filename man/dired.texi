@@ -700,25 +700,17 @@ file.
 If the command string contains @samp{?} surrounded by whitespace, the
 current file name is substituted for @samp{?}.  You can use @samp{?}
 this way more than once in the command, and each occurrence is
-replaced.  For instance, here is how to uuencode each file, making the
-output file name by appending @samp{.uu} to the input file name:
-
-@example
-uuencode ? ? > ?.uu
-@end example
+replaced.
 @end itemize
 
 To iterate over the file names in a more complicated fashion, use an
-explicit shell loop.  For example, this shell command is another way
-to uuencode each file:
+explicit shell loop.  For example, here is how to uuencode each file,
+making the output file name by appending @samp{.uu} to the input file
+name:
 
 @example
 for file in * ; do uuencode "$file" "$file" >"$file".uu; done
 @end example
-
-@noindent
-This simple example doesn't require a shell loop (you can do it
-with @samp{?}, but it illustrates the technique.
 
 The working directory for the shell command is the top-level directory
 of the Dired buffer.
