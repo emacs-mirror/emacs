@@ -541,7 +541,8 @@ the user what to do for each file.  The default value is @code{maybe}.
 @cindex visited file mode
   This function selects the major mode that is appropriate for the
 current buffer.  It may base its decision on the value of the @w{@samp{-*-}}
-line, on the visited file name (using @code{auto-mode-alist}), or on the
+line, on the visited file name (using @code{auto-mode-alist}), on the
+@w{@samp{#!}} line (using @code{interpreter-mode-alist}), or on the
 value of a local variable.  However, this function does not look for
 the @samp{mode:} local variable near the end of a file; the
 @code{hack-local-variables} function does that.  @xref{Choosing Modes, ,
@@ -638,7 +639,7 @@ Here is an example of how to prepend several pattern pairs to
 
 @defvar interpreter-mode-alist
 This variable specifes major modes to use for scripts that specify a
-command interpreter in an @samp{!#} line.  Its value is a list of
+command interpreter in an @samp{#!} line.  Its value is a list of
 elements of the form @code{(@var{interpreter} . @var{mode})}; for
 example, @code{("perl" . perl-mode)} is one element present by default.
 The element says to use mode @var{mode} if the file specifies
