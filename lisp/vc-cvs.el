@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.50 2002/12/26 14:05:48 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.51 2003/02/17 08:11:13 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -872,10 +872,8 @@ is non-nil."
      (concat "/[^/]+"
 	     ;; revision
 	     "/\\([^/]*\\)"
-	     ;; timestamp
-	     "/\\([^/]*\\)"
-	     ;; optional conflict field
-	     "\\(+[^/]*\\)?/"
+	     ;; timestamp and optional conflict field
+	     "/\\([^/]*\\)/"
 	     ;; options
 	     "\\([^/]*\\)/"
 	     ;; sticky tag
@@ -883,13 +881,14 @@ is non-nil."
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
-		     (vc-cvs-parse-sticky-tag (match-string 5) (match-string 6)))
+		     (vc-cvs-parse-sticky-tag (match-string 4) (match-string 5)))
     ;; compare checkout time and modification time
     (let ((mtime (nth 5 (file-attributes file))))
       (require 'parse-time)
       (let ((parsed-time
 	     (parse-time-string (concat (match-string 2) " +0000"))))
-	(cond ((and (car parsed-time)
+	(cond ((and (not (string-match "\\+" (match-string 2)))
+		    (car parsed-time)
 		    (equal mtime (apply 'encode-time parsed-time)))
 	       (vc-file-setprop file 'vc-checkout-time mtime)
 	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
