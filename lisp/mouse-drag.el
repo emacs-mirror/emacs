@@ -1,6 +1,6 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -61,6 +61,8 @@
 ;;;
 ;;; - reverse the throw-scroll direction with \\[mouse-throw-with-scroll-bar]
 ;;; - work around a bug with \\[mouse-extras-work-around-drag-bug]
+;;; - auto-enable horizontal scrolling with
+;;;   \\[mouse-drag-electric-col-scrolling]
 ;;;
 ;;;
 ;;; History and related work:
@@ -91,20 +93,11 @@
 ;;;    -johnh@isi.edu, 11-Jul-96
 ;;;
 ;;;
-;;; Old changes, for reference:
+;;; What's new with mouse-drag 2.24?
 ;;;
-;;; What's new with mouse-extras 2.21?
-;;;
-;;; - support for emacs-19.{29,30}
-;;; - point now stays on the visible screen during horizontal scrolling
-;;;   (bug identified and fix suggested by Tom Wurgler <twurgler@goodyear.com>)
-;;; - better work-around for lost-mouse-events bug (supports double/triple
-;;;   clicks), see \\[mouse-extras-work-around-drag-bug] for details.
-;;; - work-around for lost-mouse-events bug now is OFF by default;
-;;;   enable it if you have problems
-;;;
-
-
+;;; - mouse-drag-electric-col-scrolling (default: on)
+;;;   auto-enables horizontal scrolling when clicks on wrapped
+;;;   lines occur
 
 ;;; Code:
 
@@ -155,11 +148,24 @@ Keep the cursor on the screen as needed."
      (= (car start-col-row) (car end-col-row))
      (= (cdr start-col-row) (cdr end-col-row)))))
 
+(defvar mouse-drag-electric-col-scrolling t
+  "If non-nil, mouse-drag on a long line enables truncate-lines.")
+
 (defun mouse-drag-should-do-col-scrolling ()
-  "* Determine if it's wise to enable col-scrolling for the current window."
+  "* Determine if it's wise to enable col-scrolling for the current window.
+Basically, we check for existing horizontal scrolling."
   (or truncate-lines
       (> (window-hscroll (selected-window)) 0)
-      (< (window-width) (screen-width))))
+      (< (window-width) (screen-width))
+      (and
+       mouse-drag-electric-col-scrolling
+       (save-excursion  ;; on a long line?
+	 (let
+	     ((beg (progn (beginning-of-line) (point)))
+	      (end (progn (end-of-line) (point))))
+	   (if (> (- end beg) (window-width))
+	       (setq truncate-lines t)
+	     nil))))))
 
 (defvar mouse-throw-with-scroll-bar nil
   "* Set direction of mouse-throwing.
