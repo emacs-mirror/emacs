@@ -1202,9 +1202,9 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 ;;;; Keysyms
 
 (defun vendor-specific-keysyms (vendor)
-  "Return the appropriate value of system-key-alist for VENDOR.
+  "Return the appropriate value of `system-key-alist' for VENDOR.
 VENDOR is a string containing the name of the X Server's vendor,
-as returned by (x-server-vendor)."
+as returned by `x-server-vendor'."
   ;; Fixme: Drop Apollo now?
   (cond ((string-equal vendor "Apollo Computer Inc.")
 	 '((65280 . linedel)
@@ -2098,12 +2098,11 @@ as returned by (x-server-vendor)."
 (defvar x-last-selected-text-clipboard nil
   "The value of the CLIPBOARD X selection last time we selected or
 pasted text.")
-(defvar x-last-selected-text-primary   nil
+(defvar x-last-selected-text-primary nil
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
-(defvar x-last-selected-text-cut       nil
-  "The vaue of the X cut buffer last time we selected or
-pasted text.")
+(defvar x-last-selected-text-cut nil
+  "The value of the X cut buffer last time we selected or pasted text.")
 
 ;;; It is said that overlarge strings are slow to put into the cut buffer.
 ;;; Note this value is overridden below.
@@ -2345,7 +2344,7 @@ This is in addition to, but in preference to, the primary selection."
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
 (defun x-win-suspend-error ()
-  (error "Suspending an emacs running under X makes no sense"))
+  (error "Suspending an Emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
