@@ -1,3 +1,9 @@
+2000-12-18  Miles Bader  <miles@gnu.org>
+
+	* textmodes/artist.el (artist-replace-chars, artist-replace-char): 
+	Check that emacs-major-version is `=' to 20, not `>='.
+	(artist-replace-chars): Use `make-string' instead of a loop.
+
 2000-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (check-ispell-version): If
