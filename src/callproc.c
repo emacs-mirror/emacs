@@ -727,6 +727,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     int carryover = 0;
     int display_on_the_fly = !NILP (display) && INTERACTIVE;
     struct coding_system saved_coding;
+    int pt_orig = PT, pt_byte_orig = PT_BYTE;
+    int inserted;
 
     saved_coding = process_coding;
     if (process_coding.composing != COMPOSITION_DISABLED)
@@ -843,6 +845,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	coding_restore_composition (&process_coding, Fcurrent_buffer ());
 	coding_free_composition_data (&process_coding);
       }
+
+    record_unwind_protect (save_excursion_restore, save_excursion_save ());
+    inserted = PT - pt_orig;
+    TEMP_SET_PT_BOTH (pt_orig, pt_byte_orig);
+    if (SYMBOLP (process_coding.post_read_conversion)
+	&& !NILP (Ffboundp (process_coding.post_read_conversion)))
+      call1 (process_coding.post_read_conversion, make_number (inserted));
 
     Vlast_coding_system_used = process_coding.symbol;
 
