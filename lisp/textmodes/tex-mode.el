@@ -91,11 +91,12 @@ if the variable is non-nil."
 (defcustom tex-run-command "tex"
   "*Command used to run TeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end."
+otherwise the value of tex-start-options-string and the file name are added
+at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
 
-(defcustom tex-start-options-string " \\\\nonstopmode\\\\input"
+(defcustom tex-start-options-string "\\nonstopmode\\input"
   "*TeX options to use when running TeX.
 These precede the input file name."
   :type 'string
@@ -1072,12 +1073,15 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (defun tex-start-tex (command file)
   "Start a TeX run, using COMMAND on FILE."
-  (let* ((cmd (concat command tex-start-options-string))
-         (star (string-match "\\*" cmd))
+  (let* ((star (string-match "\\*" command))
          (compile-command
-          (if star (concat (substring cmd 0 star)
-                           file (substring cmd (1+ star)))
-            (concat cmd " " (comint-quote-filename file)))))
+          (if star
+	      (concat (substring command 0 star)
+		      (comint-quote-filename file)
+		      (substring command (1+ star)))
+            (concat command " "
+		    (comint-quote-filename tex-start-options-string) " "
+		    (comint-quote-filename file)))))
     (with-current-buffer (process-buffer (tex-send-command compile-command))
       (save-excursion
 	(forward-line -1)
@@ -1448,4 +1452,3 @@ Runs the shell command defined by `tex-show-queue-command'."
 (provide 'tex-mode)
 
 ;;; tex-mode.el ends here
-
