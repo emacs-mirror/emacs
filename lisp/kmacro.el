@@ -30,26 +30,26 @@
 ;; type to be really useful for doing small repeated tasks.
 
 ;; With kmacro, two function keys are dedicated to keyboard macros,
-;; by default F7 and F8.  Personally, I prefer F1 and F2, but those
+;; by default F3 and F4.  Personally, I prefer F1 and F2, but those
 ;; keys already have default bindings.
 ;;
-;; To start defining a keyboard macro, use F7.  To end the macro,
-;; use F8, and to call the macro also use F8.  This makes it very
+;; To start defining a keyboard macro, use F3.  To end the macro,
+;; use F4, and to call the macro also use F4.  This makes it very
 ;; easy to repeat a macro immediately after defining it.
 ;;
-;; You can call the macro repeatedly by pressing F8 multiple times, or
+;; You can call the macro repeatedly by pressing F4 multiple times, or
 ;; you can give a numeric prefix argument specifying the number of
 ;; times to repeat the macro.  Macro execution automatically
 ;; terminates when point reaches the end of the buffer or if an error
 ;; is signalled by ringing the bell.
 
-;; When you define a macro with F7/F8, it is automatically added to
-;; the head of the "keyboard macro ring", and F8 actually executes the
+;; When you define a macro with F3/F4, it is automatically added to
+;; the head of the "keyboard macro ring", and F4 actually executes the
 ;; first element of the macro ring.
 ;;
 ;; Note: an empty macro is never added to the macro ring.
 ;;
-;; You can execute the second element on the macro ring with C-u F8 or
+;; You can execute the second element on the macro ring with C-u F4 or
 ;; C-x C-k C-l, you can use C-x C-k C-p and C-x C-k C-n to cycle
 ;; through the macro ring, and you can swap the first and second
 ;; elements with C-x C-k C-t.  To delete the first element in the
@@ -66,21 +66,21 @@
 ;; the head macro with C-d, or edit the current macro with C-e without
 ;; repeating the C-x C-k prefix.
 
-;; If you enter F7 while defining the macro, the numeric value of
+;; If you enter F3 while defining the macro, the numeric value of
 ;; `kmacro-counter' is inserted using the `kmacro-counter-format', and
 ;; `kmacro-counter' is incremented by 1 (or the numeric prefix value
-;; of F7).
+;; of F3).
 ;;
 ;; The initial value of `kmacro-counter' is 0, or the numeric prefix
-;; value given to F7 when starting the macro.
+;; value given to F3 when starting the macro.
 ;;
-;; Now, each time you call the macro using F8, the current
+;; Now, each time you call the macro using F4, the current
 ;; value of `kmacro-counter' is inserted and incremented, making it
 ;; easy to insert incremental numbers in the buffer.
 ;;
 ;; Example:
 ;;
-;; The following sequence: M-5 F7 x M-2 F7 y F8 F8 F8 F8
+;; The following sequence: M-5 F3 x M-2 F3 y F4 F4 F4 F4
 ;; inserts the following string:  x5yx7yx9yx11y
 
 ;; A macro can also be called using a mouse click, default S-mouse-3.
@@ -88,7 +88,7 @@
 
 ;; You can edit the last macro using C-x C-k C-e.
 
-;; You can append to the last macro using C-u F7.
+;; You can append to the last macro using C-u F3.
 
 ;; You can set the macro counter using C-x C-k C-c, add to it using C-x C-k C-a,
 ;; and you can set the macro counter format with C-x C-k C-f.
@@ -97,17 +97,17 @@
 ;; 
 ;;           Normal                         While defining macro
 ;;           ---------------------------    ------------------------------
-;;  f7       Define macro                   Insert current counter value
+;;  f3       Define macro                   Insert current counter value
 ;;           Prefix arg specifies initial   and increase counter by prefix
 ;;           counter value (default 0)      (default increment: 1)
 ;;
-;;  C-u f7   APPENDs to last macro
+;;  C-u f3   APPENDs to last macro
 ;; 
-;;  f8       Call last macro                End macro 
+;;  f4       Call last macro                End macro 
 ;;           Prefix arg specifies number
 ;;           of times to execute macro.
 ;;
-;;  C-u f8   Swap last and head of macro ring.
+;;  C-u f4   Swap last and head of macro ring.
 ;; 
 ;;  S-mouse-3  Set point at click and       End macro and execute macro at
 ;;             execute last macro.          click.
@@ -152,20 +152,33 @@ macro to be executed before appending to it."
   :type 'boolean
   :group 'kmacro)
 
+(defcustom kmacro-call-repeat-key t
+  "Allow repeating macro call using last key or a specific key."
+  :type '(choice (const :tag "Disabled" nil)
+		 (const :tag "Last key" t)
+		 (character :tag "Character" :value ?e)
+		 (symbol :tag "Key symbol" :value RET))
+  :group 'kmacro)
+
+(defcustom kmacro-call-repeat-with-arg nil
+  "Repeat macro call with original arg when non-nil; repeat once if nil."
+  :type 'boolean
+  :group 'kmacro)
+
 
 ;; Keymap
 
 (defvar kmacro-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-s" 'kmacro-start-macro)
-    (define-key map "\C-k" 'kmacro-end-or-call-macro-rep)
-    (define-key map "\C-e" 'kmacro-edit-macro)
-    (define-key map "\r"   'kmacro-edit-macro-nr)
+    (define-key map "\C-k" 'kmacro-end-or-call-macro-repeat)
+    (define-key map "\C-e" 'kmacro-edit-macro-repeat)
+    (define-key map "\r"   'kmacro-edit-macro)
     (define-key map "l"    'kmacro-edit-lossage)
     (define-key map "\C-i" 'kmacro-insert-counter)
     (define-key map "\C-a" 'kmacro-add-counter)
-    (define-key map "\C-v" 'kmacro-view-macro-rep)
-    (define-key map "\C-l" 'kmacro-call-ring-2nd-rep)
+    (define-key map "\C-v" 'kmacro-view-macro-repeat)
+    (define-key map "\C-l" 'kmacro-call-ring-2nd-repeat)
     (define-key map "\C-r" 'kmacro-view-ring-2nd)
     (define-key map "\C-n" 'kmacro-cycle-ring-next)
     (define-key map "\C-p" 'kmacro-cycle-ring-previous)
@@ -186,9 +199,9 @@ macro to be executed before appending to it."
 ;;; Provide some binding for startup:
 ;;;###autoload (global-set-key "\C-x(" 'kmacro-start-macro)
 ;;;###autoload (global-set-key "\C-x)" 'kmacro-end-macro)
-;;;###autoload (global-set-key "\C-xe" 'kmacro-call-macro)
-;;;###autoload (global-set-key [f7] 'kmacro-start-macro-or-insert-counter)
-;;;###autoload (global-set-key [f8] 'kmacro-end-or-call-macro)
+;;;###autoload (global-set-key "\C-xe" 'kmacro-end-or-call-macro)
+;;;###autoload (global-set-key [f3] 'kmacro-start-macro-or-insert-counter)
+;;;###autoload (global-set-key [f4] 'kmacro-end-or-call-macro)
 ;;;###autoload (global-set-key "\C-x\C-k" 'kmacro-keymap)
 ;;;###autoload (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
 
@@ -355,6 +368,43 @@ Check only `last-kbd-macro' if optional arg NONE is non-nil."
     (message (or empty "No keyboard macros defined"))))
 
 
+(defun kmacro-repeat-on-last-key (keys)
+  "Process kmacro commands keys immidiately after cycling the ring."
+  (setq keys (vconcat keys))
+  (let ((n (1- (length keys)))
+	cmd done repeat)
+    (while (and last-kbd-macro
+		(not done)
+		(aset keys n (read-event))
+		(setq cmd (key-binding keys t))
+		(setq repeat (get cmd 'kmacro-repeat)))
+      (clear-this-command-keys t)
+      (cond
+       ((eq repeat 'ring)
+	(if kmacro-ring
+	    (let ((kmacro-repeat-no-prefix nil))
+	      (funcall cmd nil))
+	  (kmacro-display last-kbd-macro t)))
+       ((eq repeat 'head)
+	(let ((kmacro-repeat-no-prefix nil))
+	  (funcall cmd nil)))
+       ((eq repeat 'stop)
+	(funcall cmd nil)
+	(setq done t)))
+      (setq last-input-event nil)))
+  (when last-input-event
+    (clear-this-command-keys t)
+    (setq unread-command-events (list last-input-event))))
+
+
+(defun kmacro-get-repeat-prefix ()
+  (let (keys)
+    (and kmacro-repeat-no-prefix
+	 (setq keys (this-single-command-keys))
+	 (> (length keys) 1)
+	 keys)))
+
+
 (defun kmacro-call-ring-2nd (arg)
   "Execute second keyboard macro at in macro ring."
   (interactive "P")
@@ -366,14 +416,15 @@ Check only `last-kbd-macro' if optional arg NONE is non-nil."
       (setcar (cdr (car kmacro-ring)) kmacro-counter))))
 
 
-(defun kmacro-call-ring-2nd-rep (arg)
-  "Like `kmacro-call-ring-2nd', but allow repeat without kmacro prefix."
+(defun kmacro-call-ring-2nd-repeat (arg)
+  "Like `kmacro-call-ring-2nd', but allow repeat without repeating prefix."
   (interactive "P")
-  (kmacro-call-ring-2nd arg)
-  (if kmacro-ring
-      (kmacro-repeat-loop)))
+  (let ((keys (kmacro-get-repeat-prefix)))
+    (kmacro-call-ring-2nd arg)
+    (if (and kmacro-ring keys)
+	(kmacro-repeat-on-last-key keys))))
 
-(put 'kmacro-call-ring-2nd-rep 'kmacro-repeat 'head)
+(put 'kmacro-call-ring-2nd-repeat 'kmacro-repeat 'head)
 
 
 (defun kmacro-view-ring-2nd ()
@@ -383,31 +434,6 @@ Check only `last-kbd-macro' if optional arg NONE is non-nil."
     (kmacro-display (car (car kmacro-ring)) "2nd macro")))
 
 
-(defun kmacro-repeat-loop ()
-  "Process kmacro commands keys immidiately after cycling the ring."
-  (when kmacro-repeat-no-prefix
-    (let (cmd done repeat)
-      (while (and last-kbd-macro
-		  (not done)
-		  (setq cmd (lookup-key kmacro-keymap (vector (read-event))))
-		  (setq repeat (get cmd 'kmacro-repeat)))
-	(clear-this-command-keys t)
-	(cond
-	 ((eq repeat 'ring)
-	  (if kmacro-ring
-	      (let ((kmacro-repeat-no-prefix nil))
-		(funcall cmd nil))
-	    (kmacro-display last-kbd-macro t)))
-	 ((eq repeat 'head)
-	  (funcall cmd nil))
-	 ((eq repeat 'stop)
-	  (funcall cmd nil)
-	  (setq done t)))
-	(setq last-input-event nil)))
-    (when last-input-event
-      (clear-this-command-keys t)
-      (setq unread-command-events (list last-input-event)))))
-
   
 (defun kmacro-cycle-ring-next (&optional arg)
   "Move to next keyboard macro in keyboard macro ring.
@@ -415,13 +441,15 @@ Displays the selected macro in the echo area."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (kmacro-push-ring)
-    (let* ((len (length kmacro-ring))
+    (let* ((keys (kmacro-get-repeat-prefix))
+	   (len (length kmacro-ring))
 	   (tail (nthcdr (- len 2) kmacro-ring))
 	   (elt (car (cdr tail))))
       (setcdr tail nil)
-      (kmacro-split-ring-element elt))
-    (kmacro-display last-kbd-macro t)
-    (kmacro-repeat-loop)))
+      (kmacro-split-ring-element elt)
+      (kmacro-display last-kbd-macro t)
+      (if keys
+	  (kmacro-repeat-on-last-key keys)))))
 
 (put 'kmacro-cycle-ring-next 'kmacro-repeat 'ring)
 
@@ -431,13 +459,15 @@ Displays the selected macro in the echo area."
 Displays the selected macro in the echo area."
   (interactive)
   (unless (kmacro-ring-empty-p)
-    (let ((cur (kmacro-ring-head)))
+    (let ((keys (kmacro-get-repeat-prefix))
+	  (cur (kmacro-ring-head)))
       (kmacro-pop-ring1)
       (if kmacro-ring
 	  (nconc kmacro-ring (list cur))
-	(setq kmacro-ring (list cur))))
-    (kmacro-display last-kbd-macro t)
-    (kmacro-repeat-loop)))
+	(setq kmacro-ring (list cur)))
+      (kmacro-display last-kbd-macro t)
+      (if keys
+	  (kmacro-repeat-on-last-key keys)))))
 
 (put 'kmacro-cycle-ring-previous 'kmacro-repeat 'ring)
 
@@ -529,28 +559,63 @@ An argument of zero means repeat until error."
 
 
 ;;;###autoload
-(defun kmacro-call-macro (arg)
+(defun kmacro-call-macro (arg &optional no-repeat end-macro)
   "Call the last keyboard macro that you defined with \\[kmacro-start-macro].
-
 A prefix argument serves as a repeat count.  Zero means repeat until error.
 
-To make a macro permanent so you can call it even after
-defining others, use M-x name-last-kbd-macro."
-  (interactive "p")
-  (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+When you call the macro, you can call the macro again by repeating
+just the last key in the key sequence that you used to call this
+command.  See `kmacro-call-repeat-key' and `kmacro-call-repeat-with-arg'
+for details on how to adjust or disable this behaviour.
 
+To make a macro permanent so you can call it even after defining
+others, use M-x name-last-kbd-macro."
+  (interactive "p")
+  (let ((repeat-key (and (null no-repeat)
+			 (> (length (this-single-command-keys)) 1)
+			 last-input-event))
+	repeat-key-str)
+    (if end-macro
+	(kmacro-end-macro arg)
+      (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+    (when (and (or (null arg) (> arg 0))
+	       (setq repeat-key
+		     (if (eq kmacro-call-repeat-key t) repeat-key kmacro-call-repeat-key)))
+      (require 'edmacro)
+      (setq repeat-key-str (edmacro-format-keys (vector repeat-key) nil))
+      (while repeat-key
+	(message "Repeat macro %swith `%s'..." 
+		 (if (and kmacro-call-repeat-with-arg
+			  arg (> arg 1))
+		     (format "%d times " arg) "")
+		 repeat-key-str)
+	(if (equal repeat-key (read-event))
+	    (progn
+	      (clear-this-command-keys t)
+	      (call-last-kbd-macro (and kmacro-call-repeat-with-arg arg) #'kmacro-loop-setup-function)
+	      (setq last-input-event nil))
+	  (setq repeat-key nil)))
+      (when last-input-event
+	(clear-this-command-keys t)
+	(setq unread-command-events (list last-input-event))))))
 
 
 ;;; Combined function key bindings:
 
 ;;;###autoload
 (defun kmacro-start-macro-or-insert-counter (arg)
-  "Set `kmacro-counter' to ARG or 0 if missing, and `start-kbd-macro'.
-With \\[universal-argument], append to current keyboard macro (keep kmacro-counter).
+  "Record subsequent keyboard input, defining a keyboard macro.
+The commands are recorded even as they are executed.
 
-When defining/executing macro, insert macro counter and increment with 
-ARG or 1 if missing.
-With \\[universal-argument], insert previous kmacro-counter (but do not modify counter).
+Sets the `kmacro-counter' to ARG (or 0 if no prefix arg) before defining the
+macro.
+
+With \\[universal-argument], appends to current keyboard macro (keeping
+the current value of `kmacro-counter').
+
+When defining/executing macro, inserts macro counter and increments
+the counter with ARG or 1 if missing.  With \\[universal-argument],
+inserts previous kmacro-counter (but do not modify counter).
 
 The macro counter can be modified via \\[kmacro-set-counter] and \\[kmacro-add-counter].
 The format of the counter can be modified via \\[kmacro-set-format]."
@@ -561,27 +626,31 @@ The format of the counter can be modified via \\[kmacro-set-format]."
 
 
 ;;;###autoload
-(defun kmacro-end-or-call-macro (arg)
+(defun kmacro-end-or-call-macro (arg &optional no-repeat)
   "End kbd macro if currently being defined; else call last kbd macro.
 With numeric prefix ARG, repeat macro that many times.
 With \\[universal-argument], call second macro in macro ring."
   (interactive "P")
   (cond 
    (defining-kbd-macro
-     (kmacro-end-macro arg))
+     (if kmacro-call-repeat-key
+	 (kmacro-call-macro arg no-repeat t)
+       (kmacro-end-macro arg)))
    ((and arg (listp arg))
     (kmacro-call-ring-2nd 1))
    (t
-    (kmacro-call-macro arg))))
+    (kmacro-call-macro arg no-repeat))))
 
 
-(defun kmacro-end-or-call-macro-rep (arg)
-  "As `kmacro-end-or-call-macro' but allows repeat without kmacro prefix."
+(defun kmacro-end-or-call-macro-repeat (arg)
+  "As `kmacro-end-or-call-macro' but allows repeat without repeating prefix."
   (interactive "P")
-  (kmacro-end-or-call-macro arg)
-  (kmacro-repeat-loop))
+  (let ((keys (kmacro-get-repeat-prefix)))
+    (kmacro-end-or-call-macro arg t)
+    (if keys
+	(kmacro-repeat-on-last-key keys))))
 
-(put 'kmacro-end-or-call-macro-rep 'kmacro-repeat 'head)
+(put 'kmacro-end-or-call-macro-repeat 'kmacro-repeat 'head)
 
 
 ;;;###autoload
@@ -592,7 +661,7 @@ If kbd macro currently being defined end it before activating it."
   (when defining-kbd-macro
     (end-kbd-macro))
   (mouse-set-point event)
-  (kmacro-call-macro nil))
+  (kmacro-call-macro nil t))
 
 
 ;;; Misc. commands
@@ -616,27 +685,29 @@ If kbd macro currently being defined end it before activating it."
   (kmacro-display last-kbd-macro))
 
 
-(defun kmacro-view-macro-rep (&optional arg)
-  "Like `kmacro-view-macro', but allow repeat without kmacro prefix."
+(defun kmacro-view-macro-repeat (&optional arg)
+  "Like `kmacro-view-macro', but allow repeat without repeating prefix."
   (interactive)
-  (kmacro-view-macro arg)
-  (if last-kbd-macro
-      (kmacro-repeat-loop)))
+  (let ((keys (kmacro-get-repeat-prefix)))
+    (kmacro-view-macro arg)
+    (if (and last-kbd-macro keys)
+	(kmacro-repeat-on-last-key keys))))
 
-(put 'kmacro-view-macro-rep 'kmacro-repeat 'head)
+(put 'kmacro-view-macro-repeat 'kmacro-repeat 'head)
 
-(defun kmacro-edit-macro (&optional arg)
+
+(defun kmacro-edit-macro-repeat (&optional arg)
   "Edit last keyboard macro."
   (interactive "P")
   (edit-kbd-macro "\r" arg))
 
-(put 'kmacro-edit-macro 'kmacro-repeat 'stop)
+(put 'kmacro-edit-macro-repeat 'kmacro-repeat 'stop)
 
 
-(defun kmacro-edit-macro-nr (&optional arg)
+(defun kmacro-edit-macro (&optional arg)
   "As edit last keyboard macro, but without kmacro-repeat property."
   (interactive "P")
-  (kmacro-edit-macro arg))
+  (edit-kbd-macro "\r" arg))
 
 
 (defun kmacro-edit-lossage ()
