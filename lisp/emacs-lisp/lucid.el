@@ -107,12 +107,43 @@ bottom of the buffer stack."
 		      (list buf)))
 		  (buffer-list)))))))
 
+(defun device-class (&optional device)
+  "Return the class (color behavior) of DEVICE.
+This will be one of 'color, 'grayscale, or 'mono.
+This function exists for compatibility with XEmacs."
+  (cond
+   ((display-color-p device) 'color)
+   ((display-grayscale-p device) 'grayscale)
+   (t 'mono)))
+
 (defalias 'find-face 'internal-find-face)
 (defalias 'get-face 'internal-get-face)
 (defalias 'try-face-font 'internal-try-face-font)
 
 (defalias 'exec-to-string 'shell-command-to-string)
 
+
+;; Buffer context
+
+(defun buffer-syntactic-context (&optional buffer)
+  "Syntactic context at point in BUFFER.
+Either of `string', `comment' or `nil'.
+This is an XEmacs compatibility function."
+  (with-current-buffer (or buffer (current-buffer))
+    (let ((state (syntax-ppss (point))))
+      (cond
+       ((nth 3 state) 'string)
+       ((nth 4 state) 'comment)))))
+
+
+(defun buffer-syntactic-context-depth (&optional buffer)
+  "Syntactic parenthesis depth at point in BUFFER.
+This is an XEmacs compatibility function."
+  (with-current-buffer (or buffer (current-buffer))
+    (nth 0 (syntax-ppss (point)))))
+
+
+;; Extents
 (defun make-extent (beg end &optional buffer)
   (make-overlay beg end buffer))
 
