@@ -26,7 +26,7 @@
 (defun setenv (variable value)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE and VALUE should both be strings.
-This function works by modifying process-environment."
+This function works by modifying `process-environment'."
   (interactive "sSet environment variable: \nsSet %s to value: ")
   (if (string-match "=" variable)
       (error "Environment variable name contains `='")
