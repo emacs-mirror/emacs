@@ -17,7 +17,7 @@ characters and how they are stored in strings and buffers.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
                                 codes of individual characters.
-* Character Sets::          The space of possible characters codes
+* Character Sets::          The space of possible character codes
                                 is divided into various character sets.
 * Chars and Bytes::         More information about multibyte encodings.
 * Splitting Characters::    Converting a character to its byte sequence.
@@ -503,6 +503,14 @@ decoding, and for other purposes.  Some coding systems specify their
 own particular translation tables; there are also default translation
 tables which apply to all other coding systems.
 
+  For instance, the coding-system @code{utf-8} has a translation table
+that maps characters of various charsets (e.g.,
+@code{latin-iso8859-@var{x}}) into Unicode character sets.  This way,
+it can encode Latin-2 characters into UTF-8.  Meanwhile,
+@code{unify-8859-on-decoding-mode} operates by specifying
+@code{standard-translation-table-for-decode} to translate
+Latin-@var{x} characters into corresponding Unicode characters.
+
 @defun make-translation-table &rest translations
 This function returns a translation table based on the argument
 @var{translations}.  Each element of @var{translations} should be a
@@ -558,6 +566,10 @@ coding systems that don't specify any other translation table.
 Self-inserting characters are translated through this translation
 table before they are inserted.  This variable automatically becomes
 buffer-local when set.
+
+@code{set-buffer-file-coding-system} sets this variable so that your
+keyboard input gets translated into the character sets that the buffer
+is likely to contain.
 @end defvar
 
 @node Coding Systems
@@ -1065,7 +1077,7 @@ of the right way to use the variable:
 @example
 ;; @r{Read the file with no character code conversion.}
 ;; @r{Assume @acronym{crlf} represents end-of-line.}
-(let ((coding-system-for-write 'emacs-mule-dos))
+(let ((coding-system-for-read 'emacs-mule-dos))
   (insert-file-contents filename))
 @end example
 
