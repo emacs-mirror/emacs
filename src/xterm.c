@@ -6039,8 +6039,10 @@ static XrmOptionDescRec emacs_options[] = {
 #endif /* USE_X_TOOLKIT */
 
 void
-x_term_init (display_name)
+x_term_init (display_name, xrm_option, resource_name)
      char *display_name;
+     char *xrm_option;
+     char *resource_name;
 {
   Lisp_Object frame;
   char *defaultvalue;
@@ -6055,13 +6057,19 @@ x_term_init (display_name)
   x_focus_frame = x_highlight_frame = 0;
 
 #ifdef USE_X_TOOLKIT
-  argv = (char **) XtMalloc (5 * sizeof (char *));
-  argv [0] = "";
-  argv [1] = "-display";
-  argv [2] = display_name;
-  argv [3] = "-name";
-  argv [4] = "emacs";
+  argv = (char **) XtMalloc (7 * sizeof (char *));
+  argv[0] = "";
+  argv[1] = "-display";
+  argv[2] = display_name;
+  argv[3] = "-name";
+  /* Usually `emacs', but not always.  */
+  argv[4] = resource_name;
   argc = 5;
+  if (xrm_option)
+    {
+      argv[argc++] = "-xrm";
+      argv[argc++] = xrm_option;
+    }
   Xt_app_shell = XtAppInitialize (&Xt_app_con, "Emacs",
 				  emacs_options, XtNumber (emacs_options),
 				  &argc, argv,
