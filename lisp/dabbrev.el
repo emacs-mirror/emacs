@@ -599,7 +599,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	(progn
 	  (forward-char -1)
 	  (while (and (looking-at dabbrev--abbrev-char-regexp)
-		      (not (= (point) (field-beginning (point)))))
+		      (not (bobp))
+		      (not (= (point) (field-beginning (point) nil
+						       (1- (point))))))
 	    (forward-char -1))
 	  (or (looking-at dabbrev--abbrev-char-regexp)
 	      (forward-char 1))))
