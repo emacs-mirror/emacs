@@ -1,3 +1,17 @@
+2003-07-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (mark_object): Change prototype.
+
+	* alloc.c (mark_object): Change arg *Lisp_Object -> Lisp_Object.
+	(last_marked): Change accordingly.
+	(mark_interval, mark_maybe_object, mark_maybe_pointer)
+	(Fgarbage_collect, mark_glyph_matrix, mark_face_cache, mark_image)
+	(mark_buffer): Update calls to mark_object.
+
+	* bytecode.c (mark_byte_stack):
+	* fns.c (sweep_weak_table):
+	* keyboard.c (mark_kboards): Update calls to mark_object.
+
 2003-07-06  Jason Rumney  <jasonr@gnu.org>
 
 	* alloc.c (struct ablock): Only include padding when there is some.
