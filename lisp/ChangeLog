@@ -1,3 +1,8 @@
+2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
+
+	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
+	file-name clashes on 8+3 filesystems.
+
 2003-10-02  Andreas Schwab  <schwab@suse.de>
 
 	* loaddefs-boot.el: Regenerated.
