@@ -237,9 +237,7 @@ based on the filename itself and `jka-compr-compression-info-list'."
 (defun jka-compr-partial-uncompress (prog message args infile beg len)
   "Call program PROG with ARGS args taking input from INFILE.
 Fourth and fifth args, BEG and LEN, specify which part of the output
-to discard.  All output is discarded unless it comes within LEN chars after
-the BEGth char."
-
+to keep: LEN chars starting BEG chars from the beginning."
   (let* ((skip (/ beg jka-compr-dd-blocksize))
 	 (prefix (- beg (* skip jka-compr-dd-blocksize)))
 	 (count (and len (1+ (/ (+ len prefix) jka-compr-dd-blocksize))))
@@ -267,10 +265,13 @@ the BEGth char."
 
       (jka-compr-delete-temp-file err-file))
 
+    ;; Delete the stuff after what we want, if there is any.
     (and
      len
+     (< (+ start prefix len) (point))
      (delete-region (+ start prefix len) (point)))
 
+    ;; Delete the stuff before what we want.
     (delete-region start (+ start prefix))))
 
 
