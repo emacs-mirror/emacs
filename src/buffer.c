@@ -1679,21 +1679,15 @@ static int
 advance_to_char_boundary (byte_pos)
      int byte_pos;
 {
-  int pos = byte_pos;
+  int c = FETCH_BYTE (byte_pos);
 
-  while (1)
+  while (! CHAR_HEAD_P (c))
     {
-      int c = FETCH_BYTE (pos);
-      if (SINGLE_BYTE_CHAR_P (c))
-	break;
-      if (c == LEADING_CODE_COMPOSITION)
-	break;
-      if (BYTES_BY_CHAR_HEAD (c) > 1)
-	break;
-      pos++;
+      byte_pos++;
+      c = FETCH_BYTE (byte_pos);
     }
 
-  return pos;
+  return byte_pos;
 }
 
 DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
