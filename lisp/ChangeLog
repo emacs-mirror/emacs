@@ -1,3 +1,28 @@
+2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-cmd.el (viper-prefix-commands): make into a defconst.
+	(viper-exec-buffer-search): use regexp-quote to quote the buffer
+	string.
+	(viper-minibuffer-setup-sentinel): make some variables buffer-local.
+	(viper-skip-separators): bug fix.
+	(viper-set-searchstyle-toggling-macros): allow to unset macros in a
+	particular major mode.
+	(viper-del-backward-char-in-replace): don't put deleted char on the
+	kill ring.
+	
+	* viper-ex.el (viper-color-display-p): new function.
+	(viper-has-face-support-p): use viper-color-display-p.
+	
+	* viper-keym.el (viper-gnus-modifier-map): new keymap.
+	
+	* viper-macs.el (viper-unrecord-kbd-macro): bug fix.
+	
+	* viper-util.el (viper-glob-unix-files): fix shell status check.
+	(viper-file-remote-p): make equivalent to file-remote-p.
+	
+	* viper.el (viper-major-mode-modifier-list): use
+	viper-gnus-modifier-map.
+	
 2005-02-19  David Kastrup  <dak@gnu.org>
 
 	* subr.el (subregexp-context-p): Fix garbled doc string by adding

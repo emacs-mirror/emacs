@@ -3,12 +3,12 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 05 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.2 of January 4, 2002"
+(defconst viper-version "3.11.4 of February 19, 2005"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -466,7 +466,7 @@ unless it is coming up in a wrong Viper state."
 	     (nth 0 triple) (nth 1 triple) (eval (nth 2 triple))))
 	  viper-major-mode-modifier-list))
 
-;; We change standard bindings in some major mode, making them slightly
+;; We change standard bindings in some major modes, making them slightly
 ;; different than in "normal" vi/insert/emacs states
 (defcustom viper-major-mode-modifier-list
   '((help-mode emacs-state viper-slash-and-colon-map)
@@ -482,8 +482,8 @@ unless it is coming up in a wrong Viper state."
     (dired-mode emacs-state viper-dired-modifier-map)
     (tar-mode emacs-state viper-slash-and-colon-map)
     (mh-folder-mode emacs-state viper-slash-and-colon-map)
-    (gnus-group-mode emacs-state viper-slash-and-colon-map)
-    (gnus-summary-mode emacs-state viper-slash-and-colon-map)
+    (gnus-group-mode emacs-state viper-gnus-modifier-map)
+    (gnus-summary-mode emacs-state viper-gnus-modifier-map)
     (Info-mode emacs-state viper-slash-and-colon-map)
     (Buffer-menu-mode emacs-state viper-slash-and-colon-map)
     )

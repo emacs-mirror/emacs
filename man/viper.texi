@@ -2285,7 +2285,7 @@ It is also possible to impose Vi on some major modes, even though they may
 bind common keys to specialized commands.  This might make sense for modes
 that bind only a small number of common keys.  For instance, Viper subverts
 the Shell mode by changing the bindings for @kbd{C-m} and @kbd{C-d} using
-@code{viper-add-local-keys} described in section on customization
+@code{viper-add-local-keys} described in the section on customization
 (@pxref{Customization}).
 
 In some cases, some @emph{minor} modes might override certain essential
@@ -2294,7 +2294,7 @@ can happen only in the beginning, when the minor mode kicks in.  Typing
 @code{M-x viper-mode} will correct the situation.  Viper knows about
 several such minor modes and takes care of them, so the above trick
 is usually not necessary.  If you find that some minor mode, e.g.,
-@code{nasty-mode.el} interferes with Viper, putting the following in
+@code{nasty-mode} interferes with Viper, putting the following in
 @file{.viper} should fix the problem:
 @lisp
 (viper-harness-minor-mode "nasty-mode")
@@ -2305,7 +2305,7 @@ offending minor mode with the suffixes @file{.el} and @file{.elc} removed.
 
 It may not be always obvious which minor mode is at fault.  The only
 guidance here is to look into the file that defines the minor mode you are
-suspecting, say @code{nasty-mode.el}, and see if it has a variable called
+suspecting, say @file{nasty-mode.el}, and see if it has a variable called
 @code{nasty-mode-map}.  Then check if there is a statement of the form
 @lisp
 (define-key nasty-mode-map key function)
@@ -2315,6 +2315,18 @@ that binds the misbehaving
 keys.  If so, use the above line to harness @code{nasty-mode}.  If your
 suspicion is wrong, no harm is done if you harness a minor mode that
 doesn't need to be harnessed.
+
+It is recommended to harness even those minor modes that don't override
+Viper keys, but still have their own keymaps. A general way to
+make a minor mode, @code{my-mode},
+compatible with Viper is to have the file @file{my-mode.el} include the following code:
+
+@lisp
+(when (fboundp 'viper-harness-minor-mode)
+  (let ((lib (file-name-sans-extension
+               (file-name-nondirectory load-file-name))))
+    (viper-harness-minor-mode lib)))
+@end lisp
 
 @vindex @code{viper-want-emacs-keys-in-vi}
 @vindex @code{viper-want-emacs-keys-in-insert}
@@ -2371,11 +2383,19 @@ this in @file{~/.viper}:
 @end example
 @findex @code{viper-set-searchstyle-toggling-macros}
 
+If you don't like this feature as a default, but would still like to have
+it in some major modes, you can do so by first unsetting it globally, as
+shown above, and then setting it in the desired major modes as follows:
+@example
+(viper-set-searchstyle-toggling-macros nil 'c-mode)
+(viper-set-searchstyle-toggling-macros nil 'lisp-mode)
+@end example
+
 @item Vi-isms in Emacs state
 Some people find it useful to use the Vi-style search key, `/', to invoke
 search in modes which Viper leaves in emacs-state.  These modes are:
-@code{dired-mode}, @code{mh-folder-mode}, @code{gnus-group-mode},
-@code{gnus-summary-mode}, @code{Info-mode}, and @code{Buffer-menu-mode}
+@code{dired-mode}, @code{mh-folder-mode},
+@code{Info-mode}, and @code{Buffer-menu-mode}
 (more may be added in the future).  So, in the above modes, Viper binds `/'
 so that it will behave Vi-style.  Furthermore, in those major modes, Viper
 binds `:' to invoke ex-style commands, like in vi-state.  And, as described
@@ -4470,6 +4490,7 @@ gviswana@@cs.wisc.edu (Guhan Viswanathan),
 gvr@@halcyon.com (George V.@: Reilly),
 hatazaki@@bach.convex.com (Takao Hatazaki),
 hpz@@ibmhpz.aug.ipp-garching.mpg.de (Hans-Peter Zehrfeld),
+irie@@t.email.ne.jp (Irie Tetsuya),
 jackr@@dblues.engr.sgi.com (Jack Repenning),
 jamesm@@bga.com (D.J.@: Miller II),
 jjm@@hplb.hpl.hp.com (Jean-Jacques Moreau),

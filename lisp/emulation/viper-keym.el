@@ -455,6 +455,10 @@ Useful in some modes, such as Gnus, MH, etc.")
 (define-key viper-dired-modifier-map ":" 'viper-ex)
 (define-key viper-dired-modifier-map "/" 'viper-search-forward)
 
+(defvar viper-gnus-modifier-map (make-sparse-keymap)
+  "This map modifies Gnus behavior.")
+(define-key viper-gnus-modifier-map ":" 'viper-ex)
+
 
 
 ;;; Code
