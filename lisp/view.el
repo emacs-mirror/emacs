@@ -28,8 +28,30 @@
 
 ;;; Code:
 
-(defvar view-mode nil "Non-nil if view-mode is enabled.")
+(defvar view-mode nil "Non-nil if View mode is enabled.")
 (make-variable-buffer-local 'view-mode)
+
+(defvar view-mode-auto-exit nil
+  "Non-nil means scrolling past the end of buffer exits View mode.")
+(make-variable-buffer-local 'view-mode-auto-exit)
+
+(defvar view-old-buffer-read-only nil)
+(make-variable-buffer-local 'view-old-buffer-read-only)
+(defvar view-old-Helper-return-blurb)
+(make-variable-buffer-local 'view-old-Helper-return-blurb)
+
+(defvar view-scroll-size nil)
+(make-variable-buffer-local 'view-scroll-size)
+
+(defvar view-last-regexp nil)
+(make-variable-buffer-local 'view-last-regexp)
+
+(defvar view-exit-action nil)
+(make-variable-buffer-local 'view-exit-action)
+(defvar view-return-here nil)
+(make-variable-buffer-local 'view-return-here)
+(defvar view-exit-position nil)
+(make-variable-buffer-local 'view-exit-position)
 
 (or (assq 'view-mode minor-mode-alist)
     (setq minor-mode-alist
@@ -70,6 +92,10 @@
   (define-key view-mode-map "p" 'View-search-last-regexp-backward)
   )
 
+(or (assq 'view-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	  (cons (cons 'view-mode view-mode-map) minor-mode-map-alist)))
+
 
 ;;;###autoload
 (defun view-file (file-name)
@@ -88,9 +114,9 @@ This command runs the normal hook `view-mode-hook'."
     ;; This used to pass t as second argument,
     ;; but then the buffer did not show up in the Buffers menu.
     (switch-to-buffer buf-to-view had-a-buf)
-    (view-mode old-buf
-	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
-		    'kill-buffer))))
+    (view-mode-enter old-buf
+		     (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
+			  'kill-buffer))))
 
 ;;;###autoload
 (defun view-file-other-window (file-name)
@@ -108,9 +134,9 @@ This command runs the normal hook `view-mode-hook'."
 	(had-a-buf (get-file-buffer file-name))
 	(buf-to-view (find-file-noselect file-name)))
     (switch-to-buffer-other-window buf-to-view)
-    (view-mode old-arrangement
-	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
-		    'kill-buffer))))
+    (view-mode-enter old-arrangement
+		     (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
+			  'kill-buffer))))
 
 ;;;###autoload
 (defun view-buffer (buffer-name)
@@ -125,7 +151,7 @@ This command runs the normal hook `view-mode-hook'."
   (interactive "bView buffer: ")
   (let ((old-buf (current-buffer)))
     (switch-to-buffer buffer-name t)
-    (view-mode old-buf nil)))
+    (view-mode-enter old-buf nil)))
 
 ;;;###autoload
 (defun view-buffer-other-window (buffer-name not-return)
@@ -142,10 +168,23 @@ This command runs the normal hook `view-mode-hook'."
   (interactive "bView buffer:\nP")
   (let ((return-to (and not-return (current-window-configuration))))
     (switch-to-buffer-other-window buffer-name)
-    (view-mode return-to)))
+    (view-mode-enter return-to)))
 
 ;;;###autoload
-(defun view-mode (&optional prev-buffer action)
+(defun view-mode (&optional arg)
+  "Toggle View mode.
+If you use this function to turn on View mode,
+\"exiting\" View mode does nothing except turn View mode off.
+The other way to turn View mode on is by calling
+`view-mode-enter'."
+  (interactive "P")
+  (setq view-mode
+	(if (null arg)
+	    (not view-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
+
+(defun view-mode-enter (&optional prev-buffer action)
   "Minor mode for viewing text but not editing it.
 Letters do not insert themselves.  Instead these commands are provided.
 Most commands take prefix arguments.  Commands dealing with lines
@@ -180,20 +219,20 @@ C-p		moves upward lines vertically.
 C-l		recenters the screen.
 q		exit view-mode and return to previous buffer.
 
-Entry to this mode runs the normal hook `view-mode-hook'.
+This function runs the normal hook `view-mode-hook'.
 
 \\{view-mode-map}"
 ;  Not interactive because dangerous things happen
 ;  if you call it without passing a buffer as argument
 ;  and they are not easy to fix.
 ;  (interactive)
-  (make-local-variable 'view-old-buffer-read-only)
   (setq view-old-buffer-read-only buffer-read-only)
-  (make-local-variable 'view-old-local-map)
-  (setq view-old-local-map (current-local-map))
-  (make-local-variable 'view-old-Helper-return-blurb)
   (setq view-old-Helper-return-blurb
 	(and (boundp 'Helper-return-blurb) Helper-return-blurb))
+
+  ;; Enable view-exit to make use of the data we just saved
+  ;; and to perform the exit action.
+  (setq view-mode-auto-exit t)
 
   (setq buffer-read-only t)
   (setq view-mode t)
@@ -203,22 +242,13 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 		    (file-name-nondirectory (buffer-file-name))
 		    (buffer-name))))
 
-  (make-local-variable 'view-exit-action)
   (setq view-exit-action action)
-  (make-local-variable 'view-return-here)
   (setq view-return-here prev-buffer)
-  (make-local-variable 'view-exit-position)
   (setq view-exit-position (point-marker))
-
-  (make-local-variable 'view-scroll-size)
-  (setq view-scroll-size nil)
-  (make-local-variable 'view-last-regexp)
-  (setq view-last-regexp nil)
 
   (beginning-of-line)
   (setq goal-column nil)
 
-  (use-local-map view-mode-map)
   (run-hooks 'view-mode-hook)
   (message
      (substitute-command-keys
@@ -229,22 +259,25 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 If you viewed an existing buffer, that buffer returns to its previous mode.
 If you viewed a file that was not present in Emacs, its buffer is killed."
   (interactive)
-  (use-local-map view-old-local-map)
-  (setq buffer-read-only view-old-buffer-read-only)
+  (setq view-mode nil)
+  (force-mode-line-update)
+  (cond (view-mode-auto-exit
+	 (setq buffer-read-only view-old-buffer-read-only)
+	 (setq view-mode-auto-exit nil)
 
-  (goto-char view-exit-position)
-  (set-marker view-exit-position nil)
+	 (goto-char view-exit-position)
+	 (set-marker view-exit-position nil)
 
-  ;; Now do something to the buffer that we were viewing
-  ;; (such as kill it).
-  (let ((viewed-buffer (current-buffer))
-	(action view-exit-action))
-    (cond
-     ((bufferp view-return-here)
-      (switch-to-buffer view-return-here))
-     ((window-configuration-p view-return-here)
-      (set-window-configuration view-return-here)))
-    (if action (funcall action viewed-buffer))))
+	 ;; Now do something to the buffer that we were viewing
+	 ;; (such as kill it).
+	 (let ((viewed-buffer (current-buffer))
+	       (action view-exit-action))
+	   (cond
+	    ((bufferp view-return-here)
+	     (switch-to-buffer view-return-here))
+	    ((window-configuration-p view-return-here)
+	     (set-window-configuration view-return-here)))
+	   (if action (funcall action viewed-buffer))))))
 
 (defun view-window-size () (1- (window-height)))
 
@@ -286,7 +319,8 @@ Arg is number of lines to scroll."
 	  (view-scroll-size)))
   (if (and (pos-visible-in-window-p (point-max))
 	   ;; Allow scrolling backward at the end of the buffer.
-	   (> lines 0))
+	   (> lines 0)
+	   view-mode-auto-exit)
       (view-exit)
     ;; (view-last-command 'View-scroll-lines-forward lines)
     (if (>= lines (view-window-size))
