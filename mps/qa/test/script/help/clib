@@ -1,12 +1,11 @@
 compile test libraries
-% $HopeName$
+% $HopeName: MMQA_harness!script:help:clib(trunk.2) $
 
 Usage: qa clib [-i MMQA_MPS_INCLUDE_DIR] [-v MMQA_INTERFACE_VERSION]
 
 'clib' recompiles the test libraries (as listed in testlib:manifest)
-You must run clib before running tests with 'try' or 'run', and you
-are advised to run it when switching from one memory manager to
-another.
+You must run clib before running tests with 'run', and you are
+advised to run it when switching from one memory manager to another.
 
 Compiled libraries are placed in the obj:<platform>: directory.
 
