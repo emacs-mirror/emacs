@@ -97,8 +97,9 @@ arguments compiles from load-path."
 		    (setq summary (lm-synopsis))
 		    (setq keywords (lm-keywords)))
 		  (insert
-		   (format "    (\"%s\"\n        " f)
-		   (if summary (format "\"%s\"" summary) "nil")
+		   (format "    (\"%s\"\n        " f))
+		  (prin1 summary (current-buffer))
+		  (insert
 		   "\n        ")
 		  (setq keystart (point))
 		  (insert

@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# Enhanced sccs diff utility for use with vc mode.
+# This version is more compatible with rcsdiff(1).
+#
+#	$Id: vcdiff,v 1.2 1992/06/03 04:56:26 eric Exp $
+#
+
+DIFF="diff"
+usage="$0: Usage: vcdiff [-r<sid1>] [-r<sid2>] [diffopts] sccsfile..."
+
+sid1=-r sid2=
+
+for f
+do
+	case $f in
+	-*)
+		case $f in
+		-r?*)
+			case $sid1 in
+			-r)
+				sid1=$f
+				;;
+			*)
+				case $sid2 in
+				?*) echo "$usage" >&2; exit 2 ;;
+				esac
+				sid2=$f
+				;;
+			esac
+			;;
+		*)
+			options="$options $f"
+			;;
+		esac
+		shift
+		;;
+	*)
+		break
+		;;
+	esac
+done
+
+case $# in
+0)
+	echo "$usage" >&2
+	exit 2
+esac
+
+
+rev1= rev2= status=0
+trap 'status=2; exit' 1 2 13 15
+trap 'rm -f $rev1 $rev2 || status=2; exit $status' 0
+
+for f
+do
+	s=2
+
+	case $f in
+	s.* | */s.*)
+		if
+			rev1=/tmp/geta$$
+			get -s -p -k $sid1 "$f" > $rev1 &&
+			case $sid2 in
+			'')
+				workfile=`expr " /$f" : '.*/s.\(.*\)'`
+				;;
+			*)
+				rev2=/tmp/getb$$
+				get -s -p -k $sid2 "$f" > $rev2
+				workfile=$rev2
+			esac
+		then
+			echo $DIFF $options $sid1 $sid2 $workfile >&2
+			$DIFF $options $rev1 $workfile
+			s=$?
+		fi
+		;;
+	*)
+		echo "$0: $f is not an SCCS file" >&2
+	esac
+
+	if test $status -lt $s
+	then status=$s
+	fi
+done
