@@ -1,3 +1,8 @@
+2000-05-18  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el (dired-between-files): Also skip lines beginning with
+	`used'.
+
 2000-05-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* msb.el (msb-menu-cond): Add choice `user'.
