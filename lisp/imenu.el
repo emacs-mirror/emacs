@@ -113,7 +113,7 @@ if the mouse was used to invoke `imenu'.
 Another non-nil value means always display the index in a completion buffer."
   :type '(choice (const :tag "On Mouse" nil)
 		 (const :tag "Never" never)
-		 (sexp :tag "Always" :format "%t\n" t))
+		 (other :tag "Always" t))
   :group 'imenu)
 
 (defcustom imenu-sort-function nil
