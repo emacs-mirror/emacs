@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.2) $
+ * $HopeName: MMsrc!global.c(trunk.3) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.2) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.3) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -107,9 +107,9 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->suspended));
 
   depth = 0;
-  for (i=0; i < arena->shCacheLimit; ++i) {
+  for (i = 0; i < arena->shCacheLimit; ++i) {
     Seg seg = arena->shCache[i];
-    if (seg != (Seg)0) {
+    if (seg != NULL) {
       CHECKD(Seg, seg);
       depth += SegDepth(seg);
     }
@@ -202,7 +202,7 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->shDepth = (Size)0;
   arena->suspended = FALSE;
   for(i = 0; i < SHIELD_CACHE_SIZE; i++)
-    arena->shCache[i] = (Seg)0;
+    arena->shCache[i] = NULL;
   arena->pollThreshold = 0.0;
   arena->insidePoll = FALSE;
   arena->clamped = FALSE;
@@ -390,9 +390,7 @@ void ArenaDestroy(Arena arena)
 }
 
 
-/* ArenaEnter -- enter the state where you can look at MPM data 
- *               structures
- */
+/* ArenaEnter -- enter the state where you can look at MPM data structures */
 
 #if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaEnter)(Arena arena)
@@ -413,9 +411,7 @@ void ArenaEnter(Arena arena)
 #endif
 
 
-/* ArenaLeave -- leave the state where you can look at MPM data 
- *               structures
- */
+/* ArenaLeave -- leave the state where you can look at MPM data structures */
 
 #if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaLeave)(Arena arena)
@@ -589,6 +585,7 @@ void ArenaRelease(Arena arena)
 {
   AVERT(Arena, arena);
   arena->clamped = FALSE;
+  ArenaPoll(arena);
 }
 
 
