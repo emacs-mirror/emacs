@@ -290,6 +290,18 @@ char *tparam ();
 
 extern char *tgetstr ();
 
+
+#ifdef WINDOWSNT
+/* We aren't X windows, but we aren't termcap either.  This makes me
+   uncertain as to what value to use for frame.output_method.  For
+   this file, we'll define FRAME_TERMCAP_P to be zero so that our
+   output hooks get called instead of the termcap functions.  Probably
+   the best long-term solution is to define an output_windows_nt...  */
+
+#undef FRAME_TERMCAP_P
+#define FRAME_TERMCAP_P(_f_) 0
+#endif /* WINDOWSNT */
+
 ring_bell ()
 {
   if (! FRAME_TERMCAP_P (selected_frame))
@@ -1373,6 +1385,42 @@ term_init (terminal_type)
   char buffer[2044];
   register char *p;
   int status;
+
+#ifdef WINDOWSNT
+  initialize_win_nt_display ();
+
+  Wcm_clear ();
+  dont_calculate_costs = 0;
+
+  area = (char *) malloc (2044);
+
+  if (area == 0)
+    abort ();
+
+  FrameRows = FRAME_HEIGHT (selected_frame);
+  FrameCols = FRAME_WIDTH (selected_frame);
+  specified_window = FRAME_HEIGHT (selected_frame);
+
+  delete_in_insert_mode = 1;
+
+  UseTabs = 0;
+  scroll_region_ok = 0;
+
+  /* Seems to insert lines when it's not supposed to, messing
+     up the display.  In doing a trace, it didn't seem to be
+     called much, so I don't think we're losing anything by
+     turning it off.  */
+
+  line_ins_del_ok = 0;
+  char_ins_del_ok = 1;
+
+  baud_rate = 19200;
+
+  FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
+  FRAME_HAS_VERTICAL_SCROLL_BARS (selected_frame) = 0;
+
+  return;
+#endif /* WINDOWSNT */
 
   Wcm_clear ();
   dont_calculate_costs = 0;
