@@ -1458,7 +1458,7 @@ event, the value is actually the starting position, which is the only
 position such events have.
 @end defun
 
-  These four functions take a position as described above, and return
+  These five functions take a position as described above, and return
 various parts of it.
 
 @defun posn-window position
