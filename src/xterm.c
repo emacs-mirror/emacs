@@ -12988,8 +12988,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->screen = ScreenOfDisplay (dpyinfo->display,
 				     DefaultScreen (dpyinfo->display));
-  dpyinfo->visual = select_visual (dpyinfo->display, dpyinfo->screen,
-				   &dpyinfo->n_planes);
+  select_visual (dpyinfo);
   dpyinfo->cmap = DefaultColormapOfScreen (dpyinfo->screen);
   dpyinfo->height = HeightOfScreen (dpyinfo->screen);
   dpyinfo->width = WidthOfScreen (dpyinfo->screen);
@@ -13018,19 +13017,24 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->image_cache = make_image_cache ();
 
   /* See if a private colormap is requested.  */
-  if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen)
-      && dpyinfo->visual->class == PseudoColor)
+  if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
-      Lisp_Object value;
-      value = display_x_get_resource (dpyinfo,
-				      build_string ("privateColormap"),
-				      build_string ("PrivateColormap"),
-				      Qnil, Qnil);
-      if (STRINGP (value)
-	  && (!strcmp (XSTRING (value)->data, "true")
-	      || !strcmp (XSTRING (value)->data, "on")))
-	dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
+      if (dpyinfo->visual->class == PseudoColor)
+	{
+	  Lisp_Object value;
+	  value = display_x_get_resource (dpyinfo,
+					  build_string ("privateColormap"),
+					  build_string ("PrivateColormap"),
+					  Qnil, Qnil);
+	  if (STRINGP (value)
+	      && (!strcmp (XSTRING (value)->data, "true")
+		  || !strcmp (XSTRING (value)->data, "on")))
+	    dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
+	}
     }
+  else
+    dpyinfo->cmap = XCreateColormap (dpyinfo->display, dpyinfo->root_window,
+				     dpyinfo->visual, AllocNone);
       
   {
     int screen_number = XScreenNumberOfScreen (dpyinfo->screen);
