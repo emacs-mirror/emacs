@@ -6438,7 +6438,7 @@ char_encodable_p (c, attrs)
 /* Return a list of coding systems that safely encode the text between
    START and END.  If EXCLUDE is non-nil, it is a list of coding
    systems not to check.  The returned list doesn't contain any such
-   coding systems.  In any case, If the text contains only ASCII or is
+   coding systems.  In any case, if the text contains only ASCII or is
    unibyte, return t.  */
 
 DEFUN ("find-coding-systems-region-internal",
@@ -6457,7 +6457,7 @@ DEFUN ("find-coding-systems-region-internal",
   if (STRINGP (start))
     {
       if (!STRING_MULTIBYTE (start)
-	  && XSTRING (start)->size != STRING_BYTES (XSTRING (start)))
+	  || XSTRING (start)->size == STRING_BYTES (XSTRING (start)))
 	return Qt;
       start_byte = 0;
       end_byte = STRING_BYTES (XSTRING (start));
