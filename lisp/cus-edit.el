@@ -362,7 +362,7 @@ Return a list suitable for use in `interactive'."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read 
-		(if v
+		(if (symbolp v)
 		    (format "Customize variable: (default %s) " v)
 		  "Customize variable: ")
 		obarray (lambda (symbol)
@@ -370,7 +370,8 @@ Return a list suitable for use in `interactive'."
 			       (or (get symbol 'custom-type)
 				   (user-variable-p symbol))))))
      (list (if (equal val "")
-	       v (intern val)))))
+	       (if (symbolp v) v nil)
+	     (intern val)))))
 
 (defun custom-menu-filter (menu widget)
   "Convert MENU to the form used by `widget-choose'.
