@@ -1165,10 +1165,20 @@ function `unibyte-charset'.  */)
      (charset)
      Lisp_Object charset;
 {
-  int id;
+  struct charset *cs;
+  int i, c;
 
-  CHECK_CHARSET_GET_ID (charset, id);
-  charset_unibyte = id;
+  CHECK_CHARSET_GET_CHARSET (charset, cs);
+  if (! cs->ascii_compatible_p
+      || cs->dimension != 1)
+    error ("Inappropriate unibyte charset: %s", XSYMBOL (charset)->name->data);
+  charset_unibyte = cs->id;
+  for (i = 128; i < 256; i++)
+    {
+      c = DECODE_CHAR (cs, i);
+      unibyte_to_multibyte_table[i] = (c < 0 ? i : c);
+    }
+
   return Qnil;
 }
 
@@ -2017,28 +2027,15 @@ init_charset_once ()
       for (k = 0; k < ISO_MAX_FINAL; k++)
 	iso_charset_table[i][j][k] = -1;
 
-  for (i = 0; i < 255; i++)
+  for (i = 0; i < 256; i++)
     emacs_mule_charset[i] = NULL;
 
   charset_jisx0201_roman = -1;
   charset_jisx0208_1978 = -1;
   charset_jisx0208 = -1;
 
-#if 0
-  Vchar_charset_set = Fmake_char_table (Qnil, Qnil);
-  CHAR_TABLE_SET (Vchar_charset_set, make_number (97), Qnil);
-
-  DEFSYM (Qcharset_encode_table, "charset-encode-table");
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can create syntax
-     tables.  */
-  Fput (Qcharset_encode_table, Qchar_table_extra_slots, make_number (0));
-#endif
+  for (i = 0; i < 256; i++)
+    unibyte_to_multibyte_table[i] = i;
 }
 
 #ifdef emacs
@@ -2117,6 +2114,9 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
   charset_ascii
     = define_charset_internal (Qascii, 1, "\x00\x7F\x00\x00\x00\x00",
 			       0, 127, 'B', -1, 0, 1, 0, 0);
+  charset_iso_8859_1
+    = define_charset_internal (Qiso_8859_1, 1, "\x00\xFF\x00\x00\x00\x00",
+			       0, 255, -1, -1, -1, 1, 0, 0);
   charset_unicode
     = define_charset_internal (Qunicode, 3, "\x00\xFF\x00\xFF\x00\x10",
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
