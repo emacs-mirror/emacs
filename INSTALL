@@ -124,9 +124,10 @@ options.
 
 Note that `configure' doesn't do any compilation or installation
 itself.  It just creates the files that influence those things:
-`./Makefile', `build-install', and `./src/config.h'.  For details on
-exactly what it does, see the section called `CONFIGURATION BY HAND',
-below.
+`./Makefile', `lib-src/Makefile', `oldXMenu/Makefile',
+`lwlib/Makefile', `src/Makefile', and `./src/config.h'.  For details
+on exactly what it does, see the section called `CONFIGURATION BY
+HAND', below.
 
 When it is done, `configure' prints a description of what it did and
 leaves a copy in the file `config.status'.  That file is also a shell
@@ -269,7 +270,7 @@ Here is a complete list of the variables you may want to set.
 
 `datadir' indicates where to put the architecture-independent
 	read-only data files that Emacs refers to while it runs; it
-	defaults to /usr/local/lib.  We create the following
+	defaults to /usr/local/share.  We create the following
 	subdirectories under `datadir':
 	- `emacs/VERSION/lisp', containing the Emacs lisp library, and
 	- `emacs/VERSION/etc', containing the Emacs tutorial, the DOC
@@ -281,17 +282,17 @@ Here is a complete list of the variables you may want to set.
 	same time; this means that you don't have to make Emacs
 	unavailable while installing a new version.
 
-`statedir' indicates where to put architecture-independent data files
+`sharedstatedir' indicates where to put architecture-independent data files
 	that Emacs modifies while it runs; it defaults to
-	/usr/local/lib as well.  We create the following
-	subdirectories under `statedir':
+	/usr/local/com.  We create the following
+	subdirectories under `sharedstatedir':
 	- `emacs/lock', containing files indicating who is editing
 		what, so Emacs can detect editing clashes between
 		users.
 
-`libdir' indicates where to put architecture-specific data files that
-	Emacs refers to as it runs; it too defaults to `/usr/local/lib'.
-	We create the following subdirectories under `libdir':
+`libexecdir' indicates where to put architecture-specific data files that
+	Emacs refers to as it runs; it defaults to `/usr/local/libexec'.
+	We create the following subdirectories under `libexecdir':
 	- `emacs/VERSION/CONFIGURATION-NAME', containing executable
 		programs used by Emacs that users are not expected to run
 		themselves.  
@@ -323,7 +324,7 @@ Here is a complete list of the variables you may want to set.
 `prefix' doesn't give a path for any specific part of Emacs; instead,
 	its value is used to determine the defaults for all the
 	architecture-independent path variables - `datadir',
-	`statedir', `infodir', and `mandir'.  Its default value is
+	`sharedstatedir', `infodir', and `mandir'.  Its default value is
 	`/usr/local'; the other variables add on `lib' or `man' to it
 	by default.
 
@@ -337,7 +338,7 @@ Here is a complete list of the variables you may want to set.
 
 `exec_prefix' serves the same purpose as `prefix', but instead
 	determines the default values for the architecture-dependent
-	path variables - `bindir' and `libdir'.
+	path variables - `bindir' and `libexecdir'.
 
 The above variables serve analogous purposes in the makefiles for all
 GNU software; here are some variables specific to Emacs.
@@ -365,12 +366,12 @@ GNU software; here are some variables specific to Emacs.
 	(which see), is `/usr/local/lib/emacs/VERSION/etc'.
 
 `lockdir' indicates the directory where Emacs keeps track of its
-	locking information.  Its default value, based on `statedir'
+	locking information.  Its default value, based on `sharedstatedir'
 	(which see), is `/usr/local/lib/emacs/lock'.
 
 `archlibdir' indicates where Emacs installs and expects the
 	executable files and other architecture-dependent data it uses
-	while running.  Its default value, based on `libdir' (which
+	while running.  Its default value, based on `libexecdir' (which
 	see), is `/usr/local/lib/emacs/VERSION/CONFIGURATION-NAME'
 	(where VERSION and CONFIGURATION-NAME are as described above).
 
