@@ -913,6 +913,7 @@ or \\[ispell-region] to update the Ispell process."
 			  (funcall ispell-format-word poss))))
 	    ((null poss) (message "Error in ispell process"))
 	    (ispell-check-only		; called from ispell minor mode.
+	     (message "Misspelled word `%s'" word)
 	     (beep))
 	    (t				; prompt for correct word.
 	     (save-window-excursion
