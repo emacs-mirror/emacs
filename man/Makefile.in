@@ -194,8 +194,10 @@ faq.dvi: faq.texi
 autotype.dvi: autotype.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
 
+# This is produced with --no-split to avoid making files whose
+# names clash on DOS 8+3 filesystems
 ../info/idlwave: idlwave.texi
-	cd $(srcdir); $(MAKEINFO) idlwave.texi
+	cd $(srcdir); $(MAKEINFO) --no-split idlwave.texi
 idlwave.dvi: idlwave.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/idlwave.texi
 
