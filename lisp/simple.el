@@ -1096,9 +1096,8 @@ system cut and paste."
 	      ;; as C-g would as a command.
 	      (and quit-flag transient-mark-mode mark-active
 		   (progn
-		     (message "foo")
-		     (setq mark-active nil)
-		     (run-hooks 'deactivate-mark-hook))))
+		     (message "foo")	;XXX what is this here for?  --roland
+		     (deactivate-mark))))
 	  (let* ((killed-text (current-kill 0))
 		 (message-len (min (length killed-text) 40)))
 	    (if (= (point) beg)
@@ -1259,6 +1258,14 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
+;; Many places set mark-active directly, and several of them failed to also
+;; run deactivate-mark-hook.  This shorthand should simplify.
+(defsubst deactivate-mark ()
+  "Deactivate the mark by setting `mark-active' to nil.
+Also runs the hook `deactivate-mark-hook'."
+  (setq mark-active nil)
+  (run-hooks 'deactivate-mark-hook))
+
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
 That is to say, don't use this function unless you want
@@ -1334,8 +1341,7 @@ Does not set point.  Does nothing if mark ring is empty."
       (progn
 	(setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
 	(set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-	(if transient-mark-mode
-	    (setq mark-active nil))
+	(deactivate-mark)
 	(move-marker (car mark-ring) nil)
 	(if (null (mark t)) (ding))
 	(setq mark-ring (cdr mark-ring)))))
@@ -2149,10 +2155,7 @@ in the mode line."
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
-  (and transient-mark-mode mark-active
-       (progn
-	 (setq mark-active nil)
-	 (run-hooks 'deactivate-mark-hook)))
+  (deactivate-mark)
   (signal 'quit nil))
 
 (define-key global-map "\C-g" 'keyboard-quit)
