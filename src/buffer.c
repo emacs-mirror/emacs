@@ -124,6 +124,8 @@ Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
 Lisp_Object Qkill_buffer_hook;
 
+Lisp_Object Qoverlayp;
+
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
@@ -1196,7 +1198,8 @@ a non-nil `permanent-local' property are not eliminated by this function.")
 /* Find all the overlays in the current buffer that contain position POS.
    Return the number found, and store them in a vector in *VEC_PTR.  
    Store in *LEN_PTR the size allocated for the vector.
-   Store in *NEXT_PTR the next position after POS where an overlay starts.
+   Store in *NEXT_PTR the next position after POS where an overlay starts,
+     or ZV if there are no more overlays.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
    when this function is called.  */
@@ -1213,15 +1216,15 @@ overlays_at (pos, vec_ptr, len_ptr, next_ptr)
   int len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   int next = ZV;
-  int startpos;
-
   for (tail = current_buffer->overlays_before;
        CONSP (tail);
        tail = XCONS (tail)->cdr)
     {
+      int startpos;
+
       overlay = XCONS (tail)->car;
       if (! OVERLAY_VALID (overlay))
-	continue;
+	abort ();
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -1246,20 +1249,22 @@ overlays_at (pos, vec_ptr, len_ptr, next_ptr)
        CONSP (tail);
        tail = XCONS (tail)->cdr)
     {
+      int startpos;
+
       overlay = XCONS (tail)->car;
       if (! OVERLAY_VALID (overlay))
-	continue;
+	abort ();
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
       startpos = OVERLAY_POSITION (start);
-      if (startpos > pos)
+      if (pos < startpos)
 	{
 	  if (startpos < next)
 	    next = startpos;
 	  break;
 	}
-      if (OVERLAY_POSITION (end) > pos)
+      if (pos < OVERLAY_POSITION (end))
 	{
 	  if (idx == len)
 	    {
@@ -1299,6 +1304,9 @@ recenter_overlay_lists (buf, pos)
 
       /* If the overlay is not valid, get rid of it.  */
       if (!OVERLAY_VALID (overlay))
+#if 1
+	abort ();
+#else
 	{
 	  /* Splice the cons cell TAIL out of overlays_before.  */
 	  if (!NILP (prev))
@@ -1308,6 +1316,7 @@ recenter_overlay_lists (buf, pos)
 	  tail = prev;
 	  continue;
 	}
+#endif
 
       beg = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -1335,7 +1344,7 @@ recenter_overlay_lists (buf, pos)
 
 	      otheroverlay = XCONS (other)->car;
 	      if (! OVERLAY_VALID (otheroverlay))
-		continue;
+		abort ();
 
 	      otherbeg = OVERLAY_START (otheroverlay);
 	      if (OVERLAY_POSITION (otherbeg) >= where)
@@ -1368,6 +1377,9 @@ recenter_overlay_lists (buf, pos)
 
       /* If the overlay is not valid, get rid of it.  */
       if (!OVERLAY_VALID (overlay))
+#if 1
+	abort ();
+#else
 	{
 	  /* Splice the cons cell TAIL out of overlays_after.  */
 	  if (!NILP (prev))
@@ -1377,6 +1389,7 @@ recenter_overlay_lists (buf, pos)
 	  tail = prev;
 	  continue;
 	}
+#endif
 
       beg = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -1409,7 +1422,7 @@ recenter_overlay_lists (buf, pos)
 
 	      otheroverlay = XCONS (other)->car;
 	      if (! OVERLAY_VALID (otheroverlay))
-		continue;
+		abort ();
 
 	      otherend = OVERLAY_END (otheroverlay);
 	      if (OVERLAY_POSITION (otherend) <= where)
@@ -1429,6 +1442,14 @@ recenter_overlay_lists (buf, pos)
   XFASTINT (buf->overlay_center) = pos;
 }
 
+DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
+  "Return t if OBJECT is an overlay.")
+  (object)
+     Lisp_Object object;
+{
+  return (OVERLAYP (object) ? Qt : Qnil);
+}
+
 DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 3, 0,
   "Create a new overlay with range BEG to END in BUFFER.\n\
 If omitted, BUFFER defaults to the current buffer.\n\
@@ -1465,6 +1486,7 @@ BEG and END may be integers or markers.")
     end = Fset_marker (Fmake_marker (), end, buffer);
 
   overlay = Fcons (Fcons (beg, end), Qnil);
+  XSETTYPE (overlay, Lisp_Overlay);
 
   /* Put the new overlay on the wrong list.  */ 
   end = OVERLAY_END (overlay);
@@ -1490,13 +1512,10 @@ If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.")
 {
   struct buffer *b;
 
-  if (!OVERLAY_VALID (overlay))
-    error ("Invalid overlay object");
-
+  CHECK_OVERLAY (overlay, 0);
   if (NILP (buffer))
     buffer = Fmarker_buffer (OVERLAY_START (overlay));
   CHECK_BUFFER (buffer, 3);
-
   CHECK_NUMBER_COERCE_MARKER (beg, 1);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
 
@@ -1555,14 +1574,15 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 {
   struct buffer *b;
 
-  if (OVERLAY_VALID (overlay))
-    b = XBUFFER (Fmarker_buffer (OVERLAY_START (overlay)));
-  else
-    /* Guess! */
-    b = current_buffer;
+  CHECK_OVERLAY (overlay, 0);
+
+  b = XBUFFER (Fmarker_buffer (OVERLAY_START (overlay)));
 
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
+
+  Fset_marker (OVERLAY_START (overlay), 1, Qnil);
+  Fset_marker (OVERLAY_END   (overlay), 1, Qnil);
 
   redisplay_region (b,
 		    OVERLAY_POSITION (OVERLAY_START (overlay)),
@@ -1677,13 +1697,18 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
      Lisp_Object overlay, prop;
 {
   Lisp_Object plist;
-  for (plist = Fcdr_safe (Fcdr_safe (overlay));
+
+  CHECK_OVERLAY (overlay, 0);
+
+  for (plist = Fcdr_safe (XCONS (overlay)->cdr);
        CONSP (plist) && CONSP (XCONS (plist)->cdr);
        plist = XCONS (XCONS (plist)->cdr)->cdr)
     {
       if (EQ (XCONS (plist)->car, prop))
 	return XCONS (XCONS (plist)->cdr)->car;
     }
+
+  return Qnil;
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
@@ -1693,14 +1718,13 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 {
   Lisp_Object plist, tail;
 
-  if (!OVERLAY_VALID (overlay))
-    error ("Invalid overlay object");
+  CHECK_OVERLAY (overlay, 0);
 
   redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
 		    OVERLAY_POSITION (OVERLAY_START (overlay)),
 		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
   
-  plist = Fcdr_safe (Fcdr_safe (overlay));
+  plist = Fcdr_safe (XCONS (overlay)->cdr);
 
   for (tail = plist;
        CONSP (tail) && CONSP (XCONS (tail)->cdr);
@@ -1892,6 +1916,9 @@ syms_of_buffer ()
   staticpro (&Qprotected_field);
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
+  staticpro (&Qoverlayp);
+
+  Qoverlayp = intern ("overlayp");
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
@@ -2215,6 +2242,7 @@ Automatically local in all buffers.");
   defsubr (&Slist_buffers);
   defsubr (&Skill_all_local_variables);
 
+  defsubr (&Soverlayp);
   defsubr (&Smake_overlay);
   defsubr (&Sdelete_overlay);
   defsubr (&Smove_overlay);
