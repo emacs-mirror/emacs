@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.14) $
+# $HopeName: MMsrc!commpost.nmk(trunk.15) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -13,16 +13,16 @@
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target to the all dependencies
 
-all: mpmss.exe amcss.exe amsss.exe lockutw3.exe lockcov.exe \
-     mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib \
-     mpmconft.exe finalcv.exe awlut.exe arenacv.exe
+all: mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
+     lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe mpmconft.exe \
+     finalcv.exe arenacv.exe bttest.exe mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-dwstress.exe amcss.exe amsss.exe lockutw3.exe lockcov.exe \
-     mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     mpmconft.exe finalcv.exe awlut.exe arenacv.exe \
+mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
+     lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe mpmconft.exe \
+     finalcv.exe arenacv.exe bttest.exe protcv.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -84,7 +84,7 @@ $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 	$(MPMOBJ) $(PLINTHOBJ) 
