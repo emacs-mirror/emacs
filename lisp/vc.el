@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.320 2001/11/15 10:31:17 spiegel Exp $
+;; $Id: vc.el,v 1.321 2001/11/23 10:11:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1908,14 +1908,18 @@ If `F.~REV~' already exists, use it instead of checking it out again."
   (let* ((file buffer-file-name)
 	 (version (if (string-equal rev "")
 		      (vc-workfile-version file)
-		    rev))
-	 (automatic-backup (vc-version-backup-file-name file version))
-         (manual-backup (vc-version-backup-file-name file version 'manual)))
+		    rev)))
+    (switch-to-buffer-other-window (vc-find-version file version))))
+
+(defun vc-find-version (file version)
+  "Read VERSION of FILE into a buffer and return the buffer."
+  (let ((automatic-backup (vc-version-backup-file-name file version))
+        (manual-backup (vc-version-backup-file-name file version 'manual)))
     (unless (file-exists-p manual-backup)
       (if (file-exists-p automatic-backup)
           (rename-file automatic-backup manual-backup nil)
         (vc-call checkout file nil version manual-backup)))
-    (find-file-other-window manual-backup)))
+    (find-file-noselect manual-backup)))
 
 ;; Header-insertion code
 
