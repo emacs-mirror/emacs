@@ -1,3 +1,8 @@
+2003-09-16  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Call setup_coding_system in
+	the case of auto saving.
+
 2003-07-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_sjis): Check bytes more rigidly.
