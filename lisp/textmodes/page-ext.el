@@ -547,7 +547,7 @@ directory for only the accessible portion of the buffer."
   
   (let ((target-buffer (current-buffer))
         (pages-directory-buffer
-         (concat pages-directory-prefix " " (buffer-name) " "))
+	 (concat pages-directory-prefix " " (buffer-name)))
         (linenum 1)
         (pages-buffer-original-position (point))
         (pages-buffer-original-page 0))
@@ -658,7 +658,7 @@ Used by `pages-directory' function."
             (insert (format "%3d: " line-count))))
       
       (terpri))
-    (forward-line 1)))
+    (end-of-line 1)))
 
 (defun pages-directory-mode ()
   "Mode for handling the pages-directory buffer.
