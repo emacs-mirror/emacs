@@ -1871,7 +1871,7 @@ setup_pty (fd)
      Since the latter lossage is more benign, we may as well
      lose that way.  -- cph */
 #ifdef FIONBIO
-#ifdef SYSV_PTYS
+#if defined(SYSV_PTYS) || defined(UNIX98_PTYS)
   {
     int on = 1;
     ioctl (fd, FIONBIO, &on);
