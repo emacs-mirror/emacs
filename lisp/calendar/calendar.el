@@ -8,7 +8,7 @@
 ;;	Hebrew calendar, Islamic calendar, ISO calendar, Julian day number,
 ;;	diary, holidays
 
-(defconst calendar-version "Version 5.1, released June 18, 1993")
+(defconst calendar-version "Version 5.2, released October 20, 1993")
 
 ;; This file is part of GNU Emacs.
 
@@ -99,6 +99,11 @@
 ;; the message BODY containing your mailing address (snail).
 
 ;;; Code:
+
+;;;###autoload
+(defvar calendar-week-start-day 0
+  "*The day of the week on which a week in the calendar begins.
+0 means Sunday (default), 1 means Monday, and so on.")
 
 ;;;###autoload
 (defvar view-diary-entries-initially nil
@@ -1320,25 +1325,34 @@ The calendar is inserted in the buffer starting at the line on which point
 is currently located, but indented INDENT spaces.  The indentation is done
 from the first character on the line and does not disturb the first INDENT
 characters on the line."
-  (let* ((first-day-of-month (calendar-day-of-week (list month 1 year)))
-         (first-saturday (- 7 first-day-of-month))
-         (last (calendar-last-day-of-month month year))
-         (heading (format "%s %d" (calendar-month-name month) year)))
-    (goto-char (point-min))
-    (calendar-insert-indented
-     heading (+ indent (/ (- 20 (length heading)) 2)) t)
-    (calendar-insert-indented " S  M Tu  W Th  F  S" indent t)
-    (calendar-insert-indented "" indent);; Move to appropriate spot on line
-    ;; Add blank days before the first of the month
-    (calendar-for-loop i from 1 to first-day-of-month do
-        (insert "   "))
-    ;; Put in the days of the month
-    (calendar-for-loop i from 1 to last do
-         (insert (format "%2d " i))
-         (and (= (% i 7) (% first-saturday 7))
-              (/= i last)
-              (calendar-insert-indented "" 0 t)    ;; Force onto following line
-              (calendar-insert-indented "" indent)))));; Go to proper spot
+  (let* ((blank-days;; at start of month
+          (calendar-mod
+           (- (calendar-day-of-week (list month 1 year))
+              calendar-week-start-day)
+           7))
+	 (last (calendar-last-day-of-month month year)))
+   (goto-char (point-min))
+   (calendar-insert-indented
+    (calendar-string-spread
+     (list "" (format "%s %d" (calendar-month-name month) year) "") ?  20)
+    indent t)
+   (calendar-insert-indented "" indent);; Go to proper spot
+   (calendar-for-loop i from 0 to 6 do
+      (insert (substring (aref calendar-day-name-array 
+                               (calendar-mod (+ calendar-week-start-day i) 7))
+                         0 2))
+      (insert " "))
+   (calendar-insert-indented "" 0 t);; Force onto following line
+   (calendar-insert-indented "" indent);; Go to proper spot
+   ;; Add blank days before the first of the month
+   (calendar-for-loop i from 1 to blank-days do (insert "   "))
+   ;; Put in the days of the month
+   (calendar-for-loop i from 1 to last do
+      (insert (format "%2d " i))
+      (and (zerop (calendar-mod (+ i blank-days) 7))
+           (/= i last)
+           (calendar-insert-indented "" 0 t)    ;; Force onto following line
+           (calendar-insert-indented "" indent)))));; Go to proper spot
 
 (defun calendar-insert-indented (string indent &optional newline)
   "Insert STRING at column INDENT.
@@ -1973,20 +1987,26 @@ Moves forward if ARG is negative."
   (calendar-forward-day (* arg -7)))
 
 (defun calendar-beginning-of-week (arg)
-  "Move the cursor back ARG Sundays."
+  "Move the cursor back ARG calendar-week-start-day's."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let ((day (calendar-day-of-week (calendar-cursor-to-date))))
     (calendar-backward-day
-     (if (= day 0) (* 7 arg) (+ day (* 7 (1- arg)))))))
+     (if (= day calendar-week-start-day)
+         (* 7 arg)
+       (+ (calendar-mod (- day calendar-week-start-day) 7)
+          (* 7 (1- arg)))))))
 
 (defun calendar-end-of-week (arg)
-  "Move the cursor forward ARG Saturdays."
+  "Move the cursor forward ARG calendar-week-start-day+6's."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let ((day (calendar-day-of-week (calendar-cursor-to-date))))
     (calendar-forward-day
-     (if (= day 6) (* 7 arg) (+ (- 6 day) (* 7 (1- arg)))))))
+     (if (= day (calendar-mod (1- calendar-week-start-day) 7))
+         (* 7 arg)
+       (+ (- 6 (calendar-mod (- day calendar-week-start-day) 7))
+          (* 7 (1- arg)))))))
 
 (defun calendar-beginning-of-month (arg)
   "Move the cursor backward ARG month beginnings."
@@ -2108,20 +2128,34 @@ Gregorian date Sunday, December 31, 1 BC."
           (setq month (1+ month)))
         (list month day year)))))
 
+(defun calendar-mod (x y)
+  "Returns X % Y; value is *always* non-negative."
+  (let ((v (mod x y)))
+    (if (> 0 v)
+	(+ v y)
+      v)))
+
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
-    (let ((month (extract-calendar-month date))
-          (day (extract-calendar-day date))
-          (year (extract-calendar-year date)))
-      (goto-line (+ 3
-                    (/ (+ day -1
-                          (calendar-day-of-week (list month 1 year)))
-                       7)))
-      (move-to-column (+ 6
-                         (* 25
-                            (1+ (calendar-interval
-                                 displayed-month displayed-year month year)))
-                         (* 3 (calendar-day-of-week date))))))
+  (let* ((month (extract-calendar-month date))
+	 (day (extract-calendar-day date))
+	 (year (extract-calendar-year date))
+	 (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
+    (goto-line (+ 3
+		  (/ (+ day  -1
+                        (calendar-mod
+                         (- (calendar-day-of-week (list month 1 year))
+                            calendar-week-start-day)
+                         7))
+                     7)))
+    (move-to-column (+ 6
+		       (* 25
+			  (1+ (calendar-interval
+			       displayed-month displayed-year month year)))
+		       (* 3 (calendar-mod
+                             (- (calendar-day-of-week date)
+                                calendar-week-start-day)
+                             7))))))
 
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
@@ -2396,10 +2430,10 @@ is a string to insert in the minibuffer before reading."
   "Returns a string with the name of the day of the week of DATE."
   (aref calendar-day-name-array (calendar-day-of-week date)))
 
-(defconst calendar-day-name-array
+(defvar calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
 
-(defconst calendar-month-name-array
+(defvar calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
    "July"    "August"   "September" "October" "November" "December"])
 
@@ -2761,7 +2795,7 @@ Gregorian date Sunday, December 31, 1 BC."
                (1- (calendar-absolute-from-islamic (list month 1 year))))))
       (list month day year))))
 
-(defconst calendar-islamic-month-name-array
+(defvar calendar-islamic-month-name-array
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
    "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"])
 
@@ -2891,11 +2925,11 @@ Gregorian date Sunday, December 31, 1 BC."
     (hebrew-calendar-elapsed-days year);; Days in prior years.
     -1373429)))                        ;; Days elapsed before absolute date 1.
 
-(defconst calendar-hebrew-month-name-array-common-year
+(defvar calendar-hebrew-month-name-array-common-year
   ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar"])
 
-(defconst calendar-hebrew-month-name-array-leap-year
+(defvar calendar-hebrew-month-name-array-leap-year
   ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar I" "Adar II"])
 
