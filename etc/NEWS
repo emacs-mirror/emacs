@@ -10,6 +10,9 @@ For older news, see the file ONEWS.
 
 ** `movemail' defaults to supporting POP.  You can turn this off using
 the --without-pop configure option, should that be necessary.
+
+** There are new configure options associated with the support for
+images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
@@ -936,6 +939,16 @@ specific to Message mode.
 *** diff-mode.el provides `diff-mode', a major mode for
 viewing/editing context diffs (patches).  It is selected for files
 with extension `.diff', `.diffs', `.patch' and `.rej'.
+
+*** EUDC, the Emacs Unified Directory Client, provides a common user
+interface to access directory servers using different directory
+protocols.  It has a separate manual.
+
+*** glasses.el
+
+*** windmove.el
+
+*** calculator.el
 
 ** Withdrawn packages
 
