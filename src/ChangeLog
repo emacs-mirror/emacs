@@ -1,5 +1,8 @@
 2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* lisp.h (adjust_after_replace_noundo)
+	(Fupdate_coding_systems_internal): Add prototypes.
+
 	* sound.c (Fplay_sound): Initialize header_size also for :data
         case.
 
