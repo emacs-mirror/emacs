@@ -1,3 +1,8 @@
+2001-10-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (Fset_buffer_major_mode): Use initial-major-mode for
+	*scratch*.
+
 2001-10-16  Ken Raeburn  <raeburn@gnu.org>
 
 	Avoid the assumption that car and cdr slots of cons cells are
