@@ -3595,8 +3595,9 @@ get_overlay_strings (it)
       /* Set up IT to deliver display elements from the first overlay
 	 string.  */
       IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
-      it->stop_charpos = 0;
       it->string = it->overlay_strings[0];
+      it->stop_charpos = 0;
+      it->end_charpos = XSTRING (it->string)->size;
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       xassert (STRINGP (it->string));
       it->method = next_element_from_string;
@@ -4375,6 +4376,8 @@ set_iterator_to_next (it, reseat_p)
 	      pop_it (it);
 	      if (!STRINGP (it->string))
 		it->method = next_element_from_buffer;
+	      else
+		goto consider_string_end;
 	    }
 	}
     }
