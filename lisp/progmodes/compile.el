@@ -289,7 +289,7 @@ means the default).  The defaults for these variables are the global values of
       (or (eq outwin (selected-window))
 	  (set-window-point outwin (point-min)))
       (and compilation-window-height
-	   (= (window-width outwin) (screen-width))
+	   (= (window-width outwin) (frame-width))
 	   (let ((w (selected-window)))
 	     (unwind-protect
 		 (progn

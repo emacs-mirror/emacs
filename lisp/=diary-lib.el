@@ -261,7 +261,7 @@ changing the variable `diary-include-string'."
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
                  (string-equal (car (cdr (car diary-entries-list))) "")))
-        (if (<= (length msg) (screen-width))
+        (if (<= (length msg) (frame-width))
             (message msg)
           (set-buffer (get-buffer-create holiday-buffer))
           (setq buffer-read-only nil)
@@ -295,7 +295,7 @@ This function is provided for optional use as the `list-diary-entries-hook'."
              (msg (format "No diary entries for %s %s"
                           (concat date-string (if holiday-list ":" ""))
                           (mapconcat 'identity holiday-list "; "))))
-        (if (<= (length msg) (screen-width))
+        (if (<= (length msg) (frame-width))
             (message msg)
           (set-buffer (get-buffer-create holiday-buffer))
           (setq buffer-read-only nil)

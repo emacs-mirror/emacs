@@ -416,7 +416,7 @@ With a prefix argument, resume handling of the previous Ispell command."
     ret))
 
 (defun ispell-show-choices (word message first-line)
-  ;;if there is only one window on the screen, make the ispell
+  ;;if there is only one window on the frame, make the ispell
   ;;messages winow be small.  otherwise just use the other window
   (let* ((selwin (selected-window))
 	 (resize (eq selwin (next-window)))

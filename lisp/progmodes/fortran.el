@@ -485,8 +485,8 @@ See also fortran-window-create-momentarily."
   (condition-case error
       (progn
 	(let ((window-min-width 2))
-	  (if (< (window-width) (screen-width))
-	      (enlarge-window-horizontally (- (screen-width)
+	  (if (< (window-width) (frame-width))
+	      (enlarge-window-horizontally (- (frame-width)
 					      (window-width) 1)))
 	  (split-window-horizontally 73)
 	  (other-window 1)

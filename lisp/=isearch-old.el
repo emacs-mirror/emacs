@@ -166,7 +166,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	;; non-nil means an explicit uppercase letter seen in the input
 	(uppercase-flag nil)
 	;; Non-nil means start using a small window
-	;; if the search moves outside what is currently on the screen.
+	;; if the search moves outside what is currently on the frame.
 	(slow-terminal-mode (and (<= baud-rate search-slow-speed)
 				 (> (window-height)
 				    (* 4 search-slow-window-lines))))
@@ -183,8 +183,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	;; for moving the cursor back on quitting.
 	(opoint (point))
 	(inhibit-quit t)  ;Prevent ^G from quitting, so we can read it.
-	;; The screen we're working on; if this changes, we exit isearch.
-	(screen (if (fboundp 'selected-screen) (selected-screen))))
+	;; The frame we're working on; if this changes, we exit isearch.
+	(frame (if (fboundp 'selected-frame) (selected-frame))))
 	   
     (isearch-push-state)
     (save-window-excursion
@@ -225,8 +225,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 		  (setq unread-command-char char)
 		  (throw 'search-done t))
 
-		 ;; If the user switches to a different screen, exit.
-		 ((not (eq screen last-event-screen))
+		 ;; If the user switches to a different frame, exit.
+		 ((not (eq frame last-event-frame))
 		  (setq unread-command-char char)
 		  (throw 'search-done t))
 

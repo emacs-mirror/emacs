@@ -343,7 +343,7 @@ buffer. The hook comint-exec-hook is run after each exec."
   (let ((process-environment
 	 (comint-update-env process-environment
 			    (list (format "TERMCAP=emacs:co#%d:tc=unknown"
-					  (screen-width))
+					  (frame-width))
 				  "TERM=emacs"
 				  "EMACS=t"))))
     (apply 'start-process name buffer command switches)))

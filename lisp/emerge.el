@@ -400,7 +400,7 @@
 ; number of lines or characters by which the windows are scrolled.
 ; Otherwise, the amount of motion is computed based on the dimensions of
 ; the merge buffer window -- the height of the merge buffer window
-; (minus next-screen-context-lines), or half the width of the merge
+; (minus next-frame-context-lines), or half the width of the merge
 ; buffer window.  (The A and B version windows are assumed to be as high
 ; as the merge window, but half as wide.)  If the argument is just `C-u
 ; -', then the scrolling is half the default amount.
@@ -2898,7 +2898,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
       (if (not (pos-visible-in-window-p))
 	  (let ((echo-keystrokes 0))
 	    (while (and (not (pos-visible-in-window-p))
-			(> (1- (screen-height)) (window-height)))
+			(> (1- (frame-height)) (window-height)))
 	      (enlarge-window 1))
 	    (let ((c (read-char)))
 	      (if (/= c 32)

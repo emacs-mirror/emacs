@@ -1694,14 +1694,14 @@ Windows are handled a little differently under epoch.")
 
 
 (defun edebug-current-window-configuration ()
-  "Return the current window or screen configuration."
+  "Return the current window or frame configuration."
   (if edebug-epoch-running
       (edebug-current-screen-configuration)
     (current-window-configuration)))
 
 
 (defun edebug-set-window-configuration (conf)
-  "Set the window or screen configuration to CONF."
+  "Set the window or frame configuration to CONF."
   (if edebug-epoch-running
       (edebug-set-screen-configuration conf)
     (set-window-configuration conf)))
@@ -1714,7 +1714,7 @@ Windows are handled a little differently under epoch.")
 
 
 (defun edebug-pop-to-buffer (buffer)
-  "Like pop-to-buffer, but select a screen that buffer was shown in."
+  "Like pop-to-buffer, but select a frame that buffer was shown in."
   (let ((edebug-window (edebug-get-buffer-window buffer)))
     (if edebug-window
 	(select-window edebug-window)

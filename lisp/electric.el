@@ -144,7 +144,7 @@
 ;; 	Switch to buffer in the current window.
 ;;
 ;; Then if max-height is nil, and not all of the lines in the buffer
-;; are displayed, grab the whole screen.
+;; are displayed, grab the whole frame.
 ;;
 ;; Returns selected window on buffer positioned at point-min.
 

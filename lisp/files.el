@@ -224,10 +224,10 @@ This is an interface to the function `load'."
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t)))
 
-(defun switch-to-buffer-other-screen (buffer)
-  "Switch to buffer BUFFER in another screen."
-  (interactive "BSwitch to buffer in other screen: ")
-  (let ((pop-up-screens t))
+(defun switch-to-buffer-other-frame (buffer)
+  "Switch to buffer BUFFER in another frame."
+  (interactive "BSwitch to buffer in other frame: ")
+  (let ((pop-up-frames t))
     (pop-to-buffer buffer)))
 
 (defun find-file (filename)
@@ -244,12 +244,12 @@ See the function `display-buffer'."
   (interactive "FFind file in other window: ")
   (switch-to-buffer-other-window (find-file-noselect filename)))
 
-(defun find-file-other-screen (filename)
-  "Edit file FILENAME, in another screen.
-May create a new screen, or reuse an existing one.
+(defun find-file-other-frame (filename)
+  "Edit file FILENAME, in another frame.
+May create a new frame, or reuse an existing one.
 See the function `display-buffer'."
-  (interactive "FFind file in other screen: ")
-  (switch-to-buffer-other-screen (find-file-noselect filename)))
+  (interactive "FFind file in other frame: ")
+  (switch-to-buffer-other-frame (find-file-noselect filename)))
 
 (defun find-file-read-only (filename)
   "Edit file FILENAME but don't allow changes.
@@ -267,12 +267,12 @@ Use \\[toggle-read-only] to permit editing."
   (find-file filename)
   (setq buffer-read-only t))
 
-(defun find-file-read-only-other-screen (filename)
-  "Edit file FILENAME in another screen but don't allow changes.
-Like \\[find-file-other-screen] but marks buffer as read-only.
+(defun find-file-read-only-other-frame (filename)
+  "Edit file FILENAME in another frame but don't allow changes.
+Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other screen: ")
-  (find-file-other-screen filename)
+  (interactive "fFind file read-only other frame: ")
+  (find-file-other-frame filename)
   (setq buffer-read-only t))
 
 (defun find-alternate-file (filename)
@@ -1394,9 +1394,9 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-4-map "b" 'switch-to-buffer-other-window)
 (define-key ctl-x-4-map "o" 'display-buffer)
 
-(define-key ctl-x-5-map "b" 'switch-to-buffer-other-screen)
-(define-key ctl-x-5-map "f" 'find-file-other-screen)
-(define-key ctl-x-5-map "\C-f" 'find-file-other-screen)
-(define-key ctl-x-5-map "r" 'find-file-read-only-other-screen)
+(define-key ctl-x-5-map "b" 'switch-to-buffer-other-frame)
+(define-key ctl-x-5-map "f" 'find-file-other-frame)
+(define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
+(define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 
 ;;; files.el ends here

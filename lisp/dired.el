@@ -1389,12 +1389,12 @@ Optional argument means return a file name relative to `default-directory'."
       (cond ;; if split-window-threshold is enabled, use the largest window
             ((and (> (window-height (setq w2 (get-largest-window)))
 		     split-height-threshold)
-		  (= (screen-width) (window-width w2)))
+		  (= (frame-width) (window-width w2)))
 	     (setq window w2))
 	    ;; if the least-recently-used window is big enough, use it
 	    ((and (> (window-height (setq w2 (get-lru-window)))
 		     (* 2 window-min-height))
-		  (= (screen-width) (window-width w2)))
+		  (= (frame-width) (window-width w2)))
 	     (setq window w2)))
       (save-excursion
 	(set-buffer buf)
@@ -1402,7 +1402,7 @@ Optional argument means return a file name relative to `default-directory'."
 	(skip-chars-backward "\n\r\t ")
 	(setq target-lines (count-lines (point-min) (point))))
       (if (<= (window-height window) (* 2 window-min-height))
-	  ;; At this point, every window on the screen is too small to split.
+	  ;; At this point, every window on the frame is too small to split.
 	  (setq w2 (display-buffer buf))
 	(setq w2 (split-window window
 		  (max window-min-height
