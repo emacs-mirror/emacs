@@ -169,11 +169,11 @@ The command run (after changing into DIR) is
 
 (defalias 'lookfor-dired 'find-grep-dired)
 ;;;###autoload
-(defun find-grep-dired (dir args)
-  "Find files in DIR containing a regexp ARG and start Dired on output.
+(defun find-grep-dired (dir regexp)
+  "Find files in DIR containing a regexp REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
-    find . -exec grep -s ARG {} \\\; -ls
+    find . -exec grep -s -e REGEXP {} \\\; -ls
 
 Thus ARG can also contain additional grep options."
   (interactive "DFind-grep (directory): \nsFind-grep (grep regexp): ")
@@ -184,7 +184,7 @@ Thus ARG can also contain additional grep options."
   ;; about symlinks, so as far as I know this is not wrong.
   (find-dired dir
 	      (concat "-type f -exec grep " find-grep-options " -e "
-		      (shell-quote-argument args)
+		      (shell-quote-argument regexp)
 		      args " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
