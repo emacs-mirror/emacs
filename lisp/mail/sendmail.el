@@ -58,7 +58,8 @@ Delete these headers from old message when it's inserted in a reply.")
 ;;;###autoload
 (defvar send-mail-function 'sendmail-send-it "\
 Function to call to send the current buffer as mail.
-The headers are be delimited by a line which is `mail-header-separator'.")
+The headers should be delimited by a line whose contents
+match the variable `mail-header-separator'.")
 
 ;;;###autoload
 (defvar mail-header-separator "--text follows this line--" "\
@@ -875,7 +876,7 @@ and don't delete any header fields."
 When this function returns, the buffer `*mail*' is selected.
 The value is t if the message was newly initialized; otherwise, nil.
 
-By default, the signature file `~/.signature' is inserted at the end;
+Optionally, the signature file `~/.signature' can be inserted at the end;
 see the variable `mail-signature'.
 
 \\<mail-mode-map>
