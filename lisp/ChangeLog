@@ -1,5 +1,46 @@
 2001-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/tex-mode.el (tex-validate-buffer): Add help-echo to
+	mouse-highlighted text.
+
+	* textmodes/page-ext.el (pages-copy-header-and-position): Add
+	help-echo to mouse-highlighted text.
+
+	* tar-mode.el (tar-header-block-summarize): Add help-echo to
+	mouse-highlighted text.
+
+	* replace.el (occur): Add help-echo to mouse-highlighted text.
+
+	* progmodes/sh-script.el (sh-mark-line): Add help-echo to
+	mouse-highlighted text.
+
+	* progmodes/cpp.el (cpp-make-button): Add help-echo to
+	mouse-highlighted text.
+
+	* progmodes/compile.el (compile-reinitialize-errors): Add
+	help-echo to mouse-highlighted messages.
+	(compilation-forget-errors): Remove help-echo property as well.
+
+	* play/landmark.el (lm-plot-square, lm-init-display): Add
+	help-echo to mouse-highlighted text.
+
+	* play/gomoku.el (gomoku-plot-square, gomoku-init-display): Add
+	help-echo to mouse-highlighted text.
+
+	* dired.el (dired-insert-set-properties): Add help-echo to
+	mouse-highlighted text.
+	(dired-mark-pop-up): Remove help-echo property from the file
+	name.
+
+	* comint.el (comint-send-input): Add help-echo to
+	mouse-highlighted text.
+
+	* buff-menu.el (list-buffers-noselect): Add help-echo to
+	mouse-highlighted text.
+
+	* arc-mode.el (archive-summarize-files): Add help-echo to
+	mouse-highlighted text.
+
 	* ffap.el (ffap-machine-p): Always return nil if
 	open-network-stream is not fboundp.
 
