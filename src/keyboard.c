@@ -3153,9 +3153,9 @@ char *lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0,
     
-    0,               /* VK_LWIN           0x5B */
-    0,               /* VK_RWIN           0x5C */
-    0,               /* VK_APPS           0x5D */
+    "lwindow",       /* VK_LWIN           0x5B */
+    "rwindow",       /* VK_RWIN           0x5C */
+    "apps",          /* VK_APPS           0x5D */
     
     0, 0,            /*    0x5E .. 0x5F        */
     
@@ -3206,10 +3206,21 @@ char *lispy_function_keys[] =
     "kp-numlock",    /* VK_NUMLOCK        0x90 */
     "scroll",        /* VK_SCROLL         0x91 */
     
-    0, 0, 0, 0, 0,   /*    0x92 .. 0x96        */
-    0, 0, 0, 0, 0,   /*    0x97 .. 0x9B        */
-    0, 0, 0, 0,      /*    0x9C .. 0x9F        */
-    
+    "kp-space",	     /* VK_NUMPAD_CLEAR   0x92 */
+    "kp-enter",	     /* VK_NUMPAD_ENTER   0x93 */
+    "kp-prior",	     /* VK_NUMPAD_PRIOR   0x94 */
+    "kp-next",	     /* VK_NUMPAD_NEXT    0x95 */
+    "kp-end",	     /* VK_NUMPAD_END     0x96 */
+    "kp-home",	     /* VK_NUMPAD_HOME    0x97 */
+    "kp-left",	     /* VK_NUMPAD_LEFT    0x98 */
+    "kp-up",	     /* VK_NUMPAD_UP      0x99 */
+    "kp-right",	     /* VK_NUMPAD_RIGHT   0x9A */
+    "kp-down",	     /* VK_NUMPAD_DOWN    0x9B */
+    "kp-insert",     /* VK_NUMPAD_INSERT  0x9C */
+    "kp-delete",     /* VK_NUMPAD_DELETE  0x9D */
+
+    0, 0,	     /*    0x9E .. 0x9F        */
+
     /*
      * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
      * Used only as parameters to GetAsyncKeyState() and GetKeyState().
