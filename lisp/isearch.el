@@ -1062,7 +1062,7 @@ Use `isearch-exit' to quit without signaling."
 (defun isearch-query-replace ()
   "Start query-replace with string to replace from last search string."
   (interactive)
-  (let ((query-replace-interactive 'initial)
+  (let ((query-replace-interactive t)
         (case-fold-search isearch-case-fold-search))
     ;; Put search string into the right ring
     (setq isearch-regexp nil)
@@ -1074,7 +1074,7 @@ Use `isearch-exit' to quit without signaling."
 (defun isearch-query-replace-regexp ()
   "Start query-replace-regexp with string to replace from last search string."
   (interactive)
-  (let ((query-replace-interactive 'initial)
+  (let ((query-replace-interactive t)
         (case-fold-search isearch-case-fold-search))
     ;; Put search string into the right ring
     (setq isearch-regexp t)
