@@ -191,6 +191,10 @@ struct utimbuf {
 #endif
 #endif
 
+#ifndef VFORK_RETURN_TYPE
+#define VFORK_RETURN_TYPE int
+#endif
+
 /* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
 #ifndef LPASS8
 #define LPASS8 0
@@ -2935,6 +2939,7 @@ sys_write (fildes, buf, nbyte)
  *      Substitute fork for vfork on USG flavors.
  */
 
+VFORK_RETURN_TYPE
 vfork ()
 {
   return (fork ());
