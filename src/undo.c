@@ -115,7 +115,10 @@ record_delete (beg, string)
 
       while (1)
 	{
-	  elt = XCAR (tail);
+	  if (NILP (tail))
+	    elt = Qnil;
+	  else
+	    elt = XCAR (tail);
 	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCAR (elt))))
 	    break;
 	  tail = XCDR (tail);
