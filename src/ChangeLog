@@ -1,3 +1,8 @@
+2002-10-31  Dave Love  <fx@gnu.org>
+
+	* xterm.c (XTread_socket): Fix last change.
+	(xaw_scroll_callback): Cast call_data to long to avoid warning.
+
 2002-10-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* process.c (Fformat_network_address): Fix int/Lisp_Object mixup.
