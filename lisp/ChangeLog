@@ -1,5 +1,7 @@
 1999-11-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/antlr-mode.el: New file.
+
 	* calendar/calendar.el: Fix autoload for
 	calendar-absolute-from-astro.  Add autoload for
 	calendar-print-astro-day-number.

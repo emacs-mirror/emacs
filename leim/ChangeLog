@@ -1,3 +1,7 @@
+1999-11-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: No need to generate subdirs.el.
+
 1999-11-21  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt: New file.

@@ -1,3 +1,8 @@
+1999-11-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (fast_install): Bring commands up-to-date, and fix
+	typo.
+
 1999-11-21  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (all): Build leim if present.
