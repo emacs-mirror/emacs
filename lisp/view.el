@@ -461,7 +461,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 (defun view-mode-enter (&optional return-to exit-action) "\
 Enter View mode and set up exit from view mode depending on optional arguments.
 If RETURN-TO is non-nil it is added as an element to the buffer local alist
-view-return-to-alist.
+`view-return-to-alist'.
 Save EXIT-ACTION in buffer local variable `view-exit-action'.
 It should be either nil or a function that takes a buffer as argument.
 This function will be called by `view-mode-exit'.
@@ -493,7 +493,7 @@ This function runs the normal hook `view-mode-hook'."
 Type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
 
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
-  "Exit view-mode in various ways, depending on optional arguments.
+  "Exit View mode in various ways, depending on optional arguments.
 RETURN-TO-ALIST, EXIT-ACTION and ALL-WIN determine what to do after exit.
 EXIT-ACTION is nil or a function that is called with current buffer as
 argument.
@@ -560,7 +560,11 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 		  (if view-remove-frame-by-deleting
 		      (delete-frame frame)
 		    (iconify-frame frame))))))
-	  (setq view-return-to-alist (delete (car alist) view-return-to-alist))
+	  ;; Altering view-return-to-alist causes trouble when
+	  ;; the user deiconifies the frame, then types q again.
+	  ;; If we leave view-return-to-alist unchanged, that
+	  ;; iconifies the frame again, as expected.
+;;;	  (setq view-return-to-alist (delete (car alist) view-return-to-alist))
 	  (setq alist (cdr alist)))
 	(if (window-live-p old-window)	; still existing window
 	    (select-window old-window))
