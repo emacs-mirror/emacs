@@ -6,7 +6,7 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-(defconst viper-version "2.85 of January 15, 1996"
+(defconst viper-version "2.85 of January 24, 1996"
   "The current version of Viper")
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
@@ -939,7 +939,110 @@ Should be set in `~/.vip' file.")
 (require 'viper-keym)
 
 
-;;;; CODE
+;;; CODE
+
+;; sentinels
+
+;; Runs vip-after-change-functions inside after-change-functions
+(defun vip-after-change-sentinel (beg end len)
+  (let ((list vip-after-change-functions))
+    (while list
+      (funcall (car list) beg end len)
+      (setq list (cdr list)))))
+      
+;; Runs vip-before-change-functions inside before-change-functions
+(defun vip-before-change-sentinel (beg end)
+  (let ((list vip-before-change-functions))
+    (while list
+      (funcall (car list) beg end)
+      (setq list (cdr list)))))
+
+(defsubst vip-post-command-sentinel ()
+  (run-hooks 'vip-post-command-hooks))
+  
+(defsubst vip-pre-command-sentinel ()
+  (run-hooks 'vip-pre-command-hooks))
+  
+;; Needed so that Viper will be able to figure the last inserted
+;; chunk of text with reasonable accuracy.
+(defsubst vip-insert-state-post-command-sentinel ()
+  (if (and (memq vip-current-state '(insert-state replace-state))
+	   vip-insert-point
+	   (>= (point) vip-insert-point))
+      (setq vip-last-posn-while-in-insert-state (point-marker)))
+  (if (and (eq this-command 'dabbrev-expand)
+	   (integerp vip-pre-command-point)
+	   (> vip-insert-point vip-pre-command-point))
+      (move-marker vip-insert-point vip-pre-command-point))
+  )
+  
+(defsubst vip-insert-state-pre-command-sentinel ()
+  (if (and (eq this-command 'dabbrev-expand)
+	   (markerp vip-insert-point)
+	   (marker-position vip-insert-point))
+      (setq vip-pre-command-point (marker-position vip-insert-point))))
+	
+(defsubst vip-R-state-post-command-sentinel ()
+  ;; Restoring cursor color is needed despite
+  ;; vip-replace-state-pre-command-sentinel: When you jump to another buffer in
+  ;; another frame, the pre-command hook won't change cursor color to default
+  ;; in that other frame.  So, if the second frame cursor was red and we set
+  ;; the point outside the replacement region, then the cursor color will
+  ;; remain red. Restoring the default, below, prevents this.
+  (if (and (<= (vip-replace-start) (point))
+	   (<=  (point) (vip-replace-end)))
+      (vip-change-cursor-color vip-replace-overlay-cursor-color)
+    (vip-restore-cursor-color)
+    ))
+
+;; to speed up, don't change cursor color before self-insert
+;; and common move commands
+(defsubst vip-replace-state-pre-command-sentinel ()
+  (or (memq this-command '(self-insert-command))
+      (memq (vip-event-key last-command-event)
+	    '(up down left right (meta f) (meta b)
+		 (control n) (control p) (control f) (control b)))
+      (vip-restore-cursor-color)))
+  
+(defun vip-replace-state-post-command-sentinel ()
+  ;; Restoring cursor color is needed despite
+  ;; vip-replace-state-pre-command-sentinel: When one jumps to another buffer
+  ;; in another frame, the pre-command hook won't change cursor color to
+  ;; default in that other frame.  So, if the second frame cursor was red and
+  ;; we set the point outside the replacement region, then the cursor color
+  ;; will remain red. Restoring the default, below, fixes this problem.
+  ;;
+  ;; We optimize for self-insert-command's here, since they either don't change
+  ;; cursor color or, if they terminate replace mode, the color will be changed
+  ;; in vip-finish-change
+  (or (memq this-command '(self-insert-command))
+      (vip-restore-cursor-color))
+  (cond 
+   ((eq vip-current-state 'replace-state)
+    ;; delete characters to compensate for inserted chars.
+    (let ((replace-boundary (vip-replace-end)))
+      (save-excursion
+	(goto-char vip-last-posn-in-replace-region)
+	(delete-char vip-replace-chars-to-delete)
+	(setq vip-replace-chars-to-delete 0
+	      vip-replace-chars-deleted 0)
+	;; terminate replace mode if reached replace limit
+	(if (= vip-last-posn-in-replace-region 
+	       (vip-replace-end))
+	    (vip-finish-change vip-last-posn-in-replace-region)))
+      
+      (if (and (<= (vip-replace-start) (point))
+	       (<=  (point) replace-boundary))
+	  (progn
+	    ;; the state may have changed in vip-finish-change above
+	    (if (eq vip-current-state 'replace-state)
+		(vip-change-cursor-color vip-replace-overlay-cursor-color))
+	    (setq vip-last-posn-in-replace-region (point-marker))))
+      ))
+   
+   (t ;; terminate replace mode if changed Viper states.
+    (vip-finish-change vip-last-posn-in-replace-region))))
+
 
 ;; changing mode
 
@@ -947,16 +1050,17 @@ Should be set in `~/.vip' file.")
 (defun vip-change-state (new-state)
   ;; Keep vip-post/pre-command-hooks fresh.
   ;; We remove then add vip-post/pre-command-sentinel since it is very
-  ;; desirable that noone gets in-between
+  ;; desirable that vip-pre-command-sentinel is the last hook and
+  ;; vip-post-command-sentinel is the first hook.
   (remove-hook 'post-command-hook 'vip-post-command-sentinel)
   (add-hook 'post-command-hook 'vip-post-command-sentinel)
   (remove-hook 'pre-command-hook 'vip-pre-command-sentinel)
   (add-hook 'pre-command-hook 'vip-pre-command-sentinel t)
   ;; These hooks will be added back if switching to insert/replace mode
   (vip-remove-hook 'vip-post-command-hooks
-	       'vip-insert-state-post-command-sentinel)
+		   'vip-insert-state-post-command-sentinel)
   (vip-remove-hook 'vip-pre-command-hooks
-	       'vip-insert-state-pre-command-sentinel)
+		   'vip-insert-state-pre-command-sentinel)
   (cond ((eq new-state 'vi-state)
 	 (cond ((member vip-current-state '(insert-state replace-state))
 		    
@@ -997,9 +1101,9 @@ Should be set in `~/.vip' file.")
 	     (vip-move-marker-locally 'vip-insert-point (point)))
 	 (vip-move-marker-locally 'vip-last-posn-while-in-insert-state (point))
 	 (vip-add-hook 'vip-post-command-hooks
-		   'vip-insert-state-post-command-sentinel t)
+		       'vip-insert-state-post-command-sentinel t)
 	 (vip-add-hook 'vip-pre-command-hooks
-		   'vip-insert-state-pre-command-sentinel t))
+		       'vip-insert-state-pre-command-sentinel t))
 	) ; outermost cond
   
   ;; Nothing needs to be done to switch to emacs mode! Just set some
@@ -1644,6 +1748,34 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 ;; represents the numeric value of the prefix argument and COM represents
 ;; command prefix such as "c", "d", "m" and "y".
 
+;; Get value part of prefix-argument ARG.
+(defsubst vip-p-val (arg)
+  (cond ((null arg) 1)
+	((consp arg)
+	 (if (or (null (car arg)) (equal (car arg) '(nil)))
+	     1 (car arg)))
+	(t arg)))
+
+;; Get raw value part of prefix-argument ARG.
+(defsubst vip-P-val (arg)
+  (cond ((consp arg) (car arg))
+	(t arg)))
+
+;; Get com part of prefix-argument ARG.
+(defsubst vip-getcom (arg)
+  (cond ((null arg) nil)
+	((consp arg) (cdr arg))
+	(t nil)))
+
+;; Get com part of prefix-argument ARG and modify it.
+(defun vip-getCom (arg)
+  (let ((com (vip-getcom arg)))
+    (cond ((equal com ?c) ?C)
+	  ((equal com ?d) ?D)
+	  ((equal com ?y) ?Y)
+	  (t com))))
+
+
 ;; Compute numeric prefix arg value. 
 ;; Invoked by CHAR. COM is the command part obtained so far.
 (defun vip-prefix-arg-value (event com)
@@ -1767,33 +1899,6 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 	  (signal 'quit nil)))
   (vip-deactivate-mark))
 
-;; Get value part of prefix-argument ARG.
-(defsubst vip-p-val (arg)
-  (cond ((null arg) 1)
-	((consp arg)
-	 (if (or (null (car arg)) (equal (car arg) '(nil)))
-	     1 (car arg)))
-	(t arg)))
-
-;; Get raw value part of prefix-argument ARG.
-(defsubst vip-P-val (arg)
-  (cond ((consp arg) (car arg))
-	(t arg)))
-
-;; Get com part of prefix-argument ARG.
-(defsubst vip-getcom (arg)
-  (cond ((null arg) nil)
-	((consp arg) (cdr arg))
-	(t nil)))
-
-;; Get com part of prefix-argument ARG and modify it.
-(defun vip-getCom (arg)
-  (let ((com (vip-getcom arg)))
-    (cond ((equal com ?c) ?C)
-	  ((equal com ?d) ?D)
-	  ((equal com ?y) ?Y)
-	  (t com))))
-
 
 ;; repeat last destructive command
 
@@ -1803,10 +1908,31 @@ behaves as in Emacs, any number of multiple escapes is allowed."
   (set-register reg (concat (if (stringp (get-register reg))
 				(get-register reg) "")
 			    (buffer-substring start end))))
+
+;; Saves last inserted text for possible use by vip-repeat command.
+(defun vip-save-last-insertion (beg end)
+  (setq vip-last-insertion (buffer-substring beg end))
+  (or (< (length vip-d-com) 5)
+      (setcar (nthcdr 4 vip-d-com) vip-last-insertion))
+  (or (null vip-command-ring)
+      (ring-empty-p vip-command-ring)
+      (progn
+	(setcar (nthcdr 4 (vip-current-ring-item vip-command-ring))
+		vip-last-insertion)
+	;; del most recent elt, if identical to the second most-recent
+	(vip-cleanup-ring vip-command-ring)))
+  )
+    
+(defsubst vip-yank-last-insertion ()
+  "Inserts the text saved by the previous vip-save-last-insertion command."
+  (condition-case nil
+      (insert vip-last-insertion)
+    (error nil)))
+  
 			    
 ;; define functions to be executed
 
-;; invoked by C command
+;; invoked by the `C' command
 (defun vip-exec-change (m-com com) 
   ;; handle C cmd at the eol and at eob.
   (if (or (and (eolp) (= vip-com-point (point)))
@@ -2730,106 +2856,6 @@ Undo previous insertion and inserts new."
    'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
   )
   
-;; Runs vip-after-change-functions inside after-change-functions
-(defun vip-after-change-sentinel (beg end len)
-  (let ((list vip-after-change-functions))
-    (while list
-      (funcall (car list) beg end len)
-      (setq list (cdr list)))))
-      
-;; Runs vip-before-change-functions inside before-change-functions
-(defun vip-before-change-sentinel (beg end)
-  (let ((list vip-before-change-functions))
-    (while list
-      (funcall (car list) beg end)
-      (setq list (cdr list)))))
-
-(defsubst vip-post-command-sentinel ()
-  (run-hooks 'vip-post-command-hooks))
-  
-(defsubst vip-pre-command-sentinel ()
-  (run-hooks 'vip-pre-command-hooks))
-  
-;; Needed so that Viper will be able to figure the last inserted
-;; chunk of text with reasonable accuracy.
-(defsubst vip-insert-state-post-command-sentinel ()
-  (if (and (memq vip-current-state '(insert-state replace-state))
-	   vip-insert-point
-	   (>= (point) vip-insert-point))
-      (setq vip-last-posn-while-in-insert-state (point-marker)))
-  (if (and (eq this-command 'dabbrev-expand)
-	   (integerp vip-pre-command-point)
-	   (> vip-insert-point vip-pre-command-point))
-      (move-marker vip-insert-point vip-pre-command-point))
-  )
-  
-(defsubst vip-insert-state-pre-command-sentinel ()
-  (if (and (eq this-command 'dabbrev-expand)
-	   (markerp vip-insert-point)
-	   (marker-position vip-insert-point))
-      (setq vip-pre-command-point (marker-position vip-insert-point))))
-	
-(defsubst vip-R-state-post-command-sentinel ()
-  ;; Restoring cursor color is needed despite
-  ;; vip-replace-state-pre-command-sentinel: When you jump to another buffer in
-  ;; another frame, the pre-command hook won't change cursor color to default
-  ;; in that other frame.  So, if the second frame cursor was red and we set
-  ;; the point outside the replacement region, then the cursor color will
-  ;; remain red. Restoring the default, below, prevents this.
-  (if (and (<= (vip-replace-start) (point))
-	   (<=  (point) (vip-replace-end)))
-      (vip-change-cursor-color vip-replace-overlay-cursor-color)
-    (vip-restore-cursor-color)
-    ))
-
-;; to speed up, don't change cursor color before self-insert
-;; and common move commands
-(defsubst vip-replace-state-pre-command-sentinel ()
-  (or (memq this-command '(self-insert-command))
-      (memq (vip-event-key last-command-event)
-	    '(up down left right (meta f) (meta b)
-		 (control n) (control p) (control f) (control b)))
-      (vip-restore-cursor-color)))
-  
-(defun vip-replace-state-post-command-sentinel ()
-  ;; Restoring cursor color is needed despite
-  ;; vip-replace-state-pre-command-sentinel: When one jumps to another buffer
-  ;; in another frame, the pre-command hook won't change cursor color to
-  ;; default in that other frame.  So, if the second frame cursor was red and
-  ;; we set the point outside the replacement region, then the cursor color
-  ;; will remain red. Restoring the default, below, fixes this problem.
-  ;;
-  ;; We optimize for self-insert-command's here, since they either don't change
-  ;; cursor color or, if they terminate replace mode, the color will be changed
-  ;; in vip-finish-change
-  (or (memq this-command '(self-insert-command))
-      (vip-restore-cursor-color))
-  (cond 
-   ((eq vip-current-state 'replace-state)
-    ;; delete characters to compensate for inserted chars.
-    (let ((replace-boundary (vip-replace-end)))
-      (save-excursion
-	(goto-char vip-last-posn-in-replace-region)
-	(delete-char vip-replace-chars-to-delete)
-	(setq vip-replace-chars-to-delete 0
-	      vip-replace-chars-deleted 0)
-	;; terminate replace mode if reached replace limit
-	(if (= vip-last-posn-in-replace-region 
-	       (vip-replace-end))
-	    (vip-finish-change vip-last-posn-in-replace-region)))
-      
-      (if (and (<= (vip-replace-start) (point))
-	       (<=  (point) replace-boundary))
-	  (progn
-	    ;; the state may have changed in vip-finish-change above
-	    (if (eq vip-current-state 'replace-state)
-		(vip-change-cursor-color vip-replace-overlay-cursor-color))
-	    (setq vip-last-posn-in-replace-region (point-marker))))
-      ))
-   
-   (t ;; terminate replace mode if changed Viper states.
-    (vip-finish-change vip-last-posn-in-replace-region))))
-
 
 ;; checks how many chars were deleted by the last change
 (defun vip-replace-mode-spy-before (beg end)
@@ -4331,26 +4357,6 @@ To turn this feature off, set this variable to nil.")
       (copy-region-as-kill beg end)
     (error (copy-region-as-kill beg beg))))
     
-;; Saves last inserted text for possible use by vip-repeat command.
-(defun vip-save-last-insertion (beg end)
-  (setq vip-last-insertion (buffer-substring beg end))
-  (or (< (length vip-d-com) 5)
-      (setcar (nthcdr 4 vip-d-com) vip-last-insertion))
-  (or (null vip-command-ring)
-      (ring-empty-p vip-command-ring)
-      (progn
-	(setcar (nthcdr 4 (vip-current-ring-item vip-command-ring))
-		vip-last-insertion)
-	;; del most recent elt, if identical to the second most-recent
-	(vip-cleanup-ring vip-command-ring)))
-  )
-    
-(defsubst vip-yank-last-insertion ()
-  "Inserts the text saved by the previous vip-save-last-insertion command."
-  (condition-case nil
-      (insert vip-last-insertion)
-    (error nil)))
-  
 
 (defun vip-delete-char (arg)
   "Delete character."
@@ -4734,6 +4740,12 @@ One can use `` and '' to temporarily jump 1 step back."
 
 ;; Input Mode Indentation
 
+;; Returns t, if the string before point matches the regexp STR.
+(defsubst vip-looking-back (str)
+  (and (save-excursion (re-search-backward str nil t))
+       (= (point) (match-end 0))))
+
+
 (defun vip-forward-indent ()
   "Indent forward -- `C-t' in Vi."
   (interactive)
@@ -5033,7 +5045,7 @@ Type any key to continue... ")
 	      level-changed t)
 	(insert "
 Please specify your level of familiarity with the venomous VI PERil
-\(and the VI Plan for Emacs Rescue).
+(and the VI Plan for Emacs Rescue).
 You can change it at any time by typing `M-x vip-set-expert-level RET'
 	
  1 -- BEGINNER: Almost all Emacs features are suppressed.
@@ -5085,13 +5097,6 @@ Please, specify your level now: ")
   (interactive)
   (beep 1))
   
-
-;; Returns t, if the string before point matches the regexp STR.
-(defsubst vip-looking-back (str)
-  (and (save-excursion (re-search-backward str nil t))
-       (= (point) (match-end 0))))
-
-    
     
 ;; if ENFORCE-BUFFER is not nil, error if CHAR is a marker in another buffer
 (defun vip-register-to-point (char &optional enforce-buffer)

@@ -154,7 +154,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 		 variant (if (> (length key-seq) 0)
 			     (prin1-to-string (vip-display-macro key-seq))
 			   "")))
-	(message "%s" message)
+	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
 	(setq key
@@ -229,7 +229,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 				  (prin1-to-string
 				   (vip-display-macro key-seq))
 				"")))
-	(message "%s" message)
+	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
 	(setq key
@@ -409,7 +409,7 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       scope) 
 	       vip-custom-file-name))
 	  
-	  (message "%s" msg)
+	  (message msg)
 	  ))
 	
     (setq new-elt

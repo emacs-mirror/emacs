@@ -507,7 +507,7 @@
 	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z---_']*[ \t\n)]" var-name))
 	 (buf (find-file-noselect (substitute-in-file-name custom-file)))
 	)
-    (message "%s" message)
+    (message message)
     (save-excursion
       (set-buffer buf)
       (goto-char (point-min))

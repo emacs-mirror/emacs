@@ -69,7 +69,32 @@ considered related.")
 
 (defsubst vip-multiclick-p ()
   (not (vip-sit-for-short vip-multiclick-timeout t)))
+
+;; Returns window where click occurs
+(defsubst vip-mouse-click-window (click)
+  (if vip-xemacs-p
+      (event-window click)
+    (posn-window (event-start click))))
+
+;; Returns window where click occurs
+(defsubst vip-mouse-click-frame (click)
+  (window-frame (vip-mouse-click-window click)))
+
+;; Returns the buffer of the window where click occurs
+(defsubst vip-mouse-click-window-buffer (click)
+  (window-buffer (vip-mouse-click-window click)))
+
+;; Returns the name of the buffer in the window where click occurs
+(defsubst vip-mouse-click-window-buffer-name (click)
+  (buffer-name (vip-mouse-click-window-buffer click)))
+
+;; Returns position of a click
+(defsubst vip-mouse-click-posn (click)
+  (if vip-xemacs-p
+      (event-point click)
+    (posn-point (event-start click))))
 	     
+
 (defun vip-surrounding-word (count click-count)
    "Returns word surrounding point according to a heuristic.
 COUNT indicates how many regions to return.
@@ -175,29 +200,6 @@ On single or double click, returns the word as determined by
 	  (error "Click must be over a window."))
 	click-word))))
 
-;; Returns window where click occurs
-(defsubst vip-mouse-click-frame (click)
-  (window-frame (vip-mouse-click-window click)))
-
-;; Returns window where click occurs
-(defsubst vip-mouse-click-window (click)
-  (if vip-xemacs-p
-      (event-window click)
-    (posn-window (event-start click))))
-
-;; Returns the buffer of the window where click occurs
-(defsubst vip-mouse-click-window-buffer (click)
-  (window-buffer (vip-mouse-click-window click)))
-
-;; Returns the name of the buffer in the window where click occurs
-(defsubst vip-mouse-click-window-buffer-name (click)
-  (buffer-name (vip-mouse-click-window-buffer click)))
-
-;; Returns position of a click
-(defsubst vip-mouse-click-posn (click)
-  (if vip-xemacs-p
-      (event-point click)
-    (posn-point (event-start click))))
 
 (defun vip-mouse-click-insert-word (click arg)
   "Insert word clicked or double-clicked on.
