@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.23 2002/02/25 22:04:29 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.24 2002/03/18 17:17:38 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -605,7 +605,10 @@ This function sets the properties `vc-workfile-version' and
 `vc-checkout-model' to their correct values, based on the master
 file."
   (with-temp-buffer
-    (vc-insert-file (vc-name file) "^[0-9]")
+    (if (or (not (vc-insert-file (vc-name file) "^[0-9]"))
+            (progn (goto-char (point-min))
+                   (not (looking-at "^head[ \t\n]+[^;]+;$"))))
+        (error "File %s is not an RCS master file" (vc-name file)))
     (let ((workfile-is-latest nil)
 	  (default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
       (vc-file-setprop file 'vc-rcs-default-branch default-branch)
