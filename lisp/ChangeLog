@@ -1,3 +1,7 @@
+2004-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Treat S-SPC like SPC.
+
 2004-12-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Correct cursor position in a
