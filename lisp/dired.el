@@ -1173,7 +1173,10 @@ Creates a buffer if necessary."
 (defun dired-find-file ()
   "In dired, visit the file or directory named on this line."
   (interactive)
-  (find-file (file-name-sans-versions (dired-get-filename) t)))
+  (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
+    (if (file-exists-p file-name)
+	(find-file file-name)
+      (error "File no longer exists; type `g' to update Dired buffer"))))
 
 (defun dired-mouse-find-file-other-window (event)
   "In dired, visit the file or directory name you click on."
