@@ -302,11 +302,7 @@ ARGLIST allows full Common Lisp conventions."
 					  'quote
 					  (list nil (cl-const-expr-val def)))
 				       (list 'list nil def))))))))
-	      (cl-push karg keys)
-	      (if (= (aref (symbol-name karg) 0) ?:)
-		  (progn (set karg karg)
-			 (cl-push (list 'setq karg (list 'quote karg))
-				  bind-inits)))))))
+	      (cl-push karg keys)))))
       (setq keys (nreverse keys))
       (or (and (eq (car args) '&allow-other-keys) (cl-pop args))
 	  (null keys) (= safety 0)
