@@ -10,19 +10,19 @@ which attempts to guess correct values for various system-dependent
 variables and features and find the directories where various system
 headers and libraries are kept.  It then creates a `Makefile' in each
 subdirectory and a `config.h' file containing system-dependent
-definitions.  Running the Make utility then builds the package for
+definitions.  Running the `make' utility then builds the package for
 your system.
 
 Here's the procedure to build Emacs using `configure' on systems which
 are supported by it.  If this simplified procedure fails, or if you
-are using a platform such as MS-Windows where `configure' script
+are using a platform such as MS-Windows, where `configure' script
 doesn't work, you might need to use various non-default options, and
 maybe perform some of the steps manually.  The more detailed
 description in the rest of the sections of this guide will help you do
 that, so please refer to them if the simple procedure does not work.
 
   1. If you want to be able to input international characters which
-     your keyboard doesn't support directly (i.e., you cannot type
+     your keyboard doesn't support directly (i.e. you cannot type
      them at the shell prompt), download the leim-M.N.tar.gz
      distribution and unpack it into the same directory where you have
      unpacked the main Emacs distribution.  See ADDITIONAL
@@ -68,13 +68,13 @@ that, so please refer to them if the simple procedure does not work.
 		make distclean 
 		./configure
 
-  6. Invoke the Make program:
+  6. Invoke the `make' program:
 
 		 make
 
-  7. If Make succeeds, it will build an executable program `emacs' in
-     the `src' directory.  You can try this program, to make sure it
-     works:
+  7. If `make' succeeds, it will build an executable program `emacs'
+     in the `src' directory.  You can try this program, to make sure
+     it works:
 
 		 src/emacs -q
 
@@ -864,6 +864,8 @@ is_exec.c and sigaction.c.  To work around the bugs, compile these
 files and link them into temacs.  Djgpp versions 2.01 and later have
 these bugs fixed, so upgrade if you can before building Emacs.
 
+COPYING PERMISSIONS
+
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
    copyright notice and permission notice are preserved,
