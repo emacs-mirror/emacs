@@ -1780,7 +1780,7 @@ Also, a symbol satisfies `commandp' if its function definition does so.  */)
      have an element whose index is COMPILED_INTERACTIVE, which is
      where the interactive spec is stored.  */
   else if (COMPILEDP (fun))
-    return ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE
+    return ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE
 	    ? Qt : Qnil);
 
   /* Strings and vectors are keyboard macros.  */
@@ -2857,7 +2857,7 @@ funcall_lambda (fun, nargs, arg_vector)
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
   else if (COMPILEDP (fun))
-    syms_left = XVECTOR (fun)->contents[COMPILED_ARGLIST];
+    syms_left = AREF (fun, COMPILED_ARGLIST);
   else
     abort ();
 
@@ -2900,11 +2900,11 @@ funcall_lambda (fun, nargs, arg_vector)
     {
       /* If we have not actually read the bytecode string
 	 and constants vector yet, fetch them from the file.  */
-      if (CONSP (XVECTOR (fun)->contents[COMPILED_BYTECODE]))
+      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	Ffetch_bytecode (fun);
-      val = Fbyte_code (XVECTOR (fun)->contents[COMPILED_BYTECODE],
-			XVECTOR (fun)->contents[COMPILED_CONSTANTS],
-			XVECTOR (fun)->contents[COMPILED_STACK_DEPTH]);
+      val = Fbyte_code (AREF (fun, COMPILED_BYTECODE),
+			AREF (fun, COMPILED_CONSTANTS),
+			AREF (fun, COMPILED_STACK_DEPTH));
     }
   
   return unbind_to (count, val);
@@ -2918,14 +2918,19 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 {
   Lisp_Object tem;
 
-  if (COMPILEDP (object)
-      && CONSP (XVECTOR (object)->contents[COMPILED_BYTECODE]))
+  if (COMPILEDP (object) && CONSP (AREF (object, COMPILED_BYTECODE)))
     {
-      tem = read_doc_string (XVECTOR (object)->contents[COMPILED_BYTECODE]);
+      tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
       if (!CONSP (tem))
-	error ("invalid byte code");
-      XVECTOR (object)->contents[COMPILED_BYTECODE] = XCAR (tem);
-      XVECTOR (object)->contents[COMPILED_CONSTANTS] = XCDR (tem);
+	{
+	  tem = AREF (object, COMPILED_BYTECODE);
+	  if (CONSP (tem) && STRINGP (XCAR (tem)))
+	    error ("Invalid byte code in %s", XSTRING (XCAR (tem))->data);
+	  else
+	    error ("Invalid byte code");
+	}
+      AREF (object, COMPILED_BYTECODE) = XCAR (tem);
+      AREF (object, COMPILED_CONSTANTS) = XCDR (tem);
     }
   return object;
 }
