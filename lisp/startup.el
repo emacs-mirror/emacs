@@ -378,7 +378,7 @@ from being initialized.")
 	(and window-setup-hook
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
-	    (if (or (eq window-system 'x) (eq window-system 'win32))
+	    (if (memq window-system '(x ms-windows))
 		(precompute-menubar-bindings)))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
@@ -536,7 +536,7 @@ from being initialized.")
   (if (fboundp 'frame-initialize)
       (frame-initialize))
   ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (if (or (not (or (eq window-system 'x) (eq window-system 'win32)))
+  (if (or (not (memq window-system '(x ms-windows)))
 	  (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
       (menu-bar-mode t))
 
@@ -688,7 +688,7 @@ from being initialized.")
 	     (setq window-setup-hook nil)
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
-	     (if (or (eq window-system 'x) (eq window-system 'win32))
+	     (if (memq window-system '(x ms-windows))
 		 (precompute-menubar-bindings))
 	     (setq menubar-bindings-done t)
 	     (unwind-protect
