@@ -122,7 +122,8 @@ int scroll_step;
  since the last redisplay that paused */
 static int blank_end_of_window;
 
-/* Number of windows showing the buffer of the selected window.
+/* Number of windows showing the buffer of the selected window
+   (or another buffer with the same base buffer).
    keyboard.c refers to this.  */
 int buffer_shared;
 
@@ -591,7 +592,7 @@ redisplay ()
 
   /* Detect case that we need to write a star in the mode line.  */
   if (XFASTINT (w->last_modified) < MODIFF
-      && XFASTINT (w->last_modified) <= current_buffer->save_modified)
+      && XFASTINT (w->last_modified) <= SAVE_MODIFF)
     {
       w->update_mode_line = Qt;
       if (buffer_shared > 1)
@@ -1015,7 +1016,7 @@ update_menu_bar (f)
 	  || !NILP (w->update_mode_line)
 	  || (XFASTINT (w->last_modified) < MODIFF
 	      && (XFASTINT (w->last_modified)
-		  <= XBUFFER (w->buffer)->save_modified)))
+		  <= BUF_SAVE_MODIFF (XBUFFER (w->buffer)))))
 	{
 	  struct buffer *prev = current_buffer;
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
@@ -1110,14 +1111,24 @@ redisplay_window (window, just_this_one)
 
   /* Otherwise set up data on this window; select its buffer and point value */
 
-  current_buffer = XBUFFER (w->buffer);
+  set_buffer_temp (XBUFFER (w->buffer));
   opoint = PT;
 
-  /* Count number of windows showing the selected buffer.  */
+  /* Count number of windows showing the selected buffer.
+     An indirect buffer counts as its base buffer.  */
 
-  if (!just_this_one
-      && current_buffer == XBUFFER (XWINDOW (selected_window)->buffer))
-    buffer_shared++;
+  if (!just_this_one)
+    {
+      struct buffer *current_base, *window_base;
+      current_base = current_buffer;
+      window_base = XBUFFER (XWINDOW (selected_window)->buffer);
+      if (current_base->base_buffer)
+	current_base = current_base->base_buffer;
+      if (window_base->base_buffer)
+	window_base = window_base->base_buffer;
+      if (current_base == window_base)
+	buffer_shared++;
+    }
 
   /* POINT refers normally to the selected window.
      For any other window, set up appropriate value.  */
@@ -1415,7 +1426,7 @@ done:
     }
 
   BUF_PT (current_buffer) = opoint;
-  current_buffer = old;
+  set_buffer_temp (old);
   BUF_PT (current_buffer) = lpoint;
 }
 
@@ -1932,9 +1943,9 @@ redisplay_region (buf, start, end)
     }
 
   /* Increment the buffer's time stamp, but also increment the save
-     and autosave timestamps, so as not to screw up that timekeeping. */
-  if (BUF_MODIFF (buf) == buf->save_modified)
-    buf->save_modified++;
+     and autosave timestamps, so as not to screw up that timekeeping.  */
+  if (BUF_MODIFF (buf) == BUF_SAVE_MODIFF (buf))
+    BUF_SAVE_MODIFF (buf)++;
   if (BUF_MODIFF (buf) == buf->auto_save_modified)
     buf->auto_save_modified++;
 
@@ -3131,13 +3142,13 @@ decode_mode_spec (w, c, maxwidth)
     case '*':
       if (!NILP (b->read_only))
 	return "%";
-      if (BUF_MODIFF (b) > b->save_modified)
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
       return "-";
 
     case '+':
       /* This differs from %* only for a modified read-only buffer.  */
-      if (BUF_MODIFF (b) > b->save_modified)
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
       if (!NILP (b->read_only))
 	return "%";
@@ -3145,7 +3156,7 @@ decode_mode_spec (w, c, maxwidth)
 
     case '&':
       /* This differs from %* in ignoring read-only-ness.  */
-      if (BUF_MODIFF (b) > b->save_modified)
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
       return "-";
 
