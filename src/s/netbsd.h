@@ -57,3 +57,4 @@
 #define LOCALTIME_CACHE
 
 #define HAVE_WAIT_HEADER
+#define WAIT_USE_INT
