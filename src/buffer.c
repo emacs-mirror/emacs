@@ -1843,8 +1843,17 @@ advance_to_char_boundary (byte_pos)
     {
       /* We should advance BYTE_POS only when C is a constituent of a
          multibyte sequence.  */
-      DEC_POS (byte_pos);
+      int orig_byte_pos = byte_pos;
+
+      do
+	{
+	  byte_pos--;
+	  c = FETCH_BYTE (byte_pos);
+	}
+      while (! CHAR_HEAD_P (c) && byte_pos > BEG);
       INC_POS (byte_pos);
+      if (byte_pos < orig_byte_pos)
+	byte_pos = orig_byte_pos;
       /* If C is a constituent of a multibyte sequence, BYTE_POS was
          surely advance to the correct character boundary.  If C is
          not, BYTE_POS was unchanged.  */
@@ -1865,6 +1874,9 @@ but the contents viewed as characters do change.")
 {
   Lisp_Object tail, markers;
   struct buffer *other;
+  int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
+  int begv = BEGV, zv = ZV;
+  int narrowed = (BEG != begv || Z != zv);
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -1875,14 +1887,20 @@ but the contents viewed as characters do change.")
 
   /* It would be better to update the list,
      but this is good enough for now.  */
-  if (! EQ (current_buffer->undo_list, Qt))
-    current_buffer->undo_list = Qnil;
+  if (undo_enabled_p)
+    current_buffer->undo_list = Qt;
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
 
+  if (narrowed)
+    Fwiden ();
+
   if (NILP (flag))
     {
+      int pos, stop;
+      unsigned char *p;
+
       /* Do this first, so it can use CHAR_TO_BYTE
 	 to calculate the old correspondences.  */
       set_intervals_multibyte (0);
@@ -1901,12 +1919,54 @@ but the contents viewed as characters do change.")
 	  XMARKER (tail)->charpos = XMARKER (tail)->bytepos;
 	  tail = XMARKER (tail)->chain;
 	}
+
+      /* Convert multibyte form of 8-bit characters to unibyte.  */
+      pos = BEG;
+      stop = GPT;
+      p = BEG_ADDR;
+      while (1)
+	{
+	  int c, bytes;
+
+	  if (pos == stop)
+	    {
+	      if (pos == Z)
+		break;
+	      p = GAP_END_ADDR;
+	      stop = Z;
+	    }
+	  if (MULTIBYTE_STR_AS_UNIBYTE_P (p, bytes))
+	    p += bytes, pos += bytes;
+	  else
+	    {
+	      c = STRING_CHAR (p, stop - pos);
+	      /* Delete all bytes for this 8-bit character but the
+		 last one, and change the last one to the charcter
+		 code.  */
+	      bytes--;
+	      del_range_2 (pos, pos, pos + bytes, pos + bytes, 0);
+	      p = GAP_END_ADDR;
+	      *p++ = c;
+	      pos++;
+	      if (begv > pos)
+		begv -= bytes;
+	      if (zv > pos)
+		zv -= bytes;
+	      stop = Z;
+	    }
+	}
+      if (narrowed)
+	Fnarrow_to_region (make_number (begv), make_number (zv));
     }
   else
     {
+      int pt = PT;
+      int pos, stop;
+      unsigned char *p;
+
       /* Be sure not to have a multibyte sequence striding over the GAP.
-	 Ex: We change this: "...abc\201\241\241 _GAP_ \241\241\241..."
-	     to: "...abc _GAP_ \201\241\241\241\241\241..."  */
+	 Ex: We change this: "...abc\201 _GAP_ \241def..."
+	     to: "...abc _GAP_ \201\241def..."  */
 
       if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
@@ -1921,6 +1981,53 @@ but the contents viewed as characters do change.")
 	      move_gap_both (new_gpt, new_gpt);
 	    }
 	}
+
+      /* Make the buffer contents valid as multibyte by converting
+	 8-bit characters to multibyte form.  */
+      pos = BEG;
+      stop = GPT;
+      p = BEG_ADDR;
+      while (1)
+	{
+	  int bytes;
+
+	  if (pos == stop)
+	    {
+	      if (pos == Z)
+		break;
+	      p = GAP_END_ADDR;
+	      stop = Z;
+	    }
+	      
+	  if (UNIBYTE_STR_AS_MULTIBYTE_P (p, stop - pos, bytes))
+	    p += bytes, pos += bytes;
+	  else
+	    {
+	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
+
+	      bytes = CHAR_STRING (*p, tmp);
+	      *p = tmp[0];
+	      TEMP_SET_PT_BOTH (pos + 1, pos + 1);
+	      bytes--;
+	      insert_1_both (tmp + 1, bytes, bytes, 1, 0, 0);
+	      /* Now the gap is after the just inserted data.  */
+	      pos = GPT;
+	      p = GAP_END_ADDR;
+	      if (pos <= begv)
+		begv += bytes;
+	      if (pos <= zv)
+		zv += bytes;
+	      if (pos <= pt)
+		pt += bytes;
+	      stop = Z;
+	    }
+	}
+
+      if (pt != PT)
+	TEMP_SET_PT (pt);
+
+      if (narrowed)
+	Fnarrow_to_region (make_number (begv), make_number (zv));
 
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
@@ -1981,6 +2088,9 @@ but the contents viewed as characters do change.")
 	 between chars and bytes.  */
       set_intervals_multibyte (1);
     }
+
+  if (undo_enabled_p)
+    current_buffer->undo_list = Qnil;
 
   /* Changing the multibyteness of a buffer means that all windows
      showing that buffer must be updated thoroughly.  */
