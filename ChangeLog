@@ -1,3 +1,7 @@
+2001-01-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Move copying conditions to end of file.
+
 2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Add basic installation procedure which assumes
