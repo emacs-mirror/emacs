@@ -58,26 +58,28 @@
   :type 'character
   :group 'asm)
 
-(defvar asm-mode-syntax-table nil
+(defvar asm-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?/  ". 14b" st)
+    (modify-syntax-entry ?*  ". 23b" st)
+    st)
   "Syntax table used while in Asm mode.")
 
 (defvar asm-mode-abbrev-table nil
   "Abbrev table used while in Asm mode.")
 (define-abbrev-table 'asm-mode-abbrev-table ())
 
-(defvar asm-mode-map nil
+(defvar asm-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Note that the comment character isn't set up until asm-mode is called.
+    (define-key map ":"		'asm-colon)
+    (define-key map "\C-c;"	'comment-region)
+    (define-key map "\C-i"	'tab-to-tab-stop)
+    (define-key map "\C-j"	'asm-newline)
+    (define-key map "\C-m"	'asm-newline)
+    map)
   "Keymap for Asm mode.")
-
-(if asm-mode-map
-    nil
-  (setq asm-mode-map (make-sparse-keymap))
-  ;; Note that the comment character isn't set up until asm-mode is called.
-  (define-key asm-mode-map ":"		'asm-colon)
-  (define-key asm-mode-map "\C-c;"      'comment-region)
-  (define-key asm-mode-map "\C-i"	'tab-to-tab-stop)
-  (define-key asm-mode-map "\C-j"	'asm-newline)
-  (define-key asm-mode-map "\C-m"	'asm-newline)
-  )
 
 (defconst asm-font-lock-keywords
  '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
@@ -86,9 +88,9 @@
     2 font-lock-keyword-face))
  "Additional expressions to highlight in Assembler mode.")
 
-(defvar asm-code-level-empty-comment-pattern nil)
-(defvar asm-flush-left-empty-comment-pattern nil)
-(defvar asm-inline-empty-comment-pattern nil)
+(defconst asm-code-level-empty-comment-pattern "^[\t ]+\\s<\\s< *$")
+(defconst asm-flush-left-empty-comment-pattern "^\\s<\\s<\\s< *$")
+(defconst asm-inline-empty-comment-pattern "^.+\\s<+ *$")
 
 ;;;###autoload
 (defun asm-mode ()
@@ -109,8 +111,7 @@ which is called near the beginning of mode initialization.
 Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:
-\\{asm-mode-map}
-"
+\\{asm-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (setq mode-name "Assembler")
@@ -118,35 +119,21 @@ Special commands:
   (setq local-abbrev-table asm-mode-abbrev-table)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(asm-font-lock-keywords))
-  (make-local-variable 'asm-mode-syntax-table)
-  (setq asm-mode-syntax-table (make-syntax-table))
-  (set-syntax-table asm-mode-syntax-table)
 
   (run-hooks 'asm-mode-set-comment-hook)
   ;; Make our own local child of asm-mode-map
   ;; so we can define our own comment character.
   (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
   (local-set-key (vector asm-comment-char) 'asm-comment)
+  (set-syntax-table (make-syntax-table asm-mode-syntax-table))
+  (modify-syntax-entry	asm-comment-char "<")
 
-  (modify-syntax-entry	asm-comment-char
-			"< b" asm-mode-syntax-table)
-  (modify-syntax-entry	?\n
-			 "> b" asm-mode-syntax-table)
-
-  (modify-syntax-entry ?/  ". 14" asm-mode-syntax-table)
-  (modify-syntax-entry ?*  ". 23" asm-mode-syntax-table)
-
-  (let ((cs (regexp-quote (char-to-string asm-comment-char))))
-    (make-local-variable 'comment-start)
-    (setq comment-start (concat (char-to-string asm-comment-char) " "))
-    (make-local-variable 'comment-start-skip)
-    (setq comment-start-skip (concat cs "+[ \t]*" "\\|" "/\\*+ *"))
-    (make-local-variable 'comment-end-skip)
-    (setq comment-end-skip  "[ \t]*\\(\\s>\\|\\*+/\\)")
-    (setq asm-inline-empty-comment-pattern (concat "^.+" cs "+ *$"))
-    (setq asm-code-level-empty-comment-pattern (concat "^[\t ]+" cs cs " *$"))
-    (setq asm-flush-left-empty-comment-pattern (concat "^" cs cs cs " *$"))
-    )
+  (make-local-variable 'comment-start)
+  (setq comment-start (string asm-comment-char ?\ ))
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "\\(?:\\s<+\\|/\\*+\\)[ \t]*")
+  (make-local-variable 'comment-end-skip)
+  (setq comment-end-skip  "[ \t]*\\(\\s>\\|\\*+/\\)")
   (make-local-variable 'comment-end)
   (setq comment-end "")
   (setq fill-prefix "\t")
@@ -171,7 +158,7 @@ Special commands:
   (tab-to-tab-stop)
   )
 
-(defun asm-line-matches (pattern &optional withcomment)
+(defun asm-line-matches (pattern)
   (save-excursion
     (beginning-of-line)
     (looking-at pattern)))
@@ -187,8 +174,7 @@ Special commands:
   (if (bolp)
       nil
     (beginning-of-line)
-    (open-line 1))
-  )
+    (open-line 1)))
 
 
 (defun asm-comment ()
@@ -234,9 +220,7 @@ repeatedly until you are satisfied with the kind of comment."
 
    ;; If all else fails, insert character
    (t
-    (insert asm-comment-char))
-
-   )
+    (insert asm-comment-char)))
   (end-of-line))
 
 (provide 'asm-mode)
