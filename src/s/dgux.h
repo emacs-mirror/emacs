@@ -237,7 +237,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define SYSTEM_MALLOC */
 
 /* MAKING_MAKEFILE must be defined in "ymakefile" before including config.h */
-#ifndef THIS_IS_YMAKEFILE
+#ifndef NOT_C_CODE
 
 /* Make sure signal.h is included so macros below don't mess with it. */
 /* DG/UX include files prevent multiple inclusion. */
@@ -266,10 +266,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern struct sigaction act, oact;
 #define signal(SIG,FUNC) berk_signal(SIG,FUNC)
 
-#else /* THIS_IS_YMAKEFILE */
-/* force gcc to be used */
-CC=gcc
-#endif /* not THIS_IS_YMAKEFILE */
+#endif /* not NOT_C_CODE */
+
+#ifndef __GNUC__
+#error You must use GCC to compiler Emascs on DGUX
+#endif
 
 #define ORDINARY_LINK
 #define START_FILES pre-crt0.o
