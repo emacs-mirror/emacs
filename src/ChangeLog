@@ -1,3 +1,8 @@
+2004-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (mark_object): Only look at Lisp_Misc_Save_Value
+	if GC_MARK_STACK.
+
 2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (Fswitch_to_buffer, Fpop_to_buffer): Doc fixes.
