@@ -269,6 +269,7 @@ struct byte_stack
 struct byte_stack *byte_stack_list;
 
 
+#ifndef BOEHM_GC
 /* Mark objects on byte_stack_list.  Called during GC.  */
 
 void
@@ -336,7 +337,7 @@ unmark_byte_stack ()
 	}
     }
 }
-
+#endif /* BOEHM_GC */
 
 /* Fetch the next byte from the bytecode stream */
 
@@ -370,9 +371,15 @@ unmark_byte_stack ()
 /* Actions that must be performed before and after calling a function
    that might GC.  */
 
-#define BEFORE_POTENTIAL_GC()	stack.top = top
-#define AFTER_POTENTIAL_GC()	stack.top = NULL
+#ifdef BOEHM_GC
+# define BEFORE_POTENTIAL_GC()
+# define AFTER_POTENTIAL_GC()
+#else
+# define BEFORE_POTENTIAL_GC()	stack.top = top
+# define AFTER_POTENTIAL_GC()	stack.top = NULL
+#endif
 
+#ifndef BOEHM_GC
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
 
@@ -384,6 +391,9 @@ unmark_byte_stack ()
       AFTER_POTENTIAL_GC ();			\
     }						\
   else
+#else
+#define MAYBE_GC() 
+#endif /* BOEHM_GC */
 
 /* Check for jumping out of range.  */
 
