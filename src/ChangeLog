@@ -1,5 +1,9 @@
 2001-10-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (move_it_vertically_backward): Use 2/3 line_height
+	instead of 1/2 line_height in the heuristic for skipping 
+	farther backward when target_y was not reached.
+
 	* sound.c (sound_perror): Unblock SIGIO, turn on atimers.
 	Display errno only if non-zero.
 	(sound_warning): New function.
