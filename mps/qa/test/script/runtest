@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.3) $
+# $HopeName: MMQA_harness!script:runtest(trunk.4) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -12,9 +12,15 @@
 # file, "no", "full" for run
 
 sub run_exe {
- local ($exefile, $interact, $report_type) = @_;
+ local ($exefile, $interact, $stdin) = @_;
 
- &log_system($exefile, $interact, $testlogfile);
+ if (! defined $stdin) {
+  $stdin = "STDIN";
+ } else {
+  $stdin = $DATA_DIR."/".$stdin;
+ }
+
+ &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
  &verdict;
 }
@@ -59,7 +65,7 @@ sub run_test {
     die "Compilation failed on test ".$testfile.".\n";
    }
    $testlogfile = "$obj_dir/tmp_log.log";
-   &run_exe($objfile, $interact);
+   &run_exe($objfile, $interact, $test_header{"stdin"});
    &describe_test($report_type);
    last;
   };
@@ -90,7 +96,7 @@ sub run_from_testset {
    &logcomment("Compilation failed on $testfile.");
    $testsetresults{$testfile}="C";
   } else {
-   &run_exe($objfile, "no");
+   &run_exe($objfile, "no", $test_header{"stdin"});
    &describe_test("summary");
    &describe_test("summary", LOG_SUMMARY);
    &describe_test("results", LOG_RESULTS);
