@@ -1667,7 +1667,8 @@ The extension, in a file name, is the part that follows the last `.'."
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
 This is a separate function so you can redefine it for customization."
-  (if (eq system-type 'ms-dos)
+  (if (and (eq system-type 'ms-dos)
+	   (not (msdos-long-file-names)))
       (let ((fn (file-name-nondirectory file)))
 	(concat (file-name-directory file)
 		(or
@@ -1920,7 +1921,8 @@ After saving the buffer, run `after-save-hook'."
 	    ;; Find the temporary name to write under.
 	    (while nogood
 	      (setq tempname (format
-			      (if (eq system-type 'ms-dos)
+			      (if (and (eq system-type 'ms-dos)
+				       (not (msdos-long-file-names)))
 				  "%s#%d.tm#" ; MSDOS limits files to 8+3
 				"%s#tmp#%d")
 			      dir i))
@@ -2419,7 +2421,8 @@ Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
   (if buffer-file-name
-      (if (eq system-type 'ms-dos)
+      (if (and (eq system-type 'ms-dos)
+	       (not (msdos-long-file-names)))
 	  (let ((fn (file-name-nondirectory buffer-file-name)))
 		(string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
 	    (concat (file-name-directory buffer-file-name)
