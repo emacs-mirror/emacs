@@ -1,3 +1,9 @@
+2001-09-11  Eli Zaretskii  <a34785@is.elta.co.il>
+
+	* gud.el (dbx) <gud-dbx-use-stopformat-p>: Move this case into the
+	`t' branch of `cond', since Irix 6.1 and up is a special case of
+	the standard dbx interface.
+
 2001-09-11  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-send-input): When waiting for echoed input,
