@@ -1,3 +1,14 @@
+2000-03-12  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el: Doc fixes.
+	(customize-set-variable, customize-save-variable): Rename args for
+	doc.
+	(custom-variable-tag-face, custom-face-tag-face)
+	(custom-group-tag-face-1, custom-group-tag-face): Modify from
+	style which user identify as hyperlink.
+	(hook): Don't add undefined functions to the hook.
+	(debug-ignored-errors): Transfer message from bindings.el.
+
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* recentf.el (recentf-keep-non-readable-files-p): Remove
