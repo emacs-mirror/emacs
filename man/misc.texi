@@ -1180,7 +1180,7 @@ buffers which still have a client are killed when you are done with
 them, unless they were already present before Emacs Server visited
 them.  This overrides the effect of the @code{server-temp-file-regexp}
 variable.  By default, @code{server-kill-new-buffers} has a non-nil
-value; set it to nil if you want the old behavior giverned by
+value; set it to nil if you want the old behavior governed by
 @code{server-temp-file-regexp}.
 
   If you run @code{emacsclient} with the option @samp{--no-wait}, it

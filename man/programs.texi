@@ -1788,7 +1788,7 @@ entry.
 non-nil, the file's version number is automatically added to change log
 entries.  The search for the file's version number is performed based on
 regular expressions from the variable
-@code{change-log-version-number-regexp-list}, which can be cutsomized
+@code{change-log-version-number-regexp-list}, which can be customized
 (versions of files that are under version control systems are known to
 Emacs through the version-control interface).
 

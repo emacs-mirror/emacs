@@ -131,7 +131,7 @@ By default, @code{scroll-conservatively} is 0.
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively 
-  If you prefer a more aggresive scrolling, customize the values of the
+  If you prefer a more aggressive scrolling, customize the values of the
 variables @code{scroll-up-aggressively} and
 @code{scroll-down-aggressively}.  The value of
 @code{scroll-up-aggressively} should be either nil or a fraction @var{f}
