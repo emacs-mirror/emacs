@@ -53,7 +53,8 @@
 (defface button '((((type pc) (class color))
 		   (:foreground "lightblue"))
 		  (t :underline t))
-  "Default face used for buttons.")
+  "Default face used for buttons."
+  :group 'faces)
 
 ;;;###autoload
 (defvar button-map
