@@ -4151,17 +4151,9 @@ On such systems, Emacs starts a subshell instead of suspending.")
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring, 0);
 
-  /* Run the functions in suspend-hooks.  */
-  tem = Fsymbol_value (intern ("suspend-hooks"));
-  while (CONSP (tem))
-    {
-      Lisp_Object val;
-      GCPRO2 (stuffstring, tem);
-      val = call0 (Fcar (tem));
-      UNGCPRO;
-      tem = Fcdr (tem);
-      if (!EQ (val, Qnil)) return Qnil;
-    }
+  /* Run the functions in suspend-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, intern ("suspend-hook"));
 
   GCPRO1 (stuffstring);
   get_frame_size (&old_width, &old_height);
@@ -4180,8 +4172,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
   if (width != old_width || height != old_height)
     change_frame_size (0, height, width, 0, 0);
 
-  /* Call value of suspend-resume-hook
-     if it is bound and value is non-nil.  */
+  /* Run suspend-resume-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("suspend-resume-hook"));
   
