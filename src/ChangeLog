@@ -1,3 +1,8 @@
+2000-03-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eval.c (Fautoload): Add entry in load-history (if after dump).
+	* lread.c (load-history): Update docstring.
+
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.c (Fvertical_motion): Always use the current buffer.
