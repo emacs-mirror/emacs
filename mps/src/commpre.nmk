@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.3) $
+# $HopeName: MMsrc!commpre.nmk(trunk.4) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -127,7 +127,7 @@ CFDL = /DCONFIG_VAR_DL /Z7
 # "release" variety flags
 # Microsoft documentation is not very clear on the point of using both
 # optimization and debug information
-CFRO = /DCONFIG_VAR_RO /Z7 /O2
+CFRO = /DCONFIG_VAR_RO /DNDEBUG /Z7 /O2
 
 # "cover" variety flags
 CFCV = /DCONFIG_VAR_DP /Z7
