@@ -1,3 +1,8 @@
+2002-09-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacsclient.c (quote_file_name): Quote \n.
+	(main): Print a final \n when needed.
+
 2002-09-03  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (regex_tag_multiline, readline): Never pass pfnote a
