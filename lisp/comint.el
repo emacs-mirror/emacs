@@ -444,41 +444,41 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map [menu-bar completion complete]
     '("Complete Before Point" . comint-dynamic-complete))
   ;; Input history:
-  (define-key comint-mode-map [menu-bar input] 
+  (define-key comint-mode-map [menu-bar inout] 
     (cons "In/Out" (make-sparse-keymap "In/Out")))
-  (define-key comint-mode-map [menu-bar input kill-output]
+  (define-key comint-mode-map [menu-bar inout kill-output]
     '("Kill Current Output Group" . comint-kill-output))
-  (define-key comint-mode-map [menu-bar input next-prompt]
+  (define-key comint-mode-map [menu-bar inout next-prompt]
     '("Forward Output Group" . comint-next-prompt))
-  (define-key comint-mode-map [menu-bar input previous-prompt]
+  (define-key comint-mode-map [menu-bar inout previous-prompt]
     '("Backward Output Group" . comint-previous-prompt))
-  (define-key comint-mode-map [menu-bar input show-maximum-output]
+  (define-key comint-mode-map [menu-bar inout show-maximum-output]
     '("Show Maximum Output" . comint-show-maximum-output))
-  (define-key comint-mode-map [menu-bar input show-output]
+  (define-key comint-mode-map [menu-bar inout show-output]
     '("Show Current Output Group" . comint-show-output))
-  (define-key comint-mode-map [menu-bar input kill-input]
+  (define-key comint-mode-map [menu-bar inout kill-input]
     '("Kill Current Input" . comint-kill-input))
-  (define-key comint-mode-map [menu-bar input copy-input]
+  (define-key comint-mode-map [menu-bar inout copy-input]
     '("Copy Old Input" . comint-copy-old-input))
-  (define-key comint-mode-map [menu-bar input forward-matching-history]
+  (define-key comint-mode-map [menu-bar inout forward-matching-history]
     '("Forward Matching Input..." . comint-forward-matching-input))
-  (define-key comint-mode-map [menu-bar input backward-matching-history]
+  (define-key comint-mode-map [menu-bar inout backward-matching-history]
     '("Backward Matching Input..." . comint-backward-matching-input))
-  (define-key comint-mode-map [menu-bar input next-matching-history]
+  (define-key comint-mode-map [menu-bar inout next-matching-history]
     '("Next Matching Input..." . comint-next-matching-input))
-  (define-key comint-mode-map [menu-bar input previous-matching-history]
+  (define-key comint-mode-map [menu-bar inout previous-matching-history]
     '("Previous Matching Input..." . comint-previous-matching-input))
-  (define-key comint-mode-map [menu-bar input next-matching-history-from-input]
+  (define-key comint-mode-map [menu-bar inout next-matching-history-from-input]
     '("Next Matching Current Input" . comint-next-matching-input-from-input))
-  (define-key comint-mode-map [menu-bar input previous-matching-history-from-input]
+  (define-key comint-mode-map [menu-bar inout previous-matching-history-from-input]
     '("Previous Matching Current Input" . comint-previous-matching-input-from-input))
-  (define-key comint-mode-map [menu-bar input next-history]
+  (define-key comint-mode-map [menu-bar inout next-history]
     '("Next Input" . comint-next-input))
-  (define-key comint-mode-map [menu-bar input previous-history]
+  (define-key comint-mode-map [menu-bar inout previous-history]
     '("Previous Input" . comint-previous-input))
-  (define-key comint-mode-map [menu-bar input list-history]
+  (define-key comint-mode-map [menu-bar inout list-history]
     '("List Input History" . comint-dynamic-list-input-ring))
-  (define-key comint-mode-map [menu-bar input expand-history]
+  (define-key comint-mode-map [menu-bar inout expand-history]
     '("Expand History Before Point" . comint-replace-by-expanded-history))
   ;; Signals
   (define-key comint-mode-map [menu-bar signals]
@@ -496,20 +496,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map [menu-bar signals break]
     '("BREAK" . comint-interrupt-subjob))
   ;; Put them in the menu bar:
-  (setq menu-bar-final-items (append '(completion input output signals)
+  (setq menu-bar-final-items (append '(completion inout signals)
 				     menu-bar-final-items))
   )
-
-
-;;; This function is used to make a full copy of the comint mode map,
-;;; so that client modes won't interfere with each other. This function
-;;; isn't necessary in emacs 18.5x, but we keep it around for 18.4x versions.
-(defun full-copy-sparse-keymap (km)
-  "Recursively copy the sparse keymap KM."
-  (cond ((consp km)
-	 (cons (full-copy-sparse-keymap (car km))
-	       (full-copy-sparse-keymap (cdr km))))
-	(t km)))
 
 (defun comint-check-proc (buffer)
   "Return t if there is a living process associated w/buffer BUFFER.
