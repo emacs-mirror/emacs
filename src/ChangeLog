@@ -1,5 +1,11 @@
 2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term.c (produce_glyphs): Treat characters from the eight-bit-*
+        charsets as unibyte, with 1-column screen width.  Sent by Kenichi
+        Handa.
+
+2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* charset.c (syms_of_charset): Set width of character sets
 	eight-bit-control and eight-bit-graphic to 1 column.
 
