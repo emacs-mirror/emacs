@@ -859,11 +859,15 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
   combined_after_bytes = count_combining_after (string, nbytes, PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  adjusted_nchars = nchars - !!combined_before_bytes - !!combined_after_bytes;
+  /* The combined bytes before all count as one character, because
+     they start with a leading code, but the combined bytes after
+     count as separate characters, because they are all trailing codes.  */
+
+  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
 
   if (prepare)
     prepare_to_modify_buffer (PT - !!combined_before_bytes,
-			      PT + !!combined_after_bytes,
+			      PT + combined_after_bytes,
 			      NULL);
 
   /* Record deletion of the surrounding text that combines with
@@ -874,7 +878,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, 1);
+    record_delete (PT, combined_after_bytes);
 
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
@@ -891,7 +895,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 #endif
 
   GAP_SIZE -= nbytes;
-  GPT += adjusted_nchars;
+  GPT += nchars - !! combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += nbytes;
@@ -903,7 +907,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 			     PT + adjusted_nchars, PT_BYTE + nbytes,
 			     combined_before_bytes, combined_after_bytes,
 			     before_markers);
-  adjust_point (adjusted_nchars + !!combined_after_bytes,
+  adjust_point (adjusted_nchars + combined_after_bytes,
 		nbytes + combined_after_bytes);
 
   if (combined_after_bytes)
@@ -1025,7 +1029,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 			     PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  adjusted_nchars = nchars - !!combined_before_bytes - !!combined_after_bytes;
+  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1035,7 +1039,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, 1);
+    record_delete (PT, combined_after_bytes);
 
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
@@ -1047,7 +1051,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   offset_intervals (current_buffer, PT, adjusted_nchars);
 
   GAP_SIZE -= outgoing_nbytes;
-  GPT += adjusted_nchars;
+  GPT += nchars - !!combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += outgoing_nbytes;
@@ -1068,7 +1072,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   graft_intervals_into_buffer (XSTRING (string)->intervals, PT, nchars,
 			       current_buffer, inherit);
-  adjust_point (adjusted_nchars + !!combined_after_bytes,
+  adjust_point (adjusted_nchars + combined_after_bytes,
 		outgoing_nbytes + combined_after_bytes);
 }
 
@@ -1161,7 +1165,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 			     PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  adjusted_nchars = nchars - !!combined_before_bytes - !!combined_after_bytes;
+  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1171,7 +1175,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, 1);
+    record_delete (PT, combined_after_bytes);
 
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
@@ -1185,7 +1189,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 #endif
 
   GAP_SIZE -= outgoing_nbytes;
-  GPT += adjusted_nchars;
+  GPT += nchars - !!combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += outgoing_nbytes;
@@ -1196,7 +1200,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   adjust_markers_for_insert (PT, PT_BYTE, PT + adjusted_nchars,
 			     PT_BYTE + outgoing_nbytes,
 			     combined_before_bytes, combined_after_bytes, 0);
-  adjust_point (adjusted_nchars + !!combined_after_bytes,
+  adjust_point (adjusted_nchars + combined_after_bytes,
 		outgoing_nbytes + combined_after_bytes);
 
   if (combined_after_bytes)
@@ -1237,10 +1241,10 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte,
      int from, from_byte, to, to_byte, len, len_byte;
      int combined_before_bytes, combined_after_bytes;
 {
-  int adjusted_nchars = len - !!combined_before_bytes - !!combined_after_bytes;
+  int adjusted_nchars = len - !!combined_before_bytes - combined_after_bytes;
   record_insert (from - !!combined_before_bytes, len);
   if (from < PT)
-    adjust_point (len - (to - from) + !!combined_after_bytes,
+    adjust_point (len - (to - from) + combined_after_bytes,
 		  len_byte - (to_byte - from_byte) + combined_after_bytes);
 #ifdef USE_TEXT_PROPERTIES
   offset_intervals (current_buffer, PT, adjusted_nchars - (to - from));
@@ -1359,7 +1363,7 @@ replace_range (from, to, new, prepare, inherit)
 
   /* This is the net amount that Z will increase from this insertion.  */
   adjusted_inschars
-    = inschars - !!combined_before_bytes - !!combined_after_bytes;
+    = inschars - !!combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1369,7 +1373,7 @@ replace_range (from, to, new, prepare, inherit)
      from the buffer and reinsert them.  */
 
   if (combined_after_bytes)
-    record_delete (PT, 1);
+    record_delete (PT, combined_after_bytes);
 
   if (combined_before_bytes)
     record_delete (PT - 1, 1);
@@ -1381,7 +1385,7 @@ replace_range (from, to, new, prepare, inherit)
   /* Relocate point as if it were a marker.  */
   if (from < PT)
     adjust_point ((from + adjusted_inschars - (PT < to ? PT : to)
-		   + !!combined_after_bytes),
+		   + combined_after_bytes),
 		  (from_byte + insbytes
 		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)
 		   + combined_after_bytes));
@@ -1391,7 +1395,7 @@ replace_range (from, to, new, prepare, inherit)
 #endif
 
   GAP_SIZE -= insbytes;
-  GPT += adjusted_inschars;
+  GPT += inschars - !!combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_inschars;
   Z += adjusted_inschars;
   GPT_BYTE += insbytes;
@@ -1418,6 +1422,9 @@ replace_range (from, to, new, prepare, inherit)
 
   if (insbytes == 0)
     evaporate_overlays (from);
+
+  if (combined_after_bytes)
+    move_gap_both (GPT + 1, GPT_BYTE + combined_after_bytes);
 
   MODIFF++;
   UNGCPRO;
