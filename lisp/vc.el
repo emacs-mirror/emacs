@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.292 2000/11/20 14:01:35 spiegel Exp $
+;; $Id: vc.el,v 1.293 2001/01/08 16:23:33 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -69,115 +69,293 @@
 ;;
 ;; Developer's notes on some concurrency issues are included at the end of
 ;; the file.
+;;
+;; ADDING SUPPORT FOR OTHER BACKENDS
+;;
+;; VC can use arbitrary version control systems as a backend.  To add
+;; support for a new backend named SYS, write a library vc-sys.el that
+;; contains functions of the form `vc-sys-...' (note that SYS is in lower
+;; case for the function and library names).  VC will use that library if
+;; you put the symbol SYS somewhere into the list of
+;; `vc-handled-backends'.  Then, for example, if `vc-sys-registered'
+;; returns non-nil for a file, all SYS-specific versions of VC commands
+;; will be available for that file.
+;;
+;; VC keeps some per-file information in the form of properties (see
+;; vc-file-set/getprop in vc-hooks.el).  The backend-specific functions
+;; do not generally need to be aware of these properties.  For example,
+;; `vc-sys-workfile-version' should compute the workfile version and
+;; return it; it should not look it up in the property, and it needn't
+;; store it there either.  However, if a backend-specific function does
+;; store a value in a property, that value takes precedence over any
+;; value that the generic code might want to set (check for uses of 
+;; the macro `with-vc-properties' in vc.el).
+;;
+;; In the list of functions below, each identifier needs to be prepended
+;; with `vc-sys-'.  Some of the functions are mandatory (marked with a
+;; `*'), others are optional (`-').
+;;
+;; STATE-QUERYING FUNCTIONS
+;;
+;; * registered (file)
+;;
+;;   Return non-nil if FILE is registered in this backend.
+;;
+;; * state (file) 
+;;
+;;   Return the current version control state of FILE.  For a list of
+;;   possible values, see `vc-state'.  This function should do a full and
+;;   reliable state computation; it is usually called immediately after
+;;   C-x v v.  If you want to use a faster heuristic when visiting a
+;;   file, put that into `state-heuristic' below.
+;;
+;; - state-heuristic (file)
+;;
+;;   If provided, this function is used to estimate the version control
+;;   state of FILE at visiting time.  It should be considerably faster
+;;   than the implementation of `state'.  For a list of possible values,
+;;   see the doc string of `vc-state'.
+;;
+;; - dir-state (dir)
+;;
+;;   If provided, this function is used to find the version control state
+;;   of all files in DIR in a fast way.  The function should not return
+;;   anything, but rather store the files' states into the corresponding
+;;   `vc-state' properties.
+;;
+;; * workfile-version (file)
+;;
+;;   Return the current workfile version of FILE.
+;;
+;; - latest-on-branch-p (file)
+;;
+;;   Return non-nil if the current workfile version of FILE is the latest
+;;   on its branch.  The default implementation always returns t, which
+;;   means that working with non-current versions is not supported by
+;;   default.
+;;
+;; * checkout-model (file)
+;;
+;;   Indicate whether FILE needs to be "checked out" before it can be
+;;   edited.  See `vc-checkout-model' for a list of possible values.
+;;
+;; - workfile-unchanged-p (file)
+;;
+;;   Return non-nil if FILE is unchanged from its current workfile
+;;   version.  This function should do a brief comparison of FILE's
+;;   contents with those of the master version.  If the backend does not
+;;   have such a brief-comparison feature, the default implementation of
+;;   this function can be used, which delegates to a full
+;;   vc-BACKEND-diff.
+;;
+;; - mode-line-string (file)
+;;
+;;   If provided, this function should return the VC-specific mode line
+;;   string for FILE.  The default implementation deals well with all
+;;   states that `vc-state' can return.
+;;
+;; - dired-state-info (file)
+;;
+;;   Translate the `vc-state' property of FILE into a string that can be
+;;   used in a vc-dired buffer.  The default implementation deals well
+;;   with all states that `vc-state' can return.
+;;
+;; STATE-CHANGING FUNCTIONS
+;;
+;; * register (file &optional rev comment)
+;;
+;;   Register FILE in this backend.  Optionally, an initial revision REV
+;;   and an initial description of the file, COMMENT, may be specified.
+;;
+;; - responsible-p (file)
+;;
+;;   Return non-nil if this backend considers itself "responsible" for
+;;   FILE, which can also be a directory.  This function is used to find
+;;   out what backend to use for registration of new files and for things
+;;   like change log generation.  The default implementation always
+;;   returns nil.
+;;
+;; - could-register (file)
+;;
+;;   Return non-nil if FILE could be registered under this backend.  The
+;;   default implementation always returns t.
+;;
+;; - receive-file (file rev)
+;;
+;;   Let this backend "receive" a file that is already registered under
+;;   another backend.  The default implementation simply calls `register'
+;;   for FILE, but it can be overridden to do something more specific,
+;;   e.g. keep revision numbers consistent or choose editing modes for
+;;   FILE that resemble those of the other backend.
+;;
+;; - unregister (file)
+;;
+;;   Unregister FILE from this backend.  This is only needed if this
+;;   backend may be used as a "more local" backend for temporary editing.
+;;
+;; * checkin (file rev comment)
+;;
+;;   Commit changes in FILE to this backend.  If REV is non-nil, that
+;;   should become the new revision number.  COMMENT is used as a
+;;   check-in comment.
+;;
+;; * checkout (file &optional editable rev destfile)
+;;
+;;   Check out revision REV of FILE into the working area.  If EDITABLE
+;;   is non-nil, FILE should be writable by the user and if locking is
+;;   used for FILE, a lock should also be set.  If REV is non-nil, that
+;;   is the revision to check out (default is current workfile version);
+;;   if REV is the empty string, that means to check out the head of the
+;;   trunk.  If optional arg DESTFILE is given, it is an alternate
+;;   filename to write the contents to.
+;;
+;; * revert (file)
+;;
+;;   Revert FILE back to the current workfile version.
+;;
+;; - cancel-version (file editable)
+;;
+;;   Cancel the current workfile version of FILE, i.e. remove it from the
+;;   master.  EDITABLE non-nil means that FILE should be writable
+;;   afterwards, and if locking is used for FILE, then a lock should also
+;;   be set.  If this function is not provided, trying to cancel a
+;;   version is caught as an error.
+;;
+;; - merge (file rev1 rev2)
+;;
+;;   Merge the changes between REV1 and REV2 into the current working file.
+;;
+;; - merge-news (file)
+;;
+;;   Merge recent changes from the current branch into FILE.
+;;
+;; - steal-lock (file &optional version)
+;;
+;;   Steal any lock on the current workfile version of FILE, or on
+;;   VERSION if that is provided.  This function is only needed if
+;;   locking is used for files under this backend, and if files can
+;;   indeed be locked by other users.
+;;
+;; HISTORY FUNCTIONS
+;;
+;; * print-log (file)
+;;
+;;   Insert the revision log of FILE into the current buffer.
+;;
+;; - show-log-entry (version)
+;;
+;;   If provided, search the log entry for VERSION in the current buffer,
+;;   and make sure it is displayed in the buffer's window.  The default
+;;   implementation of this function works for RCS-style logs.
+;;
+;; - wash-log (file)
+;;
+;;   Remove all non-comment information from the output of print-log.  The
+;;   default implementation of this function works for RCS-style logs.
+;;
+;; - logentry-check ()
+;;
+;;   If defined, this function is run to find out whether the user
+;;   entered a valid log entry for check-in.  The log entry is in the
+;;   current buffer, and if it is not a valid one, the function should
+;;   throw an error.
+;;
+;; - comment-history (file)
+;;
+;;   Return a string containing all log entries that were made for FILE.
+;;   This is used for transferring a file from one backend to another,
+;;   retaining comment information.  The default implementation of this
+;;   function does this by calling print-log and then wash-log, and
+;;   returning the resulting buffer contents as a string.
+;;
+;; - update-changelog (files)
+;;
+;;   Using recent log entries, create ChangeLog entries for FILES, or for
+;;   all files at or below the default-directory if FILES is nil.  The
+;;   default implementation runs rcs2log, which handles RCS- and
+;;   CVS-style logs.
+;;
+;; * diff (file &optional rev1 rev2)
+;;
+;;   Insert the diff for FILE into the current buffer.  If REV1 and REV2
+;;   are non-nil, report differences from REV1 to REV2.  If REV1 is nil,
+;;   use the current workfile version (as found in the repository) as the
+;;   older version; if REV2 is nil, use the current workfile contents as
+;;   the newer version.  This function should return a status of either 0
+;;   (no differences found), or 1 (either non-empty diff or the diff is
+;;   run asynchronously).
+;;
+;; - annotate-command (file buf rev)
+;;
+;;   If this function is provided, it should produce an annotated version
+;;   of FILE in BUF, relative to version REV.  This is currently only
+;;   implemented for CVS, using the `cvs annotate' command.
+;;
+;; - annotate-difference (point)
+;;
+;;   Only required if `annotate-command' is defined for the backend.
+;;   Return the difference between the age of the line at point and the
+;;   current time.  Return NIL if there is no more comparison to be made
+;;   in the buffer.  Return value as defined for `current-time'.  You can
+;;   safely assume that point is placed at the beginning of each line,
+;;   starting at `point-min'.  The buffer that point is placed in is the
+;;   Annotate output, as defined by the relevant backend.
+;;
+;; SNAPSHOT SYSTEM
+;;
+;; - create-snapshot (dir name branchp)
+;;
+;;   Take a snapshot of the current state of files under DIR and name it
+;;   NAME.  This should make sure that files are up-to-date before
+;;   proceeding with the action.  DIR can also be a file and if BRANCHP
+;;   is specified, NAME should be created as a branch and DIR should be
+;;   checked out under this new branch.  The default implementation does
+;;   not support branches but does a sanity check, a tree traversal and
+;;   for each file calls `assign-name'.
+;;
+;; - assign-name (file name)
+;;
+;;   Give name NAME to the current version of FILE, assuming it is
+;;   up-to-date.  Only used by the default version of `create-snapshot'.
+;;
+;; - retrieve-snapshot (dir name update)
+;;
+;;   Retrieve a named snapshot of all registered files at or below DIR.
+;;   If UPDATE is non-nil, then update buffers of any files in the
+;;   snapshot that are currently visited.  The default implementation
+;;   does a sanity check whether there aren't any uncommitted changes at
+;;   or below DIR, and then performs a tree walk, using the `checkout'
+;;   function to retrieve the corresponding versions.
+;;
+;; MISCELLANEOUS
+;;
+;; - make-version-backups-p (file)
+;;
+;;   Return non-nil if unmodified repository versions of FILE should be
+;;   backed up locally.  If this is done, VC can perform `diff' and
+;;   `revert' operations itself, without calling the backend system.  The
+;;   default implementation always returns nil.
+;;
+;; - check-headers ()
+;;
+;;   Return non-nil if the current buffer contains any version headers.
+;;
+;; - clear-headers ()
+;;
+;;   In the current buffer, reset all version headers to their unexpanded
+;;   form.  This function should be provided if the state-querying code
+;;   for this backend uses the version headers to determine the state of
+;;   a file.  This function will then be called whenever VC changes the
+;;   version control state in such a way that the headers would give
+;;   wrong information.
+;;
+;; - rename-file (old new)
+;;
+;;   Rename file OLD to NEW, both in the working area and in the
+;;   repository.  If this function is not provided, the command
+;;   `vc-rename-file' will signal an error.
 
 ;;; Code:
-
-;;;;;;;;;;;;;;;;; Backend-specific functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; For each operation FUN, the backend should provide a function 
-;; vc-BACKEND-FUN.  Operations marked with a `-' instead of a `*' 
-;; are optional.
-
-;;;
-;;; State-querying functions
-;;;
-
-;; * registered (file)
-;; * state (file)
-;; - state-heuristic (file)
-;;     The default behavior delegates to `state'.
-;; - dir-state (dir)
-;; * workfile-version (file)
-;; * latest-on-branch-p (file)
-;; * checkout-model (file)
-;; - workfile-unchanged-p (file)
-;;     Return non-nil if FILE is unchanged from its current workfile version.
-;;     This function should do a brief comparison of FILE's contents
-;;     with those of the master version.  If the backend does not have
-;;     such a brief-comparison feature, the default implementation of this
-;;     function can be used, which delegates to a full vc-BACKEND-diff.
-;; - mode-line-string (file)
-;; - dired-state-info (file)
-
-;;; 
-;;; State-changing functions
-;;;
-
-;; * register (file rev comment)
-;; - responsible-p (file)
-;;     Should also work if FILE is a directory (ends with a slash).
-;; - could-register (file)
-;; - receive-file (file rev)
-;; - unregister (file backend)
-;; * checkin (file rev comment)
-;; * checkout (file writable &optional rev destfile)
-;;     Checkout revision REV of FILE into DESTFILE.
-;;     DESTFILE defaults to FILE.
-;;     The file should be made writable if WRITABLE is non-nil.
-;;     REV can be nil (BASE) or "" (HEAD) or any other revision.
-;; * revert (file)
-;; - cancel-version (file writable)
-;; - merge (file rev1 rev2)
-;; - merge-news (file)
-;;     Only needed if state `needs-merge' is possible.
-;; - steal-lock (file &optional version)
-;;     Only required if files can be locked by somebody else.
-
-;;;
-;;; History functions
-;;;
-
-;; * print-log (file)
-;;     Insert the revision log of FILE into the current buffer.
-;; - show-log-entry (version)
-;; - wash-log (file)
-;;     Remove all non-comment information from the output of print-log
-;; - logentry-check ()
-;; - comment-history (file)
-;; - update-changelog (files)
-;;     Find changelog entries for FILES, or for all files at or below
-;;     the default-directory if FILES is nil.
-;; * diff (file &optional rev1 rev2)
-;;     Insert the diff for FILE into the current buffer.
-;;     REV1 should default to workfile-version.
-;;     REV2 should default to the current workfile
-;;     Return a status of either 0 (i.e. no diff) or 1 (i.e. either non-empty
-;;     diff or the diff is run asynchronously).
-;; - annotate-command (file buf rev)
-;; - annotate-difference (pos)
-;;     Only required if `annotate-command' is defined for the backend.
-
-;;;
-;;; Snapshot system
-;;;
-
-;; - create-snapshot (dir name branchp)
-;;     Take a snapshot of the current state of files under DIR and
-;;     name it NAME.  This should make sure that files are up-to-date
-;;     before proceeding with the action.  DIR can also be a file and
-;;     if BRANCHP is specified, NAME should be created as a branch and
-;;     DIR should be checked out under this new branch.  The default
-;;     behavior does not support branches but does a sanity check, a
-;;     tree traversal and for each file calls `assign-name'.
-;; * assign-name (file name)
-;;     Give name NAME to the current version of FILE, assuming it is
-;;     up-to-date.  Only used by the default version of `create-snapshot'.
-;; - retrieve-snapshot (dir name update)
-;;     Retrieve a named snapshot of all registered files at or below DIR.
-;;     If UPDATE is non-nil, then update buffers of any files in the snapshot
-;;     that are currently visited.
-
-;;;
-;;; Miscellaneous
-;;;
-
-;; - make-version-backups-p (file)
-;; - check-headers ()
-;; - clear-headers ()
-;; - rename-file (old new)
-
-
-;;;;;;;;;;;;;;; End of backend-specific functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'vc-hooks)
 (require 'ring)
@@ -2462,12 +2640,6 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 (defun vc-rename-file (old new)
   "Rename file OLD to NEW, and rename its master file likewise."
   (interactive "fVC rename file: \nFRename to: ")
-  ;; There are several ways of renaming files under CVS 1.3, but they all
-  ;; have serious disadvantages.  See the FAQ (available from think.com in
-  ;; pub/cvs/).  I'd rather send the user an error, than do something he might
-  ;; consider to be wrong.  When the famous, long-awaited rename database is
-  ;; implemented things might change for the better.  This is unlikely to occur
-  ;; until CVS 2.0 is released.  --ceder 1994-01-23 21:27:51
   (let ((oldbuf (get-file-buffer old))
 	(backend (vc-backend old)))
     (unless (or (null backend) (vc-find-backend-function backend 'rename-file))
@@ -2723,16 +2895,6 @@ nil otherwise"
      (setq i (+ i 1)))
    tmp-cons))				; Return the appropriate value
 
-
-;;;; (defun vc-BACKEND-annotate-difference (point) ...)
-;;;;
-;;;;  Return the difference between the age of the line at point and
-;;;;  the current time.  Return NIL if there is no more comparison to
-;;;;  be made in the buffer.  Return value as defined for
-;;;;  `current-time'.  You can safely assume that point is placed at
-;;;;  the beginning of each line, starting at `point-min'.  The buffer
-;;;;  that point is placed in is the Annotate output, as defined by
-;;;;  the relevant backend.
 
 (defun vc-annotate-display (buffer &optional color-map backend)
   "Do the VC-Annotate display in BUFFER using COLOR-MAP.
