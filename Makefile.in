@@ -174,6 +174,7 @@ docdir=@docdir@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+INSTALL_INFO = install-info
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
@@ -341,11 +342,12 @@ install-arch-indep: mkdir
 	(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	 echo "    (normal-top-level-add-subdirs-to-load-path))") \
 	  > ${datadir}/emacs/${version}/site-lisp/subdirs.el
+	chmod a+r ${datadir}/emacs/${version}/site-lisp/subdirs.el
 	-rm -f ${datadir}/emacs/site-lisp/subdirs.el
 	(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	 echo "    (normal-top-level-add-subdirs-to-load-path))") \
 	  > ${datadir}/emacs/site-lisp/subdirs.el
-	-chmod -R a+r ${COPYDESTS}
+	chmod a+r ${datadir}/emacs/site-lisp/subdirs.el
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
@@ -366,19 +368,21 @@ install-arch-indep: mkdir
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
 	  (cd ${infodir};  \
-	   if [ -f dir ]; then \
-	     if [ ! -f dir.old ]; then mv -f dir dir.old; \
-	     else mv -f dir dir.bak; fi; \
+	   if [ -f dir ]; then true; \
+	   else	\
+	     (cd $${thisdir}; \
+	      ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir; \
+	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
-	   (cd $${thisdir}; chmod a+r ${infodir}/dir); \
 	   for f in ccmode* cl* customize* dired-x* ediff* emacs* forms* gnus* info* message* mh-e* reftex* sc* vip* widget*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
-	      chmod a+r ${infodir}/$$f); \
+	      chmod a+r ${infodir}/$$f; \
+	      ${INSTALL_INFO} --info-file=$$f); \
 	   done); \
 	else true; fi
+	-chmod -R a+r ${COPYDESTS} ${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs etags ctags ; do \
@@ -405,6 +409,8 @@ install-strip:
 mkdir: FRC
 	$(srcdir)/mkinstalldirs ${COPYDESTS} ${infodir} ${man1dir} \
 	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
+	  ${datadir}/emacs/site-lisp \
+	  ${datadir}/emacs/${version}/site-lisp \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
 
 ### Delete all the installed files that the `install' target would
