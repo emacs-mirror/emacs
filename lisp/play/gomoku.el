@@ -3,6 +3,7 @@
 ;; Copyright (C) 1988, 1994, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
+;; Maintainer: FSF
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: games
 
@@ -35,8 +36,8 @@
 ;; I have been told that, in "The TRUE Gomoku", some restrictions are made
 ;; about the squares where one may play, or else there is a known forced win
 ;; for the first player. This program has no such restriction, but it does not
-;; know about the forced win, nor do I.	 Furthermore, you probably do not know
-;; it yourself :-).
+;; know about the forced win, nor do I.
+;; See http://renju.nu/r1rulhis.htm for more information.
 
 
 ;; There are two main places where you may want to customize the program: key
@@ -709,6 +710,7 @@ that DVAL has been added on SQUARE."
 ;;;###autoload
 (defun gomoku (&optional n m)
   "Start a Gomoku game between you and Emacs.
+
 If a game is in progress, this command allow you to resume it.
 If optional arguments N and M are given, an N by M board is used.
 If prefix arg is given for N, M is prompted for.
@@ -719,6 +721,10 @@ marks horizontally, vertically or in diagonal.
 
 You play by moving the cursor over the square you choose and hitting
 \\<gomoku-mode-map>\\[gomoku-human-plays].
+
+This program actually plays a simplified or archaic version of the
+Gomoku game, and ought to be upgraded to use the full modern rules.
+
 Use \\[describe-mode] for more info."
   (interactive (if current-prefix-arg
 		   (list (prefix-numeric-value current-prefix-arg)
