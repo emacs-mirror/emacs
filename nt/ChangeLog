@@ -1,5 +1,8 @@
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
+	* INSTALL: Update table of versions of make that are suitable
+	for building Emacs, based on recent feedback.
+
 	* TODO, _emacs, emacs.bat.in, debug.bat.in: Removed.
 
 2001-11-17  Jason Rumney  <jasonr@gnu.org>
