@@ -1331,12 +1331,14 @@ if you wish to pass an empty string as the argument."
   (if buffer-file-name
       (set-buffer-modified-p t)))
 
-(defun write-file (filename)
+(defun write-file (filename &optional confirm)
   "Write current buffer into file FILENAME.
 Makes buffer visit that file, and marks it not modified.
 If the buffer is already visiting a file, you can specify
 a directory name as FILENAME, to write a file of the same
-old name in that directory."
+old name in that directory.
+If optional second arg CONFIRM is non-nil,
+ask for confirmation for overwriting an existing file."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
@@ -1345,7 +1347,8 @@ old name in that directory."
 	   (read-file-name "Write file: "
 			       (cdr (assq 'default-directory
 					  (buffer-local-variables)))
-			       nil nil (buffer-name)))))
+			       nil nil (buffer-name)))
+	 t))
   (or (null filename) (string-equal filename "")
       (progn
 	;; If arg is just a directory,
@@ -1353,9 +1356,10 @@ old name in that directory."
 	(if (and (file-directory-p filename) buffer-file-name)
 	    (setq filename (concat (file-name-as-directory filename)
 				   (file-name-nondirectory buffer-file-name))))
-	(if (file-exists-p filename)
-	    (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
-		(error "Canceled")))
+	(and confirm
+	     (file-exists-p filename)
+	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
+		 (error "Canceled")))
 	(set-visited-file-name filename)))
   (set-buffer-modified-p t)
   (save-buffer))
