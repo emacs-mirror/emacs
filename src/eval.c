@@ -288,7 +288,8 @@ do_debug_on_call (code)
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
   "Eval args until one of them yields non-nil, then return that value.\n\
 The remaining args are not evalled at all.\n\
-If all args return nil, return nil.")
+If all args return nil, return nil.\n\
+usage: (or CONDITIONS ...)")
   (args)
      Lisp_Object args;
 {
@@ -318,7 +319,8 @@ If all args return nil, return nil.")
 DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
   "Eval args until one of them yields nil, then return nil.\n\
 The remaining args are not evalled at all.\n\
-If no arg yields nil, return the last arg's value.")
+If no arg yields nil, return the last arg's value.\n\
+usage: (and CONDITIONS ...)")
   (args)
      Lisp_Object args;
 {
@@ -349,7 +351,8 @@ DEFUN ("if", Fif, Sif, 2, UNEVALLED, 0,
   "If COND yields non-nil, do THEN, else do ELSE...\n\
 Returns the value of THEN or the value of the last of the ELSE's.\n\
 THEN must be one expression, but ELSE... can be zero or more expressions.\n\
-If COND yields nil, and there are no ELSE's, the value is nil.")
+If COND yields nil, and there are no ELSE's, the value is nil.\n\
+usage: (if COND THEN ELSE...)")
   (args)
      Lisp_Object args;
 {
@@ -373,7 +376,8 @@ then the expressions in BODY are evaluated and the last one's\n\
 value is the value of the cond-form.\n\
 If no clause succeeds, cond returns nil.\n\
 If a clause has one element, as in (CONDITION),\n\
-CONDITION's value if non-nil is returned from the cond-form.")
+CONDITION's value if non-nil is returned from the cond-form.\n\
+usage: (cond CLAUSES...)")
   (args)
      Lisp_Object args;
 {
@@ -400,7 +404,8 @@ CONDITION's value if non-nil is returned from the cond-form.")
 }
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
-  "Eval BODY forms sequentially and return value of last one.")
+  "Eval BODY forms sequentially and return value of last one.\n\
+usage: (progn BODY ...)")
   (args)
      Lisp_Object args;
 {
@@ -440,7 +445,8 @@ DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
 DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
   "Eval FIRST and BODY sequentially; value from FIRST.\n\
 The value of FIRST is saved during the evaluation of the remaining args,\n\
-whose values are discarded.")
+whose values are discarded.\n\
+usage: (prog1 FIRST BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -473,7 +479,8 @@ whose values are discarded.")
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
   "Eval X, Y and BODY sequentially; value from Y.\n\
 The value of Y is saved during the evaluation of the remaining args,\n\
-whose values are discarded.")
+whose values are discarded.\n\
+usage: (prog2 X Y BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -512,7 +519,8 @@ The values VAL are expressions; they are evaluated.\n\
 Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.\n\
 The second VAL is not computed until after the first SYM is set, and so on;\n\
 each VAL can use the new value of variables set earlier in the `setq'.\n\
-The return value of the `setq' form is the value of the last VAL.")
+The return value of the `setq' form is the value of the last VAL.\n\
+usage: (setq SYM VAL SYM VAL ...)")
   (args)
      Lisp_Object args;
 {
@@ -540,7 +548,8 @@ The return value of the `setq' form is the value of the last VAL.")
 }
      
 DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
-  "Return the argument, without evaluating it.  `(quote x)' yields `x'.")
+  "Return the argument, without evaluating it.  `(quote x)' yields `x'.\n\
+usage: (quote ARG)")
   (args)
      Lisp_Object args;
 {
@@ -550,7 +559,8 @@ DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
   "Like `quote', but preferred for objects which are functions.\n\
 In byte compilation, `function' causes its argument to be compiled.\n\
-`quote' cannot do that.")
+`quote' cannot do that.\n\
+usage: (function ARG)")
   (args)
      Lisp_Object args;
 {
@@ -629,7 +639,8 @@ interactive_p (exclude_subrs_p)
 DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
   "Define NAME as a function.\n\
 The definition is (lambda ARGLIST [DOCSTRING] BODY...).\n\
-See also the function `interactive'.")
+See also the function `interactive'.\n\
+usage: (defun NAME ARGLIST [DOCSTRING] BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -651,7 +662,8 @@ The definition is (macro lambda ARGLIST [DOCSTRING] BODY...).\n\
 When the macro is called, as in (NAME ARGS...),\n\
 the function (lambda ARGLIST BODY...) is applied to\n\
 the list ARGS... as it appears in the expression,\n\
-and the result should be a form to be evaluated instead of the original.")
+and the result should be a form to be evaluated instead of the original.\n\
+usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -706,7 +718,8 @@ INITVALUE and DOCSTRING are optional.\n\
 If DOCSTRING starts with *, this variable is identified as a user option.\n\
  This means that M-x set-variable recognizes it.\n\
  See also `user-variable-p'.\n\
-If INITVALUE is missing, SYMBOL's value is not set.")
+If INITVALUE is missing, SYMBOL's value is not set.\n\
+usage: (defvar SYMBOL [INITVALUE DOCSTRING])")
   (args)
      Lisp_Object args;
 {
@@ -748,7 +761,8 @@ The intent is that neither programs nor users should ever change this value.\n\
 Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
 If SYMBOL is buffer-local, its default value is what is set;\n\
  buffer-local values are not affected.\n\
-DOCSTRING is optional.")
+DOCSTRING is optional.\n\
+usage: (defconst SYMBOL INITVALUE [DOCSTRING])")
   (args)
      Lisp_Object args;
 {
@@ -813,7 +827,8 @@ DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
 The value of the last form in BODY is returned.\n\
 Each element of VARLIST is a symbol (which is bound to nil)\n\
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
-Each VALUEFORM can refer to the symbols already bound by this VARLIST.")
+Each VALUEFORM can refer to the symbols already bound by this VARLIST.\n\
+usage: (let* VARLIST BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -851,7 +866,8 @@ DEFUN ("let", Flet, Slet, 1, UNEVALLED, 0,
 The value of the last form in BODY is returned.\n\
 Each element of VARLIST is a symbol (which is bound to nil)\n\
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
-All the VALUEFORMs are evalled before any symbols are bound.")
+All the VALUEFORMs are evalled before any symbols are bound.\n\
+usage: (let VARLIST BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -906,7 +922,8 @@ All the VALUEFORMs are evalled before any symbols are bound.")
 DEFUN ("while", Fwhile, Swhile, 1, UNEVALLED, 0,
   "If TEST yields non-nil, eval BODY... and repeat.\n\
 The order of execution is thus TEST, BODY, TEST, BODY and so on\n\
-until TEST returns nil.")
+until TEST returns nil.\n\
+usage: (while TEST BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -1013,7 +1030,8 @@ TAG is evalled to get the tag to use; it must not be nil.\n\
 Then the BODY is executed.\n\
 Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.\n\
 If no throw happens, `catch' returns the value of the last BODY form.\n\
-If a throw happens, it specifies the value to return from `catch'.")
+If a throw happens, it specifies the value to return from `catch'.\n\
+usage: (catch TAG BODY...)")
   (args)
      Lisp_Object args;
 {
@@ -1141,7 +1159,8 @@ DEFUN ("unwind-protect", Funwind_protect, Sunwind_protect, 1, UNEVALLED, 0,
   "Do BODYFORM, protecting with UNWINDFORMS.\n\
 If BODYFORM completes normally, its value is returned\n\
 after executing the UNWINDFORMS.\n\
-If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.")
+If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.\n\
+usage: (unwind-protect BODYFORM UNWINDFORMS...)")
   (args)
      Lisp_Object args;
 {
@@ -1179,7 +1198,8 @@ with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).\n\
 VAR may be nil; then you do not get access to the signal information.\n\
 \n\
 The value of the last BODY form is returned from the condition-case.\n\
-See also the function `signal' for more info.")
+See also the function `signal' for more info.\n\
+usage: (condition-case VAR BODYFORM HANDLERS...)")
   (args)
      Lisp_Object args;
 {
@@ -2119,7 +2139,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
   "Call FUNCTION with our remaining args, using our last arg as list of args.\n\
 Then return the value FUNCTION returns.\n\
-Thus, (apply '+ 1 2 '(3 4)) returns 10.")
+Thus, (apply '+ 1 2 '(3 4)) returns 10.\n\
+usage: (apply FUNCTION &rest ARGUMENTS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2210,7 +2231,8 @@ If the value is a function, it is called with no arguments.\n\
 If it is a list, the elements are called, in order, with no arguments.\n\
 \n\
 To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.")
+not `make-local-variable'.\n\
+usage: (run-hooks &rest HOOKS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2240,7 +2262,8 @@ It is best not to depend on the value return by `run-hook-with-args',\n\
 as that may change.\n\
 \n\
 To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.")
+not `make-local-variable'.\n\
+usage: (run-hook-with-args HOOK &rest ARGS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2258,7 +2281,8 @@ returns a non-nil value.  Then we return that value.\n\
 If all the functions return nil, we return nil.\n\
 \n\
 To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.")
+not `make-local-variable'.\n\
+usage: (run-hook-with-args-until-success HOOK &rest ARGS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2276,7 +2300,8 @@ returns nil.  Then we return nil.\n\
 If all the functions return non-nil, we return non-nil.\n\
 \n\
 To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.")
+not `make-local-variable'.\n\
+usage: (run-hook-with-args-until-failure HOOK &rest ARGS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2603,7 +2628,8 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
   "Call first argument as a function, passing remaining arguments to it.\n\
 Return the value that function returns.\n\
-Thus, (funcall 'cons 'x 'y) returns (x . y).")
+Thus, (funcall 'cons 'x 'y) returns (x . y).\n\
+usage: (funcall FUNCTION &rest ARGUMENTS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
