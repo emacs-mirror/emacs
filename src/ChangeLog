@@ -5,6 +5,8 @@
 	* fontset.c (fontset_font_pattern): Remove unused variable
 	`family_registry'.
 
+	* indent.c (current_column_1): Remove unused variable `prev_col'.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* m/news-risc.h (BROKEN_PROTOTYPES): Defined.
