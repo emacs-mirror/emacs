@@ -48,13 +48,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#ifndef PENDING_OUTPUT_COUNT
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.
    Some s- files override this because their stdio internals differ.  */
 #ifdef __GNU_LIBRARY__
+#undef	PENDING_OUTPUT_COUNT
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
 #else
+#ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif
 #endif
