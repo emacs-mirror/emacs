@@ -266,7 +266,7 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
-install: ${SUBDIR} install-arch-dep install-arch-indep;
+install: ${SUBDIR} install-arch-dep install-arch-indep blessmail;
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
