@@ -342,6 +342,43 @@ unibyte_char_to_multibyte (c)
     }
   return c;
 }
+
+
+/* Convert the multibyte character C to unibyte 8-bit character based
+   on Vnonascii_translation_table or nonascii_insert_offset.  If
+   REV_TBL is non-nil, it should be a reverse table of
+   Vnonascii_translation_table, i.e. what given by:
+     Fchar_table_extra_slot (Vnonascii_translation_table, make_number (0))  */
+
+int
+multibyte_char_to_unibyte (c, rev_tbl)
+     int c;
+     Lisp_Object rev_tbl;
+{
+  if (!SINGLE_BYTE_CHAR_P (c))
+    {
+      int c_save = c;
+
+      if (! CHAR_TABLE_P (rev_tbl)
+	  && CHAR_TABLE_P (Vnonascii_translation_table))
+	rev_tbl = Fchar_table_extra_slot (Vnonascii_translation_table,
+					  make_number (0));
+      if (CHAR_TABLE_P (rev_tbl))
+	{
+	  Lisp_Object temp;
+	  temp = Faref (rev_tbl, make_number (c));
+	  if (INTEGERP (temp))
+	    c = XINT (temp);
+	}
+      else if (nonascii_insert_offset > 0)
+	c -= nonascii_insert_offset;
+      if (c < 128 || c >= 256)
+	c = (c_save & 0177) + 0200;
+    }
+
+  return c;
+}
+
 
 /* Update the table Vcharset_table with the given arguments (see the
    document of `define-charset' for the meaning of each argument).
@@ -1648,8 +1685,9 @@ int
 charset_id_internal (charset_name)
      char *charset_name;
 {
-  Lisp_Object val = Fget (intern (charset_name), Qcharset);
+  Lisp_Object val;
 
+  val= Fget (intern (charset_name), Qcharset);
   if (!VECTORP (val))
     error ("Charset %s is not defined", charset_name);
 
@@ -1724,8 +1762,9 @@ init_charset_once ()
   WIDTH_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_22) = 2;
 
   {
-    Lisp_Object val = Qnil;
+    Lisp_Object val;
 
+    val = Qnil;
     for (i = 0x81; i < 0x90; i++)
       val = Fcons (make_number ((i - 0x70) << 7), val);
     for (; i < 0x9A; i++)
