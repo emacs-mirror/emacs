@@ -1,3 +1,7 @@
+2000-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* message.el (message-mode): Doc fix.
+
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* smiley-ems.el (smiley-region): Doc fix.

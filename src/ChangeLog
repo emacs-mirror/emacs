@@ -1,3 +1,11 @@
+2000-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (fast_find_position): Don't overstep the last window
+	row.
+	(IT_note_mouse_highlight): Initialize portion to -1.  Remove
+	unused variable `area'.  When looking for a row under (X,Y), give
+	up if some of the previous rows is not enabled.
+
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (setup_echo_area_for_printing, with_echo_area_buffer): 
