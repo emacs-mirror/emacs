@@ -127,10 +127,7 @@ read_c_string (infile, printflag)
       c = getc (infile);
       if (c != '"')
 	break;
-      if (printflag > 0)
-	putc (c, outfile);
-      else if (printflag < 0)
-	*p++ = c;
+      /* If we had a "", concatenate the two strings.  */
       c = getc (infile);
     }
 
