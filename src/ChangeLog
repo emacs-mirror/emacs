@@ -1,5 +1,10 @@
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (abs): New macro.
+	(double_click_fuzz): New variable.
+	(make_lispy_event): Use it to determine what makes a double-click.
+	(syms_of_keyboard): DEFVAR_INT it.
+
 	* xmenu.c (set_frame_menubar): Take into account that
 	f->menu_bar_vector can be nil, and not a vector.  From Ken Raeburn
 	<raeburn@gnu.org>.
