@@ -282,7 +282,6 @@ Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
 Lisp_Object Qundefined;
-Lisp_Object Qdigit_argument, Qnegative_argument;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
@@ -835,7 +834,7 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
-  clear_prefix_arg ();
+  current_kboard->Vprefix_arg = Qnil;
   cancel_echoing ();
 
   /* Avoid unquittable loop if data contains a circular list.  */
@@ -1190,16 +1189,6 @@ command_loop_1 ()
       last_point_position = PT;
       XSETBUFFER (last_point_position_buffer, prev_buffer);
 
-      /* If we're building a prefix argument, override minus and digits.  */
-      if (current_kboard->prefix_partial && i == 1 && NATNUMP (keybuf[0]))
-	{
-	  if (XFASTINT (keybuf[0]) == '-'
-	      && NILP (current_kboard->prefix_value))
-	    cmd = Qnegative_argument;
-	  else if (XFASTINT (keybuf[0]) >= '0' && XFASTINT (keybuf[0]) <= '9')
-	    cmd = Qdigit_argument;
-	}
-
       /* Execute the command.  */
 
       this_command = cmd;
@@ -1214,15 +1203,11 @@ command_loop_1 ()
 	  bitch_at_user ();
 	  current_kboard->defining_kbd_macro = Qnil;
 	  update_mode_lines = 1;
-	  clear_prefix_arg ();
+	  current_kboard->Vprefix_arg = Qnil;
 	}
       else
 	{
-	  current_prefix_partial = current_kboard->prefix_partial;
-	  if (current_kboard->prefix_partial)
-	    finalize_prefix_arg ();
-
-	  if (NILP (Vprefix_arg) && ! no_direct)
+	  if (NILP (current_kboard->Vprefix_arg) && ! no_direct)
 	    {
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
@@ -1345,7 +1330,7 @@ command_loop_1 ()
 	  /* Here for a command that isn't executed directly */
 
 	  nonundocount = 0;
-	  if (NILP (Vprefix_arg))
+	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
 	  Fcommand_execute (this_command, Qnil);
 
@@ -1369,7 +1354,7 @@ command_loop_1 ()
 	 3) we want to leave this_command_key_count non-zero, so that
 	 read_char will realize that it is re-reading a character, and
 	 not echo it a second time.  */
-      if (NILP (Vprefix_arg) && !current_kboard->prefix_partial)
+      if (NILP (current_kboard->Vprefix_arg))
 	{
 	  last_command = this_command;
 	  cancel_echoing ();
@@ -1390,8 +1375,8 @@ command_loop_1 ()
     finalize:
       /* Install chars successfully executed in kbd macro.  */
 
-      if (!NILP (current_kboard->defining_kbd_macro) && NILP (Vprefix_arg)
-	  && !current_kboard->prefix_partial)
+      if (!NILP (current_kboard->defining_kbd_macro)
+	  && NILP (current_kboard->Vprefix_arg))
 	finalize_kbd_macro_chars ();
 
 #ifdef MULTI_KBOARD
@@ -5983,8 +5968,8 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
   struct backtrace backtrace;
   extern int debug_on_next_call;
 
-  prefixarg = Vprefix_arg;
-  clear_prefix_arg ();
+  prefixarg = current_kboard->Vprefix_arg;
+  current_kboard->Vprefix_arg = Qnil;
   Vcurrent_prefix_arg = prefixarg;
   debug_on_next_call = 0;
 
@@ -6115,7 +6100,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   UNGCPRO;
 
   function = Fintern (function, Qnil);
-  Vprefix_arg = prefixarg;
+  current_kboard->Vprefix_arg = prefixarg;
   this_command = function;
 
   return Fcommand_execute (function, Qt);
@@ -6601,10 +6586,7 @@ void
 init_kboard (kb)
      KBOARD *kb;
 {
-  kb->prefix_factor = Qnil;
-  kb->prefix_value = Qnil;
-  kb->prefix_sign = 1;
-  kb->prefix_partial = 0;
+  kb->Vprefix_arg = Qnil;
   kb->kbd_queue = Qnil;
   kb->kbd_queue_has_data = 0;
   kb->immediate_echo = 0;
@@ -6761,12 +6743,6 @@ syms_of_keyboard ()
 
   Qundefined = intern ("undefined");
   staticpro (&Qundefined);
-
-  Qdigit_argument = intern ("digit-argument");
-  staticpro (&Qdigit_argument);
-
-  Qnegative_argument = intern ("negative-argument");
-  staticpro (&Qnegative_argument);
 
   Qpre_command_hook = intern ("pre-command-hook");
   staticpro (&Qpre_command_hook);
