@@ -38,7 +38,7 @@ however, we have renamed all of those.)
 @item after-change-functions
 @item after-init-hook
 @item after-insert-file-functions
-@item after-make-frame-hook
+@item after-make-frame-functions
 @item after-revert-hook
 @item after-save-hook
 @item auto-fill-function
