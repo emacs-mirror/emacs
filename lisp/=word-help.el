@@ -3,7 +3,7 @@
 ;; Copyright (c) 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: Jens T. Berger Thielemann, <jensthi@ifi.uio.no>
-;; Keywords: help, keyword, languages
+;; Keywords: help, keyword, languages, completion
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package provides a rather general interface for doing keyword
-;; help in most languages.  In short, it'll determine which Texinfo
+;; help in most languages.  In short, it'll determine which TeXinfo
 ;; file which is relevant for the current mode; cache the index and
 ;; use regexps to give you help on the keyword you're looking at.
 
@@ -61,6 +61,16 @@
 ;; to an index topic; press return to accept this.  If not, you may use
 ;; tab-completion to find the topic you're interested in.
 
+;; `word-help' is also able to do symbol completion via the
+;; `word-help-complete' function. Bind this function to C-TAB by
+;; adding the following line to your .emacs file:
+;;
+;;   (global-set-key [?\M-\t] 'word-help-complete)
+;;
+;; Note that some modes automatically override this key; you may
+;; therefore wish to either put the above statement in a hook or
+;; associate the function with an other key.
+
 ;; Usually, `word-help' is able to determine the relevant Texinfo
 ;; file from looking at the buffer's `mode-name'; if not, you can use
 ;; the interactive function `set-help-file' to set this.
@@ -83,6 +93,10 @@
 ;; through the `word-help-mode-alist' variable, which defines an
 ;; `alist' making `set-help-file' able to initialize the necessary
 ;; variable.
+
+;; NOTE: If you have to customize the regexps, it is *CRUCIAL* that
+;; none of your regexps match the empty string! Not adhering to this
+;; restriction will make `word-help' enter an infinite loop.
 
 ;; Contacting the author
 ;; *********************
@@ -114,7 +128,7 @@
 If nil, we will just switch to it.")
 
 (defvar word-help-magic-index t
-"*Non-nil means that the keyword will be searched for in the requested node.
+  "*Non-nil means that the keyword will be searched for in the requested node.
 This is done by determining whether the line the point is positioned
 on after using `Info-goto-node', actually contains the keyword.  If
 not, we will search for the first occurence of the keyword.  This may
@@ -127,17 +141,26 @@ help when the info file isn't correctly indexed.")
 ;;;-------------------------
 
 (defvar word-help-mode-alist
-  '(("autoconf"
+  '(
+    ("autoconf"
      (("autoconf" "Macro Index") ("m4" "Macro index"))
      (("AC_\\([A-Za-z0-9_]+\\)" 1)
-      ("[a-z]+")))
+      ("[a-z]+"))
+     nil
+     nil
+     (("AC_\\([A-Za-z0-9_]+\\)" 1 nil (("^[A-Z_]+$")))
+      ("[a-z_][a-z_]*" 0 nil (("^[a-z_]+$")))))
 
     ("Bison"
      (("bison" "Index")
       ("libc" "Type Index" "Function Index" "Variable Index"))
-     (("%[A-Za-z]+")
-      ("[A-Za-z]+")
-      ("[A-Za-z_][A-Za-z0-9_]+")))
+     (("%[A-Za-z]*")
+      ("[A-Za-z_][A-Za-z0-9_]*"))
+     nil
+     nil
+     (("%[A-Za-z]*" nil nil (("^%")))
+      ("[A-Za-z_][A-Za-z0-9_]*" nil nil (("[A-Za-z_][A-Za-z0-9_]*")))))
+
     ("YACC" . "Bison")
 
     ("C" (("libc" "Type Index" "Function Index" "Variable Index")))
@@ -145,39 +168,72 @@ help when the info file isn't correctly indexed.")
 
     ("Emacs-Lisp"
      (("elisp" "Index"))
-     (("[^][ ()\n\t.\"'#]+")))
+     (("[^][ ()\n\t.\"'#]+"))
+     nil
+     nil
+     lisp-complete-symbol)
 
     ("LaTeX"
      (("latex" "Command Index"))
      (("\\\\\\(begin\\|end\\){\\([^}\n]+\\)}" 2 0)
       ("\\\\[A-Za-z]+")
       ("\\\\[^A-Za-z]")
-      ("[A-Za-z]+")))
+      ("[A-Za-z]+"))
+     nil
+     nil
+     (("\\\\begin{\\([A-Za-z]*\\)" 1 "}" (("^[A-Za-z]+$")))
+      ("\\\\end{\\([A-Za-z]*\\)" 1 "}" (("^[A-Za-z]+$")))
+      ("\\\\renewcommand{\\(\\\\?[A-Za-z]*\\)" 1 "}" (("^\\\\[A-Za-z]+")))
+      ("\\\\renewcommand\\(\\\\?[A-Za-z]*\\)" 1 "" (("^\\\\[A-Za-z]+")))
+      ("\\\\renewenvironment{?\\([A-Za-z]*\\)" 1  "}"(("^[A-Za-z]+$")))
+      ("\\\\[A-Za-z]*" 0 "" (("^\\\\[A-Za-z]+")))))
+
+    ("latex" . "LaTeX")
 
     ("Nroff"
      (("groff" "Macro Index" "Register Index" "Request Index"))
-     ((".[^A-Za-z]")
-      (".[A-Za-z]+")
-      (".\\([A-Za-z]+\\)" 1)))
+     (("\\.[^A-Za-z]")
+      ("\\.[A-Za-z]+")
+      ("\\.\\([A-Za-z]+\\)" 1))
+     nil
+     nil
+     (("\\.[A-Za-z]*" nil nil (("^\\.[A-Za-z]+$")))
+      ("\\.\\([A-Za-z]*\\)" 1 nil (("^[A-Za-z]+$")))))
+
     ("Groff" . "Nroff")
 
-    ("m4" (("m4" "Macro index")))
+   ("m4"
+     (("m4" "Macro index"))
+     (("\\([mM]4_\\)?\\([A-Za-z_][A-Za-z_0-9]*\\)" 2))
+     nil
+     nil
+     (("[mM]4_\\([A-Za-z_]?[A-Za-z_0-9]*\\)" 1)
+      ("[A-Za-z_][A-Za-z_0-9]*")))
 
     ("Makefile"
-     (("make" "Name Index" "Concept Index"))
-     (("\\.[A-Za-z]+")
-      ("\\$[^()]")
-      ("\\$([^()= \t]+)")
-      ("[A-Za-z]+")))
+     (("make" "Name Index"))
+     (("\\.[A-Za-z]+") ;; .SUFFIXES
+      ("\\$[^()]")  ;; $@
+      ("\\$([^A-Za-z].)") ;; $(<@)
+      ("\\$[\(\{]\\([a-zA-Z+]\\)" 1) ;; $(wildcard)
+      ("[A-Za-z]+")) ;; foreach
+     nil
+     nil
+     (("\\.[A-Za-z]*" nil ":" (("^\\.[A-Za-z]+$")))
+      ("\\$(\\([A-Z]*\\)" 1 ")" (("^[A-Z]")))
+      ("[a-z]+" nil nil (("^[a-z]+$")))))
 
     ("Perl"
      (("perl" "Variable Index" "Function Index"))
-     (("\\$[^A-Za-z^]")
-      ("\\$\\^[A-Za-z]?")
-      ("\\$[A-Za-z][A-Za-z_0-9]+")
-      ("[A-Za-z_][A-Za-z_0-9]+"))
+     (("\\$[^A-Za-z^]") ;; $@
+      ("\\$\\^[A-Za-z]?") ;; $^D
+      ("\\$[A-Za-z][A-Za-z_0-9]+") ;; $foobar
+      ("[A-Za-z_][A-Za-z_0-9]+")) ;; dbmopen
      nil
-     (("^\\([^ \t\n]+\\)" 1)))
+     nil
+     (("\\$[A-Za-z]*" nil nil (("^\\$[A-Za-z]+$"))) ;; $variable
+      ("[A-Za-z_][A-Za-z_0-9]*" nil nil
+       (("^[A-Za-z_][A-Za-z_0-9]*$"))))) ;; function
 
     ("Simula" (("simula" "Index")) nil t)
     ("Ifi Simula" . "Simula")
@@ -185,7 +241,10 @@ help when the info file isn't correctly indexed.")
 
     ("Texinfo"
      (("texinfo" "Command and Variable Index"))
-     (("@\\([A-Za-z]+\\)" 1)))
+     (("@\\([A-Za-z]+\\)" 1))
+     nil
+     nil
+     (("@\\([A-Za-z]*\\)" 1)))
 
     )
   "Assoc list between `mode-name' and Texinfo files.
@@ -193,7 +252,8 @@ The variable should be initialized with a list of elements with the
 following form:
 
 \(mode-name (word-help-info-files) (word-help-keyword-regexps)
-	   word-help-ignore-case word-help-index-mapper)
+	   word-help-ignore-case word-help-index-mapper
+           word-help-complete-list)
 
 where `word-help-info-files', `word-help-keyword-regexps' and so
 forth of course are the values which should be put in these variables
@@ -235,7 +295,7 @@ defining recursive aliases.")
 (make-variable-buffer-local 'word-help-ignore-case)
 
 (defvar word-help-info-files nil
-"List of infofiles with respective nodes for the current mode.
+  "List of info files with respective nodes, for the current mode.
 
 This should be a list of the following form:
 
@@ -305,11 +365,43 @@ Perl has index entries of the following form:
 We will thus try to extract the first word in the index entry -
 \"abs\" from \"abs VALUE\", etc.  This is done by the following entry:
 
-\((\"^\\\\([^ \\t\\n]+\\\\)\" 1))")
+\((\"^\\\\([^ \\t\\n]+\\\\)\" 1))
+
+This value is btw. the default one, and works with most Texinfo files")
 (make-variable-buffer-local 'word-help-index-mapper)
+(set-default 'word-help-index-mapper '(("^\\([^ \t\n]+\\)" 1)))
+
+
+(defvar word-help-complete-list nil
+  "Regexps or function to use for completion of symbols.
+The list should have the following format:
+
+  ((REGEXP SUBMATCH TEXT-APPEND (RE-FILTER-1 REG-FILTER-2 ...)
+           :               :             :               :      :
+   (REGEXP SUBMATCH TEXT-APPEND (RE-FILTER-1 REG-FILTER-2 ...))
+
+The two first entries are similar to `word-help-keyword-regexps',
+REGEXP is a regular expression which should match any relevant
+expression, and where SUBMATCH should be used for look up. By
+specifying non-nil REGEXP-FILTERs, we'll only include entries in the
+index which matches the regexp specified.
+
+If the contents of this variable is a symbol of a function, this
+function will be called instead. This is useful for modes providing
+a more intelligent function (like `lisp-complete-symbol' in Emacs Lisp mode).
+
+If you would like to use another function instead, you may.
+
+Non-nil TEXT-APPEND means that this text will be inserted after the
+completion, if we manage to do make a completion.")
+(make-variable-buffer-local 'word-help-complete-list)
+(set-default 'word-help-complete-list '(("[A-Za-z_][A-Za-z_0-9]*")))
+
+;;; Work variables
+
 
 (defvar word-help-main-index nil
-"List of all index entries.
+  "List of all index entries.
 
 See `word-help-process-indexes' for structure formatting.
 
@@ -317,8 +409,14 @@ Minor note: This variable is a list if it is initialized, t if
 initializing failed and nil if uninitialized.")
 (make-variable-buffer-local 'word-help-main-index)
 
+(defvar word-help-complete-index nil
+  "List of regexps for completion, with matching index entries.
+Value is nil if uninitialized, t if initialized but not accessible,
+a list if we're feeling ok.")
+(make-variable-buffer-local 'word-help-complete-index)
+
 (defvar word-help-main-obarray nil
-"Global work variable for `word-help' system.
+  "Global work variable for `word-help' system.
 Do Not mess with this!")
 
 (defvar word-help-history nil
@@ -336,6 +434,9 @@ This means that `word-help-mode-index' can be init'ed faster.")
   "Which mode the help system is bound to for the current mode.")
 (make-variable-buffer-local 'word-help-help-mode)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;; User Functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Debugging
 
@@ -346,14 +447,16 @@ You should only need this when installing new info files, and/or
 adding more Texinfo files to the `word-help' system."
   (interactive)
   (setq word-help-index-alist nil
-	word-help-main-index nil))
+	word-help-main-index nil
+	word-help-info-files nil
+	word-help-complete-index nil))
 
 
 ;;; Changing help file
 
 ;;;###autoload
 (defun set-help-file ()
-  "Change which set of Texinfo files used for word help. 
+  "Change which set of Texinfo files used for word-help.
 
 `word-help' maintains a list over which Texinfo files which are
 relevant for each programming language (`word-help-mode-alist').  It
@@ -361,25 +464,22 @@ usually selects the correct one, based upon the value of `mode-name'.
 If this guess is incorrect, you may also use this function manually to
 instruct future `word-help' calls which Texinfo files to use."
   (interactive)
-  (let (helpfile helpguess (case-comp completion-ignore-case))
+  (let (helpfile helpguess (completion-ignore-case t))
+;; Try to make a guess
     (setq helpguess (cond
 		     (word-help-current-help-file)
 		     ((word-help-guess-help-file))))
-
-    (setq completion-ignore-case t
-          helpfile (completing-read
+;; Ask the user
+    (setq helpfile (completing-read
 		    (if helpguess
 			(format "Select help mode (default %s): " helpguess)
 		      "Select help mode: ")
 		    word-help-mode-alist
 		    nil t nil nil))
-    (setq completion-ignore-case case-comp)
     (if (equal "" helpfile)
 	(setq helpfile helpguess))
     (if helpfile
-	(word-help-switch-help-file helpfile))
-    )
-  )
+	(word-help-switch-help-file helpfile))))
 
 ;;; Main user interface
 
@@ -397,12 +497,10 @@ interactively by the user.
 If the keyword you are looking at is not available in any index, no
 default suggestion will be presented. "
   (interactive)
-  (let (helpguess myguess guess index-info case-store)
+  (let (myguess guess index-info
+		(completion-ignore-case word-help-ignore-case))
 ;; Set necessary variables for later lookup
-    (if (not word-help-info-files)
-	(if (setq helpguess (word-help-guess-help-file))
-	    (word-help-switch-help-file helpguess)
-	  (set-help-file)))
+    (word-help-find-help-file)
 ;; Have we previously cached datas?
     (word-help-process-indexes)
     (if
@@ -416,8 +514,6 @@ default suggestion will be presented. "
 			 (car word-help-main-index)))
 		       word-help-keyword-regexps))
 ;; Ask the user himself
-	(setq case-store completion-ignore-case
-	      completion-ignore-case word-help-ignore-case)
 	(setq guess (completing-read
 					; Format string
 		     (if myguess
@@ -426,7 +522,6 @@ default suggestion will be presented. "
 					; Collection
 		     (car word-help-main-index)
 		     nil t nil 'word-help-history))
-	(setq completion-ignore-case case-store)
 	(if (equal guess "")
 	    (setq guess myguess))
 ;; If we've got anything meaningful to lookup, do so
@@ -437,16 +532,86 @@ default suggestion will be presented. "
 			      word-help-main-index))
 	    (if (not index-info)
 		(message "Oops, I could not find \"%s\" anyway! Bug?" guess)
-	      (word-help-goto-index-node index-info)
-	      )
-	    )
-	)
-    )
-  )
+	      (word-help-goto-index-node (nconc index-info (list guess))))))))
 
-;;; Index mappers
+;;;###autoload
+(defun word-help-complete ()
+  "Perform completion on the symbol preceding the point.
+The determination of which language the keyword belongs to, is based upon
+The relevant info file is selected by matching `mode-name' (the major
+mode) against the assoc list `word-help-mode-alist'.
+
+If this is not possible, `set-help-file' will be invoked for selecting
+the relevant info file.  `set-help-file' may also be invoked
+interactively by the user.
+
+The keywords are extracted from the index of the info file defined for
+this mode, by using the `word-help-complete-list' variable."
+  (interactive)
+  (word-help-make-complete)
+  (cond
+   ((not word-help-complete-index)
+    (message "No completion available for this mode."))
+   ((symbolp word-help-complete-index)
+    (call-interactively word-help-complete-index))
+   ((listp word-help-complete-index)
+    (let ((all-match (word-help-guess-all (point)
+					  word-help-complete-index t))
+	  (completion-ignore-case word-help-ignore-case)
+	  (c-list word-help-complete-index)
+	  c-entry word-match completion completed)
+;; Loop over and try to find a match
+      (while (and all-match (not completed))
+	(setq word-match (car all-match)
+	      c-entry (car c-list)
+	      c-list (cdr c-list)
+	      all-match (cdr all-match))
+;; Check whether the current pattern matched
+	(if word-match
+	    (let ((close (nth 3 c-entry))
+		  (words (nth 4 c-entry)))
+;; Find the maximum completion for this word
+;		(print word-match)
+;		(print c-entry)
+;		(print close)
+	      (setq completion (try-completion word-match words))
+;; Was the match exact
+	      (cond ((eq completion t)
+		     (and close
+			  (not (looking-at (regexp-quote close)))
+			  (insert close))
+		     (setq completed t))
+;; Silently ignore non-matches
+		    ((not completion))
+;; May we complete more unambiguously
+		    ((not (string-equal completion word-match))
+		     (delete-region (- (point) (length word-match))
+				    (point))
+		     (insert completion)
+		     (if (eq t (try-completion completion words))
+			 (progn
+			   (and close
+				(not (looking-at (regexp-quote close)))
+				(insert close))))
+		     (setq completed t))
+		    (t
+		     (message "Making completion list...")
+		     (let ((list (all-completions word-match words nil)))
+		       (setq completed list)
+		       (with-output-to-temp-buffer "*Completions*"
+			 (display-completion-list list)))
+		     (message "Making completion list...done"))))))
+      (if (not completed) (message "No match."))))
+   (t (message "No completion available for this mode."))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;; Index mapping ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defun word-help-map-index-entries (str re-list)
+  "Transform an Info index entry into a programming keyword.
+Uses this by mapping the entries through `word-help-index-mapper'."
   (let ((regexp (car (car re-list)))
 	(subexp (car (cdr (car re-list))))
 	(next (cdr re-list)))
@@ -456,6 +621,9 @@ default suggestion will be presented. "
      (next
       (word-help-map-index-entries str next)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;; Switch mode files ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Mode lookup
 
@@ -483,28 +651,21 @@ Uses `word-help-mode-alist'."
 		       'word-help-info-files
 		       'word-help-keyword-regexps
 		       'word-help-ignore-case
-		       'word-help-index-mapper))))
-	    (setq word-help-main-index nil))))
+		       'word-help-index-mapper
+		       'word-help-complete-list))))
+	    (setq word-help-main-index nil
+		  word-help-complete-index nil))))
 
-;;; Default mapping
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;; Index collection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun word-help-make-default-map (list vars)
-  "Makes a default mapping for `vars', which must be listed in order.
-vars is a list of quoted symbols.  If the nth entry in the list is
-non-nil, the nth variable will be given this value.  If nil, the var
-will be given the global default value."
-  (set (car vars) (cond ((car list)) ((default-value (car vars)))))
-  (if (cdr vars)
-      (word-help-make-default-map (cdr list) (cdr vars))))
-
-
-;;; Index collection
 
 (defun word-help-extract-index (file-name index-list index-map ignore-case)
   "Extract index from filename and the first node name in index list.
 `file-name' is the name of the info file, while `index-list' is a list
 of node-names to search."
-  (let (cmd1 cmdlow nodename ob-array next)
+  (let (cmd1 cmdlow nodename ob-array next (case-fold-search word-help-ignore-case))
     (setq nodename (car index-list))
     (setq ob-array (make-vector 211 0))
     (message "Processing \"%s\" in %s..." nodename file-name)
@@ -541,9 +702,7 @@ is an entry of the form
 	(nodes (cdr info-file)))
     (nconc (list file) (word-help-extract-index file nodes
 						   word-help-index-mapper
-                                                   word-help-ignore-case))
-    )
-  )
+                                                   word-help-ignore-case))))
 
 (defun word-help-process-indexes ()
   "Process all the entries in the global variable `word-help-info-files'.
@@ -588,8 +747,60 @@ This structure is then later searched by `word-help-find-index-node'."
 						 word-help-index-alist)))
 	  (t (setq word-help-main-index t))))))
 
+(defun word-help-find-help-file ()
+  "Tries to find and set a relevant help file for the current mode."
+  (let (helpguess)
+    (if (not word-help-info-files)
+	(if (setq helpguess (word-help-guess-help-file))
+	    (word-help-switch-help-file helpguess)
+	  (set-help-file)))))
 
-;;; Keyword lookup
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;; Keyword guess ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun word-help-guess-all (cur-point re-list
+			    &optional copy-to-point)
+  "Guesses *all* keywords the user possibly may be looking at.
+Returns a list of all possible keywords. "
+  (let ((regexp (car (car re-list)))
+	(submatch  (cond ((nth 1 (car re-list))) (0)))
+	(cursmatch (cond ((nth 2 (car re-list))) (0)))
+	(guess nil)
+	(next-guess nil)
+	(case-fold-search word-help-ignore-case)
+	(end-point nil))
+    (save-excursion
+      (end-of-line)
+      (setq end-point (point))
+      ;; Start at the beginning
+      (beginning-of-line)
+      (while (and (not guess) (re-search-forward regexp end-point t))
+	;; Look whether the cursor is within the match
+	(if (and (<= (match-beginning cursmatch) cur-point)
+		 (>= (match-end cursmatch) cur-point))
+	    (if (or (not copy-to-point) (<= cur-point (match-end submatch)))
+		(setq guess (buffer-substring (match-beginning submatch)
+					      (if copy-to-point
+						  cur-point
+						(match-end submatch)))))))
+      ;; If we found anything, return it and call ourselves again
+      (if (cdr re-list)
+	  (setq next-guess (word-help-guess-all cur-point (cdr re-list)
+						copy-to-point))))
+    (cons guess next-guess)))
+
+(defun word-help-guess-match (all-match cmd-array)
+  (let ((sym (car all-match)))
+    (cond
+     ((and sym (intern-soft (if word-help-ignore-case
+				(downcase sym)
+			      sym) cmd-array)
+      sym))
+     ((cdr all-match)
+      (word-help-guess-match (cdr all-match) cmd-array)))))
+
 
 (defun word-help-guess (cur-point cmd-array re-list)
   "Guesses what keyword the user is looking at, and returns that.
@@ -597,39 +808,13 @@ CUR-POINT should be the current value of `point', CMD-ARRAY an obarray
 of all the keywords which are defined for the current mode, and
 RE-LIST a list of regexps use for the hunt.  See also
 `word-help-keyword-regexps'."
-  (let (guess pre-guess regexp submatch cursmatch end-point)
-    (setq regexp (car (car re-list))
-	  submatch  (cond ((nth 1 (car re-list))) (0))
-	  cursmatch (cond ((nth 2 (car re-list))) (0)))
-;; Store where the old point was
-    (save-excursion
-      (end-of-line)
-;; We won't accept matches after the line
-      (setq end-point (point))
-;; Start at the beginning
-      (beginning-of-line)
-      (setq guess nil)
-      (while (and (not guess) (re-search-forward regexp end-point t))
-	(setq pre-guess (buffer-substring (match-beginning submatch)
-					  (match-end submatch)))
-;; Look whether the cursor is within the match
-	(if (and (<= (match-beginning cursmatch) cur-point)
-		 (>= (match-end cursmatch) cur-point)
-		 (cond
-		  (cmd-array (intern-soft (if word-help-ignore-case
-					      (downcase pre-guess)
-					       pre-guess) cmd-array))
-		  (t)))
-	    (setq guess pre-guess))
-	)
-;; If we found anything, return it, else call ourselves again
-      (cond
-       (guess)
-       ((cdr re-list) (word-help-guess cur-point cmd-array (cdr re-list)))
-       )
-      )
-    )
-  )
+  (let ((all-matches (word-help-guess-all cur-point re-list)))
+;    (print all-matches)
+    (word-help-guess-match all-matches cmd-array)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;	Show node for keyword ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Find an index entry
 
@@ -648,9 +833,7 @@ Returns nil if the entry can't be found."
     (if (intern-soft node-name (car index-reg))
       (setq file-info (word-help-index-search-file node-name
 						      (cdr index-reg))))
-    file-info
-    )
-  )
+    file-info))
 
 (defun word-help-index-search-file (entry file-data)
   "Searches a cached file for the index-entry `entry'."
@@ -663,10 +846,7 @@ Returns nil if the entry can't be found."
     (cond
      (node
       (cons file-name node))
-     (next-files (word-help-index-search-file entry next-files))
-     )
-    )
-  )
+     (next-files (word-help-index-search-file entry next-files)))))
 
 (defun word-help-index-search-nodes (entry node-info)
   "Searches a cached list of nodes for the entry `entry'."
@@ -687,30 +867,103 @@ Returns nil if the entry can't be found."
   "Jumps to an index node.
 `index-info' should be a list with the following format:
 
-\(FILE-NAME INDEX-NODE-NAME INDEX-ENTRY)"
+\(FILE-NAME INDEX-NODE-NAME INDEX-ENTRY KEYWORD)"
 
   (let* ((file-name (car index-info))
 	 (node-name (nth 1 index-info))
 	 (entry-name (nth 2 index-info))
-	 (entry-regexp (concat "\\<" (regexp-quote (nth 2 index-info)) "\\>"))
-	 (buffer (current-buffer))
-	 end-point)
+	 (kw-name (nth 3 index-info))
+	 (buffer (current-buffer)))
     (if word-help-split-window
 	(pop-to-buffer nil))
     (Info-goto-node (concat "(" file-name ")" node-name))
     (Info-menu entry-name)
 ;; Do magic keyword search
-    (cond
-     (word-help-magic-index
-      (end-of-line)
-      (setq end-point (point))
-      (beginning-of-line)
-      (cond
-       ((not (re-search-forward entry-regexp end-point t))
-	(re-search-forward entry-regexp)
-	(recenter 0)))))
+    (if word-help-magic-index
+	(let (end-point regs this-re found entry-re)
+	  (setq entry-re (regexp-quote kw-name)
+		regs (list (concat
+			    (if (string-match "^[A-Za-z]" entry-name)
+				"\\<" "")
+			    entry-re
+			    (if (string-match "[A-Za-z]$" entry-name)
+				"\\>" ""))
+			   (concat "[`\"\(]" entry-re)
+			   (concat "^" entry-re
+				   (if (string-match "[A-Za-z]$" entry-name)
+				       "\\>" ""))))
+	  (end-of-line)
+	  (setq end-point (point))
+	  (beginning-of-line)
+	  (if (not (re-search-forward (car regs) end-point t))
+	      (while (and (not found) (car regs))
+		(setq this-re (car regs)
+		      regs (cdr regs)
+		      found (re-search-forward this-re nil t))))
+	(recenter 0)))
     (if word-help-split-window
 	(pop-to-buffer buffer))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Completion ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(defun word-help-extract-matches (from-ob dest-ob re-list)
+  "Takes atoms from from-ob, and puts them in dest-ob if they match re-list."
+  (let ((regexp (car (car re-list))))
+    (mapatoms (lambda (x)
+		(if (or (not regexp) (string-match regexp (symbol-name x)))
+		    (intern (symbol-name x) dest-ob)))
+	      from-ob)
+    (if (cdr re-list)
+	(word-help-extract-matches from-ob dest-ob (cdr re-list))))
+  dest-ob)
+
+(defun word-help-make-complete ()
+  "Generates the `word-help-complete-index'."
+  (if word-help-complete-index
+      nil
+    (word-help-find-help-file)
+    (cond
+     ((symbolp word-help-complete-list)
+      (setq word-help-complete-index word-help-complete-list))
+     (t
+      (word-help-process-indexes)
+      (if (not (atom word-help-main-index))
+	  (let ((from-ob (car word-help-main-index)))
+	    (message "Processing keywords...")
+	    (setq word-help-complete-index
+		  (mapcar
+		   (lambda (cmpl)
+		     (let
+			 ((regexp (car cmpl))
+			  (subm (cond ((nth 1 cmpl)) (0)))
+			  (app (cond ((nth 2 cmpl)) ("")))
+			  (re-list (cond ((nth 3 cmpl)) ('((".")))))
+			  (obarr (make-vector 47 0)))
+		       (list regexp subm subm app
+			     (word-help-extract-matches from-ob obarr
+							re-list))))
+		   word-help-complete-list))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Misc. ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;; Default mapping
+
+(defun word-help-make-default-map (list vars)
+  "Makes a default mapping for `vars', which must be listed in order.
+vars is a list of quoted symbols.  If the nth entry in the list is
+non-nil, the nth variable will be given this value.  If nil, the var
+will be given the global default value."
+  (set (car vars) (cond ((car list)) ((default-value (car vars)))))
+  (if (cdr vars)
+      (word-help-make-default-map (cdr list) (cdr vars))))
 
 (provide 'word-help)
 
