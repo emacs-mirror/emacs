@@ -1,3 +1,9 @@
+2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (src): Make the rule faster by using a single djecho
+	command instead of multiple redir invocations.
+	(install): Speed up by using a command.com's for loop.
+
 2000-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed3v2.inp: Define ALLOCA to an empty string.

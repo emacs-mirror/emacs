@@ -1,3 +1,7 @@
+2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdog.texi (MS-DOS Input): Document msdos-set-mouse-buttons.
+
 2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* trouble.texi (Quitting): Fix last change.
