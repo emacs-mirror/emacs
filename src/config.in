@@ -490,3 +490,17 @@ extern char *getenv ();
 #include <stdlib.h>
 #endif
 #endif
+
+/* Define HAVE_X_I18N if we have usable i18n support.  */
+
+#ifdef HAVE_X11R6
+#define HAVE_X_I18N
+#elif defined HAVE_X11R5 && !defined X11R5_INHIBIT_I18N
+#define HAVE_X_I18N
+#endif
+
+/* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
+
+#if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
+#define HAVE_X11R6_XIM
+#endif
