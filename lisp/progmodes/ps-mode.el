@@ -5,7 +5,7 @@
 ;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1b, 18 Oct 1999
+;; Version:    1.1c, 5 Nov 1999
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1b, 18 Oct 1999")
+(defconst ps-mode-version "1.1c, 5 Nov 1999")
 
 (require 'easymenu)
 
@@ -106,7 +106,8 @@ When the figure is finished these values should be replaced."
 (defcustom ps-mode-print-function 
   '(lambda ()
      (let ((lpr-switches nil)
-	   (lpr-command "lpr"))
+	   (lpr-command (if (memq system-type '(usg-unix-v dgux hpux irix))
+			    "lp" "lpr")))
        (lpr-buffer)))
   "*Lisp function to print current buffer as PostScript."
   :group 'PostScript-edit
