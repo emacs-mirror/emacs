@@ -24,11 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
-#ifdef HAVE_X11R5
-#define HAVE_X_I18N
-#include <X11/Xlocale.h>
-#endif
-
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
@@ -82,6 +77,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    make sure HAVE_X11R4 is defined as well as HAVE_X11R5.  */
 #define HAVE_X11R4
 #endif
+#endif
+
+#ifdef HAVE_X11R5
+#define HAVE_X_I18N
+#include <X11/Xlocale.h>
 #endif
 
 #define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
