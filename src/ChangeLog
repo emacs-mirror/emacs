@@ -1,6 +1,8 @@
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* abbrev.c: Put doc strings in comments.
+	* editfns.c (Fchar_to_string): Make doc string consistent with arguments.
+
+	* abbrev.c, minibuf.c: Put doc strings in comments.
 
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
