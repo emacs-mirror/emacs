@@ -1230,6 +1230,13 @@ START and END specify the portion of the current buffer to be copied."
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
 
+(defvar mark-even-if-inactive nil
+  "*Non-nil means you can use the mark even when inactive.
+This option makes a difference in Transient Mark mode.
+When the option is non-nil, deactivation of the mark
+turns off region highlighting, but commands that use the mark
+behave as if the mark were still active.")
+
 (defun mark (&optional force)
   "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
@@ -1238,7 +1245,7 @@ if there is no mark at all.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
-  (if (or force mark-active)
+  (if (or force mark-active mark-even-if-inactive)
       (marker-position (mark-marker))
     (error "The mark is not currently active")))
 
