@@ -69,6 +69,18 @@ typedef struct {
   Word length;
   Word clock;
   void * p0;
+  double d1;
+  double d2;
+  unsigned u3;
+  unsigned u4;
+  unsigned u5;
+} EventPDDUUUStruct;
+
+typedef struct {
+  Word code;
+  Word length;
+  Word clock;
+  void * p0;
   void * p1;
 } EventPPStruct;
 
@@ -136,18 +148,6 @@ typedef struct {
   Word length;
   Word clock;
   void * p0;
-  unsigned u1;
-  double d2;
-  double d3;
-  unsigned u4;
-  unsigned u5;
-} EventPUDDUUStruct;
-
-typedef struct {
-  Word code;
-  Word length;
-  Word clock;
-  void * p0;
   Word w1;
   void * p2;
 } EventPWPStruct;
@@ -198,6 +198,7 @@ typedef union {
   EventPAAStruct paa;
   EventPAWStruct paw;
   EventPAWAStruct pawa;
+  EventPDDUUUStruct pdduuu;
   EventPPStruct pp;
   EventPPAUStruct ppau;
   EventPPAWPStruct ppawp;
@@ -205,7 +206,6 @@ typedef union {
   EventPPUStruct ppu;
   EventPPWStruct ppw;
   EventPPWAWStruct ppwaw;
-  EventPUDDUUStruct pudduu;
   EventPWPStruct pwp;
   EventPWWStruct pww;
   EventUUPAStruct uupa;
@@ -271,6 +271,19 @@ typedef union {
     Event.pawa.a1 = (_a1); \
     Event.pawa.w2 = (_w2); \
     Event.pawa.a3 = (_a3); \
+    EVENT_END(type, _length); \
+  END
+
+#define EVENT_PDDUUU(type, _p0, _d1, _d2, _u3, _u4, _u5) \
+  BEGIN \
+    size_t _length = sizeof(EventPDDUUUStruct); \
+    EVENT_BEGIN(type, PDDUUU, _length); \
+    Event.pdduuu.p0 = (_p0); \
+    Event.pdduuu.d1 = (_d1); \
+    Event.pdduuu.d2 = (_d2); \
+    Event.pdduuu.u3 = (_u3); \
+    Event.pdduuu.u4 = (_u4); \
+    Event.pdduuu.u5 = (_u5); \
     EVENT_END(type, _length); \
   END
 
@@ -348,19 +361,6 @@ typedef union {
     EVENT_END(type, _length); \
   END
 
-#define EVENT_PUDDUU(type, _p0, _u1, _d2, _d3, _u4, _u5) \
-  BEGIN \
-    size_t _length = sizeof(EventPUDDUUStruct); \
-    EVENT_BEGIN(type, PUDDUU, _length); \
-    Event.pudduu.p0 = (_p0); \
-    Event.pudduu.u1 = (_u1); \
-    Event.pudduu.d2 = (_d2); \
-    Event.pudduu.d3 = (_d3); \
-    Event.pudduu.u4 = (_u4); \
-    Event.pudduu.u5 = (_u5); \
-    EVENT_END(type, _length); \
-  END
-
 #define EVENT_PWP(type, _p0, _w1, _p2) \
   BEGIN \
     size_t _length = sizeof(EventPWPStruct); \
@@ -426,14 +426,14 @@ typedef union {
 #define EventFormatPAA 4
 #define EventFormatPAW 5
 #define EventFormatPAWA 6
-#define EventFormatPP 7
-#define EventFormatPPAU 8
-#define EventFormatPPAWP 9
-#define EventFormatPPP 10
-#define EventFormatPPU 11
-#define EventFormatPPW 12
-#define EventFormatPPWAW 13
-#define EventFormatPUDDUU 14
+#define EventFormatPDDUUU 7
+#define EventFormatPP 8
+#define EventFormatPPAU 9
+#define EventFormatPPAWP 10
+#define EventFormatPPP 11
+#define EventFormatPPU 12
+#define EventFormatPPW 13
+#define EventFormatPPWAW 14
 #define EventFormatPWP 15
 #define EventFormatPWW 16
 #define EventFormatUUPA 17
@@ -449,6 +449,7 @@ typedef union {
 #define EVENT_PAA(type, p0, p1, p2)    NOOP
 #define EVENT_PAW(type, p0, p1, p2)    NOOP
 #define EVENT_PAWA(type, p0, p1, p2, p3)    NOOP
+#define EVENT_PDDUUU(type, p0, p1, p2, p3, p4, p5)    NOOP
 #define EVENT_PP(type, p0, p1)    NOOP
 #define EVENT_PPAU(type, p0, p1, p2, p3)    NOOP
 #define EVENT_PPAWP(type, p0, p1, p2, p3, p4)    NOOP
@@ -456,7 +457,6 @@ typedef union {
 #define EVENT_PPU(type, p0, p1, p2)    NOOP
 #define EVENT_PPW(type, p0, p1, p2)    NOOP
 #define EVENT_PPWAW(type, p0, p1, p2, p3, p4)    NOOP
-#define EVENT_PUDDUU(type, p0, p1, p2, p3, p4, p5)    NOOP
 #define EVENT_PWP(type, p0, p1, p2)    NOOP
 #define EVENT_PWW(type, p0, p1, p2)    NOOP
 #define EVENT_UUPA(type, p0, p1, p2, p3)    NOOP
