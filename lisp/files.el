@@ -4599,7 +4599,7 @@ normally equivalent short `-D' option is just passed on to
 		      (insert " available " available)))))))))))
 
 (defun insert-directory-adj-pos (pos error-lines)
-  "Convert `ls --dird' file name position value POS to a buffer position.
+  "Convert `ls --dired' file name position value POS to a buffer position.
 File name position values returned in ls --dired output
 count only stdout; they don't count the error messages sent to stderr.
 So this function converts to them to real buffer positions.
