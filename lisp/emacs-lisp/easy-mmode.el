@@ -215,7 +215,9 @@ With zero or negative ARG turn mode off.
 			       (symbol-value ',keymap-sym))))
        
        ;; If the mode is global, call the function according to the default.
-       ,(if globalp `(if ,mode (,mode 1))))))
+       ,(if globalp
+	    `(if (and load-file-name ,mode)
+		 (eval-after-load load-file-name '(,mode 1)))))))
 
 ;;;
 ;;; make global minor mode
@@ -412,7 +414,8 @@ ENDFUN should return the end position (with or without moving point)."
 		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
 		 (error ,(format "No next %s" name)))
 	     (goto-char (match-beginning 0))
-	     (when (eq (current-buffer) (window-buffer (selected-window)))
+	     (when (and (eq (current-buffer) (window-buffer (selected-window)))
+			(interactive-p))
 	       (let ((endpt (or (save-excursion
 				  ,(if endfun `(,endfun)
 				     `(re-search-forward ,re nil t 2)))
