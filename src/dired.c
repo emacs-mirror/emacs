@@ -359,17 +359,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    {
-      Lisp_Object args[6];
-
-      args[0] = handler;
-      args[1] = Qdirectory_files;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
+    return call5 (handler, Qdirectory_files, directory,
+                  full, match, nosort);
 
   return directory_files_internal (directory, full, match, nosort, 0, Qnil);
 }
@@ -395,18 +386,8 @@ ID-FORMAT specifies the preferred format of attributes uid and gid, see
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    {
-      Lisp_Object args[7];
-
-      args[0] = handler;
-      args[1] = Qdirectory_files_and_attributes;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      args[6] = id_format;
-      return Ffuncall (7, args);
-    }
+    return call6 (handler, Qdirectory_files_and_attributes,
+                  directory, full, match, nosort, id_format);
 
   return directory_files_internal (directory, full, match, nosort, 1, id_format);
 }
