@@ -6,13 +6,13 @@
 2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm,
-	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm,
-	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm,
-	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm,
-	* toolbar/preferences.pbm, toolbar/print.pbm,
-	* toolbar/right_arrow.pbm, toolbar/save.pbm, toolbar/saveas.pbm,
-	* toolbar/search.pbm, toolbar/spell.pbm, toolbar/undo.pbm,
-	* toolbar/up_arrow.pbm: New conversions from xpm files.
+	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm
+	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm
+	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm
+	* toolbar/preferences.pbm, toolbar/print.pbm, toolbar/right_arrow.pbm
+	* toolbar/save.pbm, toolbar/saveas.pbm, toolbar/search.pbm
+	* toolbar/spell.pbm, toolbar/undo.pbm, toolbar/up_arrow.pbm:
+	New conversions from xpm files.
 
 	* toolbar/README: New file.
 
@@ -746,28 +746,20 @@
 
 2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/close.pbm, toolbar/close.xpm
-	* toolbar/copy.pbm, toolbar/copy.xpm
-	* toolbar/cut.pbm, toolbar/cut.xpm
-	* toolbar/help.pbm, toolbar/help.xpm
-	* toolbar/home.pbm, toolbar/home.xpm
-	* toolbar/index.pbm, toolbar/index.xpm
-	* toolbar/jump_to.pbm, toolbar/jump_to.xpm
-	* toolbar/left_arrow.pbm, toolbar/left_arrow.xpm
-	* toolbar/new.pbm, toolbar/new.xpm
-	* toolbar/open.pbm, toolbar/open.xpm
-	* toolbar/paste.pbm, toolbar/paste.xpm
-	* toolbar/preferences.pbm, toolbar/preferences.xpm
-	* toolbar/print.pbm, toolbar/print.xpm
-	* toolbar/right_arrow.pbm, toolbar/right_arrow.xpm
-	* toolbar/save.pbm, toolbar/save.xpm
-	* toolbar/saveas.pbm, toolbar/saveas.xpm
-	* toolbar/search.pbm, toolbar/search.xpm
-	* toolbar/spell.pbm, toolbar/spell.xpm
-	* toolbar/undo.pbm, toolbar/undo.xpm
-	* toolbar/up_arrow.pbm, toolbar/up_arrow.xpm: New icons from
-	GTK+ version 2.
-
+	* toolbar/close.pbm, toolbar/close.xpm, toolbar/copy.pbm
+	* toolbar/copy.xpm, toolbar/cut.pbm, toolbar/cut.xpm
+	* toolbar/help.pbm, toolbar/help.xpm, toolbar/home.pbm
+	* toolbar/home.xpm, toolbar/index.pbm, toolbar/index.xpm
+	* toolbar/jump_to.pbm, toolbar/jump_to.xpm, toolbar/left_arrow.pbm
+	* toolbar/left_arrow.xpm, toolbar/new.pbm, toolbar/new.xpm
+	* toolbar/open.pbm, toolbar/open.xpm, toolbar/paste.pbm
+	* toolbar/paste.xpm, toolbar/preferences.pbm, toolbar/preferences.xpm
+	* toolbar/print.pbm, toolbar/print.xpm, toolbar/right_arrow.pbm
+	* toolbar/right_arrow.xpm, toolbar/save.pbm, toolbar/save.xpm
+	* toolbar/saveas.pbm, toolbar/saveas.xpm, toolbar/search.pbm
+	* toolbar/search.xpm, toolbar/spell.pbm, toolbar/spell.xpm
+	* toolbar/undo.pbm, toolbar/undo.xpm, toolbar/up_arrow.pbm
+	* toolbar/up_arrow.xpm: New icons from GTK+ version 2.
 
 2004-05-15  Kim F. Storm  <storm@cua.dk>
 
