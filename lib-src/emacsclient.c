@@ -313,6 +313,7 @@ main (argc, argv)
   server.sun_family = AF_UNIX;
 
   {
+    char *dot;
     system_name_length = 32;
 
     while (1)
@@ -328,9 +329,13 @@ main (argc, argv)
 	free (system_name);
 	system_name_length *= 2;
       }
+
+    /* We always use the non-dotted host name, for simplicity.  */
+    dot = index (system_name, '.');
+    if (dot)
+      *dot = '\0';
   }
 
-#ifndef SERVER_HOME_DIR
   {
     int sock_status = 0;
 
@@ -387,16 +392,6 @@ main (argc, argv)
 	 break;
        }
   }
-#else
-  if ((homedir = getenv ("HOME")) == NULL)
-    {
-      fprintf (stderr, "%s: No home directory\n", argv[0]);
-      fail (argc, argv);
-    }
-  strcpy (server.sun_path, homedir);
-  strcat (server.sun_path, "/.emacs-server-");
-  strcat (server.sun_path, system_name);
-#endif
 
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
       < 0)

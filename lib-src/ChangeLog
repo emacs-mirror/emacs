@@ -6,6 +6,7 @@
 	(decode_options): Add -e and -d processing.
 	(print_help_and_exit): Update the usage string.
 	(main): Add support for --eval and --display.
+	(main): Always use /tmp and non-qualified hostname.
 
 2002-09-25  Stefan Monnier  <monnier@cs.yale.edu>
 
