@@ -1637,16 +1637,31 @@ All possible translations of the current key and whole possible longer keys
  are shown."
   (interactive)
   (quail-setup-completion-buf)
-  (let ((key quail-current-key)
-	(map (quail-lookup-key quail-current-key)))
+  (let ((win (get-buffer-window quail-completion-buf 'visible))
+	(key quail-current-key)
+	(map (quail-lookup-key quail-current-key))
+	(require-update nil))
     (save-excursion
       (set-buffer quail-completion-buf)
-      (erase-buffer)
-      (insert "Possible completion and corresponding translations are:\n")
-      (quail-completion-1 key map 1)
-      (goto-char (point-min))
-      (display-buffer (current-buffer)))
-      (quail-update-guidance)))
+      (if (and win
+	       (equal key quail-current-key)
+	       (eq last-command 'quail-completion))
+	  ;; The window for Quail completion buffer has already been
+	  ;; shown.  We just scroll it appropriately.
+	  (if (pos-visible-in-window-p (point-max) win)
+	      (set-window-start win (point-min))
+	    (let ((other-window-scroll-buffer quail-completion-buf))
+	      (scroll-other-window)))
+	(setq quail-current-key key)
+	(erase-buffer)
+	(insert "Possible completion and corresponding translations are:\n")
+	(quail-completion-1 key map 1)
+	(goto-char (point-min))
+	(display-buffer (current-buffer))
+	(setq require-update t)))
+    (if require-update
+	(quail-update-guidance)))
+  (setq this-command 'quail-completion))
 
 ;; List all completions of KEY in MAP with indentation INDENT.
 (defun quail-completion-1 (key map indent)
