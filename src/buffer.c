@@ -5856,8 +5856,10 @@ Values are interpreted as follows:
 
   t 		 use the cursor specified for the frame
   nil		 don't display a cursor
-  bar		 display a bar cursor with default width
-  (bar . WIDTH)	 display a bar cursor with width WIDTH
+  bar		 display a vertical bar cursor with default width
+  (bar . WIDTH)	 display a vertical bar cursor with width WIDTH
+  hbar		 display a horisontal bar cursor with default width
+  (hbar . WIDTH) display a horisontal bar cursor with width WIDTH
   ANYTHING ELSE	 display a box cursor.
 
 When the buffer is displayed in a nonselected window,
