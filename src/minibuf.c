@@ -358,6 +358,8 @@ void
 read_minibuf_unwind (data)
      Lisp_Object data;
 {
+  Lisp_Object old_deactivate_mark;
+
   /* We are exiting the minibuffer one way or the other,
      so run the hook.  */
   if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
@@ -369,7 +371,10 @@ read_minibuf_unwind (data)
 
   /* Prevent error in erase-buffer.  */
   current_buffer->read_only = Qnil;
+
+  old_deactivate_mark = Vdeactivate_mark;
   Ferase_buffer ();
+  Vdeactivate_mark = old_deactivate_mark;
 
   /* If this was a recursive minibuffer,
      tie the minibuffer window back to the outer level minibuffer buffer */
