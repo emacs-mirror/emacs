@@ -128,7 +128,7 @@ in the buffer.
 
 Set it to `imenu--sort-by-name' if you want alphabetic sorting.
 
-The function should take two arguments and return T if the first
+The function should take two arguments and return t if the first
 element should come before the second.  The arguments are cons cells;
 \(NAME . POSITION).  Look at `imenu--sort-by-name' for an example."
   :type '(choice (const :tag "No sorting" nil)
@@ -443,10 +443,13 @@ This variable is local in all buffers, once set.")
 ;;;
 ;;; Sort function
 ;;; Sorts the items depending on their index name.
-;;; An item look like (NAME . POSITION).
+;;; An item looks like (NAME . POSITION).
 ;;;
 (defun imenu--sort-by-name (item1 item2)
   (string-lessp (car item1) (car item2)))
+
+(defun imenu--sort-by-position (item1 item2)
+  (< (cdr item1) (cdr item2)))
 
 (defun imenu--relative-position (&optional reverse)
   ;; Support function to calculate relative position in buffer
@@ -814,15 +817,24 @@ PATTERNS."
 				    rest)
 			   (cons (match-string-no-properties index)
 				 beg)))
-			(menu (cdr (assoc menu-title index-alist))))
-		    ;; avoid duplicates from, e.g. cc-mode patterns
-		    (unless (member item menu)
-		      ;; insert the item after the (sub-)menu title
-		      (setcdr (assoc menu-title index-alist)
-			      (cons item menu))))))))
+			;; This is the desired submenu,
+			;; starting with its title (or nil).
+			(menu (assoc menu-title index-alist)))
+		    ;; Insert the item unless it is already present.
+		    (unless (member item (cdr menu))
+		      (setcdr menu
+			      (cons item (cdr menu)))))))))
 	   patterns)
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
+    ;; Sort each submenu by position.
+    ;; This is in case one submenu gets items from two different regexps.
+    (let ((tail index-alist))
+      (while tail
+	(if (listp (car tail))
+	    (setcdr (car tail)
+		    (sort (cdr (car tail)) 'imenu--sort-by-position)))
+	(setq tail (cdr tail))))
     (let ((main-element (assq nil index-alist)))
       (nconc (delq main-element (delq 'dummy index-alist))
 	     (cdr main-element)))))
