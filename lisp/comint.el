@@ -69,8 +69,8 @@
 ;;; m-s     comint-next-matching-input      Next input that matches
 ;;; m-c-l   comint-show-output		    Show last batch of process output
 ;;; return  comint-send-input
-;;; c-a     comint-bol                      Beginning of line; skip prompt
 ;;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff
+;;; c-c c-a comint-bol                      Beginning of line; skip prompt
 ;;; c-c c-u comint-kill-input	    	    ^u
 ;;; c-c c-w backward-kill-word    	    ^w
 ;;; c-c c-c comint-interrupt-subjob 	    ^c
@@ -1315,10 +1315,7 @@ set the hook `comint-input-sender'."
 If prefix argument is given (\\[universal-argument]) the prompt is not skipped. 
 
 The prompt skip is done by skipping text matching the regular expression
-`comint-prompt-regexp', a buffer local variable.
-
-If you don't like this command, bind C-a to `beginning-of-line' 
-in your hook, `comint-mode-hook'."
+`comint-prompt-regexp', a buffer local variable."
   (interactive "P")
   (beginning-of-line)
   (if (null arg) (comint-skip-prompt)))
