@@ -6,7 +6,7 @@
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
 ;; Version: Id: allout.el,v 4.3 1994/05/12 17:43:08 klm Exp ||
-;; Keywords: outline mode
+;; Keywords: outlines
 
 ;; This file is part of GNU Emacs.
 

@@ -5,7 +5,7 @@
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Created: 27 Jan 1994
 ;; Version: foldout.el 1.10 dated 94/05/19 at 17:09:12
-;; Keywords: folding, outline
+;; Keywords: folding, outlines
 
 ;; This file is part of GNU Emacs.
 
