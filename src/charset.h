@@ -110,8 +110,8 @@ enum charset_attr_index
     charset_unify_map,
 
     /* If characters in the charset must be unified Unicode, the value
-       is a char table that maps a character code in the charset to
-       the corresponding Unicode character.  */
+       is a char table that maps a unified Unicode character code to
+       the non-unified character code in the charset.  */
     charset_deunifier,
 
     /* The length of the charset attribute vector.  */
@@ -484,7 +484,9 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 /* 1 iff CHARSET may contain the character C.  */
 #define CHAR_CHARSET_P(c, charset)					 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
-   || (CHARSET_UNIFIED_P (charset)					 \
+   || ((CHARSET_UNIFIED_P (charset)					 \
+	|| (charset)->method == CHARSET_METHOD_SUBSET			 \
+	|| (charset)->method == CHARSET_METHOD_SUPERSET)		 \
        ? encode_char ((charset), (c)) != (charset)->invalid_code	 \
        : (CHARSET_FAST_MAP_REF ((c), (charset)->fast_map)		 \
 	  && ((charset)->method == CHARSET_METHOD_OFFSET		 \
