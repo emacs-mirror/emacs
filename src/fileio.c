@@ -4827,11 +4827,16 @@ This does code conversion according to the value of
   count1 = specpdl_ptr - specpdl;
 
   given_buffer = current_buffer;
-  annotations = build_annotations (start, end);
-  if (current_buffer != given_buffer)
+
+  if (!STRINGP (start))
     {
-      XSETFASTINT (start, BEGV);
-      XSETFASTINT (end, ZV);
+      annotations = build_annotations (start, end);
+
+      if (current_buffer != given_buffer)
+	{
+	  XSETFASTINT (start, BEGV);
+	  XSETFASTINT (end, ZV);
+	}
     }
 
   UNGCPRO;
@@ -4847,12 +4852,15 @@ This does code conversion according to the value of
   Vlast_coding_system_used = coding.symbol;
 
   given_buffer = current_buffer;
-  annotations = build_annotations_2 (start, end,
-				     coding.pre_write_conversion, annotations);
-  if (current_buffer != given_buffer)
+  if (! STRINGP (start))
     {
-      XSETFASTINT (start, BEGV);
-      XSETFASTINT (end, ZV);
+      annotations = build_annotations_2 (start, end,
+					 coding.pre_write_conversion, annotations);
+      if (current_buffer != given_buffer)
+	{
+	  XSETFASTINT (start, BEGV);
+	  XSETFASTINT (end, ZV);
+	}
     }
 
 #ifdef CLASH_DETECTION
