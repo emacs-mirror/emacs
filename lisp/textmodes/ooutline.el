@@ -167,7 +167,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat paragraph-separate "\\|^\\("
 				   outline-regexp "\\)"))
-  (add-hooks 'change-major-mode-hook 'show-all)
+  (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
 (defvar outline-minor-mode-prefix "\C-c"
