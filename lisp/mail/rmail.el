@@ -1266,25 +1266,26 @@ Otherwise, if `rmail-displayed-headers' is non-nil,
 delete all header fields *except* those whose names match that regexp.
 Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
   (if (search-forward "\n\n" nil t)
-      (if (and rmail-displayed-headers (null ignored-headers))
+      (let ((case-fold-search t)
+	    (buffer-read-only nil))
+	(if (and rmail-displayed-headers (null ignored-headers))
+	    (save-restriction
+	      (narrow-to-region (point-min) (point))
+	      (let (lim)
+		(goto-char (point-min))
+		(while (save-excursion
+			 (re-search-forward "\n[^ \t]")
+			 (and (not (eobp))
+			      (setq lim (1- (point)))))
+		  (if (save-excursion
+			(re-search-forward rmail-displayed-headers lim t))
+		      (goto-char lim)
+		    (delete-region (point) lim))))
+	      (goto-char (point-min)))
+	  (or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	  (save-restriction
 	    (narrow-to-region (point-min) (point))
-	    (let ((buffer-read-only nil) lim)
-	      (goto-char (point-min))
-	      (while (save-excursion
-		       (re-search-forward "\n[^ \t]")
-		       (and (not (eobp))
-			    (setq lim (1- (point)))))
-		(if (save-excursion
-		      (re-search-forward rmail-displayed-headers lim t))
-		    (goto-char lim)
-		  (delete-region (point) lim))))
-	    (goto-char (point-min)))
-	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
-	(save-restriction
-	  (narrow-to-region (point-min) (point))
-	  (let ((buffer-read-only nil))
-	    (while (let ((case-fold-search t))
+	    (while (progn
 		     (goto-char (point-min))
 		     (re-search-forward ignored-headers nil t))
 	      (beginning-of-line)
