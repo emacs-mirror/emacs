@@ -1,4 +1,4 @@
- ;; C code editing commands for Emacs
+;; C code editing commands for Emacs
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -100,6 +100,13 @@ This is in addition to c-continued-statement-offset.")
      (c-brace-offset               . -4)
      (c-label-offset               . -4)
      (c-continued-statement-offset .  4))
+    (C++
+     (c-indent-level               . 4)
+     (c-continued-statement-offset . 4)
+     (c-brace-offset               . -4)
+     (c-argdecl-indent             . 0)
+     (c-label-offset               . -4)
+     (c-auto-newline               . t))
     ("Whitesmith"
      (c-indent-level               .  4)
      (c-argdecl-indent             .  4)
