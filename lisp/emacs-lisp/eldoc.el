@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.9 1997/02/04 18:21:29 friedman Exp $
+;; $Id: eldoc.el,v 1.10 1997/02/19 10:24:26 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -70,14 +70,14 @@ instead.
 This variable is buffer-local.")
 (make-variable-buffer-local 'eldoc-mode)
 
-(defconst eldoc-idle-delay 0.50
+(defvar eldoc-idle-delay 0.50
   "*Number of seconds of idle time to wait before printing.
 If user input arrives before this interval of time has elapsed after the
 last input, no documentation will be printed.
 
 If this variable is set to 0, no idle time is required.")
 
-(defconst eldoc-minor-mode-string " ElDoc"
+(defvar eldoc-minor-mode-string " ElDoc"
   "*String to display in mode line when Eldoc Mode is enabled.")
 
 ;; Put this minor mode on the global minor-mode-alist.
@@ -86,7 +86,7 @@ If this variable is set to 0, no idle time is required.")
                   (append (default-value 'minor-mode-alist)
                           '((eldoc-mode eldoc-minor-mode-string)))))
 
-(defconst eldoc-argument-case 'upcase
+(defvar eldoc-argument-case 'upcase
   "Case to display argument names of functions, as a symbol.
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
