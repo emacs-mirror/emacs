@@ -52,6 +52,20 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef LISP_FLOAT_TYPE
 
+#if STDC_HEADERS
+#include <float.h>
+#endif
+
+/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*. */
+#ifndef IEEE_FLOATING_POINT
+#if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
+     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
+#define IEEE_FLOATING_POINT 1
+#else
+#define IEEE_FLOATING_POINT 0
+#endif
+#endif
+
 /* Work around a problem that happens because math.h on hpux 7
    defines two static variables--which, in Emacs, are not really static,
    because `static' is defined as nothing.  The problem is that they are
@@ -752,7 +766,7 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 
 	  f1 = FLOATP (arg) ? XFLOAT (arg)->data : XINT (arg);
 	  f2 = (FLOATP (divisor) ? XFLOAT (divisor)->data : XINT (divisor));
-	  if (f2 == 0)
+	  if (! IEEE_FLOATING_POINT && f2 == 0)
 	    Fsignal (Qarith_error, Qnil);
 
 	  IN_FLOAT2 (f1 = floor (f1 / f2), "floor", arg, divisor);
@@ -790,6 +804,25 @@ With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
 }
 
 #ifdef LISP_FLOAT_TYPE
+
+Lisp_Object
+fmod_float (x, y)
+     register Lisp_Object x, y;
+{
+  double f1, f2;
+
+  f1 = FLOATP (x) ? XFLOAT (x)->data : XINT (x);
+  f2 = FLOATP (y) ? XFLOAT (y)->data : XINT (y);
+
+  if (! IEEE_FLOATING_POINT && f2 == 0)
+    Fsignal (Qarith_error, Qnil);
+
+  /* If the "remainder" comes out with the wrong sign, fix it.  */
+  IN_FLOAT2 ((f1 = fmod (f1, f2),
+	      f1 = (f2 < 0 ? f1 > 0 : f1 < 0) ? f1 + f2 : f1),
+	     "mod", x, y);
+  return make_float (f1);
+}
 
 DEFUN ("round", Fround, Sround, 1, 1, 0,
   "Return the nearest integer to ARG.")
