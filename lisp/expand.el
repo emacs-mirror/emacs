@@ -100,8 +100,7 @@
   "Loop var: "
   "for(" str _ @ "=0; " str @ "; " str @ ") {" \n
   @ _ \n
-  "}" >
-  )
+  "}" > \n)
 
 (defconst expand-c-sample-expand-list
   '(("if" "if () {\n \n} else {\n \n}" (5 10 21))
