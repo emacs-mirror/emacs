@@ -1,3 +1,7 @@
+2002-10-06  Dave Love  <fx@gnu.org>
+
+	* international/swedish.el: Don't require latin-1.
+
 2002-10-05  Dave Love  <fx@gnu.org>
 
 	* language/czech.el ("Czech"): 
