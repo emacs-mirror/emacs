@@ -1,3 +1,14 @@
+2002-11-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help-fns.el (describe-variable): Look for (defvar . <sym>) in the
+	load-history since `defvar' now uses this format.
+
+	* custom.el (custom-declare-variable): Use push.
+	Use the (defvar . <sym>) format in load-history like `defvar' does.
+
+	* subr.el (symbol-file): Accept a non-atomic `function' arg.
+	(with-local-quit): Add debug and indentation info.
+
 2002-11-20  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* subr.el (symbol-file): Remove unused variable `functions'.
@@ -8,13 +19,25 @@
 	(custom-deps): Use it.
 	(finder-data): Adjust to that name change.
 
+2002-11-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info):
+	Turn errors into messages so they don't get ignored.
+	(eldoc-get-fnsym-args-string): Use help-split-fundoc.
+	(eldoc-beginning-of-sexp): Simplify.
+	(eldoc-function-arglist): Remove.
+	(eldoc-function-argstring): Use help-function-arglist instead.
+	(eldoc-function-argstring-from-docstring-method-table)
+	(eldoc-function-argstring-from-docstring): Remove.
+
+	* emacs-lisp/cl.el (multiple-value-call): Add docstring.
+
 2002-11-19  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/bytecomp.el (maphash, map-char-table): Use
-	byte-compile-funarg.
+	* emacs-lisp/bytecomp.el (maphash, map-char-table):
+	Use byte-compile-funarg.
 
-	* emacs-lisp/byte-opt.el (side-effect-free-fns): Several
-	additions.
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Several additions.
 
 2002-11-19   Markus Rost  <rost@math.ohio-state.edu>
 
