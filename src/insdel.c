@@ -715,17 +715,13 @@ copy_text (from_addr, to_addr, nbytes,
       while (nbytes > 0)
 	{
 	  int c = *from_addr++;
-	  unsigned char workbuf[4], *str;
-	  int len;
 
 	  if (c < 0400
 	      && (c >= 0240
 		  || (c >= 0200 && !NILP (Vnonascii_translation_table))))
 	    {
 	      c = unibyte_char_to_multibyte (c);
-	      len = CHAR_STRING (c, workbuf, str);
-	      bcopy (str, to_addr, len);
-	      to_addr += len;
+	      to_addr += CHAR_STRING (c, to_addr);
 	      nbytes--;
 	    }
 	  else
@@ -782,6 +778,7 @@ insert (string, nbytes)
       int opoint = PT;
       insert_1 (string, nbytes, 0, 1, 0);
       signal_after_change (opoint, 0, PT - opoint);
+      update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
 
@@ -797,6 +794,7 @@ insert_and_inherit (string, nbytes)
       int opoint = PT;
       insert_1 (string, nbytes, 1, 1, 0);
       signal_after_change (opoint, 0, PT - opoint);
+      update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
 
@@ -806,16 +804,15 @@ void
 insert_char (c)
      int c;
 {
-  unsigned char workbuf[4], *str;
+  unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len;
 
   if (! NILP (current_buffer->enable_multibyte_characters))
-    len = CHAR_STRING (c, workbuf, str);
+    len = CHAR_STRING (c, str);
   else
     {
       len = 1;
-      workbuf[0] = c;
-      str = workbuf;
+      str[0] = c;
     }
 
   insert (str, len);
@@ -846,6 +843,7 @@ insert_before_markers (string, nbytes)
 
       insert_1 (string, nbytes, 0, 1, 1);
       signal_after_change (opoint, 0, PT - opoint);
+      update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
 
@@ -862,6 +860,7 @@ insert_before_markers_and_inherit (string, nbytes)
 
       insert_1 (string, nbytes, 1, 1, 1);
       signal_after_change (opoint, 0, PT - opoint);
+      update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
 
@@ -877,33 +876,6 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 		 inherit, prepare, before_markers);
 }
 
-/* See if the byte sequence at STR1 of length LEN1 combine with the
-   byte sequence at STR2 of length LEN2 to form a single composite
-   character.  If so, return the number of bytes at the start of STR2
-   which combine in this way.  Otherwise, return 0.  If STR3 is not
-   NULL, it is a byte sequence of length LEN3 to be appended to STR1
-   before checking the combining.  */
-int
-count_combining_composition (str1, len1, str2, len2, str3, len3)
-     unsigned char *str1, *str2, *str3;
-     int len1, len2, len3;
-{
-  int len = len1 + len2 + len3;
-  unsigned char *buf = (unsigned char *) alloca (len + 1);
-  int bytes;
-
-  bcopy (str1, buf, len1);
-  if (str3)
-    {
-      bcopy (str3, buf + len1, len3);
-      len1 += len3;
-    }
-  bcopy (str2, buf + len1 , len2);
-  buf[len] = 0;
-  PARSE_MULTIBYTE_SEQ (buf, len, bytes);
-  return (bytes <= len1 ? 0 : bytes - len1);
-}
-
 /* See if the bytes before POS/POS_BYTE combine with bytes
    at the start of STRING to form a single character.
    If so, return the number of bytes at the start of STRING
@@ -934,10 +906,6 @@ count_combining_before (string, length, pos, pos_byte)
   while (! CHAR_HEAD_P (*p)) p--, len++;
   if (! BASE_LEADING_CODE_P (*p)) /* case (3) */
     return 0;
-
-  /* A sequence of a composite character requires a special handling.  */
-  if (*p == LEADING_CODE_COMPOSITION)
-    return count_combining_composition (p, len, string, length, NULL, 0);
 
   combining_bytes = BYTES_BY_CHAR_HEAD (*p) - len;
   if (combining_bytes <= 0)
@@ -1003,11 +971,7 @@ count_combining_after (string, length, pos, pos_byte)
 	i--;
       if (i < 0 || !BASE_LEADING_CODE_P (p[i]))
 	return 0;
-      /* A sequence of a composite character requires a special handling.  */
-      if (p[i] == LEADING_CODE_COMPOSITION)
-	return count_combining_composition (p + i, pos_byte - 1 - i,
-					    bufp, Z_BYTE - pos_byte,
-					    string, length);
+
       bytes = BYTES_BY_CHAR_HEAD (p[i]);
       return (bytes <= pos_byte - 1 - i + length
 	      ? 0
@@ -1015,10 +979,6 @@ count_combining_after (string, length, pos, pos_byte)
     }
   if (!BASE_LEADING_CODE_P (string[i]))
     return 0;
-  /* A sequence of a composite character requires a special handling.  */
-  if (string[i] == LEADING_CODE_COMPOSITION)
-    return count_combining_composition (string + i, length - i,
-					bufp, Z_BYTE - pos_byte, NULL, 0);
 
   bytes = BYTES_BY_CHAR_HEAD (string[i]) - (length - i);
   bufp++, pos_byte++;
@@ -1227,6 +1187,7 @@ insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
   insert_from_string_1 (string, pos, pos_byte, length, length_byte,
 			inherit, 0);
   signal_after_change (opoint, 0, PT - opoint);
+  update_compositions (opoint, PT, CHECK_BORDER);
 }
 
 /* Like `insert_from_string' except that all markers pointing
@@ -1243,6 +1204,7 @@ insert_from_string_before_markers (string, pos, pos_byte,
   insert_from_string_1 (string, pos, pos_byte, length, length_byte,
 			inherit, 1);
   signal_after_change (opoint, 0, PT - opoint);
+  update_compositions (opoint, PT, CHECK_BORDER);
 }
 
 /* Subroutine of the insertion functions above.  */
@@ -1412,6 +1374,7 @@ insert_from_buffer (buf, charpos, nchars, inherit)
 
   insert_from_buffer_1 (buf, charpos, nchars, inherit);
   signal_after_change (opoint, 0, PT - opoint);
+  update_compositions (opoint, PT, CHECK_BORDER);
 }
 
 static void
@@ -2043,6 +2006,7 @@ replace_range (from, to, new, prepare, inherit, markers)
   UNGCPRO;
 
   signal_after_change (from, nchars_del, GPT - from);
+  update_compositions (from, GPT, CHECK_BORDER);
 }
 
 /* Delete characters in current buffer
@@ -2128,6 +2092,7 @@ del_range_byte (from_byte, to_byte, prepare)
 
   del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
+  update_compositions (from, from, CHECK_HEAD);
 }
 
 /* Like del_range_1, but positions are specified both as charpos
@@ -2166,6 +2131,8 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 
   del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
+  update_compositions (from, from, CHECK_HEAD);
+  update_compositions (from, from, CHECK_HEAD);
 }
 
 /* Delete a range of text, specified both as character positions
@@ -2692,6 +2659,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   record_unwind_protect (Fcombine_after_change_execute_1,
 			 Vcombine_after_change_calls);
   signal_after_change (begpos, endpos - begpos - change, endpos - begpos);
+  update_compositions (begpos, endpos, CHECK_ALL);
 
   return unbind_to (count, Qnil);
 }
