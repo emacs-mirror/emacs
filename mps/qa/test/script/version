@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.13) $
+# $HopeName: MMQA_harness!script:version(trunk.14) $
 # This file should be updated whenever the test harness changes.
 # Edit with care!
 
-$HARNESS_VERSION="3.3.1";
+$HARNESS_VERSION="3.4";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -32,5 +32,6 @@ $HARNESS_VERSION="3.3.1";
 #         improved display of long output and output containing newlines
 #         3.3.1: fix bug in reporting compiler errors when compilation
 #                _succeeds_
+#  3.4 -- Added P= (pathname equality) operator
 #
 
