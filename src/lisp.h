@@ -97,12 +97,6 @@ enum Lisp_Type
     Lisp_Frame,
 #endif
 
-    /* Used when a FILE * value needs to be passed
-       in an argument of type Lisp_Object.
-       You must do *(FILE **) XPNTR(obj) to get the value.
-       The user will never see this data type. */
-    Lisp_Internal_Stream,
-
     /* Used in a symbol value cell when the symbol's value is per-buffer.
        The actual contents are a cons cell which starts a list like this:
        (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
@@ -454,7 +448,6 @@ extern int pure_size;
 #define XSETBOOLFWD(a, b) XSET (a, Lisp_Boolfwd, b)
 #define XSETBUFFER_OBJFWD(a, b) XSET (a, Lisp_Buffer_Objfwd, b)
 #define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
-#define XSETINTERNAL_STREAM(a, b) XSET (a, Lisp_Internal_Stream, b)
 #define XSETINTFWD(a, b) XSET (a, Lisp_Intfwd, b)
 
 #ifdef USE_TEXT_PROPERTIES
@@ -724,7 +717,6 @@ typedef unsigned char UCHAR;
 #define BOOLFWDP(x) (XTYPE ((x)) == Lisp_Boolfwd)
 #define INTFWDP(x) (XTYPE ((x)) == Lisp_Intfwd)
 #define OBJFWDP(x) (XTYPE ((x)) == Lisp_Objfwd)
-#define INTERNAL_STREAMP(x) (XTYPE ((x)) == Lisp_Internal_Stream)
 #define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
 #define BUFFER_OBJFWDP(x) (XTYPE ((x)) == Lisp_Buffer_Objfwd)
