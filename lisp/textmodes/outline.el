@@ -496,21 +496,26 @@ Show the heading too, if it is currently invisible."
 
 (defun hide-region-body (start end)
   "Hide all body lines in the region, but not headings."
-  (save-excursion
-    (save-restriction
-      (narrow-to-region start end)
-      (goto-char (point-min))
-      (if (outline-on-heading-p)
-	  (outline-end-of-heading))
-      (while (not (eobp))
-	(outline-flag-region (point)
-			     (progn (outline-next-preface) (point)) t)
-	(if (not (eobp))
-	    (progn
-	      (forward-char
-	       (if (looking-at "\n\n")
-		   2 1))
-	      (outline-end-of-heading)))))))
+  ;; Nullify the hook to avoid repeated calls to `outline-flag-region'
+  ;; wasting lots of time running `lazy-lock-fontify-after-outline'
+  ;; and run the hook finally.
+  (let (outline-view-change-hook)
+    (save-excursion
+      (save-restriction
+	(narrow-to-region start end)
+	(goto-char (point-min))
+	(if (outline-on-heading-p)
+	    (outline-end-of-heading))
+	(while (not (eobp))
+	  (outline-flag-region (point)
+			       (progn (outline-next-preface) (point)) t)
+	  (if (not (eobp))
+	      (progn
+		(forward-char
+		 (if (looking-at "\n\n")
+		     2 1))
+		(outline-end-of-heading)))))))
+  (run-hooks 'outline-view-change-hook))
 
 (defun show-all ()
   "Show all of the text in the buffer."
@@ -540,31 +545,36 @@ Show the heading too, if it is currently invisible."
   (if (< levels 1)
       (error "Must keep at least one level of headers"))
   (setq levels (1- levels))
-  (save-excursion
-    (goto-char (point-min))
-    ;; Keep advancing to the next top-level heading.
-    (while (or (and (bobp) (outline-on-heading-p))
-	       (outline-next-heading))
-      (let ((end (save-excursion (outline-end-of-subtree) (point))))
-	;; Hide everything under that.
-	(outline-flag-region (point) end t)
-	;; Show the first LEVELS levels under that.
-	(if (> levels 0)
-	    (show-children levels))
-	;; Move to the next, since we already found it.
-	(goto-char end)))))
+  (let (outline-view-change-hook)
+    (save-excursion
+      (goto-char (point-min))
+      ;; Keep advancing to the next top-level heading.
+      (while (or (and (bobp) (outline-on-heading-p))
+		 (outline-next-heading))
+	(let ((end (save-excursion (outline-end-of-subtree) (point))))
+	  ;; Hide everything under that.
+	  (outline-flag-region (point) end t)
+	  ;; Show the first LEVELS levels under that.
+	  (if (> levels 0)
+	      (show-children levels))
+	  ;; Move to the next, since we already found it.
+	  (goto-char end)))))
+  (run-hooks 'outline-view-change-hook))
 
 (defun hide-other ()
   "Hide everything except current body and parent and top-level headings."
   (interactive)
   (hide-sublevels 1)
-  (save-excursion
-    (outline-back-to-heading t)
-    (show-entry)
-    (while (condition-case nil (progn (outline-up-heading 1) t) (error nil))
-      (outline-flag-region (1- (point))
-			   (save-excursion (forward-line 1) (point))
-			   nil))))
+  (let (outline-view-change-hook)
+    (save-excursion
+      (outline-back-to-heading t)
+      (show-entry)
+      (while (condition-case nil (progn (outline-up-heading 1) t)
+	       (error nil))
+	(outline-flag-region (1- (point))
+			     (save-excursion (forward-line 1) (point))
+			     nil))))
+  (run-hooks 'outline-view-change-hook))
 
 (defun outline-flag-subtree (flag)
   (save-excursion
@@ -610,27 +620,29 @@ Default is enough to cause the following heading to appear."
 	      (if (eobp)
 		  1
 		(max 1 (- (funcall outline-level) start-level)))))))
-  (save-excursion
-    (save-restriction
-      (outline-back-to-heading)
-      (setq level (+ level (funcall outline-level)))
-      (narrow-to-region (point)
-			(progn (outline-end-of-subtree)
-			       (if (eobp) (point-max) (1+ (point)))))
-      (goto-char (point-min))
-      (while (and (not (eobp))
-		  (progn
-		    (outline-next-heading)
-		    (not (eobp))))
-	(if (<= (funcall outline-level) level)
-	    (save-excursion
-	      (outline-flag-region (save-excursion
-				     (forward-char -1)
-				     (if (bolp)
-					 (forward-char -1))
-				     (point))
-				   (progn (outline-end-of-heading) (point))
-				   nil)))))))
+  (let (outline-view-change-hook)
+    (save-excursion
+      (save-restriction
+	(outline-back-to-heading)
+	(setq level (+ level (funcall outline-level)))
+	(narrow-to-region (point)
+			  (progn (outline-end-of-subtree)
+				 (if (eobp) (point-max) (1+ (point)))))
+	(goto-char (point-min))
+	(while (and (not (eobp))
+		    (progn
+		      (outline-next-heading)
+		      (not (eobp))))
+	  (if (<= (funcall outline-level) level)
+	      (save-excursion
+		(outline-flag-region (save-excursion
+				       (forward-char -1)
+				       (if (bolp)
+					   (forward-char -1))
+				       (point))
+				     (progn (outline-end-of-heading) (point))
+				     nil)))))))
+  (run-hooks 'outline-view-change-hook))
 
 (defun outline-up-heading (arg)
   "Move to the heading line of which the present line is a subheading.
