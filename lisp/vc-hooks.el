@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.142 2002/07/29 02:40:40 rms Exp $
+;; $Id: vc-hooks.el,v 1.143 2002/08/23 13:23:14 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -34,6 +34,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'vc)
   (require 'cl))
 
 ;; Customization Variables (the rest is in vc.el)
@@ -382,6 +383,21 @@ It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
 
+(defun vc-workfile-unchanged-p (file)
+  "Return non-nil if FILE has not changed since the last checkout."
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (if checkout-time
+        (equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+        unchanged))))
+
+(defun vc-default-workfile-unchanged-p (backend file)
+  "Check if FILE is unchanged by diffing against the master version.
+Return non-nil if FILE is unchanged."
+  (zerop (vc-call diff file (vc-workfile-version file))))
+
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
 If FILE is not registered, this function always returns nil."
@@ -389,8 +405,6 @@ If FILE is not registered, this function always returns nil."
       (if (vc-backend file)
           (vc-file-setprop file 'vc-workfile-version
                            (vc-call workfile-version file)))))
-
-;;; actual version-control code starts here
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
