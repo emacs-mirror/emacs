@@ -619,7 +619,6 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'skeleton-pair-filter)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
-  (make-local-variable 'font-lock-keywords)
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'skeleton-filter)
   (make-local-variable 'skeleton-newline-indent-rigidly)
