@@ -1594,7 +1594,7 @@ When the `track-eol' feature is doing its job, the value is 9999.")
 		     (zerop (forward-line 1)))
 	    (and (zerop (forward-line arg))
 		 (bolp)))
-	  (signal (if (bobp)
+	  (signal (if (< arg 0)
 		      'beginning-of-buffer
 		    'end-of-buffer)
 		  nil))
