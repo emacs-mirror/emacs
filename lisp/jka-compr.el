@@ -661,7 +661,8 @@ There should be no more than seven characters after the final '/'")
 
 (defun jka-compr-handler (operation &rest args)
 
-  (let ((jka-op (intern-soft (symbol-name operation) jka-compr-op-table)))
+  (let ((jka-op (intern-soft (symbol-name operation) jka-compr-op-table))
+	(match-data (match-data)))
 
     (unwind-protect
 	(progn
@@ -674,7 +675,8 @@ There should be no more than seven characters after the final '/'")
 
       (setq file-name-handler-alist
 	    (cons jka-compr-file-name-handler-entry
-		  file-name-handler-alist)))))
+		  file-name-handler-alist))
+      (store-match-data match-data))))
 
   
 (defvar jka-compr-op-table
