@@ -78,7 +78,7 @@ IMAP non-nil means use the IMAP version."
 		  (if imap
 		      (subst-char-in-region p (point) ?, ?/))
 		  (base64-decode-region p (point)))
-		(decode-coding-region p (point) 'utf-16-be)
+		(decode-coding-region p (point) 'utf-16be)
 		(save-excursion
 		  (goto-char p)
 		  (delete-backward-char 1)))))))
@@ -120,7 +120,7 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 	    (save-restriction
 	      ;; encode-coding-region doesn't preserve point
 	      (narrow-to-region p (point))
-	      (encode-coding-region p (point-max) 'utf-16-be)
+	      (encode-coding-region p (point-max) 'utf-16be)
 	      (base64-encode-region p (point-max))
 	      (if imap
 		  (subst-char-in-region p (point-max) ?/ ?,))
