@@ -1461,7 +1461,7 @@ where they were found."
             (lambda () (zerop (buffer-size))))))
 
 ;; Match qualifier functions for tagnames.
-;; XXX these functions assume etags file format.
+;; These functions assume the etags file format defined in etc/ETAGS.EBNF.
 
 ;; This might be a neat idea, but it's too hairy at the moment.
 ;;(defmacro tags-with-syntax (&rest body)
@@ -1478,6 +1478,23 @@ where they were found."
 ;;            ,@body)
 ;;       (set-syntax-table otable))))
 ;;(put 'tags-with-syntax 'edebug-form-spec '(&rest form))
+
+;; exact file name match, i.e. searched tag must match complete file
+;; name including directories parts if there are some.
+(defun tag-exact-file-name-match-p (tag)
+  (and (looking-at ",[0-9\n]")
+       (save-excursion (backward-char (+ 2 (length tag)))
+		       (looking-at "\f\n"))))
+;; file name match as above, but searched tag must match the file
+;; name not including the directories if there are some.
+(defun tag-file-name-match-p (tag)
+  (and (looking-at ",[0-9\n]")
+       (save-excursion (backward-char (1+ (length tag)))
+		       (looking-at "/"))))
+;; this / to detect we are after a directory separator is ok for unix,
+;; is there a variable that contains the regexp for directory separator
+;; on whatever operating system ?
+;; Looks like ms-win will lose here :).
 
 ;; t if point is at a tag line that matches TAG exactly.
 ;; point should be just after a string that matches TAG.
@@ -1502,23 +1519,6 @@ where they were found."
   (and (looking-at "\\b.*\177")
        (save-excursion (backward-char (length tag))
 		       (looking-at "\\b"))))
-
-;; exact file name match, i.e. searched tag must match complete file
-;; name including directories parts if there are some.
-(defun tag-exact-file-name-match-p (tag)
-  (and (looking-at ",[0-9\n]")
-       (save-excursion (backward-char (+ 2 (length tag)))
-		       (looking-at "\f\n"))))
-;; file name match as above, but searched tag must match the file
-;; name not including the directories if there are some.
-(defun tag-file-name-match-p (tag)
-  (and (looking-at ",[0-9\n]")
-       (save-excursion (backward-char (1+ (length tag)))
-		       (looking-at "/"))))
-;; this / to detect we are after a directory separator is ok for unix,
-;; is there a variable that contains the regexp for directory separator
-;; on whatever operating system ?
-;; Looks like ms-win will lose here :).
 
 ;; partial file name match, i.e. searched tag must match a substring
 ;; of the file name (potentially including a directory separator).
