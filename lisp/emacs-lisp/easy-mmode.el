@@ -175,7 +175,9 @@ Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG " (unless togglep "(or if ARG is nil) ") "turn mode on.
 With zero or negative ARG turn mode off.
 \\{%s}") pretty-name keymap-sym))
-	 (interactive (list (or current-prefix-arg (if ,mode 0 1))))
+	 ;; Make no arg by default in an interactive call,
+	 ;; so that repeating the command toggles again.
+	 (interactive)
 	 (setq ,mode
 	       (if arg
 		   (> (prefix-numeric-value arg) 0)
