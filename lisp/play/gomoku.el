@@ -950,7 +950,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-init-display (n m)
   "Display an N by M Gomoku board."
-  (buffer-flush-undo (current-buffer))
+  (buffer-disable-undo (current-buffer))
   (if buffer-read-only (toggle-read-only))
   (erase-buffer)
   (let (string1 string2 string3 string4)
