@@ -2534,10 +2534,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       Vinput_method_previous_message = previous_echo_area_message;
     }
 
-  /* Now wipe the echo area.  */
-  if (!NILP (echo_area_buffer[0]))
-    safe_run_hooks (Qecho_area_clear_hook);
-  clear_message (1, 0);
+  /* Now wipe the echo area, except for help events which do their
+     own stuff with the echo area.  */
+  if (!CONSP (c) || !(EQ (Qhelp_echo, XCAR (c))))
+    {
+      if (!NILP (echo_area_buffer[0]))
+	safe_run_hooks (Qecho_area_clear_hook);
+      clear_message (1, 0);
+    }
 
  reread_for_input_method:
  from_macro:
@@ -2630,21 +2634,27 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  reread_first:
 
   /* Display help if not echoing.  */
-  if (CONSP (c)
-      && EQ (XCAR (c), Qhelp_echo))
+  if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
-      Lisp_Object msg = XCDR (XCDR (c));
+      Lisp_Object msg;
+      
+      msg = XCDR (XCDR (c));
 
       if (!NILP (Vshow_help_function))
 	call1 (Vshow_help_function, msg);
-      else if (!echoing && !MINI_WINDOW_P (XWINDOW (selected_window)))
+      else if (/* Don't overwrite minibuffer contents.  */
+	       !MINI_WINDOW_P (XWINDOW (selected_window))
+	       /* Don't overwrite a keystroke echo.  */
+	       && NILP (echo_message_buffer)
+	       /* Don't overwrite a prompt.  */
+	       && !cursor_in_echo_area)
 	{
 	  if (STRINGP (msg))
 	    message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
 	  else
 	    message (0);
 	}
-      
+
       goto retry;
     }
   
