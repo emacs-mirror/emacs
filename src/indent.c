@@ -417,7 +417,7 @@ struct position val_compute_motion;
 
 	window_width - 1
 	 - (has_vertical_scroll_bars
-	    ? VERTICAL_SCROLL_BAR_WIDTH
+	    ? FRAME_SCROLL_BAR_COLS (XFRAME (window->frame))
 	    : (window_width + window_left != frame_width))
 
 	where
