@@ -1,3 +1,14 @@
+2000-11-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (scroll_bar_windows, scroll_bar_windows_size): New
+	variables.
+	(x_send_scroll_bar_event): Store the window in scroll_bar_windows
+	and store an index in the XClientMessageEvent.  Storing a
+	Lisp_Object or pointer can fail on a 64 bit system, since X only
+	transfers 32 bits.
+	(x_scroll_bar_to_input_event): Get the window from
+	scroll_bar_windows.
+	
 2000-11-20  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (LIBX): Reorder for -lX11 after -lXpm.

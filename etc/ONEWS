@@ -2,7 +2,7 @@ GNU Emacs NEWS -- history of user-visible changes.  1992.
 Copyright (C) 1995 Free Software Foundation, Inc.
 See the end for copying conditions.
 
-For older news, see the file NEWS.4.
+For older news, see the file ONEWS.4.
 
 * Editing Changes in Emacs 19.30.
 
@@ -254,7 +254,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.2 2000/08/17 15:19:41 gerd Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.3 2000/11/02 13:34:50 gerd Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the

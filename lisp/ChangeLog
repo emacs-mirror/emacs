@@ -1,3 +1,8 @@
+2000-11-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (java-keywords): Add MATCH-HIGHLIGHT part for
+	javadoc tags.
+	
 2000-11-20  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el, vc-hooks.el: Undo prev change (moved functions back to
