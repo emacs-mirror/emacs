@@ -288,22 +288,21 @@ the beginning of the paragraph that surrounds or follows point, and
 puts the mark at the end of that paragraph (@pxref{Paragraphs}).  It
 prepares the region so you can indent, case-convert, or kill a whole
 paragraph.  With prefix argument, if the argument's value is positive,
-@kbd{M-h} marks that many paragraphs, the paragraph surrounding point
-plus some following paragraphs.  If the prefix argument is negative,
-@kbd{M-h} also marks that many paragraphs, but the preceding ones
-instead of the following.  (With a positive argument, point is put
-at the beginning and mark at end, with a negative argument, point is
-at end and mark at the beginning.)
+@kbd{M-h} marks that many paragraphs starting with the one surrounding
+point.  If the prefix argument is @minus{}@var{n}, @kbd{M-h} also
+marks @var{n} paragraphs, running back form the one surrounding point.
+In that last case, point moves forward to the end of that paragraph,
+and the mark goes at the start of the region.
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
 mark after, the current (or following) major top-level definition, or
-defun (@pxref{Moving by Defuns}).  @kbd{C-x C-p} (@code{mark-page})
-puts point before the current page, and mark at the end
-(@pxref{Pages}).  The mark goes after the terminating page delimiter
-(to include it in the region), while point goes after the preceding
-page delimiter (to exclude it).  A numeric argument specifies a later
-page (if positive) or an earlier page (if negative) instead of the
-current page.
+defun (@pxref{Moving by Defuns}).  (Currently it only marks one
+defun.)  @kbd{C-x C-p} (@code{mark-page}) puts point before the
+current page, and mark at the end (@pxref{Pages}).  The mark goes
+after the terminating page delimiter (to include it in the region),
+while point goes after the preceding page delimiter (to exclude it).
+A numeric argument specifies a later page (if positive) or an earlier
+page (if negative) instead of the current page.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
 buffer as the region, by putting point at the beginning and the mark at
