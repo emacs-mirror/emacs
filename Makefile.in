@@ -42,6 +42,7 @@ ALLOCA=@ALLOCA@
 LN_S=@LN_S@
 CFLAGS=@CFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
+LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
