@@ -26,12 +26,17 @@
 
 ;; Support for UTF-16, which is a two-byte encoding (modulo
 ;; surrogates) of Unicode, written either in little or big endian
-;; order: coding-systems `mule-utf-16-le' and `mule-utf-16-be'.
-;; (utf-16-le is used by the DozeN'T clipboard, for instance.)  The
-;; data are preceeded by a two-byte signature which identifies their
-;; byte sex.  These are used by the coding-category-utf-16-{b,l}e code
-;; to identify the coding, but ignored on decoding.
-
+;; order and either with or without the leading BOM (a two-byte
+;; signature which identifies their byte sex)a.
+;;
+;; We provides these base coding systems.
+;;	name					endian	BOM
+;;	----					------	---
+;;	mule-utf-16le				little	no
+;;	mule-utf-16be				big	no
+;;	mule-utf-16le-with-signature		little	yes
+;;	mule-utf-16be-with-signature		big	yes
+;;
 ;; Note that un-decodable sequences aren't (yet?) preserved as raw
 ;; bytes, as they are with utf-8, so reading and writing as utf-16 can
 ;; corrupt data.
@@ -109,7 +114,7 @@
 		  (r1 %= 96)
 		  (r1 += (r2 + 32)))))))))))
 
-(defconst utf-16-le-decode-loop
+(defconst utf-16le-decode-loop
   `(loop
     (read r3 r4)
     (r1 = (r4 <8 r3))
@@ -117,7 +122,7 @@
     (write-multibyte-character r0 r1)
     (repeat)))
 
-(defconst utf-16-be-decode-loop
+(defconst utf-16be-decode-loop
   `(loop
     (read r3 r4)
     (r1 = (r3 <8 r4))
@@ -127,37 +132,37 @@
 
 )
 
-(define-ccl-program ccl-decode-mule-utf-16-le
+(define-ccl-program ccl-decode-mule-utf-16le
   `(2					; 2 bytes -> 1 to 4 bytes
-    ,utf-16-le-decode-loop)
+    ,utf-16le-decode-loop)
   "Decode UTF-16LE (little endian without signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
 mule-unicode-*.  Un-representable Unicode characters are decoded as
 U+fffd.")
 
-(define-ccl-program ccl-decode-mule-utf-16-be
+(define-ccl-program ccl-decode-mule-utf-16be
   `(2					; 2 bytes -> 1 to 4 bytes
-    ,utf-16-be-decode-loop)
+    ,utf-16be-decode-loop)
   "Decode UTF-16BE (big endian without signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
 mule-unicode-*.  Un-representable Unicode characters are
 decoded as U+fffd.")
 
-(define-ccl-program ccl-decode-mule-utf-16-le-with-signature
+(define-ccl-program ccl-decode-mule-utf-16le-with-signature
   `(2
     ((read r3 r4)
-     ,utf-16-le-decode-loop))
-  "Like ccl-decode-utf-16-le but skip the first 2-byte BOM.")
+     ,utf-16le-decode-loop))
+  "Like ccl-decode-utf-16le but skip the first 2-byte BOM.")
 
-(define-ccl-program ccl-decode-mule-utf-16-be-with-signature
+(define-ccl-program ccl-decode-mule-utf-16be-with-signature
   `(2
     ((read r3 r4)
-     ,utf-16-be-decode-loop))
-  "Like ccl-decode-utf-16-be but skip the first 2-byte BOM.")
+     ,utf-16be-decode-loop))
+  "Like ccl-decode-utf-16be but skip the first 2-byte BOM.")
 
 (makunbound 'utf-16-decode-ucs)		; done with it
-(makunbound 'utf-16-le-decode-loop)
-(makunbound 'utf-16-be-decode-loop)
+(makunbound 'utf-16le-decode-loop)
+(makunbound 'utf-16be-decode-loop)
 
 (eval-and-compile
 (defconst utf-16-decode-to-ucs
@@ -184,7 +189,7 @@ decoded as U+fffd.")
 		    (r0 = (r3 + #xe000))
 		  (r0 = #xfffd))))))))))
 
-(defconst utf-16-le-encode-loop
+(defconst utf-16le-encode-loop
   `(loop
     (read-multibyte-character r0 r1)
     (translate-character utf-translation-table-for-encode r0 r1)
@@ -193,7 +198,7 @@ decoded as U+fffd.")
     (write (r0 >> 8))
     (repeat)))
 
-(defconst utf-16-be-encode-loop
+(defconst utf-16be-encode-loop
   `(loop
     (read-multibyte-character r0 r1)
     (translate-character utf-translation-table-for-encode r0 r1)
@@ -204,9 +209,9 @@ decoded as U+fffd.")
 )
 
 
-(define-ccl-program ccl-encode-mule-utf-16-le
+(define-ccl-program ccl-encode-mule-utf-16le
   `(1
-    ,utf-16-le-encode-loop)
+    ,utf-16le-encode-loop)
   "Encode to UTF-16LE (little endian without signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
@@ -214,9 +219,9 @@ after translation through the translation-table of name
 `utf-translation-table-for-encode'.
 Others are encoded as U+FFFD.")
 
-(define-ccl-program ccl-encode-mule-utf-16-be
+(define-ccl-program ccl-encode-mule-utf-16be
   `(1
-    ,utf-16-be-encode-loop)
+    ,utf-16be-encode-loop)
   "Encode to UTF-16BE (big endian without signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
@@ -224,11 +229,11 @@ after translation through the translation-table named
 `utf-translation-table-for-encode'.
 Others are encoded as U+FFFD.")
 
-(define-ccl-program ccl-encode-mule-utf-16-le-with-signature
+(define-ccl-program ccl-encode-mule-utf-16le-with-signature
   `(1
     ((write #xFF)
      (write #xFE)
-     ,utf-16-le-encode-loop))
+     ,utf-16le-encode-loop))
   "Encode to UTF-16 (little endian with signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
@@ -236,11 +241,11 @@ after translation through the translation-table of name
 `utf-translation-table-for-encode'.
 Others are encoded as U+FFFD.")
 
-(define-ccl-program ccl-encode-mule-utf-16-be-with-signature
+(define-ccl-program ccl-encode-mule-utf-16be-with-signature
   `(1
     ((write #xFE)
      (write #xFF)
-     ,utf-16-be-encode-loop))
+     ,utf-16be-encode-loop))
   "Encode to UTF-16 (big endian with signature).
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
@@ -249,8 +254,8 @@ after translation through the translation-table named
 Others are encoded as U+FFFD.")
 
 (makunbound 'utf-16-decode-to-ucs)
-(makunbound 'utf-16-le-encode-loop)
-(makunbound 'utf-16-be-encode-loop)
+(makunbound 'utf-16le-encode-loop)
+(makunbound 'utf-16be-encode-loop)
 
 (let ((doc "
 
@@ -268,13 +273,13 @@ On encoding (e.g. writing a file), Emacs characters not belonging to
 any of the character sets listed above are encoded into the byte
 sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
   (make-coding-system
-   'mule-utf-16-le 4
+   'mule-utf-16le 4
    ?u	      ; Mule-UCS uses ?U, but code-pages uses that for koi8-u.
    (concat
-    "Little endian UTF-16 encoding for Emacs-supported Unicode characters."
+    "UTF-16LE encoding for Emacs-supported Unicode characters."
     doc)
 
-   '(ccl-decode-mule-utf-16-le . ccl-encode-mule-utf-16-le)
+   '(ccl-decode-mule-utf-16le . ccl-encode-mule-utf-16le)
    '((safe-charsets
       ascii
       eight-bit-control
@@ -288,12 +293,12 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
 		 unify-8859-on-decoding-mode)))
 
   (make-coding-system
-   'mule-utf-16-be 4 ?u
+   'mule-utf-16be 4 ?u
    (concat
-    "Big endian UTF-16 encoding for Emacs-supported Unicode characters."
+    "UTF-16BE encoding for Emacs-supported Unicode characters."
     doc)
 
-   '(ccl-decode-mule-utf-16-be . ccl-encode-mule-utf-16-be)
+   '(ccl-decode-mule-utf-16be . ccl-encode-mule-utf-16be)
    '((safe-charsets
       ascii
       eight-bit-control
@@ -307,13 +312,13 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
 		 unify-8859-on-decoding-mode)))
 
   (make-coding-system
-   'mule-utf-16-le-with-signature 4 ?u
+   'mule-utf-16le-with-signature 4 ?u
    (concat
     "Little endian UTF-16 (with BOM) for Emacs-supported Unicode characters."
     doc)
 
-   '(ccl-decode-mule-utf-16-le-with-signature
-     . ccl-encode-mule-utf-16-le-with-signature)
+   '(ccl-decode-mule-utf-16le-with-signature
+     . ccl-encode-mule-utf-16le-with-signature)
    '((safe-charsets
       ascii
       eight-bit-control
@@ -328,13 +333,13 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
 		 unify-8859-on-decoding-mode)))
 
   (make-coding-system
-   'mule-utf-16-be-with-signature 4 ?u
+   'mule-utf-16be-with-signature 4 ?u
    (concat
     "Big endian UTF-16 (with BOM) for Emacs-supported Unicode characters."
     doc)
 
-   '(ccl-decode-mule-utf-16-be-with-signature
-     . ccl-encode-mule-utf-16-be-with-signature)
+   '(ccl-decode-mule-utf-16be-with-signature
+     . ccl-encode-mule-utf-16be-with-signature)
    '((safe-charsets
       ascii
       eight-bit-control
@@ -348,11 +353,17 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode))))
 
-(define-coding-system-alias 'utf-16-le 'mule-utf-16-le)
-(define-coding-system-alias 'utf-16-be 'mule-utf-16-be)
-(define-coding-system-alias 'utf-16-le-with-signature
-  'mule-utf-16-le-with-signature)
-(define-coding-system-alias 'utf-16-be-with-signature
-  'mule-utf-16-be-with-signature)
+(define-coding-system-alias 'utf-16le 'mule-utf-16le)
+(define-coding-system-alias 'utf-16be 'mule-utf-16be)
+(define-coding-system-alias 'utf-16le-with-signature
+  'mule-utf-16le-with-signature)
+(define-coding-system-alias 'utf-16be-with-signature
+  'mule-utf-16be-with-signature)
+
+;; For backward compatibility.
+(define-coding-system-alias 'mule-utf-16-le 'mule-utf-16le-with-signature)
+(define-coding-system-alias 'utf-16-le 'mule-utf-16le-with-signature)
+(define-coding-system-alias 'mule-utf-16-be 'mule-utf-16be-with-signature)
+(define-coding-system-alias 'utf-16-be 'mule-utf-16be-with-signature)
 
 ;;; utf-16.el ends here

@@ -1,3 +1,32 @@
+2003-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-16.el: Many name changes: utf-16-{be,le} ->
+	utf-16{be,le}.
+	(mule-utf-16-le, utf-16-le, mule-utf-16-be, utf-16-be): New coding
+	system aliases for backward compatibility.
+
+2003-05-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (sort-coding-systems): Set lower
+	priority to a utf-16 base coding system.
+
+	* international/utf-16.el (utf-16-le-decode-loop)
+	(utf-16-be-decode-loop): New temporary variables.
+	(ccl-decode-mule-utf-16-le): Use utf-16-le-decode-loop.
+	(ccl-decode-mule-utf-16-be): Use utf-16-be-decode-loop
+	(ccl-decode-mule-utf-16-le-with-signature)
+	(ccl-decode-mule-utf-16-be-with-signature): New CCL programs.
+	(utf-16-le-encode-loop, utf-16-be-encode-loop): New temporary
+	variables.
+	(ccl-encode-mule-utf-16-le): Use utf-16-le-encode-loop.
+	(ccl-encode-mule-utf-16-be): Use utf-16-be-encode-loop
+	(ccl-encode-mule-utf-16-le-with-signature)
+	(ccl-encode-mule-utf-16-be-with-signature): New CCL programs.
+	(mule-utf-16-le-with-signature, mule-utf-16-be-with-signature):
+	New coding systems.
+	(utf-16-le-with-signature, utf-16-be-with-signature): Aliases of
+	the above coding systems.
+
 2003-05-26  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
 
 	* emacs-lisp/cl-extra.el (cl-make-hash-table): Fix typo.
