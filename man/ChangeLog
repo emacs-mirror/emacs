@@ -1,3 +1,7 @@
+2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar.texi (iCalendar): Update for package changes.
+
 2004-10-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* calc.texi (Reporting Bugs): Double up `@'.

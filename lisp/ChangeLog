@@ -1,3 +1,27 @@
+2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el: Set coding to utf-8.
+	(icalendar-version): Increase to 0.07.
+	(icalendar-monthnumber-table): Change March pattern.
+	(icalendar-get-all-event-properties)
+	(icalendar-set-event-property): Delete.
+	(icalendar-all-events): No longer interactive.
+	(icalendar-convert-diary-to-ical)
+	(icalendar-extract-ical-from-buffer): Make obsolete, and alias to
+	their replacements.
+	(icalendar-export-file, icalendar-export-region): New functions;
+	essentially old `icalendar-convert-diary-to-ical' but appending to
+	target rather than overwriting.
+	(icalendar-import-file): Append to target file rather than
+	overwriting.  Fourth arg deleted.
+	(icalendar-import-buffer): New name for old
+	`icalendar-extract-ical-from-buffer'.
+	(icalendar--convert-string-for-import): New name for
+	old `icalendar-convert-for-import'.
+	(include-icalendar-files): Delete.
+	Prefix for all internal functions changed from `icalendar-'
+	to `icalendar--'.
+
 2004-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (news-path): Fix previous change.
