@@ -587,7 +587,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
   /* Don't let the frame remain selected.  */
   if (f == selected_frame)
-    Fselect_frame (next_frame (frame, Qt));
+    Fselect_frame (next_frame (frame, Qt), Qnil);
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
