@@ -1,3 +1,8 @@
+2003-01-06  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for nl_langinfo.
+	[!HAVE_SIZE_T]: Fix typedef.
+
 2003-01-06  David Kastrup  <dak@gnu.org>
 
 	* Makefile.in (INSTALL_INFO): Get install-info command from
@@ -12,7 +17,7 @@
 
 2002-12-09  Dave Love  <fx@gnu.org>
 
-	* configure.in: Delete sunos5.8 configuration.
+	* configure.in (*-sunos5.8*, *-solaris2.8*): Delete configurations.
 
 2002-12-08  Andreas Schwab  <schwab@suse.de>
 
