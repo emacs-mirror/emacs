@@ -166,6 +166,13 @@ struct frame
      it is defined in xterm.h.  */
   union display { struct x_display *x; int nothing; } display;
 
+#ifdef MULTI_KBOARD
+  /* A pointer to the kboard structure associated with this frame.
+     For termcap frames, this points to initial_kboard.  For X frames,
+     it will be the same as display.x->display_info->kboard.  */
+  KBOARD *kboard;
+#endif
+
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
@@ -264,6 +271,12 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 };
+
+#ifdef MULTI_KBOARD  /* Note that MULTI_KBOARD implies MULTI_FRAME */
+#define FRAME_KBOARD(f) ((f)->kboard)
+#else
+#define FRAME_KBOARD(f) (&the_only_kboard)
+#endif
 
 #ifdef MULTI_FRAME
 
