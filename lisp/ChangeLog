@@ -1,3 +1,13 @@
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-on-link-p): If arg POS is a mouse event,
+	check that window of that event is the selected window.
+	(mouse-drag-region-1): Compare mouse event window to selected
+	window before setting point.
+
+	* tooltip.el (tooltip-show-help-function): Pass event to
+	mouse-on-link-p so it can check selected window.
+
 2005-02-22  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-header-string-charsets): Delete it.
