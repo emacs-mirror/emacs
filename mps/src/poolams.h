@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.2) $
+ * $HopeName: MMsrc!poolams.h(trunk.3) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -187,6 +187,7 @@ extern void AMSBufferEmpty(Pool pool, Buffer buffer);
 extern Res AMSWhiten(Pool pool, Trace trace, Seg seg);
 extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
+extern void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern void AMSReclaim(Pool pool, Trace trace, Seg seg);
 
 extern Res AMSGroupInit(AMSGroup group, Pool pool);
