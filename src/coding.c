@@ -37,18 +37,18 @@ Boston, MA 02111-1307, USA.  */
 /*** 0. General comments ***/
 
 
-/*** GENERAL NOTE on CODING SYSTEM ***
+/*** GENERAL NOTE on CODING SYSTEMS ***
 
-  Coding system is an encoding mechanism of one or more character
+  A coding system is an encoding mechanism for one or more character
   sets.  Here's a list of coding systems which Emacs can handle.  When
   we say "decode", it means converting some other coding system to
-  Emacs' internal format (emacs-internal), and when we say "encode",
+  Emacs' internal format (emacs-mule), and when we say "encode",
   it means converting the coding system emacs-mule to some other
   coding system.
 
   0. Emacs' internal format (emacs-mule)
 
-  Emacs itself holds a multi-lingual character in a buffer and a string
+  Emacs itself holds a multi-lingual character in buffers and strings
   in a special format.  Details are described in section 2.
 
   1. ISO2022
@@ -66,21 +66,21 @@ Boston, MA 02111-1307, USA.  */
 
   3. BIG5
 
-  A coding system to encode character sets: ASCII and Big5.  Widely
-  used by Chinese (mainly in Taiwan and Hong Kong).  Details are
+  A coding system to encode the character sets ASCII and Big5.  Widely
+  used for Chinese (mainly in Taiwan and Hong Kong).  Details are
   described in section 4.  In this file, when we write "BIG5"
   (all uppercase), we mean the coding system, and when we write
   "Big5" (capitalized), we mean the character set.
 
   4. Raw text
 
-  A coding system for a text containing random 8-bit code.  Emacs does
-  no code conversion on such a text except for end-of-line format.
+  A coding system for text containing random 8-bit code.  Emacs does
+  no code conversion on such text except for end-of-line format.
 
   5. Other
 
-  If a user wants to read/write a text encoded in a coding system not
-  listed above, he can supply a decoder and an encoder for it in CCL
+  If a user wants to read/write text encoded in a coding system not
+  listed above, he can supply a decoder and an encoder for it as CCL
   (Code Conversion Language) programs.  Emacs executes the CCL program
   while reading/writing.
 
@@ -93,16 +93,16 @@ Boston, MA 02111-1307, USA.  */
 
 /*** GENERAL NOTES on END-OF-LINE FORMAT ***
 
-  How end-of-line of a text is encoded depends on a system.  For
-  instance, Unix's format is just one byte of `line-feed' code,
+  How end-of-line of text is encoded depends on the operating system.
+  For instance, Unix's format is just one byte of `line-feed' code,
   whereas DOS's format is two-byte sequence of `carriage-return' and
   `line-feed' codes.  MacOS's format is usually one byte of
   `carriage-return'.
 
-  Since text characters encoding and end-of-line encoding are
-  independent, any coding system described above can take
-  any format of end-of-line.  So, Emacs has information of format of
-  end-of-line in each coding-system.  See section 6 for more details.
+  Since text character encoding and end-of-line encoding are
+  independent, any coding system described above can have any
+  end-of-line format.  So Emacs has information about end-of-line
+  format in each coding-system.  See section 6 for more details.
 
 */
 
@@ -110,9 +110,9 @@ Boston, MA 02111-1307, USA.  */
 
   These functions check if a text between SRC and SRC_END is encoded
   in the coding system category XXX.  Each returns an integer value in
-  which appropriate flag bits for the category XXX is set.  The flag
+  which appropriate flag bits for the category XXX are set.  The flag
   bits are defined in macros CODING_CATEGORY_MASK_XXX.  Below is the
-  template of these functions.  If MULTIBYTEP is nonzero, 8-bit codes
+  template for these functions.  If MULTIBYTEP is nonzero, 8-bit codes
   of the range 0x80..0x9F are in multibyte form.  */
 #if 0
 int
@@ -131,16 +131,17 @@ detect_coding_emacs_mule (src, src_end, multibytep)
   multibyte text goes to a place pointed to by DESTINATION, the length
   of which should not exceed DST_BYTES.
 
-  These functions set the information of original and decoded texts in
-  the members produced, produced_char, consumed, and consumed_char of
-  the structure *CODING.  They also set the member result to one of
-  CODING_FINISH_XXX indicating how the decoding finished.
+  These functions set the information about original and decoded texts
+  in the members `produced', `produced_char', `consumed', and
+  `consumed_char' of the structure *CODING.  They also set the member
+  `result' to one of CODING_FINISH_XXX indicating how the decoding
+  finished.
 
-  DST_BYTES zero means that source area and destination area are
+  DST_BYTES zero means that the source area and destination area are
   overlapped, which means that we can produce a decoded text until it
-  reaches at the head of not-yet-decoded source text.
+  reaches the head of the not-yet-decoded source text.
 
-  Below is a template of these functions.  */
+  Below is a template for these functions.  */
 #if 0
 static void
 decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
@@ -154,21 +155,22 @@ decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 
 /*** GENERAL NOTES on `encode_coding_XXX ()' functions ***
 
-  These functions encode SRC_BYTES length text at SOURCE of Emacs'
+  These functions encode SRC_BYTES length text at SOURCE from Emacs'
   internal multibyte format to CODING.  The resulting unibyte text
   goes to a place pointed to by DESTINATION, the length of which
   should not exceed DST_BYTES.
 
-  These functions set the information of original and encoded texts in
-  the members produced, produced_char, consumed, and consumed_char of
-  the structure *CODING.  They also set the member result to one of
-  CODING_FINISH_XXX indicating how the encoding finished.
+  These functions set the information about original and encoded texts
+  in the members `produced', `produced_char', `consumed', and
+  `consumed_char' of the structure *CODING.  They also set the member
+  `result' to one of CODING_FINISH_XXX indicating how the encoding
+  finished.
 
-  DST_BYTES zero means that source area and destination area are
-  overlapped, which means that we can produce a encoded text until it
-  reaches at the head of not-yet-encoded source text.
+  DST_BYTES zero means that the source area and destination area are
+  overlapped, which means that we can produce encoded text until it
+  reaches at the head of the not-yet-encoded source text.
 
-  Below is a template of these functions.  */
+  Below is a template for these functions.  */
 #if 0
 static void
 encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
@@ -260,7 +262,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 /* Produce a multibyte form of characater C to `dst'.  Jump to
    `label_end_of_loop' if there's not enough space at `dst'.
 
-   If we are now in the middle of composition sequence, the decoded
+   If we are now in the middle of a composition sequence, the decoded
    character may be ALTCHAR (for the current composition).  In that
    case, the character goes to coding->cmp_data->data instead of
    `dst'.
@@ -1125,21 +1127,23 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 
 /* The following note describes the coding system ISO2022 briefly.
    Since the intention of this note is to help understand the
-   functions in this file, some parts are NOT ACCURATE or OVERLY
+   functions in this file, some parts are NOT ACCURATE or are OVERLY
    SIMPLIFIED.  For thorough understanding, please refer to the
-   original document of ISO2022.
+   original document of ISO2022.  This is equivalent to the standard
+   ECMA-35, obtainable from <URL:http://www.ecma.ch/> (*).
 
    ISO2022 provides many mechanisms to encode several character sets
-   in 7-bit and 8-bit environments.  For 7-bite environments, all text
+   in 7-bit and 8-bit environments.  For 7-bit environments, all text
    is encoded using bytes less than 128.  This may make the encoded
    text a little bit longer, but the text passes more easily through
-   several gateways, some of which strip off MSB (Most Signigant Bit).
+   several types of gateway, some of which strip off the MSB (Most
+   Signigant Bit).
 
-   There are two kinds of character sets: control character set and
-   graphic character set.  The former contains control characters such
+   There are two kinds of character sets: control character sets and
+   graphic character sets.  The former contain control characters such
    as `newline' and `escape' to provide control functions (control
    functions are also provided by escape sequences).  The latter
-   contains graphic characters such as 'A' and '-'.  Emacs recognizes
+   contain graphic characters such as 'A' and '-'.  Emacs recognizes
    two control character sets and many graphic character sets.
 
    Graphic character sets are classified into one of the following
@@ -1151,14 +1155,14 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
    - DIMENSION2_CHARS96
 
    In addition, each character set is assigned an identification tag,
-   unique for each set, called "final character" (denoted as <F>
+   unique for each set, called the "final character" (denoted as <F>
    hereafter).  The <F> of each character set is decided by ECMA(*)
    when it is registered in ISO.  The code range of <F> is 0x30..0x7F
    (0x30..0x3F are for private use only).
 
    Note (*): ECMA = European Computer Manufacturers Association
 
-   Here are examples of graphic character set [NAME(<F>)]:
+   Here are examples of graphic character sets [NAME(<F>)]:
 	o DIMENSION1_CHARS94 -- ASCII('B'), right-half-of-JISX0201('I'), ...
 	o DIMENSION1_CHARS96 -- right-half-of-ISO8859-1('A'), ...
 	o DIMENSION2_CHARS94 -- GB2312('A'), JISX0208('B'), ...
@@ -1251,7 +1255,7 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
    Note (**): If <F> is '@', 'A', or 'B', the intermediate character
    '(' can be omitted.  We refer to this as "short-form" hereafter.
 
-   Now you may notice that there are a lot of ways for encoding the
+   Now you may notice that there are a lot of ways of encoding the
    same multilingual text in ISO2022.  Actually, there exist many
    coding systems such as Compound Text (used in X11's inter client
    communication, ISO-2022-JP (used in Japanese internet), ISO-2022-KR
@@ -1277,14 +1281,14 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	o ESC '3' -- start relative composition with alternate chars  (**)
 	o ESC '4' -- start rule-base composition with alternate chars  (**)
   Since these are not standard escape sequences of any ISO standard,
-  the use of them for these meaning is restricted to Emacs only.
+  the use of them with these meanings is restricted to Emacs only.
 
-  (*) This form is used only in Emacs 20.5 and the older versions,
+  (*) This form is used only in Emacs 20.5 and older versions,
   but the newer versions can safely decode it.
-  (**) This form is used only in Emacs 21.1 and the newer versions,
+  (**) This form is used only in Emacs 21.1 and newer versions,
   and the older versions can't decode it.
 
-  Here's a list of examples usages of these composition escape
+  Here's a list of example usages of these composition escape
   sequences (categorized by `enum composition_method').
 
   COMPOSITION_RELATIVE:
@@ -1311,7 +1315,7 @@ enum iso_code_class_type iso_code_class[256];
   (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding_system_table[idx], 1) >= 0)
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in ISO2022.  If it is, returns an
+   Check if a text is encoded in ISO2022.  If it is, return an
    integer in which appropriate flag bits any of:
 	CODING_CATEGORY_MASK_ISO_7
 	CODING_CATEGORY_MASK_ISO_7_TIGHT
@@ -2040,7 +2044,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 /*
    It is not enough to say just "ISO2022" on encoding, we have to
-   specify more details.  In Emacs, each coding system of ISO2022
+   specify more details.  In Emacs, each ISO2022 coding system
    variant has the following specifications:
 	1. Initial designation to G0 thru G3.
 	2. Allows short-form designation?
@@ -2635,7 +2639,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 /*** 4. SJIS and BIG5 handlers ***/
 
-/* Although SJIS and BIG5 are not ISO's coding system, they are used
+/* Although SJIS and BIG5 are not ISO coding systems, they are used
    quite widely.  So, for the moment, Emacs supports them in the bare
    C code.  But, in the future, they may be supported only by CCL.  */
 
@@ -2644,7 +2648,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    as is.  A character of charset katakana-jisx0201 is encoded by
    "position-code + 0x80".  A character of charset japanese-jisx0208
    is encoded in 2-byte but two position-codes are divided and shifted
-   so that it fit in the range below.
+   so that it fits in the range below.
 
    --- CODE RANGE of SJIS ---
    (character set)	(range)
@@ -2658,7 +2662,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 /* BIG5 is a coding system encoding two character sets: ASCII and
    Big5.  An ASCII character is encoded as is.  Big5 is a two-byte
-   character set and is encoded in two-byte.
+   character set and is encoded in two bytes.
 
    --- CODE RANGE of BIG5 ---
    (character set)	(range)
@@ -3310,15 +3314,15 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 
 /*** 7. C library functions ***/
 
-/* In Emacs Lisp, coding system is represented by a Lisp symbol which
+/* In Emacs Lisp, a coding system is represented by a Lisp symbol which
    has a property `coding-system'.  The value of this property is a
-   vector of length 5 (called as coding-vector).  Among elements of
+   vector of length 5 (called the coding-vector).  Among elements of
    this vector, the first (element[0]) and the fifth (element[4])
    carry important information for decoding/encoding.  Before
    decoding/encoding, this information should be set in fields of a
    structure of type `coding_system'.
 
-   A value of property `coding-system' can be a symbol of another
+   The value of the property `coding-system' can be a symbol of another
    subsidiary coding-system.  In that case, Emacs gets coding-vector
    from that symbol.
 
@@ -3362,12 +3366,12 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 
    If `coding->type' takes the other value, element[4] is ignored.
 
-   Emacs Lisp's coding system also carries information about format of
+   Emacs Lisp's coding systems also carry information about format of
    end-of-line in a value of property `eol-type'.  If the value is
    integer, 0 means CODING_EOL_LF, 1 means CODING_EOL_CRLF, and 2
    means CODING_EOL_CR.  If it is not integer, it should be a vector
    of subsidiary coding systems of which property `eol-type' has one
-   of above values.
+   of the above values.
 
 */
 
@@ -3895,10 +3899,10 @@ setup_raw_text_coding_system (coding)
 	`no-conversion' by default.
 
    Each of them is a Lisp symbol and the value is an actual
-   `coding-system's (this is also a Lisp symbol) assigned by a user.
+   `coding-system' (this is also a Lisp symbol) assigned by a user.
    What Emacs does actually is to detect a category of coding system.
    Then, it uses a `coding-system' assigned to it.  If Emacs can't
-   decide only one possible category, it selects a category of the
+   decide a single possible category, it selects a category of the
    highest priority.  Priorities of categories are also specified by a
    user in a Lisp variable `coding-category-list'.
 
@@ -4188,7 +4192,7 @@ detect_eol_type (source, src_bytes, skip)
 static int
 detect_eol_type_in_2_octet_form (source, src_bytes, skip, big_endian_p)
      unsigned char *source;
-     int src_bytes, *skip;
+     int src_bytes, *skip, big_endian_p;
 {
   unsigned char *src = source, *src_end = src + src_bytes;
   unsigned int c1, c2;
@@ -6406,7 +6410,7 @@ code_convert_region1 (start, end, coding_system, encodep)
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
        3, 3, "r\nzCoding system: ",
-  "Decode the current region by specified coding system.\n\
+  "Decode the current region from the specified coding system.\n\
 When called from a program, takes three arguments:\n\
 START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
 This function sets `last-coding-system-used' to the precise coding system\n\
@@ -6421,7 +6425,7 @@ It returns the length of the decoded text.")
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 3, "r\nzCoding system: ",
-  "Encode the current region by specified coding system.\n\
+  "Encode the current region into the specified coding system.\n\
 When called from a program, takes three arguments:\n\
 START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
 This function sets `last-coding-system-used' to the precise coding system\n\
