@@ -2866,7 +2866,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 Lisp_Object merge ();
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
-  "Return t if (car A) is numerically less than (car B)."
+  "Return t if (car A) is numerically less than (car B).")
   (a, b)
      Lisp_Object a, b;
 {
