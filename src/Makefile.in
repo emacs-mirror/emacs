@@ -539,7 +539,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
-	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
+	abbrev.o syntax.o UNEXEC bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
@@ -1010,7 +1010,7 @@ abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h charset.h \
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h charset.h \
    $(config_h)
-callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
+callint.o: callint.c window.h commands.h buffer.h \
    keyboard.h dispextern.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
 	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h \
@@ -1072,7 +1072,6 @@ marker.o: marker.c buffer.h charset.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
    buffer.h commands.h charset.h msdos.h $(config_h)
 mktime.o: mktime.c $(config_h)
-mocklisp.o: mocklisp.c buffer.h $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h \
    keyboard.h $(config_h)

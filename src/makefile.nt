@@ -117,8 +117,7 @@ OBJ1 =  $(BLD)\abbrev.obj       \
 	$(BLD)\macros.obj       \
 	$(BLD)\marker.obj       \
         $(BLD)\md5.obj          \
-	$(BLD)\minibuf.obj      \
-	$(BLD)\mocklisp.obj
+	$(BLD)\minibuf.obj
 
 OBJ2 =  $(BLD)\w32.obj           \
 	$(BLD)\w32heap.obj       \
@@ -400,8 +399,7 @@ $(BLD)\callint.obj : \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
 	$(SRC)\keyboard.h \
-	$(SRC)\window.h \
-	$(SRC)\mocklisp.h
+	$(SRC)\window.h
 
 $(BLD)\callproc.obj : \
 	$(SRC)\callproc.c \
@@ -816,13 +814,6 @@ $(BLD)\minibuf.obj : \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\syntax.h
-
-$(BLD)\mocklisp.obj : \
-	$(SRC)\mocklisp.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\buffer.h
 
 $(BLD)\w32.obj : \
 	$(SRC)\w32.c \

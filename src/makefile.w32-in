@@ -84,7 +84,6 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/marker.$(O)			\
         $(BLD)/md5.$(O)                         \
 	$(BLD)/minibuf.$(O)			\
-	$(BLD)/mocklisp.$(O)			\
 	$(BLD)/w32.$(O)				\
 	$(BLD)/w32heap.$(O)			\
 	$(BLD)/w32inevt.$(O)			\
@@ -335,8 +334,7 @@ $(BLD)/callint.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keyboard.h \
-	$(SRC)/window.h \
-	$(SRC)/mocklisp.h
+	$(SRC)/window.h
 
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
@@ -749,13 +747,6 @@ $(BLD)/minibuf.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/window.h \
 	$(SRC)/syntax.h
-
-$(BLD)/mocklisp.$(O) : \
-	$(SRC)/mocklisp.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/buffer.h
 
 $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \

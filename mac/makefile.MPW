@@ -104,7 +104,6 @@ EmacsObjects = ¶
 	"{Src}md5.c.x" ¶
 	"{Src}minibuf.c.x" ¶
 	"{Src}mktime.c.x" ¶
-	"{Src}mocklisp.c.x" ¶
 	"{Src}print.c.x" ¶
 	"{Src}process.c.x" ¶
 	"{Src}regex.c.x" ¶
@@ -233,8 +232,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}buffer.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h" ¶
-	{WINDOW_H_GROUP} ¶
-	"{Src}mocklisp.h"
+	{WINDOW_H_GROUP}
 
 {Src}callproc.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -620,11 +618,6 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h"
 
-{Src}mocklisp.c.x Ä ¶
-	{CONFIG_H_GROUP} ¶
-	"{Src}lisp.h" ¶
-	"{Src}buffer.h"
-
 {Src}print.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -979,7 +972,6 @@ EmacsSource = ¶
 	"{Src}marker.c" ¶
 	"{Src}minibuf.c" ¶
 	"{Src}mktime.c" ¶
-	"{Src}mocklisp.c" ¶
 	"{Src}print.c" ¶
 	"{Src}process.c" ¶
 	"{Src}regex.c" ¶
