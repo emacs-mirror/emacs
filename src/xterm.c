@@ -10336,6 +10336,11 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->display = dpy;
 
+  /* Set the name of the display. */
+  display->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (display->name, SDATA (display_name), SBYTES (display_name));
+  display->name[SBYTES (display_name)] = 0;
+  
 #if 0
   XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
@@ -10709,10 +10714,11 @@ x_delete_display (dpyinfo)
 	xfree (dpyinfo->font_table[i].name);
       }
 
-  if (dpyinfo->font_table->font_encoder)
+  if (dpyinfo->font_table && dpyinfo->font_table->font_encoder)
     xfree (dpyinfo->font_table->font_encoder);
 
-  xfree (dpyinfo->font_table);
+  if (dpyinfo->font_table)
+    xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->color_cells);
   xfree (dpyinfo);

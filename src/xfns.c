@@ -257,6 +257,17 @@ check_x_display_info (frame)
       else
 	error ("X windows are not in use or not initialized");
     }
+  else if (INTEGERP (frame))
+    {
+      struct display *d = get_display (XINT (frame));
+
+      if (!d)
+        wrong_type_argument (Qdisplay_live_p, frame);
+      if (d->type != output_x_window)
+        error ("Display %d is not an X display", XINT (frame));
+
+      dpyinfo = d->display_info.x;
+    }
   else if (STRINGP (frame))
     dpyinfo = x_display_info_for_name (frame);
   else
@@ -2849,7 +2860,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = x_get_arg (dpyinfo, parms, Qdisplay, 0, 0, RES_TYPE_STRING);
+  display = x_get_arg (dpyinfo, parms, Qdisplay_id, 0, 0, RES_TYPE_NUMBER);
+  if (NILP (display))
+    display = x_get_arg (dpyinfo, parms, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);

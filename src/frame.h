@@ -775,11 +775,12 @@ typedef struct frame *FRAME_PTR;
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
+extern Lisp_Object Qdisplay_id, Qdisplay_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
 extern struct frame *make_initial_frame P_ ((void));
-extern struct frame *make_terminal_frame P_ ((char *, char *));
+extern struct frame *make_terminal_frame P_ ((struct display *));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));

@@ -577,7 +577,7 @@ is not considered (see `next-frame')."
   (select-frame-set-input-focus (selected-frame)))
 
 (defun make-frame-on-display (display &optional parameters)
-  "Make a frame on display DISPLAY.
+  "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
@@ -638,13 +638,22 @@ You cannot specify either `width' or `height', you must use neither or both.
  (window-system . nil)	The frame should be displayed on a terminal device.
  (window-system . x)	The frame should be displayed in an X window.
 
+ (display-id . ID)      The frame should use the display identified by ID.
+
 Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
 on `after-make-frame-functions' are run with one arg, the newly created frame."
   (interactive)
-  (let* ((w (if (assq 'window-system parameters)
-		(cdr (assq 'window-system parameters))
-	      window-system))
+  (let* ((w (cond
+	     ((assq 'display-id parameters)
+	      (let ((type (display-live-p (cdr (assq 'display-id parameters)))))
+		(cond
+		 ((eq type t) nil)
+		 ((eq type nil) (error "Display %s does not exist" (cdr (assq 'display-id parameters))))
+		 (t type))))
+	     ((assq 'window-system parameters)
+	      (cdr (assq 'window-system parameters)))
+	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 frame)
     (unless frame-creation-function
@@ -674,20 +683,25 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
 
 (defun frames-on-display-list (&optional display)
   "Return a list of all frames on DISPLAY.
-DISPLAY is a name of a display, a string of the form HOST:SERVER.SCREEN.
+
+DISPLAY should be a display identifier (an integer), but it may
+also be a name of a display, a string of the form HOST:SERVER.SCREEN.
+
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
-  (let* ((display (or display (frame-parameter nil 'display)))
+  (let* ((display (or display (frame-display)))
 	 (func #'(lambda (frame)
-		   (equal (frame-parameter frame 'display) display))))
+		   (or (eq (frame-display frame) display)
+		       (equal (frame-parameter frame 'display) display)))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional display)
   "Return the type of frames on DISPLAY.
-DISPLAY may be a display name or a frame.  If it is a frame, its type is
-returned.
+DISPLAY may be a display id, a display name or a frame.  If it is
+a frame, its type is returned.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display.
 All frames on a given display are of the same type."
-  (or (framep display)
+  (or (display-live-p display)
+      (framep display)
       (framep (car (frames-on-display-list display)))))
 
 (defun frame-remove-geometry-params (param-list)
@@ -774,7 +788,7 @@ Calls `suspend-emacs' if invoked from the controlling terminal,
     (cond
      ((eq type 'x) (iconify-or-deiconify-frame))
      ((eq type t)
-      (if (frame-tty-name)
+      (if (display-name)
 	  (suspend-tty)
 	(suspend-emacs)))
      (t (suspend-emacs)))))
@@ -1023,6 +1037,10 @@ bars (top, bottom, or nil)."
     (cons vert hor)))
 
 ;;;; Frame/display capabilities.
+(defun selected-display ()
+  "Return the display that is now selected."
+  (frame-display (selected-frame)))
+
 (defun display-mouse-p (&optional display)
   "Return non-nil if DISPLAY has a mouse available.
 DISPLAY can be a display name, a frame, or nil (meaning the selected

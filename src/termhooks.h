@@ -282,11 +282,17 @@ struct display
   /* Chain of all displays. */
   struct display *next_display;
 
+  /* Unique id for this display. */
+  int id;
+
   /* The number of frames that are on this display. */
   int reference_count;
   
   /* The type of the display. */
   enum output_method type;
+
+  /* The name of the display device.  Do not use this to identify the display. */
+  char *name;
 
   /* Display-type dependent data shared amongst all frames on this display. */
   union display_info
@@ -518,8 +524,8 @@ struct display
   /* Called after the last frame on this display is deleted, or when
      the display device was closed (hangup).
      
-     If this is NULL, then the generic delete_display() is called
-     instead.
+     If this is NULL, then the generic delete_display is called
+     instead.  Otherwise the hook must call delete_display itself.
 
      The hook must check for and close any live frames that are still
      on the display.  Fdelete_frame ensures that there are no live
@@ -562,6 +568,9 @@ extern struct display *display_list;
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) (0)
 #endif
+
+/* Return true if the display is not suspended. */
+#define DISPLAY_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
 
 extern struct display *create_display P_ ((void));
 extern void delete_display P_ ((struct display *));

@@ -234,9 +234,9 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 	      (kill-buffer (current-buffer))))))
 
       ;; Delete the client's tty.
-      (let ((tty (server-client-get client 'tty)))
-	(when (and tty (server-tty-live-p tty))
-	  (delete-tty tty)))
+      (let ((display-id (server-client-get client 'display)))
+	(when (eq (display-live-p display-id) t)
+	  (delete-display display-id)))
 
       ;; Delete the client's frames.
       (unless noframe
@@ -264,38 +264,32 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 		string)
 	(or (bolp) (newline)))))
 
-(defun server-tty-live-p (tty)
-  "Return non-nil if the tty device named TTY has a live frame."
-  (let (result)
-    (dolist (frame (frame-list) result)
-      (when (and (eq (frame-live-p frame) t)
-		 (equal (frame-tty-name frame) tty))
-	(setq result t)))))
-
 (defun server-sentinel (proc msg)
   "The process sentinel for Emacs server connections."
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
-(defun server-handle-delete-tty (tty)
-  "Delete the client connection when the emacsclient terminal device is closed."
-  (dolist (proc (server-clients-with 'tty tty))
-    (server-log (format "server-handle-delete-tty, tty %s" tty) proc)
-    (server-delete-client proc)))
-
 (defun server-handle-delete-frame (frame)
   "Delete the client connection when the emacsclient frame is deleted."
   (let ((proc (frame-parameter frame 'client)))
-    (when (and proc (window-system frame))
-      ;; (Closing a terminal frame must not trigger a delete;
-      ;; we must wait for delete-tty-after-functions.)
+    (when (and proc
+	       (or (window-system frame)
+		   ;; A terminal display must not yet be deleted if
+		   ;; there are other frames on it.
+		   (< 0 (let ((frame-num 0))
+			  (mapc (lambda (f)
+				  (when (eq (frame-display f)
+					    (frame-display frame))
+				    (setq frame-num (1+ frame-num))))
+				(frame-list))
+			  frame-num))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
-(defun server-handle-suspend-tty (tty)
+(defun server-handle-suspend-tty (display)
   "Notify the emacsclient process to suspend itself when its tty device is suspended."
-  (dolist (proc (server-clients-with 'tty tty))
-    (server-log (format "server-handle-suspend-tty, tty %s" tty) proc)
+  (dolist (proc (server-clients-with 'display display))
+    (server-log (format "server-handle-suspend-tty, display %s" display) proc)
     (process-send-string proc "-suspend \n")))
 
 (defun server-select-display (display)
@@ -395,7 +389,6 @@ Prefix arg means just kill any existing server communications subprocess."
 	  (server-log (message "Restarting server"))
 	(server-log (message "Starting server")))
       (letf (((default-file-modes) ?\700))
-	(add-hook 'delete-tty-after-functions 'server-handle-delete-tty)
 	(add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	(add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	(add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
@@ -496,21 +489,24 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		  (modify-frame-parameters frame (list (cons 'client proc)))
 		  (select-frame frame)
 		  (server-client-set client 'frame frame)
+		  (server-client-set client 'display (frame-display frame))
 		  (setq dontkill t))
 
 		 ;; -resume:  Resume a suspended tty frame.
 		 ((equal "-resume" arg)
-		  (let ((tty (server-client-get client 'tty)))
+		  (let ((display-id (server-client-get client 'display)))
 		    (setq dontkill t)
-		    (when tty (resume-tty tty))))
+		    (when (eq (display-live-p display-id) t)
+		      (resume-tty display-id))))
 
 		 ;; -suspend:  Suspend the client's frame.  (In case we
 		 ;; get out of sync, and a C-z sends a SIGTSTP to
 		 ;; emacsclient.)
 		 ((equal "-suspend" arg)
-		  (let ((tty (server-client-get client 'tty)))
+		  (let ((display-id (server-client-get client 'display)))
 		    (setq dontkill t)
-		    (when tty (suspend-tty tty))))
+		    (when (eq (display-live-p display-id) t)
+		      (suspend-tty display-id))))
 
 		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
 		 ;; (The given comment appears in the server log.)
@@ -528,7 +524,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (setq frame (make-frame-on-tty tty type (list (cons 'client proc))))
 		    (select-frame frame)
 		    (server-client-set client 'frame frame)
-		    (server-client-set client 'tty (frame-tty-name frame))
+		    (server-client-set client 'tty (display-name frame))
+		    (server-client-set client 'display (frame-display frame))
 		    ;; Set up display for the remote locale.
 		    (configure-display-for-locale)
 		    ;; Reply with our pid.
@@ -912,7 +909,6 @@ If FRAME is nil or missing, then the selected frame is used."
 
 (defun server-unload-hook ()
   (server-start t)
-  (remove-hook 'delete-tty-after-functions 'server-handle-delete-tty)
   (remove-hook 'suspend-tty-functions 'server-handle-suspend-tty)
   (remove-hook 'delete-frame-functions 'server-handle-delete-frame)
   (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)

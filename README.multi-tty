@@ -206,6 +206,9 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** Hunt down display-related functions in frame.el and extend them all
+   to accept display ids.
+
 ** Have a look at fatal_error_hook.
 
 ** Check if we got term-setup-hook right.
@@ -254,45 +257,6 @@ THINGS TO DO
 
 ** Miles Bader suggests that C-x C-c on an emacsclient frame should
    only close the frame, not exit the entire Emacs session.
-
-** Make `struct display' accessible to Lisp programs.  Accessor functions:
-
-	(displayp OBJECT):  Returns t if OBJECT is a display.
-
-	(display-list):  Returns list of currently active displays.
-
-	(selected-display):  Returns the display object of the selected frame.
-
-	(frame-display FRAME):  Returns the display object of FRAME.
-
-	(display-frames DISPLAY):  Returns a list of frames on DISPLAY.
-
-	(display-type DISPLAY):  Returns the type of DISPLAY, as a
-		symbol.  (See `framep'.)
-
-	(display-device DISPLAY): Returns the name of the device that
-		DISPLAY uses, as a string.  (E.g: "/dev/pts/16", or
-		":0.0")
-
-	etc.
-
-   See next issue why this is necessary.
-
-   (Update: The consensus on emacs-devel seems to be to do this via
-   integer identifiers.  That's fine by me.)
-
-** The following needs to be supported:
-
-	$ emacsclient -t
-		C-z
-	$ emacsclient -t
-		(This fails now.)
-
-   The cleanest way to solve this is to allow multiple displays on the
-   same terminal device; each new emacsclient process should create
-   its own display.  As displays are currently identified by their
-   device names, this is not possible until struct display becomes
-   accessible as a Lisp-level object.
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
@@ -812,5 +776,56 @@ DIARY OF CHANGES
 
    (Fixed.  Emacs now uses the locale settings as seen by the
    emacsclient process for server tty frames.)
+
+
+-- Make `struct display' accessible to Lisp programs.  Accessor functions:
+
+	(displayp OBJECT):  Returns t if OBJECT is a display.
+		=> Implemented as display-live-p.
+
+	(display-list):  Returns list of currently active displays.
+		=> Implemented.
+
+	(selected-display):  Returns the display object of the selected frame.
+		=> Not strictly necessary, but implemented anyway.
+
+	(frame-display FRAME):  Returns the display object of FRAME.
+	        => Implemented.
+
+	(display-frames DISPLAY):  Returns a list of frames on DISPLAY.
+		=> Already implemented, see frames-on-display-list.
+
+	(display-type DISPLAY):  Returns the type of DISPLAY, as a
+		symbol.  (See `framep'.)
+		=> Implemented as display-live-p.
+
+	(display-device DISPLAY): Returns the name of the device that
+		DISPLAY uses, as a string.  (E.g: "/dev/pts/16", or
+		":0.0")
+		=> Implemented as display-name.
+
+	etc.
+
+   See next issue why this is necessary.
+
+   (Update: The consensus on emacs-devel seems to be to do this via
+   integer identifiers.  That's fine by me.)
+
+   (Done.)
+
+-- The following needs to be supported:
+
+	$ emacsclient -t
+		C-z
+	$ emacsclient -t
+		(This fails now.)
+
+   The cleanest way to solve this is to allow multiple displays on the
+   same terminal device; each new emacsclient process should create
+   its own display.  As displays are currently identified by their
+   device names, this is not possible until struct display becomes
+   accessible as a Lisp-level object.
+
+   (Done.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

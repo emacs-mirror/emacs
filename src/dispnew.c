@@ -6757,7 +6757,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
-                                     Fframe_tty_type (selected_frame)), Qnil));
+                                     Fdisplay_tty_type (selected_frame)), Qnil));
   }
   
   {

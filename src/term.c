@@ -85,6 +85,8 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
+static struct display *get_tty_display (Lisp_Object display);
+
 void delete_initial_display P_ ((struct display *));
 void create_tty_output P_ ((struct frame *));
 void delete_tty_output P_ ((struct frame *));
@@ -117,9 +119,6 @@ extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
 Lisp_Object Vring_bell_function;
 
-/* Functions to call after deleting a tty. */
-Lisp_Object Vdelete_tty_after_functions;
-
 /* Functions to call after suspending a tty. */
 Lisp_Object Vsuspend_tty_functions;
 
@@ -140,9 +139,6 @@ struct tty_display_info *tty_list;
    pages, where one page is used for Emacs and another for all
    else. */
 int no_redraw_on_reenter;
-
-Lisp_Object Qframe_tty_name, Qframe_tty_type;
-
 
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
@@ -174,6 +170,9 @@ int max_frame_lines;
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
 static int no_controlling_tty;
+
+/* The first unallocated display id. */
+static int next_display_id;
 
 /* Provided for lisp packages.  */
 
@@ -228,10 +227,13 @@ tty_ring_bell (struct frame *f)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
 
-  OUTPUT (tty, (tty->TS_visible_bell && visible_bell
-                ? tty->TS_visible_bell
-                : tty->TS_bell));
-  fflush (tty->output);
+  if (tty->output)
+    {
+      OUTPUT (tty, (tty->TS_visible_bell && visible_bell
+                    ? tty->TS_visible_bell
+                    : tty->TS_bell));
+      fflush (tty->output);
+    }
 }
 
 /* Set up termcap modes for Emacs. */
@@ -1925,58 +1927,11 @@ tty_capable_p (tty, caps, fg, bg)
   return 1;
 }
 
-/* Return the tty display object specified by DISPLAY.  DISPLAY may be
-   a frame, a string, or nil for the display device of the current
-   frame. */
-
-static struct display *
-get_tty_display (Lisp_Object display)
-{
-  struct display *d;
-
-  if (NILP (display))
-    display = selected_frame;
-
-  if (! FRAMEP (display) && ! STRINGP (display))
-    return 0;
-
-  /* The initial frame does not support colors. */
-  if (FRAMEP (display) && FRAME_INITIAL_P (XFRAME (display)))
-    return 0;
-
-  if (FRAMEP (display))
-    {
-      if (! FRAME_TERMCAP_P (XFRAME (display)))
-#if 0   /* XXX We need a predicate as the first argument; find one. */
-        wrong_type_argument ("Not a termcap frame", display);
-#else /* Until we fix the wrong_type_argument call above, simply throw
-         a dumb error. */
-      error ("DISPLAY is not a termcap frame");
-#endif  
-  
-      d = FRAME_DISPLAY (XFRAME (display));
-    }
-  else if (STRINGP (display))
-    {
-      char *name = (char *) alloca (SBYTES (display) + 1);
-      strncpy (name, SDATA (display), SBYTES (display));
-      name[SBYTES (display)] = 0;
-
-      d = get_named_tty_display (name);
-
-      if (!d)
-        error ("There is no tty display on %s", name);
-    }
-
-  return d;
-}
-
-
 /* Return non-zero if the terminal is capable to display colors.  */
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
-       doc: /* Return non-nil if TTY can display colors on DISPLAY.  */)
+       doc: /* Return non-nil if the tty device that DISPLAY uses can display colors. */)
      (display)
      Lisp_Object display;
 {
@@ -1990,7 +1945,7 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
 /* Return the number of supported colors.  */
 DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        Stty_display_color_cells, 0, 1, 0,
-       doc: /* Return the number of colors supported by TTY on DISPLAY.  */)
+       doc: /* Return the number of colors supported by the tty device that DISPLAY uses.  */)
      (display)
      Lisp_Object display;
 {
@@ -2140,8 +2095,62 @@ set_tty_color_mode (f, val)
 
 
 
-/* Return the termcap display with the given name.  If NAME is null,
-   return the display corresponding to our controlling terminal.
+/* Return the display object specified by DISPLAY.  DISPLAY may be a
+   display id, a frame, or nil for the display device of the current
+   frame. */
+
+struct display *
+get_display (Lisp_Object display)
+{
+  if (NILP (display))
+    display = selected_frame;
+
+  if (! INTEGERP (display) && ! FRAMEP (display))
+    return NULL;
+
+  if (INTEGERP (display))
+    {
+      struct display *d;
+
+      for (d = display_list; d; d = d->next_display)
+        {
+          if (d->id == XINT (display))
+            return d;
+        }
+      return NULL;
+    }
+  else if (FRAMEP (display))
+    {
+      return FRAME_DISPLAY (XFRAME (display));
+    }
+  return NULL;
+}
+
+/* Return the tty display object specified by DISPLAY. */
+
+static struct display *
+get_tty_display (Lisp_Object display)
+{
+  struct display *d = get_display (display);
+  
+  if (d && d->type != output_termcap)
+    {
+#if 0   /* XXX We need a predicate as the first argument; find one. */
+      wrong_type_argument ("Not a termcap display", display);
+#else /* Until we fix the wrong_type_argument call above, simply throw
+         a dumb error. */
+      error ("DISPLAY is not a termcap display");
+#endif
+    }
+
+  return d;
+}
+
+/* Return the active termcap display that uses the tty device with the
+   given name.  If NAME is NULL, return the display corresponding to
+   our controlling terminal.
+
+   This function ignores suspended displays.
 
    Returns NULL if the named terminal device is not opened.  */
  
@@ -2155,7 +2164,8 @@ get_named_tty_display (name)
     if (d->type == output_termcap
         && ((d->display_info.tty->name == 0 && name == 0)
             || (name && d->display_info.tty->name
-                && !strcmp (d->display_info.tty->name, name))))
+                && !strcmp (d->display_info.tty->name, name)))
+        && DISPLAY_ACTIVE_P (d))
       return d;
   };
 
@@ -2164,54 +2174,41 @@ get_named_tty_display (name)
 
 
 
-DEFUN ("frame-tty-name", Fframe_tty_name, Sframe_tty_name, 0, 1, 0,
-       doc: /* Return the name of the TTY device that FRAME is displayed on. */)
-  (frame)
-     Lisp_Object frame;
+DEFUN ("display-name", Fdisplay_name, Sdisplay_name, 0, 1, 0,
+       doc: /* Return the name of the device that DISPLAY uses.
+It is not guaranteed that the returned value is unique among opened displays.
+
+DISPLAY can be a display, a frame, or nil (meaning the selected
+frame's display). */)
+  (display)
+     Lisp_Object display;
 {
-  struct frame *f;
+  struct display *d = get_display (display);
 
-  if (NILP (frame))
-    {
-      f = XFRAME (selected_frame);
-    }
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-    }
+  if (!d)
+    wrong_type_argument (Qdisplay_live_p, display);
 
-  if (f->output_method != output_termcap)
-    wrong_type_argument (Qframe_tty_name, frame);
-
-  if (FRAME_TTY (f)->name)
-    return build_string (FRAME_TTY (f)->name);
+  if (d->name)
+    return build_string (d->name);
   else
     return Qnil;
 }
 
-DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
-       doc: /* Return the type of the TTY device that FRAME is displayed on. */)
-  (frame)
-     Lisp_Object frame;
+
+DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
+       doc: /* Return the type of the TTY device that DISPLAY uses. */)
+  (display)
+     Lisp_Object display;
 {
-  struct frame *f;
+  struct display *d = get_display (display);
 
-  if (NILP (frame))
-    {
-      f = XFRAME (selected_frame);
-    }
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-    }
-
-  if (f->output_method != output_termcap)
-    wrong_type_argument (Qframe_tty_type, frame);
-
-  if (FRAME_TTY (f)->type)
-    return build_string (FRAME_TTY (f)->type);
+  if (!d)
+    wrong_type_argument (Qdisplay_live_p, display);
+  if (d->type != output_termcap)
+    error ("Display %d is not a termcap display", d->id);
+           
+  if (d->display_info.tty->type)
+    return build_string (d->display_info.tty->type);
   else
     return Qnil;
 }
@@ -2232,7 +2229,8 @@ init_initial_display (void)
 
   initial_display = create_display ();
   initial_display->type = output_initial;
-  
+  initial_display->name = xstrdup ("initial_display");
+
   initial_display->delete_display_hook = &delete_initial_display;
   /* All other hooks are NULL. */
   
@@ -2311,18 +2309,15 @@ term_init (char *name, char *terminal_type, int must_succeed)
     maybe_fatal (must_succeed, 0, 0,
                  "Unknown terminal type",
                  "Unknown terminal type");
-  
+
+  /* If we already have an active display on the given device, use that.
+     If all displays are suspended, create a new one instead.  */
+  /* XXX Perhaps this should be made explicit by having term_init
+     always create a new display and separating display and frame
+     creation on Lisp level.  */
   display = get_named_tty_display (name);
   if (display)
-    {
-      /* XXX We would be able to support multiple emacsclients from
-         the same terminal if display devices were Lisp objects.
-         (Lisp code must know the difference between two separate
-         displays on the same terminal device.) -- lorentey */
-      if (! display->display_info.tty->input)
-        error ("%s already has a suspended frame on it, can't open it twice", name);
-      return display;
-    }
+    return display;
 
   display = create_display ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
@@ -2410,6 +2405,7 @@ term_init (char *name, char *terminal_type, int must_succeed)
       
       file = fdopen (fd, "w+");
       tty->name = xstrdup (name);
+      display->name = xstrdup (name);
       tty->input = file;
       tty->output = file;
     }
@@ -2422,6 +2418,7 @@ term_init (char *name, char *terminal_type, int must_succeed)
           error ("There is no controlling terminal any more");
         }
       tty->name = 0;
+      display->name = xstrdup (ttyname (0));
       tty->input = stdin;
       tty->output = stdout;
     }
@@ -2907,37 +2904,6 @@ fatal (str, arg1, arg2)
 
 
 
-DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
-       doc: /* Delete all frames on the terminal named TTY, and close the device.
-If omitted, TTY defaults to the controlling terminal.
-
-This function runs `delete-tty-after-functions' after closing the
-tty.  The functions are run with one arg, the frame to be deleted.  */)
-  (tty)
-     Lisp_Object tty;
-{
-  struct display *d;
-  char *name = 0;
-
-  CHECK_STRING (tty);
-
-  if (SBYTES (tty) > 0)
-    {
-      name = (char *) alloca (SBYTES (tty) + 1);
-      strncpy (name, SDATA (tty), SBYTES (tty));
-      name[SBYTES (tty)] = 0;
-    }
-
-  d = get_named_tty_display (name);
-
-  if (! d)
-    error ("No such terminal device: %s", name);
-
-  delete_tty (d);
-
-  return Qnil;
-}
-
 static int deleting_tty = 0;
 
 
@@ -3038,21 +3004,6 @@ delete_tty (struct display *display)
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
-
-  /* Run `delete-tty-after-functions'.  */
-  if (!NILP (Vrun_hooks))
-    {
-      Lisp_Object args[2];
-      args[0] = intern ("delete-tty-after-functions");
-      if (tty_name)
-        {
-          args[1] = build_string (tty_name);
-          xfree (tty_name);
-        }
-      else
-        args[1] = Qnil;
-      Frun_hook_with_args (2, args);
-    }
 }
 
 
@@ -3118,6 +3069,8 @@ create_display (void)
   display->next_display = display_list;
   display_list = display;
 
+  display->id = next_display_id++;
+
   display->keyboard_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
   display->terminal_coding =
@@ -3157,26 +3110,114 @@ delete_display (struct display *display)
     xfree (display->keyboard_coding);
   if (display->terminal_coding)
     xfree (display->terminal_coding);
-
+  if (display->name)
+    xfree (display->name);
+  
   bzero (display, sizeof (struct display));
   xfree (display);
 }
 
+DEFUN ("delete-display", Fdelete_display, Sdelete_display, 0, 2, 0,
+       doc: /* Delete DISPLAY by deleting all frames on it and closing the device.
+DISPLAY may be a display id, a frame, or nil for the display
+device of the current frame.
+
+Normally, you may not delete a display if all other displays are suspended,
+but if the second argument FORCE is non-nil, you may do so. */)
+  (display, force)
+     Lisp_Object display, force;
+{
+  struct display *d, *p;
+
+  d = get_display (display);
+
+  if (!d)
+    return Qnil;
+
+  p = display_list;
+  while (p && (p == d || !DISPLAY_ACTIVE_P (p)))
+    p = p->next_display;
+  
+  if (NILP (force) && !p)
+    error ("Attempt to delete the sole active display");
+
+  if (d->delete_display_hook)
+    (*d->delete_display_hook) (d);
+  else
+    delete_display (d);
+
+  return Qnil;
+}
+
+DEFUN ("display-live-p", Fdisplay_live_p, Sdisplay_live_p, 1, 1, 0,
+       doc: /* Return non-nil if OBJECT is a display which has not been deleted.
+Value is nil if OBJECT is not a live display.
+If object is a live display, the return value indicates what sort of
+output device it uses.  See the documentation of `framep' for possible
+return values.
+
+Displays are represented by their integer identifiers. */)
+  (object)
+     Lisp_Object object;
+{
+  struct display *d;
+  
+  if (!INTEGERP (object))
+    return Qnil;
+
+  d = get_display (object);
+
+  if (!d)
+    return Qnil;
+
+  switch (d->type)
+    {
+    case output_initial: /* The initial frame is like a termcap frame. */
+    case output_termcap:
+      return Qt;
+    case output_x_window:
+      return Qx;
+    case output_w32:
+      return Qw32;
+    case output_msdos_raw:
+      return Qpc;
+    case output_mac:
+      return Qmac;
+    default:
+      abort ();
+    }
+}
+
+DEFUN ("display-list", Fdisplay_list, Sdisplay_list, 0, 0, 0,
+       doc: /* Return a list of all displays.
+Displays are represented by their integer identifiers. */)
+  ()
+{
+  Lisp_Object displays = Qnil;
+  struct display *d;
+
+  for (d = display_list; d; d = d->next_display)
+    displays = Fcons (make_number (d->id), displays);
+
+  return displays;
+}
+
+            
 
 
 DEFUN ("suspend-tty", Fsuspend_tty, Ssuspend_tty, 0, 1, 0,
        doc: /* Suspend the terminal device TTY.
-The terminal is restored to its default state, and Emacs closes all
+The terminal is restored to its default state, and Emacs ceases all
 access to the terminal device.  Frames that use the device are not
 deleted, but input is not read from them and if they change, their
 display is not updated.
 
-TTY may a string (a device name), a frame, or nil for the display
-device of the currently selected frame.
+TTY may be a display id, a frame, or nil for the display device of the
+currently selected frame.
 
 This function runs `suspend-tty-functions' after suspending the
-device.  The functions are run with one arg, the name of the terminal
-device.
+device.  The functions are run with one arg, the id of the suspended
+display device.
 
 `suspend-tty' does nothing if it is called on an already suspended
 device.
@@ -3215,12 +3256,7 @@ it. */)
         {
           Lisp_Object args[2];
           args[0] = intern ("suspend-tty-functions");
-          if (d->display_info.tty->name)
-            {
-              args[1] = build_string (d->display_info.tty->name);
-            }
-          else
-            args[1] = Qnil;
+          args[1] = make_number (d->id);
           Frun_hook_with_args (2, args);
         }
     }
@@ -3231,17 +3267,21 @@ it. */)
 
 DEFUN ("resume-tty", Fresume_tty, Sresume_tty, 0, 1, 0,
        doc: /* Resume the previously suspended terminal device TTY.
-The terminal is opened and reinitialized.  Frames that used the
-suspended device are revived.
+The terminal is opened and reinitialized.  Frames that are on the
+suspended display are revived.
+
+It is an error to resume a display while another display is active on
+the same device.
 
 This function runs `resume-tty-functions' after resuming the device.
-The functions are run with one arg, the name of the terminal device.
+The functions are run with one arg, the id of the resumed display
+device.
 
 `resume-tty' does nothing if it is called on a device that is not
 suspended.
 
-TTY may a string (a device name), a frame, or nil for the display
-device of the currently selected frame. */)
+TTY may be a display id, a frame, or nil for the display device of the
+currently selected frame. */)
   (tty)
      Lisp_Object tty;
 {
@@ -3253,6 +3293,9 @@ device of the currently selected frame. */)
 
   if (!d->display_info.tty->input)
     {
+      if (get_named_tty_display (d->display_info.tty->name))
+        error ("Cannot resume display while another display is active on the same device");
+
       fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
 
       /* XXX What if open fails? */
@@ -3274,12 +3317,7 @@ device of the currently selected frame. */)
         {
           Lisp_Object args[2];
           args[0] = intern ("resume-tty-functions");
-          if (d->display_info.tty->name)
-            {
-              args[1] = build_string (d->display_info.tty->name);
-            }
-          else
-            args[1] = Qnil;
+          args[1] = make_number (d->id);
           Frun_hook_with_args (2, args);
         }
     }
@@ -3305,13 +3343,6 @@ This variable can be used by terminal emulator packages.  */);
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 
-  DEFVAR_LISP ("delete-tty-after-functions", &Vdelete_tty_after_functions,
-    doc: /* Functions to be run after deleting a tty.
-The functions are run with one argument, the name of the tty to be deleted.
-See `delete-tty'.  */);
-  Vdelete_tty_after_functions = Qnil;
-
-
   DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
 The functions are run with one argument, the name of the tty to be suspended.
@@ -3325,17 +3356,13 @@ The functions are run with one argument, the name of the tty that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
 
-  Qframe_tty_name = intern ("frame-tty-name");
-  staticpro (&Qframe_tty_name);
-
-  Qframe_tty_type = intern ("frame-tty-type");
-  staticpro (&Qframe_tty_type);
-
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
-  defsubr (&Sframe_tty_name);
-  defsubr (&Sframe_tty_type);
-  defsubr (&Sdelete_tty);
+  defsubr (&Sdisplay_name);
+  defsubr (&Sdisplay_tty_type);
+  defsubr (&Sdelete_display);
+  defsubr (&Sdisplay_live_p);
+  defsubr (&Sdisplay_list);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
 

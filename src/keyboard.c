@@ -10317,7 +10317,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   signal (SIGQUIT, interrupt_signal);
 #endif /* USG */
 
-  /* See if we have a display on our controlling terminal. */
+  /* See if we have an active display on our controlling terminal. */
   display = get_named_tty_display (NULL);
   if (!display)
     {

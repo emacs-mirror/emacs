@@ -76,6 +76,8 @@ Lisp_Object Qinhibit_default_face_x_resources;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
+Lisp_Object Qdisplay_id;
+Lisp_Object Qdisplay_live_p;
 
 /* Frame parameters (set or reported).  */
 
@@ -558,18 +560,11 @@ make_initial_frame (void)
 
 
 struct frame *
-make_terminal_frame (tty_name, tty_type)
-     char *tty_name;
-     char *tty_type;
+make_terminal_frame (struct display *display)
 {
   register struct frame *f;
-  struct display *display;
   Lisp_Object frame;
   char name[20];
-  
-  /* Open the display before creating the new frame, because
-     create_tty_display might throw an error. */
-  display = term_init (tty_name, tty_type, 0); /* Errors are not fatal. */
   
   f = make_frame (1);
 
@@ -673,6 +668,7 @@ affects all frames on the same terminal device.  */)
      Lisp_Object parms;
 {
   struct frame *f;
+  struct display *d = NULL;
   Lisp_Object frame, tem;
   struct frame *sf = SELECTED_FRAME ();
 
@@ -692,53 +688,70 @@ affects all frames on the same terminal device.  */)
 #endif
 #endif
 #endif /* not MSDOS */
+  
+  {
+    Lisp_Object display_device;
 
-  { 
-    Lisp_Object tty, tty_type;
-    char *name = 0, *type = 0;
-
-    tty = Fassq (Qtty, parms);
-    if (EQ (tty, Qnil))
-      tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
-    if (EQ (tty, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
-        && FRAME_TTY (XFRAME (selected_frame))->name)
-      tty = build_string (FRAME_TTY (XFRAME (selected_frame))->name);
-    if (EQ (tty, Qnil))
-      tty = Fassq (Qtty, Vdefault_frame_alist);
-    if (! EQ (tty, Qnil) && ! STRINGP (tty))
-      tty = XCDR (tty);
-    if (EQ (tty, Qnil) || !STRINGP (tty))
-      tty = Qnil;
-
-    tty_type = Fassq (Qtty_type, parms);
-    if (EQ (tty_type, Qnil))
-      tty_type = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
-    if (EQ (tty_type, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
-        && FRAME_TTY (XFRAME (selected_frame))->type)
-      tty_type = build_string (FRAME_TTY (XFRAME (selected_frame))->type);
-    if (EQ (tty_type, Qnil))
-      tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
-    if (! EQ (tty_type, Qnil) && ! STRINGP (tty_type))
-      tty_type = XCDR (tty_type);
-    if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
-      tty_type = Qnil;
-
-    if (! EQ (tty, Qnil))
+    display_device = Fassq (Qdisplay_id, parms);
+    if (!NILP (display_device))
       {
-        name = (char *) alloca (SBYTES (tty) + 1);
-        strncpy (name, SDATA (tty), SBYTES (tty));
-        name[SBYTES (tty)] = 0;
+        display_device = XCDR (display_device);
+        CHECK_NUMBER (display_device);
+        d = get_display (XINT (display_device));
+        if (!d)
+          wrong_type_argument (Qdisplay_live_p, display_device);
       }
-
-    if (! EQ (tty_type, Qnil))
-      {
-        type = (char *) alloca (SBYTES (tty_type) + 1);
-        strncpy (type, SDATA (tty_type), SBYTES (tty_type));
-        type[SBYTES (tty_type)] = 0;
-      }
-
-    f = make_terminal_frame (name, type);
   }
+  
+  if (!d)
+    { 
+      Lisp_Object tty, tty_type;
+      char *name = 0, *type = 0;
+
+      tty = Fassq (Qtty, parms);
+      if (EQ (tty, Qnil))
+        tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
+      if (EQ (tty, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
+          && FRAME_TTY (XFRAME (selected_frame))->name)
+        tty = build_string (FRAME_TTY (XFRAME (selected_frame))->name);
+      if (EQ (tty, Qnil))
+        tty = Fassq (Qtty, Vdefault_frame_alist);
+      if (! EQ (tty, Qnil) && ! STRINGP (tty))
+        tty = XCDR (tty);
+      if (EQ (tty, Qnil) || !STRINGP (tty))
+        tty = Qnil;
+
+      tty_type = Fassq (Qtty_type, parms);
+      if (EQ (tty_type, Qnil))
+        tty_type = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
+      if (EQ (tty_type, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
+          && FRAME_TTY (XFRAME (selected_frame))->type)
+        tty_type = build_string (FRAME_TTY (XFRAME (selected_frame))->type);
+      if (EQ (tty_type, Qnil))
+        tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
+      if (! EQ (tty_type, Qnil) && ! STRINGP (tty_type))
+        tty_type = XCDR (tty_type);
+      if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
+        tty_type = Qnil;
+
+      if (! EQ (tty, Qnil))
+        {
+          name = (char *) alloca (SBYTES (tty) + 1);
+          strncpy (name, SDATA (tty), SBYTES (tty));
+          name[SBYTES (tty)] = 0;
+        }
+      
+      if (! EQ (tty_type, Qnil))
+        {
+          type = (char *) alloca (SBYTES (tty_type) + 1);
+          strncpy (type, SDATA (tty_type), SBYTES (tty_type));
+          type[SBYTES (tty_type)] = 0;
+        }
+
+      d = term_init (name, type, 0); /* Errors are not fatal. */
+    }
+
+  f = make_terminal_frame (d);
 
   {
     int width, height;
@@ -1045,6 +1058,31 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
 
   return XFRAME (frame)->selected_window = window;
 }
+
+
+DEFUN ("frame-display", Fframe_display, Sframe_display, 0, 1, 0,
+       doc: /* Return the display device that FRAME is displayed on.
+If FRAME is nil, the selected frame is used.
+
+The display device is represented by its integer identifier.  */)
+  (frame)
+     Lisp_Object frame;
+{
+  struct display *d;
+
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+
+  d = get_display (frame);
+
+  if (!d)
+    return Qnil;
+  else
+    return make_number (d->id);
+}
+
 
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
@@ -1386,6 +1424,10 @@ The functions are run with one arg, the frame to be deleted.  */)
       args[1] = frame;
       Frun_hook_with_args (2, args);
     }
+
+  /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
+  if (! FRAME_LIVE_P (f))
+    return Qnil;
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
 
@@ -4154,6 +4196,11 @@ syms_of_frame ()
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
 
+  Qdisplay_id = intern ("display-id");
+  staticpro (&Qdisplay_id);
+  Qdisplay_live_p = intern ("display-live-p");
+  staticpro (&Qdisplay_live_p);
+  
   {
     int i;
 
@@ -4286,6 +4333,7 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
   defsubr (&Sframe_first_window);
   defsubr (&Sframe_selected_window);
   defsubr (&Sset_frame_selected_window);
+  defsubr (&Sframe_display);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
