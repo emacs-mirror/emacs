@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000
+;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -835,11 +835,15 @@ to record whether we upcased the expansion, downcased it, or did neither."
     ;; matches the start of the expansion,
     ;; copy the expansion's case
     ;; instead of downcasing all the rest.
+    ;; Treat a one-capital-letter abbrev as "not all upper case",
+    ;; so as to force preservation of the expansion's pattern
+    ;; if the expansion starts with a capital letter.
     (let ((expansion-rest (substring expansion 1)))
       (if (and (not (and (or (string= expansion-rest (downcase expansion-rest))
 			     (string= expansion-rest (upcase expansion-rest)))
 			 (or (string= abbrev (downcase abbrev))
-			     (string= abbrev (upcase abbrev)))))
+			     (and (string= abbrev (upcase abbrev))
+				  (> (length abbrev) 1)))))
 	       (string= abbrev
 			(substring expansion 0 (length abbrev))))
 	  (setq use-case-replace nil)))
