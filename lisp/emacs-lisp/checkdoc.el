@@ -1592,18 +1592,22 @@ function,command,variable,option or symbol." ms1))))))
 	     ;; If the doc string starts with "Non-nil means"
 	     (if (and (looking-at "\"\\*?Non-nil\\s-+means\\s-+")
 		      (not (string-match "-flag$" (car fp))))
-		 (if (checkdoc-y-or-n-p
-		      (format
-		       "Rename to %s and Query-Replace all occurances? "
-		       (concat (car fp) "-flag")))
-		     (progn
-		       (beginning-of-defun)
-		       (query-replace-regexp
-			(concat "\\<" (regexp-quote (car fp)) "\\>")
-			(concat (car fp) "-flag")))
-		   (checkdoc-create-error
-		    "Flag variable names should normally end in `-flag'" s
-		    (marker-position e))))
+		 (let ((newname
+			(if (string-match "-p$" (car fp))
+			    (concat (substring (car fp) 0 -2) "-flag")
+			  (concat (car fp) "-flag"))))
+		   (if (checkdoc-y-or-n-p
+			(format
+			 "Rename to %s and Query-Replace all occurances? "
+			 newname))
+		       (progn
+			 (beginning-of-defun)
+			 (query-replace-regexp
+			  (concat "\\<" (regexp-quote (car fp)) "\\>")
+			  newname))
+		     (checkdoc-create-error
+		      "Flag variable names should normally end in `-flag'" s
+		      (marker-position e)))))
 	     ;; Done with variables
 	     ))
 	   (t
