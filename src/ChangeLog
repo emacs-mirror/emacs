@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_after_update_window_line): Clear internal border
+	in different circumstances.
+	
 	* xterm.c (XTread_socket) <KeyPress>: Don't use
 	STRING_CHAR_AND_LENGTH if nchars == nbytes.  From Kenichi Handa
 	<handa@etl.go.jp>.
