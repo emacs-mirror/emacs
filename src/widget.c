@@ -525,14 +525,17 @@ static void
 create_frame_gcs (ew)
      EmacsFrame ew;
 {
-  struct frame* s = ew->emacs_frame.frame;
+  struct frame *s = ew->emacs_frame.frame;
 
   s->display.x->normal_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
+    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+	       (unsigned long)0, (XGCValues *)0);
   s->display.x->reverse_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
+    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+	       (unsigned long)0, (XGCValues *)0);
   s->display.x->cursor_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
+    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+	       (unsigned long)0, (XGCValues *)0);
 }
 
 static char setup_frame_cursor_bits[] =
@@ -570,7 +573,8 @@ setup_frame_gcs (ew)
   blank_tile =
     XCreatePixmapFromBitmapData (XtDisplay(ew),
 				 RootWindowOfScreen (XtScreen (ew)),
-				 setup_frame_cursor_bits, 2, 2, 0, 1,
+				 setup_frame_cursor_bits, 2, 2,
+				 (unsigned long)0, (unsigned long)1,
 				 ew->core.depth);
 
   /* Normal video */
