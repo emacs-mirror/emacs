@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/06/11 18:59:38 $|$Revision: 1.70 $
+;; |$Date: 1994/08/05 04:15:20 $|$Revision: 1.71 $
 
 ;; This file is part of GNU Emacs.
 
@@ -531,7 +531,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (if recursive-edit
       (let ((isearch-recursive-edit t))
 	(recursive-edit)))
-  )
+  isearch-success)
 
 
 ;;;====================================================
@@ -578,7 +578,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   )
 
 
-(defun isearch-done (&optional nopush)
+(defun isearch-done (&optional nopush edit)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-local-map nil)
@@ -626,7 +626,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 		  (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
   (run-hooks 'isearch-mode-end-hook)
-  (if isearch-recursive-edit (exit-recursive-edit)))
+  (and (not edit) isearch-recursive-edit (exit-recursive-edit)))
 
 ;;;=======================================================
 ;;; Switching buffers should first terminate isearch-mode.
@@ -714,7 +714,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	;; This is so that the user can do anything without failure, 
 	;; like switch buffers and start another isearch, and return.
 	(condition-case err
-	    (isearch-done t)
+	    (isearch-done t t)
 	  (exit nil))			; was recursive editing
 
 	(isearch-message) ;; for read-char
@@ -751,7 +751,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	  (isearch-mode isearch-forward 
 			isearch-regexp 
 			isearch-op-fun 
-			isearch-recursive-edit
+			nil
 			isearch-word)
 
 	  ;; Copy new local values to isearch globals
