@@ -20603,6 +20603,28 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
       past_end = 1;
     }
 
+  /* If whole rows or last part of a row came from a display overlay,
+     row_containing_pos will skip over such rows because their end pos
+     equals the start pos of the overlay or interval.  Backtrack if we
+     have a STOP object and previous row's end glyph came from STOP.  */
+  if (!NILP (stop))
+    {
+      struct glyph_row *prev = row-1;
+      while ((prev = row - 1, prev >= first)
+	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
+	     && prev->used[TEXT_AREA] > 0)
+	{
+	  end = prev->glyphs[TEXT_AREA];
+	  glyph = end + prev->used[TEXT_AREA];
+	  while (--glyph >= end
+		 && INTEGERP (glyph->object));
+	  if (glyph < end
+	      || !EQ (stop, glyph->object))
+	    break;
+	  row = prev;
+	}
+    }
+
   *x = row->x;
   *y = row->y;
   *vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
