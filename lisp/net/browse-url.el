@@ -49,6 +49,7 @@
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
 ;; browse-url-gnome-moz               GNOME interface to Mozilla
+;; browse-url-kde                     KDE konqueror (kfm)
 
 ;; [A version of the Netscape browser is now free software
 ;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
@@ -261,6 +262,7 @@ regexp should probably be \".\" to specify a default browser."
 			 :value browse-url-lynx-emacs)
 	  (function-item :tag "Grail" :value  browse-url-grail)
 	  (function-item :tag "MMM" :value  browse-url-mmm)
+	  (function-item :tag "KDE" :value browse-url-kde)
 	  (function-item :tag "Specified by `Browse Url Generic Program'"
 			 :value browse-url-generic)
 	  (function-item :tag "Default Windows browser"
@@ -479,6 +481,17 @@ down (this *won't* always work)."
 
 (defcustom browse-url-lynx-input-delay 0.2
   "How many seconds to wait for lynx between moves down from an input field.")
+
+(defcustom browse-url-kde-program "kfmclient"
+  "The name by which to invoke the KDE web browser."
+  :type 'string
+  :version "21.1"
+  :group 'browse-url)
+
+(defcustom browse-url-kde-args '("openURL")
+  "*A list of strings defining options for `browse-url-kde-program'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
@@ -1070,6 +1083,15 @@ don't offer a form of remote control."
   (apply 'start-process (concat browse-url-generic-program url) nil
 	 browse-url-generic-program
 	 (append browse-url-generic-args (list url))))
+
+;;;###autoload
+(defun browse-url-kde (url &optional new-window)
+  "Ask the KDE WWW browser to load URL.
+Default to the URL around or before point."
+  (interactive (browse-url-interactive-arg "KDE URL: "))
+  (message "Sending URL to KDE...")
+  (apply #'start-process `(,(concat "KDE" url) nil ,browse-url-kde-program
+			   ,@browse-url-kde-args ,url)))
 
 (provide 'browse-url)
 
