@@ -1,5 +1,11 @@
 2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* Makefile.in: Remove OpenLook file dependencies.
+	(xrdb-cpp.o): Remove target.
+	Remove unused defines.
+
+	* xrdb.c, xrdb-cpp.c: Remove unused file.
+
 	* lwlib.c (instantiate_widget_instance): Remove duplicated
 	prototype.
 
