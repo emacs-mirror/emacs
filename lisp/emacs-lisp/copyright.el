@@ -54,6 +54,13 @@ The second \\( \\) construct must match the years."
   :group 'copyright
   :type 'regexp)
 
+(defcustom copyright-years-regexp
+ "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+  "*Match additional copyright notice years.
+The second \\( \\) construct must match the years."
+  :group 'copyright
+  :type 'regexp)
+
 
 (defcustom copyright-query 'function
   "*If non-nil, ask user before changing copyright.
@@ -77,6 +84,23 @@ When this is `function', only ask when called non-interactively."
 
 (defun copyright-update-year (replace noquery)
   (when (re-search-forward copyright-regexp (+ (point) copyright-limit) t)
+    ;; If the years are continued onto multiple lined
+    ;; that are marked as comments, skip to the end of the years anyway.
+    (while (save-excursion
+	     (and (eq (following-char) ?,)
+		  (progn (forward-char 1) t)
+		  (progn (skip-chars-forward " \t") (eolp))
+		  comment-start-skip
+		  (save-match-data
+		    (forward-line 1)
+		    (and (looking-at comment-start-skip)
+			 (goto-char (match-end 0))))
+		  (save-match-data
+		    (looking-at copyright-years-regexp))))
+      (forward-line 1)
+      (re-search-forward comment-start-skip)
+      (re-search-forward copyright-years-regexp))
+		  
     ;; Note that `current-time-string' isn't locale-sensitive.
     (setq copyright-current-year (substring (current-time-string) -4))
     (unless (string= (buffer-substring (- (match-end 2) 2) (match-end 2))
