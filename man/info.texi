@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.21 2002/04/23 18:36:05 rms Exp $
+@comment $Id: info.texi,v 1.22 2002/04/24 00:58:45 miles Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -807,9 +807,10 @@ GNU Info, info-stnd, GNU Info}.)
 
   This chapter also explains how to write an Info as distinct from a
 Texinfo file.  (However, in most cases, writing a Texinfo file is
-better, since you can use it to make a printed manual or an HTML file
-as well as for generating Info files.)  @xref{Top,, Overview of
-Texinfo, texinfo, Texinfo: The GNU Documentation Format}.)
+better, since you can use it to make a printed manual or produce other
+formats, such as HTML and DocBook, as well as for generating Info
+files.)  @xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU
+Documentation Format}.)
 
 @menu
 * Advanced::             Advanced Info commands: g, s, e, and 1 - 5.
