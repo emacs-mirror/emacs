@@ -1,7 +1,13 @@
+2002-05-13  Dave Love  <fx@gnu.org>
+
+	* coding.c: Doc fixes.
+	(Fdefine_coding_system_alias): Use names, not symbols, in
+	coding-system-alist.
+
 2002-05-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (free_realized_fontsets): Call Fclear_face_cache instead
-	of calling free_reazlied_face.
+	of calling free_realized_face.
 
 2002-05-10  Yong Lu <lyongu@asia-infonet.com>
 

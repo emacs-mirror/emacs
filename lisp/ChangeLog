@@ -1,5 +1,10 @@
 2002-05-13  Dave Love  <fx@gnu.org>
 
+	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Fix
+	getting decoder.
+	(encoded-kbd-mode): Fix code for coding system type and
+	designations.
+
 	* international/mule-conf.el: Speling fixes.
 
 2002-05-13  Kenichi Handa  <handa@etl.go.jp>
