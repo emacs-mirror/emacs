@@ -1,7 +1,7 @@
 ;;; nnweb.el --- retrieving articles via web search engines
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -30,6 +30,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'nnoo)
 (require 'message)
 (require 'gnus-util)
@@ -52,14 +54,22 @@
   "Where nnweb will save its files.")
 
 (defvoo nnweb-type 'dejanews
-  "What search engine type is being used.")
+  "What search engine type is being used.
+Valid types include `dejanews', `dejanewsold', `reference',
+and `altavista'.")
 
-(defvar nnweb-type-definition
+(defvoo nnweb-type-definition
   '((dejanews
      (article . nnweb-dejanews-wash-article)
      (map . nnweb-dejanews-create-mapping)
      (search . nnweb-dejanews-search)
-     (address . "http://xp9.dejanews.com/dnquery.xp")
+     (address . "http://x8.dejanews.com/dnquery.xp")
+     (identifier . nnweb-dejanews-identity))
+    (dejanewsold
+     (article . nnweb-dejanews-wash-article)
+     (map . nnweb-dejanews-create-mapping)
+     (search . nnweb-dejanewsold-search)
+     (address . "http://x8.dejanews.com/dnquery.xp")
      (identifier . nnweb-dejanews-identity))
     (reference
      (article . nnweb-reference-wash-article)
@@ -79,7 +89,7 @@
 (defvoo nnweb-search nil
   "Search string to feed to DejaNews.")
 
-(defvoo nnweb-max-hits 100
+(defvoo nnweb-max-hits 999
   "Maximum number of hits to display.")
 
 (defvoo nnweb-ephemeral-p nil
@@ -206,7 +216,7 @@
 
 (deffoo nnweb-request-delete-group (group &optional force server)
   (nnweb-possibly-change-server group server)
-  (gnus-delete-assoc group nnweb-group-alist)
+  (gnus-pull group nnweb-group-alist)
   (gnus-delete-file (nnweb-overview-file group))
   t)
 
@@ -379,49 +389,53 @@
 	    (case-fold-search t)
 	    (active (or (cadr (assoc nnweb-group nnweb-group-alist))
 			(cons 1 0)))
-	    Subject Score Date Newsgroup Author
+	    Subject (Score "0") Date Newsgroup Author
 	    map url)
 	(while more
 	  ;; Go through all the article hits on this page.
 	  (goto-char (point-min))
 	  (nnweb-decode-entities)
 	  (goto-char (point-min))
-	  (while (re-search-forward "^ +[0-9]+\\." nil t)
+	  (while (re-search-forward "^ <P>\n" nil t)
 	    (narrow-to-region
 	     (point)
-	     (cond ((re-search-forward "^ +[0-9]+\\." nil t)
+	     (cond ((re-search-forward "^ <P>\n" nil t)
 		    (match-beginning 0))
 		   ((search-forward "\n\n" nil t)
 		    (point))
 		   (t
 		    (point-max))))
 	    (goto-char (point-min))
-	    (when (looking-at ".*HREF=\"\\([^\"]+\\)\"")
-	      (setq url (match-string 1)))
-	    (nnweb-remove-markup)
-	    (goto-char (point-min))
-	    (while (search-forward "\t" nil t)
-	      (replace-match " "))
-	    (goto-char (point-min))
-	    (while (re-search-forward "^ +\\([^:]+\\): +\\(.*\\)$" nil t)
-	      (set (intern (match-string 1)) (match-string 2)))
+	    (looking-at ".*HREF=\"\\([^\"]+\\)\"\\(.*\\)")
+	    (setq url (match-string 1))
+ 	    (let ((begin (point)))
+ 	      (nnweb-remove-markup)
+ 	      (goto-char begin)
+ 	      (while (search-forward "\t" nil t)
+ 		(replace-match " "))
+ 	      (goto-char begin)
+ 	      (end-of-line)
+ 	      (setq Subject (buffer-substring begin (point)))
+ 	      (if (re-search-forward
+ 		   "^ Newsgroup: \\(.*\\)\n Posted on \\([0-9/]+\\) by \\(.*\\)$" nil t)
+ 		  (setq Newsgroup (match-string 1)
+ 			Date (match-string 2)
+ 			Author (match-string 3))))
 	    (widen)
-	    (when (string-match "#[0-9]+/[0-9]+ *$" Subject)
-	      (setq Subject (substring Subject 0 (match-beginning 0))))
 	    (incf i)
 	    (unless (nnweb-get-hashtb url)
 	      (push
 	       (list
 		(incf (cdr active))
 		(make-full-mail-header
-		 (cdr active) (concat  "(" Newsgroup ") " Subject) Author Date
+		 (cdr active) Subject Author Date
 		 (concat "<" (nnweb-identifier url) "@dejanews>")
 		 nil 0 (string-to-int Score) url))
 	       map)
 	      (nnweb-set-hashtb (cadar map) (car map))))
 	  ;; See whether there is a "Get next 20 hits" button here.
 	  (if (or (not (re-search-forward
-			"HREF=\"\\([^\"]+\\)\">Get next" nil t))
+			"HREF=\"\\([^\"]+\\)\"[<>b]+Next result" nil t))
 		  (>= i nnweb-max-hits))
 	      (setq more nil)
 	    ;; Yup -- fetch it.
@@ -430,8 +444,7 @@
 	    (url-insert-file-contents more)))
 	;; Return the articles in the right order.
 	(setq nnweb-articles
-	      (sort (nconc nnweb-articles map)
-		    (lambda (s1 s2) (< (car s1) (car s2)))))))))
+	      (sort (nconc nnweb-articles map) 'car-less-than-car))))))
 
 (defun nnweb-dejanews-wash-article ()
   (let ((case-fold-search t))
@@ -461,9 +474,23 @@
      ("defaultOp" . "AND")
      ("svcclass" . "dncurrent")
      ("maxhits" . "100")
-     ("format" . "verbose")
+     ("format" . "verbose2")
      ("threaded" . "0")
-     ("showsort" . "score")
+     ("showsort" . "date")
+     ("agesign" . "1")
+     ("ageweight" . "1")))
+  t)
+
+(defun nnweb-dejanewsold-search (search)
+  (nnweb-fetch-form
+   (nnweb-definition 'address)
+   `(("query" . ,search)
+     ("defaultOp" . "AND")
+     ("svcclass" . "dnold")
+     ("maxhits" . "100")
+     ("format" . "verbose2")
+     ("threaded" . "0")
+     ("showsort" . "date")
      ("agesign" . "1")
      ("ageweight" . "1")))
   t)
@@ -530,8 +557,7 @@
 	  (setq more nil))
 	;; Return the articles in the right order.
 	(setq nnweb-articles
-	      (sort (nconc nnweb-articles map)
-		    (lambda (s1 s2) (< (car s1) (car s2)))))))))
+	      (sort (nconc nnweb-articles map) 'car-less-than-car))))))
 
 (defun nnweb-reference-wash-article ()
   (let ((case-fold-search t))
@@ -657,8 +683,7 @@
 	      (setq more nil)))
 	  ;; Return the articles in the right order.
 	  (setq nnweb-articles
-		(sort (nconc nnweb-articles map)
-		      (lambda (s1 s2) (< (car s1) (car s2))))))))))
+		(sort (nconc nnweb-articles map) 'car-less-than-car)))))))
 
 (defun nnweb-altavista-wash-article ()
   (goto-char (point-min))

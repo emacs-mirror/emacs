@@ -1,7 +1,7 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
@@ -30,7 +30,9 @@
 ;;; Code:
 
 (require 'nnheader)
-(require 'rmail)
+(condition-case nil
+    (require 'rmail)
+  (t (nnheader-message 5 "Ignore rmail errors from this file, you don't have rmail")))
 (require 'nnmail)
 (require 'nnoo)
 (eval-when-compile (require 'cl))
@@ -240,7 +242,7 @@
   (nnmail-activate 'nnbabyl)
   (unless (assoc group nnbabyl-group-alist)
     (push (list group (cons 1 0))
-				    nnbabyl-group-alist)
+	  nnbabyl-group-alist)
     (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file))
   t)
 
@@ -643,7 +645,7 @@
       (when (buffer-modified-p (current-buffer))
 	(save-buffer))
       (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file)
-      (message ""))))
+      (nnheader-message 5 ""))))
 
 (provide 'nnbabyl)
 

@@ -1,7 +1,7 @@
 ;;; gnus-undo.el --- minor mode for undoing in Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 
 ;; This package allows arbitrary undoing in Gnus buffers.  As all the
 ;; Gnus buffers aren't very text-oriented (what is in the buffers is
-;; just some random representation of the actual data), normal Emacs
+;; just some arbitrary representation of the actual data), normal Emacs
 ;; undoing doesn't work at all for Gnus.
 ;;
 ;; This package works by letting Gnus register functions for reversing
@@ -46,14 +46,30 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus-util)
 (require 'gnus)
+(require 'custom)
 
-(defvar gnus-undo-mode nil
-  "Minor mode for undoing in Gnus buffers.")
+(defgroup gnus-undo nil
+  "Undoing in Gnus buffers."
+  :group 'gnus)
 
-(defvar gnus-undo-mode-hook nil
-  "Hook called in all `gnus-undo-mode' buffers.")
+(defcustom gnus-undo-limit 2000
+  "The number of undoable actions recorded."
+  :type 'integer
+  :group 'gnus-undo)
+
+(defcustom gnus-undo-mode nil
+  "Minor mode for undoing in Gnus buffers."
+  :type 'boolean
+  :group 'gnus-undo)
+
+(defcustom gnus-undo-mode-hook nil
+  "Hook called in all `gnus-undo-mode' buffers."
+  :type 'hook
+  :group 'gnus-undo)
 
 ;;; Internal variables.
 
@@ -100,7 +116,7 @@
     (gnus-add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
     (make-local-hook 'post-command-hook)
     (add-hook 'post-command-hook 'gnus-undo-boundary nil t)
-    (run-hooks 'gnus-undo-mode-hook)))
+    (gnus-run-hooks 'gnus-undo-mode-hook)))
 
 ;;; Interface functions.
 
@@ -148,6 +164,11 @@ FORMS may use backtick quote syntax."
      ;; Initialize list.
      (t
       (setq gnus-undo-actions (list (list function)))))
+    ;; Limit the length of the undo list.
+    (let ((next (nthcdr gnus-undo-limit gnus-undo-actions)))
+      (when next
+	(setcdr next nil)))
+    ;; We are not at a boundary...
     (setq gnus-undo-boundary-inhibit t)))
 
 (defun gnus-undo (n)

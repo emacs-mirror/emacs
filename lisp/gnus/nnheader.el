@@ -1,8 +1,8 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
-;; Copyright (C) 1987,88,89,90,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; 	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -39,6 +39,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'mail-utils)
 
 (defvar nnheader-max-head-length 4096
@@ -59,7 +61,10 @@ on your system, you could say something like:
  (autoload 'mail-position-on-field "sendmail")
  (autoload 'message-remove-header "message")
  (autoload 'cancel-function-timers "timers")
- (autoload 'gnus-point-at-eol "gnus-util"))
+ (autoload 'gnus-point-at-eol "gnus-util")
+ (autoload 'gnus-delete-line "gnus-util")
+ (autoload 'gnus-buffer-live-p "gnus-util")
+ (autoload 'gnus-encode-coding-string "gnus-ems"))
 
 ;;; Header access macros.
 
@@ -166,7 +171,7 @@ on your system, you could say something like:
   (let ((case-fold-search t)
 	(cur (current-buffer))
 	(buffer-read-only nil)
-	in-reply-to lines p)
+	in-reply-to lines p ref)
     (goto-char (point-min))
     (when naked
       (insert "\n"))
@@ -214,8 +219,9 @@ on your system, you could say something like:
 	     (goto-char p)
 	     (if (search-forward "\nmessage-id:" nil t)
 		 (buffer-substring
-		  (1- (or (search-forward "<" nil t) (point)))
-		  (or (search-forward ">" nil t) (point)))
+		  (1- (or (search-forward "<" (gnus-point-at-eol) t)
+			  (point)))
+		  (or (search-forward ">" (gnus-point-at-eol) t) (point)))
 	       ;; If there was no message-id, we just fake one to make
 	       ;; subsequent routines simpler.
 	       (nnheader-generate-fake-message-id)))
@@ -230,9 +236,16 @@ on your system, you could say something like:
 	       (if (and (search-forward "\nin-reply-to: " nil t)
 			(setq in-reply-to (nnheader-header-value))
 			(string-match "<[^>]+>" in-reply-to))
-		   (substring in-reply-to (match-beginning 0)
-			      (match-end 0))
-		 "")))
+		   (let (ref2)
+		     (setq ref (substring in-reply-to (match-beginning 0)
+					  (match-end 0)))
+		     (while (string-match "<[^>]+>" in-reply-to (match-end 0))
+		       (setq ref2 (substring in-reply-to (match-beginning 0)
+					     (match-end 0)))
+		       (when (> (length ref2) (length ref))
+			 (setq ref ref2)))
+                     ref)
+		 nil)))
 	   ;; Chars.
 	   0
 	   ;; Lines.
@@ -341,7 +354,10 @@ the line could be found."
 	      (eobp))
 	  (setq found t)
 	(setq prev (point))
-	(cond ((> (setq num (read cur)) article)
+	(while (and (not (numberp (setq num (read cur))))
+		    (not (eobp)))
+	  (gnus-delete-line))
+	(cond ((> num article)
 	       (setq max (point)))
 	      ((< num article)
 	       (setq min (point)))
@@ -386,7 +402,6 @@ the line could be found."
     (unless (gnus-buffer-live-p nntp-server-buffer)
       (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
     (set-buffer nntp-server-buffer)
-    (buffer-disable-undo (current-buffer))
     (erase-buffer)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
@@ -549,7 +564,7 @@ If FILE is t, return the buffer contents as a string."
 
 (defsubst nnheader-file-to-number (file)
   "Take a file name and return the article number."
-  (if (not (boundp 'jka-compr-compression-info-list))
+  (if (string= nnheader-numerical-short-files "^[0-9]+$")
       (string-to-int file)
     (string-match nnheader-numerical-short-files file)
     (string-to-int (match-string 0 file))))
@@ -581,21 +596,27 @@ If FILE is t, return the buffer contents as a string."
   "Fold continuation lines in the current buffer."
   (nnheader-replace-regexp "\\(\r?\n[ \t]+\\)+" " "))
 
-(defun nnheader-translate-file-chars (file)
+(defun nnheader-translate-file-chars (file &optional full)
+  "Translate FILE into something that can be a file name.
+If FULL, translate everything."
   (if (null nnheader-file-name-translation-alist)
       ;; No translation is necessary.
       file
-    ;; We translate -- but only the file name.  We leave the directory
-    ;; alone.
     (let* ((i 0)
 	   trans leaf path len)
-      (if (string-match "/[^/]+\\'" file)
-	  ;; This is needed on NT's and stuff.
-	  (setq leaf (substring file (1+ (match-beginning 0)))
-		path (substring file 0 (1+ (match-beginning 0))))
-	;; Fall back on this.
-	(setq leaf (file-name-nondirectory file)
-	      path (file-name-directory file)))
+      (if full
+	  ;; Do complete translation.
+	  (setq leaf (copy-sequence file)
+		path "")
+	;; We translate -- but only the file name.  We leave the directory
+	;; alone.
+	(if (string-match "/[^/]+\\'" file)
+	    ;; This is needed on NT's and stuff.
+	    (setq leaf (substring file (1+ (match-beginning 0)))
+		  path (substring file 0 (1+ (match-beginning 0))))
+	  ;; Fall back on this.
+	  (setq leaf (file-name-nondirectory file)
+		path (file-name-directory file))))
       (setq len (length leaf))
       (while (< i len)
 	(when (setq trans (cdr (assq (aref leaf i)
@@ -616,9 +637,9 @@ The first string in ARGS can be a format string."
 (defun nnheader-get-report (backend)
   "Get the most recent report from BACKEND."
   (condition-case ()
-      (message "%s" (symbol-value (intern (format "%s-status-string"
+      (nnheader-message 5 "%s" (symbol-value (intern (format "%s-status-string"
 						  backend))))
-    (error (message ""))))
+    (error (nnheader-message 5 ""))))
 
 (defun nnheader-insert (format &rest args)
   "Clear the communication buffer and insert FORMAT and ARGS into the buffer.
@@ -668,6 +689,9 @@ without formatting."
   "Return whether the backends should be verbose on LEVEL."
   (or (not (numberp gnus-verbose-backends))
       (<= level gnus-verbose-backends)))
+
+(defvar nnheader-pathname-coding-system 'iso-8859-1
+  "*Coding system for pathname.")
 
 ;; 1997/8/10 by MORIOKA Tomohiko
 (defvar nnheader-pathname-coding-system
@@ -743,6 +767,9 @@ If FILE, find the \".../etc/PACKAGE\" file instead."
       (when (string-match (car ange-ftp-path-format) path)
 	(ange-ftp-re-read-dir path)))))
 
+(defvar nnheader-file-coding-system 'raw-text
+  "Coding system used in file backends of Gnus.")
+
 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
 (defvar nnheader-file-coding-system nil
   "Coding system used in file backends of Gnus.")
@@ -756,8 +783,9 @@ find-file-hooks, etc.
   (let ((format-alist nil)
 	(auto-mode-alist (nnheader-auto-mode-alist))
 	(default-major-mode 'fundamental-mode)
+	(enable-local-variables nil)
         (after-insert-file-functions nil)
-	;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+	(find-file-hooks nil)
 	(coding-system-for-read nnheader-file-coding-system))
     (insert-file-contents filename visit beg end replace)))
 
@@ -767,7 +795,7 @@ find-file-hooks, etc.
 	(default-major-mode 'fundamental-mode)
 	(enable-local-variables nil)
         (after-insert-file-functions nil)
-	;; 1997/5/16 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
+	(find-file-hooks nil)
 	(coding-system-for-read nnheader-file-coding-system))
     (apply 'find-file-noselect args)))
 
@@ -787,6 +815,16 @@ find-file-hooks, etc.
 	out)
     (while files
       (when (file-regular-p (car files))
+	(push (car files) out))
+      (pop files))
+    (nreverse out)))
+
+(defun nnheader-directory-files (&rest args)
+  "Same as `directory-files', but prune \".\" and \"..\"."
+  (let ((files (apply 'directory-files args))
+	out)
+    (while files
+      (unless (member (file-name-nondirectory (car files)) '("." ".."))
 	(push (car files) out))
       (pop files))
     (nreverse out)))

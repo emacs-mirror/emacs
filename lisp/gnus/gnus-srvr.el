@@ -1,7 +1,7 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -27,6 +27,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'gnus-spec)
 (require 'gnus-group)
@@ -39,9 +41,16 @@
 (defconst gnus-server-line-format "     {%(%h:%w%)} %s\n"
   "Format of server lines.
 It works along the same lines as a normal formatting string,
-with some simple extensions.")
+with some simple extensions.
 
-(defvar gnus-server-mode-line-format "Gnus  List of servers"
+The following specs are understood:
+
+%h backend
+%n name
+%w address
+%s status")
+
+(defvar gnus-server-mode-line-format "Gnus: %%b"
   "The format specification for the server mode line.")
 
 (defvar gnus-server-exit-hook nil
@@ -52,15 +61,15 @@ with some simple extensions.")
 (defvar gnus-inserted-opened-servers nil)
 
 (defvar gnus-server-line-format-alist
-  `((?h how ?s)
-    (?n name ?s)
-    (?w where ?s)
-    (?s status ?s)))
+  `((?h gnus-tmp-how ?s)
+    (?n gnus-tmp-name ?s)
+    (?w gnus-tmp-where ?s)
+    (?s gnus-tmp-status ?s)))
 
 (defvar gnus-server-mode-line-format-alist
-  `((?S news-server ?s)
-    (?M news-method ?s)
-    (?u user-defined ?s)))
+  `((?S gnus-tmp-news-server ?s)
+    (?M gnus-tmp-news-method ?s)
+    (?u gnus-tmp-user-defined ?s)))
 
 (defvar gnus-server-line-format-spec nil)
 (defvar gnus-server-mode-line-format-spec nil)
@@ -99,7 +108,7 @@ with some simple extensions.")
        ["Close All" gnus-server-close-all-servers t]
        ["Reset All" gnus-server-remove-denials t]))
 
-    (run-hooks 'gnus-server-menu-hook)))
+    (gnus-run-hooks 'gnus-server-menu-hook)))
 
 (defvar gnus-server-mode-map nil)
 (put 'gnus-server-mode 'mode-class 'special)
@@ -108,28 +117,27 @@ with some simple extensions.")
   (setq gnus-server-mode-map (make-sparse-keymap))
   (suppress-keymap gnus-server-mode-map)
 
-  (gnus-define-keys
-   gnus-server-mode-map
-   " " gnus-server-read-server
-   "\r" gnus-server-read-server
-   gnus-mouse-2 gnus-server-pick-server
-   "q" gnus-server-exit
-   "l" gnus-server-list-servers
-   "k" gnus-server-kill-server
-   "y" gnus-server-yank-server
-   "c" gnus-server-copy-server
-   "a" gnus-server-add-server
-   "e" gnus-server-edit-server
-   "s" gnus-server-scan-server
+  (gnus-define-keys gnus-server-mode-map
+    " " gnus-server-read-server
+    "\r" gnus-server-read-server
+    gnus-mouse-2 gnus-server-pick-server
+    "q" gnus-server-exit
+    "l" gnus-server-list-servers
+    "k" gnus-server-kill-server
+    "y" gnus-server-yank-server
+    "c" gnus-server-copy-server
+    "a" gnus-server-add-server
+    "e" gnus-server-edit-server
+    "s" gnus-server-scan-server
 
-   "O" gnus-server-open-server
-   "\M-o" gnus-server-open-all-servers
-   "C" gnus-server-close-server
-   "\M-c" gnus-server-close-all-servers
-   "D" gnus-server-deny-server
-   "R" gnus-server-remove-denials
+    "O" gnus-server-open-server
+    "\M-o" gnus-server-open-all-servers
+    "C" gnus-server-close-server
+    "\M-c" gnus-server-close-all-servers
+    "D" gnus-server-deny-server
+    "R" gnus-server-remove-denials
 
-   "g" gnus-server-regenerate-server
+    "g" gnus-server-regenerate-server
 
     "\C-c\C-i" gnus-info-find-node
     "\C-c\C-b" gnus-bug))
@@ -158,13 +166,13 @@ The following commands are available:
   (buffer-disable-undo (current-buffer))
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (run-hooks 'gnus-server-mode-hook))
+  (gnus-run-hooks 'gnus-server-mode-hook))
 
-(defun gnus-server-insert-server-line (name method)
-  (let* ((how (car method))
-	 (where (nth 1 method))
+(defun gnus-server-insert-server-line (gnus-tmp-name method)
+  (let* ((gnus-tmp-how (car method))
+	 (gnus-tmp-where (nth 1 method))
 	 (elem (assoc method gnus-opened-servers))
-	 (status (cond ((eq (nth 1 elem) 'denied)
+	 (gnus-tmp-status (cond ((eq (nth 1 elem) 'denied)
 			"(denied)")
 		       ((or (gnus-server-opened method)
 			    (eq (nth 1 elem) 'ok))
@@ -177,7 +185,7 @@ The following commands are available:
      (prog1 (1+ (point))
        ;; Insert the text.
        (eval gnus-server-line-format-spec))
-     (list 'gnus-server (intern name)))))
+     (list 'gnus-server (intern gnus-tmp-name)))))
 
 (defun gnus-enter-server-buffer ()
   "Set up the server buffer."
@@ -189,18 +197,14 @@ The following commands are available:
   "Initialize the server buffer."
   (unless (get-buffer gnus-server-buffer)
     (save-excursion
-      (set-buffer (get-buffer-create gnus-server-buffer))
+      (set-buffer (gnus-get-buffer-create gnus-server-buffer))
       (gnus-server-mode)
       (when gnus-carpal
 	(gnus-carpal-setup-buffer 'server)))))
 
 (defun gnus-server-prepare ()
-  (setq gnus-server-mode-line-format-spec
-	(gnus-parse-format gnus-server-mode-line-format
-			   gnus-server-mode-line-format-alist))
-  (setq gnus-server-line-format-spec
-	(gnus-parse-format gnus-server-line-format
-			   gnus-server-line-format-alist t))
+  (gnus-set-format 'server-mode)
+  (gnus-set-format 'server t)
   (let ((alist gnus-server-alist)
 	(buffer-read-only nil)
 	(opened gnus-opened-servers)
@@ -219,7 +223,9 @@ The following commands are available:
     ;; Then we insert the list of servers that have been opened in
     ;; this session.
     (while opened
-      (unless (member (caar opened) done)
+      (when (and (not (member (caar opened) done))
+		 ;; Just ignore ephemeral servers.
+		 (not (member (caar opened) gnus-ephemeral-servers)))
 	(push (caar opened) done)
 	(gnus-server-insert-server-line
 	 (setq op-ser (format "%s:%s" (caaar opened) (nth 1 (caar opened))))
@@ -283,7 +289,7 @@ The following commands are available:
       (error "No server on the current line")))
   (unless (assoc server gnus-server-alist)
     (error "Read-only server %s" server))
-  (gnus-dribble-enter "")
+  (gnus-dribble-touch)
   (let ((buffer-read-only nil))
     (gnus-delete-line))
   (push (assoc server gnus-server-alist) gnus-server-killed-servers)
@@ -316,7 +322,7 @@ The following commands are available:
 (defun gnus-server-exit ()
   "Return to the group buffer."
   (interactive)
-  (run-hooks 'gnus-server-exit-hook)
+  (gnus-run-hooks 'gnus-server-exit-hook)
   (kill-buffer (current-buffer))
   (gnus-configure-windows 'group t))
 
@@ -462,16 +468,19 @@ The following commands are available:
 (defun gnus-server-scan-server (server)
   "Request a scan from the current server."
   (interactive (list (gnus-server-server-name)))
-  (gnus-message 3 "Scanning %s...done" server)
-  (gnus-request-scan nil (gnus-server-to-method server))
-  (gnus-message 3 "Scanning %s...done" server))
+  (let ((method (gnus-server-to-method server)))
+    (if (not (gnus-get-function method 'request-scan))
+	(error "Server %s can't scan" (car method))
+      (gnus-message 3 "Scanning %s..." server)
+      (gnus-request-scan nil method)
+      (gnus-message 3 "Scanning %s...done" server))))
 
 (defun gnus-server-read-server (server)
   "Browse a server."
   (interactive (list (gnus-server-server-name)))
   (let ((buf (current-buffer)))
     (prog1
-	(gnus-browse-foreign-server (gnus-server-to-method server) buf)
+	(gnus-browse-foreign-server server buf)
       (save-excursion
 	(set-buffer buf)
 	(gnus-server-update-server (gnus-server-server-name))
@@ -530,25 +539,24 @@ The following commands are available:
      '("Browse"
        ["Subscribe" gnus-browse-unsubscribe-current-group t]
        ["Read" gnus-browse-read-group t]
-       ["Select" gnus-browse-read-group t]
+       ["Select" gnus-browse-select-group t]
        ["Next" gnus-browse-next-group t]
        ["Prev" gnus-browse-next-group t]
        ["Exit" gnus-browse-exit t]))
-    (run-hooks 'gnus-browse-menu-hook)))
+    (gnus-run-hooks 'gnus-browse-menu-hook)))
 
 (defvar gnus-browse-current-method nil)
 (defvar gnus-browse-return-buffer nil)
 
 (defvar gnus-browse-buffer "*Gnus Browse Server*")
 
-(defun gnus-browse-foreign-server (method &optional return-buffer)
-  "Browse the server METHOD."
-  (setq gnus-browse-current-method method)
+(defun gnus-browse-foreign-server (server &optional return-buffer)
+  "Browse the server SERVER."
+  (setq gnus-browse-current-method server)
   (setq gnus-browse-return-buffer return-buffer)
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (let ((gnus-select-method method)
-	groups group)
+  (let* ((method (gnus-server-to-method server))
+	 (gnus-select-method method)
+	 groups group)
     (gnus-message 5 "Connecting to %s..." (nth 1 method))
     (cond
      ((not (gnus-check-server method))
@@ -565,8 +573,7 @@ The following commands are available:
        1 "Couldn't request list: %s" (gnus-status-message method))
       nil)
      (t
-      (get-buffer-create gnus-browse-buffer)
-      (gnus-add-current-to-buffer-list)
+      (gnus-get-buffer-create gnus-browse-buffer)
       (when gnus-carpal
 	(gnus-carpal-setup-buffer 'browse))
       (gnus-configure-windows 'browse)
@@ -587,9 +594,11 @@ The following commands are available:
 	  (while (re-search-forward
 		  "\\(^[^ \t]+\\)[ \t]+[0-9]+[ \t]+[0-9]+" nil t)
 	    (goto-char (match-end 1))
-	    (push (cons (match-string 1)
-			(max 0 (- (1+ (read cur)) (read cur))))
-		  groups))))
+	    (condition-case ()
+		(push (cons (match-string 1)
+			    (max 0 (- (1+ (read cur)) (read cur))))
+		      groups)
+	      (error nil)))))
       (setq groups (sort groups
 			 (lambda (l1 l2)
 			   (string< (car l1) (car l2)))))
@@ -633,17 +642,21 @@ buffer.
   (setq truncate-lines t)
   (gnus-set-default-directory)
   (setq buffer-read-only t)
-  (run-hooks 'gnus-browse-mode-hook))
+  (gnus-run-hooks 'gnus-browse-mode-hook))
 
 (defun gnus-browse-read-group (&optional no-article)
   "Enter the group at the current line."
   (interactive)
-  (let ((group (gnus-group-real-name (gnus-browse-group-name))))
-    (unless (gnus-group-read-ephemeral-group
-	     group gnus-browse-current-method nil
-	     (cons (current-buffer) 'browse))
-      (error "Couldn't enter %s" group))))
-
+  (let ((group (gnus-browse-group-name)))
+    (if (or (not (gnus-get-info group))
+	    (gnus-ephemeral-group-p group))
+	(unless (gnus-group-read-ephemeral-group
+		 group gnus-browse-current-method nil
+		 (cons (current-buffer) 'browse))
+	  (error "Couldn't enter %s" group))
+      (unless (gnus-group-read-group nil no-article group)
+	(error "Couldn't enter %s" group)))))
+      
 (defun gnus-browse-select-group ()
   "Select the current group."
   (interactive)
@@ -697,18 +710,22 @@ buffer.
       ;; If this group it killed, then we want to subscribe it.
       (when (= (following-char) ?K)
 	(setq sub t))
-      (when (gnus-gethash (setq group (gnus-browse-group-name))
-			  gnus-newsrc-hashtb)
+      (setq group (gnus-browse-group-name))
+      (when (and sub
+		 (cadr (gnus-gethash group gnus-newsrc-hashtb)))
 	(error "Group already subscribed"))
-      ;; Make sure the group has been properly removed before we
-      ;; subscribe to it.
-      (gnus-kill-ephemeral-group group)
       (delete-char 1)
       (if sub
 	  (progn
+	    ;; Make sure the group has been properly removed before we
+	    ;; subscribe to it.
+	    (gnus-kill-ephemeral-group group)
 	    (gnus-group-change-level
 	     (list t group gnus-level-default-subscribed
-		   nil nil gnus-browse-current-method)
+		   nil nil (if (gnus-server-equal
+				gnus-browse-current-method "native")
+			       nil
+			     gnus-browse-current-method))
 	     gnus-level-default-subscribed gnus-level-killed
 	     (and (car (nth 1 gnus-newsrc-alist))
 		  (gnus-gethash (car (nth 1 gnus-newsrc-alist))

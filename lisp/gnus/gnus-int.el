@@ -1,7 +1,7 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -86,7 +88,7 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
        (t
 	(require 'nntp)))
       (setq gnus-current-select-method gnus-select-method)
-      (run-hooks 'gnus-open-server-hook)
+      (gnus-run-hooks 'gnus-open-server-hook)
       (or
        ;; gnus-open-server-hook might have opened it
        (gnus-server-opened gnus-select-method)
@@ -121,7 +123,7 @@ If it is down, start it up (again)."
 	(gnus-message 5 "Opening %s server%s..." (car method)
 		      (if (equal (nth 1 method) "") ""
 			(format " on %s" (nth 1 method)))))
-      (run-hooks 'gnus-open-server-hook)
+      (gnus-run-hooks 'gnus-open-server-hook)
       (prog1
 	  (gnus-open-server method)
 	(unless silent
@@ -134,15 +136,28 @@ If it is down, start it up (again)."
     (error "Attempted use of a nil select method"))
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
-  (let ((func (intern (format "%s-%s" (car method) function))))
-    ;; If the functions isn't bound, we require the backend in
-    ;; question.
+  ;; Check cache of constructed names.
+  (let* ((method-sym (if gnus-agent
+			 (gnus-agent-get-function method)
+		       (car method)))
+	 (method-fns (get method-sym 'gnus-method-functions))
+	 (func (let ((method-fnlist-elt (assq function method-fns)))
+		 (unless method-fnlist-elt
+		   (setq method-fnlist-elt
+			 (cons function
+			       (intern (format "%s-%s" method-sym function))))
+		   (put method-sym 'gnus-method-functions
+			(cons method-fnlist-elt method-fns)))
+		 (cdr method-fnlist-elt))))
+    ;; Maybe complain if there is no function.
     (unless (fboundp func)
+      (unless (car method)
+	(error "Trying to require a method that doesn't exist"))
       (require (car method))
-      (when (and (not (fboundp func))
-		 (not noerror))
-	;; This backend doesn't implement this function.
-	(error "No such function: %s" func)))
+      (when (not (fboundp func))
+	(if noerror
+	    (setq func nil)
+	  (error "No such function: %s" func))))
     func))
 
 
@@ -150,11 +165,11 @@ If it is down, start it up (again)."
 ;;; Interface functions to the backends.
 ;;;
 
-(defun gnus-open-server (method)
-  "Open a connection to METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (let ((elem (assoc method gnus-opened-servers)))
+(defun gnus-open-server (gnus-command-method)
+  "Open a connection to GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (let ((elem (assoc gnus-command-method gnus-opened-servers)))
     ;; If this method was previously denied, we just return nil.
     (if (eq (nth 1 elem) 'denied)
 	(progn
@@ -162,137 +177,160 @@ If it is down, start it up (again)."
 	  nil)
       ;; Open the server.
       (let ((result
-	     (funcall (gnus-get-function method 'open-server)
-		      (nth 1 method) (nthcdr 2 method))))
+	     (funcall (gnus-get-function gnus-command-method 'open-server)
+		      (nth 1 gnus-command-method)
+		      (nthcdr 2 gnus-command-method))))
 	;; If this hasn't been opened before, we add it to the list.
 	(unless elem
-	  (setq elem (list method nil)
+	  (setq elem (list gnus-command-method nil)
 		gnus-opened-servers (cons elem gnus-opened-servers)))
 	;; Set the status of this server.
 	(setcar (cdr elem) (if result 'ok 'denied))
 	;; Return the result from the "open" call.
 	result))))
 
-(defun gnus-close-server (method)
-  "Close the connection to METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'close-server) (nth 1 method)))
+(defun gnus-close-server (gnus-command-method)
+  "Close the connection to GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'close-server)
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-list (method)
-  "Request the active file from METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'request-list) (nth 1 method)))
+(defun gnus-request-list (gnus-command-method)
+  "Request the active file from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-list)
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-list-newsgroups (method)
-  "Request the newsgroups file from METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'request-list-newsgroups) (nth 1 method)))
+(defun gnus-request-list-newsgroups (gnus-command-method)
+  "Request the newsgroups file from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-list-newsgroups)
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-newgroups (date method)
-  "Request all new groups since DATE from METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (let ((func (gnus-get-function method 'request-newgroups t)))
+(defun gnus-request-newgroups (date gnus-command-method)
+  "Request all new groups since DATE from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (let ((func (gnus-get-function gnus-command-method 'request-newgroups t)))
     (when func
-      (funcall func date (nth 1 method)))))
+      (funcall func date (nth 1 gnus-command-method)))))
 
-(defun gnus-server-opened (method)
-  "Check whether a connection to METHOD has been opened."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (inline (gnus-get-function method 'server-opened)) (nth 1 method)))
+(defun gnus-server-opened (gnus-command-method)
+  "Check whether a connection to GNUS-COMMAND-METHOD has been opened."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (inline (gnus-get-function gnus-command-method 'server-opened))
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-status-message (method)
-  "Return the status message from METHOD.
-If METHOD is a string, it is interpreted as a group name.   The method
+(defun gnus-status-message (gnus-command-method)
+  "Return the status message from GNUS-COMMAND-METHOD.
+If GNUS-COMMAND-METHOD is a string, it is interpreted as a group name.   The method
 this group uses will be queried."
-  (let ((method (if (stringp method) (gnus-find-method-for-group method)
-		  method)))
-    (funcall (gnus-get-function method 'status-message) (nth 1 method))))
+  (let ((gnus-command-method
+	 (if (stringp gnus-command-method)
+	     (gnus-find-method-for-group gnus-command-method)
+	   gnus-command-method)))
+    (funcall (gnus-get-function gnus-command-method 'status-message)
+	     (nth 1 gnus-command-method))))
 
-(defun gnus-request-regenerate (method)
-  "Request a data generation from METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'request-regenerate) (nth 1 method)))
+(defun gnus-request-regenerate (gnus-command-method)
+  "Request a data generation from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-regenerate)
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-group (group &optional dont-check method)
+(defun gnus-request-group (group &optional dont-check gnus-command-method)
   "Request GROUP.  If DONT-CHECK, no information is required."
-  (let ((method (or method (inline (gnus-find-method-for-group group)))))
-    (when (stringp method)
-      (setq method (inline (gnus-server-to-method method))))
-    (funcall (inline (gnus-get-function method 'request-group))
-	     (gnus-group-real-name group) (nth 1 method) dont-check)))
+  (let ((gnus-command-method
+	 (or gnus-command-method (inline (gnus-find-method-for-group group)))))
+    (when (stringp gnus-command-method)
+      (setq gnus-command-method
+	    (inline (gnus-server-to-method gnus-command-method))))
+    (funcall (inline (gnus-get-function gnus-command-method 'request-group))
+	     (gnus-group-real-name group) (nth 1 gnus-command-method)
+	     dont-check)))
 
 (defun gnus-list-active-group (group)
   "Request active information on GROUP."
-  (let ((method (gnus-find-method-for-group group))
+  (let ((gnus-command-method (gnus-find-method-for-group group))
 	(func 'list-active-group))
     (when (gnus-check-backend-function func group)
-      (funcall (gnus-get-function method func)
-	       (gnus-group-real-name group) (nth 1 method)))))
+      (funcall (gnus-get-function gnus-command-method func)
+	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
 
 (defun gnus-request-group-description (group)
   "Request a description of GROUP."
-  (let ((method (gnus-find-method-for-group group))
+  (let ((gnus-command-method (gnus-find-method-for-group group))
 	(func 'request-group-description))
     (when (gnus-check-backend-function func group)
-      (funcall (gnus-get-function method func)
-	       (gnus-group-real-name group) (nth 1 method)))))
+      (funcall (gnus-get-function gnus-command-method func)
+	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
 
 (defun gnus-close-group (group)
   "Request the GROUP be closed."
-  (let ((method (inline (gnus-find-method-for-group group))))
-    (funcall (gnus-get-function method 'close-group)
-	     (gnus-group-real-name group) (nth 1 method))))
+  (let ((gnus-command-method (inline (gnus-find-method-for-group group))))
+    (funcall (gnus-get-function gnus-command-method 'close-group)
+	     (gnus-group-real-name group) (nth 1 gnus-command-method))))
 
 (defun gnus-retrieve-headers (articles group &optional fetch-old)
   "Request headers for ARTICLES in GROUP.
 If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
-  (let ((method (gnus-find-method-for-group group)))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
     (if (and gnus-use-cache (numberp (car articles)))
 	(gnus-cache-retrieve-headers articles group fetch-old)
-      (funcall (gnus-get-function method 'retrieve-headers)
-	       articles (gnus-group-real-name group) (nth 1 method)
-	       fetch-old))))
+      (funcall (gnus-get-function gnus-command-method 'retrieve-headers)
+	       articles (gnus-group-real-name group)
+	       (nth 1 gnus-command-method) fetch-old))))
 
-(defun gnus-retrieve-groups (groups method)
-  "Request active information on GROUPS from METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'retrieve-groups) groups (nth 1 method)))
+(defun gnus-retrieve-articles (articles group)
+  "Request ARTICLES in GROUP."
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'retrieve-articles)
+	     articles (gnus-group-real-name group)
+	     (nth 1 gnus-command-method))))
+
+(defun gnus-retrieve-groups (groups gnus-command-method)
+  "Request active information on GROUPS from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'retrieve-groups)
+	   groups (nth 1 gnus-command-method)))
 
 (defun gnus-request-type (group &optional article)
   "Return the type (`post' or `mail') of GROUP (and ARTICLE)."
-  (let ((method (gnus-find-method-for-group group)))
-    (if (not (gnus-check-backend-function 'request-type (car method)))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-type (car gnus-command-method)))
 	'unknown
-      (funcall (gnus-get-function method 'request-type)
+      (funcall (gnus-get-function gnus-command-method 'request-type)
 	       (gnus-group-real-name group) article))))
 
 (defun gnus-request-update-mark (group article mark)
-  "Return the type (`post' or `mail') of GROUP (and ARTICLE)."
-  (let ((method (gnus-find-method-for-group group)))
-    (if (not (gnus-check-backend-function 'request-update-mark (car method)))
+  "Allow the backend to change the mark the user tries to put on an article."
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-update-mark (car gnus-command-method)))
 	mark
-      (funcall (gnus-get-function method 'request-update-mark)
+      (funcall (gnus-get-function gnus-command-method 'request-update-mark)
 	       (gnus-group-real-name group) article mark))))
 
 (defun gnus-request-article (article group &optional buffer)
   "Request the ARTICLE in GROUP.
 ARTICLE can either be an article number or an article Message-ID.
 If BUFFER, insert the article in that group."
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-article)
-	     article (gnus-group-real-name group) (nth 1 method) buffer)))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-article)
+	     article (gnus-group-real-name group)
+	     (nth 1 gnus-command-method) buffer)))
 
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."
-  (let* ((method (gnus-find-method-for-group group))
-	 (head (gnus-get-function method 'request-head t))
+  (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (head (gnus-get-function gnus-command-method 'request-head t))
 	 res clean-up)
     (cond
      ;; Check the cache.
@@ -304,7 +342,7 @@ If BUFFER, insert the article in that group."
      ;; Use `head' function.
      ((fboundp head)
       (setq res (funcall head article (gnus-group-real-name group)
-			 (nth 1 method))))
+			 (nth 1 gnus-command-method))))
      ;; Use `article' function.
      (t
       (setq res (gnus-request-article article group)
@@ -320,60 +358,88 @@ If BUFFER, insert the article in that group."
 
 (defun gnus-request-body (article group)
   "Request the body of ARTICLE in GROUP."
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-body)
-	     article (gnus-group-real-name group) (nth 1 method))))
+  (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (head (gnus-get-function gnus-command-method 'request-body t))
+	 res clean-up)
+    (cond
+     ;; Check the cache.
+     ((and gnus-use-cache
+	   (numberp article)
+	   (gnus-cache-request-article article group))
+      (setq res (cons group article)
+	    clean-up t))
+     ;; Use `head' function.
+     ((fboundp head)
+      (setq res (funcall head article (gnus-group-real-name group)
+			 (nth 1 gnus-command-method))))
+     ;; Use `article' function.
+     (t
+      (setq res (gnus-request-article article group)
+	    clean-up t)))
+    (when clean-up
+      (save-excursion
+	(set-buffer nntp-server-buffer)
+	(goto-char (point-min))
+	(when (search-forward "\n\n" nil t)
+	  (delete-region (point-min) (1- (point))))))
+    res))
 
-(defun gnus-request-post (method)
-  "Post the current buffer using METHOD."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (funcall (gnus-get-function method 'request-post) (nth 1 method)))
+(defun gnus-request-post (gnus-command-method)
+  "Post the current buffer using GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-post)
+	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-scan (group method)
-  "Request a SCAN being performed in GROUP from METHOD.
-If GROUP is nil, all groups on METHOD are scanned."
-  (let ((method (if group (gnus-find-method-for-group group) method))
-	(gnus-inhibit-demon t))
-    (funcall (gnus-get-function method 'request-scan)
-	     (and group (gnus-group-real-name group)) (nth 1 method))))
+(defun gnus-request-scan (group gnus-command-method)
+  "Request a SCAN being performed in GROUP from GNUS-COMMAND-METHOD.
+If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
+  (when gnus-plugged
+    (let ((gnus-command-method
+	   (if group (gnus-find-method-for-group group) gnus-command-method))
+	  (gnus-inhibit-demon t))
+      (funcall (gnus-get-function gnus-command-method 'request-scan)
+	       (and group (gnus-group-real-name group))
+	       (nth 1 gnus-command-method)))))
 
-(defsubst gnus-request-update-info (info method)
-  "Request that METHOD update INFO."
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (when (gnus-check-backend-function 'request-update-info (car method))
-    (funcall (gnus-get-function method 'request-update-info)
+(defsubst gnus-request-update-info (info gnus-command-method)
+  "Request that GNUS-COMMAND-METHOD update INFO."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (when (gnus-check-backend-function
+	 'request-update-info (car gnus-command-method))
+    (funcall (gnus-get-function gnus-command-method 'request-update-info)
 	     (gnus-group-real-name (gnus-info-group info))
-	     info (nth 1 method))))
+	     info (nth 1 gnus-command-method))))
 
 (defun gnus-request-expire-articles (articles group &optional force)
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-expire-articles)
-	     articles (gnus-group-real-name group) (nth 1 method)
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-expire-articles)
+	     articles (gnus-group-real-name group) (nth 1 gnus-command-method)
 	     force)))
 
 (defun gnus-request-move-article
   (article group server accept-function &optional last)
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-move-article)
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-move-article)
 	     article (gnus-group-real-name group)
-	     (nth 1 method) accept-function last)))
+	     (nth 1 gnus-command-method) accept-function last)))
 
-(defun gnus-request-accept-article (group method &optional last)
+(defun gnus-request-accept-article (group &optional gnus-command-method last)
   ;; Make sure there's a newline at the end of the article.
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (when (and (not method)
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (when (and (not gnus-command-method)
 	     (stringp group))
-    (setq method (gnus-group-name-to-method group)))
+    (setq gnus-command-method (gnus-group-name-to-method group)))
   (goto-char (point-max))
   (unless (bolp)
     (insert "\n"))
-  (let ((func (car (or method (gnus-find-method-for-group group)))))
+  (let ((func (car (or gnus-command-method
+		       (gnus-find-method-for-group group)))))
     (funcall (intern (format "%s-request-accept-article" func))
 	     (if (stringp group) (gnus-group-real-name group) group)
-	     (cadr method)
+	     (cadr gnus-command-method)
 	     last)))
 
 (defun gnus-request-replace-article (article group buffer)
@@ -382,53 +448,56 @@ If GROUP is nil, all groups on METHOD are scanned."
 	     article (gnus-group-real-name group) buffer)))
 
 (defun gnus-request-associate-buffer (group)
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-associate-buffer)
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-associate-buffer)
 	     (gnus-group-real-name group))))
 
 (defun gnus-request-restore-buffer (article group)
   "Request a new buffer restored to the state of ARTICLE."
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-restore-buffer)
-	     article (gnus-group-real-name group) (nth 1 method))))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-restore-buffer)
+	     article (gnus-group-real-name group)
+	     (nth 1 gnus-command-method))))
 
-(defun gnus-request-create-group (group &optional method args)
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (let ((method (or method (gnus-find-method-for-group group))))
-    (funcall (gnus-get-function method 'request-create-group)
-	     (gnus-group-real-name group) (nth 1 method) args)))
+(defun gnus-request-create-group (group &optional gnus-command-method args)
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (let ((gnus-command-method
+	 (or gnus-command-method (gnus-find-method-for-group group))))
+    (funcall (gnus-get-function gnus-command-method 'request-create-group)
+	     (gnus-group-real-name group) (nth 1 gnus-command-method) args)))
 
 (defun gnus-request-delete-group (group &optional force)
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-delete-group)
-	     (gnus-group-real-name group) force (nth 1 method))))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-delete-group)
+	     (gnus-group-real-name group) force (nth 1 gnus-command-method))))
 
 (defun gnus-request-rename-group (group new-name)
-  (let ((method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function method 'request-rename-group)
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (funcall (gnus-get-function gnus-command-method 'request-rename-group)
 	     (gnus-group-real-name group)
-	     (gnus-group-real-name new-name) (nth 1 method))))
+	     (gnus-group-real-name new-name) (nth 1 gnus-command-method))))
 
 (defun gnus-close-backends ()
   ;; Send a close request to all backends that support such a request.
   (let ((methods gnus-valid-select-methods)
 	(gnus-inhibit-demon t)
-	func method)
-    (while (setq method (pop methods))
+	func gnus-command-method)
+    (while (setq gnus-command-method (pop methods))
       (when (fboundp (setq func (intern
-				 (concat (car method) "-request-close"))))
+				 (concat (car gnus-command-method)
+					 "-request-close"))))
 	(funcall func)))))
 
-(defun gnus-asynchronous-p (method)
-  (let ((func (gnus-get-function method 'asynchronous-p t)))
+(defun gnus-asynchronous-p (gnus-command-method)
+  (let ((func (gnus-get-function gnus-command-method 'asynchronous-p t)))
     (when (fboundp func)
       (funcall func))))
 
-(defun gnus-remove-denial (method)
-  (when (stringp method)
-    (setq method (gnus-server-to-method method)))
-  (let* ((elem (assoc method gnus-opened-servers))
+(defun gnus-remove-denial (gnus-command-method)
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (let* ((elem (assoc gnus-command-method gnus-opened-servers))
 	 (status (cadr elem)))
     ;; If this hasn't been opened before, we add it to the list.
     (when (eq status 'denied)

@@ -1,8 +1,8 @@
 ;;; gnus-soup.el --- SOUP packet writing support for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
-;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -25,6 +25,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -132,9 +134,8 @@ If N is a negative number, add the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 move those articles instead."
   (interactive "P")
-  (gnus-set-global-variables)
   (let* ((articles (gnus-summary-work-articles n))
-	 (tmp-buf (get-buffer-create "*soup work*"))
+	 (tmp-buf (gnus-get-buffer-create "*soup work*"))
 	 (area (gnus-soup-area gnus-newsgroup-name))
 	 (prefix (gnus-soup-area-prefix area))
 	 headers)
@@ -162,7 +163,8 @@ move those articles instead."
 	(gnus-summary-mark-as-read (car articles) gnus-souped-mark)
 	(setq articles (cdr articles)))
       (kill-buffer tmp-buf))
-    (gnus-soup-save-areas)))
+    (gnus-soup-save-areas)
+    (gnus-set-mode-line 'summary)))
 
 (defun gnus-soup-pack-packet ()
   "Make a SOUP packet from the SOUP areas."
@@ -205,7 +207,9 @@ for matching on group names.
 For instance, if you want to brew on all the nnml groups, as well as
 groups with \"emacs\" in the name, you could say something like:
 
-$ emacs -batch -f gnus-batch-brew-soup ^nnml \".*emacs.*\""
+$ emacs -batch -f gnus-batch-brew-soup ^nnml \".*emacs.*\"
+
+Note -- this function hasn't been implemented yet."
   (interactive)
   nil)
 
@@ -311,6 +315,8 @@ If NOT-ALL, don't pack ticked articles."
 	   (or (mail-header-lines header) "0"))))
 
 (defun gnus-soup-save-areas ()
+  "Write all SOUP buffers."
+  (interactive)
   (gnus-soup-write-areas)
   (save-excursion
     (let (buf)
@@ -367,22 +373,23 @@ The vector contain five strings,
   [prefix name encoding description number]
 though the two last may be nil if they are missing."
   (let (areas)
-    (save-excursion
-      (set-buffer (nnheader-find-file-noselect file 'force))
-      (buffer-disable-undo (current-buffer))
-      (goto-char (point-min))
-      (while (not (eobp))
-	(push (vector (gnus-soup-field)
-		      (gnus-soup-field)
-		      (gnus-soup-field)
-		      (and (eq (preceding-char) ?\t)
-			   (gnus-soup-field))
-		      (and (eq (preceding-char) ?\t)
-			   (string-to-int (gnus-soup-field))))
-	      areas)
-	(when (eq (preceding-char) ?\t)
-	  (beginning-of-line 2)))
-      (kill-buffer (current-buffer)))
+    (when (file-exists-p file)
+      (save-excursion
+	(set-buffer (nnheader-find-file-noselect file 'force))
+	(buffer-disable-undo (current-buffer))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (push (vector (gnus-soup-field)
+			(gnus-soup-field)
+			(gnus-soup-field)
+			(and (eq (preceding-char) ?\t)
+			     (gnus-soup-field))
+			(and (eq (preceding-char) ?\t)
+			     (string-to-int (gnus-soup-field))))
+		areas)
+	  (when (eq (preceding-char) ?\t)
+	    (beginning-of-line 2)))
+	(kill-buffer (current-buffer))))
     areas))
 
 (defun gnus-soup-parse-replies (file)
@@ -507,7 +514,7 @@ Return whether the unpacking was successful."
 				 ".MSG"))
 	       (msg-buf (and (file-exists-p msg-file)
 			     (nnheader-find-file-noselect msg-file)))
-	       (tmp-buf (get-buffer-create " *soup send*"))
+	       (tmp-buf (gnus-get-buffer-create " *soup send*"))
 	       beg end)
 	  (cond
 	   ((/= (gnus-soup-encoding-format
@@ -518,7 +525,6 @@ Return whether the unpacking was successful."
 	    t)
 	   (t
 	    (buffer-disable-undo msg-buf)
-	    (buffer-disable-undo tmp-buf)
 	    (set-buffer msg-buf)
 	    (goto-char (point-min))
 	    (while (not (eobp))

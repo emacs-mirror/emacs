@@ -1,7 +1,7 @@
 ;;; nnmbox.el --- mail mbox access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
@@ -11,11 +11,6 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
@@ -205,6 +200,14 @@
      (nnmail-save-active nnmbox-group-alist nnmbox-active-file))))
 
 (deffoo nnmbox-close-group (group &optional server)
+  t)
+
+(deffoo nnmbox-request-create-group (group &optional server args)
+  (nnmail-activate 'nnmbox)
+  (unless (assoc group nnmbox-group-alist)
+    (push (list group (cons 1 0))
+	  nnmbox-group-alist)
+    (nnmail-save-active nnmbox-group-alist nnmbox-active-file))
   t)
 
 (deffoo nnmbox-request-list (&optional server)

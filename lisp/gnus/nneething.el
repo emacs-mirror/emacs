@@ -1,7 +1,7 @@
-;;; nneething.el --- random file access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;;; nneething.el --- arbitrary file access for Gnus
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
@@ -64,8 +64,11 @@ If this variable is nil, no files will be excluded.")
 (defvoo nneething-map nil)
 (defvoo nneething-read-only nil)
 (defvoo nneething-active nil)
+(defvoo nneething-address nil)
 
 
+
+(autoload 'gnus-encode-coding-string "gnus-ems")
 
 ;;; Interface functions.
 
@@ -100,11 +103,11 @@ If this variable is nil, no files will be excluded.")
 
 	  (and large
 	       (zerop (% count 20))
-	       (message "nneething: Receiving headers... %d%%"
+	       (nnheader-message 5 "nneething: Receiving headers... %d%%"
 			(/ (* count 100) number))))
 
 	(when large
-	  (message "nneething: Receiving headers...done"))
+	  (nnheader-message 5 "nneething: Receiving headers...done"))
 
 	(nnheader-fold-continuation-lines)
 	'headers))))
@@ -155,8 +158,8 @@ If this variable is nil, no files will be excluded.")
   (nnheader-init-server-buffer)
   (if (nneething-server-opened server)
       t
-    (unless (assq 'nneething-directory defs)
-      (setq defs (append defs (list (list 'nneething-directory server)))))
+    (unless (assq 'nneething-address defs)
+      (setq defs (append defs (list (list 'nneething-address server)))))
     (nnoo-change-server 'nneething server defs)))
 
 
@@ -182,9 +185,9 @@ If this variable is nil, no files will be excluded.")
 
 (defun nneething-create-mapping ()
   ;; Read nneething-active and nneething-map.
-  (when (file-exists-p nneething-directory)
+  (when (file-exists-p nneething-address)
     (let ((map-file (nneething-map-file))
-	  (files (directory-files nneething-directory))
+	  (files (directory-files nneething-address))
 	  touched map-files)
       (when (file-exists-p map-file)
 	(ignore-errors
@@ -341,7 +344,7 @@ If this variable is nil, no files will be excluded.")
 
 (defun nneething-file-name (article)
   "Return the file name of ARTICLE."
-  (concat (file-name-as-directory nneething-directory)
+  (concat (file-name-as-directory nneething-address)
 	  (if (numberp article)
 	      (cadr (assq article nneething-map))
 	    article)))

@@ -1,7 +1,7 @@
 ;;; messcompat.el --- making message mode compatible with mail mode
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
@@ -56,8 +56,9 @@ nil means let mailer mail back a message to report errors.")
   "Normal hook, run each time a new outgoing message is initialized.
 The function `message-setup' runs this hook.")
 
-(defvar message-mode-hook mail-mode-hook
-  "Hook run in message mode buffers.")
+(if (boundp 'mail-mode-hook)
+    (defvar message-mode-hook mail-mode-hook
+      "Hook run in message mode buffers."))
 
 (defvar message-indentation-spaces mail-indentation-spaces
   "*Number of spaces to insert at the beginning of each cited line.
@@ -69,9 +70,8 @@ If t, the `message-signature-file' file will be inserted instead.
 If a function, the result from the function will be used instead.
 If a form, the result from the form will be used instead.")
 
-;; Deleted the autoload cookie because this crashes in loaddefs.el.
 (defvar message-signature-file mail-signature-file
-  "*File containing the text inserted at end of message. buffer.")
+  "*File containing the text inserted at end of the message buffer.")
 
 (defvar message-default-headers mail-default-headers
   "*A string containing header lines to be inserted in outgoing messages.
@@ -80,6 +80,11 @@ these lines.")
 
 (defvar message-send-hook mail-send-hook
   "Hook run before sending messages.")
+
+(defvar message-send-mail-function send-mail-function
+  "Function to call to send the current buffer as mail.
+The headers should be delimited by a line whose contents match the
+variable `mail-header-separator'.")
 
 (provide 'messcompat)
 

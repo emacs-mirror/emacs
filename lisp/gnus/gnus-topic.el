@@ -1,8 +1,8 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
-;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -28,9 +28,12 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'gnus-group)
 (require 'gnus-start)
+(require 'gnus-util)
 
 (defgroup gnus-topic nil
   "Group topics."
@@ -73,6 +76,7 @@ with some simple extensions.
 
 (defvar gnus-topic-active-topology nil)
 (defvar gnus-topic-active-alist nil)
+(defvar gnus-topic-unreads nil)
 
 (defvar gnus-topology-checked-p nil
   "Whether the topology has been checked in this session.")
@@ -108,9 +112,7 @@ with some simple extensions.
 
 (defun gnus-topic-unread (topic)
   "Return the number of unread articles in TOPIC."
-  (or (save-excursion
-	(and (gnus-topic-goto-topic topic)
-	     (gnus-group-topic-unread)))
+  (or (cdr (assoc topic gnus-topic-unreads))
       0))
 
 (defun gnus-group-topic-p ()
@@ -166,9 +168,10 @@ with some simple extensions.
     (when result
       (symbol-name result))))
 
-(defun gnus-current-topics ()
-  "Return a list of all current topics, lowest in hierarchy first."
-  (let ((topic (gnus-current-topic))
+(defun gnus-current-topics (&optional topic)
+  "Return a list of all current topics, lowest in hierarchy first.
+If TOPIC, start with that topic."
+  (let ((topic (or topic (gnus-current-topic)))
 	topics)
     (while topic
       (push topic topics)
@@ -181,12 +184,12 @@ with some simple extensions.
     (beginning-of-line)
     (get-text-property (point) 'gnus-active)))
 
-(defun gnus-topic-find-groups (topic &optional level all)
+(defun gnus-topic-find-groups (topic &optional level all lowest)
   "Return entries for all visible groups in TOPIC."
   (let ((groups (cdr (assoc topic gnus-topic-alist)))
-        info clevel unread group lowest params visible-groups entry active)
+        info clevel unread group params visible-groups entry active)
     (setq lowest (or lowest 1))
-    (setq level (or level 7))
+    (setq level (or level gnus-level-unsubscribed))
     ;; We go through the newsrc to look for matches.
     (while groups
       (when (setq group (pop groups))
@@ -199,7 +202,8 @@ with some simple extensions.
 			      active
 			      (- (1+ (cdr active)) (car active))))
 	      clevel (or (gnus-info-level info)
-			 (if (member group gnus-zombie-list) 8 9))))
+			 (if (member group gnus-zombie-list)
+			     gnus-level-zombie gnus-level-killed))))
       (and
        unread				; nil means that the group is dead.
        (<= clevel level)
@@ -324,27 +328,32 @@ with some simple extensions.
 
 (defun gnus-group-topic-parameters (group)
   "Compute the group parameters for GROUP taking into account inheritance from topics."
-  (let ((params-list (list (gnus-group-get-parameter group)))
-	topics params param out)
+  (let ((params-list (copy-sequence (gnus-group-get-parameter group))))
     (save-excursion
       (gnus-group-goto-group group)
-      (setq topics (gnus-current-topics))
-      (while topics
-	(push (gnus-topic-parameters (pop topics)) params-list))
-      ;; We probably have lots of nil elements here, so
-      ;; we remove them.  Probably faster than doing this "properly".
-      (setq params-list (delq nil params-list))
-      ;; Now we have all the parameters, so we go through them
-      ;; and do inheritance in the obvious way.
-      (while (setq params (pop params-list))
-	(while (setq param (pop params))
-	  (when (atom param)
-	    (setq param (cons param t)))
-	  ;; Override any old versions of this param.
-	  (setq out (delq (assq (car param) out) out))
-	  (push param out)))
-      ;; Return the resulting parameter list.
-      out)))
+      (nconc params-list
+	     (gnus-topic-hierarchical-parameters (gnus-current-topic))))))
+
+(defun gnus-topic-hierarchical-parameters (topic)
+  "Return a topic list computed for TOPIC."
+  (let ((topics (gnus-current-topics topic))
+	params-list param out params)
+    (while topics
+      (push (gnus-topic-parameters (pop topics)) params-list))
+    ;; We probably have lots of nil elements here, so
+    ;; we remove them.  Probably faster than doing this "properly".
+    (setq params-list (delq nil params-list))
+    ;; Now we have all the parameters, so we go through them
+    ;; and do inheritance in the obvious way.
+    (while (setq params (pop params-list))
+      (while (setq param (pop params))
+	(when (atom param)
+	  (setq param (cons param t)))
+	;; Override any old versions of this param.
+	(gnus-pull (car param) out)
+	(push param out)))
+    ;; Return the resulting parameter list.
+    out))
 
 ;;; General utility functions
 
@@ -355,8 +364,8 @@ with some simple extensions.
 ;;; Generating group buffers
 
 (defun gnus-group-prepare-topics (level &optional all lowest regexp list-topic topic-level)
-  "List all newsgroups with unread articles of level LEVEL or lower, and
-use the `gnus-group-topics' to sort the groups.
+  "List all newsgroups with unread articles of level LEVEL or lower.
+Use the `gnus-group-topics' to sort the groups.
 If ALL is non-nil, list groups that have no unread articles.
 If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
   (set-buffer gnus-group-buffer)
@@ -371,7 +380,8 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
       (erase-buffer))
 
     ;; List dead groups?
-    (when (and (>= level gnus-level-zombie) (<= lowest gnus-level-zombie))
+    (when (and (>= level gnus-level-zombie)
+	       (<= lowest gnus-level-zombie))
       (gnus-group-prepare-flat-list-dead
        (setq gnus-zombie-list (sort gnus-zombie-list 'string<))
        gnus-level-zombie ?Z
@@ -389,20 +399,29 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
 	  (if list-topic
 	      (let ((top (gnus-topic-find-topology list-topic)))
 		(gnus-topic-prepare-topic (cdr top) (car top)
-					  (or topic-level level) all))
+					  (or topic-level level) all
+					  nil lowest))
 	    (gnus-topic-prepare-topic gnus-topic-topology 0
-				      (or topic-level level) all)))
+				      (or topic-level level) all
+				      nil lowest)))
 
       (gnus-group-set-mode-line)
       (setq gnus-group-list-mode (cons level all))
-      (run-hooks 'gnus-group-prepare-hook))))
+      (gnus-run-hooks 'gnus-group-prepare-hook))))
 
-(defun gnus-topic-prepare-topic (topicl level &optional list-level all silent)
+(defun gnus-topic-prepare-topic (topicl level &optional list-level all silent
+					lowest)
   "Insert TOPIC into the group buffer.
 If SILENT, don't insert anything.  Return the number of unread
 articles in the topic and its subtopics."
   (let* ((type (pop topicl))
-	 (entries (gnus-topic-find-groups (car type) list-level all))
+	 (entries (gnus-topic-find-groups
+		   (car type) list-level
+		   (or all
+		       (cdr (assq 'visible 
+				  (gnus-topic-hierarchical-parameters
+				   (car type)))))
+		   lowest))
 	 (visiblep (and (eq (nth 1 type) 'visible) (not silent)))
 	 (gnus-group-indentation
 	  (make-string (* gnus-topic-indent-level level) ? ))
@@ -418,7 +437,7 @@ articles in the topic and its subtopics."
       (incf unread
 	    (gnus-topic-prepare-topic
 	     (pop topicl) (1+ level) list-level all
-	     (not visiblep))))
+	     (not visiblep) lowest)))
     (setq end (point))
     (goto-char beg)
     ;; Insert all the groups that belong in this topic.
@@ -427,7 +446,7 @@ articles in the topic and its subtopics."
 	(if (stringp entry)
 	    ;; Dead groups.
 	    (gnus-group-insert-group-line
-	     entry (if (member entry gnus-zombie-list) 8 9)
+	     entry (if (member entry gnus-zombie-list) gnus-level-zombie gnus-level-killed)
 	     nil (- (1+ (cdr (setq active (gnus-active entry))))
 		    (car active))
 	     nil)
@@ -454,6 +473,7 @@ articles in the topic and its subtopics."
        (car type) visiblep
        (not (eq (nth 2 type) 'hidden))
        level all-entries unread))
+    (gnus-topic-update-unreads (car type) unread)
     (goto-char end)
     unread))
 
@@ -508,7 +528,9 @@ articles in the topic and its subtopics."
 	 (indentation (make-string (* gnus-topic-indent-level level) ? ))
 	 (total-number-of-articles unread)
 	 (number-of-groups (length entries))
-	 (active-topic (eq gnus-topic-alist gnus-topic-active-alist)))
+	 (active-topic (eq gnus-topic-alist gnus-topic-active-alist))
+	 gnus-tmp-header)
+    (gnus-topic-update-unreads name unread)
     (beginning-of-line)
     ;; Insert the text.
     (gnus-add-text-properties
@@ -520,6 +542,11 @@ articles in the topic and its subtopics."
 	   'gnus-topic-unread unread
 	   'gnus-active active-topic
 	   'gnus-topic-visible visiblep))))
+
+(defun gnus-topic-update-unreads (topic unreads)
+  (setq gnus-topic-unreads (delq (assoc topic gnus-topic-unreads)
+				 gnus-topic-unreads))
+  (push (cons topic unreads) gnus-topic-unreads))
 
 (defun gnus-topic-update-topics-containing-group (group)
   "Update all topics that have GROUP as a member."
@@ -602,7 +629,7 @@ articles in the topic and its subtopics."
 	 (parent (gnus-topic-parent-topic topic-name))
 	 (all-entries entries)
 	 (unread 0)
-	 old-unread entry)
+	 old-unread entry new-unread)
     (when (gnus-topic-goto-topic (car type))
       ;; Tally all the groups that belong in this topic.
       (if reads
@@ -618,11 +645,14 @@ articles in the topic and its subtopics."
        (car type) (gnus-topic-visible-p)
        (not (eq (nth 2 type) 'hidden))
        (gnus-group-topic-level) all-entries unread)
-      (gnus-delete-line))
+      (gnus-delete-line)
+      (forward-line -1)
+      (setq new-unread (gnus-group-topic-unread)))
     (when parent
       (forward-line -1)
       (gnus-topic-update-topic-line
-       parent (- old-unread (gnus-group-topic-unread))))
+       parent
+       (- (or old-unread 0) (or new-unread 0))))
     unread))
 
 (defun gnus-topic-group-indentation ()
@@ -729,55 +759,60 @@ articles in the topic and its subtopics."
   "Run when changing levels to enter/remove groups from topics."
   (save-excursion
     (set-buffer gnus-group-buffer)
-    (gnus-group-goto-group (or (car (nth 2 previous)) group))
-    (when (and gnus-topic-mode
-	       gnus-topic-alist
-	       (not gnus-topic-inhibit-change-level))
-      ;; Remove the group from the topics.
-      (when (and (< oldlevel gnus-level-zombie)
-		 (>= level gnus-level-zombie))
-	(let (alist)
-	  (forward-line -1)
-	  (when (setq alist (assoc (gnus-current-topic) gnus-topic-alist))
-	    (setcdr alist (gnus-delete-first group (cdr alist))))))
-      ;; If the group is subscribed we enter it into the topics.
-      (when (and (< level gnus-level-zombie)
-		 (>= oldlevel gnus-level-zombie))
-	(let* ((prev (gnus-group-group-name))
-	       (gnus-topic-inhibit-change-level t)
-	       (gnus-group-indentation
-		(make-string
-		 (* gnus-topic-indent-level
-		    (or (save-excursion
-			  (gnus-topic-goto-topic (gnus-current-topic))
-			  (gnus-group-topic-level))
-			0))
-		 ? ))
-	       (yanked (list group))
-	       alist talist end)
-	  ;; Then we enter the yanked groups into the topics they belong
-	  ;; to.
-	  (when (setq alist (assoc (save-excursion
-				     (forward-line -1)
-				     (or
-				      (gnus-current-topic)
-				      (caar gnus-topic-topology)))
-				   gnus-topic-alist))
-	    (setq talist alist)
-	    (when (stringp yanked)
-	      (setq yanked (list yanked)))
-	    (if (not prev)
-		(nconc alist yanked)
-	      (if (not (cdr alist))
-		  (setcdr alist (nconc yanked (cdr alist)))
-		(while (and (not end) (cdr alist))
-		  (when (equal (cadr alist) prev)
-		    (setcdr alist (nconc yanked (cdr alist)))
-		    (setq end t))
-		  (setq alist (cdr alist)))
-		(unless end
-		  (nconc talist yanked))))))
-	(gnus-topic-update-topic)))))
+    (let ((buffer-read-only nil))
+      (unless gnus-topic-inhibit-change-level
+	(gnus-group-goto-group (or (car (nth 2 previous)) group))
+	(when (and gnus-topic-mode
+		   gnus-topic-alist
+		   (not gnus-topic-inhibit-change-level))
+	  ;; Remove the group from the topics.
+	  (if (and (< oldlevel gnus-level-zombie)
+		   (>= level gnus-level-zombie))
+	      (let ((alist gnus-topic-alist))
+		(while (gnus-group-goto-group group)
+		  (gnus-delete-line))
+		(while alist
+		  (when (member group (car alist))
+		    (setcdr (car alist) (delete group (cdar alist))))
+		  (pop alist)))
+	    ;; If the group is subscribed we enter it into the topics.
+	    (when (and (< level gnus-level-zombie)
+		       (>= oldlevel gnus-level-zombie))
+	      (let* ((prev (gnus-group-group-name))
+		     (gnus-topic-inhibit-change-level t)
+		     (gnus-group-indentation
+		      (make-string
+		       (* gnus-topic-indent-level
+			  (or (save-excursion
+				(gnus-topic-goto-topic (gnus-current-topic))
+				(gnus-group-topic-level))
+			      0))
+		       ? ))
+		     (yanked (list group))
+		     alist talist end)
+		;; Then we enter the yanked groups into the topics they belong
+		;; to.
+		(when (setq alist (assoc (save-excursion
+					   (forward-line -1)
+					   (or
+					    (gnus-current-topic)
+					    (caar gnus-topic-topology)))
+					 gnus-topic-alist))
+		  (setq talist alist)
+		  (when (stringp yanked)
+		    (setq yanked (list yanked)))
+		  (if (not prev)
+		      (nconc alist yanked)
+		    (if (not (cdr alist))
+			(setcdr alist (nconc yanked (cdr alist)))
+		      (while (and (not end) (cdr alist))
+			(when (equal (cadr alist) prev)
+			  (setcdr alist (nconc yanked (cdr alist)))
+			  (setq end t))
+			(setq alist (cdr alist)))
+		      (unless end
+			(nconc talist yanked))))))
+	      (gnus-topic-update-topic))))))))
 
 (defun gnus-topic-goto-next-group (group props)
   "Go to group or the next group after group."
@@ -880,6 +915,10 @@ articles in the topic and its subtopics."
     "Gp" gnus-topic-edit-parameters
     "#" gnus-topic-mark-topic
     "\M-#" gnus-topic-unmark-topic
+    [tab] gnus-topic-indent
+    [(meta tab)] gnus-topic-unindent
+    "\C-i" gnus-topic-indent
+    "\M-\C-i" gnus-topic-unindent
     gnus-mouse-2 gnus-mouse-pick-topic)
 
   ;; Define a new submap.
@@ -899,7 +938,7 @@ articles in the topic and its subtopics."
     "r" gnus-topic-rename
     "\177" gnus-topic-delete
     [delete] gnus-topic-delete
-    "h" gnus-topic-toggle-display-empty-topics)
+    "H" gnus-topic-toggle-display-empty-topics)
 
   (gnus-define-keys (gnus-topic-sort-map "S" gnus-group-topic-map)
     "s" gnus-topic-sort-groups
@@ -943,15 +982,12 @@ articles in the topic and its subtopics."
 	  (if (null arg) (not gnus-topic-mode)
 	    (> (prefix-numeric-value arg) 0)))
     ;; Infest Gnus with topics.
-    (if (not gnus-topic-mode)
-	(setq gnus-goto-missing-group-function nil)
+     (if (not gnus-topic-mode)
+ 	(setq gnus-goto-missing-group-function nil)
       (when (gnus-visual-p 'topic-menu 'menu)
 	(gnus-topic-make-menu-bar))
-      (setq gnus-topic-line-format-spec
-	    (gnus-parse-format gnus-topic-line-format
-			       gnus-topic-line-format-alist t))
+      (gnus-set-format 'topic t)
       (gnus-add-minor-mode 'gnus-topic-mode " Topic" gnus-topic-mode-map)
-      (add-hook 'gnus-summary-exit-hook 'gnus-topic-update-topic)
       (add-hook 'gnus-group-catchup-group-hook 'gnus-topic-update-topic)
       (set (make-local-variable 'gnus-group-prepare-function)
 	   'gnus-group-prepare-topics)
@@ -973,7 +1009,7 @@ articles in the topic and its subtopics."
       ;; We check the topology.
       (when gnus-newsrc-alist
 	(gnus-topic-check-topology))
-      (run-hooks 'gnus-topic-mode-hook))
+      (gnus-run-hooks 'gnus-topic-mode-hook))
     ;; Remove topic infestation.
     (unless gnus-topic-mode
       (remove-hook 'gnus-summary-exit-hook 'gnus-topic-update-topic)
@@ -1178,7 +1214,7 @@ If COPYP, copy the groups instead."
   (if (not topic)
       (call-interactively 'gnus-group-mark-group)
     (save-excursion
-      (let ((groups (gnus-topic-find-groups topic 9 t)))
+      (let ((groups (gnus-topic-find-groups topic gnus-level-killed t)))
 	(while groups
 	  (funcall (if unmark 'gnus-group-remove-mark 'gnus-group-set-mark)
 		   (gnus-info-group (nth 2 (pop groups)))))))))
@@ -1243,6 +1279,14 @@ If COPYP, copy the groups instead."
    (let ((topic (gnus-current-topic)))
      (list topic
 	   (read-string (format "Rename %s to: " topic)))))
+  ;; Check whether the new name exists.
+  (when (gnus-topic-find-topology new-name)
+    (error "Topic '%s' already exists" new-name))
+  ;; "nil" is an invalid name, for reasons I'd rather not go
+  ;; into here.  Trust me.
+  (when (equal new-name "nil")
+    (error "Invalid name: %s" nil))
+  ;; Do the renaming.
   (let ((top (gnus-topic-find-topology old-name))
 	(entry (assoc old-name gnus-topic-alist)))
     (when top
@@ -1251,7 +1295,8 @@ If COPYP, copy the groups instead."
       (setcar entry new-name))
     (forward-line -1)
     (gnus-dribble-touch)
-    (gnus-group-list-groups)))
+    (gnus-group-list-groups)
+    (forward-line 1)))
 
 (defun gnus-topic-indent (&optional unindent)
   "Indent a topic -- make it a sub-topic of the previous topic.
@@ -1302,7 +1347,7 @@ If FORCE, always re-read the active file."
   (let ((gnus-topic-topology gnus-topic-active-topology)
 	(gnus-topic-alist gnus-topic-active-alist)
 	gnus-killed-list gnus-zombie-list)
-    (gnus-group-list-groups 9 nil 1)))
+    (gnus-group-list-groups gnus-level-killed nil 1)))
 
 (defun gnus-topic-toggle-display-empty-topics ()
   "Show/hide topics that have no unread articles."

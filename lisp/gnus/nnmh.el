@@ -1,7 +1,7 @@
 ;;; nnmh.el --- mhspool access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
@@ -60,6 +60,7 @@
 
 (defvoo nnmh-status-string "")
 (defvoo nnmh-group-alist nil)
+(defvoo nnmh-allow-delete-final nil)
 
 
 
@@ -76,9 +77,8 @@
 	   (large (and (numberp nnmail-large-newsgroup)
 		       (> number nnmail-large-newsgroup)))
 	   (count 0)
-	   ;; 1997/8/12 by MORIOKA Tomohiko
-	   (file-name-coding-system 'binary) ; for Emacs 20
-	   (pathname-coding-system 'binary)  ; for XEmacs/mule
+	   (file-name-coding-system 'binary)
+	   (pathname-coding-system 'binary)
 	   beg article)
       (nnmh-possibly-change-directory newsgroup server)
       ;; We don't support fetching by Message-ID.
@@ -105,11 +105,11 @@
 
 	  (and large
 	       (zerop (% count 20))
-	       (message "nnmh: Receiving headers... %d%%"
+	       (nnheader-message 5 "nnmh: Receiving headers... %d%%"
 			(/ (* count 100) number))))
 
 	(when large
-	  (message "nnmh: Receiving headers...done"))
+	  (nnheader-message 5 "nnmh: Receiving headers...done"))
 
 	(nnheader-fold-continuation-lines)
 	'headers))))
@@ -137,9 +137,8 @@
   (let ((file (if (stringp id)
 		  nil
 		(concat nnmh-current-directory (int-to-string id))))
-	;; 1997/8/12 by MORIOKA Tomohiko
-	(file-name-coding-system 'binary) ; for Emacs 20
-	(pathname-coding-system 'binary)  ; for XEmacs/mule
+	(pathname-coding-system 'binary)
+	(file-name-coding-system 'binary)
 	(nntp-server-buffer (or buffer nntp-server-buffer)))
     (and (stringp file)
 	 (file-exists-p file)
@@ -148,10 +147,11 @@
 	 (string-to-int (file-name-nondirectory file)))))
 
 (deffoo nnmh-request-group (group &optional server dont-check)
+  (nnheader-init-server-buffer)
+  (nnmh-possibly-change-directory group server)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
-	;; 1997/8/12 by MORIOKA Tomohiko
-	(file-name-coding-system 'binary) ; for Emacs 20
-	(pathname-coding-system 'binary)  ; for XEmacs/mule.
+	(pathname-coding-system 'binary)
+	(file-name-coding-system 'binary)
 	dir)
     (cond
      ((not (file-directory-p pathname))
@@ -190,10 +190,11 @@
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
-  (let ((file-name-coding-system 'binary)
-	(pathname-coding-system 'binary)
-	(nnmh-toplev
-	 (file-truename (or dir (file-name-as-directory nnmh-directory)))))
+  (nnmh-possibly-change-directory nil server)
+  (let* ((pathname-coding-system 'binary)
+	 (file-name-coding-system 'binary)
+	 (nnmh-toplev
+	  (file-truename (or dir (file-name-as-directory nnmh-directory)))))
     (nnmh-request-list-1 nnmh-toplev))
   (setq nnmh-group-alist (nnmail-get-active))
   t)
@@ -204,14 +205,15 @@
   ;; Recurse down all directories.
   (let ((dirs (and (file-readable-p dir)
 		   (> (nth 1 (file-attributes (file-chase-links dir))) 2)
-		   (directory-files dir t nil t)))
-	dir)
+		   (nnheader-directory-files dir t nil t)))
+	rdir)
     ;; Recurse down directories.
-    (while (setq dir (pop dirs))
-      (when (and (not (member (file-name-nondirectory dir) '("." "..")))
-		 (file-directory-p dir)
-		 (file-readable-p dir))
-	(nnmh-request-list-1 dir))))
+    (while (setq rdir (pop dirs))
+      (when (and (file-directory-p rdir)
+		 (file-readable-p rdir)
+		 (not (equal (file-truename rdir)
+			     (file-truename dir))))
+	(nnmh-request-list-1 rdir))))
   ;; For each directory, generate an active file line.
   (unless (string= (expand-file-name nnmh-toplev) dir)
     (let ((files (mapcar
@@ -231,8 +233,8 @@
 				(expand-file-name nnmh-toplev))))
 	       dir)
 	      (nnheader-replace-chars-in-string
-	       (decode-coding-string (substring dir (match-end 0))
-				     nnmail-pathname-coding-system)
+	       (gnus-decode-coding-string (substring dir (match-end 0))
+					  nnmail-pathname-coding-system)
 	       ?/ ?.))
 	    (apply 'max files)
 	    (apply 'min files)))))))
@@ -244,15 +246,9 @@
 (deffoo nnmh-request-expire-articles (articles newsgroup
 					       &optional server force)
   (nnmh-possibly-change-directory newsgroup server)
-  (let* ((active-articles
-	  (mapcar
-	   (function
-	    (lambda (name)
-	      (string-to-int name)))
-	   (directory-files nnmh-current-directory nil "^[0-9]+$" t)))
-	 (is-old t)
+  (let* ((is-old t)
 	 article rest mod-time)
-    (nnmail-activate 'nnmh)
+    (nnheader-init-server-buffer)
 
     (while (and articles is-old)
       (setq article (concat nnmh-current-directory
@@ -272,7 +268,7 @@
 		 (push (car articles) rest))))
 	  (push (car articles) rest)))
       (setq articles (cdr articles)))
-    (message "")
+    (nnheader-message 5 "")
     (nconc rest articles)))
 
 (deffoo nnmh-close-group (group &optional server)
@@ -305,20 +301,19 @@
   (nnmail-check-syntax)
   (when nnmail-cache-accepted-message-ids
     (nnmail-cache-insert (nnmail-fetch-field "message-id")))
+  (nnheader-init-server-buffer)
   (prog1
       (if (stringp group)
-	  (and
-	   (nnmail-activate 'nnmh)
-	   (car (nnmh-save-mail
-		 (list (cons group (nnmh-active-number group)))
-		 noinsert)))
-	(and
-	 (nnmail-activate 'nnmh)
-	 (let ((res (nnmail-article-group 'nnmh-active-number)))
-	   (if (and (null res)
-		    (yes-or-no-p "Moved to `junk' group; delete article? "))
-	       'junk
-	     (car (nnmh-save-mail res noinsert))))))
+	  (if noinsert
+	      (nnmh-active-number group)
+	    (car (nnmh-save-mail
+		  (list (cons group (nnmh-active-number group)))
+		  noinsert)))
+	(let ((res (nnmail-article-group 'nnmh-active-number)))
+	  (if (and (null res)
+		   (yes-or-no-p "Moved to `junk' group; delete article? "))
+	      'junk
+	    (car (nnmh-save-mail res noinsert)))))
     (when (and last nnmail-cache-accepted-message-ids)
       (nnmail-cache-close))))
 
@@ -335,7 +330,7 @@
       t)))
 
 (deffoo nnmh-request-create-group (group &optional server args)
-  (nnmail-activate 'nnmh)
+  (nnheader-init-server-buffer)
   (unless (assoc group nnmh-group-alist)
     (let (active)
       (push (list group (setq active (cons 1 0)))
@@ -410,9 +405,8 @@
     (nnmh-open-server server))
   (when newsgroup
     (let ((pathname (nnmail-group-pathname newsgroup nnmh-directory))
-	  ;; 1997/8/12 by MORIOKA Tomohiko
-	  (file-name-coding-system 'binary) ; for Emacs 20
-	  (pathname-coding-system 'binary)) ; for XEmacs/mule
+	  (file-name-coding-system 'binary)
+	  (pathname-coding-system 'binary))
       (if (file-directory-p pathname)
 	  (setq nnmh-current-directory pathname)
 	(error "No such newsgroup: %s" newsgroup)))))
@@ -461,16 +455,15 @@
   "Compute the next article number in GROUP."
   (let ((active (cadr (assoc group nnmh-group-alist)))
 	(dir (nnmail-group-pathname group nnmh-directory))
-	;; 1997/8/14 by MORIOKA Tomohiko
-	(file-name-coding-system 'binary) ; for Emacs 20
-	(pathname-coding-system 'binary)) ; for XEmacs/mule
+	(file-name-coding-system 'binary)
+	(pathname-coding-system 'binary))
     (unless active
       ;; The group wasn't known to nnmh, so we just create an active
       ;; entry for it.
       (setq active (cons 1 0))
       (push (list group active) nnmh-group-alist)
       (unless (file-exists-p dir)
-	(make-directory dir))
+	(gnus-make-directory dir))
       ;; Find the highest number in the group.
       (let ((files (sort
 		    (mapcar
@@ -557,9 +550,12 @@
   (let ((path (concat nnmh-current-directory (int-to-string article))))
     ;; Writable.
     (and (file-writable-p path)
-	 ;; We can never delete the last article in the group.
-	 (not (eq (cdr (nth 1 (assoc group nnmh-group-alist)))
-		  article)))))
+	 (or
+	  ;; We can never delete the last article in the group.
+	  (not (eq (cdr (nth 1 (assoc group nnmh-group-alist)))
+		   article))
+	  ;; Well, we can.
+	  nnmh-allow-delete-final))))
 
 (provide 'nnmh)
 

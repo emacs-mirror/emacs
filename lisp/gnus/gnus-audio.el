@@ -2,7 +2,6 @@
 ;; Copyright (C) 1996 Free Software Foundation
 
 ;; Author: Steven L. Baur <steve@miranova.com>
-;; Keywords: news
 
 ;; This file is part of GNU Emacs.
 
@@ -42,12 +41,12 @@
   "The directory containing the Sound Files.")
 
 (defvar gnus-audio-au-player "/usr/bin/showaudio"
-  "Executable program for playing sun AU format sound files")
+  "Executable program for playing sun AU format sound files.")
+
 (defvar gnus-audio-wav-player "/usr/local/bin/play"
-  "Executable program for playing WAV files")
+  "Executable program for playing WAV files.")
 
-
-;;; The following isn't implemented yet.  Wait for Red Gnus.
+;;; The following isn't implemented yet.  Wait for Millennium Gnus.
 ;(defvar gnus-audio-effects-enabled t
 ;  "When t, Gnus will use sound effects.")
 ;(defvar gnus-audio-enable-hooks nil
@@ -71,14 +70,14 @@
 ;  "Enable Sound Effects for Gnus."
 ;  (interactive)
 ;  (setq gnus-audio-effects-enabled t)
-;  (run-hooks gnus-audio-enable-hooks))
+;  (gnus-run-hooks gnus-audio-enable-hooks))
 
 ;;;###autoload
 					;(defun gnus-audio-disable-sound ()
 ;  "Disable Sound Effects for Gnus."
 ;  (interactive)
 ;  (setq gnus-audio-effects-enabled nil)
-;  (run-hooks gnus-audio-disable-hooks))
+;  (gnus-run-hooks gnus-audio-disable-hooks))
 
 ;;;###autoload
 (defun gnus-audio-play (file)

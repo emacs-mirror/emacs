@@ -1,7 +1,7 @@
 ;;; gnus-util.el --- utility functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -35,9 +35,13 @@
 (require 'nnheader)
 (require 'timezone)
 (require 'message)
+(eval-when-compile (require 'rmail))
 
 (eval-and-compile
-  (autoload 'nnmail-date-to-time "nnmail"))
+  (autoload 'nnmail-date-to-time "nnmail")
+  (autoload 'rmail-insert-rmail-file-header "rmail")
+  (autoload 'rmail-count-new-messages "rmail")
+  (autoload 'rmail-show-message "rmail"))
 
 (defun gnus-boundp (variable)
   "Return non-nil if VARIABLE is bound and non-nil."
@@ -72,9 +76,6 @@
 	 (set symbol nil))
      symbol))
 
-;; modified by MORIOKA Tomohiko <morioka@jaist.ac.jp>
-;;   function `substring' might cut on a middle of multi-octet
-;;   character.
 (defun gnus-truncate-string (str width)
   (substring str 0 width))
 
@@ -90,7 +91,7 @@
   "Return non-nil if FORM is funcallable."
   (or (and (symbolp form) (fboundp form))
       (and (listp form) (eq (car form) 'lambda))
-      (compiled-function-p form)))
+      (byte-code-function-p form)))
 
 (defsubst gnus-goto-char (point)
   (and point (goto-char point)))
@@ -145,8 +146,8 @@
 
 (defun gnus-byte-code (func)
   "Return a form that can be `eval'ed based on FUNC."
-  (let ((fval (symbol-function func)))
-    (if (compiled-function-p fval)
+  (let ((fval (indirect-function func)))
+    (if (byte-code-function-p fval)
 	(let ((flist (append fval nil)))
 	  (setcar flist 'byte-code)
 	  flist)
@@ -161,7 +162,6 @@
       (setq address (substring from (match-beginning 0) (match-end 0))))
     ;; Then we check whether the "name <address>" format is used.
     (and address
-	 ;; Fix by MORIOKA Tomohiko <morioka@jaist.ac.jp>
 	 ;; Linear white space is not required.
 	 (string-match (concat "[ \t]*<" (regexp-quote address) ">") from)
 	 (and (setq name (substring from 0 (match-beginning 0)))
@@ -175,7 +175,6 @@
 				   (1- (match-end 0)))))
 	(and (string-match "()" from)
 	     (setq name address))
-	;; Fix by MORIOKA Tomohiko <morioka@jaist.ac.jp>.
 	;; XOVER might not support folded From headers.
 	(and (string-match "(.*" from)
 	     (setq name (substring from (1+ (match-beginning 0))
@@ -342,12 +341,11 @@
       (yes-or-no-p prompt)
     (message "")))
 
-;; I suspect there's a better way, but I haven't taken the time to do
-;; it yet.  -erik selberg@cs.washington.edu
 (defun gnus-dd-mmm (messy-date)
-  "Return a string like DD-MMM from a big messy string"
+  "Return a string like DD-MMM from a big messy string."
   (let ((datevec (ignore-errors (timezone-parse-date messy-date))))
-    (if (not datevec)
+    (if (or (not datevec)
+	    (string-equal "0" (aref datevec 1)))
 	"??-???"
       (format "%2s-%s"
 	      (condition-case ()
@@ -378,10 +376,10 @@ Cache the result as a text property stored in DATE."
   "Return a string of TIME in YYMMDDTHHMMSS format."
   (format-time-string "%Y%m%dT%H%M%S" time))
 
-(defun gnus-date-iso8601 (header)
-  "Convert the date field in HEADER to YYMMDDTHHMMSS"
+(defun gnus-date-iso8601 (date)
+  "Convert the DATE to YYMMDDTHHMMSS."
   (condition-case ()
-      (gnus-time-iso8601 (gnus-date-get-time (mail-header-date header)))
+      (gnus-time-iso8601 (gnus-date-get-time date))
     (error "")))
 
 (defun gnus-mode-string-quote (string)
@@ -458,9 +456,7 @@ jabbering all the time."
 If N, return the Nth ancestor instead."
   (when references
     (let ((ids (inline (gnus-split-references references))))
-      (while (nthcdr (or n 1) ids)
-	(setq ids (cdr ids)))
-      (car ids))))
+      (car (last ids (or n 1))))))
 
 (defsubst gnus-buffer-live-p (buffer)
   "Say whether BUFFER is alive or not."
@@ -475,22 +471,23 @@ If N, return the Nth ancestor instead."
     (let* ((orig (point))
 	   (end (window-end (get-buffer-window (current-buffer) t)))
 	   (max 0))
-      ;; Find the longest line currently displayed in the window.
-      (goto-char (window-start))
-      (while (and (not (eobp))
-		  (< (point) end))
-	(end-of-line)
-	(setq max (max max (current-column)))
-	(forward-line 1))
-      (goto-char orig)
-      ;; Scroll horizontally to center (sort of) the point.
-      (if (> max (window-width))
-	  (set-window-hscroll
-	   (get-buffer-window (current-buffer) t)
-	   (min (- (current-column) (/ (window-width) 3))
-		(+ 2 (- max (window-width)))))
-	(set-window-hscroll (get-buffer-window (current-buffer) t) 0))
-      max)))
+      (when end
+	;; Find the longest line currently displayed in the window.
+	(goto-char (window-start))
+	(while (and (not (eobp))
+		    (< (point) end))
+	  (end-of-line)
+	  (setq max (max max (current-column)))
+	  (forward-line 1))
+	(goto-char orig)
+	;; Scroll horizontally to center (sort of) the point.
+	(if (> max (window-width))
+	    (set-window-hscroll
+	     (get-buffer-window (current-buffer) t)
+	     (min (- (current-column) (/ (window-width) 3))
+		  (+ 2 (- max (window-width)))))
+	  (set-window-hscroll (get-buffer-window (current-buffer) t) 0))
+	max))))
 
 (defun gnus-read-event-char ()
   "Get the next event."
@@ -528,12 +525,11 @@ Timezone package is used."
 
 (defun gnus-kill-all-overlays ()
   "Delete all overlays in the current buffer."
-  (unless gnus-xemacs
-    (let* ((overlayss (overlay-lists))
-	   (buffer-read-only nil)
-	   (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
-      (while overlays
-	(delete-overlay (pop overlays))))))
+  (let* ((overlayss (overlay-lists))
+	 (buffer-read-only nil)
+	 (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
+    (while overlays
+      (delete-overlay (pop overlays)))))
 
 (defvar gnus-work-buffer " *gnus work*")
 
@@ -543,7 +539,7 @@ Timezone package is used."
       (progn
 	(set-buffer gnus-work-buffer)
 	(erase-buffer))
-    (set-buffer (get-buffer-create gnus-work-buffer))
+    (set-buffer (gnus-get-buffer-create gnus-work-buffer))
     (kill-all-local-variables)
     (buffer-disable-undo (current-buffer))))
 
@@ -580,14 +576,17 @@ Timezone package is used."
 
 (defun gnus-prin1 (form)
   "Use `prin1' on FORM in the current buffer.
-Bind `print-quoted' to t while printing."
+Bind `print-quoted' and `print-readably' to t while printing."
   (let ((print-quoted t)
+	(print-readably t)
+	(print-escape-multibyte nil)
 	print-level print-length)
     (prin1 form (current-buffer))))
 
 (defun gnus-prin1-to-string (form)
-  "The same as `prin1', but but `print-quoted' to t."
-  (let ((print-quoted t))
+  "The same as `prin1', but bind `print-quoted' and `print-readably' to t."
+  (let ((print-quoted t)
+	(print-readably t))
     (prin1-to-string form)))
 
 (defun gnus-make-directory (directory)
@@ -603,14 +602,6 @@ Bind `print-quoted' to t while printing."
   (gnus-make-directory (file-name-directory file))
   ;; Write the buffer.
   (write-region (point-min) (point-max) file nil 'quietly))
-
-(defmacro gnus-delete-assq (key list)
-  `(let ((listval (eval ,list)))
-     (setq ,list (delq (assq ,key listval) listval))))
-
-(defmacro gnus-delete-assoc (key list)
-  `(let ((listval ,list))
-     (setq ,list (delq (assoc ,key listval) listval))))
 
 (defun gnus-delete-file (file)
   "Delete FILE if it exists."
@@ -630,9 +621,21 @@ Bind `print-quoted' to t while printing."
       (save-restriction
 	(goto-char beg)
 	(while (re-search-forward "[ \t]*\n" end 'move)
-	  (put-text-property beg (match-beginning 0) prop val)
+	  (gnus-put-text-property beg (match-beginning 0) prop val)
 	  (setq beg (point)))
-	(put-text-property beg (point) prop val)))))
+	(gnus-put-text-property beg (point) prop val)))))
+
+(defun gnus-put-text-property-excluding-characters-with-faces (beg end
+								   prop val)
+  "The same as `put-text-property', but don't put props on characters with the `gnus-face' property."
+  (let ((b beg))
+    (while (/= b end)
+      (when (get-text-property b 'gnus-face)
+	(setq b (next-single-property-change b 'gnus-face nil end)))
+      (when (/= b end)
+	(gnus-put-text-property
+	 b (setq b (next-single-property-change b 'gnus-face nil end))
+	 prop val)))))
 
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
 ;;; The primary idea here is to try to protect internal datastructures
@@ -755,13 +758,15 @@ with potentially long computations."
 	    (when msg
 	      (goto-char (point-min))
 	      (widen)
-	      (search-backward "\n\^_")
-	      (narrow-to-region (point) (point-max))
+ 	      (search-backward "\n\^_")
+ 	      (narrow-to-region (point) (point-max))
+ 	      (rmail-count-new-messages t)
+ 	      (when (rmail-summary-exists)
+		(rmail-select-summary
+		 (rmail-update-summary)))
 	      (rmail-count-new-messages t)
-	      (if (rmail-summary-exists)
-		  (rmail-select-summary
-		   (rmail-update-summary)))
-	      (rmail-show-message msg))))))
+	      (rmail-show-message msg))
+	    (save-buffer)))))
     (kill-buffer tmpbuf)))
 
 (defun gnus-output-to-mail (filename &optional ask)
@@ -828,6 +833,155 @@ with potentially long computations."
       (replace-match "\n^_" t t))	;2 chars: "^" and "_"
     (goto-char (point-max))
     (insert "\^_")))
+
+(defun gnus-map-function (funs arg)
+  "Applies the result of the first function in FUNS to the second, and so on.
+ARG is passed to the first function."
+  (let ((myfuns funs))
+    (while myfuns
+      (setq arg (funcall (pop myfuns) arg)))
+    arg))
+
+(defun gnus-run-hooks (&rest funcs)
+  "Does the same as `run-hooks', but saves excursion."
+  (let ((buf (current-buffer)))
+    (unwind-protect
+	(apply 'run-hooks funcs)
+      (set-buffer buf))))
+
+;;;
+;;; .netrc and .authinforc parsing
+;;;
+
+(defvar gnus-netrc-syntax-table
+  (let ((table (copy-syntax-table text-mode-syntax-table)))
+    (modify-syntax-entry ?@ "w" table)
+    (modify-syntax-entry ?- "w" table)
+    (modify-syntax-entry ?_ "w" table)
+    (modify-syntax-entry ?! "w" table)
+    (modify-syntax-entry ?. "w" table)
+    (modify-syntax-entry ?, "w" table)
+    (modify-syntax-entry ?: "w" table)
+    (modify-syntax-entry ?\; "w" table)
+    (modify-syntax-entry ?% "w" table)
+    (modify-syntax-entry ?) "w" table)
+    (modify-syntax-entry ?( "w" table)
+    table)
+  "Syntax table when parsing .netrc files.")
+
+(defun gnus-parse-netrc (file)
+  "Parse FILE and return an list of all entries in the file."
+  (if (not (file-exists-p file))
+      ()
+    (save-excursion
+      (let ((tokens '("machine" "default" "login"
+		      "password" "account" "macdef" "force"))
+	    alist elem result pair)
+	(nnheader-set-temp-buffer " *netrc*")
+	(unwind-protect
+	    (progn
+	      (set-syntax-table gnus-netrc-syntax-table)
+	      (insert-file-contents file)
+	      (goto-char (point-min))
+	      ;; Go through the file, line by line.
+	      (while (not (eobp))
+		(narrow-to-region (point) (gnus-point-at-eol))
+		;; For each line, get the tokens and values.
+		(while (not (eobp))
+		  (skip-chars-forward "\t ")
+		  (unless (eobp)
+		    (setq elem (buffer-substring
+				(point) (progn (forward-sexp 1) (point))))
+		    (cond
+		     ((equal elem "macdef")
+		      ;; We skip past the macro definition.
+		      (widen)
+		      (while (and (zerop (forward-line 1))
+				  (looking-at "$")))
+		      (narrow-to-region (point) (point)))
+		     ((member elem tokens)
+		      ;; Tokens that don't have a following value are ignored,
+		      ;; except "default".
+		      (when (and pair (or (cdr pair)
+					  (equal (car pair) "default")))
+			(push pair alist))
+		      (setq pair (list elem)))
+		     (t
+		      ;; Values that haven't got a preceding token are ignored.
+		      (when pair
+			(setcdr pair elem)
+			(push pair alist)
+			(setq pair nil))))))
+		(if alist
+		    (push (nreverse alist) result))
+		(setq alist nil
+		      pair nil)
+		(widen)
+		(forward-line 1))
+	      (nreverse result))
+	  (kill-buffer " *netrc*"))))))
+
+(defun gnus-netrc-machine (list machine)
+  "Return the netrc values from LIST for MACHINE or for the default entry."
+  (let ((rest list))
+    (while (and list
+		(not (equal (cdr (assoc "machine" (car list))) machine)))
+      (pop list))
+    (car (or list
+	     (progn (while (and rest (not (assoc "default" (car rest))))
+		      (pop rest))
+		    rest)))))
+
+(defun gnus-netrc-get (alist type)
+  "Return the value of token TYPE from ALIST."
+  (cdr (assoc type alist)))
+
+;;; Various
+
+(defvar gnus-group-buffer) ; Compiler directive
+(defun gnus-alive-p ()
+  "Say whether Gnus is running or not."
+  (and (boundp 'gnus-group-buffer)
+       (get-buffer gnus-group-buffer)
+       (save-excursion
+	 (set-buffer gnus-group-buffer)
+	 (eq major-mode 'gnus-group-mode))))
+
+(defun gnus-remove-duplicates (list)
+  (let (new (tail list))
+    (while tail
+      (or (member (car tail) new)
+	  (setq new (cons (car tail) new)))
+      (setq tail (cdr tail)))
+    (nreverse new)))
+
+(defun gnus-delete-if (predicate list)
+  "Delete elements from LIST that satisfy PREDICATE."
+  (let (out)
+    (while list
+      (unless (funcall predicate (car list))
+	(push (car list) out))
+      (pop list))
+    (nreverse out)))
+
+(defun gnus-delete-alist (key alist)
+  "Delete all entries in ALIST that have a key eq to KEY."
+  (let (entry)
+    (while (setq entry (assq key alist))
+      (setq alist (delq entry alist)))
+    alist))
+
+(defmacro gnus-pull (key alist)
+  "Modify ALIST to be without KEY."
+  (unless (symbolp alist)
+    (error "Not a symbol: %s" alist))
+  `(setq ,alist (delq (assq ,key ,alist) ,alist)))
+
+(defun gnus-globalify-regexp (re)
+  "Returns a regexp that matches a whole line, iff RE matches a part of it."
+  (concat (unless (string-match "^\\^" re) "^.*")
+	  re
+	  (unless (string-match "\\$$" re) ".*$")))
 
 (provide 'gnus-util)
 

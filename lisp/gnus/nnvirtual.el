@@ -1,8 +1,8 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus
-;; Copyright (C) 1994,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
-;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
 
@@ -38,11 +38,12 @@
 (require 'gnus-util)
 (require 'gnus-start)
 (require 'gnus-sum)
+(require 'gnus-msg)
 (eval-when-compile (require 'cl))
 
 (nnoo-declare nnvirtual)
 
-(defvoo nnvirtual-always-rescan nil
+(defvoo nnvirtual-always-rescan t
   "*If non-nil, always scan groups for unread articles when entering a group.
 If this variable is nil (which is the default) and you read articles
 in a component group after the virtual group has been activated, the
@@ -258,10 +259,14 @@ to virtual article number.")
     (setq nnvirtual-current-group nil)
     (nnheader-report 'nnvirtual "No component groups in %s" group))
    (t
+    (setq nnvirtual-current-group group)
     (when (or (not dont-check)
 	      nnvirtual-always-rescan)
-      (nnvirtual-create-mapping))
-    (setq nnvirtual-current-group group)
+      (nnvirtual-create-mapping)
+      (when nnvirtual-always-rescan
+	(nnvirtual-request-update-info
+	 (nnvirtual-current-group)
+	 (gnus-get-info (nnvirtual-current-group)))))
     (nnheader-insert "211 %d 1 %d %s\n"
 		     nnvirtual-mapping-len nnvirtual-mapping-len group))))
 
@@ -269,9 +274,12 @@ to virtual article number.")
 (deffoo nnvirtual-request-type (group &optional article)
   (if (not article)
       'unknown
-    (let ((mart (nnvirtual-map-article article)))
-      (when mart
-	(gnus-request-type (car mart) (cdr mart))))))
+    (if (numberp article)
+	(let ((mart (nnvirtual-map-article article)))
+	  (if mart
+	      (gnus-request-type (car mart) (cdr mart))))
+      (gnus-request-type
+       nnvirtual-last-accessed-component-group nil))))
 
 (deffoo nnvirtual-request-update-mark (group article mark)
   (let* ((nart (nnvirtual-map-article article))
@@ -342,6 +350,15 @@ to virtual article number.")
   "Return the real group and article for virtual GROUP and ARTICLE."
   (nnvirtual-map-article article))
 
+
+(deffoo nnvirtual-request-post (&optional server)
+  (if (not gnus-message-group-art)
+      (nnheader-report 'nnvirtual "Can't post to an nnvirtual group")
+    (let ((group (car (nnvirtual-find-group-art
+		       (car gnus-message-group-art)
+		       (cdr gnus-message-group-art)))))
+      (gnus-request-post (gnus-find-method-for-group group)))))
+
 
 ;;; Internal functions.
 
@@ -387,7 +404,7 @@ to virtual article number.")
       (replace-match "" t t))
     (goto-char (point-min))
     (when (re-search-forward
-	   (concat (gnus-group-real-name group) ":[0-9]+")
+	   (concat (regexp-quote (gnus-group-real-name group)) ":[0-9]+")
 	   nil t)
       (replace-match "" t t))
     (unless (= (point) (point-max))
@@ -560,27 +577,28 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 
 (defun nnvirtual-reverse-map-article (group article)
   "Return the virtual article number corresponding to the given component GROUP and ARTICLE."
-  (let ((table nnvirtual-mapping-table)
-	(group-pos 0)
-	entry)
-    (while (not (string= group (car (aref nnvirtual-mapping-offsets
+  (when (numberp article)
+    (let ((table nnvirtual-mapping-table)
+	  (group-pos 0)
+	  entry)
+      (while (not (string= group (car (aref nnvirtual-mapping-offsets
+					    group-pos))))
+	(setq group-pos (1+ group-pos)))
+      (setq article (- article (cdr (aref nnvirtual-mapping-offsets
 					  group-pos))))
-      (setq group-pos (1+ group-pos)))
-    (setq article (- article (cdr (aref nnvirtual-mapping-offsets
-					group-pos))))
-    (while (and table
-		(> article (aref (car table) 0)))
-      (setq table (cdr table)))
-    (setq entry (car table))
-    (when (and entry
-	       (> article 0)
-	       (< group-pos (aref entry 2))) ; article not out of range below
-      (+ (aref entry 4)
-	 group-pos
-	 (* (- article (aref entry 1))
-	    (aref entry 2))
-	 1))
-    ))
+      (while (and table
+		  (> article (aref (car table) 0)))
+	(setq table (cdr table)))
+      (setq entry (car table))
+      (when (and entry
+		 (> article 0)
+		 (< group-pos (aref entry 2))) ; article not out of range below
+	(+ (aref entry 4)
+	   group-pos
+	   (* (- article (aref entry 1))
+	      (aref entry 2))
+	   1))
+      )))
 
 
 (defsubst nnvirtual-reverse-map-sequence (group articles)

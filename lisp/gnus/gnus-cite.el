@@ -1,12 +1,7 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
-;; Keywords: news, mail
-
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; Author: Per Abhiddenware; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
@@ -27,6 +22,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'gnus-art)
 (require 'gnus-range)
@@ -41,7 +38,7 @@
 
 (defcustom gnus-cite-reply-regexp
   "^\\(Subject: Re\\|In-Reply-To\\|References\\):"
-  "If headers match this regexp it is reasonable to believe that
+  "*If headers match this regexp it is reasonable to believe that
 article has citations."
   :group 'gnus-cite
   :type 'string)
@@ -52,8 +49,13 @@ article has citations."
   :type '(choice (const :tag "no" nil)
 		  (const :tag "yes" t)))
 
-(defcustom gnus-cited-text-button-line-format "%(%{[...]%}%)\n"
-  "Format of cited text buttons."
+(defcustom gnus-cited-opened-text-button-line-format "%(%{[-]%}%)\n"
+  "Format of opened cited text buttons."
+  :group 'gnus-cite
+  :type 'string)
+
+(defcustom gnus-cited-closed-text-button-line-format "%(%{[+]%}%)\n"
+  "Format of closed cited text buttons."
   :group 'gnus-cite
   :type 'string)
 
@@ -71,8 +73,8 @@ Set it to nil to parse all articles."
 		 integer))
 
 (defcustom gnus-cite-prefix-regexp
-    "^[]>|:}+ ]*[]>|:}+]\\(.*>\\)?\\|^.*>"
-  "Regexp matching the longest possible citation prefix on a line."
+  "^[]>|:}+ ]*[]>|:}+]\\(.*>\\)?\\|^.*>"
+  "*Regexp matching the longest possible citation prefix on a line."
   :group 'gnus-cite
   :type 'regexp)
 
@@ -84,7 +86,7 @@ Set it to nil to parse all articles."
 (defcustom gnus-supercite-regexp
   (concat "^\\(" gnus-cite-prefix-regexp "\\)? *"
 	  ">>>>> +\"\\([^\"\n]+\\)\" +==")
-  "Regexp matching normal Supercite attribution lines.
+  "*Regexp matching normal Supercite attribution lines.
 The first grouping must match prefixes added by other packages."
   :group 'gnus-cite
   :type 'regexp)
@@ -100,21 +102,21 @@ The first regexp group should match the Supercite attribution."
   :group 'gnus-cite
   :type 'integer)
 
-(defcustom gnus-cite-attribution-prefix 
-  "in article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),"
-  "Regexp matching the beginning of an attribution line."
+(defcustom gnus-cite-attribution-prefix
+  "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),"
+  "*Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
-  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\)[ 	]*$"
-  "Regexp matching the end of an attribution line.
+  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\)[ \t]*$"
+  "*Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
   :type 'regexp)
 
 (defface gnus-cite-attribution-face '((t
-				       (:underline t)))
+				       (:italic t)))
   "Face used for attribution lines.")
 
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution-face
@@ -237,7 +239,7 @@ It is merged with the face for the cited text belonging to the attribution."
   '(gnus-cite-face-1 gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4
     gnus-cite-face-5 gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8
     gnus-cite-face-9 gnus-cite-face-10 gnus-cite-face-11)
-  "List of faces used for highlighting citations.
+  "*List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
 Gnus will try to give each citation from each article its own face.
@@ -258,6 +260,7 @@ This should make it easier to see who wrote what."
 ;;; Internal Variables:
 
 (defvar gnus-cite-article nil)
+(defvar gnus-cite-overlay-list nil)
 
 (defvar gnus-cite-prefix-alist nil)
 ;; Alist of citation prefixes.
@@ -280,11 +283,16 @@ This should make it easier to see who wrote what."
 ;; PREFIX: Is the citation prefix of the attribution line(s), and
 ;; TAG: Is a Supercite tag, if any.
 
-(defvar gnus-cited-text-button-line-format-alist
+(defvar gnus-cited-opened-text-button-line-format-alist
   `((?b (marker-position beg) ?d)
     (?e (marker-position end) ?d)
+    (?n (count-lines beg end) ?d)
     (?l (- end beg) ?d)))
-(defvar gnus-cited-text-button-line-format-spec nil)
+(defvar gnus-cited-opened-text-button-line-format-spec nil)
+(defvar gnus-cited-closed-text-button-line-format-alist
+  gnus-cited-opened-text-button-line-format-alist)
+(defvar gnus-cited-closed-text-button-line-format-spec nil)
+
 
 ;;; Commands:
 
@@ -383,7 +391,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
       (gnus-article-search-signature)
       (push (cons (point-marker) "") marks)
       ;; Sort the marks.
-      (setq marks (sort marks (lambda (m1 m2) (< (car m1) (car m2)))))
+      (setq marks (sort marks 'car-less-than-car))
       (let ((omarks marks))
 	(setq marks nil)
 	(while (cdr omarks)
@@ -449,9 +457,8 @@ See the documentation for `gnus-article-highlight-citation'.
 If given a negative prefix, always show; if given a positive prefix,
 always hide."
   (interactive (append (gnus-article-hidden-arg) (list 'force)))
-  (setq gnus-cited-text-button-line-format-spec
-	(gnus-parse-format gnus-cited-text-button-line-format
-			   gnus-cited-text-button-line-format-alist t))
+  (gnus-set-format 'cited-opened-text-button t)
+  (gnus-set-format 'cited-closed-text-button t)
   (save-excursion
     (set-buffer gnus-article-buffer)
     (cond
@@ -466,7 +473,7 @@ always hide."
 	    (inhibit-point-motion-hooks t)
 	    (props (nconc (list 'article-type 'cite)
 			  gnus-hidden-properties))
-	    beg end)
+	    beg end start)
 	(while marks
 	  (setq beg nil
 		end nil)
@@ -486,30 +493,58 @@ always hide."
 		(setq beg nil)
 	      (setq beg (point-marker))))
 	  (when (and beg end)
+	    ;; We use markers for the end-points to facilitate later
+	    ;; wrapping and mangling of text.
+	    (setq beg (set-marker (make-marker) beg)
+		  end (set-marker (make-marker) end))
 	    (gnus-add-text-properties beg end props)
 	    (goto-char beg)
 	    (unless (save-excursion (search-backward "\n\n" nil t))
 	      (insert "\n"))
 	    (put-text-property
-	     (point)
+	     (setq start (point-marker))
 	     (progn
 	       (gnus-article-add-button
 		(point)
-		(progn (eval gnus-cited-text-button-line-format-spec) (point))
-		`gnus-article-toggle-cited-text (cons beg end))
+		(progn (eval gnus-cited-closed-text-button-line-format-spec)
+		       (point))
+		`gnus-article-toggle-cited-text
+		(list (cons beg end) start))
 	       (point))
 	     'article-type 'annotation)
 	    (set-marker beg (point)))))))))
 
-(defun gnus-article-toggle-cited-text (region)
+(defun gnus-article-toggle-cited-text (args)
   "Toggle hiding the text in REGION."
-  (let (buffer-read-only)
+  (let* ((region (car args))
+	 (start (cadr args))
+	 (hidden
+	  (text-property-any
+	   (car region) (1- (cdr region))
+	   (car gnus-hidden-properties) (cadr gnus-hidden-properties)))
+	 (inhibit-point-motion-hooks t)
+	 buffer-read-only)
     (funcall
-     (if (text-property-any
-	  (car region) (1- (cdr region))
-	  (car gnus-hidden-properties) (cadr gnus-hidden-properties))
+     (if hidden
 	 'remove-text-properties 'gnus-add-text-properties)
-     (car region) (cdr region) gnus-hidden-properties)))
+     (car region) (cdr region) gnus-hidden-properties)
+    (save-excursion
+      (goto-char start)
+      (gnus-delete-line)
+      (put-text-property
+       (point)
+       (progn
+	 (gnus-article-add-button
+	  (point)
+	  (progn (eval
+		  (if hidden
+		      gnus-cited-opened-text-button-line-format-spec
+		    gnus-cited-closed-text-button-line-format-spec))
+		 (point))
+	  `gnus-article-toggle-cited-text
+	  args)
+	 (point))
+       'article-type 'annotation))))
 
 (defun gnus-article-hide-citation-maybe (&optional arg force)
   "Toggle hiding of cited text that has an attribution line.
@@ -520,7 +555,7 @@ percent and at least `gnus-cite-hide-absolute' lines of the body is
 cited text with attributions.  When called interactively, these two
 variables are ignored.
 See also the documentation for `gnus-article-highlight-citation'."
-  (interactive (append (gnus-article-hidden-arg) (list 'force)))
+  (interactive (append (gnus-article-hidden-arg) '(force)))
   (unless (gnus-article-check-hidden-text 'cite arg)
     (save-excursion
       (set-buffer gnus-article-buffer)
@@ -531,27 +566,27 @@ See also the documentation for `gnus-article-highlight-citation'."
 	    (atts gnus-cite-attribution-alist)
 	    (buffer-read-only nil)
 	    (inhibit-point-motion-hooks t)
-	    (hiden 0)
+	    (hidden 0)
 	    total)
 	(goto-char (point-max))
 	(gnus-article-search-signature)
 	(setq total (count-lines start (point)))
 	(while atts
-	  (setq hiden (+ hiden (length (cdr (assoc (cdar atts)
-						   gnus-cite-prefix-alist))))
+	  (setq hidden (+ hidden (length (cdr (assoc (cdar atts)
+						     gnus-cite-prefix-alist))))
 		atts (cdr atts)))
 	(when (or force
-		  (and (> (* 100 hiden) (* gnus-cite-hide-percentage total))
-		       (> hiden gnus-cite-hide-absolute)))
+		  (and (> (* 100 hidden) (* gnus-cite-hide-percentage total))
+		       (> hidden gnus-cite-hide-absolute)))
 	  (setq atts gnus-cite-attribution-alist)
 	  (while atts
 	    (setq total (cdr (assoc (cdar atts) gnus-cite-prefix-alist))
 		  atts (cdr atts))
 	    (while total
-	      (setq hiden (car total)
+	      (setq hidden (car total)
 		    total (cdr total))
-	      (goto-line hiden)
-	      (unless (assq hiden gnus-cite-attribution-alist)
+	      (goto-line hidden)
+	      (unless (assq hidden gnus-cite-attribution-alist)
 		(gnus-add-text-properties
 		 (point) (progn (forward-line 1) (point))
 		 (nconc (list 'article-type 'cite)
@@ -572,13 +607,17 @@ See also the documentation for `gnus-article-highlight-citation'."
 
 (defun gnus-cite-parse-maybe (&optional force)
   ;; Parse if the buffer has changes since last time.
-  (if (equal gnus-cite-article gnus-article-current)
+  (if (and (not force)
+	   (equal gnus-cite-article gnus-article-current))
       ()
+    (gnus-cite-localize)
     ;;Reset parser information.
     (setq gnus-cite-prefix-alist nil
 	  gnus-cite-attribution-alist nil
 	  gnus-cite-loose-prefix-alist nil
 	  gnus-cite-loose-attribution-alist nil)
+    (while gnus-cite-overlay-list
+      (gnus-delete-overlay (pop gnus-cite-overlay-list)))
     ;; Parse if not too large.
     (if (and (not force)
 	     gnus-cite-parse-max-size
@@ -858,9 +897,9 @@ See also the documentation for `gnus-article-highlight-citation'."
   ;; At line NUMBER, ignore PREFIX and add FACE to the rest of the line.
   (when face
     (let ((inhibit-point-motion-hooks t)
-	  from to)
+	  from to overlay)
       (goto-line number)
-      (unless (eobp);; Sometimes things become confused.
+      (unless (eobp)			; Sometimes things become confused.
 	(forward-char (length prefix))
 	(skip-chars-forward " \t")
 	(setq from (point))
@@ -868,11 +907,14 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(skip-chars-backward " \t")
 	(setq to (point))
 	(when (< from to)
-	  (gnus-overlay-put (gnus-make-overlay from to) 'face face))))))
+	  (push (setq overlay (gnus-make-overlay from to))
+		gnus-cite-overlay-list)
+	  (gnus-overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)
   (save-excursion
     (set-buffer gnus-article-buffer)
+    (gnus-cite-parse-maybe)
     (let ((buffer-read-only nil)
 	  (numbers (cdr (assoc prefix gnus-cite-prefix-alist)))
 	  (inhibit-point-motion-hooks t)
@@ -903,10 +945,14 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(setq prefix (car entry))))
     prefix))
 
-(gnus-add-shutdown 'gnus-cache-close 'gnus)
-
-(defun gnus-cache-close ()
-  (setq gnus-cite-prefix-alist nil))
+(defun gnus-cite-localize ()
+  "Make the citation variables local to the article buffer."
+  (let ((vars '(gnus-cite-article
+		gnus-cite-overlay-list gnus-cite-prefix-alist
+		gnus-cite-attribution-alist gnus-cite-loose-prefix-alist
+		gnus-cite-loose-attribution-alist)))
+    (while vars
+      (make-local-variable (pop vars)))))
 
 (gnus-ems-redefine)
 

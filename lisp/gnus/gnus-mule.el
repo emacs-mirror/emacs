@@ -125,12 +125,15 @@ coding-system for reading and writing respectively."
 ;; current news group is encoded.   This function is set in
 ;; `gnus-parse-headers-hook'.
 (defun gnus-mule-select-coding-system ()
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
-    (let ((coding-system (gnus-mule-get-coding-system gnus-newsgroup-name)))
-      (setq gnus-mule-coding-system
-	    (if (and coding-system (coding-system-p (car coding-system)))
-		(car coding-system))))))
+  (if (gnus-buffer-live-p gnus-summary-buffer)
+      (save-excursion
+	(set-buffer gnus-summary-buffer)
+	(let ((coding-system
+	       (gnus-mule-get-coding-system gnus-newsgroup-name)))
+	  (setq gnus-mule-coding-system
+		(if (and coding-system (coding-system-p (car coding-system)))
+		    (car coding-system)))))
+    'binary))
 
 ;; Decode the current article.  This function is set in
 ;; `gnus-show-traditional-method'.
@@ -193,7 +196,7 @@ coding-system for reading and writing respectively."
 	nnmail-file-coding-system   'binary)
   )
 
-(gnus-mule-add-group "" '(undecided . iso-latin-1))
+(gnus-mule-add-group "" 'iso-latin-1)
 (gnus-mule-add-group "fj" 'iso-2022-7bit)
 (gnus-mule-add-group "tnn" 'iso-2022-7bit)
 (gnus-mule-add-group "japan" 'iso-2022-7bit)

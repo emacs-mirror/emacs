@@ -1,5 +1,5 @@
 ;;; gnus-vm.el --- vm interface for Gnus
-;; Copyright (C) 1994,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@gnu.ai.mit.edu>
 ;; Keywords: news, mail
@@ -88,12 +88,10 @@ save those articles instead."
 (defun gnus-summary-save-in-vm (&optional folder)
   (interactive)
   (setq folder
-	(cond ((eq folder 'default) default-name)
-	      (folder folder)
-	      (t (gnus-read-save-file-name
-		  "Save %s in VM folder:" folder
-		  gnus-mail-save-name gnus-newsgroup-name
-		  gnus-current-headers 'gnus-newsgroup-last-mail))))
+	(gnus-read-save-file-name
+	 "Save %s in VM folder:" folder
+	 gnus-mail-save-name gnus-newsgroup-name
+	 gnus-current-headers 'gnus-newsgroup-last-mail))
   (gnus-eval-in-buffer-window gnus-original-article-buffer
     (save-excursion
       (save-restriction

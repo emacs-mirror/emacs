@@ -1,7 +1,7 @@
 ;;; gnus-eform.el --- a mode for editing forms for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -48,8 +48,8 @@
 
 ;;; Internal variables
 
-(defvar gnus-edit-form-done-function nil)
 (defvar gnus-edit-form-buffer "*Gnus edit form*")
+(defvar gnus-edit-form-done-function nil)
 
 (defvar gnus-edit-form-mode-map nil)
 (unless gnus-edit-form-mode-map
@@ -65,7 +65,7 @@
      '("Edit Form"
        ["Exit and save changes" gnus-edit-form-done t]
        ["Exit" gnus-edit-form-exit t]))
-    (run-hooks 'gnus-edit-form-menu-hook)))
+    (gnus-run-hooks 'gnus-edit-form-menu-hook)))
 
 (defun gnus-edit-form-mode ()
   "Major mode for editing forms.
@@ -81,16 +81,15 @@ It is a slightly enhanced emacs-lisp-mode.
   (use-local-map gnus-edit-form-mode-map)
   (make-local-variable 'gnus-edit-form-done-function)
   (make-local-variable 'gnus-prev-winconf)
-  (run-hooks 'gnus-edit-form-mode-hook))
+  (gnus-run-hooks 'gnus-edit-form-mode-hook))
 
 (defun gnus-edit-form (form documentation exit-func)
   "Edit FORM in a new buffer.
 Call EXIT-FUNC on exit.  Display DOCUMENTATION in the beginning
 of the buffer."
   (let ((winconf (current-window-configuration)))
-    (set-buffer (get-buffer-create gnus-edit-form-buffer))
+    (set-buffer (gnus-get-buffer-create gnus-edit-form-buffer))
     (gnus-configure-windows 'edit-form)
-    (gnus-add-current-to-buffer-list)
     (gnus-edit-form-mode)
     (setq gnus-prev-winconf winconf)
     (setq gnus-edit-form-done-function exit-func)

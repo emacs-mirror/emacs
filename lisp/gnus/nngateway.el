@@ -1,7 +1,7 @@
 ;;; nngateway.el --- posting news via mail gateways
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -63,7 +63,8 @@ parameter -- the gateway address.")
 	(insert mail-header-separator "\n")
 	(widen)
 	(let (message-required-mail-headers)
-	  (funcall message-send-mail-function))))))
+	  (funcall message-send-mail-function))
+	t))))
 
 ;;; Internal functions
 
@@ -75,6 +76,13 @@ parameter -- the gateway address.")
     (goto-char (point-min))
     (insert "To: " (nnheader-replace-chars-in-string newsgroups ?. ?-)
 	    "@" gateway "\n")))
+
+(defun nngateway-mail2news-header-transformation (gateway)
+  "Transform the headers for sending to a mail2news gateway."
+  (message-remove-header "to")
+  (message-remove-header "cc")
+  (goto-char (point-min))
+  (insert "To: " gateway "\n"))
 
 (nnoo-define-skeleton nngateway)
 

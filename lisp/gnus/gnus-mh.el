@@ -1,8 +1,8 @@
 ;;; gnus-mh.el --- mh-e interface for Gnus
-;; Copyright (C) 1994,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -64,7 +64,7 @@ Optional argument FOLDER specifies folder name."
 		   (funcall gnus-folder-save-name gnus-newsgroup-name
 			    gnus-current-headers gnus-newsgroup-last-folder)
 		   t))))
-	(errbuf (get-buffer-create " *Gnus rcvstore*"))
+	(errbuf (gnus-get-buffer-create " *Gnus rcvstore*"))
 	;; Find the rcvstore program.
 	(exec-path (if mh-lib (cons mh-lib exec-path) exec-path)))
     (gnus-eval-in-buffer-window gnus-original-article-buffer

@@ -1,7 +1,7 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -137,9 +139,6 @@
      (vertical 1.0
 	       (article 0.5)
 	       (message 1.0 point)))
-    (draft
-     (vertical 1.0
-	       (draft 1.0 point)))
     (pipe
      (vertical 1.0
 	       (summary 0.25 point)
@@ -157,6 +156,13 @@
      (vertical 1.0
 	       (summary 0.5 point)
 	       ("*Score Words*" 1.0)))
+    (split-trace
+     (vertical 1.0
+	       (summary 0.5 point)
+	       ("*Split Trace*" 1.0)))
+    (category
+     (vertical 1.0
+	       (category 1.0)))
     (compose-bounce
      (vertical 1.0
 	       (article 0.5)
@@ -182,10 +188,12 @@ See the Gnus manual for an explanation of the syntax used.")
     (mail . gnus-message-buffer)
     (post-news . gnus-message-buffer)
     (faq . gnus-faq-buffer)
-    (picons . "*Picons*")
+    (picons . gnus-picons-buffer-name)
     (tree . gnus-tree-buffer)
     (score-trace . "*Score Trace*")
+    (split-trace . "*Split Trace*")
     (info . gnus-info-buffer)
+    (category . gnus-category-buffer)
     (article-copy . gnus-article-copy)
     (draft . gnus-draft-buffer))
   "Mapping from short symbols to buffer names or buffer variables.")
@@ -196,6 +204,7 @@ See the Gnus manual for an explanation of the syntax used.")
   "The most recently set window configuration.")
 
 (defvar gnus-created-frames nil)
+(defvar gnus-window-frame-focus nil)
 
 (defun gnus-kill-gnus-frames ()
   "Kill all frames Gnus has created."
@@ -266,6 +275,16 @@ See the Gnus manual for an explanation of the syntax used.")
 
 (defvar gnus-frame-list nil)
 
+(defun gnus-window-to-buffer-helper (obj)
+  (cond ((not (symbolp obj))
+	 obj)
+	((boundp obj)
+	 (symbol-value obj))
+	((fboundp obj)
+	 (funcall obj))
+	(t
+	 nil)))
+
 (defun gnus-configure-frame (split &optional window)
   "Split WINDOW according to SPLIT."
   (unless window
@@ -299,15 +318,13 @@ See the Gnus manual for an explanation of the syntax used.")
      ;; This is a buffer to be selected.
      ((not (memq type '(frame horizontal vertical)))
       (let ((buffer (cond ((stringp type) type)
-			  (t (cdr (assq type gnus-window-to-buffer)))))
-	    buf)
+			  (t (cdr (assq type gnus-window-to-buffer))))))
 	(unless buffer
 	  (error "Illegal buffer type: %s" type))
-	(unless (setq buf (get-buffer (if (symbolp buffer)
-					  (symbol-value buffer) buffer)))
-	  (setq buf (get-buffer-create (if (symbolp buffer)
-					   (symbol-value buffer) buffer))))
-	(switch-to-buffer buf)
+	(switch-to-buffer (gnus-get-buffer-create
+			   (gnus-window-to-buffer-helper buffer)))
+	(when (memq 'frame-focus split)
+	  (setq gnus-window-frame-focus window))
 	;; We return the window if it has the `point' spec.
 	(and (memq 'point split) window)))
      ;; This is a frame split.
@@ -431,20 +448,14 @@ See the Gnus manual for an explanation of the syntax used.")
 	  (select-frame frame)))
 
       (switch-to-buffer nntp-server-buffer)
-      (gnus-configure-frame split (get-buffer-window (current-buffer))))))
+      (let (gnus-window-frame-focus)
+	(gnus-configure-frame split (get-buffer-window (current-buffer)))
+	(when gnus-window-frame-focus
+	  (select-frame (window-frame gnus-window-frame-focus)))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."
-  (let ((buffers
-	 (mapcar
-	  (lambda (elem)
-	    (if (symbolp (cdr elem))
-		(when (and (boundp (cdr elem))
-			   (symbol-value (cdr elem)))
-		  (get-buffer (symbol-value (cdr elem))))
-	      (when (cdr elem)
-		(get-buffer (cdr elem)))))
-	  gnus-window-to-buffer)))
+  (let ((buffers (gnus-buffers)))
     (mapcar
      (lambda (frame)
        (unless (eq (cdr (assq 'minibuffer
@@ -492,12 +503,9 @@ should have point."
 			   (t (cdr (assq type gnus-window-to-buffer)))))
 	(unless buffer
 	  (error "Illegal buffer type: %s" type))
-	(when (setq buf (get-buffer (if (symbolp buffer)
-					(symbol-value buffer)
-				      buffer)))
-	  (setq win (get-buffer-window buf t)))
-	(if win
-	    (when (memq 'point split)
+	(if (and (setq buf (get-buffer (gnus-window-to-buffer-helper buffer)))
+		 (setq win (get-buffer-window buf t)))
+	    (if (memq 'point split)
 	      (setq all-visible win))
 	  (setq all-visible nil)))
        (t
@@ -511,42 +519,22 @@ should have point."
   (nth 1 (window-edges window)))
 
 (defun gnus-remove-some-windows ()
-  (let ((buffers gnus-window-to-buffer)
+  (let ((buffers (gnus-buffers))
 	buf bufs lowest-buf lowest)
     (save-excursion
       ;; Remove windows on all known Gnus buffers.
-      (while buffers
-	(setq buf (cdar buffers))
-	(when (symbolp buf)
-	  (setq buf (and (boundp buf) (symbol-value buf))))
-	(and buf
-	     (get-buffer-window buf)
-	     (progn
-	       (push buf bufs)
-	       (pop-to-buffer buf)
-	       (when (or (not lowest)
-			 (< (gnus-window-top-edge) lowest))
-		 (setq lowest (gnus-window-top-edge))
-		 (setq lowest-buf buf))))
-	(setq buffers (cdr buffers)))
-      ;; Remove windows on *all* summary buffers.
-      (walk-windows
-       (lambda (win)
-	 (let ((buf (window-buffer win)))
-	   (when (string-match	"^\\*Summary" (buffer-name buf))
-	     (push buf bufs)
-	     (pop-to-buffer buf)
-	     (when (or (not lowest)
-		       (< (gnus-window-top-edge) lowest))
-	       (setq lowest-buf buf)
-	       (setq lowest (gnus-window-top-edge)))))))
+      (while (setq buf (pop buffers))
+	(when (get-buffer-window buf)
+	  (push buf bufs)
+	  (pop-to-buffer buf)
+	  (when (or (not lowest)
+		    (< (gnus-window-top-edge) lowest))
+	    (setq lowest (gnus-window-top-edge)
+		  lowest-buf buf))))
       (when lowest-buf
 	(pop-to-buffer lowest-buf)
 	(switch-to-buffer nntp-server-buffer))
-      (while bufs
-	(when (not (eq (car bufs) lowest-buf))
-	  (delete-windows-on (car bufs)))
-	(setq bufs (cdr bufs))))))
+      (mapcar (lambda (b) (delete-windows-on b t)) bufs))))
 
 (provide 'gnus-win)
 

@@ -1,7 +1,7 @@
 ;;; gnus-move.el --- commands for moving Gnus from one server to another
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -113,24 +115,27 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 	  (goto-char (point-min))
 	  (while (looking-at
 		  "^[0-9]+\t[^\t]*\t[^\t]*\t[^\t]*\t\\([^\t]*\\)\t")
-	    (setq to-article
-		  (gnus-gethash
-		   (buffer-substring (match-beginning 1) (match-end 1))
-		   hashtb))
-	    ;; Add this article to the list of read articles.
-	    (push to-article to-reads)
-	    ;; See if there are any marks and then add them.
-	    (when (setq mark (assq (read (current-buffer)) marks))
-	      (setq marks (delq mark marks))
-	      (setcar mark to-article)
-	      (push mark to-marks))
-	    (forward-line 1))
+	    (when (setq to-article
+			(gnus-gethash
+			 (buffer-substring (match-beginning 1) (match-end 1))
+			 hashtb))
+	      ;; Add this article to the list of read articles.
+	      (push to-article to-reads)
+	      ;; See if there are any marks and then add them.
+	      (when (setq mark (assq (read (current-buffer)) marks))
+		(setq marks (delq mark marks))
+		(setcar mark to-article)
+		(push mark to-marks))
+	      (forward-line 1)))
 	  ;; Now we know what the read articles are and what the
 	  ;; article marks are.  We transform the information
 	  ;; into the Gnus info format.
 	  (setq to-reads
 		(gnus-range-add
-		 (gnus-compress-sequence (and to-reads (sort to-reads '<)) t)
+		 (gnus-compress-sequence
+		  (and (setq to-reads (delq nil to-reads))
+		       (sort to-reads '<))
+		  t)
 		 (cons 1 (1- (car to-active)))))
 	  (gnus-info-set-read info to-reads)
 	  ;; Do the marks.  I'm sure y'all understand what's

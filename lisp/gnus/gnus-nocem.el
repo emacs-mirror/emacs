@@ -1,7 +1,7 @@
 ;;; gnus-nocem.el --- NoCeM pseudo-cancellation treatment
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -27,6 +27,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'nnmail)
 (require 'gnus-art)
@@ -40,7 +42,7 @@
 (defcustom gnus-nocem-groups
   '("news.lists.filters" "news.admin.net-abuse.bulletins"
     "alt.nocem.misc" "news.admin.net-abuse.announce")
-  "List of groups that will be searched for NoCeM messages."
+  "*List of groups that will be searched for NoCeM messages."
   :group 'gnus-nocem
   :type '(repeat (string :tag "Group")))
 
@@ -52,9 +54,11 @@
     "snowhare@xmission.com"		; Benjamin "Snowhare" Franz
     "red@redpoll.mrfs.oh.us (Richard E. Depew)" ; ARMM! ARMM!
     )
-  "List of NoCeM issuers to pay attention to."
+  "*List of NoCeM issuers to pay attention to.
+
+This can also be a list of `(ISSUER CONDITIONS)' elements."
   :group 'gnus-nocem
-  :type '(repeat string))
+  :type '(repeat (choice string sexp)))
 
 (defcustom gnus-nocem-directory
   (nnheader-concat gnus-article-save-directory "NoCeM/")
@@ -106,8 +110,7 @@ matches an previously scanned and verified nocem message."
   "Real-name mappings of subscribed groups.")
 
 (defun gnus-fill-real-hashtb ()
-  "Fill up a hash table with the real-name mappings from the user's
-active file."
+  "Fill up a hash table with the real-name mappings from the user's active file."
   (setq gnus-nocem-real-group-hashtb (gnus-make-hashtable
 				      (length gnus-newsrc-alist)))
   (mapcar (lambda (group)
@@ -187,7 +190,7 @@ active file."
   (gnus-message 7 "Checking article %d in %s for NoCeM..."
 		(mail-header-number header) group)
   (let ((date (mail-header-date header))
-	issuer b e)
+	issuer b e type)
     (when (or (not date)
 	      (nnmail-time-less
 	       (nnmail-time-since (nnmail-date-to-time date))
@@ -204,15 +207,36 @@ active file."
 		 (setq e (search-forward "\n@@BEGIN NCM BODY\n" nil t)))
 	;; We get the name of the issuer.
 	(narrow-to-region b e)
-	(setq issuer (mail-fetch-field "issuer"))
+	(setq issuer (mail-fetch-field "issuer")
+	      type (mail-fetch-field "issuer"))
 	(widen)
-	(or (member issuer gnus-nocem-issuers)
-	    (message "invalid NoCeM issuer: %s" issuer))
-	(and (member issuer gnus-nocem-issuers) ; We like her....
-	     (gnus-nocem-verify-issuer issuer) ; She is who she says she is...
-	     (gnus-nocem-enter-article)	; We gobble the message..
-	     (push (mail-header-message-id header) ; But don't come back for
-		   gnus-nocem-seen-message-ids)))))) ; second helpings.
+	(if (not (gnus-nocem-message-wanted-p issuer type))
+	    (message "invalid NoCeM issuer: %s" issuer)
+	  (and (gnus-nocem-verify-issuer issuer) ; She is who she says she is.
+	       (gnus-nocem-enter-article) ; We gobble the message.
+	       (push (mail-header-message-id header) ; But don't come back for
+		     gnus-nocem-seen-message-ids))))))) ; second helpings.
+
+(defun gnus-nocem-message-wanted-p (issuer type)
+  (let ((issuers gnus-nocem-issuers)
+	wanted conditions condition)
+    (cond
+     ;; Do the quick check first.
+     ((member issuer issuers)
+      t)
+     ((setq conditions (cdr (assoc issuer issuers)))
+      ;; Check whether we want this type.
+      (while (setq condition (pop conditions))
+	(cond
+	 ((stringp condition)
+	  (setq wanted (string-match condition type)))
+	 ((and (consp condition)
+	       (eq (car condition) 'not)
+	       (stringp (cadr condition)))
+	  (setq wanted (not (string-match (cadr condition) type))))
+	 (t
+	  (error "Invalid NoCeM condition: %S" condition))))
+      wanted))))
 
 (defun gnus-nocem-verify-issuer (person)
   "Verify using PGP that the canceler is who she says she is."
@@ -322,7 +346,8 @@ active file."
 
 (defun gnus-nocem-unwanted-article-p (id)
   "Say whether article ID in the current group is wanted."
-  (gnus-gethash id gnus-nocem-hashtb))
+  (and gnus-nocem-hashtb
+       (gnus-gethash id gnus-nocem-hashtb)))
 
 (provide 'gnus-nocem)
 

@@ -51,7 +51,7 @@ if that value is non-nil."
   (setq major-mode 'gnus-custom-mode
 	mode-name "Gnus Customize")
   (use-local-map widget-keymap)
-  (run-hooks 'gnus-custom-mode-hook))
+  (gnus-run-hooks 'gnus-custom-mode-hook))
 
 ;;; Group Customization:
 
@@ -155,7 +155,11 @@ Which articles to display on entering the group.
      unread and ticked articles.")
 
     (comment (string :tag  "Comment") "\
-An arbitrary comment on the group."))
+An arbitrary comment on the group.")
+
+    (visible (const :tag "Permanently visible" t) "\
+Always display this group, even when there are no unread articles
+in it.."))
   "Alist of valid group parameters.
 
 Each entry has the form (NAME TYPE DOC), where NAME is the parameter
@@ -166,11 +170,10 @@ DOC is a documentation string for the parameter.")
 (defvar gnus-custom-method)
 (defvar gnus-custom-group)
 
-(defun gnus-group-customize (group &optional part)
+(defun gnus-group-customize (group)
   "Edit the group on the current line."
   (interactive (list (gnus-group-group-name)))
-  (let ((part (or part 'info))
-	info
+  (let (info
 	(types (mapcar (lambda (entry)
 			 `(cons :format "%v%h\n"
 				:doc ,(nth 2 entry)
@@ -182,8 +185,8 @@ DOC is a documentation string for the parameter.")
     (unless (setq info (gnus-get-info group))
       (error "Killed group; can't be edited"))
     ;; Ready.
-    (kill-buffer (get-buffer-create "*Gnus Customize*"))
-    (switch-to-buffer (get-buffer-create "*Gnus Customize*"))
+    (kill-buffer (gnus-get-buffer-create "*Gnus Customize*"))
+    (switch-to-buffer (gnus-get-buffer-create "*Gnus Customize*"))
     (gnus-custom-mode)
     (make-local-variable 'gnus-custom-group)
     (setq gnus-custom-group group)
@@ -283,12 +286,12 @@ number will be marked as read and removed from the summary buffer.
 `gnus-thread-score-function' says how to compute the total score
 for a thread.")
 
-    (files (repeat :tag "Files" file) "\
+    (files (repeat :inline t :tag "Files" file) "\
 The value of this entry should be any number of file names.
 These files are assumed to be score files as well, and will be loaded
 the same way this one was.")
 
-    (exclude-files (repeat :tag "Exclude-files" file) "\
+    (exclude-files (repeat :inline t :tag "Exclude-files" file) "\
 The clue of this entry should be any number of files.
 These files will not be loaded, even though they would normally be so,
 for some reason or other.")
@@ -540,8 +543,8 @@ eh?")))
 			 ,(nth 1 entry)))
 	       gnus-score-parameters)))
     ;; Ready.
-    (kill-buffer (get-buffer-create "*Gnus Customize*"))
-    (switch-to-buffer (get-buffer-create "*Gnus Customize*"))
+    (kill-buffer (gnus-get-buffer-create "*Gnus Customize*"))
+    (switch-to-buffer (gnus-get-buffer-create "*Gnus Customize*"))
     (gnus-custom-mode)
     (make-local-variable 'gnus-custom-score-alist)
     (setq gnus-custom-score-alist scores)
@@ -647,4 +650,3 @@ articles in the thread.
 (provide 'gnus-cus)
 
 ;;; gnus-cus.el ends here
-

@@ -1,7 +1,7 @@
 ;;; nnoo.el --- OO Gnus Backends
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -30,6 +30,7 @@
 
 (defvar nnoo-definition-alist nil)
 (defvar nnoo-state-alist nil)
+(defvar nnoo-parent-backend nil)
 
 (defmacro defvoo (var init &optional doc &rest map)
   "The same as `defvar', only takes list of variables to MAP to."
@@ -88,25 +89,42 @@
 	    (or (cdr imp)
 		(nnoo-functions (car imp))))
       (while functions
-	(unless (fboundp (setq function
-			       (nnoo-symbol backend (nnoo-rest-symbol
-						     (car functions)))))
+	(unless (fboundp
+		 (setq function
+		       (nnoo-symbol backend
+				    (nnoo-rest-symbol (car functions)))))
 	  (eval `(deffoo ,function (&rest args)
 		   (,call-function ',backend ',(car functions) args))))
 	(pop functions)))))
 
 (defun nnoo-parent-function (backend function args)
-  (let* ((pbackend (nnoo-backend function)))
-    (nnoo-change-server pbackend (nnoo-current-server backend)
+  (let ((pbackend (nnoo-backend function))
+	(nnoo-parent-backend backend))
+    (nnoo-change-server pbackend
+			(nnoo-current-server backend)
 			(cdr (assq pbackend (nnoo-parents backend))))
-    (apply function args)))
+    (prog1
+	(apply function args)
+    ;; Copy the changed variables back into the child.
+    (let ((vars (cdr (assq pbackend (nnoo-parents backend)))))
+      (while vars
+	(set (cadar vars) (symbol-value (caar vars)))
+	(setq vars (cdr vars)))))))
 
 (defun nnoo-execute (backend function &rest args)
   "Execute FUNCTION on behalf of BACKEND."
-  (let* ((pbackend (nnoo-backend function)))
-    (nnoo-change-server pbackend (nnoo-current-server backend)
+  (let ((pbackend (nnoo-backend function))
+	(nnoo-parent-backend backend))
+    (nnoo-change-server pbackend
+			(nnoo-current-server backend)
 			(cdr (assq pbackend (nnoo-parents backend))))
-    (apply function args)))
+    (prog1
+	(apply function args)
+      ;; Copy the changed variables back into the child.
+      (let ((vars (cdr (assq pbackend (nnoo-parents backend)))))
+	(while vars
+	  (set (cadar vars) (symbol-value (caar vars)))
+	  (setq vars (cdr vars)))))))
 
 (defmacro nnoo-map-functions (backend &rest maps)
   `(nnoo-map-functions-1 ',backend ',maps))
@@ -157,8 +175,13 @@
   (let* ((bstate (cdr (assq backend nnoo-state-alist)))
 	 (current (car bstate))
 	 (parents (nnoo-parents backend))
+	 (server (if nnoo-parent-backend
+		     (format "%s+%s" nnoo-parent-backend server)
+		   server))
 	 (bvariables (nnoo-variables backend))
 	 state def)
+    ;; If we don't have a current state, we push an empty state
+    ;; onto the alist.
     (unless bstate
       (push (setq bstate (list backend nil))
 	    nnoo-state-alist)
@@ -178,10 +201,12 @@
 	    (nconc bvariables
  		   (list (cons (car def) (and (boundp (car def))
  					      (symbol-value (car def)))))))
-	  (set (car def) (cadr def))))
+	  (if (equal server "*internal-non-initialized-backend*")
+	      (set (car def) (symbol-value (cadr def)))
+	    (set (car def) (cadr def)))))
       (while parents
 	(nnoo-change-server
-	 (caar parents) server
+	 (caar parents) (format "%s+%s" backend server)
 	 (mapcar (lambda (def) (list (car def) (symbol-value (cadr def))))
 		 (cdar parents)))
 	(pop parents))))
@@ -208,7 +233,10 @@
       (nconc bstate (list (cons current state))))))
 
 (defsubst nnoo-current-server-p (backend server)
-  (equal (nnoo-current-server backend) server))
+  (equal (nnoo-current-server backend)
+	 (if nnoo-parent-backend
+	     (format "%s+%s" nnoo-parent-backend server)
+	   server)))
 
 (defun nnoo-current-server (backend)
   (nth 1 (assq backend nnoo-state-alist)))

@@ -1,10 +1,10 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996,1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996,1997,1998 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
 ;; Keywords: mail, pop3
-;; Version: 1.3g
+;; Version: 1.3m
 
 ;; This file is part of GNU Emacs.
 
@@ -37,9 +37,9 @@
 (require 'mail-utils)
 (provide 'pop3)
 
-(defconst pop3-version "1.3g")
+(defconst pop3-version "1.3m")
 
-(defvar pop3-maildrop (or user-login-name (getenv "LOGNAME") (getenv "USER") nil)
+(defvar pop3-maildrop (or (user-login-name) (getenv "LOGNAME") (getenv "USER") nil)
   "*POP3 maildrop.")
 (defvar pop3-mailhost (or (getenv "MAILHOST") nil)
   "*POP3 mailhost.")
@@ -72,9 +72,15 @@ Used for APOP authentication.")
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
 	 (crashbuf (get-buffer-create " *pop3-retr*"))
 	 (n 1)
-	 message-count)
+	 message-count
+	 (pop3-password pop3-password)
+	 )
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
+    ;; query for password
+    (if (and pop3-password-required (not pop3-password))
+	(setq pop3-password
+	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
     (cond ((equal 'apop pop3-authentication-scheme)
 	   (pop3-apop process pop3-maildrop))
 	  ((equal 'pass pop3-authentication-scheme)
@@ -110,14 +116,16 @@ Returns the process associated with the connection."
   (let ((process-buffer
 	 (get-buffer-create (format "trace of POP session to %s" mailhost)))
 	(process)
-	(coding-system-for-read 'no-conversion)
-	(coding-system-for-write 'no-conversion))
+	(coding-system-for-read 'binary)
+	(coding-system-for-write 'binary)
+    )
     (save-excursion
       (set-buffer process-buffer)
-      (erase-buffer))
+      (erase-buffer)
+      (setq pop3-read-point (point-min))
+      )
     (setq process
 	  (open-network-stream "POP" process-buffer mailhost port))
-    (setq pop3-read-point (point-min))
     (let ((response (pop3-read-response process t)))
       (setq pop3-timestamp
 	    (substring response (or (string-match "<" response) 0)
@@ -257,31 +265,10 @@ Return the response string if optional second argument is non-nil."
 
 (defun pop3-pass (process)
   "Send authentication information to the server."
-  (let ((pass pop3-password))
-    (if (and pop3-password-required (not pass))
-	(setq pass
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
-    (if pass
-	(progn
-	  (pop3-send-command process (format "PASS %s" pass))
-	  (let ((response (pop3-read-response process t)))
-	    (if (not (and response (string-match "+OK" response)))
-		(pop3-quit process)))))
-    ))
-
-(defvar pop3-md5-program "md5"
-  "*Program to encode its input in MD5.")
-
-(defun pop3-md5 (string)
-  (with-temp-buffer
-    (insert string)
-    (call-process-region (point-min) (point-max)
-			 (or shell-file-name "/bin/sh")
-			 t (current-buffer) nil
-			 "-c" pop3-md5-program)
-    ;; The meaningful output is the first 32 characters.
-    ;; Don't return the newline that follows them!
-    (buffer-substring (point-min) (+ (point-min) 32))))
+  (pop3-send-command process (format "PASS %s" pop3-password))
+  (let ((response (pop3-read-response process t)))
+    (if (not (and response (string-match "+OK" response)))
+	(pop3-quit process))))
 
 (defun pop3-apop (process user)
   "Send alternate authentication information to the server."
@@ -298,6 +285,20 @@ Return the response string if optional second argument is non-nil."
     ))
 
 ;; TRANSACTION STATE
+
+(defvar pop3-md5-program "md5"
+  "*Program to encode its input in MD5.")
+
+(defun pop3-md5 (string)
+  (with-temp-buffer
+    (insert string)
+    (call-process-region (point-min) (point-max)
+			 (or shell-file-name "/bin/sh")
+			 t (current-buffer) nil
+			 "-c" pop3-md5-program)
+    ;; The meaningful output is the first 32 characters.
+    ;; Don't return the newline that follows them!
+    (buffer-substring (point-min) (+ (point-min) 32))))
 
 (defun pop3-stat (process)
   "Return the number of messages in the maildrop and the maildrop's size."
@@ -321,12 +322,17 @@ This function currently does nothing.")
       (while (not (re-search-forward "^\\.\r\n" nil t))
 	(accept-process-output process 3)
 	;; bill@att.com ... to save wear and tear on the heap
+	;; uncommented because the condensed version below is a problem for
+	;; some.
 	(if (> (buffer-size)  20000) (sleep-for 1))
 	(if (> (buffer-size)  50000) (sleep-for 1))
 	(if (> (buffer-size) 100000) (sleep-for 1))
 	(if (> (buffer-size) 200000) (sleep-for 1))
 	(if (> (buffer-size) 500000) (sleep-for 1))
 	;; bill@att.com
+	;; condensed into:
+	;; (sometimes causes problems for really large messages.)
+;	(if (> (buffer-size) 20000) (sleep-for (/ (buffer-size) 20000)))
 	(goto-char start))
       (setq pop3-read-point (point-marker))
 ;; this code does not seem to work for some POP servers...

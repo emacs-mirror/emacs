@@ -1,7 +1,7 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -182,9 +184,8 @@
 	      val)
 	  (when (and (boundp buffer)
 		     (setq val (symbol-value buffer))
-		     (get-buffer val)
-		     (buffer-name (get-buffer val)))
-	    (set-buffer (get-buffer val)))
+		     (gnus-buffer-exists-p val))
+	    (set-buffer val))
 	  (setq new-format (symbol-value
 			    (intern (format "gnus-%s-line-format" type)))))
 	(setq entry (cdr (assq type gnus-format-specs)))
@@ -238,9 +239,9 @@
 (defvar gnus-face-4 'bold)
 
 (defun gnus-face-face-function (form type)
-  `(gnus-put-text-property
+  `(gnus-add-text-properties
     (point) (progn ,@form (point))
-    'face ',(symbol-value (intern (format "gnus-face-%d" type)))))
+    '(gnus-face t face ,(symbol-value (intern (format "gnus-face-%d" type))))))
 
 (defun gnus-tilde-max-form (el max-width)
   "Return a form that limits EL to MAX-WIDTH."
@@ -308,7 +309,8 @@
       (let ((number (if (match-beginning 1)
 			(match-string 1) "0"))
 	    (delim (aref (match-string 2) 0)))
-	(if (or (= delim ?\() (= delim ?\{))
+	(if (or (= delim ?\()
+		(= delim ?\{))
 	    (replace-match (concat "\"(" (if (= delim ?\() "mouse" "face")
 				   " " number " \""))
 	  (replace-match "\")\""))))
@@ -502,8 +504,7 @@ If PROPS, insert the result."
 (defun gnus-compile ()
   "Byte-compile the user-defined format specs."
   (interactive)
-  (when gnus-xemacs
-    (error "Can't compile specs under XEmacs"))
+  (require 'bytecomp)
   (let ((entries gnus-format-specs)
 	(byte-compile-warnings '(unresolved callargs redefine))
 	entry gnus-tmp-func)
@@ -514,16 +515,29 @@ If PROPS, insert the result."
 	(setq entry (pop entries))
 	(if (eq (car entry) 'version)
 	    (setq gnus-format-specs (delq entry gnus-format-specs))
-	  (when (and (listp (caddr entry))
-		     (not (eq 'byte-code (caaddr entry))))
-	    (fset 'gnus-tmp-func `(lambda () ,(caddr entry)))
-	    (byte-compile 'gnus-tmp-func)
-	    (setcar (cddr entry) (gnus-byte-code 'gnus-tmp-func)))))
+	  (let ((form (caddr entry)))
+	    (when (and (listp form)
+		       ;; Under GNU Emacs, it's (byte-code ...)
+		       (not (eq 'byte-code (car form)))
+		       ;; Under XEmacs, it's (funcall #<compiled-function ...>)
+		       (not (and (eq 'funcall (car form))
+				 (compiled-function-p (cadr form)))))
+	      (fset 'gnus-tmp-func `(lambda () ,form))
+	      (byte-compile 'gnus-tmp-func)
+	      (setcar (cddr entry) (gnus-byte-code 'gnus-tmp-func))))))
 
       (push (cons 'version emacs-version) gnus-format-specs)
       ;; Mark the .newsrc.eld file as "dirty".
-      (gnus-dribble-enter " ")
+      (gnus-dribble-touch)
       (gnus-message 7 "Compiling user specs...done"))))
+
+(defun gnus-set-format (type &optional insertable)
+  (set (intern (format "gnus-%s-line-format-spec" type))
+       (gnus-parse-format
+	(symbol-value (intern (format "gnus-%s-line-format" type)))
+	(symbol-value (intern (format "gnus-%s-line-format-alist" type)))
+	insertable)))
+	
 
 (provide 'gnus-spec)
 

@@ -1,5 +1,5 @@
 ;;; gnus-gl.el --- an interface to GroupLens for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
 ;; Author: Brad Miller <bmiller@cs.umn.edu>
 ;; Keywords: news, score
@@ -234,7 +234,7 @@ If this times out we give up and assume that something has died..." )
 (defun bbb-connect-to-bbbd (host port)
   (unless grouplens-bbb-buffer
     (setq grouplens-bbb-buffer
-	  (get-buffer-create (format " *BBBD trace: %s*" host)))
+	  (gnus-get-buffer-create (format " *BBBD trace: %s*" host)))
     (save-excursion
       (set-buffer grouplens-bbb-buffer)
       (make-local-variable 'bbb-read-point)
@@ -299,7 +299,7 @@ If this times out we give up and assume that something has died..." )
 ;;;;       Login Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun bbb-login ()
-  "return the token number if login is successful, otherwise return nil"
+  "return the token number if login is successful, otherwise return nil."
   (interactive)
   (setq grouplens-bbb-token nil)
   (if (not (equal grouplens-pseudonym ""))
@@ -324,7 +324,7 @@ If this times out we give up and assume that something has died..." )
 (gnus-add-shutdown 'bbb-logout 'gnus)
 
 (defun bbb-logout ()
-  "logout of bbb session"
+  "logout of bbb session."
   (when grouplens-bbb-token
     (let ((bbb-process
 	   (bbb-connect-to-bbbd grouplens-bbb-host grouplens-bbb-port)))
@@ -339,9 +339,8 @@ If this times out we give up and assume that something has died..." )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun bbb-build-mid-scores-alist (groupname)
-  "this function can be called as part of the function to return the
-list of score files to use.  See the gnus variable
-gnus-score-find-score-files-function.
+  "this function can be called as part of the function to return the list of score files to use.
+See the gnus variable gnus-score-find-score-files-function.
 
 *Note:*  If you want to use grouplens scores along with calculated scores,
 you should see the offset and scale variables.  At this point, I don't
@@ -669,9 +668,8 @@ recommend using both scores and grouplens predictions together."
   (gnus-summary-best-unread-article))
 
 (defun grouplens-summary-catchup-and-exit (rating)
-  "Mark all articles not marked as unread in this newsgroup as read,
-    then exit.   If prefix argument ALL is non-nil, all articles are
-    marked as read."
+  "Mark all articles not marked as unread in this newsgroup as read, then exit.
+If prefix argument ALL is non-nil, all articles are marked as read."
   (interactive "P")
   (when rating
     (bbb-summary-rate-article rating))
@@ -688,7 +686,6 @@ recommend using both scores and grouplens predictions together."
 	    article)
 	(while (setq article (pop articles))
 	  (gnus-summary-goto-subject article)
-	  (gnus-set-global-variables)
 	  (bbb-summary-rate-article score
 				    (mail-header-id
 				     (gnus-summary-article-header article)))))
@@ -749,7 +746,7 @@ recommend using both scores and grouplens predictions together."
 (defconst gnus-gl-version "gnus-gl.el 2.50")
 (defconst gnus-gl-maintainer-address "grouplens-bug@cs.umn.edu")
 (defun gnus-gl-submit-bug-report ()
-  "Submit via mail a bug report on gnus-gl"
+  "Submit via mail a bug report on gnus-gl."
   (interactive)
   (require 'reporter)
   (reporter-submit-bug-report gnus-gl-maintainer-address
@@ -766,7 +763,7 @@ recommend using both scores and grouplens predictions together."
 			      'gnus-gl-get-trace))
 
 (defun gnus-gl-get-trace ()
-  "Insert the contents of the BBBD trace buffer"
+  "Insert the contents of the BBBD trace buffer."
   (when grouplens-bbb-buffer
     (insert-buffer grouplens-bbb-buffer)))
 
@@ -853,7 +850,7 @@ recommend using both scores and grouplens predictions together."
 	(gnus-grouplens-make-menu-bar))
       (gnus-add-minor-mode
        'gnus-grouplens-mode " GroupLens" gnus-grouplens-mode-map)
-      (run-hooks 'gnus-grouplens-mode-hook))))
+      (gnus-run-hooks 'gnus-grouplens-mode-hook))))
 
 (provide 'gnus-gl)
 

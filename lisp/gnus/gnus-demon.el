@@ -1,7 +1,7 @@
 ;;; gnus-demon.el --- daemonic Gnus behaviour
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -27,9 +27,14 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 (require 'gnus-int)
 (require 'nnheader)
+(require 'nntp)
+(require 'nnmail)
+(require 'gnus-util)
 (eval-and-compile
   (if (string-match "XEmacs" (emacs-version))
       (require 'itimer)
@@ -95,9 +100,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defun gnus-demon-remove-handler (function &optional no-init)
   "Remove the handler FUNCTION from the list of handlers."
-  (setq gnus-demon-handlers
-	(delq (assq function gnus-demon-handlers)
-	      gnus-demon-handlers))
+  (gnus-pull function gnus-demon-handlers)
   (unless no-init
     (gnus-demon-init)))
 
@@ -105,9 +108,8 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   "Initialize the Gnus daemon."
   (interactive)
   (gnus-demon-cancel)
-  (if (null gnus-demon-handlers)
-      ()				; Nothing to do.
-    ;; Set up timer.
+  (when gnus-demon-handlers
+    ;; Set up the timer.
     (setq gnus-demon-timer
 	  (nnheader-run-at-time
 	   gnus-demon-timestep gnus-demon-timestep 'gnus-demon))
@@ -130,7 +132,8 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (when gnus-demon-timer
     (nnheader-cancel-timer gnus-demon-timer))
   (setq gnus-demon-timer nil
-	gnus-use-demon nil)
+	gnus-use-demon nil
+	gnus-demon-idle-has-been-called nil)
   (condition-case ()
       (nnheader-cancel-function-timers 'gnus-demon)
     (error t)))
@@ -259,6 +262,18 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (save-window-excursion
     (gnus-close-backends)))
 
+(defun gnus-demon-add-nntp-close-connection ()
+  "Add daemonic nntp server disconnection to Gnus.
+If no commands have gone out via nntp during the last five
+minutes, the connection is closed."
+  (gnus-demon-add-handler 'gnus-demon-close-connections 5 nil))
+
+(defun gnus-demon-nntp-close-connection ()
+  (save-window-excursion
+    (when (nnmail-time-less '(0 300)
+			    (nnmail-time-since nntp-last-command-time))
+      (nntp-close-server))))
+
 (defun gnus-demon-add-scanmail ()
   "Add daemonic scanning of mail from the mail backends."
   (gnus-demon-add-handler 'gnus-demon-scan-mail 120 60))
@@ -267,6 +282,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (save-window-excursion
     (let ((servers gnus-opened-servers)
 	  server)
+      (gnus-clear-inboxes-moved)
       (while (setq server (car (pop servers)))
 	(and (gnus-check-backend-function 'request-scan (car server))
 	     (or (gnus-server-opened server)
@@ -278,11 +294,15 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (gnus-demon-add-handler 'gnus-demon-scan-news 120 60))
 
 (defun gnus-demon-scan-news ()
-  (save-window-excursion
-    (when (gnus-alive-p)
-      (save-excursion
-	(set-buffer gnus-group-buffer)
-	(gnus-group-get-new-news)))))
+  (let ((win (current-window-configuration)))
+    (unwind-protect
+	(save-window-excursion
+	  (save-excursion
+	    (when (gnus-alive-p)
+	      (save-excursion
+		(set-buffer gnus-group-buffer)
+		(gnus-group-get-new-news)))))
+      (set-window-configuration win))))
 
 (defun gnus-demon-add-scan-timestamps ()
   "Add daemonic updating of timestamps in empty newgroups."

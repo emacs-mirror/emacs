@@ -1,7 +1,7 @@
 ;;; gnus-bcklg.el --- backlog functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -27,6 +27,8 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
 
 ;;;
@@ -41,10 +43,9 @@
   "Return the backlog buffer."
   (or (get-buffer gnus-backlog-buffer)
       (save-excursion
-	(set-buffer (get-buffer-create gnus-backlog-buffer))
+	(set-buffer (gnus-get-buffer-create gnus-backlog-buffer))
 	(buffer-disable-undo (current-buffer))
 	(setq buffer-read-only t)
-	(gnus-add-current-to-buffer-list)
 	(get-buffer gnus-backlog-buffer))))
 
 (defun gnus-backlog-setup ()
@@ -122,7 +123,8 @@
 		     (1+ beg) 'gnus-backlog (current-buffer) (point-max)))
 	      (delete-region beg end)
 	      ;; Return success.
-	      t)))))))
+	      t))
+	  (setq gnus-backlog-articles (delq ident gnus-backlog-articles)))))))
 
 (defun gnus-backlog-request-article (group number buffer)
   (when (numberp number)

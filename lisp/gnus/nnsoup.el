@@ -1,7 +1,7 @@
 ;;; nnsoup.el --- SOUP access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
@@ -69,6 +69,11 @@ The SOUP packet file name will be inserted at the %s.")
 (defvoo nnsoup-packet-regexp "Soupout"
   "*Regular expression matching SOUP packets in `nnsoup-packet-directory'.")
 
+(defvoo nnsoup-always-save t
+  "If non nil commit the reply buffer on each message send. 
+This is necessary if using message mode outside Gnus with nnsoup as a 
+backend for the messages.")
+
 
 
 (defconst nnsoup-version "nnsoup 0.0"
@@ -82,7 +87,6 @@ The SOUP packet file name will be inserted at the %s.")
 (defvoo nnsoup-current-group nil)
 (defvoo nnsoup-group-alist-touched nil)
 (defvoo nnsoup-article-alist nil)
-
 
 
 ;;; Interface functions.
@@ -413,7 +417,7 @@ The SOUP packet file name will be inserted at the %s.")
 	  (while (setq area (pop areas))
 	    ;; Change the name to the permanent name and move the files.
 	    (setq cur-prefix (nnsoup-next-prefix))
-	    (message "Incorporating file %s..." cur-prefix)
+	    (nnheader-message 5 "Incorporating file %s..." cur-prefix)
 	    (when (file-exists-p
 		   (setq file (concat nnsoup-tmp-directory
 				      (gnus-soup-area-prefix area) ".IDX")))
@@ -544,13 +548,13 @@ The SOUP packet file name will be inserted at the %s.")
 		  nnsoup-packet-directory t nnsoup-packet-regexp))
 	packet)
     (while (setq packet (pop packets))
-      (message "nnsoup: unpacking %s..." packet)
+      (nnheader-message 5 "nnsoup: unpacking %s..." packet)
       (if (not (gnus-soup-unpack-packet
 		nnsoup-tmp-directory nnsoup-unpacker packet))
-	  (message "Couldn't unpack %s" packet)
+	  (nnheader-message 5 "Couldn't unpack %s" packet)
 	(delete-file packet)
 	(nnsoup-read-areas)
-	(message "Unpacking...done")))))
+	(nnheader-message 5 "Unpacking...done")))))
 
 (defun nnsoup-narrow-to-article (article &optional area head)
   (let* ((area (or area (nnsoup-article-to-area article nnsoup-current-group)))
@@ -614,7 +618,7 @@ The SOUP packet file name will be inserted at the %s.")
   "Make an outbound package of SOUP replies."
   (interactive)
   (unless (file-exists-p nnsoup-replies-directory)
-    (message "No such directory: %s" nnsoup-replies-directory))
+    (nnheader-message 5 "No such directory: %s" nnsoup-replies-directory))
   ;; Write all data buffers.
   (gnus-soup-save-areas)
   ;; Write the active file.
@@ -662,6 +666,8 @@ The SOUP packet file name will be inserted at the %s.")
   (require 'mail-utils)
   (let ((tembuf (generate-new-buffer " message temp"))
 	(case-fold-search nil)
+	(real-header-separator mail-header-separator)
+	(mail-header-separator "")
 	delimline
 	(mailbuf (current-buffer)))
     (unwind-protect
@@ -687,7 +693,7 @@ The SOUP packet file name will be inserted at the %s.")
 	    ;; Change header-delimiter to be what sendmail expects.
 	    (goto-char (point-min))
 	    (re-search-forward
-	     (concat "^" (regexp-quote mail-header-separator) "\n"))
+	     (concat "^" (regexp-quote real-header-separator) "\n"))
 	    (replace-match "\n")
 	    (backward-char 1)
 	    (setq delimline (point-marker))
@@ -707,8 +713,10 @@ The SOUP packet file name will be inserted at the %s.")
 		  (set-buffer msg-buf)
 		  (goto-char (point-min))
 		  (while (re-search-forward "^#! *rnews" nil t)
-		    (incf num)))
-		(message "Stored %d messages" num)))
+		    (incf num))
+		  (when nnsoup-always-save
+		    (save-buffer)))
+		(nnheader-message 5 "Stored %d messages" num)))
 	    (nnsoup-write-replies)
 	    (kill-buffer tembuf))))))
 
@@ -746,7 +754,7 @@ The SOUP packet file name will be inserted at the %s.")
     (set-buffer (get-buffer-create " *nnsoup work*"))
     (buffer-disable-undo (current-buffer))
     (while files
-      (message "Doing %s..." (car files))
+      (nnheader-message 5 "Doing %s..." (car files))
       (erase-buffer)
       (nnheader-insert-file-contents (car files))
       (goto-char (point-min))
@@ -771,7 +779,7 @@ The SOUP packet file name will be inserted at the %s.")
 		      (vector ident group "ncm" "" lines))))
 	(setcdr (cadr elem) (+ min lines)))
       (setq files (cdr files)))
-    (message "")
+    (nnheader-message 5 "")
     (setq nnsoup-group-alist active)
     (nnsoup-write-active-file t)))
 

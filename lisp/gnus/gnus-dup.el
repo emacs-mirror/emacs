@@ -1,7 +1,7 @@
 ;;; gnus-dup.el --- suppression of duplicate articles in Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,8 @@
 ;; servers.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -118,7 +120,7 @@ seen in the same session."
     (while (setq datum (pop data))
       (when (and (not (gnus-data-pseudo-p datum))
 		 (> (gnus-data-number datum) 0)
-		 (gnus-data-read-p datum)
+		 (not (memq (gnus-data-number datum) gnus-newsgroup-unreads))
 		 (not (= (gnus-data-mark datum) gnus-canceled-mark))
  		 (setq msgid (mail-header-id (gnus-data-header datum)))
  		 (not (nnheader-fake-message-id-p msgid))

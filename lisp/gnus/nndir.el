@@ -1,7 +1,7 @@
 ;;; nndir.el --- single directory newsgroup access for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -88,11 +88,11 @@
 
 (nnoo-map-functions nndir
   (nnml-retrieve-headers 0 nndir-current-group 0 0)
-  (nnmh-request-article 0 nndir-current-group 0 0)
+  (nnml-request-article 0 nndir-current-group 0 0)
   (nnmh-request-group nndir-current-group 0 0)
   (nnml-close-group nndir-current-group 0)
-  (nnmh-request-list (nnoo-current-server 'nndir) nndir-directory)
-  (nnmh-request-newsgroups (nnoo-current-server 'nndir) nndir-directory))
+  (nnml-request-list (nnoo-current-server 'nndir) nndir-directory)
+  (nnml-request-newsgroups (nnoo-current-server 'nndir) nndir-directory))
 
 (provide 'nndir)
 

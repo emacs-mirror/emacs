@@ -1,7 +1,7 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -77,6 +79,7 @@ It should return non-nil if the article is to be prefetched."
 (defvar gnus-async-article-alist nil)
 (defvar gnus-async-article-semaphore '(nil))
 (defvar gnus-async-fetch-list nil)
+(defvar gnus-asynch-obarray nil)
 
 (defvar gnus-async-prefetch-headers-buffer " *Async Prefetch Headers*")
 (defvar gnus-async-header-prefetched nil)
@@ -120,7 +123,10 @@ It should return non-nil if the article is to be prefetched."
 	gnus-async-header-prefetched nil))
 
 (defun gnus-async-set-buffer ()
-  (nnheader-set-temp-buffer gnus-async-prefetch-article-buffer t))
+  (nnheader-set-temp-buffer gnus-async-prefetch-article-buffer t)
+  (unless gnus-asynch-obarray
+    (set (make-local-variable 'gnus-asynch-obarray)
+	 (gnus-make-hashtable 1023))))
 
 (defun gnus-async-halt-prefetch ()
   "Stop prefetching."
@@ -209,10 +215,13 @@ It should return non-nil if the article is to be prefetched."
        (when arg
 	 (gnus-async-set-buffer)
 	 (gnus-async-with-semaphore
-	  (push (list ',(intern (format "%s-%d" group article))
-		      ,mark (set-marker (make-marker) (point-max))
-		      ,group ,article)
-		gnus-async-article-alist)))
+	  (setq
+	   gnus-async-article-alist
+	   (cons (list ',(intern (format "%s-%d" group article)
+				 gnus-asynch-obarray)
+		       ,mark (set-marker (make-marker) (point-max))
+		       ,group ,article)
+		 gnus-async-article-alist))))
        (if (not (gnus-buffer-live-p ,summary))
 	   (gnus-async-with-semaphore
 	    (setq gnus-async-fetch-list nil))
@@ -259,8 +268,11 @@ It should return non-nil if the article is to be prefetched."
 
 (defun gnus-async-prefetched-article-entry (group article)
   "Return the entry for ARTICLE in GROUP iff it has been prefetched."
-  (let ((entry (assq (intern (format "%s-%d" group article))
-		     gnus-async-article-alist)))
+  (let ((entry (save-excursion
+		 (gnus-async-set-buffer)
+		 (assq (intern (format "%s-%d" group article)
+			       gnus-asynch-obarray)
+		       gnus-async-article-alist))))
     ;; Perhaps something has emptied the buffer?
     (if (and entry
 	     (= (cadr entry) (caddr entry)))

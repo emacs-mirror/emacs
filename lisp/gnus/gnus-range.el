@@ -1,7 +1,7 @@
 ;;; gnus-range.el --- range and sequence functions for Gnus
-;; Copyright (C) 1996,97 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
 
-;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
+;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -55,7 +57,7 @@
     list1))
 
 (defun gnus-sorted-complement (list1 list2)
-  "Return a list of elements of LIST1 that do not appear in LIST2.
+  "Return a list of elements that are in LIST1 or LIST2 but not both.
 Both lists have to be sorted over <."
   (let (out)
     (if (or (null list1) (null list2))
