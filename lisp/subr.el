@@ -826,6 +826,18 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 
 ;;;; Miscellanea.
 
+;; A number of major modes set this locally.
+;; Give it a global value to avoid compiler warnings.
+(defvar font-lock-defaults nil)
+
+;; Avoid compiler warnings about this variable,
+;; which has a special meaning on certain system types.
+(defvar buffer-file-type nil
+  "Non-nil if the visited file is a binary file.
+This variable is meaningful on MS-DOG and Windows NT.
+On those systems, it is automatically local in every buffer.
+On other systems, this variable is normally always nil.")
+
 (defun ignore (&rest ignore)
   "Do nothing and return nil.
 This function accepts any number of arguments, but ignores them."
