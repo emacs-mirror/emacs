@@ -1,3 +1,7 @@
+2001-01-25  Dave Love  <fx@gnu.org>
+
+	* loadup.el: Preload international/ccl for utf-8.
+
 2001-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/rmail.el (rmail-redecode-body): Doc fix.

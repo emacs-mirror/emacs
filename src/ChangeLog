@@ -1,5 +1,7 @@
 2001-01-25  Dave Love  <fx@gnu.org>
 
+	* puresize.h (BASE_PURESIZE): Up to 720000.
+
 	* keymap.c (Fwhere_is_internal): Declare gcpro3, gcpro4.
 
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
