@@ -818,7 +818,7 @@ with no args, if that value is non-nil."
   (use-local-map f90-mode-map)
   (set (make-local-variable 'indent-line-function) 'f90-indent-line)
   (set (make-local-variable 'indent-region-function) 'f90-indent-region)
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'comment-start) "!")
   (set (make-local-variable 'comment-start-skip) "!+ *")
   (set (make-local-variable 'comment-indent-function) 'f90-comment-indent)
