@@ -161,6 +161,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    ;; avoid putting it at the end of the line.
 	    (while (and (> (point) (+ linebeg 2))
 			(eq (preceding-char) ?\ )
+			(not (eq (following-char) ?\ ))
 			(eq (char-after (- (point) 2)) ?\.))
 	      (forward-char -2)
 	      (skip-chars-backward "^ \n" linebeg))
@@ -171,7 +172,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		  (skip-chars-forward " ")
 		  (skip-chars-forward "^ \n"))
 	      ;; Normally, move back over the single space between the words.
-	      (forward-char -1)))
+	      (forward-char -1))
 	    (if (and fill-prefix (zerop prefixcol)
 		     (< (- (point) (point-min)) (length fill-prefix))
 		     (string= (buffer-substring (point-min) (point))
@@ -180,7 +181,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 		;; This handles the first line of the paragraph.
 		(progn
 		  (skip-chars-forward " ")
-		  (skip-chars-forward "^ \n")))
+		  (skip-chars-forward "^ \n"))))
 	  ;; Replace all whitespace here with one newline.
 	  ;; Insert before deleting, so we don't forget which side of
 	  ;; the whitespace point or markers used to be on.
