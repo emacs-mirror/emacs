@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
-;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000
+;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;	 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -310,20 +310,22 @@ so don't mark these buffers specially, just visit them normally."
 		 (obuf (get-file-buffer filen)))
 	    (push filen file-name-history)
 	    (if (and obuf (set-buffer obuf))
-		(cond ((file-exists-p filen)
-		       (if (or (not (verify-visited-file-modtime obuf))
-			       (buffer-modified-p obuf))
-			   (revert-buffer t nil)))
-		      (t
-		       (if (y-or-n-p
-			    (concat "File no longer exists: "
-				    filen
-				    ", write buffer to file? "))
-			   (write-file filen))))
+		(progn
+		  (cond ((file-exists-p filen)
+			 (if (or (not (verify-visited-file-modtime obuf))
+				 (buffer-modified-p obuf))
+			     (revert-buffer t nil)))
+			(t
+			 (if (y-or-n-p
+			      (concat "File no longer exists: "
+				      filen
+				      ", write buffer to file? "))
+			     (write-file filen))))
+		  (setq server-existing-buffer t)
+		  (goto-line (nth 1 (car files))))
 	      (set-buffer (find-file-noselect filen))
-	      (setq server-existing-buffer t)
+	      (goto-line (nth 1 (car files)))
 	      (run-hooks 'server-visit-hook)))
-	  (goto-line (nth 1 (car files)))
 	  (if (not nowait)
 	      (setq server-buffer-clients
 		    (cons (car client) server-buffer-clients)))
