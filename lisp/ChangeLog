@@ -3,6 +3,10 @@
 	* ps-print.el (ps-print-emacs-type): Move into the
 	eval-and-compile.
 
+	* play/doctor.el (doctor-death): Update the Samaritans'
+        anonymous address, and add a website for Befrienders
+        International.
+	
 2000-10-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Even/odd pages fix.  Fix little bug on XEmacs.  Avoid
