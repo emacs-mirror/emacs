@@ -49,7 +49,11 @@
   (if iso-ascii-convenient
       (setq string (or convenient-string string))
     (setq string (concat "{" string "}")))
-  (standard-display-ascii code string))
+  ;; unibyte
+  (standard-display-ascii code string)
+  ;; multibyte
+  (standard-display-ascii (make-char 'latin-iso8859-1 (- code 128))
+			  string))
 
 (iso-ascii-display 160 "_" " ")   ; NBSP (no-break space)
 (iso-ascii-display 161 "!")   ; inverted exclamation mark
@@ -73,7 +77,7 @@
 (iso-ascii-display 179 "3")   ; superscript three
 (iso-ascii-display 180 "'")   ; acute accent
 (iso-ascii-display 181 "u")   ; micro sign
-(iso-ascii-display 182 "P" "{P}")   ; pilcrow
+(iso-ascii-display 182 "P" "(P)")   ; pilcrow
 (iso-ascii-display 183 ".")   ; middle dot
 (iso-ascii-display 184 ",")   ; cedilla
 (iso-ascii-display 185 "1")   ; superscript one
