@@ -1,3 +1,14 @@
+2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* button.el (button-activate): Allow a marker to display as an
+	action.
+
+	* help-fns.el (describe-variable): Use it to make "below" a
+	hyperlink.
+
+	* help.el (describe-mode): Use it to make minor mode list into
+	hyperlinks.
+
 2004-10-14  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
