@@ -365,6 +365,9 @@ install-arch-dep: mkdir
 
 ## Note that we copy DOC* and then delete DOC
 ## as a workaround for a bug in tar on Ultrix 4.2.
+
+## If people complain about the h flag in tar command, take that out.
+## That flag is also used in leim/Makefile.in
 install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
