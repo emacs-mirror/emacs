@@ -1,3 +1,8 @@
+2005-01-17  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-extract): Adjust code merged from trunk for
+	unicode branch (for the change on 2005-01-15).
+
 2004-12-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (char-displayable-p): Check
