@@ -299,6 +299,7 @@ function definitions, values or properties are considered."
 					     (goto-char (max (point-min) (- (point) 4)))
 					     (looking-at " <f>"))
 					   (forward-char -4))))))
+	     (setq list (sort list 'string<))
 	     (or (eq predicate 'fboundp)
 		 (let (new)
 		   (while list
