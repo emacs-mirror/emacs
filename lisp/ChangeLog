@@ -1,3 +1,22 @@
+1999-10-22  Paul Eggert  <eggert@twinsun.com>
+
+	* international/mule-cmds.c (locale-language-names):
+	Use Latin-1 (not Latin-3) for Afrikaans, Galician.
+	Use Latin-5 (not Cyrillic-ISO) for Byelorussian, Bulgarian,
+	Macedonian, Russian, Ukrainian, Serbian (Cyrillic alphabet).
+	Use Latin-8 for Welsh.
+	Use Latin-1 for English if "en" is explicitly specified.
+	Use Latin-1 for Scots Gaelic, Tagalog.
+	Use Latin-1 (not Latin-4) for Greenlandic.
+	Use Latin-1 (not Latin-2) for Albanian.
+	(locale-preferred-coding-systems, locale-language-names):
+	Remove generic ISO 8859 locales; locale-charset-language-names now
+	does this.
+	(locale-charset-language-names): New variable.
+	(set-locale-environment): Use language name specified by
+	locale-charset-language-names if its charsets disagree with the
+	language name specified by locale-language-names.
+
 1999-10-22  Dave Love  <fx@gnu.org>
 
 	* make-mode.el: Minor doc fixes.
