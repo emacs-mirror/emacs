@@ -1,3 +1,8 @@
+2003-01-23  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
+	/* */ comments.
+
 2003-01-23  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (insert-directory): Read the output of "ls" by
@@ -82,7 +87,7 @@
 	* progmodes/octave-mod.el (octave-mode-map): Change C-c i bindings
 	to C-c C-i.  Duplicate its bindings with last char a ctl char.
 	Also change C-c f to C-c C-f.
-	
+
 2003-01-20  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ls-lisp.el (ls-lisp-use-insert-directory-program): Make default
@@ -206,7 +211,7 @@
 	* loadup.el: Include lisp/textmodes in load-path for bootstrap
 	emacs, to resolve ispell menu reference.
 
-2003-01-15  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
+2003-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
 
 	* international/mule.el (optimize-char-coding-system-table):
 	Optimize it.
@@ -906,7 +911,7 @@
 	(tooltip-gud-process-output): Undo previous change.
 	(tooltip-strip-annotations): Remove.
 
-2002-12-22  Zoltan Kemenczy <zoltan@ieee.org>
+2002-12-22  Zoltan Kemenczy  <zoltan@ieee.org>
 
 	* gud.el (gud-menu-map): Add jdb support for "run".
 	(gud-jdb-find-source-using-classpath): Use 'identity.
@@ -1276,7 +1281,7 @@
 	* files.el (find-file-read-args): Reenable wildcard processing
 	unconditionally.
 
-2002-12-06  Robert J. Chassell <bob@rattlesnake.com>
+2002-12-06  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* textmodes/texinfmt.el (texinfo-format-scan): Handle new
 	functions for copyright notice and copying permissions.
