@@ -154,7 +154,7 @@ Lisp_Object raw_keybuf;
 int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
-if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
+ if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
   {									\
     int newsize = 2 * XVECTOR (raw_keybuf)->size;			\
     Lisp_Object new;							\
@@ -718,7 +718,7 @@ echo_prompt (str)
 	  unsigned char *pend = p + ECHOBUFSIZE - 4;
 	  int char_len;
 
-	  do 
+	  do
 	    {
 	      PARSE_MULTIBYTE_SEQ (p, pend - p, char_len);
 	      p += char_len;
@@ -3235,7 +3235,7 @@ kbd_buffer_store_event (event)
 
       if (c == quit_char)
 	{
-	  extern SIGTYPE interrupt_signal ();
+	  static SIGTYPE interrupt_signal (int);
 #ifdef MULTI_KBOARD
 	  KBOARD *kb;
 	  struct input_event *sp;
@@ -3279,7 +3279,7 @@ kbd_buffer_store_event (event)
 	  }
 
 	  last_event_timestamp = event->timestamp;
-	  interrupt_signal ();
+	  interrupt_signal (0 /* dummy */);
 	  return;
 	}
 
@@ -6829,11 +6829,6 @@ parse_menu_item (item, notreal, inmenubar)
       AREF (item_properties, ITEM_PROPERTY_DEF) = def;
     }
 
-  /* If we got no definition, this item is just unselectable text which
-     is OK in a submenu but not in the menubar.  */
-  if (NILP (def))
-    return (inmenubar ? 0 : 1);
- 
   /* Enable or disable selection of item.  */
   tem = AREF (item_properties, ITEM_PROPERTY_ENABLE);
   if (!EQ (tem, Qt))
@@ -6847,6 +6842,11 @@ parse_menu_item (item, notreal, inmenubar)
       AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
     }
 
+  /* If we got no definition, this item is just unselectable text which
+     is OK in a submenu but not in the menubar.  */
+  if (NILP (def))
+    return (inmenubar ? 0 : 1);
+ 
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);
   tem = get_keymap (def, 0, 1);
@@ -7531,6 +7531,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   char *menu;
 
   vector = Qnil;
+  name = Qnil;
 
   if (! menu_prompting)
     return Qnil;
@@ -7558,7 +7559,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
     }
 
   /* If we don't have any menus, just read a character normally.  */
-  if (mapno >= nmaps)
+  if (!STRINGP (name));
     return Qnil;
 
   /* Prompt string always starts with map's prompt, and a space.  */
@@ -7898,6 +7899,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      this key sequence.  In other words, the lowest i such that
      defs[i] is non-nil.  */
   volatile int first_binding;
+  /* Index of the first key that has no binding.
+     It is useless to try fkey_start larger than that.  */
+  volatile int first_unbound;
 
   /* If t < mock_input, then KEYBUF[t] should be read as the next
      input key.
@@ -8029,6 +8033,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   starting_buffer = current_buffer;
   function_key_possible = 0;
   key_translation_possible = 0;
+  first_unbound = bufsize + 1;
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -8094,9 +8099,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      reading.  */
   while ((first_binding < nmaps && ! NILP (submaps[first_binding]))
 	 || (first_binding >= nmaps
-	     && fkey_start < t
-	     /* mock input is never part of a function key's sequence.  */
-	     && mock_input <= fkey_start)
+	     && fkey_start < t)
 	 || (first_binding >= nmaps
 	     && keytran_start < t && key_translation_possible)
 	 /* Don't return in the middle of a possible function key sequence,
@@ -8121,6 +8124,24 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
       volatile int echo_local_start, keys_local_start, local_first_binding;
+
+
+      if (first_unbound < fkey_start && first_unbound < keytran_start)
+	{ /* The prefix upto first_unbound has no binding and has
+	     no translation left to do either, so we know it's unbound.
+	     If we don't stop now, we risk staying here indefinitely
+	     (if the user keeps entering fkey or keytran prefixes
+	     like C-c ESC ESC ESC ESC ...)  */
+	  int i;
+	  for (i = first_unbound + 1; i < t; i++)
+	    keybuf[i - first_unbound - 1] = keybuf[i];
+	  mock_input = t - first_unbound - 1;
+	  fkey_end = fkey_start -= first_unbound + 1;
+	  fkey_map = Vfunction_key_map;
+	  keytran_end = keytran_start -= first_unbound + 1;
+	  keytran_map = Vkey_translation_map;
+	  goto replay_sequence;
+	}
 
       if (t >= bufsize)
 	error ("Key sequence too long");
@@ -8511,6 +8532,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (first_binding >= nmaps)
 	{
 	  Lisp_Object head;
+	  
+	  /* Remember the position to put an upper bound on fkey_start.  */
+	  first_unbound = min (t, first_unbound);
 
 	  head = EVENT_HEAD (key);
 	  if (help_char_p (head) && t > 0)
@@ -9418,7 +9442,7 @@ current_active_maps (maps_p)
 	extra_maps = 3;
       nmaps = current_minor_maps (NULL, &tmaps);
       maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
-				     * sizeof (maps[0]));
+				      * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
       if (!NILP (map))
 	maps[nmaps++] = map;
