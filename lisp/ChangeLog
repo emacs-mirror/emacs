@@ -1,3 +1,9 @@
+2002-10-18  Stefan Monnier  <monnier@rum.cs.yale.edu>
+
+	* progmodes/perl-mode.el (perl-mode-syntax-table): Change $ back
+	to just "/" instead of "/ p".
+	(perl-font-lock-syntactic-keywords): Use ". p" for the `$'.
+
 2002-10-18  Juanma Barranquero  <lektu@terra.es>
 
 	* textmodes/artist.el (artist-ff-is-bottommost-line): Fix misplaced
