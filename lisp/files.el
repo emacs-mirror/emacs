@@ -1238,6 +1238,7 @@ run `normal-mode' explicitly."
     ("\\(/\\|\\`\\)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
     ("\\(/\\|\\`\\)\\.\\(bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
     ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
+    ("\\.m?spec$" . sh-mode)
     ("\\.mm\\'" . nroff-mode)
     ("\\.me\\'" . nroff-mode)
     ("\\.ms\\'" . nroff-mode)
@@ -1339,6 +1340,7 @@ REGEXP and search the list again for another match.")
     ("oash" . sh-mode)
     ("pdksh" . sh-mode)
     ("rc" . sh-mode)
+    ("rpm" . sh-mode)
     ("sh" . sh-mode)
     ("sh5" . sh-mode)
     ("tcsh" . sh-mode)
@@ -2610,6 +2612,8 @@ hook functions.
 
 If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
+
+(defvar revert-buffer-internal-hook)
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
   "Replace current buffer text with the text of the visited file on disk.
