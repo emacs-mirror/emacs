@@ -354,10 +354,7 @@ of the following forms:
 \(minibuffer . t) - the frame should have a minibuffer
 \(minibuffer . nil) - the frame should have no minibuffer
 \(minibuffer . only) - the frame should contain only a minibuffer
-\(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window.
-
-The documentation for the function `x-create-frame' describes
-additional frame parameters that Emacs recognizes for X window frames."
+\(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window."
   (interactive)
   (let ((nframe))
     (run-hooks 'before-make-frame-hook)
