@@ -570,12 +570,14 @@ x_destroy_bitmap (f, id)
       --dpyinfo->bitmaps[id - 1].refcount;
       if (dpyinfo->bitmaps[id - 1].refcount == 0)
 	{
+	  BLOCK_INPUT;
 	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].pixmap);
 	  if (dpyinfo->bitmaps[id - 1].file)
 	    {
 	      free (dpyinfo->bitmaps[id - 1].file);
 	      dpyinfo->bitmaps[id - 1].file = NULL;
 	    }
+	  UNBLOCK_INPUT;
 	}
     }
 }
@@ -4105,6 +4107,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
   XSetDashes (FRAME_X_DISPLAY (f), erase_gc, 0, dash_list, dashes);
+  UNBLOCK_INPUT;
 #endif
 
   while (1)
@@ -4133,12 +4136,12 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	      BLOCK_INPUT;
 	      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			 erase_gc, left, line, right, line);
-	      UNBLOCK_INPUT;
 	      unread_command_event = obj;
 #if 0
 	      XFreeGC (FRAME_X_DISPLAY (f), line_gc);
 	      XFreeGC (FRAME_X_DISPLAY (f), erase_gc);
 #endif 
+	      UNBLOCK_INPUT;
 	      return Qnil;
 	    }
 	}
