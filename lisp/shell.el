@@ -542,6 +542,8 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	      (setq end (match-end 0)
 		    cmd (comint-arguments (substring str start end) 0 0)
 		    arg1 (comint-arguments (substring str start end) 1 1))
+	      (if arg1
+		  (setq arg1 (shell-unquote-argument arg1)))
 	      (cond ((string-match (concat "\\`\\(" shell-popd-regexp
 					   "\\)\\($\\|[ \t]\\)")
 				   cmd)
@@ -562,6 +564,25 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	      (setq start (progn (string-match "[; \t]*" str end) ; skip again
 				 (match-end 0)))))
 	(error "Couldn't cd"))))
+
+(defun shell-unquote-argument (string)
+  "Remove all kinds of shell quoting from STRING."
+  (save-match-data
+    (let ((idx 0) next inside)
+      (while (and (< idx (length string))
+		  (setq next (string-match "[\\'`\"]" string next)))
+	(cond ((= (aref string next) ?\\)
+	       (setq string (replace-match "" nil nil string))
+	       (setq next (1+ next)))
+	      ((and inside (= (aref string next) inside))
+	       (setq string (replace-match "" nil nil string))
+	       (setq inside nil))
+	      (inside
+	       (setq next (1+ next)))
+	      (t
+	       (setq inside (aref string next))
+	       (setq string (replace-match "" nil nil string)))))
+      string)))
 
 ;;; popd [+n]
 (defun shell-process-popd (arg)
