@@ -219,34 +219,76 @@ char_table_ref (table, c)
 }  
 
 static Lisp_Object
-sub_char_table_ref_and_range (table, c, from, to)
+sub_char_table_ref_and_range (table, c, from, to, defalt)
      Lisp_Object table;
      int c;
      int *from, *to;
+     Lisp_Object defalt;
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
   int min_char = XINT (tbl->min_char);
+  int max_char = min_char + chartab_chars[depth - 1] - 1;
+  int index = CHARTAB_IDX (c, depth, min_char);
   Lisp_Object val;
   
-  val = tbl->contents[CHARTAB_IDX (c, depth, min_char)];
-  if (depth == 3)
+  val = tbl->contents[index];
+  *from = min_char + index * chartab_chars[depth];
+  *to = *from + chartab_chars[depth] - 1;
+  if (SUB_CHAR_TABLE_P (val))
+    val = sub_char_table_ref_and_range (val, c, from, to, defalt);
+  else if (NILP (val))
+    val = defalt;
+
+  while (*from > min_char
+	 && *from == min_char + index * chartab_chars[depth])
     {
-      *from = *to = c;
+      Lisp_Object this_val;
+      int this_from = *from - chartab_chars[depth];
+      int this_to = *from - 1;
+
+      index--;
+      this_val = tbl->contents[index];
+      if (SUB_CHAR_TABLE_P (this_val))
+	this_val = sub_char_table_ref_and_range (this_val, this_to,
+						 &this_from, &this_to,
+						 defalt);
+      else if (NILP (this_val))
+	this_val = defalt;
+
+      if (! EQ (this_val, val))
+	break;
+      *from = this_from;
     }
-  else if (SUB_CHAR_TABLE_P (val))
+  index = CHARTAB_IDX (c, depth, min_char);
+  while (*to < max_char
+	 && *to == min_char + (index + 1) * chartab_chars[depth] - 1)
     {
-      val = sub_char_table_ref_and_range (val, c, from, to);
+      Lisp_Object this_val;
+      int this_from = *to + 1;
+      int this_to = this_from + chartab_chars[depth] - 1;
+
+      index++;
+      this_val = tbl->contents[index];
+      if (SUB_CHAR_TABLE_P (this_val))
+	this_val = sub_char_table_ref_and_range (this_val, this_from,
+						 &this_from, &this_to,
+						 defalt);
+      else if (NILP (this_val))
+	this_val = defalt;
+      if (! EQ (this_val, val))
+	break;
+      *to = this_to;
     }
-  else
-    {
-      *from = (CHARTAB_IDX (c, depth, min_char) * chartab_chars[depth]
-	       + min_char);
-      *to = *from + chartab_chars[depth] - 1;
-    }
+
   return val;
 }
 
+
+/* Return the value for C in char-table TABLE.  Set *FROM and *TO to
+   the range of characters (containing C) that have the same value as
+   C.  It is not assured that the value of (*FROM - 1) and (*TO + 1)
+   is different from that of C.  */
 
 Lisp_Object
 char_table_ref_and_range (table, c, from, to)
@@ -255,44 +297,57 @@ char_table_ref_and_range (table, c, from, to)
      int *from, *to;
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
+  int index = CHARTAB_IDX (c, 0, 0);
   Lisp_Object val;
 
-  if (ASCII_CHAR_P (c))
+  val = tbl->contents[index];
+  *from = index * chartab_chars[0];
+  *to = *from + chartab_chars[0] - 1;
+  if (SUB_CHAR_TABLE_P (val))
+    val = sub_char_table_ref_and_range (val, c, from, to, tbl->defalt);
+  else if (NILP (val))
+    val = tbl->defalt;
+
+  while (*from > 0 && *from == index * chartab_chars[0])
     {
-      val = tbl->ascii;
-      if (SUB_CHAR_TABLE_P (val))
-	{
-	  val = XSUB_CHAR_TABLE (val)->contents[c];
-	  *from = *to = c;
-	}
-      else
-	{
-	  *from = 0, *to = 127;
-	}
+      Lisp_Object this_val;
+      int this_from = *from - chartab_chars[0];
+      int this_to = *from - 1;
+
+      index--;
+      this_val = tbl->contents[index];
+      if (SUB_CHAR_TABLE_P (this_val))
+	this_val = sub_char_table_ref_and_range (this_val, this_to,
+						 &this_from, &this_to,
+						 tbl->defalt);
+      else if (NILP (this_val))
+	this_val = tbl->defalt;
+
+      if (! EQ (this_val, val))
+	break;
+      *from = this_from;
     }
-  else
+  while (*to < MAX_CHAR && *to == (index + 1) * chartab_chars[0] - 1)
     {
-      val = tbl->contents[CHARTAB_IDX (c, 0, 0)];
-      if (SUB_CHAR_TABLE_P (val))
-	{
-	  val = sub_char_table_ref_and_range (val, c, from, to);
-	}
-      else
-	{
-	  *from = CHARTAB_IDX (c, 0, 0) * chartab_chars[0];
-	  *to = *from + chartab_chars[0] - 1;
-	}
+      Lisp_Object this_val;
+      int this_from = *to + 1;
+      int this_to = this_from + chartab_chars[0] - 1;
+
+      index++;
+      this_val = tbl->contents[index];
+      if (SUB_CHAR_TABLE_P (this_val))
+	this_val = sub_char_table_ref_and_range (this_val, this_from,
+						 &this_from, &this_to,
+						 tbl->defalt);
+      else if (NILP (this_val))
+	this_val = tbl->defalt;
+      if (! EQ (this_val, val))
+	break;
+      *to = this_to;
     }
 
-  if (NILP (val))
-    {
-      val = tbl->defalt;
-      *from = 0, *to = MAX_CHAR;
-      if (NILP (val) && CHAR_TABLE_P (tbl->parent))
-	val = char_table_ref_and_range (tbl->parent, c, from, to);
-    }
   return val;
-}  
+}
 
 
 #define ASET_RANGE(ARRAY, FROM, TO, LIMIT, VAL)				\
@@ -754,6 +809,121 @@ The key is always a possible IDX argument to `aref'.  */)
   map_char_table (NULL, function, char_table, char_table, 0, NULL);
   return Qnil;
 }
+
+
+static void
+map_sub_char_table_for_charset (c_function, function, table, arg, range,
+				charset, from, to)
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     Lisp_Object function, table, arg, range;
+     struct charset *charset;
+     unsigned from, to;
+{
+  struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
+  int depth = XINT (tbl->depth);
+  int c, i;
+
+  if (depth < 3)
+    for (i = 0, c = XINT (tbl->min_char); i < chartab_size[depth];
+	 i++, c += chartab_chars[depth])
+      {
+	Lisp_Object this;
+
+	this = tbl->contents[i];
+	if (SUB_CHAR_TABLE_P (this))
+	  map_sub_char_table_for_charset (c_function, function, this, arg,
+					  range, charset, from, to);
+	else
+	  {
+	    if (! NILP (XCAR (range)))
+	      {
+		XSETCDR (range, make_number (c - 1));
+		if (c_function)
+		  (*c_function) (arg, range);
+		else
+		  call2 (function, range, arg);
+	      }
+	    XSETCAR (range, Qnil);
+	  }
+      }
+  else
+    for (i = 0, c = XINT (tbl->min_char); i < chartab_size[depth]; i++, c ++)
+      {
+	Lisp_Object this;
+	unsigned code;
+
+	this = tbl->contents[i];
+	if (NILP (this)
+	    || (charset
+		&& (code = ENCODE_CHAR (charset, c),
+		    (code < from || code > to))))
+	  {
+	    if (! NILP (XCAR (range)))
+	      {
+		XSETCDR (range, make_number (c - 1));
+		if (c_function)
+		  (*c_function) (range, arg);
+		else
+		  call2 (function, range, arg);
+		XSETCAR (range, Qnil);
+	      }
+	  }
+	else
+	  {
+	    if (NILP (XCAR (range)))
+	      XSETCAR (range, make_number (c));
+	  }
+      }
+}
+
+
+void
+map_char_table_for_charset (c_function, function, table, arg,
+			    charset, from, to)
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     Lisp_Object function, table, arg;
+     struct charset *charset;
+     unsigned from, to;
+{
+  Lisp_Object range;
+  int c, i;
+
+  if (NILP (char_table_ref (table, 0)))
+    range = Fcons (Qnil, Qnil);
+  else
+    range = Fcons (make_number (0), make_number (0));
+
+  for (i = 0, c = 0; i < chartab_size[0]; i++, c += chartab_chars[0])
+    {
+      Lisp_Object this;
+
+      this = XCHAR_TABLE (table)->contents[i];
+      if (SUB_CHAR_TABLE_P (this))
+	map_sub_char_table_for_charset (c_function, function, this, arg,
+					range, charset, from, to);
+      else
+	{
+	  if (! NILP (XCAR (range)))
+	    {
+	      XSETCDR (range, make_number (c - 1));
+	      if (c_function)
+		(*c_function) (arg, range);
+	      else
+		call2 (function, range, arg);
+	    }
+	  XSETCAR (range, Qnil);
+	}
+    }
+  if (! NILP (XCAR (range)))
+    {
+      XSETCDR (range, make_number (c - 1));
+      if (c_function)
+	(*c_function) (arg, range);
+      else
+	call2 (function, range, arg);
+    }
+}
+
 
 
 #if 0
