@@ -1,3 +1,14 @@
+2002-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el: Require vc.el at compile-time.
+	(vc-workfile-unchanged-p, vc-default-workfile-unchanged-p): Moved
+	here from vc.el.
+
+	* vc.el (vc-workfile-unchanged-p,
+	vc-default-workfile-unchanged-p): Moved to vc-hooks.el.
+
+	* vc-rcs.el (vc-rcs-state): Don't require vc.el.
+
 2002-09-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (decode-char): Translate a character by
