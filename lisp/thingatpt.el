@@ -213,10 +213,21 @@ a symbol as a valid THING."
 Hostname matching is stricter in this case than for
 ``thing-at-point-url-regexp''.")
 
+(defvar thing-at-point-uri-schemes
+  ;; Officials from http://www.iana.org/assignments/uri-schemes
+  '("ftp://" "http://" "gopher://" "mailto:" "news:" "nntp:"
+    "telnet://" "wais://" "file:/" "prospero:" "z39.50s:" "z39.50r:"
+    "cid:" "mid:" "vemmi:" "service:" "imap:" "nfs:" "acap:" "rtsp:"
+    "tip:" "pop:" "data:" "dav:" "opaquelocktoken:" "sip:" "tel:" "fax:"
+    "modem:" "ldap:" "https://" "soap.beep:" "soap.beeps:" "urn:" "go:"
+    "afs:" "tn3270:" "mailserver:"
+  ;; Compatibility
+    "snews:")
+  "Uniform Resource Identifier (URI) Schemes")
+
 (defvar thing-at-point-url-regexp
-  (concat
-   "\\<\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
-   thing-at-point-url-path-regexp)
+  (concat "\\<\\(" (mapconcat 'identity thing-at-point-uri-schemes "\\|") "\\)"
+          thing-at-point-url-path-regexp)
   "A regular expression probably matching a complete URL.")
 
 (defvar thing-at-point-markedup-url-regexp
