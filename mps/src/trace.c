@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!trace.c(trunk.7) $
+ *  $HopeName: MMsrc!trace.c(trunk.8) $
  */
 
 #include "std.h"
@@ -14,7 +14,7 @@
 #include "rootst.h"
 #include <limits.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static SigStruct TraceSigStruct;
@@ -188,6 +188,10 @@ void TraceNoteScanned(Trace trace, Addr count)
   trace->work[trace->rank].scanned += count;
 }
 
+Size TracePoll(Trace trace)
+{
+  return SPACE_POLL_MAX;
+}
 
 Error TraceFix(ScanState ss, Ref *refIO)
 {

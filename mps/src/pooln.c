@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName: MMsrc!pooln.c(trunk.4) $
+ *  $HopeName: MMsrc!pooln.c(trunk.5) $
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!pooln.c(trunk.5) $");
 
 
 /*  Class's methods  */
@@ -61,7 +61,7 @@ PoolClass PoolClassN(void)
                 bufferCreate, bufferDestroy,
                 condemn, mark, scan,
                 fix, reclaim,
-                access,
+                access, NULL,
                 describe);
   return &PoolClassNStruct;
 }
