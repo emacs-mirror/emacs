@@ -843,6 +843,10 @@ since it has been set to nil by the time you can look.\n\
 Instead, you should use the variable `current-prefix-arg', although\n\
 normally commands can get this prefix argument with (interactive \"P\").");
 
+  DEFVAR_KBOARD ("last-prefix-arg", Vlast_prefix_arg,
+    "The value of the prefix argument for the previous editing command.\n\
+See `prefix-arg' for the meaning of the value.");
+
   DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
     "The value of the prefix argument for this editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
