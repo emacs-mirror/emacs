@@ -1148,7 +1148,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 (defvar calendar-setup nil
   "The frame set up of the calendar.
 The choices are `one-frame' (calendar and diary together in one separate,
-dediciated frame) or `two-frames' (calendar and diary in separate, dedicated
+dedicated frame) or `two-frames' (calendar and diary in separate, dedicated
 frames); with any other value the current frame is used.")
 
 ;;;###autoload
@@ -1201,7 +1201,7 @@ After preparing the calendar window initially, the hooks given by the variable
 `initial-calendar-window-hook' are run.
 
 The hooks given by the variable `today-visible-calendar-hook' are run
-everytime the calendar window gets scrolled, if the current date is visible
+every time the calendar window gets scrolled, if the current date is visible
 in the window.  If it is not visible, the hooks given by the variable
 `today-invisible-calendar-hook' are run.  Thus, for example, setting
 `today-visible-calendar-hook' to 'calendar-star-date will cause today's date
@@ -1287,11 +1287,11 @@ calendar."
   t)
 
 (autoload 'calendar-next-calendar-round-date "cal-mayan"
-  "Move cursor to next instance of Mayan Haab/Tzoklin combination."
+  "Move cursor to next instance of Mayan Haab/Tzolkin combination."
   t)
 
 (autoload 'calendar-previous-calendar-round-date "cal-mayan"
-  "Move cursor to previous instance of Mayan Haab/Tzoklin combination."
+  "Move cursor to previous instance of Mayan Haab/Tzolkin combination."
   t)
 
 (autoload 'calendar-goto-chinese-date "cal-chinese"
@@ -1509,7 +1509,7 @@ Holidays are included if `cal-tex-holidays' is t.")
 
 (autoload 'cal-tex-cursor-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar.
-Optional prefix argument specifies numeber of years.")
+Optional prefix argument specifies number of years.")
 
 (autoload 'cal-tex-cursor-year-landscape "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar (landscape).
