@@ -1,5 +1,10 @@
 2001-04-23  John Wiegley  <johnw@gnu.org>
 
+	* eshell/em-smart.el (eshell-smart-redisplay): Added some safety
+	code to work around a redisplay problem I've been having.
+
+2001-04-23  John Wiegley  <johnw@gnu.org>
+
 	* calendar/timeclock.el (timeclock-day-required): If the time
 	required for a particular day is not set, use `timeclock-workday'.
 	(timeclock-find-discrep): Added some sample code in a comment.
