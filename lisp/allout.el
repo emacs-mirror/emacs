@@ -35,7 +35,7 @@
 ;; 
 ;; It also includes such things as topic-oriented repositioning, cut, and
 ;; paste; integral outline exposure-layout; incremental search with
-;; dynamic exposure/conceament of concealed text; automatic topic-number
+;; dynamic exposure/concealment of concealed text; automatic topic-number
 ;; maintenance; and many other features.
 ;; 
 ;; See the docstring of the variables `outline-layout' and
@@ -139,7 +139,7 @@ Outline topic header lines are identified by a leading topic header
 prefix, which is concluded by bullets that includes the value of this
 var and the respective outline-*-bullets-string vars.
 
-The value of an asterisk ('*') provides for backwards compatability
+The value of an asterisk ('*') provides for backwards compatibility
 with the original emacs outline mode.  See outline-plain-bullets-string
 and outline-distinctive-bullets-string for the range of available
 bullets.")
@@ -271,10 +271,10 @@ is non-nil.")
 (defvar outline-numbered-bullet "#"
   "*String designating bullet of topics that have auto-numbering; nil for none.
 
-Topics having this bullet have automatic maintainence of a sibling
+Topics having this bullet have automatic maintenance of a sibling
 sequence-number tacked on, just after the bullet.  Conventionally set
 to \"#\", you can set it to a bullet of your choice.  A nil value
-disables numbering maintainence.")
+disables numbering maintenance.")
 (make-variable-buffer-local 'outline-numbered-bullet)
 ;;;_  = outline-file-xref-bullet
 (defvar outline-file-xref-bullet "@"
@@ -714,7 +714,7 @@ functions.")
   "Used in outline-mode for regulate of concealed-text protection mechanism.
 
 Allout outline mode regulates alteration of concealed text to protect
-against inadvertant, unnoticed changes.  This is for use by specific,
+against inadvertent, unnoticed changes.  This is for use by specific,
 native outline functions to temporarily override that protection.
 It's automatically reset to nil after every buffer modification.")
 (make-variable-buffer-local 'outline-override-protect)
@@ -754,7 +754,7 @@ protection knows to keep inactive during file write."
   'outline-mode)
 ;;;_  = outline-explicitly-deactivated
 (defvar outline-explicitly-deactivated nil
-  "Outline-mode was last deliberately deactived.
+  "Outline-mode was last deliberately deactivated.
 So outline-post-command-business should not reactivate it...")
 (make-variable-buffer-local 'outline-explicitly-deactivated)
 ;;;_  > outline-init (&optional mode)
@@ -766,7 +766,7 @@ MODE is one of the following symbols:
  - nil \(or no argument) deactivate auto-activation/layou;
  - 'activate', enable auto-activation only;
  - 'ask', enable auto-activation, and enable auto-layout but with
-   confirmation for layout operation solicitated from user each time;
+   confirmation for layout operation solicited from user each time;
  - 'report', just report and return the current auto-activation state;
  - anything else \(eg, t) for auto-activation and auto-layout, without
    any confirmation check.
@@ -848,7 +848,7 @@ which is organized in outline structure.\)
 
 It also includes such things as topic-oriented repositioning, cut, and
 paste; integral outline exposure-layout; incremental search with
-dynamic exposure/conceament of concealed text; automatic topic-number
+dynamic exposure/concealment of concealed text; automatic topic-number
 maintenance; and many other features.
 
 See the docstring of the variable `outline-init' for instructions on
@@ -1017,7 +1017,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 	 (toggle (and toggle
 		     (or (and (listp toggle)(car toggle))
 			 toggle)))
-				       ; Activation specficially demanded?
+				       ; Activation specifically demanded?
 	 (explicit-activation (or
 			      ;;
 			      (and toggle
@@ -1408,7 +1408,7 @@ Return the location of the beginning of the heading, or nil if not found."
 (defun outline-chart-subtree (&optional levels orig-depth prev-depth)
   "Produce a location \"chart\" of subtopics of the containing topic.
 
-Optional argument LEVELS specifies the depth \(releative to start
+Optional argument LEVELS specifies the depth \(relative to start
 depth\) for the chart.  Subsequent optional args are not for public
 use.
 
@@ -1546,7 +1546,7 @@ exposed reside.
    point which is the negative of the number should be opened,
    including their entries.
  - bare positive values indicate that this topic header should be
-   openned.
+   opened.
  - Lists signify the beginning and end points of regions that should
    be flagged, and the flag to employ.  (For concealment: '\(\?r\)', and
    exposure:"
@@ -2235,7 +2235,7 @@ bullet.  Non-nil NUMBER-CONTROL and non-nil, non-number INDEX means
 that the index for the numbered prefix will be derived, by counting
 siblings back to start of level.  If INDEX is a number, then that
 number is used as the index for the numbered prefix (allowing, eg,
-sequential renumbering to not requre this function counting back the
+sequential renumbering to not require this function counting back the
 index for each successive sibling)."
 ;;;_    . Code:
   ;; The options are ordered in likely frequence of use, most common
@@ -2358,7 +2358,7 @@ Nuances:
 - Creation of sibling or nested topics is with respect to the topic
   you're starting from, even when creating backwards.  This way you
   can easily create a sibling in front of the current topic without
-  having to go to its preceeding sibling, and then open forward
+  having to go to its preceding sibling, and then open forward
   from there."
 
   (let* ((depth (+ (outline-current-depth) relative-depth))
@@ -2392,7 +2392,7 @@ Nuances:
           (setq dbl-space               ; Determine double space action:
                 (or (and (<= relative-depth 0)	; not descending;
                          (save-excursion
-                           ;; at b-o-b or preceeded by a blank line?
+                           ;; at b-o-b or preceded by a blank line?
                            (or (> 0 (forward-line -1))
                                (looking-at "^\\s-*$")
 			       (bobp)))
@@ -2484,7 +2484,7 @@ Nuances:
 ;;;_    . open-topic contingencies
 ;;;_     ; base topic - one from which open was issued
 ;;;_      , beginning char
-;;;_      , amount of space before will be used, unless openning in place
+;;;_      , amount of space before will be used, unless opening in place
 ;;;_      , end char will be used, unless opening before (and it still may)
 ;;;_     ; absolute depth of new topic
 ;;;_     ! insert in place - overrides most stuff
@@ -2549,7 +2549,7 @@ Maintains outline hanging topic indentation if
   "Reindent body lines which were indented at old-depth to new-depth.
 
 Optional arg NUMBER indicates numbering is being added, and it must
-be accomodated.
+be accommodated.
 
 Note that refill of indented paragraphs is not done."
 
@@ -2937,7 +2937,7 @@ Does depth adjustment of yanked topics, when:
 2 it is being yanked at the end of a line which consists of only a valid
      topic prefix.
 
-Also, adjusts numbering of subsequent siblings when appropropriate.
+Also, adjusts numbering of subsequent siblings when appropriate.
 
 Depth adjustment alters the depth of all the topics being yanked
 the amount it takes to make the first topic have the depth of the
@@ -3057,7 +3057,7 @@ however, are left exactly like normal, non-outline-specific yanks."
 (defun outline-yank (&optional arg)
   "Outline-mode yank, with depth and numbering adjustment of yanked topics.
 
-Non-topic yanks work no differntly than normal yanks.
+Non-topic yanks work no differently than normal yanks.
 
 If a topic is being yanked into a bare topic prefix, the depth of the
 yanked topic is adjusted to the depth of the topic prefix.
@@ -3076,7 +3076,7 @@ at the end (and vice-versa with the mark).  Non-adjusted yanks,
 however, (ones that don't qualify for adjustment) are handled
 exactly like normal yanks.
 
-Numbering of yanked topics, and the succesive siblings at the depth
+Numbering of yanked topics, and the successive siblings at the depth
 into which they're being yanked, is adjusted.
 
 Outline-yank-pop works with outline-yank just like normal yank-pop
@@ -4197,7 +4197,7 @@ With repeat count, copy the exposed portions of entire buffer."
 ;; outlinify-sticky is correct spelling; provide this alias for sticklers:
 (defalias 'outlinify-sticky 'outlineify-sticky)
 (defun outlineify-sticky (&optional arg)
-  "Activate outline mode and establish file var so it is started subseqently.
+  "Activate outline mode and establish file var so it is started subsequently.
 
 See doc-string for `outline-layout' and `outline-init' for details on
 setup for auto-startup."
