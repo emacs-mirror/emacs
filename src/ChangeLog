@@ -1,3 +1,8 @@
+2004-12-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (read_char): Save and restore echo_string when
+	handling input method.
+
 2004-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (syms_of_eval) <quit-flag>: Doc fix.
