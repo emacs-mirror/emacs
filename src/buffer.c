@@ -151,7 +151,7 @@ Lisp_Object Qinsert_behind_hooks;
 nsberror (spec)
      Lisp_Object spec;
 {
-  if (XTYPE (spec) == Lisp_String)
+  if (STRINGP (spec))
     error ("No buffer named %s", XSTRING (spec)->data);
   error ("Invalid buffer argument");
 }
@@ -170,7 +170,7 @@ NAME may also be a buffer; if so, the value is that buffer.")
   (name)
      register Lisp_Object name;
 {
-  if (XTYPE (name) == Lisp_Buffer)
+  if (BUFFERP (name))
     return name;
   CHECK_STRING (name, 0);
 
@@ -200,8 +200,8 @@ See also `find-buffer-visiting'.")
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       buf = Fcdr (XCONS (tail)->car);
-      if (XTYPE (buf) != Lisp_Buffer) continue;
-      if (XTYPE (XBUFFER (buf)->filename) != Lisp_String) continue;
+      if (!BUFFERP (buf)) continue;
+      if (!STRINGP (XBUFFER (buf)->filename)) continue;
       tem = Fstring_equal (XBUFFER (buf)->filename, filename);
       if (!NILP (tem))
 	return buf;
@@ -489,8 +489,7 @@ No argument or nil as argument means use current buffer as BUFFER.")
       {
 	mask = *(EMACS_INT *)(offset + (char *) &buffer_local_flags);
 	if (mask == -1 || (buf->local_var_flags & mask))
-	  if (XTYPE (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols))
-	      == Lisp_Symbol)
+	  if (SYMBOLP (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols)))
 	    result = Fcons (Fcons (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols),
 				   *(Lisp_Object *)(offset + (char *)buf)),
 			    result);
@@ -810,7 +809,7 @@ with `delete-process'.")
   Vinhibit_quit = tem;
 
   /* Delete any auto-save file, if we saved it in this session.  */
-  if (XTYPE (b->auto_save_file_name) == Lisp_String
+  if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0)
     {
       Lisp_Object tem;
@@ -947,7 +946,7 @@ set_buffer_internal (b)
 {
   register struct buffer *old_buf;
   register Lisp_Object tail, valcontents;
-  enum Lisp_Type tem;
+  Lisp_Object tem;
 
   if (current_buffer == b)
     return;
@@ -963,11 +962,10 @@ set_buffer_internal (b)
   for (tail = b->local_var_alist; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
-      if ((XTYPE (valcontents) == Lisp_Buffer_Local_Value
-	   || XTYPE (valcontents) == Lisp_Some_Buffer_Local_Value)
-	  && (tem = XTYPE (XCONS (valcontents)->car),
-	      (tem == Lisp_Boolfwd || tem == Lisp_Intfwd
-	       || tem == Lisp_Objfwd)))
+      if ((BUFFER_LOCAL_VALUEP (valcontents)
+	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+	  && (tem = XCONS (valcontents)->car,
+	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable
 	     to cause it to become set for this buffer.  */
 	Fsymbol_value (XCONS (XCONS (tail)->car)->car);
@@ -979,11 +977,10 @@ set_buffer_internal (b)
     for (tail = old_buf->local_var_alist; !NILP (tail); tail = XCONS (tail)->cdr)
       {
 	valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
-	if ((XTYPE (valcontents) == Lisp_Buffer_Local_Value
-	     || XTYPE (valcontents) == Lisp_Some_Buffer_Local_Value)
-	    && (tem = XTYPE (XCONS (valcontents)->car),
-		(tem == Lisp_Boolfwd || tem == Lisp_Intfwd
-		 || tem == Lisp_Objfwd)))
+	if ((BUFFER_LOCAL_VALUEP (valcontents)
+	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+	    && (tem = XCONS (valcontents)->car,
+		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable
                to cause it to become set for this buffer.  */
 	  Fsymbol_value (XCONS (XCONS (tail)->car)->car);
@@ -1162,7 +1159,7 @@ list_buffers_1 (files)
 	    {
 	      tem = Fsymbol_value (other_file_symbol);
 	      Fset_buffer (Vstandard_output);
-	      if (XTYPE (tem) == Lisp_String)
+	      if (STRINGP (tem))
 		Fprinc (tem, Qnil);
 	    }
 	  else
@@ -1473,7 +1470,7 @@ sort_overlays (overlay_vec, noverlays, w)
 	      Lisp_Object window;
 
 	      window = Foverlay_get (overlay, Qwindow);
-	      if (XTYPE (window) == Lisp_Window && XWINDOW (window) != w)
+	      if (WINDOWP (window) && XWINDOW (window) != w)
 		continue;
 	    }
 
