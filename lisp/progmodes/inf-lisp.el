@@ -27,8 +27,8 @@
 ;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
 
 ;; This file defines a lisp-in-a-buffer package (inferior-lisp mode)
-;; built on top of comint mode. This version is more featureful,
-;; robust, and uniform than the Emacs 18 version. The key bindings are
+;; built on top of comint mode.  This version is more featureful,
+;; robust, and uniform than the Emacs 18 version.  The key bindings are
 ;; also more compatible with the bindings of Hemlock and Zwei (the
 ;; Lisp Machine emacs).
 
