@@ -675,8 +675,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
    ((memq system-type '(ms-dos windows-nt emx))
     (setq eol-mnemonic-unix "(Unix)")
     (setq eol-mnemonic-mac  "(Mac)"))
-   ;; Mac-specific settings should come here, once there's a
-   ;; system-type symbol specific to MacOS.
+   ;; Both Mac and Unix EOLs are now "native" on Mac OS so keep the
+   ;; abbreviated strings `/' and `:' set in coding.c for them.
+   ((eq system-type 'macos)
+    (setq eol-mnemonic-dos  "(DOS)"))
    (t	; this is for Unix/GNU/Linux systems
     (setq eol-mnemonic-dos  "(DOS)")
     (setq eol-mnemonic-mac  "(Mac)")))
