@@ -38,11 +38,6 @@
 
 (require 'mail-utils)
 
-;; For Emacs V18 compatibility
-(and (not (fboundp 'buffer-disable-undo))
-     (fboundp 'buffer-flush-undo)
-     (defalias 'buffer-disable-undo 'buffer-flush-undo))
-
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
 ;  "This is the name of the directory used by the system mailer for\n\
@@ -88,8 +83,10 @@
   :group 'rmail)
 
 
-(defvar rmail-movemail-program nil
-  "If non-nil, name of program for fetching new mail.")
+(defcustom rmail-movemail-program nil
+  "If non-nil, name of program for fetching new mail."
+  :group 'rmail-retrieve
+  :type 'string)
 
 (defcustom rmail-pop-password nil
   "*Password to use when reading mail from a POP server, if required."
@@ -236,10 +233,12 @@ still the current message in the Rmail buffer.")
 (defvar rmail-mmdf-delim2 "^\001\001\001\001\n"
   "Regexp marking the end of an mmdf message")
 
-(defvar rmail-message-filter nil
+(defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
-before obeying `rmail-ignored-headers'.")
+before obeying `rmail-ignored-headers'."
+  :group 'rmail-headers
+  :type 'function)
 
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
@@ -249,13 +248,16 @@ before obeying `rmail-ignored-headers'.")
 (defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?: *\\)*"
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
-(defvar rmail-display-summary nil
-  "If non-nil, Rmail always displays the summary buffer.")
-
-(defvar rmail-mode-map nil)
-
+(defcustom rmail-display-summary nil
+  "*If non-nil, Rmail always displays the summary buffer."
+  :group 'rmail-summary
+  :type 'boolean)
+
 (defvar rmail-inbox-list nil)
+(put 'rmail-inbox-list 'permanent-local t)
+
 (defvar rmail-keywords nil)
+(put 'rmail-keywords 'permanent-local t)
 
 (defvar rmail-buffer nil
   "The RMAIL buffer related to the current buffer.
@@ -266,38 +268,25 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 ;; Message counters and markers.  Deleted flags.
 
 (defvar rmail-current-message nil)
+(put 'rmail-current-message 'permanent-local t)
+
 (defvar rmail-total-messages nil)
+(put 'rmail-total-messages 'permanent-local t)
+
 (defvar rmail-message-vector nil)
+(put 'rmail-message-vector 'permanent-local t)
+
 (defvar rmail-deleted-vector nil)
+(put 'rmail-deleted-vector 'permanent-local t)
+
 (defvar rmail-msgref-vector nil
   "In an Rmail buffer, a vector whose Nth element is a list (N).
 When expunging renumbers messages, these lists are modified
 by substituting the new message number into the existing list.")
+(put 'rmail-msgref-vector 'permanent-local t)
 
 (defvar rmail-overlay-list nil)
-
-(defvar rmail-font-lock-keywords
-  (eval-when-compile
-    (let* ((cite-chars "[>|}]")
-	   (cite-prefix "A-Za-z")
-	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
-      (list '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
-	    '("^Reply-To:.*$" . font-lock-function-name-face)
-	    '("^Subject:" . font-lock-comment-face)
-	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
-	      . font-lock-keyword-face)
-	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
-	    `(,cite-chars
-	      (,(concat "\\=[ \t]*"
-			"\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-			"\\(" cite-chars "[ \t]*\\)\\)+"
-			"\\(.*\\)")
-	       (beginning-of-line) (end-of-line)
-	       (2 font-lock-constant-face nil t)
-	       (4 font-lock-comment-face nil t)))
-	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
-	      . font-lock-string-face))))
-  "Additional expressions to highlight in Rmail mode.")
+(put 'rmail-overlay-list 'permanent-local t)
 
 ;; These are used by autoloaded rmail-summary.
 
@@ -306,13 +295,22 @@ by substituting the new message number into the existing list.")
 (defvar rmail-summary-vector nil)
 (put 'rmail-summary-vector 'permanent-local t)
 
+(defvar rmail-view-buffer nil
+  "Buffer which holds RMAIL message for MIME displaying.")
+(put 'rmail-view-buffer 'permanent-local t)
+
 ;; `Sticky' default variables.
 
 ;; Last individual label specified to a or k.
 (defvar rmail-last-label nil)
+(put 'rmail-last-label 'permanent-local t)
+
 ;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
 (defvar rmail-last-multi-labels nil)
+
 (defvar rmail-last-regexp nil)
+(put 'rmail-last-regexp 'permanent-local t)
+
 (defcustom rmail-default-file "~/xmail"
   "*Default file name for \\[rmail-output]."
   :type 'file
@@ -322,6 +320,36 @@ by substituting the new message number into the existing list.")
   :type 'file
   :group 'rmail-files)
 
+;; Mule and MIME related variables.
+
+;;;###autoload
+(defvar rmail-file-coding-system nil
+  "Coding system used in RMAIL file.
+
+This is set to nil by default.")
+
+;;;###autoload
+(defcustom rmail-enable-mime nil
+  "*If non-nil, RMAIL uses MIME feature.
+If the value is t, RMAIL automatically shows MIME decoded message.
+If the value is neither t nor nil, RMAIL does not show MIME decoded message
+until a user explicitly requires it."
+  :type '(choice (const :tag "on" t)
+		 (const :tag "off" nil)
+		 (sexp :tag "when asked" :format "%t\n" ask))
+  :group 'rmail)
+
+;;;###autoload
+(defvar rmail-show-mime-function nil
+  "Function to show MIME decoded message of RMAIL file.")
+
+;;;###autoload
+(defvar rmail-mime-feature 'rmail-mime
+  "Feature to provide for using MIME feature in RMAIL.
+When starting rmail, this feature is requrired if rmail-enable-mime
+is non-nil.")
+
+
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  Note that if you change
 ;;; this expression, you must change the code in rmail-nuke-pinhead-header
@@ -378,6 +406,29 @@ by substituting the new message number into the existing list.")
      "\n"))
   nil)
 
+(defvar rmail-font-lock-keywords
+  (eval-when-compile
+    (let* ((cite-chars "[>|}]")
+	   (cite-prefix "A-Za-z")
+	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
+      (list '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
+	    '("^Reply-To:.*$" . font-lock-function-name-face)
+	    '("^Subject:" . font-lock-comment-face)
+	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
+	      . font-lock-keyword-face)
+	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
+	    `(,cite-chars
+	      (,(concat "\\=[ \t]*"
+			"\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			"\\(" cite-chars "[ \t]*\\)\\)+"
+			"\\(.*\\)")
+	       (beginning-of-line) (end-of-line)
+	       (2 font-lock-constant-face nil t)
+	       (4 font-lock-comment-face nil t)))
+	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
+	      . font-lock-string-face))))
+  "Additional expressions to highlight in Rmail mode.")
+
 ;; Perform BODY in the summary buffer
 ;; in such a way that its cursor is properly updated in its own window.
 (defmacro rmail-select-summary (&rest body)
@@ -400,39 +451,6 @@ by substituting the new message number into the existing list.")
 	   (let ((rmail-total-messages total))
 	     (,@ body))))
        (rmail-maybe-display-summary))))
-
-(defvar rmail-view-buffer nil
-  "Buffer which holds RMAIL message for MIME displaying.")
-
-;; Mule and MIME related variables.
-
-;;;###autoload
-(defvar rmail-file-coding-system nil
-  "Coding system used in RMAIL file.
-
-This is set to nil by default.")
-
-;;;###autoload
-(defcustom rmail-enable-mime nil
-  "*If non-nil, RMAIL uses MIME feature.
-If the value is t, RMAIL automatically shows MIME decoded message.
-If the value is neither t nor nil, RMAIL does not show MIME decoded message
-until a user explicitly requires it."
-  :type '(choice (const :tag "on" t)
-		 (const :tag "off" nil)
-		 (sexp :tag "when asked" :format "%t\n" ask))
-  :group 'rmail)
-
-;;;###autoload
-(defvar rmail-show-mime-function nil
-  "Function to show MIME decoded message of RMAIL file.")
-
-;;;###autoload
-(defvar rmail-mime-feature 'rmail-mime
-  "Feature to provide for using MIME feature in RMAIL.
-When starting rmail, this feature is requrired if rmail-enable-mime
-is non-nil.")
-
 
 ;;;; *** Rmail Mode ***
 
@@ -622,6 +640,7 @@ Note:    it means the file has no messages in it.\n\^_")))
 	  (set-buffer-file-coding-system rmail-file-coding-system)
 	  (set-buffer-modified-p modifiedp)))))
 
+(defvar rmail-mode-map nil)
 (if rmail-mode-map
     nil
   (setq rmail-mode-map (make-keymap))
@@ -860,10 +879,8 @@ Instead, these commands are available:
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
-  ;; Don't let a local variables list in a message cause confusion.
-  (make-local-variable 'enable-local-variables)
-  (setq enable-local-variables nil)
   (rmail-mode-1)
+  (rmail-perm-variables)
   (rmail-variables))
 
 (defun rmail-mode-1 ()
@@ -881,16 +898,8 @@ Instead, these commands are available:
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table))
 
-(defun rmail-variables ()
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'rmail-revert)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-   '(rmail-font-lock-keywords t nil nil nil
-     (font-lock-maximum-size . nil)
-     (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
-     (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
-     (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+;; Set up the permanent locals associated with an Rmail file.
+(defun rmail-perm-variables ()
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
   (make-local-variable 'rmail-deleted-vector)
@@ -902,16 +911,8 @@ Instead, these commands are available:
   (make-local-variable 'rmail-summary-vector)
   (make-local-variable 'rmail-current-message)
   (make-local-variable 'rmail-total-messages)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline nil)
   (make-local-variable 'rmail-overlay-list)
   (setq rmail-overlay-list nil)
-  (make-local-variable 'version-control)
-  (setq version-control 'never)
-  (make-local-variable 'kill-buffer-hook)
-  (add-hook 'kill-buffer-hook 'rmail-mode-kill-summary)
-  (make-local-variable 'file-precious-flag)
-  (setq file-precious-flag t)
   (make-local-variable 'rmail-message-vector)
   (make-local-variable 'rmail-msgref-vector)
   (make-local-variable 'rmail-inbox-list)
@@ -929,6 +930,29 @@ Instead, these commands are available:
   (make-local-variable 'rmail-keywords)
   ;; this gets generated as needed
   (setq rmail-keywords nil))
+
+;; Set up the non-permanent locals associated with Rmail mode.
+(defun rmail-variables ()
+  ;; Don't let a local variables list in a message cause confusion.
+  (make-local-variable 'enable-local-variables)
+  (setq enable-local-variables nil)
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'rmail-revert)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+   '(rmail-font-lock-keywords t nil nil nil
+     (font-lock-maximum-size . nil)
+     (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
+     (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+     (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+  (make-local-variable 'require-final-newline)
+  (setq require-final-newline nil)
+  (make-local-variable 'version-control)
+  (setq version-control 'never)
+  (make-local-variable 'kill-buffer-hook)
+  (add-hook 'kill-buffer-hook 'rmail-mode-kill-summary)
+  (make-local-variable 'file-precious-flag)
+  (setq file-precious-flag t))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
@@ -2157,7 +2181,7 @@ or forward if N is negative."
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (save-restriction
     (goto-char (rmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n")
+    (search-forward "\n*** EOOH ***\n" (point-max) t)
     (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
     (or (string-match recipients (or (mail-fetch-field "To") ""))
 	(string-match recipients (or (mail-fetch-field "From") ""))
@@ -2169,7 +2193,9 @@ or forward if N is negative."
   (goto-char (rmail-msgbeg msg))
   (let ((end 
          (save-excursion 
-           (search-forward "*** EOOH ***" (point-max)) (point))))
+           (or (search-forward "\n*** EOOH ***\n" (point-max) t)
+	       (search-forward "\n\n" (point-max)))
+	   (point))))
     (re-search-forward regexp end t)))
 
 (defvar rmail-search-last-regexp nil)
