@@ -1,6 +1,6 @@
 /* Hooks by which low level terminal operations
    can be made to call other routines.
-   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -284,19 +284,20 @@ enum {
   up_modifier	=   1,		/* Only used on mouse buttons - always
 				   turned into a click or a drag modifier
 				   before lisp code sees the event.  */
-  alt_modifier	=   2,		/* Under X, the XK_Alt_[LR] keysyms.  */
-  ctrl_modifier	=   4,
-  hyper_modifier=   8,		/* Under X, the XK_Hyper_[LR] keysyms.  */
-  meta_modifier	=  16,		/* Under X, the XK_Meta_[LR] keysyms.  */
-  shift_modifier=  32,
-  super_modifier=  64,		/* Under X, the XK_Super_[LR] keysyms.  */
   down_modifier = 128,		/* Only used on mouse buttons.  */
   drag_modifier = 256,		/* This is never used in the event
 				   queue; it's only used internally by
 				   the window-system-independent code.  */
   click_modifier= 512,		/* See drag_modifier.  */
-  last_modifier			/* This should always be one more than the
-				   highest modifier bit defined.  */
+
+  /* The next four modifier bits are used also
+     in keyboard events at the Lisp level.  */
+  alt_modifier	=  0x040000,	/* Under X, the XK_Alt_[LR] keysyms.  */
+  super_modifier=  0x080000,	/* Under X, the XK_Super_[LR] keysyms.  */
+  hyper_modifier=  0x100000,	/* Under X, the XK_Hyper_[LR] keysyms.  */
+  shift_modifier=  0x200000,
+  ctrl_modifier	=  0x400000,
+  meta_modifier	=  0x800000,	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
 
 #endif
