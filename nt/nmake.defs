@@ -27,10 +27,12 @@ ALL_DEPS	= $**
 SUBSYSTEM_WINDOWS=-subsystem:windows
 SUBSYSTEM_CONSOLE=-subsystem:console
 
+CURDIR		= $(MAKEDIR:\=/)
+
 # INSTALL_DIR is the directory into which emacs will be installed.
 #
 !ifndef INSTALL_DIR
-INSTALL_DIR     = $(MAKEDIR)/..
+INSTALL_DIR     = $(CURDIR)/..
 !endif
 
 # Allow detection of builds with MSVC 5 or later, so we can
