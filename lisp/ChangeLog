@@ -1,3 +1,8 @@
+2000-07-13  Dave Love  <fx@gnu.org>
+
+	* textmodes/reftex-cite.el (reftex-bibtex-selection-callback):
+	Call throw correctly.
+
 2000-07-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (frame-background-mode): Doc fix.
