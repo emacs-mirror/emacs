@@ -1035,26 +1035,27 @@ The returned value is a Quail map specific to KEY."
 
 (defun quail-terminate-translation ()
   "Terminate the translation of the current key."
-  (let ((start (overlay-start quail-overlay)))
-    (if (and start
-	     (< start (overlay-end quail-overlay)))
-	;; Here we simulate self-insert-command.
-	(let ((seq (string-to-sequence
-		    (buffer-substring (overlay-start quail-overlay)
-				      (overlay-end quail-overlay))
-		    'list))
-	      last-command-char)
-	  (goto-char start)
-	  (quail-delete-region)
-	  (setq last-command-char (car seq))
-	  (self-insert-command (or quail-prefix-arg 1))
-	  (setq quail-prefix-arg nil)
-	  (setq seq (cdr seq))
-	  (while seq
+  (when (overlayp quail-overlay)
+    (let ((start (overlay-start quail-overlay)))
+      (if (and start
+	       (< start (overlay-end quail-overlay)))
+	  ;; Here we simulate self-insert-command.
+	  (let ((seq (string-to-sequence
+		      (buffer-substring (overlay-start quail-overlay)
+					(overlay-end quail-overlay))
+		      'list))
+		last-command-char)
+	    (goto-char start)
+	    (quail-delete-region)
 	    (setq last-command-char (car seq))
-	    (self-insert-command 1)
-	    (setq seq (cdr seq))))))
-  (delete-overlay quail-overlay)
+	    (self-insert-command (or quail-prefix-arg 1))
+	    (setq quail-prefix-arg nil)
+	    (setq seq (cdr seq))
+	    (while seq
+	      (setq last-command-char (car seq))
+	      (self-insert-command 1)
+	      (setq seq (cdr seq))))))
+    (delete-overlay quail-overlay))
   (if (buffer-live-p quail-guidance-buf)
       (save-excursion
 	(set-buffer quail-guidance-buf)
