@@ -1080,7 +1080,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 
 #ifdef WINDOWSNT
   /* Initialize environment from registry settings.  */
-  init_environment ();
+  init_environment (argv);
   init_ntproc ();	/* must precede init_editfns */
 #endif
 
