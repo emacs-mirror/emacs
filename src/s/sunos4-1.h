@@ -16,10 +16,15 @@
 
 /* Some systems do not run the Network Information Service, but have
    modified the shared C library to include resolver support without
-   also changing the C archive library (/usr/lib/libc.a).  If we detect
-   the presence of res_init, use -lresolv to supplement libc.a.  */
-#ifdef HAVE_RES_INIT
+   also changing the C archive library (/usr/lib/libc.a).  If we can't
+   detect the presence of res_init, use -lresolv to supplement libc.a.
+   The #ifdef HAVE_GETHOSTNAME is to prevent configure from
+   setting libsrc_libs to -lresolv in lib-src/Makefile.  configure
+   includes this file without defining any of the HAVE_* macros.  */
+#ifdef HAVE_GETHOSTNAME
+#ifndef HAVE_RES_INIT
 #define LIBS_SYSTEM -lresolv
+#endif
 #endif
 
 /* Tell GNU malloc to compensate for a bug in localtime.  */
