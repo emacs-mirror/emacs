@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.252 1999/09/02 12:50:28 eliz Exp rms $
+;; $Id: vc.el,v 1.253 1999/09/06 03:46:33 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -2474,9 +2474,9 @@ THRESHOLD, nil otherwise"
 	     (day (string-to-number (match-string 1)))
              (month (cdr (assoc (match-string 2) local-month-numbers)))
 	     (year-tmp (string-to-number (match-string 3)))
-	     ;; Years 0..69 are 2000..2069.
-	     ;; Years 70..99 are 1970..1999.
-	     (year (+ (cond ((> 70 year-tmp) 2000)
+	     ;; Years 0..68 are 2000..2068.
+	     ;; Years 69..99 are 1969..1999.
+	     (year (+ (cond ((> 69 year-tmp) 2000)
 			    ((> 100 year-tmp) 1900)
 			    (t 0))
 		      year-tmp))
