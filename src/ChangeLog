@@ -1,3 +1,13 @@
+2002-04-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* msdos.c (dos_rawgetc): Use a single event for HELP_EVENT.
+
+	* keyboard.c (command_loop_1): Turn off transient-mark-mode rather
+	than deactivating the mark if tmm is set to `lambda'.
+	(gen_help_event, kbd_buffer_store_help_event, kbd_buffer_get_event):
+	Use a single event for HELP_EVENT.
+	(Fexecute_extended_command): Save last_point_position.
+
 2002-04-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lisp.h (Fpropertize): Add prototype.

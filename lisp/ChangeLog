@@ -1,8 +1,32 @@
+2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* sort.el (sort-reorder-buffer): Don't assume point-min == 1.
+
+	* xt-mouse.el (xterm-mouse-mode): Use define-minor-mode.
+
+	* emacs-lisp/lucid.el (device-class, buffer-syntactic-context)
+	(buffer-syntactic-context-depth): New funs.
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Don't use defconst
+	on variables.
+
+	* emacs-lisp/debug.el (debug-on-entry): Use push.
+	(debugger-make-xrefs): Don't assume point-min == 1.
+
+	* progmodes/cc-engine.el (c-backward-to-start-of-if):
+	Don't assume point-min == 1.
+
+	* progmodes/etags.el (etags-verify-tags-table, etags-snarf-tag)
+	(etags-list-tags, etags-tags-apropos, select-tags-table):
+	Don't assume point-min == 1.
+
 2002-04-12  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-guess-indent): New function.
 
 2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-context-prefix): Fix up last change.
 
 	* simple.el (line-move): Use memq rather than or.
 	(transpose-sexps): Don't presume as much of forward-sexp's behavior.
