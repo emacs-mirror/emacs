@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.350 2003/02/19 18:56:38 spiegel Exp $
+;; $Id: vc.el,v 1.351 2003/05/08 17:41:16 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -305,7 +305,7 @@
 ;;   is nil, use the current workfile version (as found in the
 ;;   repository) as the older version; if REV2 is nil, use the current
 ;;   workfile contents as the newer version.  This function should
-;;   pass the value of (vc-diff-switches-list BACKEND) to the backend
+;;   pass the value of (vc-switches BACKEND 'diff) to the backend
 ;;   command.  It should return a status of either 0 (no differences
 ;;   found), or 1 (either non-empty diff or the diff is run
 ;;   asynchronously).
@@ -379,6 +379,14 @@
 ;;   `revert' operations itself, without calling the backend system.  The
 ;;   default implementation always returns nil.
 ;;
+;; - repository-hostname (dirname)
+;;
+;;   Return the hostname that the backend will have to contact
+;;   in order to operate on a file in DIRNAME.  If the return value
+;;   is nil, it is means that the repository is local.
+;;   This function is used in `vc-stay-local-p' which backends can use
+;;   for their convenience.
+;;
 ;; - previous-version (file rev)
 ;;
 ;;   Return the version number that precedes REV for FILE.
@@ -396,11 +404,18 @@
 ;;   version control state in such a way that the headers would give
 ;;   wrong information.
 ;;
+;; - delete-file (file)
+;;
+;;   Delete FILE and mark it as deleted in the repository.  If this
+;;   function is not provided, the command `vc-delete-file' will
+;;   signal an error.
+;;
 ;; - rename-file (old new)
 ;;
 ;;   Rename file OLD to NEW, both in the working area and in the
-;;   repository.  If this function is not provided, the command
-;;   `vc-rename-file' will signal an error.
+;;   repository.  If this function is not provided, the renaming
+;;   will be done by (vc-delete-file old) and (vc-register new).
+;;   
 
 ;;; Code:
 
@@ -811,10 +826,10 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
       (set-buffer (find-file-noselect (dired-get-filename)))
     (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
-    (if (not (buffer-file-name))
+    (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
-      (if (not (vc-backend (buffer-file-name)))
-	  (error "File %s is not under version control" (buffer-file-name))))))
+      (if (not (vc-backend buffer-file-name))
+	  (error "File %s is not under version control" buffer-file-name)))))
 
 (defun vc-process-filter (p s)
   "An alternative output filter for async process P.
@@ -1101,7 +1116,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
         (find-file-noselect file nil find-file-literally))
       (if (not (verify-visited-file-modtime (current-buffer)))
 	  (if (yes-or-no-p "Replace file on disk with buffer contents? ")
-	      (write-file (buffer-file-name))
+	      (write-file buffer-file-name)
 	    (error "Aborted"))
 	;; Now, check if we have unsaved changes.
 	(vc-buffer-sync t)
@@ -1217,7 +1232,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 		   ;; Must clear any headers here because they wouldn't
 		   ;; show that the file is locked now.
 		   (vc-clear-headers file)
-		   (write-file (buffer-file-name))
+		   (write-file buffer-file-name)
 		   (vc-mode-line file))
 	  (if (not (yes-or-no-p
 		    "Revert to checked-in version, instead? "))
@@ -1858,6 +1873,55 @@ actually call the backend, but performs a local diff."
       (vc-call diff file rel1 rel2))))
 
 
+(defcustom vc-stay-local t
+  "*Non-nil means use local operations when possible for remote repositories.
+This avoids slow queries over the network and instead uses heuristics
+and past information to determine the current status of a file.
+
+The value can also be a regular expression or list of regular
+expressions to match against the host name of a repository; then VC
+only stays local for hosts that match it.  Alternatively, the value
+can be a list of regular expressions where the first element is the 
+symbol `except'; then VC always stays local except for hosts matched 
+by these regular expressions."
+  :type '(choice (const :tag "Always stay local" t)
+	  (const :tag "Don't stay local" nil)
+	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
+		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
+		(regexp :format " stay local,\n%t: %v" :tag "if it matches")
+		(repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
+  :version "21.4"
+  :group 'vc)
+
+(defun vc-stay-local-p (file)
+  "Return non-nil if VC should stay local when handling FILE.
+This uses the `repository-hostname' backend operation."
+  (let* ((backend (vc-backend file))
+	 (sym (vc-make-backend-sym backend 'stay-local))
+	 (stay-local (if (boundp sym) (symbol-value sym) t)))
+    (if (eq stay-local t) (setq stay-local vc-stay-local))
+    (if (symbolp stay-local) stay-local
+      (let ((dirname (if (file-directory-p file)
+			 (directory-file-name file)
+		       (file-name-directory file))))
+	(eq 'yes
+	    (or (vc-file-getprop dirname 'vc-stay-local-p)
+		(vc-file-setprop
+		 dirname 'vc-stay-local-p
+		 (let ((hostname (vc-call-backend
+				  backend 'repository-hostname dirname)))
+		   (if (not hostname)
+		       'no
+		     (let ((default t))
+		       (if (eq (car-safe stay-local) 'except)
+			   (setq default nil stay-local (cdr stay-local)))
+		       (when (consp stay-local)
+			 (setq stay-local
+			       (mapconcat 'identity stay-local "\\|")))
+		       (if (if (string-match stay-local hostname)
+			       default (not default))
+			   'yes 'no)))))))))))
+
 (defun vc-switches (backend op)
   (let ((switches
 	 (or (if backend
@@ -1875,8 +1939,9 @@ actually call the backend, but performs a local diff."
       ;; any switches in diff-switches.
       (if (listp switches) switches))))
 
-(defun vc-diff-switches-list (backend) (vc-switches backend 'diff))
-;; (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
+;; Old def for compatibility with Emacs-21.[123].
+(defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
+(make-obsolete 'vc-diff-switches-list 'vc-switches "21.4")
 
 (defun vc-default-diff-tree (backend dir rel1 rel2)
   "List differences for all registered files at and below DIR.
@@ -1980,7 +2045,7 @@ the variable `vc-BACKEND-header'."
 	    (let* ((delims (cdr (assq major-mode vc-comment-alist)))
 		   (comment-start-vc (or (car delims) comment-start "#"))
 		   (comment-end-vc (or (car (cdr delims)) comment-end ""))
-		   (hdsym (vc-make-backend-sym (vc-backend (buffer-file-name))
+		   (hdsym (vc-make-backend-sym (vc-backend buffer-file-name)
 					       'header))
 		   (hdstrings (and (boundp hdsym) (symbol-value hdsym))))
 	      (mapcar (lambda (s)
@@ -2561,7 +2626,7 @@ return its name; otherwise return nil."
 A prefix argument NOREVERT means do not revert the buffer afterwards."
   (interactive "P")
   (vc-ensure-vc-buffer)
-  (let* ((file (buffer-file-name))
+  (let* ((file buffer-file-name)
 	 (backend (vc-backend file))
          (target (vc-workfile-version file)))
     (cond
@@ -2734,25 +2799,52 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	      (throw 'found f)))
        (error "New file lacks a version control directory")))))
 
+(defun vc-delete-file (file)
+  "Delete file and mark it as such in the version control system."
+  (interactive "fVC delete file: ")
+  (let ((buf (get-file-buffer file)))
+    (unless (vc-find-backend-function backend 'delete-file)
+      (error "Renaming files under %s is not supported in VC" backend))
+    (if (and buf (buffer-modified-p buf))
+	(error "Please save files before deleting them"))
+    (unless (y-or-n-p (format "Really want to delete %s ? "
+			      (file-name-nondirectory file)))
+      (error "Abort!"))
+    (unless (or (file-directory-p file) (null make-backup-files))
+      (with-current-buffer (or buf (find-file-noselect file))
+	(let ((backup-inhibited nil))
+	  (backup-buffer))))
+    (vc-call delete-file file)
+    ;; If the backend hasn't deleted the file itself, let's do it for him.
+    (if (file-exists-p file) (delete-file file))))
+
+(defun vc-default-rename-file (backend old new)
+  (condition-case nil
+      (add-name-to-file old new)
+    (error (rename-file old new)))
+  (vc-delete-file old)
+  (with-current-buffer (find-file-noselect new)
+    (vc-register)))
+
 ;;;###autoload
 (defun vc-rename-file (old new)
   "Rename file OLD to NEW, and rename its master file likewise."
   (interactive "fVC rename file: \nFRename to: ")
-  (let ((oldbuf (get-file-buffer old))
-	(backend (vc-backend old)))
-    (unless (vc-find-backend-function backend 'rename-file)
-      (error "Renaming files under %s is not supported in VC" backend))
+  (let ((oldbuf (get-file-buffer old)))
     (if (and oldbuf (buffer-modified-p oldbuf))
 	(error "Please save files before moving them"))
     (if (get-file-buffer new)
 	(error "Already editing new file name"))
     (if (file-exists-p new)
 	(error "New file already exists"))
-    (vc-call-backend backend 'rename-file old new)
+    (let ((state (vc-state file)))
+      (unless (memq state '(up-to-date edited))
+	(error "Please %s files before moving them"
+	       (if (stringp state) "check in" "update"))))
+    (vc-call rename-file old new)
     (vc-file-clearprops old)
     ;; Move the actual file (unless the backend did it already)
-    (if (or (not backend) (file-exists-p old))
-	(rename-file old new))
+    (if (file-exists-p old) (rename-file old new))
     ;; ?? Renaming a file might change its contents due to keyword expansion.
     ;; We should really check out a new copy if the old copy was precisely equal
     ;; to some checked in version.  However, testing for this is tricky....
@@ -3037,7 +3129,7 @@ colors. `vc-annotate-background' specifies the background color."
   (vc-ensure-vc-buffer)
   (let* ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
          (temp-buffer-show-function 'vc-annotate-display-select)
-         (rev (vc-workfile-version (buffer-file-name)))
+         (rev (vc-workfile-version buffer-file-name))
          (vc-annotate-version
           (if prefix (read-string
                       (format "Annotate from version: (default %s) " rev)
