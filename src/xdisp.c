@@ -3411,7 +3411,7 @@ forward_to_next_line_start (it, skipped_p)
 
   /* If already on a newline, just consume it to avoid unintended
      skipping over invisible text below.  */
-  if (ITERATOR_AT_END_OF_LINE_P (it))
+  if (it->what == IT_CHARACTER && it->c == '\n')
     {
       set_iterator_to_next (it, 0);
       return 1;
@@ -3431,7 +3431,7 @@ forward_to_next_line_start (it, skipped_p)
 	 && get_next_display_element (it)
 	 && !newline_found_p)
     {
-      newline_found_p = ITERATOR_AT_END_OF_LINE_P (it);
+      newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
       set_iterator_to_next (it, 0);
       if (!STRINGP (it->string))
 	++n;
