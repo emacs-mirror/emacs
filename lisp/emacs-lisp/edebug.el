@@ -1297,7 +1297,7 @@ This is to avoid spurious recentering.")
 	(edebug-outside-window (selected-window))
 	(edebug-outside-buffer (current-buffer))
 	(edebug-outside-point (point))
-	(edebug-outside-mark (mark))
+	(edebug-outside-mark (mark t))
 	edebug-outside-windows		; window or screen configuration
 	edebug-outside-edebug-point	; old point in edebug buffer
 	edebug-outside-edebug-mark
@@ -1340,7 +1340,7 @@ This is to avoid spurious recentering.")
       (if edebug-save-point
 	  (progn
 	    (setq edebug-outside-edebug-point (point))
-	    (setq edebug-outside-edebug-mark (mark))))
+	    (setq edebug-outside-edebug-mark (mark t))))
 
       (edebug-save-restriction
        (setq edebug-outside-point-min (point-min))
@@ -2209,13 +2209,15 @@ print value into current buffer."
     (define-key edebug-mode-map "-" 'negative-argument)
     ))
 
-
+;;;###autoload
 (defvar global-edebug-prefix "\^XX"
   "Prefix key for global edebug commands, available from any buffer.")
 
+;;;###autoload
 (defvar global-edebug-map nil
   "Global map of edebug commands, available from any buffer.")
 
+;;;###autoload
 (if global-edebug-map
     nil
   (setq global-edebug-map (make-sparse-keymap))
@@ -2224,6 +2226,7 @@ print value into current buffer."
   (global-set-key global-edebug-prefix global-edebug-map)
 
 ;;  (define-key global-edebug-map "X" 'edebug-step-through)
+  (define-key global-edebug-map "d" 'edebug-defun)
   (define-key global-edebug-map " " 'edebug-step-through)
   (define-key global-edebug-map "g" 'edebug-go)
   (define-key global-edebug-map "G" 'edebug-Go-nonstop)
