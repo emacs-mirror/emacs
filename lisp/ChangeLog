@@ -1,3 +1,7 @@
+2000-09-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Fix last change.
+	
 2000-09-25  Dave Love  <fx@gnu.org>
 
 	* autoinsert.el (auto-insert): Doc fix.

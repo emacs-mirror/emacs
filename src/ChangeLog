@@ -1,5 +1,19 @@
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (show_help_echo): Set help_echo_showing_p.
+	(read_char): If help-echo is showing, preserve the echo area
+	when redisplaying.
+
+	* xdisp.c (help_echo_showing_p): New variable.
+	(set_message): Reset it to 0.
+	(init_xdisp): Initialize help_echo_showing_p.
+
+	* dispextern.h (help_echo_showing_p): Declare extern.
+
+	* config.in: Fix typo in __GNUC_MINOR__.
+
+	* keyboard.h (quit_throw_to_read_char): Declare NO_RETURN.
+
 	* s/freebsd.h (POSIX_SIGNALS): Define.
 
 	* xterm.c (x_clear_mouse_face): Block/unblock input.
