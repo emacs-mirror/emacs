@@ -1095,12 +1095,12 @@ help buffer."
   (let ((fdoc (describe-function symbol)))
     (describe-variable symbol)
     ;; We now have a help buffer on the variable.  Insert the function
-    ;; text after it.
-    (goto-char (point-max))
-    (let ((inhibit-read-only t))
-      (insert "\n\n" fdoc)))
-  (goto-char (point-min))
-  (help-setup-xref (list #'help-xref-interned symbol) nil))
+    ;; text before it.
+    (with-current-buffer "*Help*"
+      (goto-char (point-min))
+      (let ((inhibit-read-only t))
+	(insert fdoc "\n\n" (symbol-name symbol) " is also a variable.\n\n"))
+      (help-setup-xref (list #'help-xref-interned symbol) nil))))
 
 (defun help-xref-mode (buffer)
   "Do a `describe-mode' for the specified BUFFER."
