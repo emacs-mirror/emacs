@@ -928,7 +928,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(curmsg (current-message)))
 
     ;; TODO: Scroll macro if max-mini-window-height is too small.
-    (message (concat
+    (message "%s"
+	     (concat
 	      (format "Macro: %s%s%s%s%s\n"
 		      (format-kbd-macro kmacro-step-edit-new-macro 1)
 		      (if (and kmacro-step-edit-new-macro (> (length kmacro-step-edit-new-macro) 0)) " " "")
