@@ -42,7 +42,7 @@
 	* international/fontset.el (setup-default-fontset): For Thai
 	font, specify "*" family.
 
-2003-09-01  Kevin Rodgers <ihs_4664@yahoo.com>  (tiny change)
+2003-09-01  Kevin Rodgers <ihs_4664@yahoo.com>
 
 	* progmodes/compile.el (previous-error): Accept a prefix
 	argument, similarly to next-error.
@@ -708,7 +708,7 @@
 	Check `x-last-selected-text-primary'.  Don't barf if it or
 	`x-last-selected-text' aren't bound.
 
-2003-07-25  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
+2003-07-25  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* menu-bar.el (menu-bar-tools-menu): Minor change in strings.
 
