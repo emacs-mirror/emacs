@@ -141,7 +141,8 @@ LIBS =  $(TLIB1)	\
 !ENDIF
 	$(BASE_LIBS)	\
 	$(ADVAPI32)	\
-	user32.lib
+	user32.lib	\
+	mpr.lib
 
 #
 # Build the executable and dump it.
@@ -409,6 +410,7 @@ $(BLD)\dispnew.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
+	$(SRC)\w32term.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h
@@ -652,6 +654,7 @@ $(BLD)\keyboard.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
+	$(SRC)\w32term.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h
