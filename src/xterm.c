@@ -703,6 +703,13 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      = (font->max_byte1 != 0
 		 ? (line_height + font->ascent - font->descent) / 2
 		 : f->output_data.x->font_baseline - fontp->baseline_offset);
+	    if (FONT_HEIGHT (font) <= line_height
+		&& (font->ascent > baseline
+		    || font->descent > line_height - baseline))
+	      /* Adjust baseline for this font to show the whole
+                 glyphs in a line.  */
+	      baseline = line_height - font->descent;
+	      
 	    if (cmpcharp && cmpcharp->cmp_rule == NULL)
 	      {
 		relative_compose = fontp->relative_compose;
@@ -863,7 +870,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	    /* The current code at first set foreground to background,
 	      fill the area, then recover the original foreground.
-	      Aren't there any more smart ways?  */
+	      Aren't there any smarter ways?  */
 
 	    XGetGCValues (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
 	    XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
@@ -1028,22 +1035,33 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 #endif
 	  }
-	if (!font || require_clipping && !NILP (Vhighlight_wrong_size_font))
+	if (!font)
 	  {
-	    /* Show rectangles to show that we found no font or a font
-               of inappropriate size.  */
+	    /* Show rectangles to indicate that we found no font.  */
+	    int limit = cmpcharp ? 1 : len;
 
-	    if (cmpcharp)
-	      XDrawRectangle
-		(FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		 left, top, run_width - 1, line_height - 1);
-	    else
-	      for (i = 0; i < len; i++)
-		XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-				left + glyph_width * i, top,
-				glyph_width -1, line_height - 1);
+	    for (i = 0; i < limit; i++)
+	      XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			      left + glyph_width * i, top,
+			      glyph_width - 1, line_height - 1);
 	  }
-	
+	else if (require_clipping && !NILP (Vhighlight_wrong_size_font))
+	  {
+	    /* Show ??? to indicate that we found a font of
+               inappropriate size.  */
+	    int limit = cmpcharp ? 1 : len;
+
+	    for (i = 0; i < limit; i++)
+	      {
+		XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			   left + glyph_width * i, top + line_height - 1,
+			   left + glyph_width * i + 1, top + line_height - 1);
+		XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			   left + glyph_width * i, top + line_height - 3,
+			   left + glyph_width * i, top + line_height - 1);
+	      }
+	  }
+
 	/* We should probably check for XA_UNDERLINE_POSITION and
 	   XA_UNDERLINE_THICKNESS properties on the font, but let's
 	   just get the thing working, and come back to that.  */
