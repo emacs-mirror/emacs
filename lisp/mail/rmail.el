@@ -489,6 +489,7 @@ argument causes us to read a file name and use that file as the inbox."
   (or (verify-visited-file-modtime (current-buffer))
       (progn
 	(find-file (buffer-file-name))
+	(setq buffer-read-only t)
 	(if (verify-visited-file-modtime (current-buffer))
 	    (rmail-forget-messages))))
   (rmail-maybe-set-message-counters)
