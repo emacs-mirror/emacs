@@ -7673,7 +7673,11 @@ x_catch_errors_unwind (old_val)
 
   first = XCAR (old_val);
 
+#if 0  /* XXX This has dumped core on me several times when my X
+          server crashed.  If this call is important, maybe we should
+          check that the display is still alive. -- lorentey */
   XSync (XSAVE_VALUE (first)->pointer, False);
+#endif
 
   x_error_message_string = XCDR (old_val);
   return Qnil;
