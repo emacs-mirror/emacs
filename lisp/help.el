@@ -129,10 +129,17 @@ Commands:
   (interactive)
   nil)
 
-(defun help-with-tutorial ()
-  "Select the Emacs learn-by-doing tutorial."
-  (interactive)
-  (let ((file (expand-file-name "~/TUTORIAL")))
+(defun help-with-tutorial (&optional arg)
+  "Select the Emacs learn-by-doing tutorial.
+A tutorial written in the current primary language is selected.
+If there's no tutorial in the language, \"TUTORIAL\" is selected.
+With arg, users are asked to select language."
+  (interactive "P")
+  (let* ((filename
+	  (let ((lang (if arg (read-language-name 'tutorial "Language: ")
+			primary-language)))
+	    (get-language-info lang 'tutorial)))
+	 (file (expand-file-name (concat "~/" filename))))
     (delete-other-windows)
     (if (get-file-buffer file)
 	(switch-to-buffer (get-file-buffer file))
@@ -140,7 +147,7 @@ Commands:
       (setq buffer-file-name file)
       (setq default-directory (expand-file-name "~/"))
       (setq buffer-auto-save-file-name nil)
-      (insert-file-contents (expand-file-name "TUTORIAL" data-directory))
+      (insert-file-contents (expand-file-name filename data-directory))
       (goto-char (point-min))
       (search-forward "\n<<")
       (beginning-of-line)
