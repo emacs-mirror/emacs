@@ -5972,7 +5972,7 @@ be displayed."
   (unless (eq major-mode 'gnus-summary-mode)
     (set-buffer gnus-summary-buffer))
   (let ((article (or article (gnus-summary-article-number)))
-	(all-headers (not (not all-headers))) ;Must be T or NIL.
+	(all-headers (not (not all-headers))) ;Must be t or nil.
 	gnus-summary-display-article-function)
     (and (not pseudo)
 	 (gnus-summary-article-pseudo-p article)

@@ -1475,7 +1475,7 @@ and ends on the last Sunday of October at 2 a.m."
 
 
 ;;; Compute the date a certain number of business days since Jan 1, 1 AD.
-;;; If this returns NIL, holiday table was adjusted; redo calculation.
+;;; If this returns nil, holiday table was adjusted; redo calculation.
 
 (defun math-from-business-day (num)
   (let* ((day (math-floor num))

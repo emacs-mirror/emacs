@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
-;; Revision: $Id: cvs-status.el,v 1.9 2000/12/06 19:50:12 fx Exp $
+;; Revision: $Id: cvs-status.el,v 1.10 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -306,7 +306,7 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 
 (defun cvs-status-get-tags ()
   "Look for a list of tags, read them in and delete them.
-Returns NIL if there was an empty list of tags and T if there wasn't
+Return nil if there was an empty list of tags and t if there wasn't
 even a list.  Else, return the list of tags where each element of
 the list is a three-string list TAG, KIND, REV."
   (let ((tags nil))
@@ -516,6 +516,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.10  2000/12/18 03:17:31  monnier
+;; Remove useless Version.
+;;
 ;; Revision 1.9  2000/12/06 19:50:12  fx
 ;; Fix copyright years.
 ;;

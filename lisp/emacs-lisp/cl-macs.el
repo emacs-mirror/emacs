@@ -2376,7 +2376,7 @@ Otherwise, return result of last FORM."
 	  v)
       (if (eq x (car v)) (cdr v) '(t)))))
 
-;;; Count number of times X refers to Y.  Return NIL for 0 times.
+;;; Count number of times X refers to Y.  Return nil for 0 times.
 (defun cl-expr-contains (x y)
   (cond ((equal y x) 1)
 	((and (consp x) (not (memq (car-safe x) '(quote function function*))))

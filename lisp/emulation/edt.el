@@ -337,7 +337,7 @@ When select mode is inactive, it is set to an empty string.")
 
 (defvar edt-default-map-active nil
   "Non-nil indicates that default EDT emulation key bindings are active.
-Nil means user-defined custom bindings are active.")
+nil means user-defined custom bindings are active.")
 
 (defvar edt-user-map-configured nil
   "Non-nil indicates that user custom EDT key bindings are configured.

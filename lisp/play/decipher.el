@@ -100,7 +100,7 @@
 
 (defcustom decipher-force-uppercase t
   "*Non-nil means to convert ciphertext to uppercase.
-Nil means the case of the ciphertext is preserved.
+nil means the case of the ciphertext is preserved.
 This variable must be set before typing `\\[decipher]'."
   :type 'boolean
   :group 'decipher)

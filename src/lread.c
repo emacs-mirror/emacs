@@ -3229,8 +3229,8 @@ defvar_int (namestring, address)
   SET_SYMBOL_VALUE (sym, val);
 }
 
-/* Similar but define a variable whose value is T if address contains 1,
-   NIL if address contains 0 */
+/* Similar but define a variable whose value is t if address contains 1,
+   nil if address contains 0 */
 void
 defvar_bool (namestring, address)
      char *namestring;

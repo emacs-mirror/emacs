@@ -39,7 +39,7 @@
 (random t)				; randomize
 
 (defcustom mpuz-silent nil
-  "*Set this to T if you don't want dings on inputs."
+  "*Set this to t if you don't want dings on inputs."
   :type 'boolean
   :group 'mpuz)
 

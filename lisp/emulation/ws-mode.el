@@ -369,7 +369,7 @@ the distance between the end of the text and `fill-column'."
 
 (defvar ws-search-string nil "String of last search in WordStar mode.")
 (defvar ws-search-direction t 
-  "Direction of last search in WordStar mode. T if forward, NIL if backward.")
+  "Direction of last search in WordStar mode. t if forward, nil if backward.")
 
 (defvar ws-last-cursorposition nil 
   "Position before last search etc. in WordStar mode.")

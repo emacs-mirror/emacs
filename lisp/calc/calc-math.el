@@ -271,7 +271,7 @@
     (math-floor (math-sqrt a))))
 
 
-;;; This returns (flag . result) where the flag is T if A is a perfect square.
+;;; This returns (flag . result) where the flag is t if A is a perfect square.
 (defun math-isqrt-bignum (a)   ; [P.l L]
   (let ((len (length a)))
     (if (= (% len 2) 0)

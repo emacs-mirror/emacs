@@ -3269,7 +3269,7 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;; Users can redefine this in their .emacs files.
 (defvar calc-keypad-user-menu nil
-  "If not NIL, this describes an additional menu for calc-keypad.
+  "If non-nil, this describes an additional menu for calc-keypad.
 It should contain a list of three rows.
 Each row should be a list of six keys.
 Each key should be a list of a label string, plus a Calc command name spec.

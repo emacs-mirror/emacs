@@ -99,7 +99,7 @@ message, a huge time saver for large mailboxes.")
 (defvoo nnfolder-file-coding-system mm-text-coding-system)
 (defvoo nnfolder-file-coding-system-for-write nnheader-file-coding-system
   "Coding system for save nnfolder file.
-If NIL, NNFOLDER-FILE-CODING-SYSTEM is used.")
+If nil, `nnfolder-file-coding-system' is used.")
 
 
 

@@ -491,7 +491,7 @@ If the charset is `composition', return the actual one."
 
 (defun mm-find-mime-charset-region (b e &optional hack-charsets)
   "Return the MIME charsets needed to encode the region between B and E.
-Nil means ASCII, a single-element list represents an appropriate MIME
+nil means ASCII, a single-element list represents an appropriate MIME
 charset, and a longer list means no appropriate charset."
   (let (charsets)
     ;; The return possibilities of this function are a mess...

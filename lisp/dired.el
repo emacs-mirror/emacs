@@ -1944,7 +1944,7 @@ Optional argument means return a file name relative to `default-directory'."
 
 (defcustom dired-recursive-deletes nil ; Default only delete empty directories.
   "*Decide whether recursive deletes are allowed.
-Nil means no recursive deletes.
+nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
 `top' means ask for each directory at top level, but delete its subdirectories
 without asking.

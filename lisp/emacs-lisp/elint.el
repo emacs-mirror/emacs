@@ -214,7 +214,7 @@ Returns the forms."
 
 (defun elint-find-next-top-form ()
   "Find the next top form from point.
-Returns nil if there are no more forms, T otherwise."
+Return nil if there are no more forms, t otherwise."
   (parse-partial-sexp (point) (point-max) nil t)
   (not (eobp)))
 

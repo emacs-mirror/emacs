@@ -169,7 +169,7 @@ recently set ones come first, oldest ones come last)."
 
 
 (defcustom bookmark-automatically-show-annotations t
-  "*Nil means don't show annotations when jumping to a bookmark."
+  "*nil means don't show annotations when jumping to a bookmark."
   :type 'boolean
   :group 'bookmark)
 

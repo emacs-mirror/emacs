@@ -80,7 +80,7 @@
 ;;;  Decide whether we're running Lucid Emacs or Emacs itself.
 ;;;
 (defconst tpu-lucid-emacs19-p (string-match "Lucid" emacs-version)
-  "Non-NIL if we are running Lucid Emacs version 19.")
+  "Non-nil if we are running Lucid Emacs version 19.")
 
 
 ;;;

@@ -2104,7 +2104,7 @@ scrolling the current window.  Leave the new window selected."
    ORIGINAL-WORD is a string of the possibly misspelled word.
    OFFSET is an integer giving the line offset of the word.
    MISS-LIST and GUESS-LIST are possibly null lists of guesses and misses.
-4: Nil when an error has occurred.
+4: nil when an error has occurred.
 
 Optional second arg ACCEPT-LIST is list of words already accepted.
 Optional third arg SHIFT is an offset to apply based on previous corrections."

@@ -219,7 +219,7 @@
       (math-det-step (1- n) (math-mul prod (nth n (nth n lu))))
     prod))
 
-;;; This returns a list (LU index d), or NIL if not possible.
+;;; This returns a list (LU index d), or nil if not possible.
 ;;; Argument M must be a square matrix.
 (defvar math-lud-cache nil)
 (defun math-matrix-lud (m)

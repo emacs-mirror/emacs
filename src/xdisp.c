@@ -14952,7 +14952,7 @@ go back to their normal size.  */);
   DEFVAR_BOOL ("cursor-in-non-selected-windows",
 	       &cursor_in_non_selected_windows,
     doc: /* *Non-nil means display a hollow cursor in non-selected windows.
-Nil means don't display a cursor there.  */);
+nil means don't display a cursor there.  */);
   cursor_in_non_selected_windows = 1;
   
   DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p,

@@ -375,7 +375,7 @@ Returns nil if NODE is nil or the first element."
 
 (defun ewoc-nth (ewoc n)
   "Return the Nth node.
-N counts from zero. Nil is returned if there is less than N elements.
+N counts from zero.  Return nil if there is less than N elements.
 If N is negative, return the -(N+1)th last element.
 Thus, (ewoc-nth dll 0) returns the first node,
 and (ewoc-nth dll -1) returns the last node.

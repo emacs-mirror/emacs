@@ -60,7 +60,7 @@ This variable is local to each terminal-emulator buffer."
   :type 'character
   :group 'terminal)
 
-(defcustom terminal-scrolling t ;;>> Setting this to T sort-of defeats my whole aim in writing this package...
+(defcustom terminal-scrolling t ;;>> Setting this to t sort-of defeats my whole aim in writing this package...
   "*If non-nil, the terminal-emulator will losingly `scroll' when output occurs
 past the bottom of the screen.  If nil, output will win and `wrap' to the top
 of the screen.

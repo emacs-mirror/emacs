@@ -1,5 +1,5 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in mh-e
-;; Time-stamp: <2001-07-14 13:09:34 pavel>
+;; Time-stamp: <2001-12-20 18:55:31 pavel>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-pick.el,v 1.5 1996/01/14 07:34:30 erik Exp $
+;; $Id: mh-pick.el,v 1.6 2001/07/15 19:53:53 pj Exp $
 
 ;;; Code:
 
@@ -154,7 +154,7 @@ Add the messages found to the sequence named `search'."
   ;; Return the next piece of a pick argument that can be extracted from the
   ;; BUFFER.
   ;; Return a list like ("--fieldname" "pattern") or ("-search" "bodypat")
-  ;; or NIL if no pieces remain.
+  ;; or nil if no pieces remain.
   (set-buffer buffer)
   (let ((case-fold-search t))
     (cond ((eobp)

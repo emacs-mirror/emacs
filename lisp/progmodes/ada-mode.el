@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.45 $
+;; Ada Core Technologies's version:   $Revision: 1.46 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -241,7 +241,7 @@ For instance:
 
 (defcustom ada-indent-comment-as-code t
   "*Non-nil means indent comment lines as code.
-Nil means do not auto-indent comments."
+nil means do not auto-indent comments."
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-is-separate t

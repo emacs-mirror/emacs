@@ -82,7 +82,7 @@ STRING4
 (defcustom ediff-show-clashes-only nil
   "*If t, show only those diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
-skipped over.  Nil means show all regions."
+skipped over.  nil means show all regions."
   :type 'boolean
   :group 'ediff-merge
   )

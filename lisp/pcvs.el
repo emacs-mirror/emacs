@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.30 2001/10/30 04:41:28 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.31 2001/12/02 07:40:43 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2079,7 +2079,7 @@ Sensible values are `cvs-examine', `cvs-status' and `cvs-quickdir'."
 ;;;###autoload
 (defcustom cvs-dired-use-hook '(4)
   "Whether or not opening a CVS directory should run PCL-CVS.
-NIL means never do it.
+nil means never do it.
 ALWAYS means to always do it unless a prefix argument is given to the
   command that prompted the opening of the directory.
 Anything else means to do it only if the prefix arg is equal to this value."

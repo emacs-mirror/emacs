@@ -119,7 +119,7 @@
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
 (defconst edt-x-emacs-p (string-match "XEmacs" emacs-version)
-  "Non-NIL if we are running XEmacs version 19, or higher.")
+  "Non-nil if we are running XEmacs version 19, or higher.")
 
 (defconst edt-emacs-variant (if edt-x-emacs-p "xemacs" "gnu")
   "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")

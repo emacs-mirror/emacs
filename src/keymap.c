@@ -1045,7 +1045,7 @@ the front of KEYMAP.  */)
     }
 }
 
-/* Value is number if KEY is too long; NIL if valid but has no definition. */
+/* Value is number if KEY is too long; nil if valid but has no definition. */
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,

@@ -177,7 +177,7 @@ functions will be displayed."
   :group 'elp)
 
 (defcustom elp-recycle-buffers-p t
-  "*Nil says to not recycle the `elp-results-buffer'.
+  "*nil says to not recycle the `elp-results-buffer'.
 In other words, a new unique buffer is create every time you run
 \\[elp-results]."
   :type 'boolean

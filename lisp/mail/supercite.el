@@ -1866,7 +1866,7 @@ entered, regardless of the value of `sc-electric-references-p'.  See
 
 (defun sc-toggle-var (variable)
   "Boolean toggle VARIABLE's value.
-VARIABLE must be a bound symbol.  Nil values change to t, non-nil
+VARIABLE must be a bound symbol.  nil values change to t, non-nil
 values are changed to nil."
   (message "%s changed from %s to %s"
 	   variable (symbol-value variable)

@@ -282,7 +282,7 @@ that differs by this value or more."
 (defcustom msb-max-menu-items 15
   "*The maximum number of items in a menu.
 If this variable is set to 15 for instance, then the submenu will be
-split up in minor parts, 15 items each.  Nil means no limit."
+split up in minor parts, 15 items each.  nil means no limit."
   :type '(choice integer (const nil))
   :set 'msb-custom-set
   :group 'msb)

@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.27 2001/11/25 23:52:51 monnier Exp $
+;; $Id: vc-cvs.el,v 1.28 2001/11/30 13:47:39 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -561,7 +561,7 @@ encoded as fractional days."
 
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
-systime , or NIL if there is none."
+systime, or nil if there is none."
   (let ((time-stamp 
 	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "))
     (if (looking-at time-stamp)

@@ -1235,7 +1235,7 @@
 (defun disassemble-offset ()
   "Don't call this!"
   ;; fetch and return the offset for the current opcode.
-  ;; return NIL if this opcode has no offset
+  ;; return nil if this opcode has no offset
   ;; OP, PTR and BYTES are used and set dynamically
   (defvar op)
   (defvar ptr)

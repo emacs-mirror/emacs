@@ -1963,7 +1963,7 @@ Put point at the beginning of the signature separator."
 
 (defun gnus-article-check-hidden-text (type arg)
   "Return nil if hiding is necessary.
-Arg can be nil or a number.  Nil and positive means hide, negative
+Arg can be nil or a number.  nil and positive means hide, negative
 means show, 0 means toggle."
   (save-excursion
     (save-restriction

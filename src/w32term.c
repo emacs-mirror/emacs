@@ -11113,7 +11113,7 @@ wide as that tab on the display.  */);
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
 	       doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-Nil means ignore them.  If you encounter fonts with bogus
+nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;

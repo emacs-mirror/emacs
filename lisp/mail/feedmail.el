@@ -684,7 +684,7 @@ in the saved message if you use Fcc:."
 
 (defcustom feedmail-fiddle-headers-upwardly t
   "*Non-nil means fiddled header fields should go at the top of the header.
-Nil means insert them at the bottom.  This is mostly a novelty issue since
+nil means insert them at the bottom.  This is mostly a novelty issue since
 the standards define the ordering of header fields to be immaterial and it's
 fairly likely that some MTA along the way will have its own idea of what the
 order should be, regardless of what you specify."

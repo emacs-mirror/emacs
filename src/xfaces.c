@@ -3330,7 +3330,7 @@ merge_face_vectors (f, from, to, cycle_check)
    elements, this macro begins consing in order to keep more precise
    track of elements.
 
-   Returns NIL if a cycle was detected, otherwise a new value for CHECK
+   Returns nil if a cycle was detected, otherwise a new value for CHECK
    that includes EL.
 
    CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
