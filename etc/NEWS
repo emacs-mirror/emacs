@@ -1167,10 +1167,21 @@ to new-kill-line, these commands now report:
   new-kill-line is on C-k
 
 +++
+** Vertical scrolling is now possible within incremental search.
+To enable this feature, customize the new user option
+`isearch-allow-scroll'.  User written commands which satisfy stringent
+constraints can be marked as "scrolling commands".  See the Emacs manual
+for details.
+
++++
 ** C-w in incremental search now grabs either a character or a word,
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
++++
+** C-y in incremental search now grabs the next line if point is already
+at the end of a line.
 
 +++
 ** C-M-w deletes and C-M-y grabs a character in isearch mode.
