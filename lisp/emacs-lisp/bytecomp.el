@@ -1579,7 +1579,7 @@ With argument, insert value in current buffer after the form."
 	(if (not (stringp (nth 3 form)))
 	    ;; No doc string to make-docfile; insert form in normal code.
 	    (byte-compile-keep-pending
-	     (list 'fset (list 'quote name)
+	     (list 'defalias (list 'quote name)
 		   (cond ((not macrop)
 			  code)
 			 ((eq 'make-byte-code (car-safe code))
