@@ -5657,7 +5657,8 @@ the remote host use line-endings as defined in the variable
 	  (mapconcat 'identity
 		     (split-string string "\n")
 		     tramp-rsh-end-of-line))
-    (unless (string-equal (substring string -1) tramp-rsh-end-of-line)
+    (unless (or (string= string "")
+		(string-equal (substring string -1) tramp-rsh-end-of-line))
       (setq string (concat string tramp-rsh-end-of-line)))
     ;; send the string
     (if (and tramp-chunksize (not (zerop tramp-chunksize)))
