@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.55) $
+ * $HopeName: MMsrc!mps.h(trunk.56) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -396,6 +396,7 @@ extern mps_word_t mps_collections(mps_arena_t);
 
 extern mps_bool_t mps_message_poll(mps_arena_t);
 extern void mps_message_type_enable(mps_arena_t, mps_message_type_t);
+extern void mps_message_type_disable(mps_arena_t, mps_message_type_t);
 extern mps_bool_t mps_message_get(mps_message_t *,
                                   mps_arena_t, mps_message_type_t);
 extern void mps_message_discard(mps_arena_t, mps_message_t);
