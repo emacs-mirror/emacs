@@ -1,3 +1,7 @@
+2004-09-25  Jan D.  <jhd@ostrich.localdomain>
+
+	* PROBLEMS: Updated exec-shield description.
+
 2004-09-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Change the strings for smso and rmso.
