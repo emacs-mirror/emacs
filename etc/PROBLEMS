@@ -345,6 +345,28 @@ src/s/hpux10.h.
 * Crashes when displaying uncompressed GIFs with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 
+* Font Lock displays portions of the bufefr in incorrect faces.
+
+By far the most frequent cause of this is a parenthesis `(' or a brace
+`{' in column zero.  Font Lock assumes that such a paren is outside of
+any comment or string.  This is of course not true in general, but the
+vast majority of well-formatted program source files don't have such
+parens, and therefore this assumption is used to allow optimizations
+in Font Lock's syntactical analysis.  These optimizations avoid some
+patological cases where jit-lock, the Just-in-Time fontification
+introduced with Emacs 21.1, could significantly slow down scrolling
+through the buffer, especially scrolling backwards, and also jumping
+to the end of a very large buffer.
+
+If you don't use large buffers, or have a very fast machine which
+makes the delays insignificant, you can avoid the incorrect
+fontification by setting the variable
+`font-lock-beginning-of-syntax-function' to a nil value.  (This must
+be done _after_ turning on Font Lock.)
+
+Another alternative is to avoid a paren in column zero.  For example,
+in a Lisp string you could precede the paren with a backslash.
+
 * Interrupting Cygwin port of Bash from Emacs doesn't work.
 
 Cygwin 1.x builds of the ported Bash cannot be interrupted from the
