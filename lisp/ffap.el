@@ -1257,7 +1257,7 @@ which may actually result in an url rather than a filename."
 ;;
 ;; Based on overlay highlighting in Emacs 19.28 isearch.el.
 
-(defvar ffap-highlight (and window-system t)
+(defvar ffap-highlight t
   "If non-nil, ffap highlights the current buffer substring.")
 
 (defvar ffap-highlight-overlay nil
@@ -1365,8 +1365,8 @@ For example, try \":/\" for URL (and some ftp) references.")
 
 (defvar ffap-menu-text-plist
   (cond
-   ((not window-system) nil)
-   (t '(face bold mouse-face highlight))) ; keymap <mousy-map>
+   ((display-mouse-p) '(face bold mouse-face highlight)) ; keymap <mousy-map>
+   (t nil))
   "Text properties applied to strings found by `ffap-menu-rescan'.
 These properties may be used to fontify the menu references.")
 
