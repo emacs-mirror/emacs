@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst emacs-version "21.2.94" "\
+(defconst emacs-version "21.2.95" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version
