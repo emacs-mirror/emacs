@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-bin.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -37,8 +37,7 @@
    (calc-enter-result 2 "and"
 		      (append '(calcFunc-and)
 			      (calc-top-list-n 2)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-or (n)
   (interactive "P")
@@ -46,8 +45,7 @@
    (calc-enter-result 2 "or"
 		      (append '(calcFunc-or)
 			      (calc-top-list-n 2)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-xor (n)
   (interactive "P")
@@ -55,8 +53,7 @@
    (calc-enter-result 2 "xor"
 		      (append '(calcFunc-xor)
 			      (calc-top-list-n 2)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-diff (n)
   (interactive "P")
@@ -64,8 +61,7 @@
    (calc-enter-result 2 "diff"
 		      (append '(calcFunc-diff)
 			      (calc-top-list-n 2)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-not (n)
   (interactive "P")
@@ -73,8 +69,7 @@
    (calc-enter-result 1 "not"
 		      (append '(calcFunc-not)
 			      (calc-top-list-n 1)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-lshift-binary (n)
   (interactive "P")
@@ -83,8 +78,7 @@
      (calc-enter-result hyp "lsh"
 			(append '(calcFunc-lsh)
 				(calc-top-list-n hyp)
-				(and n (list (prefix-numeric-value n)))))))
-)
+				(and n (list (prefix-numeric-value n))))))))
 
 (defun calc-rshift-binary (n)
   (interactive "P")
@@ -93,8 +87,7 @@
      (calc-enter-result hyp "rsh"
 			(append '(calcFunc-rsh)
 				(calc-top-list-n hyp)
-				(and n (list (prefix-numeric-value n)))))))
-)
+				(and n (list (prefix-numeric-value n))))))))
 
 (defun calc-lshift-arith (n)
   (interactive "P")
@@ -103,8 +96,7 @@
      (calc-enter-result hyp "ash"
 			(append '(calcFunc-ash)
 				(calc-top-list-n hyp)
-				(and n (list (prefix-numeric-value n)))))))
-)
+				(and n (list (prefix-numeric-value n))))))))
 
 (defun calc-rshift-arith (n)
   (interactive "P")
@@ -113,8 +105,7 @@
      (calc-enter-result hyp "rash"
 			(append '(calcFunc-rash)
 				(calc-top-list-n hyp)
-				(and n (list (prefix-numeric-value n)))))))
-)
+				(and n (list (prefix-numeric-value n))))))))
 
 (defun calc-rotate-binary (n)
   (interactive "P")
@@ -123,8 +114,7 @@
      (calc-enter-result hyp "rot"
 			(append '(calcFunc-rot)
 				(calc-top-list-n hyp)
-				(and n (list (prefix-numeric-value n)))))))
-)
+				(and n (list (prefix-numeric-value n))))))))
 
 (defun calc-clip (n)
   (interactive "P")
@@ -132,8 +122,7 @@
    (calc-enter-result 1 "clip"
 		      (append '(calcFunc-clip)
 			      (calc-top-list-n 1)
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-word-size (n)
   (interactive "P")
@@ -155,8 +144,7 @@
 			   calc-leading-zeros)))
    (if (< n 0)
        (message "Binary word size is %d bits (2's complement)." (- n))
-     (message "Binary word size is %d bits." n)))
-)
+     (message "Binary word size is %d bits." n))))
 
 
 
@@ -173,28 +161,23 @@
 	 ;; also change global value so minibuffer sees it
 	 (setq-default calc-number-radix calc-number-radix))
      (setq n calc-number-radix))
-   (message "Number radix is %d." n))
-)
+   (message "Number radix is %d." n)))
 
 (defun calc-decimal-radix ()
   (interactive)
-  (calc-radix 10)
-)
+  (calc-radix 10))
 
 (defun calc-binary-radix ()
   (interactive)
-  (calc-radix 2)
-)
+  (calc-radix 2))
 
 (defun calc-octal-radix ()
   (interactive)
-  (calc-radix 8)
-)
+  (calc-radix 8))
 
 (defun calc-hex-radix ()
   (interactive)
-  (calc-radix 16)
-)
+  (calc-radix 16))
 
 (defun calc-leading-zeros (n)
   (interactive "P")
@@ -205,8 +188,7 @@
 		  (math-compute-max-digits (math-abs calc-word-size)
 					   calc-number-radix))
 		calc-number-radix)
-     (message "Omitting leading zeros on integers.")))
-)
+     (message "Omitting leading zeros on integers."))))
 
 
 (defvar math-power-of-2-cache (list 1 2 4 8 16 32 64 128 256 512 1024))
@@ -228,8 +210,7 @@
 	(let ((po2 (math-ipow 2 n)))
 	  (setq math-big-power-of-2-cache
 		(cons (cons n po2) math-big-power-of-2-cache))
-	  po2))))
-)
+	  po2)))))
 
 (defun math-integer-log2 (n)    ; [I I] [Public]
   (let ((i 0)
@@ -249,8 +230,7 @@
 	      n)
 	(setq i (1+ i)))
       (and (equal val n)
-	   i)))
-)
+	   i))))
 
 
 
@@ -273,8 +253,7 @@
 	(t (math-clip (cons 'bigpos
 			    (math-and-bignum (math-binary-arg a w)
 					     (math-binary-arg b w)))
-		      w)))
-)
+		      w))))
 
 (defun math-binary-arg (a w)
   (if (not (Math-integerp a))
@@ -282,8 +261,7 @@
   (if (Math-integer-negp a)
       (math-not-bignum (cdr (math-bignum-test (math-sub -1 a)))
 		       (math-abs (if w (math-trunc w) calc-word-size)))
-    (cdr (Math-bignum-test a)))
-)
+    (cdr (Math-bignum-test a))))
 
 (defun math-binary-modulo-args (f a b w)
   (let (mod)
@@ -312,8 +290,7 @@
       (math-make-mod (if b
 			 (funcall f a b w)
 		       (funcall f a w))
-		     mod)))
-)
+		     mod))))
 
 (defun math-and-bignum (a b)   ; [l l l]
   (and a b
@@ -322,8 +299,7 @@
 	 (math-mul-bignum-digit (math-and-bignum (math-norm-bignum (car qa))
 						  (math-norm-bignum (car qb)))
 				 512
-				 (logand (cdr qa) (cdr qb)))))
-)
+				 (logand (cdr qa) (cdr qb))))))
 
 (defun calcFunc-or (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -341,8 +317,7 @@
 	(t (math-clip (cons 'bigpos
 			    (math-or-bignum (math-binary-arg a w)
 					    (math-binary-arg b w)))
-		      w)))
-)
+		      w))))
 
 (defun math-or-bignum (a b)   ; [l l l]
   (and (or a b)
@@ -351,8 +326,7 @@
 	 (math-mul-bignum-digit (math-or-bignum (math-norm-bignum (car qa))
 						 (math-norm-bignum (car qb)))
 				 512
-				 (logior (cdr qa) (cdr qb)))))
-)
+				 (logior (cdr qa) (cdr qb))))))
 
 (defun calcFunc-xor (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -370,8 +344,7 @@
 	(t (math-clip (cons 'bigpos
 			    (math-xor-bignum (math-binary-arg a w)
 					     (math-binary-arg b w)))
-		      w)))
-)
+		      w))))
 
 (defun math-xor-bignum (a b)   ; [l l l]
   (and (or a b)
@@ -380,8 +353,7 @@
 	 (math-mul-bignum-digit (math-xor-bignum (math-norm-bignum (car qa))
 						  (math-norm-bignum (car qb)))
 				 512
-				 (logxor (cdr qa) (cdr qb)))))
-)
+				 (logxor (cdr qa) (cdr qb))))))
 
 (defun calcFunc-diff (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -399,8 +371,7 @@
 	(t (math-clip (cons 'bigpos
 			    (math-diff-bignum (math-binary-arg a w)
 					      (math-binary-arg b w)))
-		      w)))
-)
+		      w))))
 
 (defun math-diff-bignum (a b)   ; [l l l]
   (and a
@@ -409,8 +380,7 @@
 	 (math-mul-bignum-digit (math-diff-bignum (math-norm-bignum (car qa))
 						   (math-norm-bignum (car qb)))
 				 512
-				 (logand (cdr qa) (lognot (cdr qb))))))
-)
+				 (logand (cdr qa) (lognot (cdr qb)))))))
 
 (defun calcFunc-not (a &optional w)   ; [I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -426,8 +396,7 @@
 	(t (math-normalize
 	    (cons 'bigpos
 		  (math-not-bignum (math-binary-arg a w)
-				   w)))))
-)
+				   w))))))
 
 (defun math-not-bignum (a w)   ; [l l]
   (let ((q (math-div-bignum-digit a 512)))
@@ -437,8 +406,7 @@
       (math-mul-bignum-digit (math-not-bignum (math-norm-bignum (car q))
 					       (- w 9))
 			      512
-			      (logxor (cdr q) 511))))
-)
+			      (logxor (cdr q) 511)))))
 
 (defun calcFunc-lsh (a &optional n w)   ; [I I] [Public]
   (setq a (math-trunc a)
@@ -462,12 +430,10 @@
 	    ((< n 0)
 	     (math-quotient (math-clip a w) (math-power-of-2 (- n))))
 	    (t
-	     (math-clip (math-mul a (math-power-of-2 n)) w)))))
-)
+	     (math-clip (math-mul a (math-power-of-2 n)) w))))))
 
 (defun calcFunc-rsh (a &optional n w)   ; [I I] [Public]
-  (calcFunc-lsh a (math-neg (or n 1)) w)
-)
+  (calcFunc-lsh a (math-neg (or n 1)) w))
 
 (defun calcFunc-ash (a &optional n w)   ; [I I] [Public]
   (if (or (null n)
@@ -497,12 +463,10 @@
 		(t (let ((two-to-n (math-power-of-2 (- n))))
 		     (math-add (calcFunc-lsh (math-add two-to-n -1)
 					     (+ w n) w)
-			       sh))))))))
-)
+			       sh)))))))))
 
 (defun calcFunc-rash (a &optional n w)   ; [I I] [Public]
-  (calcFunc-ash a (math-neg (or n 1)) w)
-)
+  (calcFunc-ash a (math-neg (or n 1)) w))
 
 (defun calcFunc-rot (a &optional n w)   ; [I I] [Public]
   (setq a (math-trunc a)
@@ -525,8 +489,7 @@
 	     (calcFunc-rot a (math-mod n w) w))
 	    (t
 	     (math-add (calcFunc-lsh a (- n w) w)
-		       (calcFunc-lsh a n w))))))
-)
+		       (calcFunc-lsh a n w)))))))
 
 (defun math-clip (a &optional w)   ; [I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -552,9 +515,9 @@
 	 (math-normalize
 	  (cons 'bigpos
 		(math-clip-bignum (cdr (math-bignum-test (math-trunc a)))
-				  w)))))
-)
-(fset 'calcFunc-clip (symbol-function 'math-clip))
+				  w))))))
+
+(defalias 'calcFunc-clip 'math-clip)
 
 (defun math-clip-bignum (a w)   ; [l l]
   (let ((q (math-div-bignum-digit a 512)))
@@ -564,11 +527,7 @@
       (math-mul-bignum-digit (math-clip-bignum (math-norm-bignum (car q))
 						(- w 9))
 			      512
-			      (cdr q))))
-)
-
-
-
+			      (cdr q)))))
 
 (defvar math-max-digits-cache nil)
 (defun math-compute-max-digits (w r)
@@ -580,8 +539,7 @@
 	     (digs (math-ceiling (math-div w (math-real-log2 r)))))
 	(setq math-max-digits-cache (cons (cons pair digs)
 					  math-max-digits-cache))
-	digs)))
-)
+	digs))))
 
 (defvar math-log2-cache (list '(2 . 1)
 			      '(4 . 2)
@@ -597,8 +555,7 @@
 	     (calc-display-working-message nil)
 	     (log (calcFunc-log x 2)))
 	(setq math-log2-cache (cons (cons x log) math-log2-cache))
-	log)))
-)
+	log))))
 
 (defconst math-radix-digits ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 			     "A" "B" "C" "D" "E" "F" "G" "H" "I" "J"
@@ -614,8 +571,7 @@
       (while (> a 0)
 	(setq s (concat (math-format-radix-digit (% a calc-number-radix)) s)
 	      a (/ a calc-number-radix)))
-      s))
-)
+      s)))
 
 (defconst math-binary-digits ["000" "001" "010" "011"
 			      "100" "101" "110" "111"])
@@ -628,8 +584,7 @@
       (while (> a 7)
 	(setq s (concat (aref math-binary-digits (% a 8)) s)
 	      a (/ a 8)))
-      (concat (math-format-radix a) s)))
-)
+      (concat (math-format-radix a) s))))
 
 (defun math-format-bignum-radix (a)   ; [X L]
   (cond ((null a) "0")
@@ -639,8 +594,7 @@
 	(t
 	 (let ((q (math-div-bignum-digit a calc-number-radix)))
 	   (concat (math-format-bignum-radix (math-norm-bignum (car q)))
-		   (math-format-radix-digit (cdr q))))))
-)
+		   (math-format-radix-digit (cdr q)))))))
 
 (defun math-format-bignum-binary (a)   ; [X L]
   (cond ((null a) "0")
@@ -651,8 +605,7 @@
 	   (concat (math-format-bignum-binary (math-norm-bignum (car q)))
 		   (aref math-binary-digits (/ (cdr q) 64))
 		   (aref math-binary-digits (% (/ (cdr q) 8) 8))
-		   (aref math-binary-digits (% (cdr q) 8))))))
-)
+		   (aref math-binary-digits (% (cdr q) 8)))))))
 
 (defun math-format-bignum-octal (a)   ; [X L]
   (cond ((null a) "0")
@@ -663,8 +616,7 @@
 	   (concat (math-format-bignum-octal (math-norm-bignum (car q)))
 		   (math-format-radix-digit (/ (cdr q) 64))
 		   (math-format-radix-digit (% (/ (cdr q) 8) 8))
-		   (math-format-radix-digit (% (cdr q) 8))))))
-)
+		   (math-format-radix-digit (% (cdr q) 8)))))))
 
 (defun math-format-bignum-hex (a)   ; [X L]
   (cond ((null a) "0")
@@ -674,8 +626,7 @@
 	 (let ((q (math-div-bignum-digit a 256)))
 	   (concat (math-format-bignum-hex (math-norm-bignum (car q)))
 		   (math-format-radix-digit (/ (cdr q) 16))
-		   (math-format-radix-digit (% (cdr q) 16))))))
-)
+		   (math-format-radix-digit (% (cdr q) 16)))))))
 
 ;;; Decompose into integer and fractional parts, without depending
 ;;; on calc-internal-prec.
@@ -690,8 +641,7 @@
 	    (let ((qr (math-idivmod (nth 1 a) (math-scale-int 1 n))))
 	      (list (car qr) (math-make-float (cdr qr) (- n)) n)))
 	(list (math-scale-rounding (nth 1 a) (nth 2 a))
-	      '(float 0 0) 0))))
-)
+	      '(float 0 0) 0)))))
 
 (defun math-format-radix-float (a prec)
   (let ((fmt (car calc-float-format))
@@ -798,8 +748,7 @@
 				  (> calc-number-radix 14))
 			      (format "%s*%d.^%s" str calc-number-radix estr)
 			    (format "%se%s" str estr)))))))
-    str)
-)
+    str))
 
 (defun math-convert-radix-digits (n &optional to-dec)
   (let ((key (cons n (cons to-dec calc-number-radix))))
@@ -811,8 +760,8 @@
 			  (cons (cons key (math-ceiling (if to-dec
 							    (math-mul n log)
 							  (math-div n log))))
-				math-radix-digits-cache)))))))
-)
+				math-radix-digits-cache))))))))
+
 (setq math-radix-digits-cache nil)
 
 (defun math-radix-float-power (n)
@@ -841,7 +790,8 @@
 							'(float 1 0)
 						      (math-float
 						       calc-number-radix))))))
-			       math-radix-float-cache)))))))
-)
+			       math-radix-float-cache))))))))
+
 (setq math-radix-float-cache-tag nil)
 
+;;; calc-bin.el ends here
