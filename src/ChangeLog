@@ -1,3 +1,7 @@
+2004-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_font_pattern): Fix previous change.
+
 2004-01-16  Miles Bader  <miles@gnu.ai.mit.edu>
 
 	* xdisp.c (Voverflow_newline_into_fringe)
