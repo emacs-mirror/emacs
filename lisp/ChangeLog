@@ -1,3 +1,13 @@
+2004-06-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-jump-to-buffer): Add support for filter
+	groups: if the user asks for a hidden buffer, open the
+	corresponding filter group to expose it.
+
+	* ibuffer.el (ibuffer-mode-map): Add key binding `M-g' to
+	`ibuffer-jump-to-buffer'.
+	(ibuffer-jump-offer-only-visible-buffers): New user option.
+
 2004-06-02  Juanma Barranquero  <lektu@terra.es>
 
 	* faces.el (frame-update-faces): Add empty docstring so the one
