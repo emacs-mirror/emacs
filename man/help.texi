@@ -25,11 +25,10 @@ help options, each with a brief description.  Before you type a help
 option, you can use @key{SPC} or @key{DEL} to scroll through the list.
 
   @kbd{C-h} or @key{F1} means ``help'' in various other contexts as
-well.  For example, in the middle of @code{query-replace}, it describes
-the options available for how to operate on the current match.  After a
-prefix key, it displays a list of the alternatives that can follow the
-prefix key.  (A few prefix keys don't support @kbd{C-h}, because they
-define other meanings for it, but they all support @key{F1}.)
+well.  After a prefix key, it displays a list of the alternatives that
+can follow the prefix key.  (A few prefix keys don't support
+@kbd{C-h}, because they define other meanings for it, but they all
+support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
 scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
@@ -51,9 +50,8 @@ be a regular expression (@pxref{Regexps}).  Browse the buffer that this
 command displays to find what you are looking for.  @xref{Apropos}.
 
 @item M-x apropos @key{RET} @var{topic} @key{RET}
-This works like @kbd{C-h a}, but it also searches for variables,
-in case the feature you are looking for is controlled by a variable
-rather than a command.  @xref{Apropos}.
+This works like @kbd{C-h a}, but it also searches for noninteractive
+functions and for variables.  @xref{Apropos}.
 
 @item M-x apropos-documentation @key{RET} @var{topic} @key{RET}
 This searches the @emph{documentation strings} (the built-in short
@@ -72,8 +70,8 @@ expression) in the @emph{text} of the manual rather than in its
 indices.
 
 @item C-h C-f
-This brings up the Emacs FAQ, where you can use the usual search
-commands (@pxref{Search}) to find the information.
+This brings up the Emacs FAQ.  You can use the Info commands
+to browse it.
 
 @item C-h p
 Finally, you can try looking up a suitable package using keywords
@@ -198,6 +196,13 @@ This is too big for the echo area, so a window is used for the display.
   @kbd{C-h c} and @kbd{C-h k} work for any sort of key sequences,
 including function keys and mouse events.
 
+@kindex C-h w
+@findex where-is
+  @kbd{C-h w @var{command} @key{RET}} tells you what keys are bound to
+@var{command}.  It displays a list of the keys in the echo area.  If it
+says the command is not on any key, you must use @kbd{M-x} to run it.
+@kbd{C-h w} runs the command @code{where-is}.
+
 @node Name Help
 @section Help by Command or Variable Name
 
@@ -217,15 +222,15 @@ displays the documentation of @code{auto-fill-mode}.  This is the only
 way to get the documentation of a command that is not bound to any key
 (one which you would normally run using @kbd{M-x}).
 
-  @kbd{C-h f} is also useful for Lisp functions that you are planning to
-use in a Lisp program.  For example, if you have just written the
-expression @code{(make-vector len)} and want to check that you are using
-@code{make-vector} properly, type @kbd{C-h f make-vector @key{RET}}.
-Because @kbd{C-h f} allows all function names, not just command names,
-you may find that some of your favorite abbreviations that work in
-@kbd{M-x} don't work in @kbd{C-h f}.  An abbreviation may be unique
-among command names yet fail to be unique when other function names are
-allowed.
+  @kbd{C-h f} is also useful for Lisp functions that you are planning
+to use in a Lisp program.  For example, if you have just written the
+expression @code{(make-vector len)} and want to check that you are
+using @code{make-vector} properly, type @kbd{C-h f make-vector
+@key{RET}}.  Because @kbd{C-h f} allows all function names, not just
+command names, you may find that some of your favorite completion
+abbreviations that work in @kbd{M-x} don't work in @kbd{C-h f}.  An
+abbreviation may be unique among command names, yet fail to be unique
+when other function names are allowed.
 
   The default function name for @kbd{C-h f} to describe, if you type
 just @key{RET}, is the name of the function called by the innermost Lisp
@@ -241,13 +246,6 @@ buffer as the default, that name must be defined as a Lisp function.  If
 that is all you want to know, just type @kbd{C-g} to cancel the @kbd{C-h
 f} command, then go on editing.
 
-@kindex C-h w
-@findex where-is
-  @kbd{C-h w @var{command} @key{RET}} tells you what keys are bound to
-@var{command}.  It displays a list of the keys in the echo area.  If it
-says the command is not on any key, you must use @kbd{M-x} to run it.
-@kbd{C-h w} runs the command @code{where-is}.
-
   @kbd{C-h v} (@code{describe-variable}) is like @kbd{C-h f} but describes
 Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
@@ -257,8 +255,9 @@ variable.  @xref{Variables}.@refill
 normally have hyperlinks to the Lisp definition, if you have the Lisp
 source files installed.  If you know Lisp, this provides the ultimate
 documentation.  If you don't know Lisp, you should learn it.  If you
-are treating Emacs as an object file, then you are just @emph{using}
-Emacs.  For real intimacy with Emacs, you must read the source code.
+are just @emph{using} Emacs, treating Emacs as an object (file), then
+you don't really love it.  For true intimacy with your editor, you
+need to read the source code.
 
 @node Apropos
 @section Apropos
@@ -278,11 +277,11 @@ example, it would say that you can invoke @code{find-file} by typing
 normally checks only commands (interactive functions); if you specify a
 prefix argument, it checks noninteractive functions as well.
 
-  Because @kbd{C-h a} looks only for functions whose names contain the
-string you specify, you must use ingenuity in choosing the
-string.  If you are looking for commands for killing backwards and
-@kbd{C-h a kill-backwards @key{RET}} doesn't reveal any, don't give up.
-Try just @kbd{kill}, or just @kbd{backwards}, or just @kbd{back}.  Be
+  Because @kbd{C-h a} looks only for commands whose names contain the
+string you specify, you must use ingenuity in choosing the string.  If
+you are looking for commands for killing backwards and @kbd{C-h a
+kill-backwards @key{RET}} doesn't reveal any, don't give up.  Try just
+@kbd{kill}, or just @kbd{backwards}, or just @kbd{back}.  Be
 persistent.  Also note that you can use a regular expression as the
 argument, for more flexibility (@pxref{Regexps}).
 
@@ -330,7 +329,7 @@ above all behave as if they had been given a prefix argument.
 
   If you want more information about a function definition, variable or
 symbol property listed in the Apropos buffer, you can click on it with
-@kbd{Mouse-2} or move there and type @key{RET}.
+@kbd{Mouse-1} or @kbd{Mouse-2}, or move there and type @key{RET}.
 
 @node Library Keywords
 @section Keyword Search for Lisp Libraries
@@ -421,16 +420,17 @@ Follow a cross reference at point.
 Move point forward to the next cross reference.
 @item S-@key{TAB}
 Move point back to the previous cross reference.
-@item Mouse-2
+@item Mouse-1
+@itemx Mouse-2
 Follow a cross reference that you click on.
 @end table
 
-  When a command name (@pxref{M-x,, Running Commands by Name}) or
+  When a function name (@pxref{M-x,, Running Commands by Name}) or
 variable name (@pxref{Variables}) appears in the documentation, it
-normally appears inside paired single-quotes.  You can click on the name
-with @kbd{Mouse-2}, or move point there and type @key{RET}, to view the
-documentation of that command or variable.  Use @kbd{C-c C-b} to retrace
-your steps.
+normally appears inside paired single-quotes.  You can click on the
+name with @kbd{Mouse-1} or @kbd{Mouse-2}, or move point there and type
+@key{RET}, to view the documentation of that command or variable.  Use
+@kbd{C-c C-b} to retrace your steps.
 
 @kindex @key{TAB} @r{(Help mode)}
 @findex help-next-ref
