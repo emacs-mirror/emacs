@@ -2205,9 +2205,10 @@ split_font_name (f, font, numeric_p)
     {
       char *p = xstrlwr (font->name) + 1;
 
-      for (; i < XLFD_LAST; ++i)
+      while (i < XLFD_LAST)
 	{
 	  font->fields[i] = p;
+	  ++i;
 
 	  /* Pixel and point size may be of the form `[....]'.  For
 	     BNF, see XLFD spec, chapter 4.  Negative values are
