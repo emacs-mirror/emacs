@@ -566,6 +566,8 @@ Please convert your programs to use the variable `baud-rate' directly."
 
 (defun make-local-hook (hook)
   "Make the hook HOOK local to the current buffer.
+The return value is HOOK.
+
 When a hook is local, its local and global values
 work in concert: running the hook actually runs all the hook
 functions listed in *either* the local value *or* the global value
@@ -586,7 +588,8 @@ Do not use `make-local-variable' to make a hook variable buffer-local."
       nil
     (or (boundp hook) (set hook nil))
     (make-local-variable hook)
-    (set hook (list t))))
+    (set hook (list t)))
+  hook)
 
 (defun add-hook (hook function &optional append local)
   "Add to the value of HOOK the function FUNCTION.
