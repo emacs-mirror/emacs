@@ -1,6 +1,6 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -526,35 +526,47 @@
 
 (defun zone-pgm-stress ()
   (goto-char (point-min))
-  (let (lines bg m-fg m-bg)
+  (let (lines bg mode-line-fg mode-line-bg mode-line-box)
     (while (< (point) (point-max))
       (let ((p (point)))
         (forward-line 1)
         (setq lines (cons (buffer-substring p (point)) lines))))
     (sit-for 5)
-    (when (display-color-p)
-      (setq bg (frame-parameter (selected-frame) 'background-color)
-            m-fg (face-foreground 'modeline)
-            m-bg (face-background 'modeline))
-      (set-face-foreground 'modeline bg)
-      (set-face-background 'modeline bg))
-    (let ((msg "Zoning... (zone-pgm-stress)"))
-      (while (not (string= msg ""))
-        (message (setq msg (substring msg 1)))
-        (sit-for 0.05)))
-    (while (not (input-pending-p))
-      (when (< 50 (random 100))
-        (goto-char (point-max))
-        (forward-line -1)
-        (let ((kill-whole-line t))
-          (kill-line))
-        (goto-char (point-min))
-        (insert (nth (random (length lines)) lines)))
-      (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
-      (sit-for 0.1))
-    (when (display-color-p)
-      (set-face-foreground 'modeline m-fg)
-      (set-face-background 'modeline m-bg))))
+    (unwind-protect
+	(progn
+	  (when (display-color-p)
+	    (setq bg (face-background 'default)
+		  mode-line-box (face-attribute 'mode-line :box)
+		  mode-line-fg (face-attribute 'mode-line :foreground)
+		  mode-line-bg (face-attribute 'mode-line :background))
+	    (set-face-attribute 'mode-line nil
+				:foreground bg
+				 :background bg
+				 :box nil))
+
+	  (let ((msg "Zoning... (zone-pgm-stress)"))
+	    (while (not (string= msg ""))
+	      (message (setq msg (substring msg 1)))
+	      (sit-for 0.05)))
+
+	  (while (not (input-pending-p))
+	    (when (< 50 (random 100))
+	      (goto-char (point-max))
+	      (forward-line -1)
+	      (unless (eobp)
+		(let ((kill-whole-line t))
+		  (kill-line)))
+	      (goto-char (point-min))
+	      (when lines
+		(insert (nth (random (1- (length lines))) lines))))
+	    (message (concat (make-string (random (- (frame-width) 5)) ? )
+			     "grrr"))
+	    (sit-for 0.1)))
+      (when mode-line-fg
+	(set-face-attribute 'mode-line nil
+			    :foreground mode-line-fg
+			    :background mode-line-bg
+			    :box mode-line-box)))))
 
 (provide 'zone)
 
