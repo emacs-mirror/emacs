@@ -983,7 +983,7 @@ This function preserves the position of point.")
 }
 
 #if 0
-DEFUN ("eval-current-buffer", Feval_current_buffer, Seval_current_buffer, 0, 1, "",
+XDEFUN ("eval-current-buffer", Feval_current_buffer, Seval_current_buffer, 0, 1, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass argument PRINTFLAG which controls printing of output:\n\
 nil means discard it; anything else is stream for print.\n\
