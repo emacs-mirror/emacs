@@ -550,12 +550,10 @@ and don't delete any header fields."
 
 ;;;###autoload
 (defun mail (&optional noerase to subject in-reply-to cc replybuffer actions)
-  "Edit a message to be sent.  Argument means resume editing (don't erase).
-Search for an existing mail buffer currently not in use and initialize it,
-or make a new one if all existing mail buffers are busy.
-With an argument, search for a busy existing mail buffer and re-select it.
+  "Edit a message to be sent.  Prefix arg means resume editing (don't erase).
+When this function returns, the buffer `*mail*' is selected.
+The value is t if the message was newly initialized; otherwise, nil.
 
-Returns with message buffer selected; value t if message freshly initialized.
 By default, the signature file `~/.signature' is inserted at the end;
 see the variable `mail-signature'.
 
@@ -589,47 +587,63 @@ The seventh argument ACTIONS is a list of actions to take
  when the message is sent, we apply FUNCTION to ARGS.
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
-  (let ((index 1)
-	buffer)
-    ;; If requested, look for a mail buffer that is modified and go to it.
-    (if noerase
-	(progn
-	  (while (and (setq buffer
-			    (get-buffer (if (= 1 index) "*mail*"
-					  (format "*mail*<%d>" index))))
-		      (not (buffer-modified-p buffer)))
-	    (setq index (1+ index)))
-	  (if buffer (switch-to-buffer buffer)
-	    ;; If none exists, start a new message.
-	    ;; This will never re-use an existing unmodified mail buffer
-	    ;; (since index is not 1 anymore).  Perhaps it should.
-	    (setq noerase nil))))
-    ;; Unless we found a modified message and are happy, start a new message.
-    (if (not noerase)
-	(progn
-	  ;; Look for existing unmodified mail buffer.
-	  (while (and (setq buffer
-			    (get-buffer (if (= 1 index) "*mail*"
-					  (format "*mail*<%d>" index))))
-		      (buffer-modified-p buffer))
-	    (setq index (1+ index)))
-	  ;; If none, make a new one.
-	  (or buffer
-	      (setq buffer (generate-new-buffer "*mail*")))
-	  ;; Go there and initialize it.
-	  (switch-to-buffer buffer)
-	  (erase-buffer)
-          (setq default-directory (expand-file-name "~/"))
-          (auto-save-mode auto-save-default)
-          (mail-mode)
-          (mail-setup to subject in-reply-to cc replybuffer actions)
-	  (if (and buffer-auto-save-file-name
-		   (file-exists-p buffer-auto-save-file-name))
-	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
-          t))))
-
-;;;###autoload
-(define-key ctl-x-map "m" 'mail)
+;;; This is commented out because I found it was confusing in practice.
+;;; It is easy enough to rename *mail* by hand with rename-buffer
+;;; if you want to have multiple mail buffers.
+;;; And then you can control which messages to save. --rms.
+;;;  (let ((index 1)
+;;;	buffer)
+;;;    ;; If requested, look for a mail buffer that is modified and go to it.
+;;;    (if noerase
+;;;	(progn
+;;;	  (while (and (setq buffer
+;;;			    (get-buffer (if (= 1 index) "*mail*"
+;;;					  (format "*mail*<%d>" index))))
+;;;		      (not (buffer-modified-p buffer)))
+;;;	    (setq index (1+ index)))
+;;;	  (if buffer (switch-to-buffer buffer)
+;;;	    ;; If none exists, start a new message.
+;;;	    ;; This will never re-use an existing unmodified mail buffer
+;;;	    ;; (since index is not 1 anymore).  Perhaps it should.
+;;;	    (setq noerase nil))))
+;;;    ;; Unless we found a modified message and are happy, start a new message.
+;;;    (if (not noerase)
+;;;	(progn
+;;;	  ;; Look for existing unmodified mail buffer.
+;;;	  (while (and (setq buffer
+;;;			    (get-buffer (if (= 1 index) "*mail*"
+;;;					  (format "*mail*<%d>" index))))
+;;;		      (buffer-modified-p buffer))
+;;;	    (setq index (1+ index)))
+;;;	  ;; If none, make a new one.
+;;;	  (or buffer
+;;;	      (setq buffer (generate-new-buffer "*mail*")))
+;;;	  ;; Go there and initialize it.
+;;;	  (switch-to-buffer buffer)
+;;;	  (erase-buffer)
+;;;          (setq default-directory (expand-file-name "~/"))
+;;;          (auto-save-mode auto-save-default)
+;;;          (mail-mode)
+;;;          (mail-setup to subject in-reply-to cc replybuffer actions)
+;;;	  (if (and buffer-auto-save-file-name
+;;;		   (file-exists-p buffer-auto-save-file-name))
+;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
+;;;          t))
+  (switch-to-buffer "*mail*")
+  (setq default-directory (expand-file-name "~/"))
+  (auto-save-mode auto-save-default)
+  (mail-mode)
+  (let (initialized)
+    (and (not noerase)
+	 (or (not (buffer-modified-p))
+	     (y-or-n-p "Unsent message being composed; erase it? "))
+	 (progn (erase-buffer)
+		(mail-setup to subject in-reply-to cc replybuffer actions)
+		(setq initialized t)))
+    (if (and buffer-auto-save-file-name
+	     (file-exists-p buffer-auto-save-file-name))
+	(message "Auto save file for draft message exists; consider M-x mail-recover"))
+    initialized))
 
 (defun mail-recover ()
   "Reread contents of current buffer from its last auto-save file."
@@ -662,6 +676,9 @@ The seventh argument ACTIONS is a list of actions to take
     (pop-to-buffer "*mail*"))
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
+
+;;;###autoload
+(define-key ctl-x-map "m" 'mail)
 
 ;;;###autoload
 (define-key ctl-x-4-map "m" 'mail-other-window)
