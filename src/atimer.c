@@ -44,6 +44,11 @@ Boston, MA 02111-1307, USA.  */
 
 static struct atimer *free_atimers;
 
+/* List of currently not running timers due to a call to
+   lock_atimer.  */
+
+static struct atimer *stopped_atimers;
+
 /* List of active atimers, sorted by expiration time.  The timer that
    will become ripe next is always at the front of this list.  */
 
@@ -94,6 +99,10 @@ start_atimer (type, time, fn, client_data)
      void *client_data;
 {
   struct atimer *t;
+
+  /* May not be called when some timers are stopped.  */
+  if (stopped_atimers)
+    abort ();
 
   /* Round TIME up to the next full second if we don't have
      itimers.  */
@@ -161,6 +170,10 @@ cancel_atimer (timer)
 {
   struct atimer *t, *prev;
 
+  /* May not be called when some timers are stopped.  */
+  if (stopped_atimers)
+    abort ();
+
   BLOCK_ATIMERS;
 
   /* See if TIMER is active.  */
@@ -185,12 +198,70 @@ cancel_atimer (timer)
 }
 
 
+/* Stop all timers except timer T.  T null means stop all timers.
+   This function may only be called when all timers are running.  Two
+   calls of this function in a row will lead to an abort.  You may not
+   call cancel_atimer or start_atimer while timers are stopped.  */
+
+void
+stop_other_atimers (t)
+     struct atimer *t;
+{
+  BLOCK_ATIMERS;
+  
+  if (stopped_atimers)
+    abort ();
+
+  if (t)
+    {
+      cancel_atimer (t);
+      if (free_atimers != t)
+	abort ();
+      free_atimers = free_atimers->next;
+      t->next = NULL;
+    }
+  
+  stopped_atimers = atimers;
+  atimers = t;
+  UNBLOCK_ATIMERS;
+}
+
+
+/* Run all timers again, if some have been stopped with a call to
+   stop_other_atimers.  */
+
+void
+run_all_atimers ()
+{
+  if (stopped_atimers)
+    {
+      struct atimer *t = atimers;
+      BLOCK_ATIMERS;
+      atimers = stopped_atimers;
+      stopped_atimers = NULL;
+      if (t)
+	schedule_atimer (t);
+      UNBLOCK_ATIMERS;
+    }
+}
+
+
+/* A version of run_all_timers suitable for a record_unwind_protect.  */
+
+Lisp_Object
+unwind_stop_other_atimers (dummy)
+     Lisp_Object dummy;
+{
+  run_all_atimers ();
+  return Qnil;
+}
+
+
 /* Arrange for a SIGALRM to arrive when the next timer is ripe.  */
 
 static void
 set_alarm ()
 {
-  
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time.  */
