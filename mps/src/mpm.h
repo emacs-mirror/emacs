@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.141) $
+ * $HopeName: MMsrc!mpm.h(trunk.142) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -339,12 +339,12 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
-extern AbstractPoolClass EnsureAbstractPoolClass(void);
-extern AbstractAllocFreePoolClass EnsureAbstractAllocFreePoolClass(void);
-extern AbstractBufferPoolClass EnsureAbstractBufferPoolClass(void);
-extern AbstractBufferPoolClass EnsureAbstractSegBufPoolClass(void);
-extern AbstractScanPoolClass EnsureAbstractScanPoolClass(void);
-extern AbstractCollectPoolClass EnsureAbstractCollectPoolClass(void);
+extern AbstractPoolClass AbstractPoolClassGet(void);
+extern AbstractAllocFreePoolClass AbstractAllocFreePoolClassGet(void);
+extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
+extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
+extern AbstractScanPoolClass AbstractScanPoolClassGet(void);
+extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
 
 /* DEFINE_POOL_CLASS
  * convenience macro -- see design.mps.protocol.int.define-special 
@@ -491,16 +491,16 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 /* Arena Interface -- see impl.c.arena */
 
 /* DEFINE_ARENA_CLASS
+ *
  * convenience macro -- see design.mps.protocol.int.define-special 
  */
-
 #define DEFINE_ARENA_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, ArenaClass, var)
 
 #define ARENA_SUPERCLASS(className) \
   ((ArenaClass)SUPERCLASS(className))
 
-extern AbstractArenaClass EnsureAbstractArenaClass(void);
+extern AbstractArenaClass AbstractArenaClassGet(void);
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
 extern void ArenaDestroy(Arena arena);
@@ -626,6 +626,8 @@ extern void ArenaFree(Addr base, Size size, Pool pool);
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 
+/* Locus interface */
+
 extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
 extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
@@ -633,6 +635,9 @@ extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 extern void LocusInit(Arena arena);
 extern void LocusFinish(Arena arena);
 extern Bool LocusCheck(Arena arena);
+
+
+/* Segment interface */
 
 extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
                     Size size, Pool pool, Bool withReservoirPermit, ...);
@@ -655,17 +660,18 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
-extern SegClass EnsureSegClass(void);
-extern SegClass EnsureGCSegClass(void);
+extern SegClass SegClassGet(void);
+extern SegClass GCSegClassGet(void);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
-/* DEFINE_SEG_CLASS
+/* DEFINE_SEG_CLASS -- define a segment class
+ *
  * convenience macro -- see design.mps.protocol.int.define-special 
  */
-
 #define DEFINE_SEG_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, SegClass, var)
+
 
 #define SEG_SUPERCLASS(className) \
   ((SegClass)SUPERCLASS(className))
@@ -770,7 +776,8 @@ extern FrameState BufferFrameState(Buffer buffer);
 extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
-/* DEFINE_BUFFER_CLASS
+/* DEFINE_BUFFER_CLASS -- define a buffer class
+ *
  * convenience macro -- see design.mps.protocol.int.define-special 
  */
 #define DEFINE_BUFFER_CLASS(className, var) \
@@ -780,9 +787,9 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
   ((BufferClass)SUPERCLASS(className))
 
 extern Bool BufferClassCheck(BufferClass class);
-extern BufferClass EnsureBufferClass(void);
-extern BufferClass EnsureSegBufClass(void);
-extern BufferClass EnsureRankBufClass(void);
+extern BufferClass BufferClassGet(void);
+extern BufferClass SegBufClassGet(void);
+extern BufferClass RankBufClassGet(void);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
@@ -975,7 +982,6 @@ extern void StackProbe(Size depth);
  * passed as part of a comma-expression so that its type is not
  * important.  This permits an expression of type void.
  */
-
 #if defined(DIAGNOSTICS)
 
 #define STATISTIC(gather) BEGIN (gather); END
