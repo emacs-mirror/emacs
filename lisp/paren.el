@@ -91,6 +91,9 @@ otherwise)."
   :group 'faces
   :group 'paren-showing)
 
+(defvar show-paren-highlight-openparen t
+  "*Non-nil turns on openparen highlighting when matching forward.")
+
 (defvar show-paren-idle-timer nil)
 
 ;;;###autoload
@@ -195,7 +198,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	  ;; If matching forward, and the openparen is unbalanced,
 	  ;; highlight the paren at point to indicate misbalance.
 	  ;; Otherwise, turn off any such highlighting.
-	  (if (and (= dir 1) (integerp pos))
+	  (if (and (not show-paren-highlight-openparen) (= dir 1) (integerp pos))
 	      (when (and show-paren-overlay-1
 			 (overlay-buffer show-paren-overlay-1))
 		(delete-overlay show-paren-overlay-1))
