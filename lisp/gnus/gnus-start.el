@@ -1385,7 +1385,9 @@ newsgroup."
 	 (condition-case ()
 	     (inline (gnus-request-group group dont-check method))
 	   ;;(error nil)
-	   (quit nil))
+	   (quit
+	    (message "Quit activating %s" group)
+	    nil))
 	 (setq active (gnus-parse-active))
 	 ;; If there are no articles in the group, the GROUP
 	 ;; command may have responded with the `(0 . 0)'.  We
@@ -1738,7 +1740,9 @@ newsgroup."
 	      (gnus-read-active-file-1 method force)
 	    ;; We catch C-g so that we can continue past servers
 	    ;; that do not respond.
-	    (quit nil)))))))
+	    (quit
+	     (message "Quit reading the active file")
+	     nil)))))))
 
 (defun gnus-read-active-file-1 (method force)
   (let (where mesg)
