@@ -1011,7 +1011,9 @@ update:
 	    continue;
 
 	  f = XFRAME (XCONS (tail)->car);
-	  if (FRAME_VISIBLE_P (f))
+
+	  if ((! FRAME_TERMCAP_P (f) || f == selected_frame)
+	      && FRAME_VISIBLE_P (f))
 	    {
 	      pause |= update_frame (f, 0, 0);
 	      if (!pause)
@@ -3271,6 +3273,74 @@ decode_mode_spec (w, c, maxwidth)
 
   switch (c)
     {
+    case '*':
+      if (!NILP (b->read_only))
+	return "%";
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
+	return "*";
+      return "-";
+
+    case '+':
+      /* This differs from %* only for a modified read-only buffer.  */
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
+	return "*";
+      if (!NILP (b->read_only))
+	return "%";
+      return "-";
+
+    case '&':
+      /* This differs from %* in ignoring read-only-ness.  */
+      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
+	return "*";
+      return "-";
+
+    case '%':
+      return "%";
+
+    case '[': 
+      {
+	int i;
+	char *p;
+
+	if (command_loop_level > 5)
+	  return "[[[... ";
+	p = decode_mode_spec_buf;
+	for (i = 0; i < command_loop_level; i++)
+	  *p++ = '[';
+	*p = 0;
+	return decode_mode_spec_buf;
+      }
+
+    case ']': 
+      {
+	int i;
+	char *p;
+
+	if (command_loop_level > 5)
+	  return " ...]]]";
+	p = decode_mode_spec_buf;
+	for (i = 0; i < command_loop_level; i++)
+	  *p++ = ']';
+	*p = 0;
+	return decode_mode_spec_buf;
+      }
+
+    case '-':
+      {
+	register char *p;
+	register int i;
+	
+	if (maxwidth < sizeof (lots_of_dashes))
+	  return lots_of_dashes;
+	else
+	  {
+	    for (p = decode_mode_spec_buf, i = maxwidth; i > 0; i--)
+	      *p++ = '-';
+	    *p = '\0';
+	  }
+	return decode_mode_spec_buf;
+      }
+
     case 'b': 
       obj = b->name;
 #if 0
@@ -3283,6 +3353,18 @@ decode_mode_spec (w, c, maxwidth)
 	}
 #endif
       break;
+
+    case 'c':
+      {
+	int col = current_column ();
+	XSETFASTINT (w->column_number_displayed, col);
+	sprintf (decode_mode_spec_buf, "%d", col);
+	return decode_mode_spec_buf;
+      }
+
+    case 'F':
+      /* %F displays the frame name.  */
+      return (char *) XSTRING (selected_frame->name)->data;
 
     case 'f': 
       obj = b->filename;
@@ -3298,14 +3380,6 @@ decode_mode_spec (w, c, maxwidth)
 	}
 #endif
       break;
-
-    case 'c':
-      {
-	int col = current_column ();
-	XSETFASTINT (w->column_number_displayed, col);
-	sprintf (decode_mode_spec_buf, "%d", col);
-	return decode_mode_spec_buf;
-      }
 
     case 'l':
       {
@@ -3403,44 +3477,6 @@ decode_mode_spec (w, c, maxwidth)
 	return " Narrow";
       break;
 
-    case '*':
-      if (!NILP (b->read_only))
-	return "%";
-      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
-	return "*";
-      return "-";
-
-    case '+':
-      /* This differs from %* only for a modified read-only buffer.  */
-      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
-	return "*";
-      if (!NILP (b->read_only))
-	return "%";
-      return "-";
-
-    case '&':
-      /* This differs from %* in ignoring read-only-ness.  */
-      if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
-	return "*";
-      return "-";
-
-    case 's':
-      /* status of process */
-      obj = Fget_buffer_process (w->buffer);
-      if (NILP (obj))
-	return "no process";
-#ifdef subprocesses
-      obj = Fsymbol_name (Fprocess_status (obj));
-#endif
-      break;
-
-    case 't':			/* indicate TEXT or BINARY */
-#ifdef MODE_LINE_BINARY_TEXT
-      return MODE_LINE_BINARY_TEXT (b);
-#else
-      return "T";
-#endif
-
     case 'p':
       {
 	int pos = marker_position (w->start);
@@ -3496,52 +3532,22 @@ decode_mode_spec (w, c, maxwidth)
 	  }
       }
 
-    case '%':
-      return "%";
+    case 's':
+      /* status of process */
+      obj = Fget_buffer_process (w->buffer);
+      if (NILP (obj))
+	return "no process";
+#ifdef subprocesses
+      obj = Fsymbol_name (Fprocess_status (obj));
+#endif
+      break;
 
-    case '[': 
-      {
-	int i;
-	char *p;
-
-	if (command_loop_level > 5)
-	  return "[[[... ";
-	p = decode_mode_spec_buf;
-	for (i = 0; i < command_loop_level; i++)
-	  *p++ = '[';
-	*p = 0;
-	return decode_mode_spec_buf;
-      }
-
-    case ']': 
-      {
-	int i;
-	char *p;
-
-	if (command_loop_level > 5)
-	  return " ...]]]";
-	p = decode_mode_spec_buf;
-	for (i = 0; i < command_loop_level; i++)
-	  *p++ = ']';
-	*p = 0;
-	return decode_mode_spec_buf;
-      }
-
-    case '-':
-      {
-	register char *p;
-	register int i;
-	
-	if (maxwidth < sizeof (lots_of_dashes))
-	  return lots_of_dashes;
-	else
-	  {
-	    for (p = decode_mode_spec_buf, i = maxwidth; i > 0; i--)
-	      *p++ = '-';
-	    *p = '\0';
-	  }
-	return decode_mode_spec_buf;
-      }
+    case 't':			/* indicate TEXT or BINARY */
+#ifdef MODE_LINE_BINARY_TEXT
+      return MODE_LINE_BINARY_TEXT (b);
+#else
+      return "T";
+#endif
     }
 
   if (STRINGP (obj))
