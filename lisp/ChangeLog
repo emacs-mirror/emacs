@@ -1,3 +1,9 @@
+2003-11-16  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-ls.el (eshell-ls-file): Instead of making the size
+	field in a long-listing always 8 characters, use `size-width',
+	which has already been computed.
+
 2003-11-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* subr.el (minor-mode-list): Add `hs-minor-mode'.
