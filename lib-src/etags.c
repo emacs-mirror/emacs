@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.15";
+char pot_etags_version[] = "@(#) pot revision number is 15.16";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -368,9 +368,10 @@ static void initbuffer __P((linebuffer *));
 static void process_file __P((char *, language *));
 static void find_entries __P((FILE *));
 static void free_tree __P((node *));
+static void free_fdesc __P((fdesc *));
 static void pfnote __P((char *, bool, char *, int, int, long));
 static void new_pfnote __P((char *, int, bool, char *, int, int, long));
-static void invalidate_nodes __P((fdesc *, node *));
+static void invalidate_nodes __P((fdesc *, node **));
 static void put_entries __P((node *));
 
 static char *concat __P((char *, char *, char *));
@@ -410,6 +411,7 @@ static char *dbp;		/* pointer to start of current tag */
 static const int invalidcharno = -1;
 
 static node *nodehead;		/* the head of the binary tree of tags */
+static node *last_node;		/* the last node created */
 
 static linebuffer lb;		/* the current line */
 
@@ -1531,19 +1533,44 @@ process_file (file, lang)
     pfatal (file);
 
   /* If not Ctags, and if this is not metasource and if it contained no #line
-     directives, we can write the tags and free curfdp an all nodes pointing to
-     it. */
+     directives, we can write the tags and free all nodes pointing to
+     curfdp. */
   if (!CTAGS
-      && curfdp == fdhead	/* no #line directives in this file */
+      && curfdp->usecharno	/* no #line directives in this file */
       && !curfdp->lang->metasource)
     {
-      /* Write tags for file curfdp->taggedfname. */
-      ;
+      node *np, *prev;
+
+      /* Look for the head of the sublist relative to this file.  See add_node
+	 for the structure of the node tree. */
+      prev = NULL;
+      for (np = nodehead; np != NULL; prev = np, np = np->left)
+	if (np->fdp == curfdp)
+	  break;
+
+      /* If we generated tags for this file, write and delete them. */
+      if (np != NULL)
+	{
+	  /* This is the head of the last sublist, if any.  The following
+	     instructions depend on this being true. */
+	  assert (np->left == NULL);
+
+	  assert (fdhead == curfdp);
+	  assert (last_node->fdp == curfdp);
+	  put_entries (np);	/* write tags for file curfdp->taggedfname */
+	  free_tree (np);	/* remove the written nodes */
+	  if (prev == NULL)
+	    nodehead = NULL;	/* no nodes left */
+	  else
+	    prev->left = NULL;	/* delete the pointer to the sublist */
+	}
     }
 
  cleanup:
   if (compressed_name) free (compressed_name);
   if (uncompressed_name) free (uncompressed_name);
+  last_node = NULL;
+  curfdp = NULL;
   return;
 }
 
@@ -1578,8 +1605,6 @@ init ()
  * This routine opens the specified file and calls the function
  * which finds the function and type definitions.
  */
-static node *last_node = NULL;
-
 static void
 find_entries (inf)
      FILE *inf;
@@ -1677,17 +1702,10 @@ find_entries (inf)
 		       badfdp->taggedfname, badfdp->infname);
 
 	    /* Delete the tags referring to badfdp. */
-	    invalidate_nodes (badfdp, nodehead);
+	    invalidate_nodes (badfdp, &nodehead);
 
 	    *fdpp = badfdp->next; /* remove the bad description from the list */
-
-	    /* Delete badfdp. */
-	    if (badfdp->infname != NULL) free (badfdp->infname);
-	    if (badfdp->infabsname != NULL) free (badfdp->infabsname);
-	    if (badfdp->infabsdir != NULL) free (badfdp->infabsdir);
-	    if (badfdp->taggedfname != NULL) free (badfdp->taggedfname);
-	    if (badfdp->prop != NULL) free (badfdp->prop);
-	    free (badfdp);
+	    free_fdesc (badfdp);
 	  }
 	else
 	  fdpp = &(*fdpp)->next; /* advance the list pointer */
@@ -1850,6 +1868,22 @@ free_tree (np)
 }
 
 /*
+ * free_fdesc ()
+ *	delete a file description
+ */
+static void
+free_fdesc (fdp)
+     register fdesc *fdp;
+{
+  if (fdp->infname != NULL) free (fdp->infname);
+  if (fdp->infabsname != NULL) free (fdp->infabsname);
+  if (fdp->infabsdir != NULL) free (fdp->infabsdir);
+  if (fdp->taggedfname != NULL) free (fdp->taggedfname);
+  if (fdp->prop != NULL) free (fdp->prop);
+  free (fdp);
+}
+
+/*
  * add_node ()
  *	Adds a node to the tree of nodes.  In etags mode, sort by file
  *  	name.  In ctags mode, sort by tag name.  Make no attempt at
@@ -1873,16 +1907,16 @@ add_node (np, cur_node_p)
     }
 
   if (!CTAGS)
+    /* Etags Mode */
     {
-      /* Etags Mode */
-      assert (last_node != NULL);
       /* For each file name, tags are in a linked sublist on the right
 	 pointer.  The first tags of different files are a linked list
 	 on the left pointer.  last_node points to the end of the last
 	 used sublist. */
-      if (last_node->fdp == np->fdp)
+      if (last_node != NULL && last_node->fdp == np->fdp)
 	{
 	  /* Let's use the same sublist as the last added node. */
+	  assert (last_node->right == NULL);
 	  last_node->right = np;
 	  last_node = np;
 	}
@@ -1896,7 +1930,8 @@ add_node (np, cur_node_p)
 	/* The head of this sublist is not good for us.  Let's try the
 	   next one. */
 	add_node (np, &cur_node->left);
-    }
+    } /* if ETAGS mode */
+
   else
     {
       /* Ctags Mode */
@@ -1930,28 +1965,44 @@ add_node (np, cur_node_p)
 
       /* Actually add the node */
       add_node (np, dif < 0 ? &cur_node->left : &cur_node->right);
-    }
+    } /* if CTAGS mode */
 }
 
 /*
  * invalidate_nodes ()
  *	Scan the node tree and invalidate all nodes pointing to the
- *	given file description.
+ *	given file description (CTAGS case) or free them (ETAGS case).
  */
 static void
-invalidate_nodes (badfdp, np)
+invalidate_nodes (badfdp, npp)
      fdesc *badfdp;
-     node *np;
+     node **npp;
 {
-  if (np->left != NULL)
-    invalidate_nodes (badfdp, np->left);
-  /* Memory leak here: if not CTAGS, in which case it would be quite
-     difficult, the node could be freed.  If CTAGS the node is part of a
-     binary tree, if not it is part of a list of lists. */
-  if (np->fdp == badfdp)
-    np-> valid = FALSE;
-  if (np->right != NULL)
-    invalidate_nodes (badfdp, np->right);
+  node *np = *npp;
+
+  if (np == NULL)
+    return;
+
+  if (CTAGS)
+    {
+      if (np->left != NULL)
+	invalidate_nodes (badfdp, &np->left);
+      if (np->fdp == badfdp)
+	np-> valid = FALSE;
+      if (np->right != NULL)
+	invalidate_nodes (badfdp, &np->right);
+    }
+  else
+    {
+      node **next = &np->left;
+      if (np->fdp == badfdp)
+	{
+	  *npp = *next;		/* detach the sublist from the list */
+	  np->left = NULL;	/* isolate it */
+	  free_tree (np);	/* free it */
+	}
+      invalidate_nodes (badfdp, next);
+    }
 }
 
 
@@ -6138,6 +6189,6 @@ xrealloc (ptr, size)
  * indent-tabs-mode: t
  * tab-width: 8
  * fill-column: 79
- * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc")
+ * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node")
  * End:
  */
