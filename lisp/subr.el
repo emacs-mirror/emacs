@@ -700,6 +700,7 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'sref 'aref)
 (make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "now always returns 1 (maintained for backward compatibility)." "20.4")
+(make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
