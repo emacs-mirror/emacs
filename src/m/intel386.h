@@ -118,10 +118,13 @@ NOTE-END */
 /* This is totally uncalibrated. */
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 
-#ifndef SOLARIS2_4
-/* j.w.hawtin@lut.ac.uk says Solaris 2.1 on the X86 needs -lkvm, and it 
-   already has FSCALE defined in a system header.  */
+/* J.W.Hawtin@lut.ac.uk say Solaris 2.4 as well as Solaris 2.1 on X86
+   requires -lkvm as well */
 #define LIBS_MACHINE -lkvm
+
+#ifndef SOLARIS2_4
+/* J.W.hawtin@lut.ac.uk says Solaris 2.1 on the X86 has FSCALE defined in a
+   system header. */
 
 #define HAVE_VFORK
 
