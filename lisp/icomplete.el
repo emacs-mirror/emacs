@@ -31,20 +31,21 @@
 ;; indicated within the minibuffer itself, with each successive
 ;; keystroke.
 
-;; See 'icomplete-completions' docstring for a description of the
+;; See `icomplete-completions' docstring for a description of the
 ;; icomplete display format.
 
 ;; See the `icomplete-minibuffer-setup-hook' docstring for a means to
 ;; customize icomplete setup for interoperation with other
 ;; minibuffer-oriented packages.
 
-;; To activate icomplete mode, simply load the package.  You can
-;; subsequently deactivate it by invoking the function icomplete-mode
-;; with a negative prefix-arg (C-U -1 ESC-x icomplete-mode).  Also,
-;; you can prevent activation of the mode during package load by
-;; first setting the variable `icomplete-mode' to nil.  Icompletion
-;; can be enabled any time after the package is loaded by invoking
-;; icomplete-mode without a prefix arg.
+;; To activate icomplete mode, simply add the following to .emacs:
+;; (icomplete-mode)
+;; You can subsequently deactivate it by invoking the function
+;; icomplete-mode with a negative prefix-arg (C-U -1 ESC-x
+;; icomplete-mode).  Also, you can prevent activation of the mode
+;; during package load by first setting the variable `icomplete-mode'
+;; to nil.  Icompletion can be enabled any time after the package is
+;; loaded by invoking icomplete-mode without a prefix arg.
 
 ;; This version of icomplete runs on Emacs 19.18 and later.  (It
 ;; depends on the incorporation of minibuffer-setup-hook.)  The elisp
@@ -55,7 +56,7 @@
 ;; package.  I particularly have to credit Michael Cook, who
 ;; implemented an incremental completion style in his 'iswitch'
 ;; functions that served as a model for icomplete.  Some other
-;; contributors: Noah Freidman (restructuring as minor mode), Colin
+;; contributors: Noah Friedman (restructuring as minor mode), Colin
 ;; Rafferty (lemacs reconciliation), Lars Lindberg, RMS, and others.
 
 ;; klm.
@@ -65,18 +66,47 @@
 ;;;_* Provide
 (provide 'icomplete)
 
-;;;_* User Customization variables
-(defvar icomplete-compute-delay .3
-  "*Completions-computation stall, used only with large-number
-completions - see `icomplete-delay-completions-threshold'.")
-(defvar icomplete-delay-completions-threshold 400
-  "*Pending-completions number over which to apply icomplete-compute-delay.")
-(defvar icomplete-max-delay-chars 3
-  "*Maximum number of initial chars to apply icomplete compute delay.")
 
-;;;_* Initialization
-;;;_  = icomplete-minibuffer-setup-hook
-(defvar icomplete-minibuffer-setup-hook nil
+(defgroup icomplete nil
+  "Show completions dynamically in minibuffer."
+  :prefix "icomplete-"
+  :group 'minibuffer)
+
+;;;_* User Customization variables
+(defcustom icomplete-mode nil
+  "*Non-nil enables incremental minibuffer completion.
+As text is typed into the minibuffer, prospective completions are indicated 
+in the minibuffer.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (icomplete-mode (if value 1 -1)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'icomplete
+  :require 'icomplete)
+
+(defcustom icomplete-compute-delay .3
+  "*Completions-computation stall, used only with large-number
+completions - see `icomplete-delay-completions-threshold'."
+  :type 'number
+  :group 'icomplete)
+
+(defcustom icomplete-delay-completions-threshold 400
+  "*Pending-completions number over which to apply icomplete-compute-delay."
+  :type 'integer
+  :group 'icomplete)
+
+(defcustom icomplete-max-delay-chars 3
+  "*Maximum number of initial chars to apply icomplete compute delay."
+  :type 'integer
+  :group 'icomplete)
+
+(defcustom icomplete-show-key-bindings t
+  "*If non-nil, show key bindings as well as completion for sole matches."
+  :type 'boolean
+  :group 'icomplete)
+
+(defcustom icomplete-minibuffer-setup-hook nil
   "*Icomplete-specific customization of minibuffer setup.
 
 This hook is run during minibuffer setup iff icomplete will be active.
@@ -90,12 +120,14 @@ with other packages.  For instance:
 	       \(setq resize-minibuffer-window-max-height 3))))
 
 will constrain rsz-mini to a maximum minibuffer height of 3 lines when
-icompletion is occurring.")
+icompletion is occurring."
+  :type 'hook
+  :group 'icomplete)
+
+
+;;;_* Initialization
 
 ;;;_ + Internal Variables
-;;;_  = icomplete-mode
-(defvar icomplete-mode t
-  "*Non-nil enables incremental minibuffer completion (see \\[icomplete-mode].")
 ;;;_  = icomplete-eoinput 1
 (defvar icomplete-eoinput 1
   "Point where minibuffer input ends and completion info begins.")
@@ -116,9 +148,6 @@ Is run in minibuffer after user input when `icomplete-mode' is non-nil.
 Use `icomplete-mode' function to set it up properly for incremental
 minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
-
-(defvar icomplete-show-key-bindings t
-  "*When non-nil, show key bindings as well as completion for sole matches.")
 
 (defun icomplete-get-keys (func-name)
   "Return strings naming keys bound to `func-name', or nil if none.
@@ -346,6 +375,9 @@ are exhibited within the square braces.)"
 			   (concat "," alternatives)
 			 alternatives)
 		       close-bracket-prospects)))))))
+
+(if icomplete-mode
+    (icomplete-mode 1))
 
 ;;;_* Local emacs vars.
 ;;;Local variables:
