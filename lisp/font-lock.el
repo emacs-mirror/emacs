@@ -2807,7 +2807,9 @@ See also `java-font-lock-extra-types'.")
 	   '("abstract" "const" "final" "synchronized" "transient" "static"
 	     ;; Anders Lindgren <andersl@andersl.com> says this has gone.
 	     ;; "threadsafe"
-	     "volatile" "public" "private" "protected" "native"))))
+	     "volatile" "public" "private" "protected" "native"
+	     ;; Carl Manning <caroma@ai.mit.edu> says this is new.
+	     "strictfp"))))
        )
  (setq java-font-lock-keywords-1
   (list
