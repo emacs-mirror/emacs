@@ -1093,8 +1093,9 @@ its last line.  It should match the regexp "\n\n(fn.*)\\'".
 ** New CCL functions `lookup-character' and `lookup-integer' access
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
-** The new function `minibufferp' returns non-nil if the current buffer
-is a minibuffer.
+** The new function `minibufferp' returns non-nil if its optional buffer
+argument is a minibuffer.  If the argument is omitted it defaults to
+the current buffer.
 
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
