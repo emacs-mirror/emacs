@@ -59,11 +59,12 @@ a non-nil value, TYPE is the image's type ")
 	  (when (>= (+ i 2) len)
 	    (throw 'jfif nil))
 	  (let ((nbytes (+ (lsh (aref data (+ i 1)) 8)
-			   (aref data (+ i 2)))))
-	    (when (= (aref data i) #xe0)
+			   (aref data (+ i 2))))
+		(code (aref data i)))
+	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
-	      (throw 'jfif (string-match "\\`\xe0..JFIF\0" 
-					 (substring data i (+ i 10)))))
+	      (throw 'jfif 
+		     (string-match "JFIF" (substring data i nbytes))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
