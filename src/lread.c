@@ -497,20 +497,20 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 }
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 2, 0,
-  "Read a character from the command input (keyboard or macro).\n\
-It is returned as a number.\n\
-If the user generates an event which is not a character (i.e. a mouse\n\
-click or function key event), `read-char' signals an error.  As an\n\
-exception, switch-frame events are put off until non-ASCII events can\n\
-be read.\n\
-If you want to read non-character events, or ignore them, call\n\
-`read-event' or `read-char-exclusive' instead.\n\
-\n\
-If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
-input method is turned on in the current buffer, that input method\n\
-is used for reading a character.")
-  (prompt, inherit_input_method)
+       doc: /* Read a character from the command input (keyboard or macro).
+It is returned as a number.
+If the user generates an event which is not a character (i.e. a mouse
+click or function key event), `read-char' signals an error.  As an
+exception, switch-frame events are put off until non-ASCII events can
+be read.
+If you want to read non-character events, or ignore them, call
+`read-event' or `read-char-exclusive' instead.
+
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.  */)
+     (prompt, inherit_input_method)
      Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
@@ -519,12 +519,12 @@ is used for reading a character.")
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 2, 0,
-  "Read an event object from the input stream.\n\
-If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
-input method is turned on in the current buffer, that input method\n\
-is used for reading a character.")
-  (prompt, inherit_input_method)
+       doc: /* Read an event object from the input stream.
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.  */)
+     (prompt, inherit_input_method)
      Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
@@ -533,14 +533,14 @@ is used for reading a character.")
 }
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 2, 0,
-  "Read a character from the command input (keyboard or macro).\n\
-It is returned as a number.  Non-character events are ignored.\n\
-\n\
-If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
-input method is turned on in the current buffer, that input method\n\
-is used for reading a character.")
-  (prompt, inherit_input_method)
+       doc: /* Read a character from the command input (keyboard or macro).
+It is returned as a number.  Non-character events are ignored.
+
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.  */)
+     (prompt, inherit_input_method)
      Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
@@ -549,8 +549,8 @@ is used for reading a character.")
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
-  "Don't use this yourself.")
-  ()
+       doc: /* Don't use this yourself.  */)
+     ()
 {
   register Lisp_Object val;
   XSETINT (val, getc (instream));
@@ -608,22 +608,22 @@ record_load_unwind (old)
 
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
-  "Execute a file of Lisp code named FILE.\n\
-First try FILE with `.elc' appended, then try with `.el',\n\
- then try FILE unmodified.  Environment variable references in FILE\n\
- are replaced with their values by calling `substitute-in-file-name'.\n\
-This function searches the directories in `load-path'.\n\
-If optional second arg NOERROR is non-nil,\n\
- report no error if FILE doesn't exist.\n\
-Print messages at start and end of loading unless\n\
- optional third arg NOMESSAGE is non-nil.\n\
-If optional fourth arg NOSUFFIX is non-nil, don't try adding\n\
- suffixes `.elc' or `.el' to the specified name FILE.\n\
-If optional fifth arg MUST-SUFFIX is non-nil, insist on\n\
- the suffix `.elc' or `.el'; don't accept just FILE unless\n\
- it ends in one of those suffixes or includes a directory name.\n\
-Return t if file exists.")
-  (file, noerror, nomessage, nosuffix, must_suffix)
+       doc: /* Execute a file of Lisp code named FILE.
+First try FILE with `.elc' appended, then try with `.el',
+ then try FILE unmodified.  Environment variable references in FILE
+ are replaced with their values by calling `substitute-in-file-name'.
+This function searches the directories in `load-path'.
+If optional second arg NOERROR is non-nil,
+ report no error if FILE doesn't exist.
+Print messages at start and end of loading unless
+ optional third arg NOMESSAGE is non-nil.
+If optional fourth arg NOSUFFIX is non-nil, don't try adding
+ suffixes `.elc' or `.el' to the specified name FILE.
+If optional fifth arg MUST-SUFFIX is non-nil, insist on
+ the suffix `.elc' or `.el'; don't accept just FILE unless
+ it ends in one of those suffixes or includes a directory name.
+Return t if file exists.  */)
+     (file, noerror, nomessage, nosuffix, must_suffix)
      Lisp_Object file, noerror, nomessage, nosuffix, must_suffix;
 {
   register FILE *stream;
@@ -1291,22 +1291,22 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
 }
 
 DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 5, "",
-  "Execute the current buffer as Lisp code.\n\
-Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
-BUFFER is the buffer to evaluate (nil means use current buffer).\n\
-PRINTFLAG controls printing of output:\n\
-nil means discard it; anything else is stream for print.\n\
-\n\
-If the optional third argument FILENAME is non-nil,\n\
-it specifies the file name to use for `load-history'.\n\
-The optional fourth argument UNIBYTE specifies `load-convert-to-unibyte'\n\
-for this invocation.\n\
-\n\
-The optional fifth argument DO-ALLOW-PRINT, if not-nil, specifies that\n\
-`print' and related functions should work normally even if PRINTFLAG is nil.\n\
-\n\
-This function preserves the position of point.")
-  (buffer, printflag, filename, unibyte, do_allow_print)
+       doc: /* Execute the current buffer as Lisp code.
+Programs can pass two arguments, BUFFER and PRINTFLAG.
+BUFFER is the buffer to evaluate (nil means use current buffer).
+PRINTFLAG controls printing of output:
+nil means discard it; anything else is stream for print.
+
+If the optional third argument FILENAME is non-nil,
+it specifies the file name to use for `load-history'.
+The optional fourth argument UNIBYTE specifies `load-convert-to-unibyte'
+for this invocation.
+
+The optional fifth argument DO-ALLOW-PRINT, if not-nil, specifies that
+`print' and related functions should work normally even if PRINTFLAG is nil.
+
+This function preserves the position of point.  */)
+     (buffer, printflag, filename, unibyte, do_allow_print)
      Lisp_Object buffer, printflag, filename, unibyte, do_allow_print;
 {
   int count = specpdl_ptr - specpdl;
@@ -1336,48 +1336,19 @@ This function preserves the position of point.")
   return Qnil;
 }
 
-#if 0
-XDEFUN ("eval-current-buffer", Feval_current_buffer, Seval_current_buffer, 0, 1, "",
-  "Execute the current buffer as Lisp code.\n\
-Programs can pass argument PRINTFLAG which controls printing of output:\n\
-nil means discard it; anything else is stream for print.\n\
-\n\
-If there is no error, point does not move.  If there is an error,\n\
-point remains at the end of the last character read from the buffer.")
-  (printflag)
-     Lisp_Object printflag;
-{
-  int count = specpdl_ptr - specpdl;
-  Lisp_Object tem, cbuf;
-
-  cbuf = Fcurrent_buffer ()
-
-  if (NILP (printflag))
-    tem = Qsymbolp;
-  else
-    tem = printflag;
-  specbind (Qstandard_output, tem);
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
-  SET_PT (BEGV);
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
-		!NILP (printflag), Qnil, Qnil);
-  return unbind_to (count, Qnil);
-}
-#endif
-
 DEFUN ("eval-region", Feval_region, Seval_region, 2, 4, "r",
-  "Execute the region as Lisp code.\n\
-When called from programs, expects two arguments,\n\
-giving starting and ending indices in the current buffer\n\
-of the text to be executed.\n\
-Programs can pass third argument PRINTFLAG which controls output:\n\
-nil means discard it; anything else is stream for printing it.\n\
-Also the fourth argument READ-FUNCTION, if non-nil, is used\n\
-instead of `read' to read each expression.  It gets one argument\n\
-which is the input stream for reading characters.\n\
-\n\
-This function does not move point.")
-  (start, end, printflag, read_function)
+       doc: /* Execute the region as Lisp code.
+When called from programs, expects two arguments,
+giving starting and ending indices in the current buffer
+of the text to be executed.
+Programs can pass third argument PRINTFLAG which controls output:
+nil means discard it; anything else is stream for printing it.
+Also the fourth argument READ-FUNCTION, if non-nil, is used
+instead of `read' to read each expression.  It gets one argument
+which is the input stream for reading characters.
+
+This function does not move point.  */)
+     (start, end, printflag, read_function)
      Lisp_Object start, end, printflag, read_function;
 {
   int count = specpdl_ptr - specpdl;
@@ -1406,17 +1377,17 @@ This function does not move point.")
 
 
 DEFUN ("read", Fread, Sread, 0, 1, 0,
-  "Read one Lisp expression as text from STREAM, return as Lisp object.\n\
-If STREAM is nil, use the value of `standard-input' (which see).\n\
-STREAM or the value of `standard-input' may be:\n\
- a buffer (read from point and advance it)\n\
- a marker (read from where it points and advance it)\n\
- a function (call it with no arguments for each character,\n\
-     call it with a char as argument to push a char back)\n\
- a string (takes text from string, starting at the beginning)\n\
- t (read text line using minibuffer and use it, or read from\n\
-    standard input in batch mode).")
-  (stream)
+       doc: /* Read one Lisp expression as text from STREAM, return as Lisp object.
+If STREAM is nil, use the value of `standard-input' (which see).
+STREAM or the value of `standard-input' may be:
+ a buffer (read from point and advance it)
+ a marker (read from where it points and advance it)
+ a function (call it with no arguments for each character,
+     call it with a char as argument to push a char back)
+ a string (takes text from string, starting at the beginning)
+ t (read text line using minibuffer and use it, or read from
+    standard input in batch mode).  */)
+     (stream)
      Lisp_Object stream;
 {
   extern Lisp_Object Fread_minibuffer ();
@@ -1440,11 +1411,11 @@ STREAM or the value of `standard-input' may be:\n\
 }
 
 DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
-  "Read one Lisp expression which is represented as text by STRING.\n\
-Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).\n\
-START and END optionally delimit a substring of STRING from which to read;\n\
- they default to 0 and (length STRING) respectively.")
-  (string, start, end)
+       doc: /* Read one Lisp expression which is represented as text by STRING.
+Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
+START and END optionally delimit a substring of STRING from which to read;
+ they default to 0 and (length STRING) respectively.  */)
+     (string, start, end)
      Lisp_Object string, start, end;
 {
   int startval, endval;
@@ -2926,11 +2897,11 @@ make_symbol (str)
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
-  "Return the canonical symbol whose name is STRING.\n\
-If there is none, one is created by this function and returned.\n\
-A second optional argument specifies the obarray to use;\n\
-it defaults to the value of `obarray'.")
-  (string, obarray)
+       doc: /* Return the canonical symbol whose name is STRING.
+If there is none, one is created by this function and returned.
+A second optional argument specifies the obarray to use;
+it defaults to the value of `obarray'.  */)
+     (string, obarray)
      Lisp_Object string, obarray;
 {
   register Lisp_Object tem, sym, *ptr;
@@ -2972,12 +2943,12 @@ it defaults to the value of `obarray'.")
 }
 
 DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
-  "Return the canonical symbol named NAME, or nil if none exists.\n\
-NAME may be a string or a symbol.  If it is a symbol, that exact\n\
-symbol is searched for.\n\
-A second optional argument specifies the obarray to use;\n\
-it defaults to the value of `obarray'.")
-  (name, obarray)
+       doc: /* Return the canonical symbol named NAME, or nil if none exists.
+NAME may be a string or a symbol.  If it is a symbol, that exact
+symbol is searched for.
+A second optional argument specifies the obarray to use;
+it defaults to the value of `obarray'.  */)
+     (name, obarray)
      Lisp_Object name, obarray;
 {
   register Lisp_Object tem;
@@ -3002,12 +2973,12 @@ it defaults to the value of `obarray'.")
 }
 
 DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
-  "Delete the symbol named NAME, if any, from OBARRAY.\n\
-The value is t if a symbol was found and deleted, nil otherwise.\n\
-NAME may be a string or a symbol.  If it is a symbol, that symbol\n\
-is deleted, if it belongs to OBARRAY--no other symbol is deleted.\n\
-OBARRAY defaults to the value of the variable `obarray'.")
-  (name, obarray)
+       doc: /* Delete the symbol named NAME, if any, from OBARRAY.
+The value is t if a symbol was found and deleted, nil otherwise.
+NAME may be a string or a symbol.  If it is a symbol, that symbol
+is deleted, if it belongs to OBARRAY--no other symbol is deleted.
+OBARRAY defaults to the value of the variable `obarray'.  */)
+     (name, obarray)
      Lisp_Object name, obarray;
 {
   register Lisp_Object string, tem;
@@ -3164,9 +3135,9 @@ mapatoms_1 (sym, function)
 }
 
 DEFUN ("mapatoms", Fmapatoms, Smapatoms, 1, 2, 0,
-  "Call FUNCTION on every symbol in OBARRAY.\n\
-OBARRAY defaults to the value of `obarray'.")
-  (function, obarray)
+       doc: /* Call FUNCTION on every symbol in OBARRAY.
+OBARRAY defaults to the value of `obarray'.  */)
+     (function, obarray)
      Lisp_Object function, obarray;
 {
   if (NILP (obarray)) obarray = Vobarray;
@@ -3246,7 +3217,7 @@ defalias (sname, string)
 
 /* Define an "integer variable"; a symbol whose value is forwarded
    to a C variable of type int.  Sample call: */
-  /* DEFVAR_INT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
+ /* DEFVAR_INT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
 void
 defvar_int (namestring, address)
      char *namestring;
@@ -3560,29 +3531,29 @@ syms_of_lread ()
   defsubr (&Smapatoms);
 
   DEFVAR_LISP ("obarray", &Vobarray,
-    "Symbol table for use by `intern' and `read'.\n\
-It is a vector whose length ought to be prime for best results.\n\
-The vector's contents don't make sense if examined from Lisp programs;\n\
-to find all the symbols in an obarray, use `mapatoms'.");
+	       doc: /* Symbol table for use by `intern' and `read'.
+It is a vector whose length ought to be prime for best results.
+The vector's contents don't make sense if examined from Lisp programs;
+to find all the symbols in an obarray, use `mapatoms'.  */);
 
   DEFVAR_LISP ("values", &Vvalues,
-    "List of values of all expressions which were read, evaluated and printed.\n\
-Order is reverse chronological.");
+	       doc: /* List of values of all expressions which were read, evaluated and printed.
+Order is reverse chronological.  */);
 
   DEFVAR_LISP ("standard-input", &Vstandard_input,
-    "Stream for read to get input from.\n\
-See documentation of `read' for possible values.");
+	       doc: /* Stream for read to get input from.
+See documentation of `read' for possible values.  */);
   Vstandard_input = Qt;
 
   DEFVAR_LISP ("load-path", &Vload_path,
-    "*List of directories to search for files to load.\n\
-Each element is a string (directory name) or nil (try default directory).\n\
-Initialized based on EMACSLOADPATH environment variable, if any,\n\
-otherwise to default specified by file `epaths.h' when Emacs was built.");
+	       doc: /* *List of directories to search for files to load.
+Each element is a string (directory name) or nil (try default directory).
+Initialized based on EMACSLOADPATH environment variable, if any,
+otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 
   DEFVAR_LISP ("load-suffixes", &Vload_suffixes,
-    "*List of suffixes to try for files to load.\n\
-This list should not include the empty string.");
+	       doc: /* *List of suffixes to try for files to load.
+This list should not include the empty string.  */);
   Vload_suffixes = Fcons (build_string (".elc"),
 			  Fcons (build_string (".el"), Qnil));
   /* We don't use empty_string because it's not initialized yet.  */
@@ -3590,106 +3561,107 @@ This list should not include the empty string.");
   staticpro (&default_suffixes);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
-    "Non-nil iff inside of `load'.");
+	       doc: /* Non-nil iff inside of `load'.  */);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
-    "An alist of expressions to be evalled when particular files are loaded.\n\
-Each element looks like (FILENAME FORMS...).\n\
-When `load' is run and the file-name argument is FILENAME,\n\
-the FORMS in the corresponding element are executed at the end of loading.\n\n\
-FILENAME must match exactly!  Normally FILENAME is the name of a library,\n\
-with no directory specified, since that is how `load' is normally called.\n\
-An error in FORMS does not undo the load,\n\
-but does prevent execution of the rest of the FORMS.\n\
-FILENAME can also be a symbol (a feature) and FORMS are then executed\n\
-when the corresponding call to `provide' is made.");
+	       doc: /* An alist of expressions to be evalled when particular files are loaded.
+Each element looks like (FILENAME FORMS...).
+When `load' is run and the file-name argument is FILENAME,
+the FORMS in the corresponding element are executed at the end of loading.
+
+FILENAME must match exactly!  Normally FILENAME is the name of a library,
+with no directory specified, since that is how `load' is normally called.
+An error in FORMS does not undo the load,
+but does prevent execution of the rest of the FORMS.
+FILENAME can also be a symbol (a feature) and FORMS are then executed
+when the corresponding call to `provide' is made.  */);
   Vafter_load_alist = Qnil;
 
   DEFVAR_LISP ("load-history", &Vload_history,
-    "Alist mapping source file names to symbols and features.\n\
-Each alist element is a list that starts with a file name,\n\
-except for one element (optional) that starts with nil and describes\n\
-definitions evaluated from buffers not visiting files.\n\
-The remaining elements of each list are symbols defined as functions\n\
-or variables, and cons cells `(provide . FEATURE)', `(require . FEATURE)',\n\
-and `(autoload . SYMBOL)'.");
+	       doc: /* Alist mapping source file names to symbols and features.
+Each alist element is a list that starts with a file name,
+except for one element (optional) that starts with nil and describes
+definitions evaluated from buffers not visiting files.
+The remaining elements of each list are symbols defined as functions
+or variables, and cons cells `(provide . FEATURE)', `(require . FEATURE)',
+and `(autoload . SYMBOL)'.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,
-    "Full name of file being loaded by `load'.");
+	       doc: /* Full name of file being loaded by `load'.  */);
   Vload_file_name = Qnil;
 
   DEFVAR_LISP ("user-init-file", &Vuser_init_file,
-    "File name, including directory, of user's initialization file.\n\
-If the file loaded had extension `.elc' and there was a corresponding `.el'\n\
-file, this variable contains the name of the .el file, suitable for use\n\
-by functions like `custom-save-all' which edit the init file.");
+	       doc: /* File name, including directory, of user's initialization file.
+If the file loaded had extension `.elc' and there was a corresponding `.el'
+file, this variable contains the name of the .el file, suitable for use
+by functions like `custom-save-all' which edit the init file.  */);
   Vuser_init_file = Qnil;
 
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
-    "Used for internal purposes by `load'.");
+	       doc: /* Used for internal purposes by `load'.  */);
   Vcurrent_load_list = Qnil;
 
   DEFVAR_LISP ("load-read-function", &Vload_read_function,
-    "Function used by `load' and `eval-region' for reading expressions.\n\
-The default is nil, which means use the function `read'.");
+	       doc: /* Function used by `load' and `eval-region' for reading expressions.
+The default is nil, which means use the function `read'.  */);
   Vload_read_function = Qnil;
 
   DEFVAR_LISP ("load-source-file-function", &Vload_source_file_function,
-    "Function called in `load' for loading an Emacs lisp source file.\n\
-This function is for doing code conversion before reading the source file.\n\
-If nil, loading is done without any code conversion.\n\
-Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where\n\
- FULLNAME is the full name of FILE.\n\
-See `load' for the meaning of the remaining arguments.");
+	       doc: /* Function called in `load' for loading an Emacs lisp source file.
+This function is for doing code conversion before reading the source file.
+If nil, loading is done without any code conversion.
+Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
+ FULLNAME is the full name of FILE.
+See `load' for the meaning of the remaining arguments.  */);
   Vload_source_file_function = Qnil;
 
   DEFVAR_BOOL ("load-force-doc-strings", &load_force_doc_strings,
-     "Non-nil means `load' should force-load all dynamic doc strings.\n\
-This is useful when the file being loaded is a temporary copy.");
+	       doc: /* Non-nil means `load' should force-load all dynamic doc strings.
+This is useful when the file being loaded is a temporary copy.  */);
   load_force_doc_strings = 0;
 
   DEFVAR_BOOL ("load-convert-to-unibyte", &load_convert_to_unibyte,
-     "Non-nil means `read' converts strings to unibyte whenever possible.\n\
-This is normally bound by `load' and `eval-buffer' to control `read',\n\
-and is not meant for users to change.");
+	       doc: /* Non-nil means `read' converts strings to unibyte whenever possible.
+This is normally bound by `load' and `eval-buffer' to control `read',
+and is not meant for users to change.  */);
   load_convert_to_unibyte = 0;
 
   DEFVAR_LISP ("source-directory", &Vsource_directory,
-     "Directory in which Emacs sources were found when Emacs was built.\n\
-You cannot count on them to still be there!");
+	       doc: /* Directory in which Emacs sources were found when Emacs was built.
+You cannot count on them to still be there!  */);
   Vsource_directory
     = Fexpand_file_name (build_string ("../"),
 			 Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH)));
 
   DEFVAR_LISP ("preloaded-file-list", &Vpreloaded_file_list,
-     "List of files that were preloaded (when dumping Emacs).");
+	       doc: /* List of files that were preloaded (when dumping Emacs).  */);
   Vpreloaded_file_list = Qnil;
 
   DEFVAR_LISP ("byte-boolean-vars", &Vbyte_boolean_vars,
-     "List of all DEFVAR_BOOL variables, used by the byte code optimizer.");
+	       doc: /* List of all DEFVAR_BOOL variables, used by the byte code optimizer.  */);
   Vbyte_boolean_vars = Qnil;
 
   DEFVAR_BOOL ("load-dangerous-libraries", &load_dangerous_libraries,
-     "Non-nil means load dangerous compiled Lisp files.\n\
-Some versions of XEmacs use different byte codes than Emacs.  These\n\
-incompatible byte codes can make Emacs crash when it tries to execute\n\
-them.");
+	       doc: /* Non-nil means load dangerous compiled Lisp files.
+Some versions of XEmacs use different byte codes than Emacs.  These
+incompatible byte codes can make Emacs crash when it tries to execute
+them.  */);
   load_dangerous_libraries = 0;
 
   DEFVAR_LISP ("bytecomp-version-regexp", &Vbytecomp_version_regexp,
-     "Regular expression matching safe to load compiled Lisp files.\n\
-When Emacs loads a compiled Lisp file, it reads the first 512 bytes\n\
-from the file, and matches them against this regular expression.\n\
-When the regular expression matches, the file is considered to be safe\n\
-to load.  See also `load-dangerous-libraries'.");
+	       doc: /* Regular expression matching safe to load compiled Lisp files.
+When Emacs loads a compiled Lisp file, it reads the first 512 bytes
+from the file, and matches them against this regular expression.
+When the regular expression matches, the file is considered to be safe
+to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   DEFVAR_LISP ("recursive-load-depth-limit", &Vrecursive_load_depth_limit,
-    "Limit for depth of recursive loads.\n\
-Value should be either an integer > 0 specifying the limit, or nil for\n\
-no limit.");
+	       doc: /* Limit for depth of recursive loads.
+Value should be either an integer > 0 specifying the limit, or nil for
+no limit.  */);
   Vrecursive_load_depth_limit = make_number (50);
 
   /* Vsource_directory was initialized in init_lread.  */
