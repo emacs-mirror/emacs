@@ -141,6 +141,8 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setq default-directory (abbreviate-file-name default-directory))
     (unwind-protect
 	(command-line)
+      ;; Run the site-start library if it exists.
+      (load "site-start" t t)
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
