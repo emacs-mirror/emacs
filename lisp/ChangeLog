@@ -1,3 +1,8 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* env.el (substitute-env-vars): Don't quote argument to `rx';
+	it's a macro.
+
 2001-10-28  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-start.el (recursive-load-depth-limit): Added.
