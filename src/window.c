@@ -2707,6 +2707,8 @@ Fset_window_buffer_unwind (obuf)
   return Qnil;
 }
 
+EXFUN (Fset_window_fringes, 4);
+EXFUN (Fset_window_scroll_bars, 4);
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
    means it's allowed to run hooks.  See make_frame for a case where
@@ -2805,7 +2807,7 @@ display margins, fringe widths, and scroll bar settings are maintained;
 the default is to reset these from BUFFER's local settings or the frame
 defaults.  */)
      (window, buffer, keep_margins)
-     register Lisp_Object window, buffer;
+     register Lisp_Object window, buffer, keep_margins;
 {
   register Lisp_Object tem;
   register struct window *w = decode_window (window);
