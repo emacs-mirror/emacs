@@ -1,10 +1,10 @@
-;;; mule-cmds.el --- Commands for mulitilingual environment
+;;; mule-cmds.el --- commands for mulitilingual environment
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
-;; Keywords: mule, multilingual
+;; Keywords: mule, multilingual, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -1651,10 +1653,7 @@ of buffer-file-coding-system set by this function."
 (defvar locale-translation-file-name nil
   "File name for the system's file of locale-name aliases, or nil if none.")
 
-;; The following definitions might as well be marked as constants and
-;; purecopied, since they're normally used on startup, and probably
-;; should reflect the facilities of the base Emacs.
-(defconst locale-language-names
+(defvar locale-language-names
   (purecopy
    '(
     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
@@ -1738,8 +1737,8 @@ of buffer-file-coding-system set by this function."
     ("lb" . "Latin-1") ; Luxemburgish
     ; ln Lingala
     ("lo" . "Lao") ; Laothian
-    ("lt" . "Latin-4") ; Lithuanian
-    ("lv" . "Latin-4") ; Latvian, Lettish
+    ("lt" . "Lithuanian")
+    ("lv" . "Latvian") ; Latvian, Lettish
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
     ("mk" . "Latin-5") ; Macedonian
