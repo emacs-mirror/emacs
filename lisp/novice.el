@@ -62,14 +62,15 @@ If nil, the feature is disabled, i.e., all commands work normally.")
        ;; Print any special message saying why the command is disabled.
        (if (stringp (get this-command 'disabled))
 	   (princ (get this-command 'disabled)))
-       (princ (or (condition-case ()
-		      (documentation this-command)
-		    (error nil))
-		  "<< not documented >>"))
        ;; Keep only the first paragraph of the documentation.
        (save-excursion
 	 (set-buffer "*Help*")
-	 (goto-char (point-min))
+	 (goto-char (point-max))
+	 (save-excursion
+	   (princ (or (condition-case ()
+			  (documentation this-command)
+			(error nil))
+		      "<< not documented >>")))
 	 (if (search-forward "\n\n" nil t)
 	     (delete-region (1- (point)) (point-max))
 	   (goto-char (point-max))))
