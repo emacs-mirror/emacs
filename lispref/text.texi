@@ -1208,6 +1208,18 @@ Here's how you might undo the change:
 (put-text-property @var{beg} @var{end} @var{property} @var{value})
 @end example
 
+@item (apply @var{funname} . @var{args})
+This kind of element records a change that can be undone by evaluating
+(@code{apply} @var{funname} @var{args}).
+
+@item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
+This kind of element records a change that can be undone by evaluating
+(@code{apply} @var{funname} @var{args}).  The integer values @var{beg}
+and @var{end} is buffer positions of the range affected by this change
+and @var{delta} is an integer value which is the number of bytes added
+or deleted in that range by this change.  This kind of element
+supports undo in an active region
+
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
