@@ -3501,15 +3501,9 @@ actually used.")
 
       if (NILP (Vcoding_system_for_read)
 	  && NILP (current_buffer->enable_multibyte_characters))
-	{
-	  /* We must suppress all text conversion except for end-of-line
-	     conversion.  */
-	  int eol_type;
-
-	  eol_type = coding.eol_type;
-	  setup_coding_system (Qraw_text, &coding);
-	  coding.eol_type = eol_type;
-	}
+	/* We must suppress all text conversion except for end-of-line
+	   conversion.  */
+	setup_raw_text_coding_system (&coding);
 
       coding_system_decided = 1;
     }
@@ -4023,15 +4017,9 @@ actually used.")
 
 	  if (NILP (Vcoding_system_for_read)
 	      && NILP (current_buffer->enable_multibyte_characters))
-	    {
-	      /* We must suppress all text conversion except for
-		 end-of-line conversion.  */
-	      int eol_type;
-
-	      eol_type = coding.eol_type;
-	      setup_coding_system (Qraw_text, &coding);
-	      coding.eol_type = eol_type;
-	    }
+	    /* We must suppress all text conversion except for
+	       end-of-line conversion.  */
+	    setup_raw_text_coding_system (&coding);
 	}
 
       if (CODING_MAY_REQUIRE_DECODING (&coding))
