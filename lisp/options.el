@@ -35,7 +35,8 @@
 
 ;;;###autoload
 (defun list-options ()
-  "Display a list of Emacs user options, with values and documentation."
+  "Display a list of Emacs user options, with values and documentation.
+It is now better to use Customize instead."
   (interactive)
   (with-output-to-temp-buffer "*List Options*"
     (let (vars)
