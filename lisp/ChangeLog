@@ -1,3 +1,8 @@
+2000-12-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-internal-1): Make sure the first line of
+	the region is also re-indented.
+
 2000-12-22  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
 	* comint.el (comint-password-prompt-regexp): Support CVS.
@@ -15,16 +20,16 @@
 2000-08-22  Emmanuel Briot  <briot@gnat.com>
 
 	* xml.el (top level comment): Updated to reflect the fact that
-	white spaces are relevant in the XML file
+	white spaces are relevant in the XML file.
 	(xml-parse-file): Do not kill an existing Emacs buffer if the file
 	to parse was already edited. This allows for on-the-fly analysis
-	of XML files
+	of XML files.
 	(xml-parse-tag): Check that the casing is the same in the start
 	tag and end tag, since XML is case-sensitive.  Allows for spaces
 	in the end tag, after the name of the tag.
 	(xml-parse-attlist): Allow for the character '-' in the name of
 	attributes, as in the standard http-equiv attribute Do not save
-	the properties in the XML tree, since they are not relevant
+	the properties in the XML tree, since they are not relevant.
 
 2000-12-21  Stefan Monnier  <monnier@cs.yale.edu>
 
