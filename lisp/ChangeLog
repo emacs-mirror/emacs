@@ -1,3 +1,7 @@
+2000-12-03  Andreas Schwab  <schwab@suse.de>
+
+	* type-break.el (type-break): Don't make parent of itself.
+
 2000-12-03  Miles Bader  <miles@gnu.org>
 
 	* simple.el (delete-trailing-whitespace): Don't delete newlines too.
