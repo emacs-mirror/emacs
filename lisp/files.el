@@ -255,7 +255,7 @@ Not actually set up until the first time you you use it.")
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."
-  (setq dir (expand-file-name dir))
+  (setq dir (abbreviate-file-name (expand-file-name dir)))
   (if (not (eq system-type 'vax-vms))
       (setq dir (file-name-as-directory dir)))
   (if (not (file-directory-p dir))
