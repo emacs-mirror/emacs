@@ -442,7 +442,7 @@ With numeric argument display information on correspondingly older changes."
   "Display the Emacs Frequently Asked Questions (FAQ) file."
   (interactive)
 ;;;  (find-file-read-only (expand-file-name "FAQ" data-directory))
-  (info "(emacs-faq)"))
+  (info "(efaq)"))
 
 (defun view-emacs-problems ()
   "Display info on known problems with Emacs and possible workarounds."
