@@ -22,10 +22,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* On 4.3 these lose if they come after xterm.h.  */
 /* On HP-UX 8.0 signal.h loses if it comes after config.h.  */
 /* Putting these at the beginning seems to be standard for other .c files.  */
-#include <stdio.h>
 #include <signal.h>
 
 #include <config.h>
+
+#include <stdio.h>
 
 /* Need syssignal.h for various externs and definitions that may be required
    by some configurations for calls to signal later in this source file.  */
@@ -3446,8 +3447,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      {
 			/* This is just so we only give real data once
 			   for a single Emacs process.  */
-			if (event.xclient.window
-			    == FRAME_X_WINDOW (selected_frame))
+			if (x_top_window_to_frame (event.xclient.window)
+			    == selected_frame)
 			  XSetCommand (x_current_display,
 				       event.xclient.window,
 				       initial_argv, initial_argc);
