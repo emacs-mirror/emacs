@@ -56,7 +56,15 @@ Setting this variable does not affect existing IELM runs.
 You can give the IELM prompt more highly customized read-only
 type properties, by setting this option to nil, and then setting
 `ielm-prompt', outside of Custom, to a string with the desired
-text properties."
+text properties.
+
+Interrupting the IELM process with \\<ielm-map>\\[comint-interrupt-subjob],
+and then restarting it using \\[ielm], makes the then current
+default value affect _new_ prompts.  However, executing \\[ielm]
+does not have this effect on *ielm* buffers with a running process.
+For IELM buffers that are not called *ielm*, you can execute
+\\[inferior-emacs-lisp-mode] in that IELM buffer to update the value,
+for new prompts.  This works even if the buffer has a running process."
   :type 'boolean
   :group 'ielm
   :version "21.4")
@@ -64,10 +72,20 @@ text properties."
 (defcustom ielm-prompt "ELISP> "
   "Prompt used in IELM.
 Setting the default value does not affect existing IELM runs.
-The command `inferior-emacs-lisp-mode' converts this into a
-buffer-local variable in IELM buffers.  Do not try to set the
-buffer-local value yourself in any way, unless you really know
-what you are doing."
+`inferior-emacs-lisp-mode' converts this into a buffer-local
+variable in IELM buffers.  The buffer-local value is meant for
+internal use by IELM.  Do not try to set the buffer-local value
+yourself in any way, unless you really know what you are doing.
+
+Interrupting the IELM process with \\<ielm-map>\\[comint-interrupt-subjob],
+and then restarting it using \\[ielm], makes the then current
+_default_ value affect _new_ prompts.  Unless the new prompt
+differs only in text properties from the old one, IELM will no
+longer recognize the old prompts.  However, executing \\[ielm]
+does not update the prompt of an *ielm* buffer with a running process.
+For IELM buffers that are not called *ielm*, you can execute
+\\[inferior-emacs-lisp-mode] in that IELM buffer to update the value,
+for new prompts.  This works even if the buffer has a running process."
   :type 'string
   :group 'ielm)
 
@@ -547,13 +565,13 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   "Interactively evaluate Emacs Lisp expressions.
 Switches to the buffer `*ielm*', or creates it if it does not exist."
   (interactive)
-  (if (comint-check-proc "*ielm*")
-      nil
-    (save-excursion
-      (set-buffer (get-buffer-create "*ielm*"))
-      (inferior-emacs-lisp-mode)))
-  (pop-to-buffer "*ielm*")
-  (goto-char (point-max)))
+  (let (old-point)
+    (unless (comint-check-proc "*ielm*")
+      (with-current-buffer (get-buffer-create "*ielm*")
+	(unless (eq (buffer-size) 0) (setq old-point (point)))
+	(inferior-emacs-lisp-mode)))
+    (pop-to-buffer "*ielm*")
+    (when old-point (push-mark old-point))))
 
 (provide 'ielm)
 
