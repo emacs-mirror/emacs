@@ -1,4 +1,24 @@
+2003-09-11  Dave Love  <fx@gnu.org>
+
+	* international/mule-util.el
+	(detect-coding-with-language-environment): Doc fix.
+
+	* composite.el: Doc fixes.
+	(auto-compose-chars): Use functionp, not fboundp.
+
+	* international/mule-diag.el (list-charset-chars): Set buffer file
+	coding system.
+
+	* progmodes/cap-words.el (capitalized-words-mode): Add autoload
+	cookie.  Doc fix.
+
 2003-09-10  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (list-charset-chars): Set buffer file
+	coding system.
+
+	* progmodes/cap-words.el (capitalized-words-mode): Add autoload
+	cookie.  Doc fix.
 
 	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function): 
 	* progmodes/sh-script.el (sh-font-lock-syntactic-face-function): 
