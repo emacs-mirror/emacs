@@ -432,7 +432,7 @@ Return value is \(begin end name positive-p), or nil if none was found."
       (delete-char 1)))
 
 (defun enriched-decode-foreground (from to &optional color)
-  (if (and color (display-color-p) (facemenu-get-face face))
+  (if (and color (display-color-p))
       (list from to 'face (cons ':foreground color))
     (if (null color)
 	(message "Warning: no color specified for <x-color>")
@@ -440,7 +440,7 @@ Return value is \(begin end name positive-p), or nil if none was found."
     nil))
 
 (defun enriched-decode-background (from to &optional color)
-  (if (and color (display-color-p) (facemenu-get-face face))
+  (if (and color (display-color-p))
       (list from to 'face (cons ':background color))
     (if (null color)
 	(message "Warning: no color specified for <x-bg-color>")
