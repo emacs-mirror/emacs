@@ -6615,8 +6615,9 @@ Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
   
   DEFVAR_LISP ("window-system", &Vwindow_system,
-	       doc: /* A symbol naming the window-system under which Emacs is running
-\(such as `x'), or nil if emacs is running on an ordinary terminal.  */);
+	       doc: /* Name of window system that Emacs is displaying through.
+The value is a symbol--for instance, `x' for X windows.
+The value is nil if Emacs is using a text-only terminal.  */);
   
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
 	       doc: /* The version number of the window system in use.
