@@ -1995,7 +1995,7 @@ x_set_font (f, arg, oldval)
   if (EQ (result, Qnil))
     error ("Font `%s' is not defined", XSTRING (arg)->data);
   else if (EQ (result, Qt))
-    error ("The characters of the given font have varying widths");
+    error ("The default fontset can't be used for a frame font");
   else if (STRINGP (result))
     {
       if (STRINGP (fontset_name))
