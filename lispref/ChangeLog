@@ -1,3 +1,16 @@
+2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* positions.texi (Text Lines): Added missing end defun.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* positions.texi (Text Lines): Add line-number-at-pos.
+
+2004-02-06  John Paul Wallington  <jpw@gnu.org>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	mouse-2 invokes button, not down-mouse-1.
+
 2004-02-04  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Sync with Makefile.in changes.

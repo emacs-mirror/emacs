@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 2001
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 01, 2004
 ;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1488,13 +1488,11 @@ It returns t if it got any new messages."
 			 ;; print out a message on number of spam messages found:
 			 (if (and rmail-use-spam-filter (> rsf-number-of-spam 0))
 			     (if (= 1 new-messages)
-				 (format ", and found to be a spam message"
-					 rsf-number-of-spam)
+				 ", and found to be a spam message"
 			       (if (> rsf-number-of-spam 1)
 				   (format ", %d of which found to be spam messages"
 					   rsf-number-of-spam)
-				 (format ", one of which found to be a spam message"
-					 rsf-number-of-spam)))
+				 ", one of which found to be a spam message"))
 			   ""))
 		(if (and rmail-use-spam-filter (> rsf-number-of-spam 0))
 		    (progn (if rmail-spam-filter-beep (beep t))

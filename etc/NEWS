@@ -283,7 +283,7 @@ or when the frame is resized.
 ** New functions frame-current-scroll-bars and window-current-scroll-bars.
 
 These functions return the current locations of the vertical and
-horisontal scroll bars in a frame or window.
+horizontal scroll bars in a frame or window.
 
 ---
 ** Emacs now supports drag and drop for X.  Dropping a file on a window
@@ -973,7 +973,7 @@ attempt to construct a unique auto-save name (e.g. for remote files).
 +++
 ** Diary sexp entries can have custom marking in the calendar.
 Diary sexp functions which only apply to certain days (such as
-`diary-block' or `diary-cyclic' now take an optional parameter MARK,
+`diary-block' or `diary-cyclic') now take an optional parameter MARK,
 which is the name of a face or a single-character string indicating
 how to highlight the day in the calendar display.  Specifying a
 single-character string as @var{mark} places the character next to the
@@ -1801,6 +1801,11 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** New function `line-number-at-pos' returns line number of current
+line in current buffer, or if optional buffer position is given, line
+number of corresponding line in current buffer.
 
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters

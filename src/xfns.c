@@ -774,7 +774,6 @@ x_create_bitmap_mask (f, id)
   unsigned long x, y, xp, xm, yp, ym;
   GC gc;
 
-  int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   if (!(id > 0))
@@ -1596,7 +1595,7 @@ x_set_menu_bar_lines (f, value, oldval)
      Lisp_Object value, oldval;
 {
   int nlines;
-#ifndef USE_X_TOOLKIT
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   int olines = FRAME_MENU_BAR_LINES (f);
 #endif
 
@@ -9493,7 +9492,7 @@ FRAME.  Default is to change on the edit X window.
 
 Value is VALUE.  */)
      (prop, value, frame, type, format, outer_p)
-     Lisp_Object frame, prop, value, outer_p;
+     Lisp_Object prop, value, frame, type, format, outer_p;
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -9501,7 +9500,6 @@ Value is VALUE.  */)
   int element_format = 8;
   unsigned char *data;
   int nelements;
-  Lisp_Object cons;
   Window w;
 
   CHECK_STRING (prop);
@@ -10728,7 +10726,6 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   char *cdef_file;
-  char *cprompt;
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
   CHECK_STRING (prompt);

@@ -274,8 +274,14 @@ compile-after-backup: backup-compiled-files compile-always
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
-recompile: doit
+recompile: doit progmodes/cc-mode.elc
 	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
+
+# CC Mode uses a compile time macro system which causes a compile time
+# dependency in cc-mode.elc on the macros in cc-langs.el and the
+# version string in cc-defs.el.
+progmodes/cc-mode.elc: progmodes/cc-mode.el progmodes/cc-langs.el progmodes/cc-defs.el
+	$(EMACS) $(EMACSOPT) -f batch-byte-compile progmodes/cc-mode.el
 
 # Prepare a bootstrap in the lisp subdirectory.
 #

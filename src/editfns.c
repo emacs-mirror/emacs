@@ -1138,7 +1138,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
        doc: /* Return character in current buffer at position POS.
-POS is an integer or a marker.
+POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
      (pos)
      Lisp_Object pos;
@@ -1171,7 +1171,7 @@ If POS is out of range, the value is nil.  */)
 
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
        doc: /* Return character in current buffer preceding position POS.
-POS is an integer or a marker.
+POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
      (pos)
      Lisp_Object pos;

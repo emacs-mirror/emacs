@@ -1,6 +1,6 @@
 ;;; grep.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 2002
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 02, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -216,7 +216,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 ;; Note: the character class after the optional drive letter does not
 ;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
-  '(("\\([a-zA-Z]?:?[^:(\t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("\\([a-zA-Z]?:?.+?\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-program

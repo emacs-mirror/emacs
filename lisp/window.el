@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002
+;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -188,13 +188,11 @@ even if it is inactive."
 (defun window-safely-shrinkable-p (&optional window)
   "Non-nil if the WINDOW can be shrunk without shrinking other windows.
 If WINDOW is nil or omitted, it defaults to the currently selected window."
-  (save-selected-window
-    (when window (select-window window))
-    (or (and (not (eq window (frame-first-window)))
-	     (= (car (window-edges))
-		(car (window-edges (previous-window)))))
-	(= (car (window-edges))
-	   (car (window-edges (next-window)))))))
+  (with-selected-window (or window (selected-window))
+    (let ((edges (window-edges)))
+      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
+	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
+
 
 (defun balance-windows ()
   "Make all visible windows the same height (approximately)."

@@ -187,6 +187,147 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-extract): Fix for the case that a file doesn't
+	have end-of-line.
+
+2004-02-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Makefile.in: Added extra dependencies in the recompile target
+	needed to cope with the compile time macro expansions in CC Mode.
+
+2004-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (no-fringe-bitmap, undef-fringe-bitmap)
+	(left-truncation-fringe-bitmap, right-truncation-fringe-bitmap)
+	(up-arrow-fringe-bitmap, down-arrow-fringe-bitmap)
+	(continued-line-fringe-bitmap, continuation-line-fringe-bitmap)
+	(overlay-arrow-fringe-bitmap, top-left-angle-fringe-bitmap)
+	(top-right-angle-fringe-bitmap, bottom-left-angle-fringe-bitmap)
+	(bottom-right-angle-fringe-bitmap, left-bracket-fringe-bitmap)
+	(right-bracket-fringe-bitmap, filled-box-cursor-fringe-bitmap)
+	(hollow-box-cursor-fringe-bitmap, hollow-square-fringe-bitmap)
+	(bar-cursor-fringe-bitmap, hbar-cursor-fringe-bitmap)
+	(empty-line-fringe-bitmap): Define standard fringe bitmaps id's.
+
+2004-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window-safely-shrinkable-p): Don't change the buffer-list.
+	Don't allow shrink if there's a window on our right.
+
+	* progmodes/prolog.el (prolog-program-name): Use gprolog if available.
+	(prolog-mode-syntax-table, prolog-mode-abbrev-table, prolog-mode-map):
+	Bring together declaration and initialization.
+	(prolog-mode-variables): Don't set the syntax table.
+	Don't set paragraph-start and comment-indent-function.
+	Add /*..*/ to the comment regexps.
+	(prolog-mode-commands): Remove.  Do it during init of prolog-mode-map.
+	(prolog-mode-map): Don't bind TAB.
+	(prolog-mode): Set the syntax table.
+	(prolog-comment-indent): Remove.
+	(inferior-prolog-mode-map): Initialize in the declaration.
+	(inferior-prolog-mode-syntax-table)
+	(inferior-prolog-mode-abbrev-table): New vars.
+	(inferior-prolog-mode): Derive from comint-mode.
+	(run-prolog): Avoid switch-to-buffer which can fail in dedicated and
+	minibuffer windows.
+
+	* progmodes/grep.el (grep-regexp-alist): Allow :, \t and (
+	in file names, as long as it is unabmiguous.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/reftex-toc.el
+	(reftex-toc-load-all-files-for-promotion): Remove useless use of
+	format.  Doc fix.
+
+	* textmodes/refer.el (refer-find-entry-internal): Remove extra
+	format string arguments.
+
+	* tar-mode.el (tar-parse-octal-integer-safe): Add missing format
+	string argument.
+
+	* progmodes/xscheme.el (verify-xscheme-buffer): Fix format strings.
+
+	* play/zone.el (zone-call): Fix format string.
+
+	* net/webjump.el (webjump-builtin): Add missing format string argument.
+
+	* midnight.el (midnight-delay-set): Remove extra format string argument.
+
+	* mail/rmail.el (rmail-get-new-mail): Remove useless use of format.
+
+	* hexl.el (hexl-insert-char): Add missing format string argument.
+
+	* format.el (format-decode): Fix format string.
+
+	* emulation/vi.el (vi-mode): Remove extra format string argument.
+	(vi-repeat-last-search): Likewise.
+	(vi-reverse-last-search): Likewise.
+	(vi-goto-mark): Likewise.
+	(vi-reverse-last-find-char): Likewise.
+	(vi-repeat-last-find-char): Likewise.
+	(vi-locate-def): Likewise.
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): Remove useless use of format.
+
+	* ediff-util.el (ediff-toggle-read-only): Remove extra format
+	string argument.
+	(ediff-toggle-regexp-match): Likewise.
+
+	* dired-aux.el (dired-do-query-replace-regexp): Add missing
+	format string argument.
+
+	* calc/calc-map.el (calc-get-operator): Remove extra format
+	string argument.
+
+	* calc/calc-forms.el (calc-convert-time-zones): Fix format string.
+
+	* calc/calc-ext.el (calc-do-prefix-help): Remove extra format
+	string argument.
+
+	* eshell/esh-mode.el (eshell-send-invisible): Fix format string.
+
+	* eshell/em-hist.el (eshell-hist-word-reference): Fix format string.
+
+	* emulation/viper-ex.el (ex-mark): Remove extra format string argument.
+
+	* emacs-lisp/cl-macs.el (defstruct): Remove extra format string arg.
+	(cl-struct-setf-expander): Likewise.
+
+	* vc.el (with-vc-file): Fix unsafe uses of error.
+	(vc-cancel-version): Likewise.
+
+2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>  (tiny change)
+
+	* progmodes/gud.el (gud-jdb-marker-filter): Add period as optional
+	thousands separator; fixes <class>:<line-number> regexp for
+	non-english locales.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (view-mode-enable): Revert previous change.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-number-at-pos): Rename from line-at-pos.
+	Uses changed (what-line and vc-annotate-warp-version).
+
+2004-02-06  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (view-mode-enable): Add view-mode-map to
+	minor-mode-overriding-map-alist.
+
+2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-get-local-file-name): Fix byte compiler warning
+
+2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-fill-paragraph): Call fill-paragraph
+	with point inside rather than after the paragraph.
+
 2004-02-04  Sam Steingold  <sds@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods):
@@ -215,6 +356,13 @@
 	(dired-dnd-handle-file): New functions for drag and drop support.
 	(dired-mode): Initialize drag and drop if x-dnd present.
 
+2004-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode-map, cperl-do-auto-fill)
+	(cperl-menu): Use fill-paragraph, not cperl-fill-paragraph.
+	(cperl-mode): Set fill-paragraph-function.
+	(cperl-fill-paragraph): Make it non-interactive.
+
 2004-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* diff-mode.el (diff-mode-shared-map): Bind q to `quit-window'.
@@ -227,8 +375,7 @@
 
 2004-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/executable.el (executable-command-find-posix-p): Doc
-	fix.
+	* progmodes/executable.el (executable-command-find-posix-p): Doc fix.
 
 2004-02-01  Stephen Eglen  <stephen@gnu.org>
 

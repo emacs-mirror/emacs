@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
-;;; Copyright (C) 1998 Free Software Foundation, Inc.
+;;; Copyright (C) 1998, 2004 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@usa.net>
 ;; Maintainer: Sam Steingold <sds@usa.net>
@@ -215,7 +215,7 @@ the time when it is run.")
 Sets the first argument SYMB (which must be symbol `midnight-delay')
 to its second argument TM."
   (assert (eq symb 'midnight-delay) t
-          "Illegal argument to `midnight-delay-set': `%s'" symb)
+          "Illegal argument to `midnight-delay-set': `%s'")
   (set symb tm)
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer

@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -1262,7 +1262,7 @@ calc-kill calc-kill-region calc-yank))))
       (if key
 	  (if msgs
 	      (message "%s: %s: %c-" group (car msgs) key)
-	    (message "%s: (none)  %c-" group (car msgs) key))
+	    (message "%s: (none)  %c-" group key))
 	(message "%s: %s" group (car msgs))))
     (and key (calc-unread-command key))))
 

@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (c) 1994, 1995, 1997, 1999 Free Software Foundation
+;; Copyright (c) 1994, 1995, 1997, 1999, 2004 Free Software Foundation
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -287,7 +287,7 @@ For most purposes, consider using `format-decode-region' instead."
 	    (let ((do format) f)
 	      (while do
 		(or (setq f (assq (car do) format-alist))
-		    (error "Unknown format" (car do)))
+		    (error "Unknown format %s" (car do)))
 		;; Decode:
 		(if (nth 3 f)
 		    (setq end (format-decode-run-method (nth 3 f) begin end)))

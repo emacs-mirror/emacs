@@ -1,5 +1,5 @@
 ;;; gnus-score.el --- scoring code for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
@@ -616,7 +616,7 @@ used as score."
 	      (gnus-score-insert-help "Match permanence" char-to-perm 2)))
 
 	  (gnus-score-kill-help-buffer)
-	  (if mimic (message "%c %c %c" prefix hchar tchar pchar)
+	  (if mimic (message "%c %c %c %c" prefix hchar tchar pchar)
 	    (message ""))
 	  (unless (setq temporary (cadr (assq pchar char-to-perm)))
 	    ;; Deal with der(r)ided superannuated paradigms.

@@ -571,7 +571,7 @@ XMENU_OBJ = xmenu.o
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o fringe.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -1075,6 +1075,7 @@ filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h charset.h fontset.h \
    msdos.h dosfns.h dispextern.h $(config_h)
+fringe.o: fringe.c dispextern.h frame.h window.h buffer.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h charset.h frame.h \
    keyboard.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)

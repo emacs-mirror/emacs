@@ -698,13 +698,13 @@ w32_draw_fringe_bitmap (w, row, p)
   else
     w32_clip_to_row (w, row, hdc);
 
-  if (p->bx >= 0)
+  if (p->bx >= 0 !p->overlay_p)
     {
       w32_fill_area (f, hdc, face->background,
 		     p->bx, p->by, p->nx, p->ny);
     }
 
-  if (p->which != NO_FRINGE_BITMAP)
+  if (p->which)
     {
       HBITMAP pixmap = fringe_bmp[p->which];
       HDC compat_hdc;
@@ -717,9 +717,37 @@ w32_draw_fringe_bitmap (w, row, p)
       SetTextColor (hdc, face->background);
       SetBkColor (hdc, face->foreground);
 
+#if 0  /* TODO: fringe overlay_p and cursor_p */
+      SetBkColor (hdc, (p->cursor_p
+			? (p->overlay_p ? face->background
+			   : f->output_data.w32->cursor_pixel)
+			: face->foreground));
+
+      if (p->overlay_p)
+	{
+	  clipmask = XCreatePixmapFromBitmapData (display, 
+						  FRAME_X_DISPLAY_INFO (f)->root_window,
+						  bits, p->wd, p->h, 
+						  1, 0, 1);
+	  gcv.clip_mask = clipmask;
+	  gcv.clip_x_origin = p->x;
+	  gcv.clip_y_origin = p->y; 
+	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+	}
+#endif
+
       BitBlt (hdc, p->x, p->y, p->wd, p->h,
 	      compat_hdc, 0, p->dh,
 	      SRCCOPY);
+
+#if 0  /* TODO: fringe overlay_p and cursor_p */
+      if (p->overlay_p)
+	{
+	  gcv.clip_mask = (Pixmap) 0;
+	  XChangeGC (display, gc, GCClipMask, &gcv);
+	  XFreePixmap (display, clipmask);
+	}
+#endif
 
       SelectObject (compat_hdc, horig_obj);
       DeleteDC (compat_hdc);
@@ -730,6 +758,32 @@ w32_draw_fringe_bitmap (w, row, p)
 
   release_frame_dc (f, hdc);
 }
+
+static void
+w32_define_fringe_bitmap (which, bits, h, wd)
+     int which;
+     unsigned char *bits;
+     int h, wd;
+{
+  unsigned short *w32bits
+    = (unsigned short *)alloca (h * sizeof (unsigned short));
+  unsigned short *wb = w32bits;
+  int j;
+
+  for (j = 0; j < h; j++)
+    *wb++ = (unsigned short)*bits++;
+  fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, w32bits);
+}
+
+static void
+w32_destroy_fringe_bitmap (which)
+     int which;
+{
+  if (fringe_bmp[which])
+    DeleteObject (fringe_bmp[which]);
+  fringe_bmp[which] = 0;
+}
+
 
 
 /* This is called when starting Emacs and when restarting after
@@ -6221,32 +6275,7 @@ w32_term_init (display_name, xrm_option, resource_name)
      horizontally reflected compared to how they appear on X, so we
      need to bitswap and convert to unsigned shorts before creating
      the bitmaps.  */
-  {
-    int i, j;
-
-    for (i = NO_FRINGE_BITMAP + 1; i < MAX_FRINGE_BITMAPS; i++)
-      {
-	int h = fringe_bitmaps[i].height;
-	int wd = fringe_bitmaps[i].width;
-	unsigned short *w32bits
-	  = (unsigned short *)alloca (h * sizeof (unsigned short));
-	unsigned short *wb = w32bits;
-	unsigned char *bits = fringe_bitmaps[i].bits;
-	for (j = 0; j < h; j++)
-	  {
-	    static unsigned char swap_nibble[16]
-	      = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
-		  0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
-		  0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
-		  0x3, 0xb, 0x7, 0xf };	 /* 0011 1011 0111 1111 */
-
-	    unsigned char b = *bits++;
-	    *wb++ = (unsigned short)((swap_nibble[b & 0xf]<<4)
-				     | (swap_nibble[(b>>4) & 0xf]));
-	  }
-	fringe_bmp[i] = CreateBitmap (wd, h, 1, 1, w32bits);
-      }
-  }
+  w32_init_fringe ();
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -6314,13 +6343,7 @@ x_delete_display (dpyinfo)
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->w32_id_name);
 
-  /* Destroy row bitmaps.  */
-  {
-    int i;
-
-    for (i = NO_FRINGE_BITMAP + 1; i < MAX_FRINGE_BITMAPS; i++)
-      DeleteObject (fringe_bmp[i]);
-  }
+  w32_reset_fringes ();
 }
 
 /* Set up use of W32.  */
@@ -6351,6 +6374,8 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_get_glyph_overhangs,
   x_fix_overlapping_area,
   w32_draw_fringe_bitmap,
+  w32_define_fringe_bitmap,
+  w32_destroy_fringe_bitmap,
   w32_per_char_metric,
   w32_encode_char,
   NULL, /* w32_compute_glyph_string_overhangs */

@@ -1,5 +1,5 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.21
@@ -754,13 +754,13 @@ if these sets are sorted blocks in the alist."
   "Make sure all files of the document are being visited by buffers,
 and that the scanning info is absolutely up to date.
 We do this by rescanning with reftex-keep-temporary-buffers bound to t.
-The variable PRO-OR-DE is assumed to be dynamically scoped into thes function.
+The variable PRO-OR-DE is assumed to be dynamically scoped into this function.
 When finished, we exit with an error message."
   (let ((reftex-keep-temporary-buffers t))
     (reftex-toc-Rescan)
     (reftex-toc-restore-region start-line mark-line)
     (throw 'exit
-           (format "TOC had to be updated first.  Please check selection and repeat the command." pro-or-de))))
+           "TOC had to be updated first.  Please check selection and repeat the command.")))
 
 (defun reftex-toc-rename-label ()
   "Rename the currently selected label in the *TOC* buffer.

@@ -1,6 +1,6 @@
 ;;; calc-forms.el --- data format conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -212,11 +212,11 @@
 					", to zone: "))))
      (if (stringp old) (setq old (math-read-expr old)))
      (if (eq (car-safe old) 'error)
-	 (error "Error in expression: " (nth 1 old)))
+	 (error "Error in expression: %S" (nth 1 old)))
      (if (equal new "") (setq new "local"))
      (if (stringp new) (setq new (math-read-expr new)))
      (if (eq (car-safe new) 'error)
-	 (error "Error in expression: " (nth 1 new)))
+	 (error "Error in expression: %S" (nth 1 new)))
      (calc-enter-result 1 "tzcv" (list 'calcFunc-tzconv
 				       (calc-top-n 1) old new)))))
 

@@ -467,12 +467,13 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, bitmap)
+mac_draw_bitmap (display, w, gc, x, y, bitmap, overlay_p)
      Display *display;
      WindowPtr w;
      GC gc;
      int x, y;
      BitMap *bitmap;
+     int overlay_p;
 {
   Rect r;
 
@@ -491,11 +492,13 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap)
 
     LockPortBits (GetWindowPort (w));
     pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r, srcCopy, 0);
+    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r,
+	      overlay_p ? srcOr : srcCopy, 0);
     UnlockPortBits (GetWindowPort (w));
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r, srcCopy, 0);
+  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r,
+	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -1313,7 +1316,7 @@ x_draw_fringe_bitmap (w, row, p)
   else
     x_clip_to_row (w, row, gc);
 
-  if (p->bx >= 0)
+  if (p->bx >= 0 && !p->overlay_p)
     {
       XGCValues gcv;
       gcv.foreground = face->background;
@@ -1339,17 +1342,21 @@ x_draw_fringe_bitmap (w, row, p)
 #endif
     }
 
-  if (p->which != NO_FRINGE_BITMAP)
+  if (p->which)
     {
-      unsigned char *bits = fringe_bitmaps[p->which].bits + p->dh;
+      unsigned char *bits = p->bits + p->dh;
       BitMap bitmap;
 
       mac_create_bitmap_from_bitmap_data (&bitmap, bits, p->wd, p->h);
-      gcv.foreground = face->foreground;
+
+      gcv.foreground = (p->cursor_p
+			? (p->overlay_p ? face->background
+			   : f->output_data.mac->cursor_pixel)
+			: face->foreground);
       gcv.background = face->background;
 
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap);
-
+      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap,
+		       p->overlay_p);
       mac_free_bitmap (&bitmap);
     }
 
@@ -8517,6 +8524,8 @@ static struct redisplay_interface x_redisplay_interface =
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
   x_draw_fringe_bitmap,
+  0, /* define_fringe_bitmap */
+  0, /* destroy_fringe_bitmap */
   mac_per_char_metric,
   mac_encode_char,
   NULL, /* mac_compute_glyph_string_overhangs */

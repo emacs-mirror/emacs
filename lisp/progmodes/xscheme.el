@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986, 1987, 1989, 1990, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1989, 1990, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, lisp
@@ -222,14 +222,14 @@ With argument, asks for a command line."
   (let* ((buffer (get-buffer buffer-name))
 	 (process (and buffer (get-buffer-process buffer))))
     (cond ((not buffer)
-	   (error "Buffer does not exist" buffer-name))
+	   (error "Buffer `%s' does not exist" buffer-name))
 	  ((not process)
-	   (error "Buffer is not a scheme interaction buffer" buffer-name))
+	   (error "Buffer `%s' is not a scheme interaction buffer" buffer-name))
 	  (t
 	   (save-excursion
 	     (set-buffer buffer)
 	     (if (not (xscheme-process-buffer-current-p))
-		 (error "Buffer is not a scheme interaction buffer"
+		 (error "Buffer `%s' is not a scheme interaction buffer"
 			buffer-name)))
 	   (process-name process)))))
 

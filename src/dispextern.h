@@ -126,6 +126,9 @@ enum window_part
   ON_RIGHT_MARGIN
 };
 
+/* Number of bits allocated to store fringe bitmap numbers.  */
+#define FRINGE_ID_BITS  8
+
 
 
 /***********************************************************************
@@ -710,10 +713,28 @@ struct glyph_row
   struct display_pos end;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
-  unsigned left_fringe_bitmap : 4;
+  unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
 
   /* Right fringe bitmap number (enum fringe_bitmap_type).  */
-  unsigned right_fringe_bitmap : 4;
+  unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_fringe_face_id : FACE_ID_BITS;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_fringe_face_id : FACE_ID_BITS;
 
   /* 1 means that we must draw the bitmaps of this row.  */
   unsigned redraw_fringe_bitmaps_p : 1;
@@ -1609,35 +1630,6 @@ extern int face_change_count;
 			       Fringes
  ***********************************************************************/
 
-enum fringe_bitmap_type
-{
-  NO_FRINGE_BITMAP = 0,
-  LEFT_TRUNCATION_BITMAP,
-  RIGHT_TRUNCATION_BITMAP,
-  UP_ARROW_BITMAP,
-  DOWN_ARROW_BITMAP,
-  CONTINUED_LINE_BITMAP,
-  CONTINUATION_LINE_BITMAP,
-  OVERLAY_ARROW_BITMAP,
-  FIRST_LINE_BITMAP,
-  LAST_LINE_BITMAP,
-  FILLED_BOX_CURSOR_BITMAP,
-  HOLLOW_BOX_CURSOR_BITMAP,
-  BAR_CURSOR_BITMAP,
-  HBAR_CURSOR_BITMAP,
-  ZV_LINE_BITMAP,
-  HOLLOW_SQUARE_BITMAP,
-  MAX_FRINGE_BITMAPS
-};
-
-struct fringe_bitmap
-{
-  int width;
-  int height;
-  int period;
-  unsigned char *bits;
-};
-
 /* Structure used to describe where and how to draw a fringe bitmap.
    WHICH is the fringe bitmap to draw.  WD and H is the (adjusted)
    width and height of the bitmap, DH is the height adjustment (if
@@ -1648,14 +1640,17 @@ struct fringe_bitmap
 
 struct draw_fringe_bitmap_params
 {
-  enum fringe_bitmap_type which;
+  int which;  /* enum fringe_bitmap_type */
+  unsigned char *bits;
   int wd, h, dh;
   int x, y;
   int bx, nx, by, ny;
+  unsigned cursor_p : 1;
+  unsigned overlay_p : 1;
   struct face *face;
 };
 
-extern struct fringe_bitmap fringe_bitmaps[MAX_FRINGE_BITMAPS];
+#define MAX_FRINGE_BITMAPS (1<<FRINGE_ID_BITS)
 
 
 /***********************************************************************
@@ -2025,6 +2020,18 @@ struct it
   /* Horizontal matrix position reached in move_it_in_display_line.
      Only set there, not in display_line.  */
   int hpos;
+
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_user_fringe_face_id : FACE_ID_BITS;
 };
 
 
@@ -2180,6 +2187,11 @@ struct redisplay_interface
   /* Draw a fringe bitmap in window W of row ROW using parameters P.  */
   void (*draw_fringe_bitmap) P_ ((struct window *w, struct glyph_row *row,
 				  struct draw_fringe_bitmap_params *p));
+
+  /* Define and destroy fringe bitmap no. WHICH.  */
+  void (*define_fringe_bitmap) P_ ((int which, unsigned char *bits,
+				    int h, int wd));
+  void (*destroy_fringe_bitmap) P_ ((int which));
 
 /* Get metrics of character CHAR2B in FONT of type FONT_TYPE.
    Value is null if CHAR2B is not contained in the font.  */
@@ -2530,11 +2542,6 @@ void move_it_past_eol P_ ((struct it *));
 int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
-void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
-void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-void draw_window_fringes P_ ((struct window *));
-int update_window_fringes P_ ((struct window *, int));
-void compute_fringe_widths P_ ((struct frame *, int));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
@@ -2602,6 +2609,20 @@ extern int cursor_in_mouse_face_p P_ ((struct window *w));
 extern void expose_frame P_ ((struct frame *, int, int, int, int));
 extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
+#endif
+
+/* Defined in fringe.c */
+
+int valid_fringe_bitmap_id_p (int);
+void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
+void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
+void draw_window_fringes P_ ((struct window *));
+int update_window_fringes P_ ((struct window *, int));
+void compute_fringe_widths P_ ((struct frame *, int));
+
+#ifdef WINDOWS_NT
+void w32_init_fringe P_ ((void));
+void w32_reset_fringes P_ ((void));
 #endif
 
 /* Defined in sysdep.c */

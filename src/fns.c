@@ -2519,7 +2519,7 @@ character set, or a character code.  Return VALUE.  */)
 	  || ! NATNUMP (AREF (charset_info, 0))
 	  || (charset_id = XINT (AREF (charset_info, 0)),
 	      ! CHARSET_DEFINED_P (charset_id)))
-	error ("Invalid charset: %s", SYMBOL_NAME (range));
+	error ("Invalid charset: %s", SDATA (SYMBOL_NAME (range)));
 
       if (charset_id == CHARSET_ASCII)
 	for (i = 0; i < 128; i++)

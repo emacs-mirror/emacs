@@ -57,6 +57,164 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c: New file.  Move original fringe related declarations
+	and code from dispextern.h and xdisp.c here.
+	Rework code to support user defined fringe bitmaps, redefining
+	standard bitmaps, ability to overlay user defined bitmap with
+	overlay arrow bitmap, and add faces to bitmaps.
+	(Voverflow_newline_into_fringe): Declare here.
+	(enum fringe_bitmap_align): New enum.
+	(..._bits): All bitmaps are now defined without bitswapping; that
+	is now done in init_fringe_once (if necessary).
+	(standard_bitmaps): New array with specifications for the
+	standard fringe bitmaps.
+	(fringe_faces): New array.
+	(valid_fringe_bitmap_id_p): New function.
+	(draw_fringe_bitmap_1): Rename from draw_fringe_bitmap.
+	(draw_fringe_bitmap): New function which draws fringe bitmap,
+	possibly overlaying bitmap with cursor in right fringe or the
+	overlay arrow in the left fringe.
+	(update_window_fringes): Do not handle overlay arrow here.
+	Compare and copy fringe bitmap faces.
+	(init_fringe_bitmap): New function.
+	(Fdefine_fringe_bitmap, Fdestroy_fringe_bitmap): New DEFUNs to
+	define and destroy user defined fringe bitmaps.
+	(Fset_fringe_bitmap_face): New DEFUN to set face for a fringe bitmap.
+	(Ffringe_bitmaps_at_pos): New DEFUN to read current fringe bitmaps.
+	(syms_of_fringe): New function.  Defsubr new DEFUNs.
+	DEFVAR_LISP Voverflow_newline_into_fringe.
+	(init_fringe_once, init_fringe): New functions.
+	(w32_init_fringe, w32_reset_fringes) [WINDOWS_NT]: New functions.
+	
+	* Makefile.in (obj): Add fringe.o.
+	(fringe.o): New dependencies.
+
+	* dispextern.h (FRINGE_ID_BITS): New definition for number of
+	bits allocated to hold a fringe number.  Increase number of bits
+	from 4 to 8 to allow user defined fringe bitmaps.
+	(struct glyph_row, struct it): New members left_user_fringe_bitmap,
+	left_user_fringe_face_id, right_user_fringe_bitmap,
+	right_user_fringe_face_id.
+	(enum fringe_bitmap_type, struct fringe_bitmap, fringe_bitmaps):
+	Move to new file fringe.c.
+	(MAX_FRINGE_BITMAPS): Define here.
+	(struct draw_fringe_bitmap_params): New members bits, cursor_p,
+	and overlay_p.  Change member which to int.
+	(struct redisplay_interface): New members define_fringe_bitmap
+	and destroy_fringe_bitmap.
+	(valid_fringe_bitmap_id_p): Add prototype.
+	(w32_init_fringe, w32_reset_fringes) [WINDOWS_NT]: Add prototypes.
+
+	* dispnew.c (row_equal_p): Compare fringe bitmap faces and overlay
+	arrows.
+	(update_frame): Do flush_display if force_flush_display_p to
+	ensure display (specifically fringes) are updated in a timely
+	manner when resizing the frame by dragging the mouse.
+	(update_window_line): Update row if overlay arrow changed.
+	(scrolling_window): Redraw fringe bitmaps if fringe bitmap faces
+	or overlay arrow changed.
+
+	* emacs.c (main) [HAVE_WINDOW_SYSTEM]: Call init_fringe_once,
+	syms_of_fringe, and init_fringe.
+
+	* frame.h (struct frame): New member force_flush_display_p.
+
+	* lisp.h (syms_of_fringe, init_fringe, init_fringe_once):
+	Add prototypes.
+
+	* macterm.c (mac_draw_bitmap): Add overlay_p arg.
+	(x_draw_fringe_bitmap):  Handle overlayed fringe bitmaps;
+	thanks to YAMAMOTO Mitsuharu for advice on how to do this.
+	Use cursor color for displaying cursor in fringe.
+	(x_redisplay_interface): Add null handlers for
+	define_fringe_bitmap and destroy_fringe_bitmap functions.
+
+	* w32term.c (w32_draw_fringe_bitmap): Copy unadapted code from
+	xterm.c to handle overlayed fringe bitmaps and to use cursor color
+	for displaying cursor in fringe.
+	(w32_define_fringe_bitmap, w32_destroy_fringe_bitmap): New W32
+	specific functions to define and destroy fringe bitmaps in fringe_bmp.
+	(w32_redisplay_interface): Add them to redisplay_interface.
+	(w32_term_init): Call w32_init_fringe instead of explicitly
+	defining fringe bitmaps in fringe_bmp array.
+	(x_delete_display): Call w32_reset_fringes instead of explicitly
+	destroying fringe bitmaps in fringe_bmp array.
+
+	* xdisp.c (Voverflow_newline_into_fringe, syms_of_xdisp)
+	(left_bits, right_bits, up_arrow_bits, down_arrow_bits)
+	(continued_bits, continuation_bits, ov_bits, first_line_bits)
+	(last_line_bits, filled_box_cursor_bits, hollow_box_cursor_bits)
+	(bar_cursor_bits, hbar_cursor_bits, zv_bits, hollow_square_bits)
+	(fringe_bitmaps, draw_fringe_bitmap, draw_row_fringe_bitmaps)
+	(draw_window_fringes, compute_fringe_widths, update_window_fringes):
+	Move fringe handling vars and code to new file fringe.c.
+	(handle_display_prop): Handle left-fringe and right-fringe
+	display properties; store user fringe bitmaps in iterator.
+	(move_it_in_display_line_to): Handle cursor in fringe at eob.
+	(clear_garbaged_frames): Set force_flush_display_p if resized.
+	(redisplay_window): Redraw fringe bitmaps if not just_this_one_p.
+	(display_line): Handle cursor in fringe at eob.
+	(display_line): Set row user fringe bitmaps from iterator.
+
+	* xterm.c (x_draw_fringe_bitmap): Handle overlayed fringe bitmaps.
+	Use cursor color for displaying cursor in fringe.
+	(x_redisplay_interface): Add null handlers for
+	define_fringe_bitmap and destroy_fringe_bitmap functions.
+
+2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macfns.c (Fx_change_window_property): Make doc string and
+	parameters same as for X version.
+
+	* w32fns.c (Fx_change_window_property): Ditto.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (hscroll_window_tree): Position cursor near to right
+	margin in hscrolled window when jumping to end of line (rather
+	than centering cursor).
+
+	* process.c (wait_reading_process_input): Don't do adaptive read
+	buffering if waiting for a specific process.
+
+2004-02-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.c (Fminibufferp, Fread_from_minibuffer)
+	(Fread_minibuffer, Feval_minibuffer)
+	(Fread_string, Fread_no_blanks_input)
+	(Fcompleting_read): Doc fixes.
+	(syms_of_minibuf): Doc fixes for minibuffer-completion-table and
+	completion-regexp-list.  Define Qcase_fold_search and staticpro it.
+	(read_minibuf): Fix initial comment.
+	(Ftry_completion, Fall_completions, Ftest_completion): Bind
+	case-fold-serach to the value of completion-ignore-case when
+	checking completion-regexp-list.
+	(Fdisplay_completion_list): Make it handle arguments that are
+	symbols.  Doc fix.
+
+2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add declaration of free_frame_menubar.
+
+	* xfns.c (x_create_bitmap_mask): Removed unused variable depth.
+	(x_set_menu_bar_lines): Added ! defined USE_GTK for olines.
+	(Fx_change_window_property): Add declaration of parameters type and
+	format.  Remove unused variable cons.
+
+	* xselect.c: Include stdio,h.
+
+2004-02-05  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fset_char_table_range): Fix previous change.
+
+	* buffer.c (Fset_buffer_multibyte): Fix docstring.
+
+2004-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* editfns.c (Fchar_after, Fchar_before): Doc fixes.
+
 2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Vmouse_events): Rename from Vmenu_events.

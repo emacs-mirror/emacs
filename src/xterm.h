@@ -1075,6 +1075,7 @@ extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
 

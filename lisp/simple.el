@@ -499,14 +499,14 @@ that uses or sets the mark."
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
   (let ((opoint (point)) (start (point-min))
-	(n (line-at-pos)))
+	(n (line-number-at-pos)))
     (if (= start 1)
 	(message "Line %d" n)
       (save-excursion
 	(save-restriction
 	  (widen)
 	  (message "line %d (narrowed line %d)" 
-		   (+ n (line-at-pos start) -1) n))))))
+		   (+ n (line-number-at-pos start) -1) n))))))
 
 (defun count-lines (start end)
   "Return number of lines between START and END.
@@ -531,7 +531,7 @@ and the greater of them is not at the start of a line."
 		done)))
 	(- (buffer-size) (forward-line (buffer-size)))))))
 
-(defun line-at-pos (&optional pos)
+(defun line-number-at-pos (&optional pos)
   "Return (narrowed) buffer line number at position POS.
 If POS is nil, use current buffer location."
   (let ((opoint (or pos (point))) start)

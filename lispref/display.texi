@@ -3483,7 +3483,7 @@ the usual emacs @code{highlight} face.
 The button's keymap, defining bindings active within the button
 region.  By default this is the usual button region keymap, stored
 in the variable @code{button-map}, which defines @key{RET} and
-@key{down-mouse-1} to invoke the button.
+@key{mouse-2} to invoke the button.
 
 @item type
 @kindex type @r{(button property)}
@@ -3668,7 +3668,7 @@ buttons in an emacs buffer.
 
 @code{push-button} is the command that a user uses to actually `push'
 a button, and is bound by default in the button itself to @key{RET}
-and to @key{mouse-down-1} using a region-specific keymap.  Commands
+and to @key{mouse-2} using a region-specific keymap.  Commands
 that are useful outside the buttons itself, such as
 @code{forward-button} and @code{backward-button} are additionally
 available in the keymap stored in @code{button-buffer-map}; a mode

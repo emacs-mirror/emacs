@@ -2306,6 +2306,11 @@ EXFUN (Ftruncate, 2);
 extern void init_floatfns P_ ((void));
 extern void syms_of_floatfns P_ ((void));
 
+/* Defined in fringe.c */
+extern void syms_of_fringe P_ ((void));
+extern void init_fringe P_ ((void));
+extern void init_fringe_once P_ ((void));
+
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap P_ ((int));

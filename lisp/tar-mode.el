@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;; Copyright (C) 1990,91,93,94,95,96,97,98,99,2000,2001
+;; Copyright (C) 1990,91,93,94,95,96,97,98,99,2000,01,2004
 ;; Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -289,7 +289,7 @@ write-date, checksum, link-type, and link-name."
     (dotimes (i L)
        (if (or (< (aref string i) ?0)
 	       (> (aref string i) ?7))
-	   (error "`%c' is not an octal digit"))))
+	   (error "`%c' is not an octal digit" (aref string i)))))
   (tar-parse-octal-integer string))
 
 
@@ -743,6 +743,7 @@ appear on disk when you save the tar-file's buffer."
 				 (min (+ (point-min) 16384) (point-max)) t)))
 		  (if coding
 		      (or (numberp (coding-system-eol-type coding))
+			  (vectorp (coding-system-eol-type detected))
 			  (setq coding (coding-system-change-eol-conversion
 					coding
 					(coding-system-eol-type detected))))
