@@ -1,3 +1,9 @@
+2001-11-09  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (checklist): Removed `:menu-tag'.
+	(radio-button-choice): Ditto.
+	(editable-list): Ditto.
+
 2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/gomoku.el: Move definitions of constants to the beginning

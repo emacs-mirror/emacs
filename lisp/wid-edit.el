@@ -2053,7 +2053,6 @@ when he invoked the menu."
   :format "%v"
   :offset 4
   :entry-format "%b %v"
-  :menu-tag "checklist"
   :greedy nil
   :value-create 'widget-checklist-value-create
   :value-delete 'widget-children-value-delete
@@ -2231,7 +2230,6 @@ Return an alist of (TYPE MATCH)."
   :offset 4
   :format "%v"
   :entry-format "%b %v"
-  :menu-tag "radio"
   :value-create 'widget-radio-value-create
   :value-delete 'widget-children-value-delete
   :value-get 'widget-radio-value-get
@@ -2421,7 +2419,6 @@ Return an alist of (TYPE MATCH)."
   :format "%v%i\n"
   :format-handler 'widget-editable-list-format-handler
   :entry-format "%i %d %v"
-  :menu-tag "editable-list"
   :value-create 'widget-editable-list-value-create
   :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
