@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.49) $
+ * $HopeName: MMsrc!mpmst.h(trunk.50) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -509,13 +509,16 @@ typedef struct TraceStruct {
   Bool emergency;               /* true iff ran out of memory during trace */
   Size condemned;               /* condemned bytes */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* bytes to scan per increment */
+  Size rate;                    /* segs to scan per increment */
   Count rootScanCount;          /* number of roots scanned */
   Count rootScanSize;           /* total size of scanned roots */
   Size rootCopiedSize;          /* bytes copied by scanning roots */
   Count segScanCount;           /* number of segs scanned */
   Count segScanSize;            /* total size of scanned segments */
   Size segCopiedSize;           /* bytes copied by scanning segments */
+  Size singleCopiedSize;        /* bytes copied by scanning single refs */
+  Count singleScanCount;        /* number of single refs scanned */
+  Count singleScanSize;         /* total size of single refs scanned */
   Count fixRefCount;            /* refs which pass zone check */
   Count segRefCount;            /* refs which refer to segs */
   Count whiteSegRefCount;       /* refs which refer to white segs */

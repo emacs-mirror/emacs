@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.61) $
+ * $HopeName: MMsrc!trace.c(trunk.62) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -33,7 +33,17 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.61) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.62) $");
+
+/* Types
+ *
+ * These types only used internally to this trace module.
+ */
+
+enum {TraceAccountingPhaseRootScan,
+      TraceAccountingPhaseSegScan,
+      TraceAccountingPhaseSingleScan};
+typedef int TraceAccountingPhase;
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -167,13 +177,31 @@ Bool TraceCheck(Trace trace)
   return TRUE;
 }
 
-static void TraceUpdateCounts(Trace trace, ScanState ss)
+static void TraceUpdateCounts(Trace trace, ScanState ss,
+                              TraceAccountingPhase phase)
 {
   AVERT(Trace, trace);
   AVERT(ScanState, ss);
 
-  trace->rootScanSize += ss->scannedSize;
-  trace->rootCopiedSize += ss->copiedSize;
+  switch(phase) {
+  case TraceAccountingPhaseRootScan:
+    trace->rootScanSize += ss->scannedSize;
+    trace->rootCopiedSize += ss->copiedSize;
+    break;
+
+  case TraceAccountingPhaseSegScan:
+    trace->segScanSize += ss->scannedSize;
+    trace->segCopiedSize += ss->copiedSize;
+    break;
+
+  case TraceAccountingPhaseSingleScan:
+    trace->singleScanSize += ss->scannedSize;
+    trace->singleCopiedSize += ss->copiedSize;
+    break;
+
+  default:
+    NOTREACHED;
+  }
   trace->fixRefCount += ss->fixRefCount;
   trace->segRefCount += ss->segRefCount;
   trace->whiteSegRefCount += ss->whiteSegRefCount;
@@ -380,6 +408,9 @@ found:
   trace->segScanCount = (Count)0;
   trace->segScanSize = (Size)0;
   trace->segCopiedSize = (Size)0;
+  trace->singleScanCount = (Count)0;
+  trace->singleScanSize = (Size)0;
+  trace->singleCopiedSize = (Size)0;
   trace->fixRefCount = (Count)0;
   trace->segRefCount = (Count)0;
   trace->whiteSegRefCount = (Count)0;
@@ -520,7 +551,7 @@ Res TraceFlip(Trace trace)
       node = next;
     }
   }
-  TraceUpdateCounts(trace, &ss);
+  TraceUpdateCounts(trace, &ss, TraceAccountingPhaseRootScan);
 
   ScanStateFinish(&ss);
 
@@ -748,7 +779,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
         Trace trace = ArenaTrace(arena, ti);
 
         ++trace->segScanCount;
-	TraceUpdateCounts(trace, &ss);
+	TraceUpdateCounts(trace, &ss, TraceAccountingPhaseSegScan);
       }
     ScanStateFinish(&ss);
   }
@@ -1077,6 +1108,7 @@ Res TraceScanSingleRef(TraceSet ts, Arena arena,
   TRACE_SCAN_BEGIN(&ss) {
     res = TRACE_FIX(&ss, refIO);
   } TRACE_SCAN_END(&ss);
+  ss.scannedSize = sizeof *refIO;
 
   summary = SegSummary(seg);
   summary = RefSetAdd(arena, summary, *refIO);
@@ -1085,7 +1117,8 @@ Res TraceScanSingleRef(TraceSet ts, Arena arena,
 
   for(ti = 0; ti < TRACE_MAX; ++ti) {
     if(TraceSetIsMember(ts, ti)) {
-      TraceUpdateCounts(ArenaTrace(arena, ti), &ss);
+      TraceUpdateCounts(ArenaTrace(arena, ti), &ss,
+                        TraceAccountingPhaseSingleScan);
     }
   }
   return res;
