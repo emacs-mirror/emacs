@@ -1,10 +1,16 @@
+2003-01-13  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* fileio.c (Fdelete_directory, Fdelete_file): Document the
+	behaviour in front of symlinks.
+	(Fdelete_file): Raise an error on directories.
+
 2003-01-13  Dave Love  <fx@gnu.org>
 
 	* fns.c (Freverse): Use QUIT.
 
 2003-01-13  Richard M. Stallman  <rms@gnu.org>
 
-	* minibuf.c (minibuffer_completion_contents): 
+	* minibuf.c (minibuffer_completion_contents):
 	Error if point is inside prompt.
 
 	* keyboard.c (command_loop_1): Don't redisplay directly
@@ -71,7 +77,7 @@
 	let popup_deactivate_callback do that.  Needed for Motif.
 	Call x_dispatch_event instead of XtDispatchEvent.
 	(xmenu_show): Calculate root coordinate from frame top/left position.
-	
+
 
 2003-01-08  Kim F. Storm  <storm@cua.dk>
 
@@ -98,14 +104,14 @@
 	Count LAST_LINE_MISFIT in scroll margin for end of window.
 	Move label too_near_end before setting SCROLL_MARGIN_POS.
 	Set LAST_LINE_MISFIT before jumping there.
-	
+
 	* xdisp.c (try_scrolling): Calculate amount_to_scroll better in
 	scroll_conservatively case.  If scrolling that much doesn't change
 	STARTP, move it down one line.
 
 	* xdisp.c (redisplay_window): Pass last_line_misfit arg to try_scrolling.
 	Make it 1 after make_cursor_line_fully_visible fails.
-	
+
 	* xdisp.c (setup_echo_area_for_printing): Kill Emacs if no selected frame.
 
 	* keymap.c (apropos_predicate, apropos_accumulate): Make them static.
@@ -148,7 +154,7 @@
 
 2002-12-30  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (syms_of_macterm): Set mac-wheel-button-is-mouse-2 
+	* macterm.c (syms_of_macterm): Set mac-wheel-button-is-mouse-2
 	to default to t.
 
 2002-12-29  Francesco Potort,Al(B  <pot@gnu.org>

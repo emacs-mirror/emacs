@@ -1,3 +1,7 @@
+2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* configure (m68k-motorola-sysv): Removed (obsolete).
+
 2003-01-07  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in: New option, --enable-carbon-app, to specify
