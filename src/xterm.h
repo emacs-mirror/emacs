@@ -1028,7 +1028,7 @@ extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
 extern int defined_color P_ ((struct frame *, char *, XColor *, int));
 extern void x_set_border_pixel P_ ((struct frame *, int));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern unsigned char * x_encode_text P_ ((Lisp_Object, Lisp_Object,
+extern unsigned char * x_encode_text P_ ((Lisp_Object, Lisp_Object, int,
 					  int *, int *));
 extern void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void create_frame_xic P_ ((struct frame *));
