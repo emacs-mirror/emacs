@@ -947,6 +947,9 @@ IT_write_glyphs (struct glyph *str, int str_len)
     = (NILP (current_buffer->enable_multibyte_characters)
        && unibyte_display_via_language_environment);
 
+  unsigned char conversion_buffer[256];
+  int conversion_buffer_size = sizeof conversion_buffer;
+
   if (str_len <= 0) return;
   
   screen_buf = screen_bp = alloca (str_len * 2);
