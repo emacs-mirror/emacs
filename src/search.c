@@ -2454,8 +2454,8 @@ since only regular expressions have distinguished subexpressions.")
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  unsigned char *add_stuff;
-	  int add_len;
+	  unsigned char *add_stuff = NULL;
+	  int add_len = 0;
 	  int idx = -1;
 
 	  if (str_multibyte)
@@ -2535,8 +2535,11 @@ since only regular expressions have distinguished subexpressions.")
 	    }
 
 	  /* Now add to the end of SUBSTED.  */
-	  bcopy (add_stuff, substed + substed_len, add_len);
-	  substed_len += add_len;
+	  if (add_stuff)
+	    {
+	      bcopy (add_stuff, substed + substed_len, add_len);
+	      substed_len += add_len;
+	    }
 	}
 
       /* Now insert what we accumulated.  */
