@@ -477,11 +477,11 @@ fix_submap_inheritance (map, event, submap)
 
 /* Look up IDX in MAP.  IDX may be any sort of event.
    Note that this does only one level of lookup; IDX must be a single
-   event, not a sequence. 
+   event, not a sequence.
 
    If T_OK is non-zero, bindings for Qt are treated as default
    bindings; any key left unmentioned by other tables and bindings is
-   given the binding of Qt.  
+   given the binding of Qt.
 
    If T_OK is zero, bindings for Qt are not treated specially.
 
@@ -572,7 +572,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	else if (CONSP (binding))
 	  {
 	    Lisp_Object key = XCAR (binding);
-	    
+
 	    if (EQ (key, idx))
 	      val = XCDR (binding);
 	    else if (t_ok
@@ -1188,7 +1188,7 @@ silly_event_symbol_error (c)
 {
   Lisp_Object parsed, base, name, assoc;
   int modifiers;
-	  
+
   parsed = parse_modifiers (c);
   modifiers = (int) XUINT (XCAR (XCDR (parsed)));
   base = XCAR (parsed);
@@ -1217,7 +1217,7 @@ silly_event_symbol_error (c)
 
       c = reorder_modifiers (c);
       keystring = concat2 (build_string (new_mods), XCDR (assoc));
-		
+
       error ((modifiers & ~meta_modifier
 	      ? "To bind the key %s, use [?%s], not [%s]"
 	      : "To bind the key %s, use \"%s\", not [%s]"),
@@ -1310,7 +1310,7 @@ current_minor_maps (modeptr, mapptr)
 		newsize = cmm_size == 0 ? 30 : cmm_size * 2;
 		allocsize = newsize * sizeof *newmodes;
 
-		/* Use malloc here.  See the comment above this function. 
+		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		BLOCK_INPUT;
 		newmodes = (Lisp_Object *) malloc (allocsize);
@@ -1335,7 +1335,7 @@ current_minor_maps (modeptr, mapptr)
 		    cmm_maps = newmaps;
 		  }
 		UNBLOCK_INPUT;
-	      
+
 		if (newmodes == NULL || newmaps == NULL)
 		  break;
 		cmm_size = newsize;
@@ -1440,7 +1440,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 	goto done;
     }
   else
-    { 
+    {
       Lisp_Object local;
 
       local = get_local_map (PT, current_buffer, Qkeymap);
@@ -1481,14 +1481,14 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 
   /* If the result of the ordinary keymap lookup is an interactive
      command, look for a key binding (ie. remapping) for that command.  */
-     
+
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
       if (value1 = Fremap_command (value), !NILP (value1))
 	value = value1;
     }
-  
+
   return value;
 }
 
@@ -2486,7 +2486,7 @@ remapped command in the returned list.  */)
       Lisp_Object *defns;
       int i, j, n;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-      
+
       /* Check heuristic-consistency of the cache.  */
       if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
 	where_is_cache = Qnil;
@@ -2925,7 +2925,7 @@ describe_command (definition, args)
      Lisp_Object definition, args;
 {
   register Lisp_Object tem1;
-  int column = current_column ();
+  int column = (int) current_column (); /* iftc */
   int description_column;
 
   /* If column 16 is no good, go to col 32;
@@ -3481,7 +3481,7 @@ apropos_accum (symbol, string)
     apropos_accumulate = Fcons (symbol, apropos_accumulate);
 }
 
-DEFUN ("apropos-internal", Fapropos_internal, Sapropos_internal, 1, 2, 0, 
+DEFUN ("apropos-internal", Fapropos_internal, Sapropos_internal, 1, 2, 0,
        doc: /* Show all symbols whose names contain match for REGEXP.
 If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
 for each symbol and a symbol is mentioned only if that returns non-nil.
@@ -3585,7 +3585,7 @@ It is intended for modes or packages using multiple minor-mode keymaps.
 Each element is a keymap alist just like `minor-mode-map-alist', or a
 symbol with a variable binding which is a keymap alist, and it is used
 the same way.  The "active" keymaps in each alist are used before
-`minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */); 
+`minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
 
 
