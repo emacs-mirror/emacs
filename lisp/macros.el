@@ -150,6 +150,8 @@ use this command, and then save the file."
 		       (setq mods (cdr mods)))
 		     (cond ((= char ?\\)
 			    (insert "\\\\"))
+                           ((= char ?\")
+                            (insert "\\\""))   
 			   ((= char ?\;)
 			    (insert "\\;"))
 			   ((= char 127)
