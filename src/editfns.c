@@ -3259,7 +3259,12 @@ usage: (format STRING &rest OBJECTS)  */)
 	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
-	      args[n] = Ftruncate (args[n], Qnil);
+	      {
+		if (*format != 'd' && *format != 'o' && *format != 'x'
+		    && *format != 'i' && *format != 'X' && *format != 'c')
+		  error ("Invalid format operation %%%c", *format);
+		args[n] = Ftruncate (args[n], Qnil);
+	      }
 
 	    /* Note that we're using sprintf to print floats,
 	       so we have to take into account what that function
