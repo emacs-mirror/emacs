@@ -1655,12 +1655,12 @@ When DIE is non-nil, throw an error if file not found."
 ;;;
 ;;; View cross references
 
-(autoload 'reftex-view-crossref "reftex-vcr"
+(autoload 'reftex-view-crossref "reftex-dcr"
  "View cross reference of \\ref or \\cite macro at point." t)
-(autoload 'reftex-mouse-view-crossref "reftex-vcr"
+(autoload 'reftex-mouse-view-crossref "reftex-dcr"
  "View cross reference of \\ref or \\cite macro where you click." t)
-(autoload 'reftex-toggle-auto-view-crossref "reftex-vcr")
-(autoload 'reftex-view-crossref-from-bibtex "reftex-vcr"
+(autoload 'reftex-toggle-auto-view-crossref "reftex-dcr")
+(autoload 'reftex-view-crossref-from-bibtex "reftex-dcr"
  "View location in a LaTeX document which cites the BibTeX entry at point." t)
 
 

@@ -1,4 +1,4 @@
-;;; reftex-vcr.el - Viewing cross references and citations with RefTeX
+;;; reftex-dcr.el - Viewing cross references and citations with RefTeX
 ;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
@@ -24,6 +24,7 @@
 
 (eval-when-compile (require 'cl))
 (provide 'reftex-vcr)
+(provide 'reftex-dcr)
 (require 'reftex)
 ;;;
 
@@ -471,4 +472,4 @@ Calling this function several times find successive citation locations."
       (move-marker reftex-global-search-marker nil)
       (error "All files processed"))))
 
-;;; reftex-vcr.el ends here
+;;; reftex-dcr.el ends here
