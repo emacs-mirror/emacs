@@ -588,6 +588,20 @@ case "${canonical}" in
     machine=gould-np1 opsys=bsd4-3
   ;;
 
+  ## Harris Night Hawk machines running CX/UX (a 5000 looks just like a 4000
+  ## as far as Emacs is concerned).
+  m88k-harris-cxux* )
+    # Build needs to be different on 7.0 and later releases
+    case "`uname -r`" in
+       [56].[0-9] ) machine=nh4000 opsys=cxux ;;
+       [7].[0-9] ) machine=nh4000 opsys=cxux7 ;;
+    esac
+  ;;
+  ## Harris ecx or gcx running CX/UX (Series 1200, Series 3000)
+  m68k-harris-cxux* )
+    machine=nh3000 opsys=cxux
+  ;;
+
   ## Honeywell XPS100
   xps*-honeywell-sysv* )
     machine=xps100 opsys=usg5-2
