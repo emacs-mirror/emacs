@@ -984,11 +984,11 @@ one optional arguments, diff-number to refine.")
    ))
    
 
-;; Execute PROGRAM asynchronously, unless OS/2 or unless SYNCH is non-nil.
+;; Execute PROGRAM asynchronously, unless OS/2 or unless SYNC is non-nil.
 ;; BUFFER must be a buffer object, and must be alive.
 ;; All arguments in ARGS must be strings. The first arg may be a blank string,
 ;; in which case we delete it from ARGS list. We also delete nil from args.
-(defun ediff-exec-process (program buffer synch &rest args)
+(defun ediff-exec-process (program buffer sync &rest args)
   (let ((data (match-data)))
     (if (string-match "^[ \t]*$" (car args)) ; delete blank string
 	(setq args (cdr args)))
@@ -1001,11 +1001,11 @@ one optional arguments, diff-number to refine.")
 	    (set-buffer buffer)
 	    (erase-buffer)
 	    (setq default-directory directory)
-	    (if (or (eq system-type 'emx) synch)
+	    (if (or (eq system-type 'emx) sync)
 		;; In OS/2 do it synchronously, since OS/2 doesn't let us
 		;; delete files used by other processes. Thus, in ediff-buffers
 		;; and similar functions, we can't delete temp files because
-		;; they might be used by the asynch process that computes
+		;; they might be used by the async process that computes
 		;; custom diffs. So, we have to wait till custom diff
 		;; subprocess is done.
 		(apply 'call-process program nil buffer nil args)
