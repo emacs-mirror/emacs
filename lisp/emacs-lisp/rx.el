@@ -694,7 +694,7 @@ CHAR
      still match.  A non-greedy regexp matches as little as possible.
 
 `(maximal-match SEXP)'
-     produce a greedy regexp for SEXP.   This is the default.
+     produce a greedy regexp for SEXP.  This is the default.
 
 `(zero-or-more SEXP)'
      matches zero or more occurrences of what SEXP matches.
@@ -739,7 +739,7 @@ CHAR
      matches N to M occurrences of what SEXP matches.
 
 `(eval FORM)'
-      evaluate FORM and insert result.   If result is a string,
+      evaluate FORM and insert result.  If result is a string,
       `regexp-quote' it.
 
 `(regexp REGEXP)'
