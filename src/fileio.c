@@ -2318,8 +2318,10 @@ before the error is signaled.")
     }
 
   if (inserted > 0)
-    MODIFF++;
-  record_insert (point, inserted);
+    {
+      record_insert (point, inserted);
+      MODIFF++;
+    }
 
   close (fd);
 
