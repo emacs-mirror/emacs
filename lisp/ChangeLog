@@ -1,3 +1,8 @@
+2003-12-23  John Paul Wallington  <jpw@gnu.org>
+
+	* info.el (Info-unescape-quotes, Info-split-parameter-string)
+	(Info-goto-emacs-command-node): Doc fixes.
+
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 
 	* language/cyrillic.el: Register "microsoft-cp1251" in
