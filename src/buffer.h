@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -545,10 +545,6 @@ struct buffer
 
     /* The name of this buffer.  */
     Lisp_Object name;
-
-    /* Character position at the end of a mini-buffer prompt, or or
-       nil if this buffer is not a mini-buffer.  */
-    Lisp_Object prompt_end_charpos;
 
     /* The name of the file visited in this buffer, or nil.  */
     Lisp_Object filename;
