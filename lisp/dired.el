@@ -157,21 +157,6 @@ The target is used in the prompt for file copy, rename etc."
   :type 'boolean
   :group 'dired)
 
-(defcustom dired-free-space-program "df"
-  "*Program to get the amount of free space on a file system.
-We assume the output has the format of `df'.
-The value of this variable must be just a command name or file name;
-if you want to specify options, use `dired-free-space-args'.
-
-A value of nil disables this feature."
-  :type '(choice (string :tag "Program") (const :tag "None" nil))
-  :group 'dired)
-
-(defcustom dired-free-space-args "-Pk"
-  "*Options to use when running `dired-free-space-program'."
-  :type 'string
-  :group 'dired)
-
 ;;; Hook variables
 
 (defvar dired-load-hook nil
@@ -685,40 +670,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	 (cdr dir-or-list))
       ;; Expand the file name here because it may have been abbreviated
       ;; in dired-noselect.
-      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p)
-      (when (and full-p dired-free-space-program)
-	(save-excursion
-	  (goto-char (point-min))
-	  (when (re-search-forward "total [0-9]+$" nil t)
-	    (insert "  free ")
-	    ;; Non-Posix systems don't always have dired-free-space-program,
-	    ;; but might have an equivalent system call.
-	    (if (fboundp 'file-system-info)
-		(let ((beg (point))
-		      (fsinfo (file-system-info dir-or-list)))
-		  (if fsinfo
-		      (insert
-		       (format "%.0f" (/ (nth 2 fsinfo) 1024)))
-		    ;; file-system-info failed; delete " free ".
-		    (delete-region (- beg 7) beg)))
-	      (let ((beg (point)))
-		(condition-case nil
-		    (if (zerop (call-process dired-free-space-program nil t nil
-					     dired-free-space-args
-					     (expand-file-name dir-or-list)))
-			(progn
-			  (goto-char beg)
-			  (forward-line 1)
-			  (skip-chars-forward "^ \t")
-			  (forward-word 2)
-			  (skip-chars-forward " \t")
-			  (delete-region beg (point))
-			  (forward-word 1)
-			  (delete-region (point)
-					 (progn (forward-line 1) (point))))
-	     ;; The dired-free-space-program failed; delete its output
-		      (delete-region (- beg 7) (point)))
-		  (error (delete-region (- beg 7) (point))))))))))
+      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
     ;; Quote certain characters, unless ls quoted them for us.
     (if (not (string-match "b" dired-actual-switches))
 	(save-excursion
