@@ -182,3 +182,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Avoid error in getloadavg.c.  */
 #define NLIST_NAME_UNION  1
+
+#if 0  /* This is supposed to be an improvement.
+	  It would be good for people to try enabling this code
+	  and report the results.  */
+/* gcc -nostdlib prevents some math symbols from being included.
+   So we have to use -nostartfiles instead. */
+#define LINKER $(CC) -nostartfiles
+
+#define ORDINARY_LINK
+
+#undef LD_SWITCH_MACHINE
+#define LD_SWITCH_MACHINE \
+    -L /usr/lib \
+    '-A__iob=___ap$$iob' '-A_use_libc_sema=___ap$$use_libc_sema'
+#endif
