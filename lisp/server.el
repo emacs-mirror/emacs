@@ -896,7 +896,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	  (server-delete-client proc))
       (save-buffers-kill-emacs))))
 
-(global-set-key "\C-#" 'server-edit)
+(global-set-key "\C-x#" 'server-edit)
 
 ;;;###autoload
 (defun server-getenv (variable &optional frame)
