@@ -1,5 +1,28 @@
 2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* regex.c: More `unsigned char' -> `re_char' changes.
+	Also change several `int' into `re_wchar_t'.
+	(PATTERN_STACK_EMPTY, PUSH_PATTERN_OP, POP_PATTERN_OP): Remove.
+	(PUSH_FAILURE_POINTER): Don't cast any more.
+	(POP_FAILURE_REG_OR_COUNT): Remove the cast that strips `const'.
+	We want GCC to complain, since this piece of code makes
+	re_match non-reentrant, which *should* be fixed.
+	(GET_BUFFER_SPACE): Use size_t rather than unsigned long.
+	(EXTEND_BUFFER): Use RETALLOC.
+	(SET_LIST_BIT): Don't cast.
+	(re_wchar_t): New type.
+	(re_iswctype, re_wctype_to_bit): Make it crystal clear to GCC
+	that those two functions will always properly return.
+	(IMMEDIATE_QUIT_CHECK): Cast to void.
+	(analyse_first): Use recursion rather than an explicit stack.
+	(re_compile_fastmap): Can't fail anymore.
+	(re_search_2): Don't check re_compile_fastmap for failure.
+	(PUSH_NUMBER): Renamed from PUSH_FAILURE_COUNT.
+	Now also sets the new value (passed in a new argument).
+	(re_match_2_internal): Use it.
+	Also, use a new var `reg' of type size_t when looping through regs
+	rather than reuse the inappropriate `mcnt'.
+
 	* keymap.c (where_is_cache, where_is_cache_keymaps): New vars.
 	(Fset_keymap_parent, store_in_keymap): Flush the where-is cache.
 	(where_is_internal): Renamed from Fwhere_is_internal.
