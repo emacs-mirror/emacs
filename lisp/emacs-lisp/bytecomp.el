@@ -776,6 +776,7 @@ otherwise pop it")
   (and byte-compile-current-file (not noninteractive)
        (save-excursion
 	 (set-buffer (get-buffer-create "*Compile-Log*"))
+	 (goto-char (point-max))
 	 (insert "\n\^L\nCompiling "
 		 (if (stringp byte-compile-current-file)
 		     (concat "file " byte-compile-current-file)
@@ -1374,7 +1375,10 @@ With argument, insert value in current buffer after the form."
    (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
    "\000\000\000\n"
    )
-  (insert ";;; compiled by " user-mail-address " on "
+  (insert ";;; compiled by "
+	  (or user-mail-address
+	      (concat (user-login-name) "@" (system-name)))
+	  " on "
 	  (current-time-string) "\n;;; from file " filename "\n")
   (insert ";;; emacs version " emacs-version ".\n")
   (insert ";;; bytecomp version " byte-compile-version "\n;;; "
