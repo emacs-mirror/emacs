@@ -700,10 +700,12 @@ The @code{invisible} property can make the text in the overlay
 invisible, which means that it does not appear on the screen.
 @xref{Invisible Text}, for details.
 
+@ignore  This isn't implemented yet
 @item intangible
 @kindex intangible @r{(overlay property)}
 The @code{intangible} property on an overlay works just like the
 @code{intangible} text property.  @xref{Special Properties}, for details.
+@end ignore
 
 @item before-string
 @kindex before-string @r{(overlay property)}
