@@ -94,9 +94,19 @@ This can be slightly disconcerting, but some people may prefer it."
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))))
 
+
+;;; Note this definition must be at the end of the file, because
+;;; `define-minor-mode' actually calls the mode-function if the
+;;; associated variable is non-nil, which requires that all needed
+;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
-(defun mwheel-install ()
-  "Enable mouse wheel support."
+(define-minor-mode mouse-wheel-mode
+  "Toggle mouse wheel support.
+With prefix argument ARG, turn on if positive, otherwise off.
+Returns non-nil if the new state is enabled."
+  nil nil nil
+  :global t
+  :group 'mouse
   ;; In the latest versions of XEmacs, we could just use
   ;; (S-)*mouse-[45], since those are aliases for the button
   ;; equivalents in XEmacs, but I want this to work in as many
@@ -111,11 +121,20 @@ This can be slightly disconcerting, but some people may prefer it."
     ;; that if the wheeled-mouse is there, it just works, and this way it
     ;; doesn't yell at me if I'm on my laptop or another machine, etc.
     (condition-case ()
-	(while keys
-	  (define-key global-map (car keys) 'mwheel-scroll)
-	  (setq keys (cdr keys)))
+	(dolist (key keys)
+	  (cond (mouse-wheel-mode
+		 (define-key global-map key 'mwheel-scroll))
+		((eq (lookup-key global-map key) 'mwheel-scroll)
+		 (define-key global-map key nil))))
       (error nil))))
-    
+
+;;; Compatibility entry point
+;;;###autoload
+(defun mwheel-install (&optional uninstall)
+  "Enable mouse wheel support."
+  (mouse-wheel-mode t))
+
+
 (provide 'mwheel)
 
 ;;; mwheel.el ends here
