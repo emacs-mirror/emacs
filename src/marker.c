@@ -32,6 +32,10 @@ static int cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
+/* Nonzero means enable debugging checks on byte/char correspondences.  */
+
+static int byte_debug_flag;
+
 clear_charpos_cache (b)
      struct buffer *b;
 {
@@ -58,7 +62,12 @@ clear_charpos_cache (b)
   int changed = 0;							\
 									\
   if (this_charpos == charpos)						\
-    return (BYTEPOS);							\
+    {									\
+      int value = (BYTEPOS);						\
+      if (byte_debug_flag)						\
+	byte_char_debug_check (b, charpos, value);			\
+      return value;							\
+    }									\
   else if (this_charpos > charpos)					\
     {									\
       if (this_charpos < best_above)					\
@@ -78,8 +87,34 @@ clear_charpos_cache (b)
   if (changed)								\
     {									\
       if (best_above - best_below == best_above_byte - best_below_byte)	\
-	return best_below_byte + (charpos - best_below);		\
+        {								\
+	  int value = best_below_byte + (charpos - best_below);		\
+	  if (byte_debug_flag)						\
+	    byte_char_debug_check (b, charpos, value);			\
+	  return value;							\
+	}								\
     }									\
+}
+
+int
+byte_char_debug_check (b, charpos, bytepos)
+     struct buffer *b;
+     int charpos, bytepos;
+{
+  int nchars = 0;
+
+  if (bytepos > BUF_GPT_BYTE (b))
+    {
+      nchars = chars_in_text (BUF_BEG_ADDR (b),
+			      BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
+      nchars += chars_in_text (BUF_GAP_END_ADDR (b),
+			       bytepos - BUF_GPT_BYTE (b));
+    }
+  else
+    nchars = chars_in_text (BUF_BEG_ADDR (b), bytepos - BUF_BEG_BYTE (b));
+
+  if (charpos - 1 != nchars)
+    abort ();
 }
 
 int
@@ -169,6 +204,9 @@ buf_charpos_to_bytepos (b, charpos)
 	  set_marker_both (marker, Qnil, best_below, best_below_byte);
 	}
 
+      if (byte_debug_flag)
+	byte_char_debug_check (b, charpos, best_below_byte);
+
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
       cached_charpos = best_below;
@@ -196,6 +234,9 @@ buf_charpos_to_bytepos (b, charpos)
 	  set_marker_both (marker, Qnil, best_above, best_above_byte);
 	}
 
+      if (byte_debug_flag)
+	byte_char_debug_check (b, charpos, best_above_byte);
+
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
       cached_charpos = best_above;
@@ -218,7 +259,12 @@ buf_charpos_to_bytepos (b, charpos)
   int changed = 0;							\
 									\
   if (this_bytepos == bytepos)						\
-    return (CHARPOS);							\
+    {									\
+      int value = (CHARPOS);						\
+      if (byte_debug_flag)						\
+	byte_char_debug_check (b, value, bytepos);			\
+      return value;							\
+    }									\
   else if (this_bytepos > bytepos)					\
     {									\
       if (this_bytepos < best_above_byte)				\
@@ -238,7 +284,12 @@ buf_charpos_to_bytepos (b, charpos)
   if (changed)								\
     {									\
       if (best_above - best_below == best_above_byte - best_below_byte)	\
-	return best_below + (bytepos - best_below_byte);		\
+	{								\
+	  int value = best_below + (bytepos - best_below_byte);		\
+	  if (byte_debug_flag)						\
+	    byte_char_debug_check (b, value, bytepos);			\
+	  return value;							\
+	}								\
     }									\
 }
 
@@ -319,6 +370,9 @@ buf_bytepos_to_charpos (b, bytepos)
 	  set_marker_both (marker, Qnil, best_below, best_below_byte);
 	}
 
+      if (byte_debug_flag)
+	byte_char_debug_check (b, best_below, bytepos);
+
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
       cached_charpos = best_below;
@@ -345,6 +399,9 @@ buf_bytepos_to_charpos (b, bytepos)
 	  marker = Fmake_marker ();
 	  set_marker_both (marker, Qnil, best_above, best_above_byte);
 	}
+
+      if (byte_debug_flag)
+	byte_char_debug_check (b, best_above, bytepos);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -838,4 +895,9 @@ syms_of_marker ()
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
+
+  DEFVAR_BOOL ("byte-debug-flag", &byte_debug_flag,
+   "Non-nil enables debugging checks in byte/char position conversions.");
+  byte_debug_flag = 0;
+
 }
