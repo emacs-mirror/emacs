@@ -1001,6 +1001,15 @@ comes back" twice.
 @end example
 @end defun
 
+@defvar search-whitespace-regexp
+If this variable is non-@code{nil}, it should be a regular expression
+that says how to search for whitespace.  In that case, any group of
+spaces within in a regular expression being searched for stands for
+use of this regular expression.  However, spaces inside of constructs
+such as @samp{[@dots{}]} and @samp{*}, @samp{+}, @samp{?} are not
+affected by @code{search-whitespace-regexp}.
+@end defvar
+
 @node POSIX Regexps
 @section POSIX Regular Expression Searching
 
