@@ -68,7 +68,7 @@ static int freeze_window_start P_ ((struct window *, int));
 static int window_fixed_size_p P_ ((struct window *, int, int));
 static void enlarge_window P_ ((Lisp_Object, int, int));
 static Lisp_Object window_list P_ ((void));
-static int add_window_to_list P_ ((struct window *));
+static int add_window_to_list P_ ((struct window *, Lisp_Object *));
 static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
 				    Lisp_Object, int));
@@ -1180,16 +1180,17 @@ delete_window (window)
 			     Window List
  ***********************************************************************/
 
-/* Add window W to Vwindow_list.  This is a callback function for
-   foreach_window, used from window_list.  */
+/* Add window W to *LIST.  This is a callback function for
+   foreach_window, used in function window_list.  */
 
 static int
-add_window_to_list (w)
+add_window_to_list (w, list)
      struct window *w;
+     Lisp_Object *list;
 {
   Lisp_Object window;
   XSETWINDOW (window, w);
-  Vwindow_list = Fcons (window, Vwindow_list);
+  *list = Fcons (window, *list);
   return 1;
 }
 
@@ -1204,9 +1205,21 @@ window_list ()
   if (!CONSP (Vwindow_list))
     {
       Lisp_Object tail;
+
       Vwindow_list = Qnil;
       for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	foreach_window (XFRAME (XCAR (tail)), add_window_to_list);
+	{
+	  Lisp_Object args[2];
+
+	  /* We are visiting windows in canonical order, and add
+	     new windows at the front of args[1], which means we
+	     have to reverse this list at the end.  */
+	  args[1] = Qnil;
+	  foreach_window (XFRAME (XCAR (tail)), add_window_to_list, &args[1]);
+	  args[0] = Vwindow_list;
+	  args[1] = Fnreverse (args[1]);
+	  Vwindow_list = Fnconc (2, args);
+	}
     }
   
   return Vwindow_list;
@@ -1333,7 +1346,7 @@ next_window (window, minibuf, all_frames, next_p)
       && !EQ (all_frames, XWINDOW (window)->frame))
     return Fframe_first_window (all_frames);
   
-  if (!next_p)
+  if (next_p)
     {
       Lisp_Object list;
       
