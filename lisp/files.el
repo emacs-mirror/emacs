@@ -646,51 +646,59 @@ do not put this buffer at the front of the list of recently selected ones."
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
-(defun find-file (filename)
+(defun find-file (filename &optional wildcards)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
-creating one if none already exists."
-  (interactive "FFind file: ")
-  (switch-to-buffer (find-file-noselect filename)))
+creating one if none already exists.
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and visit multiple files."
+  (interactive "FFind file: \np")
+  (switch-to-buffer (find-file-noselect filename nil nil wildcards)))
 
-(defun find-file-other-window (filename)
+(defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
 May create a new window, or reuse an existing one.
-See the function `display-buffer'."
-  (interactive "FFind file in other window: ")
-  (switch-to-buffer-other-window (find-file-noselect filename)))
+See the function `display-buffer'.
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and visit multiple files."
+  (interactive "FFind file in other window: \np")
+  (switch-to-buffer-other-window (find-file-noselect filename
+						     nil nil wildcards)))
 
-(defun find-file-other-frame (filename)
+(defun find-file-other-frame (filename &optional wildcards)
   "Edit file FILENAME, in another frame.
 May create a new frame, or reuse an existing one.
-See the function `display-buffer'."
-  (interactive "FFind file in other frame: ")
-  (switch-to-buffer-other-frame (find-file-noselect filename)))
+See the function `display-buffer'.
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and visit multiple files."
+  (interactive "FFind file in other frame: \np")
+  (switch-to-buffer-other-frame (find-file-noselect filename
+						    nil nil wildcards)))
 
-(defun find-file-read-only (filename)
+(defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only: ")
-  (find-file filename)
+  (interactive "fFind file read-only: \np")
+  (find-file filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
 
-(defun find-file-read-only-other-window (filename)
+(defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other window: ")
-  (find-file-other-window filename)
+  (interactive "fFind file read-only other window: \np")
+  (find-file-other-window filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
 
-(defun find-file-read-only-other-frame (filename)
+(defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other frame: ")
-  (find-file-other-frame filename)
+  (interactive "fFind file read-only other frame: \np")
+  (find-file-other-frame filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
 
@@ -874,13 +882,15 @@ whose names match the pattern."
   :group 'files
   :type 'boolean)
 
-(defun find-file-noselect (filename &optional nowarn rawfile)
+(defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
 The buffer is not selected, just returned to the caller.
 Optional first arg NOWARN non-nil means suppress any warning messages.
-Optional second arg RAWFILE non-nil means the file is read literally."
+Optional second arg RAWFILE non-nil means the file is read literally.
+Optional third arg WILDCARDS non-nil means do wildcard processing
+and visit all the matching files."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -890,7 +900,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 			      (abbreviate-file-name (file-truename filename))
 			    filename))
 	(error "%s is a directory" filename))
-    (if (and find-file-wildcards
+    (if (and wildcards
+	     find-file-wildcards
 	     (not (string-match "\\`/:" filename))
 	     (string-match "[[*?]" filename))
 	(let ((files (file-expand-wildcards filename t))
