@@ -300,18 +300,30 @@ See the command `outline-mode' for more information on this mode."
     ;; When turning off outline mode, get rid of any outline hiding.
     (show-all)))
 
-(defcustom outline-level 'outline-level
+(defvar outline-level 'outline-level
   "*Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line and that the match
-data reflects the `outline-regexp'."
-  :type 'function
-  :group 'outlines)
+data reflects the `outline-regexp'.")
 
 (defvar outline-heading-alist ()
   "Alist associating a heading for every possible level.
 Each entry is of the form (HEADING . LEVEL).
-This alist is used both to find the heading corresponding to
-a given level and to find the level of a given heading.")
+This alist is used two ways: to find the heading corresponding to
+a given level and to find the level of a given heading.
+If a mode or document needs several sets of outline headings (for example
+numbered and unnumbered sections), list them set by set and sorted by level
+within each set.  For example in texinfo mode:
+
+     (setq outline-heading-alist
+      '((\"@chapter\" . 2) (\"@section\" . 3) (\"@subsection\" . 4)
+           (\"@subsubsection\" . 5)
+        (\"@unnumbered\" . 2) (\"@unnumberedsec\" . 3)
+           (\"@unnumberedsubsec\" . 4)  (\"@unnumberedsubsubsec\" . 5)
+        (\"@appendix\" . 2) (\"@appendixsec\" . 3)...
+           (\"@appendixsubsec\" . 4) (\"@appendixsubsubsec\" . 5) ..))
+
+Instead of sorting the entries in each set, you can also separate the
+sets with nil.")
 (make-variable-buffer-local 'outline-heading-alist)
 
 ;; This used to count columns rather than characters, but that made ^L
@@ -423,7 +435,7 @@ in the region."
     (outline-back-to-heading t)
     (let* ((head (match-string 0))
 	   (level (save-match-data (funcall outline-level)))
-	   (up-head (or (car (rassoc (1- level) outline-heading-alist))
+	   (up-head (or (outline-head-from-level (1- level) head)
 			(save-excursion
 			  (save-match-data
 			    (outline-up-heading 1 t)
@@ -454,20 +466,16 @@ in the region."
     (let* ((head (match-string 0))
 	   (level (save-match-data (funcall outline-level)))
 	   (down-head
-	    (or (car (rassoc (1+ level) outline-heading-alist))
+	    (or (outline-head-from-level (1+ level) head)
 		(save-excursion
 		  (save-match-data
-		    (while (and (not (eobp))
-				(progn
-				  (outline-next-heading)
-				  (<= (funcall outline-level) level))))
+		    (while (and (progn (outline-next-heading) (not (eobp)))
+				(<= (funcall outline-level) level)))
 		    (when (eobp)
 		      ;; Try again from the beginning of the buffer.
 		      (goto-char (point-min))
-		      (while (and (not (eobp))
-				  (progn
-				    (outline-next-heading)
-				    (<= (funcall outline-level) level)))))
+		      (while (and (progn (outline-next-heading) (not (eobp)))
+				  (<= (funcall outline-level) level))))
 		    (unless (eobp)
 		      (looking-at outline-regexp)
 		      (match-string 0))))
@@ -484,6 +492,41 @@ in the region."
     (unless (rassoc level outline-heading-alist)
       (push (cons head level) outline-heading-alist))
     (replace-match down-head nil t)))))
+
+(defun outline-head-from-level (level head &optional alist)
+  "Get new heading with level LEVEL from ALIST.
+If there are no such entries, return nil.
+ALIST defaults to `outline-heading-alist'.
+Similar to (car (rassoc LEVEL ALIST)).
+If there are several different entries with same new level, choose
+the one with the smallest distance to the assocation of HEAD in the alist.
+This makes it possible for promotion to work in modes with several
+independent sets of headings (numbered, unnumbered, appendix...)"
+  (unless alist (setq alist outline-heading-alist))
+  (let ((l (rassoc level alist))
+	ll h hl l2 l2l)
+    (cond
+     ((null l) nil)
+     ;; If there's no HEAD after L, any other entry for LEVEL after L
+     ;; can't be much better than L.
+     ((null (setq h (assoc head (setq ll (memq l alist))))) (car l))
+     ;; If there's no other entry for LEVEL, just keep L.
+     ((null (setq l2 (rassoc level (cdr ll)))) (car l))
+     ;; Now we have L, L2, and H: see if L2 seems better than L.
+     ;; If H is after L2, L2 is better.
+     ((memq h (setq l2l (memq l2 (cdr ll))))
+      (outline-head-from-level level head l2l))
+     ;; Now we have H between L and L2.
+     ;; If there's a separator between L and H, prefer L2.
+     ((memq h (memq nil ll))
+      (outline-head-from-level level head l2l))
+     ;; If there's a separator between L2 and H, prefer L.
+     ((memq l2 (memq nil (setq hl (memq h ll)))) (car l))
+     ;; No separator between L and L2, check the distance.
+     ((< (* 2 (length hl)) (+ (length ll) (length l2l)))
+      (outline-head-from-level level head l2l))
+     ;; If all else fails, just keep L.
+     (t (car l)))))
 
 (defun outline-map-region (fun beg end)
   "Call FUN for every heading between BEG and END.
@@ -719,27 +762,33 @@ Show the heading too, if it is currently invisible."
   (interactive)
   (outline-flag-subtree nil))
 
+(defun outline-show-heading ()
+  "Show the current heading and move to its end."
+  (outline-flag-region (- (point)
+			  (if (bobp) 0
+			    (if (eq (char-before (1- (point))) ?\n)
+				2 1)))
+		       (progn (outline-end-of-heading) (point))
+		       nil))
+
 (defun hide-sublevels (levels)
   "Hide everything but the top LEVELS levels of headers, in whole buffer."
   (interactive "p")
   (if (< levels 1)
       (error "Must keep at least one level of headers"))
-  (setq levels (1- levels))
   (let (outline-view-change-hook)
     (save-excursion
       (goto-char (point-min))
-      ;; Keep advancing to the next top-level heading.
-      (while (or (and (bobp) (outline-on-heading-p))
-		 (outline-next-heading))
-	(let ((end (save-excursion (outline-end-of-subtree) (point))))
-	  ;; Hide everything under that.
-	  (outline-end-of-heading)
-	  (outline-flag-region (point) end t)
-	  ;; Show the first LEVELS levels under that.
-	  (if (> levels 0)
-	      (show-children levels))
-	  ;; Move to the next, since we already found it.
-	  (goto-char end)))))
+      ;; Skip the prelude, if any.
+      (unless (outline-on-heading-p t) (outline-next-heading))
+      ;; First hide everything.
+      (outline-flag-region (point) (point-max) t)
+      ;; Then unhide the top level headers.
+      (outline-map-region
+       (lambda ()
+	 (if (<= (funcall outline-level) levels)
+	     (outline-show-heading)))
+       (point) (point-max))))
   (run-hooks 'outline-view-change-hook))
 
 (defun hide-other ()
@@ -812,27 +861,16 @@ Default is enough to cause the following heading to appear."
 		(max 1 (- (funcall outline-level) start-level)))))))
   (let (outline-view-change-hook)
     (save-excursion
-      (save-restriction
-	(outline-back-to-heading)
-	(setq level (+ level (funcall outline-level)))
-	(narrow-to-region (point)
-			  (progn (outline-end-of-subtree)
-				 (if (eobp) (point-max) (1+ (point)))))
-	(goto-char (point-min))
-	(while (and (not (eobp))
-		    (progn
-		      (outline-next-heading)
-		      (not (eobp))))
-	  (if (<= (funcall outline-level) level)
-	      (save-excursion
-		(outline-flag-region (save-excursion
-				       (forward-char -1)
-				       (if (bolp)
-					   (forward-char -1))
-				       (point))
-				     (progn (outline-end-of-heading) (point))
-				     nil)))))))
-    (run-hooks 'outline-view-change-hook))
+      (outline-back-to-heading)
+      (setq level (+ level (funcall outline-level)))
+      (outline-map-region
+       (lambda ()
+	 (if (<= (funcall outline-level) level)
+	     (outline-show-heading)))
+       (point)
+       (progn (outline-end-of-subtree)
+	      (if (eobp) (point-max) (1+ (point)))))))
+  (run-hooks 'outline-view-change-hook))
 
 
 
@@ -876,8 +914,7 @@ Stop at the first and last subheadings of a superior heading."
   "Move to next heading of the same level, and return point or nil if none."
   (let ((level (funcall outline-level)))
     (outline-next-visible-heading 1)
-    (while (and (> (funcall outline-level) level)
-		(not (eobp)))
+    (while (and (not (eobp)) (> (funcall outline-level) level))
       (outline-next-visible-heading 1))
     (if (or (eobp) (< (funcall outline-level) level))
 	nil
