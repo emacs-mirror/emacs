@@ -262,12 +262,14 @@ static void
 sound_perror (msg)
      char *msg;
 {
+  int saved_errno = errno;
+
   turn_on_atimers (1);
 #ifdef SIGIO
   sigunblock (sigmask (SIGIO));
 #endif
-  if (errno != 0)
-    error ("%s: %s", msg, strerror (errno));
+  if (saved_errno != 0)
+    error ("%s: %s", msg, strerror (saved_errno));
   else
     error ("%s", msg);
 }
