@@ -4,7 +4,7 @@
 
 ;; Author:     Mike Williams <mdub@bigfoot.com>
 ;; Created:    February 2001
-;; Version:    $Revision: 1.28 $
+;; Version:    $Revision: 1.2 $
 ;; Keywords:   xml
 
 ;; This file is part of GNU Emacs.
@@ -47,7 +47,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'sgml-mode)
-(require 'custom)
 
 
 ;; Variables
@@ -127,9 +126,8 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
 
 (defsubst xml-lite-parse-tag-name ()
   "Skip past a tag-name, and return the name."
-  (let ((here (point)))
-    (if (> (skip-chars-forward "-._:A-Za-z0-9") 0)
-        (buffer-substring-no-properties here (point)))))
+  (buffer-substring-no-properties
+   (point) (progn (skip-syntax-forward "w_") (point))))
 
 (defsubst xml-lite-looking-back-at (s)
   (let ((limit (max (- (point) (length s)) (point-min))))
@@ -206,7 +204,9 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
             name (xml-lite-parse-tag-name)
             name-end (point))
       ;; check whether it's an empty tag
-      (if (and tag-end (eq ?/ (char-before (- tag-end 1))))
+      (if (or (and tag-end (eq ?/ (char-before (- tag-end 1))))
+	      (and (not sgml-xml-mode)
+                   (member-ignore-case name sgml-empty-tags)))
           (setq tag-type 'empty))))
 
     (cond 
@@ -243,6 +243,13 @@ immediately enclosing the current position."
                    (not (xml-lite-at-indentation-p)))
                (setq tag-info (xml-lite-parse-tag-backward)))
 
+        ;; This tag may enclose things we thought were tags.  If so,
+        ;; discard them.
+        (while (and context
+                    (> (xml-lite-tag-end tag-info)
+                       (xml-lite-tag-end (car context))))
+          (setq context (cdr context)))
+           
         (cond
 
          ;; inside a tag ...
@@ -253,20 +260,13 @@ immediately enclosing the current position."
          ((eq (xml-lite-tag-type tag-info) 'open)
           (setq ignore-depth (1- ignore-depth))
           (when (= ignore-depth -1)
-            (setq context (cons tag-info context))
+            (push tag-info context)
             (setq ignore-depth 0)))
 
          ;; end-tag
          ((eq (xml-lite-tag-type tag-info) 'close)
           (setq ignore-depth (1+ ignore-depth)))
          
-         ((eq (xml-lite-tag-type tag-info) 'comment)
-          ;; this comment may enclose things we thought were tags
-          (while (and context
-                      (> (xml-lite-tag-end tag-info)
-                         (xml-lite-tag-end (car context))))
-            (setq context (cdr context))))
-           
          )))
 
     ;; return context
@@ -342,30 +342,17 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 (defun xml-lite-indent-line ()
   "Indent the current line as XML."
   (interactive)
-  (let ((origin-point (point))
-        bol-point indent-point
-        indent-col)
-
-    ;; save beginning of line
-    (beginning-of-line)
-    (setq bol-point (point))
-    ;; save current indent
-    (skip-chars-forward " \t")
-    (setq indent-point (point))
-
-    ;; calculate basic indent
-    (setq indent-col (xml-lite-calculate-indent))
-
-    (unless (eq (current-column) indent-col)
-      ;; re-indent, adjusting origin point for indentation change
-      (delete-region bol-point (point))
-      (indent-to indent-col)
-      (setq origin-point (+ origin-point (- (point) indent-point))))
-
-    (if (> origin-point (point))
-        (goto-char origin-point))
-
-    ))
+  (let* ((savep (point))
+	 (indent-col
+	  (save-excursion
+	    (beginning-of-line)
+	    (skip-chars-forward " \t")
+	    (if (>= (point) savep) (setq savep nil))
+	    ;; calculate basic indent
+	    (xml-lite-calculate-indent))))
+    (if savep
+	(save-excursion (indent-line-to indent-col))
+      (indent-line-to indent-col))))
 
 
 ;; Editing shortcuts
@@ -395,7 +382,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
      ;; inside an element
      ((eq type 'open)
       (insert "</" (xml-lite-tag-name tag-info) ">")
-      (xml-lite-indent-line))
+      (indent-according-to-mode))
 
      (t
       (error "Nothing to close")))))
@@ -409,7 +396,7 @@ Behaves electrically if `xml-lite-electric-slash' is non-nil."
     (insert-char ?/ arg))
    ((eq xml-lite-electric-slash 'indent)
     (insert-char ?/ 1)
-    (xml-lite-indent-line))
+    (indent-according-to-mode))
    ((eq xml-lite-electric-slash 'close)
     (delete-backward-char 1)
     (xml-lite-insert-end-tag))
@@ -421,7 +408,6 @@ Behaves electrically if `xml-lite-electric-slash' is non-nil."
 
 (defvar xml-lite-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'indent-for-tab-command)
     (define-key map "\C-c/" 'xml-lite-insert-end-tag)
     (define-key map "\C-c\C-s" 'xml-lite-show-context)
     (define-key map "/" 'xml-lite-slash)
@@ -446,14 +432,13 @@ Key bindings:
   'xml-lite-mode-map                    ; keymap
   (if xml-lite-mode
       (progn
-        (if (eq major-mode 'fundamental-mode)
-            (sgml-mode))
-        (make-local-variable 'indent-line-function)
-        (setq xml-lite-mode t
-              xml-lite-orig-indent-line-function indent-line-function
-              indent-line-function 'xml-lite-indent-line))
-    (setq indent-line-function xml-lite-orig-indent-line-function))
-  (force-mode-line-update))
+        (if (eq major-mode 'fundamental-mode) (sgml-mode))
+	(set (make-local-variable 'sgml-xml-mode) t)
+        (set (make-local-variable 'xml-lite-orig-indent-line-function)
+	     indent-line-function)
+	(set (make-local-variable 'indent-line-function) 'xml-lite-indent-line))
+    (kill-local-variable 'sgml-xml-mode)
+    (setq indent-line-function xml-lite-orig-indent-line-function)))
 
 (provide 'xml-lite)
 
