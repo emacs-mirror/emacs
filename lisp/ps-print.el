@@ -2817,10 +2817,10 @@ which long lines wrap around."
     (defun ps-mule-next-point (arg)
       (save-excursion (goto-char arg) (forward-char 1) (point)))
     (defun ps-mule-chars-in-string (string)
-      (/ (length string) (char-bytes (sref string 0))))
-    (defalias 'ps-mule-string-char 'sref)
+      (length string))
+    (defalias 'ps-mule-string-char 'aref)
     (defun ps-mule-next-index (str i)
-      (+ i (char-bytes (sref str i)))))
+      (1+ i)))
   )
 
 (defvar ps-mule-font-info-database
