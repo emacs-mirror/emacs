@@ -1065,11 +1065,12 @@ The returned value is a Quail map specific to KEY."
 					  (if (stringp quail-current-str)
 					      quail-current-str
 					    (char-to-string quail-current-str)))))
-			(if input-method-exit-on-first-char
+			(if (or input-method-exit-on-first-char
+				(= (length quail-conversion-str) 0))
 			    (setq quail-converting nil)))))
 	      ;; KEYSEQ is not defined in the conversion keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events
+	      (setq unread-command-events
 		    (string-to-list (this-single-command-raw-keys)))
 	      (setq quail-converting nil))))
 	(if (overlay-start quail-conv-overlay)
@@ -1077,11 +1078,10 @@ The returned value is a Quail map specific to KEY."
 			   (overlay-end quail-conv-overlay)))
 	(if (> (length quail-conversion-str) 0)
 	    (setq generated-events
-		  (append (string-to-list
-			   (if enable-multibyte-characters
-			       quail-conversion-str
-			     (string-make-unibyte quail-conversion-str)))
-			  generated-events)))
+		  (string-to-list
+		   (if enable-multibyte-characters
+		       quail-conversion-str
+		     (string-make-unibyte quail-conversion-str)))))
 	(if (and input-method-exit-on-first-char generated-events)
 	    (list (car generated-events))
 	  generated-events))
