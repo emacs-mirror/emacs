@@ -80,11 +80,6 @@
 
 	* configure.in: Remove -G0 from Irix NON_GCC_TEST_OPTIONS.
 
-2000-01-18  gerd  <gerd@dlpx1>
-
-	* configure.in (HAVE_GIF): Check for DGifOpen instead of
-	DGifOpenFileName.
-
 2000-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (HAVE_GIF): Check for DGifOpen instead of
