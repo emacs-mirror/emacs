@@ -2944,9 +2944,9 @@ Lisp Manual
 mini-windows.
 
 +++
-** The function `pos-visible-in-window-p' now has a third argument, FULLY.
-If FULLY is non-nil, then locations that are partially obscured aren't
-considered visible.
+** The function `pos-visible-in-window-p' now has a third optional
+argument, PARTIALLY.  If a character is only partially visible, nil is
+returned, unless PARTIALLY is non-nil.
 
 ** On window systems, `glyph-table' is no longer used.
 
