@@ -1,6 +1,6 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.7) $
+ * $HopeName: MMsrc!vmo1.c(trunk.8) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * Design: design.mps.vm, design.mps.vmo1
@@ -60,7 +60,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.7) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.8) $");
 
 
 /* Fix unprototyped system calls
@@ -145,7 +145,7 @@ Res VMCreate(VM *vmReturn, Size size)
   if (addr == (void *)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    res = (e == ENOMEM) ? ResRESOURCE : ResFAIL;
+    res = (e == ENOMEM) ? ResMEMORY : ResFAIL;
     goto failVMMap;
   }
   vm = (VM)addr;
