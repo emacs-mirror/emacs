@@ -59,8 +59,8 @@ It may be followed by the following keyword argument pairs
 
    :filter FUNCTION
 
-FUNCTION is a function with one argument, the menu.  It returns the actual
-menu displayed.
+FUNCTION is a function with one argument, the rest of menu items.
+It returns the remaining items of the displayed menu.
 
    :visible INCLUDE
 
