@@ -70,6 +70,13 @@ Boston, MA 02111-1307, USA.  */
 #undef access
 #endif /* MSDOS */
 
+#ifndef DIRECTORY_SEP
+#define DIRECTORY_SEP '/'
+#endif
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+#endif
+
 #ifdef WINDOWSNT
 #undef access
 #undef unlink
