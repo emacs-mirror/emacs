@@ -24,24 +24,22 @@
   "Non-nil if in Encoded-kbd minor mode.")
 (put 'encoded-kbd-mode 'permanent-local t)
 
-(or (assq 'encoded-kbd-mode minor-mode-alist)
+(let ((slot (assq 'encoded-kbd-mode minor-mode-alist))
+      (name " Encoded-kbd"))
+  (if slot
+      (setcar (cdr slot) name)
     (setq minor-mode-alist
-	  (cons '(encoded-kbd-mode " Encoded-kbd") minor-mode-alist)))
+	  (cons '(encoded-kbd-mode " Encoded-kbd") minor-mode-alist))))
 
-(defvar encoded-kbd-mode-map
-  (let ((map (make-sparse-keymap))
-	(i 128))
-    (define-key map "\e" 'encoded-kbd-iso2022-esc-prefix)
-    (while (< i 256)
-      (define-key map (vector i) 'encoded-kbd-handle-8bit)
-      (setq i (1+ i)))
-    map)
+(defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
 
-(or (assq 'encoded-kbd-mode minor-mode-map-alist)
+(let ((slot (assq 'encoded-kbd-mode minor-mode-map-alist)))
+  (if slot
+      (setcdr slot encoded-kbd-mode-map)
     (setq minor-mode-map-alist
 	  (cons (cons 'encoded-kbd-mode encoded-kbd-mode-map)
-		minor-mode-map-alist)))
+		minor-mode-map-alist))))
 
 ;; Subsidiary keymaps for handling ISO2022 escape sequences.
 
@@ -102,17 +100,18 @@
 ;; Encoded-kbd mode.
 (defvar encoded-kbd-coding nil)
 
-;; Keep information of designation state of ISO2022 encoding.  This is
-;; a vector of character sets currently designated to each graphic
-;; registers (0..3).
+;; Keep information of designation state of ISO2022 encoding.  When
+;; Encoded-kbd mode is on, this is set to a vector of length 4, the
+;; elements are character sets currently designated to graphic
+;; registers 0 thru 3.
 
 (defvar encoded-kbd-iso2022-designations nil)
 (put 'encoded-kbd-iso2022-designations 'permanent-local t)
 
-;; Keep information of invocation state of ISO2022 encoding.  This is
-;; a vector of graphic register numbers currently invoked to each
-;; graphic plane (0..1), the third element is a single shifted graphic
-;; register number.
+;; Keep information of invocation state of ISO2022 encoding.  When
+;; Encoded-kbd mode is on, this is set to a vector of length 3,
+;; graphic register numbers currently invoked to graphic plane 1 and
+;; 2, and a single shifted graphic register number.
 
 (defvar encoded-kbd-iso2022-invocations nil)
 (put 'encoded-kbd-iso2022-invocations 'permanent-local t)
@@ -203,14 +202,21 @@ The following key sequence may cause multilingual text insertion."
 
 (defun encoded-kbd-self-insert-iso2022-8bit ()
   (interactive)
+  (cond
+   ((= last-command-char ?\216)		; SS2 (Single Shift 2)
+    (aset encoded-kbd-iso2022-invocations 2 2))
+   ((= last-command-char ?\217)		; SS3 (Single Shift 3)
+    (aset encoded-kbd-iso2022-invocations 2 3))
+   (t
   (let* ((charset (aref encoded-kbd-iso2022-designations
 			(or (aref encoded-kbd-iso2022-invocations 2)
 			    (aref encoded-kbd-iso2022-invocations 1))))
 	 (char (if (= (charset-dimension charset) 1)
 		   (make-char charset last-command-char)
-		 (make-char charset last-command-char (read-char-exclusive)))))
+		   (make-char charset last-command-char
+			      (read-char-exclusive)))))
     (aset encoded-kbd-iso2022-invocations 2 nil)
-    (setq unread-command-events (cons char unread-command-events))))
+      (setq unread-command-events (cons char unread-command-events))))))
 
 (defun encoded-kbd-self-insert-sjis ()
   (interactive)
@@ -225,6 +231,66 @@ The following key sequence may cause multilingual text insertion."
   (let ((char (decode-big5-char (+ (ash last-command-char 8)
 				   (read-char-exclusive)))))
     (setq unread-command-events (cons char unread-command-events))))
+
+(defun encoded-kbd-self-insert-ccl ()
+  (interactive)
+  (let ((str (char-to-string last-command-char))
+	(coding (keyboard-coding-system)))
+    (setq str (decode-coding-string str coding))
+    (setq unread-command-events
+	  (append (string-to-list str) unread-command-events))))
+
+(defun encoded-kbd-setup-keymap (coding)
+  ;; At first, reset the keymap.
+  (setcdr encoded-kbd-mode-map nil)
+  ;; Then setup the keymap according to the keyboard coding system.
+  (cond
+   ((eq encoded-kbd-coding 'sjis)
+    (let ((i 128))
+      (while (< i 256)
+	(define-key encoded-kbd-mode-map
+	  (vector i) 'encoded-kbd-self-insert-sjis)
+	(setq i (1+ i)))))
+
+   ((eq encoded-kbd-coding 'big5)
+    (let ((i 161))
+      (while (< i 255)
+	(define-key encoded-kbd-mode-map
+	  (vector i) 'encoded-kbd-self-insert-big5)
+	(setq i (1+ i)))))
+
+   ((eq encoded-kbd-coding 'iso2022-7)
+    (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix))
+    
+   ((eq encoded-kbd-coding 'iso2022-8)
+    (define-key encoded-kbd-mode-map
+      (vector ?\216) 'encoded-kbd-self-insert-iso2022-8bit)
+    (define-key encoded-kbd-mode-map
+      (vector ?\217) 'encoded-kbd-self-insert-iso2022-8bit)
+    (let ((i 160))
+      (while (< i 256)
+	(define-key encoded-kbd-mode-map
+	  (vector i) 'encoded-kbd-self-insert-iso2022-8bit)
+	(setq i (1+ i)))))
+
+   ((eq encoded-kbd-coding 'ccl)
+    (let ((valid-codes (or (coding-system-get coding 'valid-codes)
+			   '((128 255))))
+	  elt from to)
+      (while valid-codes
+	(setq elt (car valid-codes) valid-codes (cdr valid-codes))
+	(if (consp elt)
+	    (setq from (car elt) to (cdr elt))
+	  (setq from (setq to elt)))
+	(while (<= from to)
+	  (if (>= from 128)
+	      (define-key encoded-kbd-mode-map
+		(vector from) 'encoded-kbd-self-insert-ccl))
+	  (setq from (1+ from))))))
+
+   (t
+    (error "Invalid value in encoded-kbd-coding: %s" encoded-kbd-coding))))
+
 
 ;; Input mode at the time Encoded-kbd mode is turned on is saved here.
 (defvar saved-input-mode nil)
@@ -288,10 +354,17 @@ as a multilingual text encoded in a coding system set by
 		'use-8th-bit (nth 3 saved-input-mode))	
 	       (setq encoded-kbd-coding 'big5))
 
+	      ((= (coding-system-type coding) 4) ; CCL based coding
+	       (set-input-mode
+		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		'use-8th-bit (nth 3 saved-input-mode))	
+	       (setq encoded-kbd-coding 'ccl))
+
 	      (t
 	       (setq encoded-kbd-mode nil)
 	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
 		      (keyboard-coding-system))))
+	(encoded-kbd-setup-keymap coding)
 	(run-hooks 'encoded-kbd-mode-hook))))
 
 ;;; encoded-kb.el ends here
