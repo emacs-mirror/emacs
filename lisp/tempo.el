@@ -52,7 +52,7 @@
 ;; a non-nil argument).
 
 ;; More flexible templates can be created by including lisp symbols,
-;; which will be evaluated as variables, or lists, which will will be
+;; which will be evaluated as variables, or lists, which will be
 ;; evaluated as lisp expressions.
 
 ;; See the documentation for tempo-define-template for the different
@@ -737,7 +737,7 @@ Returns non-nil if an expansion was made and nil otherwise.
 This could as an example be used in a command that is bound to the
 space bar, and looks something like this:
 
-(defun tempo-space ()
+\(defun tempo-space ()
   (interactive \"*\")
   (or (tempo-expand-if-complete)
       (insert \" \")))"
