@@ -2979,15 +2979,14 @@ If you want VALUE to be a string, you must surround it with doublequotes.
 If VARIABLE has a `variable-interactive' property, that is used as if
 it were the arg to `interactive' (which see) to interactively read the value."
   (interactive
-   (let* ((var (let ((v (variable-at-point))
-		     (enable-recursive-minibuffers t)
-		     val)
-		 (setq val (completing-read (if v
-						(format "Set variable (default %s): " v)
-					      "Set variable: ")
-					    obarray 'boundp t))
-		 (if (equal val "")
-		     v (intern val))))
+   (let* ((v (variable-at-point))
+	  (enable-recursive-minibuffers t)
+	  (val (completing-read
+		(if v
+		    (format "Set variable (default %s): " v)
+		  "Set variable: ")
+		obarray 'user-variable-p t))
+	  (var (if (equal val "") v (intern val)))
 	  (minibuffer-help-form
 	   '(funcall myhelp))
 	  (myhelp
