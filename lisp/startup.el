@@ -954,12 +954,14 @@ Copyright (C) 1999 Free Software Foundation, Inc.")
 			     (insert 
 			      "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
-You may give out copies of Emacs; type C-h C-c to see the conditions.
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type C-h C-c to see the conditions.
 Type C-h C-d for information on getting the latest version.")
 			   (insert (substitute-command-keys
 				    "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
-You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version."))))
 		       (goto-char (point-min))
 
