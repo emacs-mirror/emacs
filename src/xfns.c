@@ -10678,11 +10678,30 @@ Value is t is tooltip was open, nil otherwise.")
   if (tip_frame)
     {
       Lisp_Object frame;
-      
+	
       XSETFRAME (frame, tip_frame);
       Fdelete_frame (frame, Qt);
       tip_frame = NULL;
       deleted_p = 1;
+
+#ifdef USE_LUCID
+      /* Bloodcurdling hack alert: The Lucid menu bar widget's
+	 redisplay procedure is not called when a tip frame over menu
+	 items is unmapped.  Redisplay the menu manually...  */
+      {
+	struct frame *f = SELECTED_FRAME ();
+	Widget w = f->output_data.x->menubar_widget;
+	extern void xlwmenu_redisplay P_ ((Widget));
+	
+	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
+	    && w != None)
+	  {
+	    BLOCK_INPUT;
+	    xlwmenu_redisplay (w);
+	    UNBLOCK_INPUT;
+	  }
+      }
+#endif /* USE_LUCID */
     }
 
   return unbind_to (count, deleted_p ? Qt : Qnil);
