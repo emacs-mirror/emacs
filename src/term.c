@@ -834,7 +834,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 
 	  if (g < 0 || g >= tlen)
 	    {
-	      /* This glyph doesn't has an entry in Vglyph_table.  */
+	      /* This glyph doesn't have an entry in Vglyph_table.  */
 	      if (! CHAR_VALID_P (src->u.ch, 0))
 		{
 		  len = 1;

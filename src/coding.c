@@ -1,4 +1,4 @@
-/* Coding system handler (conversion, detection, and etc).
+/* Coding system handler (conversion, detection, etc).
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
