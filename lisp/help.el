@@ -841,12 +841,20 @@ it is displayed along with the global value."
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (unless (bufferp buffer) (setq buffer (current-buffer)))
+  (unless (bufferp buffer) 
+    (setq buffer (current-buffer)))
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (let (valvoid)
       (with-current-buffer buffer
 	(with-output-to-temp-buffer "*Help*"
+
+	  (let ((aliased (indirect-variable variable)))
+	    (unless (eq aliased variable)
+	      (princ (format "%s is a variable alias for %s.\n\n"
+			     variable aliased))
+	      (setq variable aliased)))
+
 	  (prin1 variable)
 	  (if (not (boundp variable))
 	      (progn
