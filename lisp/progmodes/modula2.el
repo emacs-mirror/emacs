@@ -1,4 +1,7 @@
+;;; 
 ;;; modula2.el --- Modula-2 editing support package
+;; The authors distributed this in without a copyright notice
+;; back in 1988, so it is in the public domain.
 
 ; Author Mick Jordan
 ; amended Peter Robinson

@@ -8,6 +8,8 @@
 ;;             Mon Jan 13 14:45:12 1986
 ;;
 ;;
+;; This is in the public domain
+;; since Delp distributed it without a copyright notice in 1986.
 
 ;; (setq send-mail-function 'post-mail-send-it)
 

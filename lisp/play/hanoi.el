@@ -1,6 +1,8 @@
 ;;; hanoi.el --- towers of hanoi in GNUmacs
 
 ; Author (a) 1985, Damon Anton Permezel
+; This is in the public domain
+; since he distributed it without copyright notice in 1985.
 
 ;;;
 ;;; hanoi-topos - direct cursor addressing
