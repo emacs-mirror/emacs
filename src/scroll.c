@@ -477,8 +477,8 @@ scroll_cost (frame, from, to, amount)
   return
     (FRAME_INSERT_COST (frame)[offset + from]
      + (amount - 1) * FRAME_INSERTN_COST (frame)[offset + from]
-     + FRAME_DELETEN_COST (frame)[offset + to]
-     + (amount - 1) * FRAME_DELETE_COST (frame)[offset + to]);
+     + FRAME_DELETE_COST (frame)[offset + to]
+     + (amount - 1) * FRAME_DELETEN_COST (frame)[offset + to]);
 }
 
 /* Calculate the line insertion/deletion
