@@ -1,3 +1,56 @@
+2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* jit-lock.el (jit-lock-fontify-buffer): Remove.
+
+	* arc-mode.el (archive-zoo-summarize): Fix from gnu.emacs.bug.
+
+	* font-lock.el (font-lock-syntactically-fontified): New var.
+	(font-lock-fontify-syntactic-keywords-region): Use it.
+	(font-lock-mode): Fix docstring.  Don't need make-local-hook anymore.
+
+	* diff-mode.el (diff-find-file-name): Fix regexp.
+
+	* emacs-lisp/cl-extra.el (cl-builtin-gethash, cl-builtin-remhash)
+	(cl-builtin-clrhash, cl-builtin-maphash): Add for byte-compatibility.
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression): Fix.
+	(sh-mode-syntax-table): Add punctuation syntax for < and >.
+	(sh-mode): Don't make all vars local here.
+	(sh-kw): Reformat.
+	(sh-set-shell): Use dolist.  Don't set indent-region-function.
+	(sh-mode-syntax-table): Use pop.
+	(sh-remember-variable): Use push.
+	(sh-help-string-for-variable): Use memq.
+	(sh-safe-backward-sexp): Remove.
+	(sh-safe-forward-sexp): Add ARG.
+	(sh-get-indent-info, sh-prev-stmt): Use it.
+	(sh-prev-line): Simplify by using forward-comment.
+	(sh-this-is-a-continuation): Simplify.
+	(sh-learn-buffer-indent): Use dolist.
+	(sh-do-nothing): Remove.
+	(sh-set-char-syntax, sh-set-here-doc-region):
+	Use inhibit-modification-hooks.
+	(sh-name-style): Use mapcar and push.
+	(sh-load-style): Use dolist.
+	(sh-save-styles-to-buffer): Use with-current-buffer and pp.
+	(sh-case, sh-while-getopts): Use propertize directly rather
+	than sh-electric-rparen.
+
+2000-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el: Require CL when compiling.
+	(tex-mode-syntax-table): Init immediately.
+	(tex-mode-map): Bind M-RET to latex-insert-item.
+	(latex-mode): Set indent-line-function to latex-indent.
+	(tex-common-initialization): Don't setup the syntax-table any more.
+	(latex-insert-item): New skeleton.
+	(tex-next-unmatched-end): Fix copy/paste braino.
+	(latex-syntax-after, latex-skip-close-parens, latex-down-list) 
+	(latex-indent, latex-find-indent): New functions.
+	(tex-indent-allhanging, tex-indent-arg, tex-latex-indent-syntax-table) 
+	(tex-indent-item, tex-indent-item-re, tex-indent-basic): New vars.
+	(tex-compilation-parse-errors): Use with-syntax-table.
+
 2000-10-15  Miles Bader  <miles@gnu.org>
 
 	* font-lock.el (font-lock-comment-face): Change dark-background,
@@ -1421,15 +1474,12 @@
 
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/sh-script.el (sh-search-word): Remove call to
-	`debug'.
+	* progmodes/sh-script.el (sh-search-word): Remove call to `debug'.
 
-	* files.el (find-file-suppress-same-file-warnings): New
-	user-option.
+	* files.el (find-file-suppress-same-file-warnings): New user-option.
 	(find-file-noselect): Use it.
 
-	* startup.el (fancy-splash-delay, fancy-splash-image): Add
-	:version.
+	* startup.el (fancy-splash-delay, fancy-splash-image): Add :version.
 	(fancy-splash-screen): Defgroup.
 
 	* add-log.el (change-log-font-lock-keywords): Match names
@@ -1438,8 +1488,7 @@
 
 2000-09-19  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/sh-script.el (sh-search-word): Rewritten for
-	speed.
+	* progmodes/sh-script.el (sh-search-word): Rewritten for speed.
 
 2000-09-19  Andre Spiegel  <spiegel@gnu.org>
 
