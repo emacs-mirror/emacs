@@ -858,6 +858,14 @@ recursive_edit_1 ()
       specbind (Qstandard_input, Qt);
     }
 
+#ifdef HAVE_X_WINDOWS
+  /* The command loop has started a busy-cursor timer, so we have to
+     cancel it here, otherwise it will fire because the recursive edit
+     can take some time.  */
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+
   val = command_loop ();
   if (EQ (val, Qt))
     Fsignal (Qquit, Qnil);
