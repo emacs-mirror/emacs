@@ -23,7 +23,11 @@
 Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-enable-edit nil
-  "Non-nil means the \\<info-mode-map>\\[Info-edit] command in Info can edit the current node.")
+  "*Non-nil means the \\<info-mode-map>\\[Info-edit] command in Info can edit the current node.
+This is convenient if you want to write info files by hand.
+However, we recommend that you not do this.
+It is better to write a Texinfo file and generate the Info file from that,
+because that gives you a printed manual as well.")
 
 (defvar Info-enable-active-nodes t
   "Non-nil allows Info to execute Lisp code associated with nodes.
