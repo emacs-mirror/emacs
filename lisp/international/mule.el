@@ -1916,6 +1916,33 @@ the table in `translation-table-vector'."
 	 (progn ,@body)
        (set-category-table current-category-table))))
 
+(defun define-translation-hash-table (symbol table)
+  "Define SYMBOL as the name of the hash translation TABLE for use in CCL.
+
+Analogous to `define-translation-table', but updates
+`translation-hash-table-vector' and the table is for use in the CCL
+`lookup-integer' and `lookup-character' functions."
+  (unless (and (symbolp symbol)
+	       (hash-table-p table))
+    (error "Bad args to define-translation-hash-table"))
+  (let ((len (length translation-hash-table-vector))
+	(id 0)
+	done)
+    (put symbol 'translation-hash-table table)
+    (while (not done)
+      (if (>= id len)
+	  (setq translation-hash-table-vector
+		(vconcat translation-hash-table-vector [nil])))
+      (let ((slot (aref translation-hash-table-vector id)))
+	(if (or (not slot)
+		(eq (car slot) symbol))
+	    (progn
+	      (aset translation-hash-table-vector id (cons symbol table))
+	      (setq done t))
+	  (setq id (1+ id)))))
+    (put symbol 'translation-hash-table-id id)
+    id))
+
 ;;; Initialize some variables.
 
 (put 'use-default-ascent 'char-table-extra-slots 0)
