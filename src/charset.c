@@ -1197,7 +1197,8 @@ char_bytes (c)
 
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
   "Return width of CHAR when displayed in the current buffer.\n\
-The width is measured by how many columns it occupies on the screen.")
+The width is measured by how many columns it occupies on the screen.\n\
+Tab is taken to occupy `tab-width' columns.")
   (ch)
        Lisp_Object ch;
 {
