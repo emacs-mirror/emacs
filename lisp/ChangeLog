@@ -1,3 +1,21 @@
+2003-05-25   Tim Van Holder  <tim.vanholder@anubex.com>
+
+	* which-func.el (which-func-update-timer): New variable.
+	(which-function-mode): Use it.
+
+2003-05-25  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (idle-update-delay): New variable.
+
+2003-05-25  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* simple.el (forward-visible-line): Fix negative arguments.
+
+2003-05-25  Juanma Barranquero  <lektu@terra.es>
+
+	* skeleton.el (skeleton-pair-insert-maybe): Remove leftover
+	reference to skeleton-abbrev-cleanup.
+
 2003-05-24  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (insert-directory): Preserve CR in a file name.

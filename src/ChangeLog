@@ -1,3 +1,8 @@
+2003-05-25  Juanma Barranquero  <lektu@terra.es>
+
+	* window.c (Fset_window_scroll_bars): Fix typo in argument name.
+	(Fwindow_scroll_bars): Fix typo in docstring.
+
 2003-05-24  Kim F. Storm  <storm@cua.dk>
 
 	The following changes serve several purposes:
@@ -315,7 +320,7 @@
 	fringe, and scroll-bar settings; then call Fset_window_buffer with
 	KEEP_MARGINS non-nil.  This fixes a bug which caused a split
 	window to only preserve the display margins in one of the windows.
-	When splitting horisontally, call adjust_window_margins	on both
+	When splitting horizontally, call adjust_window_margins	on both
 	windows to ensure that the text area of the new windows is non too
 	narrow.  This fixes a bug which could cause emacs to trap if the
 	width of the split window was less than the width of the display
