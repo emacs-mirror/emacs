@@ -217,7 +217,7 @@ composed.")
        (mail-position-on-field "X-Reporter-Void-Vars-Found")
        (end-of-line)
        (insert (symbol-name varsym) " ")))
-    (error (error))))
+    (error (error ""))))
 
 (defun reporter-dump-state (pkgname varlist pre-hooks post-hooks)
   ;; Dump the state of the mode specific variables.
