@@ -1990,21 +1990,25 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
   (edt-electric-helpify 'edt-user-keypad-help))
 
 ;;;
-;;; Generic EDT emulation screen width commands.
+;;; EDT emulation screen width commands.
 ;;;
-;; If modification of terminal attributes is desired when invoking these
-;; commands, then the corresponding terminal specific file will contain a 
-;; re-definition of these commands.
+;; Some terminals require modification of terminal attributes when changing the
+;; number of columns displayed, hence the fboundp tests below.  These functions
+;; are defined in the corresponding terminal specific file, if needed.
 
 (defun edt-set-screen-width-80 ()
   "Set screen width to 80 columns."
   (interactive)
+  (if (fboundp 'edt-set-term-width-80)
+      (edt-set-term-width-80))
   (set-screen-width 80)
   (message "Screen width 80"))
 
 (defun edt-set-screen-width-132 ()
   "Set screen width to 132 columns."
   (interactive)
+  (if (fboundp 'edt-set-term-width-132)
+      (edt-set-term-width-132))
   (set-screen-width 132)
   (message "Screen width 132"))
 
