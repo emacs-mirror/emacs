@@ -152,7 +152,7 @@
 ;;   have such a brief-comparison feature, the default implementation of
 ;;   this function can be used, which delegates to a full
 ;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run
-;;   asynchronously in this case.)
+;;   asynchronously in this case, see variable `vc-disable-async-diff'.)
 ;;
 ;; - mode-line-string (file)
 ;;
@@ -566,6 +566,15 @@ specific to any particular backend."
   :group 'vc
   :version "21.1")
 
+(defcustom vc-allow-async-revert nil
+  "*Specifies whether the diff during \\[vc-revert-buffer] may be asynchronous.
+Enabling this option means that you can confirm a revert operation even
+if the local changes in the file have not been found and displayed yet."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :group 'vc
+  :version "21.4")
+
 ;;;###autoload
 (defcustom vc-checkout-hook nil
   "*Normal hook (list of functions) run after checking out a file.
@@ -713,6 +722,11 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 (put 'vc-parent-buffer 'permanent-local t)
 (defvar vc-parent-buffer-name nil)
 (put 'vc-parent-buffer-name 'permanent-local t)
+
+(defvar vc-disable-async-diff nil
+  "VC sets this to t locally to disable some async diff operations.
+Backends that offer asynchronous diffs should respect this variable
+in their implementation of vc-BACKEND-diff.")
 
 (defvar vc-log-file)
 (defvar vc-log-version)
@@ -2435,11 +2449,13 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
         (unless (yes-or-no-p "File seems up-to-date.  Revert anyway? ")
           (error "Revert canceled")))
     (unless (vc-workfile-unchanged-p file)
+      (message "Finding changes...")
       ;; vc-diff selects the new window, which is not what we want:
       ;; if the new window is on another frame, that'd require the user
       ;; moving her mouse to answer the yes-or-no-p question.
-      (let ((win (save-selected-window
-		   (setq status (vc-diff nil t)) (selected-window))))
+      (let* ((vc-disable-async-diff (not vc-allow-async-revert))
+             (win (save-selected-window
+                    (setq status (vc-diff nil t)) (selected-window))))
 	(vc-exec-after `(message nil))
 	(when status
 	  (unwind-protect
