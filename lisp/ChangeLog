@@ -1,3 +1,17 @@
+2003-08-11  Carsten Dominik  <dominik@sand.science.uva.nl>
+
+	* textmodes/reftex.el: Updated to version 4.21
+	* reftex-auc.el: likewise
+	* reftex-cite.el: likewise
+	* reftex-dcr.el: likewise
+	* reftex-global.el: likewise
+	* reftex-index.el: likewise
+	* reftex-parse.el: likewise
+	* reftex-ref.el: likewise
+	* reftex-sel.el: likewise
+	* reftex-toc.el: likewise
+	* reftex-vars.el: likewise
+
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf2ps.el (ebnf-total, ebnf-nprod): Move defvar before
