@@ -61,8 +61,8 @@ libsrc_libs=@libsrc_libs@
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
-# not need to change them.
-prefix=/usr/local
+# not need to change them.  This defaults to /usr/local.
+prefix=@prefix@
 
 # Like `prefix', but used for architecture-specific files.
 exec_prefix=${prefix}
@@ -341,11 +341,9 @@ install: all mkdir
 	  if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	    ${INSTALL_DATA} dir ${infodir}/dir ; \
 	  fi ; \
-	  if [ "`echo *.info*`" != "*.info*" ]; then \
-	    for f in *.info* ; do \
-	      ${INSTALL_DATA} $$f ${infodir}/$$f ; \
-	    done ; \
-	  fi)
+	  for f in cl* emacs* forms* info* vip* ; do \
+	    ${INSTALL_DATA} $$f ${infodir}/$$f ; \
+	  done)
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
