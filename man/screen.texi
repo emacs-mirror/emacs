@@ -266,7 +266,7 @@ all.  @xref{Enabling Multibyte}.
 
 @cindex end-of-line conversion, mode-line indication
   The colon after @var{cs} can change to another string in certain
-circumstances.  Emacs uses newline to separate lines in the buffer.
+circumstances.  Emacs uses newline characters to separate lines in the buffer.
 Some files use different conventions for separating lines: either
 carriage-return linefeed (the MS-DOS convention) or just carriage-return
 (the Macintosh convention).  If the buffer's file uses carriage-return
@@ -290,6 +290,9 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
   @xref{Optional Mode Line}, for features that add other handy
 information to the mode line, such as the current column number of
 point, the current time, and whether new mail for you has arrived.
+
+The mode line is mouse-sensitive and help text is echoed when you move
+the mouse across it.  @xref{Mode Line Mouse}.
 
 @node Menu Bar
 @section The Menu Bar
