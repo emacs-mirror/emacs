@@ -1,3 +1,8 @@
+2001-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-goto-emacs-command-node): Doc fix.
+	(Info-goto-emacs-key-command-node): Doc fix.
+
 2001-01-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ediff-ve.el (noninteractive): Don't load generic-sc on MS-DOS
@@ -66,6 +71,11 @@
 	* whitespace.el (whitespace-global-mode): Fix typo.
 
 	* hilit19.el, mail/rnewspost.el, mail/rnews.el: Moved to obsolete.
+
+2001-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* help.el (help-for-help): Fix a typo in a doc string.  From
+	kwzh@gnu.org (Karl Heuer).
 
 2001-01-03  Dave Love  <fx@gnu.org>
 
