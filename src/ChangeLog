@@ -15,6 +15,7 @@
 	(init_fringe_bitmap) [HAVE_X_WINDOWS]: Enhance bitswapping to
 	handle up to 16 bits wide bitmaps.
 	(Fdefine_fringe_bitmap): Doc fix.  Handle wider bitmaps.
+	(Ffringe_bitmaps_at_pos): Add missing arg declarations.
 
 	* macterm.c (mac_draw_bitmap): Handle 16 bits wide bitmaps directly.
 	(x_draw_fringe_bitmap): Use enhanced mac_draw_bitmap, so we no longer
