@@ -2029,8 +2029,10 @@ For a complete description, type \
   (setq buffer-read-only t)
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
-  (make-local-hook 'activate-menubar-hook)
-  (add-hook 'activate-menubar-hook 'cal-menu-update nil t)
+  (if window-system
+      (progn
+        (make-local-hook 'activate-menubar-hook)
+        (add-hook 'activate-menubar-hook 'cal-menu-update nil t)))
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year));;  Year in middle of window.
@@ -2084,7 +2086,8 @@ the STRINGS are just concatenated and the result truncated."
   "List of all calendar-related buffers."
   (let* ((diary-buffer (get-file-buffer diary-file))
          (buffers (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
-                        fancy-diary-buffer diary-buffer calendar-buffer))
+                        fancy-diary-buffer diary-buffer calendar-buffer
+                        other-calendars-buffer))
          (buffer-list nil)
          b)
     (while buffers
