@@ -2773,6 +2773,7 @@ extern Lisp_Object Qrear_nonsticky, Qfont;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 EXFUN (Fnext_property_change, 3);
 EXFUN (Fnext_single_property_change, 4);
+EXFUN (Fnext_single_char_property_change, 4);
 EXFUN (Fprevious_single_property_change, 4);
 EXFUN (Fget_text_property, 3);
 EXFUN (Fput_text_property, 5);
