@@ -610,6 +610,6 @@ do_line_insertion_deletion_costs (frame,
   ins_del_costs (frame,
 		 del_line_string, multi_del_string,
 		 setup_string, cleanup_string,
-		 FRAME_DELETEN_COST (frame), FRAME_DELETE_COST (frame),
+		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
