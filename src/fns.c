@@ -32,12 +32,17 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "intervals.h"
+#include "frame.h"
+#include "window.h"
 
 #ifndef NULL
 #define NULL (void *)0
 #endif
 
 extern Lisp_Object Flookup_key ();
+
+extern int minibuffer_auto_raise;
+extern Lisp_Object minibuf_window;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -1611,6 +1616,15 @@ Also accepts Space to mean yes, or Delete to mean no.")
       cursor_in_echo_area = 1;
       choose_minibuf_frame ();
       message_nolog ("%s(y or n) ", XSTRING (xprompt)->data);
+
+      if (minibuffer_auto_raise)
+	{
+	  Lisp_Object mini_frame;
+
+	  mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+
+	  Fraise_frame (mini_frame);
+	}
 
       obj = read_filtered_event (1, 0, 0);
       cursor_in_echo_area = 0;
