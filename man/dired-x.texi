@@ -166,7 +166,7 @@ For @file{dired-x.el} revision 2
 
 @end ifinfo
 
-@node Introduction, Features, Top, Top
+@node Introduction, Installation, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 
@@ -188,7 +188,7 @@ features have been added and a few more functions have been bound to keys.
 @end menu
 @end ifinfo
 
-@node Features, Technical Details, Introduction, Introduction
+@node Features, Technical Details, , Introduction
 @comment  node-name,  next,  previous,  up
 @section Features
 @cindex Features
@@ -236,7 +236,7 @@ C-f} and @kbd{C-x 4 C-f} to @code{dired-x-find-file} and
 @code{dired-x-find-file-other-window}, respectively (@pxref{Find File At
 Point}).
 
-@node Technical Details, Installation, Features, Introduction
+@node Technical Details, , Features, Introduction
 @comment  node-name,  next,  previous,  up
 @section Technical Details
 @cindex Redefined functions
@@ -266,7 +266,7 @@ and the following functions from @file{dired-aux.el}
 @code{dired-read-shell-command}
 @end itemize
 
-@node Installation, Optional Installation Dired Jump, Technical Details, Top
+@node Installation, Omitting Files in Dired, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Installation
 
@@ -305,7 +305,7 @@ when you first type @kbd{C-x d}).
 @end menu
 @end ifinfo
 
-@node Optional Installation Dired Jump, Optional Installation File At Point, Installation, Installation
+@node Optional Installation Dired Jump, Optional Installation File At Point, , Installation
 @comment  node-name,  next,  previous,  up
 @section Optional Installation Dired Jump
 
@@ -379,7 +379,7 @@ loaded
             ))
 @end example
 
-@node Omitting Files in Dired, Omitting Variables, , Top
+@node Omitting Files in Dired, Local Variables, Installation, Top
 @comment  node-name,  next,  previous,  up
 @chapter Omitting Files in Dired
 
@@ -433,7 +433,7 @@ inside @code{dired-load-hook} (@pxref{Installation}) and then set
 @end menu
 @end ifinfo
 
-@node Omitting Variables, Omitting Examples, Omitting Files in Dired, Omitting Files in Dired
+@node Omitting Variables, Omitting Examples, , Omitting Files in Dired
 @comment  node-name,  next,  previous,  up
 
 @section Omitting Variables
@@ -596,7 +596,7 @@ in the @code{dired-load-hook} (@pxref{Installation}).
 
 @end itemize
 
-@node Omitting Technical, Local Variables, Omitting Examples, Omitting Files in Dired
+@node Omitting Technical, , Omitting Examples, Omitting Files in Dired
 @comment  node-name,  next,  previous,  up
 @section Some Technical Details of Omitting
 
@@ -605,7 +605,7 @@ Loading @file{dired-x.el} will install Dired Omit by putting
 call @code{dired-extra-startup}, which in turn calls @code{dired-omit-startup}
 in your @code{dired-mode-hook}.
 
-@node Local Variables, Shell Command Guessing, Omitting Technical, Top
+@node Local Variables, Shell Command Guessing, Omitting Files in Dired, Top
 @comment  node-name,  next,  previous,  up
 @chapter Local Variables for Dired Directories
 
@@ -813,7 +813,7 @@ virtual Dired mode from the @code{auto-mode-alist}.  To edit all
 The regexp is a bit more complicated than usual to exclude @file{.dired}
 local-variable files.
 
-@node Advanced Mark Commands, Advanced Cleaning Functions, Virtual Dired, Top
+@node Advanced Mark Commands, Multiple Dired Directories, Virtual Dired, Top
 @comment  node-name,  next,  previous,  up
 @chapter Advanced Mark Commands
 
@@ -860,7 +860,7 @@ Flag all files with a certain extension for deletion.  A @samp{.} is
 @end menu
 @end ifinfo
 
-@node Advanced Cleaning Functions, Advanced Cleaning Variables, Advanced Mark Commands, Advanced Mark Commands
+@node Advanced Cleaning Functions, Advanced Cleaning Variables, , Advanced Mark Commands
 @comment  node-name,  next,  previous,  up
 
 @section Advanced Cleaning Functions
@@ -934,7 +934,7 @@ Default:  @code{(".blg" ".bbl")}
 List of extensions of dispensable files created by Bib@TeX{}.
 @end table
 
-@node Special Marking Function, Multiple Dired Directories, Advanced Cleaning Variables, Advanced Mark Commands
+@node Special Marking Function, , Advanced Cleaning Variables, Advanced Mark Commands
 @comment  node-name,  next,  previous,  up
 
 @section Special Marking Function
@@ -992,7 +992,7 @@ to mark all @file{.el} files without a corresponding @file{.elc} file.
 
 @end table
 
-@node Multiple Dired Directories, Find File At Point, Special Marking Function, Top
+@node Multiple Dired Directories, Find File At Point, Advanced Mark Commands, Top
 @comment  node-name,  next,  previous,  up
 @chapter Multiple Dired Directories and Non-Dired Commands
 
