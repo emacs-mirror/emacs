@@ -690,7 +690,6 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning lonely 'mood)
 (doctor-put-meaning angry 'mood)
 (doctor-put-meaning mad 'mood)
-(doctor-put-meaning pissed 'mood)
 (doctor-put-meaning jealous 'mood)
 (doctor-put-meaning afraid 'fear)
 (doctor-put-meaning terrified 'fear)
@@ -1082,8 +1081,7 @@ the subject noun, and return the portion of the sentence following it."
 		expect expected expects expel expels expelled
 		explain explained explains
 		fart farts feel feels felt fight fights find finds finding
-		forget forgets forgot fought found fuck fucked
-		fucking fucks
+		forget forgets forgot fought found
 		gave get gets getting give gives go goes going gone got gotten
 		had harm harms has hate hated hates have having
 		hear heard hears hearing help helped helping helps
