@@ -35,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_BASE(f)        \
   ((f)->bdf ? (f)->bdf->ury : (f)->tm.tmAscent)
 #define FONT_DESCENT(f)     \
-  ((f)->bdf ? (f)->bdf->lly : (f)->tm.tmDescent)
+  ((f)->bdf ? -((f)->bdf->lly) : (f)->tm.tmDescent)
 #define FONT_MAX_WIDTH(f)   \
   ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 
