@@ -930,12 +930,6 @@ x_set_internal_border_width (f, arg, oldval)
     }
 }
 
-void x_user_set_name (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
-{
-}
-
 /* Change the name of frame F to ARG.  If ARG is nil, set F's name to
        x_id_name.
 
@@ -2288,18 +2282,6 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
-x_pixel_width (f)
-     register struct frame *f;
-{
-  return PIXEL_WIDTH (f);
-}
-
-x_pixel_height (f)
-     register struct frame *f;
-{
-  return PIXEL_HEIGHT (f);
-}
-
 DEFUN ("x-defined-color", Fx_defined_color, Sx_defined_color, 1, 1, 0,
   "Return t if the current X display supports the color named COLOR.")
   (color)
@@ -2335,22 +2317,28 @@ DEFUN ("x-color-display-p", Fx_color_display_p, Sx_color_display_p, 0, 0, 0,
     }
 }
 
-DEFUN ("x-pixel-width", Fx_pixel_width, Sx_pixel_width, 1, 1, 0,
-  "Return the width in pixels of FRAME.")
-  (frame)
-     Lisp_Object frame;
+x_pixel_width (f)
+     register struct frame *f;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-  return make_number (XFRAME (frame)->display.x->pixel_width);
+  return PIXEL_WIDTH (f);
 }
 
-DEFUN ("x-pixel-height", Fx_pixel_height, Sx_pixel_height, 1, 1, 0,
-  "Return the height in pixels of FRAME.")
-  (frame)
-     Lisp_Object frame;
+x_pixel_height (f)
+     register struct frame *f;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-  return make_number (XFRAME (frame)->display.x->pixel_height);
+  return PIXEL_HEIGHT (f);
+}
+
+x_char_width (f)
+     register struct frame *f;
+{
+  return FONT_WIDTH (f->display.x->font);
+}
+
+x_char_height (f)
+     register struct frame *f;
+{
+  return FONT_HEIGHT (f->display.x->font);
 }
 
 #if 0  /* These no longer seem like the right way to do things.  */
@@ -3890,8 +3878,6 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
 
 #ifdef HAVE_X11
   defsubr (&Sx_get_resource);
-  defsubr (&Sx_pixel_width);
-  defsubr (&Sx_pixel_height);
 #if 0
   defsubr (&Sx_draw_rectangle);
   defsubr (&Sx_erase_rectangle);
