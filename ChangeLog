@@ -1,3 +1,7 @@
+2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info/dir (Ebrowse): Fix the entry (was missing a dot).
+
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* mkinstalldirs (errstatus): Chmod a+rx directories we create.

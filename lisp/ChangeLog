@@ -1,3 +1,8 @@
+2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* loadup.el: Load ccl before utf-8; don't load ccl in the ms-dos
+	specific part.
+
 2001-02-06  Dave Love  <fx@gnu.org>
 
 	* add-log.el (add-log-current-defun-function) 
