@@ -349,16 +349,19 @@ each time, so you can mark the next two sexps with M-C-SPC M-C-SPC,
 for example.  This feature also works for mark-end-of-sentence, if you
 bind that to a key.
 
-** Repeating set-mark-command immediately, i.e. C-SPC C-SPC, will enable
-transient-mark-mode temporarily if not already enabled.
+** Some commands do something special in Transient Mark mode when the
+mark is active--for instance, they limit their operation to the
+region.  Even if you don't normally use Transient Mark mode, you might
+want to get this behavior from a particular command.  There are two
+ways you can enable Transient Mark mode temporarily, and activate the
+mark, for one command only.
+
+One is to type C-SPC C-SPC; this also sets the mark.
+The other is to type C-u C-x C-x.  That does not set the mark.
 
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... will cycle through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
-
-** When the mark is active, and transient-mark-mode is not enabled,
-C-u C-x C-x (exchange-point-and-mark) will temporarily activate
-transient-mark-mode.
 
 ** In the *Occur* buffer, `o' switches to it in another window, and
 C-o displays the current line's occurrence in another window without
