@@ -47,6 +47,7 @@
 ;; browse-url-mmm                     MMM         ?
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
+;; browse-url-gnome-moz               GNOME interface to Mozilla
 
 ;; [A version of the Netscape browser is now free software
 ;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
@@ -262,7 +263,9 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Specified by `Browse Url Generic Program'"
 			 :value browse-url-generic)
 	  (function-item :tag "Default Windows browser"
-			 :value  browse-url-default-windows-browser)
+			 :value browse-url-default-windows-browser)
+	  (function-item :tag "GNOME invoking Mozilla"
+			 :value browse-url-gnome-moz)
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
@@ -750,6 +753,7 @@ How depends on `browse-url-netscape-version'."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)
   "Ask Mozilla/Netscape to load URL via the GNOME program `gnome-moz-remote'.
 Default to the URL around or before point.  The strings in variable
