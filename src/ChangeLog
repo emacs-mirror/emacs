@@ -1,3 +1,8 @@
+2003-05-07  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Ffile_symlink_p): Let handlers handle symlinks even
+	when system does not support them.
+
 2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fileio.c (Qwrite_region_annotate_functions): New var.
