@@ -250,6 +250,7 @@ interval_has_some_properties (plist, i)
    has none.  */
 static int
 property_value (plist, prop)
+     Lisp_Object plist, prop;
 {
   Lisp_Object value;
 
