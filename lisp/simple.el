@@ -3133,8 +3133,9 @@ With arg, turn Line Number mode on iff arg is positive.
 When Line Number mode is enabled, the line number appears
 in the mode line.
 
-Line numbers do not appear for very large buffers, see variable
-`line-number-display-limit'."
+Line numbers do not appear for very large buffers and buffers
+with very long lines; see variables `line-number-display-limit'
+and `line-number-display-limit-width'."
   (interactive "P")
   (setq line-number-mode
 	(if (null arg) (not line-number-mode)
