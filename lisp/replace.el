@@ -250,6 +250,8 @@ in the buffer that the occurrences were found in.
 				   (+ 2 (* 2 occur-nlines)))
 				  (t 1)))))
 	 (pos (nth occur-number occur-pos-list)))
+    (or pos
+	(error "No occurrence on this line"))
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
 
