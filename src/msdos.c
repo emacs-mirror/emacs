@@ -32,8 +32,11 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/param.h>
 #include <sys/time.h>
 #include <dos.h>
+#include <errno.h>
+#include <sys/stat.h>    /* for _fixpath */
 #if __DJGPP__ >= 2
 #include <fcntl.h>
+#include <libc/dosio.h>  /* for _USE_LFN */
 #endif
 
 #include "dosfns.h"
@@ -50,6 +53,10 @@ Boston, MA 02111-1307, USA.  */
 /* #include <process.h> */
 /* Damn that local process.h!  Instead we can define P_WAIT ourselves.  */
 #define P_WAIT 1
+
+#ifndef _USE_LFN
+#define _USE_LFN 0
+#endif
 
 #if __DJGPP__ > 1
 
@@ -1316,7 +1323,7 @@ dos_get_modifiers (keymask)
 	    }
 	}
       
-      if (regs.h.ah & 1)		/* Left CTRL pressed
+      if (regs.h.ah & 1)		/* Left CTRL pressed ? */
 	mask |= CTRL_P;
 
       if (regs.h.ah & 4)	 	/* Right CTRL pressed ? */
@@ -2089,23 +2096,31 @@ getdefdir (drive, dst)
      int drive;
      char *dst;
 {
-  union REGS regs;
+  char in_path[4], *p = in_path;
+  int e = errno;
 
-  *dst++ = (drive) ? drive + 'A' - 1 : getdisk () + 'A';
-  *dst++ = ':'
-  *dst++ = '/';
-  regs.h.dl = drive;
-#if __DJGPP__ > 1
-  /* regs.x.si can be 16 or 32 bits, depending on whether _NAIVE_DOS_REGS
-     or _BORLAND_DOS_REGS have or haven't been defined.  We should work
-     with either, so use regs.d.esi which is always 32 bit-wide.  */
-  regs.d.esi = (int) dst;
-#else
-  regs.x.si = (int) dst;
-#endif
-  regs.h.ah = 0x47;
-  intdos (&regs, &regs);
-  return !regs.x.cflag;
+  /* Generate "X:." (when drive is X) or "." (when drive is 0).  */
+  if (drive != 0)
+    {
+      *p++ = drive + 'A' - 1;
+      *p++ = ':';
+    }
+
+  *p++ = '.';
+  *p = '\0';
+  errno = 0;
+  _fixpath (in_path, dst);
+  if (errno)
+    return 0;
+
+  /* Under LFN we expect to get pathnames in their true case.  */
+  if (! (_USE_LFN))
+    for (p = dst; *p; p++)
+      if (*p >= 'A' && *p <= 'Z')
+	*p += 'a' - 'A';
+
+  errno = e;
+  return 1;
 }
 
 /* Remove all CR's that are followed by a LF.  */
@@ -2585,6 +2600,25 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
   dup2 (tempin, 0);
   dup2 (tempout, 1);
   dup2 (temperr, 2);
+
+#if __DJGPP__ > 1
+
+  if (msshell && !argv[3])
+    {
+      /* MS-DOS native shells are too restrictive.  For starters, they
+	 cannot grok commands longer than 126 characters.  In DJGPP v2
+	 and later, `system' is much smarter, so we'll call it instead.  */
+
+      extern char **environ;
+      environ = envv;
+
+      /* A shell gets a single argument--its full command
+	 line--whose original was saved in `saveargv2'.  */
+      result = system (saveargv2);
+    }
+  else
+
+#endif /* __DJGPP__ > 1 */
 
   result = spawnve (P_WAIT, argv[0], argv, envv);
   
