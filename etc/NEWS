@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2000-09-17
+GNU Emacs NEWS -- history of user-visible changes.  2000-09-27
 Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -26,7 +26,8 @@ Emacs to not use X Input Methods (XIM), if these are available.
 Unix-98-style support for large files if that is available.
 
 ** You can build a 64-bit Emacs for SPARC/Solaris systems which
-support 64-bit executables.  See etc/MACHINES for instructions.
+support 64-bit executables and also on Irix 6.5.  This increases the
+maximum buffer size.  See etc/MACHINES for instructions.
 
 
 * Changes in Emacs 21.1
@@ -77,8 +78,11 @@ Getting Mail -> Mail Sources
 *** Gnus is now a MIME-capable reader.  This affects many parts of
 Gnus, and adds a slew of new commands.  See the manual for details.
 
-*** Gnus has also been multilingualized.  This also affects too
-many parts of Gnus to summarize here, and adds many new variables.
+*** Gnus has also been multilingualized.  This also affects too many
+parts of Gnus to summarize here, and adds many new variables.
+Separate MIME packages like SEMI will not work.  There are built-in
+facilities equivalent to those of gnus-mule.el, which is now just a
+compatibility layer.
 
 *** gnus-auto-select-first can now be a function to be
 called to position point.
@@ -1723,6 +1727,9 @@ numeric keys supply prefix args rather than self inserting.
 
 *** The function `turn-off-auto-fill' unconditionally turns off Auto
 Fill mode.
+
+*** gnus-mule.el is now just a compatibility layer over the built-in
+Gnus facilities.
 
 ** Withdrawn packages
 
