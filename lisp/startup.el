@@ -339,8 +339,8 @@ from being initialized."
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
-start with letters or digits; it excludes any subdirectory named`RCS',
-and any subdirectory that contains a file named `.nosearch'."
+start with letters or digits; it excludes any subdirectory named `RCS'
+or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (let (dirs 
 	(pending (list default-directory)))
     ;; This loop does a breadth-first tree walk on DIR's subtree,
@@ -351,7 +351,7 @@ and any subdirectory that contains a file named `.nosearch'."
       (let ((contents (directory-files (car dirs)))
 	    (default-directory (car dirs)))
 	(while contents
-	  (unless (member (car contents) '("." ".." "RCS"))
+	  (unless (member (car contents) '("." ".." "RCS" "CVS"))
 	    (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
 		       (file-directory-p (car contents)))
 	      (let ((expanded (expand-file-name (car contents))))
