@@ -17,10 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* Nonzero means don't assume anything about current
-   contents of actual terminal frame */
-extern int frame_garbaged;
-
 /* Nonzero means last display completed and cursor is really at
    cursX, cursY.  Zero means it was preempted. */
 extern int display_completed;
