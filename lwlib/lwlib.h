@@ -119,4 +119,7 @@ void lw_set_main_areas (/* Widget parent,
 			   Widget menubar,
 			   Widget work_area */);
 
+/* Check to see if event should be ignored by Emacs */
+Boolean lw_toolkit_related_event_p (/* XEvent event */);
+
 #endif /* LWLIB_H */
