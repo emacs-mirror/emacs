@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1993, 1994  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
-;; Version: 0.10
+;; Version: 0.11
 ;; Keywords: data
 
 ;;; Commentary: 
@@ -12,7 +12,7 @@
 ;;; I/O functions (including write-region and insert-file-contents) so
 ;;; that they automatically compress or uncompress a file if the file
 ;;; appears to need it (based on the extension of the file name).
-;;; Packages like Rmail, Vm, Gnus, and Info should be able to work
+;;; Packages like Rmail, VM, GNUS, and Info should be able to work
 ;;; with compressed files without modification.
 
 
@@ -225,7 +225,7 @@ based on the filename itself and jka-compr-compression-info-list."
   "/bin/dd")
 
 
-(defvar jka-compr-dd-blocksize 512)
+(defvar jka-compr-dd-blocksize 256)
 
 
 (defun jka-compr-partial-uncompress (prog message args infile beg len)
@@ -238,7 +238,6 @@ the BEGth char."
 	 (prefix (- beg (* skip jka-compr-dd-blocksize)))
 	 (count (and len (1+ (/ (+ len prefix) jka-compr-dd-blocksize))))
 	 (start (point))
-	 (end (and count (+ start (* count jka-compr-dd-blocksize))))
 	 (err-file (jka-compr-make-temp-name))
 	 (run-string (format "%s %s 2> %s | %s bs=%d skip=%d %s 2> /dev/null"
 			     prog
@@ -247,7 +246,10 @@ the BEGth char."
 			     jka-compr-dd-program
 			     jka-compr-dd-blocksize
 			     skip
-			     (if count (concat "count=" count) ""))))
+			     ;; dd seems to be unreliable about
+			     ;; providing the last block.  So, always
+			     ;; read one more than you think you need.
+			     (if count (concat "count=" (1+ count)) ""))))
 
     (unwind-protect
 	(or (memq (call-process jka-compr-shell
@@ -260,8 +262,8 @@ the BEGth char."
       (jka-compr-delete-temp-file err-file))
 
     (and
-     end
-     (delete-region (+ start prefix len) end))
+     len
+     (delete-region (+ start prefix len) (point)))
 
     (delete-region start (+ start prefix))))
 
@@ -677,7 +679,7 @@ There should be no more than seven characters after the final '/'")
   
 (defvar jka-compr-op-table
   (make-vector 127 0)
-  "Hash table of operations supported by jka-compr")
+  "Hash table of operations supported by jka-compr.")
 
 
 (defun jka-compr-intern-operation (op)
