@@ -4451,6 +4451,14 @@ See also `normal-erase-is-backspace'."
   (if (interactive-p)
       (message "Delete key deletes %s"
 	       (if normal-erase-is-backspace "forward" "backward"))))
+
+(defcustom idle-update-delay 0.5
+  "*Idle time delay before updating various things on the screen.
+Various Emacs features that update auxiliary information when point moves
+wait this many seconds after Emacs becomes idle before doing an update."
+  :type 'number
+  :group 'display
+  :version "21.4")
 
 
 ;; Minibuffer prompt stuff.
