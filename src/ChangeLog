@@ -1,3 +1,9 @@
+2002-11-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_load_system_font): Don't disable Cleartype.
+
+	* w32term.c (w32_get_glyph_string_clip_rect): Clip cursor tightly.
+
 2002-11-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_image_foreground)
