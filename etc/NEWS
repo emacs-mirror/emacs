@@ -1549,6 +1549,20 @@ use for the modifiers.  For example, the following two lines swap
 Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
+
+** vc-annotate-mode enhancements
+
+In vc-annotate mode, you can now use the following key bindings for
+enhanced functionality to browse the annotations of past revisions, or
+to view diffs or log entries directly from vc-annotate-mode:
+
+    P:  annotates the previous revision
+    N:  annotates the next revision
+    J:  annotates the revision at line
+    A:  annotates the revision previous to line
+    D:  shows the diff of the revision at line with its previous revision
+    L:  shows the log of the revision at line
+    W:  annotates the workfile (most up to date) version
 
 * New modes and packages in 21.4
 
