@@ -110,9 +110,6 @@
 
 * Update the FAQ.
 
-* Support dynamically-loadable primitive support using libtool and
-  support similarly to Guile.  [Some work has been done.]
-
 * Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
 
