@@ -874,13 +874,18 @@ Otherwise return nil and don't move point."
   "Go to the beginning of the innermost C statement.
 With prefix arg, go back N - 1 statements.  If already at the beginning of a
 statement then go to the beginning of the preceeding one.
-If within a string or comment, move by sentences instead of statements."
+If within a string or comment, or next to a comment (only whitespace between),
+move by sentences instead of statements."
   (interactive "p")
   (let ((here (point)) state)
     (save-excursion
       (beginning-of-defun)
       (setq state (parse-partial-sexp (point) here nil nil)))
-    (if (or (nth 3 state) (nth 4 state))
+    (if (or (nth 3 state) (nth 4 state)
+	    (looking-at (concat "[ \t]*" comment-start-skip))
+	    (save-excursion (skip-chars-backward " \t")
+			    (goto-char (- (point) 2))
+			    (looking-at "\\*/")))
 	(forward-sentence (- count))
       (while (> count 0)
 	(c-beginning-of-statement-1)
