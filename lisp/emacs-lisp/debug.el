@@ -122,6 +122,7 @@ first will be printed into the backtrace buffer."
 	    (save-window-excursion
 	      (pop-to-buffer debugger-buffer)
 	      (erase-buffer)
+	      (set-buffer-multibyte nil)
 	      (let ((standard-output (current-buffer))
 		    (print-escape-newlines t)
 		    (print-length 50))
@@ -442,8 +443,6 @@ Complete list of commands:
   (setq mode-name "Debugger")
   (setq truncate-lines t)
   (set-syntax-table emacs-lisp-mode-syntax-table)
-  ;; Since we must handle bytecode...
-  (setq enable-multibyte-characters nil)
   (use-local-map debugger-mode-map)
   (run-hooks 'debugger-mode-hook))
 
