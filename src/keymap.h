@@ -26,7 +26,6 @@ extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object current_global_map;
 EXFUN (Fmake_sparse_keymap, 1);
 EXFUN (Fkeymap_prompt, 1);
-EXFUN (Fcopy_keymap, 1);
 EXFUN (Fdefine_key, 3);
 EXFUN (Flookup_key, 3);
 EXFUN (Fkey_binding, 2);
