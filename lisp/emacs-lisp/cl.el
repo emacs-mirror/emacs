@@ -582,6 +582,7 @@ Keywords supported:  :test :test-not :key"
 ;; We want to replace the basic versions of dolist, dotimes below.
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
+(fmakunbound 'declare)
 (mapcar (function
 	 (lambda (set)
 	   (let ((file (if cl-fake-autoloads "<none>" (car set))))
