@@ -282,8 +282,12 @@ time saver for large mailboxes.")
 (deffoo nnfolder-request-list (&optional server)
   (nnfolder-possibly-change-group nil server)
   (save-excursion
-    (nnmail-find-file nnfolder-active-file)
-    (setq nnfolder-group-alist (nnmail-get-active))
+    ;; 1997/8/14 by MORIOKA Tomohiko
+    ;;    for XEmacs/mule.
+    (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
+	  (pathname-coding-system 'binary)) ; for XEmacs/mule
+      (nnmail-find-file nnfolder-active-file)
+      (setq nnfolder-group-alist (nnmail-get-active)))
     t))
 
 (deffoo nnfolder-request-newgroups (date &optional server)
@@ -499,45 +503,48 @@ time saver for large mailboxes.")
   ;; Change group.
   (when (and group
 	     (not (equal group nnfolder-current-group)))
-    (nnmail-activate 'nnfolder)
-    (when (and (not (assoc group nnfolder-group-alist))
-	       (not (file-exists-p
-		     (nnfolder-group-pathname group))))
-      ;; The group doesn't exist, so we create a new entry for it.
-      (push (list group (cons 1 0)) nnfolder-group-alist)
-      (nnmail-save-active nnfolder-group-alist nnfolder-active-file))
-
-    (if dont-check
-	(setq nnfolder-current-group group)
-      (let (inf file)
-	;; If we have to change groups, see if we don't already have the
-	;; folder in memory.  If we do, verify the modtime and destroy
-	;; the folder if needed so we can rescan it.
-	(when (setq inf (assoc group nnfolder-buffer-alist))
-	  (setq nnfolder-current-buffer (nth 1 inf)))
-
-	;; If the buffer is not live, make sure it isn't in the alist.  If it
-	;; is live, verify that nobody else has touched the file since last
-	;; time.
-	(when (and nnfolder-current-buffer
-		   (not (gnus-buffer-live-p nnfolder-current-buffer)))
-	  (setq nnfolder-buffer-alist (delq inf nnfolder-buffer-alist)
-		nnfolder-current-buffer nil))
-
-	(setq nnfolder-current-group group)
-
-	(when (or (not nnfolder-current-buffer)
-		  (not (verify-visited-file-modtime nnfolder-current-buffer)))
-	  (save-excursion
-	    (setq file (nnfolder-group-pathname group))
-	    ;; See whether we need to create the new file.
-	    (unless (file-exists-p file)
-	      (gnus-make-directory (file-name-directory file))
-	      (nnmail-write-region 1 1 file t 'nomesg))
-	    (when (setq nnfolder-current-buffer (nnfolder-read-folder group))
-	      (set-buffer nnfolder-current-buffer)
-	      (push (list group nnfolder-current-buffer)
-		    nnfolder-buffer-alist))))))))
+    ;; 1997/8/14 by MORIOKA Tomohiko
+    ;;    for XEmacs/mule.
+    (let ((pathname-coding-system 'binary))
+      (nnmail-activate 'nnfolder)
+      (when (and (not (assoc group nnfolder-group-alist))
+		 (not (file-exists-p
+		       (nnfolder-group-pathname group))))
+	;; The group doesn't exist, so we create a new entry for it.
+	(push (list group (cons 1 0)) nnfolder-group-alist)
+	(nnmail-save-active nnfolder-group-alist nnfolder-active-file))
+      
+      (if dont-check
+	  (setq nnfolder-current-group group)
+	(let (inf file)
+	  ;; If we have to change groups, see if we don't already have the
+	  ;; folder in memory.  If we do, verify the modtime and destroy
+	  ;; the folder if needed so we can rescan it.
+	  (when (setq inf (assoc group nnfolder-buffer-alist))
+	    (setq nnfolder-current-buffer (nth 1 inf)))
+	  
+	  ;; If the buffer is not live, make sure it isn't in the alist.  If it
+	  ;; is live, verify that nobody else has touched the file since last
+	  ;; time.
+	  (when (and nnfolder-current-buffer
+		     (not (gnus-buffer-live-p nnfolder-current-buffer)))
+	    (setq nnfolder-buffer-alist (delq inf nnfolder-buffer-alist)
+		  nnfolder-current-buffer nil))
+	  
+	  (setq nnfolder-current-group group)
+	  
+	  (when (or (not nnfolder-current-buffer)
+		    (not (verify-visited-file-modtime nnfolder-current-buffer)))
+	    (save-excursion
+	      (setq file (nnfolder-group-pathname group))
+	      ;; See whether we need to create the new file.
+	      (unless (file-exists-p file)
+		(gnus-make-directory (file-name-directory file))
+		(nnmail-write-region 1 1 file t 'nomesg))
+	      (when (setq nnfolder-current-buffer (nnfolder-read-folder group))
+		(set-buffer nnfolder-current-buffer)
+		(push (list group nnfolder-current-buffer)
+		      nnfolder-buffer-alist)))))))))
 
 (defun nnfolder-save-mail (group-art-list)
   "Called narrowed to an article."
@@ -751,6 +758,9 @@ time saver for large mailboxes.")
 
 (defun nnfolder-group-pathname (group)
   "Make pathname for GROUP."
+  ;; 1997/8/14 by MORIOKA Tomohiko
+  ;;	encode file name for Emacs 20.
+  (setq group (encode-coding-string group nnmail-pathname-coding-system))
   (let ((dir (file-name-as-directory (expand-file-name nnfolder-directory))))
     ;; If this file exists, we use it directly.
     (if (or nnmail-use-long-file-names
