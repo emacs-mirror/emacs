@@ -141,6 +141,9 @@ extern char *strerror ();
 #endif
 #endif
 
+#include "commands.h"
+extern int use_dialog_box;
+
 #ifndef O_WRONLY
 #define O_WRONLY 1
 #endif
@@ -3433,6 +3436,9 @@ actually used.")
   if (! not_regular && st.st_size < 0)
     error ("File size is negative");
 
+  /* Prevent redisplay optimizations.  */
+  current_buffer->clip_changed = 1;
+
   if (!NILP (beg) || !NILP (end))
     if (!NILP (visit))
       error ("Attempt to visit less than an entire file");
@@ -5085,6 +5091,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   Lisp_Object tail, buf;
   int auto_saved = 0;
   char *omessage = echo_area_glyphs;
+  Lisp_Object omessage_string = echo_area_message;
   int omessage_length = echo_area_glyphs_length;
   int oldmultibyte = message_enable_multibyte;
   int do_handled_files;
@@ -5094,7 +5101,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int count = specpdl_ptr - specpdl;
   int *ptr;
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
+  struct gcpro gcpro1;
 
+  GCPRO1 (omessage_string);
+  
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
   oquit = Vquit_flag;
@@ -5238,7 +5248,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   if (auto_saved && NILP (no_message))
     {
-      if (omessage)
+      if (STRINGP (omessage_string))
+	{
+	  sit_for (1, 0, 0, 0, 0);
+	  message3 (omessage_string, omessage_length, oldmultibyte);
+	}
+      else if (omessage)
 	{
 	  sit_for (1, 0, 0, 0, 0);
 	  message2 (omessage, omessage_length, oldmultibyte);
@@ -5249,6 +5264,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   Vquit_flag = oquit;
 
+  UNGCPRO;
   unbind_to (count, Qnil);
   return Qnil;
 }
@@ -5485,9 +5501,20 @@ DIR defaults to current buffer's directory default.")
   specbind (intern ("minibuffer-completing-file-name"), Qt);
 
   GCPRO2 (insdef, default_filename);
-  val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			  dir, mustmatch, insdef,
-			  Qfile_name_history, default_filename, Qnil);
+  
+#ifdef USE_MOTIF
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+      && use_dialog_box
+      && have_menus_p ())
+    {
+      val = Fx_file_dialog (prompt, dir, default_filename, mustmatch);
+      add_to_history = 1;
+    }
+  else
+#endif
+    val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
+			    dir, mustmatch, insdef,
+			    Qfile_name_history, default_filename, Qnil);
 
   tem = Fsymbol_value (Qfile_name_history);
   if (CONSP (tem) && EQ (XCONS (tem)->car, val))
@@ -5540,8 +5567,10 @@ DIR defaults to current buffer's directory default.")
 	Fset (Qfile_name_history,
 	      Fcons (val1, tem));
     }
+    
   return val;
 }
+
 
 void
 init_fileio_once ()
@@ -5550,6 +5579,7 @@ init_fileio_once ()
   XSETFASTINT (Vdirectory_sep_char, '/');
 }
 
+
 void
 syms_of_fileio ()
 {
