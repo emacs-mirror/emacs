@@ -27,7 +27,6 @@ int dos_ttcooked ();
 int getdefdir (int, char*);
 void unixtodos_filename (char *);
 void dostounix_filename (char *);
-void sleep_or_kbd_hit (int, int);
 char *rootrelativepath (char *);
 void init_environment ();
 void internal_terminal_init ();
