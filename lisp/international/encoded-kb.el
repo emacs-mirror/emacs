@@ -103,7 +103,6 @@
 ;; registers (0..3).
 
 (defvar encoded-kbd-iso2022-designations nil)
-(make-variable-buffer-local 'encoded-kbd-iso2022-designations)
 (put 'encoded-kbd-iso2022-designations 'permanent-local t)
 
 ;; Keep information of invocation state of ISO2022 encoding.  This is
@@ -112,7 +111,6 @@
 ;; register number.
 
 (defvar encoded-kbd-iso2022-invocations nil)
-(make-variable-buffer-local 'encoded-kbd-iso2022-invocations)
 (put 'encoded-kbd-iso2022-invocations 'permanent-local t)
 
 (defun encoded-kbd-iso2022-designation ()
@@ -262,7 +260,6 @@ set by the command `set-keyboard-coding-system'."
 		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		  'use-8th-bit (nth 3 saved-input-mode))	
 		 (setq encoded-kbd-coding 'iso2022-8))
-	       (make-variable-buffer-local 'encoded-kbd-iso2022-designations)
 	       (setq encoded-kbd-iso2022-designations (make-vector 4 nil))
 	       (let ((flags (coding-system-flags coding))
 		     (i 0))
@@ -274,7 +271,6 @@ set by the command `set-keyboard-coding-system'."
 		       (aset encoded-kbd-iso2022-designations i
 			     (car (aref flags i)))))
 		   (setq i (1+ i))))
-	       (make-variable-buffer-local 'encoded-kbd-iso2022-invocations)
 	       (setq encoded-kbd-iso2022-invocations (make-vector 3 nil))
 	       (aset encoded-kbd-iso2022-invocations 0 0)
 	       (aset encoded-kbd-iso2022-invocations 1 1))
