@@ -128,7 +128,7 @@ bootstrap-clean-gmake:
 $(INSTALL_DIR):
 	- mkdir "$(INSTALL_DIR)"
 
-$(INSTALL_DIR)/bin:
+$(INSTALL_DIR)/bin: $(INSTALL_DIR)
 	- mkdir "$(INSTALL_DIR)/bin"
 
 #
