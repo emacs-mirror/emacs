@@ -3418,6 +3418,7 @@ init_buffer_once ()
   Qkill_buffer_hook = intern ("kill-buffer-hook");
 
   Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
+
   /* super-magic invisible buffer */
   Vbuffer_alist = Qnil;
 
