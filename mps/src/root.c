@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.5) $
+ *  $HopeName: MMsrc!root.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -26,18 +26,6 @@ static SigStruct RootSigStruct;
 #endif
 
 
-#ifdef DEBUG_ASSERT
-
-static Bool modeIsValid(RootMode mode)
-{
-  AVER((mode &~(RootFIXABLE | RootMUTABLE | RootATOMIC)) == 0);
-  /* Need to check for legal combinations of modes. */
-  return TRUE;
-}
-
-#endif
-
-
 Bool RootIsValid(Root root, ValidationType validParam)
 {
   AVER(root != NULL);
@@ -46,7 +34,6 @@ Bool RootIsValid(Root root, ValidationType validParam)
   AVER(root->sig == &RootSigStruct);
 #endif
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
-  AVER(modeIsValid(root->mode));
   AVER(ISVALIDNESTED(RefRank, root->rank));
   AVER(ISVALIDNESTED(TraceSet, &root->marked));
   AVER(root->type == RootTABLE || root->type == RootFUN);
@@ -69,15 +56,13 @@ Bool RootIsValid(Root root, ValidationType validParam)
 
 
 static Error create(Root *rootReturn, Space space,
-                    RefRank rank, RootMode mode,
-                    RootType type, RootUnion theUnion)
+                    RefRank rank, RootType type, RootUnion theUnion)
 {
   Root root;
   Error e;
 
   AVER(rootReturn != NULL);
   AVER(ISVALID(Space, space));
-  AVER(modeIsValid(mode));
   AVER(ISVALID(RefRank, rank));
 
   e = PoolAlloc((Addr *)&root, SpaceControlPool(space),
@@ -86,7 +71,6 @@ static Error create(Root *rootReturn, Space space,
     return e;
 
   root->rank = rank;
-  root->mode = mode;
   root->type = type;
   root->the  = theUnion;
   TraceSetInit(&root->marked);
@@ -108,8 +92,7 @@ static Error create(Root *rootReturn, Space space,
 
 
 Error RootCreateTable(Root *rootReturn, Space space,
-                      RefRank rank, RootMode mode,
-                      Addr *base, Addr *limit)
+                      RefRank rank, Addr *base, Addr *limit)
 {
   RootUnion theUnion;
 
@@ -119,13 +102,30 @@ Error RootCreateTable(Root *rootReturn, Space space,
   theUnion.table.base = base;
   theUnion.table.limit = limit;
   
-  return create(rootReturn, space, rank, mode, RootTABLE, theUnion);
+  return create(rootReturn, space, rank, RootTABLE, theUnion);
+}
+
+
+Error RootCreateReg(Root *rootReturn, Space space,
+                    RefRank rank, Thread thread,
+                    RootScanRegMethod scan, void *p)
+{
+  RootUnion theUnion;
+
+  AVER(scan != NULL);
+  AVER(ISVALID(Thread, thread));
+
+  theUnion.reg.scan = scan;
+  theUnion.reg.thread = thread;
+  theUnion.reg.p = p;
+
+  return create(rootReturn, space, rank, RootREG, theUnion);
 }
 
 
 Error RootCreate(Root *rootReturn, Space space,
-                 RefRank rank, RootMode mode,
-                 Error (*scan)(ScanState ss, void *p, size_t s),
+                 RefRank rank,
+                 RootScanMethod scan,
                  void *p, size_t s)
 {
   RootUnion theUnion;
@@ -136,7 +136,7 @@ Error RootCreate(Root *rootReturn, Space space,
   theUnion.fun.p = p;
   theUnion.fun.s = s;
 
-  return create(rootReturn, space, rank, mode, RootFUN, theUnion);
+  return create(rootReturn, space, rank, RootFUN, theUnion);
 }
 
 
@@ -163,14 +163,6 @@ void RootDestroy(Root root)
 }
 
 
-Bool RootIsAtomic(Root root)
-{
-  AVER(ISVALID(Root, root));
-
-  return (root->mode & RootATOMIC) != 0;
-}
-
-
 RefRank RootRank(Root root)
 {
   AVER(ISVALID(Root, root));
@@ -189,15 +181,14 @@ void RootMark(Root root, Trace trace)
 }
 
 
-Error RootScan(Root root, Trace trace, RefRank rank)
+Error RootScan(Root root, Trace trace)
 {
   Error e;
 
   AVER(ISVALID(Root, root));
   AVER(ISVALID(Trace, trace));
-  AVER(rank == TraceRank(trace));
   
-  if(rank != root->rank)
+  if(TraceRank(trace) != root->rank)
     return ErrSUCCESS;
 
   if(!TraceSetIsMember(&root->marked, TraceTraceId(trace)))
@@ -226,11 +217,19 @@ Error RootScan(Root root, Trace trace, RefRank rank)
       return e;
     break;
 
+    case RootREG:
+    e = (*root->the.reg.scan)(TraceScanState(trace),
+                              root->the.reg.thread,
+                              root->the.reg.p);
+    if(e != ErrSUCCESS)
+      return e;
+    break;
+
     default:
     NOTREACHED;
   }
 
-  TraceNoteScanned(trace, rank, (Addr)1);
+  TraceNoteScanned(trace, (Addr)1);
   TraceSetDelete(&root->marked, TraceTraceId(trace));
   
   return ErrSUCCESS;
@@ -251,19 +250,16 @@ Error RootDescribe(Root root, LibStream stream)
   
   LibFormat(stream,
             "Root %lX {\n"
-            "  rank %d\n"
-            "  mode%s%s%s\n",
+            "  rank %d\n",
             (unsigned long)root,
-            root->rank,
-            root->mode & RootATOMIC  ? " ATOMIC"  : "",
-            root->mode & RootFIXABLE ? " FIXABLE" : "",
-            root->mode & RootMUTABLE ? " MUTABLE" : "");
+            root->rank);
 
   LibFormat(stream, "  Trace status\n");
   for(id = 0; id < TRACE_MAX; ++id)
     LibFormat(stream, "    %2lu %s\n",
               (unsigned long)id,
-              TraceSetIsMember(&root->marked, id) ? "marked" : "not marked");
+              TraceSetIsMember(&root->marked, id) ? 
+                "marked" : "not marked");
   
   switch(root->type)
   {
