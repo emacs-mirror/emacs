@@ -845,7 +845,10 @@ again for another match.")
     ("wish" . tcl-mode)
     ("shell" . tcl-mode)
     ("form" . tcl-mode)
-    ("tcl" . tcl-mode))
+    ("tcl" . tcl-mode)
+    ("awk" . awk-mode)
+    ("gawk" . awk-mode)
+    ("scm" . scheme-mode))
   "Alist mapping interpreter names to major modes.
 This alist applies to files whose first line starts with `#!'.
 Each element looks like (INTERPRETER . MODE).
