@@ -1021,13 +1021,16 @@ command_loop ()
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     {
-      return internal_catch (Qexit, command_loop_2, Qnil);
+      Lisp_Object val = internal_catch (Qexit, command_loop_2, Qnil);
+      executing_macro = Qnil;
+      return val;
     }
   else
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
 	internal_catch (Qtop_level, command_loop_2, Qnil);
+	executing_macro = Qnil;
 
 	/* End of file in -batch run causes exit here.  */
 	if (noninteractive)
