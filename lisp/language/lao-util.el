@@ -28,8 +28,8 @@
 (defun setup-lao-environment ()
   "Setup multilingual environment (MULE) for Lao."
   (interactive)
-  (setup-8-bit-environment 'lao 'iso-2022-7bit
-			   '("Lao" . "quail-lao")))
+  (setup-8-bit-environment "Lao" 'lao 'iso-2022-7bit
+			   "lao"))
 
 (let ((l '((?(1!(B consonant "LETTER KOR  KAI'" "CHICKEN")
 	   (?(1"(B consonant "LETTER KHOR KHAI'" "EGG")
