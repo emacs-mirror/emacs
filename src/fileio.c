@@ -2867,8 +2867,8 @@ so that your editing is not lost if the system crashes.\n\
 This file is not the file you visited; that changes only when you save.\n\n\
 Non-nil first argument means do not print any message if successful.\n\
 Non-nil second argument means save only current buffer.")
-  (nomsg)
-     Lisp_Object nomsg;
+  (no_message, current_only)
+     Lisp_Object no_message, current_only;
 {
   struct buffer *old = current_buffer, *b;
   Lisp_Object tail, buf;
@@ -2881,7 +2881,7 @@ Non-nil second argument means save only current buffer.")
 
   auto_saving = 1;
   if (minibuf_level)
-    nomsg = Qt;
+    no_message = Qt;
 
   /* Vrun_hooks is nil before emacs is dumped, and inc-vers.el will
      eventually call do-auto-save, so don't err here in that case. */
@@ -2893,6 +2893,11 @@ Non-nil second argument means save only current buffer.")
     {
       buf = XCONS (XCONS (tail)->car)->cdr;
       b = XBUFFER (buf);
+
+      if (!NILP (current_only)
+	  && b != current_buffer)
+	continue;
+      
       /* Check for auto save enabled
 	 and file changed since last auto save
 	 and file changed since last real save.  */
@@ -2919,7 +2924,7 @@ Non-nil second argument means save only current buffer.")
 	      continue;
 	    }
 	  set_buffer_internal (b);
-	  if (!auto_saved && NILP (nomsg))
+	  if (!auto_saved && NILP (no_message))
 	    message1 ("Auto-saving...");
 	  internal_condition_case (auto_save_1, Qt, auto_save_error);
 	  auto_saved++;
@@ -2932,7 +2937,7 @@ Non-nil second argument means save only current buffer.")
   /* Prevent another auto save till enough input events come in.  */
   record_auto_save ();
 
-  if (auto_saved && NILP (nomsg))
+  if (auto_saved && NILP (no_message))
     message1 (omessage ? omessage : "Auto-saving...done");
 
   auto_saving = 0;
