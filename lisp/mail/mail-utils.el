@@ -108,11 +108,15 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
       (apply 'concat (nreverse (cons (substring string i) strings))))))
 
 ;;;###autoload
-(defun mail-unquote-printable-region (beg end &optional wrapper noerror)
+(defun mail-unquote-printable-region (beg end &optional wrapper noerror
+					  unibyte)
   "Undo the \"quoted printable\" encoding in buffer from BEG to END.
 If the optional argument WRAPPER is non-nil,
 we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=.
-If NOERROR is non-nil, return t if successful."
+If NOERROR is non-nil, return t if successful.
+If UNIBYTE is non-nil, insert converted characters as unibyte.
+That is useful if you are going to character code decoding afterward,
+as Rmail does."
   (interactive "r\nP")
   (let (failed)
     (save-match-data
@@ -131,13 +135,16 @@ If NOERROR is non-nil, return t if successful."
 		  ((= (char-after (match-beginning 1)) ?=)
 		   (replace-match "="))
 		  ((match-beginning 2)
-		   (replace-match
-		    (make-string 1
-				 (+ (* 16 (mail-unquote-printable-hexdigit
-					   (char-after (match-beginning 2))))
-				    (mail-unquote-printable-hexdigit
-				     (char-after (1+ (match-beginning 2))))))
-		    t t))
+		   (let ((char (+ (* 16 (mail-unquote-printable-hexdigit
+					 (char-after (match-beginning 2))))
+				  (mail-unquote-printable-hexdigit
+				   (char-after (1+ (match-beginning 2)))))))
+		     (if unibyte
+			 (progn
+			   (replace-match "")
+			   ;; insert-char will insert this as unibyte,
+			   (insert-char char 1))
+		       (replace-match (make-string 1 char) t t))))
 		  (noerror
 		   (setq failed t))
 		  (t
