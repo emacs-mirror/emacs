@@ -7,7 +7,7 @@
 extern char *strdup (const char *);
 extern int strcasecmp (const char *, const char *);
 */
-extern char *safe_strdup (char *);
+extern char *safe_strdup ();
 
 typedef struct _widget_instance
 {
