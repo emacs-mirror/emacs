@@ -1193,7 +1193,7 @@ a' -> ,Aa(B    A' -> ,AA(B    a` -> ,A`(B    A` -> ,A@(B    i^ -> ,An(
 e' -> ,Ai(B    E' -> ,AI(B    e` -> ,Ah(B    E` -> ,AH(B    I^ -> ,AN(B    >> -> ,A;(B
 i' -> ,Am(B    I' -> ,AM(B    i` -> ,Al(B    I` -> ,AL(B               o_ -> ,A:(B
 o' -> ,As(B    O' -> ,AS(B    o` -> ,Ar(B    O` -> ,AR(B               a_ -> ,A*(B
-u' -> ,Az(B    U' -> ,AZ(B    u` -> ,Ay(B    U` -> ,AY(B               E= -> ,A$(B
+u' -> ,Az(B    U' -> ,AZ(B    u` -> ,Ay(B    U` -> ,AY(B
 
 This method is for purists who like accents the old way.
 
@@ -1207,7 +1207,6 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("a'" ?,Aa(B)
  ("E`" ?,AH(B)
  ("E'" ?,AI(B)
- ("E=" ?,A$(B)
  ("e`" ?,Ah(B)
  ("e'" ?,Ai(B)
  ("I`" ?,AL(B)
@@ -1235,7 +1234,6 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("a''" ["a'"])
  ("E``" ["E`"])
  ("E''" ["E'"])
- ("E==" ["E="])
  ("e``" ["e`"])
  ("e''" ["e'"])
  ("I``" ["I`"])
