@@ -1452,7 +1452,7 @@ scrolling the current window.  Leave the new window selected."
     (set-process-filter ispell-process 'ispell-filter)
     (accept-process-output ispell-process) ; Get version ID line
     (cond ((null ispell-filter)
-	   (error "%s did not output version line"))
+	   (error "%s did not output version line" ispell-program-name))
 	  ((and (null (cdr ispell-filter))
 		(stringp (car ispell-filter))
 		(string-match "^@(#) " (car ispell-filter)))
