@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93-95, 97, 99, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames, International, Windows, Top
 @chapter Frames and X Windows
@@ -28,6 +28,16 @@ frame.
 so that you can use many of the features described in this chapter.
 @xref{MS-DOS Input}, for more information.
 
+@cindex MS Windows
+  Emacs compiled for MS Windows mostly supports the same features as
+under X.
+
+Features which rely on text in multiple faces (such as Font Lock mode)
+will also work on non-windowed terminals that can display more than one
+face, whether by colors or underlining and emboldening, such as the
+Linux console.  Emacs determines automatically whether the terminal has
+such support.
+
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
 * Secondary Selection:: Cutting without altering point and mark.
@@ -40,13 +50,19 @@ so that you can use many of the features described in this chapter.
 * Special Buffer Frames::  You can make certain buffers have their own frames.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
+* Wheeled Mice::        Using mouse wheels for scrolling.
 * Menu Bars::	        Enabling and disabling the menu bar.
+@c * Tool Bars::           Enabling and disabling the tool bar.
+* Dialog Boxes::        Controlling use of dialog boxes.
 * Faces::	        How to change the display style using faces.
 * Font Lock::           Minor mode for syntactic highlighting using faces.
 * Support Modes::       Font Lock support modes make Font Lock faster.
 * Highlight Changes::   Using colors to show where you changed the buffer.
-* Misc X::	        Iconifying and deleting frames. Region highlighting.
+* Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
+* Tooltips::            Showing `tooltips', AKA `ballon help' for active text.
+* Misc X::	        Iconifying and deleting frames.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
+* XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
 @end menu
 
 @node Mouse Commands
@@ -316,6 +332,12 @@ horizontally, above the place in the mode line where you click.
 
   @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
 vertically.  @xref{Split Window}.
+
+The commands above apply to areas of the mode line which do not have
+mouse bindings of their own.  Normally some areas, such as those
+displaying the buffer name and the major mode name, have their own mouse
+bindings.  Help on these bindings is echoed when the mouse is positioned
+over them.
 
 @node Creating Frames
 @section Creating Frames
@@ -597,10 +619,12 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex mode, Scroll Bar
 
   When using X, Emacs normally makes a @dfn{scroll bar} at the left of
-each Emacs window.  The scroll bar runs the height of the window, and
-shows a moving rectangular inner box which represents the portion of the
-buffer currently displayed.  The entire height of the scroll bar
-represents the entire length of the buffer.
+each Emacs window.@footnote{Placing it at the left is usually more
+useful with overlapping frames with text starting at the left margin.}
+The scroll bar runs the height of the window, and shows a moving
+rectangular inner box which represents the portion of the buffer
+currently displayed.  The entire height of the scroll bar represents the
+entire length of the buffer.
 
   You can use @kbd{Mouse-2} (normally, the middle button) in the scroll
 bar to move or drag the inner box up and down.  If you move it to the
@@ -619,17 +643,37 @@ bar to split a window vertically.  The split occurs on the line where
 you click.
 
 @findex scroll-bar-mode
+@vindex scroll-bar-mode
   You can enable or disable Scroll Bar mode with the command @kbd{M-x
 scroll-bar-mode}.  With no argument, it toggles the use of scroll bars.
 With an argument, it turns use of scroll bars on if and only if the
 argument is positive.  This command applies to all frames, including
-frames yet to be created.  You can use the X resource
-@samp{verticalScrollBars} to control the initial setting of Scroll Bar
-mode.  @xref{Resources X}.
+frames yet to be created.  Customize the option @code{scroll-bar-mode}
+to control the use of scroll bars at startup.  You can use it to specify
+that they are placed at the right of windows if you prefer that.  You
+can use the X resource @samp{verticalScrollBars} to control the initial
+setting of Scroll Bar mode similarly.  @xref{Resources X}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
 @kbd{M-x toggle-scroll-bar} command.
+
+@node Wheeled Mice
+@section Scrolling With `Wheeled' Mice
+
+@cindex mouse wheel
+@findex mwheel-install
+Some mice have a `wheel' instead of a third button.  You can usually
+click the wheel to act as @kbd{mouse-3}.  You can also use the wheel to
+scroll windows instead of using the scroll bar or keyboard commands.
+Use @kbd{M-x mwheel-install} to set up the wheel for scrolling or put
+@samp{(require 'mwheel)} in your @file{.emacs}.  (Support for the wheel
+depends on the window system generating appropriate events for Emacs.)
+
+@vindex mwheel-follow-mouse
+@vindex mwheel-scroll-amount
+The variables @code{mwheel-follow-mouse} and @code{mwheel-scroll-amount}
+determine where and by how much buffers are scrolled.
 
 @node Menu Bars
 @section Menu Bars
@@ -648,6 +692,28 @@ additional line available for text.
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.
 
+@c Presumably not useful until we make toolbar items.
+@c @node Tool Bars
+@c @section Tool Bars
+@c @cindex Tool Bar mode
+@c @cindex mode, Tool Bar
+
+@c You can turn display of tool bars on or off with @kbd{M-x
+@c tool-bar-mode}.  With no argument, this command toggles Tool Bar mode, a
+@c minor mode.  With an argument, the command turns Tool Bar mode on if the
+@c argument is positive, off if the argument is not positive.
+
+@node Dialog Boxes
+@section Using Dialog Boxes
+@cindex dialog boxes
+
+@vindex use-dialog-box
+Certain operations invoked from menus will use a window system dialog
+box to get information via the mouse if such dialog boxes are supported.
+This includes yes/no questions and file selection under Motif/LessTif
+and MS Windows.  Customize the option @code{use-dialog-box} to suppress
+the use of dialog boxes.
+
 @node Faces
 @section Using Multiple Typefaces
 @cindex faces
@@ -657,7 +723,8 @@ characters.  The aspects of style that you can control are the type
 font, the foreground color, the background color, and whether to
 underline.  Emacs on MS-DOS supports faces partially by letting you
 control the foreground and background colors of each face
-(@pxref{MS-DOS}).
+(@pxref{MS-DOS}).  On non-windowed terminals faces are supported to the
+extent the terminal can display them.
 
   The way you control display style is by defining named @dfn{faces}.
 Each face can specify a type font, a foreground color, a background
@@ -690,8 +757,11 @@ faces:
 @item default
 This face is used for ordinary text that doesn't specify any other face.
 @item modeline
-This face is used for mode lines.  By default, it's set up as the
-inverse of the default face.  @xref{Display Vars}.
+This face is used for mode lines.  By default, it's drawn with shadows
+for a `raised' effect under X and set up as the inverse of the default
+face on non-windowed terminals.  @xref{Display Vars}.
+@item header-line
+Similar to @code{modeline} for a window's header line.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 @item region
@@ -708,6 +778,29 @@ This face uses an italic variant of the default font, if it has one.
 This face uses a bold italic variant of the default font, if it has one.
 @item underline
 This face underlines text.
+@item fixed-pitch
+The basic fixed-pitch face.
+@item fringe
+The face for the fringes to the left and right of windows under X.
+@item scroll-bar
+This face determines the colors of the scroll bar.
+@item border
+This face determines the color of the frame border.
+@item cursor
+This face determines the color of the cursor.
+@item mouse
+This face determines the color of the mouse pointer.
+@item tool-bar
+The basic tool-bar face.
+@item menu
+This face determines the colors and font of Emacs's menus.  Setting the
+font of LessTif/Motif menus is currently not supported; attempts to set
+the font are ignored in this case.
+@item trailing-whitespace
+The face for highlighting trailing whitespace when
+@code{show-trailing-whitespace} is non-nil.
+@item variable-pitch
+The basic variable-pitch face.
 @end table
 
 @cindex @code{region} face
@@ -728,13 +821,14 @@ Font Lock mode and syntactic highlighting.
 
   You can print out the buffer with the highlighting that appears
 on your screen using the command @code{ps-print-buffer-with-faces}.
-@xref{Postscript}.
+@xref{PostScript}.
 
 @node Font Lock
 @section Font Lock mode
 @cindex Font Lock mode
 @cindex mode, Font Lock
 @cindex syntax highlighting
+@cindex syntax coloring
 
   Font Lock mode is a minor mode, always local to a particular
 buffer, which highlights (or ``fontifies'') using various faces
@@ -757,8 +851,10 @@ Font Lock mode whenever you edit a C file, you can do this:
 @end example
 
 @findex global-font-lock-mode
+@vindex global-font-lock-mode
   To turn on Font Lock mode automatically in all modes which support it,
-use the function @code{global-font-lock-mode}, like this:
+customize the user option @code{global-font-lock-mode} or use the
+function @code{global-font-lock-mode}, like this:
 
 @example
 (global-font-lock-mode 1)
@@ -849,6 +945,7 @@ use two different methods of speeding up Font Lock mode.
 @menu
 * Fast Lock Mode::      Saving font information in files.
 * Lazy Lock Mode::      Fontifying only text that is actually displayed.
+* JIT Lock Mode::       Like Lazy Lock, but generally faster.
 * Fast or Lazy::        Which support mode is best for you?
 @end menu
 
@@ -955,6 +1052,18 @@ Emacs has to be idle before stealth fontification starts.  A value of
 @code{lazy-lock-stealth-lines} and @code{lazy-lock-stealth-verbose}
 specify the granularity and verbosity of stealth fontification.
 
+@node JIT Lock Mode
+@subsection JIT Lock Mode
+
+@findex jit-lock-mode
+The command @kbd{M-x lazy-lock-mode} turns JIT Lock mode on or off,
+according to the argument (with no argument, it toggles).  This support
+mode is roughly equivalent to Lazy Lock but is generally faster.  It
+supports stealth and deferred fontification.
+
+Font-lock uses @code{jit-lock-mode} as default support mode, so you
+don't have to do anything to activate it.
+
 @node Fast or Lazy
 @subsection Fast Lock or Lazy Lock?
 
@@ -1015,6 +1124,31 @@ like this:
 that uses faces (colors, typically) to indicate which parts of
 the buffer were changed most recently.
 
+@node Trailing Whitespace
+@section Trailing Whitespace
+
+@cindex trailing whitespace
+@vindex show-trailing-whitespace
+The option @code{show-trailing-whitespace} can be customized so that
+Emacs displays trailing whitespace in the face
+@code{trailing-whitespace}.  Trailing whitespace is defined as spaces or
+tabs at the end of a line.  To avoid busy highlighting when entering new
+text, trailing whitespace is not displayed if point is at the end of the
+line containing the whitespace.
+
+@node Tooltips
+@section Tooltips (or `Ballon Help')
+
+@cindex balloon help
+@findex tooltip-mode
+Tooltips are small X windows displaying a help string at the current
+mouse position, typically over text which can be activated with the
+mouse or other keys.  (This facility is sometimes known as `balloon
+help'.)  To use them customize the user option.  @code{tooltip-mode}.
+The customization group @code{tooltip} controls various aspects of their
+display.
+
+
 @node Misc X
 @section Miscellaneous X Window Features
 
@@ -1074,3 +1208,12 @@ select-frame-by-name @key{RET} @var{name} @key{RET}} to select a frame
 according to its name.  The name you specify appears in the mode line
 when the frame is selected.
 
+@node XTerm Mouse
+@section Using a Mouse in Terminal Emulators
+
+Some terminal emulators under X support mouse clicks in the terminal
+window.  In a terminal emulator which is compatible with @code{xterm},
+you can use @kbd{M-x xterm-mouse-mode} to enable simple use of the
+mouse---only single clicks are supported.  The normal @code{xterm} mouse
+functionality is still available by holding down the @kbd{SHIFT} key
+when you press the mouse button.
