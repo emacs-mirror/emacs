@@ -692,7 +692,7 @@ name, or \"unknown\" if no such user could be found.")
      Lisp_Object uid;
 {
   struct passwd *pw;
-  register char *p, *q;
+  register unsigned char *p, *q;
   extern char *index ();
   Lisp_Object full;
 
@@ -719,7 +719,7 @@ name, or \"unknown\" if no such user could be found.")
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      register char *r;
+      register unsigned char *r;
       Lisp_Object login;
 
       login = Fuser_login_name (make_number (pw->pw_uid));
