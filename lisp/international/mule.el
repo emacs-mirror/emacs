@@ -313,15 +313,15 @@ See also the documentation of make-char."
 ;; o coding-category
 ;;
 ;; The value is a coding category the coding system belongs to.  The
-;; function `make-coding-system' and `define-coding-system-alias' sets
-;; this value automatically.
+;; function `make-coding-system' sets this value automatically 
+;; unless its argument PROPERTIES specifies this property.
 ;;
 ;; o alias-coding-systems
 ;;
 ;; The value is a list of coding systems of the same alias group.  The
 ;; first element is the coding system made at first, which we call as
-;; `base coding system'.  The function `make-coding-system' and
-;; `define-coding-system-alias' set this value automatically.
+;; `base coding system'.  The function `make-coding-system' sets this
+;; value automatically and `define-coding-system-alias' updates it.
 ;;
 ;; o post-read-conversion
 ;;
@@ -529,7 +529,10 @@ If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
     subsidiaries))
 
 (defun make-coding-system (coding-system type mnemonic doc-string
-					 &optional flags properties)
+					 &optional
+					 flags
+					 properties
+					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
 Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional), 
 and PROPERTIES (optional) which construct a coding-spec of CODING-SYSTEM
@@ -589,6 +592,27 @@ PROPERTIES is an alist of properties vs the corresponding values.
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
 automatically.
+
+EOL-TYPE specifies the EOL type of the coding-system in one of the
+following formats:
+
+  o symbol (unix, dos, or mac)
+
+	The symbol `unix' means Unix-like EOL (LF), `dos' means
+	DOS-like EOL (CRLF), and `mac' means MAC-like EOL (CR).
+
+  o number (0, 1, or 2)
+
+	The number 0, 1, and 2 mean UNIX, DOS, and MAC-like EOL
+	respectively.
+
+  o vector of coding-systems of length 3
+
+	The EOL type is detected automatically for the coding system.
+	And, according to the detected EOL type, one of the coding
+	systems in the vector is selected.  Elements of the vector
+	corresponds to Unix-liek EOL, DOS-like EOL, and Mac-like EOL
+	in this order.
 
 Kludgy features for backward compatibility:
 
@@ -698,22 +722,43 @@ a value of `safe-charsets' in PLIST."
 	  ;; In the old version, the arg PROPERTIES is a list to be
 	  ;; set in PLIST as a value of property `safe-charsets'.
 	  (plist-put plist 'safe-charsets properties)
+	;; In the current version PROPERTIES is a property list.
+	;; Reflect it into PLIST one by one.
 	(let ((l properties))
 	  (while l
 	    (plist-put plist (car (car l)) (cdr (car l)))
 	    (setq l (cdr l)))))
+      ;; The property `coding-category' may have been set differently
+      ;; through PROPERTIES.
+      (setq coding-category (plist-get plist 'coding-category))
       (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
 
-  ;; Next, set a value of `eol-type' property.  The value is a vector
-  ;; of subsidiary coding systems, each corresponds to a coding system
-  ;; for the detected end-of-line format.
-  (put coding-system 'eol-type
-       (if (or (<= type 3) (= type 5))
-	   (make-subsidiary-coding-system coding-system)
-	 0))
+  ;; Next, set a value of `eol-type' property.
+  (if (and (not eol-type)
+	   (or (<= type 3) (= type 5)))
+      ;; If EOL-TYPE is nil, set a vector of subsidiary coding
+      ;; systems, each corresponds to a coding system for the detected
+      ;; EOL format.
+      (setq eol-type (make-subsidiary-coding-system coding-system)))
+  (setq eol-type
+	(cond ((or (eq eol-type 'unix) (null eol-type))
+	       0)
+	      ((eq eol-type 'dos)
+	       1)
+	      ((eq eol-type 'mac)
+	       2)
+	      ((or (and (vectorp eol-type)
+			(= (length eol-type) 3))
+		   (and (numberp eol-type)
+			(and (>= eol-type 0)
+			     (<= eol-type 2))))
+	       eol-type)
+	      (t
+	       (error "Invalid EOL-TYPE spec:%S" eol-type))))
+  (put coding-system 'eol-type eol-type)
 
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
