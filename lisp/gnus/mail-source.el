@@ -688,7 +688,10 @@ If ARGS, PROMPT is used as an argument to `format'."
 (defvar mail-source-report-new-mail-timer nil)
 (defvar mail-source-report-new-mail-idle-timer nil)
 
-(eval-when-compile (require 'timer))
+(eval-when-compile 
+  (if (featurep 'xemacs)
+      (require 'itimer)
+    (require 'timer)))
 
 (defun mail-source-start-idle-timer ()
   ;; Start our idle timer if necessary, so we delay the check until the
@@ -769,10 +772,10 @@ This only works when `display-time' is enabled."
 ;;; 					    (current-time-string) "\n"))
 ;;; 				  (while (re-search-forward "^From " nil t)
 ;;; 				    (replace-match ">From "))
+;;;                               (goto-char (point-max))
+;;;				  (insert "\n\n")
 				  ;; MMDF mail format
-				  (insert "\001\001\001\001\n")
-				  (goto-char (point-max))
-				  (insert "\n\n"))
+				  (insert "\001\001\001\001\n"))
 				(delete-file file)))))
 	      (incf found (mail-source-callback callback file))))))
       found)))
@@ -808,12 +811,12 @@ This only works when `display-time' is enabled."
 		user (or (cdr (assoc from mail-source-password-cache))
 			 password) buf)
 	       (imap-mailbox-select mailbox nil buf))
-	  (let (str (coding-system-for-write mail-source-imap-file-coding-system))
+	  (let ((coding-system-for-write mail-source-imap-file-coding-system) 
+		;; Avoid converting 8-bit chars from inserted strings to
+		;; multibyte.
+		default-enable-multibyte-characters
+		str)
 	    (with-temp-file mail-source-crash-box
-	      ;; In some versions of FSF Emacs, inserting unibyte
-	      ;; string into multibyte buffer may convert 8-bit chars
-	      ;; into latin-iso8859-1 chars, which results \201's.
-	      (mm-disable-multibyte)
 	      ;; remember password
 	      (with-current-buffer buf
 		(when (or imap-password
