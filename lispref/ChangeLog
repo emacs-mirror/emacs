@@ -1,3 +1,10 @@
+2003-11-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* positions.texi (Positions): Mention that, if a marker is used a
+	a position, its buffer is ignored.
+
+	* markers.texi (Overview of Markers): Mention it here too.
+
 2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* numbers.texi (Numeric Conversions): Not just `floor', but also
