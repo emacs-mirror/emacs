@@ -435,7 +435,7 @@ After asking the standard questions, @code{save-buffers-kill-emacs}
 calls the functions in the list @code{kill-buffer-query-functions}, in
 order of appearance, with no arguments.  These functions can ask for
 additional confirmation from the user.  If any of them returns
-non-@code{nil}, Emacs is not killed.
+@code{nil}, Emacs is not killed.
 @end defvar
 
 @defvar kill-emacs-hook
