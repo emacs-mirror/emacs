@@ -271,7 +271,7 @@ or one is an alias of the other."
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
-  `(with-coding-priority ,(mapcar #'cdr priority-list)
+  `(with-coding-priority (mapcar #'cdr ,priority-list)
      (detect-coding-region ,from ,to)))
 (make-obsolete 'detect-coding-with-priority
 	       "Use with-coding-priority and detect-coding-region" "22.1")
