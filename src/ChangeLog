@@ -1,5 +1,11 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (menu_face_change_count): New variable.
+	(Finternal_set_lisp_face_attribute): Increment it for changes
+	of the `menu' face.
+	(realize_basic_faces): Reflect changes in the `menu' faces
+	in menu bars.
+
 	* xdisp.c (try_scrolling) <PT >= scroll_margin_pos>: Add 1 to the
 	dy obtained from the iterator's y-position after moving from
 	scroll_margin_pos to PT; see comment there.
