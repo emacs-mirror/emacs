@@ -53,7 +53,6 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (transient-mark-mode editing-basics boolean)
 	     (indicate-empty-lines display boolean "21.1")
 	     (scroll-up-aggressively windows boolean "21.1")
 	     (scroll-down-aggressively windows boolean "21.1")
