@@ -69,6 +69,7 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 Lisp_Object Vinhibit_point_motion_hooks;
 Lisp_Object Vdefault_text_properties;
+Lisp_Object Vtext_property_default_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
@@ -1829,6 +1830,17 @@ character that does not have its own value for that property.");
    "If non-nil, don't run `point-left' and `point-entered' text properties.\n\
 This also inhibits the use of the `intangible' text property.");
   Vinhibit_point_motion_hooks = Qnil;
+
+  DEFVAR_LISP ("text-property-default-nonsticky",
+	       &Vtext_property_default_nonsticky,
+    "Alist of properties vs the corresponding non-stickinesses.\n\
+Each element has the form (PROPERTY . NONSTICKINESS).\n\
+\n\
+If a character in a buffer has PROPERTY, new text inserted adjacent to\n\
+the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,\n\
+inherits it if NONSTICKINESS is nil.  The front-sticky and\n\
+rear-nonsticky properties of the character overrides NONSTICKINESS.");
+  Vtext_property_default_nonsticky = Qnil;
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);
