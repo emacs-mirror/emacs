@@ -1,11 +1,11 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print.
 
-;; Copyright (C) 1998, 1999 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1998,99,2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: wp, BDF, font, PostScript
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp:	<99/02/27 11:14:07 kenichi>
+;; Time-stamp:	<2001/03/05 09:04:32 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -31,7 +31,12 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'ps-mule))
+(eval-and-compile
+  (require 'ps-mule)
+
+  ;; to avoid XEmacs compilation gripes
+  (defvar installation-directory nil)
+  (defvar coding-system-for-read nil))
 
 ;;;###autoload
 (defvar bdf-directory-list
@@ -42,13 +47,13 @@
 The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;; MS-DOS users like to move the binary around after it's built, but
-;; the value above is computed at loadup time.
+;; the value above is computed at load-up time.
 (and (eq system-type 'ms-dos)
      (setq bdf-directory-list
 	   (list (expand-file-name "fonts/bdf" installation-directory))))
 
 (defun bdf-expand-file-name (bdfname)
-  "Return an abosolute path name of a `BDF' font file BDFNAME.
+  "Return an absolute path name of a `BDF' font file BDFNAME.
 It searches directories listed in the variable `bdf-directory-list'
 for BDFNAME."
   (if (file-name-absolute-p bdfname)
@@ -124,7 +129,7 @@ If the cache file is not readable, this return nil."
 (defun bdf-write-cache ()
   "Write out cached information of `BDF' font file to a file.
 The variable `bdf-cache-file' holds the cache file name.
-The file is written if and only if the file alreay exists and writable."
+The file is written if and only if the file already exists and writable."
   (and bdf-cache
        (file-exists-p bdf-cache-file)
        (file-writable-p bdf-cache-file)
@@ -198,7 +203,7 @@ CODE-RANGE is a vector of minimum 1st byte, maximum 1st byte, minimum
 2nd byte, maximum 2nd byte, minimum code, maximum code, and default
 code.  For 1-byte fonts, the first two elements are 0.
 
-MAXLEN is a maximum bytes of one glyph informaion in the font file.
+MAXLEN is a maximum bytes of one glyph information in the font file.
 
 OFFSET-VECTOR is a vector of a file position which starts bitmap data
 of the glyph in the font file.
@@ -257,7 +262,7 @@ CODE, where N and CODE are in the following relation:
 
 	  (let ((min-code0 256) (min-code1 256) (min-code 65536)
 		(max-code0 0) (max-code1 0) (max-code 0)
-		glyph glyph-list code0 code1 code bbx offset)
+		glyph glyph-list code0 code1 code offset)
 
 	    (while (search-forward "\nSTARTCHAR" nil t)
 	      (setq offset (line-beginning-position))
@@ -340,8 +345,8 @@ on that file name."
     (bdf-get-font-info (or fname (car bdfnames)))))
 
 (defun bdf-read-bitmap (bdfname offset maxlen)
-  "Read `BDF' font file BDFNAME to get bitmap data at file poistion OFFSET.
-BDFNAME is an abosolute path name of the font file.
+  "Read `BDF' font file BDFNAME to get bitmap data at file position OFFSET.
+BDFNAME is an absolute path name of the font file.
 MAXLEN specifies how many bytes we should read at least.
 The value is a list of DWIDTH, BBX, and BITMAP-STRING.
 DWIDTH is a pixel width of a glyph.
@@ -359,7 +364,8 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 	  (search-forward "\nBBX")
 	  (setq bbx (vector (read (current-buffer)) (read (current-buffer))
 			    (read (current-buffer)) (read (current-buffer)))
-		height (aref bbx 1) yoff (aref bbx 3))
+		height (aref bbx 1)
+		yoff (aref bbx 3))
 	  (search-forward "\nBITMAP")
 	  (forward-line 1)
 	  (delete-region (point-min) (point))
@@ -396,7 +402,7 @@ BBX is a bounding box of the glyph.
 BITMAP-STRING is a string representing bits by hexadecimal digits."
   (let* ((font-info (bdf-find-font-info bdfname))
 	 (absolute-path (bdf-info-absolute-path font-info))
-	 (font-bounding-box (bdf-info-font-bounding-box font-info))
+	 ;;(font-bounding-box (bdf-info-font-bounding-box font-info))
 	 (maxlen (bdf-info-maxlen font-info))
 	 (code-range (bdf-info-code-range font-info))
 	 (offset-vector (bdf-info-offset-vector font-info)))
