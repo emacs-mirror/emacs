@@ -190,7 +190,7 @@ main (argc, argv)
 	    {
 	      sleep (1);
 	    }
-	  else 
+	  else
 #else
 	    if (nbuffer == 0)
 	      goto finish;
