@@ -1,5 +1,5 @@
 ;;; nnimap.el --- imap backend for Gnus
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -391,11 +391,13 @@ just like \"ticked\" articles, in other IMAP clients.")
 					  (string :format "Login: %v"))
 				    (cons :format "%v"
 					  (const :format "" "password")
-					  (string :format "Password: %v")))))))
+					  (string :format "Password: %v"))))))
+  :group 'nnimap)
 
 (defcustom nnimap-prune-cache t
   "If non-nil, nnimap check whether articles still exist on server before using data stored in NOV cache."
-  :type 'boolean)
+  :type 'boolean
+  :group 'nnimap)
 
 (defvar nnimap-request-list-method 'imap-mailbox-list
   "Method to use to request a list of all folders from the server.
@@ -802,9 +804,12 @@ function is generally only called when Gnus is shutting down."
     (nnoo-status-message 'nnimap server)))
 
 (defun nnimap-demule (string)
-  (funcall (if (and (fboundp 'string-as-multibyte)
-		    (subrp (symbol-function 'string-as-multibyte)))
-	       'string-as-multibyte
+  ;; BEWARE: we used to use string-as-multibyte here which is braindead
+  ;; because it will turn accidental emacs-mule-valid byte sequences
+  ;; into multibyte chars.  --Stef
+  (funcall (if (and (fboundp 'string-to-multibyte)
+		    (subrp (symbol-function 'string-to-multibyte)))
+	       'string-to-multibyte
 	     'identity)
 	   (or string "")))
 

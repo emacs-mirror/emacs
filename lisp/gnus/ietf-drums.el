@@ -133,7 +133,7 @@ backslash and doublequote.")
 	  (forward-sexp 1))
 	 ((eq c ?\()
 	  (forward-sexp 1))
-	 ((memq c '(? ?\t ?\n))
+	 ((memq c '(?\  ?\t ?\n))
 	  (delete-char 1))
 	 (t
 	  (forward-char 1))))
