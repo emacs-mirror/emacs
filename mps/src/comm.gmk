@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.42) $
+# $HopeName: MMsrc!comm.gmk(trunk.43) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -245,8 +245,9 @@ all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
 # Runs the automatic tests that are built with CONFIG_PROD_MPS
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
+#   mv2test cannot be run because MV2 is broken
 testrun: mpmss amcss amsss awlut mpsicv lockcov poolncv \
-         locv qs finalcv arenacv abqtest cbstest mv2test
+         locv qs finalcv arenacv abqtest cbstest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
