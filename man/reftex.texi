@@ -9,13 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.16
-@set EDITION 4.16
-@set DATE June 2001
-@set AUTHOR Carsten Dominik
-@set AUTHOR-EMAIL dominik@@astro.uva.nl
-@set MAINTAINER Carsten Dominik
-@set MAINTAINER-EMAIL dominik@@astro.uva.nl
+@set VERSION 4.18
+@set EDITION 4.18
+@set DATE July 2002
 @c %**end of header
 @finalout
 
@@ -38,7 +34,7 @@ citations and indices for LaTeX documents with Emacs.@refill
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}@refill
 
-Copyright (c) 1997, 1998, 1999, 2000 2001 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -65,7 +61,7 @@ license to the document, as described in section 6 of the license.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 @sp 2
 This is edition @value{EDITION} of the @cite{Ref@TeX{} User Manual} for
@@ -1135,8 +1131,19 @@ was chosen for @code{theorem} since @code{?t} is already taken by
 @noindent
 The labels for Axioms and Theorems will have the prefixes @samp{ax:} and
 @samp{thr:}, respectively.  @xref{AUCTeX}, for information on how
-AUCTeX can use @b{Ref@TeX{}} to automatically create labels when a new
-environment is inserted into a buffer.@refill
+AUCTeX can use RefTeX to automatically create labels when a new environment
+is inserted into a buffer.  Additionally, the following needs to be
+added to one's .emacs file before AUCTeX will automatically create
+labels for the new environments.
+
+@lisp
+(add-hook 'LaTeX-mode-hook
+   (lambda ()
+     (LaTeX-add-environments
+       '("axiom" LaTeX-env-label)
+       '("theorem" LaTeX-env-label))))
+@end lisp
+
 
 @noindent
 The @samp{~\ref@{%s@}} is a format string indicating how to insert
@@ -1625,7 +1632,10 @@ logic @code{and} for regular expressions. For example
 @samp{Einstein&&Bose} will match all articles which mention
 Bose-Einstein condensation, or which are co-authored by Bose and
 Einstein.  When entering the regular expression, you can complete on
-known citation keys.@refill
+known citation keys.  RefTeX also offeres a default when prompting for a
+regular expression.  This default is the word before the cursor or the
+word before the current @samp{\cite} comand.  Sometimes this may be a
+good search key.@refill
 
 @cindex @code{\bibliography}
 @cindex @code{thebibliography}, LaTeX environment
@@ -2809,6 +2819,23 @@ command depends upon the version of that program.
 @end lisp
 @end itemize
 
+@cindex Noweb files
+@vindex reftex-file-extensions
+@vindex TeX-file-extensions
+Some people like to use RefTeX with noweb files, which usually have the
+extension @file{.nw}.  In order to deal with such files, the new
+extension must be added to the list of valid extensions in the variable
+@code{reftex-file-extensions}.  When working with AUCTeX as major mode,
+the new extension must also be known to AUCTeX via the variable
+@code{TeX-file-extension}.  For example:
+
+@lisp
+(setq reftex-file-extensions 
+      '(("nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
+(setq TeX-file-extensions 
+      '( "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
+@end lisp
+
 @node Optimizations, Problems and Work-Arounds, Finding Files, Top
 @section Optimizations
 @cindex Optimizations
@@ -2938,7 +2965,6 @@ with the @kbd{g} key.  To get this behavior, use instead@refill
 @end group
 @end lisp
 
-@page
 @node AUCTeX, Multifile Documents, Faces, Top
 @section @w{AUC @TeX{}}
 @cindex @code{AUCTeX}, Emacs package
@@ -2946,7 +2972,7 @@ with the @kbd{g} key.  To get this behavior, use instead@refill
 
 AUCTeX is without doubt the best major mode for editing TeX and LaTeX
 files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
-If AUCTeX is not part of you Emacs distribution, you can get
+If AUCTeX is not part of your Emacs distribution, you can get
 it@footnote{XEmacs 21.x users may want to install the corresponding
 XEmacs package.} by ftp from the
 @uref{http://www.sunsite.auc.dk/auctex/,AUCTeX distribution site}.
@@ -3197,8 +3223,8 @@ make use of this feature, try@refill
 @item
 @b{LaTeX commands}@*
 @cindex LaTeX commands, not found
-@code{\input}, @code{\include}, @code{\bibliography} and @code{\section}
-(etc.) statements have to be first on a line (except for white space).@refill
+@code{\input}, @code{\include}, and @code{\section} (etc.) statements
+have to be first on a line (except for white space).@refill
 
 @item
 @b{Commented regions}@*
@@ -3335,12 +3361,12 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex @code{http}, @b{Ref@TeX{}} home page
 @cindex @code{ftp}, @b{Ref@TeX{}} site
 
-@b{Ref@TeX{}} was written by @i{@value{AUTHOR}}
-@email{@value{AUTHOR-EMAIL}}, with contributions by @i{Stephen
+@b{Ref@TeX{}} was written by @i{@value{Carsten Dominik}}
+@email{dominik@@science.uva.nl}, with contributions by @i{Stephen
 Eglen}.  @b{Ref@TeX{}} is currently maintained by @refill
 
 @noindent
-@value{MAINTAINER} @email{@value{MAINTAINER-EMAIL}}
+@value{Carsten Dominik} @email{dominik@@science.uva.nl}
 
 If you have questions about @b{Ref@TeX{}}, there are several Usenet
 groups which have competent readers: @code{comp.emacs},
@@ -3349,7 +3375,7 @@ You can also write directly to the maintainer.
 
 If you find a bug in @b{Ref@TeX{}} or its documentation, or if you want
 to contribute code or ideas, please
-@uref{mailto:@value{MAINTAINER-EMAIL},contact the maintainer}.  Remember
+@uref{mailto:dominik@@science.uva.nl,contact the maintainer}.  Remember
 to provide all necessary information such as version numbers of Emacs
 and @b{Ref@TeX{}}, and the relevant part of your configuration in
 @file{.emacs}.  When reporting a bug which throws an exception, please
@@ -3369,11 +3395,13 @@ features described in this manual.@refill
 
 Thanks to the people on the Net who have used @b{Ref@TeX{}} and helped
 developing it with their reports.  In particular thanks to @i{Fran
-Burstall, Alastair Burt, Soren Dayton, Stephen Eglen, Karl Eichwalder,
-Erik Frik, Peter Galbraith, Kai Grossjohann, Frank Harrell, Dieter
-Kraft, Adrian Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier,
-Sudeep Kumar Palat, Daniel Polani, Robin Socha, Richard Stanton, Allan
-Strand, Jan Vroonhof, Christoph Wedler, Alan Williams}.@refill
+Burstall, Alastair Burt, Lars Clausen, Soren Dayton, Stephen Eglen, Karl
+Eichwalder, Erik Frik, Erik Frisk, Peter Galbraith, Kai Grossjohann,
+Frank Harrell, Stephan Heuel, Alan Ho, Dieter Kraft, Adrian Lanz, Rory
+Molinari, Stefan Monnier, Laurent Mugnier, Sudeep Kumar Palat, Daniel
+Polani, Alan Shutko, Robin Socha, Richard Stanton, Allan Strand, Jan
+Vroonhof, Christoph Wedler, Alan Williams, Roland Winkler, Eli
+Zaretskii}.@refill
 
 The @code{view-crossref} feature was inspired by @i{Peter Galbraith's}
 @file{bib-cite.el}.@refill
@@ -3487,7 +3515,7 @@ the command @code{reftex-view-crossref-from-bibtex}.  With one or two
 View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
 prompts upon first use for a buffer in @b{Ref@TeX{}} mode.  To reset this
-link to a document, call the function with with a prefix arg.  Calling
+link to a document, call the function with a prefix arg.  Calling
 this function several times find successive citation locations.
 @end deffn
 
@@ -3583,11 +3611,42 @@ reftex-customize} will get you there.@refill
 @cindex Options, table of contents
 @cindex Table of contents, options
 
+@defopt reftex-include-file-commands
+List of LaTeX commands which input another file.
+The file name is expected after the command, either in braces or separated
+by whitespace.
+@end defopt
+
+@defopt reftex-max-section-depth
+Maximum depth of section levels in document structure.
+Standard LaTeX needs 7, default is 12.
+@end defopt
+
+@defopt reftex-section-levels
+Commands and levels used for defining sections in the document.  The
+@code{car} of each cons cell is the name of the section macro.  The
+@code{cdr} is a number indicating its level.  A negative level means the
+same as the positive value, but the section will never get a
+number.  The @code{cdr} may also be a function which then has to return
+the level.@refill
+@end defopt
+
 @defopt reftex-toc-max-level
 The maximum level of toc entries which will be included in the TOC.
 Section headings with a bigger level will be ignored.  In RefTeX,
 chapters are level 1, sections level 2 etc.  This variable can be
 changed from within the @file{*toc*} buffer with the @kbd{t} key.@refill
+@end defopt
+
+@defopt reftex-toc-split-windows-horizontally
+Non-@code{nil} means, create TOC window by splitting window
+horizontally.  The default is to split vertically.
+@end defopt
+
+@defopt reftex-toc-split-windows-horizontally-fraction
+Fraction of the horizontal width of the frame to be used for TOC window.
+Only relevant when @code{reftex-toc-split-windows-horizontally} is
+non-@code{nil}.
 @end defopt
 
 @defopt reftex-toc-keep-other-windows
@@ -3685,7 +3744,7 @@ Special names: @code{section} for section labels, @code{any} to define a
 group which contains all labels.@refill
 
 This may also be a function to do local parsing and identify point to be
-in a a non-standard label environment.  The function must take an
+in a non-standard label environment.  The function must take an
 argument @var{bound} and limit backward searches to this value.  It
 should return either nil or a cons cell @code{(@var{function}
 . @var{position})} with the function symbol and the position where the
@@ -3815,20 +3874,6 @@ Any list entry may also be a symbol.  If that has an association in
 @code{reftex-label-alist-builtin}, the @code{cddr} of that association is
 spliced into the list.  However, builtin defaults should normally be set
 with the variable @code{reftex-default-label-alist-entries}.@refill
-@end defopt
-
-@defopt reftex-max-section-depth
-Maximum depth of section levels in document structure.
-Standard LaTeX needs 7, default is 12.
-@end defopt
-
-@defopt reftex-section-levels
-Commands and levels used for defining sections in the document.  The
-@code{car} of each cons cell is the name of the section macro.  The
-@code{cdr} is a number indicating its level.  A negative level means the
-same as the positive value, but the section will never get a
-number.  The @code{cdr} may also be a function which then has to return
-the level.@refill
 @end defopt
 
 @defopt reftex-section-prefixes
@@ -4087,6 +4132,10 @@ The keymap which is active in the labels selection process
 @section Creating Citations
 @cindex Options, creating citations
 @cindex Creating citations, options
+
+@defopt reftex-bibliography-commands
+LaTeX commands which specify the BibTeX databases to use with the document.
+@end defopt
 
 @defopt reftex-bibfile-ignore-regexps
 List of regular expressions to exclude files in
@@ -4363,6 +4412,11 @@ Non-@code{nil} means, searching for index phrases will ignore
 case.@refill
 @end defopt
 
+@defopt reftex-index-verify-function
+A function which is called at each match during global indexing.
+If the function returns nil, the current match is skipped.
+@end defopt
+
 @defopt reftex-index-phrases-skip-indexed-matches
 Non-@code{nil} means, skip matches which appear to be indexed already.
 When doing global indexing from the phrases buffer, searches for some
@@ -4451,7 +4505,7 @@ viewing can be useful.  Each entry has the structure
 @end example
 @var{macro-re} is matched against the macro.  @var{search-re} is the
 regexp used to search for cross references.  @samp{%s} in this regexp is
-replaced with with the macro argument at point.  @var{highlight} is an
+replaced with the macro argument at point.  @var{highlight} is an
 integer indicating which subgroup of the match should be highlighted.
 @end defopt
 
@@ -5433,9 +5487,40 @@ Support for @file{bibentry} citation style.
 @noindent @b{Version 4.15}
 @itemize @bullet
 @item
+Fixed bug with parsing of BibTeX files, when fields contain quotes or
+unmatched parenthesis.
+@item
 Small bug fixes.
 @item
 Improved interaction with Emacs LaTeX mode.
+@end itemize
+@noindent @b{Version 4.17}
+@itemize @bullet
+@item 
+The toc window can be split off horizontally.  See new options
+@code{reftex-toc-split-windows-horizontally},
+@code{reftex-toc-split-windows-horizontally-fraction}.
+@item
+It is possible to specify a function which verifies an index match
+during global indexing.  See new option @code{reftex-index-verify-function}.
+@item
+The macros which input a file in LaTeX (like \input, \include) can
+be configured.  See new option @code{reftex-include-file-commands}.
+@item
+The macros which specify the bibliography file (like \bibliography) can
+be configured.  See new option @code{reftex-bibliography-commands}.
+@item
+The regular expression used to search for the \bibliography macro has
+been relaxed to allow for @samp{@{\bibliography@{...@}@}} needed by
+chapterbib.
+@item
+Small bug fixes.
+@end itemize
+@noindent @b{Version 4.18}
+@itemize @bullet
+@item
+@code{reftex-citation} uses the word before the cursor as a default
+search string.
 @end itemize
 
 @node Index,  , , Top
