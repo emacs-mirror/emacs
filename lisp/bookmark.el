@@ -1312,7 +1312,7 @@ for a file, defaulting to the file defined by variable
   (save-excursion
     (save-window-excursion
       (if (>= baud-rate 9600)
-          (message (format "Saving bookmarks to file %s..." file)))
+          (message "Saving bookmarks to file %s..." file))
       (set-buffer (let ((enable-local-variables nil))
                     (find-file-noselect file)))
       (goto-char (point-min))
@@ -1329,7 +1329,7 @@ for a file, defaulting to the file defined by variable
         (write-file file)
         (kill-buffer (current-buffer))
         (if (>= baud-rate 9600)
-            (message (format "Saving bookmarks to file %s...done" file)))
+            (message "Saving bookmarks to file %s...done" file))
         ))))
 
 
@@ -1360,7 +1360,7 @@ explicitly."
       (save-excursion
         (save-window-excursion
           (if (and (null no-msg) (>= baud-rate 9600))
-              (message (format "Loading bookmarks from %s..." file)))
+              (message "Loading bookmarks from %s..." file))
           (set-buffer (let ((enable-local-variables nil))
                         (find-file-noselect file)))
           (goto-char (point-min))
@@ -1378,7 +1378,7 @@ explicitly."
               (error (format "Invalid bookmark list in %s." file))))
           (kill-buffer (current-buffer)))
 	(if (and (null no-msg) (>= baud-rate 9600))
-            (message (format "Loading bookmarks from %s...done" file))))
+            (message "Loading bookmarks from %s...done" file)))
     (error (format "Cannot read bookmark file %s." file))))
 
 
