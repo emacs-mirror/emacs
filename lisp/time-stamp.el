@@ -3,7 +3,7 @@
 ;; Copyright 1989, 1993, 1994, 1995, 1997, 2000
 ;;;	Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <2000-10-23 16:08:34 gildea>
+;; Maintainer's Time-stamp: <2000-12-04 16:06:50 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -107,9 +107,10 @@ been updated."
 If `error', the format is not used.  If `ask', the user is queried about
 using the time-stamp-format.  If `warn', a warning is displayed.
 If nil, no notification is given."
-  :type '(choice (const :tag "No notification" nil)
-                 (const :tag "Don't use the format" error)
-                 (const ask) (const warn))
+  :type '(choice (const :tag "Don't use the format" error)
+                 (const ask)
+                 (const warn)
+		 (const :tag "No notification" nil))
   :group 'time-stamp)
 
 (defcustom time-stamp-time-zone nil
