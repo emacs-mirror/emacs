@@ -1,5 +1,8 @@
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/mule-conf.el (ctext-no-compositions): Remove the
+	mime-charset property.
+
 	* language/european.el ("Dutch"): Doc fix.
 
 2002-02-25  Jason Rumney  <jasonr@gnu.org>

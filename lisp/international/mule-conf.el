@@ -408,7 +408,9 @@ is treated as a character."
 
 ;; Same as compound-text, but doesn't produce composition escape
 ;; sequences.  Used in post-read and pre-write conversions of
-;; ctext-with-extensions, below.
+;; ctext-with-extensions, below.  Note that this should not have a
+;; mime-charset property, to prevent it from showing up close to the
+;; beginning of coding systems ordered by priority.
 (make-coding-system
  'ctext-no-compositions 2 ?x
  "Compound text based generic encoding for decoding unknown messages.
@@ -417,8 +419,7 @@ Like `compound-text', but does not produce escape sequences for compositions."
  '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
- '((safe-charsets . t)
-   (mime-charset . x-ctext)))
+ '((safe-charsets . t)))
 
 (defvar non-standard-icccm-encodings-alist
   '(("ISO8859-15" . latin-iso8859-15)
