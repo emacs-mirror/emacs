@@ -2331,8 +2331,10 @@ IT_set_frame_parameters (f, alist)
 
   for (i = 0; i < j; i++)
     {
-      Lisp_Object prop = parms[i];
-      Lisp_Object val  = values[i];
+      Lisp_Object prop, val;
+
+      prop = parms[i];
+      val  = values[i];
 
       if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
@@ -2344,8 +2346,12 @@ IT_set_frame_parameters (f, alist)
   /* Now process the alist elements in reverse of specified order.  */
   for (i--; i >= 0; i--)
     {
-      Lisp_Object prop = parms[i];
-      Lisp_Object val  = values[i];
+      extern Lisp_Object Qdefault, QCforeground, QCbackground;
+      Lisp_Object prop, val;
+      Lisp_Object frame;
+
+      prop = parms[i];
+      val  = values[i];
 
       if (EQ (prop, Qforeground_color))
 	{
@@ -2356,12 +2362,21 @@ IT_set_frame_parameters (f, alist)
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
+	      /* Make sure the foreground of the default face for this
+		 frame is changed as well.  */
+	      XSETFRAME (frame, f);
 	      if (reverse)
-		/* FIXME: should the fore-/background of the default
-		   face change here as well?  */
-		FRAME_BACKGROUND_PIXEL (f) = new_color;
+		{
+		  FRAME_BACKGROUND_PIXEL (f) = new_color;
+		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
+						     val, frame);
+		}
 	      else
-		FRAME_FOREGROUND_PIXEL (f) = new_color;
+		{
+		  FRAME_FOREGROUND_PIXEL (f) = new_color;
+		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
+						     val, frame);
+		}
 	      redraw = 1;
 	      fg_set = 1;
 	      if (termscript)
@@ -2377,10 +2392,21 @@ IT_set_frame_parameters (f, alist)
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
+	      /* Make sure the background of the default face for this
+		 frame is changed as well.  */
+	      XSETFRAME (frame, f);
 	      if (reverse)
-		FRAME_FOREGROUND_PIXEL (f) = new_color;
+		{
+		  FRAME_FOREGROUND_PIXEL (f) = new_color;
+		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
+						     val, frame);
+		}
 	      else
-		FRAME_BACKGROUND_PIXEL (f) = new_color;
+		{
+		  FRAME_BACKGROUND_PIXEL (f) = new_color;
+		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
+						     val, frame);
+		}
 	      redraw = 1;
 	      bg_set = 1;
 	      if (termscript)
@@ -2408,14 +2434,22 @@ IT_set_frame_parameters (f, alist)
      the current frame colors.  */
   if (reverse && !was_reverse)
     {
+      Lisp_Object frame;
+
       if (!fg_set)
 	{
 	  FRAME_BACKGROUND_PIXEL (f) = orig_fg;
+	  XSETFRAME (frame, f);
+	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
+					     tty_color_name (orig_fg), frame);
 	  redraw = 1;
 	}
       if (!bg_set)
 	{
 	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
+	  XSETFRAME (frame, f);
+	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
+					     tty_color_name (orig_bg), frame);
 	  redraw = 1;
 	}
     }
