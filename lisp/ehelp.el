@@ -127,7 +127,8 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit"
   (catch 'exit
     (if (pos-visible-in-window-p (point-max))
 	(progn (message "<<< Press Space to bury the help buffer >>>")
-	       (if (eq (setq unread-command-events (list (read-event))) ?\  )
+	       (if (equal (setq unread-command-events (list (read-event)))
+			  '(?\ ))
 		   (progn (setq unread-command-events nil)
 			  (throw 'exit t)))))
     (let (up down both neither
