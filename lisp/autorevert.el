@@ -1,6 +1,6 @@
 ;; autorevert --- Revert buffers when file on disk change.
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@csd.uu.se>
 ;; Created: 1 Jun 1997
@@ -28,31 +28,21 @@
 ;; Introduction:
 ;;
 ;; Whenever a file that Emacs is editing has been changed by another
-;; program the user normally have to execute the command `revert-buffer'
+;; program the user normally has to execute the command `revert-buffer'
 ;; to load the new content of the file into Emacs.
 ;;
 ;; This package contains two minor modes: Global Auto-Revert Mode and
-;; Auto-Revert Mode.  Both modes automatically reverts buffers
+;; Auto-Revert Mode.  Both modes automatically revert buffers
 ;; whenever the corresponding files have been changed on disk.
 ;;
 ;; Auto-Revert Mode can be activated for individual buffers.
 ;; Global Auto-Revert Mode applies to all file buffers.
 ;;
-;; Both modes operates by checking the time stamp of all files at
-;; given intervals, the default is every five seconds.  The check is
-;; aborted whenever the user actually use Emacs.  Hopefully you will
-;; never even notice that this package is active (except that your
-;; buffers will be reverted, of course).
-
-;; Installation:
-;;
-;; To install this package, place it in somewhere on Emacs' load-path,
-;; byte-compile it (not necessary), and place the following lines in
-;; the appropriate init file:
-;;
-;; (autoload 'auto-revert-mode "autorevert" nil t)
-;; (autoload 'turn-on-auto-revert-mode "autorevert" nil nil)
-;; (autoload 'global-auto-revert-mode "autorevert" nil t)
+;; Both modes operate by checking the time stamp of all files at
+;; intervals of `auto-revert-interval'.  The default is every five
+;; seconds.  The check is aborted whenever the user actually uses
+;; Emacs.  You should never even notice that this package is active
+;; (except that your buffers will be reverted, of course).
 
 ;; Usage:
 ;;
@@ -62,8 +52,9 @@
 ;; To activate Global Auto-Revert Mode, press:
 ;;   M-x global-auto-revert-mode RET
 ;;
-;; To activate Global Auto-Revert Mode every time Emacs is started the
-;; following line could be added to your ~/.emacs:
+;; To activate Global Auto-Revert Mode every time Emacs is started
+;; customise the option `global-auto-revert-mode' or the following
+;; line could be added to your ~/.emacs:
 ;;   (global-auto-revert-mode 1)
 ;;
 ;; The function `turn-on-auto-revert-mode' could be added to any major
@@ -87,7 +78,7 @@
 ;; Files group under Emacs.
 
 (defgroup auto-revert nil
-  "Revert individual buffer when file on disk change.
+  "Revert individual buffers when files on disk change.
 
 Auto-Revert Mode can be activated for individual buffer.
 Global Auto-Revert Mode applies to all buffers."
@@ -99,14 +90,14 @@ Global Auto-Revert Mode applies to all buffers."
 (defvar auto-revert-mode nil
   "*Non-nil when Auto-Revert Mode is active.
 
-Do never set this variable directly, use the command
-`auto-revert-mode' instead.")
+Never set this variable directly, use the command `auto-revert-mode'
+instead.")
 
 (defcustom global-auto-revert-mode nil
   "When on, buffers are automatically reverted when files on disk change.
 
-Set this variable when using \\[customize] only.  Otherwise, use the
-command `global-auto-revert-mode' instead."
+Set this variable using \\[customize] only.  Otherwise, use the
+command `global-auto-revert-mode'."
   :group 'auto-revert
   :initialize 'custom-initialize-default
   :set '(lambda (symbol value)
@@ -150,7 +141,7 @@ deactivated, and whenever a file is reverted."
   "String to display when Global Auto-Revert Mode is active.
 
 The default is nothing since when this mode is active this text doesn't
-vary neither over time, nor between buffers.  Hence a mode line text
+vary over time, or between buffers.  Hence mode line text
 would only waste precious space."
   :group 'auto-revert
   :type 'string)
@@ -192,7 +183,7 @@ Use this option with care since it could lead to excessive reverts."
 (defvar global-auto-revert-ignore-buffer nil
   "*When non-nil, Global Auto-Revert Mode will not revert this buffer.
 
-This variable becomes buffer local when set in any faishon.")
+This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
 
@@ -218,9 +209,10 @@ the list of old buffers.")
 
 ;;;###autoload
 (defun auto-revert-mode (&optional arg)
-  "Revert buffer when file on disk change.
+  "Toggle reverting buffer when file on disk changes.
 
-This is a minor mode that affect only the current buffer.
+With arg, turn Auto Revert mode on if and only if arg is positive.
+This is a minor mode that affects only the current buffer.
 Use `global-auto-revert-mode' to automatically revert all buffers."
   (interactive "P")
   (make-local-variable 'auto-revert-mode)
@@ -256,7 +248,8 @@ This function is designed to be added to hooks, for example:
 (defun global-auto-revert-mode (&optional arg)
   "Revert any buffer when file on disk change.
 
-This is a minor mode that affect all buffers.
+With arg, turn Auto Revert mode on globally if and only if arg is positive.
+This is a minor mode that affects all buffers.
 Use `auto-revert-mode' to revert a particular buffer."
   (interactive "P")
   (setq global-auto-revert-mode
@@ -297,13 +290,13 @@ reverted either when Auto-Revert Mode is active in that buffer, or
 when the variable `global-auto-revert-non-file-buffers' is non-nil
 and Global Auto-Revert Mode is active.
 
-This function stops whenever the user use Emacs.  The buffers not
+This function stops whenever there is user input.  The buffers not
 checked are stored in the variable `auto-revert-remaining-buffers'.
 
 To avoid starvation, the buffers in `auto-revert-remaining-buffers'
 are checked first the next time this function is called.
 
-This function is also responslible for removing buffers no longer in
+This function is also responsible for removing buffers no longer in
 Auto-Revert mode from `auto-revert-buffer-list', and for canceling
 the timer when no buffers need to be checked."
   (let ((bufs (if global-auto-revert-mode
