@@ -4133,11 +4133,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  {
  		    f = x_any_window_to_frame (event.xbutton.window);
 		    if (f && event.type == ButtonPress)
-		      goto OTHER;
-#if 0
 		      construct_menu_click (&emacs_event,
 					    &event, f);
-#endif
 		  }
 #endif /* USE_X_TOOLKIT */
 	      }
