@@ -107,7 +107,7 @@ mouse-position-function
 redisplay-end-trigger-functions temp-buffer-show-function
 window-scroll-functions window-size-change-functions
 write-region-annotate-functions)
-  "A list of special hooks from the `Standard Hooks' node of the Lisp manual.
+  "A list of special hooks from Info node `(elisp)Standard Hooks'.
 
 These are symbols with hook-type values whose names don't end in
 `-hook' or `-hooks', from which `unload-feature' tries to remove
@@ -154,8 +154,10 @@ is nil, raise an error."
                       (memq x loadhist-hook-functions)))
 	     (dolist (y (cdr flist))
 	       (remove-hook x y))))))
-    (if (fboundp 'elp-restore-list)
-	(elp-restore-list (cdr flist)))
+    (if (fboundp 'elp-restore-function)	; remove ELP stuff first
+	(dolist (elt (cdr flist))
+	  (if (symbolp elt)
+	      (elp-restore-function elt))))
     (mapc
      (lambda (x)
        (cond ((stringp x) nil)
