@@ -569,7 +569,10 @@ which will run faster and probably do exactly what you want."
 				  from-string " with "
 				  next-replacement ".\n\n"
 				  (substitute-command-keys
-				   query-replace-help)))))
+				   query-replace-help)))
+			 (save-excursion
+			   (set-buffer standard-output)
+			   (help-mode))))
 		      ((eq def 'exit)
 		       (setq keep-going nil)
 		       (setq done t))
