@@ -314,6 +314,10 @@ are used."
 		     (expand-file-name generated-autoload-file
 				       (expand-file-name "lisp"
 							 source-directory)))))
+      (or (> (buffer-size) 0)
+	  (error "Autoloads file %s does not exist" buffer-file-name))
+      (or (file-writable-p buffer-file-name)
+	  (error "Autoloads file %s is not writable" buffer-file-name))
       (save-excursion
 	(save-restriction
 	  (widen)
