@@ -1,5 +1,18 @@
 2001-03-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_highlight): Call mouse_face_overlay_overlaps
+	to detect a case where we have to highlight a different region
+	despite not having left the currently highlighted region.
+	Set mouse_face_overlay in the x_display_info.
+	(x_term_init): Initialze the x_display_info's mouse_face_overlay.
+
+	* xterm.h (struct x_display_info): Add mouse_face_overlay.
+
+	* buffer.c (mouse_face_overlay_overlaps): New function.
+
+	* lisp.h (mouse_face_overlay_overlaps): Add prototype.
+	(Qmouse_face): Declare extern.
+
 	* xdisp.c (redisplay_internal): Set windows_or_buffers_changed
 	if face_change_count is non-zero.
 
