@@ -532,7 +532,11 @@ Instead, these commands are available:
   (setq major-mode 'rmail-mode)
   (setq mode-name "RMAIL")
   (setq buffer-read-only t)
-  ;; No need to auto save RMAIL files.
+  ;; No need to auto save RMAIL files in normal circumstances
+  ;; because they contain no info except attribute changes
+  ;; and deletion of messages.
+  ;; The one exception is when messages are copied into an Rmail mode buffer.
+  ;; rmail-output-to-rmail-file enables auto save when you do that.
   (setq buffer-auto-save-file-name nil)
   (if (boundp 'mode-line-modified)
       (setq mode-line-modified "--- ")
