@@ -1428,9 +1428,23 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (modtime (archive-l-e (+ p 16) 2))
              (ucsize  (archive-l-e (+ p 20) 4))
 	     (namefld (buffer-substring (+ p 38) (+ p 38 13)))
-	     (fnlen   (or (string-match "\0" namefld) 13))
-	     (efnname (substring namefld 0 fnlen))
-	     (fiddle  (string= efnname (upcase efnname)))
+	     (dirtype (char-after (+ p 4)))
+	     (lfnlen  (if (= dirtype 2) (char-after (+ p 56)) 0))
+	     (ldirlen (if (= dirtype 2) (char-after (+ p 57)) 0))
+	     (fnlen   (+ ldirlen
+			 (if (> lfnlen 0)
+			     (1- lfnlen)
+			   (or (string-match "\0" namefld) 13))))
+	     (efnname (concat
+		       (if (> ldirlen 0)
+			   (concat (buffer-substring
+				    (+ p 58 lfnlen) (+ p 58 lfnlen ldirlen -1))
+				   "/")
+			 "")
+		       (if (> lfnlen 0)
+			   (buffer-substring (+ p 58) (+ p 58 lfnlen -1))
+			 (substring namefld 0 fnlen))))
+	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
              (ifnname (if fiddle (downcase efnname) efnname))
              (text    (format "  %8d  %-11s  %-8s  %s"
                               ucsize
