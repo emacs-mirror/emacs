@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1985, 86, 87, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3827,14 +3827,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	   (let ((processes (process-list))
 		 active)
 	     (while processes
-	       (and (memq (process-status (car processes)) '(run stop open))
-		    (let ((val (process-kill-without-query (car processes))))
-		      (process-kill-without-query (car processes) val)
-		      val)
+	       (and (memq (process-status (car processes)) '(run stop open listen))
+		    (process-query-on-exit-flag (car processes))
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (list-processes)
+		 (list-processes t)
 		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
