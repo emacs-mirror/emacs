@@ -225,7 +225,7 @@ but still shows the full information."
       (let ((charsets (coding-system-get coding-system 'safe-charsets)))
 	(when charsets
 	  (if (eq charsets t)
-	      (princ "This coding system can encode charsets:\n")	      
+	      (princ "This coding system can encode all charsets.\n")
 	    (princ "This coding system encode the following charsets:\n")
 	    (princ " ")
 	    (while charsets
