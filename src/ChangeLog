@@ -921,7 +921,7 @@
 
 	* mktime.c: Unprotoized.
 
-2000-06-19  Richard Stallman  <rms@caffeine.ai.mit.edu>
+2000-06-19  Richard Stallman  <rms@gnu.org>
 
 	* data.c (set_internal): If variable is frame-local,
 	store the new value immediately into the frame parameter alist.
@@ -1058,7 +1058,7 @@
 
 	* xterm.c (x_check_font) [GLYPH_DEBUG]: Add prototype.
 
-2000-06-13  Richard Stallman  <rms@caffeine.ai.mit.edu>
+2000-06-13  Richard Stallman  <rms@gnu.org>
 
 	* frame.c (Fmodify_frame_parameters): Doc fix.
 
@@ -3161,7 +3161,7 @@
 
 	* term.c (calculate_costs): Remove code dealing with X frames.
 
-2000-03-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-03-19  Richard M. Stallman  <rms@gnu.org>
 
 	* lread.c (syms_of_lread): Doc fix for load-convert-to-unibyte.
 
@@ -3709,7 +3709,7 @@
 
 	* emacs.c (main): Remove code snippet commented out with `//'.
 
-2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-02-25  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffile_symlink_p): If result starts with a `/'
 	and contains a `:', prepend `/:'.
@@ -3835,7 +3835,7 @@
 
 	* bytecode.c (Fbyte_code) <Bvarset>: Inline most common case.
 
-2000-02-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-02-20  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (Fmake_variable_buffer_local): Doc fix.
 	Init found_for_buffer to 0.

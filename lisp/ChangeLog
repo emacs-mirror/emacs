@@ -1,5 +1,7 @@
 2000-07-19  Richard M. Stallman  <rms@gnu.org>
 
+	* timer.el (run-with-idle-timer): Doc fix.
+
 	* mail/mail-utils.el (mail-strip-quoted-names): 
 	Handle case where <...> appears inside "...".
 	Use replace-match to edit the string more simply.
