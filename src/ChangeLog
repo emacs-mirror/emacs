@@ -1,6 +1,7 @@
 2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* fns.c (Frandom, Fstring_make_multibyte): Doc fixes.
+	* fns.c (Frandom, Fstring_make_multibyte, Fset_char_table_range):
+	Doc fixes.
 
 	* minibuf.c (read_minibuf): Allow INITIAL to be a cons of a string
 	and an integer.  Adapt the introductory comment accordingly.
