@@ -3022,27 +3022,33 @@ shortened list, containing only those averages which are available.")
   return ret;
 }
 
-Lisp_Object Vfeatures;
+Lisp_Object Vfeatures, Qsubfeatures, Vafter_load_alist;
 
-DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 1, 0,
+DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
   "Returns t if FEATURE is present in this Emacs.\n\
 Use this to conditionalize execution of lisp code based on the presence or\n\
 absence of emacs or environment extensions.\n\
 Use `provide' to declare that a feature is available.\n\
-This function looks at the value of the variable `features'.")
-  (feature)
-     Lisp_Object feature;
+This function looks at the value of the variable `features'.\n\
+The optional argument SUBFEATURE can be used to check a specific\n\
+subfeature of FEATURE.")
+  (feature, subfeature)
+     Lisp_Object feature, subfeature;
 {
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
   tem = Fmemq (feature, Vfeatures);
+  if (!NILP (tem) && !NILP (subfeature))
+    tem = Fmemq (subfeature, Fget (feature, Qsubfeatures));
   return (NILP (tem)) ? Qnil : Qt;
 }
 
-DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
-  "Announce that FEATURE is a feature of the current Emacs.")
-  (feature)
-     Lisp_Object feature;
+DEFUN ("provide", Fprovide, Sprovide, 1, 2, 0,
+  "Announce that FEATURE is a feature of the current Emacs.\n\
+The optional argument SUBFEATURES should be a list of symbols listing\n\
+particular subfeatures supported in this version of FEATURE.")
+  (feature, subfeatures)
+     Lisp_Object feature, subfeatures;
 {
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
@@ -3051,7 +3057,15 @@ DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
   tem = Fmemq (feature, Vfeatures);
   if (NILP (tem))
     Vfeatures = Fcons (feature, Vfeatures);
+  if (!NILP (subfeatures))
+    Fput (feature, Qsubfeatures, subfeatures);
   LOADHIST_ATTACH (Fcons (Qprovide, feature));
+
+  /* Run any load-hooks for this file.  */
+  tem = Fassq (feature, Vafter_load_alist);
+  if (!NILP (tem))
+    Fprogn (Fcdr (tem));
+
   return feature;
 }
 
@@ -5253,6 +5267,8 @@ syms_of_fns ()
     "A list of symbols which are the features of the executing emacs.\n\
 Used by `featurep' and `require', and altered by `provide'.");
   Vfeatures = Qnil;
+  Qsubfeatures = intern ("subfeatures");
+  staticpro (&Qsubfeatures);
 
   DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
     "*Non-nil means mouse commands use dialog boxes to ask questions.\n\
