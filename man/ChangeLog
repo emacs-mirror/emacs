@@ -1,3 +1,8 @@
+2005-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* killing.texi (Graphical Kill): Move up under node Killing,
+	change @section to @subsection.
+
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Face Customization): Mention hex color specs.
