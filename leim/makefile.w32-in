@@ -22,7 +22,7 @@
 srcdir=.
 
 # Where to install LEIM files.
-INSTALLDIR=$(INSTALL_DIR)\leim
+INSTALLDIR=$(INSTALL_DIR)/leim
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
@@ -31,7 +31,7 @@ dot = .
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
 BUILT_EMACS = $(dot)$(dot)/src/$(BLD)/emacs.exe
 
-buildlisppath=$(dot)$(dot)/lisp
+buildlisppath=$(CURDIR)/$(dot)$(dot)/lisp
 
 # How to run Emacs.
 RUN_EMACS = "$(BUILT_EMACS)" -batch --no-init-file --no-site-file --multibyte
