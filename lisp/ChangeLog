@@ -1,5 +1,13 @@
 1999-11-24  Dave Love  <fx@gnu.org>
 
+	* custom.el (custom-declare-group): Purecopy DOC.
+	(custom-handle-keyword): Purecopy VALUE.
+	(custom-add-link): Purecopy WIDGET.
+	(custom-add-version): Purecopy VERSION.
+	(custom-add-load): Purecopy LOAD.
+
+	* cus-face.el (custom-declare-face): Purecopy DOC.
+
 	* info.el:
 	(Info-build-node-completions, Info-search, Info-follow-reference)
 	(Info-complete-menu-item, Info-menu, Info-index, Info-get-token)
