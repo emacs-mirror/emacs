@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.85";
+char pot_etags_version[] = "@(#) pot revision number is 11.90";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -58,16 +58,16 @@ char pot_etags_version[] = "@(#) pot revision number is 11.85";
 # define MAXPATHLEN _MAX_PATH
 #endif
 
-#if !defined (MSDOS) && !defined (WINDOWSNT) && defined (STDC_HEADERS)
-#include <stdlib.h>
-#include <string.h>
-#endif
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
   /* On some systems, Emacs defines static as nothing for the sake
      of unexec.  We don't want that here since we don't use unexec. */
 # undef static
+#endif
+
+#if !defined (MSDOS) && !defined (WINDOWSNT) && defined (STDC_HEADERS)
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #include <stdio.h>
@@ -111,6 +111,7 @@ extern int errno;
 /* C extensions. */
 #define C_PLPL	0x00001		/* C++ */
 #define C_STAR	0x00003		/* C* */
+#define C_JAVA	0x00005		/* JAVA */
 #define YACC	0x10000		/* yacc file */
 
 #define streq(s,t)	((DEBUG && (s) == NULL && (t) == NULL	\
@@ -176,6 +177,7 @@ Lang_function Asm_labels;
 Lang_function default_C_entries;
 Lang_function C_entries;
 Lang_function Cplusplus_entries;
+Lang_function Cjava_entries;
 Lang_function Cstar_entries;
 Lang_function Erlang_functions;
 Lang_function Fortran_functions;
@@ -183,6 +185,7 @@ Lang_function Yacc_entries;
 Lang_function Lisp_functions;
 Lang_function Pascal_functions;
 Lang_function Perl_functions;
+Lang_function Postscript_functions;
 Lang_function Prolog_functions;
 Lang_function Scheme_functions;
 Lang_function TeX_functions;
@@ -192,6 +195,7 @@ void Asm_labels ();
 void C_entries ();
 void default_C_entries ();
 void plain_C_entries ();
+void Cjava_entries ();
 void Cplusplus_entries ();
 void Cstar_entries ();
 void Erlang_functions ();
@@ -200,6 +204,7 @@ void Yacc_entries ();
 void Lisp_functions ();
 void Pascal_functions ();
 void Perl_functions ();
+void Postscript_functions ();
 void Prolog_functions ();
 void Scheme_functions ();
 void TeX_functions ();
@@ -213,6 +218,7 @@ int total_size_of_entries ();
 long readline ();
 long readline_internal ();
 #ifdef ETAGS_REGEXPS
+void analyse_regex ();
 void add_regex ();
 #endif
 void add_node ();
@@ -361,9 +367,14 @@ char *Asm_suffixes [] = { "a",	/* Unix assembler */
 char *default_C_suffixes [] =
   { "c", "h", NULL };
 
-/* .M is for Objective C++ files. */
 char *Cplusplus_suffixes [] =
-  { "C", "H", "c++", "cc", "cpp", "cxx", "h++", "hh", "hpp", "hxx", "M", NULL};
+  { "C", "H", "c++", "cc", "cpp", "cxx", "h++", "hh", "hpp", "hxx",
+    "M",			/* Objective C++ */
+    "pdb",			/* Postscript with C syntax */
+    NULL };
+
+char *Cjava_suffixes [] =
+  { "java", NULL };
 
 char *Cstar_suffixes [] =
   { "cs", "hs", NULL };
@@ -390,6 +401,9 @@ char *plain_C_suffixes [] =
     "m",			/* Objective C file */
     "lm",			/* Objective lex file */
      NULL };
+
+char *Postscript_suffixes [] =
+  { "ps", NULL };
 
 char *Prolog_suffixes [] =
   { "prolog", NULL };
@@ -418,20 +432,22 @@ struct lang_entry
 
 struct lang_entry lang_names [] =
 {
-  { "asm",     Asm_labels,	    Asm_suffixes,	  NULL              },
-  { "c",       default_C_entries,   default_C_suffixes,	  NULL              },
-  { "c++",     Cplusplus_entries,   Cplusplus_suffixes,	  NULL              },
-  { "c*",      Cstar_entries,	    Cstar_suffixes,	  NULL              },
-  { "erlang",  Erlang_functions,    Erlang_suffixes,	  NULL              },
-  { "fortran", Fortran_functions,   Fortran_suffixes,	  NULL              },
-  { "lisp",    Lisp_functions,	    Lisp_suffixes,	  NULL              },
-  { "pascal",  Pascal_functions,    Pascal_suffixes,	  NULL              },
-  { "perl",    Perl_functions,	    Perl_suffixes,	  Perl_interpreters },
-  { "proc",    plain_C_entries,	    plain_C_suffixes,	  NULL              },
-  { "prolog",  Prolog_functions,    Prolog_suffixes,	  NULL              },
-  { "scheme",  Scheme_functions,    Scheme_suffixes,	  NULL              },
-  { "tex",     TeX_functions,	    TeX_suffixes,	  NULL              },
-  { "yacc",    Yacc_entries,	    Yacc_suffixes,	  NULL              },
+  { "asm",     Asm_labels,          Asm_suffixes,         NULL              },
+  { "c",       default_C_entries,   default_C_suffixes,   NULL              },
+  { "c++",     Cplusplus_entries,   Cplusplus_suffixes,   NULL              },
+  { "c*",      Cstar_entries,       Cstar_suffixes,       NULL              },
+  { "erlang",  Erlang_functions,    Erlang_suffixes,      NULL              },
+  { "fortran", Fortran_functions,   Fortran_suffixes,     NULL              },
+/*{ "java",    Cjava_entries,       Cjava_suffixes,       NULL             },*/
+  { "lisp",    Lisp_functions,      Lisp_suffixes,        NULL              },
+  { "pascal",  Pascal_functions,    Pascal_suffixes,      NULL              },
+  { "perl",    Perl_functions,      Perl_suffixes,        Perl_interpreters },
+  { "postscript", Postscript_functions, Postscript_suffixes, NULL           },
+  { "proc",    plain_C_entries,     plain_C_suffixes,     NULL              },
+  { "prolog",  Prolog_functions,    Prolog_suffixes,      NULL              },
+  { "scheme",  Scheme_functions,    Scheme_suffixes,      NULL              },
+  { "tex",     TeX_functions,       TeX_suffixes,         NULL              },
+  { "yacc",    Yacc_entries,        Yacc_suffixes,        NULL              },
   { "auto", NULL },             /* default guessing scheme */
   { "none", just_read_file },   /* regexp matching only */
   { NULL, NULL }                /* end of list */
@@ -517,9 +533,10 @@ are.  Relative ones are stored relative to the output file's directory.");
     }
 
 #ifdef ETAGS_REGEXPS
-  puts ("-r /REGEXP/, --regex=/REGEXP/\n\
+  puts ("-r /REGEXP/, --regex=/REGEXP/ or --regex=@regexfile\n\
         Make a tag for each line matching pattern REGEXP in the\n\
- 	following files.  REGEXP is anchored (as if preceded by ^).\n\
+ 	following files.  regexfile is a file containing one REGEXP\n\
+	per line.  REGEXP is anchored (as if preceded by ^).\n\
 	The form /REGEXP/NAME/ creates a named tag.  For example Tcl\n\
 	named tags can be created with:\n\
 	--regex=/proc[ \\t]+\\([^ \\t]+\\)/\\1/.");
@@ -883,7 +900,11 @@ main (argc, argv)
     tagfile = CTAGS ? "tags" : "TAGS";
   cwd = etags_getcwd ();	/* the current working directory */
   if (cwd[strlen (cwd) - 1] != '/')
-    cwd = concat (cwd, "/", "");
+    {
+      char *oldcwd = cwd;
+      cwd = concat (oldcwd, "/", "");
+      free (oldcwd);
+    }
   if (streq (tagfile, "-"))
     tagfiledir = cwd;
   else
@@ -927,7 +948,7 @@ main (argc, argv)
 	  break;
 #ifdef ETAGS_REGEXPS
 	case at_regexp:
-	  add_regex (argbuffer[i].what);
+	  analyse_regex (argbuffer[i].what);
 	  break;
 #endif
 	case at_filename:
@@ -1517,7 +1538,8 @@ total_size_of_entries (node)
 enum sym_type
 {
   st_none, st_C_objprot, st_C_objimpl, st_C_objend, st_C_gnumacro,
-  st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
+  st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec,
+  st_C_jstruct
 };
 
 /* Feed stuff between (but not including) %[ and %] lines to:
@@ -1529,6 +1551,8 @@ struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 @protocol,	0,	st_C_objprot
 @implementation,0,	st_C_objimpl
 @end,		0,	st_C_objend
+extends,  	C_JAVA,	st_C_jstruct
+implements,  	C_JAVA,	st_C_jstruct
 class,  	C_PLPL,	st_C_struct
 namespace,	C_PLPL,	st_C_struct
 domain, 	C_STAR,	st_C_struct
@@ -1575,33 +1599,33 @@ struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
 
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 15
-#define MIN_HASH_VALUE 34
-#define MAX_HASH_VALUE 121
+#define MIN_HASH_VALUE 33
+#define MAX_HASH_VALUE 126
 /*
-   34 keywords
-   88 is the maximum key range
+   36 keywords
+   94 is the maximum key range
 */
 
-static int
+int
 hash (str, len)
      register char *str;
      register unsigned int  len;
 {
   static unsigned char hash_table[] =
     {
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-     121, 121, 121, 121,  45, 121, 121, 121,  16,  19,
-      61, 121, 121, 121, 121, 121, 121, 121, 121, 121,
-      10, 121, 121,  20,  53, 121, 121, 121, 121, 121,
-     121, 121, 121, 121, 121, 121, 121,  41,  45,  22,
-      60,  47,  37,  28, 121,  55, 121, 121,  20,  14,
-      29,  30,   5, 121,  50,  59,  30,  54,   6, 121,
-     121, 121, 121, 121, 121, 121, 121, 121,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+     126, 126, 126, 126,  15, 126, 126, 126,  53,  24,
+      41, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+      51, 126, 126,  26,  47, 126, 126, 126, 126, 126,
+     126, 126, 126, 126, 126, 126, 126,  11,  36,  26,
+      35,  13,  22,  39, 126,  34, 126, 126,  43,  21,
+      36,   6,  49, 126,  47,  61,  28,  57,  35, 126,
+     126, 126, 126, 126, 126, 126, 126, 126,
   };
   return len + hash_table[str[2]] + hash_table[str[0]];
 }
@@ -1617,56 +1641,61 @@ in_word_set (str, len)
       {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
       {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
       {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"volatile", 	0,	st_C_typespec},
-      {"PSEUDO", 		0,	st_C_gnumacro},
       {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"typedef",  	0,	st_C_typedef},
-      {"typename", 	C_PLPL,	st_C_typespec},
-      {"",}, {"",}, {"",}, 
-      {"SYSCALL", 	0,	st_C_gnumacro},
-      {"",}, {"",}, {"",}, 
-      {"mutable", 	C_PLPL,	st_C_typespec},
-      {"namespace", 	C_PLPL,	st_C_struct},
-      {"long",     	0,	st_C_typespec},
-      {"",}, {"",}, 
-      {"const",    	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, 
-      {"explicit", 	C_PLPL,	st_C_typespec},
-      {"",}, {"",}, {"",}, {"",}, 
-      {"void",     	0,	st_C_typespec},
-      {"",}, 
+      {"float",    	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
       {"char",     	0,	st_C_typespec},
       {"class",   	C_PLPL,	st_C_struct},
-      {"",}, {"",}, {"",}, 
-      {"float",    	0,	st_C_typespec},
-      {"",}, 
-      {"@implementation", 0,	st_C_objimpl},
       {"auto",     	0,	st_C_typespec},
+      {"",}, {"",}, 
+      {"bool", 		C_PLPL,	st_C_typespec},
+      {"extern",   	0,	st_C_typespec},
+      {"extends",   	C_JAVA,	st_C_jstruct},
+      {"",}, {"",}, 
+      {"@implementation", 0,	st_C_objimpl},
+      {"",}, {"",}, {"",}, 
+      {"@end", 		0,	st_C_objend},
+      {"mutable", 	C_PLPL,	st_C_typespec},
+      {"",}, {"",}, 
+      {"SYSCALL", 	0,	st_C_gnumacro},
+      {"",}, 
+      {"@interface", 	0,	st_C_objprot},
+      {"domain",  	C_STAR,	st_C_struct},
+      {"define",   	0,	st_C_define},
+      {"",}, 
+      {"int",      	0,	st_C_typespec},
+      {"namespace", 	C_PLPL,	st_C_struct},
+      {"const",    	0,	st_C_typespec},
+      {"",}, {"",}, 
+      {"explicit", 	C_PLPL,	st_C_typespec},
+      {"@protocol", 	0,	st_C_objprot},
+      {"short",    	0,	st_C_typespec},
+      {"void",     	0,	st_C_typespec},
+      {"enum",     	0,	st_C_enum},
       {"",}, 
       {"ENTRY", 		0,	st_C_gnumacro},
-      {"@end", 		0,	st_C_objend},
-      {"bool", 		C_PLPL,	st_C_typespec},
-      {"domain",  	C_STAR,	st_C_struct},
       {"",}, 
-      {"DEFUN", 		0,	st_C_gnumacro},
-      {"extern",   	0,	st_C_typespec},
-      {"@interface", 	0,	st_C_objprot},
-      {"",}, {"",}, {"",}, 
-      {"int",      	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, {"",}, 
-      {"signed",   	0,	st_C_typespec},
-      {"short",    	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"define",   	0,	st_C_define},
-      {"@protocol", 	0,	st_C_objprot},
-      {"enum",     	0,	st_C_enum},
       {"static",   	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, 
+      {"PSEUDO", 		0,	st_C_gnumacro},
+      {"",}, 
+      {"long",     	0,	st_C_typespec},
+      {"typedef",  	0,	st_C_typedef},
+      {"typename", 	C_PLPL,	st_C_typespec},
+      {"volatile", 	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"implements",   	C_JAVA,	st_C_jstruct},
+      {"",}, {"",}, 
       {"union",   	0,	st_C_struct},
-      {"struct",  	0,	st_C_struct},
-      {"",}, {"",}, {"",}, {"",}, 
+      {"",}, 
       {"double",   	0,	st_C_typespec},
+      {"DEFUN", 		0,	st_C_gnumacro},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"signed",   	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"struct",  	0,	st_C_struct},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, 
       {"unsigned", 	0,	st_C_typespec},
     };
 
@@ -1921,6 +1950,11 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
    */
   switch (toktype)
     {
+    case st_C_jstruct:
+      if (structdef == stagseen)
+        structdef = scolonseen;
+      return FALSE;
+      break;
     case st_C_struct:
     case st_C_enum:
       if (typdef == ttypedseen
@@ -2155,7 +2189,7 @@ C_entries (c_ext, inf)
   int cblev;			/* current curly brace level */
   int parlev;			/* current parenthesis level */
   logical incomm, inquote, inchar, quotednl, midtoken;
-  logical cplpl;
+  logical cplpl, cjava;
   TOKEN savetok;		/* token saved during preprocessor handling */
 
 
@@ -2173,6 +2207,7 @@ C_entries (c_ext, inf)
   cblev = 0;
   parlev = 0;
   cplpl = c_ext & C_PLPL;
+  cjava = c_ext & C_JAVA;
 
   while (!feof (inf))
     {
@@ -2429,7 +2464,7 @@ C_entries (c_ext, inf)
 		      funcdef = fnone;
 		      break;
 		    }
-		  if (structdef == stagseen)
+		  if (structdef == stagseen && !cjava)
 		    structdef = snone;
 		  break;
 		case dsharpseen:
@@ -2730,6 +2765,13 @@ Cplusplus_entries (inf)
      FILE *inf;
 {
   C_entries (C_PLPL, inf);
+}
+
+/* Always do Java. */
+void
+Cjava_entries (FILE *inf)
+{
+  C_entries (C_JAVA, inf);
 }
 
 /* Always do C*. */
@@ -3259,6 +3301,36 @@ Lisp_functions (inf)
 }
 
 /*
+ * Postscript tag functions
+ * Just look for lines where the first character is '/'
+ */
+void 
+Postscript_functions (inf)
+     FILE *inf;
+{
+  lineno = 0;
+  charno = 0;
+  while (!feof (inf))
+    {
+      lineno++;
+      linecharno = charno;
+      charno += readline (&lb, inf);
+      dbp = lb.buffer;
+      if (dbp[0] == '/')
+	{
+	  register char *cp;
+	  for (cp = dbp+1;
+	       *cp != '\0' && *cp != ' ' && *cp != '{';
+	       cp++)
+	    continue;
+	  pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
+    }
+}
+
+
+/*
  * Scheme tag functions
  * look for (def... xyzzy
  * look for (def... (xyzzy
@@ -3381,7 +3453,7 @@ TeX_functions (inf)
       charno += readline (&lb, inf);
       dbp = lb.buffer;
       lasthit = dbp;
-      while (dbp = etags_strchr (dbp, TEX_esc)) /* Look at each esc in line */
+      while (dbp = etags_strchr (dbp, TEX_esc))	/* Look at each esc in line */
 	{
 	  register int i;
 
@@ -3456,7 +3528,11 @@ TEX_decode_env (evarname, defenv)
   if (!env)
     env = defenv;
   else
-    env = concat (env, defenv, "");
+    {
+      char *oldenv = env;
+      env = concat (oldenv, defenv, "");
+      free (oldenv);
+    }
 
   /* Allocate a token table */
   for (size = 1, p = env; p;)
@@ -3976,6 +4052,53 @@ scan_separators (name)
   return name;
 }
 
+/* Look at the argument of --regex or --no-regex and do the right
+   thing. */
+void
+analyse_regex (regex_arg)
+     char *regex_arg;
+{
+  struct stat stat_buf;
+
+  if (regex_arg == NULL)
+    {
+      /* Remove existing regexps. */
+      num_patterns = 0;
+      patterns = NULL;
+      return;
+    }
+  if (regex_arg[0] == '\0')
+    {
+      error ("missing regexp", (char *)NULL);
+      return;
+    }
+  if (regex_arg[0] == '@'
+      && stat (regex_arg + 1, &stat_buf) == 0
+      && S_ISREG (stat_buf.st_mode))
+    {
+      FILE *regexfp;
+      struct linebuffer regexbuf;
+      char *regexfile = regex_arg + 1;
+
+      /* regexfile is a file containing regexps, one per line. */
+      regexfp = fopen (regexfile, "r");
+      if (regexfp == NULL)
+	{
+	  perror (regexfile);
+	  return;
+	}
+      initbuffer (&regexbuf);
+      while (readline_internal (&regexbuf, regexfp))
+	add_regex (regexbuf.buffer);
+      free (regexbuf.buffer);
+      fclose (regexfp);
+    }
+  else
+    {
+      add_regex (regex_arg);
+    }
+}
+
 /* Turn a name, which is an ed-style (but Emacs syntax) regular
    expression, into a real regular expression by compiling it. */
 void
@@ -3986,19 +4109,7 @@ add_regex (regexp_pattern)
   const char *err;
   struct re_pattern_buffer *patbuf;
 
-  if (regexp_pattern == NULL)
-    {
-      /* Remove existing regexps. */
-      num_patterns = 0;
-      patterns = NULL;
-      return;
-    }
 
-  if (regexp_pattern[0] == '\0')
-    {
-      error ("missing regexp", (char *)NULL);
-      return;
-    }
   if (regexp_pattern[strlen(regexp_pattern)-1] != regexp_pattern[0])
     {
       error ("%s: unterminated regexp", regexp_pattern);
@@ -4238,7 +4349,7 @@ just_read_file (inf)
     {
       ++lineno;
       linecharno = charno;
-      charno += readline (&lb, inf) + 1;
+      charno += readline (&lb, inf);
     }
 }
 
@@ -4377,6 +4488,7 @@ etags_getcwd ()
       if (errno != ERANGE)
 	pfatal ("getcwd");
       bufsize *= 2;
+      free (path);
       path = xnew (bufsize, char);
     }
 
