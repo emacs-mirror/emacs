@@ -501,11 +501,16 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
       (goto-char begpos)
       ;; Compute desired indent.
       (setq indent (save-excursion (funcall comment-indent-function)))
+      ;; If `indent' is nil and there's code before the comment, we can't
+      ;; use `indent-according-to-mode', so we default to comment-column.
+      (unless (or indent (save-excursion (skip-chars-backward " \t") (bolp)))
+	(setq indent comment-column))
       (if (not indent)
 	  ;; comment-indent-function refuses: delegate to line-indent.
 	  (indent-according-to-mode)
-	;; Avoid moving comments past the fill-column.
+	;; If the comment is at the left of code, adjust the indentation.
 	(unless (save-excursion (skip-chars-backward " \t") (bolp))
+	  ;; Avoid moving comments past the fill-column.
 	  (let ((max (+ (current-column)
 			(- (or comment-fill-column fill-column)
 			   (save-excursion (end-of-line) (current-column))))))
@@ -513,13 +518,16 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 		(setq indent max)	;Don't move past the fill column.
 	      ;; We can choose anywhere between indent..max.
 	      ;; Let's try to align to a comment on the previous line.
-	      (let ((other nil))
+	      (let ((other nil)
+		    (min (max indent
+			      (save-excursion (skip-chars-backward " \t")
+					      (1+ (current-column))))))
 		(save-excursion
 		  (when (and (zerop (forward-line -1))
 			     (setq other (comment-search-forward
 					 (line-end-position) t)))
 		    (goto-char other) (setq other (current-column))))
-		(if (and other (<= other max) (> other indent))
+		(if (and other (<= other max) (>= other min))
 		    ;; There is a comment and it's in the range: bingo.
 		    (setq indent other)
 		  ;; Let's try to align to a comment on the next line, then.
@@ -529,7 +537,7 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 				 (setq other (comment-search-forward
 					     (line-end-position) t)))
 			(goto-char other) (setq other (current-column))))
-		    (if (and other (<= other max) (> other indent))
+		    (if (and other (<= other max) (> other min))
 			;; There is a comment and it's in the range: bingo.
 			(setq indent other))))))))
 	(unless (= (current-column) indent)
