@@ -2398,7 +2398,7 @@ show_mouse_face (hl)
     {
       int column = (i == mouse_face_beg_row ? mouse_face_beg_col : w->left);
       int endcolumn = (i == mouse_face_end_row ? mouse_face_end_col : w->left + width);
-      endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i] - w->left);
+      endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i]);
 
       /* If the cursor's in the text we are about to rewrite,
 	 turn the cursor off.  */
