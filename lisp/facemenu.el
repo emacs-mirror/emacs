@@ -91,6 +91,7 @@
 (eval-when-compile 
   (require 'help)
   (require 'button))
+(require 'wid-edit)
 
 ;;; Provide some binding for startup:
 ;;;###autoload (define-key global-map "\M-g" 'facemenu-keymap)
