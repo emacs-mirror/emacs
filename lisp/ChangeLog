@@ -1,3 +1,8 @@
+2001-03-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-normalize-vars): Use [ \t] for the trailing
+	spaces in default comment-start-skip settings rather than \s-.
+
 2001-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/pc-win.el (msdos-handle-reverse-video): Look for reverse in
