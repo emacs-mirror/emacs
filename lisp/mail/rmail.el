@@ -187,6 +187,7 @@ Called with region narrowed to the message, including headers.")
      "\\("
      "[^ \n]*"
      "\\(\\|\".*\"[^ \n]*\\)"
+     "\\|<[^<>\n]+>"
      "\\)  ?"
 
      ;; The time the message was sent.
