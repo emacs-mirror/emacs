@@ -356,7 +356,7 @@ If EVENT is a mouse press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 The `posn-' functions access elements of such lists."
   (nth 1 event))
 
@@ -364,7 +364,7 @@ The `posn-' functions access elements of such lists."
   "Return the ending location of EVENT.  EVENT should be a click or drag event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 The `posn-' functions access elements of such lists."
   (nth (if (consp (nth 2 event)) 2 1) event))
 
@@ -376,30 +376,42 @@ The return value is a positive integer."
 (defsubst posn-window (position)
   "Return the window in POSITION.
 POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (nth 0 position))
 
 (defsubst posn-point (position)
   "Return the buffer location in POSITION.
 POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (if (consp (nth 1 position))
       (car (nth 1 position))
     (nth 1 position)))
 
-(defsubst posn-col-row (position)
-  "Return the row and column in POSITION.
+(defsubst posn-x-y (position)
+  "Return the x and y coordinates in POSITION.
 POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (nth 2 position))
+
+(defsubst posn-col-row (position)
+  "Return the row and column in POSITION, measured in characters.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (let* ((pair (nth 2 position))
+	 (window (posn-window position))
+	 (frame (if (framep window) window (window-frame window)))
+	 (x (/ (car pair) (frame-char-width frame)))
+	 (y (/ (cdr pair) (frame-char-height frame))))
+    (cons x y)))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
 POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (nth 3 position))
 
