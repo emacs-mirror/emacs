@@ -470,7 +470,7 @@ typedef struct {
 /*
  * NetBSD does not have normal-looking user-land ELF support.
  */
-# ifdef __alpha__
+# if defined __alpha__ || defined __sparc_v9__
 #  define ELFSIZE	64
 # else
 #  define ELFSIZE	32
