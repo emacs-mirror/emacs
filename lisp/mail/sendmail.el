@@ -619,8 +619,11 @@ the user from the mailer."
 	delimline
 	fcc-was-found
 	(mailbuf (current-buffer))
-	(sendmail-coding-system (or buffer-file-coding-system
-				        sendmail-coding-system)))
+	(sendmail-coding-system
+	 (if (local-variable-p 'buffer-file-coding-system)
+	     buffer-file-coding-system
+	   (or sendmail-coding-system
+	       default-buffer-file-coding-system))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
