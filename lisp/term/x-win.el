@@ -471,6 +471,7 @@ The value may be different for frames on different X displays."
 (define-key function-key-map [M-clear] [?\M-\C-l])
 (define-key function-key-map [M-return] [?\M-\C-m])
 (define-key function-key-map [M-escape] [?\M-\e])
+(define-key function-key-map [iso-lefttab] [backtab])
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
