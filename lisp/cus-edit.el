@@ -748,9 +748,12 @@ are shown; the contents of those subgroups are initially hidden."
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
-  (custom-buffer-create (list (list group 'custom-group))
-			(format "*Customize Group: %s*"
-				(custom-unlispify-tag-name group))))
+  (let ((name (format "*Customize Group: %s*"
+		      (custom-unlispify-tag-name group))))
+    (if (get-buffer name)
+	(switch-to-buffer name)
+      (custom-buffer-create (list (list group 'custom-group))
+			    name))))
 
 ;;;###autoload
 (defun customize-group-other-window (symbol)
@@ -1324,6 +1327,13 @@ and `face'."
   :validate 'widget-children-validate
   :match (lambda (widget value) (symbolp value)))
 
+(defcustom custom-nest-groups nil
+  "*Non-nil means display nested groups in one customization buffer.
+A valoe of nil means show a subgroup in its own buffer
+rather than including it within its parent's customization buffer."
+  :type 'boolean
+  :group 'custom-buffer)
+
 (defun custom-convert-widget (widget)
   ;; Initialize :value and :tag from :args in WIDGET.
   (let ((args (widget-get widget :args)))
@@ -1341,15 +1351,19 @@ and `face'."
 	 (level (widget-get widget :custom-level))
 	 (category (widget-get widget :custom-category)))
     (cond ((eq escape ?l)
-	   (when level 
-	     (insert-char ?\  (* 3 (1- level)))
-	     (if (eq state 'hidden)
-		 (insert "--")
-	       (insert "/-"))))
+	   (if custom-nest-groups
+	       (when level
+		 (insert-char ?\  (* 3 (1- level)))
+		 (if (eq state 'hidden)
+		     (insert "-- ")
+		   (insert "/- ")))
+	     (unless (and level (> level 1))
+	       (insert "/- "))))
 	  ((eq escape ?e)
 	   (when (and level (not (eq state 'hidden)))
 	     (insert "\n")
-	     (insert-char ?\  (* 3 (1- level)))
+	     (if custom-nest-groups
+		 (insert-char ?\  (* 3 (1- level))))
 	     (insert "\\-")
 	     (insert " " (widget-get widget :tag) " group end ")
 	     (insert-char ?- (- 75 (current-column) level))
@@ -1361,14 +1375,25 @@ and `face'."
 	     (insert-char ?- (- (+ 75 1) (current-column) level))
 	     (insert "\\")))
 	  ((eq escape ?i)
-	   (insert-char ?\  (* 3 level)))
+	   (if custom-nest-groups
+	       (insert-char ?\  (* 3 level))
+	     (unless (and level (> level 1))
+	       (insert "   "))))
 	  ((eq escape ?L)
-	   (push (widget-create-child-and-convert
-		  widget 'group-visibility
-		  :help-echo "Show or hide this group."
-		  :action 'custom-toggle-parent
-		  (not (eq state 'hidden)))
-		 buttons))
+	   (if custom-nest-groups
+	       (push (widget-create-child-and-convert
+		      widget 'group-visibility
+		      :help-echo "Show or hide this group."
+		      :action 'custom-toggle-parent
+		      (not (eq state 'hidden)))
+		     buttons)
+	     (push (widget-create-child-and-convert
+		    widget 'group-link
+		    :help-echo "Select the contents of this group."
+		    :value (widget-get widget :value)
+		    :tag "Switch to Group"
+		    (not (eq state 'hidden)))
+		   buttons)))
 	  ((eq escape ?m)
 	   (and (eq (preceding-char) ?\n)
 		(widget-get widget :indent)
@@ -2255,7 +2280,7 @@ and so forth.  The remaining group tags are shown with
 
 (define-widget 'custom-group 'custom
   "Customize group."
-  :format "%l %{%t%} group: %L %-\n%m%i%h%a%v%e"
+  :format "%l%{%t%} group: %L %-\n%m%i%h%a%v%e"
   :sample-face-get 'custom-group-sample-face-get
   :documentation-property 'group-documentation
   :help-echo "Set or reset all members of this group."
