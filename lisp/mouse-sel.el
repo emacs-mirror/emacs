@@ -345,7 +345,7 @@ multi-click semantics."
      ((= nclicks 3) 'line)
      ((>= nclicks 4) 'paragraph)
      ((memq char-syntax '(?\( ?\) ?\" ?')) 'sexp)
-     ((memq next-char '(? ?\t ?\n)) 'whitespace)
+     ((memq next-char '(?\s ?\t ?\n)) 'whitespace)
      ((eq char-syntax ?_) 'symbol)
      ((eq char-syntax ?w) 'word))))
 
