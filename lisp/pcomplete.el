@@ -311,6 +311,16 @@ command arguments."
   :type 'boolean
   :group 'pcomplete)
 
+(defcustom pcomplete-termination-string " "
+  "*A string that is inserted after any completion or expansion.
+This is usually a space character, useful when completing lists of
+words separated by spaces.  However, if your list uses a different
+separator character, or if the completion occurs in a word that is
+already terminated by a character, this variable should be locally
+modified to be an empty string, or the desired separation string."
+  :type 'string
+  :group 'pcomplete)
+
 ;;; Internal Variables:
 
 ;; for cycling completion support
@@ -418,7 +428,7 @@ This will modify the current buffer."
 	(unless (pcomplete-insert-entry
 		 "" (car pcomplete-current-completions) t
 		 pcomplete-last-completion-raw)
-	  (insert-and-inherit " "))
+	  (insert-and-inherit pcomplete-termination-string))
 	(setq pcomplete-current-completions
 	      (cdr pcomplete-current-completions))))))
 
@@ -1006,7 +1016,7 @@ Returns non-nil if a space was appended at the end."
     (let (space-added)
       (when (and (not (memq (char-before) pcomplete-suffix-list))
 		 addsuffix)
-	(insert-and-inherit " ")
+	(insert-and-inherit pcomplete-termination-string)
 	(setq space-added t))
       (setq pcomplete-last-completion-length (- (point) here)
 	    pcomplete-last-completion-stub stub)
