@@ -1994,15 +1994,19 @@ usage: (set-charset-priority &rest charsets)  */)
      int nargs;
      Lisp_Object *args;
 {
-  Lisp_Object new_head = Qnil, old_list, arglist[2];
+  Lisp_Object new_head, old_list, arglist[2];
   int i, id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);
+  new_head = Qnil;
   for (i = 0; i < nargs; i++)
     {
       CHECK_CHARSET_GET_ID (args[i], id);
-      old_list = Fdelq (make_number (id), old_list);
-      new_head = Fcons (make_number (id), new_head);
+      if (! NILP (Fmemq (make_number (id), old_list)))
+	{
+	  old_list = Fdelq (make_number (id), old_list);
+	  new_head = Fcons (make_number (id), new_head);
+	}
     }
   arglist[0] = Fnreverse (new_head);
   arglist[1] = old_list;
