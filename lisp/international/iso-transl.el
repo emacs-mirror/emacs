@@ -74,10 +74,6 @@
 ;; The ones beginning with `*' have one-character synonyms, but a
 ;; language-specific table might override the short form for its own use.
 
-;; When a translation is non-ASCII, we use a symbol name
-;; whose "function definition" is a translation, rather than
-;; writing the translation directly here.
-;; That is for the sake of C-x 8 C-h.
 (defvar iso-transl-char-map
   '(("* "   . [? ])
     (" "    . [? ])
