@@ -510,10 +510,10 @@ Based on `comint-mode-map'.")
     ()
   (let ((wrapper))
     (define-abbrev-table 'sql-mode-abbrev-table ())
-    (define-abbrev sql-mode-abbrev-table  "ins" "insert" nil)
-    (define-abbrev sql-mode-abbrev-table  "upd" "update" nil)
-    (define-abbrev sql-mode-abbrev-table  "del" "delete" nil)
-    (define-abbrev sql-mode-abbrev-table  "sel" "select" nil)))
+    (define-abbrev sql-mode-abbrev-table  "ins" "insert" nil 0 t)
+    (define-abbrev sql-mode-abbrev-table  "upd" "update" nil 0 t)
+    (define-abbrev sql-mode-abbrev-table  "del" "delete" nil 0 t)
+    (define-abbrev sql-mode-abbrev-table  "sel" "select" nil 0 t)))
 
 ;; Syntax Table
 
