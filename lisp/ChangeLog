@@ -1,5 +1,9 @@
 2001-10-28  Dave Love  <fx@gnu.org>
 
+	* international/utf-8.el (mule-utf-8): Comment out
+	pre-write-conversion.
+	(utf-8-pre-write-conversion): Comment out.
+
 	* international/mule-cmds.el (locale-language-names): Use defconst
 	and purecopy it.  Add entries for new environments/locales.
 	(locale-charset-language-names): Use defconst, purecopy and add

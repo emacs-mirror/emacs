@@ -1,3 +1,7 @@
+2001-10-28  Dave Love  <fx@gnu.org>
+
+	* quail/welsh.el, quail/georgian.el, quail/bul-bel.el: New file.
+
 2001-06-11  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (MISC): Augment.
