@@ -28,7 +28,7 @@
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version 21.3.
 @c Please REMEMBER to update edition number in *four* places in this file
-@c                 and also in *one* place in intro.texi
+@c                 and also in *one* place in intro.texi and *one* in README.
 
 Published by the Free Software Foundation
 59 Temple Place, Suite 330
