@@ -454,7 +454,7 @@ extern struct face *x_face_table[];
 struct scroll_bar {
 
   /* These fields are shared by all vectors.  */
-  int size_from_Lisp_Vector_struct;
+  EMACS_INT size_from_Lisp_Vector_struct;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
   /* The window we're a scroll bar for.  */
@@ -493,7 +493,7 @@ struct scroll_bar {
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */
 #define SCROLL_BAR_VEC_SIZE \
-  ((sizeof (struct scroll_bar) - sizeof (int) - sizeof (struct Lisp_Vector *)) \
+  ((sizeof (struct scroll_bar) - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *)) \
    / sizeof (Lisp_Object))
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
