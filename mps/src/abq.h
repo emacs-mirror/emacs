@@ -1,20 +1,18 @@
 /* impl.h.abq: ABQ INTERFACE
  *
- * $HopeName: MMsrc!abq.h(MMdevel_gavinm_splay.5) $
+ * $HopeName: MMsrc!abq.h(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
- * .readership: Any MPS developer
+ * .purpose: A FIFO queue substrate for impl.c.poolmv2
  *
- * .purpose: A FIFO queue substrate for impl.c.poolmvv2
- *
- * .design: See design.mps.poolmv2
+ * .source: design.mps.poolmv2
  */
 
 #ifndef abq_h
 #define abq_h
 
-#include "mpm.h"
 #include "meter.h"
+#include "mpm.h"
 
 
 /* Signatures */
@@ -25,7 +23,7 @@
 /* Prototypes  */
 
 typedef struct ABQStruct *ABQ;
-extern Res ABQInit(Arena arena, ABQ abq, Count items);
+extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count items);
 extern Bool ABQCheck(ABQ abq);
 extern void ABQFinish(Arena arena, ABQ abq);
 extern Res ABQPush(ABQ abq, CBSBlock block);
@@ -54,7 +52,7 @@ typedef struct ABQStruct
   METER_DECL(delete);
   
   Sig sig;
-}ABQStruct;
+} ABQStruct;
 
 #endif /* abq_h */
 
