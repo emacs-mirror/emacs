@@ -235,10 +235,10 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
       bss_section->s_scnptr = scnptr;
     }
 
-  WRITE (new, TEXT_START, hdr.aout.tsize,
+  WRITE (new, (char *)TEXT_START, hdr.aout.tsize,
 	 "writing text section to %s", new_name);
-  WRITE (new, DATA_START, hdr.aout.dsize,
-	 "writing text section to %s", new_name);
+  WRITE (new, (char *)DATA_START, hdr.aout.dsize,
+	 "writing data section to %s", new_name);
 
   SEEK (old, hdr.fhdr.f_symptr, "seeking to start of symbols in %s", a_name);
   errno = EEOF;
