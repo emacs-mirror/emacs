@@ -1,3 +1,8 @@
+2003-02-14  Juanma Barranquero  <lektu@terra.es>
+
+	* quail/uni-input.el (utf-8-ccl-encode): Fix use of character
+	constants.
+
 2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (punjabi-itrans, gujarati-itrans, oriya-itrans)
