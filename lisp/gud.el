@@ -1,4 +1,4 @@
-;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, dbx, or xdb under Emacs
+;;; gud.el --- Grand Unified Debugger mode for gdb, dbx, etc. under Emacs
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -1355,7 +1355,8 @@ Obeying it means displaying in another window the specified file and line."
 	    (or (eq (current-buffer) gud-comint-buffer)
 		(set-buffer gud-comint-buffer))
 	    (gud-find-file true-file)))
-	 (window (and buffer (display-buffer buffer)))
+	 (window (and buffer (or (get-buffer-window buffer)
+				 (display-buffer buffer))))
 	 (pos))
     (if buffer
 	(progn
