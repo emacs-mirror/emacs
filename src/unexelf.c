@@ -1016,7 +1016,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".data1")
-	  || !strcmp (old_section_names + NEW_SECTION_H (nn).sh_name,
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sbss"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
       else
