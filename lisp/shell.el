@@ -486,27 +486,23 @@ Otherwise, one argument `-i' is passed to the shell.
    (list
     (and current-prefix-arg
 	 (read-buffer "Shell buffer: " "*shell*"))))
-  (when (null buffer)
-    (setq buffer "*shell*"))
-  (if (not (comint-check-proc buffer))
-      (let* ((prog (or explicit-shell-file-name
-		       (getenv "ESHELL")
-		       (getenv "SHELL")
-		       "/bin/sh"))
-	     (name (file-name-nondirectory prog))
-	     (startfile (concat "~/.emacs_" name))
-	     (xargs-name (intern-soft (concat "explicit-" name "-args")))
-	     shell-buffer)
-	(save-excursion
-	  (set-buffer (apply 'make-comint-in-buffer "shell" buffer prog
-			     (if (file-exists-p startfile) startfile)
-			     (if (and xargs-name (boundp xargs-name))
-				 (symbol-value xargs-name)
-			       '("-i"))))
-	  (setq shell-buffer (current-buffer))
-	  (shell-mode))
-	(pop-to-buffer shell-buffer))
-    (pop-to-buffer buffer)))
+  (setq buffer (get-buffer-create (or buffer "*shell*")))
+  ;; Pop to buffer, so that the buffer's window will be correctly set
+  ;; when we call comint (so that comint sets the COLUMNS env var properly).
+  (pop-to-buffer buffer)
+  (unless (comint-check-proc buffer)
+    (let* ((prog (or explicit-shell-file-name
+		     (getenv "ESHELL") shell-file-name))
+	   (name (file-name-nondirectory prog))
+	   (startfile (concat "~/.emacs_" name))
+	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
+      (apply 'make-comint-in-buffer "shell" buffer prog
+	     (if (file-exists-p startfile) startfile)
+	     (if (and xargs-name (boundp xargs-name))
+		 (symbol-value xargs-name)
+	       '("-i")))
+      (shell-mode)))
+  buffer)
 
 ;;; Don't do this when shell.el is loaded, only while dumping.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
