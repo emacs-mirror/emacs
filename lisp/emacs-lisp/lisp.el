@@ -140,18 +140,18 @@ A negative argument means move backward but still to a less deep spot."
       (setq arg (- arg inc)))))
 
 (defun kill-sexp (&optional arg)
-  "Kill the sexp (balanced expression) following the cursor.
-With ARG, kill that many sexps after the cursor.
-Negative arg -N means kill N sexps before the cursor."
+  "Kill the sexp (balanced expression) following point.
+With ARG, kill that many sexps after point.
+Negative arg -N means kill N sexps before point."
   (interactive "p")
   (let ((opoint (point)))
     (forward-sexp (or arg 1))
     (kill-region opoint (point))))
 
 (defun backward-kill-sexp (&optional arg)
-  "Kill the sexp (balanced expression) preceding the cursor.
-With ARG, kill that many sexps before the cursor.
-Negative arg -N means kill N sexps after the cursor."
+  "Kill the sexp (balanced expression) preceding point.
+With ARG, kill that many sexps before point.
+Negative arg -N means kill N sexps after point."
   (interactive "p")
   (kill-sexp (- (or arg 1))))
 
