@@ -1,3 +1,8 @@
+2003-11-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Cancel the standard-display-table setting for ` and '.
+
 2003-11-26  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-use-filename-at-point, ido-use-url-at-point):
