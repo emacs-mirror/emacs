@@ -45,6 +45,12 @@ Boston, MA 02111-1307, USA.
 #include "syswait.h"
 #include "process.h"
 
+/* Control whether spawnve quotes arguments as necessary to ensure
+   correct parsing by child process.  Because not all uses of spawnve
+   are careful about constructing argv arrays, we make this behaviour
+   conditional (off by default). */
+Lisp_Object Vwin32_quote_process_args;
+
 #ifndef SYS_SIGLIST_DECLARED
 extern char *sys_siglist[];
 #endif
@@ -595,16 +601,18 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
       if (*p == 0)
 	add_quotes = 1;
-#if 0
-      /* Unfortunately, this causes more problems than it solves,
-	 because argv arrays are not always carefully constructed.
-	 grep, for instance, passes the whole command line as one
-	 argument, so it becomes impossible to pass a regexp which
-	 contains spaces. */
-      for ( ; *p; p++)
-	if (*p == ' ' || *p == '\t' || *p == '"')
-	  add_quotes = 1;
-#endif
+
+      if (!NILP (Vwin32_quote_process_args))
+	{
+	  /* This is conditional because it sometimes causes more
+	     problems than it solves, since argv arrays are not always
+	     carefully constructed.  M-x grep, for instance, passes the
+	     whole command line as one argument, so it becomes
+	     impossible to pass a regexp which contains spaces. */
+	  for ( ; *p; p++)
+	    if (*p == ' ' || *p == '\t' || *p == '"')
+	      add_quotes = 1;
+	}
       if (add_quotes)
 	{
 	  char * first;
@@ -1064,4 +1072,19 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[3])
   SetStdHandle (STD_ERROR_HANDLE, handles[2]);
 }
 
+
+syms_of_ntproc ()
+{
+  DEFVAR_LISP ("win32-quote-process-args", &Vwin32_quote_process_args,
+    "Non-nil enables quoting of process arguments to ensure correct parsing.\n\
+Because Windows does not directly pass argv arrays to child processes,\n\
+programs have to reconstruct the argv array by parsing the command\n\
+line string.  For an argument to contain a space, it must be enclosed\n\
+in double quotes or it will be parsed as multiple arguments.\n\
+\n\
+However, the argument list to call-process is not always correctly\n\
+constructed (or arguments have already been quoted), so enabling this\n\
+option may cause unexpected behavior.");
+  Vwin32_quote_process_args = Qnil;
+}
 /* end of ntproc.c */
