@@ -2303,6 +2303,8 @@ sys_sigsetmask (sigset_t new_mask)
 
 #ifndef BSTRING
 
+#ifndef bzero
+
 void
 bzero (b, length)
      register char *b;
@@ -2325,6 +2327,9 @@ bzero (b, length)
 #endif /* not VMS */
 }
 
+#endif /* no bzero */
+
+#ifndef bcopy
 /* Saying `void' requires a declaration, above, where bcopy is used
    and that declaration causes pain for systems where bcopy is a macro.  */
 bcopy (b1, b2, length)
@@ -2348,7 +2353,9 @@ bcopy (b1, b2, length)
     *b2++ = *b1++;
 #endif /* not VMS */
 }
+#endif /* no bcopy */
 
+#ifndef bcmp
 int
 bcmp (b1, b2, length)	/* This could be a macro! */
      register char *b1;
@@ -2368,6 +2375,8 @@ bcmp (b1, b2, length)	/* This could be a macro! */
   return 0;
 #endif /* not VMS */
 }
+#endif /* no bcmp */
+
 #endif /* not BSTRING */
 
 #ifndef HAVE_RANDOM
