@@ -2,6 +2,8 @@
 
 	* faces.el (face-id): Fix typo.
 
+	* hexl.el (hexl-mode): Likewise.
+
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-decode-babyl-format): Disable undo
