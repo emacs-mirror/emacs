@@ -1659,43 +1659,54 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
 {
   Lisp_Object tem;
 
-  cmd = get_keyelt (cmd, 0);
+  cmd = get_keymap (get_keyelt (cmd, 0), 0, 0);
   if (NILP (cmd))
     return;
 
-  tem = get_keymap (cmd, 0, 0);
-  if (CONSP (tem))
+  /* Look for and break cycles.  */
+  while (!NILP (tem = Frassq (cmd, maps)))
     {
-      cmd = tem;
-      /* Ignore keymaps that are already added to maps.  */
-      tem = Frassq (cmd, maps);
-      if (NILP (tem))
-	{
-	  /* If the last key in thisseq is meta-prefix-char,
-	     turn it into a meta-ized keystroke.  We know
-	     that the event we're about to append is an
-	     ascii keystroke since we're processing a
-	     keymap table.  */
-	  if (is_metized)
-	    {
-	      int meta_bit = meta_modifier;
-	      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
-	      tem = Fcopy_sequence (thisseq);
-
-	      Faset (tem, last, make_number (XINT (key) | meta_bit));
-
-	      /* This new sequence is the same length as
-		 thisseq, so stick it in the list right
-		 after this one.  */
-	      XSETCDR (tail,
-		       Fcons (Fcons (tem, cmd), XCDR (tail)));
-	    }
-	  else
-	    {
-	      tem = append_key (thisseq, key);
-	      nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
-	    }
+      Lisp_Object prefix = XCAR (tem);
+      int lim = XINT (Flength (XCAR (tem)));
+      if (lim <= XINT (Flength (thisseq)))
+	{ /* This keymap was already seen with a smaller prefix.  */
+	  int i = 0;
+	  while (i < lim && EQ (Faref (prefix, make_number (i)),
+				Faref (thisseq, make_number (i))))
+	    i++;
+	  if (i >= lim)
+	    /* `prefix' is a prefix of `thisseq' => there's a cycle.  */
+	    return;
 	}
+      /* This occurrence of `cmd' in `maps' does not correspond to a cycle,
+	 but maybe `cmd' occurs again further down in `maps', so keep
+	 looking.  */
+      maps = XCDR (Fmemq (tem, maps));
+    }
+
+  /* If the last key in thisseq is meta-prefix-char,
+     turn it into a meta-ized keystroke.  We know
+     that the event we're about to append is an
+     ascii keystroke since we're processing a
+     keymap table.  */
+  if (is_metized)
+    {
+      int meta_bit = meta_modifier;
+      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
+      tem = Fcopy_sequence (thisseq);
+      
+      Faset (tem, last, make_number (XINT (key) | meta_bit));
+      
+      /* This new sequence is the same length as
+	 thisseq, so stick it in the list right
+	 after this one.  */
+      XSETCDR (tail,
+	       Fcons (Fcons (tem, cmd), XCDR (tail)));
+    }
+  else
+    {
+      tem = append_key (thisseq, key);
+      nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
     }
 }
 
@@ -1829,35 +1840,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	}
     }
 
-  if (NILP (prefix))
-    return maps;
-
-  /* Now find just the maps whose access prefixes start with PREFIX.  */
-
-  good_maps = Qnil;
-  for (; CONSP (maps); maps = XCDR (maps))
-    {
-      Lisp_Object elt, thisseq;
-      elt = XCAR (maps);
-      thisseq = XCAR (elt);
-      /* The access prefix must be at least as long as PREFIX,
-	 and the first elements must match those of PREFIX.  */
-      if (XINT (Flength (thisseq)) >= prefixlen)
-	{
-	  int i;
-	  for (i = 0; i < prefixlen; i++)
-	    {
-	      Lisp_Object i1;
-	      XSETFASTINT (i1, i);
-	      if (!EQ (Faref (thisseq, i1), Faref (prefix, i1)))
-		break;
-	    }
-	  if (i == prefixlen)
-	    good_maps = Fcons (elt, good_maps);
-	}
-    }
-
-  return Fnreverse (good_maps);
+  return maps;
 }
 
 Lisp_Object Qsingle_key_description, Qkey_description;
