@@ -372,6 +372,10 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 	 ".fas" ".lib"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
+	 ;; Libtool
+	 ".lo" ".la"
+	 ;; Java
+	 ".class"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
