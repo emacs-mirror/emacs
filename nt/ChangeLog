@@ -1,3 +1,8 @@
+2002-04-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make DOC
+	after compiling .el files.
+
 2002-03-20  Jason Rumney  <jasonr@gnu.org>
 
 	* inc/sys/socket.h (sys_setsockopt, sys_listen, sys_getsockname)
