@@ -420,7 +420,7 @@ main (argc, argv, envp)
 
   clearerr (stdin);
 
-#ifdef BSD
+#ifdef BSD_PGRPS
   if (initialized)
     {
       inherited_pgroup = EMACS_GETPGRP (0);
