@@ -127,7 +127,7 @@ own_selection (selection_type, time)
       || ((EQ (selection_type, Qclipboard)) && !NILP (Vx_clipboard_value)))
     return 1;
 
-  selecting_window = selected_frame->display.x->window_desc;
+  selecting_window = FRAME_X_WINDOW (selected_frame);
   XSetSelectionOwner (x_current_display, selection_type,
 		      selecting_window, time);
   owner_window = XGetSelectionOwner (x_current_display, selection_type);
@@ -550,7 +550,7 @@ get_selection_value (type)
 
   BLOCK_INPUT;
   requestor_time = last_event_timestamp;
-  requestor_window = selected_frame->display.x->window_desc;
+  requestor_window = FRAME_X_WINDOW (selected_frame);
   XConvertSelection (x_current_display, type, XA_STRING,
 		     Xatom_emacs_selection, requestor_window, requestor_time);
   XIfEvent (x_current_display,
