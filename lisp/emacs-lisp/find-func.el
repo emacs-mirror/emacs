@@ -193,6 +193,7 @@ Point is saved if FUNCTION is in the current buffer."
 	  (goto-char (elt buffer-point 1))
 	  (recenter 0)))))
 
+;;;###autoload
 (defun find-function (function &optional path)
   "Find the definition of the function near point in the current window.
 
@@ -206,6 +207,7 @@ defined is searched in PATH instead of `load-path'"
   (interactive (find-function-read-function))
   (find-function-do-it function path 'switch-to-buffer))
 
+;;;###autoload
 (defun find-function-other-window (function &optional path)
   "Find the definition of the function near point in the other window.
 
@@ -219,6 +221,7 @@ defined is searched in PATH instead of `load-path'"
   (interactive (find-function-read-function))
   (find-function-do-it function path 'switch-to-buffer-other-window))
 
+;;;###autoload
 (defun find-function-other-frame (function &optional path)
   "Find the definition of the function near point in the another frame.
 
@@ -232,6 +235,7 @@ defined is searched in PATH instead of `load-path'"
   (interactive (find-function-read-function))
   (find-function-do-it function path 'switch-to-buffer-other-frame))
 
+;;;###autoload
 (defun find-function-on-key (key)
   "Find the function that KEY invokes.  KEY is a string.
 Point is saved if FUNCTION is in the current buffer."
