@@ -590,6 +590,7 @@ safe_alloca_unwind (arg)
   p->dogc = 0;
   xfree (p->pointer);
   p->pointer = 0;
+  free_misc (arg);
   return Qnil;
 }
 
@@ -2922,15 +2923,30 @@ allocate_misc ()
 	  marker_block = new;
 	  marker_block_index = 0;
 	  n_marker_blocks++;
+	  total_free_markers += MARKER_BLOCK_SIZE;
 	}
       XSETMISC (val, &marker_block->markers[marker_block_index]);
       marker_block_index++;
     }
 
+  --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
   XMARKER (val)->gcmarkbit = 0;
   return val;
+}
+
+/* Free a Lisp_Misc object */
+
+void
+free_misc (misc)
+     Lisp_Object misc;
+{
+  XMISC (misc)->u_marker.type = Lisp_Misc_Free;
+  XMISC (misc)->u_free.chain = marker_free_list;
+  marker_free_list = XMISC (misc);
+
+  total_free_markers++;
 }
 
 /* Return a Lisp_Misc_Save_Value object containing POINTER and
@@ -2979,12 +2995,7 @@ free_marker (marker)
      Lisp_Object marker;
 {
   unchain_marker (XMARKER (marker));
-
-  XMISC (marker)->u_marker.type = Lisp_Misc_Free;
-  XMISC (marker)->u_free.chain = marker_free_list;
-  marker_free_list = XMISC (marker);
-
-  total_free_markers++;
+  free_misc (marker);
 }
 
 

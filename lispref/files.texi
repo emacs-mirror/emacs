@@ -416,8 +416,8 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 @c Emacs 19 feature
 @defvar write-contents-functions
 This works just like @code{write-file-functions}, but it is intended for
-hooks that pertain to the contents of the buffer, as opposed to hooks that
-pertain to the file the buffers visits.  Such hooks are usually set up by
+hooks that pertain to the contents of the file, as opposed to hooks that
+pertain to the file's name or location.  Such hooks are usually set up by
 major modes, as buffer-local bindings for this variable.  If any of the
 functions in this hook returns non-@code{nil}, the file is considered
 already written and the rest are not called and neither are the functions

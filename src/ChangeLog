@@ -67,14 +67,68 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+        
+        * macterm.c (do_window_activate, do_window_deactivate): Remove.
+        (XTread_socket): Send mouse button events to the toolbox
+        dispatcher even when the mouse is grabbed.  Don't process window
+        activate events for non-Emacs windows.  Replace function calls to
+        do_window_activate and do_window_deactivate with their contents.
+        Reset mouse grabbing status when a window is deactivated.
+
+2004-06-29  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_get_emulated_btn)
+	(mac_event_to_emacs_modifiers): Fix emulated mouse button
+	support to correctly mask out modifiers.
+
+2004-06-29  David Kastrup  <dak@gnu.org>
+
+	* search.c (Fset_match_data): Allow buffer before end of list
+	which can happen if set-match-data is using a pre-consed list.
+
+2004-06-28  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (XTread_socket): Correctly set the frame position
+	after the window is moved.
+
+2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): Call g_object_unref on
+	gpix and gmask just before return to avoid memory leak.
+	(xg_get_image_for_pixmap): Add workaround for monochrome displays
+	so insensitive and activated icons look ok.
+
+2004-06-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (file_dialog_callback): Disable edit control if set
+	to directories only on CDN_INITDONE message.
+	(Fx_file_dialog): Default to directories only when prompt starts
+	with "Dired".
+
+2004-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (allocate_misc): Update total_free_markers.
+	(free_misc): New function.
+	(safe_alloca_unwind, free_marker): Use it.
+
+	* lisp.h (free_misc): Add prototype.
+
+	* fns.c (Fmapconcat, Fmapcar): Remove superfluous GCPROs.
+
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (Vsignal_USR1_hook, Vsignal_USR2_hook): Definitions deleted.
+	(syms_of_emacs): Lisp variables deleted.
+
 2004-06-23  David Kastrup  <dak@gnu.org>
 
-	* search.c (Freplace_match): Adjust the match-data more
-	thoroughly when replacing strings in the buffer.
-	search.c (match-data): When INTEGERS is non-nil and the last match
-	was in a buffer, add the buffer as last element to the match data.
-	(Fset_match_data): If an additional element of the match-data is
-	a buffer, restore it to last_thing_searched.
+	* search.c (Freplace_match): Adjust the match-data more thoroughly
+	when replacing strings in the buffer.
+	(Fmatch_data): When INTEGERS is non-nil and the last match was in
+	a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is a
+	buffer, restore it to last_thing_searched.
 	(save_search_regs): Save last_thing_searched as part of the match
 	data.
 	(restore_match_data): Restore it again.

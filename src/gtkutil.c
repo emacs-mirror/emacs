@@ -248,8 +248,46 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
 {
   GdkPixmap *gpix;
   GdkPixmap *gmask;
-  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+  GdkDisplay *gdpy;
 
+  /* If we are on a one bit display, let GTK do all the image handling.
+     This seems to be the only way to make insensitive and activated icons
+     look good.  */
+  if (x_screen_planes (f) == 1)
+    {
+      Lisp_Object specified_file = Qnil;
+      Lisp_Object tail;
+      extern Lisp_Object QCfile;
+
+      for (tail = XCDR (img->spec);
+	   NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
+	   tail = XCDR (XCDR (tail)))
+	if (EQ (XCAR (tail), QCfile))
+	  specified_file = XCAR (XCDR (tail));
+
+	if (STRINGP (specified_file))
+	  {
+
+	    Lisp_Object file = Qnil;
+	    struct gcpro gcpro1;
+	    GCPRO1 (file);
+
+	    file = x_find_image_file (specified_file);
+	    /* We already loaded the image once before calling this
+	       function, so this should not fail.  */
+	    xassert (STRINGP (file) != 0);
+
+	    if (! old_widget)
+	      old_widget = GTK_IMAGE (gtk_image_new_from_file (SDATA (file)));
+	    else
+	      gtk_image_set_from_file (old_widget, SDATA (file));
+
+	    UNGCPRO;
+	    return GTK_WIDGET (old_widget);
+	  }
+    }
+
+  gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
   gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
   gmask = img->mask ? gdk_pixmap_foreign_new_for_display (gdpy, img->mask) : 0;
 
@@ -262,6 +300,12 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
     }
   else
     {
+      /* This is a workaround to make icons look good on pseudo color
+         displays.  Apparently GTK expects the images to have an alpha
+         channel.  If they don't, insensitive and activated icons will
+         look bad.  This workaround does not work on monochrome displays,
+         and is not needed on true color/static color displays (i.e.
+         16 bits and higher).  */
       int x, y, width, height, rowstride, mask_rowstride;
       GdkPixbuf *icon_buf, *tmp_buf;
       guchar *pixels;
@@ -308,11 +352,8 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
                 }
             }
 
-          g_object_unref (G_OBJECT (gmask));
           g_object_unref (G_OBJECT (mask_buf));
         }
-
-      g_object_unref (G_OBJECT (gpix));
 
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
@@ -321,6 +362,9 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
 
       g_object_unref (G_OBJECT (icon_buf));
     }
+
+  g_object_unref (G_OBJECT (gpix));
+  if (gmask) g_object_unref (G_OBJECT (gmask));
 
   return GTK_WIDGET (old_widget);
 }

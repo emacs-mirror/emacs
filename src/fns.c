@@ -3020,11 +3020,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   for (i = 1; i < nargs; i += 2)
     args[i] = separator;
 
-  GCPRO1 (*args);
-  gcpro1.nvars = nargs;
   ret = Fconcat (nargs, args);
-  UNGCPRO;
-
   SAFE_FREE_LISP (nargs);
 
   return ret;
@@ -3040,7 +3036,6 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   register Lisp_Object len;
   register int leni;
   register Lisp_Object *args;
-  struct gcpro gcpro1;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
@@ -3051,11 +3046,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
 
   mapcar1 (leni, args, function, sequence);
 
-  GCPRO1 (*args);
-  gcpro1.nvars = leni;
   ret = Flist (leni, args);
-  UNGCPRO;
-
   SAFE_FREE_LISP (leni);
 
   return ret;

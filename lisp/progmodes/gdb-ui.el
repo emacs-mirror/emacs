@@ -29,10 +29,9 @@
 ;; GDB through the GUD buffer in the usual way, but there are also further
 ;; buffers which control the execution and describe the state of your program.
 ;; It separates the input/output of your program from that of GDB, if
-;; required, and displays expressions and their current values in their own
-;; buffers. It also uses features of Emacs 21 such as the display margin for
-;; breakpoints, and the toolbar (see the GDB Graphical Interface section in
-;; the Emacs info manual).
+;; required, and watches expressions in the speedbar. It also uses features of
+;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
+;; (see the GDB Graphical Interface section in the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
@@ -40,7 +39,7 @@
 ;; Kingdon and uses GDB's annotation interface. You don't need to know about
 ;; annotations to use this mode as a debugger, but if you are interested
 ;; developing the mode itself, then see the Annotations section in the GDB
-;; info manual. 
+;; info manual.
 ;;
 ;; GDB developers plan to make the annotation interface obsolete. A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
@@ -71,7 +70,7 @@
 (defvar gdb-variables '()
   "A list of variables that are local to the GUD buffer.")
 (defvar gdb-server-prefix nil)
- 
+
 ;;;###autoload
 (defun gdba (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -228,7 +227,7 @@ speedbar."
 	(if (string-equal expr (car var)) (throw 'already-watched nil)))
       (set-text-properties 0 (length expr) nil expr)
       (gdb-enqueue-input
-       (list 
+       (list
 	(if (eq gud-minor-mode 'gdba)
 	    (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	  (concat"-var-create - * "  expr "\n"))
@@ -327,7 +326,7 @@ speedbar."
   (if (not (member 'gdb-var-update gdb-pending-triggers))
       (progn
 	(gdb-enqueue-input
-	 (list 
+	 (list
 	  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
 	      "server interpreter mi \"-var-update *\"\n"
 	    "-var-update *\n")
@@ -363,7 +362,7 @@ speedbar."
 	       (varnum (cadr var)))
 	  (unless (string-match "\\." varnum)
 	    (gdb-enqueue-input
-	     (list 
+	     (list
 	      (if (with-current-buffer gud-comint-buffer
 		    (eq gud-minor-mode 'gdba))
 		  (concat "server interpreter mi \"-var-delete " varnum "\"\n")
@@ -487,7 +486,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 	  (set (make-local-variable 'gdb-buffer-type) key)
 	  (if (cdr (cdr rules))
 	      (funcall (car (cdr (cdr rules)))))
-	  (set (make-local-variable 'gud-minor-mode) 
+	  (set (make-local-variable 'gud-minor-mode)
 	       (with-current-buffer gud-comint-buffer gud-minor-mode))
 	  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
 	  new))))
@@ -1077,13 +1076,15 @@ static char *magick[] = {
   '((t
      :inherit fringe
      :foreground "red"))
-  "Face for enabled breakpoint icon in fringe.")
+  "Face for enabled breakpoint icon in fringe."
+  :group 'gud)
 
 (defface breakpoint-disabled-bitmap-face
   '((t
      :inherit fringe
      :foreground "grey60"))
-  "Face for disabled breakpoint icon in fringe.")
+  "Face for disabled breakpoint icon in fringe."
+  :group 'gud)
 
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
@@ -1207,8 +1208,8 @@ static char *magick[] = {
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
-	     gdb-server-prefix "disable "
-	   gdb-server-prefix "enable ")
+	     (concat gdb-server-prefix "disable ")
+	   (concat gdb-server-prefix "enable "))
 	 (match-string 1) "\n")
 	'ignore)))))
 
@@ -1226,10 +1227,12 @@ static char *magick[] = {
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdbmi))
-	(looking-at "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")
-      (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
-      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")))
+    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	(progn
+	  (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
+	  (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
+    (looking-at
+     "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)")))
   (if (match-string 2)
       (let ((line (match-string 2))
 	    (file (match-string 1)))
@@ -1836,7 +1839,7 @@ BUFFER nil or omitted means use the current buffer."
 	    (save-current-buffer
 	      (setq left-margin-width 2)
 	      (if (get-buffer-window (current-buffer) 'visible)
-		  (set-window-margins 
+		  (set-window-margins
 		   (get-buffer-window (current-buffer) 'visible)
 		   left-margin-width right-margin-width))))
 	  (put-image
@@ -1863,7 +1866,7 @@ BUFFER nil or omitted means use the current buffer."
 	(save-current-buffer
 	  (setq left-margin-width 2)
 	  (if (get-buffer-window (current-buffer) 'visible)
-	      (set-window-margins 
+	      (set-window-margins
 	       (get-buffer-window (current-buffer) 'visible)
 	       left-margin-width right-margin-width))))
       (gdb-put-string (if enabled "B" "b") (1+ start)))))
@@ -1875,7 +1878,7 @@ BUFFER nil or omitted means use the current buffer."
   (when remove-margin
     (setq left-margin-width 0)
     (if (get-buffer-window (current-buffer) 'visible)
-	(set-window-margins 
+	(set-window-margins
 	 (get-buffer-window (current-buffer) 'visible)
 	 left-margin-width right-margin-width))))
 

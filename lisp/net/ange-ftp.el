@@ -4117,7 +4117,7 @@ directory, so that Emacs will know its current contents."
 	  tmp1))))
 
 (defun ange-ftp-file-remote-p (file)
-  (when (ange-ftp-ftp-name file) t))
+  (ange-ftp-replace-name-component file ""))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)

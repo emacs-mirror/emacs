@@ -2491,6 +2491,7 @@ extern Lisp_Object make_float P_ ((double));
 extern void display_malloc_warning P_ ((void));
 extern int inhibit_garbage_collection P_ ((void));
 extern Lisp_Object make_save_value P_ ((void *, int));
+extern void free_misc P_ ((Lisp_Object));
 extern void free_marker P_ ((Lisp_Object));
 extern void free_cons P_ ((struct Lisp_Cons *));
 extern void init_alloc_once P_ ((void));

@@ -230,6 +230,87 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-06-29  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled-bitmap-face)
+	(breakpoint-disabled-bitmap-face): Add :group 'gud.
+
+	* progmodes/ada-xref.el (ada-tight-gvd-integration):
+	Add :group 'ada.
+
+	* vc-arch.el (vc-arch-mode-line-rewrite): Add :group 'vc.
+
+2004-06-29  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Swallow a space after
+	everything except )]" which in most cases means after a symbol.
+
+	* emacs-lisp/pp.el (pp-buffer): Add autoload.
+
+2004-06-26  David Kastrup  <dak@gnu.org>
+
+	* replace.el (perform-replace): Highlight the match even in
+	non-query mode if there is potential replace string editing.
+
+2004-06-26  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el (tramp-handle-file-remote-p): New implementation to
+	agree with new return value of `file-remote-p'.
+	This syncs with Tramp 2.0.42.
+
+	* net/ange-ftp.el (ange-ftp-file-remote-p): New return value,
+	according to new documentation of `file-remote-p'.
+
+	* files.el (file-remote-p): Fix doc to say that return value is
+	identification of remote system, if not nil.
+	(file-relative-name): Use new return value of `file-remote-p'.
+
+2004-06-26  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-toggle-breakpoint)
+	(gdb-goto-breakpoint): Fix breakage.
+
+2004-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* man.el (Man-getpage-in-background): Add windows-nt to the list
+	of systems where shell-file-name should be used instead of
+	literal "sh".
+
+2004-06-25  Sam Steingold  <sds@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Support Common Lisp
+	function names `(setf symbol)'.
+
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Swallow space after \,SYMBOL.
+
+	* font-lock.el (font-lock-keywords): Change format of compiled values.
+	Document it.
+	(font-lock-add-keywords): If font-lock-keywords is compiled,
+	extract the uncompiled version, modify, then recompile.
+	(font-lock-remove-keywords): Likewise.
+	(font-lock-fontify-keywords-region): Handle changed format.
+	(font-lock-compile-keywords): Handle changed format.
+	(font-lock-set-defaults): Compile the keywords explicitly here.
+
+2004-06-24  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-read-args): Implement `\,' and `\#'
+	replacements here.
+	(query-replace-regexp): Doc string explaining this and the new
+	`\?' replacement.  Remove `\,' and `\#' implementation here, as it
+	is better placed in `query-replace-read-args'.
+	(replace-regexp): Explain `\,', `\#' and `\?'.
+	(replace-match-data): New function for thorough reuse/destruction
+	of old match-data.
+	(replace-match-maybe-edit): Function for implementing `\?'
+	editing.
+	(perform-replace): Fix maintaining of the match stack including
+	already matched regions, implement `\?', fix various problems
+	with regions while editing and other stuff.
+	(replace-highlight): Simplified.
+
 2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/grep.el (grep-error-screen-columns): New variable.
