@@ -752,7 +752,10 @@ reversed.")
 	(set-buffer vip-ex-work-buf)
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
-	    (if (not (vip-looking-back "[ \t]"))
+	    (if (and (not (vip-looking-back "[ \t]"))
+		     ;; read doesn't have a corresponding :r! form, so ! is
+		     ;; immediately interpreted as a shell command.
+		     (not (string= ex-token "read")))
 		(progn
 		  (setq ex-variant t)
 		  (forward-char 1)
@@ -1075,7 +1078,7 @@ reversed.")
     (if buffer-file-name
 	(cond ((buffer-modified-p)
 	       (setq msg
-		     (format "Buffer %s is modified. Edit buffer? "
+		     (format "Buffer %s is modified. Discard changes? "
 			     (buffer-name))
 		     do-edit t))
 	      ((not (verify-visited-file-modtime (current-buffer)))
@@ -1785,9 +1788,17 @@ Please contact your system administrator. "
       (setq writing-whole-file (and (= (point-min) beg) (= (point-max) end))
 	    ex-file (if (string= ex-file "")
 			(buffer-file-name)
-		      (expand-file-name ex-file))
-	    file-exists (file-exists-p ex-file)
+		      (expand-file-name ex-file)))
+      ;; if ex-file is a directory use the file portion of the buffer file name
+      (if (and (file-directory-p ex-file)
+	       buffer-file-name
+	       (not (file-directory-p buffer-file-name)))
+	  (setq ex-file
+		(concat ex-file (file-name-nondirectory buffer-file-name))))
+
+      (setq file-exists (file-exists-p ex-file)
 	    writing-same-file (string= ex-file (buffer-file-name)))
+
       (if (and writing-whole-file writing-same-file)
 	  (if (not (buffer-modified-p))
 	      (message "(No changes need to be saved)")
@@ -1819,8 +1830,8 @@ Please contact your system administrator. "
 	      (set-buffer temp-buf)
 	      (set-buffer-modified-p nil)
 	      (kill-buffer temp-buf)
-	      )
-	  ))
+	      ))
+	)
       ;; this prevents the loss of data if writing part of the buffer
       (if (and (buffer-file-name) writing-same-file)
 	  (set-visited-file-modtime))
