@@ -1995,7 +1995,7 @@ Used by `featurep' and `require', and altered by `provide'.");
 
   DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
     "*Non-nil means mouse commands use dialog boxes to ask questions.\n\
-This applies to y-or-n and yes-or-no questions asked by commands
+This applies to y-or-n and yes-or-no questions asked by commands\n\
 invoked by mouse clicks and mouse menu items.");
   use_dialog_box = 1;
 
