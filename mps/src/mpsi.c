@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpsi.c(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -25,7 +25,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.5) $");
 
 
 /* Check consistency of interface mappings. */
@@ -354,6 +354,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   /* Note, size is the length of the array at base, not */
   /* the size in bytes.  However, RootCreateTable expects */
   /* base and limit pointers.  Be careful. */
+  /* The root mode is ignored. */
   return RootCreateTable(rootReturn, space, rank,
                          (Addr *)base, (Addr *)base + size);
 }
@@ -366,8 +367,19 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
                               mps_addr_t base,
                               mps_addr_t limit)
 {
-  NOTREACHED;
-  return MPS_RES_UNIMPL;
+  Root *rootReturn = (Root *)mps_root_o;
+  Space space = (Space)mps_space;
+  RefRank rank = (RefRank)mps_rank;
+  FormatScanMethod scan = (FormatScanMethod)mps_fmt_scan;
+
+  AVER(mps_root_o != NULL);
+  AVER(ISVALID(Space, space));
+  AVER(scan != NULL);
+  AVER(base != NULL);
+  AVER(base < limit);
+  /* The root mode is ignored. */
+  return RootCreateFmt(rootReturn, space, rank, scan,
+                       (Addr)base, (Addr)limit);
 }
 
 mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
