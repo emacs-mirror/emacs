@@ -24,22 +24,24 @@ Retrieving the latest version of the branch:
 STATUS
 ------
 
-Basic support is there; there are some rough edges, but it already
-seems to be usable.  Input is read from all terminals (NOT via
-MULTIKBOARD!).  At the moment, the type of the new terminals must be
-the same as the initial terminal.  Emacsclient has been extended to
-support opening a new terminal frame.
+Basic multi-tty support is there; there are some rough edges, but it
+already seems to be usable.  Emacsclient has been extended to support
+opening a new terminal frame.
 
 To try it out, start up the emacs server (M-x server-start), and then
 (from a shell prompt on another terminal) start emacsclient with
 
 	emacsclient -h
 
-You'll have two fully working frames on separate terminals.  If you
-exit emacs, both terminals should be restored to their previous
+You'll hopefully have two fully working frames on separate terminals.
+If you exit emacs, both terminals should be restored to their previous
 states.
 
-X, Mac, Windows and DOS support is broken at the moment.
+At the moment you can not close terminals without exiting Emacs --
+this will soon be implemented.
+
+X, Mac, Windows and DOS support is broken, probably doesn't even
+compile -- this will be solved later.
 
 Tested under GNU/Linux only.
 
@@ -51,8 +53,8 @@ For the NEWS file:
 ** Support for multiple terminal devices has been added.  You can
    specify a terminal device (`tty' parameter) and a terminal type
    (`tty-type' parameter) to `make-terminal-frame'. `tty' must be a
-   terminal device created by the new emacsclient, or there will be
-   problems with terminal input and window resizes.  (The kernel
+   terminal device created by the updated emacsclient, or there will
+   be problems with terminal input and window resizes.  (The kernel
    notifies processes about pending input or terminal resizes only on
    the controlling terminal, so we need emacsclient to sit on the real
    terminal device, create SIGIO signals upon terminal input, and
@@ -83,16 +85,13 @@ DIARY OF CHANGES
    (Done, see struct tty_output.  The abstraction is not yet
    complete.)
 
-
 -- Change the bootstrap procedure to initialize tty_list.
 
    (Done, but needs review.)
 
-
 -- Change make-terminal-frame to support specifying another tty.
 
    (Done, new frame parameters: `tty' and `tty-type'.)
-
 
 -- Implement support for reading from multiple terminals.
 
@@ -120,15 +119,15 @@ DIARY OF CHANGES
    
    (Done.  It's an ugly hack, needs more work.)
 
--- Redisplay must refresh the topmost frame on all terminals, not just
-   the initial terminal.
+-- Redisplay must refresh the topmost frame on *all* terminals, not
+   just the initial terminal.
    
-   (Done, but introduced ugly redisplay problems.  Ugh.)
+   (Done, but introduced an ugly redisplay problems.  Ugh.)
 
 -- Fix redisplay problems.
 
-   (Done, it turned out that the entire Wcm structure must be moved
-   inside tty_output.  Why was it so hard for me to find this out?)
+   (Done; it turned out that the entire Wcm structure must be moved
+   inside tty_output.  Why didn't I catch this earlier?)
 
 -- Provide a way for emacsclient to tell Emacs that the tty has been
    resized.
@@ -138,15 +137,15 @@ DIARY OF CHANGES
 -- Each keypress should automatically select the frame corresponding
    to the terminal that it was coming from.  This means that Emacs
    must know from which terminal the last keyboard event came from.
-   (Multikeyboard support may help with this.)
 
-   (Done, it was quite simple.)
+   (Done, it was quite simple, the input event system already
+   supported multiple frames.)
 
 -- Fix SIGIO issue with secondary terminals.
 
    (Done, emacsclient signals Emacs after writing to the proxy pseudo
-   terminal.  This means that multi-tty does not work with raw ttys!)
-
+   terminal.  Note that this means that multi-tty does not work with
+   raw ttys!)
 
 -- Make make-terminal-frame look up the `tty' and `tty-type' frame
    parameters from the currently selected terminal before the global
@@ -158,7 +157,7 @@ DIARY OF CHANGES
    Currently, they are still stored in global variables, so we don't
    really support multiple terminal types.
 
-   (Done.)
+   (Done.  It was not fun.)
 
 -- Implement sane error handling after initialization.  (Currently
    emacs exits if you specify a bad terminal type.)  The helpful error
@@ -185,18 +184,16 @@ THINGS TO DO
 
    Emacs usually dumps core after a few dozen iterations.  (The bug
    seems to be related to the xfree()ing or bzero()ing of
-   tty_output.Wcm.  Maybe there are outside references to struct Wcm?
-   Sounds logical, otherwise these vars would not have been collected
-   into a struct.  But where?)
+   tty_output.Wcm or some other tty_output part.  Maybe there are
+   outside references to struct Wcm?  Why were these vars collected
+   into a struct before multi-tty support?)
 
-   This does not seem to happen if the error occurs before terminal
+   The bug does not seem to happen if the error occurs before terminal
    initialization or if I comment out all xfree()s in delete_frame.
-   Update: yes it does, although it is much rarer.
+   Update: yes it does, although it is much rarer.  Or maybe it's
+   another bug.
 
 ** C-g should work on secondary terminals.
-
-** Move optimalization parameters (costs) from union output_data to
-   a backend-neutral per-device structure.
 
 ** Implement automatic deletion of terminals when the last frame on
    that terminal is closed.
@@ -204,21 +201,25 @@ THINGS TO DO
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
 
-** Export delete_tty to the Lisp environment.
+** Export delete_tty to the Lisp environment, for emacsclient.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)  Not necessarily a good idea.
 
 ** Support raw secondary terminals.  (This one is tricky, SIGIO works
-   only on the controlling terminal.)
+   only on the controlling terminal.  The emacsclient solution works
+   nicely, so this is not that important anyway.)
 
 ** What does interrupt_input do?  I tried to disable it for raw
-   secondary tty support, but it seems not to do anything useful.
+   secondary tty support, but it does not seem to do anything useful.
 
-** Fix X support.
+** Move optimalization parameters (costs) from union output_data to
+   a backend-neutral per-device structure.
 
 ** Do tty output through term_hooks, too.
+
+** Fix X support.
 
 ** Allow simultaneous X and tty frames.
 
