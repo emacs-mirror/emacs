@@ -2199,8 +2199,10 @@ order until succeed.")
 			  (error nil))
 		   utf8-coding last-coding-system-used)
 	     (if utf8
-		 ;; If it is a locale selection, choose it.
-		 (or (get-text-property 0 'foreign-selection utf8)
+		 ;; If it is a local selection, or it contains only
+		 ;; ASCII characers, choose it.
+		 (if (or (not (get-text-property 0 'foreign-selection utf8))
+			 (= (length utf8) (string-bytes utf8)))
 		     (setq text utf8)))
 	     ;; If not yet decided, try COMPOUND_TEXT.
 	     (if (not text)
