@@ -73,14 +73,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* when PNTR_COMPARISON_TYPE is not the default (unsigned int) */
 #define CHECK_IMPURE(obj) \
-  { extern EMACS_INT my_edata; \
+  { extern char my_edata[]; \
     if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) &my_edata) \
       pure_write_error (); }
 
 #else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
 
 #define CHECK_IMPURE(obj) \
-  { extern EMACS_INT my_edata; \
+  { extern char my_edata[]; \
     if (XPNTR (obj) < (unsigned int) &my_edata) \
       pure_write_error (); }
 
