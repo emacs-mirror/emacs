@@ -1961,6 +1961,8 @@ oblookup (obarray, ptr, size)
       obarray = check_obarray (obarray);
       obsize = XVECTOR (obarray)->size;
     }
+  /* This is sometimes needed in the middle of GC.  */
+  obsize &= ~ARRAY_MARK_FLAG;
   /* Combining next two lines breaks VMS C 2.3.  */
   hash = hash_string (ptr, size);
   hash %= obsize;
