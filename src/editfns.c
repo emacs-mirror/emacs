@@ -2192,7 +2192,11 @@ DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
   "Return the contents of part of the current buffer as a string.\n\
 The two arguments START and END are character positions;\n\
 they can be in either order.\n\
-The string returned is multibyte if the buffer is multibyte.")
+The string returned is multibyte if the buffer is multibyte.\n\
+\n\
+This function copies the text properties of that part of the buffer\n\
+into the result string; if you don't want the text properties,\n\
+use `buffer-substring-no-properties' instead.")
   (start, end)
      Lisp_Object start, end;
 {
