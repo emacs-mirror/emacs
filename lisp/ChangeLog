@@ -1,3 +1,8 @@
+2001-07-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-insert-set-properties): Fix invalid mouse-face
+	property.
+
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/5x5.el, play/decipher.el, play/dunnet.el, play/fortune.el,
