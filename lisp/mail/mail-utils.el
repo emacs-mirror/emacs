@@ -116,7 +116,7 @@ Return a modified address list."
 		 (mail-string-delete address
 				     pos (match-end 0)))))
        ;; Retain only part of address in <> delims, if there is such a thing.
-       (while (setq pos (string-match "\\(,\\|\\`\\)[^,]*<\\([^>,]*>\\)"
+       (while (setq pos (string-match "\\(,\\s-*\\|\\`\\)[^,]*<\\([^>,]*>\\)"
 				      address))
 	 (let ((junk-beg (match-end 1))
 	       (junk-end (match-beginning 2))
