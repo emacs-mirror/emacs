@@ -9,12 +9,12 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 3.12
-@set EDITION 1.8
+@set VERSION 3.15
+@set EDITION 1.10
 @set IDLVERSION 5.3
 @set NSYSROUTINES 1226
-@set NSYSKEYWORDS 5230
-@set DATE December 1999
+@set NSYSKEYWORDS 5229
+@set DATE February 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER Carsten Dominik
@@ -30,7 +30,7 @@ a subprocess.@refill
 This is edition @value{EDITION} of the IDLWAVE User Manual for
 IDLWAVE @value{VERSION}@refill
 
-Copyright (c) 1999 Free Software Foundation, Inc.
+Copyright (c) 1999, 2000 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim
 copies of this manual provided the copyright notice and
@@ -64,7 +64,7 @@ translation approved by the Free Software Foundation.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
 
 @sp 2
 This is edition @value{EDITION} of the @cite{IDLWAVE User Manual} for
@@ -256,8 +256,6 @@ Some configuration examples are also given in the appendix.
 @cindex IDLWAVE in a Nutshell
 @cindex Nutshell, IDLWAVE in a
 
-If you are in a hurry, here is some quick-start information.
-
 @subheading Editing IDL Programs
 
 @multitable @columnfractions .15 .85
@@ -315,16 +313,17 @@ at point.
 (setq idlwave-main-block-indent 2         ; default  0
       idlwave-block-indent 2              ; default  4
       idlwave-end-offset -2)              ; default -4
-
-;; Syntax Highlighting
-(add-hook 'idlwave-mode-hook 'turn-on-font-lock)
+;; Pad some operators with spaces
+(setq idlwave-do-actions t
+      idlwave-surround-by-blank t)
 ;; Automatically expand END to ENDIF, ENDELSE, ...
 (setq idlwave-expand-generic-end t)
+;; Syntax Highlighting
+(add-hook 'idlwave-mode-hook 'turn-on-font-lock)
 
-;; Automatically start the shell when needed
-(setq idlwave-shell-automatic-start t)
-;; Always use a separate frame for the shell buffer
-(setq idlwave-shell-use-dedicated-frame t)
+;; Automatically start the shell when needed, in dedicated frame
+(setq idlwave-shell-automatic-start t
+      idlwave-shell-use-dedicated-frame t)
 
 ;; Specify a file where library info can be stored.
 (setq idlwave-libinfo-file "~/idlinfo.el")
@@ -739,7 +738,7 @@ property in the object operator @samp{->}.  This is not enabled by
 default - the variable @code{idlwave-store-inquired-class} can be used
 to turn it on.@refill
 
-@defopt idlwave-completion-show-classes (@code{t})
+@defopt idlwave-completion-show-classes (@code{1})
 Non-@code{nil} means, show classes in @file{*Completions*} buffer when
 completing object methods and keywords.@refill
 @end defopt
@@ -786,7 +785,7 @@ Otherwise, special abbreviations are used.  Emacs abbreviations are
 expanded by typing text into the buffer and pressing @key{SPC} or
 @key{RET}.  The special abbreviations used to insert code templates all
 start with a @samp{\} (the backslash).  Here are a few examples of
-predefined abbreviations.  For a full list, use @kbd{M-x
+predefined abbreviations.   For a full list, use @kbd{M-x
 idlwave-list-abbrevs}.
 
 @multitable @columnfractions .15 .85
@@ -809,7 +808,11 @@ idlwave-list-abbrevs}.
 @item @code{\b}
 @tab @code{BEGIN}
 @end multitable
- 
+
+The templates are expanded in upper or lower case, depending upon the
+variables @code{idlwave-abbrev-change-case} and
+@code{idlwave-reserved-word-upcase}.@refill
+
 @defopt idlwave-abbrev-start-char
 A single character string used to start abbreviations in abbrev
 mode.@refill
@@ -902,13 +905,14 @@ Non-@code{nil} means expand generic END to ENDIF/ENDELSE/ENDWHILE etc.
 Some operators can be automatically surrounded by spaces.  This can
 happen when the operator is typed, or also later when the line is
 indented.  IDLWAVE contains this setting for the operators @samp{&},
-@samp{<}, @samp{>}, @samp{,}, @samp{=}, but the feature is turned off by
-default.  If you want to turn it on, customize the variable
-@code{idlwave-surround-by-blank}.  You can also define similar actions
-for other operators by using the function
-@code{idlwave-action-and-binding} in the mode hook.  For example, to
-enforce space padding of the @samp{+} and @samp{*} operators, try this
-in @file{.emacs}
+@samp{<}, @samp{>}, @samp{,}, @samp{=}, and @samp{->}@footnote{operators
+longer than one character can only be padded during line indentation.},
+but the feature is turned off by default.  If you want to turn it on,
+customize the variables @code{idlwave-surround-by-blank} and
+@code{idlwave-do-actions}.  You can also define similar actions for
+other operators by using the function @code{idlwave-action-and-binding}
+in the mode hook.  For example, to enforce space padding of the @samp{+}
+and @samp{*} operators, try this in @file{.emacs}@refill
 
 @lisp
 (add-hook 'idlwave-mode-hook
@@ -920,8 +924,8 @@ in @file{.emacs}
 
 @defopt idlwave-surround-by-blank (@code{nil})
 Non-@code{nil} means, enable @code{idlwave-surround}.  If non-nil,
-@samp{=}, @samp{<}, @samp{>}, @samp{&}, @samp{,} are surrounded with
-spaces by @code{idlwave-surround}.
+@samp{=}, @samp{<}, @samp{>}, @samp{&}, @samp{,}, @samp{->} are
+surrounded with spaces by @code{idlwave-surround}.@refill
 @end defopt
 
 @defopt idlwave-pad-keyword (@code{t})
@@ -1384,24 +1388,50 @@ The face for breakpoint lines in the source code if
 @cindex Mouse binding to print expressions
 
 When execution is stopped you can examine the values of variables.  The
-command @kbd{C-c C-d C-p} prints the expression at point in the shell
-buffer, while @kbd{C-c C-d ?} shows help on this expression.  The
-expression at point is an array expression or a function call, or the
-contents of a pair of parenthesis.  The selected expression becomes
-highlighted in the source code for a short time.
+command @kbd{C-c C-d C-p} prints the expression at point, while @kbd{C-c
+C-d ?} shows help on this expression.  The expression at point is an
+array expression or a function call, or the contents of a pair of
+parenthesis.  The selected expression becomes highlighted in the source
+code for a short time.  Calling the above commands with a prefix
+argument will prompt for an expression instead of using the one at
+point.
 
 I find it very convenient to bind these functions to a mouse event, so
-that simply clicking on an expression prints its value.  Here is a way
-to do this with XEmacs:
+that simply clicking on an expression prints its value.  The following
+code binds printing an expression to a click with mouse button 2 while
+holding down the @key{SHIFT} key:
 
 @lisp
 (add-hook 'idlwave-shell-mode-hook
 	  (lambda() 
-	    (define-key idlwave-mode-map [(shift button1)]
-	      'idlwave-shell-mouse-print)
-	    (define-key idlwave-mode-map [(shift button2)]
-	      'idlwave-shell-mouse-help)))
+	    (define-key idlwave-mode-map [(shift mouse-2)]
+	      'idlwave-shell-mouse-print)))
 @end lisp
+
+Printing of expressions also works on higher levels of the calling
+stack.  This means that you can examine the values of variables and
+expressions inside the routine which called the current routine etc.
+Use the commands @kbd{C-c C-d C-@key{UP}}
+(@code{idlwave-shell-stack-up}) and @kbd{C-c C-d C-@key{DOWN}}
+(@code{idlwave-shell-stack-down}) or the corresponding toolbar buttons
+to move through the calling stack.  The mode line will indicate the
+routine and the calling stack level which define the context for
+printing expressions.  The following restrictions apply for all levels
+except the current:@refill
+
+@itemize @bullet
+@item
+Array expressions must use the @samp{[ ]} index delimiters.  Identifiers
+with a @samp{( )} will be interpreted as function calls.
+@item
+Variable names in the expression may not start with an underscore
+@samp{_}.
+@item
+@cindex ROUTINE_NAMES, IDL procedure
+Printing values of expressions on higher levels of the calling stack
+uses the @emph{unsupported} IDL routine @code{ROUTINE_NAMES}, which may
+or may not be available in future versions of IDL.
+@end itemize
 
 @defopt idlwave-shell-expression-face
 The face for @code{idlwave-shell-expression-overlay}.
@@ -1409,6 +1439,9 @@ Allows you to choose the font, color and other properties for
 the expression printed by IDL.
 @end defopt
 
+@defopt idlwave-shell-print-expression-function (@code{nil})
+A function to handle special display of evaluated expressions.
+@end defopt
 
 @node Installation, Acknowledgement, The IDLWAVE Shell, Top
 @chapter Installation
@@ -1425,8 +1458,8 @@ the expression printed by IDL.
 @node Installing IDLWAVE, Upgrading from idl.el, Installation, Installation
 @section Installing IDLWAVE
 
-IDLWAVE is part of Emacs 21.1 and later.  It is also@footnote{or will be
-soon} an XEmacs packages and can be installed from
+IDLWAVE is part of Emacs 21.1 and later.  It is also an XEmacs packages
+and can be installed from
 @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,the XEmacs ftp site}
 with the normal package management system on XEmacs 21.@refill
 
@@ -1458,6 +1491,10 @@ to get a separate frame for the IDL shell, remove that command from your
 @lisp
 (setq idlwave-shell-use-dedicated-frame t)
 @end lisp
+@item 
+The key sequence @kbd{M-@key{TAB}} no longer inserts a TAB character,
+but (as in many other Emacs modes) does completion.  Inserting a TAB is
+now bound to @kbd{C-c @key{SPC}}.@refill
 @end enumerate
 
 @node Acknowledgement, Sources of Routine Info, Installation, Top
@@ -1634,7 +1671,7 @@ shell will show up twice in the @file{*Completions*} listing.  This is
 usually not a serious problem.  However, if you have scanned the part of
 the library relevant for you, and if you are not compiling files which
 are not on the library search path, the information about compiled
-routines is in fact unnecessary.  In this case, you can turn of the
+routines is in fact unnecessary.  In this case, you can turn off the
 shell query for compiled routines with the variable
 @code{idlwave-query-shell-for-routine-info}.@refill
 
@@ -1675,9 +1712,9 @@ options in your package, but which ones do @emph{you} as the maintainer
 actually set in your own configuration?
 
 @noindent
-@b{Answer:} Hardly any.  As the maintainer, I set the default of all
-options to what I think is best.  However, I do not turn on features by
-default which
+@b{Answer:} Hardly any.  As the maintainer, I set the default of most
+options to what I think is best.  However, the default settings do not
+turn on features which
 @itemize @minus
 @item
 are not self-evident (i.e. too magic) when used by an unsuspecting user
@@ -1689,8 +1726,8 @@ will not work properly on all Emacs installations out there
 break with what I think are widely used standards.
 @end itemize
 
-@noindent To see what I mean, here is the entire configuration I have in
-my @file{.emacs}:
+@noindent To see what I mean, here is the @emph{entire} configuration I
+have in my @file{.emacs}:
 
 @lisp
 (setq idlwave-shell-activate-alt-keybindings t
@@ -1752,7 +1789,11 @@ user is King!@refill
     ;;
     ;; Only pad after comma and with exactly 1 space
     (idlwave-action-and-binding "," '(idlwave-surround nil 1))
+    (idlwave-action-and-binding "&" '(idlwave-surround 1 1))
     ;;
+    ;; Pad only after `->', remove any space before the arrow
+    (idlwave-action-and-binding "->"  '(idlwave-surround 0 -1 nil 2))
+    ;;;
     ;; Set some personal bindings
     ;; (In this case, makes `,' have the normal self-insert behavior.)
     (local-set-key "," 'self-insert-command)
@@ -1770,7 +1811,6 @@ user is King!@refill
 (setq idlwave-shell-prompt-pattern "^WAVE> ")  ; default is "^IDL> "
 (setq idlwave-shell-explicit-file-name "wave")
 (setq idlwave-shell-process-name "wave")
-(setq idlwave-shell-use-dedicated-frame t)     ; Shell on separate frame
 (setq idlwave-shell-use-toolbar nil)           ; No toolbar
 @end example
 
