@@ -54,8 +54,8 @@
 	
 2001-03-16  John Wiegley  <johnw@gnu.org>
 	
-	* (timeclock-workday-remaining): Check whether `discrep' is
-	non-null before using it.
+	* calendar/timeclock.el (timeclock-workday-remaining): Check
+	whether `discrep' is non-null before using it.
 
 2001-03-16  John Wiegley  <johnw@gnu.org>
 
