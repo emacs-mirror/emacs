@@ -333,6 +333,14 @@ esac
 #### give you automounter prefixes, which can go away.
 case "${srcdir}" in
   /* ) ;;
+  . )
+    ## We may be able to use the $PWD environment variable to make this
+    ## absolute.  But sometimes PWD is inaccurate.
+    if [ "${PWD}" != "" ] && [ "`(cd ${PWD} ; pwd)`" = "`pwd`" ] ; then
+      srcdir="$PWD"
+    else
+      srcdir="`(cd ${srcdir}; pwd)`"
+  ;;
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
@@ -1113,6 +1121,7 @@ echo "
 
 Configured for \`${configuration}'.
 
+  Where should the build process find the source code?    ${srcdir}
   What operating system and machine description files should Emacs use?
         \`${opsysfile}' and \`${machfile}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
