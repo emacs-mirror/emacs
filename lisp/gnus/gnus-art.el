@@ -318,6 +318,7 @@ advertisements.  For example:
 		   (symbol :tag "Item in `gnus-article-banner-alist'" none)
 		   regexp
 		   (const :tag "None" nil))))
+  :version "21.4"
   :group 'gnus-article-washing)
 
 (defcustom gnus-emphasis-alist
@@ -920,6 +921,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Remove newlines from within URLs.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
+  :version "21.4"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1124,6 +1126,7 @@ See Info node `(gnus)Customizing Articles' for details."
   "Unfold folded header lines.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
+  :version "21.4"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1238,6 +1241,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)Picons' for details."
+  :version "21.4"
   :group 'gnus-article-treat
   :group 'gnus-picon
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1253,6 +1257,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' and Info node
 `(gnus)Picons' for details."
+  :version "21.4"
   :group 'gnus-article-treat
   :group 'gnus-picon
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -1338,6 +1343,7 @@ See Info node `(gnus)Customizing Articles' for details."
 To automatically treat X-PGP-Sig, set it to head.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See Info node `(gnus)Customizing Articles' for details."
+  :version "21.4"
   :group 'gnus-article-treat
   :group 'mime-security
   :link '(custom-manual "(gnus)Customizing Articles")

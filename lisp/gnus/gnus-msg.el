@@ -281,6 +281,7 @@ If nil, Gnus will never ask for confirmation if replying to mail."
   "If non-nil, Gnus tries to suggest a default address to resend to.
 If nil, the address field will always be empty after invoking
 `gnus-summary-resend-message'."
+  :version "21.4"
   :group 'gnus-message
   :type 'boolean)
 

@@ -60,6 +60,7 @@
 
 (defgroup sha1 nil
   "Elisp interface for SHA1 hash computation."
+  :version "21.4"
   :group 'extensions)
 
 (defcustom sha1-maximum-internal-length 500
@@ -82,7 +83,6 @@ It must be a string \(program name\) or list of strings \(name and its args\)."
 			       (error))
   "*Use external SHA1 program.
 If this variable is set to nil, use internal function only."
-  :version "21.4"
   :type 'boolean
   :group 'sha1)
 

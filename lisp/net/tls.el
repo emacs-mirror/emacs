@@ -67,18 +67,21 @@ after successful negotiation."
 
 (defcustom tls-process-connection-type nil
   "*Value for `process-connection-type' to use when starting TLS process."
+  :version "21.4"
   :type 'boolean
   :group 'tls)
 
 (defcustom tls-success "- Handshake was completed"
   "*Regular expression indicating completed TLS handshakes.
 The default is what GNUTLS's \"gnutls-cli\" outputs."
+  :version "21.4"
   :type 'regexp
   :group 'tls)
 
 (defcustom tls-certtool-program (executable-find "certtool")
   "Name of  GnuTLS certtool.
 Used by `tls-certificate-information'."
+  :version "21.4"
   :type '(repeat string)
   :group 'tls)
 

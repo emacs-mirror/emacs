@@ -32,12 +32,14 @@
 
 (defcustom gnus-use-correct-string-widths (featurep 'xemacs)
   "*If non-nil, use correct functions for dealing with wide characters."
+  :version "21.4"
   :group 'gnus-format
   :type 'boolean)
 
 (defcustom gnus-make-format-preserve-properties (featurep 'xemacs)
   "*If non-nil, use a replacement `format' function which preserves
 text properties. This is only needed on XEmacs, as FSF Emacs does this anyway."
+  :version "21.4"
   :group 'gnus-format
   :type 'boolean)
 

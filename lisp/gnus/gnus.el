@@ -1314,6 +1314,7 @@ If the default site is too slow, try one of these:
 			(gnus-replace-in-string name "\\." "-") "-charter.html")))
   "*An alist of (HIERARCHY . FORM) pairs used to construct the URL of a charter.
 When FORM is evaluated `name' is bound to the name of the group."
+  :version "21.4"
   :group 'gnus-group-various
   :type '(repeat (cons (string :tag "Hierarchy") (sexp :tag "Form"))))
 
@@ -1321,6 +1322,7 @@ When FORM is evaluated `name' is bound to the name of the group."
   "*Non-nil means that control messages are displayed using `browse-url'.
 Otherwise they are fetched with ange-ftp and displayed in an ephemeral
 group."
+  :version "21.4"
   :group 'gnus-group-various
   :type 'boolean)
 
@@ -1788,6 +1790,7 @@ total number of articles in the group.")
 (defcustom gnus-install-group-spam-parameters t
   "*Disable the group parameters for spam detection.
 Enable if `G c' in XEmacs is giving you trouble, and make sure to submit a bug report."
+  :version "21.4"
   :type 'boolean
   :group 'gnus-start)
 

@@ -150,12 +150,14 @@ when displaying the image.  The default value is \"\\\\`cid:\" which only
 matches parts embedded to the Multipart/Related type MIME contents and
 Gnus will never connect to the spammer's site arbitrarily.  You may
 set this variable to nil if you consider all urls to be safe."
+  :version "21.4"
   :type '(choice (regexp :tag "Regexp")
 		 (const :tag "All URLs are safe" nil))
   :group 'mime-display)
 
 (defcustom mm-inline-text-html-with-w3m-keymap t
   "If non-nil, use emacs-w3m command keys in the article buffer."
+  :version "21.4"
   :type 'boolean
   :group 'mime-display)
 
@@ -378,6 +380,7 @@ If not set, `default-directory' will be used."
 
 (defcustom mm-attachment-file-modes 384
   "Set the mode bits of saved attachments to this integer."
+  :version "21.4"
   :type 'integer
   :group 'mime-display)
 
@@ -435,6 +438,7 @@ If not set, `default-directory' will be used."
   "Option of decrypting encrypted parts.
 `never', not decrypt; `always', always decrypt;
 `known', only decrypt known protocols.  Otherwise, ask user."
+  :version "21.4"
   :type '(choice (item always)
 		 (item never)
 		 (item :tag "only known protocols" known)
