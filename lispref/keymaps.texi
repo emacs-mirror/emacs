@@ -333,7 +333,7 @@ new parent keymaps that reflect what @var{parent} specifies for those
 prefix keys.
 @end defun
 
-Here is an example showing how to make a keymap that inherits
+   Here is an example showing how to make a keymap that inherits
 from @code{text-mode-map}:
 
 @example
@@ -341,6 +341,12 @@ from @code{text-mode-map}:
   (set-keymap-parent map text-mode-map)
   map)
 @end example
+
+  A non-sparse keymap can have a parent too, but this is not very
+useful.  A non-sparse keymap always specifies something as the binding
+for every numeric character code without modifier bits, even if it is
+@code{nil}, so these character's bindings are never inherited from
+the parent keymap.
 
 @node Prefix Keys
 @section Prefix Keys
