@@ -295,7 +295,7 @@ w32con_insert_glyphs (register struct glyph *start, register int len)
 }
 
 extern unsigned char *encode_terminal_code P_ ((struct glyph *, int, 
-						struct coding-system *));
+						struct coding_system *));
 
 static void
 w32con_write_glyphs (register struct glyph *string, register int len)
