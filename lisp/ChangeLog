@@ -1,3 +1,8 @@
+2001-08-22  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Remove TARGET-FILE
+	before writing it, so that hard-links don't see new version.
+
 2001-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* gs.el (gs-set-ghostview-colors-window-prop): Call
