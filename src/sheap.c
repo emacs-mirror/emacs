@@ -99,3 +99,6 @@ report_sheap_usage (int die_if_pure_storage_exceeded)
 	   bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
   message ("%s", buf);
 }
+
+/* arch-tag: 1bc386e8-71c2-4da4-b8b5-c1674a9cf926
+   (do not change this comment) */

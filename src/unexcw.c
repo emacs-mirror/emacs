@@ -302,3 +302,6 @@ unexec (char *outfile, char *infile, unsigned start_data, unsigned d1,
 
   return (0);
 }
+
+/* arch-tag: fc44f6c3-ca0a-45e0-a5a2-58b6101b1e65
+   (do not change this comment) */
