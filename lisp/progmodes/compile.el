@@ -437,6 +437,10 @@ Otherwise, it saves all modified buffers without asking."
   "The default grep program for `grep-command' and `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
+(defvar find-program "find"
+  "The default find program for `grep-find-command'.
+This variable's value takes effect when `grep-compute-defaults' is called.")
+
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
@@ -592,12 +596,13 @@ to a function that generates a unique name."
   (unless grep-find-command
     (setq grep-find-command
 	  (cond ((eq grep-find-use-xargs 'gnu)
-		 (format "find . -type f -print0 | xargs -0 -e %s"
-			 grep-command))
+		 (format "%s . -type f -print0 | xargs -0 -e %s"
+			 find-program grep-command))
 		(grep-find-use-xargs
-		 (format "find . -type f -print | xargs %s" grep-command))
-		(t (cons (format "find . -type f -exec %s {} %s \\;"
-				 grep-command null-device)
+		 (format "%s . -type f -print | xargs %s"
+                         find-program grep-command))
+		(t (cons (format "%s . -type f -exec %s {} %s \\;"
+				 find-program grep-command null-device)
 			 (+ 22 (length grep-command))))))))
 
 ;;;###autoload

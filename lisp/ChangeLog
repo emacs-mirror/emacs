@@ -1,3 +1,9 @@
+2001-09-19  Sam Steingold  <sds@gnu.org>
+
+	w32 find cannot be used with `grep-find'.
+	* progmodes/compile.el (find-program): New variable.
+	(grep-compute-defaults): Use it to set `grep-find-command'.
+
 2001-09-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* ps-bdf.el (bdf-read-bitmap): Initialize returned values to
@@ -85,10 +91,10 @@
 	* simple.el: Comment out change of 2001-09-13.
 
 2001-09-13  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper-cmd.el (viper-replace-char-subr, viper-envelop-ESC-key):
 	inhibit quit.
-	
+
 2001-09-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (make-auto-save-file-name): If long file names are not
@@ -97,7 +103,7 @@
 
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
-	* ps-print.el (ps-print-region, ps-print-region-with-faces) 
+	* ps-print.el (ps-print-region, ps-print-region-with-faces)
 	(ps-nb-pages-region): Signal an error if called interactively
 	and the mark is not active.
 
@@ -156,18 +162,18 @@
 	* mail/sendmail.el (mail-send): Obey mail-send-nonascii when
 	enable-multibyte-characters = nil.  From Hallvard B Furuseth
 	<h.b.furuseth@usit.uio.no>.
-	
+
 2001-09-09  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-init.el (ediff-highest-priority): bug fix.
 
 	* viper-cmd.el (viper-special-read-and-insert-char): new function
 	that reads a character and uses the current input method or
 	iso-accents when appropriate.
-	
+
 	* viper.el and all others: corrections to the comment blocks at
 	the top.
-	
+
 2001-09-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-goto-node): Doc fix.
@@ -186,7 +192,7 @@
 	the entries, to keep the line length balanced for loaddefs.el.
 
 2001-09-07  Dr Francis J. Wright  <F.J.Wright@qmw.ac.uk>
-	
+
 	* comint.el (comint-send-input): Handle comint-process-echoes
 	differently.
 
@@ -201,7 +207,7 @@
 	computation.
 
 2001-09-07  Gerd Moellmann  <gerd@gnu.org>
-	
+
 	* server.el (server-switch-buffer): Use get-window-with-predicate.
 
 	* textmodes/refer.el (refer-find-entry-internal): Use
@@ -255,7 +261,7 @@
 
 	* comint.el (comint-send-input): Change help-echo.
 	From "Dr Francis J. Wright" <F.J.Wright@qmw.ac.uk>.
-	
+
 	* bookmark.el (bookmark-write-file): Bind print-length and
 	print-level to nil.  From Tom Capey <tomc@edina.co.uk>.
 
