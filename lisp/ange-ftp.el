@@ -3782,7 +3782,7 @@ system TYPE.")
 	     completions)))
 
       (if (or (and (eq system-type 'windows-nt)
-		   (string-match "^[a-zA-Z]:[/\]$" ange-ftp-this-dir))
+		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
 	      (string-equal "/" ange-ftp-this-dir))
 	  (nconc (all-completions file (ange-ftp-generate-root-prefixes))
 		 (ange-ftp-real-file-name-all-completions file
@@ -3814,7 +3814,9 @@ system TYPE.")
 		     file tbl ange-ftp-this-dir
 		     (function ange-ftp-file-entry-active-p)))))))
 
-      (if (string-equal "/" ange-ftp-this-dir)
+      (if (or (and (eq system-type 'windows-nt)
+		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
+	      (string-equal "/" ange-ftp-this-dir))
 	  (try-completion
 	   file
 	   (nconc (ange-ftp-generate-root-prefixes)
@@ -4086,7 +4088,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
 		file-name-handler-alist)))
 
-;;; This regexp recognizes and absolute filenames with only one component,
+;;; This regexp recognizes absolute filenames with only one component,
 ;;; for the sake of hostname completion.
 ;;;###autoload
 (or (assoc "^/[^/:]*\\'" file-name-handler-alist)
@@ -4094,8 +4096,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
 		file-name-handler-alist)))
 
-;;; Absolute file names prefixed with a drive letter.
-;;;###autoload
+;;; This regexp recognizes absolute filenames with only one component
+;;; on Windows, for the sake of hostname completion.
+;;; NB. Do not mark this as autoload, because it is very common to
+;;; do completions in the root directory of drives on Windows.
 (and (memq system-type '(ms-dos windows-nt))
      (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
 	 (setq file-name-handler-alist
