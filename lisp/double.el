@@ -85,12 +85,12 @@ Each entry is a list with three elements:
 	(message ""))
     (read-event)))
 
-(global-set-key [ ignore ] '(lambda () (interactive)))
+(global-set-key [ignore] '(lambda () (interactive)))
 
 (or (boundp 'isearch-mode-map)
     (load-library "isearch"))
 
-(define-key isearch-mode-map [ ignore ] 
+(define-key isearch-mode-map [ignore] 
   (function (lambda () (interactive) (isearch-update))))
 
 (defun double-translate-key (prompt)
@@ -107,15 +107,15 @@ Each entry is a list with three elements:
 		 (progn 
 		   (setq unread-command-events
 			 (append (make-list (1- (length (nth 1 entry)))
-					    'delete)
+					    127)
 				 (nth 2 entry)
 				 '(magic-end)))
 		   (vector 127))
 	       (setq unread-command-events (list new))
-	       [ ignore ])))
+	       [ignore])))
 	  ((eq key 'magic-end)
 	   ;; End of double event.  Ignore.
-	   [ ignore ])
+	   [ignore])
 	  (t
 	   ;; New key.
 	   (let ((exp (nth 1 (assoc key double-map))))
