@@ -1,3 +1,9 @@
+2002-04-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Decode file name before using.
+
+	* w32term.c (construct_drag_n_drop): Likewise.
+
 2002-04-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (MMAP_ALLOCATED_P): New macro to be set from system
