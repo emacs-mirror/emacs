@@ -1,3 +1,11 @@
+2001-11-12  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el: Many trivial doc fixes.
+	(dired-get-file-for-visit): New function.
+	(dired-find-alternate-file, dired-mouse-find-file-other-window):
+	(dired-view-file, dired-find-file-other-window, dired-display-file): 
+	(dired-find-file): Use dired-get-file-for-visit.	
+
 2001-11-12  Alex Schroeder  <kensanata@yahoo.com>
 
 	* sql.el (sql-mode): Doc change.
