@@ -1,5 +1,8 @@
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/fill.el (set-fill-prefix): Cancel fill prefix if point
+	is in front of the left-margin, if any.
+
 	* simple.el (delete-key-deletes-forward-mode): Treat `kp-delete'
 	like `delete'.
 
