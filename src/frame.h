@@ -233,6 +233,13 @@ struct frame
   /* Nonnegative if current redisplay should not do scroll computation
      for lines beyond a certain vpos.  This is the vpos.  */
   int scroll_bottom_vpos;
+
+  /* A vector that records the entire structure of this frame's menu bar.
+     For the format of the data, see extensive comments in xmenu.c.
+     Only the X toolkit version uses this.  */
+  Lisp_Object menu_bar_vector;
+  /* Number of elements in the vector that have meaningful data.  */
+  int menu_bar_items_used;
 };
 
 #ifdef MULTI_FRAME
