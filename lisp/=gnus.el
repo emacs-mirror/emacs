@@ -1532,8 +1532,12 @@ Cross references (Xref: field) of articles are ignored."
 (defun gnus-group-unsubscribe-current-group ()
   "Toggle subscribe from/to unsubscribe current group."
   (interactive)
-  (gnus-group-unsubscribe-group (gnus-group-group-name))
-  (gnus-group-next-group 1))
+  (let ((group (gnus-group-group-name)))
+    (if group
+	 (progn
+	   (gnus-group-unsubscribe-group group)
+	   (gnus-group-next-group 1))
+      (message "No Newsgroup found to \(un\)subscribe"))))
 
 (defun gnus-group-unsubscribe-group (group)
   "Toggle subscribe from/to unsubscribe GROUP.
