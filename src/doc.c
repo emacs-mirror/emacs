@@ -536,7 +536,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   Lisp_Object tem;
   Lisp_Object keymap;
   unsigned char *start;
-  int length;
+  int length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int multibyte;
@@ -594,7 +594,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  Lisp_Object firstkey;
-	  int length_byte;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
@@ -648,7 +647,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
-	  int length_byte;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
