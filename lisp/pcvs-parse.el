@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.13 2002/09/03 01:23:15 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.14 2003/02/04 11:56:55 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -274,7 +274,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	(cvs-or
 	 (cvs-match "warning: \\(.*\\) is not (any longer) pertinent$" (file 1))
 	 (cvs-match "\\(.*\\) is no longer in the repository$" (file 1)))
-	(cvs-parsed-fileinfo 'DEAD file))
+	(cvs-parsed-fileinfo
+	 (if dont-change-disc '(NEED-UPDATE . REMOVED) 'DEAD) file))
 
        ;; [add]
        (and
