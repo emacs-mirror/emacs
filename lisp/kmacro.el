@@ -178,6 +178,7 @@ macro to be executed before appending to it."
     (define-key map "q"    'kbd-macro-query)
     (define-key map "n"    'name-last-kbd-macro)
     (define-key map "e"    'edit-kbd-macro)
+    (define-key map "r"    'apply-macro-to-region-lines)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
