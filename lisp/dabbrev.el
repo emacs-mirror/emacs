@@ -972,6 +972,9 @@ Leaves point at the location of the start of the expansion."
 			    "\\(" dabbrev--abbrev-char-regexp "\\)"))
 	  (pattern2 (concat (regexp-quote abbrev)
 			   "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
+	  ;; This makes it possible to find matches in minibuffer prompts
+	  ;; even when they are "inviolable".
+	  (inhibit-point-motion-hooks t)
 	  found-string result)
       ;; Limited search.
       (save-restriction
