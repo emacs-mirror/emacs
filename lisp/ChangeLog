@@ -1,3 +1,11 @@
+2002-08-02  Richard M. Stallman  <rms@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Redo finding C and C++ headers.
+
+	* icomplete.el (icomplete-exhibit): Use minibuffer-prompt-end.
+
+	* pcomplete.el (pcomplete-entries): Doc fix.
+
 2002-07-30  Andreas Schwab  <schwab@suse.de>
 
 	* shell.el (explicit-bash-args): New user option.
