@@ -93,7 +93,7 @@
 	Check for escapes in the regexp.
 	(python-quote-syntax): Don't do it here.
 
-2004-11-25  Nick Roberts  <nickrob@snap.net.nz>
+2004-11-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-breakpoints-mode-map)
 	(gdb-frames-mode-map, gdb-threads-mode-map)
@@ -111,7 +111,7 @@
 	(gdb-frame-breakpoints-buffer):
 	Use pop-to-buffer, special-display-regexps.
 
-2004-11-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
+2004-11-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-smart-end)
 	(f90-previous-statement, f90-beginning-of-block): Doc fix.
