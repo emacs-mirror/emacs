@@ -78,7 +78,7 @@
 
 (provide 'facemenu)
 
-(defvar facemenu-key "\M-s"
+(defvar facemenu-key "\M-g"
   "Prefix to use for facemenu commands.")
 
 (defvar facemenu-keybindings
