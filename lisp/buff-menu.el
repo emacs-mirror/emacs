@@ -242,19 +242,19 @@ and then move up one line"
       (insert ?S)
       (forward-line 1))))
 
-(defun Buffer-menu-not-modified ()
+(defun Buffer-menu-not-modified (&optional arg)
   "Mark buffer on this line as unmodified (no changes to save)."
-  (interactive)
+  (interactive "P")
   (save-excursion
     (set-buffer (Buffer-menu-buffer t))
-    (set-buffer-modified-p nil))
+    (set-buffer-modified-p arg))
   (save-excursion
    (beginning-of-line)
    (forward-char 1)
-   (if (looking-at "\\*")
+   (if (= (char-after (point)) (if arg ?  ?*))
        (let ((buffer-read-only nil))
 	 (delete-char 1)
-	 (insert ? )))))
+	 (insert (if arg ?* ? ))))))
 
 (defun Buffer-menu-execute ()
   "Save and/or delete buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] or \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
