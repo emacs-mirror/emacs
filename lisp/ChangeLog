@@ -1,3 +1,10 @@
+2004-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-set-region-1): If transient-mark-mode
+	is `identity', change it to `only'.
+
+	* simple.el (current-word): Doc fix.
+
 2004-07-09  Mark A. Hershberger  <mah@everybody.org>
 
 	* progmodes/cperl-mode.el (cperl-mode): Adapt defun-prompt-regexp
