@@ -1,5 +1,8 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
 
+;; Maintainer: FSF
+;; Last-Modified: 21 Dec 1991
+
 ;; Not fully installed because it can work only on Internet hosts.
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
@@ -20,6 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ;; >> This should be an address which is accessible to your machine,
 ;; >> otherwise you can't use this file.  It will only work on the

@@ -1,5 +1,9 @@
-;; DIRED commands for Emacs.  $Revision: 5.234 $
+;; dired-aux.el --- directory browsing command support
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
+;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
+;; Version: 5.234
+;; Last-Modified: 14 Jul 1992
 
 ;; This file is part of GNU Emacs.
 
@@ -17,9 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Finished up by rms in 1992.
+
+;;; Code:
 
 ;;; 15K
 ;;;###begin dired-cmd.el
@@ -1770,3 +1778,5 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 	  (setq alist (cdr alist)))))))
 
 ;;;###end dired-ins.el
+
+;;; dired-aux.el ends here
