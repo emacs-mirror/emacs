@@ -336,7 +336,8 @@ tooltip display in the group `tooltip'.
 ** Customize changes
 
 *** Customize now supports comments about customized items.  Use the
-`State' menu to add comments.
+`State' menu to add comments.  Note that customization comments will
+cause the customizations to fail in earlier versions of Emacs.
 
 *** The new option `custom-buffer-done-function' says whether to kill
 Custom buffers when you've done with them or just bury them (the
