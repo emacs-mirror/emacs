@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.16 2001/10/31 17:39:07 sds Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.17 2001/12/20 18:42:44 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +40,7 @@
 (defvar cvs-version
   (ignore-errors
     (with-temp-buffer
-      (call-process "cvs" nil t nil "-v")
+      (call-process cvs-program nil t nil "-v")
       (goto-char (point-min))
       (when (re-search-forward "(CVS) \\([0-9]+\\)\\.\\([0-9]+\\)" nil t)
 	(cons (string-to-number (match-string 1))
