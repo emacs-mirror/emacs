@@ -80,6 +80,55 @@ document xmarker
 Print $ as a marker pointer, assuming it is an Emacs Lisp marker value.
 end
 
+define xoverlay
+print (struct Lisp_Overlay *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xoverlay
+Print $ as a overlay pointer, assuming it is an Emacs Lisp overlay value.
+end
+
+define xmiscfree
+print (struct Lisp_Free *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xmiscfree
+Print $ as a misc free-cell pointer, assuming it is an Emacs Lisp Misc value.
+end
+
+define xintfwd
+print (struct Lisp_Intfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xintfwd
+Print $ as an integer forwarding pointer, assuming it is an Emacs Lisp Misc value.
+end
+
+define xboolfwd
+print (struct Lisp_Boolfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xboolfwd
+Print $ as a boolean forwarding pointer, assuming it is an Emacs Lisp Misc value.
+end
+
+define xobjfwd
+print (struct Lisp_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xobjfwd
+Print $ as an object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+end
+
+define xbuffer_objfwd
+print (struct Lisp_Buffer_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xbuffer_objfwd
+Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+end
+
+define xbuffer_local_value
+print (struct Lisp_Buffer_Local_Value *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xbuffer_local_value
+Print $ as a buffer-local-value pointer, assuming it is an Emacs Lisp Misc value.
+end
+
 define xbuffer
 print (struct buffer *) (($ & 0x0fffffff) | $data_seg_bits)
 output &((struct Lisp_String *) ((($->name) & 0x0fffffff) | $data_seg_bits))->data
@@ -125,6 +174,21 @@ print (struct frame *) (($ & 0x0fffffff) | $data_seg_bits)
 end
 document xframe
 Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
+end
+
+define xwindow_configuration
+print (struct save_window_data *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xwindow_configuration
+Print $ as a window configuration pointer, assuming it is an Emacs Lisp window configuration value.
+end
+
+define xcompiled
+print (struct Lisp_Vector *) (($ & 0x0fffffff) | $data_seg_bits)
+output ($->contents[0])@($->size & 0xff)
+end
+document xcompiled
+Print $ as a compiled function pointer, assuming it is an Emacs Lisp compiled value.
 end
 
 define xcons
