@@ -5,6 +5,11 @@
 	(unwind_create_tip_frame): Set tip_frame to nil only if frame
 	was deleted.
 
+	* w32fns.c (unwind_create_frame): Return t if frame was deleted.
+	Don't alter tip_frame or tip_window.
+	(unwind_create_tip_frame): Set tip_frame to nil only if frame
+	was deleted.
+
 2000-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fcopy_file): Rename the last argument to keep_time, to
