@@ -851,10 +851,10 @@ preserve_other_columns (w)
 
 	      bcopy (current_frame->glyphs[vpos],
 		     desired_frame->glyphs[vpos],
-		     start * sizeof (current_frame->glyphs[vpos]));
+		     start * sizeof (current_frame->glyphs[vpos][0]));
 	      bcopy (current_frame->charstarts[vpos],
 		     desired_frame->charstarts[vpos],
-		     start * sizeof (current_frame->charstarts[vpos]));
+		     start * sizeof (current_frame->charstarts[vpos][0]));
 	      len = min (start, current_frame->used[vpos]);
 	      if (desired_frame->used[vpos] < len)
 		desired_frame->used[vpos] = len;
@@ -871,11 +871,11 @@ preserve_other_columns (w)
 	      bcopy (current_frame->glyphs[vpos] + end,
 		     desired_frame->glyphs[vpos] + end,
 		     ((current_frame->used[vpos] - end)
-		      * sizeof (current_frame->glyphs[vpos])));
+		      * sizeof (current_frame->glyphs[vpos][0])));
 	      bcopy (current_frame->charstarts[vpos] + end,
 		     desired_frame->charstarts[vpos] + end,
 		     ((current_frame->used[vpos] - end)
-		      * sizeof (current_frame->charstarts[vpos])));
+		      * sizeof (current_frame->charstarts[vpos][0])));
 	      desired_frame->used[vpos] = current_frame->used[vpos];
 	    }
 	}
