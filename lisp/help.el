@@ -107,8 +107,10 @@
 (defvar help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
 Used by `help-follow' and `help-xref-go-back'.
-An element looks like (POSITION FUNCTION ARGS...).
-To use the element, do (apply FUNCTION ARGS) then (goto-char POSITION).")
+An element looks like (POSITION FUNCTION ARGS...), where POSITION is
+`(POINT . BUFFER-NAME)'.
+To use the element, do (apply FUNCTION ARGS) then goto the point in
+the named buffer.")
 (put 'help-xref-stack 'permanent-local t)
 
 (defvar help-xref-stack-item nil
@@ -287,9 +289,8 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	 (funcall (or function 'message)
 		  (concat
 		   (if first-message
-		       (substitute-command-keys first-message)
-		     "")
-		   (if first-message "  " "")
+		       (substitute-command-keys first-message))
+		   (if first-message "  ")
 		   ;; If the help buffer will go in a separate frame,
 		   ;; it's no use mentioning a command to scroll, so don't.
 		   (if (special-display-p (buffer-name standard-output))
@@ -1039,6 +1040,9 @@ items for help buffer \"back\" buttons is cleared."
       (setq help-xref-stack nil))
   (setq help-xref-stack-item item))
 
+(defvar help-xref-following nil
+  "Non-nil when following a help cross-reference.")
+
 (defun help-make-xrefs (&optional buffer)
   "Parse and hyperlink documentation cross-references in the given BUFFER.
 
@@ -1154,7 +1158,7 @@ that."
 			       (zerop (forward-line)))))))))
           (set-syntax-table stab))
         ;; Make a back-reference in this buffer if appropriate.
-        (when help-xref-stack
+        (when (and help-xref-following help-xref-stack)
           (goto-char (point-max))
           (save-excursion
             (insert "\n\n" help-back-label))
@@ -1245,16 +1249,16 @@ help buffer."
     (with-current-buffer buffer
       (when help-xref-stack
 	(setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
-	(setq item (car help-xref-stack)
+	(setq item (pop help-xref-stack)
 	      position (car item)
 	      method (cadr item)
-	      args (cddr item))
-	(setq help-xref-stack (cdr help-xref-stack))))
+	      args (cddr item))))
     (apply method args)
-    ;; We're not in the right buffer to do this, and we don't actually
-    ;; know which we should be in.
-    ;;(goto-char position)
-    ))
+    ;; We assume that the buffer we just recreated has the saved name,
+    ;; which might not always be true.
+    (when (get-buffer (cdr position))
+      (with-current-buffer (cdr position)
+	(goto-char (car position))))))
 
 (defun help-go-back ()
   "Invoke the [back] button (if any) in the Help mode buffer."
@@ -1286,11 +1290,13 @@ For the cross-reference format, see `help-make-xrefs'."
          (method (car help-data))
          (args (cdr help-data)))
     (when help-data
-      (setq help-xref-stack (cons (cons (point) help-xref-stack-item)
+      (setq help-xref-stack (cons (cons (cons pos (buffer-name))
+					help-xref-stack-item)
 				  help-xref-stack))
       (setq help-xref-stack-item nil)
       ;; There is a reference at point.  Follow it.
-      (apply method args))))
+      (let ((help-xref-following t))
+	(apply method args)))))
 
 ;; For tabbing through buffer.
 (defun help-next-ref ()
