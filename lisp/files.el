@@ -1735,7 +1735,8 @@ the old visited file has been renamed to the new name FILENAME."
   (kill-local-variable 'vc-mode)
   ;; Turn off backup files for certain file names.
   ;; Since this is a permanent local, the major mode won't eliminate it.
-  (and (not (funcall backup-enable-predicate buffer-file-name))
+  (and buffer-file-name
+       (not (funcall backup-enable-predicate buffer-file-name))
        (progn
 	 (make-local-variable 'backup-inhibited)
 	 (setq backup-inhibited t)))
