@@ -924,8 +924,9 @@ WHAT is a value of nil, `never', or `always'."
   (interactive)
   (let ((current (bs--current-buffer))
 	(inhibit-read-only t))
+    (unless (kill-buffer current)
+      (error "Buffer was not deleted"))
     (setq bs-current-list (delq current bs-current-list))
-    (kill-buffer current)
     (beginning-of-line)
     (delete-region (point) (save-excursion
 			     (end-of-line)
