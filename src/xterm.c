@@ -4135,6 +4135,10 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
+		      /* The necessity of the following line took me
+			 a full work-day to decipher from the docs!!  */
+		      if (XFilterEvent (&event, None))
+			break;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
 						&event.xkey, copy_buffer,
 						80, &keysym,
@@ -6916,7 +6920,9 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->connection = connection;
 
   {
-    char null_bits[] = { 0x00 };
+    char null_bits[1];
+
+    null_bits[0] = 0x00;
 
     dpyinfo->null_pixel
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window, 
