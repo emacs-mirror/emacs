@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.53) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.54) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -104,7 +104,8 @@ typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
 /* Arena*Method -- see @@@@ */
 
 
-typedef Res (*ArenaInitMethod)(Arena *arenaReturn, va_list args);
+typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
+                               ArenaClass class, va_list args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaCommittedMethod)(Arena arena);
