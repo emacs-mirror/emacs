@@ -642,6 +642,8 @@ Returns nil if line starts inside a string, t if in a comment."
 				     ;; Make sure the "function decl" we found
 				     ;; is not inside a comment.
 				     (progn
+				       ;; Move back to the `(' starting arglist
+				       (goto-char lim)
 				       (beginning-of-line)
 				       (while (and (not comment)
 						   (search-forward "/*" lim t))
