@@ -17,8 +17,18 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef emacs
 #include "config.h"
 #include "lisp.h"
+#endif
+
+#ifndef emacs
+#include <stddef.h>
+typedef size_t SIZE;
+typedef void *POINTER;
+#define EXCEEDS_LISP_PTR(x) 0
+#endif
+
 #include "mem_limits.h"
 
 /*
@@ -26,6 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   0 -- no warnings issued.
   1 -- 75% warning already issued.
   2 -- 85% warning already issued.
+  3 -- 95% warning issued; keep warning frequently.
 */
 static int warnlevel;
 
@@ -43,53 +54,63 @@ morecore_with_warning (size)
 {
   POINTER result;
   register POINTER cp;
-  register unsigned int siz;
-
-  if (!data_space_start)
-    {
-      data_space_start = start_of_data ();
-    }
+  int five_percent;
+  int data_size;
 
   if (lim_data == 0)
     get_lim_data ();
+  five_percent = lim_data / 20;
 
   /* Find current end of memory and issue warning if getting near max */
   cp = sbrk (0);
-  siz = cp - data_space_start;
+  data_size = cp - data_space_start;
 
   if (warnfunction)
     switch (warnlevel)
       {
       case 0: 
-	if (siz > (lim_data / 4) * 3)
+	if (data_size > five_percent * 15)
 	  {
 	    warnlevel++;
-	    (*warnfunction) ("Warning: past 75% of memory limit");
+	    (*warn_function) ("Warning: past 75% of memory limit");
 	  }
 	break;
 
       case 1: 
-	if (siz > (lim_data / 20) * 17)
+	if (data_size > five_percent * 17)
 	  {
 	    warnlevel++;
-	    (*warnfunction) ("Warning: past 85% of memory limit");
+	    (*warn_function) ("Warning: past 85% of memory limit");
 	  }
 	break;
 
       case 2: 
-	if (siz > (lim_data / 20) * 19)
+	if (data_size > five_percent * 19)
 	  {
 	    warnlevel++;
-	    (*warnfunction) ("Warning: past 95% of memory limit");
+	    (*warn_function) ("Warning: past 95% of memory limit");
 	  }
 	break;
 
       default:
-	(*warnfunction) ("Warning: past acceptable memory limits");
+	(*warn_function) ("Warning: past acceptable memory limits");
 	break;
       }
 
-  if (EXCEEDS_ELISP_PTR (cp))
+  /* If we go down below 70% full, issue another 75% warning
+     when we go up again.  */
+  if (data_size < five_percent * 14)
+    warnlevel = 0;
+  /* If we go down below 80% full, issue another 85% warning
+     when we go up again.  */
+  else if (warnlevel > 1 && data_size < five_percent * 16)
+    warnlevel = 1;
+  /* If we go down below 90% full, issue another 95% warning
+     when we go up again.  */
+  else if (warnlevel > 2 && data_size < five_percent * 18)
+    warnlevel = 2;
+
+  if (EXCEEDS_LISP_PTR (cp))
     (*warnfunction) ("Warning: memory in use exceeds lisp pointer size");
 
   result = sbrk (size);
@@ -102,7 +123,7 @@ morecore_with_warning (size)
    also declare where the end of pure storage is. */
 
 void
-malloc_init (start, warnfun)
+memory_warnings (start, warnfun)
      POINTER start;
      void (*warnfun) ();
 {
@@ -110,8 +131,9 @@ malloc_init (start, warnfun)
 
   if (start)
     data_space_start = start;
-  lim_data = 0;
-  warnlevel = 0;
+  else
+    data_space_start = start_of_data ();
+
   warnfunction = warnfun;
   __morecore = &morecore_with_warning;
 }
