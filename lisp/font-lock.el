@@ -2094,7 +2094,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   "\\)\\)\\>"
 		   ;; Any whitespace and defined object.
 		   "[ \t'\(]*"
-		   "\\(\\sw+\\)?")
+		   "\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
 	   '(9 (cond ((match-beginning 3) font-lock-function-name-face)
 		     ((match-beginning 6) font-lock-variable-name-face)
