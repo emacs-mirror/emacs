@@ -1,3 +1,8 @@
+2000-02-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (Fforward_comment): Undo the previous change, since cc-mode
+	depends on the previous behavior.
+
 2000-02-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c (vfork) [!HAVE_VFORK]: Removed.

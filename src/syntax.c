@@ -1910,15 +1910,19 @@ between them, return t; otherwise return nil.")
 				    &out_charpos, &out_bytepos);
 	      if (found == -1)
 		{
-		  /* Failure: we have to skip the one or two chars of the
+#if 0	/* cc-mode (and maybe others) relies on the bogus behavior.  */
+		  /* Failure: we should go back to the end of this
 		     not-quite-endcomment.  */
 		  if (SYNTAX(c) != code)
 		    /* It was a two-char Sendcomment.  */
 		    INC_BOTH (from, from_byte);
 		  goto leave;
+#endif
 		}
-	      /* We have skipped one comment.  */
-	      from = out_charpos, from_byte = out_bytepos;
+	      else
+		/* We have skipped one comment.  */
+		from = out_charpos, from_byte = out_bytepos;
+	      break;
 	    }
 	  else if (code != Swhitespace && code != Scomment)
 	    {
