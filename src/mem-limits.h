@@ -1,5 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,7 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #define BSD4_2			/* Tell code below to use getrlimit.  */
 
 /* Old Linux startup code won't define __data_start.  */
-extern int etext, __data_start; weak_symbol (__data_start)
+extern int etext, __data_start; weak_extern (__data_start)
 #define start_of_data()	(&__data_start ?: &etext)
 
 #else /* not _LIBC */
