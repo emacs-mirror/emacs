@@ -301,7 +301,7 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
   :type 'boolean)
 
 (defvar checkdoc-generate-compile-warnings-flag nil
-  "Non-nil means generage warnings in a buffer for browsing.
+  "Non-nil means generate warnings in a buffer for browsing.
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
@@ -461,8 +461,8 @@ be re-created.")
 ;;
 ;;;###autoload
 (defun checkdoc ()
-  "Interactivly check the entire buffer for style errors.
-The current status of the ckeck will be displayed in a buffer which
+  "Interactively check the entire buffer for style errors.
+The current status of the check will be displayed in a buffer which
 the users will view as each check is completed."
   (interactive)
   (let ((status (list "Checking..." "-" "-" "-"))
@@ -510,7 +510,7 @@ the users will view as each check is completed."
 (defun checkdoc-display-status-buffer (check)
   "Display and update the status buffer for the current checkdoc mode.
 CHECK is a vector stating the current status of each test as an
-element is the status of that level of teset."
+element is the status of that level of test."
   (let (temp-buffer-setup-hook)
     (with-output-to-temp-buffer " *Checkdoc Status*"
       (princ-list
@@ -556,9 +556,9 @@ checkdoc status window instead of the usual behavior."
 			       'checkdoc-next-message-error)))
 
 (defun checkdoc-interactive-loop (start-here showstatus findfunc)
-  "Interactivly loop over all errors that can be found by a given method.
+  "Interactively loop over all errors that can be found by a given method.
 Searching starts at START-HERE.  SHOWSTATUS expresses the verbosity
-of the search, and wether ending the search will auto-exit this function.
+of the search, and whether ending the search will auto-exit this function.
 FINDFUNC is a symbol representing a function that will position the
 cursor, and return error message text to present to the user.  It is
 assumed that the cursor will stop just before a major sexp, which will
