@@ -1,3 +1,11 @@
+2000-09-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (keymap_memberp): New function.
+	(Fset_keymap_parent): Use it.
+	(fix_submap_inheritance): Use get_keyelt, get_keymap_1 and KEYMAPP.
+	Use keymap_memberp to avoid creating cycles.
+	(access_keymap): Use KEYMAPP.
+
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (Fopen_network_stream) [HAVE_GETADDRINFO]: Use
