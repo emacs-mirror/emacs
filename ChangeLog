@@ -1,3 +1,11 @@
+2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Check for existence of djecho.exe, and print an
+	error message if it is not available.
+
+	* INSTALL: Describe possible problem with djecho.exe in old
+	versions of DJGPP v2.x.
+
 2000-11-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Initialize HAVE_LIBXP to no.

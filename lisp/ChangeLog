@@ -1,3 +1,12 @@
+2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* iswitchb.el (iswitchb-minibuf-depth): New variable.
+	(iswitchb-read-buffer): Record in iswitchb-minibuf-depth the value
+	we expect to be returned by minibuffer-depth once we prompt the
+	user in the minibuffer.
+	(iswitchb-entryfn-p): If minibuffer-depth returns the same value
+	as recorded in iswitchb-minibuf-depth, return non-nil.
+
 2000-11-23  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* hscroll.el (turn-on-hscroll, hscroll-mode, hscroll-global-mode)
