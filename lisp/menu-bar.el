@@ -947,8 +947,8 @@ Do the same for the keys of the same name."
   '("--"))
 
 (define-key menu-bar-tools-menu [gdb]
-  '(menu-item "Debugger (GUD)..." gdb
-	      :help "Debug a program from within Emacs"))
+  '(menu-item "Debugger (GDB)..." gdb
+	      :help "Debug a program from within Emacs with GDB"))
 (define-key menu-bar-tools-menu [shell-on-region]
   '(menu-item "Shell Command on Region..." shell-command-on-region
 	      :enable mark-active
