@@ -1,5 +1,9 @@
 2000-09-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs.c, callint.c, doc.c, editfns.c: Remove includes of
+	string.h and strings.h.
+	(index) [HAVE_INDEX]: Add prototype.
+
 	* unexelf.c (SHT_PROGBITS) [__NetBSD__ && !PT_LOAD]: Don't define.
 	(SHT_MIPS_DEBUG, HDRR) [__NetBSD__ && __mips__]: Define.
 
