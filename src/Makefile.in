@@ -32,6 +32,7 @@ LN_S=@LN_S@
 # BSD doesn't have it as a default.
 @SET_MAKE@
 LIBS = @LIBS@
+LIBOBJS = @LIBOBJS@
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
@@ -551,7 +552,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o \
-	@LIBOBJS@ MSDOS_OBJ
+	$(LIBOBJS) MSDOS_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
