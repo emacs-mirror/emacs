@@ -1,3 +1,10 @@
+2004-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fringe.el (fringe-indicators): Add fake defvar to avoid compiler
+	warning.  Delay real definition, which uses
+	`set-fringe-indicators-1' till after the definition of that
+	function.
+
 2004-11-28  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.el (fringe): New defgroup.
