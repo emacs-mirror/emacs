@@ -5377,7 +5377,7 @@ move_it_vertically_backward (it, dy)
 	     a line height of 13 pixels each, recentering with point
 	     on the bottom line will try to move -39/2 = 19 pixels
 	     backward.  Try to avoid moving into the first line.  */
-	  && it->current_y - target_y > line_height / 2
+	  && it->current_y - target_y > line_height / 3 * 2
 	  && IT_CHARPOS (*it) > BEGV)
 	{
 	  move_it_vertically (it, target_y - it->current_y);
