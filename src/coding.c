@@ -4336,8 +4336,8 @@ decode_coding_charset (coding)
 	  Lisp_Object val;
 	  struct charset *charset;
 	  int dim;
-	  unsigned code;
-	  int c1;
+	  int len = 1;
+	  unsigned code = c;
 
 	  val = AREF (valids, c);
 	  if (NILP (val))
@@ -4346,21 +4346,10 @@ decode_coding_charset (coding)
 	    {
 	      charset = CHARSET_FROM_ID (XFASTINT (val));
 	      dim = CHARSET_DIMENSION (charset);
-	      code = c;
-	      if (dim > 1)
+	      while (len++ < dim)
 		{
-		  ONE_MORE_BYTE (c1);
-		  code = (code << 8) | c1;
-		  if (dim > 2)
-		    {
-		      ONE_MORE_BYTE (c1);
-		      code = (code << 8) | c1;
-		      if (dim > 3)
-			{
-			  ONE_MORE_BYTE (c1);
-			  code = (c << 8) | c1;
-			}
-		    }
+		  ONE_MORE_BYTE (c);
+		  code = (code << 8) | c;
 		}
 	      CODING_DECODE_CHAR (coding, src, src_base, src_end,
 				  charset, code, c);
@@ -4370,28 +4359,15 @@ decode_coding_charset (coding)
 	      /* VAL is a list of charset IDs.  It is assured that the
 		 list is sorted by charset dimensions (smaller one
 		 comes first).  */
-	      int b[4];
-	      int len = 1;
-
-	      b[0] = c;
-	      /* VAL is a list of charset IDs.  */
 	      while (CONSP (val))
 		{
 		  charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
 		  dim = CHARSET_DIMENSION (charset);
-		  while (len < dim)
+		  while (len++ < dim)
 		    {
-		      ONE_MORE_BYTE (c1);
-		      b[len++] = c1;
+		      ONE_MORE_BYTE (c);
+		      code = (code << 8) | c;
 		    }
-		  if (dim == 1)
-		    code = b[0];
-		  else if (dim == 2)
-		    code = (b[0] << 8) | b[1];
-		  else if (dim == 3)
-		    code = (b[0] << 16) | (b[1] << 8) | b[2];
-		  else
-		    code = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
 		  CODING_DECODE_CHAR (coding, src, src_base,
 				      src_end, charset, code, c);
 		  if (c >= 0)
