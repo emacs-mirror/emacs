@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.7) $
+ * $HopeName: MMsrc!poolmrg.c(MMdevel_bufferscan.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -28,8 +28,8 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(MMdevel_bufferscan.2) $");
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.7) $");
 
 #define MRGSig          ((Sig)0x519369B0) /* SIGnature MRG POol */
 
@@ -412,11 +412,9 @@ static PoolClassStruct PoolClassMRGStruct = {
   MRGAlloc,                             /* alloc */
   MRGFree,                              /* free */
   PoolNoBufferInit,                     /* bufferInit */
-  PoolNoBufferFinish,                   /* bufferFinish */
   PoolNoBufferFill,                     /* bufferFill */
-  PoolNoBufferTrip,                     /* bufferTrip */
-  PoolNoBufferExpose,                   /* bufferExpose */
-  PoolNoBufferCover,                    /* bufferCover */
+  PoolNoBufferEmpty,                    /* bufferEmpty */
+  PoolNoBufferFinish,                   /* bufferFinish */
   PoolNoCondemn,                        /* condemn */
   PoolTrivGrey,                         /* grey */
   MRGScan,                              /* scan */

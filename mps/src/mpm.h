@@ -1,6 +1,10 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.24) $
+<<<<<<< fleece:trunk:src:mpm.h
+ * $HopeName: MMsrc!mpm.h(trunk.25) $
+=======
+ * $HopeName: MMsrc!mpm.h(MMdevel_bufferscan.2) $
+>>>>>>> 1.25.2.2
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -272,10 +276,12 @@ extern Res PoolNoBufferInit(Pool pool, Buffer buf);
 extern Res PoolTrivBufferInit(Pool pool, Buffer buf);
 extern void PoolNoBufferFinish(Pool pool, Buffer buf);
 extern void PoolTrivBufferFinish(Pool pool, Buffer buf);
-extern Res PoolNoBufferFill(Addr *baseReturn, Pool pool, Buffer buffer, Size size);
-extern Bool PoolNoBufferTrip(Pool pool, Buffer buffer, Addr base, Size size);
-extern void PoolNoBufferExpose(Pool pool, Buffer buffer);
-extern void PoolNoBufferCover(Pool pool, Buffer buffer);
+extern Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+                            Pool pool, Buffer buffer, Size size);
+extern Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+                              Pool pool, Buffer buffer, Size size);
+extern void PoolNoBufferEmpty(Pool pool, Buffer buffer);
+extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer);
 extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoCondemn(Pool pool, Trace trace, Seg seg);
@@ -426,20 +432,22 @@ extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
 extern Res BufferInit(Buffer buffer, Pool pool, Rank rank);
 extern void BufferFinish(Buffer buffer);
-extern void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit);
-extern void BufferReset(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
+extern void BufferFlip(Buffer buffer);
+extern Addr BufferScanLimit(Buffer buffer);
 extern AP (BufferAP)(Buffer buffer);
 #define BufferAP(buffer)        (&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
+#define BufferOfAP(ap)		PARENT(BufferStruct, apStruct, ap)
 extern Space BufferSpace(Buffer buffer);
+#define BufferSpace(buffer)	((buffer)->space)
 extern Pool (BufferPool)(Buffer buffer);
 #define BufferPool(buffer)      ((buffer)->pool)
 extern Seg (BufferSeg)(Buffer buffer);
 #define BufferSeg(buffer)       ((buffer)->seg)
-extern Rank (BufferRank)(Buffer buffer);
-#define BufferRank(buffer)      ((buffer)->rank)
+extern Rank (BufferRankSet)(Buffer buffer);
+#define BufferRankSet(buffer)   ((buffer)->rankSet)
 extern Addr (BufferBase)(Buffer buffer);
 #define BufferBase(buffer)      ((buffer)->base)
 extern Addr (BufferGetInit)(Buffer buffer);

@@ -1,12 +1,17 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.21) $
+<<<<<<< fleece:trunk:src:mpmst.h
+ * $HopeName: MMsrc!mpmst.h(trunk.22) $
+=======
+ * $HopeName: MMsrc!mpmst.h(MMdevel_bufferscan.2) $
+>>>>>>> 1.22.3.2
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
  *
- * .design: This header file crosses module boundaries.  The relevant design
- * a module's structures should be found in that module's design document.
+ * .design: This header file crosses module boundaries.  The relevant
+ * design a module's structures should be found in that module's design
+ * document.
  *
  * .requirements: There are none [maybe being easy to experiment is a
  * requirement].
@@ -87,12 +92,10 @@ typedef struct PoolClassStruct {
   PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
-  PoolBufferInitMethod bufferInit;      /* additional buffer init */
-  PoolBufferFinishMethod bufferFinish;  /* additional buffer finish */
-  PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
-  PoolBufferTripMethod bufferTrip;      /* out-of-line commit */
-  PoolBufferExposeMethod bufferExpose;  /* remove protection */
-  PoolBufferCoverMethod bufferCover;    /* reinstate protection */
+  PoolBufferInitMethod bufferInit;
+  PoolBufferFillMethod bufferFill;
+  PoolBufferEmptyMethod bufferEmpty;
+  PoolBufferFinishMethod bufferFinish;
   PoolCondemnMethod condemn;    /* condemn (some or all) objects */
   PoolGreyMethod grey;          /* grey non-white objects */
   PoolScanMethod scan;          /* find references during tracing */
@@ -380,12 +383,14 @@ typedef struct BufferStruct {
   Serial serial;                /* from pool->bufferSerial */
   Space space;                  /* owning space */
   Pool pool;                    /* owning pool */
-  Seg seg;                      /* segment being buffered */
-  Rank rankSet;                 /* ranks of references being created */
-  Addr base;                    /* base address of allocation buffer */
-  APStruct apStruct;            /* the allocation point */
-  Align alignment;              /* allocation alignment */
   RingStruct poolRing;          /* buffers are attached to pools */
+  Rank rankSet;                 /* ranks of references being created */
+  Seg seg;                      /* segment being buffered */
+  Addr base;                    /* base address of allocation buffer */
+  Addr initAtFlip;              /* limit of initialized data at flip */
+  APStruct apStruct;            /* the allocation point */
+  Addr poolLimit;		/* the pool's idea of the limit */
+  Align alignment;              /* allocation alignment */
   void *p;			/* closure variable for pool */
   int i;                        /* closure variable for pool */
 } BufferStruct;

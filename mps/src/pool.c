@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(MMdevel_action2.10) $
+ * $HopeName: MMsrc!pool.c(MMdevel_bufferscan.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_action2.10) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_bufferscan.2) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -29,11 +29,9 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->alloc));
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->bufferInit));
-  CHECKL(FUNCHECK(class->bufferFinish));
   CHECKL(FUNCHECK(class->bufferFill));
-  CHECKL(FUNCHECK(class->bufferTrip));
-  CHECKL(FUNCHECK(class->bufferExpose));
-  CHECKL(FUNCHECK(class->bufferCover));
+  CHECKL(FUNCHECK(class->bufferEmpty));
+  CHECKL(FUNCHECK(class->bufferFinish));
   CHECKL(FUNCHECK(class->condemn));
   CHECKL(FUNCHECK(class->grey));
   CHECKL(FUNCHECK(class->scan));
@@ -223,6 +221,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
+  AVER((pool->class->attr & AttrALLOC) != 0);
   AVER(size > 0);
 
   res = (*pool->class->alloc)(pReturn, pool, size);
@@ -239,6 +238,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 void PoolFree(Pool pool, Addr old, Size size)
 {
   AVERT(Pool, pool);
+  AVER((pool->class->attr & AttrFREE) != 0);
   AVER(old != NULL);
   AVER(PoolHasAddr(pool, old));
   AVER(size > 0);
@@ -524,6 +524,7 @@ void PoolNoBufferFinish(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
   NOTREACHED;
 }
 
@@ -531,10 +532,12 @@ void PoolTrivBufferFinish(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
   NOOP;
 }
 
-Res PoolNoBufferFill(Addr *baseReturn, Pool pool, Buffer buffer, Size size)
+Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+                     Pool pool, Buffer buffer, Size size)
 {
   AVER(baseReturn != NULL);
   AVERT(Pool, pool);
@@ -544,28 +547,46 @@ Res PoolNoBufferFill(Addr *baseReturn, Pool pool, Buffer buffer, Size size)
   return ResUNIMPL;
 }
 
-Bool PoolNoBufferTrip(Pool pool, Buffer buffer, Addr base, Size size)
+Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+                       Pool pool, Buffer buffer, Size size)
 {
+  Res res;
+  Addr p;
+  Seg seg;
+  Bool b;
+
+  AVER(baseReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
-  AVER(base != NULL);
   AVER(size > 0);
-  NOTREACHED;
-  return FALSE;
+
+  res = PoolAlloc(&p, pool, size);
+  if(res != ResOK) return res;
+  
+  b = SegOfAddr(&seg, PoolSpace(pool), p);
+  AVER(b);
+  
+  *segReturn = seg;
+  *baseReturn = p;
+  *limitReturn = AddrAdd(p, size);
+  return ResOK;
 }
 
-void PoolNoBufferExpose(Pool pool, Buffer buffer)
+void PoolNoBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
+  AVER(!BufferIsReset(buffer));
+  AVER(BufferIsReady(buffer));
   NOTREACHED;
 }
 
-void PoolNoBufferCover(Pool pool, Buffer buffer)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
-  NOTREACHED;
+  AVER(!BufferIsReset(buffer));
+  AVER(BufferIsReady(buffer));
 }
 
 Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream)
