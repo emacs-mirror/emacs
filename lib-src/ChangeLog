@@ -1,3 +1,8 @@
+2000-11-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Add targets for ebrowse.exe.
+	(LOCAL_FLAGS): Add -DVERSION flag.
+
 2000-09-25  Dave Love  <fx@gnu.org>
 
 	* sorted-doc.c: Include config.h.
@@ -4231,5 +4236,5 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
