@@ -1620,16 +1620,14 @@ main (argc, argv
       keys_of_minibuf ();
       keys_of_window ();
     }
-	else
+  else
     {
-      /*
-        Initialization that must be done even if the global variable
-        initialized is non zero
-      */
+      /* Initialization that must be done even if the global variable
+	 initialized is non zero.  */
 #ifdef HAVE_NTGUI
       globals_of_w32fns ();
       globals_of_w32menu ();
-#endif  /* end #ifdef HAVE_NTGUI */
+#endif  /* HAVE_NTGUI */
     }
 
   if (!noninteractive)
@@ -2279,7 +2277,7 @@ synchronize_locale (category, plocale, desired_locale)
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *)(SDATA (desired_locale))
+			    ? (char *) SDATA (desired_locale)
 			    : ""));
     }
 }
