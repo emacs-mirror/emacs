@@ -2637,7 +2637,9 @@ It will read a directory name from the minibuffer when invoked."
 
 (defun widget-sexp-value-to-internal (widget value)
   ;; Use pp for printer representation.
-  (let ((pp (pp-to-string value)))
+  (let ((pp (if (symbolp value)
+		(prin1-to-string value)
+	      (pp-to-string value))))
     (while (string-match "\n\\'" pp)
       (setq pp (substring pp 0 -1)))
     (if (or (string-match "\n\\'" pp)
