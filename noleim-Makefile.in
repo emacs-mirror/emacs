@@ -4,4 +4,4 @@
 all install:
 
 # Avoid error when these targets are used.
-clean distclean mostlyclean maintainer-clean:
+clean extraclean distclean mostlyclean maintainer-clean::

@@ -1,6 +1,6 @@
-2001-01-28  Bill Wohler  <wohler@newt.com>
+2001-01-28  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (extraclean): added target so make doesn't die if
+	* Makefile.in (extraclean): Added target so make doesn't die if
 	one runs "make extraclean" at the top level.
 
 2001-01-06  Andrew Innes  <andrewi@gnu.org>
