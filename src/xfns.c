@@ -1648,7 +1648,7 @@ x_figure_window_size (f, parms)
       if (f->display.x->top_pos < 0)
 	window_prompting |= YNegative;
       if (f->display.x->left_pos < 0)
-	window_prompting |= YNegative;
+	window_prompting |= XNegative;
       window_prompting |= USPosition;
     }
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
@@ -2288,7 +2288,7 @@ be shared by the new frame.")
 /* With the toolkit, the geometry management is done in x_window.  */
 #ifndef USE_X_TOOLKIT
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, window_prompting, 1);
+  x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
 #endif /* USE_X_TOOLKIT */
 
