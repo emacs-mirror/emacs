@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000
 ;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -2638,7 +2638,7 @@ This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
 (defvar comment-indent-function
-  '(lambda () comment-column)
+  (lambda () comment-column)
   "Function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
@@ -3498,6 +3498,16 @@ use either M-x customize or the function `set-input-mode'."
   :link '(custom-manual "Single-Byte European Support")
   :group 'keyboard)
 
+(defcustom read-mail-command 'rmail
+  "*Your preference for a mail reading package.
+This is used by some keybindings which support reading mail."
+  :type '(choice (function-item rmail)
+		 (function-item gnus)
+		 (function-item mh-rmail)
+		 (function :tag "Other"))
+  :version "21.1"
+  :group 'mail)
+
 (defcustom mail-user-agent 'sendmail-user-agent
   "*Your preference for a mail composition package.
 Various Emacs Lisp packages (e.g. reporter) require you to compose an
@@ -3506,9 +3516,9 @@ mail-sending package you prefer.
 
 Valid values include:
 
-    sendmail-user-agent -- use the default Emacs Mail package
-    mh-e-user-agent     -- use the Emacs interface to the MH mail system
-    message-user-agent  -- use the GNUS mail sending package
+    `sendmail-user-agent' -- use the default Emacs Mail package
+    `mh-e-user-agent'     -- use the Emacs interface to the MH mail system
+    `message-user-agent'  -- use the GNUS mail sending package
 
 Additional valid symbols may be available; check with the author of
 your package for details."
@@ -4130,7 +4140,7 @@ saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
   (let ((old-table (gensym))
 	(old-buffer (gensym)))
-    '(let ((,old-table (syntax-table))
+    `(let ((,old-table (syntax-table))
 	   (,old-buffer (current-buffer)))
        (unwind-protect
 	   (progn
