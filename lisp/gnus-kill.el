@@ -215,7 +215,7 @@ If NEWSGROUP is nil, the global kill file is selected."
  
 (defun gnus-kill-file-kill-by-thread ()
   "Kill by author."
-  (interactive "p")
+  (interactive)
   (gnus-kill-file-enter-kill
    "References" 
    (if (vectorp gnus-current-headers)
