@@ -339,6 +339,8 @@ new value.")
       ;; one character.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
 	(overlay-put overlay 'field 'boundary)
+        ;; We need the real field for tabbing.
+	(overlay-put overlay 'real-field widget)
 	;; Use `local-map' here, not `keymap', so that normal editing
 	;; works in the field when, say, Custom uses `suppress-keymap'.
 	(overlay-put overlay 'local-map keymap)
@@ -1149,7 +1151,7 @@ When not inside a field, move to the previous button or field."
   "Return the widget field at POS, or nil if none."
   (let ((field (get-char-property (or pos (point)) 'field)))
     (if (eq field 'boundary)
-	nil
+	(get-char-property (or pos (point)) 'real-field)
       field)))
 
 (defun widget-field-buffer (widget)
