@@ -30,9 +30,9 @@ Boston, MA 02111-1307, USA.  */
  **  abstraction : a stopwatch
  **  operations: reset_watch, get_time
  */
-#include <../src/config.h>
+#include <config.h>
 #include <stdio.h>
-#include <../src/systime.h>
+#include <systime.h>
 
 static EMACS_TIME TV1, TV2;
 static int watch_not_started = 1; /* flag */
@@ -48,7 +48,7 @@ reset_watch ()
 }
 
 /* This call returns the time since the last reset_watch call.  The time
-   is returned as a string with the format  <seconds>.<micro-seconds> 
+   is returned as a string with the format  <seconds>.<micro-seconds>
    If reset_watch was not called yet, exit.  */
 
 char *
@@ -63,7 +63,7 @@ get_time ()
 }
 
 #if ! defined (HAVE_GETTIMEOFDAY) && defined (HAVE_TIMEVAL)
- 
+
 /* ARGSUSED */
 gettimeofday (tp, tzp)
      struct timeval *tp;
@@ -71,12 +71,12 @@ gettimeofday (tp, tzp)
 {
   extern long time ();
 
-  tp->tv_sec = time ((long *)0);    
+  tp->tv_sec = time ((long *)0);
   tp->tv_usec = 0;
   if (tzp != 0)
     tzp->tz_minuteswest = -1;
 }
- 
+
 #endif
 
 int
@@ -102,3 +102,5 @@ main ()
     }
   exit (1);
 }
+
+/* profile.c ends here */
