@@ -1,5 +1,12 @@
 2005-03-23  Lute Kamstra  <lute@gnu.org>
 
+	* generic-x.el: Code cleanup: make arguments constant whenever
+	possible.
+	(installshield-statement-keyword-list)
+	(installshield-system-functions-list)
+	(installshield-system-variables-list, installshield-types-list)
+	(installshield-funarg-constants-list): Make them constants.
+
 	* generic.el (generic-make-keywords-list): Add autoload cookie.
 
 	* calendar/time-date.el: Add comment on time value formats.  Don't
