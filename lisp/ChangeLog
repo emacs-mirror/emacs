@@ -1,3 +1,11 @@
+1999-12-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.el (after-find-file): Use auto-save-visited-file-name if
+	set.
+
+	* mail/feedmail.el (feedmail-find-eoh): Take
+	feedmail-queue-alternative-mail-header-separator into account.
+
 1999-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* smerge-mode.el: New file.
