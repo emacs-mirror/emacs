@@ -584,6 +584,13 @@ main (argc, argv, envp)
       long newlim;
       /* Approximate the amount regex.c needs, plus some more.  */
       newlim = 800000 * sizeof (char *);
+#ifdef __NetBSD__
+      /* NetBSD (at least NetBSD 1.2G and former) has a bug in its
+       stack allocation routine for new process that the allocation
+       fails if stack limit is not on page boundary.  So, round up the
+       new limit to page boundary.  */
+      newlim = (newlim + getpagesize () - 1) / getpagesize () * getpagesize();
+#endif
       if (newlim > rlim.rlim_max)
 	newlim = rlim.rlim_max;
       if (rlim.rlim_cur < newlim)
