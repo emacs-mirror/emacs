@@ -1,9 +1,28 @@
+2003-04-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eval.c (For, Fand, Fprogn, un_autoload, do_autoload):
+	Use XCDR, XCAR, CONSP.
+	(Fdefmacro): Fix docstring.  Use XCAR, XCDR.
+	(Fapply): Remove unnecessary GCPRO.
+
+	* doc.c (Fsubstitute_command_keys): Remove spurious casts.
+
+	* charset.h (PARSE_MULTIBYTE_SEQ): Pretend `length' is used.
+
+	* buffer.h: Don't hardcode BEG==1.
+
+	* abbrev.c (Fdefine_abbrev_table): Use XCAR, XCDR.
+
 2003-04-16  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (try_window, try_window_reusing_current_matrix):
 	When at end of window, set window_end_pos to Z-ZV.
 
 	* buffer.c (Foverlay_recenter): Doc fix.
+
+2003-04-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dispnew.c (Fsit_For): Support XEmacs-style arg list.
 
 2003-04-14  Andrew Choi  <akochoi@shaw.ca>
 
