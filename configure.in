@@ -2075,6 +2075,9 @@ fi
 
 AC_FUNC_VFORK
 
+# Fixme: This should be replaced when we have autoconf 2.14.
+AC_SIZE_T
+
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
