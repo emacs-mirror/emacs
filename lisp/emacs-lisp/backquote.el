@@ -149,7 +149,7 @@ will result in errors that will show up very late."
  ;;; glue what I've already done to the end, than to to prepare that
  ;;; something and go back to put things together.
 (defun bq-make-maker (form)
-  "Given one argument, a `mostly quoted' object, produces a maker.
+  "Given argument FORM, a `mostly quoted' object, produces a maker.
 See backquote.el for details"
   (let ((tailmaker (quote nil)) (qc 0) (ec 0) (state nil))
     (mapcar 'bq-iterative-list-builder (reverse form))
@@ -195,9 +195,9 @@ See backquote.el for details"
 ;;; This maintains the invariant that (cons state tailmaker) is the
  ;;; maker for the elements of the tail we've eaten so far.
 (defun bq-iterative-list-builder (form)
-  "Called by `bq-make-maker'.  Adds a new item form to tailmaker, 
-changing state if need be, so tailmaker and state constitute a recipe
-for making the list so far."
+  "Adds a new item form to tailmaker changing state if need be, so tailmaker
+and state constitute a recipe for making the list so far.  Called by
+`bq-make-maker'."
   (cond ((atom form)
 	 (funcall (bq-cadr (assq state bq-quotefns)) form))
 	((memq (car form) backquote-unquote)
