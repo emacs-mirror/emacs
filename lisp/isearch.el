@@ -943,7 +943,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 			 (isearch-message-prefix nil nil isearch-nonincremental)
 			 isearch-string
 			 minibuffer-local-isearch-map nil
-			 'junk-ring))
+			 'junk-ring nil t))
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
 				 isearch-new-string "")))
@@ -2386,59 +2386,64 @@ Attempt to do the search exactly the way the pending isearch would."
   (let ((max isearch-lazy-highlight-max-at-a-time)
         (looping t)
         nomore)
-    (save-excursion
-      (save-match-data
-        (goto-char (if isearch-forward
-                       isearch-lazy-highlight-end
-                     isearch-lazy-highlight-start))
-        (while looping
-          (let ((found (isearch-lazy-highlight-search)))
-            (when max
-              (setq max (1- max))
-              (if (<= max 0)
-                  (setq looping nil)))
-            (if found
-                (let ((mb (match-beginning 0))
-                      (me (match-end 0)))
-                  (if (= mb me)      ;zero-length match
+    (with-local-quit
+      (save-selected-window
+	(if (and (window-live-p isearch-lazy-highlight-window)
+		 (not (eq (selected-window) isearch-lazy-highlight-window)))
+	    (select-window isearch-lazy-highlight-window))
+	(save-excursion
+	  (save-match-data
+	    (goto-char (if isearch-forward
+			   isearch-lazy-highlight-end
+			 isearch-lazy-highlight-start))
+	    (while looping
+	      (let ((found (isearch-lazy-highlight-search)))
+		(when max
+		  (setq max (1- max))
+		  (if (<= max 0)
+		      (setq looping nil)))
+		(if found
+		    (let ((mb (match-beginning 0))
+			  (me (match-end 0)))
+		      (if (= mb me)	;zero-length match
+			  (if isearch-forward
+			      (if (= mb (if isearch-lazy-highlight-wrapped
+					    isearch-lazy-highlight-start
+					  (window-end)))
+				  (setq found nil)
+				(forward-char 1))
+			    (if (= mb (if isearch-lazy-highlight-wrapped
+					  isearch-lazy-highlight-end
+					(window-start)))
+				(setq found nil)
+			      (forward-char -1)))
+
+			;; non-zero-length match
+			(let ((ov (make-overlay mb me)))
+			  (push ov isearch-lazy-highlight-overlays)
+			  (overlay-put ov 'face isearch-lazy-highlight-face)
+			  (overlay-put ov 'priority 0) ;lower than main overlay
+			  (overlay-put ov 'window (selected-window))))
 		      (if isearch-forward
-			  (if (= mb (if isearch-lazy-highlight-wrapped
-					isearch-lazy-highlight-start
-				      (window-end)))
-			      (setq found nil)
-			    (forward-char 1))
-			(if (= mb (if isearch-lazy-highlight-wrapped
-				      isearch-lazy-highlight-end
-				    (window-start)))
-			    (setq found nil)
-			  (forward-char -1)))
+			  (setq isearch-lazy-highlight-end (point))
+			(setq isearch-lazy-highlight-start (point)))))
 
-                    ;; non-zero-length match
-                    (let ((ov (make-overlay mb me)))
-                      (overlay-put ov 'face isearch-lazy-highlight-face)
-                      (overlay-put ov 'priority 0) ;lower than main overlay
-                      (overlay-put ov 'window (selected-window))
-                      (push ov isearch-lazy-highlight-overlays)))
-                  (if isearch-forward
-                      (setq isearch-lazy-highlight-end (point))
-                    (setq isearch-lazy-highlight-start (point)))))
-
-	    ;; not found or zero-length match at the search bound
-	    (if (not found)
-		(if isearch-lazy-highlight-wrapped
-		    (setq looping nil
-			  nomore  t)
-		  (setq isearch-lazy-highlight-wrapped t)
-		  (if isearch-forward
-		      (progn
-			(setq isearch-lazy-highlight-end (window-start))
-			(goto-char (window-start)))
-		    (setq isearch-lazy-highlight-start (window-end))
-		    (goto-char (window-end)))))))
-        (unless nomore
-          (setq isearch-lazy-highlight-timer
-                (run-at-time isearch-lazy-highlight-interval nil
-                             'isearch-lazy-highlight-update)))))))
+		;; not found or zero-length match at the search bound
+		(if (not found)
+		    (if isearch-lazy-highlight-wrapped
+			(setq looping nil
+			      nomore  t)
+		      (setq isearch-lazy-highlight-wrapped t)
+		      (if isearch-forward
+			  (progn
+			    (setq isearch-lazy-highlight-end (window-start))
+			    (goto-char (window-start)))
+			(setq isearch-lazy-highlight-start (window-end))
+			(goto-char (window-end)))))))
+	    (unless nomore
+	      (setq isearch-lazy-highlight-timer
+		    (run-at-time isearch-lazy-highlight-interval nil
+				 'isearch-lazy-highlight-update)))))))))
 
 (defun isearch-resume (search regexp word forward message case-fold)
   "Resume an incremental search.
