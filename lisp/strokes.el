@@ -1298,11 +1298,11 @@ This is based on the last time the `strokes-window-configuration was updated."
 		  (insert
 		   ";;   -*- Syntax: Emacs-Lisp; Mode: emacs-lisp -*-\n")
 		  (insert (format ";;; saved strokes for %s, as of %s\n\n"
-					 (user-full-name)
-					 (format-time-string "%B %e, %Y" nil)))
+				  (user-full-name)
+				  (format-time-string "%B %e, %Y" nil)))
 		  (message "Saving strokes in %s..." strokes-file)
 		  (insert (format "(setq strokes-global-map '%s)"
-					 (pp current)))
+				  (pp current)))
 		  (message "Saving strokes in %s..." strokes-file)
 		  (indent-region (point-min) (point-max) nil)
 		  (write-region (point-min)
