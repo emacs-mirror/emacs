@@ -1994,25 +1994,32 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && startp >= BEGV && startp <= ZV)
     {
       int this_scroll_margin = scroll_margin;
+      int scroll_margin_pos;
 
       /* Don't use a scroll margin that is negative or too large.  */
       if (this_scroll_margin < 0)
 	this_scroll_margin = 0;
 
-      if (XINT (w->height) < 4 * scroll_margin)
+      if (XINT (w->height) < 4 * this_scroll_margin)
 	this_scroll_margin = XINT (w->height) / 4;
 
-      if (PT >= Z - XFASTINT (w->window_end_pos))
+      scroll_margin_pos = Z - XFASTINT (w->window_end_pos);
+      if (this_scroll_margin)
+	{
+	  pos = *vmotion (scroll_margin_pos, -this_scroll_margin, w);
+	  scroll_margin_pos = pos.bufpos;
+	}
+      if (PT >= scroll_margin_pos)
 	{
 	  struct position pos;
-	  pos = *compute_motion (Z - XFASTINT (w->window_end_pos), 0, 0, 0,
+	  pos = *compute_motion (scroll_margin_pos, 0, 0, 0,
 				 PT, XFASTINT (w->height), 0,
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
 				 pos_tab_offset (w, startp), w);
 	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, pos.vpos + 1 + this_scroll_margin, w);
+	  pos = *vmotion (startp, pos.vpos + 1, w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
@@ -2033,17 +2040,24 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  else
 	    cancel_my_columns (w);
 	}
-      if (PT < startp)
+
+      scroll_margin_pos = startp;
+      if (this_scroll_margin)
+	{
+	  pos = *vmotion (scroll_margin_pos, this_scroll_margin, w);
+	  scroll_margin_pos = pos.bufpos;
+	}
+      if (PT < scroll_margin_pos)
 	{
 	  struct position pos;
 	  pos = *compute_motion (PT, 0, 0, 0,
-				 startp, XFASTINT (w->height), 0,
+				 scroll_margin_pos, XFASTINT (w->height), 0,
 				 XFASTINT (w->width), XFASTINT (w->hscroll),
 				 pos_tab_offset (w, startp), w);
 	  if (pos.vpos > scroll_conservatively)
 	    goto scroll_fail_1;
 
-	  pos = *vmotion (startp, - pos.vpos - this_scroll_margin, w);
+	  pos = *vmotion (startp, -pos.vpos, w);
 
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
