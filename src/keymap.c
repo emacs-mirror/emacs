@@ -247,6 +247,8 @@ access_keymap (map, idx)
 	      return XVECTOR (binding)->contents[XINT (idx)];
 	    break;
 	  }
+
+	QUIT;
       }
   }
 
