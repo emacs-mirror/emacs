@@ -731,7 +731,8 @@ and TO is ignored."
 		     (format "Selected encoding %s disagrees with \
 %s specified by file contents.  Really save (else edit coding cookies \
 and try again)? " coding-system auto-cs))
-	      (error "Save aborted")))))    coding-system))
+	      (error "Save aborted")))))
+    coding-system))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
