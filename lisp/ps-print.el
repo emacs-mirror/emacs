@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
 ;; Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
@@ -3201,7 +3201,8 @@ manual for more information.
 Variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' control together what
 actually gets printed.  Both variables may be set to nil in which case no
 cutting occurs."
-  :type 'regexp
+  :type '(choice (const :tag "No Delimiter" nil)
+		 (regexp :tag "Delimiter Regexp"))
   :version "21.1"
   :group 'ps-print-miscellany)
 
@@ -3209,7 +3210,8 @@ cutting occurs."
   "*Specify regexp which is end of the region to cut out when printing.
 
 See `ps-begin-cut-regexp' for more information."
-  :type 'regexp
+  :type '(choice (const :tag "No Delimiter" nil)
+		 (regexp :tag "Delimiter Regexp"))
   :version "21.1"
   :group 'ps-print-miscellany)
 
