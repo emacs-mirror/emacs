@@ -130,7 +130,8 @@ first will be printed into the backtrace buffer."
 	  load-read-function
 	  ;; If we are inside a minibuffer, allow nesting
 	  ;; so that we don't get an error from the `e' command.
-	  (enable-recursive-minibuffers (> (minibuffer-depth) 0))
+	  (enable-recursive-minibuffers
+	   (or enable-recursive-minibuffers (> (minibuffer-depth) 0)))
 	  (standard-input t) (standard-output t)
 	  (cursor-in-echo-area nil))
       (unwind-protect
