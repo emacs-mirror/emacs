@@ -1,6 +1,6 @@
 ;;; appt.el --- appointment notification functions.
 
-;; Copyright (C) 1989, 1990, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1994, 1998 Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: FSF
@@ -27,8 +27,7 @@
 
 ;;
 ;; appt.el - visible and/or audible notification of
-;;           appointments from ~/diary file generated from
-;;           Edward M. Reingold's calendar.el.
+;;           appointments from ~/diary file.
 ;;
 ;;
 ;; Comments, corrections, and improvements should be sent to
@@ -43,28 +42,18 @@
 ;;; This functions in this file will alert the user of a 
 ;;; pending appointment based on their diary file.
 ;;;
-;;;
-;;; ******* It is necessary to invoke 'diary' for this to work properly.  ****
-;;; 
-;;; A message will be displayed in the mode line of the emacs buffer
-;;; and (if the user desires) the terminal will beep and display a message
-;;; from the diary in the mini-buffer, or the user may select to 
+;;; A message will be displayed in the mode line of the Emacs buffer
+;;; and (if you request) the terminal will beep and display a message
+;;; from the diary in the mini-buffer, or you can choose to 
 ;;; have a message displayed in a new buffer.
 ;;;
-;;; The variable 'appt-message-warning-time' allows the
+;;; The variable `appt-message-warning-time' allows the
 ;;; user to specify how much notice they want before the appointment. The 
-;;; variable 'appt-issue-message' specifies whether the user wants
+;;; variable `appt-issue-message' specifies whether the user wants
 ;;; to to be notified of a pending appointment.
 ;;; 
-;;; In order to use, the following should be in your .emacs file in addition to
-;;; creating a diary file and invoking calendar:
-;;;
-;;; To enable appointment reminders, the following lines are required:
-;;;   (add-hook 'diary-hook 'appt-make-list)
-;;;   (let ((diary-display-hook 'ignore))
-;;;     (diary))
-;;; You can replace the last two with just (diary)
-;;; if you want to display the diary as well.
+;;; In order to use the appt package, you only need
+;;; to load it---provided you have appointments.
 ;;;
 ;;; Before that, you can also set some options if you want
 ;;;   (setq view-diary-entries-initially t)
@@ -77,7 +66,7 @@
 ;;; 
 ;;; Based upon the above lines in your .emacs and diary files, 
 ;;; the calendar and diary will be displayed when you enter
-;;; emacs and your appointments list will automatically be created.
+;;; Emacs and your appointments list will automatically be created.
 ;;; You will then be reminded at 9:20am about your coffee break
 ;;; and at 11:50am to go to lunch. 
 ;;;
@@ -93,13 +82,6 @@
 ;;;
 ;;; Brief internal description - Skip this if your not interested!
 ;;;
-;;; The function appt-check is run from the 'loadst' process which is started
-;;; by invoking (display-time). A temporary function below modifies
-;;; display-time-filter 
-;;; (from original time.el) to include a hook which will invoke appt-check.
-;;; This will not be necessary in the next version of gnuemacs.
-;;;
-;;;
 ;;; The function appt-make-list creates the appointments list which appt-check
 ;;; reads. This is all done automatically.
 ;;; It is invoked from the function list-diary-entries.
@@ -113,7 +95,7 @@
 ;;;
 ;;; For instance, these variables can be set to functions that display
 ;;; appointments in pop-up frames, which are lowered or iconified after
-;;; appt-display-interval seconds.
+;;; appt-display-interval minutes.
 ;;;
 
 ;;; Code:
@@ -174,19 +156,13 @@ This will occur at midnight when the appointment list is updated."
   :type 'boolean
   :group 'appt)
 
-(defcustom appt-interval 60
-  "*Interval in seconds between checking for appointments."
-  :type 'integer
-  :group 'appt
-  :version "20.3")
-
 (defvar appt-time-msg-list nil
   "The list of appointments for today.
 Use `appt-add' and `appt-delete' to add and delete appointments from list.
 The original list is generated from the today's `diary-entries-list'.
 The number before each time/message is the time in minutes from midnight.")
 
-(defconst max-time 1439
+(defconst appt-max-time 1439
   "11:59pm in minutes - number of minutes in a day minus 1.")
 
 (defcustom appt-display-interval 3
@@ -204,7 +180,16 @@ The number before each time/message is the time in minutes from midnight.")
   "Function called to remove appointment window and buffer.")
 
 (defvar appt-mode-string nil
-  "String to display in the mode line for an appointment.")
+  "String being displayed in the mode line saying you have an appointment.
+The actual string includes the amount of time till the appointment.")
+
+(defvar appt-prev-comp-time nil
+  "Time of day (mins since midnight) at which we last checked appointments.")
+
+(defvar appt-now-displayed nil
+  "Non-nil when we have started notifying about a appointment that is near.")
+
+(defvar appt-display-count nil)
 
 (defun appt-check ()
   "Check for an appointment and update the mode line.
@@ -220,7 +205,8 @@ Example:
               Thursday
                 11:45am Lunch meeting.
 
-The following variables control the action of the notification:
+Appointments are checked every `appt-display-interval' minutes.
+The following variables control appointment notification:
 
 `appt-issue-message'
 	If t, the diary buffer is checked for appointments.
@@ -246,85 +232,100 @@ The following variables control the action of the notification:
 	The number of seconds an appointment message
 	is displayed in another window.
 
-`appt-display-interval'
-	The number of minutes to wait between checking the appointments
-	list.
-
-`appt-disp-window-function '
+`appt-disp-window-function'
     	Function called to display appointment window.  You can customize
 	appt.el by setting this variable to a function different from the
 	one provided with this package.
   
-`appt-delete-window-function '
+`appt-delete-window-function'
     	Function called to remove appointment window and buffer.  You can
 	customize appt.el by setting this variable to a function different
 	from the one provided with this package."
 
+  (let* ((min-to-app -1)
+	 (new-time "")
+	 (prev-appt-mode-string appt-mode-string)
+	 (prev-appt-display-count (or appt-display-count 0))
+	 ;; Non-nil means do a full check for pending appointments
+	 ;; and display in whatever ways the user has selected.
+	 ;; When no appointment is being displayed,
+	 ;; we always do a full check.
+	 (full-check
+	  (or (not appt-now-displayed)
+	      ;; This is true every appt-display-interval minutes.
+	      (= 0 (mod prev-appt-display-count appt-display-interval))))
+	 ;; Non-nil means only update the interval displayed in the mode line.
+	 (mode-line-only
+	  (and (not full-check) appt-now-displayed)))
 
-  (if (or (= appt-display-interval 1)
-	  ;; This is true every appt-display-interval minutes.
-	  (= 0 (mod (/ (nth 1 (current-time)) 60) appt-display-interval)))
-      (let ((min-to-app -1)
-	    (new-time ""))
-	(save-excursion
+    (when (or full-check mode-line-only)
+      (save-excursion
 
-	  ;; Get the current time and convert it to minutes
-	  ;; from midnight. ie. 12:01am = 1, midnight = 0.
+	;; Get the current time and convert it to minutes
+	;; from midnight. ie. 12:01am = 1, midnight = 0.
 
-	  (let* ((now (decode-time))
-		 (cur-hour (nth 2 now))
-		 (cur-min (nth 1 now))
-		 (cur-comp-time (+ (* cur-hour 60) cur-min)))
+	(let* ((now (decode-time))
+	       (cur-hour (nth 2 now))
+	       (cur-min (nth 1 now))
+	       (cur-comp-time (+ (* cur-hour 60) cur-min)))
 
-	    ;; At the first check after 12:01am, we should update our 
-	    ;; appointments to today's list.
+	  ;; At the first check in any given day, update our 
+	  ;; appointments to today's list.
 
-	    (if (and (>= cur-comp-time 1)
-		     (<= cur-comp-time appt-display-interval))
-		(if (and view-diary-entries-initially appt-display-diary)
-		    (diary)
-		  (let ((diary-display-hook 'appt-make-list))
-		    (diary))))
+	  (if (or (null appt-prev-comp-time)
+		  (< cur-comp-time appt-prev-comp-time))
+	      (condition-case nil
+		  (progn
+		    (if (and view-diary-entries-initially appt-display-diary)
+			(diary)
+		      (let ((diary-display-hook 'appt-make-list))
+			(diary))))
+		(error nil)))
+	  (setq appt-prev-comp-time cur-comp-time)
 
-	    (setq appt-mode-string nil)
+	  (setq appt-mode-string nil)
+	  (setq appt-display-count nil)
 
-	    ;; If there are entries in the list, and the
-	    ;; user wants a message issued
-	    ;; get the first time off of the list
-	    ;; and calculate the number of minutes until
-	    ;; the appointment.
+	  ;; If there are entries in the list, and the
+	  ;; user wants a message issued,
+	  ;; get the first time off of the list
+	  ;; and calculate the number of minutes until the appointment.
 
-	    (if (and appt-issue-message appt-time-msg-list)
-		(let ((appt-comp-time (car (car (car appt-time-msg-list)))))
-		  (setq min-to-app (- appt-comp-time cur-comp-time))
+	  (if (and appt-issue-message appt-time-msg-list)
+	      (let ((appt-comp-time (car (car (car appt-time-msg-list)))))
+		(setq min-to-app (- appt-comp-time cur-comp-time))
 
-		  (while (and appt-time-msg-list 
-			      (< appt-comp-time cur-comp-time))
-		    (setq appt-time-msg-list (cdr appt-time-msg-list)) 
-		    (if appt-time-msg-list
-			(setq appt-comp-time 
-			      (car (car (car appt-time-msg-list))))))
+		(while (and appt-time-msg-list 
+			    (< appt-comp-time cur-comp-time))
+		  (setq appt-time-msg-list (cdr appt-time-msg-list)) 
+		  (if appt-time-msg-list
+		      (setq appt-comp-time 
+			    (car (car (car appt-time-msg-list))))))
 
-		  ;; If we have an appointment between midnight and
-		  ;; 'appt-message-warning-time' minutes after midnight,
-		  ;; we must begin to issue a message before midnight.
-		  ;; Midnight is considered 0 minutes and 11:59pm is
-		  ;; 1439 minutes. Therefore we must recalculate the minutes
-		  ;; to appointment variable. It is equal to the number of 
-		  ;; minutes before midnight plus the number of 
-		  ;; minutes after midnight our appointment is.
+		;; If we have an appointment between midnight and
+		;; 'appt-message-warning-time' minutes after midnight,
+		;; we must begin to issue a message before midnight.
+		;; Midnight is considered 0 minutes and 11:59pm is
+		;; 1439 minutes. Therefore we must recalculate the minutes
+		;; to appointment variable. It is equal to the number of 
+		;; minutes before midnight plus the number of 
+		;; minutes after midnight our appointment is.
 
-		  (if (and (< appt-comp-time appt-message-warning-time)
-			   (> (+ cur-comp-time appt-message-warning-time)
-			      max-time))
-		      (setq min-to-app (+ (- (1+ max-time) cur-comp-time))
-			    appt-comp-time))
+		(if (and (< appt-comp-time appt-message-warning-time)
+			 (> (+ cur-comp-time appt-message-warning-time)
+			    appt-max-time))
+		    (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time))
+			  appt-comp-time))
 
-		  ;; issue warning if the appointment time is 
-		  ;; within appt-message-warning time
+		;; issue warning if the appointment time is 
+		;; within appt-message-warning time
 
-		  (when (and (<= min-to-app appt-message-warning-time)
-			     (>= min-to-app 0))
+		(when (and (<= min-to-app appt-message-warning-time)
+			   (>= min-to-app 0))
+		  (setq appt-now-displayed t)
+		  (setq appt-display-count
+			(1+ prev-appt-display-count))
+		  (unless mode-line-only
 		    (if appt-msg-window
 			(progn
 			  (setq new-time (format-time-string "%a %b %e "
@@ -333,29 +334,44 @@ The following variables control the action of the notification:
 			   appt-disp-window-function
 			   min-to-app new-time
 			   (car (cdr (car appt-time-msg-list))))
-			      
+
 			  (run-at-time
 			   (format "%d sec" appt-display-duration)
 			   nil
 			   appt-delete-window-function))
-			  ;;; else
+			      ;;; else
 
 		      (if appt-visible
 			  (message "%s" 
 				   (car (cdr (car appt-time-msg-list)))))
 
 		      (if appt-audible
-			  (beep 1)))
+			  (beep 1))))
 
-		    (when appt-display-mode-line
-		      (setq appt-mode-string
-			    (concat  " App't in " min-to-app " min. "))
-		      (force-mode-line-update t)
-		      (sit-for 0))
+		  (when appt-display-mode-line
+		    (setq appt-mode-string
+			  (concat  " App't in " min-to-app " min. ")))
 
-		    (if (= min-to-app 0)
-			(setq appt-time-msg-list
-			      (cdr appt-time-msg-list)))))))))))
+		  ;; When an appointment is reached,
+		  ;; delete it from the list.
+		  ;; Reset the count to 0 in case we display another
+		  ;; appointment on the next cycle.
+		  (if (= min-to-app 0)
+		      (setq appt-time-msg-list
+			    (cdr appt-time-msg-list)
+			    appt-display-count nil)))))
+
+	  ;; If we have changed the mode line string,
+	  ;; redisplay all mode lines.
+	  (and appt-display-mode-line
+	       (not (equal appt-mode-string
+			   prev-appt-mode-string))
+	       (progn
+		 (force-mode-line-update t)
+		 ;; If the string now has a notification,
+		 ;; redisplay right now.
+		 (if appt-mode-string
+		     (sit-for 0)))))))))
 
 
 ;; Display appointment message in a separate buffer.
@@ -428,6 +444,7 @@ Usually just deletes the appointment buffer."
               (setq window-search nil)))))))
 
 
+;;;###autoload
 (defun appt-add (new-appt-time new-appt-msg)
   "Add an appointment for the day at TIME and issue MESSAGE.
 The time should be in either 24 hour format or am/pm format."
@@ -444,6 +461,7 @@ The time should be in either 24 hour format or am/pm format."
                                      (list time-msg)))
     (setq appt-time-msg-list (appt-sort-list appt-time-msg-list)))) 
 
+;;;###autoload
 (defun appt-delete ()
   "Delete an appointment from the list of appointments."
   (interactive)
@@ -609,7 +627,8 @@ The time should be in either 24 hour format or am/pm format."
 (defvar appt-timer nil
   "Timer used for diary appointment notifications (`appt-check').")
 
-(setq appt-timer (run-at-time t appt-interval 'appt-check))
+(unless appt-timer
+  (setq appt-timer (run-at-time t 60 'appt-check)))
 
 (or global-mode-string (setq global-mode-string '("")))
 (or (memq 'appt-mode-string global-mode-string)
