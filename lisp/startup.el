@@ -322,7 +322,8 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 		(let ((elt (assoc completion longopts)))
 		  (or elt
 		      (error "Option `%s' is ambiguous" argi))
-		  (setq argi (substring (car elt) 1))))))
+		  (setq argi (substring (car elt) 1)))
+	      (setq argval nil))))
 	(cond
 	 ((or (string-equal argi "-q")
 	      (string-equal argi "-no-init-file"))
@@ -547,31 +548,68 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  first-file-buffer
 	  (line 0))
       (while command-line-args-left
-	(let ((argi (car command-line-args-left))
-	      tem)
+	(let* ((argi (car command-line-args-left))
+	       (orig-argi argi)
+	       ;; This includes our standard options' long versions
+	       ;; and long versions of what's on command-switch-alist.
+	       (longopts
+	        (append '(("--funcall") ("--load") ("--insert") ("--kill"))
+			(mapcar '(lambda (elt)
+				   (list (concat "-" (car elt))))
+				command-switch-alist)))
+	       tem argval completion)
 	  (setq command-line-args-left (cdr command-line-args-left))
+
+	  ;; Convert long options to ordinary options
+	  ;; and separate out an attached option argument into argval.
+	  (if (string-match "^--[^=]*=" argi)
+	      (setq argval (substring argi (match-end 0))
+		    argi (substring argi 0 (1- (match-end 0)))))
+	  (setq completion (try-completion argi longopts))
+	  (if (eq completion t)
+	      (setq argi (substring argi 1))
+	    (if (stringp completion)
+		(let ((elt (assoc completion longopts)))
+		  (or elt
+		      (error "Option `%s' is ambiguous" argi))
+		  (setq argi (substring (car elt) 1)))
+	      (setq argval nil argi orig-argi)))
+
+	  ;; Execute the option.
 	  (cond ((setq tem (assoc argi command-switch-alist))
-		 (funcall (cdr tem) argi))
+		 (if argval
+		     (let ((command-line-args-left
+			    (cons argval command-line-args-left)))
+		       (funcall (cdr tem) argi))
+		   (funcall (cdr tem) argi)))
 		((or (string-equal argi "-f")  ;what the manual claims
 		     (string-equal argi "-funcall")
 		     (string-equal argi "-e")) ; what the source used to say
-		 (setq tem (intern (car command-line-args-left)))
-		 (setq command-line-args-left (cdr command-line-args-left))
+		 (if argval
+		     (setq tem (intern argval))
+		   (setq tem (intern (car command-line-args-left)))
+		   (setq command-line-args-left (cdr command-line-args-left)))
 		 (funcall tem))
 		((or (string-equal argi "-l")
 		     (string-equal argi "-load"))
-		 (let ((file (car command-line-args-left)))
+		 (if argval
+		     (setq tem argval)
+		   (setq tem (car command-line-args-left)
+			 command-line-args-left (cdr command-line-args-left)))
+		 (let ((file tem))
 		   ;; Take file from default dir if it exists there;
 		   ;; otherwise let `load' search for it.
 		   (if (file-exists-p (expand-file-name file))
 		       (setq file (expand-file-name file)))
-		   (load file nil t))
-		 (setq command-line-args-left (cdr command-line-args-left)))
+		   (load file nil t)))
 		((string-equal argi "-insert")
 		 (or (stringp (car command-line-args-left))
-		     (error "filename omitted from `-insert' option"))
-		 (insert-file-contents (car command-line-args-left))
-		 (setq command-line-args-left (cdr command-line-args-left)))
+		     (error "File name omitted from `-insert' option"))
+		 (if argval
+		     (setq tem argval)
+		   (setq tem (car command-line-args-left)
+			 command-line-args-left (cdr command-line-args-left)))
+		 (insert-file-contents tem))
 		((string-equal argi "-kill")
 		 (kill-emacs t))
 		((string-match "^\\+[0-9]+\\'" argi)
