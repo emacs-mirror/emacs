@@ -469,12 +469,12 @@
 (put 'latex 'math-function-table
      (append
       (get 'tex 'math-function-table)
-      '(( \\frac      . (math-latex-parse-frac /))
-        ( \\tfrac     . (math-latex-parse-frac /))
-        ( \\dfrac     . (math-latex-parse-frac /))
-        ( \\binom     . (math-latex-parse-frac calcFunc-choose))
-        ( \\tbinom    . (math-latex-parse-frac calcFunc-choose))
-        ( \\dbinom    . (math-latex-parse-frac calcFunc-choose))
+      '(( \\frac      . (math-latex-parse-frac))
+        ( \\tfrac     . (math-latex-parse-frac))
+        ( \\dfrac     . (math-latex-parse-frac))
+        ( \\binom     . (math-latex-parse-two-args calcFunc-choose))
+        ( \\tbinom    . (math-latex-parse-two-args calcFunc-choose))
+        ( \\dbinom    . (math-latex-parse-two-args calcFunc-choose))
         ( \\phi	      . calcFunc-totient )
         ( \\mu	      . calcFunc-moebius ))))
 
@@ -487,12 +487,23 @@
 
 (put 'latex 'math-complex-format 'i)
 
+
 (defun math-latex-parse-frac (f val)
   (let (numer denom)
-    (setq args (math-read-expr-list))
+    (setq numer (car (math-read-expr-list)))
     (math-read-token)
-    (setq margs (math-read-factor))
-    (list (nth 2 f) (car args) margs)))
+    (setq denom (math-read-factor))
+    (if (and (Math-num-integerp numer)
+             (Math-num-integerp denom))
+        (list 'frac numer denom)
+      (list '/ numer denom))))
+
+(defun math-latex-parse-two-args (f val)
+  (let (first second)
+    (setq first (car (math-read-expr-list)))
+    (math-read-token)
+    (setq second (math-read-factor))
+    (list (nth 2 f) first second)))
 
 (defun math-latex-print-frac (a fn)
   (list 'horiz (nth 1 fn) "{" (math-compose-expr (nth 1 a) -1)
