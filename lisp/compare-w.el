@@ -141,15 +141,15 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
   (let ((end (point))
 	(beg (point))
 	(opoint (point)))
-    (while (or (and (/= (point) start)
-		    ;; Consider at least the char before point,
-		    ;; unless it is also before START.
-		    (= (point) opoint))
-	       (and (looking-at compare-windows-whitespace)
+    (while (or (and (looking-at compare-windows-whitespace)
 		    (<= end (match-end 0))
 		    ;; This match goes past END, so advance END.
 		    (progn (setq end (match-end 0))
-			   (> (point) start))))
+			   (> (point) start)))
+	       (and (/= (point) start)
+		    ;; Consider at least the char before point,
+		    ;; unless it is also before START.
+		    (= (point) opoint)))
       ;; keep going back until whitespace
       ;; doesn't extend to or past end
       (forward-char -1))
