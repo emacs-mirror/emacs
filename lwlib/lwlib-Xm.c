@@ -1474,12 +1474,19 @@ static Widget
 make_menubar (instance)
      widget_instance* instance;
 {
-  Arg al[1];
+  Arg al[3];
   int ac;
 
   ac = 0;
-  XtSetArg(al[0], XmNmenuAccelerator, 0);
-  return XmCreateMenuBar (instance->parent, instance->info->name, al, 1);
+  XtSetArg(al[ac], XmNmenuAccelerator, 0); ++ac;
+
+  /* As of 2000-01-17, the LessTif menu bar resizes to height 0 when
+     all its children are removed, causing an annoying flickering
+     behavior.  Prevent that by not allowing resizing.  */
+  XtSetArg(al[ac], XmNresizeHeight, False); ++ac;
+  XtSetArg(al[ac], XmNresizeWidth, False); ++ac;
+  
+  return XmCreateMenuBar (instance->parent, instance->info->name, al, ac);
 }
 
 static void
