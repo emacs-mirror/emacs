@@ -1,3 +1,7 @@
+2003-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* printing.el (pr-get-symbol): Define during compile.
+
 2003-02-07  Vinicius Jose Latorre <vinicius@cpqd.com.br>
 
 	* printing.el: New file.
