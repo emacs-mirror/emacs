@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -1516,9 +1516,17 @@ the width of the A/B/C windows."
       (error ediff-KILLED-VITAL-BUFFER))
     
   (ediff-operate-on-windows
+   ;; Arrange for scroll-left and scroll-right being called
+   ;; interactively so that they set the window's min_hscroll.
+   ;; Otherwise, automatic hscrolling will undo the effect of
+   ;; hscrolling.
    (if (= last-command-char ?<)
-       'scroll-left
-     'scroll-right)
+       (lambda (arg) 
+	 (let ((prefix-arg arg))
+	   (call-interactively 'scroll-left)))
+     (lambda (arg)
+       (let ((prefix-arg arg))
+	 (call-interactively 'scroll-right))))
    ;; calculate argument to scroll-left/right
    ;; if there is an explicit argument
    (if (and arg (not (equal arg '-)))
