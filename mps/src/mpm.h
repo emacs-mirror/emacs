@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.99) $
+ * $HopeName: MMsrc!mpm.h(trunk.100) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -50,6 +50,10 @@ extern Bool (WordIsAligned)(Word word, Align align);
 extern Word (WordAlignUp)(Word word, Align align);
 #define WordAlignUp(w, a)       (((w) + (a) - 1) & ~((Word)(a) - 1))
 
+/* Rounds w up to a multiple of r, see impl.c.mpm for exact behaviour */
+extern Word (WordRoundUp)(Word word, Size round);
+#define WordRoundUp(w, r)       (((w)+(r)-1) - ((w)+(r)-1)%(r))
+
 extern Word (WordAlignDown)(Word word, Align align);
 #define WordAlignDown(w, a)     ((w) & ~((Word)(a) - 1))
 
@@ -89,6 +93,10 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
 #define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
+
+/* r not required to be a power of 2 */
+#define SizeRoundUp(s, r) \
+  ((Size)WordRoundUp(SizeWord(s), (Size)(r)))
 
 extern Addr (AddrSet)(Addr target, Byte value, Size size);
 /* This is one of the places that implements Addr, so it's allowed to */
