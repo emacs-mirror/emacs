@@ -2727,7 +2727,8 @@ detect_coding_iso_2022 (coding, detect_info)
 }
 
 
-/* Set designation state into CODING.  */
+/* Set designation state into CODING.  Set CHARS_96 to -1 if the
+   escape sequence should be kept.  */
 #define DECODE_DESIGNATION(reg, dim, chars_96, final)			\
   do {									\
     int id, prev;							\
@@ -2737,7 +2738,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	|| !SAFE_CHARSET_P (coding, id))				\
       {									\
 	CODING_ISO_DESIGNATION (coding, reg) = -2;			\
-	goto invalid_code;						\
+	chars_96 = -1;							\
+	break;								\
       }									\
     prev = CODING_ISO_DESIGNATION (coding, reg);			\
     if (id == charset_jisx0201_roman)					\
@@ -2755,7 +2757,7 @@ detect_coding_iso_2022 (coding, detect_info)
        designation is ASCII to REG, we should keep this designation	\
        sequence.  */							\
     if (prev == -2 && id == charset_ascii)				\
-      goto invalid_code;						\
+      chars_96 = -1;							\
   } while (0)
 
 
@@ -2903,6 +2905,7 @@ decode_coding_iso_2022 (coding)
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
   int charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
   int charset_id_1 = CODING_ISO_INVOKED_CHARSET (coding, 1);
+  int charset_id_2, charset_id_3;
   struct charset *charset;
   int c;
   /* For handling composition sequence.  */
@@ -2974,7 +2977,10 @@ decode_coding_iso_2022 (coding)
 		  continue;
 		}
 	    }
-	  charset = CHARSET_FROM_ID (charset_id_0);
+	  if (charset_id_0 < 0)
+	    charset = CHARSET_FROM_ID (charset_ascii);
+	  else
+	    charset = CHARSET_FROM_ID (charset_id_0);
 	  break;
 
 	case ISO_0xA0_or_0xFF:
@@ -3055,27 +3061,36 @@ decode_coding_iso_2022 (coding)
 	    case '$':		/* designation of 2-byte character set */
 	      if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_DESIGNATION))
 		goto invalid_code;
-	      ONE_MORE_BYTE (c1);
-	      if (c1 >= '@' && c1 <= 'B')
-		{	/* designation of JISX0208.1978, GB2312.1980,
+	      {
+		int reg, chars96;
+
+		ONE_MORE_BYTE (c1);
+		if (c1 >= '@' && c1 <= 'B')
+		  {	/* designation of JISX0208.1978, GB2312.1980,
 			   or JISX0208.1980 */
-		  DECODE_DESIGNATION (0, 2, 0, c1);
-		}
-	      else if (c1 >= 0x28 && c1 <= 0x2B)
-		{	/* designation of DIMENSION2_CHARS94 character set */
-		  ONE_MORE_BYTE (c2);
-		  DECODE_DESIGNATION (c1 - 0x28, 2, 0, c2);
-		}
-	      else if (c1 >= 0x2C && c1 <= 0x2F)
-		{	/* designation of DIMENSION2_CHARS96 character set */
-		  ONE_MORE_BYTE (c2);
-		  DECODE_DESIGNATION (c1 - 0x2C, 2, 1, c2);
-		}
-	      else
-		goto invalid_code;
-	      /* We must update these variables now.  */
-	      charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
-	      charset_id_1 = CODING_ISO_INVOKED_CHARSET (coding, 1);
+		    reg = 0, chars96 = 0;
+		  }
+		else if (c1 >= 0x28 && c1 <= 0x2B)
+		  { /* designation of DIMENSION2_CHARS94 character set */
+		    reg = c1 - 0x28, chars96 = 0;
+		    ONE_MORE_BYTE (c1);
+		  }
+		else if (c1 >= 0x2C && c1 <= 0x2F)
+		  { /* designation of DIMENSION2_CHARS96 character set */
+		    reg = c1 - 0x2C, chars96 = 1;
+		    ONE_MORE_BYTE (c1);
+		  }
+		else
+		  goto invalid_code;
+		DECODE_DESIGNATION (reg, 2, chars96, c1);
+		/* We must update these variables now.  */
+		if (reg == 0)
+		  charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
+		else if (reg == 1)
+		  charset_id_1 = CODING_ISO_INVOKED_CHARSET (coding, 1);
+		if (chars96 < 0)
+		  goto invalid_code;
+	      }
 	      continue;
 
 	    case 'n':		/* invocation of locking-shift-2 */
@@ -3098,7 +3113,11 @@ decode_coding_iso_2022 (coding)
 	      if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SINGLE_SHIFT)
 		  || CODING_ISO_DESIGNATION (coding, 2) < 0)
 		goto invalid_code;
-	      charset = CHARSET_FROM_ID (CODING_ISO_DESIGNATION (coding, 2));
+	      charset_id_2 = CODING_ISO_DESIGNATION (coding, 2);
+	      if (charset_id_2 < 0)
+		charset = CHARSET_FROM_ID (charset_ascii);
+	      else
+		charset = CHARSET_FROM_ID (charset_id_2);
 	      ONE_MORE_BYTE (c1);
 	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0))
 		goto invalid_code;
@@ -3108,7 +3127,11 @@ decode_coding_iso_2022 (coding)
 	      if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SINGLE_SHIFT)
 		  || CODING_ISO_DESIGNATION (coding, 3) < 0)
 		goto invalid_code;
-	      charset = CHARSET_FROM_ID (CODING_ISO_DESIGNATION (coding, 3));
+	      charset_id_3 = CODING_ISO_DESIGNATION (coding, 3);
+	      if (charset_id_3 < 0)
+		charset = CHARSET_FROM_ID (charset_ascii);
+	      else
+		charset = CHARSET_FROM_ID (charset_id_3);
 	      ONE_MORE_BYTE (c1);
 	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0))
 		goto invalid_code;
@@ -3227,21 +3250,30 @@ decode_coding_iso_2022 (coding)
 	    default:
 	      if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_DESIGNATION))
 		goto invalid_code;
-	      if (c1 >= 0x28 && c1 <= 0x2B)
-		{	/* designation of DIMENSION1_CHARS94 character set */
-		  ONE_MORE_BYTE (c2);
-		  DECODE_DESIGNATION (c1 - 0x28, 1, 0, c2);
-		}
-	      else if (c1 >= 0x2C && c1 <= 0x2F)
-		{	/* designation of DIMENSION1_CHARS96 character set */
-		  ONE_MORE_BYTE (c2);
-		  DECODE_DESIGNATION (c1 - 0x2C, 1, 1, c2);
-		}
-	      else
-		goto invalid_code;
-	      /* We must update these variables now.  */
-	      charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
-	      charset_id_1 = CODING_ISO_INVOKED_CHARSET (coding, 1);
+	      {
+		int reg, chars96;
+
+		if (c1 >= 0x28 && c1 <= 0x2B)
+		  { /* designation of DIMENSION1_CHARS94 character set */
+		    reg = c1 - 0x28, chars96 = 0;
+		    ONE_MORE_BYTE (c1);
+		  }
+		else if (c1 >= 0x2C && c1 <= 0x2F)
+		  { /* designation of DIMENSION1_CHARS96 character set */
+		    reg = c1 - 0x2C, chars96 = 1;
+		    ONE_MORE_BYTE (c1);
+		  }
+		else
+		  goto invalid_code;
+		DECODE_DESIGNATION (reg, 1, chars96, c1);
+		/* We must update these variables now.  */
+		if (reg == 0)
+		  charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
+		else if (reg == 1)
+		  charset_id_1 = CODING_ISO_INVOKED_CHARSET (coding, 1);
+		if (chars96 < 0)
+		  goto invalid_code;
+	      }
 	      continue;
 	    }
 	}
