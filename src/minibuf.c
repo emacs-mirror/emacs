@@ -148,12 +148,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (!enable_recursive_minibuffers
       && minibuf_level > 0
       && (EQ (selected_window, minibuf_window)))
-#if 0
-	  || selected_frame != XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))
-#endif
     error ("Command attempted to use minibuffer while in minibuffer");
 
   /* Could we simply bind these variables instead?  */
+  minibuf_save_list
+    = Fcons (Voverriding_local_map,
+	     Fcons (minibuf_window, minibuf_save_list));
   minibuf_save_list
     = Fcons (minibuf_prompt,
 	     Fcons (make_number (minibuf_prompt_width),
@@ -161,12 +161,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 			   Fcons (Vcurrent_prefix_arg,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
-						Fcons (Voverriding_local_map,
-						       minibuf_save_list)))))));
+						minibuf_save_list))))));
+
   minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
   minibuf_prompt = Fcopy_sequence (prompt);
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
+
+  choose_minibuf_frame ();
 
   record_unwind_protect (Fset_window_configuration,
 			 Fcurrent_window_configuration (Qnil));
@@ -406,6 +408,8 @@ read_minibuf_unwind (data)
   Vminibuffer_history_variable = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   Voverriding_local_map = Fcar (minibuf_save_list);
+  minibuf_save_list = Fcdr (minibuf_save_list);
+  minibuf_window = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
 }
 
