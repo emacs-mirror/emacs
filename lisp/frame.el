@@ -1138,13 +1138,14 @@ Setting this variable makes it local to the current buffer."
   :version "21.1"
   :group 'frames)
 
-(defcustom automatic-hscrolling t
+(defcustom auto-hscroll-mode t
   "*Allow or disallow automatic scrolling windows horizontally.
 If non-nil, windows are automatically scrolled horizontally to make
 point visible."
   :version "21.1"
   :type 'boolean
   :group 'scrolling)
+(defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
 
 
 ;; Blinking cursor
