@@ -5163,7 +5163,7 @@ coding_inherit_eol_type (coding_system, parent)
    o coding-category-utf-8
 
 	The category for a coding system which has the same code range
-	as UTF-8 (cf. RFC2279).  Assigned the coding-system (Lisp
+	as UTF-8 (cf. RFC3629).  Assigned the coding-system (Lisp
 	symbol) `utf-8' by default.
 
    o coding-category-utf-16-be

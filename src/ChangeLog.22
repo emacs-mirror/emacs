@@ -1,5 +1,8 @@
 2004-03-09  Kenichi Handa  <handa@m17n.org>
 
+	* search.c (simple_search): Fix setting this_pos_byte in backward
+	search.
+
 	* coding.c (detect_coding_emacs_mule): Fix counting of encoded
 	byte sequence.
 	(detect_coding_ccl): Fix setting of the variable valids.
