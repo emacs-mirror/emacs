@@ -1,11 +1,11 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
-;; Last change: 22 June 1993
-;; Version: 1.2
-;; Keywords: extensions
+;; Last change: 2 September 1993
+;; Version: 1.3
+;; Keywords: abbrev
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 
@@ -36,6 +36,7 @@
 ;;  ARG functions forward in this list.  Given some other argument
 ;;  (a negative argument or just Ctrl-U) it undoes the tried
 ;;  completion.
+;;
 ;;  If the variable `hippie-expand-verbose' is non-nil, `hippie-expand'
 ;;  outputs in a message which try-function in the list that is used
 ;;  currently (ie. was used currently and will be tried first the next
@@ -43,6 +44,10 @@
 ;;  The variable `hippie-expand-max-buffers' determines in how many
 ;;  buffers, apart from the current, to search for expansions in.  It
 ;;  is used by the try-functions named "-all-buffers".
+;;  The variable `hippie-expand-ignore-buffers' is a list of regexps
+;;  matching buffer names (as strings) or major modes (as atoms) of
+;;  buffers that should not be searched by the try-functions named
+;;  "-all-buffers".
 ;;  See also the macro `make-hippie-expand-function' below.
 ;;  
 ;;  A short description of the current try-functions in this file:
@@ -127,7 +132,7 @@
 ;;  because different try-functions may try to complete different
 ;;  lengths of text, and thus put different amounts of the
 ;;  text in `he-try-table'.  Anyway this seems to occur seldom enough not
-;;  to be too disturbing.  Also it should NOT bee possible for the
+;;  to be too disturbing.  Also it should NOT be possible for the
 ;;  opposite situation to occur, that `hippie-expand' misses some
 ;;  suggestion because it thinks it has already tried it.
 ;;
@@ -164,6 +169,7 @@
 ;;;###autoload
 (defvar hippie-expand-try-functions-list '(try-complete-file-name
 					   try-expand-all-abbrevs
+                                           try-expand-list
 					   try-expand-line
 					   try-expand-dabbrev
 					   try-expand-dabbrev-all-buffers
@@ -180,6 +186,12 @@ or insert functions in this list.")
 (defvar hippie-expand-max-buffers ()
   "*The maximum number of buffers (apart from the current) searched.
 If nil, all buffers are searched.")
+
+;;;###autoload
+(defvar hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
+  "*A list specifying which buffers not to search (if not current).
+Can contain both regexps matching buffer names (as strings) and major modes
+(as atoms)")
 
 ;;;###autoload
 (defun hippie-expand (arg)
@@ -292,6 +304,15 @@ undoes the expansion."
 	       (if (and case-fold-search case-replace)
 		   (string= (downcase (car lst)) (downcase str))
 		   (string= (car lst) str))))
+    (setq lst (cdr lst)))
+  lst)
+
+;; Check if STR matches any regexp in LST.
+;; Ignore possible non-strings in LST.
+(defun he-regexp-member (str lst)
+  (while (and lst
+	      (or (not (stringp (car lst)))
+                  (not (string-match (car lst) str))))
     (setq lst (cdr lst)))
   lst)
 
@@ -527,10 +548,9 @@ string).  It returns t if a new completion is found, nil otherwise."
                         (< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
-                   (not (string-match " \\*Minibuf-[0-9]+\\*"
-                                      (buffer-name (current-buffer))))
-		   (not (eq major-mode 'dired-mode)))
-		   ;; Dont search minibuffers nor dired buffers
+		   (not (memq major-mode hippie-expand-ignore-buffers))
+                   (not (he-regexp-member (buffer-name)
+                                          hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
                 (setq strip-prompt (and (get-buffer-process (current-buffer))
@@ -650,10 +670,9 @@ string).  It returns t if a new completion is found, nil otherwise."
                         (< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
-                   (not (string-match " \\*Minibuf-[0-9]+\\*"
-                                      (buffer-name (current-buffer))))
-		   (not (eq major-mode 'dired-mode)))
-		   ;; Dont search minibuffers nor dired buffers
+		   (not (memq major-mode hippie-expand-ignore-buffers))
+                   (not (he-regexp-member (buffer-name)
+                                          hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
 		(setq expansion (he-list-search he-search-string nil))
@@ -689,6 +708,9 @@ string).  It returns t if a new completion is found, nil otherwise."
       (condition-case ()
           (forward-list 1)
         (error (setq err t)))
+      (if (and reverse 
+               (> (point) he-string-beg))
+          (setq err t))
       (if (not err)
           (progn
             (setq result (buffer-substring beg (point)))
@@ -795,10 +817,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
                         (< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
-                   (not (string-match " \\*Minibuf-[0-9]+\\*"
-                                      (buffer-name (current-buffer))))
-		   (not (eq major-mode 'dired-mode)))
-		   ;; Dont search minibuffers nor dired buffers
+		   (not (memq major-mode hippie-expand-ignore-buffers))
+                   (not (he-regexp-member (buffer-name)
+                                          hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
 		(setq expansion (he-dab-search he-search-string nil))
@@ -821,7 +842,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	  t))))
 
 (defun he-dab-search-regexp (pat)
-  (concat "\\b" (regexp-quote pat) 
+  (concat "\\<" (regexp-quote pat) 
 	  "\\(\\sw\\|\\s_\\)+"))
 
 (defun he-dab-search (pattern reverse)
@@ -838,10 +859,11 @@ string).  It returns t if a new expansion is found, nil otherwise."
     result))
 
 (defun he-dabbrev-beg ()
-  (save-excursion
-    (skip-syntax-backward "w_")
-    (skip-syntax-forward "_")
-    (point)))
+  (min (point)
+       (save-excursion
+         (skip-syntax-backward "w_")
+         (skip-syntax-forward "_")
+         (point))))
 
 (provide 'hippie-exp)
 
