@@ -1060,8 +1060,9 @@ used."
 		result
 		(progn
 		  (undo-boundary)
-		  (message (concat "C-h or ? for more options; SPC to leave "
-				   "unchanged, Character to replace word"))
+		  (let (message-log-max)
+		    (message (concat "C-h or ? for more options; SPC to leave "
+				     "unchanged, Character to replace word")))
 		  (let ((inhibit-quit t))
 		    (setq char (if (fboundp 'read-char-exclusive)
 				   (read-char-exclusive)
@@ -1864,8 +1865,9 @@ With prefix argument, set the default directory."
 					offset-change (+ offset-change change)
 					end (+ end change)))))
 			      (if (not ispell-quit)
-				  (message "Continuing spelling check using %s dictionary..."
-					   (or ispell-dictionary "default")))
+				  (let (message-log-max)
+				    (message "Continuing spelling check using %s dictionary..."
+					     (or ispell-dictionary "default"))))
 			      (sit-for 0)))
 			;; finished with line!
 			(setq ispell-filter (cdr ispell-filter)))))
