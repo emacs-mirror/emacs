@@ -253,25 +253,26 @@ value of this flag.")
        '(vc-head-version
 	 vc-default-branch
 	 vc-master-locks))
-      ;; determine vc-top-version: it is either the head version, 
-      ;; or the tip of the default branch
+      ;; determine vc-master-workfile-version: it is either the head
+      ;; of the trunk, the head of the default branch, or the 
+      ;; "default branch" itself, if that is a full revision number.
       (let ((default-branch (vc-file-getprop file 'vc-default-branch)))
 	(cond 
 	 ;; no default branch
 	 ((or (not default-branch) (string= "" default-branch))
-	  (vc-file-setprop file 'vc-top-version 
+	  (vc-file-setprop file 'vc-master-workfile-version 
 			   (vc-file-getprop file 'vc-head-version)))
 	 ;; default branch is actually a revision
 	 ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$" 
 			default-branch)
-	  (vc-file-setprop file 'vc-top-version default-branch))
-	 ;; else, search for the tip of the default branch
+	  (vc-file-setprop file 'vc-master-workfile-version default-branch))
+	 ;; else, search for the head of the default branch
 	 (t (vc-insert-file (vc-name file) "^desc")
 	    (vc-parse-buffer (list (list 
 	       (concat "^\\(" 
 		       (regexp-quote default-branch)
 		       "\\.[0-9]+\\)\ndate[ \t]+\\([0-9.]+\\);") 1 2))
-			 file '(vc-top-version)))))
+			 file '(vc-master-workfile-version)))))
       ;; translate the locks
       (vc-parse-locks file (vc-file-getprop file 'vc-master-locks)))
 
@@ -571,14 +572,12 @@ value of this flag.")
 	(t (vc-fetch-properties file)
 	   (vc-file-getprop file 'vc-your-latest-version))))
 
-(defun vc-top-version (file)
-  ;; Return version level of the highest revision on the default branch
-  ;; If there is no default branch, return the highest version number
-  ;; on the trunk.
+(defun vc-master-workfile-version (file)
+  ;; Return the master file's idea of what is the current workfile version.
   ;; This property is defined for RCS only.
-  (cond ((vc-file-getprop file 'vc-top-version))
+  (cond ((vc-file-getprop file 'vc-master-workfile-version))
 	(t (vc-fetch-master-properties file)
-	   (vc-file-getprop file 'vc-top-version))))
+	   (vc-file-getprop file 'vc-master-workfile-version))))
 
 (defun vc-fetch-properties (file)
   ;; Fetch vc-latest-version and vc-your-latest-version
@@ -605,7 +604,7 @@ value of this flag.")
   ;; Return version level of the current workfile FILE
   ;; This is attempted by first looking at the RCS keywords.
   ;; If there are no keywords in the working file, 
-  ;; vc-top-version is taken.
+  ;; vc-master-workfile-version is taken.
   ;; Note that this property is cached, that is, it is only 
   ;; looked up if it is nil.
   ;; For SCCS, this property is equivalent to vc-latest-version.
@@ -614,7 +613,7 @@ value of this flag.")
 	((eq (vc-backend file) 'RCS)
 	 (if (vc-consult-rcs-headers file)
 	     (vc-file-getprop file 'vc-workfile-version)
-	   (let ((rev (cond ((vc-top-version file))
+	   (let ((rev (cond ((vc-master-workfile-version file))
 			    ((vc-latest-version file)))))
 	     (vc-file-setprop file 'vc-workfile-version rev)
 	     rev)))
