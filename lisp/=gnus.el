@@ -1689,14 +1689,16 @@ The hook gnus-suspend-gnus-hook is called before actually suspending."
   (interactive)
   (run-hooks 'gnus-suspend-gnus-hook)
   ;; Kill GNUS buffers except for Group Mode buffer.
-  (let ((buffers gnus-buffer-list))
+  (let ((buffers gnus-buffer-list)
+	(group-buf (get-buffer gnus-group-buffer)))
     (while buffers
       (and (not (eq (car buffers) gnus-group-buffer))
 	   (get-buffer (car buffers))
 	   (kill-buffer (car buffers)))
       (setq buffers (cdr buffers))
-      ))
-  (bury-buffer))
+      )
+    (bury-buffer group-buf)
+    (delete-windows-on group-buf t)))
 
 (defun gnus-group-exit ()
   "Quit reading news after updating .newsrc.
