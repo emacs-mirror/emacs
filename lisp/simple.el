@@ -633,6 +633,9 @@ then call `undo-more' one or more times to undo them."
 (defvar last-shell-command "")
 (defvar last-shell-command-on-region "")
 
+(defvar shell-command-history nil
+  "History list for some commands that read shell commands.")
+
 (defun shell-command (command &optional flag)
   "Execute string COMMAND in inferior shell; display output, if any.
 If COMMAND ends in ampersand, execute it asynchronously.
@@ -641,7 +644,7 @@ Optional second arg non-nil (prefix arg, if interactive)
 means insert output in current buffer after point (leave mark after it).
 This cannot be done asynchronously."
   (interactive (list (read-string "Shell command: " last-shell-command)
-		     current-prefix-arg))
+		     current-prefix-arg nil nil 'shell-command-history))
   (if flag
       (progn (barf-if-buffer-read-only)
 	     (push-mark)
@@ -736,7 +739,8 @@ or output is inserted in the current buffer then `*Shell Command Output*' is
 deleted." 
   (interactive (list (region-beginning) (region-end)
 		     (read-string "Shell command on region: "
-				  last-shell-command-on-region)
+				  last-shell-command-on-region
+				  nil nil 'shell-command-history)
 		     current-prefix-arg
 		     (prefix-numeric-value current-prefix-arg)))
   (if flag
