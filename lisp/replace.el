@@ -54,6 +54,9 @@ That becomes the \"string to replace\".")
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
 
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
+
 If `query-replace-interactive' is non-nil, the last incremental search
 string is used as FROM-STRING--you don't have to specify it with the
 minibuffer.
@@ -69,12 +72,16 @@ only matches surrounded by word boundaries.
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace" nil))
   (perform-replace from-string to-string t nil arg))
+
 (define-key esc-map "%" 'query-replace)
 
 (defun query-replace-regexp (regexp to-string &optional arg)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
 
 If `query-replace-interactive' is non-nil, the last incremental search
 regexp is used as REGEXP--you don't have to specify it with the
@@ -96,6 +103,9 @@ The second argument TO-STRINGS contains the replacement strings, separated
 by spaces.  This command works like `query-replace-regexp' except
 that each successive replacement uses the next successive replacement string,
 wrapping around from the last such string to the first.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
 
 Non-interactively, TO-STRINGS may be a list of replacement strings.
 
@@ -139,6 +149,9 @@ are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
 
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 
@@ -165,6 +178,9 @@ only matches surrounded by word boundaries.
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
 
 If `query-replace-interactive' is non-nil, the last incremental search
 regexp is used as REGEXP--you don't have to specify it with the minibuffer.
@@ -650,6 +666,9 @@ which will run faster and probably do exactly what you want."
 	(replace-count 0)
 	(nonempty-match nil)
 
+	;; If non-nil, it is marker saying where in the buffer to stop.
+	(limit nil)
+
 	;; Data for the next match.  If a cons, it has the same format as
 	;; (match-data); otherwise it is t if a match is possible at point.
 	(match-again t)
@@ -658,6 +677,13 @@ which will run faster and probably do exactly what you want."
 	 (if query-flag
 	     (substitute-command-keys
 	      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) "))))
+
+    ;; If region is active, in Transient Mark mode, operate on region.
+    (if (and transient-mark-mode mark-active)
+	(progn
+	  (setq limit (copy-marker (region-end)))
+	  (goto-char (region-beginning))
+	  (deactivate-mark)))
     (if (stringp replacements)
 	(setq next-replacement replacements)
       (or repeat-count (setq repeat-count 1)))
@@ -684,7 +710,7 @@ which will run faster and probably do exactly what you want."
 				     (progn
 				       (forward-char 1)
 				       (not (eobp))))
-				 (funcall search-function search-string nil t)
+				 (funcall search-function search-string limit t)
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
 				 (match-data t real-match-data)))))
