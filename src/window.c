@@ -1730,9 +1730,9 @@ BUFFER can be a buffer or buffer name.")
     }
 
   w->buffer = buffer;
-  w->window_end_pos = 0;
+  XFASTINT (w->window_end_pos) = 0;
   w->window_end_valid = Qnil;
-  w->hscroll = 0;
+  XFASTINT(w->hscroll) = 0;
   Fset_marker (w->pointm,
 	       make_number (BUF_PT (XBUFFER (buffer))),
 	       buffer);
