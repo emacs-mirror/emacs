@@ -1996,9 +1996,18 @@ when he invoked the menu."
 (defun widget-toggle-value-create (widget)
   "Insert text representing the `on' and `off' states."
   (if (widget-value widget)
-      (widget-image-insert widget
-			   (widget-get widget :on)
-			   (widget-get widget :on-glyph))
+      (progn
+	(and (display-graphic-p)
+	     (listp (widget-get widget :on-glyph))
+	     (widget-put widget :on-glyph
+			 (eval (widget-get widget :on-glyph))))
+	(widget-image-insert widget
+			     (widget-get widget :on)
+			     (widget-get widget :on-glyph)))
+    (and (display-graphic-p)
+	 (listp (widget-get widget :off-glyph))
+	 (widget-put widget :off-glyph
+		     (eval (widget-get widget :off-glyph))))
     (widget-image-insert widget
 			 (widget-get widget :off)
 			 (widget-get widget :off-glyph))))
@@ -2020,19 +2029,19 @@ when he invoked the menu."
   ;; We could probably do the same job as the images using single
   ;; space characters in a boxed face with a stretch specification to
   ;; make them square.
-  :on-glyph (create-image "\000\066\076\034\076\066\000"
-			  'xbm t :width 7 :height 7
-			  :background "grey75" ; like default mode line
-			  :foreground "black"
-			  :relief -3
-			  :ascent 'center)
-  :off "[ ]"
-  :off-glyph (create-image (make-string 7 0)
+  :on-glyph '(create-image "\000\066\076\034\076\066\000"
 			   'xbm t :width 7 :height 7
-			   :background "grey75"
+			   :background "grey75"	; like default mode line
 			   :foreground "black"
-			   :relief 3
+			   :relief -3
 			   :ascent 'center)
+  :off "[ ]"
+  :off-glyph '(create-image (make-string 7 0)
+			    'xbm t :width 7 :height 7
+			    :background "grey75"
+			    :foreground "black"
+			    :relief 3
+			    :ascent 'center)
   :help-echo "Toggle this item."
   :action 'widget-checkbox-action)
 
