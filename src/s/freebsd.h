@@ -55,7 +55,7 @@
 
 #ifdef __ELF__
 
-#define LD_SWITCH_SYSTEM
+#define LD_SWITCH_SYSTEM_1
 #define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o
 #define UNEXEC unexelf.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o /usr/lib/crtn.o
@@ -65,7 +65,7 @@
 #else /* not __ELF__ */
 
 #ifndef NO_SHARED_LIBS
-#define LD_SWITCH_SYSTEM -e start -dc
+#define LD_SWITCH_SYSTEM_1 -e start -dc -L/usr/local/lib
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 #if __FreeBSD_version >= 300002
 #define START_FILES pre-crt0.o /usr/lib/aout/crt0.o
@@ -84,13 +84,19 @@
 #else /* NO_SHARED_LIBS */
 #ifdef __FreeBSD__  /* shared libs are available, but the user prefers
                      not to use them.  */
-#define LD_SWITCH_SYSTEM -Bstatic
+#define LD_SWITCH_SYSTEM_1 -Bstatic -L/usr/local/lib
 #define A_TEXT_OFFSET(x) (sizeof (struct exec))
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 #endif /* __FreeBSD__ */
 #endif /* NO_SHARED_LIBS */
 
 #endif /* not __ELF__ */
+
+/* Let `ld' find image libs and similar things in /usr/local/lib.  The
+   system compiler, GCC, has apparently been modified to not look
+   there, contrary to what a stock GCC would do.  */
+
+#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_1 -L/usr/local/lib
 
 #define HAVE_WAIT_HEADER
 #if 0
@@ -149,7 +155,7 @@
    compiler seems to be modified to not find headers in
    /usr/local/include or libs in /usr/local/lib by default.  */
 
-#define C_SWITCH_SYSTEM -I /usr/X11R6/include -I /usr/local/include -L /usr/local/lib
+#define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/local/include -L/usr/local/lib
 
 /* Circumvent a bug in FreeBSD.  In the following sequence of
    writes/reads on a PTY, read(2) returns bogus data:
