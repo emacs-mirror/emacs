@@ -3,7 +3,7 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 ;;
-;;  Version:  2.75
+;;  Version:  2.76
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -25,7 +25,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(defconst viper-version "2.75 of May 31, 1995"
+(defconst viper-version "2.76 of June 9, 1995"
   "The current version of Viper")
 
 ;;; Commentary:
@@ -1313,7 +1313,8 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     (if (and auto-fill-function (> (current-column) fill-column))
 	(funcall auto-fill-function))
     ;; don't leave whitespace lines around
-    (if (memq last-command '(vip-autoindent vip-open-line vip-Open-line))
+    (if (and (memq last-command '(vip-autoindent vip-open-line vip-Open-line))
+	     (vip-over-whitespace-line))
 	(indent-to-left-margin))
     (vip-add-newline-at-eob-if-necessary)
     (if vip-undo-needs-adjustment  (vip-adjust-undo))
