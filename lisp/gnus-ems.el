@@ -127,7 +127,7 @@ pounce directly on the real variables themselves.")
 		    ((and (cdr (assq 'background-color params))
 			  (< (apply '+ (x-color-values
 					(cdr (assq 'background-color params))))
-			     (/ (apply '+ (x-color-values "white")) 3)))
+			     (* (apply '+ (x-color-values "white")) .6)))
 		     'dark)
 		    (t 'light)))
 	  (error 'light))
