@@ -30,8 +30,12 @@
 /* BSD's strings.h does not declare the type of strtok.  */
 extern char *strtok ();
 
+#ifndef TRUE
 #define TRUE  (1)
+#endif
+#ifndef FALSE
 #define FALSE (0)
+#endif
 
 int header = FALSE, printing;
 time_t ltoday;
