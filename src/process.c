@@ -557,7 +557,7 @@ nil, indicating the current buffer's process.")
       XPROCESS (proc)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       XSETINT (XPROCESS (proc)->tick, ++process_tick);
     }
-  else if (XINT (XPROCESS (proc)->infd >= 0))
+  else if (XINT (XPROCESS (proc)->infd) >= 0)
     {
       Fkill_process (proc, Qnil);
       /* Do this now, since remove_process will make sigchld_handler do nothing.  */
