@@ -2152,7 +2152,7 @@ beginning and `after-revert-hook' at the end."
   ;; Actually putting the file name in the minibuffer should be used
   ;; only rarely.
   ;; Not just because users often use the default.
-  (interactive "fRecover file: ")
+  (interactive "FRecover file: ")
   (setq file (expand-file-name file))
   (if (auto-save-file-name-p (file-name-nondirectory file))
       (error "%s is an auto-save file" file))
