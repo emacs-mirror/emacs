@@ -89,18 +89,11 @@
      [simple-query "http://hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl"
 		   "http://hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl?query=" ""])
     ("Bastard Operator from Hell" . "www.replay.com/bofh/")
-    ("Brown University" .
-     [simple-query "www.brown.edu" "www.brown.edu/cgi-local/bsearch?" ""])
     ("Computer Professionals for Social Responsibility" . "www.cpsr.org/dox/")
-    ("Digital Espresso" .
-     [simple-query "www.io.org/~mentor/DigitalEspresso.html"
-		   "www.jars.com/cgi-bin/aglimpse/01?query="
-		   "&case=on&whole=on&errors=0&maxfiles=100&maxlines=30"])
-    ("Dilbert" . "www.unitedmedia.com/comics/dilbert/")
     ("Electronic Frontier Foundation" . "www.eff.org")
     ("Emacs Lisp Archive" .
      "ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
-    ("Free Software Foundation" . "www.fsf.org")
+    ("GNU Project" . "www.gnu.ai.mit.edu")
     ("GNU FTP Archive". [mirrors
                          "ftp://prep.ai.mit.edu/pub/gnu/"
                          ;; ASIA:
@@ -155,14 +148,9 @@
                          "ftp://gatekeeper.dec.com/pub/GNU"
                          "ftp://ftp.uu.net/systems/gnu"
                          ])
-    ("Insidious Big Brother Database" . "home.netscape.com/people/jwz/bbdb/")
     ("Interactive Weather Information Network" . webjump-to-iwin)
-    ("Java API" . webjump-to-javaapi)
     ("Lycos" .
      [simple-query "www.lycos.com" "www.lycos.com/cgi-bin/pursuit?query=" ""])
-    ("Mailcrypt" . "cag-www.lcs.mit.edu/mailcrypt/")
-    ("Pretty Good Privacy" . "web.mit.edu/network/pgp.html")
-    ("Playboy" . (if (webjump-adult-p) "www.playboy.com" "www.whitehouse.gov"))
     ("Usenet FAQs" . 
      [simple-query "www.cis.ohio-state.edu/hypertext/faq/usenet/FAQ-List.html"
 		   "www.cis.ohio-state.edu/htbin/search-usenet-faqs/form?find="
@@ -172,14 +160,9 @@
      "ftp://rtfm.mit.edu/pub/usenet-by-group/")
     ("RTFM Usenet FAQs by Hierachy" .
      "ftp://rtfm.mit.edu/pub/usenet-by-hierarchy/")
-    ("Webster" . 
-     [simple-query "c.gp.cs.cmu.edu:5103/prog/webster"
-		   "gs213.sp.cs.cmu.edu/prog/webster?" ""])
     ("X Consortium Archive". "ftp.x.org")
     ("Yahoo" . 
      [simple-query "www.yahoo.com" "search.yahoo.com/bin/search?p=" ""])
-    ("Yahoo Emacs" .
-     "www.yahoo.com/Computers_and_Internet/Software/Editors/Emacs/")
     ("Yahoo Reference" "www.yahoo.com/Reference/")
     )
   "Sample hotlist for WebJump.")
@@ -263,17 +246,6 @@ submitting the URL.")
                                      "zone")
                 ".html")
       prefix)))
-
-(defun webjump-to-javaapi (name)
-  (let* ((prefix "http://www.javasoft.com/products/JDK/CurrentRelease/api/")
-	 (packages '(("java.applet") ("java.awt") ("java.awt.image")
-		     ("java.awt.peer") ("java.io") ("java.lang") ("java.net")
-		     ("java.util") ("sun.tools.debug")))
-	 (completion-ignore-case t)
-	 (package (completing-read (concat name " package: ") packages nil t)))
-    (if (webjump-null-or-blank-string-p package)
-        (concat prefix "packages.html")
-      (concat prefix "Package-" package ".html"))))
 
 (defun webjump-to-risks (name)
   (let (issue volume)
