@@ -130,6 +130,9 @@ int waiting_for_input;
 /* True while displaying for echoing.   Delays C-g throwing.  */
 static int echoing;
 
+/* Nonzero means disregard local maps for the menu bar.  */
+static int inhibit_local_menu_bar_menus;
+
 /* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
 
@@ -4036,6 +4039,13 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   if (! menu_prompting)
     return Qnil;
 
+  /* Optionally disregard all but the global map.  */
+  if (inhibit_local_menu_bar_menus)
+    {
+      maps += (nmaps - 1);
+      nmaps = 1;
+    }
+
   /* Get the menu name from the first map that has one (a prompt string).  */
   for (mapno = 0; mapno < nmaps; mapno++)
     {
@@ -6132,6 +6142,10 @@ Measured in milliseconds.  nil means disable double-click recognition;\n\
 t means double-clicks have no time limit and are detected\n\
 by position only.");
   Vdouble_click_time = make_number (500);
+
+  DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
+    "*Non-nil means inhibit local map menu bar menus.");
+  inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", &num_input_keys,
     "*Number of complete keys read from the keyboard so far.");
