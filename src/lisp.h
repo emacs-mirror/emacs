@@ -625,6 +625,7 @@ struct Lisp_Symbol
     Lisp_Object value;
     Lisp_Object function;
     Lisp_Object plist;
+    Lisp_Object obarray;
     struct Lisp_Symbol *next;	/* -> next symbol in this obarray bucket */
   };
 
