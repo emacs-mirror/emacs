@@ -224,7 +224,7 @@ and that its contents match what the master file says.")
      (progn   ;; RCS
        (vc-file-setprop file 'vc-default-branch nil)
        (vc-file-setprop file 'vc-head-version nil)
-       (vc-file-setprop file 'vc-top-version nil)
+       (vc-file-setprop file 'vc-master-workfile--version nil)
        (vc-file-setprop file 'vc-master-locks nil))
      (progn
        (vc-file-setprop file 'vc-cvs-status nil))))
@@ -254,7 +254,8 @@ and that its contents match what the master file says.")
 	     (string= (vc-file-getprop file 'vc-head-version)
 		      workfile-version))
 	 ;; If we are not on the trunk, we need to examine the
-	 ;; whole current branch.  (vc-top-version is not what we need.)
+	 ;; whole current branch.  (vc-master-workfile-version 
+         ;; is not what we need.)
 	 (save-excursion
 	   (set-buffer (get-buffer-create "*vc-info*"))
 	   (vc-insert-file (vc-name file) "^desc")
