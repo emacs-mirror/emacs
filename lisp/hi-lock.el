@@ -119,22 +119,26 @@ calls."
   :group 'hi-lock-interactive-text-highlighting)
 
 (defface hi-yellow
-  '((t (:background "yellow")))
+  '((((background dark)) (:background "yellow" :foreground "black"))
+    (t (:background "yellow")))
   "Default face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-pink
-  '((t (:background "pink")))
+  '(((background dark) (:background "pink" :foreground "black"))
+    (t (:background "pink")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-green
-  '((t (:background "green")))
+  '(((background dark) (:background "green" :foreground "black"))
+    (t (:background "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-blue
-  '((t (:background "light blue")))
+  '(((background dark) (:background "light blue" :foreground "black"))
+    (t (:background "light blue")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
