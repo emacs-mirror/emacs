@@ -1544,7 +1544,7 @@ or as help on variables `cperl-tips', `cperl-problems',
        (cperl-msb-fix))
   (if (featurep 'easymenu)
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
-  (run-hooks 'cperl-mode-hook)
+  (run-mode-hooks 'cperl-mode-hook)
   ;; After hooks since fontification will break this
   (if cperl-pod-here-scan
       (or cperl-syntaxify-by-font-lock
@@ -4180,7 +4180,7 @@ conditional/loop constructs."
       (let ((indent-info (if cperl-emacs-can-parse
 			     (list nil nil nil)	; Cannot use '(), since will modify
 			   nil))
-	    (pm 0) (imenu-scanning-message "Indenting... (%3d%%)")
+	    (pm 0)
 	    after-change-functions	; Speed it up!
 	    st comm old-comm-indent new-comm-indent p pp i empty)
 	(if h-a-c (add-hook 'after-change-functions 'cperl-delay-update-hook))

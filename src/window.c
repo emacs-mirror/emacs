@@ -243,7 +243,8 @@ make_window ()
   register struct window *p;
 
   p = allocate_window ();
-  XSETFASTINT (p->sequence_number, ++sequence_number);
+  ++sequence_number;
+  XSETFASTINT (p->sequence_number, sequence_number);
   XSETFASTINT (p->left_col, 0);
   XSETFASTINT (p->top_line, 0);
   XSETFASTINT (p->total_lines, 0);
@@ -2659,6 +2660,9 @@ shrink_windows (total, size, nchildren, shrinkable,
             --shrinkable;
             total_removed += smallest;
 
+            /* We don't know what the smallest is now.  */
+            smallest = total;
+
             /* Out of for, just remove one window at the time and
                check again if we have enough space.  */
             break;
@@ -2683,6 +2687,16 @@ shrink_windows (total, size, nchildren, shrinkable,
      that are left and still can be shrunk.  */
   while (total_shrink > total_removed)
     {
+      int nonzero_sizes = 0;
+      int nonzero_idx = -1;
+
+      for (i = 0; i < nchildren; ++i)
+        if (new_sizes[i] > 0)
+          {
+            ++nonzero_sizes;
+            nonzero_idx = i;
+          }
+      
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_size)
           {
@@ -2693,6 +2707,25 @@ shrink_windows (total, size, nchildren, shrinkable,
                check again if we have enough space.  */
             break;
           }
+
+
+      /* Special case, only one window left.  */
+      if (nonzero_sizes == 1)
+        break;
+    }
+
+  /* Any surplus due to rounding, we add to windows that are left.  */
+  while (total_shrink < total_removed)
+    {
+      for (i = 0; i < nchildren; ++i)
+        {
+          if (new_sizes[i] != 0 && total_shrink < total_removed)
+            {
+              ++new_sizes[i];
+              --total_removed;
+              break;
+            }
+        }
     }
 
   return new_sizes;
@@ -3119,7 +3152,8 @@ selects the buffer of the selected window before each command.  */)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  XSETFASTINT (w->use_time, ++window_select_count);
+  ++window_select_count;
+  XSETFASTINT (w->use_time, window_select_count);
   if (EQ (window, selected_window))
     return window;
 
@@ -3610,7 +3644,8 @@ make_dummy_parent (window)
       = ((struct Lisp_Vector *)o)->contents[i];
   XSETWINDOW (new, p);
 
-  XSETFASTINT (p->sequence_number, ++sequence_number);
+  ++sequence_number;
+  XSETFASTINT (p->sequence_number, sequence_number);
 
   /* Put new into window structure in place of window */
   replace_window (window, new);
@@ -5852,7 +5887,7 @@ save_window_save (window, vector, i)
       p = SAVED_WINDOW_N (vector, i);
       w = XWINDOW (window);
 
-      XSETFASTINT (w->temslot, i++);
+      XSETFASTINT (w->temslot, i); i++;
       p->window = window;
       p->buffer = w->buffer;
       p->left_col = w->left_col;

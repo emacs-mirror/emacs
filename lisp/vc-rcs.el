@@ -419,7 +419,7 @@ whether to remove it."
 	    (vc-file-setprop file 'vc-workfile-version new-version)
 	    ;; if necessary, adjust the default branch
 	    (and rev (not (string= rev ""))
-		 (vc-rcs-set-default-branch 
+		 (vc-rcs-set-default-branch
 		  file
 		  (if (vc-rcs-latest-on-branch-p file new-version)
 		      (if (vc-trunk-p new-version) nil
@@ -496,6 +496,203 @@ Needs RCS 5.6.2 or later for -M."
                        (concat "-r" oldvers)
                        (and newvers (concat "-r" newvers)))
                  (vc-switches 'RCS 'diff))))
+
+(defun vc-rcs-annotate-command (file buffer &optional revision)
+  "Annotate FILE, inserting the results in BUFFER.
+Optional arg REVISION is a revision to annotate from."
+  ;; Aside from the "head revision on the trunk", the instructions for
+  ;; each revision on the trunk are an ordered list of kill and insert
+  ;; commands necessary to go from the chronologically-following
+  ;; revision to this one.  That is, associated with revision N are
+  ;; edits that applied to revision N+1 would result in revision N.
+  ;;
+  ;; On a branch, however, (some) things are inverted: the commands
+  ;; listed are those necessary to go from the chronologically-preceding
+  ;; revision to this one.  That is, associated with revision N are
+  ;; edits that applied to revision N-1 would result in revision N.
+  ;;
+  ;; So, to get per-line history info, we apply reverse-chronological
+  ;; edits, starting with the head revision on the trunk, all the way
+  ;; back through the initial revision (typically "1.1" or similar),
+  ;; then apply forward-chronological edits -- keeping track of which
+  ;; revision is associated with each inserted line -- until we reach
+  ;; the desired revision for display (which may be either on the trunk
+  ;; or on a branch).
+  (let* ((tree (with-temp-buffer
+                 (insert-file-contents (vc-rcs-registered file))
+                 (vc-rcs-parse)))
+         (revisions (cdr (assq 'revisions tree)))
+         ;; The revision N whose instructions we currently are processing.
+         (cur (cdr (assq 'head (cdr (assq 'headers tree)))))
+         ;; Alist from the parse tree for N.
+         (meta (cdr (assoc cur revisions)))
+         ;; Point and temporary string, respectively.
+         p s
+         ;; "Next-branch list".  Nil means the desired revision to
+         ;; display lives on the trunk.  Non-nil means it lives on a
+         ;; branch, in which case the value is a list of revision pairs
+         ;; (PARENT . CHILD), the first PARENT being on the trunk, that
+         ;; links each series of revisions in the path from the initial
+         ;; revision to the desired revision to display.
+         nbls
+         ;; "Path-accumulate-predicate plus revision/date/author".
+         ;; Until set, forward-chronological edits are not accumulated.
+         ;; Once set, its value (updated every revision) is used for
+         ;; the text property `:vc-rcs-r/d/a' for inserts during
+         ;; processing of forward-chronological instructions for N.
+         ;; See internal func `r/d/a'.
+         prda
+         ;; List of forward-chronological instructions, each of the
+         ;; form: (POS . ACTION), where POS is a buffer position.  If
+         ;; ACTION is a string, it is inserted, otherwise it is taken as
+         ;; the number of characters to be deleted.
+         path
+         ;; N+1.  When `cur' is "", this is the initial revision.
+         pre)
+    (unless revision
+      (setq revision cur))
+    (unless (assoc revision revisions)
+      (error "No such revision: %s" revision))
+    ;; Find which branches (if any) must be included in the edits.
+    (let ((par revision)
+          bpt kids)
+      (while (setq bpt (vc-branch-part par)
+                   par (vc-branch-part bpt))
+        (setq kids (cdr (assq 'branches (cdr (assoc par revisions)))))
+        ;; A branchpoint may have multiple children.  Find the right one.
+        (while (not (string= bpt (vc-branch-part (car kids))))
+          (setq kids (cdr kids)))
+        (push (cons par (car kids)) nbls)))
+    ;; Start with the full text.
+    (set-buffer buffer)
+    (insert (cdr (assq 'text meta)))
+    ;; Apply reverse-chronological edits on the trunk, computing and
+    ;; accumulating forward-chronological edits after some point, for
+    ;; later.
+    (flet ((r/d/a () (vector pre
+                             (cdr (assq 'date meta))
+                             (cdr (assq 'author meta)))))
+      (while (when (setq pre cur cur (cdr (assq 'next meta)))
+               (not (string= "" cur)))
+        (setq
+         ;; Start accumulating the forward-chronological edits when N+1
+         ;; on the trunk is either the desired revision to display, or
+         ;; the appropriate branchpoint for it.  Do this before
+         ;; updating `meta' since `r/d/a' uses N+1's `meta' value.
+         prda (when (or prda (string= (if nbls (caar nbls) revision) pre))
+                (r/d/a))
+         meta (cdr (assoc cur revisions)))
+        ;; Edits in the parse tree specify a line number (in the buffer
+        ;; *BEFORE* editing occurs) to start from, but line numbers
+        ;; change as a result of edits.  To DTRT, we apply edits in
+        ;; order of descending buffer position so that edits further
+        ;; down in the buffer occur first w/o corrupting specified
+        ;; buffer positions of edits occurring towards the beginning of
+        ;; the buffer.  In this way we avoid using markers.  A pleasant
+        ;; property of this approach is ability to push instructions
+        ;; onto `path' directly, w/o need to maintain rev boundaries.
+        (dolist (insn (cdr (assq :insn meta)))
+          (goto-line (pop insn))
+          (setq p (point))
+          (case (pop insn)
+            (k (setq s (buffer-substring-no-properties
+                        p (progn (forward-line (car insn))
+                                 (point))))
+               (when prda
+                 (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
+               (delete-region p (point)))
+            (i (setq s (car insn))
+               (when prda
+                 (push `(,p . ,(length s)) path))
+               (insert s)))))
+      ;; For the initial revision, setting `:vc-rcs-r/d/a' directly is
+      ;; equivalent to pushing an insert instruction (of the entire buffer
+      ;; contents) onto `path' then erasing the buffer, but less wasteful.
+      (put-text-property (point-min) (point-max) :vc-rcs-r/d/a (r/d/a))
+      ;; Now apply the forward-chronological edits for the trunk.
+      (dolist (insn path)
+        (goto-char (pop insn))
+        (if (stringp insn)
+            (insert insn)
+          (delete-char insn)))
+      ;; Now apply the forward-chronological edits (directly from the
+      ;; parse-tree) for the branch(es), if necessary.  We re-use vars
+      ;; `pre' and `meta' for the sake of internal func `r/d/a'.
+      (while nbls
+        (setq pre (cdr (pop nbls)))
+        (while (progn
+                 (setq meta (cdr (assoc pre revisions))
+                       prda nil)
+                 (dolist (insn (cdr (assq :insn meta)))
+                   (goto-line (pop insn))
+                   (case (pop insn)
+                     (k (delete-region
+                         (point) (progn (forward-line (car insn))
+                                        (point))))
+                     (i (insert (propertize
+                                 (car insn)
+                                 :vc-rcs-r/d/a
+                                 (or prda (setq prda (r/d/a))))))))
+                 (prog1 (not (string= (if nbls (caar nbls) revision) pre))
+                   (setq pre (cdr (assq 'next meta)))))))))
+  ;; Lastly, for each line, insert at bol nicely-formatted history info.
+  ;; We do two passes to collect summary information used to minimize
+  ;; the annotation's usage of screen real-estate: (1) Consider rendered
+  ;; width of revision plus author together as a unit; and (2) Omit
+  ;; author entirely if all authors are the same as the user.
+  (let ((ht (make-hash-table :test 'eq))
+        (me (user-login-name))
+        (maxw 0)
+        (all-me t)
+        rda w a)
+    (goto-char (point-max))
+    (while (not (bobp))
+      (forward-line -1)
+      (setq rda (get-text-property (point) :vc-rcs-r/d/a))
+      (unless (gethash rda ht)
+        (setq a (aref rda 2)
+              all-me (and all-me (string= a me)))
+        (puthash rda (setq w (+ (length (aref rda 0))
+                                (length a)))
+                 ht)
+        (setq maxw (max w maxw))))
+    (let ((padding (make-string maxw 32)))
+      (flet ((pad (w) (substring-no-properties padding w))
+             (render (rda &rest ls)
+                     (propertize
+                      (apply 'concat
+                             (format-time-string "%Y-%m-%d" (aref rda 1))
+                             "  "
+                             (aref rda 0)
+                             ls)
+                      :vc-rcs-r/d/a rda)))
+        (maphash
+         (if all-me
+             (lambda (rda w)
+               (puthash rda (render rda (pad w) ": ") ht))
+           (lambda (rda w)
+             (puthash rda (render rda " " (pad w) " " (aref rda 2) ": ") ht)))
+         ht)))
+    (while (not (eobp))
+      (insert (gethash (get-text-property (point) :vc-rcs-r/d/a) ht))
+      (forward-line 1))))
+
+(defun vc-rcs-annotate-current-time ()
+  "Return the current time, based at midnight of the current day, and
+encoded as fractional days."
+  (vc-annotate-convert-time
+   (apply 'encode-time 0 0 0 (nthcdr 3 (decode-time (current-time))))))
+
+(defun vc-rcs-annotate-time ()
+  "Return the time of the next annotation (as fraction of days)
+systime, or nil if there is none.  Also, reposition point."
+  (unless (eobp)
+    (search-forward ": ")
+    (vc-annotate-convert-time
+     (aref (get-text-property (point) :vc-rcs-r/d/a) 1))))
+
+(defun vc-rcs-annotate-extract-revision-at-line ()
+  (aref (get-text-property (point) :vc-rcs-r/d/a) 0))
 
 
 ;;;
@@ -761,7 +958,6 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 	     (not (eq installation 'unknown)))
 	(vc-release-greater-or-equal installation release))))
 
-
 (defun vc-rcs-system-release ()
   "Return the RCS release installed on this system, as a string.
 Return symbol UNKNOWN if the release cannot be deducted.  The user can
@@ -784,6 +980,272 @@ variable `vc-rcs-release' is set to the returned value."
 (defun vc-rcs-set-default-branch (file branch)
   (vc-do-command nil 0 "rcs" (vc-name file) (concat "-b" branch))
   (vc-file-setprop file 'vc-rcs-default-branch branch))
+
+(defun vc-rcs-parse (&optional buffer)
+  "Parse current buffer, presumed to be in RCS-style masterfile format.
+Optional arg BUFFER specifies another buffer to parse.  Return an alist
+of two elements, w/ keys `headers' and `revisions' and values in turn
+sub-alists.  For `headers', the values unless otherwise specified are
+strings and the keys are:
+
+  desc     -- description
+  head     -- latest revision
+  branch   -- the branch the \"head revision\" lies on;
+              absent if the head revision lies on the trunk
+  access   -- ???
+  symbols  -- sub-alist of (SYMBOL . REVISION) elements
+  locks    -- if file is checked out, something like \"ttn:1.7\"
+  strict   -- t if \"strict locking\" is in effect, otherwise nil
+  comment  -- may be absent; typically something like \"# \" or \"; \"
+  expand   -- may be absent; ???
+
+For `revisions', the car is REVISION (string), the cdr a sub-alist,
+with string values (unless otherwise specified) and keys:
+
+  date     -- a time value (like that returned by `encode-time'); as a
+              special case, a year value less than 100 is augmented by 1900
+  author   -- username
+  state    -- typically \"Exp\" or \"Rel\"
+  branches -- list of revisions that begin branches from this revision
+  next     -- on the trunk: the chronologically-preceding revision, or \"\";
+              on a branch: the chronologically-following revision, or \"\"
+  log      -- change log entry
+  text     -- for the head revision on the trunk, the body of the file;
+              other revisions have `:insn' instead
+  :insn    -- for non-head revisions, a list of parsed instructions
+              in one of two forms, in both cases START meaning \"first
+              go to line START\":
+               - `(START k COUNT)' -- kill COUNT lines
+               - `(START i TEXT)'  -- insert TEXT (a string)
+              The list is in descending order by START.
+
+The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
+  (setq buffer (get-buffer (or buffer (current-buffer))))
+  (set-buffer buffer)
+  ;; An RCS masterfile can be viewed as containing four regular (for the
+  ;; most part) sections: (a) the "headers", (b) the "rev headers", (c)
+  ;; the "description" and (d) the "rev bodies", in that order.  In the
+  ;; returned alist (see docstring), elements from (b) and (d) are
+  ;; combined pairwise to form the "revisions", while those from (a) and
+  ;; (c) are simply combined to form the "headers".
+  ;;
+  ;; Loosely speaking, each section contains a series of alternating
+  ;; "tags" and "printed representations".  In the (b) and (d), many
+  ;; such series can appear, and a revision number on a line by itself
+  ;; precedes the series of tags and printed representations associated
+  ;; with it.
+  ;;
+  ;; In (a) and (b), the printed representations (with the exception of
+  ;; the `comment' tag in the headers) terminate with a semicolon, which
+  ;; is NOT part of the "value" finally associated with the tag.  All
+  ;; other printed representations are in "@@-format"; there is an "@",
+  ;; the middle part (to be translated into the value), another "@" and
+  ;; a newline.  Each "@@" in the middle part indicates the position of
+  ;; a single "@" (and consequently the requirement of an additional
+  ;; initial step when translating to the value).
+  ;;
+  ;; Parser state includes vars that collect parts of the return value...
+  (let ((desc nil) (headers nil) (revs nil)
+        ;; ... as well as vars that support a single-pass, tag-assisted,
+        ;; minimal-data-copying scan.  Basically -- skirting around the
+        ;; grouping by revision required in (b) and (d) -- we repeatedly
+        ;; and context-sensitively read a tag (that MUST be present),
+        ;; determine the bounds of the printed representation, translate
+        ;; it into a value, and push the tag plus value onto one of the
+        ;; collection vars.  Finally, we return the parse tree
+        ;; incorporating the values of the collection vars (see "rv").
+        ;;
+        ;; A symbol or string to keep track of context (for error messages).
+        context
+        ;; A symbol, the current tag.
+        tok
+        ;; Region (begin and end buffer positions) of the printed
+        ;; representation for the current tag.
+        b e
+        ;; A list of buffer positions where "@@" can be found within the
+        ;; printed representation region.  For each location, we push two
+        ;; elements onto the list, 1+ and 2+ the location, respectively,
+        ;; with the 2+ appearing at the head.  In this way, the expression
+        ;;   `(,e ,@@-holes ,b)
+        ;; describes regions that can be concatenated (in reverse order)
+        ;; to "de-@@-format" the printed representation as the first step
+        ;; to translating it into some value.  See internal func `gather'.
+        @-holes)
+    (flet ((sw () (skip-chars-forward " \t\n")) ; i.e., `[:space:]'
+           (at (tag) (save-excursion (eq tag (read buffer))))
+           (to-eol () (buffer-substring-no-properties
+                       (point) (progn (forward-line 1)
+                                      (1- (point)))))
+           (to-semi () (setq b (point)
+                             e (progn (search-forward ";")
+                                      (1- (point)))))
+           (to-one@ () (setq @-holes nil
+                             b (progn (search-forward "@") (point))
+                             e (progn (while (and (search-forward "@")
+                                                  (= ?@ (char-after))
+                                                  (progn
+                                                    (push (point) @-holes)
+                                                    (forward-char 1)
+                                                    (push (point) @-holes))))
+                                      (1- (point)))))
+           (tok+val (set-b+e name &optional proc)
+                    (unless (eq name (setq tok (read buffer)))
+                      (error "Missing `%s' while parsing %s" name context))
+                    (sw)
+                    (funcall set-b+e)
+                    (cons tok (if proc
+                                  (funcall proc)
+                                (buffer-substring-no-properties b e))))
+           (k-semi (name &optional proc) (tok+val 'to-semi name proc))
+           (gather () (let ((pairs `(,e ,@@-holes ,b))
+                            acc)
+                        (while pairs
+                          (push (buffer-substring-no-properties
+                                 (cadr pairs) (car pairs))
+                                acc)
+                          (setq pairs (cddr pairs)))
+                        (apply 'concat acc)))
+           (k-one@ (name &optional later) (tok+val 'to-one@ name
+                                                   (if later
+                                                       (lambda () t)
+                                                     'gather))))
+      (save-excursion
+        (goto-char (point-min))
+        ;; headers
+        (setq context 'headers)
+        (flet ((hpush (name &optional proc)
+                      (push (k-semi name proc) headers)))
+          (hpush 'head)
+          (when (at 'branch)
+            (hpush 'branch))
+          (hpush 'access)
+          (hpush 'symbols
+                 (lambda ()
+                   (mapcar (lambda (together)
+                             (let ((two (split-string together ":")))
+                               (setcar two (intern (car two)))
+                               (setcdr two (cadr two))
+                               two))
+                           (split-string
+                            (buffer-substring-no-properties b e)))))
+          (hpush 'locks))
+        (push `(strict . ,(when (at 'strict)
+                            (search-forward ";")
+                            t))
+              headers)
+        (when (at 'comment)
+          (push (k-one@ 'comment) headers)
+          (search-forward ";"))
+        (when (at 'expand)
+          (push (k-one@ 'expand) headers)
+          (search-forward ";"))
+        (setq headers (nreverse headers))
+        ;; rev headers
+        (sw) (setq context 'rev-headers)
+        (while (looking-at "[0-9]")
+          (push `(,(to-eol)
+                  ,(k-semi 'date
+                           (lambda ()
+                             (let ((ls (mapcar 'string-to-number
+                                               (split-string
+                                                (buffer-substring-no-properties
+                                                 b e)
+                                                "\\."))))
+                               ;; Hack the year -- verified to be the
+                               ;; same algorithm used in RCS 5.7.
+                               (when (< (car ls) 100)
+                                 (setcar ls (+ 1900 (car ls))))
+                               (apply 'encode-time (nreverse ls)))))
+                  ,@(mapcar 'k-semi '(author state))
+                  ,(k-semi 'branches
+                           (lambda ()
+                             (split-string
+                              (buffer-substring-no-properties b e))))
+                  ,(k-semi 'next))
+                revs)
+          (sw))
+        (setq revs (nreverse revs))
+        ;; desc
+        (sw) (setq context 'desc
+                   desc (k-one@ 'desc))
+        ;; rev bodies
+        (let (acc
+              ;; Element of `revs' that initially holds only header info.
+              ;; "Pairwise combination" occurs when we add body info.
+              rev
+              ;; Components of the editing commands (aside from the actual
+              ;; text) that comprise the `text' printed representations
+              ;; (not including the "head" revision).
+              cmd start act
+              ;; Ascending (reversed) `@-holes' which the internal func
+              ;; `incg' pops to effect incremental gathering.
+              asc
+              ;; Function to extract text (for the `a' command), either
+              ;; `incg' or `buffer-substring-no-properties'.  (This is
+              ;; for speed; strictly speaking, it is sufficient to use
+              ;; only the former since it behaves identically to the
+              ;; latter in the absense of "@@".)
+              sub)
+          (flet ((incg (beg end) (let ((b beg) (e end) @-holes)
+                                   (while (and asc (< (car asc) e))
+                                     (push (pop asc) @-holes))
+                                   ;; Self-deprecate when work is done.
+                                   ;; Folding many dimensions into one.
+                                   ;; Thanks B.Mandelbrot, for complex sum.
+                                   ;; O beauteous math! --the Unvexed Bum
+                                   (unless asc
+                                     (setq sub 'buffer-substring-no-properties))
+                                   (gather))))
+            (while (and (sw)
+                        (not (eobp))
+                        (setq context (to-eol)
+                              rev (or (assoc context revs)
+                                      (error "Rev `%s' has body but no head"
+                                             context))))
+              (push (k-one@ 'log) (cdr rev))
+              ;; For rev body `text' tags, delay translation slightly...
+              (push (k-one@ 'text t) (cdr rev))
+              ;; ... until we decide which tag and value is appropriate to
+              ;; collect.  For the "head" revision, compute the value of the
+              ;; `text' printed representation by simple `gather'.  For all
+              ;; other revisions, replace the `text' tag+value with `:insn'
+              ;; plus value, always scanning in-place.
+              (if (string= context (cdr (assq 'head headers)))
+                  (setcdr (cadr rev) (gather))
+                (if @-holes
+                    (setq asc (nreverse @-holes)
+                          sub 'incg)
+                  (setq sub 'buffer-substring-no-properties))
+                (goto-char b)
+                (setq acc nil)
+                (while (< (point) e)
+                  (forward-char 1)
+                  (setq cmd (char-before)
+                        start (read (current-buffer))
+                        act (read (current-buffer)))
+                  (forward-char 1)
+                  (push (case cmd
+                          (?d
+                           ;; `d' means "delete lines".
+                           ;; For Emacs spirit, we use `k' for "kill".
+                           `(,start k ,act))
+                          (?a
+                           ;; `a' means "append after this line" but
+                           ;; internally we normalize it so that START
+                           ;; specifies the actual line for insert, thus
+                           ;; requiring less hair in the realization algs.
+                           ;; For Emacs spirit, we use `i' for "insert".
+                           `(,(1+ start) i
+                             ,(funcall sub (point) (progn (forward-line act)
+                                                          (point)))))
+                          (t (error "Bad command `%c' in `text' for rev `%s'"
+                                    cmd context)))
+                        acc))
+                (goto-char (1+ e))
+                (setcar (cdr rev) (cons :insn acc)))))))
+      ;; rv
+      `((headers ,desc ,@headers)
+        (revisions ,@revs)))))
 
 (provide 'vc-rcs)
 

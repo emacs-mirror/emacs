@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 03, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -606,6 +606,14 @@ Faces `compilation-error-face', `compilation-warning-face',
 		       2)))
     (compilation-internal-error-properties file line end-line col end-col type fmt)))
 
+(defun compilation-move-to-column (col screen)
+  "Go to column COL on the current line.
+If SCREEN is non-nil, columns are screen columns, otherwise, they are
+just char-counts."
+  (if screen
+      (move-to-column col)
+    (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
+
 (defun compilation-internal-error-properties (file line end-line col end-col type fmt)
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
@@ -638,19 +646,17 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	  (goto-char (marker-position marker))
 	  (when (or end-col end-line)
 	    (beginning-of-line (- (or end-line line) marker-line -1))
-	    (if (< end-col 0)
+	    (if (or (null end-col) (< end-col 0))
 		(end-of-line)
-	      (if compilation-error-screen-columns
-		  (move-to-column end-col)
-		(forward-char end-col)))
+	      (compilation-move-to-column
+	       end-col compilation-error-screen-columns))
 	    (setq end-marker (list (point-marker))))
 	  (beginning-of-line (if end-line
-				 (- end-line line -1)
+				 (- line end-line -1)
 			       (- loc marker-line -1)))
 	  (if col
-	      (if compilation-error-screen-columns
-		  (move-to-column col)
-		(forward-char col))
+	      (compilation-move-to-column
+	       col compilation-error-screen-columns)
 	    (forward-to-indentation 0))
 	  (setq marker (list (point-marker))))))
 
@@ -1144,6 +1150,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see).
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
+  (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
 
 (defmacro define-compilation-mode (mode name doc &rest body)
@@ -1206,8 +1213,6 @@ If nil, use the beginning of buffer.")
   "Prepare the buffer for the compilation parsing commands to work.
 Optional argument MINOR indicates this is called from
 `compilation-minor-mode'."
-  (unless minor
-    (setq buffer-read-only t))
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
@@ -1491,10 +1496,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 	      (if (car col)
 		  (if (eq (car col) -1)	; special case for range end
 		      (end-of-line)
-		    (if columns
-			(move-to-column (car col))
-		      (beginning-of-line)
-		      (forward-char (car col))))
+		    (compilation-move-to-column (car col) columns))
 		(beginning-of-line)
 		(skip-chars-forward " \t"))
 	      (if (nth 3 col)

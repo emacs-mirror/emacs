@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -2601,7 +2600,7 @@ calc-kill calc-kill-region calc-yank))))
 				 (list 'get (list 'quote func) ''math-simplify)
 				 (list 'list
 				       (list 'function
-					     (append '(lambda (expr))
+					     (append '(lambda (math-simplify-expr))
 						     code)))))))
 		  (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defsimplify 'lisp-indent-hook 1)

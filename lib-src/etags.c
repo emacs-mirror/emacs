@@ -1400,8 +1400,6 @@ main (argc, argv)
           this_file = argbuffer[i].what;
           process_file (stdin, this_file, lang);
           break;
-	case at_end:
-	  break;
 	}
     }
 
@@ -2902,8 +2900,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
      case tkeyseen:
        switch (toktype)
 	 {
-	 default:
-	   break;
 	 case st_none:
 	 case st_C_class:
 	 case st_C_struct:
@@ -2921,16 +2917,12 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
      case tend:
        switch (toktype)
 	 {
-	 default:
-	   break;
 	 case st_C_class:
 	 case st_C_struct:
 	 case st_C_enum:
 	   return FALSE;
 	 }
        return TRUE;
-     default:
-       break;
      }
 
    /*
@@ -2968,8 +2960,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
 	     fvdef = fvnone;
 	 }
        return FALSE;
-     default:
-       break;
      }
 
    if (structdef == skeyseen)
@@ -2993,8 +2983,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
 	 case st_C_objimpl:
 	   objdef = oimplementation;
 	   return FALSE;
-	 default:
-	   break;
 	 }
        break;
      case oimplementation:
@@ -3051,8 +3039,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
 	   objdef = onone;
 	 }
        return FALSE;
-     default:
-       break;
      }
 
    /* A function, variable or enum constant? */
@@ -3105,8 +3091,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
 		   return FALSE;
 		 }
 	       break;
-	     default:
-	       break;
 	     }
 	  /* FALLTHRU */
 	  case fvnameseen:
@@ -3123,11 +3107,7 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
 	  fvdef = fvnameseen;	/* function or variable */
 	  *is_func_or_var = TRUE;
 	  return TRUE;
-	default:
-	   break;
 	}
-      break;
-    default:
       break;
     }
 
@@ -3604,8 +3584,6 @@ C_entries (c_ext, inf)
 			  fvdef = fignore;
 			}
 		      break;
-		    default:
-		      break;
 		    }
 		  if (structdef == stagseen && !cjava)
 		    {
@@ -3615,8 +3593,6 @@ C_entries (c_ext, inf)
 		  break;
 		case dsharpseen:
 		  savetoken = token;
-		  break;
-		default:
 		  break;
 		}
 	      if (!yacc_rules || lp == newlb.buffer + 1)
@@ -3655,8 +3631,6 @@ C_entries (c_ext, inf)
 	      objdef = omethodcolon;
 	      linebuffer_setlen (&token_name, token_name.len + 1);
 	      strcat (token_name.buffer, ":");
-	      break;
-	    default:
 	      break;
 	    }
 	  if (structdef == stagseen)
@@ -3735,8 +3709,6 @@ C_entries (c_ext, inf)
 	      make_C_tag (TRUE); /* an Objective C method */
 	      objdef = oinbody;
 	      break;
-	    default:
-	      break;
 	    }
 	  switch (fvdef)
 	    {
@@ -3807,8 +3779,6 @@ C_entries (c_ext, inf)
 		  fvdef = fvnone;
 		}
 	      break;
-	    default:
-	      break;
 	    }
 	  break;
 	case '(':
@@ -3842,8 +3812,6 @@ C_entries (c_ext, inf)
 	    case flistseen:
 	      fvdef = finlist;
 	      break;
-	    default:
-	      break;
 	    }
 	  parlev++;
 	  break;
@@ -3868,8 +3836,6 @@ C_entries (c_ext, inf)
 		case fstartlist:
 		case finlist:
 		  fvdef = flistseen;
-		  break;
-		default:
 		  break;
 		}
 	      if (!instruct
@@ -3920,8 +3886,6 @@ C_entries (c_ext, inf)
 		    bracelev = -1;
 		}
 	      break;
-	    default:
-	      break;
 	    }
 	  switch (structdef)
 	    {
@@ -3934,8 +3898,6 @@ C_entries (c_ext, inf)
 	      pushclass_above (bracelev,token.line+token.offset, token.length);
 	      structdef = snone;
 	      make_C_tag (FALSE);  /* a struct or enum */
-	      break;
-	    default:
 	      break;
 	    }
 	  bracelev++;

@@ -288,7 +288,7 @@ finish_menu_items ()
 
 static Lisp_Object
 unuse_menu_items (dummy)
-     int dummy;
+     Lisp_Object dummy;
 {
   return menu_items_inuse = Qnil;
 }
@@ -1118,9 +1118,19 @@ on the left of the dialog box and all following items on the right.
 
 #ifndef MSDOS
 
+/* Set menu_items_inuse so no other popup menu or dialog is created.  */
+
+void
+x_menu_set_in_use (in_use)
+     int in_use;
+{
+  menu_items_inuse = in_use ? Qt : Qnil;
+  popup_activated_flag = in_use;
+}
+
 /* Wait for an X event to arrive or for a timer to expire.  */
 
-static void
+void
 x_menu_wait_for_event (void *data)
 {
   extern EMACS_TIME timer_check P_ ((int));
@@ -1173,14 +1183,6 @@ x_menu_wait_for_event (void *data)
 
 #ifdef USE_X_TOOLKIT
 
-static Lisp_Object
-pop_down_menu (dummy)
-     int dummy;
-{
-  popup_activated_flag = 0;
-  return Qnil;
-}
-
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
@@ -1199,9 +1201,6 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      int down_on_keypress;
 {
   XEvent event;
-
-  int specpdl_count = SPECPDL_INDEX ();
-  record_unwind_protect (pop_down_menu, Qnil);
 
   while (popup_activated_flag)
     {
@@ -1252,8 +1251,6 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 
       x_dispatch_event (&event, event.xany.display);
     }
-
-  unbind_to (specpdl_count, Qnil);
 }
 
 #endif /* USE_X_TOOLKIT */
@@ -1261,30 +1258,12 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 #ifdef USE_GTK
 /* Loop util popup_activated_flag is set to zero in a callback.
    Used for popup menus and dialogs. */
-static GtkWidget *current_menu;
-
-static Lisp_Object
-pop_down_menu (dummy)
-     int dummy;
-{
-  if (current_menu)
-    {
-      gtk_widget_unmap (current_menu);
-      current_menu = 0;
-      popup_activated_flag = 0;
-    }
-  return Qnil;
-}
 
 static void
 popup_widget_loop (do_timers, widget)
      int do_timers;
      GtkWidget *widget;
 {
-  int specpdl_count = SPECPDL_INDEX ();
-  current_menu = widget;
-  record_unwind_protect (pop_down_menu, Qnil);
-
   ++popup_activated_flag;
 
   /* Process events in the Gtk event loop until done.  */
@@ -1293,8 +1272,6 @@ popup_widget_loop (do_timers, widget)
       if (do_timers) x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
-
-  unbind_to (specpdl_count, Qnil);
 }
 #endif
 
@@ -2443,6 +2420,19 @@ popup_selection_callback (widget, client_data)
   if (cb_data) menu_item_selection = (Lisp_Object *) cb_data->call_data;
 }
 
+static Lisp_Object
+pop_down_menu (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+
+  popup_activated_flag = 0;
+  BLOCK_INPUT;
+  gtk_widget_destroy (GTK_WIDGET (p->pointer));
+  UNBLOCK_INPUT;
+  return Qnil;
+}
+
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
    menu pops down.
    menu_item_selection will be set to the selection.  */
@@ -2458,6 +2448,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   GtkWidget *menu;
   GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
   struct next_popup_x_y popup_x_y;
+  int specpdl_count = SPECPDL_INDEX ();
 
   xg_crazy_callback_abort = 1;
   menu = xg_create_widget ("popup", first_wv->name, f, first_wv,
@@ -2488,13 +2479,15 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
 
+  record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+
   /* Set this to one.  popup_widget_loop increases it by one, so it becomes
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
-  popup_widget_loop (1, 0);
+  popup_widget_loop (1, menu);
 
-  gtk_widget_destroy (menu);
+  unbind_to (specpdl_count, Qnil);
 
   /* Must reset this manually because the button release event is not passed
      to Emacs event loop. */
@@ -2520,6 +2513,24 @@ popup_selection_callback (widget, id, client_data)
      XtPointer client_data;
 {
   menu_item_selection = (Lisp_Object *) client_data;
+}
+
+/* ARG is the LWLIB ID of the dialog box, represented
+   as a Lisp object as (HIGHPART . LOWPART).  */
+
+static Lisp_Object
+pop_down_menu (arg)
+     Lisp_Object arg;
+{
+  LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
+                 | XINT (XCDR (arg)));
+
+  BLOCK_INPUT;
+  lw_destroy_all_widgets (id);
+  UNBLOCK_INPUT;
+  popup_activated_flag = 0;
+
+  return Qnil;
 }
 
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
@@ -2578,15 +2589,19 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   /* Display the menu.  */
   lw_popup_menu (menu, (XEvent *) &dummy);
   popup_activated_flag = 1;
+  
+  {
+    int fact = 4 * sizeof (LWLIB_ID);
+    int specpdl_count = SPECPDL_INDEX ();
+    record_unwind_protect (pop_down_menu,
+                           Fcons (make_number (menu_id >> (fact)),
+                                  make_number (menu_id & ~(-1 << (fact)))));
 
-  /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
+    /* Process events that apply to the menu.  */
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
 
-  /* fp turned off the following statement and wrote a comment
-     that it is unnecessary--that the menu has already disappeared.
-     Nowadays the menu disappears ok, all right, but
-     we need to delete the widgets or multiple ones will pile up.  */
-  lw_destroy_all_widgets (menu_id);
+    unbind_to (specpdl_count, Qnil);
+  }
 }
 
 #endif /* not USE_GTK */
@@ -2897,13 +2912,16 @@ create_and_show_dialog (f, first_wv)
 
   if (menu)
     {
+      int specpdl_count = SPECPDL_INDEX ();
+      record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+
       /* Display the menu.  */
       gtk_widget_show_all (menu);
 
       /* Process events that apply to the menu.  */
       popup_widget_loop (1, menu);
 
-      gtk_widget_destroy (menu);
+      unbind_to (specpdl_count, Qnil);
     }
 }
 
@@ -2923,23 +2941,6 @@ dialog_selection_callback (widget, id, client_data)
   lw_destroy_all_widgets (id);
   UNBLOCK_INPUT;
   popup_activated_flag = 0;
-}
-
-
-/* ARG is the LWLIB ID of the dialog box, represented
-   as a Lisp object as (HIGHPART . LOWPART).  */
-
-Lisp_Object
-xdialog_show_unwind (arg)
-     Lisp_Object arg;
-{
-  LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
-		 | XINT (XCDR (arg)));
-  BLOCK_INPUT;
-  lw_destroy_all_widgets (id);
-  UNBLOCK_INPUT;
-  popup_activated_flag = 0;
-  return Qnil;
 }
 
 
@@ -2970,7 +2971,7 @@ create_and_show_dialog (f, first_wv)
     int fact = 4 * sizeof (LWLIB_ID);
 
     /* xdialog_show_unwind is responsible for popping the dialog box down.  */
-    record_unwind_protect (xdialog_show_unwind,
+    record_unwind_protect (pop_down_menu,
                            Fcons (make_number (dialog_id >> (fact)),
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
@@ -3203,6 +3204,41 @@ menu_help_callback (help_string, pane, item)
  		  Qnil, menu_object, make_number (item), 1);
 }
 
+static Lisp_Object
+pop_down_menu (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
+  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
+  
+  FRAME_PTR f = p1->pointer;
+  XMenu *menu = p2->pointer;
+
+  BLOCK_INPUT;
+#ifndef MSDOS
+  XUngrabPointer (FRAME_X_DISPLAY (f), CurrentTime);
+  XUngrabKeyboard (FRAME_X_DISPLAY (f), CurrentTime);
+#endif
+  XMenuDestroy (FRAME_X_DISPLAY (f), menu);
+
+#ifdef HAVE_X_WINDOWS
+  /* Assume the mouse has moved out of the X window.
+     If it has actually moved in, we will get an EnterNotify.  */
+  x_mouse_leave (FRAME_X_DISPLAY_INFO (f));
+
+  /* State that no mouse buttons are now held.
+     (The oldXMenu code doesn't track this info for us.)
+     That is not necessarily true, but the fiction leads to reasonable
+     results, and it is a pain to ask which are actually held now.  */
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+
+#endif /* HAVE_X_WINDOWS */
+
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
 
 static Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error)
@@ -3224,6 +3260,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
+  int specpdl_count = SPECPDL_INDEX ();
 
   *error = 0;
   if (menu_items_n_panes == 0)
@@ -3416,20 +3453,17 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef MSDOS
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
 #endif
+  
+  record_unwind_protect (pop_down_menu,
+                         Fcons (make_save_value (f, 0),
+                                make_save_value (menu, 0)));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
   menu_help_frame = f;
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
-			  x, y, ButtonReleaseMask, &datap,
-			  menu_help_callback);
-
-
-#ifdef HAVE_X_WINDOWS
-  /* Assume the mouse has moved out of the X window.
-     If it has actually moved in, we will get an EnterNotify.  */
-  x_mouse_leave (FRAME_X_DISPLAY_INFO (f));
-#endif
+                          x, y, ButtonReleaseMask, &datap,
+                          menu_help_callback);
 
   switch (status)
     {
@@ -3480,15 +3514,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       entry = Qnil;
       break;
     }
-  XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 
-#ifdef HAVE_X_WINDOWS
-  /* State that no mouse buttons are now held.
-     (The oldXMenu code doesn't track this info for us.)
-     That is not necessarily true, but the fiction leads to reasonable
-     results, and it is a pain to ask which are actually held now.  */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
-#endif
+  unbind_to (specpdl_count, Qnil);
 
   return entry;
 }

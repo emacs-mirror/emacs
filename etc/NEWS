@@ -2336,6 +2336,27 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** read-from-minibuffer now accepts an additional argument KEEP-ALL
+saying to put all inputs in the history list, even empty ones.
+
++++
+** The new variable search-spaces-regexp controls how to search
+for spaces in a regular expression.  If it is non-nil, it should be a
+regular expression, and any series of spaces stands for that regular
+expression.  If it is nil, spaces stand for themselves.
+
+Spaces inside of constructs such as [..] and *, +, ? are never
+replaced with search-spaces-regexp.
+
+---
+** list-buffers-noselect now takes an additional argument, BUFFER-LIST.
+If it is non-nil, it specifies which buffers to list.
+
+---
+** set-buffer-file-coding-system now takes an additional argument,
+NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
+
++++
 ** The new function syntax-after returns the syntax code
 of the character after a specified buffer position, taking account
 of text properties as well as the character code.
@@ -2349,10 +2370,15 @@ run time used by Emacs since start-up.
 
 +++
 ** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactively-p' did: it returns t if the
-calling function was called through `call-interactively'.
-This should only be used when you cannot add a new "interactively"
-argument to the command.
+have mistakenly believed `interactive-p' did: it returns t if the
+calling function was called through `call-interactively'.  This should
+only be used when you cannot add a new "interactive" argument to the
+command.
+
++++
+** The new function `assoc-string' replaces `assoc-ignore-case' and
+`assoc-ignore-representation', which are still available, but have
+been declared obsolete.
 
 +++
 ** An interactive specification may now use the code letter 'U' to get
@@ -3638,6 +3664,12 @@ or the header line.
 
 This returns the mode-line or header-line of the selected (or a
 specified) window as a string with or without text properties.
+
++++
+** New function safe-plist-get.
+
+This function is like plist-get, but never signals an error for
+a malformed property list.
 
 +++
 ** New functions `lax-plist-get' and `lax-plist-put'.

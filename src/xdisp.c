@@ -264,6 +264,10 @@ int mouse_autoselect_window;
 
 int auto_raise_tool_bar_buttons_p;
 
+/* Non-zero means to reposition window if cursor line is only partially visible.  */
+
+int make_cursor_line_fully_visible_p;
+
 /* Margin around tool bar buttons in pixels.  */
 
 Lisp_Object Vtool_bar_button_margin;
@@ -884,7 +888,7 @@ static void next_overlay_string P_ ((struct it *));
 static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
 static void back_to_previous_visible_line_start P_ ((struct it *));
-static void reseat_at_previous_visible_line_start P_ ((struct it *));
+void reseat_at_previous_visible_line_start P_ ((struct it *));
 static void reseat_at_next_visible_line_start P_ ((struct it *, int));
 static int next_element_from_display_vector P_ ((struct it *));
 static int next_element_from_string P_ ((struct it *));
@@ -1781,7 +1785,8 @@ get_glyph_string_clip_rect (s, nr)
 
       /* If drawing a tool-bar window, draw it over the internal border
 	 at the top of the window.  */
-      if (s->w == XWINDOW (s->f->tool_bar_window))
+      if (WINDOWP (s->f->tool_bar_window)
+	  && s->w == XWINDOW (s->f->tool_bar_window))
 	r.y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
     }
 
@@ -4587,7 +4592,7 @@ back_to_previous_visible_line_start (it)
    selective display.  At the end, update IT's overlay information,
    face information etc.  */
 
-static void
+void
 reseat_at_previous_visible_line_start (it)
      struct it *it;
 {
@@ -4892,8 +4897,9 @@ get_next_display_element (it)
 	     translated to octal form.  */
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
-			/* In mode line, treat \n, \t like other crl chars.  */
-			|| (it->glyph_row && it->glyph_row->mode_line_p)
+			/* In mode line, treat \n like other crl chars.  */
+			|| (it->c != '\n'
+			    && it->glyph_row && it->glyph_row->mode_line_p)
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->multibyte_p
 		       ? ((it->c >= 127
@@ -5770,6 +5776,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 				  result = MOVE_NEWLINE_OR_CR;
 				  break;
 				}
+			      if (it->method == next_element_from_display_vector)
+				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -6696,6 +6704,7 @@ message3 (m, nbytes, multibyte)
   struct gcpro gcpro1;
 
   GCPRO1 (m);
+  clear_message (1,1);
 
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
@@ -10886,6 +10895,9 @@ make_cursor_line_fully_visible (w, force_p)
   struct glyph_row *row;
   int window_height;
 
+  if (!make_cursor_line_fully_visible_p)
+    return 1;
+
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
   if (w->cursor.vpos < 0)
@@ -11473,7 +11485,8 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	    }
-	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row))
+	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+		   && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -13519,7 +13532,9 @@ try_window_id (w)
 	 && CHARPOS (start) > BEGV)
 	/* Old redisplay didn't take scroll margin into account at the bottom,
 	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
-	|| w->cursor.y + cursor_height + this_scroll_margin > it.last_visible_y)
+	|| (w->cursor.y + (make_cursor_line_fully_visible_p
+			   ? cursor_height + this_scroll_margin
+			   : 1)) > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);
@@ -14776,6 +14791,8 @@ display_line (it)
 				  row->continued_p = 0;
 				  row->exact_window_width_line_p = 1;
 				}
+			      else if (it->method == next_element_from_display_vector)
+				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -15501,7 +15518,9 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		  {
 		    int bytepos = last - lisp_string;
 		    int charpos = string_byte_to_char (elt, bytepos);
-		    int endpos = (precision <= 0 ? SCHARS (elt)
+		    int endpos = (precision <= 0
+				  ? string_byte_to_char (elt,
+							 this - lisp_string)
 				  : charpos + nchars);
 
 		    n += store_mode_line_string (NULL,
@@ -15809,7 +15828,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	props = mode_line_string_face_prop;
       else if (!NILP (mode_line_string_face))
 	{
-	  Lisp_Object face = Fplist_get (props, Qface);
+	  Lisp_Object face = Fsafe_plist_get (props, Qface);
 	  props = Fcopy_sequence (props);
 	  if (NILP (face))
 	    face = mode_line_string_face;
@@ -15834,7 +15853,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	  Lisp_Object face;
 	  if (NILP (props))
 	    props = Ftext_properties_at (make_number (0), lisp_string);
-	  face = Fplist_get (props, Qface);
+	  face = Fsafe_plist_get (props, Qface);
 	  if (NILP (face))
 	    face = mode_line_string_face;
 	  else
@@ -17283,7 +17302,8 @@ init_glyph_string (s, OPTIONAL_HDC (hdc) char2b, w, row, area, start, hl)
   s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
 
   /* Display the internal border below the tool-bar window.  */
-  if (s->w == XWINDOW (s->f->tool_bar_window))
+  if (WINDOWP (s->f->tool_bar_window)
+      && s->w == XWINDOW (s->f->tool_bar_window))
     s->y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
 
   s->ybase = s->y + row->ascent;
@@ -18255,6 +18275,19 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   return x_reached;
 }
 
+/* Expand row matrix if too narrow.  Don't expand if area
+   is not present.  */
+
+#define IT_EXPAND_MATRIX_WIDTH(it, area)		\
+  {							\
+    if (!fonts_changed_p				\
+	&& (it->glyph_row->glyphs[area]			\
+	    < it->glyph_row->glyphs[area + 1]))		\
+      {							\
+	it->w->ncols_scale_factor++;			\
+	fonts_changed_p = 1;				\
+      }							\
+  }
 
 /* Store one glyph for IT->char_to_display in IT->glyph_row.
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
@@ -18292,11 +18325,8 @@ append_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 /* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
@@ -18334,11 +18364,8 @@ append_composite_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -18508,11 +18535,8 @@ produce_image_glyph (it)
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
-      else if (!fonts_changed_p)
-	{
-	  it->w->ncols_scale_factor++;
-	  fonts_changed_p = 1;
-	}
+      else
+	IT_EXPAND_MATRIX_WIDTH (it, area);
     }
 }
 
@@ -18556,11 +18580,8 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -18615,14 +18636,14 @@ produce_stretch_glyph (it)
   plist = XCDR (it->object);
 
   /* Compute the width of the stretch.  */
-  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
+  if ((prop = Fsafe_plist_get (plist, QCwidth), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 1, 0))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = 1;
       width = (int)tem;
     }
-  else if (prop = Fplist_get (plist, QCrelative_width),
+  else if (prop = Fsafe_plist_get (plist, QCrelative_width),
 	   NUMVAL (prop) > 0)
     {
       /* Relative width `:relative-width FACTOR' specified and valid.
@@ -18646,7 +18667,7 @@ produce_stretch_glyph (it)
       x_produce_glyphs (&it2);
       width = NUMVAL (prop) * it2.pixel_width;
     }
-  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
+  else if ((prop = Fsafe_plist_get (plist, QCalign_to), !NILP (prop))
 	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
@@ -18666,13 +18687,13 @@ produce_stretch_glyph (it)
     width = 1;
 
   /* Compute height.  */
-  if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
+  if ((prop = Fsafe_plist_get (plist, QCheight), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
     {
       height = (int)tem;
       zero_height_ok_p = 1;
     }
-  else if (prop = Fplist_get (plist, QCrelative_height),
+  else if (prop = Fsafe_plist_get (plist, QCrelative_height),
 	   NUMVAL (prop) > 0)
     height = FONT_HEIGHT (font) * NUMVAL (prop);
   else
@@ -18684,7 +18705,7 @@ produce_stretch_glyph (it)
   /* Compute percentage of height used for ascent.  If
      `:ascent ASCENT' is present and valid, use that.  Otherwise,
      derive the ascent from the font in use.  */
-  if (prop = Fplist_get (plist, QCascent),
+  if (prop = Fsafe_plist_get (plist, QCascent),
       NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
     ascent = height * NUMVAL (prop) / 100.0;
   else if (!NILP (prop)
@@ -20055,6 +20076,11 @@ erase_phys_cursor (w)
   if (!cursor_row->enabled_p)
     goto mark_cursor_off;
 
+  /* If line spacing is > 0, old cursor may only be partially visible in
+     window after split-window.  So adjust visible height.  */
+  cursor_row->visible_height = min (cursor_row->visible_height,
+				    window_text_bottom_y (w) - cursor_row->y);
+
   /* If row is completely invisible, don't attempt to delete a cursor which
      isn't there.  This can happen if cursor is at top of a window, and
      we switch to a buffer with a header line in that window.  */
@@ -20098,6 +20124,7 @@ erase_phys_cursor (w)
     {
       int x, y;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+      int width;
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
@@ -20105,9 +20132,10 @@ erase_phys_cursor (w)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
+      width = min (cursor_glyph->pixel_width,
+                   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
 
-      FRAME_RIF (f)->clear_frame_area (f, x, y,
-                                       cursor_glyph->pixel_width, cursor_row->visible_height);
+      FRAME_RIF (f)->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 
   /* Erase the cursor by redrawing the character underneath it.  */
@@ -20887,7 +20915,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   if (IMAGEP (object))
     {
       Lisp_Object image_map, hotspot;
-      if ((image_map = Fplist_get (XCDR (object), QCmap),
+      if ((image_map = Fsafe_plist_get (XCDR (object), QCmap),
 	   !NILP (image_map))
 	  && (hotspot = find_hot_spot (image_map, dx, dy),
 	      CONSP (hotspot))
@@ -20899,12 +20927,14 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
 	     If so, we could look for mouse-enter, mouse-leave
 	     properties in PLIST (and do something...).  */
-	  if ((plist = XCDR (hotspot), CONSP (plist)))
+	  hotspot = XCDR (hotspot);
+	  if (CONSP (hotspot)
+	      && (plist = XCAR (hotspot), CONSP (plist)))
 	    {
-	      pointer = Fplist_get (plist, Qpointer);
+	      pointer = Fsafe_plist_get (plist, Qpointer);
 	      if (NILP (pointer))
 		pointer = Qhand;
-	      help = Fplist_get (plist, Qhelp_echo);
+	      help = Fsafe_plist_get (plist, Qhelp_echo);
 	      if (!NILP (help))
 		{
 		  help_echo_string = help;
@@ -20915,7 +20945,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 		}
 	    }
 	  if (NILP (pointer))
-	    pointer = Fplist_get (XCDR (object), QCpointer);
+	    pointer = Fsafe_plist_get (XCDR (object), QCpointer);
 	}
     }
 
@@ -20925,13 +20955,16 @@ note_mode_line_or_margin_highlight (w, x, y, area)
       /* If we're on a string with `help-echo' text property, arrange
 	 for the help to be displayed.  This is done by setting the
 	 global variable help_echo_string to the help string.  */
-      help = Fget_text_property (pos, Qhelp_echo, string);
-      if (!NILP (help))
+      if (NILP (help))
 	{
-	  help_echo_string = help;
-	  XSETWINDOW (help_echo_window, w);
-	  help_echo_object = string;
-	  help_echo_pos = charpos;
+	  help = Fget_text_property (pos, Qhelp_echo, string);
+	  if (!NILP (help))
+	    {
+	      help_echo_string = help;
+	      XSETWINDOW (help_echo_window, w);
+	      help_echo_object = string;
+	      help_echo_pos = charpos;
+	    }
 	}
 
       if (NILP (pointer))
@@ -21066,7 +21099,7 @@ note_mouse_highlight (f, x, y)
 	  if (img != NULL && IMAGEP (img->spec))
 	    {
 	      Lisp_Object image_map, hotspot;
-	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
+	      if ((image_map = Fsafe_plist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
 		  && (hotspot = find_hot_spot (image_map,
 					       glyph->slice.x + dx,
@@ -21080,12 +21113,14 @@ note_mouse_highlight (f, x, y)
 		  /* Could check AREA_ID to see if we enter/leave this hot-spot.
 		     If so, we could look for mouse-enter, mouse-leave
 		     properties in PLIST (and do something...).  */
-		  if ((plist = XCDR (hotspot), CONSP (plist)))
+		  hotspot = XCDR (hotspot);
+		  if (CONSP (hotspot)
+		      && (plist = XCAR (hotspot), CONSP (plist)))
 		    {
-		      pointer = Fplist_get (plist, Qpointer);
+		      pointer = Fsafe_plist_get (plist, Qpointer);
 		      if (NILP (pointer))
 			pointer = Qhand;
-		      help_echo_string = Fplist_get (plist, Qhelp_echo);
+		      help_echo_string = Fsafe_plist_get (plist, Qhelp_echo);
 		      if (!NILP (help_echo_string))
 			{
 			  help_echo_window = window;
@@ -21095,7 +21130,7 @@ note_mouse_highlight (f, x, y)
 		    }
 		}
 	      if (NILP (pointer))
-		pointer = Fplist_get (XCDR (img->spec), QCpointer);
+		pointer = Fsafe_plist_get (XCDR (img->spec), QCpointer);
 	    }
 	}
 
@@ -22393,6 +22428,10 @@ otherwise.  */);
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
     doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = 1;
+
+  DEFVAR_BOOL ("make-cursor-line-fully-visible", &make_cursor_line_fully_visible_p,
+    doc: /* *Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
+  make_cursor_line_fully_visible_p = 1;
 
   DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
     doc: /* *Margin around tool-bar buttons in pixels.

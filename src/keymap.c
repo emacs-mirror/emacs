@@ -729,19 +729,23 @@ map_keymap_call (key, val, fun, dummy)
   call2 (fun, key, val);
 }
 
-DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 2, 0,
+DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 3, 0,
        doc: /* Call FUNCTION for every binding in KEYMAP.
 FUNCTION is called with two arguments: the event and its binding.
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
-grandparent's bindings are also included and so on.  */)
-     (function, keymap)
-     Lisp_Object function, keymap;
+grandparent's bindings are also included and so on.
+usage: (map-keymap FUNCTION KEYMAP)  */)
+     (function, keymap, sort_first)
+     Lisp_Object function, keymap, sort_first;
 {
   if (INTEGERP (function))
     /* We have to stop integers early since map_keymap gives them special
        significance.  */
     Fsignal (Qinvalid_function, Fcons (function, Qnil));
+  if (! NILP (sort_first))
+    return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
+      
   map_keymap (keymap, map_keymap_call, function, NULL, 1);
   return Qnil;
 }

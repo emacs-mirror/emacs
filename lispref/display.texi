@@ -4460,7 +4460,7 @@ in these situations.
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
 Newer Emacs versions, on some platforms, display curved arrows to
-indicate truncation---the display table has no effect in these
+indicate continuation---the display table has no effect in these
 situations.
 @item 2
 The glyph for indicating a character displayed as an octal character

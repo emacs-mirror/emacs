@@ -1240,7 +1240,7 @@ This command does not work if you use short group names."
 			nnfolder-marks-modtime))
       (error (or (gnus-yes-or-no-p
 		  (format "Could not write to %s (%s).  Continue? " file err))
-		 (error "Cannot write to %s (%s)" err))))))
+		 (error "Cannot write to %s (%s)" file err))))))
 
 (defun nnfolder-open-marks (group server)
   (let ((file (nnfolder-group-marks-pathname group)))

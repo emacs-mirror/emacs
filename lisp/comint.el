@@ -310,7 +310,7 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
-(defvar comint-input-ring-size 32
+(defvar comint-input-ring-size 150
   "Size of input history ring.")
 
 (defvar comint-input-ring-separator "\n"

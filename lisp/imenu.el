@@ -808,14 +808,18 @@ depending on PATTERNS."
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
 		  (rest (nthcdr 4 pat))
+		  start
 		  cs)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
 	      (while (re-search-backward regexp nil t)
+		(setq start (point))
 		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		(if (setq cs (save-match-data (comment-beginning)))
-		    (goto-char cs)	; skip this one, it's in a comment
+		(setq cs (and comment-start-skip
+			      (save-match-data (comment-beginning))))
+		(if cs
+		    (goto-char (min cs beg)) ; skip this one, it's in a comment
 		  (goto-char beg)
 		  (imenu-progress-message prev-pos nil t)
 		  ;; Add this sort of submenu only when we've found an
@@ -837,7 +841,11 @@ depending on PATTERNS."
 		    ;; Insert the item unless it is already present.
 		    (unless (member item (cdr menu))
 		      (setcdr menu
-			      (cons item (cdr menu)))))))))
+			      (cons item (cdr menu)))))
+		  ;; Move to the start of the entire match,
+		  ;; to ensure we keep moving backwards
+		  ;; as long as the match is nonempty.
+		  (goto-char start)))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.

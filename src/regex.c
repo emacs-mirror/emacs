@@ -1250,12 +1250,23 @@ reg_syntax_t re_syntax_options;
 
 reg_syntax_t
 re_set_syntax (syntax)
-    reg_syntax_t syntax;
+     reg_syntax_t syntax;
 {
   reg_syntax_t ret = re_syntax_options;
 
   re_syntax_options = syntax;
   return ret;
+}
+WEAK_ALIAS (__re_set_syntax, re_set_syntax)
+
+/* Regexp to use to replace spaces, or NULL meaning don't.  */
+static re_char *whitespace_regexp;
+
+void
+re_set_whitespace_regexp (regexp)
+     re_char *regexp;
+{
+  whitespace_regexp = regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
@@ -2436,6 +2447,15 @@ regex_compile (pattern, size, syntax, bufp)
   /* If the object matched can contain multibyte characters.  */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
 
+  /* Nonzero if we have pushed down into a subpattern.  */
+  int in_subpattern = 0;
+
+  /* These hold the values of p, pattern, and pend from the main
+     pattern when we have pushed into a subpattern.  */
+  re_char *main_p;
+  re_char *main_pattern;
+  re_char *main_pend;
+
 #ifdef DEBUG
   debug++;
   DEBUG_PRINT1 ("\nCompiling pattern: ");
@@ -2498,12 +2518,61 @@ regex_compile (pattern, size, syntax, bufp)
   begalt = b = bufp->buffer;
 
   /* Loop through the uncompiled pattern until we're at the end.  */
-  while (p != pend)
+  while (1)
     {
+      if (p == pend)
+	{
+	  /* If this is the end of an included regexp,
+	     pop back to the main regexp and try again.  */
+	  if (in_subpattern)
+	    {
+	      in_subpattern = 0;
+	      pattern = main_pattern;
+	      p = main_p;
+	      pend = main_pend;
+	      continue;
+	    }
+	  /* If this is the end of the main regexp, we are done.  */
+	  break;
+	}
+
       PATFETCH (c);
 
       switch (c)
 	{
+	case ' ':
+	  {
+	    re_char *p1 = p;
+
+	    /* If there's no special whitespace regexp, treat
+	       spaces normally.  And don't try to do this recursively.  */
+	    if (!whitespace_regexp || in_subpattern)
+	      goto normal_char;
+
+	    /* Peek past following spaces.  */
+	    while (p1 != pend)
+	      {
+		if (*p1 != ' ')
+		  break;
+		p1++;
+	      }
+	    /* If the spaces are followed by a repetition op,
+	       treat them normally.  */
+	    if (p1 == pend
+		|| (*p1 == '*' || *p1 == '+' || *p1 == '?'
+		    || (*p1 == '\\' && p1 + 1 != pend && p1[1] == '{')))
+	      goto normal_char;
+
+	    /* Replace the spaces with the whitespace regexp.  */
+	    in_subpattern = 1;
+	    main_p = p1;
+	    main_pend = pend;
+	    main_pattern = pattern;
+	    p = pattern = whitespace_regexp;
+	    pend = p + strlen (p);
+	    break;
+	  }    
+
 	case '^':
 	  {
 	    if (   /* If at start of pattern, it's an operator.	 */

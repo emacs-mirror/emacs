@@ -1,6 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -391,13 +391,9 @@ property of the major mode name.")
 
 (defvar flyspell-mouse-map
   (let ((map (make-sparse-keymap)))
-    (cond
-     ((eq flyspell-emacs 'xemacs)
-      (define-key map [(button2)] #'flyspell-correct-word)
-      (define-key map "\M-\t" #'flyspell-auto-correct-word))
-     (flyspell-use-local-map
-      (define-key map [(mouse-2)] #'flyspell-correct-word)
-      (define-key map "\M-\t" #'flyspell-auto-correct-word)))
+    (define-key map (if (featurep 'xemacs) [button2] [down-mouse-2])
+      #'flyspell-correct-word)
+    (define-key map "\M-\t" #'flyspell-auto-correct-word)
     map))
 
 ;;;###autoload
@@ -2123,5 +2119,5 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
 
 (provide 'flyspell)
 
-;;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
+;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
 ;;; flyspell.el ends here

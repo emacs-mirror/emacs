@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -152,6 +151,12 @@
     (math-poly-gcd pn pd)))
 
 ;;; Return only quotient to top of stack (nil if zero)
+
+;; calc-poly-div-remainder is a local variable for 
+;; calc-poly-div (in calc-alg.el), but is used by
+;; calcFunc-pdiv, which is called by calc-poly-div.
+(defvar calc-poly-div-remainder)
+
 (defun calcFunc-pdiv (pn pd &optional base)
   (let* ((calc-prefer-frac t)
 	 (math-poly-modulus (math-poly-modulus pn pd))

@@ -279,7 +279,7 @@ static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
 
-static void x_clip_to_row P_ ((struct window *, struct glyph_row *, GC));
+static void x_clip_to_row P_ ((struct window *, struct glyph_row *, int, GC));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
@@ -1454,12 +1454,12 @@ x_draw_fringe_bitmap (w, row, p)
       int oldVH = row->visible_height;
       row->visible_height = p->h;
       row->y -= rowY - p->y;
-      x_clip_to_row (w, row, gc);
+      x_clip_to_row (w, row, -1, gc);
       row->y = oldY;
       row->visible_height = oldVH;
     }
   else
-    x_clip_to_row (w, row, gc);
+    x_clip_to_row (w, row, -1, gc);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -4615,18 +4615,19 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (w, row, gc)
+x_clip_to_row (w, row, area, gc)
      struct window *w;
      struct glyph_row *row;
+     int area;
      GC gc;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Rect clip_rect;
-  int window_y, window_width;
+  int window_x, window_y, window_width;
 
-  window_box (w, -1, 0, &window_y, &window_width, 0);
+  window_box (w, area, &window_x, &window_y, &window_width, 0);
 
-  clip_rect.left = WINDOW_TO_FRAME_PIXEL_X (w, 0);
+  clip_rect.left = window_x;
   clip_rect.top = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   clip_rect.top = max (clip_rect.top, window_y);
   clip_rect.right = clip_rect.left + window_width;
@@ -4692,7 +4693,7 @@ x_draw_hollow_cursor (w, row)
   gc = dpyinfo->scratch_cursor_gc;
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  x_clip_to_row (w, row, gc);
+  x_clip_to_row (w, row, TEXT_AREA, gc);
   mac_draw_rectangle (dpy, FRAME_MAC_WINDOW (f), gc, x, y, wd, h);
   mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
 }
@@ -4763,7 +4764,7 @@ x_draw_bar_cursor (w, row, width, kind)
       width = min (cursor_glyph->pixel_width, width);
 
       w->phys_cursor_width = width;
-      x_clip_to_row (w, row, gc);
+      x_clip_to_row (w, row, TEXT_AREA, gc);
 
       if (kind == BAR_CURSOR)
 	XFillRectangle (dpy, window, gc,

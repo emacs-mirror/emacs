@@ -263,12 +263,13 @@ evaluating the function @code{eval-region}), the printed text is
 displayed in the echo area.
 
   Examples in this manual indicate printed text with @samp{@print{}},
-irrespective of where that text goes.  The value returned by evaluating
-the form (here @code{bar}) follows on a separate line.
+irrespective of where that text goes.  The value returned by
+evaluating the form (here @code{bar}) follows on a separate line with
+@samp{@result{}}.
 
 @example
 @group
-(progn (print 'foo) (print 'bar))
+(progn (prin1 'foo) (princ "\n") (print 'bar))
      @print{} foo
      @print{} bar
      @result{} bar

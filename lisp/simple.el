@@ -3111,6 +3111,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
+	(forward (> arg 0))
 	new line-end line-beg)
     (unwind-protect
 	(progn
@@ -3185,9 +3186,10 @@ Outline mode sets this."
 	     ;; at least go to end of line.
 	     (beginning-of-line))
 	    (t
-	     (line-move-finish (or goal-column temporary-goal-column) opoint))))))
+	     (line-move-finish (or goal-column temporary-goal-column)
+			       opoint forward))))))
 
-(defun line-move-finish (column opoint)
+(defun line-move-finish (column opoint forward)
   (let ((repeat t))
     (while repeat
       ;; Set REPEAT to t to repeat the whole thing.
@@ -3197,10 +3199,11 @@ Outline mode sets this."
 	    (line-beg (save-excursion (beginning-of-line) (point)))
 	    (line-end
 	     ;; Compute the end of the line
-	     ;; ignoring effectively intangible newlines.
+	     ;; ignoring effectively invisible newlines.
 	     (save-excursion
-	       (let ((inhibit-point-motion-hooks nil)
-		     (inhibit-field-text-motion t))
+	       (end-of-line)
+	       (while (and (not (eobp)) (line-move-invisible-p (point)))
+		 (goto-char (next-char-property-change (point)))
 		 (end-of-line))
 	       (point))))
 
@@ -3224,7 +3227,13 @@ Outline mode sets this."
 	    ;; try the previous allowable position.
 	    ;; See if it is ok.
 	    (backward-char)
-	    (if (<= (point) line-end)
+	    (if (if forward
+		    ;; If going forward, don't accept the previous
+		    ;; allowable position if it is before the target line.
+		    (< line-beg (point)) 
+		  ;; If going backward, don't accept the previous
+		  ;; allowable position if it is still after the target line.
+		  (<= (point) line-end))
 		(setq new (point))
 	      ;; As a last resort, use the end of the line.
 	      (setq new line-end))))
