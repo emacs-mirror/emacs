@@ -1,18 +1,25 @@
-<param>-*-enriched-*-width:86
-</param><center><bold><x-bg-color><param>gray</param><x-color><param>blue</param>Enriched:
+Content-Type: text/enriched
+Text-Width: 70
+
+Content-type: text/enriched
+
+Text-width: 86
+
+
+<<center><<bold><<x-bg-color><<param>gray<</param><<x-color><<param>blue<</param>Enriched:
 
 A WYSIWYG enriched-text editing environment for GNU Emacs
 
 
-</x-color></x-bg-color></bold></center><bold>INTRODUCTION 
+<</x-color><</x-bg-color><</bold><</center><<bold>INTRODUCTION 
 
 
-</bold><indent>This package, along with the <bold>facemenu</bold> package, is the beginning of a WYSIWYG
-("what you see is what you get") Emacs mode for editing <italic>enriched text: </italic>text with
+<</bold><<indent>This package, along with the <<bold>facemenu<</bold> package, is the beginning of a WYSIWYG
+("what you see is what you get") Emacs mode for editing <<italic>enriched text: <</italic>text with
 different faces, colors, etc.  Facemenu allows you to add faces (such as
-<bold>boldface</bold>,  <italic>italics</italic>, and <underline>underlining</underline>) your documents, while <bold>enriched</bold> allows you to
+<<bold>boldface<</bold>,  <<italic>italics<</italic>, and <<underline>underlining<</underline>) your documents, while <<bold>enriched<</bold> allows you to
 save the documents with those "text properties" included.  The format in which
-they are saved is called <italic>text/enriched</italic>, and is defined as part of the MIME
+they are saved is called <<italic>text/enriched<</italic>, and is defined as part of the MIME
 standard, so that your documents are transportable (even through email) to many
 other systems. 
 
@@ -23,17 +30,17 @@ all, the text of the document should still be legible; the reader can simply
 ignore the annotations specifying face changes and the like. 
 
 
-</indent><bold>INSTALLATION and STARTUP </bold>
+<</indent><<bold>INSTALLATION and STARTUP <</bold>
 
 
-<indent>The <fixed>enriched.el</fixed> file should be installed somewhere that emacs will find it (ie,
-one of the directories on emacs's <fixed>load-path </fixed>variable), and byte-compiled for
+<<indent>The <<fixed>enriched.el<</fixed> file should be installed somewhere that emacs will find it (ie,
+one of the directories on emacs's <<fixed>load-path <</fixed>variable), and byte-compiled for
 speed. 
 
 
-The documentation below assumes that you have my <fixed>facemenu.el</fixed> (which is included
+The documentation below assumes that you have my <<fixed>facemenu.el<</fixed> (which is included
 in recent versions of emacs).  You may also find it useful to have Jim Thompson's
-<fixed>ps-print.el</fixed>, which will allow you to print out buffers including their faces
+<<fixed>ps-print.el<</fixed>, which will allow you to print out buffers including their faces
 (unfortunately it is not currently able to deal with merged faces; hopefully it
 will be revised soon.)  These two files should also be installed into your lisp
 directory and byte-compiled. 
@@ -43,132 +50,132 @@ Put the following code into your .emacs file to automatically load enriched when
 needed:
 
 
-<indent><fixed>(autoload 'enriched-mode "enriched" nil t)</fixed></indent>
+<<indent><<fixed>(autoload 'enriched-mode "enriched" nil t)<</fixed><</indent>
 
 
-<bold>Enriched </bold>puts an identifying header into files it writes, which allows it  to
-recognize any emacs-generated <italic>text/enriched</italic> file and put itself into the proper
+<<bold>Enriched <</bold>puts an identifying header into files it writes, which allows it  to
+recognize any emacs-generated <<italic>text/enriched<</italic> file and put itself into the proper
 mode.  If you get a file from some other source, however, such as through the
 mail, you may have to enter enriched-mode manually:
 
 
-<indent><fixed>M-x enriched-mode</fixed></indent>
+<<indent><<fixed>M-x enriched-mode<</fixed><</indent>
 
 
 You may be asked a couple of questions at this point: 
 
 
-<italic>Does the buffer need to be translated now?</italic>  If the buffer contains <italic>text/enriched
-</italic>data which needs to be translated into a readable document with fonts and such,
+<<italic>Does the buffer need to be translated now?<</italic>  If the buffer contains <<italic>text/enriched
+<</italic>data which needs to be translated into a readable document with fonts and such,
 then answer "yes".  If you are putting a new document into text/enriched format
 for the first time, then say "no". 
 
 
-<italic>Reformat for current display width?</italic>  If emacs knows that the document was created
+<<italic>Reformat for current display width?<</italic>  If emacs knows that the document was created
 with the same display width that is currently in effect, it will trust the line
 breaks that are in the file, which saves some time.  If it was saved at a
 different width, or emacs doesn't know what width it was saved at, then it may
 ask whether it should reformat.  Actually it does not ask by default; it just
 goes ahead and fills.  But if you want it to ask, you can set the variable
-<fixed>enriched-fill-after-visiting</fixed> to <fixed>'ask</fixed>. 
+<<fixed>enriched-fill-after-visiting<</fixed> to <<fixed>'ask<</fixed>. 
 
 
 In the future, other modes such as mail and news may recognize messages that are
-enriched text, and automatically call on <bold>enriched</bold> to display them for you.  
+enriched text, and automatically call on <<bold>enriched<</bold> to display them for you.  
 
 
-</indent><bold>WHAT IS ENCODED</bold>
+<</indent><<bold>WHAT IS ENCODED<</bold>
 
 
-<indent>Aside from the text itself, various properties are saved.  More will eventually
+<<indent>Aside from the text itself, various properties are saved.  More will eventually
 be added, so that you will be able to save and read just about anything that can
 be displayed in an emacs frame.  Following is the list of properties that are
 currently understood; each is covered in more detail below. 
 
 
-<bold>Faces:</bold> default, <bold>bold</bold>, <italic>italic</italic>, <underline>underline</underline>, <fixed>fixed</fixed>, etc. 
+<<bold>Faces:<</bold> default, <<bold>bold<</bold>, <<italic>italic<</italic>, <<underline>underline<</underline>, <<fixed>fixed<</fixed>, etc. 
 
-<bold>Colors:</bold> <x-color><param>red</param><x-bg-color><param>DarkSlateGray</param>any</x-bg-color></x-color><x-bg-color><param>DarkSlateGray</param><x-color><param>orange</param>thing</x-color> <x-color><param>yellow</param>your</x-color><x-color><param>green</param> screen</x-color><x-color><param>blue</param> </x-color><x-color><param>light blue</param>can</x-color><x-color><param>violet</param> display... </x-color></x-bg-color>
+<<bold>Colors:<</bold> <<x-color><<param>red<</param><<x-bg-color><<param>DarkSlateGray<</param>any<</x-bg-color><</x-color><<x-bg-color><<param>DarkSlateGray<</param><<x-color><<param>orange<</param>thing<</x-color> <<x-color><<param>yellow<</param>your<</x-color><<x-color><<param>green<</param> screen<</x-color><<x-color><<param>blue<</param> <</x-color><<x-color><<param>light blue<</param>can<</x-color><<x-color><<param>violet<</param> display... <</x-color><</x-bg-color>
 
-<bold>Newlines:</bold> <indent>Which ones are real ("hard") newlines, and which can be changed to fit
-lines into the ma</indent>rgins.       
+<<bold>Newlines:<</bold> <<indent>Which ones are real ("hard") newlines, and which can be changed to fit
+lines into the ma<</indent>rgins.       
 
-<bold>Margins:</bold> can be indented on the left or right. 
+<<bold>Margins:<</bold> can be indented on the left or right. 
 
-<bold>Justification </bold><indent>(whether lines should be flush with the left margin, the right
-margin, fully justified, centered, or left alo</indent>ne). 
+<<bold>Justification <</bold><<indent>(whether lines should be flush with the left margin, the right
+margin, fully justified, centered, or left alo<</indent>ne). 
 
-<bold>Excerpts: "</bold><excerpt>For quoted material." </excerpt>
+<<bold>Excerpts: "<</bold><<excerpt>For quoted material." <</excerpt>
 
-<bold>Read-only</bold> regions. 
-
-
-</indent><bold>FACES 
+<<bold>Read-only<</bold> regions. 
 
 
-</bold><indent>The easiest way to add a face to a region is to use the <bold>facemenu </bold>package.  This
+<</indent><<bold>FACES 
+
+
+<</bold><<indent>The easiest way to add a face to a region is to use the <<bold>facemenu <</bold>package.  This
 defines a menu obtained by clicking the right mouse button while holding the
 control key.  For example, to make a word boldface, you could select the word by
-double-clicking on it, then hold C-mouse-3 and select <italic>Bold</italic> from the <italic>Face
-</italic></indent>sub-menu<indent>.  Selecting a face from the menu when the region is not active will apply
+double-clicking on it, then hold C-mouse-3 and select <<italic>Bold<</italic> from the <<italic>Face
+<</italic><</indent>sub-menu<<indent>.  Selecting a face from the menu when the region is not active will apply
 that face to whatever you type next. 
 
 
-</indent><bold>NEWLINES and PARAGRAPHS 
+<</indent><<bold>NEWLINES and PARAGRAPHS 
 
 
-</bold><indent><italic>Text/enriched</italic> format distinguishes between <underline>hard</underline> newlines and <underline>soft </underline>newlines.  Hard
+<</bold><<indent><<italic>Text/enriched<</italic> format distinguishes between <<underline>hard<</underline> newlines and <<underline>soft <</underline>newlines.  Hard
 newlines are used to separate paragraphs, or items in a list, or anywhere that
 must be a line break no matter what the margins are.  Soft newlines are the ones
 inserted in order to fit text between the margins.  Auto-fill-mode and
 enriched-mode's fill functions insert soft newlines as necessary, but hard
 newlines are only inserted by direct request, such as using the return key or the
-<fixed>C-o (open-line)</fixed> function.  
+<<fixed>C-o (open-line)<</fixed> function.  
 
 
-</indent><bold>INDENTATION 
+<</indent><<bold>INDENTATION 
 
 
-</bold><indent>Indentation of regions of the document can be flexibly controlled.  The face menu
-contains an <italic>Indent</italic> item, which indents the region by the width of 4 characters
-and an <italic>UnIndent </italic>item which removes 4 character-widths of indentation.  All of the
+<</bold><<indent>Indentation of regions of the document can be flexibly controlled.  The face menu
+contains an <<italic>Indent<</italic> item, which indents the region by the width of 4 characters
+and an <<italic>UnIndent <</italic>item which removes 4 character-widths of indentation.  All of the
 text paragraphs in this file are singly indented relative to the headings, for
-example.  In addition, you can indent and unindent the <italic>right </italic>margin though use of
-the <italic>IndentRight</italic> and <italic>UnindentRight </italic>menu items.  The indentation commands can be
+example.  In addition, you can indent and unindent the <<italic>right <</italic>margin though use of
+the <<italic>IndentRight<</italic> and <<italic>UnindentRight <</italic>menu items.  The indentation commands can be
 used repeatedly to get further levels of indentation.  There are also shortcut
 commands to set the left and right margins directly. 
 
 The basic editing commands in enriched-mode have been modified as necessary to
-maintain proper indentation, but if it gets messed up, you can use <fixed>C-q</fixed> to
+maintain proper indentation, but if it gets messed up, you can use <<fixed>C-q<</fixed> to
 reformat the current paragraph.  This may be necessary, for example, after
 yanking or pasting text into the buffer.  Eventually all commands should respect
-indentation. <flushleft><indentright><indentright><indentright><indentright>
+indentation. <<flushleft><<indentright><<indentright><<indentright><<indentright>
 
 
-</indentright>Not <indent>only whole paragraphs can be indented, but in fact any region.
+<</indentright>Not <<indent>only whole paragraphs can be indented, but in fact any region.
 This makes it possible to have hanging-indents on paragraphs like
 this one: it was accomplished by selecting the region starting
 after the first word of the paragraph and going to the end of the
-paragraph, and indenting that.  </indent></indentright></indentright></indentright><indent>Also notice that this paragraph had been
+paragraph, and indenting that.  <</indent><</indentright><</indentright><</indentright><<indent>Also notice that this paragraph had been
 indented on the right until the beginning of this sentence, when it resumed
-normal w</indent>i</flushleft></indent><flushleft>dth. 
+normal w<</indent>i<</flushleft><</indent><<flushleft>dth. 
 
 
-<bold>JUSTIFICATION<indent>
+<<bold>JUSTIFICATION<<indent>
 
 
-</indent></bold></flushleft><indent><nofill>Several styles of justification are possible, the simplest being <italic>unfilled. 
-</italic>This means that your lines will be left as you write them. 
+<</indent><</bold><</flushleft><<indent><<nofill>Several styles of justification are possible, the simplest being <<italic>unfilled. 
+<</italic>This means that your lines will be left as you write them. 
 This paragraph, for instance, is unfilled.
 It was written with one sentence on a line. 
-<bold>Enriched </bold>will not change that, no matter what size display it is shown on. 
+<<bold>Enriched <</bold>will not change that, no matter what size display it is shown on. 
 There is no hard/soft newline distinction in unfilled text. 
 
-The most common (for English) style is <italic>FlushLeft.  </italic>This means
+The most common (for English) style is <<italic>FlushLeft.  <</italic>This means
 lines are aligned at the left margin but left uneven at the
 right.
 
-</nofill><italic><flushright>FlushRight</flushright></italic><flushright>, as you may have guessed, makes each line flush with the right margin,
+<</nofill><<italic><<flushright>FlushRight<</flushright><</italic><<flushright>, as you may have guessed, makes each line flush with the right margin,
 but not necessarily the left.
 
 This is usually, but by no means necessarily, used for headings. 
@@ -176,81 +183,81 @@ This is usually, but by no means necessarily, used for headings.
 This paragraph is FlushRight. 
 
 
-</flushright><italic><flushboth>FlushBoth </flushboth></italic><flushboth>regions, which are sometimes called "fully justified" (or, confusingly,
+<</flushright><<italic><<flushboth>FlushBoth <</flushboth><</italic><<flushboth>regions, which are sometimes called "fully justified" (or, confusingly,
 "right justified") are aligned evenly on both edges, so that the text on the page
 has a smooth appearance as in a book or newspaper article.  Unfortunately this
 does not look as nice with a fixed-width font as it does in a
 proportionally-spaced printed document; the extra spaces that are needed on the
-screen can make it hard to read. <indentright><indentright><indentright><indentright> 
+screen can make it hard to read. <<indentright><<indentright><<indentright><<indentright> 
 
 
-<indent><indent><indent><indent>The narrower the column, the uglier <italic>FlushBoth
-</italic>text will be.  If you think <italic>flushboth </italic>paragraphs
+<<indent><<indent><<indent><<indent>The narrower the column, the uglier <<italic>FlushBoth
+<</italic>text will be.  If you think <<italic>flushboth <</italic>paragraphs
 look pretty, though, you can set
-<fixed>enriched-default-justification </fixed>to <fixed>'both </fixed>to
+<<fixed>enriched-default-justification <</fixed>to <<fixed>'both <</fixed>to
 justify everything that is not otherwise
 specified. 
 
 
-</indent></indent></indent></indent></indentright></indentright></indentright></indentright></flushboth><bold><center>Center
+<</indent><</indent><</indent><</indent><</indentright><</indentright><</indentright><</indentright><</flushboth><<bold><<center>Center
 
-</center></bold><center>You can probably guess what <italic>center </italic>justification is for.
+<</center><</bold><<center>You can probably guess what <<italic>center <</italic>justification is for.
 
 The normal center-paragraph key, M-S, can be used to turn on center justification
 in enriched-mode.  M-j also brings up a justification menu. 
 
 
-</center><flushboth>Note that justification can only be changed for complete paragraphs (ie, a
+<</center><<flushboth>Note that justification can only be changed for complete paragraphs (ie, a
 justified region must start and end at hard newlines).  The menu items in the
 "Justification" menu will all operate on the current paragraph, or, if the region
 is active, on all paragraphs which are inside or overlapping the region. 
 
 
-</flushboth></indent><bold>EXCERPTS</bold>
+<</flushboth><</indent><<bold>EXCERPTS<</bold>
 
 
-<excerpt><indent>This is an example of an excerpt.  You can use them for quoted parts of other
+<<excerpt><<indent>This is an example of an excerpt.  You can use them for quoted parts of other
 people's email messages and the like.  Currently it just displays as italics
-(unless some <bold>other</bold> style is in effect), but this can be changed (see
-<underline>Customization</underline> below). </indent></excerpt>
+(unless some <<bold>other<</bold> style is in effect), but this can be changed (see
+<<underline>Customization<</underline> below). <</indent><</excerpt>
 
 
-<bold>DEBUGGING</bold>
+<<bold>DEBUGGING<</bold>
 
 
-<indent>The function <fixed>enriched-show-codes</fixed> can be helpful in figuring out what is going if
+<<indent>The function <<fixed>enriched-show-codes<</fixed> can be helpful in figuring out what is going if
 things don't seem to be working.  The function can highlight (with a blue or gray
-background) various items of interest.  </indent>Type <fixed>C<indent>-c C-s</indent></fixed><indent>, then what should be
+background) various items of interest.  <</indent>Type <<fixed>C<<indent>-c C-s<</indent><</fixed><<indent>, then what should be
 highlighted:
 
 
-<indent><bold>indent:<indent> </indent></bold><indent>Highlight the indentation at the beginning of each line. </indent>
+<<indent><<bold>indent:<<indent> <</indent><</bold><<indent>Highlight the indentation at the beginning of each line. <</indent>
 
-<bold>margin: </bold>Highlight regions that are indented. 
+<<bold>margin: <</bold>Highlight regions that are indented. 
 
-<bold>newline: </bold>Highlight hard newlines. 
+<<bold>newline: <</bold>Highlight hard newlines. 
 
-<bold>none: </bold>Turn off all highlighting. <bold><excerpt>
-
-
-</excerpt></bold></indent></indent><bold>CUSTOMIZATION
+<<bold>none: <</bold>Turn off all highlighting. <<bold><<excerpt>
 
 
-</bold><indent>-<indent> Set the default faces to things you like.  The faces named <fixed>fixed </fixed>and <excerpt>excerpt,
-</excerpt>especially, can be set to your liking. </indent>
+<</excerpt><</bold><</indent><</indent><<bold>CUSTOMIZATION
 
-- <indent>User-preference variables: <fixed>enriched-default-right-margin,
+
+<</bold><<indent>-<<indent> Set the default faces to things you like.  The faces named <<fixed>fixed <</fixed>and <<excerpt>excerpt,
+<</excerpt>especially, can be set to your liking. <</indent>
+
+- <<indent>User-preference variables: <<fixed>enriched-default-right-margin,
 enriched-default-justification, enriched-verbose,
-enriched-auto-save-interval</fixed><bold>, </bold>and <fixed>enriched-fill-after-visiting </fixed>(mentioned
-above)<bold>.  </bold>See their documentation for	det</indent>ails. 
+enriched-auto-save-interval<</fixed><<bold>, <</bold>and <<fixed>enriched-fill-after-visiting <</fixed>(mentioned
+above)<<bold>.  <</bold>See their documentation for	det<</indent>ails. 
 
-- <indent>You can add annotations for your own text properties by making additions to
-<fixed>enriched-annotation-alist</fixed>.  Note that the standard requires you to name your
-annotation starting<italic> "x-" </italic>(as in <italic>"x-read-only"</italic>).  Please send me any such
+- <<indent>You can add annotations for your own text properties by making additions to
+<<fixed>enriched-annotation-alist<</fixed>.  Note that the standard requires you to name your
+annotation starting<<italic> "x-" <</italic>(as in <<italic>"x-read-only"<</italic>).  Please send me any such
 additions that you think might be of general interest so that I can include
 them in the distribution. 
 
-</indent>- <indent>My eventual hope is that people will use the basic code in this file to
+<</indent>- <<indent>My eventual hope is that people will use the basic code in this file to
 implement more of the various file formats that are in common use, so that
 emacs will understand them all and be able to edit them with a common
 interface.  If you are interested in taking on the project of implementing a
@@ -259,27 +266,27 @@ of different formats can be defined just by setting up the lists of
 properties to save and how to represent them in the file. 
 
 
-</indent></indent><bold>TO-DO LIST
+<</indent><</indent><<bold>TO-DO LIST
 
 
-</bold><indent><italic>[Feel free to work on these and send me the results!] </italic>
+<</bold><<indent><<italic>[Feel free to work on these and send me the results!] <</italic>
 
 - Be more tolerant of malformed files. 
 
 - Make the indentation work more seamlessly and robustly:
 
-<indent>+ Create<indent> an aggressive auto-fill function that will keep the paragraph
-properly filled all the time, without slowing down editing too much. </indent>
+<<indent>+ Create<<indent> an aggressive auto-fill function that will keep the paragraph
+properly filled all the time, without slowing down editing too much. <</indent>
 
 + Refill after yank. 
 
-+ <indent>Make deleting a newline also delete the indentation following it. </indent>
++ <<indent>Make deleting a newline also delete the indentation following it. <</indent>
 
 + Never let point enter indentation?? 
 
-+<indent> Optional never-let-things-get-unfilled (ok for fast terminals). </indent>
++<<indent> Optional never-let-things-get-unfilled (ok for fast terminals). <</indent>
 
-</indent>- Do the right thing for insert-file. 
+<</indent>- Do the right thing for insert-file. 
 
 - Notice and re-fill when window changes widths (optionally).  - Nicer formatting
 for excerpts. 
@@ -288,33 +295,33 @@ for excerpts.
 
 - For documentation, make INFO aware of text/enriched format. 
 
--<indent> Have another set of alists for reading and writing RTF, etc (this will take
+-<<indent> Have another set of alists for reading and writing RTF, etc (this will take
 work not only on the alists, of course, but also on the code for interpreting
 them). 
 
 
 
-</indent></indent><bold>Final Notes:
+<</indent><</indent><<bold>Final Notes:
 
 
-</bold><indent>The MIME standard is defined in internet RFC 1521; text/enriched is defined in
+<</bold><<indent>The MIME standard is defined in internet RFC 1521; text/enriched is defined in
 RFC 1563.  Details on obtaining these documents via FTP or email may be obtained
-by sending an email message to <fixed>rfc-info@isi.edu</fixed> with the message body:
+by sending an email message to <<fixed>rfc-info@isi.edu<</fixed> with the message body:
 
-<indent> <fixed>help: ways_to_get_rfcs </fixed> </indent>
+<<indent> <<fixed>help: ways_to_get_rfcs <</fixed> <</indent>
 
 
 This code and documentation is under development.  The most current version
 should always be available from:
 
-<indent><fixed>/anonymous@cs.rochester.edu:pub/boris/enriched.shar</fixed>
+<<indent><<fixed>/anonymous@cs.rochester.edu:pub/boris/enriched.shar<</fixed>
 
-</indent>It is helpful to make sure you have the newest version before reporting a bug. 
+<</indent>It is helpful to make sure you have the newest version before reporting a bug. 
 
-</indent>Please send any and all comments to:
+<</indent>Please send any and all comments to:
 
 
-<bold><x-color><param>blue</param>Boris Goldowsky </x-color></bold><fixed><<boris@cs.rochester.edu></fixed><x-color><param>blue</param>
+<<bold><<x-color><<param>blue<</param>Boris Goldowsky <</x-color><</bold><<fixed><<<<boris@cs.rochester.edu><</fixed><<x-color><<param>blue<</param>
 
 October 1994
 
@@ -328,4 +335,4 @@ October 1994
 
 
 
-</x-color> 
+<</x-color> 
