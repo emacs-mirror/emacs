@@ -1436,6 +1436,8 @@ Common Things People Want To Do
 Bugs/Problems
 
 61:  Does Emacs have problems with files larger than 8 megabytes?
+[This problem has been solved better in Emacs 19.29 because the buffer
+size limit is now 16 times as large.]
 
   Most installed versions of GNU Emacs will use 24-bit signed integers (and
   24-bit pointers) internally.  This limits the file size that Emacs can
@@ -1891,9 +1893,10 @@ Finding/Getting Emacs and Related Packages
 
 81:  What is the difference between Emacs and Epoch?
 
-  Epoch was a modified version of GNU Emacs.  It is currently being merged
+  Epoch was a modified version of GNU Emacs.  It was merged
   into XEmacs (formerly "Lucid Emacs"), and the Epoch redisplay, now
-  being rewritten, is slated to be merged into Emacs when the rewrite is done.
+  being totally rewritten, is slated to be merged into Emacs when the
+  rewrite is done.
 
 82:  What is the difference between Emacs and XEmacs (formerly "Lucid
      Emacs")? 
@@ -1904,8 +1907,8 @@ Finding/Getting Emacs and Related Packages
    maintainers, had been included here.  Richard Stallman removed it
    from this copy of the FAQ because it was unfair.  It was (1)
    one-sided, listing only advantages of XEmacs and not advantages of
-   the principal version of Emacs, (2) biased, involving opinions the
-   FSF doesn't share, and (3) out of date, listing as advantages of
+   the principal version of Emacs, (2) biased, stating the opinions
+   of the XEmacs maintainers, and (3) out of date, listing as advantages of
    XEmacs features which in fact both versions have.
 
 83:  Where can I get Emacs for my PC running MS-DOS?
