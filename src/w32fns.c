@@ -7215,6 +7215,9 @@ If omitted or nil, that stands for the selected frame's display.")
     cap = GetDeviceCaps (hdc,SIZEPALETTE);
   else
     cap = GetDeviceCaps (hdc,NUMCOLORS);
+
+  if (cap < 0)
+    cap = 1 << (dpyinfo->n_planes * dpyinfo->n_cbits);
   
   ReleaseDC (dpyinfo->root_window, hdc);
   
@@ -7342,22 +7345,18 @@ If omitted or nil, that stands for the selected frame's display.")
      Lisp_Object display;
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
+  Lisp_Object result = Qnil;
 
-#if 0
-  switch (dpyinfo->visual->class)
-    {
-    case StaticGray:  return (intern ("static-gray"));
-    case GrayScale:   return (intern ("gray-scale"));
-    case StaticColor: return (intern ("static-color"));
-    case PseudoColor: return (intern ("pseudo-color"));
-    case TrueColor:   return (intern ("true-color"));
-    case DirectColor: return (intern ("direct-color"));
-    default:
-      error ("Display has an unknown visual class");
-    }
-#endif
+  if (dpyinfo->has_palette)
+      result = intern ("pseudo-color");
+  else if (dpyinfo->n_planes * dpyinfo->n_cbits == 1)
+      result = intern ("static-grey");
+  else if (dpyinfo->n_planes * dpyinfo->n_cbits == 4)
+      result = intern ("static-color");
+  else if (dpyinfo->n_planes * dpyinfo->n_cbits > 8)
+      result = intern ("true-color");
 
-  error ("Display has an unknown visual class");
+  return result;
 }
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
