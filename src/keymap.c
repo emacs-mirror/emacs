@@ -799,6 +799,13 @@ append_key (key_sequence, key)
 static Lisp_Object *cmm_modes, *cmm_maps;
 static int cmm_size;
 
+/* Error handler used in current_minor_maps.  */
+static Lisp_Object
+current_minor_maps_error ()
+{
+  return Qnil;
+}
+
 /* Store a pointer to an array of the keymaps of the currently active
    minor modes in *buf, and return the number of maps it contains.
 
@@ -830,6 +837,8 @@ current_minor_maps (modeptr, mapptr)
 	&& (val = find_symbol_value (var), ! EQ (val, Qunbound))
 	&& ! NILP (val))
       {
+	Lisp_Object temp;
+
 	if (i >= cmm_size)
 	  {
 	    Lisp_Object *newmodes, *newmaps;
@@ -865,9 +874,17 @@ current_minor_maps (modeptr, mapptr)
 	    else
 	      break;
 	  }
-	cmm_modes[i] = var;
-	cmm_maps [i] = Findirect_function (XCONS (assoc)->cdr);
-	i++;
+
+	/* Get the keymap definition--or nil if it is not defined.  */
+	temp = internal_condition_case_1 (Findirect_function,
+					  XCONS (assoc)->cdr,
+					  Qerror, current_minor_maps_error);
+	if (!NILP (temp))
+	  {
+	    cmm_modes[i] = var;
+	    cmm_maps [i] = temp;
+	    i++;
+	  }
       }
 
   if (modeptr) *modeptr = cmm_modes;
