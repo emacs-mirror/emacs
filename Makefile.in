@@ -82,7 +82,7 @@ datadir=@datadir@
 # runs.	 These files are all architecture-independent. Right now, the
 # only such data is the locking directory; ${lockdir} is a
 # subdirectory of this.
-sharedstatedir=@statedir@
+sharedstatedir=@sharedstatedir@
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
