@@ -1,3 +1,8 @@
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Fix for preserving UTF-8
+	encoding sequence.
+
 2003-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (syms_of_composite): Don't make the compostion hash

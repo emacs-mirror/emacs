@@ -1,3 +1,21 @@
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Register "microsoft-cp1251" in
+	ctext-non-standard-encodings-alist.
+	("Bulgarian"): Add ctext-non-standard-encodings.
+	("Belarusian"): Likewise.
+
+	* international/mule-conf.el (compound-text-with-extensions):
+	Change the type to 2 (iso-2022 base).
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Change the format.
+	(ctext-non-standard-encodings): New variable.
+	(ctext-post-read-conversion): Fully re-written.
+	(ctext-non-standard-designations-alist): Delete it.
+	(ctext-non-standard-encodings-table): New function.
+	(ctext-pre-write-conversion): Fully re-written.
+
 2003-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-add-parent-links): Add documentation links
