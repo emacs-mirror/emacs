@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
+#define max(x, y) ((x) > (y) ? (x) : (y))
 
 static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int, int));
 static void insert_from_buffer_1 ();
@@ -2047,6 +2048,15 @@ del_range_1 (from, to, prepare)
      int from, to, prepare;
 {
   int from_byte, to_byte;
+  
+#if !NO_PROMPT_IN_BUFFER
+  if (INTEGERP (current_buffer->minibuffer_prompt_length))
+    {
+      /* Don't delete part of a mini-buffer prompt.  */
+      int len = XFASTINT (current_buffer->minibuffer_prompt_length);
+      from = max (from, len);
+    }
+#endif /* !NO_PROMPT_IN_BUFFER */
 
   /* Make args be valid */
   if (from < BEGV)
@@ -2327,6 +2337,11 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
 {
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
+
+  /* Let redisplay consider other windows than selected_window
+     if modifying another buffer.  */
+  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+    ++windows_or_buffers_changed;
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   if (BUF_INTERVALS (current_buffer) != 0)
