@@ -693,7 +693,10 @@ If START or END is negative, it counts from the end."
 			(error "%s must prefix a single character, not %s"
 			       (substring orig-word 0 prefix) word))
 		       ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
-			     (string-match "[@-_.a-z?]" word))
+			     ;; We used to accept . and ? here,
+			     ;; but . is simply wrong,
+			     ;; and C-? is not used (we use DEL instead).
+			     (string-match "[@-_a-z]" word))
 			(setq key (list (+ bits (- ?\C-\^@)
 					   (if (equal word "?") 127
 					     (logand (aref word 0) 31))))))
