@@ -101,14 +101,14 @@
 	image bits to compensate.  Use `make-string' instead of
 	`make-bool-vector' (XBM apparently wants byte-aligned rows).
 
-2001-10-20  Gerd Moellmann  <gerd@gnu.org>
-
-	* (Version 21.1 released.)
-
 2001-10-20  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (kill-ring-save): Don't show extent of copied region
 	if using transient-mark-mode and region is fully visible.
+
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* (Version 21.1 released.)
 
 2001-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
