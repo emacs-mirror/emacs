@@ -1563,8 +1563,11 @@ encode_coding_iso2022 (coding, source, destination,
 	}
       continue;
     label_end_of_loop:
-      coding->carryover_size = src - src_base;
+      /* We reach here because the source date ends not at character
+	 boundary.  */
+      coding->carryover_size = src_end - src_base;
       bcopy (src_base, coding->carryover, coding->carryover_size);
+      src = src_end;
       break;
     }
 
@@ -1975,9 +1978,9 @@ encode_coding_sjis_big5 (coding, source, destination,
       continue;
 
     label_end_of_loop:
-      coding->carryover_size = src - src_base;
+      coding->carryover_size = src_end - src_base;
       bcopy (src_base, coding->carryover, coding->carryover_size);
-      src = src_base;
+      src = src_end;
       break;
     }
 
@@ -2802,7 +2805,6 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
 {
   int produced;
 
-  coding->carryover_size = 0;
   switch (coding->type)
     {
     case coding_type_no_conversion:
