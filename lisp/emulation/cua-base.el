@@ -1249,4 +1249,20 @@ paste (in addition to the normal emacs bindings)."
   (interactive)
   (setq cua--debug (not cua--debug)))
 
+;; Install run-time check for older versions of CUA-mode which does not
+;; work with GNU Emacs version 21.4 and newer.
+;;
+;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
+;; provided the `CUA-mode' feature.  Since this is no longer true,
+;; we can warn the user if the `CUA-mode' feature is ever provided.
+
+;;;###autoload (eval-after-load 'CUA-mode
+;;;###autoload  '(error (concat "\n\n"
+;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution,\n"
+;;;###autoload  "so you may now enable and customize CUA via the Options menu.\n\n"
+;;;###autoload  "Your " (file-name-nondirectory user-init-file) " loads an older version of CUA-mode which does\n"
+;;;###autoload  "not work correctly with this version of GNU Emacs.\n"
+;;;###autoload  "To correct this, remove the loading and customization of the\n"
+;;;###autoload  "old version from the " user-init-file " file.\n\n")))
+
 ;;; cua-base.el ends here
