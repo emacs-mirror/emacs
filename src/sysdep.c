@@ -1337,6 +1337,7 @@ init_sys_modes ()
       tty.main.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use
 					   of C-z */
 #endif /* VSWTCH */
+
 #if defined (mips) || defined (HAVE_TCATTR)
 #ifdef VSUSP
       tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
@@ -1359,13 +1360,27 @@ init_sys_modes ()
 #ifdef VDISCARD
       tty.main.c_cc[VDISCARD] = CDISABLE;
 #endif /* VDISCARD */
+
+      if (flow_control)
+	{
 #ifdef VSTART
-      tty.main.c_cc[VSTART] = CDISABLE;
+	  tty.main.c_cc[VSTART] = '\021';
 #endif /* VSTART */
 #ifdef VSTOP
-      tty.main.c_cc[VSTOP] = CDISABLE;
+	  tty.main.c_cc[VSTOP] = '\023';
 #endif /* VSTOP */
+	}
+      else
+	{
+#ifdef VSTART
+	  tty.main.c_cc[VSTART] = CDISABLE;
+#endif /* VSTART */
+#ifdef VSTOP
+	  tty.main.c_cc[VSTOP] = CDISABLE;
+#endif /* VSTOP */
+	}
 #endif /* mips or HAVE_TCATTR */
+
 #ifdef SET_LINE_DISCIPLINE
       /* Need to explicitly request TERMIODISC line discipline or
          Ultrix's termios does not work correctly.  */
