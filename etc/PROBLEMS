@@ -1,6 +1,11 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Mail sent through Microsoft Exchange in some encodings appears to be
+mangled and is not seen correctly in Rmail or Gnus.  We don't know
+exactly what happens, but it isn't an Emacs problem in cases we've
+seen.
+
 * On OSF/Dec Unix/Tru64/<whatever it is this year> under X locally or
 remotely, M-SPC acts as a `compose' key with strange results.  See
 keyboard(5).
