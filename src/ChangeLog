@@ -1,3 +1,8 @@
+2004-09-14  Stefan  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Fix case of replacement in a
+	narrowed buffer.
+
 2004-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* puresize.h (PURESIZE_RATIO): Define based on BITS_PER_EMACS_INT.
