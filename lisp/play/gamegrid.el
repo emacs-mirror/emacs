@@ -413,18 +413,24 @@ static char *noname[] = {
      (gamegrid-add-score-with-update-game-score file score))))
 
 (defun gamegrid-add-score-with-update-game-score (file score)
-  (let ((result nil)
-	(errbuf (generate-new-buffer " *update-game-score loss*"))
-	(target (if game-score-directory
-		    file
-		  (let ((f (expand-file-name "~/.emacs.d/games")))
-		    (unless (eq (car-safe (file-attributes f))
-				t)
-		      (make-directory f))
-		    (setq f (expand-file-name file f))
-		    (unless (file-exists-p f)
-		      (write-region "" nil f nil 'silent nil 'excl))
-		    f))))
+  (let* ((result nil)
+	 (errbuf (generate-new-buffer " *update-game-score loss*"))
+	 (have-shared-game-dir
+	  (not (zerop (logand (file-modes
+			       (expand-file-name "update-game-score"
+						 exec-directory))
+			      #o4000))))
+	 (target (if have-shared-game-dir
+		     (expand-file-name file game-score-directory)
+		   (let ((f (expand-file-name game-score-directory)))
+		     (when (file-writable-p f)
+		       (unless (eq (car-safe (file-attributes f))
+				   t)
+			 (make-directory f))
+		       (setq f (expand-file-name file f))
+		       (unless (file-exists-p f)
+			 (write-region "" nil f nil 'silent nil 'excl)))
+		     f))))
     (let ((default-directory "/"))
       (apply
        'call-process
@@ -432,7 +438,8 @@ static char *noname[] = {
 	(list
 	 (expand-file-name "update-game-score" exec-directory)
 	 nil errbuf nil
-	 "-m" (int-to-string gamegrid-score-file-length) file
+	 "-m" (int-to-string gamegrid-score-file-length)
+	 "-d" (expand-file-name game-score-directory) file
 	 (int-to-string score)
 	 (concat
 	  (user-full-name)
