@@ -206,7 +206,6 @@
 
 (and (not version18p)
      (not (boundp 'epoch::version))
-     (defalias 'ispell 'ispell-buffer)
      (defalias 'ispell-check-version 'check-ispell-version))
 
 
@@ -2804,6 +2803,17 @@ Standard ispell choices are then available."
   "Completes word matching character sequence inside a word."
   (interactive)
   (ispell-complete-word t))
+
+
+;;;###autoload
+(defun ispell ()
+  "Interactively check a region or buffer for spelling errors.
+If `transient-mark-mode' is on, an a region is active, spell-check
+that region.  Otherwise spell-check the buffer."
+  (interactive)
+  (if (and transient-mark-mode mark-active)
+      (ispell-region (region-beginning) (region-end))
+    (ispell-buffer)))
 
 
 ;;; **********************************************************************
