@@ -55,7 +55,7 @@ Boston, MA 02111-1307, USA.  */
  */
 
 #define NO_SHORTNAMES   /* Tell config not to load remap.h */
-#include <../src/config.h>
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -683,7 +683,8 @@ FILE *sfi;
 FILE *sfo;
 char ibuffer[BUFSIZ];
 char obuffer[BUFSIZ];
-char Errmsg[80];
+char Errmsg[200];		/* POP errors, at least, can exceed
+				   the original length of 80.  */
 
 /*
  * The full legal syntax for a POP mailbox specification for movemail
