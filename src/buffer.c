@@ -117,6 +117,10 @@ Lisp_Object Vtransient_mark_mode;
    Any non-nil value means ignore buffer-read-only.  */
 Lisp_Object Vinhibit_read_only;
 
+/* List of functions to call that can query about killing a buffer.
+   If any of these functions returns nil, we don't kill it.  */
+Lisp_Object Vkill_buffer_query_functions;
+
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
 Lisp_Object Qfirst_change_hook;
@@ -729,13 +733,25 @@ with `delete-process'.")
 	return Qnil;
     }
 
-  /* Run kill-buffer hook with the buffer to be killed the current buffer.  */
+  /* Run hooks with the buffer to be killed the current buffer.  */
   {
     register Lisp_Object val;
     int count = specpdl_ptr - specpdl;
+    Lisp_Object list;
 
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
     set_buffer_internal (b);
+
+    /* First run the query functions; if any query is answered no,
+       don't kill the buffer.  */
+    for (list = Vkill_buffer_query_functions; !NILP (list); list = Fcdr (list))
+      {
+	tem = call0 (Fcar (list));
+	if (NILP (tem))
+	  return unbind_to (count, Qnil);
+      }
+
+    /* Then run the hooks.  */
     call1 (Vrun_hooks, Qkill_buffer_hook);
     unbind_to (count, Qnil);
   }
@@ -2614,6 +2630,10 @@ text properties.  If the value is a list, disregard `buffer-read-only'\n\
 and disregard a `read-only' text property if the property value\n\
 is a member of the list.");
   Vinhibit_read_only = Qnil;
+
+  DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
+    "List of functions called with no args to query before killing a buffer.");
+  Vkill_buffer_query_functions = Qnil;
 
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
