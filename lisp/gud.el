@@ -282,6 +282,48 @@ It is for customization by you.")
 
 (defvar gud-command-queue nil)
 
+;;; When we send a command to the debugger via gud-call, it's annoying
+;;; to see the command and the new prompt inserted into the debugger's
+;;; buffer; we have other ways of knowing the command has completed.
+;;;
+;;; If the buffer looks like this:
+;;; --------------------
+;;; (gdb) set args foo bar
+;;; (gdb) -!-
+;;; --------------------
+;;; (the -!- marks the location of point), and we type `C-x SPC' in a
+;;; source file to set a breakpoint, we want the buffer to end up like
+;;; this:
+;;; --------------------
+;;; (gdb) set args foo bar
+;;; Breakpoint 1 at 0x92: file make-docfile.c, line 49.
+;;; (gdb) -!-
+;;; --------------------
+;;; Essentially, the old prompt is deleted, and the command's output
+;;; and the new prompt take its place.
+;;;
+;;; Not echoing the command is easy enough; you send it directly using
+;;; process-send-string, and it never enters the buffer.  However,
+;;; getting rid of the old prompt is trickier; you don't want to do it
+;;; when you send the command, since that will result in an annoying
+;;; flicker as the prompt is deleted, redisplay occurs while Emacs
+;;; waits for a response from the debugger, and the new prompt is
+;;; inserted.  Instead, we'll wait until we actually get some output
+;;; from the subprocess before we delete the prompt.  If the command
+;;; produced no output other than a new prompt, that prompt will most
+;;; likely be in the first chunk of output received, so we will delete
+;;; the prompt and then replace it with an identical one.  If the
+;;; command produces output, the prompt is moving anyway, so the
+;;; flicker won't be annoying.
+;;;
+;;; So - when we want to delete the prompt upon receipt of the next
+;;; chunk of debugger output, we position gud-delete-prompt-marker at
+;;; the start of the prompt; the process filter will notice this, and
+;;; delete all text between it and the process output marker.  If
+;;; gud-delete-prompt-marker points nowhere, we leave the current
+;;; prompt alone.
+(defvar gud-delete-prompt-marker nil)
+
 (if gud-mode-map
    nil
   (setq gud-mode-map (copy-keymap comint-mode-map))
@@ -348,6 +390,8 @@ comint mode, which see."
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
+  (make-local-variable 'gud-delete-prompt-marker)
+  (setq gud-delete-prompt-marker (make-marker))
   (run-hooks 'gud-mode-hook)
 )
 
@@ -396,8 +440,12 @@ comint mode, which see."
   (save-excursion
     (set-buffer (process-buffer proc))
     (let ((output-after-point (< (point) (process-mark proc))))
-      ;; Insert the text, moving the process-marker.
       (goto-char (process-mark proc))
+      ;; If we have been so requested, delete the debugger prompt.
+      (if (marker-buffer gud-delete-prompt-marker)
+	  (progn
+	    (delete-region (point) gud-delete-prompt-marker)
+	    (set-marker gud-delete-prompt-marker nil)))
       (insert-before-markers string)
       ;; Check for a filename-and-line number.
       ;; Don't display the specified file
@@ -487,12 +535,19 @@ Obeying it means displaying in another window the specified file and line."
   "Invoke the debugger COMMAND displaying source in other window."
   (interactive)
   (gud-set-buffer)
-  (goto-char (point-max))
   (let ((command (concat (apply 'format command args) "\n"))
 	(proc (get-buffer-process current-gud-buffer)))
-    (gud-filter-insert proc command)
-    (send-string proc command)
-    ))
+
+    ;; Arrange for the current prompt to get deleted.
+    (save-excursion
+      (set-buffer current-gud-buffer)
+      (goto-char (process-marker proc))
+      (beginning-of-line)
+      (if (looking-at comint-prompt-regexp)
+	  (set-marker gud-delete-prompt-marker (point))))
+
+    (goto-char (point-max))
+    (process-send-string proc command)))
 
 (defun gud-queue-send (&rest cmdlist)
   ;; Send the first command, queue the rest for send after successive
