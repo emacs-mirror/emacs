@@ -1900,6 +1900,7 @@ EXFUN (Fash, 2);
 
 EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
+EXFUN (Fmake_variable_buffer_local, 1);
 
 extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
@@ -2432,6 +2433,7 @@ extern Lisp_Object Qoverlayp;
 extern Lisp_Object get_truename_buffer P_ ((Lisp_Object));
 extern struct buffer *all_buffers;
 EXFUN (Fprevious_overlay_change, 1);
+EXFUN (Fbuffer_file_name, 1);
 extern void init_buffer_once P_ ((void));
 extern void init_buffer P_ ((void));
 extern void syms_of_buffer P_ ((void));
