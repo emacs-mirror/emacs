@@ -3082,7 +3082,7 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 }
 
 
-DEFUN ("propertize", Fpropertize, Spropertize, 3, MANY, 0,
+DEFUN ("propertize", Fpropertize, Spropertize, 1, MANY, 0,
        doc: /* Return a copy of STRING with text properties added.
 First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
@@ -3097,7 +3097,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   int i;
 
   /* Number of args must be odd.  */
-  if ((nargs & 1) == 0 || nargs < 3)
+  if ((nargs & 1) == 0 || nargs < 1)
     error ("Wrong number of arguments");
 
   properties = string = Qnil;
