@@ -1,3 +1,7 @@
+2002-07-02  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/bindat.el: New file.
+
 2002-07-01  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/tex-mode.el (tex-file): Call `save-some-buffers'
