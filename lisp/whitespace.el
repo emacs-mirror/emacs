@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.20 2002/09/11 21:30:25 monnier Exp $
+;; $Id: whitespace.el,v 1.21 2002/09/13 06:21:32 lektu Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -312,15 +312,15 @@ To disable timer scans, set this to zero."
   :group 'faces)
 
 (defface whitespace-highlight-face '((((class color) (background light))
-				    (:background "green"))
-				   (((class color) (background dark))
-				    (:background "sea green"))
-				   (((class grayscale monochrome)
-				     (background light))
-				    (:background "black"))
-				   (((class grayscale monochrome)
-				     (background dark))
-				    (:background "white")))
+				      (:background "green"))
+				     (((class color) (background dark))
+				      (:background "sea green"))
+				     (((class grayscale mono)
+				       (background light))
+				      (:background "black"))
+				     (((class grayscale mono)
+				       (background dark))
+				      (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace-faces)
 
