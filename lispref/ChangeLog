@@ -1,3 +1,67 @@
+2004-08-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymaps.texi: Various changes in addition to:
+	(Keymap Terminology): `kbd' uses same syntax as Edit Macro mode.
+	Give more varied examples for `kbd'.
+	(Creating Keymaps): Char tables have slots for all characters
+	without modifiers.
+	(Active Keymaps): `overriding-local-map' and
+	`overriding-terminal-local-map' also override text property and
+	overlay keymaps.
+	(Functions for Key Lookup): Mention OLP arg to `current-active-maps'.
+	(Scanning Keymaps): `accessible-keymaps' uses `[]' instead of `""'
+	to denote a prefix of no events.
+	`map-keymap' includes parent's bindings _recursively_.
+	Clarify and correct description of `where-is-internal'.
+	Mention BUFFER-OR-NAME arg to `describe-bindings'.
+	(Menu Example): For menus intended for use with the keyboard, the
+	menu items should be bound to characters or real function keys.
+
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* objects.texi (Character Type): Reposition `@anchor' to prevent
+	double space inside sentence in Info.
+
+	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
+	renamed to `disabled-command-function'.
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	(Command Loop Info): Replace reference to it.
+	(Disabling Commands): `disabled-command-hook' has been renamed to
+	`disabled-command-function'.
+
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* os.texi (Translating Input): Only non-prefix bindings in
+	`key-translation-map' override actual key bindings.  Warn about
+	possible indirect effect of actual key bindings on non-prefix
+	bindings in `key-translation-map'.
+
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (High-Level Completion): Add anchor for definition
+	of `read-variable'.
+
+	* commands.texi: Various changes in addition to:
+	(Using Interactive): Clarify description of `interactive-form'.
+	(Interactive Call): Mention default for KEYS argument to
+	`call-interactively'.
+	(Command Loop Info): Clarify description of `this-command-keys'.
+	Mention KEEP-RECORD argument to `clear-this-command-keys'.
+	Value of `last-event-frame' can be `macro'.
+	(Repeat Events): `double-click-fuzz' is also used to distinguish
+	clicks and drags.
+	(Classifying Events): Clarify descriptions of `event-modifiers'
+	`event-basic-type' and `event-convert-list'.
+	(Accessing Events): `posn-timestamp' takes POSITION argument.
+	(Quoted Character Input): Clarify description of
+	`read-quoted-char' and fix example.
+	(Quitting): Add `with-local-quit'.
+	(Disabling Commands):  Correct and clarify descriptions of
+	`enable-command' and `disable-command'.
+	Mention what happens if `disabled-command-hook' is nil.
+	(Keyboard Macros): Mention LOOPFUNC arg to `execute-kbd-macro'.
+	Describe `executing-kbd-macro' instead of obsolete `executing-macro'.
+
 2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi: Various changes in addition to:

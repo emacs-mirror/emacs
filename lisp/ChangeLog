@@ -1,3 +1,72 @@
+2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.el (describe-bindings): Doc fix.
+
+	* subr.el (kbd): Doc fix.
+
+2004-08-08  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (define-ibuffer-column size): Use `string-to-number'
+	instead of `string-to-int'.
+	(define-ibuffer-column mode): Fix indentation.
+
+2004-08-08  Lars Hansen  <larsh@math.ku.dk>
+
+	* wid-edit.el (widget-sexp-validate): Allow whitespace after
+	expression.
+
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (global-unset-key, local-unset-key): Doc fixes.
+
+	* novice.el (disabled-command-function): New variable renamed from
+	`disabled-command-hook'.
+	(disabled-command-hook): Keep the _variable_ as alias for
+	`disabled-command-function' and make obsolete.
+	(disabled-command-function): Function renamed from
+	`disabled-command-hook'.  Adapt code to name change of the variable.
+
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+
+	* simple.el (completion-root-regexp): New defvar.
+	(completion-setup-function): Use it instead of a literal string.
+
+2004-08-07  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Add `rx' syntax.
+	(reb-lisp-mode): Require `rx' feature when `re-reb-syntax' is `rx'.
+	(reb-lisp-syntax-p, reb-change-syntax): `rx' is a Lisp syntax.
+	(reb-cook-regexp): Call `rx-to-string' when `re-reb-syntax' is `rx'.
+
+2004-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* mail/mail-extr.el (mail-extr-disable-voodoo): New variable.
+	(mail-extr-voodoo): Check mail-extr-disable-voodoo.
+
+2004-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
+	previous change.
+
+2004-08-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el: The following changes are to
+	utilize key-translation-map instead of minor mode map.
+	(encoded-kbd-iso2022-non-ascii-map): Delete it.
+	(encoded-kbd-coding, encoded-kbd-handle-8bit): Delete them.
+	(encoded-kbd-last-key): New function.
+	(encoded-kbd-iso2022-single-shift): New function.
+	(encoded-kbd-iso2022-designation)
+	(encoded-kbd-self-insert-iso2022-7bit)
+	(encoded-kbd-self-insert-iso2022-8bit)
+	(encoded-kbd-self-insert-sjis, encoded-kbd-self-insert-big5)
+	(encoded-kbd-self-insert-ccl): Make them suitable for bindings in
+	key-translation-map.
+	(encoded-kbd-setup-keymap): Setup key-translation-map.
+	(saved-key-translation-map): New variable.
+	(encoded-kbd-mode): Save/restore key-translation-map.  Adjusted
+	for the change of encoded-kbd-setup-keymap.
+
 2004-08-02  Kim F. Storm  <storm@cua.dk>
 
 	* avoid.el (mouse-avoidance-point-position): Use window-inside-edges
