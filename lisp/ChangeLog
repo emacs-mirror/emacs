@@ -1,3 +1,19 @@
+2000-09-12  Dave Love  <fx@gnu.org>
+
+	* vc.el (vc-dired-listing-switches): Fix :version.
+
+	* vc-hooks.el: Doc fixes.
+
+	* subr.el (add-minor-mode): Use toggle-fun arg.
+
+	* speedbar.el: Add :version to several defcustoms.
+
+	* imenu.el (imenu--truncate-items, imenu--cleanup)
+	(imenu--generic-function): Avoid mapcar.
+	(imenu--replace-spaces): Function removed.
+	(imenu--completion-buffer): Use subst-char-in-string.
+	(imenu-add-to-menubar): Use keymap inheritance.
+
 2000-09-12  Miles Bader  <miles@gnu.org>
 
 	* diff-mode.el (diff-hunk-text): Use `with-temp-buffer'.
