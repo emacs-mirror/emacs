@@ -159,7 +159,6 @@ Boston, MA 02111-1307, USA.  */
 #define ORDINARY_LINK
 
 #ifndef USG5_4
-#ifndef __GNUC__
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
    linker error for updated X11R5 libraries, which references pthread library
@@ -175,7 +174,11 @@ Boston, MA 02111-1307, USA.  */
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
 #endif
 #endif /* not AIX4 */
-#endif /* not __GNUC__ */
+
+/* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
+#if __GNUC__ == 2 && __GNUC_MINOR__ == 7
+#define LD_SWITCH_SITE -B/bin/
+#endif
 
 /* AIX supposedly doesn't use this interface, but on the RS/6000
    it apparently does.  */
