@@ -386,6 +386,8 @@ Complete list of commands:
   (setq mode-name "Debugger")
   (setq truncate-lines t)
   (set-syntax-table emacs-lisp-mode-syntax-table)
+  ;; Since we must handle bytecode...
+  (setq enable-multibyte-characters nil)
   (use-local-map debugger-mode-map))
 
 ;;;###autoload
