@@ -1440,7 +1440,7 @@ Point is left at the beginning of the narrowed-to region."
   "Major mode for editing mail and news to be sent.
 Like Text Mode but with these additional commands:
 C-c C-s  message-send (send the message)    C-c C-c  message-send-and-exit
-C-c C-d  Pospone sending the message        C-c C-k  Kill the message
+C-c C-d  Postpone sending the message        C-c C-k  Kill the message
 C-c C-f  move to a header field (and create it if there isn't):
 	 C-c C-f C-t  move to To	C-c C-f C-s  move to Subject
 	 C-c C-f C-c  move to Cc	C-c C-f C-b  move to Bcc
