@@ -1,3 +1,7 @@
+2001-10-07  Miles Bader  <miles@gnu.org>
+
+	* button.el: New file.
+
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl.el (most-positive-fixnum, most-negative-fixnum): 
