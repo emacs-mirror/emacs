@@ -1,7 +1,15 @@
+2002-05-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-transformation): Default to `identity'.
+	(skeleton-insert): Use `move-after' markers and `insert' rather
+	than rely on insert-before-markers.
+	(skeleton-internal-1): Handle `> \n' specially so that the newline
+	is inserted before the first line is indented.
+
 2002-05-14  Mike Williams  <mdub@bigfoot.com>
 
-	* textmodes/sgml-mode.el (sgml-tag): Default
-	skeleton-transformation to `identity'.
+	* textmodes/sgml-mode.el (sgml-tag):
+	Default skeleton-transformation to `identity'.
 
 2002-05-14  Francesco Potorti`  <pot@gnu.org>
 
@@ -119,8 +127,7 @@
 2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu)
-	(menu-bar-showhide-menu): Use display-graphic-p, not
-	widnow-system.
+	(menu-bar-showhide-menu): Use display-graphic-p, not window-system.
 	(menu-bar-showhide-menu) <showhide-menu-bar, showhide-tool-bar>:
 	Run a named function.
 	(showhide-menu-bar, showhide-toolbar): Invoke customize-mark-as-set.
@@ -188,13 +195,13 @@
 	`loaddefs.el', look for the real source.  This is necessary only
 	for defaliases.
 
-	* emacs-lisp/find-func.el (find-function-search-for-symbol): Add
-	autoload cookie.
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Add autoload cookie.
 	(find-function-regexp):  Include
 	"\(quote " to match the defaliases in loaddefs.el.
 
-	* filesets.el (filesets-conditional-sort): Use copy-sequence, not
-	copy-list.
+	* filesets.el (filesets-conditional-sort): Use copy-sequence,
+	not copy-list.
 	(filesets-menu-path, filesets-menu-before, filesets-menu-in-menu):
 	Defvar them to nil if running in Emacs.
 
@@ -284,8 +291,8 @@
 
 2002-05-06  Markus Rost  <rost@math.ohio-state.edu>
 
-	* emacs-lisp/find-func.el (find-function-search-for-symbol): Use
-	with-syntax-table.
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Use with-syntax-table.
 
 2002-05-06  Francesco Potorti`  <pot@gnu.org>
 
@@ -355,8 +362,8 @@
 
 2002-05-04  Markus Rost  <rost@math.ohio-state.edu>
 
-	* emacs-lisp/find-func.el (find-function-search-for-symbol): Bind
-	case-fold-search when searching.
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Bind case-fold-search when searching.
 
 2002-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -386,18 +393,16 @@
 	within any eshell buffer to modify the global Emacs environment.
 	It defaults to nil, which means that such commands will only
 	modify that Eshell buffer's environment.
-	(eshell-var-initialize): Initialize
-	`eshell-modify-global-environment'.
+	(eshell-var-initialize): Initialize `eshell-modify-global-environment'.
 
-	* eshell/em-cmpl.el (eshell-command-completions-alist): Improved
-	default completion targets for objdump, nm and readelf.
+	* eshell/em-cmpl.el (eshell-command-completions-alist):
+	Improve default completion targets for objdump, nm and readelf.
 
 2002-05-03  Colin Walters  <walters@verbum.org>
 
-	* play/gamegrid.el (gamegrid-user-score-file-directory): New
-	variable.
-	(gamegrid-add-score-with-update-game-score): Use
-	`shared-game-score-directory'.  Correctly handle non-setuid case.
+	* play/gamegrid.el (gamegrid-user-score-file-directory): New variable.
+	(gamegrid-add-score-with-update-game-score):
+	Use `shared-game-score-directory'.  Correctly handle non-setuid case.
 
 2002-05-02  Colin Walters  <walters@verbum.org>
 
@@ -412,8 +417,8 @@
 
 	* menu-bar.el (menu-bar-make-toggle): Added optional PROPS arg.
 	(menu-bar-options-save): Added cua-mode.
-	(menu-bar-options-menu): Added toggle for cua-mode.  Disable
-	toggle for transient-mark-mode if cua-mode is enabled.
+	(menu-bar-options-menu): Added toggle for cua-mode.
+	Disable toggle for transient-mark-mode if cua-mode is enabled.
 
 	* emulation/cua-base.el (cua-inhibit-cua-keys): New buffer-local
 	variable.
@@ -429,18 +434,17 @@
 	* progmodes/f90.el: Yet more doc string, commment and whitespace
 	changes.
 	(f90-imenu-flag): New name for internal variable f90-imenu.
-	(f90-blocks-re, f90-program-block-re, f90-end-if-re,
-	f90-no-break-re): Use regexp-opt.
+	(f90-blocks-re, f90-program-block-re, f90-end-if-re)
+	(f90-no-break-re): Use regexp-opt.
 	(f90-end-type-re): Add closing "\\>".
 	(f90-indent-region): Correctly indent comments embedded in
 	continued lines.
-	(f90-indent-new-line): Make it indent the current line, as it
-	should.
-	(f90-line-continued, f90-get-present-comment-type,
-	f90-looking-at-if-then, f90-indent-line, f90-indent-new-line,
-	f90-indent-region, f90-indent-subprogram, f90-do-auto-fill,
-	f90-join-lines, f90-fill-region, f90-match-end, f90-insert-end,
-	f90-change-keywords): Minor code tidying.
+	(f90-indent-new-line): Make it indent the current line, as it should.
+	(f90-line-continued, f90-get-present-comment-type)
+	(f90-looking-at-if-then, f90-indent-line, f90-indent-new-line)
+	(f90-indent-region, f90-indent-subprogram, f90-do-auto-fill)
+	(f90-join-lines, f90-fill-region, f90-match-end, f90-insert-end)
+	(f90-change-keywords): Minor code tidying.
 
 	* progmodes/fortran.el (fortran-strip-sequence-nos): Rename from
 	typo `fortran-strip-sqeuence-nos'.
@@ -452,8 +456,8 @@
 
 2002-05-01  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua--pre-command-handler): Only
-	interpret delete-selection property if mark-active.
+	* emulation/cua-base.el (cua--pre-command-handler):
+	Only interpret delete-selection property if mark-active.
 	(cua-mode): Fixed require in defcustom.
 
 2002-05-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -463,10 +467,10 @@
 
 2002-05-01  Colin Walters  <walters@verbum.org>
 
-	* textmodes/tex-mode.el (tex-validate-buffer): Use
-	`occur-revert-arguments' instead of setting `occur-nlines' and
-	`occur-buffer'.  Don't test for `input-pending-p' in loop.  Set
-	text property `occur-target' instead of `occur'.
+	* textmodes/tex-mode.el (tex-validate-buffer):
+	Use `occur-revert-arguments' instead of setting `occur-nlines' and
+	`occur-buffer'.  Don't test for `input-pending-p' in loop.
+	Set text property `occur-target' instead of `occur'.
 
 2002-04-30  John Wiegley  <johnw@gnu.org>
 
@@ -514,8 +518,8 @@
 
 2002-04-29  Markus Rost  <rost@math.ohio-state.edu>
 
-	* mail/emacsbug.el (report-emacs-bug-hook): Use
-	replace-match only if search was successful.
+	* mail/emacsbug.el (report-emacs-bug-hook):
+	Use replace-match only if search was successful.
 
 2002-04-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -530,11 +534,26 @@
 	on filesets-running-xemacs.
 	(filesets-find-file-using): Renamed from fsfind-file-using.
 
+2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-find-in-tag-table-1, Info-read-subfile): Use point-min.
+	(Info-read-node-name-1): Complete file names.
+	(Info-complete-menu-item): Don't cons unnecessarily.
+
+	* files.el (locate-file): New fun.
+	(locate-file-completion): Rename from load-completion and generalize.
+	(load-library): Use it.
+	(make-auto-save-file-name): Expand caddr.
+
+	* newcomment.el (comment-fill-column): New var.
+	(comment-indent): Use it.
+	(comment-or-uncomment-region): New fun.
+	(comment-dwim): Use it.
+
 2002-04-29  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-kill-filter-group): Call `delete' function.
-	(ibuffer-kill-line): Copy the filter group data structure when
-	killing.
+	(ibuffer-kill-line): Copy the filter group data structure when killing.
 	(ibuffer-yank): Handle case where we're yanking on the default
 	group correctly.
 	(ibuffer-delete-saved-filter-groups): Doc fix.
@@ -571,8 +590,8 @@
 2002-04-29  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
 
 	* language/vietnamese.el (viet-tcvn-decode-table, ccl-decode-tcvn)
-	(ccl-encode-tcvn, ccl-encode-tcvn-font, vietnamese-tcvn): New
-	Vietnamese coding system.
+	(ccl-encode-tcvn, ccl-encode-tcvn-font, vietnamese-tcvn):
+	New Vietnamese coding system.
 
 	* language/viet-util.el: Update Commentary section.
 
@@ -1914,9 +1933,9 @@
 	prefix from scroll commands.  Ignore end-of-buffer errors from
 	other windows.
 	(scroll-all-check-to-scroll): Remove `fkey-' prefix from scroll
-	commands.
-	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all): New
-	functions.
+	commands. 
+	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
+	New functions.
 
 	* files.el: (auto-mode-alist): .f95 files in f90-mode.
 
@@ -2253,8 +2272,7 @@
 	active project file, instead of one per buffer.  This is far less
 	confusing.
 
-	* progmodes/ada-stmt.el: Menu changed from Statements to
-	Templates.
+	* progmodes/ada-stmt.el: Menu changed from Statements to Templates.
 	(ada-func-or-proc-name): Get real subprogram name, after change in
 	ada-mode.el.
 
@@ -2266,8 +2284,8 @@
 	various available shells on that platform.  ada-mode is now fully
 	integrated with the GNU visual debugger gvd, see
 	http://libre.act-europe.fr.
-	(ada-prj-default-comp-opt): Use the new GNAT switch -gnatQ.  This
-	is only available with GNAT 3.14.
+	(ada-prj-default-comp-opt): Use the new GNAT switch -gnatQ.
+	This is only available with GNAT 3.14.
 	(ada-prj-gnatfind-switches, ada-cd-command): New variable.
 	(ada-quote-cmd): New function.
 	(ada-initialize-runtime-library): Get the location of the actual
@@ -2288,23 +2306,20 @@
 	(ada-case-exception-substring): New variable.  Casing exceptions
 	can now also be defined for substrings, in addition to full
 	identifier names.  This provides more flexibility.
-	(ada-align-list): New function, provide support for align.el in
-	ada-mode.
+	(ada-align-list): New fun, provide support for align.el in ada-mode.
 	(ada-procedure-start-regexp): Add support for operators and
 	generic formal subprograms and packages.
 	(ada-imenu-comment-re): New variable.
 	(ada-imenu-generic-expression): Add support for protected types.
 	(ada-mode): Set comment-start only after running ada-mode-hook, so
-	that the user can change ada-comment-start in the hook.  Add
-	support for ispell in comments.  Add support for align.el.
+	that the user can change ada-comment-start in the hook.
+	Add support for ispell in comments.  Add support for align.el.
 	(ada-save-exception-file, ada-create-case-exception-substring)
 	(ada-adjust-case-substring): New functions.
-	(ada-get-current-indent): Properly handles keywords with
-	uppercases.
+	(ada-get-current-indent): Properly handles keywords with uppercases.
 	(ada-goto-matching-end): Rewritten, fixes problems in the handling
 	of nested blocks.
-	(ada-untab-hard): Do not touch the contents of comments and
-	strings.
+	(ada-untab-hard): Do not touch the contents of comments and strings.
 
 2002-04-09  Mike Williams  <mdub@bigfoot.com>
 
@@ -3059,8 +3074,7 @@
 	(browse-url-mosaic): Use it.
 
 	* net/browse-url.el (browse-url-filename-alist): Don't begin
-	docstring with *, you don't want to set this one with M-x
-	set-variable.
+	docstring with *, you don't want to set this one with M-x set-variable.
 
 	* net/browse-url.el: Put * in user option doc strings.
 
@@ -3530,8 +3544,7 @@
 	* cus-start.el: Rename automatic-hscroll-step and
 	automatic-hscroll-margin into hscroll-step and hscroll-margin.
 
-	* frame.el (auto-hscroll-mode): Renamed from
-	automatic-hscrolling.
+	* frame.el (auto-hscroll-mode): Renamed from automatic-hscrolling.
 	(automatic-hscrolling): Now a defvaralias for auto-hscroll-mode.
 
 	* mouse.el (mouse-region-delete-keys): Add deletechar.
@@ -3960,9 +3973,9 @@
 
 2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-        * emacs-lisp/lisp.el (mark-sexp): Don't leave multiple marks when
-        repeated.
-        (mark-defun): Mark more if repeated.
+	* emacs-lisp/lisp.el (mark-sexp): Don't leave multiple marks when
+	repeated.
+	(mark-defun): Mark more if repeated.
 
 2002-02-17  Colin Walters  <walters@verbum.org>
 
@@ -4837,8 +4850,8 @@
 	without bound.
 	(jdb): Set classpath information (if available) as jdb is started.
 	Change `gud-break' and `gud-remove'
-	to use new %c ("class") escape in format strings.  Add
-	`gud-finish', `gud-up', `gud-down' command string functions, and
+	to use new %c ("class") escape in format strings.
+	Add `gud-finish', `gud-up', `gud-down' command string functions, and
 	add them to the local menu map.  Update `comint-prompt-regexp' for
 	jdb and oldjdb.  If attaching to an already running java VM and
 	configured to use classpath, send command to query for classpath,
@@ -4983,9 +4996,8 @@
 
 2002-01-13  Colin Walters  <walters@debian.org>
 
-	* emacs-lisp/autoload.el (make-autoload): Handle
-	define-ibuffer-column, define-ibuffer-filter,
-	define-ibuffer-sorter, and define-ibuffer-op.
+	* emacs-lisp/autoload.el (make-autoload): Handle define-ibuffer-column,
+	define-ibuffer-filter, define-ibuffer-sorter, and define-ibuffer-op.
 
 	* emacs-lisp/lisp-mode.el (toplevel): Ditto.
 
@@ -4996,11 +5008,11 @@
 	* net/browse-url.el (browse-url-grail):
 	Use browse-url-maybe-new-window.
 
-	* net/telnet.el (telnet-simple-send): Handle
-	comint-input-sender-no-newline like comint-simple-send.
+	* net/telnet.el (telnet-simple-send):
+	Handle comint-input-sender-no-newline like comint-simple-send.
 
-	* progmodes/sql.el (sql-query-placeholders-and-send): Handle
-	comint-input-sender-no-newline like comint-simple-send.
+	* progmodes/sql.el (sql-query-placeholders-and-send):
+	Handle comint-input-sender-no-newline like comint-simple-send.
 	(sql-escape-newlines-and-send): Likewise.
 
 	* comint.el (comint-input-sender): Doc fix.
@@ -5012,8 +5024,8 @@
 
 2002-01-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* textmodes/flyspell.el (flyspell-check-pre-word-p): Prevent
-	delaying when executing keyboard macros.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p):
+	Prevent delaying when executing keyboard macros.
 
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -5244,8 +5256,8 @@
 	2002-01-05.
 	(enriched-handle-display-prop): Return proper values.
 
-	* net/eudcb-ldap.el (eudc-attribute-display-method-alist): Use
-	proper attribute name labeledUri instead of deprecated labeledUrl.
+	* net/eudcb-ldap.el (eudc-attribute-display-method-alist):
+	Use proper attribute name labeledUri instead of deprecated labeledUrl.
 
 2002-01-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -5253,8 +5265,7 @@
 	editing an empty hotlist.
 
 	* net/ldap.el (ldap-search-internal): Make the buffer unibyte.
-	Use buffer-string instead of buffer-substring for the whole
-	buffer.
+	Use buffer-string instead of buffer-substring for the whole buffer.
 
 	* net/eudc-vars.el (eudc-external-viewers): Do not use xv, it is
 	not free.
@@ -5279,8 +5290,8 @@
 
 	* vc-rcs.el (vc-rcs-steal-lock): Do a real checkout after stealing
 	the lock, so that we see expanded headers.
-	(vc-rcs-trunk-p, vc-rcs-branch-part, vc-rcs-branch-p,
-	vc-rcs-minor-part, vc-rcs-previous-version): Removed.  These are
+	(vc-rcs-trunk-p, vc-rcs-branch-part, vc-rcs-branch-p)
+	(vc-rcs-minor-part, vc-rcs-previous-version): Removed.  These are
 	available from vc.el.  Updated all callers.
 
 2002-01-05  Richard M. Stallman  <rms@gnu.org>
@@ -5311,8 +5322,7 @@
 
 2002-01-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated
-	entry.
+	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated entry.
 	(ldap-ignore-attribute-codings): Change the default value to allow
 	encoding/decoding of attributes.
 	(ldap-coding-system): Use UTF-8 as the coding-system.  Doc fix.
@@ -5332,8 +5342,8 @@
 2002-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/sendmail.el (mail-recover-1): New function.
-	(mail-recover): Switch to the *mail* buffer right away.  Use
-	buffer-auto-save-file-name instead of calling
+	(mail-recover): Switch to the *mail* buffer right away.
+	Use buffer-auto-save-file-name instead of calling
 	make-auto-save-file-name.  Call dired-noselect instead of invoking
 	`ls' directly.  Bind coding-system-for-read to emacs-mule-unix
 	before reading the auto-save file.  If the buffer's auto-save file
@@ -5386,8 +5396,8 @@
 	for mode-line vars.
 	(xscheme-process-sentinel): Make sure sentinel is run in the
 	process buffer so it sees its local vars.
-	(xscheme-process-filter-initialize, xscheme-set-runlight): More
-	elaborate logic to handle multiple-buffer mode lines.
+	(xscheme-process-filter-initialize, xscheme-set-runlight):
+	More elaborate logic to handle multiple-buffer mode lines.
 
 	(xscheme-enter-input-wait): Re-enable control-G handler upon
 	entering input wait.
@@ -5415,8 +5425,8 @@
 	(xscheme-yank-previous-send): Now an alias for xscheme-yank.
 	(xscheme-previous-send): Deleted variable.
 
-	(xscheme-send-string-2, xscheme-send-char, xscheme-send-proceed,
-	xscheme-send-control-g-interrupt): Use process-send-string rather
+	(xscheme-send-string-2, xscheme-send-char, xscheme-send-proceed)
+	(xscheme-send-control-g-interrupt): Use process-send-string rather
 	than send-string.
 
 	(xscheme-send-region): Insert a newline after an expression that
@@ -5434,15 +5444,15 @@
 	(xscheme-control-g-message-string): New internal var.
 	(xscheme-send-control-g-interrupt): Use new var.
 
-	(xscheme-send-control-g-interrupt, xscheme-send-interrupt): Delay
-	after sending interrupt in order to work around race condition.
+	(xscheme-send-control-g-interrupt, xscheme-send-interrupt):
+	Delay after sending interrupt in order to work around race condition.
 
 	(xscheme-send-control-g-interrupt, xscheme-send-interrupt)
 	(xscheme-send-char): Use xscheme-send-char rather than send-string
 	to send single char.
 
-	(xscheme-process-filter, xscheme-process-filter-alist): Add
-	support for evaluating expressions outside of the call-excursion.
+	(xscheme-process-filter, xscheme-process-filter-alist):
+	Add support for evaluating expressions outside of the call-excursion.
 	(xscheme-process-filter:string-action-noexcursion): New func.
 
 	(xscheme-write-value): Change output string to match that used by
@@ -5461,8 +5471,7 @@
 
 2002-01-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* enriched.el (enriched-handle-display-prop): Remove unused
-	variables.
+	* enriched.el (enriched-handle-display-prop): Remove unused variables.
 	(enriched-mode): Doc fix.
 
 2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -5628,8 +5637,8 @@
 
 2001-12-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* emulation/tpu-edt.el (tpu-reset-screen-size): Use
-	set-frame-height and set-frame-width instead of set-screen-height
+	* emulation/tpu-edt.el (tpu-reset-screen-size):
+	Use set-frame-height and set-frame-width instead of set-screen-height
 	and set-screen-width.
 
 	* vt-control.el (vt-wide, vt-narrow): Use set-frame-width instead
@@ -5716,8 +5725,8 @@
 
 2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* emacs-lisp/elint.el (elint-unknown-builtin-args): Remove
-	mocklisp entries.
+	* emacs-lisp/elint.el (elint-unknown-builtin-args):
+	Remove mocklisp entries.
 
 	* subr.el (insert-string): Moved from mocklisp.c, reimplemented in
 	Lisp.  Obsoleted.
@@ -5730,11 +5739,10 @@
 
 	* emacs-lisp/find-gc.el (source-files): Remove mocklisp.c.
 
-	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Remove
-	mocklisp case.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Remove mocklisp case.
 
-	* help-fns.el (describe-function-1): Remove mocklisp function
-	case.
+	* help-fns.el (describe-function-1): Remove mocklisp function case.
 
 2001-12-22  Miles Bader  <miles@gnu.org>
 
@@ -5773,10 +5781,9 @@
 	* ls-lisp.el (insert-directory): Insert the amount of free disk
 	space, like files.el's insert-directory does.
 
-	* files.el (directory-free-space-program): Mention
-	file-system-info in the doc string.
-	(get-free-disk-space): New function; code moved from
-	insert-directory.
+	* files.el (directory-free-space-program):
+	Mention file-system-info in the doc string.
+	(get-free-disk-space): New function; code moved from insert-directory.
 	(insert-directory): Call get-free-disk-space to get the amount of
 	free space.
 
@@ -5874,15 +5881,15 @@
 
 2001-12-21  Simon Josefsson  <jas@extundo.com>.
 
-	* mail/smtpmail.el (smtpmail-send-queued-mail): Use
-	with-temp-buffer instead of find-file-noselect, and bind
+	* mail/smtpmail.el (smtpmail-send-queued-mail):
+	Use with-temp-buffer instead of find-file-noselect, and bind
 	coding-system-for-read to no-conversion when reading the queued
 	messages.  (Simon's code modified slightly by Eli Zaretskii.)
 
 2001-12-20  Werner Lemberg  <wl@gnu.org>
 
-	* international/mule-diag.el (describe-coding-system,
-	print-coding-system-briefly): Make printed output have a similar
+	* international/mule-diag.el (describe-coding-system)
+	(print-coding-system-briefly): Make printed output have a similar
 	format as describe-character-set.
 
 2001-12-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
@@ -5903,8 +5910,8 @@
 
 2001-12-19  Werner Lemberg  <wl@gnu.org>
 
-	* language/czech.el, language/european.el, language/slovak.el: More
-	fixes for language info doc strings.
+	* language/czech.el, language/european.el, language/slovak.el:
+	More fixes for language info doc strings.
 
 2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -5957,8 +5964,8 @@
 
 	Add support for EUC-TW decoding/encoding.
 
-	* language/china-util.el (big5-to-flat-code, flat-code-to-big5,
-	euc-to-flat-code, flat-code-to-euc, expand-euc-big5-alist):
+	* language/china-util.el (big5-to-flat-code, flat-code-to-big5)
+	(euc-to-flat-code, flat-code-to-euc, expand-euc-big5-alist):
 	New auxiliary functions to build `big5-to-cns'.
 	(big5-to-cns): New translation alist.
 
