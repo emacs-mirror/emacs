@@ -21,31 +21,22 @@ sub options {
 
 sub requiredoptions {
  local ($pur, $missing, $report, $qa_opt) = ("", 0, "");
+ local (@missopt);
 
  foreach (@_) {
   unless (&getoption($_)) {
-   if ($missing > 0) {
-    $report = $report.",\n";
-   }
    $missing = $missing + 1;
-   $report = $report."  MMQA_".$_;
-   if (&optioncode($_)) {
-    $qa_opt = &optioncode($_);
-    $report = $report." (specify with -".$qa_opt.")";
-   } elsif (&flagcode($_)) {
-    $qa_opt = &flagcode($_);
-    $report = $report." (set with -".$qa_opt."/-no".$qa_opt.")";
-   } else {
-    $report = $report." (but you can't set it -- oops!)";
-   }
+   push(@missopt, $_);
   }
  }
  if ($missing > 0) {
   if ($missing > 1) {
    $pur = "s";
   }
-  die "Error: $qa_command requires the following option".
-   $pur.":\n".$report.".\n";
+  print "Error: $qa_command requires the following option".
+   $pur.":\n";
+  &explainoptions(@missopt);
+  die "\n";
  }
 }
 
@@ -125,4 +116,40 @@ sub applydefaults {
   }
  }
 }
+
+sub explainoptions {
+ local @keys = @_;
+ local ($optname, $optcode, $optcur);
+
+ $~ = "OPTLIST";
+
+ print "\n";
+ $optname = "OPTION";
+ $optcode = "CODE";
+ $optcur  = "CURRENT";
+ write;
+ print "\n";
+
+ foreach $key (@keys) {
+  $optname = "MMQA_$key";
+  if (&optioncode($key)) {
+   $optcode = "-".&optioncode($key)." <value>";
+  } elsif (&flagcode($key)) {
+   $optcode = "-[no]".&flagcode($key);
+  } else {
+   $optcode = "";
+  }
+  $optcur = (&getoption($key) || "");
+ write;
+ }
+}
+
+sub displayalloptions {
+ &explainoptions(values %qa_options, values %qa_flags);
+}
+
+format OPTLIST =
+ @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$optname, $optcode, $optcur
+.
 
