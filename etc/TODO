@@ -1,6 +1,13 @@
                                                                 -*-text-*-
 
-Small but important fixes in existing features:
+If you are ready to start working on any of these TODO items, we
+appreciate your help; please write to emacs-devel@gnu.org so we can be
+aware that the problem is being addressed, and talk with you how to do
+it best.  Since Emacs is an FSF-copyrighted packages, please be
+prepared to sign legal papers to transfer the copyright on your work
+to the FSF.
+
+Small but important fixes needed in existing features:
 
 * Bring back the feature of showing the part of the buffer that is a problem
   for the use of the preferred coding systems.
