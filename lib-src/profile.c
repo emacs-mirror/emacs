@@ -54,8 +54,6 @@ reset_watch ()
 char *
 get_time ()
 {
-  char *result = time_string;
-  int i;
   if (watch_not_started)
     return ((char *) 0); /* call reset_watch first ! */
   gettimeofday (&TV2, tzp);
@@ -64,10 +62,8 @@ get_time ()
       TV2.tv_usec += 1000000;
       TV2.tv_sec--;
     }
-  sprintf (result,"%lu.%6lu",
+  sprintf (time_string, "%lu.%06lu",
 	  TV2.tv_sec - TV1.tv_sec, TV2.tv_usec - TV1.tv_usec);
-  for (result = index (result, '.') + 1; *result == ' '; result++) 
-    *result = '0';
   return time_string;
 }
 
@@ -75,9 +71,8 @@ void
 main ()
 {
   char inp[10];
-  while (1)
+  while (gets (inp))
     {
-      gets (inp);
       switch (inp[0])
 	{
 	case 'z':
@@ -90,4 +85,5 @@ main ()
 	  exit (0);
 	}
     }
+  exit (1);
 }
