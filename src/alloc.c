@@ -42,6 +42,12 @@ extern char *sbrk ();
 #ifdef DOUG_LEA_MALLOC
 #include <malloc.h>
 #define __malloc_size_t int
+
+/* Specify maximum number of areas to mmap.
+   It would be nice to use a value that explicitly
+   means "no limit".  */
+#define MMAP_MAX_AREAS 100000000
+
 #else
 /* The following come from gmalloc.c.  */
 
@@ -840,7 +846,7 @@ allocate_vectorlike (len)
 				     + (len - 1) * sizeof (Lisp_Object));
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas. */
-  mallopt (M_MMAP_MAX, 64);
+  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
   VALIDATE_LISP_STORAGE (p, 0);
   consing_since_gc += (sizeof (struct Lisp_Vector)
@@ -1427,7 +1433,7 @@ make_uninit_multibyte_string (length, length_byte)
       new = (struct string_block *) lisp_malloc (sizeof (struct string_block_head) + fullsize);
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
-      mallopt (M_MMAP_MAX, 64);
+      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
       n_string_blocks++;
       VALIDATE_LISP_STORAGE (new, 0);
@@ -3014,7 +3020,7 @@ init_alloc_once ()
 #ifdef DOUG_LEA_MALLOC
   mallopt (M_TRIM_THRESHOLD, 128*1024); /* trim threshold */
   mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
-  mallopt (M_MMAP_MAX, 64); /* max. number of mmap'ed areas */
+  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS); /* max. number of mmap'ed areas */
 #endif
   init_strings ();
   init_cons ();
