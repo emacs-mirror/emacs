@@ -694,7 +694,7 @@ Return t if file exists.  */)
 		   : Fappend (2, (tmp[0] = Vload_suffixes,
 				  tmp[1] = default_suffixes,
 				  tmp))),
-		  &found, 0);
+		  &found, Qnil);
       UNGCPRO;
     }
 
@@ -942,6 +942,24 @@ complete_filename_p (pathname)
 	  );
 }
 
+DEFUN ("locate-file-internal", Flocate_file_internal, Slocate_file_internal, 2, 4, 0,
+       doc: /* Search for FILENAME through PATH.
+If SUFFIXES is non-nil, it should be a list of suffixes to append to
+file name when searching.
+If non-nil, PREDICATE is used instead of `file-readable-p'.
+PREDICATE can also be an integer to pass to the access(2) function,
+in which case file-name-handlers are ignored.  */)
+     (filename, path, suffixes, predicate)
+     Lisp_Object filename, path, suffixes, predicate;
+{
+  Lisp_Object file;
+  int fd = openp (path, filename, suffixes, &file, predicate);
+  if (NILP (predicate) && fd > 0)
+    close (fd);
+  return file;
+}
+
+
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
    On success, returns a file descriptor.  On failure, returns -1.
@@ -949,24 +967,25 @@ complete_filename_p (pathname)
    SUFFIXES is a list of strings containing possible suffixes.
    The empty suffix is automatically added iff the list is empty.
 
-   EXEC_ONLY nonzero means don't open the files,
-   just look for one that is executable.  In this case,
-   returns 1 on success.
+   PREDICATE non-nil means don't open the files,
+   just look for one that satisfies the predicate.  In this case,
+   returns 1 on success.  The predicate can be a lisp function or
+   an integer to pass to `access' (in which case file-name-handlers
+   are ignored).
 
    If STOREPTR is nonzero, it points to a slot where the name of
    the file actually found should be stored as a Lisp string.
    nil is stored there on failure.
 
    If the file we find is remote, return -2
-   but store the found remote file name in *STOREPTR.
-   We do not check for remote files if EXEC_ONLY is nonzero.  */
+   but store the found remote file name in *STOREPTR.  */
 
 int
-openp (path, str, suffixes, storeptr, exec_only)
+openp (path, str, suffixes, storeptr, predicate)
      Lisp_Object path, str;
      Lisp_Object suffixes;
      Lisp_Object *storeptr;
-     int exec_only;
+     Lisp_Object predicate;
 {
   register int fd;
   int fn_size = 100;
@@ -1054,9 +1073,12 @@ openp (path, str, suffixes, storeptr, exec_only)
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
 	  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	  string = build_string (fn);
-	  if (!NILP (handler) && !exec_only)
-	    {
-	      exists = !NILP (Ffile_readable_p (string));
+	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
+            {
+	      if (NILP (predicate))
+		exists = !NILP (Ffile_readable_p (string));
+	      else
+		exists = !NILP (call1 (predicate, string));
 	      if (exists && !NILP (Ffile_directory_p (string)))
 		exists = 0;
 
@@ -1080,8 +1102,8 @@ openp (path, str, suffixes, storeptr, exec_only)
 	      if (exists)
 		{
 		  /* Check that we can access or open it.  */
-		  if (exec_only)
-		    fd = (access (pfn, X_OK) == 0) ? 1 : -1;
+		  if (NATNUMP (predicate))
+		    fd = (access (pfn, XFASTINT (predicate)) == 0) ? 1 : -1;
 		  else
 		    fd = emacs_open (pfn, O_RDONLY, 0);
 
@@ -1123,9 +1145,9 @@ build_load_history (stream, source)
   tail = Vload_history;
   prev = Qnil;
   foundit = 0;
-  while (!NILP (tail))
+  while (CONSP (tail))
     {
-      tem = Fcar (tail);
+      tem = XCAR (tail);
 
       /* Find the feature's previous assoc list... */
       if (!NILP (Fequal (source, Fcar (tem))))
@@ -1134,11 +1156,11 @@ build_load_history (stream, source)
 
 	  /*  If we're loading, remove it. */
 	  if (loading)
-	    {	  
+	    {
 	      if (NILP (prev))
-		Vload_history = Fcdr (tail);
+		Vload_history = XCDR (tail);
 	      else
-		Fsetcdr (prev, Fcdr (tail));
+		Fsetcdr (prev, XCDR (tail));
 	    }
 
 	  /*  Otherwise, cons on new symbols that are not already members.  */
@@ -1148,20 +1170,20 @@ build_load_history (stream, source)
 
 	      while (CONSP (tem2))
 		{
-		  newelt = Fcar (tem2);
+		  newelt = XCAR (tem2);
 
 		  if (NILP (Fmemq (newelt, tem)))
-		    Fsetcar (tail, Fcons (Fcar (tem),
-					  Fcons (newelt, Fcdr (tem))));
+		    Fsetcar (tail, Fcons (XCAR (tem),
+		     			  Fcons (newelt, XCDR (tem))));
 
-		  tem2 = Fcdr (tem2);
+		  tem2 = XCDR (tem2);
 		  QUIT;
 		}
 	    }
 	}
       else
 	prev = tail;
-      tail = Fcdr (tail);
+      tail = XCDR (tail);
       QUIT;
     }
 
@@ -3594,6 +3616,7 @@ syms_of_lread ()
   defsubr (&Sread_event);
   defsubr (&Sget_file_char);
   defsubr (&Smapatoms);
+  defsubr (&Slocate_file_internal);
 
   DEFVAR_LISP ("obarray", &Vobarray,
 	       doc: /* Symbol table for use by `intern' and `read'.
