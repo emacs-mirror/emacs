@@ -194,7 +194,8 @@ invoked."
 			 (string :tag "Uncompress Program")
 			 (repeat :tag "Uncompress Arguments" string)
 			 (boolean :tag "Append")
-			 (boolean :tag "Auto Mode")))
+			 (boolean :tag "Strip Extension")
+			 (string :tag "Magic Bytes")))
   :group 'jka-compr)
 
 (defvar jka-compr-mode-alist-additions
