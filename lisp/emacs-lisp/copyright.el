@@ -120,6 +120,9 @@ than adding to it."
 			  (princ (substitute-command-keys "\
 I don't know where the copying notice begins.
 Put point there and hit \\[exit-recursive-edit]."))
+			  (save-excursion
+			    (set-buffer standard-output)
+			    (help-mode))
 			  (recursive-edit)))
 		      (setq beg (point))
 		      (or (search-forward "02139, USA." nil t)
@@ -127,6 +130,9 @@ Put point there and hit \\[exit-recursive-edit]."))
 			    (princ (substitute-command-keys "\
 I don't know where the copying notice ends.
 Put point there and hit \\[exit-recursive-edit]."))
+			    (save-excursion
+			      (set-buffer standard-output)
+			      (help-mode))
 			    (recursive-edit)))
 		      (delete-region beg (point))))
 		(insert-file replace-copying-with))
