@@ -11,6 +11,11 @@
 	hardwiring :family.
 	* hi-lock.el (hi-black-hb): Likewise.
 
+	Reapply Gerd's change from 2000-09-18, which seems to have gotten lost:
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Like in
+	toolbar-add-item, if image doesn't have a mask add a `:mask
+	heuristic'.
+
 2000-09-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el: Docstring fixes.
