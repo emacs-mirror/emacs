@@ -4204,6 +4204,9 @@ actually used.")
 	/* We must suppress all character code conversion except for
 	   end-of-line conversion.  */
 	setup_raw_text_coding_system (&coding);
+      coding.src_multibyte = 0;
+      coding.dst_multibyte
+	= !NILP (current_buffer->enable_multibyte_characters);
     }
 
   if (!NILP (visit)
