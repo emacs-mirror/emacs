@@ -4192,16 +4192,16 @@ support strings as DATA, some types allow additional types of DATA.
 **** XBM, image type `xbm'.
 
 XBM images don't require an external library.  Additional image
-properties supported are
+properties supported are:
 
 `:foreground FG'
 
 FG must be a string specifying the image foreground color, or nil
-meaning to use the default.  Default is the frame's foreground.
+meaning to use the default.  Default is the frame's foreground color.
 
 `:background BG'
 
-BG must be a string specifying the image foreground color, or nil
+BG must be a string specifying the image background color, or nil
 meaning to use the default.  Default is the frame's background color.
 
 XBM images can be constructed from data instead of file.  In this
@@ -4257,23 +4257,23 @@ to display compressed images.
 
 PBM images don't require an external library.  Color, gray-scale and
 mono images are supported.  Additional image properties supported for
-mono images are
+mono images are:
 
 `:foreground FG'
 
 FG must be a string specifying the image foreground color, or nil
-meaning to use the default.  Default is the frame's foreground.
+meaning to use the default.  Default is the frame's foreground color.
 
 `:background FG'
 
-BG must be a string specifying the image foreground color, or nil
+BG must be a string specifying the image background color, or nil
 meaning to use the default.  Default is the frame's background color.
 
 **** JPEG, image type `jpeg'
 
 Support for JPEG images requires the external library `libjpeg',
-package `jpegsrc.v6a.tar.gz', or later.  Additional image properties
-are:
+package `jpegsrc.v6a.tar.gz', or later.  There are no additional image
+properties defined.
 
 **** TIFF, image type `tiff'
 
