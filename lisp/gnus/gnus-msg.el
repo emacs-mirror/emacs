@@ -915,7 +915,9 @@ header line with the old Message-ID."
 		     (not to-address)))
 	    ;; This is news.
 	    (if post
-		(message-news (or to-group group))
+		(message-news
+		 (or to-group
+		     (and (not (gnus-virtual-group-p pgroup)) group)))
 	      (set-buffer gnus-article-copy)
 	      (gnus-msg-treat-broken-reply-to)
 	      (message-followup (if (or newsgroup-p force-news)

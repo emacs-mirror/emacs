@@ -6206,7 +6206,7 @@ Mark all series that have already had some articles marked
 @item M P a
 @kindex M P a (Summary)
 @findex gnus-uu-mark-all
-Mark all articles in series order (@code{gnus-uu-mark-series}).
+Mark all articles in series order (@code{gnus-uu-mark-all}).
 
 @item M P b
 @kindex M P b (Summary)
@@ -16625,7 +16625,7 @@ follows:
 This instructs the @code{imap.el} package to log any exchanges with
 the server.  The log is stored in the buffer @samp{*imap-log*}.  Look
 for error messages, which sometimes are tagged with the keyword
-@code{BAD} - but when submitting a bug, make sure to include all the
+@code{BAD}---but when submitting a bug, make sure to include all the
 data.
 
 @node Other Sources
@@ -18300,8 +18300,8 @@ placeholders if you care (See @code{gnus-auto-goto-ignores}).
 While it may be obvious to all, the only headers and articles
 available while unplugged are those headers and articles that were
 fetched into the Agent while previously plugged.  To put it another
-way, "If you forget to fetch something while plugged, you might have a
-less than satisfying unplugged session".  For this reason, the Agent
+way, ``If you forget to fetch something while plugged, you might have a
+less than satisfying unplugged session''.  For this reason, the Agent
 adds two visual effects to your summary buffer.  These effects display
 the download status of each article so that you always know which
 articles will be available when unplugged.
@@ -20490,8 +20490,8 @@ something like:
 ...
 @end example
 
-Then that means "score on the from header of the grandparent of the
-current article".  An indirection is quite fast, but it's better to say:
+Then that means ``score on the from header of the grandparent of the
+current article''.  An indirection is quite fast, but it's better to say:
 
 @example
 (1-
@@ -22710,7 +22710,7 @@ entering a group.  Thus, entering a group with unseen or unread
 articles becomes the substitute for checking incoming mail.  Whether
 only unseen articles or all unread articles will be processed is
 determined by the @code{spam-autodetect-recheck-messages}.  When set
-to t, unread messages will be rechecked.
+to @code{t}, unread messages will be rechecked.
 
 @code{spam-autodetect} grants the user at once more and less control
 of spam filtering.  The user will have more control over each group's

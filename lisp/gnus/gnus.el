@@ -1104,9 +1104,8 @@ Check the NNTPSERVER environment variable and the
       (and (file-readable-p gnus-nntpserver-file)
 	   (with-temp-buffer
 	     (insert-file-contents gnus-nntpserver-file)
-	     (let ((name (buffer-string)))
-	       (unless (string-match "\\`[ \t\n]*$" name)
-		 name))))))
+	     (when (re-search-forward "[^ \t\n\r]+" nil t)
+	       (match-string 0))))))
 
 (defcustom gnus-select-method
   (condition-case nil
