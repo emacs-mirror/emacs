@@ -1540,9 +1540,9 @@ scroll the window of possible completions.")
   register int i;
   Lisp_Object window, tem;
 
-  /* If the previous command was not this, then mark the completion
-     buffer obsolete.  */
-  if (! EQ (current_kboard->Vlast_command, this_command))
+  /* If the previous command was not this,
+     mark the completion buffer obsolete.  */
+  if (! EQ (current_kboard->Vlast_command, Vthis_command))
     Vminibuf_scroll_window = Qnil;
 
   window = Vminibuf_scroll_window;
