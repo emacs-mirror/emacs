@@ -68,7 +68,8 @@
 (defgroup allout nil
   "Extensive outline mode for use alone and with other modes."
   :prefix "allout-"
-  :group 'editing)
+  :group 'editing
+  :version "21.4")
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
 
@@ -507,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.49 $"))
+  (let ((rcs-rev "$Revision$"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -954,20 +955,16 @@ the following two lines in your Emacs init file:
 \(require 'allout)
 \(allout-init t)"
 
-  (interactive)
-  (if (interactive-p)
-      (progn
-	(setq mode
-	      (completing-read
-	       (concat "Select outline auto setup mode "
-		       "(empty for report, ? for options) ")
-	       '(("nil")("full")("activate")("deactivate")
-		 ("ask") ("report") (""))
-	       nil
-	       t))
-	(if (string= mode "")
-	    (setq mode 'report)
-	  (setq mode (intern-soft mode)))))
+  (interactive
+   (let ((m (completing-read
+	     (concat "Select outline auto setup mode "
+		     "(empty for report, ? for options) ")
+	     '(("nil")("full")("activate")("deactivate")
+	       ("ask") ("report") (""))
+	     nil
+	     t)))
+     (if (string= m "") 'report
+       (intern-soft m))))
   (let
       ;; convenience aliases, for consistent ref to respective vars:
       ((hook 'allout-find-file-hook)
@@ -1902,16 +1899,12 @@ If already there, move cursor to bullet for hot-spot operation.
         (if (= (allout-recent-depth) depth)
             (progn (goto-char allout-recent-prefix-beginning)
                    depth)
-          (goto-char last-good)
-          nil))
-    (if (interactive-p) (allout-end-of-prefix))))
+          (goto-char last-good)))))
 ;;;_   > allout-ascend ()
 (defun allout-ascend ()
   "Ascend one level, returning t if successful, nil if not."
-  (prog1
-      (if (allout-beginning-of-level)
-	  (allout-previous-heading))
-    (if (interactive-p) (allout-end-of-prefix))))
+  (if (allout-beginning-of-level)
+      (allout-previous-heading)))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
   "Descend to depth DEPTH within current topic.
@@ -1931,13 +1924,13 @@ Returning depth if successful, nil if not."
       nil))
   )
 ;;;_   > allout-up-current-level (arg &optional dont-complain)
-(defun allout-up-current-level (arg &optional dont-complain)
+(defun allout-up-current-level (arg &optional dont-complain interactive)
   "Move out ARG levels from current visible topic.
 
 Positions on heading line of containing topic.  Error if unable to
 ascend that far, or nil if unable to ascend but optional arg
 DONT-COMPLAIN is non-nil."
-  (interactive "p")
+  (interactive "p\np")
   (allout-back-to-current-heading)
   (let ((present-level (allout-recent-depth))
 	(last-good (point))
@@ -1958,12 +1951,12 @@ DONT-COMPLAIN is non-nil."
     (if (or failed
 	    (> arg 0))
 	(progn (goto-char last-good)
-	       (if (interactive-p) (allout-end-of-prefix))
+	       (if interactive (allout-end-of-prefix))
 	       (if (not dont-complain)
 		   (error "Can't ascend past outermost level")
-		 (if (interactive-p) (allout-end-of-prefix))
+		 (if interactive (allout-end-of-prefix))
 		 nil))
-      (if (interactive-p) (allout-end-of-prefix))
+      (if interactive (allout-end-of-prefix))
       allout-recent-prefix-beginning)))
 
 ;;;_  - Linear
@@ -2029,7 +2022,7 @@ Presumes point is at the start of a topic prefix."
   (let ((depth (allout-depth)))
     (while (allout-previous-sibling depth nil))
     (prog1 (allout-recent-depth)
-      (if (interactive-p) (allout-end-of-prefix)))))
+      (allout-end-of-prefix))))
 ;;;_   > allout-next-visible-heading (arg)
 (defun allout-next-visible-heading (arg)
   "Move to the next ARG'th visible heading line, backward if arg is negative.
@@ -2067,13 +2060,13 @@ matches)."
   (interactive "p")
   (allout-next-visible-heading (- arg)))
 ;;;_   > allout-forward-current-level (arg)
-(defun allout-forward-current-level (arg)
+(defun allout-forward-current-level (arg &optional interactive)
   "Position point at the next heading of the same level.
 
 Takes optional repeat-count, goes backward if count is negative.
 
 Returns resulting position, else nil if none found."
-  (interactive "p")
+  (interactive "p\np")
   (let ((start-depth (allout-current-depth))
 	(start-point (point))
 	(start-arg arg)
@@ -2101,7 +2094,7 @@ Returns resulting position, else nil if none found."
 		  (= (allout-recent-depth) start-depth)))
 	allout-recent-prefix-beginning
       (goto-char last-good)
-      (if (not (interactive-p))
+      (if (not interactive)
 	  nil
 	(allout-end-of-prefix)
 	(error "Hit %s level %d topic, traversed %d of %d requested"
@@ -2110,10 +2103,10 @@ Returns resulting position, else nil if none found."
 	       (- (abs start-arg) arg)
 	       (abs start-arg))))))
 ;;;_   > allout-backward-current-level (arg)
-(defun allout-backward-current-level (arg)
+(defun allout-backward-current-level (arg &optional interactive)
   "Inverse of `allout-forward-current-level'."
-  (interactive "p")
-  (if (interactive-p)
+  (interactive "p\np")
+  (if interactive
       (let ((current-prefix-arg (* -1 arg)))
 	(call-interactively 'allout-forward-current-level))
     (allout-forward-current-level (* -1 arg))))
