@@ -174,8 +174,6 @@ Other features we would like:
   compilation of selected bytecode functions to subrs.  Converting CCL
   programs to native code is probably the first thing to try, though.
 
-* Add a feature to Info similar to "info --apropos SUBJECT".
-
 * Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
 

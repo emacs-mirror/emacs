@@ -328,10 +328,15 @@ restores the previous value of `buffer-invisibility-spec'.
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
+** Info mode:
 +++
-** Info now hides node names in menus and cross references by default.
+*** Info now hides node names in menus and cross references by default.
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
+
+*** The new command `info-apropos' searches the indices of the known
+Info files on your system for a string, and builds a menu of the
+possible matches.
 
 ** Support for the SQLite interpreter has been added to sql.el by calling
 'sql-sqlite'.
