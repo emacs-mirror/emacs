@@ -201,6 +201,8 @@ extern int find_composition P_ ((int, int, int *, int *, Lisp_Object *,
 extern void update_compositions P_ ((int, int, int));
 extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 				Lisp_Object));
-extern void syms_of_composition P_ (());
+extern void syms_of_composition P_ ((void));
+extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
+			      Lisp_Object));
 
 #endif /* not EMACS_COMPOSITE_H */
