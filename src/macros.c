@@ -93,6 +93,7 @@ macro before appending to it. */)
   else
     {
       int i, len;
+      int cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
       if (!STRINGP (current_kboard->Vlast_kbd_macro)
@@ -111,9 +112,17 @@ macro before appending to it. */)
 	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
 				       (len + 30) * sizeof (Lisp_Object));
 	}
+
+      /* Must convert meta modifier when copying string to vector.  */
+      cvt = STRINGP (current_kboard->Vlast_kbd_macro); 
       for (i = 0; i < len; i++)
-	current_kboard->kbd_macro_buffer[i]
-	  = Faref (current_kboard->Vlast_kbd_macro, make_number (i));
+	{
+	  Lisp_Object c;
+	  c = Faref (current_kboard->Vlast_kbd_macro, make_number (i));
+	  if (cvt && INTEGERP (c) && (XINT (c) & 0x80))
+	    c = XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
+	  current_kboard->kbd_macro_buffer[i] = c;
+	}
 
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer + len;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
