@@ -402,6 +402,8 @@ Lisp_Object Qmouse_movement;
 Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
 Lisp_Object Qdelete_frame;
+Lisp_Object Qiconify_frame;
+Lisp_Object Qmake_frame_visible;
 
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
@@ -2185,7 +2187,21 @@ kbd_buffer_get_event ()
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
-	  obj = Fcons (intern ("delete-frame"), Fcons (obj, Qnil));
+	  obj = Fcons (Qdelete_frame, Fcons (obj, Qnil));
+	  kbd_fetch_ptr = event + 1;
+	}
+      else if (event->kind == iconify_event)
+	{
+	  /* Make an event (iconify-frame (FRAME)).  */
+	  obj = Fcons (event->frame_or_window, Qnil);
+	  obj = Fcons (Qiconify_frame, Fcons (obj, Qnil));
+	  kbd_fetch_ptr = event + 1;
+	}
+      else if (event->kind == deiconify_event)
+	{
+	  /* Make an event (make-frame-visible (FRAME)).  */
+	  obj = Fcons (event->frame_or_window, Qnil);
+	  obj = Fcons (Qmake_frame_visible, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -6001,6 +6017,8 @@ struct event_head head_table[] = {
   &Qscroll_bar_movement, "scroll-bar-movement",	&Qmouse_movement,
   &Qswitch_frame,	"switch-frame",		&Qswitch_frame,
   &Qdelete_frame,	"delete-frame",		&Qdelete_frame,
+  &Qiconify_frame,	"iconify-frame",	&Qiconify_frame,
+  &Qmake_frame_visible,	"make-frame-visible",	&Qmake_frame_visible,
 };
 
 syms_of_keyboard ()
