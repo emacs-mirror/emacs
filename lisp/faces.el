@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp interface to the c "face" structure
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
 ;;;; Functions for manipulating face vectors.
 
 ;;; A face vector is a vector of the form:
-;;;    [face ID FONT FOREGROUND BACKGROUND BACKGROUND-PIXMAP UNDERLINE]
+;;;    [face NAME ID FONT FOREGROUND BACKGROUND BACKGROUND-PIXMAP UNDERLINE]
 
 ;;; Type checkers.
 (defsubst internal-facep (x)
@@ -740,17 +740,16 @@ selected frame."
 	    (copy-face (car faces) (car faces) frame disp-frame)
 	    (setq faces (cdr faces)))))))
 
-;;; Make the default and modeline faces; the C code knows these as
-;;; faces 0 and 1, respectively, so they must be the first two faces
-;;; made.
+;;; Make the standard faces.
+;;; The C code knows the default and modeline faces as faces 0 and 1,
+;;; so they must be the first two faces made.
 (defun face-initialize ()
   (make-face 'default)
   (make-face 'modeline)
   (make-face 'highlight)
-  ;;
+
   ;; These aren't really special in any way, but they're nice to have around.
-  ;; The X-specific code is clever at them.
-  ;;
+
   (make-face 'bold)
   (make-face 'italic)
   (make-face 'bold-italic)
@@ -760,115 +759,34 @@ selected frame."
 
   (setq region-face (face-id 'region))
 
-  ;; Set up the faces of all existing X Window frames.
+  ;; Specify the global properties of these faces
+  ;; so they will come out right on new frames.
+
+  (make-face-bold 'bold t)
+  (make-face-italic 'italic t)
+  (make-face-bold-italic 'bold-italic t)
+
+  (set-face-background 'highlight '("darkseagreen2" "green" t) t)
+  (set-face-background 'region '("gray" t) t)
+  (set-face-background 'secondary-selection '("paleturquoise" "green" t) t)
+  (set-face-background 'modeline '(t) t)
+  (set-face-underline-p 'underline t t)
+
+  ;; Set up the faces of all existing X Window frames
+  ;; from those global properties, unless already set in a given frame.
+
   (let ((frames (frame-list)))
     (while frames
       (if (eq (framep (car frames)) 'x)
-	  (x-initialize-frame-faces (car frames)))
+	  (let ((frame (car frames))
+		(rest global-face-data))
+	    (while rest
+	      (let ((face (car (car rest))))
+		(or (face-differs-from-default-p face)
+		    (face-fill-in face (cdr (car rest)) frame)))
+	      (setq rest (cdr rest)))))
       (setq frames (cdr frames)))))
 
-
-;;; This really belongs in setting a frame's own font.
-;;;     ;;
-;;;     ;; No font specified in the resource database; try to cope.
-;;;     ;;
-;;;     (internal-try-face-font default "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-*"
-;;;			     frame)
-;;;     (internal-try-face-font default "-*-courier-*-r-*-*-*-120-*-*-*-*-iso8859-*"
-;;;			     frame)
-;;;     (internal-try-face-font default "-*-*-medium-r-*-*-*-120-*-*-m-*-iso8859-*" frame)
-;;;     (internal-try-face-font default "-*-*-medium-r-*-*-*-120-*-*-c-*-iso8859-*" frame)
-;;;     (internal-try-face-font default "-*-*-*-r-*-*-*-120-*-*-m-*-iso8859-*" frame)
-;;;     (internal-try-face-font default "-*-*-*-r-*-*-*-120-*-*-c-*-iso8859-*" frame)
-;;;     (internal-try-face-font default "-*-*-*-r-*-*-*-120-*-*-*-*-iso8859-*" frame)
-
-
-;;; This is called from make-screen-initial-faces to make sure that the
-;;; "default" and "modeline" faces for this screen have enough attributes
-;;; specified for emacs to be able to display anything on it.  This had
-;;; better not signal an error.
-;;;
-(defun x-initialize-frame-faces (frame)
-  (or (face-differs-from-default-p 'bold frame)
-      (make-face-bold 'bold frame t)
-      ;; if default font is bold, then make the `bold' face be unbold.
-      (make-face-unbold 'bold frame t)
-      ;; otherwise the luser specified one of the bogus font names
-      (internal-x-complain-about-font 'bold frame)
-      )
-
-  (or (face-differs-from-default-p 'italic frame)
-      (make-face-italic 'italic frame t)
-      (progn
-	(make-face-bold 'italic frame t)
-	(internal-x-complain-about-font 'italic frame))
-      )
-
-  (or (face-differs-from-default-p 'bold-italic frame)
-      (make-face-bold-italic 'bold-italic frame t)
-      ;; if we couldn't get a bold-italic version, try just bold.
-      (make-face-bold 'bold-italic frame t)
-      ;; if we couldn't get bold or bold-italic, then that's probably because
-      ;; the default font is bold, so make the `bold-italic' face be unbold.
-      (and (make-face-unbold 'bold-italic frame t)
-	   (make-face-italic 'bold-italic frame t))
-      ;; if that didn't work, try italic (can this ever happen? what the hell.)
-      (progn
-	(make-face-italic 'bold-italic frame t)
-	;; then bitch and moan.
-	(internal-x-complain-about-font 'bold-italic frame))
-      )
-
-  (or (face-differs-from-default-p 'highlight frame)
-      (if (or (not (x-display-color-p))
-	      (= (x-display-planes) 1))
-	  (invert-face 'highlight frame)
-	(condition-case ()
-	    (condition-case ()
-		(set-face-background 'highlight "darkseagreen2" frame)
-	      (error (set-face-background 'highlight "green" frame)))
-;;;	    (set-face-background-pixmap 'highlight "gray1" frame)
-	  (error (invert-face 'highlight frame)))))
-
-  (or (face-differs-from-default-p 'region frame)
-      (if (= (x-display-planes) 1)
-	  (invert-face 'region frame)
-	(condition-case ()
-	    (set-face-background 'region "gray" frame)
-	  (error (invert-face 'region frame)))))
-
-  (or (face-differs-from-default-p 'modeline frame)
-      (invert-face 'modeline frame))
-
-  (or (face-differs-from-default-p 'underline frame)
-      (set-face-underline-p 'underline t frame))
-
-  (or (face-differs-from-default-p 'secondary-selection frame)
-      (if (or (not (x-display-color-p))
-	      (= (x-display-planes) 1))
-	  (invert-face 'secondary-selection frame)
-	(condition-case ()
-	    (condition-case ()
-		;; some older X servers don't have this one.
-		(set-face-background 'secondary-selection "paleturquoise"
-				     frame)
-	      (error
-	       (set-face-background 'secondary-selection "green" frame)))
-;;;	    (set-face-background-pixmap 'secondary-selection "gray1" frame)
-	  (error (invert-face 'secondary-selection frame)))))
-  )
-
-(defun internal-x-complain-about-font (face frame)
-;;; It's annoying to bother the user about this,
-;;; since it happens under normal circumstances.
-;;;  (message "No %s version of %S"
-;;;	   face
-;;;	   (or (face-font face frame)
-;;;	       (face-font face t)
-;;;	       (face-font 'default frame)
-;;;	       (cdr (assq 'font (frame-parameters frame)))))
-;;;  (sit-for 1)
-  )
 
 ;; Like x-create-frame but also set up the faces.
 
@@ -897,24 +815,74 @@ selected frame."
       ;; Copy the vectors that represent the faces.
       ;; Also fill them in from X resources.
       (while rest
-	(setcdr (car rest) (copy-sequence (cdr (car rest))))
-	(condition-case nil
-	    (if (listp (face-font (cdr (car rest))))
-		(let ((bold (memq 'bold (face-font (cdr (car rest)))))
-		      (italic (memq 'italic (face-font (cdr (car rest))))))
-		  (if (and bold italic)
-		      (make-face-bold-italic (car (car rest)) frame)
-		    (if bold
-			(make-face-bold (car (car rest)) frame)
-		      (if italic
-			  (make-face-italic (car (car rest)) frame))))))
-	  (error nil))
+	(let ((global (cdr (car rest))))
+	  (setcdr (car rest) (vector 'face
+				     (face-name (cdr (car rest)))
+				     (face-id (cdr (car rest)))
+				     nil nil nil nil nil))
+	  (face-fill-in (car (car rest)) global frame))
 	(make-face-x-resource-internal (cdr (car rest)) frame t)
 	(setq rest (cdr rest)))
-
-      (x-initialize-frame-faces frame)
-
       frame)))
+
+;; Fill in the face FACE from frame-independent face data DATA.
+;; DATA should be the non-frame-specific ("global") face vector
+;; for the face.  FACE should be a face name or face object.
+;; FRAME is the frame to act on; it must be an actual frame, not nil or t.
+(defun face-fill-in (face data frame)
+  (condition-case nil
+      (let ((foreground (face-foreground data))
+	    (background (face-background data))
+	    (font (face-font data)))
+	(set-face-underline-p face (face-underline-p data) frame)
+	(if foreground
+	    (face-try-color-list 'set-face-foreground
+				 face foreground frame))
+	(if background
+	    (face-try-color-list 'set-face-background
+				 face background frame))
+	(if (listp font)
+	    (let ((bold (memq 'bold font))
+		  (italic (memq 'italic font)))
+	      (cond ((and bold italic)
+		     (make-face-bold-italic face frame))
+		    (bold
+		     (make-face-bold face frame))
+		    (italic
+		     (make-face-italic face frame))))
+	  (if font
+	      (set-face-font face font frame))))
+    (error nil)))
+
+;; Use FUNCTION to store a color in FACE on FRAME.
+;; COLORS is either a single color or a list of colors.
+;; If it is a list, try the colors one by one until one of them
+;; succeeds.  We signal an error only if all the colors failed.
+;; t as COLORS or as an element of COLORS means to invert the face.
+;; That can't fail, so any subsequent elements after the t are ignored.
+(defun face-try-color-list (function face colors frame)
+  (if (stringp colors)
+      (funcall function face colors frame)
+    (if (eq colors t)
+	(invert-face face frame)
+      (let (done)
+	(while (and colors (not done))
+	  (if (cdr colors)
+	      ;; If there are more colors to try, catch errors
+	      ;; and set `done' if we succeed.
+	      (condition-case nil
+		  (progn
+		    (if (eq (car colors) t)
+			(invert-face face frame)
+		      (funcall function face (car colors) frame))
+		    (setq done t))
+		(error nil))
+	    ;; If this is the last color, let the error get out if it fails.
+	    ;; If it succeeds, we will exit anyway after this iteration.
+	    (if (eq (car colors) t)
+		(invert-face face frame)
+	      (funcall function face (car colors) frame)))
+	  (setq colors (cdr colors)))))))
 
 ;; If we are already using x-window frames, initialize faces for them.
 (if (eq (framep (selected-frame)) 'x)
