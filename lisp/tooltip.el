@@ -188,7 +188,7 @@ This might return nil if the event did not occur over a buffer."
 With ARG, turn tooltip mode on if and only if ARG is positive."
   :global t
   :group 'tooltip
-  (unless (fboundp 'x-show-tip)
+  (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))
   (let ((hook-fn (if tooltip-mode 'add-hook 'remove-hook)))
     (funcall hook-fn 'change-major-mode-hook 'tooltip-change-major-mode)

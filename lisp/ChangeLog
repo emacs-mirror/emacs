@@ -1,15 +1,18 @@
+2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tooltip.el (tooltip-mode): Don't complain that you can't turn the
+	feature ON when the user requests to turn it OFF.
+
 2005-03-10  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debug-entry-code): Delete it.
-	(implement-debug-on-entry): New function to replace
-	debug-entry-code.
+	(implement-debug-on-entry): New function to replace debug-entry-code.
 	(debug-on-entry-1): Use implement-debug-on-entry.  Delete the
 	second argument as the 2005-03-07 change makes it obsolete.
 	(debug-on-entry, cancel-debug-on-entry): Update call to
 	debug-on-entry-1.
 	(debug, debugger-setup-buffer): Comment update.
-	(debugger-frame-number): Update to work with
-	implement-debug-on-entry.
+	(debugger-frame-number): Update to work with implement-debug-on-entry.
 
 2005-03-10  Jay Belanger  <belanger@truman.edu>
 
@@ -54,7 +57,7 @@
 
 	* textmodes/ispell.el (ispell-insert-word): New function.
 	(ispell-word): Use ispell-insert-word to insert a new word.
-	(ispell-process-line): Likewise
+	(ispell-process-line): Likewise.
 	(ispell-complete-word): Likewise.
 
 2005-03-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
