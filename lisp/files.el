@@ -402,16 +402,16 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 
 (defun generate-new-buffer (name)
   "Create and return a buffer with a name based on NAME.
-Choose the buffer's name using generate-new-buffer-name."
+Choose the buffer's name using `generate-new-buffer-name'."
   (get-buffer-create (generate-new-buffer-name name)))
 
 (defconst automount-dir-prefix "^/tmp_mnt/"
   "Regexp to match the automounter prefix in a directory name.")
 
 (defun abbreviate-file-name (filename)
-  "Return a version of FILENAME shortened using directory-abbrev-alist.
+  "Return a version of FILENAME shortened using `directory-abbrev-alist'.
 This also substitutes \"~\" for the user's home directory.
-See \\[describe-variable] directory-abbrev-alist RET for more information."
+Type \\[describe-variable] directory-abbrev-alist RET for more information."
   ;; Get rid of the prefixes added by the automounter.
   (if (and (string-match automount-dir-prefix filename)
 	   (file-exists-p (file-name-directory
