@@ -12263,7 +12263,10 @@ x_new_font (f, fontname)
 /* Give frame F the fontset named FONTSETNAME as its default font, and
    return the full name of that fontset.  FONTSETNAME may be a wildcard
    pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+   The return value shows which fontset we chose.  
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font specified in the specified fontset can't be
+   loaded, return Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
@@ -12273,10 +12276,13 @@ x_new_fontset (f, fontsetname)
   int fontset = fs_query_fontset (build_string (fontsetname), 0);
   Lisp_Object result;
 
-  if (fontset >= 0 && f->output_data.x->fontset == fontset)
+  if (fontset > 0 && f->output_data.x->fontset == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
   if (fontset >= 0)
     result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
