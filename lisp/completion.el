@@ -2407,13 +2407,13 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
   ;; Install the appropriate mode tables.
   (add-hook 'lisp-mode-hook
-	    '(lambda ()
+	    (lambda ()
 	       (setq cmpl-syntax-table cmpl-lisp-syntax-table)))
   (add-hook 'c-mode-hook
-	    '(lambda ()
+	    (lambda ()
 	       (setq cmpl-syntax-table cmpl-c-syntax-table)))
   (add-hook 'fortran-mode-hook
-	    '(lambda ()
+	    (lambda ()
 	       (setq cmpl-syntax-table cmpl-fortran-syntax-table)
 	       (completion-setup-fortran-mode)))
 
@@ -2434,7 +2434,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
   ;; Save completions when killing Emacs.
 
   (add-hook 'kill-emacs-hook
-	    '(lambda ()
+	    (lambda ()
 	       (kill-emacs-save-completions)
 	       (cmpl-statistics-block
 		(record-cmpl-kill-emacs))))
