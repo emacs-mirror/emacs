@@ -626,9 +626,15 @@ nil, indicating the current buffer's process.")
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
-  proc = get_process (proc);
+
+  if (STRINGP (proc))
+    proc = Fget_process (proc);
+  else
+    proc = get_process (proc);
+
   if (NILP (proc))
     return proc;
+
   p = XPROCESS (proc);
   if (!NILP (p->raw_status_low))
     update_status (p);
