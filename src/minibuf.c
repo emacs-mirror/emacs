@@ -923,7 +923,7 @@ TABLE is an alist whose elements' cars are strings, or an obarray.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
 See `try-completion' for more details on completion, TABLE, and PREDICATE.\n\
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless\n\
- the input is (or completes to) an element of TABLE.\n\
+ the input is (or completes to) an element of TABLE or is null.\n\
  If it is also not t, Return does not exit if it does non-null completion.\n\
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.\n\
   If it is (STRING . POSITION), the initial input\n\
