@@ -119,7 +119,7 @@ This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defconst reporter-version "3.2"
+(defconst reporter-version "3.3"
   "Reporter version number.")
 
 (defvar reporter-initial-text nil
