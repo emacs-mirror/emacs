@@ -7064,7 +7064,7 @@ w32_handle_tool_bar_click (f, button_event)
   if (NILP (enabled_p))
     return;
   
-  if (button_event->kind == mouse_click)
+  if (button_event->modifiers & down_modifier)
     {
       /* Show item in pressed state.  */
       show_mouse_face (dpyinfo, DRAW_IMAGE_SUNKEN);
@@ -7091,7 +7091,8 @@ w32_handle_tool_bar_click (f, button_event)
       event.kind = TOOL_BAR_EVENT;
       event.frame_or_window = frame;
       event.arg = key;
-      event.modifiers = button_event->modifiers;
+      /* The keyboard buffer doesn't like the up modifier being set.  */
+      event.modifiers = button_event->modifiers & ~up_modifier;
       kbd_buffer_store_event (&event);
       last_tool_bar_item = -1;
     }
