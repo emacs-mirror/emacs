@@ -361,8 +361,8 @@ margins.  @xref{Formatted Text}.
 @item Frame
 A frame is a rectangular cluster of Emacs windows.  Emacs starts out
 with one frame, but you can create more.  You can subdivide each frame
-into Emacs windows (q.v.).  When you are using X windows, all the frames
-can be visible at the same time.  @xref{Frames}.
+into Emacs windows (q.v.).  When you are using a windowing system, all
+the frames can be visible at the same time.  @xref{Frames}.
 
 @item Function Key
 A function key is a key on the keyboard that sends input but does not
@@ -586,8 +586,8 @@ own mark ring; in addition, there is a single global mark ring (q.v.).
 
 @item Menu Bar
 The menu bar is the line at the top of an Emacs frame.  It contains
-words you can click on with the mouse to bring up menus.  The menu bar
-feature is supported only with X.  @xref{Menu Bars}.
+words you can click on with the mouse to bring up menus, or you can use
+a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Message
 See `mail'.
@@ -683,7 +683,7 @@ commands are provided for moving over and operating on pages.
 @xref{Pages}.
 
 @item Paragraph
-Paragraphs are the medium-size unit of English text.  There are
+Paragraphs are the medium-size unit of normal (non-program) text.  There are
 special Emacs commands for moving over and operating on paragraphs.
 @xref{Paragraphs}.
 
@@ -816,8 +816,8 @@ changed by your Emacs editing.  @xref{Saving}.
 @item Scroll Bar
 A scroll bar is a tall thin hollow box that appears at the side of a
 window.  You can use mouse commands in the scroll bar to scroll the
-window.  The scroll bar feature is supported only with X.  @xref{Scroll
-Bars}.
+window.  The scroll bar feature is supported only under windowing
+systems.  @xref{Scroll Bars}.
 
 @item Scrolling
 Scrolling means shifting the text in the Emacs window so as to see a
