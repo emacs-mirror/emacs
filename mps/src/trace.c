@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.11) $
+ * $HopeName: MMsrc!trace.c(trunk.12) $
  */
 
 #include "std.h"
@@ -12,9 +12,10 @@
 #include "pool.h"
 #include "root.h"
 #include "rootst.h"
+#include "ld.h"
 #include <limits.h>
 
-SRCID("$HopeName: MMsrc!trace.c(trunk.11) $");
+SRCID("$HopeName: MMsrc!trace.c(trunk.12) $");
 
 Bool ScanStateIsValid(ScanState ss, ValidationType validParam)
 {
@@ -70,6 +71,14 @@ Error TraceFlip(Space space, TraceId ti, RefSet condemned)
   trace = &space->trace[ti];
   AVER(trace->condemned == RefSetEmpty);
   trace->condemned = condemned;
+
+  /* Update location dependency structures.  condemned is
+   * a conservative approximation of the refset of refs which
+   * may move during this collection.
+   * @@@@ It is too conservative.  Not everything condemned will
+   * necessarily move.
+   */
+  LDAge(space, condemned);
 
   /* Grey all the roots and pools. */
 
