@@ -2991,7 +2991,7 @@ negative means relative to bottom of window.")
 
 struct save_window_data
   {
-    int size_from_Lisp_Vector_struct;
+    EMACS_INT size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object frame_width, frame_height, frame_menu_bar_lines;
     Lisp_Object selected_frame;
@@ -3011,7 +3011,7 @@ struct save_window_data
 struct saved_window
   {
     /* these first two must agree with struct Lisp_Vector in lisp.h */
-    int size_from_Lisp_Vector_struct;
+    EMACS_INT size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
     Lisp_Object window;
