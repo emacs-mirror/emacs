@@ -613,16 +613,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 (defun dabbrev--goto-start-of-abbrev ()
   ;; Move backwards over abbrev chars
   (save-match-data
-    (if (not (bobp))
-	(progn
-	  (forward-char -1)
-	  (while (and (looking-at dabbrev--abbrev-char-regexp)
-		      (not (bobp))
-		      (not (= (point) (field-beginning (point) nil
-						       (1- (point))))))
-	    (forward-char -1))
-	  (or (looking-at dabbrev--abbrev-char-regexp)
-	      (forward-char 1))))
+    (when (> (point) (minibuffer-prompt-end))
+      (forward-char -1)
+      (while (and (looking-at dabbrev--abbrev-char-regexp)
+		  (> (point) (minibuffer-prompt-end))
+		  (not (= (point) (field-beginning (point) nil
+						   (1- (point))))))
+	(forward-char -1))
+      (or (looking-at dabbrev--abbrev-char-regexp)
+	  (forward-char 1)))
     (and dabbrev-abbrev-skip-leading-regexp
 	 (while (looking-at dabbrev-abbrev-skip-leading-regexp)
 	   (forward-char 1)))))
