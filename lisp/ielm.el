@@ -103,7 +103,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.11 $" 11 -2)
+   (substring "$Revision: 1.12 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -226,6 +226,8 @@ simply inserts a newline."
 		(newline 1)))
 	  (newline-and-indent)))
     (newline)))
+
+(defvar ielm-input)
 
 (defun ielm-input-sender (proc input)
   ;; Just sets the variable ielm-input, which is in the scope of 
