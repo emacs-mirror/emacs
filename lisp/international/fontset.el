@@ -162,6 +162,12 @@
 
      (hebrew (nil . "ISO8859-8"))
 
+     (symbol (nil . "ISO10646-1")
+	     (nil . "GB2312.1980-0")
+	     (nil . "JISX0208*")
+	     (nil . "JISX0212*")
+	     (nil . "big5*"))
+
      (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
 	   (nil . "KSC5601.1987*")
