@@ -1605,6 +1605,7 @@ typically for purposes of moderating a list."
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
 	  "^ *---+ +Returned message +---+ *$\\|"
 	  "^ *---+ +Original message +---+ *$\\|"
+	  "^ *--+ +begin message +--+ *$\\|"
 	  "^|? *---+ +Message text follows: +---+ *|?$"))
 
 (defun rmail-retry-failure ()
