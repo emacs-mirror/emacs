@@ -41,6 +41,11 @@ distribution converted to NFNT format can be obtained from
 
   ftp://mac-emacs.sourceforge.net/pub/mac-emacs/GNU-fonts.smi.bin
 
+### IMPORTANT ### If you use StuffIf Expander to decompress and untar
+the distribution, you *must* set the radio button in the
+Preferences->Cross Platform->Convert text files to Macintosh format to
+"Never".  Otherwise the compiled Lisp files will be corrupted.
+
 * BUILDING EMACS
 
 To build Emacs in the MPW Shell, simply set the directory to
@@ -71,23 +76,6 @@ dialog and include the Profiler PPC.Lib library.
 To build optimized or debugging version of Emacs in MPW, follow the
 comment in makefile.MPW to enable the -opt speed or -sym on option
 (see note below).
-
-The Mac version requires compiled Lisp files to be present in the lisp
-directory to run properly.  It is cumbersome to bootstrap from only
-the Lisp source files.  One way of getting the compiled Lisp files is
-to build Emacs once on, say, a Unix system and transfer that directory
-to the Mac.  Note that linefeed conversion must be disabled when
-transferring compiled Lisp files.
-
-An alternative is to unzip and untar the archive lisp-elc.tgz.  An
-older version of frame.elc in the archive may cause a problem when the
-Mac version starts up.  If this is the case, simply remove or rename
-that file.  Then once Emacs runs, you can invoke
-byte-recompile-directory on the lisp directory to byte-compile all
-out-of-date Lisp files.
-
-You may also need to run update-autoloads-from-directories on the lisp
-directory to bring loaddefs.el up-to-date.
 
 * NOTES
 

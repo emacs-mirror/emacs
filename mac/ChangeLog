@@ -1,3 +1,20 @@
+2001-05-15  Andrew Choi  <akochoi@i-cable.com>
+
+	* src/Emacs.r: Change About box message.
+
+	* makefile.MPW: Add md5.c.x to EmacsObjects.
+
+	* src/mac.c (select): Call WaitNextEvent instead of Delay.
+	(pause): Ditto.
+	(sleep): Ditto.
+
+	* src/macterm.c (do_app_resume): Set cursor to arrow.
+	(clear_mouse_face): check for NIL Lisp object instead of null
+	pointer.
+	
+	* INSTALL: Delete note on compiling Lisp files on a Unix system.
+	Add note on turning off end of line conversion.
+
 2001-02-27  Andrew Choi  <akochoi@i-cable.com>
 
 	* src/macfns.c: Rename everything containing *busy_cursor* and

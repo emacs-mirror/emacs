@@ -101,6 +101,7 @@ EmacsObjects = ¶
 	"{Src}lread.c.x" ¶
 	"{Src}macros.c.x" ¶
 	"{Src}marker.c.x" ¶
+	"{Src}md5.c.x" ¶
 	"{Src}minibuf.c.x" ¶
 	"{Src}mktime.c.x" ¶
 	"{Src}mocklisp.c.x" ¶

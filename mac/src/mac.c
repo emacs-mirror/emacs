@@ -808,7 +808,6 @@ select(n,  rfds, wfds, efds, timeout)
 {
   EMACS_TIME end_time, now;
   EventRecord e;
-  unsigned long final_tick;
 
   /* Can only handle wait for keyboard input.  */
   if (n > 1 || wfds || efds)
@@ -840,7 +839,7 @@ select(n,  rfds, wfds, efds, timeout)
           }
       }
       
-      Delay (1UL, &final_tick);
+      WaitNextEvent (0, &e, 1UL, NULL);	/* Accept no event; wait 1 tic. by T.I.*/
       
       EMACS_GET_TIME (now);
       EMACS_SUB_TIME (now, end_time, now);
@@ -856,13 +855,14 @@ select(n,  rfds, wfds, efds, timeout)
 int
 pause ()
 {
-  unsigned long final_tick;
+  EventRecord e;
+  unsigned long tick;
   
   if (!target_ticks)  /* no alarm pending */
     return -1;
 
-  while (TickCount () <= target_ticks)
-    Delay (1UL, &final_tick);  /* wait 1/60 second before retrying */
+  if ( (tick = TickCount ()) < target_ticks )
+    WaitNextEvent (0, &e, target_ticks - tick, NULL);	/* Accept no event; just wait. by T.I.*/
   
   target_ticks = 0;
   if (alarm_signal_func)
@@ -964,9 +964,10 @@ gettimeofday (tp)
 unsigned int
 sleep (unsigned int seconds)
 {
-  unsigned long final_tick;
+  EventRecord e;
 
-  Delay (seconds * 60UL, &final_tick);
+  WaitNextEvent (0, &e, seconds * 60UL, NULL);	/* Accept no event; just wait. by T.I.*/
+
   return (0);
 }
 #endif /* __MRC__ */

@@ -139,9 +139,7 @@ resource 'DITL' (128, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"GNU Emacs 21.0.99 for Mac OS\n"
-                        "(27 February 2001 release)\n"
-                        "Report bugs to emacs-pretest-bug@gnu.org"
+			"GNU Emacs 21 for Mac OS"
 		}
 	}
 };

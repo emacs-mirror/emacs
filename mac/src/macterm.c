@@ -7532,7 +7532,7 @@ void
 clear_mouse_face (dpyinfo)
      struct mac_display_info *dpyinfo;
 {
-  if (tip_frame)
+  if (!NILP (tip_frame))
     return;
   
   if (! NILP (dpyinfo->mouse_face_window))
@@ -11259,6 +11259,8 @@ do_app_resume ()
 {
   mac_output *mwp = (mac_output *) GetWRefCon (FrontWindow ());
   struct frame *f = mwp->mFP;
+
+  SetCursor (&qd.arrow);
 
   if (f)
     {
