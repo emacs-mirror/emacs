@@ -328,6 +328,7 @@ Please select one from the following safe coding systems:\n"
 		      (format "Select coding system (default %s): "
 			      (car safe-coding-systems))
 		      safe-names nil t nil nil (car (car safe-names)))))
+	  (kill-buffer "*Warning*")
 	  (intern name))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
