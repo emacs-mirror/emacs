@@ -1181,6 +1181,91 @@ back depending on user feedback.  Therefore there's no forward
 compatibility guarantee wrt the new features introduced in this
 release.
 
+*** The hardcoded switch to "java" style in Java mode is gone.
+CC Mode used to automatically set the style to "java" when Java mode
+is entered.  This has now been removed since it caused too much
+confusion.
+
+However, to keep backward compatibility to a certain extent, the
+default value for c-default-style now specifies the "java" style for
+java-mode, but "gnu" for all other modes (as before).  So you won't
+notice the change if you haven't touched that variable.
+
+*** New cleanups, space-before-funcall and compact-empty-funcall.
+Two new cleanups have been added to c-cleanup-list:
+
+space-before-funcall causes a space to be inserted before the opening
+parenthesis of a function call, which gives the style "foo (bar)".
+
+compact-empty-funcall causes any space before a function call opening
+parenthesis to be removed if there are no arguments to the function.
+It's typically useful together with space-before-funcall to get the
+style "foo (bar)" and "foo()".
+
+*** Some keywords now automatically trigger reindentation.
+Keywords like "else", "while", "catch" and "finally" have been made
+"electric" to make them reindent automatically when they continue an
+earlier statement.  An example:
+
+for (i = 0; i < 17; i++)
+  if (a[i])
+    res += a[i]->offset;
+else
+
+Here, the "else" should be indented like the preceding "if", since it
+continues that statement. CC Mode will automatically reindent it after
+the "else" has been typed in full, since it's not until then it's
+possible to decide whether it's a new statement or a continuation of
+the preceding "if".
+
+CC Mode uses Abbrev mode to achieve this, which is therefore turned on
+by default.
+
+*** M-a and M-e now moves by sentence in multiline strings.
+Previously these two keys only moved by sentence in comments, which
+meant that sentence movement didn't work in strings containing
+documentation or other natural language text.
+
+The reason it's only activated in multiline strings (i.e. strings that
+contain a newline, even when escaped by a '\') is to avoid stopping in
+the short strings that often reside inside statements.  Multiline
+strings almost always contain text in a natural language, as opposed
+to other strings that typically contain format specifications,
+commands, etc.  Also, it's not that bothersome that M-a and M-e misses
+sentences in single line strings, since they're short anyway.
+
+*** Support for autodoc comments in Pike mode.
+Autodoc comments for Pike are used to extract documentation from the
+source, like Javadoc in Java.  Pike mode now recognize this markup in
+comment prefixes and paragraph starts.
+
+*** The comment prefix regexps on c-comment-prefix may be mode specific.
+When c-comment-prefix is an association list, it specifies the comment
+line prefix on a per-mode basis, like c-default-style does.  This
+change came about to support the special autodoc comment prefix in
+Pike mode only.
+
+*** Better handling of syntactic errors.
+The recovery after unbalanced parens earlier in the buffer has been
+improved; CC Mode now reports them by dinging and giving a message
+stating the offending line, but still recovers and indent the
+following lines in a sane way (most of the time).  An "else" with no
+matching "if" is handled similarly.  If an error is discovered while
+indenting a region, the whole region is still indented and the error
+is reported afterwards.
+
+*** Lineup functions may now return absolute columns.
+A lineup function can give an absolute column to indent the line to by
+returning a vector with the desired column as the first element.
+
+*** More robust and warning-free byte compilation.
+Although this is strictly not a user visible change (well, depending
+on the view of a user), it's still worth mentioning that CC Mode now
+can be compiled in the standard ways without causing trouble.  Some
+code have also been moved between the subpackages to enhance the
+modularity somewhat.  Thanks to Martin Buchholz for doing the
+groundwork.
+
 *** c-style-variables-are-local-p now defaults to t.
 This is an incompatible change that has been made to make the behavior
 of the style system wrt global variable settings less confusing for

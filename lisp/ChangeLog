@@ -1,5 +1,11 @@
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/flyspell.el: Some doc fixes.
+	(flyspell-maybe-correct-transposition)
+	(flyspell-maybe-correct-doubling): Use a temporary buffer
+
+	* textmodes/ispell.el (ispell-parse-output): Doc fix.
+
 	* emacs-lisp/byte-opt.el (byte-optimize-while) 
 	(byte-optimize-form-code-walker): Diagnose too few arguments
 	for `if' and `while'.
@@ -4985,14 +4991,6 @@
 	* comint.el (comint-highlight-prompt): Add :type.
 
 2000-10-28  John Wiegley  <johnw@gnu.org>
-
-	* textmodes/flyspell.el (flyspell-maybe-correct-transposition):
-	Changed this function to operate on a temporary buffer instead of
-	the main buffer.  This not only keeps flyspell from marking a
-	buffer as changed that wasn't, but it solves the jumpy cursor
-	problem when attempts are made to edit incorrect words.
-	(flyspell-maybe-correct-doubling): Same change as for
-	`flyspell-maybe-correct-transposition'.
 
 	* calendar/timeclock.el (timeclock-log): Doc fix.
 	(timeclock-last-event): Doc fix.
