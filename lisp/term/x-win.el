@@ -658,7 +658,7 @@ This is in addition to the primary selection.")
 (if (fboundp 'new-fontset)
     (progn
       ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec standard-fontset-spec)
+      (create-fontset-from-fontset-spec standard-fontset-spec t)
 
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
       (create-fontset-from-x-resource)
@@ -674,10 +674,11 @@ This is in addition to the primary selection.")
       (let ((font (or (cdr (assq 'font initial-frame-alist))
 		      (cdr (assq 'font default-frame-alist))
 		      (x-get-resource "font" "Font")))
-	    xlfd-fields)
+	    resolved-name xlfd-fields)
 	(if (and font
 		 (not (query-fontset font))
-		 (setq xlfd-fields (x-decompose-font-name font)))
+		 (setq resolved-name (or (x-resolve-font-name font) font))
+		 (setq xlfd-fields (x-decompose-font-name resolved-name)))
 	    (if (string= "fontset"
 			 (aref xlfd-fields xlfd-regexp-registry-subnum))
 		(new-fontset font (x-complement-fontset-spec xlfd-fields nil))
@@ -691,7 +692,7 @@ This is in addition to the primary selection.")
 		(aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
 		(aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
 		(setq fontset (x-compose-font-name xlfd-fields))
-		(setq fontset-spec (concat fontset ", ascii:" font))
+		(setq fontset-spec (concat fontset ", ascii:" resolved-name))
 		(create-fontset-from-fontset-spec fontset-spec t)
 		(setq fontset-alias-alist
 		      (cons (cons fontset font) fontset-alias-alist)))
