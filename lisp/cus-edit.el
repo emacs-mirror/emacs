@@ -842,6 +842,27 @@ are shown; the contents of those subgroups are initially hidden."
   (customize-group 'emacs))
 
 ;;;###autoload
+(defun customize-mode (mode)
+  "Customize options related to the current major mode.
+If a prefix \\[universal-argument] was given (or if the current major mode has no known group),
+then prompt for the MODE to customize."
+  (interactive
+   (list
+    (let ((completion-regexp-list '("-mode\\'"))
+	  (group (custom-group-of-mode major-mode)))
+      (if (and group (not current-prefix-arg))
+	  major-mode
+	(intern
+	 (completing-read (if group
+			      (format "Major mode (default %s): " major-mode)
+			    "Major mode: ")
+			  obarray
+			  'custom-group-of-mode
+			  t nil nil (if group (symbol-name major-mode))))))))
+  (customize-group (custom-group-of-mode mode)))
+
+
+;;;###autoload
 (defun customize-group (group)
   "Customize GROUP, which must be a customization group."
   (interactive (list (let ((completion-ignore-case t))
