@@ -445,7 +445,7 @@ XTchange_line_highlight (new_highlight, vpos, first_unused_hpos)
 {
   highlight = new_highlight;
   XTcursor_to (vpos, 0);
-  XTclear_end_of_line (updating_frame->width);
+  XTclear_end_of_line (FRAME_WINDOW_WIDTH (updating_frame));
 }
 
 /* This is used when starting Emacs and when restarting after suspend.
@@ -519,7 +519,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
      int just_foreground;
 {
   /* Holds characters to be displayed. */
-  char *buf = (char *) alloca (f->width * sizeof (*buf));
+  char *buf = (char *) alloca (FRAME_WINDOW_WIDTH (f) * sizeof (*buf));
   register char *cp;		/* Steps through buf[]. */
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
@@ -832,8 +832,8 @@ XTclear_end_of_line (first_unused)
   if (first_unused <= 0)
     return;
 
-  if (first_unused >= f->width)
-    first_unused = f->width;
+  if (first_unused >= FRAME_WINDOW_WIDTH (f))
+    first_unused = FRAME_WINDOW_WIDTH (f);
 
   first_unused += FRAME_LEFT_SCROLL_BAR_WIDTH (f);
 
@@ -1316,7 +1316,7 @@ do_line_dance ()
 	XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   FRAME_X_WINDOW (f), f->output_data.x->normal_gc,
 		   intborder, CHAR_TO_PIXEL_ROW (f, i+distance),
-		   f->width * FONT_WIDTH (f->output_data.x->font),
+		   FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (f->output_data.x->font),
 		   (j-i) * f->output_data.x->line_height,
 		   intborder, CHAR_TO_PIXEL_ROW (f, i));
 	i = j-1;
@@ -1331,7 +1331,7 @@ do_line_dance ()
 	XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   FRAME_X_WINDOW (f), f->output_data.x->normal_gc,
 		   intborder, CHAR_TO_PIXEL_ROW (f, j+1+distance),
-		   f->width * FONT_WIDTH (f->output_data.x->font),
+		   FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (f->output_data.x->font),
 		   (i-j) * f->output_data.x->line_height,
 		   intborder, CHAR_TO_PIXEL_ROW (f, j+1));
 	i = j+1;
@@ -1344,7 +1344,7 @@ do_line_dance ()
 	/* Clear [i,j) */
 	XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    intborder, CHAR_TO_PIXEL_ROW (f, i),
-		    f->width * FONT_WIDTH (f->output_data.x->font),
+		    FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (f->output_data.x->font),
 		    (j-i) * f->output_data.x->line_height, False);
 	i = j-1;
       }
@@ -1745,8 +1745,8 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
     {
       if (pix_x < 0)
 	pix_x = 0;
-      else if (pix_x > f->width)
-	pix_x = f->width;
+      else if (pix_x > FRAME_WINDOW_WIDTH (f))
+	pix_x = FRAME_WINDOW_WIDTH (f);
 
       if (pix_y < 0)
 	pix_y = 0;
@@ -2477,7 +2477,8 @@ x_scroll_bar_create (window, top, left, width, height)
        XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 
 		      /* Position and size of scroll bar.  */
-		      left, top, width, height,
+		      left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, top,
+		      width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2, height,
 
 		      /* Border width, depth, class, and visual.  */
 		      0, CopyFromParent, CopyFromParent, CopyFromParent,
@@ -2626,9 +2627,10 @@ x_scroll_bar_move (bar, top, left, width, height)
     XWindowChanges wc;
     unsigned int mask = 0;
 
-    wc.x = left;
+    wc.x = left + VERTICAL_SCROLL_BAR_WIDTH_TRIM;
     wc.y = top;
-    wc.width = width;
+
+    wc.width = width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2;
     wc.height = height;
 
     if (left != XINT (bar->left))	mask |= CWX;
@@ -2843,9 +2845,7 @@ x_scroll_bar_expose (bar, event)
   Window w = SCROLL_BAR_X_WINDOW (bar);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
-  int width_trim = (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
-		    ? LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM
-		    : 0);
+  int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
   BLOCK_INPUT;
 
@@ -2856,7 +2856,7 @@ x_scroll_bar_expose (bar, event)
 
 		  /* x, y, width, height */
 		  0, 0,
-		  XINT (bar->width) - 1 - width_trim,
+		  XINT (bar->width) - 1 - width_trim - width_trim,
 		  XINT (bar->height) - 1);
     
   UNBLOCK_INPUT;
