@@ -1293,36 +1293,13 @@ and selects that window."
 	(while fonts
 	  (condition-case nil
 	      (progn
-		(modify-frame-parameters (selected-frame)
-					 (list (cons 'font (car fonts))))
+		(set-default-font (car fonts))
 		(setq font (car fonts))
 		(setq fonts nil))
-	    (error (setq fonts (cdr fonts)))))
+	    (error
+	     (setq fonts (cdr fonts)))))
 	(if (null font)
-	    (error "Font not found")
-	  ;; Update some standard faces too.
-	  (set-face-font 'bold nil (selected-frame)) 
-	  (make-face-bold 'bold (selected-frame) t)
-	  (set-face-font 'italic nil (selected-frame))
-	  (make-face-italic 'italic (selected-frame) t)
-	  (set-face-font 'bold-italic nil (selected-frame))
-	  (make-face-bold-italic 'bold-italic (selected-frame) t)
-	  ;; Update any nonstandard faces whose definition is
-	  ;; "a bold/italic/bold&italic version of the frame's font".
-	  (let ((rest global-face-data))
-	    (while rest
-	      (condition-case nil
-		  (if (listp (face-font (cdr (car rest))))
-		      (let ((bold (memq 'bold (face-font (cdr (car rest)))))
-			    (italic (memq 'italic (face-font (cdr (car rest))))))
-			(if (and bold italic)
-			    (make-face-bold-italic (car (car rest)) (selected-frame))
-			  (if bold
-			      (make-face-bold (car (car rest)) (selected-frame))
-			    (if italic
-				(make-face-italic (car (car rest)) (selected-frame)))))))
-		(error nil))
-	      (setq rest (cdr rest))))))))
+	    (error "Font not found")))))
 
 ;;; Bindings for mouse commands.
 
