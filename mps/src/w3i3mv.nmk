@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(MMdevel_restr2.2) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.22) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -21,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(MMdevel_restr2.2) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.22) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -243,14 +243,14 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
-     mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib
+     mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     mpm.lib mmdw.lib:
+     mpm.lib mmdw.lib weakcv.exe:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 mpsicv.cov:
@@ -296,45 +296,48 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 !IFDEF VARIETY
 
+$(PFM)\$(VARIETY)\weakcv.exe: $(PFM)\$(VARIETY)\weakcv.obj \
+	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
-	$(AMCOBJ) $(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
+	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
-	$(DWOBJ) $(MPMOBJ) $(STDOBJ) $(AMCOBJ)
+	$(DWOBJ) $(MPMOBJ) $(AMCOBJ)
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
+	$(MPMOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(LOOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ) $(LOOBJ)
 
-$(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
+$(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
+$(PFM)\$(VARIETY)\amc.lib: $(MPMOBJ) $(AMCOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mmdw.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ) $(DWOBJ)
+$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
