@@ -1,3 +1,10 @@
+2000-10-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (pbm_format): Add :foreground and :background keywords.
+	(PBM_FOREGROUND, PBM_BACKGROUND): New enumerators.
+	(xbm_load): Recoghnize foreground and background color
+	specifications.
+
 2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dispextern.h (unspecified_fg, unspecified_bg): Declare.
