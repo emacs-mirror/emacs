@@ -1,3 +1,8 @@
+2000-07-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* print.c (temp_output_buffer_setup): Don't call1 Vrun_hooks
+	if that is nil.
+	
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* s/sunos4-0.h, s/sol2.h:
