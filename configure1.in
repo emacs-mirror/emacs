@@ -950,7 +950,7 @@ AC_RETSIGTYPE
 
 dnl checks for functions
 AC_ALLOCA
-AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename)
+AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir)
 
 dnl checks for structure members
 AC_STRUCT_TM
