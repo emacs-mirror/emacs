@@ -160,10 +160,25 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 
 (defvar init-file-had-error nil)
 
+;; This function is called from the subdirs.el file.
+(defun normal-top-level-add-to-load-path (dirs)
+  (let ((tail (member default-directory load-path)))
+    (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail)))))
+
 (defun normal-top-level ()
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
+    ;; Look in each dir in load-path for a subdirs.el file.
+    ;; If we find one, load it, which will add the appropriate subdirs
+    ;; of that dir into load-path,
+    (let ((tail load-path)
+	  new)
+      (while tail
+	(setq new (cons (car tail) new))
+	(let ((default-directory (car tail)))
+	  (load (expand-file-name "subdirs.el" (car tail)) t t t))
+	(setq tail (cdr tail))))
     (if (not (eq system-type 'vax-vms))
 	(progn
 	  ;; If the PWD environment variable isn't accurate, delete it.
