@@ -582,7 +582,8 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 (defun View-exit-and-edit ()
   "Exit View mode and make the current buffer editable."
   (interactive)
-  (let ((view-old-buffer-read-only nil))
+  (let ((view-old-buffer-read-only nil)
+	(view-no-disable-on-exit nil))
     (view-mode-exit)))
 
 (defun View-leave ()
