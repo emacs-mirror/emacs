@@ -1,3 +1,7 @@
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* obsolete/keyswap.el: Moved to obsolete/ from term/.
+
 2005-03-19  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-generate-string-list, ps-generate-header-line): Use
