@@ -1,5 +1,12 @@
 2000-10-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (mark_object) [GC_CHECK_STRING_BYTES]: Check validity of
+	string's size_byte.
+	(check_string_bytes) [GC_CHECK_STRING_BYTES]: New function.
+	(check_string_bytes_count) [GC_CHECK_STRING_BYTES]: New variable.
+	(allocate_string) [GC_CHECK_STRING_BYTES]: Call it for every 10th
+	string allocated.
+
 	* xdisp.c (forward_to_next_line_start): Switch iterator's handling
 	of selective display off while searching for the next line start.
 

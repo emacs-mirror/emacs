@@ -1021,6 +1021,57 @@ init_strings ()
 }
 
 
+#ifdef GC_CHECK_STRING_BYTES
+
+/* Check validity of all live Lisp strings' string_bytes member.
+   Used for hunting a bug.  */
+
+static int check_string_bytes_count;
+
+void
+check_string_bytes ()
+{
+  struct sblock *b;
+  
+  for (b = large_sblocks; b; b = b->next)
+    {
+      struct Lisp_String *s = b->first_data.string;
+      if (s && GC_STRING_BYTES (s) != SDATA_NBYTES (SDATA_OF_STRING (s)))
+	abort ();
+    }
+      
+  for (b = oldest_sblock; b; b = b->next)
+    {
+      struct sdata *from, *end, *from_end;
+      
+      end = b->next_free;
+      
+      for (from = &b->first_data; from < end; from = from_end)
+	{
+	  /* Compute the next FROM here because copying below may
+	     overwrite data we need to compute it.  */
+	  int nbytes;
+
+	  /* Check that the string size recorded in the string is the
+	     same as the one recorded in the sdata structure. */
+	  if (from->string
+	      && GC_STRING_BYTES (from->string) != SDATA_NBYTES (from))
+	    abort ();
+	  
+	  if (from->string)
+	    nbytes = GC_STRING_BYTES (from->string);
+	  else
+	    nbytes = SDATA_NBYTES (from);
+	  
+	  nbytes = SDATA_SIZE (nbytes);
+	  from_end = (struct sdata *) ((char *) from + nbytes);
+	}
+    }
+}
+
+#endif /* GC_CHECK_STRING_BYTES */
+
+
 /* Return a new Lisp_String.  */
 
 static struct Lisp_String *
@@ -1063,6 +1114,14 @@ allocate_string ()
   ++total_strings;
   ++strings_consed;
   consing_since_gc += sizeof *s;
+
+#ifdef GC_CHECK_STRING_BYTES
+  if (++check_string_bytes_count == 10)
+    {
+      check_string_bytes_count = 0;
+      check_string_bytes ();
+    }
+#endif
 
   return s;
 }
@@ -3928,6 +3987,15 @@ mark_object (argptr)
 	CHECK_ALLOCATED_AND_LIVE (live_string_p);
 	MARK_INTERVAL_TREE (ptr->intervals);
 	MARK_STRING (ptr);
+#ifdef GC_CHECK_STRING_BYTES
+        {
+	  /* Check that the string size recorded in the string is the
+	     same as the one recorded in the sdata structure. */
+	  struct sdata *p = SDATA_OF_STRING (ptr);
+	  if (GC_STRING_BYTES (ptr) != SDATA_NBYTES (p))
+	    abort ();
+        }
+#endif /* GC_CHECK_STRING_BYTES */
       }
       break;
 
