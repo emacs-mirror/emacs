@@ -1,3 +1,10 @@
+2000-09-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (encode_coding_sjis_big5): Use translation table for
+	encoding, not decoding.   Check for the charset katakana-jisx0201,
+	not latin-jisx0201.
+	(ONE_MORE_CHAR): Call translate_char with CHARSET arg -1.
+
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (Vparam_value_alist): New variable.
