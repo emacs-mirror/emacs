@@ -1461,7 +1461,7 @@ changequote(,)dnl The horror, the horror.
 srcdir_undefs="`echo $top_srcdir | 
 sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
     -e 's/ -U$//' -e 's/^[^ ]/-U/' \
-    -e 's/-U[0-9][^ ]*//' \
+    -e 's/-U[0-9][^ ]*//g' \
 `"
 changequote([,])dnl
 
