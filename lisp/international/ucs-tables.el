@@ -1165,7 +1165,7 @@ everything on input operations."
 
   (when for-encode
     ;; Make mule-utf-* encode all characters in ucs-mule-to-mule-unicode.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le)))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le)))
       (define-translation-table 'utf-translation-table-for-encode
 	ucs-mule-to-mule-unicode)
       (dolist (coding coding-list)
@@ -1207,7 +1207,7 @@ unification on input operations."
   (when for-encode
     ;; Make mule-utf-* disabled for all characters in
     ;; ucs-mule-to-mule-unicode but what originally supported.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le))
 	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
@@ -2459,7 +2459,7 @@ See also command `unify-8859-on-decoding-mode'."
   ;; bootstrapping.  So, as a workaround, we set nil here, and later
   ;; call:
   ;;	(unify-8859-on-encoding-mode 1)
-  :init-value nil
+  :init-value t
   (if unify-8859-on-encoding-mode
       (ucs-unify-8859 t nil)
     (ucs-fragment-8859 t nil)))
