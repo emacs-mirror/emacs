@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# Build and test MM at tip of main trunk (the MM_src compound)
+# 
+# $HopeName$
+#
+
+script="`basename $0`"
+
+msg () {
+  echo "$script: $*" 1>&2
+}
+
+die () {
+  msg "$@"
+  exit 1
+}
+
+test -d $HOME/Projects || mkdir $HOME/Projects ||
+  die "Unable to create Projects directory."
+
+cd $HOME/Projects &&
+rm -rf mm &&
+hope co -compound MM -recursive \
+  -writable-files abort -missing-dir create -extra-files skip ||
+  die "Unable to check out MM from Hope"
+
+cd mm/src &&
+for lib in std.a
+do
+  gnumake -r -f suspgc.gmk $lib ||
+    die "Unable to build library $lib of trunk"
+done
+for test in dwstress amcdev lockcov stdcover mpmstres
+do
+  gnumake -r -f suspgc.gmk $test &&
+  for variety in devel debug release
+  do
+    ./suspgc/$variety/$test ||
+      die "Unable to build and run test $test of trunk"
+  done
+done
