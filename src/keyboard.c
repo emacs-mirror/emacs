@@ -3419,8 +3419,18 @@ gobble_input (expected)
 record_asynch_buffer_change ()
 {
   struct input_event event;
+  Lisp_Object tem;
+
   event.kind = buffer_switch_event;
   event.frame_or_window = Qnil;
+
+  /* We don't need a buffer-switch event unless Emacs is waiting for input.
+     The purpose of the event is to make read_key_sequence look up the
+     keymaps again.  If we aren't in read_key_sequence, we don't need one,
+     and the event could cause trouble by messing up (input-pending-p).  */
+  tem = Fwaiting_for_user_input_p ();
+  if (NILP (tem))
+    return;
 
   /* Make sure no interrupt happens while storing the event.  */
 #ifdef SIGIO
