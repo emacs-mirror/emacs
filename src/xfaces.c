@@ -445,6 +445,10 @@ static int clear_font_table_count;
 
 int face_change_count;
 
+/* Incremented for every change in the `menu' face.  */
+
+int menu_face_change_count;
+
 /* Non-zero means don't display bold text if a face's foreground
    and background colors are the inverse of the default colors of the
    display.   This is a kluge to suppress `bold black' foreground text
@@ -4033,6 +4037,8 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	  if (EQ (attr, QCbackground))
 	    param = Qmouse_color;
 	}
+      else if (EQ (face, Qmenu))
+	++menu_face_change_count;
 
       if (!NILP (param))
 	{
@@ -4444,12 +4450,14 @@ x_set_menu_resources_from_menu_face (f, widget)
   if (f->face_cache->used == 0)
     recompute_basic_faces (f);
 
+  BLOCK_INPUT;
 #ifdef USE_LUCID
   xl_set_menu_resources_from_menu_face (f, widget);
 #endif
 #ifdef USE_MOTIF
   xm_set_menu_resources_from_menu_face (f, widget);
 #endif
+  UNBLOCK_INPUT;
 }
 
 #endif /* USE_X_TOOLKIT */
@@ -5939,6 +5947,22 @@ realize_basic_faces (f)
       realize_named_face (f, Qcursor, CURSOR_FACE_ID);
       realize_named_face (f, Qmouse, MOUSE_FACE_ID);
       realize_named_face (f, Qmenu, MENU_FACE_ID);
+
+      /* Reflext changes in the `menu' face in menu bars.  */
+      if (menu_face_change_count)
+	{
+	  menu_face_change_count = 0;
+	  
+#ifdef USE_X_TOOLKIT
+	  if (FRAME_X_P (f))
+	    {
+	      Widget menu = f->output_data.x->menubar_widget;
+	      if (menu)
+		x_set_menu_resources_from_menu_face (f, menu);
+	    }
+#endif /* USE_X_TOOLKIT */
+	}
+      
       success_p = 1;
     }
 
