@@ -2321,15 +2321,17 @@ Start discarding off end if gets this big."
     (goto-char (mark t))
     (pop-mark)))
 
-(defun push-mark-command (arg)
+(defun push-mark-command (arg &optional nomsg)
   "Set mark at where point is.
-If no prefix arg and mark is already set there, just activate it."
+If no prefix arg and mark is already set there, just activate it.
+Display `Mark set' unless the optional second arg NOMSG is non-nil."
   (interactive "P")
   (let ((mark (marker-position (mark-marker))))
     (if (or arg (null mark) (/= mark (point)))
-	(push-mark nil nil t)
+	(push-mark nil nomsg t)
       (setq mark-active t)
-      (message "Mark activated"))))
+      (unless nomsg
+	(message "Mark activated")))))
 
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
