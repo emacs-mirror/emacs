@@ -563,7 +563,48 @@ method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B
   :mnemonic ?*
   :charset-list '(adobe-standard-encoding)
   :mime-charset 'adobe-standard-encoding)
+
 
+;; For automatic composing of diacritics and combining marks.
+(dolist (range '( ;; combining diacritical marks
+		 (#x0300 #x0314 (tc . bc))
+		 (#x0315	(tr . bl))
+		 (#x0316 #x0319 (bc . tc))
+		 (#x031A	(tr . cl))
+		 (#x031B #x0320 (bc . tc))
+		 (#x0321	(Br . tr))
+		 (#x0322	(Br . tl))
+		 (#x0323 #x0333 (bc . tc))
+		 (#x0334 #x0338 (Bc . Bc))
+		 (#x0339 #x033C (bc . tc))
+		 (#x033D #x033F (tc . bc))
+		 (#x0340	(tl . bc))
+		 (#x0341	(tr . bc))
+		 (#x0342 #x0344 (tc . bc))
+		 (#x0345	(bc . tc))
+		 (#x0346	(tc . bc))
+		 (#x0347 #x0349 (bc . tc))
+		 (#x034A #x034C (tc . bc))
+		 (#x034D #x034E (bc . tc))
+		 ;; combining diacritical marks for symbols
+		 (#x20D0 #x20D1 (tc . bc))
+		 (#x20D2 #x20D3 (Bc . Bc))
+		 (#x20D4 #x20D7 (tc . bc))
+		 (#x20D8 #x20DA (Bc . Bc))
+		 (#x20DB #x20DC (tc . bc))
+		 (#x20DD #x20E0 (Bc . Bc))
+		 (#x20E1	(tc . bc))
+		 (#x20E2 #x20E3 (Bc . Bc))))
+  (let* ((from (car range))
+	 (to (if (= (length range) 3)
+		 (nth 1 range)
+	       from))
+	 (composition (car (last range))))
+    (while (<= from to)
+      (put-char-code-property from 'diacritic-composition composition)
+      (aset composition-function-table from 'diacritic-composition-function)
+      (setq from (1+ from)))))
+
 (defconst diacritic-composition-pattern "\\C^\\c^+")
 
 (defun diacritic-compose-region (beg end)
@@ -594,30 +635,52 @@ positions (integers or markers) specifying the region."
   (diacritic-compose-region (point) (+ (point) len))
   len)
 
-(defun diacritic-composition-function (from to pattern &optional string)
-  "Compose diacritic text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
+(defun diacritic-composition-function (pos &optional string)
+  "Compose diacritic text around POS.
+Optional 2nd argument STRING, if non-nil, is a string containing text
 to compose.
 
-The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (prog1 (- to from)
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
-
-;; Register a function to compose Unicode diacrtics and marks.
-(let ((patterns '(("\\C^\\c^+" . diacritic-composition-function))))
-  (let ((c #x300))
-    (while (<= c #x362)
-      (aset composition-function-table c patterns)
-      (setq c (1+ c)))
-    (setq c #x20d0)
-    (while (<= c #x20e3)
-      (aset composition-function-table c patterns)
-      (setq c (1+ c)))))
+The return value is the end position of composed characters,
+or nil if no characters are composed."
+  (setq pos (1- pos))
+  (if string
+      (let ((ch (aref string pos))
+	    start end components ch composition)
+	(when (and (>= pos 0)
+		   ;; Previous character is latin.
+		   (aref (char-category-set ch) ?l)
+		   (/= ch 32))
+	  (setq start pos
+		end (length string)
+		components (list ch)
+		pos (1+ pos))
+	  (while (and
+		  (< pos end)
+		  (setq ch (aref string pos)
+			composition
+			(get-char-code-property ch 'diacritic-composition)))
+	    (setq components (cons ch (cons composition components))
+		  pos (1+ pos)))
+	  (compose-string string start pos (nreverse components))
+	  pos))
+    (let ((ch (char-after pos))
+	  start end components composition)
+      (when (and (>= pos (point-min))
+		 (aref (char-category-set ch) ?l)
+		 (/= ch 32))
+	(setq start pos
+	      end (point-max)
+	      components (list ch)
+	      pos (1+ pos))
+	(while (and
+		(< pos end)
+		(setq ch (char-after pos)
+		      composition
+		      (get-char-code-property ch 'diacritic-composition)))
+	  (setq components (cons ch (cons composition components))
+		pos (1+ pos)))
+	(compose-region start pos (nreverse components))
+	pos))))
 
 (provide 'european)
 
