@@ -1,3 +1,8 @@
+2000-12-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* fr-refcard.tex, fr-refcard.ps, fr-drdref.tex, fr-drdref.ps: New
+	files.
+
 2000-12-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Handle form feed better when ps-zebra-stripe-follow
