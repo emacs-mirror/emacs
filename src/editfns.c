@@ -267,9 +267,10 @@ save_excursion_save ()
 
 Lisp_Object
 save_excursion_restore (info)
-     register Lisp_Object info;
+     Lisp_Object info;
 {
-  register Lisp_Object tem, tem1, omark, nmark;
+  Lisp_Object tem, tem1, omark, nmark;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   tem = Fmarker_buffer (Fcar (info));
   /* If buffer being returned to is now deleted, avoid error */
@@ -278,6 +279,10 @@ save_excursion_restore (info)
   /* In that case, Fmarker_buffer returns nil now.  */
   if (NILP (tem))
     return Qnil;
+
+  omark = nmark = Qnil;
+  GCPRO3 (info, omark, nmark);
+
   Fset_buffer (tem);
   tem = Fcar (info);
   Fgoto_char (tem);
@@ -313,6 +318,7 @@ save_excursion_restore (info)
       else if (! NILP (tem1))
 	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
     }
+  UNGCPRO;
   return Qnil;
 }
 
