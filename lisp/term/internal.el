@@ -272,6 +272,7 @@ list.  You can (and should) also run it whenever the value of
      (setq default-terminal-coding-system (intern (concat cp
 							  "-unix"))))
     (IT-display-table-setup cp)
+    (prefer-coding-system (intern (concat cp "-dos")))
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
     ;; set.  It's a nuisance to have all those glyphs here, for all
