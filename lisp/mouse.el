@@ -258,7 +258,7 @@ release the mouse button.  Otherwise, it does not."
 	  (let ((fun (key-binding (vector (car event)))))
 	    (if (not (= (overlay-start mouse-drag-overlay)
 			(overlay-end mouse-drag-overlay)))
-		(let (last-command)
+		(let (last-command this-command)
 		  (push-mark (overlay-start mouse-drag-overlay) t t)
 		  (goto-char (overlay-end mouse-drag-overlay))
 		  (copy-region-as-kill (point) (mark t)))
@@ -390,7 +390,8 @@ regardless of where you click."
 This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "e")
   (mouse-set-mark-fast click)
-  (kill-ring-save (point) (mark t))
+  (let (this-command last-command)
+    (kill-ring-save (point) (mark t)))
   (mouse-show-mark))
 
 ;;; This function used to delete the text between point and the mouse
