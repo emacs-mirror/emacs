@@ -378,20 +378,21 @@ the user from the mailer."
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
 		(mail-do-fcc delimline))
-	    ;; If the From is different than current user, insert Sender.
-	    (goto-char (point-min))
-	    (and (re-search-forward "^From:"  delimline t)
-		 (progn
-		   (require 'mail-utils)
-		   (not (string-equal
-			 (mail-strip-quoted-names
-			  (save-restriction
-			    (narrow-to-region (point-min) delimline)
-			    (mail-fetch-field "From")))
-			 (user-login-name))))
-		 (progn
-		   (forward-line 1)
-		   (insert "Sender: " (user-login-name) "\n")))
+;;; Apparently this causes a duplicate Sender.
+;;;	    ;; If the From is different than current user, insert Sender.
+;;;	    (goto-char (point-min))
+;;;	    (and (re-search-forward "^From:"  delimline t)
+;;;		 (progn
+;;;		   (require 'mail-utils)
+;;;		   (not (string-equal
+;;;			 (mail-strip-quoted-names
+;;;			  (save-restriction
+;;;			    (narrow-to-region (point-min) delimline)
+;;;			    (mail-fetch-field "From")))
+;;;			 (user-login-name))))
+;;;		 (progn
+;;;		   (forward-line 1)
+;;;		   (insert "Sender: " (user-login-name) "\n")))
 	    ;; "S:" is an abbreviation for "Subject:".
 	    (goto-char (point-min))
 	    (if (re-search-forward "^S:" delimline t)
