@@ -175,7 +175,8 @@ then
   bogosities=
   for file in $losers; do
     file1=`echo $file | sed -e "s|.*/||"`
-    if ! grep -q "dontcompilefiles:.* $file1\($\| \)" lisp/Makefile; then
+    if ! sed -n -e "/^DONTCOMPILE/,/[^\\]\$/p" lisp/Makefile |
+	 grep -q "[ 	]$file1\($\| \)"; then
       case $file in
 	site-init.el | site-load.el | site-start.el | default.el)
 	  ;;
