@@ -424,24 +424,28 @@ Return value is \(begin end name positive-p), or nil if none was found."
   (if (looking-at "^\n")
       (delete-char 1)))
 
-(defun enriched-decode-foreground (from to color)
+(defun enriched-decode-foreground (from to &optional color)
   (let ((face (intern (concat "fg:" color))))
-    (cond ((internal-find-face face))
+    (cond ((null color)
+	   (message "Warning: no color specified for <x-color>"))
+	  ((internal-find-face face))
 	  ((and window-system (facemenu-get-face face)))
 	  (window-system
-	   (message "Warning: color \"%s\" is not defined." color))
+	   (message "Warning: color `%s' is not defined" color))
 	  ((make-face face)
-	   (message "Warning: Color \"%s\" can't be displayed." color)))
+	   (message "Warning: color `%s' can't be displayed" color)))
     (list from to 'face face)))
 
-(defun enriched-decode-background (from to color)
+(defun enriched-decode-background (from to &optional color)
   (let ((face (intern (concat "bg:" color))))
-    (cond ((internal-find-face face))
+    (cond ((null color)
+	   (message "Warning: no color specified for <x-bg-color>"))
+	  ((internal-find-face face))
 	  ((and window-system (facemenu-get-face face)))
 	  (window-system
-	   (message "Warning: color \"%s\" is not defined." color))
+	   (message "Warning: color `%s' is not defined" color))
 	  ((make-face face)
-	   (message "Warning: Color \"%s\" can't be displayed." color)))
+	   (message "Warning: color `%s' can't be displayed" color)))
     (list from to 'face face)))
 
 ;;; enriched.el ends here
