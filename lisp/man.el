@@ -389,6 +389,10 @@ default section number is selected from `Man-auto-section-alist'."
 ;; ======================================================================
 ;; top level command and background process sentinel
 
+;;; This alias makes completion more predictable if ignoring case.
+;;;###autoload
+(defalias 'man 'manual-entry)
+
 ;;;###autoload
 (defun manual-entry (arg)
   "Get a Un*x manual page and put it in a buffer.
