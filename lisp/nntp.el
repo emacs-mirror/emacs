@@ -1014,7 +1014,7 @@ It will prompt for a password."
     ;; We open the nntp server if it is down.
     (or (nntp-server-opened nntp-current-server)
 	(nntp-open-server nntp-current-server)
-	(error (nntp-status-message)))
+	(error "%s" (nntp-status-message)))
     ;; Send the strings.
     (process-send-string nntp-server-process cmd)))
 
@@ -1260,7 +1260,7 @@ defining this function as macro."
   (let ((cmd (concat (mapconcat 'identity strings " ") "\r\n")))
     (or (nntp-async-server-opened)
 	(nntp-async-open-server)
-	(error (nntp-status-message)))
+	(error "%s" (nntp-status-message)))
     (process-send-string nntp-async-process cmd)))
 
 (defun nntp-async-request-group (group)
