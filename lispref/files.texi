@@ -1048,9 +1048,15 @@ link to.
 @end example
 @end defun
 
-@defun file-attributes filename
+@defun file-attributes filename &optional id-format
 This function returns a list of attributes of file @var{filename}.  If
 the specified file cannot be opened, it returns @code{nil}.
+The optional parameter @var{id-format} specifies the preferred format
+of attributes @acronym{UID} and @acronym{GID} (see below)---the
+valid values are @code{'string} and @code{'integer}.  The latter is
+the default, but we plan to change that, so you should specify a
+non-@code{nil} value for @var{id-format} if you use the returned
+@acronym{UID} or @acronym{GID}.
 
 The elements of the list, in order, are:
 
@@ -1066,10 +1072,11 @@ links, can be created by using the @code{add-name-to-file} function
 (@pxref{Changing Files}).
 
 @item
-The file's @acronym{UID}.
+The file's @acronym{UID} as a string or an integer.  If a string
+value cannot be looked up, the integer value is returned.
 
 @item
-The file's @acronym{GID}.
+The file's @acronym{GID} likewise.
 
 @item
 The time of last access, as a list of two integers.
@@ -1114,8 +1121,8 @@ For example, here are the file attributes for @file{files.texi}:
 
 @example
 @group
-(file-attributes "files.texi")
-     @result{}  (nil 1 2235 75
+(file-attributes "files.texi" 'string)
+     @result{}  (nil 1 "lh" "users"
           (8489 20284)
           (8489 20284)
           (8489 20285)
@@ -1135,11 +1142,11 @@ is neither a directory nor a symbolic link.
 has only one name (the name @file{files.texi} in the current default
 directory).
 
-@item 2235
-is owned by the user with @acronym{UID} 2235.
+@item "lh"
+is owned by the user with name "lh".
 
-@item 75
-is in the group with @acronym{GID} 75.
+@item "users"
+is in the group with name "users".
 
 @item (8489 20284)
 was last accessed on Aug 19 00:09.
