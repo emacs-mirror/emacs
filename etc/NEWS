@@ -1878,7 +1878,12 @@ in new face `next-error'.
 `grep-scroll-output' can be used to override the corresponding
 compilation mode settings for grep commands.
 
-*** Source line is temporarily highlighted when going to next match.
+*** New option `grep-highlight-matches' highlightes matches in *grep*
+buffer.  It uses a special feature of some grep programs which accept
+--color option to output markers around matches.  When going to the next
+match with `next-error' the exact match is highlighted in the source
+buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
+source line is highlighted.
 
 *** New key bindings in grep output window:
 SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
