@@ -32,11 +32,22 @@
 
 ;; Setting information of Thai characters.
 
-(defvar thai-category-table (copy-category-table))
-(or (category-docstring ?+ thai-category-table)
-    (define-category ?+ "Thai consonant" thai-category-table))
-(or (category-docstring ?- thai-category-table)
-    (define-category ?- "Thai diacritical mark" thai-category-table))
+(defconst thai-category-table (make-category-table))
+(define-category ?c "Thai consonant" thai-category-table)
+(define-category ?v "Thai upper/lower vowel" thai-category-table)
+(define-category ?t "Thai tone" thai-category-table)
+
+;; The general composing rules are as follows:
+;;
+;;                          T
+;;       V        T         V                  T
+;; CV -> C, CT -> C, CVT -> C, Cv -> C, CvT -> C
+;;                                   v         v
+;;
+;; where C: consonant, V: vowel upper, v: vowel lower, T: tone mark.
+
+(defvar thai-composition-pattern "\\cc\\(\\ct\\|\\cv\\ct?\\)"
+  "Regular expression matching a Thai composite sequence.")
 
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1
 	   (?,T"(B consonant "LETTER KHO KHAI")				; 0xA2
@@ -135,16 +146,17 @@
 	   ))
       elm)
   (while l
-    (setq elm (car l))
-    (let ((ptype (nth 1 elm)))
-      (put-char-code-property (car elm) 'phonetic-type ptype)
-      (if (eq ptype 'consonant)
-	  (modify-category-entry (car elm) ?+ thai-category-table)
-	(if (memq ptype '(vowel-upper vowel-lower tone))
-	  (modify-category-entry (car elm) ?- thai-category-table))))
-    (put-char-code-property (car elm) 'name (nth 2 elm))
-    (setq l (cdr l))))
-
+    (setq elm (car l) l (cdr l))
+    (let ((char (car elm))
+	  (ptype (nth 1 elm)))
+      (put-char-code-property char 'phonetic-type ptype)
+      (cond ((eq ptype 'consonant)
+	     (modify-category-entry char ?c thai-category-table))
+	    ((memq ptype '(vowel-upper vowel-lower))
+	     (modify-category-entry char ?v thai-category-table))
+	    ((eq ptype 'tone)
+	     (modify-category-entry char ?t thai-category-table)))
+      (put-char-code-property char 'name (nth 2 elm)))))
 
 ;;;###autoload
 (defun thai-compose-region (beg end)
@@ -154,33 +166,20 @@ positions (integers or markers) specifying the region."
   (interactive "r")
   (save-restriction
     (narrow-to-region beg end)
-    (decompose-region (point-min) (point-max))
     (goto-char (point-min))
-    (let ((current-ctbl (category-table)))
-      (set-category-table thai-category-table)
-      (unwind-protect
-	  (while (re-search-forward "\\c+\\c-+" nil t)
-	    (compose-region (match-beginning 0) (match-end 0)))
-	(set-category-table current-ctbl)))))
+    (with-category-table thai-category-table
+      (while (re-search-forward thai-composition-pattern nil t)
+	(compose-region (match-beginning 0) (match-end 0))))))
 
 ;;;###autoload
 (defun thai-compose-string (string)
   "Compose Thai characters in STRING and return the resulting string."
-  (let ((current-ctbl (category-table)))
-    (set-category-table thai-category-table)
-    (unwind-protect
-	(let ((idx 0)
-	      (new ""))
-	  (while (string-match "\\c+\\c-+" string idx)
-	    (if (< idx (match-beginning 0))
-		(setq new
-		      (concat new (substring string idx (match-beginning 0)))))
-	    (setq new (concat new (compose-string (match-string 0 string))))
-	    (setq idx (match-end 0)))
-	  (if (< idx (length string))
-	      (setq new (concat new (substring string idx))))
-	  new)
-      (set-category-table current-ctbl))))
+  (with-category-table thai-category-table
+    (let ((idx 0))
+      (while (setq idx (string-match thai-composition-pattern string idx))
+	(compose-string string idx (match-end 0))
+	(setq idx (match-end 0)))))
+  string)
       
 ;;;###autoload
 (defun thai-compose-buffer ()
@@ -190,48 +189,23 @@ positions (integers or markers) specifying the region."
 
 ;;;###autoload
 (defun thai-post-read-conversion (len)
-  (save-excursion
-    (save-restriction
-      (let ((buffer-modified-p (buffer-modified-p))
-	    (category-table (category-table))
-	    (buf (current-buffer))
-	    (workbuf (generate-new-buffer "*thai-work*"))
-	    (pos (point))
-	    start end str)
-	(save-excursion
-	  (set-buffer workbuf)
-	  (setq buffer-undo-list t))
-	(narrow-to-region pos (+ pos len))
-	(set-category-table thai-category-table)
-	(unwind-protect
-	    (progn
-	      (while (re-search-forward "\\c+\\c-+" nil t)
-		(setq start (match-beginning 0)
-		      end (point)
-		      str (compose-string (buffer-substring start end)))
-		(set-buffer workbuf)
-		(if (< pos start)
-		    (insert-buffer-substring buf pos start))
-		(insert str)
-		(set-buffer buf)
-		(setq pos end))
-	      (delete-region (point-min) (point))
-	      (insert-buffer-substring workbuf))
-	  (set-category-table category-table)
-	  (kill-buffer workbuf))
-	(set-buffer-modified-p buffer-modified-p)
-	(- (point-max) (point-min))))))
+  (thai-compose-region (point) (+ (point) len))
+  len)
 
 ;;;###autoload
-(defun thai-pre-write-conversion (from to)
-  (let ((old-buf (current-buffer)))
-    (set-buffer (generate-new-buffer " *temp*"))
-    (if (stringp from)
-	(insert from)
-      (insert-buffer-substring old-buf from to))
-    (decompose-region (point-min) (point-max))
-    ;; Should return nil as annotations.
-    nil))
+(defun thai-composition-function (from to pattern &optional string)
+  "Compose Thai text in the region FROM and TO.
+The text matches the regular expression PATTERN.
+Optional 4th argument STRING, if non-nil, is a string containing text
+to compose.
+
+The return value is number of composed characters."a
+  (if (< (1+ from) to)
+      (prog1 (- to from)
+	(if string
+	    (compose-string from to)
+	  (compose-region from to))
+	(- to from))))
 
 ;;
 (provide 'thai-util)
