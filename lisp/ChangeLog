@@ -1,4 +1,7 @@
-2000-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+2000-05-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-region-internal): Go back to BEG after quoting
+	the nested comment markers.
 
 	* subr.el (remove-hook): Don't turn the hook's value into a list.
 
