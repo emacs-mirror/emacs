@@ -1,3 +1,7 @@
+2005-03-07  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Debugger Operation): Update GUD tooltip enable info.
+
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Starting GUD): Don't explain text vs graphical
