@@ -745,7 +745,7 @@ to that frame.  */)
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
        doc: /* Do nothing, but preserve any prefix argument already specified.
-This is a suitable binding for iconify-frame and make-frame-visible.  */)
+This is a suitable binding for `iconify-frame' and `make-frame-visible'.  */)
      ()
 {
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
