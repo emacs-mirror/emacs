@@ -627,9 +627,7 @@ Returns the documentation as a string, also."
     (princ "Documentation:")
     (terpri)
     (let ((doc (documentation-property variable 'variable-documentation)))
-      (if doc
-	  (princ (substitute-command-keys doc))
-	(princ "not documented as a variable.")))
+      (princ (or doc "not documented as a variable.")))
     (print-help-return-message)
     (save-excursion
       (set-buffer standard-output)
