@@ -1,3 +1,10 @@
+2000-11-14  Miles Bader  <miles@gnu.org>
+
+	* xterm.c (x_alloc_lighter_color): Include an additive component
+	too for dark colors, because FACTOR isn't enough.
+	(HIGHLIGHT_COLOR_DARK_BOOST, HIGHLIGHT_COLOR_DARK_BOOST_LIMIT):
+	New macros.
+
 2000-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (show_help_echo): Call message3_nolog with number of
