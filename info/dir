@@ -14,33 +14,40 @@ File: dir	Node: Top	This is the top of the INFO tree
 
 * Menu: The list of major topics begins on the next line.
 
+Editors
 * Info: (info).		Documentation browsing system.
 * Emacs: (emacs).	The extensible self-documenting text editor.
-* VIPER: (viper).       The newest Emacs VI-emulation mode.
-* VIP: (vip).		An older VI-emulation for Emacs.
-* Forms: (forms).	Emacs package for editing data bases
-			  by filling in forms.
+* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+
+* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
+* Dired-X: (dired-x).   Dired Extra Features.
+* Ediff: (ediff).	A comprehensive visual interface to diff & patch.
+* Speedbar: (speedbar).	File/Tag summarizing utility.
+
+* Ada mode: (ada-mode). The GNU Emacs mode for editing Ada code.
+* CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
+			  and Java code.
+* Ebrowse: (ebrowse)	A C++ class browser for Emacs.
+* IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
+
 * Gnus: (gnus).		The news reader Gnus.
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
 * MIME: (emacs-mime).   The MIME de/composition library.
-* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * SC: (sc).		Supercite lets you cite parts of messages you're 
 			  replying to, in flexible ways.
-* Dired-X: (dired-x).   Dired Extra Features.
-* Ediff: (ediff).	A comprehensive visual interface to diff & patch.
-* CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
-			  and Java code.
-* Ada mode: (ada-mode). The GNU Emacs mode editing Ada.
-* IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
-* Eshell: (eshell).	A command shell implemented in Emacs Lisp.
-* EUDC: (eudc).		Emacs Unified Directory Client.
-* Ebrowse: (ebrowse)	A C++ class browser for Emacs.
-* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
-* Speedbar: (speedbar).	File/Tag summarizing utility.
 
-
-Editors
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
-* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+* Eshell: (eshell).	A command shell implemented in Emacs Lisp.
+* EUDC: (eudc).		Emacs Unified Directory Client.
+* Forms: (forms).	Emacs package for editing data bases
+			  by filling in forms.
+* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* Widget: (widget).     The "widget" package used by the Emacs Customization
+                          facility.
+* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
+
+* VIPER: (viper).       The newest Emacs VI-emulation mode.
+* VIP: (vip).		An older VI-emulation for Emacs.
+
