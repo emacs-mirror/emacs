@@ -1212,10 +1212,10 @@ The value of this variable is used when Font Lock mode is turned on."
 			  (point-min)))
 	    (goto-char beg)
 	    (setq beg (line-beginning-position)))
-	  (setq end (or (and font-lock-multiline
-			     (text-property-any end (point-max)
-						'font-lock-multiline nil))
-			(point-max)))
+	  (when font-lock-multiline
+	    (setq end (or (text-property-any end (point-max)
+					     'font-lock-multiline nil)
+			  (point-max))))
 	  (goto-char end)
 	  (setq end (line-beginning-position 2))
 	  ;; Now do the fontification.
