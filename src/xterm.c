@@ -4127,7 +4127,8 @@ x_display_bar_cursor (f, on)
 		      f->display.x->cursor_gc,
 		      CHAR_TO_PIXEL_COL (f, curs_x),
 		      CHAR_TO_PIXEL_ROW (f, curs_y),
-		      1, f->display.x->line_height);
+		      max (f->display.x->cursor_width, 1),
+		      f->display.x->line_height);
 
       f->phys_cursor_x = curs_x;
       f->phys_cursor_y = curs_y;
@@ -4402,6 +4403,18 @@ x_connection_closed (display, error_message)
   TOTALLY_UNBLOCK_INPUT;
 
   error ("%s", error_message);
+}
+
+static SIGTYPE
+x_connection_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+  /* We really ought to close the connection to the display
+     that actually failed.
+     But do we actually get this signal ever with X11?  */
+  fprintf (stderr, "X connection closed");
+  shut_down_emacs (0, 0, Qnil);
+  exit (70);
 }
 
 /* This is the usual handler for X protocol errors.
@@ -5836,7 +5849,7 @@ x_initialize ()
   signal (SIGWINCH, SIG_DFL);
 #endif /* ! defined (SIGWINCH) */
 
-  signal (SIGPIPE, x_connection_closed);
+  signal (SIGPIPE, x_connection_signal);
 }
 
 void
