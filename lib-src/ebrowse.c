@@ -279,6 +279,8 @@ struct link
 struct alias
 {
   struct alias *next;		/* Next in list.  */
+  struct sym *namesp;		/* Namespace in which defined.  */
+  struct link *aliasee;		/* List of aliased namespaces (A::B::C...).  */
   char name[1];			/* Alias name.  */
 };
 
@@ -303,7 +305,6 @@ struct sym
   char *filename;		/* File in which it can be found.  */
   char *sfilename;		/* File in which members can be found.  */
   struct sym *namesp;		/* Namespace in which defined. .  */
-  struct alias *namesp_aliases;	/* List of aliases for namespaces.  */
   char name[1];                 /* Name of the class.  */
 };
 
@@ -420,6 +421,10 @@ struct sym *class_table[TABLE_SIZE];
 
 struct member *member_table[TABLE_SIZE];
 
+/* Hash table for namespace aliases */
+
+struct alias *namespace_alias_table[TABLE_SIZE];
+
 /* The special class symbol used to hold global functions,
    variables etc.  */
 
@@ -491,7 +496,7 @@ void add_define P_ ((char *, char *, int));
 void mark_inherited_virtual P_ ((void));
 void leave_namespace P_ ((void));
 void enter_namespace P_ ((char *));
-void register_namespace_alias P_ ((char *, char *));
+void register_namespace_alias P_ ((char *, struct link *));
 void insert_keyword P_ ((char *, int));
 void re_init_scanner P_ ((void));
 void init_scanner P_ ((void));
@@ -508,7 +513,7 @@ struct member *find_member P_ ((struct sym *, char *, int, int, unsigned));
 struct member *add_member P_ ((struct sym *, char *, int, int, unsigned));
 void mark_virtual P_ ((struct sym *));
 void mark_virtual P_ ((struct sym *));
-struct sym *make_namespace P_ ((char *));
+struct sym *make_namespace P_ ((char *, struct sym *));
 char *sym_scope P_ ((struct sym *));
 char *sym_scope_1 P_ ((struct sym *));
 int skip_to P_ ((int));
@@ -1085,68 +1090,107 @@ mark_inherited_virtual ()
 /* Create and return a symbol for a namespace with name NAME.  */
 
 struct sym *
-make_namespace (name)
+make_namespace (name, context)
      char *name;
+     struct sym *context;
 {
   struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
   bzero (s, sizeof *s);
   strcpy (s->name, name);
   s->next = all_namespaces;
-  s->namesp = current_namespace;
+  s->namesp = context;
   all_namespaces = s;
   return s;
 }
 
 
+/* Find the symbol for namespace NAME.  If not found, retrun NULL */
+
+struct sym *
+check_namespace (name, context)
+     char *name;
+     struct sym *context;
+{
+  struct sym *p = NULL;
+  
+  for (p = all_namespaces; p; p = p->next)
+    {
+      if (streq (p->name, name) && (p->namesp == context))
+	    break;
+	}
+
+  return p;
+    }
+
 /* Find the symbol for namespace NAME.  If not found, add a new symbol
    for NAME to all_namespaces.  */
 
 struct sym *
-find_namespace (name)
+find_namespace (name, context)
      char *name;
+     struct sym *context;
 {
-  struct sym *p;
-  
-  for (p = all_namespaces; p; p = p->next)
-    {
-      if (streq (p->name, name))
-	break;
-      else
-	{
-	  struct alias *p2;
-	  for (p2 = p->namesp_aliases; p2; p2 = p2->next)
-	    if (streq (p2->name, name))
-	      break;
-	  if (p2)
-	    break;
-	}
-    }
+  struct sym *p = check_namespace (name, context);
 
   if (p == NULL)
-    p = make_namespace (name);
+    p = make_namespace (name, context);
 
   return p;
 }
   
 
-/* Register the name NEW_NAME as an alias for namespace OLD_NAME.  */
+/* Find namespace alias with name NAME. If not found return NULL. */
+
+struct link *
+check_namespace_alias (name)
+    char *name;
+{
+  struct link *p = NULL;
+  struct alias *al;
+  unsigned h;
+  char *s;
+
+  for (s = name, h = 0; *s; ++s)
+    h = (h << 1) ^ *s;
+  h %= TABLE_SIZE;
+
+  for (al = namespace_alias_table[h]; al; al = al->next)
+    if (streq (name, al->name) && (al->namesp == current_namespace))
+      {
+        p = al->aliasee;
+        break;
+      }
+
+  return p;
+}
+
+/* Register the name NEW_NAME as an alias for namespace list OLD_NAME.  */
 
 void
 register_namespace_alias (new_name, old_name)
-     char *new_name, *old_name;
+     char *new_name;
+     struct link *old_name;
 {
-  struct sym *p = find_namespace (old_name);
+  unsigned h;
+  char *s;
   struct alias *al;
 
-  /* Is it already in the list of aliases?  */
-  for (al = p->namesp_aliases; al; al = al->next)
-    if (streq (new_name, p->name))
+  for (s = new_name, h = 0; *s; ++s)
+    h = (h << 1) ^ *s;
+  h %= TABLE_SIZE;
+
+
+  /* Is it already in the table of aliases?  */
+  for (al = namespace_alias_table[h]; al; al = al->next)
+    if (streq (new_name, al->name) && (al->namesp == current_namespace))
       return;
 
   al = (struct alias *) xmalloc (sizeof *al + strlen (new_name));
   strcpy (al->name, new_name);
-  al->next = p->namesp_aliases;
-  p->namesp_aliases = al;
+  al->next = namespace_alias_table[h];
+  al->namesp = current_namespace;
+  al->aliasee = old_name;
+  namespace_alias_table[h] = al;
 }
 
 
@@ -1156,7 +1200,7 @@ void
 enter_namespace (name)
      char *name;
 {
-  struct sym *p = find_namespace (name);
+  struct sym *p = find_namespace (name, current_namespace);
 
   if (namespace_sp == namespace_stack_size)
     {
@@ -2329,7 +2373,6 @@ skip_to (token)
   return tk;
 }
 
-
 /* Skip over pairs of tokens (parentheses, square brackets,
    angle brackets, curly brackets) matching the current lookahead.  */
 
@@ -2376,6 +2419,43 @@ skip_matching ()
     }
 }
 
+
+/* Build qualified namespace alias (A::B::c) and return it. */
+
+struct link *
+match_qualified_namespace_alias ()
+{
+  struct link *head = NULL;
+  struct link *cur = NULL;
+  struct link *tmp = NULL;
+
+  for (;;)
+    {
+      MATCH ();
+      switch (LA1)
+        {
+        case IDENT:
+          tmp = (struct link *) xmalloc (sizeof *cur);
+          tmp->sym = find_namespace (yytext, cur);
+          tmp->next = NULL;
+          if (head)
+            {
+              cur = cur->next = tmp;
+            }
+          else
+            {
+              head = cur = tmp;
+            }
+          break;
+        case DCOLON:
+          /* Just skip */
+          break;
+        default:
+          return head;
+          break;
+        }
+    }
+}
 
 /* Re-initialize the parser by resetting the lookahead token.  */
 
@@ -2913,7 +2993,7 @@ operator_name (sc)
 
 
 /* This one consumes the last IDENT of a qualified member name like
-   `X::Y::z'.  This IDENT is returned in LAST_ID.  Value if the
+   `X::Y::z'.  This IDENT is returned in LAST_ID.  Value is the
    symbol structure for the ident.  */
 
 struct sym *
@@ -2923,6 +3003,7 @@ parse_qualified_ident_or_type (last_id)
   struct sym *cls = NULL;
   char *id = NULL;
   size_t id_size = 0;
+  int enter = 0;
   
   while (LOOKING_AT (IDENT))
     {
@@ -2940,7 +3021,26 @@ parse_qualified_ident_or_type (last_id)
 
       if (LOOKING_AT (DCOLON))
 	{
-	  cls = add_sym (id, cls);
+	  struct sym *pcn = NULL;
+	  struct link *pna = check_namespace_alias (id);
+	  if (pna)
+	    {
+	      do
+		{
+		  enter_namespace (pna->sym->name);
+		  enter++;
+		  pna = pna->next;
+		}
+	      while (pna);
+	    }
+	  else if ((pcn = check_namespace (id, current_namespace)))
+	    {
+	      enter_namespace (pcn->name);
+	      enter++;
+	    }
+	  else
+	    cls = add_sym (id, cls);
+
 	  *last_id = NULL;
 	  xfree (id);
 	  id = NULL;
@@ -2951,12 +3051,15 @@ parse_qualified_ident_or_type (last_id)
 	break;
     }
 
+  while (enter--)
+    leave_namespace();
+
   return cls;
 }
 
 
 /* This one consumes the last IDENT of a qualified member name like
-   `X::Y::z'.  This IDENT is returned in LAST_ID.  Value if the
+   `X::Y::z'.  This IDENT is returned in LAST_ID.  Value is the
    symbol structure for the ident.  */
 
 void
@@ -3310,9 +3413,9 @@ globals (start_flags)
                 
                 if (LOOKING_AT ('='))
                   {
-		    MATCH ();
-		    if (LOOKING_AT (IDENT))
-		      register_namespace_alias (namespace_name, yytext);
+		    struct link *qna = match_qualified_namespace_alias ();
+		    if (qna)
+                      register_namespace_alias (namespace_name, qna);
 		      
                     if (skip_to (';') == ';')
                       MATCH ();
@@ -3536,7 +3639,7 @@ void
 version ()
 {
   printf ("ebrowse %s\n", VERSION);
-  puts ("Copyright (C) 1992-1999, 2000 Free Software Foundation, Inc.");
+  puts ("Copyright (C) 1992-1999, 2000, 2001 Free Software Foundation, Inc.");
   puts ("This program is distributed under the same terms as Emacs.");
   exit (0);
 }
