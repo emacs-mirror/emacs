@@ -24,10 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "window.h"
 
-/* Nonzero means don't allow protected fields to be modified.  */
-
-extern int check_protected_fields;
-
 /* Move gap to position `pos'.
    Note that this can quit!  */
 
@@ -496,11 +492,6 @@ prepare_to_modify_buffer (start, end)
 {
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
-
-#if 0				/* Superceded by interval code */
-  if (check_protected_fields)
-    Fregion_fields (start, end, Qnil, Qt);
-#endif
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   verify_interval_modification (current_buffer, start, end);
