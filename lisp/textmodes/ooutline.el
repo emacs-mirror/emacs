@@ -372,20 +372,17 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (setq levels (1- levels))
   (save-excursion
     (goto-char (point-min))
-    (condition-case nil
-	;; Keep advancing to the next top-level heading.
-	(while (progn (or (and (bobp) (outline-on-heading-p))
-			  (outline-next-heading))
-		      (not (eobp)))
-	  (setq first nil)
-	  (let ((end (save-excursion (outline-end-of-subtree) (point))))
-	    ;; Hide everything under that.
-	    (outline-flag-region (point) end ?\^M)
-	    ;; Show the first LEVELS levels under that.
-	    (show-children levels)
-	    ;; Move to the next, since we already found it.
-	    (goto-char end)))
-      (error nil))))
+    ;; Keep advancing to the next top-level heading.
+    (while (or (and (bobp) (outline-on-heading-p))
+	       (outline-next-heading))
+      (let ((end (save-excursion (outline-end-of-subtree) (point))))
+	;; Hide everything under that.
+	(outline-flag-region (point) end ?\^M)
+	;; Show the first LEVELS levels under that.
+	(if (> levels 1)
+	    (show-children levels))
+	;; Move to the next, since we already found it.
+	(goto-char end)))))
 
 (defun hide-other ()
   "Hide everything except for the current body and the parent headings."
