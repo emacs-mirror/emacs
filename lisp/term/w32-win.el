@@ -91,7 +91,7 @@
     (save-excursion
       (select-window window)
       (cond
-       ((eq bar-part 'up-arrow)
+       ((eq bar-part 'up)
 	(scroll-down 1))
        ((eq bar-part 'above-handle)
 	(scroll-down))
@@ -99,7 +99,7 @@
 	(scroll-bar-drag-1 event))
        ((eq bar-part 'below-handle)
 	(scroll-up))
-       ((eq bar-part 'down-arrow)
+       ((eq bar-part 'down)
 	(scroll-up 1))
        ))))
 
