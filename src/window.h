@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -170,6 +170,9 @@ struct window
     /* If we have highlighted the region (or any part of it),
        this is the mark position that we used, as an integer.  */
     Lisp_Object region_showing;
+    /* The column number currently displayed in this window's mode line,
+       or nil if column numbers are not being displayed.  */
+    Lisp_Object column_number_displayed;
   };
 
 /* 1 if W is a minibuffer window.  */
