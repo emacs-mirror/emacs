@@ -932,7 +932,52 @@ syntax table; other characters are copied from the standard syntax table."
 	(aset table i 13)
 	(setq i (1+ i)))
       table)))
+
+(defun global-set-key (key command)
+  "Give KEY a global binding as COMMAND.
+COMMAND is a symbol naming an interactively-callable function.
+KEY is a key sequence (a string or vector of characters or event types).
+Non-ASCII characters with codes above 127 (such as ISO Latin-1)
+can be included if you use a vector.
+Note that if KEY has a local binding in the current buffer
+that local binding will continue to shadow any global binding."
+  (interactive "KSet key globally: \nCSet key %s to command: ")
+  (or (vectorp key) (stringp key)
+      (signal 'wrong-type-argument (list 'arrayp key)))
+  (define-key (current-global-map) key command)
+  nil)
 
+(defun local-set-key (key command)
+  "Give KEY a local binding as COMMAND.
+COMMAND is a symbol naming an interactively-callable function.
+KEY is a key sequence (a string or vector of characters or event types).
+Non-ASCII characters with codes above 127 (such as ISO Latin-1)
+can be included if you use a vector.
+The binding goes in the current buffer's local map,
+which in most cases is shared with all other buffers in the same major mode."
+  (interactive "KSet key locally: \nCSet key %s locally to command: ")
+  (let ((map (current-local-map)))
+    (or map
+	(use-local-map (setq map (make-sparse-keymap))))
+    (or (vectorp key) (stringp key)
+	(signal 'wrong-type-argument (list 'arrayp key)))
+    (define-key map key command))
+  nil)
+
+(defun global-unset-key (key)
+  "Remove global binding of KEY.
+KEY is a string representing a sequence of keystrokes."
+  (interactive "kUnset key globally: ")
+  (global-set-key key nil))
+
+(defun local-unset-key
+  "Remove local binding of KEY.
+KEY is a string representing a sequence of keystrokes."
+  (interactive "kUnset key locally: ")
+  (if (current-local-map)
+      (local-set-key (current-local-map) key nil))
+  nil)
+
 ;; now in fns.c
 ;(defun nth (n list)
 ;  "Returns the Nth element of LIST.
