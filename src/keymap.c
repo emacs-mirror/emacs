@@ -938,7 +938,7 @@ KEY is a key sequence (a string or vector of characters or event types).\n\
 Non-ASCII characters with codes above 127 (such as ISO Latin-1)\n\
 can be included if you use a vector.\n\
 The binding goes in the current buffer's local map,\n\
-which is shared with other buffers in the same major mode.")
+which in most cases is shared with all other buffers in the same major mode.")
   (keys, function)
      Lisp_Object keys, function;
 {
@@ -1761,7 +1761,7 @@ nominal         alternate\n\
 	p += sizeof (" Minor Mode Bindings");
 	*p = 0;
 
-	describe_map_tree (maps[i], 0, shadow, prefix, title);
+	describe_map_tree (maps[i], 0, shadow, prefix, title, 0);
 	shadow = Fcons (maps[i], shadow);
       }
   }
@@ -1771,12 +1771,12 @@ nominal         alternate\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 0, shadow, prefix,
-			 "Major Mode Bindings");
+			 "Major Mode Bindings", 0);
       shadow = Fcons (start1, shadow);
     }
 
   describe_map_tree (current_global_map, 0, shadow, prefix,
-		     "Global Bindings");
+		     "Global Bindings", 0);
 
   Fset_buffer (descbuf);
   return Qnil;
@@ -1790,13 +1790,15 @@ nominal         alternate\n\
     don't mention keys which would be shadowed by any of them.
    PREFIX, if non-nil, says mention only keys that start with PREFIX.
    TITLE, if not 0, is a string to insert at the beginning.
-   TITLE should not end with a colon or a newline; we supply that.  */
+   TITLE should not end with a colon or a newline; we supply that.
+   If NOMENU is not 0, then omit menu-bar commands.  */
 
 void
-describe_map_tree (startmap, partial, shadow, prefix, title)
+describe_map_tree (startmap, partial, shadow, prefix, title, nomenu)
      Lisp_Object startmap, shadow, prefix;
      int partial;
      char *title;
+     int nomenu;
 {
   Lisp_Object maps;
   struct gcpro gcpro1;
@@ -1808,6 +1810,26 @@ key             binding\n\
 
   maps = Faccessible_keymaps (startmap, prefix);
   GCPRO1 (maps);
+
+  if (nomenu)
+    {
+      Lisp_Object list;
+
+      /* Delete from MAPS each element that is for the menu bar.  */
+      for (list = maps; !NILP (list); list = XCONS (list)->cdr)
+	{
+	  Lisp_Object elt, prefix, tem;
+
+	  elt = Fcar (list);
+	  prefix = Fcar (elt);
+	  if (XVECTOR (prefix)->size >= 1)
+	    {
+	      tem = Faref (prefix, make_number (0));
+	      if (EQ (tem, Qmenu_bar))
+		maps = Fdelq (elt, maps);
+	    }
+	}
+    }
 
   if (!NILP (maps))
     {
