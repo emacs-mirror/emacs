@@ -445,4 +445,8 @@ DIARY OF CHANGES
    (Done, did exactly that.  Core dumps during combo sessions became
    much rarer.  In fact, I have not yet met a single one.)
 
+-- Add multi-tty support to talk.el.
+
+   (Done.)
+
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
