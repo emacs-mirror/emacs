@@ -1641,6 +1641,8 @@ vmotion (from, vtarget, w)
   Lisp_Object window;
   int start_hpos = 0;
   int did_motion;
+  /* This is the object we use for fetching character properties.  */
+  Lisp_Object text_prop_object;
 
   XSETWINDOW (window, w);
 
@@ -1656,6 +1658,13 @@ vmotion (from, vtarget, w)
 
       start_hpos = minibuf_prompt_width;
     }
+
+  /* If the window contains this buffer, use it for getting text properties.
+     Otherwise use the current buffer as arg for doing that.  */
+  if (EQ (w->buffer, Fcurrent_buffer ()))
+    text_prop_object = window;
+  else
+    text_prop_object = Fcurrent_buffer ();
 
   if (vpos >= vtarget)
     {
@@ -1678,7 +1687,7 @@ vmotion (from, vtarget, w)
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
 						       Qinvisible,
-						       window),
+						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
 		     ))
@@ -1740,7 +1749,7 @@ vmotion (from, vtarget, w)
 #ifdef USE_TEXT_PROPERTIES
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
-						   window),
+						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
 	     ))
