@@ -1545,7 +1545,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (catch 'ido
 		(completing-read 
 		 (ido-make-prompt item prompt)
-		 '(("dummy".1)) nil nil ; table predicate require-match
+		 '(("dummy" . 1)) nil nil ; table predicate require-match
 		 (prog1 ido-text-init (setq ido-text-init nil))	;initial-contents
 		 history))))
       (ido-trace "completing-read" ido-final-text)
@@ -2751,7 +2751,7 @@ for first matching file."
 	       ido-enable-flex-matching
 	       (> (length ido-text) 1)
 	       (not ido-enable-regexp))
-      (setq re (mapconcat 'regexp-quote (split-string ido-text "") ".*"))
+      (setq re (mapconcat #'regexp-quote (split-string ido-text "") ".*"))
       (if ido-enable-prefix
 	  (setq re (concat "\\`" re)))
       (mapcar
@@ -2817,14 +2817,16 @@ for first matching file."
           (if ido-enable-regexp
               subs
             (regexp-quote subs)))
-    (setq res (mapcar 'ido-word-matching-substring items))
+    (setq res (mapcar #'ido-word-matching-substring items))
     (setq res (delq nil res)) ;; remove any nil elements (shouldn't happen)
-    (setq alist (mapcar 'ido-makealist res)) ;; could use an  OBARRAY
+    (setq alist (mapcar #'ido-makealist res)) ;; could use an  OBARRAY
 
     ;; try-completion returns t if there is an exact match.
-    (let ((completion-ignore-case ido-case-fold))
-
-    (try-completion subs alist))))
+    (let* ((completion-ignore-case ido-case-fold)
+	   (comp (try-completion subs alist)))
+      (if (eq comp t)
+	  subs
+	comp))))
 
 (defun ido-word-matching-substring (word)
   ;; Return part of WORD before 1st match to `ido-change-word-sub'.
@@ -3499,28 +3501,30 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	   (let* ((items (if (> ido-max-prospects 0) (1+ ido-max-prospects) 999))
 		  (alternatives
 		   (apply
-		    (function concat)
+		    #'concat 
 		    (cdr (apply
-			  (function nconc)
-			  (mapcar '(lambda (com)
-				     (setq com (ido-name com))
-				     (setq items (1- items))
-				     (cond
-				      ((< items 0) ())
-				      ((= items 0) (list (nth 3 ido-decorations))) ; " | ..."
-				      (t
-				       (list (or ido-separator (nth 2 ido-decorations)) ; " | "
-					     (let ((str (substring com 0)))
-					       (if (and ido-use-faces
-							(not (string= str first))
-							(ido-final-slash str))
-						   (put-text-property 0 (length str) 'face 'ido-subdir-face str))
-					       str)))))
-				  comps))))))
+			  #'nconc
+			  (mapcar
+			   (lambda (com)
+			     (setq com (ido-name com))
+			     (setq items (1- items))
+			     (cond
+			      ((< items 0) ())
+			      ((= items 0) (list (nth 3 ido-decorations))) ; " | ..."
+			      (t
+			       (list (or ido-separator (nth 2 ido-decorations)) ; " | "
+				     (let ((str (substring com 0)))
+				       (if (and ido-use-faces
+						(not (string= str first))
+						(ido-final-slash str))
+					   (put-text-property 0 (length str) 'face 'ido-subdir-face str))
+				       str)))))
+			   comps))))))
 
 	     (concat
 	      ;; put in common completion item -- what you get by pressing tab
-	      (if (> (length ido-common-match-string) (length name))
+	      (if (and (stringp ido-common-match-string)
+		       (> (length ido-common-match-string) (length name)))
 		  (concat (nth 4 ido-decorations)   ;; [ ... ]
 			  (substring ido-common-match-string (length name))
 			  (nth 5 ido-decorations)))
