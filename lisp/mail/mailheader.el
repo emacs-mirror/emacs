@@ -36,7 +36,7 @@
 ;; The car of each element in the message-header alist is a symbol whose
 ;; print name is the name of the header, in all lower-case.  The cdr of an
 ;; element depends on the operation.  After extracting headers from a
-;; messge, it is a string, the value of the header.  An extracted set of
+;; message, it is a string, the value of the header.  An extracted set of
 ;; headers may be parsed further, which may turn it into a list, whose car
 ;; is the original value and whose subsequent elements depend on the
 ;; header.  For formatting, it is evaluated to obtain the strings to be
