@@ -685,7 +685,7 @@ the generated key is presented (in entry or, if
 must take one argument (the automatically generated key), and must
 return with a string (the key to use)."
   :group 'bibtex-autokey
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom bibtex-entry-offset 0
   "*Offset for BibTeX entries.
