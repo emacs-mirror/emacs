@@ -994,12 +994,14 @@ the body of the original message; otherwise copy the current message."
   (interactive)
   (mail-send-and-exit t))
 
-(defun rmail-summary-forward ()
-  "Forward the current message to another user."
-  (interactive)
+(defun rmail-summary-forward (resend)
+  "Forward the current message to another user.
+With prefix argument, \"resend\" the message instead of forwarding it;
+see the documentation of `rmail-resend'."
+  (interactive "P")
   (save-excursion
     (set-buffer rmail-buffer)
-    (rmail-forward)
+    (rmail-forward resend)
     (use-local-map (copy-keymap (current-local-map)))
     (define-key (current-local-map)
       "\C-c\C-c" 'rmail-summary-send-and-exit)))
