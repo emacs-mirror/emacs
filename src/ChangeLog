@@ -1,3 +1,8 @@
+2003-03-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (smc_save_yourself_CB): Add --no-splash to options
+	when restarting Emacs.
+
 2003-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (Fkill_buffer): Use Frun_hook_with_args_until_failure

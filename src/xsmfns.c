@@ -94,6 +94,12 @@ Lisp_Object Vx_session_previous_id;
 #define SMID_OPT "--smid="
 
 
+/* The option to start Emacs without the splash screen when
+   restarting Emacs. */
+
+#define NOSPLASH_OPT "--no-splash"
+
+
 /* Handle any messages from the session manager.  If no connection is
    open to a session manager, just return 0.
    Otherwise returns the number of events stored in buffer BUFP,
@@ -220,11 +226,11 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
 
-  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx). */
+  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx --no-splash). */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmRestartCommand;
   props[props_idx]->type = SmLISTofARRAY8;
-  props[props_idx]->num_vals = 2; /* 2 values: /path/to/emacs, --smid=xxx */
+  props[props_idx]->num_vals = 3; /* /path/to/emacs, --smid=xxx --no-splash */
   props[props_idx]->vals = &values[val_idx];
   props[props_idx]->vals[0].length = strlen (emacs_program);
   props[props_idx]->vals[0].value = emacs_program;
@@ -235,7 +241,10 @@ smc_save_yourself_CB (smcConn,
 
   props[props_idx]->vals[1].length = strlen (smid_opt);
   props[props_idx]->vals[1].value = smid_opt;
-  val_idx += 2;
+
+  props[props_idx]->vals[2].length = strlen (NOSPLASH_OPT);
+  props[props_idx]->vals[2].value = NOSPLASH_OPT;
+  val_idx += 3;
   ++props_idx;
 
   /* User id */
