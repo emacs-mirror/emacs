@@ -1,3 +1,7 @@
+2000-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info/dir (MIME): Add entry for emacs-mime.
+
 2000-09-29  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix alpha*-dec-osf4 using the osf5 config.
