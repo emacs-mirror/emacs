@@ -695,6 +695,10 @@ If CODING-SYSTEM supports all ISO-2022 charsets, return `iso-2022'.
 If CODING-SYSTEM supports all emacs-mule charsets, return `emacs-mule'."
   (plist-get (coding-system-plist coding-system) :charset-list))
 
+(defun coding-system-category (coding-system)
+  "Return a category symbol of CODING-SYSTEM."
+  (plist-get (coding-system-plist coding-system) :category))
+
 (defun coding-system-get (coding-system prop)
   "Extract a value from CODING-SYSTEM's property list for property PROP.
 For compatibility with Emacs 20/21, this accepts old-style symbols
