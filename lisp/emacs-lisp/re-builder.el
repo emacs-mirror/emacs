@@ -45,7 +45,7 @@
 ;; call `reb-force-update' ("\C-c\C-u") which should reveal the error.
 
 ;; The target buffer can be changed with `reb-change-target-buffer'
-;; ("\C-c\C-b"). Changing the target buffer automatically removes
+;; ("\C-c\C-b").  Changing the target buffer automatically removes
 ;; the overlays from the old buffer and displays the new one in the
 ;; target window.
 
@@ -229,21 +229,19 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Buffer to use for the RE Builder.")
 
 ;; Define the local "\C-c" keymap
-(defvar reb-mode-map nil
+(defvar reb-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'reb-toggle-case)
+    (define-key map "\C-c\C-q" 'reb-quit)
+    (define-key map "\C-c\C-w" 'reb-copy)
+    (define-key map "\C-c\C-s" 'reb-next-match)
+    (define-key map "\C-c\C-r" 'reb-prev-match)
+    (define-key map "\C-c\C-i" 'reb-change-syntax)
+    (define-key map "\C-c\C-e" 'reb-enter-subexp-mode)
+    (define-key map "\C-c\C-b" 'reb-change-target-buffer)
+    (define-key map "\C-c\C-u" 'reb-force-update)
+    map)
   "Keymap used by the RE Builder.")
-
-(if (not reb-mode-map)
-    (progn
-      (setq reb-mode-map (make-sparse-keymap))
-      (define-key reb-mode-map "\C-c\C-c" 'reb-toggle-case)
-      (define-key reb-mode-map "\C-c\C-q" 'reb-quit)
-      (define-key reb-mode-map "\C-c\C-w" 'reb-copy)
-      (define-key reb-mode-map "\C-c\C-s" 'reb-next-match)
-      (define-key reb-mode-map "\C-c\C-r" 'reb-prev-match)
-      (define-key reb-mode-map "\C-c\C-i" 'reb-change-syntax)
-      (define-key reb-mode-map "\C-c\C-e" 'reb-enter-subexp-mode)
-      (define-key reb-mode-map "\C-c\C-b" 'reb-change-target-buffer)
-      (define-key reb-mode-map "\C-c\C-u" 'reb-force-update)))
 
 (defun reb-mode ()
   "Major mode for interactively building Regular Expressions.
@@ -367,7 +365,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       (reb-update-modestring))))
 
 (defun reb-force-update ()
-  "Forces an update in the RE Builder target window without a match limit."
+  "Force an update in the RE Builder target window without a match limit."
   (interactive)
 
   (let ((reb-auto-match-limit nil))

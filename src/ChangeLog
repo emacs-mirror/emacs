@@ -1,3 +1,40 @@
+2004-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Faccept_process_output): Add arg JUST-THIS-ONE;
+	forward to wait_reading_process_input via DO_DISPLAY arg.
+	(wait_reading_process_input): If DO_DISPLAY < 0 for a process
+	object, only process output from that process; also inhibit
+	running timers if DO_DISPLAY==-2.
+
+2004-08-17  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (process_send_signal): Fix last change--use
+	_POSIX_VDISABLE instead of CVDISABLE when available.
+
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* sysdep.c (child_setup_tty) [SIGNALS_VIA_CHARACTERS]:
+	Set VQUIT and VINTR chars to the standard ones if they are unset.
+	[AIX]: Don't do that here.  And don't force VINTR to standard
+	when SIGNALS_VIA_CHARACTERS.
+
+	* process.c (process_send_signal)
+	[SIGNALS_VIA_CHARACTERS, HAVE_TERMIOS]:	Clean up.
+	Do nothing if the character is CVDISABLE.
+
+	* xfaces.c (merge_face_ref): Specifying `unspecified' is a no-op.
+
+	* intervals.c (move_if_not_intangible):
+	Force POSITION to be between BEGV and ZV.
+
+2004-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* buffer.c (Frestore_buffer_modified_p): Doc fix.
+
+	* fileio.c (Fread_file_name): Doc fix.
+
+	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
+
 2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymap.c (Fmake_keymap, Fmap_keymap, Fwhere_is_internal): Doc fixes.
@@ -65,6 +102,10 @@
 	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>:  Doc fix.
 
 	* callint.c (Fcall_interactively): Doc fix.
+
+2004-07-30  Richard M. Stallman  <rms@gnu.org>
+
+	* abbrev.c (Fexpand_abbrev): Undo previous change.
 
 2004-07-30  Kim F. Storm  <storm@cua.dk>
 

@@ -574,33 +574,65 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ;; Fontify leading identifiers in fully qualified names like
       ;; "foo::bar" in languages that supports such things.
       ,@(when (c-lang-const c-opt-identifier-concat-key)
-	  `((,(byte-compile
-	       ;; Must use a function here since we match longer
-	       ;; than we want to move before doing a new search.
-	       ;; This is not necessary for XEmacs >= 20 since it
-	       ;; restarts the search from the end of the first
-	       ;; highlighted submatch (something that causes
-	       ;; problems in other places).
-	       `(lambda (limit)
-		  (while (re-search-forward
-			  ,(concat "\\(\\<" ; 1
-				   "\\(" (c-lang-const c-symbol-key) "\\)" ; 2
-				   "[ \t\n\r\f\v]*"
-				   (c-lang-const c-opt-identifier-concat-key)
-				   "[ \t\n\r\f\v]*"
-				   "\\)"
-				   "\\("
-				   (c-lang-const c-opt-after-id-concat-key)
-				   "\\)")
-			  limit t)
-		    (unless (progn
-			      (goto-char (match-beginning 0))
-			      (c-skip-comments-and-strings limit))
-		      (or (get-text-property (match-beginning 2) 'face)
-			  (c-put-font-lock-face (match-beginning 2)
-						(match-end 2)
-						c-reference-face-name))
-		      (goto-char (match-end 1)))))))))
+	  (if (c-major-mode-is 'java-mode)
+	      ;; Java needs special treatment since "." is used both to
+	      ;; qualify names and in normal indexing.  Here we look for
+	      ;; capital characters at the beginning of an identifier to
+	      ;; recognize the class.  "*" is also recognized to cover
+	      ;; wildcard import declarations.  All preceding dot separated
+	      ;; identifiers are taken as package names and therefore
+	      ;; fontified as references.
+	      `(,(c-make-font-lock-search-function
+		  ;; Search for class identifiers preceded by ".".  The
+		  ;; anchored matcher takes it from there.
+		  (concat (c-lang-const c-opt-identifier-concat-key)
+			  "[ \t\n\r\f\v]*"
+			  (concat "\\("
+				  "[" c-upper "][" (c-lang-const c-symbol-chars) "]*"
+				  "\\|"
+				  "\\*"
+				  "\\)"))
+		  `((let (id-end)
+		      (goto-char (1+ (match-beginning 0)))
+		      (while (and (eq (char-before) ?.)
+				  (progn
+				    (backward-char)
+				    (c-backward-syntactic-ws)
+				    (setq id-end (point))
+				    (< (skip-chars-backward
+					,(c-lang-const c-symbol-chars)) 0))
+				  (not (get-text-property (point) 'face)))
+			(c-put-font-lock-face (point) id-end c-reference-face-name)
+			(c-backward-syntactic-ws)))
+		    nil
+		    (goto-char (match-end 0)))))
+
+	    `((,(byte-compile
+		 ;; Must use a function here since we match longer than we
+		 ;; want to move before doing a new search.  This is not
+		 ;; necessary for XEmacs >= 20 since it restarts the search
+		 ;; from the end of the first highlighted submatch (something
+		 ;; that causes problems in other places).
+		 `(lambda (limit)
+		    (while (re-search-forward
+			    ,(concat "\\(\\<" ; 1
+				     "\\(" (c-lang-const c-symbol-key) "\\)" ; 2
+				     "[ \t\n\r\f\v]*"
+				     (c-lang-const c-opt-identifier-concat-key)
+				     "[ \t\n\r\f\v]*"
+				     "\\)"
+				     "\\("
+				     (c-lang-const c-opt-after-id-concat-key)
+				     "\\)")
+			    limit t)
+		      (unless (progn
+				(goto-char (match-beginning 0))
+				(c-skip-comments-and-strings limit))
+			(or (get-text-property (match-beginning 2) 'face)
+			    (c-put-font-lock-face (match-beginning 2)
+						  (match-end 2)
+						  c-reference-face-name))
+			(goto-char (match-end 1))))))))))
 
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
@@ -787,17 +819,19 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (<= (point) limit)
 
 	    ;; Search syntactically to the end of the declarator (";",
-	    ;; ",", ")", ">" (for <> arglists), eob etc) or to the
-	    ;; beginning of an initializer or function prototype ("="
-	    ;; or "\\s\(").
+	    ;; ",", a closen paren, eob etc) or to the beginning of an
+	    ;; initializer or function prototype ("=" or "\\s\(").
+	    ;; Note that the open paren will match array specs in
+	    ;; square brackets, and we treat them as initializers too.
 	    (c-syntactic-re-search-forward
-	     "[\];,\{\}\[\)>]\\|\\'\\|\\(=\\|\\(\\s\(\\)\\)" limit t t))
+	     "[;,]\\|\\s)\\|\\'\\|\\(=\\|\\s(\\)" limit t t))
 
       (setq next-pos (match-beginning 0)
-	    id-face (if (match-beginning 2)
+	    id-face (if (eq (char-after next-pos) ?\()
 			'font-lock-function-name-face
 		      'font-lock-variable-name-face)
-	    got-init (match-beginning 1))
+	    got-init (and (match-beginning 1)
+			  (char-after (match-beginning 1))))
 
       (if types
 	  ;; Register and fontify the identifer as a type.
@@ -828,9 +862,17 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		 (goto-char limit)))
 
 	      (got-init
-	       ;; Skip an initializer expression.
-	       (if (c-syntactic-re-search-forward "[;,]" limit 'move t)
-		   (backward-char)))
+	       ;; Skip an initializer expression.  If we're at a '='
+	       ;; then accept a brace list directly after it to cope
+	       ;; with array initializers.  Otherwise stop at braces
+	       ;; to avoid going past full function and class blocks.
+	       (and (if (and (eq got-init ?=)
+			     (= (c-forward-token-2) 0)
+			     (looking-at "{"))
+			(c-safe (c-forward-sexp) t)
+		      t)
+		    (c-syntactic-re-search-forward "[;,{]" limit 'move t)
+		    (backward-char)))
 
 	      (t (c-forward-syntactic-ws limit)))
 

@@ -31,7 +31,6 @@
 ;;;        swish-e
 ;;;        mairix
 ;;;        namazu
-;;;        glimpse
 ;;;        grep
 ;;;
 ;;;  (2) To use this package, you first have to build an index. Please read
@@ -43,7 +42,7 @@
 
 ;;; Code:
 
-(require 'mh-utils)
+(eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-e)
 (require 'mh-mime)
@@ -66,8 +65,6 @@
      mh-mairix-regexp-builder)
     (namazu
      mh-namazu-binary mh-namazu-execute-search mh-namazu-next-result nil)
-    (glimpse
-     mh-glimpse-binary mh-glimpse-execute-search mh-glimpse-next-result nil)
     (pick
      mh-pick-binary mh-pick-execute-search mh-pick-next-result
      mh-pick-regexp-builder)
@@ -200,7 +197,8 @@ This function should only be called in the appropriate index folder buffer."
            (call-process "rm" nil nil nil
                          (format "%s%s/%s" mh-user-path
                                  (substring mh-current-folder 1) msg))
-           (remhash omsg (gethash ofolder mh-index-data))))
+           (when (gethash ofolder mh-index-data)
+             (remhash omsg (gethash ofolder mh-index-data)))))
         (t
          (setf (gethash msg mh-index-msg-checksum-map) checksum)
          (when origin-map
@@ -301,7 +299,8 @@ list of messages in that sequence."
              (pair (gethash checksum mh-index-checksum-origin-map))
              (ofolder (car pair))
              (omsg (cdr pair)))
-        (loop for seq in (gethash omsg (gethash ofolder seq-hash))
+        (loop for seq in (ignore-errors
+                           (gethash omsg (gethash ofolder seq-hash)))
               do (if (assoc seq seq-list)
                      (push msg (cdr (assoc seq seq-list)))
                    (push (list seq msg) seq-list)))))
@@ -374,7 +373,6 @@ index for each program:
     - `mh-swish-execute-search'
     - `mh-mairix-execute-search'
     - `mh-namazu-execute-search'
-    - `mh-glimpse-execute-search'
 
 If none of these programs are present then we use pick. If desired grep can be
 used instead. Details about these methods can be found in:
@@ -436,7 +434,7 @@ This has the effect of renaming already present X-MHE-Checksum headers."
           (save-excursion (mh-exec-cmd-quiet nil "rmf" buffer-name))
           (mh-exec-cmd-quiet nil "folder" "-create" "-fast" buffer-name)
           (setq index-folder buffer-name))
-      (setq index-folder (mh-index-new-folder index-folder)))
+      (setq index-folder (mh-index-new-folder index-folder search-regexp)))
 
     (let ((folder-path (format "%s%s" mh-user-path (substring folder 1)))
           (folder-results-map (make-hash-table :test #'equal))
@@ -587,13 +585,6 @@ PROC is used to convert the value to actual data."
                          mh-previous-window-config)
       (error "No search terms"))))
 
-(defun mh-replace-string (old new)
-  "Replace all occurrences of OLD with NEW in the current buffer."
-  (goto-char (point-min))
-  (let ((case-fold-search t))
-    (while (search-forward old nil t)
-      (replace-match new t t))))
-
 ;;;###mh-autoload
 (defun mh-index-parse-search-regexp (input-string)
   "Construct parse tree for INPUT-STRING.
@@ -739,27 +730,47 @@ results."
   "Check if MSG exists in FOLDER."
   (file-exists-p (format "%s%s/%s" mh-user-path (substring folder 1) msg)))
 
-(defun mh-index-new-folder (name)
-  "Create and return an MH folder name based on NAME.
-If the folder NAME already exists then check if NAME<2> exists. If it doesn't
-then it is created and returned. Otherwise try NAME<3>. This is repeated till
-we find a new folder name."
+(defun mh-index-new-folder (name search-regexp)
+  "Return a folder name based on NAME for search results of SEARCH-REGEXP.
+
+If folder NAME already exists and was generated for the same SEARCH-REGEXP
+then it is reused.
+
+Otherwise if the folder NAME was generated from a different search then check
+if NAME<2> can be used. Otherwise try NAME<3>. This is repeated till we find a
+new folder name.
+
+If the folder returned doesn't exist then it is created."
   (unless (mh-folder-name-p name)
     (error "The argument should be a valid MH folder name"))
-  (let ((chosen-name name))
-    (block unique-name
-      (unless (mh-folder-exists-p name)
-        (return-from unique-name))
-      (loop for index from 2
-            do (let ((new-name (format "%s<%s>" name index)))
-                 (unless (mh-folder-exists-p new-name)
-                   (setq chosen-name new-name)
-                   (return-from unique-name)))))
+  (let ((chosen-name
+         (loop for i from 1
+               for candidate = (if (equal i 1) name (format "%s<%s>" name i))
+               when (or (not (mh-folder-exists-p candidate))
+                        (equal (mh-index-folder-search-regexp candidate)
+                               search-regexp))
+               return candidate)))
+    ;; Do pending refiles/deletes...
+    (when (get-buffer chosen-name)
+      (mh-process-or-undo-commands chosen-name))
+    ;; Recreate folder...
+    (save-excursion (mh-exec-cmd-quiet nil "rmf" chosen-name))
     (mh-exec-cmd-quiet nil "folder" "-create" "-fast" chosen-name)
     (mh-remove-from-sub-folders-cache chosen-name)
     (when (boundp 'mh-speed-folder-map)
       (mh-speed-add-folder chosen-name))
     chosen-name))
+
+(defun mh-index-folder-search-regexp (folder)
+  "If FOLDER was created by a index search, return the search regexp.
+Return nil if FOLDER doesn't exist or the .mhe_index file is garbled."
+  (ignore-errors
+    (with-temp-buffer
+      (insert-file-contents
+       (format "%s%s/%s" mh-user-path (substring folder 1) mh-index-data-file))
+      (goto-char (point-min))
+      (forward-list 3)
+      (cadr (read (current-buffer))))))
 
 ;;;###mh-autoload
 (defun mh-index-insert-folder-headers ()
@@ -777,8 +788,27 @@ we find a new folder name."
         (insert (if last-folder "\n" "") current-folder "\n")
         (setq last-folder current-folder))
       (forward-line))
-    (when cur-msg (mh-goto-msg cur-msg t))
-    (set-buffer-modified-p old-buffer-modified-flag)))
+    (when cur-msg
+      (mh-notate-cur)
+      (mh-goto-msg cur-msg t))
+    (set-buffer-modified-p old-buffer-modified-flag))
+  (mh-index-create-imenu-index))
+
+;;;###mh-autoload
+(defun mh-index-create-imenu-index ()
+  "Create alist of folder names and positions in index folder buffers."
+  (save-excursion
+    (setq which-func-mode t)
+    (let ((alist ()))
+      (goto-char (point-min))
+      (while (re-search-forward "^+" nil t)
+        (save-excursion
+          (beginning-of-line)
+          (push (cons (buffer-substring-no-properties
+                       (point) (line-end-position))
+                      (set-marker (make-marker) (point)))
+                alist)))
+      (setq imenu--index-alist (nreverse alist)))))
 
 ;;;###mh-autoload
 (defun mh-index-group-by-folder ()
@@ -836,23 +866,6 @@ list of messages originally from that folder."
       (mh-visit-folder
        folder (loop for x being the hash-keys of (gethash folder mh-index-data)
                     when (mh-msg-exists-p x folder) collect x)))))
-
-;;;###mh-autoload
-(defun mh-index-update-unseen (msg)
-  "Remove counterpart of MSG in source folder from `mh-unseen-seq'.
-Also `mh-update-unseen' is called in the original folder, if we have it open."
-  (let* ((checksum (gethash msg mh-index-msg-checksum-map))
-         (folder-msg-pair (gethash checksum mh-index-checksum-origin-map))
-         (orig-folder (car folder-msg-pair))
-         (orig-msg (cdr folder-msg-pair)))
-    (when (mh-index-match-checksum orig-msg orig-folder checksum)
-      (when (get-buffer orig-folder)
-        (save-excursion
-          (set-buffer orig-folder)
-          (unless (member orig-msg mh-seen-list) (push orig-msg mh-seen-list))
-          (mh-update-unseen)))
-      (mh-exec-cmd-daemon "mark" #'ignore orig-folder (format "%s" orig-msg)
-                          "-sequence" (symbol-name mh-unseen-seq) "-del"))))
 
 (defun mh-index-match-checksum (msg folder checksum)
   "Check if MSG in FOLDER has X-MHE-Checksum header value of CHECKSUM."
@@ -970,90 +983,6 @@ update the source folder buffer if present."
                        (mh-delete-msg-from-seq msgs seq t))))
                  (mh-index-matching-source-msgs msgs))
         folders))))
-
-
-
-;; Glimpse interface
-
-(defvar mh-glimpse-binary (executable-find "glimpse"))
-(defvar mh-glimpse-directory ".glimpse")
-
-;;;###mh-autoload
-(defun mh-glimpse-execute-search (folder-path search-regexp)
-  "Execute glimpse and read the results.
-
-In the examples below, replace /home/user/Mail with the path to your MH
-directory.
-
-First create the directory /home/user/Mail/.glimpse. Then create the file
-/home/user/Mail/.glimpse/.glimpse_exclude with the following contents:
-
-    */.*
-    */#*
-    */,*
-    */*~
-    ^/home/user/Mail/.glimpse
-    ^/home/user/Mail/mhe-index
-
-If there are any directories you would like to ignore, append lines like the
-following to .glimpse_exclude:
-
-    ^/home/user/Mail/scripts
-
-You do not want to index the folders that hold the results of your searches
-since they tend to be ephemeral and the original messages are indexed anyway.
-The configuration file above assumes that the results are found in sub-folders
-of `mh-index-folder' which is +mhe-index by default.
-
-Use the following command line to generate the glimpse index. Run this
-daily from cron:
-
-    glimpseindex -H /home/user/Mail/.glimpse /home/user/Mail
-
-FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
-  (erase-buffer)
-  (call-process mh-glimpse-binary nil '(t nil) nil
-                                        ;(format "-%s" fuzz)
-                "-i" "-y"
-                "-H" (format "%s%s" mh-user-path mh-glimpse-directory)
-                "-F" (format "^%s" folder-path)
-                search-regexp)
-  (goto-char (point-min)))
-
-(defun mh-glimpse-next-result ()
-  "Read the next result.
-Parse it and return the message folder, message index and the match. If no
-other matches left then return nil. If the current record is invalid return
-'error."
-  (prog1
-      (block nil
-        (when (eobp)
-          (return nil))
-        (let ((eol-pos (line-end-position))
-              (bol-pos (line-beginning-position))
-              folder-start msg-end)
-          (goto-char bol-pos)
-          (unless (search-forward mh-user-path eol-pos t)
-            (return 'error))
-          (setq folder-start (point))
-          (unless (search-forward ": " eol-pos t)
-            (return 'error))
-          (let ((match (buffer-substring-no-properties (point) eol-pos)))
-            (forward-char -2)
-            (setq msg-end (point))
-            (unless (search-backward "/" folder-start t)
-              (return 'error))
-            (list (format "+%s" (buffer-substring-no-properties
-                                 folder-start (point)))
-                  (let ((val (ignore-errors (read-from-string
-                                             (buffer-substring-no-properties
-                                              (1+ (point)) msg-end)))))
-                    (if (and (consp val) (integerp (car val)))
-                        (car val)
-                      (return 'error)))
-                  match))))
-    (forward-line)))
 
 
 
@@ -1319,16 +1248,12 @@ then the folders are searched recursively. All parameters ARGS are ignored."
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
   "Display messages from FOLDERS in SEQUENCE.
-By default the folders specified by `mh-index-new-messages-folders' are
-searched. With a prefix argument, enter a space-separated list of folders, or
-nothing to search all folders.
-
-Argument SEQUENCE defaults to `mh-unseen-seq' and is the sequence that the
-function searches for in each of the FOLDERS. With a prefix argument, enter a
-sequence to use."
+All messages in the sequence you provide from the folders in
+`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of folders, or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) [all]? "))
+             (split-string (read-string "Search folder(s): [all] "))
            mh-index-new-messages-folders)
          (mh-read-seq-default "Search" nil)))
   (unless sequence (setq sequence mh-unseen-seq))
@@ -1367,26 +1292,26 @@ sequence to use."
 ;;;###mh-autoload
 (defun mh-index-new-messages (folders)
   "Display unseen messages.
-All messages in the `unseen' sequence from FOLDERS are displayed.
-By default the folders specified by `mh-index-new-messages-folders'
-are searched. With a prefix argument, enter a space-separated list of
-folders, or nothing to search all folders."
+If you use a program such as `procmail' to use `rcvstore' to file your
+incoming mail automatically, you can display new, unseen, messages using this
+command. All messages in the `unseen' sequence from the folders in
+`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of FOLDERS, or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) [all]? "))
+             (split-string (read-string "Search folder(s): [all] "))
            mh-index-new-messages-folders)))
   (mh-index-sequenced-messages folders mh-unseen-seq))
 
 ;;;###mh-autoload
 (defun mh-index-ticked-messages (folders)
   "Display ticked messages.
-All messages in the `tick' sequence from FOLDERS are displayed.
-By default the folders specified by `mh-index-ticked-messages-folders'
-are searched. With a prefix argument, enter a space-separated list of
-folders, or nothing to search all folders."
+All messages in `mh-tick-seq' from the folders in
+`mh-index-ticked-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of FOLDERS, or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) [all]? "))
+             (split-string (read-string "Search folder(s): [all] "))
            mh-index-ticked-messages-folders)))
   (mh-index-sequenced-messages folders mh-tick-seq))
 

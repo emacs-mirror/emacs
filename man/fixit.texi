@@ -339,7 +339,7 @@ a different standard dictionary.
   Ispell uses a separate dictionary for word completion.  The variable
 @code{ispell-complete-word-dict} specifies the file name of this
 dictionary.  The completion dictionary must be different because it
-cannot use employ root and affix information.  For some languages
+cannot use root and affix information.  For some languages
 there is a spell checking dictionary but no word completion
 dictionary.
 

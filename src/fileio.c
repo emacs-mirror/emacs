@@ -6195,7 +6195,10 @@ DIR should be an absolute directory name.  It defaults to the value of
 
 If this command was invoked with the mouse, use a file dialog box if
 `use-dialog-box' is non-nil, and the window system or X toolkit in use
-provides a file dialog box.  */)
+provides a file dialog box.
+
+See also `read-file-name-completion-ignore-case'
+and `read-file-name-function'.  */)
      (prompt, dir, default_filename, mustmatch, initial, predicate)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial, predicate;
 {

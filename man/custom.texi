@@ -1619,14 +1619,13 @@ because the terminal sends the same character in both cases.
 @cindex rebinding non-@acronym{ASCII} keys
 @cindex non-@acronym{ASCII} keys, binding
 
-If your keyboard has keys that send non-@acronym{ASCII} characters, such as
-accented letters, rebinding these keys is a bit tricky.  There are two
-solutions you can use.  One is to specify a keyboard coding system,
-using @code{set-keyboard-coding-system} (@pxref{Specify Coding}).
-Then you can bind these keys in the usual way@footnote{Note that you
-should avoid the string syntax for binding 8-bit characters, since
-they will be interpreted as meta keys.  @xref{Strings of
-Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
+If your keyboard has keys that send non-@acronym{ASCII}
+characters, such as accented letters, rebinding these keys
+must be done by using a vector like this@footnote{Note that
+you should avoid the string syntax for binding
+non-@acronym{ASCII} characters, since they will be
+interpreted as meta keys.  @xref{Strings of Events,,,elisp,
+The Emacs Lisp Reference Manual}.}:
 
 @example
 (global-set-key [?@var{char}] 'some-function)
@@ -1635,27 +1634,15 @@ Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 @noindent
 Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
-Since this puts a non-@acronym{ASCII} character in the @file{.emacs}, you should
-specify the proper coding system for that file.  @xref{Init Syntax}.
-Specify the same coding system for the file that you use for your
-keyboard.
+Since this puts a non-@acronym{ASCII} character in the @file{.emacs},
+you should specify the proper coding system for that file.  @xref{Init
+Syntax}.  You should specify the same coding system for the file that
+you use for your keyboard.
 
-If you don't specify a keyboard coding system, that approach won't
-work.  Instead, you need to find out the actual code that the terminal
-sends.  The easiest way to do this in Emacs is to create an empty
-buffer with @kbd{C-x b temp @key{RET}}, make it unibyte with @kbd{M-x
-toggle-enable-multibyte-characters @key{RET}}, then type the key to
-insert the character into this buffer.
-
-Move point before the character, then type @kbd{C-x =}.  This
-displays a message in the minibuffer, showing the character code in
-three ways, octal, decimal and hexadecimal, all within a set of
-parentheses.  Use the second of the three numbers, the decimal one,
-inside the vector to bind:
-
-@example
-(global-set-key [@var{decimal-code}] 'some-function)
-@end example
+@strong{Warning:} if you change the keyboard encoding, or change
+from unibyte to multibyte mode, such that the code that
+@kbd{C-q} inserts becomes different, you'll need to edit the
+Lisp expression accordingly.
 
 If you bind 8-bit characters like this in your init file, you may find it
 convenient to specify that it is unibyte.  @xref{Enabling Multibyte}.

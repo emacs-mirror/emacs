@@ -1,3 +1,197 @@
+2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/copyright.el (copyright-update-year): Delete code
+	that replaces 20xy with xy.
+
+2004-08-17  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Define within defvar.
+	(reb-force-update): Doc fix.
+
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/which-func.el (which-func-update-1): Doc fix.
+
+	* progmodes/sh-script.el (sh-set-shell): Use sh-mode-abbrev-table.
+	(sh-mode-abbrev-table): New variable.
+
+	* progmodes/compile.el (compilation-mode): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp):
+	Don't cons a new symbol each time.
+	(eval-last-sexp-fake-value): New variable.
+
+	* emacs-lisp/copyright.el (copyright-years-regexp): New variable.
+	(copyright-update-year): Detect continuation of list of years.
+
+	* term.el (term-default-fg-color, term-default-bg-color)
+	(ansi-term-color-vector): Use `unspecified', not nil, as default.
+
+	* imenu.el: Several doc fixes: don't say variables are buffer-local.
+
+2004-08-16  Davis Herring <herring@lanl.gov>
+
+	* isearch.el (isearch-string, isearch-message-string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets)
+	(isearch-case-fold-search): Fix broken `nth'-like calls to `aref'.
+
+2004-08-16  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-font-info-database): Fix docstring.
+
+2004-08-15  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): If utf8 was successful but
+	ctext was not, use utf8 string.
+
+2004-08-14  Davis Herring  <herring@lanl.gov>
+
+	* isearch.el: Remove accidental changes of March 4.  Fix backing
+	up when a regexp isearch is made more general.  Use symbolic
+	accessor functions for isearch stack frames to make usage clearer.
+	(search-whitespace-regexp): Made groups in documentation shy (as
+	is the group in the default value).
+	(isearch-fallback): New function, addresses problems with regexps
+	liberalized by `\|', adds support for liberalization by `\}' (the
+	general repetition construct), and incorporates behavior for
+	`*'/`?'.
+	(isearch-}-char): New command, calls `isearch-fallback' with
+	arguments appropriate to a typed `}'.
+	(isearch-*-char, isearch-|-char): Now just call `isearch-fallback'
+	appropriately.
+	(isearch-mode-map): Bind `}' to `isearch-}-char'.
+	(isearch-string, isearch-message,string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets, isearch-case-fold-search):
+	New inline functions to read fields of a stack frame.
+
+2004-08-14  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>  (tiny change)
+
+	* battery.el (battery-linux-proc-acpi): Look into battery
+	directories matching the literal string "CMB", too (required for
+	Linux kernel version 2.6.7).
+
+2004-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* cus-start.el (read-file-name-completion-ignore-case): Add.
+	(blink-cursor-alist): Change version to "21.4".
+
+	* emacs-lisp/bytecomp.el (forward-word): Allow 0 args.
+
+2004-08-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* speedbar.el (speedbar-scan-subdirs): New option.
+	(speedbar-file-lists): Don't ignore file-name case on Unix and use
+	dolist.
+	(speedbar-insert-files-at-point): Take an extra argument and use
+	it to optionally find out if a subdir is empty.  Also unreadable
+	files don't get expand buttons.
+	(speedbar-directory): New image (unused pixmap already existed).
+	(speedbar-expand-image-button-alist): Use it.
+
+2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	CC Mode update to 5.30.9:
+
+	* progmodes/cc-defs.el, progmodes/cc-vars.el (c-emacs-features):
+	Moved from cc-vars to cc-defs for dependency reasons.  Fixed the
+	POSIX char class test to check that it works in
+	`skip-chars-(forward|backward)' too.
+
+	* progmodes/cc-align.el (c-lineup-arglist): Fixed bug when the
+	first argument starts with a special brace list.
+
+	* progmodes/cc-engine.el (c-forward-type): Fixed promotion bug
+	when `c-opt-type-concat-key' is used (i.e. in Pike).
+
+	* progmodes/cc-engine.el (c-looking-at-special-brace-list): Fixed
+	bug when the inner char pair doesn't have paren syntax, i.e. "(<
+	>)".
+
+	* progmodes/cc-align.el (c-lineup-multi-inher): Made it syntactic
+	whitespace safe.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed anchor
+	position for `arglist-intro', `arglist-cont-nonempty' and
+	`arglist-close' when there are two arglist open parens on the same
+	line and there's nothing in front of the first.
+
+	* progmodes/cc-fonts.el (c-basic-matchers-before): Fixed font
+	locking of qualified names in Java, which previously could fontify
+	common indexing expressions in many cases.  The standard Java
+	naming conventions are used to tell them apart.
+
+	* progmodes/cc-align.el (c-lineup-whitesmith-in-block): Fixed
+	inconsistency wrt opening parens on the first line inside a paren
+	block.
+
+	* progmodes/cc-defs.el (c-langs-are-parametric): Must be known at
+	compile time for the sake of `c-major-mode-is'.
+
+	(c-mode-is-new-awk-p): Made it a macro to delay expansion of
+	`c-major-mode-is' in the event that this is used inside a
+	`c-lang-defconst'.
+
+	* progmodes/cc-defs.el (c-major-mode-is): Fixed expansion inside
+	`c-lang-defconst' so that it works better with fallback languages.
+
+	* progmodes/cc-defs.el (c-add-language): Fixed a typo that caused
+	it to fail to record the base mode.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Fixed
+	bug so that it doesn't go past the closing paren when PAREN-LEVEL
+	is used.  Reordered the syntax checks to get more efficient
+	skipping in some situations.
+
+	* progmodes/cc-cmds.el (c-electric-brace): Don't trip up on a line
+	continuation which might precede the newly inserted '{'.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Fixed
+	cases where it could loop indefinitely.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Handle array
+	size specs correctly.  Only fontify identifiers in front of '('
+	with as functions - don't accept any paren char.  Tightened up
+	initializer skipping to stop before function and class blocks.
+
+	* progmodes/cc-engine.el (c-beginning-of-decl-1): Fixed bug where
+	the point could be left directly after an open paren when finding
+	the beginning of the first decl in the block.
+
+	* progmodes/cc-engine.el (c-parse-state): Don't use the syntax
+	table when filtering out legitimate open parens to be recorded.
+	This could cause cache inconsistencies when e.g.
+	`c++-template-syntax-table' was temporarily in use.
+
+	* progmodes/cc-engine.el (c-on-identifier,
+	c-simple-skip-symbol-backward): Small fix for handling "-"
+	correctly in `skip-chars-backward'.  Affected the operator lfun
+	syntax in Pike.
+
+	* progmodes/cc-engine.el (c-invalidate-sws-region-after): Fixed
+	bug that could cause an error from `after-change-functions' when
+	the changed region is at bob.
+
+2004-08-11  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	CC Mode update to 5.30.9:
+
+	* progmodes/cc-cmds.el, progmodes/cc-vars.el: Amend doc(-strings)
+	to say that <TAB> doesn't insert WS into a CPP line.
+	(c-indent-command, c-tab-always-indent): Amend doc strings.
+
+	* progmodes/cc-styles.el, progmodes/cc-engine.el: Add in two
+	checks for user errors, thus eliminating cryptic and unhelpful
+	Emacs error messages.  (1) Check the arg to `c-set-style' is a
+	string.  (2) Check that settings to `c-offsets-alist' are not
+	spuriously quoted.
+
+	* progmodes/cc-cmds.el: (c-electric-brace): don't delete a comment
+	which precedes the newly inserted `{'.
+
 2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.44.

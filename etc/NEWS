@@ -658,7 +658,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.4.4. There have been major changes since
+Upgraded to MH-E version 7.4.80. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
@@ -1966,8 +1966,11 @@ source files.  See the Flymake's Info manual for more details.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
-** The wdired.el package allows you to use normal editing commands on dired
+** The wdired.el package allows you to use normal editing commands on Dired
 buffers to change filenames, permissions, etc...
+
+** The thumbs.el package allows you to preview image files as thumbnails
+and can be invoked from a Dired buffer.
 
 ** The new python.el package is used to edit Python and Jython programs.
 
@@ -3268,7 +3271,13 @@ and modify elements on this property list.
 The new low-level functions process-plist and set-process-plist are
 used to access and replace the entire property list of a process.
 
-???
+*** Function accept-process-output now has an optional fourth arg
+`just-this-one'.  If non-nil, only output from the specified process
+is handled, suspending output from other processes.  If value is an
+integer, also inhibit running timers.  This feature is generally not
+recommended, but may be necessary for specific applications, such as
+speech synthesis.
+
 *** Adaptive read buffering of subprocess output.
 
 On some systems, when emacs reads the output from a subprocess, the

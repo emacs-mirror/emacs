@@ -247,20 +247,20 @@ command twice.)
 
 @item C-u C-x C-x
 @kindex C-u C-x C-x
-Activate the mark without changing it, enable Transient Mark mode just
-once until the mark is deactivated.  (This is the @kbd{C-x C-x} command,
-@code{exchange-point-and-mark}, with a prefix argument.)
+Activate the mark without changing it; enable Transient Mark mode just
+once, until the mark is deactivated.  (This is the @kbd{C-x C-x}
+command, @code{exchange-point-and-mark}, with a prefix argument.)
 @end table
 
   One of the secondary features of Transient Mark mode is that certain
-commands operate on the region when there is an active region.  If you
-don't use Transient Mark mode, the region once set never becomes
-inactive, so there is no way these commands to make such a
+commands operate only on the region, when there is an active region.
+If you don't use Transient Mark mode, the region once set never
+becomes inactive, so there is no way for these commands to make such a
 distinction.  Enabling Transient Mark mode momentarily gives you a way
 to use these commands on the region.
 
-  The other way momentarily use of Transient Mark mode is useful
-is that it highlights the region for the time being.
+  Momentary use of Transient Mark mode is also a way to highlight the
+region for the time being.
 
 @node Using Region
 @section Operating on the Region

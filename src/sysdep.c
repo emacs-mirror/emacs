@@ -607,6 +607,15 @@ child_setup_tty (out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* HPUX */
 
+#ifdef SIGNALS_VIA_CHARACTERS
+  /* the QUIT and INTR character are used in process_send_signal
+     so set them here to something useful.  */
+  if (s.main.c_cc[VQUIT] == 0377)
+    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
+  if (s.main.c_cc[VINTR] == 0377)
+    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
+#endif /* not SIGNALS_VIA_CHARACTERS */
+
 #ifdef AIX
 /* AIX enhanced edit loses NULs, so disable it */
 #ifndef IBMR2AIX
@@ -617,16 +626,10 @@ child_setup_tty (out)
      don't ignore break, but don't signal either, so it looks like NUL.  */
   s.main.c_iflag &= ~IGNBRK;
   s.main.c_iflag &= ~BRKINT;
-  /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VINTR] = 0377;
-#ifdef SIGNALS_VIA_CHARACTERS
-  /* the QUIT and INTR character are used in process_send_signal
-     so set them here to something useful.  */
-  if (s.main.c_cc[VQUIT] == 0377)
-    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
-  if (s.main.c_cc[VINTR] == 0377)
-    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
-#else /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
+  /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
+     unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
+     would force it to 0377.  That looks like duplicated code.  */
+#ifndef SIGNALS_VIA_CHARACTERS
   /* QUIT and INTR work better as signals, so disable character forms */
   s.main.c_cc[VQUIT] = 0377;
   s.main.c_cc[VINTR] = 0377;
