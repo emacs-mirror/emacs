@@ -2911,14 +2911,6 @@ text to PROCESS after you call this function.")
   if (! EQ (XPROCESS (proc)->status, Qrun))
     error ("Process %s not running", XSTRING (XPROCESS (proc)->name)->data);
 
-  /* Sending a zero-length record is supposed to mean eof
-     when TIOCREMOTE is turned on.  */
-#ifdef DID_REMOTE
-  {
-    char buf[1];
-    write (XINT (XPROCESS (proc)->outfd), buf, 0);
-  }
-#else /* did not do TOICREMOTE */
 #ifdef VMS
   send_process (proc, "\032", 1, Qnil); 	/* ^z */
 #else
@@ -2930,7 +2922,6 @@ text to PROCESS after you call this function.")
       XSET (XPROCESS (proc)->outfd, Lisp_Int, open (NULL_DEVICE, O_WRONLY));
     }
 #endif /* VMS */
-#endif /* did not do TOICREMOTE */
   return process;
 }
 
