@@ -972,7 +972,7 @@ mark_interval_tree (tree)
      a cast.  */
   XMARK (tree->up.obj);
 
-  traverse_intervals (tree, 1, 0, mark_interval, Qnil);
+  traverse_intervals_noorder (tree, mark_interval, Qnil);
 }
 
 
