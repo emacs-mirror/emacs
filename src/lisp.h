@@ -88,14 +88,6 @@ enum Lisp_Type
 #ifdef LISP_FLOAT_TYPE
     Lisp_Float,
 #endif /* LISP_FLOAT_TYPE */
-
-    /* The overlay type.
-       An overlay values is actually a retagged cons, the first in a
-       list of the form
-           ((START . END) nil . PLIST)
-       where START and END are markers in the overlay's buffer, and
-       PLIST is the overlay's property list.  */
-    Lisp_Overlay
   };
 
 /* This is the set of datatypes that share a common structure.
@@ -109,7 +101,8 @@ enum Lisp_Misc_Type
     Lisp_Misc_Objfwd,
     Lisp_Misc_Buffer_Objfwd,
     Lisp_Misc_Buffer_Local_Value,
-    Lisp_Misc_Some_Buffer_Local_Value
+    Lisp_Misc_Some_Buffer_Local_Value,
+    Lisp_Misc_Overlay
   };
 
 #ifndef NO_UNION_TYPE
@@ -383,6 +376,7 @@ extern int pure_size;
 #define XOBJFWD(a) (&(XMISC(a)->u_objfwd))
 #define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
 #define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
+#define XOVERLAY(a) (&(XMISC(a)->u_overlay))
 
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
@@ -577,6 +571,9 @@ struct Lisp_Buffer_Objfwd
    The actual contents resemble a cons cell which starts a list like this:
    (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
 
+   The cons-like structure is for historical reasons; it might be better
+   to just put these elements into the struct, now.
+
    BUFFER is the last buffer for which this symbol's value was
    made up to date.
 
@@ -617,6 +614,14 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object car, cdr;
   };
 
+/* In an overlay object, the mark bit of the plist is used as the GC mark.
+   START and END are markers in the overlay's buffer, and
+   PLIST is the overlay's property list.  */
+struct Lisp_Overlay
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Overlay */
+    Lisp_Object start, end, plist;
+  };
 union Lisp_Misc
   {
     enum Lisp_Misc_Type type;
@@ -627,6 +632,7 @@ union Lisp_Misc
     struct Lisp_Objfwd u_objfwd;
     struct Lisp_Buffer_Objfwd u_buffer_objfwd;
     struct Lisp_Buffer_Local_Value u_buffer_local_value;
+    struct Lisp_Overlay u_overlay;
   };
 
 #ifdef LISP_FLOAT_TYPE
@@ -769,7 +775,7 @@ typedef unsigned char UCHAR;
 #else
 #define FLOATP(x) (0)
 #endif
-#define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
+#define OVERLAYP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
 #define INTFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
 #define BOOLFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
