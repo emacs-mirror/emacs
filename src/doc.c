@@ -58,26 +58,24 @@ static Lisp_Object Vbuild_files;
 extern Lisp_Object Voverriding_local_map;
 
 /* For VMS versions with limited file name syntax,
-   convert the name to something VMS will allow. */
+   convert the name to something VMS will allow.  */
 static void
 munge_doc_file_name (name)
      char *name;
 {
 #ifdef VMS
-#ifndef VMS4_4
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
+#ifndef NO_HYPHENS_IN_FILENAMES
+  extern char * sys_translate_unix (char *ufile);
+  strcpy (name, sys_translate_unix (name));
+#else /* NO_HYPHENS_IN_FILENAMES */
+  char *p = name;
   while (*p)
     {
       if (*p == '-')
 	*p = '_';
       p++;
     }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 #endif /* VMS */
 }
 
@@ -607,21 +605,7 @@ the same file name is found in the `doc-directory'.  */)
       strcpy (name, SDATA (Vdoc_directory));
     }
   strcat (name, SDATA (filename)); 	/*** Add this line ***/
-#ifdef VMS
-#ifndef VMS4_4
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
-  while (*p)
-    {
-      if (*p == '-')
-	*p = '_';
-      p++;
-    }
-#else /* VMS4_4 */
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
-#endif /* VMS */
+  munge_doc_file_name (name);
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
