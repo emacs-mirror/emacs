@@ -1,3 +1,7 @@
+2002-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Remove EMACSLOCKDIR.
+
 2002-06-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* macterm.c, macmenu.c, msdos.c, sysdep.c, termhooks.h, xterm.h

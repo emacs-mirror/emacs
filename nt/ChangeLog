@@ -1,3 +1,11 @@
+2002-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (env_vars): Remove EMACSLOCKDIR.
+
+	* makefile.w32-in (maybe-bootstrap, doit, maybe-bootstrap-CMD)
+	(maybe-bootstrap-SH): New targets.
+	(all): Depend on maybe-bootstrap.
+
 2002-05-03  Jason Rumney  <jasonr@gnu.org>
 
 	* inc/sys/socket.h (F_SETFL, O_NDELAY): Define.
