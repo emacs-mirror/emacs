@@ -41,6 +41,11 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #endif
 
+#ifdef macintosh
+extern struct mac_output *NewMacWindow ();
+extern void DisposeMacWindow (struct mac_output *);
+#endif
+
 /* Evaluate this expression to rebuild the section of syms_of_frame
    that initializes and staticpros the symbols declared below.  Note
    that Emacs 18 has a bug that keeps C-x C-e from being able to
@@ -90,6 +95,7 @@ Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qw32;
 Lisp_Object Qpc;
+Lisp_Object Qmac;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
 Lisp_Object Qbuffer_list;
@@ -132,6 +138,8 @@ syms_of_frame_1 ()
   staticpro (&Qw32);
   Qpc = intern ("pc");
   staticpro (&Qpc);
+  Qmac = intern ("mac");
+  staticpro (&Qmac);
   Qvisible = intern ("visible");
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
@@ -244,6 +252,8 @@ See also `frame-live-p'.")
       return Qw32;
     case output_msdos_raw:
       return Qpc;
+    case output_mac:
+      return Qmac;
     default:
       abort ();
     }
@@ -539,9 +549,27 @@ make_terminal_frame ()
 #ifdef MSDOS
   f->output_data.x = &the_only_x_display;
   f->output_method = output_msdos_raw;
-#else /* not MSDOS */
+#endif /* MSDOS */
+
+#ifdef macintosh
+  f->output_data.mac = NewMacWindow(f);
+  f->output_data.mac->background_pixel = 0xffffff;
+  f->output_data.mac->foreground_pixel = 0;
+  f->output_data.mac->n_param_faces = 0;
+  f->output_data.mac->n_computed_faces = 0;
+  f->output_data.mac->size_computed_faces = 0;  
+  f->output_method = output_mac;
+  f->auto_raise = 1;
+  f->auto_lower = 1;
+  init_frame_faces (f);
+#endif /* macintosh */
+
+#ifndef MSDOS
+#ifndef macintosh
   f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
 #endif
+#endif
+
   if (!noninteractive)
     init_frame_faces (f);
   return f;
@@ -558,18 +586,24 @@ Note that changing the size of one terminal frame automatically affects all.")
      Lisp_Object parms;
 {
   struct frame *f;
-  Lisp_Object frame;
-  Lisp_Object tem;
+  Lisp_Object frame, tem;
 
 #ifdef MSDOS
   if (selected_frame->output_method != output_msdos_raw)
     abort ();
+#else /* not MSDOS */
+
+#ifdef macintosh
+  if (selected_frame->output_method != output_mac)
+    error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
   if (selected_frame->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
 #endif
+#endif /* not MSDOS */
 
   f = make_terminal_frame ();
+
   change_frame_size (f, FRAME_HEIGHT (selected_frame),
 		     FRAME_WIDTH (selected_frame), 0, 0, 0);
   adjust_glyphs (f);
@@ -1222,6 +1256,14 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     x_destroy_window (f);
+#endif
+
+/* Done by x_destroy_window above already */
+#if 0
+#ifdef macintosh
+  if (FRAME_MAC_P (f))
+    DisposeMacWindow (f->output_data.mac);
+#endif
 #endif
 
   f->output_data.nothing = 0;
@@ -2029,6 +2071,12 @@ so that `frame-parameters' will return them.")
     IT_set_frame_parameters (f, alist);
   else
 #endif
+#ifdef macintosh
+  if (FRAME_MAC_P (f))
+    mac_set_frame_parameters (f, alist);
+  else
+#endif
+
     {
       int length = XINT (Flength (alist));
       int i;
