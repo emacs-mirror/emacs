@@ -1481,6 +1481,47 @@ operations.
 `vc-print-log' uses `log-view-mode'.
 `vc-log-mode' (used for *VC-Log*) has been replaced by `log-edit-mode'.
 
+The command C-x v m (vc-merge) now accepts an empty argument as the
+first revision number.  This means that any recent changes on the
+current branch should be picked up from the repository and merged into
+the working file (``merge news'').
+
+The commands C-x v s (vc-create-snapshot) and C-x v r
+(vc-retrieve-snapshot) now ask for a directory name from which to work
+downwards.
+
+*** Multiple Backends
+
+VC now lets you register files in more than one backend.  This is
+useful, for example, if you are working with a slow remote CVS
+repository.  You can then use RCS for local editing, and occasionally
+commit your changes back to CVS, or pick up changes from CVS into your
+local RCS archives.
+
+To make this work, the ``more local'' backend (RCS in our example)
+should come first in `vc-handled-backends', and the ``more remote''
+backend (CVS) should come later.  (The default value of
+`vc-handled-backends' already has it that way.)
+
+If you have a file registered in one backend already, you can register
+it in a second one by using C-x v i (vc-register) again.
+Alternatively, you can commit changes to another backend (say, RCS),
+by typing C-u C-x v v RCS RET (i.e. vc-next-action now accepts a
+backend name as a revision number).  When using the latter approach,
+VC registers the file in the more local backend if that hasn't already
+happened, and commits to a branch based on the current revision number
+from the more remote backend.
+
+If a file is registered in multiple backends, you can switch to
+another one using C-x v b (vc-switch-backend).  This does not change
+any files, it only changes VC's perspective on the file.  Use this to
+pick up changes from CVS while working under RCS locally.
+
+After you are done with your local RCS editing, you can commit your
+changes back to CVS using C-u C-x v v CVS RET.  In this case, the
+local RCS archive is removed after the commit, and the log entry
+buffer is initialized to contain the entire RCS change log of the file.
+
 *** Changes for CVS
 
 There is a new user option, `vc-cvs-stay-local'.  If it is `t' (the
@@ -1491,10 +1532,21 @@ regexp to match against repository hostnames; only files from hosts
 that match it are treated locally.  If the variable is nil, then VC
 queries the repository just as often as it does for local files.
 
+If `vc-cvs-stay-local' is on, then VC also makes local backups of
+repository versions.  This means that ordinary diffs (C-x v =) and
+revert operations (C-x v u) can be done completely locally, without
+any repository interactions at all.  The name of a local version
+backup of FILE is FILE.~REV.~, where REV is the repository version
+number.  This format is similar to that used by C-x v ~
+(vc-version-other-window), except for the trailing dot.  As a matter
+of fact, the two features can each use the files created by the other,
+the only difference being that files with a trailing `.' are deleted
+automatically after commit.
+
 If `vc-cvs-stay-local' is on, and there have been changes in the
 repository, VC notifies you about it when you actually try to commit.
 If you want to check for updates from the repository without trying to
-commit, you can either use C-u C-x v m to perform an update on the
+commit, you can either use C-x v m RET to perform an update on the
 current file, or you can use C-x v r RET to get an update for an
 entire directory tree.
 
@@ -1502,6 +1554,11 @@ The new user option `vc-cvs-use-edit' indicates whether VC should call
 "cvs edit" to make files writeable; it defaults to `t'.  (This option
 is only meaningful if the CVSREAD variable is set, or if files are
 "watched" by other developers.)
+
+The commands C-x v s (vc-create-snapshot) and C-x v r
+(vc-retrieve-snapshot) are now also implemented for CVS.  If you give
+an empty argument to the latter, that performs a `cvs update',
+starting at the given directory.
 
 *** Lisp Changes in VC
 
