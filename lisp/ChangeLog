@@ -27,6 +27,24 @@
 	* startup.el (normal-top-level): Reset standard-value property of
 	`user-full-name' here.
 
+2002-10-02  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-default-get): Change to return external
+	value. 
+	(widget-choice-action): Update caller.
+	(widget-editable-list-entry-create): Update caller.
+
+	* wid-edit.el (widget-types-copy): New function.
+	(default): Added :copy keyword.
+	(menu-choice): Ditto.
+	(checklist): Ditto.
+	(radio-button-choice): Ditto.
+	(editable-list): Ditto.
+	(group): Ditto.
+	(widget-copy): New function.
+	(widget-create-child): Use it.
+	(widget-create-child-value): Use it.
+
 2002-10-01  Bill Wohler  <wohler@newt.com>
 
 	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,

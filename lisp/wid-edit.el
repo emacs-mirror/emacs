@@ -508,9 +508,10 @@ Otherwise, just return the value."
 					 :value-to-internal value)))
 
 (defun widget-default-get (widget)
-  "Extract the default value of WIDGET."
-  (or (widget-get widget :value)
-      (widget-apply widget :default-get)))
+  "Extract the default external value of WIDGET."
+  (widget-apply widget :value-to-external 
+		(or (widget-get widget :value)
+		    (widget-apply widget :default-get))))
 
 (defun widget-match-inline (widget vals)
   "In WIDGET, match the start of VALS."
@@ -688,7 +689,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child (parent type)
   "Create widget of TYPE."
-  (let ((widget (copy-sequence type)))
+  (let ((widget (widget-copy type)))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
       (widget-put widget :indent (+ (or (widget-get parent :indent) 0)
@@ -699,7 +700,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child-value (parent type value)
   "Create widget of TYPE with value VALUE."
-  (let ((widget (copy-sequence type)))
+  (let ((widget (widget-copy type)))
     (widget-put widget :value (widget-apply widget :value-to-internal value))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
@@ -713,6 +714,10 @@ The child is converted, using the keyword arguments ARGS."
 (defun widget-delete (widget)
   "Delete WIDGET."
   (widget-apply widget :delete))
+
+(defun widget-copy (widget)
+  "Make a deep copy of WIDGET."
+  (widget-apply (copy-sequence widget) :copy))
 
 (defun widget-convert (type &rest args)
   "Convert TYPE to a widget without inserting it in the buffer.
@@ -1271,6 +1276,11 @@ Optional EVENT is the event that triggered the action."
 	    found (widget-apply child :validate)))
     found))
 
+(defun widget-types-copy (widget)
+  "Copy :args as widget types in WIDGET."
+  (widget-put widget :args (mapcar 'widget-copy (widget-get widget :args)))
+  widget)
+
 ;; Made defsubst to speed up face editor creation.
 (defsubst widget-types-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
@@ -1308,6 +1318,7 @@ Optional EVENT is the event that triggered the action."
   :button-face-get 'widget-default-button-face-get 
   :sample-face-get 'widget-default-sample-face-get 
   :delete 'widget-default-delete
+  :copy 'identity
   :value-set 'widget-default-value-set
   :value-inline 'widget-default-value-inline
   :default-get 'widget-default-default-get
@@ -1853,6 +1864,7 @@ the earlier input."
 (define-widget 'menu-choice 'default
   "A menu of options."
   :convert-widget  'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%[%t%]: %v"
   :case-fold t
   :tag "choice"
@@ -1982,9 +1994,7 @@ when he invoked the menu."
       (when this-explicit
 	(widget-put widget :explicit-choice current)
 	(widget-put widget :explicit-choice-value (widget-get widget :value)))
-      (widget-value-set
-       widget (widget-apply current
-			    :value-to-external (widget-default-get current)))
+      (widget-value-set widget (widget-default-get current))
       (widget-setup)
       (widget-apply widget :notify widget event)))
   (run-hook-with-args 'widget-edit-functions widget))
@@ -2091,6 +2101,7 @@ when he invoked the menu."
 (define-widget 'checklist 'default
   "A multiple choice widget."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%v"
   :offset 4
   :entry-format "%b %v"
@@ -2268,6 +2279,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'radio-button-choice 'default
   "Select one of multiple options."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :offset 4
   :format "%v"
   :entry-format "%b %v"
@@ -2456,6 +2468,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'editable-list 'default
   "A variable list of widgets of the same type."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :offset 12
   :format "%v%i\n"
   :format-handler 'widget-editable-list-format-handler
@@ -2607,9 +2620,7 @@ Return an alist of (TYPE MATCH)."
 		    (setq child (widget-create-child-value
 				 widget type value))
 		  (setq child (widget-create-child-value
-			       widget type
-			       (widget-apply type :value-to-external
-					     (widget-default-get type))))))
+			       widget type (widget-default-get type)))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      (widget-put widget
@@ -2631,6 +2642,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'group 'default
   "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%v"
   :value-create 'widget-group-value-create
   :value-delete 'widget-children-value-delete

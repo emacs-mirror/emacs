@@ -1536,6 +1536,19 @@ Convert @code{:args} as widget types in @var{widget}.
 Initialize @code{:value} from @code{:args} in @var{widget}.
 @end defun
 
+@vindex copy@r{ keyword}
+@item :copy
+Function to deep copy a widget type.  It takes a shallow copy of the
+widget type as an argument (made by @code{copy-sequence}), and returns a
+deep copy.  The purpose of this is to avoid having different instances
+of combined widgets share nested attributes.
+
+The following predefined functions can be used here:
+
+@defun widget-types-copy widget
+Copy @code{:args} as widget types in @var{widget}.
+@end defun
+
 @vindex value-to-internal@r{ keyword}
 @item :value-to-internal
 Function to convert the value to the internal format.  The function
