@@ -1126,8 +1126,7 @@ x_set_glyph_string_clipping (s)
 
 
 /* RIF:
-   Compute left and right overhang of glyph string S.  If S is a glyph
-   string for a composition, assume overhangs don't exist.  */
+   Compute left and right overhang of glyph string S.  */
 
 static void
 x_compute_glyph_string_overhangs (s)
@@ -1142,6 +1141,11 @@ x_compute_glyph_string_overhangs (s)
 		      &font_ascent, &font_descent, &cs);
       s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
       s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+    }
+  else if (s->cmp)
+    {
+      s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
+      s->left_overhang = - s->cmp->lbearing;
     }
 }
 
