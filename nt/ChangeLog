@@ -1,3 +1,25 @@
+2001-01-06  Andrew Innes  <andrewi@gnu.org>
+
+	* README: Update info about compilers.
+
+	* makefile.w32-in: Use $(MAKETYPE) instead of $(SHELLTYPE) to
+	select correct rule for invoking make in another directory.  Amend
+	rules accordingly.
+	(clean): Delete $(COMPILER_TEMP_FILES) instead of *.pdb.
+
+	* nmake.defs (EMACS_ICON_PATH): Delete definition.
+	(COMPILER_TEMP_FILES): New definition.
+	(MAKETYPE): New definition.
+
+	* gmake.defs (EMACS_ICON_PATH): Delete definition.
+	(COMPILER_TEMP_FILES): New definition.
+	(MAKETYPE): New definition.
+
+	* makefile.def (EMACS_ICON_PATH): Delete definition.
+
+	* configure.bat: Be careful not to add trailing spaces when
+	outputting to config.settings.
+
 2001-01-02  Andrew Innes  <andrewi@gnu.org>
 
 	* config.nt (RE_TRANSLATE): Use CHAR_TABLE_TRANSLATE macro rather
