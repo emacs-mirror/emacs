@@ -1,3 +1,8 @@
+2004-10-12  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-edit-list): Update the menu when the recentf
+	list has been modified.
+
 2004-10-12  Simon Josefsson  <jas@extundo.com>
 
 	* net/tls.el (tls-certtool-program): New variable.
