@@ -412,14 +412,14 @@ undoes the expansion."
   "Construct a function similar to `hippie-expand'.
 Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose."
-  (` (function (lambda (arg)
-       (, (concat 
-	   "Try to expand text before point, using the following functions: \n"
-	   (mapconcat 'prin1-to-string (eval try-list) ", ")))
-       (interactive "P")
-       (let ((hippie-expand-try-functions-list (, try-list))
-	     (hippie-expand-verbose (, verbose)))
-	 (hippie-expand arg))))))
+  `(function (lambda (arg)
+    ,(concat 
+      "Try to expand text before point, using the following functions: \n"
+      (mapconcat 'prin1-to-string (eval try-list) ", "))
+    (interactive "P")
+    (let ((hippie-expand-try-functions-list ,try-list)
+          (hippie-expand-verbose ,verbose))
+      (hippie-expand arg)))))
 
 
 ;;;  Here follows the try-functions and their requisites:
@@ -732,8 +732,8 @@ string).  It returns t if a new completion is found, nil otherwise."
 		    (re-search-forward
 		     (he-line-search-regexp str strip-prompt)
 		     nil t)))
-      (setq result (buffer-substring-no-properties (match-beginning 2)
-						   (match-end 2)))
+      (setq result (buffer-substring-no-properties (match-end 1)
+						   (match-end 0)))
       (if (he-string-member result he-tried-table t)
 	  (setq result nil)))		    ; if already in table, ignore
     result))
