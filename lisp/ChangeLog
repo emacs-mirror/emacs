@@ -1,5 +1,9 @@
 1999-11-23  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/autoload.el (make-autoload): Recognize the new
+	  `define-minor-mode'.
+	(define-minor-mode): Specify `doc-string-elt'.
+
 	* emacs-lisp/easy-mmode.el: Changed maintainer.
 	(easy-mmode-define-toggle): New BODY arg; Never append `-mode';
 	  Use defcustom for the hooks; Improve the auto-generated docstrings.

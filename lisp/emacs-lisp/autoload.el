@@ -63,19 +63,19 @@ that text will be copied verbatim to `generated-autoload-file'.")
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a `defun', `define-skeleton',
-`define-derived-mode', `define-generic-mode', `defmacro', `defcustom'
-or `easy-mmode-define-minor-mode'."
+`define-derived-mode', `define-generic-mode', `defmacro', `defcustom',
+`define-minor-mode' or `easy-mmode-define-minor-mode'."
   (let ((car (car-safe form)))
     (if (memq car '(defun define-skeleton defmacro define-derived-mode 
 		     define-generic-mode easy-mmode-define-minor-mode
-		     defun*))
+		     define-minor-mode defun*))
 	(let ((macrop (eq car 'defmacro))
 	      name doc)
 	  (setq form (cdr form)
 		name (car form)
 		;; Ignore the arguments.
 		form (cdr (cond 
-			   ((memq car '(define-skeleton 
+			   ((memq car '(define-skeleton define-minor-mode
 					 easy-mmode-define-minor-mode)) form)
 			   ((eq car 'define-derived-mode) (cdr (cdr form)))
 			   ((eq car 'define-generic-mode) 
@@ -90,6 +90,7 @@ or `easy-mmode-define-minor-mode'."
 		(or (eq car 'define-skeleton) (eq car 'define-derived-mode)
 		    (eq car 'define-generic-mode) 
 		    (eq car 'easy-mmode-define-minor-mode)
+		    (eq car 'define-minor-mode)
 		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
       ;; Convert defcustom to a simpler (and less space-consuming) defvar,
@@ -136,6 +137,7 @@ or `easy-mmode-define-minor-mode'."
 (put 'define-skeleton 'doc-string-elt 3)
 (put 'define-derived-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 3)
+(put 'define-minor-mode 'doc-string-elt 3)
 (put 'define-generic-mode 'doc-string-elt 3)
 
 
