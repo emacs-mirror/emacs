@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Fixit, Files, Search, Top
+@node Fixit, Keyboard Macros, Search, Top
 @chapter Commands for Fixing Typos
 @cindex typos, fixing
 @cindex mistakes, correcting
