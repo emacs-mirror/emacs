@@ -1,3 +1,8 @@
+2000-11-01  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* calendar/calendar.el (diary-face, holiday-face): Add
+	dark-background variants.
+
 2000-10-31  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/tex-mode.el (tex-file): Use `default-directory' when
