@@ -218,136 +218,137 @@ identifiers followed by `:' or `=', see variable
 `add-log-current-defun-header-regexp'.
 
 Has a preference of looking backwards."
-  (save-excursion
-    (let ((location (point)))
-      (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode))
-	     ;; If we are now precisely a the beginning of a defun,
-	     ;; make sure beginning-of-defun finds that one
-	     ;; rather than the previous one.
-	     (or (eobp) (forward-char 1))
-	     (beginning-of-defun)
-	     ;; Make sure we are really inside the defun found, not after it.
-	     (if (and (progn (end-of-defun)
-			     (< location (point)))
-		      (progn (forward-sexp -1)
-			     (>= location (point))))
-		 (progn
-		   (forward-word 1)
-		   (skip-chars-forward " ")
-		   (buffer-substring (point)
-				     (progn (forward-sexp 1) (point))))))
-	    ((and (memq major-mode '(c-mode 'c++-mode))
-		  (save-excursion (beginning-of-line)
-				  ;; Use eq instead of = here to avoid
-				  ;; error when at bob and char-after
-				  ;; returns nil.
-				  (while (eq (char-after (- (point) 2)) ?\\)
-				    (forward-line -1))
-				  (looking-at "[ \t]*#[ \t]*define[ \t]")))
-	     ;; Handle a C macro definition.
-	     (beginning-of-line)
-	     (while (eq (char-after (- (point) 2)) ?\\) ;not =; note above
-	       (forward-line -1))
-	     (search-forward "define")
-	     (skip-chars-forward " \t")
-	     (buffer-substring (point)
-			       (progn (forward-sexp 1) (point))))
-	    ((memq major-mode '(c-mode 'c++-mode))
-	     (beginning-of-line)
-	     ;; See if we are in the beginning part of a function,
-	     ;; before the open brace.  If so, advance forward.
-	     (while (not (looking-at "{\\|\\(\\s *$\\)"))
-	       (forward-line 1))
-	     (or (eobp)
-		 (forward-char 1))
-	     (beginning-of-defun)
-	     (if (progn (end-of-defun)
-			(< location (point)))
-		 (progn
-		   (backward-sexp 1)
-		   (let (beg tem)
-		   
-		     (forward-line -1)
-		     ;; Skip back over typedefs of arglist.
-		     (while (and (not (bobp))
-				 (looking-at "[ \t\n]"))
-		       (forward-line -1))
-		     ;; See if this is using the DEFUN macro used in Emacs,
-		     ;; or the DEFUN macro used by the C library.
-		     (if (condition-case nil
-			     (and (save-excursion
-				    (forward-line 1)
-				    (backward-sexp 1)
-				    (beginning-of-line)
-				    (setq tem (point))
-				    (looking-at "DEFUN\\b"))
-				  (>= location tem))
-			   (error nil))
-			 (progn
-			   (goto-char tem)
-			   (down-list 1)
-			   (if (= (char-after (point)) ?\")
-			       (progn
-				 (forward-sexp 1)
-				 (skip-chars-forward " ,")))
-			   (buffer-substring (point)
-					     (progn (forward-sexp 1) (point))))
-		       ;; Ordinary C function syntax.
-		       (setq beg (point))
-		       (if (condition-case nil
-			       ;; Protect against "Unbalanced parens" error.
-			       (progn
-				 (down-list 1) ; into arglist
-				 (backward-up-list 1)
-				 (skip-chars-backward " \t")
-				 t)
-			     (error nil))
-			   ;; Verify initial pos was after
-			   ;; real start of function.
-			   (if (and (save-excursion
-				      (goto-char beg)
-				      ;; For this purpose, include the line
-				      ;; that has the decl keywords.  This
-				      ;; may also include some of the
-				      ;; comments before the function.
-				      (while (and (not (bobp))
-						  (save-excursion
-						    (forward-line -1)
-						    (looking-at "[^\n\f]")))
+  (condition-case nil
+      (save-excursion
+	(let ((location (point)))
+	  (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode))
+		 ;; If we are now precisely a the beginning of a defun,
+		 ;; make sure beginning-of-defun finds that one
+		 ;; rather than the previous one.
+		 (or (eobp) (forward-char 1))
+		 (beginning-of-defun)
+		 ;; Make sure we are really inside the defun found, not after it.
+		 (if (and (progn (end-of-defun)
+				 (< location (point)))
+			  (progn (forward-sexp -1)
+				 (>= location (point))))
+		     (progn
+		       (forward-word 1)
+		       (skip-chars-forward " ")
+		       (buffer-substring (point)
+					 (progn (forward-sexp 1) (point))))))
+		((and (memq major-mode '(c-mode 'c++-mode))
+		      (save-excursion (beginning-of-line)
+				      ;; Use eq instead of = here to avoid
+				      ;; error when at bob and char-after
+				      ;; returns nil.
+				      (while (eq (char-after (- (point) 2)) ?\\)
 					(forward-line -1))
-				      (>= location (point)))
-				    ;; Consistency check: going down and up
-				    ;; shouldn't take us back before BEG.
-				    (> (point) beg))
-			       (buffer-substring (point)
-						 (progn (backward-sexp 1)
-							(point))))))))))
-	    ((memq major-mode
-		   '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
-			      plain-tex-mode latex-mode;; cmutex.el
-			      ))
-	     (if (re-search-backward
-		  "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
-		 (progn
-		   (goto-char (match-beginning 0))
-		   (buffer-substring (1+ (point));; without initial backslash
-				     (progn
-				       (end-of-line)
-				       (point))))))
-	    ((eq major-mode 'texinfo-mode)
-	     (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
-		 (buffer-substring (match-beginning 1)
-				   (match-end 1))))
-	    (t
-	     ;; If all else fails, try heuristics
-	     (let (case-fold-search)
-	       (end-of-line)
-	       (if (re-search-backward add-log-current-defun-header-regexp
-				       (- (point) 10000)
-				       t)
-		   (buffer-substring (match-beginning 1)
-				     (match-end 1)))))))))
+				      (looking-at "[ \t]*#[ \t]*define[ \t]")))
+		 ;; Handle a C macro definition.
+		 (beginning-of-line)
+		 (while (eq (char-after (- (point) 2)) ?\\) ;not =; note above
+		   (forward-line -1))
+		 (search-forward "define")
+		 (skip-chars-forward " \t")
+		 (buffer-substring (point)
+				   (progn (forward-sexp 1) (point))))
+		((memq major-mode '(c-mode 'c++-mode))
+		 (beginning-of-line)
+		 ;; See if we are in the beginning part of a function,
+		 ;; before the open brace.  If so, advance forward.
+		 (while (not (looking-at "{\\|\\(\\s *$\\)"))
+		   (forward-line 1))
+		 (or (eobp)
+		     (forward-char 1))
+		 (beginning-of-defun)
+		 (if (progn (end-of-defun)
+			    (< location (point)))
+		     (progn
+		       (backward-sexp 1)
+		       (let (beg tem)
 
+			 (forward-line -1)
+			 ;; Skip back over typedefs of arglist.
+			 (while (and (not (bobp))
+				     (looking-at "[ \t\n]"))
+			   (forward-line -1))
+			 ;; See if this is using the DEFUN macro used in Emacs,
+			 ;; or the DEFUN macro used by the C library.
+			 (if (condition-case nil
+				 (and (save-excursion
+					(forward-line 1)
+					(backward-sexp 1)
+					(beginning-of-line)
+					(setq tem (point))
+					(looking-at "DEFUN\\b"))
+				      (>= location tem))
+			       (error nil))
+			     (progn
+			       (goto-char tem)
+			       (down-list 1)
+			       (if (= (char-after (point)) ?\")
+				   (progn
+				     (forward-sexp 1)
+				     (skip-chars-forward " ,")))
+			       (buffer-substring (point)
+						 (progn (forward-sexp 1) (point))))
+			   ;; Ordinary C function syntax.
+			   (setq beg (point))
+			   (if (condition-case nil
+				   ;; Protect against "Unbalanced parens" error.
+				   (progn
+				     (down-list 1) ; into arglist
+				     (backward-up-list 1)
+				     (skip-chars-backward " \t")
+				     t)
+				 (error nil))
+			       ;; Verify initial pos was after
+			       ;; real start of function.
+			       (if (and (save-excursion
+					  (goto-char beg)
+					  ;; For this purpose, include the line
+					  ;; that has the decl keywords.  This
+					  ;; may also include some of the
+					  ;; comments before the function.
+					  (while (and (not (bobp))
+						      (save-excursion
+							(forward-line -1)
+							(looking-at "[^\n\f]")))
+					    (forward-line -1))
+					  (>= location (point)))
+					;; Consistency check: going down and up
+					;; shouldn't take us back before BEG.
+					(> (point) beg))
+				   (buffer-substring (point)
+						     (progn (backward-sexp 1)
+							    (point))))))))))
+		((memq major-mode
+		       '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
+				  plain-tex-mode latex-mode;; cmutex.el
+				  ))
+		 (if (re-search-backward
+		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
+		     (progn
+		       (goto-char (match-beginning 0))
+		       (buffer-substring (1+ (point));; without initial backslash
+					 (progn
+					   (end-of-line)
+					   (point))))))
+		((eq major-mode 'texinfo-mode)
+		 (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
+		     (buffer-substring (match-beginning 1)
+				       (match-end 1))))
+		(t
+		 ;; If all else fails, try heuristics
+		 (let (case-fold-search)
+		   (end-of-line)
+		   (if (re-search-backward add-log-current-defun-header-regexp
+					   (- (point) 10000)
+					   t)
+		       (buffer-substring (match-beginning 1)
+					 (match-end 1))))))))
+    (error nil)))
 
 
 (provide 'add-log)
