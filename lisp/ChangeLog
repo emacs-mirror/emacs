@@ -1,4 +1,5 @@
 2004-04-26  Lars Hansen  <larsh@math.ku.dk>
+
 	* desktop.el (desktop-buffer-misc-data-function): Rename to
 	desktop-save-buffer and change docstring.
 	(desktop-buffer-modes-to-save): Delete.
