@@ -167,7 +167,7 @@ If this contains a %s, that will be replaced by the matching rule."
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
 
 ;; Copyright (C) " (substring (current-time-string) -4) "  "
- (getenv "ORGANIZATION") | "Free Software Foundation, Inc." "
+ (getenv "ORGANIZATION") | (progn user-full-name) "
 
 ;; Author: " (user-full-name)
 '(if (search-backward "&" (line-beginning-position) t)
