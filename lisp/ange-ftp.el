@@ -1276,7 +1276,7 @@ Optional DEFAULT is password to start with."
     (setq ange-ftp-ftp-name-arg name
 	  ange-ftp-ftp-name-res
 	  (save-match-data
-	    (if (string-match (car ange-ftp-name-format) name)
+	    (if (posix-string-match (car ange-ftp-name-format) name)
 		(let* ((ns (cdr ange-ftp-name-format))
 		       (host (ange-ftp-ftp-name-component 0 ns name))
 		       (user (ange-ftp-ftp-name-component 1 ns name))
@@ -1290,7 +1290,7 @@ Optional DEFAULT is password to start with."
 ;; replace the name component with NAME.
 (defun ange-ftp-replace-name-component (fullname name)
   (save-match-data
-    (if (string-match (car ange-ftp-name-format) fullname)
+    (if (posix-string-match (car ange-ftp-name-format) fullname)
 	(let* ((ns (cdr ange-ftp-name-format))
 	       (elt (nth 2 ns)))
 	  (concat (substring fullname 0 (match-beginning elt))
@@ -1523,7 +1523,7 @@ good, skip, fatal, or unknown."
 (defun ange-ftp-process-sentinel (proc str)
   "When ftp process changes state, nuke all file-entries in cache."
   (let ((name (process-name proc)))
-    (if (string-match "\\*ftp \\([^@]+\\)@\\([^*]+\\)*" name)
+    (if (string-match "\\*ftp \\([^@]+\\)@\\([^*]+\\)\\*" name)
 	(let ((user (substring name (match-beginning 1) (match-end 1)))
 	      (host (substring name (match-beginning 2) (match-end 2))))
 	  (ange-ftp-wipe-file-entries host user))))
