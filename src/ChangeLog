@@ -1,5 +1,16 @@
 2004-04-06  Kim F. Storm  <storm@cua.dk>
 
+	* msdos.c (clear_mouse_face): Only clear mouse highlight if not	hidden.
+	(dos_rawgetc): Set mouse_face_hidden after clearing highlight.
+
+	* w32term.c (w32_read_socket): Set mouse_face_hidden after
+	clearing highlight.
+
+	* xdisp.c (clear_mouse_face): Only clear mouse highlight if not hidden.
+
+	* xterm.c (handle_one_xevent): Set mouse_face_hidden after
+	clearing highlight.
+
 	* indent.c (vmotion): Do not reserve one column for continuation
 	marks on window frames.
 

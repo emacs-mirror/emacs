@@ -2472,7 +2472,7 @@ file, you can put a `coding:' tags to override it.)
 ** The new function `merge-coding-systems' fills in unspecified aspects
 of one coding system from another coding system.
 
----
++++
 ** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
 specification.  Normally Emacs asks for confirmation before evaluating
