@@ -19,7 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
-#include "config.h"
+#include <config.h>
 
 #ifdef MSDOS
 #include "lisp.h"
