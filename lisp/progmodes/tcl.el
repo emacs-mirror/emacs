@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.8 $
+;; Version: $Revision: 1.9 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 03:38:07 $|$Revision: 1.8 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 05:26:51 $|$Revision: 1.9 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.9  1994/05/22  05:26:51  tromey
+; Fixes for imenu.
+;
 ; Revision 1.8  1994/05/22  03:38:07  tromey
 ; Fixed menu support.
 ;
@@ -191,15 +194,16 @@
 ;; * Indentation should deal with "switch".
 ;; * Consider writing code to find help files automatically (for
 ;;   common cases).
-;; * M-; sometimes fails (try on "if [blah] then {")
-;; * `#' shouldn't insert `\#' in string.
-;; * Add bug-reporting code.
+;; * `#' shouldn't insert `\#' when point is in string.
 
 
 
 ;;; Code:
 
 (require 'comint)
+
+(defconst tcl-version "$Revision$")
+(defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
 ;; User variables.
@@ -1210,11 +1214,12 @@ Returns nil if line starts inside a string, t if in a comment."
 
 ;; When compiling under GNU Emacs, load imenu during compilation.  If
 ;; you have 19.22 or earlier, comment this out, or get imenu.
-(eval-when-compile
-  (if (and tcl-using-emacs
-	   (not tcl-using-lemacs-19))
-      (require 'imenu))
-  ())
+(and (fboundp 'eval-when-compile)
+     (eval-when-compile
+       (if (and tcl-using-emacs-19
+		(not tcl-using-lemacs-19))
+	   (require 'imenu))
+       ()))
 
 (defun tcl-imenu-create-index-function ()
   "Generate alist of indices for imenu."
@@ -1482,7 +1487,7 @@ of comment."
   (let ((save (point)))
     (tcl-beginning-of-defun)
     (car (tcl-hairy-scan-for-comment nil save nil))))
-	
+
 (defun tcl-simple-in-comment ()
   "Return t if point is in comment, and leave point at beginning
 of comment.  This is faster that `tcl-hairy-in-comment', but is
@@ -1793,10 +1798,10 @@ Parts of this were taken from indent-for-comment (simple.el)."
 	  (if (/= (point) eolpoint)
 	      (progn
 		(goto-char eolpoint)
-		(or (tcl-real-command-p)
-		    (progn
-		      (insert ";# ")
-		      (backward-char))))))))
+		(insert
+		 (if (tcl-real-command-p) "" ";")
+		 "# ")
+		(backward-char))))))
   ;; Point is just after the "#" starting a comment.  Move it as
   ;; appropriate.
   (let* ((indent (if comment-indent-hook
@@ -1887,6 +1892,47 @@ The first line is assumed to look like \"#!.../program ...\"."
 			     (concat "\\" (char-to-string char))
 			   (char-to-string char))))
 	     string ""))
+
+
+
+;;
+;; Bug reporting.
+;;
+
+(and (fboundp 'eval-when-compile)
+     (eval-when-compile
+       (require 'reporter)))
+
+(defun tcl-submit-bug-report ()
+  "Submit via mail a bug report on Tcl mode."
+  (interactive)
+  (require 'reporter)
+  (and
+   (y-or-n-p "Do you really want to submit a bug report on Tcl mode? ")
+   (reporter-submit-bug-report
+    tcl-maintainer
+    (concat "Tcl mode " tcl-version)
+    '(tcl-indent-level
+      tcl-continued-indent-level
+      tcl-auto-newline
+      tcl-tab-always-indent
+      tcl-use-hairy-comment-detector
+      tcl-electric-has-style
+      tcl-help-directory-list
+      tcl-use-smart-word-finder
+      tcl-application
+      tcl-command-switches
+      tcl-prompt-regexp
+      inferior-tcl-source-command
+      tcl-using-emacs-19
+      tcl-using-emacs-19.23
+      tcl-using-lemacs-19
+      tcl-proc-list
+      tcl-proc-regexp
+      tcl-typeword-list
+      tcl-keyword-list
+      tcl-font-lock-keywords
+      tcl-pps-has-arg-6))))
 
 
 
