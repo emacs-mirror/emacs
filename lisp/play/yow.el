@@ -119,7 +119,7 @@ If called interactively, display a list of matches."
   (switch-to-buffer "*doctor*")
   (sit-for 0)
   (while (not (input-pending-p))
-    (insert-string (yow))
+    (insert (yow))
     (sit-for 0)
     (doctor-ret-or-read 1)
     (doctor-ret-or-read 1)))
