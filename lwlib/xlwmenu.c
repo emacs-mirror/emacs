@@ -131,6 +131,9 @@ xlwMenuTranslations [] =
 
 /* FIXME: F10 should enter the menu, the first one in the menu-bar.  */
 
+/* FIXME: HAVE_X_I18N does not work yet. */
+#undef HAVE_X_I18N
+
 #define offset(field) XtOffset(XlwMenuWidget, field)
 static XtResource
 xlwMenuResources[] =
