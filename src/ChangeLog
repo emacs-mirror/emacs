@@ -1,3 +1,16 @@
+2003-06-21  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fwrite_region): Alternate messages
+	for append and partial write.
+
+	* keyboard.c (read_key_sequence): When converting upcase fn key to
+	downcase, update fkey and keytran so `backspace' gets translated.
+
+	* keyboard.c (read_avail_input): Don't signal SIGHUP in batch mode.
+
+	* process.c (wait_reading_process_input): Don't signal SIGIO
+	in batch mode.
+
 2003-06-17  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (xselect.o): Don't depend on charset.h, coding.h,
