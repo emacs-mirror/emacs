@@ -329,7 +329,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 The changes are between FIRST-VERSION and SECOND-VERSION."
   (vc-svn-command nil 0 file
                  "merge"
-		 -r (if second-version
+		 "-r" (if second-version
 			(concat first-version ":" second-version)
 		      first-version))
   (vc-file-setprop file 'vc-state 'edited)
