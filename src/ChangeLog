@@ -1,3 +1,24 @@
+2001-12-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (current_popup_menu, get_menu_item_info):
+	(set_menu_item_info): New vars.
+	(set_frame_menubar): Doc fix clarifying GC interaction with menus.
+	(w32_menu_show): Set current_popup_menu.
+	(add_menu_item): Allocate new strings for owner-drawn menu items
+	and help strings.
+	Use owner-draw for disabled menu items again.
+	(w32_menu_display_help): Ignore owner-drawn items and popup menus.
+	(w32_free_submenu_strings, w32_free_menu_strings): New functions.
+
+	* w32fns.c (trackmouse_window, track_mouse_event_fn): New vars.
+	(w32_wnd_proc) <WM_MOUSEMOVE>: Notice when mouse enters frame.
+	<WM_EXITMENULOOP>: Free menu strings.
+	<WM_MOUSELEAVE>: Stop tracking mouse.
+	(x_create_tip_frame): Specify no minibuffer, modeline or fringes.
+
+	* w32term.c (w32_read_socket) <WM_MOUSELEAVE>: Cancel help echo
+	and mouse face.
+
 2001-12-01  Kim F. Storm  <storm@cua.dk>
 
 	The following changes add left-fringe and right-fringe
