@@ -1,3 +1,8 @@
+2002-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): Add doublequotes to make it
+	bulletproof.  $bar may be empty when there are no .elc files.
+
 2002-10-30  Dave Love  <fx@gnu.org>
 
 	* configure.in:  Require autoconf 2.53.  Test for pty.h,

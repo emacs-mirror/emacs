@@ -1,3 +1,16 @@
+2002-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_term_init): Use turn_on_atimers, not start_polling
+	and stop_polling.
+
+	* process.c (wait_reading_process_input):
+	Test POLLING_PROBLEM_IN_SELECT, not hpux.
+	Avoid initialization for auto Lisp_Object var.
+
+	* s/hpux11.h (POLLING_PROBLEM_IN_SELECT): Add #undef.
+
+	* s/hpux10.h (POLLING_PROBLEM_IN_SELECT): Defined.
+
 2002-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* s/sol2-5.h (BROKEN_SIGIO): Turn off the #undef.

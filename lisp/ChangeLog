@@ -1,3 +1,14 @@
+2002-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace, query-replace-regexp): Doc fixes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-lambda):
+	Handle progn like let, inside interactive spec.
+
+	* textmodes/tex-mode.el (tex-dvi-view-command): Value can be sexp.
+	Initialize to a suitable sexp.
+	(tex-view): Evaluate tex-dvi-view-command and use the value.
+
 2002-11-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-eol-type-mnemonic): Use
@@ -1373,10 +1384,12 @@
 	the face held by `gamegrid-face' in an overlay over the whole
 	buffer to emulate a buffer-local default-face.
 
-2002-09-22  Richard M. Stallman  <rms@gnu.org>
+2002-09-22  Markus Triska  <triska@gmx.at>  (iny change)
 
 	* play/doctor.el (doctor-doc): Add 2 question words.
 	(doctor-getnoun): Parse and save the complete object phrase.
+
+2002-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Cope if
 	default-coding-system gives nil which was then used in `min'.
