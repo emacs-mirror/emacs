@@ -118,6 +118,9 @@ in the file it applies to."
   (define-key outline-mode-menu-bar-map [headings]
     (cons "Headings" (make-sparse-keymap "Headings")))
 
+  (define-key outline-mode-menu-bar-map [headings copy]
+    '(menu-item "Copy to kill ring" outline-headers-as-kill
+		:enable mark-active))
   (define-key outline-mode-menu-bar-map [headings outline-backward-same-level]
     '("Previous Same Level" . outline-backward-same-level))
   (define-key outline-mode-menu-bar-map [headings outline-forward-same-level]
@@ -241,6 +244,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(outline-font-lock-keywords t))
   (make-local-variable 'change-major-mode-hook)
+  (setq imenu-generic-expression
+	(list (list nil (concat outline-regexp ".*$") 0)))
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
@@ -735,6 +740,40 @@ Stop at the first and last subheadings of a superior heading."
     (if (< (funcall outline-level) level)
 	nil
         (point))))
+
+(defun outline-headers-as-kill (beg end)
+  "Save the visible outline headers in region at the start of the kill ring.
+
+Text shown between the headers isn't copied.  Two newlines are
+inserted between saved headers.  Yanking the result may be a
+convenient way to make a table of contents of the buffer."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (let ((buffer (current-buffer))
+	    start end)
+	(with-temp-buffer
+	  (with-current-buffer buffer
+	    ;; Boundary condition: starting on heading:
+	    (when (outline-on-heading-p)
+	      (outline-back-to-heading)
+	      (setq start (point)
+		    end (progn (outline-end-of-heading)
+			       (point)))
+	      (insert-buffer-substring buffer start end)
+	      (insert "\n\n")))
+	  (let ((temp-buffer (current-buffer)))
+	    (with-current-buffer buffer
+	      (while (outline-next-heading)
+		(when (outline-visible)
+		  (setq start (point)
+			end (progn (outline-end-of-heading) (point)))
+		  (with-current-buffer temp-buffer
+		    (insert-buffer-substring buffer start end)
+		    (insert "\n\n"))))))
+	  (kill-new (buffer-string)))))))
 
 (provide 'outline)
 (provide 'noutline)
