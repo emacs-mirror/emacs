@@ -1,8 +1,38 @@
+2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (read-key-auxiliary-map): New var.
+	(read-key): Use it.
+	(make-temp-file): Make the file have mode 600.
+	(add-minor-mode): Don't add properties to the name since it's
+	added by mode-line-format already.
+	Be more careful with the mode-line-menu entry name.
+
+	* userlock.el (ask-user-about-supersession-threat): Don't abort
+	when the user hits mouse-2.
+
+	* register.el (set-register): Use push.
+	(point-to-register): Set kill-buffer-hook in this buffer.
+	(register-swap-out): Use dolist.
+	(kill-buffer-hook): Don't change globally.
+
+	* server.el (server-select-display): New function.
+	(server-process-filter): Add support for `-display' and `-eval' args.
+	(server-visit-files): Use save-current-buffer, push, and dolist.
+	Add server-kill-buffer to kill-buffer-hook.
+	(kill-buffer-hook): Don't modify globally.
+	(server-switch-buffer): Be a bit more careful with multiple displays.
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Add to kill-buffer-hook for buffers with conflict.
+	(rename-buffer): Check kill-buffer-hook to see if there was a conflict.
+	(uniquify-delay-rationalize-file-buffer-names): Remove useless check.
+	(kill-buffer-hook): Don't change globally.
+
 2002-09-27  Colin Walters  <walters@verbum.org>
 
 	The following changes were written by
-	Stefan Monnier <monnier@cs.yale.edu>. 
-	
+	Stefan Monnier <monnier@cs.yale.edu>.
+
 	* calc/calc.el (calc-bug-address, calc-scan-for-dels, calc-stack)
 	(calc-stack-top, calc-always-load-extensions)
 	(calc-line-numbering, calc-line-breaking, calc-display-just)
@@ -58,12 +88,12 @@
 	defvars, from toplevel setq.
 	(calc-mode-map): Set up keymap in more modern fashion.
 	(calc-dispatch-map): Ditto.
-	(calc-command-flags, calc-final-point-line) 
+	(calc-command-flags, calc-final-point-line)
 	(calc-final-point-column): Defvar.
 	(calc-do): Use `save-current-buffer' instead of `save-excursion'.
 	(sel-mode): Defvar.
 	(calc-any-evaltos): Ditto.
-	(calc-buffer, calc-prev-char, calc-prev-prev-char) 
+	(calc-buffer, calc-prev-char, calc-prev-prev-char)
 	(calc-digit-value): Ditto.
 	(math-eval-rules-cache, math-eval-rules-cache-other): Ditto.
 	(math-sub-bignum): Bind `diff'.
