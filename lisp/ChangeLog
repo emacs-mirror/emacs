@@ -1,3 +1,27 @@
+2002-11-17   Markus Rost  <rost@math.ohio-state.edu>
+
+	* speedbar.el (defgroup speedbar): Use group 'etags instead of
+	nonexisting group 'tags.
+
+	* emacs-lisp/re-builder.el: Add provide call.
+
+	* mail/feedmail.el (feedmail-fiddle-headers-upwardly)
+	(feedmail-fiddle-plex-user-list):  Fix typo in group name.
+
+	* progmodes/make-mode.el (makefile-space-face): Fix typo in group
+	name.
+
+	* textmodes/ispell.el (defgroup ispell): Arrange that definition
+	starts at beginning of line.
+
+	* textmodes/table.el (defgroup table-hooks): New group.
+	(table-cell-map-hook): Fix typo in group name.
+
+	* calendar/diary-lib.el (diary-button-face): Add group and version
+	number.
+
+	* warnings.el (defgroup warnings): New group.
+
 2002-11-16   Markus Rost  <rost@math.ohio-state.edu>
 
 	* emacs-lisp/autoload.el (update-autoloads-from-directories):
