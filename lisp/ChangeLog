@@ -320,7 +320,9 @@
 	functions.
 	(auto-revert-buffers): Delete call to auto-revert-buffer-p.
 
-	* dired.el (dired-directory-changed-p, dired-buffer-stale-p): New funs.
+	* dired.el (dired-directory-changed-p): New fun, extracted from
+	dired-internal-noselect.
+	(dired-buffer-stale-p): New fun.
 	(dired-internal-noselect): Use dired-directory-changed-p.
 	Eliminate revert messages.
 	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
