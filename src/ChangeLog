@@ -1,3 +1,10 @@
+1999-12-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c: Remove conditional compilation on `standalone'.
+	(call_debugger): When entering the debugger while redisplaying,
+	reset redisplaying_p, and go back to the top-level if the debugger
+	returns.
+
 1999-12-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (x_set_menu_resources_from_menu_face): Make sure
