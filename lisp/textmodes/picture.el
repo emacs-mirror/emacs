@@ -533,7 +533,8 @@ they are not defaultly assigned to keys."
     (make-local-variable 'picture-vertical-step)
     (make-local-variable 'picture-horizontal-step)
     (picture-set-motion 0 1)
-    (run-hooks 'edit-picture-hook)
+    ;; edit-picture-hook is what we used to run, picture-mode-hook is in doc.
+    (run-hooks 'edit-picture-hook 'picture-mode-hook)
     (message
      (substitute-command-keys
       "Type \\[picture-mode-exit] in this buffer to return it to %s mode.")
