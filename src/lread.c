@@ -929,8 +929,8 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   return Fcons (tem, make_number (read_from_string_index));
 }
 
-/* Use this for recursive reads, in contexts where internal tokens are not allowed. */
-
+/* Use this for recursive reads, in contexts where internal tokens
+   are not allowed. */
 static Lisp_Object
 read0 (readcharfun)
      Lisp_Object readcharfun;
@@ -938,12 +938,9 @@ read0 (readcharfun)
   register Lisp_Object val;
   char c;
 
-  val = read1 (readcharfun);
-  if (INTERNALP (val))
-    {
-      c = XINT (val);
-      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (&c, 1), Qnil));
-    }
+  val = read1 (readcharfun, &c);
+  if (c)
+    Fsignal (Qinvalid_read_syntax, Fcons (make_string (&c, 1), Qnil));
 
   return val;
 }
@@ -1106,11 +1103,16 @@ read_escape (readcharfun)
     }
 }
 
+/* If the next token is ')' or ']' or '.', we store that character
+   in *PCH and the return value is not interesting.  Else, we store
+   zero in *PCH and we read and return one lisp object.  */
 static Lisp_Object
-read1 (readcharfun)
+read1 (readcharfun, pch)
      register Lisp_Object readcharfun;
+     char *pch;
 {
   register int c;
+  *pch = 0;
 
  retry:
 
@@ -1128,9 +1130,8 @@ read1 (readcharfun)
     case ')':
     case ']':
       {
-	register Lisp_Object val;
-	XSETINTERNAL (val, c);
-	return val;
+	*pch = c;
+	return Qnil;
       }
 
     case '#':
@@ -1149,10 +1150,11 @@ read1 (readcharfun)
 	{
 	  Lisp_Object tmp;
 	  struct gcpro gcpro1;
+	  char ch;
 
 	  /* Read the string itself.  */
-	  tmp = read1 (readcharfun);
-	  if (!STRINGP (tmp))
+	  tmp = read1 (readcharfun, &ch);
+	  if (ch != 0 || !STRINGP (tmp))
 	    Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
 	  GCPRO1 (tmp);
 	  /* Read the intervals and their properties.  */
@@ -1160,22 +1162,17 @@ read1 (readcharfun)
 	    {
 	      Lisp_Object beg, end, plist;
 
-	      beg = read1 (readcharfun);
-	      if (INTERNALP (beg))
-		{
-		  if (XINT (beg) == ')')
-		    break;
-		  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("invalid string property list", 28), Qnil));
-		}
-	      end = read1 (readcharfun);
-	      if (INTERNALP (end))
+	      beg = read1 (readcharfun, &ch);
+	      if (ch == ')')
+		break;
+	      if (ch == 0)
+		end = read1 (readcharfun, &ch);
+	      if (ch == 0)
+		plist = read1 (readcharfun, &ch);
+	      if (ch)
 		Fsignal (Qinvalid_read_syntax,
-			 Fcons (make_string ("invalid string property list", 28), Qnil));
-		
-	      plist = read1 (readcharfun);
-	      if (INTERNALP (plist))
-		Fsignal (Qinvalid_read_syntax,
-			 Fcons (make_string ("invalid string property list", 28), Qnil));
+			 Fcons (build_string ("invalid string property list"),
+				Qnil));
 	      Fset_text_properties (beg, end, plist, tmp);
 	    }
 	  UNGCPRO;
@@ -1276,9 +1273,8 @@ read1 (readcharfun)
 	if (! isdigit (next_char))
 #endif
 	  {
-	    register Lisp_Object val;
-	    XSETINTERNAL (val, c);
-	    return val;
+	    *pch = c;
+	    return Qnil;
 	  }
 
 	/* Otherwise, we fall through!  Note that the atom-reading loop
@@ -1477,29 +1473,30 @@ read_list (flag, readcharfun)
 
   while (1)
     {
+      char ch;
       GCPRO2 (val, tail);
-      elt = read1 (readcharfun);
+      elt = read1 (readcharfun, &ch);
       UNGCPRO;
-      if (INTERNALP (elt))
+      if (ch)
 	{
 	  if (flag > 0)
 	    {
-	      if (XINT (elt) == ']')
+	      if (ch == ']')
 		return val;
-	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (") or . in a vector", 18), Qnil));
+	      Fsignal (Qinvalid_read_syntax, Fcons (make_string (") or . in a vector", 18), Qnil));
 	    }
-	  if (XINT (elt) == ')')
+	  if (ch == ')')
 	    return val;
-	  if (XINT (elt) == '.')
+	  if (ch == '.')
 	    {
 	      GCPRO2 (val, tail);
 	      if (!NILP (tail))
 		XCONS (tail)->cdr = read0 (readcharfun);
 	      else
 		val = read0 (readcharfun);
-	      elt = read1 (readcharfun);
+	      read1 (readcharfun, &ch);
 	      UNGCPRO;
-	      if (INTERNALP (elt) && XINT (elt) == ')')
+	      if (ch == ')')
 		return val;
 	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (". in wrong context", 18), Qnil));
 	    }
