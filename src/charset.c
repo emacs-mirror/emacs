@@ -640,7 +640,8 @@ map_charset_chars (c_function, function, arg,
 	    this_from = CHARSET_MIN_CODE (charset);
 	  if (this_to > CHARSET_MAX_CODE (charset))
 	    this_to = CHARSET_MAX_CODE (charset);
-	  map_charset_chars (c_function, function, arg, charset, from, to);
+	  map_charset_chars (c_function, function, arg, charset,
+			     this_from, this_to);
 	}
     }
 }
