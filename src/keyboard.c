@@ -480,6 +480,9 @@ Lisp_Object Vtimer_list;
 /* List of idle time timers.  Appears in order of next scheduled event.  */
 Lisp_Object Vtimer_idle_list;
 
+/* Incremented whenever a timer is run.  */
+int timers_run;
+
 extern Lisp_Object Vprint_level, Vprint_length;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
@@ -493,7 +496,7 @@ int interrupt_input;
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
 int interrupts_deferred;
 
-/* nonzero means use ^S/^Q for flow control.  */
+/* Nonzero means use ^S/^Q for flow control.  */
 int flow_control;
 
 /* Allow m- file to inhibit use of FIONREAD.  */
@@ -1475,11 +1478,15 @@ SIGTYPE
 input_poll_signal (signalnum)	/* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls. */
 {
+  /* This causes the call to start_polling at the end
+     to do its job.  It also arranges for a quit or error
+     from within read_avail_input to resume polling.  */
+  poll_suppress_count++;
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
     read_avail_input (0);
-  signal (SIGALRM, input_poll_signal);
-  alarm (polling_period);
+  /* Turn on the SIGALRM handler and request another alarm.  */
+  start_polling ();
 }
 
 #endif
@@ -2803,6 +2810,8 @@ void
 swallow_events (do_display)
      int do_display;
 {
+  int old_timers_run;
+
   while (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
@@ -2865,6 +2874,7 @@ swallow_events (do_display)
 	  if (kbd_fetch_ptr == kbd_store_ptr)
 	    input_pending = 0;
 	  Fcommand_execute (tem, Qnil, Fvector (1, &lisp_event), Qt);
+	  timers_run++;
 	  if (do_display)
 	    redisplay_preserve_echo_area ();
 
@@ -2876,7 +2886,11 @@ swallow_events (do_display)
 	break;
     }
 
+  old_timers_run = timers_run;
   get_input_pending (&input_pending, 1);
+
+  if (timers_run != old_timers_run && do_display)
+    redisplay_preserve_echo_area ();
 }
 
 static EMACS_TIME timer_idleness_start_time;
@@ -3085,6 +3099,7 @@ timer_check (do_it_now)
 				    1);
 		  event = Fcons (Qtimer_event, Fcons (chosen_timer, Qnil));
 		  Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
+		  timers_run++;
 
 		  /* Resume allowing input from any kboard, if that was true before.  */
 		  if (!was_locked)
@@ -3111,6 +3126,12 @@ timer_check (do_it_now)
 		  events_generated = 1;
 		  EMACS_SET_SECS (nexttime, 0);
 		  EMACS_SET_USECS (nexttime, 0);
+
+		  /* Don't queue more than one event at once.
+		     When Emacs is ready for another, it will
+		     queue the next one.  */
+		  UNGCPRO;
+		  return nexttime;
 		}
 	    }
 	}
@@ -4867,7 +4888,7 @@ void
 reinvoke_input_signal ()
 {
 #ifdef SIGIO
-  kill (0, SIGIO);
+  kill (getpid (), SIGIO);
 #endif
 }
 
@@ -6952,10 +6973,16 @@ detect_input_pending ()
 /* Return nonzero if input events are pending.
    Execute timers immediately; don't make events for them.  */
 
-detect_input_pending_run_timers ()
+detect_input_pending_run_timers (do_display)
+     int do_display;
 {
+  int old_timers_run = timers_run;
+
   if (!input_pending)
     get_input_pending (&input_pending, 1);
+
+  if (old_timers_run != timers_run && do_display)
+    redisplay_preserve_echo_area ();
 
   return input_pending;
 }
@@ -7533,6 +7560,7 @@ init_keyboard ()
   quit_char = Ctl ('g');
   Vunread_command_events = Qnil;
   unread_command_char = -1;
+  EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
