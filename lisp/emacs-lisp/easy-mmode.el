@@ -91,12 +91,6 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 :group   Followed by the group name to use for any generated `defcustom'.
 :global  If non-nil specifies that the minor mode is not meant to be
          buffer-local.  By default, the variable is made buffer-local.
-:toggle  If non-nil means the minor-mode function, when called with a nil
-         argument, will toggle the mode rather than turn it on unconditionally.
-         This doesn't impact the interactive behavior which is always
-         toggling (modulo prefix arg).
-         The default is (for historical reasons) to toggle, but might
-         be changed in the future.
 :init-value  Same as the INIT-VALUE argument.
 :lighter  Same as the LIGHTER argument."
   ;; Allow skipping the first three args.
@@ -112,10 +106,8 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
 	 (togglep t)			;why would you ever want to toggle?
-	 ;; We might as well provide a best-guess default group.
-	 (group
-	  (list 'quote
-		(intern (replace-regexp-in-string "-mode\\'" "" mode-name))))
+	 (group nil)
+	 (extra-args nil)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
@@ -128,10 +120,15 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	(:init-value (setq init-value (pop body)))
 	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
-	(:toggle (setq togglep (pop body)))
-	(:group (setq group (pop body)))
+	(:extra-args (setq extra-args (pop body)))
+	(:group (setq group (nconc group (list :group (pop body)))))
 	(t (pop body))))
 
+    (unless group
+      ;; We might as well provide a best-guess default group.
+      (setq group
+	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
+							 mode-name)))))
     ;; Add default properties to LIGHTER.
     (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
 		(get-text-property 0 'keymap lighter))
@@ -161,7 +158,7 @@ use either \\[customize] or the function `%s'."
 			pretty-name mode mode)
 	       :set (lambda (symbol value) (funcall symbol (or value 0)))
 	       :initialize 'custom-initialize-default
-	       :group ,group
+	       ,@group
 	       :type 'boolean
 	       ,@(when curfile
 		   (list
@@ -170,15 +167,8 @@ use either \\[customize] or the function `%s'."
 			  (intern (file-name-nondirectory
 				   (file-name-sans-extension curfile)))))))))
 
-       ;; The toggle's hook.  Wrapped in `progn' to prevent autoloading.
-       (progn
-	 (defcustom ,hook  nil
-	   ,(format "Hook run at the end of function `%s'." mode-name)
-	   :group ,group
-	   :type 'hook))
-
        ;; The actual function.
-       (defun ,mode (&optional arg)
+       (defun ,mode (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
@@ -203,6 +193,12 @@ With zero or negative ARG turn mode off.
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
        ;; everything up-to-here.
        :autoload-end
+
+       ;; The toggle's hook.
+       (defcustom ,hook nil
+	 ,(format "Hook run at the end of function `%s'." mode-name)
+	 :group ,(cadr group)
+	 :type 'hook)
 
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.
@@ -233,23 +229,26 @@ TURN-ON is a function that will be called with no args in every buffer
   and that should try to turn MODE on if applicable for that buffer.
 KEYS is a list of CL-style keyword arguments:
 :group to specify the custom group."
-  (let* ((mode-name (symbol-name mode))
-	 (global-mode-name (symbol-name global-mode))
+  (let* ((global-mode-name (symbol-name global-mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
-	 ;; We might as well provide a best-guess default group.
-	 (group
-	  (list 'quote
-		(intern (replace-regexp-in-string "-mode\\'" "" mode-name))))
+	 (group nil)
+	 (extra-args nil)
 	 (buffers (intern (concat global-mode-name "-buffers")))
 	 (cmmh (intern (concat global-mode-name "-cmmh"))))
 
     ;; Check keys.
     (while (keywordp (car keys))
       (case (pop keys)
-	(:group (setq group (pop keys)))
+	(:extra-args (setq extra-args (pop keys)))
+	(:group (setq group (nconc group (list :group (pop keys)))))
 	(t (setq keys (cdr keys)))))
 
+    (unless group
+      ;; We might as well provide a best-guess default group.
+      (setq group
+	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
+							 (symbol-name mode))))))
     `(progn
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
@@ -258,7 +257,7 @@ With prefix ARG, turn %s on if and only if ARG is positive.
 %s is actually not turned on in every buffer but only in those
 in which `%s' turns it on."
 		  pretty-name pretty-global-name pretty-name turn-on)
-	 nil nil nil :global t :group ,group
+	 :global t :extra-args ,extra-args ,@group
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
