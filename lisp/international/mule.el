@@ -259,6 +259,12 @@ CODE1 and CODE2 are optional, but if you don't supply
 sufficient position codes, return a generic character which stands for
 all characters or group of characters in the character set.
 A generic character can be used to index a char table (e.g. syntax-table).
+
+Such character sets as ascii, eight-bit-control, and eight-bit-graphic
+don't have corresponding generic characters.  If CHARSET is one of
+them and you don't supply CODE1, return the character of the smallest
+code in CHARSET.
+
 If CODE1 or CODE2 are invalid (out of range), this function signals an error."
   (make-char-internal (charset-id charset) code1 code2))
 
