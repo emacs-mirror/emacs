@@ -282,7 +282,9 @@ Lisp_Object Qsemi_condensed, Qsemi_expanded, Qexpanded, Qextra_expanded;
 Lisp_Object Qultra_expanded;
 Lisp_Object Qreleased_button, Qpressed_button;
 Lisp_Object QCstyle, QCcolor, QCline_width;
-Lisp_Object Qunspecified, Qunspecified_fg, Qunspecified_bg;
+Lisp_Object Qunspecified;
+
+char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
 /* The symbol `x-charset-registry'.  This property of charsets defines
    the X registry and encoding that fonts should have that are used to
@@ -1194,10 +1196,11 @@ tty_color_name (f, idx)
      by index using the default color mapping on a Windows console.  */
 #endif
 
-  return
-    idx == FACE_TTY_DEFAULT_FG_COLOR ? Qunspecified_fg
-    : idx == FACE_TTY_DEFAULT_BG_COLOR ? Qunspecified_bg
-    : Qunspecified;
+  if (idx == FACE_TTY_DEFAULT_FG_COLOR)
+    return build_string (unspecified_fg);
+  if (idx == FACE_TTY_DEFAULT_BG_COLOR)
+    return build_string (unspecified_bg);
+  return Qunspecified;
 }
 
 /* Return non-zero if COLOR_NAME is a shade of gray (or white or
@@ -3445,8 +3448,7 @@ frame.")
     }
   else if (EQ (attr, QCforeground))
     {
-      if (!UNSPECIFIEDP (value)
-	  && !EQ (value, Qunspecified_fg) && !EQ (value, Qunspecified_bg))
+      if (!UNSPECIFIEDP (value))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -3460,8 +3462,7 @@ frame.")
     }
   else if (EQ (attr, QCbackground))
     {
-      if (!UNSPECIFIEDP (value)
-	  && !EQ (value, Qunspecified_bg) && !EQ (value, Qunspecified_fg))
+      if (!UNSPECIFIEDP (value))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -5707,7 +5708,7 @@ realize_default_face (f)
       else if (FRAME_X_P (f))
 	return 0;
       else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	LFACE_FOREGROUND (lface) = Qunspecified_fg;
+	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
       else
 	abort ();
     }
@@ -5722,7 +5723,7 @@ realize_default_face (f)
       else if (FRAME_X_P (f))
 	return 0;
       else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	LFACE_BACKGROUND (lface) = Qunspecified_bg;
+	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
       else
 	abort ();
     }
@@ -6662,10 +6663,6 @@ syms_of_xfaces ()
   staticpro (&Qforeground_color);
   Qunspecified = intern ("unspecified");
   staticpro (&Qunspecified);
-  Qunspecified_fg = intern ("unspecified-fg");
-  staticpro (&Qunspecified_fg);
-  Qunspecified_bg = intern ("unspecified-bg");
-  staticpro (&Qunspecified_bg);
 
   Qx_charset_registry = intern ("x-charset-registry");
   staticpro (&Qx_charset_registry);
