@@ -1,3 +1,8 @@
+2003-02-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+
+	* files.el (find-alternate-file): Check whether `dired-directory'
+	is bound.
+
 2003-02-12  Simon Marshall  <simon@gnu.org>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Fontify
