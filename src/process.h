@@ -133,3 +133,6 @@ extern int synch_process_retcode;
 #ifndef NULL_DEVICE
 #define NULL_DEVICE "/dev/null"
 #endif
+
+/* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
+   (do not change this comment) */

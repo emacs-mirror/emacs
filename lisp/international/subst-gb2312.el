@@ -7481,4 +7481,5 @@
    (#xffe3 ?г■)
    (#xffe5 ?гд)))
 
+;;; arch-tag: 369bc330-663d-4cc0-8ca9-45567586fb04
 ;;; subst-gb2312.el ends here

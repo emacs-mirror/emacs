@@ -676,3 +676,6 @@ unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
     }
   return 0;
 }
+
+/* arch-tag: 0783857a-7c2d-456f-a426-58b722d69fd0
+   (do not change this comment) */

@@ -248,4 +248,5 @@ backslash and doublequote.")
 
 (provide 'ietf-drums)
 
+;;; arch-tag: 379a0191-dbae-4ca6-a0f5-d4202c209ef9
 ;;; ietf-drums.el ends here

@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.22 2003/05/08 19:18:33 monnier Exp $
+;; $Id: vc-sccs.el,v 1.23 2003/08/12 18:01:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -397,4 +397,5 @@ If NAME is nil or a version number string it's just passed through."
 
 (provide 'vc-sccs)
 
+;;; arch-tag: d751dee3-d7b3-47e1-95e3-7ae98c052041
 ;;; vc-sccs.el ends here

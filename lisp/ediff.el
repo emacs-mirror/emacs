@@ -1455,4 +1455,5 @@ With optional NODE, goes to that node."
 
 (run-hooks 'ediff-load-hook)
 
+;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

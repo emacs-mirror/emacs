@@ -166,3 +166,5 @@ dist: elisp elisp.dvi
 	(cd temp/$(manual); rm -f *~)
 	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
 	-rm -rf temp
+
+# arch-tag: f5a1a94d-62e1-4460-a2d1-f02e538ab554

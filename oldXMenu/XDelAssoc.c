@@ -69,3 +69,5 @@ XDeleteAssoc(dpy, table, x_id)
 	return;
 }
 
+/* arch-tag: 90981a7e-601c-487a-b364-cdf55d6c475b
+   (do not change this comment) */

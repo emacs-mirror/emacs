@@ -1043,4 +1043,5 @@ While entering the regexp, completion on knows citation keys is possible.
       
     (select-window win)))
 
+;;; arch-tag: d53d0a5a-ab32-4b52-a846-2a7c3527cd89
 ;;; reftex-cite.el ends here

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/SetSel.c,v 1.1 1999/10/03 19:35:15 fx Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/SetSel.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -48,3 +48,6 @@ XMenuSetSelection(menu, p_num, s_num, active)
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
+
+/* arch-tag: 79198ae0-c5a4-4d31-adb0-5747f833f56a
+   (do not change this comment) */

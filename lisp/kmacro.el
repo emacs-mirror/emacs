@@ -1205,4 +1205,6 @@ To customize possible responses, change the \"bindings\" in `kmacro-step-edit-ma
       (setq last-kbd-macro kmacro-step-edit-new-macro))))
 
 (provide 'kmacro)
+
+;;; arch-tag: d3fe0b24-ae41-47de-a4d6-41a77d5559f0
 ;;; kmacro.el ends here

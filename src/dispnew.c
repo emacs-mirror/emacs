@@ -6725,3 +6725,6 @@ See `buffer-display-table' for more information.  */);
       Vwindow_system_version = Qnil;
     }
 }
+
+/* arch-tag: 8d812b1f-04a2-4195-a9c4-381f8457a413
+   (do not change this comment) */

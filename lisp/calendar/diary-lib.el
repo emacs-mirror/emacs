@@ -1832,4 +1832,5 @@ names."
 
 (provide 'diary-lib)
 
+;;; arch-tag: 22dd506e-2e33-410d-9ae1-095a0c1b2010
 ;;; diary-lib.el ends here

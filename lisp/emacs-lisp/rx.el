@@ -791,4 +791,5 @@ CHAR
 
 (provide 'rx)
 
+;;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b
 ;;; rx.el ends here

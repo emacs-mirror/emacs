@@ -1304,4 +1304,5 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (provide 'man)
 
+;;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

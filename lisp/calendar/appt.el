@@ -625,4 +625,5 @@ it from the original list."
     (setq global-mode-string
 	  (append global-mode-string '(appt-mode-string))))
 
+;;; arch-tag: bf5791c4-8921-499e-a26f-772b1788d347
 ;;; appt.el ends here

@@ -154,3 +154,6 @@ Boston, MA 02111-1307, USA.  */
 /* A system-specific loader switch is needed.  */
 
 #define LD_SWITCH_SYSTEM -N -L/lib/libg /usr/lib/unshared.ld
+
+/* arch-tag: d3f952a9-fef5-45d5-9c1e-c1c32bfef86c
+   (do not change this comment) */

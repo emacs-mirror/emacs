@@ -6327,3 +6327,6 @@ regfree (preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
+
+/* arch-tag: 4ffd68ba-2a9e-435b-a21a-018990f9eeb2
+   (do not change this comment) */

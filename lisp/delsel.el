@@ -151,4 +151,5 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (provide 'delsel)
 
+;;; arch-tag: 1e388890-1b50-4ed0-9347-763b1343b6ed
 ;;; delsel.el ends here

@@ -23,3 +23,6 @@ Boston, MA 02111-1307, USA.  */
 #define  RISCiX		12
 #define  CRT0_O		/usr/lib/crt0.o
 #include "bsd4-3.h"
+
+/* arch-tag: f6b21e0a-f676-418a-9c8a-10fa8cd9dba7
+   (do not change this comment) */

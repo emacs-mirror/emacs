@@ -7742,3 +7742,6 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_WINDOW_SYSTEM */
 }
+
+/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
+   (do not change this comment) */

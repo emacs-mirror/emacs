@@ -1790,3 +1790,7 @@ variables, and widgets described in this manual.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 2b427731-4c61-4e72-85de-5ccec9c623f0
+@end ignore

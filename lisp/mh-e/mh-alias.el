@@ -624,4 +624,5 @@ already has an alias."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
 ;;; mh-alias.el ends here

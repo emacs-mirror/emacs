@@ -1707,4 +1707,5 @@
 	      (math-comp-to-string-raw-step (cdr cl) indent))
     ""))
 
+;;; arch-tag: 7c45d10a-a286-4dab-af49-7ae8989fbf78
 ;;; calccomp.el ends here

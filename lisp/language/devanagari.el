@@ -44,4 +44,5 @@ are supported in this language environment."))
 
 (provide 'devanagari)
 
+;;; arch-tag: fd13667d-868b-41e8-81ef-79dd28bbfed2
 ;;; devanagari.el ends here

@@ -318,3 +318,6 @@ extern double atof (const char *);
 #define volatile
 
 #define SYMS_SYSTEM syms_of_mac()
+
+/* arch-tag: 6a941c4b-a419-4d25-80ac-9335053e58b2
+   (do not change this comment) */

@@ -187,4 +187,6 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (kill-emacs))
 
 
+
+;;; arch-tag: b7b6421a-bf7a-44fd-a382-6f44976bdf68
 ;;; cus-dep.el ends here

@@ -859,4 +859,5 @@ See `fast-lock-get-face-properties'."
 
 (provide 'fast-lock)
 
+;;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
 ;;; fast-lock.el ends here

@@ -316,3 +316,6 @@ struct kboard;
 #if defined (HAVE_CARBON) && (defined (emacs) || defined (temacs))
 #define select sys_select
 #endif
+
+/* arch-tag: 481d443d-4f89-43ea-b5fb-49706d95fa41
+   (do not change this comment) */

@@ -4531,4 +4531,6 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 ;
 
 (provide 'simple)
+
+;;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

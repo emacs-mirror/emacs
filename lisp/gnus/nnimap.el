@@ -1383,4 +1383,5 @@ sure of changing the value of `foo'."
 
 (provide 'nnimap)
 
+;;; arch-tag: 2b001f20-3ff9-4094-a0ad-46807c1ba70b
 ;;; nnimap.el ends here

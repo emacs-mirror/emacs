@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.36 2003/02/04 12:11:40 lektu Exp $
+;; $Id: vc-rcs.el,v 1.37 2003/05/08 19:24:56 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -782,4 +782,5 @@ variable `vc-rcs-release' is set to the returned value."
 
 (provide 'vc-rcs)
 
+;;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

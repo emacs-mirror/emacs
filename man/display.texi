@@ -1037,3 +1037,7 @@ tab character.  To enable this feature, set the variable
 a minor mode that highlights the line containing point.  Use @kbd{M-x
 hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
 global-hl-line-mode} enables or disables the same mode globally.
+
+@ignore
+   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
+@end ignore

@@ -1042,3 +1042,5 @@ GNU Emacsu svým pøátelùm.  Pomáhejte potírat softwarovou obstrukci
 ;;; Local Variables:
 ;;; coding: iso-latin-2
 ;;; End:
+
+;;; arch-tag: 479ef577-3d4d-4384-aeea-9fe79d5e89ca

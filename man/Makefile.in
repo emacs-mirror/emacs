@@ -302,3 +302,5 @@ maintainer-clean: distclean
 # That caused trouble because this is run entirely in the source directory.
 # Since we expect to get texi2dvi from elsewhere,
 # it is ok to expect texindex from elsewhere also.
+
+# arch-tag: 19cdb89e-4acb-448e-b0cc-2ddc05948ee2

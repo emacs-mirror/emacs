@@ -1315,3 +1315,7 @@ Lawrence R. Dodd
 
 @bye
 @c dired-x.texi ends here.
+
+@ignore
+   arch-tag: 201727aa-9318-4c74-a0d7-4f51c550c4de
+@end ignore

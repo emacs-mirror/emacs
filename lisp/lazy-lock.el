@@ -1050,4 +1050,5 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (provide 'lazy-lock)
 
+;;; arch-tag: c1776846-f046-4a45-9684-54b951b12fc9
 ;;; lazy-lock.el ends here

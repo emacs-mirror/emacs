@@ -1061,3 +1061,7 @@ This function describes the category specifications in the current
 category table.  The descriptions are inserted in a buffer, which is
 then displayed.
 @end deffn
+
+@ignore
+   arch-tag: 4d914e96-0283-445c-9233-75d33662908c
+@end ignore

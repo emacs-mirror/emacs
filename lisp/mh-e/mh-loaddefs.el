@@ -1079,4 +1079,6 @@ Insert an alias for email address under point." t nil)
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
+
+;;; arch-tag: bc36a104-1edb-45d5-8aad-a85b45648378
 ;;; mh-loaddefs.el ends here

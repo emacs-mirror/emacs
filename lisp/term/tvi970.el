@@ -123,4 +123,5 @@ With a negative argument, select numeric keypad mode."
 
 (tvi970-set-keypad-mode 1)
 
+;;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
 ;;; tvi970.el ends here

@@ -1,4 +1,4 @@
-/* $Header: /cvs/emacs/oldXMenu/Activate.c,v 1.4 2002/04/22 18:27:03 jhd Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Activate.c,v 1.5 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 #include "copyright.h"
@@ -565,3 +565,6 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     return(ret_val);
 
 }
+
+/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
+   (do not change this comment) */

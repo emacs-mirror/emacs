@@ -269,3 +269,5 @@ LINK_FLAGS	= $(ARCH_LDFLAGS) $(DEBUG_LINK) $(NOCYGWIN) $(USER_LDFLAGS)
 
 $(BLD)/%.o: %.c
 		$(CC) $(CFLAGS) $(CC_OUT)$@ $<
+
+# arch-tag: 35eb9662-8534-4bcf-b891-0730a09d657f

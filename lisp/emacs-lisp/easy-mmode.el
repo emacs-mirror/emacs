@@ -464,4 +464,5 @@ ENDFUN should return the end position (with or without moving point)."
 
 (provide 'easy-mmode)
 
+;;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
 ;;; easy-mmode.el ends here

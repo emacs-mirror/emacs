@@ -1676,4 +1676,5 @@
 	(t (list 'calcFunc-deg a))))
 (put 'calcFunc-deg 'math-expandable t)
 
+;;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
 ;;; calc-math.el ends here

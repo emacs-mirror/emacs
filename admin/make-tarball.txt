@@ -59,3 +59,5 @@ For each step, check for possible errors.
     him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
     For a release, Richard should prepare the announcement himself,
     possibly starting from a previous announcment.
+
+# arch-tag: c23c771f-ca26-4584-8a04-50ecf0989390

@@ -475,4 +475,5 @@ Noninteractively, this operates on text from START to END."
 
 (add-hook 'minibuffer-setup-hook 'iso-acc-minibuf-setup)
 
+;;; arch-tag: 149ff409-7c3e-4574-9b5d-ac038939c0a6
 ;;; iso-acc.el ends here

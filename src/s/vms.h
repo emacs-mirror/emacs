@@ -246,3 +246,6 @@ globalref char sdata[];
 
 /* What separator do we use in paths?  */
 #define SEPCHAR ','
+
+/* arch-tag: 76bc2b70-46d1-4334-8f12-955c0d0ca6d4
+   (do not change this comment) */

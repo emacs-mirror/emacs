@@ -2473,3 +2473,7 @@ Eli Zaretskii (eliz@@is.elta.co.il)
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 165ecb88-d03c-44b1-a921-b93f50b05b46
+@end ignore

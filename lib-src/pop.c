@@ -1607,3 +1607,6 @@ find_crlf (in_string, len)
 }
 
 #endif /* MAIL_USE_POP */
+
+/* arch-tag: ceb37041-b7ad-49a8-a63d-286618b8367d
+   (do not change this comment) */

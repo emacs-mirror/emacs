@@ -1620,3 +1620,7 @@ spaces or new lines.
 For a detailed explanation of this regular expression, see @ref{Regexp
 Example}.
 @end defvar
+
+@ignore
+   arch-tag: c2573ca2-18aa-4839-93b8-924043ef831f
+@end ignore

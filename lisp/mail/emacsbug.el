@@ -255,4 +255,5 @@ and send the mail again using \\[mail-send-and-exit].")))
 
 (provide 'emacsbug)
 
+;;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
 ;;; emacsbug.el ends here

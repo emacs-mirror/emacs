@@ -2425,4 +2425,5 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
       (substring enc2 0 i2))))
 
 
+;;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

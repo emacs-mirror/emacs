@@ -1010,4 +1010,5 @@ If you find some problem with the directory separator character, try
 
 (provide 'gnus-util)
 
+;;; arch-tag: f94991af-d32b-4c97-8c26-ca12a934de49
 ;;; gnus-util.el ends here

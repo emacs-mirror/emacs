@@ -287,3 +287,5 @@ xlw_destroy_instance (instance)
     XtDestroyWidget (instance->widget);
 }
 
+/* arch-tag: 541e3912-477d-406e-9bf2-dbf2b7ff8c3b
+   (do not change this comment) */

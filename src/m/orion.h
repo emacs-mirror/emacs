@@ -64,3 +64,6 @@ Boston, MA 02111-1307, USA.  */
 #define FSCALE 1.0
 #endif
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
+
+/* arch-tag: 4fcf38ad-d6b0-434b-bc10-16647d5a7fb6
+   (do not change this comment) */

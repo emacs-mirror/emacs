@@ -438,4 +438,5 @@ fitsystem(y, xv, pv, 0)  :=  fitsystem(y, xv, cons(fvh,fvt))
 						    hasfitparams(pv)))),
 fitparam(n) = x  :=  x ]"))
 
+;;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
 ;;; calc-rules.el ends here

@@ -1793,4 +1793,5 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
 
 (provide 'f90)
 
+;;; arch-tag: fceac97c-c147-44bd-aec0-172d4b560ef8
 ;;; f90.el ends here

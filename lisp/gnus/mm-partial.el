@@ -149,4 +149,5 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 		  (error nil))
 		(delete-region ,(point-min-marker) ,(point-max-marker))))))))))
 
+;;; arch-tag: 460e7424-05f2-4a1d-a0f2-70ec081eff7d
 ;;; mm-partial.el ends here

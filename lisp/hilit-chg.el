@@ -1116,4 +1116,5 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 
 (provide 'hilit-chg)
 
+;;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
 ;;; hilit-chg.el ends here

@@ -66,3 +66,6 @@ struct termio {
 #define TCSETAF 5
 
 #endif /* _SYS_TERMIO_H */
+
+/* arch-tag: 0e7a100d-2ac0-412e-9dc4-52e39ef43e14
+   (do not change this comment) */

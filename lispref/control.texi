@@ -1240,3 +1240,7 @@ quit, and the quit happens immediately after the function
 @code{ftp-setup-buffer} returns but before the variable @code{process} is
 set, the process will not be killed.  There is no easy way to fix this bug,
 but at least it is very unlikely.
+
+@ignore
+   arch-tag: 8abc30d4-4d3a-47f9-b908-e9e971c18c6d
+@end ignore

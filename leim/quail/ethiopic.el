@@ -1146,4 +1146,5 @@ C-' or `M-x ethio-gemination'
 		 (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
 		 "ethiopic"))
 
+;;; arch-tag: 66c182a8-d802-40fa-9c0d-d8ebe2f909d5
 ;;; ethiopic.el ends here

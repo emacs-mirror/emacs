@@ -13,3 +13,6 @@
 #define LD_SWITCH_X_DEFAULT -Xlinker LD_SWITCH_X_SITE_AUX
 
 #endif /* __GNUC__ */
+
+/* arch-tag: 79c76283-7d50-499b-b910-8ef980357758
+   (do not change this comment) */

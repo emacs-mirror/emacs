@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.17 2002/12/10 13:16:31 pj Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.18 2003/02/04 14:53:27 lektu Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -1128,3 +1128,7 @@ Since it keeps the cursor up where the command was invoked.
 
 @printindex ky
 @bye
+
+@ignore
+   arch-tag: 776409ba-cb15-42b9-b2b6-d2bdc7ebad01
+@end ignore

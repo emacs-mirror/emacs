@@ -571,4 +571,5 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		    (calc-enter-result num "edit" vals)
 		  (calc-enter-result 1 "edit" vals (- num))))))))))
 
+;;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here

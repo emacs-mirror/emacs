@@ -134,3 +134,6 @@ extern int sign_extend_temp;
 
 /* Compensate for error in signal.h.  */
 #define NSIG_MINIMUM 20
+
+/* arch-tag: cf665976-ddb1-49b0-b383-371e17f36acf
+   (do not change this comment) */

@@ -56,3 +56,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Control a conditional in unexelf.c.  */
 #define SOLARIS_POWERPC
+
+/* arch-tag: dc2c3cb6-4683-45ae-961f-0a4f2bda3c61
+   (do not change this comment) */

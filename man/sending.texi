@@ -703,3 +703,7 @@ and facilities that send mail.
 in this chapter about the @samp{*mail*} buffer and Mail mode does not
 apply; the other methods use a different format of text in a different
 buffer, and their commands are different as well.
+
+@ignore
+   arch-tag: d8a3dfc3-5d87-45c5-a7f2-69871b8e4fd6
+@end ignore

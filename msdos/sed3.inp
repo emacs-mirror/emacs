@@ -42,3 +42,5 @@ s!^	\./!	go32 ./!
 s!^	go32 ./test-distrib!	go32 ./test-dis!
 /-o make-docfile/a\
 	coff2exe make-docfile
+
+# arch-tag: cac6f5c7-3dbf-4e84-9d0c-44f0126f0ea8

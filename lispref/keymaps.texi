@@ -2453,3 +2453,7 @@ menu of Shell mode, after the item @code{break}:
   [work] '("Work" . work-command) 'break)
 @end example
 @end defun
+
+@ignore
+   arch-tag: cfb87287-9364-4e46-9e93-6c2f7f6ae794
+@end ignore

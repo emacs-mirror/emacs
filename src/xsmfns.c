@@ -586,3 +586,6 @@ See also `emacs-save-session-functions', `emacs-session-save' and
 }
 
 #endif /* HAVE_X_SM */
+
+/* arch-tag: 56a2c58c-adfa-430a-b772-130abd29fd2e
+   (do not change this comment) */

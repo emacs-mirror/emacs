@@ -362,4 +362,5 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (provide 'finder)
 
+;;; arch-tag: ec85ff49-8cb8-41f5-a63f-9131d53ce2c5
 ;;; finder.el ends here

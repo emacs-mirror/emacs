@@ -1485,4 +1485,5 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 8e952711-01a2-485b-bf21-c9e3ad4de942
 ;;; mh-seq.el ends here

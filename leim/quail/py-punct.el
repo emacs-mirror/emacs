@@ -74,4 +74,5 @@ For instance, typing `v' and `%' insert `％'.
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct" quail-package-alist)))
 
+;;; arch-tag: 941fd2ac-2d26-4b0e-8458-b5e485c5aa7d
 ;;; py-punct.el ends here

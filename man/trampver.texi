@@ -58,3 +58,6 @@
 @c Otherwise, '/dev/null/' is tken, which leaves this part empty.
 
 
+@ignore
+   arch-tag: e0fe322c-e06b-46eb-bb5b-d091b521f41c
+@end ignore

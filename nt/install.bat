@@ -6,3 +6,7 @@ if not (%1) == () shift
 nmake -f makefile.nt install %1 %2 %3 %4 %5 %6 %7 %8 %9
 set INSTALL_DIR=
 set BUILD_TYPE=
+
+goto skipArchTag
+   arch-tag: 1db5223b-8fc9-4bdb-8ad1-9e3962bf034a
+:skipArchTag

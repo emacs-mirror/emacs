@@ -3491,4 +3491,5 @@ To use this type, you must define :match or :match-alternatives."
 
 (provide 'wid-edit)
 
+;;; arch-tag: a076e75e-18a1-4b46-8be5-3f317bcbc707
 ;;; wid-edit.el ends here

@@ -478,4 +478,5 @@ All other keys are the same as on standard US keyboard."
  ([kp-0] ?0)
  ([kp-add] ?+))
 
+;;; arch-tag: 8aedb992-e191-4eec-ad0d-71a352e02a3d
 ;;; slovak.el ends here

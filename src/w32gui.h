@@ -176,3 +176,6 @@ typedef struct {
 
 
 #endif /* EMACS_W32GUI_H */
+
+/* arch-tag: 9172e5fb-45a5-4684-afd9-ca0e81324604
+   (do not change this comment) */

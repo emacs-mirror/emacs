@@ -5296,4 +5296,5 @@ end
 
 (provide 'ebnf2ps)
 
+;;; arch-tag: 148bc8af-5398-468b-b922-eeb7afef3e4f
 ;;; ebnf2ps.el ends here

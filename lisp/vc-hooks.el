@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.158 2003/08/23 23:04:20 rost Exp $
+;; $Id: vc-hooks.el,v 1.159 2003/08/30 10:56:38 eliz Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -848,4 +848,5 @@ Used in `find-file-not-found-functions'."
 
 (provide 'vc-hooks)
 
+;;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here

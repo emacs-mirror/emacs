@@ -250,4 +250,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mwheel)
 
+;;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
 ;;; mwheel.el ends here

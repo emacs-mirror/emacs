@@ -2448,3 +2448,7 @@ Likewise, @kbd{M-x snake} provides an implementation of Snake.
 @findex zone
 The command @kbd{M-x zone} plays games with the display when Emacs is
 idle.
+
+@ignore
+   arch-tag: 8f094220-c0d5-4e9e-af7d-3e0da8187474
+@end ignore

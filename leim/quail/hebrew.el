@@ -75,4 +75,5 @@ Hebrew letters are assigned to lowercases.
  ("/" ?.)
  ("'" ?,))
 
+;;; arch-tag: 771b887d-15af-4a4d-b4ce-a4a86f5ca0cf
 ;;; hebrew.el ends here

@@ -3970,3 +3970,6 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 }
+
+/* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
+   (do not change this comment) */

@@ -2973,4 +2973,5 @@ class of the file (using s to separate nested class ids)."
 
 (provide 'gud)
 
+;;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
 ;;; gud.el ends here

@@ -119,4 +119,5 @@ If neither file exists, fails quietly."
 
 (provide 'vms-pmail)
 
+;;; arch-tag: 336850fc-7812-4663-8e4d-b9c13f47dce1
 ;;; vms-pmail.el ends here

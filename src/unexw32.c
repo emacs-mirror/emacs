@@ -807,3 +807,6 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 }
 
 /* eof */
+
+/* arch-tag: fe1d3d1c-ef88-4917-ab22-f12ab16b3254
+   (do not change this comment) */

@@ -198,3 +198,5 @@ typedef struct {
 
 #endif /* EMACS_MACGUI_H */
 
+/* arch-tag: 5a0da49a-35e2-418b-a58c-8a55778ae849
+   (do not change this comment) */

@@ -350,4 +350,5 @@ Negative DAY counts backward from end of year."
 
 (provide 'cal-move)
 
+;;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here

@@ -51,3 +51,6 @@
 #endif
 
 #define USE_MMAP_FOR_BUFFERS 1
+
+/* arch-tag: b0640f78-5ad5-4093-97c3-5b3abbf5a2be
+   (do not change this comment) */

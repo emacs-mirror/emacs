@@ -63,3 +63,5 @@ s/bootstrap-doc/b-doc/
 	stubedit b-emacs.exe minstack=1024k\
 	rm -f emacs.exe temacs.exe emacs
 /^	rm -f/s/\\#/#/
+
+# arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

@@ -1328,4 +1328,5 @@ make, or the user didn't cancel the call."
 				'query-replace 'region))))
 	 (move-overlay replace-overlay start end (current-buffer)))))
 
+;;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

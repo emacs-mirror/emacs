@@ -316,4 +316,5 @@
 
 (provide 'rfc822)
 
+;;; arch-tag: 5d388a24-e173-40fb-9b8e-85269de44b37
 ;;; rfc822.el ends here

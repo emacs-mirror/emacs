@@ -850,4 +850,5 @@ external if displayed external."
 
 (provide 'mm-decode)
 
+;;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
 ;;; mm-decode.el ends here

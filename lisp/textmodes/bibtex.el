@@ -3891,4 +3891,5 @@ is outside key or BibTeX field."
 
 (provide 'bibtex)
 
+;;; arch-tag: ee2be3af-caad-427f-b42a-d20fad630d04
 ;;; bibtex.el ends here

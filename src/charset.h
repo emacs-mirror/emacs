@@ -870,3 +870,6 @@ extern Lisp_Object Vauto_fill_chars;
   } while (0)
 
 #endif /* EMACS_CHARSET_H */
+
+/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
+   (do not change this comment) */

@@ -1086,3 +1086,7 @@ matching a given regular expression.
 variable @code{find-ls-option}, whose default value specifies using
 options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
 may need to change the value of this variable.
+
+@ignore
+   arch-tag: d105f9b9-fc1b-4c5f-a949-9b2cf3ca2fc1
+@end ignore

@@ -1445,3 +1445,5 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
+
+# arch-tag: 9fd7aba8-f826-4111-b3c0-497a8e7db9a0

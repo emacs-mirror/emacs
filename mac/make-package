@@ -425,4 +425,5 @@ rm ${builddir}/mac/EmacsRW.dmg
 echo "Cleaning up the staging directory"
 rm -rf ${builddir}/mac/Emacs.pkg ${removable_build_dir}
 
+# arch-tag: 1b631d0d-9fde-4f71-80c0-33e0e5815515
 ### make-package ends here

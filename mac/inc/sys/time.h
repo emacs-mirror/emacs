@@ -29,3 +29,6 @@ struct timeval {
 };
 
 #endif  /* _SYS_TYPES_H */
+
+/* arch-tag: f85ed04d-0e99-4f97-892b-fe029d0e92f9
+   (do not change this comment) */

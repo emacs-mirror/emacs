@@ -382,4 +382,5 @@ directory and makes this the current buffer's default directory."
 
 (provide 'octave-inf)
 
+;;; arch-tag: bdce0395-24d1-4bb4-bfba-6fb1eeb1a660
 ;;; octave-inf.el ends here

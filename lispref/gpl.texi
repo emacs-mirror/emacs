@@ -398,3 +398,6 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
+@ignore
+   arch-tag: d00ac830-e120-41fb-bbc5-7ca3eeaa227f
+@end ignore

@@ -1451,3 +1451,7 @@ in on with the command @kbd{C-c b m}.
 
 @contents
 @bye
+
+@ignore
+   arch-tag: 52fe78ac-a1c4-48e7-815e-0a31acfad4bf
+@end ignore

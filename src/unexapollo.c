@@ -295,3 +295,6 @@ CopyData (target_file, source_file, total_byte_count)
       total_byte_count -= byte_count;
     }
 }
+
+/* arch-tag: 783ebbdf-7d26-4df8-9469-17a1747dce96
+   (do not change this comment) */

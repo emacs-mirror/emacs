@@ -68,4 +68,5 @@
 (define-key function-key-map "\eOx" [kp-8])
 (define-key function-key-map "\eOy" [kp-9])
 
+;;; arch-tag: 7ffb4444-6a23-43e1-b457-43cf4f673c0d
 ;;; lk201.el ends here

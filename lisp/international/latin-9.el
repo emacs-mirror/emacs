@@ -123,4 +123,5 @@
 ;;; no-byte-compile: t
 ;;; End:
 
+;;; arch-tag: 84d442ad-d595-4016-8b84-ea92704fd235
 ;;; latin-9.el ends here

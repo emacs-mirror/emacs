@@ -1650,4 +1650,5 @@ KEYWORDS is a comma-separated list of labels."
 
 (provide 'rmailsum)
 
+;;; arch-tag: 556079ee-75c1-47f5-9884-2e0a0bc6c5a1
 ;;; rmailsum.el ends here

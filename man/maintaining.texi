@@ -1273,3 +1273,7 @@ commands.
 @vindex emerge-startup-hook
   After setting up the merge, Emerge runs the hook
 @code{emerge-startup-hook} (@pxref{Hooks}).
+
+@ignore
+   arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb
+@end ignore

@@ -1805,4 +1805,5 @@ normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
+;;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

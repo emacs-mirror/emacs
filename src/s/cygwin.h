@@ -144,3 +144,6 @@ Boston, MA 02111-1307, USA.  */
 #define vfork fork
 
 /* the end */
+
+/* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b
+   (do not change this comment) */

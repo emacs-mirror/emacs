@@ -160,4 +160,5 @@ See `recenter'."
 
 (provide 'master)
 
+;;; arch-tag: dca08daa-8127-45ae-b77e-b135160dce98
 ;;; master.el ends here

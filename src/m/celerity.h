@@ -54,3 +54,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* (short) negative-int doesn't sign-extend correctly */
 #define SHORT_CAST_BUG
+
+/* arch-tag: b4df1828-fab6-48f8-97bc-b8998c200eea
+   (do not change this comment) */

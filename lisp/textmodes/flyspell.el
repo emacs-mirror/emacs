@@ -2123,4 +2123,5 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
 
 (provide 'flyspell)
 
+;;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
 ;;; flyspell.el ends here

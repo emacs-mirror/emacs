@@ -225,4 +225,5 @@
 	(math-reject-arg b 'integerp))
     (math-reject-arg a 'integerp)))
 
+;;; arch-tag: 89d65274-0b3b-42d8-aacd-eaf86da5b4ea
 ;;; calc-frac.el ends here

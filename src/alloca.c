@@ -512,3 +512,6 @@ i00afunc (long address)
 
 # endif /* no alloca */
 #endif /* not GCC version 2 */
+
+/* arch-tag: 5c9901c8-3cd4-453e-bd66-d9035a175ee3
+   (do not change this comment) */

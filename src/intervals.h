@@ -361,3 +361,6 @@ extern Lisp_Object get_pos_property P_ ((Lisp_Object pos, Lisp_Object prop,
 extern void syms_of_textprop P_ ((void));
 
 #include "composite.h"
+
+/* arch-tag: f0bc16c0-b084-498d-9de4-21cc8f077795
+   (do not change this comment) */

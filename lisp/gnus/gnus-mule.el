@@ -71,4 +71,5 @@ rather than using this function."
 
 (provide 'gnus-mule)
 
+;;; arch-tag: 525e6b69-85de-4dfc-9dbb-764c795d63af
 ;;; gnus-mule.el ends here

@@ -586,4 +586,5 @@ See documentation for variable `ebnf-bnf-lex'."
 (provide 'ebnf-bnf)
 
 
+;;; arch-tag: 3b1834d3-8367-475b-80d5-8e0bbd00ce50
 ;;; ebnf-bnf.el ends here

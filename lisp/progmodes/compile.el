@@ -2384,4 +2384,5 @@ An error message with no file name and no file name has been seen earlier"))
 
 (provide 'compile)
 
+;;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

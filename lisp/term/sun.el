@@ -274,4 +274,5 @@
   (sun-mouse-handler))			; Now, execute this mouse blip.
 (define-key ctl-x-map "\C-@" 'sun-mouse-once)
 
+;;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
 ;;; sun.el ends here

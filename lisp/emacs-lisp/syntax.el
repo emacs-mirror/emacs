@@ -289,4 +289,6 @@ Point is at POS when this function returns."
 ;;     (syntax-ppss-depth (syntax-ppss))))
 
 (provide 'syntax)
+
+;;; arch-tag: 302f1eeb-e77c-4680-a8c5-c543e01161a5
 ;;; syntax.el ends here

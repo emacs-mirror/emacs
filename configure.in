@@ -3085,3 +3085,6 @@ touch src/config.stamp
 
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
+m4_if(dnl	Do not change this comment
+   arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
+)dnl

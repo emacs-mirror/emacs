@@ -127,3 +127,6 @@ Boston, MA 02111-1307, USA.  */
 extern int _init_brk;\
 _init_brk = bss_start;\
 }
+
+/* arch-tag: 73bf1120-a994-4c29-8d60-af425d8bf10c
+   (do not change this comment) */

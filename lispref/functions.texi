@@ -1329,3 +1329,6 @@ See @ref{Mapping Functions}.
 See @ref{Key Lookup}.
 @end table
 
+@ignore
+   arch-tag: 39100cdf-8a55-4898-acba-595db619e8e2
+@end ignore

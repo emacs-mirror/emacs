@@ -1897,3 +1897,7 @@ This variable's value is @code{t} if no X window manager is in use.
 The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
 @end ignore
+
+@ignore
+   arch-tag: 94977df6-3dca-4730-b57b-c6329e9282ba
+@end ignore

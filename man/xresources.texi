@@ -929,3 +929,7 @@ family.  It corresponds to the fifth part of an X font name.  It is one of
 
 @noindent
 @var{size} is a decimal number that describes the font size in points.
+
+@ignore
+   arch-tag: 9b6ff773-48b6-41f6-b2f9-f114b8bdd97f
+@end ignore

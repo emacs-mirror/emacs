@@ -4334,4 +4334,5 @@ For example, invoke
 ;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
+;;; arch-tag: 1e8d9a2d-bca0-40a0-ac6c-dab01bc6f725
 ;;; texinfmt.el ends here

@@ -191,4 +191,5 @@ version \\([0-9]+\\), or (at"
 ;; coding: emacs-mule
 ;; End:
 
+;;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
 ;;; copyright.el ends here

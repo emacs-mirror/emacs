@@ -1062,3 +1062,6 @@ extern int x_session_have_connection P_ ((void));
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
+
+/* arch-tag: 78a7972a-b18f-4694-861a-0780c4b3090e
+   (do not change this comment) */

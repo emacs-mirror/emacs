@@ -704,4 +704,5 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 
 (provide 'mouse-sel)
 
+;;; arch-tag: 86e6c73f-deaa-48d3-a24e-c565fda1f7d7
 ;;; mouse-sel.el ends here

@@ -2400,3 +2400,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   Qforeign_selection = intern ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
+
+/* arch-tag: 7c293b0f-9918-4f69-8ac7-03e142307236
+   (do not change this comment) */

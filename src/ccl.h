@@ -101,3 +101,6 @@ extern Lisp_Object Vccl_program_table;
 extern Lisp_Object Qccl_program_idx;
 
 #endif /* EMACS_CCL_H */
+
+/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
+   (do not change this comment) */

@@ -102,3 +102,6 @@ extern int pending_atimers;
 extern void reinvoke_input_signal ();
 
 #endif /* EMACS_BLOCKINPUT_H */
+
+/* arch-tag: 51a9ec86-945a-4966-8f04-2d1341250e03
+   (do not change this comment) */

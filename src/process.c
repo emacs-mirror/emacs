@@ -6799,3 +6799,6 @@ syms_of_process ()
 
 
 #endif /* not subprocesses */
+
+/* arch-tag: 3706c011-7b9a-4117-bd4f-59e7f701a4c4
+   (do not change this comment) */

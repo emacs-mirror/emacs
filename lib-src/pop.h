@@ -81,3 +81,6 @@ extern int pop_quit _ARGS((popserver server));
 extern void pop_close _ARGS((popserver));
 
 #undef _ARGS
+
+/* arch-tag: 76cc5f58-8e86-48fa-bc72-a7c6cb1c4f1c
+   (do not change this comment) */

@@ -3983,4 +3983,5 @@ Use only in REAL emergencies."
 
 (provide 'advice)
 
+;;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
 ;;; advice.el ends here

@@ -2696,4 +2696,5 @@ function called to create the messages."
 
 (provide 'checkdoc)
 
+;;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
 ;;; checkdoc.el ends here

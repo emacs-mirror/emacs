@@ -115,4 +115,5 @@ Zone-mode does two things:
 
 (provide 'zone-mode)
 
+;;; arch-tag: 6a2940ef-fd4f-4de7-b979-b027b09821fe
 ;;; zone-mode.el ends here

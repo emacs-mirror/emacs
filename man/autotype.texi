@@ -659,3 +659,7 @@ of the expansion possibilities.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 54001b27-5ef8-4a9d-a199-905d650fafba
+@end ignore

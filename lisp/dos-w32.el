@@ -424,4 +424,5 @@ indicates a specific program should be invoked."
 
 (provide 'dos-w32)
 
+;;; arch-tag: dcfefdd2-362f-4fbc-9141-9634f5f4d6a7
 ;;; dos-w32.el ends here

@@ -954,3 +954,7 @@ functionality is still available by holding down the @kbd{SHIFT} key
 when you press the mouse button.  The Linux console supports this
 mode if it has support for the mouse enabled, e.g.@: using the
 @command{gpm} daemon.
+
+@ignore
+   arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
+@end ignore

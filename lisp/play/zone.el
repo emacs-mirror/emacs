@@ -620,4 +620,5 @@ If the element is a function or a list of a function and a number,
 ;;;;;;;;;;;;;;;
 (provide 'zone)
 
+;;; arch-tag: 7092503d-74a9-4325-a55c-a026ede58cea
 ;;; zone.el ends here

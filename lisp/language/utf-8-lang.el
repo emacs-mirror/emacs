@@ -50,4 +50,6 @@ character set encoded in UTF-8."))
  nil)
 
 (provide 'utf-8-lang)
+
+;;; arch-tag: dfa339e1-296f-4b1e-9fe8-2b65279ec813
 ;;; utf-8-lang.el ends here

@@ -799,3 +799,7 @@ the error.
 successfully, then point is located at the end of the form.  In this
 case, this technique can't localize the error precisely, but can still
 show you which function to check.
+
+@ignore
+   arch-tag: ddc57378-b0e6-4195-b7b6-43f8777395a7
+@end ignore

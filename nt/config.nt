@@ -468,3 +468,6 @@ extern char *getenv ();
 #define NO_RETURN	/* nothing */
 #endif
 #endif
+
+/* arch-tag: df720992-aa5a-499a-882d-958dc5eeb5e9
+   (do not change this comment) */

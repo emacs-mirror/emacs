@@ -935,3 +935,6 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_TYPE(OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_types))
+
+/* arch-tag: 679305dd-d41c-4a50-b170-3caf5c97b2d1
+   (do not change this comment) */

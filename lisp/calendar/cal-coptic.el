@@ -234,4 +234,5 @@ Echo Ethiopic date unless NOECHO is t."
 
 (provide 'cal-coptic)
 
+;;; arch-tag: 72d49161-25df-4072-9312-b182cdca7627
 ;;; cal-coptic.el ends here

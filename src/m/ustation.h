@@ -126,3 +126,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define BROKEN_SIGIO
 #define BROKEN_SIGTSTP
+
+/* arch-tag: 797f1d3e-3077-4eee-a81b-03fcf3a988fe
+   (do not change this comment) */

@@ -322,4 +322,5 @@
 (define-key function-key-map "\e[196q" [C-delete])
 (define-key function-key-map "\e[197q" [M-delete])
 
+;;; arch-tag: b1d0e73a-bb7d-47be-9fb2-6fb126469a1b
 ;;; iris-ansi.el ends here

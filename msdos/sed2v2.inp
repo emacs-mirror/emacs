@@ -88,3 +88,5 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 # might be defined in sys/config.h we include at the top of config.h.
 /^#undef BSTRING/s|#undef|# undef|
 /^#undef .*$/s|^.*$|/* & */|
+
+# arch-tag: 2acb5571-ff53-4822-9175-95b864b59f7c

@@ -90,4 +90,5 @@ to the system configuration; look at `system-configuration' instead."
 ;;version-control: never
 ;;End:
 
+;;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
 ;;; version.el ends here

@@ -2075,3 +2075,7 @@ Emacs is restarted by the session manager.
   nil)
 @end group
 @end example
+
+@ignore
+   arch-tag: 8378814a-30d7-467c-9615-74a80b9988a7
+@end ignore

@@ -30,3 +30,4 @@ TIC=tic
 e/eterm: e/eterm.ti
 	TERMINFO=`pwd`; export TERMINFO; $(TIC) e/eterm.ti
 
+# arch-tag: 4261f003-cf77-4478-a10a-5284e9d8f797

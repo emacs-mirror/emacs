@@ -293,4 +293,5 @@ Example:
 
 (provide 'image)
 
+;;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
 ;;; image.el ends here

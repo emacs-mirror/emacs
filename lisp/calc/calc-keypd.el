@@ -613,4 +613,5 @@
       (error "Not a Calc command: %s" (key-description keys)))))
 
 
+;;; arch-tag: 4ba0d360-2bb6-40b8-adfa-eb373765b3f9
 ;;; calc-keypd.el ends here

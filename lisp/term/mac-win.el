@@ -1017,4 +1017,5 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
   "The list of X colors from the `rgb.txt' file.
 XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
+;;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

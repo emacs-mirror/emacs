@@ -90,3 +90,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* In SR10.4, unistd.h has bad prototype for getpgrp, so we don't include it. */
 #undef HAVE_UNISTD_H
+
+/* arch-tag: 33336588-6242-4e2e-a194-e38848b12813
+   (do not change this comment) */

@@ -1055,4 +1055,5 @@ for more information."
 
 (provide 'imenu)
 
+;;; arch-tag: 98a2f5f5-4b91-4704-b18c-3aacf77d77a7
 ;;; imenu.el ends here

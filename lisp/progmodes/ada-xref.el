@@ -2262,4 +2262,5 @@ find-file...."
 
 (provide 'ada-xref)
 
+;;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
 ;;; ada-xref.el ends here

@@ -2596,3 +2596,5 @@ The function should accept no arguments.  */);
   defsubr (&Stty_display_color_cells);
 }
 
+/* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
+   (do not change this comment) */

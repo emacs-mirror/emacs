@@ -2820,4 +2820,5 @@ call it with one argument STRING."
 ;;
 (provide 'quail)
 
+;;; arch-tag: 46d7db54-5467-42c4-a2a9-53ca90a1e886
 ;;; quail.el ends here

@@ -365,4 +365,5 @@ language environment LANG-ENV."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

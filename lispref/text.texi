@@ -3984,3 +3984,7 @@ properties (@pxref{Overlay Properties}).
 
 This variable is available starting in Emacs 21.
 @end defvar
+
+@ignore
+   arch-tag: 3721e738-a1cb-4085-bc1a-6cb8d8e1d32b
+@end ignore

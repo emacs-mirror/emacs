@@ -990,3 +990,7 @@ message window, when its time is up.
 The number of seconds to display an appointment message.  The default
 is 5 seconds.
 @end table
+
+@ignore
+   arch-tag: 8e50c766-4703-4888-a421-af15244cca7e
+@end ignore

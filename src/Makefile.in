@@ -1313,3 +1313,4 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 
+# arch-tag: 8e915ae5-d15d-4617-8c41-c5c267a23b00

@@ -498,3 +498,6 @@ int interpose_on_window (argc, argv)
 	(tty_view, input_event_filter_function, NOTIFY_SAFE);
 }
 #endif XVIEW
+
+/* arch-tag: 7a2e7105-c059-418a-b3d9-5b5de96abb4e
+   (do not change this comment) */

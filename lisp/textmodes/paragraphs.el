@@ -469,4 +469,5 @@ ones already marked."
 ;;; coding: iso-2022-7bit
 ;;; End:
 
+;;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

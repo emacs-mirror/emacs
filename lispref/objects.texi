@@ -1903,3 +1903,7 @@ returns @code{t} if and only if both the expressions below return
 
 Because of this recursive method, circular lists may therefore cause
 infinite recursion (leading to an error).
+
+@ignore
+   arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
+@end ignore

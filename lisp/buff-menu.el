@@ -664,4 +664,5 @@ For more information, see the function `buffer-menu'."
 	   (goto-char desired-point))
       (current-buffer))))
 
+;;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
 ;;; buff-menu.el ends here

@@ -171,4 +171,5 @@ The default value is `devanagari'.")
 
 (provide 'indian)
 
+;;; arch-tag: 83aa8fc7-7ee2-4364-a6e5-498f5e3b8c2f
 ;;; indian.el ends here

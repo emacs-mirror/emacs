@@ -567,4 +567,5 @@ All other keys are the same as on standard US keyboard."
  ([kp-0] ?0)
  ([kp-add] ?+))
 
+;;; arch-tag: 0a27dffc-a5e1-479f-9da2-a9eb91b34d8a
 ;;; czech.el ends here

@@ -3966,3 +3966,6 @@ void globals_of_w32 ()
 }
 
 /* end of nt.c */
+
+/* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
+   (do not change this comment) */

@@ -3186,3 +3186,7 @@ powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@ignore
+   arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
+@end ignore

@@ -2491,3 +2491,7 @@ This function removes @var{function} from the hook variable @var{hook}.
 If @var{local} is non-@code{nil}, that says to remove @var{function}
 from the buffer-local hook list instead of from the global hook list.
 @end defun
+
+@ignore
+   arch-tag: 4c7bff41-36e6-4da6-9e7f-9b9289e27c8e
+@end ignore

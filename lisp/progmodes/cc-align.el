@@ -1208,4 +1208,5 @@ For other semicolon contexts, no determination is made."
 
 (cc-provide 'cc-align)
 
+;;; arch-tag: 4d71ed28-bf51-4509-a148-f39669669a2e
 ;;; cc-align.el ends here

@@ -2139,4 +2139,5 @@ This also runs `bookmark-exit-hooks'."
 
 (provide 'bookmark)
 
+;;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
 ;;; bookmark.el ends here

@@ -97,3 +97,6 @@ typedef struct _XlwMenuClassRec
 extern XlwMenuClassRec xlwMenuClassRec;
 
 #endif /* _XlwMenuP_h */
+
+/* arch-tag: 18d7fc41-ffa0-47a3-a49f-3469900c7a25
+   (do not change this comment) */

@@ -973,3 +973,7 @@ Software Foundation.  Thanks, Richard!
 
 @contents
 @bye
+
+@ignore
+   arch-tag: 2ac9810b-aa49-4ea6-8030-d7f1ecd467ed
+@end ignore

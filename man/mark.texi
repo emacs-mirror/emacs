@@ -425,3 +425,6 @@ the buffer and position of the latest entry in the global ring.  It also
 rotates the ring, so that successive uses of @kbd{C-x C-@key{SPC}} take
 you to earlier and earlier buffers.
 
+@ignore
+   arch-tag: f35e4d82-911b-4cfc-a3d7-3c87b2abba20
+@end ignore

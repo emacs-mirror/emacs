@@ -66,3 +66,6 @@ NOTE-END  */
 /* This triggers some stuff to avoid a compiler bug */
 
 #define TAHOE_REGISTER_BUG
+
+/* arch-tag: dd452693-80e1-413f-a164-0141eb68d831
+   (do not change this comment) */

@@ -526,4 +526,5 @@ in the Emacs source directory."
 
 (provide 'cus-test)
 
+;;; arch-tag: a4991a31-548d-48fb-8ba1-1ebbe68eb2e7
 ;;; cus-test.el ends here

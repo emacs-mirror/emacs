@@ -393,3 +393,5 @@ break abort
 # before Emacs exits.  Perhaps we should put the break somewhere else
 # instead...
 break x_error_quitter
+
+# arch-tag: 12f34321-7bfa-4240-b77a-3cd3a1696dfe

@@ -1510,4 +1510,5 @@ number of backslashes."
 
 (provide 'hilit19)
 
+;;; arch-tag: db99739a-4837-41ee-ad02-3baced8ae71d
 ;;; hilit19.el ends here

@@ -729,3 +729,6 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Qcoding_system_error;
 
 #endif /* EMACS_CODING_H */
+
+/* arch-tag: 2bc3b4fa-6870-4f64-8135-b962b2d290e4
+   (do not change this comment) */

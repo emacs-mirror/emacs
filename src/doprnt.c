@@ -334,3 +334,6 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   *bufptr = 0;		/* Make sure our string end with a '\0' */
   return bufptr - buffer;
 }
+
+/* arch-tag: aa0ab528-7c5f-4c73-894c-aa2526a1efb3
+   (do not change this comment) */

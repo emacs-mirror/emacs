@@ -489,3 +489,6 @@ set to nil.  */);
 
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
 }
+
+/* arch-tag: c96e9724-5eb1-4dad-be07-289f092fd2af
+   (do not change this comment) */

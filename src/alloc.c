@@ -5789,3 +5789,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
+
+/* arch-tag: 6695ca10-e3c5-4c2c-8bc3-ed26a7dda857
+   (do not change this comment) */

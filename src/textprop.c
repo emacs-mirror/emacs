@@ -2295,3 +2295,6 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
 /*  defsubr (&Serase_text_properties); */
 /*  defsubr (&Scopy_text_properties); */
 }
+
+/* arch-tag: 454cdde8-5f86-4faa-a078-101e3625d479
+   (do not change this comment) */

@@ -161,4 +161,5 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 
 (provide 'compare-w)
 
+;;; arch-tag: 4177aab1-48e6-4a98-b7a1-000ee285de46
 ;;; compare-w.el ends here

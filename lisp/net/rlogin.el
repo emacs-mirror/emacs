@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.3 2002/03/14 11:51:47 miles Exp $
+;; $Id: rlogin.el,v 1.4 2003/05/06 17:46:28 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -329,4 +329,5 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
 
 (provide 'rlogin)
 
+;;; arch-tag: 6e20eabf-feda-40fa-ab40-0d156db447e4
 ;;; rlogin.el ends here

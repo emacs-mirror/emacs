@@ -1121,3 +1121,7 @@ instead.
 (@pxref{Tags Search}) or through Dired @kbd{A} command
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
+
+@ignore
+   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
+@end ignore

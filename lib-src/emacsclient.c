@@ -519,3 +519,6 @@ strerror (errnum)
 }
 
 #endif /* ! HAVE_STRERROR */
+
+/* arch-tag: f39bb9c4-73eb-477e-896d-50832e2ca9a7
+   (do not change this comment) */

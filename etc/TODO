@@ -270,3 +270,5 @@ Other features we would like:
   other variable, without changing the value of `values'.
 
 * Fix skip-chars-{for,back}ward to allow character classes.
+
+;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

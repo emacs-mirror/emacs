@@ -578,3 +578,7 @@ between a missing property and a property with the value @code{nil}.
 The value is actually the tail of @var{plist} whose @code{car} is
 @var{property}.
 @end defun
+
+@ignore
+   arch-tag: 8750b7d2-de4c-4923-809a-d35fc39fd8ce
+@end ignore

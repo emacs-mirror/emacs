@@ -296,4 +296,5 @@ bootstrap-after: finder-data custom-deps
 distclean:
 	-rm -f ./Makefile
 
+# arch-tag: d4ea703a-b91c-405c-a171-8dde30b163a7
 # Makefile ends here.

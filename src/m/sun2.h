@@ -95,3 +95,6 @@ NOTE-END  */
 #define SYMS_MACHINE syms_of_sunfns ()
 #define PURESIZE 132000
 #endif
+
+/* arch-tag: 543c3570-74ca-4099-aa47-db7c7b691c8e
+   (do not change this comment) */

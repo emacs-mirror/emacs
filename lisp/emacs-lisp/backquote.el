@@ -214,4 +214,5 @@ Vectors work just like lists.  Nested backquotes are permitted."
 	tail))
      (t (cons 'list heads)))))
 
+;;; arch-tag: 1a26206a-6b5e-4c56-8e24-2eef0f7e0e7a
 ;;; backquote.el ends here

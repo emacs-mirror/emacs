@@ -6,4 +6,5 @@
 ;; Make F11 an escape key.
 (define-key function-key-map "\e[23~" [?\e])
 
+;;; arch-tag: d9f88e9c-02dc-49ff-871c-a415f08e4eb7
 ;;; vt240.el ends here

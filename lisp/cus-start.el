@@ -336,4 +336,5 @@
 (unless purify-flag
   (provide 'cus-start))
 
+;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

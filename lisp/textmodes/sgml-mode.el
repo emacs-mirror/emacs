@@ -1954,4 +1954,5 @@ Can be used as a value for `html-mode-hook'."
 
 (provide 'sgml-mode)
 
+;;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
 ;;; sgml-mode.el ends here

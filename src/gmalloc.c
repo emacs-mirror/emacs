@@ -1978,3 +1978,6 @@ mprobe (__ptr_t ptr)
 }
 
 #endif /* GC_MCHECK */
+
+/* arch-tag: 93dce5c0-f49a-41b5-86b1-f91c4169c02e
+   (do not change this comment) */

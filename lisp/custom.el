@@ -1071,4 +1071,5 @@ This means reset VARIABLE to its value in TO-THEME."
 
 (provide 'custom)
 
+;;; arch-tag: 041b6116-aabe-4f9a-902d-74092bc3dab2
 ;;; custom.el ends here

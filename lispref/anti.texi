@@ -293,3 +293,7 @@ and allied functions.
 @code{file-attributes} returns the file size and the file inode number
 only as a simple integer.
 @end itemize
+
+@ignore
+   arch-tag: 1d0ef137-2bad-430e-ae8e-d820d569b5a6
+@end ignore

@@ -3258,4 +3258,5 @@ is't changed if the display can render Unicode characters."
 
 (provide 'latin1-disp)
 
+;;; arch-tag: 68b2872e-d667-4f48-8e2f-ec2ba2d29406
 ;;; latin1-disp.el ends here

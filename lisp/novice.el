@@ -177,4 +177,5 @@ to future sessions."
 
 (provide 'novice)
 
+;;; arch-tag: f83c0f96-497e-4db6-a430-8703716c6dd9
 ;;; novice.el ends here

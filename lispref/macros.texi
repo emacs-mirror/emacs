@@ -716,3 +716,7 @@ indentation is being computed by @kbd{C-M-q}; if the value is a
 number, @kbd{C-M-q} need not recalculate indentation for the following
 lines until the end of the list.
 @end table
+
+@ignore
+   arch-tag: d4cce66d-1047-45c3-bfde-db6719d6e82b
+@end ignore

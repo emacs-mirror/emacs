@@ -160,4 +160,5 @@ Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
 (provide 'uni-input)
 
+;;; arch-tag: e0d91c7c-19a1-43d3-8f2b-28c0e031efaa
 ;;; uni-input.el ends here

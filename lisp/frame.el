@@ -1327,4 +1327,5 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
+;;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

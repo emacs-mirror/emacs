@@ -1727,4 +1727,5 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
+;;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

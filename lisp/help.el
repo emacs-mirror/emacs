@@ -744,4 +744,5 @@ out of view."
 ;; defcustoms which require 'help'.
 (provide 'help)
 
+;;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
 ;;; help.el ends here

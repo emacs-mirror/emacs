@@ -1228,3 +1228,5 @@ $(BLD)\w32bdf.obj: \
 	$(SRC)\w32.h \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h
+
+# arch-tag: ee9a97ba-19b7-4b50-a127-aaf4efe494dc

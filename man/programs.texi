@@ -2283,3 +2283,7 @@ Insert or align a comment.
 
   The variable @code{asm-comment-char} specifies which character
 starts comments in assembler syntax.
+
+@ignore
+   arch-tag: c7ee7409-40a4-45c7-bfb7-ae7f2c74d0c0
+@end ignore

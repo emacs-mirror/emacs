@@ -52,4 +52,6 @@
   (compilation-minor-mode 1))
 
 (provide 'tramp-util)
+
+;;; arch-tag: 500f9992-a44e-46d0-83a7-980799251808
 ;;; tramp-util.el ends here

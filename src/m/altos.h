@@ -53,3 +53,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef __GNUC__
 #define COFF_ENCAPSULATE
 #endif
+
+/* arch-tag: 4572d0ff-70bb-445f-80f1-2bbac3cf47cb
+   (do not change this comment) */

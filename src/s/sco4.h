@@ -141,3 +141,6 @@ Boston, MA 02111-1307, USA.  */
 #define NO_SOCKETS_IN_FILE_SYSTEM
 
 #define NARROWPROTO 1
+
+/* arch-tag: 4dd6fe94-bcb7-4be0-942a-ff4bc3cd914e
+   (do not change this comment) */

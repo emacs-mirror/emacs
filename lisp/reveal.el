@@ -171,4 +171,5 @@ With zero or negative ARG turn mode off."
 
 (provide 'reveal)
 
+;;; arch-tag: 96ba0242-2274-4ed7-8e10-26bc0707b4d8
 ;;; reveal.el ends here

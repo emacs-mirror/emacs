@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: 1.3 $
+;; $Revision: 1.4 $
 
 ;; This file is part of GNU Emacs.
 
@@ -108,4 +108,5 @@ searching backwards at another AC_... command."
 
 (provide 'autoconf-mode)
 
+;;; arch-tag: 4f44778f-2ab3-49a1-a103-f0acb9df2de4
 ;;; autoconf.el ends here

@@ -626,4 +626,5 @@ Don't use this command in Lisp programs!
 (if mail-abbrevs-mode
     (mail-abbrevs-enable))
 
+;;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

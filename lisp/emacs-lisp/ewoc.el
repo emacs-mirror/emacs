@@ -609,4 +609,5 @@ Returns nil if the buffer has been deleted."
 ;;; eval: (put 'ewoc--set-buffer-bind-dll-let* 'lisp-indent-hook 2)
 ;;; End:
 
+;;; arch-tag: d78915b9-9a07-44bf-aac6-04a1fc1bd6d4
 ;;; ewoc.el ends here

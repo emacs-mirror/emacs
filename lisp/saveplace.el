@@ -238,4 +238,5 @@ To save places automatically in all files, put this in your `.emacs' file:
 
 (provide 'saveplace) ; why not...
 
+;;; arch-tag: 3c2ef47b-0a22-4558-b116-118c9ef454a0
 ;;; saveplace.el ends here

@@ -123,4 +123,5 @@
   (set (make-local-variable 'indent-line-function) #'indent-relative)
   (set (make-local-variable 'font-lock-defaults) '(ld-script-font-lock-keywords nil)))
 
+;;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
 ;;; ld-script.el ends here

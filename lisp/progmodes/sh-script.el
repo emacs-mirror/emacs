@@ -3543,4 +3543,5 @@ The document is bounded by `sh-here-document-word'."
 
 (provide 'sh-script)
 
+;;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

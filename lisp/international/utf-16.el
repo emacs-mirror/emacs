@@ -460,4 +460,5 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
 (define-coding-system-alias 'mule-utf-16-be 'mule-utf-16be-with-signature)
 (define-coding-system-alias 'utf-16-be 'mule-utf-16be-with-signature)
 
+;;; arch-tag: 85455d46-d9c9-466d-a6f3-c3582a7367c4
 ;;; utf-16.el ends here

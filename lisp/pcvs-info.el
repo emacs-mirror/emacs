@@ -470,4 +470,5 @@ DIR can also be a file."
 
 (provide 'pcvs-info)
 
+;;; arch-tag: d85dde07-bdc2-400a-882f-92f398c7b0ba
 ;;; pcvs-info.el ends here

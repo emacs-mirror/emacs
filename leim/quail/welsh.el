@@ -202,4 +202,5 @@
 ;;  ("w\"" ?,A>(B))
 
 
+;;; arch-tag: aeef0eae-0a50-4606-9120-020d59d5e208
 ;;; welsh.el ends here

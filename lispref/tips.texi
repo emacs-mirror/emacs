@@ -946,3 +946,7 @@ This is the @dfn{footer line}; it appears at the very end of the file.
 Its purpose is to enable people to detect truncated versions of the file
 from the lack of a footer line.
 @end table
+
+@ignore
+   arch-tag: 9ea911c2-6b1d-47dd-88b7-0a94e8b27c2e
+@end ignore

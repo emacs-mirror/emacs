@@ -1065,4 +1065,5 @@ Returns t if successful."
 
 (provide 'shell)
 
+;;; arch-tag: bcb5f12a-c1f4-4aea-a809-2504bd5bd797
 ;;; shell.el ends here

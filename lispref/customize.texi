@@ -1055,3 +1055,7 @@ arguments, which will be used when creating the @code{radio-button} or
 @code{checkbox} associated with this item.
 @end ignore
 @end table
+
+@ignore
+   arch-tag: d1b8fad3-f48c-4ce4-a402-f73b5ef19bd2
+@end ignore

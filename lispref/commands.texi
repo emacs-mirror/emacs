@@ -2833,3 +2833,7 @@ This normal hook (@pxref{Standard Hooks}) is run when a keyboard
 macro terminates, regardless of what caused it to terminate (reaching
 the macro end or an error which ended the macro prematurely).
 @end defvar
+
+@ignore
+   arch-tag: e34944ad-7d5c-4980-be00-36a5fe54d4b1
+@end ignore

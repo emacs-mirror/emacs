@@ -755,4 +755,5 @@ With no argument strips whitespace from end of every line in Picture buffer
 
 (provide 'picture)
 
+;;; arch-tag: e452d08d-a470-4fbf-896e-ea276698d1ca
 ;;; picture.el ends here

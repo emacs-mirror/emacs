@@ -1627,4 +1627,5 @@ Pascal Outline mode provides some additional commands.
 
 (provide 'pascal)
 
+;;; arch-tag: 04535136-fd93-40b4-a505-c9bebdc051f5
 ;;; pascal.el ends here

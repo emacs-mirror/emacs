@@ -394,4 +394,5 @@ Conversion to daylight savings time is done according to
 
 (provide 'cal-dst)
 
+;;; arch-tag: a141d204-213c-4ca5-bdc6-f9df3aa92aad
 ;;; cal-dst.el ends here

@@ -299,4 +299,5 @@ in REGEXP."
 
 (provide 'regexp-opt)
 
+;;; arch-tag: 6c5a66f4-29af-4fd6-8c3b-4b554d5b4370
 ;;; regexp-opt.el ends here

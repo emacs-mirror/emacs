@@ -22,3 +22,5 @@
 /^#undef HAVE_XSCREENNUMBEROFSCREEN *$/s/undef/define/
 /^#undef HAVE_XSETWMPROTOCOLS *$/s/undef/define/
 /^#undef HAVE_SELECT *$/s/undef/define/
+
+# arch-tag: 4a41c3ea-eb6c-4e17-8432-307516498e5a

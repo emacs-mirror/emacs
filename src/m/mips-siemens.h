@@ -163,3 +163,5 @@ NOTE-END  */
    (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
     >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
 
+/* arch-tag: a4f5c090-0bd5-48f0-9724-b7d531f9b6c8
+   (do not change this comment) */

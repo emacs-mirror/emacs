@@ -1183,4 +1183,6 @@ of characters from a single Latin-N charset.
  ("~|" ?,A&(B)
  ("~~" ?,A8(B)
 )
+
+;;; arch-tag: 83017837-6b84-4366-b183-e0577e3ed838
 ;;; latin-pre.el ends here

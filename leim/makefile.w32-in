@@ -201,3 +201,5 @@ clean mostlyclean:
 distclean maintainer-clean:
 	if exist stamp-subdir $(DELTREE) $(SUBDIRS)
 	- $(DEL) stamp-subdir
+
+# arch-tag: 08250c45-fa9c-4f39-a175-a0c5c36dd67b

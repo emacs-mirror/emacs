@@ -8261,4 +8261,5 @@
    (#xffe5 ?¡Í)
    (#xffe6 ?£Ü)))
 
+;;; arch-tag: b978fd7b-d182-4f63-af47-a028e074c57f
 ;;; subst-ksc.el ends here

@@ -89,3 +89,6 @@ Boston, MA 02111-1307, USA.  */
   sprintf (pty_name, "/dev/pty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
 #define PTY_TTY_NAME_SPRINTF \
   sprintf (pty_name, "/dev/tty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
+
+/* arch-tag: 4169a89e-3764-4147-98df-1ba3bdd45a5b
+   (do not change this comment) */

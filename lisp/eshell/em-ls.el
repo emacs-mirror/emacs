@@ -898,4 +898,5 @@ Use TRUENAME for predicate tests, if passed."
 
 ;;; Code:
 
+;;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
 ;;; em-ls.el ends here

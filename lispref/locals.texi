@@ -174,3 +174,7 @@ Used for communication between mouse commands and scroll-bar commands.
 @item vc-mode
 @xref{Mode Line Variables}.
 @end table
+
+@ignore
+   arch-tag: 6baae835-b667-4447-91e2-9829ae1cf543
+@end ignore

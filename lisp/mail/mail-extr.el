@@ -2144,4 +2144,5 @@ consing a string.)"
 
 (provide 'mail-extr)
 
+;;; arch-tag: 7785fade-1073-4ed6-b4f6-28db34a7982d
 ;;; mail-extr.el ends here

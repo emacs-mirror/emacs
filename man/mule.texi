@@ -1404,3 +1404,7 @@ its internal representation within Emacs.
 
   To find out which charset a character in the buffer belongs to,
 put point before it and type @kbd{C-u C-x =}.
+
+@ignore
+   arch-tag: 310ba60d-31ef-4ce7-91f1-f282dd57b6b3
+@end ignore

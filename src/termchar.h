@@ -44,3 +44,6 @@ extern int dont_calculate_costs; /* Nonzero means don't bother computing
    a suspended Emacs.  This is useful on terminals with multiple pages,
    where one page is used for Emacs and another for all else. */
 extern int no_redraw_on_reenter;
+
+/* arch-tag: bf9f0d49-842b-42fb-9348-ec8759b27193
+   (do not change this comment) */

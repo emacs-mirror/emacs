@@ -3164,3 +3164,6 @@ extern Lisp_Object Vdirectory_sep_char;
     : make_number ((EMACS_INT)(val)))
 
 #endif /* EMACS_LISP_H */
+
+/* arch-tag: 9b2ed020-70eb-47ac-94ee-e1c2a5107d5e
+   (do not change this comment) */

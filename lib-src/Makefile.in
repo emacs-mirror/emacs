@@ -478,3 +478,5 @@ xveterm${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
+
+# arch-tag: cc40144d-fbd2-436b-9a22-dcb5b5b6a2af

@@ -1506,3 +1506,7 @@ timeclock file manually, or if you change the value of any of
 timeclock's customizable variables, you should run the command
 @kbd{M-x timeclock-reread-log} to update the data in Emacs from the
 file.
+
+@ignore
+   arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
+@end ignore

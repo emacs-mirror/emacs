@@ -43,3 +43,6 @@ Boston, MA 02111-1307, USA.  */
 #if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
 #define select sys_select
 #endif
+
+/* arch-tag: 36d05500-8cf6-4847-8e78-6721f18c06ef
+   (do not change this comment) */

@@ -3975,3 +3975,6 @@ main (argc, argv)
 
 
 /* ebrowse.c ends here.  */
+
+/* arch-tag: fc03b4bc-91a9-4c3d-b3b9-12a77fa86dd8
+   (do not change this comment) */

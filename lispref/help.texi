@@ -635,3 +635,7 @@ If this variable is non-@code{nil}, commands defined with
 echo area at first, and display the longer @var{help-text} strings only
 if the user types the help character again.
 @end defopt
+
+@ignore
+   arch-tag: ba36b4c2-e60f-49e2-bc25-61158fdcd815
+@end ignore

@@ -10930,3 +10930,6 @@ default is nil, which is the same as `super'.  */);
 }
 
 #endif /* HAVE_X_WINDOWS */
+
+/* arch-tag: 6d4e4cb7-abc1-4302-9585-d84dcfb09d0f
+   (do not change this comment) */

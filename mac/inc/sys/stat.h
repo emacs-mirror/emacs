@@ -84,3 +84,6 @@ struct stat {
 #endif  /* __MRC__ */
 
 #endif /* _SYS_STAT_H */
+
+/* arch-tag: b7da83f5-3d3f-4b19-9cd2-790dd87145e4
+   (do not change this comment) */

@@ -2946,3 +2946,6 @@ syms_of_search ()
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
+
+/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
+   (do not change this comment) */

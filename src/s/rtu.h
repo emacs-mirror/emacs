@@ -144,3 +144,6 @@ Boston, MA 02111-1307, USA.  */
 /* Process groups work in the traditional BSD manner.  */
 
 #define BSD_PGRPS
+
+/* arch-tag: 0908970b-1cc0-4d57-b866-61b9bd029a0d
+   (do not change this comment) */

@@ -1348,4 +1348,5 @@ This mode enables switching between buffers using substrings.  See
 
 (provide 'iswitchb)
 
+;;; arch-tag: d74198ae-753f-44f2-b34f-0c515398d90a
 ;;; iswitchb.el ends here

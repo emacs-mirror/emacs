@@ -128,4 +128,5 @@ of the buffer."
 
 (provide 'gnus-eform)
 
+;;; arch-tag: ef50678c-2c28-49ef-affc-e53b3b2c0bf6
 ;;; gnus-eform.el ends here

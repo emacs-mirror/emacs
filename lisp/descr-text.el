@@ -583,4 +583,5 @@ as well as widgets, buttons, overlays, and text properties."
 
 (provide 'descr-text)
 
+;;; arch-tag: fc55a498-f3e9-4312-b5bd-98cc02480af1
 ;;; descr-text.el ends here

@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.24 2003/02/11 00:11:55 monnier Exp $
+;; $Id: eldoc.el,v 1.25 2003/05/06 17:36:16 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -451,4 +451,5 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (provide 'eldoc)
 
+;;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

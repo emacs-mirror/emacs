@@ -14599,3 +14599,6 @@ w32_last_error()
 {
   return GetLastError ();
 }
+
+/* arch-tag: 707589ab-b9be-4638-8cdd-74629cc9b446
+   (do not change this comment) */

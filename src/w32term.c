@@ -6559,3 +6559,6 @@ the cursor have no effect.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
+
+/* arch-tag: 5fa70624-ab86-499c-8a85-473958ee4646
+   (do not change this comment) */

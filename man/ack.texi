@@ -1412,3 +1412,7 @@ in the distribution.)  We thank them for their generosity as well.
 This list intended to mention every contributor of a major package or
 feature we currently distribute; if you know of someone we have omitted,
 please report that as a manual bug.
+
+@ignore
+   arch-tag: bb1d0fa4-0240-4992-b5d4-8602d1e3d4ba
+@end ignore

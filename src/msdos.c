@@ -5298,3 +5298,6 @@ nil means don't delete them until `list-processes' is run.  */);
 }
 
 #endif /* MSDOS */
+
+/* arch-tag: db404e92-52a5-475f-9eb2-1cb78dd05f30
+   (do not change this comment) */

@@ -1248,4 +1248,5 @@ paste (in addition to the normal emacs bindings)."
 
 (provide 'cua)
 
+;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

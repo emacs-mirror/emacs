@@ -71,3 +71,5 @@
 #undef HAVE_RINT
 
 
+/* arch-tag: 0a5e9f05-012c-4962-a222-a7a3a7fe0ab7
+   (do not change this comment) */

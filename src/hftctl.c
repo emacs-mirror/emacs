@@ -337,3 +337,6 @@ WR_REQ (fd, request, cmdlen, cmd, resplen)
   return (0);
 
 }
+
+/* arch-tag: cfd4f3bd-fd49-44e6-9f69-c8abdf367650
+   (do not change this comment) */

@@ -236,4 +236,5 @@ named by variable `unread-bib-file'."
 
 (provide 'bib-mode)
 
+;;; arch-tag: e3a97958-3c2c-487f-9557-fafc3c98452d
 ;;; bib-mode.el ends here

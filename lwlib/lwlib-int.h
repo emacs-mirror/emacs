@@ -51,3 +51,6 @@ widget_info *lw_get_widget_info __P ((LWLIB_ID));
 widget_instance * lw_get_widget_instance __P ((Widget));
 
 #endif /* LWLIB_INTERNAL_H */
+
+/* arch-tag: ae02f67d-ef25-421c-b956-b01a4b0aac76
+   (do not change this comment) */

@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.24 2003/06/11 03:50:45 rv Exp $
+;; $Id: whitespace.el,v 1.25 2003/06/11 04:00:33 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -851,4 +851,6 @@ This is meant to be added buffer-locally to `write-file-functions'."
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)
+
+;;; arch-tag: 4ff44e87-b63c-402d-95a6-15e51e58bd0c
 ;;; whitespace.el ends here

@@ -427,4 +427,5 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 60db6880-0c9f-4456-b9fe-628de053a5ab
 ;;; vntelex.el ends here

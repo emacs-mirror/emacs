@@ -37,3 +37,5 @@ s!^	\./!	!
 /^UTILITIES=/s/ movemail//
 /^UTILITIES=/s/ emacsserver//
 /^UTILITIES=/s/ timer//
+
+# arch-tag: 16f3be18-a45b-496c-b19c-e43840359de8

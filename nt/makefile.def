@@ -228,3 +228,5 @@ ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
 .c{$(BLD)}.obj::
 		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
 !ENDIF
+
+# arch-tag: a8aa26d5-5f28-4263-b42a-6f91acb7d824

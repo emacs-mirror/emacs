@@ -644,3 +644,7 @@ rectangle shifts right.
   The command @kbd{M-x string-insert-rectangle} is similar to
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
+
+@ignore
+   arch-tag: d8da8f96-0928-449a-816e-ff2d3497866c
+@end ignore

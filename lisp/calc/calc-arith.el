@@ -2793,4 +2793,5 @@
 	  (math-commutative-collect (nth 2 b) (not neg)))
       (setq bterms (cons (if neg (math-neg b) b) bterms)))))
 
+;;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here

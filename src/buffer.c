@@ -5891,3 +5891,6 @@ keys_of_buffer ()
      initialized when that function gets called.  */
   Fput (intern ("erase-buffer"), Qdisabled, Qt);
 }
+
+/* arch-tag: e48569bf-69a9-4b65-a23b-8e68769436e1
+   (do not change this comment) */

@@ -615,4 +615,5 @@ The return value is number of composed characters."
 ;;
 (provide 'lao-util)
 
+;;; arch-tag: 1f828781-3cb8-4695-88af-8f33222338ce
 ;;; lao-util.el ends here

@@ -96,3 +96,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define START_FILES pre-crt0.o /lib/crt0.o
 #endif
+
+/* arch-tag: 13dde0e0-8ed5-4bc3-a0dc-5456c9db5f94
+   (do not change this comment) */

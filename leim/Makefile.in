@@ -232,3 +232,5 @@ distclean maintainer-clean:
 
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
+
+# arch-tag: f666a939-8145-4d64-a6a6-cc1f61bd32ca

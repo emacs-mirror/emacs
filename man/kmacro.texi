@@ -516,3 +516,7 @@ including the final @kbd{C-j}), and appends them at the end of the
 keyboard macro; it then terminates the step-editing and replaces the
 original keyboard macro with the edited macro.
 @end itemize
+
+@ignore
+   arch-tag: c1b0dd3b-3159-4c08-928f-52e763953e9c
+@end ignore

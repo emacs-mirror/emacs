@@ -180,3 +180,6 @@ xrealloc (ptr, size)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
+
+/* arch-tag: b93c25a9-9012-44f1-b78b-9cc7aed44a7a
+   (do not change this comment) */

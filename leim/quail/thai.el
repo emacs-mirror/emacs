@@ -128,4 +128,5 @@ The difference from the ordinal Thai keyboard:
     ",T;(B" ",Th(B" ",T:(B" ",TO(B" ",Tm(B" ",TF(B" ",T%(B" 0	; x .. DEL
     ]))
 
+;;; arch-tag: fed6c468-0616-44b0-88bf-47347bf64825
 ;;; thai.el ends here

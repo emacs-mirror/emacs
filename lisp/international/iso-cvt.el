@@ -892,4 +892,5 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 
 (provide 'iso-cvt)
 
+;;; arch-tag: 64ae843f-ed0e-43e1-ba50-ffd581b90840
 ;;; iso-cvt.el ends here

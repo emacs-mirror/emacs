@@ -966,4 +966,5 @@ That name was previously determined by `ff-which-function-are-we-in'."
 
 (provide 'find-file)
 
+;;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
 ;;; find-file.el ends here

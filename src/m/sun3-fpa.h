@@ -26,3 +26,6 @@ NOTE-END  */
 
 #define sun_fpa
 #define START_FILES crt0.o /usr/lib/Wcrt1.o
+
+/* arch-tag: db287fbb-966f-4a70-a3f4-a6768c09326b
+   (do not change this comment) */

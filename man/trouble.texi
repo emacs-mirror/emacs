@@ -1062,3 +1062,7 @@ Look in the service directory for someone who might help you for a fee.
 The service directory is found in the file named @file{etc/SERVICE} in the
 Emacs distribution.
 @end itemize
+
+@ignore
+   arch-tag: c9cba76d-b2cb-4e0c-ae3f-19d5ef35817c
+@end ignore

@@ -96,3 +96,6 @@ extern char my_edata[];
 
 #endif /* PNTR_COMPARISON_TYPE */
 #endif /* VIRT_ADDRESS_VARIES */
+
+/* arch-tag: fd9b0a91-a70e-4729-a75a-6bb4ca1ce14f
+   (do not change this comment) */

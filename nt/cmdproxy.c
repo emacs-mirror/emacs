@@ -699,3 +699,6 @@ main (int argc, char ** argv)
 
   return 0;
 }
+
+/* arch-tag: 88678d93-07ac-4e2f-ad63-d4a740ca69ac
+   (do not change this comment) */

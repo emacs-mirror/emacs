@@ -802,3 +802,6 @@ The @code{silly-loop} function is somewhat more complex:
 @end example
 
 
+@ignore
+   arch-tag: f78e3050-2f0a-4dee-be27-d9979a0a2289
+@end ignore

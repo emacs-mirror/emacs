@@ -312,4 +312,5 @@
 
 (provide 'ediff-vers)
 
+;;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
 ;;; ediff-vers.el ends here

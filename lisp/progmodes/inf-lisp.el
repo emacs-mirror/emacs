@@ -625,4 +625,5 @@ This is a good place to put keybindings.")
 
 (provide 'inf-lisp)
 
+;;; arch-tag: 5b74abc3-a085-4b91-8ab8-8da6899d3b92
 ;;; inf-lisp.el ends here

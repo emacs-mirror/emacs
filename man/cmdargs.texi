@@ -1114,3 +1114,7 @@ rectangle containing the frame's title.
 rather than showing a frame right away.  In this situation, the icon
 is the only indication that Emacs has started; the text frame doesn't
 appear until you deiconify it.
+
+@ignore
+   arch-tag: fffecd9e-7329-4a51-a3cc-dd4a9889340e
+@end ignore

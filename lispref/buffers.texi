@@ -1021,3 +1021,7 @@ This function returns the current gap position in the current buffer.
 @defun gap-size
 This function returns the current gap size of the current buffer.
 @end defun
+
+@ignore
+   arch-tag: 2e53cfab-5691-41f6-b5a8-9c6a3462399c
+@end ignore

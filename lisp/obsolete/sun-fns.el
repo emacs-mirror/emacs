@@ -640,4 +640,5 @@ To unmark a buffer marked for deletion, select it with LEFT."
 
 (provide 'sun-fns)
 
+;;; arch-tag: 1c4c1192-f71d-4d5f-b883-ae659c28e132
 ;;; sun-fns.el ends here

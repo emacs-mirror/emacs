@@ -349,3 +349,6 @@ extern struct sigaction act, oact;
 /* Process groups work in the traditional BSD manner.  */
 
 #define BSD_PGRPS
+
+/* arch-tag: 1b6d117d-82d2-4480-a6d0-3f7a8360f658
+   (do not change this comment) */

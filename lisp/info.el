@@ -3202,4 +3202,5 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (provide 'info)
 
+;;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
 ;;; info.el ends here

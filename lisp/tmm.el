@@ -506,4 +506,5 @@ of `menu-bar-final-items'."
 
 (provide 'tmm)
 
+;;; arch-tag: e7ddbdb6-4b95-4da3-afbe-ad6063d112f4
 ;;; tmm.el ends here

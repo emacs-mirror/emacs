@@ -230,3 +230,6 @@ Boston, MA 02111-1307, USA.  */
    Note that emacs carefully avoids static vars inside functions.  */
 
 /* #define static */
+
+/* arch-tag: 5febe5fe-f0b0-49cb-9280-9d5a9fa43710
+   (do not change this comment) */

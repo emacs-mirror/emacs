@@ -1096,4 +1096,5 @@ Requires floating point."
 
 (provide 'solar)
 
+;;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
 ;;; solar.el ends here

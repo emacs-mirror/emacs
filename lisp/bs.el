@@ -1507,4 +1507,5 @@ name of buffer configuration."
 ;; Now provide feature bs
 (provide 'bs)
 
+;;; arch-tag: c0d9ab34-bf06-4368-ae9d-af88878e6802
 ;;; bs.el ends here

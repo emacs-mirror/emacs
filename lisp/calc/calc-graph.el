@@ -1437,4 +1437,5 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	    (goto-char (point-max))
 	    (insert "\n"))))))
 
+;;; arch-tag: e4b06a52-c386-4d54-a2bb-7c0a0ef533c2
 ;;; calc-graph.el ends here

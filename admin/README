@@ -17,3 +17,5 @@ make-emacs		build Emacs in various ways
 make-tarball.txt	instructions to create pretest or release tarballs
 quick-install-emacs	install emacs quickly (`incrementally')
 revdiff			get CVS diffs of files
+
+# arch-tag: 812b9461-bc0a-46a7-925e-24bd41118463

@@ -69,4 +69,5 @@ The following key bindings are available while using Korean input methods:
 
 (provide 'korean)
 
+;;; arch-tag: ca7c7348-5ca3-4623-887a-7fd33d725d0e
 ;;; korean.el ends here

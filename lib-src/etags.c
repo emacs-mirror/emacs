@@ -6785,3 +6785,6 @@ xrealloc (ptr, size)
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
  * End:
  */
+
+/* arch-tag: 8a9b748d-390c-4922-99db-2eeefa921051
+   (do not change this comment) */

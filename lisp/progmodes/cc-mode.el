@@ -1175,4 +1175,6 @@ Key bindings:
 
 
 (cc-provide 'cc-mode)
+
+;;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
 ;;; cc-mode.el ends here

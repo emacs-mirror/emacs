@@ -338,4 +338,5 @@ Also checks if buffers visiting the files are in read-only mode."
                               (buffer-name buf)))
             (error "Abort"))))))
 
+;;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
 ;;; reftex-global.el ends here

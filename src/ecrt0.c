@@ -610,3 +610,6 @@ char *__progname;
 char *__progname;
 #endif
 #endif /* __bsdi__ */
+
+/* arch-tag: 4025c2fb-d6b1-4d29-b1b6-8100b6bd1e74
+   (do not change this comment) */

@@ -117,3 +117,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Use the bitmap files that come with Emacs.  */
 #define EMACS_BITMAP_FILES
+
+/* arch-tag: 89aa7e7d-593e-432c-966a-3db6aa2ad665
+   (do not change this comment) */

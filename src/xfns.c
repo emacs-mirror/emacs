@@ -11104,3 +11104,6 @@ init_xfns ()
 }
 
 #endif /* HAVE_X_WINDOWS */
+
+/* arch-tag: 55040d02-5485-4d58-8b22-95a7a05f3288
+   (do not change this comment) */

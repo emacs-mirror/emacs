@@ -295,4 +295,5 @@ The return value is number of composed characters."
 ;;
 (provide 'thai-util)
 
+;;; arch-tag: 59425d6a-8cf9-4e06-a6ab-8ab7dc7a7a97
 ;;; thai-util.el ends here

@@ -258,3 +258,5 @@ cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 
 realclean: cleanall
 	- $(DEL_TREE) ../bin
+
+# arch-tag: 6f5b23a6-774b-4598-9c29-58235b2b4219

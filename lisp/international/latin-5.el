@@ -117,4 +117,5 @@
 ;;; no-byte-compile: t
 ;;; End:
 
+;;; arch-tag: 7f91a36a-39fb-4b5d-806f-f171abee71ad
 ;;; latin-5.el ends here

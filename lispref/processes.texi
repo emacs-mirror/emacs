@@ -1469,3 +1469,7 @@ The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
 @end defun
+
+@ignore
+   arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
+@end ignore

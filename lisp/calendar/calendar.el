@@ -2897,4 +2897,5 @@ Defaults to today's date if DATE is not given."
 ;;; byte-compile-dynamic: t
 ;;; End:
 
+;;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

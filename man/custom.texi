@@ -2287,3 +2287,7 @@ If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 @c  LocalWords:  backtab
+
+@ignore
+   arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
+@end ignore

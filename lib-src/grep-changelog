@@ -241,4 +241,5 @@ while (defined (my $log = shift @ARGV)) {
 }
 
 
+# arch-tag: 9e4f6749-e053-4bb7-b3ad-11947318418e
 # grep-changelog ends here.

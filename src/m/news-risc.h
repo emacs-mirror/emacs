@@ -57,3 +57,6 @@
 #define BROKEN_PROTOTYPES
 
 #endif /* not NEWSOS5 */
+
+/* arch-tag: cf17300c-dd34-4b9d-a657-2de718469662
+   (do not change this comment) */

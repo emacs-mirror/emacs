@@ -3130,4 +3130,5 @@ true then the type of the file linked to by FILE is printed instead."
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
+;;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here

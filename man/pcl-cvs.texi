@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.19 2003/02/04 14:53:28 lektu Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.20 2003/08/14 04:53:30 kfogel Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -1443,3 +1443,7 @@ this manual.
 @summarycontents
 @contents
 @bye
+
+@ignore
+   arch-tag: 5c7178ce-56fa-40b0-abd7-f4a09758b235
+@end ignore

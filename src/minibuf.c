@@ -2687,3 +2687,6 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
 }
+
+/* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
+   (do not change this comment) */

@@ -1230,3 +1230,7 @@ this, and you would rather read your mail in the order in which it was
 received, you can tell @code{movemail} to reverse the order of
 downloaded messages by adding the @samp{-r} flag to
 @code{rmail-movemail-flags}.
+
+@ignore
+   arch-tag: 034965f6-38df-47a2-a9f1-b8bc8ab37e23
+@end ignore

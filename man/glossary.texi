@@ -1279,3 +1279,6 @@ undo a mistaken kill, or for copying or moving text.  Some other
 systems call this ``pasting.''  @xref{Yanking}.
 @end table
 
+@ignore
+   arch-tag: 0dd53ce1-5f09-4ac2-b13b-cf22b0f28d23
+@end ignore

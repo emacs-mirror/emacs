@@ -116,3 +116,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define ADJUST_EXEC_HEADER   \
   hdr.a_stamp = STAMP13; /* really want the latest stamp, whatever it is */
+
+/* arch-tag: 572bf8d1-7a94-48c6-b188-bf69754e0cd2
+   (do not change this comment) */

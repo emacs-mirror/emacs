@@ -2988,3 +2988,6 @@ syms_of_mac ()
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
 }
+
+/* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff
+   (do not change this comment) */

@@ -831,4 +831,5 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 ;;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
 ;;; 	   . utf-8-compose-function))))
 
+;;; arch-tag: b08735b7-753b-4ae6-b754-0f3efe4515c5
 ;;; utf-8.el ends here

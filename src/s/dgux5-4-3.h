@@ -62,3 +62,6 @@ Boston, MA 02111-1307, USA.  */
 /* This is needed according to Ehud Karni <ehud@unix.simonwiesel.co.il>
    for m88k-dg-dgux5.4R3.10.  */
 #undef BSD_PGRPS
+
+/* arch-tag: c11938c9-0cb0-4652-88aa-7eb80bf1cda9
+   (do not change this comment) */

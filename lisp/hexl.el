@@ -953,4 +953,5 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (provide 'hexl)
 
+;;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
 ;;; hexl.el ends here

@@ -2207,3 +2207,7 @@ changing the sizes of windows, or displaying a different buffer in a
 window.  The frame whose window configuration has changed is the
 selected frame when this hook runs.
 @end defvar
+
+@ignore
+   arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3
+@end ignore

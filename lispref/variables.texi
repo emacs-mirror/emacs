@@ -1769,3 +1769,7 @@ lists in files being visited.  A value of @code{t} means process them
 unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{maybe}.
 @end defopt
+
+@ignore
+   arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e
+@end ignore

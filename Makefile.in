@@ -748,3 +748,4 @@ bootstrap-clean-before: FRC
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
+# arch-tag: c1162ff6-e0a8-4366-bc1a-2eb544007156

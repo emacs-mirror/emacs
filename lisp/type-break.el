@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.27 2003/05/06 17:50:17 lektu Exp $
+;; $Id: type-break.el,v 1.28 2003/05/28 11:25:44 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1090,4 +1090,5 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 (if type-break-mode
     (type-break-mode 1))
 
+;;; arch-tag: 943a2eb3-07e6-420b-993f-96e4796f5fd0
 ;;; type-break.el ends here

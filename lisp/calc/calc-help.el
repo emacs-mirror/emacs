@@ -655,4 +655,5 @@ C-w  Describe how there is no warranty for Calc."
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
 
+;;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

@@ -704,4 +704,5 @@ else
   rm -rf ${tempparent}
 fi
 
+# arch-tag: 26e3eb50-a394-4ab2-82b2-d8e5af500de7
 ### make-dist ends here

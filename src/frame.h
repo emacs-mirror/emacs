@@ -1078,3 +1078,6 @@ extern void validate_x_resource_name P_ ((void));
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not EMACS_FRAME_H */
+
+/* arch-tag: 0df048ee-e6bf-4f48-bd56-e3cd055dd8c4
+   (do not change this comment) */

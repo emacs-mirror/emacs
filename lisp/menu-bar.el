@@ -1648,4 +1648,5 @@ turn on menu bars; otherwise, turn off menu bars."
 
 (provide 'menu-bar)
 
+;;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
 ;;; menu-bar.el ends here

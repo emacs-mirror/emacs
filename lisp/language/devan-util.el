@@ -646,4 +646,5 @@ preferred rule from the sanskrit fonts."  )
 
 (provide 'devan-util)
 
+;;; arch-tag: 9bc4d6e3-f2b9-4110-886e-ff9b66b7eebc
 ;;; devan-util.el ends here

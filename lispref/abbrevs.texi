@@ -382,3 +382,6 @@ This is the local abbrev table used in Text mode.
 This is the local abbrev table used in Lisp mode and Emacs Lisp mode.
 @end defvar
 
+@ignore
+   arch-tag: 5ffdbe08-2cd4-48ec-a5a8-080f95756eec
+@end ignore

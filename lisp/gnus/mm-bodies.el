@@ -229,4 +229,5 @@ The characters in CHARSET should then be decoded."
 
 (provide 'mm-bodies)
 
+;;; arch-tag: 41104bb6-4443-4ca9-8d5c-ff87ecf27d8d
 ;;; mm-bodies.el ends here

@@ -552,4 +552,5 @@ should have point."
 
 (provide 'gnus-win)
 
+;;; arch-tag: ccd5a394-2ddf-4397-b8f8-6d80d3e46e2b
 ;;; gnus-win.el ends here

@@ -811,3 +811,7 @@ This variable holds a vector used internally by printing to implement
 the @code{print-circle} feature.  You should not use it except
 to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
 @end defvar
+
+@ignore
+   arch-tag: 07636b8c-c4e3-4735-9e06-2e864320b434
+@end ignore

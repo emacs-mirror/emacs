@@ -1087,3 +1087,5 @@ The conditions for copying Emacs itself are more complex, but in the
 same spirit.  Please read the file COPYING and then do give copies of
 GNU Emacs to your friends.  Help stamp out software obstructionism
 ("ownership") by using, writing, and sharing free software!)
+
+;;; arch-tag: 3399e308-e605-4125-8fbb-b2fe91ac3149

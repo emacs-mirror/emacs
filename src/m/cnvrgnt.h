@@ -91,3 +91,6 @@ Boston, MA 02111-1307, USA.  */
    Cause crt0.c to define errno.  */
 
 #define NEED_ERRNO
+
+/* arch-tag: 1a227f79-37e4-43af-a186-53c61296b0be
+   (do not change this comment) */

@@ -38,4 +38,5 @@
 
 (provide 'trampver)
 
+;;; arch-tag: 443576ca-f8f1-4bb1-addc-5c70861e93b1
 ;;; trampver.el ends here

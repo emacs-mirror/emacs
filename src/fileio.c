@@ -6591,3 +6591,6 @@ a non-nil value.  */);
   defsubr (&Sunix_sync);
 #endif
 }
+
+/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
+   (do not change this comment) */

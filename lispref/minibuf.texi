@@ -1693,3 +1693,7 @@ This function displays @var{string} temporarily at the end of the
 minibuffer text, for @var{timeout} seconds.  (The default is 2
 seconds.)
 @end defun
+
+@ignore
+   arch-tag: bba7f945-9078-477f-a2ce-18818a6e1218
+@end ignore

@@ -5441,3 +5441,7 @@ part of the Gnus distribution.
 
 @contents
 @bye
+
+@ignore
+   arch-tag: fee0d62d-06cf-43d8-ac21-123408eaf10f
+@end ignore

@@ -2644,3 +2644,7 @@ a list of format names, just like the value of
 @code{buffer-file-format} for writing auto-save files.  This variable is
 always buffer-local in all buffers.
 @end defvar
+
+@ignore
+   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
+@end ignore

@@ -726,4 +726,5 @@ If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers."
 
 (provide 'mm-util)
 
+;;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
 ;;; mm-util.el ends here

@@ -2043,4 +2043,5 @@
 				    nil nil)
 			      (cdr rules)))))))
 
+;;; arch-tag: ca8d7b7d-bff1-4535-90f3-e2241f5e786b
 ;;; calc-rewr.el ends here

@@ -150,3 +150,6 @@ Boston, MA 02111-1307, USA.  */
 /* This was formerly in LIBS_MACHINE in iris4d.h,
    but it is not needed for newer system versions.  */
 #define LIBS_SYSTEM -lsun
+
+/* arch-tag: cccdd761-2ae9-4e71-a33e-749681c01889
+   (do not change this comment) */

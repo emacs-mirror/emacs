@@ -48,3 +48,6 @@ Boston, MA 02111-1307, USA.  */
 #define NO_UNION_TYPE
 
 #define NO_REMAP
+
+/* arch-tag: 07856f0c-f0c8-4bd8-99af-0b7fa1e5ee42
+   (do not change this comment) */

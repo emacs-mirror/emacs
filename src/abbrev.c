@@ -693,3 +693,6 @@ the current abbrev table before abbrev lookup happens.  */);
   defsubr (&Sinsert_abbrev_table_description);
   defsubr (&Sdefine_abbrev_table);
 }
+
+/* arch-tag: b721db69-f633-44a8-a361-c275acbdad7d
+   (do not change this comment) */

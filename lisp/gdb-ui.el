@@ -2426,4 +2426,5 @@ BUFFER nil or omitted means use the current buffer."
 
 (provide 'gdb-ui)
 
+;;; arch-tag: e9fb00c5-74ef-469f-a088-37384caae352
 ;;; gdb-ui.el ends here

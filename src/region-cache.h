@@ -110,3 +110,6 @@ extern int region_cache_backward P_ ((struct buffer *BUF,
                                       struct region_cache *CACHE,
                                       int POS,
                                       int *NEXT));
+
+/* arch-tag: 70f79125-ef22-4f58-9aec-a48ca2791435
+   (do not change this comment) */

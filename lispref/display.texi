@@ -3772,3 +3772,7 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
+
+@ignore
+   arch-tag: ffdf5714-7ecf-415b-9023-fbc6b409c2c6
+@end ignore

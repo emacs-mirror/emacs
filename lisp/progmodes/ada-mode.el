@@ -1071,7 +1071,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/05/04 19:52:34 $.
+This version was built on $Date: 2003/05/13 20:48:15 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -5504,4 +5504,5 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 ;;; provide ourselves
 (provide 'ada-mode)
 
+;;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
 ;;; ada-mode.el ends here

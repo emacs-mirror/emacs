@@ -27,3 +27,6 @@ void
 xlw_popup_menu __P ((Widget widget, XEvent * event));
 
 #endif /* LWLIB_XLW_H */
+
+/* arch-tag: e5b1511d-8992-4dad-b947-a2440d8f10a2
+   (do not change this comment) */

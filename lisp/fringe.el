@@ -169,4 +169,5 @@ If you want to set appearance of fringes on all frames, see `fringe-mode'."
 
 (provide 'fringe)
 
+;;; arch-tag: 6611ef60-0869-47ed-8b93-587ee7d3ff5d
 ;;; fringe.el ends here

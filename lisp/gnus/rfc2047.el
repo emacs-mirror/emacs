@@ -591,4 +591,5 @@ If your Emacs implementation can't decode CHARSET, return nil."
 
 (provide 'rfc2047)
 
+;;; arch-tag: a07fe3d4-22b5-4c4a-bd89-b1f82d5d36f6
 ;;; rfc2047.el ends here

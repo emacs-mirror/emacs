@@ -413,4 +413,5 @@ Signal an error if the entire string was not used."
 ;;;###autoload
 (defun list-at-point ()   (form-at-point 'list 'listp))
 
+;;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here
