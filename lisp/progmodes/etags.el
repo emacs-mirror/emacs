@@ -324,11 +324,14 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		   ;; tags for the current buffer's file.
 		   ;; If one is found, the lists will be frobnicated,
 		   ;; and CONT will be set non-nil so we don't do it below.
-		   (save-excursion
-		     (car (tags-table-including buffer-file-name
-						tags-table-list)))
-		   (car tags-table-list)
-		   tags-file-name
+		   (let ((found (save-excursion
+				  (tags-table-including buffer-file-name
+							tags-table-list))))
+		     (and found
+			  ;; Expand it so it won't be nil.
+			  (tags-expand-table-name (car found))))
+		   (tags-expand-table-name (car tags-table-list))
+		   (tags-expand-table-name tags-file-name)
 		   (expand-file-name
 		    (read-file-name "Visit tags table: (default TAGS) "
 				    default-directory
@@ -417,7 +420,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
       (kill-local-variable 'tags-file-name)
       (setq tags-file-name nil)
       (error "File %s is not a valid tags table" buffer-file-name))))
-
+
 (defun file-of-tag ()
   "Return the file name of the file whose tags point is within.
 Assumes the tags table is the current buffer.
@@ -428,11 +431,9 @@ File name returned is relative to tags table file's directory."
 (defun tags-table-files ()
   "Return a list of files in the current tags table.
 File names returned are absolute."
-  (save-excursion
-    (visit-tags-table-buffer)
-    (or tags-table-files
-	(setq tags-table-files
-	      (funcall tags-table-files-function)))))
+  (or tags-table-files
+      (setq tags-table-files
+	    (funcall tags-table-files-function))))
 
 (defun tags-included-tables ()
   "Return a list of tags tables included by the current table."
@@ -473,7 +474,7 @@ File names returned are absolute."
     (if (eq what t)
 	(all-completions string (tags-completion-table) predicate)
       (try-completion string (tags-completion-table) predicate))))
-
+
 ;; Return a default tag to search for, based on the text at point.
 (defun find-tag-default ()
   (save-excursion
@@ -940,6 +941,7 @@ if the file was newly read in, the value is the filename."
 	 (setq next-file-list (tags-table-files))))
   (or next-file-list
       (save-excursion
+	;; Get the files from the next tags table.
 	;; When doing (visit-tags-table-buffer t),
 	;; the tags table buffer must be current.
 	(if (and (visit-tags-table-buffer 'same)
