@@ -1,3 +1,7 @@
+2001-02-11  Dave Love  <fx@gnu.org>
+
+	* message.el (message-signature-file): Fix doc, :type.
+
 2001-02-08  Dave Love  <fx@gnu.org>
 
 	* rfc2047.el (rfc2047-fold-region): Don't forward-char at EOB.

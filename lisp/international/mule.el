@@ -100,9 +100,8 @@ Return t if file exists."
 
 ;; API (Application Program Interface) for charsets.
 
-;; Return t if OBJ is a quoted symbol
-;; and the symbol is the name of a standard charset.
 (defsubst charset-quoted-standard-p (obj)
+  "Return t if OBJ is a quoted symbol, and is the name of a standard charset."
   (and (listp obj) (eq (car obj) 'quote)
        (symbolp (car-safe (cdr obj)))
        (let ((vector (get (car-safe (cdr obj)) 'charset)))
@@ -271,7 +270,7 @@ If CODE1 or CODE2 are invalid (out of range), this function signals an error."
   (make-char-internal (charset-id charset) code1 code2))
 
 (put 'make-char 'byte-compile
-     (function 
+     (function
       (lambda (form)
 	(let ((charset (nth 1 form)))
 	  (if (charset-quoted-standard-p charset)
@@ -291,7 +290,7 @@ Now we have the variable `charset-list'."
 
 (defsubst generic-char-p (char)
   "Return t if and only if CHAR is a generic character.
-See also the documentation of make-char."
+See also the documentation of `make-char'."
   (and (>= char 0400)
        (let ((l (split-char char)))
 	 (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
@@ -312,7 +311,7 @@ and CODE-POINT to a chracter.   Currently not supported and just ignored."
 		(make-char 'latin-iso8859-1 code-point))
 	       ((< code-point #x2500)
 		(setq code-point (- code-point #x0100))
-		(make-char 'mule-unicode-0100-24ff 
+		(make-char 'mule-unicode-0100-24ff
 			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
 	       ((< code-point #x3400)
 		(setq code-point (- code-point #x2500))
@@ -365,7 +364,7 @@ code-point in CCS.  Currently not supported and just ignored."
 ;; following format:
 ;;	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
 ;; We call this vector as coding-spec.  See comments in src/coding.c
-;; for more detail.  
+;; for more detail.
 
 (defconst coding-spec-type-idx 0)
 (defconst coding-spec-mnemonic-idx 1)
@@ -381,7 +380,7 @@ code-point in CCS.  Currently not supported and just ignored."
 ;; o coding-category
 ;;
 ;; The value is a coding category the coding system belongs to.  The
-;; function `make-coding-system' sets this value automatically 
+;; function `make-coding-system' sets this value automatically
 ;; unless its argument PROPERTIES specifies this property.
 ;;
 ;; o alias-coding-systems
@@ -404,8 +403,8 @@ code-point in CCS.  Currently not supported and just ignored."
 ;; o valid-codes (meaningful only for a coding system based on CCL)
 
 
-;; Return coding-spec of CODING-SYSTEM
 (defsubst coding-system-spec (coding-system)
+  "Return coding-spec of CODING-SYSTEM."
   (get (check-coding-system coding-system) 'coding-system))
 
 (defun coding-system-type (coding-system)
@@ -496,8 +495,8 @@ coding system whose eol-type is N."
 		 (and (not (> (downcase c1) (downcase c2)))
 		      (< c1 c2)))))))
 
-;; Add CODING-SYSTEM to coding-system-list while keeping it sorted.
 (defun add-to-coding-system-list (coding-system)
+  "Add CODING-SYSTEM to `coding-system-list' while keeping it sorted."
   (if (or (null coding-system-list)
 	  (coding-system-lessp coding-system (car coding-system-list)))
       (setq coding-system-list (cons coding-system coding-system-list))
@@ -550,8 +549,8 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
        safe-chars))))
 
 
-;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
+  "Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM."
   (let ((coding-spec (coding-system-spec coding-system))
 	(subsidiaries (vector (intern (format "%s-unix" coding-system))
 			      (intern (format "%s-dos" coding-system))
@@ -655,7 +654,7 @@ Value is a list of transformed arguments."
 					 properties
 					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
-Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional), 
+Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional),
 and PROPERTIES (optional) which construct a coding-spec of CODING-SYSTEM
 in the following format:
 	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
@@ -666,7 +665,7 @@ TYPE is an integer value indicating the type of the coding system as follows:
   2: ISO-2022 including many variants,
   3: Big5 used mainly on Chinese PC,
   4: private, CCL programs provide encoding/decoding algorithm,
-  5: Raw-text, which means that text contains random 8-bit codes. 
+  5: Raw-text, which means that text contains random 8-bit codes.
 
 MNEMONIC is a character to be displayed on mode line for the coding system.
 
@@ -717,10 +716,10 @@ following properties are recognized:
  
   The value is a function to call after some text is inserted and
   decoded by the coding system itself and before any functions in
-  `after-insert-functions' are called.  The arguments to this
-  function is the same as those of a function in
-  `after-insert-functions', i.e. LENGTH of a text while putting point
-  at the head of the text to be decoded
+  `after-insert-functions' are called.  The argument of this
+  function is the same as for a function in
+  `after-insert-file-functions', i.e. LENGTH of the text inserted,
+  with point at the head of the text to be decoded.
  
   o pre-write-conversion
  
@@ -729,17 +728,18 @@ following properties are recognized:
   called, and before the text is encoded by the coding system itself.
   The arguments to this function is the same as those of a function
   in `write-region-annotate-functions', i.e. FROM and TO specifying
-  region of a text.
+  a region of text.
  
   o translation-table-for-decode
  
   The value is a translation table to be applied on decoding.  See
   the function `make-translation-table' for the format of translation
-  table.
+  table.  This is not applicable to type 4 (CCL-based) coding systems.
  
   o translation-table-for-encode
  
-  The value is a translation table to be applied on encoding.
+  The value is a translation table to be applied on encoding.  This is
+  not applicable to type 4 (CCL-based) coding systems.
  
   o safe-chars
  
@@ -748,12 +748,12 @@ following properties are recognized:
   overrides the specification of safe-charsets.
 
   o safe-charsets
- 
+
   The value is a list of charsets safely supported by the coding
   system.  The value t means that all charsets Emacs handles are
   supported.  Even if some charset is not in this list, it doesn't
-  mean that the charset can't be encoded in the coding system,
-  instead, it just means that some other receiver of a text encoded
+  mean that the charset can't be encoded in the coding system;
+  it just means that some other receiver of text encoded
   in the coding system won't be able to handle that charset.
  
   o mime-charset
@@ -825,7 +825,7 @@ a value of `safe-charsets' in PLIST."
     (if (or (not (integerp type)) (< type 0) (> type 5))
 	(error "TYPE argument must be 0..5"))
     (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
-	(error "MNEMONIC argument must be an ASCII printable character."))
+	(error "MNEMONIC argument must be an ASCII printable character"))
     (aset coding-spec coding-spec-type-idx type)
     (aset coding-spec coding-spec-mnemonic-idx mnemonic)
     (aset coding-spec coding-spec-doc-string-idx
@@ -1101,7 +1101,7 @@ or by the previous use of this command."
 	   (not (terminal-coding-system)))
       (setq coding-system default-terminal-coding-system))
   (if coding-system
-      (setq default-terminal-coding-system coding-system))      
+      (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system)
   (redraw-frame (selected-frame)))
 
@@ -1164,7 +1164,7 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
    "zCoding-system for output from the process: \nzCoding-system for input to the process: ")
   (let ((proc (get-buffer-process (current-buffer))))
     (if (null proc)
-	(error "no process")
+	(error "No process")
       (check-coding-system decoding)
       (check-coding-system encoding)
       (set-process-coding-system proc decoding encoding)))
@@ -1202,8 +1202,8 @@ This setting is effective for the next communication only."
   (setq next-selection-coding-system coding-system))
 
 (defun set-coding-priority (arg)
-  "Set priority of coding categories according to LIST.
-LIST is a list of coding categories ordered by priority."
+  "Set priority of coding categories according to ARG.
+ARG is a list of coding categories ordered by priority."
   (let ((l arg)
 	(current-list (copy-sequence coding-category-list)))
     ;; Check the validity of ARG while deleting coding categories in
@@ -1354,9 +1354,8 @@ function by default."
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-;; Set buffer-file-coding-system of the current buffer after some text
-;; is inserted.
 (defun after-insert-file-set-buffer-file-coding-system (inserted)
+  "Set `buffer-file-coding-system' of current buffer after text is inserted."
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
@@ -1578,6 +1577,8 @@ See also the variable `nonascii-translation-table'."
 
 (defun define-translation-table (symbol &rest args)
   "Define SYMBOL as a name of translation table made by ARGS.
+Also set up information so that the table can be used for translations
+in a CCL program.
 
 If the first element of ARGS is a char-table of which purpose is
 translation-table, just define SYMBOL as the name of it.
@@ -1586,8 +1587,9 @@ In the other case, ARGS are the same as arguments to the function
 `make-translation-table' (which see).
 
 This function sets properties `translation-table' and
-`translation-table-id' of SYMBOL to the created table itself and
-identification number of the table respectively."
+`translation-table-id' of SYMBOL to the created table itself and the
+identification number of the table respectively.  It also registers
+the table in `translation-table-vector'."
   (let ((table (if (and (char-table-p (car args))
 			(eq (char-table-subtype (car args))
 			    'translation-table))

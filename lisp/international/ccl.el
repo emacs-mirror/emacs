@@ -1437,6 +1437,7 @@ ARRAY := `[' integer ... `]'
 TRANSLATE :=
 	(translate-character REG(table) REG(charset) REG(codepoint))
 	| (translate-character SYMBOL REG(charset) REG(codepoint))
+        ;; SYMBOL must refer to a table defined by `define-translation-table'.
 MAP :=
      (iterate-multiple-map REG REG MAP-IDs)
      | (map-multiple REG REG (MAP-SET))

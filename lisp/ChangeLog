@@ -1,3 +1,7 @@
+2001-02-11  Dave Love  <fx@gnu.org>
+
+	* international/mule.el: Doc and message fixes.
+
 2001-02-11  Kenichi Handa  <handa@etl.go.jp>
 
 	* faces.el (mode-line): Set :line-width property to -1.
