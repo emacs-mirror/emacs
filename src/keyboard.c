@@ -990,6 +990,14 @@ command_loop_1 ()
 
       if (i == 0)		/* End of file -- happens only in */
 	return Qnil;		/* a kbd macro, at the end.  */
+      /* -1 means read_key_sequence got a menu that was rejected.
+	 Just loop around and read another command.  */
+      if (i == -1)
+	{
+	  cancel_echoing ();
+	  this_command_key_count = 0;
+	  continue;
+	}
 
       last_command_char = keybuf[i - 1];
 
@@ -1296,7 +1304,9 @@ static Lisp_Object kbd_buffer_get_event ();
 
    If USED_MOUSE_MENU is non-zero, then we set *USED_MOUSE_MENU to 1
    if we used a mouse menu to read the input, or zero otherwise.  If
-   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.  */
+   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
+
+   Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
 read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
@@ -3303,10 +3313,9 @@ menu_bar_item (key, item_string, def, result)
 static int echo_flag;
 static int echo_now;
 
-/* Read a character like read_char but optionally prompt based on maps
-   in the array MAPS.  NMAPS is the length of MAPS.  Return nil if we
-   decided not to read a character, because there are no menu items in
-   MAPS.
+/* Read a character using menus based on maps in the array MAPS.
+   NMAPS is the length of MAPS.  Return nil if there are no menus in the maps.
+   Return t if we displayed a menu but the user rejected it.
 
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
@@ -3381,7 +3390,7 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	  value = XCONS (value)->car;
 	}
       if (NILP (value))
-	XSET (value, Lisp_Int, quit_char);
+	value = Qt;
       if (used_mouse_menu)
 	*used_mouse_menu = 1;
       return value;
@@ -3612,6 +3621,7 @@ follow_key (key, nmaps, current, defs, next)
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
    Return the length of the key sequence stored.
+   Return -1 if the user rejected a command menu.
 
    Echo starting immediately unless `prompt' is 0.
 
@@ -3849,6 +3859,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
 			   &used_mouse_menu);
+
+	  /* read_char returns t when it shows a menu and the user rejects it.
+	     Just return -1.  */
+	  if (EQ (key, Qt))
+	    return -1;
 
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
@@ -4257,6 +4272,11 @@ sequences, where they wouldn't conflict with ordinary bindings.  See\n\
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 NILP (prompt) ? 0 : XSTRING (prompt)->data);
 
+  if (i == -1)
+    {
+      Vquit_flag = Qt;
+      QUIT;
+    }
   UNGCPRO;
   return make_event_array (i, keybuf);
 }
