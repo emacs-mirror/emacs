@@ -1,7 +1,7 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.9) $
- * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!finalcv.c(trunk.10) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -25,12 +25,6 @@
  * This code was created by first copying impl.c.weakcv
  */
 
-/* What does the next line mean? @@@@ */
-/* .hack.order.1, .hack.order.2 */
-
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
@@ -40,9 +34,7 @@
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
 #endif
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
+#include <stdlib.h>
 
 
 #define testArenaSIZE   ((size_t)16<<20)
@@ -81,8 +73,8 @@ static void churn(mps_ap_t ap)
   for(i = 0; i < churnFACTOR; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, 4096);
-      assert(e == MPS_RES_OK);
-      dylan_init(p, 4096, root, 1);
+      die(e, "MPS_RESERVE_BLOCK");
+      die(dylan_init(p, 4096, root, 1), "dylan_init");
     } while(!mps_commit(ap, p, 4096));
   }
   p = NULL;
@@ -120,8 +112,8 @@ static void * test(void *arg, size_t s)
   for(i = 0; i < rootCOUNT; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
-      assert(e == MPS_RES_OK);
-      dylan_init(p, slotSIZE, root, 1);
+      die(e, "MPS_RES_OK");
+      die(dylan_init(p, slotSIZE, root, 1), "dylan_init");
     } while(!mps_commit(ap, p, slotSIZE));
     ((mps_word_t *)p)[2] = dylan_int(i);
     die(mps_finalize(arena, &p), "finalize\n");
@@ -142,18 +134,17 @@ static void * test(void *arg, size_t s)
   while(mps_collections(arena) < 3) {
     churn(ap);
     while(mps_message_poll(arena)) {
-      int b;
       mps_word_t *obj;
       mps_word_t objind;
       mps_addr_t objaddr;
 
-      b = mps_message_get(&message, arena, mps_message_type_finalization());
-      assert(b);
+      cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+           "get");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[2]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
-      assert(root[objind] == NULL);
+      cdie(root[objind] == NULL, "died");
       root[objind] = objaddr;
     }
   }
@@ -170,11 +161,13 @@ static void * test(void *arg, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+ 
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
