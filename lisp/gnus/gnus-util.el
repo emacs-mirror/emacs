@@ -35,10 +35,10 @@
 (require 'custom)
 (eval-when-compile (require 'cl))
 (require 'nnheader)
-(require 'message)
 (require 'time-date)
 
 (eval-and-compile
+  (autoload 'message-fetch-field "message")
   (autoload 'rmail-insert-rmail-file-header "rmail")
   (autoload 'rmail-count-new-messages "rmail")
   (autoload 'rmail-show-message "rmail"))
