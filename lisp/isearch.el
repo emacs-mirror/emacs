@@ -404,9 +404,6 @@ Default value, nil, means edit the string instead."
 ;; isearch is invoked.
 (defvar isearch-input-method-local-p nil)
 
-;; Value of `signal-hook-function' before setting our own.
-(defvar isearch-old-signal-hook nil)
-
 ;; Minor-mode-alist changes - kind of redundant with the
 ;; echo area, but if isearching in multiple windows, it can be useful.
 
@@ -579,8 +576,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (run-hooks 'isearch-mode-hook)
 
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
-  (setq isearch-old-signal-hook signal-hook-function
-	signal-hook-function 'isearch-done)
+  (add-hook 'kbd-macro-termination-hook 'isearch-done)
 
   ;; isearch-mode can be made modal (in the sense of not returning to 
   ;; the calling function until searching is completed) by entering 
@@ -641,7 +637,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
       (setq command-history (cons command command-history))))
 
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
-  (setq signal-hook-function isearch-old-signal-hook)
+  (remove-hook 'kbd-macro-termination-hook 'isearch-done)
 
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
