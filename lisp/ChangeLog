@@ -4834,7 +4834,7 @@
 	* vc-cvs.el (vc-cvs-annotate-difference): Removed to generic
 	version in vc.el, with
 	(vc-cvs-annotate-current-time): Added, as override of default.
-	(vc-cvs-annotate-time) Added. Taken mostly from the (now removed)
+	(vc-cvs-annotate-time): Added.  Taken mostly from the (now removed)
 	`vc-cvs-annotate-difference'.
 
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
