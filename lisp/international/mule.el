@@ -868,8 +868,8 @@ following properties are recognized:
 
   o composition (meaningful only when TYPE is 0 or 2)
 
-  If the value is non-nil, the coding system preserves information of
-  composition.
+  If the value is non-nil, the coding system preserves composition
+  information.
 
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
@@ -1179,6 +1179,10 @@ don't want to mark the buffer modified, just set the variable
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
   (setq buffer-file-coding-system coding-system)
+  ;; This is in case of an explicit call.  Normally, `normal-mode' and
+  ;; `set-buffer-major-mode-hook' take care of setting the table.
+  (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
+      (ucs-set-table-for-input))
   (set-buffer-modified-p t)
   (force-mode-line-update))
 
