@@ -72,8 +72,12 @@ Emacs can find a tag faster and more accurately.  These tag names are
 part of tag lines in the tags file, so we call them "explicit".
 
 - Why implicit tag names are even better
-The purpose of implicit tag names is to reduce the number of tag names
-in a tags file, thus reducing the size of the tags file.  When the user
+Often tag names are redundant; this happens when the name of a tag is an
+easily guessable substring of the tag pattern.  We define a set of rules
+to decide whether it is possible to deduce the tag name from the pattern,
+and make an unnamed tag in those cases.  The name deduced from the
+pattern of an unnamed tag is the implicit name of that tag.  The use of
+implicit tag names reduces the size of the tags file.  When the user
 looks for a tag, and Emacs founds no explicit tag names that match it,
 Emacs then tries to match the tag with an implicit tag name.  Such a
 match occurs when the tag matches a pattern, subject to the satisfaction
