@@ -26,7 +26,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #if 1 /* I'd really appreciate it if this code could go away...  -JimB */
 /* this avoids lossage in the `dual-universe' headers on AT&T SysV X11 */
 #ifdef USG5
+#ifndef SYSV
 #define SYSV
+#endif
 #include <unistd.h>
 #endif /* USG5 */
 
