@@ -1,3 +1,36 @@
+2001-02-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (toplevel): Include process.h.
+	(enum mem_type): Add MEM_TYPE_PROCESS, MEM_TYPE_HASH_TABLE,
+	MEM_TYPE_FRAME, MEM_TYPE_WINDOW enumerators.
+	(allocate_vectorlike): Make it a static function.  Add parameter TYPE.
+	(allocate_vector, allocate_hash_table, allocate_window) 
+	(allocate_frame, allocate_process, allocate_other_vector): New
+	functions.
+	(Fmake_vector): Call allocate_vector instead of allocate_vectorlike.
+	(mark_maybe_pointer): New function.
+	(mark_memory): Also mark Lisp data to which only pointers 
+	remain and not Lisp_Objects.
+	(min_heap_address, max_heap_address): New variables.
+	(mem_find): Return MEM_NIL if START is below min_heap_address or
+	above max_heap_address.
+	(mem_insert): Compute min_heap_address and max_heap_address.
+
+	* process.c (make_process): Use allocate_process.
+
+	* frame.c (make_frame): Use allocate_frame.
+
+	* window.c (make_window, make_dummy_parent): Use allocate_window.
+	(Fcurrent_window_configuration): Use allocate_other_vector.
+
+	* lisp.h (allocate_vectorlike): Remove prototype.
+	(allocate_vector, allocate_other_vector, allocate_frame)
+	(allocate_window, allocate_process, allocate_hash_table):
+	Add prototypes.
+
+	* fns.c (Fdelete, larger_vector): Use allocate_vector.
+	(make_hash_table, copy_hash_table): Use allocate_hash_table.
+
 2001-02-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (ccl_coding_driver): If ccl->eight_bit_control is zero,
