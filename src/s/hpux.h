@@ -193,12 +193,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Use the system provided termcap(3) library */
 #define TERMINFO
 
-#if 0
-/* The 48-bit versions are more winning for Emacs.  */
-
-#define rand lrand48
-#define srand srand48
-#endif
+/* The 48-bit versions are more winning for Emacs;
+   the ordinary ones don't give even 32 bits.  */
+#define random lrand48
+#define srandom srand48
 
 /* In hpux, the symbol SIGIO is defined, but the feature
    doesn't work in the way Emacs needs it to.
