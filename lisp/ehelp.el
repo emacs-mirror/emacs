@@ -44,6 +44,16 @@
 
 (defvar electric-help-form-to-execute nil)
 
+(defgroup electric-help ()
+  "Electric help facility."
+  :version "21.1"
+  :group 'help)
+
+(defcustom electric-help-shrink-window t
+  "If set, adjust help window sizes to buffer sizes when displaying help."
+  :type 'boolean
+  :group 'electric-help)
+
 (put 'electric-help-undefined 'suppress-keymap t)
 (if electric-help-map
     ()
@@ -113,8 +123,8 @@ in electric-help-mode. The window's height will be at least MINHEIGHT if
 this value is non-nil.
 
 If THUNK returns nil, we display BUFFER starting at the top, and
-shrink the window to fit.  If THUNK returns non-nil, we don't do those
-things.
+shrink the window to fit if `electric-help-shrink-window' is non-nil.
+If THUNK returns non-nil, we don't do those things.
 
 When the user exits (with `electric-help-exit', or otherwise) the help
 buffer's window disappears (i.e., we use `save-window-excursion')
@@ -126,48 +136,54 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
         (electric-help-form-to-execute nil))
     (unwind-protect
          (save-excursion
-           (if one (goto-char (window-start (selected-window))))
+           (when one
+	     (goto-char (window-start (selected-window))))
            (let ((pop-up-windows t))
              (pop-to-buffer buffer))
            (save-excursion
              (set-buffer buffer)
-             (if (and minheight (< (window-height) minheight))
-                 (enlarge-window (- minheight (window-height))))
+             (when (and minheight (< (window-height) minheight))
+	       (enlarge-window (- minheight (window-height))))
              (electric-help-mode)
 	     (setq buffer-read-only nil)
-	     (or noerase
-		 (erase-buffer)))
+	     (unless noerase
+	       (erase-buffer)))
            (let ((standard-output buffer))
-             (if (not (funcall thunk))
-                 (progn
-                   (set-buffer buffer)
-                   (set-buffer-modified-p nil)
-                   (goto-char (point-min))
-                   (if one (shrink-window-if-larger-than-buffer (selected-window))))))
+             (unless (funcall thunk)
+	       (set-buffer buffer)
+	       (set-buffer-modified-p nil)
+	       (goto-char (point-min))
+	       (when (and one electric-help-shrink-window)
+		 (shrink-window-if-larger-than-buffer))))
            (set-buffer buffer)
            (run-hooks 'electric-help-mode-hook)
 	   (setq buffer-read-only t)
-           (if (eq (car-safe (electric-help-command-loop))
-                   'retain)
+           (if (eq (car-safe (electric-help-command-loop)) 'retain)
                (setq config (current-window-configuration))
-               (setq bury t))
+	     (setq bury t))
 	   ;; Remove the hook.
-	   (if (memq 'electric-help-retain mouse-leave-buffer-hook)
-	       (remove-hook 'mouse-leave-buffer-hook 'electric-help-retain)))
+	   (when (memq 'electric-help-retain mouse-leave-buffer-hook)
+	     (remove-hook 'mouse-leave-buffer-hook 'electric-help-retain)))
       (message "")
       (set-buffer buffer)
       (setq buffer-read-only nil)
+
+      ;; We should really get a usable *Help* buffer when retaining
+      ;; the electric one with `r'.  The problem is that a simple
+      ;; call to help-mode won't cut it; at least RET is vound wrong
+      ;; afterwards.  It's also not clear that `help-mode' is always
+      ;; the right thing, maybe we should add an optional parameter.
       (condition-case ()
           (funcall (or default-major-mode 'fundamental-mode))
         (error nil))
+      
       (set-window-configuration config)
-      (if bury
-          (progn
-            ;;>> Perhaps this shouldn't be done.
-            ;; so that when we say "Press space to bury" we mean it
-            (replace-buffer-in-windows buffer)
-            ;; must do this outside of save-window-excursion
-            (bury-buffer buffer)))
+      (when bury
+	;;>> Perhaps this shouldn't be done.
+	;; so that when we say "Press space to bury" we mean it
+	(replace-buffer-in-windows buffer)
+	;; must do this outside of save-window-excursion
+	(bury-buffer buffer))
       (eval electric-help-form-to-execute))))
 
 (defun electric-help-command-loop ()
