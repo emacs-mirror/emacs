@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:require(trunk.5) $
+# $HopeName: MMQA_harness!script:require(trunk.7) $
 #
 # require all the qa harness pl files
 #
@@ -13,6 +13,7 @@ require "logging";
 require "compile";
 require "headread";
 require "runtest";
+require "clib";
 
 require "dirs";
 require "platform";
