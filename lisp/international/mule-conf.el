@@ -1163,44 +1163,47 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(emacs))
 
-(define-coding-system 'utf-16
-  "UTF-16"
-  :coding-type 'utf-16
-  :mnemonic ?U
-  :charset-list '(unicode)
-  :mime-charset 'utf-16)
-
-(define-coding-system 'utf-16-le-nosig
-  "UTF-16, little endian, no signature."
-  :coding-type 'utf-16
-  :mnemonic ?U
-  :charset-list '(unicode)
-  :endian 'little)
-
-(define-coding-system 'utf-16-be-nosig
-  "UTF-16, big endian, no signature."
-  :coding-type 'utf-16
-  :mnemonic ?U
-  :charset-list '(unicode)
-  :endian 'big)
-
 (define-coding-system 'utf-16-le
+  "UTF-16, little endian."
+  :coding-type 'utf-16
+  :mnemonic ?U
+  :charset-list '(unicode)
+  :endian 'little
+  :mime-charset 'utf-16le)
+
+(define-coding-system 'utf-16-be
+  "UTF-16, big endian."
+  :coding-type 'utf-16
+  :mnemonic ?U
+  :charset-list '(unicode)
+  :endian 'big
+  :mime-charset 'utf-16be)
+
+(define-coding-system 'utf-16-le-with-sig
   "UTF-16, little endian, with signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
   :bom t
   :endian 'little
-  :mime-charset 'utf-16-le)
+  :mime-charset 'utf-16)
 
-(define-coding-system 'utf-16-be
+(define-coding-system 'utf-16-be-with-sig
   "UTF-16, big endian, with signature."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
   :bom t
   :endian 'big
-  :mime-charset 'utf-16-be)
+  :mime-charset 'utf-16)
+
+(define-coding-system 'utf-16
+  "UTF-16"
+  :coding-type 'utf-16
+  :mnemonic ?U
+  :charset-list '(unicode)
+  :bom '(utf-16-le-with-sig . utf-16-be-with-sig)
+  :mime-charset 'utf-16)
 
 (define-coding-system 'iso-2022-7bit
   "ISO 2022 based 7-bit encoding using only G0."
