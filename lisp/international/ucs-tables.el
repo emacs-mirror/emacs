@@ -1276,26 +1276,30 @@ can cope with separate Latin-1 and Latin-9 representations of e-acute.
 See also command `unify-8859-on-decoding-mode'."
   :group 'mule
   :global t
+  :version 21.3				; who knows...?
   :init-value nil
   (if unify-8859-on-encoding-mode
-      (set-char-table-parent standard-translation-table-for-decode
-			 ucs-mule-8859-to-mule-unicode)
-    (set-char-table-parent standard-translation-table-for-decode nil)))
+      (ucs-unify-8859 t)
+    (ucs-fragment-8859 t)))
 
 ;;;###autoload
 (define-minor-mode unify-8859-on-decoding-mode
-  "Set up translation tables for unifying ISO 8859 characters on decoding.
-On decoding, i.e. input operations, non-ASCII characters from the
+  "Set up translation table for unifying ISO 8859 characters on decoding.
+On decoding -- i.e. input operations -- non-ASCII characters from the
 built-in ISO 8859 charsets are unified by mapping them into the
 `iso-latin-1' and `mule-unicode-0100-24ff' charsets.
+
+This sets the parent of `standard-translation-table-for-decode'.
 
 See also command `unify-8859-on-encoding-mode'."
   :group 'mule
   :global t
+  :version 21.3				; who knows...?
   :init-value nil
   (if unify-8859-on-decoding-mode
-      (ucs-unify-8859 t)
-    (ucs-fragment-8859 t)))
+      (set-char-table-parent standard-translation-table-for-decode
+			     ucs-mule-8859-to-mule-unicode)
+    (set-char-table-parent standard-translation-table-for-decode nil)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
