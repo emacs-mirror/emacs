@@ -1,10 +1,11 @@
-;;; calc.el --- 
+;;; calc.el --- the GNU Emacs calculator
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Colin Walters <walters@debian.org>
 ;; Keywords: convenience, extensions
+;; Version: 2.02g
 
 ;; This file is part of GNU Emacs.
 
@@ -676,8 +677,8 @@ This can safely be nil as long as the Calc files are on the load-path.")
   (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
   (put 'math-underflow 'error-message "Floating-point underflow occurred")
   
-  (setq calc-version "2.02f"
-	calc-version-date "Sun Dec 15 1996"
+  (setq calc-version "2.02g"
+	calc-version-date "Mon Nov 19 2001"
 	calc-trail-pointer nil		; "Current" entry in trail buffer.
         calc-trail-overlay nil		; Value of overlay-arrow-string.
 	calc-was-split nil		; Had multiple windows before Calc.
