@@ -310,7 +310,7 @@ in each directory, not to the directory list itself."
   "Add FILE to the file cache."
   (interactive "fAdd File: ")
   (if (not (file-exists-p file))
-      (message "File %s does not exist" file)
+      (message "Filecache: file %s does not exist" file)
     (let* ((file-name (file-name-nondirectory file))
 	   (dir-name  (file-name-directory    file))
 	   (the-entry (assoc-string
@@ -441,7 +441,8 @@ or the optional REGEXP argument."
 		    (setq delete-list (cons (car elt) delete-list))))
 	    file-cache-alist)
     (file-cache-delete-file-list delete-list)
-    (message "Deleted %d files from file cache" (length delete-list))))
+    (message "Filecache: deleted %d files from file cache"
+             (length delete-list))))
 
 (defun file-cache-delete-directory (directory)
   "Delete DIRECTORY from the file cache."
@@ -454,8 +455,8 @@ or the optional REGEXP argument."
 	    (setq result (1+ result))))
      file-cache-alist)
     (if (zerop result)
-	(error "No entries containing %s found in cache" directory)
-      (message "Deleted %d entries" result))))
+	(error "Filecache: no entries containing %s found in cache" directory)
+      (message "Filecache: deleted %d entries" result))))
 
 (defun file-cache-do-delete-directory (dir entry)
   (let ((directory-list (cdr entry))
@@ -488,14 +489,14 @@ or the optional REGEXP argument."
 	 (num)
 	 )
     (if (not (listp directory-list))
-	(error "Unknown type in file-cache-alist for key %s" file))
+	(error "Filecache: unknown type in file-cache-alist for key %s" file))
     (cond
      ;; Single element
      ((eq 1 len)
       (setq directory (elt directory-list 0)))
      ;; No elements
      ((eq 0 len)
-      (error "No directory found for key %s" file))
+      (error "Filecache: no directory found for key %s" file))
      ;; Multiple elements
      (t
       (let* ((minibuffer-dir (file-name-directory (minibuffer-contents)))
