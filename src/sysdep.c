@@ -2295,6 +2295,13 @@ init_system_name ()
 	      domain_size *= 2;
 	      continue;
 	    }
+	  /* If we get an answer which means "domain unknown",
+	     don't use a domain.  */
+	  if (!strcmp (domain, "(none)"))
+	    {
+	      *domain = 0;
+	      break;
+	    }
 #endif /* HAVE_GETDOMAINNAME */
 	  strcpy (fqdn, hostname);
 	  fqdn[hostlen] = '.';
