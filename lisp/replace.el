@@ -62,8 +62,9 @@ strings or patterns."
   :group 'matching
   :version "21.3")
 
-(defun query-replace-read-args (string regexp-flag)
-  (barf-if-buffer-read-only)
+(defun query-replace-read-args (string regexp-flag &optional noerror)
+  (unless noerror
+    (barf-if-buffer-read-only))
   (let (from to)
     (if query-replace-interactive
 	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
@@ -1128,7 +1129,9 @@ see the documentation of `replace-match' to find out how to simulate
 			   (save-excursion
 			     (funcall search-function search-string limit t)
 			     (setq real-match-data (match-data)))
-			   (save-excursion (recursive-edit))
+			   (save-excursion
+			     (save-window-excursion
+			       (recursive-edit)))
 			   (goto-char opos))
 			 (set-match-data real-match-data)
 			 ;; Before we make the replacement,
