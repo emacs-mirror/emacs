@@ -1988,23 +1988,35 @@ specify image slice (X Y WIDTH HEIGHT).
 *** New function insert-sliced-image inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
-** New line-spacing property for newline characters
+** New line-height and line-spacing properties for newline characters
 
-A newline may now have a line-spacing text property, that may be used
-to control the height of the corresponding display row.
+A newline may now have line-height and line-spacing text properties that
+control the height of the corresponding display row.
 
-If the property value is t, the newline does not contribute to the
-height of the display row; instead the height of the newline glyph is
-reduced.  This can be used to tile small images or image slices
-without adding blank areas between the images.
+If the line-height property value is 0, the newline does not
+contribute to the height of the display row; instead the height of the
+newline glyph is reduced.  This can be used to tile small images or
+image slices without adding blank areas between the images.
 
-If the property value is an integer, the value is used as additional
-space to put after the display line; this overrides the default frame
-line-spacing and any buffer local value of the line-spacing variable.
+If the line-height property value is a positive integer, the value
+specifies the minimum line height in pixels.  If necessary, the line
+height it increased by increasing the line's ascent.
 
-If the property value is a float, the value is multiplied by the
-current height of the display row to determine the additional space
-to put after the display line.
+If the line-height property value is a float, the minimum line height
+is calculated by multiplying the current height of the display row by
+the given value.
+
+If the line-height property value is t, the minimum line height is
+the height of the default frame font.
+
+If the line-spacing property value is an integer, the value is used as
+additional space to put after the display line; this overrides the
+default frame line-spacing and any buffer local value of the
+line-spacing variable.
+
+If the line-spacing property value is a float, the value is multiplied
+by the current height of the display row to determine the additional
+space to put after the display line.
 
 ** Enhancements to stretch display properties
 
