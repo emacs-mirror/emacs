@@ -110,7 +110,7 @@ LATIN=${srcdir}/quail/latin-pre.el ${srcdir}/quail/latin-post.el
 
 SLAVIC= \
 	${srcdir}/quail/czech.el \
-	${srcdir}/quail/slovak.el \
+	${srcdir}/quail/slovak.el
 
 GREEK=${srcdir}/quail/greek.el
 
