@@ -94,14 +94,10 @@ one argument, a file name to consider.  If the function returns
 @code{nil}, backups are disabled for that file.  Otherwise, the other
 variables in this section say whether and how to make backups.
 
-The default value is this:
-
-@example
-(lambda (name)
-  (or (< (length name) 5)
-      (not (string-equal "/tmp/"
-                         (substring name 0 5)))))
-@end example
+@findex normal-backup-enable-predicate
+The default value is @code{normal-backup-enable-predicate}, which checks
+for files in @code{temporary-file-directory} and
+@code{small-temporary-file-directory}.
 @end defvar
 
 @defvar backup-inhibited
@@ -116,6 +112,44 @@ This is a permanent local, so that changing the major mode does not lose
 its value.  Major modes should not set this variable---they should set
 @code{make-backup-files} instead.
 @end defvar
+
+@defvar backup-directory-alist
+This variable's value is an alist of filename patterns and backup
+directory names.  Each element looks like
+@smallexample
+(@var{regexp} . @var{directory})
+@end smallexample
+
+@noindent
+Backups of files with names matching @var{regexp} will be made in
+@var{directory}.  @var{directory} may be relative or absolute.  If it is
+absolute, so that all matching files are backed up into the same
+directory, the file names in this directory will be the full name of the
+file backed up with all directory separators changed to @samp{!} to
+prevent clashes.  This will not work correctly if your filesystem
+truncates the resulting name.
+
+For the common case of all backups going into one directory, the alist
+should contain a single element pairing @samp{"."} with the appropriate
+directory name.
+
+If this variable is @code{nil}, or it fails to match a filename, the
+backup is made in the original file's directory.
+
+On MS-DOS filesystems without long names this variable is always
+ignored.
+@end defvar
+
+@defvar make-backup-file-name-function
+This variable's value is a function to use for making backups instead of
+the default @code{make-backup-file-name}.  A value of nil gives the
+default @code{make-backup-file-name} behaviour.
+
+This could be buffer-local to do something special for for specific
+files.  If you define it, you may need to change
+@code{backup-file-name-p} and @code{file-name-sans-versions} too.
+@end defvar
+
 
 @node Rename or Copy
 @subsection Backup by Renaming or by Copying?
