@@ -233,6 +233,10 @@ with a definition that really does change some file names."
     (while (string-match "[?*:<>|\"\000-\037]" name start)
       (aset name (match-beginning 0) ?!)
       (setq start (match-end 0)))
+    ;; convert directory separators to Windows format
+    (while (string-match "/" name start)
+      (aset name (match-beginning 0) ?\\)
+      (setq start (match-end 0)))
     name))
 
 ;;; Fix interface to (X-specific) mouse.el
