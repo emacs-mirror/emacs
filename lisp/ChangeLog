@@ -1,15 +1,20 @@
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Emphasize the
-	first uncommon characters in the completions;and de-emphasize
+	first uncommon characters in the completions; and de-emphasize
 	the common prefix substrings.
 	(completion-emphasis): New face.
 	(completion-de-emphasis): New face.
 
+2004-03-25  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/cperl-mode.el (cperl-indent-alist, cperl-where-am-i):
+	Comment out (it's unused and unfinished code).
+
 2004-03-25  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-print-log): Fixed a bug in the last patch:
-	backend-function may be a byte-compiled object, not a lambda
+	backend-function may be a byte-compiled object, not a lambda.
 
 2004-03-25  Juri Linkov  <juri@jurta.org>
 
