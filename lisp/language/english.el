@@ -32,9 +32,10 @@
 
 (defun setup-english-environment ()
   "Reset multilingual environment of Emacs to the default status.
-The default status is as follows.
+This function is called by all the `setup-function's for
+the various supported language environments.
 
-  The default value of enable-multibyte-characters is t.
+The default status is as follows:
 
   The default value of buffer-file-coding-system is nil.
   The coding system for terminal output is nil.
@@ -57,7 +58,8 @@ The default status is as follows.
 	coding-category-binarry		no-conversion
 "
   (interactive)
-  (setq-default enable-multibyte-characters t)
+  ;; This function formerly set default-enable-multibyte-characters to t,
+  ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
 
   (setq coding-category-iso-7-tight	'iso-2022-jp
 	coding-category-iso-7		'iso-2022-7bit
