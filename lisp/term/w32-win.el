@@ -805,7 +805,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil.")
   "Select a font.
 If `w32-use-w32-font-dialog' is non-nil (the default), use the Windows
 font dialog to get the matching FONTS. Otherwise use a pop-up menu
-(like Emacs on other platforms) initialized with the fonts in
+\(like Emacs on other platforms) initialized with the fonts in
 `w32-fixed-font-alist'."
   (interactive
    (if w32-use-w32-font-dialog
