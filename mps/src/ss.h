@@ -1,7 +1,7 @@
 /*  impl.h.ss
  *              STACK SCANNING
  *
- *  $HopeName: MMsrc/!than.h(trunk.1)$
+ *  $HopeName: MMsrc!ss.h(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -21,8 +21,7 @@
  *  
  *  StackScan scans the current stack between the 
  *  stackBot and the current top of stack. It also fixes
- *  any roots which may be in registers.  The fixing is done at the
- *  given rank.
+ *  any roots which may be in registers.
  *  
  *  See the specific implementation for the exact registers which
  *  are scanned.
@@ -33,8 +32,7 @@
  *  stack.  Full means sp points to the top of stack itself.
  */
 
-
-extern Error StackScan(Addr *stackBot, Trace trace, RefRank rank);
+extern Error StackScan(ScanState ss, Addr *stackBot);
 
 
 #endif /* ss_h */
