@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.12) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.13) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -137,6 +137,17 @@ size_t arena_committed_and_used(mps_arena_t);
 
 mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size);
+
+#endif
+
+
+#if !defined(MMQA_PROD_dylan)
+
+#include "mpsavm.h" /* only for mps_space_create */
+#define ARENA_SIZE ((Size)1<<30)
+
+#define mps_space_create(space) \
+  mps_arena_create(space, mps_arena_class_vm(), ARENA_SIZE)
 
 #endif
 
