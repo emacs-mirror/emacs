@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_test_function!102.c(trunk.3) $
+/* $HopeName: MMQA_test_function!207.c(trunk.1) $
 TEST_HEADER
  summary = MVFF low-memory test
  language = c
@@ -17,6 +17,7 @@ void *stackpointer;
 mps_space_t space;
 
 mps_bool_t slotHigh, arenaHigh, firstFit;
+int comments = 1;
 
 static struct {mps_addr_t addr; size_t size;} queue[MAXNUMBER];
 
@@ -29,11 +30,10 @@ static void setobj(mps_addr_t a, size_t size, unsigned char val)
  unsigned char *b;
  b = a;
 
+ commentif(comments, "Set %x, size %x = %i", b, size, (int) val);
  while (size>0)
  {
   *b=val;
- /* comment("%p = %i", b, (int) val);
- */
   b++;
   size--;
  }
@@ -77,18 +77,20 @@ static void dt(int kind,
 
  for(hd=0; hd<number; hd++)
  {
+  queue[hd].addr  = NULL;
+
   size = ranrange(mins, maxs);
   if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
   {
-   queue[hd].addr=NULL;
   }
   else
   {
    if (MPS_RES_OK == mps_alloc(&queue[hd].addr, pool, size)) {
+    commentif(comments, "Alloc: %i at %x, size %x", hd, queue[hd].addr, size);
     setobj(queue[hd].addr, size, (unsigned char) (hd%256));
     queue[hd].size = size;
    } else {
-    queue[hd].addr = NULL;
+    commentif(comments, "Alloc failed: %i, size %x", hd, size);
    }
   }
  };
@@ -109,21 +111,25 @@ static void dt(int kind,
       tdesc[kind], (int) extendBy, (int) avgSize, (int) align,
       (int) mins, (int) maxs, number, iter,
       slotHigh*100+arenaHigh*10+firstFit);
+    commentif(comments, "Free %i at %x, size %x", hd,
+     queue[hd].addr, queue[hd].size);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
    size = ranrange(mins, maxs);
 
+   queue[hd].addr=NULL;
+
    if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
    {
-    queue[hd].addr=NULL;
    }
    else
    {
     if (MPS_RES_OK == mps_alloc(&queue[hd].addr, pool, size)) {
+     commentif(comments, "Alloc %i at %x, size %x", hd, queue[hd].addr, size);
      setobj(queue[hd].addr, size, (unsigned char) (hd%256));
      queue[hd].size = size;
     } else {
-     queue[hd].addr=NULL;
+     commentif(comments, "Alloc failed: %i, size %x", hd, size);
     }
    }
  }
