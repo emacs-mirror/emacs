@@ -168,9 +168,10 @@ With arg, users are asked to select language."
       (goto-char (point-min))
       (set-buffer-modified-p nil))))
 
-(defun describe-key-briefly (key)
-  "Print the name of the function KEY invokes.  KEY is a string."
-  (interactive "kDescribe key briefly: ")
+(defun describe-key-briefly (key &optional insert)
+  "Print the name of the function KEY invokes.  KEY is a string.
+If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
+  (interactive "kDescribe key briefly: \nP")
   ;; If this key seq ends with a down event, discard the
   ;; following click or drag event.  Otherwise that would
   ;; erase the message.
@@ -181,6 +182,7 @@ With arg, users are asked to select language."
 	 (read-event)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
+	  (standard-output (if insert (current-buffer) t))
 	  window position)
       ;; For a mouse button event, go to the button it applies to
       ;; to get the right key bindings.  And go to the right place
@@ -194,14 +196,17 @@ With arg, users are asked to select language."
 	    (set-buffer (window-buffer window))
 	    (goto-char position)))
       ;; Ok, now look up the key and name the command.
-      (let ((defn (key-binding key)))
+      (let ((defn (key-binding key))
+	    (key-desc (key-description key)))
 	(if (or (null defn) (integerp defn))
-	    (message "%s is undefined" (key-description key))
-	  (message (if (windowp window)
-		       "%s at that spot runs the command %s"
-		     "%s runs the command %s")
-		   (key-description key)
-		   (if (symbolp defn) defn (prin1-to-string defn))))))))
+	    (princ (format "%s is undefined" key-desc))
+	  (princ (format (if insert
+			     "%s (%s)"
+			   (if (windowp window)
+			       "%s at that spot runs the command %s"
+			     "%s runs the command %s"))
+			 key-desc
+			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
 (defun print-help-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
@@ -646,9 +651,10 @@ Returns the documentation as a string, also."
 	    (buffer-string))))
     (message "You did not specify a variable")))
 
-(defun where-is (definition)
+(defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke specified command.
-Argument is a command definition, usually a symbol with a function definition."
+Argument is a command definition, usually a symbol with a function definition.
+If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (interactive
    (let ((fn (function-called-at-point))
 	 (enable-recursive-minibuffers t)	     
@@ -658,12 +664,18 @@ Argument is a command definition, usually a symbol with a function definition."
 				  "Where is command: ")
 				obarray 'fboundp t))
      (list (if (equal val "")
-	       fn (intern val)))))
+	       fn (intern val))
+	   current-prefix-arg)))
   (let* ((keys (where-is-internal definition overriding-local-map nil nil))
-	 (keys1 (mapconcat 'key-description keys ", ")))
-    (if (> (length keys1) 0)
-	(message "%s is on %s" definition keys1)
-      (message "%s is not on any key" definition)))
+	 (keys1 (mapconcat 'key-description keys ", "))
+	 (standard-output (if insert (current-buffer) t)))
+    (if insert
+	(if (> (length keys1) 0)
+	    (princ (format "%s (%s)" keys1 definition))
+	  (princ (format "M-x %s RET" definition)))
+      (if (> (length keys1) 0)
+	  (princ (format "%s is on %s" definition keys1))
+	(princ (format "%s is not on any key" definition)))))
   nil)
 
 (defun locate-library (library &optional nosuffix path interactive-call)
