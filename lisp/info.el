@@ -531,7 +531,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		    (save-excursion
 		      (or buffers
 			  (message "Composing main Info directory..."))
-		      (set-buffer (generate-new-buffer "info dir"))
+		      (set-buffer (generate-new-buffer " info dir"))
 		      (insert-file-contents file)
 		      (setq buffers (cons (current-buffer) buffers)
 			    Info-dir-file-attributes
