@@ -847,7 +847,7 @@ do_cdr:
   if (XTYPE (o1) == Lisp_Cons)
     {
       Lisp_Object v1;
-      v1 = Fequal (Fcar (o1), Fcar (o2), depth + 1);
+      v1 = internal_equal (Fcar (o1), Fcar (o2), depth + 1);
       if (NILP (v1))
 	return v1;
       o1 = Fcdr (o1), o2 = Fcdr (o2);
@@ -870,7 +870,7 @@ do_cdr:
 	  Lisp_Object v, v1, v2;
 	  v1 = XVECTOR (o1)->contents [index];
 	  v2 = XVECTOR (o2)->contents [index];
-	  v = Fequal (v1, v2, depth + 1);
+	  v = internal_equal (v1, v2, depth + 1);
 	  if (NILP (v)) return v;
 	}
       return Qt;
