@@ -631,7 +631,7 @@ adjust_intervals_for_insertion (tree, position, length)
    is actually between the two intervals, make the new text belong to
    the interval which is "sticky".
 
-   If both intervals are "stick", then make them belong to the left-most
+   If both intervals are "sticky", then make them belong to the left-most
    interval.  Another possibility would be to create a new interval for
    this text, and make it have the merged properties of both ends. */
 
@@ -839,12 +839,14 @@ delete_interval (i)
     }
 }
 
-/* Recurse down to the interval containing FROM.  Then delete as much
-   as possible (up to AMOUNT) from that interval, adjusting parental
-   intervals on the way up.  If an interval is zeroed out, then
-   it is deleted.
+/* Find the interval in TREE corresponding to the character position FROM
+   and delete as much as possible of AMOUNT from that interval, starting
+   after the relative position of FROM within it.  Return the amount
+   actually deleted, and if the interval was zeroed-out, delete that
+   interval node from the tree.
 
-   Returns the amount deleted. */
+   Do this by recursing down TREE to the interval in question, and
+   deleting the appropriate amount of text. */
 
 static int
 interval_deletion_adjustment (tree, from, amount)
@@ -924,8 +926,14 @@ interval_deletion_adjustment (tree, from, amount)
 	}
     }
 
+  /* Never reach here */
   abort ();
 }
+
+/* Effect the adjustments neccessary to the interval tree of BUFFER
+   to correspond to the deletion of LENGTH characters from that buffer
+   text.  The deletion is effected at position START (relative to the
+   buffer). */
 
 static void
 adjust_intervals_for_deletion (buffer, start, length)
@@ -966,7 +974,10 @@ adjust_intervals_for_deletion (buffer, start, length)
     }
 }
 
-/* Note that all intervals in OBJECT after START have slid by LENGTH. */
+/* Make the adjustments neccessary to the interval tree of BUFFER to
+   represent an addition or deletion of LENGTH characters starting
+   at position START.  Addition or deletion is indicated by the sign
+   of LENGTH. */
 
 INLINE void
 offset_intervals (buffer, start, length)
@@ -981,6 +992,11 @@ offset_intervals (buffer, start, length)
   else
     adjust_intervals_for_deletion (buffer, start, -length);
 }
+
+/* Make an exact copy of interval tree SOURCE which descends from
+   PARENT.  This is done by recursing through SOURCE, copying
+   the current interval and its properties, and then adjusting
+   the pointers of the copy. */
 
 static INTERVAL
 reproduce_tree (source, parent)
@@ -998,6 +1014,13 @@ reproduce_tree (source, parent)
 
   return t;
 }
+
+/* Make a new interval of length LENGTH starting at START in the
+   group of intervals INTERVALS, which is actually an interval tree.
+   Returns the new interval.
+
+   Generate an error if the new positions would overlap an existing
+   interval. */
 
 static INTERVAL
 make_new_interval (intervals, start, length)
