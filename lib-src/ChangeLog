@@ -1,3 +1,12 @@
+2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacsclient.c: Remove SYSV support.
+	(eval, display): New vars.
+	(longopts): Add --eval and --display.
+	(decode_options): Add -e and -d processing.
+	(print_help_and_exit): Update the usage string.
+	(main): Add support for --eval and --display.
+
 2002-09-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacsserver.c: Remove.
