@@ -14,7 +14,7 @@
 @set IDLVERSION 6.1
 @set NSYSROUTINES 1850
 @set NSYSKEYWORDS 7685
-@set DATE November, 2004
+@set DATE March, 2005
 @set AUTHOR J.D. Smith & Carsten Dominik
 @set AUTHOR-EMAIL jdsmith@@as.arizona.edu
 @set MAINTAINER J.D. Smith
@@ -29,7 +29,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004 Free Software
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software
 Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -60,7 +60,7 @@ license to the document, as described in section 6 of the license.
 This is edition @value{EDITION} of the @cite{IDLWAVE User Manual} for
 IDLWAVE version @value{VERSION}, @value{DATE}.
 @sp 2
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004 Free Software
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software
 Foundation, Inc.
 @sp 2
 @cindex Copyright, of IDLWAVE
@@ -2204,7 +2204,7 @@ case of routines, keywords, classes, and methods as they are completed, see
 
 @defopt idlwave-abbrev-change-case (@code{nil})
 Non-@code{nil} means all abbrevs will be forced to either upper or lower
-case.  Legal values are @code{nil}, @code{t}, and @code{down}.
+case.  Valid values are @code{nil}, @code{t}, and @code{down}.
 @end defopt
 
 @defopt idlwave-reserved-word-upcase (@code{nil})
@@ -2829,7 +2829,7 @@ provides faster access (@pxref{Electric Debug Mode}).
 
 @defopt idlwave-shell-mark-breakpoints (@code{t})
 Non-@code{nil} means mark breakpoints in the source file buffers.  The
-value indicates the preferred method.  Legal values are @code{nil},
+value indicates the preferred method.  Valid values are @code{nil},
 @code{t}, @code{face}, and @code{glyph}.
 @end defopt
 
@@ -2866,7 +2866,7 @@ been set (or you give two prefix arguments), the last command on the
 
 @defopt idlwave-shell-mark-stop-line (@code{t})
 Non-@code{nil} means mark the source code line where IDL is currently
-stopped.  The value specifies the preferred method.  Legal values are
+stopped.  The value specifies the preferred method.  Valid values are
 @code{nil}, @code{t}, @code{arrow}, and @code{face}.
 @end defopt
 

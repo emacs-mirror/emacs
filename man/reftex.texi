@@ -737,7 +737,7 @@ the context of the label definition and constructs a label from
 that@footnote{Note that the context may contain constructs which are
 invalid in labels.  @b{Ref@TeX{}} will therefore strip the accent from
 accented Latin-1 characters and remove everything else which is not
-legal in labels.  This mechanism is safe, but may not be satisfactory
+valid in labels.  This mechanism is safe, but may not be satisfactory
 for non-western languages.  Check the following variables if you need to
 change things: @code{reftex-translate-to-ascii-function},
 @code{reftex-derive-label-parameters}, @code{reftex-label-illegal-re},
@@ -2833,7 +2833,7 @@ to be changed for other languages.  See the variables
 @vindex reftex-translate-to-ascii-function
 @vindex reftex-label-illegal-re
 Also, when a label is derived from context, @b{Ref@TeX{}} clears the
-context string from non-ASCII characters in order to make a legal label.
+context string from non-ASCII characters in order to make a valid label.
 If there should ever be a version of @TeX{} which allows extended
 characters @emph{in labels}, then we will have to look at the
 variables @code{reftex-translate-to-ascii-function} and
@@ -4120,7 +4120,7 @@ Flags governing label insertion.  The value has the form
 
 If @var{derive}is @code{t}, @b{Ref@TeX{}} will try to derive a sensible
 label from context.  A section label for example will be derived from
-the section heading.  The conversion of the context to a legal label is
+the section heading.  The conversion of the context to a valid label is
 governed by the specifications given in
 @code{reftex-derive-label-parameters}.  If @var{derive} is @code{nil},
 the default label will consist of the prefix and a unique number, like
@@ -4166,7 +4166,7 @@ buffer.
 @end deffn
 
 @deffn Hook reftex-string-to-label-function
-Function to turn an arbitrary string into a legal label.
+Function to turn an arbitrary string into a valid label.
 @b{Ref@TeX{}}'s default function uses the variable
 @code{reftex-derive-label-parameters}.
 @end deffn
@@ -4174,7 +4174,7 @@ Function to turn an arbitrary string into a legal label.
 @deffn Hook reftex-translate-to-ascii-function
 Filter function which will process a context string before it is used to
 derive a label from it.  The intended application is to convert ISO or
-Mule characters into something legal in labels.  The default function
+Mule characters into something valid in labels.  The default function
 @code{reftex-latin1-to-ascii} removes the accents from Latin-1
 characters.  X-Symbol (>=2.6) sets this variable to the much more
 general @code{x-symbol-translate-to-ascii}.
@@ -4558,7 +4558,7 @@ indexing from the phrase buffer.
 
 The final entry may also be a symbol.  It must have an association in
 the variable @code{reftex-index-macros-builtin} to specify the main
-indexing package you are using.  Legal values are currently
+indexing package you are using.  Valid values are currently
 @example
 default         @r{The LaTeX default - unnecessary to specify this one}
 multind         @r{The multind.sty package}
@@ -4590,7 +4590,7 @@ Default index tag.  When working with multiple indexes, RefTeX queries
 for an index tag when creating index entries or displaying a specific
 index.  This variable controls the default offered for these queries.
 The default can be selected with @key{RET} during selection or
-completion.  Legal values of this variable are:
+completion.  Valid values of this variable are:
 @example
 nil        @r{Do not provide a default index}
 "tag"      @r{The default index tag given as a string, e.g. "idx"}
@@ -4830,9 +4830,9 @@ This is a list of items, each item is like:
 @example
 @var{type}:       @r{File type like @code{"bib"} or @code{"tex"}.}
 @var{def-ext}:    @r{The default extension for that file type, like @code{".tex"} or @code{".bib"}.}
-@var{other-ext}:  @r{Any number of other legal extensions for this file type.}
+@var{other-ext}:  @r{Any number of other valid extensions for this file type.}
 @end example
-When a files is searched and it does not have any of the legal extensions,
+When a files is searched and it does not have any of the valid extensions,
 we try the default extension first, and then the naked file name.
 @end defopt
 
@@ -5457,7 +5457,7 @@ lowercase labels (default @code{t}).
 All @file{.rel} files have a final newline to avoid queries.
 @item
 Single byte representations of accented European letters (ISO-8859-1)
-are now legal in labels.
+are now valid in labels.
 @end itemize
 
 @noindent @b{Version 3.33}

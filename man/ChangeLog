@@ -1,5 +1,10 @@
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
+	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi: Replace
+	`legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
 	* calc.texi, reftex.texi: Replace `illegal' with `invalid'.
 
 2005-03-24  Jay Belanger  <belanger@truman.edu>

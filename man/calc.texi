@@ -13942,7 +13942,7 @@ Without being switched into C mode first, Calc would have misinterpreted
 the brackets in @samp{a[1]} and @samp{a[2]}, would not have known that
 @code{atan} was equivalent to Calc's built-in @code{arctan} function,
 and would have written the formula back with notations (like implicit
-multiplication) which would not have been legal for a C program.
+multiplication) which would not have been valid for a C program.
 
 As another example, suppose you are maintaining a C program and a La@TeX{}
 document, each of which needs a copy of the same formula.  You can grab the
@@ -15472,7 +15472,7 @@ backslashes in tokens.)
 This will parse @samp{3 bad token 4 /"\ 5} to @samp{silly(3,4,5)}.
 
 The token @kbd{#} has a predefined meaning in Calc's formula parser;
-it is not legal to use @samp{"#"} in a syntax rule.  However, longer
+it is not valid to use @samp{"#"} in a syntax rule.  However, longer
 tokens that include the @samp{#} character are allowed.  Also, while
 @samp{"$"} and @samp{"\""} are allowed as tokens, their presence in
 the syntax table will prevent those characters from working in their
@@ -23426,7 +23426,7 @@ is allowed only within @code{IntegRules}; it means ``integrate this
 with respect to the same integration variable.''  If Calc is unable
 to integrate @code{u}, the integration that invoked @code{IntegRules}
 also fails.  Thus integrating @samp{twice(f(x))} fails, returning the
-unevaluated integral @samp{integ(twice(f(x)), x)}.  It is still legal
+unevaluated integral @samp{integ(twice(f(x)), x)}.  It is still valid
 to call @code{integ} with two or more arguments, however; in this case,
 if @code{u} is not integrable, @code{twice} itself will still be
 integrated:  If the above rule is changed to @samp{... := twice(integ(u,x))},
@@ -25273,7 +25273,7 @@ As a special feature, if the limits are infinite (or omitted, as
 described above) but the formula includes vectors subscripted by
 expressions that involve the iteration variable, Calc narrows
 the limits to include only the range of integers which result in
-legal subscripts for the vector.  For example, the sum
+valid subscripts for the vector.  For example, the sum
 @samp{sum(k [a,b,c,d,e,f,g]_(2k),k)} evaluates to @samp{b + 2 d + 3 f}.
 
 The limits of a sum do not need to be integers.  For example,
@@ -28738,7 +28738,7 @@ command.
 @kindex g A
 @pindex calc-graph-add-3d
 The @kbd{g A} (@code{calc-graph-add-3d}) command adds a 3D curve
-to the graph.  It is not legal to intermix 2D and 3D curves in a
+to the graph.  It is not valid to intermix 2D and 3D curves in a
 single graph.  This command takes three arguments, ``x'', ``y'',
 and ``z'', from the stack.  With a positive prefix @expr{n}, it
 takes @expr{n+2} arguments (common ``x'' and ``y'', plus @expr{n}
@@ -30503,7 +30503,7 @@ of mode setting, the second is a name for the mode itself, and
 the third is the value in the form of a Lisp symbol, number,
 or list.  Annotations with unrecognizable text in the first or
 second parts are ignored.  The third part is not checked to make
-sure the value is of a legal type or range; if you write an
+sure the value is of a valid type or range; if you write an
 annotation by hand, be sure to give a proper value or results
 will be unpredictable.  Mode-setting annotations are case-sensitive.
 
@@ -31792,7 +31792,7 @@ to pop @var{num} values off the stack, resimplify them by calling
 @code{calc-normalize}, and hand them to your function according to the
 function's argument list.  Your function may include @code{&optional} and
 @code{&rest} parameters, so long as calling the function with @var{num}
-parameters is legal.
+parameters is valid.
 
 Your function must return either a number or a formula in a form
 acceptable to Calc, or a list of such numbers or formulas.  These value(s)
