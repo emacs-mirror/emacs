@@ -32,6 +32,7 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 
 #ifdef MSDOS
 #include <fcntl.h>
+#include <sys/param.h>
 #endif /* MSDOS */
 
 #ifdef HAVE_CONFIG_H
@@ -3123,6 +3124,21 @@ concat (s1, s2, s3)
   return result;
 }
 
+#ifdef MSDOS
+char *
+etags_getcwd ()
+{
+  char *p, cwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
+  getwd (cwd);
+  p = cwd;
+  while (*p)
+    if (*p == '\\')
+      *p++ = '/';
+    else
+      *p++ = tolower (*p);
+  return strdup (cwd);
+}
+#else /* not MSDOS */
 /* Does the same work as the system V getcwd, but does not need to
    guess buffer size in advance.  Included mostly for compatibility. */
 char *
@@ -3155,6 +3171,7 @@ etags_getcwd ()
 
   return buf;
 }
+#endif /* not MSDOS */
 
 /* Return a newly allocated string containing the filename
    of FILE relative to the absolute directory DIR (which
