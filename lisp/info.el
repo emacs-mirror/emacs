@@ -2641,10 +2641,8 @@ the variable `Info-file-list-for-emacs'."
 	  ;; frame types at once.  We want this text to be invisible
 	  ;; on frames that can display the font above.
 	  (when (memq (framep (selected-frame)) '(x pc w32 mac))
-	    (add-text-properties (match-end 1) (match-end 2)
-				 '(invisible t intangible t))
-	    (add-text-properties (1- (match-end 1)) (match-end 2)
-				 '(intangible t))))
+	    (add-text-properties (match-beginning 2) (1+ (match-end 2))
+				 '(invisible t intangible t))))
 	(goto-char (point-min))
 	(while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	  (if (= (char-after (1- (match-beginning 0))) ?\") ; hack
