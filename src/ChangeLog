@@ -1,3 +1,7 @@
+2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xselect.c (selection_data_to_lisp_data): Fix last change.
+
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Support for ICCCM  Extended Segments in X selections:
