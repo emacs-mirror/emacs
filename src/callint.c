@@ -493,7 +493,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'S':		/* Any symbol.  */
-	  visargs[i] = Fread_no_blanks_input (build_string (prompt), Qnil);
+	  visargs[i] = Fread_string (build_string (prompt), Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
