@@ -166,8 +166,12 @@ By default, this is the file specified by `mail-personal-alias-file'."
 (defun define-mail-alias (name definition &optional from-mailrc-file)
   "Define NAME as a mail alias that translates to DEFINITION.
 This means that sending a message to NAME will actually send to DEFINITION.
-DEFINITION can be one or more mail addresses separated by spaces.
-An address can contain spaces if it is quoted with double-quotes."
+
+Normally, the addresses in DEFINITION must be separated by commas.
+If FROM-MAILRC-FILE is non-nil, then addresses in DEFINITION 
+can be separated by spaces; an address can contain spaces
+if it is quoted with double-quotes."
+
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
   ;; Read the defaults first, if we have not done so.
   (sendmail-synch-aliases)
