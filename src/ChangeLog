@@ -1,3 +1,10 @@
+2002-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_object): Test print_escape_nonascii only for
+	unibyte strings.
+	(PRINTPREPARE): Once again bind Qprint_escape_nonascii
+	when outputting to a multibyte buffer.
+
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print_object): In multibyte string, use hex escapes.
