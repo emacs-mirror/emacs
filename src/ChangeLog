@@ -1,5 +1,16 @@
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (echo_prompt, echo_char, echo_dash, echo_now) 
+	(cancel_echoing, echo_length, echo_truncate): Changed to
+	work with new kboard definition.
+	(echo_now): Use message3_nolog instead of message2_nolog.
+
+	* alloc.c (mark_kboards): Mark echo_string.
+
+	* keyboard.h (ECHOBUFSIZE): Removed.
+	(struct kboard): Member echoptr removed, member echobuf renamed
+	to echo_string.
+
 	* xdisp.c (message_with_string): Use Fformat instead of doprnt and
 	message3 instead of message2 to display the message using STRING's
 	text properties.
