@@ -26,14 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-lang () nil)
-
 
 ;;; Alternate entry/display languages.
 
@@ -1162,6 +1158,8 @@
 	      (setq count (1- count))))
 	(setq h (1+ h))))
     h))
+
+(provide 'calc-lang)
 
 ;;; arch-tag: 483bfe15-f290-4fef-bb7d-ce65be687f2e
 ;;; calc-lang.el ends here
