@@ -1376,9 +1376,8 @@ check_frame_size (frame, rows, cols)
   /* For height, we have to see whether the frame has a minibuffer, and
      whether it wants a mode line.  */
   int min_height =
-    ((FRAME_MINIBUF_ONLY_P (frame)
-      || ! FRAME_HAS_MINIBUF_P (frame))
-     ? MIN_SAFE_WINDOW_HEIGHT
+    (FRAME_MINIBUF_ONLY_P (frame) ? MIN_SAFE_WINDOW_HEIGHT - 1
+     : (! FRAME_HAS_MINIBUF_P (frame)) ? MIN_SAFE_WINDOW_HEIGHT
      : 2 * MIN_SAFE_WINDOW_HEIGHT - 1);
 
   if (*rows < min_height)
