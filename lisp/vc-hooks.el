@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.134.4.2 2001/12/14 08:19:06 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.134.4.3 2002/07/20 17:24:56 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -382,6 +382,21 @@ For registered files, the value returned is one of:
 It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
+
+(defun vc-workfile-unchanged-p (file)
+  "Return non-nil if FILE has not changed since the last checkout."
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (if checkout-time
+        (equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+        unchanged))))
+
+(defun vc-default-workfile-unchanged-p (backend file)
+  "Check if FILE is unchanged by diffing against the master version.
+Return non-nil if FILE is unchanged."
+  (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
