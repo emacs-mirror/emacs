@@ -4828,8 +4828,27 @@ x_display_bar_cursor (f, on, x, y)
 	    && x < current_glyphs->used[y])
 	   ? current_glyphs->glyphs[y][x]
 	   : SPACEGLYPH);
+
+      {
+	XGCValues xgcv;
+	unsigned long mask;
+
+	xgcv.background = f->output_data.x->cursor_pixel;
+	xgcv.foreground = f->output_data.x->cursor_pixel;
+	xgcv.graphics_exposures = 0;
+	mask = GCForeground | GCBackground | GCGraphicsExposures;
+
+	if (FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc)
+	  XChangeGC (FRAME_X_DISPLAY (f),
+		     FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
+		     mask, &xgcv);
+	else
+	  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc
+	    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), mask, &xgcv);
+      }
+
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      f->output_data.x->cursor_gc,
+		      FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
 		      CHAR_TO_PIXEL_COL (f, x),
 		      CHAR_TO_PIXEL_ROW (f, y),
 		      max (f->output_data.x->cursor_width, 1),
