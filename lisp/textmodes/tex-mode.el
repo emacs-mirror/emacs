@@ -884,9 +884,10 @@ evaluates to a command string."
 If NOT-ALL is non-nil, save the `.dvi' file."
   (if tex-last-temp-file
       (let* ((dir (file-name-directory tex-last-temp-file))
-             (list (file-name-all-completions
-                    (file-name-nondirectory tex-last-temp-file) dir)))
-        (while list
+	     (list (and (file-directory-p dir)
+			(file-name-all-completions
+			 (file-name-nondirectory tex-last-temp-file) dir))))
+	(while list
 	  (if not-all
 	      (and
 	       ;; If arg is non-nil, don't delete the .dvi file.
