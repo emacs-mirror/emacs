@@ -1,3 +1,8 @@
+2002-05-27  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs (VERSION): Calculate using the same method
+	that configure.in does.
+
 2002-04-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs-pretesters: New file with information for Emacs
