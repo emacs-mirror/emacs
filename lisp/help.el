@@ -620,9 +620,10 @@ It can also be nil, if the definition is not associated with any file."
 		 "a mocklisp function")
 		((eq (car-safe def) 'autoload)
 		 (setq file-name (nth 1 def))
-		 (format "%s autoloaded Lisp %s"
+		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
-			 (if (nth 4 def) "macro" "function")
+			 (if (eq (nth 4 def) 'keymap) "keymap"
+			   (if (nth 4 def) "Lisp macro" "Lisp function"))
 			 ))
 		(t "")))
     (when (and parens (not (equal string "")))
