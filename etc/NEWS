@@ -1712,6 +1712,8 @@ to view diffs or log entries directly from vc-annotate-mode:
 
 * New modes and packages in Emacs 21.4
 
+** The new python.el package is used to edit Python and Jython programs.
+
 ** The URL package (which had been part of W3) is now part of Emacs.
 
 +++
