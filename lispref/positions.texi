@@ -795,6 +795,7 @@ comes back" twice.
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defun
 
 @defun skip-chars-backward character-set &optional limit
 This function moves point backward, skipping characters that match
