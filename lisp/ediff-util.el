@@ -4040,8 +4040,8 @@ Mail anyway? (y or n) ")
    ))
 
 (cond ((fboundp 'nuke-selective-display)
-       ;; XEmacs 19.12 has nuke-selective-display
-       (fset 'ediff-nuke-selective-display 'nuke-selective-display))
+       ;; XEmacs has nuke-selective-display
+       (defalias 'ediff-nuke-selective-display 'nuke-selective-display))
       (t
        (defun ediff-nuke-selective-display ()
 	 (save-excursion

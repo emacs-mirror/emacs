@@ -1,3 +1,15 @@
+2002-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-hooks.el: Put back the autoloads (for compatibility with XEmacs).
+	
+	* ediff-init.el: Use defalias instead of fset.
+	
+	* ediff-util.el: Use defalias instead of fset.
+	
+	* viper-util.el (viper-chars-in-region): simplification.
+	
+	* viper.el (viper-emacs-state-mode-list): added modes.
+	
 2002-09-18  Miles Bader  <miles@gnu.org>
 
 	* diff-mode.el (diff-mode): Don't evaluate `compilation-last-buffer'

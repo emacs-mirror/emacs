@@ -758,15 +758,15 @@ to temp files when Ediff needs to find fine differences."
 
 (ediff-cond-compile-for-xemacs-or-emacs
  (progn ; xemacs
-   (fset 'ediff-read-event (symbol-function 'next-command-event))
-   (fset 'ediff-overlayp (symbol-function 'extentp))
-   (fset 'ediff-make-overlay (symbol-function 'make-extent))
-   (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
+   (defalias 'ediff-read-event 'next-command-event)
+   (defalias 'ediff-overlayp 'extentp)
+   (defalias 'ediff-make-overlay 'make-extent)
+   (defalias 'ediff-delete-overlay 'delete-extent))
  (progn ; emacs
-   (fset 'ediff-read-event (symbol-function 'read-event))
-   (fset 'ediff-overlayp (symbol-function 'overlayp))
-   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
-   (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
+   (defalias 'ediff-read-event 'read-event)
+   (defalias 'ediff-overlayp 'overlayp)
+   (defalias 'ediff-make-overlay 'make-overlay)
+   (defalias 'ediff-delete-overlay 'delete-overlay))
  )
 
 ;; Check the current version against the major and minor version numbers
@@ -831,18 +831,17 @@ to temp files when Ediff needs to find fine differences."
 (if (ediff-window-display-p)
     (ediff-cond-compile-for-xemacs-or-emacs
      (progn   ; xemacs
-       (fset 'ediff-display-pixel-width (symbol-function 'device-pixel-width))
-       (fset 'ediff-display-pixel-height
-	     (symbol-function 'device-pixel-height)))
+       (defalias 'ediff-display-pixel-width 'device-pixel-width)
+       (defalias 'ediff-display-pixel-height 'device-pixel-height))
      (progn   ; emacs
-       (fset 'ediff-display-pixel-width
+       (defalias 'ediff-display-pixel-width
 	     (if (fboundp 'display-pixel-width)
-		 (symbol-function 'display-pixel-width)
-	       (symbol-function 'x-display-pixel-width)))
-       (fset 'ediff-display-pixel-height
+		 'display-pixel-width
+	       'x-display-pixel-width))
+       (defalias 'ediff-display-pixel-height
 	     (if (fboundp 'display-pixel-height)
-		 (symbol-function 'display-pixel-height)
-	       (symbol-function 'x-display-pixel-height))))
+		 'display-pixel-height
+	       'x-display-pixel-height)))
      ))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
@@ -1738,7 +1737,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 
 (if (fboundp 'with-syntax-table)
-    (fset 'ediff-with-syntax-table 'with-syntax-table)
+    (defalias 'ediff-with-syntax-table 'with-syntax-table)
   ;; stolen from subr.el in emacs 21
   (defmacro ediff-with-syntax-table (table &rest body)
     (let ((old-table (make-symbol "table"))

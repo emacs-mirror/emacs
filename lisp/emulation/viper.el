@@ -422,6 +422,10 @@ widget."
     efs-mode
     tar-mode
 
+    browse-kill-ring-mode
+    recentf-mode
+    occur-mode
+
     mh-folder-mode
     mail-mode
     gnus-group-mode
