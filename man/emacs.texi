@@ -600,7 +600,7 @@ Reading Mail with Rmail
 Dired, the Directory Editor
 
 * Dired Enter:: 	     How to invoke Dired.
-* Dired Commands::           Commands in the Dired buffer.
+* Dired Navigation::         How to move in the Dired buffer.
 * Dired Deletion::           Deleting files with Dired.
 * Flagging Many Files::      Flagging files based on their names.
 * Dired Visiting::           Other file operations through Dired.

@@ -12,12 +12,19 @@ optionally some of its subdirectories as well.  You can use the normal
 Emacs commands to move around in this buffer, and special Dired commands
 to operate on the files listed.
 
+    The Dired buffer is ``read-only,'' and inserting text in it is not
+useful, so ordinary printing characters such as @kbd{d} and @kbd{x} are
+used for special Dired commands.  Some Dired commands @dfn{mark} or
+@dfn{flag} the @dfn{current file} (that is, the file on the current
+line); other commands operate on the marked files or on the flagged
+files.
+
   The Dired-X package provides various extra features for Dired mode.
 @xref{Dired-X,,,dired-x, Dired Extra Version 2 User's Manual}.
 
 @menu
 * Enter: Dired Enter.         How to invoke Dired.
-* Commands: Dired Commands.   Commands in the Dired buffer.
+* Navigation: Dired Navigation.   How to move in the Dired buffer.
 * Deletion: Dired Deletion.   Deleting files with Dired.
 * Flagging Many Files::       Flagging files based on their names.
 * Visit: Dired Visiting.      Other file operations through Dired.
@@ -61,15 +68,8 @@ selected window, use @kbd{C-x 4 d} (@code{dired-other-window}) instead
 of @kbd{C-x d}.  @kbd{C-x 5 d} (@code{dired-other-frame}) uses a
 separate frame to display the Dired buffer.
 
-@node Dired Commands
-@section Commands in the Dired Buffer
-
-    The Dired buffer is ``read-only,'' and inserting text in it is not
-useful, so ordinary printing characters such as @kbd{d} and @kbd{x} are
-used for special Dired commands.  Some Dired commands @dfn{mark} or
-@dfn{flag} the @dfn{current file} (that is, the file on the current
-line); other commands operate on the marked files or on the flagged
-files.
+@node Dired Navigation
+@section Navigation in the Dired Buffer
 
 @kindex C-n @r{(Dired)}
 @kindex C-p @r{(Dired)}
@@ -85,13 +85,16 @@ to @kbd{C-n}.  @kbd{p} is equivalent to @kbd{C-p}.  (Moving by lines is
 so common in Dired that it deserves to be easy to type.)  @key{DEL}
 (move up and unflag) is often useful simply for moving up.
 
+  Some additional navigation commands are available when the Dired
+buffer includes several directories.  @xref{Subdirectory Motion}.
+
 @node Dired Deletion
 @section Deleting Files with Dired
 @cindex flagging files (in Dired)
 @cindex deleting files (in Dired)
 
-  The primary use of Dired is to @dfn{flag} files for deletion and then
-delete the files previously flagged.
+  One of the most frequent uses of Dired is to @dfn{flag} files for
+deletion and then delete the files previously flagged.
 
 @table @kbd
 @item d
@@ -237,7 +240,9 @@ Visit the file described on the current line, like typing @kbd{C-x C-f}
 and supplying that file name (@code{dired-find-file}).  @xref{Visiting}.
 
 @item @key{RET}
+@itemx e
 @kindex RET @r{(Dired)}
+@kindex e @r{(Dired)}
 Equivalent to @kbd{f}.
 
 @item a
@@ -275,6 +280,13 @@ View the file described on the current line, using @kbd{M-x view-file}
 Viewing a file is like visiting it, but is slanted toward moving around
 in the file conveniently and does not allow changing the file.
 @xref{Misc File Ops,View File, Miscellaneous File Operations}.
+
+@item ^
+@kindex ^ @r{(Dired)}
+@findex dired-up-directory
+Visit the parent directory of the current directory
+(@code{dired-up-directory}).  This is more convenient than moving to
+the parent directory's line and typing @kbd{f} there.
 @end table
 
 @node Marks vs Flags
