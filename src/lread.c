@@ -3618,7 +3618,7 @@ to load.  See also `load-dangerous-libraries'.");
     "Limit for depth of recursive loads.\n\
 Value should be either an integer > 0 specifying the limit, or nil for\n\
 no limit.");
-  Vrecursive_load_depth_limit = make_number (10);
+  Vrecursive_load_depth_limit = make_number (50);
 
   /* Vsource_directory was initialized in init_lread.  */
 
