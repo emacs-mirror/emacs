@@ -1745,12 +1745,6 @@ with whitespace and a star.  Here are two entries, both dated in May
         (vc-cancel-version): Doc fix.
 @end smallexample
 
-@noindent
-(Previous Emacs versions used a different format for the date.  You can
-convert old-style entries to the current format with
-@findex change-log-redate
-@kbd{M-x change-log-redate}.)
-
   One entry can describe several changes; each change should have its
 own item.  Normally there should be a blank line between items.  When
 items are related (parts of the same change, in different places), group
@@ -1781,8 +1775,8 @@ of entries with either the current or old-style date formats.
 
 @findex change-log-redate
 @cindex converting change log date style
-  Versions of Emacs before 20.1 used a format for the time of the change
-log entry that was different from what it uses now:
+  Versions of Emacs before 20.1 used a different format for the time of
+the change log entry:
 
 @smallexample
 Fri May 25 11:23:23 1993 Richard Stallman  <rms@@gnu.org>
