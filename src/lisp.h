@@ -115,6 +115,10 @@ enum Lisp_Misc_Type
 #define GCTYPEBITS 3
 #endif
 
+#if 0  /* This doesn't work on some systems that don't allow enumerators
+	  > INT_MAX, and it won't work for long long EMACS_INT.  These
+	  values are now found in emacs.c as EMACS_INT variables.  */
+
 /* Make these values available in GDB, which sees enums but not macros.  */
 
 enum gdb_lisp_params
@@ -128,6 +132,8 @@ enum gdb_lisp_params
   gdb_data_seg_bits = 0
 #endif
 };
+
+#endif /* 0 */
 
 #ifndef NO_UNION_TYPE
 
