@@ -4388,7 +4388,7 @@ code_convert_string (str, coding, encodep, nocopy)
 	    ? encode_coding (coding, XSTRING (str)->data + from,
 			     buf + from, to_byte - from, len)
 	    : decode_coding (coding, XSTRING (str)->data + from,
-			     buf + from, to - from, len));
+			     buf + from, to_byte - from, len));
   if (! encodep && result == CODING_FINISH_INCONSISTENT_EOL)
     {
       /* We simple try to decode the whole string again but without
