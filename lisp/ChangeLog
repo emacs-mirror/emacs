@@ -9,8 +9,8 @@
 	Use of (featurep 'xemacs) instead of (eq ps-print-emacs-type 'xemacs).
 	Use make-temp-file to generate PostScript files in any situation.
 	(pr-ps-temp-file): Now specify a prefix to generate temporary files.
-	(pr-interactive-p): Eliminated var.
-	(pr-save-interactive): Eliminated macro.
+	(pr-interactive-p): Eliminate var.
+	(pr-save-interactive): Eliminate macro.
 	(pr-interface, pr-ps-directory-preview)
 	(pr-ps-directory-using-ghostscript, pr-ps-directory-print)
 	(pr-ps-directory-ps-print, pr-ps-buffer-preview)
@@ -31,16 +31,16 @@
 	(pr-txt-name, pr-ps-utility, pr-ps-fast-fire, pr-txt-fast-fire)
 	(pr-update-menus, pr-interface-ps-prin, pr-interface-preview):
 	Eliminate pr-save-interactive usage.
-	(pr-menu-lock, pr-ps-utility-args, pr-set-outfilename): Eliminate
-	pr-interactive-p usage.
+	(pr-menu-lock, pr-ps-utility-args, pr-set-outfilename):
+	Eliminate pr-interactive-p usage.
 	(pr-toggle-file-duplex-menu, pr-toggle-file-tumble-menu)
 	(pr-toggle-file-landscape-menu, pr-toggle-ghostscript-menu)
 	(pr-toggle-faces-menu, pr-toggle-spool-menu, pr-toggle-duplex-menu)
 	(pr-toggle-tumble-menu, pr-toggle-landscape-menu)
 	(pr-toggle-upside-down-menu, pr-toggle-line-menu, pr-toggle-zebra-menu)
 	(pr-toggle-header-menu, pr-toggle-header-frame-menu)
-	(pr-toggle-lock-menu, pr-toggle-region-menu, pr-toggle-mode-menu): New
-	funs.
+	(pr-toggle-lock-menu, pr-toggle-region-menu, pr-toggle-mode-menu):
+	New funs.
 	(pr-ps-file): Use make-temp-file to generate a temporary file.
 
 2004-11-17  Jay Belanger  <belanger@truman.edu>
@@ -138,6 +138,21 @@
 	* textmodes/flyspell.el (flyspell-mouse-map): Pop the menu
 	when pressing rather than when releasing mouse-2.  Simplify.
 
+2004-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-setup): Don't set buffer-read-only.
+	(compilation-mode): Set it here instead.
+
+	* emacs-lisp/cl-compat.el (pair-with-newsyms): Use make-symbol.
+
+	* emacs-lisp/cl-macs.el: Use make-symbol rather than gensym.
+	(loop, cl-parse-loop-clause, defsetf): Use backquote.
+
+2004-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	Fix up a transposition-typo.  Check end-col before using it.
+
 2004-11-14  Frederic Han  <han@math.jussieu.fr>  (tiny change)
 
 	* international/iso-cvt.el (iso-tex2iso-trans-tab):
@@ -218,6 +233,12 @@
 	(math-solve-get-sign, math-solve-get-int)
 	(math-solve-system-subst): Replace undeclared variables with newly
 	declared variables.
+
+2004-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* winner.el (winner-active-region, winner-edges, winner-window-list):
+	Define at toplevel.
+	(winner-mode-map): Move init inside declaration.
 
 2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
 
