@@ -498,6 +498,14 @@ case "${canonical}" in
     esac
   ;;
 
+  ## Acorn RISCiX:
+  arm-acorn-riscix1.1* )
+    machine=riscix opsys=riscix1-1
+  ;;
+  arm-acorn-riscix1.2* | arm-acorn-riscix )
+    machine=riscix opsys=riscix1-2
+  ;;
+
   ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
   ## system to choose the right machine file, but currently the
