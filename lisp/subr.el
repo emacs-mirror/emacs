@@ -931,6 +931,15 @@ KEY is a string representing a sequence of keystrokes."
       (local-set-key key nil))
   nil)
 
+;; We put this here instead of in frame.el so that it's defined even on
+;; systems where frame.el isn't loaded.
+(defun frame-configuration-p (object)
+  "Return non-nil if OBJECT seems to be a frame configuration.
+Any list whose car is `frame-configuration' is assumed to be a frame
+configuration."
+  (and (consp object)
+       (eq (car object) 'frame-configuration)))
+
 ;; now in fns.c
 ;(defun nth (n list)
 ;  "Returns the Nth element of LIST.
