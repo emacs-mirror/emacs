@@ -680,13 +680,13 @@ This can safely be nil as long as the Calc files are on the load-path.")
 	       (while (and p2 (not (file-exists-p
 				    (expand-file-name name2 (car p2)))))
 		 (setq p2 (cdr p2)))
-	       (if p2
-		   (setq load-path (nconc load-path
-					  (list
-					   (directory-file-name
-					    (file-name-directory
-					     (expand-file-name
-					      name (car p2))))))))))
+	       (when p2
+		 (setq load-path (nconc load-path
+					(list
+					 (directory-file-name
+					  (file-name-directory
+					   (expand-file-name
+					    name (car p2))))))))))
 
 	;; If calc-autoload-directory is given, use that (and hope it works!).
 	(and calc-autoload-directory
@@ -867,10 +867,10 @@ This can safely be nil as long as the Calc files are on the load-path.")
     (mapcar (function
 	     (lambda (x)
 	       (define-key calc-dispatch-map (char-to-string (car x)) (cdr x))
-	       (if (string-match "abcdefhijklnopqrstuwxyz"
-				 (char-to-string (car x)))
-		   (define-key calc-dispatch-map
-		     (char-to-string (- (car x) ?a -1)) (cdr x)))
+	       (when (string-match "abcdefhijklnopqrstuwxyz"
+				   (char-to-string (car x)))
+		 (define-key calc-dispatch-map
+		   (char-to-string (- (car x) ?a -1)) (cdr x)))
 	       (define-key calc-dispatch-map (format "\e%c" (car x)) (cdr x))))
 	    '( ( ?a . calc-embedded-activate )
 	       ( ?b . calc-big-or-small )
@@ -961,15 +961,14 @@ report-calc-bug))))
   (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch
       (let ((keys (this-command-keys)))
-	(or (not (stringp keys))
-	    (string-match "\\`\C-u\\|\\`\e[-0-9#]\\|`[\M--\M-0-\M-9]" keys)
-	    (eq (lookup-key calc-dispatch-map keys) 'calc-same-interface)
-	    (progn
-	      (and (string-match "\\`[\C-@-\C-_]" keys)
-		   (symbolp
-		    (lookup-key calc-dispatch-map (substring keys 0 1)))
-		   (define-key calc-dispatch-map (substring keys 0 1) nil))
-	      (define-key calc-dispatch-map keys 'calc-same-interface))))
+	(unless (or (not (stringp keys))
+		    (string-match "\\`\C-u\\|\\`\e[-0-9#]\\|`[\M--\M-0-\M-9]" keys)
+		    (eq (lookup-key calc-dispatch-map keys) 'calc-same-interface))
+	  (when (and (string-match "\\`[\C-@-\C-_]" keys)
+		     (symbolp
+		      (lookup-key calc-dispatch-map (substring keys 0 1))))
+	    (define-key calc-dispatch-map (substring keys 0 1) nil))
+	  (define-key calc-dispatch-map keys 'calc-same-interface)))
     (error nil))
   (calc-do-dispatch arg))
 
@@ -1079,14 +1078,13 @@ Notations:  3.14e6     3.14 * 10^6
   (calc-refresh t)
   (calc-set-mode-line)
   ;; The calc-defs variable is a relic.  Use calc-define properties instead.
-  (if (and (boundp 'calc-defs)
-	   calc-defs)
-      (progn
-	(message "Evaluating calc-defs...")
-	(calc-need-macros)
-	(eval (cons 'progn calc-defs))
-	(setq calc-defs nil)
-	(calc-set-mode-line)))
+  (when (and (boundp 'calc-defs)
+	     calc-defs)
+    (message "Evaluating calc-defs...")
+    (calc-need-macros)
+    (eval (cons 'progn calc-defs))
+    (setq calc-defs nil)
+    (calc-set-mode-line))
   (calc-check-defines))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
@@ -1127,13 +1125,15 @@ commands given here will actually operate on the *Calculator* stack."
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (if buf
-      (progn
-	(make-local-variable 'calc-main-buffer)
-	(setq calc-main-buffer buf)))
-  (if (= (buffer-size) 0)
-      (let ((buffer-read-only nil))
-	(insert "Emacs Calculator v" calc-version " by Dave Gillespie\n")))
+  (set (make-local-variable 'font-lock-defaults)
+       '(nil t nil nil nil (font-lock-core-only . t)))
+  (when buf
+    (set (make-local-variable 'calc-main-buffer) buf))
+  (when (= (buffer-size) 0)
+    (let ((buffer-read-only nil))
+      (insert (propertize (concat "Emacs Calculator v" calc-version
+				  " by Dave Gillespie\n")
+			  'font-lock-face 'italic))))
   (run-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
@@ -1141,29 +1141,26 @@ commands given here will actually operate on the *Calculator* stack."
   (or (eq major-mode 'calc-mode)
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
-  (if calc-always-load-extensions
-      (calc-extensions))
-  (if calc-language
-      (progn
-	(calc-extensions)
-	(calc-set-language calc-language calc-language-option t))))
+  (when calc-always-load-extensions
+    (calc-extensions))
+  (when calc-language
+    (calc-extensions)
+    (calc-set-language calc-language calc-language-option t)))
 
 ;;;###autoload
 (defun calc (&optional arg full-display interactive)
   "The Emacs Calculator.  Full documentation is listed under \"calc-mode\"."
   (interactive "P")
   (if arg
-      (or (eq arg 0)
-	  (progn
-	    (calc-extensions)
-	    (if (= (prefix-numeric-value arg) -1)
-		(calc-grab-region (region-beginning) (region-end) nil)
-	      (if (= (prefix-numeric-value arg) -2)
-		  (calc-keypad)))))
-    (if (get-buffer-window "*Calc Keypad*")
-	(progn
-	  (calc-keypad)
-	  (set-buffer (window-buffer (selected-window)))))
+      (unless (eq arg 0)
+	(calc-extensions)
+	(if (= (prefix-numeric-value arg) -1)
+	    (calc-grab-region (region-beginning) (region-end) nil)
+	  (when (= (prefix-numeric-value arg) -2)
+	    (calc-keypad))))
+    (when (get-buffer-window "*Calc Keypad*")
+      (calc-keypad)
+      (set-buffer (window-buffer (selected-window))))
     (if (eq major-mode 'calc-mode)
 	(calc-quit)
       (let ((oldbuf (current-buffer)))
@@ -1199,11 +1196,10 @@ commands given here will actually operate on the *Calculator* stack."
 	     (window-point full-display)
 	     (select-window full-display))
 	(calc-check-defines)
-	(and calc-said-hello
-	     (or (interactive-p) interactive)
-	     (progn
-	       (sit-for 2)
-	       (message "")))
+	(when (and calc-said-hello
+		   (or (interactive-p) interactive))
+	  (sit-for 2)
+	  (message ""))
 	(setq calc-said-hello t)))))
 
 ;;;###autoload
@@ -1707,7 +1703,8 @@ See calc-keypad for details."
 	       calc-any-evaltos nil)
 	 (erase-buffer)
 	 (when calc-show-banner
-	   (insert "--- Emacs Calculator Mode ---\n"))
+	   (insert (propertize "--- Emacs Calculator Mode ---\n"
+			       'font-lock-face 'italic)))
 	 (while thing
 	   (goto-char (point-min))
 	   (when calc-show-banner
@@ -2977,7 +2974,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 (c (cond ((null a) "<nil>")
 		  ((eq calc-display-raw t) (format "%s" a))
 		  ((stringp a) a)
-		  ((eq a 'top-of-stack) ".")
+		  ((eq a 'top-of-stack) (propertize "." 'font-lock-face 'bold))
 		  (calc-prepared-composition
 		   calc-prepared-composition)
 		  ((and (Math-scalarp a)
@@ -2991,41 +2988,39 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (and math-comp-selected (setq calc-any-selections t))
     (setq w (cdr off)
 	  off (car off))
-    (if (> off 0)
-	(setq c (math-comp-concat (make-string off ? ) c)))
+    (when (> off 0)
+      (setq c (math-comp-concat (make-string off ? ) c)))
     (or (equal calc-left-label "")
 	(setq c (math-comp-concat (if (eq a 'top-of-stack)
 				      (make-string (length calc-left-label) ? )
 				    calc-left-label)
 				  c)))
-    (if calc-line-numbering
-	(setq c (math-comp-concat (if (eq calc-language 'big)
-				      (if math-comp-selected
-					  '(tag t "1:  ") "1:  ")
-				    "    ")
-				  c)))
-    (or (equal calc-right-label "")
-	(eq a 'top-of-stack)
-	(progn
-	  (calc-extensions)
-	  (setq c (list 'horiz c
-			(make-string (max (- w (math-comp-width c)
-					     (length calc-right-label)) 0) ? )
-			'(break -1)
-			calc-right-label))))
+    (when calc-line-numbering
+      (setq c (math-comp-concat (if (eq calc-language 'big)
+				    (when math-comp-selected
+				      '(tag t "1:  ") "1:  ")
+				  "    ")
+				c)))
+    (unless (or (equal calc-right-label "")
+		(eq a 'top-of-stack))
+      (calc-extensions)
+      (setq c (list 'horiz c
+		    (make-string (max (- w (math-comp-width c)
+					 (length calc-right-label)) 0) ? )
+		    '(break -1)
+		    calc-right-label)))
     (setq s (if (stringp c)
 		(if calc-display-raw
 		    (prin1-to-string c)
 		  c)
 	      (math-composition-to-string c w)))
-    (if calc-language-output-filter
-	(setq s (funcall calc-language-output-filter s)))
+    (when calc-language-output-filter
+      (setq s (funcall calc-language-output-filter s)))
     (if (eq calc-language 'big)
 	(setq s (concat s "\n"))
-      (if calc-line-numbering
-	  (progn
-	    (aset s 0 ?1)
-	    (aset s 1 ?:))))
+      (when calc-line-numbering
+	(aset s 0 ?1)
+	(aset s 1 ?:)))
     (setcar (cdr entry) (calc-count-lines s))
     s))
 
@@ -3038,8 +3033,8 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (calc-extensions)
 	  (math-stack-value-offset-fancy))
       (setq off (or calc-display-origin 0))
-      (if (integerp calc-line-breaking)
-	  (setq wid calc-line-breaking)))
+      (when (integerp calc-line-breaking)
+	(setq wid calc-line-breaking)))
     (cons (max (- off (length calc-left-label)) 0)
 	  (+ wid num))))
 
@@ -3154,13 +3149,13 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	      (when calc-group-digits
 		(require 'calc-ext)
 		(setq str (math-group-float str))))
-	  (if (< figs 0)
-	      (setq figs (+ calc-internal-prec figs)))
-	  (if (> figs 0)
-	      (let ((adj (- figs (math-numdigs mant))))
-		(if (< adj 0)
-		    (setq mant (math-scale-rounding mant adj)
-			  exp (- exp adj)))))
+	  (when (< figs 0)
+	    (setq figs (+ calc-internal-prec figs)))
+	  (when (> figs 0)
+	    (let ((adj (- figs (math-numdigs mant))))
+	      (when (< adj 0)
+		(setq mant (math-scale-rounding mant adj)
+		      exp (- exp adj)))))
 	  (setq str (if (integerp mant)
 			(int-to-string mant)
 		      (math-format-bignum-decimal (cdr mant))))
@@ -3400,15 +3395,11 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
   (interactive "P")
   (calc-do-embedded-activate arg cbuf))
 
-
 (defun calc-user-invocation ()
   (interactive)
-  (or (stringp calc-invocation-macro)
-      (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
+  (unless (stringp calc-invocation-macro)
+    (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
   (execute-kbd-macro calc-invocation-macro nil))
-
-
-
 
 ;;; User-programmability.
 
@@ -3416,7 +3407,6 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 (defmacro defmath (func args &rest body)   ;  [Public]
   (calc-extensions)
   (math-do-defmath func args body))
-
 
 ;;; Functions needed for Lucid Emacs support.
 
@@ -3445,10 +3435,9 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 	(calc-emacs-type-lucid (setq unread-command-event nil))
     (setq unread-command-events nil)))
 
-(if calc-always-load-extensions
-    (progn
-      (calc-extensions)
-      (calc-load-everything)))
+(when calc-always-load-extensions
+  (calc-extensions)
+  (calc-load-everything))
 
 
 (run-hooks 'calc-load-hook)
