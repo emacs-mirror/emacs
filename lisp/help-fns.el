@@ -237,14 +237,14 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defface help-argument-name '((t (:inherit font-lock-variable-name-face)))
+(defface help-argument-name '((t (:weight bold)))
   "Face to highlight function arguments in docstrings.")
 
 (defun help-do-arg-highlight (doc args)
   (while args
     (let ((arg (prog1 (car args) (setq args (cdr args)))))
       (setq doc (replace-regexp-in-string
-                 (concat "\\<\\(" arg "\\)\\(?:es\\|s\\)?\\>")
+                 (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
                  (propertize arg 'face 'help-argument-name)
                  doc t t 1))))
   doc)
