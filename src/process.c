@@ -1431,8 +1431,8 @@ create_process (process, new_argv, current_dir)
   setup_coding_system (XPROCESS (process)->decode_coding_system,
 		       proc_decode_coding_system[inchannel]);
   if (!proc_encode_coding_system[outchannel])
-      proc_encode_coding_system[outchannel]
-	= (struct coding_system *) xmalloc (sizeof (struct coding_system));
+    proc_encode_coding_system[outchannel]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (process)->encode_coding_system,
 		       proc_encode_coding_system[outchannel]);
 
