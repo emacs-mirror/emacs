@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.18) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.19) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.18) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.19) $");
 
 
 /* Types */
@@ -45,7 +45,7 @@ typedef struct LinkStruct {
   int state;                     /* Free, Prefinal, Final, Postfinal */
   union {
     MessageStruct messageStruct; /* state = Final */
-    RingStruct linkRing;         /* state e {Free, Prefinal} */
+    RingStruct linkRing;         /* state one of {Free, Prefinal} */
   } the;
 } LinkStruct;
 
@@ -496,6 +496,23 @@ static void MRGFinish(Pool pool)
   AVERT(Pool, pool);
   mrg = PoolPoolMRG(pool);
   AVERT(MRG, mrg);
+
+  /* Before destroying the groups, we isolate the rings */
+  /* in the pool structure.  The problem we are avoiding here is */
+  /* when the rings point to memory that has been unmapped by one */
+  /* groupDestroy and a subsequent groupDestroy calls MRGCheck */
+  /* which checks the rings which causes the program to fault */
+  /* because RingCheck will access unmapped memory. */
+  /* We call RingRemove on the master node for the rings, thereby */
+  /* effectively emptying them, but leaving the rest of the ring */
+  /* "dangling".  This is okay as we are about to destroy all the */
+  /* groups so the contents of the rings will dissappear soon. */
+  if(!RingIsSingle(&mrg->entryRing)) {
+    RingRemove(&mrg->entryRing);
+  }
+  if(!RingIsSingle(&mrg->freeRing)) {
+    RingRemove(&mrg->freeRing);
+  }
 
   RING_FOR(node, &mrg->groupRing, nextNode) {
     MRGGroup group = RING_ELT(MRGGroup, mrgRing, node);
