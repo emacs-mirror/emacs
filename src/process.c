@@ -1,5 +1,5 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999, 2001
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -434,17 +434,12 @@ Lisp_Object
 make_process (name)
      Lisp_Object name;
 {
-  struct Lisp_Vector *vec;
   register Lisp_Object val, tem, name1;
   register struct Lisp_Process *p;
   char suffix[10];
   register int i;
 
-  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct Lisp_Process));
-  for (i = 0; i < VECSIZE (struct Lisp_Process); i++)
-    vec->contents[i] = Qnil;
-  vec->size = VECSIZE (struct Lisp_Process);
-  p = (struct Lisp_Process *)vec;
+  p = allocate_process ();
 
   XSETINT (p->infd, -1);
   XSETINT (p->outfd, -1);
