@@ -147,12 +147,12 @@ the associated section number.")
       "-e '/^Sun Release [0-9].*[0-9]$/d'"
       "-e '/^\\n$/D'"
       ))
-    ("awk '"
-     ("BEGIN { blankline=0; anonblank=0; }"
-      "/^$/ { if (anonblank==0) next; }"
-      "{ anonblank=1; }"
-      "/^$/ { blankline++; next; }"
-      "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }"
+    ("awk '\n"
+     ("BEGIN { blankline=0; anonblank=0; }\n"
+      "/^$/ { if (anonblank==0) next; }\n"
+      "{ anonblank=1; }\n"
+      "/^$/ { blankline++; next; }\n"
+      "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }\n"
       "'"
       ))
      )
