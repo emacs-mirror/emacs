@@ -1232,97 +1232,29 @@ gamma_correct (f, color)
 }
 
 
-/* Decide if color named COLOR is valid for the display associated with
-   the selected frame; if so, return the rgb values in COLOR_DEF.
-   If ALLOC is nonzero, allocate a new colormap cell.  */
+/* Decide if color named COLOR_NAME is valid for use on frame F.  If
+   so, return the RGB values in COLOR.  If ALLOC_P is non-zero,
+   allocate the color.  Value is zero if COLOR_NAME is invalid, or
+   no color could be allocated.  */
 
 int
-x_defined_color (f, color, color_def, alloc)
-     FRAME_PTR f;
-     char *color;
-     XColor *color_def;
-     int alloc;
+x_defined_color (f, color_name, color, alloc_p)
+     struct frame *f;
+     char *color_name;
+     XColor *color;
+     int alloc_p;
 {
-  register int status;
-  Colormap screen_colormap;
-  Display *display = FRAME_X_DISPLAY (f);
+  int success_p;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Colormap cmap = FRAME_X_COLORMAP (f);
 
   BLOCK_INPUT;
-  screen_colormap = FRAME_X_COLORMAP (f);
-
-  status = XParseColor (display, screen_colormap, color, color_def);
-  if (status && alloc) 
-    {
-      /* Apply gamma correction.  */
-      gamma_correct (f, color_def);
-      
-      status = XAllocColor (display, screen_colormap, color_def);
-      if (!status)
-	{
-	  /* If we got to this point, the colormap is full, so we're 
-	     going to try and get the next closest color.
-	     The algorithm used is a least-squares matching, which is
-	     what X uses for closest color matching with StaticColor visuals.  */
-
-	  XColor *cells;
-	  int no_cells;
-	  int nearest;
-	  long nearest_delta, trial_delta;
-	  int x;
-
-	  no_cells = XDisplayCells (display, XDefaultScreen (display));
-	  cells = (XColor *) alloca (sizeof (XColor) * no_cells);
-
-	  for (x = 0; x < no_cells; x++) 
-	    cells[x].pixel = x;
-
-	  XQueryColors (display, screen_colormap, cells, no_cells);
-	  nearest = 0;
-	  /* I'm assuming CSE so I'm not going to condense this. */
-	  nearest_delta = ((((color_def->red >> 8) - (cells[0].red >> 8))
-			    * ((color_def->red >> 8) - (cells[0].red >> 8)))
-			   +
-			   (((color_def->green >> 8) - (cells[0].green >> 8))
-			    * ((color_def->green >> 8) - (cells[0].green >> 8)))
-			   +
-			   (((color_def->blue >> 8) - (cells[0].blue >> 8))
-			    * ((color_def->blue >> 8) - (cells[0].blue >> 8))));
-	  for (x = 1; x < no_cells; x++) 
-	    {
-	      trial_delta = ((((color_def->red >> 8) - (cells[x].red >> 8))
-			      * ((color_def->red >> 8) - (cells[x].red >> 8)))
-			     +
-			     (((color_def->green >> 8) - (cells[x].green >> 8))
-			      * ((color_def->green >> 8) - (cells[x].green >> 8)))
-			     +
-			     (((color_def->blue >> 8) - (cells[x].blue >> 8))
-			      * ((color_def->blue >> 8) - (cells[x].blue >> 8))));
-	      if (trial_delta < nearest_delta) 
-		{
-		  XColor temp;
-		  temp.red = cells[x].red;
-		  temp.green = cells[x].green;
-		  temp.blue = cells[x].blue;
-		  status = XAllocColor (display, screen_colormap, &temp);
-		  if (status)
-		    {
-		      nearest = x;
-		      nearest_delta = trial_delta;
-		    }
-		}
-	    }
-	  color_def->red = cells[nearest].red;
-	  color_def->green = cells[nearest].green;
-	  color_def->blue = cells[nearest].blue;
-	  status = XAllocColor (display, screen_colormap, color_def);
-	}
-    }
+  success_p = XParseColor (dpy, cmap, color_name, color);
+  if (success_p && alloc_p)
+    success_p = x_alloc_nearest_color (f, cmap, color);
   UNBLOCK_INPUT;
 
-  if (status)
-    return 1;
-  else
-    return 0;
+  return success_p;
 }
 
 
