@@ -1,3 +1,14 @@
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fmd5): If OBJECT is a buffer different from the current
+	one, set buffer to OBJECT temporarily.
+
+2003-08-27  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_iso2022): While checking a byte sequence
+	for CODING_CATEGORY_MASK_ISO_8_2, if we read one extra byte, check
+	it in the normal loop.
+
 2003-09-17  Dave Love  <fx@gnu.org>
 
 	* unexalpha.c: Don't include varargs.h.
