@@ -3029,7 +3029,7 @@ it defaults to the value of `obarray'.  */)
       string = XSTRING (name);
     }
   else
-    string = XSYMBOL (name)->name;
+    string = XSTRING (SYMBOL_NAME (name));
 
   tem = oblookup (obarray, string->data, string->size, STRING_BYTES (string));
   if (INTEGERP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
@@ -3054,7 +3054,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   obarray = check_obarray (obarray);
 
   if (SYMBOLP (name))
-    XSETSTRING (string, XSYMBOL (name)->name);
+    string = SYMBOL_NAME (name);
   else
     {
       CHECK_STRING (name);
@@ -3140,9 +3140,9 @@ oblookup (obarray, ptr, size, size_byte)
   else
     for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
-	if (STRING_BYTES (XSYMBOL (tail)->name) == size_byte
-	    && XSYMBOL (tail)->name->size == size
-	    && !bcmp (XSYMBOL (tail)->name->data, ptr, size_byte))
+	if (STRING_BYTES (XSTRING (SYMBOL_NAME (tail))) == size_byte
+	    && XSTRING (SYMBOL_NAME (tail))->size == size
+	    && !bcmp (XSTRING (SYMBOL_NAME (tail))->data, ptr, size_byte))
 	  return tail;
 	else if (XSYMBOL (tail)->next == 0)
 	  break;
