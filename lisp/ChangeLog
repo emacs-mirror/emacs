@@ -1,3 +1,11 @@
+2004-07-20  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
+	(fill-delete-newlines): Call sentence-end as function.
+	(fill-nobreak-p, canonically-space-region): Likewise.
+	(fill-nobreak-p): If this break point is at the end of the line,
+	don't consider the newline which follows as a reason to return t.
+
 2004-07-19  John Paul Wallington  <jpw@gnu.org>
 
 	* dired-aux.el (dired-file-set-difference): Don't use `caddr'.
