@@ -1,3 +1,8 @@
+1999-10-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile (bootstrap-compile): New target.  Compile Lisp
+	files with ../src/temacs.
+
 1999-10-08  Simon Marshall  <simon@gnu.org>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-try-suffix): New function.
