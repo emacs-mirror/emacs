@@ -815,6 +815,12 @@
   :code-space [0 255]
   :code-offset #x180100)
 
+(define-charset 'malayalam-glyph
+  "Glyphs for Malayalam script.  Subset of `indian-glyph'."
+  :short-name "Malayalam glyph"
+  :code-space [0 255]
+  :code-offset #x180200)
+
 ;; These would be necessary for supporting the complete set of Indian
 ;; scripts.  See also fontset.el.
 
