@@ -516,10 +516,10 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 			(cur->button_type == BUTTON_TYPE_TOGGLE
 			 ? XmN_OF_MANY : XmONE_OF_MANY));
 	      ++ac;
-	      button = XmCreateToggleButtonGadget (widget, cur->name, al, ac);
+	      button = XmCreateToggleButton (widget, cur->name, al, ac);
 	    }
 	  else
-	    button = XmCreatePushButtonGadget (widget, cur->name, al, ac);
+	    button = XmCreatePushButton (widget, cur->name, al, ac);
 
 	  xm_update_label (instance, button, cur);
 	  
@@ -541,7 +541,7 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
           /* Non-zero values don't work reliably in conjunction with
              Emacs' event loop */
           XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
-	  button = XmCreateCascadeButtonGadget (widget, cur->name, al, ac);
+	  button = XmCreateCascadeButton (widget, cur->name, al, ac);
 
 	  xm_update_label (instance, button, cur);
 
@@ -655,7 +655,7 @@ update_one_menu_entry (instance, widget, val, deep_p)
 	      /* Tell Motif to put it in the right place */
 	      XtSetArg (al [ac], XmNpositionIndex , i); ac++;
 #endif
-	      button = XmCreateCascadeButtonGadget (parent, val->name, al, ac);
+	      button = XmCreateCascadeButton (parent, val->name, al, ac);
 	      xm_update_label (instance, button, val);
 	      
 	      XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
