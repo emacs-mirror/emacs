@@ -1557,67 +1557,67 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("fl." "$,1!R(B") ;; (florin currency symbol)
- ("eur." "$,1tL(B")
+ ("fl." "$,1!R(B") ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
+ ("eur." "$,1tL(B") ;; EURO SIGN
  ;; $,1r|(BThe 25th letter of the Dutch alphabet.$,1r}(B
- ("ij" "$,1 S(B")
- ("IJ" "$,1 R(B")
+ ("ij" "$,1 S(B") ;; LATIN SMALL LIGATURE IJ   
+ ("IJ" "$,1 R(B") ;; LATIN CAPITAL LIGATURE IJ   
  ;; $,1r|(BTrema on the second letter of vowel pair.$,1r}(B  Yudit uses `:', not `"'.
- ("\"a" ",Ad(B")
- ("\"e" ",Ak(B")
- ("\"i" ",Ao(B")
- ("\"o" ",Av(B")
- ("\"u" ",A|(B")
- ("\"A" ",AD(B")
- ("\"E" ",AK(B")
- ("\"I" ",AO(B")
- ("\"O" ",AV(B")
- ("\"U" ",A\(B")
+ ("\"a" ",Ad(B") ;; LATIN SMALL LETTER A WITH DIAERESIS 
+ ("\"e" ",Ak(B") ;; LATIN SMALL LETTER E WITH DIAERESIS 
+ ("\"i" ",Ao(B") ;; LATIN SMALL LETTER I WITH DIAERESIS 
+ ("\"o" ",Av(B") ;; LATIN SMALL LETTER O WITH DIAERESIS 
+ ("\"u" ",A|(B") ;; LATIN SMALL LETTER U WITH DIAERESIS 
+ ("\"A" ",AD(B") ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
+ ("\"E" ",AK(B") ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
+ ("\"I" ",AO(B") ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
+ ("\"O" ",AV(B") ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
+ ("\"U" ",A\(B") ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
  ;; $,1r|(BAcute, marking emphasis on long vowels$,1r}(B:
- ("a'" ",Aa(B")
- ("e'" ",Ai(B")
- ("i'" ",Am(B")
- ("o'" ",As(B")
- ("u'" ",Az(B")
- ("A'" ",AA(B")
- ("E'" ",AI(B")
- ("I'" ",AM(B")
- ("O'" ",AS(B")
- ("U'" ",AZ(B")
+ ("a'" ",Aa(B") ;; LATIN SMALL LETTER A WITH ACUTE 
+ ("e'" ",Ai(B") ;; LATIN SMALL LETTER E WITH ACUTE 
+ ("i'" ",Am(B") ;; LATIN SMALL LETTER I WITH ACUTE 
+ ("o'" ",As(B") ;; LATIN SMALL LETTER O WITH ACUTE 
+ ("u'" ",Az(B") ;; LATIN SMALL LETTER U WITH ACUTE 
+ ("A'" ",AA(B") ;; LATIN CAPITAL LETTER A WITH ACUTE 
+ ("E'" ",AI(B") ;; LATIN CAPITAL LETTER E WITH ACUTE 
+ ("I'" ",AM(B") ;; LATIN CAPITAL LETTER I WITH ACUTE 
+ ("O'" ",AS(B") ;; LATIN CAPITAL LETTER O WITH ACUTE 
+ ("U'" ",AZ(B") ;; LATIN CAPITAL LETTER U WITH ACUTE 
  ;; $,1r|(BGrave, marking emphasis on short vowels$,1r}(B:
- ("a`" ",A`(B")
- ("e`" ",Ah(B")
- ("i`" ",Al(B")
- ("o`" ",Ar(B")
- ("u`" ",Ay(B")
- ("A`" ",A@(B") 
- ("E`" ",AH(B") 
- ("I`" ",AL(B") 
- ("O`" ",AR(B") 
- ("U`" ",AY(B")
+ ("a`" ",A`(B") ;; LATIN SMALL LETTER A WITH GRAVE
+ ("e`" ",Ah(B") ;; LATIN SMALL LETTER E WITH GRAVE 
+ ("i`" ",Al(B") ;; LATIN SMALL LETTER I WITH GRAVE 
+ ("o`" ",Ar(B") ;; LATIN SMALL LETTER O WITH GRAVE 
+ ("u`" ",Ay(B") ;; LATIN SMALL LETTER U WITH GRAVE 
+ ("A`" ",A@(B") ;; LATIN CAPITAL LETTER A WITH GRAVE 
+ ("E`" ",AH(B") ;; LATIN CAPITAL LETTER E WITH GRAVE 
+ ("I`" ",AL(B") ;; LATIN CAPITAL LETTER I WITH GRAVE 
+ ("O`" ",AR(B") ;; LATIN CAPITAL LETTER O WITH GRAVE 
+ ("U`" ",AY(B") ;; LATIN CAPITAL LETTER U WITH GRAVE
  ;; $,1r|(BCater for the use of many French words and use of the circumflex
  ;; in Frisian.$,1r}(B  Yudit used `;' for cedilla.
- ("c," ",Ag(B")
- ("C," ",AG(B")
- ("a^" ",Ab(B")
- ("e^" ",Aj(B")
- ("i^" ",An(B")
- ("o^" ",At(B")
- ("u^" ",A{(B")
- ("A^" ",AB(B") 
- ("E^" ",AJ(B") 
- ("I^" ",AN(B") 
- ("O^" ",AT(B") 
- ("U^" ",A[(B")
+ ("c," ",Ag(B") ;; LATIN SMALL LETTER C WITH CEDILLA 
+ ("C," ",AG(B") ;; LATIN CAPITAL LETTER C WITH CEDILLA 
+ ("a^" ",Ab(B") ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
+ ("e^" ",Aj(B") ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
+ ("i^" ",An(B") ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
+ ("o^" ",At(B") ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
+ ("u^" ",A{(B") ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
+ ("A^" ",AB(B") ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
+ ("E^" ",AJ(B") ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
+ ("I^" ",AN(B") ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
+ ("O^" ",AT(B") ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
+ ("U^" ",A[(B") ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
  ;; $,1r|(BFollow the example of the Dutch POSIX locale, using ISO-8859-9 to
  ;; cater to the many Turks in Dutch society.$,1r}(B  Perhaps German methods
  ;; should do so too.  Follow turkish-alt-postfix here.
- ("i/" "$,1 Q(B")
- ("s," "$,1 (B")
- ("g^" "$,1 ?(B")
- ("I/" "$,1 P(B")
- ("S," "$,1 ~(B")
- ("G^" "$,1 >(B")
+ ("i/" "$,1 Q(B") ;; LATIN SMALL LETTER I WITH NO DOT
+ ("s," "$,1 (B") ;; LATIN SMALL LETTER S WITH CEDILLA 
+ ("g^" "$,1 ?(B") ;; LATIN SMALL LETTER G WITH BREVE 
+ ("I/" "$,1 P(B") ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
+ ("S," "$,1 ~(B") ;; LATIN CAPITAL LETTER S WITH CEDILLA 
+ ("G^" "$,1 >(B") ;; LATIN CAPITAL LETTER G WITH BREVE 
  )
 
 ;;; latin-alt.el ends here
