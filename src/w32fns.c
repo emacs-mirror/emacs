@@ -29,22 +29,23 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 
 #include "lisp.h"
-#include "charset.h"
-#include "dispextern.h"
 #include "w32term.h"
-#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
-#include "fontset.h"
 #include "intervals.h"
+#include "dispextern.h"
+#include "keyboard.h"
 #include "blockinput.h"
 #include "epaths.h"
-#include "w32heap.h"
-#include "termhooks.h"
+#include "character.h"
+#include "charset.h"
 #include "coding.h"
 #include "ccl.h"
+#include "fontset.h"
 #include "systime.h"
+#include "termhooks.h"
+#include "w32heap.h"
 
 #include "bitmaps/gray.xbm"
 
@@ -4399,7 +4400,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       {
         tem = Fquery_fontset (font, Qnil);
         if (STRINGP (tem))
-          font = x_new_fontset (f, SDATA (tem));
+          font = x_new_fontset (f, tem);
         else
           font = x_new_font (f, SDATA (font));
       }
@@ -4784,11 +4785,13 @@ w32_load_system_font (f,fontname,size)
 
     /* Now fill in the slots of *FONTP.  */
     BLOCK_INPUT;
+    bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
+    fontp->charset = charset_unicode;
     charset = xlfd_charset_of_font (fontname);
 
   /* Cache the W32 codepage for a font.  This makes w32_encode_char
@@ -4815,7 +4818,7 @@ w32_load_system_font (f,fontname,size)
        (0:0x20..0x7F, 1:0xA0..0xFF,
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
 
@@ -4823,9 +4826,9 @@ w32_load_system_font (f,fontname,size)
        type FONT_ENCODING_NOT_DECIDED.  */
     encoding = strrchr (fontp->name, '-');
     if (encoding && strnicmp (encoding+1, "sjis", 4) == 0)
-      fontp->encoding[1] = 4;
+      fontp->encoding_type = 4;
     else
-      fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
+      fontp->encoding_type = FONT_ENCODING_NOT_DECIDED;
 
     /* The following three values are set to 0 under W32, which is
        what they get set to if XGetFontProperty fails under X.  */
@@ -5403,7 +5406,6 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   char *fontname_dash;
   int display_resy = (int) one_w32_display_info.resy;
   int display_resx = (int) one_w32_display_info.resx;
-  int bufsz;
   struct coding_system coding;
 
   if (!lpxstr) abort ();
@@ -5425,12 +5427,14 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   coding.mode |= CODING_MODE_LAST_BLOCK;
   /* We explicitely disable composition handling because selection
      data should not contain any composition sequence.  */
-  coding.composing = COMPOSITION_DISABLED;
-  bufsz = decoding_buffer_size (&coding, LF_FACESIZE);
+  coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
-  fontname = alloca(sizeof(*fontname) * bufsz);
-  decode_coding (&coding, lplogfont->lfFaceName, fontname,
-                 strlen(lplogfont->lfFaceName), bufsz - 1);
+  coding.dst_bytes = LF_FACESIZE * 2;
+  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes + 1);
+  decode_coding_c_string (&coding, lplogfont->lfFaceName,
+			  strlen(lplogfont->lfFaceName), Qnil);
+  fontname = coding.destination;
+
   *(fontname + coding.produced) = '\0';
 
   /* Replace dashes with underscores so the dashes are not
@@ -5549,21 +5553,22 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0 && name[0] != '*')
         {
-	  int bufsize;
-	  unsigned char *buf;
-
           setup_coding_system
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
 	  coding.src_multibyte = 1;
 	  coding.dst_multibyte = 1;
-	  bufsize = encoding_buffer_size (&coding, strlen (name));
-	  buf = (unsigned char *) alloca (bufsize);
+	  coding.dst_bytes = strlen (name) * 2;
+	  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
           coding.mode |= CODING_MODE_LAST_BLOCK;
-          encode_coding (&coding, name, buf, strlen (name), bufsize);
+          encode_coding_object (&coding, build_string (name), 0, 0,
+				strlen (name), coding.dst_bytes, Qnil);
 	  if (coding.produced >= LF_FACESIZE)
 	    coding.produced = LF_FACESIZE - 1;
-	  buf[coding.produced] = 0;
-	  strcpy (lplogfont->lfFaceName, buf);
+
+	  coding.destination[coding.produced] = '\0';
+
+	  strcpy (lplogfont->lfFaceName, coding.destination);
+	  xfree (coding.destination);
 	}
       else
         {
@@ -12848,7 +12853,7 @@ x_create_tip_frame (dpyinfo, parms, text)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, SDATA (tem));
+	  font = x_new_fontset (f, tem);
 	else
 	  font = x_new_font (f, SDATA (font));
       }
@@ -14390,6 +14395,7 @@ versions of Windows) characters.  */);
   find_ccl_program_func = w32_find_ccl_program;
   query_font_func = w32_query_font;
   set_frame_fontset_func = x_set_font;
+  get_font_repertory_func = x_get_font_repertory;
   check_window_system_func = check_w32;
 
   /* Images.  */
