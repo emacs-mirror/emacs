@@ -1,0 +1,1592 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/windows
+@node Windows, Frames, Buffers, Top
+@chapter Windows
+
+  This chapter describes most of the functions and variables related to
+Emacs windows.  See @ref{Display}, for information on how text is
+displayed in windows.
+
+@menu
+* Basic Windows::          Basic information on using windows.
+* Splitting Windows::      Splitting one window into two windows.
+* Deleting Windows::       Deleting a window gives its space to other windows.
+* Selecting Windows::      The selected window is the one that you edit in.
+* Cyclic Window Ordering:: Moving around the existing windows.
+* Buffers and Windows::    Each window displays the contents of a buffer.
+* Displaying Buffers::     Higher-lever functions for displaying a buffer
+                             and choosing a window for it.
+* Choosing Window::	   How to choose a window for displaying a buffer.
+* Window Point::           Each window has its own location of point.
+* Window Start::           The display-start position controls which text
+                             is on-screen in the window. 
+* Vertical Scrolling::     Moving text up and down in the window.
+* Horizontal Scrolling::   Moving text sideways on the window.
+* Size of Window::         Accessing the size of a window.
+* Resizing Windows::       Changing the size of a window.
+* Coordinates and Windows::Converting coordinates to windows.
+* Window Configurations::  Saving and restoring the state of the screen.
+@end menu
+
+@node Basic Windows
+@section Basic Concepts of Emacs Windows
+@cindex window
+@cindex selected window
+
+  A @dfn{window} is the physical area of the screen in which a buffer is
+displayed.  The term is also used to refer to a Lisp object which
+represents that screen area in Emacs Lisp.  It should be
+clear from the context which is meant.
+
+  There is always at least one window in any frame.  In each frame, at
+any time, one and only one window is designated as @dfn{selected within
+the frame}.  The frame's cursor appears in that window.  There is also
+one selected frame; and the window selected within that frame is
+@dfn{the selected window}.  The selected window's buffer is usually the
+current buffer (except when @code{set-buffer} has been used).
+@xref{Current Buffer}.
+
+  For all intents, a window only exists while it is displayed on the
+terminal.  Once removed from the display, the window is effectively
+deleted and should not be used, @emph{even though there may still be
+references to it} from other Lisp objects.  Restoring a saved window
+configuration is the only way for a window no longer on the screen to
+come back to life.  (@xref{Deleting Windows}.)
+
+  Each window has the following attributes:
+
+@itemize @bullet
+@item
+containing frame
+
+@item 
+window height
+
+@item 
+window width
+
+@item 
+window edges with respect to the screen or frame
+
+@item 
+the buffer it displays
+
+@item 
+position within the buffer at the upper left of the window
+
+@item 
+the amount of horizontal scrolling, in columns
+
+@item 
+point
+
+@item 
+the mark
+
+@item 
+how recently the window was selected
+@end itemize
+
+@cindex multiple windows
+  Users create multiple windows so they can look at several buffers at
+once.  Lisp libraries use multiple windows for a variety of reasons, but
+most often to give different views of the same information.  In Rmail,
+for example, you can move through a summary buffer in one window while
+the other window shows messages one at a time as they are reached.
+
+  The meaning of ``window'' in Emacs is similar to what it means in the
+context of general purpose window systems such as X, but not identical.
+The X Window System subdivides the screen into X windows; Emacs uses one
+or more X windows, called @dfn{frames} in Emacs terminology, and
+subdivides each of them into (nonoverlapping) Emacs windows.  When you
+use Emacs on an ordinary display terminal, Emacs subdivides the terminal
+screen into Emacs windows.
+
+@cindex terminal screen
+@cindex screen of terminal
+@cindex tiled windows
+  Most window systems support arbitrarily located overlapping windows.
+In contrast, Emacs windows are @dfn{tiled}; they never overlap, and
+together they fill the whole of the screen or frame.  Because of the way
+in which Emacs creates new windows and resizes them, you can't create
+every conceivable tiling of windows on an Emacs frame.  @xref{Splitting
+Windows}, and @ref{Size of Window}.
+
+  @xref{Display}, for information on how the contents of the
+window's buffer are displayed in the window.
+
+@defun windowp object
+  This function returns @code{t} if @var{object} is a window.
+@end defun
+
+@node Splitting Windows
+@section Splitting Windows
+@cindex splitting windows
+@cindex window splitting
+
+  The functions described here are the primitives used to split a window
+into two windows.  Two higher level functions sometimes split a window,
+but not always: @code{pop-to-buffer} and @code{display-buffer}
+(@pxref{Displaying Buffers}).
+
+  The functions described here do not accept a buffer as an argument.
+The two ``halves'' of the split window initially display the same buffer
+previously visible in the window that was split.
+
+@deffn Command split-window &optional window size horizontal
+This function splits @var{window} into two windows.  The original
+window @var{window} remains the selected window, but occupies only
+part of its former screen area.  The rest is occupied by a newly created
+window which is returned as the value of this function.
+
+  If @var{horizontal} is non-@code{nil}, then @var{window} splits into
+two side by side windows.  The original window @var{window} keeps the
+leftmost @var{size} columns, and gives the rest of the columns to the
+new window.  Otherwise, it splits into windows one above the other, and
+@var{window} keeps the upper @var{size} lines and gives the rest of the
+lines to the new window.  The original window is therefore the
+right-hand or upper of the two, and the new window is the left-hand or
+lower.
+
+  If @var{window} is omitted or @code{nil}, then the selected window is
+split.  If @var{size} is omitted or @code{nil}, then @var{window} is
+divided evenly into two parts.  (If there is an odd line, it is
+allocated to the new window.)  When @code{split-window} is called
+interactively, all its arguments are @code{nil}.
+
+  The following example starts with one window on a screen that is 50
+lines high by 80 columns wide; then the window is split.
+
+@smallexample
+@group
+(setq w (selected-window))
+     @result{} #<window 8 on windows.texi>
+(window-edges)          ; @r{Edges in order:}
+     @result{} (0 0 80 50)     ;   @r{left--top--right--bottom}
+@end group
+
+@group
+;; @r{Returns window created}
+(setq w2 (split-window w 15))   
+     @result{} #<window 28 on windows.texi>
+@end group
+@group
+(window-edges w2)
+     @result{} (0 15 80 50)    ; @r{Bottom window;}
+                        ;   @r{top is line 15}
+@end group
+@group
+(window-edges w)
+     @result{} (0 0 80 15)     ; @r{Top window}
+@end group
+@end smallexample
+
+The screen looks like this:
+
+@smallexample
+@group
+         __________ 
+        |          |  line 0  
+        |    w     |
+        |__________|
+        |          |  line 15
+        |    w2    |
+        |__________|
+                      line 50
+ column 0   column 80
+@end group
+@end smallexample
+
+Next, the top window is split horizontally:
+
+@smallexample
+@group
+(setq w3 (split-window w 35 t))
+     @result{} #<window 32 on windows.texi>
+@end group
+@group
+(window-edges w3)
+     @result{} (35 0 80 15)  ; @r{Left edge at column 35}
+@end group
+@group
+(window-edges w)
+     @result{} (0 0 35 15)   ; @r{Right edge at column 35}
+@end group
+@group
+(window-edges w2)
+     @result{} (0 15 80 50)  ; @r{Bottom window unchanged}
+@end group
+@end smallexample
+
+Now, the screen looks like this:
+
+@smallexample
+@group
+     column 35
+         __________ 
+        |   |      |  line 0  
+        | w |  w3  |
+        |___|______|
+        |          |  line 15
+        |    w2    |
+        |__________|
+                      line 50
+ column 0   column 80
+@end group
+@end smallexample
+@end deffn
+
+@deffn Command split-window-vertically size
+This function splits the selected window into two windows, one above
+the other, leaving the selected window with @var{size} lines.
+
+This function is simply an interface to @code{split-windows}.
+Here is the complete function definition for it:
+
+@smallexample
+@group
+(defun split-window-vertically (&optional arg)
+  "Split current window into two windows, one above the other."
+  (interactive "P")
+  (split-window nil (and arg (prefix-numeric-value arg))))
+@end group
+@end smallexample
+@end deffn
+
+@deffn Command split-window-horizontally size
+This function splits the selected window into two windows
+side-by-side, leaving the selected window with @var{size} columns.
+
+This function is simply an interface to @code{split-windows}.  Here is
+the complete definition for @code{split-window-horizontally} (except for
+part of the documentation string):
+
+@smallexample
+@group
+(defun split-window-horizontally (&optional arg)
+  "Split selected window into two windows, side by side..."
+  (interactive "P")
+  (split-window nil (and arg (prefix-numeric-value arg)) t))
+@end group
+@end smallexample
+@end deffn
+
+@defun one-window-p &optional no-mini all-frames
+This function returns non-@code{nil} if there is only one window.  The
+argument @var{no-mini}, if non-@code{nil}, means don't count the
+minibuffer even if it is active; otherwise, the minibuffer window is
+included, if active, in the total number of windows which is compared
+against one.
+
+The argument @var{all-frames} specifies which frames to consider.  Here
+are the possible values and their meanings:
+
+@table @asis
+@item @code{nil}
+Count the windows in the selected frame, plus the minibuffer used
+by that frame even if it lies in some other frame.
+
+@item @code{t}
+Count all windows in all existing frames.
+
+@item @code{visible}
+Count all windows in all visible frames.
+
+@item anything else
+Count precisely the windows in the selected frame, and no others.
+@end table
+@end defun
+
+@node Deleting Windows
+@section Deleting Windows
+@cindex deleting windows
+
+A window remains visible on its frame unless you @dfn{delete} it by
+calling certain functions that delete windows.  A deleted window cannot
+appear on the screen, but continues to exist as a Lisp object until
+there are no references to it.  There is no way to cancel the deletion
+of a window aside from restoring a saved window configuration
+(@pxref{Window Configurations}).  Restoring a window configuration also
+deletes any windows that aren't part of that configuration.
+
+  When you delete a window, the space it took up is given to one
+adjacent sibling.  (In Emacs version 18, the space was divided evenly
+among all the siblings.)
+
+@c Emacs 19 feature
+@defun window-live-p window
+This function returns @code{nil} if @var{window} is deleted, and
+@code{t} otherwise.
+
+@strong{Warning:} erroneous information or fatal errors may result from
+using a deleted window as if it were live.
+@end defun
+
+@deffn Command delete-window &optional window
+This function removes @var{window} from the display.  If @var{window}
+is omitted, then the selected window is deleted.  An error is signaled
+if there is only one window when @code{delete-window} is called.
+
+This function returns @code{nil}.
+
+When @code{delete-window} is called interactively, @var{window}
+defaults to the selected window.
+@end deffn
+
+@deffn Command delete-other-windows &optional window
+This function makes @var{window} the only window on its frame, by
+deleting the other windows in that frame.  If @var{window} is omitted or
+@code{nil}, then the selected window is used by default.
+
+The result is @code{nil}.
+@end deffn
+
+@deffn Command delete-windows-on buffer &optional frame
+This function deletes all windows showing @var{buffer}.  If there are
+no windows showing @var{buffer}, it does nothing.
+
+@code{delete-windows-on} operates frame by frame.  If a frame has
+several windows showing different buffers, then those showing
+@var{buffer} are removed, and the others expand to fill the space.  If
+all windows in some frame are showing @var{buffer} (including the case
+where there is only one window), then the frame reverts to having a
+single window showing another buffer chosen with @code{other-buffer}.
+@xref{The Buffer List}.
+
+The argument @var{frame} controls which frames to operate on:
+
+@itemize @bullet
+@item
+If it is @code{nil}, operate on the selected frame.
+@item
+If it is @code{t}, operate on all frames.
+@item
+If it is @code{visible}, operate on all visible frames.
+@item
+If it is a frame, operate on that frame.
+@end itemize
+
+This function always returns @code{nil}.
+@end deffn
+
+@node Selecting Windows
+@section Selecting Windows
+@cindex selecting windows
+
+  When a window is selected, the buffer in the window becomes the current
+buffer, and the cursor will appear in it.
+
+@defun selected-window
+This function returns the selected window.  This is the window in
+which the cursor appears and to which many commands apply.
+@end defun
+
+@defun select-window window
+This function makes @var{window} the selected window.  The cursor then
+appears in @var{window} (on redisplay).  The buffer being displayed in
+@var{window} is immediately designated the current buffer.
+
+The return value is @var{window}.
+
+@example
+@group
+(setq w (next-window))
+(select-window w)
+     @result{} #<window 65 on windows.texi>
+@end group
+@end example
+@end defun
+
+@cindex finding windows
+  The following functions choose one of the windows on the screen,
+offering various criteria for the choice.
+
+@defun get-lru-window &optional frame
+This function returns the window least recently ``used'' (that is,
+selected).  The selected window is always the most recently used window.
+
+The selected window can be the least recently used window if it is the
+only window.  A newly created window becomes the least recently used
+window until it is selected.  A minibuffer window is never a candidate.
+
+The argument @var{frame} controls which set of windows are
+considered.
+
+@itemize @bullet
+@item
+If it is @code{nil}, consider windows on the selected frame.
+@item
+If it is @code{t}, consider windows on all frames.
+@item
+If it is @code{visible}, consider windows on all visible frames.
+@item
+If it is a frame, consider windows on that frame.
+@end itemize
+@end defun
+
+@defun get-largest-window &optional frame
+This function returns the window with the largest area (height times
+width).  If there are no side-by-side windows, then this is the window
+with the most lines.  A minibuffer window is never a candidate.
+
+If there are two windows of the same size, then the function returns
+the window which is first in the cyclic ordering of windows (see
+following section), starting from the selected window.
+
+The argument @var{frame} controls which set of windows are
+considered.  See @code{get-lru-window}, above.
+@end defun
+
+@node Cyclic Window Ordering
+@comment  node-name,  next,  previous,  up
+@section Cyclic Ordering of Windows
+@cindex cyclic ordering of windows
+@cindex ordering of windows, cyclic
+@cindex window ordering, cyclic 
+
+  When you use the command @kbd{C-x o} (@code{other-window}) to select
+the next window, it moves through all the windows on the screen in a
+specific cyclic order.  For any given configuration of windows, this
+order never varies.  It is called the @dfn{cyclic ordering of windows}.
+
+  This ordering generally goes from top to bottom, and from left to
+right.  But it may go down first or go right first, depending on the
+order in which the windows were split.
+
+  If the first split was vertical (into windows one above each other),
+and then the subwindows were split horizontally, then the ordering is
+left to right in the top of the frame, and then left to right in the
+next lower part of the frame, and so on.  If the first split was
+horizontal, the ordering is top to bottom in the left part, and so on.
+In general, within each set of siblings at any level in the window tree,
+the order is left to right, or top to bottom.
+
+@defun next-window &optional window minibuf all-frames
+@cindex minibuffer window
+This function returns the window following @var{window} in the cyclic
+ordering of windows.  This is the window which @kbd{C-x o} would select
+if done when @var{window} is selected.  If @var{window} is the only
+window visible, then this function returns @var{window}.  If omitted,
+@var{window} defaults to the selected window.
+
+The value of the argument @var{minibuf} determines whether the
+minibuffer is included in the window order.  Normally, when
+@var{minibuf} is @code{nil}, the minibuffer is included if it is
+currently active; this is the behavior of @kbd{C-x o}.  (The minibuffer
+window is active while the minibuffer is in use.  @xref{Minibuffers}.)
+
+If @var{minibuf} is @code{t}, then the cyclic ordering includes the
+minibuffer window even if it is not active.
+
+If @var{minibuf} is neither @code{t} nor @code{nil}, then the minibuffer
+window is not included even if it is active.
+
+The argument @var{all-frames} specifies which frames to consider.  Here
+are the possible values and their meanings:
+
+@table @asis
+@item @code{nil}
+Consider all the windows in @var{window}'s frame, plus the minibuffer
+used by that frame even if it lies in some other frame.
+
+@item @code{t}
+Consider all windows in all existing frames.
+
+@item @code{visible}
+Consider all windows in all visible frames.  (To get useful results, you
+must ensure @var{window} is in a visible frame.)
+
+@item anything else
+Consider precisely the windows in @var{window}'s frame, and no others.
+@end table
+
+This example assumes there are two windows, both displaying the 
+buffer @samp{windows.texi}:
+
+@example
+@group
+(selected-window)
+     @result{} #<window 56 on windows.texi>
+@end group
+@group
+(next-window (selected-window))
+     @result{} #<window 52 on windows.texi>
+@end group
+@group
+(next-window (next-window (selected-window)))
+     @result{} #<window 56 on windows.texi>
+@end group
+@end example
+@end defun
+
+@defun previous-window &optional window minibuf all-frames
+This function returns the window preceding @var{window} in the cyclic
+ordering of windows.  The other arguments specify which windows to
+include in the cycle, as in @code{next-window}.
+@end defun
+
+@deffn Command other-window count
+This function selects the @var{count}th following window in the cyclic
+order.  If count is negative, then it selects the @minus{}@var{count}th
+preceding window.  It returns @code{nil}.
+
+In an interactive call, @var{count} is the numeric prefix argument.
+@end deffn
+
+@c Emacs 19 feature
+@defun walk-windows proc &optional minibuf all-frames
+This function cycles through all windows, calling @code{proc}
+once for each window with the window as its sole argument.
+
+The optional arguments @var{minibuf} and @var{all-frames} specify the
+set of windows to include in the scan.  See @code{next-window}, above,
+for details.
+@end defun
+
+@node Buffers and Windows
+@section Buffers and Windows
+@cindex examining windows
+@cindex windows, controlling precisely
+@cindex buffers, controlled in windows
+
+  This section describes low-level functions to examine windows or to
+display buffers in windows in a precisely controlled fashion.
+@iftex
+See the following section for
+@end iftex
+@ifinfo
+@xref{Displaying Buffers}, for
+@end ifinfo
+related functions that find a window to use and specify a buffer for it.
+The functions described there are easier to use than these, but they
+employ heuristics in choosing or creating a window; use these functions
+when you need complete control.
+
+@defun set-window-buffer window buffer-or-name
+This function makes @var{window} display @var{buffer-or-name} as its
+contents.  It returns @code{nil}.
+
+@example
+@group
+(set-window-buffer (selected-window) "foo")
+     @result{} nil
+@end group
+@end example
+@end defun
+
+@defun window-buffer &optional window
+This function returns the buffer that @var{window} is displaying.  If
+@var{window} is omitted, this function returns the buffer for the
+selected window.
+
+@example
+@group
+(window-buffer)
+     @result{} #<buffer windows.texi>
+@end group
+@end example
+@end defun
+
+@defun get-buffer-window buffer-or-name &optional all-frames
+This function returns a window currently displaying
+@var{buffer-or-name}, or @code{nil} if there is none.  If there are
+several such windows, then the function returns the first one in the
+cyclic ordering of windows, starting from the selected window.
+@xref{Cyclic Window Ordering}.
+
+The argument @var{all-frames} controls which windows to consider.
+
+@itemize @bullet
+@item
+If it is @code{nil}, consider windows on the selected frame.
+@item
+If it is @code{t}, consider windows on all frames.
+@item
+If it is @code{visible}, consider windows on all visible frames.
+@item
+If it is a frame, consider windows on that frame.
+@end itemize
+@end defun
+
+@deffn Command replace-buffer-in-windows buffer
+This function replaces @var{buffer} with some other buffer in all
+windows displaying it.  The other buffer used is chosen with
+@code{other-buffer}.  In the usual applications of this function, you
+don't care which other buffer is used; you just want to make sure that
+@var{buffer} is no longer displayed.
+
+This function returns @code{nil}.
+@end deffn
+
+@node Displaying Buffers
+@section Displaying Buffers in Windows
+@cindex switching to a buffer
+@cindex displaying a buffer
+
+  In this section we describe convenient functions that choose a window
+automatically and use it to display a specified buffer.  These functions
+can also split an existing window in certain circumstances.  We also
+describe variables that parameterize the heuristics used for choosing a
+window.
+@iftex
+See the preceding section for
+@end iftex
+@ifinfo
+@xref{Buffers and Windows}, for
+@end ifinfo
+low-level functions that give you more precise control.
+
+  Do not use the functions in this section in order to make a buffer
+current so that a Lisp program can access or modify it; they are too
+drastic for that purpose, since they change the display of buffers in
+windows, which is gratuitous and will surprise the user.  Instead, use
+@code{set-buffer} (@pxref{Current Buffer}) and @code{save-excursion}
+(@pxref{Excursions}), which designate buffers as current for programmed
+access without affecting the display of buffers in windows.
+
+@deffn Command switch-to-buffer buffer-or-name &optional norecord
+This function makes @var{buffer-or-name} the current buffer, and also
+displays the buffer in the selected window.  This means that a human can
+see the buffer and subsequent keyboard commands will apply to it.
+Contrast this with @code{set-buffer}, which makes @var{buffer-or-name}
+the current buffer but does not display it in the selected window.
+@xref{Current Buffer}.
+
+If @var{buffer-or-name} does not identify an existing buffer, then
+a new buffer by that name is created.
+
+Normally the specified buffer is put at the front of the buffer list.
+This affects the operation of @code{other-buffer}.  However, if
+@var{norecord} is non-@code{nil}, this is not done.  @xref{The Buffer
+List}.
+
+The @code{switch-to-buffer} function is often used interactively, as
+the binding of @kbd{C-x b}.  It is also used frequently in programs.  It
+always returns @code{nil}.
+@end deffn
+
+@deffn Command switch-to-buffer-other-window buffer-or-name
+This function makes @var{buffer-or-name} the current buffer and
+displays it in a window not currently selected.  It then selects that
+window.  The handling of the buffer is the same as in
+@code{switch-to-buffer}.
+
+The previously selected window is absolutely never used to display the
+buffer.  If it is the only window, then it is split to make a distinct
+window for this purpose.  If the selected window is already displaying
+the buffer, then it continues to do so, but another window is
+nonetheless found to display it in as well.
+@end deffn
+
+@defun pop-to-buffer buffer-or-name &optional other-window
+This function makes @var{buffer-or-name} the current buffer and
+switches to it in some window, preferably not the window previously
+selected.  The ``popped-to'' window becomes the selected window within
+its frame.
+
+If the variable @code{pop-up-frames} is non-@code{nil},
+@code{pop-to-buffer} looks for a window in any visible frame already
+displaying the buffer; if there is one, it returns that window and makes
+it be selected within its frame.  If there is none, it creates a new
+frame and displays the buffer in it.
+
+If @code{pop-up-frames} is @code{nil}, then @code{pop-to-buffer}
+operates entirely within the selected frame.  (If the selected frame has
+just a minibuffer, @code{pop-to-buffer} operates within the most
+recently selected frame that was not just a minibuffer.)
+
+If the variable @code{pop-up-windows} is non-@code{nil}, windows may
+be split to create a new window that is different from the original
+window.  For details, see @ref{Choosing Window}.
+
+If @var{other-window} is non-@code{nil}, @code{pop-to-buffer} finds or
+creates another window even if @var{buffer-or-name} is already visible
+in the selected window.  Thus @var{buffer-or-name} could end up
+displayed in two windows.  On the other hand, if @var{buffer-or-name} is
+already displayed in the selected window and @var{other-window} is
+@code{nil}, then the selected window is considered sufficient display
+for @var{buffer-or-name}, so that nothing needs to be done.
+
+If @var{buffer-or-name} is a string that does not name an existing
+buffer, a buffer by that name is created.
+
+An example use of this function is found at the end of @ref{Filter
+Functions}.
+@end defun
+
+@node Choosing Window
+@section Choosing a Window for Display
+
+  This section describes the basic facility which chooses a window to
+display a buffer in---@code{display-buffer}.  All the higher-level
+functions and commands use this subroutine.  Here we describe how to use
+@code{display-buffer} and how to customize it.
+
+@deffn Command display-buffer buffer-or-name &optional not-this-window
+This command makes @var{buffer-or-name} appear in some window, like
+@code{pop-to-buffer}, but it does not select that window and does not
+make the buffer current.  The identity of the selected window is
+unaltered by this function.
+
+If @var{not-this-window} is non-@code{nil}, it means to display the
+specified buffer in a window other than the selected one, even if it is
+already on display in the selected window.  This can cause the buffer to
+appear in two windows at once.  Otherwise, if @var{buffer-or-name} is
+already being displayed in any window, that is good enough, so this
+function does nothing.
+
+@code{display-buffer} returns the window chosen to display
+@var{buffer-or-name}.
+
+Precisely how @code{display-buffer} finds or creates a window depends on
+the variables described below.
+@end deffn
+
+@defopt pop-up-windows
+This variable controls whether @code{display-buffer} makes new windows.
+If it is non-@code{nil} and there is only one window, then that window
+is split.  If it is @code{nil}, then @code{display-buffer} does not
+split the single window, but uses it whole.
+@end defopt
+
+@defopt split-height-threshold
+This variable determines when @code{display-buffer} may split a window,
+if there are multiple windows.  @code{display-buffer} always splits the
+largest window if it has at least this many lines.  If the largest
+window is not this tall, it is split only if it is the sole window and
+@code{pop-up-windows} is non-@code{nil}.
+@end defopt
+
+@c Emacs 19 feature
+@defopt pop-up-frames
+This variable controls whether @code{display-buffer} makes new frames.
+If it is non-@code{nil}, @code{display-buffer} looks for an existing
+window already displaying the desired buffer, on any visible frame.  If
+it finds one, it returns that window.  Otherwise it makes a new frame.
+The variables @code{pop-up-windows} and @code{split-height-threshold} do
+not matter if @code{pop-up-frames} is non-@code{nil}.
+
+If @code{pop-up-frames} is @code{nil}, then @code{display-buffer} either
+splits a window or reuses one.
+
+@xref{Frames}, for more information.
+@end defopt
+
+@c Emacs 19 feature
+@defvar pop-up-frame-function
+This variable specifies how to make a new frame if @code{pop-up-frames}
+is non-@code{nil}.
+
+Its value should be a function of no arguments.  When
+@code{display-buffer} makes a new frame, it does so by calling that
+function, which should return a frame.  The default value of the
+variable is a function which creates a frame using parameters from
+@code{pop-up-frame-alist}.
+@end defvar
+
+@defvar pop-up-frame-alist
+This variable holds an alist specifying frame parameters used when
+@code{display-buffer} makes a new frame.  @xref{Frame Parameters}, for
+more information about frame parameters.
+@end defvar
+
+@c Emacs 19 feature
+@defvar display-buffer-function
+This variable is the most flexible way to customize the behavior of
+@code{display-buffer}.  If it is non-@code{nil}, it should be a function
+that @code{display-buffer} calls to do the work.  The function should
+accept two arguments, the same two arguments that @code{display-buffer}
+received.  It should choose or create a window, display the specified
+buffer, and then return the window.
+
+This hook takes precedence over all the other options and hooks
+described above.
+@end defvar
+
+@c Emacs 19 feature
+@cindex dedicated window
+A window can be marked as ``dedicated'' to its buffer.  Then
+@code{display-buffer} does not try to use that window.
+
+@defun window-dedicated-p window
+This function returns @code{t} if @var{window} is marked as dedicated;
+otherwise @code{nil}.
+@end defun
+
+@defun set-window-dedicated-p window flag
+This function marks @var{window} as dedicated if @var{flag} is
+non-@code{nil}, and nondedicated otherwise.
+@end defun
+
+@node Window Point
+@section Windows and Point
+@cindex window position
+@cindex window point
+@cindex position in window
+@cindex point in window
+
+  Each window has its own value of point, independent of the value of
+point in other windows displaying the same buffer.  This makes it useful
+to have multiple windows showing one buffer.
+
+@itemize @bullet
+@item
+The window point is established when a window is first created; it is
+initialized from the buffer's point, or from the window point of another
+window opened on the buffer if such a window exists.
+
+@item
+Selecting a window sets the value of point in its buffer to the window's
+value of point.  Conversely, deselecting a window sets the window's
+value of point from that of the buffer.  Thus, when you switch between
+windows that display a given buffer, the point value for the selected
+window is in effect in the buffer, while the point values for the other
+windows are stored in those windows.
+
+@item
+As long as the selected window displays the current buffer, the window's
+point and the buffer's point always move together; they remain equal.
+
+@item
+@xref{Positions}, for more details on buffer positions.
+@end itemize
+
+  As far as the user is concerned, point is where the cursor is, and
+when the user switches to another buffer, the cursor jumps to the
+position of point in that buffer.
+
+@defun window-point window
+This function returns the current position of point in @var{window}.
+For a nonselected window, this is the value point would have (in that
+window's buffer) if that window were selected.
+
+When @var{window} is the selected window and its buffer is also the
+current buffer, the value returned is the same as point in that buffer.
+
+Strictly speaking, it would be more correct to return the
+``top-level'' value of point, outside of any @code{save-excursion}
+forms.  But that value is hard to find.
+@end defun
+
+@defun set-window-point window position
+This function positions point in @var{window} at position
+@var{position} in @var{window}'s buffer.
+@end defun
+
+@node Window Start
+@section The Window Start Position
+
+  Each window contains a marker used to keep track of a buffer position
+which specifies where in the buffer display should start.  This position
+is called the @dfn{display-start} position of the window (or just the
+@dfn{start}).  The character after this position is the one that appears
+at the upper left corner of the window.  It is usually, but not
+inevitably, at the beginning of a text line.
+
+@defun window-start &optional window
+@cindex window top line
+This function returns the display-start position of window
+@var{window}.  If @var{window} is @code{nil}, the selected window is
+used.  For example, 
+
+@example
+@group
+(window-start)
+     @result{} 7058
+@end group
+@end example
+
+When you create a window, or display a different buffer in it, the the
+display-start position is set to a display-start position recently used
+for the same buffer, or 1 if the buffer doesn't have any.
+
+For a realistic example, see the description of @code{count-lines} in
+@ref{Text Lines}.
+@end defun
+
+@defun window-end &optional window
+This function returns the position of the end of the display in window
+@var{window}.  If @var{window} is @code{nil}, the selected window is
+used.
+@end defun
+
+@defun set-window-start window position &optional noforce
+This function sets the display-start position of @var{window} to
+@var{position} in @var{window}'s buffer.
+
+The display routines insist that the position of point be visible when a
+buffer is displayed.  Normally, they change the display-start position
+(that is, scroll the window) whenever necessary to make point visible.
+However, if you specify the start position with this function using
+@code{nil} for @var{noforce}, it means you want display to start at
+@var{position} even if that would put the location of point off the
+screen.  If this does place point off screen, the display routines move
+point to the left margin on the middle line in the window.
+
+For example, if point @w{is 1} and you set the start of the window @w{to
+2}, then point would be ``above'' the top of the window.  The display
+routines will automatically move point if it is still 1 when redisplay
+occurs.  Here is an example:
+
+@example
+@group
+;; @r{Here is what @samp{foo} looks like before executing}
+;;   @r{the @code{set-window-start} expression.}
+@end group
+
+@group
+---------- Buffer: foo ----------
+@point{}This is the contents of buffer foo.
+2
+3
+4
+5
+6
+---------- Buffer: foo ----------
+@end group
+
+@group
+(set-window-start
+ (selected-window)
+ (1+ (window-start)))
+@result{} 2
+@end group
+
+@group
+;; @r{Here is what @samp{foo} looks like after executing}
+;;   @r{the @code{set-window-start} expression.}
+---------- Buffer: foo ----------
+his is the contents of buffer foo.
+2
+3
+@point{}4
+5
+6
+---------- Buffer: foo ----------
+@end group
+@end example
+
+If @var{noforce} is non-@code{nil}, and @var{position} would place point
+off screen at the next redisplay, then redisplay computes a new window-start
+position that works well with point, and thus @var{position} is not used.
+
+This function returns @var{position}.
+@end defun
+
+@defun pos-visible-in-window-p &optional position window
+This function returns @code{t} if @var{position} is within the range
+of text currently visible on the screen in @var{window}.  It returns
+@code{nil} if @var{position} is scrolled vertically out of view.  The
+argument @var{position} defaults to the current position of point;
+@var{window}, to the selected window.  Here is an example:
+
+@example
+@group
+(or (pos-visible-in-window-p
+     (point) (selected-window))
+    (recenter 0))
+@end group
+@end example
+
+The @code{pos-visible-in-window-p} function considers only vertical
+scrolling.  If @var{position} is out of view only because @var{window}
+has been scrolled horizontally, @code{pos-visible-in-window-p} returns
+@code{t}.  @xref{Horizontal Scrolling}.
+@end defun
+
+@node Vertical Scrolling
+@section Vertical Scrolling
+@cindex vertical scrolling
+@cindex scrolling vertically
+
+  Vertical scrolling means moving the text up or down in a window.  It
+works by changing the value of the window's display-start location.  It
+may also change the value of @code{window-point} to keep it on the
+screen.
+
+  In the commands @code{scroll-up} and @code{scroll-down}, the directions
+``up'' and ``down'' refer to the motion of the text in the buffer at which
+you are looking through the window.  Imagine that the text is
+written on a long roll of paper and that the scrolling commands move the
+paper up and down.  Thus, if you are looking at text in the middle of a
+buffer and repeatedly call @code{scroll-down}, you will eventually see
+the beginning of the buffer.
+
+  Some people have urged that the opposite convention be used: they
+imagine that the window moves over text that remains in place.  Then
+``down'' commands would take you to the end of the buffer.  This view is
+more consistent with the actual relationship between windows and the
+text in the buffer, but it is less like what the user sees.  The
+position of a window on the terminal does not move, and short scrolling
+commands clearly move the text up or down on the screen.  We have chosen
+names that fit the user's point of view.
+
+  The scrolling functions (aside from @code{scroll-other-window}) have
+unpredictable results if the current buffer is different from the buffer
+that is displayed in the selected window.  @xref{Current Buffer}.
+
+@deffn Command scroll-up &optional count
+This function scrolls the text in the selected window upward
+@var{count} lines.  If @var{count} is negative, scrolling is actually
+downward.
+
+If @var{count} is @code{nil} (or omitted), then the length of scroll
+is @code{next-screen-context-lines} lines less than the usable height of
+the window (not counting its mode line).
+
+@code{scroll-up} returns @code{nil}.
+@end deffn
+
+@deffn Command scroll-down &optional count
+This function scrolls the text in the selected window downward
+@var{count} lines.  If @var{count} is negative, scrolling is actually
+upward.
+
+If @var{count} is omitted or @code{nil}, then the length of the scroll
+is @code{next-screen-context-lines} lines less than the usable height of
+the window.
+
+@code{scroll-down} returns @code{nil}.
+@end deffn
+
+@deffn Command scroll-other-window &optional count
+This function scrolls the text in another window upward @var{count}
+lines.  Negative values of @var{count}, or @code{nil}, are handled
+as in @code{scroll-up}.
+
+The window that is scrolled is normally the one following the selected
+window in the cyclic ordering of windows---the window that
+@code{next-window} would return.  @xref{Cyclic Window Ordering}.
+
+You can specify a buffer to scroll with the variable
+@code{other-window-scroll-buffer}.  When the selected window is the
+minibuffer, the next window is normally the one at the top left corner.
+You can specify a different window to scroll with the variable
+@code{minibuffer-scroll-window}.  This variable has no effect when any
+other window is selected.  @xref{Minibuffer Misc}.
+
+When the minibuffer is active, it is the next window if the selected
+window is the one at the bottom right corner.  In this case,
+@code{scroll-other-window} attempts to scroll the minibuffer.  If the
+minibuffer contains just one line, it has nowhere to scroll to, so the
+line reappears after the echo area momentarily displays the message
+``Beginning of buffer''.
+@end deffn
+
+@c Emacs 19 feature
+@defvar other-window-scroll-buffer
+If this variable is non-@code{nil}, it tells @code{scroll-other-window}
+which buffer to scroll.
+@end defvar
+
+@defopt scroll-step
+This variable controls how scrolling is done automatically when point
+moves off the screen.  If the value is zero, then redisplay scrolls the
+text to center point vertically in the window.  If the value is a
+positive integer @var{n}, then redisplay brings point back on screen by
+scrolling @var{n} lines in either direction, if possible; otherwise, it
+centers point if possible.  The default value is zero.
+@end defopt
+
+@defopt next-screen-context-lines
+The value of this variable is the number of lines of continuity to
+retain when scrolling by full screens.  For example, @code{scroll-up}
+with an argument of @code{nil} scrolls so that this many lines at the
+bottom of the window appear instead at the top.  The default value is
+@code{2}.
+@end defopt
+
+@deffn Command recenter &optional count
+@cindex centering point
+This function scrolls the selected window to put the text where point
+is located at a specified vertical position within the window.
+
+If @var{count} is a nonnegative number, it puts the line containing
+point @var{count} lines down from the top of the window.  If @var{count}
+is a negative number, then it counts upward from the bottom of the
+window, so that @minus{}1 stands for the last usable line in the window.
+If @var{count} is a non-@code{nil} list, then it stands for the line in
+the middle of the window.
+
+If @var{count} is @code{nil}, @code{recenter} puts the line containing
+point in the middle of the window, then clears and redisplays the entire
+selected frame.
+
+When @code{recenter} is called interactively, @var{count} is the raw
+prefix argument.  Thus, typing @kbd{C-u} as the prefix sets the
+@var{count} to a non-@code{nil} list, while typing @kbd{C-u 4} sets
+@var{count} to 4, which positions the current line four lines from the
+top.
+
+Typing @kbd{C-u 0 C-l} positions the current line at the top of the
+window.  This action is so handy that some people bind the command to a
+function key.  For example,
+
+@example
+@group
+(defun line-to-top-of-window ()
+  "Scroll current line to top of window.
+Replaces three keystroke sequence C-u 0 C-l."
+  (interactive) 
+  (recenter 0))
+
+(global-set-key "\C-cl" 'line-to-top-of-window)  
+@end group
+@end example
+@end deffn
+
+@node Horizontal Scrolling
+@section Horizontal Scrolling
+@cindex horizontal scrolling
+
+  Because we read English first from top to bottom and second from left
+to right, horizontal scrolling is not like vertical scrolling.  Vertical
+scrolling involves selection of a contiguous portion of text to display.
+Horizontal scrolling causes part of each line to go off screen.  The
+amount of horizontal scrolling is therefore specified as a number of
+columns rather than as a position in the buffer.  It has nothing to do
+with the display-start position returned by @code{window-start}.
+
+  Usually, no horizontal scrolling is in effect; then the leftmost
+column is at the left edge of the window.  In this state, scrolling to
+the right is meaningless, since there is no data to the left of the
+screen to be revealed by it; so this is not allowed.  Scrolling to the
+left is allowed; it scrolls the first columns of text off the edge of
+the window and can reveal additional columns on the right that were
+truncated before.  Once a window has a nonzero amount of leftward
+horizontal scrolling, you can scroll it back to the right, but only so
+far as to reduce the net horizontal scroll to zero.  There is no limit
+to how far left you can scroll, but eventually all the text will
+disappear off the left edge.
+
+@deffn Command scroll-left count
+This function scrolls the selected window @var{count} columns to the
+left (or to the right if @var{count} is negative).  The return value is
+the total amount of leftward horizontal scrolling in effect after the
+change---just like the value returned by @code{window-hscroll}.
+@end deffn
+
+@deffn Command scroll-right count
+This function scrolls the selected window @var{count} columns to the
+right (or to the left if @var{count} is negative).  The return value is
+the total amount of leftward horizontal scrolling in effect after the
+change---just like the value returned by @code{window-hscroll}.
+
+Once you scroll a window as far right as it can go, back to its normal
+position where the total leftward scrolling is zero, attempts to scroll
+any farther right have no effect.
+@end deffn
+
+@defun window-hscroll &optional window
+This function returns the total leftward horizontal scrolling of
+@var{window}---the number of columns by which the text in @var{window}
+is scrolled left past the left margin.
+
+The value is never negative.  It is zero when no horizontal scrolling
+has been done in @var{window} (which is usually the case).
+
+If @var{window} is @code{nil}, the selected window is used.
+
+@example
+@group
+(window-hscroll)
+     @result{} 0
+@end group
+@group
+(scroll-left 5)
+     @result{} 5
+@end group
+@group
+(window-hscroll)
+     @result{} 5
+@end group
+@end example
+@end defun
+
+@defun set-window-hscroll window columns
+This function sets the number of columns from the left margin that
+@var{window} is scrolled to the value of @var{columns}.  The argument
+@var{columns} should be zero or positive; if not, it is taken as zero.
+
+The value returned is @var{columns}.
+
+@example
+@group
+(set-window-hscroll (selected-window) 10)
+     @result{} 10
+@end group
+@end example
+@end defun
+
+  Here is how you can determine whether a given position @var{position}
+is off the screen due to horizontal scrolling:
+
+@example
+@group
+(save-excursion 
+  (goto-char @var{position})
+  (and 
+   (>= (- (current-column) (window-hscroll @var{window})) 0)
+   (< (- (current-column) (window-hscroll @var{window}))
+      (window-width @var{window}))))
+@end group
+@end example
+
+@node Size of Window
+@section The Size of a Window
+@cindex window size
+@cindex size of window
+
+  An Emacs window is rectangular, and its size information consists of
+the height (the number of lines) and the width (the number of character
+positions in each line).  The mode line is included in the height.  But
+the width does not count the scroll bar or the column of @samp{|}
+characters separates side-by-side windows.
+
+  The following three functions return size information about a window:
+
+@defun window-height &optional window
+This function returns the number of lines in @var{window}, including
+its mode line.  If @var{window} fills its entire frame, this is one less
+than the value of @code{frame-height} on that frame (since the last line
+is always reserved for the minibuffer).
+
+If @var{window} is @code{nil}, the function uses the selected window.
+
+@example
+@group
+(window-height)
+     @result{} 23
+@end group
+@group
+(split-window-vertically)
+     @result{} #<window 4 on windows.texi>
+@end group
+@group
+(window-height)
+     @result{} 11
+@end group
+@end example
+@end defun
+
+@defun window-width &optional window
+This function returns the number of columns in @var{window}.  If
+@var{window} fills its entire frame, this is the same as the value of
+@code{frame-width} on that frame.  The width does not include the
+window's scroll bar or the column of @samp{|} characters that separates
+side-by-side windows.
+
+If @var{window} is @code{nil}, the function uses the selected window.
+
+@example
+@group
+(window-width)
+     @result{} 80
+@end group
+@end example
+@end defun
+
+@defun window-edges &optional window
+This function returns a list of the edge coordinates of @var{window}.
+If @var{window} is @code{nil}, the selected window is used.
+
+The order of the list is @code{(@var{left} @var{top} @var{right}
+@var{bottom})}, all elements relative to 0, 0 at the top left corner of
+the frame.  The element @var{right} of the value is one more than the
+rightmost column used by @var{window}, and @var{bottom} is one more than
+the bottommost row used by @var{window} and its mode-line.
+
+When you have side-by-side windows, the right edge value for a window
+with a neighbor on the right includes the width of the separator between
+the window and that neighbor.  This separator may be a column of
+@samp{|} characters or it may be a scroll bar.  Since the width of the
+window does not include this separator, the width does not equal the
+difference between the right and left edges in this case.
+
+Here is the result obtained on a typical 24-line terminal with just one
+window:
+
+@example
+@group
+(window-edges (selected-window))
+     @result{} (0 0 80 23)
+@end group
+@end example
+
+If @var{window} is at the upper left corner of its frame, @var{right}
+and @var{bottom} are the same as the values returned by
+@code{(window-width)} and @code{(window-height)} respectively, and
+@var{top} and @var{bottom} are zero.  For example, the edges of the
+following window are @w{@samp{0 0 5 8}}.  Assuming that the frame has
+more than 8 columns, the last column of the window (column 7) holds a
+border rather than text.  The last row (row 4) holds the mode line,
+shown here with @samp{xxxxxxxxx}.
+
+@example
+@group
+           0    
+           _______
+        0 |       | 
+          |       |   
+          |       | 
+          |       | 
+          xxxxxxxxx  4
+
+                  7  
+@end group
+@end example
+
+When there are side-by-side windows, any window not at the right edge of
+its frame has a separator in its last column or columns.  The separator
+counts as one or two columns in the width of the window.  A window never
+includes a separator on its left, since that belongs to the window to
+the left.
+
+In the following example, let's suppose that the frame is 7
+columns wide.  Then the edges of the left window are @w{@samp{0 0 4 3}}
+and the edges of the right window are @w{@samp{4 0 7 3}}.
+
+@example
+@group
+           ___ ___
+          |   |   |    
+          |   |   |    
+          xxxxxxxxx 
+
+           0  34  7
+@end group
+@end example
+@end defun
+
+@node Resizing Windows
+@section Changing the Size of a Window
+@cindex window resizing
+@cindex changing window size
+@cindex window size, changing
+
+  The window size functions fall into two classes: high-level commands
+that change the size of windows and low-level functions that access
+window size.  Emacs does not permit overlapping windows or gaps between
+windows, so resizing one window affects other windows.
+
+@deffn Command enlarge-window size &optional horizontal
+This function makes the selected window @var{size} lines bigger,
+stealing lines from neighboring windows.  It takes the lines from one
+window at a time until that window is used up, then takes from another.
+If a window from which lines are stolen shrinks below
+@code{window-min-height} lines, that window disappears.
+
+If @var{horizontal} is non-@code{nil}, this function makes
+@var{window} wider by @var{size} columns, stealing columns instead of
+lines.  If a window from which columns are stolen shrinks below
+@code{window-min-width} columns, that window disappears.
+
+If the window's frame is smaller than @var{size} lines (or columns),
+then the function makes the window occupy the entire height (or width)
+of the frame.
+
+If @var{size} is negative, this function shrinks the window by
+@minus{}@var{size} lines or columns.  If that makes the window smaller
+than the minimum size (@code{window-min-height} and
+@code{window-min-width}), @code{enlarge-window} deletes the window.
+
+@code{enlarge-window} returns @code{nil}.  
+@end deffn
+
+@deffn Command enlarge-window-horizontally columns
+This function makes the selected window @var{columns} wider.
+It could be defined as follows:
+
+@example
+@group
+(defun enlarge-window-horizontally (columns)
+  (enlarge-window columns t))
+@end group
+@end example
+@end deffn
+
+@deffn Command shrink-window size &optional horizontal
+This function is like @code{enlarge-window} but negates the argument
+@var{size}, making the selected window smaller by giving lines (or
+columns) to the other windows.  If the window shrinks below
+@code{window-min-height} or @code{window-min-width}, then it disappears.
+
+If @var{size} is negative, the window is enlarged by @minus{}@var{size}
+lines or columns.
+@end deffn
+
+@deffn Command shrink-window-horizontally columns
+This function makes the selected window @var{columns} narrower.
+It could be defined as follows:
+
+@example
+@group
+(defun shrink-window-horizontally (columns)
+  (shrink-window columns t))
+@end group
+@end example
+@end deffn
+
+@cindex minimum window size
+  The following two variables constrain the window size changing
+functions to a minimum height and width.
+
+@defopt window-min-height
+The value of this variable determines how short a window may become
+before it is automatically deleted.  Making a window smaller than
+@code{window-min-height} automatically deletes it, and no window may be
+created shorter than this.  The absolute minimum height is two (allowing
+one line for the mode line, and one line for the buffer display).
+Actions which change window sizes reset this variable to two if it is
+less than two.  The default value is 4.
+@end defopt
+
+@defopt window-min-width
+The value of this variable determines how narrow a window may become
+before it automatically deleted.  Making a window smaller than
+@code{window-min-width} automatically deletes it, and no window may be
+created narrower than this.  The absolute minimum width is one; any
+value below that is ignored.  The default value is 10.
+@end defopt
+
+@node Coordinates and Windows
+@section Coordinates and Windows
+
+This section describes how to compare screen coordinates with windows.
+
+@defun window-at x y &optional frame
+This function returns the window containing the specified cursor
+position in the frame @var{frame}.  The coordinates @var{x} and @var{y}
+are measured in characters and count from the top left corner of the
+frame.  If they are out of range, @code{window-at} returns @code{nil}.
+
+If you omit @var{frame}, the selected frame is used.
+@end defun
+
+@defun coordinates-in-window-p coordinates window
+This function checks whether a particular frame position falls within
+the window @var{window}.
+
+The argument @var{coordinates} is a cons cell of this form:
+
+@example
+(@var{x} . @var{y})
+@end example
+
+@noindent
+The coordinates @var{x} and @var{y} are measured in characters, and
+count from the top left corner of the screen or frame.
+
+The value of @code{coordinates-in-window-p} is non-@code{nil} if the
+coordinates are inside @var{window}.  The value also indicates what part
+of the window the position is in, as follows:
+
+@table @code
+@item (@var{relx} . @var{rely})
+The coordinates are inside @var{window}.  The numbers @var{relx} and
+@var{rely} are the equivalent window-relative coordinates for the
+specified position, counting from 0 at the top left corner of the
+window.
+
+@item mode-line
+The coordinates are in the mode line of @var{window}.
+
+@item vertical-split
+The coordinates are in the vertical line between @var{window} and its
+neighbor to the right.  This value occurs only if the window doesn't 
+have a scroll bar; positions in a scroll bar are considered outside the
+window.
+
+@item nil
+The coordinates are not in any part of @var{window}.
+@end table
+
+The function @code{coordinates-in-window-p} does not require a frame as
+argument because it always uses the frame that @var{window} is on.
+@end defun
+
+@node Window Configurations
+@section Window Configurations
+@cindex window configurations
+@cindex saving window information
+
+  A @dfn{window configuration} records the entire layout of a
+frame---all windows, their sizes, which buffers they contain, what part
+of each buffer is displayed, and the values of point and the mark.  You
+can bring back an entire previous layout by restoring a window
+configuration previously saved.
+
+  If you want to record all frames instead of just one, use a frame
+configuration instead of a window configuration.  @xref{Frame
+Configurations}.
+
+@defun current-window-configuration
+This function returns a new object representing Emacs's current window
+configuration, namely the number of windows, their sizes and current
+buffers, which window is the selected window, and for each window the
+displayed buffer, the display-start position, and the positions of point
+and the mark.  An exception is made for point in the current buffer,
+whose value is not saved.
+@end defun
+
+@defun set-window-configuration configuration
+This function restores the configuration of Emacs's windows and
+buffers to the state specified by @var{configuration}.  The argument
+@var{configuration} must be a value that was previously returned by
+@code{current-window-configuration}.
+
+Here is a way of using this function to get the same effect
+as @code{save-window-excursion}:
+
+@example
+@group
+(let ((config (current-window-configuration)))
+  (unwind-protect
+      (progn (split-window-vertically nil)
+             @dots{})
+    (set-window-configuration config)))
+@end group
+@end example
+@end defun
+
+@defspec save-window-excursion forms@dots{}
+This special form records the window configuration, executes @var{forms}
+in sequence, then restores the earlier window configuration.  The window
+configuration includes the value of point and the portion of the buffer
+which is visible.  It also includes the choice of selected window.
+However, it does not include the value of point in the current buffer;
+use @code{save-excursion} if you wish to preserve that.
+
+The return value is the value of the final form in @var{forms}.
+For example:
+
+@example
+@group
+(split-window)
+     @result{} #<window 25 on control.texi>
+@end group
+@group
+(setq w (selected-window))
+     @result{} #<window 19 on control.texi>
+@end group
+@group
+(save-window-excursion
+  (delete-other-windows w)
+  (switch-to-buffer "foo")
+  'do-something)
+     @result{} do-something
+     ;; @r{The screen is now split again.}
+@end group
+@end example
+@end defspec
+
+@defun window-configuration-p object
+This function returns @code{t} if @var{object} is a window configuration.
+@end defun
+
+  Primitives to look inside of window configurations would make sense,
+but none are implemented.  It is not clear they are useful enough to be
+worth implementing.
