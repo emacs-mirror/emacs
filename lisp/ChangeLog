@@ -1,5 +1,8 @@
 2002-03-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* startup.el (fancy-splash-tail, normal-splash-screen): Update
+	copyright.
+
 	* novice.el (disabled-command-hook): Clarify output text to match
 	prompt.
 
