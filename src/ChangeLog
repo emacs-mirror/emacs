@@ -4,6 +4,8 @@
 	is invisible.  This can happen if cursor is on top line of a
 	window, and we switch to a buffer with a header line.
 
+	* w32term.c (x_erase_phys_cursor): ditto.
+
 2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (XTread_socket) [!USE_X_TOOLKIT]: Compute the value of
