@@ -1561,8 +1561,7 @@ which returns to Info mode for browsing.
   (setq mode-name "Info Edit")
   (kill-local-variable 'mode-line-buffer-identification)
   (setq buffer-read-only nil)
-  ;; Make mode line update.
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   (buffer-enable-undo (current-buffer))
   (run-hooks 'Info-edit-mode-hook))
 
@@ -1588,8 +1587,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   (setq mode-name "Info")
   (Info-set-mode-line)
   (setq buffer-read-only t)
-  ;; Make mode line update.
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   (and (marker-position Info-tag-table-marker)
        (buffer-modified-p)
        (message "Tags may have changed.  Use Info-tagify if necessary")))
