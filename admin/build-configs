@@ -21,6 +21,11 @@
 
 # Build Emacs in several different configurations.
 
+require 5;
+use Getopt::Long;
+use File::Basename;
+use Cwd;
+
 @configs =
   (
    ["--without-x", 		  "--optim"],
@@ -39,7 +44,31 @@ unlink $log;
 
 $root = $ENV{"EMACS_ROOT"};
 $root = "/gd/gnu/emacs" unless $root;
-chdir ($root) or die "Cannot chdir to emacs";
+
+$rc = GetOptions ("help" => \$help);
+if ($rc == 0 || $help)
+  {
+    print <<USAGE;
+build-configs
+
+Build Emacs in different configurations.
+
+--help			show this help
+
+USAGE
+    exit 1;
+  }
+
+# Chdir to the top-level directory of the tree.  If not in a tree
+# containing Emacs, use the default.
+
+while (! -f "src/emacs.c" && cwd () ne "/")
+  {
+    chdir "..";
+  }
+
+chdir $root if cwd () eq "/";
+print "Build in ", cwd (), "\n";
 
 foreach $config (@configs)
   {
