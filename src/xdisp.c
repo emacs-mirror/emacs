@@ -11820,6 +11820,8 @@ try_window_id (w)
   last_text_row_at_end = NULL;
   if (dy < 0)
     {
+      /* Scrolling up can leave for example a partially visible line
+	 at the end of the window to be redisplayed.  */
       /* Set last_row to the glyph row in the current matrix where the
 	 window end line is found.  It has been moved up or down in
 	 the matrix by dvpos.  */
@@ -11846,23 +11848,29 @@ try_window_id (w)
 	  ++last_row;
 	}
 
-      /* We may start in a continuation line.  If so, we have to get
-	 the right continuation_lines_width and current_x.  */
-      it.continuation_lines_width = last_row->continuation_lines_width;
-      it.hpos = it.current_x = 0;
-      
-      /* Display the rest of the lines at the window end.  */
-      it.glyph_row = MATRIX_ROW (desired_matrix, it.vpos);
-      while (it.current_y < it.last_visible_y
-	     && !fonts_changed_p)
+      if (IT_CHARPOS (it) < ZV)
 	{
-	  /* Is it always sure that the display agrees with lines in
-	     the current matrix?  I don't think so, so we mark rows
-	     displayed invalid in the current matrix by setting their
-	     enabled_p flag to zero.  */
-	  MATRIX_ROW (w->current_matrix, it.vpos)->enabled_p = 0;
-	  if (display_line (&it))
-	    last_text_row_at_end = it.glyph_row - 1;
+	  /* Otherwise, the rest of the window after the window
+	     end was blank, and scrolling didn't change that.  */
+
+	  /* We may start in a continuation line.  If so, we have to
+	     get the right continuation_lines_width and current_x.  */
+	  it.continuation_lines_width = last_row->continuation_lines_width;
+	  it.hpos = it.current_x = 0;
+
+	  /* Display the rest of the lines at the window end.  */
+	  it.glyph_row = MATRIX_ROW (desired_matrix, it.vpos);
+	  while (it.current_y < it.last_visible_y
+		 && !fonts_changed_p)
+	    {
+	      /* Is it always sure that the display agrees with lines in
+		 the current matrix?  I don't think so, so we mark rows
+		 displayed invalid in the current matrix by setting their
+		 enabled_p flag to zero.  */
+	      MATRIX_ROW (w->current_matrix, it.vpos)->enabled_p = 0;
+	      if (display_line (&it))
+		last_text_row_at_end = it.glyph_row - 1;
+	    }
 	}
     }
 
