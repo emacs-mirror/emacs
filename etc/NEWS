@@ -667,6 +667,12 @@ Horizontal scrolling now happens automatically if
 `automatic-hscrolling' is set (the default).  This setting can be
 customized.
 
+If a window is scrolled horizontally with set-window-hscroll, or
+scroll-left/scroll-right (C-x <, C-x >), this serves as a lower bound
+for automatic horizontal scrolling.  Automatic scrolling will scroll
+the text more to the left if necessary, but won't scroll the text more
+to the right than the column set with set-window-hscroll etc.
+
 +++
 ** Tool bar support.
 

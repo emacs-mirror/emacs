@@ -1,5 +1,22 @@
 2000-12-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (hscroll_window_tree): Take window's min_hscroll
+	into account.
+
+	* window.c (make_window): Initialize window's min_hscroll.
+	(Fset_window_hscroll): Set window's hscroll and min_hscroll.
+	(set_window_buffer, temp_output_buffer_show): Set min_hscroll
+	to zero.
+	(struct saved_window): New member min_hscroll.
+	(SAVED_WINDOW_VECTOR_SIZE): Set to 17.
+	(Fset_window_configuration): Set window's min_hscroll.
+	(save_window_save): Save window's min_hscroll.
+	(compare_window_configurations): Compare min_hscroll values.
+
+	* window.h (struct window): New member min_hscroll.
+
+	* keyboard.c (echo_prompt): Prevent a compiler warning.
+
 	* xdisp.c (try_cursor_movement): Fix last change.  The real
 	condition is that PT is at the end of the row, and should
 	be displayed at the start of the next row.

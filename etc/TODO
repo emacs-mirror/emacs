@@ -143,3 +143,5 @@
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
+
+* Add horizontal scroll bars.

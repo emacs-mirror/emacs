@@ -1517,9 +1517,11 @@ left you can scroll, but eventually all the text will disappear off the
 left edge.
 
   In Emacs 21, redisplay automatically alters the horizontal scrolling
-of a window as necessary to ensure that point is always visible.
-However, you can still set the horizontal scrolling value explicitly.
-The value you specify will be used, provided it leaves point visible.
+of a window as necessary to ensure that point is always visible, if
+@code{automatic-hscrolling} is set.  However, you can still set the
+horizontal scrolling value explicitly.  The value you specify serves as
+a lower bound for automatic scrolling, i.e. automatic scrolling
+will not scroll a window to a column less than the specified one.
 
 @deffn Command scroll-left &optional count
 This function scrolls the selected window @var{count} columns to the

@@ -200,6 +200,12 @@ necessary to keep point visible and not too far from the left or right
 edge.  If you don't want this, customize the variable
 @code{automatic-hscrolling} and set it to nil.
 
+If a window is scrolled horizontally by means of @code{scroll-left}, the
+chosen column serves as a lower bound for automatic horizontal
+scrolling.  Automatic scrolling will continue to scroll the window to
+the left, if necessary, but won't scroll it more to the right than the
+column set by @code{scroll-left}.
+
 @node Follow Mode
 @section Follow Mode
 @cindex Follow mode
