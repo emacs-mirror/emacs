@@ -2859,6 +2859,10 @@ handle_single_display_prop (it, prop, object, position)
 	      it->method = next_element_from_string;
 	      it->stop_charpos = 0;
 	      it->string_from_display_prop_p = 1;
+	      /* Say that we haven't consumed the characters with
+		 `display' property yet.  The call to pop_it in
+		 set_iterator_to_next will clean this up.  */
+	      *position = start_pos;
 	    }
 	  else if (CONSP (value) && EQ (XCAR (value), Qspace))
 	    {
@@ -11374,6 +11378,7 @@ try_window_id (w)
 
 void dump_glyph_row P_ ((struct glyph_matrix *, int, int));
 void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
+void dump_glyph P_ ((struct glyph_row *, struct glyph *, int));
 
 
 /* Dump the contents of glyph matrix MATRIX on stderr.
@@ -11390,6 +11395,77 @@ dump_glyph_matrix (matrix, glyphs)
   int i;
   for (i = 0; i < matrix->nrows; ++i)
     dump_glyph_row (matrix, i, glyphs);
+}
+
+
+/* Dump contents of glyph GLYPH to stderr.  ROW and AREA are
+   the glyph row and area where the glyph comes from.  */
+
+void
+dump_glyph (row, glyph, area)
+     struct glyph_row *row;
+     struct glyph *glyph;
+     int area;
+{
+  if (glyph->type == CHAR_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       'C',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       glyph->u.ch,
+	       (glyph->u.ch < 0x80 && glyph->u.ch >= ' '
+		? glyph->u.ch
+		: '.'),
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
+  else if (glyph->type == STRETCH_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       'S',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       0,
+	       '.',
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
+  else if (glyph->type == IMAGE_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       'I',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       glyph->u.img_id,
+	       '.',
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
 }
 
 
@@ -11453,106 +11529,48 @@ dump_glyph_row (matrix, vpos, glyphs)
   
   if (glyphs > 1)
     {
-      struct glyph *glyph, *glyph_end;
-      int prev_had_glyphs_p;
-      
-      glyph = row->glyphs[TEXT_AREA];
-      glyph_end = glyph + row->used[TEXT_AREA];
-      
-      /* Glyph for a line end in text.  */
-      if (glyph == glyph_end && glyph->charpos > 0)
-	++glyph_end;
-      
-      if (glyph < glyph_end)
+      int area;
+
+      for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  fprintf (stderr, "  Glyph    Type Pos   O W    Code C Face LR\n");
-	  prev_had_glyphs_p = 1;
-	}
-      else
-	prev_had_glyphs_p = 0;
+	  struct glyph *glyph, *glyph_end;
+	  glyph = row->glyphs[area];
+	  glyph_end = glyph + row->used[area];
       
-      while (glyph < glyph_end)
-	{
-	  if (glyph->type == CHAR_GLYPH)
-	    {
-	      fprintf (stderr,
-		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
-		       glyph - row->glyphs[TEXT_AREA],
-		       'C',
-		       glyph->charpos,
-		       (BUFFERP (glyph->object)
-			? 'B'
-			: (STRINGP (glyph->object)
-			   ? 'S'
-			   : '-')),
-		       glyph->pixel_width,
-		       glyph->u.ch,
-		       (glyph->u.ch < 0x80 && glyph->u.ch >= ' '
-			? glyph->u.ch
-			: '.'),
-		       glyph->face_id,
-		       glyph->left_box_line_p,
-		       glyph->right_box_line_p);
-	    }
-	  else if (glyph->type == STRETCH_GLYPH)
-	    {
-	      fprintf (stderr,
-		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
-		       glyph - row->glyphs[TEXT_AREA],
-		       'S',
-		       glyph->charpos,
-		       (BUFFERP (glyph->object)
-			? 'B'
-			: (STRINGP (glyph->object)
-			   ? 'S'
-			   : '-')),
-		       glyph->pixel_width,
-		       0,
-		       '.',
-		       glyph->face_id,
-		       glyph->left_box_line_p,
-		       glyph->right_box_line_p);
-	    }
-	  else if (glyph->type == IMAGE_GLYPH)
-	    {
-	      fprintf (stderr,
-		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
-		       glyph - row->glyphs[TEXT_AREA],
-		       'I',
-		       glyph->charpos,
-		       (BUFFERP (glyph->object)
-			? 'B'
-			: (STRINGP (glyph->object)
-			   ? 'S'
-			   : '-')),
-		       glyph->pixel_width,
-		       glyph->u.img_id,
-		       '.',
-		       glyph->face_id,
-		       glyph->left_box_line_p,
-		       glyph->right_box_line_p);
-	    }
-	  ++glyph;
+	  /* Glyph for a line end in text.  */
+	  if (glyph == glyph_end && glyph->charpos > 0)
+	    ++glyph_end;
+      
+	  if (glyph < glyph_end)
+	    fprintf (stderr, "  Glyph    Type Pos   O W    Code C Face LR\n");
+      
+	  for (; glyph < glyph_end; ++glyph)
+	    dump_glyph (row, glyph, area);
 	}
     }
   else if (glyphs == 1)
     {
-      char *s = (char *) alloca (row->used[TEXT_AREA] + 1);
-      int i;
+      int area;
 
-      for (i = 0; i < row->used[TEXT_AREA]; ++i)
+      for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
-	  if (glyph->type == CHAR_GLYPH
-	      && glyph->u.ch < 0x80
-	      && glyph->u.ch >= ' ')
-	    s[i] = glyph->u.ch;
-	  else
-	    s[i] = '.';
-	}
+	  char *s = (char *) alloca (row->used[area] + 1);
+	  int i;
+
+	  for (i = 0; i < row->used[area]; ++i)
+	    {
+	      struct glyph *glyph = row->glyphs[area] + i;
+	      if (glyph->type == CHAR_GLYPH
+		  && glyph->u.ch < 0x80
+		  && glyph->u.ch >= ' ')
+		s[i] = glyph->u.ch;
+	      else
+		s[i] = '.';
+	    }
       
-      s[i] = '\0';
-      fprintf (stderr, "%3d: (%d) '%s'\n", vpos, row->enabled_p, s);
+	  s[i] = '\0';
+	  fprintf (stderr, "%3d: (%d) '%s'\n", vpos, row->enabled_p, s);
+	}
     }
 }
 
