@@ -32,13 +32,6 @@
 
 ;; Merged by esr with recent mods to Emacs 19 buff-menu, 23 Mar 1993
 ;;
-;; Modified by Bob Weiner, Motorola, Inc., 3/1/89
-;;
-;; Save window configuration when 'buffer-menu' is called so that
-;; previous window configuration is restored. prior to selecting
-;; buffers.
-;; Made 'Buffer-menu-select' also perform a 'Buffer-menu-execute'.
-;; 
 ;; Modified by Bob Weiner, Motorola, Inc., 4/14/89
 ;;
 ;; Added optional backup argument to 'Buffer-menu-unmark' to make it undelete
@@ -48,9 +41,9 @@
 
 ;;; Code:
  
-(defvar *buff-window-config* nil
-  "Stores window configuration upon entry of 'buffer-menu'.  Used to
-restore window configuration when only one buffer is selected.")
+;;;Not needed, now that q is now just quit and Buffer-menu-select is v.
+;;;(defvar Buffer-menu-window-config nil
+;;;  "Window configuration saved from entry to `buffer-menu'.")
 
 ; Put buffer *Buffer List* into proper mode right away
 ; so that from now on even list-buffers is enough to get a buffer menu.
@@ -61,7 +54,8 @@ restore window configuration when only one buffer is selected.")
     ()
   (setq Buffer-menu-mode-map (make-keymap))
   (suppress-keymap Buffer-menu-mode-map t)
-  (define-key Buffer-menu-mode-map "q" 'Buffer-menu-select)
+  (define-key Buffer-menu-mode-map "q" 'Buffer-menu-quit)
+  (define-key Buffer-menu-mode-map "v" 'Buffer-menu-select)
   (define-key Buffer-menu-mode-map "2" 'Buffer-menu-2-window)
   (define-key Buffer-menu-mode-map "1" 'Buffer-menu-1-window)
   (define-key Buffer-menu-mode-map "f" 'Buffer-menu-this-window)
@@ -157,12 +151,21 @@ Type ? after invocation to get help on commands available.
 Type q immediately to make the buffer menu go away and to restore
 previous window configuration."
   (interactive "P")
-  (setq *buff-window-config* (current-window-configuration))
+;;;  (setq Buffer-menu-window-config (current-window-configuration))
   (list-buffers arg)
   (pop-to-buffer "*Buffer List*")
   (forward-line 2)
   (message
-   "Commands: d, s, x; 1, 2, m, u; delete; ~; q to quit; ? for help."))
+   "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
+
+(defun Buffer-menu-quit ()
+  "Quit the buffer menu."
+  (interactive)
+  (let ((buffer (current-buffer)))
+    ;; Restore previous window configuration before displaying
+    ;; selected buffers.
+    (switch-to-buffer (other-buffer))
+    (bury-buffer buffer)))
 
 (defun Buffer-menu-mark ()
   "Mark buffer on this line for being displayed by \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
@@ -291,19 +294,18 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
     (setq others (nreverse others)
 	  tem (/ (1- (frame-height)) (1+ (length others))))
-    (Buffer-menu-execute)
     (delete-other-windows)
     (switch-to-buffer buff)
     (or (eq menu buff)
 	(bury-buffer menu))
     (if (equal (length others) 0)
 	(progn
-	  ;; Restore previous window configuration before displaying
-	  ;; selected buffers.
-	  (if *buff-window-config*
-	      (progn
-		(set-window-configuration *buff-window-config*)
-		(setq *buff-window-config* nil)))
+;;;	  ;; Restore previous window configuration before displaying
+;;;	  ;; selected buffers.
+;;;	  (if Buffer-menu-window-config
+;;;	      (progn
+;;;		(set-window-configuration Buffer-menu-window-config)
+;;;		(setq Buffer-menu-window-config nil)))
 	  (switch-to-buffer buff))
       (while others
 	(split-window nil tem)
