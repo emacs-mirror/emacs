@@ -1,3 +1,10 @@
+2000-09-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_tool_bar_lines): Clear frame when tool bar
+	disappears.
+
+	* dispextern.h (updating_frame): Declare extern.
+
 2000-09-29  Andreas Schwab  <schwab@suse.de>
 
 	* m/ia64.h: Remove hack of not prototyping bcopy, etc.
