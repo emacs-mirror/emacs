@@ -5087,7 +5087,8 @@ This function is an internal primitive--use `make-frame' instead.")
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parms, parent, name, frame);
-  tem = w32_get_arg (parms, Qminibuffer, 0, 0, RES_TYPE_SYMBOL);
+  tem = w32_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer",
+                     RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
@@ -5128,7 +5129,7 @@ This function is an internal primitive--use `make-frame' instead.")
 
   if (!NILP (parent))
     {
-      f->output_data.w32->parent_desc = (Window) parent;
+      f->output_data.w32->parent_desc = (Window) XFASTINT (parent);
       f->output_data.w32->explicit_parent = 1;
     }
   else
@@ -5186,7 +5187,7 @@ This function is an internal primitive--use `make-frame' instead.")
   }
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
-		       "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
+		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
   /* This defaults to 2 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
@@ -5195,16 +5196,16 @@ This function is an internal primitive--use `make-frame' instead.")
       Lisp_Object value;
 
       value = w32_get_arg (parms, Qinternal_border_width,
-			 "internalBorder", "BorderWidth", RES_TYPE_NUMBER);
+			 "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
   /* Default internalBorderWidth to 0 on Windows to match other programs.  */
   x_default_parameter (f, parms, Qinternal_border_width, make_number (0),
-		       "internalBorderWidth", "BorderWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
-		       "verticalScrollBars", "ScrollBars", RES_TYPE_BOOLEAN);
+		       "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qvertical_scroll_bars, Qright,
+		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -5302,9 +5303,6 @@ This function is an internal primitive--use `make-frame' instead.")
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
-
-  /* Set up faces after all frame parameters are known.  */
-  call1 (Qface_set_after_frame_default, frame);
 
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
