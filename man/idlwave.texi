@@ -1,8 +1,8 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../info/idlwave
+@setfilename idlwave
 @settitle IDLWAVE User Manual
-@dircategory Emacs
+@dircategory Editors
 @direntry
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 @end direntry
@@ -156,7 +156,6 @@ Debugging IDL Programs
 
 * Compiling Programs::          Compiling buffers under the shell
 * Breakpoints and Stepping::    Deciding where to stop and look
-* Walking the Calling Stack::   From where was this routine called?
 * Examining Variables::         What is the value now?
 
 Installation
@@ -1917,10 +1916,6 @@ Non-@code{nil} means @key{UP} and @key{DOWN} arrows move through command
 history like xterm.
 @end defopt
 
-@defopt idlwave-shell-comint-settings
-Alist of special settings for the comint variables in the IDLWAVE Shell.
-@end defopt
-
 @defopt idlwave-shell-file-name-chars
 The characters allowed in file names, as a string.  Used for file name
 completion.
@@ -2014,7 +2009,6 @@ buffers.
 @menu
 * Compiling Programs::          Compiling buffers under the shell
 * Breakpoints and Stepping::    Deciding where to stop and look
-* Walking the Calling Stack::   From where was this routine called?
 * Examining Variables::         What is the value now?
 @end menu
 
@@ -2058,7 +2052,7 @@ The face which highlights the source line where IDL is
 stopped.
 @end defopt
 
-@node Breakpoints and Stepping, Walking the Calling Stack, Compiling Programs, Debugging IDL Programs
+@node Breakpoints and Stepping, Examining Variables, Compiling Programs, Debugging IDL Programs
 @subsection Breakpoints and Stepping
 @cindex Breakpoints
 @cindex Stepping
@@ -2069,23 +2063,16 @@ stopped.
 You can set breakpoints and step through a program with IDLWAVE.
 Setting a breakpoint in the current line of the source buffer is done
 with @kbd{C-c C-d C-b} (@code{idlwave-shell-break-here}).  With a prefix
-arg of 1 (i.e. @kbd{C-1 C-c C-d C-b}, the breakpoint gets a @code{/ONCE}
-keyword, meaning that it will be deleted after first use.  With a
-numeric prefix greater than one, the breakpoint will only be active the
-@code{nth} time it is hit.  To clear the breakpoint in the current line,
-use @kbd{C-c C-d C-d} (@code{idlwave-clear-current-bp}).  When executed
-from the shell window, the breakpoint where IDL is currently stopped
-will be deleted.  To clear all breakpoints, use @kbd{C-c C-d C-a}
-(@code{idlwave-clear-all-bp}).  Breakpoint lines are highlighted in the
-source code.
+arg of 1, the breakpoint gets a @code{/ONCE} keyword, meaning that it
+will be deleted after first use.  With a numeric prefix greater than
+one, the breakpoint will only be active the @code{nth} time it is hit.
+To clear the breakpoint in the current line, use @kbd{C-c C-d C-d}
+(@code{idlwave-clear-current-bp}).  To clear all breakpoints, use
+@kbd{C-c C-d C-a} (@code{idlwave-clear-all-bp}).  Breakpoint lines are
+highlighted in the source code.
 
-Once the program has stopped somewhere, you can step through it.  The
-most important stepping commands are @kbd{C-c C-d C-s} to execute one
-line of IDL code; @kbd{C-c C-d C-n} to do one step but treat procedure
-and function calls as a single step; @kbd{C-c C-d C-h} to continue
-execution to the line where the cursor is in and @kbd{C-c C-d C-r} to
-continue execution.  Here is a summary of the breakpoint and stepping
-commands:
+Once the program has stopped somewhere, you can step through it.  Here
+is a summary of the breakpoint and stepping commands:
 
 @multitable @columnfractions .23 .77
 @item @kbd{C-c C-d C-b}
@@ -2129,31 +2116,12 @@ The face for breakpoint lines in the source code if
 @code{idlwave-shell-mark-breakpoints} has the value @code{face}.
 @end defopt
 
-@node Walking the Calling Stack, Examining Variables, Breakpoints and Stepping, Debugging IDL Programs
-@subsection Walking the Calling Stack
-@cindex Calling stack, walking
-
-When debugging a program, it can be very useful to check in what context
-the current routine was called, and why the arguments of the call are
-the way they are.  For this one needs to examine the calling stack.  If
-execution is stopped somewhere deep in a program, you can use the
-commands @kbd{C-c C-d C-@key{UP}} (@code{idlwave-shell-stack-up}) and
-@kbd{C-c C-d C-@key{DOWN}} (@code{idlwave-shell-stack-down}) or the
-corresponding toolbar buttons to move through the calling stack.  The
-mode line of the shell window will indicate where you are on the stack
-with a token like @samp{[-3:MYPRO]}, and the line of IDL code which did
-the current call will be highlighted.  When you continue execution,
-IDLWAVE will automatically return to the current level. @xref{Examining
-Variables} for information how to examine the value of variables and
-expressions on higher calling stack levels.
-
-@node Examining Variables,  , Walking the Calling Stack, Debugging IDL Programs
+@node Examining Variables,  , Breakpoints and Stepping, Debugging IDL Programs
 @subsection Examining Variables
 @cindex @code{PRINT} expressions
 @cindex @code{HELP}, on expressions
 @cindex Expressions, printing
 @cindex Expressions, help
-@cindex Printing expressions
 @cindex Mouse binding to print expressions
 
 @kindex C-c C-d C-p
@@ -2167,21 +2135,23 @@ argument will prompt for an expression instead of using the one at
 point.
 
 It is very convenient to click with the mouse on expressions to retrieve
-their value.  Use @kbd{S-mouse-2} to print an expression and
-@kbd{C-S-mouse-2} to get help on an expression.  I.e. you need to hold
-down @key{SHIFT} and @key{CONTROL} while clicking with the middle mouse
-buton.
+their value.  Expression printing is also bound to @kbd{S-mouse-2} and
+expression help to @kbd{C-S-mouse-2}.  I.e. you need to hold down
+@key{SHIFT} and @key{CONTROL} while clicking with the mouse.
 
+@cindex Calling stack, motion
 @cindex Printing expressions, on calling stack
 @cindex Restrictions for expression printing
 Printing of expressions also works on higher levels of the calling
 stack.  This means that you can examine the values of variables and
 expressions inside the routine which called the current routine etc.
-@xref{Walking the Calling Stack} for information on how to step back to
-higher levels on the calling stack.  Commands which print values of
-variables and expressions will then use the values of variables in the
-calling routine.  The following restrictions apply for all levels except
-the current:
+Use the commands @kbd{C-c C-d C-@key{UP}}
+(@code{idlwave-shell-stack-up}) and @kbd{C-c C-d C-@key{DOWN}}
+(@code{idlwave-shell-stack-down}) or the corresponding toolbar buttons
+to move through the calling stack.  The mode line of the shell window
+will indicate the routine and the calling stack level which define the
+context for printing expressions.  The following restrictions apply for
+all levels except the current:
 
 @itemize @bullet
 @item

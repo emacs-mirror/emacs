@@ -3,7 +3,7 @@
 ;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 4.2
+;; Version: 4.7
 ;; Date: $Date: 2000/06/06 10:40:52 $
 ;; Keywords: processes
 
