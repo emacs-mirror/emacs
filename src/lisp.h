@@ -608,22 +608,23 @@ struct Lisp_Vector
   (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
-   and 8-bit Europeans characters.  Do not follow parent.  */
-#define CHAR_TABLE_REF(CT, IDX)						\
-  (CHAR_TABLE_P (CT) && IDX >= 0 && IDX < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
-   ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])				\
-      ? XCHAR_TABLE (CT)->contents[IDX]					\
-      : XCHAR_TABLE (CT)->defalt)					\
+   and 8-bit Europeans characters.  For these characters, do not check
+   validity of CT.  Do not follow parent.  */
+#define CHAR_TABLE_REF(CT, IDX)				\
+  (XFASTINT (IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
+   ? (!NILP (XCHAR_TABLE (CT)->contents[XFASTINT (IDX)])\
+      ? XCHAR_TABLE (CT)->contents[XFASTINT (IDX)]	\
+      : XCHAR_TABLE (CT)->defalt)			\
    : Faref (CT, IDX))
 
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
-   8-bit Europeans characters.  */
-#define CHAR_TABLE_SET(CT, IDX, VAL)					     \
-  do {									     \
-    if (CHAR_TABLE_P (CT) && IDX >= 0 && IDX < CHAR_TABLE_SINGLE_BYTE_SLOTS) \
-      XCHAR_TABLE (CT)->contents[IDX] = VAL;				     \
-    else								     \
-      Faset (CT, IDX, VAL);						     \
+   8-bit Europeans characters.  Do not check validity of CT.  */
+#define CHAR_TABLE_SET(CT, IDX, VAL)			\
+  do {							\
+    if (XFASTINT (IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS)	\
+      XCHAR_TABLE (CT)->contents[XFASTINT (IDX)] = VAL;	\
+    else						\
+      Faset (CT, IDX, VAL);				\
   } while (0)
 
 struct Lisp_Char_Table
@@ -1315,17 +1316,24 @@ extern char *stack_bottom;
 
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 
+/* Variables used locally in the following case handling macros.  */
+extern Lisp_Object case_temp1, case_temp2;
+
 /* Current buffer's map from characters to lower-case characters.  */
 
-#define DOWNCASE_TABLE XCHAR_TABLE (current_buffer->downcase_table)->contents
+#define DOWNCASE_TABLE current_buffer->downcase_table
 
 /* Current buffer's map from characters to upper-case characters.  */
 
-#define UPCASE_TABLE XCHAR_TABLE (current_buffer->upcase_table)->contents
+#define UPCASE_TABLE current_buffer->upcase_table
 
 /* Downcase a character, or make no change if that cannot be done.  */
 
-#define DOWNCASE(CH) (XFASTINT (DOWNCASE_TABLE[CH]))
+#define DOWNCASE(CH)						\
+  ((case_temp1 = (CH),						\
+    case_temp2 = CHAR_TABLE_REF (DOWNCASE_TABLE, case_temp1),	\
+    NATNUMP (case_temp2))					\
+   ? XFASTINT (case_temp2) : case_temp1)
 
 /* 1 if CH is upper case.  */
 
@@ -1333,7 +1341,7 @@ extern char *stack_bottom;
 
 /* 1 if CH is neither upper nor lower case.  */
 
-#define NOCASEP(CH) (XFASTINT (UPCASE_TABLE[CH]) == (CH))
+#define NOCASEP(CH) (UPCASE1 (CH) == (CH))
 
 /* 1 if CH is lower case.  */
 
@@ -1345,7 +1353,11 @@ extern char *stack_bottom;
 
 /* Upcase a character known to be not upper case.  */
 
-#define UPCASE1(CH) (XFASTINT (UPCASE_TABLE[CH]))
+#define UPCASE1(CH)						\
+  ((case_temp1 = (CH),						\
+    case_temp2 = CHAR_TABLE_REF (UPCASE_TABLE, case_temp1),	\
+    NATNUMP (case_temp2))					\
+   ? XFASTINT (case_temp2) : case_temp1)
 
 extern Lisp_Object Vascii_downcase_table;
 
