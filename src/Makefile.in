@@ -329,7 +329,11 @@ LIBXMENU=
 #ifdef USE_X_TOOLKIT
 #define @X_TOOLKIT_TYPE@
 #if defined (LUCID) || defined (ATHENA)
+#if HAVE_XAW3D
+LIBW= -lXaw3d
+#else
 LIBW= -lXaw
+#endif
 #endif
 #ifdef MOTIF
 #if defined (HAVE_MOTIF_2_1) && defined (HAVE_LIBXP)
@@ -372,11 +376,51 @@ LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 LIBXT=
 #endif /* not USE_X_TOOLKIT */
 
+#if HAVE_XPM
+#ifndef LIBXPM
+#define LIBXPM -lXpm
+#endif /* not defined LIBXPM */
+#else /* not HAVE_XPM */
+#define LIBXPM
+#endif /* not HAVE_XPM */
+
+#if HAVE_JPEG
+#ifndef LIBJPEG
+#define LIBJPEG -ljpeg
+#endif /* not defined LIBJPEG */
+#else /* not HAVE_JPEG */
+#define LIBJPEG
+#endif /* not HAVE_JPEG */
+
+#if HAVE_PNG
+#ifndef LIBPNG
+#define LIBPNG -lpng -lz -lm
+#endif /* not defined LIBPNG */
+#else /* not HAVE_PNG */
+#define LIBPNG
+#endif /* not HAVE_PNG */
+
+#if HAVE_TIFF
+#ifndef LIBTIFF
+#define LIBTIFF -ltiff34
+#endif /* not defined LIBTIFF */
+#else /* not HAVE_TIFF */
+#define LIBTIFF
+#endif /* not HAVE_TIFF */
+
+#if HAVE_GIF
+#ifndef LIBGIF
+#define LIBGIF -lungif
+#endif /* not defined LIBGIF */
+#else /* not HAVE_GIF */
+#define LIBGIF
+#endif /* not HAVE_GIF */
+
 #ifdef HAVE_X11
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM LIBXPM LIBJPEG LIBPNG LIBTIFF LIBGIF
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
@@ -520,7 +564,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
-	region-cache.o \
+	region-cache.o sound.o \
 	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ MSDOS_OBJ
 
 /* Object files used on some machine or other.
@@ -1101,6 +1145,7 @@ xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
   coding.h ccl.h buffer.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
+sound.o: sound.c dispextern.h lisp.h $(config_h)
 
 /* The files of Lisp proper */
 
@@ -1160,11 +1205,12 @@ relock:
 
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
-ctagsfiles = [a-zA-Z]*.[hc]
+ctagsfiles1 = [xyzXYZ]*.[hc] 
+ctagsfiles2 = [a-wA-W]*.[hc]
 TAGS: $(srcdir)/$(ctagsfiles)
 	../lib-src/etags --include=TAGS-LISP \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags \
