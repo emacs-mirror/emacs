@@ -1197,12 +1197,10 @@ where FACE is a valid face specification, as it can be used with
 	  (insert-image img (propertize "xxx" 'help-echo help-echo
 					'keymap map)))
 	(insert "\n"))))
-  (if (eq system-type 'gnu/linux)
-      (fancy-splash-insert
-       :face '(variable-pitch :foreground "red")
-       "GNU Emacs is one component of a Linux-based GNU system.")
-    (fancy-splash-insert
-     :face '(variable-pitch :foreground "red")
+  (fancy-splash-insert
+   :face '(variable-pitch :foreground "red")
+   (if (eq system-type 'gnu/linux)
+       "GNU Emacs is one component of the GNU/Linux operating system."
      "GNU Emacs is one component of the GNU operating system."))
   (insert "\n")
   (unless (equal (buffer-name fancy-splash-outer-buffer) "*scratch*")
@@ -1346,9 +1344,10 @@ we put it on this frame."
 	    ;; each piece of output starts with one or two newlines
 	    ;; and does not end with any newlines.
 	    (insert "Welcome to GNU Emacs")
-	    (if (eq system-type 'gnu/linux)
-		(insert ", one component of a Linux-based GNU system."))
-	    (insert "\n")
+	    (insert
+	     (if (eq system-type 'gnu/linux)
+		 ", one component of the GNU/Linux operating system.\n"
+	       ", a part of the GNU operating system.\n"))
 
 	    (unless (equal (buffer-name prev-buffer) "*scratch*")
 	      (insert (substitute-command-keys
