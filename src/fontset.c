@@ -832,15 +832,15 @@ ENCODING is one of the following integer values:\n\
   Vfont_encoding_alist = Qnil;
 
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
-     "Char table of characters of which ascent values should be ignored.\n\
+     "Char table of characters whose ascent values should be ignored.\n\
 If an entry for a character is non-nil, the ascent value of the glyph\n\
 is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
   Vuse_default_ascent = Qnil;
 
   DEFVAR_LISP ("alternative-fontname-alist", &Valternative_fontname_alist,
      "Alist of fontname vs list of the alternative fontnames.\n\
-When no font can be opened by a fontname, the corresponding\n\
-alternative fontnames are tried.");
+When a specified font name is not found, the corresponding\n\
+alternative fontnames (if any) are tried instead.");
   Valternative_fontname_alist = Qnil;
 
   DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
@@ -850,21 +850,19 @@ alternative fontnames are tried.");
   DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
      "*Non-nil means highlight characters shown in wrong size fonts somehow.\n\
 The way to highlight them depends on window system on which Emacs runs.\n\
-On X window, a rectangle is shown around each such character.");
+On X11, a rectangle is shown around each such character.");
   Vhighlight_wrong_size_font = Qnil;
 
   DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
-     "*Non-nil means characters shown in large size fonts are clipped.\n\
+     "*Non-nil means characters shown in overlarge fonts are clipped.\n\
 The height of clipping area is the same as that of an ASCII character.\n\
-The width of the area is the same as that of an ASCII character or\n\
-twice wider than that of an ASCII character depending on\n\
-the width (i.e. column numbers occupied on screen) of the character set\n\
-of the character.\n\
+The width of the area is the same as that of an ASCII character,\n\
+or twice as wide, depending on the character set's column-width.\n\
 \n\
-In the case that you only have too large size font for a specific\n\
-charscter set, and clipping characters of the character set makes them\n\
-almost unreadable, you can set this variable to t to see the\n\
-characters in exchage for garbage dots left on your screen.");
+If the only font you have for a specific character set is too large,\n\
+and clipping these characters makes them hard to read,\n\
+you can set this variable to nil to display the characters without clipping.\n\
+The drawback is that you will get some garbage left on your screen.");
   Vclip_large_size_font = Qt;
 
   defsubr (&Squery_fontset);
