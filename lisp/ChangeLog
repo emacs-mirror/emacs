@@ -1,3 +1,11 @@
+2005-03-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names): Modify the
+	format of elements and add more entries.
+	(locale-preferred-coding-systems): Add more entries.
+	(set-locale-environment): Adjusted for the change of
+	locale-language-names.
+
 2005-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (smerge-ediff): Remove bogus autoload.
