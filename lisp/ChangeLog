@@ -1,3 +1,10 @@
+2002-05-19  Markus Rost  <rost@math.ohio-state.edu>
+
+	* find-dired.el (find-dired): Implement revert-buffer-function.
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Do another
+	save-excursion.
+
 2002-05-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-match-end, f90-break-line): Simplify a bit.
