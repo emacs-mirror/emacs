@@ -41,6 +41,8 @@ You might find bug-fixes or enhancements in these places.
 
  * BS: <URL:http://home.netsurf.de/olaf.sylvester/emacs>
 
+ * Calc: <URL:http://www.gnu.org/software/calc/calc.html>
+
  * Calculator: <URL:http://www.cs.cornell.edu/eli/misc/calculator.el>
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
@@ -129,10 +131,6 @@ Several are for Debian GNU/Linux in particular.
    [You might want to set the coding system of your .bbdb file to
    emacs-mule, say by adding `("\\.bbdb\\'" . emacs-mule)' to
    `file-coding-system-alist' for non-ASCII characters.]
-
- * Calc: computer algebra and numerical calculations:
-   <URL:http://www.gnu.org/software/calc/calc.html>
-   From GNU distribution mirrors.
 
  * CJK-emacs: Converting MULE-encoded text to TeX:
    <URL:ftp://ctan.tug.org/tex-archive/language/chinese/CJK/> and
