@@ -1,3 +1,8 @@
+2002-12-06   Markus Rost  <rost@math.ohio-state.edu>
+
+	* finder.el (finder-compile-keywords): Don't insert a keyword to
+	the generated file.
+
 2002-12-05  Andreas Schwab  <schwab@suse.de>
 
 	* speedbar.el (speedbar-highlight-face): Fix face spec.
@@ -1057,7 +1062,7 @@
 
 2002-10-28  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
 
-	* make-mode.el (makefile-warn-continuations):
+	* progmodes/make-mode.el (makefile-warn-continuations):
 	Call re-search-forward with NOERROR t.
 
 2002-10-29  Kim F. Storm  <storm@cua.dk>
