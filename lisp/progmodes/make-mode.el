@@ -268,12 +268,15 @@ not be enclosed in { } or ( )."
    ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
-   ;; Variable references even in targets/strings/comments:
+   ;; Variable references even in targets/strings/comments.
    '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-constant-face prepend)
 
-   ;; Automatic variable references.
-   '("\\$\\([@%<?^+*]\\)" 1 font-lock-reference-face prepend)
+   ;; Automatic variable references and single character variable references...
+   '("\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)" 1 font-lock-reference-face prepend)
    '("\\$[({]\\([@%<?^+*][FD]?\\)[}):]" 1 font-lock-reference-face prepend)
+
+   ;; ...but not shell variables references.
+   '("\\$\\$\\(\\sw+\\)" 1 'default t)
 
    ;; Fontify conditionals and includes.
    ;; Note that plain `if' is an automake conditional, and not a bug.
@@ -586,7 +589,7 @@ Makefile mode can be configured by modifying the following variables:
 	;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
 	;; near the end of a large buffer, due to parse-partial-sexp's
 	;; trying to parse all the way till the beginning of buffer.
-	'(makefile-font-lock-keywords nil nil nil backward-paragraph))
+        '(makefile-font-lock-keywords nil nil ((?$ . ".")) backward-paragraph))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
