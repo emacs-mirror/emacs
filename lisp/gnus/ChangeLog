@@ -1,3 +1,11 @@
+2005-02-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-group-startup-message): Search for gnus images in
+	etc/images/gnus.
+	* mm-util.el (mm-find-charset-region): Likewise.
+	* smiley.el (smiley-data-directory): Search for smilies in
+	etc/images/smilies.
+
 2005-02-09  Kim F. Storm  <storm@cua.dk>
 
 	Change Emacs release version from 21.4 to 22.1 throughout.
