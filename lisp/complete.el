@@ -4,7 +4,7 @@
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev
-;; Version: 2.02
+;; Version: 2.03
 ;; Special thanks to Hallvard Furuseth for his many ideas and contributions.
 
 ;; This file is part of GNU Emacs.
@@ -47,7 +47,7 @@
 ;; and the partial completer will use the Meta versions of the keys.
 
 
-;; Usage:  Load this file.  Now, during completable minibuffer entry,
+;; Usage:  M-x PC-mode.  Now, during completable minibuffer entry,
 ;;
 ;;     TAB    means to do a partial completion;
 ;;     SPC    means to do a partial complete-word;
@@ -62,7 +62,7 @@
 ;;
 ;; in your .emacs file.  To load partial completion automatically, put
 ;;
-;;       (load "complete")
+;;       (PC-mode t)
 ;;
 ;; in your .emacs file, too.  Things will be faster if you byte-compile
 ;; this file when you install it.
@@ -98,71 +98,180 @@
 
 ;;; Code:
 
-(defvar PC-meta-flag t
-  "*If nil, TAB does normal Emacs completion and M-TAB does Partial Completion.
-If t, TAB does Partial Completion and M-TAB does normal completion.")
+(defgroup partial-completion nil
+  "Partial Completion of items."
+  :prefix "pc-"
+  :group 'minibuffer)
 
+(defcustom partial-completion-mode nil
+  "Toggle Partial Completion mode.
+When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
+nil) is enhanced so that if some string is divided into words and each word is
+delimited by a character in `PC-word-delimiters', partial words are completed
+as much as possible and `*' characters are treated likewise in file names.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (partial-completion-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'partial-completion
+  :require 'complete)
 
-(defvar PC-word-delimiters "-_. "
-  "*A string of characters which are to be treated as word delimiters
-by the Partial Completion system.
+(defcustom PC-first-char 'find-file
+  "*Control how the first character of a string is to be interpreted.
+If nil, the first character of a string is not taken literally if it is a word
+delimiter, so that \".e\" matches \"*.e*\".
+If t, the first character of a string is always taken literally even if it is a
+word delimiter, so that \".e\" matches \".e*\".
+If non-nil and non-t, the first character is taken literally only for file name
+completion."
+  :type '(choice (const :tag "delimiter" nil)
+		 (const :tag "literal" t)
+		 (sexp :tag "find-file" :format "%t\n" find-file))
+  :group 'partial-completion)
 
-Some arcane rules:  If `]' is in this string it must come first.
-If `^' is in this string it must NOT come first.  If `-' is in this
-string, it must come first or right after `]'.  In other words, if
-S is this string, then `[S]' must be a legal Emacs regular expression
-\(not containing character ranges like `a-z').")
+(defcustom PC-meta-flag t
+  "*If non-nil, TAB means PC completion and M-TAB means normal completion.
+Otherwise, TAB means normal completion and M-TAB means Partial Completion."
+  :type 'boolean
+  :group 'partial-completion)
 
+(defcustom PC-word-delimiters "-_. "
+  "*A string of characters treated as word delimiters for completion.
+Some arcane rules:
+If `]' is in this string, it must come first.
+If `^' is in this string, it must not come first.
+If `-' is in this string, it must come first or right after `]'.
+In other words, if S is this string, then `[S]' must be a legal Emacs regular
+expression (not containing character ranges like `a-z')."
+  :type 'string
+  :group 'partial-completion)
 
-(defvar PC-first-char 'x
-  "*If t, first character of a string to be completed is always taken literally.
-If nil, word delimiters are handled even if they appear as first character.
-This controls whether \".e\" matches \".e*\" (t) or \"*.e*\" (nil).
-If neither nil nor t, first char is literal only for filename completion.")
+(defcustom PC-include-file-path '("/usr/include" "/usr/local/include")
+  "*A list of directories in which to look for include files.
+If nil, means use the colon-separated path in the variable $INCPATH instead."
+  :type '(repeat directory)
+  :group 'partial-completion)
 
+(defcustom PC-disable-wildcards nil
+  "*If non-nil, wildcard support in \\[find-file] is disabled."
+  :type 'boolean
+  :group 'partial-completion)
 
-(defvar PC-include-file-path '("/usr/include")
-  "*List of directories in which to look for include files.
-If this is nil, uses the colon-separated path in $INCPATH instead.")
-
-
-(defvar PC-disable-wildcards nil
-  "Set this to non-nil to disable wildcard support in \\[find-file].")
-
-(defvar PC-disable-includes nil
-  "Set this to non-nil to disable include-file support in \\[find-file].")
-
+(defcustom PC-disable-includes nil
+  "*If non-nil, include-file support in \\[find-file] is disabled."
+  :type 'boolean
+  :group 'partial-completion)
 
 (defvar PC-default-bindings t
-  "Set this to nil to suppress the default partial completion key bindings.")
+  "If non-nil, default partial completion key bindings are suppressed.")
+
+(defvar PC-old-read-file-name-internal nil)
 
-(if PC-default-bindings (progn
-(define-key minibuffer-local-completion-map "\t" 'PC-complete)
-(define-key minibuffer-local-completion-map " "  'PC-complete-word)
-(define-key minibuffer-local-completion-map "?"  'PC-completion-help)
+;;;###autoload
+(defun partial-completion-mode (&optional arg)
+  "Toggle Partial Completion mode.
+With prefix ARG, turn Partial Completion mode on if ARG is positive.
 
-(define-key minibuffer-local-completion-map "\e\t" 'PC-complete)
-(define-key minibuffer-local-completion-map "\e "  'PC-complete-word)
-(define-key minibuffer-local-completion-map "\e\r" 'PC-force-complete-and-exit)
-(define-key minibuffer-local-completion-map "\e\n" 'PC-force-complete-and-exit)
-(define-key minibuffer-local-completion-map "\e?"  'PC-completion-help)
+When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
+nil) is enhanced so that if some string is divided into words and each word is
+delimited by a character in `PC-word-delimiters', partial words are completed
+as much as possible.
 
-(define-key minibuffer-local-must-match-map "\t" 'PC-complete)
-(define-key minibuffer-local-must-match-map " "  'PC-complete-word)
-(define-key minibuffer-local-must-match-map "\r" 'PC-complete-and-exit)
-(define-key minibuffer-local-must-match-map "\n" 'PC-complete-and-exit)
-(define-key minibuffer-local-must-match-map "?"  'PC-completion-help)
+For example, M-x p-c-b expands to M-x partial-completion-mode since no other
+command begins with that sequence of characters, and
+\\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
+other file in that directory begin with that sequence of characters.
 
-(define-key minibuffer-local-must-match-map "\e\t" 'PC-complete)
-(define-key minibuffer-local-must-match-map "\e "  'PC-complete-word)
-(define-key minibuffer-local-must-match-map "\e\r" 'PC-complete-and-exit)
-(define-key minibuffer-local-must-match-map "\e\n" 'PC-complete-and-exit)
-(define-key minibuffer-local-must-match-map "\e?"  'PC-completion-help)
+Unless `PC-disable-wildcards' is non-nil, the \"*\" wildcard is interpreted
+specially when entering file or directory names.  For example,
+\\[find-file] *.c RET finds each C file in the currenty directory, and
+\\[find-file] */foo_bar.c TAB completes the directory name as far as possible.
 
-(define-key global-map "\e\t" 'PC-lisp-complete-symbol)
-))
+Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
+specially in \\[find-file].  For example,
+\\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
+See also the variable `PC-include-file-path'."
+  (interactive "P")
+  (let ((on-p (if arg
+		  (> (prefix-numeric-value arg) 0)
+		(not partial-completion-mode))))
+    ;; Deal with key bindings...
+    (PC-bindings on-p)
+    ;; Deal with wildcard file feature...
+    (cond ((not on-p)
+	   (remove-hook 'find-file-not-found-hooks 'PC-try-load-many-files))
+	  ((not PC-disable-wildcards)
+	   (add-hook 'find-file-not-found-hooks 'PC-try-load-many-files)))
+    ;; Deal with include file feature...
+    (cond ((not on-p)
+	   (remove-hook 'find-file-not-found-hooks 'PC-look-for-include-file))
+	  ((not PC-disable-includes)
+	   (add-hook 'find-file-not-found-hooks 'PC-look-for-include-file)))
+    ;; ... with some underhand redefining.
+    (cond ((and (not on-p) (functionp PC-old-read-file-name-internal))
+	   (fset 'read-file-name-internal PC-old-read-file-name-internal))
+	  ((and (not PC-disable-includes) (not PC-old-read-file-name-internal))
+	   (setq PC-old-read-file-name-internal
+		 (symbol-function 'read-file-name-internal))
+	   (fset 'read-file-name-internal
+		 'PC-read-include-file-name-internal)))
+    ;; Finally set the mode variable.
+    (setq partial-completion-mode on-p)))
 
+(defun PC-bindings (bind)
+  (let ((completion-map minibuffer-local-completion-map)
+	(must-match-map minibuffer-local-must-match-map))
+    (cond ((not bind)
+	   ;; These bindings are the default bindings.  It would be better to
+	   ;; restore the previous bindings.
+	   (define-key completion-map "\t"	'minibuffer-complete)
+	   (define-key completion-map " "	'minibuffer-complete-word)
+	   (define-key completion-map "?"	'minibuffer-completion-help)
 
+	   (define-key must-match-map "\t"	'minibuffer-complete)
+	   (define-key must-match-map " "	'minibuffer-complete-word)
+	   (define-key must-match-map "\r"	'minibuffer-complete-and-exit)
+	   (define-key must-match-map "\n"	'minibuffer-complete-and-exit)
+	   (define-key must-match-map "?"	'minibuffer-completion-help)
+
+	   (define-key global-map "\e\t"	'complete-symbol))
+	  (PC-default-bindings
+	   (define-key completion-map "\t"	'PC-complete)
+	   (define-key completion-map " "	'PC-complete-word)
+	   (define-key completion-map "?"	'PC-completion-help)
+
+	   (define-key completion-map "\e\t"	'PC-complete)
+	   (define-key completion-map "\e "	'PC-complete-word)
+	   (define-key completion-map "\e\r"	'PC-force-complete-and-exit)
+	   (define-key completion-map "\e\n"	'PC-force-complete-and-exit)
+	   (define-key completion-map "\e?"	'PC-completion-help)
+
+	   (define-key must-match-map "\t"	'PC-complete)
+	   (define-key must-match-map " "	'PC-complete-word)
+	   (define-key must-match-map "\r"	'PC-complete-and-exit)
+	   (define-key must-match-map "\n"	'PC-complete-and-exit)
+	   (define-key must-match-map "?"	'PC-completion-help)
+
+	   (define-key must-match-map "\e\t"	'PC-complete)
+	   (define-key must-match-map "\e "	'PC-complete-word)
+	   (define-key must-match-map "\e\r"	'PC-complete-and-exit)
+	   (define-key must-match-map "\e\n"	'PC-complete-and-exit)
+	   (define-key must-match-map "\e?"	'PC-completion-help)
+
+	   (define-key global-map "\e\t"	'PC-lisp-complete-symbol)))))
+
+;; Because the `partial-completion-mode' option is defined before the
+;; `partial-completion-mode' command and its callee, we give the former a
+;; default `:initialize' keyword value.  Otherwise, the `:set' keyword value
+;; would be called to initialise the variable value, and that would call the
+;; as-yet undefined `partial-completion-mode' function.
+;; Since the default `:initialize' keyword value (obviously) does not turn on
+;; Partial Completion Mode, we do that here, once the `partial-completion-mode'
+;; function and its callee are defined.
+(when partial-completion-mode
+  (partial-completion-mode t))
+
 (defun PC-complete ()
   "Like minibuffer-complete, but allows \"b--di\"-style abbreviations.
 For example, \"M-x b--di\" would match `byte-recompile-directory', or any
@@ -606,25 +715,25 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 (defvar PC-not-minibuffer nil)
 
-(defun PC-temp-minibuffer-message (m)
+(defun PC-temp-minibuffer-message (message)
   "A Lisp version of `temp_minibuffer_message' from minibuf.c."
-  (if PC-not-minibuffer
-      (progn
-	(message m)
-	(sit-for 2)
-	(message ""))
-    (if (fboundp 'temp-minibuffer-message)
-	(temp-minibuffer-message m)
-      (let ((savemax (point-max)))
-	(save-excursion
-	  (goto-char (point-max))
-	  (insert m))
-	(let ((inhibit-quit t))
-	  (sit-for 2)
-	  (delete-region savemax (point-max))
-	  (if quit-flag
-	      (setq quit-flag nil
-		    unread-command-char 7)))))))
+  (cond (PC-not-minibuffer
+	 (message message)
+	 (sit-for 2)
+	 (message ""))
+	((fboundp 'temp-minibuffer-message)
+	 (temp-minibuffer-message message))
+	(t
+	 (let ((point-max (point-max)))
+	   (save-excursion
+	     (goto-char point-max)
+	     (insert message))
+	   (let ((inhibit-quit t))
+	     (sit-for 2)
+	     (delete-region point-max (point-max))
+	     (when quit-flag
+	       (setq quit-flag nil
+		     unread-command-events '(7))))))))
 
 
 (defun PC-lisp-complete-symbol ()
@@ -729,13 +838,6 @@ or properties are considered."
       (let ((files (read (current-buffer))))
 	(kill-buffer (current-buffer))
 	files))))
-
-(or PC-disable-wildcards
-    (memq 'PC-try-load-many-files find-file-not-found-hooks)
-    (setq find-file-not-found-hooks (cons 'PC-try-load-many-files
-					  find-file-not-found-hooks)))
-
-
 
 ;;; Facilities for loading C header files.  This is independent from the
 ;;; main completion code.  See also the variable `PC-include-file-path'
@@ -866,8 +968,6 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq sorted (cdr sorted)))
 	compressed))))
 
-(defvar PC-old-read-file-name-internal nil)
-
 (defun PC-read-include-file-name-internal (string dir action)
   (if (string-match "<\\([^\"<>]*\\)>?$" string)
       (let* ((name (substring string (match-beginning 1) (match-end 1)))
@@ -883,20 +983,8 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	 ((eq action 'lambda)
 	  (eq (try-completion str2 completion-table nil) t))))
     (funcall PC-old-read-file-name-internal string dir action)))
-
-(or PC-disable-includes
-    (memq 'PC-look-for-include-file find-file-not-found-hooks)
-    (setq find-file-not-found-hooks (cons 'PC-look-for-include-file
-					  find-file-not-found-hooks)))
-
-(or PC-disable-includes
-    PC-old-read-file-name-internal
-    (progn
-      (setq PC-old-read-file-name-internal
-	    (symbol-function 'read-file-name-internal))
-      (fset 'read-file-name-internal 'PC-read-include-file-name-internal)))
-
 
+
 (provide 'complete)
 
 ;;; End.
