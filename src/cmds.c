@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -150,15 +150,19 @@ With positive N, a non-empty line at the end counts as one line\n\
   return make_number (count <= 0 ? - shortage : shortage);
 }
 
-DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line,
-  0, 1, "p",
-  "Move point to beginning of current line.\n\
-With argument N not nil or 1, move forward N - 1 lines first.\n\
-If point reaches the beginning or end of buffer, it stops there.\n\
-This command does not move point across a field boundary\n\
-unless it would move beyond there to a different line.\n\
-If N is nil or 1, and point starts at a field boundary, point does not move.")
-  (n)
+DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "p",
+       doc: /* Move point to beginning of current line.
+With argument N not nil or 1, move forward N - 1 lines first.
+If point reaches the beginning or end of buffer, it stops there.
+
+This command does not move point across a field boundary unless doing so
+would move beyond there to a different line; If N is nil or 1, and point
+starts at a field boundary, point does not move.  To ignore field
+boundaries, either bind `inhibit-field-text-motion' to t, or use the
+`forward-line' function instead.  For instance, `(forward-line 0)' does
+the same thing as `(beginning-of-line)', except that it ignores field
+boundaries.  */) 
+     (n)
      Lisp_Object n;
 {
   if (NILP (n))
@@ -171,15 +175,16 @@ If N is nil or 1, and point starts at a field boundary, point does not move.")
   return Qnil;
 }
 
-DEFUN ("end-of-line", Fend_of_line, Send_of_line,
-  0, 1, "p",
-  "Move point to end of current line.\n\
-With argument N not nil or 1, move forward N - 1 lines first.\n\
-If point reaches the beginning or end of buffer, it stops there.\n\
-This command does not move point across a field boundary\n\
-unless it would move beyond there to a different line.\n\
-If N is nil or 1, and point starts at a field boundary, point does not move.")
-  (n)
+DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "p",
+       doc: /* Move point to end of current line.
+With argument N not nil or 1, move forward N - 1 lines first.
+If point reaches the beginning or end of buffer, it stops there.
+
+This command does not move point across a field boundary unless doing so
+would move beyond there to a different line; if N is nil or 1, and
+point starts at a field boundary, point does not move.  To ignore field
+boundaries bind `inhibit-field-text-motion' to t.  */)
+     (n)
      Lisp_Object n;
 {
   if (NILP (n))
