@@ -1479,10 +1479,6 @@ command_loop_1 ()
          this variable differently.  */
       Vdisable_point_adjustment = Qnil;
 
-      /* Process filters and timers may have messed with deactivate-mark.
-	 reset it before we execute the command. */
-      Vdeactivate_mark = Qnil;
-
       /* Execute the command.  */
 
       Vthis_command = cmd;
@@ -4021,17 +4017,18 @@ timer_check (do_it_now)
 	  if (NILP (vector[0]))
 	    {
 	      int was_locked = single_kboard;
-	      int count = specpdl_ptr - specpdl;
+	      int count = BINDING_STACK_SIZE ();
+	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
 
 	      specbind (Qinhibit_quit, Qt);
-
+	      
 	      call1 (Qtimer_event_handler, chosen_timer);
+	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
-
 	      unbind_to (count, Qnil);
 
 	      /* Resume allowing input from any kboard, if that was true before.  */
