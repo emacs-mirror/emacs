@@ -837,6 +837,7 @@ a case-insensitive match is tried."
       (while buffers
 	(kill-buffer (car buffers))
 	(setq buffers (cdr buffers)))
+      (if Info-fontify (Info-fontify-menu-headers))
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
@@ -2385,6 +2386,27 @@ the variable `Info-file-list-for-emacs'."
   "Face for Info titles at level 4."
   :group 'info)
 
+(defface info-menu-header
+  '((((type tty pc))
+     :underline t
+     :weight bold)
+    (t
+     :inherit variable-pitch
+     :weight bold))
+  "Face for headers in Info menus."
+  :group 'info)
+
+(defun Info-fontify-menu-headers ()
+  "Add the face `info-menu-header' to any header before a menu entry."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "\\* Menu:" nil t)
+      (put-text-property (match-beginning 0) (match-end 0)
+			 'face 'info-menu-header)
+      (while (re-search-forward "\n\n\\([^*\n ].*\\)\n\n?[*]" nil t)
+	(put-text-property (match-beginning 1) (match-end 1)
+			   'face 'info-menu-header)))))
+
 (defun Info-fontify-node ()
   (save-excursion
     (let ((buffer-read-only nil)
@@ -2456,6 +2478,7 @@ the variable `Info-file-list-for-emacs'."
 				   '(face info-xref
 				     mouse-face highlight
 				     help-echo "mouse-2: go to this node")))))
+      (Info-fontify-menu-headers)
       (set-buffer-modified-p nil))))
 
 
