@@ -1,10 +1,15 @@
+2001-07-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/compile.el (compilation-parse-errors): `linenum' might
+	return a this-error using the alternative format (a pair of markers).
+
 2001-07-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (c++-keywords): Add Standard C++ operator names.
 
 	* mail/mh-utils.el (mh-find-progs): Also search in `lib'.
 	From Mats Bengtsson <mats.bengtsson@s3.kth.se>,
-	
+
 2001-07-17  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/iso-transl.el: Fix typo in the header of the file.
@@ -16,7 +21,7 @@
 
 2001-07-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* toolbar/tool-bar.el (tool-bar-add-item-from-menu) 
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu)
 	(tool-bar-add-item): Don't call image-related primitives if the
 	display doesn't support images.
 
@@ -34,8 +39,8 @@
 
 2000-07-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
-	* server.el (server-process-filter, server-visit-files): Add
-	support for +LINE:COLUMN style emacsclient calls.
+	* server.el (server-process-filter, server-visit-files):
+	Add support for +LINE:COLUMN style emacsclient calls.
 
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -46,6 +51,14 @@
 	* play/landmark.el: Author is no more reachable.
 
 	* play/handwrite.el: Author is no more reachable.
+
+2001-07-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* term/sun.el (ignore-key, sun-esc-bracket, meta-flag): Remove.
+	(sun-raw-prefix): Replace t3, t4, t6, and t7 with f3, f4, f6 and f7.
+	Complete bindings for F<1..12> keys.
+	(global-map): Remove `undo' binding (already in the default).
+	Replace `t<n>' bindings with `f<n>' bindings.
 
 2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
