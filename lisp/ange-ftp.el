@@ -3772,7 +3772,8 @@ system TYPE.")
 		(funcall 'load copy noerror nomessage nosuffix)
 	      (delete-file copy))
 	  (or noerror
-	      (signal 'file-error (list "Cannot open load file" file)))))
+	      (signal 'file-error (list "Cannot open load file" file)))
+	  nil))
     (ange-ftp-real-load file noerror nomessage nosuffix)))
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
