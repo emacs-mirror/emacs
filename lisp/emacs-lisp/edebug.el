@@ -593,7 +593,7 @@ or if an error occurs, leave point after it with mark at the original point."
 
 (make-variable-buffer-local 'edebug-form-data)
 
-(defconst edebug-form-data nil)
+(defvar edebug-form-data nil)
 ;; A list of entries associating symbols with buffer regions.
 ;; This is an automatic buffer local variable.  Each entry looks like:
 ;; @code{(@var{symbol} @var{begin-marker} @var{end-marker}).  The markers
@@ -680,7 +680,7 @@ or if an error occurs, leave point after it with mark at the original point."
 (defconst edebug-read-syntax-table
   ;; Lookup table for significant characters indicating the class of the
   ;; token that follows.  This is not a \"real\" syntax table.
-  (let ((table (make-vector 256 'symbol))
+  (let ((table (make-char-table 'syntax-table 'symbol))
 	(i 0))
     (while (< i ?!)
       (aset table i 'space)
@@ -753,17 +753,17 @@ or if an error occurs, leave point after it with mark at the original point."
 ;; or for structures that have elements: (before <subexpressions> . after)
 ;; where the <subexpressions> are the offset structures for subexpressions
 ;; including the head of a list.
-(defconst edebug-offsets nil)
+(defvar edebug-offsets nil)
 
 ;; Stack of offset structures in reverse order of the nesting.
 ;; This is used to get back to previous levels.
-(defconst edebug-offsets-stack nil)
-(defconst edebug-current-offset nil) ; Top of the stack, for convenience.
+(defvar edebug-offsets-stack nil)
+(defvar edebug-current-offset nil) ; Top of the stack, for convenience.
 
 ;; We must store whether we just read a list with a dotted form that
 ;; is itself a list.  This structure will be condensed, so the offsets
 ;; must also be condensed.
-(defconst edebug-read-dotted-list nil)
+(defvar edebug-read-dotted-list nil)
 
 (defsubst edebug-initialize-offsets ()
   ;; Reinitialize offset recording.
@@ -1063,11 +1063,11 @@ This controls how we read comma constructs.")
 (defvar edebug-&rest)
 (defvar edebug-gate nil) ;; whether no-match forces an error.
 
-(defconst edebug-def-name nil) ; name of definition, used by interactive-form
-(defconst edebug-old-def-name nil) ; previous name of containing definition.
+(defvar edebug-def-name nil) ; name of definition, used by interactive-form
+(defvar edebug-old-def-name nil) ; previous name of containing definition.
 
-(defconst edebug-error-point nil)
-(defconst edebug-best-error nil)
+(defvar edebug-error-point nil)
+(defvar edebug-best-error nil)
 
 
 (defun edebug-read-and-maybe-wrap-form ()
@@ -2853,8 +2853,6 @@ MSG is printed after `::::} '."
 	      ;; others??
 	      )
 
-	  (if (fboundp 'zmacs-deactivate-region);; for lemacs
-	      (zmacs-deactivate-region))
 	  (if (and (eq edebug-execution-mode 'go)
 		   (not (memq edebug-arg-mode '(after error))))
 	      (message "Break"))
@@ -4328,83 +4326,9 @@ With prefix argument, make it a temporary breakpoint."
 
 ;; Epoch specific code was in a separate file: edebug-epoch.el.
 
-;; The byte-compiler will complain about changes in number of arguments
-;; to functions like mark and read-from-minibuffer.  These warnings
-;; may be ignored because the right call should always be made.
+(easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
 
-
-(defun edebug-lemacs-specific ()
-
-  ;; We need to bind zmacs-regions to nil around all calls to `mark' and
-  ;; `mark-marker' but don't bind it to nil before entering a recursive edit,
-  ;; that is, don't interfere with the binding the user might see while 
-  ;; executing a command.
-
-  (defvar zmacs-regions)
-  
-  (defun edebug-mark ()
-    (let ((zmacs-regions nil))
-      (mark)))
-
-  (defun edebug-window-live-p (window)
-    "Return non-nil if WINDOW is visible."
-    (get-window-with-predicate (lambda (w) (eq w window))))
-
-  (defun edebug-mark-marker ()
-    (let ((zmacs-regions nil));; for lemacs
-      (mark-marker)))
-
-  ;; no read-expression-history
-  (defun edebug-set-conditional-breakpoint (arg condition)
-    "Set a conditional breakpoint at nearest sexp.
-The condition is evaluated in the outside context.
-With prefix argument, make it a temporary breakpoint."
-    ;; (interactive "P\nxCondition: ")
-    (interactive 
-     (list
-      current-prefix-arg
-      ;; Edit previous condition as follows, but it is cumbersome:
-      (let ((edebug-stop-point (edebug-find-stop-point)))
-	(if edebug-stop-point
-	    (let* ((edebug-def-name (car edebug-stop-point))
-		   (index (cdr edebug-stop-point))
-		   (edebug-data (get edebug-def-name 'edebug))
-		   (edebug-breakpoints (car (cdr edebug-data)))
-		   (edebug-break-data (assq index edebug-breakpoints))
-		   (edebug-break-condition (car (cdr edebug-break-data))))
-	      (read-minibuffer 
-	       (format "Condition in %s: " edebug-def-name)
-	       (if edebug-break-condition
-		   (format "%s" edebug-break-condition)
-		 (format ""))))))))
-    (edebug-modify-breakpoint t condition arg))
-
-  (defun edebug-eval-expression (edebug-expr)
-    "Evaluate an expression in the outside environment.  
-If interactive, prompt for the expression.
-Print result in minibuffer."
-    (interactive "xEval: ")
-    (princ
-     (edebug-outside-excursion
-      (setq values (cons (edebug-eval edebug-expr) values))
-      (edebug-safe-prin1-to-string (car values)))))
-
-  (defun edebug-mode-menu (event)
-    (interactive "@event")
-    (popup-menu edebug-mode-menus))
-
-  (define-key edebug-mode-map 'button3 'edebug-mode-menu)
-  )
-
-(cond 
- ((string-match "Lucid" emacs-version) ;; Lucid Emacs
-  (edebug-lemacs-specific))
- (t
-
-  (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-
-  (if (display-popup-menus-p)
-      (x-popup-menu nil (lookup-key edebug-mode-map [menu-bar Edebug])))))
+(if (display-popup-menus-p) (x-popup-menu nil edebug-menu))
 
 ;;; Byte-compiler
 
