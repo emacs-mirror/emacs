@@ -1,3 +1,7 @@
+2003-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (base64_encode_1): Fix previous change.
+
 2003-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_face): Create a fallback fontset on demand
