@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-;; Author: Eli Zaretskii <eliz@is.elta.co.il>
+;; Author: Eli Zaretskii
 ;; Maintainer: FSF
 ;; Keywords: terminals, faces
 
