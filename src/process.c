@@ -4790,6 +4790,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
+  stop_polling ();
   turn_on_atimers (0);
 
   while (1)
