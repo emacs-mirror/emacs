@@ -974,6 +974,7 @@ merge in the changes into your working copy."
    (and override
 	(read-string
 	 (format "Initial version level for %s: " buffer-file-name))))
+  (setq vc-buffer-backend (vc-backend (buffer-file-name)))
   )
 
 (defun vc-resynch-window (file &optional keep noquery)
