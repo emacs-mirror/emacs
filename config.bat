@@ -162,10 +162,10 @@ rem   Create "makefile" from "makefile.in".
 rm -f Makefile junk.c
 sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
 If "%DJGPP_VER%" == "1" Goto mfV1
-gcc -E junk.c | sed -f ../msdos/sed1v2.inp >Makefile
+gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >Makefile
 goto mfDone
 :mfV1
-gcc -E junk.c | sed -f ../msdos/sed1.inp >Makefile
+gcc -E -traditional junk.c | sed -f ../msdos/sed1.inp >Makefile
 :mfDone
 rm -f junk.c
 
@@ -186,7 +186,7 @@ Echo Configuring the library source directory...
 cd lib-src
 rem   Create "makefile" from "makefile.in".
 sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
-gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
+gcc -E -traditional -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
 If "%DJGPP_VER%" == "2" goto libsrc-v2
 sed -f ../msdos/sed3.inp <makefile.new >Makefile
 Goto libsrc2
