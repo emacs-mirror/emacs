@@ -1,3 +1,11 @@
+2003-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network, Network Servers): Fix typos.
+	(Low-Level Network): Add timeout value for :server keyword.
+	Add new option keywords to make-network-process.
+	Add set-network-process-options.
+	Explain how to test availability of network options.
+
 2003-09-19  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Motion by Indent): Arg to

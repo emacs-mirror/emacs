@@ -1,3 +1,10 @@
+2003-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (set_socket_option): Fix :bindtodevice option.
+	(Fset_network_process_option): Update process contact list when
+	setting option succeeds.
+	(Fmake_network_process): Doc fix.
+
 2003-09-23  Dave Love  <fx@gnu.org>
 
 	* process.c (Fnetwork_interface_info): Use
