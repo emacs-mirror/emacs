@@ -2620,6 +2620,7 @@ extern int overlay_touches_p P_ ((int));
 extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
 EXFUN (Fget_buffer, 1);
 EXFUN (Fget_buffer_create, 1);
+EXFUN (Fgenerate_new_buffer_name, 2);
 EXFUN (Fset_buffer, 1);
 EXFUN (set_buffer_if_live, 1);
 EXFUN (Fbarf_if_buffer_read_only, 0);
