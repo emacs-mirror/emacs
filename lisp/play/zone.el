@@ -30,13 +30,13 @@
 ;; If it eventually irritates you, try M-x zone-leave-me-alone.
 
 ;; Bored by the zone pyrotechnics?  Write your own!  Add it to
-;; `zone-programs'.
+;; `zone-programs'.  See `zone-call' for higher-ordered zoning.
 
 ;; WARNING: Not appropriate for Emacs sessions over modems or
 ;; computers as slow as mine.
 
 ;; THANKS: Christopher Mayer, Scott Flinchbaugh, Rachel Kalmar,
-;; Max Froumentin.
+;;         Max Froumentin.
 
 ;;; Code:
 
@@ -46,6 +46,10 @@
 
 (defvar zone-idle 20
   "*Seconds to idle before zoning out.")
+
+(defvar zone-timeout nil
+  "*Seconds to timeout the zoning.
+If nil, don't interrupt for about 1^26 seconds.")
 
 ;; Vector of functions that zone out.  `zone' will execute one of
 ;; these functions, randomly chosen.  The chosen function is invoked
@@ -57,7 +61,7 @@
                        zone-pgm-jitter
                        zone-pgm-putz-with-case
                        zone-pgm-dissolve
-		       ;; zone-pgm-explode
+                       ;; zone-pgm-explode
                        zone-pgm-whack-chars
                        zone-pgm-rotate
                        zone-pgm-rotate-LR-lockstep
@@ -70,11 +74,59 @@
                        zone-pgm-martini-swan-dive
                        zone-pgm-paragraph-spaz
                        zone-pgm-stress
+                       zone-pgm-stress-destress
                        ])
 
 (defmacro zone-orig (&rest body)
   `(with-current-buffer (get 'zone 'orig-buffer)
      ,@body))
+
+(defmacro zone-hiding-modeline (&rest body)
+  `(let (bg mode-line-fg mode-line-bg mode-line-box)
+     (unwind-protect
+         (progn
+           (when (and (= 0 (get 'zone 'modeline-hidden-level))
+                      (display-color-p))
+             (setq bg (face-background 'default)
+                   mode-line-box (face-attribute 'mode-line :box)
+                   mode-line-fg (face-attribute 'mode-line :foreground)
+                   mode-line-bg (face-attribute 'mode-line :background))
+             (set-face-attribute 'mode-line nil
+                                 :foreground bg
+                                 :background bg
+                                 :box nil))
+           (put 'zone 'modeline-hidden-level
+                (1+ (get 'zone 'modeline-hidden-level)))
+           ,@body)
+       (put 'zone 'modeline-hidden-level
+            (1- (get 'zone 'modeline-hidden-level)))
+       (when (and (> 1 (get 'zone 'modeline-hidden-level))
+                  mode-line-fg)
+         (set-face-attribute 'mode-line nil
+                             :foreground mode-line-fg
+                             :background mode-line-bg
+                             :box mode-line-box)))))
+
+(defun zone-call (program &optional timeout)
+  "Call PROGRAM in a zoned way.
+If PROGRAM is a function, call it, interrupting after the amount
+ of time in seconds specified by optional arg TIMEOUT, or `zone-timeout'
+ if unspecified, q.v.
+PROGRAM can also be a list of elements, which are interpreted like so:
+If the element is a function or a list of a function and a number,
+ apply `zone-call' recursively."
+  (cond ((functionp program)
+         (with-timeout ((or timeout zone-timeout (ash 1 26)))
+           (funcall program)))
+        ((listp program)
+         (mapcar (lambda (elem)
+                   (cond ((functionp elem) (zone-call elem))
+                         ((and (listp elem)
+                               (functionp (car elem))
+                               (numberp (cadr elem)))
+                          (apply 'zone-call elem))
+                         (t (error "bad `zone-call' elem:" elem))))
+                 program))))
 
 ;;;###autoload
 (defun zone ()
@@ -89,6 +141,7 @@
         (wp (1+ (- (window-point (selected-window))
                    (window-start)))))
     (put 'zone 'orig-buffer (current-buffer))
+    (put 'zone 'modeline-hidden-level 0)
     (set-buffer outbuf)
     (setq mode-name "Zone")
     (erase-buffer)
@@ -112,7 +165,7 @@
             ;; input before zoning out.
             (if (input-pending-p)
                 (discard-input))
-            (funcall pgm)
+            (zone-call pgm)
             (message "Zoning...sorry"))
         (error
          (while (not (input-pending-p))
@@ -149,10 +202,10 @@
 
 (defun zone-shift-up ()
   (let* ((b (point))
-	 (e (progn
-	      (end-of-line)
-	      (if (looking-at "\n") (1+ (point)) (point))))
-	 (s (buffer-substring b e)))
+         (e (progn
+              (end-of-line)
+              (if (looking-at "\n") (1+ (point)) (point))))
+         (s (buffer-substring b e)))
     (delete-region b e)
     (goto-char (point-max))
     (insert s)))
@@ -162,10 +215,10 @@
   (forward-line -1)
   (beginning-of-line)
   (let* ((b (point))
-	 (e (progn
-	      (end-of-line)
-	      (if (looking-at "\n") (1+ (point)) (point))))
-	 (s (buffer-substring b e)))
+         (e (progn
+              (end-of-line)
+              (if (looking-at "\n") (1+ (point)) (point))))
+         (s (buffer-substring b e)))
     (delete-region b e)
     (goto-char (point-min))
     (insert s)))
@@ -173,20 +226,20 @@
 (defun zone-shift-left ()
   (while (not (eobp))
     (or (eolp)
-	(let ((c (following-char)))
-	  (delete-char 1)
-	  (end-of-line)
-	  (insert c)))
+        (let ((c (following-char)))
+          (delete-char 1)
+          (end-of-line)
+          (insert c)))
     (forward-line 1)))
 
 (defun zone-shift-right ()
   (while (not (eobp))
     (end-of-line)
     (or (bolp)
-	(let ((c (preceding-char)))
-	  (delete-backward-char 1)
-	  (beginning-of-line)
-	  (insert c)))
+        (let ((c (preceding-char)))
+          (delete-backward-char 1)
+          (beginning-of-line)
+          (insert c)))
     (forward-line 1)))
 
 (defun zone-pgm-jitter ()
@@ -216,14 +269,14 @@
   (let ((tbl (copy-sequence (get 'zone-pgm-whack-chars 'wc-tbl))))
     (while (not (input-pending-p))
       (let ((i 48))
-	(while (< i 122)
-	  (aset tbl i (+ 48 (random (- 123 48))))
-	  (setq i (1+ i)))
-	(translate-region (point-min) (point-max) tbl)
-	(sit-for 0 2)))))
+        (while (< i 122)
+          (aset tbl i (+ 48 (random (- 123 48))))
+          (setq i (1+ i)))
+        (translate-region (point-min) (point-max) tbl)
+        (sit-for 0 2)))))
 
 (put 'zone-pgm-whack-chars 'wc-tbl
-     (let ((tbl (make-vector 128 ?x))
+     (let ((tbl (make-string 128 ?x))
            (i 0))
        (while (< i 128)
          (aset tbl i i)
@@ -237,17 +290,17 @@
     (while working
       (setq working nil)
       (save-excursion
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (if (looking-at "[^(){}\n\t ]")
-	      (let ((n (random 5)))
-		(if (not (= n 0))
-		    (progn
-		      (setq working t)
-		      (forward-char 1))
-		  (delete-char 1)
-		  (insert " ")))
-	    (forward-char 1))))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (if (looking-at "[^(){}\n\t ]")
+              (let ((n (random 5)))
+                (if (not (= n 0))
+                    (progn
+                      (setq working t)
+                      (forward-char 1))
+                  (delete-char 1)
+                  (insert " ")))
+            (forward-char 1))))
       (sit-for 0 2))))
 
 (defun zone-pgm-dissolve ()
@@ -261,14 +314,14 @@
   (let ((i 0))
     (while (< i 20)
       (save-excursion
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (if (looking-at "[^*\n\t ]")
-	      (let ((n (random 5)))
-		(if (not (= n 0))
-		    (forward-char 1))
-		(insert " ")))
-	  (forward-char 1)))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (if (looking-at "[^*\n\t ]")
+              (let ((n (random 5)))
+                (if (not (= n 0))
+                    (forward-char 1))
+                (insert " ")))
+          (forward-char 1)))
       (setq i (1+ i))
       (sit-for 0 2)))
   (zone-pgm-jitter))
@@ -285,25 +338,25 @@
 ;; less interesting effect than you might imagine.
 (defun zone-pgm-2nd-putz-with-case ()
   (let ((tbl (make-string 128 ?x))
-	(i 0))
+        (i 0))
     (while (< i 128)
       (aset tbl i i)
       (setq i (1+ i)))
     (while (not (input-pending-p))
       (setq i ?a)
       (while (<= i ?z)
-	(aset tbl i
-	      (if (zerop (random 5))
-		  (upcase i)
-		(downcase i)))
-	(setq i (+ i (1+ (random 5)))))
+        (aset tbl i
+              (if (zerop (random 5))
+                  (upcase i)
+                (downcase i)))
+        (setq i (+ i (1+ (random 5)))))
       (setq i ?A)
       (while (<= i ?z)
-	(aset tbl i
-	      (if (zerop (random 5))
-		  (downcase i)
-		(upcase i)))
-	(setq i (+ i (1+ (random 5)))))
+        (aset tbl i
+              (if (zerop (random 5))
+                  (downcase i)
+                (upcase i)))
+        (setq i (+ i (1+ (random 5)))))
       (translate-region (point-min) (point-max) tbl)
       (sit-for 0 2))))
 
@@ -311,18 +364,18 @@
   (goto-char (point-min))
   (while (not (input-pending-p))
     (let ((np (+ 2 (random 5)))
-	  (pm (point-max)))
+          (pm (point-max)))
       (while (< np pm)
-	(goto-char np)
+        (goto-char np)
         (let ((prec (preceding-char))
               (props (text-properties-at (1- (point)))))
           (insert (if (zerop (random 2))
                       (upcase prec)
                     (downcase prec)))
           (set-text-properties (1- (point)) (point) props))
-	(backward-char 2)
-	(delete-char 1)
-	(setq np (+ np (1+ (random 5))))))
+        (backward-char 2)
+        (delete-char 1)
+        (setq np (+ np (1+ (random 5))))))
     (goto-char (point-min))
     (sit-for 0 2)))
 
@@ -334,9 +387,9 @@
     (save-excursion
       (goto-char (window-start))
       (while (< (point) (window-end))
-	(when (looking-at "[\t ]*\\([^\n]+\\)")
-	  (setq ret (cons (cons (match-beginning 1) (match-end 1)) ret)))
-	(forward-line 1)))
+        (when (looking-at "[\t ]*\\([^\n]+\\)")
+          (setq ret (cons (cons (match-beginning 1) (match-end 1)) ret)))
+        (forward-line 1)))
     ret))
 
 (defun zone-pgm-rotate (&optional random-style)
@@ -413,7 +466,7 @@
 (defun zone-fall-through-ws (c col wend)
   (let ((fall-p nil)                    ; todo: move outward
         (wait 0.15)
-        (o (point))		     ; for terminals w/o cursor hiding
+        (o (point))                     ; for terminals w/o cursor hiding
         (p (point)))
     (while (progn
              (forward-line 1)
@@ -447,15 +500,14 @@
           (delete-char (- ww cc))))
       (unless (eobp)
         (forward-char 1)))
-    ;; what the hell is going on here?
+    ;; pad ws past bottom of screen
     (let ((nl (- wh (count-lines (point-min) (point)))))
       (when (> nl 0)
         (let ((line (concat (make-string (1- ww) ? ) "\n")))
           (do ((i 0 (1+ i)))
               ((= i nl))
             (insert line)))))
-    ;;
-    (catch 'done ;; ugh
+    (catch 'done
       (while (not (input-pending-p))
         (goto-char (point-min))
         (sit-for 0)
@@ -526,48 +578,50 @@
 
 (defun zone-pgm-stress ()
   (goto-char (point-min))
-  (let (lines bg mode-line-fg mode-line-bg mode-line-box)
+  (let (lines)
     (while (< (point) (point-max))
       (let ((p (point)))
         (forward-line 1)
         (setq lines (cons (buffer-substring p (point)) lines))))
     (sit-for 5)
-    (unwind-protect
-	(progn
-	  (when (display-color-p)
-	    (setq bg (face-background 'default)
-		  mode-line-box (face-attribute 'mode-line :box)
-		  mode-line-fg (face-attribute 'mode-line :foreground)
-		  mode-line-bg (face-attribute 'mode-line :background))
-	    (set-face-attribute 'mode-line nil
-				:foreground bg
-				:background bg
-				:box nil))
+    (zone-hiding-modeline
+     (let ((msg "Zoning... (zone-pgm-stress)"))
+       (while (not (string= msg ""))
+         (message (setq msg (substring msg 1)))
+         (sit-for 0.05)))
+     (while (not (input-pending-p))
+       (when (< 50 (random 100))
+         (goto-char (point-max))
+         (forward-line -1)
+         (let ((kill-whole-line t))
+           (kill-line))
+         (goto-char (point-min))
+         (insert (nth (random (length lines)) lines)))
+       (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
+       (sit-for 0.1)))))
 
-	  (let ((msg "Zoning... (zone-pgm-stress)"))
-	    (while (not (string= msg ""))
-	      (message (setq msg (substring msg 1)))
-	      (sit-for 0.05)))
 
-	  (while (not (input-pending-p))
-	    (when (< 50 (random 100))
-	      (goto-char (point-max))
-	      (forward-line -1)
-	      (unless (eobp)
-		(let ((kill-whole-line t))
-		  (kill-line)))
-	      (goto-char (point-min))
-	      (when lines
-		(insert (nth (random (1- (length lines))) lines))))
-	    (message (concat (make-string (random (- (frame-width) 5)) ? )
-			     "grrr"))
-	    (sit-for 0.1)))
-      (when mode-line-fg
-	(set-face-attribute 'mode-line nil
-			    :foreground mode-line-fg
-			    :background mode-line-bg
-			    :box mode-line-box)))))
+;;;; zone-pgm-stress-destress
 
+(defun zone-pgm-stress-destress ()
+  (zone-call 'zone-pgm-stress 25)
+  (zone-hiding-modeline
+   (sit-for 3)
+   (erase-buffer)
+   (sit-for 3)
+   (insert-buffer "*Messages*")
+   (message "")
+   (goto-char (point-max))
+   (recenter -1)
+   (sit-for 3)
+   (delete-region (point-min) (window-start))
+   (message "hey why stress out anyway?")
+   (zone-call '((zone-pgm-rotate         30)
+                (zone-pgm-whack-chars    10)
+                zone-pgm-drip))))
+
+
+;;;;;;;;;;;;;;;
 (provide 'zone)
 
 ;;; zone.el ends here
