@@ -1,5 +1,8 @@
 2000-07-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* data.c (Faset): Allow storing any multibyte character in a
+	string.  Convert unibyte string to multibyte if necessary.
+
 	* xfns.c (x_encode_text): New function.
 	(x_set_name): Use x_encode_text.
 	(x_set_title): Likewise.

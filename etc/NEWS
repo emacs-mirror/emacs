@@ -52,9 +52,10 @@ coding system detection algorithm should pay attention to ISO2022's
 escape sequences.  If this variable is non-nil, the algorithm ignores
 such escape sequences.  The default value is nil, and it is
 recommended not to change it except for the special case that you
-always want to read any escape code verbatimly.  If you just want to
+always want to read any escape code verbatim.  If you just want to
 read a specific file without decoding escape codes, use C-x RET c
-(`universal-coding-system-argument').
+(`universal-coding-system-argument').  For instance, C-x RET c latin-1
+RET C-x C-f filename RET.
 
 ** Variable `default-korean-keyboard' is initialized properly from the
 environment variable `HANGUL_KEYBOARD_TYPE'.
@@ -1285,6 +1286,10 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** Function `aset' stores any multibyte character in any string
+without signaling "Attempt to change char length of a string".  It may
+convert a unibyte string to multibyte if necessary.
 
 ** The value of the `help-echo' text property is called as a function
 or evaluated, if it is not a string already, to obtain a help string.
