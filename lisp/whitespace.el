@@ -592,7 +592,7 @@ Setting this variable directly does not take effect;
 use either \\[customize] or the function `whitespace-global-mode'
 \(which see)."
   :set (lambda (sym val)
-	 (whitespace-global-mode (or value 0)))
+	 (whitespace-global-mode (or val 0)))
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'whitespace
