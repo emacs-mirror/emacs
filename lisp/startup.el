@@ -295,10 +295,10 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	      (setq init-file-had-error nil))
 	  (error (message "Error in init file: %s%s%s"
 			  (get (car error) 'error-message)
-			  (if (cdr error) ": ")
+			  (if (cdr error) ": " "")
 			  (mapconcat 'prin1-to-string (cdr error) ", "))
 		 (setq init-file-had-error t))))
-      ;; If we can tell that the init file altered debug-on-error.,
+      ;; If we can tell that the init file altered debug-on-error,
       ;; arrange to preserve the value that it set up.
       (or (eq debug-on-error debug-on-error-initial)
 	  (setq debug-on-error-should-be-set t
