@@ -1,15 +1,29 @@
-2004-01-29 Tue  Jari Aalto  <jari.aalto <AT> poboxes.com>
+2004-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-        * progmodes/executable.el (executable-command-find-posix-p):
-        New.  Check if find handles arguments Posix-style.
+	* jit-lock.el (jit-lock-context-time, jit-lock-context-timer): New var.
+	(with-buffer-unmodified, with-buffer-prepared-for-jit-lock):
+	Add edebug info.
+	(jit-lock-mode): Setup/cancel the new timer.
+	(jit-lock-context-fontify): New fun.  Extracted from
+	context fontification code of jit-lock-stealth-fontify.
+	(jit-lock-stealth-fontify): Don't do context fontification any more.
 
-        * progmodes/grep.el (grep-compute-defaults):
+	* jit-lock.el (jit-lock-stealth-fontify): Allow quit.
+	(jit-lock-fontify-now): Handle the `quit' case.
+	(jit-lock-contextually): Rename from jit-lock-defer-contextually.
+
+2004-01-29  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* progmodes/executable.el (executable-command-find-posix-p):
+	New.  Check if find handles arguments Posix-style.
+
+	* progmodes/grep.el (grep-compute-defaults):
 	Use executable-command-find-posix-p.
-        (grep-find): Check `grep-find-command'.
+	(grep-find): Check `grep-find-command'.
 
-	* filecache.el (file-cache-find-posix-p): Deleted.
+	* filecache.el (file-cache-find-posix-p): Delete.
 	(file-cache-add-directory-using-find):
-	Use `executable-command-find-posix-p' 
+	Use `executable-command-find-posix-p'.
 
 2004-01-29  Dave Love  <fx@gnu.org>
 
