@@ -200,22 +200,6 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
-;; Fixme: This should use mailcap.
-(defcustom dired-view-command-alist
-  '(("\\.\\(ps\\|ps_pages\\|eps\\)\\'" . "gv %s")
-    ("\\.pdf\\'" . "xpdf %s")
-    ;; ("\\.pod\\'" . "perldoc %s")
-    ("\\.\\(jpe?g\\|gif\\|png\\)\\'" . "eog %s")
-    ("\\.dvi\\'" . "xdvi %s"))
-  "Alist specifying how to view special types of files.
-Each element has the form (REGEXP . SHELL-COMMAND).
-When the file name matches REGEXP, `dired-view-file'
-invokes SHELL-COMMAND to view the file, processing it through `format'.
-Use `%s' in SHELL-COMMAND to specify where to put the file name."
-  :group 'dired
-  :type '(alist :key-type regexp :value-type string)
-  :version "21.4")
-
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -1666,41 +1650,20 @@ Creates a buffer if necessary."
 	    (progn
 	      (select-window window)
 	      (dired-other-window file)))
-      (let (cmd)
-	;; Look for some other way to view a certain file.
-	(dolist (elt dired-view-command-alist)
-	  (if (string-match (car elt) file)
-	      (setq cmd (cdr elt))))
-	(if cmd
-	    (call-process shell-file-name nil 0 nil
-			  "-c"
-			  (concat (format cmd (shell-quote-argument file))
-				  " &"))
-	  (select-window window)
-	  (find-file-other-window (file-name-sans-versions file t)))))))
+      (select-window window)
+      (find-file-other-window (file-name-sans-versions file t)))))
 
 (defun dired-view-file ()
   "In Dired, examine a file in view mode, returning to dired when done.
 When file is a directory, show it in this buffer if it is inserted.
-Some kinds of files are displayed using external viewer programs;
-see `dired-view-command-alist'.  Otherwise, display it in another buffer."
+Otherwise, display it in another buffer."
   (interactive)
   (let ((file (dired-get-file-for-visit)))
     (if (file-directory-p file)
 	(or (and (cdr dired-subdir-alist)
 		 (dired-goto-subdir file))
 	    (dired file))
-      (let (cmd)
-	;; Look for some other way to view a certain file.
-	(dolist (elt dired-view-command-alist)
-	  (if (string-match (car elt) file)
-	      (setq cmd (cdr elt))))
-	(if cmd
-	    (call-process shell-file-name nil 0 nil
-			  "-c"
-			  (concat (format cmd (shell-quote-argument file))
-				  " &"))
-	  (view-file file))))))
+      (view-file file))))
 
 (defun dired-find-file-other-window ()
   "In Dired, visit this file or directory in another window."
