@@ -1,3 +1,8 @@
+2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Doc fix.  From Pavel
+        Jan,Bm(Bk <Pavel@Janik.cz>.
+
 2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/w32-win.el (x-colors): Add colors from the recent rgb.txt
