@@ -1,3 +1,11 @@
+2001-11-14  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c [!defined MAP_ANON]: Define MAP_ANON to MAP_ANONYMOUS
+	if defined, 0 otherwise.
+	(MAP_FAILED): Define if not defined and use it for testing mmap
+	failure.
+	(unexec) [!MAP_ANON]: Use /dev/zero as file to map.
+
 2001-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* indent.c (current_column_1): Fix handling of scan_bytes for mb chars.

@@ -434,6 +434,18 @@ extern void fatal (char *, ...);
 #include <syms.h> /* for HDRR declaration */
 #endif /* __sgi */
 
+#ifndef MAP_ANON
+#ifdef MAP_ANONYMOUS
+#define MAP_ANON MAP_ANONYMOUS
+#else
+#define MAP_ANON 0
+#endif
+#endif
+
+#ifndef MAP_FAILED
+#define MAP_FAILED ((void *) -1)
+#endif
+
 #if defined (__alpha__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
 /* Declare COFF debugging symbol table.  This used to be in
    /usr/include/sym.h, but this file is no longer included in Red Hat
@@ -649,6 +661,12 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
 
+#if MAP_ANON == 0
+  int mmap_fd;
+#else
+# define mmap_fd -1
+#endif
+
   /* Pointers to the file, program and section headers for the old and
      new files.  */
   ElfW(Ehdr) *old_file_h, *new_file_h;
@@ -681,14 +699,20 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (fstat (old_file, &stat_buf) == -1)
     fatal ("Can't fstat (%s): errno %d\n", old_name, errno);
 
+#if MAP_ANON == 0
+  mmap_fd = open ("/dev/zero", O_RDONLY);
+  if (mmap_fd < 0)
+    fatal ("Can't open /dev/zero for reading: errno %d\n", errno);
+#endif
+
   /* We cannot use malloc here because that may use sbrk.  If it does,
      we'd dump our temporary buffers with Emacs, and we'd have to be
      extra careful to use the correct value of sbrk(0) after
      allocating all buffers in the code below, which we aren't.  */
   old_file_size = stat_buf.st_size;
   old_base = mmap (NULL, old_file_size, PROT_READ | PROT_WRITE,
-		   MAP_ANON | MAP_PRIVATE, -1, 0);
-  if (old_base == (caddr_t) -1)
+		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
+  if (old_base == MAP_FAILED)
     fatal ("Can't allocate buffer for %s\n", old_name);
 
   if (read (old_file, old_base, stat_buf.st_size) != stat_buf.st_size)
@@ -776,8 +800,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
 
   new_base = mmap (NULL, new_file_size, PROT_READ | PROT_WRITE,
-		   MAP_ANON | MAP_PRIVATE, -1, 0);
-  if (new_base == (caddr_t) -1)
+		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
+  if (new_base == MAP_FAILED)
     fatal ("Can't allocate buffer for %s\n", old_name);
 
   new_file_h = (ElfW(Ehdr) *) new_base;
@@ -1202,6 +1226,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   munmap (new_base, new_file_size);
 
   /* Close the files and make the new file executable.  */
+
+#if MAP_ANON == 0
+  close (mmap_fd);
+#endif
 
   if (close (old_file))
     fatal ("Can't close (%s): errno %d\n", old_name, errno);
