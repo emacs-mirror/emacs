@@ -1,5 +1,7 @@
 2001-12-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dosfns.c (dos-display-scancodes, dos-decimal): Doc fix.
+
 	* s/hpux10.h (srand48): Don't undefine.
 
 2001-12-09  Jason Rumney  <jasonr@gnu.org>
