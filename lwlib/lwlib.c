@@ -53,6 +53,10 @@ ERROR!  At least one of USE_LUCID, USE_MOTIF or USE_OLIT must be defined.
 ERROR! no more than one of USE_MOTIF and USE_OLIT may be defined.
 #endif
 
+#ifndef max
+#define max(x, y) ((x) > (y) ? (x) : (y))
+#endif
+
 /* List of all widgets managed by the library. */
 static widget_info*
 all_widget_info = NULL;
@@ -395,14 +399,6 @@ safe_strcmp (s1, s2)
 {
   if (!!s1 ^ !!s2) return True;
   return (s1 && s2) ? strcmp (s1, s2) : s1 ? False : !!s2;
-}
-
-static int
-max (i1, i2)
-     int i1;
-     int i2;
-{
-  return i1 > i2 ? i1 : i2;
 }
 
 
@@ -1298,4 +1294,84 @@ lw_show_busy (w, busy)
 	  info->busy = busy;
 	}
     }
+}
+
+/* This hack exists because Lucid/Athena need to execute the strange
+   function below to support geometry management. */
+void
+lw_refigure_widget (w, doit)
+     Widget w;
+     Boolean doit;
+{
+#if defined (XAW)  
+  XawPanedSetRefigureMode (w, doit);
+#endif
+#if defined (USE_MOTIF)
+  if (doit)
+    XtUnmanageChild (w);
+  else
+    XtManageChild (w);
+#endif
+}
+
+/* Toolkit independent way of determining if an event window is in the
+   menubar. */
+Boolean
+lw_window_is_in_menubar (win, menubar_widget)
+     Window win;
+     Widget menubar_widget;
+{
+  return menubar_widget
+#if defined (USE_LUCID)
+      && XtWindow (menubar_widget) == win;
+#endif
+#if defined (USE_MOTIF)
+      && XtWindowToWidget (XtDisplay (menubar_widget), win)
+      && (XtParent (XtWindowToWidget (XtDisplay (menubar_widget), win))
+	  == menubar_widget);
+#endif
+}
+
+/* Motif hack to set the main window areas. */
+void
+lw_set_main_areas (parent, menubar, work_area)
+     Widget parent;
+     Widget menubar;
+     Widget work_area;
+{
+#if defined (USE_MOTIF)
+  XmMainWindowSetAreas (parent,
+			menubar,	/* menubar (maybe 0) */
+			0,		/* command area (psheets) */
+			0,		/* horizontal scroll */
+			0,              /* vertical scroll */
+			work_area);	/* work area */
+#endif
+}
+
+/* Manage resizing for Motif.  This disables resizing when the menubar
+   is about to be modified. */
+void
+lw_allow_resizing (w, flag)
+     Widget w;
+     Boolean flag;
+{
+#if defined (USE_MOTIF)
+  if (flag)
+    {
+      /* Enable the edit widget for resizing. */
+      Arg al[1];
+      
+      XtSetArg (al[0], XtNallowShellResize, 0);
+      XtSetValues (w, al, 1);
+    }
+  else
+    {
+      /* Disable the edit widget from resizing. */
+      Arg al[1];
+      
+      XtSetArg (al[0], XtNallowShellResize, 0);
+      XtSetValues (w, al, 1);
+    }
+#endif
 }
