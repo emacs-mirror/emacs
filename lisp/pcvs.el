@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.49 2003/03/16 01:09:05 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.50 2003/03/19 14:34:24 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -964,6 +964,7 @@ Optional argument NOSHOW if non-nil means not to display the buffer."
 		     (cvs-flags-query 'cvs-update-flags "cvs -n update flags")))
   (when (eq flags t)
     (setf flags (cvs-flags-query 'cvs-update-flags nil 'noquery)))
+  (when find-file-visit-truename (setq directory (file-truename directory)))
   (cvs-cmd-do "update" directory flags nil
 	      (> (prefix-numeric-value current-prefix-arg) 8)
 	      :cvsargs '("-n")

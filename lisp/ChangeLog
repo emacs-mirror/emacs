@@ -1,3 +1,7 @@
+2003-04-20  Sam Steingold  <sds@gnu.org>
+
+	* pcvs.el (cvs-examine): Respect `find-file-visit-truename'.
+
 2003-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* which-func.el (which-func-modes): Add f90-mode.
