@@ -1229,9 +1229,7 @@ See also the function `condition-case'.")
   if (gc_in_progress || waiting_for_input)
     abort ();
 
-#ifdef HAVE_WINDOW_SYSTEM
   TOTALLY_UNBLOCK_INPUT;
-#endif
 
   if (NILP (error_symbol))
     real_error_symbol = Fcar (data);
