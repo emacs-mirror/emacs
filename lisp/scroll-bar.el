@@ -129,6 +129,6 @@ EVENT should be a scrollbar click."
 (global-set-key [vertical-scrollbar drag-mouse-3] 'scrollbar-scroll-down)
 
 
-(provide 'scrollbar)
+(provide 'scroll-bar)
 
 ;;; scrollbar.el ends here
