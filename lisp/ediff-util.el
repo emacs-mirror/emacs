@@ -3401,29 +3401,33 @@ Without an argument, it saves customized diff argument, if available
   (let ((buf-A-file-name (buffer-file-name ediff-buffer-A))
 	(buf-B-file-name (buffer-file-name ediff-buffer-B))
 	file-A file-B)
-    (if (stringp buf-A-file-name)
-	(setq buf-A-file-name (file-name-nondirectory buf-A-file-name)))
-    (if (stringp buf-B-file-name)
-	(setq buf-B-file-name (file-name-nondirectory buf-B-file-name)))
-    (setq file-A (ediff-make-temp-file ediff-buffer-A buf-A-file-name)
-	  file-B (ediff-make-temp-file ediff-buffer-B buf-B-file-name))
-
+    (unless (and buf-A-file-name (file-exists-p buf-A-file-name))
+      (setq file-A
+	    (ediff-make-temp-file ediff-buffer-A)))
+    (unless (and buf-B-file-name (file-exists-p buf-B-file-name))
+      (setq file-B
+	    (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
 	(setq ediff-custom-diff-buffer
 	      (get-buffer-create
 	       (ediff-unique-buffer-name "*ediff-custom-diff" "*"))))
     (ediff-with-current-buffer ediff-custom-diff-buffer
-      (setq buffer-read-only nil)
-      (erase-buffer))
+			       (setq buffer-read-only nil)
+			       (erase-buffer))
     (ediff-exec-process
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
-     ediff-custom-diff-options file-A file-B)
+     ediff-custom-diff-options
+     ;; repetition of buf-A-file-name is needed so it'll return a file
+     (or (and buf-A-file-name (file-exists-p buf-A-file-name) buf-A-file-name)
+	 file-A)
+     (or (and buf-B-file-name (file-exists-p buf-B-file-name) buf-B-file-name)
+	 file-B))
     ;; put the diff file in diff-mode, if it is available
     (if (fboundp 'diff-mode)
 	(with-current-buffer ediff-custom-diff-buffer
 	  (diff-mode)))
-    (delete-file file-A)
-    (delete-file file-B)
+    (and file-A (file-exists-p file-A) (delete-file file-A))
+    (and file-B (file-exists-p file-B) (delete-file file-B))
     ))
 
 (defun ediff-show-diff-output (arg)

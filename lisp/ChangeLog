@@ -1,3 +1,10 @@
+2003-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): Avoid creating
+	temporary file for buffer already visiting one.  This change makes
+	output likely to be directly usable by patch program.
+	Suggested by Adrian Aichner  <adrian@xemacs.org>
+	
 2004-02-20  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-use-colon-colon-notation): Set default to nil for
