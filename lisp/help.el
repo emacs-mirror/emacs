@@ -96,7 +96,7 @@
       (let ((n (- (window-height (selected-window))
 		  (count-lines (point-min) (point))
 		  6)))
-	(if (< n 20)
+	(if (< n 12)
 	    (newline n)
 	  ;; Some people get confused by the large gap.
 	  (newline (/ n 2))
