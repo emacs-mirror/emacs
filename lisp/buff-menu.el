@@ -519,6 +519,7 @@ The R column contains a % for buffers that are read-only."
 	     ((string= (substring name 0 1) " "))
 	     ;; Maybe don't mention buffers without files.
 	     ((and files-only (not file)))
+             ((string= name "*Buffer List*"))
 	     ;; Otherwise output info.
 	     (t
 	      (setq this-buffer-line-start (point))
