@@ -266,6 +266,7 @@ The current buffer, likely narrowed, contains message N."
 (defun rmail-desc-deleted-p (n)
   "Return non-nil if message N is marked for deletion."
   (rmail-desc-attr-p rmail-desc-deleted-index n))
+(defalias 'rmail-message-deleted-p 'rmail-desc-deleted-p)
 
 (defun rmail-desc-delete-maybe (n)
   "Determine if message N is marked for deletion.  If so then delete it.
