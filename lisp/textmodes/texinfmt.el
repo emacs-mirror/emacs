@@ -1391,6 +1391,39 @@ otherwise, insert URL-TITLE followed by URL in parentheses."
   (texinfo-discard-command))
 
 
+;;; @kbdinputstyle, @vskip, headings & footings
+;;  These commands for not for Info and should never
+;;  appear in an Info environment; but if they do, 
+;;  this causes them to be discarded. 
+
+;; @kbdinputstyle
+(put 'kbdinputstyle 'texinfo-format 'texinfo-discard-line-with-args)
+
+;; @vskip
+(put 'vskip 'texinfo-format 'texinfo-discard-line-with-args)
+
+;; headings & footings
+(put 'evenfooting 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'evenheading 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'oddfooting 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'oddheading 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'everyfooting 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'everyheading 'texinfo-format 'texinfo-discard-line-with-args)
+
+
+;;; @documentdescription ... @end documentdescription
+;;  This command is for HTML output and should  never
+;;  appear in an Info environment; but if it does, 
+;;  this causes it to be discarded. 
+
+(put 'documentdescription 'texinfo-format 'texinfo-format-documentdescription)
+(defun texinfo-format-documentdescription ()
+  (delete-region texinfo-command-start
+		 (progn (re-search-forward "^@end documentdescription[ \t]*\n")
+			(point))))
+
+
+
 ;;; @center, @sp, and @br
 
 (put 'center 'texinfo-format 'texinfo-format-center)
@@ -2167,6 +2200,27 @@ This command is executed when texinfmt sees @item inside @multitable."
     (setq fill-column existing-fill-column)))
 
 
+;;; @image
+;;  Use only the FILENAME argument to the command.
+;;  In Info, ignore the other arguments.
+
+(put 'image 'texinfo-format 'texinfo-format-image)
+(defun texinfo-format-image ()
+  "Insert an image from an an file ending in .txt.
+Use only the FILENAME arg; for Info, ignore the other arguments to @image."
+  (let ((args (texinfo-format-parse-args))
+	filename)
+    (when (null (nth 0 args))
+      (error "Invalid image command"))
+    (texinfo-discard-command)
+    ;; makeinfo uses FILENAME.txt
+    (setq filename (format "%s.txt" (nth 0 args)))
+    (message "Reading included file: %s" filename)
+    ;; verbatim for Info output
+    (goto-char (+ (point) (cadr (insert-file-contents filename))))
+    (message "Reading included file: %s...done" filename)))
+
+
 ;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifplaintext, @ifxml, @xml
 ;;  @ifnottex, @ifnotinfo, @ifnothtml, @ifnotplaintext, @ifnotxml
 
@@ -2458,6 +2512,35 @@ surrounded by in angle brackets."
 (defun texinfo-format-key ()
   (insert (texinfo-parse-arg-discard))
   (goto-char texinfo-command-start))
+
+;; @verb{<char>TEXT<char>} (in `makeinfo' 4.1 and later)
+(put 'verb 'texinfo-format 'texinfo-format-verb)
+(defun texinfo-format-verb ()
+  "Format text between non-quoted unique delimiter characters verbatim.
+Enclose the verbatim text, including the delimiters, in braces.  Print
+text exactly as written (but not the delimiters) in a fixed-width.
+
+For example, @verb\{|@|\} results in @ and 
+@verb\{+@'e?`!`+} results in @'e?`!`."
+
+  (let ((delimiter (buffer-substring-no-properties
+		    (1+ texinfo-command-end) (+ 2 texinfo-command-end))))
+    (unless (looking-at "{")
+      (error "Not found: @verb start brace"))
+    (delete-region texinfo-command-start (+ 2 texinfo-command-end))
+    (search-forward  delimiter))
+  (delete-backward-char 1)
+  (unless (looking-at "}")
+    (error "Not found: @verb end brace"))
+  (delete-char 1))
+
+;; as of 2002 Dec 10
+;; see (texinfo)Block Enclosing Commands
+;; need: @verbatim
+
+;; as of 2002 Dec 10
+;; see (texinfo)verbatiminclude
+;; need: @verbatiminclude FILENAME
 
 (put 'bullet 'texinfo-format 'texinfo-format-bullet)
 (defun texinfo-format-bullet ()
