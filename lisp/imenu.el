@@ -964,6 +964,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
     ;; If selected by mouse, see to that the window where the mouse is
     ;; really is selected.
     (and mouse-triggered
+	 (not (equal last-nonmenu-event '(menu-bar)))
 	 (let ((window (posn-window (event-start last-nonmenu-event))))
 	   (or (framep window) (select-window window))))
     ;; Create a list for this buffer only when needed.
