@@ -2,6 +2,8 @@
 
 	* w32select.c: Include composite.h
 
+	* w16select.c: Likewise.
+
 2002-06-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lread.c (Fread): Remove redundant and imprecise declaration.
