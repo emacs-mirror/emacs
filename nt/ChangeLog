@@ -1,3 +1,7 @@
+2001-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (WinMain): Add quotes around command in case of spaces.
+
 2001-06-01  Andrew Innes  <andrewi@gnu.org>
 
 	* gmake.defs (sh_output): Don't use $(warning ...) to output
