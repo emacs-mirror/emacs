@@ -422,7 +422,6 @@ the user from the mailer."
   (let (fcc-list
 	(rmailbuf (current-buffer))
 	(time (current-time))
-	timezone
 	(tembuf (generate-new-buffer " rmail output"))
 	(case-fold-search t))
     (save-excursion
@@ -436,13 +435,6 @@ the user from the mailer."
 			     fcc-list))
 	(delete-region (match-beginning 0)
 		       (progn (forward-line 1) (point))))
-      (let* ((foo (current-time-zone time))
-	     (offset (if (car foo) (/ (car foo) 60) 0))
-	     (abs (abs offset)))
-	(setq timezone (format "%s%02d%02d"
-			       (if (< offset 0) "-" "+")
-			       (/ abs 60)
-			       (% abs 60))))
       (set-buffer tembuf)
       (erase-buffer)
       ;; This initial newline is written out if the fcc file already exists.
@@ -451,7 +443,8 @@ the user from the mailer."
       ;; Insert the time zone before the year.
       (forward-char -1)
       (forward-word -1)
-      (insert timezone " ")
+      (require 'mail-utils)
+      (insert (mail-rfc822-time-zone time) " ")
       (goto-char (point-max))
       (insert-buffer-substring rmailbuf)
       ;; Make sure messages are separated.
@@ -493,7 +486,7 @@ the user from the mailer."
 				(narrow-to-region (point-max) (point-max))
 				(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
 					"From: " (user-login-name) "\n"
-					"Date: " (current-time-string) "\n")
+					"Date: " (mail-rfc822-date) "\n")
 				(insert-buffer-substring curbuf beg2 end)
 				(insert "\n\C-_")
 				(goto-char (point-min))
