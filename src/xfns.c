@@ -1600,7 +1600,7 @@ x_set_font (f, arg, oldval)
 
   CHECK_STRING (arg, 1);
 
-  fontset_name = Fquery_fontset (arg);
+  fontset_name = Fquery_fontset (arg, Qnil);
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
@@ -3291,7 +3291,7 @@ This function is an internal primitive--use `make-frame' instead.")
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
       {
-	tem = Fquery_fontset (font);
+	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
 	  font = x_new_fontset (f, XSTRING (tem)->data);
 	else
