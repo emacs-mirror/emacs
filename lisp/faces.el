@@ -37,7 +37,7 @@
  (put 'set-face-font 'byte-optimizer nil)
  (put 'set-face-foreground 'byte-optimizer nil)
  (put 'set-face-background 'byte-optimizer nil)
- (put 'set-stipple 'byte-optimizer nil)
+ (put 'set-face-stipple 'byte-optimizer nil)
  (put 'set-face-underline-p 'byte-optimizer nil))
 
 ;;;; Functions for manipulating face vectors.
@@ -1052,7 +1052,8 @@ selected frame."
   (condition-case nil
       (let ((foreground (face-foreground data))
 	    (background (face-background data))
-	    (font (face-font data)))
+	    (font (face-font data))
+	    (stipple (face-stipple data)))
 	(set-face-underline-p face (face-underline-p data) frame)
 	(if foreground
 	    (face-try-color-list 'set-face-foreground
@@ -1070,7 +1071,9 @@ selected frame."
 		    (italic
 		     (make-face-italic face frame))))
 	  (if font
-	      (set-face-font face font frame))))
+	      (set-face-font face font frame)))
+	(if stipple
+	    (set-face-stipple face stipple frame)))
     (error nil)))
 
 ;; Assuming COLOR is a valid color name,
