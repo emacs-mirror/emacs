@@ -1,4 +1,4 @@
-#include "s-bsd4-3.h"
+#include "bsd4-3.h"
 
 /* Identify OSF1 for the m- files. */
 

@@ -17,6 +17,11 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#if defined(__osf__) && (defined(__mips) || defined(mips))
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 #ifndef BSD4_2
 #ifndef USG
 #include <sys/vlimit.h>
@@ -95,7 +100,7 @@ get_lim_data ()
 }
 
 #else /* not USG */
-#ifndef BSD4_2
+#if !defined(BSD4_2) && !defined(__osf__)
 
 static void
 get_lim_data ()
