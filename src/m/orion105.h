@@ -60,8 +60,6 @@ Boston, MA 02111-1307, USA.  */
 #define sigmask(m) (1 << ((m) - 1))
 #endif
 
-#define HAVE_ALLOCA
-
 /* Here is where programs actually start running */
 #define TEXT_START 0x8000
 #define LD_TEXT_START_ADDR 8000
