@@ -1,6 +1,6 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.4) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.5) $
 test_lib.h
-   various handy things for reporting errors &c
+   various handy things for running tests, reporting errors &c
 */
 
 #ifndef test_lib_h
@@ -73,5 +73,63 @@ void pause(unsigned long);
 
 unsigned long ranint(unsigned long limit);
 unsigned long ranrange(unsigned long min, unsigned long max);
+
+/* stuff for running event logs
+*/
+
+typedef union log_event log_event;
+
+typedef int event_type;
+
+enum {EVENT_ALLOC, EVENT_FREE};
+
+struct event_alloc {
+ event_type type;
+ unsigned int id;
+ size_t size;
+};
+
+struct event_free {
+ event_type type;
+ unsigned int id;
+};
+
+union log_event {
+ event_type type;
+ struct event_alloc alloc;
+ struct event_free  free;
+};
+
+int read_event(log_event*);
+
+/* time-based queue
+   (use for killing objects at the right time)
+*/
+
+typedef struct {
+ unsigned long time;
+ void *ref;
+} TQElt;
+
+typedef struct {
+ unsigned long size;
+ unsigned long used;
+ TQElt *element;
+}* TimeQueue;
+
+void TQInit(TimeQueue, TQElt*, long int);
+
+unsigned long TQSize(TimeQueue);
+unsigned long TQCount(TimeQueue);
+int TQEmpty(TimeQueue);
+int TQFull(TimeQueue);
+
+unsigned long TQTime(TimeQueue);
+void *TQElement(TimeQueue);
+
+void *TQPop(TimeQueue);
+void TQAdd(TimeQueue, void *, unsigned long);
+
+void TQWarp(TimeQueue, unsigned long);
 
 #endif
