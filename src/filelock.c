@@ -545,6 +545,12 @@ lock_file (fn)
   register char *lfname, *locker;
   lock_info_type lock_info;
 
+  /* Don't do locking while dumping Emacs.
+     Uncompressing wtmp files uses call-process, which does not work
+     in an uninitialized Emacs.  */
+  if (! NILP (Vpurify_flag))
+    return;
+
   orig_fn = fn;
   fn = Fexpand_file_name (fn, Qnil);
   encoded_fn = ENCODE_FILE (fn);
