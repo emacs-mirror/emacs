@@ -1,5 +1,5 @@
 ;;; etags.el --- etags facility for Emacs
-;; Copyright (C) 1985, 86, 88, 89, 92, 93, 94, 95, 96, 98, 2000
+;; Copyright (C) 1985, 86, 88, 89, 92, 93, 94, 95, 96, 98, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -1656,24 +1656,35 @@ nil, we exit; otherwise we scan the next file."
 	;; Non-nil means we have finished one file
 	;; and should not scan it again.
 	file-finished
+	original-point
 	(messaged nil))
     (while
 	(progn
 	  ;; Scan files quickly for the first or next interesting one.
+	  ;; This starts at point in the current buffer.
 	  (while (or first-time file-finished
 		     (save-restriction
 		       (widen)
 		       (not (tags-loop-eval tags-loop-scan))))
+	    ;; If nothing was found in the previous file, and
+	    ;; that file isn't in a temp buffer, restore point to
+	    ;; where it was.
+	    (when original-point
+	      (goto-char original-point))
+
 	    (setq file-finished nil)
 	    (setq new (next-file first-time t))
+
 	    ;; If NEW is non-nil, we got a temp buffer,
 	    ;; and NEW is the file name.
-	    (if (or messaged
-		    (and (not first-time)
-			 (> baud-rate search-slow-speed)
-			 (setq messaged t)))
-		(message "Scanning file %s..." (or new buffer-file-name)))
+	    (when (or messaged
+		      (and (not first-time)
+			   (> baud-rate search-slow-speed)
+			   (setq messaged t)))
+	      (message "Scanning file %s..." (or new buffer-file-name)))
+
 	    (setq first-time nil)
+	    (setq original-point (if new nil (point)))
 	    (goto-char (point-min)))
 
 	  ;; If we visited it in a temp buffer, visit it now for real.
@@ -1683,7 +1694,8 @@ nil, we exit; otherwise we scan the next file."
 		(set-buffer (find-file-noselect new))
 		(setq new nil)		;No longer in a temp buffer.
 		(widen)
-		(goto-char pos)))
+		(goto-char pos))
+	    (push-mark original-point t))
 
 	  (switch-to-buffer (current-buffer))
 
