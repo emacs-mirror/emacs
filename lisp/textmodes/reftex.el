@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.15
+;; Version:    4.16
 ;; Keywords:   tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.15"
+(defconst reftex-version "RefTeX version 4.16"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1603,6 +1603,12 @@ When DIE is non-nil, throw an error if file not found."
  "Insert a unique label." t)
 (autoload 'reftex-reference "reftex-ref"
  "Make a LaTeX reference." t)
+(autoload 'reftex-varioref-vref "reftex-ref"
+  "Make a varioref reference." t)
+(autoload 'reftex-fancyref-fref "reftex-ref"
+  "Make a fancyref \\fref reference." t)
+(autoload 'reftex-fancyref-Fref "reftex-ref"
+  "Make a fancyref \\Fref reference." t)
 (autoload 'reftex-show-label-location "reftex-ref")
 (autoload 'reftex-query-label-type "reftex-ref")
 

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.15
+;; Version: 4.16
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -364,6 +364,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
   " n / p      Go to next/previous label (Cursor motion works as well)
  C-c C-n/p  Go to next/previous section heading.
  b / l      Jump back to previous selection / Reuse last referenced label.
+ z          Jump to a specific section, e.g. '3 z' jumps to section 3.
  g / s      Update menu      / Switch label type.
  r / C-u r  Reparse document / Reparse entire document.
  x          Switch to label menu of external document (with LaTeX package `xr').
@@ -770,19 +771,19 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	(setq buffer-read-only t))))))
 
 (defun reftex-varioref-vref ()
-  "Insert a reference using the `\vref' macro from the varioref package."
+  "Insert a reference using the `\\vref' macro from the varioref package."
   (interactive)
   (let ((reftex-format-ref-function 'reftex-format-vref))
     (reftex-reference)))
 (defun reftex-fancyref-fref ()
-  "Insert a reference using the `\fref' macro from the fancyref package."
+  "Insert a reference using the `\\fref' macro from the fancyref package."
   (interactive)
   (let ((reftex-format-ref-function 'reftex-format-fref)
 	;;(reftex-guess-label-type nil) ;FIXME do we want this????
 	)
     (reftex-reference)))
 (defun reftex-fancyref-Fref ()
-  "Insert a reference using the `\Fref' macro from the fancyref package."
+  "Insert a reference using the `\\Fref' macro from the fancyref package."
   (interactive)
   (let ((reftex-format-ref-function 'reftex-format-Fref)
 	;;(reftex-guess-label-type nil) ;FIXME do we want this????

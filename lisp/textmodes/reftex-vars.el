@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.15
+;; Version: 4.16
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -348,7 +348,7 @@ TYPE-KEY
     cases in which different environments carry the same label type (like
     `equation' and `eqnarray').
     If the type indicator is nil and the macro has a label argument {*},
-    the macro defines neutral labels just like \label.  In this case
+    the macro defines neutral labels just like \\label.  In this case
     the reminder of this entry is ignored.
 
 LABEL-PREFIX
@@ -731,7 +731,7 @@ AFTER        Character class after  abbrev point in word."
   "Function which produces the string to insert as a label definition.
 Normally should be nil, unless you want to do something fancy.
 The function will be called with two arguments, the LABEL and the DEFAULT
-FORMAT, which usually is `\label{%s}'.  The function should return the
+FORMAT, which usually is `\\label{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-making-and-inserting-labels
   :type 'function)
@@ -788,7 +788,7 @@ get one interactively during selection from the label menu."
   "Punctuation strings for multiple references.
 When marking is used in the selection buffer to select several references,
 this variable associates the 3 marking characters `,-+' with prefix strings
-to be inserted into the buffer before the corresponding \ref macro.
+to be inserted into the buffer before the corresponding \\ref macro.
 This is used to string together whole reference sets, like
 `eqs. 1,2,3-5,6 and 7' in a single call to `reftex-reference'. See manual."
   :group 'reftex-referencing-labels
@@ -832,11 +832,11 @@ a label type.  If you set this variable to nil, RefTeX will always prompt."
   "Function which produces the string to insert as a reference.
 Normally should be nil, because the format to insert a reference can 
 already be specified in `reftex-label-alist'.
-This hook also is used by the special commands to insert `\vref' and `\fref'
+This hook also is used by the special commands to insert `\\vref' and `\\fref'
 references, so even if you set this, your setting will be ignored by
 the special commands.
 The function will be called with two arguments, the LABEL and the DEFAULT
-FORMAT, which normally is `~\ref{%s}'.  The function should return the
+FORMAT, which normally is `~\\ref{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-referencing-labels
   :type 'function)
@@ -865,7 +865,7 @@ like, which are ignored by RefTeX anyway."
 (defcustom reftex-default-bibliography nil
   "*List of BibTeX database files which should be used if none are specified.
 When `reftex-citation' is called from a document which has neither a
-`\bibliography{..}' statement nor a `thebibliography' environment,
+`\\bibliography{..}' statement nor a `thebibliography' environment,
 RefTeX will scan these files instead.  Intended for using `reftex-citation'
 in non-LaTeX files.  The files will be searched along the BIBINPUTS or TEXBIB
 path."
@@ -1346,7 +1346,10 @@ DEF-EXT:    The default extension for that file type, like \".tex\" or \".bib\".
 OTHER-EXT:  Any number of other legal extensions for this file type.
 
 When a files is searched and it does not have any of the legal extensions,
-we try the default extension first, and then the naked file name."
+we try the default extension first, and then the naked file name.
+
+If you are using AUCTeX, you also need to add new extensions to
+TeX-file-extensions."
   :group 'reftex-finding-files
   :type '(repeat (cons (string :tag "File type")
 		       (repeat (string :tag "Extension")))))

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.15
+;; Version: 4.16
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -92,7 +92,8 @@ t          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
 f / g      Toggle follow mode on and off  / Refresh *toc* buffer.
 r / C-u r  Reparse the LaTeX document     / Reparse entire LaTeX document.
 .          In other window, show position from where `reftex-toc' was called.
-x          Switch to TOC of external document (with LaTeX package `xr').")
+x          Switch to TOC of external document (with LaTeX package `xr').
+z          Jump to a specific section (e.g. '3 z' goes to section 3")
 
 (defun reftex-toc (&optional rebuild)
   "Show the table of contents for the current document.
@@ -426,6 +427,16 @@ With prefix arg 1, restrict index to the section at point."
 	(message "")
       (message "Switched document"))))
 
+(defun reftex-toc-jump (arg)
+  "Jump to a specific section.  E.g. '3 z' jumps to section 3.
+Useful for large TOC's."
+  (interactive "P")
+  (goto-char (point-min))
+  (re-search-forward
+   (concat "^ *" (number-to-string (if (numberp arg) arg 1)) " ")
+   nil t)
+  (beginning-of-line))
+
 (defun reftex-toc-visit-location (&optional final no-revisit)
   ;; Visit the tex file corresponding to the toc entry on the current line.
   ;; If FINAL is t, stay there
@@ -576,6 +587,7 @@ With prefix arg 1, restrict index to the section at point."
 	("c"    . reftex-toc-toggle-context)
 	("%"    . reftex-toc-toggle-commented)
 	("x"    . reftex-toc-external)
+	("z"    . reftex-toc-jump)
 	("."    . reftex-toc-show-calling-point)
 	("\C-c\C-n" . reftex-toc-next-heading)
 	("\C-c\C-p" . reftex-toc-previous-heading))

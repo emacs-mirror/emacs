@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.15
+;; Version: 4.16
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -487,7 +487,7 @@
 (defun reftex-parse-bibitem (item)
   ;; Parse a \bibitem entry
   (let ((key "") (text ""))
-    (when (string-match "\\`{\\([^}]+\\)}\\([\001-\255]*\\)" item)
+    (when (string-match "\\`{\\([^}]+\\)}\\([^\000]*\\)" item)
       (setq key (match-string 1 item)
 	    text (match-string 2 item)))
     ;; Clean up the text a little bit
@@ -534,7 +534,7 @@ FORAT-KEY can be used to pre-select a citation format.
 
 When called with one or two `C-u' prefixes, first rescans the document.
 When called with a numeric prefix, make that many citations.  When
-called with point inside the braces of a `\cite' command, it will
+called with point inside the braces of a `\\cite' command, it will
 add another key, ignoring the value of `reftex-cite-format'.
 
 The regular expression uses an expanded syntax: && is interpreted as `and'.

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.15
+;; Version: 4.16
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -445,6 +445,15 @@ During a selection process, these are the local bindings.
   (interactive "p")
   (setq reftex-callback-fwd nil)
   (re-search-backward "^[^. \t\n\r]" nil t arg))
+(defun reftex-select-jump (arg)
+  "Jump to a specific section.  E.g. '3 z' jumps to section 3.
+Useful for large TOC's."
+  (interactive "P")
+  (goto-char (point-min))
+  (re-search-forward
+   (concat "^ *" (number-to-string (if (numberp arg) arg 1)) " ")
+   nil t)
+  (beginning-of-line))
 (defun reftex-select-next-heading (&optional arg)
   "Move to next table of contentes line."
   (interactive "p")
@@ -660,6 +669,7 @@ During a selection process, these are the local bindings.
 
 (loop for x in
       '(("b"        . reftex-select-jump-to-previous)
+	("z"        . reftex-select-jump)
 	("v"        . reftex-select-toggle-varioref)
 	("V"        . reftex-select-toggle-fancyref)
 	("m"        . reftex-select-mark)
