@@ -959,6 +959,13 @@ directory stack if they are not already on it
 (@code{shell-pushd-dunique}).  The values you choose should match the
 underlying shell, of course.
 
+  If you want Shell mode to handle color output from shell commands,
+you can enable ANSI Color mode.  Here is how to do this:
+
+@example
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+@end example
+
 @node Terminal emulator
 @subsection Emacs Terminal Emulator
 @findex term
