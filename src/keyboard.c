@@ -6556,14 +6556,6 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
-/* We make the read_avail_input buffer static to avoid zeroing out the
-   whole struct input_event buf on every call.  */
-static struct input_event read_avail_input_buf[KBD_BUFFER_SIZE];
-
-/* I don't know whether it is necessary, but make read_avail_input 
-   re-entrant.  */
-static int in_read_avail_input = 0;
-
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6574,28 +6566,54 @@ static int in_read_avail_input = 0;
    only when SIGIO is blocked.
 
    Returns the number of keyboard chars read, or -1 meaning
-   this is a bad time to try to read input.  */
+   this is a bad time to try to read input.
+
+   Typically, there are just a few available input events to be read
+   here, so we really don't need to allocate and initialize a big
+   buffer of input_events as we used to do.  Instead, we just allocate
+   a small buffer of input events -- and then poll for more input if we
+   read a full buffer of input events.  */
+#define NREAD_INPUT_EVENTS 8
 
 static int
 read_avail_input (expected)
      int expected;
 {
-  struct input_event *buf = read_avail_input_buf;
-  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
-  int nread;
-
-  /* Trivial hack to make read_avail_input re-entrant.  */
-  if (in_read_avail_input++)
-    {
-      buf = tmp_buf;
-      for (i = 0; i < KBD_BUFFER_SIZE; i++)
-	EVENT_INIT (buf[i]);
-    }
+  int nread = 0;
 
   if (read_socket_hook)
-    /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE, expected);
+    {
+      int discard = 0;
+      int nr;
+
+      
+      do {
+	struct input_event buf[NREAD_INPUT_EVENTS];
+
+	for (i = 0; i < NREAD_INPUT_EVENTS; i++)
+	  EVENT_INIT (buf[i]);
+
+	/* No need for FIONREAD or fcntl; just say don't wait.  */
+	nr = (*read_socket_hook) (input_fd, buf, NREAD_INPUT_EVENTS, expected);
+	if (nr <= 0)
+	  break;
+
+	nread += nr;
+	expected = 0;
+
+	/* Scan the chars for C-g and store them in kbd_buffer.  */
+	for (i = 0; !discard && i < nr; i++)
+	  {
+	    kbd_buffer_store_event (&buf[i]);
+	    /* Don't look at input that follows a C-g too closely.
+	       This reduces lossage due to autorepeat on C-g.  */
+	    if (buf[i].kind == ASCII_KEYSTROKE_EVENT
+		&& buf[i].code == quit_char)
+	      discard = 1;
+	  }
+      } while (nr == NREAD_INPUT_EVENTS);
+    }
   else
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
@@ -6606,16 +6624,12 @@ read_avail_input (expected)
 
       /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
-      --in_read_avail_input;
       return 0;
 #else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
-	{
-	  --in_read_avail_input;
-	  return 0;
-	}
+	return 0;
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
@@ -6633,10 +6647,7 @@ read_avail_input (expected)
 	    n_to_read = 0;
 	}
       if (n_to_read == 0)
-	{
-	  --in_read_avail_input;
-	  return 0;
-	}
+	return 0;
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
@@ -6703,34 +6714,27 @@ read_avail_input (expected)
 #endif /* no FIONREAD */
       for (i = 0; i < nread; i++)
 	{
-	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
-	  buf[i].modifiers = 0;
+	  struct input_event buf;
+	  EVENT_INIT (buf);
+	  buf.kind = ASCII_KEYSTROKE_EVENT;
+	  buf.modifiers = 0;
 	  if (meta_key == 1 && (cbuf[i] & 0x80))
-	    buf[i].modifiers = meta_modifier;
+	    buf.modifiers = meta_modifier;
 	  if (meta_key != 2)
 	    cbuf[i] &= ~0x80;
 
-	  buf[i].code = cbuf[i];
-	  buf[i].frame_or_window = selected_frame;
-	  buf[i].arg = Qnil;
+	  buf.code = cbuf[i];
+	  buf.frame_or_window = selected_frame;
+	  buf.arg = Qnil;
+	  
+	  kbd_buffer_store_event (&buf);
+	  /* Don't look at input that follows a C-g too closely.
+	     This reduces lossage due to autorepeat on C-g.  */
+	  if (buf.kind == ASCII_KEYSTROKE_EVENT
+	      && buf.code == quit_char)
+	    break;
 	}
     }
-
-  /* Scan the chars for C-g and store them in kbd_buffer.  */
-  for (i = 0; i < nread; i++)
-    {
-      kbd_buffer_store_event (&buf[i]);
-      /* Don't look at input that follows a C-g too closely.
-	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-	  && buf[i].code == quit_char)
-	break;
-    }
-
-  /* Clear used events */
-  if (--in_read_avail_input == 0)
-    for (i = 0; i < nread; i++)
-      EVENT_INIT (buf[i]);
 
   return nread;
 }
@@ -10562,14 +10566,6 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
-#ifndef VMS
-  {
-    int i;
-    for (i = 0; i < KBD_BUFFER_SIZE; i++)
-      EVENT_INIT (read_avail_input_buf[i]);
-  }
-#endif
-
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
