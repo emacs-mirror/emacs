@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!93.c(trunk.2) $
  summary = EPVM time allocations with checklevels
  language = c
  link = testlib.o epvmfmt.o
@@ -74,6 +74,7 @@ static void test(void)
   for (CheckLevel = CheckNONE; CheckLevel <= CheckDEEP; CheckLevel ++) {
    timealloc(pool1, ap1s, size, 10000, 1);
   }
+  CheckLevel = CheckDEEP;
  }
  
  mps_ap_destroy(ap1s);
