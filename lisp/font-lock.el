@@ -596,6 +596,13 @@ This is normally set via `font-lock-defaults'.")
 Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
 `lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
 
+(defvar font-lock-multiline 'undecided
+  "Whether font-lock should cater to multiline keywords.
+If nil, don't try to handle multiline patterns.
+If t, always handle multiline patterns.
+If `undecided', don't try to handle multiline patterns until you see one.
+Major/minor modes can set this variable if they know which option applies.")
+
 (defvar font-lock-mode nil)		; Whether we are turned on/modeline.
 (defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
 
@@ -720,9 +727,9 @@ Turn on only if the terminal can display it."
     (font-lock-mode)))
 
 ;;;###autoload
-(defun font-lock-add-keywords (major-mode keywords &optional append)
-  "Add highlighting KEYWORDS for MAJOR-MODE.
-MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+(defun font-lock-add-keywords (mode keywords &optional append)
+  "Add highlighting KEYWORDS for MODE.
+MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are added for the current buffer.
 KEYWORDS should be a list; see the variable `font-lock-keywords'.
 By default they are added at the beginning of the current highlighting list.
@@ -742,18 +749,18 @@ comments, and to fontify `and', `or' and `not' words as keywords.
 Note that some modes have specialised support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'."
-  (cond (major-mode
-	 ;; If MAJOR-MODE is non-nil, add the KEYWORDS and APPEND spec to
+  (cond (mode
+	 ;; If MODE is non-nil, add the KEYWORDS and APPEND spec to
 	 ;; `font-lock-keywords-alist' so `font-lock-set-defaults' uses them.
 	 (let ((spec (cons keywords append)) cell)
-	   (if (setq cell (assq major-mode font-lock-keywords-alist))
+	   (if (setq cell (assq mode font-lock-keywords-alist))
 	       (setcdr cell (append (cdr cell) (list spec)))
-	     (push (list major-mode spec) font-lock-keywords-alist))))
+	     (push (list mode spec) font-lock-keywords-alist))))
 	(font-lock-mode
 	 ;; Otherwise if Font Lock mode is on, set or add the keywords now.
 	 (if (eq append 'set)
 	     (setq font-lock-keywords keywords)
-	   (font-lock-remove-keywords keywords)
+	   (font-lock-remove-keywords nil keywords)
 	   (let ((old (if (eq (car-safe font-lock-keywords) t)
 			  (cdr font-lock-keywords)
 			font-lock-keywords)))
@@ -762,8 +769,9 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 					(append keywords old))))))))
 
 ;;;###autoload
-(defun font-lock-remove-keywords (keywords)
-  "Remove highlighting KEYWORDS from the current buffer."
+(defun font-lock-remove-keywords (mode keywords)
+  "Remove highlighting KEYWORDS from the current buffer.
+A non-nil MODE is currently unsupported."
   (setq font-lock-keywords (copy-list font-lock-keywords))
   (dolist (keyword keywords)
     (setq font-lock-keywords
@@ -1462,8 +1470,12 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
     (if (not (and (numberp pre-match-value) (> pre-match-value (point))))
 	(save-excursion (end-of-line) (setq limit (point)))
       (setq limit pre-match-value)
-      (when (>= pre-match-value (save-excursion (forward-line 1) (point)))
+      (when (and font-lock-multiline
+		 (funcall (if (eq font-lock-multiline t) '>= '>)
+			  pre-match-value
+			  (save-excursion (forward-line 1) (point))))
 	;; this is a multiline anchored match
+	(set (make-local-variable 'font-lock-multiline) t)
 	(put-text-property (point) limit 'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
@@ -1500,11 +1512,14 @@ START should be at the beginning of a line."
 		  (if (stringp matcher)
 		      (re-search-forward matcher end t)
 		    (funcall matcher end)))
-	(when (and (match-beginning 0)
-		   (>= (point)
-		       (save-excursion (goto-char (match-beginning 0))
-				       (forward-line 1) (point))))
+	(when (and font-lock-multiline
+		   (match-beginning 0)
+		   (funcall (if (eq font-lock-multiline t) '>= '>)
+			    (point)
+			    (save-excursion (goto-char (match-beginning 0))
+					    (forward-line 1) (point))))
 	  ;; this is a multiline regexp match
+	  (set (make-local-variable 'font-lock-multiline) t)
 	  (put-text-property (match-beginning 0) (point)
 			     'font-lock-multiline t))
 	;; Apply each highlight to this instance of `matcher', which may be
