@@ -3833,7 +3833,7 @@ forward_to_next_line_start (it, skipped_p)
 
   /* If we didn't find a newline near enough, see if we can use a
      short-cut.  */
-  if (n == MAX_NEWLINE_DISTANCE)
+  if (!newline_found_p)
     {
       int start = IT_CHARPOS (*it);
       int limit = find_next_newline_no_quit (start, 1);
