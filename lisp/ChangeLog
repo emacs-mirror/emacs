@@ -1,3 +1,8 @@
+2002-02-11  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer-switch-format): Supply required argument for
+	`ibuffer-current-formats'.
+
 2002-02-12  Miles Bader  <miles@gnu.org>
 
 	* faces.el (mode-line-inactive): Add dark-background variant.
