@@ -3946,6 +3946,9 @@ shrink_decoding_region (beg, end, coding, str)
       break;
 
     default:		/* i.e. case coding_type_iso2022: */
+      if (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, 0) != CHARSET_ASCII)
+	/* We can't skip any data.  */
+	break;
       if (coding->heading_ascii < 0)
 	{
 	  /* We can skip all ASCII characters at the head except for a
@@ -4087,6 +4090,9 @@ shrink_encoding_region (beg, end, coding, str)
       break;
 
     case coding_type_iso2022:
+      if (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, 0) != CHARSET_ASCII)
+	/* We can't skip any data.  */
+	break;
       if (coding->flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL)
 	{
 	  unsigned char *bol = begp; 
