@@ -1447,6 +1447,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.mi2$" . snmpv2-mode)
      ("\\.sm2$" . snmpv2-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
+     ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]$" . ps-mode)
      ("configure\\.in\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
