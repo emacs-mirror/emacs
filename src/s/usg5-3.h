@@ -149,7 +149,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define this if system V IPC is available.  */
 
 #define HAVE_SYSVIPC
-
+
 /* Special hacks needed to make Emacs run on this system.  */
 
 /*
