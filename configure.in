@@ -1659,8 +1659,9 @@ else
 fi
 AC_MSG_RESULT($HAVE_XFREE386)
 
-# Change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
-# for the tests that follow.  We set it back to REAL_CFLAGS later on.
+# Change CFLAGS and CPPFLAGS temporarily so that C_SWITCH_X_SITE gets
+# used for the tests that follow.  We set them back to REAL_CFLAGS and
+# REAL_CPPFLAGS later on.
 
 REAL_CPPFLAGS="$CPPFLAGS"
 
@@ -1831,12 +1832,27 @@ fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
+  # We put this in CFLAGS temporarily to precede other -I options
+  # that might be in CFLAGS temporarily.
+  # We put this in CPPFLAGS where it precedes the other -I options.
+  OLD_CPPFLAGS=$CPPFLAGS
+  OLD_CFLAGS=$CFLAGS
+  CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
+  CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
   [AC_TRY_COMPILE([#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>],
     [int x = 5;],
     emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
   if test $emacs_cv_lesstif = yes; then
-    CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
+    # Make sure this -I option remains in CPPFLAGS after it is set
+    # back to REAL_CPPFLAGS.
+    # There is no need to change REAL_CFLAGS, because REAL_CFLAGS does not
+    # have those other -I options anyway.  Ultimately, having this
+    # directory ultimately in CPPFLAGS will be enough.
+    REAL_CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $REAL_CPPFLAGS"
     LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
+  else
+    CFLAGS=$OLD_CFLAGS
+    CPPFLAGS=$OLD_CPPFLAGS
   fi
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
   [AC_TRY_COMPILE([#include <Xm/Xm.h>],
