@@ -2760,7 +2760,7 @@ read_vector (readcharfun, bytecodeflag)
 		  /* Coerce string to unibyte (like string-as-unibyte,
 		     but without generating extra garbage and
 		     guaranteeing no change in the contents).  */
-		  SCHARS (bytestr) = SBYTES (bytestr);
+		  STRING_SET_CHARS (bytestr, SBYTES (bytestr));
 		  STRING_SET_UNIBYTE (bytestr);
 
 		  item = Fread (bytestr);
