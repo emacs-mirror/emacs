@@ -519,6 +519,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
   for (passcount = !!all_flag; NILP (bestmatch) && passcount < 2; passcount++)
     {
+      int inner_count = SPECPDL_INDEX ();
+
       d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
       if (!d)
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
@@ -543,8 +545,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
 	  len = NAMLEN (dp);
 
-	  if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
-	    goto quit;
+	  QUIT;
 	  if (! DIRENTRY_NONEMPTY (dp)
 	      || len < SCHARS (encoded_file)
 	      || 0 <= scmp (dp->d_name, SDATA (encoded_file),
@@ -719,12 +720,12 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	      bestmatchsize = matchsize;
 	    }
 	}
-      closedir (d);
-      /* Discard the unwind protect.  */
-      specpdl_ptr = specpdl + count;
+      /* This closes the directory.  */
+      bestmatch = unbind_to (inner_count, bestmatch);
     }
 
   UNGCPRO;
+  bestmatch = unbind_to (count, bestmatch);
 
   if (all_flag || NILP (bestmatch))
     {
@@ -740,13 +741,6 @@ file_name_completion (file, dirname, all_flag, ver_flag)
      decode it from the coding system in use.  */
   bestmatch = DECODE_FILE (bestmatch);
   return bestmatch;
-
- quit:
-  if (d) closedir (d);
-  /* Discard the unwind protect.  */
-  specpdl_ptr = specpdl + count;
-  Vquit_flag = Qnil;
-  return Fsignal (Qquit, Qnil);
 }
 
 /* Compare exactly LEN chars of strings at S1 and S2,
