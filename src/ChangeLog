@@ -1,3 +1,13 @@
+2000-05-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* filelock.c (get_boot_time): To obtain an 8 char file name, which
+	is needed on mescaline, use a 2 char prefix, and call
+	make_temp_name with second arg non-zero.
+
+	* fileio.c (make_temp_name): New function, extracted from
+	Fmake_temp_name.
+	(Fmake_temp_name): Use it.
+
 2000-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.c (coordinates_in_window): Subtract 1 when computing
