@@ -26,11 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #define P_(proto) ()
 #endif
 
+#if 0
 /* Define this temporarily to hunt a bug.  If defined, the size of
    strings is redundantly recorded in sdata structures so that it can
    be compared to the sizes recorded in Lisp strings.  */
 
 #define GC_CHECK_STRING_BYTES 1
+#endif /* 0*/
 
 
 /* These are default choices for the types to use.  */
@@ -2914,6 +2916,7 @@ extern int getloadavg P_ ((double *, int));
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
+extern Lisp_Object Vx_resource_name;
 EXFUN (Fxw_display_color_p, 1);
 #endif /* HAVE_X_WINDOWS */
 
