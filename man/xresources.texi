@@ -172,6 +172,15 @@ initial Emacs frame (or, in the case of a resource for a specific frame
 name, only that frame).  However, the size, if specified here, applies to
 all frames.
 
+@item @code{fullscreen} (class @code{Fullscreen})
+Specify wanted fullscreen size.  The value can be one of @code{fullboth},
+@code{fullwidth} or @code{fullheight}, that each corresponds to
+the command line options @code{-fs}, @code{-fw} and @code{-fh}
+@pxref{Window Size X}.
+
+Note that this applies to all frames created, not just the initial
+one.
+
 @item @code{iconName} (class @code{Title})
 Name to display in the icon.
 
