@@ -919,7 +919,7 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 ;; `font-lock-after-fontify-buffer' and/or `font-lock-after-unfontify-buffer'
 ;; themselves.
 
-(defcustom font-lock-support-mode nil
+(defcustom font-lock-support-mode 'jit-lock-mode
   "*Support mode for Font Lock mode.
 Support modes speed up Font Lock mode by being choosy about when fontification
 occurs.  Known support modes are Fast Lock mode (symbol `fast-lock-mode'),
