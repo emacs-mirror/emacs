@@ -155,11 +155,11 @@ is enlarged only, until it becomes empty again, at which point it
 shrinks to its normal size again.
 
 @vindex max-mini-window-height
-  Customize the variable @code{max-mini-window-height} to control the
-maximum height for resizing the minibuffer window: if a floating-point
-number, it specifies a fraction of the frame's height; if an integer,
-it specifies the maximum number of lines; if nil, the minibuffer
-window is not resized.  The default value is 0.25.
+  The variable @code{max-mini-window-height} controls the maximum
+height for resizing the minibuffer window: a floating-point number
+specifies a fraction of the frame's height; an integer specifies the
+maximum number of lines; @code{nil} means do not resize the minibuffer
+window automatically.  The default value is 0.25.
 
 @vindex minibuffer-scroll-overlap
   Scrolling works specially in the minibuffer window.  When the
@@ -377,28 +377,33 @@ automatically displays a list of all possible completions.  If the variable
 @code{completion-auto-help} is set to @code{nil}, this does not happen,
 and you must type @kbd{?} to display the possible completions.
 
-@pindex complete
 @cindex Partial Completion mode
 @vindex partial-completion-mode
 @findex partial-completion-mode
+  Partial Completion mode implements a more powerful kind of
+completion that can complete multiple words in parallel.  For example,
+it can complete the command name abbreviation @code{p-b} into
+@code{print-buffer}, because no other command starts with two words
+whose initials are @samp{p} and @samp{b}.
+
+  Partial completion of directories in file names uses @samp{*} to
+indicate the places for completion; thus, @file{/u*/b*/f*} might
+complete to @file{/usr/bin/foo}.
+
+  To enable this mode, use the command @kbd{M-x
+partial-completion-mode}, or customize the option
+@code{partial-completion-mode}.  This binds the partial completion
+commands to @key{TAB}, @key{SPC}, @key{RET}, and @kbd{?}.  The usual
+completion commands are available on @kbd{M-@key{TAB}},
+@kbd{M-@key{SPC}}, @kbd{M-@key{RET}} and @kbd{M-?}.
+
 @vindex PC-include-file-path
 @vindex PC-disable-includes
-  The @code{complete} library implements a more powerful kind of
-completion that can complete multiple words at a time.  For example, it
-can complete the command name abbreviation @code{p-b} into
-@code{print-buffer}, because no other command starts with two words
-whose initials are @samp{p} and @samp{b}.  To enable this, use the
-command @kbd{M-x partial-completion-mode} or customize the option
-@code{partial-completion-mode}.  Unless the option
-@code{PC-disable-includes} is @code{t}, Partial Completion mode also
-extends @kbd{M-x find-file} so that the @samp{<@dots{}>} sequence is
-interpreted as a file on the path @code{PC-include-file-path} and
-partial completion of file names is possible.  Partial completion of
-directories in file names requires @samp{*}s to indicate the
-completions: @file{/u*/b*/f*} might expand to @file{/usr/bin/foo}.  When
-Partial Completion mode is active, the Meta versions of the @kbd{TAB},
-@kbd{SPC}, @kbd{RET} and @kbd{?} keys act as those keys do by default
-for completion.
+  Another feature of Partial Completion mode is to extend
+@code{find-file} so that the @samp{<@var{include}>} stands for the
+file named @var{include} in some directory in the path
+@code{PC-include-file-path}.  If you set @code{PC-disable-includes} to
+@code{nil}, this feature is disabled.
 
 @cindex Icomplete mode
 @findex icomplete-mode
