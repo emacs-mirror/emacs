@@ -1,3 +1,47 @@
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* xselect.c (struct selection_event_queue, selection_queue)
+	(x_queue_selection_requests, x_queue_event)
+	(x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Add new queue for selection
+	input events to replace previous XEvent queue in xterm.c.
+	(queue_selection_requests_unwind): Adapt to new queue.
+	(x_reply_selection_request): Adapt to new queue.  Unexpect
+	wait_object in case of x errors (memory leak).
+	(x_handle_selection_request, x_handle_selection_clear): Make static.
+	(x_handle_selection_event): New function.  May queue selection events.
+	(wait_for_property_change_unwind): Use save_value instead of cons.
+	Clear property_change_reply_object.
+	(wait_for_property_change): Abort if already waiting.
+	Use save_value instead of cons for unwind data.
+	(x_handle_property_notify): Skip events already arrived, but don't
+	free them, as "arrived" field is checked by wait_for_property_change,
+	and it will be freed by unwind or explicit unexpect_property_change.
+	(x_get_foreign_selection): Add to new queue.
+	(receive_incremental_selection): Don't unexpect wait_object when done
+	as it has already been freed by previous wait_for_property_change.
+
+	* xterm.h (x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests, x_handle_selection_request)
+	(x_handle_selection_clear): Remove prototypes.
+	(x_handle_selection_event): Add prototype.
+
+	* xterm.c (handle_one_xevent): Don't queue X selection events
+	here, it may be too late if we start queuing after we have already
+	stored some selection events into the kbd buffer.
+	(struct selection_event_queue, queue, x_queue_selection_requests)
+	(x_queue_event, x_unqueue_events, x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Remove/move to xselect.c.
+	(x_catch_errors_unwind): Block input around final XSync.
+
+	* keyboard.h (kbd_buffer_unget_event): Add prototype.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Remove obsolete code.
+	(kbd_buffer_unget_event): New function.
+	(kbd_buffer_get_event, swallow_events): Combine SELECTION events
+	and use x_handle_selection_event.
+	(mark_kboards): Don't mark x and y of SELECTION_CLEAR_EVENT.
+
 2004-11-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (TRACE3): New debug macro.
