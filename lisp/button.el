@@ -89,22 +89,41 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 
 ;; Button types (which can be used to hold default properties for buttons)
 
+;; Because button-type properties are inherited by buttons using the
+;; special `category' property (implemented by both overlays and
+;; text-properties), we need to store them on a symbol to which the
+;; `category' properties can point.  Instead of using the symbol that's
+;; the name of each button-type, however, we use a separate symbol (with
+;; `-button' appended, and uninterned) to store the properties.  This is
+;; to avoid name clashes.
+
+;; [this is an internal function]
+(defsubst button-category-symbol (type)
+  "Return the symbol used by button-type TYPE to store properties.
+Buttons inherit them by setting their `category' property to that symbol."
+  (or (get type 'button-category-symbol)
+      (error "Unknown button type `%s'" type)))
+
 ;;;###autoload
 (defun define-button-type (name &rest properties)
   "Define a `button type' called NAME.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
 specifying properties to use as defaults for buttons with this type
 \(a button's type may be set by giving it a `type' property when
-creating the button)."
-  ;; We use a different symbol than NAME (with `-button' appended, and
-  ;; uninterned) to store the properties.  This is to avoid name
-  ;; clashes, since many very general properties may be include in
-  ;; PROPERTIES.
-  (let ((catsym (make-symbol (concat (symbol-name name) "-button"))))
+creating the button).
+
+The property `supertype' may be used to specify a button-type from which
+NAME inherits its default property values \(however, the inheritance
+happens only when NAME is defined; subsequent changes to a supertype are
+not reflected in its subtypes)."
+  (let* ((catsym (make-symbol (concat (symbol-name name) "-button")))
+	 (supertype (plist-get properties 'supertype))
+	 (super-catsym
+	  (if supertype (button-category-symbol supertype) 'default-button)))
     ;; Provide a link so that it's easy to find the real symbol.
     (put name 'button-category-symbol catsym)
     ;; Initialize NAME's properties using the global defaults.
-    (let ((default-props (symbol-plist 'default-button)))
+    (let ((default-props (symbol-plist super-catsym)))
       (while default-props
 	(put catsym (pop default-props) (pop default-props))))
     ;; Add NAME as the `type' property, which will then be returned as
@@ -115,13 +134,6 @@ creating the button)."
       (put catsym (pop properties) (pop properties)))
     name))
 
-;; [this is an internal function]
-(defsubst button-category-symbol (type)
-  "Return the symbol used by button-type TYPE to store properties.
-Buttons inherit them by setting their `category' property to that symbol."
-  (or (get type 'button-category-symbol)
-      (error "Unknown button type `%s'" type)))
-
 (defun button-type-put (type prop val)
   "Set the button-type TYPE's PROP property to VAL."
   (put (button-category-symbol type) prop val))
@@ -129,6 +141,13 @@ Buttons inherit them by setting their `category' property to that symbol."
 (defun button-type-get (type prop)
   "Get the property of button-type TYPE named PROP."
   (get (button-category-symbol type) prop))
+
+(defun button-type-subtype-p (type supertype)
+  "Return t if button-type TYPE is a subtype of SUPERTYPE."
+  (or (eq type supertype)
+      (and type
+	   (button-type-subtype-p (button-type-get type 'supertype)
+				  supertype))))
 
 
 ;; Button properties and other attributes
@@ -191,6 +210,10 @@ the normal action is used instead."
 (defun button-label (button)
   "Return BUTTON's text label."
   (buffer-substring-no-properties (button-start button) (button-end button)))
+
+(defun button-has-type-p (button type)
+  "Return t if BUTTON has button-type TYPE, or one of TYPE's subtypes."
+  (button-type-subtype-p (button-get button 'type) type))
 
 
 ;; Creating overlay buttons
