@@ -1,3 +1,7 @@
+2002-06-28  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: New file.
+
 2002-06-27  Andreas Schwab  <schwab@suse.de>
 
 	* net/tramp.el (tramp-handle-ange-ftp): Fix typo.
