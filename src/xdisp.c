@@ -818,6 +818,11 @@ redisplay ()
   if (noninteractive)
     return;
 
+#ifdef USE_X_TOOLKIT
+  if (popup_activated ())
+    return;
+#endif
+
 #ifdef MULTI_FRAME
   if (FRAME_TERMCAP_P (selected_frame)
       && previous_terminal_frame != selected_frame)
