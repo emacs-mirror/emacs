@@ -1446,8 +1446,8 @@ scrolling the current window.  Leave the new window selected."
     (set-buffer (get-buffer-create " *ispell-tmp*"))
     (erase-buffer)
     ;; Avoid obscure bugs caused by users who change the syntax of `.' in
-    ;; whatever default major mode the user uses, e.g. text mode
-    (set-syntax-table (standard-syntax-table))
+    ;; whatever default major mode the user uses, e.g. text mode.
+    (fundamental-mode)
     (let ((status (call-process ispell-program-name nil t nil "-v"))
 	  (case-fold-search t))
       (goto-char (point-min))
