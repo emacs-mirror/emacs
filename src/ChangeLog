@@ -1,3 +1,8 @@
+2004-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Don't handle characters that are part
+	of an old style (XLookupString) compose sequence.
+
 2004-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (Freplace_match): Use make_multibyte_string or

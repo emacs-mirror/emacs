@@ -6305,6 +6305,11 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
                                   &compose_status);
 #endif
 
+          /* If not using XIM/XIC, and a compose sequence is in progress,
+             we break here.  Otherwise, chars_matched is always 0.  */
+          if (compose_status.chars_matched > 0 && nbytes == 0)
+            break;
+
           orig_keysym = keysym;
 
           if (numchars > 1)
