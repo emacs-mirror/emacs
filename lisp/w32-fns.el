@@ -408,4 +408,59 @@ bit output with no translation."
 (make-obsolete-variable 'w32-charset-to-codepage-alist
                         'w32-charset-info-alist "21.1")
 
+
+;;;; Selections and cut buffers
+
+;;; We keep track of the last text selected here, so we can check the
+;;; current selection against it, and avoid passing back our own text
+;;; from x-cut-buffer-or-selection-value.
+(defvar x-last-selected-text nil)
+
+;;; It is said that overlarge strings are slow to put into the cut buffer.
+;;; Note this value is overridden below.
+(defvar x-cut-buffer-max 20000
+  "Max number of characters to put in the cut buffer.")
+
+(defcustom x-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This is in addition to the primary selection."
+  :type 'boolean
+  :group 'killing)
+
+(defun x-select-text (text &optional push)
+  "Make TEXT the last selected text.
+If `x-select-enable-clipboard' is non-nil, copy the text to the system
+clipboard as well. Optional PUSH is ignored on Windows."
+  (if x-select-enable-clipboard
+      (w32-set-clipboard-data text))
+  (setq x-last-selected-text text))
+    
+(defun x-get-selection-value ()
+  "Return the value of the current selection.
+Consult the selection, then the cut buffer.  Treat empty strings as if
+they were unset."
+  (if x-select-enable-clipboard
+      (let (text)
+	;; Don't die if x-get-selection signals an error.
+	(condition-case c
+	    (setq text (w32-get-clipboard-data))
+	  (error (message "w32-get-clipboard-data:%s" c)))
+	(if (string= text "") (setq text nil))
+	(cond
+	 ((not text) nil)
+	 ((eq text x-last-selected-text) nil)
+	 ((string= text x-last-selected-text)
+	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
+	  (setq x-last-selected-text text)
+	  nil)
+	 (t
+	  (setq x-last-selected-text text))))))
+
+(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+
+;;; Arrange for the kill and yank functions to set and check the clipboard.
+(setq interprogram-cut-function 'x-select-text)
+(setq interprogram-paste-function 'x-get-selection-value)
+
+
 ;;; w32-fns.el ends here
