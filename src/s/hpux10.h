@@ -10,7 +10,7 @@
 #undef srandom
 #undef random
 #undef HAVE_RANDOM
-#define HPUX10
+
 #define FORCE_ALLOCA_H
 
 /* AlainF 20-Jul-1996 says this is right.  */

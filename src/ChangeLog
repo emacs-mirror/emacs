@@ -1,3 +1,7 @@
+2003-02-19  Juanma Barranquero  <lektu@terra.es>
+
+	* s/hpux10.h (HPUX10): Define it just once.
+
 2003-02-17  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* s/hpux10.h (POLL_INTERRUPTED_SYS_CALL): Defined.
