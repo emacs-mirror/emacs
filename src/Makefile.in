@@ -739,6 +739,7 @@ shortlisp= \
 	../lisp/loaddefs.el \
 	../lisp/bindings.el \
 	../lisp/map-ynp.elc \
+	../lisp/env.elc \
 	../lisp/international/mule.elc \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
