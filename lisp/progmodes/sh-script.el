@@ -395,7 +395,6 @@ the car and cdr are the same symbol.")
 (defvar sh-mode-syntax-table
   '((sh eval sh-mode-syntax-table ()
 	?\# "<"
-	?\^l ">#"
 	?\n ">#"
 	?\" "\"\""
 	?\' "\"'"
