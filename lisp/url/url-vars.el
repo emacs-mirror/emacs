@@ -1,7 +1,4 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
-;; Author: $Author: miles $
-;; Created: $Date: 2004/04/10 06:14:57 $
-;; Version: $Revision: 1.3.2.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

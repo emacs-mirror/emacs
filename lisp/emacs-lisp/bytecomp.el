@@ -8,10 +8,6 @@
 ;; Maintainer: FSF
 ;; Keywords: lisp
 
-;;; This version incorporates changes up to version 2.10 of the
-;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.14 $")
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

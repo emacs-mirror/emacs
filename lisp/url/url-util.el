@@ -1,7 +1,5 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2004/04/04 04:44:10 $
-;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

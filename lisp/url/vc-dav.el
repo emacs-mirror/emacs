@@ -4,7 +4,6 @@
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.2 $
 ;; Keywords: url, vc
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
