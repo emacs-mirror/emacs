@@ -37,7 +37,7 @@ default, which is system-dependent, and is the same as used by Rmail.")
 (defvar display-time-day-and-date nil "\
 *Non-nil means \\[display-time] should display day and date as well as time.")
 
-(defvar display-time-process nil)
+(defvar display-time-timer nil)
 
 (defvar display-time-interval 60
   "*Seconds between updates of time in the mode line.")
@@ -63,41 +63,18 @@ If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 After each update, `display-time-hook' is run with `run-hooks'."
   (interactive)
-  (let ((live (or (and (eq system-type 'ms-dos) dos-display-time)
-		  (and display-time-process
-		       (eq (process-status display-time-process) 'run)))))
-    (if (not live)
-	(progn
-	  (if display-time-process
-	      (delete-process display-time-process))
-	  (or global-mode-string (setq global-mode-string '("")))
-	  (or (memq 'display-time-string global-mode-string)
-	      (setq global-mode-string
-		    (append global-mode-string '(display-time-string))))
-	  (setq display-time-string "")
-	  (if (eq system-type 'ms-dos)
-	      (setq dos-display-time t)
-	    ;; Using a pty is wasteful, and the separate session causes
-	    ;; annoyance sometimes (some systems kill idle sessions).
-	    (progn
-	      (let ((process-connection-type nil))
-		(setq display-time-process
-		      (start-process "display-time" nil
-				     (expand-file-name
-				      "wakeup" exec-directory)
-				     (int-to-string display-time-interval))))
-	      (process-kill-without-query display-time-process)
-	      (set-process-sentinel display-time-process
-				    'display-time-sentinel)
-	      (set-process-filter   display-time-process
-				    'display-time-filter)))))))
-
-(defun display-time-sentinel (proc reason)
-  (or (eq (process-status proc) 'run)
-      (setq display-time-string ""))
-  ;; Force mode-line updates
-  (force-mode-line-update t)
-  (sit-for 0))
+  (require 'timer)
+  (if (timerp display-time-timer)
+      (cancel-timer display-time-timer)
+    (setq display-time-timer (timer-create)))
+  (setq display-time-string "")
+  (or global-mode-string (setq global-mode-string '("")))
+  (or (memq 'display-time-string global-mode-string)
+      (setq global-mode-string
+	    (append global-mode-string '(display-time-string))))
+  (timer-set-time display-time-timer (current-time) display-time-interval)
+  (timer-set-function display-time-timer 'display-time-event-handler)
+  (timer-activate display-time-timer))
 
 (defvar display-time-string-forms
   '((if display-time-day-and-date
@@ -124,7 +101,7 @@ For example, the form
 
 would give mode line times like `94/12/30 21:07:48 (UTC)'.")
 
-(defun display-time-filter (proc string)
+(defun display-time-event-handler ()
   (let* ((now (current-time))
 	 (time (current-time-string now))
          (load (condition-case ()
