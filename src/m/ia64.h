@@ -133,6 +133,8 @@ Boston, MA 02111-1307, USA.  */
 #define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
 #define XUINT(a) ((long) (a) & VALMASK)
 
+#ifndef NOT_C_CODE
+
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL
 /* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
