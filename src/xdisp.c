@@ -11319,6 +11319,8 @@ display_line (it)
 	  for (i = 0; i < nglyphs; ++i, x = new_x)
 	    {
 	      glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
+	      if (CHAR_GLYPH_PADDING_P (*glyph))
+		continue;
 	      new_x = x + glyph->pixel_width;
 
 	      if (/* Lines are continued.  */
