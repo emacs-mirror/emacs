@@ -415,7 +415,7 @@ If INHIBIT-NULL is non-nil, null input signals an error."
     (if (> (length input-method) 0)
 	input-method
       (if inhibit-null
-	  (error "The specified input method is not avairable")))))
+	  (error "The specified input method is not available")))))
 
 ;; Actvate INPUT-METHOD.
 (defun activate-input-method (input-method)
