@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cyclic.com>
 ;; Maintainer: Karl Fogel <kfogel@cyclic.com>
 ;; Created: July, 1993
-;; Author's Update Number: 2.6.9
+;; Author's Update Number: 2.6.10
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;;; Summary:
@@ -250,6 +250,10 @@ the value of version-control.")
   "*Non-nil means that bookmarks will be displayed sorted by bookmark
 name.  Otherwise they will be displayed in LIFO order (that is, most
 recently set ones come first, oldest ones come last).")
+
+
+(defvar bookmark-automatically-show-annotations t
+  "*Nil means don't show annotations when jumping to a bookmark.")
 
 
 (defvar bookmark-search-size 16
@@ -980,9 +984,10 @@ of the old one in the permanent bookmark record."
     (and cell
          (switch-to-buffer (car cell))
          (goto-char (cdr cell))
-	 ;; if there is an annotation for this bookmark,
-	 ;; show it in a buffer.
-	 (bookmark-show-annotation str))))
+	 (if bookmark-automatically-show-annotations
+             ;; if there is an annotation for this bookmark,
+             ;; show it in a buffer.
+             (bookmark-show-annotation str)))))
 
 
 (defun bookmark-jump-noselect (str)
