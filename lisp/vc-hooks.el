@@ -334,7 +334,7 @@ value of this flag.")
        ((or (and (search-forward "$Id: " nil t)
 		 (looking-at "[^ ]+ \\([0-9.]+\\) "))
 	    (and (progn (goto-char (point-min))
-			(search-forward "$Headers: " nil t))
+			(search-forward "$Header: " nil t))
 		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
 	;; if found, store the revision number ...
 	(let ((rev (buffer-substring (match-beginning 1)
