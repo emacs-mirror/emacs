@@ -321,6 +321,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'compare-w))
+
 (defgroup vcursor nil
   "Manipulate an alternative (\"virtual\") cursor."
   :prefix "vcursor-"
@@ -654,6 +656,7 @@ another window.  With LEAVE-W, use the current `vcursor-window'."
 	(move-overlay vcursor-overlay pt (+ pt 1) (current-buffer))
       (setq vcursor-overlay (make-overlay pt (+ pt 1)))
       (or window-system
+	  (display-color-p)
 	  (overlay-put vcursor-overlay 'before-string vcursor-string))
       (overlay-put vcursor-overlay 'face 'vcursor))
     (or leave-w (vcursor-find-window nil t))
