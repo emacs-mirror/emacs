@@ -47,6 +47,9 @@ Boston, MA 02111-1307, USA.  */
 #if LINUX_VERSION_CODE > 0x10200
 #define LINUX_SIGIO_DOES_WORK
 #endif /* LINUX_VERSION_CODE > 0x10200 */
+#if LINUX_VERSION_CODE >= 0x20000
+#define LINUX_MAP_SHARED_DOES_WORK
+#endif /* LINUX_VERSION_CODE >= 0x20000 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
 #endif /* NOT_C_CODE */
@@ -243,7 +246,9 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef __ELF__
 #define UNEXEC unexelf.o
+#ifndef LINUX_MAP_SHARED_DOES_WORK
 #define UNEXEC_USE_MAP_PRIVATE
+#endif
 #endif
 
 #ifdef LINUX_QMAGIC
