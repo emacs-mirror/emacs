@@ -11885,7 +11885,10 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       struct buffer *b = XBUFFER (w->buffer);
 
       if (EQ (b->cursor_type, Qt))
-	new_cursor_type = FRAME_DESIRED_CURSOR (f);
+	{
+	  new_cursor_type = FRAME_DESIRED_CURSOR (f);
+	  new_cursor_width = FRAME_CURSOR_WIDTH (f);
+	}
       else
 	new_cursor_type = x_specified_cursor_type (b->cursor_type, 
 						   &new_cursor_width);
