@@ -2493,6 +2493,10 @@ static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 static void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 					enum glyph_row_area));
 
+#if GLYPH_DEBUG
+static void x_check_font P_ ((struct frame *, XFontStruct *));
+#endif
+
 
 /* Append the list of glyph strings with head H and tail T to the list
    with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
