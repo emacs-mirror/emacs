@@ -899,6 +899,55 @@ the data it can't find.")
     return Fmake_list (2, Qnil);
 }
 
+DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
+  "Set the local time zone using TZ, a string specifying a time zone rule.\n\
+If TZ is nil, use implementation-defined default time zone information.")
+  (tz)
+     Lisp_Object tz;
+{
+  extern char **environ;
+  static char **environbuf;
+  int envptrs;
+  char **from, **to, **newenv;
+  char *tzstring;
+
+  if (NILP (tz))
+    tzstring = 0;
+  else
+    {
+      CHECK_STRING (tz, 0);
+      tzstring = XSTRING (tz)->data;
+    }
+
+  for (from = environ; *from; from++)
+    continue;
+  envptrs = from - environ + 2;
+  newenv = to = (char **) xmalloc (envptrs * sizeof (char *)
+				   + (tzstring ? strlen (tzstring) + 4 : 0));
+  if (tzstring)
+    {
+      char *t = (char *) (to + envptrs);
+      strcpy (t, "TZ=");
+      strcat (t, tzstring);
+      *to++ = t;
+    }
+
+  for (from = environ; *from; from++)
+    if (strncmp (*from, "TZ=", 3) != 0)
+      *to++ = *from;
+  *to = 0;
+
+  environ = newenv;
+  if (environbuf)
+    free (environbuf);
+  environbuf = newenv;
+
+#ifdef LOCALTIME_CACHE
+  tzset ();
+#endif
+
+  return Qnil;
+}
 
 void
 insert1 (arg)
@@ -2319,6 +2368,7 @@ syms_of_editfns ()
   defsubr (&Sencode_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
+  defsubr (&Sset_time_zone_rule);
   defsubr (&Ssystem_name);
   defsubr (&Smessage);
   defsubr (&Smessage_box);
