@@ -185,7 +185,7 @@ The return value should be `delete' or a group name (a string)."
   :group 'nnmail
   :type 'boolean)
 
-(defcustom nnmail-spool-file nil
+(defcustom nnmail-spool-file '((file))
   "*Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 This variable is obsolete; `mail-sources' should be used instead."
