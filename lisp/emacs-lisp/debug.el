@@ -30,6 +30,7 @@
 (defvar debug-function-list nil
   "List of functions currently set for debug on entry.")
 
+(defvar debugger-outer-match-data)
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
 (defvar debugger-outer-this-command)
@@ -56,7 +57,6 @@ any other args you like.  In that case, the list of args after the
 first will be printed into the backtrace buffer."
   (message "Entering debugger...")
   (let (debugger-value
-	(debugger-match-data (match-data))
 	(debug-on-error nil)
 	(debug-on-quit nil)
 	(debugger-buffer (let ((default-major-mode 'fundamental-mode))
@@ -67,6 +67,7 @@ first will be printed into the backtrace buffer."
 	(executing-macro nil)
 	;; Save the outer values of these vars for the `e' command
 	;; before we replace the values.
+	(debugger-outer-match-data (match-data))
 	(debugger-outer-track-mouse track-mouse)
 	(debugger-outer-last-command last-command)
 	(debugger-outer-this-command this-command)
@@ -148,7 +149,7 @@ first will be printed into the backtrace buffer."
 	      (erase-buffer)
 	      (fundamental-mode))
 	  (kill-buffer debugger-buffer))
-	(store-match-data debugger-match-data)))
+	(store-match-data debugger-outer-match-data)))
     ;; Put into effect the modified values of these variables
     ;; in case the user set them with the `e' command.
     (setq track-mouse debugger-outer-track-mouse)
@@ -297,7 +298,9 @@ Applies to the frame whose line point is on in the backtrace."
 	  (standard-input debugger-outer-standard-input)
 	  (standard-output debugger-outer-standard-output)
 	  (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
+      (store-match-data debugger-outer-match-data)
       (prog1 (eval-expression exp)
+	(setq debugger-outer-match-data (match-data))
 	(setq debugger-outer-track-mouse track-mouse)
 	(setq debugger-outer-last-command last-command)
 	(setq debugger-outer-this-command this-command)
