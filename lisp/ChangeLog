@@ -9,8 +9,8 @@
 
 2005-01-07  Lars Hansen  <larsh@math.ku.dk>
 
-	* desktop.el (desktop-restore-eager, desktop-lazy-verbose,
-	desktop-lazy-idle-delay): New customizable variables.
+	* desktop.el (desktop-restore-eager, desktop-lazy-verbose)
+	(desktop-lazy-idle-delay): New customizable variables.
 	(desktop-buffer-args-list): New variable.
 	(desktop-append-buffer-args): New function.
 	(desktop-save): Call desktop-append-buffer-args for some buffers.
