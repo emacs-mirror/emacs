@@ -8296,12 +8296,12 @@ x_scroll_bar_create (w, top, left, width, height)
 
   /* Map the window/widget.  */
 #if USE_TOOLKIT_SCROLL_BARS
-  XtMapWidget (SCROLL_BAR_X_WIDGET (bar));
   XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
 		     left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 		     top,
 		     width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		     height, 0);
+  XtMapWidget (SCROLL_BAR_X_WIDGET (bar));
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   XMapRaised (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8638,13 +8638,16 @@ XTcondemn_scroll_bars (frame)
     }
 }
 
+
 /* Un-mark WINDOW's scroll bar for deletion in this judgment cycle.
    Note that WINDOW isn't necessarily condemned at all.  */
+
 static void
 XTredeem_scroll_bar (window)
      struct window *window;
 {
   struct scroll_bar *bar;
+  struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
@@ -8653,36 +8656,33 @@ XTredeem_scroll_bar (window)
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
   /* Unlink it from the condemned list.  */
-  {
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+  f = XFRAME (WINDOW_FRAME (window));
+  if (NILP (bar->prev))
+    {
+      /* If the prev pointer is nil, it must be the first in one of
+	 the lists.  */
+      if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
+	/* It's not condemned.  Everything's fine.  */
+	return;
+      else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+		   window->vertical_scroll_bar))
+	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+      else
+	/* If its prev pointer is nil, it must be at the front of
+	   one or the other!  */
+	abort ();
+    }
+  else
+    XSCROLL_BAR (bar->prev)->next = bar->next;
 
-    if (NILP (bar->prev))
-      {
-	/* If the prev pointer is nil, it must be the first in one of
-           the lists.  */
-	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
-	  /* It's not condemned.  Everything's fine.  */
-	  return;
-	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-		     window->vertical_scroll_bar))
-	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
-	else
-	  /* If its prev pointer is nil, it must be at the front of
-             one or the other!  */
-	  abort ();
-      }
-    else
-      XSCROLL_BAR (bar->prev)->next = bar->next;
+  if (! NILP (bar->next))
+    XSCROLL_BAR (bar->next)->prev = bar->prev;
 
-    if (! NILP (bar->next))
-      XSCROLL_BAR (bar->next)->prev = bar->prev;
-
-    bar->next = FRAME_SCROLL_BARS (f);
-    bar->prev = Qnil;
-    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
-    if (! NILP (bar->next))
-      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
-  }
+  bar->next = FRAME_SCROLL_BARS (f);
+  bar->prev = Qnil;
+  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  if (! NILP (bar->next))
+    XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
