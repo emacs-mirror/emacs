@@ -1,3 +1,7 @@
+2000-07-21  Dave Love  <fx@gnu.org>
+
+	* smerge-mode.el (smerge-mode-menu): Fill it out.
+
 2000-07-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* info-look.el (info-lookup): If *info* is shown in another frame
