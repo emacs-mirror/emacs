@@ -1,3 +1,8 @@
+2002-11-14  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer) <mode-line-format>: Document symbol
+	dependency on `risky-local-variable' and the :propertize form.
+
 2002-11-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (scan_sexps_forward): Undo last patch.

@@ -1,3 +1,11 @@
+2002-11-14  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (mode-name): Mark it as risky-local-variable like the
+	other mode-line elements (moved from bindings.el).
+
+	* bindings.el (mode-name): Moved mark as risky-local-variable to
+	files.el. 
+
 2002-11-14  Juanma Barranquero  <lektu@terra.es>
 
 	* gud.el: Fix feature name in `provide'.
