@@ -1,5 +1,10 @@
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
+	* dired.el (dired-copy-filename-as-kill): Moved from dired-x.el.
+	(dired-mode-map): Bind w to dired-copy-filename-as-kill.
+
+	* dired-x.el (dired-copy-filename-as-kill): Moved to dired.el.
+
 	* find-file.el (ff-other-file-name): New function.
 
 2001-12-16  Eli Zaretskii  <eliz@is.elta.co.il>

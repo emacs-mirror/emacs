@@ -78,6 +78,9 @@ With positive arg, M-h marks the current and the following pargraphs;
 if the arg is negative, it marks the current and the preceding
 paragraphs.
 
+** In Dired, the w command now copies the current line's file name
+into the kill ring.
+
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
