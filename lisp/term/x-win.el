@@ -98,8 +98,6 @@
 		("-bd" .	x-handle-switch))
 	      command-switch-alist))
 
-(defvar x-switches-specified nil)
-
 (defconst x-switch-definitions
   '(("-name" name)
     ("-T" name)
@@ -127,29 +125,29 @@
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
 	(if (nth 2 aelt)
-	    (setq x-switches-specified
+	    (setq screen-default-alist
 		  (cons (cons (nth 1 aelt) (nth 2 aelt))
-			x-switches-specified))
-	  (setq x-switches-specified
+			screen-default-alist))
+	  (setq screen-default-alist
 		(cons (cons (nth 1 aelt)
 			    (car x-invocation-args))
-		      x-switches-specified)
+		      screen-default-alist)
 		x-invocation-args (cdr x-invocation-args))))))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
-	(setq x-switches-specified
+	(setq screen-default-alist
 	      (cons (cons (nth 1 aelt)
 			  (string-to-int (car x-invocation-args)))
-		    x-switches-specified)
+		    screen-default-alist)
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (setq x-switches-specified (append x-switches-specified
+  (setq initial-screen-alist (append initial-screen-alist
 				     (x-geometry (car x-invocation-args)))
 	x-invocation-args (cdr x-invocation-args)))
 
@@ -189,20 +187,42 @@ are left in ARGS."
 	(setq args (cons this-switch args)))))
   (setq args (nreverse args)))
 
-;;
-;; This is the place to handle Xresources
-;;
+
+;; Handle Xresources.
+
+(defun x-read-resources ()
+  "Reread the X defaults from the X server and install them in
+`screen-default-alist', to be used in new screens."
+  (interactive)
+  (mapcar (function
+	   (lambda (key-resname-default)
+	     (let* ((key (car key-resname-default))
+		    (tail (assq key screen-default-alist))
+		    (value
+		     (or (x-get-default (nth 2 key-resname-default))
+			 (nth 3 key-resname-default))))
+	       (if tail (setcdr tail value)
+		 (setq screen-default-alist
+		       (cons (cons key value)
+			     screen-default-alist))))))
+	  '((font "font" "9x15")
+	    (background-color "background" "white")
+	    (border-width "#BorderWidth" 2)
+	    (internal-border-width "#InternalBorderWidth" 1)
+
+	    (foreground-color "foreground" "black")
+	    (mouse-color "mouse" "black")
+	    (cursor-color "cursor" "black")
+	    (border-color "border" "black"))))
 
 
 ;; This is the function which creates the first X window.  It is called
 ;; from startup.el before the user's init file is processed.
 
 (defun x-pop-initial-window ()
-  (setq x-switches-specified (append x-switches-specified
-				     initial-screen-alist
-				     screen-default-alist))
   ;; see screen.el for this function
-  (pop-initial-screen x-switches-specified)
+  (pop-initial-screen (append initial-screen-alist
+			      screen-default-alist))
   (delete-screen terminal-screen))
 
 
@@ -604,10 +624,12 @@ are left in ARGS."
 (define-function-key global-function-map 'xk-f34 nil)
 (define-function-key global-function-map 'xk-f35 nil)
 
-;;; Here 
+;;; Do the actual X Windows setup here; the above code just defines
+;;; functions and variables that we use now.
 
 ;; xterm.c depends on using interrupt-driven input.
 (set-input-mode t nil t)
+(x-read-resources)
 (x-handle-args)
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
