@@ -1143,7 +1143,7 @@ static char *magick[] = {
 		(setq bptno (match-string 1))
 		(setq flag (char-after (match-beginning 2)))
 		(beginning-of-line)
-		(if (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
+		(if (re-search-forward "in.*at\\s-+" nil t)
 		    (progn
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
@@ -1298,7 +1298,7 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at ".*in\\s-+\\S-+\\s-+at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
+	    (looking-at ".*in.*at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
 	  (looking-at
      "[0-9]+\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)"))
 	(let ((line (match-string 2))
