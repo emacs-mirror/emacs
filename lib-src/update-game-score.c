@@ -29,29 +29,37 @@ Boston, MA 02111-1307, USA.  */
    Created 2002/03/22, by Colin Walters <walters@debian.org>
 */
 
-#define _GNU_SOURCE
-
 #include <config.h>
 
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <errno.h>
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef STDC_HEADERS
 #include <stdarg.h>
+#endif
 #include <sys/stat.h>
+
+/* Needed for SunOS4, for instance.  */
+extern char *optarg;
+extern int optind, opterr;
 
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
-
-#if !defined (__GNUC__) || __GNUC__ < 2
-#define __attribute__(x) 
-#endif
 
 /* Declare the prototype for a general external function.  */
 #if defined (PROTOTYPES) || defined (WINDOWSNT)
@@ -97,8 +105,7 @@ int
 write_scores P_((const char *filename, const struct score_entry *scores,
 		 int count));
 
-void lose P_((const char *msg))
-     __attribute__ ((noreturn));
+void lose P_((const char *msg)) NO_RETURN;
 
 void lose(msg)
      const char *msg;
@@ -107,8 +114,7 @@ void lose(msg)
   exit(1);
 }
 
-void lose_syserr P_((const char *msg))
-     __attribute__ ((noreturn));
+void lose_syserr P_((const char *msg)) NO_RETURN;
 
 void lose_syserr(msg)
      const char *msg;
@@ -118,7 +124,7 @@ void lose_syserr(msg)
 }
 
 char *
-get_user_id(void)
+get_user_id P_ ((void))
 {
   char *name;
   struct passwd *buf = getpwuid(getuid());
