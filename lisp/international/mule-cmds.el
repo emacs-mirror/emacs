@@ -495,11 +495,14 @@ If optional second arg INITIAL-INPUT is non-nil, insert it in the minibuffer
 initially.
 Optional 3rd argument INPUT-METHOD specifies the input method
 to be activated instead of the one selected last time."
-  (let ((default-input-method
-	  (or input-method
-	      default-input-method
-	      (read-input-method-name "Input method: " nil t))))
-    (let ((minibuffer-setup-hook '(toggle-input-method)))
+  (setq input-method
+	(or input-method
+	    default-input-method
+	    (read-input-method-name "Input method: " nil t)))
+  (save-excursion
+    (set-buffer (window-buffer (minibuffer-window)))
+    (let ((default-input-method input-method)
+	  (minibuffer-setup-hook '(toggle-input-method)))
       (read-string prompt initial-input))))
 
 ;; Variables to control behavior of input methods.  All input methods
