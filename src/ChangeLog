@@ -1,3 +1,10 @@
+2000-12-02  Simon Josefsson  <simon@josefsson.org>
+
+	* fns.c (Fmd5): Use a different logic to decide the coding system
+	to use.
+
+	* coding.h (Qwrite_region, Qcoding_system_error): Declare extern.
+
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fread_file_name) [DOS_NT]: Don't crash if homedir is
@@ -58,7 +65,7 @@
 
 	* fns.c (Fmd5): Doc fix.
 
-2000-10-07  Simon Josefsson  <simon@josefsson.org>
+2000-11-30  Simon Josefsson  <simon@josefsson.org>
 
 	* fns.c (Fmd5): New function.
 	(syms_of_fns): Defsubr md5.
