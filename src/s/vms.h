@@ -60,7 +60,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Define HAVE_SELECT if the system supports the `select' system call.
  */
 
-/* #define HAVE_SELECT */
+#define HAVE_SELECT		/* There is an emulation in vmsproc.c */
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
@@ -152,7 +152,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define index strchr
 #define rindex strrchr
 #define unlink delete
-  
+
+#ifndef _GNUC_
+extern double mth$dmod(double, double);
+#define drem mth$dmod
+#endif
+
+/* Some time rountines are missing in the VAX C RTL, or needs some
+   extra bit of code */
+#define tzset sys_tzset
+#define localtime sys_localtime
+#define gmtime sys_gmtime
+
 /* On later versions of VMS these exist in the C run time library, but
    we are using our own implementations.  Hide their names to avoid
    linker errors */
@@ -160,6 +171,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define execvp sys_execvp
 #define system sys_system
 
+#ifndef GNU_MALLOC
 /* Hide these names so that we don't get linker errors */
 #define malloc sys_malloc
 #define free sys_free
@@ -169,6 +181,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Don't use the standard brk and sbrk */
 #define sbrk sys_sbrk
 #define brk sys_brk
+#endif
 
 /* On VMS we want to avoid reading and writing very large amounts of
    data at once, so we redefine read and write here. */
@@ -201,6 +214,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Case conflicts with C library srandom. */
 #define Srandom S_random
 
+/* variable length too long... maybe */
+#if 0
+#define do_line_insertion_deletion_costs do_line_insertion_deletion_cost
+#endif
+
 /* Cause initialization of vmsfns.c to be run.  */
 #define SYMS_SYSTEM syms_of_vmsfns ()
 
@@ -223,7 +241,7 @@ globalref char sdata[];
 { 0, 50, 75, 110, 134, 150, 300, 600, 1200, 1800, \
   2000, 2400, 3600, 4800, 7200, 9600, 19200 }
 
-#define PURESIZE 132000
+#define PURESIZE 330000
 
 /* Stdio FILE type has extra indirect on VMS, so must alter this macro.  */
 
