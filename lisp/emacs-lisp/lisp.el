@@ -192,7 +192,7 @@ is called as a function to find the defun's beginning."
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat (if open-paren-in-column-0-is-defun-start
 					     "^\\s(\\|" "")
-					 "\\(" defun-prompt-regexp "\\)\\s(")
+					 "\\(?:" defun-prompt-regexp "\\)\\s(")
 			       "^\\s(")
 			     nil 'move (or arg 1))
 	 (progn (goto-char (1- (match-end 0)))) t)))
