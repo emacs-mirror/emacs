@@ -33,8 +33,10 @@ LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc
 
 EMACS           = $(BLD)\emacs.exe
 TEMACS          = $(BLD)\temacs.exe
-TLIB            = $(BLD)\temacs.lib
+TLIB1           = $(BLD)\temacs1.lib
+TLIB2           = $(BLD)\temacs2.lib
 TOBJ            = $(BLD)\emacs.obj
+TRES		= $(BLD)\emacs.rbj
 
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
 
@@ -107,7 +109,8 @@ OBJ2 =  $(BLD)\nt.obj           \
 	$(BLD)\region-cache.obj	\
 	$(BLD)\strftime.obj
 
-LIBS =  $(TLIB)                         \
+LIBS =  $(TLIB1)                        \
+	$(TLIB2)			\
 	$(SYS_LIB_DIR)\setargv.obj      \
 	$(SYS_LIB_DIR)\kernel32.lib     \
 	$(SYS_LIB_DIR)\advapi32.lib     \
@@ -132,9 +135,9 @@ paths.h:	..\nt\paths.h
 #
 # Make sure we have the DOC file in the right place.
 #
-DOC		= obj\etc\DOC
+DOC		= obj\etc\DOC-X
 $(DOC):;	cd ..\lib-src 
-		- del /q DOC
+		- del /q DOC-X
 		$(MAKE) -f makefile.nt all
 		cd ..\src
 
@@ -151,16 +154,24 @@ $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 # The undumped executable
 #
 temacs:         $(TEMACS)
-$(TEMACS):      $(BLD) $(TLIB) $(TOBJ)
-		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(LIBS)
+$(TEMACS):      $(BLD) $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
+		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
+
+#
+# The resource file.
+#
+$(TRES):	..\nt\emacs.rc
+		$(RC) -i..\nt -Fo$(BLD)\emacs.res $**
+		$(CVTRES) -r -$(ARCH) -o $@ $(BLD)\emacs.res
 
 #
 # Build the library.  Split up the build into two phases...otherwise we 
 # run out of command line space.
 #
-$(TLIB):        $(OBJ1) $(OBJ2)
-		@- $(AR) -out:$(TLIB) $(OBJ1)
-		@- $(AR) -out:$(TLIB) $(TLIB) $(OBJ2)
+$(TLIB1):       $(OBJ1)
+		@- $(AR) -out:$@ $**
+$(TLIB2):	$(OBJ2)
+		@- $(AR) -out:$@ $**
 
 #
 # Object files.
@@ -799,6 +810,13 @@ $(BLD)\search.obj : \
 	$(SRC)\commands.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\regex.h
+
+$(BLD)\strftime.obj : \
+	$(SRC)\strftime.c \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h
+	$(CC) $(CFLAGS) -Dstrftime=emacs_strftime -Fo$@ strftime.c
 
 $(BLD)\sunfns.obj : \
 	$(SRC)\sunfns.c \
