@@ -391,7 +391,11 @@ new value.")
     (overlay-put overlay 'evaporate t)
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
-      (overlay-put overlay 'face (widget-apply widget :button-face-get)))
+      (overlay-put overlay 'face (widget-apply widget :button-face-get))
+      ; Text terminals cannot change mouse pointer shape, so use mouse
+      ; face instead.
+      (or (display-graphic-p)
+	  (overlay-put overlay 'mouse-face widget-mouse-face)))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
