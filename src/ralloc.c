@@ -252,7 +252,7 @@ obtain (address, size)
 
   /* If we can't fit SIZE bytes in that heap,
      try successive later heaps.  */
-  while (heap && address + size > heap->end)
+  while (heap && (char *) address + size > (char *) heap->end)
     {
       heap = heap->next;
       if (heap == NIL_HEAP)
@@ -276,7 +276,7 @@ obtain (address, size)
 	  heap_ptr new_heap = (heap_ptr) MEM_ROUNDUP (new);
 	  POINTER bloc_start = (POINTER) MEM_ROUNDUP ((POINTER)(new_heap + 1));
 
-	  if ((*real_morecore) (bloc_start - new) != new)
+	  if ((*real_morecore) ((char *) bloc_start - (char *) new) != new)
 	    return 0;
 
 	  new_heap->start = new;
@@ -304,7 +304,7 @@ obtain (address, size)
       if ((*real_morecore) (get) != last_heap->end)
 	return 0;
 
-      last_heap->end += get;
+      last_heap->end = (char *) last_heap->end + get;
     }
 
   return address;
@@ -352,7 +352,7 @@ relinquish ()
 	{
 	  excess = (char *) last_heap->end
 			- (char *) ROUNDUP ((char *)last_heap->end - excess);
-	  last_heap->end -= excess;
+	  last_heap->end = (char *) last_heap->end - excess;
 	}
 
       if ((*real_morecore) (- excess) == 0)
@@ -360,7 +360,7 @@ relinquish ()
 	  /* If the system didn't want that much memory back, adjust
              the end of the last heap to reflect that.  This can occur
              if break_value is still within the original data segment.  */
-	  last_heap->end += excess;
+	  last_heap->end = (char *) last_heap->end + excess;
 	  /* Make sure that the result of the adjustment is accurate.
              It should be, for the else clause above; the other case,
              which returns the entire last heap to the system, seems
@@ -377,7 +377,7 @@ relinquish ()
 long
 r_alloc_size_in_use ()
 {
-  return break_value - virtual_break_value;
+  return (char *) break_value - (char *) virtual_break_value;
 }
 
 /* The meat - allocating, freeing, and relocating blocs.  */
@@ -422,7 +422,7 @@ get_bloc (size)
       return 0;
     }
 
-  break_value = new_bloc->data + size;
+  break_value = (char *) new_bloc->data + size;
 
   new_bloc->size = size;
   new_bloc->next = NIL_BLOC;
@@ -479,7 +479,7 @@ relocate_blocs (bloc, heap, address)
     {
       /* If bloc B won't fit within HEAP,
 	 move to the next heap and try again.  */
-      while (heap && address + b->size > heap->end)
+      while (heap && (char *) address + b->size > (char *) heap->end)
 	{
 	  heap = heap->next;
 	  if (heap == NIL_HEAP)
@@ -515,7 +515,7 @@ relocate_blocs (bloc, heap, address)
 	 and update where the next bloc can start.  */
       b->new_data = address;
       if (b->variable) 
-	address += b->size;
+	address = (char *) address + b->size;
       b = b->next;
     }
 
@@ -567,7 +567,7 @@ update_heap_bloc_correspondence (bloc, heap)
     {
       /* The previous bloc is in HEAP.  */
       heap->last_bloc = bloc->prev;
-      heap->free = bloc->prev->data + bloc->prev->size;
+      heap->free = (char *) bloc->prev->data + bloc->prev->size;
     }
   else
     {
@@ -595,7 +595,7 @@ update_heap_bloc_correspondence (bloc, heap)
 	}
 
       /* Update HEAP's status for bloc B.  */
-      heap->free = b->data + b->size;
+      heap->free = (char *) b->data + b->size;
       heap->last_bloc = b;
       if (heap->first_bloc == NIL_BLOC)
 	heap->first_bloc = b;
@@ -649,8 +649,8 @@ resize_bloc (bloc, size)
   bloc->size = size;
 
   /* Note that bloc could be moved into the previous heap.  */
-  address = (bloc->prev ? bloc->prev->data + bloc->prev->size
-	     : first_heap->bloc_start);
+  address = (bloc->prev ? (char *) bloc->prev->data + bloc->prev->size
+	     : (char *) first_heap->bloc_start);
   while (heap)
     {
       if (heap->bloc_start <= address && address <= heap->end)
@@ -687,7 +687,7 @@ resize_bloc (bloc, size)
       else
 	{
 	  safe_bcopy (bloc->data, bloc->new_data, old_size);
-	  bzero (bloc->new_data + old_size, size - old_size);
+	  bzero ((char *) bloc->new_data + old_size, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
     }
@@ -710,8 +710,8 @@ resize_bloc (bloc, size)
 
   update_heap_bloc_correspondence (bloc, heap);
 
-  break_value = (last_bloc ? last_bloc->data + last_bloc->size
-		 : first_heap->bloc_start);
+  break_value = (last_bloc ? (char *) last_bloc->data + last_bloc->size
+		 : (char *) first_heap->bloc_start);
   return 1;
 }
 
@@ -917,8 +917,8 @@ r_alloc_sbrk (size)
 
   virtual_break_value = (POINTER) ((char *)address + size);
   break_value = (last_bloc
-		 ? last_bloc->data + last_bloc->size
-		 : first_heap->bloc_start);
+		 ? (char *) last_bloc->data + last_bloc->size
+		 : (char *) first_heap->bloc_start);
   if (size < 0)
     relinquish ();
 
@@ -1660,13 +1660,14 @@ r_alloc_init ()
      which page_size is stored.  This allows a binary to be built on a
      system with one page size and run on a system with a smaller page
      size.  */
-  (*real_morecore) (first_heap->end - first_heap->start);
+  (*real_morecore) ((char *) first_heap->end - (char *) first_heap->start);
 
   /* Clear the rest of the last page; this memory is in our address space
      even though it is after the sbrk value.  */
   /* Doubly true, with the additional call that explicitly adds the
      rest of that page to the address space.  */
-  bzero (first_heap->start, first_heap->end - first_heap->start);
+  bzero (first_heap->start,
+	 (char *) first_heap->end - (char *) first_heap->start);
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
   use_relocatable_buffers = 1;
 }
