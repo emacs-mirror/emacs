@@ -1,6 +1,5 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
-;; Copyright (C) 1994 Barry A. Warsaw
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: 1994 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
@@ -27,54 +26,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
-;;
-;; This program is based on the only two existing Emacs Lisp profilers
-;; that I'm aware of, Boaz Ben-Zvi's profile.el, and Root Boy Jim's
-;; profiler.el. Both were written for Emacs 18 and both were pretty
-;; good first shots at profiling, but I found that they didn't provide
-;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in both Emacs 19's.  There's no point in even
-;; trying to make this work with Emacs 18.
-
-;; Unlike previous profilers, elp uses Emacs 19's built-in function
-;; current-time to return interval times.  This obviates the need for
-;; both an external C program and Emacs processes to communicate with
-;; such a program, and thus simplifies the package as a whole.  One
-;; small shortcut: I throw away the most significant 16 bits of
-;; seconds returned by current-time since I doubt anyone will ever
-;; want to profile stuff on the order of 18 hours.  2^16 == 65536
-;; seconds == ~1092 minutes == ~18 hours.
-
-;; Note that there are plenty of factors that could make the times
-;; reported unreliable, including the accuracy and granularity of your
-;; system clock, and the overhead spent in lisp calculating and
-;; recording the intervals.  The latter I figure is pretty constant
-;; so, while the times may not be entirely accurate, I think they'll
-;; give you a good feel for the relative amount of work spent in the
-;; various lisp routines you are profiling.  Note further that times
-;; are calculated using wall-clock time, so other system load will
-;; affect accuracy too.
-
-;; Here is a list of variable you can use to customize elp:
-;;   elp-function-list
-;;   elp-reset-after-results
-;;   elp-sort-by-function
-;;   elp-report-limit
-;;
-;; Here is a list of the interactive commands you can use:
-;;   elp-instrument-function
-;;   elp-restore-function
-;;   elp-instrument-list
-;;   elp-restore-list
-;;   elp-instrument-package
-;;   elp-restore-all
-;;   elp-reset-function
-;;   elp-reset-list
-;;   elp-reset-all
-;;   elp-set-master
-;;   elp-unset-master
-;;   elp-results
-;;   elp-submit-bug-report
 ;;
 ;; Here are some brief usage notes.  If you want to profile a bunch of
 ;; functions, set elp-function-list to the list of symbols, then call
@@ -123,10 +74,55 @@
 ;; elp-restore-function.  The other instrument, restore, and reset
 ;; functions are provided for symmetry.
 
-;; LCD Archive Entry:
-;; elp|Barry A. Warsaw|tools-help@anthem.nlm.nih.gov|
-;; Emacs Lisp Profiler|
-;; 1994/12/23 17:46:21|2.22|~/misc/elp.el.Z|
+;; Note that there are plenty of factors that could make the times
+;; reported unreliable, including the accuracy and granularity of your
+;; system clock, and the overhead spent in lisp calculating and
+;; recording the intervals.  The latter I figure is pretty constant
+;; so, while the times may not be entirely accurate, I think they'll
+;; give you a good feel for the relative amount of work spent in the
+;; various lisp routines you are profiling.  Note further that times
+;; are calculated using wall-clock time, so other system load will
+;; affect accuracy too.
+
+;; Here is a list of variable you can use to customize elp:
+;;   elp-function-list
+;;   elp-reset-after-results
+;;   elp-sort-by-function
+;;   elp-report-limit
+;;
+;; Here is a list of the interactive commands you can use:
+;;   elp-instrument-function
+;;   elp-restore-function
+;;   elp-instrument-list
+;;   elp-restore-list
+;;   elp-instrument-package
+;;   elp-restore-all
+;;   elp-reset-function
+;;   elp-reset-list
+;;   elp-reset-all
+;;   elp-set-master
+;;   elp-unset-master
+;;   elp-results
+;;   elp-submit-bug-report
+
+;;; Background:
+
+;; This program is based on the only two existing Emacs Lisp profilers
+;; that I'm aware of, Boaz Ben-Zvi's profile.el, and Root Boy Jim's
+;; profiler.el. Both were written for Emacs 18 and both were pretty
+;; good first shots at profiling, but I found that they didn't provide
+;; the functionality or interface that I wanted.  So I wrote this.
+;; I've tested elp in GNU Emacs 19 and in GNU XEmacs.  There's no
+;; point in even trying to make this work with Emacs 18.
+
+;; Unlike previous profilers, elp uses Emacs 19's built-in function
+;; current-time to return interval times.  This obviates the need for
+;; both an external C program and Emacs processes to communicate with
+;; such a program, and thus simplifies the package as a whole.  One
+;; small shortcut: I throw away the most significant 16 bits of
+;; seconds returned by current-time since I doubt anyone will ever
+;; want to profile stuff on the order of 18 hours.  2^16 == 65536
+;; seconds == ~1092 minutes == ~18 hours.
 
 ;;; Code:
 
@@ -553,4 +549,5 @@ displayed."
 
 
 (provide 'elp)
+
 ;; elp.el ends here
