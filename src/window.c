@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985, 1986, 1987, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -736,7 +736,8 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
     if (EQ (window, pwindow))
       {
-	Lisp_Object alternative = Fnext_window (window, Qlambda, Qnil);
+	Lisp_Object alternative;
+	alternative = Fnext_window (window, Qlambda, Qnil);
 
 	/* If we're about to delete the selected window on the
 	   selected frame, then we should use Fselect_window to select
@@ -841,7 +842,8 @@ minibuffer does not count, only windows from WINDOW's frame count.\n\
 \n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's frame.\n\
+above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
+Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
 `next-window' to iterate through the entire cycle of acceptable\n\
@@ -878,6 +880,8 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 		       (WINDOW_FRAME
 			(XWINDOW (window)))))
 		   : Qnil);
+  else if (EQ (all_frames, Qvisible))
+    ;
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
@@ -954,7 +958,8 @@ count.\n\
 \n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's frame.\n\
+above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
+Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
 `previous-window' to iterate through the entire cycle of acceptable\n\
@@ -992,6 +997,8 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 		       (WINDOW_FRAME
 			(XWINDOW (window)))))
 		   : Qnil);
+  else if (EQ (all_frames, Qvisible))
+    ;
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
@@ -1095,6 +1102,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
    with argument OBJ.
    If FRAMES is Qt, look at all frames;
                 Qnil, look at just the selected frame;
+		Qvisible, look at visible frames;
 	        a frame, just look at windows on that frame.
    If MINI is non-zero, perform the operation on minibuffer windows too.
 */
@@ -1121,6 +1129,8 @@ window_loop (type, obj, mini, frames)
   register Lisp_Object next_window;
   register Lisp_Object last_window;
   FRAME_PTR frame;
+  Lisp_Object frame_arg;
+  frame_arg = Qt;
 
 #ifdef MULTI_FRAME
   /* If we're only looping through windows on a particular frame,
@@ -1132,9 +1142,17 @@ window_loop (type, obj, mini, frames)
     frame = selected_frame;
   else
     frame = 0;
+  if (frame)
+    frame_arg = Qlambda;
+  else if (EQ (frames, Qvisible))
+    frame_arg = frames;
 #else
   frame = 0;
 #endif
+
+  /* frame_arg is Qlambda to stick to one frame,
+     Qvisible to consider all visible frames,
+     or Qt otherwise.  */
 
   /* Pick a window to start with.  */
   if (XTYPE (obj) == Lisp_Window)
@@ -1151,14 +1169,7 @@ window_loop (type, obj, mini, frames)
      We can't just wait until we hit the first window again, because
      it might be deleted.  */
 
-#ifdef MULTI_FRAME
-  if (frame)
-    last_window = Fprevious_window (w, (mini ? Qt : Qnil), Qlambda);
-  else
-#endif	/* MULTI_FRAME */
-    /* We know frame is 0, so we're looping through all frames.
-       Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
-    last_window = Fprevious_window (w, mini ? Qt : Qnil, Qt);
+  last_window = Fprevious_window (w, mini ? Qt : Qnil, frame_arg);
 
   best_window = Qnil;
   for (;;)
@@ -1167,15 +1178,13 @@ window_loop (type, obj, mini, frames)
 
       /* Pick the next window now, since some operations will delete
 	 the current window.  */
-#ifdef MULTI_FRAME
-      if (frame)
-	next_window = Fnext_window (w, (mini ? Qt : Qnil), Qlambda);
-      else
-#endif				/* MULTI_FRAME */
-	/* We know frame is 0, so we're looping through all frames.
-	   Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
-	next_window = Fnext_window (w, mini ? Qt : Qnil, Qt);
+      next_window = Fnext_window (w, mini ? Qt : Qnil, frame_arg);
 
+#ifdef MULTI_FRAME
+      if (frame != 0 && EQ (frames, Qt)
+	  && FRAME_VISIBLE_P (w_frame))
+	continue;
+#endif
       if (! MINI_WINDOW_P (XWINDOW (w))
 	  || (mini && minibuf_level > 0))
 	switch (type)
@@ -1283,24 +1292,28 @@ window_loop (type, obj, mini, frames)
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
   "Return the window least recently selected or used for display.\n\
-If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
-frame, search only that frame.\n")
-  (frames)
-    Lisp_Object frames;
+If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is t, search all frames.\n\
+If FRAME is nil, search only the selected frame.\n\
+If FRAME is a frame, search only that frame.")
+  (frame)
+    Lisp_Object frame;
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
-  w = window_loop (GET_LRU_WINDOW, Qt, 0, frames);
+  w = window_loop (GET_LRU_WINDOW, Qt, 0, frame);
   if (!NILP (w) && !EQ (w, selected_window))
     return w;
   /* If none of them, try the rest */
-  return window_loop (GET_LRU_WINDOW, Qnil, 0, frames);
+  return window_loop (GET_LRU_WINDOW, Qnil, 0, frame);
 }
 
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
   "Return the largest window in area.\n\
-If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
-frame, search only that frame.\n")
+If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is t, search all frames.\n\
+If FRAME is nil, search only the selected frame.\n\
+If FRAME is a frame, search only that frame.")
   (frame)
     Lisp_Object frame;
 {
@@ -1310,9 +1323,10 @@ frame, search only that frame.\n")
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
   "Return a window currently displaying BUFFER, or nil if none.\n\
-If optional argument FRAME is t, search all visible frames.\n\
+If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is t, search all frames.\n\
 If FRAME is nil, search only the selected frame.\n\
-If FRAME is a frame, search only that frame.\n")
+If FRAME is a frame, search only that frame.")
   (buffer, frame)
     Lisp_Object buffer, frame;
 {
@@ -1370,6 +1384,7 @@ DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
 Optional second argument FRAME controls which frames are affected.\n\
 If nil or omitted, delete all windows showing BUFFER in any frame.\n\
 If t, delete only windows showing BUFFER in the selected frame.\n\
+If `visible', delete all windows showing BUFFER in any visible frame.\n\
 If a frame, delete only windows showing BUFFER in that frame.")
   (buffer, frame)
      Lisp_Object buffer, frame;
