@@ -860,14 +860,23 @@ easily repeat a find command."
 (defvar grep-tree-last-regexp "")
 (defvar grep-tree-last-files (car (car grep-tree-files-aliases)))
 
-(defun grep-tree (regexp files dir)
-  "Grep in directory tree with simplified prompting for search parameters.
+(defun grep-tree (regexp files dir &optional subdirs)
+  "Grep for REGEXP in FILES in directory tree rooted at DIR.
 Collect output in a buffer.
+Interactively, prompt separately for each search parameter.
+With prefix arg, reuse previous REGEXP.
+The search is limited to file names matching shell pattern FILES.
+FILES may use abbreviations defined in `grep-tree-files-aliases', e.g.
+entering `ch' is equivalent to `*.[ch]'.
+
 While find runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
 This command uses a special history list for its arguments, so you can
-easily repeat a find command."
+easily repeat a find command.
+
+When used non-interactively, optional arg SUBDIRS limits the search to
+those sub directories of DIR."
   (interactive
    (let* ((regexp
 	   (if current-prefix-arg
@@ -896,7 +905,11 @@ easily repeat a find command."
 		       grep-tree-command
 		       (setq grep-tree-last-regexp regexp)
 		       (and files (concat "-name '" files "'"))
-		       nil  ;; we change default-directory to dir 
+		       (if subdirs
+			   (if (stringp subdirs)
+			       subdirs
+			     (mapconcat 'identity subdirs " "))
+			 nil)  ;; we change default-directory to dir 
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
 	(default-directory dir)
