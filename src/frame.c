@@ -957,6 +957,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  if (f->namebuf)
+    free (f->namebuf);
   if (FRAME_CURRENT_GLYPHS (f))
     free_frame_glyphs (f, FRAME_CURRENT_GLYPHS (f));
   if (FRAME_DESIRED_GLYPHS (f))
