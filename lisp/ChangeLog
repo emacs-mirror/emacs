@@ -5,6 +5,8 @@
 
 1999-10-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* paths.el (rmail-file-name): Make it an option.
+	
 	* progmodes/ada-mode.el, progmodes/ada-prj.el,
 	progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
 	comment fixes.
