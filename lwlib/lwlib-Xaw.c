@@ -53,13 +53,13 @@ lw_xaw_widget_p (widget)
 	  XtIsSubclass (widget, dialogWidgetClass));
 }
 
+#if 0
 static void
 xaw_update_scrollbar (instance, widget, val)
      widget_instance *instance;
      Widget widget;
      widget_value *val;
 {
-#if 0
   if (val->scrollbar_data)
     {
       scrollbar_values *data = val->scrollbar_data;
@@ -115,8 +115,8 @@ xaw_update_scrollbar (instance, widget, val)
       if (new_shown != widget_shown || new_topOfThumb != widget_topOfThumb)
 	XawScrollbarSetThumb (widget, new_topOfThumb, new_shown);
     }
-#endif
 }
+#endif
 
 void
 xaw_update_one_widget (instance, widget, val, deep_p)
@@ -540,13 +540,13 @@ wm_delete_window (shell, closure, call_data)
 
 /* Scrollbars */
 
+#if 0
 static void
 xaw_scrollbar_scroll (widget, closure, call_data)
      Widget widget;
      XtPointer closure;
      XtPointer call_data;
 {
-#if 0
   widget_instance *instance = (widget_instance *) closure;
   LWLIB_ID id;
   scroll_event event_data;
@@ -565,16 +565,16 @@ xaw_scrollbar_scroll (widget, closure, call_data)
 
   if (instance->info->pre_activate_cb)
     instance->info->pre_activate_cb (widget, id, (XtPointer) &event_data);
-#endif
 }
+#endif
 
+#if 0
 static void
 xaw_scrollbar_jump (widget, closure, call_data)
      Widget widget;
      XtPointer closure;
      XtPointer call_data;
 {
-#if 0
   widget_instance *instance = (widget_instance *) closure;
   LWLIB_ID id;
   scroll_event event_data;
@@ -596,8 +596,8 @@ xaw_scrollbar_jump (widget, closure, call_data)
 
   if (instance->info->pre_activate_cb)
     instance->info->pre_activate_cb (widget, id, (XtPointer) &event_data);
-#endif
 }
+#endif
 
 static Widget
 xaw_create_scrollbar (instance)
