@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.20 2002/12/26 14:07:15 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.21 2003/02/04 12:11:54 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -166,25 +166,18 @@ the SCCS command (in that order).
 
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
-    (let* ((switches (append
-		     (if (stringp vc-register-switches)
-			 (list vc-register-switches)
-		       vc-register-switches)
-		     (if (stringp vc-sccs-register-switches)
-			 (list vc-sccs-register-switches)
-		       vc-sccs-register-switches)))
-	   (dirname (or (file-name-directory file) ""))
+    (let* ((dirname (or (file-name-directory file) ""))
 	   (basename (file-name-nondirectory file))
 	   (project-file (vc-sccs-search-project-dir dirname basename)))
       (let ((vc-name
 	     (or project-file
-		 (format (car vc-sccs-master-templates) dirname basename)))|)
+		 (format (car vc-sccs-master-templates) dirname basename))))
 	(apply 'vc-do-command nil 0 "admin" vc-name
 	       (and rev (concat "-r" rev))
 	       "-fb"
 	       (concat "-i" (file-relative-name file))
 	       (and comment (concat "-y" comment))
-	       switches))
+	       (vc-switches 'SCCS 'register)))
       (delete-file file)
       (if vc-keep-workfiles
 	  (vc-do-command nil 0 "get" (vc-name file)))))
@@ -198,15 +191,12 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 
 (defun vc-sccs-checkin (file rev comment)
   "SCCS-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches)))
-    (apply 'vc-do-command nil 0 "delta" (vc-name file)
-	   (if rev (concat "-r" rev))
-	   (concat "-y" comment)
-	   switches)
-    (if vc-keep-workfiles
-	(vc-do-command nil 0 "get" (vc-name file)))))
+  (apply 'vc-do-command nil 0 "delta" (vc-name file)
+	 (if rev (concat "-r" rev))
+	 (concat "-y" comment)
+	 (vc-switches 'SCCS 'checkin))
+  (if vc-keep-workfiles
+      (vc-do-command nil 0 "get" (vc-name file))))
 
 (defun vc-sccs-find-version (file rev buffer)
   (apply 'vc-do-command
@@ -216,9 +206,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	 (and rev
 	      (concat "-r"
 		      (vc-sccs-lookup-triple file rev)))
-	 (if (stringp vc-checkout-switches)
-	     (list vc-checkout-switches)
-	   vc-checkout-switches)))
+	 (vc-switches 'SCCS 'checkout)))
 
 (defun vc-sccs-checkout (file &optional editable rev)
   "Retrieve a copy of a saved version of SCCS controlled FILE.
@@ -230,9 +218,7 @@ locked.  REV is the revision to check out."
     (save-excursion
       ;; Change buffers to get local value of vc-checkout-switches.
       (if file-buffer (set-buffer file-buffer))
-      (setq switches (if (stringp vc-checkout-switches)
-			 (list vc-checkout-switches)
-		       vc-checkout-switches))
+      (setq switches (vc-switches 'SCCS 'checkout))
       ;; Save this buffer's default-directory
       ;; and use save-excursion to make sure it is restored
       ;; in the same buffer it was saved in.
@@ -298,7 +284,7 @@ EDITABLE non-nil means previous version should be locked."
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))
-                 (vc-diff-switches-list 'SCCS))))
+                 (vc-switches 'SCCS 'diff))))
 
 
 ;;;
