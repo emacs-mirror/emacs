@@ -2523,9 +2523,8 @@ addressing information (typically an IP address and a port number).
 
 Notice that the FILTER and SENTINEL args are never used directly by
 the server process.  Also, the BUFFER argument is not used directly by
-the server process, but via `network-server-log-function' hook, a log
-of the accepted (and failed) connections may be recorded in the server
-process' buffer.
+the server process, but via the optional :log function, accepted (and
+failed) connections may be logged in the server process' buffer.
 
 usage: (make-network-process &rest ARGS)  */)
      (nargs, args)
