@@ -1,3 +1,13 @@
+2002-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-describe-menu): Add "What's This?" item.
+
+	* faces.el (face-set-after-frame-default): Ignore errors
+	in face-spec-face-set.
+
+	* cus-face.el (custom-declare-face): Add face-defface-spec
+	prop after applying the face spec.
+
 2002-11-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* tooltip.el (tooltip-gud-print-command): Add server prefix to the
@@ -10,6 +20,10 @@
 
 	* scroll-all.el (scroll-all-mode): Move arg LIGHTER to the right
 	place.  Add groups.
+
+2002-11-22  Simon Marshall  <marshals@perth>
+
+	* font-lock.el (c++-font-lock-extra-types): Add various STL classes.
 
 2002-11-21  Nick Roberts  <nick@nick.uklinux.net>
 
