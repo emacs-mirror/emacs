@@ -85,10 +85,13 @@ static void initialize_cut_buffers P_ ((Display *, Window));
   fprintf (stderr, "%d: " fmt "\n", getpid (), a0)
 #define TRACE2(fmt, a0, a1) \
   fprintf (stderr, "%d: " fmt "\n", getpid (), a0, a1)
+#define TRACE3(fmt, a0, a1, a2) \
+  fprintf (stderr, "%d: " fmt "\n", getpid (), a0, a1, a2)
 #else
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
 #define TRACE2(fmt, a0, a1)	(void) 0
+#define TRACE3(fmt, a0, a1)	(void) 0
 #endif
 
 
@@ -622,6 +625,17 @@ x_reply_selection_request (event, format, data, size, type)
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
   BLOCK_INPUT;
   count = x_catch_errors (display);
+
+#ifdef TRACE_SELECTION
+  {
+    static int cnt;
+    char *sel = XGetAtomName (display, reply.selection);
+    char *tgt = XGetAtomName (display, reply.target);
+    TRACE3 ("%s, target %s (%d)", sel, tgt, ++cnt);
+    if (sel) XFree (sel);
+    if (tgt) XFree (tgt);
+  }
+#endif /* TRACE_SELECTION */
 
   /* Store the data on the requested property.
      If the selection is large, only store the first N bytes of it.
@@ -1445,10 +1459,10 @@ receive_incremental_selection (display, window, property, target_type,
   BLOCK_INPUT;
   XSelectInput (display, window, STANDARD_EVENT_SET | PropertyChangeMask);
   TRACE1 ("  Delete property %s",
-	  XSYMBOL (x_atom_to_symbol (display, property))->name->data);
+	  SDATA (XSYMBOL (x_atom_to_symbol (display, property))->xname));
   XDeleteProperty (display, window, property);
   TRACE1 ("  Expect new value of property %s",
-	  XSYMBOL (x_atom_to_symbol (display, property))->name->data);
+	  SDATA (XSYMBOL (x_atom_to_symbol (display, property))->xname));
   wait_object = expect_property_change (display, window, property,
 					PropertyNewValue);
   XFlush (display);

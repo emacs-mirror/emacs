@@ -1,3 +1,10 @@
+2004-11-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (TRACE3): New debug macro.
+	(x_reply_selection_request): Use it.
+	(receive_incremental_selection): In call to TRACE0, the name of
+	a symbol is in xname.
+
 2004-11-05  Kim F. Storm  <storm@cua.dk>
 
 	* fontset.c (fontset_pattern_regexp): Use unsigned char.
