@@ -1859,13 +1859,14 @@ IDX starts at 0.")
 	error ("Attempt to change byte length of a string");
 
       /* We can't accept a change causing byte combining.  */
-      if ((idxval > 0 && !CHAR_HEAD_P (*str)
-	   && (prev_byte = string_char_to_byte (array, idxval - 1),
-	       (prev_byte + 1 < idxval_byte
-		|| (p[-1] >= 0x80 && p[-1] < 0xA0))))
-	  || (idxval < XSTRING (array)->size - 1
-	      && (*str >=0x80 && *str < 0xA0)
-	      && !CHAR_HEAD_P (p[actual_len])))
+      if (!ASCII_BYTE_P (*str)
+	  && ((idxval > 0 && !CHAR_HEAD_P (*str)
+	       && (prev_byte = string_char_to_byte (array, idxval - 1),
+		   BYTES_BY_CHAR_HEAD (XSTRING (array)->data[prev_byte])
+		   > idxval_byte - prev_byte))
+	      || (idxval < XSTRING (array)->size - 1
+		  && !CHAR_HEAD_P (p[actual_len])
+		  && new_len < BYTES_BY_CHAR_HEAD (*str))))
 	error ("Attempt to change char length of a string");
       while (new_len--)
 	*p++ = *str++;
