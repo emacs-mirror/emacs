@@ -1165,6 +1165,10 @@ result of BODY."
       ;; Reset edebug-mode to the initial mode.
       (setq edebug-mode edebug-initial-mode))
   (let* ((edebug-entered t)
+	 (pre-command-hook (if (memq edebug-func pre-command-hook)
+			       nil pre-command-hook))
+	 (post-command-hook (if (memq edebug-func post-command-hook)
+				nil post-command-hook))
 	 (edebug-data  (get edebug-func 'edebug))
 	 ;; pull out parts of the edebug-data
 	 (edebug-func-mark (car edebug-data))	; mark at function start
