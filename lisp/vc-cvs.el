@@ -1,11 +1,11 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995,98,99,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,2001  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.18 2001/01/29 19:12:40 sds Exp $
+;; $Id: vc-cvs.el,v 1.19 2001/02/01 15:10:16 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -29,15 +29,7 @@
 ;;; Code:
 
 (eval-when-compile
- ;; keep the compiler happy
- ;; note that there is another option: (require 'vc)
- (defvar vc-register-switches)  ; defined in "vc.el", used in `vc-cvs-register'
- (defvar vc-checkin-switches)   ; defined in "vc.el", used in `vc-cvs-checkin'
- (defvar vc-checkout-switches)  ; defined in "vc.el", used in `vc-cvs-checkout'
- (autoload 'vc-diff-switches-list "vc") ; used in `vc-cvs-diff'
- (autoload 'vc-do-command "vc") ; used all over the place
- (autoload 'vc-trunk-p "vc")    ; used in `vc-cvs-checkin'
- (autoload 'vc-resynch-buffer "vc")) ; used in `vc-cvs-retrieve-snapshot'
+  (require 'vc))
 
 ;;;
 ;;; Customization options
