@@ -2530,9 +2530,9 @@ read_process_output (proc, channel)
 	{
 	  Lisp_Object tem;
 	  /* Don't clobber the CURRENT match data, either!  */
-	  tem = Fmatch_data ();
+	  tem = Fmatch_data (Qnil, Qnil);
 	  restore_match_data ();
-	  record_unwind_protect (Fstore_match_data, Fmatch_data ());
+	  record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
 	  Fstore_match_data (tem);
 	}
 
@@ -3562,9 +3562,9 @@ exec_sentinel (proc, reason)
   if (outer_running_asynch_code)
     {
       Lisp_Object tem;
-      tem = Fmatch_data ();
+      tem = Fmatch_data (Qnil, Qnil);
       restore_match_data ();
-      record_unwind_protect (Fstore_match_data, Fmatch_data ());
+      record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
       Fstore_match_data (tem);
     }
 
