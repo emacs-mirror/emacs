@@ -1,3 +1,7 @@
+2001-02-20  Miles Bader  <miles@gnu.org>
+
+	* image-file.el (image-file-name-extensions): Add "tif".
+
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* wid-edit.el (widget-button-click): Save the selected window
