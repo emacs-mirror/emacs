@@ -314,7 +314,8 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
       (setq ispell-bad-words (nreverse bad-words))))
   (cond ((not (markerp (car ispell-bad-words)))
 	 (setq ispell-bad-words nil)
-	 (message "No misspellings."))
+	 (message "No misspellings.")
+	 t)
 	(t
 	 (message "Ispell parsing done.")
 	 (ispell-next))))
@@ -323,11 +324,12 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 (defalias 'ispell-buffer 'ispell)
 
 (defun ispell-next ()
-  "Resume command loop for most recent Ispell command."
+  "Resume command loop for most recent Ispell command.
+Return value is t unless exit is due to typing `q'."
   (interactive)
   (setq ispell-window-configuration nil)
   (unwind-protect
-      (catch 'quit
+      (catch 'ispell-quit
 	;; There used to be a save-excursion here,
 	;; but that was annoying: it's better if point doesn't move
 	;; when you type q.
@@ -337,7 +339,8 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	    (push-mark)
 	    (ispell-point next "at saved position.")
 	    (setq ispell-bad-words (cdr ispell-bad-words))
-	    (set-marker next nil))))
+	    (set-marker next nil)))
+	t)
     (if ispell-window-configuration
 	(set-window-configuration ispell-window-configuration))
     (cond ((null ispell-bad-words)
@@ -365,7 +368,7 @@ With a prefix argument, resume handling of the previous Ispell command."
   (if resume
       (ispell-next)
     (condition-case err
-	(catch 'quit
+	(catch 'ispell-quit
 	  (save-window-excursion
 	    (ispell-point (point) "at point."))
 	  (ispell-dump))
@@ -544,7 +547,9 @@ L lookup; Q quit\n")
 	       (ispell-replace start end replacement)
 	       (setq flag nil))
 	      ((= c ?q)
-	       (throw 'quit nil))
+	       (throw 'ispell-quit nil))
+	      ((= c quit-char)
+	       (keyboard-quit))
 	      ((= c ? )
 	       (setq flag nil))
 	      ((= c ?r)
@@ -916,30 +921,82 @@ an interior word fragment.  `ispell-have-new-look' should be t."
 
       ;; Make the list into an alist and return.
       (mapcar 'list (nreverse list)))))
+
+;; Return regexp-quote of STRING if STRING is non-empty.
+;; Otherwise return an unmatchable regexp.
+(defun ispell-non-empty-string (string)
+  (if (or (not string) (string-equal string ""))
+      "\\'\\`" ; An unmatchable string if string is null.
+    (regexp-quote string)))
 
-(defvar ispell-message-cite-regexp "^    "
+(defvar ispell-message-cite-regexp "^   \\|^\t"
   "*Regular expression to match lines cited from one message into another.")
 
+;;;###autoload
 (defun ispell-message ()
-  "Check the spelling for an outgoing mail message."
+  "Check the spelling of a mail message or news post.
+Don't check spelling of message headers or included messages.
+
+To spell-check whenever a message is sent, include this line in .emacs:
+   (setq news-inews-hook (setq mail-send-hook 'ispell-message))
+
+Or you can bind the function to C-c i in gnus or mail with:
+   (setq mail-mode-hook (setq news-reply-mode-hook
+    (function (lambda () (local-set-key \"\\C-ci\" 'ispell-message)))))"
   (interactive)
   (save-excursion
-    (beginning-of-buffer)
-    ;; Don't spell-check the headers.
-    (search-forward mail-header-separator nil t)
-    (while (not (eobp))
-      ;; Skip across text cited from other messages.
-      (while (and (looking-at (concat "^[ \t]*$\\|"
-				      ispell-message-cite-regexp))
-		  (not (eobp)))
-	(forward-line 1))
-      (if (not (eobp))
-	  ;; Fill the next batch of lines that *aren't* cited.
-	  (let ((start (point)))
-	    (re-search-forward
-	     (concat "^\\(" ispell-message-cite-regexp "\\)") nil 'end)
-	    (beginning-of-line)
-	    (save-excursion (ispell-region (- start 1) (point))))))))
+    (let (non-internal-message)
+      (goto-char (point-min))
+      ;; Don't spell-check the headers.
+      (if (search-forward mail-header-separator nil t)
+	  ;; Move to first body line.
+	  (forward-line 1)
+	(while (and (looking-at "[a-zA-Z-]+:\\|\t\\| ")
+		    (not (eobp)))
+	  (forward-line 1))
+	(setq non-internal-message t)
+	)
+      (let ((cite-regexp		;Prefix of inserted text
+	     (cond
+	      ((featurep 'supercite)	; sc 3.0
+	       (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+		       (ispell-non-empty-string sc-reference-tag-string)))
+	      ((featurep 'sc)		; sc 2.3
+	       (concat "\\(" sc-cite-regexp "\\)" "\\|"
+		       (ispell-non-empty-string sc-reference-tag-string)))
+	      (non-internal-message	; Assume nn sent us this message.
+	       (concat "In [a-zA-Z.]+ you write:" "\\|"
+		       "In <[^,;&+=]+> [^,;&+=]+ writes:" "\\|"
+		       " *> *"))
+	      ((equal major-mode 'news-reply-mode) ;Gnus
+	       (concat "In article <" "\\|"
+		       (ispell-non-empty-string mail-yank-prefix)
+		       ))
+	      ((boundp 'vm-included-text-prefix) ; VM mail message
+	       (concat "[^,;&+=]+ writes:" "\\|"
+		       (ispell-non-empty-string vm-included-text-prefix)
+		       ))
+	      ((boundp 'mh-ins-buf-prefix) ; mh mail message
+	       (ispell-non-empty-string mh-ins-buf-prefix))
+	      (mail-yank-prefix			; vanilla mail message.
+	       (ispell-non-empty-string mail-yank-prefix))
+	      (t ispell-message-cite-regexp)))
+	    (continue t))
+
+	(while (and (not (eobp)) continue)
+	  ;; Skip across text cited from other messages.
+	  (while (and (looking-at (concat "^[ \t]*$\\|" cite-regexp))
+		      (not (eobp)))
+	    (forward-line 1))
+	  (if (not (eobp))
+	      ;; Fill the next batch of lines that *aren't* cited.
+	      (let ((start (point)))
+	       (if (re-search-forward
+		    (concat "^\\(" cite-regexp "\\)") nil 'end)
+		   (beginning-of-line))
+		(beginning-of-line)
+		(save-excursion
+		  (setq continue (ispell-region (- start 1) (point)))))))))))
 
 (provide 'ispell)
 
