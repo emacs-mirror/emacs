@@ -283,31 +283,31 @@ use the standard functions without calling themselves recursively.")
 
 DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
   1, 1, 0,
-  "Return the directory component in file name NAME.\n\
-Return nil if NAME does not include a directory.\n\
+  "Return the directory component in file name FILENAME.\n\
+Return nil if FILENAME does not include a directory.\n\
 Otherwise return a directory spec.\n\
 Given a Unix syntax file name, returns a string ending in slash;\n\
 on VMS, perhaps instead a string ending in `:', `]' or `>'.")
-  (file)
-     Lisp_Object file;
+  (filename)
+     Lisp_Object filename;
 {
   register unsigned char *beg;
   register unsigned char *p;
   Lisp_Object handler;
 
-  CHECK_STRING (file, 0);
+  CHECK_STRING (filename, 0);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qfile_name_directory);
+  handler = Ffind_file_name_handler (filename, Qfile_name_directory);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_directory, file);
+    return call2 (handler, Qfile_name_directory, filename);
 
 #ifdef FILE_SYSTEM_CASE
-  file = FILE_SYSTEM_CASE (file);
+  filename = FILE_SYSTEM_CASE (filename);
 #endif
-  beg = XSTRING (file)->data;
-  p = beg + XSTRING (file)->size;
+  beg = XSTRING (filename)->data;
+  p = beg + XSTRING (filename)->size;
 
   while (p != beg && !IS_ANY_SEP (p[-1])
 #ifdef VMS
@@ -351,26 +351,26 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
 DEFUN ("file-name-nondirectory", Ffile_name_nondirectory, Sfile_name_nondirectory,
   1, 1, 0,
-  "Return file name NAME sans its directory.\n\
+  "Return file name FILENAME sans its directory.\n\
 For example, in a Unix-syntax file name,\n\
 this is everything after the last slash,\n\
 or the entire name if it contains no slash.")
-  (file)
-     Lisp_Object file;
+  (filename)
+     Lisp_Object filename;
 {
   register unsigned char *beg, *p, *end;
   Lisp_Object handler;
 
-  CHECK_STRING (file, 0);
+  CHECK_STRING (filename, 0);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qfile_name_nondirectory);
+  handler = Ffind_file_name_handler (filename, Qfile_name_nondirectory);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_nondirectory, file);
+    return call2 (handler, Qfile_name_nondirectory, filename);
 
-  beg = XSTRING (file)->data;
-  end = p = beg + XSTRING (file)->size;
+  beg = XSTRING (filename)->data;
+  end = p = beg + XSTRING (filename)->size;
 
   while (p != beg && !IS_ANY_SEP (p[-1])
 #ifdef VMS
@@ -669,8 +669,8 @@ directory_file_name (src, dst)
 
 DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
   1, 1, 0,
-  "Returns the file name of the directory named DIR.\n\
-This is the name of the file that holds the data for the directory DIR.\n\
+  "Returns the file name of the directory named DIRECTORY.\n\
+This is the name of the file that holds the data for the directory DIRECTORY.\n\
 This operation exists because a directory is also a file, but its name as\n\
 a directory is different from its name as a file.\n\
 In Unix-syntax, this function just removes the final slash.\n\
@@ -719,9 +719,9 @@ so there is no danger of generating a name being used by another process.")
 }
 
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
-  "Convert FILENAME to absolute, and canonicalize it.\n\
-Second arg DEFAULT is directory to start with if FILENAME is relative\n\
- (does not start with slash); if DEFAULT is nil or missing,\n\
+  "Convert filename NAME to absolute, and canonicalize it.\n\
+Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative\n\
+ (does not start with slash); if DEFAULT-DIRECTORY is nil or missing,\n\
 the current buffer's value of default-directory is used.\n\
 Path components that are `.' are removed, and \n\
 path components followed by `..' are removed, along with the `..' itself;\n\
@@ -730,8 +730,8 @@ paths in the file system.\n\
 An initial `~/' expands to your home directory.\n\
 An initial `~USER/' expands to USER's home directory.\n\
 See also the function `substitute-in-file-name'.")
-     (name, defalt)
-     Lisp_Object name, defalt;
+     (name, default_directory)
+     Lisp_Object name, default_directory;
 {
   unsigned char *nm;
   
@@ -761,25 +761,25 @@ See also the function `substitute-in-file-name'.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
-    return call3 (handler, Qexpand_file_name, name, defalt);
+    return call3 (handler, Qexpand_file_name, name, default_directory);
 
-  /* Use the buffer's default-directory if DEFALT is omitted.  */
-  if (NILP (defalt))
-    defalt = current_buffer->directory;
-  CHECK_STRING (defalt, 1);
+  /* Use the buffer's default-directory if DEFAULT_DIRECTORY is omitted.  */
+  if (NILP (default_directory))
+    default_directory = current_buffer->directory;
+  CHECK_STRING (default_directory, 1);
 
-  if (!NILP (defalt))
+  if (!NILP (default_directory))
     {
-      handler = Ffind_file_name_handler (defalt, Qexpand_file_name);
+      handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
       if (!NILP (handler))
-	return call3 (handler, Qexpand_file_name, name, defalt);
+	return call3 (handler, Qexpand_file_name, name, default_directory);
     }
 
-  o = XSTRING (defalt)->data;
+  o = XSTRING (default_directory)->data;
 
-  /* Make sure DEFALT is properly expanded.
+  /* Make sure DEFAULT_DIRECTORY is properly expanded.
      It would be better to do this down below where we actually use
-     defalt.  Unfortunately, calling Fexpand_file_name recursively
+     default_directory.  Unfortunately, calling Fexpand_file_name recursively
      could invoke GC, and the strings might be relocated.  This would
      be annoying because we have pointers into strings lying around
      that would need adjusting, and people would add new pointers to
@@ -787,16 +787,16 @@ See also the function `substitute-in-file-name'.")
      Putting this call here avoids all that crud.
 
      The EQ test avoids infinite recursion.  */
-  if (! NILP (defalt) && !EQ (defalt, name)
+  if (! NILP (default_directory) && !EQ (default_directory, name)
       /* This saves time in a common case.  */
-      && ! (XSTRING (defalt)->size >= 3
-	    && IS_DIRECTORY_SEP (XSTRING (defalt)->data[0])
-	    && IS_DEVICE_SEP (XSTRING (defalt)->data[1])))
+      && ! (XSTRING (default_directory)->size >= 3
+	    && IS_DIRECTORY_SEP (XSTRING (default_directory)->data[0])
+	    && IS_DEVICE_SEP (XSTRING (default_directory)->data[1])))
     {
       struct gcpro gcpro1;
 
       GCPRO1 (name);
-      defalt = Fexpand_file_name (defalt, Qnil);
+      default_directory = Fexpand_file_name (default_directory, Qnil);
       UNGCPRO;
     }
 
@@ -1048,7 +1048,7 @@ See also the function `substitute-in-file-name'.")
 #endif /* DOS_NT */
       && !newdir)
     {
-      newdir = XSTRING (defalt)->data;
+      newdir = XSTRING (default_directory)->data;
     }
 
 #ifdef DOS_NT
@@ -1556,8 +1556,8 @@ the entire variable name in braces.\n\
 If `/~' appears, all of FILENAME through that `/' is discarded.\n\n\
 On VMS, `$' substitution is not done; this function does little and only\n\
 duplicates what `expand-file-name' does.")
-  (string)
-     Lisp_Object string;
+  (filename)
+     Lisp_Object filename;
 {
   unsigned char *nm;
 
@@ -1568,20 +1568,20 @@ duplicates what `expand-file-name' does.")
   unsigned char *xnm;
   Lisp_Object handler;
 
-  CHECK_STRING (string, 0);
+  CHECK_STRING (filename, 0);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (string, Qsubstitute_in_file_name);
+  handler = Ffind_file_name_handler (filename, Qsubstitute_in_file_name);
   if (!NILP (handler))
-    return call2 (handler, Qsubstitute_in_file_name, string);
+    return call2 (handler, Qsubstitute_in_file_name, filename);
 
-  nm = XSTRING (string)->data;
+  nm = XSTRING (filename)->data;
 #ifdef MSDOS
   dostounix_filename (nm = strcpy (alloca (strlen (nm) + 1), nm));
-  substituted = !strcmp (nm, XSTRING (string)->data);
+  substituted = !strcmp (nm, XSTRING (filename)->data);
 #endif
-  endp = nm + XSTRING (string)->size;
+  endp = nm + XSTRING (filename)->size;
 
   /* If /~ or // appears, discard everything through first slash. */
 
@@ -1671,11 +1671,11 @@ duplicates what `expand-file-name' does.")
       }
 
   if (!substituted)
-    return string;
+    return filename;
 
   /* If substitution required, recopy the string and do it */
   /* Make space in stack frame for the new copy */
-  xnm = (unsigned char *) alloca (XSTRING (string)->size + total + 1);
+  xnm = (unsigned char *) alloca (XSTRING (filename)->size + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values */
@@ -1844,8 +1844,8 @@ This is what happens in interactive use with M-x.\n\
 Fourth arg KEEP-TIME non-nil means give the new file the same\n\
 last-modified time as the old one.  (This works on only some systems.)\n\
 A prefix arg makes KEEP-TIME non-nil.")
-  (filename, newname, ok_if_already_exists, keep_date)
-     Lisp_Object filename, newname, ok_if_already_exists, keep_date;
+  (file, newname, ok_if_already_exists, keep_date)
+     Lisp_Object file, newname, ok_if_already_exists, keep_date;
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -1855,20 +1855,20 @@ A prefix arg makes KEEP-TIME non-nil.")
   int count = specpdl_ptr - specpdl;
   int input_file_statable_p;
 
-  GCPRO2 (filename, newname);
-  CHECK_STRING (filename, 0);
+  GCPRO2 (file, newname);
+  CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
-  filename = Fexpand_file_name (filename, Qnil);
+  file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
   /* If the input file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qcopy_file);
+  handler = Ffind_file_name_handler (file, Qcopy_file);
   /* Likewise for output file name.  */
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call5 (handler, Qcopy_file, filename, newname,
+    RETURN_UNGCPRO (call5 (handler, Qcopy_file, file, newname,
 			   ok_if_already_exists, keep_date));
 
   if (NILP (ok_if_already_exists)
@@ -1878,9 +1878,9 @@ A prefix arg makes KEEP-TIME non-nil.")
   else if (stat (XSTRING (newname)->data, &out_st) < 0)
     out_st.st_mode = 0;
 
-  ifd = open (XSTRING (filename)->data, O_RDONLY);
+  ifd = open (XSTRING (file)->data, O_RDONLY);
   if (ifd < 0)
-    report_file_error ("Opening input file", Fcons (filename, Qnil));
+    report_file_error ("Opening input file", Fcons (file, Qnil));
 
   record_unwind_protect (close_file_unwind, make_number (ifd));
 
@@ -1894,7 +1894,7 @@ A prefix arg makes KEEP-TIME non-nil.")
     {
       errno = 0;
       report_file_error ("Input and output files are the same",
-			 Fcons (filename, Fcons (newname, Qnil)));
+			 Fcons (file, Fcons (newname, Qnil)));
     }
 #endif
 
@@ -1907,7 +1907,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  /* Get a better looking error message. */
 	  errno = EISDIR;
 #endif /* EISDIR */
-	  report_file_error ("Non-regular file", Fcons (filename, Qnil));
+	  report_file_error ("Non-regular file", Fcons (file, Qnil));
 	}
     }
 #endif /* S_ISREG && S_ISLNK */
@@ -1974,56 +1974,56 @@ A prefix arg makes KEEP-TIME non-nil.")
 
 DEFUN ("make-directory-internal", Fmake_directory_internal,
        Smake_directory_internal, 1, 1, 0,
-  "Create a directory.  One argument, a file name string.")
-  (dirname)
-     Lisp_Object dirname;
+  "Create a new directory named DIRECTORY.")
+  (directory)
+     Lisp_Object directory;
 {
   unsigned char *dir;
   Lisp_Object handler;
 
-  CHECK_STRING (dirname, 0);
-  dirname = Fexpand_file_name (dirname, Qnil);
+  CHECK_STRING (directory, 0);
+  directory = Fexpand_file_name (directory, Qnil);
 
-  handler = Ffind_file_name_handler (dirname, Qmake_directory_internal);
+  handler = Ffind_file_name_handler (directory, Qmake_directory_internal);
   if (!NILP (handler))
-    return call2 (handler, Qmake_directory_internal, dirname);
+    return call2 (handler, Qmake_directory_internal, directory);
 
-  dir = XSTRING (dirname)->data;
+  dir = XSTRING (directory)->data;
 
 #ifdef WINDOWSNT
   if (mkdir (dir) != 0)
 #else
   if (mkdir (dir, 0777) != 0)
 #endif
-    report_file_error ("Creating directory", Flist (1, &dirname));
+    report_file_error ("Creating directory", Flist (1, &directory));
 
   return Qnil;
 }
 
 DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
-  "Delete a directory.  One argument, a file name or directory name string.")
-  (dirname)
-     Lisp_Object dirname;
+  "Delete the directory named DIRECTORY.")
+  (directory)
+     Lisp_Object directory;
 {
   unsigned char *dir;
   Lisp_Object handler;
 
-  CHECK_STRING (dirname, 0);
-  dirname = Fdirectory_file_name (Fexpand_file_name (dirname, Qnil));
-  dir = XSTRING (dirname)->data;
+  CHECK_STRING (directory, 0);
+  directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
+  dir = XSTRING (directory)->data;
 
-  handler = Ffind_file_name_handler (dirname, Qdelete_directory);
+  handler = Ffind_file_name_handler (directory, Qdelete_directory);
   if (!NILP (handler))
-    return call2 (handler, Qdelete_directory, dirname);
+    return call2 (handler, Qdelete_directory, directory);
 
   if (rmdir (dir) != 0)
-    report_file_error ("Removing directory", Flist (1, &dirname));
+    report_file_error ("Removing directory", Flist (1, &directory));
 
   return Qnil;
 }
 
 DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 1, "fDelete file: ",
-  "Delete specified file.  One argument, a file name string.\n\
+  "Delete file named FILENAME.\n\
 If file has multiple names, it continues to exist with the other names.")
   (filename)
      Lisp_Object filename;
@@ -2066,8 +2066,8 @@ Signals a `file-already-exists' error if a file NEWNAME already exists\n\
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
 A number as third arg means request confirmation if NEWNAME already exists.\n\
 This is what happens in interactive use with M-x.")
-  (filename, newname, ok_if_already_exists)
-     Lisp_Object filename, newname, ok_if_already_exists;
+  (file, newname, ok_if_already_exists)
+     Lisp_Object file, newname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
@@ -2075,33 +2075,33 @@ This is what happens in interactive use with M-x.")
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (filename, newname);
-  CHECK_STRING (filename, 0);
+  GCPRO2 (file, newname);
+  CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
-  filename = Fexpand_file_name (filename, Qnil);
+  file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qrename_file);
+  handler = Ffind_file_name_handler (file, Qrename_file);
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qrename_file);
   if (!NILP (handler))
     RETURN_UNGCPRO (call4 (handler, Qrename_file,
-			   filename, newname, ok_if_already_exists));
+			   file, newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0);
 #ifndef BSD4_1
-  if (0 > rename (XSTRING (filename)->data, XSTRING (newname)->data))
+  if (0 > rename (XSTRING (file)->data, XSTRING (newname)->data))
 #else
 #ifdef WINDOWSNT
-  if (!MoveFile (XSTRING (filename)->data, XSTRING (newname)->data))
+  if (!MoveFile (XSTRING (file)->data, XSTRING (newname)->data))
 #else  /* not WINDOWSNT */
-  if (0 > link (XSTRING (filename)->data, XSTRING (newname)->data)
-      || 0 > unlink (XSTRING (filename)->data))
+  if (0 > link (XSTRING (file)->data, XSTRING (newname)->data)
+      || 0 > unlink (XSTRING (file)->data))
 #endif /* not WINDOWSNT */
 #endif
     {
@@ -2113,21 +2113,21 @@ This is what happens in interactive use with M-x.")
       if (errno == EXDEV)
 #endif /* not WINDOWSNT */
 	{
-	  Fcopy_file (filename, newname,
+	  Fcopy_file (file, newname,
 		      /* We have already prompted if it was an integer,
 			 so don't have copy-file prompt again.  */
 		      NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
-	  Fdelete_file (filename);
+	  Fdelete_file (file);
 	}
       else
 #ifdef NO_ARG_ARRAY
 	{
-	  args[0] = filename;
+	  args[0] = file;
 	  args[1] = newname;
 	  report_file_error ("Renaming", Flist (2, args));
 	}
 #else
-	report_file_error ("Renaming", Flist (2, &filename));
+	report_file_error ("Renaming", Flist (2, &file));
 #endif
     }
   UNGCPRO;
@@ -2141,8 +2141,8 @@ Signals a `file-already-exists' error if a file NEWNAME already exists\n\
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
 A number as third arg means request confirmation if NEWNAME already exists.\n\
 This is what happens in interactive use with M-x.")
-  (filename, newname, ok_if_already_exists)
-     Lisp_Object filename, newname, ok_if_already_exists;
+  (file, newname, ok_if_already_exists)
+     Lisp_Object file, newname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
@@ -2150,24 +2150,24 @@ This is what happens in interactive use with M-x.")
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (filename, newname);
-  CHECK_STRING (filename, 0);
+  GCPRO2 (file, newname);
+  CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
-  filename = Fexpand_file_name (filename, Qnil);
+  file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qadd_name_to_file);
+  handler = Ffind_file_name_handler (file, Qadd_name_to_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
+    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, file,
 			   newname, ok_if_already_exists));
 
   /* If the new name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
+    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, file,
 			   newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
@@ -2176,18 +2176,18 @@ This is what happens in interactive use with M-x.")
 				  INTEGERP (ok_if_already_exists), 0);
 #ifdef WINDOWSNT
   /* Windows does not support this operation.  */
-  report_file_error ("Adding new name", Flist (2, &filename));
+  report_file_error ("Adding new name", Flist (2, &file));
 #else /* not WINDOWSNT */
 
   unlink (XSTRING (newname)->data);
-  if (0 > link (XSTRING (filename)->data, XSTRING (newname)->data))
+  if (0 > link (XSTRING (file)->data, XSTRING (newname)->data))
     {
 #ifdef NO_ARG_ARRAY
-      args[0] = filename;
+      args[0] = file;
       args[1] = newname;
       report_file_error ("Adding new name", Flist (2, args));
 #else
-      report_file_error ("Adding new name", Flist (2, &filename));
+      report_file_error ("Adding new name", Flist (2, &file));
 #endif
     }
 #endif /* not WINDOWSNT */
@@ -2273,21 +2273,21 @@ DEFUN ("define-logical-name", Fdefine_logical_name, Sdefine_logical_name,
        2, 2, "sDefine logical name: \nsDefine logical name %s as: ",
   "Define the job-wide logical name NAME to have the value STRING.\n\
 If STRING is nil or a null string, the logical name NAME is deleted.")
-  (varname, string)
-     Lisp_Object varname;
+  (name, string)
+     Lisp_Object name;
      Lisp_Object string;
 {
-  CHECK_STRING (varname, 0);
+  CHECK_STRING (name, 0);
   if (NILP (string))
-    delete_logical_name (XSTRING (varname)->data);
+    delete_logical_name (XSTRING (name)->data);
   else
     {
       CHECK_STRING (string, 1);
 
       if (XSTRING (string)->size == 0)
-	delete_logical_name (XSTRING (varname)->data);
+	delete_logical_name (XSTRING (name)->data);
       else
-	define_logical_name (XSTRING (varname)->data, XSTRING (string)->data);
+	define_logical_name (XSTRING (name)->data, XSTRING (string)->data);
     }
 
   return string;
@@ -2639,7 +2639,7 @@ This is the sort of file that holds an ordinary stream of data bytes.")
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
-  "Return mode bits of FILE, as an integer.")
+  "Return mode bits of file named FILENAME, as an integer.")
   (filename)
      Lisp_Object filename;
 {
@@ -2666,7 +2666,7 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 }
 
 DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2, 0,
-  "Set mode bits of FILE to MODE (an integer).\n\
+  "Set mode bits of file named FILENAME to MODE (an integer).\n\
 Only the 12 low bits of MODE are used.")
   (filename, mode)
      Lisp_Object filename, mode;
@@ -3839,8 +3839,8 @@ Auto-saving writes the buffer into a file\n\
 so that your editing is not lost if the system crashes.\n\
 This file is not the file you visited; that changes only when you save.\n\
 Normally we run the normal hook `auto-save-hook' before saving.\n\n\
-Non-nil first argument means do not print any message if successful.\n\
-Non-nil second argument means save only current buffer.")
+A non-nil NO-MESSAGE argument means do not print any message if successful.\n\
+A non-nil CURRENT-ONLY argument means save only current buffer.")
   (no_message, current_only)
      Lisp_Object no_message, current_only;
 {
@@ -4143,15 +4143,15 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   "Read file name, prompting with PROMPT and completing in directory DIR.\n\
 Value is not expanded---you must call `expand-file-name' yourself.\n\
-Default name to DEFAULT if user enters a null string.\n\
- (If DEFAULT is omitted, the visited file name is used,\n\
+Default name to DEFAULT-FILENAME if user enters a null string.\n\
+ (If DEFAULT-FILENAME is omitted, the visited file name is used,\n\
   except that if INITIAL is specified, that combined with DIR is used.)\n\
 Fourth arg MUSTMATCH non-nil means require existing file's name.\n\
  Non-nil and non-t means also require confirmation after completion.\n\
 Fifth arg INITIAL specifies text to start with.\n\
 DIR defaults to current buffer's directory default.")
-  (prompt, dir, defalt, mustmatch, initial)
-     Lisp_Object prompt, dir, defalt, mustmatch, initial;
+  (prompt, dir, default_filename, mustmatch, initial)
+     Lisp_Object prompt, dir, default_filename, mustmatch, initial;
 {
   Lisp_Object val, insdef, insdef1, tem;
   struct gcpro gcpro1, gcpro2;
@@ -4160,12 +4160,12 @@ DIR defaults to current buffer's directory default.")
 
   if (NILP (dir))
     dir = current_buffer->directory;
-  if (NILP (defalt))
+  if (NILP (default_filename))
     {
       if (! NILP (initial))
-	defalt = Fexpand_file_name (initial, dir);
+	default_filename = Fexpand_file_name (initial, dir);
       else
-	defalt = current_buffer->filename;
+	default_filename = current_buffer->filename;
     }
 
   /* If dir starts with user's homedir, change that to ~. */
@@ -4209,7 +4209,7 @@ DIR defaults to current buffer's directory default.")
   specbind (intern ("completion-ignore-case"), Qt);
 #endif
 
-  GCPRO2 (insdef, defalt);
+  GCPRO2 (insdef, default_filename);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch, insdef1,
 			  Qfile_name_history);
@@ -4222,12 +4222,12 @@ DIR defaults to current buffer's directory default.")
   if (NILP (val))
     error ("No file name specified");
   tem = Fstring_equal (val, insdef);
-  if (!NILP (tem) && !NILP (defalt))
-    return defalt;
+  if (!NILP (tem) && !NILP (default_filename))
+    return default_filename;
   if (XSTRING (val)->size == 0 && NILP (insdef))
     {
-      if (!NILP (defalt))
-	return defalt;
+      if (!NILP (default_filename))
+	return default_filename;
       else
 	error ("No default file name");
     }
