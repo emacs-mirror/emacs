@@ -45,8 +45,6 @@
 
 ;;; Bugs:
 
-;; - Both the diff and log output contain Meta-CVS inode names so that
-;;   several operations in those buffers don't work as advertised.
 ;; - VC-dired doesn't work.
 
 ;;; Code:
@@ -135,12 +133,16 @@ of a repository; then VC only stays local for hosts that match it."
 
 (defun vc-mcvs-root (file)
   "Return the root directory of a Meta-CVS project, if any."
-  (let ((root nil))
-    (while (not (or root (equal file (setq file (file-name-directory file)))))
-      (if (file-directory-p (expand-file-name "MCVS/CVS" file))
-          (setq root file)
-        (setq file (directory-file-name file))))
-    root))
+  (or (vc-file-getprop file 'mcvs-root)
+      (vc-file-setprop
+       file 'mcvs-root
+       (let ((root nil))
+	 (while (not (or root
+			 (equal file (setq file (file-name-directory file)))))
+	   (if (file-directory-p (expand-file-name "MCVS/CVS" file))
+	       (setq root file)
+	     (setq file (directory-file-name file))))
+	 root))))
 
 (defun vc-mcvs-read (file)
   (with-temp-buffer
@@ -158,9 +160,8 @@ of a repository; then VC only stays local for hosts that match it."
   (let (root inode cvsfile)
     (when (and (setq root (vc-mcvs-root file))
 	       (setq inode (vc-mcvs-map-file
-			    root (substring file (length root)))))
+			    root (file-relative-name file root))))
       (vc-file-setprop file 'mcvs-inode inode)
-      (vc-file-setprop file 'mcvs-root root)
       ;; Avoid calling `mcvs diff' in vc-workfile-unchanged-p.
       (vc-file-setprop file 'vc-checkout-time
 		       (if (vc-cvs-registered
@@ -243,7 +244,7 @@ the Meta-CVS command (in that order)."
     ;; belly-up.
     (unless (file-writable-p map-file)
       (vc-checkout map-file t))
-    (unless (file-writable-p types-file)
+    (unless (or (file-writable-p types-file) (not (file-exists-p types-file)))
       (vc-checkout types-file t))
     ;; Make sure the `mcvs add' will not fire up the CVSEDITOR
     ;; to add a rule for the given file's extension.
@@ -255,7 +256,6 @@ the Meta-CVS command (in that order)."
 	(push (list ext (make-symbol (upcase (concat ":" type)))) types)
 	(setq types (sort types (lambda (x y) (string< (car x) (car y)))))
 	(with-current-buffer (find-file-noselect types-file)
-	  (if buffer-read-only (vc-checkout buffer-file-name t))
 	  (erase-buffer)
 	  (pp types (current-buffer))
 	  (save-buffer)
@@ -277,10 +277,9 @@ the Meta-CVS command (in that order)."
       ;; I'm not sure exactly why, but if we don't setup the inode and root
       ;; prop of the file, things break later on in vc-mode-line that
       ;; ends up calling vc-mcvs-workfile-version.
-      (vc-mcvs-registered file)
       ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
       ;; doesn't try to call `mcvs diff' on the file.
-      (vc-file-setprop file 'vc-checkout-time 0))))
+      (vc-mcvs-registered file))))
 
 (defalias 'vc-mcvs-responsible-p 'vc-mcvs-root
   "Return non-nil if CVS thinks it is responsible for FILE.")
@@ -591,12 +590,22 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
   "A wrapper around `vc-do-command' for use in vc-mcvs.el.
 The difference to vc-do-command is that this function always invokes `mcvs',
 and that it passes `vc-mcvs-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "mcvs" file
-	 (append '("--error-continue")
-		 (if (stringp vc-mcvs-global-switches)
-		     (cons vc-mcvs-global-switches flags)
-		   (append vc-mcvs-global-switches
-			   flags)))))
+  (let ((args (append '("--error-continue")
+		      (if (stringp vc-mcvs-global-switches)
+			  (cons vc-mcvs-global-switches flags)
+			(append vc-mcvs-global-switches
+				flags)))))
+    (if (member (car flags) '("diff" "log"))
+	;; We need to filter the output.
+	(vc-do-command buffer okstatus "sh" nil "-c"
+		       (concat "mcvs "
+			       (mapconcat
+				'shell-quote-argument
+				(append (remq nil args)
+					(if file (list (file-relative-name file))))
+				" ")
+			       " | mcvs filt"))
+      (apply 'vc-do-command buffer okstatus "mcvs" file args))))
 
 (defun vc-mcvs-stay-local-p (file) (vc-mcvs-cvs stay-local-p file))
 
