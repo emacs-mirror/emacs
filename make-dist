@@ -231,7 +231,7 @@ then
 fi
 
 ### Make sure configure is newer than configure.in.
-if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
+if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
   echo "\`./configure.in' is newer than \`./configure'" >&2
   echo "Running autoconf" >&2
   autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
@@ -266,7 +266,9 @@ echo "Making lisp/MANIFEST"
     files="$files $thisdir"
   fi
  done
- head -1 $files | grep '^;' | sed -e 's/;;; //' | sort > MANIFEST)
+ for file in $files
+ do sed -n 's/^;;; //p; q' $file
+ done | sort > MANIFEST)
 
 echo "Creating staging directory: \`${tempparent}'"
 
