@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.31) $
+ * $HopeName: MMsrc!mpm.h(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -200,15 +200,15 @@ extern Ring (RingNext)(Ring ring);
 /* Bit Table Interface -- see design.mps.bt.if.* for the interface doc */
 
 /* design.mps.bt.if.size */
-Size BTSize(unsigned long);
+extern Size BTSize(unsigned long length);
 
 /* design.mps.bt.if.get */
-int (BTGet)(BT, Index);
+extern int (BTGet)(BT bt, Index index);
 #define BTGet(a, i) ((a)[((i)>>MPS_WORD_SHIFT)] >> \
                      ((i)&~((Word)-1<<MPS_WORD_SHIFT)) & (Word)1)
 
 /* design.mps.bt.if.set */
-void (BTSet)(BT, Index);
+extern void (BTSet)(BT bt, Index index);
 #define BTSet(a, i) \
   BEGIN \
     (a)[((i)>>MPS_WORD_SHIFT)] |= \
@@ -216,17 +216,19 @@ void (BTSet)(BT, Index);
   END
 
 /* design.mps.bt.if.res */
-void (BTRes)(BT, Index);
+extern void (BTRes)(BT bt, Index index);
 #define BTRes(a, i) \
   BEGIN \
     (a)[((i)>>MPS_WORD_SHIFT)] &= \
     ~((Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT))); \
   END
 
-void BTSetRange(BT, Index, Index);
-void BTResRange(BT, Index, Index);
-Bool BTFindResRange(Index *, Index *,
-                    BT, unsigned long, unsigned long);
+extern void BTSetRange(BT bt, Index base, Index limit);
+extern void BTResRange(BT bt, Index base, Index limit);
+extern Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
+                           BT bt,
+                           Index searchBase, Index searchLimit,
+                           unsigned long length);
 
 
 /* Pool Interface -- see impl.c.pool */

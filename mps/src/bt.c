@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.4) $
+ * $HopeName: MMsrc!bt.c(trunk.5) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.4) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.5) $");
 
 
 /* design.mps.bt.fun.size */
@@ -95,50 +95,48 @@ void BTResRange(BT t, Index i, Index j)
   }
 }
 
-
 /* design.mps.bt.fun.find-res-range */
-Bool BTFindResRange(Index *baseIndexReturn, Index *limitIndexReturn,
-                    BT table, unsigned long tableSize,
-		    unsigned long runLength)
+Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
+                    BT bt,
+                    Index searchBase, Index searchLimit,
+                    unsigned long length)
 {
-  Index i = 0;
+  unsigned long base;
 
-  AVER(baseIndexReturn != NULL);
-  AVER(limitIndexReturn != NULL);
-  AVER(table != NULL);
-  AVER(AddrIsAligned((Addr)table, sizeof *table));
-  AVER(runLength <= tableSize);
-  AVER(runLength > 0);
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVER(bt != NULL);
+  AVER(searchBase < searchLimit);
+  AVER(length <= searchLimit - searchBase);
+  AVER(length > 0);
 
   /* design.mps.bt.fun.find-res.outer-loop */
-  while(i < tableSize) {
-    if(!BTGet(table, i)) {
+  base = searchBase;
+  while(base < searchLimit) {
+    if(!BTGet(bt, base)) {
       /* design.mps.bt.fun.find-res.enter */
-      /* i now marks the beginning of a run */
-      Index j = i;
-
+      /* base now marks the beginning of a run */
+      unsigned long limit = base;
       do {
 	/* design.mps.bt.fun.find-res.inner-loop */
-        ++j;
-      } while(j < tableSize && !BTGet(table, j));
-      /* j now marks the end of a run */
-      if(j - i >= runLength) {
+        ++limit;
+      } while(limit < searchLimit && !BTGet(bt, limit));
+      if(limit - base >= length) {
 	/* design.mps.bt.fun.find-res.success */
         /* found sufficiently long run */
-        *limitIndexReturn = j;
-        *baseIndexReturn = i;
+        *baseReturn = base;
+        *limitReturn = limit;
         return TRUE;
       }
       /* design.mps.bt.fun.find-res.continue */
       /* wasn't long enough */
-      AVER(i < j);
-      i = j;
-    } else {
+      base = limit;
+    } else {             /* necessary, consider j == s */
       /* design.mps.bt.fun.find-res.outer-loop */
-      ++i;
+      ++base;
     }
   }
-  AVER(i == tableSize);
+  AVER(base == searchLimit);
 
   return FALSE;
 }
