@@ -147,5 +147,3 @@ Returns the number of actions taken."
     (message "")
     ;; Return the number of actions that were taken.
     actions))
-
-(provide 'map-ynp)

@@ -20,6 +20,7 @@
 
 
 (load "subr")
+(load "map-ynp")
 (garbage-collect)
 (load "loaddefs.el")  ;Don't get confused if someone compiled loaddefs by mistake.
 (garbage-collect)
