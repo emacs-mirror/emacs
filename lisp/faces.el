@@ -122,7 +122,7 @@ Otherwise report on the defaults for face FACE (for new frames)."
     (while (= (length face) 0)
       (setq face (completing-read prompt
 				  (mapcar '(lambda (x) (list (symbol-name x)))
-					  (list-faces))
+					  (face-list))
 				  nil t)))
     (intern face)))
 
@@ -456,123 +456,137 @@ of it.  If it fails, it returns nil."
 
 ;;; non-X-specific interface
 
-(defun make-face-bold (face &optional frame)
+(defun make-face-bold (face &optional frame noerror)
   "Make the font of the given face be bold, if possible.  
-Returns nil on failure."
+If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold: ")))
-  (let ((ofont (face-font face frame)))
+  (let ((ofont (face-font face frame))
+	font f2)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (make-face-bold face (car frames))
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
-      (let ((font (or (face-font face frame)
-		      (face-font face t)
-		      (face-font 'default frame)))
-	    f2)
-	(or (and (setq f2 (x-make-font-bold font))
-		 (try-face-font face f2))
-	    (and (setq f2 (x-make-font-demibold font))
-		 (try-face-font face f2)))))
-    (not (equal ofont (face-font face)))))
+      (setq font (or (face-font face frame)
+		     (face-font face t)
+		     (face-font 'default frame)
+		     (cdr (assq 'font (frame-parameters frame)))))
+      (or (and (setq f2 (x-make-font-bold font))
+	       (internal-try-face-font face f2))
+	  (and (setq f2 (x-make-font-demibold font))
+	       (internal-try-face-font face f2))))
+    (or (not (equal ofont (face-font face)))
+	(and (not noerror)
+	     (error "No %s version of %S" face ofont)))))
 
-(defun make-face-italic (face &optional frame)
+(defun make-face-italic (face &optional frame noerror)
   "Make the font of the given face be italic, if possible.  
-Returns nil on failure."
+If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face italic: ")))
-  (let ((ofont (face-font face frame)))
+  (let ((ofont (face-font face frame))
+	font f2)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (make-face-italic face (car frames))
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
-      (let ((font (or (face-font face frame)
-		      (face-font face t)
-		      (face-font 'default frame)))
-	    f2)
-	(or (and (setq f2 (x-make-font-italic font))
-		 (try-face-font face f2))
-	    (and (setq f2 (x-make-font-oblique font))
-		 (try-face-font face f2)))))
-    (not (equal ofont (face-font face)))))
+      (setq font (or (face-font face frame)
+		     (face-font face t)
+		     (face-font 'default frame)
+		     (cdr (assq 'font (frame-parameters frame)))))
+      (or (and (setq f2 (x-make-font-italic font))
+	       (internal-try-face-font face f2))
+	  (and (setq f2 (x-make-font-oblique font))
+	       (internal-try-face-font face f2))))
+    (or (not (equal ofont (face-font face)))
+	(and (not noerror)
+	     (error "No %s version of %S" face ofont)))))
 
-(defun make-face-bold-italic (face &optional frame)
+(defun make-face-bold-italic (face &optional frame noerror)
   "Make the font of the given face be bold and italic, if possible.  
-Returns nil on failure."
+If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold-italic: ")))
-  (let ((ofont (face-font face frame)))
+  (let ((ofont (face-font face frame))
+	font f2 f3)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (make-face-bold-italic face (car frames))
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
-      (let ((font (or (face-font face frame)
+      (setq font (or (face-font face frame)
 		      (face-font face t)
-		      (face-font 'default frame)))
-	    f2 f3)
-	(or (and (setq f2 (x-make-font-italic font))
-		 (not (equal font f2))
-		 (setq f3 (x-make-font-bold f2))
-		 (not (equal f2 f3))
-		 (try-face-font face f3))
-	    (and (setq f2 (x-make-font-oblique font))
-		 (not (equal font f2))
-		 (setq f3 (x-make-font-bold f2))
-		 (not (equal f2 f3))
-		 (try-face-font face f3))
-	    (and (setq f2 (x-make-font-italic font))
-		 (not (equal font f2))
-		 (setq f3 (x-make-font-demibold f2))
-		 (not (equal f2 f3))
-		 (try-face-font face f3))
-	    (and (setq f2 (x-make-font-oblique font))
-		 (not (equal font f2))
-		 (setq f3 (x-make-font-demibold f2))
-		 (not (equal f2 f3))
-		 (try-face-font face f3)))))
-    (not (equal ofont (face-font face frame)))))
+		      (face-font 'default frame)
+		      (cdr (assq 'font (frame-parameters frame)))))
+      (or (and (setq f2 (x-make-font-italic font))
+	       (not (equal font f2))
+	       (setq f3 (x-make-font-bold f2))
+	       (not (equal f2 f3))
+	       (internal-try-face-font face f3))
+	  (and (setq f2 (x-make-font-oblique font))
+	       (not (equal font f2))
+	       (setq f3 (x-make-font-bold f2))
+	       (not (equal f2 f3))
+	       (internal-try-face-font face f3))
+	  (and (setq f2 (x-make-font-italic font))
+	       (not (equal font f2))
+	       (setq f3 (x-make-font-demibold f2))
+	       (not (equal f2 f3))
+	       (internal-try-face-font face f3))
+	  (and (setq f2 (x-make-font-oblique font))
+	       (not (equal font f2))
+	       (setq f3 (x-make-font-demibold f2))
+	       (not (equal f2 f3))
+	       (internal-try-face-font face f3))))
+    (or (not (equal ofont (face-font face)))
+	(and (not noerror)
+	     (error "No %s version of %S" face ofont)))))
 
-(defun make-face-unbold (face &optional frame)
+(defun make-face-unbold (face &optional frame noerror)
   "Make the font of the given face be non-bold, if possible.  
-Returns nil on failure."
+If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-bold: ")))
-  (let ((ofont (face-font face frame)))
+  (let ((ofont (face-font face frame))
+	font font1)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (make-face-unbold face (car frames))
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
-      (let ((font (x-make-font-unbold
-		   (or (face-font face frame)
-		       (face-font face t)
-		       (face-font 'default frame)))))
-	(if font (try-face-font face font))))
-    (not (equal ofont (face-font face frame)))))
+      (setq font1 (or (face-font face frame)
+		      (face-font face t)
+		      (face-font 'default frame)
+		      (cdr (assq 'font (frame-parameters frame)))))
+      (setq font (x-make-font-unbold font1))
+      (if font (internal-try-face-font face font)))
+    (or (not (equal ofont (face-font face)))
+	(and (not noerror)
+	     (error "No %s version of %S" face ofont)))))
 
-(defun make-face-unitalic (face &optional frame)
+(defun make-face-unitalic (face &optional frame noerror)
   "Make the font of the given face be non-italic, if possible.  
-Returns nil on failure."
+If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-italic: ")))
-  (let ((ofont (face-font face frame)))
+  (let ((ofont (face-font face frame))
+	font font1)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
 	    (make-face-unitalic face (car frames))
 	    (setq frames (cdr frames))))
       (setq face (internal-get-face face frame))
-      (let ((font (x-make-font-unitalic
-		   (or (face-font face frame)
-		       (face-font face t)
-		       (face-font 'default frame)))))
-	(if font (try-face-font face font))))
-    (not (equal ofont (face-font face frame)))))
-
-
-
+      (setq font1 (or (face-font face frame)
+		      (face-font face t)
+		      (face-font 'default frame)
+		      (cdr (assq 'font (frame-parameters frame)))))
+      (setq font (x-make-font-unitalic font1))
+      (if font (internal-try-face-font face font)))
+    (or (not (equal ofont (face-font face)))
+	(and (not noerror)
+	     (error "No %s version of %S" face ofont)))))
 
 ;;; Make the builtin faces; the C code knows these as faces 0, 1, and 2,
 ;;; respectively, so they must be the first three faces made.
@@ -614,33 +628,33 @@ Returns nil on failure."
 ;;;
 (defun x-initialize-frame-faces (frame)
   (or (face-differs-from-default-p 'bold frame)
-      (make-face-bold 'bold frame)
+      (make-face-bold 'bold frame t)
       ;; if default font is bold, then make the `bold' face be unbold.
-      (make-face-unbold 'bold frame)
+      (make-face-unbold 'bold frame t)
       ;; otherwise the luser specified one of the bogus font names
-      (internal-x-complain-about-font 'bold)
+      (internal-x-complain-about-font 'bold frame)
       )
 
   (or (face-differs-from-default-p 'italic frame)
-      (make-face-italic 'italic frame)
+      (make-face-italic 'italic frame t)
       (progn
-	(make-face-bold 'italic frame)
-	(internal-x-complain-about-font 'italic))
+	(make-face-bold 'italic frame t)
+	(internal-x-complain-about-font 'italic frame))
       )
 
   (or (face-differs-from-default-p 'bold-italic frame)
-      (make-face-bold-italic 'bold-italic frame)
+      (make-face-bold-italic 'bold-italic frame t)
       ;; if we couldn't get a bold-italic version, try just bold.
-      (make-face-bold 'bold-italic frame)
+      (make-face-bold 'bold-italic frame t)
       ;; if we couldn't get bold or bold-italic, then that's probably because
       ;; the default font is bold, so make the `bold-italic' face be unbold.
-      (and (make-face-unbold 'bold-italic frame)
-	   (make-face-italic 'bold-italic frame))
+      (and (make-face-unbold 'bold-italic frame t)
+	   (make-face-italic 'bold-italic frame t))
       ;; if that didn't work, try italic (can this ever happen? what the hell.)
       (progn
-	(make-face-italic 'bold-italic frame)
+	(make-face-italic 'bold-italic frame t)
 	;; then bitch and moan.
-	(internal-x-complain-about-font 'bold-italic))
+	(internal-x-complain-about-font 'bold-italic frame))
       )
 
   (or (face-differs-from-default-p 'highlight frame)
@@ -673,28 +687,15 @@ Returns nil on failure."
 	    (set-face-background-pixmap 'secondary-selection "gray1" frame)
 	    )
 	(error (invert-face 'secondary-selection frame))))
+  )
 
-  (or (face-differs-from-default-p 'isearch frame)
-      (if (x-display-color-p)
-	  (condition-case ()
-	      (set-face-background 'isearch "paleturquoise" frame)
-	    (error
-	     (condition-case ()
-		 (set-face-background 'isearch "green" frame)
-	       (error nil))))
-	nil)
-      (make-face-bold 'isearch frame)
-      ;; if default font is bold, then make the `isearch' face be unbold.
-      (make-face-unbold 'isearch frame))
-  ))
-
-(defun internal-x-complain-about-font (face)
-  (if (symbolp face) (setq face (symbol-name face)))
-  (message "%s: couldn't deduce %s %s version of %S\n"
-	   invocation-name
-	   (if (string-match "\\`[aeiouAEIOU]" face) "an" "a")
+(defun internal-x-complain-about-font (face frame)
+  (message "No %s version of %S"
 	   face
-	   (face-font 'default))
+	   (or (face-font face frame)
+	       (face-font face t)
+	       (face-font 'default frame)
+	       (cdr (assq 'font (frame-parameters frame)))))
   (sit-for 1))
 
 ;; Like x-create-frame but also set up the faces.
@@ -710,7 +711,7 @@ Returns nil on failure."
     ;; Also fill them in from X resources.
     (while rest
       (setcdr (car rest) (copy-sequence (cdr (car rest))))
-      (make-face-x-resource-intenal (cdr (car rest)) frame t)
+      (make-face-x-resource-internal (cdr (car rest)) frame t)
       (setq rest (cdr rest)))
 
     (setq default (internal-get-face 'default frame)
@@ -718,15 +719,15 @@ Returns nil on failure."
 	
     (x-initialize-frame-faces frame)
 
-    ;; Make sure the modeline face is fully qualified.
-    (if (and (not (face-font modeline frame)) (face-font default frame))
-	(set-face-font modeline (face-font default frame) frame))
-    (if (and (not (face-background modeline frame))
-	     (face-background default frame))
-	(set-face-background modeline (face-background default frame) frame))
-    (if (and (not (face-foreground modeline frame))
-	     (face-foreground default frame))
-	(set-face-foreground modeline (face-foreground default frame) frame))
+;;;    ;; Make sure the modeline face is fully qualified.
+;;;    (if (and (not (face-font modeline frame)) (face-font default frame))
+;;;	(set-face-font modeline (face-font default frame) frame))
+;;;    (if (and (not (face-background modeline frame))
+;;;	     (face-background default frame))
+;;;	(set-face-background modeline (face-background default frame) frame))
+;;;    (if (and (not (face-foreground modeline frame))
+;;;	     (face-foreground default frame))
+;;;	(set-face-foreground modeline (face-foreground default frame) frame))
     frame))
 
 (setq frame-creation-function 'x-create-frame-with-faces)
