@@ -308,8 +308,8 @@ menu item called \"Item\" under the \"Foo\" submenu of \"Menu\"."
 		  (while (and (cdr rest2) (car (cdr rest2)))
 		    (setq rest2 (cdr rest2)))
 		  (setcdr rest2
-		  (nconc (list (setq menu (list (car rest))))
-			 (cdr rest2)))))
+			  (nconc (list (setq menu (list (car rest))))
+				 (cdr rest2)))))
 	    (setq so-far menu)
 	    (setq rest (cdr rest)))))
     (or menu (setq menu menubar))
