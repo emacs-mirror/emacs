@@ -532,7 +532,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_alive = 0;
     synch_process_retcode = pid;
     if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
-      synch_process_death = strerror(errno);
+      synch_process_death = strerror (errno);
 
     close (outfilefd);
     if (fd_error != outfilefd)
