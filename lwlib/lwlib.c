@@ -74,10 +74,48 @@ char *lwlib_toolkit_type = "motif";
 #else
 char *lwlib_toolkit_type = "lucid";
 #endif
-/* Forward declarations */
-static void
-instantiate_widget_instance (/* widget_instance* instance */);
 
+#if defined __STDC__
+#define P_(x)	x
+#else
+#define P_(x)	()
+#endif
+
+static widget_value *merge_widget_value P_ ((widget_value *,
+					     widget_value *,
+					     int, int *));
+static void instantiate_widget_instance P_ ((widget_instance *));
+static int my_strcasecmp P_ ((char *, char *));
+static void safe_free_str P_ ((char *));
+static void free_widget_value_tree P_ ((widget_value *));
+static widget_value *copy_widget_value_tree P_ ((widget_value *,
+						 change_type));
+static widget_info *allocate_widget_info P_ ((char *, char *, LWLIB_ID,
+					      widget_value *,
+					      lw_callback, lw_callback,
+					      lw_callback, lw_callback));
+static void free_widget_info P_ ((widget_info *));
+static void mark_widget_destroyed P_ ((Widget, XtPointer, XtPointer));
+static widget_instance *allocate_widget_instance P_ ((widget_info *,
+						      Widget, Boolean));
+static void free_widget_instance P_ ((widget_instance *));
+static widget_info *get_widget_info P_ ((LWLIB_ID, Boolean));
+static widget_instance *get_widget_instance P_ ((Widget, Boolean));
+static widget_instance *find_instance P_ ((LWLIB_ID, Widget, Boolean));
+static Boolean safe_strcmp P_ ((char *, char *));
+static Widget name_to_widget P_ ((widget_instance *, char *));
+static void set_one_value P_ ((widget_instance *, widget_value *, Boolean));
+static void update_one_widget_instance P_ ((widget_instance *, Boolean));
+static void update_all_widget_values P_ ((widget_info *, Boolean));
+static void initialize_widget_instance P_ ((widget_instance *));
+static widget_creation_function find_in_table P_ ((char *, widget_creation_entry *));
+static Boolean dialog_spec_p P_ ((char *));
+static void instantiate_widget_instance P_ ((widget_instance *));
+static void destroy_one_instance P_ ((widget_instance *));
+static void lw_pop_all_widgets P_ ((LWLIB_ID, Boolean));
+static Boolean get_one_value P_ ((widget_instance *, widget_value *));
+static void show_one_widget_busy P_ ((Widget, Boolean));
+     
 void
 lwlib_memset (address, value, length)
      char *address;
@@ -455,10 +493,11 @@ safe_strcmp (s1, s2)
 
 
 static widget_value *
-merge_widget_value (val1, val2, level)
+merge_widget_value (val1, val2, level, change_p)
      widget_value* val1;
      widget_value* val2;
      int level;
+     int *change_p;
 {
   change_type change, this_one_change;
   widget_value* merged_next;
@@ -467,12 +506,16 @@ merge_widget_value (val1, val2, level)
   if (!val1)
     {
       if (val2)
-	return copy_widget_value_tree (val2, STRUCTURAL_CHANGE);
+	{
+	  *change_p = 1;
+	  return copy_widget_value_tree (val2, STRUCTURAL_CHANGE);
+	}
       else
 	return NULL;
     }
   if (!val2)
     {
+      *change_p = 1;
       free_widget_value_tree (val1);
       return NULL;
     }
@@ -543,7 +586,8 @@ merge_widget_value (val1, val2, level)
   if (level > 0)
     {
       merged_contents =
-	merge_widget_value (val1->contents, val2->contents, level - 1);
+	merge_widget_value (val1->contents, val2->contents, level - 1,
+			    change_p);
       
       if (val1->contents && !merged_contents)
 	{
@@ -573,7 +617,7 @@ merge_widget_value (val1, val2, level)
 
   this_one_change = change;
 
-  merged_next = merge_widget_value (val1->next, val2->next, level);
+  merged_next = merge_widget_value (val1->next, val2->next, level, change_p);
 
   if (val1->next && !merged_next)
     {
@@ -596,6 +640,7 @@ merge_widget_value (val1, val2, level)
   
   if (change > NO_CHANGE && val1->toolkit_data)
     {
+      *change_p = 1;
       if (val1->free_toolkit_data)
 	XtFree (val1->toolkit_data);
       val1->toolkit_data = NULL;
@@ -692,7 +737,7 @@ update_all_widget_values (info, deep_p)
     val->change = NO_CHANGE;
 }
 
-void
+int
 lw_modify_all_widgets (id, val, deep_p)
      LWLIB_ID id;
      widget_value* val;
@@ -705,6 +750,7 @@ lw_modify_all_widgets (id, val, deep_p)
   widget_value* prev;
   widget_value* next;
   int		found;
+  int change_p = 0;
 
   if (!info)
     return;
@@ -720,7 +766,8 @@ lw_modify_all_widgets (id, val, deep_p)
 	    found = True;
 	    next = cur->next;
 	    cur->next = NULL;
-	    cur = merge_widget_value (cur, new_val, deep_p ? 1000 : 1);
+	    cur = merge_widget_value (cur, new_val, deep_p ? 1000 : 1,
+				      &change_p);
 	    if (prev)
 	      prev->next = cur ? cur : next;
 	    else
@@ -736,11 +783,13 @@ lw_modify_all_widgets (id, val, deep_p)
 	    prev->next = copy_widget_value_tree (new_val, STRUCTURAL_CHANGE);
 	  else
 	    info->val = copy_widget_value_tree (new_val, STRUCTURAL_CHANGE);
+	  change_p = 1;
 	}
       new_val->next = next_new_val;
     }
 
   update_all_widget_values (info, deep_p);
+  return change_p;
 }
 
 
