@@ -236,8 +236,8 @@ src:	lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all ${MFLAGS} \
-		CC='${CC}' CFLAGS='${CFLAGS}' prefix='${prefix}' \
-		srcdir='${srcdir}/$@' libdir='${libdir}'
+		CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
+		prefix='${prefix}' srcdir='${srcdir}/$@' libdir='${libdir}'
 
 ## We build the makefiles for the subdirectories here so that we can
 ## edit the values for the path variables into them.  This means that
