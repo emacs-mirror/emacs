@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.77) $
+ * $HopeName: MMsrc!mpsi.c(trunk.78) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "sac.h"
 #include "chain.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.77) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.78) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -311,7 +311,7 @@ void mps_arena_clamp(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
-  ArenaClamp(arena);
+  ArenaClamp(ArenaGlobals(arena));
   ArenaLeave(arena);
 }
 
@@ -326,7 +326,7 @@ void mps_arena_release(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
-  ArenaRelease(arena);
+  ArenaRelease(ArenaGlobals(arena));
   ArenaLeave(arena);
 }
 
@@ -341,7 +341,7 @@ void mps_arena_park(mps_space_t mps_space)
 {
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  ArenaPark(arena);
+  ArenaPark(ArenaGlobals(arena));
   ArenaLeave(arena);
 }
 
@@ -357,7 +357,7 @@ mps_res_t mps_arena_collect(mps_space_t mps_space)
   Res res;
   Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
-  res = ArenaCollect(arena);
+  res = ArenaCollect(ArenaGlobals(arena));
   ArenaLeave(arena);
   return res;
 }
@@ -623,7 +623,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size, ...)
 
   ArenaEnter(arena);
 
-  ArenaPoll(arena);                     /* .poll */
+  ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   AVER(p_o != NULL);
   AVERT(Pool, pool);
@@ -926,7 +926,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
   ArenaEnter(arena);
 
-  ArenaPoll(arena);                     /* .poll */
+  ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   AVER(p_o != NULL);
   AVERT(Buffer, buf);
@@ -957,7 +957,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
 
   ArenaEnter(arena);
 
-  ArenaPoll(arena);                     /* .poll */
+  ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   AVER(p_o != NULL);
   AVERT(Buffer, buf);
@@ -1245,11 +1245,9 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t mps_arena,
 
   AVER(mps_root_o != NULL);
 
-  res = RootCreateFmt(&root, arena, rank, mode, scan,
-                      (Addr)base, (Addr)limit);
+  res = RootCreateFmt(&root, arena, rank, mode, scan, (Addr)base, (Addr)limit);
 
   ArenaLeave(arena);
-  
   if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
@@ -1454,7 +1452,6 @@ mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t *refref)
   res = ArenaFinalize(arena, object);
 
   ArenaLeave(arena);
-
   return res;
 }
 
@@ -1479,7 +1476,6 @@ mps_bool_t mps_message_poll(mps_arena_t mps_arena)
   b = MessagePoll(arena);
 
   ArenaLeave(arena);
-
   return b;
 }
 
@@ -1553,7 +1549,6 @@ mps_bool_t mps_message_get(mps_message_t *mps_message_return,
   b = MessageGet(&message, arena, type);
 
   ArenaLeave(arena);
-
   if (b) {
     *mps_message_return = (mps_message_t)message;
   }
@@ -1572,7 +1567,6 @@ mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
   b = MessageQueueType(&type, arena);
 
   ArenaLeave(arena);
-
   if (b) {
     *mps_message_type_return = (mps_message_type_t)type;
   }
@@ -1618,7 +1612,6 @@ size_t mps_message_gc_live_size(mps_arena_t mps_arena,
   size = MessageGCLiveSize(message);
 
   ArenaLeave(arena);
-
   return (size_t)size;
 }
 
@@ -1635,7 +1628,6 @@ size_t mps_message_gc_condemned_size(mps_arena_t mps_arena,
   size = MessageGCCondemnedSize(message);
 
   ArenaLeave(arena);
-
   return (size_t)size;
 }
 
@@ -1652,7 +1644,6 @@ size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
   size = MessageGCNotCondemnedSize(message);
 
   ArenaLeave(arena);
-
   return (size_t)size;
 }
 
@@ -1739,7 +1730,7 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
   ArenaEnter(arena);
 
   res = BufferRampEnd(buf);
-  ArenaPoll(arena);                     /* .poll */
+  ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   ArenaLeave(arena);
   return res;
@@ -1759,7 +1750,7 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
   ArenaEnter(arena);
 
   BufferRampReset(buf);
-  ArenaPoll(arena);                     /* .poll */
+  ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
   ArenaLeave(arena);
   return MPS_RES_OK;
@@ -1789,9 +1780,10 @@ size_t mps_reservoir_limit(mps_arena_t mps_arena)
   Size size;
 
   ArenaEnter(arena);
-  size = ReservoirLimit(ArenaReservoir(arena));
-  ArenaLeave(arena);
 
+  size = ReservoirLimit(ArenaReservoir(arena));
+
+  ArenaLeave(arena);
   return size;
 }
 
@@ -1804,9 +1796,10 @@ size_t mps_reservoir_available(mps_arena_t mps_arena)
   Size size;
 
   ArenaEnter(arena);
-  size = ReservoirAvailable(ArenaReservoir(arena));
-  ArenaLeave(arena);
 
+  size = ReservoirAvailable(ArenaReservoir(arena));
+
+  ArenaLeave(arena);
   return size;
 }
 
@@ -1829,7 +1822,6 @@ mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t mps_arena,
   res = ChainCreate(&chain, arena, gen_count, (GenParamStruct *)params);
 
   ArenaLeave(arena);
-
   if (res != ResOK) return res;
   *chain_o = (mps_chain_t)chain;
   return MPS_RES_OK;
@@ -1847,8 +1839,6 @@ void mps_chain_destroy(mps_chain_t mps_chain)
   arena = chain->arena;
 
   ArenaEnter(arena);
-
   ChainDestroy(chain);
-
   ArenaLeave(arena);
 }
