@@ -1393,8 +1393,7 @@ calc-kill calc-kill-region calc-yank))))
 		       (and (>= last-command-char 0) (< last-command-char ? )
 			    (not (memq last-command-char '(?\e)))))
 		   (calc-wrapper))  ; clear flags if not a Calc command.
-	       (if calc-emacs-type-19
-		   (setq last-command-event (cdr event)))
+               (setq last-command-event (cdr event))
 	       (if (or (not (integerp last-command-char))
 		       (eq last-command-char ?-))
 		   (calc-unread-command)
