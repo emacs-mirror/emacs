@@ -1,5 +1,7 @@
 ;;; gnus-art.el --- article mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -4048,7 +4050,9 @@ If given a prefix, show the hidden text instead."
 		(setq gnus-override-method (pop methods)))
 	      (while (not result)
 		(when (eq gnus-override-method 'current)
-		  (setq gnus-override-method gnus-current-select-method))
+		  (setq gnus-override-method
+			(with-current-buffer gnus-summary-buffer
+			  gnus-current-select-method)))
 		(erase-buffer)
 		(gnus-kill-all-overlays)
 		(let ((gnus-newsgroup-name group))
