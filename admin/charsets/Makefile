@@ -42,11 +42,18 @@
 #	provided at <http://www.microsoft.com/globaldev/reference/oem/>
 #   o eucJP-13th.txt, eucJP-udc.txt, eucJP-ibmext.txt
 #	provided at <http://www.opengroup.or.jp/jvc/cde/>
+#   o cns2ucsdkw.txt
+#	available by:
+#	% cvs -d :pserver:anonymous@cvs.kanji-database.sourceforge.net:\
+#		/cvsroot/kanji-database login
+#	% cvs -d :pserver:anonymous@cvs.kanji-database.sourceforge.net:\
+#		/cvsroot/kanji-database co kanji-database
 # OLDEMACS
 #   emacs of version 21.3.50 or later
 #
 # Then, do this:
-#   % make install
+#	% make XXX.map (or make all)
+#	% make install
 
 CHARSETS = ${ISO8859} ${IBM} ${CODEPAGE} ${CJK} ${MISC} ${MULE}
 
@@ -99,7 +106,7 @@ MULE =	MULE-ethiopic.map MULE-ipa.map MULE-is13194.map \
 
 TRANS_TABLE = cp51932.el eucjp-ms.el
 
-charsets: ${CHARSETS}
+all: ${CHARSETS} ${TRANS_TABLE}
 
 AWK = gawk
 
@@ -258,33 +265,33 @@ CNS-1.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 compact.awk > $@
 
-CNS-2.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
-	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa2/s,/x8e/xa2,,' GLIBC-2-7 compact.awk > $@
+# CNS-1.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
+# 	# Generating $@...
+# 	@mapconv $< '/^C1/' KANJI-DATABASE compact.awk > $@
 
-CNS-3.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-2.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa3/ s,/x8e/xa3,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C2/' KANJI-DATABASE compact.awk > $@
 
-CNS-4.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-3.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa4/ s,/x8e/xa4,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C3/' KANJI-DATABASE compact.awk > $@
 
-CNS-5.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-4.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa5/ s,/x8e/xa5,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C4/' KANJI-DATABASE compact.awk > $@
 
-CNS-6.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-5.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa6/ s,/x8e/xa6,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C5/' KANJI-DATABASE compact.awk > $@
 
-CNS-7.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-6.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xa7/ s,/x8e/xa7,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C6/' KANJI-DATABASE compact.awk > $@
 
-CNS-F.map: ${GLIBC_CHARMAPS}/EUC-TW mapconv compact.awk
+CNS-7.map: ${MISC_CHARMAPS}/cns2ucsdkw.txt mapconv compact.awk
 	# Generating $@...
-	@mapconv $< '/^<.*\/x8e\/xaf/ s,/x8e/xaf,,' GLIBC-2-7 compact.awk > $@
+	@mapconv $< '/^C7/' KANJI-DATABASE compact.awk > $@
 
 # General target to produce map files for mule charsets.
 MULE-%.map: mule-charsets.el
@@ -333,4 +340,4 @@ install:
 
 # Clear files that are automatically generated.
 clean:
-	rm -f ${CHARSETS}
+	rm -f ${CHARSETS} ${TRANS_TABLE}
