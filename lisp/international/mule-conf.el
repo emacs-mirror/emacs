@@ -1077,6 +1077,11 @@ for decoding and encoding files, process I/O, etc."
 
 (aset latin-extra-code-table ?\222 t)
 
+;; The old code-pages library is obsoleted by coding systems based on
+;; the charsets defined in this file but might be required by user
+;; code.
+(provide 'code-pages)
+
 ;; Local variables:
 ;; no-byte-compile: t
 ;; End:
