@@ -109,7 +109,8 @@ vpath %.h $(srcdir)\
 vpath %.y $(srcdir)\
 vpath %.l $(srcdir)\
 vpath %.s $(srcdir)\
-vpath %.in $(srcdir)'
+vpath %.in $(srcdir)\
+vpath %.texi $(srcdir)'
 fi
 
 #### Given the configuration name, set machfile and opsysfile to the
@@ -153,7 +154,7 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
-      i[345]86-*-netbsd*) machine=intel386 ;;
+      i[3456]86-*-netbsd*) machine=intel386 ;;
       m68k-*-netbsd*)
 			# This is somewhat bogus.
 			machine=hp9000s300 ;;
@@ -189,8 +190,8 @@ case "${canonical}" in
     machine=alpha opsys=osf1
   ;;
 
-  alpha-*-linux* | alpha-*-lignux* )
-    machine=alpha opsys=lignux
+  alpha-*-linux-gnu* )
+    machine=alpha opsys=gnu-linux
   ;;
 
   ## Altos 3068
@@ -260,7 +261,7 @@ case "${canonical}" in
   ;;
 
   ## Cubix QBx/386
-  i[345]86-cubix-sysv* )
+  i[3456]86-cubix-sysv* )
     machine=intel386 opsys=usg5-3
   ;;
 
@@ -439,10 +440,10 @@ case "${canonical}" in
   ;;
 
   ## IBM machines
-  i[345]86-ibm-aix1.1* )
+  i[3456]86-ibm-aix1.1* )
     machine=ibmps2-aix opsys=usg5-2-2
   ;;
-  i[345]86-ibm-aix1.[23]* | i[345]86-ibm-aix* )
+  i[3456]86-ibm-aix1.[23]* | i[3456]86-ibm-aix* )
     machine=ibmps2-aix opsys=usg5-3
   ;;
   i370-ibm-aix*)
@@ -494,30 +495,30 @@ case "${canonical}" in
   ;;
 
   ## Intel 386 machines where we do care about the manufacturer
-  i[345]86-intsys-sysv* )
+  i[3456]86-intsys-sysv* )
     machine=is386 opsys=usg5-2-2
   ;;
 
   ## Prime EXL
-  i[345]86-prime-sysv* )
+  i[3456]86-prime-sysv* )
     machine=i386 opsys=usg5-3
   ;;
 
   ## Sequent Symmetry running Dynix
-  i[345]86-sequent-bsd* )
+  i[3456]86-sequent-bsd* )
     machine=symmetry opsys=bsd4-3
   ;;
 
   ## Sequent Symmetry running DYNIX/ptx
   ## Use the old cpp rather than the newer ANSI one.
-  i[345]86-sequent-ptx* )
+  i[3456]86-sequent-ptx* )
     machine=sequent-ptx opsys=ptx
     NON_GNU_CPP="/lib/cpp"
   ;;
 
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
   ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
-  i[345]86-ncr-sysv* )
+  i[3456]86-ncr-sysv* )
     machine=ncr386 opsys=usg5-4-2
   ;;
 
@@ -678,26 +679,26 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  sparc-*-linux* | sparc-*-lignux* )
-    machine=sparc opsys=lignux
+  sparc-*-linux-gnu* )
+    machine=sparc opsys=gnu-linux
   ;;
 
   *-sun-sunos* | *-sun-bsd* | *-sun-solaris* \
-    | i[345]86-*-solaris2* | i[345]86-*-sunos5* | powerpc*-*-solaris2* \
+    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
     case "${canonical}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
       m68* )		machine=sun3 ;;
-      i[345]86-sun-sunos[34]* )	machine=sun386 ;;
-      i[345]86-*-* )     machine=intel386 ;;
+      i[3456]86-sun-sunos[34]* )	machine=sun386 ;;
+      i[3456]86-*-* )     machine=intel386 ;;
       powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
       ## The Sun386 didn't get past 4.0.
-      i[345]86-*-sunos4	  ) opsys=sunos4-0 ;;
+      i[3456]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.[3-9]* | *-sunos4shr*)
 		opsys=sunos4shr
@@ -821,7 +822,7 @@ case "${canonical}" in
   ;;
 
   ## Intel 386 machines where we don't care about the manufacturer
-  i[345]86-*-* )
+  i[3456]86-*-* )
     machine=intel386
     case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
@@ -835,8 +836,14 @@ case "${canonical}" in
       *-esix5* )		opsys=esix5r4; NON_GNU_CPP=/usr/lib/cpp ;;
       *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
-      *-linux* | *-lignux* )	opsys=lignux ;;
+      *-linux-gnu* )		opsys=gnu-linux ;;
       *-sco3.2v4* )		opsys=sco4 ; NON_GNU_CPP=/lib/cpp  ;;
+      *-sco3.2v5* )		opsys=sco5 
+				NON_GNU_CPP=/lib/cpp
+				# Prevent -belf from being passed to $CPP.
+				# /lib/cpp does not accept it.
+				OVERRIDE_CPPFLAGS=
+				;;
       *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
       *-bsdi2* )		opsys=bsdos2 ;;
       *-386bsd* )	        opsys=386bsd ;;
@@ -846,9 +853,9 @@ case "${canonical}" in
     esac
   ;;
 
-  ## Lignux/68k
-  m68k-*-linux* | m68k-*-lignux* )
-    machine=m68k opsys=lignux
+  ## Linux/68k-based GNU system
+  m68k-*-linux-gnu* )
+    machine=m68k opsys=gnu-linux
   ;;
 
   * )
@@ -1108,7 +1115,7 @@ AC_CHECKING([the machine- and system-dependent files to find out
 ### and REAL_CFLAGS (which we use for real compilation).
 ### The two are the same except on a few systems, where they are made
 ### different to work around various lossages.  For example,
-### GCC 2.5 on Lignux needs them to be different because it treats -g
+### GCC 2.5 on GNU/Linux needs them to be different because it treats -g
 ### as implying static linking.
 
 ### If the CFLAGS env var is specified, we use that value
@@ -1228,7 +1235,12 @@ LISP_FLOAT_TYPE=yes
 
 #### Add the libraries to LIBS and check for some functions.
 
-CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+if test x"${OVERRIDE_CPPFLAGS}" != x; then
+  CPPFLAGS="$(OVERRIDE_CPPFLAGS)"
+else
+  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+fi
+
 LIBS="$libsrc_libs $LIBS"
 
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
@@ -1270,7 +1282,7 @@ if test "${HAVE_X11}" = "yes"; then
     export LD_RUN_PATH
   fi
 
-  if test "${opsys}" = "lignux"; then
+  if test "${opsys}" = "gnu-linux"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_TRY_LINK([],
      [XOpenDisplay ("foo");],
