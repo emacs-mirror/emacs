@@ -1,5 +1,7 @@
 2002-12-03  Andreas Schwab  <schwab@suse.de>
 
+	* cus-edit.el (custom-display): Add checkbox for type mac.
+
 	* whitespace.el (whitespace-highlight-face): Fix face spec.
 
 2002-12-02  Stefan Monnier  <monnier@cs.yale.edu>
