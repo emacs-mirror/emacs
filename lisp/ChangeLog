@@ -1,3 +1,15 @@
+2003-11-30  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* subr.el (noreturn, 1value): New macros for test coverage.  See
+	`testcover.el'.
+
+	* emacs-lisp/edebug.el: Add def-edebug-spec for `noreturn' and `1value'.
+
+	* emacs-lisp/testcover.el (testcover-reinstrument): Special case
+	for macro `1value'.
+	(testcover-1value): New function.  Checks that a 1value form
+	actually returns only one value.  Requested by RMS.
+
 2003-11-29  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gud-watch, gdb-var-create-handler)
