@@ -527,6 +527,60 @@ extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 
 #ifdef HAVE_X_WINDOWS
 
+#ifdef DEBUG_X_COLORS
+
+/* The following is a poor mans infrastructure for debugging X color
+   allocation problems on displays with PseudoColor-8.  Some X servers
+   like 3.3.5 XF86_SVGA with Matrox cards apparently don't implement
+   color reference counts completely so that they don't signal an
+   error when a color is freed whose reference count is already 0.
+   Other X servers do.  To help me debug this, the following code
+   implements a simple reference counting schema of its own, for a
+   single display/screen.  --gerd.  */
+
+/* Reference counts for pixel colors.  */
+
+int color_count[256];
+
+/* Register color PIXEL as allocated.  */
+
+void
+register_color (pixel)
+     unsigned long pixel;
+{
+  xassert (pixel < 256);
+  ++color_count[pixel];
+}
+
+
+/* Register color PIXEL as deallocated.  */
+
+void
+unregister_color (pixel)
+     unsigned long pixel;
+{
+  xassert (pixel < 256);
+  if (color_count[pixel] > 0)
+    --color_count[pixel];
+  else
+    abort ();
+}
+
+
+/* Register N colors from PIXELS as deallocated.  */
+
+void
+unregister_colors (pixels, n)
+     unsigned long *pixels;
+     int n;
+{
+  int i;
+  for (i = 0; i < n; ++i)
+    unregister_color (pixels[i]);
+}
+
+#endif /* DEBUG_X_COLORS */
+
 /* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
    color values.  Interrupt input must be blocked when this function
    is called.  */
@@ -564,10 +618,20 @@ x_free_colors (f, pixels, npixels)
 	      px[j++] = pixels[i];
 
 	  if (j)
-	    XFreeColors (dpy, cmap, px, j, 0);
+	    {
+	      XFreeColors (dpy, cmap, px, j, 0);
+#ifdef DEBUG_X_COLORS
+	      unregister_colors (px, j);
+#endif
+	    }
 	}
       else
-	XFreeColors (dpy, cmap, pixels, npixels, 0);
+	{
+	  XFreeColors (dpy, cmap, pixels, npixels, 0);
+#ifdef DEBUG_X_COLORS
+	  unregister_colors (pixels, npixels);
+#endif
+	}
     }
 }
 
