@@ -2253,7 +2253,10 @@ and put SIZE columns in the first of the pair.")
 {
   register Lisp_Object new;
   register struct window *o, *p;
+  FRAME_PTR fo;
   register int size;
+  int internal_width;
+  int separator_width = 1;
 
   if (NILP (window))
     window = selected_window;
@@ -2261,13 +2264,17 @@ and put SIZE columns in the first of the pair.")
     CHECK_LIVE_WINDOW (window, 0);
 
   o = XWINDOW (window);
+  fo = XFRAME (WINDOW_FRAME (o));
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (fo))
+    separator_width = FRAME_SCROLL_BAR_COLS (fo);
+  internal_width = window_internal_width (o);
 
   if (NILP (chsize))
     {
       if (!NILP (horflag))
-	/* Round odd size up, since this is for the left-hand window,
-	   and it will lose a column for the separators.  */
-	size = ((XFASTINT (o->width) + 1) & -2) >> 1;
+	/* Calculate the size of the left-hand window, by dividing
+	   the usable space in columns by two. */
+        size = (internal_width - separator_width) >> 1;
       else
 	size = XFASTINT (o->height) >> 1;
     }
@@ -2279,7 +2286,7 @@ and put SIZE columns in the first of the pair.")
 
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (FRAME_NO_SPLIT_P (XFRAME (WINDOW_FRAME (o))))
+  else if (FRAME_NO_SPLIT_P (fo))
     error ("Attempt to split unsplittable frame");
 
   check_min_window_sizes ();
@@ -2303,9 +2310,9 @@ and put SIZE columns in the first of the pair.")
     {
       if (size < window_min_width)
 	error ("Window width %d too small (after splitting)", size);
-      if (size + window_min_width > XFASTINT (o->width))
+      if (internal_width - size - separator_width < window_min_width)
 	error ("Window width %d too small (after splitting)", 
-	       XFASTINT (o->width) - size);
+	       internal_width - size - separator_width);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
@@ -2320,7 +2327,7 @@ and put SIZE columns in the first of the pair.")
      if we are making side-by-side windows */
 
   windows_or_buffers_changed++;
-  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (o))) = 1;
+  FRAME_WINDOW_SIZES_CHANGED (fo) = 1;
   new = make_window ();
   p = XWINDOW (new);
 
@@ -2341,7 +2348,8 @@ and put SIZE columns in the first of the pair.")
     {
       p->height = o->height;
       p->top = o->top;
-      XSETFASTINT (p->width, XFASTINT (o->width) - size);
+      size += separator_width;
+      XSETFASTINT (p->width, internal_width - size);
       XSETFASTINT (o->width, size);
       XSETFASTINT (p->left, XFASTINT (o->left) + size);
     }
