@@ -879,7 +879,7 @@ This face is used for ordinary text that doesn't specify any other face.
 @item modeline
 This face is used for mode lines.  By default, it's drawn with shadows
 for a ``raised'' effect on window systems, and drawn as the inverse of
-the default face on non-windowed terminals.  @xref{Display Vars}.
+the default face on non-windowed terminals.  @xref{Display Custom}.
 @item header-line
 Similar to @code{modeline} for a window's header line.
 @item highlight
