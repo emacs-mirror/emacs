@@ -1506,7 +1506,7 @@ specifies the character set for the major languages of Western Europe."
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
 
-    ;; The fetaures might set up coding systems.
+    ;; The features might set up coding systems.
     (let ((required-features (get-language-info language-name 'features)))
       (while required-features
 	(require (car required-features))
@@ -1754,7 +1754,7 @@ of buffer-file-coding-system set by this function."
     ; ay Aymara
     ; az Azerbaijani
     ; ba Bashkir
-    ("be" . "Belarussian") ; Belarussian [Byelorussian]
+    ("be" . "Belarusian") ; Belarusian [Byelorussian until early 1990s]
     ("bg" . "Bulgarian") ; Bulgarian
     ; bh Bihari
     ; bi Bislama
@@ -1859,6 +1859,7 @@ of buffer-file-coding-system set by this function."
     ; so Somali
     ("sq" . "Latin-1") ; Albanian
     ("sr" . "Latin-2") ; Serbian (Latin alphabet)
+    ("sr_YU@cyrillic" . "Cyrillic-ISO")	; per glibc
     ; ss Siswati
     ; st Sesotho
     ; su Sundanese
@@ -1866,7 +1867,7 @@ of buffer-file-coding-system set by this function."
     ("sw" . "Latin-1") ; Swahili
     ; ta Tamil  glibc uses utf-8
     ; te Telugu  glibc uses utf-8
-    ("tg" . "Cyrillic-KOI8-T") ; Tajik
+    ("tg" . "Tajik")
     ("th" . "Thai")
     ; ti Tigrinya
     ; tk Turkmen
@@ -1934,8 +1935,10 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*@euro\\>" . "Latin-9")
-     (".*utf\\(-?8\\)\\>" . "UTF-8")))
+     (".*utf\\(-?8\\)\\>" . "UTF-8")
+     ;; utf-8@euro exists, so put this last.  (@euro really specifies
+     ;; the currency, rather than the charset.)
+     (".*@euro\\>" . "Latin-9")))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
