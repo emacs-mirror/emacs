@@ -139,15 +139,15 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
   "Return the position of point as (FRAME X . Y).
 Analogous to mouse-position."
   (let* ((w (selected-window))
-	 (edges (window-edges w))
+	 (edges (window-inside-edges w))
 	 (list
 	  (compute-motion (max (window-start w) (point-min))   ; start pos
 			  ;; window-start can be < point-min if the
 			  ;; latter has changed since the last redisplay
 			  '(0 . 0)	                       ; start XY
 			  (point)	                       ; stop pos
-			  (cons (window-width) (window-height)); stop XY: none
-			  (1- (window-width))                  ; width
+			  nil				       ; stop XY: none
+			  nil				       ; width
 			  (cons (window-hscroll w) 0)          ; 0 may not be right?
 			  (selected-window))))
     ;; compute-motion returns (pos HPOS VPOS prevhpos contin)
