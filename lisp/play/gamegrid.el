@@ -450,8 +450,14 @@ static char *noname[] = {
 	  (error "Failed to update game score file"))
       (kill-buffer errbuf))
     (save-excursion
-      (find-file-read-only-other-window target))))
-	
+      (let ((buf (find-buffer-visiting target)))
+	(if buf
+	    (progn
+	      (with-current-buffer buf
+		(revert-buffer nil t nil))
+	      (display-buffer buf))
+	  (find-file-read-only-other-window target))))))
+
 (defun gamegrid-add-score-insecure (file score)
   (save-excursion
     (setq file (expand-file-name file temporary-file-directory))
