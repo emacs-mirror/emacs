@@ -84,7 +84,7 @@
   t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
   (list 'menu-item "Set Coding Systems" set-coding-system-map
-	:enable 'enable-multibyte-characters))
+	:enable 'default-enable-multibyte-characters))
 (define-key-after mule-menu-keymap [view-hello-file]
   '(menu-item "Show Multi-lingual Text" view-hello-file
 	      :enable (file-readable-p
