@@ -936,7 +936,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte)
      Lisp_Object sourcename;
      Lisp_Object (*evalfun) ();
      int printflag;
-     int unibyte;
+     Lisp_Object unibyte;
 {
   register int c;
   register Lisp_Object val;
