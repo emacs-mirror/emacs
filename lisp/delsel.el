@@ -133,6 +133,8 @@ use either \\[customize] or the function `delete-selection-mode'."
 
 (put 'insert-parentheses 'delete-selection t)
 
+(put 'skeleton-pair-insert-maybe 'delete-selection t)
+
 ;; This is very useful for cancelling a selection in the minibuffer without 
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()
