@@ -159,7 +159,7 @@ the end of a line.
 @node Buffer Contents
 @section Examining Buffer Contents
 
-  This section describes two functions that allow a Lisp program to
+  This section describes functions that allow a Lisp program to
 convert any portion of the text in the buffer into a string.
 
 @defun buffer-substring start end
@@ -351,9 +351,10 @@ unless all @var{args} are either strings or characters.  The value is
 
 This function is unlike the other insertion functions in that it
 relocates markers initially pointing at the insertion point, to point
-after the inserted text.  If an overlay begins the insertion point, the
-inserted text falls outside the overlay; if a nonempty overlay ends at
-the insertion point, the inserted text falls inside that overlay.
+after the inserted text.  If an overlay begins at the insertion point,
+the inserted text falls outside the overlay; if a nonempty overlay
+ends at the insertion point, the inserted text falls inside that
+overlay.
 @end defun
 
 @defun insert-char character count &optional inherit
@@ -2988,9 +2989,9 @@ functions (which may be the same function).  In any case, all the
 @code{point-left} functions are called first, followed by all the
 @code{point-entered} functions.
 
-It is possible using @code{char-after} to examine characters at various
-positions without moving point to those positions.  Only an actual
-change in the value of point runs these hook functions.
+It is possible with @code{char-after} to examine characters at various
+buffer positions without moving point to those positions.  Only an
+actual change in the value of point runs these hook functions.
 @end table
 
 @defvar inhibit-point-motion-hooks

@@ -20,8 +20,8 @@ portions of it.
 * Regexp Search::         Searching for a match for a regexp.
 * POSIX Regexps::         Searching POSIX-style for the longest match.
 * Search and Replace::	  Internals of @code{query-replace}.
-* Match Data::            Finding out which part of the text matched
-                            various parts of a regexp, after regexp search.
+* Match Data::            Finding out which part of the text matched,
+                            after a string or regexp search.
 * Searching and Case::    Case-independent or case-significant searching.
 * Standard Regexps::      Useful regexps for finding sentences, pages,...
 @end menu
@@ -497,7 +497,7 @@ and nothing else.  @samp{c[ad]\@{3\@}r} matches string such as
 @samp{caaar}, @samp{cdddr}, @samp{cadar}, and so on.
 
 @item \@{@var{m},@var{n}\@}
-is more general postfix operator that specifies repetition with a
+is a more general postfix operator that specifies repetition with a
 minimum of @var{m} repeats and a maximum of @var{n} repeats.  If @var{m}
 is omitted, the minimum is 0; if @var{n} is omitted, there is no
 maximum.
@@ -1206,10 +1206,9 @@ Display some help, then ask again.
 @cindex match data
 
   Emacs keeps track of the start and end positions of the segments of
-text found during a regular expression search.  This means, for example,
-that you can search for a complex pattern, such as a date in an Rmail
-message, and then extract parts of the match under control of the
-pattern.
+text found during a search.  This means, for example, that you can
+search for a complex pattern, such as a date in an Rmail message, and
+then extract parts of the match under control of the pattern.
 
   Because the match data normally describe the most recent search only,
 you must be careful not to do another search inadvertently between the
@@ -1665,7 +1664,7 @@ simplified) default value is:
 
 This means a period, question mark or exclamation mark (the actual
 default value also lists their alternatives in other character sets),
-followed optionally by a closing parenthetical character, followed by
+followed optionally by closing parenthetical characters, followed by
 tabs, spaces or new lines.
 
 For a detailed explanation of this regular expression, see @ref{Regexp
