@@ -454,7 +454,7 @@ This function must return nil if it doesn't handle EVENT."
 		    expr)))))))
 
 (defun gdb-tooltip-print ()
-  (tooltip-show 
+  (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (let ((string (buffer-string)))
        ;; remove newline for tooltip-use-echo-area
@@ -477,6 +477,8 @@ MSG is either a help string to display, or nil to cancel the display."
 	       (string-match "^mouse-2" msg))
 	     (setq mp (mouse-pixel-position))
 	     (consp (setq pos (cdr mp)))
+	     (car pos) (>= (car pos) 0)
+	     (cdr pos) (>= (cdr pos) 0)
 	     (setq pos (posn-at-x-y (car pos) (cdr pos) (car mp)))
 	     (windowp (posn-window pos)))
 	(with-current-buffer (window-buffer (posn-window pos))

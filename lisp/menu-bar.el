@@ -1,6 +1,7 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993,94,1995,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -596,7 +597,7 @@ DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
   `'(menu-item ,doc ,fname
-     ,@(if props props)
+     ,@props
      :help ,help
      :button (:toggle . (and (default-boundp ',fname)
 			     (default-value ',fname)))))
@@ -693,18 +694,10 @@ by \"Save Options\" in Custom buffers.")
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
 
-(defun showhide-date-time ()
-  "Toggle whether to show date and time in the mode-line."
-  (interactive)
-  (if (display-time-mode)
-      (message "Display-time mode enabled.")
-    (message "Display-time mode disabled."))
-  (customize-mark-as-set 'display-time-mode))
-
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date, Time and Mail" showhide-date-time
-	      :help "Display date, time, mail status in mode line"
-	      :button (:toggle . display-time-mode)))
+  (menu-bar-make-mm-toggle display-time-mode
+			   "Date, Time and Mail"
+			   "Display date, time, mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
   '("--"))

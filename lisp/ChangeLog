@@ -1,3 +1,76 @@
+2005-03-23  David Ponce  <david@dponce.com>
+
+	* recentf.el: (recentf-keep): New option.
+	(recentf-menu-action): Default to `find-file'.
+	(recentf-keep-non-readable-files-flag)
+	(recentf-keep-non-readable-files-p)
+	(recentf-file-readable-p, recentf-find-file)
+	(recentf-cleanup-remote): Remove.
+	(recentf-include-p): More robust.
+	(recentf-keep-p): New function.
+	(recentf-remove-if-non-kept): Rename from
+	`recentf-remove-if-non-readable'. Use `recentf-keep-p'. All
+	callers updated.
+	(recentf-menu-items-for-commands): Fix help string.
+	(recentf-track-closed-file): Update. Doc fix.
+	(recentf-cleanup): Update. Count removed files. Doc fix.
+
+2005-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Don't inherit from fringe face (now happens automatically).
+
+2005-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Ignore negative mouse
+	position values.
+
+2005-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (showhide-date-time): Remove.
+	(menu-bar-showhide-menu): Use menu-bar-make-mm-toggle.
+	(menu-bar-make-mm-toggle): Simplify.
+
+2005-03-22  JUAN-LEON Lahoz Garcia <juanleon1@gmail.com>
+
+	* progmodes/perl-mode.el (perl-font-lock-keywords-2):
+	Accept qualified variable and function names.
+
+2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* bindings.el (completion-ignored-extensions):
+	Remove ".lis" for `vax-vms'.
+
+2005-03-22  Andreas Schwab  <schwab@suse.de>
+
+	* generic-x.el: Revert last change.
+	* ldefs-boot.el: Update.
+
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed (calc-embedded-original-modes): New variable.
+	(calc-embedded-save-original-modes)
+	(calc-embedded-restore-original-modes): New functions.
+	(calc-do-embedded): Save original modes when entering embedded mode
+	and restore when leaving embedded mode.
+	(calc-embedded-modes-change): Change the value of
+	calc-embedded-original-modes to reflect permanent changes.
+
+2005-03-22  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Require generic again.
+
+2005-03-22  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Tweak details to look good on both ttys and bitmap displays, light
+	or dark background, etc.
+
+2005-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Check car and cdr of
+	mouse position.
+
 2005-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el: Don't forcibly turn on the mode upon load.

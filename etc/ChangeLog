@@ -1,3 +1,7 @@
+2005-03-23  David Ponce  <david@dponce.com>
+
+	* NEWS: Mention recentf-keep.
+
 2005-03-17  Lute Kamstra  <lute@gnu.org>
 
 	* TODO: Remove define-generic-mode entry (DONE).

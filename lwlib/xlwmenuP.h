@@ -24,6 +24,9 @@ Boston, MA 02111-1307, USA.  */
 #include "xlwmenu.h"
 #include <X11/CoreP.h>
 
+/* FIXME: HAVE_X_I18N does not work yet. */
+#undef HAVE_X_I18N
+
 /* Elements in the stack arrays. */
 typedef struct _window_state
 {

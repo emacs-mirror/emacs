@@ -1,10 +1,9 @@
 ;;; make-mms-derivative.el --- framework to do horrible things for VMS support
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2005 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Keywords: maint build vms mms makefile levitte autoconf war-is-a-lose
-;; Favorite-TV-Game-Show: L'Eredità
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +26,7 @@
 
 ;; Under OpenVMS the standard make-like program is called MMS, which
 ;; looks for an input file in the default directory named DESCRIP.MMS
-;; and runs the DCL command rules therein.  As of 2003, the build
+;; and runs the DCL command rules therein.  As of 2005, the build
 ;; process requires a hand translation of the Makefile.in and related
 ;; Emacs-specific methodology to DCL and TPU commands, so to alleviate
 ;; this pain, we provide `make-mms-derivative', which given a source
@@ -67,9 +66,6 @@
             (cons (cons key newval) make-mms-derivative-data))
     (cdr (assq key make-mms-derivative-data))))
 
-(defun make-mms-derivative-write-under-root (rel-filename)
-  (write-file (expand-file-name rel-filename make-mms-derivative-root-dir)))
-
 (defmacro make-mms-derivative-progn (msg &rest body)
   `(progn
      (message "(%s) %s" (point) ,msg)
@@ -95,11 +91,11 @@
 	  (setq raw-data (cons (list i line) raw-data)))))
     (kill-buffer wbuf)
     (set-buffer cur)
-    (mapcar '(lambda (ent)
-	       (setcdr ent (mapconcat '(lambda (line)
-					 (concat line "\n"))
-				      (cdr ent)
-				      "")))
+    (mapcar (lambda (ent)
+              (setcdr ent (mapconcat (lambda (line)
+                                       (concat line "\n"))
+                                     (cdr ent)
+                                     "")))
 	    raw-data)
     (make-mms-derivative-data 'raw-data raw-data))
   (load name))
@@ -126,7 +122,9 @@
         (insert-file file)
         (make-mms-derivative-load-edits-file edits-filename)
         (let ((out (make-mms-derivative-data 'write-under-root)))
-          (when out (make-mms-derivative-write-under-root out))
+          (when out
+            (write-file
+             (expand-file-name rel-filename make-mms-derivative-root-dir)))
           (kill-buffer buf)
           (unless out (message "Munging ... done")))))))
 
