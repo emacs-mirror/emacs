@@ -5649,9 +5649,13 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
     {
       int x, i, ascent = 0, descent = 0;
 
-      /* Stop when ZV or TO_CHARPOS reached.  */
+      /* Stop when ZV reached.
+         We used to stop here when TO_CHARPOS reached as well, but that is
+         too soon if this glyph does not fit on this line.  So we handle it
+         explicitly below.  */
       if (!get_next_display_element (it)
-	  || BUFFER_POS_REACHED_P ())
+	  || (it->truncate_lines_p
+	      && BUFFER_POS_REACHED_P ()))
 	{
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
@@ -5711,6 +5715,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	      /* We want to leave anything reaching TO_X to the caller.  */
 	      if ((op & MOVE_TO_X) && new_x > to_x)
 		{
+		  if (BUFFER_POS_REACHED_P ())
+		    goto buffer_pos_reached;
 		  it->current_x = x;
 		  result = MOVE_X_REACHED;
 		  break;
@@ -5772,6 +5778,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		  result = MOVE_LINE_CONTINUED;
 		  break;
 		}
+	      else if (BUFFER_POS_REACHED_P ())
+		goto buffer_pos_reached;
 	      else if (new_x > it->first_visible_x)
 		{
 		  /* Glyph is visible.  Increment number of glyphs that
@@ -5787,6 +5795,15 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 
 	  if (result != MOVE_UNDEFINED)
 	    break;
+	}
+      else if (BUFFER_POS_REACHED_P ())
+	{
+	buffer_pos_reached:
+	  it->current_x = x;
+	  it->max_ascent = ascent;
+	  it->max_descent = descent;
+	  result = MOVE_POS_MATCH_OR_ZV;
+	  break;
 	}
       else if ((op & MOVE_TO_X) && it->current_x >= to_x)
 	{
