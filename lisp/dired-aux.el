@@ -267,7 +267,7 @@ with a prefix argument."
       ;;The caller may want to flag some of these files for deletion.
       (let* ((base-versions
 	      (concat (file-name-nondirectory fn) ".~"))
-	     (bv-length (length base-versions))
+	     (backup-extract-version-start (length base-versions))
 	     (possibilities (file-name-all-completions
 			     base-versions
 			     (file-name-directory fn)))
