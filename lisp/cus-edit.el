@@ -1582,6 +1582,7 @@ and `face'."
 		   (require load)
 		 (error nil)))
 	      ;; Don't reload a file already loaded.
+	      ((member load preloaded-file-list))
 	      ((assoc load load-history))
 	      ((assoc (locate-library load) load-history))
 	      (t
