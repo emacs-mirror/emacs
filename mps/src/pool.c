@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc!pool.c(trunk.6) $
+ *  $HopeName: MMsrc!pool.c(trunk.7) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -23,21 +23,20 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
+
 static SigStruct PoolSigStruct;
-#endif
 
 
-#ifdef DEBUG_ASSERT
+
+#ifdef DEBUG
 
 Bool PoolIsValid(Pool pool, ValidationType validParam)
 {
   AVER(pool != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &PoolSigStruct));
   AVER(pool->sig == &PoolSigStruct);
-#endif
   AVER(ISVALIDNESTED(DequeNode, &pool->spaceDeque));
   AVER(ISVALIDNESTED(Deque, &pool->segDeque));
   AVER(ISVALIDNESTED(Deque, &pool->bufferDeque));
@@ -45,7 +44,7 @@ Bool PoolIsValid(Pool pool, ValidationType validParam)
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 void PoolInit(Pool pool, Space space, PoolClass class)
@@ -59,10 +58,8 @@ void PoolInit(Pool pool, Space space, PoolClass class)
   DequeInit(&pool->bufferDeque);
   pool->alignment = ARCH_ALIGNMOD;
 
-#ifdef DEBUG_SIGN
   SigInit(&PoolSigStruct, "Pool");
   pool->sig = &PoolSigStruct;
-#endif
 
   AVER(ISVALID(Pool, pool));
 
@@ -80,9 +77,7 @@ void PoolFinish(Pool pool)
   DequeFinish(&pool->bufferDeque);
   DequeFinish(&pool->segDeque);
 
-#ifdef DEBUG_SIGN
   pool->sig = SigInvalid;
-#endif
 }
   
 
@@ -277,7 +272,7 @@ Pool PoolOfSeg(Arena arena, Addr seg)
   pool = (Pool)ArenaGet(arena, seg, ARENA_POOL);
   AVER(ISVALID(Pool, pool));
 
-  return(pool);
+  return pool;
 }
 
 Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
@@ -291,10 +286,10 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
   {
     Pool pool = PoolOfSeg(arena, seg);
     *poolReturn = pool;
-    return(TRUE);
+    return TRUE;
   }
   
-  return(FALSE);
+  return FALSE;
 }
 
 
@@ -307,9 +302,9 @@ Bool PoolHasAddr(Pool pool, Addr addr)
 
   arena = SpaceArena(PoolSpace(pool));
   if(PoolOfAddr(&addrPool, arena, addr) && addrPool == pool)
-    return(TRUE);
+    return TRUE;
   else
-    return(FALSE);
+    return FALSE;
 }
 
      

@@ -1,193 +1,98 @@
- /*  impl.c.trace
+/* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- *                GENERIC TRACER IMPLEMENTATION
- *
- *  $HopeName: MMsrc!trace.c(trunk.6) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- *  This implements the Generic Tracer defined in impl.h.trace
- *
- *  .single-collection: This implementation only supports a single
- *  concurrent collection.  See issue.single-collection
+ *  $HopeName: MMsrc!trace.c(trunk.7) $
  */
 
 #include "std.h"
 #include "lib.h"
 #include "mpmconf.h"
 #include "ref.h"
-#include "refsig.h"
-#include "trace.h"
 #include "space.h"
+#include "trace.h"
 #include "pool.h"
 #include "root.h"
 #include "rootst.h"
 #include <limits.h>
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
+
 static SigStruct TraceSigStruct;
-static SigStruct TraceSetSigStruct;
-#endif
 
 
-#define TRACEBIT(id)    ((Addr)((Addr)1 << (id)))
 
-
-#ifdef DEBUG_ASSERT
-
-Bool TraceIdIsValid(TraceId id, ValidationType validParam)
-{
-  AVER(id < TRACE_MAX);
-  return TRUE;
-}
-
-Bool TraceSetIsValid(TraceSet set, ValidationType validParam)
-{
-  AVER(set != NULL);
-#ifdef DEBUG_SIGN
-  AVER(ISVALIDNESTED(Sig, &TraceSetSigStruct));
-  AVER(set->sig == &TraceSetSigStruct);
-#endif
-  AVER(TRACE_MAX == ADDRWIDTH || set->bits < TRACEBIT(TRACE_MAX));
-  return TRUE;
-}
+#ifdef DEBUG
 
 Bool TraceIsValid(Trace trace, ValidationType validParam)
 {
   RefRank rank;
   AVER(trace != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &TraceSigStruct));
   AVER(trace->sig == &TraceSigStruct);
-#endif
-  AVER(ISVALIDNESTED(TraceId, trace->id));
-  AVER(ISVALIDNESTED(DequeNode, &trace->spaceDeque));
   AVER(ISVALIDNESTED(Space, trace->space));
-  AVER(ISVALIDNESTED(RefSig, trace->ss.condemned));
   for(rank = 0; rank < RefRankMAX; ++rank)
     AVER(trace->work[rank].marked >= trace->work[rank].scanned);
   AVER(ISVALIDNESTED(RefRank, trace->rank));
+  AVER(TraceSetIsMember(trace->space->busyTraces,
+                        trace - trace->space->trace));
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
-Error TraceSetInit(TraceSet set)
-{
-  AVER(set != NULL);
-
-  /* Addr is used to implement the TraceSet as a bitset. */
-  /* Check that it is big enough. */
-  AVER(TRACE_MAX <= ADDRWIDTH);
-
-  set->bits = (Addr)0;
-
-#ifdef DEBUG_SIGN
-  SigInit(&TraceSetSigStruct, "TraceSet");
-  set->sig = &TraceSetSigStruct;
-#endif
-
-  AVER(ISVALID(TraceSet, set));
-
-  return ErrSUCCESS;
-}
-
-void TraceSetFinish(TraceSet set)
-{
-  AVER(ISVALID(TraceSet, set));
-#ifdef DEBUG_SIGN
-  set->sig = SigInvalid;
-#endif
-}
-
-void TraceSetAdd(TraceSet set, TraceId id)
-{
-  AVER(ISVALID(TraceSet, set));
-  AVER(ISVALID(TraceId, id));
-  
-  set->bits |= TRACEBIT(id);
-}
-
-void TraceSetDelete(TraceSet set, TraceId id)
-{
-  AVER(ISVALID(TraceSet, set));
-  AVER(ISVALID(TraceId, id));
-  
-  set->bits &= ~TRACEBIT(id);
-}
-
-Bool TraceSetIsMember(TraceSet set, TraceId id)
-{
-  AVER(ISVALID(TraceSet, set));
-  AVER(ISVALID(TraceId, id));
-  
-  return (set->bits & TRACEBIT(id)) != 0;
-}
-
-/* If there is a TraceId not in set, then find
- * returns TRUE and puts this id in *idReturn.  Otherwise
- * FALSE is returned.
- */
-static Bool find(TraceSet set, TraceId *idReturn)
-{
-  TraceId id;
-  for(id = 0; id < TRACE_MAX; ++id)
-    if(!TraceSetIsMember(set, id)) {
-      *idReturn = id;
-      return TRUE;
-    }
-  return FALSE;
-}
-
-Error TraceInit(Trace trace, Space space)
+Error TraceCreate(Trace *traceReturn, Space space)
 {
   RefRank rank;
   TraceId id;
+  Trace trace;
 
   /* .single-collection */
   AVER(TRACE_MAX == 1);
 
-  AVER(trace != NULL);
+  AVER(traceReturn != NULL);
   AVER(ISVALID(Space, space));
 
   /* allocate free TraceId */
-  if(!find(SpaceTraceSet(space), &id))
-    return ErrLIMIT;
+  for(id = 0; id < TRACE_MAX; ++id)
+    if(!TraceSetIsMember(space->busyTraces, id))
+      goto found;
+  return ErrLIMIT;
 
-  DequeNodeInit(&trace->spaceDeque);
-  trace->id = id;
+found:
+  trace = &space->trace[id];
   trace->space = space;
   for(rank = 0; rank < RefRankMAX; ++rank) {
     trace->work[rank].scanned = 0;
     trace->work[rank].marked = 0;
   }
   trace->ss.fix = TraceFix;
-  trace->ss.zoneShift = 0;        /* zoneShift */
-  /* trace->ss.condemned = RefSigEmpty(SpaceArena(space)); */
-  trace->ss.condemned = (Addr)-1; /* condemned */
-  trace->ss.summary = 0;          /* summary   */
+  trace->ss.zoneShift = space->zoneShift;
+  trace->ss.condemned = RefSetEmpty;
+  trace->ss.summary = RefSetEmpty;
   trace->rank = 0;                /* current rank */
 
-#ifdef DEBUG_SIGN
   SigInit(&TraceSigStruct, "Trace");
   trace->sig = &TraceSigStruct;
-#endif
   
-  AVER(ISVALID(Trace, trace));
+  space->busyTraces = TraceSetAdd(space->busyTraces, id);
 
-  TraceSetAdd(SpaceTraceSet(space), id);
-  DequeAppend(SpaceTraceDeque(space), &trace->spaceDeque);
+  AVER(ISVALID(Trace, trace));
   
   return ErrSUCCESS;
 }
 
-void TraceFinish(Trace trace)
+void TraceDestroy(Trace trace)
 {
-  AVER(ISVALID(Trace, trace));
+  Space space;
+  TraceId id;
 
-#ifdef DEBUG_ASSERT
+  AVER(ISVALID(Trace, trace));
+  
+  space = trace->space;
+  id = TraceTraceId(trace);
+
+#ifdef DEBUG
   {
     RefRank rank;
 
@@ -197,48 +102,10 @@ void TraceFinish(Trace trace)
   }
 #endif
 
-  DequeNodeRemove(&trace->spaceDeque);
-  TraceSetDelete(SpaceTraceSet(trace->space), trace->id);
+  space->busyTraces = TraceSetDelete(space->busyTraces, id);
 
-#ifdef DEBUG_SIGN
   trace->sig = SigInvalid;
-#endif
 }  
-
-
-Error TraceCreate(Trace *traceReturn, Space space)
-{
-  Error e;
-  Trace trace;
-  Pool controlPool;
-
-  AVER(traceReturn != NULL);
-  AVER(ISVALID(Space, space));
-  
-  controlPool = SpaceControlPool(space);
-
-  e = PoolAlloc((Addr *)&trace, controlPool, sizeof(TraceStruct));
-  if(e != ErrSUCCESS) return e;
-  
-  e = TraceInit(trace, space);
-  if(e != ErrSUCCESS) {
-    PoolFree(controlPool, (Addr)trace, sizeof(TraceStruct));
-    return e;
-  }
-  
-  *traceReturn = trace;
-  return ErrSUCCESS;
-}
-
-
-void TraceDestroy(Trace trace)
-{
-  Pool controlPool;
-  AVER(ISVALID(Trace, trace));
-  controlPool = SpaceControlPool(trace->space);;
-  TraceFinish(trace);
-  PoolFree(controlPool, (Addr)trace, sizeof(TraceStruct));
-}
 
 
 Error TraceDescribe(Trace trace, LibStream stream)
@@ -250,9 +117,9 @@ Error TraceDescribe(Trace trace, LibStream stream)
   LibFormat(stream,
             "Trace %p {\n"
             "  space = %p\n"
-            "  condemned refsig = %lX\n",
+            "  condemned refset = %lX\n",
             (void *)trace,
-            (unsigned long)trace->id,
+            (unsigned long)TraceTraceId(trace),
             (void *)trace->space,
             (unsigned long)trace->ss.condemned);
   
@@ -272,7 +139,7 @@ Error TraceDescribe(Trace trace, LibStream stream)
 TraceId TraceTraceId(Trace trace)
 {
   AVER(ISVALID(Trace, trace));
-  return trace->id;
+  return trace - trace->space->trace;
 }
 
 Space TraceSpace(Trace trace)
@@ -294,15 +161,14 @@ ScanState TraceScanState(Trace trace)
 }
 
 
-void TraceCondemn(Trace trace, RefSig refsig)
+void TraceCondemn(Trace trace, RefSet rs)
 {
   Arena arena;
 
   AVER(ISVALID(Trace, trace));
 
   arena = SpaceArena(trace->space);
-  /* trace->ss.condemned = RefSigUnion(trace->ss.condemned, refsig, arena); */
-  trace->ss.condemned = (Addr)-1;
+  trace->ss.condemned = RefSetUnion(trace->ss.condemned, rs);
 }
 
 
@@ -365,11 +231,11 @@ Error TraceRunAtomic(Trace trace)
 {
   Error e;
   RefRank rank;
-  Shield shield;
+  Space space;
 
   AVER(ISVALID(Trace, trace));
-
-  shield = SpaceShield(trace->space);
+  
+  space = trace->space;
 
   /* At the moment we must scan all roots, because we don't have */
   /* a mechanism for shielding them.  There can't be any weak or */
@@ -380,11 +246,11 @@ Error TraceRunAtomic(Trace trace)
     Deque deque;
     DequeNode node;
 
-    ShieldEnter(shield);
+    ShieldEnter(space);
 
     trace->rank = rank;
 
-    deque = SpaceRootDeque(trace->space);
+    deque = SpaceRootDeque(space);
     node = DequeFirst(deque);
     while(node != DequeSentinel(deque)) {
       DequeNode next = DequeNodeNext(node);
@@ -400,7 +266,7 @@ Error TraceRunAtomic(Trace trace)
       node = next;
     }
 
-    ShieldLeave(shield);
+    ShieldLeave(space);
   }
 
   return ErrSUCCESS;
@@ -411,12 +277,12 @@ Error TraceRun(Trace trace, Bool *finishedReturn)
 {
   Error e;
   RefRank rank;
-  Shield shield;
+  Space space;
   
   AVER(ISVALID(Trace, trace));
   AVER(finishedReturn != NULL);
-
-  shield = SpaceShield(trace->space);
+  
+  space = trace->space;
 
   for(rank = 0; rank < RefRankMAX; ++rank) {
 
@@ -426,9 +292,9 @@ Error TraceRun(Trace trace, Bool *finishedReturn)
       Deque deque;
       DequeNode node;
 
-      ShieldEnter(shield);
+      ShieldEnter(space);
 
-      deque = SpacePoolDeque(trace->space);
+      deque = SpacePoolDeque(space);
       node = DequeFirst(deque);
       while(node != DequeSentinel(deque)) {
         DequeNode next = DequeNodeNext(node);
@@ -436,14 +302,14 @@ Error TraceRun(Trace trace, Bool *finishedReturn)
       
         e = PoolScan(pool, trace);
         if(e != ErrSUCCESS) {
-          ShieldLeave(shield);
+          ShieldLeave(space);
           return e;
         }
 
         node = next;
       }
 
-      ShieldLeave(shield);
+      ShieldLeave(space);
 
       *finishedReturn = FALSE;
       return ErrSUCCESS;

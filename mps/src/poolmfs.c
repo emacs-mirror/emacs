@@ -1,6 +1,6 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName: MMsrc/!poolmfs.c(trunk.5)$
+ *  $HopeName: MMsrc!poolmfs.c(trunk.6) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -44,6 +44,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+SRCID("$HopeName");
+
 
 /*  == Round up ==
  *
@@ -75,7 +77,7 @@ PoolClass PoolClassMFS(void)
                 NULL, NULL,             /* fix, relcaim */
                 NULL,                   /* access */
                 describe);
-  return(&PoolClassMFSStruct);
+  return &PoolClassMFSStruct;
 }
 
 
@@ -100,11 +102,11 @@ PoolMFSInfo PoolMFSGetInfo(void)
   {
     /* unitSizeMin */   UNIT_MIN
   };
-  return(&info);
+  return &info;
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool PoolMFSIsValid(PoolMFS poolMFS, ValidationType validParam)
 {
@@ -117,16 +119,16 @@ Bool PoolMFSIsValid(PoolMFS poolMFS, ValidationType validParam)
   arena = SpaceArena(PoolSpace(&poolMFS->poolStruct));
   AVER(IsAligned(ArenaGrain(arena), poolMFS->extendBy));
   AVER(poolMFS->unitsPerSeg == poolMFS->extendBy/poolMFS->unitSize);
-  return(TRUE);
+  return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Pool (PoolMFSPool)(PoolMFS poolMFS)
 {
   AVER(ISVALID(PoolMFS, poolMFS));
-  return(&poolMFS->poolStruct);
+  return &poolMFS->poolStruct;
 }
 
 
@@ -151,7 +153,7 @@ Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
   }
   
   *poolMFSReturn = poolMFS;
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 static Error create(Pool *poolReturn, Space space, va_list arg)
@@ -167,10 +169,10 @@ static Error create(Pool *poolReturn, Space space, va_list arg)
   unitSize = va_arg(arg, Size);
   
   e = PoolMFSCreate(&poolMFS, space, extendBy, unitSize);
-  if(e != ErrSUCCESS) return(e);
+  if(e != ErrSUCCESS) return e;
   
   *poolReturn = PoolMFSPool(poolMFS);
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -215,7 +217,7 @@ Error PoolMFSInit(PoolMFS poolMFS, Space space, Size extendBy,
 
   AVER(ISVALID(PoolMFS, poolMFS));
 
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -251,7 +253,7 @@ static Error alloc(Addr *pReturn, Pool pool, Size size)
   Error e;
   PoolMFS MFS;
 
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(size);
 #endif
 
@@ -333,7 +335,7 @@ static void free_(Pool pool, Addr old, Size size)
   Header h;
   PoolMFS MFS;
 
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(size);
 #endif
 
@@ -376,6 +378,6 @@ static Error describe(Pool pool, LibStream stream)
                 MFS->freeList,
                 MFS->segList);
 
-  return(e);
+  return e;
 }
 

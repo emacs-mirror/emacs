@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.3) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -71,39 +71,34 @@
 #include "space.h"
 #include "th.h"
 #include "ss.h"
+#include <windows.h>
 
+SRCID("$HopeName");
 
-#include "windows.h"
 
 typedef struct ThreadStruct {
-#ifdef DEBUG_SIGN
   Sig sig;
-#endif
   DequeNodeStruct spaceDeque; /* threads attached to space */
   HANDLE handle;   /* Handle of thread .thread.handle */
   DWORD id;        /* Thread id of thread */
 } ThreadStruct;
 
 
-#ifdef DEBUG_SIGN
 static SigStruct ThreadSigStruct;
-#endif
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool ThreadIsValid(Thread thread, ValidationType validParam)
 {
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &ThreadSigStruct));
   AVER(thread->sig == &ThreadSigStruct);
-#endif
 
   AVER(ISVALIDNESTED(DequeNode, &thread->spaceDeque));
 
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error ThreadRegister(Thread *threadReturn, Space space)
@@ -139,10 +134,8 @@ Error ThreadRegister(Thread *threadReturn, Space space)
 
   DequeNodeInit(&thread->spaceDeque);
 
-#ifdef DEBUG_SIGN
   SigInit(&ThreadSigStruct, "Thread");
   thread->sig = &ThreadSigStruct;
-#endif
 
   AVER(ISVALID(Thread, thread));
 
@@ -164,9 +157,7 @@ void ThreadDeregister(Thread thread, Space space)
 
   DequeNodeRemove(&thread->spaceDeque);
 
-#ifdef DEBUG_SIGN
   thread->sig = SigInvalid;
-#endif
 
   DequeNodeFinish(&thread->spaceDeque);
 

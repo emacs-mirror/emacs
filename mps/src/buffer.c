@@ -2,7 +2,7 @@
  *
  *                  ALLOCATION BUFFER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!buffer.c(trunk.3) $
+ *  $HopeName: MMsrc!buffer.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -40,14 +40,14 @@
 #include "buffer.h"
 #include "pool.h"
 #include "space.h"
-#include "sched.h"
 #include "shield.h"
 #include "trace.h"
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
+
 static SigStruct BufferSigStruct;
-#endif
+
 
 
 DequeNode BufferPoolDeque(Buffer buffer)
@@ -115,15 +115,13 @@ void BufferDestroy(Buffer buffer)
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool BufferIsValid(Buffer buffer, ValidationType validParam)
 {
   AVER(buffer != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &BufferSigStruct));
   AVER(buffer->sig == &BufferSigStruct);
-#endif
   AVER(ISVALIDNESTED(DequeNode, &buffer->poolDeque));
   AVER(buffer->base <= buffer->ap.init);
   AVER(buffer->ap.init <= buffer->ap.alloc);
@@ -211,10 +209,8 @@ void BufferInit(Buffer buffer, Pool pool,
   DequeNodeInit(&buffer->poolDeque);
   DequeAppend(&pool->bufferDeque, &buffer->poolDeque);
 
-#ifdef DEBUG_SIGN  
   SigInit(&BufferSigStruct, "Buffer");
   buffer->sig = &BufferSigStruct;
-#endif
 
   AVER(ISVALID(Buffer, buffer));
 }
@@ -226,9 +222,7 @@ void BufferFinish(Buffer buffer)
 
   DequeNodeRemove(&buffer->poolDeque);
 
-#ifdef DEBUG_SIGN
   buffer->sig = SigInvalid;
-#endif
 }
 
 
@@ -273,11 +267,6 @@ Error BufferFill(Addr *pReturn, Buffer buffer, Addr size)
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buffer)->alignment, size));
   AVER(BufferIsReady(buffer));
-
-  /* At every buffer fill, the scheduler gets to run a bit of work. */
-
-  if(!buffer->exposed) /* @@@@ Not when collecting! */
-    SchedRun(SpaceSched(BufferSpace(buffer)));
 
   e = (*buffer->fill)(pReturn, buffer, size);
   
@@ -346,8 +335,7 @@ void BufferShieldExpose(Buffer buffer)
 
   /* @@@@ Assumes that the buffer buffers a segment. */
   if(!BufferIsReset(buffer))
-    ShieldExpose(SpaceShield(BufferSpace(buffer)),
-                 buffer->base, buffer->ap.limit);
+    ShieldExpose(BufferSpace(buffer), buffer->base);
 }
 
 void BufferShieldCover(Buffer buffer)
@@ -358,8 +346,7 @@ void BufferShieldCover(Buffer buffer)
 
   /* @@@@ Assumes that the buffer buffers a segment. */
   if(!BufferIsReset(buffer))
-    ShieldCover(SpaceShield(BufferSpace(buffer)),
-                buffer->base, buffer->ap.limit);
+    ShieldCover(BufferSpace(buffer), buffer->base);
 }
 
 

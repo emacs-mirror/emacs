@@ -1,13 +1,13 @@
-/* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION */
+/* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
+ *
+ * Detect the target platform using predefined preprocessor symbols
+ * defined by the build environment.  The symbols are derived from the
+ * documentation, or, in the case of GCC, from the compiler itself.
+ * References to the documentation appear above each detection line.
+ */
 
 #ifndef mpstd_h
 #define mpstd_h
-
-
-/* Detect the target platform using predefined preprocessor symbols */
-/* defined by the build environment.  The symbols are derived from the */
-/* documentation, or, in the case of GCC, from the compiler itself. */
-/* References to the documentation appear above each detection line. */
 
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference, */
 /* Chapter 1: The Preprocessor, Macros, Predefined Macros. */
@@ -20,6 +20,7 @@
 #define MPS_T_WORD	unsigned long
 #define MPS_WORD_WIDTH	32
 #define MPS_WORD_SHIFT	5
+#define MPS_PF_ALIGN	4
 
 /* MW C/C++/ASM Lang Ref, pp175-176.  Metrowerks does not document */
 /* a way to determine the OS -- we assume MacOS 7.  */
@@ -32,6 +33,7 @@
 #define MPS_T_WORD	unsigned long
 #define MPS_WORD_WIDTH	32
 #define MPS_WORD_SHIFT	5
+#define MPS_PF_ALIGN	1
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
@@ -44,6 +46,7 @@
 #define MPS_T_WORD	unsigned long
 #define MPS_WORD_WIDTH	32
 #define MPS_WORD_SHIFT	5
+#define MPS_PF_ALIGN	8
 
 /* GCC 2.6.3, gcc -E -dM */
 
@@ -56,6 +59,7 @@
 #define MPS_T_SHORT	unsigned
 #define MPS_WORD_WIDTH	64
 #define MPS_WORD_SHIFT	6
+#define MPS_PF_ALIGN	8
 
 /* GCC 2.6.3, gcc -E -dM */
 
@@ -67,6 +71,7 @@
 #define MPS_T_WORD	unsigned long
 #define MPS_WORD_WIDTH	32
 #define MPS_WORD_SHIFT	5
+#define MPS_PF_ALIGN	4
 
 #else
 #error "Unable to detect target platform"

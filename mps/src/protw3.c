@@ -1,7 +1,7 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc/!protnt.c(trunk.1)$
+ *  $HopeName: MMsrc!protnt.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -14,7 +14,9 @@
 #error "protnt.c is Win32 specific, but OS_NT is not set"
 #endif
 
-#include "windows.h"
+#include <windows.h>
+
+SRCID("$HopeName");
 
 
 Addr ProtGrain(void)
@@ -38,7 +40,7 @@ void ProtSetup(void)
 
 void ProtSet(Addr base, Addr limit, ProtMode mode)
 {
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = ProtGrain();
 #endif
   DWORD newProtect;

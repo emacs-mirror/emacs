@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.4) $
+ *  $HopeName: MMsrc!than.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -16,38 +16,35 @@
  */
 
 #include "std.h"
+#include "space.h"
 #include "trace.h"
 #include "ref.h"
-#include "space.h"
 #include "th.h"
 #include "ss.h"
+
+SRCID("$HopeName");
 
 
 typedef struct ThreadStruct
 {
-#ifdef DEBUG_SIGN
   Sig sig;
-#endif
   DequeNodeStruct spaceDeque;  /* attaches to space */
 } ThreadStruct;
 
 
-#ifdef DEBUG_SIGN
 static SigStruct ThreadSigStruct;
-#endif
 
-#ifdef DEBUG_ASSERT
+
+#ifdef DEBUG
 
 Bool ThreadIsValid(Thread thread, ValidationType validParam)
 {
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &ThreadSigStruct));
   AVER(thread->sig == &ThreadSigStruct);
-#endif
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error ThreadRegister(Thread *threadReturn, Space space)
@@ -65,10 +62,8 @@ Error ThreadRegister(Thread *threadReturn, Space space)
 
   DequeNodeInit(&thread->spaceDeque);
 
-#ifdef DEBUG_SIGN
   SigInit(&ThreadSigStruct, "Thread");
   thread->sig = &ThreadSigStruct;
-#endif
 
   AVER(ISVALID(Thread, thread));
 
@@ -91,9 +86,7 @@ void ThreadDeregister(Thread thread, Space space)
 
   DequeNodeRemove(&thread->spaceDeque);
 
-#ifdef DEBUG_SIGN
   thread->sig = SigInvalid;
-#endif
 
   DequeNodeFinish(&thread->spaceDeque);
 

@@ -2,7 +2,7 @@
  *
  *                    REFERENCES
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!ref.c(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -10,8 +10,10 @@
 #include "std.h"
 #include "ref.h"
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_ASSERT
+
+#ifdef DEBUG
 
 Bool RefRankIsValid(RefRank rank, ValidationType validParam)
 {
@@ -20,4 +22,4 @@ Bool RefRankIsValid(RefRank rank, ValidationType validParam)
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */

@@ -1,6 +1,6 @@
 /*  ==== METERING ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!meter.c(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,8 +20,10 @@
 #include "lib.h"
 #include "meter.h"
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_ASSERT
+
+#ifdef DEBUG
 Bool MeterIsValid(Meter meter, ValidationType validParam)
 {
   unsigned i;
@@ -33,11 +35,11 @@ Bool MeterIsValid(Meter meter, ValidationType validParam)
   for(i=0; i<meter->observers; ++i) {
     AVER(ISVALIDNESTED(MeterObserver, &meter->observer[i]));
   }
-  return(TRUE);
+  return TRUE;
 }
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 Bool MeterObserverIsValid(MeterObserver observer,
                           ValidationType validParam)
 {
@@ -48,9 +50,9 @@ Bool MeterObserverIsValid(MeterObserver observer,
   AVER(observer->f != NULL);
   /* p */
   /* i */
-  return(TRUE);
+  return TRUE;
 }
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 void MeterEnable(Meter meter)
 {
@@ -68,7 +70,7 @@ void MeterDisable(Meter meter)
 
 Error MeterStream(LibStream *streamReturn)
 {
-  return(LibStreamMeter(streamReturn));
+  return LibStreamMeter(streamReturn);
 }
 
 void MeterObserverPrint(Meter meter, int index,

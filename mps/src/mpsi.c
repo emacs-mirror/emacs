@@ -15,10 +15,12 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+SRCID("$HopeName");
+
 
 /* Check consistency of interface mappings. */
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 static Bool mpsi_check(void)
 {
@@ -59,7 +61,7 @@ static Bool mpsi_check(void)
   return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 mps_assert_t mps_assert_install(mps_assert_t handler)
 {

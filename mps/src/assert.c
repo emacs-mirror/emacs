@@ -1,48 +1,54 @@
-/*  ==== ASSERTION ====
+/* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- *  $HopeName: MMsrc!assert.c(trunk.1) $
+ * $HopeName: MMsrc!assert.c(trunk.2) $
  *
- *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
+ * When DEBUG is defined (see debug.h) this source provides
+ * the AssertFail function which is invoked by the assertion macros
+ * (see impl.h.assert).  It also provides for user-installed
+ * assertion failure handlers.
  *
- *  When DEBUG_ASSERT is defined (see debug.h) this source provides
- *  the AssertFail function which is invoked by the ASSERT macros
- *  (see assert.h).  It produces no code otherwise.
+ * Notes
  *
- *  Notes
- *
- *  3. To be really solid, assert should write the information into a
- *  buffer before reaching the handler, so that it can be recovered
- *  even if printing fails.  richard 1994-11-15
- *
- *  4. This file declares a static object.  We said we wouldn't do
- *  that.  richard 1994-11-15
+ * 3. To be really solid, assert should write the information into a
+ * buffer before reaching the handler, so that it can be recovered
+ * even if printing fails.  richard 1994-11-15
  */
 
 #include "std.h"
 #include "assert.h"
-#include "asrtos.h"
 #include "lib.h"
 #include <stdarg.h>
 
 
-static AssertHandler handler = AssertOS;
+static void AssertLib(const char *cond, const char *id,
+                      const char *file, unsigned line)
+{
+  LibFormat(LibStreamErr(),
+            "\nMPS ASSERTION FAILURE\n\n"
+            "Id:        %s\n"
+            "File:      %s\n"
+            "Line:      %u\n"
+            "Condition: %s\n\n",
+            id, file, line, cond);
+  LibAbort();
+}
 
+static AssertHandler handler = AssertLib;
 
 AssertHandler AssertDefault(void)
 {
-  return(AssertOS);
+  return AssertLib;
 }
-
 
 AssertHandler AssertInstall(AssertHandler new)
 {
   AssertHandler prev = handler;
   handler = new;
-  return(prev);
+  return prev;
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 
 /*  === FAIL ASSERTION ===
