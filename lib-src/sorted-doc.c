@@ -205,10 +205,12 @@ main ()
     printf ("\\input texinfo  @c -*-texinfo-*-\n");
     printf ("@setfilename ../info/summary\n");
     printf ("@settitle Command Summary for GNU Emacs\n");
+    printf ("@finalout\n");
     printf ("@unnumbered Command Summary for GNU Emacs\n");
     printf ("@table @asis\n");
     printf ("\n");
-    printf ("@let@ITEM@item\n");
+    printf ("@iftex\n");
+    printf ("@global@let@ITEM@item\n");
     printf ("@def@item{@filbreak@vskip5pt@ITEM}\n");
     printf ("@font@tensy cmsy10 scaled @magstephalf\n");
     printf ("@font@teni cmmi10 scaled @magstephalf\n");
@@ -221,6 +223,7 @@ main ()
     printf ("@chardef@@64\n");
     printf ("@catcode43=12\n");
     printf ("@tableindent-0.2in\n");
+    printf ("@end iftex\n");
 
     /* print each function from the array */
 
@@ -244,6 +247,10 @@ main ()
 	    putchar ('\n');
 	  }
 	printf("@end display\n");
+	/* Try to avoid a save size overflow in the TeX output
+           routine.  */
+	if (i%100 == 0 && i > 0 && i != cnt)
+	  printf("\n@end table\n@table @asis\n");
       }
 
     printf ("@end table\n");
