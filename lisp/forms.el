@@ -1,5 +1,5 @@
 ;;; forms.el -- Forms mode: edit a file as a form to fill in.
-;;; Copyright (C) 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;;; Author: Johan Vromans
 
@@ -222,14 +222,8 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version "1.2.10"
+(defconst forms-version "1.2.11"
   "Version of forms-mode implementation.")
-
-(defvar forms-forms-scrolls t
-  "If non-null: redefine scroll-up/down to be used with Forms mode.")
-
-(defvar forms-forms-jumps t
-  "If non-null: redefine beginning/end-of-buffer to be used with Forms mode.")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -258,11 +252,12 @@
   "Character to separate multi-line fields (default C-k)")
 
 (defvar forms-forms-scroll t
-  "Redefine scroll-up/down to perform forms-next/prev-record in Forms mode.")
+  "*Non-nil means replace scroll-up/down commands in Forms mode.
+The replacement commands performs forms-next/prev-record.")
 
 (defvar forms-forms-jump t
-  "Redefine beginning/end-of-buffer to perform forms-first/last-record in Forms mode.")
-
+  "*Non-nil means redefine beginning/end-of-buffer in Forms mode.
+The replacement commands performs forms-first/last-record.")
 
 ;;; Internal variables.
 
@@ -782,79 +777,36 @@
   "Localize some commands."
   ;;
   ;; scroll-down -> forms-prev-record
-  ;;
-  (if (fboundp 'forms--scroll-down)
-      nil
-    (fset 'forms--scroll-down (symbol-function 'scroll-down))
-    (fset 'scroll-down
-	  (function
-	    (lambda (&optional arg) 
-	     (interactive "P")
-	     (if (and forms--mode-setup
-		      forms-forms-scroll)
-		 (forms-prev-record arg)
-	       (forms--scroll-down arg))))))
-  ;;
   ;; scroll-up -> forms-next-record
-  ;;
-  (if (fboundp 'forms--scroll-up)
-      nil
-    (fset 'forms--scroll-up   (symbol-function 'scroll-up))
-    (fset 'scroll-up
-	  (function
-	   (lambda (&optional arg) 
-	     (interactive "P")
-	     (if (and forms--mode-setup
-		      forms-forms-scroll)
-		 (forms-next-record arg)
-	       (forms--scroll-up arg))))))
+  (if forms-forms-scroll
+      (progn
+	(substitute-key-definition 'scroll-up 'forms-next-record
+				   (current-local-map)
+				   (current-global-map))
+	(substitute-key-definition 'scroll-down 'forms-prev-record
+				   (current-local-map)
+				   (current-global-map))))
   ;;
   ;; beginning-of-buffer -> forms-first-record
-  ;;
-  (if (fboundp 'forms--beginning-of-buffer)
-      nil
-    (fset 'forms--beginning-of-buffer (symbol-function 'beginning-of-buffer))
-    (fset 'beginning-of-buffer
-	  (function
-	   (lambda ()
-	     (interactive)
-	     (if (and forms--mode-setup
-		      forms-forms-jump)
-		 (forms-first-record)
-	       (forms--beginning-of-buffer))))))
-  ;;
   ;; end-of-buffer -> forms-end-record
-  ;;
-  (if (fboundp 'forms--end-of-buffer)
-      nil
-    (fset 'forms--end-of-buffer (symbol-function 'end-of-buffer))
-    (fset 'end-of-buffer
-	  (function
-	   (lambda ()
-	     (interactive)
-	     (if (and forms--mode-setup
-		      forms-forms-jump)
-		 (forms-last-record)
-	       (forms--end-of-buffer))))))
+  (if forms-forms-jump
+      (progn
+	(substitute-key-definition 'beginning-of-buffer 'forms-first-record
+				   (current-local-map)
+				   (current-global-map))
+	(substitute-key-definition 'end-of-buffer 'forms-last-record
+				   (current-local-map)
+				   (current-global-map))))
   ;;
   ;; save-buffer -> forms--save-buffer
-  ;;
-  (if (fboundp 'forms--save-buffer)
-      nil
-    (fset 'forms--save-buffer (symbol-function 'save-buffer))
-    (fset 'save-buffer
-	  (function
-	   (lambda (&optional arg)
-	     (interactive "p")
-	     (if forms--mode-setup
-		 (progn
-		   (forms--checkmod)
-		   (save-excursion
-		     (set-buffer forms--file-buffer)
-		     (forms--save-buffer arg)))
-	       (forms--save-buffer arg))))))
-  ;;
-  )
+  (add-hook 'local-write-file-hooks
+	    (function
+	     (lambda (nil)
+	       (forms--checkmod)
+	       (save-excursion
+		 (set-buffer forms--file-buffer)
+		 (save-buffer))
+	       t))))
 
 (defun forms--help ()
   "Initial help."
@@ -1343,10 +1295,5 @@ Usage: (setq forms-number-of-fields
 	  (set-buffer (get-buffer-create "*forms-mode debug*"))
 	  (goto-char (point-max))
 	  (insert ret)))))
-
-;;; Disabled Local Variables:
-;;; eval: (headers)
-;;; eval: (setq comment-start ";;; ")
-;;; End:
 
 ;;; forms.el ends here.
