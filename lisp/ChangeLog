@@ -1,3 +1,8 @@
+2002-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):
+	Fix simple loop indentation.
+
 2002-03-14  Miles Bader  <miles@gnu.org>
 
 	* net/rlogin.el (rlogin-mode): Use `define-derived-mode'.
