@@ -1,5 +1,5 @@
 ;;; gnus-group.el --- group mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -2703,7 +2703,7 @@ score file entries for articles to include in the group."
       (make-directory score-dir))
     (with-temp-file score-file
       (let (emacs-lisp-mode-hook)
-	(pp scores (current-buffer))))))
+	(gnus-pp scores)))))
 
 (defun gnus-group-add-to-virtual (n vgroup)
   "Add the current group to a virtual group."

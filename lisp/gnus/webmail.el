@@ -1,5 +1,5 @@
 ;;; webmail.el --- interface of web mail
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: hotmail netaddress my-deja netscape
@@ -196,7 +196,7 @@
     (insert "\n---------------- A bug at " str " ------------------\n")
     (mapcar #'(lambda (sym)
 		(if (boundp sym)
-		    (pp `(setq ,sym ',(eval sym)) (current-buffer))))
+		    (gnus-pp `(setq ,sym ',(eval sym)))))
 	    '(webmail-type user))
     (insert "---------------- webmail buffer ------------------\n\n")
     (insert-buffer-substring webmail-buffer)

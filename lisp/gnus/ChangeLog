@@ -1,3 +1,119 @@
+2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-restore-gcc): Use ^ and regexp-quote.
+
+	* gnus-sum.el (gnus-newsgroup-variables): Doc fix (tiny change).
+	From Helmut Waitzmann <Helmut.Waitzmann@web.de>.
+
+	* gnus-agent.el (gnus-agent-regenerate-group): Activate the group
+	when the group's active is not available.
+
+	* gnus-art.el (article-hide-headers): Refer to the values for
+	gnus-ignored-headers and gnus-visible-headers in the summary
+	buffer since a user may have set them as group parameters.
+	(gnus-article-next-page): Fix the way to find a real end-of-buffer
+	(tiny change).  From YAGI Tatsuya <ynyaaa@ybb.ne.jp>.
+	(gnus-article-read-summary-keys): Restore new window-start and
+	hscroll to summary window.
+	(gnus-prev-page-map): Remove duplicated one.
+
+	* gnus-cite.el (gnus-cite-ignore-quoted-from): New user option.
+	(gnus-cite-parse): Ignore quoted envelope From_.  Suggested by
+	Karl Chen <quarl@nospam.quarl.org> and Reiner Steib
+	<Reiner.Steib@gmx.de>.
+
+	* gnus-cus.el (gnus-agent-cat-prepare-category-field): Replace
+	pp-to-string with gnus-pp-to-string.
+
+	* gnus-eform.el (gnus-edit-form): Replace pp with gnus-pp.
+
+	* gnus-group.el (gnus-group-make-kiboze-group): Replace pp with
+	gnus-pp.
+
+	* gnus-msg.el (gnus-setup-message): Ignore an article copy while
+	parsing gnus-posting-styles when the message is not for replying.
+	(gnus-summary-resend-message-edit): Call mime-to-mml.  Suggested
+	by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
+	(gnus-debug): Replace pp with gnus-pp.
+
+	* gnus-score.el (gnus-score-save): Replace pp with gnus-pp.
+
+	* gnus-spec.el (gnus-update-format): Replace pp-to-string with
+	gnus-pp-to-string.
+
+	* gnus-sum.el (gnus-read-header): Don't remove a header for the
+	parent article of a sparse article in the thread hashtb.  From
+	Stefan Wiens <s.wi@gmx.net>.
+
+	* gnus-util.el (gnus-bind-print-variables): New macro.
+	(gnus-prin1): Use it.
+	(gnus-prin1-to-string): Use it.
+	(gnus-pp): New function.
+	(gnus-pp-to-string): New function.
+
+	* gnus.el: Don't make unnecessary *Group* buffer when loading.
+
+	* mail-source.el (mail-source-touch-pop): Doc fix.
+
+	* message.el (message-mode): Don't modify paragraph-separate there.
+	(message-setup-fill-variables): Add mml tags to paragraph-start
+	and paragraph-separate.  Suggested by Andrew Korty <ajk@iu.edu>.
+	(message-smtpmail-send-it): Doc fix.
+	(message-exchange-point-and-mark): Don't activate region if it was
+	inactive.  Suggested by Hiroshi Fujishima
+	<pooh@nature.tsukuba.ac.jp> and Jesper Harder <harder@ifa.au.dk>.
+
+	* mm-decode.el (mm-save-part): Bind enable-multibyte-characters to
+	t while entering a file name using the mm-with-multibyte macro.
+	Suggested by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
+
+	* mm-encode.el (mm-content-transfer-encoding-defaults): Use
+	qp-or-base64 for the application/* types.
+	(mm-safer-encoding): Consider 7bit is safe.
+
+	* mm-util.el (mm-with-multibyte-buffer): New macro.
+	(mm-with-multibyte): New macro.
+
+	* mm-view.el (mm-inline-render-with-function): Use multibyte
+	buffer; decode html source by charset.
+
+	* nndoc.el (nndoc-type-alist): Improve regexp for article-begin,
+	add generate-head-function and generate-article-function to the
+	rfc822-forward entry.
+	(nndoc-forward-type-p): Recognize envelope From_.
+	(nndoc-rfc822-forward-generate-article): New function.
+	(nndoc-rfc822-forward-generate-head): New function.
+
+	From David Hedbor <dhedbor@real.com>.
+	* nnmail.el (nnmail-split-lowercase-expanded): New user option.
+	(nnmail-expand-newtext): Lowercase expanded entries if
+	nnmail-split-lowercase-expanded is non-nil.
+
+	* score-mode.el (gnus-score-pretty-print): Replace pp with gnus-pp.
+
+	* webmail.el (webmail-debug): Replace pp with gnus-pp.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): Bind
+	w3m-safe-url-regexp as the value for mm-w3m-safe-url-regexp; use
+	w3m-minor-mode-map instead of mm-w3m-local-map-property.
+	(gnus-mime-save-part-and-strip): Use mm-complicated-handles
+	instead of mm-multiple-handles.
+	(gnus-mime-delete-part): Ditto.
+
+	* mm-decode.el (mm-multiple-handles): Recognize a string as a mime
+	handle, as well as a list.
+	(mm-complicated-handles): Former definition of mm-multiple-handles.
+
+	* mm-view.el (mm-w3m-mode-map): Remove.
+	(mm-w3m-local-map-property): Remove.
+	(mm-w3m-cid-retrieve-1): Call itself recursively.  Suggested by
+	ARISAWA Akihiro <ari@mbf.sphere.ne.jp>.
+	(mm-w3m-cid-retrieve): Simplify.
+	(mm-inline-text-html-render-with-w3m): Decode html source by
+	charset; check META tags only when charsets are not specified in
+	headers; specify charset to w3m-region; use w3m-minor-mode-map
+	instead of mm-w3m-local-map-property.
+
 2004-08-30  Juanma Barranquero  <lektu@terra.es>
 
 	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character constant.

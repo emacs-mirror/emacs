@@ -1,5 +1,5 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -572,6 +572,13 @@ Normally, regexes given in `nnmail-split-fancy' are implicitly surrounded
 by \"\\=\\<...\\>\".  If this variable is true, they are not implicitly\
  surrounded
 by anything."
+  :group 'nnmail
+  :type 'boolean)
+
+(defcustom nnmail-split-lowercase-expanded t
+  "Whether to lowercase expanded entries (i.e. \\N) when splitting mails.
+This avoids the creation of multiple groups when users send to an address
+using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   :group 'nnmail
   :type 'boolean)
 
@@ -1469,7 +1476,10 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	      (setq N 0)
 	    (setq N (- c ?0)))
 	  (when (match-beginning N)
-	    (push (buffer-substring (match-beginning N) (match-end N))
+	    (push (if nnmail-split-lowercase-expanded
+		      (downcase (buffer-substring (match-beginning N)
+						  (match-end N)))
+		    (buffer-substring (match-beginning N) (match-end N)))
 		  expanded))))
       (setq pos (1+ pos)))
     (if did-expand

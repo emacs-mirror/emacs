@@ -826,12 +826,13 @@ Pass INFO on to CALLBACK."
   "Open and close a POP connection shortly.
 POP server should be defined in `mail-source-primary-source' (which is
 preferred) or `mail-sources'.  You may use it for the POP-before-SMTP
-authentication.  To do that, you need to set the option
-`message-send-mail-function' to `message-smtpmail-send-it' and put the
-following line in .gnus file:
+authentication.  To do that, you need to set the
+`message-send-mail-function' variable as `message-smtpmail-send-it'
+and put the following line in your ~/.gnus.el file:
 
 \(add-hook 'message-send-mail-hook 'mail-source-touch-pop)
-"
+
+See the Gnus manual for details."
   (let ((sources (if mail-source-primary-source
 		     (list mail-source-primary-source)
 		   mail-sources)))

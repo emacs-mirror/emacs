@@ -1,5 +1,5 @@
 ;;; gnus-util.el --- utility functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -628,24 +628,49 @@ If N, return the Nth ancestor instead."
   (define-key (symbol-value (intern (format "gnus-%s-mode-map" type)))
     [menu-bar edit] 'undefined))
 
+(defmacro gnus-bind-print-variables (&rest forms)
+  "Bind print-* variables and evaluate FORMS.
+This macro is used with `prin1', `pp', etc. in order to ensure printed
+Lisp objects are loadable.  Bind `print-quoted' and `print-readably'
+to t, and `print-escape-multibyte', `print-escape-newlines',
+`print-escape-nonascii', `print-length', `print-level' and
+`print-string-length' to nil."
+  `(let ((print-quoted t)
+	 (print-readably t)
+	 ;;print-circle
+	 ;;print-continuous-numbering
+	 print-escape-multibyte
+	 print-escape-newlines
+	 print-escape-nonascii
+	 ;;print-gensym
+	 print-length
+	 print-level
+	 print-string-length)
+     ,@forms))
+
 (defun gnus-prin1 (form)
   "Use `prin1' on FORM in the current buffer.
-Bind `print-quoted' and `print-readably' to t while printing."
-  (let ((print-quoted t)
-	(print-readably t)
-	(print-escape-multibyte nil)
-	print-level print-length)
-    (prin1 form (current-buffer))))
+Bind `print-quoted' and `print-readably' to t, and `print-length' and
+`print-level' to nil.  See also `gnus-bind-print-variables'."
+  (gnus-bind-print-variables (prin1 form (current-buffer))))
 
 (defun gnus-prin1-to-string (form)
   "The same as `prin1'.
-Bind `print-quoted' and `print-readably' to t, and `print-length'
-and `print-level' to nil."
-  (let ((print-quoted t)
-	(print-readably t)
-	(print-length nil)
-	(print-level nil))
-    (prin1-to-string form)))
+Bind `print-quoted' and `print-readably' to t, and `print-length' and
+`print-level' to nil.  See also `gnus-bind-print-variables'."
+  (gnus-bind-print-variables (prin1-to-string form)))
+
+(defun gnus-pp (form)
+  "Use `pp' on FORM in the current buffer.
+Bind `print-quoted' and `print-readably' to t, and `print-length' and
+`print-level' to nil.  See also `gnus-bind-print-variables'."
+  (gnus-bind-print-variables (pp form (current-buffer))))
+
+(defun gnus-pp-to-string (form)
+  "The same as `pp-to-string'.
+Bind `print-quoted' and `print-readably' to t, and `print-length' and
+`print-level' to nil.  See also `gnus-bind-print-variables'."
+  (gnus-bind-print-variables (pp-to-string form)))
 
 (defun gnus-make-directory (directory)
   "Make DIRECTORY (and all its parents) if it doesn't exist."

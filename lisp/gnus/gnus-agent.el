@@ -682,7 +682,8 @@ be a select method."
   "Restore GCC field from saved header."
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward (concat gnus-agent-gcc-header ":") nil t)
+    (while (re-search-forward
+	    (concat "^" (regexp-quote gnus-agent-gcc-header) ":") nil t)
       (replace-match "Gcc:" 'fixedcase))))
 
 (defun gnus-agent-any-covered-gcc ()
@@ -3630,7 +3631,8 @@ entry of article %s deleted." l1))
               ;; recalculate the number of unread articles in the group
 
               (let ((group (gnus-group-real-name group))
-                    (group-active (gnus-active group)))
+                    (group-active (or (gnus-active group)
+                                      (gnus-activate-group group))))
                 (gnus-agent-possibly-alter-active group group-active)))))
 
         (when (and reread gnus-agent-article-alist)

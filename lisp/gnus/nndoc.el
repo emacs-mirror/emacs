@@ -1,5 +1,5 @@
 ;;; nndoc.el --- single file access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -130,8 +130,10 @@ from the document.")
      (article-transform-function . nndoc-transform-lanl-gov-announce)
      (subtype preprints guess))
     (rfc822-forward
-     (article-begin . "^\n")
-     (body-end-function . nndoc-rfc822-forward-body-end-function))
+     (article-begin . "^\n+")
+     (body-end-function . nndoc-rfc822-forward-body-end-function)
+     (generate-head-function . nndoc-rfc822-forward-generate-head)
+     (generate-article-function . nndoc-rfc822-forward-generate-article))
     (outlook
      (article-begin-function . nndoc-outlook-article-begin)
      (body-end .  "\0"))
@@ -469,7 +471,7 @@ from the document.")
 (defun nndoc-forward-type-p ()
   (when (and (re-search-forward "^-+ \\(Start of \\)?forwarded message.*\n+"
 				nil t)
-	     (looking-at "[\r\n]*[a-zA-Z][a-zA-Z0-9-]*:"))
+	     (looking-at "[\r\n]*[a-zA-Z][a-zA-Z0-9-]*:\\|^>?From "))
     t))
 
 (defun nndoc-rfc934-type-p ()
@@ -491,6 +493,29 @@ from the document.")
 
 (defun nndoc-rfc822-forward-body-end-function ()
   (goto-char (point-max)))
+
+(defun nndoc-rfc822-forward-generate-article (article &optional head)
+  (let ((entry (cdr (assq article nndoc-dissection-alist)))
+	(begin (point))
+	encoding)
+    (with-current-buffer nndoc-current-buffer
+      (save-restriction
+	(message-narrow-to-head)
+	(setq encoding (message-fetch-field "content-transfer-encoding"))))
+    (insert-buffer-substring nndoc-current-buffer (car entry) (nth 3 entry))
+    (when encoding
+      (save-restriction
+	(narrow-to-region begin (point-max))
+	(mm-decode-content-transfer-encoding
+	 (intern (downcase (mail-header-strip encoding))))))
+    (when head
+      (goto-char begin)
+      (when (search-forward "\n\n" nil t)
+	(delete-region (1- (point)) (point-max)))))
+  t)
+
+(defun nndoc-rfc822-forward-generate-head (article)
+  (nndoc-rfc822-forward-generate-article article 'head))
 
 (defun nndoc-mime-parts-type-p ()
   (let ((case-fold-search t)
