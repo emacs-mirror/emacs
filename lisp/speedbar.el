@@ -1,9 +1,9 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;;; Copyright (C) 1996, 97, 98, 99, 00 Free Software Foundation
+;;; Copyright (C) 1996, 97, 98, 99, 2000, 01 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.11
+;; Version: 0.11a
 ;; Keywords: file, tags, tools
 
 ;; This file is part of GNU Emacs.
@@ -347,6 +347,7 @@ between different directories."
 				       (width . 20)
 				       (border-width . 0)
 				       (menu-bar-lines . 0)
+				       (tool-bar-lines . 0)
 				       (unsplittable . t))
   "*Parameters to use when creating the speedbar frame in Emacs.
 Any parameter supported by a frame may be added.  The parameter `height'
@@ -3294,7 +3295,9 @@ directory, then it is the directory name."
       (if f
 	  (let* ((depth (string-to-int (match-string 1)))
 		 (path (speedbar-line-path depth)))
-	    (concat path f))
+	    (if (file-exists-p (concat path f))
+		(concat path f)
+	      nil))
 	nil))))
 
 (defun speedbar-goto-this-file (file)
@@ -4030,13 +4033,20 @@ If TEMP is non-nil, then clicking on a buffer restores the previous display."
 (defun speedbar-buffers-line-path (&optional depth)
   "Fetch the full path to the file (buffer) specified on the current line.
 Optional argument DEPTH specifies the current depth of the back search."
-  (end-of-line)
-  ;; Buffers are always at level 0
-  (if (not (re-search-backward "^0:" nil t))
-      nil
-    (let* ((bn (speedbar-line-text))
-	   (buffer (if bn (get-buffer bn))))
-      (if buffer (file-name-directory (buffer-file-name buffer))))))
+  (save-excursion
+    (end-of-line)
+    (let ((start (point)))
+      ;; Buffers are always at level 0
+      (if (not (re-search-backward "^0:" nil t))
+	  nil
+	(let* ((bn (speedbar-line-text))
+	       (buffer (if bn (get-buffer bn))))
+	  (if buffer
+	      (if (save-excursion
+		    (end-of-line)
+		    (eq start (point)))
+		  (file-name-directory (buffer-file-name buffer))
+		(buffer-file-name buffer))))))))
 
 (defun speedbar-buffer-click (text token indent)
   "When the users clicks on a buffer-button in speedbar.
