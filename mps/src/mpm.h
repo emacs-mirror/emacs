@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.67) $
+ * $HopeName: MMsrc!mpm.h(trunk.68) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -109,7 +109,7 @@ extern Res WriteF(mps_lib_FILE *stream, ...);
 
 /* Miscellaneous support -- see impl.c.mpm */
 
-extern size_t StringLength(char *s);
+extern size_t StringLength(const char *s);
 
 
 /* Ring Interface -- see design.mps.ring, impl.c.ring */
