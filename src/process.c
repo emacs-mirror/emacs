@@ -3066,6 +3066,16 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
       contact = Fplist_put (contact, QCaddress, 
 			    conv_sockaddr_to_lisp (lres->ai_addr, lres->ai_addrlen));
+#ifdef HAVE_GETSOCKNAME
+      if (!is_server)
+	{
+	  struct sockaddr_in sa1;
+	  int len1 = sizeof (sa1);
+	  if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
+	    contact = Fplist_put (contact, QClocal,
+				  conv_sockaddr_to_lisp (&sa1, len1));
+	}
+#endif
     }
 
 #ifdef HAVE_GETADDRINFO
@@ -3548,7 +3558,7 @@ server_accept_connection (server, channel)
 			conv_sockaddr_to_lisp (&saddr.sa, len));
 #ifdef HAVE_GETSOCKNAME
   len = sizeof saddr;
-  if (getsockname (channel, &saddr.sa, &len) == 0)
+  if (getsockname (s, &saddr.sa, &len) == 0)
     contact = Fplist_put (contact, QClocal, 
 			  conv_sockaddr_to_lisp (&saddr.sa, len));
 #endif
