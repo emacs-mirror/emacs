@@ -1,3 +1,22 @@
+2005-01-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry): Use
+	`bibtex-empty-field-re' only on the text of fields, not on entire
+	field lines.
+	(bibtex-autofill-entry): Use `bibtex-empty-field-re' on a string,
+	not on part of a buffer.
+
+2005-01-25  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-empty-field-re): Don't match
+	nonempty field text strings like "{letters\\macro{}more letters}".
+	Clarify docstring.
+	(bibtex-sort-entry-class, bibtex-autokey-titleword-ignore)
+	(bibtex-entry-offset, bibtex-parse-association)
+	(bibtex-parse-field-name): Fix typos in docstrings.
+	(bibtex-field-list, bibtex-find-crossref): Fix typos in error
+	messages.
+
 2005-01-24  Carsten Dominik <dominik@science.uva.nl>
 
 	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
@@ -100,7 +119,6 @@
 	* term/mac-win.el (process-connection-type): Removed.
 	Controlled now by s/darwin.h:PTY_ITERATION.
 
->>>>>>> 1.6921
 2005-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (handle-select-window): Don't switch window when we're
@@ -321,7 +339,6 @@
 	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
 	rather than the element found, thus enabling the tree to be setcar'd.
 
->>>>>>> 1.6903
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-show-following-heading): New option.
