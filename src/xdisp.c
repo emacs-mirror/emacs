@@ -13229,9 +13229,10 @@ display_line (it)
 		{
 		  /* Glyph is completely off the left margin of the
 		     window.  This should not happen because of the
-		     move_it_in_display_line at the start of
-		     this function.  */
-		  abort ();
+		     move_it_in_display_line at the start of this
+		     function, unless the text display area of the
+		     window is empty.  */
+		  xassert (it->first_visible_x <= it->last_visible_x);
 		}
 	    }
 
