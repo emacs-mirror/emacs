@@ -11226,14 +11226,12 @@ try_window_id (w)
     }
 
   /* Handle the case that changes are all below what is displayed in
-     the window, and that PT is in the window.
-     RMS: This used to use >=, but that was spuriously true
-     when inserting at the end of buffer when the end of buffer
-     was visible on the screen.  I think it is safe now,
-     because the test now insists there is a character between the end of
-     the last screen row used and the first change, and that character
-     must not off the bottom of the screen.  */
-  if (first_changed_charpos > MATRIX_ROW_END_CHARPOS (row))
+     the window, and that PT is in the window.  This short cut cannot
+     be taken if ZV is visible in the window, and text has been added
+     there that is visible in the window.  */
+  if (first_changed_charpos >= MATRIX_ROW_END_CHARPOS (row)
+      /* ZV is not visible in the window.  */
+      && current_matrix->zv > MATRIX_ROW_END_CHARPOS (row))
     {
       struct glyph_row *r0;
 
@@ -11263,12 +11261,14 @@ try_window_id (w)
 	}
     }
 
-  /* Give up if window start is in the changed area
-     if the total size has changed.  */
-  /* RMS: Is it really relevant whether the total size has changed?
-     Why should that matter?  */
-  if (BEG_UNCHANGED + END_UNCHANGED != Z - BEG
-      && CHARPOS (start) >= first_changed_charpos
+  /* Give up if window start is in the changed area.
+     
+     The condition used to read
+
+     (BEG_UNCHANGED + END_UNCHANGED != Z - BEG && ...)
+
+     but why that was tested escapes me at the moment.  */
+  if (CHARPOS (start) >= first_changed_charpos
       && CHARPOS (start) <= last_changed_charpos)
     GIVE_UP (15);
   
