@@ -22,6 +22,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Miscellanea.   */
 
+struct glyph;
+struct frame;
+
 /* If nonzero, send all terminal output characters to this stream also.  */
 extern FILE *termscript;
 
@@ -32,7 +35,7 @@ extern FILE *termscript;
 
 /* Text display hooks.  */
 
-extern void (*cursor_to_hook) P_ ((int, int));
+extern void (*cursor_to_hook) P_ ((int vpos, int hpos));
 extern void (*raw_cursor_to_hook) P_ ((int, int));
 
 extern void (*clear_to_end_hook) P_ ((void));
@@ -41,11 +44,11 @@ extern void (*clear_end_of_line_hook) P_ ((int));
 
 extern void (*ins_del_lines_hook) P_ ((int, int));
 
-extern void (*change_line_highlight_hook) P_ ((int, int, int));
+extern void (*change_line_highlight_hook) P_ ((int, int, int, int));
 extern void (*reassert_line_highlight_hook) P_ ((int, int));
 
-extern void (*insert_glyphs_hook) P_ ((GLYPH *, int));
-extern void (*write_glyphs_hook) P_ ((GLYPH *, int));
+extern void (*insert_glyphs_hook) P_ ((struct glyph *s, int n));
+extern void (*write_glyphs_hook) P_ ((struct glyph *s, int n));
 extern void (*delete_glyphs_hook) P_ ((int));
 
 extern void (*ring_bell_hook) P_ ((void));
@@ -65,7 +68,10 @@ enum scroll_bar_part {
   scroll_bar_handle,
   scroll_bar_below_handle,
   scroll_bar_up_arrow,
-  scroll_bar_down_arrow
+  scroll_bar_down_arrow,
+  scroll_bar_to_top,
+  scroll_bar_to_bottom,
+  scroll_bar_end_scroll
 };
 
 /* Return the current position of the mouse.
@@ -282,7 +288,7 @@ enum event_kind
 				   (Only the toolkit version uses these.)  */
   iconify_event,		/* An X client iconified this window.  */
   deiconify_event,		/* An X client deiconified this window.  */
-  menu_bar_activate_event,       /* A button press in the menu bar
+  menu_bar_activate_event,      /* A button press in the menu bar
 				   (toolkit version only).  */
   drag_n_drop,			/* A drag-n-drop event is generated when
 				   files selected outside of Emacs are dropped
@@ -297,9 +303,17 @@ enum event_kind
 				   the filenames of the dropped files.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-  user_signal			/* A user signal.
-				   .code is a number identifying it,
-				   index into lispy_user_signals.  */
+  user_signal,                  /* A user signal.
+                                   .code is a number identifying it,
+                                   index into lispy_user_signals.  */
+
+  /* Currently only returned when the mouse enters a toolbar item that
+     has a help string.  Member frame_or_window of the input_event is
+     a cons cell whose car is the toolbar's frame and whose cdr is the
+     help string.  */
+  HELP_EVENT,
+
+  TOOLBAR_EVENT
 };
 
 /* If a struct input_event has a kind which is selection_request_event
