@@ -339,7 +339,8 @@ struct glyph
       && (X)->padding_p == (Y)->padding_p			\
       && (X)->left_box_line_p == (Y)->left_box_line_p		\
       && (X)->right_box_line_p == (Y)->right_box_line_p		\
-      && (X)->voffset == (Y)->voffset)
+      && (X)->voffset == (Y)->voffset				\
+      && (X)->pixel_width == (Y)->pixel_width)
 
 /* Are character codes, faces, padding_ps of glyphs *X and *Y equal?  */
 
