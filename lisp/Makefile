@@ -3,7 +3,8 @@
 #
 EMACS = emacs
 SOURCES = *.el COPYING Makefile
-lisptagsfiles = [a-zA-Z]*.el [a-zA-Z]*/[a-zA-Z]*.el
+lisptagsfiles1 = [a-zA-Z]*.el
+lisptagsfiles2 = [a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
 dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
@@ -70,5 +71,9 @@ updates: doit
 	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins; \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
-TAGS: $(lisptagsfiles)
-	${ETAGS} $(lisptagsfiles)
+TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
+	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
+
+TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
+	${ETAGS} -o TAGS-LISP \
+	  $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
