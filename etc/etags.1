@@ -12,11 +12,11 @@ etags, ctags \- generate tag file for Emacs, vi
 .SH SYNOPSIS
 .hy 0
 .na
-.B etags [\|\-aCDGImRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
+\fBetags\fP [\|\-aCDGImRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
-.B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
+[\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-[\|\-\-append\|] [\|\-\-c++\|] [\|\-\-no\-defines\|]
+[\|\-\-append\|] [\|\-\-no\-defines\|]
 [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 [\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
@@ -25,11 +25,11 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
-.B ctags [\|\-aCdgImRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
+\fBctags\fP [\|\-aCdgImRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
-.B [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
+[\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 .br
-[\|\-\-append\|] [\|\-\-backward\-search\|] [\|\-\-c++\|]
+[\|\-\-append\|] [\|\-\-backward\-search\|]
 [\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
 [\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
@@ -49,8 +49,9 @@ understood by
 format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
-the syntax of C, Objective C, C++, Java, Fortran, Pascal, Cobol, Ada, Perl,
-LaTeX, Scheme, Emacs Lisp/Common Lisp, Postscript, Erlang, Python, Prolog and
+the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang,
+LaTeX, Emacs Lisp/Common Lisp, makefiles, Pascal, Perl, Postscript,
+Python, Prolog, Scheme and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
 table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
@@ -80,11 +81,6 @@ the delimiter `\|\fB?\fP\|', to search \fIbackwards\fP through files.
 The default is to use the delimiter `\|\fB/\fP\|', to search \fIforwards\fP
 through files.
 Only \fBctags\fP accepts this option.
-.TP
-.B \-C, \-\-c++
-Treat files with `\|.c\|' and `\|.h\|' extensions as C++ code, not C
-code.  Files with `\|.C\|', `\|.H\|', `\|.cxx\|', `\|.hxx\|', or
-`\|.cc\|' extensions are always assumed to be C++ code.
 .TP
 .B \-\-declarations
 In C and derived languages, create tags for function declarations,
@@ -125,7 +121,7 @@ Parse the following files according to the given language.  More than
 one such options may be intermixed with filenames.  Use \fB\-\-help\fP
 to get a list of the available languages and their default filename
 extensions.  The `auto' language can be used to restore automatic
-detection of language based on filename extension.  The `none'
+detection of language based on the file name.  The `none'
 language may be used to disable language parsing altogether; only
 regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
@@ -189,7 +185,7 @@ Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
 \fI\-\-lang\=none \-\-regex\='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
 
 .br
-A regexp can be preceded by {\fIlang\fP}, thus restriciting it to match
+A regexp can be preceded by {\fIlang\fP}, thus restricting it to match
 lines of files of the specified language.  Use \fBetags --help\fP to obtain
 a list of the recognised languages.  This feature is particularly useful inside
 \fBregex files\fP.  A regex file contains one regex per line.  Empty lines,
@@ -254,7 +250,7 @@ Stallman.
 .BR vi ( 1 ).
 
 .SH COPYING
-Copyright 
+Copyright
 .if t \(co
 .if n (c)
 1999, 2001 Free Software Foundation, Inc.
