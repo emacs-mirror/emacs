@@ -493,7 +493,14 @@ found."
 					      key))
 		       key)
 		     item ", "))
-		 (insert "(not bound to any keys)")))
+		 (insert "Type ")
+		 (insert "M-x")
+		 (put-text-property (- (point) 3) (point)
+				    'face apropos-keybinding-face)
+		 (insert " " (symbol-name symbol) " ")
+		 (insert "RET")
+		 (put-text-property (- (point) 3) (point)
+				    'face apropos-keybinding-face)))
 	  (terpri)
 	  ;; only now so we don't propagate text attributes all over
 	  (put-text-property point1 point2 'item
