@@ -29,12 +29,12 @@
 ;; used for the Chinese calendar are those of Baolin Liu (see L. E. Doggett's
 ;; article "Calendars" in the Explanatory Supplement to the Astronomical
 ;; Almanac, second edition, 1992) for the calendar as revised at the beginning
-;; of the Qing dynasty in 1644.  Liu's rules produce a calendar for 2033 which
-;; is not accepted by all authorities.  Furthermore, the nature of the
-;; astronomical calculations is such that precise calculations cannot be made
-;; without great expense in time, so that the calendars produced may not agree
-;; perfectly with published tables--but no two pairs of published tables agree
-;; perfectly either!
+;; of the Qing dynasty in 1644.  The nature of the astronomical calculations
+;; is such that precise calculations cannot be made without great expense in
+;; time, so that the calendars produced may not agree perfectly with published
+;; tables--but no two pairs of published tables agree perfectly either!  Liu's
+;; rules produce a calendar for 2033 which is not accepted by all authorities.
+;; The date of Chinese New Year is correct from 1644-2051.
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
@@ -64,10 +64,7 @@ UT+7:45:40 to UT+8.")
 (defvar chinese-calendar-location-name "Beijing"
   "*Name of location used for calculation of Chinese calendar.")
 
-(defvar chinese-calendar-daylight-time-offset 0
-; The correct value is as follows, but I don't believe the Chinese calendrical
-; authorities would use DST in determining astronomical events:
-;  60
+(defvar chinese-calendar-daylight-time-offset 60
   "*Number of minutes difference between daylight savings and standard time
 for Chinese calendar.  Default is for no daylight savings time.")
 
@@ -80,20 +77,16 @@ for Chinese calendar.  Default is for no daylight savings time.")
 (defvar chinese-calendar-daylight-time-zone-name "CDT"
   "*Abbreviated name of daylight-savings time zone used for Chinese calendar.")
 
-(defvar chinese-calendar-daylight-savings-starts nil
-; The correct value is as follows, but I don't believe the Chinese calendrical
-; authorities would use DST in determining astronomical events:
-;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
-;         ((= 1986 year) '(5 4 1986))
-;         (t nil))
+(defvar chinese-calendar-daylight-savings-starts
+  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
+         ((= 1986 year) '(5 4 1986))
+         (t nil))
   "*Sexp giving the date on which daylight savings time starts for Chinese
 calendar.  Default is for no daylight savings time.  See documentation of
 `calendar-daylight-savings-starts'.")
 
-(defvar chinese-calendar-daylight-savings-ends nil
-; The correct value is as follows, but I don't believe the Chinese calendrical
-; authorities would use DST in determining astronomical events:
-;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
+(defvar chinese-calendar-daylight-savings-ends
+  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
   "*Sexp giving the date on which daylight savings time ends for Chinese
 calendar.  Default is for no daylight savings time.  See documentation of
 `calendar-daylight-savings-ends'.")
@@ -159,7 +152,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
 (defvar chinese-year-cache
   '((1989 (12 . 726110) (1 . 726139) (2 . 726169) (3 . 726198) (4 . 726227)
           (5 . 726257) (6 . 726286) (7 . 726316) (8 . 726345) (9 . 726375)
-          (10 . 726404) (11 . 726434))
+ (10 . 726404) (11 . 726434))
     (1990 (12 . 726464) (1 . 726494) (2 . 726523) (3 . 726553) (4 . 726582)
           (5 . 726611) (5.5 . 726641) (6 . 726670) (7 . 726699) (8 . 726729)
           (9 . 726758) (10 . 726788) (11 . 726818))
@@ -214,30 +207,31 @@ The list is cached for further use."
                 (append chinese-year-cache  (list (cons y list))))))
     list))
 
-(defun number-chinese-months (list start &optional no-leap-months)
+(defun number-chinese-months (list start)
   "Assign month numbers to the lunar months in LIST, starting with START.
+Numbers are assigned sequentially, START, START+1, ..., 11, with half
+numbers used for leap months.
 
 If optional parameter NO-LEAP-MONTHS is true, just number the months
 sequentially, ignoring the usual leap month rule.
 
-First month of list will never be a leap month, nor will the last.
-
-Numbers are assigned sequentially mod 12 (but using 12 instead of 0)."
+First month of list will never be a leap month, nor will the last."
   (if list
-      (if no-leap-months
-          (cons (cons (calendar-mod start 12) (car list))
-                (number-chinese-months (cdr list) (1+ start) t))
+      (if (zerop (- 12 start (length list)))
+          ;; List is too short for a leap month
+          (cons (cons start (car list))
+                (number-chinese-months (cdr list) (1+ start)))
         (cons
-         ;; first month
-         (cons (calendar-mod start 12) (car list))
-         ;; remaining months
+         ;; First month
+         (cons start (car list))
+         ;; Remaining months
          (if (and (cdr (cdr list));; at least two more months...
-                  ;;              ... and next one is a leap month
                   (<= (car (cdr (cdr list)))
                       (chinese-zodiac-sign-on-or-after (car (cdr list)))))
-             (cons (cons (+ (calendar-mod start 12) 0.5) (car (cdr list)))
-                   (number-chinese-months (cdr (cdr list)) (1+ start) t))
-           ;; Otherwise, just number the months
+             ;; Next month is a leap month
+             (cons (cons (+ start 0.5) (car (cdr list)))
+                   (number-chinese-months (cdr (cdr list)) (1+ start)))
+           ;; Next month is not a leap month
            (number-chinese-months (cdr list) (1+ start)))))))
 
 (defun chinese-month-list (start end)
@@ -247,18 +241,6 @@ Numbers are assigned sequentially mod 12 (but using 12 instead of 0)."
         (if (<= new-moon end)
             (append (list new-moon)
                     (chinese-month-list (1+ new-moon) end))))))
-
-(defun chinese-leap-months (list low high)
-  "Return list of leap months in LIST with indices in range LOW to HIGH.
-
-A leap month has a non-integer index."
-  (if list
-      (let ((index (car (car list))))
-        (if (and (/= index (floor index))
-                 (<= low index)
-                 (<= index high))
-            (cons index (chinese-leap-months (cdr list) low high))
-          (chinese-leap-months (cdr list) low high)))))
 
 (defun compute-chinese-year (y)
   "Compute the structure of the Chinese year for Gregorian year Y.
@@ -271,43 +253,28 @@ Gregorian year Y-1 to the Chinese month of the solstice of Gregorian year Y."
          (list (chinese-month-list (1+ (chinese-zodiac-sign-on-or-after
                                         (calendar-absolute-from-gregorian
                                          (list 12 15 (1- y)))))
-                                   next-solstice)))
+                                   next-solstice))
+         (next-sign (chinese-zodiac-sign-on-or-after (car list))))
     (if (= (length list) 12)
         ;; No room for a leap month, just number them 12, 1, 2, ..., 11
-        (number-chinese-months list 0 t)
-      (let* ((had-leap-month (chinese-leap-months (chinese-year (1- y)) 1 10))
-             (numbered-list)
-             (next-sign;;     On or after first month on list
-              (chinese-zodiac-sign-on-or-after (car list))))
-        ;; Now we can assign numbers to the list for y
-        ;; The first month or two are special
-        (if (and (<= (car list) next-sign) (< next-sign (car (cdr list))))
-            (progn;; First month on list is not a leap month
-              (setq numbered-list (list (cons 12 (car list))))
-              (setq list (cdr list))
-              (setq next-sign (chinese-zodiac-sign-on-or-after (car list))))
-          ;; First month on list might be a leap month...
-          (if (not had-leap-month);; ... it is a leap month
-              (progn;; First month on list is a leap month, so second is not
-                (setq numbered-list (list (cons 11.5 (car list))
-                                          (cons 12 (car (cdr list)))))
-                (setq list (cdr (cdr list)))
-                (setq had-leap-month t))))
-        (if (and (>= next-sign (car (cdr list)))
-                 (not had-leap-month))
-            (progn;; Second month on list is a leap month
-              (setq numbered-list
-                    (append numbered-list (list (cons 12.5 (car list)))))
-              (setq list (cdr list))))
-        ;; At this point we have a list of new moons for months 1 to 11 for y.
-        ;; We need to see which are leap months.
-        (if (= (length list) 11)
-            ;; There can be no leap months, just number them 1..11
-            (append numbered-list (number-chinese-months list 1 t))
-          ;; There is a leap month, but it can't be the first one because that
-          ;; would be 12.5 which we already considered.  It also can't be the
-          ;; last one because that has the solstice in it.
-          (append numbered-list (number-chinese-months list 1)))))))
+        (cons (cons 12 (car list))
+              (number-chinese-months (cdr list) 1))
+      ;; Now we can assign numbers to the list for y
+      ;; The first month or two are special
+      (if (or (> (car list) next-sign) (>= next-sign (car (cdr list))))
+          ;; First month on list is a leap month, second is not
+          (append (list (cons 11.5 (car list))
+                        (cons 12 (car (cdr list))))
+                  (number-chinese-months (cdr (cdr list)) 1))
+        ;; First month on list is not a leap month
+        (append (list (cons 12 (car list)))
+                (if (>= (chinese-zodiac-sign-on-or-after (car (cdr list)))
+                        (car (cdr (cdr list))))
+                    ;; Second month on list is a leap month
+                    (list (cons 12.5 (car (cdr list)))
+                          (number-chinese-months (cdr (cdr list)) 1))
+                  ;; Second month on list is not a leap month
+                  (number-chinese-months (cdr list) 1)))))))
 
 (defun calendar-absolute-from-chinese (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
@@ -374,7 +341,10 @@ Defaults to today's date if DATE is not given."
          (this-month (calendar-absolute-from-chinese
                       (list cycle year month 1)))
          (next-month (calendar-absolute-from-chinese
-                      (list cycle year (1+ (floor month)) 1)))
+                      (list (if (= year 60) (1+ cycle) cycle)
+                            (if (= (floor month) 12) (1+ year) year)
+                            (calendar-mod (1+ (floor month)) 12)
+                            1)))
          (m-cycle (% (+ (* year 5) (floor month)) 60)))
     (format "Cycle %s, year %s (%s-%s), %smonth %s, day %s (%s-%s)"
             cycle
