@@ -37,13 +37,9 @@
   circumflex |    ^    | a^ -> ,Ab(B
   diaeresis  |    \"    | a\" -> ,Ad(B
   tilde      |    ~    | a~ -> ,Ac(B
-  cedilla    |    /    | c/ -> ,Ag(B
+  cedilla    |    ,    | c, -> ,Ag(B
   nordic     |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
   others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   << -> ,A+(B   >> -> ,A;(B
-
-It would be natural to use comma for cedillas, but that would be
-inconvenient in practice because commas are needed very often after a
-letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
@@ -107,8 +103,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("T/" ?,A^(B)
  ("t/" ?,A~(B)
  ("s/" ?,A_(B)
- ("C/" ?,AG(B)
- ("c/" ?,Ag(B)
+ ("C," ?,AG(B)
+ ("c," ?,Ag(B)
  ("N~" ?,AQ(B)
  ("n~" ?,Aq(B)
  ("?/" ?,A?(B)
@@ -174,8 +170,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("T//" ["T/"])
  ("t//" ["t/"])
  ("s//" ["s/"])
- ("C//" ["C/"])
- ("c//" ["c/"])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
  ("N~~" ["N~"])
  ("n~~" ["n~"])
  ("?//" ["?/"])
@@ -191,38 +187,34 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
              | postfix | examples
  ------------+---------+----------
   acute      |    '    | a' -> ,Ba(B
-  ogonek     |    `    | a` -> ,B1(B
+  ogonek     |    ,    | a, -> ,B1(B
   diaeresis  |    \"    | a\" -> ,Bd(B
   circumflex |    ^    | a^ -> ,Bb(B
   breve      |    ~    | a~ -> ,Bc(B
-  cedilla    |    `    | c` -> ,Bg(B
+  cedilla    |    ,    | c, -> ,Bg(B
   caron      |    ~    | c~ -> ,Bh(B
-  dbl. acute |    \"    | o\" -> ,Bu(B
-  ring       |    `    | u` -> ,By(B
-  dot        |    `    | z` -> ,B?(B
+  dbl. acute |    :    | o: -> ,Bu(B
+  ring       |    .    | u. -> ,By(B
+  dot        |    .    | z. -> ,B?(B
   stroke     |    /    | d/ -> ,Bp(B
   others     |    /    | s/ -> ,B_(B
-
-It would be natural to use period and comma for dots/rings and
-cedillas/ogoneks, but that would inconvenient in practice, because
-periods and commas are needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,BA(B)
- ("A`" ?,B!(B)
+ ("A," ?,B!(B)
  ("A\"" ?,BD(B)
  ("A^" ?,BB(B)
  ("A~" ?,BC(B)
  ("C'" ?,BF(B)
- ("C`" ?,BG(B)
+ ("C," ?,BG(B)
  ("C~" ?,BH(B)
  ("D/" ?,BP(B)
  ("D~" ?,BO(B)
  ("E'" ?,BI(B)
- ("E`" ?,BJ(B)
+ ("E," ?,BJ(B)
  ("E\"" ?,BK(B)
  ("E~" ?,BL(B)
  ("I'" ?,BM(B)
@@ -233,36 +225,36 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("N'" ?,BQ(B)
  ("N~" ?,BR(B)
  ("O'" ?,BS(B)
- ("O\"" ?,BU(B)
+ ("O:" ?,BU(B)
  ("O\"" ?,BV(B)
  ("O^" ?,BT(B)
  ("R'" ?,B@(B)
  ("R~" ?,BX(B)
  ("S'" ?,B&(B)
- ("S`" ?,B*(B)
+ ("S," ?,B*(B)
  ("S~" ?,B)(B)
- ("T`" ?,B^(B)
+ ("T," ?,B^(B)
  ("T~" ?,B+(B)
  ("U'" ?,BZ(B)
- ("U\"" ?,B[(B)
+ ("U:" ?,B[(B)
  ("U\"" ?,B\(B)
- ("U`" ?,BY(B)
+ ("U." ?,BY(B)
  ("Y'" ?,B](B)
  ("Z'" ?,B,(B)
- ("Z`" ?,B/(B)
+ ("Z." ?,B/(B)
  ("Z~" ?,B.(B)
  ("a'" ?,Ba(B)
- ("a`" ?,B1(B)
+ ("a," ?,B1(B)
  ("a\"" ?,Bd(B)
  ("a^" ?,Bb(B)
  ("a~" ?,Bc(B)
  ("c'" ?,Bf(B)
- ("c`" ?,Bg(B)
+ ("c," ?,Bg(B)
  ("c~" ?,Bh(B)
  ("d/" ?,Bp(B)
  ("d~" ?,Bo(B)
  ("e'" ?,Bi(B)
- ("e`" ?,Bj(B)
+ ("e," ?,Bj(B)
  ("e\"" ?,Bk(B)
  ("e~" ?,Bl(B)
  ("i'" ?,Bm(B)
@@ -273,38 +265,38 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("n'" ?,Bq(B)
  ("n~" ?,Br(B)
  ("o'" ?,Bs(B)
- ("o\"" ?,Bu(B)
+ ("o:" ?,Bu(B)
  ("o\"" ?,Bv(B)
  ("o^" ?,Bt(B)
  ("r'" ?,B`(B)
  ("r~" ?,Bx(B)
  ("s'" ?,B6(B)
- ("s`" ?,B:(B)
+ ("s," ?,B:(B)
  ("s/" ?,B_(B)
  ("s~" ?,B9(B)
- ("t`" ?,B~(B)
+ ("t," ?,B~(B)
  ("t~" ?,B;(B)
  ("u'" ?,Bz(B)
- ("u\"" ?,B{(B)
+ ("u:" ?,B{(B)
  ("u\"" ?,B|(B)
- ("u`" ?,By(B)
+ ("u." ?,By(B)
  ("y'" ?,B}(B)
  ("z'" ?,B<(B)
- ("z`" ?,B?(B)
+ ("z." ?,B?(B)
  ("z~" ?,B>(B)
 
  ("A''" ["A'"])
- ("A``" ["A`"])
+ ("A,," ["A,"])
  ("A\"\"" ["A\""])
  ("A^^" ["A^"])
  ("A~~" ["A~"])
  ("C''" ["C'"])
- ("C``" ["C`"])
+ ("C,," ["C,"])
  ("C~~" ["C~"])
  ("D//" ["D/"])
  ("D~~" ["D~"])
  ("E''" ["E'"])
- ("E``" ["E`"])
+ ("E,," ["E,"])
  ("E\"\"" ["E\""])
  ("E~~" ["E~"])
  ("I''" ["I'"])
@@ -321,30 +313,30 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("R''" ["R'"])
  ("R~~" ["R~"])
  ("S''" ["S'"])
- ("S``" ["S`"])
+ ("S,," ["S,"])
  ("S~~" ["S~"])
- ("T``" ["T`"])
+ ("T,," ["T,"])
  ("T~~" ["T~"])
  ("U''" ["U'"])
  ("U::" ["U:"])
  ("U\"\"" ["U\""])
- ("U``" ["U`"])
+ ("U.." ["U."])
  ("Y''" ["Y'"])
  ("Z''" ["Z'"])
- ("Z``" ["Z`"])
+ ("Z.." ["Z."])
  ("Z~~" ["Z~"])
  ("a''" ["a'"])
- ("a``" ["a`"])
+ ("a,," ["a,"])
  ("a\"\"" ["a\""])
  ("a^^" ["a^"])
  ("a~~" ["a~"])
  ("c''" ["c'"])
- ("c``" ["c`"])
+ ("c,," ["c,"])
  ("c~~" ["c~"])
  ("d//" ["d/"])
  ("d~~" ["d~"])
  ("e''" ["e'"])
- ("e``" ["e`"])
+ ("e,," ["e,"])
  ("e\"\"" ["e\""])
  ("e~~" ["e~"])
  ("i''" ["i'"])
@@ -361,18 +353,18 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("r''" ["r'"])
  ("r~~" ["r~"])
  ("s''" ["s'"])
- ("s``" ["s`"])
+ ("s,," ["s,"])
  ("s//" ["s/"])
  ("s~~" ["s~"])
- ("t``" ["t`"])
+ ("t,," ["t,"])
  ("t~~" ["t~"])
  ("u''" ["u'"])
  ("u::" ["u:"])
  ("u\"\"" ["u\""])
- ("u``" ["u`"])
+ ("u.." ["u."])
  ("y''" ["y'"])
  ("z''" ["z'"])
- ("z``" ["z`"])
+ ("z.." ["z."])
  ("z~~" ["z~"])
  )
 
@@ -386,16 +378,12 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   grave      |    `    | a` -> ,C`(B
   circumflex |    ^    | a^ -> ,Cb(B
   diaeresis  |    \"    | a\" -> ,Cd(B
-  dot        |    /    | c/ -> ,Ce(B   i/ -> ,C9(B   I/ -> ,C)(B
-  cedilla    |    `    | c` -> ,Cg(B
+  dot        |    .    | c. -> ,Ce(B   i. -> ,C9(B   I. -> ,C)(B
+  cedilla    |    ,    | c, -> ,Cg(B
   breve      |    ~    | g~ -> ,C;(B
   tilde      |    ~    | n~ -> ,Cq(B
   stroke     |    /    | h/ -> ,C1(B
   others     |    /    | s/ -> ,C_(B
-
-It would be natural to use period and comma for dots and cedillas, but
-that would inconvenient in practice, because periods and commas are
-needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
@@ -405,19 +393,19 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("A'" ?,CA(B)
  ("A^" ?,CB(B)
  ("A\"" ?,CD(B)
- ("C/" ?,CE(B)
+ ("C." ?,CE(B)
  ("C^" ?,CF(B)
- ("C`" ?,CG(B)
+ ("C," ?,CG(B)
  ("E`" ?,CH(B)
  ("E'" ?,CI(B)
  ("E^" ?,CJ(B)
  ("E\"" ?,CK(B)
  ("G~" ?,C+(B)
- ("G/" ?,CU(B)
+ ("G." ?,CU(B)
  ("G^" ?,CX(B)
  ("H/" ?,C!(B)
  ("H^" ?,C&(B)
- ("I/" ?,C)(B)
+ ("I." ?,C)(B)
  ("I`" ?,CL(B)
  ("I'" ?,CM(B)
  ("I^" ?,CN(B)
@@ -428,31 +416,31 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("O'" ?,CS(B)
  ("O^" ?,CT(B)
  ("O\"" ?,CV(B)
- ("S`" ?,C*(B)
+ ("S," ?,C*(B)
  ("S^" ?,C^(B)
  ("U`" ?,CY(B)
  ("U'" ?,CZ(B)
  ("U^" ?,C[(B)
  ("U\"" ?,C\(B)
  ("U~" ?,C](B)
- ("Z/" ?,C/(B)
+ ("Z." ?,C/(B)
  ("a`" ?,C`(B)
  ("a'" ?,Ca(B)
  ("a^" ?,Cb(B)
  ("a\"" ?,Cd(B)
- ("c/" ?,Ce(B)
+ ("c." ?,Ce(B)
  ("c^" ?,Cf(B)
- ("c`" ?,Cg(B)
+ ("c," ?,Cg(B)
  ("e`" ?,Ch(B)
  ("e'" ?,Ci(B)
  ("e^" ?,Cj(B)
  ("e\"" ?,Ck(B)
  ("g~" ?,C;(B)
- ("g/" ?,Cu(B)
+ ("g." ?,Cu(B)
  ("g^" ?,Cx(B)
  ("h/" ?,C1(B)
  ("h^" ?,C6(B)
- ("i/" ?,C9(B)
+ ("i." ?,C9(B)
  ("i`" ?,Cl(B)
  ("i'" ?,Cm(B)
  ("i^" ?,Cn(B)
@@ -463,7 +451,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("o'" ?,Cs(B)
  ("o^" ?,Ct(B)
  ("o\"" ?,Cv(B)
- ("s`" ?,C:(B)
+ ("s," ?,C:(B)
  ("s/" ?,C_(B)
  ("s^" ?,C~(B)
  ("u`" ?,Cy(B)
@@ -471,25 +459,25 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("u^" ?,C{(B)
  ("u\"" ?,C|(B)
  ("u~" ?,C}(B)
- ("z/" ?,C?(B)
+ ("z." ?,C?(B)
 
  ("A``" ["A`"])
  ("A''" ["A'"])
  ("A^^" ["A^"])
  ("A\"\"" ["A\""])
- ("C//" ["C/"])
+ ("C.." ["C."])
  ("C^^" ["C^"])
- ("C``" ["C`"])
+ ("C,," ["C,"])
  ("E``" ["E`"])
  ("E''" ["E'"])
  ("E^^" ["E^"])
  ("E\"\"" ["E\""])
  ("G~~" ["G~"])
- ("G//" ["G/"])
+ ("G.." ["G."])
  ("G^^" ["G^"])
  ("H//" ["H/"])
  ("H^^" ["H^"])
- ("I//" ["I/"])
+ ("I.." ["I."])
  ("I``" ["I`"])
  ("I''" ["I'"])
  ("I^^" ["I^"])
@@ -500,31 +488,31 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("O''" ["O'"])
  ("O^^" ["O^"])
  ("O\"\"" ["O\""])
- ("S``" ["S`"])
+ ("S,," ["S,"])
  ("S^^" ["S^"])
  ("U``" ["U`"])
  ("U''" ["U'"])
  ("U^^" ["U^"])
  ("U\"\"" ["U\""])
  ("U~~" ["U~"])
- ("Z//" ["Z/"])
+ ("Z.." ["Z."])
  ("a``" ["a`"])
  ("a''" ["a'"])
  ("a^^" ["a^"])
  ("a\"\"" ["a\""])
- ("c//" ["c/"])
+ ("c.." ["c."])
  ("c^^" ["c^"])
- ("c``" ["c`"])
+ ("c,," ["c,"])
  ("e``" ["e`"])
  ("e''" ["e'"])
  ("e^^" ["e^"])
  ("e\"\"" ["e\""])
  ("g~~" ["g~"])
- ("g//" ["g/"])
+ ("g.." ["g."])
  ("g^^" ["g^"])
  ("h//" ["h/"])
  ("h^^" ["h^"])
- ("i//" ["i/"])
+ ("i.." ["i."])
  ("i``" ["i`"])
  ("i''" ["i'"])
  ("i^^" ["i^"])
@@ -535,7 +523,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("o''" ["o'"])
  ("o^^" ["o^"])
  ("o\"\"" ["o\""])
- ("s``" ["s`"])
+ ("s,," ["s,"])
  ("s//" ["s/"])
  ("s^^" ["s^"])
  ("u``" ["u`"])
@@ -543,7 +531,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("u^^" ["u^"])
  ("u\"\"" ["u\""])
  ("u~~" ["u~"])
- ("z//" ["z/"])
+ ("z.." ["z."])
  )
 
 (quail-define-package
@@ -555,25 +543,21 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   acute      |    '    | a' -> ,Da(B
   circumflex |    ^    | a^ -> ,Db(B
   diaeresis  |    \"    | a\" -> ,Dd(B
-  ogonek     |    `    | a` -> ,D1(B
+  ogonek     |    ,    | a, -> ,D1(B
   macron     |    -    | a- -> ,D`(B
   tilde      |    ~    | a~ -> ,Dc(B
   caron      |    ~    | c~ -> ,Dh(B
-  dot        |    ~    | e~ -> ,Dl(B
-  cedilla    |    `    | k` -> ,Ds(B   g` -> ,D;(B
+  dot        |    .    | e. -> ,Dl(B
+  cedilla    |    ,    | k, -> ,Ds(B   g, -> ,D;(B
   stroke     |    /    | d/ -> ,Dp(B
   nordic     |    /    | a/ -> ,De(B   e/ -> ,Df(B   o/ -> ,Dx(B
   others     |    /    | s/ -> ,D_(B   n/ -> ,D?(B   k/ -> ,D"(B
-
-It would be natural to use period and comma for dots and
-cedillas/ogoneks, but that would inconvenient in practice, because
-periods and commas are needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("A`" ?,D!(B)
+ ("A," ?,D!(B)
  ("A-" ?,D@(B)
  ("A'" ?,DA(B)
  ("A^" ?,DB(B)
@@ -585,35 +569,35 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("E/" ?,DF(B)
  ("E-" ?,D*(B)
  ("E'" ?,DI(B)
- ("E`" ?,DJ(B)
+ ("E," ?,DJ(B)
  ("E\"" ?,DK(B)
- ("E~" ?,DL(B)
- ("G`" ?,D+(B)
+ ("E." ?,DL(B)
+ ("G," ?,D+(B)
  ("I~" ?,D%(B)
- ("I`" ?,DG(B)
+ ("I," ?,DG(B)
  ("I'" ?,DM(B)
  ("I^" ?,DN(B)
  ("I-" ?,DO(B)
- ("K`" ?,DS(B)
- ("L`" ?,D&(B)
+ ("K," ?,DS(B)
+ ("L," ?,D&(B)
  ("N/" ?,D=(B)
- ("N`" ?,DQ(B)
+ ("N," ?,DQ(B)
  ("O-" ?,DR(B)
  ("O^" ?,DT(B)
  ("O~" ?,DU(B)
  ("O\"" ?,DV(B)
  ("O/" ?,DX(B)
- ("R`" ?,D#(B)
+ ("R," ?,D#(B)
  ("S~" ?,D)(B)
  ("T/" ?,D,(B)
- ("U`" ?,DY(B)
+ ("U," ?,DY(B)
  ("U'" ?,DZ(B)
  ("U^" ?,D[(B)
  ("U\"" ?,D\(B)
  ("U~" ?,D](B)
  ("U-" ?,D^(B)
  ("Z~" ?,D.(B)
- ("a`" ?,D1(B)
+ ("a," ?,D1(B)
  ("a-" ?,D`(B)
  ("a'" ?,Da(B)
  ("a^" ?,Db(B)
@@ -625,30 +609,30 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("e/" ?,Df(B)
  ("e-" ?,D:(B)
  ("e'" ?,Di(B)
- ("e`" ?,Dj(B)
+ ("e," ?,Dj(B)
  ("e\"" ?,Dk(B)
- ("e~" ?,Dl(B)
- ("g`" ?,D;(B)
+ ("e." ?,Dl(B)
+ ("g," ?,D;(B)
  ("i~" ?,D5(B)
- ("i`" ?,Dg(B)
+ ("i," ?,Dg(B)
  ("i'" ?,Dm(B)
  ("i^" ?,Dn(B)
  ("i-" ?,Do(B)
  ("k/" ?,D"(B)
- ("k`" ?,Ds(B)
- ("l`" ?,D6(B)
+ ("k," ?,Ds(B)
+ ("l," ?,D6(B)
  ("n/" ?,D?(B)
- ("n`" ?,Dq(B)
+ ("n," ?,Dq(B)
  ("o-" ?,Dr(B)
  ("o^" ?,Dt(B)
  ("o~" ?,Du(B)
  ("o\"" ?,Dv(B)
  ("o/" ?,Dx(B)
- ("r`" ?,D3(B)
+ ("r," ?,D3(B)
  ("s/" ?,D_(B)
  ("s~" ?,D9(B)
  ("t/" ?,D<(B)
- ("u`" ?,Dy(B)
+ ("u," ?,Dy(B)
  ("u'" ?,Dz(B)
  ("u^" ?,D{(B)
  ("u\"" ?,D|(B)
@@ -656,7 +640,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("u-" ?,D~(B)
  ("z~" ?,D>(B)
 
- ("A``" ["A`"])
+ ("A,," ["A,"])
  ("A--" ["A-"])
  ("A''" ["A'"])
  ("A^^" ["A^"])
@@ -668,35 +652,35 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("E//" ["E/"])
  ("E--" ["E-"])
  ("E''" ["E'"])
- ("E``" ["E`"])
+ ("E,," ["E,"])
  ("E\"\"" ["E\""])
- ("E~~" ["E~"])
- ("G``" ["G`"])
+ ("E.." ["E."])
+ ("G,," ["G,"])
  ("I~~" ["I~"])
- ("I``" ["I`"])
+ ("I,," ["I,"])
  ("I''" ["I'"])
  ("I^^" ["I^"])
  ("I--" ["I-"])
- ("K``" ["K`"])
- ("L``" ["L`"])
+ ("K,," ["K,"])
+ ("L,," ["L,"])
  ("N//" ["N/"])
- ("N``" ["N`"])
+ ("N,," ["N,"])
  ("O--" ["O-"])
  ("O^^" ["O^"])
  ("O~~" ["O~"])
  ("O\"\"" ["O\""])
  ("O//" ["O/"])
- ("R``" ["R`"])
+ ("R,," ["R,"])
  ("S~~" ["S~"])
  ("T//" ["T/"])
- ("U``" ["U`"])
+ ("U,," ["U,"])
  ("U''" ["U'"])
  ("U^^" ["U^"])
  ("U\"\"" ["U\""])
  ("U~~" ["U~"])
  ("U--" ["U-"])
  ("Z~~" ["Z~"])
- ("a``" ["a`"])
+ ("a,," ["a,"])
  ("a--" ["a-"])
  ("a''" ["a'"])
  ("a^^" ["a^"])
@@ -708,30 +692,30 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("e//" ["e/"])
  ("e--" ["e-"])
  ("e''" ["e'"])
- ("e``" ["e`"])
+ ("e,," ["e,"])
  ("e\"\"" ["e\""])
- ("e~~" ["e~"])
- ("g``" ["g`"])
+ ("e.." ["e."])
+ ("g,," ["g,"])
  ("i~~" ["i~"])
- ("i``" ["i`"])
+ ("i,," ["i,"])
  ("i''" ["i'"])
  ("i^^" ["i^"])
  ("i--" ["i-"])
  ("k//" ["k/"])
- ("k``" ["k`"])
- ("l``" ["l`"])
+ ("k,," ["k,"])
+ ("l,," ["l,"])
  ("n//" ["n/"])
- ("n``" ["n`"])
+ ("n,," ["n,"])
  ("o--" ["o-"])
  ("o^^" ["o^"])
  ("o~~" ["o~"])
  ("o\"\"" ["o\""])
  ("o//" ["o/"])
- ("r``" ["r`"])
+ ("r,," ["r,"])
  ("s//" ["s/"])
  ("s~~" ["s~"])
  ("t//" ["t/"])
- ("u``" ["u`"])
+ ("u,," ["u,"])
  ("u''" ["u'"])
  ("u^^" ["u^"])
  ("u\"\"" ["u\""])
@@ -752,14 +736,10 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   diaeresis  |    \"    | a\" -> ,Md(B
   tilde      |    ~    | a~ -> ,Mc(B
   breve      |    ~    | g~ -> ,Mp(B
-  cedilla    |    `    | c` -> ,Mg(B
-  dot        |    /    | i/ -> ,M}(B   I/ -> ,M](B
+  cedilla    |    ,    | c, -> ,Mg(B
+  dot        |    .    | i. -> ,M}(B   I. -> ,M](B
   nordic     |    /    | a/ -> ,Me(B   e/ -> ,Mf(B   o/ -> ,Mx(B
   others     |    /    | s/ -> ,M_(B
-
-It would be natural to use period and comma for dots and cedillas, but
-that would inconvenient in practice, because periods and commas are
-needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
@@ -771,7 +751,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("A^" ?,MB(B)
  ("A`" ?,M@(B)
  ("A~" ?,MC(B)
- ("C`" ?,MG(B)
+ ("C," ?,MG(B)
  ("E'" ?,MI(B)
  ("E/" ?,MF(B)
  ("E\"" ?,MK(B)
@@ -779,7 +759,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("E`" ?,MH(B)
  ("G~" ?,MP(B)
  ("I'" ?,MM(B)
- ("I/" ?,M](B)
+ ("I." ?,M](B)
  ("I\"" ?,MO(B)
  ("I^" ?,MN(B)
  ("I`" ?,ML(B)
@@ -790,7 +770,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("O^" ?,MT(B)
  ("O`" ?,MR(B)
  ("O~" ?,MU(B)
- ("S`" ?,M^(B)
+ ("S," ?,M^(B)
  ("U'" ?,MZ(B)
  ("U\"" ?,M\(B)
  ("U^" ?,M[(B)
@@ -801,7 +781,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("a^" ?,Mb(B)
  ("a`" ?,M`(B)
  ("a~" ?,Mc(B)
- ("c`" ?,Mg(B)
+ ("c," ?,Mg(B)
  ("e'" ?,Mi(B)
  ("e/" ?,Mf(B)
  ("e\"" ?,Mk(B)
@@ -809,7 +789,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("e`" ?,Mh(B)
  ("g~" ?,Mp(B)
  ("i'" ?,Mm(B)
- ("i/" ?,M}(B)
+ ("i." ?,M}(B)
  ("i\"" ?,Mo(B)
  ("i^" ?,Mn(B)
  ("i`" ?,Ml(B)
@@ -820,7 +800,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("o^" ?,Mt(B)
  ("o`" ?,Mr(B)
  ("o~" ?,Mu(B)
- ("s`" ?,M~(B)
+ ("s," ?,M~(B)
  ("s/" ?,M_(B)
  ("u'" ?,Mz(B)
  ("u\"" ?,M|(B)
@@ -834,7 +814,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("A^^" ["A^"])
  ("A``" ["A`"])
  ("A~~" ["A~"])
- ("C``" ["C`"])
+ ("C,," ["C,"])
  ("E''" ["E'"])
  ("E//" ["E/"])
  ("E\"\"" ["E\""])
@@ -842,7 +822,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("E``" ["E`"])
  ("G~~" ["G~"])
  ("I''" ["I'"])
- ("I//" ["I/"])
+ ("I.." ["I."])
  ("I\"\"" ["I\""])
  ("I^^" ["I^"])
  ("I``" ["I`"])
@@ -853,7 +833,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("O^^" ["O^"])
  ("O``" ["O`"])
  ("O~~" ["O~"])
- ("S``" ["S`"])
+ ("S,," ["S,"])
  ("U''" ["U'"])
  ("U\"\"" ["U\""])
  ("U^^" ["U^"])
@@ -864,7 +844,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("a^^" ["a^"])
  ("a``" ["a`"])
  ("a~~" ["a~"])
- ("c``" ["c`"])
+ ("c,," ["c,"])
  ("e''" ["e'"])
  ("e//" ["e/"])
  ("e\"\"" ["e\""])
@@ -872,7 +852,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("e``" ["e`"])
  ("g~~" ["g~"])
  ("i''" ["i'"])
- ("i//" ["i/"])
+ ("i.." ["i."])
  ("i\"\"" ["i\""])
  ("i^^" ["i^"])
  ("i``" ["i`"])
@@ -883,7 +863,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("o^^" ["o^"])
  ("o``" ["o`"])
  ("o~~" ["o~"])
- ("s``" ["s`"])
+ ("s,," ["s,"])
  ("s//" ["s/"])
  ("u''" ["u'"])
  ("u\"\"" ["u\""])
@@ -1013,7 +993,7 @@ OEE -> OE
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
 Par exemple: a` -> ,A`(B, e' -> ,Ai(B.
 
-,AG(B, ,A+(B, et ,A;(B sont produits par C/, <<, et >>.
+,AG(B, ,A+(B, et ,A;(B sont produits par C,, <<, et >>.
 
 En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
 Par exemple: e'' -> e'
@@ -1046,8 +1026,8 @@ Par exemple: e'' -> e'
  ("u`" ?,Ay(B)
  ("u^" ?,A{(B)
  ("u\"" ?,A|(B)
- ("C/" ?,AG(B)
- ("c/" ?,Ag(B)
+ ("C," ?,AG(B)
+ ("c," ?,Ag(B)
  ("<<" ?,A+(B)
  (">>" ?,A;(B)
 
@@ -1075,8 +1055,8 @@ Par exemple: e'' -> e'
  ("u``" ["u`"])
  ("u^^" ["u^"])
  ("u\"\"" ["u\""])
- ("C//" ["C/"])
- ("c//" ["c/"])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
  ("<<<" ["<<"])
  (">>>" [">>"])
  )
@@ -1368,14 +1348,14 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 Note for I, ,C9(B, ,C)(B, i.
 
 A^ -> ,CB(B
-C` -> ,CG(B
+C, -> ,CG(B
 G^ -> ,C+(B
 I  -> I
 i  -> ,C9(B
-I/ -> ,C)(B
-i/ -> i
+I. -> ,C)(B
+i. -> i
 O\" -> ,CV(B
-S` -> ,C*(B
+S, -> ,C*(B
 U\" -> ,C\(B
 U^ -> ,C[(B
 
@@ -1385,17 +1365,17 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 (quail-define-rules
  ("A^" ?,CB(B)
  ("a^" ?,Cb(B)
- ("C`" ?,CG(B)
- ("c`" ?,Cg(B)
+ ("C," ?,CG(B)
+ ("c," ?,Cg(B)
  ("G^" ?,C+(B)
  ("g^" ?,C;(B)
- ("I/" ?,C)(B)
+ ("I." ?,C)(B)
  ("i" ?,C9(B)
- ("i/" ?i)
+ ("i." ?i)
  ("O\"" ?,CV(B)
  ("o\"" ?,Cv(B)
- ("S`" ?,C*(B)
- ("s`" ?,C:(B)
+ ("S," ?,C*(B)
+ ("s," ?,C:(B)
  ("U\"" ?,C\(B)
  ("u\"" ?,C|(B)
  ("U^" ?,C[(B)
@@ -1403,17 +1383,17 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
  ("A^^" ["A^"])
  ("a^^" ["a^"])
- ("C``" ["C`"])
- ("c``" ["c`"])
+ ("C,," ["C,"])
+ ("c,," ["c,"])
  ("G^^" ["G^"])
  ("g^^" ["g^"])
- ("I//" ["I/"])
+ ("I.." ["I."])
  ("i" ["i"])
- ("i//" ["i/"])
+ ("i.." ["i."])
  ("O\"\"" ["O\""])
  ("o\"\"" ["o\""])
- ("S``" ["S`"])
- ("s``" ["s`"])
+ ("S,," ["S,"])
+ ("s,," ["s,"])
  ("U\"\"" ["U\""])
  ("u\"\"" ["u\""])
  ("U^^" ["U^"])
