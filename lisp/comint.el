@@ -315,8 +315,9 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
-Kerberos \\|CVS \\|UNIX \\| SMB \\|\
-^\\)[Pp]assword\\( (again)\\)?\\|pass phrase\\|Enter passphrase\\)\
+Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
+[Pp]assword\\( (again)\\)?\\|\
+pass phrase\\|\\(Enter\\|Repeat\\) passphrase\\)\
 \\( for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
