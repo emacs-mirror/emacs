@@ -545,9 +545,32 @@ struct Lisp_Buffer_Cons
     int bufpos;
   };
 
+#if 0
+
 /* Nonzero if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
-  (XSTRING (STR)->size != XSTRING (STR)->size_byte)
+  (XSTRING (STR)->size_byte != XSTRING (STR)->size)
+
+/* Return the length in bytes of STR.  */
+#define STRING_BYTES(STR)  ((STR)->size_byte + 0)
+
+/* Set the length in bytes of STR.  */
+#define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
+
+#else
+
+/* Nonzero if STR is a multibyte string.  */
+#define STRING_MULTIBYTE(STR)  \
+  (XSTRING (STR)->size_byte >= 0)
+
+/* Return the length in bytes of STR.  */
+#define STRING_BYTES(STR)  \
+  ((STR)->size_byte < 0 ? (STR)->size : (STR)->size_byte)
+
+/* Set the length in bytes of STR.  */
+#define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
+
+#endif /* 0 */
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit */
 
@@ -1731,7 +1754,7 @@ extern void modify_region P_ ((struct buffer *, int, int));
 extern void prepare_to_modify_buffer P_ ((int, int, int *));
 extern void signal_before_change P_ ((int, int, int *));
 extern void signal_after_change P_ ((int, int, int));
-extern void replace_range P_ ((int, int, Lisp_Object, int, int));
+extern void replace_range P_ ((int, int, Lisp_Object, int, int, int));
 
 /* Defined in dispnew.c */
 EXFUN (Fding, 1);
@@ -1781,12 +1804,14 @@ EXFUN (Fmake_marker, 0);
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string P_ ((char *));
 extern Lisp_Object make_string P_ ((char *, int));
-extern Lisp_Object make__multibytestring P_ ((char *, int, int));
+extern Lisp_Object make_multibyte_string P_ ((char *, int, int));
 extern Lisp_Object make_event_array P_ ((int, Lisp_Object *));
 extern Lisp_Object make_uninit_string P_ ((int));
 extern Lisp_Object make_uninit_multibyte_string P_ ((int, int));
+extern Lisp_Object make_string_from_bytes P_ ((char *, int, int));
+extern Lisp_Object make_specified_string P_ ((char *, int, int, int));
 EXFUN (Fpurecopy, 1);
-extern Lisp_Object make_pure_string P_ ((char *, int, int));
+extern Lisp_Object make_pure_string P_ ((char *, int, int, int));
 extern Lisp_Object pure_cons P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object make_pure_vector P_ ((EMACS_INT));
 EXFUN (Fgarbage_collect, 0);
