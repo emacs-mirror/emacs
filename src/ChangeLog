@@ -1,3 +1,8 @@
+2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (decode_coding_emacs_mule): Fix the case of
+	CODING_EOL_LF, which used uninitialized value of c.
+
 2000-11-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xdisp.c (syms_of_xdisp): Make fontification-functions buffer-local.
