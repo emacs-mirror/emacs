@@ -1,5 +1,8 @@
 2002-08-05  Richard M. Stallman  <rms@gnu.org>
 
+	* international/mule-cmds.el (select-safe-coding-system): Check for
+	non-nil CODING-SYSTEM before warning it disagrees with AUTO-CS.
+
 	* net/ange-ftp.el (ange-ftp-smart-gateway): Doc fix.
 
 2002-08-05  Gerd Moellmann  <gerd@gnu.org>
