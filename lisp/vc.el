@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.321 2001/11/23 10:11:29 spiegel Exp $
+;; $Id: vc.el,v 1.322 2001/11/26 16:07:50 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1201,7 +1201,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	      (vc-version-diff file (vc-workfile-version file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
-		(insert-string
+		(insert
 		 (format "Changes to %s since last lock:\n\n" file)))
 	      (not (beep))
 	      (yes-or-no-p (concat "File has unlocked changes.  "
@@ -2152,7 +2152,6 @@ There is a special command, `*l', to mark all files currently locked."
   ;; We do it here because dired might not be loaded yet
   ;; when vc-dired-mode-map is initialized.
   (set-keymap-parent vc-dired-mode-map dired-mode-map)
-  (make-local-hook 'dired-after-readin-hook)
   (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
   ;; The following is slightly modified from dired.el,
   ;; because file lines look a bit different in vc-dired-mode.
