@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is).
 
-;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -206,6 +206,14 @@
 (defvar default-frame-alist nil)
 (modify-frame-parameters terminal-frame default-frame-alist)
 
+(defun msdos-bg-mode (&optional frame)
+  (let* ((frame (or frame (selected-frame)))
+	 (params (frame-parameters frame))
+	 (bg (cdr (assq 'background-color params))))
+    (if (member bg '("black" "blue" "darkgray" "green"))
+	'dark
+      'light)))
+
 (defun msdos-face-setup ()
   (modify-frame-parameters terminal-frame default-frame-alist)
 
@@ -222,16 +230,25 @@
   (set-face-foreground 'msdos-menu-passive-face "lightgray" terminal-frame)
   (set-face-background 'msdos-menu-active-face "blue" terminal-frame)
   (set-face-background 'msdos-menu-passive-face "blue" terminal-frame)
-  (set-face-background 'msdos-menu-select-face "red" terminal-frame))
+  (set-face-background 'msdos-menu-select-face "red" terminal-frame)
+  (modify-frame-parameters terminal-frame
+			   (list (cons 'background-mode
+				       (msdos-bg-mode terminal-frame))
+				 (cons 'display-type 'color))))
 
 ;; We have only one font, so...
 (add-hook 'before-init-hook 'msdos-face-setup)
 
 ;; We create frames as if we were a terminal, but with a twist.
 (defun make-msdos-frame (&optional parameters)
-  (let ((parms
-	 (append initial-frame-alist default-frame-alist parameters nil)))
-    (make-terminal-frame parms)))
+  (let* ((parms
+	  (append initial-frame-alist default-frame-alist parameters nil))
+	 (frame (make-terminal-frame parms)))
+    (modify-frame-parameters frame
+			     (list (cons 'background-mode
+					 (msdos-bg-mode frame))
+				   (cons 'display-type 'color)))
+    frame))
 
 (setq frame-creation-function 'make-msdos-frame)
 
