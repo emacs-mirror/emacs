@@ -9582,11 +9582,6 @@ x_create_tip_frame (dpyinfo, parms)
 
   x_make_gc (f);
 
-  /* We need to do this after creating the X window, so that the
-     icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qnil,
-		       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
-
   x_default_parameter (f, parms, Qauto_raise, Qnil,
 		       "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qauto_lower, Qnil,
@@ -9710,9 +9705,8 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
       if (!row->enabled_p || !row->displays_text_p)
 	break;
 
-      /* Let the row go over the full width of the frame, not
-	 including internal borders.  */
-      row->full_width_p = row->internal_border_p = 1;
+      /* Let the row go over the full width of the frame.  */
+      row->full_width_p = 1;
 
       /* There's a glyph at the end of rows that is use to place
 	 the cursor there.  Don't include the width of this glyph.  */
