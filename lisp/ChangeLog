@@ -1,6 +1,6 @@
 2002-06-13  Miles Bader  <miles@gnu.org>
 
-	Lexical binding support (not finished yet):
+	Byte compiler lexical binding support (not finished yet):
 	* emacs-lisp/bytecomp.el: Require `macroexp'.
 	(byte-compile-lexical-environment) 
 	(byte-compile-current-heap-environment) 
