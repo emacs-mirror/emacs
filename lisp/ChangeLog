@@ -1,3 +1,8 @@
+2001-10-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/iso-acc.el (iso-accents-compose): Remove a
+	superfluous setq.
+
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (invert-face): Check for 'unspecified, not for nil,
