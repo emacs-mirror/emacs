@@ -388,11 +388,12 @@ MODE should be an integer which is a file mode value."
 		   (dir (file-name-directory name))
 		   (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
 		   (end (+ start (tar-header-size tokens))))
-	      (message "Extracting %s" name)
-	      (if (and dir (not (file-exists-p dir)))
-		  (make-directory dir t))
-	      (write-region start end name)
-	      (set-file-modes name (tar-header-mode tokens)))))
+	      (unless (file-directory-p name)
+		(message "Extracting %s" name)
+		(if (and dir (not (file-exists-p dir)))
+		    (make-directory dir t))
+		(write-region start end name)
+		(set-file-modes name (tar-header-mode tokens))))))
       (set-buffer-multibyte multibyte))))
 
 (defun tar-summarize-buffer ()
@@ -604,14 +605,13 @@ appear on disk when you save the tar-file's buffer."
 	    (not tar-subfile-mode)
 	    (> (prefix-numeric-value p) 0)))
   (cond (tar-subfile-mode
-	 (make-local-variable 'local-write-file-hooks)
-	 (setq local-write-file-hooks '(tar-subfile-save-buffer))
+	 (add-hook 'write-file-functions 'tar-subfile-save-buffer nil t)
 	 ;; turn off auto-save.
 	 (auto-save-mode -1)
 	 (setq buffer-auto-save-file-name nil)
 	 (run-hooks 'tar-subfile-mode-hook))
 	(t
-	 (kill-local-variable 'local-write-file-hooks))))
+	 (remove-hook 'write-file-functions 'tar-subfile-save-buffer t))))
 
 
 ;; Revert the buffer and recompute the dired-like listing.
