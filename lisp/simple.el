@@ -1875,8 +1875,16 @@ The argument is used for internal purposes; do not supply one."
 	(setq this-command 'kill-region)
 	(message "If the next command is a kill, it will append"))
     (setq last-command 'kill-region)))
-
+
 ;; Yanking.
+
+;; This is actually used in subr.el but defcustom does not work there.
+(defcustom yank-excluded-properties
+  '(read-only invisible intangible field mouse-face local-map keymap)
+  "*Text properties to discard when yanking."
+  :type '(choice (const :tag "All" t) (repeat symbol))
+  :group 'editing
+  :version 21.4)
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -1899,10 +1907,7 @@ comes the newest one."
 	(before (< (point) (mark t))))
     (delete-region (point) (mark t))
     (set-marker (mark-marker) (point) (current-buffer))
-    (let ((opoint (point)))
-      (insert (current-kill arg))
-      (let ((inhibit-read-only t))
-	(remove-text-properties opoint (point) '(read-only nil))))
+    (insert-for-yank (current-kill arg))
     (if before
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
@@ -1924,15 +1929,10 @@ See also the command \\[yank-pop]."
   ;; for the following command.
   (setq this-command t)
   (push-mark (point))
-  (let ((opoint (point)))
-    (insert (current-kill (cond
-			   ((listp arg) 0)
-			   ((eq arg '-) -1)
-			   (t (1- arg)))))
-    (let ((inhibit-read-only t))
-      ;; Clear `field' property for the sake of copying from the
-      ;; minibuffer prompt or a *shell* prompt.
-      (remove-text-properties opoint (point) '(read-only nil field nil))))
+  (insert-for-yank (current-kill (cond
+				  ((listp arg) 0)
+				  ((eq arg '-) -1)
+				  (t (1- arg)))))
   (if (consp arg)
       ;; This is like exchange-point-and-mark, but doesn't activate the mark.
       ;; It is cleaner to avoid activation, even though the command
