@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 92/09/14 16:26:02 $|$Revision: 1.4 $|~/modes/isearch-mode.el
+;; |$Date: 1992/09/21 08:28:43 $|$Revision: 1.10 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /import/kaplan/kaplan/liberte/Isearch/RCS/isearch-mode.el,v 1.4 92/09/14 16:26:02 liberte Exp Locker: liberte $
-;;; $Log:	isearch-mode.el,v $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.10 1992/09/21 08:28:43 rms Exp rms $
+;;; $Log: isearch-mode.el,v $
+; Revision 1.10  1992/09/21  08:28:43  rms
+; entered into RCS
+;
 ;;; Revision 1.4  92/09/14  16:26:02  liberte
 ;;; Added prefix args to isearch-forward, etc. to switch between
 ;;;    string and regular expression searching.
@@ -1114,7 +1117,7 @@ If not in regexp mode, activate word search."
 
       (erase-buffer)
       (insert (nth yank-pointer ring))
-      (goto-char (point-max))))))
+      (goto-char (point-max)))))
 
 (defun isearch-ring-retreat-edit (n)
   "Inserts the previous element of the search history into the minibuffer."
