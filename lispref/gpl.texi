@@ -1,9 +1,9 @@
 @c -*-texinfo-*-
 @setfilename ../info/gpl
 
-@node Copying, , Top, Top
+@node GPL, , Top, Top
 @comment  node-name,  next,  previous,  up
-@appendix GNU GENERAL PUBLIC LICENSE
+@appendix GNU General Public License
 @center Version 2, June 1991
 
 @display
@@ -65,7 +65,7 @@ patent must be licensed for everyone's free use or not licensed at all.
 modification follow.
 
 @iftex
-@unnumberedsec TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+@unnumberedsec Terms and Conditions for Copying, Distribution and Modification
 @end iftex
 @ifinfo
 @center TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
