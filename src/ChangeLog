@@ -1,5 +1,13 @@
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (get_glyph_string_clip_rect): Use
+	FRAME_INTERNAL_BORDER_WIDTH.
+
+	* dispextern.h (struct redisplay_interface): Add active_p
+	argument to draw_window_cursor member.  All uses changed.
+
+2003-03-21  Kim F. Storm  <storm@cua.dk>
+
 	The following changes consolidate code related to writing and
 	inserting glyphs, exposing frame, the tool bar, the mouse face,
 	the output cursor, and help echo from xterm.c, w32term.c and
