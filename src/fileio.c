@@ -2628,22 +2628,16 @@ to the file, instead of any buffer contents, and END is ignored.")
   int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  /* Special kludge to simplify auto-saving */
-  if (NILP (start))
-    {
-      XFASTINT (start) = BEG;
-      XFASTINT (end) = Z;
-    }
-  else if (XTYPE (start) != Lisp_String)
+  if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
   filename = Fexpand_file_name (filename, Qnil);
-  if (XTYPE (visit) == Lisp_String)
+  if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
   else
     visit_file = filename;
 
-  visiting = (EQ (visit, Qt) || XTYPE (visit) == Lisp_String);
+  visiting = (EQ (visit, Qt) || STRINGP (visit));
   quietly = !NILP (visit);
 
   annotations = Qnil;
@@ -2670,6 +2664,13 @@ to the file, instead of any buffer contents, and END is ignored.")
       return val;
     }
 
+  /* Special kludge to simplify auto-saving.  */
+  if (NILP (start))
+    {
+      XFASTINT (start) = BEG;
+      XFASTINT (end) = Z;
+    }
+
   annotations = build_annotations (start, end);
 
 #ifdef CLASH_DETECTION
@@ -2689,7 +2690,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	vms_truncate (fn);	/* if fn exists, truncate to zero length */
 	desc = open (fn, O_RDWR);
 	if (desc < 0)
-	  desc = creat_copy_attrs (XTYPE (current_buffer->filename) == Lisp_String
+	  desc = creat_copy_attrs (STRINGP (current_buffer->filename)
 				   ? XSTRING (current_buffer->filename)->data : 0,
 				   fn);
       }
@@ -2778,7 +2779,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   failure = 0;
   immediate_quit = 1;
 
-  if (XTYPE (start) == Lisp_String)
+  if (STRINGP (start))
     {
       failure = 0 > a_write (desc, XSTRING (start)->data,
 			     XSTRING (start)->size, 0, &annotations);
