@@ -302,7 +302,7 @@ preferred coding system as needed for the locale.
 
   If you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
 environment variables while running Emacs, you may want to invoke the
-@code{set-locale-environment} function afterwards to re-adjust the
+@code{set-locale-environment} function afterwards to readjust the
 language environment from the new locale.
 
 @vindex locale-preferred-coding-systems
@@ -363,9 +363,9 @@ characters can share one input method.  A few languages support several
 input methods.
 
   The simplest kind of input method works by mapping ASCII letters
-into another alphabet; this allows you to type characters that your
-keyboard doesn't support directly.  This is how the Greek and Russian
-input methods work.
+into another alphabet; this allows you to use one other alphabet
+instead of ASCII.  The Greek and Russian input methods
+work this way.
 
   A more powerful technique is composition: converting sequences of
 characters into one letter.  Many European input methods use composition
@@ -385,8 +385,8 @@ mapped into one syllable sign.
 methods, first you enter the phonetic spelling of a Chinese word (in
 input method @code{chinese-py}, among others), or a sequence of
 portions of the character (input methods @code{chinese-4corner} and
-@code{chinese-sw}, and others).  One phonetic spelling typically
-corresponds to many different Chinese characters.  You select the one
+@code{chinese-sw}, and others).  One input sequence typically
+corresponds to many possible Chinese characters.  You select the one
 you mean using keys such as @kbd{C-f}, @kbd{C-b}, @kbd{C-n},
 @kbd{C-p}, and digits, which have special meanings in this situation.
 
@@ -408,9 +408,9 @@ alternative of the current row and uses it as input.
   @key{TAB} in these Chinese input methods displays a buffer showing
 all the possible characters at once; then clicking @kbd{Mouse-2} on
 one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
-@kbd{C-n}, @kbd{C-p}, and digits continue to work also.  When this
-buffer is visible, @kbd{C-n} and @kbd{C-p} move the current
-alternative to a different row.
+@kbd{C-n}, @kbd{C-p}, and digits continue to work as usual, but they
+do the highlighting in the buffer showing the possible characters,
+rather than in the echo area.
 
   In Japanese input methods, first you input a whole word using
 phonetic spelling; then, after the word is in the buffer, Emacs
@@ -740,7 +740,7 @@ list.
   If you use a coding system that specifies the end-of-line conversion
 type, such as @code{iso-8859-1-dos}, what this means is that Emacs
 should attempt to recognize @code{iso-8859-1} with priority, and should
-use DOS end-of-line conversion if it recognizes @code{iso-8859-1}.
+use DOS end-of-line conversion when it does recognize @code{iso-8859-1}.
 
 @vindex file-coding-system-alist
   Sometimes a file name indicates which coding system to use for the
@@ -801,9 +801,9 @@ escape sequence detection.
 local variables list at the end (@pxref{File Variables}).  You do this
 by defining a value for the ``variable'' named @code{coding}.  Emacs
 does not really have a variable @code{coding}; instead of setting a
-variable, it uses the specified coding system for the file.  For
+variable, this uses the specified coding system for the file.  For
 example, @samp{-*-mode: C; coding: latin-1;-*-} specifies use of the
-Latin-1 coding system, as well as C mode.  If you specify the coding
+Latin-1 coding system, as well as C mode.  When you specify the coding
 explicitly in the file, that overrides
 @code{file-coding-system-alist}.
 
@@ -844,11 +844,10 @@ This means that it is possible for you to insert characters that
 cannot be encoded with the coding system that will be used to save the
 buffer.  For example, you could start with an ASCII file and insert a
 few Latin-1 characters into it, or you could edit a text file in
-Polish encoded in @code{iso-8859-2} and add to it translations of
-several Polish words into Russian.  When you save the buffer, Emacs
-cannot use the current value of @code{buffer-file-coding-system},
-because the characters you added cannot be encoded by that coding
-system.
+Polish encoded in @code{iso-8859-2} and add some Russian words to it.
+When you save the buffer, Emacs cannot use the current value of
+@code{buffer-file-coding-system}, because the characters you added
+cannot be encoded by that coding system.
 
   When that happens, Emacs tries the most-preferred coding system (set
 by @kbd{M-x prefer-coding-system} or @kbd{M-x

@@ -107,13 +107,14 @@ values from being collected as garbage (if they are not referenced
 anywhere else); if a particular value does get collected, the
 corresponding association is removed from the hash table.
 
-If @var{weak} is @code{key-or-value}, associations are removed from the
-hash table when either their key or their value part would be collected
-as garbage, not counting references to the key and value from weak hash
-tables.  Likewise, if @var{weak} is @code{key-and-value}, associations
-are removed from the hash table when both their key and value would be
-collected as garbage, again not considering references to the key and
-value from weak hash tables.
+If @var{weak} is @code{key-or-value} or @code{t}, the hash table does
+not protect either keys or values from garbage collection; if either
+one is collected as garbage, the association is removed.
+
+If @var{weak} is @code{key-and-value}, associations are removed from
+the hash table when both their key and value would be collected as
+garbage, again not considering references to the key and value from
+weak hash tables.
 
 The default for @var{weak} is @code{nil}, so that all keys and values
 referenced in the hash table are preserved from garbage collection.  If
@@ -242,22 +243,6 @@ including negative integers.
 The specified functions are stored in the property list of @var{name}
 under the property @code{hash-table-test}; the property value's form is
 @code{(@var{test-fn} @var{hash-fn})}.
-
-This example creates a hash table whose keys are strings that are
-compared case-insensitively.
-
-@example
-(defun case-fold-string= (a b)
-  (compare-strings a nil nil b nil nil t))
-
-(defun case-fold-string-hash (a)
-  (sxhash (upcase a)))
-
-(define-hash-table-test 'case-fold 'case-fold-string= 
-                        'case-fold-string-hash))
-
-(make-hash-table :test 'case-fold)
-@end example
 @end defun
 
 @tindex sxhash
@@ -274,6 +259,32 @@ are usually different, but not always; but once in a rare while, by
 luck, you will encounter two distinct-looking objects that give the same
 result from @code{sxhash}.
 @end defun
+
+  This example creates a hash table whose keys are strings that are
+compared case-insensitively.
+
+@example
+(defun case-fold-string= (a b)
+  (compare-strings a nil nil b nil nil t))
+
+(defun case-fold-string-hash (a)
+  (sxhash (upcase a)))
+
+(define-hash-table-test 'case-fold 'case-fold-string= 
+                        'case-fold-string-hash))
+
+(make-hash-table :test 'case-fold)
+@end example
+
+  Here is how you could define a hash table test equivalent to the
+predefined test value @code{equal}.  The keys can be any Lisp object,
+and equal-looking objects are considered the same key.
+
+@example
+(define-hash-table-test 'contents-hash 'equal 'sxhash)
+
+(make-hash-table :test 'contents-hash)
+@end example
 
 @node Other Hash
 @section Other Hash Table Functions

@@ -147,13 +147,12 @@ with @kbd{C-x ^}.
 
 @vindex resize-mini-windows
   The minibuffer window expands vertically as necessary to hold the
-text that you put in the minibuffer if @code{resize-mini-windows} is
+text that you put in the minibuffer, if @code{resize-mini-windows} is
 non-@code{nil}.  If @code{resize-mini-windows} is @code{t}, the window
 is always resized to fit the size of the text it displays.  If
 @code{resize-mini-windows} is the symbol @code{grow-only}, the window
-is enlarged when the size of displayed text grows, but never reduced
-in size until it becomes empty, at which point it shrinks back to its
-normal size.
+grows when the size of displayed text increases, but shrinks (back to
+the normal size) only when the minibuffer becomes inactive.
 
 @vindex max-mini-window-height
   The variable @code{max-mini-window-height} controls the maximum
@@ -165,8 +164,8 @@ window automatically.  The default value is 0.25.
   If while in the minibuffer you issue a command that displays help text
 of any sort in another window, you can use the @kbd{C-M-v} command while
 in the minibuffer to scroll the help text.  This lasts until you exit
-the minibuffer.  This feature is especially useful if the
-minibuffer gives you a list of possible completions.  @xref{Other Window}.
+the minibuffer.  This feature is especially useful when you display
+a buffer listing possible completions.  @xref{Other Window}.
 
 @vindex enable-recursive-minibuffers
   Emacs normally disallows most commands that use the minibuffer while
@@ -266,9 +265,8 @@ next hyphen or space.  If you have @samp{auto-f} in the minibuffer and
 type @key{SPC}, it finds that the completion is @samp{auto-fill-mode},
 but it stops completing after @samp{fill-}.  This gives
 @samp{auto-fill-}.  Another @key{SPC} at this point completes all the
-way to @samp{auto-fill-mode}.  Typing @key{SPC} in the minibuffer when
-completion is available runs the command
-@code{minibuffer-complete-word}.
+way to @samp{auto-fill-mode}.  The command that implements this
+behavior is called @code{minibuffer-complete-word}.
 
   Here are some commands you can use to choose a completion from a
 window that displays a list of completions:
@@ -366,11 +364,11 @@ strings, then they are not ignored.  Ignored extensions do not apply to
 lists of completions---those always mention all possible completions.
 
 @vindex completion-auto-help
-  Normally, a completion command that finds that the next character is
-undetermined automatically displays a list of all possible
+  Normally, a completion command that cannot determine even one
+additional character automatically displays a list of all possible
 completions.  If the variable @code{completion-auto-help} is set to
-@code{nil}, this does not happen, and you must type @kbd{?} to display
-the possible completions.
+@code{nil}, this automatic display is disabled, so you must type
+@kbd{?} to display the list of completions.
 
 @cindex Partial Completion mode
 @vindex partial-completion-mode

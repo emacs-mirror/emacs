@@ -366,7 +366,7 @@ normally creates the file @file{foo} and produces no terminal output.
   A numeric argument, as in @kbd{M-1 M-!}, says to insert terminal
 output into the current buffer instead of a separate buffer.  It puts
 point before the output, and sets the mark after the output.  For
-instance, @kbd{M-1 M-!  gunzip < foo.gz @key{RET}} would insert the
+instance, @kbd{M-1 M-! gunzip < foo.gz @key{RET}} would insert the
 uncompressed equivalent of @file{foo.gz} into the current buffer.
 
   If the shell command line ends in @samp{&}, it runs asynchronously.
@@ -442,10 +442,13 @@ for time to elapse.
 face @code{comint-highlight-prompt}.  This makes it easier to see
 previous input lines in the buffer.  @xref{Faces}.
 
-  To make multiple subshells invoke @kbd{M-x shell} with a prefix
-argument (e.g. @kbd{C-u M-x shell}), which will cause it to prompt for
-a buffer name, and create (or reuse) a subshell in that buffer.  All
-subshells in different buffers run independently and in parallel.
+  To make multiple subshells, you can invoke @kbd{M-x shell} with a
+prefix argument (e.g. @kbd{C-u M-x shell}), which will read a buffer
+name and create (or reuse) a subshell in that buffer.  You can also
+rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely}, then
+then create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
+All the subshells in different buffers run independently and in
+parallel.
 
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
@@ -1247,8 +1250,8 @@ emacsclient @r{@{}@r{[}+@var{line}@r{[}@var{column}@r{]}@r{]} @var{filename}@r{@
 @noindent
 This tells Emacs to visit each of the specified files; if you specify a
 line number for a certain file, Emacs moves to that line in the file.
-If you specify a column number for a file, Emacs moves to that column
-in the file.
+If you specify a column number as well, Emacs puts point on that column
+in the line.
 
   Ordinarily, @code{emacsclient} does not return until you use the
 @kbd{C-x #} command on each of these buffers.  When that happens,

@@ -384,7 +384,7 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end defun
 
 @defun last list &optional n
-This function reruns the last link of the given @var{list}.  The
+This function returns the last link of @var{list}.  The
 @code{car} of this link is the list's last element.  If @var{list} is
 null, @code{nil} is returned.  If @var{n} is non-nil the
 @var{n}-th-to-last link is returned instead, or the whole @var{list} if
@@ -496,6 +496,15 @@ any symbol can serve both purposes.
 This macro provides an alternative way to write
 @code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
 It is new in Emacs 21.
+
+@example
+(setq l '(a b)) 
+     @result{} (a b)
+(push 'c l)
+     @result{} (c a b)
+l
+     @result{} (c a b)
+@end example
 @end defmac
 
 @defun list &rest objects
@@ -520,9 +529,9 @@ are given, the empty list is returned.
 @end defun
 
 @defun make-list length object
-This function creates a list of length @var{length}, in which all the
-elements have the identical value @var{object}.  Compare
-@code{make-list} with @code{make-string} (@pxref{Creating Strings}).
+This function creates a list of @var{length} elements, in which each
+element is @var{object}.  Compare @code{make-list} with
+@code{make-string} (@pxref{Creating Strings}).
 
 @example
 @group
@@ -532,6 +541,12 @@ elements have the identical value @var{object}.  Compare
 @group
 (make-list 0 'pigs)
      @result{} nil
+@end group
+@group
+(setq l (make-list 3 '(a b))
+     @result{} ((a b) (a b) (a b))
+(eq (car l) (cadr l))
+     @result{} t
 @end group
 @end example
 @end defun
@@ -1064,19 +1079,19 @@ value.
 
 @example
 @group
-(setq x '(1 2 3 4))
-     @result{} (1 2 3 4)
+(setq x '(a b c))
+     @result{} (a b c)
 @end group
 @group
 x
-     @result{} (1 2 3 4)
+     @result{} (a b c)
 (nreverse x)
-     @result{} (4 3 2 1)
+     @result{} (c b a)
 @end group
 @group
 ;; @r{The cons cell that was first is now last.}
 x
-     @result{} (1)
+     @result{} (a)
 @end group
 @end example
 
@@ -1379,9 +1394,9 @@ the value @code{cones}; the key @code{oak} is associated with
 
 @example
 @group
-'((pine . cones)
-  (oak . acorns)
-  (maple . seeds))
+((pine . cones)
+ (oak . acorns)
+ (maple . seeds))
 @end group
 @end example
 
@@ -1397,10 +1412,10 @@ the alist element:
 
   Sometimes it is better to design an alist to store the associated
 value in the @sc{car} of the @sc{cdr} of the element.  Here is an
-example:
+example of such an alist:
 
 @example
-'((rose red) (lily white) (buttercup yellow))
+((rose red) (lily white) (buttercup yellow))
 @end example
 
 @noindent
@@ -1549,7 +1564,7 @@ becomes clearer if the association is written in dotted pair notation:
 @end smallexample
 @end defun
 
-@defun assoc-default key alist test default
+@defun assoc-default key alist &optional test default
 This function searches @var{alist} for a match for @var{key}.  For each
 element of @var{alist}, it compares the element (if it is an atom) or
 the element's @sc{car} (if it is a cons) against @var{key}, by calling
@@ -1622,7 +1637,9 @@ the associations of one copy without affecting the other:
 @defun assq-delete-all key alist
 @tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
-is @code{eq} to @var{key}.  It returns the modified alist.
+is @code{eq} to @var{key}.  It returns @var{alist}, modified
+in this way.  Note that it modifies the original list structure
+of @var{alist}.
 
 @example
 (assq-delete-all 'foo

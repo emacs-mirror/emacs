@@ -17,8 +17,8 @@ Transient Mark mode (@pxref{Transient Mark}).
   Certain Emacs commands set the mark; other editing commands do not
 affect it, so the mark remains where you set it last.  Each Emacs
 buffer has its own mark, and setting the mark in one buffer has no
-effect on other buffers' marks.  When you return to a buffer that had
-been selected previously, its mark is at the same place as before.
+effect on other buffers' marks.  When you return to a buffer that was
+current earlier, its mark is at the same place as before.
 
   The ends of the region are always point and the mark.  It doesn't
 matter which of them was put in its current place first, or which one
@@ -155,8 +155,9 @@ the mode.
 @itemize @bullet
 @item
 To set the mark, type @kbd{C-@key{SPC}} (@code{set-mark-command}).
-This makes the mark active; as you move point, you will see the
-highlighted region grow and shrink.
+This makes the mark active and thus begins highlighting of the region.
+As you move point, you will see the highlighted region grow and
+shrink.
 
 @item 
 The mouse commands for specifying the mark also make it active.  So do
@@ -175,7 +176,7 @@ on a region will get an error and refuse to operate.  You can make the
 region active again by typing @kbd{C-x C-x}.
 
 @item
-Commands like @kbd{M->} and @kbd{C-s} that ``leave the mark behind'' in
+Commands like @kbd{M->} and @kbd{C-s}, that ``leave the mark behind'' in
 addition to some other primary purpose, do not activate the new mark.
 You can activate the new region by executing @kbd{C-x C-x}
 (@code{exchange-point-and-mark}).
@@ -206,7 +207,7 @@ all share one common mark position).  Ordinarily, only the selected
 window highlights its region (@pxref{Windows}).  However, if the
 variable @code{highlight-nonselected-windows} is non-@code{nil}, then
 each window highlights its own region (provided that Transient Mark mode
-is enabled and the mark in the buffer's window is active).
+is enabled and the mark in the window's buffer is active).
 
   When Transient Mark mode is not enabled, every command that sets the
 mark also activates it, and nothing ever deactivates it.
@@ -261,18 +262,18 @@ object such as a word, list, paragraph or page.
 
 @table @kbd
 @item M-@@
-Set mark after the end of next word (@code{mark-word}).  This command and
+Set mark after end of next word (@code{mark-word}).  This command and
 the following one do not move point.
 @item C-M-@@
-Set mark after the end of following balanced expression (@code{mark-sexp}).
+Set mark after end of following balanced expression (@code{mark-sexp}).
 @item M-h
-Put region around the current paragraph (@code{mark-paragraph}).
+Put region around current paragraph (@code{mark-paragraph}).
 @item C-M-h
-Put region around the current defun (@code{mark-defun}).
+Put region around current defun (@code{mark-defun}).
 @item C-x h
 Put region around the entire buffer (@code{mark-whole-buffer}).
 @item C-x C-p
-Put region around the current page (@code{mark-page}).
+Put region around current page (@code{mark-page}).
 @end table
 
 @kbd{M-@@} (@code{mark-word}) puts the mark at the end of the next
@@ -289,14 +290,14 @@ the mark at the end of that paragraph (@pxref{Paragraphs}).  It prepares
 the region so you can indent, case-convert, or kill a whole paragraph.
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
-mark after, the current or following major top-level definition, or
+mark after, the current (or following) major top-level definition, or
 defun (@pxref{Moving by Defuns}).  @kbd{C-x C-p} (@code{mark-page})
 puts point before the current page, and mark at the end
 (@pxref{Pages}).  The mark goes after the terminating page delimiter
-(to include it), while point goes after the preceding page delimiter
-(to exclude it).  A numeric argument specifies a later page (if
-positive) or an earlier page (if negative) instead of the current
-page.
+(to include it in the region), while point goes after the preceding
+page delimiter (to exclude it).  A numeric argument specifies a later
+page (if positive) or an earlier page (if negative) instead of the
+current page.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
 buffer as the region, by putting point at the beginning and the mark at
