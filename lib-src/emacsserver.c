@@ -206,7 +206,8 @@ main (argc, argv)
 {
   char system_name[32];
   int s, infd, fromlen;
-  struct sockaddr_un server, fromunix;
+  struct sockaddr_un server;
+  size_t fromunix;
   char *homedir;
   char *str, string[BUFSIZ], code[BUFSIZ];
   FILE *infile;
