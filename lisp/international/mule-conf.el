@@ -283,7 +283,11 @@
 ;; `make-coding-system'.
 
 (put 'no-conversion 'coding-system
-     (vector nil ?= "Do no conversion"
+     (vector nil ?= "Do no conversion.
+
+When you visit a file with this coding, the file is read into a
+unibyte buffer as is, thus each byte of a file is treated as a
+character."
 	     (list 'coding-category 'coding-category-binary
 		   'alias-coding-systems '(no-conversion))
 	     nil))
@@ -313,13 +317,26 @@
 
 (make-coding-system
  'emacs-mule 0 ?=
- "Emacs internal format used in buffer and string"
+ "Emacs internal format used in buffer and string.
+
+Encoding text with this coding system produces the actual byte
+sequence of the text in buffers and strings.  An exception is made for
+eight-bit-control characters.  Each of them is encoded into a single
+byte."
  nil
  '((safe-charsets . t)))
 
 (make-coding-system
  'raw-text 5 ?t
- "Raw text, which means text contains random 8-bit codes."
+ "Raw text, which means text contains random 8-bit codes.
+Encoding text with this coding system produces the actual byte
+sequence of the text in buffers and strings.  An exception is made for
+eight-bit-control characters.  Each of them is encoded into a single
+byte.
+
+When you visit a file with this coding, the file is read into a
+unibyte buffer as is (except for EOL format), thus each byte of a file
+is treated as a character."
  nil
  '((safe-charsets . t)))
 
@@ -408,14 +425,15 @@
 ;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
-      '(("\\.elc\\'" . (emacs-mule . emacs-mule))
+      '(("\\.elc\\'" . emacs-mule)
+	("\\.utf\\(-8\\)?\\'" . utf-8)
 	;; We use raw-text for reading loaddefs.el so that if it
 	;; happens to have DOS or Mac EOLs, they are converted to
 	;; newlines.  This is required to make the special treatment
 	;; of the "\ newline" combination in loaddefs.el, which marks
 	;; the beginning of a doc string, work.
 	("\\(\\`\\|/\\)loaddefs.el\\'" . (raw-text . raw-text-unix))
-	("\\.tar\\'" . (no-conversion . no-conversion))
+	("\\.tar\\'" . no-conversion)
 	("" . (undecided . nil))))
 
 
