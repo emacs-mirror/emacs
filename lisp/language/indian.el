@@ -66,40 +66,6 @@ Each Indian language environment sets this value
 to one of `indian-script-table' (which see).
 The default value is `devanagari'.")
 
-(defun indian-glyph-char (index &optional script)
-  "Return character of charset `indian-glyph' made from glyph index INDEX.
-The variable `indian-default-script' specifies the script of the glyph.
-Optional argument SCRIPT, if non-nil, overrides `indian-default-script'.
-See also the function `indian-char-glyph'."
-  (or script
-      (setq script indian-default-script))
-  (let ((offset (get script 'indian-glyph-code-offset)))
-    (or (integerp offset)
-	(error "Invalid script name: %s" script))
-    (or (and (>= index 0) (< index 256))
-	(error "Invalid glyph index: %d" index))
-    (setq index (+ offset index))
-    (make-char 'indian-glyph (+ (/ index 96) 32) (+ (% index 96) 32))))
-
-(defvar indian-glyph-max-char
-  (indian-glyph-char
-   255 (aref indian-script-table (1- (length indian-script-table))))
-  "The maximum valid code of characters in the charset `indian-glyph'.")
-
-(defun indian-char-glyph (char)
-  "Return information about the glphy code for CHAR of `indian-glyph' charset.
-The value is (INDEX . SCRIPT), where INDEX is the glyph index
-in the font that Indian script name SCRIPT specifies.
-See also the function `indian-glyph-char'."
-  (let ((split (split-char char))
-	code)
-    (or (eq (car split) 'indian-glyph)
-	(error "Charset of `%c' is not indian-glyph" char))
-    (or (<= char indian-glyph-max-char)
-	(error "Invalid indian-glyph char: %d" char))
-    (setq code (+ (* (- (nth 1 split) 32) 96) (nth 2 split) -32))
-    (cons (% code 256) (aref indian-script-table (/ code 256)))))
-
 (define-ccl-program ccl-encode-indian-glyph-font
   `(0
     ;; Shorten (r1 = (((((r1 - 32) * 96) + r2) - 32) % 256))
