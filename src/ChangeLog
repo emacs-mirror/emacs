@@ -1,3 +1,7 @@
+2005-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM_tmp): Define if undefined.
+
 2005-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Fignore_event): Remove.
