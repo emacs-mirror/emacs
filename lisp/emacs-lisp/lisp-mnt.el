@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: FSF
 ;; Created: 14 Jul 1992
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
