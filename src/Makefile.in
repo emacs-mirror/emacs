@@ -769,7 +769,7 @@ alloca.o : alloca.s $(config_h)
 /* Xenix, in particular, needs to run assembler via cc.  */
 	$(CC) -c allocax.s
 	mv allocax.o alloca.o
-	rm allocax.s allocatem.c
+	-rm -f allocax.s allocatem.c
 #endif /* HAVE_ALLOCA */
 #endif /* ! defined (C_ALLOCA) */
 
