@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.22) $
+ * $HopeName: MMsrc!mpstd.h(trunk.23) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -11,6 +11,9 @@
  * .hack.align:  All alignments have been hacked to be at least 8.
  * This is a short term fix to meet req.epcore.attr.align.  (some
  * of them really ought to be 8, others should be smaller)
+ *
+ * .macos.ppc.align: MacOS / PowerPC requires 8 bytes alignment (in
+ * general).  See arch.pp.mac and arch.pp.align.
  */
 
 #ifndef mpstd_h
@@ -115,7 +118,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8 /* .hack.align */
+#define MPS_PF_ALIGN    8 /* .macos.ppc.align */
 
 /* 1. MPW 3.0 C Ref, p. 43.                                             */
 /* 2. MPW SC/SCpp C/C++ Compiler for 68k Macintosh, p 3-60.             */
@@ -147,7 +150,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8 /* .hack.align */
+#define MPS_PF_ALIGN    8 /* .macos.ppc.align */
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
@@ -260,7 +263,7 @@
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8 /* .hack.align */
+#define MPS_PF_ALIGN    8 /* .hack.align; maybe it should be 8, who knows? */
 
 #else
 #error "Unable to detect target platform"
