@@ -30,7 +30,7 @@
 ;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
 ;; To set up permanently, put the following in your .emacs: 
 ;;
-;; (if window-system (mouse-avoidance-mode 'animate))
+;; (if (display-mouse-p) (mouse-avoidance-mode 'animate))
 ;;
 ;; Other legitimate alternatives include
 ;; `banish', `exile', `jump', `cat-and-mouse', and `proteus'.
@@ -41,7 +41,7 @@
 ;; For added silliness, make the animatee animate...
 ;; put something similar to the following into your .emacs:
 ;;
-;; (if window-system
+;; (if (eq window-system 'x)
 ;;     (mouse-avoidance-set-pointer-shape
 ;;	     (eval (nth (random 4)
 ;;			'(x-pointer-man x-pointer-spider
