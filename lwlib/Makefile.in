@@ -54,10 +54,10 @@ xrdb-cpp.o:  $(srcdir)/xrdb-cpp.c
 	$(CC) -c "-DCPP_PROGRAM=$(CPP)" $(ALL_CFLAGS) $(srcdir)/xrdb-cpp.c
 
 lwlib-utils.o: lwlib-utils.c lwlib-utils.h
-lwlib.o:       lwlib.c lwlib.h lwlib-int.h
-lwlib-Xlw.o:   lwlib-Xlw.c lwlib.h lwlib-int.h
-lwlib-Xaw.o:   lwlib-Xaw.c lwlib.h lwlib-int.h
-lwlib-Xm.o:    lwlib-Xm.c lwlib.h lwlib-int.h lwlib-utils.h
+lwlib.o:       lwlib.c lwlib.h lwlib-int.h lwlib-Xaw.h lwlib-Xlw.h
+lwlib-Xlw.o:   lwlib-Xlw.c lwlib.h lwlib-int.h lwlib-Xlw.h
+lwlib-Xaw.o:   lwlib-Xaw.c lwlib-Xaw.h lwlib.h lwlib-int.h
+lwlib-Xm.o:    lwlib-Xm.c lwlib-Xm.h lwlib.h lwlib-int.h lwlib-utils.h
 lwlib-Xol.o:   lwlib-Xol.c lwlib.h lwlib-int.h
 lwlib-Xolmb.o: lwlib-Xolmb.c lwlib-Xolmb.h lwlib-XolmbP.h
 xlwmenu.o: xlwmenu.c xlwmenu.h lwlib.h xlwmenuP.h
