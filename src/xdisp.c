@@ -128,6 +128,7 @@ static int display_mode_element ();
 static char *fmodetrunc ();
 static char *decode_mode_spec ();
 static int display_string ();
+static void display_menu_bar ();
 
 /* Prompt to display in front of the minibuffer contents */
 char *minibuf_prompt;
@@ -979,6 +980,12 @@ done:
       && height != XFASTINT (w->height))
     display_mode_line (w);
 
+  /* When we reach a frame's selected window, redo the frame's menu bar.  */
+  if (!NILP (w->update_mode_line)
+      && FRAME_MENU_BAR_LINES (f) > 0
+      && EQ (FRAME_SELECTED_WINDOW (f), window))
+    display_menu_bar (w);
+
  finish_scroll_bars:
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     {
@@ -1822,6 +1829,44 @@ display_text_line (w, start, vpos, hpos, taboffset)
   val.bufpos = pos;
   val_display_text_line = val;
   return &val_display_text_line;
+}
+
+/* Redisplay the menu bar in the frame for window W.  */
+
+static void
+display_menu_bar (w)
+     struct window *w;
+{
+  Lisp_Object items, tail;
+  register int vpos = 0;
+  register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  int maxendcol = FRAME_WIDTH (f);
+  int hpos = 0;
+
+  if (FRAME_MENU_BAR_LINES (f) <= 0)
+    return;
+
+  get_display_line (f, vpos, 0);
+
+  items = menu_bar_items ();
+  FRAME_MENU_BAR_ITEMS (f) = items;
+
+  for (tail = items; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object string;
+      string = XCONS (XCONS (XCONS (tail)->car)->cdr)->car;
+
+      /* Record in each item its hpos.  */
+      XFASTINT (XCONS (XCONS (XCONS (tail)->car)->cdr)->cdr) = hpos;
+
+      if (hpos < maxendcol)
+	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
+			       XSTRING (string)->data,
+			       hpos, 0, hpos, maxendcol) + 3;
+    }
+
+  FRAME_DESIRED_GLYPHS (f)->bufp[vpos] = 0;
+  FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
 }
 
 /* Display the mode line for window w */
