@@ -1,6 +1,6 @@
 ;;; czech.el -- support for Czech -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1998 Free Software Foundation.
+;; Copyright (C) 1998, 2001 Free Software Foundation.
 
 ;; Maintainer: Milan Zamazal <pdm@fi.muni.cz>
 ;; Keywords: multilingual, Czech
@@ -38,7 +38,10 @@
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.cs")
 	   (sample-text . "P,Bx(Bejeme v,Ba(Bm hezk,B}(B den!")
-	   (documentation . t))
+	   (documentation . "\
+This language environment is almost the same as Latin-2,
+but default input method is set to \"czech\",
+and select's the Czech tutorial."))
  '("European"))
 
 (provide 'czech)
