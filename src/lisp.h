@@ -1865,7 +1865,7 @@ extern int doprnt_lisp P_ ((char *, int, char *, char *, int, char **));
 
 /* Defined in lread.c */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
-extern Lisp_Object Vobarray, Vstandard_input;
+extern Lisp_Object Vobarray, initial_obarray, Vstandard_input;
 EXFUN (Fread, 1);
 EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
