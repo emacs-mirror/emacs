@@ -701,7 +701,8 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 	subject content-type type subtype boundary-regexp)
     ;; Gracefully handle a missing body.
     (goto-char head-begin)
-    (if (search-forward "\n\n" body-end t)
+    (if (or (and (eq (char-after) ?\n) (or (forward-char 1) t))
+	    (search-forward "\n\n" body-end t))
 	(setq head-end (1- (point))
 	      body-begin (point))
       (setq head-end body-end
