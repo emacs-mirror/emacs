@@ -377,7 +377,7 @@ Defaults to today's date if DATE is not given."
             (floor month)
             (if (integerp month)
                 (format " (%s)" (calendar-chinese-sexagesimal-name
-                                 (+ (* 5 year) month 44)))
+                                 (+ (* 12 year) month 50)))
               "")
             day (calendar-chinese-sexagesimal-name (+ a-date 15)))))
 
