@@ -31,6 +31,9 @@
 
 (defalias 'current-time-seconds 'current-time)
 
+;; In case cl-map-keymap is an alias for map-keymap, avoid circular calls.
+(fset 'cl-map-keymap (indirect-function 'cl-map-keymap))
+
 (defun map-keymap (function keymap &optional sort-first)
   "Call FUNCTION for every binding in KEYMAP.
 This does not include bindings inherited from a parent keymap.
