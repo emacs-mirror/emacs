@@ -477,7 +477,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
      int maxdepth, notreal;
      int *notbuttons_ptr;
 {
-  Lisp_Object def, map, item_string, enabled;
+  Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
   
@@ -685,13 +685,11 @@ cached information about equivalent key sequences.")
   (position, menu)
      Lisp_Object position, menu;
 {
-  int number_of_panes, panes;
   Lisp_Object keymap, tem;
   int xpos, ypos;
   Lisp_Object title;
   char *error_name;
   Lisp_Object selection;
-  int i, j;
   FRAME_PTR f;
   Lisp_Object x, y, window;
   int keymaps = 0;
@@ -1313,7 +1311,6 @@ single_submenu (item_key, item_name, maps)
   int len;
   Lisp_Object *mapvec;
   widget_value **submenu_stack;
-  int mapno;
   int previous_items = menu_items_used;
   int top_level_items = 0;
 
@@ -1506,8 +1503,6 @@ update_frame_menubar (f)
   int columns, rows;
   int menubar_changed;
   
-  Dimension shell_height;
-
   /* We assume the menubar contents has changed if the global flag is set,
      or if the current buffer has changed, or if the menubar has never
      been updated before.
@@ -1565,7 +1560,7 @@ set_frame_menubar (f, first_time, deep_p)
      int deep_p;
 {
   Widget menubar_widget = f->output_data.x->menubar_widget;
-  Lisp_Object tail, items, frame;
+  Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
   LWLIB_ID id;
@@ -1824,7 +1819,6 @@ free_frame_menubar (f)
      FRAME_PTR f;
 {
   Widget menubar_widget;
-  int id;
 
   menubar_widget = f->output_data.x->menubar_widget;
 
@@ -1907,7 +1901,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   XButtonPressedEvent dummy;
 
   int first_pane;
-  int next_release_must_exit = 0;
 
   *error = NULL;
 
@@ -2254,7 +2247,7 @@ xdialog_show (f, keymaps, title, error)
   Widget menu;
   char dialog_name[6];
 
-  widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
+  widget_value *wv, *first_wv = 0, *prev_wv = 0;
 
   /* Number of elements seen so far, before boundary.  */
   int left_count = 0;
