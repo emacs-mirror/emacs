@@ -904,11 +904,6 @@ case "${canonical}" in
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		RANLIB="ar -ts"
 		;;
-      *-sunos5.8* | *-solaris2.8* )
-		opsys=sol2-8
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		RANLIB="ar -ts"
-		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-5
 		NON_GNU_CPP=/usr/ccs/lib/cpp
