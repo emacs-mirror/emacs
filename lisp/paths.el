@@ -108,11 +108,11 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 Its name should end with a slash.")
 
 (defconst sendmail-program
-  (if (file-exists-p "/usr/lib/sendmail")
-      "/usr/lib/sendmail"
-    (if (file-exists-p "/usr/ucblib/sendmail")
-	"/usr/ucblib/sendmail"
-      "fakemail"))			;In ../etc, to interface to /bin/mail.
+  (cond
+    ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
+    ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
+    ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
+    (t "fakemail"))			;In ../etc, to interface to /bin/mail.
   "Program used to send messages.")
 
 (defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/")
