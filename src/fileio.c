@@ -2034,9 +2034,9 @@ This is what happens in interactive use with M-x.")
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
   "FMake symbolic link to file: \nFMake symbolic link to file %s: \np",
   "Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.\n\
-Signals a `file-already-exists' error if a file NEWNAME already exists\n\
+Signals a `file-already-exists' error if a file LINKNAME already exists\n\
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
-A number as third arg means request confirmation if NEWNAME already exists.\n\
+A number as third arg means request confirmation if LINKNAME already exists.\n\
 This happens for interactive use with M-x.")
   (filename, linkname, ok_if_already_exists)
      Lisp_Object filename, linkname, ok_if_already_exists;
