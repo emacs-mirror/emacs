@@ -2355,7 +2355,6 @@ Also accepts Space to mean yes, or Delete to mean no.")
   int count = specpdl_ptr - specpdl;
 
   specbind (Qcursor_in_echo_area, Qt);
-  specbind (Qinput_method_function, Qnil);
 
   map = Fsymbol_value (intern ("query-replace-map"));
 
@@ -2395,7 +2394,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	  Fraise_frame (mini_frame);
 	}
 
-      obj = read_filtered_event (1, 0, 0);
+      obj = read_filtered_event (1, 0, 0, 0);
       cursor_in_echo_area = 0;
       /* If we need to quit, quit with cursor_in_echo_area = 0.  */
       QUIT;
