@@ -1663,7 +1663,7 @@ which is made by replacing the part of STRING that was matched.")
 		    }
 		  else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
 		    {
-		      if (search_regs.start[c - '0'] >= 1)
+		      if (search_regs.start[c - '0'] >= 0)
 			{
 			  substart = search_regs.start[c - '0'];
 			  subend = search_regs.end[c - '0'];
