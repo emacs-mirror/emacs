@@ -1209,7 +1209,7 @@ cmd_error_internal (data, context)
 	 *Messages*.  */
       if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
 	{
-	  char *name = SDATA (SYMBOL_NAME (Vsignaling_function));
+	  const char *name = SDATA (SYMBOL_NAME (Vsignaling_function));
 	  message_dolog (name, strlen (name), 0, 0);
 	  message_dolog (": ", 2, 0, 0);
 	  Vsignaling_function = Qnil;
