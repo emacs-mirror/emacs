@@ -4207,8 +4207,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (check_connect && FD_ISSET (channel, &Connecting))
 	    {
 	      struct Lisp_Process *p;
-	      struct sockaddr pname;
-	      int pnamelen = sizeof(pname);
 
 	      FD_CLR (channel, &connect_wait_mask);
 	      if (--num_pending_connects < 0)
@@ -4229,16 +4227,21 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  xerrno = errno;
 	      }
 #else
-	      /* If connection failed, getpeername will fail.  */
-	      xerrno = 0;
-	      if (getpeername(channel, &pname, &pnamelen) < 0)
-		{
-		  /* Obtain connect failure code through error slippage.  */
-		  char dummy;
-		  xerrno = errno;
-		  if (errno == ENOTCONN && read(channel, &dummy, 1) < 0)
+	      {
+		struct sockaddr pname;
+		int pnamelen = sizeof(pname);
+
+		/* If connection failed, getpeername will fail.  */
+		xerrno = 0;
+		if (getpeername(channel, &pname, &pnamelen) < 0)
+		  {
+		    /* Obtain connect failure code through error slippage.  */
+		    char dummy;
 		    xerrno = errno;
-		}
+		    if (errno == ENOTCONN && read(channel, &dummy, 1) < 0)
+		      xerrno = errno;
+		  }
+	      }
 #endif
 	      if (xerrno)
 		{
