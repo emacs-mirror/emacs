@@ -75,7 +75,15 @@ static Widget
 xlw_create_menubar (instance)
      widget_instance* instance;
 {
-  Widget widget =
+  Widget widget;
+
+  widget_value *tem = (widget_value *) XtMalloc (sizeof (widget_value));
+
+  /* _XtCreate is freeing the object we passed,
+     so make a copy that we free later.  */
+  bcopy (instance->info->val, tem, sizeof (widget_value));
+
+  widget =
     XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
 		      instance->parent,
 		      XtNmenu, instance->info->val,
