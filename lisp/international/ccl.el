@@ -81,11 +81,15 @@
 ;;      | (write-multibyte-character REG(charset) REG(codepoint))
 ;; UNIFY :=
 ;;      (unify-char REG(table) REG(charset) REG(codepoint))
-;;      | (unify-char integer REG(charset) REG(codepoint))
 ;;      | (unify-char SYMBOL REG(charset) REG(codepoint))
 ;; TRANSLATE :=
-;;      (iterate-multiple-map REG REG TABLE-ID TABLE-ID...)
-;;      | (translate-multiple-map REG REG (TABLE-ID TABLE-ID ...)(TABLE-ID TABLE-ID ...)...)
+;;      (iterate-multiple-map REG REG TABLE-IDs)
+;;      | (translate-multiple-map REG REG (TABLE-SET))
+;;      | (translate-single-map REG REG TABLE-ID)
+;; TABLE-IDs := TABLE-ID ...
+;; TABLE-SET := TABLE-IDs | (TABLE-IDs) TABLE-SET
+;; TABLE-ID := integer
+;;
 ;; CALL := (call ccl-program-name)
 ;; END := (end)
 ;;
@@ -884,36 +888,45 @@
 (defun ccl-compile-unify-character (cmd)
   (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
-  (let ((Rrr(nth 1 cmd))
+  (let ((Rrr (nth 1 cmd))
 	(RRR (nth 2 cmd))
 	(rrr (nth 3 cmd)))
     (ccl-check-register rrr cmd)
     (ccl-check-register RRR cmd)
-    (cond ((integerp Rrr)
+    (cond ((symbolp Rrr)
+	   (if (not (get Rrr 'unification-table))
+	       (error "CCL: Invalid unification-table %s in %s" Rrr cmd))
 	   (ccl-embed-extended-command 'unify-character-const-tbl rrr RRR 0)
 	   (ccl-embed-data Rrr))
-	  ((symbolp Rrr)
-	   (ccl-embed-extended-command 'unify-character-const-tbl rrr RRR 0)
-	   (ccl-embed-data (get Rrr 'unification-table-id)))
 	  (t
 	   (ccl-check-register Rrr cmd)
-	   (ccl-embed-extended-command 'unify-character rrr RRR 0)))))
+	   (ccl-embed-extended-command 'unify-character rrr RRR Rrr)))))
 
 (defun ccl-compile-iterate-multiple-map (cmd)
   (ccl-compile-multiple-map-function 'iterate-multiple-map cmd))
 
 (defun ccl-compile-translate-multiple-map (cmd)
-  (if (< (length cmd) 4)
+  (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
-  (let ((itables (nthcdr 3 cmd))
-	itable arg)
-    (while (setq itable (car itables))
-      (setq arg (append arg '(-1)))
-      (if (not (consp itable))
-	  (error "CCL: Invalid argument: %s" itable))
-      (setq arg (append arg itable))
-      (setq itables (cdr itables)))
-    (setq arg (append (list (nth 0 cmd) (nth 1 cmd) (nth 2 cmd)) (cdr arg)))
+  (let ((func '(lambda (arg mp)
+			  (let ((len 0) result add)
+			    (while arg
+			      (if (consp (car arg))
+				  (setq add (funcall func (car arg) t)
+					result (append result add)
+					add (+ (-(car add)) 1))
+				(setq result
+				      (append result
+					      (list (car arg)))
+				      add 1))
+			      (setq arg (cdr arg)
+				    len (+ len add)))
+			    (if mp 
+				(cons (- len) result)
+			      result))))
+	arg)
+    (setq arg (append (list (nth 0 cmd) (nth 1 cmd) (nth 2 cmd))
+		      (funcall func (nth 3 cmd) nil)))
     (ccl-compile-multiple-map-function 'translate-multiple-map arg)))
 
 (defun ccl-compile-translate-single-map (cmd)
@@ -926,15 +939,12 @@
     (ccl-check-register rrr cmd)
     (ccl-check-register RRR cmd)
     (ccl-embed-extended-command 'translate-single-map rrr RRR 0)
-    (cond ((integerp table)
-	     (ccl-embed-data table))
-	    ((symbolp table)
-	     (setq id (get table 'ccl-translation-table-id))
-	     (if (numberp id)
-		 (ccl-embed-data (get id 'ccl-translation-table-id))
-	       (error "CCL: Invalid table: %s" table)))
-	    (t
-	     (error "CCL: Invalid type of arguments: %s" cmd)))))
+    (cond ((symbolp table)
+	   (if (get table 'ccl-translation-table)
+	       (ccl-embed-data table)
+	     (error "CCL: Invalid table: %s" table)))
+	  (t
+	   (error "CCL: Invalid type of arguments: %s" cmd)))))
 
 (defun ccl-compile-multiple-map-function (command cmd)
   (if (< (length cmd) 4)
@@ -942,24 +952,24 @@
   (let ((RRR (nth 1 cmd))
 	(rrr (nth 2 cmd))
 	(args (nthcdr 3 cmd))
-	table id)
+	table)
     (ccl-check-register rrr cmd)
     (ccl-check-register RRR cmd)
     (ccl-embed-extended-command command rrr RRR 0)
     (ccl-embed-data (length args))
     (while args
       (setq table (car args))
-      (cond ((integerp table)
-	     (ccl-embed-data table))
-	    ((symbolp table)
-	     (setq id (get table 'ccl-translation-table-id))
-	     (if (numberp id)
-		 (ccl-embed-data id)
+      (cond ((symbolp table)
+	     (if (get table 'ccl-translation-table)
+		 (ccl-embed-data table)
 	       (error "CCL: Invalid table: %s" table)))
+	    ((numberp table)
+	     (ccl-embed-data table))
 	    (t
 	     (error "CCL: Invalid type of arguments: %s" cmd)))
       (setq args (cdr args)))))
 
+
 ;;; CCL dump staffs
 
 ;; To avoid byte-compiler warning.
@@ -1254,7 +1264,7 @@
     (insert (format "\tnumber of tables is %d .\n\t [" notbl))
     (while (< i notbl)
       (setq id (ccl-get-next-code))
-      (insert (format "%d " id))
+      (insert (format "%S" id))
       (setq i (1+ i)))
     (insert "]\n")))
 
@@ -1267,26 +1277,29 @@
       (setq id (ccl-get-next-code))
       (if (= id -1)
 	  (insert "]\n\t [")
-	(insert (format "%d " id)))
+	(insert (format "%S " id)))
       (setq i (1+ i)))
     (insert "]\n")))
 
 (defun ccl-dump-translate-single-map (rrr RRR Rrr)
   (let ((id (ccl-get-next-code)))
-    (insert (format "translate-single-map r%d r%d table(%d)\n" RRR rrr id))))
+    (insert (format "translate-single-map r%d r%d table(%S)\n" RRR rrr id))))
 
-
+
 ;; CCL emulation staffs 
 
 ;; Not yet implemented.
 
+;; Auto-loaded functions.
+
 ;;;###autoload
-(defmacro declare-ccl-program (name)
+(defmacro declare-ccl-program (name &optional vector)
   "Declare NAME as a name of CCL program.
 
 To compile a CCL program which calls another CCL program not yet
-defined, it must be declared as a CCL program in advance."
-  `(put ',name 'ccl-program-idx (register-ccl-program ',name nil)))
+defined, it must be declared as a CCL program in advance.
+Optional arg VECTOR is a compiled CCL code of the CCL program."
+  `(put ',name 'ccl-program-idx (register-ccl-program ',name ,vector)))
 
 ;;;###autoload
 (defmacro define-ccl-program (name ccl-program &optional doc)
@@ -1297,6 +1310,24 @@ The compiled code is a vector of integers."
      (defconst ,name prog ,doc)
      (put ',name 'ccl-program-idx (register-ccl-program ',name prog))
      nil))
+
+;;;###autoload
+(defmacro check-ccl-program (ccl-program &optional name)
+  "Check validity of CCL-PROGRAM.
+If CCL-PROGRAM is a symbol denoting a valid CCL program, return
+CCL-PROGRAM, else return nil.
+If CCL-PROGRAM is a vector and optional arg NAME (symbol) is supplied,
+register CCL-PROGRAM by name NAME, and return NAME."
+  `(let ((result ,ccl-program))
+     (cond ((symbolp ,ccl-program)
+	    (or (numberp (get ,ccl-program 'ccl-program-idx))
+		(setq result nil)))
+	   ((vectorp ,ccl-program)
+	    (setq result ,name)
+	    (register-ccl-program result ,ccl-program))
+	   (t
+	    (setq result nil)))
+     result))
 
 ;;;###autoload
 (defun ccl-execute-with-args (ccl-prog &rest args)
