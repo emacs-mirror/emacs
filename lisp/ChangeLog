@@ -1,3 +1,8 @@
+2001-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* international/characters.el (Unicode): Comment out
+	the specifications for kelvin and angstrom signs.
+
 2001-12-12  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (make-translation-table-from-vector):

@@ -1,3 +1,10 @@
+2001-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fwrite_region): Doc fix.
+
+	* xdisp.c (CLEAR_FACE_CACHE_COUNT): Redefine as 500.
+	(redisplay_internal): Call clear_image_cache only for window terminals.
+
 2001-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Change heuristic
