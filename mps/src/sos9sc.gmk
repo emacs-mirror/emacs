@@ -1,17 +1,17 @@
-# impl.gmk.sos9sc: BUILD FOR Solaris/SPARC v9/SunPro C PLATFORM
+# impl.gmk.sos9sc: BUILD FOR SOLARIS/SPARC V9/SUNPRO C PLATFORM
 #
-# $HopeName: MMsrc!sos9sc.gmk(trunk.21) $
-# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
+# $HopeName: MMsrc!sos9sc.gmk(trunk.22) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # This is the GNU makefile for platform.sos9sc.
-#
 
 PFM = sos9sc
 
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
 MPMS = sssos8.s # s9 is backward-compatible with s8 here
-SWPF = lockan.c than.c vmso.c protsw.c prmcan.c ssan.c
+SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
+
 LIBS = -lm
 
 include sc.gmk
