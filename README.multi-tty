@@ -58,15 +58,14 @@ major release of Emacs (version 22).  I expect the merge into the
 development trunk to occur sometime during next year (2005), after the
 merge of the Unicode branch.
 
-Please let me know if you find any bugs in this branch.
+Tested on GNU/Linux, Solaris 8, FreeBSD and OpenBSD.  Please let me
+know if you succeed or fail to use it on other platforms---I'll have a
+few tricky test cases for you.
 
 Known problems:
 
 	* Mac, Windows and DOS support is broken, probably doesn't
 	  even compile -- this will be solved later.
-
-	* Tested on GNU/Linux, Solaris 8, FreeBSD and OpenBSD.
-
 
 HOW TO GET THE BRANCH
 ---------------------
@@ -75,14 +74,14 @@ The branch uses GNU Arch (http://www.gnuarch.org) for version control.
 
 Retrieving the latest version of the branch:
 
-	tla register-archive lorentey@elte.hu--2004 http://lorentey.hu/arch/2004/
+	tla register-archive http://lorentey.hu/arch/2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 This incantation uses my private archive mirror that is hosted on a
 relatively low-bandwidth site; if you are outside Hungary, you will
 probably want to you use the Arch supermirror instead:
 
-	tla register-archive lorentey@elte.hu--2004 http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
+	tla register-archive http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 (I use a recent tla development snapshot, but any of the released
@@ -105,19 +104,27 @@ download conventional patches against Emacs CVS HEAD:
 	http://lorentey.hu/project/emacs.html
 
 
-HOW TO COMPILE
---------------
+COMPILATION
+-----------
 
 The multi-tty branch is compiled the same way as Emacs itself:
+
+	make maintainer-clean  # (If you have compiled Emacs before)
 
 	./configure <your favourite options>
 	make bootstrap
 	make install
 
-HOW TO TEST IT
---------------
+If you have strange compilation errors, they may be caused by old
+*.elc files that are left over from an earlier bootstrap.  The `make
+maintainer-clean' target deletes them, so it is a good idea to run
+that before reporting a bug.  (Emacs requires a clean recompilation
+after certain kinds of source code changes.)
 
-To try out the multi-tty branch start up the Emacs server with the
+TESTING
+-------
+
+To test the multi-tty branch, start up the Emacs server with the
 following commands:
 
 	emacs
@@ -141,7 +148,8 @@ all terminals should be restored to their previous states.
 
 This is work in progress, and probably full of bugs.  You should
 always run emacs from gdb, so that you'll have a live instance to
-debug if something goes wrong.  Please send me your bug reports.
+debug if something goes wrong.  Please send me
+(multi-tty@lists.fnord.hu) your bug reports.
 
 TIPS & TRICKS
 -------------
@@ -262,9 +270,9 @@ For the NEWS file:  (Needs work)
 THANKS
 ------
 
-The following is an (incomplete) list of people who have contributed
-to the project by testing, submitting patches, bug reports, and
-suggestions.  Thanks!
+The following is a (sadly incomplete) list of people who have
+contributed to the project by testing, submitting patches, bug
+reports, and suggestions.  Thanks!
 
 ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
 Han Boetes <han at mijncomputer dot nl>
@@ -293,6 +301,11 @@ CHANGELOG
 ---------
 
 See arch logs.
+
+* * *
+
+(The rest of this file consists of my development notes and as such it
+is probably not very interesting for anyone else.)
 
 THINGS TO DO
 ------------
