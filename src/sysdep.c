@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #undef NULL
 
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif
+
 #define min(x,y) ((x) > (y) ? (y) : (x))
 
 /* In this file, open, read and write refer to the system calls,
