@@ -544,6 +544,7 @@ Lisp_Object Qswitch_frame;
 Lisp_Object Qdelete_frame;
 Lisp_Object Qiconify_frame;
 Lisp_Object Qmake_frame_visible;
+Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
 /* Symbols to denote kinds of events.  */
@@ -3789,6 +3790,14 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	      && !EQ (frame, selected_frame))
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
+	  kbd_fetch_ptr = event + 1;
+	}
+      else if (event->kind == SELECT_WINDOW_EVENT)
+	{
+	  /* Make an event (select-window (WINDOW)).  */
+	  obj = Fcons (event->frame_or_window, Qnil);
+	  obj = Fcons (Qselect_window, Fcons (obj, Qnil));
+
 	  kbd_fetch_ptr = event + 1;
 	}
       else
@@ -10302,7 +10311,8 @@ struct event_head head_table[] = {
   {&Qswitch_frame,        "switch-frame",        &Qswitch_frame},
   {&Qdelete_frame,        "delete-frame",        &Qdelete_frame},
   {&Qiconify_frame,       "iconify-frame",       &Qiconify_frame},
-  {&Qmake_frame_visible,  "make-frame-visible",  &Qmake_frame_visible}
+  {&Qmake_frame_visible,  "make-frame-visible",  &Qmake_frame_visible},
+  {&Qselect_window,       "select-window",       &Qselect_window}
 };
 
 void
@@ -10968,6 +10978,8 @@ keys_of_keyboard ()
 			    "ignore-event");
   initial_define_lispy_key (Vspecial_event_map, "make-frame-visible",
 			    "ignore-event");
+  initial_define_lispy_key (Vspecial_event_map, "select-window",
+			    "handle-select-window");
   initial_define_lispy_key (Vspecial_event_map, "save-session",
 			    "handle-save-session");
 }
