@@ -2487,8 +2487,7 @@ Patched to remove the most recent completion."
   (interactive "p")
   (use-completion-before-separator)
   (self-insert-command arg)
-  (and (> (current-column) fill-column)
-       auto-fill-function
+  (and auto-fill-function
        (funcall auto-fill-function))
   )
 
