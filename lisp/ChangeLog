@@ -1,8 +1,8 @@
 2002-04-23  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* cc-cmds.el (c-mask-comment): Fixed bug where point was moved
-	to the following line when it was at the first line of a block
-	comment where comment-start-skip matched to eol.
+	* progmodes/cc-cmds.el (c-mask-comment): Fixed bug where point
+	was moved to the following line when it was at the first line
+	of a block comment where comment-start-skip matched to eol.
 
 2002-04-22  Richard M. Stallman  <rms@gnu.org>
 
