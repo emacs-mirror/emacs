@@ -463,9 +463,9 @@ prefix key.
 
 @c Emacs 19 feature
 @item
-The other Emacs prefix keys are @kbd{C-x @@}, @kbd{C-x a i}, @kbd{C-x
-@key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps that have no
-special names.
+The other Emacs prefix keys are @kbd{M-g}, @kbd{C-x @@}, @kbd{C-x a i},
+@kbd{C-x @key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps
+that have no special names.
 @end itemize
 
   The keymap binding of a prefix key is used for looking up the event
