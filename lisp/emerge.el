@@ -1980,8 +1980,7 @@ need not be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (setq emerge-fast-mode t)
   (setq emerge-edit-mode nil)
   (message "Fast mode set")
-  ;; force mode line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun emerge-edit-mode ()
   "Set edit mode, for Emerge.
@@ -1994,8 +1993,7 @@ must be prefixed with \\<emerge-fast-keymap>\\[emerge-basic-keymap]."
   (setq emerge-fast-mode nil)
   (setq emerge-edit-mode t)
   (message "Edit mode set")
-  ;; force mode line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun emerge-auto-advance (arg)
   "Toggle Auto-Advance mode, for Emerge.
@@ -2010,8 +2008,7 @@ With a negative argument, turn off Auto-Advance mode."
   (message (if emerge-auto-advance
 	       "Auto-advance set"
 	     "Auto-advance cleared"))
-  ;; force mode line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun emerge-skip-prefers (arg)
   "Toggle Skip-Prefers mode, for Emerge.
@@ -2026,8 +2023,7 @@ With a negative argument, turn off Skip-Prefers mode."
   (message (if emerge-skip-prefers
 	       "Skip-prefers set"
 	     "Skip-prefers cleared"))
-  ;; force mode line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun emerge-copy-as-kill-A ()
   "Put the A variant of this difference in the kill ring."
@@ -2803,8 +2799,7 @@ keymap.  Leaves merge in fast mode."
 				       (prefer-B . " - B*")
 				       (combined . " - comb"))))
 			""))))
-  ;; Force mode-line redisplay
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 ;; compare two regions in two buffers for containing the same text
 (defun emerge-compare-buffers (buffer-x x-begin x-end buffer-y y-begin y-end)
