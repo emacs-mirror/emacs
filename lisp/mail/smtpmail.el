@@ -45,7 +45,7 @@
 ;;(setq smtpmail-starttls-credentials
 ;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
 
-;; To queue mail, set smtpmail-queue-mail to t and use 
+;; To queue mail, set smtpmail-queue-mail to t and use
 ;; smtpmail-send-queued-mail to send.
 
 ;; Modified by Stephen Cranefield <scranefield@infoscience.otago.ac.nz>,
@@ -86,7 +86,7 @@
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
-(defcustom smtpmail-smtp-server 
+(defcustom smtpmail-smtp-server
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
   "*The name of the host running SMTP server."
   :type '(choice (const nil) string)
@@ -139,7 +139,7 @@ The commands enables verbose information from the SMTP server."
   :type 'boolean
   :group 'smtpmail)
 
-(defcustom smtpmail-queue-mail nil 
+(defcustom smtpmail-queue-mail nil
   "*Specify if mail is queued (if t) or sent immediately (if nil).
 If queued, it is stored in the directory `smtpmail-queue-dir'
 and sent with `smtpmail-send-queued-mail'."
@@ -292,7 +292,7 @@ This is relative to `smtpmail-queue-dir'.")
 			     ;; ... then undo escaping of matching parentheses,
 			     ;; including matching nested parentheses.
 			     (goto-char fullname-start)
-			     (while (re-search-forward 
+			     (while (re-search-forward
 				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
 				     fullname-end 1)
 			       (replace-match "\\1(\\3)" t)
@@ -327,16 +327,16 @@ This is relative to `smtpmail-queue-dir'.")
 	  (setq smtpmail-recipient-address-list
 		    (smtpmail-deduce-address-list tembuf (point-min) delimline))
 	  (kill-buffer smtpmail-address-buffer)
-	  
+
 	  (smtpmail-do-bcc delimline)
 	  ; Send or queue
 	  (if (not smtpmail-queue-mail)
 	      (if (not (null smtpmail-recipient-address-list))
-		  (if (not (smtpmail-via-smtp 
+		  (if (not (smtpmail-via-smtp
 			    smtpmail-recipient-address-list tembuf))
 		      (error "Sending failed; SMTP protocol error"))
 		(error "Sending failed; no recipients"))
-	    (let* ((file-data (concat 
+	    (let* ((file-data (concat
 			       smtpmail-queue-dir
 			       (concat (time-stamp-yyyy-mm-dd)
 				       "_" (time-stamp-hh:mm:ss)
@@ -356,12 +356,12 @@ This is relative to `smtpmail-queue-dir'.")
 		(insert (concat
 			 "(setq smtpmail-recipient-address-list '"
 			 (prin1-to-string smtpmail-recipient-address-list)
-			 ")\n"))	    	    
+			 ")\n"))
 		(write-file file-elisp)
 		(set-buffer (generate-new-buffer buffer-scratch))
 		(insert (concat file-data "\n"))
-		(append-to-file (point-min) 
-				(point-max) 
+		(append-to-file (point-min)
+				(point-max)
 				smtpmail-queue-index)
 		)
 	      (kill-buffer buffer-scratch)
@@ -469,12 +469,13 @@ This is relative to `smtpmail-queue-dir'.")
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
 	 (cred (if (stringp smtpmail-auth-credentials)
 		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
-			  (hostentry (netrc-machine 
+			  (hostentry (netrc-machine
 				      netrc host (format "%s" (or port "smtp"))
 				      "smtp")))
-		     (list host port
-			   (netrc-get hostentry "login")
-			   (netrc-get hostentry "password")))
+                     (when hostentry
+                       (list host port
+                             (netrc-get hostentry "login")
+                             (netrc-get hostentry "password"))))
 		 (smtpmail-find-credentials
 		  smtpmail-auth-credentials host port)))
 	 (passwd (when cred
@@ -521,7 +522,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(>= (car ret) 400))
 	    (throw 'done nil)))
        (t
-	(error "Mechanism %s not implemented" mech)))
+        (error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
       (when (and (not (stringp smtpmail-auth-credentials))
 		 (null (smtpmail-cred-passwd cred)))
@@ -558,7 +559,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (make-local-variable 'smtpmail-read-point)
 	    (setq smtpmail-read-point (point-min))
 
-	    
+
 	    (if (or (null (car (setq greeting (smtpmail-read-response process))))
 		    (not (integerp (car greeting)))
 		    (>= (car greeting) 400))
@@ -615,7 +616,7 @@ This is relative to `smtpmail-queue-dir'.")
 		  (starttls-negotiate process)
 		  (setq do-starttls nil))
 	      (setq do-ehlo nil))))
-	    
+
 	    (smtpmail-try-auth-methods process supported-extensions host port)
 
 	    (if (or (member 'onex supported-extensions)
@@ -691,7 +692,7 @@ This is relative to `smtpmail-queue-dir'.")
 		      (>= (car response-code) 400))
 		  (throw 'done nil)
 		))
-	    
+
 	    ;; RCPT TO: <recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
@@ -705,7 +706,7 @@ This is relative to `smtpmail-queue-dir'.")
 		    (throw 'done nil)
 		  )
 		))
-	    
+
 	    ;; DATA
 	    (smtpmail-send-command process "DATA")
 
@@ -767,7 +768,7 @@ This is relative to `smtpmail-queue-dir'.")
       (setq response-strings
 	    (cons (buffer-substring smtpmail-read-point (- match-end 2))
 		  response-strings))
-	
+
       (goto-char smtpmail-read-point)
       (if (looking-at "[0-9]+ ")
 	  (let ((begin (match-beginning 0))
@@ -782,10 +783,10 @@ This is relative to `smtpmail-queue-dir'.")
 		nil
 	      (setq response-continue nil)
 	      (setq return-value
-		    (cons (string-to-int 
-			   (buffer-substring begin end)) 
+		    (cons (string-to-int
+			   (buffer-substring begin end))
 			  (nreverse response-strings)))))
-	
+
 	(if (looking-at "[0-9]+-")
 	    (progn (if smtpmail-debug-info
 		     (message "%s" (car response-strings)))
@@ -794,7 +795,7 @@ This is relative to `smtpmail-queue-dir'.")
 	  (progn
 	    (setq smtpmail-read-point match-end)
 	    (setq response-continue nil)
-	    (setq return-value 
+	    (setq return-value
 		  (cons nil (nreverse response-strings)))
 	    )
 	  )))
@@ -818,7 +819,7 @@ This is relative to `smtpmail-queue-dir'.")
 	   smtpmail-code-conv-from)
       (setq data (string-as-multibyte
 		  (encode-coding-string data smtpmail-code-conv-from))))
-	
+
   (if smtpmail-debug-info
       (insert data "\r\n"))
 
@@ -855,7 +856,7 @@ This is relative to `smtpmail-queue-dir'.")
       )
     )
   )
-    
+
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."

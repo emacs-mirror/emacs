@@ -1,11 +1,16 @@
+2002-04-26  Sam Steingold  <sds@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): When `host' is
+	not in the authinfo/netrc, keep `cred' at nil.
+
 2002-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* find-file.el: Remove Ada-specific example code.
 
 2002-04-25  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-hooks.el: Put back the autoloads.
-	
+
 2002-04-25  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (define column process): Use `ibuffer-aif'.
@@ -147,7 +152,7 @@
 	`save-selected-window'.
 	(ibuffer-mode): Make `ibuffer-filtering-groups' and
 	`ibuffer-hidden-filtering-groups' buffer-local.
-	
+
 	* ibuf-macs.el (ibuffer-save-marks): Call
 	`ibuffer-redisplay-engine'.
 
@@ -164,7 +169,7 @@
 
 2002-04-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* menu-bar.el (menu-bar-adv-search-menu) 
+	* menu-bar.el (menu-bar-adv-search-menu)
 	(menu-bar-adv-search-menu): Improve the help text.
 
 2002-04-24  Simon Josefsson  <jas@extundo.com>
@@ -179,7 +184,7 @@
 
 2002-04-24  Miles Bader  <miles@gnu.org>
 
-	* menu-bar.el (buffers-menu-show-directories) 
+	* menu-bar.el (buffers-menu-show-directories)
 	(buffers-menu-show-status): New variables.
 	(menu-bar-update-buffers-1): Use them.
 
@@ -219,9 +224,9 @@
 	(occur-fontify-on-property): New function.
 	(occur-fontify-region-function, occur-unfontify-region-function):
 	New functions.
-	
+
 	* ibuffer.el (ibuffer-accumulate-lines): Moved to replace.el.
-	
+
 	* ibuf-ext.el (ibuffer-depropertize-string): Delete.
 	(ibuffer-occur-match-face): Delete.
 	(ibuffer-occur-props, ibuffer-occur-mode): Delete.
