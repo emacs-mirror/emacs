@@ -8902,7 +8902,6 @@ png_load (f, img)
   png_byte channels;
   png_uint_32 row_bytes;
   int transparent_p;
-  char *gamma_str;
   double screen_gamma, image_gamma;
   int intent;
   struct png_memory_storage tbr;  /* Data to be read */
