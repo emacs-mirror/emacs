@@ -58,11 +58,15 @@ static Lisp_Object float_error_arg;
 /* Evaluate the floating point expression D, recording NUM
    as the original argument for error messages.
    D is normally an assignment expression.
-   Handle errors which may result in signals or may set errno.  */
+   Handle errors which may result in signals or may set errno.
+
+   Note that float_error may be declared to return void, so you can't
+   just cast the zero after the colon to (SIGTYPE) to make the types
+   check properly.  */
 
 #define IN_FLOAT(D, NUM) \
 (in_float = 1, errno = 0, float_error_arg = NUM, (D),			\
- (errno == ERANGE || errno == EDOM ? float_error () : (SIGTYPE) 0),	\
+ (errno == ERANGE || errno == EDOM ? (float_error (),0) : 0),		\
  in_float = 0)
 
 /* Extract a Lisp number as a `double', or signal an error.  */
@@ -437,17 +441,10 @@ This is the same as the exponent of a float.")
      (num)
 Lisp_Object num;
 {
-#ifdef USG
-  /* System V apparently doesn't have a `logb' function.  */
+  /* System V apparently doesn't have a `logb' function.  It might be
+     better to use it on systems that have it, but Ultrix (at least)
+     doesn't declare it properly in <math.h>; does anyone really care? */
   return Flog (num, make_number (2));
-#else
-  Lisp_Object val;
-  double f = extract_float (num);
-
-  IN_FLOAT (val = logb (f), num);
-  XSET (val, Lisp_Int, val);
-  return val;
-#endif
 }
 
 /* the rounding functions  */
@@ -487,12 +484,14 @@ DEFUN ("round", Fround, Sround, 1, 1, 0,
 
   if (XTYPE (num) == Lisp_Float)
     {
-#ifdef USG
       /* Screw the prevailing rounding mode.  */
       IN_FLOAT (XSET (num, Lisp_Int, floor (XFLOAT (num)->data + 0.5)), num);
-#else
-      IN_FLOAT (XSET (num, Lisp_Int, rint (XFLOAT (num)->data)), num);
-#endif
+
+      /* It used to be that on non-USG systems we'd use the `rint'
+	 function.  But that seems not to be declared properly in
+	 <math.h> on Ultrix, I don't want to declare it myself because
+	 that might conflict with <math.h> on other systems, and I
+	 don't see what's wrong with the code above anyway.  */
     }
 
   return num;
