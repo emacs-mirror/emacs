@@ -1186,6 +1186,7 @@ extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
 extern Lisp_Object Fmake_byte_code ();
+extern int gc_in_progress;
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
