@@ -309,8 +309,6 @@ Keymap to display on major and minor modes.")
        ((column-number-mode
 	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
 
-(put 'mode-name 'risky-local-variable t)
-
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
 
