@@ -1,3 +1,14 @@
+2002-04-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (Qlatin_1, Qutf_8): New vars.
+	(syms_of_xterm): Initialize them.
+	(XTread_socket): Eliminate incorrect optimization that tried to avoid
+	decoding the output of X*LookupString.
+	Always use latin-1 to decode the output of XLookupString.
+	Try Xutf8LookupString if XmbLookupString failed.
+
+	* region-cache.c (new_region_cache): Use BEG.
+
 2002-04-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (MMAP_ALLOCATED_P): New macro to be set from system
@@ -35,7 +46,7 @@
 
 2002-04-13  Richard M. Stallman  <rms@gnu.org>
 
-	* fileio.c (Finsert_file_contents): 
+	* fileio.c (Finsert_file_contents):
 	Don't call temp_output_buffer_setup--do just part, by hand.
 
 	* coding.c (run_pre_post_conversion_on_str):
@@ -68,8 +79,7 @@
 
 	* window.c (window_part): Add ON_LEFT_MARGIN, ON_RIGHT_MARGIN.
 	(Qleft_margin, Qright_margin): Declare.
-	(coordinates_in_window, (Fcoordinates_in_window_p): Deal with
-	margins.
+	(coordinates_in_window, (Fcoordinates_in_window_p): Deal with margins.
 
 	* xterm.c (note_mode_line_or_margin_highlight): Renamed from
 	note_mode_line_highlight and extended.
