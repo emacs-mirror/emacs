@@ -1,3 +1,7 @@
+2001-10-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.h (FRAME_LINE_HEIGHT): Define (it's used by xmenu.c).
+
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_relief_rect): Correct bottom relief by 1 pixel.
