@@ -594,6 +594,37 @@ struct x_output
      arrive for an unknown reason and Emacs hangs in Xt.  If this is
      zero, tell Xt not to wait.  */
   int wait_for_wm;
+
+  /* See enum below */
+  int want_fullscreen;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     left of the window manager decoration) and FRAME_X_WINDOW. */
+  int x_pixels_diff;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     top of the window manager titlebar) and FRAME_X_WINDOW. */
+  int y_pixels_diff;
+
+  /* As x_pixels_diff, but to FRAME_OUTER_WINDOW.  For some reason the
+     two might differ by a pixel, depending on WM */
+  int x_pixels_outer_diff;
+  
+  /* As y_pixels_diff, but to FRAME_OUTER_WINDOW.  In the toolkit version,
+     these may differ because this does not take into account possible
+     menubar.  y_pixels_diff is with menubar height included */
+  int y_pixels_outer_diff;
+};
+
+enum
+{
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGH */
+  FULLSCREEN_NONE       = 0,
+  FULLSCREEN_WIDTH      = 1,
+  FULLSCREEN_HEIGHT     = 2,
+  FULLSCREEN_BOTH       = 3,
+  FULLSCREEN_WAIT       = 4,
+  FULLSCREEN_MOVE_WAIT  = 8,
 };
 
 /* Return the X window used for displaying data in frame F.  */
@@ -601,7 +632,9 @@ struct x_output
 
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT
-#define FRAME_OUTER_WINDOW(f) (XtWindow ((f)->output_data.x->widget))
+#define FRAME_OUTER_WINDOW(f) ((f)->output_data.x->widget ?             \
+                               XtWindow ((f)->output_data.x->widget) :  \
+                               FRAME_X_WINDOW (f))
 #else
 #define FRAME_OUTER_WINDOW(f) (FRAME_X_WINDOW (f))
 #endif
@@ -992,6 +1025,10 @@ extern XtAppContext Xt_app_con;
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
 extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
+
+extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
+                                     int *, int *));
+
 
 /* Defined in xselect.c */
 
