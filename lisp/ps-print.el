@@ -4005,12 +4005,13 @@ If FACE is not a valid face name, it is used default face."
       (and ps-razzle-dazzle (message "Printing..."))
       (save-excursion
 	(set-buffer ps-spool-buffer)
-	(let ((coding-system-for-write 'raw-text-unix)
-	      (ps-lpr-switches
-	       (append
-		(and (stringp ps-printer-name)
-		     (list (concat "-P" ps-printer-name)))
-		ps-lpr-switches)))
+	(let* ((coding-system-for-write 'raw-text-unix)
+	       (ps-printer-name (or ps-printer-name printer-name))
+	       (ps-lpr-switches
+		(append
+		 (and (stringp ps-printer-name)
+		      (list (concat "-P" ps-printer-name)))
+		 ps-lpr-switches)))
 	  (if (and (memq system-type '(ms-dos windows-nt))
 		   (or (and (boundp 'dos-ps-printer)
 			    (stringp (symbol-value 'dos-ps-printer)))
