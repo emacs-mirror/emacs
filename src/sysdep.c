@@ -2499,7 +2499,7 @@ select_alarm ()
     longjmp (read_alarm_throw, 1);
 }
 
-#ifndef WINDOWSNT
+#if (!defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)) && !defined (WINDOWSNT)
 /* Only rfds are checked.  */
 int
 sys_select (nfds, rfds, wfds, efds, timeout)
@@ -2631,7 +2631,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
     }
   return ravail;
 }
-#endif /* not WINDOWSNT */
+#endif /* (!defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)) && !defined (WINDOWSNT) */
 
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */

@@ -213,8 +213,21 @@ DIARY OF CHANGES
 
    (Seems to be working OK.)
 
+-- Enable select on ttys (sys_select disables the native select on
+   non-X systems).  There are some systems (OSS, SCO, maybe cygwin?)
+   that don't support this, so make sure the emulation remains
+   available for them.  
+
+   (This was a bogus issue, select is only #defined to be sys_select
+   by sysselect.h if BROKEN_SELECT_NON_X.  Fixed sysdep.c to compile
+   sys_select only then.)
+
+
 THINGS TO DO
 ------------
+
+** Understand Emacs's low-level input system.  It seems
+   complicated. :-)
 
 ** Fix mysterious memory corruption error with tty deletion.  To
    trigger it, try the following shell command:
@@ -231,6 +244,9 @@ THINGS TO DO
    initialization or if I comment out all xfree()s in delete_frame.
    Update: yes it does, although it is much rarer.  Or maybe it's
    another bug.
+
+   Update: Some of these errors may have been caused by having more
+   file handles than FD_SETSIZE.
 
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
@@ -264,11 +280,12 @@ THINGS TO DO
 ** Find out the best way to support suspending Emacs with multiple
    ttys.
 
-** Do tty output through term_hooks, like all other display backends.
+** Do tty output through term_hooks, like graphical display backends.
 
 ** Fix X support.
 
-** Allow simultaneous X and tty frames.
+** Allow simultaneous X and tty frames.  (Handling input could be
+   tricky.)
 
 ** Fix Mac support (I can't do this myself).
 
