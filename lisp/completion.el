@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Maintainer: bug-completion@think.com
+;; Maintainer: FSF
 ;; Keywords: abbrev
 
 ;;; Commentary:
