@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993,1994,2000,01,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,2000,01,2004,2005  Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -2173,7 +2173,7 @@ Redefining advices affect the construction of an advised definition."
 ;; ============================================
 ;; The advice-info of an advised function contains its `origname' which is
 ;; a symbol that is fbound to the original definition available at the first
-;; proper activation of the function after a legal re/definition.  If the
+;; proper activation of the function after a valid re/definition.  If the
 ;; original was defined via fcell indirection then `origname' will be defined
 ;; just so.  Hence, to get hold of the actual original definition of a function
 ;; we need to use `ad-real-orig-definition'.
@@ -2238,7 +2238,7 @@ which PREDICATE returns non-nil)."
 	  ad-advice-classes))
 
 (defun ad-read-advice-class (function &optional prompt default)
-  "Read a legal advice class with completion from the minibuffer.
+  "Read a valid advice class with completion from the minibuffer.
 An optional PROMPT will be used to prompt for the class.  DEFAULT will
 be returned on empty input (defaults to the first non-empty advice
 class of FUNCTION)."
@@ -2312,7 +2312,7 @@ be used to prompt for the function."
 (defun ad-find-some-advice (function class name)
   "Find the first of FUNCTION's advices in CLASS matching NAME.
 NAME can be a symbol or a regular expression matching part of an advice name.
-If CLASS is `any' all legal advice classes will be checked."
+If CLASS is `any' all valid advice classes will be checked."
   (if (ad-is-advised function)
       (let (found-advice)
 	(ad-dolist (advice-class ad-advice-classes)
@@ -2332,7 +2332,7 @@ If CLASS is `any' all legal advice classes will be checked."
   "Set enable FLAG of FUNCTION's advices in CLASS matching NAME.
 If NAME is a string rather than a symbol then it's interpreted as a regular
 expression and all advices whose name contain a match for it will be
-affected.  If CLASS is `any' advices in all legal advice classes will be
+affected.  If CLASS is `any' advices in all valid advice classes will be
 considered.  The number of changed advices will be returned (or nil if
 FUNCTION was not advised)."
   (if (ad-is-advised function)
@@ -2369,7 +2369,7 @@ FUNCTION was not advised)."
 
 (defun ad-enable-regexp-internal (regexp class flag)
   "Set enable FLAGs of all CLASS advices whose name contains a REGEXP match.
-If CLASS is `any' all legal advice classes are considered.  The number of
+If CLASS is `any' all valid advice classes are considered.  The number of
 affected advices will be returned."
   (let ((matched-advices 0))
     (ad-do-advised-functions (advised-function)
@@ -3755,7 +3755,7 @@ deactivation, which might run hooks and get into other trouble."
       (error nil))))
 
 
-;; Completion alist of legal `defadvice' flags
+;; Completion alist of valid `defadvice' flags
 (defvar ad-defadvice-flags
   '(("protect") ("disable") ("activate")
     ("compile") ("preactivate") ("freeze")))

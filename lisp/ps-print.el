@@ -6114,6 +6114,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defvar ps-current-effect 0)
 
+(defvar ps-print-translation-table
+  (let ((tbl (make-char-table 'translation-table nil)))
+    (if (and (boundp 'ucs-mule-8859-to-mule-unicode)
+	   (char-table-p ucs-mule-8859-to-mule-unicode))
+	(map-char-table
+	 #'(lambda (k v) 
+	     (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
+		 (aset tbl k v)))
+	 ucs-mule-8859-to-mule-unicode))
+    tbl)
+  "Translation table for PostScript printing.
+The default value is a table that translates non-Latin-1 Latin characters
+to the equivalent Latin-1 characters.")
 
 (defun ps-plot-region (from to font &optional fg-color bg-color effects)
   (or (equal font ps-current-font)

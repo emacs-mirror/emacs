@@ -1,7 +1,7 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
 ;; Copyright (C) 1985, 86, 87, 88, 90, 92, 93, 94, 95, 97, 1999,
-;;  2000, 01, 02, 03, 2004 Free Software Foundation, Inc.
+;;  2000, 01, 02, 03, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1526,7 +1526,7 @@ Many commands that operate on individual messages, such as `mh-forward' or
 ways.
 
 If you provide the prefix argument (\\[universal-argument]) to these commands,
-then you will be prompted for the message range. This can be any legal MH
+then you will be prompted for the message range. This can be any valid MH
 range which can include messages, sequences, and the abbreviations (described
 in the mh(1) man page):
 
@@ -2146,7 +2146,7 @@ to avoid exceeding system command line argument limits."
 (defun mh-greaterp (msg1 msg2)
   "Return the greater of two message indicators MSG1 and MSG2.
 Strings are \"smaller\" than numbers.
-Legal values are things like \"cur\", \"last\", 1, and 1820."
+Valid values are things like \"cur\", \"last\", 1, and 1820."
   (if (numberp msg1)
       (if (numberp msg2)
           (> msg1 msg2)
@@ -2158,7 +2158,7 @@ Legal values are things like \"cur\", \"last\", 1, and 1820."
 (defun mh-lessp (msg1 msg2)
   "Return the lesser of two message indicators MSG1 and MSG2.
 Strings are \"smaller\" than numbers.
-Legal values are things like \"cur\", \"last\", 1, and 1820."
+Valid values are things like \"cur\", \"last\", 1, and 1820."
   (not (mh-greaterp msg1 msg2)))
 
 
@@ -2306,7 +2306,7 @@ If INTERNAL-FLAG is non-nil, then do not inform MH of the change."
 (defun mh-define-sequence (seq msgs)
   "Define the SEQ to contain the list of MSGS.
 Do not mark pseudo-sequences or empty sequences.
-Signals an error if SEQ is an illegal name."
+Signals an error if SEQ is an invalid name."
   (if (and msgs
            (mh-valid-seq-p seq)
            (not (mh-folder-name-p seq)))

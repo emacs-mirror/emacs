@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python
 
-;; Copyright (C) 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -336,14 +336,14 @@ keyword `raise', `break', `continue' or `pass'."
     (unless bos (python-beginning-of-statement))
     (back-to-indentation)
     (looking-at (rx (and (or "return" "raise" "break" "continue" "pass")
-			 word-end)))))
+			 symbol-end)))))
 
 (defun python-outdent-p ()
   "Return non-nil if current line should outdent a level."
   (save-excursion
     (back-to-indentation)
-    (and (looking-at (rx (and (or (and (or "else" "finally") word-end)
-				  (and (or "except" "elif") word-end
+    (and (looking-at (rx (and (or (and (or "else" "finally") symbol-end)
+				  (and (or "except" "elif") symbol-end
 				       (1+ (not (any ?:)))))
 			      (optional space) ":" (optional space)
 			      (or (syntax comment-start) line-end))))
@@ -355,8 +355,8 @@ keyword `raise', `break', `continue' or `pass'."
 	 ;; Fixme: check this
 	 (not (looking-at (rx (and (or (and (or "if" "elif" "except"
 						"for" "while")
-					    word-end (1+ (not (any ?:))))
-				       (and "try" word-end))
+					    symbol-end (1+ (not (any ?:))))
+				       (and "try" symbol-end))
 				   (optional space) ":" (optional space)
 				   (or (syntax comment-start) line-end)))))
 	 (progn (end-of-line)
@@ -1098,28 +1098,40 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
 (defvar python-preoutput-continuation nil
   "If non-nil, funcall this when `python-preoutput-filter' sees `_emacs_ok'.")
 
+(defvar python-preoutput-leftover nil)
+
 ;; Using this stops us getting lines in the buffer like
 ;; >>> ... ... >>>
 ;; Also look for (and delete) an `_emacs_ok' string and call
 ;; `python-preoutput-continuation' if we get it.
 (defun python-preoutput-filter (s)
   "`comint-preoutput-filter-functions' function: ignore prompts not at bol."
+  (when python-preoutput-leftover
+    (setq s (concat python-preoutput-leftover s))
+    (setq python-preoutput-leftover nil))
   (cond ((and (string-match (rx (and string-start (repeat 3 (any ".>"))
-				     " " string-end))
-			    s)
-	      (/= (let ((inhibit-field-text-motion t))
-		    (line-beginning-position))
-		  (point)))
+                                     " " string-end))
+                            s)
+              (/= (let ((inhibit-field-text-motion t))
+                    (line-beginning-position))
+                  (point)))
+         "")
+        ((string= s "_emacs_ok\n")
+         (when python-preoutput-continuation
+           (funcall python-preoutput-continuation)
+           (setq python-preoutput-continuation nil))
+         "")
+        ((string-match "_emacs_out \\(.*\\)\n" s)
+         (setq python-preoutput-result (match-string 1 s))
+         "")
+	((string-match ".*\n" s)
+	 s)
+	((or (eq t (compare-strings s nil nil "_emacs_ok\n" nil (length s)))
+	     (let ((end (min (length "_emacs_out ") (length s))))
+	       (eq t (compare-strings s nil end "_emacs_out " nil end))))
+	 (setq python-preoutput-leftover s)
 	 "")
-	((string= s "_emacs_ok\n")
-	 (when python-preoutput-continuation
-	   (funcall python-preoutput-continuation)
-	   (setq python-preoutput-continuation nil))
-	 "")
-	((string-match "_emacs_out \\(.*\\)\n" s)
-	 (setq python-preoutput-result (match-string 1 s))
-	 "")
-	(t s)))
+        (t s)))
 
 ;;;###autoload
 (defun run-python (&optional cmd noshow)
@@ -1359,7 +1371,9 @@ The result is what follows `_emacs_out' in the output (or nil)."
   (let ((proc (python-proc)))
     (python-send-string string)
     (setq python-preoutput-result nil)
-    (accept-process-output proc 5)
+    (while (progn
+	     (accept-process-output proc 5)
+	     python-preoutput-leftover))
     python-preoutput-result))
 
 ;; Fixme: try to make it work with point in the arglist.  Also, is
@@ -1562,7 +1576,8 @@ of current line."
 	(beginning-of-defun)
 	(if (looking-at (rx (and (0+ space) (or "def" "class") (1+ space)
 				 (group (1+ (or word (syntax symbol))))
-				 word-end)))
+				 ;; Greediness makes this unnecessary?  --Stef
+				 symbol-end)))
 	    (push (match-string 1) accum)))
       (if accum (mapconcat 'identity accum ".")))))
 
@@ -1702,9 +1717,9 @@ lines count as headers.
        '(python-font-lock-keywords nil nil ((?_ . "w")) nil
 				   (font-lock-syntactic-keywords
 				    . python-font-lock-syntactic-keywords)
-;;; This probably isn't worth it.
-;;; 				   (font-lock-syntactic-face-function
-;;; 				    . python-font-lock-syntactic-face-function)
+				   ;; This probably isn't worth it.
+				   ;; (font-lock-syntactic-face-function
+				   ;;  . python-font-lock-syntactic-face-function)
 				   ))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set (make-local-variable 'comment-start) "# ")

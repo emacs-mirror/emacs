@@ -1,3 +1,4 @@
+användarhandledningen till Emacs
 Detta är den Svenska användarhandledningen till Emacs. I slutet finns
 kopieringsvillkoren. Copyright (c) 1985, 1996, 1998, 2001, 2002 Free
 Software Foundation, Inc.

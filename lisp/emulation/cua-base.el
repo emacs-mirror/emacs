@@ -1016,7 +1016,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(scroll-down arg)
       (beginning-of-buffer (goto-char (point-min)))))))
 
-(put 'cua-scroll-up 'CUA 'move)
+(put 'cua-scroll-down 'CUA 'move)
 
 ;;; Cursor indications
 

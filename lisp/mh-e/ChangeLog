@@ -1,3 +1,11 @@
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* mh-e.el, mh-identity.el, mh-mime.el: Replace `legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* mh-e.el: Replace `illegal' with `invalid'.
+
 2004-09-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* mh-inc.el (mh-inc-spool-list): Correctly declare the external var.

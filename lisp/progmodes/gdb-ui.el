@@ -1299,10 +1299,10 @@ static char *magick[] = {
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
 	(menu (make-sparse-keymap "Breakpoints")))
-    (define-key menu [toggle] '("Toggle" . gdb-toggle-breakpoint))
-    (define-key menu [delete] '("Delete" . gdb-delete-breakpoint))
+    (define-key menu [quit] '("Quit"   . kill-this-buffer))
     (define-key menu [goto] '("Goto"   . gdb-goto-breakpoint))
-
+    (define-key menu [delete] '("Delete" . gdb-delete-breakpoint))
+    (define-key menu [toggle] '("Toggle" . gdb-toggle-breakpoint))
     (suppress-keymap map)
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
     (define-key map " " 'gdb-toggle-breakpoint)
@@ -1310,6 +1310,7 @@ static char *magick[] = {
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map [mouse-2] 'gdb-goto-breakpoint)
+    (define-key map [follow-link] 'mouse-face)
     map))
 
 (defun gdb-breakpoints-mode ()
@@ -1435,6 +1436,7 @@ static char *magick[] = {
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-frames-select)
     (define-key map [mouse-2] 'gdb-frames-select)
+    (define-key map [follow-link] 'mouse-face)
     map))
 
 (defun gdb-frames-mode ()

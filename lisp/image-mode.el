@@ -36,18 +36,12 @@
 
 (require 'image)
 
-;;;###autoload (push '("\\.jpg\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.jpeg\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.gif\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.png\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.tiff\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.tif\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.xbm\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.xpm\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.pbm\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.pgm\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.ppm\\'" . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.pnm\\'" . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.jpe?g\\'"    . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.png\\'"      . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.gif\\'"      . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.tiff?\\'"    . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
 
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
@@ -65,9 +59,64 @@ to toggle between display as an image and display as text."
   (setq mode-name "Image")
   (setq major-mode 'image-mode)
   (use-local-map image-mode-map)
+  (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
+  (if (not (get-text-property (point-min) 'display))
+      (image-toggle-display)
+    ;; Set next vars when image is already displayed but local
+    ;; variables were cleared by kill-all-local-variables
+    (setq cursor-type nil truncate-lines t))
   (run-mode-hooks 'image-mode-hook)
-  (message (substitute-command-keys
-	    "Type \\[image-toggle-display] to view the image as an image.")))
+  (message (concat (substitute-command-keys
+		    "Type \\[image-toggle-display] to view the image as ")
+		   (if (get-text-property (point-min) 'display)
+		       "text" "an image") ".")))
+
+;;;###autoload
+(define-minor-mode image-minor-mode
+  "Toggle Image minor mode.
+With arg, turn Image minor mode on if arg is positive, off otherwise.
+See the command `image-mode' for more information on this mode."
+  nil " Image" image-mode-map
+  :group 'image
+  :version "22.1"
+  (if (not image-minor-mode)
+      (image-toggle-display-text)
+    (if (get-text-property (point-min) 'display)
+	(setq cursor-type nil truncate-lines t))
+    (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
+    (message (concat (substitute-command-keys
+		      "Type \\[image-toggle-display] to view the image as ")
+		     (if (get-text-property (point-min) 'display)
+			 "text" "an image") "."))))
+
+;;;###autoload
+(defun image-mode-maybe ()
+  "Set major or minor mode for image files.
+Set Image major mode only when there are no other major modes
+associated with a filename in `auto-mode-alist'.  When an image
+filename matches another major mode in `auto-mode-alist' then
+set that major mode and Image minor mode.
+
+See commands `image-mode' and `image-minor-mode' for more
+information on these modes."
+  (interactive)
+  (let* ((mode-alist
+	  (delq nil (mapcar
+		     (lambda (elt)
+		       (unless (memq (or (car-safe (cdr elt)) (cdr elt))
+				     '(image-mode image-mode-maybe))
+			 elt))
+		     auto-mode-alist))))
+    (if (assoc-default buffer-file-name mode-alist 'string-match)
+	(let ((auto-mode-alist mode-alist))
+	  (set-auto-mode)
+	  (image-minor-mode t))
+      (image-mode))))
+
+(defun image-toggle-display-text ()
+  "Showing the text of the image file."
+  (if (get-text-property (point-min) 'display)
+      (image-toggle-display)))
 
 (defun image-toggle-display ()
   "Start or stop displaying an image file as the actual image.
@@ -84,7 +133,8 @@ and showing the image as an image."
 	(set-buffer-modified-p modified)
 	(kill-local-variable 'cursor-type)
 	(kill-local-variable 'truncate-lines)
-	(message "Repeat this command to go back to displaying the image"))
+	(if (called-interactively-p)
+	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
     ;; was inserted
     (let* ((data
@@ -100,6 +150,7 @@ and showing the image as an image."
 		      ;; read-only when we're visiting the file (as
 		      ;; opposed to just inserting it).
 		      read-only t front-sticky (read-only)))
+	   (inhibit-read-only t)
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
       (add-text-properties (point-min) (point-max) props)
@@ -110,7 +161,8 @@ and showing the image as an image."
       ;; This just makes the arrow displayed in the right fringe
       ;; area look correct when the image is wider than the window.
       (setq truncate-lines t)
-      (message "Repeat this command to go back to displaying the file as text"))))
+      (if (called-interactively-p)
+	  (message "Repeat this command to go back to displaying the file as text")))))
 
 (provide 'image-mode)
 

@@ -1,6 +1,7 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986, 1987, 1989, 1990, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1989, 1990, 2001, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, lisp
@@ -408,7 +409,7 @@ characters perform useful functions.
 
 Commands:
 \\{scheme-debugger-mode-map}"
-  (error "Illegal entry to scheme-debugger-mode"))
+  (error "Invalid entry to scheme-debugger-mode"))
 
 (defun scheme-debugger-mode-initialize ()
   (use-local-map scheme-debugger-mode-map)

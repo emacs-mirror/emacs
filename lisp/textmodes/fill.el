@@ -539,6 +539,17 @@ The break position will be always after LINEBEG and generally before point."
 	    ;; Make sure we take SOMETHING after the fill prefix if any.
 	    (fill-find-break-point linebeg)))))
 
+;; Like text-properties-at but don't include `composition' property.
+(defun fill-text-properties-at (pos)
+  (let ((l (text-properties-at pos))
+	prop-list)
+    (while l
+      (unless (eq (car l) 'composition)
+	(setq prop-list
+	      (cons (car l) (cons (cadr l) prop-list))))
+      (setq l (cddr l)))
+    prop-list))
+
 (defun fill-newline ()
   ;; Replace whitespace here with one newline, then
   ;; indent to left margin.
@@ -546,7 +557,7 @@ The break position will be always after LINEBEG and generally before point."
   (insert ?\n)
   ;; Give newline the properties of the space(s) it replaces
   (set-text-properties (1- (point)) (point)
-		       (text-properties-at (point)))
+		       (fill-text-properties-at (point)))
   (and (looking-at "\\( [ \t]*\\)\\(\\c|\\)?")
        (or (aref (char-category-set (or (char-before (1- (point))) ?\000)) ?|)
 	   (match-end 2))

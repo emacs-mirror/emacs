@@ -14,12 +14,11 @@
 @set IDLVERSION 6.1
 @set NSYSROUTINES 1850
 @set NSYSKEYWORDS 7685
-@set DATE November, 2004
+@set DATE March, 2005
 @set AUTHOR J.D. Smith & Carsten Dominik
 @set AUTHOR-EMAIL jdsmith@@as.arizona.edu
 @set MAINTAINER J.D. Smith
 @set MAINTAINER-EMAIL jdsmith@@as.arizona.edu
-@set IDLWAVE-HOMEPAGE http://idlwave.org/
 @c %**end of header
 @finalout
 
@@ -30,7 +29,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004 Free Software
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software
 Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -61,7 +60,7 @@ license to the document, as described in section 6 of the license.
 This is edition @value{EDITION} of the @cite{IDLWAVE User Manual} for
 IDLWAVE version @value{VERSION}, @value{DATE}.
 @sp 2
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004 Free Software
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software
 Foundation, Inc.
 @sp 2
 @cindex Copyright, of IDLWAVE
@@ -101,7 +100,6 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Getting Started::             Tutorial
 * The IDLWAVE Major Mode::      The mode for editing IDL programs
 * The IDLWAVE Shell::           The mode for running IDL as an inferior program
-* Installation::                How to Install or Upgrade               
 * Acknowledgements::            Who did what
 * Sources of Routine Info::     How does IDLWAVE know about routine XYZ     
 * HTML Help Browser Tips::      
@@ -180,11 +178,6 @@ Debugging IDL Programs
 * Walking the Calling Stack::   
 * Electric Debug Mode::         
 
-Installation
-
-* Installing IDLWAVE::          How to install the distribution
-* Installing Online Help::      Where to get the additional files needed
-
 Sources of Routine Info
 
 * Routine Definitions::         Where IDL Routines are defined.
@@ -204,8 +197,6 @@ Catalogs
 @node Introduction, IDLWAVE in a Nutshell, Top, Top
 @chapter Introduction
 @cindex Introduction
-@cindex CORBA (Common Object Request Broker Architecture)
-@cindex Interface Definition Language
 @cindex Interactive Data Language
 @cindex cc-mode.el
 @cindex @file{idl.el}
@@ -213,14 +204,13 @@ Catalogs
 @cindex Feature overview
 
 IDLWAVE is a package which supports editing source files written in
-the Interactive Data Language (IDL@footnote{IDL is a registered
-trademark of Research Systems, Inc., a Kodak Company}), and running
+the Interactive Data Language, and running
 IDL as an inferior shell@footnote{Note that this package has nothing
 to do with the Interface Definition Language, part of the Common
 Object Request Broker Architecture (CORBA)}@footnote{IDLWAVE can also
 be used for editing source files for the related WAVE/CL language, but
 with only limited support.}.  It is a feature-rich replacement for the
-IDLDE development environment bundled with IDL, and uses the full
+IDLDE development environment included with IDL, and uses the full
 power of Emacs to make editing and running IDL programs easier,
 quicker, and more structured.
 
@@ -421,11 +411,10 @@ be discovered by reading the entire manual, or hovering over the
 shoulder of your nearest IDLWAVE guru for a few days.
 
 It is assumed that you have access to Emacs or XEmacs with the full
-IDLWAVE package including online help (@pxref{Installation}).  We also
-assume that you are familiar with Emacs and can read the nomenclature of
-key presses in Emacs (in particular, @kbd{C} stands for @key{CONTROL}
-and @kbd{M} for @key{META} (often the @key{ALT} key carries this
-functionality)).
+IDLWAVE package including online help.  We also assume that you are
+familiar with Emacs and can read the nomenclature of key presses in
+Emacs (in particular, @kbd{C} stands for @key{CONTROL} and @kbd{M} for
+@key{META} (often the @key{ALT} key carries this functionality)).
 
 Open a new source file by typing:
 
@@ -612,9 +601,8 @@ restart Emacs.
 
 You likely have your own indentation preferences for IDL code.  For
 example, some like to indent the main block of an IDL program from the
-margin, different from the conventions used by RSI, and use only 3
-spaces as indentation between @code{BEGIN} and @code{END}.  Try the
-following lines in @file{.emacs}:
+margin and use only 3 spaces as indentation between @code{BEGIN} and
+@code{END}.  Try the following lines in @file{.emacs}:
 
 @lisp
 (setq idlwave-main-block-indent 2)
@@ -1279,19 +1267,18 @@ Maximum number of source files displayed in the Routine Info window.
 @cindex Online Help, Installation
 @cindex Speed, of online help
 
-For IDL system routines, RSI provides extensive documentation.
-IDLWAVE can access an HTML version of this documentation very quickly
-and accurately.  This is @emph{much} faster than using the IDL online
-help application, because IDLWAVE usually gets you to the right place
-in the documentation directly --- e.g. a specific keyword of a routine
---- without any additional browsing and scrolling.  For this online
-help to work, an HTML version of the IDL documentation, which is not
-part of the standalone IDLWAVE distribution, is required.  The
-necessary files can be downloaded from @uref{@value{IDLWAVE-HOMEPAGE},
-the maintainers webpage}.  There are a variety of options for
-displaying the HTML help: see below.  Help for routines without HTML
-documentation is also available, using the routine documentation
-header and/or source.
+IDLWAVE can display help from an HTML version of the IDL documentation
+if it is available.  This is @emph{much} faster than using the IDL
+online help application, because IDLWAVE usually gets you to the right
+place in the documentation directly --- e.g. a specific keyword of a
+routine --- without any additional browsing and scrolling.  There are
+a variety of options for displaying the HTML help: see below.  Help
+for routines without HTML documentation is also available, using the
+routine documentation header and/or source.
+
+To make this feature work, you should set
+@code{idlwave-html-help-location} to the directory name of the
+directory where the IDL help files are installed.
 
 @kindex M-?
 In any IDL program (or, as with most IDLWAVE commands, in the IDL
@@ -1376,19 +1363,19 @@ sent to.  This function is used to set the variable
 Customize this variable to see what choices of browsers your system
 offers.
 
-Certain browsers like @code{w3} (bundled with many versions of Emacs)
-and @code{w3m} (@uref{http://emacs-w3m.namazu.org/}, the author's help
-browser of choice) are run within Emacs, and use Emacs buffers to
-display the HTML help.  This can be convenient, especially on small
-displays, and images can even be displayed in-line on new Emacs
-versions.  However, better formatting results are often achieved with
-external browsers, like Mozilla.  IDLWAVE assumes any browser function
-containing "w3" is displayed in a local buffer.  If you are using
-another Emacs-local browser for which this is not true, set the
-variable @code{idlwave-help-browser-is-local}.
+Certain browsers like @code{w3} and @code{w3m}
+(@uref{http://emacs-w3m.namazu.org/}, the author's help browser of
+choice) are run within Emacs, and use Emacs buffers to display the
+HTML help.  This can be convenient, especially on small displays, and
+images can even be displayed in-line on new Emacs versions.  However,
+better formatting results are often achieved with external browsers,
+like Mozilla.  IDLWAVE assumes any browser function containing "w3" is
+displayed in a local buffer.  If you are using another Emacs-local
+browser for which this is not true, set the variable
+@code{idlwave-help-browser-is-local}.
 
-@emph{N.B. For Windows users}: IDLWAVE can bring up RSI help directly
-in the Microsoft HTMLHelp documentation supplied with IDL: no
+@emph{N.B. For Windows users}: IDLWAVE can bring up help directly
+from the Microsoft HTMLHelp documentation supplied with IDL: no
 additional help files are needed.  Be sure to set
 @code{idlwave-system-directory} and the help file will be found
 automatically (or, alternatively, specify its location directly with
@@ -2217,7 +2204,7 @@ case of routines, keywords, classes, and methods as they are completed, see
 
 @defopt idlwave-abbrev-change-case (@code{nil})
 Non-@code{nil} means all abbrevs will be forced to either upper or lower
-case.  Legal values are @code{nil}, @code{t}, and @code{down}.
+case.  Valid values are @code{nil}, @code{t}, and @code{down}.
 @end defopt
 
 @defopt idlwave-reserved-word-upcase (@code{nil})
@@ -2343,7 +2330,7 @@ Normal hook.  Executed when @file{idlwave.el} is loaded.
 
 
 
-@node The IDLWAVE Shell, Installation, The IDLWAVE Major Mode, Top
+@node The IDLWAVE Shell, Acknowledgements, The IDLWAVE Major Mode, Top
 @chapter The IDLWAVE Shell
 @cindex IDLWAVE shell
 @cindex Major mode, @code{idlwave-shell-mode}
@@ -2842,7 +2829,7 @@ provides faster access (@pxref{Electric Debug Mode}).
 
 @defopt idlwave-shell-mark-breakpoints (@code{t})
 Non-@code{nil} means mark breakpoints in the source file buffers.  The
-value indicates the preferred method.  Legal values are @code{nil},
+value indicates the preferred method.  Valid values are @code{nil},
 @code{t}, @code{face}, and @code{glyph}.
 @end defopt
 
@@ -2879,7 +2866,7 @@ been set (or you give two prefix arguments), the last command on the
 
 @defopt idlwave-shell-mark-stop-line (@code{t})
 Non-@code{nil} means mark the source code line where IDL is currently
-stopped.  The value specifies the preferred method.  Legal values are
+stopped.  The value specifies the preferred method.  Valid values are
 @code{nil}, @code{t}, @code{arrow}, and @code{face}.
 @end defopt
 
@@ -3209,59 +3196,7 @@ examine command strings to send, after all instances of @code{___}
 @end defopt
 
 
-@node Installation, Acknowledgements, The IDLWAVE Shell, Top
-@chapter Installation
-@cindex Installation
-
-@menu
-* Installing IDLWAVE::          How to install the distribution
-* Installing Online Help::      Where to get the additional files needed
-@end menu
-
-@node Installing IDLWAVE, Installing Online Help, Installation, Installation
-@section Installing IDLWAVE
-
-@cindex FTP site
-@cindex URL, homepage for IDLWAVE
-@cindex Homepage for IDLWAVE
-@cindex IDLWAVE, homepage
-@cindex XEmacs package IDLWAVE
-@cindex Emacs, distributed with IDLWAVE
-@cindex Copyright, of IDL manual
-IDLWAVE is part of Emacs 21.1 and later.  It is also an XEmacs package
-and can be installed from
-@uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,the XEmacs ftp site}
-with the normal package management system on XEmacs 21.  These
-pre-installed versions should work out-of-the-box.  However, the HTML
-files required for online HTML help are not distributed with
-XEmacs/Emacs and have to be installed separately@footnote{Due to
-copyright reasons, the HTML version of the IDL manual cannot be
-distributed under the GPL.}  (@pxref{Installing Online Help}).
-
-You can also download IDLWAVE and install it yourself from
-@uref{@value{IDLWAVE-HOMEPAGE}, the maintainers webpage}.  Follow the
-instructions in the INSTALL file.
-
-@node Installing Online Help,  , Installing IDLWAVE, Installation
-@section Installing Online Help
-@cindex Installing online help
-@cindex Online Help, Installation
-
-If you want to use the online help display, an additional set of files
-(HTML versions of the IDL documentation) must be installed.  These
-files can also be downloaded from @uref{@value{IDLWAVE-HOMEPAGE}, the
-maintainers webpage}.  You need to place the files somewhere on your
-system and tell IDLWAVE where they are with
-
-@lisp
-(setq idlwave-html-help-location "/path/to/help/dir/") ;e.g. /usr/local/etc
-@end lisp
-
-Note that the help package only changes with new versions of the IDL
-documentation, and need not be updated unless your version of IDL
-changes.
-
-@node Acknowledgements, Sources of Routine Info, Installation, Top
+@node Acknowledgements, Sources of Routine Info, The IDLWAVE Shell, Top
 @chapter Acknowledgements
 @cindex Acknowledgements
 @cindex Maintainer, of IDLWAVE
@@ -3731,10 +3666,7 @@ IDLWAVE derives its knowledge about system routines from the IDL
 manuals.  The file @file{idlw-rinfo.el} contains the routine information
 for the IDL system routines, and links to relevant sections of the HTML
 documentation.  The Online Help feature of IDLWAVE requires HTML
-versions of the IDL manuals to be available; the HTML documentation is
-not distributed with IDLWAVE by default, but must be downloaded
-separately from the @uref{@value{IDLWAVE-HOMEPAGE}, the maintainers
-webpage}.
+versions of the IDL manuals to be available.
 
 The HTML files and related images can be produced from the
 @file{idl.chm} HTMLHelp file distributed with IDL using the free
@@ -3755,22 +3687,19 @@ the online HTML help available with IDLWAVE (starting with version
 5.0).  Since IDLWAVE runs on a many different system types, a single
 browser configuration is not possible, but choices abound.
 
-On many systems, the default browser configured in
-@code{browse-url-browser-function}, and hence inherited by default by
-@code{idlwave-help-browser-function}, is Netscape.  Unfortunately, the
-HTML manuals decompiled from the original RSI source contain
-formatting structures which Netscape 4.x does not handle well, though
-they are still readable.  A much better choice is Mozilla, or one of
-the Mozilla-derived browsers such as
-@uref{http://galeon.sourceforge.net/,Galeon} (Linux),
+Unfortunately, the HTML manuals decompiled from the original
+source contain formatting structures which Netscape 4.x does not
+handle well, though they are still readable.  A much better choice is
+Mozilla, or one of the Mozilla-derived browsers such as
+@uref{http://galeon.sourceforge.net/,Galeon} (GNU/Linux),
 @uref{http://www.mozilla.org/projects/camino/,Camino} (MacOSX), or
 @uref{http://www.mozilla.org/projects/firebird/,Firebird} (all
 platforms).  Newer versions of Emacs provide a browser-function choice
 @code{browse-url-gnome-moz} which uses the Gnome-configured browser.
 
-Note that the HTML files decompiled from RSI Microsoft Help sources
+Note that the HTML files decompiled from  Microsoft Help sources
 contain specific references to the @samp{Symbol} font, which by default
-is not permitted in normal encodings (it's technically illegal).  Though
+is not permitted in normal encodings (it's invalid, technically).  Though
 it only impacts a few symbols, you can trick Mozilla-based browsers into
 recognizing @samp{Symbol} by following the directions
 @uref{http://hutchinson.belmont.ma.us/tth/Xfonts.html, here}.  With this
@@ -3995,12 +3924,9 @@ IDLWAVE was developed on a UNIX system.  However, thanks to the
 portability of Emacs, much of IDLWAVE does also work under different
 operating systems like Windows (with NTEmacs or NTXEmacs) or MacOS.
 
-The only real problem is that RSI does not provide a command-line
+The only real problem is that there is no command-line
 version of IDL for Windows or MacOS(<=9) with which IDLWAVE can
-interact@footnote{Call your RSI representative and complain --- it
-should be trivial for them to provide one.  And if enough people ask for
-it, maybe they will.  The new MacOSX version of IDL @emph{does} have a
-shell and works well with IDLWAVE.}.  As a result, the IDLWAVE Shell
+interact.  As a result, the IDLWAVE Shell
 does not work and you have to rely on IDLDE to run and debug your
 programs.  However, editing IDL source files with Emacs/IDLWAVE works
 with all bells and whistles, including routine info, completion and fast
@@ -4018,7 +3944,7 @@ system.  I am assuming that IDLWAVE has been installed in
 ;; the X/Emacs installation)
 (setq load-path (cons "c:/program files/IDLWAVE" load-path))
 
-;; The location of the IDL library files, both from RSI and your own.
+;; The location of the IDL library files, both standard and your own.
 ;; note that the initial "+" expands the path recursively
 (setq idlwave-library-path
         '("+c:/RSI/IDL55/lib/" "+c:/user/me/idllibs" ))
@@ -4113,9 +4039,7 @@ in compiled lisp files.  Presumably, you kept the original .elc files in
 place, and this is the source of the error.  If you recompile (or just
 "make; make install") from source, it should resolve this problem.
 Another option is to recompile the @file{idlw*.el} files by hand using
-@kbd{M-x byte-compile-file}.  Why not take the opportunity to grab the
-latest IDLWAVE version at @uref{@value{IDLWAVE-HOMEPAGE}, the
-maintainers webpage}
+@kbd{M-x byte-compile-file}.
 
 @item @strong{@kbd{M-@key{TAB}} doesn't complete words, it switches
 windows on my desktop.}
@@ -4214,7 +4138,7 @@ method, and the most recent information will be available to all users.
 @item @strong{All the Greek-font characters in the HTML help are
 displayed as Latin characters!}
 
-Unfortunately, the HTMLHelp files RSI provides attempt to switch to
+Unfortunately, the HTMLHelp files attempt to switch to
 @samp{Symbol} font to display Greek characters, which is not really an
 permitted method for doing this in HTML.  There is a "workaround" for
 many browsers: @xref{HTML Help Browser Tips}.

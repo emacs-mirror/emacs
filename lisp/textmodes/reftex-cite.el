@@ -1,5 +1,6 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -982,7 +983,7 @@ While entering the regexp, completion on knows citation keys is possible.
 
   (if (and reftex-comment-citations
            (string-match "%l" reftex-cite-comment-format))
-      (error "reftex-cite-comment-format contains illegal %%l"))
+      (error "reftex-cite-comment-format contains invalid %%l"))
 
   (while (string-match
           "\\(\\`\\|[^%]\\)\\(\\(%\\([0-9]*\\)\\([a-zA-Z]\\)\\)[.,;: ]*\\)"

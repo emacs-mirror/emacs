@@ -397,20 +397,13 @@ lines than are actually needed in the case where some error may be present."
 
 (defun window-buffer-height (window)
   "Return the height (in screen lines) of the buffer that WINDOW is displaying."
-  (save-excursion
-    (set-buffer (window-buffer window))
-    (goto-char (point-min))
-    (let ((ignore-final-newline
-           ;; If buffer ends with a newline, ignore it when counting height
-           ;; unless point is after it.
-           (and (not (eobp)) (eq ?\n (char-after (1- (point-max)))))))
-      (+ 1 (nth 2 (compute-motion (point-min)
-                                  '(0 . 0)
-                                  (- (point-max) (if ignore-final-newline 1 0))
-                                  (cons 0 100000000)
-                                  nil
-                                  nil
-                                  window))))))
+  (with-current-buffer (window-buffer window)
+    (max 1
+	 (count-screen-lines (point-min) (point-max)
+			     ;; If buffer ends with a newline, ignore it when
+			     ;; counting height unless point is after it.
+			     (eobp)
+			     window))))
 
 (defun count-screen-lines (&optional beg end count-final-newline window)
   "Return the number of screen lines in the region.

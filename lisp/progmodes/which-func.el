@@ -1,6 +1,7 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997, 1998, 2001, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -251,7 +252,7 @@ If no function name is found, return nil."
     (when (and (null name)
 	       (boundp 'imenu--index-alist) (null imenu--index-alist)
 	       (null which-function-imenu-failed))
-      (imenu--make-index-alist)
+      (imenu--make-index-alist t)
       (unless imenu--index-alist
 	(make-local-variable 'which-function-imenu-failed)
 	(setq which-function-imenu-failed t)))
@@ -291,5 +292,5 @@ If no function name is found, return nil."
 
 (provide 'which-func)
 
-;;; arch-tag: fa8a55c7-bfe3-4ffc-95ab-01bf21796827
+;; arch-tag: fa8a55c7-bfe3-4ffc-95ab-01bf21796827
 ;;; which-func.el ends here

@@ -614,10 +614,13 @@ With numeric arg, repeat macro now that many times,
 counting the definition just completed as the first repetition.
 An argument of zero means repeat until error."
   (interactive "P")
-  (end-kbd-macro arg #'kmacro-loop-setup-function)
-  (when (and last-kbd-macro (= (length last-kbd-macro) 0))
-    (message "Ignore empty macro")
-    (kmacro-pop-ring)))
+   ;; Isearch may push the kmacro-end-macro key sequence onto the macro.
+   ;; Just ignore it when executing the macro.
+  (unless executing-kbd-macro
+    (end-kbd-macro arg #'kmacro-loop-setup-function)
+    (when (and last-kbd-macro (= (length last-kbd-macro) 0))
+      (message "Ignore empty macro")
+      (kmacro-pop-ring))))
 
 
 ;;;###autoload

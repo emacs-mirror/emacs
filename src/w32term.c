@@ -282,6 +282,10 @@ static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct w32_display_info *,
 				   struct frame *));
+static void x_focus_changed P_ ((int, int, struct w32_display_info *,
+				  struct frame *, struct input_event *));
+static void w32_detect_focus_change P_ ((struct w32_display_info *,
+                                       W32Msg *, struct input_event *));
 static void w32_frame_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct w32_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -2967,6 +2971,81 @@ x_new_focus_frame (dpyinfo, frame)
   x_frame_rehighlight (dpyinfo);
 }
 
+
+/* Handle FocusIn and FocusOut state changes for FRAME.
+   If FRAME has focus and there exists more than one frame, puts
+   a FOCUS_IN_EVENT into *BUFP.  */
+
+static void
+x_focus_changed (type, state, dpyinfo, frame, bufp)
+     int type;
+     int state;
+     struct w32_display_info *dpyinfo;
+     struct frame *frame;
+     struct input_event *bufp;
+{
+  if (type == WM_SETFOCUS)
+    {
+      if (dpyinfo->w32_focus_event_frame != frame)
+        {
+          x_new_focus_frame (dpyinfo, frame);
+          dpyinfo->w32_focus_event_frame = frame;
+
+          /* Don't stop displaying the initial startup message
+             for a switch-frame event we don't need.  */
+          if (GC_NILP (Vterminal_frame)
+              && GC_CONSP (Vframe_list)
+              && !GC_NILP (XCDR (Vframe_list)))
+            {
+              bufp->kind = FOCUS_IN_EVENT;
+              XSETFRAME (bufp->frame_or_window, frame);
+            }
+        }
+
+      frame->output_data.x->focus_state |= state;
+
+      /* TODO: IME focus?  */
+    }
+  else if (type == WM_KILLFOCUS)
+    {
+      frame->output_data.x->focus_state &= ~state;
+
+      if (dpyinfo->w32_focus_event_frame == frame)
+        {
+          dpyinfo->w32_focus_event_frame = 0;
+          x_new_focus_frame (dpyinfo, 0);
+        }
+
+      /* TODO: IME focus?  */
+    }
+}
+
+
+/* The focus may have changed.  Figure out if it is a real focus change,
+   by checking both FocusIn/Out and Enter/LeaveNotify events.
+
+   Returns FOCUS_IN_EVENT event in *BUFP. */
+
+static void
+w32_detect_focus_change (dpyinfo, event, bufp)
+     struct w32_display_info *dpyinfo;
+     W32Msg *event;
+     struct input_event *bufp;
+{
+  struct frame *frame;
+
+  frame = x_any_window_to_frame (dpyinfo, event->msg.hwnd);
+  if (! frame)
+    return;
+
+  /* On w32, this is only called from focus events, so no switch needed.  */
+  x_focus_changed (event->msg.message,
+		   (event->msg.message == WM_KILLFOCUS ?
+		    FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+		   dpyinfo, frame, bufp);
+}
+
+
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
@@ -4811,27 +4890,13 @@ w32_read_socket (sd, expected, hold_quit)
 	  break;
 
 	case WM_SETFOCUS:
-	  /* TODO: Port this change:
-	     2002-06-28  Jan D.  <jan.h.d@swipnet.se>
-	     * xterm.h (struct x_output): Add focus_state.
-	     * xterm.c (x_focus_changed): New function.
-	     (x_detect_focus_change): New function.
-	     (XTread_socket): Call x_detect_focus_change for FocusIn/FocusOut
-	     EnterNotify and LeaveNotify to track X focus changes.
-	  */
-	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
-
-          dpyinfo->w32_focus_event_frame = f;
-
-          if (f)
-            x_new_focus_frame (dpyinfo, f);
+	  w32_detect_focus_change (dpyinfo, &msg, &inev);
 
 	  dpyinfo->grabbed = 0;
 	  check_visibility = 1;
 	  break;
 
 	case WM_KILLFOCUS:
-          /* TODO: some of this belongs in MOUSE_LEAVE */
 	  f = x_top_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           if (f)

@@ -1636,6 +1636,27 @@ word:
 (global-set-key [H-M-right] 'forward-word)
 @end example
 
+@cindex keypad
+  Many keyboards have a ``numeric keypad'' on the right hand side.
+The numeric keys in the keypad double up as cursor motion keys,
+toggled by a key labelled @samp{Num Lock}.  By default, Emacs
+translates these keys to the corresponding keys in the main keyboard
+(@pxref{Keyboard Translations}).  For example, when @samp{Num Lock} is
+on, the key labelled @samp{8} on the numeric keypad produces
+@code{kp-8}, which is translated to @kbd{8}; when @samp{Num Lock} is
+off, the same key produces @code{kp-up}, which is translated to
+@key{UP}.  If you rebind a key such as @kbd{8} or @key{UP}, it affects
+the equivalent keypad key too.  However, if you rebind a @samp{kp-}
+key directly, that won't affect its non-keypad equivalent.
+
+  Emacs provides a convenient method for binding the numeric keypad
+keys, using the variables @code{keypad-setup},
+@code{keypad-numlock-setup}, @code{keypad-shifted-setup}, and
+@code{keypad-numlock-shifted-setup}.  These can be found in the
+@samp{keyboard} customization group (@pxref{Easy Customization}).  You
+can rebind the keys to perform other tasks, such as issuing numeric
+prefix arguments.
+
 @node Named ASCII Chars
 @subsection Named @acronym{ASCII} Control Characters
 

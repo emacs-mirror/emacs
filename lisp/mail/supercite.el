@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    FSF
@@ -243,7 +243,7 @@ See the variable `sc-cite-frame-alist' for details."
 
 (defcustom sc-cite-region-limit t
   "*This variable controls automatic citation of yanked text.
-Legal values are:
+Valid values are:
 
 non-nil   -- cite the entire region, regardless of its size
 nil       -- do not cite the region at all
@@ -347,7 +347,7 @@ Non-nil uses nested citations, nil uses non-nested citations."
 
 (defcustom sc-nuke-mail-headers 'all
   "*Controls mail header nuking.
-Used in conjunction with `sc-nuke-mail-header-list'.  Legal values are:
+Used in conjunction with `sc-nuke-mail-header-list'.  Valid values are:
 
 `all'       -- nuke all mail headers
 `none'      -- don't nuke any mail headers
@@ -796,7 +796,7 @@ The number of lines left is specified by `sc-blank-lines-after-headers'."
 	    nonentry-func '(sc-mail-nuke-header-line)))
      ;; we never get far enough to interpret a frame if s-n-m-h == 'none
      ((eq sc-nuke-mail-headers 'none))
-     (t (error "Illegal value for sc-nuke-mail-headers: %s"
+     (t (error "Invalid value for sc-nuke-mail-headers: %s"
 	       sc-nuke-mail-headers))
      )					; end-cond
     (append
@@ -838,7 +838,7 @@ error occurs."
   "Return the mail header field value associated with FIELD.
 If there was no mail header with FIELD as its key, return the value of
 `sc-mumble'.  FIELD is case insensitive."
-  (or (cdr (assoc (downcase field) sc-mail-info)) sc-mumble))
+  (or (cdr (assoc-string field sc-mail-info 'case-fold)) sc-mumble))
 
 (defun sc-mail-field-query (arg)
   "View the value of a mail field.
@@ -916,8 +916,8 @@ Match addresses of the style ``<name[stuff]>.''"
   "Get the full email address path from FROM.
 AUTHOR is the author's name (which is removed from the address)."
   (let ((eos (length from)))
-    (if (string-match (concat "\\(^\\|^\"\\)" author
-			      "\\(\\s +\\|\"\\s +\\)") from 0)
+    (if (string-match (concat "\\`\"?" (regexp-quote author)
+			      "\"?\\s +") from 0)
 	(let ((address (substring from (match-end 0) eos)))
 	  (if (and (= (aref address 0) ?<)
 		   (= (aref address (1- (length address))) ?>))
@@ -2054,5 +2054,5 @@ more information.  Info node `(SC)Top'."
 (provide 'supercite)
 (run-hooks 'sc-load-hook)
 
-;;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
+;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
 ;;; supercite.el ends here

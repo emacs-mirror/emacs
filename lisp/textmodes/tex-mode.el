@@ -1562,8 +1562,9 @@ Return the process in which TeX is running."
 	    (concat
 	     (if file
 		 (if star (concat (substring cmd 0 star)
-				  file (substring cmd (1+ star)))
-		   (concat cmd " " file))
+				  (shell-quote-argument file)
+				  (substring cmd (1+ star)))
+		   (concat cmd " " (shell-quote-argument file)))
 	       cmd)
 	     (if background "&" ""))))
       ;; Switch to buffer before checking for subproc output in it.
@@ -1886,8 +1887,8 @@ FILE is typically the output DVI or PDF file."
 	    (prog1 (file-name-directory (expand-file-name file))
 	      (setq file (file-name-nondirectory file))))
 	  (root (file-name-sans-extension file))
-	  (fspec (list (cons ?r (comint-quote-filename root))
-		       (cons ?f (comint-quote-filename file))))
+	  (fspec (list (cons ?r (shell-quote-argument root))
+		       (cons ?f (shell-quote-argument file))))
 	  (default (tex-compile-default fspec)))
      (list default-directory
 	   (completing-read
@@ -1908,14 +1909,14 @@ FILE is typically the output DVI or PDF file."
          (compile-command
           (if star
 	      (concat (substring command 0 star)
-		      (comint-quote-filename file)
+		      (shell-quote-argument file)
 		      (substring command (1+ star)))
             (concat command " "
 		    tex-start-options
 		    (if (< 0 (length tex-start-commands))
 			(concat
 			 (shell-quote-argument tex-start-commands) " "))
-		    (comint-quote-filename file)))))
+		    (shell-quote-argument file)))))
     (tex-send-tex-command compile-command dir)))
 
 (defun tex-send-tex-command (cmd &optional dir)

@@ -584,10 +584,9 @@ Applies to the frame whose line point is on in the backtrace."
     (terpri))
 
   (with-current-buffer (get-buffer debugger-record-buffer)
-    (save-excursion
-      (forward-line -1)
-      (message
-       (buffer-substring (point) (progn (end-of-line) (point)))))))
+    (message "%s" 
+	     (buffer-substring (line-beginning-position 0)
+			       (line-end-position 0)))))
 
 (put 'debugger-mode 'mode-class 'special)
 
@@ -633,24 +632,31 @@ which must be written in Lisp, not predefined.
 Use \\[cancel-debug-on-entry] to cancel the effect of this command.
 Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
-  ;; Handle a function that has been aliased to some other function.
-  (if (and (subrp (symbol-function function))
-	   (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
-      (error "Function %s is a special form" function))
-  (if (or (symbolp (symbol-function function))
+  (when (and (subrp (symbol-function function)) 
+	     (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
+    (error "Function %s is a special form" function))
+  (if (or (symbolp (symbol-function function)) 
 	  (subrp (symbol-function function)))
-      ;; Create a wrapper in which we can then add the necessary debug call.
+      ;; The function is built-in or aliased to another function.
+      ;; Create a wrapper in which we can add the debug call.
       (fset function `(lambda (&rest debug-on-entry-args)
 			,(interactive-form (symbol-function function))
-			(apply ',(symbol-function function)
-			       debug-on-entry-args))))
-  (or (consp (symbol-function function))
-      (debug-convert-byte-code function))
-  (or (consp (symbol-function function))
-      (error "Definition of %s is not a list" function))
+			(apply ',(symbol-function function) 
+			       debug-on-entry-args)))
+    (when (eq (car-safe (symbol-function function)) 'autoload)
+      ;; The function is autoloaded.  Load its real definition.
+      (load (cadr (symbol-function function)) nil noninteractive nil t))
+    (when (or (not (consp (symbol-function function)))
+	      (and (eq (car (symbol-function function)) 'macro)
+		   (not (consp (cdr (symbol-function function))))))
+      ;; The function is byte-compiled.  Create a wrapper in which
+      ;; we can add the debug call.
+      (debug-convert-byte-code function)))
+  (unless (consp (symbol-function function))
+    (error "Definition of %s is not a list" function))
   (fset function (debug-on-entry-1 function t))
-  (or (memq function debug-function-list)
-      (push function debug-function-list))
+  (unless (memq function debug-function-list)
+    (push function debug-function-list))
   function)
 
 ;;;###autoload
@@ -665,45 +671,52 @@ If argument is nil or an empty string, cancel for all functions."
 	   (if name (intern name)))))
   (if (and function (not (string= function "")))
       (progn
-	(let ((f (debug-on-entry-1 function nil)))
+	(let ((defn (debug-on-entry-1 function nil)))
 	  (condition-case nil
-	      (if (and (equal (nth 1 f) '(&rest debug-on-entry-args))
-		       (eq (car (nth 3 f)) 'apply))
-		  ;; `f' is a wrapper introduced in debug-on-entry.
-		  ;; Get rid of it since we don't need it any more.
-		  (setq f (nth 1 (nth 1 (nth 3 f)))))
+	      (when (and (equal (nth 1 defn) '(&rest debug-on-entry-args))
+			 (eq (car (nth 3 defn)) 'apply))
+		;; `defn' is a wrapper introduced in debug-on-entry.
+		;; Get rid of it since we don't need it any more.
+		(setq defn (nth 1 (nth 1 (nth 3 defn)))))
 	    (error nil))
-	  (fset function f))
+	  (fset function defn))
 	(setq debug-function-list (delq function debug-function-list))
 	function)
     (message "Cancelling debug-on-entry for all functions")
     (mapcar 'cancel-debug-on-entry debug-function-list)))
 
 (defun debug-convert-byte-code (function)
-  (let ((defn (symbol-function function)))
-    (if (not (consp defn))
-	;; Assume a compiled code object.
-	(let* ((contents (append defn nil))
-	       (body
-		(list (list 'byte-code (nth 1 contents)
-			    (nth 2 contents) (nth 3 contents)))))
-	  (if (nthcdr 5 contents)
-	      (setq body (cons (list 'interactive (nth 5 contents)) body)))
-	  (if (nth 4 contents)
-	      ;; Use `documentation' here, to get the actual string,
-	      ;; in case the compiled function has a reference
-	      ;; to the .elc file.
-	      (setq body (cons (documentation function) body)))
-	  (fset function (cons 'lambda (cons (car contents) body)))))))
+  (let* ((defn (symbol-function function))
+	 (macro (eq (car-safe defn) 'macro)))
+    (when macro (setq defn (cdr defn)))
+    (unless (consp defn)
+      ;; Assume a compiled code object.
+      (let* ((contents (append defn nil))
+	     (body
+	      (list (list 'byte-code (nth 1 contents)
+			  (nth 2 contents) (nth 3 contents)))))
+	(if (nthcdr 5 contents)
+	    (setq body (cons (list 'interactive (nth 5 contents)) body)))
+	(if (nth 4 contents)
+	    ;; Use `documentation' here, to get the actual string,
+	    ;; in case the compiled function has a reference
+	    ;; to the .elc file.
+	    (setq body (cons (documentation function) body)))
+	(setq defn (cons 'lambda (cons (car contents) body))))
+      (when macro (setq defn (cons 'macro defn)))
+      (fset function defn))))
 
 (defun debug-on-entry-1 (function flag)
   (let* ((defn (symbol-function function))
 	 (tail defn))
-    (if (subrp tail)
-	(error "%s is a built-in function" function)
-      (if (eq (car tail) 'macro) (setq tail (cdr tail)))
-      (if (eq (car tail) 'lambda) (setq tail (cdr tail))
-	(error "%s not user-defined Lisp function" function))
+    (when (eq (car-safe tail) 'macro) 
+      (setq tail (cdr tail)))
+    (if (not (eq (car-safe tail) 'lambda))
+	;; Only signal an error when we try to set debug-on-entry.
+	;; When we try to clear debug-on-entry, we are now done.
+	(when flag
+	  (error "%s is not a user-defined Lisp function" function))
+      (setq tail (cdr tail))
       ;; Skip the docstring.
       (when (and (stringp (cadr tail)) (cddr tail))
 	(setq tail (cdr tail)))
@@ -714,8 +727,8 @@ If argument is nil or an empty string, cancel for all functions."
 	;; Add/remove debug statement as needed.
 	(if flag
 	    (setcdr tail (cons '(implement-debug-on-entry) (cdr tail)))
-	  (setcdr tail (cddr tail))))
-      defn)))
+	  (setcdr tail (cddr tail)))))
+    defn))
 
 (defun debugger-list-functions ()
   "Display a list of all the functions now set to debug on entry."

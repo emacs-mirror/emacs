@@ -246,7 +246,7 @@ This currently works by automatically updating the version
 control info every `auto-revert-interval' seconds.  Nevertheless,
 it should not cause excessive CPU usage on a reasonably fast
 machine, if it does not apply to too many version controlled
-buffers.  CPU usage depends on the version control system"
+buffers.  CPU usage depends on the version control system."
   :group 'auto-revert
   :type 'boolean
   :version "22.1")

@@ -1,3 +1,4 @@
+Didacticiel d'Emacs
 Didacticiel d'Emacs.  Voir la fin de ce document pour les conditions.
 Copyright (c) 1985, 2001, 2002 Free Software Foundation, Inc.
 

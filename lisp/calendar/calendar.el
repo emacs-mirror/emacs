@@ -75,13 +75,13 @@
 ;;       solar.el                      Sunrise/sunset, equinoxes/solstices
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; An earlier version of the technical details appeared in
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
-;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
+;; pages 899-928, and in ``Calendrical Calculations, Part II: Three Historical
 ;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
 ;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
 ;; pages 383-404.
@@ -2763,7 +2763,7 @@ in `calendar-day-name-array'.  These abbreviations may be used
 instead of the full names in the diary file.  Do not include a
 trailing `.' in the strings specified in this variable, though
 you may use such in the diary file.  If any element of this array
-is nil, then the abbreviation will be constructed as the first 
+is nil, then the abbreviation will be constructed as the first
 `calendar-abbrev-length' characters of the corresponding full name.")
 
 (defvar calendar-month-name-array
@@ -2884,20 +2884,20 @@ interpreted as BC; -1 being 1 BC, and so on."
   (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
-  "Return t if DATE is legal and is visible in the calendar window."
+  "Return t if DATE is valid and is visible in the calendar window."
   (let ((gap (calendar-interval
               displayed-month displayed-year
               (extract-calendar-month date) (extract-calendar-year date))))
     (and (calendar-date-is-legal-p date) (> 2 gap) (< -2 gap))))
 
 (defun calendar-date-is-legal-p (date)
-  "Return t if DATE is a legal date."
+  "Return t if DATE is a valid date."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
          (<= 1 day) (<= day (calendar-last-day-of-month month year))
-         ;; BC dates left as non-legal, to suppress errors from
+         ;; BC dates left as non-valid, to suppress errors from
          ;; complex holiday algorithms not suitable for years BC.
          ;; Note there are side effects on calendar navigation.
          (<= 1 year))))

@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2004
+   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2004, 2005
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -115,7 +115,6 @@ extern void filemodestring P_ ((struct stat *, char *));
 
 extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
@@ -908,6 +907,7 @@ Elements of the attribute list are:
 #endif
   char modes[10];
   Lisp_Object handler;
+  struct gcpro gcpro1;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -923,7 +923,9 @@ Elements of the attribute list are:
 	return call3 (handler, Qfile_attributes, filename, id_format);
     }
 
+  GCPRO1 (filename);
   encoded = ENCODE_FILE (filename);
+  UNGCPRO;
 
   if (lstat (SDATA (encoded), &s) < 0)
     return Qnil;

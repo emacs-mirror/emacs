@@ -91,6 +91,7 @@
 			      '("defun" "defun*" "defsubst" "defmacro"
 				"defadvice" "define-skeleton"
 				"define-minor-mode" "define-derived-mode"
+				"define-generic-mode"
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"

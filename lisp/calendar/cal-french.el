@@ -29,8 +29,8 @@
 ;; diary.el that deal with the French Revolutionary calendar.
 
 ;; Technical details of the French Revolutionary calendar can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997), and in
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001), and in
 ;; ``Calendrical Calculations, Part II: Three Historical Calendars'' by
 ;; E. M. Reingold, N. Dershowitz, and S. M. Clamen, Software--Practice and
 ;; Experience, Volume 23, Number 4 (April, 1993), pages 383-404.

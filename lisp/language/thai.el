@@ -1,14 +1,12 @@
 ;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2002 Free Software Foundation, Inc.
-;; Copyright (C) 2003
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2002, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 ;; Copyright (C) 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Thai, i18n
 
@@ -54,6 +52,8 @@
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
+	  (setup-function . setup-thai-language-environment-internal)
+	  (exit-function . exit-thai-language-environment-internal)
 	  (sample-text
 	   . (thai-compose-string
 	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B")))

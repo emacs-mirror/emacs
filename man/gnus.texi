@@ -8,7 +8,7 @@
 
 @copying
 Copyright (c) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004
+2002, 2003, 2004, 2005
 Free Software Foundation, Inc.
 
 @quotation
@@ -18594,7 +18594,7 @@ that most will look for it here, this variable tells the summary
 buffer how to maneuver around undownloaded (only headers stored in the
 agent) and unfetched (neither article nor headers stored) articles.
 
-The legal values are @code{nil} (maneuver to any article),
+The valid values are @code{nil} (maneuver to any article),
 @code{undownloaded} (maneuvering while unplugged ignores articles that
 have not been fetched), @code{always-undownloaded} (maneuvering always
 ignores articles that have not been fetched), @code{unfetched}

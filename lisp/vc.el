@@ -1,7 +1,7 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -962,8 +962,10 @@ that is inserted into the command line before the filename."
 	    ;; start-process does not support remote execution
 	    (setq okstatus nil))
 	(if (eq okstatus 'async)
-	    (let ((proc (apply 'start-process command (current-buffer) command
-			       squeezed)))
+	    (let ((proc
+		   (let ((process-connection-type nil))
+		     (apply 'start-process command (current-buffer) command
+			    squeezed))))
               (unless (active-minibuffer-window)
                 (message "Running %s in the background..." command))
 	      ;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))

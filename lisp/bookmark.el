@@ -2111,12 +2111,12 @@ strings returned are not."
     (define-key map [write]	'("Save Bookmarks As..." . bookmark-write))
     (define-key map [save]	'("Save Bookmarks" . bookmark-save))
     (define-key map [edit]	'("Edit Bookmark List" . bookmark-bmenu-list))
-    (define-key map [delete]	'("Delete Bookmark" . bookmark-delete))
-    (define-key map [rename]	'("Rename Bookmark" . bookmark-rename))
-    (define-key map [locate]	'("Insert Location" . bookmark-locate))
-    (define-key map [insert]	'("Insert Contents" . bookmark-insert))
-    (define-key map [set]	'("Set Bookmark" . bookmark-set))
-    (define-key map [jump]	'("Jump to Bookmark" . bookmark-jump))
+    (define-key map [delete]	'("Delete Bookmark..." . bookmark-delete))
+    (define-key map [rename]	'("Rename Bookmark..." . bookmark-rename))
+    (define-key map [locate]	'("Insert Location..." . bookmark-locate))
+    (define-key map [insert]	'("Insert Contents..." . bookmark-insert))
+    (define-key map [set]	'("Set Bookmark..." . bookmark-set))
+    (define-key map [jump]	'("Jump to Bookmark..." . bookmark-jump))
     map))
 
 ;;;###autoload

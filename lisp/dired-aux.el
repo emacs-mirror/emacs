@@ -91,13 +91,14 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
       nil))
   (diff-backup (dired-get-filename) switches))
 
+;;;###autoload
 (defun dired-compare-directories (dir2 predicate)
   "Mark files with different file attributes in two dired buffers.
 Compare file attributes of files in the current directory
 with file attributes in directory DIR2 using PREDICATE on pairs of files
 with the same name.  Mark files for which PREDICATE returns non-nil.
 Mark files with different names if PREDICATE is nil (or interactively
-when the user enters empty input at the predicate prompt).
+with empty input at the predicate prompt).
 
 PREDICATE is a Lisp expression that can refer to the following variables:
 
@@ -117,9 +118,10 @@ Examples of PREDICATE:
     (not (and (= (nth 2 fa1) (nth 2 fa2))   - mark files with different UID
               (= (nth 3 fa1) (nth 3 fa2))))   and GID."
   (interactive
-   (list (read-file-name (format "Compare %s with: "
-				 (dired-current-directory))
-			 (dired-dwim-target-directory))
+   (list (read-directory-name (format "Compare %s with: "
+				      (dired-current-directory))
+			      (dired-dwim-target-directory)
+			      (dired-dwim-target-directory))
          (read-from-minibuffer "Mark if (lisp expr or RET): " nil nil t nil "nil")))
   (let* ((dir1 (dired-current-directory))
          (file-alist1 (dired-files-attributes dir1))

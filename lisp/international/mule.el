@@ -1508,10 +1508,11 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 ;;; FILE I/O
 
 (defcustom auto-coding-alist
-  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . no-conversion)
-    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . no-conversion)
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . no-conversion)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
+    ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).

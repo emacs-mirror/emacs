@@ -125,9 +125,11 @@
 ;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar generic-font-lock-defaults nil
-  "Global defaults for font-lock in a generic mode.")
-(make-variable-buffer-local 'generic-font-lock-defaults)
+(defvar generic-font-lock-keywords nil
+  "Keywords for `font-lock-defaults' in a generic mode.")
+(make-variable-buffer-local 'generic-font-lock-keywords)
+(defvaralias 'generic-font-lock-defaults 'generic-font-lock-keywords)
+(make-obsolete-variable 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
 
 ;;;###autoload
 (defvar generic-mode-list nil
@@ -253,13 +255,15 @@ See the file generic-x.el for some examples of `define-generic-mode'."
 
     (generic-mode-set-comments comments)
 
-    ;; Font-lock functionality
-    ;; Font-lock-defaults are always set even if there are no keywords
+    ;; Font-lock functionality.
+    ;; Font-lock-defaults is always set even if there are no keywords
     ;; or font-lock expressions, so comments can be highlighted.
-    (setq generic-font-lock-defaults nil)
-    (generic-mode-set-font-lock  keywords font-lock-list)
-    (make-local-variable 'font-lock-defaults)
-    (setq font-lock-defaults (list 'generic-font-lock-defaults nil))
+    (setq generic-font-lock-keywords
+	  (append
+	   (when keywords
+	     (list (generic-make-keywords-list keywords font-lock-keyword-face)))
+	   font-lock-list))
+    (setq font-lock-defaults '(generic-font-lock-keywords nil))
 
     ;; Call a list of functions
     (mapcar 'funcall funs)
@@ -348,16 +352,8 @@ Some generic modes are defined in `generic-x.el'."
 			   st))
     (set-syntax-table st)))
 
-(defun generic-mode-set-font-lock (keywords font-lock-expressions)
-  "Set up font-lock functionality for generic mode."
-  (setq generic-font-lock-defaults
-	(append
-	 (when keywords
-	   (list (generic-make-keywords-list keywords font-lock-keyword-face)))
-	 font-lock-expressions)))
-
-;; Support for [KEYWORD] constructs found in INF, INI and Samba files
 (defun generic-bracket-support ()
+  "Imenu support for [KEYWORD] constructs found in INF, INI and Samba files."
   (setq imenu-generic-expression
 	'((nil "^\\[\\(.*\\)\\]" 1))
         imenu-case-fold-search t))
@@ -405,7 +401,7 @@ INI file.  This hook is NOT installed by default."
 	      (ini-generic-mode)))))
 
 (and generic-use-find-file-hook
-    (add-hook 'find-file-hooks 'generic-mode-find-file-hook))
+    (add-hook 'find-file-hook 'generic-mode-find-file-hook))
 
 ;;;###autoload
 (defun generic-make-keywords-list (keywords-list face &optional prefix suffix)

@@ -1,10 +1,9 @@
 ;;; thai-util.el --- utilities for Thai -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2003
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, Thai, i18n
 
@@ -252,6 +251,42 @@ positions (integers or markers) specifying the region."
 	    (if (looking-at thai-composition-pattern)
 		(prog1 (match-end 0)
 		  (thai-compose-syllable pos (match-end 0)))))))))
+
+;; Thai-word-mode requires functions in the feature `thai-word'.
+(require 'thai-word)
+
+(defvar thai-word-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap forward-word] 'thai-forward-word)
+    (define-key map [remap backward-word] 'thai-backward-word)
+    (define-key map [remap kill-word] 'thai-kill-word)
+    (define-key map [remap backward-kill-word] 'thai-backward-kill-word)
+    (define-key map [remap transpose-words] 'thai-transpose-words)
+    map)
+  "Keymap for `thai-word-mode'.")
+
+(define-minor-mode thai-word-mode
+  "Minor mode to make word-oriented commands aware of Thai words.
+The commands affected are \\[forward-word], \\[backward-word], \\[kill-word], \\[backward-kill-word], \\[transpose-words], and \\[fill-paragraph]."
+  :global t
+  (cond (thai-word-mode
+	 ;; This enables linebreak between Thai characters.
+	 (modify-category-entry (make-char 'thai-tis620) ?|)
+	 ;; This enables linebreak at a Thai word boundary.
+	 (put-charset-property 'thai-tis620 'fill-find-break-point-function
+			       'thai-fill-find-break-point))
+	(t
+	 (modify-category-entry (make-char 'thai-tis620) ?| nil t)
+	 (put-charset-property 'thai-tis620 'fill-find-break-point-function
+			       nil))))
+
+;; Function to call on entering the Thai language environment.
+(defun setup-thai-language-environment-internal ()
+  (thai-word-mode 1))
+
+;; Function to call on exiting the Thai language environment.
+(defun exit-thai-language-environment-internal ()
+  (thai-word-mode -1))
 
 ;;
 (provide 'thai-util)

@@ -258,7 +258,6 @@ Manual, corresponding to GNU Emacs version 19.29.
                               variables, and other such things.
 * Display::	            Parameters controlling screen usage.
                               The bell.  Waiting for input.
-* Calendar::		    Customizing the calendar and diary.
 
 Appendices
 
@@ -989,7 +988,6 @@ Object Internals
 @c include processes.texi
 @c include os.texi
 @c include display.texi
-@c include calendar.texi
 
 @c MOVE to Emacs Manual:  include misc-modes.texi
 

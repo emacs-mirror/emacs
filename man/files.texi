@@ -238,13 +238,13 @@ or tool bar) use the toolkit's standard File Selection dialog instead
 of prompting for the file name in the minibuffer.  On Unix and
 GNU/Linux platforms, Emacs does that when built with GTK, LessTif, and
 Motif toolkits; on MS-Windows, the GUI version does that by default.
-For information on how to customize this, see @xref{Dialog Boxes}.
+For information on how to customize this, see @ref{Dialog Boxes}.
 
   Secondly, Emacs supports the ``drag and drop'' protocol on the X
 window system.  Dropping a file into an ordinary Emacs window visits
 the file using that window.  However, dropping a file into a window
 displaying a Dired buffer moves or copies the file into the displayed
-directory.  For details, see @xref{Drag and Drop} and @xref{Misc Dired
+directory.  For details, see @ref{Drag and Drop}, @ref{Misc Dired
 Features}.
 
 @cindex creating files
@@ -940,6 +940,15 @@ Auto-Revert Tail mode, @kbd{M-x auto-revert-tail-mode}.
 for a changed file.  Since checking a remote file is too slow, these
 modes do not check or revert remote files.
 
+@vindex auto-revert-check-vc-info
+  Whenever Auto Revert mode reverts the buffer, it updates the version
+control information, such as the version control number displayed in
+the mode line.  However, this information may not be properly updated
+if the version control state changes outside of Emacs---for example,
+if a new version is checked in from outside the current Emacs session.
+If you set @code{auto-revert-check-vc-info} to @code{t}, Auto Revert
+mode will update the version control status information periodically.
+
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters
 @cindex Auto Save mode
@@ -1263,6 +1272,10 @@ as multiple branches, are not available with SCCS.  You should use
 SCCS only if for some reason you cannot use RCS, or one of the
 higher-level systems such as CVS or GNU Arch.
 
+In the following, we discuss mainly RCS, SCCS and CVS.  Nearly
+everything said about CVS applies to Gnu Arch, Subversion and Meta-CVS
+as well.
+
 @node VC Concepts
 @subsubsection Concepts of Version Control
 
@@ -1463,9 +1476,9 @@ informs you if another user has checked in changes in the same file
 since you began editing it, and when this happens, his changes will be
 effectively removed when you check in your version (though they will
 remain in the master file, so they will not be entirely lost).  You must
-therefore verify the current version is unchanged, before you check in your
-changes.  We hope to eliminate this risk and provide automatic merging
-with RCS in a future Emacs version.
+therefore verify that the current version is unchanged, before you
+check in your changes.  We hope to eliminate this risk and provide
+automatic merging with RCS in a future Emacs version.
 
   In addition, locking is possible with RCS even in this mode, although
 it is not required; @kbd{C-x v v} with an unmodified file locks the
@@ -1689,13 +1702,10 @@ there is more than one system in use for a directory, Emacs uses the one
 that appears first in @code{vc-handled-backends} (@pxref{Customizing VC}).
 On the other hand, if there are no files already registered,
 Emacs uses the first system from @code{vc-handled-backends} that could
-register the file---for example, you cannot register a file under CVS if
-its directory is not already part of a CVS tree.
-
-  With the default value of @code{vc-handled-backends}, this means
-that Emacs uses RCS if there are any files under RCS control, CVS if
-there are any files under CVS, SCCS if any files are under SCCS, or
-RCS as the ultimate default.
+register the file (for example, you cannot register a file under CVS if
+its directory is not already part of a CVS tree); with the default
+value of @code{vc-handled-backends}, this means that Emacs uses RCS in
+this situation.
 
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
 read-only.  Type @kbd{C-x v v} if you wish to start editing it.  After
@@ -1883,7 +1893,8 @@ marked files, so that you can lock or check in several files at once.
 If it operates on more than one file, it handles each file according to
 its current state; thus, it might lock one file, but check in another
 file.  This could be confusing; it is up to you to avoid confusing
-behavior by marking a set of files that are in a similar state.
+behavior by marking a set of files that are in a similar state.  If no
+files are marked, @kbd{v v} operates on the file in the current line.
 
   If any files call for check-in, @kbd{v v} reads a single log entry,
 then uses it for all the files being checked in.  This is convenient for
@@ -1911,8 +1922,7 @@ program in which you are gradually adding various unfinished new
 features.  Each such independent line of development is called a
 @dfn{branch}.  VC allows you to create branches, switch between
 different branches, and merge changes from one branch to another.
-Please note, however, that branches are only supported for RCS at the
-moment.
+Please note, however, that branches are not supported for SCCS.
 
   A file's main line of development is usually called the @dfn{trunk}.
 The versions on the trunk are normally numbered 1.1, 1.2, 1.3, etc.  At
@@ -2255,7 +2265,8 @@ But if you do this, the revision numbers in the RCS master no longer
 correspond to those of CVS.  Technically, this is not a problem, but
 it can become difficult to keep track of what is in the CVS repository
 and what is not.  So we suggest that you return from time to time to
-CVS-only operation, using @kbd{C-u C-x v v cvs @key{RET}}.
+CVS-only operation, by committing your local changes back to the
+repository using @kbd{C-u C-x v v cvs @key{RET}}.
 
 @node Snapshots
 @subsection Snapshots
@@ -2543,13 +2554,11 @@ insert a suitable header string.
 Insert headers in a file for use with your version-control system.
 @end table
 
-@vindex vc-header-alist
+@vindex vc-@var{backend}-header
   The default header string is @samp{@w{$}Id$} for RCS and
 @samp{@w{%}W%} for SCCS.  You can specify other headers to insert by
-setting the variable @code{vc-header-alist}.  Its value is a list of
-elements of the form @code{(@var{program} . @var{string})} where
-@var{program} is @code{RCS} or @code{SCCS} and @var{string} is the
-string to use.
+setting the variables @code{vc-@var{backend}-header} where
+@var{backend} is @code{rcs} or @code{sccs}.
 
   Instead of a single string, you can specify a list of strings; then
 each string in the list is inserted as a separate header on a line of
@@ -2577,8 +2586,8 @@ elements of the form @code{(@var{regexp} . @var{format})}.  Whenever
 @var{regexp} matches the buffer name, @var{format} is inserted as part
 of the header.  A header line is inserted for each element that matches
 the buffer name, and for each string specified by
-@code{vc-header-alist}.  The header line is made by processing the
-string from @code{vc-header-alist} with the format taken from the
+@code{vc-@var{backend}-header}.  The header line is made by processing the
+string from @code{vc-@var{backend}-header} with the format taken from the
 element.  The default value for @code{vc-static-header-alist} is as follows:
 
 @example
@@ -2615,10 +2624,10 @@ headers.
 @vindex vc-handled-backends
 The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SCCS)}, so it contains all three version systems that are currently
-supported.  If you want VC to ignore one or more of these systems,
-exclude its name from the list.  To disable VC entirely, set this
-variable to @code{nil}.
+SVN SCCS Arch MCVS)}, so it contains all six version systems that are
+currently supported.  If you want VC to ignore one or more of these
+systems, exclude its name from the list.  To disable VC entirely, set
+this variable to @code{nil}.
 
 The order of systems in the list is significant: when you visit a file
 registered in more than one system (@pxref{Local Version Control}),
@@ -2771,8 +2780,9 @@ pick up any recent changes from the repository first, using @kbd{C-x v m
 @key{RET}}, @pxref{Merging}).
 
 @vindex vc-cvs-global-switches
-  The variable @code{vc-cvs-global-switches} should be a string
-specifying switches to pass to CVS for all CVS operations.
+  The variable @code{vc-cvs-global-switches}, if non-@code{nil},
+should be a string specifying switches to pass to CVS for all CVS
+operations.
 
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
@@ -2891,7 +2901,7 @@ the command is finished.  For more information about windows in Emacs,
   With a numeric argument, @code{compare-windows} ignores changes in
 whitespace.  If the variable @code{compare-ignore-case} is
 non-@code{nil}, the comparison ignores differences in case as well.
-If the variable @code{compare-ignore-whitespace} is non-nil,
+If the variable @code{compare-ignore-whitespace} is non-@code{nil},
 @code{compare-windows} normally ignores changes in whitespace, and a
 prefix argument turns that off.
 
@@ -3289,6 +3299,10 @@ Clear the cache; that is, remove all file names from it.
 @node File Conveniences
 @section Convenience Features for Finding Files
 
+  In this section, we introduce some convenient facilities for finding
+recently-opened files, reading file names from a buffer, and viewing
+image files.
+
 @findex recentf-mode
 @vindex recentf-mode
 @findex recentf-save-list
@@ -3299,24 +3313,21 @@ opened files.  @kbd{M-x recentf-save-list} saves the current
 @code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
-@findex auto-image-file-mode
-@findex mode, auto-image-file
-@cindex images, visiting
-@cindex visiting image files
-@vindex image-file-name-regexps
-@vindex image-file-name-extensions
-  When Auto-image-file minor mode is enabled, visiting an image file
-displays it as an image, not as text.  Likewise, inserting an image
-file into a buffer inserts it as an image.  This works only when Emacs
-can display the relevant image type.  The variables
-@code{image-file-name-extensions} or @code{image-file-name-regexps}
-control which file names are recognized as containing images.
-
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
 powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@findex thumbs-mode
+@findex mode, thumbs
+  Thumbs mode is a major mode for viewing directories containing many
+image files.  To use it, type @kbd{M-x thumbs} and specify the
+directory to view.  The images in that directory will be displayed in
+a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
+thumbnail to view the full-size image.  Thumbs mode requires the
+@file{convert} program, which is part of the ImageMagick software
+package.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250

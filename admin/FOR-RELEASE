@@ -1,5 +1,10 @@
 Tasks needed before the next release.
 
+* THINGS THAT HAVE TO BE DONE SHORTLY BEFORE RELEASE
+
+`undo-ask-before-discard', currently set to t for debugging purposes
+has to be set to nil: when t, it can leak memory and cause other problems.
+
 * NEW FEATURES
 
 ** Face remapping.

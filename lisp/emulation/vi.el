@@ -1,7 +1,7 @@
 ;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs
 
-; This file is in the public domain because the authors distributed it
-; without a copyright notice before the US signed the Bern Convention.
+;; This file is in the public domain because the authors distributed it
+;; without a copyright notice before the US signed the Bern Convention.
 
 ;; This file is part of GNU Emacs.
 
@@ -11,32 +11,32 @@
 
 ;;; Commentary:
 
-; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
-; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)
-; Last revision: 01/07/87 Wed (for GNU Emacs 18.33)
+;; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
+;; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)
+;; Last revision: 01/07/87 Wed (for GNU Emacs 18.33)
 
-; INSTALLATION PROCEDURE:
-; 1) Add a global key binding for command "vi-mode" (I use ESC ESC instead of
-;    the single ESC used in real "vi", so I can access other ESC prefixed emacs
-;    commands while I'm in "vi"), say, by putting the following line in your
-;    ".emacs" file:
-;    (define-key global-map "\e\e" 'vi-mode) ;quick switch into vi-mode
-; 2) If you wish you can define "find-file-hooks" to enter "vi" automatically
-;    after a file is loaded into the buffer. For example, I defined it as:
-;    (setq find-file-hooks (list
-;                            (function (lambda ()
-;                                (if (not (or (eq major-mode 'Info-mode)
-;	                                      (eq major-mode 'vi-mode)))
-;                                    (vi-mode))))))
-; 3) In your .emacs file you can define the command "vi-mode" to be "autoload"
-;    or you can execute the "load" command to load "vi" directly.
-; 4) Read the comments for command "vi-mode" before you start using it.
-;
-; COULD DO
-; 1). A general 'define-operator' function to replace current hack
-; 2). In operator handling, should allow other point moving Emacs commands
-;     (such as ESC <, ESC >) to be used as arguments.
-;
+;; INSTALLATION PROCEDURE:
+;; 1) Add a global key binding for command "vi-mode" (I use ESC ESC instead of
+;;    the single ESC used in real "vi", so I can access other ESC prefixed emacs
+;;    commands while I'm in "vi"), say, by putting the following line in your
+;;    ".emacs" file:
+;;    (define-key global-map "\e\e" 'vi-mode) ;quick switch into vi-mode
+;; 2) If you wish you can define "find-file-hook" to enter "vi" automatically
+;;    after a file is loaded into the buffer. For example, I defined it as:
+;;    (setq find-file-hook (list
+;;                           (function (lambda ()
+;;                               (if (not (or (eq major-mode 'Info-mode)
+;; 	                                     (eq major-mode 'vi-mode)))
+;;                                   (vi-mode))))))
+;; 3) In your .emacs file you can define the command "vi-mode" to be "autoload"
+;;    or you can execute the "load" command to load "vi" directly.
+;; 4) Read the comments for command "vi-mode" before you start using it.
+
+;; COULD DO
+;; 1). A general 'define-operator' function to replace current hack
+;; 2). In operator handling, should allow other point moving Emacs commands
+;;     (such as ESC <, ESC >) to be used as arguments.
+
 ;;; Code:
 
 (defvar vi-mode-old-major-mode)
@@ -1487,5 +1487,5 @@ With ARG, inserts that many newlines."
 
 (provide 'vi)
 
-;;; arch-tag: ac9bdac3-8acb-4ddd-bdae-c6dd873153b3
+;; arch-tag: ac9bdac3-8acb-4ddd-bdae-c6dd873153b3
 ;;; vi.el ends here

@@ -86,6 +86,32 @@
      (multibyte-char-to-unibyte . identity))))
 
 (eval-and-compile
+  (cond
+   ((fboundp 'replace-in-string)
+    (defalias 'mm-replace-in-string 'replace-in-string))
+   ((fboundp 'replace-regexp-in-string)
+    (defun mm-replace-in-string (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+
+This is a compatibility function for different Emacsen."
+      (replace-regexp-in-string regexp newtext string nil literal)))
+   (t
+    (defun mm-replace-in-string (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+
+This is a compatibility function for different Emacsen."
+      (let ((start 0) tail)
+	(while (string-match regexp string start)
+	  (setq tail (- (length string) (match-end 0)))
+	  (setq string (replace-match newtext nil literal string))
+	  (setq start (- (length string) tail))))
+      string))))
+
+(eval-and-compile
   (defalias 'mm-char-or-char-int-p
     (cond
      ((fboundp 'char-or-char-int-p) 'char-or-char-int-p)
@@ -555,7 +581,7 @@ But this is very much a corner case, so don't worry about it."
 
     ;; Load the Latin Unity library, if available.
     (when (and (not (featurep 'latin-unity)) (locate-library "latin-unity"))
-      (require 'latin-unity))
+      (ignore-errors (require 'latin-unity)))
 
     ;; Now, can we use it?
     (if (featurep 'latin-unity)
@@ -600,7 +626,7 @@ But this is very much a corner case, so don't worry about it."
 
 (defmacro mm-xemacs-find-mime-charset (begin end)
   (when (featurep 'xemacs)
-    `(mm-xemacs-find-mime-charset-1 ,begin ,end)))
+    `(and (featurep 'mule) (mm-xemacs-find-mime-charset-1 ,begin ,end))))
 
 (defun mm-find-mime-charset-region (b e &optional hack-charsets)
   "Return the MIME charsets needed to encode the region between B and E.

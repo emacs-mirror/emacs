@@ -1,6 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2005 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Keywords: bib, tex
@@ -35,7 +35,7 @@
 ;; 9/88, created H.Kautz
 ;; modified 1/19/89, allow books with editor but no author;
 ;;                   added %O ordering field;
-;;                   appended illegal multiple fields, instead of
+;;                   appended invalid multiple fields, instead of
 ;;                     discarding;
 ;;                   added rule, a tech report whose %R number
 ;;                     contains "ISBN" is really a book
@@ -292,7 +292,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
 	    (setq val item)
 	    (if unique
 	       (progn
-		  (r2b-warning "*Illegal multiple field %s %s" field item)
+		  (r2b-warning "*Invalid multiple field %s %s" field item)
 		  (setq val (concat val "\n" item))
 		  )
 	       (setq val (concat val "\n\t\tand " item))

@@ -1681,7 +1681,7 @@ The default status is as follows:
 
 (reset-language-environment)
 
-(defun set-display-table-and-terminal-coding-system (language-name)
+(defun set-display-table-and-terminal-coding-system (language-name &optional coding-system)
   "Set up the display table and terminal coding system for LANGUAGE-NAME."
   (let ((coding (get-language-info language-name 'unibyte-display)))
     (if coding
@@ -1695,7 +1695,7 @@ The default status is as follows:
 	(dotimes (i 128)
 	  (aset standard-display-table (+ i 128) nil))))
     (or (eq window-system 'pc)
-	(set-terminal-coding-system coding))))
+	(set-terminal-coding-system (or coding-system coding)))))
 
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
@@ -2415,7 +2415,8 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; we are using single-byte characters,
 	  ;; so the display table and terminal coding system are irrelevant.
 	  (when default-enable-multibyte-characters
-	    (set-display-table-and-terminal-coding-system language-name))
+	    (set-display-table-and-terminal-coding-system
+	     language-name coding-system))
 
 	  ;; Set the `keyboard-coding-system' if appropriate (tty
 	  ;; only).  At least X and MS Windows can generate
@@ -2458,9 +2459,16 @@ system codeset `%s' for this locale." coding-system codeset))))))))
 	  (set-keyboard-coding-system code-page-coding)
 	  (set-terminal-coding-system code-page-coding))))
 
-    ;; On Darwin, file names are always encoded in utf-8, no matter the locale.
     (when (eq system-type 'darwin)
-      (setq default-file-name-coding-system 'utf-8))
+      ;; On Darwin, file names are always encoded in utf-8, no matter
+      ;; the locale.
+      (setq default-file-name-coding-system 'utf-8)
+      ;; Mac OS X's Terminal.app by default uses utf-8 regardless of
+      ;; the locale.
+      (when (and (null window-system)
+		 (equal (getenv "TERM_PROGRAM") "Apple_Terminal"))
+	(set-terminal-coding-system 'utf-8)
+	(set-keyboard-coding-system 'utf-8)))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)

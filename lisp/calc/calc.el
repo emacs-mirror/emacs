@@ -1,6 +1,7 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005 
+;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -656,8 +657,7 @@ If nil, selections displayed but ignored.")
 (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
 (put 'math-underflow 'error-message "Floating-point underflow occurred")
 
-(defconst calc-version "2.02g")
-(defconst calc-version-date "Mon Nov 19 2001")
+(defconst calc-version "2.1")
 (defvar calc-trail-pointer nil)		; "Current" entry in trail buffer.
 (defvar calc-trail-overlay nil)		; Value of overlay-arrow-string.
 (defvar calc-undo-list nil)		; List of previous operations for undo.
