@@ -1,3 +1,8 @@
+2000-06-09  Ken Raeburn  <raeburn@gnu.org>
+
+	* xterm.c (x_connection_closed): If dpyinfo is NULL, don't try to
+	access the data it doesn't point to.
+
 2000-06-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (XTread_socket) <FocusIn>: Queue a FOCUS_IN_EVENT which

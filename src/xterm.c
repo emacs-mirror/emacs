@@ -10799,7 +10799,8 @@ x_connection_closed (display, error_message)
 #endif
 #endif
 
-  dpyinfo->display = 0;
+  if (dpyinfo)
+    dpyinfo->display = 0;
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
