@@ -286,6 +286,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; EPC F90 compiler:
     ;; Error 24 at (2:progran.f90) : syntax error
     ("Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
+
+    ;; Sun F90 error messages:
+    ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3 
+    (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
+     1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
