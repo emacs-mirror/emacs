@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.09
+;; Version: 3.10
 
 ;;; This file is part of GNU Emacs.
 
@@ -37,7 +37,7 @@
 ;; 
 ;; Put in your ~/.emacs:
 ;;
-;; (add-hook 'font-lock-mode-hook 'turn-on-fast-lock)
+;; (setq font-lock-support-mode 'fast-lock-mode)
 ;;
 ;; Start up a new Emacs and use font-lock as usual (except that you can use the
 ;; so-called "gaudier" fontification regexps on big files without frustration).
@@ -152,21 +152,50 @@
 ;; 3.07--3.08:
 ;; - Made `fast-lock-read-cache' set `fast-lock-cache-filename'
 ;; 3.08--3.09:
-;; - Made `fast-lock-save-cache' cope if `fast-lock-minimum-size' is a list
+;; - Made `fast-lock-save-cache' cope if `fast-lock-minimum-size' is an a list
 ;; - Made `fast-lock-mode' respect the value of `font-lock-inhibit-thing-lock'
 ;; - Added `fast-lock-after-unfontify-buffer'
+;; 3.09--3.10:
+;; - Rewrite for Common Lisp macros
+;; - Made fast-lock.el barf on a crap 8+3 pseudo-OS (Eli Zaretskii help)
+;; - XEmacs: Made `add-minor-mode' succeed `autoload' cookie
+;; - XEmacs: Made `fast-lock-save-faces' default to `font-lock-face-list'
+;; - Made `fast-lock-save-cache' use `font-lock-value-in-major-mode'
+;; - Wrap with `save-buffer-state' (Ray Van Tassle report)
+;; - Made `fast-lock-mode' wrap `font-lock-support-mode'
 
 (require 'font-lock)
 
+;; Make sure fast-lock.el is supported.
+(if (and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
+    (error "`fast-lock' was written for long file name systems"))
+
 (eval-when-compile
-  ;; Shut Emacs' byte-compiler up (cf. stop me getting mail from users).
-  (setq byte-compile-warnings '(free-vars callargs redefine)))
+  ;;
+  ;; We don't do this at the top-level as we only use non-autoloaded macros.
+  (require 'cl)
+  ;;
+  ;; I prefer lazy code---and lazy mode.
+  (setq byte-compile-dynamic t byte-compile-dynamic-docstrings t)
+  ;;
+  ;; We use this to preserve or protect things when modifying text properties.
+  (defmacro save-buffer-state (varlist &rest body)
+    "Bind variables according to VARLIST and eval BODY restoring buffer state."
+    (` (let* ((,@ (append varlist
+		   '((modified (buffer-modified-p))
+		     (inhibit-read-only t) (buffer-undo-list t)
+		     before-change-functions after-change-functions
+		     deactivate-mark buffer-file-name buffer-file-truename))))
+	 (,@ body)
+	 (when (and (not modified) (buffer-modified-p))
+	   (set-buffer-modified-p nil)))))
+  (put 'save-buffer-state 'lisp-indent-function 1))
 
 (defun fast-lock-submit-bug-report ()
   "Submit via mail a bug report on fast-lock.el."
   (interactive)
   (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.09"
+    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.10"
      '(fast-lock-cache-directories fast-lock-minimum-size
        fast-lock-save-others fast-lock-save-events fast-lock-save-faces)
      nil nil
@@ -178,8 +207,7 @@ know how to make a clear and unambiguous report.  To reproduce the bug:
 Start a fresh Emacs via `" invocation-name " -no-init-file -no-site-file'.
 In the `*scratch*' buffer, evaluate:"))))
 
-;;;###autoload
-(defvar fast-lock-mode nil)		; for modeline
+(defvar fast-lock-mode nil)
 (defvar fast-lock-cache-timestamp nil)	; for saving/reading
 (defvar fast-lock-cache-filename nil)	; for deleting
 
@@ -188,7 +216,7 @@ In the `*scratch*' buffer, evaluate:"))))
 (defvar fast-lock-cache-directories '("." "~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
 ; - `external', keep each file's Font Lock cache file in the same directory.
-  "Directories in which Font Lock cache files are saved and read.
+  "*Directories in which Font Lock cache files are saved and read.
 Each item should be either DIR or a cons pair of the form (REGEXP . DIR) where
 DIR is a directory name (relative or absolute) and REGEXP is a regexp.
 
@@ -206,37 +234,31 @@ would cause a file's current directory to be used if the file is under your
 home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'.")
 
 (defvar fast-lock-minimum-size (* 25 1024)
-  "If non-nil, the minimum size for buffers.
+  "*Minimum size of a buffer for cached fontification.
 Only buffers more than this can have associated Font Lock cache files saved.
 If nil, means cache files are never created.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
- ((c++-mode . 25600) (c-mode . 25600) (rmail-mode . 1048576))
-means that the minimum size is 25K for buffers in `c++-mode' or `c-mode', one
-megabyte for buffers in `rmail-mode', and size is irrelevant otherwise.")
+ ((c-mode . 25600) (c++-mode . 25600) (rmail-mode . 1048576))
+means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
+for buffers in Rmail mode, and size is irrelevant otherwise.")
 
 (defvar fast-lock-save-events '(kill-buffer kill-emacs)
-  "A list of events under which caches will be saved.
+  "*Events under which caches will be saved.
 Valid events are `save-buffer', `kill-buffer' and `kill-emacs'.
 If concurrent editing sessions use the same associated cache file for a file's
 buffer, then you should add `save-buffer' to this list.")
 
 (defvar fast-lock-save-others t
-  "If non-nil, save Font Lock cache files irrespective of file owner.
+  "*If non-nil, save Font Lock cache files irrespective of file owner.
 If nil, means only buffer files known to be owned by you can have associated
 Font Lock cache files saved.  Ownership may be unknown for networked files.")
 
 (defvar fast-lock-save-faces
-  ;; Since XEmacs uses extents for everything, we have to pick the right ones.
-  ;; In XEmacs 19.13 we can't identify which text properties are Font Lock's.
-  (if (save-match-data (string-match "XEmacs" (emacs-version)))
-      '(font-lock-string-face font-lock-doc-string-face font-lock-type-face
-	font-lock-function-name-face font-lock-comment-face
-	font-lock-keyword-face font-lock-reference-face
-	font-lock-preprocessor-face)
-    ;; For Emacs 19.30 I don't think this is generally necessary.
-    nil)
-  "A list of faces that will be saved in a Font Lock cache file.
+  (when (save-match-data (string-match "XEmacs" (emacs-version)))
+    ;; XEmacs uses extents for everything, so we have to pick the right ones.
+    font-lock-face-list)
+  "Faces that will be saved in a Font Lock cache file.
 If nil, means information for all faces will be saved.")
 
 ;; User Functions:
@@ -247,7 +269,7 @@ If nil, means information for all faces will be saved.")
 With arg, turn Fast Lock mode on if and only if arg is positive and the buffer
 is associated with a file.  Enable it automatically in your `~/.emacs' by:
 
- (add-hook 'font-lock-mode-hook 'turn-on-fast-lock)
+ (setq font-lock-support-mode 'fast-lock-mode)
 
 If Fast Lock mode is enabled, and the current buffer does not contain any text
 properties, any associated Font Lock cache is used if its timestamp matches the
@@ -276,15 +298,14 @@ Use \\[fast-lock-submit-bug-report] to send bug reports or feedback."
 	    (not (memq 'fast-lock-mode font-lock-inhibit-thing-lock))
 	    (if arg (> (prefix-numeric-value arg) 0) (not fast-lock-mode))))
   (if (and fast-lock-mode (not font-lock-mode))
-      ;; Turned on `fast-lock-mode' rather than using `font-lock-mode-hook'.
-      (progn
-	(add-hook 'font-lock-mode-hook 'turn-on-fast-lock)
+      ;; Turned on `fast-lock-mode' rather than `font-lock-mode'.
+      (let ((font-lock-support-mode 'fast-lock-mode))
 	(font-lock-mode t))
     ;; Let's get down to business.
     (set (make-local-variable 'fast-lock-cache-timestamp) nil)
     (set (make-local-variable 'fast-lock-cache-filename) nil)
-    (if (and fast-lock-mode (not font-lock-fontified))
-	(fast-lock-read-cache))))
+    (when (and fast-lock-mode (not font-lock-fontified))
+      (fast-lock-read-cache))))
 
 (defun fast-lock-read-cache ()
   "Read the Font Lock cache for the current buffer.
@@ -305,20 +326,19 @@ See `fast-lock-mode'."
     ;; Keep trying directories until fontification is turned off.
     (while (and directories (not font-lock-fontified))
       (let ((directory (fast-lock-cache-directory (car directories) nil)))
-	(if (not directory)
-	    nil
-	  (setq fast-lock-cache-filename (fast-lock-cache-name directory))
-	  (condition-case nil
-	      (if (file-readable-p fast-lock-cache-filename)
-		  (load fast-lock-cache-filename t t t))
-	    (error nil) (quit nil)))
+	(condition-case nil
+	    (when directory
+	      (setq fast-lock-cache-filename (fast-lock-cache-name directory))
+	      (when (file-readable-p fast-lock-cache-filename)
+		(load fast-lock-cache-filename t t t)))
+	  (error nil) (quit nil))
 	(setq directories (cdr directories))))
     ;; Unset `fast-lock-cache-filename', and restore `font-lock-fontified', if
     ;; we don't use a cache.  (Note that `fast-lock-cache-data' sets the value
     ;; of `fast-lock-cache-timestamp'.)
     (set-buffer-modified-p modified)
-    (if (not font-lock-fontified)
-	(setq fast-lock-cache-filename nil font-lock-fontified fontified))))
+    (unless font-lock-fontified
+      (setq fast-lock-cache-filename nil font-lock-fontified fontified))))
 
 (defun fast-lock-save-cache (&optional buffer)
   "Save the Font Lock cache of BUFFER or the current buffer.
@@ -337,42 +357,41 @@ The following criteria must be met for a Font Lock cache file to be saved:
 See `fast-lock-mode'."
   (interactive)
   (save-excursion
-    (and buffer (set-buffer buffer))
-    (let ((min-size (if (not (consp fast-lock-minimum-size))
-			fast-lock-minimum-size
-		      (cdr (or (assq major-mode fast-lock-minimum-size)
-			       (assq t fast-lock-minimum-size)))))
+    (when buffer
+      (set-buffer buffer))
+    (let ((min-size (font-lock-value-in-major-mode fast-lock-minimum-size))
 	  (file-timestamp (visited-file-modtime)) (saved nil))
-      (if (and fast-lock-mode
-	       ;;
-	       ;; "Only save if the buffer matches the file, the file has
-	       ;; changed, and it was changed by the current emacs session."
-	       ;;
-	       ;; Only save if the buffer is not modified,
-	       ;; (i.e., so we don't save for something not on disk)
-	       (not (buffer-modified-p))
-	       ;; and the file's timestamp is the same as the buffer's,
-	       ;; (i.e., someone else hasn't written the file in the meantime)
-	       (verify-visited-file-modtime (current-buffer))
-	       ;; and the file's timestamp is different from the cache's.
-	       ;; (i.e., a save has occurred since the cache was read)
-	       (not (equal fast-lock-cache-timestamp file-timestamp))
-	       ;;
-	       ;; Only save if user's restrictions are satisfied.
-	       (and min-size (>= (buffer-size) min-size))
-	       (or fast-lock-save-others
-		   (eq (user-uid) (nth 2 (file-attributes buffer-file-name))))
-	       ;;
-	       ;; Only save if there are `face' properties to save.
-	       (text-property-not-all (point-min) (point-max) 'face nil))
-	  ;; Try each directory until we manage to save or the user quits.
-	  (let ((directories fast-lock-cache-directories))
-	    (while (and directories (memq saved '(nil error)))
-	      (let* ((dir (fast-lock-cache-directory (car directories) t))
-		     (file (and dir (fast-lock-cache-name dir))))
-		(if (and file (file-writable-p file))
-		    (setq saved (fast-lock-save-cache-1 file file-timestamp)))
-		(setq directories (cdr directories)))))))))
+      (when (and fast-lock-mode
+	     ;;
+	     ;; "Only save if the buffer matches the file, the file has
+	     ;; changed, and it was changed by the current emacs session."
+	     ;;
+	     ;; Only save if the buffer is not modified,
+	     ;; (i.e., so we don't save for something not on disk)
+	     (not (buffer-modified-p))
+	     ;; and the file's timestamp is the same as the buffer's,
+	     ;; (i.e., someone else hasn't written the file in the meantime)
+	     (verify-visited-file-modtime (current-buffer))
+	     ;; and the file's timestamp is different from the cache's.
+	     ;; (i.e., a save has occurred since the cache was read)
+	     (not (equal fast-lock-cache-timestamp file-timestamp))
+	     ;;
+	     ;; Only save if user's restrictions are satisfied.
+	     (and min-size (>= (buffer-size) min-size))
+	     (or fast-lock-save-others
+		 (eq (user-uid) (nth 2 (file-attributes buffer-file-name))))
+	     ;;
+	     ;; Only save if there are `face' properties to save.
+	     (text-property-not-all (point-min) (point-max) 'face nil))
+	;;
+	;; Try each directory until we manage to save or the user quits.
+	(let ((directories fast-lock-cache-directories))
+	  (while (and directories (memq saved '(nil error)))
+	    (let* ((dir (fast-lock-cache-directory (car directories) t))
+		   (file (and dir (fast-lock-cache-name dir))))
+	      (when (and file (file-writable-p file))
+		(setq saved (fast-lock-save-cache-1 file file-timestamp)))
+	      (setq directories (cdr directories)))))))))
 
 ;;;###autoload
 (defun turn-on-fast-lock ()
@@ -383,10 +402,10 @@ See `fast-lock-mode'."
 
 (defun fast-lock-after-fontify-buffer ()
   ;; Delete the Font Lock cache file used to restore fontification, if any.
-  (if fast-lock-cache-filename
-      (if (file-writable-p fast-lock-cache-filename)
-	  (delete-file fast-lock-cache-filename)
-	(message "File %s font lock cache cannot be deleted" (buffer-name))))
+  (when fast-lock-cache-filename
+    (if (file-writable-p fast-lock-cache-filename)
+	(delete-file fast-lock-cache-filename)
+      (message "File %s font lock cache cannot be deleted" (buffer-name))))
   ;; Flag so that a cache will be saved later even if the file is never saved.
   (setq fast-lock-cache-timestamp nil))
 
@@ -395,20 +414,20 @@ See `fast-lock-mode'."
 
 ;; Miscellaneous Functions:
 
-(defun fast-lock-after-save-hook ()
+(defun fast-lock-save-cache-after-save-file ()
   ;; Do `fast-lock-save-cache' if `save-buffer' is on `fast-lock-save-events'.
-  (if (memq 'save-buffer fast-lock-save-events)
-      (fast-lock-save-cache)))
+  (when (memq 'save-buffer fast-lock-save-events)
+    (fast-lock-save-cache)))
 
-(defun fast-lock-kill-buffer-hook ()
+(defun fast-lock-save-cache-before-kill-buffer ()
   ;; Do `fast-lock-save-cache' if `kill-buffer' is on `fast-lock-save-events'.
-  (if (memq 'kill-buffer fast-lock-save-events)
-      (fast-lock-save-cache)))
+  (when (memq 'kill-buffer fast-lock-save-events)
+    (fast-lock-save-cache)))
 
-(defun fast-lock-kill-emacs-hook ()
+(defun fast-lock-save-caches-before-kill-emacs ()
   ;; Do `fast-lock-save-cache's if `kill-emacs' is on `fast-lock-save-events'.
-  (if (memq 'kill-emacs fast-lock-save-events)
-      (mapcar 'fast-lock-save-cache (buffer-list))))
+  (when (memq 'kill-emacs fast-lock-save-events)
+    (mapcar 'fast-lock-save-cache (buffer-list))))
 
 (defun fast-lock-cache-directory (directory create)
   "Return usable directory based on DIRECTORY.
@@ -426,8 +445,8 @@ See `fast-lock-cache-directories'."
 		;; A directory iff the file name matches the regexp.
 		(let ((bufile (expand-file-name buffer-file-truename))
 		      (case-fold-search nil))
-		  (if (save-match-data (string-match (car directory) bufile))
-		      (cdr directory)))))))
+		  (when (save-match-data (string-match (car directory) bufile))
+		    (cdr directory)))))))
     (cond ((not dir)
 	   nil)
 	  ((file-accessible-directory-p dir)
@@ -494,7 +513,7 @@ See `fast-lock-cache-directory'."
 		fast-lock-cache-filename file))
       (error (setq saved 'error)) (quit (setq saved 'quit)))
     (kill-buffer tpbuf)
-    (message "Saving %s font lock cache... %s." buname
+    (message "Saving %s font lock cache...%s" buname
 	     (cond ((eq saved 'error) "failed")
 		   ((eq saved 'quit) "aborted")
 		   (t "done")))
@@ -504,7 +523,8 @@ See `fast-lock-cache-directory'."
 (defun fast-lock-cache-data (version timestamp keywords properties
 			     &rest ignored)
   ;; Change from (HIGH LOW) for back compatibility.  Remove for version 3!
-  (if (consp (cdr-safe timestamp)) (setcdr timestamp (nth 1 timestamp)))
+  (when (consp (cdr-safe timestamp))
+    (setcdr timestamp (nth 1 timestamp)))
   ;; Compile KEYWORDS and `font-lock-keywords' in case one is and one isn't.
   (let ((current font-lock-keywords))
     (setq keywords (font-lock-compile-keywords keywords)
@@ -523,7 +543,7 @@ See `fast-lock-cache-directory'."
       (condition-case nil
 	  (fast-lock-set-face-properties properties)
 	(error (setq loaded 'error)) (quit (setq loaded 'quit)))
-      (message "Loading %s font lock cache... %s." buname
+      (message "Loading %s font lock cache...%s" buname
 	       (cond ((eq loaded 'error) "failed")
 		     ((eq loaded 'quit) "aborted")
 		     (t "done"))))
@@ -568,98 +588,97 @@ Only those `face' VALUEs in `fast-lock-save-faces' are returned."
 	  (setq end (or (text-property-not-all start limit 'face face) limit)
 		regions (cons start (cons end regions))))
 	;; Add `face' face's regions, if any, to properties.
-	(if regions (setq properties (cons (cons face regions) properties))))
+	(when regions
+	  (push (cons face regions) properties)))
       properties)))
 
 (defun fast-lock-set-face-properties (properties)
   "Set all `face' text properties to PROPERTIES in the current buffer.
-Any existing `face' text properties are removed first.  Leaves buffer modified.
+Any existing `face' text properties are removed first.
 See `fast-lock-get-face-properties' for the format of PROPERTIES."
-  (save-restriction
-    (widen)
-    (font-lock-unfontify-region (point-min) (point-max))
-    (while properties
-      (let ((plist (list 'face (car (car properties))))
-	    (regions (cdr (car properties))))
+  (save-buffer-state (plist regions)
+    (save-restriction
+      (widen)
+      (font-lock-unfontify-region (point-min) (point-max))
+      (while properties
+	(setq plist (list 'face (car (car properties)))
+	      regions (cdr (car properties))
+	      properties (cdr properties))
 	;; Set the `face' property for each start/end region.
 	(while regions
 	  (set-text-properties (nth 0 regions) (nth 1 regions) plist)
-	  (setq regions (nthcdr 2 regions)))
-	(setq properties (cdr properties))))))
+	  (setq regions (nthcdr 2 regions)))))))
 
 ;; Functions for XEmacs:
 
-(if (save-match-data (string-match "XEmacs" (emacs-version)))
-    ;; It would be better to use XEmacs 19.12's `map-extents' over extents with
-    ;; `font-lock' property, but `face' properties are on different extents.
-    (defun fast-lock-get-face-properties ()
-      "Return a list of all `face' text properties in the current buffer.
+(when (save-match-data (string-match "XEmacs" (emacs-version)))
+  ;;
+  ;; It would be better to use XEmacs' `map-extents' over extents with a
+  ;; `font-lock' property, but `face' properties are on different extents.
+  (defun fast-lock-get-face-properties ()
+    "Return a list of all `face' text properties in the current buffer.
 Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
 where VALUE is a `face' property value and STARTx and ENDx are positions.
 Only those `face' VALUEs in `fast-lock-save-faces' are returned."
-      (save-restriction
-	(widen)
-	(let ((properties ()) cell)
-	  (map-extents
-	   (function
-	    (lambda (extent ignore)
-	      (let ((value (extent-face extent)))
-		;; We're only interested if it's one of `fast-lock-save-faces'.
-		(if (and value (or (null fast-lock-save-faces)
+    (save-restriction
+      (widen)
+      (let ((properties ()) cell)
+	(map-extents
+	 (function (lambda (extent ignore)
+	    (let ((value (extent-face extent)))
+	      ;; We're only interested if it's one of `fast-lock-save-faces'.
+	      (when (and value (or (null fast-lock-save-faces)
 				   (memq value fast-lock-save-faces)))
-		    (let ((start (extent-start-position extent))
-			  (end (extent-end-position extent)))
-		      ;; Make or add to existing list of regions with the same
-		      ;; `face' property value.
-		      (if (setq cell (assq value properties))
-			  (setcdr cell (cons start (cons end (cdr cell))))
-			(setq properties (cons (list value start end)
-					       properties)))))
-		;; Return nil to keep `map-extents' going.
-		nil))))
-	  properties))))
-
-(if (save-match-data (string-match "XEmacs" (emacs-version)))
-    ;; Make extents just like XEmacs's font-lock.el does.
-    (defun fast-lock-set-face-properties (properties)
-      "Set all `face' text properties to PROPERTIES in the current buffer.
+		(let ((start (extent-start-position extent))
+		      (end (extent-end-position extent)))
+		  ;; Make or add to existing list of regions with the same
+		  ;; `face' property value.
+		  (if (setq cell (assq value properties))
+		      (setcdr cell (cons start (cons end (cdr cell))))
+		    (push (list value start end) properties))))
+	      ;; Return nil to keep `map-extents' going.
+	      nil))))
+	properties)))
+  ;;
+  ;; Make extents just like XEmacs' font-lock.el does.
+  (defun fast-lock-set-face-properties (properties)
+    "Set all `face' text properties to PROPERTIES in the current buffer.
 Any existing `face' text properties are removed first.
 See `fast-lock-get-face-properties' for the format of PROPERTIES."
-      (save-restriction
-	(widen)
-	(font-lock-unfontify-region (point-min) (point-max))
-	(while properties
-	  (let ((face (car (car properties)))
-		(regions (cdr (car properties))))
-	    ;; Set the `face' property, etc., for each start/end region.
-	    (while regions
-	      (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
-	      (setq regions (nthcdr 2 regions)))
-	    (setq properties (cdr properties)))))))
+    (save-restriction
+      (widen)
+      (font-lock-unfontify-region (point-min) (point-max))
+      (while properties
+	(let ((face (car (car properties)))
+	      (regions (cdr (car properties))))
+	  ;; Set the `face' property, etc., for each start/end region.
+	  (while regions
+	    (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
+	    (setq regions (nthcdr 2 regions)))
+	  (setq properties (cdr properties))))))
+  ;;
+  ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.
+  (add-hook 'font-lock-after-fontify-buffer-hook
+	    'fast-lock-after-fontify-buffer))
 
-(if (save-match-data (string-match "XEmacs" (emacs-version)))
-    ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.
-    (add-hook 'font-lock-after-fontify-buffer-hook
-	      'fast-lock-after-fontify-buffer))
+(unless (boundp 'font-lock-inhibit-thing-lock)
+  (defvar font-lock-inhibit-thing-lock nil
+    "List of Font Lock mode related modes that should not be turned on."))
 
-(or (boundp 'font-lock-inhibit-thing-lock)
-    (defvar font-lock-inhibit-thing-lock nil
-      "List of Font Lock mode related modes that should not be turned on."))
-
-(or (fboundp 'font-lock-compile-keywords)
-    (defalias 'font-lock-compile-keywords 'identity))
+(unless (fboundp 'font-lock-compile-keywords)
+  (defalias 'font-lock-compile-keywords 'identity))
 
 ;; Install ourselves:
 
-;; We don't install ourselves on `font-lock-mode-hook' as packages with similar
-;; functionality exist, and fast-lock.el should be dumpable without forcing
-;; people to use caches or making it difficult for people to use alternatives.
-(add-hook 'after-save-hook 'fast-lock-after-save-hook)
-(add-hook 'kill-buffer-hook 'fast-lock-kill-buffer-hook)
-(add-hook 'kill-emacs-hook 'fast-lock-kill-emacs-hook)
+(add-hook 'after-save-hook 'fast-lock-save-cache-after-save-file)
+(add-hook 'kill-buffer-hook 'fast-lock-save-cache-before-kill-buffer)
+(add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs)
 
-(or (assq 'fast-lock-mode minor-mode-alist)
-    (setq minor-mode-alist (append minor-mode-alist '((fast-lock-mode nil)))))
+;;;###autoload
+(if (fboundp 'add-minor-mode) (add-minor-mode 'fast-lock-mode nil))
+;;;###dont-autoload
+(unless (assq 'fast-lock-mode minor-mode-alist)
+  (setq minor-mode-alist (append minor-mode-alist '((fast-lock-mode nil)))))
 
 ;; Provide ourselves:
 
