@@ -588,3 +588,27 @@ extern BOOL post_msg ();
 extern void wait_for_sync ();
 
 extern BOOL parse_button ();
+
+/* Keypad command key support.  Win32 doesn't have virtual keys defined
+   for the function keys on the keypad (they are mapped to the standard
+   fuction keys), so we define our own.  */
+#define VK_NUMPAD_BEGIN		0x92
+#define VK_NUMPAD_CLEAR		(VK_NUMPAD_BEGIN + 0)
+#define VK_NUMPAD_ENTER		(VK_NUMPAD_BEGIN + 1)
+#define VK_NUMPAD_PRIOR		(VK_NUMPAD_BEGIN + 2)
+#define VK_NUMPAD_NEXT		(VK_NUMPAD_BEGIN + 3)
+#define VK_NUMPAD_END		(VK_NUMPAD_BEGIN + 4)
+#define VK_NUMPAD_HOME		(VK_NUMPAD_BEGIN + 5)
+#define VK_NUMPAD_LEFT		(VK_NUMPAD_BEGIN + 6)
+#define VK_NUMPAD_UP		(VK_NUMPAD_BEGIN + 7)
+#define VK_NUMPAD_RIGHT		(VK_NUMPAD_BEGIN + 8)
+#define VK_NUMPAD_DOWN		(VK_NUMPAD_BEGIN + 9)
+#define VK_NUMPAD_INSERT	(VK_NUMPAD_BEGIN + 10)
+#define VK_NUMPAD_DELETE	(VK_NUMPAD_BEGIN + 11)
+
+#ifndef VK_LWIN
+/* Older compiler environments don't have these defined.  */
+#define VK_LWIN			0x5B
+#define VK_RWIN			0x5C
+#define VK_APPS			0x5D
+#endif
