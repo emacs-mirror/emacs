@@ -303,7 +303,7 @@ REGEXP is a regular expression to match against the file name.
 If it matches, `replace-match' is used to replace the
 matching part with REPLACEMENT.
 If the optional element UNIQUIFY is non-nil, the auto-save file name is
-constructed by taking the directory part of the replaced file-name, 
+constructed by taking the directory part of the replaced file-name,
 concatenated with the buffer file name with all directory separators
 changed to `!' to prevent clashes.  This will not work
 correctly if your filesystem truncates the resulting name.
@@ -483,7 +483,7 @@ DIR defaults to current buffer's directory default."
   (unless dir
     (setq dir default-directory))
   (unless default-dirname
-    (setq default-dirname 
+    (setq default-dirname
 	  (if initial (concat dir initial) default-directory)))
   (read-file-name prompt dir default-dirname mustmatch initial
 		  'file-directory-p))
@@ -1179,7 +1179,7 @@ that are visiting the various files."
 		  (unless (or (eq read-only buffer-file-read-only)
 			      (eq read-only buffer-read-only))
 		    (when (or nowarn
-			      (let ((question 
+			      (let ((question
 				     (format "File %s is %s on disk.  Change buffer mode? "
 					     buffer-file-name
 					     (if read-only "read-only" "writable"))))
@@ -1461,7 +1461,8 @@ in that case, this function acts as if `enable-local-variables' were t."
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
-   '(("\\.te?xt\\'" . text-mode)
+   '(("\\.in\\'" nil t)
+     ("\\.te?xt\\'" . text-mode)
      ("\\.c\\'" . c-mode)
      ("\\.h\\'" . c-mode)
      ("\\.tex\\'" . tex-mode)
@@ -1492,7 +1493,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.m\\'" . objc-mode)
      ("\\.java\\'" . java-mode)
      ("\\.mk\\'" . makefile-mode)
-     ("\\(M\\|m\\|GNUm\\)akefile\\(\\.in\\)?\\'" . makefile-mode)
+     ("\\(M\\|m\\|GNUm\\)akefile\\'" . makefile-mode)
      ("\\.am\\'" . makefile-mode)	;For Automake.
      ;; Less common extensions come here
      ;; so more common ones above are found faster.

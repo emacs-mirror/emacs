@@ -1,3 +1,8 @@
+2002-06-01  Sam Steingold  <sds@gnu.org>
+
+	* files.el (auto-mode-alist): Strip trailing ".in" from the file
+	name when deciding the mode (for config.h.in, Makefile.in etc).
+
 2002-06-01  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/prolog.el (prolog-mode-syntax-table): Add flags to
