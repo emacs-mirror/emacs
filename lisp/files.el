@@ -2178,7 +2178,11 @@ This command is used in the special Dired buffer created by
 	  ;; or is empty if the buffer was not visiting a file.
 	  ;; The second line is the auto-save file name.
 	  (map-y-or-n-p  "Recover %s? "
-			 (lambda (file) (save-excursion (recover-file file)))
+			 (lambda (file)
+			   (condition-case nil
+			       (save-excursion (recover-file file))
+			     (error 
+			      "Failed to recover `%s'" file)))
 			 (lambda ()
 			   (if (eobp)
 			       nil
