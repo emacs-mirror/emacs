@@ -415,7 +415,7 @@ One annotation each for foreground color, background color, italic, etc."
 
 (defun enriched-next-annotation ()
   "Find and return next text/enriched annotation.
-Any \"<<\" strings encountered are coverted to \"<\".
+Any \"<<\" strings encountered are converted to \"<\".
 Return value is \(begin end name positive-p), or nil if none was found."
   (while (and (search-forward "<" nil 1)
 	      (progn (goto-char (match-beginning 0))
