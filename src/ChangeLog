@@ -1,3 +1,8 @@
+2004-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (top-level): Add "#pragma pack(0)" after <dir.h>, to
+	undo bad effect of pack(4) in some versions of system headers.
+
 2004-05-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c
