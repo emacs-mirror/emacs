@@ -1,5 +1,9 @@
 2000-05-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (redisplay_window): Really switch buffers when
+	displaying mode lines, and temporarily set selected_frame to the
+	frame of the window that's redisplayed.
+
 	* xfaces.c (free_realized_faces): Block/unblock input.
 	(free_realized_multibyte_face): Ditto.
 

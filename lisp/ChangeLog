@@ -1,3 +1,35 @@
+2000-05-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* jit-lock.el (jit-lock-mode): Add after change function to
+	local hook.
+
+2000-05-29  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: New commands: hide/unhide actions,
+	upcase/downcase literals.
+	(antlr-tiny-action-length): New user option.
+	(antlr-hide-actions): New command.  Suggested by
+	Bjoern Mielenhausen <Bjoern.Mielenhausen@sap.com>.
+ 	(antlr-mode-map): New binding [C-c C-v].
+	(antlr-mode-menu): New entries.
+	(antlr-downcase-literals): New command.
+	(antlr-upcase-literals): Ditto.
+
+	* antlr-mode.el: Minor changes: indendation, mode-name.
+	(antlr-indent-line): Indent cpp directive at column 0.
+	(antlr-mode): Use mode-name prefix "Antlr." instead of "Antlr/".
+
+	* antlr-mode.el: XEmacs bug workaround, XEmacs hint.
+	(antlr-font-lock-additional-keywords): Workaround for intentional
+	bug in XEmacs version of font-lock.
+	(antlr-mode): Set symbol property `mode-name' to "Antlr".  Could
+	be used by a smarter version of `buffers-menu-grouping-function'.
+
+2000-05-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* tmm.el (tmm-prompt): Recognize menu item definitions of the for
+	`(menu-item ...)' when looking for the position of DEFAULT-ITEM.
+
 2000-05-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/encoded-kb.el
