@@ -1,5 +1,13 @@
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (parse_modifiers, apply_modifiers): Use VALMASK.
+
+	* insdel.c (make_gap): Use MOST_POSITIVE_FIXNUM.
+
+	* floatfns.c (FLOAT_TO_INT2, FLOAT_TO_INT): Use FIXNUM_OVERFLOW_P.
+
+	* dired.c (Ffile_attributes): Use FIXNUM_OVERFLOW_P.
+
 	* bytecode.c (syms_of_bytecode) [BYTE_CODE_METER]: Doc fix.
 	(METER_CODE, Fbyte_code): Use MOST_POSITIVE_FIXNUM.
 
