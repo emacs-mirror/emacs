@@ -1,10 +1,16 @@
+2002-03-03  Sam Steingold  <sds@gnu.org>
+
+	* play/snake.el (snake-score-file): Fixed parens (broken by the
+	last patch).
+	* play/tetris.el (tetris-score-file): Ditto.
+
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* play/tetris.el (tetris-score-file): Put in home dir, not in /tmp.
 
 	* play/snake.el (snake-score-file): Put in home dir, not in /tmp.
 
-	* play/gamegrid.el (gamegrid-set-font, gamegrid-setup-face) 
+	* play/gamegrid.el (gamegrid-set-font, gamegrid-setup-face)
 	(gamegrid-make-mono-tty-face): Fix usage of condition-case.
 
 2002-03-03  Thien-Thi Nguyen  <ttn@gnu.org>

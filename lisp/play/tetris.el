@@ -85,10 +85,10 @@ Element 0 is ignored."
 		       "Shape 4" "Shape 5" "Shape 6" "Shape 7"))
 	      (result `(vector (const nil))))
 	  (while names
-	    (add-to-list 'result 
-			 (cons 'choice 
-			       (cons :tag 
-				     (cons (car names) 
+	    (add-to-list 'result
+			 (cons 'choice
+			       (cons :tag
+				     (cons (car names)
 					   (mapcar (lambda (color)
 						     (list 'const color))
 						   (defined-colors)))))
@@ -151,9 +151,9 @@ Element 0 is ignored."
   "Y position of score.")
 
 ;; It is not safe to put this in /tmp.
-;; Someone could make a symlink in /tmp 
+;; Someone could make a symlink in /tmp
 ;; pointing to a file you don't want to clobber.
-(defvar tetris-score-file "~/.tetris-scores")
+(defvar tetris-score-file "~/.tetris-scores"
 ;; anybody with a well-connected server want to host this?
 ;(defvar tetris-score-file "/anonymous@ftp.pgt.com:/pub/cgw/tetris-scores"
   "File for holding high scores.")
@@ -235,10 +235,10 @@ Element 0 is ignored."
     [[0 0 0 0] [7 0 0 0] [0 0 0 0] [7 0 0 0]]
     [[0 0 0 0] [7 0 0 0] [0 0 0 0] [7 0 0 0]]]])
 
-;;the scoring rules were taken from "xtetris".  Blocks score differently 
+;;the scoring rules were taken from "xtetris".  Blocks score differently
 ;;depending on their rotation
 
-(defconst tetris-shape-scores 
+(defconst tetris-shape-scores
   [ [6 6 6 6] [6 7 6 7] [6 7 6 7] [6 7 6 7] [6 7 6 7] [5 5 6 5] [5 8 5 8]] )
 
 (defconst tetris-shape-dimensions
@@ -491,7 +491,7 @@ Element 0 is ignored."
   (tetris-shift-down)
   (setq tetris-n-shapes (1+ tetris-n-shapes))
   (setq tetris-score
-	(+ tetris-score 
+	(+ tetris-score
 	   (aref (aref tetris-shape-scores tetris-shape) tetris-rot)))
   (tetris-update-score)
   (tetris-new-shape))
