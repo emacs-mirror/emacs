@@ -298,6 +298,7 @@ internal_self_insert (c1, noautofill)
   else
     insert_and_inherit (&c1, 1);
 
+#ifdef HAVE_FACES
   /* If previous command specified a face to use, use it.  */
   if (!NILP (Vself_insert_face)
       && EQ (last_command, Vself_insert_face_command))
@@ -308,6 +309,7 @@ internal_self_insert (c1, noautofill)
       Fput_text_property (before, after, Qface, Vself_insert_face, Qnil);
       Vself_insert_face = Qnil;
     }
+#endif
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE)
