@@ -1,3 +1,33 @@
+2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* lisp/net/tramp.el: Version 2.0.30 released.
+	Replace term "path" with "localname" unless it is used for a
+	search path.
+	(tramp-handle-expand-file-name): Allow ".." to cross host
+	boundaries.
+	(tramp-open-connection-setup-interactive-shell): Unset $ENV in
+	addition to setting $PS1 when starting the Bourne-ish shell.  Some
+	sh implementations (eg, bash when called as sh) read the file
+	named there on startup, which could clobber $PS1.
+	(tramp-do-copy-or-rename-file-one-local): New function.  Not
+	implemented.  Not used.  Should invoke rcp or scp directly to keep
+	the time.
+
+2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp-smb.el: Replace term `path' with `localname' unless it is
+	used for a search path.  In GNU, the word `path' is reserved for
+	search paths.  * tramp.el (tramp-send-string, tramp-send-region):
+	Removed.
+	(tramp-send-string): New function.  Takes over the role of the
+	functions above, in order to have a unique place handling
+	`tramp-chunksize'.  Same implementation as `tramp-send-region'.
+	(tramp-chunksize): It's now a defcustom.  Set to 500 on systems
+	only known to have a buggy `process-send-string' implementation.
+	First black-listed constellation is GNU Emacs/ hpux.
+	(tramp-send-region): Correct debug message.
+	(tramp-bug): Add `tramp-chunksize'.
+
 2003-02-26  Matt Swift  <swift@alum.mit.edu>
 	
 	* startup.el: Streamline code in several functions for efficiency
