@@ -71,7 +71,10 @@ variable to \"^nnml\".")
 		 (not (eq gnus-use-cache 'passive))))
     (gnus-cache-read-active)))
 
-(gnus-add-shutdown 'gnus-cache-close 'gnus)
+(condition-case ()
+    (gnus-add-shutdown 'gnus-cache-close 'gnus)
+  ;; Complexities of byte-compiling makes this kludge necessary.  Eeek.
+  (error nil))
 
 (defun gnus-cache-close ()
   "Shut down the cache."
