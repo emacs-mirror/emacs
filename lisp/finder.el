@@ -79,14 +79,16 @@
     ))
 
 (defvar finder-mode-map nil)
-;(if finder-mode-map
-;    nil
-  (setq finder-mode-map (make-sparse-keymap))
-  (define-key finder-mode-map " "	'finder-select)
-  (define-key finder-mode-map "?"	'finder-summary)
-  (define-key finder-mode-map "q"	'finder-exit)
-  (define-key finder-mode-map "f"	'finder-list-keywords)
-;  )
+(or finder-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map " "	'finder-select)
+      (define-key map "f"	'finder-select)
+      (define-key map "\C-m"	'finder-select)
+      (define-key map "?"	'finder-summary)
+      (define-key map "q"	'finder-exit)
+      (define-key map "d"	'finder-list-keywords)
+      (setq finder-mode-map map)))
+
 
 ;;; Code for regenerating the keyword list.
 
@@ -271,7 +273,7 @@ arguments compiles from `load-path'."
   (interactive)
   (message
    (substitute-command-keys
-    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-list-keywords] = back to finder, \\[finder-exit] = quit, \\[finder-summary] = help")))
+    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
   "Exit Finder mode and kill the buffer"
