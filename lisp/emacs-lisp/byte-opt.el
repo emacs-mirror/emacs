@@ -50,7 +50,6 @@
 ;;   (put 'debug-on-error 'binding-is-magic t)
 ;;   (put 'debug-on-abort 'binding-is-magic t)
 ;;   (put 'debug-on-next-call 'binding-is-magic t)
-;;   (put 'mocklisp-arguments 'binding-is-magic t)
 ;;   (put 'inhibit-quit 'binding-is-magic t)
 ;;   (put 'quit-flag 'binding-is-magic t)
 ;;   (put 't 'binding-is-magic t)
@@ -520,9 +519,8 @@
 	   (byte-optimize-form form for-effect))
 	  
 	  ((not (symbolp fn))
-	   (or (eq 'mocklisp (car-safe fn)) ; ha!
-	       (byte-compile-warn "`%s' is a malformed function"
-				  (prin1-to-string fn)))
+	   (byte-compile-warn "`%s' is a malformed function"
+			      (prin1-to-string fn))
 	   form)
 
 	  ((and for-effect (setq tmp (get fn 'side-effect-free))
