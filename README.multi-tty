@@ -164,13 +164,14 @@ THANKS
 The following is an (incomplete) list of people who have contributed
 to the project by testing, bug reports, and suggestions.  Thanks!
 
-Robert J. Chassel <bob at rattlesnake dot com>
+Robert J. Chassell <bob at rattlesnake dot com>
 Romain Francoise <romain at orebokech dot com>
 Ami Fischman <ami at fischman dot org>
 Istvan Marko <mi-mtty ar kismala dot com>
 Dan Nicolaescu <dann at ics dot uci dot edu>
 Gergely Nagy <algernon at debian dot org>
 Mark Plaksin <happy at mcplaksin dot org>
+Francisco Borges <borges at let dot rug dot nl>
 
 Richard Stallman was kind enough to review my patches.
 
@@ -182,11 +183,6 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** Robert Chassell has found serious copy-paste bugs with the
-   multi-tty branch.  There seem to be redisplay bugs while copying
-   from X to a terminal frame.  Copying accented characters do not
-   work for me.
-
 ** Emacs assumes that all terminal frames have the same locale
    settings as Emacs itself.  This may lead to bogus results in a
    multi-locale setup. (E.g., while logging in from a remote client
@@ -196,7 +192,8 @@ THINGS TO DO
    sometimes; Emacs does not respond to stimuli from other keyboards.
    At least a beep or a message would be important, if the single-mode
    is still required to prevent interference.  (Reported by Dan
-   Nicolaescu.)
+   Nicolaescu.)  (Update: selecting a region with the mouse enables
+   single_kboard under X.  This is very confusing.)
 
 ** Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
    parameter or the frame-tty-type function instead.
@@ -735,6 +732,18 @@ DIARY OF CHANGES
    startup.)
 
    (This is gone.)
+
+-- Robert Chassell has found serious copy-paste bugs with the
+   multi-tty branch.  There seem to be redisplay bugs while copying
+   from X to a terminal frame.  Copying accented characters do not
+   work for me.
+
+   (Patch-124 should fix this, by changing the interprogram-*-function
+   variables to be frame-local, as suggested by Mark Plaksin
+   (thanks!).  I think that the redisplay bugs are in fact not bugs,
+   but delays caused by single_kboard --> perhaps MULTI_KBOARD should
+   be removed.)
+
 
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

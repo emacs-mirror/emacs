@@ -2445,10 +2445,6 @@ order until succeed.")
   ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
-  ;; Arrange for the kill and yank functions to set and check the clipboard.
-  (setq interprogram-cut-function 'x-select-text)
-  (setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
-
   ;; Turn off window-splitting optimization; X is usually fast enough
   ;; that this is only annoying.
   (setq split-window-keep-point t)

@@ -1680,6 +1680,11 @@ Value is the new frame created."
 	  (if (or (null frame-list) (null visibility-spec))
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
+	  ;; Arrange for the kill and yank functions to set and check the clipboard.
+	  (modify-frame-parameters
+	   frame '((interprogram-cut-function . x-select-text)))
+	  (modify-frame-parameters
+	   frame '((interprogram-paste-function . x-cut-buffer-or-selection-value)))
 	  (setq success t))
       (unless success
 	(delete-frame frame)))
@@ -1777,6 +1782,9 @@ created."
 		      (if (setq hyphend (string-match "[-_][^-_]+$" term))
 			  (substring term 0 hyphend)
 			nil)))))
+	  ;; Make sure the kill and yank functions do not touch the X clipboard.
+	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
+	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
 	  (setq success t))
       (unless success
 	(select-frame old-frame)
