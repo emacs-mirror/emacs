@@ -7,6 +7,10 @@
 
 2000-12-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (size_window): When setting the window's too_small_ok
+	flag, compare old size with minimum size depending on WIDTH_P,
+	don't compare with window_min_width.
+	
 	* window.c (delete_window): Simplify somewhat.
 	(Fset_window_configuration): Don't SET_FRAME_GARBAGED after
 	freeing window matrices.  The flag windows_or_buffers_changed is

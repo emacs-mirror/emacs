@@ -1,5 +1,11 @@
 2000-12-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (delete-key-deletes-forward-mode): Simplify.  Also
+	backspace key combinations, depending on
+	delete-key-deletes-forward.
+
+	* bindings.el ([C-backspace]): Bind C-backspace to kill-word.
+
 	* simple.el (delete-key-deletes-forward): Doc fix.
 
 2000-08-22  Emmanuel Briot  <briot@gnat.com>
