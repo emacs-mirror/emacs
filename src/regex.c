@@ -2903,8 +2903,12 @@ regex_compile (pattern, size, syntax, bufp)
 	  p1 = p - 1;		/* P1 points the head of C.  */
 #ifdef emacs
 	  if (bufp->multibyte)
-	    /* Set P to the next character boundary.  */
-	    p += MULTIBYTE_FORM_LENGTH (p1, pend - p1) - 1;
+	    {
+	      c = STRING_CHAR (p1, pend - p1);
+	      c = TRANSLATE (c);
+	      /* Set P to the next character boundary.  */
+	      p += MULTIBYTE_FORM_LENGTH (p1, pend - p1) - 1;
+	    }
 #endif
 	      /* If no exactn currently being built.  */
 	  if (!pending_exact
@@ -2933,16 +2937,23 @@ regex_compile (pattern, size, syntax, bufp)
 	      pending_exact = b - 1;
 	    }
 
-	  /* Here, C may translated, therefore C may not equal to *P1. */
-	  while (1)
+#ifdef emacs
+	  if (! SINGLE_BYTE_CHAR_P (c))
+	    {
+	      unsigned char work[4], *str;
+	      int i = CHAR_STRING (c, work, str);
+	      int j;
+	      for (j = 0; j < i; j++)
+		{
+		  BUF_PUSH (str[j]);
+		  (*pending_exact)++;
+		}
+	    }
+	  else
+#endif
 	    {
 	      BUF_PUSH (c);
 	      (*pending_exact)++;
-	      if (++p1 == p)
-		break;
-
-	      /* Rest of multibyte form should be copied literally. */
-	      c = *(unsigned char *)p1;
 	    }
 	  break;
 	} /* switch (c) */
