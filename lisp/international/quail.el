@@ -1769,14 +1769,14 @@ All possible translations of the current key and whole possible longer keys
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(quail-error "Minibuffer is not active for completion")
-      ;; Insert the completion into the buffer where completion was requested.
+      ;; Store the completion in `quail-current-str', which will later
+      ;; be converted to a character event list, then inserted into
+      ;; the buffer where completion was requested.
       (set-buffer buffer)
 ;      (if base-size
 ;	  (delete-region (+ base-size (point-min)) (point))
 ;	(choose-completion-delete-max-match choice))
-      (insert choice)
-      (remove-text-properties (- (point) (length choice)) (point)
-			      '(mouse-face nil))
+      (setq quail-current-str choice)
       ;; Update point in the window that BUFFER is showing in.
       (let ((window (get-buffer-window buffer t)))
 	(set-window-point window (point)))
