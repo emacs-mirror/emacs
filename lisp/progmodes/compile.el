@@ -507,8 +507,7 @@ Does NOT find the source line like \\[next-error]."
   (setq data (cdr data))
   (if (markerp data)
       (buffer-file-name (marker-buffer data))
-    (setq data (car data))
-    (expand-file-name (cdr data) (car data))))
+    (car data)))
 
 (defun compilation-next-file (n)
   "Move point to the next error for a different file than the current one."
