@@ -226,7 +226,7 @@ toggles the read-only status.
 ** LessTif/Motif file selection dialog.
 
 When Emacs is configured to use LessTif or Motif, reading a file name
-from a menu will pop up a file selection dialog if `use-dialogs' is
+from a menu will pop up a file selection dialog if `use-dialog-box' is
 non-nil.
 
 ** Emacs can display faces on TTY frames.
@@ -480,6 +480,12 @@ These correspond respectively to the ISO character sets 8859-14
 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).  There is
 currently no specific input method support for them.
 
+** Fortran mode has a new command `fortran-strip-sqeuence-nos' to
+remove text past column 72.  The syntax class of `\' in Fortran is now
+appropriate for C-style escape sequences in strings.
+
+** SGML mode's default `sgml-validate-command' is now `nsgmls'.
+
 ** New modes and packages
 
 *** 5x5.el is a simple puzzle game.
@@ -576,9 +582,6 @@ text.
 functionality with aliases for the mldrag functions.
 
 *** eval-reg.el has been obsoleted by changes to edebug.el.
-
-** Not new, but not mentioned before:
-M-w when Transient Mark mode is enabled disables the mark.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
@@ -2099,6 +2102,11 @@ temporarily to nil, for example
 
 Likewise, an attempt to split a fixed-height window vertically,
 or a fixed-width window horizontally results in a error.
+^L
+* Emacs 20.5 is a bug-fix release with no user-visible changes.
+
+** Not new, but not mentioned before:
+M-w when Transient Mark mode is enabled disables the mark.
 
 * Changes in Emacs 20.4
 
