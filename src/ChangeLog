@@ -1,3 +1,34 @@
+2000-07-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (help_echo_window): New variable.
+	(syms_of_msdos): Initialize and staticpro it.
+	(IT_note_mode_line_highlight): Set help_echo_window.
+	(IT_note_mouse_highlight): Ditto.
+	(dos_rawgetc): Store help_echo_window in the second event produced
+	for HELP_EVENTs.
+
+	* msdos.c (IT_note_mode_line_highlight, IT_note_mouse_highlight):
+	Record the object that generated the help echo and the position of
+	that object in help_echo_object and help_echo_pos.  Record that
+	some glyphs in a row are displayed in mouse-face.
+	(IT_update_begin): Don't clear mouse highlight unless one of the
+	enabled glyph rows is marked as being displayed in mouse-face.
+	(dos_rawgetc): Generate 2 events for HELP_EVENT.  Pass the object
+	and position recorded in help_echo_object and help_echo_pos to the
+	event queue.
+	(IT_menu_display): Accept a new argument PN: the pane number of
+	the current menu pane.  Record the pane number and the item
+	number of the item which has associated help string.
+	(XMenuActivate): Update the prototype for help_callback in
+	function declaration.  Call IT_menu_display with the current menu
+	pane number as an additional argument.  Call help_callback with
+	two additional arguments: the pane number and the item number of
+	the menu item associated with the help text.
+	(help_echo_object, help_echo_pos): New variables.
+	(syms_of_msdos): Initialize them and staticpro help_echo_object.
+
+	* msdos.h (XMenuActivate): Update prototype.
+
 2000-07-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (with_echo_area_buffer): Call FN with more arguments.
