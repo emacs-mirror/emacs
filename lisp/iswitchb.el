@@ -1162,11 +1162,11 @@ Copied from `icomplete-tidy'."
 (defun iswitchb-entryfn-p ()
   "Return non-nil if `this-command' shows we are using `iswitchb-buffer'."
   (and (symbolp this-command)		; ignore lambda functions
-       (member (symbol-name this-command)
-	       '("iswitchb-buffer"
-		 "iswitchb-buffer-other-frame"
-		 "iswitchb-display-buffer"
-		 "iswitchb-buffer-other-window"))))
+       (memq this-command
+	     '(iswitchb-buffer
+	       iswitchb-buffer-other-frame
+	       iswitchb-display-buffer
+	       iswitchb-buffer-other-window))))
 
 (defun iswitchb-summaries-to-end ()
   "Move the summaries to the end of the list.
