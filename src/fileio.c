@@ -206,6 +206,10 @@ Lisp_Object Vdirectory_sep_char;
 
 extern Lisp_Object Vuser_login_name;
 
+#ifdef WINDOWSNT
+extern Lisp_Object Vw32_get_true_file_attributes;
+#endif
+
 extern int minibuf_level;
 
 extern int minibuffer_auto_raise;
@@ -3092,9 +3096,25 @@ This is the sort of file that holds an ordinary stream of data bytes.")
 
   absname = ENCODE_FILE (absname);
 
+#ifdef WINDOWSNT
+  {
+    int result;
+    Lisp_Object tem = Vw32_get_true_file_attributes;
+
+    /* Tell stat to use expensive method to get accurate info.  */
+    Vw32_get_true_file_attributes = Qt;
+    result = stat (XSTRING (absname)->data, &st);
+    Vw32_get_true_file_attributes = tem;
+
+    if (result < 0)
+      return Qnil;
+    return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
+  }
+#else
   if (stat (XSTRING (absname)->data, &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
+#endif
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
@@ -3345,12 +3365,24 @@ actually used.")
 
   fd = -1;
 
+#ifdef WINDOWSNT
+  {
+    Lisp_Object tem = Vw32_get_true_file_attributes;
+
+    /* Tell stat to use expensive method to get accurate info.  */
+    Vw32_get_true_file_attributes = Qt;
+    total = stat (XSTRING (filename)->data, &st);
+    Vw32_get_true_file_attributes = tem;
+  }
+  if (total < 0)
+#else
 #ifndef APOLLO
   if (stat (XSTRING (filename)->data, &st) < 0)
 #else
   if ((fd = open (XSTRING (filename)->data, O_RDONLY)) < 0
       || fstat (fd, &st) < 0)
 #endif /* not APOLLO */
+#endif /* WINDOWSNT */
     {
       if (fd >= 0) close (fd);
     badopen:
@@ -4446,7 +4478,7 @@ This does code conversion according to the value of\n\
 
   record_unwind_protect (close_file_unwind, make_number (desc));
 
-  if (!NILP (append))
+  if (!NILP (append) && !NILP (Ffile_regular_p (filename)))
     if (lseek (desc, 0, 2) < 0)
       {
 #ifdef CLASH_DETECTION
