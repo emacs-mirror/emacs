@@ -677,7 +677,7 @@ to get different commands to edit and resubmit."
 This is used for all minibuffer input
 except when an alternate history list is specified.")
 (defvar minibuffer-history-sexp-flag nil
-  "Non-nil when doing history operations on `command-history'.
+  "Non-nil when doing history operations on the variable `command-history'.
 More generally, indicates that the history list being acted on
 contains expressions rather than strings.
 It is only valid if its value equals the current minibuffer depth,
