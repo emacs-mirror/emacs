@@ -2896,9 +2896,9 @@ if present.  The current time is used as the offset."
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
 Autoscaling means that the map is scaled from the current time to the
-oldest annotation in the buffer, or, with argument FULL non-nil, to
+oldest annotation in the buffer, or, with prefix argument FULL, to
 cover the range from the oldest annotation to the newest."
-  (interactive)
+  (interactive "P")
   (let ((newest 0.0)
 	(oldest 999999.)		;Any CVS users at the founding of Rome?
 	(current (vc-annotate-convert-time (current-time)))
