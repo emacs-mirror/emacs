@@ -702,22 +702,20 @@ and TO is ignored."
 	(coding-system nil)
 	(bufname (buffer-name))
 	safe rejected unsafe)
-    (if (eq (car codings) 'undecided)
-	;; Any coding system is ok.
-	(setq coding-system t)
-      ;; Classify the defaults into safe, rejected, and unsafe.
-      (dolist (elt default-coding-system)
-	(if (memq (cdr elt) codings)
-	    (if (and (functionp accept-default-p)
-		     (not (funcall accept-default-p (cdr elt))))
-		(push (car elt) rejected)
-	      (push (car elt) safe))
-	  (push (car elt) unsafe)))
-      (if safe
-	  (setq coding-system (car safe))))
+    ;; Classify the defaults into safe, rejected, and unsafe.
+    (dolist (elt default-coding-system)
+      (if (or (eq (car codings) 'undecided)
+	      (memq (cdr elt) codings))
+	  (if (and (functionp accept-default-p)
+		   (not (funcall accept-default-p (cdr elt))))
+	      (push (car elt) rejected)
+	    (push (car elt) safe))
+	(push (car elt) unsafe)))
+    (if safe
+	(setq coding-system (car safe)))
 
     ;; If all the defaults failed, ask a user.
-    (when (not coding-system)
+    (unless coding-system
       ;; At first, if some defaults are unsafe, record at most 11
       ;; problematic characters and their positions for them by turning
       ;;	(CODING ...)
@@ -860,7 +858,7 @@ e.g., for sending an email message.\n ")
 The first problematic character is at point in the displayed buffer,\n"
 			  (substitute-command-keys "\
 and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-	      (insert (if safe
+	      (insert (if rejected
 			  "\nSelect the above, or "
 			"\nSelect ")
 		      "\
@@ -886,14 +884,12 @@ on your risk of losing the problematic characters.\n")))
 	(kill-buffer "*Warning*")
 	(set-window-configuration window-configuration)))
 
-    (if (vectorp (coding-system-eol-type coding-system))
+    (if (and coding-system (vectorp (coding-system-eol-type coding-system)))
 	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
 	  (if (numberp eol)
 	      (setq coding-system
 		    (coding-system-change-eol-conversion coding-system eol)))))
 
-    (if (eq coding-system t)
-	(setq coding-system buffer-file-coding-system))
     ;; Check we're not inconsistent with what `coding:' spec &c would
     ;; give when file is re-read.
     ;; But don't do this if we explicitly ignored the cookie
