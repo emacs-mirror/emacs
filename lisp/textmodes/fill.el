@@ -449,10 +449,17 @@ space does not end a sentence, so don't break a line there."
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
+			;; Find a breakable point while ignoring the
+			;; following spaces.
 			(skip-chars-forward " \t")
-			;; Skip one \c| character or one word.
-			(if (looking-at "$\\|\\c|\\|[^ \t\n]+")
-			    (goto-char (match-end 0)))
+			(if (looking-at "\\c|")
+			    (forward-char 1)
+			  (let ((pos (save-excursion
+				       (skip-chars-forward "^ \n\t")
+				       (point))))
+			    (if (re-search-forward "\\c|" pos t)
+				(forward-char -1)
+			      (goto-char pos))))
 			(setq first nil)))
 		  ;; Normally, move back over the single space between the words.
 		  (if (= (preceding-char) ?\ ) (forward-char -1))
@@ -487,10 +494,17 @@ space does not end a sentence, so don't break a line there."
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
+			;; Find a breakable point while ignoring the
+			;; following spaces.
 			(skip-chars-forward " \t")
-			;; Skip one \c| character or one word.
-			(if (looking-at "$\\|\\c|\\|[^ \t\n]+")
-			    (goto-char (match-end 0)))
+			(if (looking-at "\\c|")
+			    (forward-char 1)
+			  (let ((pos (save-excursion
+				       (skip-chars-forward "^ \n\t")
+				       (point))))
+			    (if (re-search-forward "\\c|" pos t)
+				(forward-char -1)
+			      (goto-char pos))))
 			(setq first nil))))
 		;; Check again to see if we got to the end of the paragraph.
 		(if (save-excursion (skip-chars-forward " \t") (eobp))
