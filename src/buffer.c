@@ -3228,18 +3228,26 @@ fix_overlays_in_range (start, end)
 {
   Lisp_Object overlay;
   Lisp_Object before_list, after_list;
-  Lisp_Object *ptail, *pbefore = &before_list, *pafter = &after_list;
+  /* These are either nil, indicating that before_list or after_list
+     should be assigned, or the cons cell the cdr of which should be
+     assigned.  */
+  Lisp_Object beforep = Qnil, afterp = Qnil;
+  /* 'Parent', likewise, indicates a cons cell or
+     current_buffer->overlays_before or overlays_after, depending
+     which loop we're in.  */
+  Lisp_Object tail, parent;
   int startpos, endpos;
 
   /* This algorithm shifts links around instead of consing and GCing.
      The loop invariant is that before_list (resp. after_list) is a
-     well-formed list except that its last element, the one that
-     *pbefore (resp. *pafter) points to, is still uninitialized.
-     So it's not a bug that before_list isn't initialized, although
-     it may look strange.  */
-  for (ptail = &current_buffer->overlays_before; CONSP (*ptail);)
+     well-formed list except that its last element, the CDR of beforep
+     (resp. afterp) if beforep (afterp) isn't nil or before_list
+     (after_list) if it is, is still uninitialized.  So it's not a bug
+     that before_list isn't initialized, although it may look
+     strange.  */
+  for (parent = Qnil, tail = current_buffer->overlays_before; CONSP (tail);)
     {
-      overlay = XCAR (*ptail);
+      overlay = XCAR (tail);
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
       if (endpos < start)
 	break;
@@ -3261,22 +3269,32 @@ fix_overlays_in_range (start, end)
 	     recenter_overlay_lists will move it to the right place.  */
 	  if (endpos < XINT (current_buffer->overlay_center))
 	    {
-	      *pafter = *ptail;
-	      pafter = &XCDR (*ptail);
+	      if (NILP (afterp))
+		after_list = tail;
+	      else
+		XSETCDR (afterp, tail);
+	      afterp = tail;
 	    }
 	  else
 	    {
-	      *pbefore = *ptail;
-	      pbefore = &XCDR (*ptail);
+	      if (NILP (beforep))
+		before_list = tail;
+	      else
+		XSETCDR (beforep, tail);
+	      beforep = tail;
 	    }
-	  *ptail = XCDR (*ptail);
+	  if (NILP (parent))
+	    current_buffer->overlays_before = XCDR (tail);
+	  else
+	    XSETCDR (parent, XCDR (tail));
+	  tail = XCDR (tail);
 	}
       else
-	ptail = &XCDR (*ptail);
+	parent = tail, tail = XCDR (parent);
     }
-  for (ptail = &current_buffer->overlays_after; CONSP (*ptail);)
+  for (parent = Qnil, tail = current_buffer->overlays_after; CONSP (tail);)
     {
-      overlay = XCAR (*ptail);
+      overlay = XCAR (tail);
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
       if (startpos >= end)
 	break;
@@ -3295,29 +3313,45 @@ fix_overlays_in_range (start, end)
 	    }
 	  if (endpos < XINT (current_buffer->overlay_center))
 	    {
-	      *pafter = *ptail;
-	      pafter = &XCDR (*ptail);
+	      if (NILP (afterp))
+		after_list = tail;
+	      else
+		XSETCDR (afterp, tail);
+	      afterp = tail;
 	    }
 	  else
 	    {
-	      *pbefore = *ptail;
-	      pbefore = &XCDR (*ptail);
+	      if (NILP (beforep))
+		before_list = tail;
+	      else
+		XSETCDR (beforep, tail);
+	      beforep = tail;
 	    }
-	  *ptail = XCDR (*ptail);
+	  if (NILP (parent))
+	    current_buffer->overlays_after = XCDR (tail);
+	  else
+	    XSETCDR (parent, XCDR (tail));
+	  tail = XCDR (tail);
 	}
       else
-	ptail = &XCDR (*ptail);
+	parent = tail, tail = XCDR (parent);
     }
 
   /* Splice the constructed (wrong) lists into the buffer's lists,
      and let the recenter function make it sane again.  */
-  *pbefore = current_buffer->overlays_before;
-  current_buffer->overlays_before = before_list;
+  if (!NILP (beforep))
+    {
+      XSETCDR (beforep, current_buffer->overlays_before);
+      current_buffer->overlays_before = before_list;
+    }
   recenter_overlay_lists (current_buffer,
 			  XINT (current_buffer->overlay_center));
 
-  *pafter = current_buffer->overlays_after;
-  current_buffer->overlays_after = after_list;
+  if (!NILP (afterp))
+    {
+      XSETCDR (afterp, current_buffer->overlays_after);
+      current_buffer->overlays_after = after_list;
+    }
   recenter_overlay_lists (current_buffer,
 			  XINT (current_buffer->overlay_center));
 }
@@ -3339,8 +3373,9 @@ fix_overlays_before (bp, prev, pos)
      struct buffer *bp;
      int prev, pos;
 {
-  Lisp_Object *tailp = &bp->overlays_before;
-  Lisp_Object *right_place;
+  /* If parent is nil, replace overlays_before; otherwise, XCDR(parent).  */
+  Lisp_Object tail = bp->overlays_before, parent = Qnil;
+  Lisp_Object right_pair;
   int end;
 
   /* After the insertion, the several overlays may be in incorrect
@@ -3354,45 +3389,60 @@ fix_overlays_before (bp, prev, pos)
      in.  It is where an overlay which end before POS exists. (i.e. an
      overlay whose ending marker is after-insertion-marker if disorder
      exists).  */
-  while (!NILP (*tailp)
-	 && ((end = OVERLAY_POSITION (OVERLAY_END (XCAR (*tailp))))
+  while (!NILP (tail)
+	 && ((end = OVERLAY_POSITION (OVERLAY_END (XCAR (tail))))
 	     >= pos))
-    tailp = &XCDR (*tailp);
+    {
+      parent = tail;
+      tail = XCDR (tail);
+    }
 
   /* If we don't find such an overlay,
      or the found one ends before PREV,
      or the found one is the last one in the list,
      we don't have to fix anything.  */
-  if (NILP (*tailp)
+  if (NILP (tail)
       || end < prev
-      || NILP (XCDR (*tailp)))
+      || NILP (XCDR (tail)))
     return;
 
-  right_place = tailp;
-  tailp = &XCDR (*tailp);
+  right_pair = parent;
+  parent = tail;
+  tail = XCDR (tail);
 
-  /* Now, end position of overlays in the list *TAILP should be before
+  /* Now, end position of overlays in the list TAIL should be before
      or equal to PREV.  In the loop, an overlay which ends at POS is
-     moved ahead to the place pointed by RIGHT_PLACE.  If we found an
-     overlay which ends before PREV, the remaining overlays are in
-     correct order.  */
-  while (!NILP (*tailp))
+     moved ahead to the place indicated by the CDR of RIGHT_PAIR.  If
+     we found an overlay which ends before PREV, the remaining
+     overlays are in correct order.  */
+  while (!NILP (tail))
     {
-      end = OVERLAY_POSITION (OVERLAY_END (XCAR (*tailp)));
+      end = OVERLAY_POSITION (OVERLAY_END (XCAR (tail)));
 
       if (end == pos)
 	{			/* This overlay is disordered. */
-	  Lisp_Object found = *tailp;
+	  Lisp_Object found = tail;
 
 	  /* Unlink the found overlay.  */
-	  *tailp = XCDR (found);
-	  /* Move an overlay at RIGHT_PLACE to the next of the found one.  */
-	  XCDR (found) = *right_place;
-	  /* Link it into the right place.  */
-	  *right_place = found;
+	  XSETCDR (parent, XCDR (found));
+	  /* Move an overlay at RIGHT_PLACE to the next of the found one,
+	     and link it into the right place.  */
+	  if (NILP (right_pair))
+	    {
+	      XSETCDR (found, bp->overlays_before);
+	      bp->overlays_before = found;
+	    }
+	  else
+	    {
+	      XSETCDR (found, XCDR (right_pair));
+	      XSETCDR (right_pair, found);
+	    }
 	}
       else if (end == prev)
-	tailp = &XCDR (*tailp);
+	{
+	  parent = tail;
+	  tail = XCDR (tail);
+	}
       else			/* No more disordered overlay. */
 	break;
     }
