@@ -3232,6 +3232,8 @@ DIR defaults to current buffer's directory default.")
   tem = Fstring_equal (val, insdef);
   if (!NILP (tem) && !NILP (defalt))
     return defalt;
+  if (XSTRING (val)->size == 0 && NILP (insdef))
+    return defalt;
   return Fsubstitute_in_file_name (val);
 }
 
