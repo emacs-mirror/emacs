@@ -316,7 +316,7 @@ chapter."
 (defvar texinfo-imenu-generic-expression
   '((nil "^@\\(node\\|anchor\\)[ \t]+\\([^,\n]*\\)" 2)
     ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
-  "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
+  "Imenu generic expression for Texinfo mode.  See `imenu-generic-expression'.")
 
 (defvar texinfo-font-lock-syntactic-keywords
   '(("\\(@\\)c\\(omment\\)?\\>" (1 "<"))
@@ -336,11 +336,11 @@ chapter."
     "macro" "menu" "multitable" "quotation" "smalldisplay"
     "smallexample" "smallformat" "smalllisp" "table" "tex"
     "titlepage" "verbatim" "vtable")
-  "List of TeXinfo environments.")
+  "List of Texinfo environments.")
 
 (defconst texinfo-environment-regexp
   (concat "^@" (regexp-opt (cons "end" texinfo-environments) t) "\\>")
-  "Regexp for environment-like TexInfo list commands.
+  "Regexp for environment-like Texinfo list commands.
 Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 (defface texinfo-heading-face
@@ -373,7 +373,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ;;  1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
 	       ".*\n") 0 texinfo-heading-face t))
-  "Additional expressions to highlight in TeXinfo mode.")
+  "Additional expressions to highlight in Texinfo mode.")
 
 (defun texinfo-clone-environment (start end)
   (let ((endp nil))
@@ -676,7 +676,7 @@ Puts point on a blank line between them."
 (defvar texinfo-enable-quote-macros "@\\(code\\|samp\\|kbd\\)\\>")
 (defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
-  "Insert the appropriate quote mark for TeXinfo.
+  "Insert the appropriate quote mark for Texinfo.
 Usually inserts the value of `texinfo-open-quote' (normally ``) or
 `texinfo-close-quote' (normally ''), depending on the context.
 With prefix argument or inside @code or @example, inserts a plain \"."
