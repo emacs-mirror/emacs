@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.7 2000/08/06 09:18:00 gerd Exp $
+;; Revision: $Id: pcvs.el,v 1.8 2000/08/09 15:27:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,12 +57,10 @@
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
 ;; - hide fileinfos without getting rid of them (will require ewok work).
-;; - proper `g' that passes safe args and uses either cvs-status or cvs-examine
 ;; - add toolbar entries
 ;; - marking
 ;;    marking directories should jump to just after the dir.
 ;;    allow (un)marking directories at a time with the mouse.
-;;    marking with the mouse should not move point.
 ;; - liveness indicator
 ;; - indicate in docstring if the cmd understands the `b' prefix(es).
 ;; - call smerge-mode when opening CONFLICT files.
@@ -81,8 +79,7 @@
 ;; 	- checks out module, or alternately does update join
 ;; 	- does "cvs -n tag LAST_VENDOR" to find old files into *cvs*
 ;;    cvs-export
-;; 	(with completion on tag names and hooks to
-;; 	help generate full releases)
+;; 	(with completion on tag names and hooks to help generate full releases)
 ;; - allow cvs-cmd-do to either clear the marks or not.
 ;; - display stickiness information.  And current CVS/Tag as well.
 ;; - write 'cvs-mode-admin' to do arbitrary 'cvs admin' commands
@@ -101,10 +98,8 @@
 ;; - maybe poll/check CVS/Entries files to react to external `cvs' commands ?
 ;; - some kind of `cvs annotate' support ?
 ;; 	but vc-annotate can be used instead.
-;; - dynamic `g' mapping
-;; 	Make 'g', and perhaps other commands, use either cvs-update or
-;; 	cvs-examine depending on the read-only status of the cvs buffer, for
-;; 	instance.
+;; - proper `g' that passes safe args and uses either cvs-status or cvs-examine
+;;   maybe also use cvs-update depending on I-don't-know-what.
 ;; - add message-levels so that we can hide some levels of messages
 
 ;;; Code:
@@ -138,7 +133,7 @@
 (defun cvs-defaults (&rest defs)
   (let ((defs (cvs-first defs cvs-shared-start)))
     (append defs
-	    (make-list (- cvs-shared-start (length defs)) (nth 0 defs))
+	    (make-list (- cvs-shared-start (length defs)) (car defs))
 	    cvs-shared-flags)))
 
 ;; For cvs flags, we need to add "-f" to override the cvsrc settings
@@ -860,7 +855,7 @@ With a prefix argument, prompt for cvs FLAGS to use."
 
 (defun-cvs-mode (cvs-mode-revert-buffer . SIMPLE)
                 (&optional ignore-auto noconfirm)
-  "Rerun cvs-examine on the current directory with the defauls flags."
+  "Rerun `cvs-examine' on the current directory with the defauls flags."
   (interactive)
   (cvs-examine default-directory t))
 
@@ -1087,13 +1082,13 @@ Full documentation is in the Texinfo file."
   "Go to the previous line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
-  (ewoc-goto-prev cvs-cookies (point) arg))
+  (ewoc-goto-prev cvs-cookies arg))
 
 (defun-cvs-mode cvs-mode-next-line (arg)
   "Go to the next line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
-  (ewoc-goto-next cvs-cookies (point) arg))
+  (ewoc-goto-next cvs-cookies arg))
 
 ;;;;
 ;;;; Mark handling
@@ -1104,7 +1099,7 @@ If a prefix argument is given, move by that many lines."
 If the fileinfo is a directory, all the contents of that directory are
 marked instead. A directory can never be marked."
   (interactive)
-  (let* ((tin (ewoc-locate cvs-cookies (point)))
+  (let* ((tin (ewoc-locate cvs-cookies))
 	 (fi (ewoc-data tin)))
     (if (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
 	;; it's a directory: let's mark all files inside
@@ -1125,8 +1120,9 @@ marked instead. A directory can never be marked."
 (defun cvs-mouse-toggle-mark (e)
   "Toggle the mark of the entry under the mouse."
   (interactive "e")
-  (mouse-set-point e)
-  (cvs-mode-mark 'toggle))
+  (save-excursion
+    (mouse-set-point e)
+    (cvs-mode-mark 'toggle)))
 
 (defun-cvs-mode cvs-mode-unmark ()
   "Unmark the fileinfo on the current line."
@@ -1163,7 +1159,7 @@ they should always be unmarked."
 (defun-cvs-mode cvs-mode-unmark-up ()
   "Unmark the file on the previous line."
   (interactive)
-  (let ((tin (ewoc-goto-prev cvs-cookies (point) 1)))
+  (let ((tin (ewoc-goto-prev cvs-cookies 1)))
     (when tin
       (setf (cvs-fileinfo->marked (ewoc-data tin)) nil)
       (ewoc-invalidate cvs-cookies tin))))
@@ -1235,7 +1231,7 @@ Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
 		  (or (and (not ignore-marks)
 			   (ewoc-collect cvs-cookies
 					      'cvs-fileinfo->marked))
-		      (list (ewoc-data (ewoc-locate cvs-cookies (point)))))))
+		      (list (ewoc-data (ewoc-locate cvs-cookies))))))
 
       (if (or ignore-contents (not (eq (cvs-fileinfo->type fi) 'DIRCHANGE)))
 	  (push fi fis)
@@ -1547,7 +1543,7 @@ Signal an error if there is no backup file."
 	 (fis (cvs-mode-marked 'diff "idiff" :file t)))
     (when (> (length fis) 2)
       (error "idiff-other cannot be applied to more than 2 files at a time."))
-    (let* ((fi1 (nth 0 fis))
+    (let* ((fi1 (car fis))
 	   (rev1-buf (if rev1 (cvs-retrieve-revision fi1 rev1)
 		       (find-file-noselect (cvs-fileinfo->full-path fi1))))
 	   rev2-buf)
@@ -1990,10 +1986,10 @@ this file, or a list of arguments to send to the program."
 	(with-current-buffer buffer
 	  (let ((cvs-buf-was-ro buffer-read-only))
 	    (ignore-errors
-	      ;; Ideally, we'd like to prevent changing the (minor) modes.
-	      ;; But we do want to reset the mode for some cases, most notably
-	      ;; VC.  Maybe it'd better to reset VC explicitely ?
-	      (revert-buffer 'ignore-auto 'dont-ask)) ; 'preserve-modes
+	      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	      ;; `preserve-modes' avoids changing the (minor) modes.  But we
+	      ;; do want to reset the mode for VC, so we do it explicitly.
+	      (vc-find-file-hook))
 	    ;; protect the buffer-read-only setting
 	    (if cvs-buf-was-ro (toggle-read-only 1))))))))
 

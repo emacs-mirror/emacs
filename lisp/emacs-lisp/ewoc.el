@@ -104,10 +104,10 @@
 ;; (defun ewoc-nth (ewoc n)
 ;; (defun ewoc-map (map-function ewoc &rest args)
 ;; (defun ewoc-filter (ewoc predicate &rest args)
-;; (defun ewoc-locate (ewoc pos &optional guess)
+;; (defun ewoc-locate (ewoc &optional pos guess)
 ;; (defun ewoc-invalidate (ewoc &rest nodes)
-;; (defun ewoc-goto-prev (ewoc pos arg)
-;; (defun ewoc-goto-next (ewoc pos arg)
+;; (defun ewoc-goto-prev (ewoc arg)
+;; (defun ewoc-goto-next (ewoc arg)
 ;; (defun ewoc-goto-node (ewoc node)
 ;; (defun ewoc-refresh (ewoc)
 ;; (defun ewoc-collect (ewoc predicate &rest args)
@@ -415,14 +415,15 @@ ARGS are given they will be passed to the PREDICATE."
 	(ewoc--delete-node-internal ewoc node))
       (setq node next))))
 
-(defun ewoc-locate (ewoc pos &optional guess)
+(defun ewoc-locate (ewoc &optional pos guess)
   "Return the node that POS (a buffer position) is within.
-POS may be a marker or an integer.
+POS may be a marker or an integer.  It defaults to point.
 GUESS should be a node that it is likely that POS is near.
 
 If POS points before the first element, the first node is returned.
 If POS points after the last element, the last node is returned.
 If the EWOC is empty, nil is returned."
+  (unless pos (setq pos (point)))
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((footer (ewoc--footer ewoc)))
 
@@ -491,13 +492,16 @@ The pretty-printer that for EWOC will be called for all NODES."
     (dolist (node nodes)
       (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
 
-(defun ewoc-goto-prev (ewoc pos arg)
+(defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element.
 Don't move if we are at the first element, or if EWOC is empty.
 Returns the node we moved to."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((node (ewoc-locate ewoc pos (ewoc--last-node ewoc))))
+      ((node (ewoc-locate ewoc (point) (ewoc--last-node ewoc))))
     (when node
+      ;; If we were past the last element, first jump to it.
+      (when (>= (point) (ewoc--node-start-marker (ewoc--node-right node)))
+	(setq arg (1- arg)))
       (while (and node (> arg 0))
 	(setq arg (1- arg))
 	(setq node (ewoc--node-prev dll node)))
@@ -506,18 +510,17 @@ Returns the node we moved to."
 	(setq node (ewoc--node-nth dll 1)))
       (ewoc-goto-node ewoc node))))
 
-(defun ewoc-goto-next (ewoc pos arg)
+(defun ewoc-goto-next (ewoc arg)
   "Move point to the ARGth next element.
-Don't move if we are at the last element.
-Returns the node."
+Returns the node (or nil if we just passed the last node)."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((node (ewoc-locate ewoc pos (ewoc--last-node ewoc))))
+      ((node (ewoc-locate ewoc (point) (ewoc--last-node ewoc))))
     (while (and node (> arg 0))
       (setq arg (1- arg))
       (setq node (ewoc--node-next dll node)))
     ;; Never step below the first element.
-    (unless (ewoc--filter-hf-nodes ewoc node)
-      (setq node (ewoc--node-nth dll -2)))
+    ;; (unless (ewoc--filter-hf-nodes ewoc node)
+    ;;   (setq node (ewoc--node-nth dll -2)))
     (ewoc-goto-node ewoc node)))
 
 (defun ewoc-goto-node (ewoc node)
