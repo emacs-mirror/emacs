@@ -6,6 +6,20 @@
 	font-lock-set-defaults-1.
 	(turn-on-font-lock-if-enabled): Always turn on font-lock unless it
 	is specifically excluded by the user.
+	
+	* font-lock.el (font-lock-set-defaults-1): Set variable alist here.
+	
+	* help-mode.el (help-mode): Don't set `font-lock-defaults'.
+	
+	* ibuffer.el (ibuffer-mode): Don't set `font-lock-defaults'.
+	
+	* info.el (Info-mode): Don't set `font-lock-defaults'.
+	
+	* replace.el (occur-mode): Don't set `font-lock-defaults'.
+
+	* help-mode.el (help-highlight-p, help-highlight-face): Variable
+	was unused; deleted.
+	(help-make-xrefs): Doc fix.
 
 2002-06-11  Richard M. Stallman  <rms@gnu.org>
 
