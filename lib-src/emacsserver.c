@@ -85,12 +85,7 @@ int
 main ()
 {
   char system_name[32];
-  int s, infd;
-#ifdef __GNU_LIBRARY__
-  size_t fromlen;
-#else
-  int fromlen;
-#endif
+  int s, infd, fromlen;
   struct sockaddr_un server, fromunix;
   char *homedir;
   char *str, string[BUFSIZ], code[BUFSIZ];
