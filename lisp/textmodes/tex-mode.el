@@ -382,6 +382,27 @@ subshell is initiated, the value of tex-shell-hook is called."
   (setq tex-start-of-header "\\documentstyle")
   (setq tex-end-of-header "\\begin{document}")
   (setq tex-trailer "\\end{document}\n")
+  ;; A line containing just $$ is treated as a paragraph separator.
+  ;; A line starting with $$ starts a paragraph,
+  ;; but does not separate paragraphs if it has more stuff on it.
+  (setq paragraph-start "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\chapter\\>\\|^\\\\section\\>\\|\
+^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
+^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
+^\\\\item\\>\\|^\\\\bibitem\\>\\|^\\\\newline\\>\\|^\\\\noindent\\>\\|\
+^\\\\[a-z]*space\\>\\|^\\\\[a-z]*skip\\>\\|\
+^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
+^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
+  (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\chapter\\>\\|^\\\\section\\>\\|\
+^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
+^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
+^\\\\item[ \t]*$\\|^\\\\bibitem[ \t]*$\\|^\\\\newline[ \t]*$\\|^\\\\noindent[ \t]*$\\|\
+^\\\\[a-z]*space[ \t]*$\\|^\\\\[a-z]*skip[ \t]*$\\|\
+^\\\\newpage[ \t]*$\\|^\\\\[a-z]*page[a-z]*[ \t]*$\\|^\\\\footnote[ \t]*$\\|\
+^\\\\marginpar[ \t]*$\\|^\\\\parbox[ \t]*$\\|^\\\\caption[ \t]*$")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
 
 ;;;###autoload
@@ -434,6 +455,27 @@ Entering SliTeX mode calls the value of `text-mode-hook', then the value of
   (setq tex-start-of-header "\\documentstyle{slides}")
   (setq tex-end-of-header "\\begin{document}")
   (setq tex-trailer "\\end{document}\n")
+  ;; A line containing just $$ is treated as a paragraph separator.
+  ;; A line starting with $$ starts a paragraph,
+  ;; but does not separate paragraphs if it has more stuff on it.
+  (setq paragraph-start "^[ \t]*$\\|^[\f%]\\|^[ \t]*\\$\\$\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\chapter\\>\\|^\\\\section\\>\\|\
+^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
+^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
+^\\\\item\\>\\|^\\\\bibitem\\>\\|^\\\\newline\\>\\|^\\\\noindent\\>\\|\
+^\\\\[a-z]*space\\>\\|^\\\\[a-z]*skip\\>\\|\
+^\\\\newpage\\>\\|^\\\\[a-z]*page\\|^\\\\footnote\\>\\|\
+^\\\\marginpar\\>\\|^\\\\parbox\\>\\|^\\\\caption\\>")
+  (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$\\|\
+^\\\\begin\\>\\|^\\\\label\\>\\|^\\\\end\\>\\|^\\\\\\[\\|\
+^\\\\chapter\\>\\|^\\\\section\\>\\|\
+^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
+^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
+^\\\\item[ \t]*$\\|^\\\\bibitem[ \t]*$\\|^\\\\newline[ \t]*$\\|^\\\\noindent[ \t]*$\\|\
+^\\\\[a-z]*space[ \t]*$\\|^\\\\[a-z]*skip[ \t]*$\\|\
+^\\\\newpage[ \t]*$\\|^\\\\[a-z]*page[a-z]*[ \t]*$\\|^\\\\footnote[ \t]*$\\|\
+^\\\\marginpar[ \t]*$\\|^\\\\parbox[ \t]*$\\|^\\\\caption[ \t]*$")
   (run-hooks
    'text-mode-hook 'tex-mode-hook 'latex-mode-hook 'slitex-mode-hook))
 
@@ -464,9 +506,11 @@ Entering SliTeX mode calls the value of `text-mode-hook', then the value of
     (set-syntax-table tex-mode-syntax-table))
   (make-local-variable 'paragraph-start)
   ;; A line containing just $$ is treated as a paragraph separator.
-  (setq paragraph-start "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$")
+  (setq paragraph-start "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$")
   (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
+  ;; A line starting with $$ starts a paragraph,
+  ;; but does not separate paragraphs if it has more stuff on it.
+  (setq paragraph-separate "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$")
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (make-local-variable 'comment-start-skip)
