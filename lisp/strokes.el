@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: David Bakhash <cadet@alum.mit.edu>
@@ -99,7 +99,7 @@
 ;; `strokes-grid-resolution' (determines the grid dimensions that you use
 ;; when defining/reading strokes.  The finer the grid your computer can
 ;; handle, the more you can do, but even a 3x3 grid is pretty cool.)
-;; The default value (7) should be fine for most decent computers.
+;; The default value (9) should be fine for most decent computers.
 ;; NOTE: This variable should not be set to a number less than 3.
 
 ;; `strokes-display-strokes-buffer' will allow you to hide the strokes
@@ -986,7 +986,7 @@ If no stroke matches, nothing is done and return value is nil."
 
 ;;;###autoload
 (defun strokes-do-stroke (event)
-  "Read a simple stroke from the user and then exectute its command.
+  "Read a simple stroke from the user and then execute its command.
 This must be bound to a mouse event."
   (interactive "e")
   (or strokes-mode (strokes-mode t))
@@ -994,7 +994,7 @@ This must be bound to a mouse event."
 
 ;;;###autoload
 (defun strokes-do-complex-stroke (event)
-  "Read a complex stroke from the user and then exectute its command.
+  "Read a complex stroke from the user and then execute its command.
 This must be bound to a mouse event."
   (interactive "e")
   (or strokes-mode (strokes-mode t))
@@ -1027,9 +1027,8 @@ This must be bound to a mouse event."
 (defun strokes-help ()
   "Get instructional help on using the `strokes' package."
   (interactive)
-  (with-output-to-temp-buffer "*Help with Strokes*"
-    (let ((helpdoc
-	   "This is help for the strokes package.
+  (let ((helpdoc
+	 "This is help for the strokes package.
 
 If you find something wrong with strokes, or feel that it can be
 improved in some way, then please feel free to email me:
@@ -1051,7 +1050,7 @@ character recognition, so you don't have to worry about getting it
 right every time.
 
 Strokes also allows you to compose documents graphically.  You can
-fully edit documents in Chinese, Japanese, etc. based on XEmacs
+fully edit documents in Chinese, Japanese, etc. based on Emacs
 strokes.  Once you've done so, you can ascii compress-and-encode them
 and then safely save them for later use, send letters to friends
 \(using Emacs, of course).  Strokes will later decode these documents,
@@ -1173,10 +1172,10 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   by customizing the group named `strokes' via the customization package:
 
   > M-x customize"))
-    (with-output-to-temp-buffer "*Help"
+    (with-output-to-temp-buffer "*Help with Strokes*"
       (princ helpdoc)
       (set-buffer standard-output)
-      (help-mode))
+      (help-mode)
       (print-help-return-message))))
 
 (defun strokes-report-bug ()
@@ -1286,7 +1285,7 @@ This is based on the last time the `strokes-window-configuration was updated."
 	    (strokes-load-user-strokes)
 	    (if (and (not (equal current strokes-global-map))
 		     (or (interactive-p)
-			 (yes-or-no-p "save your strokes? ")))
+			 (yes-or-no-p "Save your strokes? ")))
 		(progn
 		  (require 'pp)		; pretty-print variables
 		  (message "Saving strokes in %s..." strokes-file)
@@ -1530,7 +1529,7 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 					  (buffer-string))
 					'xpm t)))
 	  finally do (kill-region (1+ (point)) (point-max)))
-    (view-buffer "*Strokes List*" t)
+    (view-buffer "*Strokes List*" nil)
     (set (make-local-variable 'view-mode-map)
 	 (let ((map (copy-keymap view-mode-map)))
 	   (define-key map "q" `(lambda ()
