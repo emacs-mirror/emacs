@@ -458,7 +458,7 @@ If the third argument is incorrect, Emacs may crash.  */)
        such a byte-code string is loaded as multibyte while raw 8-bit
        characters converted to multibyte form.  Thus, now we must
        convert them back to the originally intended unibyte form.  */
-    bytestr = Fstring_make_unibyte (bytestr);
+    bytestr = Fstring_as_unibyte (bytestr);
 
   bytestr_length = STRING_BYTES (XSTRING (bytestr));
   vectorp = XVECTOR (vector)->contents;
