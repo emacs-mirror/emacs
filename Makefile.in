@@ -719,9 +719,9 @@ force-info:
 # put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 info: force-info
-	(cd man; $(MAKE) $(MFLAGS) info)
-	(cd lispref; $(MAKE) $(MFLAGS) info)
-	(cd lispintro; $(MAKE) $(MFLAGS) info)
+	-(cd man; $(MAKE) $(MFLAGS) info)
+	-(cd lispref; $(MAKE) $(MFLAGS) info)
+	-(cd lispintro; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
 	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
