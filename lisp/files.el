@@ -4125,21 +4125,31 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (delete-region (point) (progn (forward-line 2) (point)))))
 
 	  ;; Now decode what read if necessary.
-	  (let ((coding (or coding-system-for-write
-			    (detect-coding-region beg (point) t)))
+	  (let ((coding (or coding-system-for-read
+			    file-name-coding-system
+			    default-file-name-coding-system
+			    'undecided))
 		val pos)
-	    (if (not (eq (coding-system-base coding) 'undecided))
-		(save-restriction
-		  (narrow-to-region beg (point))
-		  (goto-char (point-min))
-		  (while (not (eobp))
-		    (setq pos (point)
-			  val (get-text-property (point) 'dired-filename))
-		    (goto-char (next-single-property-change
-				(point) 'dired-filename nil (point-max)))
-		    (decode-coding-region pos (point) coding)
-		    (if val
-			(put-text-property pos (point) 'dired-filename t))))))
+	    (when (and enable-multibyte-characters
+		       (not (memq (coding-system-base coding)
+				  '(raw-text no-conversion))))
+	      ;; If no coding system is specified or detection is
+	      ;; requested, detect the coding.
+	      (if (eq (coding-system-base coding) 'undecided)
+		  (setq coding (detect-coding-region beg (point) t)))
+	      (if (not (eq (coding-system-base coding) 'undecided))
+		  (save-restriction
+		    (narrow-to-region beg (point))
+		    (goto-char (point-min))
+		    (while (not (eobp))
+		      (setq pos (point)
+			    val (get-text-property (point) 'dired-filename))
+		      (goto-char (next-single-property-change
+				  (point) 'dired-filename nil (point-max)))
+		      (decode-coding-region pos (point) coding)
+		      (if val
+			  (put-text-property pos (point)
+					     'dired-filename t)))))))
 
 	  (if full-directory-p
 	      ;; Try to insert the amount of free space.
