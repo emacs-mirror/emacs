@@ -1,5 +1,7 @@
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/animate.el (animate-birthday-present): Function removed.
+	
 	* play/animate.el: New file.
 
 2001-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
