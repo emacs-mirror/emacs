@@ -612,8 +612,21 @@ L lookup; Q quit\n")
   (interactive)
   (save-excursion
     (beginning-of-buffer)
+    ;; Don't spell-check the headers.
     (search-forward mail-header-separator nil t)
-    (ispell (current-buffer) (point))))
+    (while (not (eobp))
+      ;; Skip across text cited from other messages.
+      (while (and (looking-at (concat "^[ \t]*$\\|"
+				      ispell-message-cite-regexp))
+		  (not (eobp)))
+	(forward-line 1))
+      (if (not (eobp))
+	  ;; Fill the next batch of lines that *aren't* cited.
+	  (let ((start (point)))
+	    (re-search-forward
+	     (concat "^\\(" ispell-message-cite-regexp "\\)") nil 'end)
+	    (beginning-of-line)
+	    (save-excursion (ispell-region (- start 1) (point))))))))
 
 (provide 'ispell)
 
