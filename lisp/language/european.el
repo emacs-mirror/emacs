@@ -38,9 +38,9 @@
   '("European" . setup-european-environment-map)
   t)
 
-;; Setup for a langauge which uses one-byte 8-bit CHARSET, one-byte
+;; Setup for LANGAUGE which uses one-byte 8-bit CHARSET, one-byte
 ;; 8-bit CODING-SYSTEM, and INPUT-METHOD.
-(defun setup-8-bit-environment (charset coding-system input-method)
+(defun setup-8-bit-environment (language charset coding-system input-method)
   (setup-english-environment)
   (setq-default buffer-file-coding-system coding-system)
   (setq coding-category-iso-8-1 coding-system
@@ -57,13 +57,12 @@
 	(setq nonascii-insert-offset nonascii-offset)))
 
   (if input-method
-      (let ((latin-name (car input-method)))
-	(setq default-input-method input-method)
-	;; If this is a Latin-N character set, set up syntax for it
-	;; in single-byte mode.
-	(when (and latin-name
-		   (string-match "^Latin-\\([1-9]\\)$" latin-name))
-	  (load (downcase latin-name))))))
+      (setq default-input-method input-method))
+
+  ;; If this is a Latin-N character set, set up syntax for it in
+  ;; single-byte mode.
+  (if (string-match "^Latin-\\([1-9]\\)$" language)
+      (load (downcase language))))
 
 ;; Latin-1 (ISO-8859-1)
 
@@ -79,8 +78,8 @@
 (defun setup-latin1-environment ()
   "Set up multilingual environment (MULE) for European Latin-1 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-1 'iso-latin-1
-			   '("Latin-1" . "quail-latin-1")))
+  (setup-8-bit-environment "Latin-1" 'latin-iso8859-1 'iso-latin-1
+			   "latin-1-prefix"))
 
 (set-language-info-alist
  "Latin-1" '((setup-function . (setup-latin1-environment
@@ -109,8 +108,8 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-2 'iso-latin-2
-			   '("Latin-2" . "quail-latin-2")))
+  (setup-8-bit-environment "Latin-2" 'latin-iso8859-2 'iso-latin-2
+			   "latin-2-prefix"))
 
 (set-language-info-alist
  "Latin-2" '((setup-function . (setup-latin2-environment
@@ -137,8 +136,8 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 (defun setup-latin3-environment ()
   "Set up multilingual environment (MULE) for European Latin-3 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-3 'iso-latin-3
-			   '("Latin-3" . "quail-latin-3")))
+  (setup-8-bit-environment "Latin-3" 'latin-iso8859-3 'iso-latin-3
+			   "latin-3-prefix"))
 
 (set-language-info-alist
  "Latin-3" '((setup-function . (setup-latin3-environment
@@ -165,8 +164,8 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 (defun setup-latin4-environment ()
   "Set up multilingual environment (MULE) for European Latin-4 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-4 'iso-latin-4
-			   '("Latin-4" . "quail-latin-4")))
+  (setup-8-bit-environment "Latin-4" 'latin-iso8859-4 'iso-latin-4
+			   "latin-4-prefix"))
 
 (set-language-info-alist
  "Latin-4" '((setup-function . (setup-latin4-environment
@@ -193,8 +192,8 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 (defun setup-latin5-environment ()
   "Set up multilingual environment (MULE) for European Latin-5 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-9 'iso-latin-5
-			   '("Latin-5" . "quail-latin-5")))
+  (setup-8-bit-environment "Latin-5" 'latin-iso8859-9 'iso-latin-5
+			   "latin-5-prefix"))
 
 (set-language-info-alist
  "Latin-5" '((setup-function . (setup-latin5-environment
