@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!67.c(trunk.4) $
  summary = test for non-bug with mark-sweep scanning in AWL
  language = c
  link = testlib.o exfmt.o
@@ -8,10 +8,9 @@ END_HEADER
 
  I wrote this test with drj when we were convinced there was
  a bug in pool scanning because of ScanStateSetSummary setting
- unfixed to be potentially bigger than the segment summary. But
+ unfixed to be potentially bigger than the segment summary.  But
  it turned out not to be a problem, 'cos ScanStateSetSummary is
  called (at least by AWL) _before_ scanning is done.
-
 */
 
 #include "testlib.h"
@@ -20,6 +19,7 @@ END_HEADER
 #include "exfmt.h"
 
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -40,11 +40,11 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, &a[0], 2),
+  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&a[0], 2),
   "create table root");
 
  cdie(
-  mps_root_create_table(&root2, space, MPS_RANK_AMBIG, 0, &a[2], 1),
+  mps_root_create_table(&root2, space, MPS_RANK_AMBIG, 0, (mps_addr_t*)&a[2], 1),
   "ambig table root");
 
  cdie(
@@ -111,6 +111,7 @@ static void test(void)
  mps_space_destroy(space);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
