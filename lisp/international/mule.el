@@ -716,6 +716,7 @@ a value of `safe-charsets' in PLIST."
   (let ((coding-spec (make-vector 5 nil))
 	(no-initial-designation t)
 	(no-alternative-designation t)
+	(accept-latin-extra-code nil)
 	coding-category)
     (if (or (not (integerp type)) (< type 0) (> type 5))
 	(error "TYPE argument must be 0..5"))
@@ -763,6 +764,9 @@ a value of `safe-charsets' in PLIST."
 	       (setq fl (cdr fl) i (1+ i)))
 	     (while (and (< i 32) fl)
 	       (aset vec i (car fl))
+	       (if (and (= i 16)	; ACCEPT-LATIN-EXTRA-CODE
+			(car fl))
+		   (setq accept-latin-extra-code t))
 	       (setq fl (cdr fl) i (1+ i)))
 	     (aset coding-spec 4 vec)
 	     (setq coding-category
@@ -839,7 +843,13 @@ a value of `safe-charsets' in PLIST."
 			     (aset safe-chars i t)
 			     (setq i (1+ i)))))
 			(t
-			 (aset safe-chars (make-char charset) t)))))
+			 (aset safe-chars (make-char charset) t))))
+		(if accept-latin-extra-code
+		    (let ((i 128))
+		      (while (< i 160)
+			(if (aref latin-extra-code-table i)
+			    (aset safe-chars i t))
+			(setq i (1+ i))))))
 	      (setq l (cons (cons 'safe-chars safe-chars) l))))
 	(while l
 	  (setq prop (car (car l)) val (cdr (car l)) l (cdr l))
