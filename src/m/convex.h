@@ -1,5 +1,5 @@
 /* machine description file for convex C1.
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

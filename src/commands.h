@@ -1,5 +1,5 @@
 /* Definitions needed by most editing commands.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,7 +1,7 @@
 /* Machine description file for the Motorola Delta.
    Tested on mvme147 board using R3V7 without X.  Tested with gcc.
    Tested on mvme167 board using R3V7 without X.  Tested with cc, gnucc, gcc.
-   Copyright (C) 1986, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
