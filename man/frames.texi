@@ -183,9 +183,10 @@ to insert the text from the selection.
 command of the program operating the other window, to select the text
 you want.  Then yank it in Emacs with @kbd{C-y} or @kbd{Mouse-2}.
 
-  The standard coding system for X selections is @code{compound-text}.
-To specify another coding system for X selections, use @kbd{C-x
-@key{RET} x} or @kbd{C-x @key{RET} X}.  @xref{Specify Coding}.
+  The standard coding system for X selections is
+@code{compound-text-with-extensions}.  To specify another coding
+system for X selections, use @kbd{C-x @key{RET} x} or @kbd{C-x
+@key{RET} X}.  @xref{Specify Coding}.
 
   These cutting and pasting commands also work on MS-Windows.
 
