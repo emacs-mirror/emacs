@@ -1,3 +1,9 @@
+2001-01-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/etags.el (find-tag-noselect): Save the value of
+	tags-file-name before switching buffers, for the case it has a
+	buffer-local value.
+
 2001-01-15  Alex Schroeder  <alex@gnu.org>
 
 	* ansi-color.el (ansi-colors) <defgroup>: Fix :version by Dave
