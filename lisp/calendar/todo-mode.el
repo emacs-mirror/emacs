@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.32 1997/12/03 12:18:20 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.33 1997/12/04 17:45:22 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.32 1997/12/03 12:18:20 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.33 1997/12/04 17:45:22 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -267,6 +267,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.33  1997/12/04 17:45:22  os10000
+;; Another patch by Michael Cook to fix annotation.
+;;
 ;; Revision 1.32  1997/12/03  12:18:20  os10000
 ;; Added category patch by Michael R Cook <mcook@cognex.com>.
 ;;
@@ -655,7 +658,8 @@ Use `todo-categories' instead.")
   "Make TODO mode display the current category correctly."
   (let ((name (nth todo-category-number todo-categories)))
     (setq mode-line-buffer-identification
-          (concat "Category: " name))
+;;          (concat "Category: " name))
+          (concat "Category: " (format "%18s" name)))
     (widen)
     (goto-char (point-min))
     (search-forward-regexp
