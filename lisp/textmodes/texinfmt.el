@@ -1916,9 +1916,9 @@ Default is to leave paragraph indentation as is."
   ;; are used to underline it.  This could occur if the line following
   ;; the underlining is not an index entry and has text within it.
   (let* ((previous-paragraph-separate paragraph-separate)
-         (paragraph-separate (concat paragraph-separate "\\|^[-=*.]+"))
+         (paragraph-separate (concat paragraph-separate "\\|[-=*.]+"))
          (previous-paragraph-start paragraph-start)
-         (paragraph-start (concat paragraph-start "\\|^[-=*.]+")))
+         (paragraph-start (concat paragraph-start "\\|[-=*.]+")))
     (unwind-protect
         (fill-paragraph nil)
       (setq paragraph-separate previous-paragraph-separate)
