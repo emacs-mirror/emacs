@@ -1145,8 +1145,9 @@ update_frame_menubar (f)
 }
 
 void
-set_frame_menubar (f)
+set_frame_menubar (f, first_time)
      FRAME_PTR f;
+     int first_time;
 {
   Widget menubar_widget = f->display.x->menubar_widget;
   int id = (int) f;
@@ -1203,7 +1204,9 @@ set_frame_menubar (f)
   
   free_menubar_widget_value_tree (first_wv);
 
-  update_frame_menubar (f);
+  /* Don't update the menubar the first time it is created via x_window.  */
+  if (!first_time)
+    update_frame_menubar (f);
 
   UNBLOCK_INPUT;
 }
@@ -1233,7 +1236,7 @@ void
 initialize_frame_menubar (f)
      FRAME_PTR f;
 {
-  set_frame_menubar (f);
+  set_frame_menubar (f, 1);
 }
 
 /* Nonzero if position X, Y relative to inside of frame F
