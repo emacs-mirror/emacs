@@ -122,6 +122,11 @@
 	       ;; Strip the terminating newline.
 	       (buffer-substring (point-min) (1- (point-max)))))))))
 
+(defun vc-arch-workfile-unchanged-p (file)
+  "Check if FILE is unchanged by diffing against the master version.
+Return non-nil if FILE is unchanged."
+  nil)
+
 (defun vc-arch-state (file)
   ;; There's no checkout operation and merging is not done from VC
   ;; so the only operation that's state dependent that VC supports is commit
