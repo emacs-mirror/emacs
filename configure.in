@@ -1977,6 +1977,21 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
               [Define to 1 if GTK can handle more than one display.])
   fi
+  dnl  Check if we have the old file selection dialog.
+  dnl  If gdk_display_open exists, assume all others are there also.
+  HAVE_GTK_FILE_SELECTION=no
+  AC_CHECK_FUNCS(gtk_file_selection_new, HAVE_GTK_FILE_SELECTION=yes)
+
+  dnl  Check if we have the new file chooser dialog
+  dnl  If gdk_display_open exists, assume all others are there also.
+  HAVE_GTK_FILE_CHOOSER=no
+  AC_CHECK_FUNCS(gtk_file_chooser_dialog_new, HAVE_GTK_FILE_CHOOSER=yes)
+
+  if test "$HAVE_GTK_FILE_SELECTION" = yes \
+     && test "$HAVE_GTK_FILE_CHOOSER" = yes;  then
+    AC_DEFINE(HAVE_GTK_FILE_BOTH, 1,
+              [Define to 1 if GTK has both file selection and chooser dialog.])
+  fi
 fi
 
 dnl Do not put whitespace before the #include statements below.
