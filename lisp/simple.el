@@ -4240,7 +4240,7 @@ Args are NAME BUFFER HOST SERVICE SENTINEL FILTER.
 NAME, BUFFER, HOST, and SERVICE are as for `open-network-stream'.
 Optional args, SENTINEL and FILTER specifies the sentinel and filter
 functions to be used for this network stream."
-  (if (make-network-process :feature :nowait t)
+  (if (featurep 'make-network-process  '(:nowait t))
       (make-network-process :name name :buffer buffer :nowait t
 			    :host host :service service
 			    :filter filter :sentinel sentinel)))
@@ -4267,7 +4267,7 @@ an unused port number for the server.
 Optional args, SENTINEL and FILTER specifies the sentinel and filter
 functions to be used for the client processes; the server process
 does not use these function."
-  (if (make-network-process :feature :server t)
+  (if (featurep 'make-network-process '(:server t))
       (make-network-process :name name :buffer buffer
 			    :service service :server t :noquery t)))
 
