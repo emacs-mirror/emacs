@@ -207,11 +207,11 @@ positions (integers or markers) specifying the region."
 (defun compose-string (string &optional start end components modification-func)
   "Compose characters in string STRING.
 
-The return value is STRING where `composition' property is put on all
+The return value is STRING with the `composition' property put on all
 the characters in it.
 
 Optional 2nd and 3rd arguments START and END specify the range of
-STRING to be composed.  They defaults to the beginning and the end of
+STRING to be composed.  They default to the beginning and the end of
 STRING respectively.
 
 Optional 4th argument COMPONENTS, if non-nil, is a character or a
