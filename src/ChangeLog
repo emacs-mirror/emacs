@@ -1,3 +1,7 @@
+2002-07-19  Juanma Barranquero  <lektu@terra.es>
+
+	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
+
 2002-07-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (XTread_socket): Return a non_ascii_keystroke for

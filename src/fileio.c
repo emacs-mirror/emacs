@@ -603,7 +603,7 @@ file_name_as_directory (out, in)
 
 DEFUN ("file-name-as-directory", Ffile_name_as_directory,
        Sfile_name_as_directory, 1, 1, 0,
-  "Return a string representing file FILENAME interpreted as a directory.\n\
+  "Return a string representing the file name FILE interpreted as a directory.\n\
 This operation exists because a directory is also a file, but its name as\n\
 a directory is different from its name as a file.\n\
 The result can be used as the value of `default-directory'\n\
