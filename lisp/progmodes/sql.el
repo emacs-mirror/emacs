@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.13
+;; Version: 1.4.16
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -198,8 +198,10 @@ exiting the SQL interpreter in an SQLi buffer will write the input
 history to the specified file.  Starting a new process in a SQLi buffer
 will read the input history from the specified file.
 
-This is used to locally set `comint-input-ring-file-name' when reading
-or writing the input history."
+This is used to initialize `comint-input-ring-file-name'.
+
+Note that the size of the input history is determined by the variable
+`comint-input-ring-size'."
   :type '(choice (const :tag "none" nil)
 		 (file))
   :group 'SQL)
@@ -211,15 +213,12 @@ If set to \"\\n\", each line in the history file will be interpreted as
 one command.  Multi-line commands are split into several commands when
 the input ring is initialized from a history file.
 
-This variable used to locally set `comint-input-ring-separator' when
-reading or writing the history file.  `comint-input-ring-separator' is
-not yet part of Emacs; if your Emacs does not have it, setting
-`sql-input-ring-separator' will have no effect.  In that case multiline
-commands will be split into several commands when the input history is
-read, as if you had set `sql-input-ring-separator' to \"\\n\".
-
-The source code contains a link to a homepage that might have a patch
-for comint.el to download."
+This variable used to initialize `comint-input-ring-separator'.
+`comint-input-ring-separator' is part of Emacs 21; if your Emacs
+does not have it, setting `sql-input-ring-separator' will have no
+effect.  In that case multiline commands will be split into several
+commands when the input history is read, as if you had set
+`sql-input-ring-separator' to \"\\n\"."
   :type 'string
   :group 'SQL)
 
@@ -405,7 +404,7 @@ Based on `comint-mode-map'.")
     (define-key map (kbd "C-c C-c") 'sql-send-paragraph)
     (define-key map (kbd "C-c C-r") 'sql-send-region)
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
-    (define-key map (kbd "<tab>") 'indent-relative)
+    (define-key map (kbd "<TAB>") 'indent-relative)
     map)
   "Mode map used for `sql-mode'.")
 
@@ -529,21 +528,31 @@ to add functions and PL/SQL keywords.")
 "become" "before" "block" "body" "cache" "cancel" "cascade" "change"
 "checkpoint" "compile" "constraint" "constraints" "contents"
 "controlfile" "cycle" "database" "datafile" "dba" "disable" "dismount"
-"dump" "each" "enable" "events" "except" "exceptions" "execute"
-"explain" "extent" "externally" "flush" "force" "freelist" "freelists"
-"function" "groups" "including" "initrans" "instance" "layer" "link"
-"lists" "logfile" "manage" "manual" "maxdatafiles" "maxinistances"
-"maxlogfiles" "maxloghistory" "maxlogmembers" "maxtrans" "maxvalue"
-"minextents" "minvalue" "mount" "new" "next" "noarchivelog" "nocache"
-"nocycle" "nomaxvalue" "nominvalue" "none" "noorder" "noresetlogs"
-"normal" "nosort" "off" "old" "only" "optimal" "own" "package"
-"parallel" "pctincrease" "pctused" "plan" "private" "profile" "quota"
-"read" "recover" "referencing" "resetlogs" "restricted" "reuse" "role"
-"roles" "savepoint" "scn" "segment" "sequence" "shared" "snapshot"
-"sort" "statement_id" "statistics" "stop" "storage" "switch" "system"
+"dump" "each" "else" "elsif" "enable" "events" "except" "exceptions"
+"execute" "exit" "explain" "extent" "externally" "false" "flush" "force"
+"freelist" "freelists" "function" "groups" "if" "including" "initrans"
+"instance" "layer" "link" "lists" "logfile" "loop" "manage" "manual"
+"maxdatafiles" "maxinistances" "maxlogfiles" "maxloghistory"
+"maxlogmembers" "maxtrans" "maxvalue" "minextents" "minvalue" "mount"
+"new" "next" "noarchivelog" "nocache" "nocycle" "nomaxvalue"
+"nominvalue" "none" "noorder" "noresetlogs" "normal" "nosort" "off"
+"old" "only" "optimal" "others" "out" "own" "package" "parallel"
+"pctincrease" "pctused" "plan" "pragma" "private" "profile" "quota"
+"raise" "read" "recover" "referencing" "resetlogs" "restrict_references"
+"restricted" "return" "returning" "reuse" "rnds" "rnps" "role" "roles"
+"savepoint" "scn" "segment" "sequence" "shared" "snapshot" "sort"
+"statement_id" "statistics" "stop" "storage" "subtype" "switch" "system"
 "tables" "tablespace" "temporary" "thread" "time" "tracing"
-"transaction" "triggers" "truncate" "under" "unlimited" "until" "use"
-"using" "when" "write") t) "\\b")))
+"transaction" "triggers" "true" "truncate" "type" "under" "unlimited"
+"until" "use" "using" "when" "while" "wnds" "wnps" "write") t) "\\b")))
+	(oracle-warning-words (eval-when-compile
+				 (concat "\\b"
+					 (regexp-opt '(
+"cursor_already_open" "dup_val_on_index" "exception" "invalid_cursor"
+"invalid_number" "login_denied" "no_data_found" "not_logged_on"
+"notfound" "others" "pragma" "program_error" "storage_error"
+"timeout_on_resource" "too_many_rows" "transaction_backed_out"
+"value_error" "zero_divide") t) "\\b")))
 	(oracle-reserved-words (eval-when-compile
 				 (concat "\\b"
 					 (regexp-opt '(
@@ -560,7 +569,8 @@ to add functions and PL/SQL keywords.")
 				(regexp-opt '(
 ;; Oracle Keywords that look like types
 ;; Oracle Reserved Words that look like types
-"date" "decimal" "rowid" "varchar" "varchar2") t) "\\b")))
+"binary_integer" "blob" "boolean" "constant" "date" "decimal" "rowid"
+"varchar" "varchar2") t) "\\b")))
 	(oracle-builtin-functions (eval-when-compile
 			(concat "\\b"
 				(regexp-opt '(
@@ -575,10 +585,11 @@ to add functions and PL/SQL keywords.")
 "rtrim" "sign" "sin" "sinh" "soundex" "sqlcode" "sqlerrm" "sqrt"
 "stddev" "sum" "substr" "substrb" "tan" "tanh" "to_char"
 "to_date" "to_label" "to_multi_byte" "to_number" "to_single_byte"
-"translate" "trunc" "uid" "upper" "userenv" "variance" "vsize") t) "\\b"))))
+"translate" "trim" "trunc" "uid" "upper" "userenv" "variance" "vsize") t) "\\b"))))
     (setq sql-mode-oracle-font-lock-keywords
 	  (append sql-mode-ansi-font-lock-keywords
 		  (list (cons oracle-keywords 'font-lock-function-name-face)
+			(cons oracle-warning-words 'font-lock-warning-face)
 			(cons oracle-reserved-words 'font-lock-keyword-face)
 			;; XEmacs doesn't have font-lock-builtin-face
 			(if (string-match "XEmacs\\|Lucid" emacs-version)
@@ -700,11 +711,6 @@ Once you have the SQLi buffer, you can enter SQL statements in the
 buffer.  The output generated is appended to the buffer and a new prompt
 is generated.  See the In/Out menu in the SQLi buffer for some functions
 that help you navigate through the buffer, the input history, etc.
-
-Put a line with a call to autoload into your `~/.emacs' file for each
-entry function you want to use regularly:
-
-\(autoload 'sql-postgres \"sql\" \"Interactive SQL mode.\" t)
 
 If you have a really complex SQL statement or if you are writing a
 procedure, you can do this in a separate buffer.  Put the new buffer in
@@ -898,6 +904,27 @@ Inserts SELECT or commas if appropriate."
       (insert column)
       (message "%s" column))))
 
+;; On NT, SQL*Plus for Oracle turns on full buffering for stdout if it
+;; is not attached to a character device; therefore placeholder
+;; replacement by SQL*Plus is fully buffered.  The workaround lets
+;; Emacs query for the placeholders.
+
+(defvar sql-placeholder-history nil
+  "History of placeholder values used.")
+
+(defun sql-query-placeholders-and-send (proc string)
+  "Send to PROC input STRING, maybe replacing placeholders.
+Placeholders are words starting with and ampersand like &this.
+This function is used for `comint-input-sender' if using `sql-oracle' on NT."
+  (while (string-match "&\\(\\sw+\\)" string)
+    (setq string (replace-match 
+		  (read-from-minibuffer
+		   (format "Enter value for %s: " (match-string 1 string))
+		   nil nil nil sql-placeholder-history)
+		  t t string)))
+  (comint-send-string proc string)
+  (comint-send-string proc "\n"))
+
 
 
 ;;; Sending the region to the SQLi buffer.
@@ -1058,8 +1085,7 @@ interpreter output, the hooks on `comint-output-filter-functions' are
 run.
 
 Variable `sql-input-ring-file-name' controls the initialisation of the
-input ring history.  `comint-input-ring-file-name' is temporarily bound
-to `sql-input-ring-file-name' when reading the input history.
+input ring history.
 
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and
@@ -1105,11 +1131,11 @@ you entered, right above the output it created.
   (setq abbrev-all-caps 1)
   ;; Exiting the process will call sql-stop.
   (set-process-sentinel (get-buffer-process sql-buffer) 'sql-stop)
-  ;; Make input-ring stuff buffer local so that people who want a
-  ;; different history file for each buffer/process/client/whatever can
-  ;; change separator and file-name on the sql-interactive-mode-hook.
-  (make-local-variable 'sql-input-ring-separator)
-  (make-local-variable 'sql-input-ring-file-name)
+  ;; People wanting a different history file for each
+  ;; buffer/process/client/whatever can change separator and file-name
+  ;; on the sql-interactive-mode-hook.
+  (setq comint-input-ring-separator sql-input-ring-separator
+	comint-input-ring-file-name sql-input-ring-file-name)
   ;; Create a usefull name for renaming this buffer later.
   (make-local-variable 'sql-alternate-buffer-name)
   (setq sql-alternate-buffer-name (sql-make-alternate-buffer-name))
@@ -1117,10 +1143,7 @@ you entered, right above the output it created.
   (run-hooks 'sql-interactive-mode-hook)
   ;; Calling the hook before calling comint-read-input-ring allows users
   ;; to set comint-input-ring-file-name in sql-interactive-mode-hook.
-  ;; While reading the history, file-name and history are rebound...
-  (let ((comint-input-ring-file-name sql-input-ring-file-name)
-	(comint-input-ring-separator sql-input-ring-separator))
-    (comint-read-input-ring t)))
+  (comint-read-input-ring t))
 
 (defun sql-stop (process event)
   "Called when the SQL process is stopped.
@@ -1132,18 +1155,17 @@ Writes the input history to a history file using
 
 This function is a sentinel watching the SQL interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
-  ;; Write history.
-  ;; While reading the history, file-name and history are rebound...
-  (let ((comint-input-ring-file-name sql-input-ring-file-name)
-	(comint-input-ring-separator sql-input-ring-separator))
-    (comint-write-input-ring))
-  (if (buffer-live-p sql-buffer)
-      (insert (format "\nProcess %s %s\n" process event))))
+  (comint-write-input-ring)
+  (if (and (eq (current-buffer) sql-buffer)
+	   (not buffer-read-only))
+      (insert (format "\nProcess %s %s\n" process event))
+    (message "Process %s %s" process event)))
 
 
 
 ;;; Entry functions for different SQL interpreters.
 
+;;;###autoload
 (defun sql-oracle ()
   "Run sqlplus by Oracle as an inferior process.
 
@@ -1197,11 +1219,15 @@ The default comes from `process-coding-system-alist' and
     ;; calling sql-interactive-mode.
     (setq sql-mode-font-lock-keywords sql-mode-oracle-font-lock-keywords)
     (sql-interactive-mode)
+    ;; If running on NT, make sure we do placeholder replacement ourselves.
+    (if (eq window-system 'w32)
+	(setq comint-input-sender 'sql-query-placeholders-and-send))
     (message "Login...done")
     (pop-to-buffer sql-buffer)))
 
 
 
+;;;###autoload
 (defun sql-sybase ()
   "Run isql by SyBase as an inferior process.
 
@@ -1251,6 +1277,7 @@ The default comes from `process-coding-system-alist' and
 
 
 
+;;;###autoload
 (defun sql-informix ()
   "Run dbaccess by Informix as an inferior process.
 
@@ -1290,6 +1317,7 @@ The default comes from `process-coding-system-alist' and
 
 
 
+;;;###autoload
 (defun sql-mysql ()
   "Run mysql by TcX as an inferior process.
 
@@ -1342,6 +1370,7 @@ The default comes from `process-coding-system-alist' and
 
 
 
+;;;###autoload
 (defun sql-solid ()
   "Run solsql by Solid as an inferior process.
 
@@ -1389,6 +1418,7 @@ The default comes from `process-coding-system-alist' and
 
 
 
+;;;###autoload
 (defun sql-ingres ()
   "Run sql by Ingres as an inferior process.
 
@@ -1428,6 +1458,7 @@ The default comes from `process-coding-system-alist' and
 
 
 
+;;;###autoload
 (defun sql-ms ()
   "Run isql by Microsoft as an inferior process.
 
