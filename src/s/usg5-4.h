@@ -193,7 +193,7 @@ Boston, MA 02111-1307, USA.  */
 #define bcopy(src,dst,n)	memmove (dst,src,n)
 #define bzero(s,n)		memset (s,0,n)
 #endif
-#ifdef HAVE_BCMP
+#ifndef HAVE_BCMP
 #define bcmp(src,dst,n)		memcmp (src,dst,n)
 #endif
 
