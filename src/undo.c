@@ -94,7 +94,7 @@ record_delete (beg, length)
   XFASTINT (lend) = beg + length;
 
   /* If point isn't at start of deleted range, record where it is.  */
-  if (PT != sbeg)
+  if (PT != XFASTINT (sbeg))
     current_buffer->undo_list
       = Fcons (make_number (PT), current_buffer->undo_list);
 
@@ -325,7 +325,7 @@ Return what remains of the list.")
 
 		  high = Fcar (cdr);
 		  low = Fcdr (cdr);
-		  mod_time = (high << 16) + low;
+		  mod_time = (XFASTINT (high) << 16) + XFASTINT (low);
 		  /* If this records an obsolete save
 		     (not matching the actual disk file)
 		     then don't mark unmodified.  */
@@ -336,9 +336,10 @@ Return what remains of the list.")
 #endif /* CLASH_DETECTION */
 		  Fset_buffer_modified_p (Qnil);
 		}
-	      if (EQ (car, Qnil))
+#ifdef USE_TEXT_PROPERTIES
+	      else if (EQ (car, Qnil))
 		{
-		  /* Element (t prop val beg . end) records property change.  */
+		  /* Element (nil prop val beg . end) is property change.  */
 		  Lisp_Object beg, end, prop, val;
 
 		  prop = Fcar (cdr);
@@ -350,6 +351,7 @@ Return what remains of the list.")
 
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
+#endif /* USE_TEXT_PROPERTIES */
 	      else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
 		{
 		  /* Element (BEG . END) means range was inserted.  */
