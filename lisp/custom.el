@@ -23,22 +23,6 @@
 
 (define-widget-keywords :prefix :tag :load :link :options :type :group)
 
-;; These autoloads should be deleted when the file is added to Emacs
-
-(unless (fboundp 'load-gc)
-  ;; From cus-edit.el
-  (autoload 'customize "cus-edit" nil t)
-  (autoload 'customize-variable "cus-edit" nil t)
-  (autoload 'customize-face "cus-edit" nil t)
-  (autoload 'customize-apropos "cus-edit" nil t)
-  (autoload 'customize-customized "cus-edit" nil t)
-  (autoload 'custom-buffer-create "cus-edit")
-  (autoload 'custom-menu-update "cus-edit")
-  (autoload 'custom-make-dependencies "cus-edit")
-  ;; From cus-face.el
-  (autoload 'custom-declare-face "cus-face")
-  (autoload 'custom-set-faces "cus-face"))
-
 ;;; The `defcustom' Macro.
 
 (defun custom-declare-variable (symbol value doc &rest args)
@@ -294,36 +278,6 @@ the default value for the SYMBOL."
   "Hook called after defining each customize option."
   :group 'customize
   :type 'hook)
-
-;;; Menu support
-
-(defconst custom-help-menu
-  `("Customize"
-    ,(if (string-match "XEmacs" emacs-version)
-	 '("Emacs" :filter (lambda (&rest junk)
-			     (cdr (custom-menu-create 'emacs))))
-       ["Update menu..." custom-menu-update t])
-    ["Group..." customize t]
-    ["Variable..." customize-variable t]
-    ["Face..." customize-face t]
-    ["Saved..." customize-customized t]
-    ["Apropos..." customize-apropos t])
-  "Customize menu")
-
-(defun custom-menu-reset ()
-  "Reset customize menu."
-  (remove-hook 'custom-define-hook 'custom-menu-reset)
-  (if (string-match "XEmacs" emacs-version)
-      (when (fboundp 'add-submenu)
-	(add-submenu '("Options") custom-help-menu))
-    (define-key global-map [menu-bar help-menu customize-menu]
-      (cons (car custom-help-menu)
-	    (easy-menu-create-keymaps (car custom-help-menu)
-				      (cdr custom-help-menu))))))
-
-(if (string-match "XEmacs" emacs-version)
-    (autoload 'custom-menu-create "cus-edit")
-  (custom-menu-reset))
 
 ;;; The End.
 
