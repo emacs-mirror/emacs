@@ -274,13 +274,13 @@ column specified by the function `current-left-margin'."
 (defun kill-forward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (+ (point) arg)))
+  (kill-region (point) (forward-point arg)))
 
 ;; Internal subroutine of backward-delete-char
 (defun kill-backward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (- (point) arg)))
+  (kill-region (point) (forward-point (- arg))))
 
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
@@ -424,9 +424,10 @@ and the greater of them is not at the start of a line."
 		done)))
 	(- (buffer-size) (forward-line (buffer-size)))))))
 
-(defun what-cursor-position ()
-  "Print info on cursor position (on screen and within buffer)."
-  (interactive)
+(defun what-cursor-position (&optional detail)
+  "Print info on cursor position (on screen and within buffer).
+With prefix argument, print detailed info of a character on cursor position."
+  (interactive "P")
   (let* ((char (following-char))
 	 (beg (point-min))
 	 (end (point-max))
@@ -446,11 +447,18 @@ and the greater of them is not at the start of a line."
 		     pos total percent beg end col hscroll)
 	  (message "point=%d of %d(%d%%)  column %d %s"
 		   pos total percent col hscroll))
-      (if (or (/= beg 1) (/= end (1+ total)))
-	  (message "Char: %s (0%o, %d, 0x%x)  point=%d of %d(%d%%) <%d - %d>  column %d %s"
-		   (single-key-description char) char char char pos total percent beg end col hscroll)
-	(message "Char: %s (0%o, %d, 0x%x)  point=%d of %d(%d%%)  column %d %s"
-		 (single-key-description char) char char char pos total percent col hscroll)))))
+      (let ((str (if detail (format " %s" (split-char char)) "")))
+	(if (or (/= beg 1) (/= end (1+ total)))
+	    (message "Char: %s (0%o, %d, 0x%x) %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
+		     (if (< char 256)
+			 (single-key-description char)
+		       (char-to-string char))
+		     char char char str pos total percent beg end col hscroll)
+	  (message "Char: %s (0%o, %d, 0x%x)%s point=%d of %d(%d%%)  column %d %s"
+		   (if (< char 256)
+		       (single-key-description char)
+		     (char-to-string char))
+		   char char char str pos total percent col hscroll))))))
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
@@ -2063,14 +2071,16 @@ With argument 0, interchanges line point is in with line mark is in."
 (defun transpose-subr-1 ()
   (if (> (min end1 end2) (max start1 start2))
       (error "Don't have two things to transpose"))
-  (let ((word1 (buffer-substring start1 end1))
-	(word2 (buffer-substring start2 end2)))
+  (let* ((word1 (buffer-substring start1 end1))
+	 (len1 (length word1))
+	 (word2 (buffer-substring start2 end2))
+	 (len2 (length word2)))
     (delete-region start2 end2)
     (goto-char start2)
     (insert word1)
     (goto-char (if (< start1 start2) start1
-		 (+ start1 (- (length word1) (length word2)))))
-    (delete-char (length word1))
+		 (+ start1 (- len1 len2))))
+    (delete-region (point) (+ (point) len1))
     (insert word2)))
 
 (defvar comment-column 32
@@ -2403,7 +2413,12 @@ Setting this variable automatically makes it local to the current buffer.")
 			(looking-at (regexp-quote fill-prefix))
 			(setq after-prefix (match-end 0)))
 		   (move-to-column (1+ fc))
-		   ;; Move back to a word boundary.
+		   ;; Move back to the point where we can break the
+		   ;; line at.  We break the line between word or
+		   ;; after/before the character which has character
+		   ;; category `|'.  We search space, \c| followed by
+		   ;; a character, or \c| follwoing a character.  If
+		   ;; not found, place the point at beginning of line.
 		   (while (or first
 			      ;; If this is after period and a single space,
 			      ;; move back once more--we don't want to break
@@ -2416,15 +2431,22 @@ Setting this variable automatically makes it local to the current buffer.")
 						   (and (looking-at "\\. ")
 							(not (looking-at "\\.  "))))))
 		     (setq first nil)
-		     (skip-chars-backward "^ \t\n")
+		     (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
 		     ;; If we find nowhere on the line to break it,
 		     ;; break after one word.  Set bounce to t
 		     ;; so we will not keep going in this while loop.
 		     (if (<= (point) after-prefix)
 			 (progn
 			   (re-search-forward "[ \t]" opoint t)
-			   (setq bounce t)))
-		     (skip-chars-backward " \t"))
+			   (setq bounce t))
+		       (if (looking-at "[ \t]")
+			   ;; Break the line at word boundary.
+			   (skip-chars-backward " \t")
+			 ;; Break the line after/before \c|.
+			 (forward-char 1)
+			 (if do-kinsoku
+			     (kinsoku (save-excursion
+					(forward-line 0) (point)))))))
 		   ;; Let fill-point be set to the place where we end up.
 		   (point)))))
 	  ;; If that place is not the beginning of the line,
