@@ -1,6 +1,6 @@
 /* Handle Solaris 2.8.  */
 
-#include "sol2-5.h"
+#include "sol2-6.h"
 
 /* Redundant but differing definitions for bcopy, bcmp, and bzero are
    causing problems.  Get rid of the emacs overrides for these. */
