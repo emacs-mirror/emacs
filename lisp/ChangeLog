@@ -5,6 +5,14 @@
 
 2002-02-13  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-parse-buffers-stealthily):
+	Tell bibtex-parse-keys to output no progress messages.
+
+	* international/mule-diag.el (list-input-methods):
+	Use help-input-method, not describe-input-method, for button type.
+
+	* register.el (describe-register-1): Access register contents here.
+
 	* textmodes/text-mode.el (text-mode-hook-identify): Restore
 	previous definition.  Add to text-mode-hook again.
 
