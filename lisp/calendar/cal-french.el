@@ -234,10 +234,10 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
-  (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
+  (let ((f (calendar-french-date-string date)))
     (if (string-equal f "")
         "Date is pre-French Revolution"
-      f)))
+      (format "French Revolutionary date: %s" f))))
 
 (provide 'cal-french)
 
