@@ -8818,9 +8818,6 @@ XTread_socket (sd, bufp, numchars, expected)
   struct frame *f;
   int event_found = 0;
   struct x_display_info *dpyinfo;
-#ifdef HAVE_X_I18N
-  Status status_return;
-#endif
 
   if (interrupt_input_blocked)
     {
@@ -8901,11 +8898,9 @@ XTread_socket (sd, bufp, numchars, expected)
 	       consumed the event.  We pass the frame's X window to
 	       XFilterEvent because that's the one for which the IC
 	       was created.  */
-	    struct frame *f1
-	      = x_any_window_to_frame (dpyinfo, event.xclient.window);
-	    if (f1
-		&& FRAME_XIC (f1)
-		&& XFilterEvent (&event, FRAME_X_WINDOW (f1)))
+	    struct frame *f1 = x_any_window_to_frame (dpyinfo,
+						      event.xclient.window);
+	    if (XFilterEvent (&event, f1 ? FRAME_X_WINDOW (f1) : None))
 	      break;
 	  }
 #endif
@@ -9338,10 +9333,24 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
+		      unsigned char *copy_bufptr = copy_buffer;
+		      int copy_bufsiz = sizeof (copy_buffer);
+		      Status status_return;
+
 		      nbytes = XmbLookupString (FRAME_XIC (f),
-						&event.xkey, copy_buffer,
-						80, &keysym,
+						&event.xkey, copy_bufptr,
+						copy_bufsiz, &keysym,
 						&status_return);
+		      if (status_return == XBufferOverflow)
+			{
+			  copy_bufsiz = nbytes + 1;
+			  copy_bufptr = (char *) alloca (copy_bufsiz);
+			  nbytes = XmbLookupString (FRAME_XIC (f),
+						    &event.xkey, copy_bufptr,
+						    copy_bufsiz, &keysym,
+						    &status_return);
+			}
+
 		      if (status_return == XLookupNone)
 			break;
 		      else if (status_return == XLookupChars)
@@ -9481,6 +9490,9 @@ XTread_socket (sd, bufp, numchars, expected)
 		  else
 		    abort ();
 		}
+	      goto OTHER;
+
+	    case KeyRelease:
 	      goto OTHER;
 
 	      /* Here's a possible interpretation of the whole
@@ -9711,6 +9723,11 @@ XTread_socket (sd, bufp, numchars, expected)
 		     Convert that to the position of the window manager window.  */
 		  x_real_positions (f, &f->output_data.x->left_pos,
 				    &f->output_data.x->top_pos);
+
+#ifdef HAVE_X_I18N
+		  if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+		    xic_set_statusarea (f);
+#endif
 
 		  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
 		    {
@@ -10392,6 +10409,17 @@ x_display_cursor (w, on, hpos, vpos, x, y)
 {
   BLOCK_INPUT;
   x_display_and_set_cursor (w, on, hpos, vpos, x, y);
+  
+#ifdef HAVE_X_I18N
+  {
+    struct frame *f = XFRAME (w->frame);
+
+    if (w == XWINDOW (f->selected_window))
+      if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
+	xic_set_preeditarea (w, x, y);
+  }
+#endif
+  
   UNBLOCK_INPUT;
 }
 
@@ -10891,8 +10919,204 @@ x_new_fontset (f, fontsetname)
   FS_LOAD_FONT (f, FRAME_X_FONT_TABLE (f),
 		CHARSET_ASCII, fontsetp->fontname[CHARSET_ASCII], fontset);
 
+#ifdef HAVE_X_I18N
+  if (FRAME_XIC (f)
+      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
+    xic_set_xfontset (f, fontsetp->fontname[CHARSET_ASCII]);
+#endif
+  
   return build_string (fontsetname);
 }
+
+
+/***********************************************************************
+			   X Input Methods
+ ***********************************************************************/
+
+#ifdef HAVE_X_I18N
+
+#ifdef HAVE_X11R6
+
+/* XIM destroy callback function, which is called whenever the
+   connection to input method XIM dies.  CLIENT_DATA contains a
+   pointer to the x_display_info structure corresponding to XIM.  */
+
+static void
+xim_destroy_callback (xim, client_data, call_data)
+     XIM xim;
+     XPointer client_data;
+     XPointer call_data;
+{
+  struct x_display_info *dpyinfo = (struct x_display_info *) client_data;
+  Lisp_Object frame, tail;
+  
+  BLOCK_INPUT;
+  
+  /* No need to call XDestroyIC.. */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_X_DISPLAY_INFO (f) == dpyinfo)
+	{
+	  FRAME_XIC (f) = NULL;
+	  if (FRAME_XIC_FONTSET (f))
+	    {
+	      XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
+	      FRAME_XIC_FONTSET (f) = NULL;
+	    }
+	}
+    }
+  
+  /* No need to call XCloseIM.  */
+  dpyinfo->xim = NULL;
+  XFree (dpyinfo->xim_styles);
+  UNBLOCK_INPUT;
+}
+
+#endif /* HAVE_X11R6 */
+
+/* Open the connection to the XIM server on display DPYINFO.
+   RESOURCE_NAME is the resource name Emacs uses.  */
+
+static void
+xim_open_dpy (dpyinfo, resource_name)
+     struct x_display_info *dpyinfo;
+     char *resource_name;
+{
+  XIM xim;
+
+  xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name, EMACS_CLASS);
+  dpyinfo->xim = xim;
+
+  if (xim)
+    {
+      XIMValuesList *xim_values_list;
+#ifdef HAVE_X11R6
+      XIMCallback destroy;
+#endif
+      
+      /* Get supported styles and XIM values.  */
+      XGetIMValues (xim, XNQueryInputStyle, &dpyinfo->xim_styles, NULL);
+      
+#ifdef HAVE_X11R6
+      destroy.callback = xim_destroy_callback;
+      destroy.client_data = (XPointer)dpyinfo;
+      XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
+#endif
+    }
+}
+
+
+#ifdef HAVE_X11R6
+
+struct xim_inst_t
+{
+  struct x_display_info *dpyinfo;
+  char *resource_name;
+};
+
+/* XIM instantiate callback function, which is called whenever an XIM
+   server is available.  DISPLAY is teh display of the XIM.
+   CLIENT_DATA contains a pointer to an xim_inst_t structure created
+   when the callback was registered.  */
+
+static void
+xim_instantiate_callback (display, client_data, call_data)
+     Display *display;
+     XPointer client_data;
+     XPointer call_data;
+{
+  struct xim_inst_t *xim_inst = (struct xim_inst_t *) client_data;
+  struct x_display_info *dpyinfo = xim_inst->dpyinfo;
+
+  /* We don't support multiple XIM connections. */
+  if (dpyinfo->xim)
+    return;
+  
+  xim_open_dpy (dpyinfo, xim_inst->resource_name);
+
+  /* Create XIC for the existing frames on the same display, as long
+     as they have no XIC.  */
+  if (dpyinfo->xim && dpyinfo->reference_count > 0)
+    {
+      Lisp_Object tail, frame;
+
+      BLOCK_INPUT;
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+	  
+	  if (FRAME_X_DISPLAY_INFO (f) == xim_inst->dpyinfo)
+	    if (FRAME_XIC (f) == NULL)
+	      {
+		create_frame_xic (f);
+		if (FRAME_XIC_STYLE (f) & XIMStatusArea)
+		  xic_set_statusarea (f);
+		if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
+		  {
+		    struct window *w = XWINDOW (f->selected_window);
+		    xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
+		  }
+	      }
+	}
+      
+      UNBLOCK_INPUT;
+    }
+}
+
+#endif /* HAVE_X11R6 */
+
+
+/* Open a connection to the XIM server on display DPYINFO.
+   RESOURCE_NAME is the resource name for Emacs.  On X11R5, open the
+   connection only at the first time.  On X11R6, open the connection
+   in the XIM instantiate callback function.  */
+
+static void
+xim_initialize (dpyinfo, resource_name)
+     struct x_display_info *dpyinfo;
+     char *resource_name;
+{
+#ifdef HAVE_X11R6
+  struct xim_inst_t *xim_inst;
+  int len;
+  
+  dpyinfo->xim = NULL;
+  xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
+  xim_inst->dpyinfo = dpyinfo;
+  len = strlen (resource_name);
+  xim_inst->resource_name = (char *) xmalloc (len + 1);
+  bcopy (resource_name, xim_inst->resource_name, len + 1);
+  XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
+				  resource_name, EMACS_CLASS,
+				  xim_instantiate_callback,
+				  (XPointer)xim_inst);
+#else /* not HAVE_X11R6 */
+  dpyinfo->xim = NULL;
+  xim_open_dpy (dpyinfo, resource_name);
+#endif /* not HAVE_X11R6 */
+}
+
+
+/* Close the connection to the XIM server on display DPYINFO. */
+
+static void
+xim_close_dpy (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+#ifdef HAVE_X11R6
+  XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
+				    NULL, EMACS_CLASS,
+				    xim_instantiate_callback, NULL);
+#endif /* HAVE_X11R6 */
+  XCloseIM (dpyinfo->xim);
+  dpyinfo->xim = NULL;
+  XFree (dpyinfo->xim_styles);
+}
+
+#endif /* HAVE_X_I18N */
+
+
 
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
@@ -11606,16 +11830,8 @@ x_destroy_window (f)
       if (f->output_data.x->icon_desc != 0)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
 #ifdef HAVE_X_I18N
-      if (FRAME_XIM (f))
-	{
-	  XDestroyIC (FRAME_XIC (f));
-#if ! defined (SOLARIS2) || defined (HAVE_X11R6)
-	  /* This line causes crashes on Solaris with Openwin,
-	     due to an apparent bug in XCloseIM.
-	     X11R6 seems not to have the bug.  */
-	  XCloseIM (FRAME_XIM (f));
-#endif
-	}
+      if (FRAME_XIC (f))
+	free_frame_xic (f);
 #endif
       XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
 #ifdef USE_X_TOOLKIT
@@ -12861,6 +13077,10 @@ x_term_init (display_name, xrm_option, resource_name)
 				     (unsigned long) 1, (unsigned long) 0, 1);
   }
 
+#ifdef HAVE_X_I18N
+  xim_initialize (dpyinfo, resource_name);
+#endif
+  
 #ifdef subprocesses
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
@@ -12964,6 +13184,11 @@ x_delete_display (dpyinfo)
   if (--dpyinfo->kboard->reference_count == 0)
     delete_kboard (dpyinfo->kboard);
 #endif
+#ifdef HAVE_X_I18N
+  if (dpyinfo->xim)
+    xim_close_dpy (dpyinfo);
+#endif
+  
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo);
