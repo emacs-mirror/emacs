@@ -316,7 +316,7 @@ actually occur.")
 (defvar mail-font-lock-keywords
   (eval-when-compile
     (let* ((cite-chars "[>|}]")
-	   (cite-prefix "A-Za-z")
+	   (cite-prefix "[:alpha:]")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(To\\|Newsgroups\\):" . font-lock-function-name-face)
 	    '("^\\(B?CC\\|Reply-to\\):" . font-lock-keyword-face)
@@ -473,19 +473,19 @@ Here are commands that move to a header field (and create it if there isn't):
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
 	(concat "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)+"
-		"\\|[ \t]*[-a-z0-9A-Z]*>+[ \t]*"
+		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"
 		"\\|[ \t]*"))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
 	(concat adaptive-fill-first-line-regexp
-		"\\|[ \t]*[-a-z0-9A-Z]*>+[ \t]*"))
+		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
 				"$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
-				"\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
+				"\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
 				"-- $\\|---+$\\|"
 				page-delimiter))
   (setq paragraph-separate paragraph-start)
