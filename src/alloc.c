@@ -1574,8 +1574,8 @@ mark_object (objptr)
 	  mark_object (&ptr->menu_bar_vector);
 	  mark_object (&ptr->buffer_predicate);
 	}
-      else
 #endif /* MULTI_FRAME */
+      else
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  register EMACS_INT size = ptr->size;
