@@ -1043,18 +1043,34 @@ We assume whitespace separates arguments, except within quotes.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  (let ((arg "\\(\\(\"[^\"]*\"\\|\'[^\']*\'\\|\`[^\`]*\`\\)\\|\\S \\)+")
-	(args ()) (pos 0) (str nil))
-    ;; We build a list of all the args.  Unnecessary, but more efficient, when
-    ;; ranges of args are required, than picking out one by one and recursing.
-    (while (string-match arg string pos)
-      (setq pos (match-end 0)
-	    str (substring string (match-beginning 0) pos)
-	    ;; (match-end 2) is non-nil if we found quotes.
-	    args (if (match-end 2) (cons str args)
-		   (nconc (comint-delim-arg str) args))))
-    (let ((n (or nth (1- (length args))))
-	  (m (if mth (1- (- (length args) mth)) 0)))
+  (let ((argpart "[^ \"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
+	(args ()) (pos 0)
+	(count 0)
+	beg str value quotes)
+    ;; Build a list of all the args until we have as many as we want.
+    (while (and (or (null mth) (<= count mth))
+		(string-match argpart string pos))
+      (if (and beg (= pos (match-beginning 0)))
+	  ;; It's contiguous, part of the same arg.
+	  (setq pos (match-end 0)
+		quotes (or quotes (match-beginning 1)))
+	;; It's a new separate arg.
+	(if beg
+	    ;; Put the previous arg, if there was one, onto ARGS.
+	    (setq str (substring string beg pos)
+		  args (if quotes (cons str args)
+			 (nconc (comint-delim-arg str) args))
+		  count (1+ count)))
+	(setq quotes (match-beginning 1))
+	(setq beg (match-beginning 0))
+	(setq pos (match-end 0))))
+    (if beg
+	(setq str (substring string beg pos)
+	      args (if quotes (cons str args)
+		     (nconc (comint-delim-arg str) args))
+	      count (1+ count)))
+    (let ((n (or nth (1- count)))
+	  (m (if mth (1- (- count mth)) 0)))
       (mapconcat
        (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
 
