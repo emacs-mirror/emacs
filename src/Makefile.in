@@ -888,7 +888,7 @@ syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h)
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h
+   disptab.h keyboard.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
@@ -930,7 +930,7 @@ lread.o: lread.c commands.h keyboard.h buffer.h paths.h $(config_h) \
 
 /* Text properties support */
 textprop.o: textprop.c buffer.h intervals.h $(config_h)
-intervals.o: intervals.c buffer.h intervals.h puresize.h $(config_h)
+intervals.o: intervals.c buffer.h intervals.h keyboard.h puresize.h $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES, OBJECTS_SYSTEM and OBJECTS_MACHINE
