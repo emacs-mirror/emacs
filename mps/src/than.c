@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc/!than.c(trunk.1)$
+ *  $HopeName: MMsrc/!than.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -61,8 +61,8 @@ Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
   AVER(threadReturn != NULL);
   AVER(stackBot != NULL);
 
-  e = PoolAllocP((void *)&thread, SpaceControlPool(space),
-                 sizeof(ThreadStruct));
+  e = PoolAlloc((Addr *)&thread, SpaceControlPool(space),
+                sizeof(ThreadStruct));
   if(e != ErrSUCCESS)
     goto return_e;
 
@@ -101,7 +101,7 @@ void ThreadDeregister(Thread thread, Space space)
 
   DequeNodeFinish(&thread->spaceDeque);
 
-  PoolFreeP(SpaceControlPool(space), thread, sizeof(ThreadStruct));
+  PoolFree(SpaceControlPool(space), (Addr)thread, sizeof(ThreadStruct));
 }
 
 void ThreadDequeSuspend(Deque threadDeque)

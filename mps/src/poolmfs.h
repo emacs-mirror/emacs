@@ -2,7 +2,7 @@
  *
  *                    MANUAL FIXED SMALL UNIT POOL
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!poolmfs.h(trunk.1)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -14,13 +14,13 @@
  *
  *  Create and Init take the following arguments:
  *
- *    size_t extendBy
+ *    Size extendBy
  *
  *  extendBy is the default number of bytes reserved by the pool at a time.
  *  A large size will make allocation cheaper but have a higher resource
  *  overhead.  A typical value might be 65536.  See note 2.
  *
- *    size_t unitSize
+ *    Size unitSize
  *
  *  unitSize is the size in bytes of the objects you with to allocate.  It
  *  must be larger than the minimum unit size returned by GetInfo, and not
@@ -42,9 +42,11 @@ typedef struct PoolMFSStruct *PoolMFS;
 
 extern PoolClass PoolClassMFS(void);
 
-extern Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space, size_t extendBy, size_t unitSize);
+extern Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
+  Size extendBy, Size unitSize);
 extern void PoolMFSDestroy(PoolMFS poolMFS);
-extern Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy, size_t unitSize);
+extern Error PoolMFSInit(PoolMFS poolMFS, Space space,
+  Size extendBy, Size unitSize);
 extern void PoolMFSFinish(PoolMFS poolMFS);
 extern Bool PoolMFSIsValid(PoolMFS poolMFS, ValidationType validParam);
 extern Pool (PoolMFSPool)(PoolMFS poolMFS);
@@ -54,7 +56,7 @@ typedef const struct PoolMFSInfoStruct *PoolMFSInfo;
 
 struct PoolMFSInfoStruct
 {
-  size_t unitSizeMin;		/* minimum unit size */
+  Size unitSizeMin;		/* minimum unit size */
 };
 
 extern PoolMFSInfo PoolMFSGetInfo(void);

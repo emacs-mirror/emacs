@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc/!pool.c(trunk.1)$
+ *  $HopeName: MMsrc/!pool.c(trunk.3)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -110,7 +110,7 @@ void PoolDestroy(Pool pool)
 }
 
 
-Error (PoolAllocP)(void **pReturn, Pool pool, size_t size)
+Error (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
 {
   Error e;
 
@@ -118,7 +118,7 @@ Error (PoolAllocP)(void **pReturn, Pool pool, size_t size)
   AVER(ISVALID(Pool, pool));
   AVER(size > 0);
 
-  e = (*pool->class->allocP)(pReturn, pool, size);
+  e = (*pool->class->alloc)(pReturn, pool, size);
   if(e != ErrSUCCESS) return e;
 
   /* Make sure that the allocated address was in the pool's memory. */  
@@ -128,14 +128,14 @@ Error (PoolAllocP)(void **pReturn, Pool pool, size_t size)
 }
 
 
-void PoolFreeP(Pool pool, void *old, size_t size)
+void PoolFree(Pool pool, Addr old, Size size)
 {
   AVER(ISVALID(Pool, pool));
-  AVER(old != NULL);
-  AVER(PoolHasAddr(pool, (Addr)old));
+  AVER(old != (Addr)0);
+  AVER(PoolHasAddr(pool, old));
 
-  if(pool->class->freeP != NULL)
-    (*pool->class->freeP)(pool, old, size);
+  if(pool->class->free != NULL)
+    (*pool->class->free)(pool, old, size);
 }
 
 
@@ -237,14 +237,14 @@ Error PoolSegAlloc(Addr *segReturn, Pool pool, Addr size)
   AVER(IsAligned(ArenaGrain(arena), size));
 
   arpool = PoolArenaPool(arena);
-  e = PoolAllocP((void **)&seg, arpool, size);
+  e = PoolAlloc(&seg, arpool, size);
   if(e != ErrSUCCESS)
-    return(e);
+    return e;
 
   ArenaPut(arena, seg, ARENA_POOL, (void *)pool);
 
   *segReturn = seg;
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -260,7 +260,7 @@ void PoolSegFree(Pool pool, Addr seg, Addr size)
 
   ArenaPut(arena, seg, ARENA_POOL, (void *)arpool);
 
-  PoolFreeP(arpool, (void *)seg, (size_t)size);
+  PoolFree(arpool, (Addr)seg, (Size)size);
 }
 
 
