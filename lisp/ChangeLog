@@ -1,3 +1,7 @@
+2000-04-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (add-minor-mode): Rewritten.
+
 2000-04-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* mail/sendmail.el (sendmail-send-it): Set

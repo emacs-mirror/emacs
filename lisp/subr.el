@@ -1486,18 +1486,51 @@ If DIR-FLAG is non-nil, create a new empty directory instead of a file."
     file))
 
 
-(defun add-minor-mode (symbol name &optional map)
+(defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
-SYMBOL is the name of a buffer-local variable that is toggled on
-or off to say whether the minor mode is active or not.  NAME is the
-string that will appear in the mode line when the minor mode is
-active.  Optional MAP is the keymap for the minor mode."
-  (make-local-variable symbol)
-  (set symbol t)
-  (unless (assq symbol minor-mode-alist)
-    (add-to-list 'minor-mode-alist (list symbol name)))
-  (when (and map (not (assq symbol minor-mode-map-alist)))
-    (add-to-list 'minor-mode-map-alist (cons symbol map))))
+
+TOGGLE is a symbol which is the name of a buffer-local variable that
+is toggled on or off to say whether the minor mode is active or not.
+
+NAME specifies what will appear in the mode line when the minor mode
+is active.  NAME should be either a string starting with a space, or a
+symbol whose value is such a string.
+
+Optional KEYMAP is the keymap for the minor mode that will be added
+to `minor-mode-map-alist'.
+
+Optional AFTER specifies that TOGGLE should be added after AFTER
+in `minor-mode-alist'.
+
+Optional TOGGLE-FUN is there for compatiblity with other Emacssen.
+It is currently not used."
+  (make-local-variable toggle)
+  (set toggle t)
+  
+  (when name
+    (let ((existing (assq toggle minor-mode-alist))
+	  (name (if (symbolp name) (symbol-value name) name)))
+      (cond ((null existing)
+	     (let ((tail minor-mode-alist) found)
+	       (while (and tail (not found))
+		 (if (eq after (caar tail))
+		     (setq found tail)
+		   (setq tail (cdr tail))))
+	       (if found
+		   (let ((rest (cdr found)))
+		     (setcdr found nil)
+		     (nconc found (list toggle name) rest))
+		 (setq minor-mode-alist (cons (list toggle name)
+					      minor-mode-alist)))))
+	    (t
+	     (setcdr existing (list name))))))
+    
+  (when keymap
+    (let ((existing (assq toggle minor-mode-map-alist)))
+      (if existing
+	  (setcdr existing keymap)
+	(setq minor-mode-map-alist (cons (cons toggle keymap)
+					 minor-mode-map-alist))))))
 
 
 ;;; subr.el ends here

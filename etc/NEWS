@@ -1150,12 +1150,25 @@ so I will know I still need to look at it -- rms.
 ** The function `add-minor-mode' simplifies the definition of minor
 modes.
 
-- Function: add-minor-mode SYMBOL NAME MAP
+- Function: add-minor-mode TOGGLE NAME &optional KEYMAP AFTER TOGGLE-FUN
 
-Register a new minor mode.  SYMBOL is the name of a buffer-local
-variable that is toggled on or off to say whether the minor mode is
-active or not.  NAME is the string that will appear in the mode line
-when the minor mode is active.  MAP is the keymap for the minor mode.
+Register a new minor mode.
+
+TOGGLE is a symbol which is the name of a buffer-local variable that
+is toggled on or off to say whether the minor mode is active or not.
+
+NAME specifies what will appear in the mode line when the minor mode
+is active.  NAME should be either a string starting with a space, or a
+symbol whose value is such a string.
+
+Optional KEYMAP is the keymap for the minor mode that will be added
+to `minor-mode-map-alist'.
+
+Optional AFTER specifies that TOGGLE should be added after AFTER
+in `minor-mode-alist'.
+
+Optional TOGGLE-FUN is there for compatiblity with other Emacssen.
+It is currently not used.
 
 ** The function `shell-command' now sets the default directory of the
 `*Shell Command Output*' buffer to the default directory of the buffer
