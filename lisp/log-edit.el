@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.3 2000/03/26 23:05:12 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.4 2000/05/10 22:20:51 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -189,6 +189,12 @@ commands (under C-x v for VC, for example).
   "Finish editing the log message and commit the files.
 If you want to abort the commit, simply delete the buffer."
   (interactive)
+  ;; Get rid of trailing empty lines
+  (goto-char (point-max))
+  (skip-syntax-backward " ")
+  (when (equal (char-after) ?\n) (forward-char 1))
+  (delete-region (point) (point-max))
+  ;; Check for final newline
   (if (and (> (point-max) 1)
 	   (/= (char-after (1- (point-max))) ?\n)
 	   (or (eq log-edit-require-final-newline t)
@@ -242,6 +248,7 @@ To select default log text, we:
     (when (not (re-search-forward "^\\*\\s-+" nil t))
       (goto-char (point-min))
       (skip-chars-forward "^():")
+      (skip-chars-forward ": ")
       (delete-region (point-min) (point)))))
 
 (defun log-edit-mode-help ()
