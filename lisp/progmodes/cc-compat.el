@@ -5,7 +5,7 @@
 ;; Author:     1994-1997 Barry A. Warsaw
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    August 1994, split from cc-mode.el
-;; Version:    5.18
+;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
