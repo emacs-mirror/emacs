@@ -293,6 +293,11 @@ typedef unsigned long EMACS_UINT;
 #define SIGTYPE RETSIGTYPE
 #endif
 
+#ifdef emacs /* Don't do this for lib-src.  */
+/* Tell regex.c to use a type compatible with Emacs.  */
+#define RE_TRANSLATE_TYPE Lisp_Object *
+#endif
+
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
    Note that on some SCO version it is possible to have bcopy and not bcmp.  */
