@@ -178,6 +178,7 @@ Lisp_Object Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string;
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
+Lisp_Object Qset_buffer_major_mode_hook;
 
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
@@ -1542,18 +1543,17 @@ the current buffer's major mode.  */)
 	function = current_buffer->major_mode;
     }
   
-  if (NILP (function) || EQ (function, Qfundamental_mode))
-    return Qnil;
-
   count = SPECPDL_INDEX ();
 
-  /* To select a nonfundamental mode,
-     select the buffer temporarily and then call the mode function. */
+  /* To select a nonfundamental mode, select the buffer temporarily
+     and then call the mode function.  Run the hook anyhow.  */
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
   Fset_buffer (buffer);
-  call0 (function);
+  if (NILP (function) || EQ (function, Qfundamental_mode))
+    call0 (function);
+  Frun_hooks (1, &Qset_buffer_major_mode_hook);
 
   return unbind_to (count, Qnil);
 }
@@ -5128,6 +5128,8 @@ syms_of_buffer ()
   staticpro (&Qbefore_change_functions);
   Qafter_change_functions = intern ("after-change-functions");
   staticpro (&Qafter_change_functions);
+  Qset_buffer_major_mode_hook = intern ("set-buffer-major-mode-hook");
+  staticpro (&Qset_buffer_major_mode_hook);
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
