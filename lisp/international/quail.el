@@ -941,7 +941,8 @@ The returned value is a Quail map specific to KEY."
 	  (let* ((keyseq (read-key-sequence
 			  (and input-method-use-echo-area
 			       (concat input-method-previous-message
-				       quail-current-str))))
+				       quail-current-str))
+			  nil nil t))
 		 (cmd (lookup-key (quail-translation-keymap) keyseq)))
 	    (if (if key
 		    (and (commandp cmd) (not (eq cmd 'quail-other-command)))
@@ -1007,7 +1008,8 @@ The returned value is a Quail map specific to KEY."
 			  (and input-method-use-echo-area
 			       (concat input-method-previous-message
 				       quail-conversion-str
-				       quail-current-str))))
+				       quail-current-str))
+			  nil nil t))
 		 (cmd (lookup-key (quail-conversion-keymap) keyseq)))
 	    (if (if key (commandp cmd) (eq cmd 'quail-self-insert-command))
 		(progn
@@ -1478,6 +1480,14 @@ or in a newly created frame (if the selected frame has no other windows)."
 	(set-buffer-modified-p nil)))
     (bury-buffer quail-guidance-buf)
 
+    ;; Assign the buffer " *Minibuf-N*" to all windows which are now
+    ;; displaying quail-guidance-buf.
+    (let ((win-list (get-buffer-window-list quail-guidance-buf t t)))
+      (while win-list
+	(set-window-buffer (car win-list)
+			   (format " *Minibuf-%d*" (minibuffer-depth)))
+	(setq win-list (cdr win-list))))
+
     ;; Then, display it in an appropriate window.
     (let ((win (minibuffer-window)))
       (if (or (eq (selected-window) win)
@@ -1515,7 +1525,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 	    win)
 	(while win-list
 	  (setq win (car win-list) win-list (cdr win-list))
-	  (if (eq win (minibuffer-window))
+	  (if (window-minibuffer-p win)
 	      ;; We are using echo area for the guidance buffer.
 	      ;; Vacate it to the deepest minibuffer.
 	      (set-window-buffer win
@@ -1526,13 +1536,17 @@ or in a newly created frame (if the selected frame has no other windows)."
 		  ;;(set-window-dedicated-p win nil)
 		  (delete-frame (window-frame win)))
 	      ;;(set-window-dedicated-p win nil)
-	      (delete-window win)))))))
+	      (delete-window win))))
+	(setq quail-guidance-win nil))))
 
 (defun quail-update-guidance ()
   "Update the Quail guidance buffer and completion buffer (if displayed now)."
   ;; Update guidance buffer.
   (if (quail-require-guidance-buf)
       (let ((guidance (quail-guidance)))
+	(or (and (eq (selected-frame) (window-frame (minibuffer-window)))
+		 (eq (selected-frame) (window-frame quail-guidance-win)))
+	    (quail-show-guidance-buf))
 	(cond ((or (eq guidance t)
 		   (consp guidance))
 	       ;; Show the current possible translations.
