@@ -121,16 +121,20 @@ Fortran indentation plus `fortran-comment-line-extra-indent'."
   :group 'fortran-indent
   :group 'fortran-comment)
 
-(defcustom fortran-comment-line-start nil
-  "*Delimiter inserted to start new full-line comment."
+(defcustom fortran-comment-line-start "C"
+  "*Delimiter inserted to start new full-line comment.
+You might want to change this to \"*\", for instance."
   :version "21.1"
-  :type '(choice string (const nil))
+  :type 'string
   :group 'fortran-comment)
 
-(defcustom fortran-comment-line-start-skip nil
+;; This used to match preprocessor lines too, but that messes up
+;; filling and doesn't seem to be necessary.
+(defcustom fortran-comment-line-start-skip
+  "^[CcDd*!]\\(\\([^ \t\n]\\)\\2\\2*\\)?[ \t]*"
   "*Regexp to match the start of a full-line comment."
   :version "21.1"
-  :type '(choice string (const nil))
+  :type 'regexp
   :group 'fortran-comment)
 
 (defcustom fortran-minimum-statement-indent-fixed 6
@@ -264,7 +268,7 @@ format style.")
   "`font-lock-syntactic-keywords' for Fortran.
 These get fixed-format comments fontified.")
 
-(let ((comment-chars "cd")		; `d' for `debugging' comments
+(let ((comment-chars "cd\\*")		; `d' for `debugging' comments
       (fortran-type-types
        (eval-when-compile
 	 (let ((re (regexp-opt
@@ -363,6 +367,9 @@ These get fixed-format comments fontified.")
           ;; TAB-formatted line.
           '("^     \\([^ 0]\\)" 1 font-lock-string-face)
           '("^\t\\([1-9]\\)" 1 font-lock-string-face))
+	 (list 
+	  ;; cpp stuff (ugh)
+	  '("^# *[a-z]+" . font-lock-keyword-face))
          ;; The list `fortran-font-lock-keywords-2' less that for types
          ;; (see above).
          (cdr (nthcdr (length fortran-font-lock-keywords-1)
@@ -423,12 +430,13 @@ These get fixed-format comments fontified.")
        fortran-mode-menu fortran-mode-map ""
        `("Fortran"
 	 ["Manual" (info "(emacs)Fortran")]
-	 ,(customize-menu-create 'fortran)
-	 ["Set" Custom-set t]
-	 ["Save" Custom-save t]
-	 ["Reset to Current" Custom-reset-current t]
-	 ["Reset to Saved" Custom-reset-saved t]
-	 ["Reset to Standard Settings" Custom-reset-standard t]
+;;; This loads cus-edit as things stand -- needs to be done lazily.
+;;; 	 ,(customize-menu-create 'fortran)
+;;; 	 ["Set" Custom-set t]
+;;; 	 ["Save" Custom-save t]
+;;; 	 ["Reset to Current" Custom-reset-current t]
+;;; 	 ["Reset to Saved" Custom-reset-saved t]
+;;; 	 ["Reset to Standard Settings" Custom-reset-standard t]
 	 "----"
 	 ["Toggle Auto-fill" fortran-auto-fill-mode :style toggle
 	  :selected (eq auto-fill-function 'fortran-do-auto-fill)]
@@ -630,15 +638,10 @@ with no args, if that value is non-nil."
   (setq indent-line-function 'fortran-indent-line)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'fortran-comment-indent-function)
-  (make-local-variable 'fortran-comment-line-start-skip)
-  (setq fortran-comment-line-start-skip
-	"^[Cc*]\\(\\([^ \t\n]\\)\\2\\2*\\)?[ \t]*\\|^#.*")
-  (make-local-variable 'fortran-comment-line-start)
-  (setq fortran-comment-line-start "c")
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "![ \t]*")
   (make-local-variable 'comment-start)
-  (setq comment-start nil)
+  (setq comment-start "C")
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'abbrev-all-caps)
@@ -671,6 +674,8 @@ with no args, if that value is non-nil."
        #'fortran-beginning-of-subprogram)
   (set (make-local-variable 'end-of-defun-function)
        #'fortran-end-of-subprogram)
+  (set (make-local-variable 'add-log-current-defun-function)
+       #'fortran-current-defun)
   (run-hooks 'fortran-mode-hook))
 
 (defun fortran-comment-indent-function ()
@@ -1714,43 +1719,45 @@ file before the end or the first `fortran-analyze-depth' lines."
 
 (defun fortran-fill-paragraph (&optional justify)
   "Fill surrounding comment block as paragraphs, else fill statement.
-
 Intended as the value of `fill-paragraph-function'."
   (interactive "P")
   (save-excursion
     (beginning-of-line)
-    (if (not (looking-at "[Cc*]"))
+    (if (not (looking-at fortran-comment-line-start-skip))
 	(fortran-fill-statement)
-      ;; We're in a comment block.  Find the start and end of a
-      ;; paragraph, delimited either by non-comment lines or empty
-      ;; comments.  (Get positions as markers, since the
-      ;; `indent-region' below can shift the block's end).
-      (let* ((non-empty-comment (concat "\\(" fortran-comment-line-start-skip
-					"\\)" "[^ \t\n]"))
-	     (start (save-excursion
-		      ;; Find (start of) first line.
-		      (while (and (zerop (forward-line -1))
-				  (looking-at non-empty-comment)))
-		      (or (looking-at non-empty-comment)
-			  (forward-line)) ; overshot
-		      (point-marker)))
-	     (end (save-excursion
-		    ;; Find start of first line past region to fill.
-		    (while (progn (forward-line)
-				  (looking-at non-empty-comment)))
-		    (point-marker))))
-	;; Indent the block, find the string comprising the effective
-	;; comment start skip and use that as a fill-prefix for
-	;; filling the region.
-	(indent-region start end nil)
-	(let ((paragraph-ignore-fill-prefix nil)
-	      (fill-prefix (progn (beginning-of-line)
-				  (looking-at fortran-comment-line-start-skip)
-				  (match-string 0))))
-	  (let (fill-paragraph-function)
-	    (fill-region start end justify))) ; with normal `fill-paragraph'
-	(set-marker start nil)
-	(set-marker end nil))))
+	;; We're in a comment block.  Find the start and end of a
+	;; paragraph, delimited either by non-comment lines or empty
+	;; comments.  (Get positions as markers, since the
+	;; `indent-region' below can shift the block's end).
+	(let* ((non-empty-comment 
+		(concat "\\(" fortran-comment-line-start-skip "\\)"
+			"[^ \t\n]"))
+	       (start (save-excursion
+			;; Find (start of) first line.
+			(while (and (zerop (forward-line -1))
+				    (looking-at non-empty-comment)))
+			(or (looking-at non-empty-comment)
+			    (forward-line)) ; overshot
+			(point-marker)))
+	       (end (save-excursion
+		      ;; Find start of first line past region to fill.
+		      (while (progn 
+			       (forward-line)
+			       (looking-at non-empty-comment)))
+		      (point-marker))))
+	  ;; Indent the block, find the string comprising the effective
+	  ;; comment start skip and use that as a fill-prefix for
+	  ;; filling the region.
+	  (indent-region start end nil)
+	  (let ((paragraph-ignore-fill-prefix nil)
+		(fill-prefix (progn
+			       (beginning-of-line)
+			       (looking-at fortran-comment-line-start-skip)
+			       (match-string 0))))
+	    (let (fill-paragraph-function)
+	      (fill-region start end justify))) ; with normal `fill-paragraph'
+	  (set-marker start nil)
+	  (set-marker end nil))))
   t)
 
 (defun fortran-fill-statement ()
@@ -1788,6 +1795,32 @@ prefix arg DO-SPACE prevent stripping the whitespace."
 			      nil t)
       (replace-match "" nil nil nil 1)
       (unless do-space (delete-horizontal-space)))))
+
+;; This code used to live in add-log.el, but this is a better place
+;; for it.
+(defun fortran-current-defun ()
+  "Function to use for `add-log-current-defun-function' in Fortran mode."
+  ;; We must be inside function body for this to work.
+  (fortran-beginning-of-subprogram)
+  (let ((case-fold-search t))		; case-insensitive
+    ;; search for fortran subprogram start
+    (if (re-search-forward
+	 "^[ \t]*\\(program\\|subroutine\\|function\
+\\|[ \ta-z0-9*()]*[ \t]+function\\|\\(block[ \t]*data\\)\\)"
+	 (save-excursion (fortran-end-of-subprogram)
+			 (point))
+	 t)
+	(or (match-string-no-properties 2)
+	    (progn
+	      ;; move to EOL or before first left paren
+	      (if (re-search-forward "[(\n]" nil t)
+		  (progn (backward-char)
+			 (skip-chars-backward " \t"))
+		(end-of-line))
+	      ;; Use the name preceding that.
+	      (buffer-substring-no-properties (point) (progn (backward-sexp)
+							     (point)))))
+      "main")))
 
 (provide 'fortran)
 
