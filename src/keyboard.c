@@ -435,6 +435,7 @@ void (*keyboard_init_hook) ();
 
 static int read_avail_input ();
 static void get_input_pending ();
+static Lisp_Object read_char_menu_prompt ();
 
 /* > 0 if we are to echo keystrokes.  */
 static int echo_keystrokes;
@@ -3218,7 +3219,7 @@ static int echo_now;
    The prompting is done based on the prompt-string of the map
    and the strings associated with various map elements.  */
 
-Lisp_Object
+static Lisp_Object
 read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      int nmaps;
      Lisp_Object *maps;
