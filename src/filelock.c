@@ -692,8 +692,9 @@ or else nothing is done if current buffer isn't visiting a file.  */)
 
 DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
        0, 0, 0,
-       doc: /* Unlock the file visited in the current buffer,
-if it should normally be locked.  */)
+       doc: /* Unlock the file visited in the current buffer.
+If the buffer is not modified, this does nothing because the file
+should not be locked in that case.  */)
      ()
 {
   if (SAVE_MODIFF < MODIFF
@@ -714,8 +715,9 @@ unlock_buffer (buffer)
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
-       doc: /* Return nil if the FILENAME is not locked,
-t if it is locked by you, else a string of the name of the locker.  */)
+       doc: /* Return a value indicating whether FILENAME is locked.
+The value is nil if the FILENAME is not locked,
+t if it is locked by you, else a string saying which user has locked it.  */)
      (filename)
      Lisp_Object filename;
 {
