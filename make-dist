@@ -249,7 +249,7 @@ echo "Making links to \`lib-src'."
 echo "Making links to \`msdos'."
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
- ln mainmake sed[123].inp ../${tempdir}/msdos
+ ln mainmake sed[1234].inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
 
