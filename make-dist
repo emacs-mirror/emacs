@@ -100,7 +100,7 @@ ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
 	      src src/m src/s lib-src oldXMenu \
-	      etc lock arch-lib cpp info man shortnames; do
+	      etc lock arch-lib cpp info man shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
 
@@ -203,6 +203,12 @@ echo "Making links to \`shortnames'."
 (cd shortnames
  ln *.c ../${tempdir}/shortnames
  ln Makefile reserved special ../${tempdir}/shortnames)
+
+echo "Making links to \`vms'."
+(cd vms
+ ln [0-9a-zA-Z]* ../${tempdir}/vms
+ cd ../${tempdir}/vms
+ rm -f *~)
 
 echo "Making sure copying notices are all symlinks to \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
