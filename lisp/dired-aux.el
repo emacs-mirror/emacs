@@ -762,10 +762,14 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	  (subst-char-in-region opoint (1+ opoint) ?\040 char))))
   (dired-move-to-filename))
 
-(defun dired-fun-in-all-buffers (directory fun &rest args)
+(defun dired-fun-in-all-buffers (directory file fun &rest args)
   ;; In all buffers dired'ing DIRECTORY, run FUN with ARGS.
+  ;; If the buffer has a wildcard pattern, check that it matches FILE.
+  ;; (FILE does not include a directory component.)
+  ;; FILE may be nil, in which case ignore it.
   ;; Return list of buffers where FUN succeeded (i.e., returned non-nil).
-  (let ((buf-list (dired-buffers-for-dir (expand-file-name directory)))
+  (let ((buf-list (dired-buffers-for-dir (expand-file-name directory)
+					 file))
 	(obuf (current-buffer))
 	buf success-list)
     (while buf-list
@@ -782,7 +786,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 ;;;###autoload
 (defun dired-add-file (filename &optional marker-char)
   (dired-fun-in-all-buffers
-   (file-name-directory filename)
+   (file-name-directory filename) (file-name-nondirectory filename)
    (function dired-add-entry) filename marker-char))
 
 (defun dired-add-entry (filename &optional marker-char)
@@ -887,7 +891,8 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 ;;;###autoload
 (defun dired-remove-file (file)
   (dired-fun-in-all-buffers
-   (file-name-directory file) (function dired-remove-entry) file))
+   (file-name-directory file) (file-name-nondirectory file)
+   (function dired-remove-entry) file))
 
 (defun dired-remove-entry (file)
   (save-excursion
@@ -899,6 +904,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 ;;;###autoload
 (defun dired-relist-file (file)
   (dired-fun-in-all-buffers (file-name-directory file)
+			    (file-name-nondirectory file)
 			    (function dired-relist-entry) file))
 
 (defun dired-relist-entry (file)
@@ -960,7 +966,7 @@ Special value `always' suppresses confirmation.")
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
 	to-dir (file-name-as-directory to-dir))
-  (dired-fun-in-all-buffers from-dir
+  (dired-fun-in-all-buffers from-dir nil
 			    (function dired-rename-subdir-1) from-dir to-dir)
   ;; Update visited file name of all affected buffers
   (let ((expanded-from-dir (expand-file-name from-dir))
