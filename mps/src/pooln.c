@@ -1,6 +1,6 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.25) $
+ * $HopeName: MMsrc!pooln.c(trunk.26) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers
@@ -9,7 +9,7 @@
 #include "pooln.h"
 #include "mpm.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.25) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.26) $");
 
 
 typedef struct PoolNStruct {
@@ -82,35 +82,6 @@ static void NFree(Pool pool, Addr old, Size size)
   AVER(size > 0);
 
   NOTREACHED;  /* can't allocate, should never free */
-}
-
-
-static Res NBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
-
-  UNUSED(buffer); UNUSED(args);
-
-  return ResLIMIT;  /* limit of nil buffers exceeded */
-}
-
-
-static void NBufferFinish(Pool pool, Buffer buffer)
-{
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
-
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReset(buffer));
-
-  NOTREACHED;  /* can't create, so shouldn't destroy */
 }
 
 
@@ -261,10 +232,8 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->finish = NFinish;
   this->alloc = NAlloc;
   this->free = NFree;
-  this->bufferInit = NBufferInit;
   this->bufferFill = NBufferFill;
   this->bufferEmpty = NBufferEmpty;
-  this->bufferFinish = NBufferFinish;
   this->whiten = NWhiten;
   this->grey = NGrey;
   this->blacken = NBlacken;
