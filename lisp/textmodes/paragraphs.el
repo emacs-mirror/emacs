@@ -202,10 +202,10 @@ to which the end of the previous line belongs, or the end of the buffer."
 		      (looking-at fill-prefix-regexp))
 	    (forward-line 1))
 	(while (and (re-search-forward sp-paragraph-start nil 1)
-		    (not (eobp))
 		    (progn (setq start (match-beginning 0))
 			   (goto-char start)
-			   (move-to-left-margin)
+			   (not (eobp)))
+		    (progn (move-to-left-margin)
 			   (not (looking-at paragraph-separate)))
 		    (or (not (looking-at paragraph-start))
 			(and use-hard-newlines
