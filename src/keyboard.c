@@ -3235,7 +3235,7 @@ menu_bar_one_keymap (keymap, result)
 	    }
 	  else if (EQ (binding, Qundefined))
 	    result = menu_bar_item (key, item_string,
-				    Fcdr (binding), result);
+				    binding, result);
 	}
       else if (XTYPE (item) == Lisp_Vector)
 	{
@@ -3256,7 +3256,7 @@ menu_bar_one_keymap (keymap, result)
 		}
 	      else if (EQ (binding, Qundefined))
 		result = menu_bar_item (key, item_string,
-					Fcdr (binding), result);
+					binding, result);
 	    }
 	}
     }
