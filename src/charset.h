@@ -437,7 +437,7 @@ extern int width_by_char_head[256];
 #else  /* not BYTE_COMBINING_DEBUG */
 
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD ((str)[0])
+  ((void)(length), (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]))
 
 #endif /* not BYTE_COMBINING_DEBUG */
 
