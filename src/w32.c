@@ -1446,6 +1446,7 @@ sys_rename (const char * oldname, const char * newname)
 {
   char temp[MAX_PATH];
   DWORD attr;
+  int result;
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -1484,9 +1485,13 @@ sys_rename (const char * oldname, const char * newname)
      name - we will end up deleting the file we are trying to rename!  */
   newname = map_w32_filename (newname, NULL);
 
-  /* TODO: Use GetInformationByHandle (on NT) to ensure newname and temp
-     do not refer to the same file, eg. through share aliases.  */
-  if (stricmp (newname, temp) != 0
+  /* Suggested by Pekka Pirila <pekka.pirila@vtt.fi>: stricmp does not
+     handle accented characters correctly, so comparing filenames will
+     accidentally delete these files.  Instead, do the rename first;
+     newname will not be deleted if successful or if errno == EACCES.
+     In this case, delete the file explicitly.  */
+  result = rename (temp, newname);
+  if (result < 0 && errno == EACCES
       && (attr = GetFileAttributes (newname)) != -1
       && (attr & FILE_ATTRIBUTE_DIRECTORY) == 0)
     {
@@ -1494,7 +1499,7 @@ sys_rename (const char * oldname, const char * newname)
       _unlink (newname);
     }
 
-  return rename (temp, newname);
+  return result;
 }
 
 int
@@ -1628,7 +1633,7 @@ generate_inode_val (const char * name)
 int
 stat (const char * path, struct stat * buf)
 {
-  char * name;
+  char *name, *r;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
   DWORD fake_inode;
@@ -1648,6 +1653,13 @@ stat (const char * path, struct stat * buf)
     {
       errno = ENOENT;
       return -1;
+    }
+
+  /* If name is "c:/.." or "/.." then stat "c:/" or "/".  */
+  r = IS_DEVICE_SEP (name[1]) ? &name[2] : name;
+  if (IS_DIRECTORY_SEP (r[0]) && r[1] == '.' && r[2] == '.' && r[3] == '\0')
+    {
+      r[1] = r[2] = '\0';
     }
 
   /* Remove trailing directory separator, unless name is the root
