@@ -2290,7 +2290,7 @@ EXFUN (Fundo_boundary, 0);
 extern Lisp_Object truncate_undo_list P_ ((Lisp_Object, int, int));
 extern void record_marker_adjustment P_ ((Lisp_Object, int));
 extern void record_insert P_ ((int, int));
-extern void record_delete P_ ((int, int));
+extern void record_delete P_ ((int, Lisp_Object));
 extern void record_first_change P_ ((void));
 extern void record_change P_ ((int, int));
 extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
