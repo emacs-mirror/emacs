@@ -1,5 +1,6 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -820,7 +821,7 @@ If file does not exist, returns nil.")
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
-#ifdef BSD4_2
+#if defined (BSD4_2) || defined (BSD4_3)
   Lisp_Object dirname;
   struct stat sdir;
 #endif
@@ -863,10 +864,7 @@ If file does not exist, returns nil.")
     values[7] = make_float ((double)s.st_size);
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
-#ifdef BSD4_3 /* Gross kludge to avoid lack of "#if defined(...)" in VMS */
-#define BSD4_2 /* A new meaning to the term `backwards compatibility' */
-#endif
-#ifdef BSD4_2			/* file gid will be dir gid */
+#if defined (BSD4_2) || defined (BSD4_3) /* file gid will be dir gid */
   dirname = Ffile_name_directory (filename);
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
@@ -877,9 +875,6 @@ If file does not exist, returns nil.")
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
-#ifdef BSD4_3
-#undef BSD4_2 /* ok, you can look again without throwing up */
-#endif
   /* Cast -1 to avoid warning if int is not as wide as VALBITS.  */
   if (s.st_ino & (((EMACS_INT) (-1)) << VALBITS))
     /* To allow inode numbers larger than VALBITS, separate the bottom
