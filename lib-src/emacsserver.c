@@ -206,7 +206,11 @@ main (argc, argv)
 {
   char system_name[32];
   int s, infd;
+#ifdef SOCKLEN_TYPE
+  SOCKLEN_TYPE fromlen;
+#else
   size_t fromlen;
+#endif
   struct sockaddr_un server, fromunix;
   char *homedir;
   char *str, string[BUFSIZ], code[BUFSIZ];
