@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.23) $
+ * $HopeName: MMsrc!mpm.c(trunk.24) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.23) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.24) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -276,6 +276,17 @@ size_t (PointerOffset)(void *base, void *limit)
   AVER(limit != NULL);
   AVER(base <= limit);
   return PointerOffset(base, limit);
+}
+
+/* PointerAlignUp -- align a pointer up */
+
+extern void *(PointerAlignUp)(void *p, size_t align)
+{
+  AVER(p != NULL);
+  AVER(AlignCheck(align));
+
+  /* uses macro defined in impl.h.mpm */
+  return PointerAlignUp(p, align);
 }
 
 
