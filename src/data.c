@@ -65,7 +65,7 @@ Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
 Lisp_Object Qvoid_variable, Qvoid_function, Qcyclic_function_indirection;
-Lisp_Object Qcyclic_variable_indirection;
+Lisp_Object Qcyclic_variable_indirection, Qcircular_list;
 Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
@@ -97,6 +97,15 @@ static Lisp_Object Qsubrp, Qmany, Qunevalled;
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
 int most_positive_fixnum, most_negative_fixnum;
+
+
+void
+circular_list_error (list)
+     Lisp_Object list;
+{
+  Fsignal (Qcircular_list, list);
+}
+
 
 Lisp_Object
 wrong_type_argument (predicate, value)
@@ -2880,6 +2889,13 @@ syms_of_data ()
 	Fcons (Qcyclic_variable_indirection, error_tail));
   Fput (Qcyclic_variable_indirection, Qerror_message,
 	build_string ("Symbol's chain of variable indirections contains a loop"));
+
+  Qcircular_list = intern ("circular-list");
+  staticpro (&Qcircular_list);
+  Fput (Qcircular_list, Qerror_conditions,
+	Fcons (Qcircular_list, error_tail));
+  Fput (Qcircular_list, Qerror_message,
+	build_string ("List contains a loop"));
 
   Fput (Qvoid_variable, Qerror_conditions,
 	Fcons (Qvoid_variable, error_tail));
