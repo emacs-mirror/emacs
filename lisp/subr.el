@@ -752,6 +752,28 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
+(defun read-password (prompt &optional default)
+  "Read a password, echoing `.' for each character typed.
+End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+Optional DEFAULT is password to start with."
+  (let ((pass nil)
+	(c 0)
+	(echo-keystrokes 0)
+	(cursor-in-echo-area t))
+    (while (progn (message "%s%s"
+			   prompt
+			   (make-string (length pass) ?.))
+		  (setq c (read-char))
+		  (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+      (if (= c ?\C-u)
+	  (setq pass "")
+	(if (and (/= c ?\b) (/= c ?\177))
+	    (setq pass (concat pass (char-to-string c)))
+	  (if (> (length pass) 0)
+	      (setq pass (substring pass 0 -1))))))
+    (message nil)
+    (or pass default "")))
+
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
 With optional non-nil ALL, force redisplay of all mode-lines."
