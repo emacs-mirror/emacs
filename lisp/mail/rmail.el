@@ -1490,9 +1490,30 @@ It returns t if it got any new messages."
 		(setq current-message (rmail-first-unseen-message))
 		(if (rmail-summary-exists)
 		    (with-current-buffer rmail-summary-buffer
-                      (rmail-update-summary)
+                      (rmail-update-summary)))
+
+                ;; Process the new messages for spam using the
+                ;; integrated spam filter.  The spam filter can mark
+                ;; messages for deletion and can output a message.
+                (if rmail-use-spam-filter
+                    ;; Loop through the new messages processing each
+                    ;; message for spam.
+                    (save-excursion
+                      (while (<= current-message rmail-total-messages)
+                        (narrow-to-region
+                         (rmail-desc-get-start current-message)
+                         (rmail-desc-get-end current-message))
+                        (rmail-spam-filter current-message)
+                        (setq current-message (1+ current-message)))))
+          
+                ;; Position the mail cursor again.
+		(setq current-message (rmail-first-unseen-message))
+		(if (rmail-summary-exists)
+		    (with-current-buffer rmail-summary-buffer
                       (rmail-summary-goto-msg current-message))
                   (rmail-show-message current-message))
+
+                ;; Run the after get new mail hook.
 		(run-hooks 'rmail-after-get-new-mail-hook)
 		(message "%d new message%s read"
 			 new-messages (if (= 1 new-messages) "" "s"))
