@@ -2130,8 +2130,6 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
       return;
     }
 
-  BLOCK_INPUT;
-
   /* This size-change overrides any pending one for this frame.  */
   FRAME_NEW_HEIGHT (frame) = 0;
   FRAME_NEW_WIDTH  (frame) = 0;
@@ -2147,6 +2145,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   if (newheight == FRAME_HEIGHT (frame)
       && newwidth == FRAME_WIDTH (frame))
     return;
+
+  BLOCK_INPUT;
 
 #ifdef MSDOS
   /* We only can set screen dimensions to certain values supported
