@@ -335,7 +335,7 @@ read_doc_string (filepos)
   return get_doc_string (filepos, 0, 1);
 }
 
-static void
+static int
 reread_doc_file (file)
 {
   Lisp_Object reply, prompt[3];
@@ -347,12 +347,14 @@ reread_doc_file (file)
   reply = Fy_or_n_p (Fconcat (3, prompt));
   UNGCPRO;
   if (NILP (reply))
-    error ("Aborted");
+    return 0;
 
   if (NILP (file))
     Fsnarf_documentation (Vdoc_file_name);
   else
     Fload (file, Qt, Qt, Qt, Qnil);
+
+  return 1;
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
@@ -365,6 +367,9 @@ string is passed through `substitute-command-keys'.  */)
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object tem, doc;
+  int try_reload = 1;
+
+ documentation:
 
   doc = Qnil;
   
@@ -433,18 +438,24 @@ string is passed through `substitute-command-keys'.  */)
       Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
 
-  if (INTEGERP (doc) || CONSP (doc))
+  /* If DOC is 0, it's typically because of a dumped file missing
+     from the DOC file (bug in src/Makefile.in).  */
+  if (INTEGERP (doc) && !EQ (tem, make_number (0)) || CONSP (doc))
     {
       Lisp_Object tem;
       tem = get_doc_string (doc, 0, 0);
-      if (NILP (tem))
+      if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
 	  struct gcpro gcpro1, gcpro2;
 	  GCPRO2 (function, raw);
-	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  UNGCPRO;
-	  return Fdocumentation (function, raw);
+	  if (try_reload)
+	    {
+	      try_reload = 0;
+	      goto documentation;
+	    }
 	}
       else
 	doc = tem;
@@ -467,21 +478,29 @@ aren't strings.  */)
   (symbol, prop, raw)
      Lisp_Object symbol, prop, raw;
 {
+  int try_reload = 1;
   Lisp_Object tem;
 
+ documentation_property:
+  
   tem = Fget (symbol, prop);
-  if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
+  if (INTEGERP (tem) && !EQ (tem, make_number (0))
+      || (CONSP (tem) && INTEGERP (XCDR (tem))))
     {
       Lisp_Object doc = tem;
       tem = get_doc_string (tem, 0, 0);
-      if (NILP (tem))
+      if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
 	  struct gcpro gcpro1, gcpro2, gcpro3;
 	  GCPRO3 (symbol, prop, raw);
-	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  UNGCPRO;
-	  return Fdocumentation_property (symbol, prop, raw);
+	  if (try_reload)
+	    {
+	      try_reload = 0;
+	      goto documentation_property;
+	    }
 	}
     }
   else if (!STRINGP (tem))
