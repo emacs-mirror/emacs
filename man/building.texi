@@ -494,7 +494,7 @@ Only useful in a source buffer, (@code{gud-jump}) relocates the next
 instruction to the current line at point in a source buffer.  If the
 new execution line is in a different function from the previously one,
 you will be prompted for confirmation since the results may be
-bizarre.  See the GDB manual entry regarding @cod{jump} for details.
+bizarre.  See the GDB manual entry regarding @code{jump} for details.
 @end table
 
   These commands interpret a numeric argument as a repeat count, when
