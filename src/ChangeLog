@@ -1,5 +1,20 @@
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (start_display): WHen starting display on a continuation
+	line, clear ascent and descent members of the iterator structure;
+	the height of the continued line does not affect the height of the
+	continuation line.
+	(make_cursor_line_fully_visible): Do nothing if cursor is on a
+	line taller than the window.
+	(redisplay_window) <forced window start>: Handle case that the
+	middle of the window is not found in any row.
+	(dump_glyph_row): Show more information.
+	(compute_line_metrics): Use MATRIX_FIRST_TEXT_ROW to determine the
+	first text line in a glyph matrix.
+
+	* xterm.c (x_draw_image_foreground): Avoid drawing outside
+	of the clip area when image doesn't have a mask.
+
 	* fns.c (sweep_weak_table): Fix survival conditions for
 	key-or-value and key-and-value weakness.
 
