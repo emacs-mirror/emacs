@@ -713,7 +713,7 @@ static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
 static void reconsider_clip_changes P_ ((struct window *, struct buffer *));
 static int text_outside_line_unchanged_p P_ ((struct window *, int, int));
 static void store_frame_title_char P_ ((char));
-static int store_frame_title P_ ((unsigned char *, int, int));
+static int store_frame_title P_ ((const unsigned char *, int, int));
 static void x_consider_frame_title P_ ((Lisp_Object));
 static void handle_stop P_ ((struct it *));
 static int tool_bar_lines_needed P_ ((struct frame *));
@@ -732,7 +732,7 @@ static int display_echo_area P_ ((struct window *));
 static int display_echo_area_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
 static int resize_mini_window_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
 static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
-static int string_char_and_length P_ ((unsigned char *, int, int *));
+static int string_char_and_length P_ ((const unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 					     struct text_pos));
 static int compute_window_start_on_continuation_line P_ ((struct window *));
@@ -1149,7 +1149,7 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
 
 static INLINE int
 string_char_and_length (str, maxlen, len)
-     unsigned char *str;
+     const unsigned char *str;
      int maxlen, *len;
 {
   int c;
@@ -1180,7 +1180,7 @@ string_pos_nchars_ahead (pos, string, nchars)
   if (STRING_MULTIBYTE (string))
     {
       int rest = SBYTES (string) - BYTEPOS (pos);
-      unsigned char *p = SDATA (string) + BYTEPOS (pos);
+      const unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
@@ -1878,8 +1878,8 @@ init_from_display_pos (it, w, pos)
 
   for (i = 0; i < it->n_overlay_strings; ++i)
     {
-      char *s = SDATA (it->overlay_strings[i]);
-      char *e = s + SBYTES (it->overlay_strings[i]);
+      const char *s = SDATA (it->overlay_strings[i]);
+      const char *e = s + SBYTES (it->overlay_strings[i]);
 
       while (s < e && *s != '\n')
 	++s;
@@ -2485,7 +2485,7 @@ face_before_or_after_it_pos (it, before_p)
 	 suitable for unibyte text if IT->string is unibyte.  */
       if (STRING_MULTIBYTE (it->string))
 	{
-	  unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
+	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
 	  int rest = SBYTES (it->string) - BYTEPOS (pos);
 	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
@@ -4612,7 +4612,8 @@ next_element_from_string (it)
       else if (STRING_MULTIBYTE (it->string))
 	{
 	  int remaining = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
-	  unsigned char *s = SDATA (it->string) + IT_STRING_BYTEPOS (*it);
+	  const unsigned char *s = (SDATA (it->string)
+				    + IT_STRING_BYTEPOS (*it));
 	  it->c = string_char_and_length (s, remaining, &it->len);
 	}
       else
@@ -4641,7 +4642,8 @@ next_element_from_string (it)
       else if (STRING_MULTIBYTE (it->string))
 	{
 	  int maxlen = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
-	  unsigned char *s = SDATA (it->string) + IT_STRING_BYTEPOS (*it);
+	  const unsigned char *s = (SDATA (it->string)
+				    + IT_STRING_BYTEPOS (*it));
 	  it->c = string_char_and_length (s, maxlen, &it->len);
 	}
       else
@@ -5653,7 +5655,7 @@ message_log_maybe_newline ()
 
 void
 message_dolog (m, nbytes, nlflag, multibyte)
-     char *m;
+     const char *m;
      int nbytes, nlflag, multibyte;
 {
   if (!NILP (Vmemory_full))
@@ -5867,7 +5869,7 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
 
 void
 message2 (m, nbytes, multibyte)
-     char *m;
+     const char *m;
      int nbytes;
      int multibyte;
 {
@@ -5883,7 +5885,7 @@ message2 (m, nbytes, multibyte)
 
 void
 message2_nolog (m, nbytes, multibyte)
-     char *m;
+     const char *m;
      int nbytes;
 {
   struct frame *sf = SELECTED_FRAME ();
@@ -6904,7 +6906,7 @@ truncate_message_1 (nchars, a2, a3, a4)
 
 void
 set_message (s, string, nbytes, multibyte_p)
-     char *s;
+     const char *s;
      Lisp_Object string;
      int nbytes;
 {
@@ -6930,7 +6932,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
      Lisp_Object a2;
      EMACS_INT nbytes, multibyte_p;
 {
-  char *s = (char *) a1;
+  const char *s = (const char *) a1;
   Lisp_Object string = a2;
 
   xassert (BEG == Z);
@@ -6984,7 +6986,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	{
 	  /* Convert from single-byte to multi-byte.  */
 	  int i, c, n;
-	  unsigned char *msg = (unsigned char *) s;
+	  const unsigned char *msg = (const unsigned char *) s;
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 
 	  /* Convert a single-byte string to multibyte.  */
@@ -7222,7 +7224,7 @@ store_frame_title_char (c)
 
 static int
 store_frame_title (str, field_width, precision)
-     unsigned char *str;
+     const unsigned char *str;
      int field_width, precision;
 {
   int n = 0;
@@ -12510,10 +12512,10 @@ get_overlay_arrow_glyph_row (w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct buffer *buffer = XBUFFER (w->buffer);
   struct buffer *old = current_buffer;
-  unsigned char *arrow_string = SDATA (Voverlay_arrow_string);
+  const unsigned char *arrow_string = SDATA (Voverlay_arrow_string);
   int arrow_len = SCHARS (Voverlay_arrow_string);
-  unsigned char *arrow_end = arrow_string + arrow_len;
-  unsigned char *p;
+  const unsigned char *arrow_end = arrow_string + arrow_len;
+  const unsigned char *p;
   struct it it;
   int multibyte_p;
   int n_glyphs_before;
@@ -13717,7 +13719,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
       {
 	/* A string: output it and check for %-constructs within it.  */
 	unsigned char c;
-	unsigned char *this, *lisp_string;
+	const unsigned char *this, *lisp_string;
 
 	if (!NILP (props) || risky)
 	  {
@@ -13794,7 +13796,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		   || !NILP (mode_line_string_list)
 		   || it->current_x < it->last_visible_x))
 	  {
-	    unsigned char *last = this;
+	    const unsigned char *last = this;
 
 	    /* Advance to end of string or next format specifier.  */
 	    while ((c = *this++) != '\0' && c != '%')
@@ -13833,7 +13835,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	      }
 	    else /* c == '%' */
 	      {
-		unsigned char *percent_position = this;
+		const unsigned char *percent_position = this;
 
 		/* Get the specified minimum width.  Zero means
 		   don't pad.  */
@@ -14333,7 +14335,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 {
   Lisp_Object val;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  unsigned char *eol_str;
+  const unsigned char *eol_str;
   int eol_str_len;
   /* The EOL conversion we are using.  */
   Lisp_Object eoltype;
@@ -14385,8 +14387,9 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       else if (INTEGERP (eoltype)
 	       && CHAR_VALID_P (XINT (eoltype), 0))
 	{
-	  eol_str = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
-	  eol_str_len = CHAR_STRING (XINT (eoltype), eol_str);
+	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
+	  eol_str_len = CHAR_STRING (XINT (eoltype), tmp);
+	  eol_str = tmp;
 	}
       else
 	{
