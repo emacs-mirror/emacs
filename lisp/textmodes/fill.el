@@ -1039,10 +1039,11 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 					  (point)
 					  (save-excursion (forward-line 2)
 							  (point))))
-				   (setq adjusted-two-lines-prefix
-					 (substring two-lines-prefix 0
-						    (string-match "[ \t]*\\'"
-								  two-lines-prefix)))
+				   (when two-lines-prefix
+				     (setq adjusted-two-lines-prefix
+					   (substring two-lines-prefix 0
+						      (string-match "[ \t]*\\'"
+								    two-lines-prefix))))
 				   ;; See if JUST-ONE-LINE-PREFIX
 				   ;; is the same as TWO-LINES-PREFIX
 				   ;; except perhaps with longer whitespace.
@@ -1087,8 +1088,5 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 	  (let ((had-newline (bolp)))
 	    (fill-region-as-paragraph start (point) justify)
 	    (or had-newline (delete-char -1))))))))
-
-(defun fill-strip-trailing-space (string)
-))
 
 ;;; fill.el ends here
