@@ -840,6 +840,17 @@ e.g. if you need more CJK coverage, use the current Mule-UCS package.
 Any files encoded as emacs-mule using oc-unicode won't be read
 correctly by Emacs 21.
 
+* Using epop3.el package causes Emacs to signal an error.
+
+The error message might be something like this:
+
+  "Lisp nesting exceeds max-lisp-eval-depth"
+
+This happens because epop3 redefines the function gethash, which is a
+built-in primitive beginning with Emacs 21.1.  We don't have a patch
+for epop3 that fixes this, but perhaps a newer version of epop3
+corrects that.
+
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
 shared libraries, for instance those for Xaw3d or image support.
