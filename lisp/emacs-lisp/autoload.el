@@ -62,39 +62,60 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
-Returns nil if FORM is not a function or variable or macro definition."
-  (let ((car (car-safe form)))
-    (if (memq car '(defun define-skeleton defmacro define-derived-mode 
-		     define-generic-mode easy-mmode-define-minor-mode
-		     define-minor-mode defun*))
-	(let* ((macrop (eq car 'defmacro))
-	       (name (nth 1 form))
-	       (body (nthcdr (get car 'doc-string-elt) form))
-	       (doc (if (stringp (car body)) (pop body))))
-	  ;; `define-generic-mode' quotes the name, so take care of that
-	  (list 'autoload (if (listp name) name (list 'quote name)) file doc
-		(or (and (memq car '(define-skeleton define-derived-mode
-				      define-generic-mode
-				      easy-mmode-define-minor-mode
-				      define-minor-mode)) t)
-		    (eq (car-safe (car body)) 'interactive))
-		(if macrop (list 'quote 'macro) nil)))
-      ;; Convert defcustom to a simpler (and less space-consuming) defvar,
-      ;; but add some extra stuff if it uses :require.
-      (if (eq car 'defcustom)
-	  (let ((varname (car-safe (cdr-safe form)))
-		(init (car-safe (cdr-safe (cdr-safe form))))
-		(doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
-		(rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form))))))
-	    (if (not (plist-get rest :require))
-		`(defvar ,varname ,init ,doc)
-	      `(progn
-		 (defvar ,varname ,init ,doc)
-		 (custom-add-to-group ,(plist-get rest :group)
-				      ',varname 'custom-variable)
-		 (custom-add-load ',varname
-				  ,(plist-get rest :require)))))
-	nil))))
+Returns nil if FORM is not a special autoload form (i.e. a function definition
+or macro definition or a defcustom)."
+  (let ((car (car-safe form)) expand)
+    (cond
+     ;; For complex cases, try again on the macro-expansion.
+     ((and (memq car '(easy-mmode-define-global-mode
+		       easy-mmode-define-minor-mode define-minor-mode))
+	   (setq expand (let ((load-file-name file)) (macroexpand form)))
+	   (eq (car expand) 'progn)
+	   (memq :autoload-end expand))
+      (let ((end (memq :autoload-end expand)))
+	;; Cut-off anything after the :autoload-end marker.
+	(setcdr end nil)
+	(cons 'progn
+	      (mapcar (lambda (form) (make-autoload form file))
+		      (cdr expand)))))
+
+     ;; For special function-like operators, use the `autoload' function.
+     ((memq car '(defun define-skeleton defmacro define-derived-mode
+		   define-generic-mode easy-mmode-define-minor-mode
+		   easy-mmode-define-global-mode
+		   define-minor-mode defun*))
+      (let* ((macrop (eq car 'defmacro))
+	     (name (nth 1 form))
+	     (body (nthcdr (get car 'doc-string-elt) form))
+	     (doc (if (stringp (car body)) (pop body))))
+	;; `define-generic-mode' quotes the name, so take care of that
+	(list 'autoload (if (listp name) name (list 'quote name)) file doc
+	      (or (and (memq car '(define-skeleton define-derived-mode
+				    define-generic-mode
+				    easy-mmode-define-global-mode
+				    easy-mmode-define-minor-mode
+				    define-minor-mode)) t)
+		  (eq (car-safe (car body)) 'interactive))
+	      (if macrop (list 'quote 'macro) nil))))
+
+     ;; Convert defcustom to a simpler (and less space-consuming) defvar,
+     ;; but add some extra stuff if it uses :require.
+     ((eq car 'defcustom)
+      (let ((varname (car-safe (cdr-safe form)))
+	    (init (car-safe (cdr-safe (cdr-safe form))))
+	    (doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
+	    (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form))))))
+	(if (not (plist-get rest :require))
+	    `(defvar ,varname ,init ,doc)
+	  `(progn
+	     (defvar ,varname ,init ,doc)
+	     (custom-add-to-group ,(plist-get rest :group)
+				  ',varname 'custom-variable)
+	     (custom-add-load ',varname
+			      ,(plist-get rest :require))))))
+
+     ;; nil here indicates that this is not a special autoload form.
+     (t nil))))
 
 ;;; Forms which have doc-strings which should be printed specially.
 ;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
@@ -127,6 +148,8 @@ Returns nil if FORM is not a function or variable or macro definition."
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
 (put 'define-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
+;; defin-global-mode has no explicit docstring.
+(put 'easy-mmode-define-global-mode 'doc-string-elt 1000)
 
 
 (defun autoload-trim-file-name (file)
