@@ -133,7 +133,8 @@ Type \\[describe-mode] once editing the article to get a list of commands."
 	     (if (eq major-mode 'gnus-article-mode) gnus-newsgroup-name))
 	    (subject nil)
 	    ;; Get default distribution.
-	    (distribution (car gnus-local-distributions)))
+	    (distribution (car gnus-local-distributions))
+	    (followup-to nil))
 	;; Connect to NNTP server if not connected yet, and get
 	;; several information.
 	(if (not (gnus-server-opened))
@@ -175,12 +176,18 @@ Type \\[describe-mode] once editing the article to get a list of commands."
 		;; Which do you like? (UMERIN)
 		;; (setq newsgroups (read-string "Newsgroups: " "general"))
 		(or newsgroups		;Use the default newsgroup.
-		    (setq newsgroups
-			  (completing-read "Newsgroup: "
-					   gnus-newsrc-assoc
-					   nil 'require-match
-					   newsgroups ;Default newsgroup.
-					   )))
+		    (let (group)
+		      (while (not
+			      (string=
+			       (setq group 
+				     (completing-read "Newsgroup: "
+						      gnus-newsrc-assoc
+						      nil 'require-match))
+			       ""))
+			(or followup-to (setq followup-to group))
+			(if newsgroups
+			    (setq newsgroups (concat newsgroups "," group))
+			  (setq newsgroups group)))))
 		(setq subject (read-string "Subject: "))
 		;; Choose a distribution from gnus-distribution-list.
 		;; completing-read should not be used with
@@ -207,6 +214,11 @@ Type \\[describe-mode] once editing the article to get a list of commands."
 	  ;; Suggested by ichikawa@flab.fujitsu.junet.
 	  (mail-position-on-field "Distribution")
 	  (insert (or distribution ""))
+	  ;; Add Followup-To header
+	  (if followup-to
+	      (progn
+		(mail-position-on-field "Followup-To")
+		(insert followup-to)))
 	  ;; Handle author copy using FCC field.
 	  (if gnus-author-copy
 	      (progn
