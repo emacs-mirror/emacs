@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.12) $
+ * $HopeName: MMsrc!mpm.h(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -107,7 +107,9 @@ extern Res WriteF(mps_lib_FILE *stream, ...);
 
 extern Bool RingCheck(Ring ring);
 extern Bool RingCheckSingle(Ring ring);
+extern Bool RingIsSingle(Ring ring);
 
+/* .ring.init: */
 extern void (RingInit)(Ring ring);
 #define RingInit(ring) \
   BEGIN \
@@ -117,6 +119,7 @@ extern void (RingInit)(Ring ring);
     AVER(RingCheck(ring)); \
   END
 
+/* .ring.finish: */
 extern void (RingFinish)(Ring ring);
 #define RingFinish(ring) \
   BEGIN \
@@ -125,6 +128,7 @@ extern void (RingFinish)(Ring ring);
     (ring)->prev = RingNONE; \
   END
 
+/* .ring.append: */
 extern void (RingAppend)(Ring ring, Ring new);
 #define RingAppend(ring, new) \
   BEGIN \
@@ -136,22 +140,27 @@ extern void (RingAppend)(Ring ring, Ring new);
     (ring)->prev = (new); \
   END
 
+/* .ring.remove: */
 extern void (RingRemove)(Ring old);
 #define RingRemove(old) \
   BEGIN \
     AVER(RingCheck(old)); \
+    AVER(!RingIsSingle(old)); \
     (old)->next->prev = (old)->prev; \
     (old)->prev->next = (old)->next; \
     (old)->next = (old); \
     (old)->prev = (old); \
   END
 
+/* .ring.next: */
 extern Ring (RingNext)(Ring ring);
 #define RingNext(ring)  ((ring)->next)
 
+/* .ring.elt: */
 #define RING_ELT(type, field, node) \
    ((type)((char *)(node) - (size_t)(&((type)0)->field)))
 
+/* .ring.for */
 #define RING_FOR(var, ring) \
   for(var = RingNext(ring); \
       var != (ring); \

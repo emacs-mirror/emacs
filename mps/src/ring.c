@@ -1,43 +1,35 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
- * $HopeName: MMsrc!ring.c(MMdevel_restr2.2) $
- * Copyright (C) 1995 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!ring.c(trunk.3) $
+ * Copyright (C) 1995,1996 Harlequin Group, all rights reserved.
  *
- * .def: Rings are circular doubly-linked lists of ring "nodes".  The nodes
- * are fields of structures which are the "elements" of the ring.
+ * .readership: Any MPS developer.
  *
- * .ex: For example:
+ * .intro: This is a portable implementation of Rings.
  *
- *   typedef struct FooStruct *Foo;     the element type
- *   typedef struct FooStruct {         the element structure
- *     int baz, bim;
- *     RingStruct ring;                 the ring node
- *     float bip, bop;
- *   } FooStruct;
+ * .purpose: Rings are used to manage potentially unbounded collections
+ * of things.
  *
- * .def.singleton: A "singleton" ring is a ring containing one node, whose
- * previous and next nodes are itself.
- *
- * .rationale: Because ring nodes are in-lined in their parent
- * structures the do not need to be managed.  This is especially useful
- * in avoiding re-entrancy and bootstrapping problems in the memory
- * manager.  Rings also provide flexible insertion and deletion because
- * the entire ring can be found from any node.
+ * .sources: design.mps.ring,
+ *   item 6 of mail.richard_brooksby.1996-03-25.16-02
  *
  * .where.type: The Ring type is defined in impl.h.mpmtypes.
- * .where.struct: The RingStruct structure is defined in impl.h.mpmst.
+ * .where.struct: The RingStruct structure is defined in
+ * impl.h.mpmst.ring.
  */
+
 
 #include "mpm.h"
 
-SRCID(ring, "$HopeName: MMsrc!ring.c(MMdevel_restr2.2) $");
+
+SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.3) $");
 
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node
  *
  * RingCheck performs a consistency check on the ring node. 
  * RingCheckSingle performs the same check, but also checks that
- * the ring node is a singleton (.def.singleton).
+ * the ring node is a singleton (design.mps.ring.def.singleton).
  */
 
 Bool RingCheck(Ring ring)
@@ -58,87 +50,71 @@ Bool RingCheckSingle(Ring ring)
   return TRUE;
 }
 
+Bool RingIsSingle(Ring ring)
+{
+  AVER(RingCheck(ring));
+  if(ring->next == ring) {
+    AVER(RingCheckSingle(ring));
+    return TRUE;
+  }
+  return FALSE;
+}
 
-/* Ringinit -- initialize a ring node
- *
- * A ring node is intialized to be a singleton (.def.singleton).
+
+/* RingInit -- initialize a ring node
  */
 
 void (RingInit)(Ring ring)
 {
-  RingInit(ring);                       /* impl.h.mpm.init */
+  RingInit(ring);                       /* impl.h.mpm.ring.init */
 }
 
 
 /* RingFinish -- finish a ring node
- *
- * The ring node must be a singleton to be finished (.def.singleton).
  */
  
 void (RingFinish)(Ring ring)
 {
-  RingFinish(ring);                     /* impl.h.mpm.finish */
+  RingFinish(ring);                     /* impl.h.mpm.ring.finish */
 }
 
 
 /* RingAppend -- add a ring node to the end of a ring
- *
- * The "new" node is added immediately previous to the "ring"
- * node, so that it appears at the end of the ring.  The "new" 
- * node must be a singleton (.def.singleton).
  */
 
 void (RingAppend)(Ring ring, Ring new)
 {
-  RingAppend(ring, new);                /* impl.h.mpm.append */
+  RingAppend(ring, new);                /* impl.h.mpm.ring.append */
 }
 
 
 /* RingRemove -- remove a node from a ring
- *
- * The "old" node is removed from the ring it occupies, and becomes
- * a singleton (.def.singleton).  (This has no effect if it is already
- * one.)
  */
 
 void (RingRemove)(Ring old)
 {
-  RingRemove(old);                      /* impl.h.mpm.remove */
+  RingRemove(old);                      /* impl.h.mpm.ring.remove */
 }
 
 
-/* RingNext -- get the next element of a ring */
+/* RingNext -- get the next element of a ring
+ */
 
 Ring (RingNext)(Ring ring)
 {
-  return RingNext(ring);                /* impl.h.mpm.next */
+  return RingNext(ring);                /* impl.h.mpm.ring.next */
 }
 
 
 /* RING_ELT -- get the ring element structure
  *
- * _type must be the type of a pointer to the enclosing structure,
- * _field is the name of the ring structure field within it, and
- * _ring is the ring node.  The result is a pointer to the enclosing
- * structure.
+ * RING_ELT has no function (as it does not have function-like
+ * behaviour), and is defined in impl.h.mpm.ring.elt.
  */
-
-/* RING_ELT has no function, and is defined in impl.h.mpm. */
 
 
 /* RING_FOR -- ring iterator construct
  *
- * This is a for-loop iterator construct for rings.  _var is the
- * iteration variable (of type Ring) to use.  The behaviour is
- * undefined if the ring is modified during the iteration.
- *
- * .ring_for.ex: For example:
- *
- *   Ring ring;
- *   RING_FOR(ring, &foo->barRing) {
- *     Bar bar = RING_ELT(Bar, FooRing, ring);
- *     frob(bar);
- *   }
+ * RING_FOR has no function (as it does not have function-like
+ * behaviour), and is defined in impl.h.mpm.ring.for.
  */
-
-/* RING_FOR has no function, and is defined in impl.h.mpm. */
