@@ -84,7 +84,8 @@ enum w32_char_font_type
   UNKNOWN_FONT,
   ANSI_FONT,
   UNICODE_FONT,
-  BDF_FONT
+  BDF_1D_FONT,
+  BDF_2D_FONT
 };
 
 /* Bitmaps are all unsigned short, as Windows requires bitmap data to
@@ -1125,11 +1126,47 @@ static void x_produce_image_glyph P_ ((struct it *it));
  ((ch) & 0x00ff)
 
 
-/* NTEMACS_TODO: Add support for bdf fonts back in. */
-
 /* Get metrics of character CHAR2B in FONT.  Value is always non-null.
    If CHAR2B is not contained in FONT, the font's default character
    metric is returned. */
+
+static XCharStruct *
+w32_bdf_per_char_metric (font, char2b, dim)
+     XFontStruct *font;
+     wchar_t *char2b;
+     int dim;
+{
+  glyph_metric * bdf_metric;
+  char buf[2];
+  XCharStruct * pcm = (XCharStruct *) xmalloc (sizeof (XCharStruct));
+
+  if (dim == 1)
+    buf[0] = (char)char2b;
+  else
+    {
+      buf[0] = BYTE1 (*char2b);
+      buf[1] = BYTE2 (*char2b);
+    }
+
+  bdf_metric = w32_BDF_TextMetric (font->bdf, buf, dim);
+
+  if (bdf_metric)
+    {
+      pcm->width = bdf_metric->dwidth;
+      pcm->lbearing = bdf_metric->bbox;
+      pcm->rbearing = bdf_metric->dwidth
+                    - (bdf_metric->bbox + bdf_metric->bbw);
+      pcm->ascent = bdf_metric->bboy + bdf_metric->bbh;
+      pcm->descent = bdf_metric->bboy;
+    }
+  else
+    {
+      xfree (pcm);
+      return NULL;
+    }
+  return pcm;
+}
+
 
 static XCharStruct *
 w32_per_char_metric (hdc, font, char2b, font_type)
@@ -1138,21 +1175,20 @@ w32_per_char_metric (hdc, font, char2b, font_type)
      wchar_t *char2b;
      enum w32_char_font_type font_type;
 {
+  /* NTEMACS_TODO: Use GetGlyphOutline where possible (no Unicode
+     version on W9x) */
+
   /* The result metric information.  */
   XCharStruct *pcm;
   BOOL retval;
 
   xassert (font && char2b);
+  xassert (font_type != UNKNOWN_FONT);
 
-  if (font_type == UNKNOWN_FONT)
-    {
-      if (font->bdf)
-        font_type = BDF_FONT;
-      else if (!w32_enable_unicode_output)
-        font_type = ANSI_FONT;
-      else
-        font_type = UNICODE_FONT;
-    }
+  if (font_type == BDF_1D_FONT)
+    return w32_bdf_per_char_metric (font, char2b, 1);
+  else if (font_type == BDF_2D_FONT)
+    return w32_bdf_per_char_metric (font, char2b, 2);
 
   pcm = (XCharStruct *) xmalloc (sizeof (XCharStruct));
 
@@ -1224,7 +1260,7 @@ w32_per_char_metric (hdc, font, char2b, font_type)
   if (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0)
     {
       xfree (pcm);
-      pcm = NULL;
+      return NULL;
     }
 
   return pcm;
@@ -1254,7 +1290,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 
   XFontStruct *font = font_info->font;
 
-  xassert(two_byte_p);
+  xassert (two_byte_p);
 
   *two_byte_p = w32_font_is_double_byte (font);
 
@@ -1329,8 +1365,10 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
     }
   if (!font)
     return UNKNOWN_FONT;
+  else if (font->bdf && CHARSET_DIMENSION (charset) == 1)
+    return BDF_1D_FONT;
   else if (font->bdf)
-    return BDF_FONT;
+    return BDF_2D_FONT;
   else if (unicode_p)
     return UNICODE_FONT;
   else
@@ -1916,7 +1954,7 @@ x_produce_glyphs (it)
 	  it->nglyphs = 1;
 
           pcm = w32_per_char_metric (hdc, font, &char2b,
-                                     font->bdf ? BDF_FONT : ANSI_FONT);
+                                     font->bdf ? BDF_1D_FONT : ANSI_FONT);
 	  it->ascent = FONT_BASE (font) + boff;
 	  it->descent = FONT_DESCENT (font) - boff;
 
@@ -1929,9 +1967,9 @@ x_produce_glyphs (it)
           else
             {
               it->glyph_not_available_p = 1;
-              it->phys_ascent = FONT_BASE(font) + boff;
-              it->phys_descent = FONT_DESCENT(font) - boff;
-              it->pixel_width = FONT_WIDTH(font);
+              it->phys_ascent = FONT_BASE (font) + boff;
+              it->phys_descent = FONT_DESCENT (font) - boff;
+              it->pixel_width = FONT_WIDTH (font);
             }
           
 	  /* If this is a space inside a region of text with
@@ -2008,6 +2046,12 @@ x_produce_glyphs (it)
 	  int x = it->current_x + it->continuation_lines_width;
 	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
       
+	  /* If the distance from the current position to the next tab
+	     stop is less than a canonical character width, use the
+	     tab stop after that.  */
+	  if (next_tab_x - x < CANON_X_UNIT (it->f))
+	    next_tab_x += tab_width;
+
 	  it->pixel_width = next_tab_x - x;
 	  it->nglyphs = 1;
 	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
@@ -2028,8 +2072,16 @@ x_produce_glyphs (it)
              default font and calculate the width of the character
              from the charset width; this is what old redisplay code
              did.  */
-          pcm = w32_per_char_metric (hdc, font, &char2b,
-                                     font->bdf ? BDF_FONT : UNICODE_FONT);
+          enum w32_char_font_type type;
+
+          if (font->bdf && CHARSET_DIMENSION (CHAR_CHARSET (it->c)) == 1)
+            type = BDF_1D_FONT;
+          else if (font->bdf)
+            type = BDF_2D_FONT;
+          else
+            type = UNICODE_FONT;
+
+          pcm = w32_per_char_metric (hdc, font, &char2b, type);
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -2263,7 +2315,7 @@ struct glyph_string
 
 /* Encapsulate the different ways of displaying text under W32.  */
 
-void W32_TEXTOUT(s, x, y,chars,nchars)
+void W32_TEXTOUT (s, x, y,chars,nchars)
      struct glyph_string * s;
      int x, y;
      wchar_t * chars;
@@ -2928,6 +2980,7 @@ x_draw_glyph_string_background (s, force_p)
         if (FONT_HEIGHT (s->font) < s->height - 2 * s->face->box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
+               || s->font->bdf
 	       || force_p)
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + s->face->box_line_width,
@@ -3414,7 +3467,7 @@ x_draw_image_foreground (s)
 	  if (s->hl == DRAW_CURSOR)
             w32_draw_rectangle (s->hdc, s->gc, x, y, s->img->width - 1,
                                 s->img->height - 1);
-          w32_set_clip_rectangle(s->hdc, NULL);
+          w32_set_clip_rectangle (s->hdc, NULL);
 	}
     }
   else
@@ -3676,10 +3729,6 @@ x_draw_image_glyph_string (s)
 	}
       else
 #endif
-	/* Implementation idea: Is it possible to construct a mask?
-	   We could look at the color at the margins of the image, and
-	   say that this color is probably the background color of the
-	   image.  */
 	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
       
       s->background_filled_p = 1;
@@ -4380,8 +4429,10 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   HDC hdc = get_frame_dc (XFRAME (WINDOW_FRAME (w)));
 
   /* Let's rather be paranoid than getting a SEGV.  */
-  start = max (0, start);
   end = min (end, row->used[area]);
+  start = max (0, start);
+  start = min (end, start);
+
   if (real_start)
     *real_start = start;
   if (real_end)
@@ -4435,7 +4486,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   /* If there are any glyphs with lbearing < 0 or rbearing > width in
      the row, redraw some glyphs in front or following the glyph
      strings built above.  */
-  if (!overlaps_p && row->contains_overlapping_glyphs_p)
+  if (head && !overlaps_p && row->contains_overlapping_glyphs_p)
     {
       int dummy_x = 0;
       struct glyph_string *h, *t;
@@ -5339,7 +5390,7 @@ x_get_keysym_name (keysym)
   static char value[100];
 
   BLOCK_INPUT;
-  GetKeyNameText(keysym, value, 100);
+  GetKeyNameText (keysym, value, 100);
   UNBLOCK_INPUT;
 
   return value;
@@ -5373,7 +5424,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
   /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
      even for negative values.  */
   if (pix_x < 0)
-    pix_x -= FONT_WIDTH (FRAME_FONT(f)) - 1;
+    pix_x -= FONT_WIDTH (FRAME_FONT (f)) - 1;
   if (pix_y < 0)
     pix_y -= (f)->output_data.w32->line_height - 1;
 
@@ -5384,7 +5435,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
     {
       bounds->left = CHAR_TO_PIXEL_COL (f, pix_x);
       bounds->top = CHAR_TO_PIXEL_ROW (f, pix_y);
-      bounds->right  = bounds->left + FONT_WIDTH  (FRAME_FONT(f)) - 1;
+      bounds->right  = bounds->left + FONT_WIDTH  (FRAME_FONT (f)) - 1;
       bounds->bottom = bounds->top + f->output_data.w32->line_height - 1;
     }
 
@@ -5553,7 +5604,7 @@ construct_mouse_wheel (result, msg, f)
   result->modifiers = msg->dwModifiers;
   p.x = LOWORD (msg->msg.lParam);
   p.y = HIWORD (msg->msg.lParam);
-  ScreenToClient(msg->msg.hwnd, &p);
+  ScreenToClient (msg->msg.hwnd, &p);
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
   XSETFRAME (result->frame_or_window, f);
@@ -6590,9 +6641,11 @@ x_clear_mouse_face (w)
     = FRAME_W32_DISPLAY_INFO (XFRAME (w->frame));
   Lisp_Object window;
 
+  BLOCK_INPUT;
   XSETWINDOW (window, w);
   if (EQ (window, dpyinfo->mouse_face_window))
     clear_mouse_face (dpyinfo);
+  UNBLOCK_INPUT;
 }
 
 
@@ -6680,13 +6733,15 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 	else
 	  {
 	    /* Is window under mouse one of our frames?  */
-	    f1 = x_window_to_frame (FRAME_W32_DISPLAY_INFO (*fp), WindowFromPoint(pt));
+	    f1 = x_window_to_frame (FRAME_W32_DISPLAY_INFO (*fp),
+                                    WindowFromPoint (pt));
 	  }
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
 	  {
-	    struct scroll_bar *bar = x_window_to_scroll_bar (WindowFromPoint(pt));
+	    struct scroll_bar *bar
+              = x_window_to_scroll_bar (WindowFromPoint (pt));
 
 	    if (bar)
 	      {
@@ -7418,8 +7473,8 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
       break;
   }
 
-  XSETINT(*x, pos);
-  XSETINT(*y, top_range);
+  XSETINT (*x, pos);
+  XSETINT (*y, top_range);
 
   f->mouse_moved = 0;
   last_mouse_scroll_bar = Qnil;
@@ -7582,7 +7637,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 			count++;
 			numchars--;
 		      }
-		    else if (! NILP(Vframe_list)
+		    else if (! NILP (Vframe_list)
 			     && ! NILP (XCDR (Vframe_list)))
 		      /* Force a redisplay sooner or later to update the
 			 frame titles in case this is the second frame.  */
@@ -7953,7 +8008,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      int width;
 	      int height;
 	      
-	      GetClientRect(msg.msg.hwnd, &rect);
+	      GetClientRect (msg.msg.hwnd, &rect);
 	      
 	      height = rect.bottom - rect.top;
 	      width = rect.right - rect.left;
@@ -8570,7 +8625,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
         {
 	  extern int cursor_in_non_selected_windows;
 
-          if (MINI_WINDOW_P (w) || !cursor_in_non_selected_windows)
+          if (MINI_WINDOW_P (w) 
+              || !cursor_in_non_selected_windows
+              || NILP (XBUFFER (w->buffer)->cursor_type))
             new_cursor_type = NO_CURSOR;
           else
             new_cursor_type = HOLLOW_BOX_CURSOR;
@@ -9649,7 +9706,7 @@ x_delete_display (dpyinfo)
     {
       struct w32_palette_entry * pentry = plist;
       plist = plist->next;
-      xfree(pentry);
+      xfree (pentry);
     }
     dpyinfo->color_list = NULL;
     if (dpyinfo->palette)
@@ -9777,8 +9834,8 @@ w32_initialize ()
 #define LOAD_PROC(fn) pfn##fn = (void *) GetProcAddress (user_lib, #fn)
 
     /* New proportional scroll bar functions. */
-    LOAD_PROC( SetScrollInfo );
-    LOAD_PROC( GetScrollInfo );
+    LOAD_PROC (SetScrollInfo);
+    LOAD_PROC (GetScrollInfo);
 
 #undef LOAD_PROC
 
