@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/07/15 03:46:02 $|$Revision: 1.46 $
+;; |$Date: 1993/07/31 18:39:09 $|$Revision: 1.47 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -1090,9 +1090,9 @@ If you want to search for just a space, type C-q SPC."
 	()
       (set yank-pointer-name
 	   (setq yank-pointer
-		 (% (+ (or yank-pointer 0)
-		       (if advance (1- length) 1))
-		    length)))
+		 (mod (+ (or yank-pointer 0)
+			 (if advance -1 1))
+		      length)))
       (setq isearch-string (nth yank-pointer ring)
 	    isearch-message (mapconcat 'isearch-text-char-description
 				       isearch-string "")))))
@@ -1134,11 +1134,8 @@ If you want to search for just a space, type C-q SPC."
 	()
       (set yank-pointer-name
 	   (setq yank-pointer
-		 (% (+ (or yank-pointer 0)
-		       ;; Add LENGTH here to ensure a positive result.
-		       length
-		       (% (- n) length))
-		    length)))
+		 (mod (- (or yank-pointer 0) n)
+		      length)))
 
       (erase-buffer)
       (insert (nth yank-pointer ring))
