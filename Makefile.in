@@ -605,7 +605,7 @@ extraclean:
 ### Note: it's no disaster if these productions miss a file or two; tar
 ### and VC will swiftly let you know if this happens, and it is easily
 ### corrected.
-SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in \
+SOURCES = ChangeLog FTP INSTALL Makefile.in \
 	README configure make-dist move-if-change
 
 .PHONY: unlock relock
