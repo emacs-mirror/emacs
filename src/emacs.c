@@ -694,7 +694,7 @@ main (argc, argv, envp)
      char **argv;
      char **envp;
 {
-#ifdef GC_MARK_STACK
+#if GC_MARK_STACK
   Lisp_Object dummy;
 #endif
   char stack_bottom_variable;
@@ -707,7 +707,7 @@ main (argc, argv, envp)
 #endif
   int no_loadup = 0;
 
-#ifdef GC_MARK_STACK
+#if GC_MARK_STACK
   extern Lisp_Object *stack_base;
   stack_base = &dummy;
 #endif
