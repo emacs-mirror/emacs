@@ -1,3 +1,7 @@
+1999-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xfaces.c (tty_defined_color): Fix last change.
+
 1999-12-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_window) <optional new window start>: Check

@@ -1090,7 +1090,7 @@ tty_defined_color (f, color_name, color_def, alloc)
     {
       status = 0;
       color_desc = call1 (Qtty_color_desc, build_string (color_name));
-      if (!NILP (color_desc) && CONSP (color_desc))
+      if (CONSP (color_desc) && CONSP (XCDR (color_desc)))
 	{
 	  color_idx = XINT (XCAR (XCDR (color_desc)));
 	  if (CONSP (XCDR (XCDR (color_desc))))
