@@ -1,3 +1,8 @@
+2004-05-06  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el: Improve/extend documentation strings.
+	Fit first sentence on one line for apropos-command.
+
 2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Changes largely merged in from Dave Love's code.
