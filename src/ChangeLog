@@ -1,3 +1,10 @@
+2000-05-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (find_glyph_row_slice, swap_glyphs_in_rows): Put
+	in #if 0.
+
+	* lisp.h (eassert) [!ENABLE_CHECKING]: Define as `(void) 0'.
+
 2000-05-31  Jason Rumney  <jasonr@gnu.org>
 
 	* search.c (Fre_search_forward, Fre_search_backward)
