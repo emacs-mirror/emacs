@@ -1,3 +1,8 @@
+2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* cus-start.el: Add automatic-hscroll-margin and
+	automatic-hscroll-step.
+
 2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el (x-autoselect-window): Allow customization.

@@ -1,3 +1,11 @@
+2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step): New
+	variables.
+	(syms_of_xdisp): DEVFAR them.
+	(hscroll_window_tree): Use automatic_hscroll_margin and
+	Vautomatic_hscroll_step to compute the amount of window scrolling.
+
 2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (x-autoselect-window): New variable.
