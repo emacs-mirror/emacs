@@ -648,7 +648,7 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
   if (FLOATP (arg))
     IN_FLOAT (arg = make_float (fabs (XFLOAT (arg)->data)), "abs", arg);
   else if (XINT (arg) < 0)
-    XSETINT (arg, - XFASTINT (arg));
+    XSETINT (arg, - XINT (arg));
 
   return arg;
 }
