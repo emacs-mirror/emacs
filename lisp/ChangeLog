@@ -1,3 +1,9 @@
+2000-04-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (encoded-string-description):
+	Rewritten.   Try pretty description for ISO 2022 escape sequences
+	only if CODING-SYSTEM is based on ISO 2022.
+
 2000-04-01  Dave Love  <fx@gnu.org>
 
 	* cpp.el: Change customization group to `c' from `C'.
