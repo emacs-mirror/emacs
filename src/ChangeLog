@@ -1,3 +1,7 @@
+2000-06-01  Dave Love  <fx@gnu.org>
+
+	* terminfo.c (ospeed) [HAVE_SPEED_T]: Don't declare extern.
+
 2000-05-31  Dave Love  <fx@gnu.org>
 
 	* textprop.c: Revert last change -- duplicated.
@@ -4421,8 +4425,6 @@
 	of the current buffer via Fset.
 
 1999-11-24  Dave Love  <fx@gnu.org>
-
-	* xfns.c: Don't duplicate Qdisplay definition done elsewhere.
 
 	* xfaces.c: Don't duplicate Qmode_line definition done elsewhere.
 
