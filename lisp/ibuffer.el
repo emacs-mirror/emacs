@@ -1679,14 +1679,14 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
 	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
     (nreverse ibuffer-current-state-list-tmp)))
 
-(defun ibuffer-current-buffers-with-marks (bufs)
+(defun ibuffer-current-buffers-with-marks (curbufs)
   "Return a list like (BUF . MARK) of all open buffers."
   (let ((bufs (ibuffer-current-state-list)))
     (mapcar #'(lambda (buf) (let ((e (assq buf bufs)))
 			      (if e
 				  e
 				(cons buf ? ))))
-	    bufs)))
+	    curbufs)))
 
 (defun ibuffer-buf-matches-predicates (buf predicates)
   (let ((hit nil)
