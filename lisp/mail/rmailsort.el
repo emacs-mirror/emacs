@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.18 1994/03/23 21:49:16 kwzh Exp kwzh $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.19 1994/03/30 02:21:48 kwzh Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -154,7 +154,7 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	    (msgnum 1)
 	    (msginfo nil))
 	;; There's little hope that we can easily undo after that.
-	(buffer-flush-undo (current-buffer))
+	(buffer-disable-undo (current-buffer))
 	(goto-char (rmail-msgbeg 1))
 	;; To force update of all markers.
 	(insert-before-markers ?Z)
