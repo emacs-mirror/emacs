@@ -884,11 +884,14 @@ echo "Checking if the compiler supports \`const'."
 rm -f conftest*
 compile='${default_cc} conftest.c -o conftest >/dev/null 2>&1'
 echo "
-main() { exit(0); } t() { /* Ultrix mips cc rejects this.  */
+main() { exit(0); } t() {
+/* Ultrix mips cc rejects this.  */
 typedef int charset[2]; const charset x;
 /* SunOS 4.1.1 cc rejects this. */
 char const *const *p;
 char **p2;
+/* AIX 3.2 cc rejects this.  */
+p += p ? p-p : 0;
 /* HPUX 7.0 cc rejects these. */
 ++p;
 p2 = (char const* const*) p;
