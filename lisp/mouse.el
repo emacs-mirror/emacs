@@ -36,6 +36,8 @@
 ;;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
 
+(defvar mouse-yank-at-point nil
+  "*If non-nil, mouse yank commands yank at point instead of at click.")
 
 (defun mouse-delete-window (click)
   "Delete the window you click on.
@@ -356,9 +358,12 @@ The text is saved in the kill ring, as with \\[kill-region]."
 
 (defun mouse-yank-at-click (click arg)
   "Insert the last stretch of killed text at the position clicked on.
-Prefix arguments are interpreted as with \\[yank]."
+Also move point to one end of the text thus inserted (normally the end).
+Prefix arguments are interpreted as with \\[yank].
+If `mouse-yank-at-point' is non-nil, insert at point
+regardless of where you click."
   (interactive "e\nP")
-  (mouse-set-point click)
+  (or mouse-yank-at-point (mouse-set-point click))
   (setq this-command 'yank)
   (yank arg))
 
@@ -647,12 +652,13 @@ This must be bound to a button-down mouse event."
 				 (overlay-end mouse-secondary-overlay)))))))))
 
 (defun mouse-yank-secondary (click)
-  "Insert the secondary selection at the position clicked on."
+  "Insert the secondary selection at the position clicked on.
+Move point to the end of the inserted text.
+If `mouse-yank-at-point' is non-nil, insert at point
+regardless of where you click."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-start click))))
-    (goto-char (posn-point (event-start click)))
-    (insert (x-get-selection 'SECONDARY))))
+  (or mouse-yank-at-point (mouse-set-point click))
+  (insert (x-get-selection 'SECONDARY)))
 
 (defun mouse-kill-secondary ()
   "Kill the text in the secondary selection.
