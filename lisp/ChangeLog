@@ -5,8 +5,10 @@
 	documentation of vc-BACKEND-checkout to explain this.
 
 	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
+	(vc-rcs-checkin): By default, specify the current workfile
+	branch as the check-in revision.
 
-	* vc-cvs.el (vc-cvs-checkout): Likewise.
+	* vc-cvs.el (vc-cvs-checkout): Handle t argument for REV.
 
 	* vc-sccs.el (vc-sccs-checkout): Likewise.
 
