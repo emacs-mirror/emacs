@@ -676,15 +676,15 @@ and TO is ignored."
 			  (coding-system-category elt)))
 	    (push elt l))))
 
-      ;; Make sure the offending buffer is displayed.
-      (or (stringp from)
-	  (pop-to-buffer bufname))
-      (save-excursion
-	(goto-char (unencodable-char-position
-		    from to (mapcar #'car default-coding-system)))
-	;; Then ask users to select one form CODINGS.
-	(unwind-protect
-	    (save-window-excursion
+      (unwind-protect
+	  (save-window-excursion
+	    (save-excursion
+	      ;; Make sure the offending buffer is displayed.
+	      (unless (stringp from)
+		(pop-to-buffer bufname)
+		(goto-char (unencodable-char-position
+				from to (mapcar #'car default-coding-system))))
+	      ;; Then ask users to select one from CODINGS.
 	      (with-output-to-temp-buffer "*Warning*"
 		(save-excursion
 		  (set-buffer standard-output)
