@@ -107,6 +107,11 @@ The input is contained in the region from `eshell-last-input-start' to
   :type 'hook
   :group 'eshell-mode)
 
+(defcustom eshell-send-direct-to-subprocesses nil
+  "*If t, send any input immediately to a subprocess."
+  :type 'boolean
+  :group 'eshell-mode)
+
 (defcustom eshell-expand-input-functions nil
   "*Functions to call before input is parsed.
 Each function is passed two arguments, which bounds the region of the
@@ -331,6 +336,7 @@ sessions, such as when using `eshell-command'.")
   (if (eq (key-binding [(meta ?.)]) 'find-tag)
       (define-key eshell-mode-map [(meta ?.)] 'eshell-find-tag))
   (define-key eshell-command-map [(meta ?o)] 'eshell-mark-output)
+  (define-key eshell-command-map [(meta ?d)] 'eshell-toggle-direct-send)
 
   (define-key eshell-command-map [(control ?a)] 'eshell-bol)
   (define-key eshell-command-map [(control ?b)] 'eshell-backward-argument)
@@ -414,9 +420,13 @@ sessions, such as when using `eshell-command'.")
       (if (and load-hook (boundp load-hook))
 	  (run-hooks load-hook))))
 
-  (when eshell-scroll-to-bottom-on-input
-    (make-local-hook 'pre-command-hook)
-    (add-hook 'pre-command-hook 'eshell-preinput-scroll-to-bottom t t))
+  (make-local-hook 'pre-command-hook)
+
+  (if eshell-send-direct-to-subprocesses
+      (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
+
+  (if eshell-scroll-to-bottom-on-input
+      (add-hook 'pre-command-hook 'eshell-preinput-scroll-to-bottom t t))
 
   (when eshell-scroll-show-maximum-output
     (set (make-local-variable 'scroll-conservatively) 1000))
@@ -470,6 +480,44 @@ sessions, such as when using `eshell-command'.")
 	   (equal eshell-command-running-string "--"))))
 
 ;;; Internal Functions:
+
+(defun eshell-toggle-direct-send ()
+  (interactive)
+  (if eshell-send-direct-to-subprocesses
+      (progn
+	(setq eshell-send-direct-to-subprocesses nil)
+	(remove-hook 'pre-command-hook 'eshell-intercept-commands t)
+	(message "Sending subprocess input on RET"))
+    (setq eshell-send-direct-to-subprocesses t)
+    (add-hook 'pre-command-hook 'eshell-intercept-commands t t)
+    (message "Sending subprocess input directly")))
+
+(defun eshell-self-insert-command (N)
+  (interactive "i")
+  (process-send-string
+   (eshell-interactive-process)
+   (char-to-string (if (symbolp last-command-char)
+		       (get last-command-char 'ascii-character)
+		     last-command-char))))
+
+(defun eshell-intercept-commands ()
+  (when (and (eshell-interactive-process)
+	     (not (and (integerp last-input-event)
+		       (memq last-input-event '(?\C-x ?\C-c)))))
+    (let ((possible-events (where-is-internal this-command))
+	  (name (symbol-name this-command))
+	  (intercept t))
+      ;; Assume that any multikey combination which does NOT target an
+      ;; Eshell command, is a combo the user wants invoked rather than
+      ;; sent to the underlying subprocess.
+      (unless (and (> (length name) 7)
+		   (equal (substring name 0 7) "eshell-"))
+	(while possible-events
+	  (if (> (length (car possible-events)) 1)
+	      (setq intercept nil possible-events nil)
+	    (setq possible-events (cdr possible-events)))))
+      (if intercept
+	  (setq this-command 'eshell-self-insert-command)))))
 
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
   "A special version of `find-tag' that ignores read-onlyness."
@@ -652,12 +700,15 @@ newline."
 	(let ((copy (eshell-get-old-input use-region)))
 	  (goto-char eshell-last-output-end)
 	  (insert-and-inherit copy)))
-      (unless no-newline
+      (unless (or no-newline
+		  (and eshell-send-direct-to-subprocesses
+		       proc-running-p))
 	(insert-before-markers-and-inherit ?\n))
       (if proc-running-p
 	  (progn
 	    (eshell-update-markers eshell-last-output-end)
-	    (if (= eshell-last-input-start eshell-last-input-end)
+	    (if (or eshell-send-direct-to-subprocesses
+		    (= eshell-last-input-start eshell-last-input-end))
 		(unless no-newline
 		  (process-send-string (eshell-interactive-process) "\n"))
 	      (process-send-region (eshell-interactive-process)

@@ -686,7 +686,11 @@ Magic characters are those in `pcomplete-arg-quote-list'."
 (defsubst pcomplete-dirs-or-entries (&optional regexp predicate)
   "Return either directories, or qualified entries."
   (append (let ((pcomplete-stub pcomplete-stub))
-	    (pcomplete-entries regexp predicate))
+	    (pcomplete-entries
+	     regexp (or predicate
+			(function
+			 (lambda (path)
+			   (not (file-directory-p path)))))))
 	  (pcomplete-entries nil 'file-directory-p)))
 
 (defun pcomplete-entries (&optional regexp predicate)

@@ -299,6 +299,13 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 		(match-string 2 (car sets))))
     (setq sets (cdr sets))))
 
+(defun pcomplete/eshell-mode/export ()
+  "Completion function for Eshell's `export'."
+  (while (pcomplete-here
+	  (if eshell-complete-export-definition
+	      process-environment
+	    (eshell-envvar-names)))))
+
 (defun eshell/unset (&rest args)
   "Unset an environment variable."
   (while args
@@ -306,12 +313,9 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 	(setenv (car args) nil t))
     (setq args (cdr args))))
 
-(defun pcomplete/eshell-mode/export ()
-  "Completion function for Eshell's `export'."
-  (while (pcomplete-here
-	  (if eshell-complete-export-definition
-	      process-environment
-	    (eshell-envvar-names)))))
+(defun pcomplete/eshell-mode/unset ()
+  "Completion function for Eshell's `unset'."
+  (while (pcomplete-here (eshell-envvar-names))))
 
 (defun eshell/setq (&rest args)
   "Allow command-ish use of `setq'."

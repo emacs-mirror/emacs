@@ -1,3 +1,28 @@
+2000-09-01  John Wiegley  <johnw@gnu.org>
+
+	* pcomplete.el (pcomplete-dirs-or-entries): Added a missing
+	predicate, which caused entries in the completion list to be
+	doubled.
+
+2000-08-30  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-mode.el (eshell-mode): Bound C-c M-d to toggle direct
+	sending to subprocesses.  Also, hook pre-command-hook if
+	`eshell-send-direct-to-subprocesses' is non-nil.
+	(eshell-send-direct-to-subprocesses): New config variable.  If t,
+	subprocess input is send immediately.
+	(eshell-toggle-direct-send): New function.
+	(eshell-self-insert-command): New function.
+	(eshell-intercept-commands): New function.
+	(eshell-send-input): If direct subprocess sending is enabled,
+	don't echo any input to the Eshell buffer.  Let the subprocess
+	handle that.  This requires "stty echo" in bash, for example.
+
+2000-08-28  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-var.el (pcomplete/eshell-mode/unset): Added
+	completion function for Eshell's implementation of `unset'.
+
 2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-directory-list): Doc fix.
