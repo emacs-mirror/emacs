@@ -139,6 +139,8 @@
       (load "dos-w32")
       (load "dos-fns")
       (load "dos-vars")
+      (load "international/ccl") ; for cpNNN coding systems in codepage.el
+      (load "international/codepage")	; internal.el uses cpNNN coding systems
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
 (if (fboundp 'atan)	; preload some constants and 
     (progn		; floating pt. functions if we have float support.
