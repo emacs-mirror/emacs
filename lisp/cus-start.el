@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins.
 ;;
-;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -54,9 +54,9 @@
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
 	     (transient-mark-mode editing-basics boolean)
-	     (indicate-empty-lines display boolean)
-	     (scroll-up-aggressively windows boolean)
-	     (scroll-down-aggressively windows boolean)
+	     (indicate-empty-lines display boolean "21.1")
+	     (scroll-up-aggressively windows boolean "21.1")
+	     (scroll-down-aggressively windows boolean "21.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -105,7 +105,7 @@
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
 	     ;; fns.c
-	     (use-dialog-box menu boolean)
+	     (use-dialog-box menu boolean "21.1")
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -130,11 +130,16 @@
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
 	     ;; lread.c
-	     (load-path environment 
-			(repeat (choice :tag "[Current dir?]"
-					:format "%[Current dir?%] %v"
-					(const :tag " current dir" nil)
-					(directory :format "%v"))))
+
+;; This is not good news because it will use the wrong
+;; version-specific directories when you upgrade.  We need
+;; customization of the front of the list, maintaining the standard
+;; value intact at the back.
+;;; 	     (load-path environment 
+;;; 			(repeat (choice :tag "[Current dir?]"
+;;; 					:format "%[Current dir?%] %v"
+;;; 					(const :tag " current dir" nil)
+;;;					(directory :format "%v"))))
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
@@ -192,7 +197,9 @@
 	     (scroll-margin windows integer)
 	     (truncate-partial-width-windows display boolean)
 	     (mode-line-inverse-video modeline boolean)
-	     (line-number-display-limit display integer)
+	     (line-number-display-limit display
+					(choice integer
+						(const :tag "No limit" nil)))
 	     (highlight-nonselected-windows display boolean)
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
@@ -203,8 +210,8 @@
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
 	     ;; xterm.c
-	     (x-stretch-cursor display boolean)))
-      this symbol group type native-p
+	     (x-stretch-cursor display boolean "21.1")))
+      this symbol group type native-p version
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -213,9 +220,9 @@
 			(and (listp sexp)
 			     (memq (car sexp) '(lambda)))
 			(stringp sexp)
-			(numberp sexp)
-			(and (fboundp 'characterp)
-			     (characterp sexp)))
+;; 			(and (fboundp 'characterp)
+;; 			     (characterp sexp))
+			(numberp sexp))
 		    sexp
 		  (list 'quote sexp)))))
   (while all 
@@ -224,6 +231,7 @@
 	  symbol (nth 0 this)
 	  group (nth 1 this)
 	  type (nth 2 this)
+	  version (nth 3 this)
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
@@ -247,7 +255,8 @@
 	;; Add it to the right group.
 	(custom-add-to-group group symbol 'custom-variable)
 	;; Set the type.
-	(put symbol 'custom-type type)))))
+	(put symbol 'custom-type type)
+	(put symbol 'custom-version version)))))
 
 ;; Record cus-start as loaded
 ;; if we have set up all the info that we can set up.
