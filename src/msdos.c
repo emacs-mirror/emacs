@@ -701,7 +701,6 @@ IT_cmgoto (f)
       && XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top) <= new_pos_Y)
     {
       new_pos_X = FRAME_DESIRED_GLYPHS (f)->used[new_pos_Y];
-      FRAME_CURSOR_X (f) = new_pos_X;
       update_cursor_pos = 1;
     }
 
