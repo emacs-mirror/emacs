@@ -1,3 +1,11 @@
+2000-12-11  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* idlwave.texi: Updated to IDLWAVE version 4.7
+
+2000-12-10  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* reftex.texi: Updated to RefTeX version 4.15
+
 2000-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* macos.texi: Fix markup and @node lines for inclusion in the

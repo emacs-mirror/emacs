@@ -1,3 +1,16 @@
+2000-12-11  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* progmodes/idlwave.el: Updated to IDLWAVE version 4.7.  Too many
+ 	changes to list them here.
+
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 4.7.  Too
+	many changes to list them here.
+
+	* progmodes/idlw-rinfo.el: Updated to IDLWAVE version 4.7.  Too
+	many changes to list them here.
+
+	* progmodes/idlw-toolbar.el: Updated to IDLWAVE version 4.7.
+
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): 
