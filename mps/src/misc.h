@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.12) $
+ * $HopeName: MMsrc!misc.h(trunk.13) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -69,6 +69,10 @@ typedef const struct SrcIdStruct {
 
 #define BEGIN           do {
 #define END             } while(0)
+/* Disable warning about constant conditionals */
+#ifdef MPS_BUILD_MV
+#pragma warning(disable: 4127)
+#endif
 
 
 /* NOOP -- null statement
