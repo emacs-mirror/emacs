@@ -1,5 +1,5 @@
 /* Unexec for Sunos 4 using shared libraries.
-   Copyright (C) 1990, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,6 +43,11 @@ Boston, MA 02111-1307, USA.  */
  *  is somewhat abused here) is loaded first!
  *
  */
+
+#ifdef emacs
+#include <config.h>
+#endif
+
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/file.h>
@@ -50,12 +55,6 @@ Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #include <stdio.h>
 #include <a.out.h>
-
-/* Do this after the above #include's in case a configuration file wants
-   to define things for this file based on what <a.out.h> defines.  */
-#ifdef emacs
-#include <config.h>
-#endif
 
 #if defined (SUNOS4) || defined (__FreeBSD__) || defined (__NetBSD__)
 #define UNDO_RELOCATION

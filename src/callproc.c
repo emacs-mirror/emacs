@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,88,93,94,95, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,10 +19,9 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+#include <config.h>
 #include <signal.h>
 #include <errno.h>
-
-#include <config.h>
 #include <stdio.h>
 
 extern int errno;
@@ -134,7 +133,7 @@ static Lisp_Object
 call_process_kill (fdpid)
      Lisp_Object fdpid;
 {
-  close (XFASTINT (Fcar (fdpid)));
+  emacs_close (XFASTINT (Fcar (fdpid)));
   EMACS_KILLPG (XFASTINT (Fcdr (fdpid)), SIGKILL);
   synch_process_alive = 0;
   return Qnil;
@@ -148,7 +147,7 @@ call_process_cleanup (fdpid)
   /* for MSDOS fdpid is really (fd . tempfile)  */
   register Lisp_Object file;
   file = Fcdr (fdpid);
-  close (XFASTINT (Fcar (fdpid)));
+  emacs_close (XFASTINT (Fcar (fdpid)));
   if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
     unlink (XSTRING (file)->data);
 #else /* not MSDOS and not macintosh */
@@ -156,7 +155,7 @@ call_process_cleanup (fdpid)
 
   if (call_process_exited)
     {
-      close (XFASTINT (Fcar (fdpid)));
+      emacs_close (XFASTINT (Fcar (fdpid)));
       return Qnil;
     }
 
@@ -173,7 +172,7 @@ call_process_cleanup (fdpid)
       message1 ("Waiting for process to die...done");
     }
   synch_process_alive = 0;
-  close (XFASTINT (Fcar (fdpid)));
+  emacs_close (XFASTINT (Fcar (fdpid)));
 #endif /* not MSDOS */
   return Qnil;
 }
@@ -359,7 +358,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   display = nargs >= 4 ? args[3] : Qnil;
 
-  filefd = open (XSTRING (infile)->data, O_RDONLY, 0);
+  filefd = emacs_open (XSTRING (infile)->data, O_RDONLY, 0);
   if (filefd < 0)
     {
       report_file_error ("Opening process input file", Fcons (infile, Qnil));
@@ -374,7 +373,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   }
   if (NILP (path))
     {
-      close (filefd);
+      emacs_close (filefd);
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
   new_argv[0] = XSTRING (path)->data;
@@ -436,7 +435,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
   if (outfilefd < 0)
     {
-      close (filefd);
+      emacs_close (filefd);
       report_file_error ("Opening process output file",
 			 Fcons (build_string (tempfile), Qnil));
     }
@@ -465,7 +464,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif /* macintosh */
 
   if (INTEGERP (buffer))
-    fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
+    fd[1] = emacs_open (NULL_DEVICE, O_WRONLY, 0), fd[0] = -1;
   else
     {
 #ifndef MSDOS
@@ -500,13 +499,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_retcode = 0;
 
     if (NILP (error_file))
-      fd_error = open (NULL_DEVICE, O_WRONLY);
+      fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
     else if (STRINGP (error_file))
       {
 #ifdef DOS_NT
-	fd_error = open (XSTRING (error_file)->data,
-			 O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-			 S_IREAD | S_IWRITE);
+	fd_error = emacs_open (XSTRING (error_file)->data,
+			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
+			       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
 	fd_error = creat (XSTRING (error_file)->data, 0666);
 #endif /* not DOS_NT */
@@ -514,11 +513,11 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
     if (fd_error < 0)
       {
-	close (filefd);
+	emacs_close (filefd);
 	if (fd[0] != filefd)
-	  close (fd[0]);
+	  emacs_close (fd[0]);
 	if (fd1 >= 0)
-	  close (fd1);
+	  emacs_close (fd1);
 #ifdef MSDOS
 	unlink (tempfile);
 #endif
@@ -560,7 +559,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       synch_process_alive = 0;
       synch_process_retcode = pid;
       if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
-        synch_process_death = strerror (errno);
+	{
+	  synchronize_messages_locale ();
+	  synch_process_death = strerror (errno);
+	}
 
       /* Since CRLF is converted to LF within `decode_coding', we can
          always open a file with binary mode.  */
@@ -585,19 +587,22 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     synch_process_alive = 0;
     synch_process_retcode = pid;
     if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
-      synch_process_death = strerror (errno);
+      {
+	synchronize_messages_locale ();
+	synch_process_death = strerror (errno);
+      }
 
-    close (outfilefd);
+    emacs_close (outfilefd);
     if (fd_error != outfilefd)
-      close (fd_error);
+      emacs_close (fd_error);
     fd1 = -1; /* No harm in closing that one!  */
     /* Since CRLF is converted to LF within `decode_coding', we can
        always open a file with binary mode.  */
-    fd[0] = open (tempfile, O_BINARY);
+    fd[0] = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
     if (fd[0] < 0)
       {
 	unlink (tempfile);
-	close (filefd);
+	emacs_close (filefd);
 	report_file_error ("Cannot re-open temporary file", Qnil);
       }
 #else /* not MSDOS */
@@ -610,7 +615,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     if (pid == 0)
       {
 	if (fd[0] >= 0)
-	  close (fd[0]);
+	  emacs_close (fd[0]);
 #ifdef HAVE_SETSID
         setsid ();
 #endif
@@ -626,7 +631,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
     /* The MSDOS case did this already.  */
     if (fd_error >= 0)
-      close (fd_error);
+      emacs_close (fd_error);
 #endif /* not MSDOS */
 #endif /* not macintosh */
 
@@ -634,22 +639,22 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
     /* Close most of our fd's, but not fd[0]
        since we will use that to read input from.  */
-    close (filefd);
+    emacs_close (filefd);
     if (fd1 >= 0 && fd1 != fd_error)
-      close (fd1);
+      emacs_close (fd1);
   }
 
   if (pid < 0)
     {
       if (fd[0] >= 0)
-	close (fd[0]);
+	emacs_close (fd[0]);
       report_file_error ("Doing vfork", Qnil);
     }
 
   if (INTEGERP (buffer))
     {
       if (fd[0] >= 0)
-	close (fd[0]);
+	emacs_close (fd[0]);
 #ifndef subprocesses
       /* If Emacs has been built with asynchronous subprocess support,
 	 we don't need to do this, I think because it will then have
@@ -737,7 +742,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	nread = carryover;
 	while (nread < bufsize - 1024)
 	  {
-	    int this_read = read (fd[0], bufptr + nread, bufsize - nread);
+	    int this_read = emacs_read (fd[0], bufptr + nread,
+					bufsize - nread);
 
 	    if (this_read < 0)
 	      goto give_up;
@@ -849,7 +855,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   unbind_to (count, Qnil);
 
   if (synch_process_death)
-    return build_string (synch_process_death);
+    return code_convert_string_norecord (build_string (synch_process_death),
+					 Vlocale_coding_system, 0);
   return make_number (synch_process_retcode);
 }
 #endif
@@ -1163,16 +1170,16 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   }
 
 #ifndef MSDOS
-  close (0);
-  close (1);
-  close (2);
+  emacs_close (0);
+  emacs_close (1);
+  emacs_close (2);
 
   dup2 (in, 0);
   dup2 (out, 1);
   dup2 (err, 2);
-  close (in);
-  close (out);
-  close (err);
+  emacs_close (in);
+  emacs_close (out);
+  emacs_close (err);
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
@@ -1212,9 +1219,9 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   environ = env;
   execvp (new_argv[0], new_argv);
 
-  write (1, "Can't exec program: ", 20);
-  write (1, new_argv[0], strlen (new_argv[0]));
-  write (1, "\n", 1);
+  emacs_write (1, "Can't exec program: ", 20);
+  emacs_write (1, new_argv[0], strlen (new_argv[0]));
+  emacs_write (1, "\n", 1);
   _exit (1);
 #endif /* not WINDOWSNT */
 #endif /* not MSDOS */
@@ -1236,15 +1243,15 @@ relocate_fd (fd, minfd)
 	  char *message1 = "Error while setting up child: ";
 	  char *errmessage = strerror (errno);
 	  char *message2 = "\n";
-	  write (2, message1, strlen (message1));
-	  write (2, errmessage, strlen (errmessage));
-	  write (2, message2, strlen (message2));
+	  emacs_write (2, message1, strlen (message1));
+	  emacs_write (2, errmessage, strlen (errmessage));
+	  emacs_write (2, message2, strlen (message2));
 	  _exit (1);
 	}
       /* Note that we hold the original FD open while we recurse,
 	 to guarantee we'll get a new FD if we need it.  */
       new = relocate_fd (new, minfd);
-      close (fd);
+      emacs_close (fd);
       return new;
     }
 }

@@ -22,17 +22,13 @@ Boston, MA 02111-1307, USA.  */
 /* New display code by Gerd Moellmann <gerd@gnu.org>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
+#include <config.h>
+
 /* On 4.3 these lose if they come after xterm.h.  */
-/* On HP-UX 8.0 signal.h loses if it comes after config.h.  */
 /* Putting these at the beginning seems to be standard for other .c files.  */
 #include <signal.h>
 
-#include <config.h>
-
 #include <stdio.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 
 #ifdef HAVE_X_WINDOWS
 
@@ -143,11 +139,6 @@ extern void _XEditResCheckMessages ();
 #ifndef XtNinitialState
 #define XtNinitialState "initialState"
 #endif
-#endif
-
-#ifdef HAVE_SETLOCALE
-/* So we can do setlocale.  */
-#include <locale.h>
 #endif
 
 #ifdef SOLARIS2
@@ -2157,9 +2148,9 @@ static void x_get_glyph_overhangs P_ ((struct glyph *, struct frame *,
 				       int *, int *));
 static void x_compute_overhangs_and_x P_ ((struct glyph_string *, int, int));
 static int x_alloc_lighter_color P_ ((struct frame *, Display *, Colormap,
-				      unsigned long *, float, int));
+				      unsigned long *, double, int));
 static void x_setup_relief_color P_ ((struct frame *, struct relief *,
-				      float, int, unsigned long));
+				      double, int, unsigned long));
 static void x_setup_relief_colors P_ ((struct glyph_string *));
 static void x_draw_image_glyph_string P_ ((struct glyph_string *));
 static void x_draw_image_relief P_ ((struct glyph_string *));
@@ -3049,7 +3040,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
      Display *display;
      Colormap cmap;
      unsigned long *pixel;
-     float factor;
+     double factor;
      int delta;
 {
   XColor color, new;
@@ -3108,7 +3099,7 @@ static void
 x_setup_relief_color (f, relief, factor, delta, default_pixel)
      struct frame *f;
      struct relief *relief;
-     float factor;
+     double factor;
      int delta;
      unsigned long default_pixel;
 {
@@ -12392,28 +12383,6 @@ same_x_server (name1, name2)
 }
 #endif
 
-#if defined (HAVE_X_I18N) || (defined (USE_X_TOOLKIT) && defined (HAVE_X11XTR6))
-/* Recover from setlocale (LC_ALL, "").  */
-static void
-fixup_locale ()
-{
-  /* Currently we require strerror to use the "C" locale,
-     since we don't yet support decoding its string result.  */
-#ifdef LC_MESSAGES
-  setlocale (LC_MESSAGES, "C");
-#endif
-
-  /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
-     so that numbers are read and printed properly for Emacs Lisp.  */
-  setlocale (LC_NUMERIC, "C");
-
-  /* Currently we require strftime to use the "C" locale,
-     since we don't yet support encoding its format argument,
-     or decoding its string result.  */
-  setlocale (LC_TIME, "C");
-}
-#endif
-
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -12432,11 +12401,6 @@ x_term_init (display_name, xrm_option, resource_name)
       x_initialize ();
       x_initialized = 1;
     }
-
-#ifdef HAVE_X_I18N
-  setlocale (LC_ALL, "");
-  fixup_locale ();
-#endif
 
 #ifdef USE_X_TOOLKIT
   /* weiner@footloose.sps.mot.com reports that this causes

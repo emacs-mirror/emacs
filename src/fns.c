@@ -4404,7 +4404,7 @@ DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
   "Look up KEY in TABLE and return its associated value.\n\
 If KEY is not found, return DFLT which defaults to nil.")
   (key, table, dflt)
-     Lisp_Object key, table;
+     Lisp_Object key, table, dflt;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
   int i = hash_lookup (h, key, NULL);

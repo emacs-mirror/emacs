@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -412,6 +412,13 @@ Filesz      Memsz       Flags       Align
 
  */
 
+#ifndef emacs
+#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
+#else
+#include <config.h>
+extern void fatal (char *, ...);
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -517,17 +524,18 @@ typedef struct {
 
 #ifndef ElfW
 # ifdef __STDC__
-#  define ElfW(type)	Elf32_##type
+#  define ElfBitsW(bits, type) Elf##bits##_##type
 # else
-#  define ElfW(type)	Elf32_/**/type
+#  define ElfBitsW(bits, type) Elf/**/bits/**/_/**/type
 # endif
-#endif
-
-#ifndef emacs
-#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
-#else
-#include <config.h>
-extern void fatal (char *, ...);
+# ifdef _LP64
+#  define ELFSIZE 64
+# else
+#  define ELFSIZE 32
+# endif
+  /* This macro expands `bits' before invoking ElfBitsW.  */
+# define ElfExpandBitsW(bits, type) ElfBitsW (bits, type)
+# define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
 #ifndef ELF_BSS_SECTION_NAME

@@ -19,6 +19,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#include <config.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,10 +33,6 @@ extern int errno;
 #define MAXPATHLEN 1024
 #endif /* not MAXPATHLEN */
 
-#include <config.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

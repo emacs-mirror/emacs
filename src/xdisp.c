@@ -169,9 +169,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"
@@ -628,7 +625,7 @@ static void display_mode_lines P_ ((struct window *));
 static void display_mode_line P_ ((struct window *, enum face_id,
 				   Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object));
-static char *decode_mode_spec P_ ((struct window *, char, int, int));
+static char *decode_mode_spec P_ ((struct window *, int, int, int));
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
 static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
@@ -11883,7 +11880,7 @@ static char lots_of_dashes[] = "------------------------------------------------
 static char *
 decode_mode_spec (w, c, field_width, precision)
      struct window *w;
-     register char c;
+     register int c;
      int field_width, precision;
 {
   Lisp_Object obj;
@@ -12379,6 +12376,8 @@ display_string (string, lisp_string, face_string, face_string_pos,
 		start, it, field_width, precision, max_x, multibyte)
      unsigned char *string;
      Lisp_Object lisp_string;
+     Lisp_Object face_string;
+     int face_string_pos;
      int start;
      struct it *it;
      int field_width, precision, max_x;

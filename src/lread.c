@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 1998
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 1999
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -58,10 +58,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef LISP_FLOAT_TYPE
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
-
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
@@ -71,6 +67,14 @@ Boston, MA 02111-1307, USA.  */
 
 #ifndef O_RDONLY
 #define O_RDONLY 0
+#endif
+
+#ifdef HAVE_FTELLO
+#define file_offset off_t
+#define file_tell ftello
+#else
+#define file_offset long
+#define file_tell ftell
 #endif
 
 extern int errno;
@@ -156,7 +160,7 @@ static int saved_doc_string_size;
 /* Length of actual data in saved_doc_string.  */
 static int saved_doc_string_length;
 /* This is the file position that string came from.  */
-static int saved_doc_string_position;
+static file_offset saved_doc_string_position;
 
 /* This contains the previous string skipped with #@.
    We copy it from saved_doc_string when a new string
@@ -167,7 +171,7 @@ static int prev_saved_doc_string_size;
 /* Length of actual data in prev_saved_doc_string.  */
 static int prev_saved_doc_string_length;
 /* This is the file position that string came from.  */
-static int prev_saved_doc_string_position;
+static file_offset prev_saved_doc_string_position;
 
 /* Nonzero means inside a new-style backquote
    with no surrounding parentheses.
@@ -714,7 +718,7 @@ Return t if file exists.")
       if (!NILP (Vload_source_file_function))
 	{
 	  if (fd != 0)
-	    close (fd);
+	    emacs_close (fd);
 	  return call4 (Vload_source_file_function, found, file,
 			NILP (noerror) ? Qnil : Qt,
 			NILP (nomessage) ? Qnil : Qt);
@@ -722,14 +726,14 @@ Return t if file exists.")
     }
 
 #ifdef WINDOWSNT
-  close (fd);
+  emacs_close (fd);
   stream = fopen ((char *) XSTRING (found)->data, fmode);
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
   if (stream == 0)
     {
-      close (fd);
+      emacs_close (fd);
       error ("Failure to create stdio stream for %s", XSTRING (file)->data);
     }
 
@@ -817,7 +821,7 @@ close_load_descs ()
 #ifndef WINDOWSNT
   Lisp_Object tail;
   for (tail = load_descriptor_list; !NILP (tail); tail = XCDR (tail))
-    close (XFASTINT (XCAR (tail)));
+    emacs_close (XFASTINT (XCAR (tail)));
 #endif
 }
 
@@ -966,7 +970,7 @@ openp (path, str, suffix, storeptr, exec_only)
 		  if (exec_only)
 		    fd = (access (fn, X_OK) == 0) ? 1 : -1;
 		  else
-		    fd = open (fn, O_RDONLY, 0);
+		    fd = emacs_open (fn, O_RDONLY, 0);
 
 		  if (fd >= 0)
 		    {
@@ -1751,7 +1755,7 @@ read1 (readcharfun, pch, first_in_list)
 	      {
 		char *temp = saved_doc_string;
 		int temp_size = saved_doc_string_size;
-		int temp_pos = saved_doc_string_position;
+		file_offset temp_pos = saved_doc_string_position;
 		int temp_len = saved_doc_string_length;
 
 		saved_doc_string = prev_saved_doc_string;
@@ -1777,7 +1781,7 @@ read1 (readcharfun, pch, first_in_list)
 							saved_doc_string_size);
 		}
 
-	      saved_doc_string_position = ftell (instream);
+	      saved_doc_string_position = file_tell (instream);
 
 	      /* Copy that many characters into saved_doc_string.  */
 	      for (i = 0; i < nskip && c >= 0; i++)
@@ -3128,11 +3132,6 @@ init_lread ()
 {
   char *normal;
   int turn_off_warning = 0;
-
-#ifdef HAVE_SETLOCALE
-  /* Make sure numbers are parsed as we expect.  */
-  setlocale (LC_NUMERIC, "C");
-#endif /* HAVE_SETLOCALE */
 
   /* Compute the default load-path.  */
 #ifdef CANNOT_DUMP

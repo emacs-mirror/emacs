@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,9 +21,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #undef NULL
 #include "lisp.h"
 #include "commands.h"

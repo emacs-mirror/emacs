@@ -41,11 +41,9 @@
 /*                                                             */
 /***************************************************************/
 
+#include <config.h>
 #include <sys/signal.h>
 #include <errno.h>
-
-#include <config.h>
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <setjmp.h>
@@ -102,7 +100,7 @@ static struct hfctlack  ACK =
 					/* read a buffer        */
 #define RD_BUF(f,p,l) \
         while ((l)) \
-          if ((j = read((f),(p),(l))) < 0) \
+          if ((j = emacs_read (f, p, l)) < 0) \
              if (errno != EINTR) return (-1); \
              else continue; \
           else { (l) -= j; (p) += j; }
@@ -333,7 +331,7 @@ WR_REQ (fd, request, cmdlen, cmd, resplen)
     }
 
   /* write request to terminal   */
-  if (write(fd,p.c,size) == -1) return (-1);
+  if (emacs_write (fd, p.c, size) == -1) return (-1);
   if (p.req != &req)		/* free if allocated           */
     xfree (p.c);
   return (0);

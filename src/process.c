@@ -1,5 +1,5 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 1998
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -20,9 +20,9 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-#include <signal.h>
-
 #include <config.h>
+
+#include <signal.h>
 
 /* This file is split into two parts by the following preprocessor
    conditional.  The 'then' clause contains all of the support for
@@ -155,6 +155,7 @@ extern char *sys_errlist[];
 extern int h_errno;
 #endif
 
+#ifndef HAVE_STRSIGNAL
 #ifndef SYS_SIGLIST_DECLARED
 #ifndef VMS
 #ifndef BSD4_1
@@ -196,6 +197,7 @@ char *sys_siglist[] =
 #endif
 #endif /* VMS */
 #endif /* ! SYS_SIGLIST_DECLARED */
+#endif /* ! HAVE_STRSIGNAL */
 
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
@@ -357,16 +359,9 @@ status_message (status)
 
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
-      char *signame = 0;
-      if (code < NSIG)
-	{
-#ifndef VMS
-	  /* Cast to suppress warning if the table has const char *.  */
-	  signame = (char *) sys_siglist[code];
-#else
-	  signame = sys_errlist[code];
-#endif
-	}
+      char *signame;
+      synchronize_messages_locale ();
+      signame = strsignal (code);
       if (signame == 0)
 	signame = "unknown";
       string = build_string (signame);
@@ -426,7 +421,7 @@ allocate_pty ()
 #else /* no PTY_OPEN */
 #ifdef IRIS
 	/* Unusual IRIS code */
- 	*ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+ 	*ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
  	if (fd < 0)
  	  return -1;
 	if (fstat (fd, &stb) < 0)
@@ -441,9 +436,9 @@ allocate_pty ()
 	else
 	  failed_count = 0;
 #ifdef O_NONBLOCK
-	fd = open (pty_name, O_RDWR | O_NONBLOCK, 0);
+	fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
 #else
-	fd = open (pty_name, O_RDWR | O_NDELAY, 0);
+	fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
 #endif
 #endif /* not IRIS */
 #endif /* no PTY_OPEN */
@@ -460,7 +455,7 @@ allocate_pty ()
 #ifndef UNIPLUS
 	    if (access (pty_name, 6) != 0)
 	      {
-		close (fd);
+		emacs_close (fd);
 #if !defined(IRIS) && !defined(__sgi)
 		continue;
 #else
@@ -1361,9 +1356,9 @@ create_process (process, new_argv, current_dir)
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      forkout = forkin = open (pty_name, O_RDWR | O_NOCTTY, 0);
+      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
 #else
-      forkout = forkin = open (pty_name, O_RDWR, 0);
+      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
@@ -1392,8 +1387,8 @@ create_process (process, new_argv, current_dir)
       tem = pipe (sv);
       if (tem < 0)
 	{
-	  close (inchannel);
-	  close (forkout);
+	  emacs_close (inchannel);
+	  emacs_close (forkout);
 	  report_file_error ("Creating pipe", Qnil);
 	}
       outchannel = sv[1];
@@ -1592,7 +1587,7 @@ create_process (process, new_argv, current_dir)
 	    tcgetattr (xforkin, &t);
 	    t.c_lflag = LDISC1;
 	    if (tcsetattr (xforkin, TCSANOW, &t) < 0)
-	      write (1, "create_process/tcsetattr LDISC1 failed\n", 39);
+	      emacs_write (1, "create_process/tcsetattr LDISC1 failed\n", 39);
 	  }
 #else
 #if defined (NTTYDISC) && defined (TIOCSETD)
@@ -1611,9 +1606,9 @@ create_process (process, new_argv, current_dir)
 	  {
 	    /* I wonder: would just ioctl (0, TIOCNOTTY, 0) work here? 
 	       I can't test it since I don't have 4.3.  */
-	    int j = open ("/dev/tty", O_RDWR, 0);
+	    int j = emacs_open ("/dev/tty", O_RDWR, 0);
 	    ioctl (j, TIOCNOTTY, 0);
-	    close (j);
+	    emacs_close (j);
 #ifndef USG
 	    /* In order to get a controlling terminal on some versions
 	       of BSD, it is necessary to put the process in pgrp 0
@@ -1642,16 +1637,17 @@ create_process (process, new_argv, current_dir)
 	    int pgrp = getpid ();
 #endif
 
-	    /* I wonder if close (open (pty_name, ...)) would work?  */
+	    /* I wonder if emacs_close (emacs_open (pty_name, ...))
+	       would work?  */
 	    if (xforkin >= 0)
-	      close (xforkin);
-	    xforkout = xforkin = open (pty_name, O_RDWR, 0);
+	      emacs_close (xforkin);
+	    xforkout = xforkin = emacs_open (pty_name, O_RDWR, 0);
 
 	    if (xforkin < 0)
 	      {
-		write (1, "Couldn't open the pty terminal ", 31);
-		write (1, pty_name, strlen (pty_name));
-		write (1, "\n", 1);
+		emacs_write (1, "Couldn't open the pty terminal ", 31);
+		emacs_write (1, pty_name, strlen (pty_name));
+		emacs_write (1, "\n", 1);
 		_exit (1);
 	      }
 
@@ -1717,9 +1713,9 @@ create_process (process, new_argv, current_dir)
   if (pid < 0)
     {
       if (forkin >= 0)
-	close (forkin);
+	emacs_close (forkin);
       if (forkin != forkout && forkout >= 0)
-	close (forkout);
+	emacs_close (forkout);
     }
   else
     {
@@ -1738,11 +1734,11 @@ create_process (process, new_argv, current_dir)
       alarm (1);
       XPROCESS (process)->subtty = Qnil;
       if (forkin >= 0)
-	close (forkin);
+	emacs_close (forkin);
       alarm (0);
       start_polling ();
       if (forkin != forkout && forkout >= 0)
-	close (forkout);
+	emacs_close (forkout);
 
 #ifdef HAVE_PTYS
       if (pty_flag)
@@ -1926,7 +1922,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       if (ret == 0)
 	break;
-      close (s);
+      emacs_close (s);
       s = -1;
     }
 
@@ -2033,7 +2029,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       /* Discard the unwind protect.  */
       specpdl_ptr = specpdl + count1;
 
-      close (s);
+      emacs_close (s);
 
       if (interrupt_input)
 	request_sigio ();
@@ -2200,9 +2196,9 @@ deactivate_process (proc)
 	  give_back_vms_process_stuff (vs);
       }
 #else
-      close (inchannel);
+      emacs_close (inchannel);
       if (outchannel >= 0 && outchannel != inchannel)
- 	close (outchannel);
+ 	emacs_close (outchannel);
 #endif
 
       XSETINT (p->infd, -1);
@@ -2241,9 +2237,9 @@ close_process_descs ()
 	  int in = XINT (XPROCESS (process)->infd);
 	  int out = XINT (XPROCESS (process)->outfd);
 	  if (in >= 0)
-	    close (in);
+	    emacs_close (in);
 	  if (out >= 0 && in != out)
-	    close (out);
+	    emacs_close (out);
 	}
     }
 #endif
@@ -2651,7 +2647,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #endif
 	    }
 	  else
-	    error ("select error: %s", strerror (xerrno));
+	    error ("select error: %s", emacs_strerror (xerrno));
 	}
 #if defined(sun) && !defined(USG5_4)
       else if (nfds > 0 && keyboard_bit_set (&Available)
@@ -2955,13 +2951,13 @@ read_process_output (proc, channel)
 	   buf, carryover);
 
   if (proc_buffered_char[channel] < 0)
-    nbytes = read (channel, buf + carryover, (sizeof buf) - carryover);
+    nbytes = emacs_read (channel, buf + carryover, (sizeof buf) - carryover);
   else
     {
       buf[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = read (channel, buf + carryover + 1,
-		     (sizeof buf) - carryover - 1);
+      nbytes = emacs_read (channel, buf + carryover + 1,
+			   (sizeof buf) - carryover - 1);
       if (nbytes < 0)
 	nbytes = 1;
       else
@@ -3452,7 +3448,7 @@ send_process (proc, buf, len, object)
 	while (this > 0)
 	  {
 	    old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
-	    rv = write (XINT (XPROCESS (proc)->outfd), buf, this);
+	    rv = emacs_write (XINT (XPROCESS (proc)->outfd), buf, this);
 	    signal (SIGPIPE, old_sigpipe);
 
 	    if (rv < 0)
@@ -4073,11 +4069,11 @@ text to PROCESS after you call this function.")
 	shutdown (XINT (XPROCESS (proc)->outfd), 1);
       /* In case of socketpair, outfd == infd, so don't close it.  */
       if (XINT (XPROCESS (proc)->outfd) != XINT (XPROCESS (proc)->infd))
-	close (XINT (XPROCESS (proc)->outfd));
+	emacs_close (XINT (XPROCESS (proc)->outfd));
 #else /* not HAVE_SHUTDOWN */
-      close (XINT (XPROCESS (proc)->outfd));
+      emacs_close (XINT (XPROCESS (proc)->outfd));
 #endif /* not HAVE_SHUTDOWN */
-      new_outfd = open (NULL_DEVICE, O_WRONLY);
+      new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       old_outfd = XINT (XPROCESS (proc)->outfd);
 
       if (!proc_encode_coding_system[new_outfd])
@@ -4256,17 +4252,11 @@ sigchld_handler (signo)
 	  else if (WIFSIGNALED (w))
 	    {
 	      int code = WTERMSIG (w);
-	      char *signame = 0;
+	      char *signame;
 
-	      if (code < NSIG)
-		{
-#ifndef VMS
-		  /* Suppress warning if the table has const char *.  */
-		  signame = (char *) sys_siglist[code];
-#else
-		  signame = sys_errlist[code];
-#endif
-		}
+	      synchronize_messages_locale ();
+	      signame = strsignal (code);
+
 	      if (signame == 0)
 		signame = "unknown";
 
@@ -4923,7 +4913,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (xerrno == EINTR)
 	    FD_ZERO (&waitchannels);
 	  else
-	    error ("select error: %s", strerror (xerrno));
+	    error ("select error: %s", emacs_strerror (xerrno));
 	}
 #ifdef sun
       else if (nfds > 0 && (waitchannels & 1)  && interrupt_input)

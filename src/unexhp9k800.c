@@ -37,15 +37,15 @@
   sigsetreturn (_sigreturn);
 */
 
+#ifdef emacs
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 
 #include <a.out.h>
-
-#ifdef emacs
-#include <config.h>
-#endif
 
 #ifdef HPUX_USE_SHLIBS
 #include <dl.h>

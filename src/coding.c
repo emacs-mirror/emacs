@@ -268,11 +268,14 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 
 /*** 1. Preamble ***/
 
+#ifdef emacs
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #ifdef emacs
 
-#include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
@@ -356,6 +359,8 @@ struct coding_system default_buffer_file_coding;
 Lisp_Object Vfile_coding_system_alist;
 Lisp_Object Vprocess_coding_system_alist;
 Lisp_Object Vnetwork_coding_system_alist;
+
+Lisp_Object Vlocale_coding_system;
 
 #endif /* emacs */
 
@@ -5786,6 +5791,10 @@ or a cons of coding systems which are used as above.\n\
 See also the function `find-operation-coding-system'.");
   Vnetwork_coding_system_alist = Qnil;
 
+  DEFVAR_LISP ("locale-coding-system", &Vlocale_coding_system,
+    "Coding system to use with system messages.");
+  Vlocale_coding_system = Qnil;
+
   DEFVAR_LISP ("eol-mnemonic-unix", &eol_mnemonic_unix,
     "*String displayed in mode line for UNIX-like (LF) end-of-line format.");
   eol_mnemonic_unix = build_string (":");
@@ -5851,6 +5860,26 @@ coding system used in each operation can't encode the text.\n\
 The default value is `select-safe-coding-system' (which see).");
   Vselect_safe_coding_system_function = Qnil;
 
+}
+
+char *
+emacs_strerror (error_number)
+     int error_number;
+{
+  char *str;
+
+  synchronize_messages_locale ();
+  str = strerror (error_number);
+
+  if (! NILP (Vlocale_coding_system))
+    {
+      Lisp_Object dec = code_convert_string_norecord (build_string (str),
+						      Vlocale_coding_system,
+						      0);
+      str = (char *) XSTRING (dec)->data;
+    }
+
+  return str;
 }
 
 #endif /* emacs */

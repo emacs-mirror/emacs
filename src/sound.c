@@ -1,5 +1,5 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998 Free Software Foundation.
+   Copyright (C) 1998, 1999 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -335,7 +335,7 @@ sound_cleanup (arg)
     {
       sound_device->close (sound_device);
       if (sound_file->fd > 0)
-	close (sound_file->fd);
+	emacs_close (sound_file->fd);
     }
 }
 
@@ -378,7 +378,7 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
     sound_perror ("Open sound file");
 
   /* Read the first bytes from the file.  */
-  nbytes = read (sf.fd, sf.header, MAX_SOUND_HEADER_BYTES);
+  nbytes = emacs_read (sf.fd, sf.header, MAX_SOUND_HEADER_BYTES);
   if (nbytes < 0)
     sound_perror ("Reading sound file header");
 
@@ -405,7 +405,7 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
   sd.open (&sd);
 
   sf.play (&sf, &sd);
-  close (sf.fd);
+  emacs_close (sf.fd);
   sf.fd = -1;
   sd.close (&sd);
   sound_device = NULL;
@@ -557,7 +557,7 @@ wav_play (sf, sd)
   buffer = (char *) alloca (blksize);
   lseek (sf->fd, sizeof *header, SEEK_SET);
   
-  while ((nbytes = read (sf->fd, buffer, blksize)) > 0)
+  while ((nbytes = emacs_read (sf->fd, buffer, blksize)) > 0)
     sd->write (sd, buffer, nbytes);
 
   if (nbytes < 0)
@@ -639,7 +639,7 @@ au_play (sf, sd)
   
   /* Copy sound data to the device.  */
   buffer = (char *) alloca (blksize);
-  while ((nbytes = read (sf->fd, buffer, blksize)) > 0)
+  while ((nbytes = emacs_read (sf->fd, buffer, blksize)) > 0)
     sd->write (sd, buffer, nbytes);
 
   if (nbytes < 0)
@@ -671,7 +671,7 @@ vox_open (sd)
   else
     file = "/dev/dsp";
   
-  sd->fd = open (file, O_WRONLY);
+  sd->fd = emacs_open (file, O_WRONLY, 0);
   if (sd->fd < 0)
     sound_perror (file);
 }
@@ -731,7 +731,7 @@ vox_close (sd)
       ioctl (sd->fd, SNDCTL_DSP_RESET, NULL);
 
       /* Close the device.  */
-      close (sd->fd);
+      emacs_close (sd->fd);
       sd->fd = -1;
     }
 }
@@ -805,7 +805,7 @@ vox_write (sd, buffer, nbytes)
      char *buffer;
      int nbytes;
 {
-  int nwritten = write (sd->fd, buffer, nbytes);
+  int nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
     sound_perror ("Writing to sound device");
 }

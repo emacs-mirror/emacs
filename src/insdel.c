@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,9 +20,6 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"

@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,88,93,94,95,97,98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,9 +19,8 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-#include <signal.h>
-
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "puresize.h"
@@ -38,7 +37,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
-#include <stdlib.h>
 #include <float.h>
 #endif
 

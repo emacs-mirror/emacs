@@ -1,5 +1,5 @@
 /* Functions for Sun Windows menus and selection buffer.
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999 Free Software Foundation, Inc.
 
 This file is probably totally obsolete.  In any case, the FSF is
 unwilling to support it.  We agreed to include it in our distribution
@@ -120,7 +120,7 @@ or -1 if can not open it.")
 
   if ((! already_initialized) || (!NILP(force))) {
     cp = getenv("WINDOW_GFX");
-    if (cp != 0) win_fd = open(cp, 2);
+    if (cp != 0) win_fd = emacs_open (cp, O_RDWR, 0);
     if (win_fd > 0)
       {
 	Sun_Font = pf_default();

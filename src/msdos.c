@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3654,9 +3654,9 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   dup2 (inbak, 0);
   dup2 (outbak, 1);
   dup2 (errbak, 2);
-  close (inbak);
-  close (outbak);
-  close (errbak);
+  emacs_close (inbak);
+  emacs_close (outbak);
+  emacs_close (errbak);
 
   dos_ttraw ();
   if (have_mouse > 0)

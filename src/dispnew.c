@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 1998
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,8 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include <signal.h>
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include <ctype.h>
 
@@ -91,6 +91,10 @@ Boston, MA 02111-1307, USA.  */
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
 #endif
 #else /* not __GNU_LIBRARY__ */
+#if !defined (PENDING_OUTPUT_COUNT) && HAVE_STDIO_EXT_H && HAVE___FPENDING
+#include <stdio_ext.h>
+#define PENDING_OUTPUT_COUNT(FILE) __fpending (FILE)
+#endif
 #ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif

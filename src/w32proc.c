@@ -1,5 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,10 +90,6 @@ Lisp_Object Vw32_generate_fake_inodes;
 Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Qhigh, Qlow;
-
-#ifndef SYS_SIGLIST_DECLARED
-extern char *sys_siglist[];
-#endif
 
 #ifdef EMACSDEBUG
 void _DebPrint (const char *fmt, ...)
@@ -546,13 +542,11 @@ get_result:
       else if (WIFSIGNALED (retval))
 	{
 	  int code = WTERMSIG (retval);
-	  char *signame = 0;
-	  
-	  if (code < NSIG)
-	    {
-	      /* Suppress warning if the table has const char *.  */
-	      signame = (char *) sys_siglist[code];
-	    }
+	  char *signame;
+
+	  synchronize_messages_locale ();
+	  signame = strsignal (code);
+
 	  if (signame == 0)
 	    signame = "unknown";
 

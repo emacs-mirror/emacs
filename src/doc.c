@@ -1,5 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -161,7 +161,7 @@ get_doc_string (filepos, unibyte, definition)
       name = (char *) XSTRING (file)->data;
     }
 
-  fd = open (name, O_RDONLY, 0);
+  fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     {
 #ifndef CANNOT_DUMP
@@ -173,7 +173,7 @@ get_doc_string (filepos, unibyte, definition)
 	  strcat (name, XSTRING (file)->data);
 	  munge_doc_file_name (name);
 
-	  fd = open (name, O_RDONLY, 0);
+	  fd = emacs_open (name, O_RDONLY, 0);
 	}
 #endif
       if (fd < 0)
@@ -184,7 +184,7 @@ get_doc_string (filepos, unibyte, definition)
   offset = position % (8 * 1024);
   if (0 > lseek (fd, position - offset, 0))
     {
-      close (fd);
+      emacs_close (fd);
       error ("Position %ld out of range in doc string file \"%s\"",
 	     position, name);
     }
@@ -216,10 +216,10 @@ get_doc_string (filepos, unibyte, definition)
          If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
-      nread = read (fd, p, space_left);
+      nread = emacs_read (fd, p, space_left);
       if (nread < 0)
 	{
-	  close (fd);
+	  emacs_close (fd);
 	  error ("Read error on documentation file");
 	}
       p[nread] = 0;
@@ -237,7 +237,7 @@ get_doc_string (filepos, unibyte, definition)
 	}
       p += nread;
     }
-  close (fd);
+  emacs_close (fd);
 
   /* Scan the text and perform quoting with ^A (char code 1).
      ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
@@ -507,7 +507,7 @@ when doc strings are referred to later in the dumped Emacs.")
 #endif /* VMS4_4 */
 #endif /* VMS */
 
-  fd = open (name, O_RDONLY, 0);
+  fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     report_file_error ("Opening doc string file",
 		       Fcons (build_string (name), Qnil));
@@ -517,7 +517,7 @@ when doc strings are referred to later in the dumped Emacs.")
   while (1)
     {
       if (filled < 512)
-	filled += read (fd, &buf[filled], sizeof buf - 1 - filled);
+	filled += emacs_read (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)
 	break;
 
@@ -557,7 +557,7 @@ when doc strings are referred to later in the dumped Emacs.")
       filled -= end - buf;
       bcopy (end, buf, filled);
     }
-  close (fd);
+  emacs_close (fd);
   return Qnil;
 }
 

@@ -1,5 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995 Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1999 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include <signal.h>
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "frame.h"

@@ -1,5 +1,5 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -44,9 +44,8 @@ Boston, MA 02111-1307, USA.  */
    a domain error occurs.)
  */
 
-#include <signal.h>
-
 #include <config.h>
+#include <signal.h>
 #include "lisp.h"
 #include "syssignal.h"
 

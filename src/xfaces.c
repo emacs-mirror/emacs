@@ -177,9 +177,9 @@ Boston, MA 02111-1307, USA.  */
 
 #define SCALABLE_FONTS 1
 
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <config.h>
 #include "lisp.h"
 #include "charset.h"
 #include "frame.h"
@@ -223,7 +223,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* HAVE_X_WINDOWS */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include "keyboard.h"
 

@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,10 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Allow config.h to undefine symbols found here.  */
-#include <signal.h>
-
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include "termchar.h"
 #include "termopts.h"
@@ -5572,7 +5570,7 @@ read_avail_input (expected)
 	  cbuf[0] = dos_keyread ();
 	  nread = 1;
 #else
-	  nread = read (input_fd, cbuf, n_to_read);
+	  nread = emacs_read (input_fd, cbuf, n_to_read);
 #endif
 	  /* POSIX infers that processes which are not in the session leader's
 	     process group won't get SIGHUP's at logout time.  BSDI adheres to

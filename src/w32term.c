@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 93, 94, 95, 96, 97, 98 Free Software Foundation, Inc.
+   Copyright (C) 1989, 93,94,95,96,97,98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include <signal.h>
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "charset.h"

@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 1988, 1993, 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1986, 88, 93, 94, 96, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,12 +30,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Rewritten for clarity and GC protection by rms in Feb 94.  */
 
+#include <config.h>
+
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
-#include <config.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 
 #include <stdio.h>
 #include "lisp.h"

@@ -1,5 +1,5 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -166,10 +166,11 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_TERMIOS_H
 #undef HAVE_LIMITS_H
 #undef HAVE_STRING_H
-#undef STDC_HEADERS
-#undef TIME_WITH_SYS_TIME
 #undef HAVE_STDLIB_H
 #undef HAVE_TERMCAP_H
+#undef HAVE_STDIO_EXT_H
+#undef STDC_HEADERS
+#undef TIME_WITH_SYS_TIME
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
@@ -226,6 +227,7 @@ Boston, MA 02111-1307, USA.  */
 #undef TM_IN_SYS_TIME
 #undef HAVE_TM_ZONE
 #undef HAVE_TZNAME
+#undef HAVE_TM_GMTOFF
 
 #undef const
 
@@ -270,6 +272,12 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SHUTDOWN
 #undef HAVE_STRFTIME
 #undef HAVE_GETADDRINFO
+#undef HAVE___FPENDING
+#undef HAVE_FTELLO
+#undef HAVE_GETLOADAVG
+#undef HAVE_MBLEN
+#undef HAVE_MBRLEN
+#undef HAVE_STRSIGNAL
 
 #undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
@@ -447,12 +455,19 @@ extern char *getenv ();
 #endif
 
 #ifndef BITS_PER_LONG
+#ifdef _LP64
+#define BITS_PER_LONG 64
+#else
 #define BITS_PER_LONG 32
 #endif
+#endif
 
-/* Don't include <string.h> during configure.  */
+/* Don't include "string.h" or <stdlib.h> in non-C code.  */
 #ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 #endif

@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,1998 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,10 +30,6 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 #if !defined (S_ISLNK) && defined (S_IFLNK)
@@ -253,7 +249,10 @@ report_file_error (string, data)
   Lisp_Object errstring;
   int errorno = errno;
 
-  errstring = build_string (strerror (errno));
+  synchronize_messages_locale ();
+  errstring = code_convert_string_norecord (build_string (strerror (errorno)),
+					    Vlocale_coding_system, 0);
+
   while (1)
     switch (errorno)
       {
@@ -275,7 +274,7 @@ Lisp_Object
 close_file_unwind (fd)
      Lisp_Object fd;
 {
-  close (XFASTINT (fd));
+  emacs_close (XFASTINT (fd));
   return Qnil;
 }
 
@@ -2287,7 +2286,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   else if (stat (XSTRING (encoded_newname)->data, &out_st) < 0)
     out_st.st_mode = 0;
 
-  ifd = open (XSTRING (encoded_file)->data, O_RDONLY);
+  ifd = emacs_open (XSTRING (encoded_file)->data, O_RDONLY, 0);
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (file, Qnil));
 
@@ -2339,13 +2338,13 @@ A prefix arg makes KEEP-TIME non-nil.")
 
   immediate_quit = 1;
   QUIT;
-  while ((n = read (ifd, buf, sizeof buf)) > 0)
-    if (write (ofd, buf, n) != n)
+  while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
+    if (emacs_write (ofd, buf, n) != n)
       report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
   /* Closing the output clobbers the file times on some systems.  */
-  if (close (ofd) < 0)
+  if (emacs_close (ofd) < 0)
     report_file_error ("I/O error", Fcons (newname, Qnil));
 
   if (input_file_statable_p)
@@ -2375,7 +2374,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 #endif /* MSDOS */
     }
 
-  close (ifd);
+  emacs_close (ifd);
 
   /* Discard the unwind protects.  */
   specpdl_ptr = specpdl + count;
@@ -2914,10 +2913,10 @@ See also `file-exists-p' and `file-attributes'.")
   if (S_ISFIFO (statbuf.st_mode))
     flags |= O_NONBLOCK;
 #endif
-  desc = open (XSTRING (absname)->data, flags);
+  desc = emacs_open (XSTRING (absname)->data, flags, 0);
   if (desc < 0)
     return Qnil;
-  close (desc);
+  emacs_close (desc);
   return Qt;
 #endif /* not DOS_NT */
 }
@@ -2983,10 +2982,10 @@ If there is no error, we return nil.")
 
   encoded_filename = ENCODE_FILE (filename);
 
-  fd = open (XSTRING (encoded_filename)->data, O_RDONLY);
+  fd = emacs_open (XSTRING (encoded_filename)->data, O_RDONLY, 0);
   if (fd < 0)
     report_file_error (XSTRING (string)->data, Fcons (filename, Qnil));
-  close (fd);
+  emacs_close (fd);
 
   return Qnil;
 }
@@ -3403,12 +3402,12 @@ actually used.")
 #ifndef APOLLO
   if (stat (XSTRING (filename)->data, &st) < 0)
 #else
-  if ((fd = open (XSTRING (filename)->data, O_RDONLY)) < 0
+  if ((fd = emacs_open (XSTRING (filename)->data, O_RDONLY, 0)) < 0
       || fstat (fd, &st) < 0)
 #endif /* not APOLLO */
 #endif /* WINDOWSNT */
     {
-      if (fd >= 0) close (fd);
+      if (fd >= 0) emacs_close (fd);
     badopen:
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
@@ -3438,7 +3437,7 @@ actually used.")
 #endif
 
   if (fd < 0)
-    if ((fd = open (XSTRING (filename)->data, O_RDONLY)) < 0)
+    if ((fd = emacs_open (XSTRING (filename)->data, O_RDONLY, 0)) < 0)
       goto badopen;
 
   /* Replacement should preserve point as it preserves markers.  */
@@ -3470,7 +3469,13 @@ actually used.")
       if (! not_regular)
 	{
 	  XSETINT (end, st.st_size);
-	  if (XINT (end) != st.st_size)
+
+	  /* Arithmetic overflow can occur if an Emacs integer cannot
+	     represent the file size, or if the calculations below
+	     overflow.  The calculations below double the file size
+	     twice, so check that it can be multiplied by 4 safely.  */
+	  if (XINT (end) != st.st_size
+	      || ((int) st.st_size * 4) / 4 != st.st_size)
 	    error ("Maximum buffer size exceeded");
 	}
     }
@@ -3503,22 +3508,22 @@ actually used.")
 	      int how_many, nread;
 
 	      if (st.st_size <= (1024 * 4))
-		nread = read (fd, read_buf, 1024 * 4);
+		nread = emacs_read (fd, read_buf, 1024 * 4);
 	      else
 		{
-		  nread = read (fd, read_buf, 1024);
+		  nread = emacs_read (fd, read_buf, 1024);
 		  if (nread >= 0)
 		    {
 		      if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
 			report_file_error ("Setting file position",
 					   Fcons (orig_filename, Qnil));
-		      nread += read (fd, read_buf + nread, 1024 * 3);
+		      nread += emacs_read (fd, read_buf + nread, 1024 * 3);
 		    }
 		}
 
 	      if (nread < 0)
 		error ("IO error reading %s: %s",
-		       XSTRING (orig_filename)->data, strerror (errno));
+		       XSTRING (orig_filename)->data, emacs_strerror (errno));
 	      else if (nread > 0)
 		{
 		  int count = specpdl_ptr - specpdl;
@@ -3618,10 +3623,10 @@ actually used.")
 	{
 	  int nread, bufpos;
 
-	  nread = read (fd, buffer, sizeof buffer);
+	  nread = emacs_read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
 	    error ("IO error reading %s: %s",
-		   XSTRING (orig_filename)->data, strerror (errno));
+		   XSTRING (orig_filename)->data, emacs_strerror (errno));
 	  else if (nread == 0)
 	    break;
 
@@ -3660,7 +3665,7 @@ actually used.")
 	 there's no need to replace anything.  */
       if (same_at_start - BEGV_BYTE == XINT (end))
 	{
-	  close (fd);
+	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
 	  del_range_1 (same_at_start, same_at_end, 0);
@@ -3689,10 +3694,10 @@ actually used.")
 	  total_read = 0;
 	  while (total_read < trial)
 	    {
-	      nread = read (fd, buffer + total_read, trial - total_read);
+	      nread = emacs_read (fd, buffer + total_read, trial - total_read);
 	      if (nread <= 0)
 		error ("IO error reading %s: %s",
-		       XSTRING (orig_filename)->data, strerror (errno));
+		       XSTRING (orig_filename)->data, emacs_strerror (errno));
 	      total_read += nread;
 	    }
 	  /* Scan this bufferful from the end, comparing with
@@ -3809,7 +3814,7 @@ actually used.")
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
 	  QUIT;
-	  this = read (fd, destination, trytry);
+	  this = emacs_read (fd, destination, trytry);
 	  immediate_quit = 0;
 
 	  if (this < 0 || this + unprocessed == 0)
@@ -3862,7 +3867,7 @@ actually used.")
 
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
-		   XSTRING (orig_filename)->data, strerror (errno));
+		   XSTRING (orig_filename)->data, emacs_strerror (errno));
 	  else if (how_much == -2)
 	    error ("maximum buffer size exceeded");
 	}
@@ -3881,7 +3886,7 @@ actually used.")
       if (bufpos == inserted)
 	{
 	  xfree (conversion_buffer);
-	  close (fd);
+	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
 	  del_range_byte (same_at_start, same_at_end, 0);
@@ -3946,7 +3951,7 @@ actually used.")
       inserted = PT - temp;
 
       free (conversion_buffer);
-      close (fd);
+      emacs_close (fd);
       specpdl_ptr--;
 
       goto handled;
@@ -4003,7 +4008,8 @@ actually used.")
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
       QUIT;
-      this = read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1, trytry);
+      this = emacs_read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
+			 trytry);
       immediate_quit = 0;
 
       if (this <= 0)
@@ -4034,14 +4040,14 @@ actually used.")
     /* Put an anchor to ensure multi-byte form ends at gap.  */
     *GPT_ADDR = 0;
 
-  close (fd);
+  emacs_close (fd);
 
   /* Discard the unwind protect for closing the file.  */
   specpdl_ptr--;
 
   if (how_much < 0)
     error ("IO error reading %s: %s",
-	   XSTRING (orig_filename)->data, strerror (errno));
+	   XSTRING (orig_filename)->data, emacs_strerror (errno));
 
   if (! coding_system_decided)
     {
@@ -4496,9 +4502,9 @@ This does code conversion according to the value of\n\
   desc = -1;
   if (!NILP (append))
 #ifdef DOS_NT
-    desc = open (fn, O_WRONLY | buffer_file_type);
+    desc = emacs_open (fn, O_WRONLY | buffer_file_type, 0);
 #else  /* not DOS_NT */
-    desc = open (fn, O_WRONLY);
+    desc = emacs_open (fn, O_WRONLY, 0);
 #endif /* not DOS_NT */
 
   if (desc < 0 && (NILP (append) || errno == ENOENT))
@@ -4506,7 +4512,7 @@ This does code conversion according to the value of\n\
     if (auto_saving)    /* Overwrite any previous version of autosave file */
       {
 	vms_truncate (fn);      /* if fn exists, truncate to zero length */
-	desc = open (fn, O_RDWR);
+	desc = emacs_open (fn, O_RDWR, 0);
 	if (desc < 0)
 	  desc = creat_copy_attrs (STRINGP (current_buffer->filename)
 				   ? XSTRING (current_buffer->filename)->data : 0,
@@ -4539,7 +4545,7 @@ This does code conversion according to the value of\n\
 		    /* We can't make a new version;
 		       try to truncate and rewrite existing version if any.  */
 		    vms_truncate (fn);
-		    desc = open (fn, O_RDWR);
+		    desc = emacs_open (fn, O_RDWR, 0);
 		  }
 #endif
 	      }
@@ -4549,14 +4555,14 @@ This does code conversion according to the value of\n\
       }
 #else /* not VMS */
 #ifdef DOS_NT
-  desc = open (fn,
-	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type
-	       | (mustbenew == Qexcl ? O_EXCL : 0),
-	       S_IREAD | S_IWRITE);
+  desc = emacs_open (fn,
+		     O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type
+		     | (mustbenew == Qexcl ? O_EXCL : 0),
+		     S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-  desc = open (fn, O_WRONLY | O_TRUNC | O_CREAT
-	       | (mustbenew == Qexcl ? O_EXCL : 0),
-	       auto_saving ? auto_save_mode_bits : 0666);
+  desc = emacs_open (fn, O_WRONLY | O_TRUNC | O_CREAT
+		     | (mustbenew == Qexcl ? O_EXCL : 0),
+		     auto_saving ? auto_save_mode_bits : 0666);
 #endif /* not DOS_NT */
 #endif /* not VMS */
 
@@ -4701,7 +4707,7 @@ This does code conversion according to the value of\n\
 #endif
 
   /* NFS can report a write failure now.  */
-  if (close (desc) < 0)
+  if (emacs_close (desc) < 0)
     failure = 1, save_errno = errno;
 
 #ifdef VMS
@@ -4735,7 +4741,7 @@ This does code conversion according to the value of\n\
 
   if (failure)
     error ("IO error writing %s: %s", XSTRING (filename)->data,
-	   strerror (save_errno));
+	   emacs_strerror (save_errno));
 
   if (visiting)
     {
@@ -4927,14 +4933,14 @@ e_write (desc, addr, nbytes, coding)
       nbytes -= coding->consumed, addr += coding->consumed;
       if (coding->produced > 0)
 	{
-	  coding->produced -= write (desc, buf, coding->produced);
+	  coding->produced -= emacs_write (desc, buf, coding->produced);
 	  if (coding->produced) return -1;
 	}
       if (result == CODING_FINISH_INSUFFICIENT_SRC)
 	{
 	  /* The source text ends by an incomplete multibyte form.
              There's no way other than write it out as is.  */
-	  nbytes -= write (desc, addr, nbytes);
+	  nbytes -= emacs_write (desc, addr, nbytes);
 	  if (nbytes) return -1;
 	}
       if (nbytes <= 0)

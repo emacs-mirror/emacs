@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,1998 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,10 +19,9 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+#include <config.h>
 #include <signal.h>
 #include <errno.h>
-
-#include <config.h>
 #include <stdio.h>
 
 #include <sys/types.h>
@@ -40,10 +39,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
-
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
@@ -55,6 +50,10 @@ Boston, MA 02111-1307, USA.  */
 #include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
+
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#endif
 
 #ifdef HAVE_SETRLIMIT
 #include <sys/time.h>
@@ -127,6 +126,12 @@ Lisp_Object Vsystem_configuration;
 Lisp_Object Vsystem_configuration_options;
 
 Lisp_Object Qfile_name_handler_alist;
+
+/* Current and previous system locales for messages and time.  */
+Lisp_Object Vmessages_locale;
+Lisp_Object Vprevious_messages_locale;
+Lisp_Object Vtime_locale;
+Lisp_Object Vprevious_time_locale;
 
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
@@ -602,6 +607,7 @@ main (argc, argv, envp)
      char **envp;
 {
   char stack_bottom_variable;
+  int do_initial_setlocale;
   int skip_args = 0;
   extern int errno;
   extern int sys_nerr;
@@ -785,6 +791,20 @@ main (argc, argv, envp)
   setuid (getuid ());
 #endif /* SET_EMACS_PRIORITY */
 
+  /* Skip initial setlocale if LC_ALL is "C", as it's not needed in that case.
+     The build procedure uses this while dumping, to ensure that the
+     dumped Emacs does not have its system locale tables initialized,
+     as that might cause screwups when the dumped Emacs starts up.  */
+  {
+    char *lc_all = getenv ("LC_ALL");
+    do_initial_setlocale = ! lc_all || strcmp (lc_all, "C");
+  }
+
+  /* Set locale now, so that initial error messages are localized properly.
+     fixup_locale must wait until later, since it builds strings.  */
+  if (do_initial_setlocale)
+    setlocale (LC_ALL, "");
+
 #ifdef EXTRA_INITIALIZE
   EXTRA_INITIALIZE;
 #endif
@@ -798,9 +818,9 @@ main (argc, argv, envp)
       if (argmatch (argv, argc, "-t", "--terminal", 4, &term, &skip_args))
 	{
 	  int result;
-	  close (0);
-	  close (1);
-	  result = open (term, O_RDWR, 2 );
+	  emacs_close (0);
+	  emacs_close (1);
+	  result = emacs_open (term, O_RDWR, 0);
 	  if (result < 0)
 	    {
 	      char *errstring = strerror (errno);
@@ -994,6 +1014,14 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
     }
 
   init_alloc ();
+
+  if (do_initial_setlocale)
+    {
+      fixup_locale ();
+      Vmessages_locale = Vprevious_messages_locale;
+      Vtime_locale = Vprevious_time_locale;
+    }
+
   init_eval ();
   init_coding ();
   init_data ();
@@ -1859,6 +1887,55 @@ You must run Emacs in batch mode in order to dump it.")
 
 #endif /* not CANNOT_DUMP */
 
+#if HAVE_SETLOCALE
+/* Recover from setlocale (LC_ALL, "").  */
+void
+fixup_locale ()
+{
+  char *l;
+
+  /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
+     so that numbers are read and printed properly for Emacs Lisp.  */
+  setlocale (LC_NUMERIC, "C");
+
+#ifdef LC_MESSAGES
+  l = setlocale (LC_MESSAGES, (char *) 0);
+  Vprevious_messages_locale = l ? build_string (l) : Qnil;
+#endif
+  l = setlocale (LC_TIME, (char *) 0);
+  Vprevious_time_locale = l ? build_string (l) : Qnil;
+}
+
+static void
+synchronize_locale (category, plocale, desired_locale)
+     int category;
+     Lisp_Object *plocale;
+     Lisp_Object desired_locale;
+{
+  if (STRINGP (desired_locale)
+      && (NILP (*plocale) || NILP (Fstring_equal (*plocale, desired_locale)))
+      && setlocale (category, XSTRING (desired_locale)->data))
+    *plocale = desired_locale;
+}
+
+/* Set system time locale to match Vtime_locale, if possible.  */
+void
+synchronize_time_locale ()
+{
+  synchronize_locale (LC_TIME, &Vprevious_time_locale, Vtime_locale);
+}
+
+/* Set system messages locale to match Vmessages_locale, if possible.  */
+void
+synchronize_messages_locale ()
+{
+#ifdef LC_MESSAGES
+  synchronize_locale (LC_MESSAGES, &Vprevious_messages_locale,
+		      Vmessages_locale);
+#endif
+}
+#endif /* HAVE_SETLOCALE */
+
 #ifndef SEPCHAR
 #define SEPCHAR ':'
 #endif
@@ -2003,4 +2080,20 @@ This is non-nil when we can't find those directories in their standard\n\
 installed locations, but we can find them\n\
 near where the Emacs executable was found.");
   Vinstallation_directory = Qnil;
+
+  DEFVAR_LISP ("messages-locale", &Vmessages_locale,
+    "System locale for messages.");
+  Vmessages_locale = Qnil;
+
+  DEFVAR_LISP ("previous-messages-locale", &Vprevious_messages_locale,
+    "Most recently used system locale for messages.");
+  Vprevious_messages_locale = Qnil;
+
+  DEFVAR_LISP ("time-locale", &Vtime_locale,
+    "System locale for time.");
+  Vtime_locale = Qnil;
+
+  DEFVAR_LISP ("previous-time-locale", &Vprevious_time_locale,
+    "Most recently used system locale for time.");
+  Vprevious_time_locale = Qnil;
 }

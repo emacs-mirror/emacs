@@ -1,5 +1,5 @@
 /* "Face" primitives on the Microsoft W32 API.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1999 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -20,10 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Ported xfaces.c for w32 - Kevin Gallo */
 
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <config.h>
 #include "lisp.h"
 
 #include "w32term.h"

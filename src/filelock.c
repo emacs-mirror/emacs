@@ -19,14 +19,11 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
-#include <config.h>
 #include <stdio.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 
 #ifdef VMS
 #include "vms-pwd.h"
@@ -255,11 +252,11 @@ get_boot_time_1 (filename, newest)
     {
       /* On some versions of IRIX, opening a nonexistent file name
 	 is likely to crash in the utmp routines.  */
-      desc = open (filename, O_RDONLY);
+      desc = emacs_open (filename, O_RDONLY, 0);
       if (desc < 0)
 	return;
 
-      close (desc);
+      emacs_close (desc);
 
       utmpname (filename);
     }

@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -21,9 +21,6 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 
 #include <stdio.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 #include "lisp.h"
 #include "charset.h"
 #ifdef HAVE_X_WINDOWS

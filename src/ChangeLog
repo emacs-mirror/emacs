@@ -1,3 +1,179 @@
+1999-10-19  Paul Eggert  <eggert@twinsun.com>
+	
+	Add support for large files, 64-bit Solaris, system locale codings.
+	
+	* Makefile.in (emacs): Set the LC_ALL environment variable to "C"
+	when dumping, so that the dumped Emacs doesn't have stray locale info.
+	(dired.o): Depend on systime.h.
+	(editfns.o): Depend on coding.h.
+
+	* alloc.c, buffer.c, callproc.c, ccl.c, charset.c, coding.c, data.c,
+	dispnew.c, editfns.c, emacs.c, filelock.c, floatfns.c, hftctl.c,
+	keyboard.c, process.c, sysdep.c, unexelf.c, unexhp9k800.c,
+	unexsunos4.c, vmsfns.c, vmsgmalloc.c, w32faces.c, w32menu.c, w32term.c,
+	w32xfns.c, xfaces.c, xfns.c, xmenu.c, xterm.c:
+	Include <config.h> before any system include files.
+
+	* alloc.c, buffer.c, ccl.c, data.c, editfns.c, emacs.c, eval.c,
+	fileio.c, filelock.c, frame.c, insdel.c, keymap.c, lread.c,
+	m/alpha.h, print.c, search.c, sysdep.c, xdisp.c, xfaces.c, xfns.c,
+	xmenu.c, xterm.c:
+	Do not include <stdlib.h>, as <config.h> does this now.
+
+	* callproc.c (Fcall_process):
+	Synchronize messages locale before invoking strerror.
+	Decode resulting string with locale-coding-system.
+
+	* coding.c (Vlocale_coding_system): New var.
+	(syms_of_coding): Adjust to above change.
+	(emacs_strerror): New function.
+
+	* coding.h (emacs_strerror, Vlocale_coding_system): New decls.
+	
+	* config.in (HAVE_STDIO_EXT_H, HAVE_TM_GMTOFF, HAVE___FPENDING,
+	HAVE_FTELLO, HAVE_GETLOADAVG, HAVE_MBLEN, HAVE_MBRLEN,
+	HAVE_STRSIGNAL): New macros.
+	(BITS_PER_LONG): Default to 64 if _LP64 is defined.
+	<stdlib.h>: Include if HAVE_STDLIB_H is defined and NOT_C_CODE isn't.
+
+	* dired.c: Include "systime.h".
+	(Ffile_attributes): Do not cast s.st_size to int; this loses
+	information if int is 32 bits but st_size and EMACS_INT are larger.
+	Treat large device numbers like large inode numbers.
+
+	* dispnew.c (PENDING_OUTPUT_COUNT): Use __fpending if available.
+
+	* editfns.c: Include coding.h.
+	(emacs_strftime): Remove decl.
+	(emacs_strftimeu): New decl.
+	(emacs_memftimeu): Renamed from emacs_memftime; new arg UT.
+	Use emacs_strftimeu instead of emacs_strftime.
+	(Fformat_time_string): Convert format string using
+	Vlocale_coding_system, and convert result back.  Synchronize time
+	locale before invoking lower level function.  Invoke
+	emacs_memftimeu, passing ut, instead of emacs_memftime.
+	
+	* emacs.c: Include <locale.h> if HAVE_SETLOCALE is defined.
+	(Vmessages_locale, Vprevious_messages_locale, Vtime_locale,
+	Vprevious_time_locale): New variables.
+	(main): Invoke setlocale early, so that initial error messages are
+	localized properly.  But skip locale-setting if LC_ALL is "C".
+	Fix up locale when it's safe to do so.
+	(fixup_locale): Moved here from xterm.c.
+	(synchronize_locale, synchronize_time_locale,
+	synchronize_messages_locale): New functions.
+	(syms_of_emacs): Accommodate above changes.
+
+	* fileio.c (report_file_error): Convert strerror output according
+	to Vlocale_coding_system.
+	(Finsert_file_contents): Check for arithmetic overflow in
+	computations that depend on file size.  Report IO errors
+	with emacs_strerror, not strerror.
+
+	* fns.c (Fgethash): Declare dflt parameter.
+
+	* gmalloc.c: Do not define const to nothing if HAVE_CONFIG_H
+	is defined; that's config.h's job.
+
+	* lisp.h (EMACS_INT, BITS_PER_EMACS_INT, EMACS_UINT): If _LP64,
+	default these values to long, BITS_PER_LONG, and unsigned long.
+	(VALBITS, MARKBIT, XINT): Do not assume 32-bit EMACS_INT.
+	(PNTR_COMPARISON_TYPE): Default to EMACS_UINT, not to unsigned int.
+	(code_convert_string_norecord, fixup_locale,
+	synchronize_messages_locale, synchronize_time_locale,
+	emacs_open, emacs_close, emacs_read, emacs_write): New decls.
+	All Emacs callers of open, close, read, write changed to use
+	emacs_open, emacs_close, emacs_read, emacs_write.
+
+	* lread.c (file_offset, file_tell): New macros.  All uses of ftell
+	changed to file_tell.
+	(saved_doc_string_position, prev_saved_doc_string_position): Now
+	of type file_offset.
+	(init_lread): Do not fix locale here; fixup_locale now does this.
+
+	* m/amdahl.h, s/usg5-4.h:
+	(NSIG): Remove.
+	(NSIG_MINIMUM): New macro.
+
+	* m/cydra5.h, m/dpx2.h, m/mips.h, m/pfa50.h, m/sps7.h, m/stride.h,
+	m/ustation.h, s/gnu-linux.h, s/hpux.h, s/iris3-5.h, s/iris3-6.h,
+	s/umips.h, s/usg5-4.h:
+	(SIGIO): Do not undef.
+	(BROKEN_SIGIO): New macro.
+
+	* m/ustation.h:
+	(SIGTSTP): Do not undef.
+	(BROKEN_SIGTSTP): New macro.
+
+	* s/gnu-linux.h:
+	(SIGPOLL, SIGURG): Do not undef.
+	(BROKEN_SIGPOLL, BROKEN_SIGURG): New macros.
+
+	* s/ptx4.h:
+	(SIGINFO): Do not undef.
+	(BROKEN_SIGINFO): New macros.
+	
+	* m/delta.h, s/ptx.h, s/template.h: Doc fix.
+
+	* mktime.c, strftime.c: Update to glibc 2.1.2 version, with
+	some Emacs-related changes merged.
+
+	* print.c (float_to_string): Prepend "-" to representation of a
+	NaN if the NaN is negative.
+
+	* process.c (sys_siglist): Omit if HAVE_STRSIGNAL.
+	(wait_reading_process_input): Use emacs_strerror, not strerror.
+	
+	* process.c (status_message, sigchld_handler): Synchronize locale,
+	then use strsignal istead of sys_siglist.
+	* w32proc.c (sys_wait): Likewise.
+	
+	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h,
+	s/hpux.h, s/iris3-5.h, s/iris3-6.h, s/irix3-3.h, s/osf1.h, s/rtu.h,
+	s/sunos4-1.h, s/unipl5-0.h, s/unipl5-2.h, s/usg5-0.h, s/usg5-2-2.h,
+	s/usg5-2.h, s/usg5-3.h, s/xenix.h:
+	(open, close, read, write, INTERRUPTIBLE_OPEN,
+	INTERRUPTIBLE_CLOSE, INTERRUPTIBLE_IO): Remove.
+
+	* s/sol2-5.h (_LARGEFILE_SOURCE, _FILE_OFFSET_BITS): New macros.
+
+	* sysdep.c (sys_read, sys_write, read, write, sys_close, close,
+	sys_open, open): Remove.
+	(emacs_open, emacs_close, emacs_read, emacs_write): Always define;
+	the old INTERRUPTIBLE_OPEN, INTERRUPTIBLE_CLOSE, and INTERRUPTIBLE_IO
+	macros are no longer used.
+	(emacs_open): Renamed from sys_open.  Merge BSD4_1 version.
+	(emacs_close): Renamed from sys_close.
+	(emacs_read): Renamed from sys_read.
+	(emacs_write): Renamed from sys_write.
+	(sys_siglist): Do not declare if HAVE_STRSIGNAL.
+	(dup2): Do not print error on failure; the real dup2 doesn't.
+	(strsignal): New function, defined if !HAVE_STRSIGNAL.
+
+	* syssignal.h (SIGINFO): Undef if defined and if BROKEN_SIGINFO
+	is defined.
+	(SIGIO, SIGPOLL, SIGTSTP, SIGURG): Likewise.
+	(NSIG): If less than NSIG_MINIMUM, define to NSIG_MINIMUM.
+	(strsignal): Declare if !HAVE_STRSIGNAL.
+
+	* unexelf.c (ElfBitsW, ELFSIZE, ElfExpandBitsW): New macros.
+	(ElfW): Define in terms of ElfExpandBitsW.
+
+	* w32proc.c (sys_siglist): Remove decl.
+
+	* xdisp.c (decode_mode_spec): 3rd arg is int, not char, to comply
+	with ANSI C.
+	(display_string): Declare face_string_pos arg.
+
+	* xfns.c (Fx_show_tip): Declare timeout param.
+
+	* xterm.c: No need to include locale.h.
+	(x_alloc_lighter_color, x_setup_relief_color):
+	Pass arg as double, not float, for compatibility with ANSI C.
+	(fixup_locale): Move to emacs.c.
+	(x_term_init): Do not setlocale or fixup locale; the main program
+	does this now.
+
 1999-10-18  Dave Love  <fx@gnu.org>
 
 	* doc.c (Fdocumentation_property): Gcpro `tem'.

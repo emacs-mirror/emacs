@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 1999 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -856,9 +856,9 @@ emacs: temacs ${etc}DOC ${lisp}
 	ln temacs emacs
 #else
 #ifdef HAVE_SHM
-	./temacs -nl -batch -l loadup dump
+	LC_ALL=C ./temacs -nl -batch -l loadup dump
 #else /* ! defined (HAVE_SHM) */
-	./temacs -batch -l loadup dump
+	LC_ALL=C ./temacs -batch -l loadup dump
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
@@ -1057,7 +1057,8 @@ cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
-dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h
+dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h \
+   systime.h
 dispnew.o: dispnew.c  commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
    xterm.h blockinput.h charset.h msdos.h $(config_h)
@@ -1065,7 +1066,7 @@ doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h
 doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
-   $(config_h)
+   coding.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \

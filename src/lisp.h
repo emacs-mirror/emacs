@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,1998 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,12 +27,22 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* These are default choices for the types to use.  */
+#ifdef _LP64
+#ifndef EMACS_INT
+#define EMACS_INT long
+#define BITS_PER_EMACS_INT BITS_PER_LONG
+#endif
+#ifndef EMACS_UINT
+#define EMACS_UINT unsigned long
+#endif
+#else /* not _LP64 */
 #ifndef EMACS_INT
 #define EMACS_INT int
 #define BITS_PER_EMACS_INT BITS_PER_INT
 #endif
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned int
+#endif
 #endif
 
 /* Define the fundamental Lisp data structures.  */
@@ -98,7 +108,7 @@ enum Lisp_Misc_Type
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
-#define VALBITS 28
+#define VALBITS (BITS_PER_EMACS_INT - 4)
 #endif
 
 #ifndef GCTYPEBITS
@@ -212,7 +222,7 @@ Lisp_Object;
    rather than being part of a string block.  */
 
 #ifndef MARKBIT
-#define MARKBIT ((int) ((unsigned int) 1 << (VALBITS + GCTYPEBITS)))
+#define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS)))
 #endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.
@@ -278,7 +288,7 @@ enum pvec_type
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) (((a) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS))
+#define XINT(a) (((a) << (BITS_PER_EMACS_INT-VALBITS)) >> (BITS_PER_EMACS_INT-VALBITS))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
@@ -1332,7 +1342,7 @@ typedef unsigned char UCHAR;
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
 #ifndef PNTR_COMPARISON_TYPE
-#define PNTR_COMPARISON_TYPE unsigned int
+#define PNTR_COMPARISON_TYPE EMACS_UINT
 #endif
 
 /* Define a built-in function for calling from Lisp.
@@ -1765,6 +1775,7 @@ EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fencode_coding_string, 3);
 EXFUN (Fdecode_coding_string, 3);
 extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int));
+Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object, int));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
 extern void syms_of_coding P_ ((void));
@@ -2506,6 +2517,16 @@ extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
 extern Lisp_Object Vinstallation_directory;
 EXFUN (Fkill_emacs, 1);
+#if HAVE_SETLOCALE
+void fixup_locale P_ ((void));
+void synchronize_messages_locale P_ ((void));
+void synchronize_time_locale P_ ((void));
+#else
+#define setlocale(category, locale)
+#define fixup_locale()
+#define synchronize_messages_locale()
+#define synchronize_time_locale()
+#endif
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
@@ -2627,6 +2648,10 @@ extern int set_window_size P_ ((int, int, int));
 extern void create_process P_ ((Lisp_Object, char **, Lisp_Object));
 extern int tabs_safe_p P_ ((void));
 extern void init_baud_rate P_ ((void));
+extern int emacs_open P_ ((char *, int, int));
+extern int emacs_close P_ ((int));
+extern int emacs_read P_ ((int, char *, unsigned int));
+extern int emacs_write P_ ((int, char *, unsigned int));
 
 /* defined in filelock.c */
 EXFUN (Funlock_buffer, 0);

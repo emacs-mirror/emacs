@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 1998
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,14 +19,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Note that this declares bzero on OSF/1.  How dumb.  */
-#include <signal.h>
-
 #include <config.h>
 
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
+/* Note that this declares bzero on OSF/1.  How dumb.  */
+#include <signal.h>
 
 #include "lisp.h"
 #include "intervals.h"

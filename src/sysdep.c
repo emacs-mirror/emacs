@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,87,88,93,94,95, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,13 +19,10 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+#include <config.h>
 #include <signal.h>
 #include <setjmp.h>
 
-#include <config.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #include "lisp.h"
 #include "blockinput.h"
 #undef NULL
@@ -50,36 +47,12 @@ Lisp_Object Vx_bitmap_file_path;
 
 #define min(x,y) ((x) > (y) ? (y) : (x))
 
-/* In this file, open, read and write refer to the system calls,
-   not our sugared interfaces  sys_open, sys_read and sys_write.
-   Contrariwise, for systems where we use the system calls directly,
-   define sys_read, etc. here as aliases for them.  */
-#ifndef read
-#define sys_read read
-#define sys_write write
-#endif /* `read' is not a macro */
-
-#undef read
-#undef write
-
 #ifdef WINDOWSNT
 #define read _read
 #define write _write
 #include <windows.h>
 extern int errno;
 #endif /* not WINDOWSNT */
-
-#ifndef close
-#define sys_close close
-#else 
-#undef close
-#endif
-
-#ifndef open
-#define sys_open open
-#else /* `open' is a macro */
-#undef open
-#endif /* `open' is a macro */
 
 /* Does anyone other than VMS need this? */
 #ifndef fwrite
@@ -2710,25 +2683,6 @@ read_input_waiting ()
 #endif /* not MSDOS */
 
 #ifdef BSD4_1
-/*
- * Partially emulate 4.2 open call.
- * open is defined as this in 4.1.
- *
- * - added by Michael Bloom @ Citicorp/TTI
- *
- */
-
-int
-sys_open (path, oflag, mode)
-     char *path;
-     int oflag, mode;
-{
-  if (oflag & O_CREAT) 
-    return creat (path, mode);
-  else
-    return open (path, oflag);
-}
-
 void
 init_sigio (fd)
      int fd;
@@ -3093,27 +3047,25 @@ strerror (errnum)
 #endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
 
-#ifdef INTERRUPTIBLE_OPEN
-
 int
-/* VARARGS 2 */
-sys_open (path, oflag, mode)
+emacs_open (path, oflag, mode)
      char *path;
      int oflag, mode;
 {
   register int rtnval;
+
+#ifdef BSD4_1
+  if (oflag & O_CREAT) 
+    return creat (path, mode);
+#endif
   
   while ((rtnval = open (path, oflag, mode)) == -1
 	 && (errno == EINTR));
   return (rtnval);
 }
 
-#endif /* INTERRUPTIBLE_OPEN */
-
-#ifdef INTERRUPTIBLE_CLOSE
-
 int
-sys_close (fd)
+emacs_close (fd)
      int fd;
 {
   int did_retry = 0;
@@ -3132,12 +3084,8 @@ sys_close (fd)
   return rtnval;
 }
 
-#endif /* INTERRUPTIBLE_CLOSE */
-
-#ifdef INTERRUPTIBLE_IO
-
 int
-sys_read (fildes, buf, nbyte)
+emacs_read (fildes, buf, nbyte)
      int fildes;
      char *buf;
      unsigned int nbyte;
@@ -3150,7 +3098,7 @@ sys_read (fildes, buf, nbyte)
 }
 
 int
-sys_write (fildes, buf, nbyte)
+emacs_write (fildes, buf, nbyte)
      int fildes;
      char *buf;
      unsigned int nbyte;
@@ -3177,8 +3125,6 @@ sys_write (fildes, buf, nbyte)
     }
   return (bytes_written);
 }
-
-#endif /* INTERRUPTIBLE_IO */
 
 #ifndef HAVE_VFORK
 #ifndef WINDOWSNT
@@ -3210,6 +3156,7 @@ vfork ()
  *	always negligible.   Fred Fish, Unisoft Systems Inc.
  */
 
+#ifndef HAVE_STRSIGNAL
 #ifndef HAVE_SYS_SIGLIST
 char *sys_siglist[NSIG + 1] =
 {
@@ -3296,6 +3243,7 @@ char *sys_siglist[NSIG + 1] =
   0
   };
 #endif /* HAVE_SYS_SIGLIST */
+#endif /* HAVE_STRSIGNAL */
 
 /*
  *	Warning, this function may not duplicate 4.2 action properly
@@ -3384,12 +3332,10 @@ dup2 (oldd, newd)
 {
   register int fd, ret;
   
-  sys_close (newd);
+  emacs_close (newd);
 
 #ifdef F_DUPFD
-  fd = fcntl (oldd, F_DUPFD, newd);
-  if (fd != newd)
-    error ("can't dup2 (%i,%i) : %s", oldd, newd, strerror (errno));
+  return fcntl (oldd, F_DUPFD, newd);
 #else
   fd = dup (old);
   if (fd == -1)
@@ -3397,7 +3343,7 @@ dup2 (oldd, newd)
   if (fd == new)
     return new;
   ret = dup2 (old,new);
-  sys_close (fd);
+  emacs_close (fd);
   return ret;
 #endif
 }
@@ -3452,6 +3398,7 @@ croak (badfunc)
 
 #ifdef DGUX
 
+#ifndef HAVE_STRSIGNAL
 char *sys_siglist[NSIG + 1] =
 {
   "null signal",			 /*  0 SIGNULL   */
@@ -3521,6 +3468,7 @@ char *sys_siglist[NSIG + 1] =
   "notification message in mess. queue", /* 64 SIGDGNOTIFY */
   0
 };
+#endif /* HAVE_STRSIGNAL */
 
 #endif /* DGUX */
 
@@ -3538,7 +3486,7 @@ closedir (dirp)
 {
   int rtnval;
 
-  rtnval = sys_close (dirp->dd_fd);
+  rtnval = emacs_close (dirp->dd_fd);
 
   /* Some systems (like Solaris) allocate the buffer and the DIR all
      in one block.  Why in the world are we freeing this ourselves
@@ -3563,7 +3511,7 @@ opendir (filename)
   register int fd;		/* file descriptor for read */
   struct stat sbuf;		/* result of fstat */
 
-  fd = sys_open (filename, 0);
+  fd = emacs_open (filename, O_RDONLY, 0);
   if (fd < 0)
     return 0;
 
@@ -3572,7 +3520,7 @@ opendir (filename)
       || (sbuf.st_mode & S_IFMT) != S_IFDIR
       || (dirp = (DIR *) malloc (sizeof (DIR))) == 0)
     {
-      sys_close (fd);
+      emacs_close (fd);
       UNBLOCK_INPUT;
       return 0;		/* bad luck today */
     }
@@ -3588,7 +3536,7 @@ void
 closedir (dirp)
      register DIR *dirp;		/* stream from opendir */
 {
-  sys_close (dirp->dd_fd);
+  emacs_close (dirp->dd_fd);
   xfree ((char *) dirp);
 }
 
@@ -3622,7 +3570,7 @@ readdir (dirp)
 	dirp->dd_loc = dirp->dd_size = 0;
 
       if (dirp->dd_size == 0 	/* refill buffer */
-	  && (dirp->dd_size = sys_read (dirp->dd_fd, dirp->dd_buf, DIRBLKSIZ)) <= 0)
+	  && (dirp->dd_size = emacs_read (dirp->dd_fd, dirp->dd_buf, DIRBLKSIZ)) <= 0)
 	return 0;
 
 #ifndef VMS
@@ -3775,7 +3723,7 @@ mkdir (dpath, dmode)
 		 */
       status = umask (0);	/* Get current umask */
       status = umask (status | (0777 & ~dmode));	/* Set for mkdir */
-      fd = sys_open ("/dev/null", 2);
+      fd = emacs_open ("/dev/null", O_RDWR, 0);
       if (fd >= 0)
         {
 	  dup2 (fd, 0);
@@ -3821,7 +3769,7 @@ rmdir (dpath)
       return (-1);		/* Errno is set already */
 
     case 0:			/* Child process */
-      fd = sys_open ("/dev/null", 2);
+      fd = emacs_open ("/dev/null", O_RDWR, 0);
       if (fd >= 0)
         {
 	  dup2 (fd, 0);
@@ -4240,6 +4188,7 @@ sys_getuid ()
   return (getgid () << 16) | getuid ();
 }
 
+#undef read
 int
 sys_read (fildes, buf, nbyte)
      int fildes;
@@ -4279,6 +4228,7 @@ sys_write (fildes, buf, nbyte)
  *	Thus we do this stupidity below.
  */
 
+#undef write
 int
 sys_write (fildes, buf, nbytes)
      int fildes;
@@ -5322,7 +5272,28 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 }
 #endif /* no bcmp */
 #endif /* not BSTRING */
+
+#ifndef HAVE_STRSIGNAL
+char *
+strsignal (code)
+     int code;
+{
+  char *signame = 0;
 
+  if (0 <= code && code < NSIG)
+    {
+#ifdef VMS
+      signame = sys_errlist[code];
+#else
+      /* Cast to suppress warning if the table has const char *.  */
+      signame = (char *) sys_siglist[code];
+#endif
+    }
+
+  return signame;
+}
+#endif /* HAVE_STRSIGNAL */
+
 /* All the Macintosh stuffs go here */
 
 #ifdef macintosh
@@ -5502,10 +5473,10 @@ Unix2MacPathname (const char *ufn, char *mfn, int mfnbuflen)
 
 /* Define our own stat function for both MrC and CW.  The reason for
    doing this: "stat" is both the name of a struct and function name:
-   can't use the same trick like that for sys_open, sys_close, etc. to
+   we can't #define stat to something else to
    redirect Emacs's calls to our own version that converts Unix style
    filenames to Mac style filename because all sorts of compilation
-   errors will be generated if stat is #define'd to be sys_stat.  */
+   errors will be generated if stat is #define'd to be something else.  */
 
 int
 stat (const char *path, struct stat *buf)

@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,6 +24,8 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "systime.h"
 
 #ifdef VMS
 #include <string.h>
@@ -790,7 +792,7 @@ If file does not exist, returns nil.")
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  values[7] = make_number ((int) s.st_size);
+  values[7] = make_number (s.st_size);
   /* If the size is out of range for an integer, return a float.  */
   if (XINT (values[7]) != s.st_size)
     values[7] = make_float ((double)s.st_size);
@@ -822,7 +824,14 @@ If file does not exist, returns nil.")
   else
     /* But keep the most common cases as integers.  */
     values[10] = make_number (s.st_ino);
-  values[11] = make_number (s.st_dev);
+
+  /* Likewise for device.  */
+  if (s.st_dev & (((EMACS_INT) (-1)) << VALBITS))
+    values[11] = Fcons (make_number (s.st_dev >> 16),
+			make_number (s.st_dev & 0xffff));
+  else
+    values[11] = make_number (s.st_dev);
+
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
 

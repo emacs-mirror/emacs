@@ -27,8 +27,8 @@ Boston, MA 02111-1307, USA.  */
 
 /* Rewritten for X11 by Joseph Arceneaux */
 
-#include <signal.h>
 #include <config.h>
+#include <signal.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -52,9 +52,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_X_WINDOWS
 
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#else
+#ifndef STDC_HEADERS
 extern void abort ();
 #endif
 #include <ctype.h>
@@ -667,7 +665,7 @@ x_create_bitmap_from_file (f, file)
   /* XReadBitmapFile won't handle magic file names.  */
   if (fd == 0)
     return -1;
-  close (fd);
+  emacs_close (fd);
 
   filename = (char *) XSTRING (found)->data;
 
@@ -9761,7 +9759,7 @@ used to change the tooltip's appearance.\n\
 Automatically hide the tooltip after TIMEOUT seconds.\n\
 TIMEOUT nil means use the default timeout of 5 seconds.")
   (string, frame, parms, timeout)
-     Lisp_Object string, frame, parms;
+     Lisp_Object string, frame, parms, timeout;
 {
   struct frame *f;
   struct window *w;

@@ -5,7 +5,7 @@
 /* The malloc headers and source files from the C library follow here.  */
 
 /* Declarations for `malloc' and friends.
-   Copyright 1990, 91, 92, 93, 95, 96 Free Software Foundation, Inc.
+   Copyright 1990, 91, 92, 93, 95, 96, 99 Free Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
@@ -44,8 +44,10 @@ Cambridge, MA 02139, USA.
 #else /* Not C++ or ANSI C.  */
 #undef	PP
 #define	PP(args)	()
+#ifndef HAVE_CONFIG_H
 #undef	const
 #define	const
+#endif
 #undef	__ptr_t
 #define	__ptr_t		char *
 #endif /* C++ or ANSI C.  */

@@ -19,18 +19,13 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-#include <sys/types.h>
-
 #include <config.h>
+#include <sys/types.h>
 
 #ifdef VMS
 #include "vms-pwd.h"
 #else
 #include <pwd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -41,6 +36,7 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "buffer.h"
 #include "charset.h"
+#include "coding.h"
 #include "window.h"
 
 #include "systime.h"
@@ -57,7 +53,7 @@ extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static int tm_diff ();
 static void update_buffer_properties ();
-size_t emacs_strftime ();
+size_t emacs_strftimeu ();
 void set_time_zone_rule ();
 
 Lisp_Object Vbuffer_access_fontify_functions;
@@ -1174,27 +1170,29 @@ lisp_time_argument (specified_time, result)
 
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
+   Default to Universal Time if UT is nonzero, local time otherwise.
    Return the number of bytes written, not including the terminating
    '\0'.  If S is NULL, nothing will be written anywhere; so to
    determine how many bytes would be written, use NULL for S and
    ((size_t) -1) for MAXSIZE.
 
-   This function behaves like emacs_strftime, except it allows null
+   This function behaves like emacs_strftimeu, except it allows null
    bytes in FORMAT.  */
 static size_t
-emacs_memftime (s, maxsize, format, format_len, tp)
+emacs_memftimeu (s, maxsize, format, format_len, tp, ut)
       char *s;
       size_t maxsize;
       const char *format;
       size_t format_len;
       const struct tm *tp;
+      int ut;
 {
   size_t total = 0;
 
   /* Loop through all the null-terminated strings in the format
      argument.  Normally there's just one null-terminated string, but
      there can be arbitrarily many, concatenated together, if the
-     format contains '\0' bytes.  emacs_strftime stops at the first
+     format contains '\0' bytes.  emacs_strftimeu stops at the first
      '\0' byte so we must invoke it separately for each such string.  */
   for (;;)
     {
@@ -1204,7 +1202,7 @@ emacs_memftime (s, maxsize, format, format_len, tp)
       if (s)
 	s[0] = '\1';
 
-      result = emacs_strftime (s, maxsize, format, tp);
+      result = emacs_strftimeu (s, maxsize, format, tp, ut);
 
       if (s)
 	{
@@ -1283,18 +1281,24 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
   time_t value;
   int size;
   struct tm *tm;
+  int ut = ! NILP (universal);
 
   CHECK_STRING (format_string, 1);
 
   if (! lisp_time_argument (time, &value))
     error ("Invalid time specification");
 
+  format_string = code_convert_string_norecord (format_string,
+						Vlocale_coding_system, 1);
+
   /* This is probably enough.  */
   size = STRING_BYTES (XSTRING (format_string)) * 6 + 50;
 
-  tm = NILP (universal) ? localtime (&value) : gmtime (&value);
+  tm = ut ? gmtime (&value) : localtime (&value);
   if (! tm)
     error ("Specified time is not representable");
+
+  synchronize_time_locale ();
 
   while (1)
     {
@@ -1302,17 +1306,18 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
       int result;
 
       buf[0] = '\1';
-      result = emacs_memftime (buf, size, XSTRING (format_string)->data,
-			       STRING_BYTES (XSTRING (format_string)),
-			       tm);
+      result = emacs_memftimeu (buf, size, XSTRING (format_string)->data,
+				STRING_BYTES (XSTRING (format_string)),
+				tm, ut);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return make_string (buf, result);
+	return code_convert_string_norecord (make_string (buf, result),
+					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
-      result = emacs_memftime (NULL, (size_t) -1,
-			       XSTRING (format_string)->data,
-			       STRING_BYTES (XSTRING (format_string)),
-			       tm);
+      result = emacs_memftimeu (NULL, (size_t) -1,
+				XSTRING (format_string)->data,
+				STRING_BYTES (XSTRING (format_string)),
+				tm, ut);
       size = result + 1;
     }
 }

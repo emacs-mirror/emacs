@@ -551,12 +551,16 @@ extern Lisp_Object Qfile_coding_system;
 extern Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
 
+extern char *emacs_strerror P_ ((int));
+
 /* Coding-system for reading files and receiving data from process.  */
 extern Lisp_Object Vcoding_system_for_read;
 /* Coding-system for writing files and sending data to process.  */
 extern Lisp_Object Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
 extern Lisp_Object Vlast_coding_system_used;
+/* Coding-system to use with system messages (e.g. strerror).  */
+extern Lisp_Object Vlocale_coding_system;
 
 /* If non-zero, process buffer inherits the coding system used to decode
    the subprocess output.  */

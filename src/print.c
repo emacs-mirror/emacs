@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 1998
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -60,7 +60,6 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 
 #if STDC_HEADERS
 #include <float.h>
-#include <stdlib.h>
 #endif
 
 /* Default to values appropriate for IEEE floating point.  */
@@ -960,6 +959,19 @@ float_to_string (buf, data)
   /* Check for NaN in a way that won't fail if there are no NaNs.  */
   if (! (data * 0.0 >= 0.0))
     {
+      /* Prepend "-" if the NaN's sign bit is negative.
+	 The sign bit of a double is the bit that is 1 in -0.0.  */
+      int i;
+      union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
+      u_data.d = data;
+      u_minus_zero.d = - 0.0;
+      for (i = 0; i < sizeof (double); i++)
+	if (u_data.c[i] & u_minus_zero.c[i])
+	  {
+	    *buf++ = '-';
+	    break;
+	  }
+      
       strcpy (buf, "0.0e+NaN");
       return;
     }

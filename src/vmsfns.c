@@ -1,5 +1,5 @@
 /* VMS subprocess and command interface.
-   Copyright (C) 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1988, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -56,11 +56,11 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef VMS
 
+#include <config.h>
 #include <stdio.h>
 #include <ctype.h>
 #undef NULL
 
-#include <config.h>
 #include "lisp.h"
 #include <descrip.h>
 #include <dvidef.h>

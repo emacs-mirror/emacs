@@ -5,7 +5,7 @@
 /* The malloc headers and source files from the C library follow here.  */
 
 /* Declarations for `malloc' and friends.
-   Copyright 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+   Copyright 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This file is part of GNU Emacs.
@@ -57,6 +57,10 @@ extern "C"
 #define	NULL	0
 #endif
 
+#if defined (HAVE_CONFIG_H) || defined (emacs)
+#include <config.h>
+#endif
+
 #ifdef	__STDC__
 #include <stddef.h>
 #else
@@ -104,10 +108,6 @@ extern void __vms_free __P ((__ptr_t __ptr));
 #ifdef _MALLOC_INTERNAL
 
 #include <stdio.h>		/* Harmless, gets __GNU_LIBRARY__ defined.  */
-
-#if defined(HAVE_CONFIG_H) || defined(emacs)
-#include <config.h>
-#endif
 
 #if	defined(__GNU_LIBRARY__) || defined(STDC_HEADERS) || defined(USG)
 #include <string.h>

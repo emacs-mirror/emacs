@@ -22,12 +22,15 @@ Boston, MA 02111-1307, USA.  */
 /* At first, see the document in `charset.h' to understand the code in
    this file.  */
 
+#ifdef emacs
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #ifdef emacs
 
 #include <sys/types.h>
-#include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
