@@ -10085,8 +10085,8 @@ x_get_font_repertory (f, font_info)
   Lisp_Object table;
   int min_byte1, max_byte1, min_byte2, max_byte2;
   int c;
-  struct charset *charset = (font_info->charset == charset_unicode
-			     ? NULL : CHARSET_FROM_ID (font_info->charset));
+  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+  int offset = CHARSET_OFFSET (charset);
 
   table = Fmake_char_table (Qnil, Qnil);
 
@@ -10097,7 +10097,17 @@ x_get_font_repertory (f, font_info)
   if (min_byte1 == 0 && max_byte1 == 0)
     {
       if (! font->per_char || font->all_chars_exist == True)
-	char_table_set_range (table, min_byte2, max_byte2, Qt);
+	{
+	  if (offset >= 0)
+	    char_table_set_range (table, offset + min_byte2,
+				  offset + max_byte2, Qt);
+	  else
+	    for (; min_byte2 <= max_byte2; min_byte2++)
+	      {
+		c = DECODE_CHAR (charset, min_byte2);
+		CHAR_TABLE_SET (table, c, Qt);
+	      }
+	}
       else
 	{
 	  XCharStruct *pcm = font->per_char;
@@ -10110,12 +10120,13 @@ x_get_font_repertory (f, font_info)
 		{
 		  if (from >= 0)
 		    {
-		      if (! charset)
-			char_table_set_range (table, from, i - 1, Qt);
+		      if (offset >= 0)
+			char_table_set_range (table, offset + from,
+					      offset + i - 1, Qt);
 		      else
 			for (; from < i; from++)
 			  {
-			    c = ENCODE_CHAR (charset, from);
+			    c = DECODE_CHAR (charset, from);
 			    CHAR_TABLE_SET (table, c, Qt);
 			  }
 		      from = -1;
@@ -10126,12 +10137,13 @@ x_get_font_repertory (f, font_info)
 	    }
 	  if (from >= 0)
 	    {
-	      if (! charset)
-		char_table_set_range (table, from, i - 1, Qt);
+	      if (offset >= 0)
+		char_table_set_range (table, offset + from, offset + i - 1,
+				      Qt);
 	      else
 		for (; from < i; from++)
 		  {
-		    c = ENCODE_CHAR (charset, from);
+		    c = DECODE_CHAR (charset, from);
 		    CHAR_TABLE_SET (table, c, Qt);
 		  }
 	    }
@@ -10143,17 +10155,18 @@ x_get_font_repertory (f, font_info)
 	{
 	  int i, j;
 
-	  if (! charset)
+	  if (offset >= 0)
 	    for (i = min_byte1; i <= max_byte1; i++)
-	      char_table_set_range (table,
-				    (i << 8) | min_byte2, (i << 8) | max_byte2,
-				    Qt);
+	      char_table_set_range
+		(table, offset + ((i << 8) | min_byte2),
+		 offset + ((i << 8) | max_byte2), Qt);
 	  else
 	    for (i = min_byte1; i <= max_byte1; i++)	    
 	      for (j = min_byte2; j <= max_byte2; j++)
 		{
 		  unsigned code = (i << 8) | j;
-		  c = ENCODE_CHAR (charset, code);
+		  c = DECODE_CHAR (charset, code);
+		  CHAR_TABLE_SET (table, c, Qt);
 		}
 	}
       else
@@ -10172,9 +10185,10 @@ x_get_font_repertory (f, font_info)
 		    {
 		      if (from >= 0)
 			{
-			  if (! charset)
-			    char_table_set_range (table, (i << 8) | from,
-						  (i << 8) | (j - 1), Qt);
+			  if (offset >= 0)
+			    char_table_set_range
+			      (table, offset + ((i << 8) | from),
+			       offset + ((i << 8) | (j - 1)), Qt);
 			  else
 			    {
 			      for (; from < j; from++)
@@ -10192,15 +10206,16 @@ x_get_font_repertory (f, font_info)
 		}
 	      if (from >= 0)
 		{
-		  if (! charset)
-		    char_table_set_range (table, (i << 8) | from,
-					  (i << 8) | (j - 1), Qt);
+		  if (offset >= 0)
+		    char_table_set_range
+		      (table, offset + ((i << 8) | from),
+		       offset + ((i << 8) | (j - 1)), Qt);
 		  else
 		    {
 		      for (; from < j; from++)
 			{
 			  unsigned code = (i << 8) | from;
-			  c = ENCODE_CHAR (charset, code);
+			  c = DECODE_CHAR (charset, code);
 			  CHAR_TABLE_SET (table, c, Qt);
 			}
 		    }
