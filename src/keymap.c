@@ -1173,10 +1173,12 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	 that prefix, so we don't waste time considering other prefixes.  */
       Lisp_Object tem;
       tem = Flookup_key (startmap, prefix, Qt);
-      /* If PREFIX is reasonable, Flookup_key should give a keymap or nil.
-	 For any other value it is ok to get an error here.  */
+      /* Flookup_key may give us nil, or a number,
+	 if the prefix is not defined in this particular map.
+	 It might even give us a list that isn't a keymap.  */
+      tem = get_keymap_1 (tem, 0, 0);
       if (!NILP (tem))
-	maps = Fcons (Fcons (prefix, get_keymap (tem)), Qnil);
+	maps = Fcons (Fcons (prefix, tem), Qnil);
       else
 	return Qnil;
     }
