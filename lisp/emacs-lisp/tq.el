@@ -87,14 +87,10 @@ that's how we tell where the answer ends."
 
 (defun tq-filter (tq string)
   "Append STRING to the TQ's buffer; then process the new data."
-  (let ((old-buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (set-buffer (tq-buffer tq))
-	  (goto-char (point-max))
-	  (insert string)
-	  (tq-process-buffer tq))
-      (set-buffer old-buffer))))
+  (with-current-buffer (tq-buffer tq)
+    (goto-char (point-max))
+    (insert string)
+    (tq-process-buffer tq)))
 
 (defun tq-process-buffer (tq)
   "Check TQ's buffer for the regexp at the head of the queue."
