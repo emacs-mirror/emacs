@@ -742,7 +742,7 @@ directory, like `default-directory'."
       '(menu-item "Kill filter group"
 		  ibuffer-kill-line
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
-(define-key  ibuffer-mode-groups-popup [yank-filter-group]
+(define-key ibuffer-mode-groups-popup [yank-filter-group]
       '(menu-item "Yank last killed filter group"
 		  ibuffer-yank
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
@@ -777,7 +777,6 @@ directory, like `default-directory'."
   "Whether or not to delete the window upon exiting `ibuffer'.")
 
 (defvar ibuffer-did-modification nil)
-(defvar ibuffer-category-alist nil)
 
 (defvar ibuffer-sorting-functions-alist nil
   "An alist of functions which describe how to sort buffers.
@@ -1351,14 +1350,9 @@ If point is on a group name, this function operates on that group."
 		elide nil))
 	(list sym min max align elide)))
     form))
-
-(defsubst ibuffer-get-category (name)
-  (cdr (assq name ibuffer-category-alist)))
   
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
-  (let ((ellipsis (propertize ibuffer-eliding-string 'category
-			      (ibuffer-get-category
-			       'ibuffer-category-eliding-string))))
+  (let ((ellipsis (propertize ibuffer-eliding-string 'font-lock-face 'bold)))
     (if (or elide ibuffer-elide-long-columns)
 	`(if (> strlen 5)
 	     ,(if from-end-p
@@ -1469,16 +1463,8 @@ If point is on a group name, this function operates on that group."
 					(put ',sym 'ibuffer-column-summary
 					     (cons ret (get ',sym 'ibuffer-column-summary)))
 					ret)))
-				  ;; We handle the `name' column specially.
-				  (if (eq sym 'ibuffer-make-column-name)
-				      (lambda (arg sym)
-					`(let ((pt (point)))
-					   (insert ,arg)
-					   (put-text-property pt (point)
-							      'category
-							      (ibuffer-buffer-name-category buffer mark))))
-				    (lambda (arg sym)
-				      `(insert ,arg)))))
+				  (lambda (arg sym)
+				    `(insert ,arg))))
 		   (mincompform `(< strlen ,(if (integerp min)
 						min
 					      'min)))
@@ -1611,7 +1597,7 @@ If point is on a group name, this function operates on that group."
 			     ('mouse-face 'highlight 'keymap ibuffer-name-map
 	                      'ibuffer-name-column t
  			      'help-echo "mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"))
-  (buffer-name))
+  (propertize (buffer-name) 'font-lock-face (ibuffer-buffer-name-face buffer mark)))
   
 (define-ibuffer-column size (:inline t)
   (format "%s" (buffer-size)))
@@ -1641,9 +1627,7 @@ If point is on a group name, this function operates on that group."
 	(filename (ibuffer-make-column-filename buffer mark ibuffer-buf)))
     (if proc
 	(concat (propertize (format "(%s %s) " proc (process-status proc))
-			    'category
-			    (with-current-buffer ibuffer-buf
-			      (ibuffer-get-category 'ibuffer-category-process)))
+			    'font-lock-face 'italic)
 		filename)
       filename)))
 
@@ -1655,22 +1639,20 @@ If point is on a group name, this function operates on that group."
       (:center (concat left str right))
       (t (concat str left right)))))
 
-(defun ibuffer-buffer-name-category (buf mark)
+(defun ibuffer-buffer-name-face (buf mark)
   (cond ((char-equal mark ibuffer-marked-char)
-	 (ibuffer-get-category 'ibuffer-category-marked))
+	 ibuffer-marked-face)
 	((char-equal mark ibuffer-deletion-char)
-	 (ibuffer-get-category 'ibuffer-category-deleted))
+	 ibuffer-deletion-face)
 	(t
 	 (let ((level -1)
-	       (i 0)
 	       result)
 	   (dolist (e ibuffer-fontification-alist result)
 	     (when (and (> (car e) level)
 			(with-current-buffer buf
-			  (eval (cadr e))))
+			  (eval (nth 1 e))))
 	       (setq level (car e)
-		     result (car (nth i font-lock-category-alist))))
-	     (incf i))))))
+		     result (nth 2 e))))))))
 
 (defun ibuffer-insert-buffer-line (buffer mark format)
   "Insert a line describing BUFFER and MARK using FORMAT."
@@ -1922,7 +1904,7 @@ the value of point at the beginning of the line for that buffer."
 			    str)))
 	 (insert "\n"))
        (point))
-     `(ibuffer-title t category ,(ibuffer-get-category 'ibuffer-category-title)))
+     `(ibuffer-title t font-lock-face ,ibuffer-title-face))
     ;; Now, insert the summary columns.
     (goto-char (point-max))
     (if (get-text-property (1- (point-max)) 'ibuffer-summary)
@@ -2066,7 +2048,7 @@ Do not display messages if SILENT is non-nil."
      (point))
    `(ibuffer-filter-group-name
      ,name
-     category ,(ibuffer-get-category 'ibuffer-category-filter-group-name)
+     font-lock-face ,ibuffer-filter-group-name-face
      keymap ,ibuffer-mode-filter-group-map
      mouse-face highlight
      help-echo ,(concat filter-string "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group ")))
@@ -2396,30 +2378,6 @@ will be inserted before the group at point."
   ;; This makes things less ugly for Emacs 21 users with a non-nil
   ;; `show-trailing-whitespace'.
   (setq show-trailing-whitespace nil)
-
-  (set (make-local-variable 'font-lock-category-alist) nil)
-  (set (make-local-variable 'ibuffer-category-alist) nil)
-  (dolist (elt (list
-		(cons (make-symbol "ibuffer-category-title")
-		      ibuffer-title-face)
-		(cons (make-symbol "ibuffer-category-marked")
-		      ibuffer-marked-face)	
-		(cons (make-symbol "ibuffer-category-deleted")
-		      ibuffer-deletion-face)
-		(cons (make-symbol "ibuffer-category-filter-group-name")
-		      ibuffer-filter-group-name-face)
-		(cons (make-symbol "ibuffer-category-process")
-		      'italic)
-		(cons (make-symbol "ibuffer-category-eliding-string")
-		      'bold)))
-    (push (cons (intern (symbol-name (car elt))) (car elt)) ibuffer-category-alist)
-    (push elt font-lock-category-alist))
-  (let ((i (1- (length ibuffer-fontification-alist))))
-    (while (>= i 0)
-      (push (cons (make-symbol (format "ibuffer-category-%d" i))
-		  (nth 2 (nth i ibuffer-fontification-alist)))
-	    font-lock-category-alist)
-      (decf i)))
   (set (make-local-variable 'revert-buffer-function)
        #'ibuffer-update)
   (set (make-local-variable 'ibuffer-sorting-mode)
