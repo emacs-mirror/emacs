@@ -1,3 +1,21 @@
+2002-06-10  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/ebrowse.el (ebrowse-draw-tree-fn): Use copy-sequence.
+	(ebrowse-copy-list): Function deleted.
+
+	* eshell/em-unix.el (eshell/diff): Use copy-sequence.
+
+	* eshell/esh-mode.el (eshell-mode, eshell-mode): Use copy-sequence.
+
+	* eshell/esh-util.el (eshell-copy-list): Function deleted.
+	(eshell-sublist): Use copy-sequence.
+	(eshell-copy-tree): Make it an alias for copy-tree.
+
+	* emacs-lisp/cl.el (copy-list): Moved back from subr.el.
+
+	* subr.el (copy-list): Moved to cl.el.
+	(copy-tree): Don't use copy-list or cl-pop.
+
 2002-06-10  Miles Bader  <miles@gnu.org>
 
 	Make comint use text properties for highlighting instead of overlays:
