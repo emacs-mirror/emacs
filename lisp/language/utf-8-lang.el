@@ -26,7 +26,7 @@
 
 (set-language-info-alist
  "UTF-8" `((coding-system mule-utf-8)
-	   (coding-priority coding-category-utf-8)
+	   (coding-priority mule-utf-8)
 	   (setup-function
 	    . (lambda ()
 		;; Use Unicode font under Windows.  Jason Rumney fecit.
