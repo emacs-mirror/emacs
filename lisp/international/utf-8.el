@@ -277,6 +277,7 @@ default.  Also, installing them may be rather slow."
 	     (make-hash-table :test 'eq))
 	   (define-translation-hash-table 'utf-subst-table-for-encode
 	     (make-hash-table :test 'eq)))
+	 (optimize-char-coding-system-table)
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
