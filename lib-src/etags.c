@@ -3446,7 +3446,7 @@ L_getit ()
   if (cp == dbp)
     return;
 
-  pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+  pfnote (savenstr (dbp, cp-dbp), TRUE,
 	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
@@ -3596,7 +3596,7 @@ get_scheme ()
        *cp && *cp != '(' && *cp != ')' && !isspace (*cp);
        cp++)
     continue;
-  pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+  pfnote (savenstr (dbp, cp-dbp), TRUE,
 	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
