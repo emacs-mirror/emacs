@@ -211,6 +211,8 @@ defining others, use \\[name-last-kbd-macro].")
   /* Don't interfere with recognition of the previous command
      from before this macro started.  */
   Vthis_command = current_kboard->Vlast_command;
+  /* C-x z after the macro should repeat the macro.  */
+  real_this_command = current_kboard->Vlast_kbd_macro;
 
   if (! NILP (current_kboard->defining_kbd_macro))
     error ("Can't execute anonymous macro while defining one");
@@ -235,9 +237,10 @@ pop_kbd_macro (info)
      Lisp_Object info;
 {
   Lisp_Object tem;
-  Vexecuting_macro = Fcar (info);
-  tem = Fcdr (info);
-  executing_macro_index = XINT (tem);
+  Vexecuting_macro = XCAR (info);
+  tem = XCDR (info);
+  executing_macro_index = XINT (XCAR (tem));
+  real_this_command = XCDR (tem);
   return Qnil;
 }
 
@@ -267,8 +270,9 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   if (!STRINGP (final) && !VECTORP (final))
     error ("Keyboard macros must be strings or vectors");
 
-  XSETFASTINT (tem, executing_macro_index);
-  tem = Fcons (Vexecuting_macro, tem);
+  tem = Fcons (Vexecuting_macro,
+	       Fcons (make_number (executing_macro_index),
+		      real_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
   GCPRO1 (final);
