@@ -2482,18 +2482,42 @@ xdialog_show (f, keymaps, title, error)
 static struct frame *menu_help_frame;
 
 
-/* Show help HELP_STRING, or clear help if HELP_STRING is null.  This
-   cannot be done with generating a HELP_EVENT because XMenuActivate
-   contains a loop that doesn't let Emacs process keyboard events.  */
+/* Show help HELP_STRING, or clear help if HELP_STRING is null.
+
+   PANE is the pane number, and ITEM is the menu item number in
+   the menu (currently not used).
+   
+   This cannot be done with generating a HELP_EVENT because
+   XMenuActivate contains a loop that doesn't let Emacs process
+   keyboard events.  */
 
 static void
-menu_help_callback (help_string)
+menu_help_callback (help_string, pane, item)
      char *help_string;
+     int pane, item;
 {
+  extern Lisp_Object Qmenu_item;
+  Lisp_Object *first_item;
+  Lisp_Object pane_name;
+  Lisp_Object menu_object;
+ 
+  first_item = XVECTOR (menu_items)->contents;
+  if (EQ (first_item[0], Qt))
+    pane_name = first_item[MENU_ITEMS_PANE_NAME];
+  else if (EQ (first_item[0], Qquote))
+    /* This shouldn't happen, see xmenu_show.  */
+    pane_name = build_string ("");
+  else
+    pane_name = first_item[MENU_ITEMS_ITEM_NAME];
+ 
+  /* (menu-item MENU-NAME PANE-NUMBER)  */
+  menu_object = Fcons (Qmenu_item,
+ 		       Fcons (pane_name,
+ 			      Fcons (make_number (pane), Qnil)));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
-		  Qnil, Qnil, 0, 1);
+ 		  Qnil, menu_object, make_number (item), 1);
 }
-
+  
 
 static Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error)
