@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 02, 03
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,6 +19,18 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* This may use either the old, simple, exact GC, typically augmented
+   with conservative stack scanning (indicated by GC_MARK_STACK), or
+   the Boehm/Weiser conservative collector (BOEHM_GC is defined).  The
+   Boehm GC isn't thoroughly portable, so we probably need to keep the
+   old stuff around indefinitely.  */
+/* Fixme: Deal with weak hash tables.  We probably want a custom
+   finalizer which sweeps atomically-allocated buckets similarly to
+   the old GC.  Either that or perhaps use finalizers for all the
+   entries in the table, with warning about efficiency loss.  */
+/* Fixme: Either arrange to use the mark bit in Boehm GC, or lose it
+   to double range to Lisp integers/pointers.  */
+
 #include <config.h>
 #include <stdio.h>
 
@@ -30,11 +42,24 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#else
+extern POINTER_TYPE *sbrk ();
+#endif
+
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c.  */
 
 #if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
 #undef GC_MALLOC_CHECK
+#endif
+
+#ifdef BOEHM_GC
+# ifdef USE_GTK
+   #error "Can't use Boehm GC with Gtk -- see xg_mark_data"
+# endif
+#include <gc.h>
 #endif
 
 /* This file is part of the core Lisp implementation, and thus must
@@ -54,12 +79,6 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "syssignal.h"
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#else
-extern POINTER_TYPE *sbrk ();
-#endif
 
 #ifdef DOUG_LEA_MALLOC
 
@@ -83,6 +102,18 @@ extern __malloc_size_t _bytes_used;
 extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
+
+/* Macro to verify that storage intended for Lisp objects is not
+   out of range to fit in the space for a pointer.
+   ADDRESS is the start of the block, and SIZE
+   is the amount of space within which objects can start.  */
+
+#ifdef DATA_SEG_BITS
+# define EXCEEDS_LISP_PTR(ptr) \
+ (((EMACS_UINT) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
+#else
+# define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
+#endif
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
@@ -226,7 +257,11 @@ Lisp_Object Vmemory_signal_data;
 /* Maximum amount of C stack to save when a GC happens.  */
 
 #ifndef MAX_SAVE_STACK
+#ifdef BOEHM_GC
+#define MAX_SAVE_STACK 0
+#else
 #define MAX_SAVE_STACK 16000
+#endif
 #endif
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
@@ -265,6 +300,13 @@ static void free_large_strings P_ ((void));
 static void sweep_strings P_ ((void));
 
 extern int message_enable_multibyte;
+extern Lisp_Object Vmost_positive_fixnum;
+extern Lisp_Object Vbuffer_alist;
+extern int initialized;
+
+#ifdef BOEHM_GC
+extern int GC_print_stats;
+#endif
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -402,7 +444,9 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  */
 
 #define NSTATICS 1280
+#ifndef BOEHM_GC
 Lisp_Object *staticvec[NSTATICS] = {0};
+#endif
 
 /* Index of next unused slot in staticvec.  */
 
@@ -417,7 +461,12 @@ static POINTER_TYPE *pure_alloc P_ ((size_t, int));
 #define ALIGN(SZ, ALIGNMENT) \
   (((SZ) + (ALIGNMENT) - 1) & ~((ALIGNMENT) - 1))
 
+extern Lisp_Object Qkey_and_value;
 
+#ifndef BOEHM_GC
+/* Used in INHIBIT_GARBAGE_COLLECTION.  */
+int inhibit_gc_count;
+#endif
 
 /************************************************************************
 				Malloc
@@ -477,6 +526,16 @@ memory_full ()
     Fsignal (Qnil, Vmemory_signal_data);
 }
 
+#ifdef BOEHM_GC
+/* Hook for GC faling to allocate.  */
+/* Fixme: Check this for Boehm case.  */
+GC_PTR
+gc_out_of_memory P_ ((size_t bytes))
+{
+  memory_full ();
+  return 0;
+}
+#endif
 
 /* Called if we can't allocate relocatable space for a buffer.  */
 
@@ -503,13 +562,30 @@ buffer_memory_full ()
 }
 
 
-/* Like malloc but check for no memory and block interrupt input..  */
+/* Like malloc but check for no memory and block interrupt input.  */
 
 POINTER_TYPE *
 xmalloc (size)
      size_t size;
 {
-  register POINTER_TYPE *val;
+  register void *val;
+
+  BLOCK_INPUT;
+  val = (void *) malloc (size);
+  UNBLOCK_INPUT;
+
+  if (!val && size)
+    memory_full ();
+  return val;
+}
+
+/* Like calloc but check for no memory and block interrupt input.  */
+
+void *
+xcalloc (nmemb, size)
+     size_t nmemb, size;
+{
+  register void *val;
 
   BLOCK_INPUT;
   val = (POINTER_TYPE *) malloc (size);
@@ -520,8 +596,30 @@ xmalloc (size)
   return val;
 }
 
+#if 0
+#ifdef BOEHM_GC
+/* Used by our value of the GET_MEM macro.  */
+void *
+callocx (nmemb, size)
+     size_t nmemb, size;
+{
+  register void *val;
 
-/* Like realloc but check for no memory and block interrupt input..  */
+/*   BLOCK_INPUT; */
+#ifdef DOUG_LEA_MALLOC
+  mallopt (M_MMAP_MAX, 0);
+#endif
+  val = (void *) calloc (nmemb, size);
+#ifdef DOUG_LEA_MALLOC
+  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+#endif
+/*   UNBLOCK_INPUT; */
+  return val;
+}
+#endif
+#endif
+
+/* Like realloc but check for no memory and block interrupt input.  */
 
 POINTER_TYPE *
 xrealloc (block, size)
@@ -544,7 +642,7 @@ xrealloc (block, size)
 }
 
 
-/* Like free but block interrupt input..  */
+/* Like free but block interrupt input.  */
 
 void
 xfree (block)
@@ -554,6 +652,53 @@ xfree (block)
   free (block);
   UNBLOCK_INPUT;
 }
+
+#ifdef BOEHM_GC
+/* These are like the above, but use the Boehm collector to allocate.
+   They're used by code which allocates data structures outside the
+   Lisp heap which can point to Lisp objects which they need to keep
+   alive.
+
+   Rather than using these, we might use GC_MALLOC & al directly, but
+   built with DISABLE_SIGNALS invoking BLOCK_INPUT and ENABLE_SIGNALS
+   invoking UNBLOCK_INPUT.  I'm not sure whether ENABLE_SIGNALS can be
+   a no-op otherwise.  */
+
+void *
+xgc_malloc (size)
+     size_t size;
+{
+  register void *val;
+
+  BLOCK_INPUT;
+  val = (void *) GC_MALLOC (size);
+  UNBLOCK_INPUT;
+  return val;
+}
+
+void *
+xgc_realloc (block, size)
+     void *block;
+     size_t size;
+{
+  register void *val;
+
+  BLOCK_INPUT;
+  val = (void *) GC_REALLOC (block, size);
+  UNBLOCK_INPUT;
+  return val;
+}
+
+/* This should probably be a no-op.  */
+void
+xgc_free (block)
+     void *block;
+{
+  BLOCK_INPUT;
+  GC_FREE (block);
+  UNBLOCK_INPUT;
+}
+#endif /* BOEHM_GC */
 
 
 /* Like strdup, but uses xmalloc.  */
@@ -582,11 +727,30 @@ lisp_malloc (nbytes, type)
 {
   register void *val;
 
+#ifdef BOEHM_GC
+  /* If we're using callocx, that does its own blocking (less frequently).  */
   BLOCK_INPUT;
+  /* This might try to use type info for the GC.  */
+  if (type == MEM_TYPE_NON_LISP)
+    val = (void *) GC_MALLOC_ATOMIC (nbytes);
+  else
+    val = (void *) GC_MALLOC (nbytes);
+  UNBLOCK_INPUT;
+  /* Check that all the allocated memory is within range of a Lisp
+     pointer -- pessimistic for non-Lisp data.  The GC allocator gets
+     a callback for memory full, so don't need to check that here.  */
+  if (EXCEEDS_LISP_PTR (val + nbytes))
+    memory_full ();
+  return val;
 
-#ifdef GC_MALLOC_CHECK
+#else  /* BOEHM_GC */
+
+  BLOCK_INPUT;
+# ifdef GC_MALLOC_CHECK
   allocated_mem_type = type;
-#endif
+# endif
+  
+  val = (void *) malloc (nbytes);
 
   val = (void *) malloc (nbytes);
 
@@ -608,12 +772,13 @@ lisp_malloc (nbytes, type)
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
-#endif
-
+# endif
+   
   UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full ();
   return val;
+#endif	/* BOEHM_GC */
 }
 
 
@@ -629,7 +794,7 @@ allocate_buffer ()
   return b;
 }
 
-
+#ifndef BOEHM_GC
 /* Free BLOCK.  This must be called to free memory allocated with a
    call to lisp_malloc.  */
 
@@ -644,7 +809,7 @@ lisp_free (block)
 #endif
   UNBLOCK_INPUT;
 }
-
+#endif
 
 /* Arranging to disable input signals while we're in malloc.
 
@@ -922,7 +1087,12 @@ INTERVAL
 make_interval ()
 {
   INTERVAL val;
-
+  
+#ifdef BOEHM_GC
+  /* Fixme: The mem type isn't right here, but I don't think that
+     matters, provided it isn't MEM_TYPE_NON_LISP.  */
+  val = lisp_malloc (sizeof (struct interval), MEM_TYPE_MISC);
+#else
   if (interval_free_list)
     {
       val = interval_free_list;
@@ -944,13 +1114,14 @@ make_interval ()
 	}
       val = &interval_block->intervals[interval_block_index++];
     }
+#endif	/* BOEHM_GC */
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
   RESET_INTERVAL (val);
   return val;
 }
 
-
+#ifndef BOEHM_GC
 /* Mark Lisp objects in interval I. */
 
 static void
@@ -1006,7 +1177,7 @@ mark_interval_tree (tree)
        (i) = balance_intervals (i);			\
      }							\
   } while (0)
-
+#endif /* BOEHM_GC */
 
 /* Number support.  If NO_UNION_TYPE isn't in effect, we
    can't create number objects in macros.  */
@@ -1311,6 +1482,10 @@ allocate_string ()
 {
   struct Lisp_String *s;
 
+#ifdef BOEHM_GC
+  s = (struct Lisp_String *) lisp_malloc (sizeof *s, MEM_TYPE_STRING);
+  ++strings_consed;
+#else  /* BOEHM_GC */
   /* If the free-list is empty, allocate a new string_block, and
      add all the Lisp_Strings in it to the free-list.  */
   if (string_free_list == NULL)
@@ -1343,6 +1518,7 @@ allocate_string ()
 
   --total_free_strings;
   ++total_strings;
+#endif	/* BOEHM_GC */
   ++strings_consed;
   consing_since_gc += sizeof *s;
 
@@ -1362,7 +1538,6 @@ allocate_string ()
 	check_string_bytes (0);
     }
 #endif /* GC_CHECK_STRING_BYTES */
-
   return s;
 }
 
@@ -1378,6 +1553,13 @@ allocate_string_data (s, nchars, nbytes)
      struct Lisp_String *s;
      int nchars, nbytes;
 {
+#ifdef BOEHM_GC
+  s->data = (unsigned char *) lisp_malloc (nbytes + 1, MEM_TYPE_NON_LISP);
+  s->size = nchars;
+  s->size_byte = nbytes;
+  s->data[nbytes] = '\0';
+  consing_since_gc += SDATA_SIZE (nbytes);
+#else  /* BOEHM_GC */
   struct sdata *data, *old_data;
   struct sblock *b;
   int needed, old_nbytes;
@@ -1459,9 +1641,10 @@ allocate_string_data (s, nchars, nbytes)
     }
 
   consing_since_gc += needed;
+#endif	/* BOEHM_GC */
 }
 
-
+#ifndef BOEHM_GC
 /* Sweep and compact strings.  */
 
 static void
@@ -1669,7 +1852,7 @@ compact_small_strings ()
   tb->next = NULL;
   current_sblock = tb;
 }
-
+#endif
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
        doc: /* Return a newly created string of length LENGTH, with each element being INIT.
@@ -1925,24 +2108,24 @@ struct float_block
 
 /* Current float_block.  */
 
-struct float_block *float_block;
+static struct float_block *float_block;
 
 /* Index of first unused Lisp_Float in the current float_block.  */
 
-int float_block_index;
+static int float_block_index;
 
 /* Total number of float blocks now in use.  */
 
-int n_float_blocks;
+static int n_float_blocks;
 
 /* Free-list of Lisp_Floats.  */
 
-struct Lisp_Float *float_free_list;
+static struct Lisp_Float *float_free_list;
 
 
 /* Initialize float allocation.  */
 
-void
+static void
 init_float ()
 {
   float_block = (struct float_block *) lisp_malloc (sizeof *float_block,
@@ -1955,20 +2138,6 @@ init_float ()
 }
 
 
-/* Explicitly free a float cell by putting it on the free-list.  */
-
-void
-free_float (ptr)
-     struct Lisp_Float *ptr;
-{
-  *(struct Lisp_Float **)&ptr->data = float_free_list;
-#if GC_MARK_STACK
-  ptr->type = Vdead;
-#endif
-  float_free_list = ptr;
-}
-
-
 /* Return a new float object with value FLOAT_VALUE.  */
 
 Lisp_Object
@@ -1977,6 +2146,14 @@ make_float (float_value)
 {
   register Lisp_Object val;
 
+#ifdef BOEHM_GC
+  struct Lisp_Float *p;
+
+  p = (struct Lisp_Float *) lisp_malloc (sizeof (struct Lisp_Float),
+					 MEM_TYPE_FLOAT);  
+  XSETFLOAT (val, p);
+  XFLOAT_DATA (val) = float_value;
+#else  /* BOEHM_GC */
   if (float_free_list)
     {
       /* We use the data field for chaining the free list
@@ -2002,6 +2179,7 @@ make_float (float_value)
 
   XFLOAT_DATA (val) = float_value;
   XSETFASTINT (XFLOAT (val)->type, 0);	/* bug chasing -wsr */
+#endif	/* BOEHM_GC */
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
   return val;
@@ -2033,24 +2211,24 @@ struct cons_block
 
 /* Current cons_block.  */
 
-struct cons_block *cons_block;
+static struct cons_block *cons_block;
 
 /* Index of first unused Lisp_Cons in the current block.  */
 
-int cons_block_index;
+static int cons_block_index;
 
 /* Free-list of Lisp_Cons structures.  */
 
-struct Lisp_Cons *cons_free_list;
+static struct Lisp_Cons *cons_free_list;
 
 /* Total number of cons blocks now in use.  */
 
-int n_cons_blocks;
+static int n_cons_blocks;
 
 
 /* Initialize cons allocation.  */
 
-void
+static void
 init_cons ()
 {
   cons_block = (struct cons_block *) lisp_malloc (sizeof *cons_block,
@@ -2084,6 +2262,13 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 {
   register Lisp_Object val;
 
+#ifdef BOEHM_GC
+  struct Lisp_Cons *p;
+  p = (struct Lisp_Cons *) lisp_malloc (sizeof (struct Lisp_Cons),
+					MEM_TYPE_CONS);
+  XSETCONS (val, p);
+
+#else  /* BOEHM_GC */
   if (cons_free_list)
     {
       /* We use the cdr for chaining the free list
@@ -2105,10 +2290,11 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	}
       XSETCONS (val, &cons_block->conses[cons_block_index++]);
     }
-
+  
+#endif	/* BOEHM_GC */
+  consing_since_gc += sizeof (struct Lisp_Cons);
   XSETCAR (val, car);
   XSETCDR (val, cdr);
-  consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
 }
@@ -2224,11 +2410,11 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 /* Singly-linked list of all vectors.  */
 
-struct Lisp_Vector *all_vectors;
+static struct Lisp_Vector *all_vectors;
 
 /* Total number of vector-like objects now in use.  */
 
-int n_vectors;
+static int n_vectors;
 
 
 /* Value is a pointer to a newly allocated Lisp_Vector structure
@@ -2242,14 +2428,19 @@ allocate_vectorlike (len, type)
   struct Lisp_Vector *p;
   size_t nbytes;
 
+  nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
+#ifdef BOEHM_GC
+  p = (struct Lisp_Vector *) lisp_malloc (nbytes, type);
+
+#else  /* BOEHM_GC */
+
 #ifdef DOUG_LEA_MALLOC
   /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
      because mapped region contents are not preserved in
      a dumped Emacs.  */
   mallopt (M_MMAP_MAX, 0);
 #endif
-
-  nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
+  
   p = (struct Lisp_Vector *) lisp_malloc (nbytes, type);
 
 #ifdef DOUG_LEA_MALLOC
@@ -2257,12 +2448,12 @@ allocate_vectorlike (len, type)
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
-  consing_since_gc += nbytes;
-  vector_cells_consed += len;
-
   p->next = all_vectors;
   all_vectors = p;
   ++n_vectors;
+#endif	/* BOEHM_GC */
+  consing_since_gc += nbytes;
+  vector_cells_consed += len;
   return p;
 }
 
@@ -2285,9 +2476,9 @@ struct Lisp_Hash_Table *
 allocate_hash_table ()
 {
   EMACS_INT len = VECSIZE (struct Lisp_Hash_Table);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_HASH_TABLE);
+  struct Lisp_Vector *v;
   EMACS_INT i;
-
+  v = allocate_vectorlike (len, MEM_TYPE_HASH_TABLE);
   v->size = len;
   for (i = 0; i < len; ++i)
     v->contents[i] = Qnil;
@@ -2464,9 +2655,9 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
     val = Fmake_vector (len, Qnil);
 
   if (STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
-    /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
+    /* BYTECODE-STRING must have been produced by Emacs 20.2 or
        earlier because they produced a raw 8-bit string for byte-code
-       and now such a byte-code string is loaded as multibyte while
+       and now such a byte-code string is loaded as multibyte with
        raw 8-bit characters converted to multibyte form.  Thus, now we
        must convert them back to the original unibyte form.  */
     args[1] = Fstring_as_unibyte (args[1]);
@@ -2504,21 +2695,21 @@ struct symbol_block
 /* Current symbol block and index of first unused Lisp_Symbol
    structure in it.  */
 
-struct symbol_block *symbol_block;
-int symbol_block_index;
+static struct symbol_block *symbol_block;
+static int symbol_block_index;
 
 /* List of free symbols.  */
 
-struct Lisp_Symbol *symbol_free_list;
+static struct Lisp_Symbol *symbol_free_list;
 
 /* Total number of symbol blocks now in use.  */
 
-int n_symbol_blocks;
+static int n_symbol_blocks;
 
 
 /* Initialize symbol allocation.  */
 
-void
+static void
 init_symbol ()
 {
   symbol_block = (struct symbol_block *) lisp_malloc (sizeof *symbol_block,
@@ -2542,6 +2733,9 @@ Its value and function definition are void, and its property list is nil.  */)
 
   CHECK_STRING (name);
 
+#ifdef BOEHM_GC
+  XSETSYMBOL (val, lisp_malloc (sizeof (struct Lisp_Symbol), MEM_TYPE_SYMBOL));
+#else  /* BOEHM_GC */
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
@@ -2561,7 +2755,9 @@ Its value and function definition are void, and its property list is nil.  */)
 	}
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index++]);
     }
-
+  
+#endif	/* BOEHM_GC */
+  consing_since_gc += sizeof (struct Lisp_Symbol);
   p = XSYMBOL (val);
   p->xname = name;
   p->plist = Qnil;
@@ -2571,7 +2767,6 @@ Its value and function definition are void, and its property list is nil.  */)
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
   p->indirect_variable = 0;
-  consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
   return val;
 }
@@ -2594,16 +2789,16 @@ struct marker_block
   union Lisp_Misc markers[MARKER_BLOCK_SIZE];
 };
 
-struct marker_block *marker_block;
-int marker_block_index;
+static struct marker_block *marker_block;
+static int marker_block_index;
 
-union Lisp_Misc *marker_free_list;
+static union Lisp_Misc *marker_free_list;
 
 /* Total number of marker blocks now in use.  */
 
-int n_marker_blocks;
+static int n_marker_blocks;
 
-void
+static void
 init_marker ()
 {
   marker_block = (struct marker_block *) lisp_malloc (sizeof *marker_block,
@@ -2622,6 +2817,9 @@ allocate_misc ()
 {
   Lisp_Object val;
 
+#ifdef BOEHM_GC
+  XSETMISC (val, lisp_malloc (sizeof (union Lisp_Misc), MEM_TYPE_MISC));
+#else  /* BOEHM_GC */
   if (marker_free_list)
     {
       XSETMISC (val, marker_free_list);
@@ -2642,6 +2840,7 @@ allocate_misc ()
       XSETMISC (val, &marker_block->markers[marker_block_index++]);
     }
 
+#endif	/* BOEHM_GC */
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
   return val;
@@ -2667,6 +2866,24 @@ make_save_value (pointer, integer)
   return val;
 }
 
+#ifdef BOEHM_GC
+#if 0
+/* Box object such that the box doesn't protect it from GC.  */
+
+Lisp_Object
+make_weak_box (object)
+     Lisp_Object object;
+{
+  register Lisp_Object val;
+
+  XSETMISC (val, lisp_malloc (sizeof (union Lisp_Misc), MEM_TYPE_NON_LISP));
+  XMISCTYPE (val) = Lisp_Misc_Weak_Box;
+  XWEAK_BOX (val)->content = object;
+  return val;
+}
+#endif
+#endif /* BOEHM_GC */
+
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
        doc: /* Return a newly allocated marker which does not point at any place.  */)
      ()
@@ -2680,7 +2897,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bytepos = 0;
   p->charpos = 0;
-  p->chain = Qnil;
+  XSET_MARKER_CHAIN (p, Qnil);
   p->insertion_type = 0;
   return val;
 }
@@ -2693,11 +2910,13 @@ free_marker (marker)
 {
   unchain_marker (marker);
 
+#ifndef BOEHM_GC
   XMISC (marker)->u_marker.type = Lisp_Misc_Free;
   XMISC (marker)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (marker);
 
   total_free_markers++;
+#endif
 }
 
 
@@ -2742,6 +2961,7 @@ make_event_array (nargs, args)
 
 
 
+#ifndef BOEHM_GC
 /************************************************************************
 			   C Stack Marking
  ************************************************************************/
@@ -3423,7 +3643,7 @@ mark_maybe_object (obj)
 	      switch (XMISCTYPE (obj))
 		{
 		case Lisp_Misc_Marker:
-		  mark_p = !XMARKBIT (XMARKER (obj)->chain);
+		  mark_p = !XMARKBIT (MARKER_CHAIN (XMARKER (obj)));
 		  break;
 
 		case Lisp_Misc_Buffer_Local_Value:
@@ -3466,7 +3686,7 @@ mark_maybe_pointer (p)
   struct mem_node *m;
 
   /* Quickly rule out some values which can't point to Lisp data.  We
-     assume that Lisp data is aligned on even addresses.  */
+     assume that Lisp data are aligned on even addresses.  */
   if ((EMACS_INT) p & 1)
     return;
 
@@ -3508,7 +3728,7 @@ mark_maybe_pointer (p)
 	      switch (XMISCTYPE (tem))
 		{
 		case Lisp_Misc_Marker:
-		  if (!XMARKBIT (XMARKER (tem)->chain))
+		  if (!XMARKBIT (MARKER_CHAIN (XMARKER (tem))))
 		    obj = tem;
 		  break;
 
@@ -3604,9 +3824,9 @@ mark_memory (start, end)
      }
 
      Here, `obj' isn't really used, and the compiler optimizes it
-     away.  The only reference to the life string is through the
+     away.  The only reference to the live string is through the
      pointer `s'.  */
-
+  
   for (pp = (void **) start; (void *) pp < end; ++pp)
     mark_maybe_pointer (*pp);
 }
@@ -3841,7 +4061,7 @@ mark_stack ()
 
 
 #endif /* GC_MARK_STACK != 0 */
-
+#endif /* BOEHM_GC */
 
 
 /***********************************************************************
@@ -3880,10 +4100,14 @@ pure_alloc (size, type)
   if (pure_bytes_used <= pure_size)
     return result;
 
+#ifndef BOEHM_GC
   /* Don't allocate a large amount here,
      because it might get mmap'd and then its address
      might not be usable.  */
   purebeg = (char *) xmalloc (10000);
+#else
+  purebeg = (char *) GC_MALLOC_UNCOLLECTABLE (10000);
+#endif /* BOEHM_GC */
   pure_size = 10000;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;
@@ -4040,9 +4264,11 @@ void
 staticpro (varaddress)
      Lisp_Object *varaddress;
 {
+#ifndef BOEHM_GC
   staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
     abort ();
+#endif
 }
 
 struct catchtag
@@ -4071,16 +4297,62 @@ struct backtrace
 
 /* Temporarily prevent garbage collection.  */
 
+#ifndef BOEHM_GC
 int
 inhibit_garbage_collection ()
 {
   int count = SPECPDL_INDEX ();
-  int nbits = min (VALBITS, BITS_PER_INT);
 
-  specbind (Qgc_cons_threshold, make_number (((EMACS_INT) 1 << (nbits - 1)) - 1));
+  specbind (Qgc_cons_threshold, Vmost_positive_fixnum);
   return count;
 }
+#endif /* BOEHM_GC */
 
+/* Do space-freeing work not connected with sweeping the Lisp heap.
+   Called below and when doing incremental collections whilst
+   idle.  */
+
+void
+extra_gc_work ()
+{
+  register struct buffer *nextb = all_buffers;
+
+  BLOCK_INPUT;
+  shrink_regexp_cache ();
+
+  /* Don't keep undo information around forever.  */
+  while (nextb)
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (! EQ (nextb->undo_list, Qt))
+	nextb->undo_list
+	  = truncate_undo_list (nextb->undo_list, undo_limit,
+				undo_strong_limit);
+
+      /* Shrink buffer gaps, but skip indirect and dead buffers.  */
+      if (nextb->base_buffer == 0 && !NILP (nextb->name))
+	{
+	  /* If a buffer's gap size is more than 10% of the buffer
+	     size, or larger than 2000 bytes, then shrink it
+	     accordingly.  Keep a minimum size of 20 bytes.  */
+	  int size = min (2000, max (20, (nextb->text->z_byte / 10)));
+
+	  if (nextb->text->gap_size > size)
+	    {
+	      struct buffer *save_current = current_buffer;
+	      current_buffer = nextb;
+	      make_gap (-(nextb->text->gap_size - size));
+	      current_buffer = save_current;
+	    }
+	}
+
+      nextb = nextb->next;
+    }
+  UNBLOCK_INPUT;
+}
 
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
@@ -4148,47 +4420,29 @@ Garbage collection happens automatically if you cons more than
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
+  extra_gc_work ();
+
   BLOCK_INPUT;
 
-  shrink_regexp_cache ();
-
-  /* Don't keep undo information around forever.  */
-  {
-    register struct buffer *nextb = all_buffers;
-
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
-	  nextb->undo_list
-	    = truncate_undo_list (nextb->undo_list, undo_limit,
-				  undo_strong_limit);
-
-	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name))
-	  {
-	    /* If a buffer's gap size is more than 10% of the buffer
-	       size, or larger than 2000 bytes, then shrink it
-	       accordingly.  Keep a minimum size of 20 bytes.  */
-	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
-
-	    if (nextb->text->gap_size > size)
-	      {
-		struct buffer *save_current = current_buffer;
-		current_buffer = nextb;
-		make_gap (-(nextb->text->gap_size - size));
-		current_buffer = save_current;
-	      }
-	  }
-
-	nextb = nextb->next;
-      }
-  }
-
   gc_in_progress = 1;
+
+#ifdef BOEHM_GC
+  GC_gcollect ();
+  UNBLOCK_INPUT;
+  gc_in_progress = 0;
+  consing_since_gc = 0;
+  if (gc_cons_threshold < 10000)
+    gc_cons_threshold = 10000;
+  if (garbage_collection_messages)
+    {
+      if (message_p || minibuf_level > 0)
+	restore_message ();
+      else
+	message1_nolog ("Garbage collecting...done");
+    }
+  unbind_to (count, Qnil);
+  return Qnil;
+#else  /* BOEHM_GC */
 
   /* clear_marks (); */
 
@@ -4278,7 +4532,7 @@ Garbage collection happens automatically if you cons more than
 	      {
 		if (GC_CONSP (XCAR (tail))
 		    && GC_MARKERP (XCAR (XCAR (tail)))
-		    && ! XMARKBIT (XMARKER (XCAR (XCAR (tail)))->chain))
+		    && ! XMARKBIT (MARKER_CHAIN (XMARKER (XCAR (XCAR (tail))))))
 		  {
 		    if (NILP (prev))
 		      nextb->undo_list = tail = XCDR (tail);
@@ -4393,7 +4647,7 @@ Garbage collection happens automatically if you cons more than
     max_zombies = max (nzombies, max_zombies);
     ++ngcs;
     }
-#endif
+#endif /* BOEHM_GC */
 
   if (!NILP (Vpost_gc_hook))
     {
@@ -4412,9 +4666,10 @@ Garbage collection happens automatically if you cons more than
   gcs_done++;
 
   return Flist (sizeof total / sizeof *total, total);
+#endif
 }
 
-
+#ifndef BOEHM_GC
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
    only interesting objects referenced from glyphs are strings.  */
 
@@ -4698,7 +4953,7 @@ mark_object (argptr)
 	  CHECK_LIVE (live_vector_p);
 	  ptr->size |= ARRAY_MARK_FLAG;
 
-	  /* There is no Lisp data above The member CURRENT_MATRIX in
+	  /* There is no Lisp data above the member CURRENT_MATRIX in
 	     struct WINDOW.  Stop marking when that slot is reached.  */
 	  for (i = 0;
 	       (char *) &ptr->contents[i] < (char *) &w->current_matrix;
@@ -4807,7 +5062,7 @@ mark_object (argptr)
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Marker:
-	  XMARK (XMARKER (obj)->chain);
+	  XMARK (MARKER_CHAIN (XMARKER (obj)));
 	  /* DO NOT mark thru the marker's chain.
 	     The buffer's markers chain does not preserve markers from gc;
 	     instead, markers are removed from the chain when freed by gc.  */
@@ -4990,7 +5245,7 @@ mark_kboards ()
       mark_object (&kb->echo_string);
     }
 }
-
+#endif /* BOEHM_GC */
 
 /* Value is non-zero if OBJ will survive the current GC because it's
    either marked or does not need to be marked to survive.  */
@@ -5001,6 +5256,12 @@ survives_gc_p (obj)
 {
   int survives_p;
 
+#ifdef BOEHM_GC
+  if (XGCTYPE (obj) == Lisp_Int)
+    survives_p = 1;
+  else
+    survives_p = GC_is_marked (XPNTR (obj));
+#else
   switch (XGCTYPE (obj))
     {
     case Lisp_Int:
@@ -5067,12 +5328,13 @@ survives_gc_p (obj)
     default:
       abort ();
     }
-
+#endif /* BOEHM_GC */
   return survives_p || PURE_POINTER_P ((void *) XPNTR (obj));
 }
 
 
 
+#ifndef BOEHM_GC
 /* Sweep: find all structures not marked, and free them. */
 
 static void
@@ -5322,7 +5584,8 @@ gc_sweep ()
 	    switch (mblk->markers[i].u_marker.type)
 	      {
 	      case Lisp_Misc_Marker:
-		markword = &mblk->markers[i].u_marker.chain;
+		/* fixme */
+		markword = &mblk->markers[i].u_marker.chain_;
 		break;
 	      case Lisp_Misc_Buffer_Local_Value:
 	      case Lisp_Misc_Some_Buffer_Local_Value:
@@ -5445,7 +5708,7 @@ gc_sweep ()
     check_string_bytes (1);
 #endif
 }
-
+#endif /* BOEHM_GC */
 
 
 
@@ -5504,6 +5767,55 @@ die (msg, file, line)
 	   file, line, msg);
   abort ();
 }
+
+#ifdef BOEHM_GC
+/* Look for markers that are going to be collected and unchain them
+   from their buffers.  Called from the finalization hook.  */
+static void
+finalize_buffer_marker_chains ()
+{
+  Lisp_Object buffer_alist, buffer;
+  Lisp_Object tail, next, prev;
+  struct Lisp_Marker *marker;
+
+  if (!Vbuffer_alist)
+    return;		  /* We're called before it's initialized.  */
+  buffer_alist = Vbuffer_alist;
+  while (!NILP (buffer_alist))
+    {
+      buffer = XCDR (XCAR (Vbuffer_alist));
+      tail = BUF_MARKERS (XBUFFER (buffer));
+      prev = Qnil;
+      while (!NILP (tail))
+	{
+	  marker = XMARKER (tail); /* GC_malloc'ed object */
+/* 	  eassert (marker == GC_base (marker)); */
+/* 	  eassert (marker->buffer == XMARKER (buffer)); */
+	  next = MARKER_CHAIN (marker);
+	  if (!GC_is_marked (marker))
+	    {
+	      if (NILP (prev))
+		SET_BUF_MARKERS (XBUFFER (buffer), next);
+	      else
+		XSET_MARKER_CHAIN (XMARKER (prev), next);
+	    }
+	  prev = tail;
+	  tail = next;
+	}
+      buffer_alist = XCDR (buffer_alist);
+    }
+}
+
+/* Finalization hook, from which we can scan data structures after GC
+   objects have been marked.  N.b.  Avoid consing in anything called
+   from here!  */
+static void
+custom_finalize ()
+{
+  finalize_buffer_marker_chains ();
+  /* Fixme:  Process weak hash tables here.  */
+}
+#endif
 
 /* Initialization */
 
@@ -5516,9 +5828,11 @@ init_alloc_once ()
   pure_bytes_used = 0;
   pure_bytes_used_before_overflow = 0;
 
+#ifndef BOEHM_GC
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();
   Vdead = make_pure_string ("DEAD", 4, 4, 0);
+#endif
 #endif
 
   all_vectors = 0;
@@ -5528,12 +5842,17 @@ init_alloc_once ()
   mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS); /* max. number of mmap'ed areas */
 #endif
+#ifdef BOEHM_GC
+  GC_oom_fn = &gc_out_of_memory;
+  GC_custom_finalize = custom_finalize;
+#else
   init_strings ();
   init_cons ();
   init_symbol ();
   init_marker ();
   init_float ();
   init_intervals ();
+#endif
 
 #ifdef REL_ALLOC
   malloc_hysteresis = 32;
@@ -5560,6 +5879,65 @@ init_alloc ()
 {
   gcprolist = 0;
   byte_stack_list = 0;
+#ifdef BOEHM_GC
+  if (initialized)
+    {
+      GC_print_stats = 0;
+      if (0 != getenv ("GC_PRINT_STATS"))
+	{
+	  GC_print_stats = 1;
+	} 
+      GC_dont_gc = 0;
+      if (0 != getenv ("GC_DONT_GC"))
+	{
+	  GC_dont_gc = 1;
+	}
+      GC_time_limit = 50 /* TIME_LIMIT */;
+      {
+	char * time_limit_string = getenv ("GC_PAUSE_TIME_TARGET");
+	if (0 != time_limit_string)
+	  {
+	    long time_limit = atol (time_limit_string);
+	    if (time_limit < 5)
+	      {
+		message ("GC_PAUSE_TIME_TARGET environment variable value too small or not numeric -- ignored");
+	      }
+	    else
+	      {
+		GC_time_limit = time_limit;
+	      }
+	  }
+      }
+      GC_free_space_divisor = 8;
+      {
+	char * string = getenv ("GC_FREESPACE_DIVISOR");
+	if (0 != string)
+	  {
+	    long divisor = atol (string);
+	    if (divisor < 2)
+	      {
+		message ("GC_FREESPACE_DIVISOR environment variable value too small or not numeric -- ignored");
+	      }
+	    else
+	      {
+		GC_free_space_divisor = divisor;
+	      }
+	  }
+      }
+#if 0
+#   ifndef NO_DEBUGGING
+      GC_dump_regularly = 0;
+      if (0 != getenv ("GC_DUMP_REGULARLY"))
+	{
+	  GC_dump_regularly = 1;
+	}
+#   endif
+#endif
+      /* We lose in the dumped Emacs if this is turned on initialliy.  */
+      if (0 != getenv ("GC_DISABLE_INCREMENTAL"))
+	GC_enable_incremental ();
+    }
+#endif
 #if GC_MARK_STACK
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
   setjmp_tested_p = longjmps_done = 0;
@@ -5663,6 +6041,18 @@ Programs may reset this to get statistics in a specific period.  */);
   DEFVAR_INT ("gcs-done", &gcs_done,
 	      doc: /* Accumulated number of garbage collections done.
 Programs may reset this to get statistics in a specific period.  */);
+
+#if 0
+#ifdef BOEHM_GC
+  /* fixme: GC_dont_gc isn't EMACS_INT.  */
+  DEFVAR_INT ("inhibit-garbage-collection", &GC_dont_gc,
+	      doc: /* Non-zero means don't garbage collect.
+This should be treated as a counter so that nested enabling and disabling
+works correctly.  */);
+  staticpro (&Qinhibit_garbage_collection);
+  Qinhibit_garbage_collection = intern ("inhibit-garbage-collection");
+#endif
+#endif
 
   defsubr (&Scons);
   defsubr (&Slist);
