@@ -2421,11 +2421,11 @@ handle_single_display_prop (it, prop, object, position)
 	   && EQ (XCAR (prop), Qraise)
 	   && CONSP (XCDR (prop)))
     {
-#ifdef HAVE_WINDOW_SYSTEM
       /* `(raise FACTOR)'.  */
       if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
 	return 0;
       
+#ifdef HAVE_WINDOW_SYSTEM
       value = XCAR (XCDR (prop));
       if (NUMBERP (value))
 	{
@@ -2479,7 +2479,7 @@ handle_single_display_prop (it, prop, object, position)
 	}
 
 #ifdef HAVE_WINDOW_SYSTEM
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (FRAME_TERMCAP_P (it->f))
 	valid_p = STRINGP (value);
       else
 	valid_p = (STRINGP (value)
