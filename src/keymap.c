@@ -2272,7 +2272,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
   /* If this command is remapped, then it has no key bindings
      of its own.  */
-  if (NILP (no_remap)
+  if (NILP (no_remap) && is_command_symbol (definition)
       && !NILP (Fkey_binding (definition, Qnil, Qt)))
     return Qnil;
 
