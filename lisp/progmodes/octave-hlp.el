@@ -130,4 +130,8 @@ The files specified by `octave-help-files' are searched."
     (message "Building help completion alist...done"))    
   octave-help-completion-alist)
 
+;;; provide ourself
+
+(provide 'octave-hlp)
+
 ;;; octave-hlp.el ends here
