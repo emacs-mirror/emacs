@@ -4451,7 +4451,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  }
 	      }
 
-	    button = ( GET_WHEEL_DELTA_WPARAM (msg.msg.wParam) < 0 )? 4 : 3;
+	    button = (GET_WHEEL_DELTA_WPARAM (msg.msg.wParam) < 0)? 4 : 3;
 
 	    if (up)
 	      {
@@ -4816,27 +4816,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  break;
 
 	default:
-	  /* Check for messages registered at runtime. */
+	  /* Check for messages registered at runtime.  */
 	  if (msg.msg.message == msh_mousewheel)
 	    {
-	      if (dpyinfo->grabbed && last_mouse_frame
-		  && FRAME_LIVE_P (last_mouse_frame))
-		f = last_mouse_frame;
-	      else
-		f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-
-	      if (f)
-		{
-		  if ((!dpyinfo->w32_focus_frame
-		       || f == dpyinfo->w32_focus_frame)
-		      && (numchars >= 1))
-		    {
-		      construct_mouse_wheel (bufp, &msg, f);
-		      bufp++;
-		      count++;
-		      numchars--;
-		    }
-		}
+	      /* Forward MSH_MOUSEWHEEL as WM_MOUSEWHEEL.  */
+	      msg.msg.message == WM_MOUSEWHEEL;
+	      prepend_msg (&msg);
 	    }
 	  break;
 	}
