@@ -58,7 +58,8 @@ a font height that isn't optimal."
 	   (set-default symbol value)
 	   (internal-set-font-selection-order value)))
 
-;; This is defined originally in {w32,x}faces.c.
+
+;; This is defined originally in xfaces.c.
 (defcustom face-font-family-alternatives
   '(("courier" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
@@ -72,6 +73,21 @@ ALTERNATIVE2 etc."
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
 	   (internal-set-alternative-font-family-alist value)))
+
+
+;; This is defined originally in xfaces.c.
+(defcustom face-font-registry-alternatives
+  '(("muletibetan-2" "muletibetan-0"))
+  "*Alist of alternative font registry names.
+Each element has the the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
+If fonts of registry REGISTRY can't be loaded, try ALTERNATIVE1, then
+ALTERNATIVE2 etc."
+  :tag "Alternative font registries to try."
+  :type '(repeat (repeat string))
+  :group 'font-selection
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (internal-set-alternative-font-registry-alist value)))
 
 
 
