@@ -718,6 +718,9 @@ case "${canonical}" in
   rs6000-ibm-aix3.1* )
     machine=ibmrs6000 opsys=aix3-1
   ;;
+  rs6000-ibm-aix3.2.5)
+    machine=ibmrs6000 opsys=aix3-2-5
+  ;;
   rs6000-ibm-aix3.2* | rs6000-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
