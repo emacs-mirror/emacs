@@ -56,9 +56,11 @@ than adding to it."
     (save-restriction
       (widen)
       (goto-char (point-min))
-      ;; Handle abbreviated year lists like "1800, 01, 02, 03".
-      (if (re-search-forward (concat (substring current-year 0 2)
-				     "\\([0-9][0-9]\\(,\\s \\)+\\)*"
+      ;; Handle abbreviated year lists like "1800, 01, 02, 03"
+      ;; or "1900, '01, '02, '03".
+      (if (re-search-forward (concat "\\(" (substring current-year 0 2)
+				     "\\)?"
+				     "\\([0-9][0-9]\\(,\\s \\)+\\)*'?"
 				     (substring current-year 2))
 			     nil t)
 	  (or ask-upd
