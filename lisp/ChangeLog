@@ -1,3 +1,7 @@
+2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* filesets.el (filesets-set-default): Doc fix.
+
 2005-04-03  Lute Kamstra  <lute@gnu.org>
 
 	* desktop.el (desktop-no-desktop-file-hook)
