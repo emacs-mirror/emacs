@@ -1,3 +1,17 @@
+2003-05-04  Dave Love  <fx@gnu.org>
+
+	* lread.c (read_emacs_mule_char) [len==2]: Index
+	emacs_mule_charset correctly.
+
+2003-02-16  Dave Love  <fx@gnu.org>    	 	    	
+
+	* coding.c (Qbig5, Vbig5_coding_system, CATEGORY_MASK_BIG5)
+	(detect_coding_big5, decode_coding_big5, encode_coding_big5)
+	(Fdecode_big5_char, Fencode_big5_char): Deleted.  (Big5 no longer
+	treated specially.)
+	(setup_coding_system, coding_category, CATEGORY_MASK_ANY)
+	(detected_mask): Remove Big5 bits.
+
 2003-04-09  Kenichi Handa  <handa@etlken2>
 
 	The following changes are to make the font rescaling facility
