@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(trunk.22) $
+# $HopeName: MMQA_harness!script:compile(trunk.23) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -60,6 +60,7 @@ sub settings_nt {
  $err_red = "2>";
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
+ $platmailfile = \&nt_mailfile;
 }
 
 sub settings_nt_cap {
@@ -97,6 +98,7 @@ sub settings_unix {
  $err_red = "2>";
  $stdout_dup = "| tee";
  $stdin_red = "<";
+ $platmailfile = \&unix_mailfile;
 }
 
 sub settings_gprof {
@@ -108,6 +110,29 @@ sub mysystem {
  $command =~ s/(\S)\//$1$dirsep/g;
  &debug("SYSTEM >>$command<<");
  system($command);
+}
+
+sub mailfile {
+ local ($file, $subj) = @_;
+
+ if ($MAIL_RESULTS eq "on") {
+  &$platmailfile($file, $MAIL_TO, $subj);
+ }
+}
+
+sub nt_mailfile {
+ local ($file, $to, $subj) = @_;
+ 
+ &mysystem(
+  "$script_dir/ntx86bin/blat.exe ".
+  "$file -server mailhost -f mm-qa -t $to -s \"$subj\" -q");
+}
+
+sub unix_mailfile {
+ local ($file, $to, $subj) = @_;
+
+ &mysystem(
+  "{ echo \"To: $to\"; echo \"Subject: $subj\"; cat $file; } | mail -t");
 }
 
 sub log_system {
