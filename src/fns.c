@@ -52,6 +52,7 @@ extern Lisp_Object minibuf_window;
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
+Lisp_Object Qwidget_type;
 
 static int internal_equal ();
 
@@ -155,7 +156,7 @@ DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
 This function never gets an error.  If LIST is not really a list,\n\
 it returns 0.  If LIST is circular, it returns a finite value\n\
 which is at least the number of distinct elements.")
- (list)
+  (list)
      Lisp_Object list;
 {
   Lisp_Object tail, halftail, length;
@@ -543,7 +544,7 @@ concat (nargs, args, target_type, last_special)
   if (!NILP (prev))
     XCONS (prev)->cdr = last_tail;
 
-  return val;  
+  return val;
 }
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
@@ -618,7 +619,7 @@ This function allows vectors as well as strings.")
   else
     res = Fvector (XINT (to) - XINT (from),
 		   XVECTOR (string)->contents + XINT (from));
-		   
+
   return res;
 }
 
@@ -1042,9 +1043,9 @@ otherwise the new PROP VAL pair is added.  The new plist is returned;\n\
 use `(setq x (plist-put x prop val))' to be sure to use the new value.\n\
 The PLIST is modified by side effects.")
   (plist, prop, val)
-    Lisp_Object plist;
-    register Lisp_Object prop;
-    Lisp_Object val;
+     Lisp_Object plist;
+     register Lisp_Object prop;
+     Lisp_Object val;
 {
   register Lisp_Object tail, prev;
   Lisp_Object newcell;
@@ -1256,7 +1257,7 @@ DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
   (char_table)
      Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (char_table, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);
 
   return XCHAR_TABLE (char_table)->purpose;
 }
@@ -1271,7 +1272,7 @@ then the actual applicable value is inherited from the parent char-table\n\
   (char_table)
      Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (char_table, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);
 
   return XCHAR_TABLE (char_table)->parent;
 }
@@ -1285,11 +1286,11 @@ PARENT must be either nil or another char-table.")
 {
   Lisp_Object temp;
 
-  CHECK_CHAR_TABLE (char_table, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);
 
   if (!NILP (parent))
     {
-      CHECK_CHAR_TABLE (parent, 0);  
+      CHECK_CHAR_TABLE (parent, 0);
 
       for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
 	if (EQ (temp, char_table))
@@ -1344,7 +1345,7 @@ or a character code.")
   int i;
 
   CHECK_CHAR_TABLE (char_table, 0);
-  
+
   if (EQ (range, Qnil))
     return XCHAR_TABLE (char_table)->defalt;
   else if (INTEGERP (range))
@@ -1379,7 +1380,7 @@ or a character code.")
   int i;
 
   CHECK_CHAR_TABLE (char_table, 0);
-  
+
   if (EQ (range, Qt))
     for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
       XCHAR_TABLE (char_table)->contents[i] = value;
@@ -1515,7 +1516,7 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	      else
 		call2 (function, make_number (c), elt);
 	    }
-  	}	  
+  	}
     }
 }
 
@@ -1674,7 +1675,7 @@ SEPARATOR results in spaces between the values returned by FUNCTION.")
 
   for (i = leni - 1; i >= 0; i--)
     args[i + i] = args[i];
-      
+
   for (i = 1; i < nargs; i += 2)
     args[i] = separator;
 
@@ -1729,7 +1730,6 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
-      
 
 #ifdef HAVE_MENUS
       if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
@@ -1851,7 +1851,7 @@ and can edit it until it has been confirmed.")
   CHECK_STRING (prompt, 0);
 
 #ifdef HAVE_MENUS
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event)) 
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && have_menus_p ())
     {
@@ -1927,7 +1927,7 @@ Use this to conditionalize execution of lisp code based on the presence or\n\
 absence of emacs or environment extensions.\n\
 Use `provide' to declare that a feature is available.\n\
 This function looks at the value of the variable `features'.")
-     (feature)
+  (feature)
      Lisp_Object feature;
 {
   register Lisp_Object tem;
@@ -1938,7 +1938,7 @@ This function looks at the value of the variable `features'.")
 
 DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
   "Announce that FEATURE is a feature of the current Emacs.")
-     (feature)
+  (feature)
      Lisp_Object feature;
 {
   register Lisp_Object tem;
@@ -1957,7 +1957,7 @@ DEFUN ("require", Frequire, Srequire, 1, 2, 0,
 If FEATURE is not a member of the list `features', then the feature\n\
 is not loaded; so load the file FILENAME.\n\
 If FILENAME is omitted, the printname of FEATURE is used as the file name.")
-     (feature, file_name)
+  (feature, file_name)
      Lisp_Object feature, file_name;
 {
   register Lisp_Object tem;
@@ -1987,6 +1987,90 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name.")
   return feature;
 }
 
+/* Primitives for work of the "widget" library.
+   In an ideal world, this section would not have been necessary.
+   However, lisp function calls being as slow as they are, it turns
+   out that some functions in the widget library (wid-edit.el) are the
+   bottleneck of Widget operation.  Here is their translation to C,
+   for the sole reason of efficiency.  */
+
+DEFUN ("widget-plist-member", Fwidget_plist_member, Swidget_plist_member, 2, 2, 0,
+  "Return non-nil if PLIST has the property PROP.\n\
+PLIST is a property list, which is a list of the form\n\
+\(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol.\n\
+Unlike `plist-get', this allows you to distinguish between a missing\n\
+property and a property with the value nil.\n\
+The value is actually the tail of PLIST whose car is PROP.")
+  (plist, prop)
+     Lisp_Object plist, prop;
+{
+  while (CONSP (plist) && !EQ (XCAR (plist), prop))
+    {
+      QUIT;
+      plist = XCDR (plist);
+      plist = CDR (plist);
+    }
+  return plist;
+}
+
+DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
+  "In WIDGET, set PROPERTY to VALUE.\n\
+The value can later be retrieved with `widget-get'.")
+  (widget, property, value)
+     Lisp_Object widget, property, value;
+{
+  CHECK_CONS (widget, 1);
+  XCDR (widget) = Fplist_put (XCDR (widget), property, value);
+}
+
+DEFUN ("widget-get", Fwidget_get, Swidget_get, 2, 2, 0,
+  "In WIDGET, get the value of PROPERTY.\n\
+The value could either be specified when the widget was created, or\n\
+later with `widget-put'.")
+  (widget, property)
+     Lisp_Object widget, property;
+{
+  Lisp_Object tmp;
+
+  while (1)
+    {
+      if (NILP (widget))
+	return Qnil;
+      CHECK_CONS (widget, 1);
+      tmp = Fwidget_plist_member (XCDR (widget), property);
+      if (CONSP (tmp))
+	{
+	  tmp = XCDR (tmp);
+	  return CAR (tmp);
+	}
+      tmp = XCAR (widget);
+      if (NILP (tmp))
+	return Qnil;
+      widget = Fget (tmp, Qwidget_type);
+    }
+}
+
+DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
+  "Apply the value of WIDGET's PROPERTY to the widget itself.\n\
+ARGS are passed as extra arguments to the function.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  /* This function can GC. */
+  Lisp_Object newargs[3];
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object result;
+
+  newargs[0] = Fwidget_get (args[0], args[1]);
+  newargs[1] = args[0];
+  newargs[2] = Flist (nargs - 2, args + 2);
+  GCPRO2 (newargs[0], newargs[2]);
+  result = Fapply (3, newargs);
+  UNGCPRO;
+  return result;
+}
+
 syms_of_fns ()
 {
   Qstring_lessp = intern ("string-lessp");
@@ -1999,6 +2083,8 @@ syms_of_fns ()
   staticpro (&Qyes_or_no_p_history);
   Qcursor_in_echo_area = intern ("cursor-in-echo-area");
   staticpro (&Qcursor_in_echo_area);
+  Qwidget_type = intern ("widget-type");
+  staticpro (&Qwidget_type);
 
   Fset (Qyes_or_no_p_history, Qnil);
 
@@ -2063,4 +2149,8 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sfeaturep);
   defsubr (&Srequire);
   defsubr (&Sprovide);
+  defsubr (&Swidget_plist_member);
+  defsubr (&Swidget_put);
+  defsubr (&Swidget_get);
+  defsubr (&Swidget_apply);
 }
