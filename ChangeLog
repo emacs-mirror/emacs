@@ -1,3 +1,9 @@
+2002-09-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (bootstrap-lisp-1, bootstrap-lisp, bootstrap)
+	(bootstrap-clean-after): Delete.
+	(bootstrap): Make the sequencing explicit.
+
 2002-09-10  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in: Fix previous LessTif change.
@@ -17,7 +23,7 @@
 
 	* configure.in: Look for LessTif in /usr/X11R6/LessTif/ before Motif.
 
-	* configure.in: Handle $GCC_LINK_TEST_OPTIONS and 
+	* configure.in: Handle $GCC_LINK_TEST_OPTIONS and
 	$NON_GCC_LINK_TEST_OPTIONS after the AC_PROG_... macros.
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
@@ -35,7 +41,7 @@
 	* configure.in: Don't print anything special about gamedir.
 
 	* configure.in: Delete nonstandard --with-game-user option.
-	
+
 2002-07-21  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (gamedir, localstatedir): New variables.
@@ -88,8 +94,7 @@
 
 2002-04-28  Colin Walters  <walters@verbum.org>
 
-	* configure.in: Delete configure check for access to the game
-	user.
+	* configure.in: Delete configure check for access to the game user.
 
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -100,7 +105,7 @@
 	* configure.in: Add support for powerpc-apple-darwin*.
 	(HAVE_CARBON): Add.
 
-	* make-dist: Create directories in mac/Emacs.app.	
+	* make-dist: Create directories in mac/Emacs.app.
 
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -119,8 +124,7 @@
 
 2002-04-15  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in ($(srcdir)/src/config.in): Generate using
-	autoheader.
+	* Makefile.in ($(srcdir)/src/config.in): Generate using autoheader.
 	* configure.in: Add config header templates to all AC_DEFINE and
 	AC_DEFINE_UNQUOTED symbols.
 	* make-dist: Run autoheader if necessary.
@@ -166,7 +170,7 @@
 	* configure.in <making srcdir absolute>: Verify that PWD is correct,
 	not just well-formed and valid.
 	(mips-compaq-nonstopux*): New configuration.
-	
+
 2002-02-18  Paul Eggert  <eggert@twinsun.com>
 
 	* make-dist: Port to POSIX 1003.1-2001, which doesn't allow "head -1".
@@ -267,8 +271,7 @@
 	These changes add the Emacs Lisp Introduction manual to the
 	distribution:
 
-	* Makefile.in (install-arch-indep, uninstall): Add ELisp Intro
-	files.
+	* Makefile.in (install-arch-indep, uninstall): Add ELisp Intro files.
 
 	* make-dist: Copy the files in lispintro directory.
 
@@ -283,16 +286,14 @@
 
 2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* Makefile.in (uninstall, install-arch-indep): Don't install
-	gfdl.1.
+	* Makefile.in (uninstall, install-arch-indep): Don't install gfdl.1.
 
 	* make-dist (etc): Don't distribute gfdl.1.
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
-	(uninstall): Handle deletion of calc .info files (thanks Pavel
-	Jan,Bm(Bk).
+	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Bm(Bk).
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -312,8 +313,7 @@
 
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* Makefile.in (install-arch-indep): Use `${manext}' instead of
-	`.1'.
+	* Makefile.in (install-arch-indep): Use `${manext}' instead of `.1'.
 	(install-arch-indep): Install emacsclient manual page.
 	(uninstall): Uninstall emacsclient manual page.
 
@@ -379,15 +379,13 @@
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): New target.
-	(all): Add to prerequisites to bootstrap if abbrev.elc doesn't
-	exist.
+	(all): Add to prerequisites to bootstrap if abbrev.elc doesn't exist.
 
 2001-10-24  Ken Raeburn  <raeburn@gnu.org>
 
 	* configure.in: If --with-hesiod is given, look for
 	hes_getmailhost and res_send or __res_send; check hesiod and
-	resolv libraries respectively if system libraries don't supply
-	them.
+	resolv libraries respectively if system libraries don't supply them.
 
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
@@ -507,9 +505,15 @@
 	* mkinstalldirs (errstatus): Chmod a+rx directories we create.
 
 	* Makefile.in (uninstall): Ignore exit code of `rm'.
+<<<<<<< ChangeLog
+
+	* Makefile.in (uninstall): Remove more info files.
+	Remove ${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
+=======
 
 	* Makefile.in (uninstall): Remove more info files.  Remove
 	${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
+>>>>>>> 1.214
 
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
