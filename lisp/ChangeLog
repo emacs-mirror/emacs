@@ -1,6 +1,10 @@
+2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (functionp): Doc fix.
+
 2004-01-03  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
-	* progmodes/idlwave.el (idlwave-make-tags): 
+	* progmodes/idlwave.el (idlwave-make-tags):
 	* textmodes/flyspell.el (flyspell-large-region):.
 	* progmodes/make-mode.el (makefile-query-by-make-minus-q):
 	* emulation/viper-util.el (viper-glob-unix-files):
