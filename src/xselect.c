@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
