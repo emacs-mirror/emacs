@@ -1055,9 +1055,11 @@ sys_kill (int pid, int sig)
   else
     {
       /* Kill the process.  On Win32 this doesn't kill child processes
-	 so it doesn't work very well for shells which is why it's
-	 not used in every case.  */
-      if (!TerminateProcess (proc_hand, 0xff))
+	 so it doesn't work very well for shells which is why it's not
+	 used in every case.  Also, don't try to terminate DOS processes
+	 (on Win95), because this will hang Emacs. */
+      if (!(cp && cp->is_dos_process)
+	  && !TerminateProcess (proc_hand, 0xff))
         {
 	  DebPrint (("sys_kill.TerminateProcess returned %d "
 		     "for pid %lu\n", GetLastError (), pid));
