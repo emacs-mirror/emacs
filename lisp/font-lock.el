@@ -1232,7 +1232,7 @@ see `font-lock-syntactic-keywords'."
 	 (start (match-beginning match)) (end (match-end match))
 	 (value (nth 1 highlight))
 	 (override (nth 2 highlight)))
-    (unless (numberp (car value))
+    (unless (numberp (car-safe value))
       (setq value (eval value)))
     (cond ((not start)
 	   ;; No match but we might not signal an error.
