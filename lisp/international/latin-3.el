@@ -96,6 +96,6 @@
 ;; When preloading this file, don't provide the feature.
 ;; Explicit `require' is used to load this for 8-bit characters.
 (or set-case-syntax-set-multibyte
-    (provide 'latin-3.el))
+    (provide 'latin-3))
 
 ;;; latin-3.el ends here
