@@ -1,3 +1,7 @@
+2003-02-02  John Paul Wallington  <jpw@gnu.org>
+
+	* hexl.el (hexl-mode-map): Bind C-m to `hexl-self-insert-command'.
+
 2003-02-01  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el: Update example date in preamble commentary.
