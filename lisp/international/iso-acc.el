@@ -107,59 +107,68 @@
     )
   "Association list for ISO accent combinations.")
 
-(defun iso-accents-accent-key ()
-  "Modify the following character by adding an accent to it."
-  (interactive)
-
-  ;; Pick up the accent character.
-  (let ((first-char last-command-char))
-
-    ;; Display it and backup.
-    (insert first-char)
-    (backward-char 1)
-
-    ;; Wait for the second key and look up the combination in the list.
-    (let* ((second-char (read-event))
-	   (entry (assoc (list first-char second-char) iso-accents-list)))
-      (if entry
-	  ;; Found it: delete the first character and insert the combination.
-	  (progn
-	    (delete-char 1)
-	    (insert (car (cdr entry))))
-
-	;; Otherwise, advance and schedule the second key for execution.
-	(forward-char 1)
-	(setq unread-command-events (list second-char))
-
-	;; If it is not a self-insert-command, ring the terminal bell.
-	(or (eq (key-binding (make-vector 1 second-char)) 'self-insert-command)
-	    (beep 1))))))
-
 (defvar iso-accents-minor-mode nil
   "*Non-nil enables ISO-accents mode.
 Setting this variable makes it local to the current buffer.
 See `iso-accents-mode'.")
 (make-variable-buffer-local 'iso-accents-minor-mode)
 
-;; A minor mode map `iso-accents-prefix-map' is used to activate the
-;; dead key handling depending on the value of iso-accents-minor-mode.
-(defvar iso-accents-prefix-map nil
-  "Keymap for ISO-accents minor mode.")
+(defun iso-accents-accent-key (prompt)
+  "Modify the following character by adding an accent to it."
+  ;; Pick up the accent character.
+  (if iso-accents-minor-mode
+      (iso-accents-compose prompt)
+    (char-to-string last-input-char)))
 
-;; Create the minor-mode keymap, if needed.
-(or iso-accents-prefix-map
-    (progn
-      (setq iso-accents-prefix-map (make-sparse-keymap))
-      (define-key iso-accents-prefix-map "'"  'iso-accents-dead-key)
-      (define-key iso-accents-prefix-map "`"  'iso-accents-dead-key)
-      (define-key iso-accents-prefix-map "^"  'iso-accents-dead-key)
-      (define-key iso-accents-prefix-map "\"" 'iso-accents-dead-key)))
+(defun iso-accents-compose-key (prompt)
+  "Modify the following character by adding an accent to it."
+  ;; Pick up the accent character.
+  (let ((combined (iso-accents-compose prompt)))
+    (if unread-command-events
+	(let ((unread unread-command-events))
+	  (setq unread-command-events nil)
+	  (error "Characters %s and %s cannot be composed"
+		 (single-key-description (aref combined 0))
+		 (single-key-description (car unread)))))
+    combined))
 
-;; Add the dead key minor mode map to the minor mode maps.
-(or (assq 'iso-accents-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'iso-accents-minor-mode iso-accents-prefix-map)
-		minor-mode-map-alist)))
+(defun iso-accents-compose (prompt)
+  (let* ((first-char last-input-char)
+	 ;; Wait for the second key and look up the combination.
+	 (second-char (if (or prompt
+			      (not (eq (key-binding "a")
+				       'self-insert-command)))
+			  (progn
+			    (message "%s%c"
+				     (or prompt "Compose with ")
+				     first-char)
+			    (read-event))
+			(insert first-char)
+			(prog1 (read-event)
+			  (delete-region (1- (point)) (point)))))
+	 (entry (assoc (list first-char second-char) iso-accents-list)))
+    (if entry
+	;; Found it: delete the first character and insert the combination.
+	(concat (list (nth 1 entry)))
+      ;; Otherwise, advance and schedule the second key for execution.
+      (setq unread-command-events (list second-char))
+      (vector first-char))))
+
+(or key-translation-map (setq key-translation-map (make-sparse-keymap)))
+;; For sequences starting with an accent character,
+;; use a function that tests iso-accents-minor-mode.
+(define-key key-translation-map "'"  'iso-accents-accent-key)
+(define-key key-translation-map "`"  'iso-accents-accent-key)
+(define-key key-translation-map "^"  'iso-accents-accent-key)
+(define-key key-translation-map "\"" 'iso-accents-accent-key)
+;; For sequences starting with a compose key,
+;; always do the compose processing.
+(define-key key-translation-map [compose ?\']  'iso-accents-compose-key)
+(define-key key-translation-map [compose ?\`]  'iso-accents-compose-key)
+(define-key key-translation-map [compose ?^]  'iso-accents-compose-key)
+(define-key key-translation-map [compose ?\"] 'iso-accents-compose-key)
+;; The way to make compose work is to translate some other key sequence
+;; into it, using key-translation-map.
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
