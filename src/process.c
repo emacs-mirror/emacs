@@ -2783,7 +2783,10 @@ DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
   "Make PROCESS see end-of-file in its input.\n\
 Eof comes after any text already sent to it.\n\
 PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
-nil, indicating the current buffer's process.")
+nil, indicating the current buffer's process.\n\
+If PROCESS is a network connection, or is a process communicating\n\
+through a pipe (as opposed to a pty), then you cannot send any more\n\
+text to PROCESS after you call this function.")
   (process)
      Lisp_Object process;
 {
