@@ -42,7 +42,7 @@
 (defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
 	      (file-readable-p "/proc/apm"))
-	 'battery-linux-proc-apm))  
+	 'battery-linux-proc-apm))
   "*Function for getting battery status information.
 The function have to return an alist of conversion definitions.
 Cons cells are of the form
@@ -101,7 +101,7 @@ The text being displayed in the echo area is controlled by the variables
 ;;;###autoload
 (defun display-battery ()
   "Display battery status information in the mode line.
-The text beeing displayed in the mode line is controlled by the variables
+The text being displayed in the mode line is controlled by the variables
 `battery-mode-line-format' and `battery-status-function'.
 The mode line will be updated automatically every `battery-update-interval'
 seconds."
