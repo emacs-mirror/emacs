@@ -75,9 +75,10 @@ Return a modified address list."
 					      (match-end 0))))
 
        ;; Detect nested comments.
-       (if (string-match "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*(" address)
+       (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
 	   ;; Strip nested comments.
 	   (save-excursion
+	     (debug)
 	     (set-buffer (get-buffer-create " *temp*"))
 	     (erase-buffer)
 	     (insert address)
@@ -98,7 +99,7 @@ Return a modified address list."
 	 (while (setq pos (string-match 
 			    ;; This doesn't hack rfc822 nested comments
 			    ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
-			    "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*)"
+			    "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*)"
 			    address))
 	   (setq address
 		 (mail-string-delete address
