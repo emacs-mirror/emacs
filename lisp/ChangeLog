@@ -1,3 +1,11 @@
+2002-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-decode-babyl-format): Disable undo
+	around the decode-coding-region call.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Repeating the command
+	after displaying a completion list scrolls the list.
+
 2002-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* version.el (emacs-version): Bump to 21.2.50.
