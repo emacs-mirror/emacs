@@ -4485,7 +4485,7 @@ wait this many seconds after Emacs becomes idle before doing an update."
 
 (define-minor-mode vis-mode
   "Toggle vis-mode.
-With argument ARG turn vis-mode on iff ARG is positive..
+With argument ARG turn vis-mode on iff ARG is positive.
 
 Enabling vis-mode sets `buffer-invisibility-spec' to nil, after
 saving the old value in the variable
