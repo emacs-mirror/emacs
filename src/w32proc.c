@@ -226,6 +226,15 @@ create_child (char *exe, char *cmdline, char *env,
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
   
+#ifdef HAVE_NTGUI
+  start.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+  start.wShowWindow = SW_HIDE;
+
+  start.hStdInput = GetStdHandle (STD_INPUT_HANDLE);
+  start.hStdOutput = GetStdHandle (STD_OUTPUT_HANDLE);
+  start.hStdError = GetStdHandle (STD_ERROR_HANDLE);
+#endif /* HAVE_NTGUI */
+
   /* Explicitly specify no security */
   if (!InitializeSecurityDescriptor (&sec_desc, SECURITY_DESCRIPTOR_REVISION))
     goto EH_thrd;
@@ -569,8 +578,11 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   DWORD timeout_ms;
   int i, nh, nr;
   DWORD active;
-  child_process *cp, *cps[MAX_CHILDREN];
-  HANDLE wait_hnd[MAX_CHILDREN];
+  child_process *cp, *cps[MAX_CHILDREN + 1];
+  HANDLE wait_hnd[MAX_CHILDREN + 1];
+#ifdef HAVE_NTGUI1
+  BOOL keyboardwait = FALSE ;
+#endif /* HAVE_NTGUI */
   
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL) 
@@ -601,10 +613,14 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       {
 	if (i == 0)
 	  {
+#ifdef HAVE_NTGUI1
+	    keyboardwait = TRUE ;
+#else
 	    /* Handle stdin specially */
 	    wait_hnd[nh] = keyboard_handle;
 	    cps[nh] = NULL;
 	    nh++;
+#endif /* HAVE_NTGUI */
 
 	    /* Check for any emacs-generated input in the queue since
 	       it won't be detected in the wait */
@@ -639,6 +655,9 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	  }
       }
   
+  /* Never do this in win32 since we will not get paint messages */
+
+#ifndef HAVE_NTGUI1
   /* Nothing to look for, so we didn't find anything */
   if (nh == 0) 
     {
@@ -650,6 +669,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 #endif
       return 0;
     }
+#endif /* !HAVE_NTGUI */
   
   /* Check for immediate return without waiting */
   if (nr > 0)
@@ -666,7 +686,11 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 #else
   timeout_ms = timeout ? *timeout*1000 : INFINITE;
 #endif
+#ifdef HAVE_NTGUI1
+  active = MsgWaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms,QS_ALLINPUT);
+#else
   active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
+#endif /* HAVE_NTGUI */
   if (active == WAIT_FAILED)
     {
       DebPrint (("select.WaitForMultipleObjects (%d, %lu) failed with %lu\n",
@@ -679,6 +703,19 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     {
       return 0;
     }
+#ifdef HAVE_NTGUI1
+  else if (active == WAIT_OBJECT_0 + nh)
+    {
+      /* Keyboard input available */
+      FD_SET (0, rfds);
+
+      /* This shouldn't be necessary, but apparently just setting the input
+	 fd is not good enough for emacs */
+//      read_input_waiting ();
+
+      return (1) ;
+    }
+#endif /* HAVE_NTGUI */
   else if (active >= WAIT_OBJECT_0 &&
 	   active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
     {
