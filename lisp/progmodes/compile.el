@@ -1270,6 +1270,9 @@ Does NOT find the source line like \\[next-error]."
 	    )))))
 
 (defun compile-mouse-goto-error (event)
+  "Visit the source for the error message the mouse is pointing at.
+This is like `compile-goto-error' called without prefix arg
+at the end of the line."
   (interactive "e")
   (save-excursion
     (set-buffer (window-buffer (posn-window (event-end event))))
@@ -1297,14 +1300,6 @@ Does NOT find the source line like \\[next-error]."
     (or compilation-error-list
 	(error "No error to go to")))
   (select-window (posn-window (event-end event)))
-  ;; Move to another window, so that next-error's window changes
-  ;; result in the desired setup.
-  (or (one-window-p)
-      (progn
-	(other-window -1)
-	;; other-window changed the selected buffer,
-	;; but we didn't want to do that.
-	(set-buffer compilation-last-buffer)))
 
   (push-mark)
   (next-error 1))
@@ -1329,15 +1324,6 @@ other kinds of prefix arguments are ignored."
   (while (and compilation-error-list
 	      (> (point) (car (car compilation-error-list))))
     (setq compilation-error-list (cdr compilation-error-list)))
-
-  ;; Move to another window, so that next-error's window changes
-  ;; result in the desired setup.
-  (or (one-window-p)
-      (progn
-	(other-window -1)
-	;; other-window changed the selected buffer,
-	;; but we didn't want to do that.
-	(set-buffer compilation-last-buffer)))
 
   (push-mark)
   (next-error 1))
@@ -1583,10 +1569,17 @@ The current buffer should be the desired compilation output buffer."
   "Jump to an error locus returned by `compilation-next-error-locus'.
 Takes one argument, a cons (ERROR . SOURCE) of two markers.
 Selects a window with point at SOURCE, with another window displaying ERROR."
-  (if (and (window-dedicated-p (selected-window))
-	   (eq (selected-window) (frame-root-window)))
-      (switch-to-buffer-other-frame (marker-buffer (cdr next-error)))
-    (switch-to-buffer (marker-buffer (cdr next-error))))
+  (if (eq (window-buffer (selected-window))
+	  (marker-buffer (car next-error)))
+      ;; If the compilation buffer window is selected,
+      ;; keep the compilation buffer in this window;
+      ;; display the source in another window.
+      (let ((pop-up-windows t))
+	(pop-to-buffer (marker-buffer (cdr next-error))))
+    (if (and (window-dedicated-p (selected-window))
+	     (eq (selected-window) (frame-root-window)))
+	(switch-to-buffer-other-frame (marker-buffer (cdr next-error)))
+      (switch-to-buffer (marker-buffer (cdr next-error)))))
   (goto-char (cdr next-error))
   ;; If narrowing got in the way of
   ;; going to the right place, widen.
