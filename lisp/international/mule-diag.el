@@ -61,6 +61,7 @@
   'help-function #'list-charset-chars
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
+;;;###autoload
 (defvar non-iso-charset-alist
   `((mac-roman
      (ascii latin-iso8859-1 mule-unicode-2500-33ff
