@@ -491,10 +491,6 @@ extern struct buffer buffer_local_symbols;
    always be safely stored in any slot.  */
 extern struct buffer buffer_local_types;
 
-/* Point in the current buffer.  This is an obsolete alias
-   and should be eliminated.  */
-#define point (current_buffer->pt + 0)
-
 /* Return the address of position N.  No range checking.  */
 #define POS_ADDR(n) (((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
 
