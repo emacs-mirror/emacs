@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* No code in Emacs #includes config.h twice, but some of the code
+/* No code in Emacs #includes config.h twice, but some bits of code
    intended to work with other packages as well (like gmalloc.c) 
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
@@ -89,6 +89,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
 
+/* Define to 1 if you have the `bzero' function. */
+#undef HAVE_BZERO
+
 /* Define to 1 if you are using the Carbon API on Mac OS X. */
 #undef HAVE_CARBON
 
@@ -133,6 +136,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `fsync' function. */
+#undef HAVE_FSYNC
 
 /* Define to 1 if you have the `ftime' function. */
 #undef HAVE_FTIME
@@ -460,6 +466,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
 
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
 
@@ -483,6 +492,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/vlimit.h> header file. */
+#undef HAVE_SYS_VLIMIT_H
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
@@ -708,6 +720,11 @@ Boston, MA 02111-1307, USA.  */
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+
 /* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
 #undef _LARGEFILE_SOURCE
 
@@ -716,6 +733,14 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define like PROTOTYPES; this can be used by system headers. */
 #undef __PROTOTYPES
+
+/* Define to compiler's equivalent of C99 restrict keyword. Don't define if
+   equivalent is `__restrict'. */
+#undef __restrict
+
+/* Define to compiler's equivalent of C99 restrict keyword in array
+   declarations. Define as empty for no equivalent. */
+#undef __restrict_arr
 
 /* Define to the used machine dependent file. */
 #undef config_machfile
@@ -862,8 +887,6 @@ Boston, MA 02111-1307, USA.  */
 extern char *getenv ();
 #endif
 
-#endif /* EMACS_CONFIG_H */
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -903,7 +926,6 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-
 /* Don't include "string.h" or <stdlib.h> in non-C code.  */
 #ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
@@ -915,10 +937,19 @@ extern char *getenv ();
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifndef __GNUC__
+# ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+# else /* AIX files deal with #pragma.  */
+#  ifndef alloca /* predefined by HP cc +Olibcalls */
+char *alloca ();
+#  endif
+# endif /* HAVE_ALLOCA_H */
+#endif /* __GNUC__ */
 #ifndef HAVE_SIZE_T
 typedef size_t unsigned
 #endif
-#endif
+#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 
@@ -944,8 +975,36 @@ typedef size_t unsigned
 #define NO_RETURN	/* nothing */
 #endif
 
+/* These won't be used automatically yet.  We also need to know, at least,
+   that the stack is continuous.  */
+#ifdef __GNUC__
+#  ifndef GC_SETJMP_WORKS
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
+     see NON_SAVING_SETJMP in the target descriptions.  */   
+  /* Exceptions (see NON_SAVING_SETJMP in target description) are ns32k,
+     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
+     Fixme: Deal with ns32k, SVR3.  */
+#    define GC_SETJMP_WORKS 1
+#  endif
+#  ifndef GC_LISP_OBJECT_ALIGNMENT
+#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
+#  endif
+#endif
+
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s) memcpy (b,a,s)
+#endif
+#ifndef HAVE_BZERO
+#define bzero(a,s) memset (a,0,s)
+#endif
+#ifndef HAVE_BCMP
+#define BCMP memcmp
+#endif
+
+#endif /* EMACS_CONFIG_H */
+
 /* 
-Local variables:
+Local Variables:
 mode: c
 End:
 */
