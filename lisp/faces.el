@@ -1348,12 +1348,12 @@ created."
   :group 'basic-faces)
 
 
-(defface top-line
+(defface header-line
   '((((type x) (class color))
      (:box (:line-width 2 :style released-button) :background "grey75"))
     (t
      (:inverse-video t)))
-  "Basic top line face."
+  "Basic header-line face."
   :group 'basic-faces)
 
 
