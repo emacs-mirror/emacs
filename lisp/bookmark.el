@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation
 
-;; Author: Karl Fogel <kfogel@cyclic.com>
-;; Maintainer: Karl Fogel <kfogel@cyclic.com>
+;; Author: Karl Fogel <kfogel@red-bean.com>
+;; Maintainer: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
 ;; Author's Update Number: see variable `bookmark-version'.
 ;; Keywords: bookmarks, placeholders, annotations
@@ -47,7 +47,7 @@
 ;; bookmark-bmenu-check-position, and some of the Lucid compatibility
 ;; stuff).
 
-;; Kudos (whatever they are) go to Jim Blandy <jimb@cyclic.com>
+;; Kudos (whatever they are) go to Jim Blandy <jimb@red-bean.com>
 ;; for his eminently sensible suggestion to separate bookmark-jump
 ;; into bookmark-jump and bookmark-jump-noselect, which made many
 ;; other things cleaner as well.
@@ -83,7 +83,7 @@
 
 ;;;; Code:
 
-(defconst bookmark-version "2.6.19"
+(defconst bookmark-version "2.6.20"
   "Version number of bookmark.el.  This is not related to the version
 of Emacs bookmark comes with; it is used solely by bookmark's
 maintainers to avoid version confusion.")
@@ -659,7 +659,7 @@ This expects to be called from point-min in a bookmark file."
     (pp new-list (current-buffer))
     (save-buffer))
   (goto-char (point-min))
-  (message "Upgrading bookmark format from 0 to %d... done."
+  (message "Upgrading bookmark format from 0 to %d...done"
            bookmark-file-format-version)
   )
 
@@ -1330,7 +1330,7 @@ for a file, defaulting to the file defined by variable
         (write-file file)
         (kill-buffer (current-buffer))
         (if (>= baud-rate 9600)
-            (message (format "Saving bookmarks to file %s... done." file)))
+            (message (format "Saving bookmarks to file %s...done" file)))
         ))))
 
 
@@ -1379,7 +1379,7 @@ explicitly."
               (error (format "Invalid bookmark list in %s." file))))
           (kill-buffer (current-buffer)))
 	(if (and (null no-msg) (>= baud-rate 9600))
-            (message (format "Loading bookmarks from %s... done" file))))
+            (message (format "Loading bookmarks from %s...done" file))))
     (error (format "Cannot read bookmark file %s." file))))
 
 
@@ -1414,7 +1414,6 @@ explicitly."
   (define-key bookmark-bmenu-mode-map "k" 'bookmark-bmenu-delete)
   (define-key bookmark-bmenu-mode-map "\C-d" 'bookmark-bmenu-delete-backwards)
   (define-key bookmark-bmenu-mode-map "x" 'bookmark-bmenu-execute-deletions)
-  (define-key bookmark-bmenu-mode-map "\C-k" 'bookmark-bmenu-delete)
   (define-key bookmark-bmenu-mode-map "d" 'bookmark-bmenu-delete)
   (define-key bookmark-bmenu-mode-map " " 'next-line)
   (define-key bookmark-bmenu-mode-map "n" 'next-line)
@@ -1515,7 +1514,7 @@ Bookmark names preceded by a \"*\" have annotations.
 \\[bookmark-bmenu-rename] -- rename this bookmark \(prompts for new name\).   
 \\[bookmark-bmenu-delete] -- mark this bookmark to be deleted, and move down.
 \\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up. 
-\\[bookmark-bmenu-execute-deletions] -- delete marked bookmarks.
+\\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]'.
 \\[bookmark-bmenu-save] -- save the current bookmark list in the default file.
   With a prefix arg, prompts for a file to save in.
 \\[bookmark-bmenu-load] -- load in a file of bookmarks (prompts for file.)
@@ -1891,6 +1890,7 @@ and then move up one line"
 (defun bookmark-bmenu-execute-deletions ()
   "Delete bookmarks marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
   (interactive)
+  (message "Deleting bookmarks...")
   (let ((hide-em bookmark-bmenu-toggle-filenames)
         (o-point  (point))
         (o-str    (save-excursion
@@ -1922,7 +1922,9 @@ and then move up one line"
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (if (bookmark-time-to-save-p)
-        (bookmark-save))))
+        (bookmark-save))
+    (message "Deleting bookmarks...done")
+    ))
 
 
 (defun bookmark-bmenu-rename ()
