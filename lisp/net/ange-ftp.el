@@ -937,12 +937,22 @@ Don't use any other value."
 		 (const :tag "Allow" 1)))
 
 (defcustom ange-ftp-try-passive-mode nil
-  "It t, try to use passive mode in ftp, if the client program
-supports the `passive' command."
+  "It t, try to use passive mode in ftp, if the client program supports it."
   :group 'ange-ftp
   :type 'boolean
   :version 21.1)
 
+(defcustom ange-ftp-passive-host-alist nil
+  "Alist of FTP servers that need \"passive\" mode.
+Each element is of the form (HOSTNAME . SETTING).
+HOSTNAME is a regular expression to match the FTP server host name(s).
+SETTING is \"on\" to turn passive mode on, \"off\" to turn it off,
+or nil meaning don't change it."
+  :group 'ange-ftp
+  :type '(list (cons regex (choice (const :tag "On" "on")
+				   (const :tag "Off" "off")
+				   (const :tag "Don't change" nil))))
+  :version 21.3)
 
 ;;;; ------------------------------------------------------------
 ;;;; Hash table support.
@@ -2103,18 +2113,27 @@ Create a new process if needed."
 	;; Guess at the host type.
 	(ange-ftp-guess-host-type host user)
 
-	;; Try to use passive mode if asked to.
-	(when ange-ftp-try-passive-mode
-	  (let ((answer (cdr (ange-ftp-raw-send-cmd
-			      proc "passive" "Trying passive mode..." nil))))
-	    (if (string-match "\\?\\|refused" answer)
-		(message "Trying passive mode...ok")
-	      (message "Trying passive mode...failed"))))
+	;; Turn passive mode on or off as requested.
+	(let* ((case-fold-search t)
+	       (passive
+		(or (assoc-default host ange-ftp-passive-host-alist
+				   'string-match)
+		    (if ange-ftp-try-passive-mode "on"))))
+	  (if passive
+	      (ange-ftp-passive-mode passive)))
 
 	;; Run any user-specified hooks.  Note that proc, host and user are
 	;; dynamically bound at this point.
 	(run-hooks 'ange-ftp-process-startup-hook))
       proc)))
+
+(defun ange-ftp-passive-mode (on-or-off)
+  (if (string-match (concat "Passive mode " on-or-off)
+                    (cdr (ange-ftp-raw-send-cmd
+                          proc (concat "passive " on-or-off)
+                          "Trying passive mode..." nil)))
+      (ange-ftp-message (concat "Trying passive mode..." on-or-off))
+    (error "Trying passive mode...failed")))
 
 ;; Variables for caching host and host-type
 (defvar ange-ftp-host-cache nil)
@@ -2789,24 +2808,31 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
 ;;     subdirectory. This is of course an OS dependent judgement.
 
+;;; Nowadays, the judgement for #2 is always "no".
+;;; With today's ftp servers on Unix and GNU systems,
+;;; it appears to be impossible to tell from the result
+;;; of the directory listing whether the argument is a directory.
+;;; This appears to be true even in Emacs 20.7
+
 (defmacro ange-ftp-allow-child-lookup (dir file)
-  `(not
-    (let* ((efile ,file) ; expand once.
-           (edir ,dir)
-           (parsed (ange-ftp-ftp-name edir))
-           (host-type (ange-ftp-host-type
-                       (car parsed))))
-      (or
-       ;; Deal with dired
-       (and (boundp 'dired-local-variables-file) ; in the dired-x package
-            (stringp dired-local-variables-file)
-            (string-equal dired-local-variables-file efile))
-       ;; No dots in dir names in vms.
-       (and (eq host-type 'vms)
-            (string-match "\\." efile))
-       ;; No subdirs in mts of cms.
-       (and (memq host-type '(mts cms))
-            (not (string-equal "/" (nth 2 parsed))))))))
+  nil)
+;;;   `(not
+;;;     (let* ((efile ,file) ; expand once.
+;;;            (edir ,dir)
+;;;            (parsed (ange-ftp-ftp-name edir))
+;;;            (host-type (ange-ftp-host-type
+;;;                        (car parsed))))
+;;;       (or
+;;;        ;; Deal with dired
+;;;        (and (boundp 'dired-local-variables-file) ; in the dired-x package
+;;;             (stringp dired-local-variables-file)
+;;;             (string-equal dired-local-variables-file efile))
+;;;        ;; No dots in dir names in vms.
+;;;        (and (eq host-type 'vms)
+;;;             (string-match "\\." efile))
+;;;        ;; No subdirs in mts of cms.
+;;;        (and (memq host-type '(mts cms))
+;;;             (not (string-equal "/" (nth 2 parsed)))))))
 
 (defun ange-ftp-file-entry-p (name)
   "Given NAME, return whether there is a file entry for it."
