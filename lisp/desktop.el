@@ -221,8 +221,10 @@ QUOTE may be `may' (value may be quoted),
    ((or (numberp val) (null val) (eq t val))
     (cons 'may (prin1-to-string val)))
    ((stringp val)
-    ;; Get rid of text properties because we cannot read them
-    (cons 'may (prin1-to-string (format "%s" val))))
+    (let ((copy (copy-sequence val)))
+      (set-text-properties 0 (length copy) nil copy)
+      ;; Get rid of text properties because we cannot read them
+      (cons 'may (prin1-to-string copy))))
    ((symbolp val)
     (cons 'must (prin1-to-string val)))
    ((vectorp val)
