@@ -282,7 +282,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		(princ " at that spot"))
 	    (princ " runs the command ")
 	    (prin1 defn)
-	    (princ ":\n")
+	    (princ "\n")
 	    (let ((doc (documentation defn)))
 	      (if doc
 		  (progn (terpri)
