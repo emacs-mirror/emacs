@@ -54,7 +54,7 @@
       (message "Am I CONSING yet?...")
       (set-buffer buf)
       (insert-file-contents (or file
-				(expand-file-name "yow.lines" exec-directory)))
+				(expand-file-name "yow.lines" data-directory)))
       (search-forward "\0")
       (while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
 	(let ((beg (point)))

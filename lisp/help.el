@@ -68,7 +68,7 @@
       (setq buffer-file-name file)
       (setq default-directory (expand-file-name "~/"))
       (setq auto-save-file-name nil)
-      (insert-file-contents (expand-file-name "TUTORIAL" exec-directory))
+      (insert-file-contents (expand-file-name "TUTORIAL" data-directory))
       (goto-char (point-min))
       (search-forward "\n<<")
       (beginning-of-line)
@@ -157,13 +157,13 @@ describes the minor mode."
   "Display info on how to obtain the latest version of GNU Emacs."
   (interactive)
   (find-file-read-only
-   (expand-file-name "DISTRIB" exec-directory)))
+   (expand-file-name "DISTRIB" data-directory)))
 
 (defun describe-copying ()
   "Display info on how you may redistribute copies of GNU Emacs."
   (interactive)
   (find-file-read-only
-   (expand-file-name "COPYING" exec-directory))
+   (expand-file-name "COPYING" data-directory))
   (goto-char (point-min)))
 
 (defun describe-no-warranty ()
@@ -177,7 +177,7 @@ describes the minor mode."
 (defun view-emacs-news ()
   "Display info on recent changes to Emacs."
   (interactive)
-  (find-file-read-only (expand-file-name "NEWS" exec-directory)))
+  (find-file-read-only (expand-file-name "NEWS" data-directory)))
 
 (defun view-lossage ()
   "Display last 100 input keystrokes."

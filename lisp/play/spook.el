@@ -36,7 +36,7 @@
 ;  keyword scanners.
 
 ; Variables
-(defvar spook-phrases-file (concat exec-directory "spook.lines")
+(defvar spook-phrases-file (concat data-directory "spook.lines")
    "Keep your favorite phrases here.")
 
 (defvar spook-phrase-default-count 15

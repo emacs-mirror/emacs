@@ -51,7 +51,7 @@ machine.")
 ;; it and document it.  This is so the code will work right after RMS adds
 ;; internal-doc-file-name.
 ;(or (boundp 'internal-doc-file-name)
-;    (setq internal-doc-file-name (concat exec-directory "DOC")))
+;    (setq internal-doc-file-name (concat data-directory "DOC")))
 ;(or (documentation-property 'internal-doc-file-name 'variable-documentation)
 ;    (put 'internal-doc-file-name 'variable-documentation
 ;	 "The complete pathname of the documentation file that contains all
