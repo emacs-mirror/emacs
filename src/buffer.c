@@ -1661,6 +1661,81 @@ validate_region (b, e)
     args_out_of_range (*b, *e);
 }
 
+DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
+       1, 1, 0,
+  "Set the multibyte flag of the current buffer to FLAG.\n\
+If FLAG is t, this makes the buffer a multibyte buffer.\n\
+If FLAG is nil, this makes the buffer a single-byte buffer.\n\
+The buffer contents remain unchanged as a sequence of bytes\n\
+but the contents viewed as characters do change.")
+  (flag)
+     Lisp_Object flag;
+{
+  Lisp_Object tail, markers;
+
+  /* If the cached position is for this buffer, clear it out.  */
+  clear_charpos_cache (current_buffer);
+
+  if (NILP (flag))
+    {
+      /* Do this first, so it can use CHAR_TO_BYTE
+	 to calculate the old correspondences.  */
+      set_intervals_multibyte (0);
+
+      current_buffer->enable_multibyte_characters = Qnil;
+
+      Z = Z_BYTE;
+      BEGV = BEGV_BYTE;
+      ZV = ZV_BYTE;
+      GPT = GPT_BYTE;
+      TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
+
+      tail = BUF_MARKERS (current_buffer);
+      while (XSYMBOL (tail) != XSYMBOL (Qnil))
+	{
+	  XMARKER (tail)->charpos = XMARKER (tail)->bytepos;
+	  tail = XMARKER (tail)->chain;
+	}
+    }
+  else
+    {
+      /* Do this first, so that chars_in_text asks the right question.
+	 set_intervals_multibyte needs it too.  */
+      current_buffer->enable_multibyte_characters = Qt;
+
+      GPT = chars_in_text (BEG_ADDR, GPT_BYTE - BEG_BYTE) + BEG;
+      Z = chars_in_text (GPT_ADDR, Z_BYTE - GPT_BYTE) + GPT;
+      if (BEGV_BYTE > GPT_BYTE)
+	BEGV = chars_in_text (GPT_ADDR, BEGV_BYTE - GPT_BYTE) + GPT;
+      else
+	BEGV = chars_in_text (BEG_ADDR, BEGV_BYTE - BEG_BYTE) + BEG;
+      if (ZV_BYTE > GPT_BYTE)
+	ZV = chars_in_text (GPT_ADDR, ZV_BYTE - GPT_BYTE) + GPT;
+      else
+	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
+      if (PT_BYTE > GPT_BYTE)
+	current_buffer->pt = chars_in_text (GPT_ADDR, PT_BYTE - GPT_BYTE) + GPT;
+      else
+	current_buffer->pt = chars_in_text (BEG_ADDR, PT_BYTE - BEG_BYTE) + BEG;
+
+      tail = markers = BUF_MARKERS (current_buffer);
+      BUF_MARKERS (current_buffer) = Qnil;
+
+      while (XSYMBOL (tail) != XSYMBOL (Qnil))
+	{
+	  XMARKER (tail)->charpos = BYTE_TO_CHAR (XMARKER (tail)->bytepos);
+	  tail = XMARKER (tail)->chain;
+	}
+      BUF_MARKERS (current_buffer) = markers;
+
+      /* Do this last, so it can calculate the new correspondences
+	 between chars and bytes.  */
+      set_intervals_multibyte (1);
+    }
+
+  return flag;
+}
+
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
   0, 0, 0,
   "Switch to Fundamental mode by killing current buffer's local variables.\n\
@@ -4358,7 +4433,6 @@ is a member of the list.");
   defsubr (&Sbuffer_disable_undo);
   defsubr (&Sbuffer_enable_undo);
   defsubr (&Skill_buffer);
-  defsubr (&Serase_buffer);
   defsubr (&Sset_buffer_major_mode);
   defsubr (&Sswitch_to_buffer);
   defsubr (&Spop_to_buffer);
@@ -4366,6 +4440,8 @@ is a member of the list.");
   defsubr (&Sset_buffer);
   defsubr (&Sbarf_if_buffer_read_only);
   defsubr (&Sbury_buffer);
+  defsubr (&Serase_buffer);
+  defsubr (&Sset_buffer_multibyte);
   defsubr (&Skill_all_local_variables);
 
   defsubr (&Soverlayp);
