@@ -123,10 +123,6 @@ extern int errno;
 #define sinh(x) ((exp(x)-exp(-x))*0.5)
 #endif /* VMS */
 
-#ifndef HAVE_RINT
-#define rint(x) (floor((x)+0.5))
-#endif
-
 static SIGTYPE float_error ();
 
 /* Nonzero while executing in floating point.
@@ -827,6 +823,15 @@ round2 (i1, i2)
   EMACS_INT abs_r1 = (i2 < 0 ? -i2 : i2) - abs_r;
   return q + (abs_r + (q & 1) <= abs_r1 ? 0 : (i2 ^ r) < 0 ? -1 : 1);
 }
+
+#ifndef HAVE_RINT
+static double
+rint (d)
+     double d;
+{
+  return floor(d + 0.5);
+}
+#endif
 
 static double
 double_identity (d)
