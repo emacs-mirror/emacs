@@ -513,17 +513,17 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
      'face (cons 'background-color (car color)))
     (put-text-property
      (prog1 (point)
-       (insert "  " (if (cdr color)
-			(mapconcat 'identity (cdr color) ", ")
-		      (car color)))
-       (indent-to (max (- (window-width) 8) 44))
-       (insert (apply 'format " #%02x%02x%02x"
-		      (mapcar (lambda (c) (lsh c -8))
-			      (color-values (car color)))))
-
-       (insert "\n"))
+       (insert " " (if (cdr color)
+		       (mapconcat 'identity (cdr color) ", ")
+		     (car color))))
      (point)
-     'face (cons 'foreground-color (car color))))
+     'face (cons 'foreground-color (car color)))
+    (indent-to (max (- (window-width) 8) 44))
+    (insert (apply 'format "#%02x%02x%02x"
+		   (mapcar (lambda (c) (lsh c -8))
+			   (color-values (car color)))))
+
+    (insert "\n"))
   (goto-char (point-min)))
 
 (defun list-colors-duplicates (&optional list)
@@ -539,8 +539,8 @@ a list of colors that the current display can handle."
 	 (l list))
     (while (cdr l)
       (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
-	       (not (and (boundp 'w32-default-color-map)
-			 (not (assoc (car (car l)) w32-default-color-map)))))
+	       (not (if (boundp 'w32-default-color-map)
+			(not (assoc (car (car l)) w32-default-color-map)))))
 	  (progn
 	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
 	    (setcdr l (cdr (cdr l))))
