@@ -1,3 +1,8 @@
+2002-03-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (x_set_toolkit_scroll_bar_thumb, xm_scroll_callback)
+	(XTread_socket): Undo last change: too late for this release.
+
 2002-03-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (x_set_toolkit_scroll_bar_thumb) <USE_MOTIF>:
