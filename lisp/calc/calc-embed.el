@@ -244,6 +244,13 @@ This is not required to be present for user-written mode annotations.")
       (use-local-map calc-mode-map)
       (setq calc-no-refresh-evaltos nil)
       (and chg calc-any-evaltos (calc-wrapper (calc-refresh-evaltos)))
+      (let (str)
+        (save-excursion
+          (calc-select-buffer)
+          (setq str mode-line-buffer-identification))
+        (unless (equal str mode-line-buffer-identification)
+          (setq mode-line-buffer-identification str)
+          (set-buffer-modified-p (buffer-modified-p))))
       (or (eq calc-embedded-quiet t)
 	  (message "Embedded Calc mode enabled; %s to return to normal"
 		   (if calc-embedded-quiet
@@ -670,6 +677,18 @@ The command \\[yank] can retrieve it from there."
     (setq calc-embedded-globals (cons t modes))
     (goto-char save-pt)))
 
+(defvar calc-embedded-language-alist
+  '((latex-mode . latex)
+    (tex-mode   . tex)
+    (plain-tex-mode . tex)
+    (context-mode . tex)
+    (nroff-mode . eqn)
+    (pascal-mode . pascal)
+    (c-mode . c)
+    (c++-mode . c)
+    (fortran-mode . fortran)
+    (f90-mode . fortran)))
+
 (defun calc-embedded-find-modes ()
   (let ((case-fold-search nil)
 	(save-pt (point))
@@ -717,6 +736,11 @@ The command \\[yank] can retrieve it from there."
 	       (setq no-defaults nil)))
       (backward-char 6))
     (goto-char save-pt)
+    (unless (assq 'the-language modes)
+      (let ((lang (assoc major-mode calc-embedded-language-alist)))
+        (if lang
+            (setq modes (cons (cons 'the-language (cdr lang))
+                              modes)))))
     (list modes emodes pmodes)))
 
 ;; The variable calc-embed-vars-used is local to calc-embedded-make-info,
