@@ -115,31 +115,34 @@ Returns the number of actions taken."
 		   (setq actions (1+ actions)
 			 next (function (lambda () nil))))
 		  ((= ?! char)
-		   ;; Act on all following objects.
+		   ;; Act on this and all following objects.
+		   (if (eval (funcall prompter elt))
+		       (progn
+			 (funcall actor elt)
+			 (setq actions (1+ actions))))
 		   (while (setq elt (funcall next))
-		     (if (funcall prompter elt)
+		     (if (eval (funcall prompter elt))
 			 (progn
 			   (funcall actor elt)
 			   (setq actions (1+ actions))))))
 		  ((= ?? char)
 		   (setq unread-command-char help-char)
-		   (setq next (` (function (lambda ()
-					     (setq next (, next))
-					     t)))))
+		   (setq next (` (lambda ()
+				   (setq next '(, next))
+				   '(, elt)))))
 		  (t
 		   ;; Random char.
 		   (message "Type %s for help."
 			    (key-description (char-to-string help-char)))
 		   (beep)
 		   (sit-for 1)
-		   (setq next (` (function (lambda ()
-					     (setq next (, next))
-					     t)))))))
+		   (setq next (` (lambda ()
+				   (setq next '(, next))
+				   '(, elt)))))))
 	(if (eval prompt)
 	    (progn
-	      (funcall actor (car list))
-	      (setq actions (1+ actions)))))
-      (setq list (cdr list)))
+	      (funcall actor elt)
+	      (setq actions (1+ actions))))))
     ;; Clear the last prompt from the minibuffer.
     (message "")
     ;; Return the number of actions that were taken.
