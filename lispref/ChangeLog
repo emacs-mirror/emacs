@@ -1,3 +1,8 @@
+2004-11-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locals.texi (Standard Buffer-Local Variables): Comment out
+	xref's to non-existent node `Yet to be written'.
+
 2004-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* processes.texi (Synchronous Processes): Grammar fix.
@@ -16,9 +21,9 @@
 
 	* customize.texi (Variable Definitions): Replace
 	show-paren-mode example with tooltip-mode.
-	(Simple Types, Composite Types, Defining New Types): 
+	(Simple Types, Composite Types, Defining New Types):
 	Minor cleanups.
-	
+
 2004-11-21  Jesper Harder  <harder@ifa.au.dk>
 
 	* processes.texi (Synchronous Processes, Output from Processes):
