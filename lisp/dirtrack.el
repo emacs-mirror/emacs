@@ -5,7 +5,7 @@
 ;; Author:  Peter Breton
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <96/12/26 09:23:01 peter>
+;; Time-stamp: <97/02/01 20:35:06 peter>
 
 ;; This file is part of GNU Emacs.
 
@@ -170,6 +170,7 @@ forward ones."
 	(debug-buf (get-buffer-create dirtrack-debug-buffer))
 	)
     (set-buffer debug-buf)
+    (goto-char (point-max))
     (insert (concat string "\n"))
     (set-buffer buf)
   ))
@@ -181,7 +182,7 @@ forward ones."
     (let ((prompt-path)
 	  (current-dir default-directory)
 	  (matched)
-	  (dirtrack-regexp (nth 0 dirtrack-list))
+	  (dirtrack-regexp    (nth 0 dirtrack-list))
 	  (match-num	      (nth 1 dirtrack-list))
 	  (multi-line	      (nth 2 dirtrack-list))
 	  )
@@ -189,16 +190,14 @@ forward ones."
       (if (eq (point) (point-min))
 	  nil
 	(save-excursion
-	  (goto-char comint-last-output-start)
+	  (goto-char (point-max))
 	  ;; Look for the prompt
 	  (if multi-line
-	      (and
-	       (goto-char (point-max))
-	       (setq matched 
-		     (re-search-backward 
-		      dirtrack-regexp 
-		      comint-last-output-start
-		      t)))
+	      (setq matched 
+		    (re-search-backward 
+		     dirtrack-regexp 
+		     comint-last-output-start
+		     t))
 	    (beginning-of-line)
 	    (setq matched (looking-at dirtrack-regexp)))
 	  ;; No match
@@ -232,11 +231,15 @@ forward ones."
 		  (and dirtrack-debug
 		       (dirtrack-debug-message 
 			(format "Not changing directory")))
-		;; Change directory
-		(shell-process-cd prompt-path)
-		(and dirtrack-debug
-		     (dirtrack-debug-message 
-		      (format "Changing directory to %s" prompt-path))))
+		;; It's possible that Emacs will think the directory
+		;; won't exist (eg, rlogin buffers)
+		(if (file-accessible-directory-p prompt-path)
+		    ;; Change directory
+		    (and (shell-process-cd prompt-path)
+			 dirtrack-debug
+			 (dirtrack-debug-message 
+			  (format "Changing directory to %s" prompt-path)))
+		  (error "Directory %s does not exist" prompt-path)))
 	      )))))))
 
 (provide 'dirtrack)
