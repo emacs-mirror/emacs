@@ -36,11 +36,11 @@
 
 (set-language-info-alist
  "Romanian" '((setup-function . setup-romanian-environment)
-	    (charset . (ascii latin-iso8859-2))
-	    (coding-system . (iso-8859-2))
-	    (coding-priority . (iso-8859-2))
-	    (sample-text . "Bun,Ac(B ziua, bine a,A~(Bi venit!")
-	    (documentation . nil))
+	      (charset . (ascii latin-iso8859-2))
+	      (coding-system . (iso-8859-2))
+	      (coding-priority . (iso-8859-2))
+	      (sample-text . "Bun,Ac(B ziua, bine a,A~(Bi venit!")
+	      (documentation . t))
  '("European"))
 
 (provide 'romanian)
