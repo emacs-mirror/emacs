@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!root.c(trunk.4)$
+ *  $HopeName: MMsrc!root.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -125,8 +125,8 @@ Error RootCreateTable(Root *rootReturn, Space space,
 
 Error RootCreate(Root *rootReturn, Space space,
                  RefRank rank, RootMode mode,
-                 Error (*scan)(void *p, int i, Trace trace),
-                 void *p, int i)
+                 Error (*scan)(ScanState ss, void *p, size_t s),
+                 void *p, size_t s)
 {
   RootUnion theUnion;
   
@@ -134,7 +134,7 @@ Error RootCreate(Root *rootReturn, Space space,
 
   theUnion.fun.scan = scan;
   theUnion.fun.p = p;
-  theUnion.fun.i = i;
+  theUnion.fun.s = s;
 
   return create(rootReturn, space, rank, mode, RootFUN, theUnion);
 }
@@ -146,8 +146,7 @@ void RootDestroy(Root root)
 
   AVER(ISVALID(Root, root));
 
-  space = PARENT(SpaceStruct, rootDeque,
-                 DequeNodeParent(&root->spaceDeque));
+  space = RootSpace(root);
 
   AVER(ISVALID(Space, space));
 
@@ -196,6 +195,7 @@ Error RootScan(Root root, Trace trace, RefRank rank)
 
   AVER(ISVALID(Root, root));
   AVER(ISVALID(Trace, trace));
+  AVER(rank == TraceRank(trace));
   
   if(rank != root->rank)
     return ErrSUCCESS;
@@ -209,8 +209,9 @@ Error RootScan(Root root, Trace trace, RefRank rank)
       base = (Addr *)root->the.table.base;
       what = base;
       limit = (Addr *)root->the.table.limit;
+      /* doesn't accumulate summary or do zone test */
       while(what < limit) {
-        e = TraceFix(trace, rank, what);
+        e = TraceFix(TraceScanState(trace), what);
         if(e != ErrSUCCESS)
           return e;
         ++what;
@@ -219,7 +220,8 @@ Error RootScan(Root root, Trace trace, RefRank rank)
     break;
 
     case RootFUN:
-    e = (*root->the.fun.scan)(root->the.fun.p, root->the.fun.i, trace);
+    e = (*root->the.fun.scan)(TraceScanState(trace),
+        root->the.fun.p, root->the.fun.s);
     if(e != ErrSUCCESS)
       return e;
     break;
@@ -234,6 +236,11 @@ Error RootScan(Root root, Trace trace, RefRank rank)
   return ErrSUCCESS;
 }
 
+/* Thread safe */
+Space RootSpace(Root root)
+{
+  return PARENT(SpaceStruct, rootDeque, root->spaceDeque.deque);
+}
 
 Error RootDescribe(Root root, LibStream stream)
 {
@@ -269,10 +276,10 @@ Error RootDescribe(Root root, LibStream stream)
     case RootFUN:
     LibFormat(stream,
             "  scan function 0x%lX\n"
-            "  environment p 0x%lX i %d\n",
+            "  environment p 0x%lX s 0x%lX\n",
             (unsigned long)root->the.fun.scan,
             (unsigned long)root->the.fun.p,
-            root->the.fun.i);
+            root->the.fun.s);
     break;
 
     default:
