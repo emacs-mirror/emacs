@@ -856,8 +856,8 @@ main (argc, argv)
   if (tagfile == NULL)
     tagfile = CTAGS ? "tags" : "TAGS";
   cwd = etags_getcwd ();	/* the current working directory */
-  if (cwd[strlen(cwd)-1] != '/')
-    strcat (cwd, "/");
+  if (cwd[strlen (cwd) - 1] != '/')
+    cwd = concat (cwd, "/", "");
   if (streq (tagfile, "-"))
     tagfiledir = cwd;
   else
