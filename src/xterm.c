@@ -2046,12 +2046,12 @@ x_scroll_bar_create (window, top, left, width, height)
     XtSetArg (al[ac], XtNheight, height); ac++;
     XtSetArg (al[ac], XtNborderWidth, 0); ac++;
     sb_widget = XtCreateManagedWidget ("box",
-					 boxWidgetClass,
-					 frame->display.x->edit_widget, al, ac);
-   SET_SCROLL_BAR_X_WINDOW
+				       boxWidgetClass,
+				       frame->display.x->edit_widget, al, ac);
+    SET_SCROLL_BAR_X_WINDOW
       (bar, sb_widget->core.window);
 #endif    
-   SET_SCROLL_BAR_X_WINDOW
+    SET_SCROLL_BAR_X_WINDOW
       (bar, 
        XCreateWindow (x_current_display, FRAME_X_WINDOW (frame),
 
