@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.8 1992/09/27 01:55:21 roland Exp eggert $
+# $Id: rcs2log,v 1.9 1993/01/15 05:33:29 eggert Exp $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -51,6 +51,19 @@ do
 	shift; shift
 done
 
+month_data='
+	m[0]="Jan"; m[1]="Feb"; m[2]="Mar"
+	m[3]="Apr"; m[4]="May"; m[5]="Jun"
+	m[6]="Jul"; m[7]="Aug"; m[8]="Sep"
+	m[9]="Oct"; m[10]="Nov"; m[11]="Dec"
+
+	# days in non-leap year thus far, indexed by month (0-12)
+	mo[0]=0; mo[1]=31; mo[2]=59; mo[3]=90
+	mo[4]=120; mo[5]=151; mo[6]=181; mo[7]=212
+	mo[8]=243; mo[9]=273; mo[10]=304; mo[11]=334
+	mo[12]=365
+'
+
 
 # Log into $rlogout the revisions checked in since the first ChangeLog entry.
 
@@ -58,10 +71,39 @@ date=1970
 if test -s ChangeLog
 then
 	# Add 1 to seconds to avoid duplicating most recent log.
-	# It's a good thing `rlog' doesn't mind a time ending in `:60'.
 	e='
 		/^... ... [ 0-9][0-9] [ 0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9]+ /{
-			printf "%s%02d %s\n", substr($0,1,17), substr($0,18,2)+1, $5
+			'"$month_data"'
+			year = $5
+			for (i=0; i<=11; i++) if (m[i] == $2) break
+			dd = $3
+			hh = substr($0,12,2)
+			mm = substr($0,15,2)
+			ss = substr($0,18,2)
+			ss++
+			if (ss == 60) {
+				ss = 0
+				mm++
+				if (mm == 60) {
+					mm = 0
+					hh++
+					if (hh == 24) {
+						hh = 0
+						dd++
+						monthdays = mo[i+1] - mo[i]
+						if (i == 1 && year%4 == 0 && (year%100 != 0 || year%400 == 0)) monthdays++
+						if (dd == monthdays + 1) {
+							dd = 1
+							i++
+							if (i == 12) {
+								i = 0
+								year++
+							}
+						}
+					}
+				}
+			}
+			printf "%d/%02d/%02d %02d:%02d:%02d\n", year, i+1, dd, hh, mm, ss
 			exit
 		}
 	'
@@ -151,13 +193,13 @@ printlogline='{
 
 	# If "label: comment" is too long, break the line after the ":".
 	sep = " "
-	if ('"$length"' <= '"$indent"' + 1 + length(files) + index(Log, "\r")) sep = "\n" indent_string
+	if ('"$length"' <= '"$indent"' + 1 + length(files) + index(Log, CR)) sep = "\n" indent_string
 
 	# Print the label.
 	printf "%s*%s:", indent_string, files
 
 	# Print each line of the log, transliterating \r to \n.
-	while ((i = index(Log, "\r")) != 0) {
+	while ((i = index(Log, CR)) != 0) {
 		printf "%s%s\n", sep, substr(Log, 1, i-1)
 		sep = indent_string
 		Log = substr(Log, i+1)
@@ -184,11 +226,11 @@ awk <$rlogout '
 		if ($0 ~ /^date: [0-9][ /0-9:]*;/) {
 			time = substr($3, 1, length($3)-1)
 			author = substr($5, 1, length($5)-1)
-			printf "%s %s %s %s \r", filename, $2, time, author
+			printf "%s %s %s %s %c", filename, $2, time, author, 13
 			next
 		}
 		if ($0 ~ /^(-----------*|===========*)$/) { print ""; next }
-		printf "%s\r", $0
+		printf "%s%c", $0, 13
 	}
 ' |
 
@@ -203,6 +245,9 @@ sort +1 -3r +3 +0 |
 # Finally, reformat the sorted log entries.
 awk '
 	BEGIN {
+		# Some awks do not understand "\r" or "\013", so we have to
+		# put a carriage return directly in the file.
+		CR="" # <-- There is a single CR between the " chars here.
 
 		# Initialize the fullname associative array.
 		'"$initialize_fullname"'
@@ -227,20 +272,11 @@ awk '
 		w[0]="Sun"; w[1]="Mon"; w[2]="Tue"; w[3]="Wed"
 		w[4]="Thu"; w[5]="Fri"; w[6]="Sat"
 
-		m[0]="Jan"; m[1]="Feb"; m[2]="Mar"
-		m[3]="Apr"; m[4]="May"; m[5]="Jun"
-		m[6]="Jul"; m[7]="Aug"; m[8]="Sep"
-		m[9]="Oct"; m[10]="Nov"; m[11]="Dec"
-
-		# days in non-leap year thus far, indexed by month (0-12)
-		mo[0]=0; mo[1]=31; mo[2]=59; mo[3]=90
-		mo[4]=120; mo[5]=151; mo[6]=181; mo[7]=212
-		mo[8]=243; mo[9]=273; mo[10]=304; mo[11]=334
-		mo[12]=365
+		'"$month_data"'
 	}
 
 	{
-		newlog = substr($0, 1 + index($0, "\r"))
+		newlog = substr($0, 1 + index($0, CR))
 
 		# Ignore log entries prefixed by "#".
 		if (newlog ~ /^#/) { next }
