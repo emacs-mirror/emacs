@@ -1,3 +1,7 @@
+2004-04-18  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-completions): Removed dependency on cl.
+
 2004-04-18  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-goto-info): Require 'info.
