@@ -286,9 +286,9 @@ extern Lisp_Object Qtool_bar_lines;
 
 static int button_state = 0;
 static W32Msg saved_mouse_button_msg;
-static unsigned mouse_button_timer;	/* non-zero when timer is active */
+static unsigned mouse_button_timer = 0;	/* non-zero when timer is active */
 static W32Msg saved_mouse_move_msg;
-static unsigned mouse_move_timer;
+static unsigned mouse_move_timer = 0;
 
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
@@ -297,8 +297,14 @@ FARPROC track_mouse_event_fn;
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;	
 
+/* Timers */
 #define MOUSE_BUTTON_ID	1
 #define MOUSE_MOVE_ID	2
+#define MENU_FREE_ID 3
+/* The delay (milliseconds) before a menu is freed after WM_EXITMENULOOP
+   is received.  */
+#define MENU_FREE_DELAY 1000
+static unsigned menu_free_timer = 0;
 
 /* The below are defined in frame.c.  */
 
@@ -4769,6 +4775,17 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  KillTimer (hwnd, mouse_move_timer);
 	  mouse_move_timer = 0;
 	}
+      else if (wParam == menu_free_timer)
+	{
+	  KillTimer (hwnd, menu_free_timer);
+	  menu_free_timer = 0;
+	  if (!f->output_data.w32->menu_command_in_progress)
+	    {
+	      /* Free memory used by owner-drawn and help-echo strings.  */
+	      w32_free_menu_strings (hwnd);
+	      f->output_data.w32->menubar_active = 0;
+	    }
+	}
       return 0;
   
     case WM_NCACTIVATE:
@@ -4824,12 +4841,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_EXITMENULOOP:
       f = x_window_to_frame (dpyinfo, hwnd);
 
-      /* Free memory used by owner-drawn and help-echo strings.  */
-      w32_free_menu_strings (hwnd);
-
-      /* Indicate that menubar can be modified again.  */
-      if (f)
-	f->output_data.w32->menubar_active = 0;
+      /* If a menu command is not already in progress, check again
+	 after a short delay, since Windows often (always?) sends the
+	 WM_EXITMENULOOP before the corresponding WM_COMMAND message.  */
+      if (f && !f->output_data.w32->menu_command_in_progress)
+	menu_free_timer = SetTimer (hwnd, MENU_FREE_ID, MENU_FREE_DELAY, NULL);
       goto dflt;
 
     case WM_MENUSELECT:
@@ -4966,9 +4982,20 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  w32_system_caret_hwnd = NULL;
 	  DestroyCaret ();
 	}
+      goto command;
+    case WM_COMMAND:
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f && HIWORD (wParam) == 0)
+	{
+	  f->output_data.w32->menu_command_in_progress = 1;
+	  if (menu_free_timer)
+	    {
+	      KillTimer (hwnd, menu_free_timer);
+	      menu_free_timer = 0;	  
+	    }
+	}
     case WM_MOVE:
     case WM_SIZE:
-    case WM_COMMAND:
     command:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
