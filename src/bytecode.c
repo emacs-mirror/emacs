@@ -844,7 +844,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bpoint:
-	  XFASTINT (v1) = point;
+	  XSETFASTINT (v1, point);
 	  PUSH (v1);
 	  break;
 
@@ -863,12 +863,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bpoint_max:
-	  XFASTINT (v1) = ZV;
+	  XSETFASTINT (v1, ZV);
 	  PUSH (v1);
 	  break;
 
 	case Bpoint_min:
-	  XFASTINT (v1) = BEGV;
+	  XSETFASTINT (v1, BEGV);
 	  PUSH (v1);
 	  break;
 
@@ -877,17 +877,17 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bfollowing_char:
-	  XFASTINT (v1) = PT == ZV ? 0 : FETCH_CHAR (point);
+	  XSETFASTINT (v1, PT == ZV ? 0 : FETCH_CHAR (point));
 	  PUSH (v1);
 	  break;
 
 	case Bpreceding_char:
-	  XFASTINT (v1) = point <= BEGV ? 0 : FETCH_CHAR (point - 1);
+	  XSETFASTINT (v1, point <= BEGV ? 0 : FETCH_CHAR (point - 1));
 	  PUSH (v1);
 	  break;
 
 	case Bcurrent_column:
-	  XFASTINT (v1) = current_column ();
+	  XSETFASTINT (v1, current_column ());
 	  PUSH (v1);
 	  break;
 
@@ -952,7 +952,8 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bchar_syntax:
 	  CHECK_NUMBER (TOP, 0);
-	  XFASTINT (TOP) = syntax_code_spec[(int) SYNTAX (0xFF & XINT (TOP))];
+	  XSETFASTINT (TOP,
+		       syntax_code_spec[(int) SYNTAX (0xFF & XINT (TOP))]);
 	  break;
 
 	case Bbuffer_substring:
