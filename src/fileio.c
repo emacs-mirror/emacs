@@ -2274,6 +2274,42 @@ See also `file-exists-p' and `file-attributes'.")
   return Qt;
 }
 
+/* Having this before file-symlink-p mysteriously caused it to be forgotten
+   on the RT/PC.  */
+DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
+  "Return t if file FILENAME can be written or created by you.")
+  (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object abspath, dir;
+  Lisp_Object handler;
+  struct stat statbuf;
+
+  CHECK_STRING (filename, 0);
+  abspath = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (abspath, Qfile_writable_p);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_writable_p, abspath);
+
+  if (stat (XSTRING (abspath)->data, &statbuf) >= 0)
+    return (check_writable (XSTRING (abspath)->data)
+	    ? Qt : Qnil);
+  dir = Ffile_name_directory (abspath);
+#ifdef VMS
+  if (!NILP (dir))
+    dir = Fdirectory_file_name (dir);
+#endif /* VMS */
+#ifdef MSDOS
+  if (!NILP (dir))
+    dir = Fdirectory_file_name (dir);
+#endif /* MSDOS */
+  return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
+	  ? Qt : Qnil);
+}
+
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
   "Return non-nil if file FILENAME is the name of a symbolic link.\n\
 The value is the name of the file to which it is linked.\n\
@@ -2319,42 +2355,6 @@ Otherwise returns nil.")
 #else /* not S_IFLNK */
   return Qnil;
 #endif /* not S_IFLNK */
-}
-
-/* Having this before file-symlink-p mysteriously caused it to be forgotten
-   on the RT/PC.  */
-DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
-  "Return t if file FILENAME can be written or created by you.")
-  (filename)
-     Lisp_Object filename;
-{
-  Lisp_Object abspath, dir;
-  Lisp_Object handler;
-  struct stat statbuf;
-
-  CHECK_STRING (filename, 0);
-  abspath = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath, Qfile_writable_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_writable_p, abspath);
-
-  if (stat (XSTRING (abspath)->data, &statbuf) >= 0)
-    return (check_writable (XSTRING (abspath)->data)
-	    ? Qt : Qnil);
-  dir = Ffile_name_directory (abspath);
-#ifdef VMS
-  if (!NILP (dir))
-    dir = Fdirectory_file_name (dir);
-#endif /* VMS */
-#ifdef MSDOS
-  if (!NILP (dir))
-    dir = Fdirectory_file_name (dir);
-#endif /* MSDOS */
-  return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
-	  ? Qt : Qnil);
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
@@ -2414,6 +2414,29 @@ searchable directory.")
   return tem ? Qnil : Qt;
 }
 
+DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
+  "Return t if file FILENAME is the name of a regular file.\n\
+This is the sort of file that holds an ordinary stream of data bytes.")
+  (filename)
+     Lisp_Object filename;
+{
+  register Lisp_Object abspath;
+  struct stat st;
+  Lisp_Object handler;
+
+  abspath = expand_and_dir_to_file (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (abspath, Qfile_directory_p);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_directory_p, abspath);
+
+  if (stat (XSTRING (abspath)->data, &st) < 0)
+    return Qnil;
+  return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
+}
+
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
   "Return mode bits of FILE, as an integer.")
   (filename)
@@ -2529,7 +2552,7 @@ The value is an integer.")
   XSETINT (value, (~ realmask) & 0777);
   return value;
 }
-
+
 #ifdef unix
 
 DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
@@ -4210,6 +4233,7 @@ This applies only to the operation `inhibit-file-name-operation'.");
   defsubr (&Sfile_symlink_p);
   defsubr (&Sfile_directory_p);
   defsubr (&Sfile_accessible_directory_p);
+  defsubr (&Sfile_regular_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
   defsubr (&Sset_default_file_modes);
