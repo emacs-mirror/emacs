@@ -70,7 +70,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
   
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary."
-  (if (not window-system)
+  (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
     (if (frame-live-p diary-frame) (delete-frame diary-frame))
@@ -98,7 +98,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
 
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame."
-  (if (not window-system)
+  (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
     (let ((special-display-buffer-names nil)
@@ -117,7 +117,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
 
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames."
-  (if (not window-system)
+  (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
     (if (frame-live-p diary-frame) (delete-frame diary-frame))
