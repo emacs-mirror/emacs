@@ -1,5 +1,24 @@
 2000-06-01  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/characters.el: Fix syntax/category setting of
+	Tibetan characters.
+
+	* language/tibet-util.el (tibetan-add-components): Fixes for new
+	encoding of Tibetan characters.
+	(tibetan-decompose-precomposition-alist): New variable.
+	(tibetan-decompose-region): Convert precomposed characters to
+	non-precomposed characters.
+	(tibetan-decompose-string): Likewise.
+	(tibetan-composition-function): Fix args to
+	thibetan-compose-string.
+
+	* language/tibetan.el (tibetan-composable-pattern): More
+	characters included.
+	(tibetan-consonant-transcription-alist): Rule for "R" added.
+	(tibetan-subjoined-transcription-alist): Rules for "+W", "+Y", and
+	"+R" added.
+	(tibetan-base-to-subjoined-alist): Rule for "RA" added.
+
 	* language/lao-util.el (lao-composition-function): Fix args to
 	compose-string.
 

@@ -1,3 +1,8 @@
+2000-06-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/tibetan.el: Change all tibetan-1-column characters to
+	tibetan.  Quail map for "tibetan-wylie" fixed.
+
 2000-03-31  Wlodzimierz Bzyl <matwb@monika.univ.gda.pl>
 
 	* quail/latin-pre.el ("polish-slash"): New input method.
