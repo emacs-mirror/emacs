@@ -1,3 +1,7 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* lwlib.c (P_): Don't define if already defined.
+
 2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lwlib-Xaw.c (xaw_update_scrollbar, xaw_scrollbar_scroll)
