@@ -1,6 +1,7 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95 Free Software Foundation, Inc
+;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95,'97
+;;       Free Software Foundation, Inc
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Keywords: lisp, tools, maint
@@ -8,7 +9,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/11/09 21:48:07 $|$Revision: 3.12 $|~/modes/edebug.el|
+;; |$Date: 1996/12/26 20:46:51 $|$Revision: 3.13 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +86,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.12 $"))
+  (let ((raw-version "$Revision: 3.13 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -126,14 +127,21 @@
 
 ;;; Options
 
-(defvar edebug-setup-hook nil
+(defgroup edebug nil
+  "A source-level debugger for Emacs Lisp"
+  :group 'lisp)
+
+
+(defcustom edebug-setup-hook nil
   "*Functions to call before edebug is used.
 Each time it is set to a new value, Edebug will call those functions
 once and then `edebug-setup-hook' is reset to nil.  You could use this
 to load up Edebug specifications associated with a package you are
-using but only when you also use Edebug.")
+using but only when you also use Edebug."
+  :type 'hook
+  :group 'edebug)
 
-(defvar edebug-all-defs nil
+(defcustom edebug-all-defs nil
   "*If non-nil, evaluation of any defining forms will instrument for Edebug.
 This applies to `eval-defun', `eval-region', `eval-buffer', and
 `eval-current-buffer'.  `eval-region' is also called by
@@ -142,14 +150,18 @@ This applies to `eval-defun', `eval-region', `eval-buffer', and
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
 \(make-local-variable 'edebug-all-defs) in your
-`emacs-lisp-mode-hook'.")
+`emacs-lisp-mode-hook'."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-all-forms nil
+(defcustom edebug-all-forms nil
   "*Non-nil evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
-Use the command `edebug-all-forms' to toggle the value of this option.")
+Use the command `edebug-all-forms' to toggle the value of this option."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-eval-macro-args nil
+(defcustom edebug-eval-macro-args nil
   "*Non-nil means all macro call arguments may be evaluated.  
 If this variable is nil, the default, Edebug will *not* wrap
 macro call arguments as if they will be evaluated.  
@@ -157,15 +169,19 @@ For each macro, a `edebug-form-spec' overrides this option.
 So to specify exceptions for macros that have some arguments evaluated
 and some not, you should specify an `edebug-form-spec'.
 
-This option is going away soon.")
+This option is going away soon."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-stop-before-symbols nil
+(defcustom edebug-stop-before-symbols nil
   "*Non-nil causes Edebug to stop before symbols as well as after.  
 In any case, a breakpoint or interrupt may stop before a symbol.
 
-This option is going away soon.")
+This option is going away soon."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-save-windows t
+(defcustom edebug-save-windows t
   "*If non-nil, Edebug saves and restores the window configuration.
 That takes some time, so if your program does not care what happens to
 the window configurations, it is better to set this variable to nil.
@@ -173,9 +189,11 @@ the window configurations, it is better to set this variable to nil.
 If the value is a list, only the listed windows are saved and
 restored.  
 
-`edebug-toggle-save-windows' may be used to change this variable.")
+`edebug-toggle-save-windows' may be used to change this variable."
+  :type '(choice boolean (repeat string))
+  :group 'edebug)
 
-(defvar edebug-save-displayed-buffer-points nil
+(defcustom edebug-save-displayed-buffer-points nil
   "*If non-nil, save and restore point in all displayed buffers.
 
 Saving and restoring point in other buffers is necessary if you are
@@ -185,50 +203,71 @@ window, the buffer's point will be changed to the window's point.
 
 Saving and restoring point in all buffers is expensive, since it
 requires selecting each window twice, so enable this only if you need
-it.")
+it."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-initial-mode 'step
+(defcustom edebug-initial-mode 'step
   "*Initial execution mode for Edebug, if non-nil.  If this variable
 is non-@code{nil}, it specifies the initial execution mode for Edebug
 when it is first activated.  Possible values are step, next, go,
-Go-nonstop, trace, Trace-fast, continue, and Continue-fast.")
+Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
+  :type '(choice (const step) (const next) (const go)
+		 (const Go-nonstop) (const trace)
+		 (const Trace-fast) (const continue)
+		 (const continue-fast))
+  :group 'edebug)
 
-(defvar edebug-trace nil
+(defcustom edebug-trace nil
   "*Non-nil means display a trace of function entry and exit.
 Tracing output is displayed in a buffer named `*edebug-trace*', one
 function entry or exit per line, indented by the recursion level.  
 
 You can customize by replacing functions `edebug-print-trace-before'
-and `edebug-print-trace-after'.")
+and `edebug-print-trace-after'."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-test-coverage nil
+(defcustom edebug-test-coverage nil
   "*If non-nil, Edebug tests coverage of all expressions debugged.
 This is done by comparing the result of each expression
 with the previous result. Coverage is considered OK if two different
 results are found.
 
 Use `edebug-display-freq-count' to display the frequency count and
-coverage information for a definition.")
+coverage information for a definition."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-continue-kbd-macro nil
+(defcustom edebug-continue-kbd-macro nil
   "*If non-nil, continue defining or executing any keyboard macro.
-Use this with caution since it is not debugged.")
+Use this with caution since it is not debugged."
+  :type 'boolean
+  :group 'edebug)
 
 
-(defvar edebug-print-length 50
-  "*Default value of `print-length' to use while printing results in Edebug.")
-(defvar edebug-print-level 50
-  "*Default value of `print-level' to use while printing results in Edebug.")
-(defvar edebug-print-circle t
-  "*Default value of `print-circle' to use while printing results in Edebug.")
+(defcustom edebug-print-length 50
+  "*Default value of `print-length' to use while printing results in Edebug."
+  :type 'integer
+  :group 'edebug)
+(defcustom edebug-print-level 50
+  "*Default value of `print-level' to use while printing results in Edebug."
+  :type 'integer
+  :group 'edebug)
+(defcustom edebug-print-circle t
+  "*Default value of `print-circle' to use while printing results in Edebug."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-unwrap-results nil
+(defcustom edebug-unwrap-results nil
   "*Non-nil if Edebug should unwrap results of expressions.
 This is useful when debugging macros where the results of expressions
 are instrumented expressions.  But don't do this when results might be
-circular or an infinite loop will result.")
+circular or an infinite loop will result."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-on-error t
+(defcustom edebug-on-error t
   "*Value bound to `debug-on-error' while Edebug is active.
 
 If `debug-on-error' is non-nil, that value is still used.
@@ -237,14 +276,20 @@ If the value is a list of signal names, Edebug will stop when any of
 these errors are signaled from Lisp code whether or not the signal is
 handled by a `condition-case'.  This option is useful for debugging
 signals that *are* handled since they would otherwise be missed.
-After execution is resumed, the error is signaled again.")
+After execution is resumed, the error is signaled again."
+  :type '(choice boolean (repeat string))
+  :group 'edebug)
 
-(defvar edebug-on-quit t
-  "*Value bound to `debug-on-quit' while Edebug is active.")
+(defcustom edebug-on-quit t
+  "*Value bound to `debug-on-quit' while Edebug is active."
+  :type 'boolean
+  :group 'edebug)
 
-(defvar edebug-global-break-condition nil
+(defcustom edebug-global-break-condition nil
   "*If non-nil, an expression to test for at every stop point.
-If the result is non-nil, then break.  Errors are ignored.")
+If the result is non-nil, then break.  Errors are ignored."
+  :type 'sexp
+  :group 'edebug)
 
 ;;; Form spec utilities.
 

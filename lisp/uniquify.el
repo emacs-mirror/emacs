@@ -84,7 +84,12 @@
 
 ;;; User-visible variables
 
-(defvar uniquify-buffer-name-style 'post-forward
+(defgroup uniquify nil
+  "Unique buffer names dependent on file name"
+  :group 'applications)
+
+
+(defcustom uniquify-buffer-name-style 'post-forward
   "*If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
 `reverse', `post-forward' (the default), or `post-forward-angle-brackets'.
@@ -94,33 +99,49 @@ would have the following buffer names in the various styles:
   reverse        name\\mumble\\bar  name\\mumble\\quux
   post-forward   name|bar/mumble  name|quux/mumble
   post-forward-angle-brackets   name<bar/mumble>  name<quux/mumble>
-  nil            name  name<2>")
+  nil            name  name<2>"
+  :type '(radio (const forward)
+		(const reverse)
+		(const post-forward)
+		(const podt-forward-angle-brackets)
+		(const nil))
+  :group 'uniquify)
 
-(defvar uniquify-after-kill-buffer-p nil
+(defcustom uniquify-after-kill-buffer-p nil
   "*If non-nil, rerationalize buffer names after a buffer has been killed.
 This can be dangerous if Emacs Lisp code is keeping track of buffers by their
-names (rather than keeping pointers to the buffers themselves).")
+names (rather than keeping pointers to the buffers themselves)."
+  :type 'boolean
+  :group 'uniquify)
 
-(defconst uniquify-ask-about-buffer-names-p nil
+(defcustom uniquify-ask-about-buffer-names-p nil
   "*If non-nil, permit user to choose names for buffers with same base file.
 If the user chooses to name a buffer, uniquification is preempted and no
-other buffer names are changed.")
+other buffer names are changed."
+  :type 'boolean
+  :group 'uniquify)
 
-(defvar uniquify-min-dir-content 0
-  "*Minimum parts of directory name included in buffer name.")
+(defcustom uniquify-min-dir-content 0
+  "*Minimum parts of directory name included in buffer name."
+  :type 'integer
+  :group 'uniquify)
 
-(defvar uniquify-separator nil
+(defcustom uniquify-separator nil
   "*String separator for buffer name components.
 When `uniquify-buffer-name-style' is `post-forward', separates
 base file name from directory part in buffer names (default \"|\").
 When `uniquify-buffer-name-style' is `reverse', separates all
-file name components (default \"\\\").")
+file name components (default \"\\\")."
+  :type '(choice (const nil) string)
+  :group 'uniquify)
 
-(defvar uniquify-trailing-separator-p nil
+(defcustom uniquify-trailing-separator-p nil
   "*If non-nil, add a file name separator to dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
-variable is ignored.")
+variable is ignored."
+  :type 'boolean
+  :group 'uniquify)
 
 
 ;;; Utilities

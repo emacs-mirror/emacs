@@ -30,40 +30,59 @@
 
 ;;; Code:
 
-;;;###autoload
-(defvar lpr-switches nil 
-  "*List of strings to pass as extra options for the printer program.
-See `lpr-command'.")
+(defgroup lpr nil
+  "Print Emacs buffer on line printer"
+  :group 'wp)
 
-(defvar lpr-add-switches (eq system-type 'berkeley-unix)
+
+;;;###autoload
+(defcustom lpr-switches nil 
+  "*List of strings to pass as extra options for the printer program.
+See `lpr-command'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'lpr)
+
+(defcustom lpr-add-switches (eq system-type 'berkeley-unix)
   "*Non-nil means construct -T and -J options for the printer program.
 These are made assuming that the program is `lpr';
 if you are using some other incompatible printer program,
-this variable should be nil.")
+this variable should be nil."
+  :type 'boolean
+  :group 'lpr)
 
 ;;;###autoload
-(defvar lpr-command
+(defcustom lpr-command
   (if (memq system-type '(usg-unix-v dgux hpux irix))
       "lp" "lpr")
-  "*Name of program for printing a file.")
+  "*Name of program for printing a file."
+  :type 'string
+  :group 'lpr)
 
 ;; Default is nil, because that enables us to use pr -f
 ;; which is more reliable than pr with no args, which is what lpr -p does.
-(defvar lpr-headers-switches nil
+(defcustom lpr-headers-switches nil
   "*List of strings of options to request page headings in the printer program.
 If nil, we run `lpr-page-header-program' to make page headings
-and print the result.")
+and print the result."
+  :type '(repeat (string :tag "Argument"))
+  :group 'lpr)
 
-(defvar print-region-function nil
+(defcustom print-region-function nil
   "Function to call to print the region on a printer.
-See definition of `print-region-1' for calling conventions.")
+See definition of `print-region-1' for calling conventions."
+  :type 'function
+  :group 'lpr)
 
-(defvar lpr-page-header-program "pr"
-  "*Name of program for adding page headers to a file.")
+(defcustom lpr-page-header-program "pr"
+  "*Name of program for adding page headers to a file."
+  :type 'string
+  :group 'lpr)
 
-(defvar lpr-page-header-switches '("-f")
+(defcustom lpr-page-header-switches '("-f")
   "*List of strings to use as options for the page-header-generating program.
-The variable `lpr-page-header-program' specifies the program to use.")
+The variable `lpr-page-header-program' specifies the program to use."
+  :type '(repeat string)
+  :group 'lpr)
 
 ;;;###autoload
 (defun lpr-buffer ()

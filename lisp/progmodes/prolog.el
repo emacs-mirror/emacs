@@ -33,21 +33,37 @@
 (defvar prolog-mode-syntax-table nil)
 (defvar prolog-mode-abbrev-table nil)
 (defvar prolog-mode-map nil)
+
+(defgroup prolog nil
+  "Major mode for editing and running Prolog under Emacs"
+  :group 'languages)
+
   
-(defvar prolog-program-name "prolog"
-  "*Program name for invoking an inferior Prolog with `run-prolog'.")
+(defcustom prolog-program-name "prolog"
+  "*Program name for invoking an inferior Prolog with `run-prolog'."
+  :type 'string
+  :group 'prolog)
 
-(defvar prolog-consult-string "reconsult(user).\n"
-  "*(Re)Consult mode (for C-Prolog and Quintus Prolog). ")
+(defcustom prolog-consult-string "reconsult(user).\n"
+  "*(Re)Consult mode (for C-Prolog and Quintus Prolog). "
+  :type 'string
+  :group 'prolog)
 
-(defvar prolog-compile-string "compile(user).\n"
-  "*Compile mode (for Quintus Prolog).")
+(defcustom prolog-compile-string "compile(user).\n"
+  "*Compile mode (for Quintus Prolog)."
+  :type 'string
+  :group 'prolog)
 
-(defvar prolog-eof-string "end_of_file.\n"
+(defcustom prolog-eof-string "end_of_file.\n"
   "*String that represents end of file for prolog.
-nil means send actual operating system end of file.")
+nil means send actual operating system end of file."
+  :type 'string
+  :group 'prolog)
 
-(defvar prolog-indent-width 4)
+(defcustom prolog-indent-width 4
+  "Level of indentation in Prolog buffers."
+  :type 'integer
+  :group 'prolog)
 
 (if prolog-mode-syntax-table
     ()
