@@ -1,7 +1,7 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.13) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!shield.c(trunk.14) $
+ * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.13) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.14) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -87,15 +87,15 @@ void (ShieldSuspend)(Arena arena)
   }
 }
 
+
 void (ShieldResume)(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->insideShield);
   AVER(arena->suspended);
-  /* It is only correct to actually resume the mutator here if 
-   * shDepth is 0
-   */
+  /* It is only correct to actually resume the mutator here if shDepth is 0 */
 }
+
 
 /* This ensures actual prot mode does not include mode */
 static void protLower(Arena arena, Seg seg, AccessSet mode)
@@ -111,6 +111,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
   }
 }
 
+
 static void sync(Arena arena, Seg seg)
 {
   AVERT(Arena, arena);
@@ -123,6 +124,7 @@ static void sync(Arena arena, Seg seg)
   }
 }
 
+
 static void flush(Arena arena, Size i)
 {
   Seg seg;
@@ -130,7 +132,7 @@ static void flush(Arena arena, Size i)
   AVER(i < arena->shCacheLimit);
 
   seg = arena->shCache[i];
-  if(seg == (Seg)0) return;
+  if (seg == NULL) return;
   AVERT(Seg, seg);
 
   AVER(arena->shDepth > 0);
@@ -138,11 +140,12 @@ static void flush(Arena arena, Size i)
   --arena->shDepth;
   SegSetDepth(seg, SegDepth(seg) - 1);
   
-  if(SegDepth(seg) == 0)
+  if (SegDepth(seg) == 0)
     sync(arena, seg);
 
-  arena->shCache[i] = (Seg)0;
+  arena->shCache[i] = NULL;
 }
+
 
 /* If the segment is out of sync, either sync it, or ensure
  * depth > 0, and the arena is suspended.
@@ -177,6 +180,7 @@ static void cache(Arena arena, Seg seg)
   }
 }
 
+
 void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
 {
   /* .seg.broken: Seg's shield invariants may not be true at */
@@ -193,6 +197,7 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
 }
 
+
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   /* Don't check seg or arena, see .seg.broken */
@@ -207,6 +212,7 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
 }
 
+
 void (ShieldEnter)(Arena arena)
 {
   Size i;
@@ -218,12 +224,13 @@ void (ShieldEnter)(Arena arena)
   AVER(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
   AVER(arena->shCacheI < arena->shCacheLimit);
   for(i = 0; i < arena->shCacheLimit; i++)
-    AVER(arena->shCache[i] == (Seg)0);
+    AVER(arena->shCache[i] == NULL);
 
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
   arena->insideShield = TRUE;
 }
+
 
 /* .shield.flush: Flush empties the shield cache.
  * This needs to be called before segments are destroyed as there
@@ -239,6 +246,7 @@ void (ShieldFlush)(Arena arena)
     flush(arena, i);
   }
 }
+
 
 void (ShieldLeave)(Arena arena)
 {
@@ -277,6 +285,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
   /* This ensures inv.expose.prot */
   protLower(arena, seg, mode);
 }
+
 
 void (ShieldCover)(Arena arena, Seg seg)
 {
