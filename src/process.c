@@ -2174,19 +2174,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    set_waiting_for_input (&timeout);
 	}
 
-      {
-	int old_timers_run = timers_run;
-	if (XINT (read_kbd) && detect_input_pending_run_timers (do_display))
-	  {
-	    nfds = 0;
-	    FD_ZERO (&Available);
-	  }
-	else if (timers_run != old_timers_run)
-	  ;
-	else
-	  nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-			 &timeout);
-      }
+      if (XINT (read_kbd) && detect_input_pending ())
+	{
+	  nfds = 0;
+	  FD_ZERO (&Available);
+	}
+      else
+	nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+		       &timeout);
 
       xerrno = errno;
 
@@ -3830,6 +3825,8 @@ extern int timers_run;
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
        the quit handler.
+     a cons cell, meaning wait until its car is non-nil
+       (and gobble terminal input into the buffer if any arrives), or
      We know that read_kbd will never be a Lisp_Process, since
      `subprocesses' isn't defined.
 
@@ -3847,6 +3844,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   EMACS_TIME end_time, timeout;
   SELECT_TYPE waitchannels;
   int xerrno;
+  Lisp_Object *wait_for_cell = 0;
+
+  /* If waiting for non-nil in a cell, record where.  */
+  if (CONSP (read_kbd))
+    {
+      wait_for_cell = &XCONS (read_kbd)->car;
+      XSETFASTINT (read_kbd, 0);
+    }
 
   /* What does time_limit really mean?  */
   if (time_limit || microsecs)
@@ -3874,16 +3879,15 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       int nfds;
       int timeout_reduced_for_timers = 0;
 
-      if (XINT (read_kbd))
-	FD_SET (0, &waitchannels);
-      else
-	FD_ZERO (&waitchannels);
-
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
       if (XINT (read_kbd) >= 0)
 	QUIT;
+
+      /* Exit now if the cell we're waiting for became non-nil.  */
+      if (wait_for_cell && ! NILP (*wait_for_cell))
+	break;
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
@@ -3899,13 +3903,22 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 run timer events directly.
 	 (Callers that will immediately read keyboard events
 	 call timer_delay on their own.)  */
-      if (XINT (read_kbd) >= 0)
+      if (1)
 	{
 	  EMACS_TIME timer_delay;
-	  int old_timers_run = timers_run;
+	  int old_timers_run;
+
+	retry:
+	  old_timers_run = timers_run;
 	  timer_delay = timer_check (1);
 	  if (timers_run != old_timers_run && do_display)
-	    redisplay_preserve_echo_area ();
+	    {
+	      redisplay_preserve_echo_area ();
+	      /* We must retry, since a timer may have requeued itself
+		 and that could alter the time delay.  */
+	      goto retry;
+	    }
+
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
@@ -3923,15 +3936,30 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) < 0)
 	set_waiting_for_input (&timeout);
 
+      /* Wait till there is something to do.  */
+
+      if (! XINT (read_kbd) && wait_for_cell == 0)
+	FD_ZERO (&waitchannels);
+      else
+	FD_SET (0, &waitchannels);
+
       /* If a frame has been newly mapped and needs updating,
 	 reprocess its display stuff.  */
       if (frame_garbaged && do_display)
-	redisplay_preserve_echo_area ();
+	{
+	  clear_waiting_for_input ();
+	  redisplay_preserve_echo_area ();
+	  if (XINT (read_kbd) < 0)
+	    set_waiting_for_input (&timeout);
+	}
 
       {
 	int old_timers_run = timers_run;
-	if (XINT (read_kbd) && detect_input_pending_run_timers (do_display))
-	  nfds = 0;
+	if (XINT (read_kbd) && detect_input_pending ())
+	  {
+	    nfds = 0;
+	    FD_ZERO (&waitchannels);
+	  }
 	else if (timers_run != old_timers_run)
 	  ;
 	else
@@ -3972,13 +4000,17 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Check for keyboard input */
 
-      if (XINT (read_kbd) != 0
+      if ((XINT (read_kbd) != 0 || wait_for_cell)
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
 	  if (detect_input_pending_run_timers (do_display))
 	    break;
 	}
+
+      /* Exit now if the cell we're waiting for became non-nil.  */
+      if (wait_for_cell && ! NILP (*wait_for_cell))
+	break;
     }
 
   start_polling ();
