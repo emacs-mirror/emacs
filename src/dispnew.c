@@ -201,7 +201,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
-  mark_window_display_accurate (XWINDOW (minibuf_window)->prev, 0);
+  mark_window_display_accurate (FRAME_ROOT_WINDOW (0));
   return Qnil;
 }
 
