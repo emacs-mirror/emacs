@@ -33,6 +33,9 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include "regex.h"
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 #define REGEXP_CACHE_SIZE 20
 
 /* If the regexp is non-nil, then the buffer contains the compiled form
@@ -464,23 +467,6 @@ fast_c_string_match_ignore_case (regexp, string)
   return val;
 }
 
-/* max and min.  */
-
-static int
-max (a, b)
-     int a, b;
-{
-  return ((a > b) ? a : b);
-}
-
-static int
-min (a, b)
-     int a, b;
-{
-  return ((a < b) ? a : b);
-}
-
-
 /* The newline cache: remembering which sections of text have no newlines.  */
 
 /* If the user has requested newline caching, make sure it's on.
@@ -568,6 +554,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
            examine.  */
 	int ceiling_byte = CHAR_TO_BYTE (end) - 1;
 	int start_byte = CHAR_TO_BYTE (start);
+	int tem;
 
         /* If we're looking for a newline, consult the newline cache
            to see where we can avoid some scanning.  */
@@ -593,7 +580,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
            bytes. BUFFER_CEILING_OF returns the last character
            position that is contiguous, so the ceiling is the
            position after that.  */
-        ceiling_byte = min (BUFFER_CEILING_OF (start_byte), ceiling_byte);
+	tem = BUFFER_CEILING_OF (start_byte);
+	ceiling_byte = min (tem, ceiling_byte);
 
         {
           /* The termination address of the dumb loop.  */ 
@@ -639,6 +627,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
         /* The last character to check before the next obstacle.  */
 	int ceiling_byte = CHAR_TO_BYTE (end);
 	int start_byte = CHAR_TO_BYTE (start);
+	int tem;
 
         /* Consult the newline cache, if appropriate.  */
         if (target == '\n' && newline_cache)
@@ -660,7 +649,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
           }
 
         /* Stop scanning before the gap.  */
-        ceiling_byte = max (BUFFER_FLOOR_OF (start_byte - 1), ceiling_byte);
+	tem = BUFFER_FLOOR_OF (start_byte - 1);
+	ceiling_byte = max (tem, ceiling_byte);
 
         {
           /* The termination address of the dumb loop.  */
@@ -1701,14 +1691,22 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
       QUIT;
       pat = base_pat;
       limit = pos_byte - dirlen + direction;
-      limit = ((direction > 0)
-	       ? BUFFER_CEILING_OF (limit)
-	       : BUFFER_FLOOR_OF (limit));
-      /* LIMIT is now the last (not beyond-last!) value POS_BYTE
-	 can take on without hitting edge of buffer or the gap.  */
-      limit = ((direction > 0)
-	       ? min (lim_byte - 1, min (limit, pos_byte + 20000))
-	       : max (lim_byte, max (limit, pos_byte - 20000)));
+      if (direction > 0)
+	{
+	  limit = BUFFER_CEILING_OF (limit);
+	  /* LIMIT is now the last (not beyond-last!) value POS_BYTE
+	     can take on without hitting edge of buffer or the gap.  */
+	  limit = min (limit, pos_byte + 20000);
+	  limit = min (limit, lim_byte - 1);
+	}
+      else
+	{
+	  limit = BUFFER_FLOOR_OF (limit);
+	  /* LIMIT is now the last (not beyond-last!) value POS_BYTE
+	     can take on without hitting edge of buffer or the gap.  */
+	  limit = max (limit, pos_byte - 20000);
+	  limit = max (limit, lim_byte);
+	}
       tail_end = BUFFER_CEILING_OF (pos_byte) + 1;
       tail_end_ptr = BYTE_POS_ADDR (tail_end);
 
