@@ -925,14 +925,16 @@ Special value `always' suppresses confirmation.")
   ;; Save old version of a to be overwritten file TO.
   ;; `dired-overwrite-confirmed' and `overwrite-backup-query' are fluid vars
   ;; from dired-create-files.
-  (if (and dired-backup-overwrite
-	   dired-overwrite-confirmed
-	   (or (eq 'always dired-backup-overwrite)
-	       (dired-query 'overwrite-backup-query
-			(format "Make backup for existing file `%s'? " to))))
-      (let ((backup (car (find-backup-file-name to))))
-	(rename-file to backup 0)	; confirm overwrite of old backup
-	(dired-relist-entry backup))))
+  (let (backup)
+    (if (and dired-backup-overwrite
+	     dired-overwrite-confirmed
+	     (setq backup (car (find-backup-file-name to)))
+	     (or (eq 'always dired-backup-overwrite)
+		 (dired-query 'overwrite-backup-query
+			      (format "Make backup for existing file `%s'? " to))))
+	(progn
+	  (rename-file to backup 0)	; confirm overwrite of old backup
+	  (dired-relist-entry backup)))))
 
 ;;;###autoload
 (defun dired-copy-file (from to ok-flag)
