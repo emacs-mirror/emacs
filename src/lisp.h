@@ -1814,11 +1814,16 @@ struct gcpro
 
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
-#define GCPRO1(varname) ((void) 0)
-#define GCPRO2(varname1, varname2)((void) 0) 
-#define GCPRO3(varname1, varname2, varname3) ((void) 0) 
-#define GCPRO4(varname1, varname2, varname3, varname4) ((void) 0)
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) ((void) 0)
+/* Do something silly with gcproN vars just so gcc shuts up.  */
+
+#define GCPRO1(varname) ((void) gcpro1)
+#define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1)) 
+#define GCPRO3(varname1, varname2, varname3) \
+  (((void) gcpro3, (void) gcpro2, (void) gcpro1))
+#define GCPRO4(varname1, varname2, varname3, varname4) \
+  (((void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
+#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
+  (((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
 #define UNGCPRO ((void) 0)
 
 #else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
