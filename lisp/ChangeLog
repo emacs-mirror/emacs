@@ -1,3 +1,10 @@
+1999-01-15  Johan Vromans  <jvromans@squirrel.nl>
+
+	* forms.el (forms--make-format-elt-using-text-properties): 
+	Treat `intangible' differently.
+
+	* forms.el: Use new backquote syntax.
+
 1999-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/scribe.el (scribe-mode): Doc-fix.
