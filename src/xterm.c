@@ -7717,6 +7717,12 @@ xt_action_hook (widget, client_data, action_name, event, params,
     }
 }
 
+/* A vector of windows used for communication between
+   x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
+
+static struct window **scroll_bar_windows;
+static int scroll_bar_windows_size;
+
 
 /* Send a client message with message type Xatom_Scrollbar for a
    scroll action to the frame of WINDOW.  PART is a value identifying
@@ -7730,15 +7736,41 @@ x_send_scroll_bar_event (window, part, portion, whole)
 {
   XEvent event;
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
-  struct frame *f = XFRAME (XWINDOW (window)->frame);
+  struct window *w = XWINDOW (window);
+  struct frame *f = XFRAME (w->frame);
+  int i;
 
+  BLOCK_INPUT;
+  
   /* Construct a ClientMessage event to send to the frame.  */
   ev->type = ClientMessage;
   ev->message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_Scrollbar;
   ev->display = FRAME_X_DISPLAY (f);
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
-  ev->data.l[0] = (long) XFASTINT (window);
+
+  /* We can only transfer 32 bits in the XClientMessageEvent, which is
+     not enough to store a pointer or Lisp_Object on a 64 bit system.
+     So, store the window in scroll_bar_windows and pass the index
+     into that array in the event.  */
+  for (i = 0; i < scroll_bar_windows_size; ++i)
+    if (scroll_bar_windows[i] == NULL)
+      break;
+
+  if (i == scroll_bar_windows_size)
+    {
+      int new_size = max (10, 2 * scroll_bar_windows_size);
+      size_t nbytes = new_size * sizeof *scroll_bar_windows;
+      size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
+      
+      scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
+							nbytes);
+      bzero (&scroll_bar_windows[i], nbytes - old_nbytes);
+      scroll_bar_windows_size = new_size;
+    }
+
+  scroll_bar_windows[i] = w;
+  ev->data.l[0] = (long) i;
   ev->data.l[1] = (long) part;
   ev->data.l[2] = (long) 0;
   ev->data.l[3] = (long) portion;
@@ -7750,7 +7782,6 @@ x_send_scroll_bar_event (window, part, portion, whole)
   /* Setting the event mask to zero means that the message will
      be sent to the client that created the window, and if that
      window no longer exists, no event will be sent.  */
-  BLOCK_INPUT;
   XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), False, 0, &event);
   UNBLOCK_INPUT;
 }
@@ -7767,9 +7798,13 @@ x_scroll_bar_to_input_event (event, ievent)
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
   struct frame *f;
+  struct window *w;
+  
+  w = scroll_bar_windows[ev->data.l[0]];
+  scroll_bar_windows[ev->data.l[0]] = NULL;
 
-  XSETFASTINT (window, ev->data.l[0]);
-  f = XFRAME (XWINDOW (window)->frame);
+  XSETWINDOW (window, w);
+  f = XFRAME (w->frame);
   
   ievent->kind = scroll_bar_click;
   ievent->frame_or_window = window;
