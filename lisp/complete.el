@@ -128,7 +128,7 @@ If non-nil and non-t, the first character is taken literally only for file name
 completion."
   :type '(choice (const :tag "delimiter" nil)
 		 (const :tag "literal" t)
-		 (sexp :tag "find-file" :format "%t\n" find-file))
+		 (other :tag "find-file" find-file))
   :group 'partial-completion)
 
 (defcustom PC-meta-flag t
