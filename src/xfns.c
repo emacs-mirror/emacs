@@ -1322,7 +1322,26 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 static void
 validate_x_resource_name ()
 {
-  if (! STRINGP (Vx_resource_name))
+  if (STRINGP (Vx_resource_name))
+    {
+      int len = XSTRING (Vx_resource_name)->size;
+      unsigned char *p = XSTRING (Vx_resource_name)->data;
+      int i;
+
+      /* Allow only letters, digits, - and _,
+	 because those are all that X allows.  */
+      for (i = 0; i < len; i++)
+	{
+	  int c = p[i];
+	  if (! ((c >= 'a' && c <= 'z')
+		 || (c >= 'A' && c <= 'Z')
+		 || (c >= '0' && c <= '9')
+		 || c == '-' || c == '_'))
+	    goto fail;
+	}
+    }
+  else
+  fail:
     Vx_resource_name = make_string ("emacs", 5);
 }
 
