@@ -107,10 +107,18 @@ The user's .emacs file is altered so that this will apply
 to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
-  (let ((init-file user-init-file))
-    (when (or (not (stringp init-file))
-	      (not (file-exists-p init-file)))
-      (setq init-file (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs"))
+  (let ((init-file user-init-file)
+	(default-init-file
+	  (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+    (when (null init-file)
+      (if (or (file-exists-p default-init-file)
+	      (and (eq system-type 'windows-nt)
+		   (file-exists-p "~/_emacs")))
+	  ;; Started with -q, i.e. the file containing
+	  ;; enabled/disabled commands hasn't been read.  Saving
+	  ;; settings there would overwrite other settings.
+	  (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+      (setq init-file default-init-file)
       (if (and (not (file-exists-p init-file))
 	       (eq system-type 'windows-nt)
 	       (file-exists-p "~/_emacs"))
@@ -138,9 +146,25 @@ to future sessions."
   (if (not (commandp command))
       (error "Invalid command name `%s'" command))
   (put command 'disabled t)
+  (let ((init-file user-init-file)
+	(default-init-file
+	  (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+    (when (null init-file)
+      (if (or (file-exists-p default-init-file)
+	      (and (eq system-type 'windows-nt)
+		   (file-exists-p "~/_emacs")))
+	  ;; Started with -q, i.e. the file containing
+	  ;; enabled/disabled commands hasn't been read.  Saving
+	  ;; settings there would overwrite other settings.
+	  (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+      (setq init-file default-init-file)
+      (if (and (not (file-exists-p init-file))
+	       (eq system-type 'windows-nt)
+	       (file-exists-p "~/_emacs"))
+	  (setq init-file "~/_emacs")))
   (save-excursion
    (set-buffer (find-file-noselect
-		(substitute-in-file-name user-init-file)))
+		(substitute-in-file-name init-file)))
    (goto-char (point-min))
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
        (delete-region
@@ -148,7 +172,7 @@ to future sessions."
 	(progn (forward-line 1) (point))))
    (goto-char (point-max))
    (insert "\n(put '" (symbol-name command) " 'disabled t)\n")
-   (save-buffer)))
+   (save-buffer))))
 
 (provide 'novice)
 

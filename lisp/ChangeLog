@@ -1,3 +1,10 @@
+2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* novice.el (disable-command, enable-command): If user-init-file
+	is nil or does not exist, default to "~/.emacs" (~/_emacs on DOS
+	and, maybe, Windows).  But don't alter the init file if Emacs was
+	invoked as "emacs -q"
+
 2002-02-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/sendmail.el (mail-mode) <adaptive-fill-first-line-regexp>:
