@@ -34,14 +34,14 @@ Boston, MA 02111-1307, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+/* Portion of GDI Objects which the font cache is allowed to use. This
+   can be quite high, since the font cache is the only part of Emacs
+   that uses a large number of GDI objects, but there should still be
+   some GDI objects reserved for other uses.  */
+#define CACHE_GDI_ALLOWANCE 9 / 10
+
 void w32_free_bdf_font(bdffont *fontp);
 bdffont *w32_init_bdf_font(char *filename);
-
-cache_bitmap cached_bitmap_slots[BDF_FONT_CACHE_SIZE];
-cache_bitmap *pcached_bitmap_latest = cached_bitmap_slots;
-
-#define FONT_CACHE_SLOT_OVER_P(p) \
-   ((p) >= cached_bitmap_slots + BDF_FONT_CACHE_SIZE)
 
 static int 
 search_file_line(char *key, char *start, int len, char **val, char **next)
@@ -368,27 +368,6 @@ seek_char(bdffont *fontp, int index)
   return result;
 }
 
-void
-clear_cached_bitmap_slots()
-{
-  int i;
-  cache_bitmap *p;
-
-  p = pcached_bitmap_latest;
-  for (i = 0;i < BDF_FONT_CLEAR_SIZE;i++)
-    {
-      if (p->psrc)
-	{
-	  DeleteObject(p->hbmp);
-	  p->psrc->pcbmp = NULL;
-	  p->psrc = NULL;
-	}
-      p++;
-      if (FONT_CACHE_SLOT_OVER_P(p))
-	p = cached_bitmap_slots;
-    }
-}
-
 #define GET_HEX_VAL(x) ((isdigit(x)) ? ((x) - '0') : \
 			(((x) >= 'A') && ((x) <= 'Z')) ? ((x) - 'A' + 10) : \
 			(((x) >= 'a') && ((x) <= 'z')) ? ((x) - 'a' + 10) : \
@@ -474,6 +453,8 @@ w32_get_bdf_glyph(bdffont *fontp, int index, int size, glyph_struct *glyph)
   return 1;
 }
 
+#define NEXT_CACHE_SLOT(n) (((n) + 1 >= BDF_FONT_CACHE_SIZE) ? 0 : ((n) + 1))
+
 static
 cache_bitmap*
 get_bitmap_with_cache(bdffont *fontp, int index)
@@ -483,6 +464,11 @@ get_bitmap_with_cache(bdffont *fontp, int index)
   cache_bitmap* pcb;
   HBITMAP hbmp;
   glyph_struct glyph;
+  static cache_bitmap cached_bitmap_slots[BDF_FONT_CACHE_SIZE];
+  static int cache_in_slot = 0;		/* the next slot to use */
+  static int cache_out_slot = 0;	/* the last slot allocated */
+  static int cache_occupancy = 0;	/* current cache occupancy */
+  static int cache_limit = BDF_FONT_CACHE_SIZE; /* allowed maximum occupancy */
 
   pch = get_cached_font_char(fontp, index);
   if (pch)
@@ -503,9 +489,35 @@ get_bitmap_with_cache(bdffont *fontp, int index)
 
   hbmp = CreateBitmap(glyph.metric.bbw, glyph.metric.bbh, 1, 1, glyph.bitmap);
 
-  pcb = pcached_bitmap_latest;
-  if (pcb->psrc)
-    clear_cached_bitmap_slots();
+  /* if bitmap allocation fails reduce the limit of the occupancy so
+     that we can hope it will not happen again.  */
+  if (hbmp == NULL)
+    cache_limit = cache_occupancy * CACHE_GDI_ALLOWANCE;
+
+  /* if cache occupancy reaches at the limit release some cache slots */
+  if (cache_occupancy >= cache_limit)
+    {
+      register int size_to_clear = cache_limit * BDF_FONT_CLEAR_SIZE
+                                   / BDF_FONT_CACHE_SIZE;
+      for (; size_to_clear; size_to_clear--,
+                            cache_out_slot = NEXT_CACHE_SLOT(cache_out_slot))
+        {
+          register cache_bitmap *p = &cached_bitmap_slots[cache_out_slot];
+          if (p->psrc)
+            {
+              DeleteObject(p->hbmp);
+              p->psrc->pcbmp = NULL;
+              p->psrc = NULL;
+              cache_occupancy--;
+            }
+        }
+    }
+
+  if (hbmp == NULL)
+    hbmp = CreateBitmap (glyph.metric.bbw, glyph.metric.bbh,
+                         1, 1, glyph.bitmap);
+
+  pcb = &cached_bitmap_slots[cache_in_slot];
 
   pcb->psrc = pch;
   pcb->metric = glyph.metric;
@@ -513,9 +525,8 @@ get_bitmap_with_cache(bdffont *fontp, int index)
 
   pch->pcbmp = pcb;
   
-  pcached_bitmap_latest++;
-  if (FONT_CACHE_SLOT_OVER_P(pcached_bitmap_latest))
-    pcached_bitmap_latest = cached_bitmap_slots;
+  cache_in_slot = NEXT_CACHE_SLOT(cache_in_slot);
+  cache_occupancy++;
 
   return pcb;
 }
