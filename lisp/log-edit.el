@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.6 2000/06/02 02:28:39 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.7 2000/06/02 23:03:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -44,8 +44,10 @@
 ;;;; 
 
 (defgroup log-edit nil
-  "Major mode for editing commit messages for PCL-CVS."
+  "Major mode for editing RCS and CVS commit messages."
   :group 'pcl-cvs
+  :group 'vc				; It's used by VC.
+  :version "21.1"
   :prefix "log-edit-")
 
 ;; compiler pacifiers
@@ -358,7 +360,7 @@ If we are between sub-paragraphs, return the previous subparagraph."
     (end-of-line)
     (if (search-backward "*" nil t)
         (list (progn (beginning-of-line) (point))
-              (progn 
+              (progn
                 (forward-line 1)
                 (if (re-search-forward "^[ \t]*[\n*]" nil t)
                     (match-beginning 0)
@@ -399,7 +401,7 @@ The return value looks like this:
 where LOGBUFFER is the name of the ChangeLog buffer, and each
 \(ENTRYSTART . ENTRYEND\) pair is a buffer region."
   (save-excursion
-    (let ((changelog-file-name 
+    (let ((changelog-file-name
 	   (let ((default-directory
 		   (file-name-directory (expand-file-name file))))
 	     ;; `find-change-log' uses `change-log-default-name' if set
