@@ -84,6 +84,7 @@ indicates CRiSP mode is enabled.
 Setting this variable directly does not take effect;
 use either M-x customize or the function `crisp-mode'."
   :set (lambda (symbol value) (crisp-mode (if value 1 0)))
+  :initialize 'custom-initialize-default
   :require 'crisp
   :version "20.4"
   :type 'boolean
@@ -144,15 +145,6 @@ does not load the scroll-all package."
   (if (fboundp 'clipboard-yank)
       'clipboard-yank
     'yank-clipboard-selection))
-
-;; force transient-mark-mode in Emacs, so that the marking routines
-;; work as expected.  If the user turns off transient mark mode,
-;; most things will still work fine except the crisp-(copy|kill)
-;; functions won't work quite as nicely when regions are marked
-;; differently and could really confuse people.  Caveat emptor.
-
-(if (fboundp 'transient-mark-mode)
-    (transient-mark-mode t))
 
 (defun crisp-region-active ()
   "Compatibility function to test for an active region."
@@ -358,8 +350,6 @@ normal CRiSP binding) and when it is nil M-x will run
       (save-buffers-kill-emacs)
     (call-interactively 'execute-extended-command)))
 
-;; Now enable the mode
-
 ;;;###autoload
 (defun crisp-mode (&optional arg)
   "Toggle CRiSP emulation minor mode.
@@ -369,11 +359,18 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 		       (not crisp-mode)
 		     (> (prefix-numeric-value arg) 0)))
   (when crisp-mode
+    ;; Force transient-mark-mode, so that the marking routines work as
+    ;; expected.  If the user turns off transient mark mode, most
+    ;; things will still work fine except the crisp-(copy|kill)
+    ;; functions won't work quite as nicely when regions are marked
+    ;; differently and could really confuse people.  Caveat emptor.
+    (if (fboundp 'transient-mark-mode)
+	(transient-mark-mode t))
     (if crisp-load-scroll-all
 	(require 'scroll-all))
     (if (featurep 'scroll-all)
 	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))
-    (run-hooks 'crisp-load-hook)))
+    (run-hooks 'crisp-mode-hook)))
 
 (if (fboundp 'add-minor-mode)
     (add-minor-mode 'crisp-mode 'crisp-mode-modeline-string
@@ -385,6 +382,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
       (setq minor-mode-map-alist (cons (cons 'crisp-mode crisp-mode-map)
 				       minor-mode-map-alist))))
 
+(run-hooks 'crisp-load-hook)
 (provide 'crisp)
 
 ;;; crisp.el ends here
