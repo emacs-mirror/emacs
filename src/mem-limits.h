@@ -44,14 +44,17 @@ typedef unsigned long SIZE;
 
 #ifdef emacs
 extern POINTER start_of_data ();
+#define EXCEEDS_ELISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
 
 #ifdef BSD
 #ifndef DATA_SEG_BITS
+extern char etext;
 #define start_of_data() &etext
 #endif
 #endif
 
 #else  /* Not emacs */ 
+extern char etext;
 #define start_of_data() &etext
 #endif /* Not emacs */
 

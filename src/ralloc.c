@@ -52,7 +52,6 @@ static POINTER page_break_value;
 #define ALIGNED(addr) (((unsigned int) (addr) & (PAGE - 1)) == 0)
 #define ROUNDUP(size) (((unsigned int) (size) + PAGE) & ~(PAGE - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(PAGE - 1)))
-#define EXCEEDS_ELISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
 
 /* Managing "almost out of memory" warnings.  */
 
