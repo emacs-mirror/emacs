@@ -1487,12 +1487,17 @@ print_object (obj, printcharfun, escapeflag)
 	{
 	  PRINTCHAR ('(');
 	  {
-	    register int i = 0;
-	    register int print_length = 0;
+	    int print_length, i;
 	    Lisp_Object halftail = obj;
 
-	    if (INTEGERP (Vprint_length))
-	      print_length = XINT (Vprint_length);
+	    /* Negative values of print-length are illegal in CL.
+	       Treat them like nil, as CMUCL does.  */
+	    if (NATNUMP (Vprint_length))
+	      print_length = XFASTINT (Vprint_length);
+	    else
+	      print_length = 0;
+
+	    i = 0;
 	    while (CONSP (obj))
 	      {
 		/* Detect circular list.  */
@@ -1513,7 +1518,8 @@ print_object (obj, printcharfun, escapeflag)
 		      {
 			int i;
 			for (i = 0; i < print_number_index; i++)
-			  if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
+			  if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i),
+				  obj))
 			    {
 			      if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 				{
@@ -1529,24 +1535,31 @@ print_object (obj, printcharfun, escapeflag)
 			    }
 		      }
 		  }
+		
 		if (i++)
 		  PRINTCHAR (' ');
+		
 		if (print_length && i > print_length)
 		  {
 		    strout ("...", 3, 3, printcharfun, 0);
 		    goto end_of_list;
 		  }
+		
 		print_object (XCAR (obj), printcharfun, escapeflag);
+		
 		obj = XCDR (obj);
 		if (!(i & 1))
 		  halftail = XCDR (halftail);
 	      }
 	  }
+
+	  /* OBJ non-nil here means it's the end of a dotted list.  */
 	  if (!NILP (obj))
 	    {
 	      strout (" . ", 3, 3, printcharfun, 0);
 	      print_object (obj, printcharfun, escapeflag);
 	    }
+	  
 	end_of_list:
 	  PRINTCHAR (')');
 	}
@@ -1580,10 +1593,12 @@ print_object (obj, printcharfun, escapeflag)
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('\"');
 
-	  /* Don't print more characters than the specified maximum.  */
-	  if (INTEGERP (Vprint_length)
-	      && XINT (Vprint_length) < size_in_chars)
-	    size_in_chars = XINT (Vprint_length);
+	  /* Don't print more characters than the specified maximum.
+	     Negative values of print-length are illegal.  Treat them
+	     like a print-length of nil.  */
+	  if (NATNUMP (Vprint_length)
+	      && XFASTINT (Vprint_length) < size_in_chars)
+	    size_in_chars = XFASTINT (Vprint_length);
 
 	  for (i = 0; i < size_in_chars; i++)
 	    {
@@ -1703,9 +1718,9 @@ print_object (obj, printcharfun, escapeflag)
 	    register Lisp_Object tem;
 
 	    /* Don't print more elements than the specified maximum.  */
-	    if (INTEGERP (Vprint_length)
-		&& XINT (Vprint_length) < size)
-	      size = XINT (Vprint_length);
+	    if (NATNUMP (Vprint_length)
+		&& XFASTINT (Vprint_length) < size)
+	      size = XFASTINT (Vprint_length);
 
 	    for (i = 0; i < size; i++)
 	      {
