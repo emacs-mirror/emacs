@@ -1168,6 +1168,18 @@
   (if (equal '((quote xemacs)) (cdr-safe form))
       nil
     form))
+
+(put 'set 'byte-optimizer 'byte-optimize-set)
+(defun byte-optimize-set (form)
+  (let ((var (car-safe (cdr-safe form))))
+    (cond
+     ((and (eq (car-safe var) 'quote) (consp (cdr var)))
+      (list* 'setq (cadr var) (cddr form)))
+     ((and (eq (car-safe var) 'make-local-variable)
+	   (eq (car-safe (setq var (car-safe (cdr var)))) 'quote)
+	   (consp (cdr var)))
+      `(progn ,(cadr form) (setq ,(cadr var) ,@(cddr form))))
+     (t form))))
 
 ;;; enumerating those functions which need not be called if the returned
 ;;; value is not used.  That is, something like
