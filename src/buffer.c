@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2204,8 +2204,6 @@ syms_of_buffer ()
   Fput (Qprotected_field, Qerror_message,
 	build_string ("Attempt to modify a protected field"));
 
-  Fput (intern ("erase-buffer"), Qdisabled, Qt);
-
   /* All these use DEFVAR_LISP_NOPRO because the slots in
      buffer_defaults will all be marked via Vbuffer_defaults.  */
 
@@ -2575,4 +2573,8 @@ keys_of_buffer ()
   initial_define_key (control_x_map, 'b', "switch-to-buffer");
   initial_define_key (control_x_map, 'k', "kill-buffer");
   initial_define_key (control_x_map, Ctl ('B'), "list-buffers");
+
+  /* This must not be in syms_of_buffer, because Qdisabled is not
+     initialized when that function gets called.  */
+  Fput (intern ("erase-buffer"), Qdisabled, Qt);
 }
