@@ -298,7 +298,9 @@ Not actually set up until the first time you you use it.")
   "Make DIR become the current buffer's default directory.
 If your environment includes a `CDPATH' variable, try each one of that
 colon-separated list of directories when resolving a relative directory name."
-  (interactive "FChange default directory: ")
+  (interactive
+   (list (read-file-name "Change default directory: "
+			 default-directory default-directory)))
   (if (file-name-absolute-p dir)
       (cd-absolute (expand-file-name dir))
     (if (null cd-path)
