@@ -1269,6 +1269,7 @@ window_loop (type, obj, mini, frames)
 		if (NILP (another_buffer))
 		  another_buffer
 		    = Fget_buffer_create (build_string ("*scratch*"));
+		XWINDOW (w)->dedicated = Qnil;
 		Fset_window_buffer (w, another_buffer);
 		if (EQ (w, selected_window))
 		  Fset_buffer (XWINDOW (w)->buffer);
@@ -1626,7 +1627,8 @@ BUFFER can be a buffer or buffer name.")
 				   is first being set up.  */
     {
       if (!NILP (w->dedicated) && !EQ (tem, buffer))
-	error ("Window is dedicated to %s\n", tem);
+	error ("Window is dedicated to `%s'",
+	       XSTRING (XBUFFER (tem)->name)->data);
 
       unshow_buffer (w);
     }
