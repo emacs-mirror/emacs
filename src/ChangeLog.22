@@ -1,5 +1,7 @@
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
+	* xterm.c (x_list_fonts): Fix the detection of an auto-scaled font.
+
 	* coding.c (decode_coding_utf_16): Fix handling of surrogate pair.
 
 	* editfns.c (Ftranslate_region_internal): Renamed from
@@ -8,6 +10,11 @@
 
 	* xfaces.c (set_lface_from_font_name): If a font is specified for
 	a frame, generate a fontset from the font.
+	(build_scalable_font_name): If the scalable font is requested for
+	a specific size, don't change that size.
+	(try_font_list): Try a scalable font also in the case that a
+	pattern string is specified,
+	
 
 2004-03-03  Kenichi Handa  <handa@m17n.org>
 
