@@ -157,24 +157,65 @@ The expansion is entirely correct because it uses the C preprocessor."
     )
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
-(defvar perl-font-lock-keywords
-  (list
-;   ("if" "until" "while" "elsif" "else" "unless" "for" "foreach" "continue"
-;    "exit" "die" "last" "goto" "next" "redo" "return" "local" "exec")
-   (concat "\\<\\("
-	   "continue\\|die\\|e\\(ls\\(e\\|if\\)\\|x\\(ec\\|it\\)\\)\\|"
-	   "for\\(\\|each\\)\\|goto\\|if\\|l\\(ast\\|ocal\\)\\|next\\|"
-	   "re\\(do\\|turn\\)\\|un\\(less\\|til\\)\\|while"
-	   "\\)\\>")
-;   ("#endif" "#else" "#ifdef" "#ifndef" "#if" "#include" "#define" "#undef")
-   (cons (concat "#\\(define\\|e\\(lse\\|ndif\\)\\|"
-		 "i\\(f\\(\\|def\\|ndef\\)\\|nclude\\)\\|undef\\)\\>")
-	 'font-lock-reference-face)
-   '("^[ \n\t]*sub[ \t]+\\([^ \t{]+\\)[ \t]*[{]" 1 font-lock-function-name-face)
-   '("[ \n\t{]*\\(eval\\)[ \n\t(;]" 1 font-lock-function-name-face)
-   '("\\(--- .* ---\\|=== .* ===\\)" . font-lock-string-face)
-   )
-  "Additional expressions to highlight in Perl mode.")
+;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
+;; Jim Campbell <jec@murzim.ca.boeing.com>.
+
+(defconst perl-font-lock-keywords-1
+  '(;; What is this for?
+    ;;("\\(--- .* ---\\|=== .* ===\\)" . font-lock-string-face)
+    ;;
+    ;; Fontify preprocessor statements as we do in `c-font-lock-keywords'.
+    ;; Ilya Zakharevich <ilya@math.ohio-state.edu> thinks this is a bad idea.
+    ("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
+    ("^#[ \t]*define[ \t]+\\(\\sw+\\)(" 1 font-lock-function-name-face)
+    ("^#[ \t]*if\\>"
+     ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
+      (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t)))
+    ("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t))
+    ;;
+    ;; Fontify function and package names in declarations.
+    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+    ("\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-reference-face nil t)))
+  "Subdued level highlighting for Perl mode.")
+
+(defconst perl-font-lock-keywords-2
+  (append perl-font-lock-keywords-1
+   (list
+    ;;
+    ;; Fontify keywords, except those fontified otherwise.
+;   (make-regexp '("if" "until" "while" "elsif" "else" "unless" "do" "dump"
+;  "for" "foreach" "exit" "die"
+;  "BEGIN" "END" "return" "exec" "eval"))
+    (concat "\\<\\("
+	    "BEGIN\\|END\\|d\\(ie\\|o\\|ump\\)\\|"
+	    "e\\(ls\\(e\\|if\\)\\|val\\|x\\(ec\\|it\\)\\)\\|"
+	    "for\\(\\|each\\)\\|if\\|return\\|un\\(less\\|til\\)\\|while"
+	    "\\)\\>")
+    ;;
+    ;; Fontify local and my keywords as types.
+    '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
+    ;;
+    ;; Fontify function, variable and file name references.
+    '("&\\(\\sw+\\)" 1 font-lock-function-name-face)
+    ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
+    ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+    '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+    '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
+      (2 (cons font-lock-variable-name-face '(underline))))
+    '("<\\(\\sw+\\)>" 1 font-lock-reference-face)
+    ;;
+    ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
+    '("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
+      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-reference-face)))
+  "Gaudy level highlighting for Perl mode.")
+
+(defvar perl-font-lock-keywords perl-font-lock-keywords-1
+  "Default expressions to highlight in Perl mode.")
+
 
 (defvar perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block.")
@@ -281,8 +322,12 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq comment-indent-function 'perl-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  ;; Tell font-lock.el how to handle Perl.
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(perl-font-lock-keywords))
+  (setq font-lock-defaults '((perl-font-lock-keywords
+			      perl-font-lock-keywords-1
+			      perl-font-lock-keywords-2)
+			     nil nil ((?\_ . "w"))))
   ;; Tell imenu how to handle Perl.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression perl-imenu-generic-expression)
