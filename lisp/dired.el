@@ -457,13 +457,13 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 ;; This differs from dired-buffers-for-dir in that it does not consider
 ;; subdirs of default-directory and searches for the first match only
 (defun dired-find-buffer-nocreate (dirname)
-  (let (found (blist (buffer-list)))
+  (let (found (blist dired-buffers))    ; was (buffer-list)
     (while blist
       (save-excursion
-        (set-buffer (car blist))
+	(set-buffer (cdr (car blist)))
 	(if (and (eq major-mode 'dired-mode)
 		 (equal dired-directory dirname))
-	    (setq found (car blist)
+	    (setq found (cdr (car blist))
 		  blist nil)
 	  (setq blist (cdr blist)))))
     found))
