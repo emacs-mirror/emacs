@@ -1,6 +1,6 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
@@ -79,9 +79,14 @@
 ;; Dec 3, 1997 -- changes from Gareth Jones <gdj1@gdjones.demon.co.uk>
 ;; handling Received headers following some line like `From:'.
 
-;;; Setup:
+;; Aug 16, 2000 -- changes from Detlev Zundel
+;; <detlev.zundel@stud.uni-karlsruhe.de> to make uce.el work with the
+;; latest Gnus.  Lars told him it should work for all versions of Gnus
+;; younger than three years.
 
-;; put in your ~./emacs the following line:
+;; Setup:
+
+;; Add the following line to your ~/.emacs:
 
 ;; (autoload 'uce-reply-to-uce "uce" "Reply to UCEs" t nil)
 
@@ -214,7 +219,7 @@ buffer with default To: to the sender, his postmaster, his abuse@
 address, and postmaster of the mail relay used."
   (interactive)
   (let ((message-buffer
-	 (cond ((eq uce-mail-reader 'gnus) "*Article*")
+	 (cond ((eq uce-mail-reader 'gnus) gnus-original-article-buffer)
 	       ((eq uce-mail-reader 'rmail) "RMAIL")
 	       (t (error 
 		   "Variable uce-mail-reader set to unrecognized value")))))
@@ -241,9 +246,7 @@ address, and postmaster of the mail relay used."
       (setq mail-send-actions nil)
       (setq mail-reply-buffer nil)
       (cond ((eq uce-mail-reader 'gnus)
-	     (article-hide-headers -1)
-	     (copy-region-as-kill (point-min) (point-max))
-	     (article-hide-headers))
+	     (copy-region-as-kill (point-min) (point-max)))
 	    ((eq uce-mail-reader 'rmail)
 	     (save-excursion
 	       (save-restriction
