@@ -1303,6 +1303,7 @@ Default to the URL around or before point."
 (defvar browse-url-activation-alist nil
   "A per buffer cache of overlays that mark URLs in the buffer.")
 
+;;;###autoload
 (defun browse-url-activate-urls (start end &optional face visited-face mouse-face keymap)
   "Activate the URLs in the region of the current buffer bracketed by START and END.
 This creates an overlay on each URL in the region. FACE, if provided,
