@@ -1,3 +1,7 @@
+2001-09-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.el (gnus-local-domain): Undo change of 2001-07-02.
+
 2001-08-31  Sam Steingold  <sds@gnu.org>
 
 	* imap.el (imap-mailbox-examine, imap-mailbox-examine-1): Fix a
