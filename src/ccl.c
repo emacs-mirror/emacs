@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* not emacs */
 
-/* This contains all code conversion map avairable to CCL.  */
+/* This contains all code conversion map available to CCL.  */
 Lisp_Object Vcode_conversion_map_vector;
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
