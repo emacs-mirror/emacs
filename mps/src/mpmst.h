@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.50) $
+ * $HopeName: MMsrc!mpmst.h(trunk.51) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -639,6 +639,7 @@ typedef struct ArenaStruct {
   Bool insideShield;             /* TRUE if and only if inside shield */
   Seg shCache[SHIELD_CACHE_SIZE];/* Cache of unsynced segs */
   Size shCacheI;                 /* index into cache */
+  Size shCacheLimit;             /* High water mark for cache usage */
   Size shDepth;                  /* sum of depths of all segs */
   Bool suspended;                /* TRUE if and only if mutator suspended */
 
