@@ -105,7 +105,7 @@ removed from alias expansions."
 ;; Called by mail-setup, or similar functions, only if ~/.mailrc exists.
 (defun build-mail-aliases (&optional file)
   "Read mail aliases from `~/.mailrc' and set `mail-aliases'."
-  (setq file (expand-file-name (or file "~/.mailrc")))
+  (setq file (expand-file-name (or file (or (getenv "MAILRC") "~/.mailrc"))))
   (let ((buffer nil)
 	(obuf (current-buffer)))
     (unwind-protect
@@ -113,22 +113,35 @@ removed from alias expansions."
 	  (setq buffer (generate-new-buffer "mailrc"))
 	  (buffer-disable-undo buffer)
 	  (set-buffer buffer)
-	  (cond ((get-file-buffer file)
-		 (insert (save-excursion
-			   (set-buffer (get-file-buffer file))
-			   (buffer-substring (point-min) (point-max)))))
-		((not (file-exists-p file)))
-		(t (insert-file-contents file)))
-	  ;; Don't lose if no final newline.
-	  (goto-char (point-max))
-	  (or (eq (preceding-char) ?\n) (newline))
-	  (goto-char (point-min))
-	  ;; handle "\\\n" continuation lines
-	  (while (not (eobp))
-	    (end-of-line)
-	    (if (= (preceding-char) ?\\)
-		(progn (delete-char -1) (delete-char 1) (insert ?\ ))
+	  (while file
+	    (cond ((get-file-buffer file)
+		   (insert (save-excursion
+			     (set-buffer (get-file-buffer file))
+			     (buffer-substring (point-min) (point-max)))))
+		  ((file-exists-p file) (insert-file-contents file))
+		  ((file-exists-p (setq file (concat "~/" file)))
+		   (insert-file-contents file))
+		  (t (setq file nil)))
+	    ;; Don't lose if no final newline.
+	    (goto-char (point-max))
+	    (or (eq (preceding-char) ?\n) (newline))
+	    (goto-char (point-min))
+	    ;; handle "\\\n" continuation lines
+	    (while (not (eobp))
+	      (end-of-line)
+	      (if (= (preceding-char) ?\\)
+		  (progn (delete-char -1) (delete-char 1) (insert ?\ ))
 	        (forward-char 1)))
+	    (goto-char (point-min))
+	    ;; handle `source' directives -- Eddy/1994/May/25
+	    (cond ((re-search-forward "^source[ \t]+" nil t)
+		   (re-search-forward "\\S-+")
+		   (setq file
+			 (buffer-substring (match-beginning 0) (match-end 0)))
+		   (beginning-of-line)
+		   (insert "# ") ; to ensure we don't re-process this file
+		   (beginning-of-line))
+		  (t (setq file nil))))
 	  (goto-char (point-min))
 	  (while (or (re-search-forward "^a\\(lias\\|\\)[ \t]+" nil t)
 		     (re-search-forward "^g\\(roup\\|\\)[ \t]+" nil t))
