@@ -477,6 +477,7 @@ See documentation of variable `tags-file-name'."
   (switch-to-buffer-other-window (find-tag-noselect tagname next-p)))
 ;;;###autoload (define-key ctl-x-4-map "." 'find-tag-other-window)
 
+;;;###autoload
 (defun find-tag-other-frame (tagname &optional next-p)
   "Find tag (in current tag table) whose name contains TAGNAME.
  Selects the buffer that the tag is contained in in another frame
@@ -920,8 +921,12 @@ with the command \\[tags-loop-continue].
 See documentation of variable `tags-file-name'."
   (interactive
    "sTags query replace (regexp): \nsTags query replace %s by: \nP")
-  (setq tags-loop-scan (list 'prog1 (list 're-search-forward from nil t)
-			     '(goto-char (point-min))) ;??? XXX
+  (setq tags-loop-scan (list 'prog1
+			     (list 'if (list 're-search-forward form nil t)
+				   ;; When we find a match, move back
+				   ;; to the beginning of it so perform-replace
+				   ;; will see it.
+				   '(goto-char (match-beginning 0))))
 	tags-loop-operate (list 'perform-replace from to t t delimited))
   (tags-loop-continue t))
 
@@ -961,6 +966,7 @@ unless it has one in the tags table."
 ;;; XXX Kludge interface.
 
 ;; XXX If a file is in multiple tables, selection may get the wrong one.
+;;;###autoload
 (defun select-tags-table ()
   "Select a tags table file from a menu of those you have already used.
 The list of tags tables to select from is stored in `tags-table-file-list';

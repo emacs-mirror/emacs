@@ -7,7 +7,7 @@
 (defvar mh-e-RCS-id)
 (setq mh-e-RCS-id "$Header: /var/home/larus/lib/emacs/RCS/mh-e.el,v 3.1 90/09/28 15:47:58 larus Exp Locker: larus $")
 
-;;;  Copyright (C) 1985-89 Free Software Foundation
+;;;  Copyright (C) 1985, 86, 87, 88, 89, 92 Free Software Foundation
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but without any warranty.  No author or distributor
