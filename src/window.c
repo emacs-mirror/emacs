@@ -2476,7 +2476,7 @@ struct save_window_data
   {
     int size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
-    Lisp_Object frame_width, frame_height;
+    Lisp_Object frame_width, frame_height, frame_menu_bar_lines;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -2569,10 +2569,14 @@ by `current-window-configuration' (which see).")
 	 back.  We keep track of the prevailing height in these variables.  */
       int previous_frame_height = FRAME_HEIGHT (f);
       int previous_frame_width =  FRAME_WIDTH  (f);
+      int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
 
       if (XFASTINT (data->frame_height) != previous_frame_height
 	  || XFASTINT (data->frame_width) != previous_frame_width)
 	change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
+      if (XFASTINT (data->frame_menu_bar_lines)
+	  != previous_frame_menu_bar_lines)
+	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, 0);
 
       windows_or_buffers_changed++;
 
@@ -2710,6 +2714,8 @@ by `current-window-configuration' (which see).")
 	  || previous_frame_width != FRAME_WIDTH (f))
 	change_frame_size (f, previous_frame_height, previous_frame_width,
 			   0, 0);
+      if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
+	x_set_menu_bar_lines (f, previous_frame_menu_bar_lines, 0);
     }
 
 #ifdef MULTI_FRAME
@@ -2872,6 +2878,7 @@ redirection (see `redirect-frame-focus').")
 				  Qnil));
   XFASTINT (data->frame_width) = FRAME_WIDTH (f);
   XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
+  XFASTINT (data->frame_menu_bar_lines) = FRAME_MENU_BAR_LINES (f);
 #ifdef MULTI_FRAME
   XSET (data->selected_frame, Lisp_Frame, selected_frame);
 #endif
