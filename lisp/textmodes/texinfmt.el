@@ -486,7 +486,8 @@ if large.  You can use Info-split to do this manually."
    ;;     I don't know if this causes other problems.
    ;;     I suspect itemized lists don't get filled properly and a
    ;;     more precise fix is required.  Bob
-   "itemize\\|"
+   ;; commented out on 2005 Feb 28 by Bob
+   ;; "itemize\\|"
    "direntry\\|"
    "lisp\\|"
    "smalllisp\\|"
