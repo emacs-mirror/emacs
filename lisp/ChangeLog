@@ -1,5 +1,7 @@
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rfc2368.el: New file.
+
 	* simple.el (sendmail-user-agent-compose): Recognize a `body'
 	header and insert its value as mail body.
 
