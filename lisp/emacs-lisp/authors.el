@@ -99,6 +99,21 @@ matches REGEXP, use ALIAS instead.  The special alias \"ignore\" means
 ignore that author.")
 
 
+(defvar authors-public-domain-files
+  '("auto-show\\.el"
+    "form-d2\\.el"
+    "emerge\\.el"
+    "unused\\.el"
+    "vi\\.el"
+    "feedmail\\.el"
+    "mailpost\\.el"
+    "hanoi\\.el"
+    "meese\\.el"
+    "studly\\.el"
+    "modula2\\.el")
+  "List of regexps matching files for which the FSF doesn't need papers.")
+
+
 (defvar authors-obsolete-files-regexps
   '("vc-\\*\\.el$"
     "spec.txt$"
@@ -366,6 +381,17 @@ TABLE is a hash table to add author information to."
       (kill-buffer buffer))))
 
 
+(defun authors-public-domain-p (file)
+  "Return t if FILE is a file that was put in public domain."
+  (let ((public-domain-p nil)
+	(list authors-public-domain-files))
+    (while (and list (not public-domain-p))
+      (when (string-match (car list) file)
+	(setq public-domain-p t))
+      (setq list (cdr list)))
+    public-domain-p))
+
+
 (defun authors-print (author changes)
   "Insert information about AUTHOR's work on Emacs into the current buffer.
 CHANGES is an alist of entries (FILE ACTION...), as produced by
@@ -376,7 +402,11 @@ CHANGES is an alist of entries (FILE ACTION...), as produced by
       (let ((actions (cdr change))
 	    (file (car change)))
 	(if (memq :wrote actions)
-	    (insert author " (wrote) " file "\n")
+	    (progn
+	      (insert author " (wrote) " file)
+	      (when (authors-public-domain-p file)
+		(insert " (public domain)"))
+	      (insert "\n"))
 	  (setq nchanged (1+ nchanged)))))
     (if (> nchanged authors-many-files)
 	(insert author " (changed) [more than "
