@@ -6603,7 +6603,9 @@ and the other strategic decisions made during redisplay.  */);
 This means everything is in inverse video which otherwise would not be.  */);
   
   DEFVAR_BOOL ("visible-bell", &visible_bell,
-    doc: /* *Non-nil means try to flash the frame to represent a bell.  */);
+    doc: /* *Non-nil means try to flash the frame to represent a bell.
+
+See also `ring-bell-function'.  */);
   
   DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
     doc: /* *Non-nil means no need to redraw entire frame after suspending.
