@@ -328,6 +328,7 @@ extern Lisp_Object Vtext_property_default_nonsticky;
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 EXFUN (Fget_char_property, 3);
+EXFUN (Fget_char_property_and_overlay, 3);
 EXFUN (Fget_text_property, 3);
 EXFUN (Ftext_properties_at, 2);
 EXFUN (Fnext_property_change, 3);
