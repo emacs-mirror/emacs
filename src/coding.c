@@ -1982,6 +1982,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	  break;
 
 	case EMACS_invalid_code:
+	  if (coding->flags & CODING_FLAG_ISO_RESET_AT_CNTL)
+	    ENCODE_RESET_PLANE_AND_REGISTER;
 	  *dst++ = c1;
 	  coding->consumed_char++;
 	  break;
