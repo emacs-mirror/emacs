@@ -117,7 +117,7 @@ expression, which is evaluated to get the string to insert.")
 		   (right       "flushright")
 		   (left        "flushleft")
 		   (full        "flushboth")
-		   (center      "center")) 
+		   (center      "center"))
     (PARAMETER     (t           "param")) ; Argument of preceding annotation
     ;; The following are not part of the standard:
     (FUNCTION      (enriched-decode-foreground "x-color")
@@ -167,7 +167,7 @@ These are files with embedded formatting information in the MIME standard
 text/enriched format.
 Turning the mode on runs `enriched-mode-hook'.
 
-More information about Enriched mode is available in the file 
+More information about Enriched mode is available in the file
 etc/enriched.doc in the Emacs distribution directory.
 
 Commands:
@@ -180,7 +180,7 @@ Commands:
 	 ;; restore old variable values
 	 (while enriched-old-bindings
 	   (set (pop enriched-old-bindings) (pop enriched-old-bindings))))
-	  
+
 	((memq 'text/enriched buffer-file-format)
 	 ;; Mode already on; do nothing.
 	 nil)
@@ -288,7 +288,7 @@ the region, and the START and END of each region."
     (unjustify-region)
     (goto-char from)
     (format-replace-strings '(("<" . "<<")))
-    (format-insert-annotations 
+    (format-insert-annotations
      (format-annotate-region from (point-max) enriched-translations
 			     'enriched-make-annotation enriched-ignore))
     (goto-char from)
@@ -330,7 +330,7 @@ matching close."
 One annotation each for foreground color, background color, italic, etc."
   (cons (and old (enriched-face-ans old))
 	(and new (enriched-face-ans new))))
-	    
+
 (defun enriched-face-ans (face)
   "Return annotations specifying FACE.
 FACE may be a list of faces instead of a single face;
@@ -407,12 +407,12 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	(delete-char 1)
       ;; A single < that does not start an annotation is an error,
       ;; which we note and then ignore.
-      (message "Warning: malformed annotation in file at %s" 
+      (message "Warning: malformed annotation in file at %s"
 	       (1- (point)))))
   (if (not (eobp))
       (let* ((beg (match-beginning 0))
 	     (end (match-end 0))
-	     (name (downcase (buffer-substring 
+	     (name (downcase (buffer-substring
 			      (match-beginning 2) (match-end 2))))
 	     (pos (not (match-beginning 1))))
 	(list beg end name pos))))
@@ -481,6 +481,5 @@ the range of text to assign text property SYMBOL with value VALUE "
     (unless prop
       (message "Warning: invalid <x-display> parameter %s" param))
     (list start end 'display prop)))
-	       
-	   
+
 ;;; enriched.el ends here
