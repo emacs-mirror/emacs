@@ -16,4 +16,5 @@
 *.tp
 *.tps
 *.tmp
+*.txt
 Makefile
