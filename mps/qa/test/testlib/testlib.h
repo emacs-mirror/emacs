@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.11) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.12) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -14,9 +14,11 @@ test_lib.h
 #include "versind.h"
 #include "platform.h"
 
+
 /* Give textual description of mps error code */
 
 const char *err_text(mps_res_t err);
+
 
 /* finish, fail: write completed=yes/no to stdout and
    exit (0 or 1 as appropriate).
@@ -28,12 +30,14 @@ void pass(void);
 void finish(void);
 void fail(void);
 
+
 /* report: print variable and value to stdout
 */
 
 void report_res(const char *str, mps_res_t res);
 void report(const char *str, const char *format, ...);
 void vreport(const char *str, const char *format, va_list args);
+
 
 /* adie: print text and err code to stdout by calling error
     die: as above, but if err is MPS_RES_OK do nothing
@@ -45,27 +49,33 @@ void cdie(mps_res_t err, const char *str);
 void  die(mps_res_t err, const char *str);
 void adie(mps_res_t err, const char *str);
 
+
 /* Prints text to stdout */
 
 void comment(const char *format, ...);
 void vcomment(const char *format, va_list args);
 
+
 /* Prints text to stdout if cond is true */
 
 void commentif(int cond, const char *format, ...);
+
 
 /* Prints text to stdout and aborts */
 
 void error(const char *format, ...);
 void verror(const char *format, va_list args);
 
+
 /* If exp is false, prints text to stdout and aborts */
 
 void asserts(int expr, const char *format, ...);
 
+
 /* Abort. Tests should use error rather than this. */
 
 void myabort(void);
+
 
 /* Easy way of entering the trampoline, for when you don't
    want to pass any information in or out. If you have a
@@ -74,16 +84,19 @@ void myabort(void);
 
 void easy_tramp(void (*f)(void));
 
+
 /* Pause for n seconds
 */
 
-void pause(unsigned long);
+void mmqa_pause(unsigned long);
+
 
 /* Random number from 0 to x-1
 */
 
 unsigned long ranint(unsigned long limit);
 unsigned long ranrange(unsigned long min, unsigned long max);
+
 
 /* stuff for running event logs
 */
@@ -113,10 +126,12 @@ union log_event {
 
 int read_event(log_event*);
 
+
 /* The MPS doesn't provide this useful function
 */
 
 size_t arena_committed_and_used(mps_arena_t);
+
 
 #ifdef MMQA_SYMBOL_mps_arena_t
 
@@ -124,6 +139,7 @@ mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size);
 
 #endif
+
 
 /* time-based queue
    (use for killing objects at the right time)
