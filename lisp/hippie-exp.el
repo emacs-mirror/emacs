@@ -161,6 +161,16 @@
   "Expand text trying various ways to find its expansion."
   :group 'abbrev)
 
+(defcustom he-dabbrev-skip-space nil
+  "Non-nil means tolerate trailing spaces in the abbreviation to expand."
+  :group hippie-expand
+  :type 'boolean)
+
+(defcustom he-dabbrev-as-symbol t
+  "Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
+  :group hippie-expand
+  :type 'boolean)
+
 (defvar he-num -1)
 
 (defvar he-string-beg (make-marker))
@@ -1011,12 +1021,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	      (he-string-member result he-tried-table t))
 	  (setq result nil)))     ; ignore if bad prefix or already in table
     result))
-
-(defvar he-dabbrev-skip-space ()
-  "Non-NIL means tolerate trailing spaces in the abbreviation to expand.")
-
-(defvar he-dabbrev-as-symbol t
-  "Non-NIL means expand as symbols, i.e. syntax '_' is considered a letter.")
 
 (defun he-dabbrev-beg ()
   (let ((op (point)))
