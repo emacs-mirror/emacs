@@ -1831,7 +1831,7 @@ Else, read patch file into a new buffer."
 		       startup-hooks)
 		 )))
 		  
-;;;;###autoload
+;;;###autoload
 (defun ediff-patch-buffer (buffer-name &optional startup-hooks)		  
   "Run Ediff by patching BUFFER-NAME."
   (interactive "bBuffer to patch: ")
