@@ -1137,6 +1137,9 @@ and enable that one.  The default is the most recent input method specified
 	  "Describe input method (default, current choice): ")))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
+  (help-setup-xref (list #'describe-input-method (or input-method current-input-method))
+		   (interactive-p))
+
   (if (null input-method)
       (describe-current-input-method)
     (let ((current current-input-method))
@@ -1157,7 +1160,8 @@ and enable that one.  The default is the most recent input method specified
 		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
 
 (defun describe-current-input-method ()
-  "Describe the input method currently in use."
+  "Describe the input method currently in use.
+This is a subroutine for `describe-input-method'."
   (if current-input-method
       (if (and (symbolp describe-current-input-method-function)
 	       (fboundp describe-current-input-method-function))
