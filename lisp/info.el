@@ -2730,7 +2730,7 @@ the variable `Info-file-list-for-emacs'."
 	    (add-text-properties (match-beginning 2) (1+ (match-end 2))
 				 '(invisible t))))
 	(goto-char (point-min))
-	(while (re-search-forward "\\(\\*Note[ \n\t]+\\)\\([^:]*\\)\\(:[^.,:]*[,:]?\\)" nil t)
+	(while (re-search-forward "\\(\\*Note[ \n\t]*\\)\\([^:]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:]?\n?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	    (let ((next (point))
 		  (hide-tag Info-hide-note-references)
@@ -2757,17 +2757,20 @@ the variable `Info-file-list-for-emacs'."
 				   '(font-lock-face info-xref
 						    mouse-face highlight
 						    help-echo "mouse-2: go to this node"))
-	      (if (eq Info-hide-note-references t)
-		  (add-text-properties (match-beginning 3) (match-end 3)
-				       '(invisible t))))))
+	      (when (eq Info-hide-note-references t)
+		(add-text-properties (match-beginning 3) (match-end 3)
+				     (if (string-match "\n" (match-string 0))
+					 '(display "\n")
+				       '(invisible t)))))))
 
 	(goto-char (point-min))
 	(if (and (search-forward "\n* Menu:" nil t)
 		 (not (string-match "\\<Index\\>" Info-current-node))
 		 ;; Don't take time to annotate huge menus
 		 (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
-	    (let ((n 0))
-	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:]*[,:.][ \t]*\\)" nil t)
+	    (let ((n 0)
+		  cont)
+	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.][ \t]*\\)" nil t)
 		(setq n (1+ n))
 		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
 		    (put-text-property (match-beginning 0)
@@ -2777,10 +2780,17 @@ the variable `Info-file-list-for-emacs'."
 				     '(font-lock-face info-xref
 				       mouse-face highlight
 				       help-echo "mouse-2: go to this node"))
+		(when (eq Info-hide-note-references t)
+		  (add-text-properties (match-beginning 2) (match-end 2)
+				       (list 'display
+					     (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )))
+		  (setq cont (looking-at "[ \t]*[^\n]")))
 		(if (eq Info-hide-note-references t)
-		    (add-text-properties (match-beginning 2) (match-end 2)
-					 (list 'display
-					       (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )))))))
+		    (while (and (= (forward-line 1) 0)
+				(looking-at "\\([ \t]+\\)[^*\n]"))
+		      (add-text-properties (match-beginning 1) (match-end 1)
+					   (list 'display (make-string (+ 22 (if cont 4 2)) ? )))
+		      (setq cont t))))))
 
 	(Info-fontify-menu-headers)
 	(set-buffer-modified-p nil)))))
