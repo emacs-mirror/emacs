@@ -39,7 +39,8 @@ Returns nil if FORM is not a defun or defmacro."
 	      (setq form (cdr form))
 	    (setq doc nil))
 	  (list 'autoload (list 'quote name) file doc
-		(eq (car-safe (car form)) 'interactive) macrop))
+		(eq (car-safe (car form)) 'interactive)
+		(if macrop (list 'quote 'macro) nil)))
       nil)))
 
 (defconst generate-autoload-cookie ";;;###autoload"
