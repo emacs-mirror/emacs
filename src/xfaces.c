@@ -363,14 +363,22 @@ unload_color (f, pixel)
 {
   Colormap cmap;
   Display *dpy = FRAME_X_DISPLAY (f);
+  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+
   if (pixel == FACE_DEFAULT
       || pixel == BLACK_PIX_DEFAULT (f)
       || pixel == WHITE_PIX_DEFAULT (f))
     return;
   cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
-  BLOCK_INPUT;
-  XFreeColors (dpy, cmap, &pixel, 1, (unsigned long)0);
-  UNBLOCK_INPUT;
+  
+  /* If display has an immutable color map, freeing colors is not
+     necessary and some servers don't allow it.  So don't do it.  */
+  if (! (class == StaticColor || class == StaticGray || class == TrueColor))
+    {
+      BLOCK_INPUT;
+      XFreeColors (dpy, cmap, &pixel, 1, (unsigned long)0);
+      UNBLOCK_INPUT;
+    }
 }
 
 DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
