@@ -106,7 +106,7 @@ is a list of menu items, as above."
   ;; function. 
   (set symbol (easy-menu-create-keymaps (car menu) (cdr menu)))
   (fset symbol (` (lambda (event) (, doc) (interactive "@e")
-		    (easy-popup-menu event (, symbol)))))
+		    (x-popup-menu event (, symbol)))))
   (mapcar (function (lambda (map) 
 	    (define-key map (vector 'menu-bar (intern (car menu)))
 	      (cons (car menu) (symbol-value symbol)))))
