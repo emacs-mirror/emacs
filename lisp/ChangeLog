@@ -2,6 +2,16 @@
 
 	* composite.el (decompose-composite-char): Fix docstring.
 
+	* select.el (x-set-cut-buffer): Fix docstring. Check type with `stringp'
+	instead of `substring'.
+
+	* textmodes/reftex.el (reftex-TeX-master-file): Use really the buffer
+	file name if no other master file is located.
+
+	* progmodes/cperl-mode.el (cperl-beautify-level)
+	(cperl-beautify-regexp): Fix use of `prefix-numeric-value'.
+	(cperl-calculate-indent): Fix typo.
+
 2003-01-29  Taro Kawagishi  <tarok@transpulse.org>
 
 	* arc-mode.el (archive-lzh-summarize): Fix previous change.
