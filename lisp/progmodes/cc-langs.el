@@ -268,7 +268,7 @@ The syntax tables aren't stored directly since they're quite large."
   ;; the constants in this file are evaluated.
   t (funcall (c-lang-const c-make-mode-syntax-table)))
 
-(c-lang-defconst make-c++-template-syntax-table
+(c-lang-defconst c++-make-template-syntax-table
   ;; A variant of `c++-mode-syntax-table' that defines `<' and `>' as
   ;; parenthesis characters.  Used temporarily when template argument
   ;; lists are parsed.  Note that this encourages incorrect parsing of
@@ -282,8 +282,8 @@ The syntax tables aren't stored directly since they're quite large."
 	   (modify-syntax-entry ?> ")<" table)
 	   table)))
 (c-lang-defvar c++-template-syntax-table
-  (and (c-lang-const make-c++-template-syntax-table)
-       (funcall (c-lang-const make-c++-template-syntax-table))))
+  (and (c-lang-const c++-make-template-syntax-table)
+       (funcall (c-lang-const c++-make-template-syntax-table))))
 
 (c-lang-defconst c-identifier-syntax-modifications
   "A list that describes the modifications that should be done to the
@@ -882,19 +882,19 @@ operators."
 (c-lang-defvar comment-start-skip (c-lang-const comment-start-skip)
   'dont-doc)
 
-(c-lang-defconst syntactic-ws-start
+(c-lang-defconst c-syntactic-ws-start
   "Regexp matching any sequence that can start syntactic whitespace.
 The only uncertain case is '#' when there are cpp directives."
   t     "[ \n\t\r\v\f#]\\|/[/*]\\|\\\\[\n\r]"
   awk   "[ \n\t\r\v\f#]\\|\\\\[\n\r]")
-(c-lang-defvar c-syntactic-ws-start (c-lang-const syntactic-ws-start)
+(c-lang-defvar c-syntactic-ws-start (c-lang-const c-syntactic-ws-start)
   'dont-doc)
 
-(c-lang-defconst syntactic-ws-end
+(c-lang-defconst c-syntactic-ws-end
   "Regexp matching any single character that might end syntactic whitespace."
   t     "[ \n\t\r\v\f/]"
   awk   "[ \n\t\r\v\f]")
-(c-lang-defvar c-syntactic-ws-end (c-lang-const syntactic-ws-end)
+(c-lang-defvar c-syntactic-ws-end (c-lang-const c-syntactic-ws-end)
   'dont-doc)
 
 (c-lang-defconst c-nonwhite-syntactic-ws
