@@ -2025,6 +2025,7 @@ duplicates what `expand-file-name' does.  */)
   int total = 0;
   int substituted = 0;
   unsigned char *xnm;
+  struct passwd *pw;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -2063,8 +2064,27 @@ duplicates what `expand-file-name' does.  */)
 #endif /* VMS */
 	      || IS_DIRECTORY_SEP (p[-1])))
 	{
-	  nm = p;
-	  substituted = 1;
+	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)
+#ifdef VMS
+			      && *s != ':'
+#endif /* VMS */
+			      ); s++);
+	  if (s > p + 1)
+	    {
+	      o = (unsigned char *) alloca (s - p + 1);
+	      bcopy ((char *) p, o, s - p);
+	      o [s - p] = 0;
+
+	      pw = (struct passwd *) getpwnam (o + 1);
+	    }
+	  /* If we have ~/ or ~user and `user' exists, discard
+	     everything up to ~.  But if `user' does not exist, leave
+	     ~user alone, it might be a literal file name.  */
+	  if (s == p + 1 || pw)
+	    {
+	      nm = p;
+	      substituted = 1;
+	    }
 	}
 #ifdef DOS_NT
       /* see comment in expand-file-name about drive specifiers */
