@@ -576,7 +576,9 @@ a case-insensitive match is tried."
           ;; Search file for a suitable node.
 	  (let ((guesspos (point-min))
 		(regexp (concat "\\(Node:\\|Ref:\\) *\\("
-				(regexp-quote nodename)
+				(if (stringp nodename) 
+				    (regexp-quote nodename)
+				  "")
 				"\\) *[,\t\n\177]"))
 		(nodepos nil))
 
@@ -665,7 +667,10 @@ a case-insensitive match is tried."
       (progn
 	(insert Info-dir-contents)
 	(goto-char (point-min)))
-    (let ((dirs Info-directory-list)
+    (let ((dirs (if Info-additional-directory-list
+                              (append Info-directory-list
+                                      Info-additional-directory-list)
+                            Info-directory-list))
 	  ;; Bind this in case the user sets it to nil.
 	  (case-fold-search t)
 	  ;; This is set non-nil if we find a problem in some input files.
@@ -2167,7 +2172,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
 (defvar Info-file-list-for-emacs
-  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc" "message"
+  '("ediff" "forms" "gnus" ("mh" . "mh-e") "sc" "message"
     ("dired" . "dired-x") ("c" . "ccmode") "viper")
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
