@@ -5451,7 +5451,10 @@ DIR defaults to current buffer's directory default.")
       XSTRING (default_filename)->data[0] = '~';
     }
   if (!NILP (default_filename))
-    default_filename = double_dollars (default_filename);
+    {
+      CHECK_STRING (default_filename, 3);
+      default_filename = double_dollars (default_filename);
+    }
 
   if (insert_default_directory && STRINGP (dir))
     {
