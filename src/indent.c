@@ -482,7 +482,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 
 	    /* This is just an estimate to give reasonable
 	       performance; nothing should go wrong if it is too small.  */
-	    XFASTINT (limit) = pos + 100;
+	    limit = Fnext_overlay_change (position);
+	    if (XFASTINT (limit) > pos + 100)
+	      XFASTINT (limit) = pos + 100;
 	    end = Fnext_single_property_change (position, Qinvisible,
 						Fcurrent_buffer (), limit);
 	    if (INTEGERP (end))
