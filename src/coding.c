@@ -4320,6 +4320,8 @@ decode_coding_charset (coding)
       ONE_MORE_BYTE (c);
       if (c == '\r')
 	{
+	  /* Here we assume that no charset maps '\r' to something
+	     else.  */
 	  if (EQ (eol_type, Qdos))
 	    {
 	      if (src < src_end
@@ -4333,28 +4335,70 @@ decode_coding_charset (coding)
 	{
 	  Lisp_Object val;
 	  struct charset *charset;
+	  int dim;
+	  unsigned code;
 	  int c1;
 
 	  val = AREF (valids, c);
 	  if (NILP (val))
 	    goto invalid_code;
-	  charset = CHARSET_FROM_ID (XFASTINT (val));
-	  if (CHARSET_DIMENSION (charset) > 1)
+	  if (INTEGERP (val))
 	    {
-	      ONE_MORE_BYTE (c1);
-	      c = (c << 8) | c1;
-	      if (CHARSET_DIMENSION (charset) > 2)
+	      charset = CHARSET_FROM_ID (XFASTINT (val));
+	      dim = CHARSET_DIMENSION (charset);
+	      code = c;
+	      if (dim > 1)
 		{
 		  ONE_MORE_BYTE (c1);
-		  c = (c << 8) | c1;
-		  if (CHARSET_DIMENSION (charset) > 3)
+		  code = (code << 8) | c1;
+		  if (dim > 2)
 		    {
 		      ONE_MORE_BYTE (c1);
-		      c = (c << 8) | c1;
+		      code = (code << 8) | c1;
+		      if (dim > 3)
+			{
+			  ONE_MORE_BYTE (c1);
+			  code = (c << 8) | c1;
+			}
 		    }
 		}
+	      CODING_DECODE_CHAR (coding, src, src_base, src_end,
+				  charset, code, c);
 	    }
-	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
+	  else
+	    {
+	      /* VAL is a list of charset IDs.  It is assured that the
+		 list is sorted by charset dimensions (smaller one
+		 comes first).  */
+	      int b[4];
+	      int len = 1;
+
+	      b[0] = c;
+	      /* VAL is a list of charset IDs.  */
+	      while (CONSP (val))
+		{
+		  charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
+		  dim = CHARSET_DIMENSION (charset);
+		  while (len < dim)
+		    {
+		      ONE_MORE_BYTE (c1);
+		      b[len++] = c1;
+		    }
+		  if (dim == 1)
+		    code = b[0];
+		  else if (dim == 2)
+		    code = (b[0] << 8) | b[1];
+		  else if (dim == 3)
+		    code = (b[0] << 16) | (b[1] << 8) | b[2];
+		  else
+		    code = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
+		  CODING_DECODE_CHAR (coding, src, src_base,
+				      src_end, charset, code, c);
+		  if (c >= 0)
+		    break;
+		  val = XCDR (val);
+		}
+	    }
 	  if (c < 0)
 	    goto invalid_code;
 	}
@@ -7366,20 +7410,61 @@ usage: (define-coding-system-internal ...)  */)
 
   if (EQ (coding_type, Qcharset))
     {
+      /* Generate a lisp vector of 256 elements.  Each element is nil,
+	 integer, or a list of charset IDs.
+
+	 If Nth element is nil, the byte code N is invalid in this
+	 coding system.
+
+	 If Nth element is a number NUM, N is the first byte of a
+	 charset whose ID is NUM.
+
+	 If Nth element is a list of charset IDs, N is the first byte
+	 of one of them.  The list is sorted by dimensions of the
+	 charsets.  A charset of smaller dimension comes firtst.
+      */
       val = Fmake_vector (make_number (256), Qnil);
 
       for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
 	{
-	  struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (tail)));
-	  int idx = (CHARSET_DIMENSION (charset) - 1) * 4;
-
+	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
+	  int dim = CHARSET_DIMENSION (charset);
+	  int idx = (dim - 1) * 4;
+	  
 	  for (i = charset->code_space[idx];
 	       i <= charset->code_space[idx + 1]; i++)
 	    {
-	      if (NILP (AREF (val, i)))
-		ASET (val, i, XCAR (tail));
+	      Lisp_Object tmp, tmp2;
+	      int dim2;
+
+	      tmp = AREF (val, i);
+	      if (NILP (tmp))
+		tmp = XCAR (tail);
+	      else if (NUMBERP (tmp))
+		{
+		  dim2 = CHARSET_DIMENSION (CHARSET_FROM_ID (XFASTINT (tmp)));
+		  if (dim < dim2)
+		    tmp = Fcons (tmp, Fcons (XCAR (tail), Qnil));
+		  else
+		    tmp = Fcons (XCAR (tail), Fcons (tmp, Qnil));
+		}
 	      else
-		error ("Charsets conflicts in the first byte");
+		{
+		  for (tmp2 = tmp; CONSP (tmp2); tmp2 = XCDR (tmp2))
+		    {
+		      dim2 = CHARSET_DIMENSION (CHARSET_FROM_ID (XFASTINT (XCAR (tmp2))));
+		      if (dim < dim2)
+			break;
+		    }
+		  if (NILP (tmp2))
+		    tmp = nconc2 (tmp, Fcons (XCAR (tail), Qnil));
+		  else
+		    {
+		      XSETCDR (tmp2, Fcons (XCAR (tmp2), XCDR (tmp2)));
+		      XSETCAR (tmp2, XCAR (tail));
+		    }
+		}
+	      ASET (val, i, tmp);
 	    }
 	}
       ASET (attrs, coding_attr_charset_valids, val);
