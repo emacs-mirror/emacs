@@ -923,6 +923,19 @@ supported, but new code should use the new functions.
 
 ** New function `call-process-shell-command'.
 
+** The dummy function keys made by easymenu
+are now always lower case.  If you specify the
+menu item name "Ada", for instance, it uses `ada'
+as the "key" bound by that key binding.
+
+This is relevant only if Lisp code looks for
+the bindings that were made with easymenu.
+
+** The function `commandp' takes an additional optional
+argument.  If it is non-nil, then `commandp' checks
+for a function that could be called with `call-interactively',
+and does not return t for keyboard macros.
+
 ** File local variables.
 
 A file local variables list cannot specify a string with text
