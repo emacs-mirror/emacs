@@ -426,6 +426,7 @@ Here are commands that move to a header field (and create it if there isn't):
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
 				"$\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
+				"-- $\\|---+$\\|"
 				page-delimiter))
   (setq paragraph-separate paragraph-start)
   (run-hooks 'text-mode-hook 'mail-mode-hook))
