@@ -1380,7 +1380,7 @@ x_set_border_pixel (f, pix)
 
       BLOCK_INPUT;
       XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-       		 pix);
+			(unsigned long)pix);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))
@@ -2301,11 +2301,12 @@ hack_wm_protocols (f, widget)
     unsigned long nitems = 0;
     unsigned long bytes_after;
 
-    if (Success == XGetWindowProperty (dpy, w,
-				       FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
-				       0, 100, False, XA_ATOM,
-				       &type, &format, &nitems, &bytes_after,
-				       (unsigned char **) &atoms)
+    if ((XGetWindowProperty (dpy, w,
+			     FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+			     0L, 100L, False, XA_ATOM,
+			     &type, &format, &nitems, &bytes_after,
+			     (unsigned char **) &atoms)
+	 == Success)
 	&& format == 32 && type == XA_ATOM)
       while (nitems > 0)
 	{
