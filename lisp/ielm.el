@@ -87,7 +87,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.3 $" 11 -2)
+   (substring "$Revision: 1.4 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -116,6 +116,12 @@ This variable is buffer-local.")
   (define-key ielm-map "\C-c\C-f" 'ielm-display-working-buffer)
   (define-key ielm-map "\C-c\C-v" 'ielm-print-working-buffer))
 
+(defvar ielm-font-lock-keywords
+  (list 
+   (cons (concat "^" (regexp-quote ielm-prompt)) 'font-lock-keyword-face)
+   '("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)" (1 font-lock-comment-face) (2 font-lock-reference-face)))
+  "Additional expressions to highlight in ielm buffers.")
+	
 ;;; Completion stuff
 
 (defun ielm-tab nil
@@ -417,6 +423,11 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq ::: nil)
   (make-local-variable ':::)
 
+  ;; font-lock support
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults 
+	'(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
+  
   ;; A dummy process to keep comint happy. It will never get any input
   (if (comint-check-proc (current-buffer)) nil
     (start-process "ielm" (current-buffer) "cat")
