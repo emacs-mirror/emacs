@@ -541,7 +541,27 @@ C-w Display information on absence of warranty for GNU Emacs."
 	      (error nil)))
       (set-syntax-table stab))))
 
-(defun describe-function-find-file (function)
+(defvar symbol-file-load-history-loaded nil
+  "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
+That file records the part of `load-history' for preloaded files,
+which is cleared out before dumping to make Emacs smaller.")
+
+(defun symbol-file (function)
+  "Return the input source from which SYM was loaded.
+The value is normally a string that was passed to `load':
+either an absolute file name, or a library name
+\(with no directory name and no `.el' or `.elc' at the end).
+It can also be nil, if the definition is not associated with any file."
+  (unless symbol-file-load-history-loaded
+    (load (expand-file-name
+	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
+	   (if (eq system-type 'ms-dos)
+	       "fns.el"
+	     (format "fns-%s.el" emacs-version))
+	   exec-directory)
+	  ;; The file name fns-%s.el already has a .el extension.
+	  nil nil t)
+    (setq symbol-file-load-history-loaded t))
   (let ((files load-history)
 	file functions)
     (while files
@@ -610,7 +630,7 @@ C-w Display information on absence of warranty for GNU Emacs."
       (princ "("))
     (princ string)
     (or file-name
-	(setq file-name (describe-function-find-file function)))
+	(setq file-name (symbol-file function)))
     (if file-name
 	(progn
 	  (princ " in `")
@@ -749,7 +769,7 @@ Returns the documentation as a string, also."
 	  ;; Make a hyperlink to the library if appropriate.  (Don't
 	  ;; change the format of the buffer's initial line in case
 	  ;; anything expects the current format.)
-	  (let ((file-name (describe-function-find-file variable)))
+	  (let ((file-name (symbol-file variable)))
 	    (when file-name
 	      (princ "\n\nDefined in `")
 	      (princ file-name)
