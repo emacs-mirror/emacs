@@ -192,9 +192,9 @@ pressed.}.
 @kbd{C-?}  a ``control'' key, since 127 has both bits 5 and 6 turned ON.
 Also, on very few keyboards does @kbd{C-?} generate ASCII code 127.
 
-@inforef{Characters, Characters, emacs}, and @inforef{Keys, Keys, emacs},
-for more information.  (@xref{On-line manual}, for more information about
-Info.)
+@inforef{Text Characters, Text Characters, emacs}, and @inforef{Keys,
+Keys, emacs}, for more information.  (@xref{On-line manual}, for more
+information about Info.)
 
 @node Extended commands, On-line manual, Basic keys, FAQ notation
 @section What does @file{M-x @var{command}} mean?
@@ -274,7 +274,7 @@ default, Info documentation is placed in @file{/usr/local/info}.
 Some of these files are available individually via FTP or e-mail; see
 @ref{Informational files for Emacs}.  They all are available in the
 source distribution.  Many of the files in the @file{etc} directory are
-also available via the Emacs "@samp{Help} menu, or by typing @kbd{C-h ?}
+also available via the Emacs @samp{Help} menu, or by typing @kbd{C-h ?}
 (@kbd{M-x help-for-help}).
 
 Your system administrator may have removed the @file{src} directory and
@@ -797,9 +797,9 @@ parentheses.  This goes to the node named ``Top'' in that file.  For
 example, to view a Info file named @file{@var{info-file}} in your home
 directory, you can type this:
 
-@lisp
-C-h i g (~/@var{info-file}) @key{RET}
-@end lisp
+@example
+@kbd{C-h i g (~/@var{info-file}) @key{RET}}
+@end example
 
 @item
 You can create your own Info directory.  You can tell Emacs where that
@@ -1031,8 +1031,8 @@ Via HTTP or FTP.  You can always fetch the latest FAQ from
 
 @item
 In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time
-of release has been part of the Emacs distribution as
-@file{man/faq.texi} (@pxref{File-name conventions}).
+of release has been part of the Emacs distribution as either
+@file{etc/FAQ} or @file{man/faq.texi} (@pxref{File-name conventions}).
 
 @item
 Via the World Wide Web.  A hypertext version is available at
@@ -1359,8 +1359,8 @@ variables.)
 
 By default, the titlebar for a frame does contain the name of the buffer
 currently being visited, except if there is a single frame.  In such a
-case, the titlebar contains the name of the user and the machine at
-which Emacs was invoked.  This is done by setting
+case, the titlebar contains Emacs invocation name and the name of the
+machine at which Emacs was invoked.  This is done by setting
 @code{frame-title-format} to the default value of
 
 @lisp
@@ -1481,7 +1481,7 @@ to search for unprintable characters using @code{re-search-forward}:
 
 Using @code{isearch-forward-regexp}:
 
-@kbd{M-C-s [^ @key{TAB} @key{RET} C-q @key{RET} C-q C-l @key{SPC} -~]}
+@kbd{M-C-s [^ @key{TAB} @key{LFD} C-q @key{RET} C-q C-l @key{SPC} -~]}
 
 To delete all unprintable characters, simply use replace-regexp:
 
@@ -1507,13 +1507,14 @@ something in the minibuffer.
 @cindex @code{transient-mark-mode}
 @cindex Region, highlighting a
 
-If you are using a windowing system such as X, you can cause the region
-to be highlighted when the mark is active by including
+You can cause the region to be highlighted when the mark is active by
+including
 
 @lisp
 (transient-mark-mode t)
 @end lisp
 
+@noindent
 in your @file{.emacs} file.  (Also see @ref{Turning on syntax
 highlighting}.)
 
@@ -1626,9 +1627,9 @@ or by invoking @code{server-start} from @file{.emacs}:
 @end lisp
 
 When this is done, Emacs starts a subprocess running a program called
-@samp{server}.  @samp{server} creates a Unix domain socket.  The socket
-is either named @file{.emacs_server}, in the user's home directory,
-or @file{esrv-@var{user-id}-@var{system-name}}, in the @file{/tmp}
+@samp{emacsserver}.  @samp{emacsserver} creates a Unix domain socket.
+The socket is either named @file{.emacs_server}, in the user's home directory,
+or @file{esrv-@var{userid}-@var{systemname}}, in the @file{/tmp}
 directory, depending on how @samp{emacsserver} was compiled.
 
 To get your news reader, mail reader, etc., to invoke
@@ -1667,8 +1668,9 @@ share the same filesystem for this to work.  The pathnames that
 @samp{emacsclient} specifies should be correct for the filesystem that
 the Emacs process sees.  The Emacs process should not be suspended at
 the time @samp{emacsclient} is invoked.  On Unix and GNU/Linux systems,
-@samp{emacsclient} should either be invoked from another X window or
-from a shell window inside Emacs itself.
+@samp{emacsclient} should either be invoked from another X window, or
+from a shell window inside Emacs itself, or from another interactive
+session, e.g., by means of a @code{screen} program.
 
 @cindex @code{gnuserv}
 There is an enhanced version of @samp{emacsclient}/server called
@@ -2452,8 +2454,8 @@ To move a menu option from one position to another, simply evaluate
 
 More detailed information---and more examples of how to create and
 modify menu options---are in the @cite{Emacs Lisp Reference Manual}, under
-``Keymaps''.  (@xref{Emacs Lisp documentation}, for information on this
-manual.)
+``Menu Keymaps''.  (@xref{Emacs Lisp documentation}, for information on
+this manual.)
 
 @node Deleting menus and menu options, Turning on syntax highlighting, Modifying pull-down menus, Common requests
 @section How do I delete menus and menu options?
@@ -4859,7 +4861,7 @@ You may have big problems using @code{mwm} as your window manager.
 @item
 For X11: Make sure it really is a @key{Meta} key.  Use @code{xev} to
 find out what keysym your @key{Meta} key generates.  It should be either
-@key{Meta}_L or @key{Meta}_R.  If it isn't, use @file{xmodmap} to fix
+@code{Meta_L} or @code{Meta_R}.  If it isn't, use @file{xmodmap} to fix
 the situation.
 
 @item
