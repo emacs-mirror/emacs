@@ -1,5 +1,9 @@
 2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* startup.el (normal-top-level): Call `frame-set-background-mode'
+	after `frame-notice-user-settings' because the latter doesn't call
+	the former on a tty.
+
 	* faces.el (frame-set-background-mode): `unspecified' &c are
 	symbols, not strings.
 
