@@ -265,9 +265,6 @@ This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
   charset-list)
 
-(make-obsolete 'charset-list
-	       "Use the variable charset-list instead.")
-
 (defsubst generic-char-p (char)
   "Return t if and only if CHAR is a generic character.
 See also the documentation of make-char."
