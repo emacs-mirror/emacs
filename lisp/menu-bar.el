@@ -1282,6 +1282,9 @@ key (or menu-item)"))
 	   file))
 	(car elt)))
 
+;; Used to cache the menu entries for commands in the Buffers menu
+(defvar menu-bar-buffers-menu-command-entries nil)
+
 (defun menu-bar-update-buffers (&optional force)
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
@@ -1357,20 +1360,27 @@ key (or menu-item)"))
 			  `((frames-separator "--")
 			    (frames menu-item "Frames" ,frames-menu))))))
 
-	 ;; Add in some normal commands at the end of the menu
+	 ;; Add in some normal commands at the end of the menu.  We use
+	 ;; the copy cached in `menu-bar-buffers-menu-command-entries'
+	 ;; if it's been set already.  Note that we can't use constant
+	 ;; lists for the menu-entries, because the low-level menu-code
+	 ;; modifies them.
+	 (unless menu-bar-buffers-menu-command-entries
+	   (setq menu-bar-buffers-menu-command-entries
+		 (list '(command-separator "--")
+		       (list 'select-named-buffer
+			     'menu-item
+			     "Select Named Buffer..."
+			     'switch-to-buffer
+			     :help "Prompt for a buffer name, and select that buffer in the current window")
+		       (list 'list-all-buffers
+			     'menu-item
+			     "List All Buffers"
+			     'list-buffers
+			     :help "Pop up a window listing all emacs buffers"
+			     ))))
 	 (setq buffers-menu
-	       (nconc buffers-menu
-		      '((command-separator "--")
-			(select-named-buffer
-			 menu-item
-			 "Select Named Buffer..."
-			 switch-to-buffer
-			 :help "Prompt for a buffer name, and select that buffer in the current window")
-			(list-all-buffers
-			 menu-item
-			 "List All Buffers"
-			 list-buffers
-			 :help "Pop up a window listing all emacs buffers"))))
+	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))
 
 	 (setq buffers-menu (cons 'keymap (cons "Select Buffer" buffers-menu)))
 	 (define-key (current-global-map) [menu-bar buffer]
