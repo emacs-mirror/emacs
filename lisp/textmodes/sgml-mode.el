@@ -25,16 +25,6 @@
 ;;; Commentary:
 
 ;; Major mode for editing the SGML document-markup language.
-;;
-;; Some suggestions for your .emacs file:
-;;
-;; (autoload 'sgml-mode "sgml-mode" "SGML mode" t)
-;;
-;; (setq auto-mode-alist 
-;;       (append (list (cons "\\.sgm$" 'sgml-mode)
-;;                     (cons "\\.sgml$"  'sgml-mode)
-;;                     (cons "\\.dtd$" 'sgml-mode))
-;;               auto-mode-alist))
 
 ;;; Code:
 
