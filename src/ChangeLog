@@ -1,3 +1,13 @@
+2001-12-05  Andrew Innes  <andrewi@gnu.org>
+
+	* alloc.c (Fgarbage_collect): Shrink buffer gaps that are
+	excessively large.
+
+	* insdel.c (make_gap_larger): New function.
+	(make_gap_smaller): New function.
+	(make_gap) [USE_MMAP_FOR_BUFFERS || REL_ALLOC]: Call
+	make_gap_smaller if arg is negative.
+
 2001-12-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal prototype.
