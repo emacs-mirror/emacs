@@ -1778,7 +1778,7 @@ display_mode_line (w)
   /* I'm trying this out because I saw Unimpress use it, but it's
      possible that this may mess adversely with some window managers.  jla */
 
-  if (FRAME_IS_X (f)
+  if (FRAME_X_P (f)
       && ! FRAME_MINIBUF_ONLY_P (f)
       && w == XWINDOW (f->selected_window))
     x_set_name (f, ((XINT (Flength (Vframe_list)) > 1)
