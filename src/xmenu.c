@@ -1300,6 +1300,7 @@ single_submenu (item_key, item_name, maps)
   widget_value **submenu_stack;
   int mapno;
   int previous_items = menu_items_used;
+  int top_level_items = 0;
 
   length = Flength (maps);
   len = XINT (length);
@@ -1317,7 +1318,16 @@ single_submenu (item_key, item_name, maps)
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
   for (i = 0; i < len; i++)
-    single_keymap_panes (mapvec[i], item_name, item_key, 0);
+    {
+      if (SYMBOLP (mapvec[i]))
+	{
+	  top_level_items = 1;
+	  push_menu_pane (Qnil, Qnil);
+	  push_menu_item (item_name, Qt, item_key, mapvec[i], Qnil);
+	}
+      else
+	single_keymap_panes (mapvec[i], item_name, item_key, 0);
+    }
 
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
@@ -1330,6 +1340,7 @@ single_submenu (item_key, item_name, maps)
   wv->enabled = 1;
   first_wv = wv;
   save_wv = 0;
+  prev_wv = 0;
  
   /* Loop over all panes and items made during this call
      and construct a tree of widget_value objects.
@@ -1405,8 +1416,9 @@ single_submenu (item_key, item_name, maps)
 	  wv = malloc_widget_value ();
 	  if (prev_wv) 
 	    prev_wv->next = wv;
-	  else 
+	  else
 	    save_wv->contents = wv;
+
 	  wv->name = (char *) XSTRING (item_name)->data;
 	  if (!NILP (descrip))
 	    wv->key = (char *) XSTRING (descrip)->data;
@@ -1419,6 +1431,15 @@ single_submenu (item_key, item_name, maps)
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
+    }
+
+  /* If we have just one "menu item"
+     that was originally a button, return it by itself.  */
+  if (top_level_items && first_wv->contents && first_wv->contents->next == 0)
+    {
+      wv = first_wv->contents;
+      free_widget_value (first_wv);
+      return wv;
     }
 
   return first_wv;
