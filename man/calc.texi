@@ -34286,11 +34286,10 @@ press @kbd{M-# t} to begin.
 @appendix Reporting Bugs
 
 @noindent
-If you find a bug in Calc, send e-mail to Colin Walters,
+If you find a bug in Calc, send e-mail to Jay Belanger,
 
 @example
-walters@@debian.org           @r{or}
-walters@@verbum.org
+belanger@truman.edu
 @end example
 
 @noindent
