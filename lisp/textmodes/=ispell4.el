@@ -222,6 +222,9 @@ that have not already been dumped will be lost."
 (define-key ispell-menu-map [ispell-next]
   '("Continue Check" . ispell-next))
 
+(define-key ispell-menu-map [ispell-message]
+  '("Check Message" . ispell-message))
+
 (define-key ispell-menu-map [ispell-region]
   '("Check Region" . ispell-region))
 
@@ -603,6 +606,14 @@ L lookup; Q quit\n")
   (if (get-buffer " *problems in info file*")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
+
+(defun ispell-message ()
+  "Check the spelling for an outgoing mail message."
+  (interactive)
+  (save-excursion
+    (beginning-of-buffer)
+    (search-forward mail-header-separator nil t)
+    (ispell (current-buffer) (point))))
 
 (provide 'ispell)
 
