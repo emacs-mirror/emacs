@@ -35,6 +35,10 @@
 	(defimage-speedbar): Likewise.
 	(speedbar-convert-emacs21-imagespec-to-xemacs): Likewise.
 	(defimage-speedbar): Likewise.
+	(speedbar-vc-do-check): Likewise.
+	(speedbar-obj-do-check): Likewise.
+	(speedbar-mouse-hscroll): Likewise.
+	(speedbar-file-lists): Likewise.
 
 	* progmodes/idlw-shell.el (idlwave-shell-set-bp): Fix typo.
 
