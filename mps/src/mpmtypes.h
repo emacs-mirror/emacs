@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.52) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.53) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -257,8 +257,6 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define BufferModeATTACHED      ((BufferMode)(1<<0))
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
-/* Composite Buffer modes */
-#define BufferModeTRAPPED       (BufferModeFLIPPED|BufferModeLOGGED)
 
 
 /* Rank constants -- see design.mps.type.rank */
