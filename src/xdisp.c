@@ -20068,6 +20068,11 @@ erase_phys_cursor (w)
   if (!cursor_row->enabled_p)
     goto mark_cursor_off;
 
+  /* If line spacing is > 0, old cursor may only be partially visible in
+     window after split-window.  So adjust visible height.  */
+  cursor_row->visible_height = min (cursor_row->visible_height,
+				    window_text_bottom_y (w) - cursor_row->y);
+
   /* If row is completely invisible, don't attempt to delete a cursor which
      isn't there.  This can happen if cursor is at top of a window, and
      we switch to a buffer with a header line in that window.  */
