@@ -3247,8 +3247,8 @@ sigchld_handler (signo)
 	  
 	  XSETINT (p->tick, ++process_tick);
 	  u.wt = w;
-	  XSETFASTINT (p->raw_status_low, u.i & 0xffff);
-	  XSETFASTINT (p->raw_status_high, u.i >> 16);
+	  XSETINT (p->raw_status_low, u.i & 0xffff);
+	  XSETINT (p->raw_status_high, u.i >> 16);
 	  
 	  /* If process has terminated, stop waiting for its output.  */
 	  if ((WIFSIGNALED (w) || WIFEXITED (w))
