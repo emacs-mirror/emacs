@@ -1,6 +1,6 @@
 /* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.19) $
+ * $HopeName: MMsrc!testlib.c(trunk.20) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -57,14 +57,35 @@ void randomize(int argc, char **argv)
 }
 
 
+/* verror -- die with message */
+
+void verror(const char *str, const char *format, va_list args)
+{
+  fflush(stdout); /* synchronize */
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
+
+/* error -- die with message */
+
+void error(const char *str, const char *format, ...)
+{
+ va_list args;
+
+ va_start(args, format);
+ verror(str, format, args);
+ va_end(args);
+}
+
+
 /* die -- Test a return code, and exit on error */
 
 void die(mps_res_t res, const char *s)
 {
   if (res != MPS_RES_OK) {
-    fflush(stdout); /* synchronize */
-    fprintf(stderr, "\n%s: %d\n", s, res);
-    exit(1);
+    error("\n%s: %d\n", s, res);
   }
 }
 
@@ -74,9 +95,7 @@ void die(mps_res_t res, const char *s)
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
   if (res != expected) {
-    fflush(stdout); /* synchronize */
-    fprintf(stderr, "\n%s: %d\n", s, res);
-    exit(1);
+    error("\n%s: %d\n", s, res);
   }
 }
 
@@ -86,9 +105,7 @@ void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 void cdie(int res, const char *s)
 {
   if (!res) {
-    fflush(stdout); /* synchronize */
-    fprintf(stderr, "\n%s: %d\n", s, res);
-    exit(1);
+    error("\n%s: %d\n", s, res);
   }
 }
 
@@ -97,7 +114,7 @@ void cdie(int res, const char *s)
  *                           a given factor
  *
  * If sizes are adjusted too low, they are corrected so that all are
- * non-zero and noticeably larger than the ones for lower generations.
+ * non-zero and of reasonable size.
  */
 
 #define multSIZE(size, mult) ((size) = (unsigned long)((size) * (mult)))
