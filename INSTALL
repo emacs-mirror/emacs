@@ -559,7 +559,7 @@ To unpack Emacs with djtar, type this command:
 (This assumes that the Emacs distribution is called `emacs.tgz' on
 your system.)  There are a few files in the archive whose names
 collide with other files under the 8.3 DOS naming.  On native MSDOS,
-or if you have set LFN=n on Win95, djtar will ask you to supply
+or if you have set LFN=n on Windows 95, djtar will ask you to supply
 alternate names for these files; you can just press `Enter' when this
 happens (which makes djtar skip these files) because they aren't
 required for MS-DOS.
