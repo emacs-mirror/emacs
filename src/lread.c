@@ -844,7 +844,7 @@ Return t if file exists.  */)
 		  Lisp_Object file;
 		  file = Fsubstring (found, make_number (0), make_number (-1));
 		  message_with_string ("Source file `%s' newer than byte-compiled file",
-				       file, STRING_MULTIBYTE (file));
+				       file, 1);
 		}
 	    }
 	}
