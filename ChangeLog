@@ -18,7 +18,7 @@
 2003-12-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Check for <sys/socket.h>.  Include it before
-	including <net/if.h>.  Move check for <net/if.h> before it's use.
+	including <net/if.h>.  Move check for <net/if.h> before its use.
 
 2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
