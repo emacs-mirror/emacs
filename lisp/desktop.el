@@ -216,8 +216,11 @@ the like shorter.")
 and evaluated yields value.  quote may be 'may (value may be quoted),
 'must (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp val) (stringp val) (null val) (eq t val))
+   ((or (numberp val) (null val) (eq t val))
     (cons 'may (prin1-to-string val)))
+   ((stringp val)
+    ;; Get rid of text properties because we cannot read them
+    (cons 'may (prin1-to-string (format "%s" val))))
    ((symbolp val)
     (cons 'must (prin1-to-string val)))
    ((vectorp val)
@@ -448,10 +451,10 @@ autoloaded files."
 (defun desktop-buffer-rmail () "Load an RMAIL file."
   (if (eq 'rmail-mode mam)
       (condition-case error
-        (progn (rmail-input fn) t)
-      (file-locked
-       (kill-buffer (current-buffer))
-       'ignored))))
+	  (progn (rmail-input fn) t)
+	(file-locked
+	 (kill-buffer (current-buffer))
+	 'ignored))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-mh () "Load a folder in the mh system."
   (if (eq 'mh-folder-mode mam)
