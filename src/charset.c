@@ -191,49 +191,52 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 {
   int charset;
   unsigned char c1, c2;
-  register int c, bytes;
+  int c, bytes;
+  const unsigned char *begp = str;
 
-  c = *str;
+  c = *str++;
   bytes = 1;
 
   if (BASE_LEADING_CODE_P (c))
-    {
-      while (bytes < len && ! CHAR_HEAD_P (str[bytes])) bytes++;
+    do {
+      while (bytes < len && ! CHAR_HEAD_P (begp[bytes])) bytes++;
 
       if (c == LEADING_CODE_COMPOSITION)
 	{
-	  int cmpchar_id = str_cmpchar_id (str, bytes);
+	  int cmpchar_id = str_cmpchar_id (begp, bytes);
 
 	  if (cmpchar_id >= 0)
 	    {
 	      c = MAKE_COMPOSITE_CHAR (cmpchar_id);
-	      if (exclude_tail_garbage)
-		bytes = cmpchar_table[cmpchar_id]->len;
+	      str += cmpchar_table[cmpchar_id]->len;
 	    }
 	}
       else
 	{
+	  const unsigned char *endp = begp + bytes;
 	  int charset = c, c1, c2 = 0;
-	  int char_bytes = BYTES_BY_CHAR_HEAD (c);
 
-	  str++;
+	  if (str >= endp) break;
 	  if (c >= LEADING_CODE_PRIVATE_11 && c <= LEADING_CODE_PRIVATE_22)
-	    charset = *str++;
-	  if (char_bytes <= bytes)
 	    {
-	      c1 = *str++ & 0x7f;
-	      if (CHARSET_DEFINED_P (charset)
-		  && CHARSET_DIMENSION (charset) == 2)
-		c2 = *str & 0x7F;
-	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
-	      if (exclude_tail_garbage)
-		bytes = char_bytes;
+	      charset = *str++;
+	      if (str < endp)
+		c1 = *str++ & 0x7F;
+	      else
+		c1 = charset, charset = c;
 	    }
+	  else
+	    c1 = *str++ & 0x7f;
+	  if (CHARSET_DEFINED_P (charset)
+	      && CHARSET_DIMENSION (charset) == 2
+	      && str < endp)
+	    c2 = *str & 0x7F;
+	  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
 	}
-    }
+    } while (0);
 
   if (actual_len)
-    *actual_len = bytes;
+    *actual_len = exclude_tail_garbage ? str - begp : bytes;
   return c;
 }
 
@@ -987,7 +990,7 @@ char_valid_p (c, genericp)
   if (SINGLE_BYTE_CHAR_P (c))
     return 1;
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
-  if (!CHARSET_VALID_P (charset))
+  if (!CHARSET_DEFINED_P (charset))
     return 0;
   return (c < MIN_CHAR_COMPOSITION
 	  ? ((c & CHAR_FIELD1_MASK) /* i.e. dimension of C is two.  */
