@@ -1496,6 +1496,8 @@ per line.  Lines beginning with space or tab are ignored.
 **** The `::' qualifier triggers C++ parsing in C file.
 Previously, only the `template' and `class' keywords had this effect.
 
+**** The gnucc __attribute__ keyword is now recognised and ignored.
+
 **** New language HTML.
 Title and h1, h2, h3 are tagged.  Also, tags are generated when name= is
 used inside an anchor and whenever id= is used.
@@ -1504,7 +1506,8 @@ used inside an anchor and whenever id= is used.
 If you want the old behavior instead, thus avoiding to increase the
 size of the tags file, use the --no-globals option.
 
-**** In Lua, all functions are tagged.
+**** New language Lua.
+All functions are tagged.
 
 **** In Perl, packages are tags.
 Subroutine tags are named from their package.  You can jump to sub tags
@@ -1515,7 +1518,7 @@ package::sub.
 
 **** New language PHP.
 Tags are functions, classes and defines.
-If the --members option is specified to etags, tags are vars also.
+If the --members option is specified to etags, tags are variables also.
 
 **** New default keywords for TeX.
 The new keywords are def, newcommand, renewcommand, newenvironment and
