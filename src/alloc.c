@@ -2082,6 +2082,7 @@ compact_strings ()
 	      /* Store the actual size in the size field.  */
 	      newaddr->size = size;
 
+#ifdef USE_TEXT_PROPERTIES
 	      /* Now that the string has been relocated, rebalance its
                  interval tree, and update the tree's parent pointer. */
 	      if (! NULL_INTERVAL_P (newaddr->intervals))
@@ -2091,6 +2092,7 @@ compact_strings ()
 			Lisp_String,
 			newaddr);
 		}
+#endif /* USE_TEXT_PROPERTIES */
 	    }
 	  pos += STRING_FULLSIZE (size);
 	}
