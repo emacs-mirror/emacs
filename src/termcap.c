@@ -323,7 +323,7 @@ tputs (str, nlines, outfun)
     (*outfun) (*str++);
 
   /* PADCOUNT is now in units of tenths of msec.
-     SPEED is mesured in characters per 10 seconds
+     SPEED is measured in characters per 10 seconds
      or in characters per .1 seconds (if negative).
      We use the smaller units for larger speeds to avoid overflow.  */
   padcount *= speed;
