@@ -4,7 +4,7 @@
 
 ;; Author: Boris Goldowsky <boris@cs.rochester.edu>
 ;; Keywords: mouse
-;; $Revision: 1.10 $
+;; Version: 1.10
 
 ;; This file is part of GNU Emacs.
 
@@ -64,26 +64,6 @@
 ;;;   notably when there are long wrapped lines in the buffer.  Since
 ;;;   there is no low-level command for finding point's position
 ;;;   on the screen, it can fail to move the pointer when on such a line.
-;;;
-;;; Copyright (c) 1993 Free Software Foundation
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; A copy of the GNU General Public License can be obtained from this
-;;; program's author or from the Free Software Foundation, Inc., 675
-;;; Mass Ave, Cambridge, MA 02139, USA.
-
-;;; LCD Archive Entry:
-;;; avoid|Boris Goldowsky|boris@cs.rochester.edu|
-;;; Keep mouse pointer away from cursor|
-;;; $Date: 93/11/22 15:34:50 $ |$Revision: 1.10 $||
 
 ;;; Credits:
 ;;; This code was helped by all those who contributed suggestions, fixes, and 
