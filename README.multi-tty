@@ -189,6 +189,7 @@ Gergely Nagy <algernon at debian dot org>
 Mark Plaksin <happy at mcplaksin dot org>
 Francisco Borges <borges at let dot rug dot nl>
 Frank Ruell <stoerte at dreamwarrior dot net>
+Dan Waber <dwaber at logolalia dot com>
 and many others.
 
 Richard Stallman was kind enough to review an earlier version of my
@@ -213,6 +214,11 @@ THINGS TO DO
 ** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
+
+** Lisp-level stuff that needs to be updated for multi-tty:
+
+	- normal-erase-is-backspace-mode (simple.el)  (rep. by Dan Waber)
+
 
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.
