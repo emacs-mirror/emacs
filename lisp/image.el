@@ -132,10 +132,13 @@ means display it in the right marginal area."
     (setq image (list (list 'margin area) image)))
   (let ((start (point)))
     (insert string)
+    ;; Copy `image' so that inserting it twice in a row (adjacently)
+    ;; displays two copies of the image.
     (add-text-properties start (point)
-			 (list 'display image
+			 (list 'display (copy-sequence image)
+			       'intangible (list t) ; something unique
 			       'rear-nonsticky (list 'display)))))
-	
+
 
 ;;;###autoload
 (defun remove-images (start end &optional buffer)
