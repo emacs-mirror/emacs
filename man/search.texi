@@ -183,6 +183,7 @@ anticipate where the cursor will end up each time you press @kbd{C-s} or
 matches happens in a deferred fashion so as not to rob Isearch of its
 usual snappy response.
 @vindex isearch-lazy-highlight-cleanup
+@findex isearch-lazy-highlight-cleanup
 By default the highlighting of matches is cleared when you end the
 search.  Customize the variable @code{isearch-lazy-highlight-cleanup} to
 avoid cleaning up automatically.  The command @kbd{M-x
@@ -190,6 +191,14 @@ isearch-lazy-highlight-cleanup} can be used to clean up manually.
 @vindex isearch-lazy-highlight
 Customize the variable @code{isearch-lazy-highlight} to turn off this
 feature.
+
+@vindex isearch-lazy-highlight-face
+@cindex faces for highlighting search matches
+  You can control how does the highlighting of matches look like by
+customizing the faces @code{isearch} (highlights the current match) and
+@code{isearch-lazy-highlight-face} (highlights the other matches).  The
+former defaults to the @code{region} face, the latter to the
+@code{secodnary-selection} face.
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
