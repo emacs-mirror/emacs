@@ -5404,12 +5404,24 @@ move_it_vertically_backward (it, dy)
       else if (target_y >= it->current_y + line_height
 	       && IT_CHARPOS (*it) < ZV)
 	{
-	  /* Should move forward by at least one line, maybe more.  */
-	  do
+	  /* Should move forward by at least one line, maybe more.
+	     
+	     Note: Calling move_it_by_lines can be expensive on
+	     terminal frames, where compute_motion is used (via
+	     vmotion) to do the job, when there are very long lines
+	     and truncate-lines is nil.  That's the reason for
+	     treating terminal frames specially here.  */
+	  
+	  if (!FRAME_WINDOW_P (it->f))
+	    move_it_vertically (it, target_y - (it->current_y + line_height));
+	  else
 	    {
-	      move_it_by_lines (it, 1, 1);
+	      do
+		{
+		  move_it_by_lines (it, 1, 1);
+		}
+	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
 	    }
-	  while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
 
 	  xassert (IT_CHARPOS (*it) >= BEGV);
 	}
