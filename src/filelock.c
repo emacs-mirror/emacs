@@ -353,32 +353,64 @@ lock_superlock (lfname)
 {
   register int i, fd;
   DIR *lockdir;
+  struct stat first_stat, last_stat;
 
-  for (i = -20; i < 0 && (fd = open (superlock_file,
-				     O_WRONLY | O_EXCL | O_CREAT, 0666)) < 0;
+  for (i = -20; i < 0;
        i++)
     {
+      fd = open (superlock_file,
+		 O_WRONLY | O_EXCL | O_CREAT, 0666);
+
+      /* If we succeeded in creating the superlock, we win.
+	 Fill in our info and return.  */
+      if (fd >= 0)
+	{
+#ifdef USG
+	  chmod (superlock_file, 0666);
+#else
+	  fchmod (fd, 0666);
+#endif
+	  write (fd, lfname, strlen (lfname));
+	  close (fd);
+	  return;
+	}
+
+      /* If the problem is not just that it is already locked,
+	 give up.  */
       if (errno != EEXIST)
 	return;
+
+      message ("Superlock file exists, retrying...");
+
+      if (i == -20)
+	stat (superlock_file, &first_stat);
+
+      if (i == -1)
+	stat (superlock_file, &last_stat);
 
       /* This seems to be necessary to prevent Emacs from hanging when the
 	 competing process has already deleted the superlock, but it's still
 	 in the NFS cache.  So we force NFS to synchronize the cache.  */
-      if (lockdir = opendir (lock_dir))
+      lockdir = opendir (lock_dir);
+
+      if (lockdir)
 	closedir (lockdir);
 
       sleep (1);
     }
-  if (fd >= 0)
+
+  if (first_stat.st_ctime == last_stat.st_ctime)
     {
-#ifdef USG
-      chmod (superlock_file, 0666);
-#else
-      fchmod (fd, 0666);
-#endif
-      write (fd, lfname, strlen (lfname));
-      close (fd);
+      int value;
+      value = unlink (superlock_file);
+
+      if (value != -1)
+	message ("Superlock file deleted");
+      else
+	message ("Failed to delete superlock file");
     }
+  else
+    message ("Giving up on the superlock file");
 }
 
 void
