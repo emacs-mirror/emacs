@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.24) $
+ * $HopeName: MMsrc!arena.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -34,8 +34,9 @@
 
 /* finalization */
 #include "poolmrg.h"
+#include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.24) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.25) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1260,4 +1261,81 @@ Ref ArenaRead(Arena arena, Addr addr)
   AVER(res == ResOK);    /* @@@@ We shouldn't assume that this succeeds */
   /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, addr);
+}
+
+
+/* Heap Walking
+ *
+ * .trans.mod: There's no particular reason these functions belong in
+ * arena.c, it's just a matter of convenience.
+ */
+
+typedef struct FormattedObjectsStepClosureStruct *FormattedObjectsStepClosure;
+typedef struct FormattedObjectsStepClosureStruct {
+  mps_formatted_objects_stepper_t f;
+  Pool pool;
+  void *p;
+  unsigned long s;
+} FormattedObjectsStepClosureStruct;
+
+
+static void ArenaFormattedObjectsStep(Addr object, Format format,
+                                      void *p, unsigned long s)
+{
+  FormattedObjectsStepClosure c = p;
+  /* Can't check object */
+  /* Checking format would be too painful */
+  AVER(s == 0);
+
+  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)c->pool, 
+          c->p, c->s);
+}
+
+/* so called because it walk all formatted objects in an arena */
+static void ArenaFormattedObjectsWalk(Arena arena,
+                                      FormattedObjectsStepMethod f,
+	            	              void *p, unsigned long s)
+{
+  Seg seg;
+  FormattedObjectsStepClosure c;
+
+  AVERT(Arena, arena);
+  AVER(FUNCHECK(f));
+  AVER(f == ArenaFormattedObjectsStep);
+  /* p and s are arbitrary closure and can't be checked */
+  AVER(p != NULL);
+  AVER(s == 0);
+  c = p;
+
+  if(SegFirst(&seg, arena)) {
+    Addr base;
+    do {
+      Pool pool;
+      base = SegBase(seg);
+      pool = SegPool(seg);
+      if(pool->class->attr & AttrFMT) {
+        c->pool = pool;
+	PoolWalk(pool, seg, f, p, s);
+      }
+    } while(SegNext(&seg, arena, base));
+  }
+}
+
+void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
+                                      mps_formatted_objects_stepper_t f,
+			              void *p,
+			              unsigned long s)
+{
+  Arena arena = (Arena)mps_arena;
+  FormattedObjectsStepClosureStruct c;
+
+  ArenaEnter(arena);
+  AVERT(Arena, arena);
+  AVER(FUNCHECK(f));
+  /* p and s are arbitrary closures, hence can't be checked */
+  c.f = f;
+  c.p = p;
+  c.s = s;
+  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, 0);
+  ArenaLeave(arena);
 }
