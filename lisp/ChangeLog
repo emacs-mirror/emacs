@@ -1,3 +1,8 @@
+2004-05-10  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/ispell.el (ispell-message): Use
+	`message-cite-prefix-regexp' instead of `message-yank-prefix'.
+
 2004-05-10  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el (help-buffer): Autoload when compiling.
