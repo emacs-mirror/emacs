@@ -1,4 +1,4 @@
-2002-10-28  Juanma Barranquero  <lektu@terra.es>
+2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
 	Patch from Matt Swift <swift@alum.mit.edu>.
@@ -7,7 +7,7 @@
 
 	* comint.el (comint-password-prompt-regexp): Synch with main trunk.
 
-2002-10-24  Juanma Barranquero  <lektu@terra.es>
+2002-10-24  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
 	Patch from Matthew Swift <swift@alum.mit.edu>.
