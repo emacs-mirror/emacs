@@ -942,7 +942,8 @@ date.
 
   The name of the diary file is specified by the variable
 @code{diary-file}; @file{~/diary} is the default.  A sample diary file
-is:
+is (note that the file format is essentially the same as that used by
+the external shell utility @samp{calendar}):
 
 @example
 12/22/1988  Twentieth wedding anniversary!!
