@@ -12,15 +12,15 @@ world.
 NOTE-END  */
 
 /* Define MIPS2 if you have an R6000 or R4000.  */
-/* #define MIPS2 */
+#define MIPS2
 
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH -g -O
 #else
 #ifdef MIPS2
-#define C_DEBUG_SWITCH -systype bsd43 -O -Olimit 791 -g3 -mips2
+#define C_DEBUG_SWITCH -DMips -systype bsd43 -g3 -O -Olimit 2000 -mips2
 #else
-#define C_DEBUG_SWITCH -systype bsd43 -O -Olimit 791 -g3
+#define C_DEBUG_SWITCH -DMips -systype bsd43 -g3 -O -Olimit 2000
 #endif
 #endif
 
@@ -29,7 +29,7 @@ NOTE-END  */
 #endif
 
 #define START_FILES pre-crt0.o /lib/crt1.o
-#define LIB_STANDARD -lmld -lc /lib/crtn.o
+#define LIB_STANDARD -lisode -lmld -lc /lib/crtn.o
 
 
 #define COFF

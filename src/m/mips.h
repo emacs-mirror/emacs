@@ -85,6 +85,11 @@ NOTE-END  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / 256.0)
 
+/* CDC EP/IX 1.4.3 uses /unix */
+
+#undef KERNEL_FILE
+#define KERNEL_FILE "/unix"
+
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
