@@ -1534,7 +1534,7 @@ for \\[find-tag] (which see)."
 	   (insert completion))
 	  (t
 	   (message "Making completion list...")
-	   (with-output-to-temp-buffer " *Completions*"
+	   (with-output-to-temp-buffer "*Completions*"
 	     (display-completion-list
 	      (all-completions pattern 'tags-complete-tag nil)))
 	   (message "Making completion list...%s" "done")))))
