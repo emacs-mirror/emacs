@@ -35,7 +35,18 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
+#include <float.h>
 #include <stdlib.h>
+#endif
+
+/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*. */
+#ifndef IEEE_FLOATING_POINT
+#if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
+     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
+#define IEEE_FLOATING_POINT 1
+#else
+#define IEEE_FLOATING_POINT 0
+#endif
 #endif
 
 /* Work around a problem that happens because math.h on hpux 7
@@ -1912,6 +1923,7 @@ enum arithop
   { Aadd, Asub, Amult, Adiv, Alogand, Alogior, Alogxor, Amax, Amin };
 
 extern Lisp_Object float_arith_driver ();
+extern Lisp_Object fmod_float ();
 
 Lisp_Object
 arith_driver (code, nargs, args)
@@ -2029,7 +2041,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	    accum = next;
 	  else
 	    {
-	      if (next == 0)
+	      if (! IEEE_FLOATING_POINT && next == 0)
 		Fsignal (Qarith_error, Qnil);
 	      accum /= next;
 	    }
@@ -2136,20 +2148,8 @@ Both X and Y must be numbers or markers.")
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (y, 1);
 
   if (FLOATP (x) || FLOATP (y))
-    {
-      double f1, f2;
+    return fmod_float (x, y);
 
-      f1 = FLOATP (x) ? XFLOAT (x)->data : XINT (x);
-      f2 = FLOATP (y) ? XFLOAT (y)->data : XINT (y);
-      if (f2 == 0)
-	Fsignal (Qarith_error, Qnil);
-
-      f1 = fmod (f1, f2);
-      /* If the "remainder" comes out with the wrong sign, fix it.  */
-      if (f2 < 0 ? f1 > 0 : f1 < 0)
-	f1 += f2;
-      return (make_float (f1));
-    }
 #else /* not LISP_FLOAT_TYPE */
   CHECK_NUMBER_COERCE_MARKER (x, 0);
   CHECK_NUMBER_COERCE_MARKER (y, 1);
