@@ -114,14 +114,14 @@ emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */calc ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 finder_setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term | */calc ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
