@@ -641,7 +641,7 @@ space does not end a sentence, so don't break a line there."
 		(forward-line 1)))
 
 	  (if use-hard-newlines
-	      (remove-text-properties from (point-max) '(hard nil)))
+	      (remove-list-of-text-properties from to '(hard)))
 	  ;; Make sure first line is indented (at least) to left margin...
 	  (if (or (memq justify '(right center))
 		  (< (current-indentation) (current-left-margin)))
