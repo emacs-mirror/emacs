@@ -1,3 +1,7 @@
+2004-01-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fwindow_minibuffer_p): Doc fix.
+
 2004-01-24  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* editfns.c (Fformat): Make both passes accept the same set of flags.
