@@ -661,6 +661,19 @@ In any alternative for which @code{nil} is not a valid value, other than
 a @code{const}, you should specify a valid default for that alternative
 using the @code{:value} keyword.  @xref{Type Keywords}.
 
+If some values are covered by more than one of the alternatives,
+customize will choose the first alternative that the value fits.  This
+means you should always list the most specific types first, and the
+most general last.  Here's an example of proper usage:
+
+@example
+(choice (const :tag "Off" nil) symbol (sexp :tag "Other"))
+@end example
+
+@noindent
+This way, the special value @code{nil} is not treated like other
+symbols, and symbols are not treated like other Lisp expressions.
+
 @item (radio @var{element-types}@dots{})
 This is similar to @code{choice}, except that the choices are displayed
 using `radio buttons' rather than a menu.  This has the advantage of
