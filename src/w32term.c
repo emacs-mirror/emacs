@@ -10925,43 +10925,43 @@ syms_of_w32term ()
 
   DEFVAR_INT ("w32-num-mouse-buttons",
 	      &Vw32_num_mouse_buttons,
-	      "Number of physical mouse buttons.");
+	      doc: /* Number of physical mouse buttons.  */);
   Vw32_num_mouse_buttons = Qnil;
 
   DEFVAR_LISP ("w32-swap-mouse-buttons",
 	      &Vw32_swap_mouse_buttons,
-	      "Swap the mapping of middle and right mouse buttons.\n\
-When nil, middle button is mouse-2 and right button is mouse-3.");
+	       doc: /* Swap the mapping of middle and right mouse buttons.
+When nil, middle button is mouse-2 and right button is mouse-3.  */);
   Vw32_swap_mouse_buttons = Qnil;
 
   DEFVAR_LISP ("w32-grab-focus-on-raise",
 	       &Vw32_grab_focus_on_raise,
-	       "Raised frame grabs input focus.\n\
-When t, `raise-frame' grabs input focus as well.  This fits well\n\
-with the normal Windows click-to-focus policy, but might not be\n\
-desirable when using a point-to-focus policy.");
+	       doc: /* Raised frame grabs input focus.
+When t, `raise-frame' grabs input focus as well.  This fits well
+with the normal Windows click-to-focus policy, but might not be
+desirable when using a point-to-focus policy.  */);
   Vw32_grab_focus_on_raise = Qt;
 
   DEFVAR_LISP ("w32-capslock-is-shiftlock",
 	       &Vw32_capslock_is_shiftlock,
-	       "Apply CapsLock state to non character input keys.\n\
-When nil, CapsLock only affects normal character input keys.");
+	       doc: /* Apply CapsLock state to non character input keys.
+When nil, CapsLock only affects normal character input keys.  */);
   Vw32_capslock_is_shiftlock = Qnil;
 
   DEFVAR_LISP ("w32-recognize-altgr",
 	       &Vw32_recognize_altgr,
-	       "Recognize right-alt and left-ctrl as AltGr.\n\
-When nil, the right-alt and left-ctrl key combination is\n\
-interpreted normally."); 
+	       doc: /* Recognize right-alt and left-ctrl as AltGr.
+When nil, the right-alt and left-ctrl key combination is
+interpreted normally.  */); 
   Vw32_recognize_altgr = Qt;
 
   DEFVAR_BOOL ("w32-enable-unicode-output",
                &w32_enable_unicode_output,
-               "Enable the use of Unicode for text output if non-nil.\n\
-Unicode output may prevent some third party applications for displaying\n\
-Far-East Languages on Windows 95/98 from working properly.\n\
-NT uses Unicode internally anyway, so this flag will probably have no\n\
-affect on NT machines.");
+               doc: /* Enable the use of Unicode for text output if non-nil.
+Unicode output may prevent some third party applications for displaying
+Far-East Languages on Windows 95/98 from working properly.
+NT uses Unicode internally anyway, so this flag will probably have no
+affect on NT machines.  */);
   w32_enable_unicode_output = 1;
 
   help_echo = Qnil;
@@ -10975,23 +10975,23 @@ affect on NT machines.");
   help_echo_pos = -1;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
-    "*Non-nil means draw block cursor as wide as the glyph under it.\n\
-For example, if a block cursor is over a tab, it will be drawn as\n\
-wide as that tab on the display.");
+	       doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
+For example, if a block cursor is over a tab, it will be drawn as
+wide as that tab on the display.  */);
   x_stretch_cursor_p = 0;
 
 #if 0 /* TODO: Setting underline position from font properties.  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
-     "*Non-nil means make use of UNDERLINE_POSITION font properties.\n\
-Nil means ignore them.  If you encounter fonts with bogus\n\
-UNDERLINE_POSITION font properties, for example 7x13 on XFree prior\n\
-to 4.1, set this to nil.");
+	       doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+Nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
 #endif
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-    "If not nil, Emacs uses toolkit scroll bars.");
+	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);

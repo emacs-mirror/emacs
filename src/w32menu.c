@@ -584,38 +584,37 @@ list_of_items (pane)
 }
 
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-  "Pop up a deck-of-cards menu and return user's selection.\n\
-POSITION is a position specification.  This is either a mouse button event\n\
-or a list ((XOFFSET YOFFSET) WINDOW)\n\
-where XOFFSET and YOFFSET are positions in pixels from the top left\n\
-corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)\n\
-This controls the position of the center of the first line\n\
-in the first pane of the menu, not the top left of the menu as a whole.\n\
-If POSITION is t, it means to use the current mouse position.\n\
-\n\
-MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.\n\
-The menu items come from key bindings that have a menu string as well as\n\
-a definition; actually, the \"definition\" in such a key binding looks like\n\
-\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into\n\
-the keymap as a top-level element.\n\n\
-If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.\n\
-Otherwise, REAL-DEFINITION should be a valid key binding definition.\n\
-\n\
-You can also use a list of keymaps as MENU.\n\
-  Then each keymap makes a separate pane.\n\
-When MENU is a keymap or a list of keymaps, the return value\n\
-is a list of events.\n\n\
-\n\
-Alternatively, you can specify a menu of multiple panes\n\
-  with a list of the form (TITLE PANE1 PANE2...),\n\
-where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
-Each ITEM is normally a cons cell (STRING . VALUE);\n\
-but a string can appear as an item--that makes a nonselectable line\n\
-in the menu.\n\
-With this form of menu, the return value is VALUE from the chosen item.\n\
-\n\
-If POSITION is nil, don't display the menu at all, just precalculate the\n\
-cached information about equivalent key sequences.")
+       doc: /* Pop up a deck-of-cards menu and return user's selection.
+POSITION is a position specification.  This is either a mouse button
+event or a list ((XOFFSET YOFFSET) WINDOW) where XOFFSET and YOFFSET
+are positions in pixels from the top left corner of WINDOW's frame
+\(WINDOW may be a frame object instead of a window).  This controls the
+position of the center of the first line in the first pane of the
+menu, not the top left of the menu as a whole.  If POSITION is t, it
+means to use the current mouse position.
+
+MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
+The menu items come from key bindings that have a menu string as well as
+a definition; actually, the \"definition\" in such a key binding looks like
+\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
+the keymap as a top-level element.
+
+If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
+Otherwise, REAL-DEFINITION should be a valid key binding definition.
+
+You can also use a list of keymaps as MENU.  Then each keymap makes a
+separate pane.  When MENU is a keymap or a list of keymaps, the return
+value is a list of events.
+
+Alternatively, you can specify a menu of multiple panes with a list of
+the form (TITLE PANE1 PANE2...), where each pane is a list of
+form (TITLE ITEM1 ITEM2...).
+Each ITEM is normally a cons cell (STRING . VALUE); but a string can
+appear as an item--that makes a nonselectable line in the menu.
+With this form of menu, the return value is VALUE from the chosen item.
+
+If POSITION is nil, don't display the menu at all, just precalculate the
+cached information about equivalent key sequences.  */)
   (position, menu)
      Lisp_Object position, menu;
 {
@@ -808,20 +807,21 @@ cached information about equivalent key sequences.")
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
-  "Pop up a dialog box and return user's selection.\n\
-POSITION specifies which frame to use.\n\
-This is normally a mouse button event or a window or frame.\n\
-If POSITION is t, it means to use the frame the mouse is on.\n\
-The dialog box appears in the middle of the specified frame.\n\
-\n\
-CONTENTS specifies the alternatives to display in the dialog box.\n\
-It is a list of the form (TITLE ITEM1 ITEM2...).\n\
-Each ITEM is a cons cell (STRING . VALUE).\n\
-The return value is VALUE from the chosen item.\n\n\
-An ITEM may also be just a string--that makes a nonselectable item.\n\
-An ITEM may also be nil--that means to put all preceding items\n\
-on the left of the dialog box and all following items on the right.\n\
-\(By default, approximately half appear on each side.)")
+       doc: /* Pop up a dialog box and return user's selection.
+POSITION specifies which frame to use.
+This is normally a mouse button event or a window or frame.
+If POSITION is t, it means to use the frame the mouse is on.
+The dialog box appears in the middle of the specified frame.
+
+CONTENTS specifies the alternatives to display in the dialog box.
+It is a list of the form (TITLE ITEM1 ITEM2...).
+Each ITEM is a cons cell (STRING . VALUE).
+The return value is VALUE from the chosen item.
+
+An ITEM may also be just a string--that makes a nonselectable item.
+An ITEM may also be nil--that means to put all preceding items
+on the left of the dialog box and all following items on the right.
+\(By default, approximately half appear on each side.)  */)
   (position, contents)
      Lisp_Object position, contents;
 {
@@ -2229,8 +2229,8 @@ syms_of_w32menu ()
   staticpro (&Qdebug_on_next_call);
 
   DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
-    "Frame for which we are updating a menu.\n\
-The enable predicate for a menu command should check this variable.");
+	       doc: /* Frame for which we are updating a menu.
+The enable predicate for a menu command should check this variable.  */);
   Vmenu_updating_frame = Qnil;
 
   defsubr (&Sx_popup_menu);

@@ -51,7 +51,7 @@ static size_t clipboard_storage_size = 0;
 
 #if 0
 DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
-       "This opens the clipboard with the given frame pointer.")
+       doc: /* This opens the clipboard with the given frame pointer.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -69,8 +69,10 @@ DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
   return (ok ? frame : Qnil);
 }
 
-DEFUN ("w32-empty-clipboard", Fw32_empty_clipboard, Sw32_empty_clipboard, 0, 0, 0,
-       "This empties the clipboard and assigns ownership to the window which opened the clipboard.")
+DEFUN ("w32-empty-clipboard", Fw32_empty_clipboard,
+       Sw32_empty_clipboard, 0, 0, 0,
+       doc: /* Empty the clipboard.
+Assigns ownership of the clipboard to the window which opened it.  */)
      ()
 {
   BOOL ok = FALSE;
@@ -84,8 +86,9 @@ DEFUN ("w32-empty-clipboard", Fw32_empty_clipboard, Sw32_empty_clipboard, 0, 0, 
   return (ok ? Qt : Qnil);
 }
 
-DEFUN ("w32-close-clipboard", Fw32_close_clipboard, Sw32_close_clipboard, 0, 0, 0,
-       "This closes the clipboard.")
+DEFUN ("w32-close-clipboard", Fw32_close_clipboard,
+       Sw32_close_clipboard, 0, 0, 0,
+       doc: /* Close the clipboard.  */)
      ()
 {
   BOOL ok = FALSE;
@@ -101,8 +104,9 @@ DEFUN ("w32-close-clipboard", Fw32_close_clipboard, Sw32_close_clipboard, 0, 0, 
 
 #endif
 
-DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_data, 1, 2, 0,
-       "This sets the clipboard data to the given text.")
+DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
+       Sw32_set_clipboard_data, 1, 2, 0,
+       doc: /* This sets the clipboard data to the given text.  */)
     (string, frame)
     Lisp_Object string, frame;
 {
@@ -248,8 +252,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
   return (ok ? string : Qnil);
 }
 
-DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_data, 0, 1, 0,
-       "This gets the clipboard data in text format.")
+DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
+       Sw32_get_clipboard_data, 0, 1, 0,
+       doc: /* This gets the clipboard data in text format.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -394,13 +399,13 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 /* Support checking for a clipboard selection. */
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-  0, 1, 0,
-  "Whether there is an owner for the given X Selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.")
+       0, 1, 0,
+       doc: /* Whether there is an owner for the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.  */)
   (selection)
      Lisp_Object selection;
 {
@@ -442,18 +447,17 @@ syms_of_w32select ()
   defsubr (&Sx_selection_exists_p);
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-    "Coding system for communicating with other X clients.\n\
-When sending or receiving text via cut_buffer, selection, and clipboard,\n\
-the text is encoded or decoded by this coding system.\n\
-A default value is `compound-text'");
+	       doc: /* Coding system for communicating with other programs.
+When sending or receiving text via cut_buffer, selection, and clipboard,
+the text is encoded or decoded by this coding system.  */);
   Vselection_coding_system=intern ("iso-latin-1-dos");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-    "Coding system for the next communication with other X clients.\n\
-Usually, `selection-coding-system' is used for communicating with\n\
-other X clients.   But, if this variable is set, it is used for the\n\
-next communication only.   After the communication, this variable is\n\
-set to nil.");
+	       doc: /* Coding system for the next communication with other programs.
+Usually, `selection-coding-system' is used for communicating with
+other programs.   But, if this variable is set, it is used for the
+next communication only.   After the communication, this variable is
+set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);

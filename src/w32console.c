@@ -420,11 +420,11 @@ w32_sys_ring_bell (void)
 }
 
 DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
-       "Set the sound generated when the bell is rung.\n\
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent\n\
-to use the corresponding system sound for the bell.  The 'silent sound\n\
-prevents Emacs from making any sound at all.\n\
-SOUND is nil to use the normal beep.")
+       doc: /* Set the sound generated when the bell is rung.
+SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
+to use the corresponding system sound for the bell.  The 'silent sound
+prevents Emacs from making any sound at all.
+SOUND is nil to use the normal beep.  */)
      (sound)
      Lisp_Object sound;
 {
@@ -682,7 +682,7 @@ initialize_w32_display (void)
 }
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
-       "Set screen colors.")
+       doc: /* Set screen colors.  */)
     (foreground, background)
     Lisp_Object foreground;
     Lisp_Object background;
@@ -694,7 +694,7 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
 }
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
-       "Set cursor size.")
+       doc: /* Set cursor size.  */)
     (size)
     Lisp_Object size;
 {
@@ -728,11 +728,11 @@ syms_of_ntterm ()
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
                &w32_use_full_screen_buffer,
-  "Non-nil means make terminal frames use the full screen buffer dimensions.\n\
-This is desirable when running Emacs over telnet, and is the default.\n\
-A value of nil means use the current console window dimensions; this\n\
-may be preferrable when working directly at the console with a large\n\
-scroll-back buffer.");
+	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
+This is desirable when running Emacs over telnet, and is the default.
+A value of nil means use the current console window dimensions; this
+may be preferrable when working directly at the console with a large
+scroll-back buffer.  */);
   w32_use_full_screen_buffer = 1;
 
   defsubr (&Sset_screen_color);
