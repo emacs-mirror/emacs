@@ -5,6 +5,9 @@
 
 2001-01-02  Dave Love  <fx@gnu.org>
 
+	* net/browse-url.el (browse-url-filename-alist): Avoid backquote
+	read syntax.
+
 	* calendar/todo-mode.el (todo): Add :link, :version.
 	(todo-save-top-priorities): Remove autoload cookie.
 	(todo-add-category, todo-add-item-non-interactively)
