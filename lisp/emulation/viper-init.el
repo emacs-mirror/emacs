@@ -204,28 +204,28 @@ the Ex command :map!.")
 (viper-deflocalvar viper-replace-minor-mode nil
   "Minor mode in effect in replace state (cw, C, and the like commands).")
 
-;; Mode for vital things like \C-z and \C-x)
-;; This is t, by default. So, any new buffer will have C-z defined as
-;; switch to Vi, unless we switched states in this buffer
-(viper-deflocalvar viper-emacs-intercept-minor-mode t)
+;; Mode for vital things like \C-z and \C-x) This is set to t, when viper-mode
+;; is invoked. So, any new buffer will have C-z defined as switch to Vi, unless
+;; we switched states in this buffer
+(viper-deflocalvar viper-emacs-intercept-minor-mode nil)
   
-(viper-deflocalvar viper-emacs-local-user-minor-mode t
+(viper-deflocalvar viper-emacs-local-user-minor-mode nil
   "Minor mode for local user bindings effective in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
 state.")  
   
-(viper-deflocalvar viper-emacs-global-user-minor-mode t
+(viper-deflocalvar viper-emacs-global-user-minor-mode nil
   "Minor mode for global user bindings in effect in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
 state.")  
 
-(viper-deflocalvar viper-emacs-kbd-minor-mode t
+(viper-deflocalvar viper-emacs-kbd-minor-mode nil
   "Minor mode for Vi style macros in Emacs state.
 The corresponding keymap stores key bindings of Vi macros defined with
 `viper-record-kbd-macro' command. There is no Ex-level command to do this
 interactively.")
 
-(viper-deflocalvar viper-emacs-state-modifier-minor-mode t
+(viper-deflocalvar viper-emacs-state-modifier-minor-mode nil
   "Minor mode used to make major-mode-specific modification to Emacs state.
 For instance, a Vi purist may want to bind `dd' in Dired mode to a function
 that deletes a file.")

@@ -25,12 +25,6 @@
 
 (provide 'ediff-merg)
 
-(defgroup ediff-merge nil
-  "Merging utilities"
-  :prefix "ediff-"
-  :group 'ediff)
-
-
 ;; compiler pacifier
 (defvar ediff-window-A)
 (defvar ediff-window-B)
@@ -138,7 +132,6 @@ skiped over. Nil means show all regions.")
     ))
     
 (defun ediff-set-merge-mode ()
-  ;; by Stig@hackvan.com
   (normal-mode t)
   (remove-hook 'local-write-file-hooks 'ediff-set-merge-mode))
 

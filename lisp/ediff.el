@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.671" "The current version of Ediff")
-(defconst ediff-date "September 23, 1997" "Date of last update")  
+(defconst ediff-version "2.69" "The current version of Ediff")
+(defconst ediff-date "October 10, 1997" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -314,7 +314,9 @@
 	     (ediff-verify-file-buffer))))
     (set file-var file)))
 
-(defun ediff-files-internal (file-A file-B file-C startup-hooks job-name)
+;; MERGE-BUFFER-FILE is the file to be associated with the merge buffer
+(defun ediff-files-internal (file-A file-B file-C startup-hooks job-name
+				    &optional merge-buffer-file)
   (let (buf-A buf-B buf-C)
     (message "Reading file %s ... " file-A)
     ;;(sit-for 0)
@@ -335,7 +337,8 @@
 		 buf-B file-B
 		 buf-C file-C
 		 startup-hooks
-		 (list (cons 'ediff-job-name job-name)))))
+		 (list (cons 'ediff-job-name job-name))
+		 merge-buffer-file)))
   
 
 ;;;###autoload
@@ -394,7 +397,9 @@
       
 
 			
-(defun ediff-buffers-internal (buf-A buf-B buf-C startup-hooks job-name)
+;; MERGE-BUFFER-FILE is the file to be associated with the merge buffer
+(defun ediff-buffers-internal (buf-A buf-B buf-C startup-hooks job-name
+				     &optional merge-buffer-file)
   (let* ((buf-A-file-name (buffer-file-name (get-buffer buf-A)))
 	 (buf-B-file-name (buffer-file-name (get-buffer buf-B)))
 	 (buf-C-is-alive (ediff-buffer-live-p buf-C))
@@ -432,7 +437,7 @@
 			    ))
 		       startup-hooks)
 		 (list (cons 'ediff-job-name job-name))
-		 )))
+		 merge-buffer-file)))
 
 
 ;;; Directory and file group operations
@@ -938,8 +943,7 @@ Continue anyway? (y/n) "))
 		  (list (cons 'ediff-word-mode  word-mode)
 			(cons 'ediff-narrow-bounds (list overl-A overl-B))
 			(cons 'ediff-job-name job-name))
-		  setup-parameters)
-		 )
+		  setup-parameters))
     ))
     
  
@@ -954,7 +958,10 @@ Continue anyway? (y/n) "))
     (set-buffer-modified-p nil)))
 
 ;;;###autoload
-(defun ediff-merge-files (file-A file-B &optional startup-hooks)
+(defun ediff-merge-files (file-A file-B
+				 ;; MERGE-BUFFER-FILE is the file to be
+				 ;; associated with the merge buffer 
+				 &optional startup-hooks merge-buffer-file)
   "Merge two files without ancestor."
   (interactive
    (let ((dir-A (if ediff-use-last-dir
@@ -986,11 +993,17 @@ Continue anyway? (y/n) "))
 			  file-B)
 			  nil ; file-C
 			  startup-hooks
-			  'ediff-merge-files))
+			  'ediff-merge-files
+			  merge-buffer-file))
 			  
 ;;;###autoload
 (defun ediff-merge-files-with-ancestor (file-A file-B file-ancestor
-					       &optional startup-hooks)
+					       &optional
+					       startup-hooks
+					       ;; MERGE-BUFFER-FILE is the file
+					       ;; to be associated with the
+					       ;; merge buffer
+					       merge-buffer-file)
   "Merge two files with ancestor."
   (interactive
    (let ((dir-A (if ediff-use-last-dir
@@ -1036,13 +1049,18 @@ Continue anyway? (y/n) "))
 			  file-B)
 			  file-ancestor
 			  startup-hooks
-			  'ediff-merge-files-with-ancestor))
+			  'ediff-merge-files-with-ancestor
+			  merge-buffer-file))
 			  
 ;;;###autoload
 (defalias 'ediff-merge-with-ancestor 'ediff-merge-files-with-ancestor)
 			  
 ;;;###autoload
-(defun ediff-merge-buffers (buffer-A buffer-B &optional startup-hooks job-name)
+(defun ediff-merge-buffers (buffer-A buffer-B
+				     &optional
+				     ;; MERGE-BUFFER-FILE is the file to be
+				     ;; associated with the merge buffer
+				     startup-hooks job-name merge-buffer-file)
   "Merge buffers without ancestor."
   (interactive 
    (let (bf)
@@ -1059,12 +1077,17 @@ Continue anyway? (y/n) "))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))
   (or job-name (setq job-name 'ediff-merge-buffers))
   (ediff-buffers-internal
-   buffer-A buffer-B nil startup-hooks job-name))
+   buffer-A buffer-B nil startup-hooks job-name merge-buffer-file))
    
 ;;;###autoload
-(defun ediff-merge-buffers-with-ancestor (buffer-A 
-					  buffer-B buffer-ancestor
-					  &optional startup-hooks job-name)
+(defun ediff-merge-buffers-with-ancestor (buffer-A buffer-B buffer-ancestor
+						   &optional
+						   startup-hooks
+						   job-name
+						   ;; MERGE-BUFFER-FILE is the
+						   ;; file to be associated
+						   ;; with the merge buffer
+						   merge-buffer-file)
   "Merge buffers with ancestor."
   (interactive 
    (let (bf bff)
@@ -1089,11 +1112,12 @@ Continue anyway? (y/n) "))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))
   (or job-name (setq job-name 'ediff-merge-buffers-with-ancestor))
   (ediff-buffers-internal
-   buffer-A buffer-B buffer-ancestor startup-hooks job-name))
+   buffer-A buffer-B buffer-ancestor startup-hooks job-name merge-buffer-file))
       
 
 ;;;###autoload
-(defun ediff-merge-revisions (&optional file startup-hooks)
+(defun ediff-merge-revisions (&optional file startup-hooks merge-buffer-file)
+  ;; MERGE-BUFFER-FILE is the file to be associated with the merge buffer
   "Run Ediff by merging two revisions of a file.
 The file is the optional FILE argument or the file visited by the current
 buffer."
@@ -1116,11 +1140,16 @@ buffer."
     ;; ancestor-revision=nil
     (funcall
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
-     rev1 rev2 nil startup-hooks)))
+     rev1 rev2 nil startup-hooks merge-buffer-file)))
     
 
 ;;;###autoload
-(defun ediff-merge-revisions-with-ancestor (&optional file startup-hooks)
+(defun ediff-merge-revisions-with-ancestor (&optional
+					    file startup-hooks
+					    ;; MERGE-BUFFER-FILE is the file to
+					    ;; be associated with the merge
+					    ;; buffer
+					    merge-buffer-file)
   "Run Ediff by merging two revisions of a file with a common ancestor.
 The file is the the optional FILE argument or the file visited by the current
 buffer."
@@ -1148,7 +1177,7 @@ buffer."
     (ediff-load-version-control)
     (funcall
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
-     rev1 rev2 ancestor-rev startup-hooks)))
+     rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
 ;;;###autoload
 (defun run-ediff-from-cvs-buffer (pos)

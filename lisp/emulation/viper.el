@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "3.001 (Polyglot) of September 23, 1997"
+(defconst viper-version "3.002 (Polyglot) of October 23, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -385,6 +385,8 @@ it comes up in a wrong Viper state."
 
 ;;;###autoload
 (defun toggle-viper-mode ()
+  "Toggle Viper on/off.
+If Viper is enabled, turn it off. Otherwise, turn it on."
   (interactive)
   (if (eq viper-mode t)
       (viper-go-away)
@@ -1208,6 +1210,26 @@ These two lines must come in the order given.
 (define-key viper-vi-intercept-map viper-toggle-key 'viper-toggle-key-action)
 (define-key
   viper-emacs-intercept-map viper-toggle-key 'viper-change-state-to-vi)
+  
+;;; Escape from Emacs and Insert modes to Vi for one command
+(define-key 
+  viper-emacs-intercept-map "\C-c\\" 'viper-escape-to-vi)
+(define-key 
+  viper-insert-intercept-map "\C-c\\" 'viper-escape-to-vi)
+
+(if viper-mode
+    (progn
+      (setq viper-emacs-intercept-minor-mode t
+	    viper-emacs-local-user-minor-mode t
+	    viper-emacs-global-user-minor-mode t
+	    viper-emacs-kbd-minor-mode t
+	    viper-emacs-state-modifier-minor-mode t)
+      (setq-default viper-emacs-intercept-minor-mode t
+		    viper-emacs-local-user-minor-mode t
+		    viper-emacs-global-user-minor-mode t
+		    viper-emacs-kbd-minor-mode t
+		    viper-emacs-state-modifier-minor-mode t)
+      ))
 
 
 (if (and viper-mode
@@ -1219,7 +1241,7 @@ These two lines must come in the order given.
 ;; this may not be enough, so we also set default minor-mode-alist.
 ;; Without setting the default, new buffers that come up in emacs mode have
 ;; minor-mode-map-alist = nil, unless we call viper-change-state-*
-(if (eq viper-current-state 'emacs-state)
+(if (and viper-mode (eq viper-current-state 'emacs-state))
     (progn
       (viper-change-state-to-emacs)
       (setq-default minor-mode-map-alist minor-mode-map-alist)

@@ -59,6 +59,11 @@ to a shell that you are not using or, better, fix your shell's startup file."
   :type 'string
   :group 'ediff-diff)
 
+(defcustom ediff-cmp-program "cmp"
+  "*Utility to use to determine if two files are identical.
+It must return code 0, if its arguments are identical files."
+  :type 'string
+  :group 'ediff-diff)
 
 (defcustom ediff-diff-program "diff"
   "*Program to use for generating the differential of the two files."
@@ -1234,6 +1239,11 @@ argument to `skip-chars-forward'."
       (if (and flag (> n 0))
 	  (funcall fwd-word-fun))
       (point))))
+
+(defun ediff-same-file-contents (f1 f2)
+  "T if F1 and F2 have identical contents."
+  (let ((res (call-process ediff-cmp-program nil nil nil f1 f2)))
+    (and (numberp res) (eq res 0))))
 
 
 ;;; Local Variables:

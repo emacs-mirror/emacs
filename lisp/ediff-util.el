@@ -178,7 +178,7 @@ to invocation.")
   (define-key ediff-mode-map "E" 'ediff-documentation)
   (define-key ediff-mode-map "?" 'ediff-toggle-help)
   (define-key ediff-mode-map "!" 'ediff-update-diffs)
-  (define-key ediff-mode-map "M" 'ediff-show-meta-buffer)
+  (define-key ediff-mode-map "M" 'ediff-show-current-session-meta-buffer)
   (define-key ediff-mode-map "R" 'ediff-show-registry)
   (or ediff-word-mode
       (define-key ediff-mode-map "*" 'ediff-make-or-kill-fine-diffs))
@@ -251,7 +251,8 @@ to invocation.")
 ;; STARTUP-HOOKS, but these parameters are set in the new control buffer right
 ;; after this buf is created and before any windows are set and such.
 (defun ediff-setup (buffer-A file-A buffer-B file-B buffer-C file-C
-			     startup-hooks setup-parameters)
+			     startup-hooks setup-parameters
+			     &optional merge-buffer-file)
   ;; ediff-convert-standard-filename puts file names in the form appropriate
   ;; for the OS at hand.
   (setq file-A (ediff-convert-standard-filename (expand-file-name file-A)))
@@ -259,6 +260,21 @@ to invocation.")
   (if (stringp file-C)
       (setq file-C
 	    (ediff-convert-standard-filename (expand-file-name file-C))))
+  (if (stringp merge-buffer-file)
+      (progn
+	(setq merge-buffer-file 
+	      (ediff-convert-standard-filename
+	       (expand-file-name merge-buffer-file)))
+	;; check the directory exists
+	(or (file-exists-p (file-name-directory merge-buffer-file))
+	    (error "Directory %s given as place to save the merge doesn't exist."
+		   (abbreviate-file-name 
+		    (file-name-directory merge-buffer-file))))
+	(if (and (file-exists-p merge-buffer-file)
+		 (file-directory-p merge-buffer-file))
+	    (error "The merge buffer file %s must not be a directory"
+		   (abbreviate-file-name merge-buffer-file)))
+	))
   (let* ((control-buffer-name 
 	  (ediff-unique-buffer-name "*Ediff Control Panel" "*"))
 	 (control-buffer (ediff-with-current-buffer buffer-A
@@ -327,7 +343,6 @@ to invocation.")
 	      (set-buffer buffer-C)
 	      (insert-buffer buf)
 	      (funcall (ediff-with-current-buffer buf major-mode))
-	      ;; after Stig@hackvan.com
 	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
 	      )))
       (setq buffer-read-only nil    
@@ -489,13 +504,16 @@ to invocation.")
       (ediff-visible-region)
       
       (run-hooks 'startup-hooks)
+      (ediff-arrange-autosave-in-merge-jobs merge-buffer-file)
+
       (ediff-refresh-mode-lines)
       (setq buffer-read-only t)
       (setq ediff-session-registry
 	    (cons control-buffer ediff-session-registry))
       (ediff-update-registry)
       (if (ediff-buffer-live-p ediff-meta-buffer)
-	  (ediff-update-meta-buffer ediff-meta-buffer))
+	  (ediff-update-meta-buffer
+	   ediff-meta-buffer nil ediff-meta-session-number))
       (run-hooks 'ediff-startup-hook)
       ) ; eval in control-buffer
     control-buffer))
@@ -536,7 +554,25 @@ to invocation.")
     (goto-char (point-min))
     (skip-chars-forward ediff-whitespace)))
     
-    
+;; This executes in control buffer and sets auto-save, visited file name, etc,
+;; in the merge buffer
+(defun ediff-arrange-autosave-in-merge-jobs (merge-buffer-file)
+  (if (not ediff-merge-job)
+      ()
+    (if (stringp merge-buffer-file)
+	(setq ediff-autostore-merges t
+	      ediff-merge-store-file merge-buffer-file))
+    (if (stringp ediff-merge-store-file)
+	(progn
+	  ;; save before leaving ctl buffer
+	  (setq merge-buffer-file ediff-merge-store-file) 
+	  (ediff-with-current-buffer ediff-buffer-C
+	    (set-visited-file-name merge-buffer-file))))
+    (ediff-with-current-buffer ediff-buffer-C
+      (setq buffer-offer-save t) ; ask before killing buffer
+      ;; make sure the contents is auto-saved
+      (auto-save-mode 1))
+    ))
 
 
 ;;; Commands for working with Ediff
@@ -1330,13 +1366,15 @@ Used in ediff-windows/regions only."
 		    'C  ediff-visible-bounds))
 	  )
       (ediff-with-current-buffer ediff-buffer-A
-	(narrow-to-region
-	 (ediff-overlay-start overl-A) (ediff-overlay-end overl-A)))
+	(if (ediff-overlay-buffer overl-A)
+	    (narrow-to-region
+	     (ediff-overlay-start overl-A) (ediff-overlay-end overl-A))))
       (ediff-with-current-buffer ediff-buffer-B
-	(narrow-to-region
-	 (ediff-overlay-start overl-B) (ediff-overlay-end overl-B)))
+	(if (ediff-overlay-buffer overl-B)
+	    (narrow-to-region
+	     (ediff-overlay-start overl-B) (ediff-overlay-end overl-B))))
       
-      (if ediff-3way-job
+      (if (and ediff-3way-job (ediff-overlay-buffer overl-C))
 	  (ediff-with-current-buffer ediff-buffer-C
 	    (narrow-to-region
 	     (ediff-overlay-start overl-C) (ediff-overlay-end overl-C))))
@@ -2291,6 +2329,7 @@ temporarily reverses the meaning of this variable."
   ;; restore buffer mode line id's in buffer-A/B/C
   (let ((control-buffer ediff-control-buffer)
 	(meta-buffer ediff-meta-buffer)
+	(session-number ediff-meta-session-number)
 	;; suitable working frame
 	(warp-frame (if (and (ediff-window-display-p) (eq ediff-grab-mouse t))
 			(cond ((window-live-p ediff-window-A) 
@@ -2355,7 +2394,7 @@ temporarily reverses the meaning of this variable."
     (or ediff-keep-variants (ediff-janitor 'ask)))
 
   (run-hooks 'ediff-quit-hook)
-  (ediff-cleanup-meta-buffer meta-buffer)
+  (ediff-update-meta-buffer meta-buffer nil session-number)
 
   ;; warp mouse into a working window
   (setq warp-frame  ; if mouse is over a reasonable frame, use it
@@ -2368,7 +2407,7 @@ temporarily reverses the meaning of this variable."
 			  2 1))
 
   (if (ediff-buffer-live-p meta-buffer)
-      (ediff-show-meta-buffer meta-buffer))
+      (ediff-show-meta-buffer meta-buffer session-number))
   ))
 
 ;; Returns frame under mouse, if this frame is not a minibuffer
@@ -2391,11 +2430,11 @@ temporarily reverses the meaning of this variable."
   
   
 (defun ediff-delete-temp-files ()
-  (if (stringp ediff-temp-file-A)
+  (if (and (stringp ediff-temp-file-A) (file-exists-p ediff-temp-file-A))
       (delete-file ediff-temp-file-A))
-  (if (stringp ediff-temp-file-B)
+  (if (and (stringp ediff-temp-file-B) (file-exists-p ediff-temp-file-B))
       (delete-file ediff-temp-file-B))
-  (if (stringp ediff-temp-file-C)
+  (if (and (stringp ediff-temp-file-C) (file-exists-p ediff-temp-file-C))
       (delete-file ediff-temp-file-C)))
   
 
@@ -2538,6 +2577,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	  (if show-file
 	      (progn
 		(message "Merge buffer saved in: %s" file)
+		(set-buffer-modified-p nil)
 		(sit-for 2)))
 	  (if (and
 	       (not save-and-continue)

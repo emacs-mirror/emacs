@@ -195,6 +195,7 @@ Don't put `-c' here, as it is added automatically."
 ;; File containing the shell command to be executed at Ex prompt,
 ;; e.g., :r !date
 (defvar ex-cmdfile nil)
+(defvar ex-cmdfile-args "")
   
 ;; flag used in viper-ex-read-file-name to indicate that we may be reading
 ;; multiple file names. Used for :edit and :next
@@ -457,7 +458,11 @@ reversed."
 		     "\\|" "^[ \t]*ta.*"
 		     "\\|" "^[ \t]*una.*"
 		     "\\|" "^[ \t]*su.*"
-		     "\\|['`][a-z][ \t]*"
+		     "\\|" "['`][a-z][ \t]*"
+		     ;; r! assumes that the next one is a shell command
+		     "\\|" "\\(r\\|re\\|rea\\|read\\)[ \t]*!"
+		     ;; w ! assumes that the next one is a shell command
+		     "\\|" "\\(w\\|wr\\|wri\\|writ.?\\)[ \t]+!"
 		     "\\|" "![ \t]*[a-zA-Z].*"
 		     "\\)"
 		     "!*")))
@@ -851,14 +856,16 @@ reversed."
       (message "%s" ret))
     ret))
 
-;; Get a file name and set ex-variant, `ex-append' and `ex-offset' if found
+;; Get a file name and set `ex-variant', `ex-append' and `ex-offset' if found
+;; If it is r!, then get the command name and whatever args
 (defun viper-get-ex-file ()
   (let (prompt)
     (setq ex-file nil
 	  ex-variant nil
 	  ex-append nil
 	  ex-offset nil
-	  ex-cmdfile nil)
+	  ex-cmdfile nil
+	  ex-cmdfile-args "")
     (save-excursion
       (save-window-excursion
 	(setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
@@ -908,6 +915,8 @@ reversed."
 			  ;; if file name comes from history, don't leave
 			  ;; minibuffer when the user types space
 			  (setq viper-incomplete-ex-cmd nil)
+			  (setq ex-cmdfile-args
+				(substring ex-file (match-end 0) nil))
 			  ;; this must be the last clause in this progn
 			  (substring ex-file (match-beginning 0) (match-end 0))
 			  )
@@ -958,6 +967,7 @@ reversed."
 (defun ex-cmd-accepts-multiple-files-p (token)
   (member token '("edit" "next" "Next")))
 
+;; Read file name from the minibuffer in an ex command.
 ;; If user doesn't enter anything, then "" is returned, i.e., the
 ;; prompt-directory is not returned.
 (defun viper-ex-read-file-name (prompt)
@@ -1548,10 +1558,12 @@ reversed."
 	  (setq ex-file buffer-file-name)))
     (if ex-cmdfile
 	(progn
-	  (setq command (ex-expand-filsyms ex-file (current-buffer)))
+	  (setq command 
+		(concat (ex-expand-filsyms ex-file (current-buffer))
+			ex-cmdfile-args))
 	  (shell-command command t))
       (insert-file-contents ex-file)))
-  (ex-fixup-history viper-last-ex-prompt ex-file))
+  (ex-fixup-history viper-last-ex-prompt ex-file ex-cmdfile-args))
   
 ;; this function fixes ex-history for some commands like ex-read, ex-edit
 (defun ex-fixup-history (&rest args)  
@@ -1935,7 +1947,8 @@ Please contact your system administrator. "
     (if ex-cmdfile
 	(progn
 	  (viper-enlarge-region beg end)
-	  (shell-command-on-region (point) (mark t) ex-file))
+	  (shell-command-on-region (point) (mark t) 
+				   (concat ex-file ex-cmdfile-args)))
       (if (and (string= ex-file "") (not (buffer-file-name)))
 	  (setq ex-file
 		(read-file-name

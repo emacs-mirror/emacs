@@ -126,10 +126,11 @@
 	   ))
 
        ;; put these menus before Object-Oriented-Browser in Tools menu
-       (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
-       (if (not purify-flag)
-	   (ediff-xemacs-init-menus))
-       )
+;;       (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
+;;       (if (not purify-flag)
+;;	   (ediff-xemacs-init-menus))
+;;       )
+       (ediff-xemacs-init-menus))
       
       ;; Emacs--only if menu-bar is loaded
       ((featurep 'menu-bar)

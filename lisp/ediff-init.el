@@ -346,6 +346,21 @@ that Ediff doesn't know about.")
       (error "%S: This command runs in Ediff Control Buffer only!"
 	     this-command)))
 
+(defgroup ediff-highlighting nil
+  "Hilighting of difference regions in Ediff"
+  :prefix "ediff-"
+  :group 'ediff)
+
+(defgroup ediff-merge nil
+  "Merging utilities"
+  :prefix "ediff-"
+  :group 'ediff)
+
+(defgroup ediff-hook nil
+  "Hooks called by Ediff"
+  :prefix "ediff-"
+  :group 'ediff)
+
 ;; Hook variables
 
 (defcustom ediff-before-setup-windows-hook nil
@@ -353,74 +368,74 @@ that Ediff doesn't know about.")
 This can be used to save the previous window config, which can be restored
 on ediff-quit or ediff-suspend."
   :type 'hook
-  :group 'ediff) 
+  :group 'ediff-hook) 
 (defcustom ediff-after-setup-windows-hook nil
   "*Hooks to run after Ediff sets its window configuration. 
 This can be used to set up control window or icon in a desired place."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-before-setup-control-frame-hook nil
   "*Hooks run before setting up the frame to display Ediff Control Panel.
 Can be used to change control frame parameters to position it where it
 is desirable."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-after-setup-control-frame-hook nil
   "*Hooks run after setting up the frame to display Ediff Control Panel.
 Can be used to move the frame where it is desired."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-startup-hook nil
   "*Hooks to run in the control buffer after Ediff has been set up."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-select-hook nil
   "*Hooks to run after a difference has been selected."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-unselect-hook nil
   "*Hooks to run after a difference has been unselected."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-prepare-buffer-hook  nil
   "*Hooks called after buffers A, B, and C are set up."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-load-hook nil
   "*Hook run after Ediff is loaded.  Can be used to change defaults."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
   
 (defcustom ediff-mode-hook nil
   "*Hook run just after ediff-mode is set up in the control buffer. 
 This is done before any windows or frames are created. One can use it to
 set local variables that determine how the display looks like."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-keymap-setup-hook nil
   "*Hook run just after the default bindings in Ediff keymap are set up."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
   
 (defcustom ediff-display-help-hook nil
   "*Hooks run after preparing the help message."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 
 (defcustom ediff-suspend-hook (list 'ediff-default-suspend-function)
   "*Hooks to run in the Ediff control buffer when Ediff is suspended."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 (defcustom ediff-quit-hook (list 'ediff-cleanup-mess)
   "*Hooks to run in the Ediff control buffer after finishing Ediff."
   :type 'hook
-  :group 'ediff) 
+  :group 'ediff-hook) 
 (defcustom ediff-cleanup-hook nil
   "*Hooks to run on exiting Ediff but before killing the control buffer.
 This is a place to do various cleanups, such as deleting the variant buffers.
 Ediff provides a function, `ediff-janitor', as one such possible hook."
   :type 'hook
-  :group 'ediff)
+  :group 'ediff-hook)
 
 ;; Error messages
 (defconst ediff-KILLED-VITAL-BUFFER
@@ -847,10 +862,6 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   (if (and (ediff-has-face-support-p) ediff-emacs-p)
       (add-to-list 'facemenu-unlisted-faces face)))
       
-(defgroup ediff-highlighting nil
-  "Hilighting of difference regions in Ediff"
-  :prefix "ediff-"
-  :group 'ediff)
 
 ;;(defvar ediff-current-diff-face-A
 ;;  (if (ediff-has-face-support-p)
@@ -1523,11 +1534,14 @@ This property can be toggled interactively."
 ;; if nil, this silences some messages
 (defconst ediff-verbose-p t)
 
-(ediff-defvar-local ediff-autostore-merges  'group-jobs-only
+(defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.
 Nil means don't save automatically. t means always save. Anything but nil or t
 means save automatically only if the merge job is part of a group of jobs, such
-as `ediff-merge-directory' or `ediff-merge-directory-revisions'.")
+as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
+  :type '(choice (const nil) (const t) (const group-jobs-only))
+  :group 'ediff-merge)
+(make-variable-buffer-local 'ediff-autostore-merges)
 
 ;; file where the result of the merge is to be saved. used internally
 (ediff-defvar-local ediff-merge-store-file nil "")
@@ -1538,7 +1552,7 @@ Instead, C-h would jump to previous difference."
   :type 'boolean
   :group 'ediff)
   
-(defvar ediff-temp-file-prefix
+(defcustom ediff-temp-file-prefix
   (let ((env (or (getenv "TMPDIR")
 		 (getenv "TMP")
 		 (getenv "TEMP")))
@@ -1549,20 +1563,26 @@ Instead, C-h would jump to previous difference."
  		    ((eq system-type 'ms-dos) "c:/")
  		    (t "/tmp"))))
     ;; The following is to make sure we get something to which we can
-    ;; add directory levels on VMS.
+    ;; add directory levels under VMS.
     (setq d (file-name-as-directory (directory-file-name d)))
     )
   "*Prefix to put on Ediff temporary file names.
-Do not start with `~/' or `~user-name/'.")  
+Do not start with `~/' or `~user-name/'."
+  :type 'string
+  :group 'ediff)
 
-(defvar ediff-temp-file-mode 384	; u=rw only
-  "*Mode for Ediff temporary files.")
+(defcustom ediff-temp-file-mode 384	; u=rw only
+  "*Mode for Ediff temporary files."
+  :type 'integer
+  :group 'ediff)
   
 ;; Metacharacters that have to be protected from the shell when executing
 ;; a diff/diff3 command.
-(defvar ediff-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
-  "Characters that must be quoted with \\ when used in a shell command line.
-More precisely, a regexp to match any one such character.")
+(defcustom ediff-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
+  "Regexp that matches characters that must be quoted with `\\' in shell command line.
+This default should work without changes."
+  :type 'string
+  :group 'ediff)
 
 ;; needed to simulate frame-char-width in XEmacs.
 (defvar ediff-H-glyph (if ediff-xemacs-p (make-glyph "H")))

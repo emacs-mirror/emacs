@@ -116,10 +116,13 @@ considered related."
   (not (viper-sit-for-short viper-multiclick-timeout t)))
 
 ;; Returns window where click occurs
-(defsubst viper-mouse-click-window (click)
-  (if viper-xemacs-p
-      (event-window click)
-    (posn-window (event-start click))))
+(defun viper-mouse-click-window (click)
+  (let ((win (if viper-xemacs-p
+		(event-window click)
+	      (posn-window (event-start click)))))
+    (if (window-live-p win)
+	win
+      (error "Click was not over a live window"))))
 
 ;; Returns window where click occurs
 (defsubst viper-mouse-click-frame (click)

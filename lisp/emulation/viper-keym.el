@@ -389,9 +389,6 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-vi-basic-map "~" 'viper-toggle-case)
 (define-key viper-vi-basic-map "\C-?" 'viper-backward-char)
 (define-key viper-vi-basic-map "_" 'viper-nil)
-  
-;;; Escape from Emacs to Vi for one command
-(global-set-key "\C-c\\" 'viper-escape-to-vi)  ; everywhere
 
 ;;; This is viper-vi-diehard-map. Used when viper-vi-diehard-minor-mode is on.
 

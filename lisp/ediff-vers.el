@@ -146,7 +146,8 @@
 
 ;;; Merge with Version Control
 
-(defun ediff-vc-merge-internal (rev1 rev2 ancestor-rev &optional startup-hooks)
+(defun ediff-vc-merge-internal (rev1 rev2 ancestor-rev 
+				     &optional startup-hooks merge-buffer-file)
 ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
     (save-excursion
@@ -175,12 +176,14 @@
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
-	 startup-hooks 'ediff-merge-revisions-with-ancestor)
-      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))
+	 startup-hooks 'ediff-merge-revisions-with-ancestor merge-buffer-file)
+      (ediff-merge-buffers
+       buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))
     ))
 
 (defun ediff-rcs-merge-internal (rev1 rev2 ancestor-rev
-				      &optional startup-hooks)
+				      &optional
+				      startup-hooks merge-buffer-file)
   ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
     (setq buf1 (rcs-ediff-view-revision rev1)
@@ -196,11 +199,13 @@
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
-	 startup-hooks 'ediff-merge-revisions-with-ancestor)
-      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))))
+	 startup-hooks 'ediff-merge-revisions-with-ancestor merge-buffer-file)
+      (ediff-merge-buffers
+       buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))))
 
 (defun ediff-generic-sc-merge-internal (rev1 rev2 ancestor-rev
-					     &optional startup-hooks)
+					     &optional
+					     startup-hooks merge-buffer-file)
   ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
     (save-excursion
@@ -220,8 +225,9 @@
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
-	 startup-hooks 'ediff-merge-revisions-with-ancestor)
-      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))))
+	 startup-hooks 'ediff-merge-revisions-with-ancestor merge-buffer-file)
+      (ediff-merge-buffers
+       buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))))
 
 
 ;; PCL-CVS.el support
@@ -254,7 +260,8 @@
 ;; Works like with other interfaces: runs ediff on versions of the file in the
 ;; current buffer.
 (defun ediff-pcl-cvs-merge-internal (rev1 rev2 ancestor-rev
-					  &optional startup-hooks)
+					  &optional
+					  startup-hooks merge-buffer-file)
 ;; Ediff-merge appropriate revisions of the selected file.
 ;; If REV1 is "" then use the latest revision.
 ;; If REV2 is "" then merge current buffer's file with REV1.
@@ -292,9 +299,9 @@
     (if ancestor-buf
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf startup-hooks 
-	 'ediff-merge-revisions-with-ancestor)
+	 'ediff-merge-revisions-with-ancestor merge-buffer-file)
       (ediff-merge-buffers
-       buf1 buf2 startup-hooks 'ediff-merge-revisions))
+       buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))
     ))
 
 (defun ediff-pcl-cvs-view-revision (file rev)
@@ -324,7 +331,7 @@
 
 (defun cvs-run-ediff-on-file-descriptor (tin)
 ;; This is a replacement for cvs-emerge-mode
-;; Run after cvs-update.
+;; Runs after cvs-update.
 ;; Ediff-merge appropriate revisions of the selected file.
   (let* ((fileinfo (tin-cookie cvs-cookie-handle tin))
 	 (type (cvs-fileinfo->type fileinfo))
