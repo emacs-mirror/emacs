@@ -38,7 +38,9 @@
 (require 'cus-face)
 (require 'wid-edit)
 (require 'easymenu)
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar custom-versions-load-alist))	; from cus-load
 
 (condition-case nil
     (require 'cus-load)
@@ -1940,46 +1942,34 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :group 'custom-faces)
 
 (define-widget 'custom-comment 'string
-  "User comment"
+  "User comment."
   :tag "Comment"
-  :help-echo "Edit a comment here"
+  :help-echo "Edit a comment here."
   :sample-face 'custom-comment-tag-face
   :value-face 'custom-comment-face
-  :value-set 'custom-comment-value-set
-  :create 'custom-comment-create
-  :delete 'custom-comment-delete)
+  :shown nil
+  :create 'custom-comment-create)
 
 (defun custom-comment-create (widget)
-  (let (overlay)
-    (widget-default-create widget)
-    (widget-put widget :comment-overlay
-		(setq overlay (make-overlay (widget-get widget :from)
-					    (widget-get widget :to))))
-    ;;(overlay-put overlay 'start-open t)
-    (when (equal (widget-get widget :value) "")
-      (overlay-put overlay 'invisible t))))
+  (let* ((null-comment (equal "" (widget-value widget))))
+    (when (or (widget-get (widget-get widget :parent) :comment-shown)
+	      (not null-comment))
+      (widget-default-create widget))))
 
-(defun custom-comment-delete (widget)
-  (widget-default-delete widget)
-  (delete-overlay (widget-get widget :comment-overlay)))
-
-(defun custom-comment-value-set (widget value)
-  (widget-default-value-set widget value)
-  (if (equal value "")
-      (overlay-put (widget-get widget :comment-overlay) 'invisible t)
-    (overlay-put (widget-get widget :comment-overlay) 'invisible nil)))
+(defun custom-comment-hide (widget)
+  (widget-put (widget-get widget :parent) :comment-shown nil))
 
 ;; Those functions are for the menu. WIDGET is NOT the comment widget. It's
 ;; the global custom one
 (defun custom-comment-show (widget)
-  (overlay-put
-   (widget-get (widget-get widget :comment-widget) :comment-overlay)
-   'invisible nil))
+  (widget-put widget :comment-shown t)
+  (custom-redraw widget)
+  (widget-setup))
 
 (defun custom-comment-invisible-p (widget)
-  (overlay-get
-   (widget-get (widget-get widget :comment-widget) :comment-overlay)
-   'invisible))
+  (let ((val (widget-value (widget-get widget :comment-widget))))
+    (and (equal "" val)
+	 (not (widget-get widget :comment-shown)))))
 
 ;;; The `custom-variable' Widget.
 
@@ -2038,7 +2028,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     tmp))
 
 (defun custom-variable-value-create (widget)
-  "Here is where you edit the variables value."
+  "Here is where you edit the variable's value."
   (custom-load-widget widget)
   (unless (widget-get widget :custom-form)
     (widget-put widget :custom-form custom-variable-default-form))
@@ -2056,7 +2046,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	 (value (if (default-boundp symbol)
 		    (funcall get symbol)
 		  (widget-get conv :value))))
-    ;; If the widget is new, the child determine whether it is hidden.
+    ;; If the widget is new, the child determines whether it is hidden.
     (cond (state)
 	  ((custom-show type value)
 	   (setq state 'unknown))
@@ -2136,11 +2126,11 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		   buttons)
 	     (insert " ")
 	     (push (widget-create-child-and-convert
-		  widget 'visibility
-		  :help-echo "Hide the value of this option."
-		  :action 'custom-toggle-parent
-		  t)
-		 buttons)
+		    widget 'visibility
+		    :help-echo "Hide the value of this option."
+		    :action 'custom-toggle-parent
+		    t)
+		   buttons)
 	     (push (widget-create-child-and-convert
 		    widget type
 		    :format value-format
@@ -2154,7 +2144,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		    widget 'custom-magic nil)))
 	(widget-put widget :custom-magic magic)
 	(push magic buttons))
-      ;; ### NOTE: this is ugly!!!! I need to do update the :buttons property
+      ;; ### NOTE: this is ugly!!!! I need to update the :buttons property
       ;; before the call to `widget-default-format-handler'. Otherwise, I
       ;; loose my current `buttons'. This function shouldn't be called like
       ;; this anyway. The doc string widget should be added like the others.
@@ -2324,8 +2314,7 @@ Optional EVENT is the location for the menu."
 	   (when (equal comment "")
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
-	     (overlay-put (widget-get comment-widget :comment-overlay)
-			  'invisible t))
+	     (custom-comment-hide comment-widget))
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
@@ -2334,8 +2323,7 @@ Optional EVENT is the location for the menu."
 	   (when (equal comment "")
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
-	     (overlay-put (widget-get comment-widget :comment-overlay)
-			  'invisible t))
+	     (custom-comment-hide comment-widget))
 	   (funcall set symbol (setq val (widget-value child)))
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
@@ -2362,8 +2350,7 @@ Optional EVENT is the location for the menu."
 	   (when (equal comment "")
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
-	     (overlay-put (widget-get comment-widget :comment-overlay)
-			  'invisible t))
+	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value (list (widget-value child)))
 	   (funcall set symbol (eval (widget-value child)))
 	   (put symbol 'variable-comment comment)
@@ -2372,8 +2359,7 @@ Optional EVENT is the location for the menu."
 	   (when (equal comment "")
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
-	     (overlay-put (widget-get comment-widget :comment-overlay)
-			  'invisible t))
+	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
 	   (funcall set symbol (widget-value child))
@@ -2413,7 +2399,7 @@ Optional EVENT is the location for the menu."
     (if (get symbol 'standard-value)
 	(funcall set symbol (eval (car (get symbol 'standard-value))))
       (error "No standard setting known for %S" symbol))
-n    (put symbol 'variable-comment nil)
+    (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
@@ -2779,8 +2765,7 @@ Optional EVENT is the location for the menu."
     (when (equal comment "")
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
-      (overlay-put (widget-get comment-widget :comment-overlay)
-		   'invisible t))
+      (custom-comment-hide comment-widget))
     (put symbol 'customized-face value)
     (face-spec-set symbol value)
     (put symbol 'customized-face-comment comment)
@@ -2803,8 +2788,7 @@ Optional EVENT is the location for the menu."
     (when (equal comment "")
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
-      (overlay-put (widget-get comment-widget :comment-overlay)
-		   'invisible t))
+      (custom-comment-hide comment-widget))
     (face-spec-set symbol value)
     (put symbol 'saved-face value)
     (put symbol 'customized-face nil)
