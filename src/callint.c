@@ -481,6 +481,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
         case 'c':		/* Character */
 	  message1 (callint_message);
 	  args[i] = Fread_char ();
+	  message1 ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
 	  visargs[i] = Fchar_to_string (teml);
