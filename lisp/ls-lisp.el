@@ -185,14 +185,14 @@ The switches that work are: A a c i r S s t u"
 	    ;; Emacs should be able to make strings of them.
 	    ;; user-login-name and user-full-name could take an
 	    ;; optional arg.
-	    (format " %3d %-8d %-8d %8d "
+	    (format " %3d %8s %8s %8d "
 		    (nth 1 file-attr)	; no. of links
 		    (if (= (user-uid) (nth 2 file-attr))
 			(user-login-name)
-		      (nth 2 file-attr))	; uid
+		      (int-to-string (nth 2 file-attr)))	; uid
 		    (if (eq system-type 'ms-dos)
 			"root"		; everything is root on MSDOS.
-		      (nth 3 file-attr))	; gid
+		      (int-to-string (nth 3 file-attr)))	; gid
 		    (nth 7 file-attr)	; size in bytes
 		    )
 	    (ls-lisp-format-time file-attr switches)
