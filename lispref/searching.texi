@@ -205,15 +205,14 @@ matches any three-character string that begins with @samp{a} and ends with
 
 @item *
 @cindex @samp{*} in regexp
-is not a construct by itself; it is a suffix operator that means to
-repeat the preceding regular expression as many times as possible.  In
-@samp{fo*}, the @samp{*} applies to the @samp{o}, so @samp{fo*} matches
-one @samp{f} followed by any number of @samp{o}s.  The case of zero
-@samp{o}s is allowed: @samp{fo*} does match @samp{f}.@refill
+is not a construct by itself; it is a postfix operator that means to
+match the preceding regular expression repetitively as many times as
+possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
+@samp{o}s).
 
 @samp{*} always applies to the @emph{smallest} possible preceding
-expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a
-repeating @samp{fo}.@refill
+expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
+@samp{fo}.  It matches @samp{f}, @samp{fo}, @samp{foo}, and so on.
 
 The matcher processes a @samp{*} construct by matching, immediately,
 as many repetitions as can be found.  Then it continues with the rest
@@ -236,63 +235,63 @@ expressions run fast, check nested repetitions carefully.
 
 @item +
 @cindex @samp{+} in regexp
-is a suffix operator similar to @samp{*} except that the preceding
-expression must match at least once.  So, for example, @samp{ca+r}
+is a postfix operator, similar to @samp{*} except that it must match
+the preceding expression at least once.  So, for example, @samp{ca+r}
 matches the strings @samp{car} and @samp{caaaar} but not the string
 @samp{cr}, whereas @samp{ca*r} matches all three strings.
 
 @item ?
 @cindex @samp{?} in regexp
-is a suffix operator similar to @samp{*} except that the preceding
-expression can match either once or not at all.  For example,
-@samp{ca?r} matches @samp{car} or @samp{cr}, but does not match anyhing
-else.
+is a postfix operator, similar to @samp{*} except that it can match the
+preceding expression either once or not at all.  For example,
+@samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
 @item [ @dots{} ]
 @cindex character set (in regexp)
 @cindex @samp{[} in regexp
 @cindex @samp{]} in regexp
-@samp{[} begins a @dfn{character set}, which is terminated by a
-@samp{]}.  In the simplest case, the characters between the two brackets
-form the set.  Thus, @samp{[ad]} matches either one @samp{a} or one
-@samp{d}, and @samp{[ad]*} matches any string composed of just @samp{a}s
-and @samp{d}s (including the empty string), from which it follows that
-@samp{c[ad]*r} matches @samp{cr}, @samp{car}, @samp{cdr},
-@samp{caddaar}, etc.@refill
+is a @dfn{character set}, which begins with @samp{[} and is terminated
+by @samp{]}.  In the simplest case, the characters between the two
+brackets are what this set can match.
 
-The usual regular expression special characters are not special inside a
+Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
+@samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
+(including the empty string), from which it follows that @samp{c[ad]*r}
+matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
+
+You can also include character ranges in a character set, by writing the
+startong and ending characters with a @samp{-} between them.  Thus,
+@samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
+intermixed freely with individual characters, as in @samp{[a-z$%.]},
+which matches any lower case ASCII letter or @samp{$}, @samp{%} or
+period.
+
+Note that the usual regexp special characters are not special inside a
 character set.  A completely different set of special characters exists
-inside character sets: @samp{]}, @samp{-} and @samp{^}.@refill
+inside character sets: @samp{]}, @samp{-} and @samp{^}.
 
-@samp{-} is used for ranges of characters.  To write a range, write two
-characters with a @samp{-} between them.  Thus, @samp{[a-z]} matches any
-lower case letter.  Ranges may be intermixed freely with individual
-characters, as in @samp{[a-z$%.]}, which matches any lower case letter
-or @samp{$}, @samp{%}, or a period.@refill
-
-To include a @samp{]} in a character set, make it the first character.
-For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To include a
-@samp{-}, write @samp{-} as the first character in the set, or put it
-immediately after a range.  (You can replace one individual character
-@var{c} with the range @samp{@var{c}-@var{c}} to make a place to put the
-@samp{-}.)  There is no way to write a set containing just @samp{-} and
-@samp{]}.
+To include a @samp{]} in a character set, you must make it the first
+character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To
+include a @samp{-}, write @samp{-} as the first or last character of the
+set, or put it after a range.  Thus, @samp{[]-]} matches both @samp{]}
+and @samp{-}.
 
 To include @samp{^} in a set, put it anywhere but at the beginning of
 the set.
 
 @item [^ @dots{} ]
 @cindex @samp{^} in regexp
-@samp{[^} begins a @dfn{complement character set}, which matches any
-character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]}
-matches all characters @emph{except} letters and digits.@refill
+@samp{[^} begins a @dfn{complemented character set}, which matches any
+character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
+all characters @emph{except} letters and digits.
 
 @samp{^} is not special in a character set unless it is the first
 character.  The character following the @samp{^} is treated as if it
-were first (thus, @samp{-} and @samp{]} are not special there).
+were first (in other words, @samp{-} and @samp{]} are not special there).
 
-Note that a complement character set can match a newline, unless
-newline is mentioned as one of the characters not to match.
+A complemented character set can match a newline, unless newline is
+mentioned as one of the characters not to match.  This is in contrast to
+the handling of regexps in programs such as @code{grep}.
 
 @item ^
 @cindex @samp{^} in regexp
@@ -339,10 +338,10 @@ can act.  It is poor practice to depend on this behavior; quote the
 special character anyway, regardless of where it appears.@refill
 
 For the most part, @samp{\} followed by any character matches only
-that character.  However, there are several exceptions: characters
-that, when preceded by @samp{\}, are special constructs.  Such
-characters are always ordinary when encountered on their own.  Here
-is a table of @samp{\} constructs:
+that character.  However, there are several exceptions: two-character
+sequences starting with @samp{\} which have special meanings.  The
+second character in the sequence is always an ordinary character on
+their own.  Here is a table of @samp{\} constructs.
 
 @table @kbd
 @item \|
@@ -375,9 +374,10 @@ the regular expression @samp{\(foo\|bar\)x} matches either @samp{foox}
 or @samp{barx}.
 
 @item
-To enclose an expression for a suffix operator such as @samp{*} to act
-on.  Thus, @samp{ba\(na\)*} matches @samp{bananana}, etc., with any
-(zero or more) number of @samp{na} strings.@refill
+To enclose a complicated expression for the postfix operators @samp{*},
+@samp{+} and @samp{?} to operate on.  Thus, @samp{ba\(na\)*} matches
+@samp{bananana}, etc., with any (zero or more) number of @samp{na}
+strings.@refill
 
 @item
 To record a matched substring for future reference.
@@ -393,7 +393,7 @@ Here is an explanation of this feature:
 matches the same text that matched the @var{digit}th occurrence of a
 @samp{\( @dots{} \)} construct.
 
-In other words, after the end of a @samp{\( @dots{} \)} construct.  the
+In other words, after the end of a @samp{\( @dots{} \)} construct, the
 matcher remembers the beginning and end of the text matched by that
 construct.  Then, later on in the regular expression, you can use
 @samp{\} followed by @var{digit} to match that same text, whatever it
@@ -424,8 +424,9 @@ matches any character that is not a word constituent.
 matches any character whose syntax is @var{code}.  Here @var{code} is a
 character that represents a syntax code: thus, @samp{w} for word
 constituent, @samp{-} for whitespace, @samp{(} for open parenthesis,
-etc.  @xref{Syntax Tables}, for a list of syntax codes and the
-characters that stand for them.
+etc.  Represent a character of whitespace (which can be a newline) by
+either @samp{-} or a space character.  @xref{Syntax Tables}, for a list
+of syntax codes and the characters that stand for them.
 
 @item \S@var{code}
 @cindex @samp{\S} in regexp
@@ -459,6 +460,9 @@ end of a word.  Thus, @samp{\bfoo\b} matches any occurrence of
 @samp{foo} as a separate word.  @samp{\bballs?\b} matches
 @samp{ball} or @samp{balls} as a separate word.@refill
 
+@samp{\b} matches at the beginning or end of the buffer
+regardless of what text appears next to it.
+
 @item \B
 @cindex @samp{\B} in regexp
 matches the empty string, but @emph{not} at the beginning or
@@ -467,10 +471,14 @@ end of a word.
 @item \<
 @cindex @samp{\<} in regexp
 matches the empty string, but only at the beginning of a word.
+@samp{\<} matches at the beginning of the buffer only if a
+word-constituent character follows.
 
 @item \>
 @cindex @samp{\>} in regexp
-matches the empty string, but only at the end of a word.
+matches the empty string, but only at the end of a word.  @samp{\>}
+matches at the end of the buffer only if the contents end with a
+word-constituent character.
 @end table
 
 @kindex invalid-regexp
