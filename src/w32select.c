@@ -127,7 +127,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
     /* Since we are now handling multilingual text, we must consider
        encoding text for the clipboard.  */
     int charset_info = find_charset_in_text (src, XSTRING (string)->size,
-					     nbytes, NULL, QNil);
+					     nbytes, NULL, Qnil);
 
     if (charset_info == 0)
       {
