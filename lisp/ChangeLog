@@ -1,3 +1,7 @@
+2002-08-27  Andreas Schwab  <schwab@suse.de>
+
+	* kmacro.el (kmacro-start-macro): Doc fix.
+
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
 	* textfile/reftex-ref.el (reftex-goto-label): New command.
