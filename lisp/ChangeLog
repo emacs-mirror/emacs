@@ -1,3 +1,7 @@
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/blackbox.el (bb-trace-ray): Avoid double tracing.
+
 2004-09-08  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el: Fix old function calls (ps-mule-chars-in-string ->
