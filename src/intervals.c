@@ -1543,7 +1543,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 
 /* Get the value of property PROP from PLIST,
    which is the plist of an interval.
-   We check for direct properties and for categories with property PROP.  */
+   We check for direct properties, for categories with property PROP, 
+   and for PROP appearing on the default-properties list.  */
 
 Lisp_Object
 textget (plist, prop)
@@ -1567,7 +1568,11 @@ textget (plist, prop)
 	}
     }
 
-  return fallback;
+  if (! NILP (fallback))
+    return fallback;
+  if (CONSP (Vdefault_properties))
+    return textget_direct (Vdefault_properties, prop);
+  return Qnil;
 }
 
 /* Get the value of property PROP from PLIST,
