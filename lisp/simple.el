@@ -2182,4 +2182,30 @@ it were the arg to `interactive' (which see) to interactively read the value."
 	       (eval-minibuffer (format "Set %s to value: " var)))))))
   (set var val))
 
+
+;;;; Keypad support.
+
+;;; Make the keypad keys act like ordinary typing keys.  If people add
+;;; bindings for the function key symbols, then those bindings will
+;;; override these, so this shouldn't interfere with any existing
+;;; bindings.
+
+(mapcar
+ (lambda (keypad-normal)
+   (let ((keypad (nth 0 keypad-normal))
+	 (normal (nth 1 keypad-normal)))
+     (define-key function-key-map (vector keypad) (vector normal))))
+ '((kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
+   (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
+   (kp-space ?\ )
+   (kp-tab ?\t)
+   (kp-enter ?\r)
+   (kp-multiply ?*)
+   (kp-add ?+)
+   (kp-separator ?,)
+   (kp-subtract ?-)
+   (kp-decimal ?.)
+   (kp-divide ?/)
+   (kp-equal ?=)))
+
 ;;; simple.el ends here
