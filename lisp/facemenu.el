@@ -487,10 +487,11 @@ of colors that the current display can handle."
 	(if (facemenu-color-equal (car l) (car (cdr l)))
 	    (setcdr l (cdr (cdr l)))
 	  (setq l (cdr l)))))
-    ;; Don't show more than what the display can handle.
-    (let ((lc (nthcdr (1- (display-color-cells)) list)))
-      (if lc
-	  (setcdr lc nil))))
+    (when (memq (display-visual-class) '(gray-scale pseudo-color direct-color))
+      ;; Don't show more than what the display can handle.
+      (let ((lc (nthcdr (1- (display-color-cells)) list)))
+	(if lc
+	    (setcdr lc nil)))))
   (with-output-to-temp-buffer "*Colors*"
     (save-excursion
       (set-buffer standard-output)
