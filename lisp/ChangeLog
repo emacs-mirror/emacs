@@ -1,3 +1,8 @@
+2004-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Redo one more thing that I didn't notice Daniel had undone.
+
 2004-04-08  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-source-window): Remove variable
@@ -73,6 +78,19 @@
 	or fourth match for help-echo.  Display visited nodes in a
 	different face.  Unhide file names of external references.
 	Unhide newlines.  Display visited menu items in a different face.
+
+2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el: Require CL.
+	(compilation-mode-font-lock-keywords): Re-install the "line as
+	function" patch.
+
+	* help-fns.el (help-C-source-directory): New var.
+	(help-subr-name, help-C-file-name, help-find-C-source): New funs.
+	(describe-function-1, describe-variable): Use them.
+
+	* help-mode.el (help-function-def, help-variable-def): Handle hyperrefs
+	to C source files specially.
 
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
