@@ -396,6 +396,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+static const XColor *x_color_cells P_ ((struct frame *, int *));
 static void x_update_window_end P_ ((struct window *, int, int));
 static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 void x_delete_display P_ ((struct x_display_info *));
@@ -3289,6 +3290,81 @@ x_alloc_lighter_color_for_widget (widget, display, cmap, pixel, factor, delta)
 #endif /* USE_X_TOOLKIT */
 
 
+/* Value is an array of XColor structures for the contents of the
+   color map of frame F.  Set *NCELLS to the size of the array.
+   Note that this probably shouldn't be called for large color maps,
+   say a 24-bit TrueColor map.  */
+
+static const XColor *
+x_color_cells (f, ncells)
+     struct frame *f;
+     int *ncells;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (dpyinfo->color_cells == NULL)
+    {
+      Display *display = FRAME_X_DISPLAY (f);
+      Screen *screen = FRAME_X_SCREEN (f);
+      int i;
+      
+      dpyinfo->ncolor_cells
+	= XDisplayCells (display, XScreenNumberOfScreen (screen));
+      dpyinfo->color_cells
+	= (XColor *) xmalloc (dpyinfo->ncolor_cells
+			      * sizeof *dpyinfo->color_cells);
+      
+      for (i = 0; i < dpyinfo->ncolor_cells; ++i)
+	dpyinfo->color_cells[i].pixel = i;
+      
+      XQueryColors (display, FRAME_X_COLORMAP (f),
+		    dpyinfo->color_cells, dpyinfo->ncolor_cells);
+    }
+
+  *ncells = dpyinfo->ncolor_cells;
+  return dpyinfo->color_cells;
+}
+
+
+/* On frame F, translate pixel colors to RGB values for the NCOLORS
+   colors in COLORS.  Use cached information, if available.  */
+
+void
+x_query_colors (f, colors, ncolors)
+     struct frame *f;
+     XColor *colors;
+     int ncolors;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (dpyinfo->color_cells)
+    {
+      int i;
+      for (i = 0; i < ncolors; ++i)
+	{
+	  unsigned long pixel = colors[i].pixel;
+	  xassert (pixel < dpyinfo->ncolor_cells);
+	  xassert (dpyinfo->color_cells[pixel].pixel == pixel);
+	  colors[i] = dpyinfo->color_cells[pixel];
+	}
+    }
+  else
+    XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
+}
+
+
+/* On frame F, translate pixel color to RGB values for the color in
+   COLOR.  Use cached information, if available.  */
+
+void
+x_query_color (f, color)
+     struct frame *f;
+     XColor *color;
+{
+  x_query_colors (f, color, 1);
+}
+     
+
 /* Allocate the color COLOR->pixel on SCREEN of DISPLAY, colormap
    CMAP.  If an exact match can't be allocated, try the nearest color
    available.  Value is non-zero if successful.  Set *COLOR to the
@@ -3314,12 +3390,8 @@ x_alloc_nearest_color (f, cmap, color)
 	 color matching with StaticColor visuals.  */
       int nearest, i;
       unsigned long nearest_delta = ~0;
-      int ncells = XDisplayCells (display, XScreenNumberOfScreen (screen));
-      XColor *cells = (XColor *) alloca (ncells * sizeof *cells);
-
-      for (i = 0; i < ncells; ++i)
-	cells[i].pixel = i;
-      XQueryColors (display, cmap, cells, ncells);
+      int ncells;
+      const XColor *cells = x_color_cells (f, &ncells);
 
       for (nearest = i = 0; i < ncells; ++i)
 	{
@@ -3363,7 +3435,7 @@ x_copy_color (f, pixel)
 
   color.pixel = pixel;
   BLOCK_INPUT;
-  XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
+  x_query_color (f, &color);
   XAllocColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
   UNBLOCK_INPUT;
 #ifdef DEBUG_X_COLORS
@@ -3418,7 +3490,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
 
   /* Get RGB color values.  */
   color.pixel = *pixel;
-  XQueryColor (display, cmap, &color);
+  x_query_color (f, &color);
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
   xassert (factor >= 0);
@@ -13280,6 +13352,7 @@ x_term_init (display_name, xrm_option, resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
+  bzero (dpyinfo, sizeof *dpyinfo);
 
 #ifdef MULTI_KBOARD
   {
@@ -13631,8 +13704,10 @@ x_delete_display (dpyinfo)
   
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
+
 
 /* Set up use of X before we make the first connection.  */
 
