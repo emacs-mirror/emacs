@@ -1,36 +1,25 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.4) $
- * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
- *
- * Readership: Any MPS developer
- *
- * Design: design.mps.vm, design.mps.vmli
+ * $HopeName: MMsrc!vmli.c(trunk.5) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the virtual memory mapping 
- * interface (vm.h) for LINUX.  It was created by copying vmo1.c (the 
+ * interface (vm.h) for Linux.  It was created by copying vmo1.c (the 
  * DIGITAL UNIX implementation) as that seemed to be closest.
  *
- * mmap(2) is used to reserve address space by creating a mapping to
- * /etc/passwd with page access none.  mmap(2) is used to map pages
- * onto store by creating a copy-on-write (MAP_PRIVATE) mapping with
- * the flag MAP_ANONYMOUS.
- *
- * Experiments have shown that attempting to reserve address space
- * by mapping /dev/zero results in swap being reserved.  This
- * appears to be a bug, so we work round it by using /etc/passwd,
- * the only file we can think of which is pretty much guaranteed
- * to be around. [these experiments have not been tried on LINUX
- * so it might be okay to use /dev/zero].
+ * .design: See design.mps.vm.  .design.linux: mmap(2) is used to
+ * reserve address space by creating a mapping with page access none.
+ * mmap(2) is used to map pages onto store by creating a copy-on-write
+ * (MAP_PRIVATE) mapping with the flag MAP_ANONYMOUS.
  *
  * .assume.not-last: The implementation of VMCreate assumes that
- *   mmap() will not choose a region which contains the last page
- *   in the address space, so that the limit of the mapped area
- *   is representable.
+ * mmap() will not choose a region which contains the last page
+ * in the address space, so that the limit of the mapped area
+ * is representable.
  *
  * .assume.mmap.err: ENOMEM is the only error we really expect to
- *   get from mmap.  The others are either caused by invalid params
- *   or features we don't use.  See mmap(2) for details.
+ * get from mmap.  The others are either caused by invalid params
+ * or features we don't use.  See mmap(2) for details.
  *
  * .assume.off_t: We assume that the Size type (defined by the MM) fits
  * in the off_t type (define by the system (POSIX?)).  In fact we test
@@ -62,7 +51,7 @@
 /* for sysconf(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.4) $");
+SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.5) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -75,7 +64,6 @@ typedef struct VMStruct {
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
-  int none_fd;                  /* fildes for reserved memory */
 } VMStruct;
 
 
@@ -88,7 +76,6 @@ Align VMAlign(VM vm)
 Bool VMCheck(VM vm)
 {
   CHECKS(VM, vm);
-  CHECKL(vm->none_fd >= 0);
   CHECKL(vm->base != 0);
   CHECKL(vm->limit != 0);
   CHECKL(vm->base < vm->limit);
@@ -106,9 +93,9 @@ Res VMCreate(VM *vmReturn, Size size)
 {
   Align align;
   VM vm;
-  int none_fd;
   long pagesize;
   void *addr;
+  Res res;
 
   AVER(vmReturn != NULL);
 
@@ -126,42 +113,29 @@ Res VMCreate(VM *vmReturn, Size size)
   if((size == 0) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
-  none_fd = open("/etc/passwd", O_RDONLY);
-  if(none_fd == -1) {
-    return ResFAIL;
-  }
-
   /* Map in a page to store the descriptor on. */
   addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE,
               MAP_ANONYMOUS | MAP_PRIVATE,
               -1, 0);
-  if(addr == (void *)-1) {
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    if(e == ENOMEM)
-      return ResMEMORY;
-    else
-      return ResFAIL;
+    return ResMEMORY;
   }
   vm = (VM)addr;
 
-  vm->none_fd = none_fd;
   vm->align = align;
 
   /* See .assume.not-last. */
   addr = mmap(0, (size_t)size,
-              PROT_NONE, MAP_FILE | MAP_SHARED,
-              none_fd, 0);
-  if(addr == (void *)-1) {
+              PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE,
+              -1, 0);
+  if(addr == MAP_FAILED) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    if(e == ENOMEM)
-      return ResRESOURCE;
-    else
-      return ResFAIL;
+    res = ResRESOURCE;
+    goto failReserve;
   }
 
   vm->base = (Addr)addr;
@@ -177,8 +151,14 @@ Res VMCreate(VM *vmReturn, Size size)
 
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+  return res;
 }
 
+
+/* VMDestroy -- release all address space and destroy VM structure */
 
 void VMDestroy(VM vm)
 {
@@ -187,13 +167,12 @@ void VMDestroy(VM vm)
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
 
-  /* This appears to be pretty pointless, since the space descriptor */
-  /* page is  about to vanish completely.  However, munmap might fail */
+  /* This appears to be pretty pointless, since the descriptor */
+  /* page is about to vanish completely.  However, munmap might fail */
   /* for some reason, and this would ensure that it was still */
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  close(vm->none_fd);
   r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
   r = munmap((void *)vm,
@@ -204,12 +183,17 @@ void VMDestroy(VM vm)
 }
 
 
+/* VMBase -- return the base address of the memory reserved */
+
 Addr VMBase(VM vm)
 {
   AVERT(VM, vm);
 
   return vm->base;
 }
+
+
+/* VMLimit -- return the limit address of the memory reserved */
 
 Addr VMLimit(VM vm)
 {
@@ -219,12 +203,17 @@ Addr VMLimit(VM vm)
 }
 
 
+/* VMReserved -- return the amount of memory reserved */
+
 Size VMReserved(VM vm)
 {
   AVERT(VM, vm);
 
   return vm->reserved;
 }
+
+
+/* VMMapped -- return the amount of memory actually mapped */
 
 Size VMMapped(VM vm)
 {
@@ -233,6 +222,8 @@ Size VMMapped(VM vm)
   return vm->mapped;
 }
 
+
+/* VMMap -- map the given range of memory */
 
 Res VMMap(VM vm, Addr base, Addr limit)
 {
@@ -253,7 +244,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
           PROT_READ | PROT_WRITE | PROT_EXEC,
           MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
           -1, 0)
-     == (void *)-1) {
+     == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -265,7 +256,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
 }
 
 
-/* see design.mps.vmo1.fun.unmap */
+/* VMUnmap -- unmap the given range of memory */
+
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   Size size;
@@ -283,8 +275,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   /* see design.mps.vmo1.fun.unmap.offset */
   addr = mmap((void *)base, (size_t)size,
-              PROT_NONE, MAP_FILE | MAP_SHARED | MAP_FIXED,
-              vm->none_fd, (off_t)AddrOffset(vm->base, base));
+              PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
+              -1, 0);
   AVER(addr == (void *)base);
 
   vm->mapped -= size;
