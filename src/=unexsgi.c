@@ -466,16 +466,17 @@ round_up (x, y)
    if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
 
 static int
-find_section (name, section_names, file_name, file_h, noerror)
+find_section (name, section_names, file_name, old_file_h, old_section_h, noerror)
      char *name;
      char *section_names;
      char *file_name;
-     Elf32_Ehdr file_h;
+     Elf32_Ehdr *old_file_h;
+     Elf32_Shdr *old_section_h;
      int noerror;
 {
   int idx;
 
-  for (idx = 1; idx < file_h->e_shnum; idx++)
+  for (idx = 1; idx < old_file_h->e_shnum; idx++)
     {
 #ifdef DEBUG
       fprintf (stderr, "Looking for %s - found %s\n", name,
@@ -485,7 +486,7 @@ find_section (name, section_names, file_name, file_h, noerror)
 		   name))
 	break;
     }
-  if (idx == file_h->e_shnum)
+  if (idx == old_file_h->e_shnum)
     {
       if (noerror)
 	return -1;
@@ -566,18 +567,18 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   /* Find the mdebug section, if any.  */
 
   old_mdebug_index = find_section (".mdebug", old_section_names,
-				   old_name, old_file_h, 1);
+				   old_name, old_file_h, old_section_h, 1);
 
   /* Find the old .bss section. */
 
   old_bss_index = find_section (".bss", old_section_names,
-				old_name, old_file_h, 0);
+				old_name, old_file_h, old_section_h, 0);
 
   /* Find the old .data section.  Figure out parameters of
      the new data2 and bss sections.  */
 
   old_data_index = find_section (".data", old_section_names,
-				 old_name, old_file_h, 0);
+				 old_name, old_file_h, old_section_h, 0);
 
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
