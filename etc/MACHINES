@@ -1032,6 +1032,11 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   another system with Solaris 8 using apparently the same 5.0 compiler
   and the default CFLAGS.
 
+  Emacs 21.1 and 21.2 built with Sun's ProWorks PC3.0.1 compiler on
+  Intel/Solaris 8 was reported to abort and dump core during startup.
+  Using GCC or a newer SUN compiler (Sun WokShop 6 update 2 C 5.3
+  2001/05/15) solves the problem.
+
   Emacs 20.5 and later work on SPARC GNU/Linux with the 32-bit ABI.
   As of release 2.95, GCC doesn't work properly with the 64-bit ABI
   (applicable on UltraSPARC), but that isn't the default mode.
