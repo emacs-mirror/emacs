@@ -1,3 +1,40 @@
+2003-07-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	Change overlays_after and overlays_before so the overlays themselves
+	are linked into lists, rather than using cons cells.  After all each
+	Lisp_Misc already occupies 5 words, so we can add a `next' field to
+	Lisp_Overlay for free and save up one cons cell per overlay (not
+	to mention one indirection when traversing the list of overlay).
+
+	* lisp.h (struct Lisp_Overlay): New field `next'.
+
+	* buffer.h (struct buffer): Change overlays_before and overlays_after
+	from Lisp lists of overlays to pointers to overlays.
+
+	* buffer.c (overlay_strings, recenter_overlay_lists):
+	Fix typo in eassert in last commit.
+	(unchain_overlay): New function.
+	(add_overlay_mod_hooklist): Use AREF.
+	(copy_overlays, reset_buffer, overlays_at, overlays_in)
+	(overlay_touches_p, overlay_strings, recenter_overlay_lists)
+	(fix_overlays_in_range, fix_overlays_before, Fmake_overlay)
+	(Fmove_overlay, Fdelete_overlay, Foverlay_lists)
+	(report_overlay_modification, evaporate_overlays, init_buffer_once):
+	Adjust to new type of overlays_(before|after).
+
+	* alloc.c (mark_object): Mark the new `next' field of overlays.
+	(mark_buffer): Manually mark the overlays_(after|before) fields.
+
+	* coding.c (run_pre_post_conversion_on_str):
+	* editfns.c (overlays_around):
+	* xdisp.c (load_overlay_strings):
+	* fileio.c (Finsert_file_contents):
+	* indent.c (current_column):
+	* insdel.c (signal_before_change, signal_after_change):
+	* intervals.c (set_point_both):
+	* print.c (temp_output_buffer_setup): Use new type for
+	overlays_(before|after).
+
 2003-07-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* buffer.c (report_overlay_modification): Don't run hooks while
