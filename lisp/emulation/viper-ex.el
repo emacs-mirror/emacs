@@ -34,6 +34,7 @@
 (defvar vip-expert-level)
 (defvar vip-custom-file-name)
 (defvar vip-case-fold-search)
+(defvar explicit-shell-file-name)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -76,15 +77,16 @@
 ;; A-list of Ex variables that can be set using the :set command.
 (defconst ex-variable-alist 
   '(("wrapscan") ("ws") ("wrapmargin") ("wm")
-    ("global-tabstop") ("gts") ("tabstop") ("ts")
+    ("tabstop-global") ("ts-g") ("tabstop") ("ts")
     ("showmatch") ("sm") ("shiftwidth") ("sw") ("shell") ("sh")
     ("readonly") ("ro") 
     ("nowrapscan") ("nows") ("noshowmatch") ("nosm")
     ("noreadonly") ("noro") ("nomagic") ("noma")
     ("noignorecase") ("noic")
-    ("global-noautoindent") ("gnoai") ("noautoindent") ("noai")
+    ("noautoindent-global") ("noai-g") ("noautoindent") ("noai")
     ("magic") ("ma") ("ignorecase") ("ic")
-    ("global-autoindent") ("gai") ("autoindent") ("ai")
+    ("autoindent-global") ("ai-g") ("autoindent") ("ai") 
+    ("all") 
     ))
 
   
@@ -1564,7 +1566,7 @@ reversed.")
     (while (string-match "^[ \\t\\n]*$"
 			 (setq str
 			       (completing-read ":set " ex-variable-alist)))
-      (message ":set <Variable> ")
+      (message ":set <Variable> [= <Value>]")
       ;; if there are unread events, don't wait
       (or (vip-set-unread-command-events "") (sit-for 2))
       ) ; while
@@ -1582,12 +1584,15 @@ reversed.")
 	actual-lisp-cmd lisp-cmd-del-pattern
 	val2 orig-var)
     (setq orig-var var)
-    (cond ((member var '("ai" "autoindent"))
+    (cond ((string= var "all")
+	   (setq ask-if-save nil
+		 set-cmd nil))
+	  ((member var '("ai" "autoindent"))
 	   (setq var "vip-auto-indent"
 		 set-cmd "setq"
 		 ask-if-save nil
 		 val "t"))
-	  ((member var '("gai" "global-autoindent"))
+	  ((member var '("ai-g" "autoindent-global"))
 	   (kill-local-variable 'vip-auto-indent)
 	   (setq var "vip-auto-indent"
 		 set-cmd "setq-default"
@@ -1596,7 +1601,7 @@ reversed.")
 	   (setq var "vip-auto-indent"
 		 ask-if-save nil
 		 val "nil"))
-	  ((member var '("gnoai" "global-noautoindent"))
+	  ((member var '("noai-g" "noautoindent-global"))
 	   (kill-local-variable 'vip-auto-indent)
 	   (setq var "vip-auto-indent"
 		 set-cmd "setq-default"
@@ -1610,7 +1615,7 @@ reversed.")
 	  ((member var '("ma" "magic"))
 	   (setq var "vip-re-search"
 		 val "t"))
-	  ((member var '("noma" "nomagic"))
+  	  ((member var '("noma" "nomagic"))
 	   (setq var "vip-re-search"
 		 val "nil"))
 	  ((member var '("ro" "readonly"))
@@ -1631,7 +1636,7 @@ reversed.")
 	  ((member var '("nows" "nowrapscan"))
 	   (setq var "vip-search-wrap-around-t"
 		 val "nil")))
-    (if (eq val 0) ; value must be set by the user
+    (if (and set-cmd (eq val 0)) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
 	  (message ":set %s = <Value>" var)
 	  ;; if there are unread events, don't wait
@@ -1643,7 +1648,7 @@ reversed.")
 	  (if (member var
 		      '("sw" "shiftwidth"
 			"ts" "tabstop"
-			"gts" "global-tabstop"
+			"ts-g" "tabstop-global"
 			"wm" "wrapmargin")) 
 	      (condition-case nil
 		  (or (numberp (setq val2 (car (read-from-string val))))
@@ -1659,7 +1664,7 @@ reversed.")
 	    (setq var "tab-width"
 		  set-cmd "setq"
 		  ask-if-save nil))
-	   ((member var '("gts" "global-tabstop"))
+	   ((member var '("ts-g" "tabstop-global"))
 	    (kill-local-variable 'tab-width)
 	    (setq var "tab-width"
 		  set-cmd "setq-default"))
@@ -1674,11 +1679,12 @@ reversed.")
 		  val (format "\"%s\"" val)))))
       (ex-fixup-history "set" orig-var))
     
-    (setq actual-lisp-cmd (format "\n(%s %s %s) %s"
-				  set-cmd var val auto-cmd-label))
-    (setq lisp-cmd-del-pattern
-	  (format "^\n?[ \t]*([ \t]*%s[ \t]+%s[ \t].*)[ \t]*%s"
-		  set-cmd var auto-cmd-label))
+    (if set-cmd
+	(setq actual-lisp-cmd
+	      (format "\n(%s %s %s) %s" set-cmd var val auto-cmd-label)
+	      lisp-cmd-del-pattern
+	      (format "^\n?[ \t]*([ \t]*%s[ \t]+%s[ \t].*)[ \t]*%s"
+		      set-cmd var auto-cmd-label)))
     
     (if (and ask-if-save
 	     (y-or-n-p (format "Do you want to save this setting in %s "
@@ -1705,15 +1711,19 @@ reversed.")
 		))
 	  ))
     
-    (message "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
-					(format "%S" val)
-				      val))
-    (eval (car (read-from-string actual-lisp-cmd)))
-	(if (string= var "fill-column")
-		(if (> val2 0)
-			(auto-fill-mode 1)
-		  (auto-fill-mode -1)))
-		
+    (if set-cmd
+	(message "%s %s %s"
+		 set-cmd var
+		 (if (string-match "^[ \t]*$" val)
+		     (format "%S" val)
+		   val)))
+    (if actual-lisp-cmd
+	(eval (car (read-from-string actual-lisp-cmd))))
+    (if (string= var "fill-column")
+	(if (> val2 0)
+	    (auto-fill-mode 1)
+	  (auto-fill-mode -1)))
+    (if (string= var "all") (ex-show-vars))
     ))
 
 ;; In inline args, skip regex-forw and (optionally) chars-back.
@@ -2076,6 +2086,33 @@ Please contact your system administrator. "
 	(vip-read-event)
 	(kill-buffer " *vip-info*")))
     ))
+
+;; display all variables set through :set
+(defun ex-show-vars ()
+  (with-output-to-temp-buffer " *vip-info*"
+    (princ (if vip-auto-indent
+	       "autoindent (local)\n" "noautoindent (local)\n"))
+    (princ (if (default-value 'vip-auto-indent) 
+	       "autoindent (global) \n" "noautoindent (global) \n"))
+    (princ (if vip-case-fold-search "ignorecase\n" "noignorecase\n"))
+    (princ (if vip-re-search "magic\n" "nomagic\n"))
+    (princ (if buffer-read-only "readonly\n" "noreadonly\n"))
+    (princ (if blink-matching-paren "showmatch\n" "noshowmatch\n"))
+    (princ (if vip-search-wrap-around-t "wrapscan\n" "nowrapscan\n"))
+    (princ (format "shiftwidth \t\t= %S\n" vip-shift-width))
+    (princ (format "tabstop (local) \t= %S\n" tab-width))
+    (princ (format "tabstop (global) \t= %S\n" (default-value 'tab-width)))
+    (princ (format "wrapmargin (local) \t= %S\n"
+		   (- (window-width) fill-column)))
+    (princ (format "wrapmargin (global) \t= %S\n"
+		   (- (window-width) (default-value 'fill-column))))
+    (princ (format "shell \t\t\t= %S\n" (if (boundp 'explicit-shell-file-name)
+					    explicit-shell-file-name
+					  'none)))
+    ))
+
+
+
 
 
 ;;;  viper-ex.el ends here

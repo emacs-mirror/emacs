@@ -24,7 +24,7 @@
 (provide 'viper-keym)
 
 ;; compiler pacifier
-(defvar vip-always)
+(defvar viper-always)
 (defvar vip-current-state)
 (defvar vip-mode-string)
 (defvar vip-expert-level)
@@ -586,7 +586,7 @@ Arguments: (major-mode vip-state keymap)"
     
     (princ (format "\nvip-expert-level  %S\n" vip-expert-level))
     (princ (format "vip-no-multiple-ESC  %S\n" vip-no-multiple-ESC))
-    (princ (format "vip-always  %S\n" vip-always))
+    (princ (format "viper-always  %S\n" viper-always))
     (princ (format "vip-ex-style-motion  %S\n"
 		   vip-ex-style-motion))
     (princ (format "vip-ex-style-editing-in-insert  %S\n"

@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "2.94 of June 9, 1997"
+(defconst viper-version "2.94 of June 12, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -315,53 +315,112 @@
 
 (require 'viper-cmd)
 
+(defvar vip-always t
+  "See `viper-always'. This variable is for compatibility with older Vipers.")
+(defvar viper-always vip-always
+  "Non-nil means, arrange for vi-state to be a default when appropriate.
+This is different from `viper-mode' variable in that `viper-mode' determines
+whether to use Viper in the first place, while `viper-always', if nil, lets
+user decide when to invoke Viper in a major mode.")
 
-;; The following is provided for compatibility with older VIP's
+(defvar viper-mode (cond (noninteractive nil)
+			 (t 'ask))
+  "Viperize or not Viperize.
+If t, viperize emacs. If nil -- don't. If `ask', ask the user.
+This variable is used primatily when Viper is being loaded.
+
+Must be set in `~/.emacs' before Viper is loaded.
+DO NOT set this variable interactively.")
+
+
+;; The following are provided for compatibility with older VIP's
+
+;;;###autoload
+(defalias 'vip-mode 'viper-mode)
 
 (defalias 'vip-change-mode-to-vi 'vip-change-state-to-vi)
 (defalias 'vip-change-mode-to-insert 'vip-change-state-to-insert)
 (defalias 'vip-change-mode-to-emacs 'vip-change-state-to-emacs)
+
+
+
+;;;###autoload
+(defun viper-mode ()
+  "Turn on Viper emulation of Vi."
+  (interactive)
+  (if (not noninteractive)
+      (progn
+	;; if the user requested viper-mode explicitly
+	(if viper-mode
+	    ()
+	  (setq viper-mode 1)
+	  (load-library "viper"))
+
+	(if vip-first-time ; This check is important. Without it, startup and 
+	    (progn	   ; expert-level msgs mix up when viper-mode recurses
+	      (setq vip-first-time nil)
+	      (if (not vip-inhibit-startup-message)
+		  (save-window-excursion
+		    (setq vip-inhibit-startup-message t)
+		    (delete-other-windows)
+		    (switch-to-buffer "Viper Startup Message")
+		    (erase-buffer)
+		    (insert
+		     (substitute-command-keys
+		      "Viper Is a Package for Emacs Rebels.
+It is also a VI Plan for Emacs Rescue and a venomous VI PERil.
+
+Technically speaking, Viper is a Vi emulation package for GNU Emacs 19 and
+XEmacs 19.  It supports virtually all of Vi and Ex functionality, extending
+and improving upon much of it.
+
+   1. Viper supports Vi at several levels. Level 1 is the closest to Vi,
+      level 5 provides the most flexibility to depart from many Vi conventions.
+      
+      You will be asked to specify your user level in a following screen.
+   
+      If you select user level 1 then the keys ^X, ^C, ^Z, and ^G will behave
+      as in VI, to smooth transition to Viper for the beginners. However, to
+      use Emacs productively, you are advised to reach user level 3 or higher. 
+      
+      If your user level is 2 or higher, ^X and ^C will invoke Emacs
+      functions,as usual in Emacs; ^Z will toggle vi/emacs modes, and 
+      ^G will be the usual Emacs's keyboard-quit (something like ^C in VI).
+   
+   2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
+      do not cause Emacs to quit, except at user level 1 (a novice).
+   3. ^X^C EXITS EMACS.
+   4. Viper supports multiple undo: `u' will undo. Typing `.' will repeat
+      undo. Another `u' changes direction.
+   
+   6. Emacs Meta functions are invoked by typing `C-\\' or `\\ ESC'.
+      On a window system, the best way is to use the Meta-key.
+   7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
+      something funny happens. This would abort the current editing command. 
+      
+You can get more information on Viper by:
+
+   a. Typing `:help' in Vi state
+   b. Printing Viper manual, found in ./etc/viper.dvi
+   c. Printing ViperCard, the Quick Reference, found in ./etc/viperCard.dvi
+    
+This startup message appears whenever you load Viper, unless you type `y' now."
+		      ))
+		    (goto-char (point-min))
+		    (if (y-or-n-p "Inhibit Viper startup message? ")
+			(vip-save-setting
+			 'vip-inhibit-startup-message
+			 "Viper startup message inhibited"
+			 vip-custom-file-name t))
+		    ;;(kill-buffer (current-buffer))
+		    (message
+		     "The last message is in buffer `Viper Startup Message'")
+		    (sit-for 4)
+		    ))
+	      (vip-set-expert-level 'dont-change-unless)))
+	(vip-change-state-to-vi))))
    
 
-;;; Here we put things that may affect global emacs behavior.
-;;; This file is not loaded during compilation, so this makes 
-;;; interactive compilation of Viper safe for non-viper users.
-
-
-;; This is not local in Emacs, so we make it local.
-;; This must be local because although the stack of minor modes can be the same
-;; for all buffers, the associated *keymaps* can be different. In Viper,
-;; vip-vi-local-user-map, vip-insert-local-user-map, and others can have
-;; different keymaps for different buffers.
-;; Also, the keymaps associated with vip-vi/insert-state-modifier-minor-mode
-;; can be different.
-(make-variable-buffer-local 'minor-mode-map-alist)
-
-;; Viper changes the default mode-line-buffer-identification
-(setq-default mode-line-buffer-identification '(" %b"))
-
-;; setup emacs-supported vi-style feel
-(setq next-line-add-newlines nil
-      require-final-newline t)
-
-(make-variable-buffer-local 'require-final-newline)
-
-;; don't bark when mark is inactive
-(setq mark-even-if-inactive t)
-
-(setq scroll-step 1)
-
-;; Variable displaying the current Viper state in the mode line.
-(vip-deflocalvar vip-mode-string vip-emacs-state-id)
-(or (memq 'vip-mode-string global-mode-string)
-    (setq global-mode-string
-	  (append '("" vip-mode-string) (cdr global-mode-string))))
-
-
-
-
-;;; Load set up hooks then load .vip
-
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun vip-comint-mode-hook ()
   (setq require-final-newline nil
@@ -398,14 +457,16 @@
   (add-hook 'html-mode-hook 'viper-mode)
   (defvar html-helper-mode-hook)
   (add-hook 'html-helper-mode-hook 'viper-mode)
+
   (defvar java-mode-hook)
   (add-hook 'java-mode-hook 'viper-mode)
   
   (defvar emacs-lisp-mode-hook)
   (add-hook 'emacs-lisp-mode-hook 'viper-mode)
-
   (defvar lisp-mode-hook)
   (add-hook 'lisp-mode-hook 'viper-mode)
+  (defvar lisp-interaction-mode-hook)
+  (add-hook 'lisp-interaction-mode-hook 'viper-mode)
   
   (defvar bibtex-mode-hook)
   (add-hook 'bibtex-mode-hook 'viper-mode) 	  
@@ -418,17 +479,16 @@
       
   (defvar c++-mode-hook)
   (add-hook 'c++-mode-hook 'viper-mode)
-  
-  (defvar lisp-interaction-mode-hook)
-  (add-hook 'lisp-interaction-mode-hook 'viper-mode)
 
   (defvar fortran-mode-hook)
-  (add-hook 'fortran-mode-hook 'vip-mode)
+  (add-hook 'fortran-mode-hook 'viper-mode)
+  (defvar f90-mode-hook)
+  (add-hook 'f90-mode-hook 'viper-mode)
 
   (defvar basic-mode-hook)
-  (add-hook 'basic-mode-hook 'vip-mode)
+  (add-hook 'basic-mode-hook 'viper-mode)
   (defvar bat-mode-hook)
-  (add-hook 'bat-mode-hook 'vip-mode)
+  (add-hook 'bat-mode-hook 'viper-mode)
       
   (defvar text-mode-hook)
   (add-hook 'text-mode-hook 'viper-mode)
@@ -587,160 +647,227 @@
     (vip-change-state-to-emacs))
   ) ; vip-set-hooks
 
+
+;; these are primarily advices and Vi-ish variable settings
+(defun vip-non-hook-settings ()
+
+  ;; This var is not local in Emacs, so we make it local.
+  ;; It must be local because although the stack of minor modes can be the same
+  ;; for all buffers, the associated *keymaps* can be different. In Viper,
+  ;; vip-vi-local-user-map, vip-insert-local-user-map, and others can have
+  ;; different keymaps for different buffers.
+  ;; Also, the keymaps associated with vip-vi/insert-state-modifier-minor-mode
+  ;; can be different.
+  (make-variable-buffer-local 'minor-mode-map-alist)
+  
+  ;; Viper changes the default mode-line-buffer-identification
+  (setq-default mode-line-buffer-identification '(" %b"))
+  
+  ;; setup emacs-supported vi-style feel
+  (setq next-line-add-newlines nil
+	require-final-newline t)
+  
+  (make-variable-buffer-local 'require-final-newline)
+  
+  ;; don't bark when mark is inactive
+  (setq mark-even-if-inactive t)
+  
+  (setq scroll-step 1)
+  
+  ;; Variable displaying the current Viper state in the mode line.
+  (vip-deflocalvar vip-mode-string vip-emacs-state-id)
+  (or (memq 'vip-mode-string global-mode-string)
+      (setq global-mode-string
+	    (append '("" vip-mode-string) (cdr global-mode-string))))
+
+  (defadvice read-key-sequence (around vip-read-keyseq-ad activate)
+    "Harness to work for Viper. This advice is harmless---don't worry!"
+    (let (inhibit-quit event keyseq)
+      (setq keyseq ad-do-it)
+      (setq event (if vip-xemacs-p
+		      (elt keyseq 0) ; XEmacs returns vector of events
+		    (elt (listify-key-sequence keyseq) 0)))
+      (if (vip-ESC-event-p event)
+	  (let (unread-command-events)
+	    (vip-set-unread-command-events keyseq)
+	    (if (vip-fast-keysequence-p)
+		(let ((vip-vi-global-user-minor-mode  nil)
+		      (vip-vi-local-user-minor-mode  nil)
+		      (vip-replace-minor-mode nil) ; actually unnecessary
+		      (vip-insert-global-user-minor-mode  nil)
+		      (vip-insert-local-user-minor-mode  nil))
+		  (setq keyseq ad-do-it)) 
+	      (setq keyseq ad-do-it))))
+      keyseq))
+  
+  (defadvice describe-key (before vip-read-keyseq-ad protect activate)
+    "Force to read key via `read-key-sequence'."
+    (interactive (list (vip-events-to-keys
+			(read-key-sequence "Describe key: ")))))
+  
+  (defadvice describe-key-briefly (before vip-read-keyseq-ad protect activate)
+    "Force to read key via `read-key-sequence'."
+    (interactive (list (vip-events-to-keys
+			(read-key-sequence "Describe key briefly: ")))))
+  
+  
+  ;; Advice for use in find-file and read-file-name commands.
+  (defadvice exit-minibuffer (before vip-exit-minibuffer-advice activate)
+    "Run `vip-minibuffer-exit-hook' just before exiting the minibuffer."
+    (run-hooks 'vip-minibuffer-exit-hook))
+  
+  (defadvice find-file (before vip-add-suffix-advice activate)
+    "Use `read-file-name' for reading arguments."
+    (interactive (cons (read-file-name "Find file: " nil default-directory)
+		       ;; if Mule and prefix argument, ask for coding system
+		       (if (or (boundp 'MULE)    ; mule integrated Emacs 19
+			       (featurep 'mule)) ; mule integrated XEmacs 20
+			   (list
+			    (and current-prefix-arg
+				 (read-coding-system "Coding-system: "))))
+		       )))
+  
+  (defadvice find-file-other-window (before vip-add-suffix-advice activate)
+    "Use `read-file-name' for reading arguments."
+    (interactive (cons (read-file-name "Find file in other window: "
+				       nil default-directory)
+		       ;; if Mule and prefix argument, ask for coding system
+		       (if (or (boundp 'MULE)    ; mule integrated Emacs 19
+			       (featurep 'mule)) ; mule integrated XEmacs 20
+			   (list
+			    (and current-prefix-arg
+				 (read-coding-system "Coding-system: "))))
+		       )))
+  
+  (defadvice find-file-other-frame (before vip-add-suffix-advice activate)
+    "Use `read-file-name' for reading arguments."
+    (interactive (cons (read-file-name "Find file in other frame: "
+				       nil default-directory)
+		       ;; if Mule and prefix argument, ask for coding system
+		       (if (or (boundp 'MULE)    ; mule integrated Emacs 19
+			       (featurep 'mule)) ; mule integrated XEmacs 20
+			   (list
+			    (and current-prefix-arg
+				 (read-coding-system "Coding-system: "))))
+		       )))
+  
+  (defadvice read-file-name (around vip-suffix-advice activate)
+    "Tell `exit-minibuffer' to run `vip-file-add-suffix' as a hook."
+    (let ((vip-minibuffer-exit-hook 'vip-file-add-suffix))
+      ad-do-it))
+  
+  (defadvice start-kbd-macro (after vip-kbd-advice activate)
+    "Remove Viper's intercepting bindings for C-x ).
+  This may be needed if the previous `:map' command terminated abnormally."
+    (define-key vip-vi-intercept-map "\C-x)" nil)
+    (define-key vip-insert-intercept-map "\C-x)" nil)
+    (define-key vip-emacs-intercept-map "\C-x)" nil))
+  
+  (cond ((vip-window-display-p)
+	 (let* ((search-key (if vip-xemacs-p
+				[(meta shift button1up)] [M-S-mouse-1]))
+		(search-key-catch
+		 (if vip-xemacs-p [(meta shift button1)] [M-S-down-mouse-1]))
+		(insert-key (if vip-xemacs-p
+				[(meta shift button2up)] [M-S-mouse-2]))
+		(insert-key-catch
+		 (if vip-xemacs-p [(meta shift button2)] [M-S-down-mouse-2]))
+		(search-key-unbound (and (not (key-binding search-key))
+					 (not (key-binding search-key-catch))))
+		(insert-key-unbound (and (not (key-binding insert-key))
+					 (not (key-binding insert-key-catch))))
+		)
+	   
+	   (if search-key-unbound
+	       (global-set-key search-key 'vip-mouse-click-search-word))
+	   (if insert-key-unbound
+	       (global-set-key insert-key 'vip-mouse-click-insert-word))
+	   
+	   ;; The following would be needed if you want to use the above two
+	   ;; while clicking in another frame. If you only want to use them
+	   ;; by clicking in another window, not frame, the bindings below
+	   ;; aren't necessary.
+	   
+	   ;; These must be bound to mouse-down event for the same mouse
+	   ;; buttons as 'vip-mouse-click-search-word and
+	   ;; 'vip-mouse-click-insert-word
+	   (if search-key-unbound
+	       (global-set-key search-key-catch 'vip-mouse-catch-frame-switch))
+	   (if insert-key-unbound
+	       (global-set-key insert-key-catch 'vip-mouse-catch-frame-switch))
+	   
+	   (if vip-xemacs-p
+	       (add-hook 'mouse-leave-frame-hook
+			 'vip-remember-current-frame)
+	     (defadvice handle-switch-frame (before vip-frame-advice activate)
+	       "Remember the selected frame before the switch-frame event." 
+	       (vip-remember-current-frame (selected-frame))))
+	   )))
+  ) ; end vip-non-hook-settings
+
 
-;; Defadvices
+(if (eq viper-mode 'ask)
+    (progn
+      (save-window-excursion
+	(with-output-to-temp-buffer " *vip-info*"
+	  (princ "
+You have loaded Viper, and are about to Viperize your emacs!
 
-(defadvice read-key-sequence (around vip-read-keyseq-ad activate)
-  "Harness to work for Viper. This advice is harmless---don't worry!"
-  (let (inhibit-quit event keyseq)
-    (setq keyseq ad-do-it)
-    (setq event (if vip-xemacs-p
-		    (elt keyseq 0) ; XEmacs returns vector of events
-		  (elt (listify-key-sequence keyseq) 0)))
-    (if (vip-ESC-event-p event)
-	(let (unread-command-events)
-	  (vip-set-unread-command-events keyseq)
-	  (if (vip-fast-keysequence-p)
-	      (let ((vip-vi-global-user-minor-mode  nil)
-		    (vip-vi-local-user-minor-mode  nil)
-		    (vip-replace-minor-mode nil) ; actually unnecessary
-		    (vip-insert-global-user-minor-mode  nil)
-		    (vip-insert-local-user-minor-mode  nil))
-		(setq keyseq ad-do-it)) 
-	    (setq keyseq ad-do-it))))
-    keyseq))
-    
-(defadvice describe-key (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key: ")))))
+Viper is a Package for Emacs Rebels
+and a venomous VI PERil,
 
-(defadvice describe-key-briefly (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key briefly: ")))))
+It's time to decide: to Viperize or not to Viperize...
 
+If you wish to Viperize AND make this your way of life, please put 
 
-;; Advice for use in find-file and read-file-name commands.
-(defadvice exit-minibuffer (before vip-exit-minibuffer-advice activate)
-  "Run `vip-minibuffer-exit-hook' just before exiting the minibuffer."
-  (run-hooks 'vip-minibuffer-exit-hook))
+	(setq viper-mode t)
+	(require 'viper)
 
-(defadvice find-file (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file: " nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
-    
-(defadvice find-file-other-window (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file in other window: "
-				     nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
-    
-(defadvice find-file-other-frame (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (cons (read-file-name "Find file in other frame: "
-				     nil default-directory)
-		     ;; if Mule and prefix argument, ask for coding system
-		     (if (or (boundp 'MULE)    ; mule integrated Emacs 19
-			     (featurep 'mule)) ; mule integrated XEmacs 20
-			 (list
-			  (and current-prefix-arg
-			       (read-coding-system "Coding-system: "))))
-		     )))
+in your .emacs file (preferably, close to the top).
+These two lines must come in the order given.
 
-(defadvice read-file-name (around vip-suffix-advice activate)
-  "Tell `exit-minibuffer' to run `vip-file-add-suffix' as a hook."
-  (let ((vip-minibuffer-exit-hook 'vip-file-add-suffix))
-    ad-do-it))
+Also, the startup file name has changed from .vip to .viper"))
+	(if (y-or-n-p "Viperize? ")
+	    (setq viper-mode t)
+	  (setq viper-mode nil))
+	(message "")
+	(kill-buffer " *vip-info*"))))
 
-(defadvice start-kbd-macro (after vip-kbd-advice activate)
-  "Remove Viper's intercepting bindings for C-x ).
-This may be needed if the previous `:map' command terminated abnormally."
-  (define-key vip-vi-intercept-map "\C-x)" nil)
-  (define-key vip-insert-intercept-map "\C-x)" nil)
-  (define-key vip-emacs-intercept-map "\C-x)" nil))
-
-(cond ((vip-window-display-p)
-       (let* ((search-key (if vip-xemacs-p
-			      [(meta shift button1up)] [M-S-mouse-1]))
-	      (search-key-catch (if vip-xemacs-p
-				    [(meta shift button1)] [M-S-down-mouse-1]))
-	      (insert-key (if vip-xemacs-p
-			      [(meta shift button2up)] [M-S-mouse-2]))
-	      (insert-key-catch (if vip-xemacs-p
-				    [(meta shift button2)] [M-S-down-mouse-2]))
-	      (search-key-unbound (and (not (key-binding search-key))
-				       (not (key-binding search-key-catch))))
-	      (insert-key-unbound (and (not (key-binding insert-key))
-				       (not (key-binding insert-key-catch))))
-	      )
-	     
-	 (if search-key-unbound
-	     (global-set-key search-key 'vip-mouse-click-search-word))
-	 (if insert-key-unbound
-	     (global-set-key insert-key 'vip-mouse-click-insert-word))
-    
-	 ;; The following would be needed if you want to use the above two
-	 ;; while clicking in another frame. If you only want to use them
-	 ;; by clicking in another window, not frame, the bindings below
-	 ;; aren't necessary.
-	 
-	 ;; These must be bound to mouse-down event for the same mouse
-	 ;; buttons as 'vip-mouse-click-search-word and
-	 ;; 'vip-mouse-click-insert-word
-	 (if search-key-unbound
-	     (global-set-key search-key-catch   'vip-mouse-catch-frame-switch))
-	 (if insert-key-unbound
-	     (global-set-key insert-key-catch   'vip-mouse-catch-frame-switch))
-	 
-	 (if vip-xemacs-p
-	     (add-hook 'mouse-leave-frame-hook
-		       'vip-remember-current-frame)
-	   (defadvice handle-switch-frame (before vip-frame-advice activate)
-	     "Remember the selected frame before the switch-frame event." 
-	     (vip-remember-current-frame (selected-frame))))
-       )))
 
 
 
       
-;; Set some useful macros
-;; These must be before we load .vip, so the user could unrecord them.
+;; Set some useful macros, advices
+;; These must be BEFORE we ~/.vip is loaded, 
+;; so the user can unrecord them in ~/.vip.
+(if viper-mode
+    (progn
+      ;; set advices and some variables that give emacs Vi look.
+      (vip-non-hook-settings)
 
-;; repeat the 2nd previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\1) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
-;; repeat the 3d previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\2) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
- 
-;; set the toggle case sensitivity and regexp search macros
-(vip-set-vi-search-style-macros nil)
-
-;; Make %%% toggle parsing comments for matching parentheses
-(vip-record-kbd-macro
- "%%%" 'vi-state
- [(meta x) v i p - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
- 't)
+      ;; repeat the 2nd previous command without rotating the command history
+      (vip-record-kbd-macro
+       (vector vip-repeat-from-history-key '\1) 'vi-state
+       [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
+      ;; repeat the 3d previous command without rotating the command history
+      (vip-record-kbd-macro
+       (vector vip-repeat-from-history-key '\2) 'vi-state
+       [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
+      
+      ;; set the toggle case sensitivity and regexp search macros
+      (vip-set-vi-search-style-macros nil)
+      
+      ;; Make %%% toggle parsing comments for matching parentheses
+      (vip-record-kbd-macro
+       "%%%" 'vi-state
+       [(meta x) v i p - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
+       't)
+      ))
  
 
 ;; ~/.vip is loaded if it exists
 (if (and (file-exists-p vip-custom-file-name)
+	 viper-mode
 	 (not noninteractive))
     (load vip-custom-file-name))
 
@@ -754,35 +881,42 @@ This may be needed if the previous `:map' command terminated abnormally."
 ;; Save user settings or Viper defaults for vars controled by vip-expert-level
 (setq vip-saved-user-settings 
       (list (cons 'vip-want-ctl-h-help vip-want-ctl-h-help)
-	    (cons 'vip-always vip-always)
+	    (cons 'viper-always viper-always)
 	    (cons 'vip-no-multiple-ESC vip-no-multiple-ESC)
 	    (cons 'vip-ex-style-motion vip-ex-style-motion)
 	    (cons 'vip-ex-style-editing-in-insert
 		    	    	    	    vip-ex-style-editing-in-insert) 
 	    (cons 'vip-want-emacs-keys-in-vi vip-want-emacs-keys-in-vi)
+	    (cons 'vip-electric-mode vip-electric-mode)
 	    (cons 'vip-want-emacs-keys-in-insert vip-want-emacs-keys-in-insert)
 	    (cons 'vip-re-search vip-re-search)))
 	      
 
-(vip-set-minibuffer-style)
-(if vip-buffer-search-char
-    (vip-buffer-search-enable))
-(vip-update-alphanumeric-class)
+(if viper-mode
+    (progn
+      (vip-set-minibuffer-style)
+      (if vip-buffer-search-char
+	  (vip-buffer-search-enable))
+      (vip-update-alphanumeric-class)
+      ))
    
 
 ;;; Familiarize Viper with some minor modes that have their own keymaps
-(vip-harness-minor-mode "compile")
-(vip-harness-minor-mode "outline")
-(vip-harness-minor-mode "allout")
-(vip-harness-minor-mode "xref")
-(vip-harness-minor-mode "lmenu")
-(vip-harness-minor-mode "vc")
-(vip-harness-minor-mode "ltx-math") ; LaTeX-math-mode in AUC-TeX
-(vip-harness-minor-mode "latex")    ; which is in one of these two files
-(vip-harness-minor-mode "cyrillic")
-(vip-harness-minor-mode "russian")
-(vip-harness-minor-mode "view-less")
-(vip-harness-minor-mode "view")
+(if viper-mode
+    (progn
+      (vip-harness-minor-mode "compile")
+      (vip-harness-minor-mode "outline")
+      (vip-harness-minor-mode "allout")
+      (vip-harness-minor-mode "xref")
+      (vip-harness-minor-mode "lmenu")
+      (vip-harness-minor-mode "vc")
+      (vip-harness-minor-mode "ltx-math") ; LaTeX-math-mode in AUC-TeX
+      (vip-harness-minor-mode "latex")    ; which is in one of these two files
+      (vip-harness-minor-mode "cyrillic")
+      (vip-harness-minor-mode "russian")
+      (vip-harness-minor-mode "view-less")
+      (vip-harness-minor-mode "view")
+      ))
 
 
 ;; Intercept maps could go in viper-keym.el
@@ -801,8 +935,9 @@ This may be needed if the previous `:map' command terminated abnormally."
 (define-key vip-emacs-intercept-map vip-toggle-key 'vip-change-state-to-vi)
 
 
-(if (or vip-always 
-	(and (< vip-expert-level 5) (> vip-expert-level 0)))
+(if (and viper-mode
+	 (or viper-always 
+	     (and (< vip-expert-level 5) (> vip-expert-level 0))))
     (vip-set-hooks))
     
 ;; Let all minor modes take effect after loading

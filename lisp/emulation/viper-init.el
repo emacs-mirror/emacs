@@ -599,10 +599,7 @@ These buffers can be cycled through via :R and :P commands.")
 (defvar vip-inhibit-startup-message nil
   "Whether Viper startup message should be inhibited.")
 
-(defvar vip-always t
-  "t means, arrange that vi-state will be a default.")
-
-(defvar vip-custom-file-name (vip-convert-standard-file-name "~/.vip")
+(defvar vip-custom-file-name (vip-convert-standard-file-name "~/.viper")
   "Viper customisation file.
 This variable must be set _before_ loading Viper.")
 

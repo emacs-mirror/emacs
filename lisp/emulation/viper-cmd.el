@@ -12,6 +12,7 @@
 (defvar vip-minibuffer-insert-face)
 (defvar vip-minibuffer-vi-face)
 (defvar vip-minibuffer-emacs-face)
+(defvar viper-always)
 (defvar vip-mode-string	)
 (defvar iso-accents-mode)
 (defvar zmacs-region-stays)
@@ -412,80 +413,7 @@
     
   ;; Sets Viper mode string in global-mode-string
   (force-mode-line-update))
-  
-;;;###autoload
-(defun viper-mode ()
-  "Turn on Viper emulation of Vi."
-  (interactive)
-  (if (not noninteractive)
-      (progn
-	(if vip-first-time ; This check is important. Without it, startup and 
-	    (progn	   ; expert-level msgs mix up when viper-mode recurses
-	      (setq vip-first-time nil)
-	      (if (not vip-inhibit-startup-message)
-		  (save-window-excursion
-		    (setq vip-inhibit-startup-message t)
-		    (delete-other-windows)
-		    (switch-to-buffer "Viper Startup Message")
-		    (erase-buffer)
-		    (insert
-		     (substitute-command-keys
-		      "Viper Is a Package for Emacs Rebels.
-It is also a VI Plan for Emacs Rescue and a venomous VI PERil.
-
-Technically speaking, Viper is a Vi emulation package for GNU Emacs 19 and
-XEmacs 19.  It supports virtually all of Vi and Ex functionality, extending
-and improving upon much of it.
-
-   1. Viper supports Vi at several levels. Level 1 is the closest to Vi,
-      level 5 provides the most flexibility to depart from many Vi conventions.
-      
-      You will be asked to specify your user level in a following screen.
-   
-      If you select user level 1 then the keys ^X, ^C, ^Z, and ^G will behave
-      as in VI, to smooth transition to Viper for the beginners. However, to
-      use Emacs productively, you are advised to reach user level 3 or higher. 
-      
-      If your user level is 2 or higher, ^X and ^C will invoke Emacs
-      functions,as usual in Emacs; ^Z will toggle vi/emacs modes, and 
-      ^G will be the usual Emacs's keyboard-quit (something like ^C in VI).
-   
-   2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
-      do not cause Emacs to quit, except at user level 1 (a novice).
-   3. ^X^C EXITS EMACS.
-   4. Viper supports multiple undo: `u' will undo. Typing `.' will repeat
-      undo. Another `u' changes direction.
-   
-   6. Emacs Meta functions are invoked by typing `C-\\' or `\\ ESC'.
-      On a window system, the best way is to use the Meta-key.
-   7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
-      something funny happens. This would abort the current editing command. 
-      
-You can get more information on Viper by:
-
-   a. Typing `:help' in Vi state
-   b. Printing Viper manual, found in ./etc/viper.dvi
-   c. Printing ViperCard, the Quick Reference, found in ./etc/viperCard.dvi
-    
-This startup message appears whenever you load Viper, unless you type `y' now."
-		      ))
-		    (goto-char (point-min))
-		    (if (y-or-n-p "Inhibit Viper startup message? ")
-			(vip-save-setting
-			 'vip-inhibit-startup-message
-			 "Viper startup message inhibited"
-			 vip-custom-file-name t))
-		    ;;(kill-buffer (current-buffer))
-		    (message
-		     "The last message is in buffer `Viper Startup Message'")
-		    (sit-for 4)
-		    ))
-	      (vip-set-expert-level 'dont-change-unless)))
-	(vip-change-state-to-vi))))
 	
-;;;###autoload
-(defalias 'vip-mode 'viper-mode)
-
 
 ;; Switch from Insert state to Vi state.
 (defun vip-exit-insert-state ()
@@ -4109,7 +4037,8 @@ One can use `` and '' to temporarily jump 1 step back."
     (if vip-auto-indent
 	(progn
 	  (setq vip-cted t)
-	  (if vip-electric-mode
+	  (if (and vip-electric-mode
+		   (not (eq major-mode 'fundamental-mode)))
 	      (indent-according-to-mode)
 	    (indent-to vip-current-indent))
 	  ))
@@ -4207,7 +4136,7 @@ One can use `` and '' to temporarily jump 1 step back."
 Can be called interactively to change (temporarily or permanently) the
 current expert level.
 
-The optional argument DONT-CHANGE-UNLESS if not nil, says that
+The optional argument DONT-CHANGE-UNLESS, if not nil, says that
 the level should not be changed, unless its current value is
 meaningless (i.e., not one of 1,2,3,4,5).
 
@@ -4224,7 +4153,7 @@ sensitive for VI-style look-and-feel."
     ;;    & dont-change-unless = t -- use it; else ask
     (vip-ask-level dont-change-unless))
   
-  (setq vip-always          	    	t
+  (setq viper-always          	    	t
 	vip-ex-style-motion 	    	t
 	vip-ex-style-editing-in-insert  t
 	vip-want-ctl-h-help nil)
@@ -4237,16 +4166,19 @@ sensitive for VI-style look-and-feel."
 	       vip-re-search	    	     t
 	       vip-vi-style-in-minibuffer    t
 	       vip-search-wrap-around-t	     t
+	       vip-electric-mode	     nil
 	       vip-want-emacs-keys-in-vi     nil
 	       vip-want-emacs-keys-in-insert nil))
 	
 	((and (> vip-expert-level 1) (< vip-expert-level 5))
 	 ;; intermediate to guru
-	 (setq vip-no-multiple-ESC     (if (vip-window-display-p) t 'twice)
+	 (setq vip-no-multiple-ESC           (if (vip-window-display-p)
+						 t 'twice)
+	       vip-electric-mode	     t
 	       vip-want-emacs-keys-in-vi     t
 	       vip-want-emacs-keys-in-insert (> vip-expert-level 2))
 
-	 (if (eq vip-expert-level 4) ; respect user's ex-style motions
+	 (if (eq vip-expert-level 4) ; respect user's ex-style motion
 	     	    	    	     ; and vip-no-multiple-ESC
 	     (progn
 	       (setq-default vip-ex-style-editing-in-insert
@@ -4277,8 +4209,8 @@ sensitive for VI-style look-and-feel."
 				     vip-saved-user-settings)))
 	   (setq  vip-want-ctl-h-help 
 		  (cdr (assoc 'vip-want-ctl-h-help vip-saved-user-settings))
-		  vip-always
-		  (cdr (assoc 'vip-always vip-saved-user-settings))
+		  viper-always
+		  (cdr (assoc 'viper-always vip-saved-user-settings))
 		  vip-no-multiple-ESC 
 		  (cdr (assoc 'vip-no-multiple-ESC vip-saved-user-settings))
 		  vip-ex-style-motion 
@@ -4288,6 +4220,9 @@ sensitive for VI-style look-and-feel."
 			      vip-saved-user-settings))
 		  vip-re-search
 		  (cdr (assoc 'vip-re-search vip-saved-user-settings))
+		  vip-electric-mode 
+		  (cdr (assoc 'vip-electric-mode
+			      vip-saved-user-settings))
 		  vip-want-emacs-keys-in-vi 
 		  (cdr (assoc 'vip-want-emacs-keys-in-vi
 			      vip-saved-user-settings))
@@ -4295,7 +4230,7 @@ sensitive for VI-style look-and-feel."
 		  (cdr (assoc 'vip-want-emacs-keys-in-insert
 			      vip-saved-user-settings)))))
   (vip-set-mode-vars-for vip-current-state)
-  (if (or vip-always
+  (if (or viper-always
 	  (and (> vip-expert-level 0) (> 5 vip-expert-level)))
       (vip-set-hooks)))
 
@@ -4374,9 +4309,9 @@ You can change it at any time by typing `M-x vip-set-expert-level RET'
  4 -- GURU: Like 3, but user settings are respected for vip-no-multiple-ESC,
 	  vip-re-search, vip-ex-style-motion, & vip-ex-style-editing-in-insert
 	  variables. Adjust these settings to your taste.
- 5 -- WIZARD: Like 4, but user settings are also respected for vip-always,
-	  vip-want-ctl-h-help, vip-want-emacs-keys-in-vi, and 
-	  vip-want-emacs-keys-in-insert. Adjust these to your taste.
+ 5 -- WIZARD: Like 4, but user settings are also respected for viper-always,
+	  vip-electric-mode, vip-want-ctl-h-help, vip-want-emacs-keys-in-vi,
+	  and vip-want-emacs-keys-in-insert. Adjust these to your taste.
       
 Please, specify your level now: ")
 	  
@@ -4495,6 +4430,7 @@ Please, specify your level now: ")
 		        'vip-want-emacs-keys-in-vi
 		        'vip-keep-point-on-undo
 		        'vip-no-multiple-ESC
+		        'vip-electric-mode
 		        'vip-ESC-key
 		        'vip-want-ctl-h-help
 		        'vip-ex-style-editing-in-insert
