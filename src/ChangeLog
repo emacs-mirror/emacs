@@ -1,5 +1,8 @@
 2001-09-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Finsert_file_contents): If REPLACE is non-nil, stop
+	reading at EOF.
+
 	* xdisp.c (with_echo_area_buffer): Use echo_kboard instead
 	of the only temporarily set echoing flag for deciding when
 	the cancel echoing.
