@@ -6,6 +6,8 @@
 	`etags-goto-tag-location' instead of `find-tag-other-window' (it's
 	too simple).
 
+	* man.el (Man-xref-header-file): Fix previous change.
+
 2003-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* subr.el (number-sequence): New function.
