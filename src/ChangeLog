@@ -1,3 +1,8 @@
+2002-12-10  Steven Tamm  <steventamm@mac.com>
+
+	* mac.c (sys_read): Fixed sys_read to not call select if IO is
+	non-blocking
+
 2002-12-10  Juanma Barranquero  <lektu@terra.es>
 
 	* editfns.c (Fformat): Use alloca, not _alloca.
