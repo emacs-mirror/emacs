@@ -16,7 +16,32 @@
 	(hollow-box-cursor-fringe-bitmap, hollow-square-fringe-bitmap)
 	(bar-cursor-fringe-bitmap, hbar-cursor-fringe-bitmap)
 	(empty-line-fringe-bitmap): Define standard fringe bitmaps id's.
-	
+
+2004-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window-safely-shrinkable-p): Don't change the buffer-list.
+	Don't allow shrink if there's a window on our right.
+
+	* progmodes/prolog.el (prolog-program-name): Use gprolog if available.
+	(prolog-mode-syntax-table, prolog-mode-abbrev-table, prolog-mode-map):
+	Bring together declaration and initialization.
+	(prolog-mode-variables): Don't set the syntax table.
+	Don't set paragraph-start and comment-indent-function.
+	Add /*..*/ to the comment regexps.
+	(prolog-mode-commands): Remove.  Do it during init of prolog-mode-map.
+	(prolog-mode-map): Don't bind TAB.
+	(prolog-mode): Set the syntax table.
+	(prolog-comment-indent): Remove.
+	(inferior-prolog-mode-map): Initialize in the declaration.
+	(inferior-prolog-mode-syntax-table)
+	(inferior-prolog-mode-abbrev-table): New vars.
+	(inferior-prolog-mode): Derive from comint-mode.
+	(run-prolog): Avoid switch-to-buffer which can fail in dedicated and
+	minibuffer windows.
+
+	* progmodes/grep.el (grep-regexp-alist): Allow :, \t and (
+	in file names, as long as it is unabmiguous.
+
 2004-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/reftex-toc.el
@@ -29,19 +54,15 @@
 	* tar-mode.el (tar-parse-octal-integer-safe): Add missing format
 	string argument.
 
-	* progmodes/xscheme.el (verify-xscheme-buffer): Fix format
-	strings.
+	* progmodes/xscheme.el (verify-xscheme-buffer): Fix format strings.
 
 	* play/zone.el (zone-call): Fix format string.
 
-	* net/webjump.el (webjump-builtin): Add missing format string
-	argument.
+	* net/webjump.el (webjump-builtin): Add missing format string argument.
 
-	* midnight.el (midnight-delay-set): Remove extra format string
-	argument.
+	* midnight.el (midnight-delay-set): Remove extra format string argument.
 
-	* mail/rmail.el (rmail-get-new-mail): Remove useless use of
-	format.
+	* mail/rmail.el (rmail-get-new-mail): Remove useless use of format.
 
 	* hexl.el (hexl-insert-char): Add missing format string argument.
 
@@ -55,8 +76,7 @@
 	(vi-repeat-last-find-char): Likewise.
 	(vi-locate-def): Likewise.
 
-	* emacs-lisp/lisp-mnt.el (lm-verify): Remove useless use of
-	format.
+	* emacs-lisp/lisp-mnt.el (lm-verify): Remove useless use of format.
 
 	* ediff-util.el (ediff-toggle-read-only): Remove extra format
 	string argument.
@@ -75,14 +95,11 @@
 
 	* eshell/esh-mode.el (eshell-send-invisible): Fix format string.
 
-	* eshell/em-hist.el (eshell-hist-word-reference): Fix format
-	string.
+	* eshell/em-hist.el (eshell-hist-word-reference): Fix format string.
 
-	* emulation/viper-ex.el (ex-mark): Remove extra format string
-	argument.
+	* emulation/viper-ex.el (ex-mark): Remove extra format string argument.
 
-	* emacs-lisp/cl-macs.el (defstruct): Remove extra format string
-	argument.
+	* emacs-lisp/cl-macs.el (defstruct): Remove extra format string arg.
 	(cl-struct-setf-expander): Likewise.
 
 	* vc.el (with-vc-file): Fix unsafe uses of error.
