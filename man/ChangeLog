@@ -1,3 +1,7 @@
+2003-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* eshell.texi (Known Problems): Add doc item.
+
 2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* ack.texi: Note that Alan Mackenzie contributed the AWK support
