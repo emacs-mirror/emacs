@@ -85,14 +85,15 @@ value.  Certain symbols have values that cannot be changed; these
 include @code{nil} and @code{t}, and any symbol whose name starts with
 @samp{:} (those are called @dfn{keywords}).  @xref{Constant Variables}.
 
-  In normal usage, the function cell usually contains a function
+  We often refer to ``the function @code{foo}'' when we really mean
+the function stored in the function cell of the symbol @code{foo}.  We
+make the distinction explicit only when necessary.  In normal
+usage, the function cell usually contains a function
 (@pxref{Functions}) or a macro (@pxref{Macros}), as that is what the
 Lisp interpreter expects to see there (@pxref{Evaluation}).  Keyboard
-macros (@pxref{Keyboard Macros}), keymaps (@pxref{Keymaps}) and autoload
-objects (@pxref{Autoloading}) are also sometimes stored in the function
-cells of symbols.  We often refer to ``the function @code{foo}'' when we
-really mean the function stored in the function cell of the symbol
-@code{foo}.  We make the distinction only when necessary.
+macros (@pxref{Keyboard Macros}), keymaps (@pxref{Keymaps}) and
+autoload objects (@pxref{Autoloading}) are also sometimes stored in
+the function cells of symbols.
 
   The property list cell normally should hold a correctly formatted
 property list (@pxref{Property Lists}), as a number of functions expect

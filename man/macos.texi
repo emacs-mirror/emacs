@@ -229,7 +229,7 @@ string.
 @findex mac-file-name-to-posix
 @findex posix-file-name-to-mac
   The function @code{mac-file-name-to-posix} takes a Mac file name and
-returns the Posix equivalent.  The function
+returns the GNU or Unix equivalent.  The function
 @code{posix-file-name-to-mac} performs the opposite conversion.  They
 are useful for constructing AppleScript commands to be passed to
 @code{do-applescript}.
