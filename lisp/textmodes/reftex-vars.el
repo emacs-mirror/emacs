@@ -1,5 +1,5 @@
 ;;; reftex-vars.el - Configuration variables for RefTeX
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 
@@ -435,6 +435,13 @@ list.  However, builtin defaults should normally be set with the variable
 		 (nth 0 x)))
 	 reftex-label-alist-builtin)))))
 
+(defcustom reftex-max-section-depth 12
+  "Maximum depth of section levels in document structure.
+Standard LaTeX needs default is 7, but there are packages for which this
+needs to be larger."
+  :group 'reftex-defining-label-environments
+  :type 'integer)
+
 ;; LaTeX section commands and level numbers
 (defcustom reftex-section-levels
   '(
@@ -455,12 +462,15 @@ This is an alist with each element like (COMMAND-NAME . LEVEL).
 The car of each cons cell is the name of the section macro (without
 the backslash).  The cdr is a number indicating its level.  A negative
 level means the same level as the positive value, but the section will
-never get a number."
+never get a number.  The cdr may also be a function which will be called
+to after the section-re matched to determine the level."
   :group 'reftex-defining-label-environments
   :set 'reftex-set-dirty
   :type '(repeat
           (cons (string :tag "sectioning macro" "")
-                (number :tag "level           " 0))))
+		(choice
+		 (number :tag "level           " 0)
+		 (symbol :tag "function        " my-level-func)))))
 
 (defcustom reftex-section-prefixes '((0 . "part:") (1 . "cha:") (t . "sec:"))
   "Prefixes for section labels.
