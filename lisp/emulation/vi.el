@@ -38,21 +38,11 @@
 ;
 ;;; Code:
 
-(defun vi-switch-mode (arg mode-char)
-  "Switch the major mode of current buffer as specified by the following char \\{vi-tilde-map}"
-  (interactive "P\nc")
-  (let ((mode-cmd (lookup-key vi-tilde-map (char-to-string mode-char))))
-    (if (null mode-cmd)
-	(with-output-to-temp-buffer "*Help*"
-	  (princ (substitute-command-keys "Possible major modes to switch to: \\{vi-tilde-map}"))
-	  (save-excursion
-	    (set-buffer standard-output)
-	    (help-mode)))
-      (setq prefix-arg arg)		; prefix arg will be passed down
-      (command-execute mode-cmd nil)	; may need to save mode-line-format etc
-      (force-mode-line-update))))	; just in case
+(defvar vi-mode-old-major-mode)
+(defvar vi-mode-old-mode-name)
+(defvar vi-mode-old-local-map)
+(defvar vi-mode-old-case-fold)
 
-
 (if (null (where-is-internal 'vi-switch-mode (current-local-map)))
     (define-key ctl-x-map "~" 'vi-switch-mode))
 
@@ -80,7 +70,22 @@
   (define-key vi-tilde-map "v" 'vi-mode)
   (define-key vi-tilde-map "x" 'tex-mode)
   (define-key vi-tilde-map "~" 'vi-back-to-old-mode))
+
+(defun vi-switch-mode (arg mode-char)
+  "Switch the major mode of current buffer as specified by the following char \\{vi-tilde-map}"
+  (interactive "P\nc")
+  (let ((mode-cmd (lookup-key vi-tilde-map (char-to-string mode-char))))
+    (if (null mode-cmd)
+	(with-output-to-temp-buffer "*Help*"
+	  (princ (substitute-command-keys "Possible major modes to switch to: \\{vi-tilde-map}"))
+	  (save-excursion
+	    (set-buffer standard-output)
+	    (help-mode)))
+      (setq prefix-arg arg)		; prefix arg will be passed down
+      (command-execute mode-cmd nil)	; may need to save mode-line-format etc
+      (force-mode-line-update))))	; just in case
 
+
 (defun vi-debugging (arg)
   "Toggle debug-on-error flag.  If prefix arg is given, set t."
   (interactive "P")
@@ -670,8 +675,9 @@ insert state."
 		    (list t (read-string "regexp/" nil))
 		  (list nil (read-string "/" nil))))
    (setq vi-search-last-command (if arg 're-search-forward 'search-forward))
-   (if (> (length string) 0) (setq search-last-string string)) 
-   (funcall vi-search-last-command search-last-string nil nil 1))
+   (if (> (length string) 0)
+       (isearch-update-ring string arg))
+   (funcall vi-search-last-command string nil nil 1))
 
 (defun vi-search-backward (arg string)
    "Nonincremental search backward.  Use regexp version if ARG is non-nil."
@@ -679,25 +685,37 @@ insert state."
 		    (list t (read-string "regexp?" nil))
 		  (list nil (read-string "?" nil))))
    (setq vi-search-last-command (if arg 're-search-backward 'search-backward))
-   (if (> (length string) 0) (setq search-last-string string)) 
-   (funcall vi-search-last-command search-last-string nil nil 1))
+   (if (> (length string) 0)
+       (isearch-update-ring string arg))
+   (funcall vi-search-last-command string nil nil 1))
 
 (defun vi-repeat-last-search (arg &optional search-command search-string)
-   "Repeat last search command.  If optional search-command/string are given,
+  "Repeat last search command.
+If optional search-command/string are given,
 use those instead of the ones saved."
-   (interactive "p")
-   (if (null search-command) (setq search-command vi-search-last-command))
-   (if (null search-string) (setq search-string search-last-string))
-   (if (null search-command)
-       (message "No last search command to repeat." (ding))
-     (funcall search-command search-string nil nil arg)))
-
-(defun vi-reverse-last-search (arg &optional search-command search-string)
-  "Redo last search command in reverse direction. If the optional search args
-are given, use those instead of the ones saved."
   (interactive "p")
   (if (null search-command) (setq search-command vi-search-last-command))
-  (if (null search-string) (setq search-string search-last-string))
+  (if (null search-string)
+      (setq search-string
+	    (car (if (memq search-command
+			   '(re-search-forward re-search-backward))
+		     regexp-search-ring
+		   search-ring))))
+  (if (null search-command)
+      (message "No last search command to repeat." (ding))
+    (funcall search-command search-string nil nil arg)))
+
+(defun vi-reverse-last-search (arg &optional search-command search-string)
+  "Redo last search command in reverse direction.
+If the optional search args are given, use those instead of the ones saved."
+  (interactive "p")
+  (if (null search-command) (setq search-command vi-search-last-command))
+  (if (null search-string)
+      (setq search-string
+	    (car (if (memq search-command
+			   '(re-search-forward re-search-backward))
+		     regexp-search-ring
+		   search-ring))))
   (if (null search-command)
       (message "No last search command to repeat." (ding))
     (funcall (cond ((eq search-command 're-search-forward) 're-search-backward)
@@ -711,10 +729,10 @@ are given, use those instead of the ones saved."
    (interactive "P")
    (if (null (vi-raw-numeric-prefix arg))
        (delete-indentation t)
-     (setq count (vi-prefix-numeric-value arg))
-     (while (>= count 2)
-       (delete-indentation t)
-       (setq count (1- count))))
+     (let ((count (vi-prefix-numeric-value arg)))
+       (while (>= count 2)
+	 (delete-indentation t)
+	 (setq count (1- count)))))
    (vi-set-last-change-command 'vi-join-lines arg))
 
 (defun vi-backward-kill-line ()
