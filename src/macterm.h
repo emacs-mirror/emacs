@@ -42,13 +42,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define FONT_MAX_WIDTH(f) FONT_WIDTH(f)  /* fix later */
 
-enum text_cursor_kinds {
-  NO_CURSOR = -1,
-  FILLED_BOX_CURSOR,
-  HOLLOW_BOX_CURSOR,
-  BAR_CURSOR
-};
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -353,17 +346,6 @@ struct mac_output {
 
 #endif
 
-  /* What kind of text cursor is drawn in this window right now?
-     (If there is no cursor (phys_cursor_x < 0), then this means nothing.)  */
-  enum text_cursor_kinds current_cursor;
-
-  /* What kind of text cursor should we draw in the future?
-     This should always be filled_box_cursor or bar_cursor.  */
-  enum text_cursor_kinds desired_cursor;
-
-  /* Width of bar cursor (if we are using that).  */
-  int cursor_width;
-
 #if 0
   DWORD dwStyle;
 #endif
@@ -451,8 +433,6 @@ typedef struct mac_output mac_output;
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.mac->pixel_width)
 #define PIXEL_HEIGHT(f) ((f)->output_data.mac->pixel_height)
-
-#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.mac->desired_cursor)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
