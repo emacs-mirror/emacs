@@ -161,11 +161,11 @@ is nil, REGEXP matches only half a section.")
 	      ;; We have found as many new loci as the user wants,
 	      ;; or the user wanted a specific diff, and we're past it.
 	  (setq found-desired t)))
-    (if found-desired
-	(setq compilation-parsing-end (point))
-      ;; Set to point-max, not point, so we don't perpetually
-      ;; parse the last bit of text when it isn't a diff header.
-      (setq compilation-parsing-end (point-max)))
+    (set-marker compilation-parsing-end
+		(if found-desired (point)
+		  ;; Set to point-max, not point, so we don't perpetually
+		  ;; parse the last bit of text when it isn't a diff header.
+		  (point-max)))
     (message "Parsing differences...done"))
   (setq compilation-error-list (nreverse compilation-error-list)))
 
