@@ -1524,9 +1524,7 @@ unless NOMODES is non-nil."
 	      (setq buffer-read-only nil))
 	     (t
 	      (setq buffer-read-only nil)
-	      (if (file-exists-p (file-name-directory (directory-file-name (file-name-directory buffer-file-name))))
-		  "Use M-x make-directory RET RET to create the directory"
-		"Use C-u M-x make-directory RET RET to create directory and its parents")))))
+	      "Use M-x make-directory RET RET to create the directory and its parents"))))
       (when msg
 	(message "%s" msg)
 	(or not-serious (sit-for 1 nil t))))
@@ -3401,7 +3399,8 @@ is the current default directory for file names.
 That is useful when you have visited a file in a nonexistent directory.
 
 Noninteractively, the second (optional) argument PARENTS says whether
-to create parent directories if they don't exist."
+to create parent directories if they don't exist.  Interactively,
+this happens by default."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
