@@ -261,12 +261,16 @@ Subexpression 2 must end right before the \\n or \\r.")
    (list dired-re-mark
 	 '(0 font-lock-reference-face)
 	 '(".+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
-   ;;
-   ;; Files that are group or world writable.
-   (list (concat dired-re-maybe-mark dired-re-inode-size
-		 "\\([-d]\\(....w....\\|.......w.\\)\\)")
-	 '(1 font-lock-comment-face)
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-comment-face)))
+   ;; People who are paranoid about security would consider this more
+   ;; important than other things such as whether it is a directory.
+   ;; But we don't want to encourage paranoia, so our default
+   ;; should be what's most useful for non-paranoids. -- rms.
+;;;   ;;
+;;;   ;; Files that are group or world writable.
+;;;   (list (concat dired-re-maybe-mark dired-re-inode-size
+;;;		 "\\([-d]\\(....w....\\|.......w.\\)\\)")
+;;;	 '(1 font-lock-comment-face)
+;;;	 '(".+" (dired-move-to-filename) nil (0 font-lock-comment-face)))
    ;;
    ;; Subdirectories.
    (list dired-re-dir
