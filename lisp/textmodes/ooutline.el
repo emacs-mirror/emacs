@@ -59,6 +59,8 @@ in the file it applies to.")
 
 (defvar outline-minor-mode nil
   "Non-nil if using Outline mode as a minor mode of some other mode.")
+(make-variable-buffer-local 'outline-minor-mode)
+(put 'outline-minor-mode 'permanent-local t)
 (setq minor-mode-alist (append minor-mode-alist
 			       (list '(outline-minor-mode " Outl"))))
 
@@ -135,6 +137,9 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 		minor-mode-map-alist)))
 
 (defun outline-minor-mode (&optional arg)
+  "Toggle Outline minor mode.
+With arg, turn Outline minor mode on if arg is positive, off otherwise.
+See the command `outline-mode' for more information on this mode."
   (interactive "P")
   (setq outline-minor-mode
 	(if (null arg) (not outline-minor-mode)
