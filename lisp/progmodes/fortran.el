@@ -1323,22 +1323,9 @@ Return point or nil."
 	  (fortran-blink-matching-if)
 	  (fortran-blink-matching-do)))))
 
-(defun fortran-indent-new-line ()
-  "Reindent the current Fortran line, insert a newline and indent the newline.
-An abbrev before point is expanded if variable `abbrev-mode' is non-nil."
-  (interactive)
-  (if abbrev-mode (expand-abbrev))
-  (save-excursion
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (let ((case-fold-search t))
-      (if (or (looking-at "[0-9]")	;Reindent only where it is most
-	      (looking-at "end")	;likely to be necessary
-	      (looking-at "else")
-	      (looking-at (regexp-quote fortran-continuation-string)))
-	  (fortran-indent-line))))
-  (newline)
-  (fortran-indent-line))
+;; Historically this was a separate function which advertised itself
+;; as reindenting but only did so where `most likely to be necessary'.
+(defalias 'fortran-indent-new-line 'reindent-then-newline-and-indent)
 
 (defun fortran-indent-subprogram ()
   "Properly indent the Fortran subprogram which contains point."
