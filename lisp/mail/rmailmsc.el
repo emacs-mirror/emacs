@@ -46,7 +46,7 @@ If FILE-NAME is empty, remove any inbox list."
 			       (progn (forward-line 1)
 				      (point))))
 	    (if (not (string= file-name ""))
-		(insert "Mail: " file-name "\n"))))))
+		(insert-before-markers "Mail: " file-name "\n"))))))
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   (rmail-show-message rmail-current-message))
 
