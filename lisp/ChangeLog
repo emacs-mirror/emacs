@@ -1,5 +1,9 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (find-file-noselect): If file's read-only status has
+	changed on disk, ask if buffer's read-only status should be
+	changed, unless NOWARN is set.
+
 	* emacs-lisp/cl-macs.el (define-setf-expander): Make it an
 	alias for define-setf-method.
 

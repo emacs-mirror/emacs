@@ -1,3 +1,8 @@
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (tiff_error_handler, tiff_warning_handler): New functions.
+	(tiff_load): Install them as error and warning handler.
+
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
 
 	* w32fns.c (x_to_w32_color): Fix argument to alloca.
