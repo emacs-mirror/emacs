@@ -214,7 +214,7 @@ not be enclosed in { } or ( ).")
    (list makefile-macroassign-regex 1 'font-lock-variable-name-face)
    ;;
    ;; Variable references even in targets/strings/comments:
-   '("\\$[({]\\([a-zA-Z0-9_]+\\)[})]" 1 font-lock-reference-face prepend)
+   '("\\$[({]\\([a-zA-Z0-9_]+\\)[}):]" 1 font-lock-reference-face prepend)
    ;;
    ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face 'prepend)
