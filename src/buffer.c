@@ -89,10 +89,6 @@ static Lisp_Object Vbuffer_defaults;
    If a slot is -2, then there is no DEFVAR_PER_BUFFER for it,
    but there is a default value which is copied into each buffer.
 
-   If a slot in this structure is negative, then even though there may
-   be a DEFVAR_PER_BUFFER for the slot, there is no default value for it;
-   and the corresponding slot in buffer_defaults is not used.
-
    If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
    zero, that is a bug */
 
@@ -1202,6 +1198,10 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
       buf = Fcdr (XCAR (tail));
       if (EQ (buf, buffer))
 	continue;
+      if (NILP (buf))
+	continue;
+      if (NILP (XBUFFER (buf)->name))
+	continue;
       if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       /* If the selected frame has a buffer_predicate,
@@ -1429,7 +1429,8 @@ with SIGHUP.  */)
   if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0
       && BUF_SAVE_MODIFF (b) < b->auto_save_modified
-      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
+      && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));

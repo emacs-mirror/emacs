@@ -6385,8 +6385,8 @@ DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
        1, 1, 0,
        doc: /* Check validity of CODING-SYSTEM.
 If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
-It is valid if it is a symbol with a non-nil `coding-system' property.
-The value of property should be a vector of length 5.  */)
+It is valid if it is nil or a symbol with a non-nil `coding-system' property.
+The value of this property should be a vector of length 5.  */)
      (coding_system)
      Lisp_Object coding_system;
 {

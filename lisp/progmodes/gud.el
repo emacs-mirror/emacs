@@ -319,10 +319,10 @@ t means that there is no stack, and we are in display-file mode.")
 If the GUD BUFFER is not running a supported debugger, then turn
 off the specialized speedbar mode."
   (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
-    (cond 
+    (cond
      ((eq minor-mode 'gdba)
       (when (or gdb-var-changed
-		(not (save-excursion 
+		(not (save-excursion
 		       (goto-char (point-min))
 		       (let ((case-fold-search t))
 			 (looking-at "Watch Expressions:")))))
@@ -339,8 +339,8 @@ off the specialized speedbar mode."
 		  (speedbar-make-tag-line 'bracket ?? nil nil
 					  (concat (car var) "\t" (nth 4 var))
 					  'gdb-edit-value
-					  nil 
-					  (if (and (nth 5 var) 
+					  nil
+					  (if (and (nth 5 var)
 						   gdb-show-changed-values)
 					      'font-lock-warning-face
 					    nil) depth)
@@ -354,7 +354,7 @@ off the specialized speedbar mode."
 					nil nil depth)))
 	    (setq var-list (cdr var-list))))
 	(setq gdb-var-changed nil)))
-     (t (if (and (save-excursion 
+     (t (if (and (save-excursion
 		   (goto-char (point-min))
 		   (looking-at "Current Stack"))
 		 (equal gud-last-last-frame gud-last-speedbar-stackframe))
@@ -406,7 +406,7 @@ off the specialized speedbar mode."
 ;; History of argument lists passed to gdb.
 (defvar gud-gdb-history nil)
 
-(defcustom gud-gdb-command-name "gdb --fullname"
+(defcustom gud-gdb-command-name "gdb --annotate=3"
   "Default command to execute an executable under the GDB debugger."
    :type 'string
    :group 'gud)
@@ -439,6 +439,19 @@ off the specialized speedbar mode."
        gud-last-frame (cons (match-string 1 gud-marker-acc)
 			    (string-to-int (match-string 2 gud-marker-acc)))
 
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
+
+       ;; Set the accumulator to the remaining text.
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
+
+    (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
+      (when (string-equal (match-string 1 gud-marker-acc) "prompt")
+	(require 'gdb-ui)
+	(gdb-prompt nil))
+      (setq
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
        output (concat output
@@ -492,6 +505,8 @@ off the specialized speedbar mode."
      gud-minibuffer-local-map nil
      hist-sym)))
 
+(defvar gdb-first-pre-prompt t)
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -522,8 +537,8 @@ and source-file directory for your debugger."
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
-  (run-hooks 'gdb-mode-hook)
-  )
+  (setq gdb-first-pre-prompt t)
+  (run-hooks 'gdb-mode-hook))
 
 ;; One of the nice features of GDB is its impressive support for
 ;; context-sensitive command completion.  We preserve that feature
