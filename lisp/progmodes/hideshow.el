@@ -869,7 +869,7 @@ Key bindings:
              ["Show All"      hs-show-all            "\C-c@\C-\M-s"]
              ["Hide Level"    hs-hide-level          "\C-c@\C-l"]
              ["Toggle Hiding" hs-toggle-hiding       "\C-c@\C-c"]
-             [nil             hs-mouse-toggle-hiding [(shift button2)]]
+             [nil             hs-mouse-toggle-hiding [(shift mouse-2)]]
              )))))
 
 ;; some housekeeping
