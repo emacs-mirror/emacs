@@ -1,3 +1,7 @@
+2001-02-19  Andreas Schwab  <schwab@suse.de>
+
+	* programs.texi: Fix typo.
+
 2001-02-12  Michael Kifer <kifer@cs.sunysb.edu>
 	
 	* viper.texi: Fixed typos.
