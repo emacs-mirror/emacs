@@ -105,7 +105,7 @@ even if the buffer is not visiting a file.
 Automatically local in all buffers.")
 (make-variable-buffer-local 'buffer-offer-save)
 
-(defconst find-file-existing-other-name nil
+(defconst find-file-existing-other-name t
   "*Non-nil means find a file under alternative names, in existing buffers.
 This means if any existing buffer is visiting the file you want
 under another name, you get the existing buffer instead of a new buffer.")
