@@ -51,6 +51,10 @@ Boston, MA 02111-1307, USA.
    conditional (off by default). */
 Lisp_Object Vwin32_quote_process_args;
 
+/* Control whether create_child causes the process' window to be
+   hidden.  The default is nil. */
+Lisp_Object Vwin32_start_process_show_window;
+
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
@@ -284,7 +288,10 @@ create_child (char *exe, char *cmdline, char *env,
   start.cb = sizeof (start);
   
 #ifdef HAVE_NTGUI
-  start.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+  if (NILP (Vwin32_start_process_show_window))
+    start.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+  else
+    start.dwFlags = STARTF_USESTDHANDLES;
   start.wShowWindow = SW_HIDE;
 
   start.hStdInput = GetStdHandle (STD_INPUT_HANDLE);
@@ -1243,6 +1250,12 @@ However, the argument list to call-process is not always correctly\n\
 constructed (or arguments have already been quoted), so enabling this\n\
 option may cause unexpected behavior.");
   Vwin32_quote_process_args = Qnil;
+
+  DEFVAR_LISP ("win32-start-process-show-window",
+	       &Vwin32_start_process_show_window,
+    "When nil, processes started via start-process hide their windows.\n\
+When non-nil, they show their window in the method of their choice.");
+  Vwin32_start_process_show_window = Qnil;
 
   DEFVAR_INT ("win32-pipe-read-delay", &Vwin32_pipe_read_delay,
     "Forced delay before reading subprocess output.\n\
