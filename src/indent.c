@@ -1068,11 +1068,12 @@ pos_tab_offset (w, pos)
 struct position val_vmotion;
 
 struct position *
-vmotion (from, vtarget, width, hscroll, window)
-     register int from, vtarget, width;
-     int hscroll;
-     Lisp_Object window;
+vmotion (from, vtarget, w)
+     register int from, vtarget;
+     struct window *w;
 {
+  int width = window_internal_width (w) - 1;
+  int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register int vpos = 0;
@@ -1083,12 +1084,15 @@ vmotion (from, vtarget, width, hscroll, window)
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
-  /* The omission of the clause
-         && marker_position (XWINDOW (window)->start) == BEG
-     here is deliberate; I think we want to measure from the prompt
-     position even if the minibuffer window has scrolled.  */
+  Lisp_Object window;
   int start_hpos = 0;
 
+  XSETWINDOW (window, w);
+
+  /* The omission of the clause
+         && marker_position (w->start) == BEG
+     here is deliberate; I think we want to measure from the prompt
+     position even if the minibuffer window has scrolled.  */
   if (EQ (window, minibuf_window))
     {
       if (minibuf_prompt_width == 0)
@@ -1098,16 +1102,18 @@ vmotion (from, vtarget, width, hscroll, window)
       start_hpos = minibuf_prompt_width;
     }
 
- retry:
-  if (vtarget > vpos)
+  if (vpos >= vtarget)
     {
-      /* Moving downward is simple, but must calculate from beg of line
-	 to determine hpos of starting point */
-      if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
+      /* To move upward, go a line at a time until
+	 we have gone at least far enough */
+
+      first = 1;
+
+      while ((vpos > vtarget || first) && from > BEGV)
 	{
 	  Lisp_Object propval;
 
-	  XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
+	  XSETFASTINT (prevline, find_next_newline_no_quit (from - 1, -1));
 	  while (XFASTINT (prevline) > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline), selective))
@@ -1118,79 +1124,69 @@ vmotion (from, vtarget, width, hscroll, window)
 						       window),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
-		 ))
+		     ))
 	    XSETFASTINT (prevline,
 			 find_next_newline_no_quit (XFASTINT (prevline) - 1,
 						    -1));
 	  pos = *compute_motion (XFASTINT (prevline), 0,
-				 lmargin + (XFASTINT (prevline) == 1
+				 lmargin + (XFASTINT (prevline) == BEG
 					    ? start_hpos : 0),
 				 from, 1 << (INTBITS - 2), 0,
-				 width, hscroll, 0, XWINDOW (window));
+				 width, hscroll, 0, w);
+	  vpos -= pos.vpos;
+	  first = 0;
+	  from = XFASTINT (prevline);
 	}
-      else
+
+      /* If we made exactly the desired vertical distance,
+	 or if we hit beginning of buffer,
+	 return point found */
+      if (vpos >= vtarget)
 	{
-	  pos.hpos = lmargin + (from == 1 ? start_hpos : 0);
-	  pos.vpos = 0;
+	  val_vmotion.bufpos = from;
+	  val_vmotion.vpos = vpos;
+	  val_vmotion.hpos = lmargin;
+	  val_vmotion.contin = 0;
+	  val_vmotion.prevhpos = 0;
+	  return &val_vmotion;
 	}
-      return compute_motion (from, vpos, pos.hpos,
-			     ZV, vtarget, - (1 << (INTBITS - 2)),
-			     width, hscroll, pos.vpos * width,
-			     XWINDOW (window));
+
+      /* Otherwise find the correct spot by moving down */
     }
-
-  /* To move upward, go a line at a time until
-     we have gone at least far enough */
-
-  first = 1;
-
-  while ((vpos > vtarget || first) && from > BEGV)
+  /* Moving downward is simple, but must calculate from beg of line
+     to determine hpos of starting point */
+  if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
     {
-      XSETFASTINT (prevline, from);
-      while (1)
-	{
-	  Lisp_Object propval;
+	Lisp_Object propval;
 
-	  XSETFASTINT (prevline,
-		       find_next_newline_no_quit (XFASTINT (prevline) - 1,
-						  -1));
-	  if (XFASTINT (prevline) == BEGV
-	      || ((selective <= 0
-		   || ! indented_beyond_p (XFASTINT (prevline), selective))
+      XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
+      while (XFASTINT (prevline) > BEGV
+	     && ((selective > 0
+		  && indented_beyond_p (XFASTINT (prevline), selective))
 #ifdef USE_TEXT_PROPERTIES
-		  /* watch out for newlines with `invisible' property */
-		  && (propval = Fget_char_property (prevline, Qinvisible,
-						    window),
-		      ! TEXT_PROP_MEANS_INVISIBLE (propval))
+		 /* watch out for newlines with `invisible' property */
+		 || (propval = Fget_char_property (prevline, Qinvisible,
+						   window),
+		     TEXT_PROP_MEANS_INVISIBLE (propval))
 #endif
-		  ))
-	    break;
-	}
+	     ))
+	XSETFASTINT (prevline,
+		     find_next_newline_no_quit (XFASTINT (prevline) - 1,
+						-1));
       pos = *compute_motion (XFASTINT (prevline), 0,
-			     lmargin + (XFASTINT (prevline) == 1
+			     lmargin + (XFASTINT (prevline) == BEG
 					? start_hpos : 0),
 			     from, 1 << (INTBITS - 2), 0,
-			     width, hscroll, 0, XWINDOW (window));
-      vpos -= pos.vpos;
-      first = 0;
-      from = XFASTINT (prevline);
+			     width, hscroll, 0, w);
     }
-
-  /* If we made exactly the desired vertical distance,
-     or if we hit beginning of buffer,
-     return point found */
-  if (vpos >= vtarget)
+  else
     {
-      val_vmotion.bufpos = from;
-      val_vmotion.vpos = vpos;
-      val_vmotion.hpos = lmargin;
-      val_vmotion.contin = 0;
-      val_vmotion.prevhpos = 0;
-      return &val_vmotion;
+      pos.hpos = lmargin + (from == BEG ? start_hpos : 0);
+      pos.vpos = 0;
     }
-
-  /* Otherwise find the correct spot by moving down */
-  goto retry;
+  return compute_motion (from, vpos, pos.hpos,
+			 ZV, vtarget, - (1 << (INTBITS - 2)),
+			 width, hscroll, pos.vpos * width, w);
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
@@ -1211,7 +1207,6 @@ if beginning or end of buffer was reached.")
      Lisp_Object lines, window;
 {
   struct position pos;
-  register struct window *w;
 
   CHECK_NUMBER (lines, 0);
   if (! NILP (window))
@@ -1219,11 +1214,7 @@ if beginning or end of buffer was reached.")
   else
     window = selected_window;
 
-  w = XWINDOW (window);
-
-  pos = *vmotion (point, XINT (lines), window_internal_width (w) - 1,
-		  /* Not XFASTINT since perhaps could be negative */
-		  XINT (w->hscroll), window);
+  pos = *vmotion (point, XINT (lines), XWINDOW (window));
 
   SET_PT (pos.bufpos);
   return make_number (pos.vpos);
