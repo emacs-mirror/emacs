@@ -1,3 +1,18 @@
+2002-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-internal): Update process-environment
+	before calling start-process.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Don't call eval-after-load while building Emacs.
+
+	* simple.el (display-message-or-buffer): Don't try to display
+	an empty output in the echo area.
+
+	* gud.el (gud-gdb-massage-args): Pass default-directory to gdb.
+
+	* Makefile.in (compile-files): Protect from shell bugs.
+
 2002-10-21  Juanma Barranquero  <lektu@terra.es>
 
 	* wid-edit.el (widget-choose): Fix typo.

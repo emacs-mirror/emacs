@@ -1,3 +1,14 @@
+2002-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* w32fns.c (syms_of_w32fns <w32-charset-info-alist>):
+	Get rid of string token concatenation that doesn't work right.
+
+	* process.c (wait_reading_process_input): Call stop_polling
+	along with turn_on_atimers.
+
+	* coding.c (run_pre_post_conversion_on_str):
+	Save and restore Vdeactivate_mark.
+
 2002-10-16  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fcopy_file): Fix backward test of KEEP_TIME.
