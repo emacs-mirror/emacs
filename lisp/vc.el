@@ -420,7 +420,8 @@ to an optional list of FLAGS."
 	   (cons (concat "PATH=" (getenv "PATH")
 			 path-separator
 			 (mapconcat 'identity vc-path path-separator))
-		 process-environment)))
+		 process-environment))
+	  (win32-quote-process-args t))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
     (set-buffer-modified-p nil)
