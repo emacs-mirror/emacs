@@ -1,3 +1,56 @@
+2000-11-08  Dave Love  <fx@gnu.org>
+
+	* rfc2047.el: Require gnus-util.
+
+	* nnml.el (gnus-sorted-intersection): Autoload.
+
+	* nnheader.el: Wrap subst-char-in-string def in eval-and-compile.
+	Put some defvars in eval-when-compile.
+	(gnus-intersection, gnus-sorted-complement):  Autoload.
+
+	* imap.el (imap-point-at-eol): New, replacing gnus-point-at-eol.
+
+	* mm-encode.el (mm-body-7-or-8): Autoload.
+
+	* mm-decode.el (mm-insert-inline): Autoload.
+
+	* mml.el:
+	* message.el: Put some defvars in eval-when-compile.
+
+	* gnus-msg.el: Put some defvars in eval-when-compile.
+	(gnus-msg-mail): Move after gnus-setup-message.
+
+	* smiley-ems.el (smiley-data-directory, smiley-regexp-alist): Doc fix.
+
+2000-11-07  Dave Love  <fx@gnu.org>
+
+	* gnus-util.el (nnheader): Don't require message (recursive
+	autoload).
+
+	* uudecode.el: Avoid compiler warnings.
+
+	* rfc2047.el: (rfc2047-fold-region): Use gnus-point-at-bol.
+	(rfc2047-charset-encoding-alist): Add iso-8859-1[45].
+
+2000-11-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* rfc2047.el: Require cl when compiling.
+	(rfc2047-q-encode-region): Don't break if a QP-word could be
+	fitted in one line.
+	(rfc2047-decode): Use mm-with-unibyte-current-buffer-mule4.
+	(rfc2047-fold-region): "=?=" is not a break point.
+	(rfc2047-encode-message-header): Move fold into encode-region.
+	(rfc2047-dissect-region): Rewrite.
+	(rfc2047-encode-region): Rewrite.
+	(rfc2047-fold-region): Fold
+	(rfc2047-unfold-region): New function.
+	(rfc2047-decode-region): Use it.
+	(rfc2047-q-encode-region): Don't break at bob.
+	(rfc2047-decode): Use unibyte.
+	(rfc2047-q-encode-region): Better calculation of break point.
+	(rfc2047-fold-region): Don't break the first non-LWSP characters.
+	(rfc2047-encode-region): Merge only if regions are adjacent.
+
 2000-11-06  Dave Love  <fx@gnu.org>
 
 	* gnus-salt.el (gnus-binary-mode): Fix call to gnus-add-minor-mode.
