@@ -3966,8 +3966,6 @@ mark_object (argptr)
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  register EMACS_INT size = ptr->size;
-	  /* See comment above under Lisp_Vector.  */
-	  struct Lisp_Vector *volatile ptr1 = ptr;
 	  register int i;
 
 	  if (size & ARRAY_MARK_FLAG)
@@ -3979,17 +3977,16 @@ mark_object (argptr)
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    {
 	      if (i != COMPILED_CONSTANTS)
-		mark_object (&ptr1->contents[i]);
+		mark_object (&ptr->contents[i]);
 	    }
 	  /* This cast should be unnecessary, but some Mips compiler complains
 	     (MIPS-ABI + SysVR4, DC/OSx, etc).  */
-	  objptr = (Lisp_Object *) &ptr1->contents[COMPILED_CONSTANTS];
+	  objptr = (Lisp_Object *) &ptr->contents[COMPILED_CONSTANTS];
 	  goto loop;
 	}
       else if (GC_FRAMEP (obj))
 	{
-	  /* See comment above under Lisp_Vector for why this is volatile.  */
-	  register struct frame *volatile ptr = XFRAME (obj);
+	  register struct frame *ptr = XFRAME (obj);
 	  register EMACS_INT size = ptr->size;
 
 	  if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
@@ -4035,13 +4032,6 @@ mark_object (argptr)
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
 	  register EMACS_INT size = ptr->size;
-	  /* The reason we use ptr1 is to avoid an apparent hardware bug
-	     that happens occasionally on the FSF's HP 300s.
-	     The bug is that a2 gets clobbered by recursive calls to mark_object.
-	     The clobberage seems to happen during function entry,
-	     perhaps in the moveml instruction.
-	     Yes, this is a crock, but we have to do it.  */
-	  struct Lisp_Vector *volatile ptr1 = ptr;
 	  register int i;
 
 	  /* Stop if already marked.  */
@@ -4055,9 +4045,9 @@ mark_object (argptr)
 	  /* There is no Lisp data above The member CURRENT_MATRIX in
 	     struct WINDOW.  Stop marking when that slot is reached.  */
 	  for (i = 0;
-	       (char *) &ptr1->contents[i] < (char *) &w->current_matrix;
+	       (char *) &ptr->contents[i] < (char *) &w->current_matrix;
 	       i++)
-	    mark_object (&ptr1->contents[i]);
+	    mark_object (&ptr->contents[i]);
 
 	  /* Mark glyphs for leaf windows.  Marking window matrices is
 	     sufficient because frame matrices use the same glyph
@@ -4106,13 +4096,6 @@ mark_object (argptr)
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  register EMACS_INT size = ptr->size;
-	  /* The reason we use ptr1 is to avoid an apparent hardware bug
-	     that happens occasionally on the FSF's HP 300s.
-	     The bug is that a2 gets clobbered by recursive calls to mark_object.
-	     The clobberage seems to happen during function entry,
-	     perhaps in the moveml instruction.
-	     Yes, this is a crock, but we have to do it.  */
-	  struct Lisp_Vector *volatile ptr1 = ptr;
 	  register int i;
 
 	  if (size & ARRAY_MARK_FLAG) break; /* Already marked */
@@ -4122,14 +4105,13 @@ mark_object (argptr)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 
 	  for (i = 0; i < size; i++) /* and then mark its elements */
-	    mark_object (&ptr1->contents[i]);
+	    mark_object (&ptr->contents[i]);
 	}
       break;
 
     case Lisp_Symbol:
       {
-	/* See comment above under Lisp_Vector for why this is volatile.  */
-	register struct Lisp_Symbol *volatile ptr = XSYMBOL (obj);
+	register struct Lisp_Symbol *ptr = XSYMBOL (obj);
 	struct Lisp_Symbol *ptrx;
 
 	if (XMARKBIT (ptr->plist)) break;
@@ -4187,8 +4169,7 @@ mark_object (argptr)
 	    mark_object (&ptr->realvalue);
 	    mark_object (&ptr->buffer);
 	    mark_object (&ptr->frame);
-	    /* See comment above under Lisp_Vector for why not use ptr here.  */
-	    objptr = &XBUFFER_LOCAL_VALUE (obj)->cdr;
+	    objptr = &ptr->cdr;
 	    goto loop;
 	  }
 
@@ -4235,8 +4216,7 @@ mark_object (argptr)
 	    goto loop;
 	  }
 	mark_object (&ptr->car);
-	/* See comment above under Lisp_Vector for why not use ptr here.  */
-	objptr = &XCDR (obj);
+	objptr = &ptr->cdr;
 	goto loop;
       }
 
