@@ -1,3 +1,11 @@
+2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (ccl-encode-mac-roman-font)
+	(ccl-encode-mac-cyrillic-font)
+	(ccl-encode-mac-centraleuropean-font, encoder-list)
+	(fontset-add-mac-fonts, create-fontset-from-mac-roman-font):
+	Support Cyrillic, CentralEuropean, and Dingbat font display
+
 2004-11-30  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-recompute-state): Moved here from vc.el.
