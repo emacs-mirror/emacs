@@ -502,7 +502,7 @@ Please send all bug fixes and enhancements to
 ;; which lists the currently available font families.
 ;;
 ;; The variable `ps-font-size' determines the size (in points)
-;; of the font for ordinary text, when generating Postscript.
+;; of the font for ordinary text, when generating PostScript.
 ;; Its value is a float.
 ;;
 ;; Similarly, the variable `ps-header-font-family' determines
@@ -852,10 +852,16 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
+;;
+;; Thanks to Matthew O Persico <Matthew.Persico@lazard.com> for line number on
+;; empty columns.
+;;
+;; Thanks to Theodore Jump <tjump@cais.com> for adjust PostScript code order on
+;; last page.
+;;
 ;; Thanks to Roland Ducournau <ducour@lirmm.fr> for
 ;; `ps-print-control-characters' variable documentation.
-;;
-;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
 ;; Thanks to Marcus G Daniels <marcus@cathcart.sysc.pdx.edu> for a better
 ;; database font management.
@@ -1053,7 +1059,7 @@ example `letter', `legal' or `a4'."
 (defcustom ps-print-control-characters 'control-8-bit
   "*Specifies the printable form for control and 8-bit characters.
 That is, instead of sending, for example, a ^D (\004) to printer,
-you can send ^ and D.
+it is sent the string \"^D\".
 
 Valid values are:
 
@@ -4004,8 +4010,7 @@ page-height == bm + print-height + tm - ho - hh
   (save-excursion			;insert string
     (insert (string-as-unibyte string)))
   ;; Find and quote special characters as necessary for PS
-  ;; This skips everything except control chars, nonascii chars,
-  ;; (, ) and \.
+  ;; This skips everything except control chars, nonascii chars, (, ) and \.
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
       (delete-char 1)
@@ -5024,6 +5029,7 @@ If FACE is not a valid face name, it is used default face."
 	      (progn
 		(set-buffer ps-spool-buffer)
 		(set-buffer-multibyte nil)
+
 		;; Get a marker and make it point to the current end of the
 		;; buffer,  If an error occurs, we'll delete everything from
 		;; the end of this marker onwards.
@@ -5100,10 +5106,9 @@ If FACE is not a valid face name, it is used default face."
 	(let* ((coding-system-for-write 'raw-text-unix)
 	       (ps-printer-name (or ps-printer-name printer-name))
 	       (ps-lpr-switches
-		(append
-		 (and (stringp ps-printer-name)
-		      (list (concat "-P" ps-printer-name)))
-		 ps-lpr-switches)))
+		(append (and (stringp ps-printer-name)
+			     (list (concat "-P" ps-printer-name)))
+			ps-lpr-switches)))
 	  (if (and (memq system-type '(ms-dos windows-nt))
 		   (or (stringp dos-ps-printer)
 		       (stringp ps-printer-name)))
