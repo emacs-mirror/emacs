@@ -1,5 +1,15 @@
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_create_frame): Set default frame parameter value
+	for tool-bar-lines to 1.
+
+	* dispnew.c (scrolling_window): Compare y-positions of rows
+	equal at the start.  Some simplification.
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix computation of
+	reused rows' y-position in the case window has a header-line, and
+	new window start is greater than old window start.
+
 	* process.c (process_sent_to): New variable.
 	(send_process): Workaround for a crash on sparc-sun-solaris-2.6
 	with GCC 2.95.2 caused by a parameter being clobbered by longjmp.

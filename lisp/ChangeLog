@@ -13,6 +13,9 @@
 
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (command-line): If frame was created with a non-zero
+	tool-bar-lines parameter, switch tool-bar-mode on.
+	
 	* add-log.el (change-log-date-face, change-log-name-face)
 	(change-log-email-face, change-log-file-face)
 	(change-log-list-face, change-log-conditionals-face)

@@ -3571,10 +3571,22 @@ position in the header-line.
 +++
 ** Text property `display'
 
-The `display' text property is used to insert images into text, and
-also control other aspects of how text displays.  The value of the
-`display' property should be a display specification, as described
+The `display' text property is used to insert images into text,
+replace text with other text, display text in marginal area, and it is
+also used to control other aspects of how text displays.  The value of
+the `display' property should be a display specification, as described
 below, or a list or vector containing display specifications.
+
+*** Replacing text, displaying text in marginal areas
+
+To replace the text having the `display' property with some other
+text, use a display specification of the form `(LOCATION STRING)'.
+
+If LOCATION is `(margin left-margin)', STRING is displayed in the left
+marginal area, if it is `(margin right-margin)', it is displayed in
+the right marginal area, and if LOCATION is `(margin nil)' STRING
+is displayed in the text.  In the latter case you can also use the
+simpler form STRING as property value.
 
 *** Variable width and height spaces
 
