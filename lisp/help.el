@@ -210,6 +210,9 @@ describes the minor mode."
     (recenter 0)))
 
 (defun describe-prefix-bindings ()
+  "Describe the bindings of the prefix used to reach this command.
+The prefix described consists of all but the last event
+of the key sequence that ran this command."
   (interactive)
   (let* ((key (this-command-keys))
 	 (prefix (make-vector (1- (length key)) nil))
@@ -219,6 +222,8 @@ describes the minor mode."
       (aset prefix i (aref key i))
       (setq i (1+ i)))
     (describe-bindings prefix)))
+;; Make C-h after a prefix, when not specifically bound, 
+;; run describe-prefix-bindings.
 (setq prefix-help-command 'describe-prefix-bindings)
 
 (defun view-emacs-news ()
