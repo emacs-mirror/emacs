@@ -6,6 +6,23 @@
 
 	* progmodes/cperl-mode.el: Don't make faces depend on window-system.
 
+2003-01-19  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Use t argument to vc-checkout in
+	order to get the latest version on the current branch.
+	Update documentation of vc-BACKEND-checkout to explain this.
+
+	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
+	(vc-rcs-checkin): By default, specify the current workfile
+	branch as the check-in revision.
+        (vc-rcs-revert): Unlock only if the user does have the lock.
+
+	* vc-cvs.el (vc-cvs-checkout): Handle t argument for REV.
+
+	* vc-sccs.el (vc-sccs-checkout): Likewise.
+
+        * log-view.el (log-view-message-re): The rev might be locked.
+
 2002-12-18  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
 
 	* progmodes/compile.el (compile-reinitialize-errors): Don't mark the
