@@ -1392,7 +1392,8 @@ syms_of_fontset ()
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
   FONTSET_ASCII (Vdefault_fontset)
-    = Fcons (make_number (0), Fcons (Qnil, build_string ("iso8859-1")));
+    = Fcons (make_number (0),
+	     build_string ("-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1"));
   AREF (Vfontset_table, 0) = Vdefault_fontset;
   next_fontset_id = 1;
 
