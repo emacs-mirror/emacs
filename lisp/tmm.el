@@ -399,7 +399,7 @@ element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).
 This function adds the element only if it is not already present.
 It uses the free variable `tmm-table-undef' to keep undefined keys."
-  (let (km str cache (event (car elt)))
+  (let (km str cache plist filter (event (car elt)))
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
@@ -425,8 +425,12 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		    (setq cache (cdr (car (cdr elt))))
 		    cache (setq str (concat str cache))))
 	      ((eq (car-safe elt) 'menu-item)
+	       (setq plist (cdr-safe (cdr-safe (cdr-safe elt))))
 	       (setq km (nth 2 elt))
 	       (setq str (nth 1 elt))
+	       (setq filter (plist-get plist :filter))
+	       (if filter
+		   (setq km (funcall filter km)))
 	       (and str
 		    (consp (nth 3 elt))
 		    (stringp (cdr (nth 3 elt))) ; keyseq cache
