@@ -161,8 +161,9 @@ are done with it in the server.")
 
 (defvar server-name "server")
 
-(defvar server-socket-dir
-  (format "/tmp/emacs%d" (user-uid)))
+(defvar server-socket-dir nil
+  "The directory in which to place the server socket.
+Initialized by `server-start'.")
 
 (defun server-client (proc)
   "Return the Emacs client corresponding to PROC.
@@ -367,6 +368,9 @@ Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
+  ;; It is safe to get the user id now.
+  (setq server-socket-dir (or server-socket-dir
+			      (format "/tmp/emacs%d" (user-uid))))
   ;; Make sure there is a safe directory in which to place the socket.
   (server-ensure-safe-dir server-socket-dir)
   ;; kill it dead!
