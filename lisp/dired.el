@@ -402,7 +402,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  ;; If directory has changed on disk, offer to revert.
 	  (if (let ((attributes (file-attributes dirname))
 		    (modtime (visited-file-modtime)))
-		(or (not (eq (car attributes) t))
+		(or (eq modtime 0)
+		    (not (eq (car attributes) t))
 		    (and (= (car (nth 5 attributes)) (car modtime))
 			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
 	      nil
