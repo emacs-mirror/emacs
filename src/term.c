@@ -712,7 +712,7 @@ reassert_line_highlight (highlight, vpos)
   else if (chars_wasted && chars_wasted[vpos] == 0)
     /* For terminals with standout markers, write one on this line
        if there isn't one already.  */
-    write_standout_marker (highlight, vpos);
+    write_standout_marker (inverse_video ? !highlight : highlight, vpos);
 }
 
 /* Call this when about to modify line at position VPOS
