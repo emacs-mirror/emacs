@@ -137,7 +137,7 @@ without a period."
    ;; This is a bit stupid since it's not auto-updated when the
    ;; other variables are changes, but it's still useful info.
    (concat (if sentence-end-without-period "\\w  \\|")
-	   "[.?!][]\"')}]*"
+	   "[.?!$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B][]\"')}]*"
 	   (if sentence-end-double-space
 	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
 	   "[ \t\n]*"))
@@ -456,5 +456,9 @@ ones already marked."
   "Interchange this (next) and previous sentence."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
+
+;;; Local Variables:
+;;; coding: iso-2022-7bit
+;;; End:
 
 ;;; paragraphs.el ends here
