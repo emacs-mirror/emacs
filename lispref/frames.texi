@@ -20,7 +20,7 @@ one and only one at any given time---on the terminal screen, of course.
 
 @cindex window frame
   When Emacs communicates directly with a supported window system, such
-as X Windows, it does not have a terminal frame; instead, it starts with
+as X, it does not have a terminal frame; instead, it starts with
 a single @dfn{window frame}, but you can create more, and Emacs can
 display several such frames at once as is usual for window systems.
 
@@ -1310,7 +1310,7 @@ defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
 
 @node Window System Selections
 @section Window System Selections
-@cindex selection (for X windows)
+@cindex selection (for window systems)
 
 The X server records a set of @dfn{selections} which permit transfer of
 data between application programs.  The various selections are

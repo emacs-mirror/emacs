@@ -523,7 +523,7 @@ Keymaps
 * Inheritance and Keymaps::	How one keymap can inherit the bindings
 				  of another keymap.
 * Prefix Keys::                 Defining a key with a keymap as its definition.
-* Menu Keymaps::		A keymap can define a menu for X windows
+* Menu Keymaps::		A keymap can define a menu for X
 				  or for use from the terminal.
 * Active Keymaps::	        Each buffer has a local keymap
                                   to override the standard (global) bindings.

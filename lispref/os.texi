@@ -27,7 +27,7 @@ pertaining to the terminal and the screen.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
 * Sound Output::        Playing sounds on the computer's speaker.
-* Special Keysyms::     Defining system-specific key symbols for X windows.
+* Special Keysyms::     Defining system-specific key symbols for X.
 * Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
 @end menu
@@ -505,7 +505,7 @@ subprocess of Emacs.  Then you would exit the shell to return to Emacs.
 may not have a parent that can resume it again, and in any case you can
 give input to some other job such as a shell merely by moving to a
 different window.  Therefore, suspending is not allowed when Emacs is using
-a window system (X Windows or MS Windows).
+a window system (X or MS Windows).
 
 @defun suspend-emacs string
 This function stops Emacs and returns control to the superior process.
