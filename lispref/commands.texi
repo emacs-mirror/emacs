@@ -661,6 +661,10 @@ non-@code{nil}.  Here's how:
     (message "foo")))
 @end example
 
+@noindent
+Defined in this way, the function does display the message when
+called from a keyboard macro.
+
   The numeric prefix argument, provided by @samp{p}, is never @code{nil}.
 
 @node Command Loop Info
