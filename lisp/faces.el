@@ -1272,7 +1272,7 @@ your background is light, or nil (default) if you want Emacs to
 examine the brightness for you."
   :group 'faces
   :set #'(lambda (var value)
-	   (set var value)
+	   (set-default var value)
 	   (mapcar 'frame-set-background-mode (frame-list)))
   :initialize 'custom-initialize-changed
   :type '(choice (choice-item dark)
@@ -1469,15 +1469,13 @@ created."
 
 ;; Update a frame's faces when we change its default font.
 
-(defun frame-update-faces (frame)
-  nil)
+(defalias 'frame-update-faces 'ignore)
 (make-obsolete 'frame-update-faces "No longer necessary" "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
 ;; changed.
 
-(defun frame-update-face-colors (frame)
-  (frame-set-background-mode frame))
+(defalias 'frame-update-face-colors 'frame-set-background-mode)
 (make-obsolete 'frame-update-face-colors 'frame-set-background-mode "21.1")
 
 
