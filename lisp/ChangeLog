@@ -2,7 +2,14 @@
 
 	* progmodes/idlw-shell.el, progmodes/idlw-toolbar.el
 	* progmodes/idlwave.el: Remove RCS keywords.
-	
+
+2004-11-17  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el, progmodes/idlw-toolbar.el
+	* progmodes/idlw-shell.el, progmodes/idlw-rinfo.el:
+	Updated to IDLWAVE version 5.5.  Too many changes to list them here.
+	* progmodes/idlw-help.el: New file.
+
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* international/iso-cvt.el (iso-tex2iso-trans-tab):
