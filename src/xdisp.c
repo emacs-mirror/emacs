@@ -6667,7 +6667,10 @@ echo_area_display (update_frame_p)
 	  if (!display_completed)
 	    n = redisplay_mode_lines (FRAME_ROOT_WINDOW (f), 0);
 	    
-	  if (window_height_changed_p && !NILP (Vrun_hooks))
+	  if (window_height_changed_p
+	      /* Don't do this if Emacs is shutting down.  Redisplay
+	         needs to run hooks.  */
+	      && !NILP (Vrun_hooks))
 	    {
 	      /* Must update other windows.  Likewise as in other
 		 cases, don't let this update be interrupted by
