@@ -226,7 +226,7 @@ DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  return (WINDOWP (object) && ! NILP (XWINDOW (object)->buffer) ? Qt : Qnil);
+  return WINDOW_LIVE_P (object) ? Qt : Qnil;
 }
 
 Lisp_Object
