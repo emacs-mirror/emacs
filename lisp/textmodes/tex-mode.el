@@ -986,6 +986,7 @@ Mark is left at original location."
       (use-local-map tex-shell-map)
       (compilation-minor-mode)
       (run-hooks 'tex-shell-hook)
+      (setq comint-input-filter-functions 'shell-directory-tracker)
       (while (zerop (buffer-size))
 	(sleep-for 1)))))
 
