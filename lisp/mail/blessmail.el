@@ -45,23 +45,22 @@
     (setq dirname (if (file-name-absolute-p linkname)
 		      linkname
 		    (concat (file-name-directory dirname) linkname))))
-  (setq attr (file-attributes dirname))
-  (or (eq t (car attr))
-      (signal 'error
-	      (list (format "%s is not a directory" rmail-spool-directory))))
-  (setq modes (nth 8 attr))
   (insert "#!/bin/sh\n")
-  (cond ((= ?w (aref modes 8))
-	 ;; Nothing needs to be done.
-	 )
-	((= ?w (aref modes 5))
-	 (insert "chgrp " (number-to-string (nth 3 attr))
-		 " $* && chmod g+s $*\n"))
-	((= ?w (aref modes 2))
-	 (insert "chown " (number-to-string (nth 2 attr))
-		 " $* && chmod u+s $*\n"))
-	(t
-	 (insert "chown root $* && chmod u+s $*\n")))
+  (setq attr (file-attributes dirname))
+  (if (not (eq t (car attr)))
+      (insert (format "echo %s is not a directory\n" rmail-spool-directory))
+    (setq modes (nth 8 attr))
+    (cond ((= ?w (aref modes 8))
+	   ;; Nothing needs to be done.
+	   )
+	  ((= ?w (aref modes 5))
+	   (insert "chgrp " (number-to-string (nth 3 attr))
+		   " $* && chmod g+s $*\n"))
+	  ((= ?w (aref modes 2))
+	   (insert "chown " (number-to-string (nth 2 attr))
+		   " $* && chmod u+s $*\n"))
+	  (t
+	   (insert "chown root $* && chmod u+s $*\n"))))
   (insert "echo mail directory = " dirname "\n"))
 (write-region (point-min) (point-max) "blessmail")
 (kill-emacs)
