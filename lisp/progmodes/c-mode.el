@@ -30,6 +30,11 @@
 ;; and do M-x describe-mode for details.
 
 ;;; Code:
+(defgroup old-c nil
+  "Old C code editing commands for Emacs."
+  :prefix "c-"
+  :group 'languages)
+
 
 (defvar c-mode-abbrev-table nil
   "Abbrev table in use in C mode.")
@@ -114,21 +119,35 @@ The expansion is entirely correct because it uses the C preprocessor."
   (modify-syntax-entry ?| "." c-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" c-mode-syntax-table))
 
-(defconst c-indent-level 2
-  "*Indentation of C statements with respect to containing block.")
-(defconst c-brace-imaginary-offset 0
-  "*Imagined indentation of a C open brace that actually follows a statement.")
-(defconst c-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context.")
-(defconst c-argdecl-indent 5
-  "*Indentation level of declarations of C function arguments.")
-(defconst c-label-offset -2
-  "*Offset of C label lines and case statements relative to usual indentation.")
-(defconst c-continued-statement-offset 2
-  "*Extra indent for lines not starting new statements.")
-(defconst c-continued-brace-offset 0
+(defcustom c-indent-level 2
+  "*Indentation of C statements with respect to containing block."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-brace-imaginary-offset 0
+  "*Imagined indentation of a C open brace that actually follows a statement."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-brace-offset 0
+  "*Extra indentation for braces, compared with other text in same context."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-argdecl-indent 5
+  "*Indentation level of declarations of C function arguments."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-label-offset -2
+  "*Offset of C label lines and case statements relative to usual indentation."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-continued-statement-offset 2
+  "*Extra indent for lines not starting new statements."
+  :type 'integer
+  :group 'old-c)
+(defcustom c-continued-brace-offset 0
   "*Extra indent for substatements that start with open-braces.
-This is in addition to `c-continued-statement-offset'.")
+This is in addition to `c-continued-statement-offset'."
+  :type 'integer
+  :group 'old-c)
 (defconst c-style-alist
   '(("GNU"
      (c-indent-level               .  2)
@@ -167,15 +186,19 @@ This is in addition to `c-continued-statement-offset'.")
      (c-label-offset               . -4)
      (c-continued-statement-offset .  4))))
 
-(defconst c-auto-newline nil
+(defcustom c-auto-newline nil
   "*Non-nil means automatically newline before and after braces,
 and after colons and semicolons, inserted in C code.
 If you do not want a leading newline before braces then use:
-  (define-key c-mode-map \"{\" 'electric-c-semi)")
+  (define-key c-mode-map \"{\" 'electric-c-semi)"
+  :type 'boolean
+  :group 'old-c)
 
-(defconst c-tab-always-indent t
+(defcustom c-tab-always-indent t
   "*Non-nil means TAB in C mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used.")
+regardless of where in the line point is when the TAB command is used."
+  :type 'boolean
+  :group 'old-c)
 
 ;;; Regular expression used internally to recognize labels in switch
 ;;; statements.
@@ -1504,8 +1527,10 @@ Available styles are GNU, K&R, BSD and Whitesmith."
 
 ;;; This page handles insertion and removal of backslashes for C macros.
 
-(defvar c-backslash-column 48
-  "*Minimum column for end-of-line backslashes of macro definitions.")
+(defcustom c-backslash-column 48
+  "*Minimum column for end-of-line backslashes of macro definitions."
+  :type 'integer
+  :group 'old-c)
 
 (defun c-backslash-region (from to delete-flag)
   "Insert, align, or delete end-of-line backslashes on the lines in the region.

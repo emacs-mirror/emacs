@@ -97,6 +97,11 @@
 
 ;;; Code:
 
+(defgroup old-c++ nil
+  "Old C++ code editing mode for Emacs."
+  :prefix "c-"
+  :group 'languages)
+
 (defvar c++-mode-abbrev-table nil
   "Abbrev table used in C++ mode.")
 (define-abbrev-table 'c++-mode-abbrev-table ())
@@ -143,19 +148,29 @@
   (modify-syntax-entry ?\n ">" c++-mode-syntax-table)
   (modify-syntax-entry ?\^m ">" c++-mode-syntax-table))
 
-(defvar c++-continued-member-init-offset nil
+(defcustom c++-continued-member-init-offset nil
   "*Extra indent for continuation lines of member inits;
 nil means to align with previous initializations rather than
-with the colon on the first line.")
-(defvar c++-member-init-indent 0
-  "*Indentation level of member initializations in function declarations.")
-(defvar c++-friend-offset -4
-  "*Offset of C++ friend declarations relative to member declarations.")
-(defvar c++-electric-colon t
-  "*If t, colon is an electric terminator.")
-(defvar c++-empty-arglist-indent nil
+with the colon on the first line."
+  :type '(choice (const nil) integer)
+  :group 'old-c++)
+(defcustom c++-member-init-indent 0
+  "*Indentation level of member initializations in function declarations."
+  :type 'integer
+  :group 'old-c++)
+(defcustom c++-friend-offset -4
+  "*Offset of C++ friend declarations relative to member declarations."
+  :type 'integer
+  :group 'old-c++)
+(defcustom c++-electric-colon t
+  "*If t, colon is an electric terminator."
+  :type 'boolean
+  :group 'old-c++)
+(defcustom c++-empty-arglist-indent nil
   "*Indicates how far to indent an line following an empty argument
-list.  Nil indicates to just after the paren.")
+list.  Nil indicates to just after the paren."
+  :type '(choice (const nil) integer)
+  :group 'old-c++)
 
 (defvar c++-imenu-generic-expression
   (` 

@@ -41,17 +41,29 @@
 
 ;;; Code:
 
-(defvar m4-program 
+(defgroup m4 nil
+  "m4 code editing commands for Emacs."
+  :prefix "m4-"
+  :group 'languages)
+
+(defcustom m4-program 
   (cond 
    ((file-exists-p "/usr/local/bin/m4") "/usr/local/bin/m4")
    ((file-exists-p "/usr/bin/m4") "/usr/bin/m4")
    ((file-exists-p "/bin/m4") "/bin/m4")
    ((file-exists-p "/usr/ccs/bin/m4") "/usr/ccs/bin/m4")
+   ( t "m4")
    )
-  "File name of the m4 executable.")
+  "File name of the m4 executable."
+  :type 'file
+  :group 'm4)
 
 ;;options to m4
-(defconst m4-program-options nil)
+(defcustom m4-program-options nil
+  "Options to pass to `m4-program'."
+  :type '(repeat string)
+  :group 'm4)
+
 ;;to use --prefix-builtins, you can use
 ;;(defconst m4-program-options '("-P"))
 ;;or
@@ -68,6 +80,11 @@
     ("\\b\\(m4_\\(builtin\\|change\\(com\\|quote\\|word\\)\\|d\\(e\\(bug\\(file\\|mode\\)\\|cr\\|f\\(ine\\|n\\)\\)\\|iv\\(ert\\|num\\)\\|nl\\|umpdef\\)\\|e\\(rrprint\\|syscmd\\|val\\)\\|f\\(ile\\|ormat\\)\\|i\\(f\\(def\\|else\\)\\|n\\(c\\(lude\\|r\\)\\|d\\(ex\\|ir\\)\\)\\)\\|l\\(en\\|ine\\)\\|m\\(4\\(_undefine\\|exit\\|wrap\\)\\|aketemp\\)\\|p\\(atsubst\\|opdef\\|ushdef\\)\\|regexp\\|s\\(hift\\|include\\|ubstr\\|ys\\(cmd\\|val\\)\\)\\|tra\\(ceo\\(ff\\|n\\)\\|nslit\\)\\|undivert\\)\\)\\b" . font-lock-keyword-face)
     "Default font-lock-keywords for m4 mode.")
 )
+
+(defcustom m4-mode-hook nil
+  "*Hook called by `m4-mode'."
+  :type 'hook
+  :group 'm4)
 
 ;;this may still need some work
 (defvar m4-mode-syntax-table nil
