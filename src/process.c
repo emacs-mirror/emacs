@@ -1080,6 +1080,8 @@ Remaining arguments are strings to give program as arguments.")
 #else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
+  program = Fexpand_file_name (program, Qnil);
+
   /* If program file name is not absolute, search our path for it */
   if (!IS_DIRECTORY_SEP (XSTRING (program)->data[0])
       && !(XSTRING (program)->size > 1
@@ -1096,7 +1098,12 @@ Remaining arguments are strings to give program as arguments.")
       new_argv[0] = XSTRING (tem)->data;
     }
   else
-    new_argv[0] = XSTRING (program)->data;
+    {
+      if (!NILP (Ffile_directory_p (program)))
+	error ("Specified program for new process is a directory");
+
+      new_argv[0] = XSTRING (program)->data;
+    }
 
   for (i = 3; i < nargs; i++)
     {
