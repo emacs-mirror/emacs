@@ -179,10 +179,17 @@ DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
 The program's input comes from file INFILE (nil means `/dev/null').\n\
 Insert output in BUFFER before point; t means current buffer;\n\
  nil for BUFFER means discard it; 0 means discard and don't wait.\n\
+BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,\n\
+REAL-BUFFER says what to do with standard output, as above,\n\
+while STDERR-FILE says what to do with standard error in the child.\n\
+STDERR-FILE may be nil (discard standard error output),\n\
+t (mix it with ordinary output), or a file name string.\n\
+\n\
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
 Remaining arguments are strings passed as command arguments to PROGRAM.\n\
-If BUFFER is 0, returns immediately with value nil.\n\
-Otherwise waits for PROGRAM to terminate\n\
+\n\
+If BUFFER is 0, `call-process' returns immediately with value nil.\n\
+Otherwise it waits for PROGRAM to terminate\n\
 and returns a numeric exit status or a signal description string.\n\
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   (nargs, args)
@@ -198,6 +205,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   register unsigned char **new_argv
     = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
   struct buffer *old = current_buffer;
+  /* File to use for stderr in the child.
+     t means use same as standard output.  */
+  Lisp_Object error_file;
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *outf, *tempfile;
   int outfilefd;
@@ -206,6 +216,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   int mask;
 #endif
   CHECK_STRING (args[0], 0);
+
+  error_file = Qt;
 
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
@@ -223,14 +235,27 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   if (nargs >= 3)
     {
-      register Lisp_Object tem;
+      buffer = args[2];
 
-      buffer = tem = args[2];
-      if (!(EQ (tem, Qnil)
-	    || EQ (tem, Qt)
-	    || XFASTINT (tem) == 0))
+      /* If BUFFER is a list, its meaning is
+	 (BUFFER-FOR-STDOUT FILE-FOR-STDERR).  */
+      if (CONSP (buffer))
 	{
-	  buffer = Fget_buffer (tem);
+	  if (CONSP (XCONS (buffer)->cdr))
+	    error_file = XCONS (XCONS (buffer)->cdr)->car;
+	  buffer = XCONS (buffer)->car;
+	}
+
+      if (!(EQ (buffer, Qnil)
+	    || EQ (buffer, Qt)
+	    || XFASTINT (buffer) == 0))
+	{
+	  Lisp_Object spec_buffer;
+	  spec_buffer = buffer;
+	  buffer = Fget_buffer (buffer);
+	  /* Mention the buffer name for a better error message.  */
+	  if (NILP (buffer))
+	    CHECK_BUFFER (spec_buffer, 2);
 	  CHECK_BUFFER (buffer, 2);
 	}
     }
@@ -345,6 +370,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
        Protect it from permanent change.  */
     register char **save_environ = environ;
     register int fd1 = fd[1];
+    int fd_error = fd1;
 
 #if 0  /* Some systems don't have sigblock.  */
     mask = sigblock (sigmask (SIGCHLD));
@@ -373,8 +399,31 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	report_file_error ("Cannot re-open temporary file", Qnil);
       }
 #else /* not MSDOS */
+
+    if (NILP (error_file))
+      fd_error = open (NULL_DEVICE, O_WRONLY);
+    else if (STRINGP (error_file))
+      {
+#ifdef DOS_NT
+	fd_error = open (XSTRING (error_file)->data,
+			 O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
+			 S_IREAD | S_IWRITE);
+#else  /* not DOS_NT */
+	fd_error = creat (XSTRING (error_file)->data, 0666);
+#endif /* not DOS_NT */
+      }
+
+    if (fd_error < 0)
+      {
+	close (filefd);
+	close (fd[0]);
+	if (fd1 >= 0)
+	  close (fd1);
+	report_file_error ("Cannot open", error_file);
+      }
+
 #ifdef WINDOWSNT
-    pid = child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
+    pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
 #else  /* not WINDOWSNT */
     pid = vfork ();
 
@@ -387,7 +436,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #else
         setpgrp (pid, pid);
 #endif /* USG */
-	child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
+	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
@@ -501,12 +550,20 @@ DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
   3, MANY, 0,
   "Send text from START to END to a synchronous process running PROGRAM.\n\
 Delete the text if fourth arg DELETE is non-nil.\n\
+\n\
 Insert output in BUFFER before point; t means current buffer;\n\
  nil for BUFFER means discard it; 0 means discard and don't wait.\n\
+BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,\n\
+REAL-BUFFER says what to do with standard output, as above,\n\
+while STDERR-FILE says what to do with standard error in the child.\n\
+STDERR-FILE may be nil (discard standard error output),\n\
+t (mix it with ordinary output), or a file name string.\n\
+\n\
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
 Remaining args are passed to PROGRAM at startup as command args.\n\
-If BUFFER is nil, returns immediately with value nil.\n\
-Otherwise waits for PROGRAM to terminate\n\
+\n\
+If BUFFER is nil, `call-process-region' returns immediately with value nil.\n\
+Otherwise it waits for PROGRAM to terminate\n\
 and returns a numeric exit status or a signal description string.\n\
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   (nargs, args)
