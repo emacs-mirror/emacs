@@ -3716,8 +3716,7 @@ being undefined will be suppressed."
 (byte-defop-compiler-1 with-no-warnings byte-compile-no-warnings)
 (defun byte-compile-no-warnings (form)
   (let (byte-compile-warnings)
-    (setcar form 'progn)
-    (byte-compile-form form)))
+    (byte-compile-form (cons 'progn (cdr form)))))
 
 ;;; tags
 
