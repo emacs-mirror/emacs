@@ -140,8 +140,9 @@ For example, you could write
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 mode-name)))))
+	    `(:group ',(or (custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" mode-name))))))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -211,7 +212,7 @@ With zero or negative ARG turn mode off.
        ;; The toggle's hook.
        (defcustom ,hook nil
 	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 :group ,(cadr group)
+	 ,@group
 	 :type 'hook)
 
        ;; Define the minor-mode keymap.
@@ -263,8 +264,10 @@ KEYS is a list of CL-style keyword arguments:
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 (symbol-name mode))))))
+	    `(:group ',(or (custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" (symbol-name mode)))))))
+
     `(progn
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
