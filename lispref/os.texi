@@ -23,6 +23,7 @@ pertaining to the terminal and the screen.
 * Time of Day::		Getting the current time.
 * Time Conversion::     Converting a time from numeric form to a string, or
                           to calendrical data (or vice versa).
+* Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::		Setting a timer to call a function at a certain time.
 * Terminal Input::      Recording terminal input for debugging.
@@ -1283,6 +1284,28 @@ The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
 For instance, years before 1970 do not work on some systems;
 on others, years as early as 1901 do work.
+@end defun
+
+@node Processor Run Time
+@section Processor Run time
+
+@defun get-internal-run-time
+This function returns the processor run time used by Emacs as a list
+of three integers: @code{(@var{high} @var{low} @var{microsec})}.  The
+integers @var{high} and @var{low} combine to give the number of
+seconds, which is
+@ifnottex
+@var{high} * 2**16 + @var{low}.
+@end ifnottex
+@tex
+$high*2^{16}+low$.
+@end tex
+
+The third element, @var{microsec}, gives the microseconds (or 0 for
+systems that return time with the resolution of only one second).
+
+If the system doesn't provide a way to determine the processor run
+time, get-internal-run-time returns the same time as current-time.
 @end defun
 
 @node Time Calculations
