@@ -145,7 +145,7 @@
 	       ("*Shell Command Output*" 1.0)))
     (bug
      (vertical 1.0
-	       ("*Gnus Help Bug*" 0.5)
+	       (if gnus-bug-create-help-buffer '("*Gnus Help Bug*" 0.5))
 	       ("*Gnus Bug*" 1.0 point)))
     (score-trace
      (vertical 1.0
@@ -433,7 +433,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	  ;; put point in the assigned buffer, and do not touch the
 	  ;; winconf.
 	  (select-window all-visible)
-	
+
 	;; Make sure "the other" buffer, nntp-server-buffer, is live.
 	(unless (gnus-buffer-live-p nntp-server-buffer)
 	  (nnheader-init-server-buffer))

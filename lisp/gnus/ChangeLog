@@ -1,3 +1,8 @@
+2001-09-19  Sam Steingold  <sds@gnu.org>
+
+	* gnus-win.el (gnus-buffer-configuration): Respect
+	`gnus-bug-create-help-buffer'.
+
 2001-09-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* mm-util.el (mm-charset-synonym-alist): Add windows-1250 so we
