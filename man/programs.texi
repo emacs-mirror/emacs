@@ -1779,6 +1779,22 @@ The command @kbd{M-x change-log-merge} can be used to merge other log
 files into a buffer in Change Log Mode, preserving the date ordering
 of entries with either the current or old-style date formats.
 
+@findex change-log-redate
+@cindex converting change log date style
+  Versions of Emacs before 20.1 used a format for the time of the change
+log entry that was different from what it uses now:
+
+@smallexample
+Fri May 25 11:23:23 1993 Richard Stallman  <rms@@gnu.org>
+@end smallexample
+
+@noindent
+The @kbd{M-x change-log-redate} command converts all the old-style date
+entries in the change log file visited in the current buffer to the new
+format, so that all entries are kept in unified format.  This is handy
+when the entries are contributed by many different people some of whom
+still use old versions of Emacs.
+
   Version control systems are another way to keep track of changes in your
 program and keep a change log.  @xref{Log Buffer}.
 
