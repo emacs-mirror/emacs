@@ -643,7 +643,8 @@ the user from the mailer."
   (search-forward (concat "\n" mail-header-separator "\n")))
 
 (defun mail-signature (atpoint)
-  "Sign letter with contents of `mail-signature-file'."
+  "Sign letter with contents of `mail-signature-file'.
+Prefix arg means put contents at point."
   (interactive "P")
   (save-excursion
     (or atpoint
