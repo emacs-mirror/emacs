@@ -28,7 +28,7 @@
 ;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ;;; Special formatting conventions are used in this file!
 ;;;
-;;; a backslash-newline is used at the beginning of a documentation string
+;;; A backslash-newline is used at the beginning of a documentation string
 ;;; when that string should be stored in the file etc/DOCnnn, not in core.
 ;;;
 ;;; Such strings read into Lisp as numbers (during the pure-loading phase).
@@ -256,11 +256,19 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
+(defvar mode-line-major-mode-keymap nil "\
+Keymap to display on major mode.")
+
 (defvar mode-line-minor-mode-keymap nil "\
-Keymap to display on major and minor modes.")
+Keymap to display on minor modes.")
+
+(let ((map (make-sparse-keymap)))
+  (define-key map [mode-line mouse-2] 'describe-mode)
+  (setq mode-line-major-mode-keymap map))
 
 ;; Menu of minor modes.
 (let ((map (make-sparse-keymap)))
+  (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
   (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
   (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
   (setq mode-line-minor-mode-keymap map))
@@ -292,8 +300,12 @@ Keymap to display on major and minor modes.")
   (setq-default mode-line-modes
     (list
      (propertize "%[(" 'help-echo help-echo)
-     `(:propertize ("" mode-name mode-line-process minor-mode-alist)
-		   help-echo "mouse-3: minor mode menu"
+     `(:propertize ("" mode-name)
+		   help-echo "mouse-2: help for current major mode"
+		   local-map ,mode-line-major-mode-keymap)
+     `(:propertize ("" mode-line-process))
+     `(:propertize ("" minor-mode-alist)
+		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
 		 'local-map (make-mode-line-mouse-map
@@ -416,6 +428,12 @@ Menu of mode operations in the mode line.")
 (defun mode-line-mode-menu (event)
   (interactive "@e")
   (x-popup-menu event mode-line-mode-menu))
+
+(defun mode-line-minor-mode-help (event)
+  "Describe minor mode for EVENT occured on minor modes area of the mode line."
+  (interactive "@e")
+  (let ((indicator (car (nth 4 (car (cdr event))))))
+    (describe-minor-mode-from-indicator indicator)))
 
 ;; Add menu of buffer operations to the buffer identification part
 ;; of the mode line.or header line.
