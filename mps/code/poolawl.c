@@ -76,6 +76,9 @@ typedef struct awlStatTotalStruct {
   Count declined;      /* number of declined single accesses */
 } awlStatTotalStruct, *awlStatTotal;
 
+/* the type of a function to find an object's dependent object */
+
+typedef Addr (*FindDependentMethod)(Addr object);
 
 /* AWLStruct -- AWL pool structure
  *
@@ -90,6 +93,7 @@ typedef struct AWLStruct {
   Size size;                /* allocated size in bytes */
   Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
+  FindDependentMethod findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
   Sig sig;
 } AWLStruct, *AWL;
@@ -271,7 +275,7 @@ static void AWLSegFinish(Seg seg)
   super = SEG_SUPERCLASS(AWLSegClass);
   super->finish(seg);
 }
- 
+
 
 /* AWLSegClass -- Class definition for AWL segments */
 
@@ -310,7 +314,7 @@ static Bool AWLCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
 
     awlseg = Seg2AWLSeg(seg);
     AVERT(AWLSeg, awlseg);
-   
+
     if (AWLHaveTotalSALimit) {
       if (AWLTotalSALimit < awl->succAccesses) {
         STATISTIC(awl->stats.declined++);
@@ -483,6 +487,7 @@ static Res AWLInit(Pool pool, va_list arg)
 {
   AWL awl;
   Format format;
+  FindDependentMethod findDependent;
   Chain chain;
   Res res;
   static GenParamStruct genParam = { SizeMAX, 0.5 /* dummy */ };
@@ -495,6 +500,10 @@ static Res AWLInit(Pool pool, va_list arg)
   format = va_arg(arg, Format);
   AVERT(Format, format);
   pool->format = format;
+
+  findDependent = va_arg(arg, FindDependentMethod);
+  AVER(FUNCHECK(findDependent));
+  awl->findDependent = findDependent;
 
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
@@ -777,52 +786,14 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
- 
+
   BTSetRange(awlseg->scanned, 0, awlseg->grains);
-}
-
-
-/* AWLDependentObject -- returns the linked object, if any
- *
- * see design.mps.poolawl.fun.dependent-object, and
- * analysis.mps.poolawl.improve.dependent.abstract
- */
-
-static Bool AWLDependentObject(Addr *objReturn, Addr parent)
-{
-  Word *object;
-  Word *wrapper;
-  Word fword;
-  Word fl;
-  Word ff;
-
-  AVER(objReturn != NULL);
-  AVER(parent != (Addr)0);
-
-  object = (Word *)parent;
-  wrapper = (Word *)object[0];
-  AVER(wrapper != NULL);
-  /* check wrapper wrapper is non-NULL */
-  AVER(wrapper[0] != 0);
-  /* check wrapper wrapper is wrapper wrapper wrapper */
-  AVER(wrapper[0] == ((Word *)wrapper[0])[0]);
-  fword = wrapper[3];
-  ff = fword & 3;
-  /* Traceable Fixed part */
-  AVER(ff == 1);
-  fl = fword & ~3uL;
-  /* At least one fixed field */
-  AVER(fl >= 1);
-  if (object[1] == 0)
-    return FALSE;
-  *objReturn = (Addr)object[1];
-  return TRUE;
 }
 
 
 /* awlScanObject -- scan a single object */
 
-static Res awlScanObject(Arena arena, ScanState ss,
+static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
                          FormatScanMethod scan, Addr base, Addr limit)
 {
   Res res;
@@ -831,19 +802,19 @@ static Res awlScanObject(Arena arena, ScanState ss,
   Seg dependentSeg = NULL; /* segment of dependent object */
 
   AVERT(Arena, arena);
+  AVERT(AWL, awl);
   AVERT(ScanState, ss);
   AVER(FUNCHECK(scan));
   AVER(base != 0);
   AVER(base < limit);
 
-  dependent = AWLDependentObject(&dependentObject, base)
-              && SegOfAddr(&dependentSeg, arena, dependentObject);
-
+  dependentObject = awl->findDependent(base);
+  dependent = SegOfAddr(&dependentSeg, arena, dependentObject);
   if (dependent) {
-    /* design.mps.poolawl.fun.scan.pass.object.dependent.expose */
-    ShieldExpose(arena, dependentSeg);
-    /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
-    SegSetSummary(dependentSeg, RefSetUNIV);
+      /* design.mps.poolawl.fun.scan.pass.object.dependent.expose */
+      ShieldExpose(arena, dependentSeg);
+      /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
+      SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
   res = (*scan)(ss, base, limit);
@@ -911,7 +882,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
     /* design.mps.poolawl.fun.scan.pass.object */
     if (scanAllObjects
         || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
-      Res res = awlScanObject(arena, ss, pool->format->scan,
+      Res res = awlScanObject(arena, awl, ss, pool->format->scan,
                               p, objectLimit);
       if (res != ResOK)
         return res;
@@ -1001,7 +972,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   ref = *refIO;
   i = awlIndexOfAddr(SegBase(seg), awl, ref);
- 
+
   ss->wasMarked = TRUE;
 
   switch(ss->rank) {
@@ -1243,6 +1214,7 @@ static Bool AWLCheck(AWL awl)
   /* 30 is just a sanity check really, not a constraint. */
   CHECKL(0 <= awl->gen && awl->gen <= 30);
   /* Nothing to check about succAccesses. */
+  CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */
   return TRUE;
 }

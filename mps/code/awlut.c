@@ -268,7 +268,8 @@ static void *setup(void *v, size_t s)
       "Format Create (weak)\n");
   die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
-  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt),
+  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
+                      dylan_weak_dependent),
       "Table Pool Create\n");
   die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
       "Leaf AP Create\n");
@@ -278,7 +279,7 @@ static void *setup(void *v, size_t s)
       "Weak AP Create\n");
   die(mps_ap_create(&bogusap, tablepool, MPS_RANK_EXACT),
       "Bogus AP Create\n");
-   
+
   test(leafap, exactap, weakap, bogusap);
 
   mps_ap_destroy(bogusap);
