@@ -1,5 +1,10 @@
 2000-10-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* zone.el (zone-timer, zone-wc-tbl): Rework
+	these vars as symbol properties.
+	(zone, zone-when-idle, zone-leave-me-alone,
+	zone-pgm-whack-chars): Use new symbol properties.
+
 	* battery.el (display-battery): Doc spelling fix.
 
 	* vc.el (with-vc-file, edit-vc-file): Specify `indent-function'
