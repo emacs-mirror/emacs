@@ -262,21 +262,24 @@
  "ISO 2022 based 7-bit encoding using only G0"
  '((ascii t) nil nil nil
    short ascii-eol ascii-cntl seven)
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (make-coding-system
  'iso-2022-7bit-ss2 2 ?$
  "ISO 2022 based 7-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
    short ascii-eol ascii-cntl seven nil single-shift)
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (make-coding-system
  'iso-2022-7bit-lock 2 ?&
  "ISO-2022 coding system using Locking-Shift for 96-charset"
  '((ascii t) t nil nil
    nil ascii-eol ascii-cntl seven locking-shift)
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (define-coding-system-alias 'iso-2022-int-1 'iso-2022-7bit-lock)
 
@@ -293,7 +296,8 @@
  '((safe-charsets ascii japanese-jisx0208 japanese-jisx0208-1978 latin-jisx0201
 		  korean-ksc5601 chinese-gb2312 chinese-cns11643-1
 		  chinese-cns11643-2 chinese-cns11643-3 chinese-cns11643-4
-		  chinese-cns11643-5 chinese-cns11643-6 chinese-cns11643-7)))
+		  chinese-cns11643-5 chinese-cns11643-6 chinese-cns11643-7)
+   (composition . t)))
 
 (define-coding-system-alias 'iso-2022-cjk 'iso-2022-7bit-lock-ss2)
 
@@ -302,7 +306,8 @@
  "ISO 2022 based 8-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
    nil ascii-eol ascii-cntl nil nil single-shift)
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (make-coding-system
  'x-ctext 2 ?x
@@ -311,7 +316,8 @@
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
  '((safe-charsets . t)
-   (mime-charset . x-ctext)))
+   (mime-charset . x-ctext)
+   (composition . t)))
 
 (make-coding-system
  'iso-safe 2 ?-
