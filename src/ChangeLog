@@ -1,5 +1,8 @@
 2000-12-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_cursor_movement): If we end on a partially
+	visible line, end we already decided to scroll, return -1.
+
 	* dispextern.h (ensure_frame_matrix): Add prototype.
 
 	* window.c (delete_window, Fsplit_window)
