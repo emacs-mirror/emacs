@@ -31,8 +31,9 @@
 	to return the list of whitespaces for whom checks have been
 	suppressed.
 
-	* whitespace.el	(whitespace-display-unchecked-whitespaces):
-	Renamed to `whitespace-update-modeline' to reflect its functionality.
+	* whitespace.el (whitespace-display-unchecked-whitespaces):
+	Renamed to `whitespace-update-modeline' to reflect its
+	functionality.
 
 1999-09-30  Rajesh Vaidheeswarran <rv@dsmit.com>
 
