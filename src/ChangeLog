@@ -1,5 +1,7 @@
 2004-01-07  Kenichi Handa  <handa@m17n.org>
 
+	* charset.c (Fdeclare_equiv_charset): Fix docstring.
+
 	* fontset.c (fontset_ref_via_base): Fix previous change.
 
 2004-01-07  Kim F. Storm  <storm@cua.dk>
