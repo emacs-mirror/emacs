@@ -1,19 +1,11 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.10) $
+ * $HopeName: MMsrc!finalcv.c(trunk.11) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * Any MPS developer; Any interested QA
  *
  * DESIGN
  *
  * See design.mps.poolmrg.test.
- *
- * PURPOSE
- *
- * To test finalization in the MPS.
  *
  * DEPENDENCIES
  *
@@ -42,7 +34,7 @@
 #define churnFACTOR 1000
 #define slotSIZE (3*sizeof(mps_word_t))
 /* The number that a half of all numbers generated from rnd are less */
-/* than.  See impl.h.testlib */
+/* than.  See impl.h.testlib. */
 #define rndMEDIAN (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
 
 
@@ -69,7 +61,7 @@ static void churn(mps_ap_t ap)
   int i;
   mps_addr_t p;
   mps_res_t e;
-  
+
   for(i = 0; i < churnFACTOR; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, 4096);
@@ -107,7 +99,6 @@ static void * test(void *arg, size_t s)
                             &p, (size_t)1), "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
-
   /* design.mps.poolmrg.test.ut.alloc */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
@@ -123,7 +114,7 @@ static void * test(void *arg, size_t s)
 
   /* design.mps.poolmrg.test.ut.drop */
   for(i = 0; i < rootCOUNT; ++i) {
-    if(rnd() < rndMEDIAN) {
+    if (rnd() < rndMEDIAN) {
       root[i] = NULL;
     }
   }
@@ -146,6 +137,7 @@ static void * test(void *arg, size_t s)
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
       cdie(root[objind] == NULL, "died");
       root[objind] = objaddr;
+      mps_message_discard(arena, message);
     }
   }
 
@@ -166,7 +158,7 @@ int main(int argc, char **argv)
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
- 
+
   randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
@@ -176,7 +168,7 @@ int main(int argc, char **argv)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
-  if(rc) {
+  if (rc) {
     printf("Defects found, exiting with non-zero status.\n");
   } else {
     printf("No defects found.\n");
