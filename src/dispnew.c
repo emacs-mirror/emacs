@@ -892,6 +892,33 @@ preserve_my_columns (w)
 
 #endif
 
+/* Adjust by ADJUST the charstart values in window W
+   before vpos VPOS, which counts relative to the frame
+   (not relative to W itself).  */
+
+void
+adjust_window_charstarts (w, vpos, adjust)
+     struct window *w;
+     int vpos;
+     int adjust;
+{
+  int left = XFASTINT (w->left);
+  int top = XFASTINT (w->top);
+  int right = left + window_internal_height (w);
+  int height = window_internal_height (w);
+  int i;
+
+  for (i = vpos + 1; i < top + height; i++)
+    {
+      int *charstart
+	= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[i];
+      int j;
+      for (j = left; j < right; j++)
+	if (charstart[j] > 0)
+	  charstart[j] += adjust;
+    }
+}
+
 /* On discovering that the redisplay for a window was no good,
    cancel the columns of that window, so that when the window is
    displayed over again get_display_line will not complain.  */
@@ -979,6 +1006,7 @@ direct_output_for_insert (g)
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
     current_frame->charstarts[vpos][hpos] = point;
+    adjust_window_charstarts (w, vpos, 1);
   }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
