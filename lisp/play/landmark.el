@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (c) 1996, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1996, 1997, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -200,18 +200,12 @@
   (define-key lm-mode-map [mouse-2] 'lm-mouse-play)
   (define-key lm-mode-map [drag-mouse-2] 'lm-mouse-play)
 
-  (substitute-key-definition 'previous-line 'lm-move-up
-			     lm-mode-map (current-global-map))
-  (substitute-key-definition 'next-line 'lm-move-down
-			     lm-mode-map (current-global-map))
-  (substitute-key-definition 'beginning-of-line 'lm-beginning-of-line
-			     lm-mode-map (current-global-map))
-  (substitute-key-definition 'end-of-line 'lm-end-of-line
-			     lm-mode-map (current-global-map))
-  (substitute-key-definition 'undo 'lm-human-takes-back
-			     lm-mode-map (current-global-map))
-  (substitute-key-definition 'advertised-undo 'lm-human-takes-back
-			     lm-mode-map (current-global-map)))
+  (define-key lm-mode-map [remap previous-line] 'lm-move-up)
+  (define-key lm-mode-map [remap next-line] 'lm-move-down)
+  (define-key lm-mode-map [remap beginning-of-line] 'lm-beginning-of-line)
+  (define-key lm-mode-map [remap end-of-line] 'lm-end-of-line)
+  (define-key lm-mode-map [remap undo] 'lm-human-takes-back)
+  (define-key lm-mode-map [remap advertised-undo] 'lm-human-takes-back))
 
 (defvar lm-emacs-won ()
   "*For making font-lock use the winner's face for the line.")
