@@ -333,6 +333,7 @@ free_bloc (bloc)
 /* Interface routines.  */
 
 static int use_relocatable_buffers;
+static int r_alloc_freeze_level;
 
 /* Obtain SIZE bytes of storage from the free pool, or the system, as
    necessary.  If relocatable blocs are in use, this means relocating
@@ -370,7 +371,7 @@ r_alloc_sbrk (size)
       /* Get what we need, plus some extra so we can come here less often.  */
       SIZE get = size - already_available + extra_bytes;
 
-      if (! obtain (get))
+      if (r_alloc_freeze_level > 0 || ! obtain (get))
 	return 0;
 
       if (first_bloc)
@@ -381,7 +382,8 @@ r_alloc_sbrk (size)
       bzero (virtual_break_value, get);
     }
   /* Can we keep extra_bytes of gap while freeing at least extra_bytes?  */
-  else if (size < 0 && already_available - size > 2 * extra_bytes)
+  else if (size < 0 && already_available - size > 2 * extra_bytes
+	   && r_alloc_freeze_level == 0)
     {
       /* Ok, do so.  This is how many to free.  */
       SIZE give_back = already_available - size - extra_bytes;
@@ -480,6 +482,32 @@ r_re_alloc (ptr, size)
   bloc->size = size;
 
   return *ptr;
+}
+
+/* Disable relocations, after making room for at least SIZE bytes
+   of non-relocatable heap if possible.  The relocatable blocs are
+   guaranteed to hold still until thawed, even if this means that
+   malloc must return a null pointer.  */
+void
+r_alloc_freeze (size)
+     long size;
+{
+  /* If already frozen, we can't make any more room, so don't try.  */
+  if (r_alloc_freeze_level > 0)
+    size = 0;
+  /* If we can't get the amount requested, half is better than nothing.  */
+  while (size > 0 && r_alloc_sbrk (size) == 0)
+    size /= 2;
+  ++r_alloc_freeze_level;
+  if (size > 0)
+    r_alloc_sbrk (-size);
+}
+
+void
+r_alloc_thaw ()
+{
+  if (--r_alloc_freeze_level < 0)
+    abort ();
 }
 
 /* The hook `malloc' uses for the function which gets more space
