@@ -1065,6 +1065,8 @@ calculate_ins_del_char_costs (frame)
 extern int x_screen_planes;
 #endif
 
+extern do_line_insertion_deletion_costs ();
+
 calculate_costs (frame)
      FRAME_PTR frame;
 {
