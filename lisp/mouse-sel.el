@@ -185,17 +185,24 @@ where   SELECTION-NAME          = name of selection
  				  type for this selection should be stored.")
     
 (defvar mouse-sel-set-selection-function 
-  (if (fboundp 'x-set-selection)
-      'x-set-selection)
+  (function (lambda (selection value)
+	      (if (eq selection 'PRIMARY)
+		  (x-select-text value)
+		(x-set-selection selection value))))
   "Function to call to set selection.
 Called with two arguments:
 
   SELECTION, the name of the selection concerned, and
-  VALUE, the text to store.")
+  VALUE, the text to store.
+This sets the selection as well as the cut buffer for the older applications.
+Use (setq mouse-sel-set-selection-function 'x-set-selection) if you don't care
+for them.")
 
 (defvar mouse-sel-get-selection-function
-  (if (fboundp 'x-get-selection)
-      'x-get-selection)
+  (function (lambda (selection)
+	      (if (eq selection 'PRIMARY)
+		  (x-cut-buffer-or-selection-value)
+		(x-get-selection selection))))
   "Function to call to get the selection.
 Called with one argument:
 
