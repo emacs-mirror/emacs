@@ -329,31 +329,32 @@ message_dolog (m, len, nlflag, multibyte)
       if (multibyte
 	  && NILP (current_buffer->enable_multibyte_characters))
 	{
-	  int c, i = 0, nbytes;
+	  int i, c, nbytes;
+	  unsigned char work[1];
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
-	  while (i < len)
+	  for (i = 0; i < len; i += nbytes)
 	    {
-	      c = STRING_CHAR (m + i, len - i);
-	      i += CHAR_BYTES (c);
-	      /* Truncate the character to its last byte--we can only hope
-		 the user is happy with the character he gets,
-		 since if it isn't right, there is no way to do it right.  */
-	      c &= 0xff;
-	      insert_char (c);
+	      c = STRING_CHAR_AND_LENGTH (m + i, len - i, nbytes);
+	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+			 ? c
+			 : multibyte_char_to_unibyte (c, Qnil));
+	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}
       else if (! multibyte
 	       && ! NILP (current_buffer->enable_multibyte_characters))
 	{
-	  int i = 0;
+	  int i, c, nbytes;
 	  unsigned char *msg = (unsigned char *) m;
+	  unsigned char *str, work[4];
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
-	  while (i < len)
+	  for (i = 0; i < len; i++)
 	    {
-	      int c = unibyte_char_to_multibyte (msg[i++]);
-	      insert_char (c);
+	      c = unibyte_char_to_multibyte (msg[i]);
+	      nbytes = CHAR_STRING (c, work, str);
+	      insert_1_both (work, 1, nbytes, 1, 0, 0);
 	    }
 	}
       else if (len)
@@ -419,7 +420,10 @@ message_dolog (m, len, nlflag, multibyte)
       if (point_at_end)
 	TEMP_SET_PT_BOTH (Z, Z_BYTE);
       else
-	Fgoto_char (oldpoint);
+	/* We can't do Fgoto_char (oldpoint) because it will run some
+           Lisp code.  */
+	TEMP_SET_PT_BOTH (XMARKER (oldpoint)->charpos,
+			  XMARKER (oldpoint)->bytepos);
 
       UNGCPRO;
       free_marker (oldpoint);
