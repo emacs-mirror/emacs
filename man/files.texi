@@ -104,7 +104,7 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @cindex environment variables in file names
 @cindex expansion of environment variables
 @cindex @code{$} in file names
-@anchor{File Names with @samp{$}}
+@anchor{File Names with $}
   @samp{$} in a file name is used to substitute environment variables.
 For example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
@@ -1048,12 +1048,12 @@ this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
   Emacs records interrupted sessions for later recovery in files named
-@file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  The
-@samp{~/.emacs.d/auto-save-list/.saves-} portion of these names comes
-from the value of @code{auto-save-list-file-prefix}.  You can record
-sessions in a different place by customizing that variable.  If you
-set @code{auto-save-list-file-prefix} to @code{nil} in your
-@file{.emacs} file, sessions are not recorded for recovery.
+@file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  All
+of this name except @file{@var{pid}-@var{hostname}} comes from the
+value of @code{auto-save-list-file-prefix}.  You can record sessions
+in a different place by customizing that variable.  If you set
+@code{auto-save-list-file-prefix} to @code{nil} in your @file{.emacs}
+file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
@@ -3037,7 +3037,7 @@ refers to a file whose name is @file{~hack} in directory @file{/tmp}.
   Quoting with @samp{/:} is also a way to enter in the minibuffer a
 file name that contains @samp{$}.  In order for this to work, the
 @samp{/:} must be at the beginning of the minibuffer contents.  (You
-can also double each @samp{$}; see @ref{File Names with @samp{$}}.)
+can also double each @samp{$}; see @ref{File Names with $}.)
 
   You can also quote wildcard characters with @samp{/:}, for visiting.
 For example, @file{/:/tmp/foo*bar} visits the file
