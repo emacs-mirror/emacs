@@ -521,7 +521,7 @@ Consider all windows in all existing frames.
 Consider all windows in all visible frames.  (To get useful results, you
 must ensure @var{window} is in a visible frame.)
 
-@item @code{t}
+@item 0
 Consider all windows in all visible or iconified frames.
 
 @item anything else
