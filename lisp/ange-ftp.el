@@ -3185,6 +3185,7 @@ system TYPE.")
 				 (memq (ange-ftp-host-type host user)
 				       '(unix dumb-unix))))
 		     (abbr (ange-ftp-abbreviate-filename filename))
+		     (coding-system-used last-coding-system-used)
 		     size)
 		(unwind-protect
 		    (progn
@@ -3207,6 +3208,7 @@ system TYPE.")
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents
 				   temp visit beg end replace))
+			   coding-system-used last-coding-system-used
 			   ;; override autodetection of buffer file type
 			   ;; to ensure buffer is saved in DOS format
 			   buffer-file-type binary)
@@ -3226,6 +3228,7 @@ system TYPE.")
 		    (progn
 		      (set-visited-file-modtime '(0 0))
 		      (setq buffer-file-name filename)))
+		(setq last-coding-system-used coding-system-used)
 		(list filename size))
 	    (signal 'file-error
 		    (list 
