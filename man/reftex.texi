@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../info/reftex
+@setfilename ../indo/reftex
 @settitle RefTeX User Manual
 @dircategory Emacs
 @direntry
@@ -9,9 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.15
-@set EDITION 4.15
-@set DATE November 2000
+@set VERSION 4.16
+@set EDITION 4.16
+@set DATE June 2001
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER Carsten Dominik
@@ -38,7 +38,7 @@ citations and indices for LaTeX documents with Emacs.@refill
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}@refill
 
-Copyright (c) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000 2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -493,6 +493,10 @@ separate section headings.@refill
 @item C-c C-p
 Goto previous section heading.
 
+@item N z
+Jump to section N, using the prefix arg.  For example, @kbd{3 z} jumps
+to section 3.@refill
+
 @tablesubheading{Access to document locations}
 @item @key{SPC}
 Show the corresponding location in another window.  This command does
@@ -506,7 +510,7 @@ Go to the location and hide the @file{*toc*} buffer.  This will restore
 the window configuration before @code{reftex-toc} (@kbd{C-c =}) was
 called.@refill
 
-@item Mouse-2
+@item mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a line has the same effect as @key{RET}.
 See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -796,6 +800,10 @@ Goto next section heading.
 @item C-c C-p
 Goto previous section heading.
 
+@item N z
+Jump to section N, using the prefix arg.  For example @kbd{3 z} jumps to 
+section 3.@refill
+
 @tablesubheading{Displaying Context}
 @item @key{SPC}
 Show the surroundings of the definition of the current label in another
@@ -820,7 +828,7 @@ Insert a reference to the label at point into the buffer from which the
 selection process was started.  When entries have been marked, @key{RET}
 references all marked labels.@refill
 
-@item Mouse-2
+@item mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a label will accept it like @key{RET}
 would. See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -1491,7 +1499,7 @@ the entries described above:
 @cindex Displaying cross-references
 @cindex Viewing cross-references
 @kindex C-c &
-@kindex S-Mouse-2
+@kindex S-mouse-2
 
 When point is idle on the argument of a @code{\ref} macro, the echo area
 will display some information about the label referenced there.  Note
@@ -1670,7 +1678,7 @@ entries, follow mode can be rather slow.@refill
 Insert a citation referencing the article at point into the buffer from
 which the selection process was started.@refill
 
-@item Mouse-2
+@item mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a citation will accept it like @key{RET}
 would.  See also variable @code{reftex-highlight-selection}, @ref{Options
@@ -1786,7 +1794,7 @@ files correctly.@refill
 @cindex Citation info
 @cindex Viewing citations
 @kindex C-c &
-@kindex S-Mouse-2
+@kindex S-mouse-2
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
 
@@ -2467,7 +2475,7 @@ The index tag is "idx".@refill
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
 @kindex C-c &
-@kindex S-Mouse-2
+@kindex S-mouse-2
 
 @b{Ref@TeX{}} can display cross--referencing information.  This means,
 if two document locations are linked, @b{Ref@TeX{}} can display the
@@ -2479,7 +2487,7 @@ database entry.@refill
 The feature is invoked by pressing @kbd{C-c &}
 (@code{reftex-view-crossref}) while point is on the @var{key} argument
 of a macro involved in cross--referencing.  You can also click with
-@kbd{S-Mouse-2} on the macro argument.  Here is what will happen for
+@kbd{S-mouse-2} on the macro argument.  Here is what will happen for
 individual classes of macros:@refill
 
 @table @asis
@@ -2533,10 +2541,10 @@ and @code{\glossary} macros, all macros configured in
 @code{reftex-index-macros} will be recognized.@refill
 @end table
 
-@vindex reftex-view-crossref-macros
+@vindex reftex-view-crossref-extra
 While the display of cross referencing information for the above
 mentioned macros is hard--coded, you can configure additional relations
-in the variable @code{reftex-view-crossref-macros}.
+in the variable @code{reftex-view-crossref-extra}.
     
 @iftex
 @chapter All the Rest
@@ -2564,7 +2572,7 @@ Here is a summary of the available keybindings.
 @kindex C-c )
 @kindex C-c [
 @kindex C-c &
-@kindex S-Mouse-2
+@kindex S-mouse-2
 @kindex C-c /
 @kindex C-c \
 @kindex C-c |
@@ -2576,7 +2584,7 @@ Here is a summary of the available keybindings.
 @kbd{C-c )}      @code{reftex-reference}
 @kbd{C-c [}      @code{reftex-citation}
 @kbd{C-c &}      @code{reftex-view-crossref}
-@kbd{S-Mouse-2}  @code{reftex-mouse-view-crossref}
+@kbd{S-mouse-2}  @code{reftex-mouse-view-crossref}
 @kbd{C-c /}      @code{reftex-index-selection-or-word}
 @kbd{C-c \}      @code{reftex-index-phrase-selection-or-word}
 @kbd{C-c |}      @code{reftex-index-visit-phrases-buffer}
@@ -2584,9 +2592,9 @@ Here is a summary of the available keybindings.
 @kbd{C-c >}      @code{reftex-display-index}
 @end example
 
-Note that the @kbd{S-Mouse-2} binding is only provided if this key is
+Note that the @kbd{S-mouse-2} binding is only provided if this key is
 not already used by some other package.  @b{Ref@TeX{}} will not override an
-existing binding to @kbd{S-Mouse-2}.@refill
+existing binding to @kbd{S-mouse-2}.@refill
 
 Personally, I also bind some functions in the users @kbd{C-c} map for
 easier access.@refill
@@ -3161,7 +3169,7 @@ is a style file @file{foils.el} that will inform @b{Ref@TeX{}} about these:
 Once you have written a document with labels, references and citations,
 it can be nice to read it like a hypertext document.  @b{Ref@TeX{}} has
 support for that: @code{reftex-view-crossref} (bound to @kbd{C-c
-&}), @code{reftex-mouse-view-crossref} (bound to @kbd{S-Mouse-2}), and
+&}), @code{reftex-mouse-view-crossref} (bound to @kbd{S-mouse-2}), and
 @code{reftex-search-document}.  A somewhat fancier interface with mouse
 highlighting is provided (among other things) by Peter S. Galbraith's
 @file{bib-cite.el}.  There is some overlap in the functionalities of
@@ -3362,10 +3370,10 @@ features described in this manual.@refill
 Thanks to the people on the Net who have used @b{Ref@TeX{}} and helped
 developing it with their reports.  In particular thanks to @i{Fran
 Burstall, Alastair Burt, Soren Dayton, Stephen Eglen, Karl Eichwalder,
-Peter Galbraith, Kai Grossjohann, Frank Harrell, Dieter Kraft, Adrian
-Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier, Sudeep Kumar
-Palat, Daniel Polani, Robin Socha, Richard Stanton, Allan Strand, Jan
-Vroonhof, Christoph Wedler, Alan Williams}.@refill
+Erik Frik, Peter Galbraith, Kai Grossjohann, Frank Harrell, Dieter
+Kraft, Adrian Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier,
+Sudeep Kumar Palat, Daniel Polani, Robin Socha, Richard Stanton, Allan
+Strand, Jan Vroonhof, Christoph Wedler, Alan Williams}.@refill
 
 The @code{view-crossref} feature was inspired by @i{Peter Galbraith's}
 @file{bib-cite.el}.@refill
@@ -3479,7 +3487,7 @@ the command @code{reftex-view-crossref-from-bibtex}.  With one or two
 View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
 prompts upon first use for a buffer in @b{Ref@TeX{}} mode.  To reset this
-link to a document, call the function with a prefix arg.  Calling
+link to a document, call the function with with a prefix arg.  Calling
 this function several times find successive citation locations.
 @end deffn
 
@@ -4443,7 +4451,7 @@ viewing can be useful.  Each entry has the structure
 @end example
 @var{macro-re} is matched against the macro.  @var{search-re} is the
 regexp used to search for cross references.  @samp{%s} in this regexp is
-replaced with the macro argument at point.  @var{highlight} is an
+replaced with with the macro argument at point.  @var{highlight} is an
 integer indicating which subgroup of the match should be highlighted.
 @end defopt
 
@@ -5116,7 +5124,7 @@ switch buffers at will, use the mouse etc.@refill
 @item
 New option @code{reftex-highlight-selection}.
 @item
-@kbd{Mouse-2} can be used to select in selection and @file{*toc*}
+@kbd{mouse-2} can be used to select in selection and @file{*toc*}
 buffers.@refill
 @item
 Fixed some problems regarding the interaction with VIPER mode.
@@ -5145,7 +5153,7 @@ customization group @code{reftex-fontification-configurations}.@refill
 Fixed bug with empty context strings.
 @item
 @code{reftex-mouse-view-crossref} is now bound by default at
-@kbd{S-Mouse-2}.@refill
+@kbd{S-mouse-2}.@refill
 @end itemize
 
 @noindent @b{Version 3.23}
