@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.39) $
+ * $HopeName: MMsrc!arenavm.c(trunk.40) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.39) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.40) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -703,7 +703,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* test commit limit */
   /* Assumes VMArenaCommitted will increase by size after the call */
   /* to VMMap */
-  if(VMArenaCommitted(arena) + size > arena->commitLimit) {
+  if(VMMapped(vmArena->vm) + size > arena->commitLimit) {
     return ResCOMMIT_LIMIT;
   }
 
@@ -724,7 +724,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
     /* test commit limit */
     /* Assumes VMArenaCommitted will increase by unmappedPagesLimit - */
     /* unmappedPagesBase after the call to VMMap */
-    if(VMArenaCommitted(arena) +
+    if(VMMapped(vmArena->vm) +
        AddrOffset(unmappedPagesBase, unmappedPagesLimit) >
        arena->commitLimit) {
       res = ResCOMMIT_LIMIT;
