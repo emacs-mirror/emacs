@@ -1797,13 +1797,10 @@ read1 (readcharfun, pch, first_in_list)
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
-	if (force_singlebyte && force_multibyte)
-	  error ("Multibyte and unibyte characters in one string constant");
-
-	if (force_singlebyte)
-	  nchars = p - read_buffer;
-	else if (force_multibyte)
+	if (force_multibyte)
 	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	else if (force_singlebyte)
+	  nchars = p - read_buffer;
 	else if (load_convert_to_unibyte)
 	  {
 	    Lisp_Object string;
