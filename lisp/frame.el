@@ -1072,7 +1072,8 @@ window blinks."
 	  (setq blink-cursor-mode t))
       (internal-show-cursor nil t))))
 
-(defcustom blink-cursor (not (eq system-type 'ms-dos))
+(defcustom blink-cursor (unless (eq system-type 'ms-dos)
+			  window-system)
   "*Non-nil means blinking cursor mode is active."
   :tag "Blinking cursor"
   :type 'boolean
