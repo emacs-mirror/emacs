@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!52.c(trunk.4) $
  summary = provoke mad behaviour by constant allocation
  language = c
  link = rankfmt.o testlib.o
@@ -16,6 +16,7 @@ END_HEADER
 #include "rankfmt.h"
 
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -39,7 +40,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, &a[0], 3),
+  mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, (mps_addr_t*)&a[0], 3),
   "create table root");
  
  cdie(
@@ -101,6 +102,7 @@ static void test(void)
  mps_space_destroy(space);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
