@@ -1,7 +1,16 @@
+2003-05-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* imenu.el (imenu--split-menu): Remove unused var `count'.
+	Don't copy the sequence since we're already modifying it elsewhere.
+	(imenu--create-keymap): Rename from imenu--create-keymap-1.
+	Add optional `cmd' argument.  Remove unused var `counter'.
+	(imenu-update-menubar): Use the new arg to keep the old behavior.
+	(imenu--mouse-menu): Don't use the arg, to recover the lost behavior.
+
 2003-05-16  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
-	* hl-line.el (hl-line-highlight, global-hl-line-highlight): Use
-	`line-beginning-position' to determine the beginning of the next
+	* hl-line.el (hl-line-highlight, global-hl-line-highlight):
+	Use `line-beginning-position' to determine the beginning of the next
 	line.
 
 2003-05-16  Kenichi Handa  <handa@m17n.org>
