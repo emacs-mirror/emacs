@@ -1,3 +1,7 @@
+2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (face-set-after-frame-default): Don't change `default' face.
+
 2002-05-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* scroll-al.el (minor-mode-alist): `scroll-all-mode', not

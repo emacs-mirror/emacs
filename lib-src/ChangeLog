@@ -1,3 +1,8 @@
+2002-05-31  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (LIBS_MAIL): Renamed from LIB_MAIL.
+	(LIBS_MOVE): Renamed from MOVE_LIBS.
+
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* pop.c (socket_connection): Move the code to resolve the POP
