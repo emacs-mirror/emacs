@@ -1,3 +1,8 @@
+2001-12-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/hpux10.h (random): Undefine.
+	(srand48): Don't undefine.
+
 2001-12-09  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (display_mode_element): Don't read past end of string if

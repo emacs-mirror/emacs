@@ -8,7 +8,7 @@
    tries to redeclare what was once srandom to be srand48.  So we go
    with HAVE_LRAND48 being defined.  */
 #undef srandom
-#undef srand48
+#undef random
 #undef HAVE_RANDOM
 #define HPUX10
 #define FORCE_ALLOCA_H
