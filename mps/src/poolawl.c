@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.28) $
+ * $HopeName: MMsrc!poolawl.c(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.28) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.29) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -773,6 +773,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLReclaim,
   AWLBenefit,
   PoolCollectAct,
+  PoolNoWalk,
   PoolTrivDescribe,
   PoolClassSig
 };
