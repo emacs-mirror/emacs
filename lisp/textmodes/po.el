@@ -149,7 +149,7 @@ Return a Mule (DECODING . ENCODING) pair, according to PO file charset.
 Called through file-coding-system-alist, before the file is visited for real."
   (and (eq operation 'insert-file-contents)
        (file-exists-p filename)
-       (po-with-temp-buffer
+       (with-temp-buffer
 	 (let* ((coding-system-for-read 'no-conversion)
                 (charset (or (po-find-charset filename) "ascii"))
                 (charset-upper (intern (upcase charset)))
