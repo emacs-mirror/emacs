@@ -5,6 +5,8 @@
 
 2002-02-25  Juanma Barranquero  <lektu@terra.es>
 
+	* subr.el (save-match-data): Doc fix.
+
 	* ielm.el (ielm-prompt): Allow customization; make it read-only.
 
 2002-02-25  Kim F. Storm  <storm@cua.dk>
@@ -18,7 +20,7 @@
 	(inferior-emacs-lisp-mode): Make it buffer-local.
 	(ielm-eval-input): Use it to preserve match-data between inputs.
 
-2002-02-24  Juanma Barranquero  <jbarranquero@peoplecall.com>
+2002-02-24  Juanma Barranquero  <lektu@terra.es>
 
 	* ielm.el (inferior-emacs-lisp-mode): Use hexl for the dummy process.
 
