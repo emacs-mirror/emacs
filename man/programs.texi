@@ -2331,7 +2331,7 @@ The way the menus are sorted can be customized via the option
 in the buffer; alphabetic sorting is provided as an alternative.
 
 Imenu provides the information used by Which Function mode (@pxref{Which
-Function}).  It may also be used by Speedbar (@pxref{Hyperlinking}).
+Function}).  It may also be used by Speedbar (@pxref{Speedbar}).
 
 @node Emerge, C Modes, Imenu, Programs
 @section Merging Files with Emerge
