@@ -1881,41 +1881,43 @@ There might be text before point."
 	       (latex-backward-sexp-1)))
 	 (scan-error
 	  (setq up-list-pos (nth 2 err))))
-       (if (integerp up-list-pos)
-	   ;; Have to indent relative to the open-paren.
-	   (progn
-	     (goto-char up-list-pos)
-	     (if (and (not tex-indent-allhanging)
-		      (> pos (progn (latex-down-list)
-				    (forward-comment (point-max))
-				    (point))))
-		 ;; Align with the first element after the open-paren.
-		 (current-column)
-	       ;; We're the first element after a hanging brace.
-	       (goto-char up-list-pos)
-	       (+ indent tex-indent-basic (latex-find-indent 'virtual))))
-	 ;; We're now at the beginning of a line.
-	 (if (not (and (not virtual) (eq (char-after) ?\\)))
-	     ;; Nothing particular here: just keep the same indentation.
-	     (+ indent (current-column))
-	   ;; We're now looking at a macro call.
-	   (if (looking-at tex-indent-item-re)
-	       ;; Indenting relative to an item, have to re-add the outdenting.
-	       (+ indent (current-column) tex-indent-item)
-	     (let ((col (current-column)))
-	       (if (not (eq (char-syntax char) ?\())
-		   ;; If the first char was not an open-paren, there's
-		   ;; a risk that this is really not an argument to the
-		   ;; macro at all.
-		   (+ indent col)
-		 (forward-sexp 1)
-		 (if (< (line-end-position)
-			(save-excursion (forward-comment (point-max))
-					(point)))
-		     ;; we're indenting the first argument.
-		     (min (current-column) (+ tex-indent-arg col))
-		   (skip-syntax-forward " ")
-		   (current-column)))))))))))
+       (cond
+	((= (point-min) pos) 0) ; We're really just indenting the first line.
+	((integerp up-list-pos)
+	 ;; Have to indent relative to the open-paren.
+	 (goto-char up-list-pos)
+	 (if (and (not tex-indent-allhanging)
+		  (> pos (progn (latex-down-list)
+				(forward-comment (point-max))
+				(point))))
+	     ;; Align with the first element after the open-paren.
+	     (current-column)
+	   ;; We're the first element after a hanging brace.
+	   (goto-char up-list-pos)
+	   (+ indent tex-indent-basic (latex-find-indent 'virtual))))
+	;; We're now at the "beginning" of a line.
+	((not (and (not virtual) (eq (char-after) ?\\)))
+	 ;; Nothing particular here: just keep the same indentation.
+	 (+ indent (current-column)))
+	;; We're now looking at a macro call.
+	((looking-at tex-indent-item-re)
+	 ;; Indenting relative to an item, have to re-add the outdenting.
+	 (+ indent (current-column) tex-indent-item))
+	(t
+	 (let ((col (current-column)))
+	   (if (not (eq (char-syntax char) ?\())
+	       ;; If the first char was not an open-paren, there's
+	       ;; a risk that this is really not an argument to the
+	       ;; macro at all.
+	       (+ indent col)
+	     (forward-sexp 1)
+	     (if (< (line-end-position)
+		    (save-excursion (forward-comment (point-max))
+				    (point)))
+		 ;; we're indenting the first argument.
+		 (min (current-column) (+ tex-indent-arg col))
+	       (skip-syntax-forward " ")
+	       (current-column))))))))))
 
 (run-hooks 'tex-mode-load-hook)
 
