@@ -699,6 +699,13 @@ match for this regular expression, followed by a character with
 open-parenthesis syntax.
 @end defopt
 
+@defopt open-paren-in-column-0-is-defun-start
+If this variable's value is non-@code{nil}, an open parenthesis in
+column 0 is considered to be the start of a defun.  If it is
+@code{nil}, an open parenthesis in column 0 has no special meaning.
+The default is @code{t}.
+@end defopt
+
 @defvar beginning-of-defun-function
 @tindex beginning-of-defun-function
 If non-@code{nil}, this variable holds a function for finding the
