@@ -764,7 +764,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	
 	if (!NILP (buffer))
 	  {
-	    if (! CODING_MAY_REQUIRE_DECODING (&process_coding))
+	    if (NILP (current_buffer->enable_multibyte_characters)
+		&& ! CODING_MAY_REQUIRE_DECODING (&process_coding))
 	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
