@@ -240,6 +240,7 @@ With prefix arg, prompt for the locate command to run."
 	(switch-to-buffer-other-window locate-buffer-name))
 
     (run-hooks 'dired-mode-hook)
+    (dired-next-line 2)			;move to first matching file.
     (run-hooks 'locate-post-command-hook)
     )
   )
