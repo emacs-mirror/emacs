@@ -1,3 +1,12 @@
+2001-02-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-screens): Use display-hourglass
+	instead of display-busy-cursor.
+
+	* frame.el (display-hourglass): Renamed from busy-cursor.
+	(hourglass-delay): Renamed from busy-cursor-delay-seconds.
+	(show-cursor-in-non-selected-windows): Doc fix.
+
 2001-02-20  Dave Love  <fx@gnu.org>
 
 	* international/utf-8.el: Doc and commentary fixes.

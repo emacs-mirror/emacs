@@ -1,3 +1,38 @@
+2001-02-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c, minibuf.c, lread.c, fns.c, eval.c: Use
+	display_hourglass_p, start_hourglass, cancel_hourglass instead of
+	the old names.
+
+	* w32term.h (struct x_output): Rename busy_cursor to
+	hourglass_cursor, busy_window to hourglass_window, busy_p to
+	hourglass_p.
+
+	* msdos.h (struct x_output): Rename busy_window to
+	hourglass_window, busy_p to hourglass_p.
+
+	* xterm.h (struct x_output): Rename busy_cursor to
+	hourglass_cursor, busy_window to hourglass_window, busy_p to
+	hourglass_p.
+
+	* xfns.c: Rename everything containing *busy_cursor* and similar
+	to *hourglass*.
+	(syms_of_w32fns): Rename x-busy-pointer-shape to
+	x-hourglass-pointer-shape, display-busy-cursor to
+	display-hourglass, busy-cursor-delay to hourglass-delay.
+
+	* w32fns.c: Rename everything containing *busy_cursor* and similar
+	to *hourglass*.
+	(syms_of_w32fns): Rename x-busy-pointer-shape to
+	x-hourglass-pointer-shape, display-busy-cursor to
+	display-hourglass, busy-cursor-delay to hourglass-delay.
+
+	* xterm.c (XTread_socket): Test x_output's hourglass_p instead
+	of its busy_p flag.
+
+	* dispextern.h (start_hourglass, cancel_hourglass)
+	(display_hourglass_p): Renamed from *busy_cursor*.
+
 2001-02-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (read_char): When an event from unread-command-events

@@ -652,10 +652,10 @@ displayed if point is at the end of the line containing the
 whitespace.
 
 +++
-** Busy-cursor.
+** Hourglass pointer
 
-Emacs can optionally display a busy-cursor under X.  You can turn the
-display on or off by customizing group `cursor'.
+Emacs can optionally display an hourglass pointer under X.  You can
+turn the display on or off by customizing group `cursor'.
 
 +++
 ** Blinking cursor
