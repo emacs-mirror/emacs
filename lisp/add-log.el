@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 86, 88, 93, 94, 1997 Free Software Foundation, Inc.
 
-;; Keywords: maint
+;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
 
@@ -64,6 +64,17 @@ This defaults to the value of `user-mail-address'."
 		 string)
   :group 'change-log)
 
+(defcustom add-log-time-format 'add-log-iso8601-time-string
+  "*Function that defines the time format.
+For example, `add-log-iso8601-time-string', which gives the
+date in international ISO 8601 format,
+and `current-time-string' are two valid values."
+  :type '(radio (const :tag "International ISO 8601 format"
+		       add-log-iso8601-time-string)
+		(const :tag "Old format, as returned by `current-time-string'"
+		       current-time-string)
+		(function :tag "Other"))
+  :group 'change-log)
 
 (defvar change-log-font-lock-keywords
   '(;;
@@ -103,7 +114,7 @@ This defaults to the value of `user-mail-address'."
 It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.")
 
-(defun iso8601-time-zone (time)
+(defun add-log-iso8601-time-zone (time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
 	 (sign (if (< utc-offset 0) ?- ?+))
 	 (sec (abs utc-offset))
@@ -115,6 +126,20 @@ If nil, use local time.")
 		  ((not (zerop mm)) "%c%02d:%02d")
 		  (t "%c%02d"))
 	    sign hh mm ss)))
+
+(defun add-log-iso8601-time-string ()
+  (if change-log-time-zone-rule
+      (let ((tz (getenv "TZ"))
+	    (now (current-time)))
+	(unwind-protect
+	    (progn
+	      (set-time-zone-rule
+	       change-log-time-zone-rule)
+	      (concat
+	       (format-time-string "%Y-%m-%d " now)
+	       (add-log-iso8601-time-zone now)))
+	  (set-time-zone-rule tz)))
+    (format-time-string "%Y-%m-%d")))
 
 (defun change-log-name ()
   (or change-log-default-name
@@ -197,6 +222,7 @@ current buffer to the complete file name."
   (set (make-local-variable 'change-log-default-name) file-name)
   file-name)
 
+
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file and add an entry for today.
@@ -245,18 +271,7 @@ never append to an existing entry.  Today's date is calculated according to
 	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
-    (let ((new-entry (concat (if change-log-time-zone-rule
-				 (let ((tz (getenv "TZ"))
-				       (now (current-time)))
-				   (unwind-protect
-				       (progn
-					 (set-time-zone-rule
-					  change-log-time-zone-rule)
-					 (concat 
-					  (format-time-string "%Y-%m-%d " now)
-					  (iso8601-time-zone now)))
-				     (set-time-zone-rule tz)))
-			       (format-time-string "%Y-%m-%d"))
+    (let ((new-entry (concat (funcall add-log-time-format)
 			     "  " add-log-full-name
 			     "  <" add-log-mailing-address ">")))
       (if (looking-at (regexp-quote new-entry))
