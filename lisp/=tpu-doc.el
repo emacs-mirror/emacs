@@ -1,4 +1,5 @@
 ;;; tpu-doc.el --- Documentation for TPU-edt
+
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
@@ -21,8 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Revision: $Id: tpu-doc.el,v 1.2 1993/08/04 08:18:28 rms Exp rms $
-(defconst tpu-doc-revision "$Revision: 1.2 $"
+(defconst tpu-doc-revision "$Revision: 1.3 $"
   "TPU-edt documentation revision number.")
 
 
@@ -311,6 +311,11 @@
 ;; Emacs is happy to save files without a final newline; other Unix programs
 ;; hate that!  This line will make sure that files end with newlines.
 (setq require-final-newline t)
+
+;; Emacs has the ability to automatically run code embedded in files
+;; you edit.  This line makes emacs ask if you want to run the code.
+(if tpu-emacs19-p (setq enable-local-variables "ask")
+  (setq inhibit-local-variables t))
 
 ;; Emacs uses Control-s and Control-q.  Problems can occur when using emacs
 ;; on terminals that use these codes for flow control (Xon/Xoff flow control).
