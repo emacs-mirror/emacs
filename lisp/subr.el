@@ -583,7 +583,9 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 	    ((> count 0)
 	     (setq unread-command-events (list char) count 259))
 	    (t (setq code char count 259))))
-    (logand 255 code)))
+    ;; Turn a meta-character into a character with the 0200 bit set.
+    (logior (if (/= (logand code (lsh 1 23)) 0) 128 0)
+	    (logand 255 code))))
 
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
