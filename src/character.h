@@ -25,49 +25,50 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_CHARACTER_H
 #define EMACS_CHARACTER_H
 
-/*      0-7F		0xxxxxxx
-			00..7F
-       80-7FF		110xxxxx 10xxxxxx
-			C2..DF   80..BF
-      800-FFFF		1110xxxx 10xxxxxx 10xxxxxx
-			E0..EF   80..BF   80..BF
-    10000-1FFFFF	11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-			F0..F7   80..BF   80..BF   80..BF
-   200000-3FFF7F	11111000 1000xxxx 10xxxxxx 10xxxxxx 10xxxxxx
-			F8       80..8F   80..BF   80..BF   80..BF
-   invalid		11111001
-			F9
-   invalid		1111101x
-			FA..FB
-   invalid		111111xx
-			FC..FE
+/* character code	1st byte   byte sequence
+   --------------	--------   -------------
+        0-7F		00..7F	   0xxxxxxx
+       80-7FF		C2..DF	   110xxxxx 10xxxxxx
+      800-FFFF		E0..EF	   1110xxxx 10xxxxxx 10xxxxxx
+    10000-1FFFFF	F0..F7	   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+   200000-3FFF7F	F8	   11111000 1000xxxx 10xxxxxx 10xxxxxx 10xxxxxx
+      invalid		F9..FF
 
    raw-8-bit
-   3FFF80-3FFFFF	1100000x 10xxxxxx
-			C0..C1   80..BF
-
+   3FFF80-3FFFFF	C0..C1	   1100000x 10xxxxxx
 */
 
-/* This is the maximum character code ((1 << CHARACTERBITS) - 1).  */
+/* Maximum character code ((1 << CHARACTERBITS) - 1).  */
 #define MAX_CHAR  0x3FFFFF
 
+/* Maximum Unicode character code.  */
 #define MAX_UNICODE_CHAR 0x10FFFF
 
+/* Maximum N-byte character codes.  */
 #define MAX_1_BYTE_CHAR 0x7F
 #define MAX_2_BYTE_CHAR 0x7FF
 #define MAX_3_BYTE_CHAR 0xFFFF
 #define MAX_4_BYTE_CHAR 0x1FFFFF
 #define MAX_5_BYTE_CHAR 0x3FFF7F
 
+/* Return the character code for raw 8-bit byte BYTE.  */
 #define BYTE8_TO_CHAR(byte) ((byte) + 0x3FFF00)
+
+/* Return the raw 8-bit byte for character C.  */
 #define CHAR_TO_BYTE8(c) ((c) - 0x3FFF00)
+
+/* Nonzero iff C is a character that corresponds to a raw 8-bit
+   byte.  */
 #define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
+
+/* Nonzero iff BYTE is the 1st byte of a multibyte form of a character
+   that corresponds to a raw 8-bit byte.  */
 #define CHAR_BYTE8_HEAD_P(byte) ((byte) == 0xC0 || (byte) == 0xC1)
 
-/* This is the maximum byte length of multi-byte sequence.  */
+/* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
 
-/* Return a Lisp character whose code is C. */
+/* Return a Lisp character whose character code is C. */
 #define make_char(c) make_number (c)
 
 /* Nonzero iff C is an ASCII byte.  */
@@ -77,8 +78,8 @@ Boston, MA 02111-1307, USA.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
 /* Nozero iff C is valid as a charater code.  GENERICP is not used
-   now.  It will be removed in the future.  */
-#define CHAR_VALID_P(c, genericp) CHARACTERP (c)
+   now.  */
+#define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
 #define CHECK_CHARACTER(x)						\
@@ -97,7 +98,7 @@ Boston, MA 02111-1307, USA.  */
   (((c) >= 32 && ((c) < 127)	\
     || ! NILP (CHAR_TABLE_REF (Vprintable_chars, (c)))))
 
-/* How many bytes C occupies in a multibyte buffer.  */
+/* Return byte length of multibyte form for character C.  */
 #define CHAR_BYTES(c)			\
   ( (c) <= MAX_1_BYTE_CHAR ? 1		\
     : (c) <= MAX_2_BYTE_CHAR ? 2	\
@@ -106,9 +107,9 @@ Boston, MA 02111-1307, USA.  */
     : (c) <= MAX_5_BYTE_CHAR ? 5	\
     : 2)
 
-/* Store multibyte form of the character C in STR.  The caller should
-   allocate at least MAX_MULTIBYTE_LENGTH bytes area at STR in
-   advance.  Returns the length of the multibyte form.  */
+/* Store multibyte form of the character C in P.  The caller should
+   allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
+   Returns the length of the multibyte form.  */
 
 #define CHAR_STRING(c, p)			\
   ((unsigned) (c) <= MAX_1_BYTE_CHAR		\
@@ -124,37 +125,42 @@ Boston, MA 02111-1307, USA.  */
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
    : (unsigned) (c) <= MAX_5_BYTE_CHAR		\
-   ? char_string_with_unification (c, p, NULL)	\
+   ? char_string_with_unification (c, p)	\
    : ((p)[0] = (0xC0 | (((c) >> 6) & 0x01)),	\
       (p)[1] = (0x80 | ((c) & 0x3F)),		\
       2))
 
 
-/* Like CHAR_STRING, but advance P to the end of the multibyte
-   form.  */
+/* Store multibyte form of the character C in P.  The caller should
+   allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
+   And, advance P to the end of the multibyte form.  */
 
-#define CHAR_STRING_ADVANCE(c, p)		\
-  ((unsigned) (c) <= MAX_1_BYTE_CHAR		\
-   ? *(p)++ = (c)				\
-   : (unsigned) (c) <= MAX_2_BYTE_CHAR		\
-   ? (*(p)++ = (0xC0 | ((c) >> 6)),		\
-      *(p)++ = (0x80 | ((c) & 0x3F)))		\
-   : (unsigned) (c) <= MAX_3_BYTE_CHAR		\
-   ? (*(p)++ = (0xE0 | ((c) >> 12)),		\
-      *(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
-      *(p)++ = (0x80 | ((c) & 0x3F)))		\
-   : (unsigned) (c) <= MAX_5_BYTE_CHAR		\
-   ? char_string_with_unification (c, p, &p)	\
-   : (*(p)++ = (0xC0 | (((c) >> 6) & 0x01)),	\
-      *(p)++ = (0x80 | ((c) & 0x3F))))
-
-
-/* Nonzero iff BYTE starts a character in a multibyte form.  */
-#define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
+#define CHAR_STRING_ADVANCE(c, p)			\
+  do {							\
+    if ((c) <= MAX_1_BYTE_CHAR)				\
+      *(p)++ = (c);					\
+    else if ((c) <= MAX_2_BYTE_CHAR)			\
+      *(p)++ = (0xC0 | ((c) >> 6)),			\
+	*(p)++ = (0x80 | ((c) & 0x3F));			\
+    else if ((c) <= MAX_3_BYTE_CHAR)			\
+      *(p)++ = (0xE0 | ((c) >> 12)),			\
+	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),		\
+	*(p)++ = (0x80 | ((c) & 0x3F));			\
+    else if ((c) <= MAX_5_BYTE_CHAR)			\
+      (p) += char_string_with_unification ((c), (p));	\
+    else						\
+      *(p)++ = (0xC0 | (((c) >> 6) & 0x01)),		\
+	*(p)++ = (0x80 | ((c) & 0x3F));			\
+  } while (0)
 
 /* Nonzero iff BYTE starts a non-ASCII character in a multibyte
    form.  */
 #define LEADING_CODE_P(byte) (((byte) & 0xC0) == 0xC0)
+
+/* Nonzero iff BYTE starts a character in a multibyte form.
+   This is equivalent to:
+	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
+#define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
 /* Just kept for backward compatibility.  This macro will be removed
    in the future.  */
@@ -234,7 +240,7 @@ Boston, MA 02111-1307, USA.  */
    ? ((((p)[0] & 0x0F) << 12)					\
       | (((p)[1] & 0x3F) << 6)					\
       | ((p)[2] & 0x3F))					\
-   : string_char_with_unification (p, NULL, NULL))
+   : string_char_with_unification ((p), NULL, NULL))
 
 
 /* Like STRING_CHAR but set ACTUAL_LEN to the length of multibyte
@@ -254,7 +260,7 @@ Boston, MA 02111-1307, USA.  */
       ((((p)[0] & 0x0F) << 12)					\
        | (((p)[1] & 0x3F) << 6)					\
        | ((p)[2] & 0x3F)))					\
-   : string_char_with_unification (p, NULL, &actual_len))
+   : string_char_with_unification ((p), NULL, &actual_len))
 
 
 /* Like STRING_CHAR but advacen P to the end of multibyte form.  */
@@ -272,7 +278,7 @@ Boston, MA 02111-1307, USA.  */
       ((((p)[-3] & 0x0F) << 12)					\
        | (((p)[-2] & 0x3F) << 6)				\
        | ((p)[-1] & 0x3F)))					\
-   : string_char_with_unification (p, &p, NULL))
+   : string_char_with_unification ((p), &(p), NULL))
 
 
 /* Fetch the "next" character from Lisp string STRING at byte position
@@ -481,8 +487,7 @@ Boston, MA 02111-1307, USA.  */
    ? ASCII_CHAR_WIDTH (c)	\
    : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
 
-extern int char_string_with_unification P_ ((int, unsigned char *,
-					     unsigned char **));
+extern int char_string_with_unification P_ ((int, unsigned char *));
 extern int string_char_with_unification P_ ((unsigned char *,
 					     unsigned char **, int *));
 
