@@ -2518,7 +2518,7 @@ with @kbd{imenu-add-menu-bar-index}.
 Some major modes provide facilities for invoking Imenu; otherwise you
 could add @code{imenu-add-menu-bar-index} to a major mode's hook to
 generate an index for each buffer created in that mode.  (If you do
-that, it takes sime time to generate the index when finding a file,
+that, it takes some time to generate the index when finding a file,
 depending on the file's size and the complexity of the indexing function
 for that mode.)
 
