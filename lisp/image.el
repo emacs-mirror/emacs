@@ -122,7 +122,9 @@ AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area."
-  (unless string (setq string "x"))
+  ;; Use a space as least likely to cause trouble when it's a hidden
+  ;; character in the buffer.
+  (unless string (setq string " "))
   (let ((buffer (current-buffer)))
     (unless (eq (car-safe image) 'image)
       (error "Not an image: %s" image))
