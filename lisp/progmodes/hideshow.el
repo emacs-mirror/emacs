@@ -412,7 +412,7 @@ property of an overlay."
   "Hide or show lines from FROM to TO, according to FLAG.
 If FLAG is nil then text is shown, while if FLAG is non-nil the text is
 hidden.  Actually flag is really either `comment' or `block' depending
-on what kind of block it is suppose to hide."
+on what kind of block it is supposed to hide."
   (save-excursion
     ;; first clear it all out
     (hs-discard-overlays from to)
