@@ -158,7 +158,7 @@ echo "Creating subdirectories."
 # I've removed it from this list.
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu \
-	      etc lock cpp info man shortnames vms; do
+	      etc lock cpp info man msdos shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
 
@@ -242,6 +242,13 @@ echo "Making links to \`lib-src'."
  rm -f getdate.tab.c y.tab.c y.tab.h
  rm -f =* TAGS)
 
+echo "Making links to \`msdos'."
+(cd msdos
+ ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
+ ln mainmake patch1 sed.in[123] ../${tempdir}/msdos
+ cd ../${tempdir}/msdos
+ rm -f =*)
+
 echo "Making links to \`oldXMenu'."
 (cd oldXMenu
  ln *.c *.h *.in ../${tempdir}/oldXMenu
@@ -297,9 +304,7 @@ echo "Making links to \`vms'."
 echo "Making sure copying notices are all copies of \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
 cp etc/COPYING ${tempdir}/etc/COPYING
-# I think we're not going to distribute anything in external-lisp, so
-# I've removed it from this list.
-for subdir in lisp src lib-src info shortnames; do
+for subdir in lisp src lib-src info shortnames msdos; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
