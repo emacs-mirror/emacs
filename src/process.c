@@ -1436,7 +1436,7 @@ create_process (process, new_argv, current_dir)
 	  }
 #endif /* TIOCNOTTY */
 
-#if !defined (RTU) && !defined (UNIPLUS)
+#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
 /*** There is a suggestion that this ought to be a
      conditional on TIOCSPGRP.  */
 	/* Now close the pty (if we had it open) and reopen it.
@@ -1465,7 +1465,8 @@ create_process (process, new_argv, current_dir)
 	    ioctl (xforkout, TIOCSPGRP, &pgrp);
 #endif
 	  }
-#endif /* not UNIPLUS and not RTU */
+#endif /* not UNIPLUS and not RTU and not DONT_REOPEN_PTY */
+
 #ifdef SETUP_SLAVE_PTY
 	if (pty_flag)
 	  {
