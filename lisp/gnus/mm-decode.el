@@ -31,7 +31,8 @@
 (eval-when-compile (require 'cl))
 
 (eval-and-compile
-  (autoload 'mm-inline-partial "mm-partial"))
+  (autoload 'mm-inline-partial "mm-partial")
+  (autoload 'mm-insert-inline "mm-view"))
 
 (defgroup mime-display ()
   "Display of MIME in mail and news articles."
