@@ -1,3 +1,8 @@
+2003-04-06  Masatake YAMATO  <jet@gyve.org>
+
+	* info.el (Info-goto-emacs-command-node): If command 
+	is given as a string, convert it to a symbol.
+
 2003-04-05  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (emacs-lisp-mode): Add prefix/suffix matching regexps.

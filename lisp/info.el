@@ -2586,8 +2586,12 @@ The locations are of the format used in `Info-history', i.e.
   "Go to the Info node in the Emacs manual for command COMMAND.
 The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
-the variable `Info-file-list-for-emacs'."
+the variable `Info-file-list-for-emacs'. COMMAND must be a symbol
+or string."
   (interactive "CFind documentation for command: ")
+  ;; If command is given as a string, convert it to a symbol.
+  (if (stringp command)
+      (setq command (intern command)))  
   (or (commandp command)
       (signal 'wrong-type-argument (list 'commandp command)))
   (let ((where (Info-find-emacs-command-nodes command)))
