@@ -45,7 +45,9 @@ extern void safe_bcopy ();
 #define M_TOP_PAD           -2 
 extern int mallopt ();
 #else /* not DOUG_LEA_MALLOC */
+#ifndef SYSTEM_MALLOC
 extern int __malloc_extra_blocks;
+#endif /* SYSTEM_MALLOC */
 #endif /* not DOUG_LEA_MALLOC */
 
 #else /* not emacs */
@@ -57,7 +59,6 @@ typedef void *POINTER;
 
 #include <unistd.h>
 #include <malloc.h>
-#include <string.h>
 
 #define safe_bcopy(x, y, z) memmove (y, x, z)
 #define bzero(x, len) memset (x, 0, len)
@@ -1227,11 +1228,21 @@ r_alloc_check ()
 
 #include <sys/types.h>
 #include <sys/mman.h>
+#ifndef MAP_ANON
+#ifdef MAP_ANONYMOUS
+#define MAP_ANON MAP_ANONYMOUS
+#else
+#define MAP_ANON 0
+#endif
+#endif
 #include <stdio.h>
 #include <errno.h>
+#if !MAP_ANON
+#include <fcntl.h>
+#endif
 
 /* Memory is allocated in regions which are mapped using mmap(2).
-   The current implementation let's the system select mapped
+   The current implementation lets the system select mapped
    addresses;  we're not using MAP_FIXED in general, except when
    trying to enlarge regions.
 
@@ -1272,6 +1283,11 @@ static struct mmap_region *mmap_regions;
 
 static struct mmap_region *mmap_regions_1;
 
+/* File descriptor for mmap.  If we don't have anonymous mapping,
+   /dev/zero will be opened on it.  */
+
+static int mmap_fd = -1;
+
 /* Value is X rounded up to the next multiple of N.  */
 
 #define ROUND(X, N)	(((X) + (N) - 1) / (N) * (N))
@@ -1302,6 +1318,15 @@ POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
 POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
 void r_alloc_free P_ ((POINTER_TYPE **ptr));
 
+
+void
+r_alloc_init_fd ()
+{
+  /* No anonymous mmap -- we need the file descriptor.  */
+  mmap_fd = open ("/dev/zero", O_RDONLY);
+  if (mmap_fd < 0)
+    fatal ("cannot open /dev/zero");
+}
 
 /* Return a region overlapping address range START...END, or null if
    none.  END is not including, i.e. the last byte in the range
@@ -1397,7 +1422,7 @@ mmap_enlarge (r, npages)
 	  POINTER_TYPE *p;
       
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
-		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
 	    {
 	      fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
@@ -1437,12 +1462,14 @@ mmap_set_vars (restore_p)
      int restore_p;
 {
   struct mmap_region *r;
+  static int fd;
 
   if (restore_p)
     {
       mmap_regions = mmap_regions_1;
       for (r = mmap_regions; r; r = r->next)
 	*r->var = MMAP_USER_AREA (r);
+      mmap_fd = fd;
     }
   else
     {
@@ -1450,6 +1477,7 @@ mmap_set_vars (restore_p)
 	*r->var = NULL;
       mmap_regions_1 = mmap_regions;
       mmap_regions = NULL;
+      mmap_fd = -1;
     }
 }
 
@@ -1488,9 +1516,14 @@ r_alloc (var, nbytes)
 
   if (!r_alloc_initialized)
     r_alloc_init ();
+#if defined (REL_ALLOC_MMAP) && !MAP_ANON
+  if (mmap_fd == -1)
+    r_alloc_init_fd ();
+#endif
 
   map = ROUND (nbytes + MMAP_REGION_STRUCT_SIZE, page_size);
-  p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+  p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
+	    mmap_fd, 0);
   
   if (p == MAP_FAILED)
     {
@@ -1532,6 +1565,10 @@ r_re_alloc (var, nbytes)
   
   if (!r_alloc_initialized)
     r_alloc_init ();
+#if defined (REL_ALLOC_MMAP) && !MAP_ANON
+  if (mmap_fd == -1)
+    r_alloc_init_fd ();
+#endif
 
   if (*var == NULL)
     result = r_alloc (var, nbytes);
@@ -1601,6 +1638,10 @@ r_alloc_free (var)
 {
   if (!r_alloc_initialized)
     r_alloc_init ();
+#if defined (REL_ALLOC_MMAP) && !MAP_ANON
+  if (mmap_fd == -1)
+    r_alloc_init_fd ();
+#endif
 
   if (*var)
     {
@@ -1620,7 +1661,9 @@ r_alloc_free (var)
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
 
+#ifndef SYSTEM_MALLOC
 extern POINTER (*__morecore) ();
+#endif
 
 /* Initialize various things for memory allocation.  */
 
@@ -1631,9 +1674,13 @@ r_alloc_init ()
     return;
 
   r_alloc_initialized = 1;
+  page_size = PAGE;
+#ifndef SYSTEM_MALLOC
   real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
+#endif
 
+#ifndef REL_ALLOC_MMAP
   first_heap = last_heap = &heap_base;
   first_heap->next = first_heap->prev = NIL_HEAP;
   first_heap->start = first_heap->bloc_start
@@ -1641,17 +1688,20 @@ r_alloc_init ()
   if (break_value == NIL)
     abort ();
 
-  page_size = PAGE;
   extra_bytes = ROUNDUP (50000);
+#endif
 
 #ifdef DOUG_LEA_MALLOC
     mallopt (M_TOP_PAD, 64 * 4096);
 #else
+#ifndef SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis
      so that we move all the relocatable blocks much less often.  */
   __malloc_extra_blocks = 64;
 #endif
+#endif
 
+#ifndef REL_ALLOC_MMAP
   first_heap->end = (POINTER) ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
@@ -1669,5 +1719,7 @@ r_alloc_init ()
   bzero (first_heap->start,
 	 (char *) first_heap->end - (char *) first_heap->start);
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
+#endif
   use_relocatable_buffers = 1;
+  r_alloc_init_fd ();
 }
