@@ -1666,15 +1666,7 @@ It returns t if it got any new messages."
 (defun rmail-decode-region (from to coding)
   (if (or (not coding) (not (coding-system-p coding)))
       (setq coding 'undecided))
-  ;; Use -dos decoding, to remove ^M characters left from base64 or
-  ;; rogue qp-encoded text.
-  (decode-coding-region from to
-			(coding-system-change-eol-conversion coding 1))
-  ;; Don't reveal the fact we used -dos decoding, as users generally
-  ;; will not expect the RMAIL buffer to use DOS EOL format.
-  (setq buffer-file-coding-system
-	(setq last-coding-system-used
-	      (coding-system-change-eol-conversion coding 0))))
+  (decode-coding-region from to coding))
 
 ;; the  rmail-break-forwarded-messages  feature is not implemented
 (defun rmail-convert-to-babyl-format ()
@@ -1759,6 +1751,9 @@ It returns t if it got any new messages."
 			       (error nil))
 			   ;; Change "base64" to "8bit", to reflect the
 			   ;; decoding we just did.
+			   (goto-char (1+ header-end))
+			   (while (search-forward "\r\n" (point-max) t)
+			     (replace-match "\n"))
 			   (goto-char base64-header-field-end)
 			   (delete-region (point) (search-backward ":"))
 			   (insert ": 8bit"))))
@@ -1906,6 +1901,9 @@ It returns t if it got any new messages."
 				    (point)))
 				 t)
 			     (error nil))
+			 (goto-char header-end)
+			 (while (search-forward "\r\n" (point-max) t)
+			   (replace-match "\n"))
 			 ;; Change "base64" to "8bit", to reflect the
 			 ;; decoding we just did.
 			 (goto-char base64-header-field-end)
@@ -3868,6 +3866,23 @@ encoded string (and the same mask) will decode the string."
      (aset string-vector i (logxor charmask (aref string-vector i)))
      (setq i (1+ i)))
    (concat string-vector)))
+
+;;;;  Desktop support
+
+;;;###autoload
+(defun rmail-restore-desktop-buffer (desktop-buffer-file-name
+                                     desktop-buffer-name
+                                     desktop-buffer-misc)
+  "Restore an rmail buffer specified in a desktop file."
+  (condition-case error
+      (progn
+        (rmail-input desktop-buffer-file-name)
+        (if (eq major-mode 'rmail-mode)
+            (current-buffer)
+          rmail-buffer))
+    (file-locked
+      (kill-buffer (current-buffer))
+      nil)))
 
 (provide 'rmail)
 
