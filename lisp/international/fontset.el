@@ -40,7 +40,11 @@
 ;; character `*' is embedded in `CHARSET_ENCODING' field.  The
 ;; REGISTRY for ASCII characters are predefined as "ISO8859-1".
 
-(let ((l `((latin-iso8859-1 . (nil . "ISO8859-1"))
+(let ((l
+       ;; Eval this at compile-time, since fontset.el is always loaded
+       ;; when run under X and this would always load ind-util.el as well.
+       (eval-when-compile
+	 `((latin-iso8859-1 . (nil . "ISO8859-1"))
 	   (latin-iso8859-2 . (nil . "ISO8859-2"))
 	   (latin-iso8859-3 . (nil . "ISO8859-3"))
 	   (latin-iso8859-4 . (nil . "ISO8859-4"))
@@ -114,7 +118,7 @@
 	     . ,(indian-glyph-char 255 'kannada)) . ("*" . "Kannada-CDAC"))
 	   ((,(indian-glyph-char 0 'malayalam)
 	     . ,(indian-glyph-char 255 'malayalam)) . ("*" . "Malayalam-CDAC"))
-	   ))
+	   )))
       charset font-spec arg)
   (while l
     (setq charset (car (car l)) font-spec (cdr (car l)) l (cdr l))
