@@ -100,6 +100,15 @@
 /* "unreachable code" (ASSERT, if cond is constantly true). */
 #pragma warning(disable: 4702)
 
+/* "expression evaluates to a function which is missing an argument list" */
+#pragma warning(disable: 4550)
+
+/* "local variable is initialized but not referenced" */
+#pragma warning(disable: 4189)
+
+/* "not all control paths return a value" */
+#pragma warning(disable: 4715)
+
 /* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
 #ifdef _MSC_VER
 #if _MSC_VER < 1000
