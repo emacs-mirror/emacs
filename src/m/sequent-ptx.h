@@ -59,11 +59,14 @@ Boston, MA 02111-1307, USA.  */
 
 /* Data type of load average, as read out of kmem.  */
 
+#undef LOAD_AVE_TYPE
 #define LOAD_AVE_TYPE unsigned long
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
+#undef FSCALE
 #define	FSCALE	1000.0
+#undef LOAD_AVE_CVT
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
