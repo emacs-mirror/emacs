@@ -1,3 +1,8 @@
+2003-05-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/mule-cmds.el (select-safe-coding-system): Try
+	default-buffer-file-coding-system too for automatic selection.
+
 2003-05-21  Dave Love  <fx@gnu.org>
 
 	* descr-text.el (unicodedata-file): New.
