@@ -1943,11 +1943,26 @@ Outline mode sets this."
 	      (setq arg (1+ arg))))
 	  (let ((buffer-invisibility-spec nil))
 	    (move-to-column (or goal-column temporary-goal-column))))
+      (setq new (point))
+      ;; If we are moving into some intangible text,
+      ;; look for following text on the same line which isn't intangible
+      ;; and move there.
+      (let ((after (and (< new (point-max))
+			(get-char-property new 'intangible)))
+	    (before (and (> new (point-min))
+			 (get-char-property (1- new) 'intangible)))
+	    line-end)
+	(when (and before (eq before after))
+	  (setq line-end (save-excursion (end-of-line) (point)))
+	  (goto-char (point-min))
+	  (let ((inhibit-point-motion-hooks nil))
+	    (goto-char new))
+	  (if (<= new line-end)
+	      (setq new (point)))))
       ;; Remember where we moved to, go back home,
       ;; then do the motion over again
       ;; in just one step, with intangibility and point-motion hooks
       ;; enabled this time.
-      (setq new (point))
       (goto-char opoint)
       (setq inhibit-point-motion-hooks nil)
       (goto-char new)))
@@ -2556,10 +2571,7 @@ Setting this variable automatically makes it local to the current buffer."
 	  (let ((prefix
 		 (fill-context-prefix
 		  (save-excursion (backward-paragraph 1) (point))
-		  (save-excursion (forward-paragraph 1) (point))
-		  ;; Don't accept a non-whitespace fill prefix
-		  ;; from the first line of a paragraph.
-		  "^[ \t]*$")))
+		  (save-excursion (forward-paragraph 1) (point)))))
 	    (and prefix (not (equal prefix ""))
 		 (setq fill-prefix prefix))))
 
@@ -3400,9 +3412,18 @@ If this function moves point, it can alter the end of that completion.")
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
-;;; The value 0 is right in most cases, but not for file name completion.
-;;; so this has to be turned off.
-;;;      (setq completion-base-size 0)
+      (if (eq minibuffer-completion-table 'read-file-name-internal)
+	  ;; For file name completion,
+	  ;; use the number of chars before the start of the
+	  ;; last file name component.
+	  (setq completion-base-size
+		(save-excursion
+		  (set-buffer mainbuf)
+		  (goto-char (point-max))
+		  (skip-chars-backward (format "^%c" directory-sep-char))
+		  (- (point) (point-min))))
+	;; Otherwise, the whole input is the text being completed.
+	(setq completion-base-size 0))
       (goto-char (point-min))
       (if window-system
 	  (insert (substitute-command-keys
