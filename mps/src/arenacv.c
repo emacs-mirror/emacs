@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.10) $
+ * $HopeName: MMsrc!arenacv.c(trunk.11) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers
@@ -186,7 +186,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, SegPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, pref, size, pool, FALSE);
+  res = SegAlloc(&seg, EnsureSegClass(), pref, size, pool, FALSE);
   if (ResOK == res) {
     aiReturn->the.segData.seg = seg;
   }
