@@ -1,5 +1,5 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985,94,97,98,99, 2001, 2002, 2004
+   Copyright (C) 1985,94,97,98,99, 2001, 2002, 2004, 2005
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -73,71 +73,38 @@ casify_object (flag, obj)
       if (STRINGP (obj))
 	{
 	  int multibyte = STRING_MULTIBYTE (obj);
+	  int n;
 
 	  obj = Fcopy_sequence (obj);
 	  len = SBYTES (obj);
 
-	  /* Scan all single-byte characters from start of string.  */
-	  for (i = 0; i < len;)
+	  /* I counts bytes, and N counts chars.  */
+	  for (i = n = 0; i < len; n++)
 	    {
+	      int from_len = 1, to_len = 1;
+
 	      c = SREF (obj, i);
 
 	      if (multibyte && c >= 0x80)
-		/* A multibyte character can't be handled in this
-                   simple loop.  */
-		break;
+		c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i, len -i, from_len);
 	      if (inword && flag != CASE_CAPITALIZE_UP)
 		c = DOWNCASE (c);
 	      else if (!UPPERCASEP (c)
 		       && (!inword || flag != CASE_CAPITALIZE_UP))
 		c = UPCASE1 (c);
-	      /* If this char won't fit in a single-byte string.
-		 fall out to the multibyte case.  */
-	      if (multibyte ? ! ASCII_BYTE_P (c)
-		  : ! SINGLE_BYTE_CHAR_P (c))
-		break;
-
-	      SSET (obj, i, c);
+	      if (ASCII_BYTE_P (c) || (! multibyte && SINGLE_BYTE_CHAR_P (c)))
+		SSET (obj, i, c);
+	      else
+		{
+		  to_len = CHAR_BYTES (c);
+		  if (from_len == to_len)
+		    CHAR_STRING (c, SDATA (obj) + i);
+		  else
+		    Faset (obj, make_number (n), make_number (c));
+		}
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
-	      i++;
-	    }
-
-	  /* If we didn't do the whole string as single-byte,
-	     scan the rest in a more complex way.  */
-	  if (i < len)
-	    {
-	      /* The work is not yet finished because of a multibyte
-		 character just encountered.  */
-	      int fromlen, j_byte = i;
-	      char *buf;
-	      int bufsize;
-	      USE_SAFE_ALLOCA;
-
-	      bufsize = (len - i) * MAX_MULTIBYTE_LENGTH + i;
-	      SAFE_ALLOCA (buf, char *, bufsize);
-
-	      /* Copy data already handled.  */
-	      bcopy (SDATA (obj), buf, i);
-
-	      /* From now on, I counts bytes.  */
-	      while (i < len)
-		{
-		  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i,
-					      len - i, fromlen);
-		  if (inword && flag != CASE_CAPITALIZE_UP)
-		    c = DOWNCASE (c);
-		  else if (!UPPERCASEP (c)
-			   && (!inword || flag != CASE_CAPITALIZE_UP))
-		    c = UPCASE1 (c);
-		  i += fromlen;
-		  j_byte += CHAR_STRING (c, buf + j_byte);
-		  if ((int) flag >= (int) CASE_CAPITALIZE)
-		    inword = SYNTAX (c) == Sword;
-		}
-	      obj = make_multibyte_string (buf, SCHARS (obj),
-					   j_byte);
-	      SAFE_FREE ();
+	      i += to_len;
 	    }
 	  return obj;
 	}
@@ -253,7 +220,7 @@ casify_region (flag, b, e)
       int opoint_byte = PT_BYTE;
       int c2;
 
-      while (i < end_byte)
+      while (start < end)
 	{
 	  if ((c = FETCH_BYTE (i)) >= 0x80)
 	    c = FETCH_MULTIBYTE_CHAR (i);
@@ -281,12 +248,15 @@ casify_region (flag, b, e)
 		    FETCH_BYTE (i + j) = str[j];
 		}
 	      else
-		/* Replace one character with the other,
-		   keeping text properties the same.  */
-		replace_range_2 (start + 1, i + tolen,
-				 start + 2, i + tolen + fromlen,
-				 str, 1, tolen,
-				 0);
+		{
+		  /* Replace one character with the other,
+		     keeping text properties the same.  */
+		  replace_range_2 (start, i,
+				   start + 1, i + fromlen,
+				   str, 1, tolen,
+				   1);
+		  opoint_byte += tolen - fromlen;
+		}
 	    }
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = SYNTAX (c2) == Sword;
