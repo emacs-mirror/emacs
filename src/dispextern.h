@@ -69,7 +69,7 @@ struct window;
 
 #if GLYPH_DEBUG
 #define IF_DEBUG(X)	X
-#define xassert(X)	if (!(X)) abort (); else (void) 0
+#define xassert(X)	do {if (!(X)) abort ();} while (0)
 #else
 #define IF_DEBUG(X)	(void) 0
 #define xassert(X)	(void) 0
@@ -2114,6 +2114,8 @@ extern Lisp_Object Qforeground_color, Qbackground_color;
 
 #ifdef HAVE_X_WINDOWS 
 
+void gamma_correct P_ ((struct frame *, XColor *));
+void x_kill_gs_process P_ ((Pixmap, struct frame *));
 int x_screen_planes P_ ((struct frame *));
 void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 struct image_cache *make_image_cache P_ ((void));
