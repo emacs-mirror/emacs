@@ -494,18 +494,19 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 run-mail-hook msg-shown)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
+    ;; We used to bind enable-local-variables to nil here,
+    ;; but that should not be needed now that rmail-mode
+    ;; sets it locally to nil.
+    ;; (Binding a variable locally with let is not safe if it has
+    ;; buffer-local bindings.)
     (if (and existed (not (verify-visited-file-modtime existed)))
 	(progn
-	  ;; Don't be confused by apparent local-variables spec
-	  ;; in the last message in the RMAIL file.
-	  (let ((enable-local-variables nil))
-	    (find-file file-name))
+	  (find-file file-name)
 	  (if (and (verify-visited-file-modtime existed)
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (let ((enable-local-variables nil))
-	(find-file file-name)))
+      (find-file file-name))
     (if (eq major-mode 'rmail-edit-mode)
 	(error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (> (buffer-size) 0))
