@@ -2511,7 +2511,7 @@ KEY BINDINGS FOR CONVERSION
       (setq quail-current-package nil)
       ;; Resize the help window again, now that it has all its contents.
       (save-selected-window
- 	(select-window (get-buffer-window (current-buffer)))
+ 	(select-window (get-buffer-window (current-buffer) t))
 	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
