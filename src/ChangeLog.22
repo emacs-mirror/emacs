@@ -1,3 +1,13 @@
+2004-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fset_unibyte_charset): Setup
+	unibyte_has_multibyte_table.
+
+	* character.c (unibyte_has_multibyte_table): New variable.
+
+	* character.h (unibyte_has_multibyte_table): Extern it.
+	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): New macro.
+
 2004-10-14  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Fix merging of 2004-10-13 change.
