@@ -2126,6 +2126,7 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
 {
   int new_frame_window_width;
   unsigned int total_glyphs;
+  int count = specpdl_ptr - specpdl;
 
   /* If we can't deal with the change now, queue it for later.  */
   if (delay)
@@ -2232,9 +2233,13 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
 
   UNBLOCK_INPUT;
 
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   /* This isn't quite a no-op: it runs window-configuration-change-hook.  */
   Fset_window_buffer (FRAME_SELECTED_WINDOW (frame),
 		      XWINDOW (FRAME_SELECTED_WINDOW (frame))->buffer);
+
+  unbind_to (count, Qnil);
 }
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
