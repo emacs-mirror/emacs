@@ -2142,8 +2142,38 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   size = XFASTINT (length);
 
   val = Qnil;
-  while (size-- > 0)
-    val = Fcons (init, val);
+  while (size > 0)
+    {
+      val = Fcons (init, val);
+      --size;
+
+      if (size > 0)
+	{
+	  val = Fcons (init, val);
+	  --size;
+      
+	  if (size > 0)
+	    {
+	      val = Fcons (init, val);
+	      --size;
+      
+	      if (size > 0)
+		{
+		  val = Fcons (init, val);
+		  --size;
+      
+		  if (size > 0)
+		    {
+		      val = Fcons (init, val);
+		      --size;
+		    }
+		}
+	    }
+	}
+
+      QUIT;
+    }
+  
   return val;
 }
 
