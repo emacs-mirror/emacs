@@ -216,7 +216,6 @@ requested in `facemenu-keybindings'.")
   "Alist of colors, used for completion.
 If null, `facemenu-read-color' will set it.")
 
-(defvar facemenu-next nil) ; set when we are going to set a face on next char.
 (defvar facemenu-loc nil)
 
 (defun facemenu-update ()
@@ -252,8 +251,7 @@ typing a character cancels the request."
       (let ((start (or start (region-beginning)))
 	    (end (or end (region-end))))
 	(facemenu-add-face face start end))
-    (setq facemenu-next face
-	  facemenu-loc (point))))
+    (facemenu-self-insert-face face)))
 
 ;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
@@ -301,7 +299,11 @@ typing a character cancels the request."
   (facemenu-get-face face)
   (if start 
       (facemenu-add-face face start end)
-    (setq facemenu-next face facemenu-loc (point))))
+    (facemenu-self-insert-face face)))
+
+(defun facemenu-self-insert-face (face)
+  (setq self-insert-face face
+	self-insert-face-command this-command))
 
 (defun facemenu-set-invisible (start end)
   "Make the region invisible.
@@ -489,18 +491,6 @@ Automatically called when a new face is created."
 	     (define-key menu key (cons name function))))))
   nil) ; Return nil for facemenu-iterate
 
-(defun facemenu-after-change (begin end old-length)
-  "May set the face of just-inserted text to user's request.
-This only happens if the change is an insertion, and
-`facemenu-set-face[-from-menu]' was called with point at the
-beginning of the insertion."
-  (if (null facemenu-next)		; exit immediately if no work
-      nil
-    (if (and (= 0 old-length)		; insertion
-	     (= facemenu-loc begin))	; point wasn't moved in between
-	(facemenu-add-face facemenu-next begin end))
-    (setq facemenu-next nil)))
-
 (defun facemenu-complete-face-list (&optional oldlist)
   "Return list of all faces that are look different.
 Starts with given ALIST of faces, and adds elements only if they display 
@@ -524,6 +514,5 @@ Returns the non-nil value it found, or nil if all were nil."
   (car iterate-list))
 
 (facemenu-update)
-(add-hook 'after-change-functions 'facemenu-after-change)
 
 ;;; facemenu.el ends here
