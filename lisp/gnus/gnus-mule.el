@@ -189,9 +189,7 @@ coding-system for reading and writing respectively."
 	    'gnus-mule-message-send-news-function)
   (add-hook 'message-send-mail-hook
 	    'gnus-mule-message-send-mail-function)
-  (setq nntp-coding-system-for-read 'binary
-	nntp-coding-system-for-write 'binary
-	nnheader-file-coding-system 'binary
+  (setq nnheader-file-coding-system 'binary
 	nnmail-file-coding-system   'binary)
   )
 
