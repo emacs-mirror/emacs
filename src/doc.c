@@ -166,7 +166,7 @@ string is passed through `substitute-command-keys'.")
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
       if (STRINGP (tem))
 	doc = tem;
-      else if (INTEGERP (tem) && XINT (tem) >= 0)
+      else if (NATNUMP (tem))
 	doc = get_doc_string (XFASTINT (tem));
       else
 	return Qnil;
@@ -189,7 +189,7 @@ subcommands.)");
 	  tem = Fcar (Fcdr (Fcdr (fun)));
 	  if (STRINGP (tem))
 	    doc = tem;
-	  else if (INTEGERP (tem) && XINT (tem) >= 0)
+	  else if (NATNUMP (tem))
 	    doc = get_doc_string (XFASTINT (tem));
 	  else
 	    return Qnil;
