@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 
 #include <config.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "puresize.h"
 #include "charset.h"
@@ -885,7 +886,7 @@ Lisp_Object
 find_symbol_value (symbol)
      Lisp_Object symbol;
 {
-  register Lisp_Object valcontents, tem1;
+  register Lisp_Object valcontents;
   register Lisp_Object val;
   CHECK_SYMBOL (symbol, 0);
   valcontents = XSYMBOL (symbol)->value;
@@ -1643,7 +1644,6 @@ or a byte-code object.  IDX starts at 0.")
   idxval = XINT (idx);
   if (STRINGP (array))
     {
-      Lisp_Object val;
       int c, idxval_byte;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
@@ -1796,8 +1796,6 @@ IDX starts at 0.")
     }
   else if (CHAR_TABLE_P (array))
     {
-      Lisp_Object val;
-
       if (idxval < 0)
 	args_out_of_range (array, idx);
       if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
@@ -1841,7 +1839,7 @@ IDX starts at 0.")
     }
   else if (STRING_MULTIBYTE (array))
     {
-      int c, idxval_byte, new_len, actual_len;
+      int idxval_byte, new_len, actual_len;
       int prev_byte;
       unsigned char *p, workbuf[4], *str;
 
@@ -2072,7 +2070,7 @@ NUMBER may be an integer or a floating point number.")
   if (sizeof (int) == sizeof (EMACS_INT))
     sprintf (buffer, "%d", XINT (number));
   else if (sizeof (long) == sizeof (EMACS_INT))
-    sprintf (buffer, "%ld", XINT (number));
+    sprintf (buffer, "%ld", (long) XINT (number));
   else
     abort ();
   return build_string (buffer);
@@ -2111,7 +2109,7 @@ If the base used is not 10, floating point is not recognized.")
      register Lisp_Object string, base;
 {
   register unsigned char *p;
-  register int b, digit, v = 0;
+  register int b, v = 0;
   int negative = 1;
 
   CHECK_STRING (string, 0);
