@@ -48,6 +48,10 @@ Boston, MA 02111-1307, USA.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifndef X_OK
 #define X_OK 01
 #endif
@@ -1989,7 +1993,7 @@ int
 isfloat_string (cp)
      register char *cp;
 {
-  register state;
+  register int state;
   
   state = 0;
   if (*cp == '+' || *cp == '-')
