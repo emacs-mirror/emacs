@@ -1,3 +1,21 @@
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (face_font_available_p): Extern it.
+
+	* fontset.c (Voverriding_fontspec_alist): New variable.
+	(lookup_overriding_fontspec): New function.
+	(fontset_ref_via_base): Call lookup_overriding_fontspec if
+	necessary.
+	(fontset_font_pattern): Likewise.
+	(regulalize_fontname): New function.
+	(Fset_fontset_font): Call regulalize_fontname.
+	(Fset_overriding_fontspec_internal): New function.
+	(syms_of_fontset): Initialize and staticprop
+	Voverriding_fontspec_alist. Defsubr
+	Sset_overriding_fontspec_internal.
+
+	* xfaces.c (face_font_available_p): New function.
+
 2003-12-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* coding.c (Fcheck_coding_system): Doc fix.

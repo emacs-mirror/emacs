@@ -1,3 +1,17 @@
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (reset-language-environment): Call
+	set-overriding-fontspec-internal with nil.
+	(set-language-environment): Call set-overriding-fontspec-internal
+	if the language environment specify `overriding-fontspec'.
+	(language-info-alist): Doc added.
+
+	* language/cyrillic.el (ccl-encode-koi8-font): Make it work for
+	characters of mule-unicode-0100-24ff.
+	(ccl-encode-windows-1251-font): New CCL program.
+	("Bulgarian"): Specify overriding-fontspec.
+	("Belarusian"): Likewise.
+
 2003-12-28  Sam Steingold  <sds@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-file-attributes): Add new optional
