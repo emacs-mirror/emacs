@@ -928,6 +928,14 @@ Don't use any other value."
   :group 'ange-ftp
   :type '(choice (const :tag "Suppress" 0)
 		 (const :tag "Allow" 1)))
+
+(defcustom ange-ftp-try-passive-mode nil
+  "It t, try to use passive mode in ftp, if the client program
+supports the `passive' command."
+  :group 'ange-ftp
+  :type 'boolean
+  :version 21.1)
+
 
 ;;;; ------------------------------------------------------------
 ;;;; Hash table support.
@@ -2088,6 +2096,14 @@ Create a new process if needed."
 
 	;; Guess at the host type.
 	(ange-ftp-guess-host-type host user)
+
+	;; Try to use passive mode if asked to.
+	(when ange-ftp-try-passive-mode
+	  (let ((answer (cdr (ange-ftp-raw-send-cmd
+			      proc "passive" "Trying passive mode..." nil))))
+	    (if (string-match "\\?\\|refused" answer)
+		(message "Trying passive mode...ok")
+	      (message "Trying passive mode...failed"))))
 
 	;; Run any user-specified hooks.  Note that proc, host and user are
 	;; dynamically bound at this point.
