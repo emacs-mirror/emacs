@@ -191,18 +191,23 @@ is by typing C-u and then the digits before you type the command.  If
 you have a META (or EDIT or ALT) key, there is another alternative way
 to enter a numeric argument: type the digits while holding down the
 META key.  We recommend learning the C-u method because it works on
-any terminal.
+any terminal.  The numeric argument is also called a "prefix argument",
+because you type the argument before the command it applies to.
 
 For instance, C-u 8 C-f moves forward eight characters.
 	
 >> Try using C-n or C-p with a numeric argument, to move the cursor
    to a line near this one with just one command.
 
-Most commands use the numeric argument as a repeat count.  Certain
-exceptional commands use it differently.  C-v and M-v are among the
-exceptions.  When given an argument, they scroll the screen up or down
-by that many lines, rather than by a screenfuls.  For example, C-u 4
-C-v scrolls the screen by 4 lines.
+Most commands use the numeric argument as a repeat count, but some
+commands use it in some other way.  Several commands (but none of
+those you have learned so far) use it as a flag--the presence of a
+prefix argument, regardless of its value, makes the command do
+something different.
+
+C-v and M-v are another kind of exception.  When given an argument,
+they scroll the screen up or down by that many lines, rather than by a
+screenful.  For example, C-u 8 C-v scrolls the screen by 8 lines.
 
 >> Try typing C-u 8 C-v now.
 
