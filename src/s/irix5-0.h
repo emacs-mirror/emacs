@@ -1,5 +1,9 @@
 #include "usg5-4.h"
 
+#define IRIX5
+
+#define SETPGRP_RELEASES_CTTY
+
 #ifdef LIBS_SYSTEM
 #undef LIBS_SYSTEM
 #endif
