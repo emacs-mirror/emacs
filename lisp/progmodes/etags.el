@@ -1365,7 +1365,7 @@ See documentation of variable `tags-file-name'."
       ;; Continue last tags-search as if by M-,.
       (tags-loop-continue nil)
     (setq tags-loop-scan
-	  (list 're-search-forward regexp nil t)
+	  (list 're-search-forward (list 'quote regexp) nil t)
 	  tags-loop-operate nil)
     (tags-loop-continue (or file-list-form t))))
 
@@ -1379,12 +1379,15 @@ with the command \\[tags-loop-continue].
 See documentation of variable `tags-file-name'."
   (interactive (query-replace-read-args "Tags query replace (regexp)" t))
   (setq tags-loop-scan (list 'prog1
-			     (list 'if (list 're-search-forward from nil t)
+			     (list 'if (list 're-search-forward
+					     (list 'quote from) nil t)
 				   ;; When we find a match, move back
 				   ;; to the beginning of it so perform-replace
 				   ;; will see it.
 				   '(goto-char (match-beginning 0))))
-	tags-loop-operate (list 'perform-replace from to t t delimited))
+	tags-loop-operate (list 'perform-replace
+				(list 'quote from) (list 'quote to)
+				t t (list 'quote delimited)))
   (tags-loop-continue (or file-list-form t)))
 
 ;;;###autoload
