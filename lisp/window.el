@@ -277,12 +277,22 @@ or if the window is the only window of its frame."
 	    ;; Make sure we unbind buffer-read-only
 	    ;; with the proper current buffer.
 	    (set-buffer buffer))))))
-      
+
+(defun kill-buffer-and-window ()
+  "Kill the current buffer and delete the selected window."
+  (interactive)
+  (if (yes-or-no-p (format "Kill buffer `%s'? " (buffer-name)))
+      (let ((buffer (current-buffer)))
+	(delete-window (selected-window))
+	(kill-buffer buffer))
+    (error "Aborted")))
+
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
 (define-key ctl-x-map "{" 'shrink-window-horizontally)
 (define-key ctl-x-map "-" 'shrink-window-if-larger-than-buffer)
 (define-key ctl-x-map "+" 'balance-windows)
+(define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
 ;;; windows.el ends here
