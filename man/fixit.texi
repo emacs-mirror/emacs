@@ -302,10 +302,11 @@ frame).
   The command @code{ispell-complete-word}, which is bound to the key
 @kbd{M-@key{TAB}} in Text mode and related modes, shows a list of
 completions based on spelling correction.  Insert the beginning of a
-word, and then type @kbd{M-@key{TAB}}; the command displays a completion
-list window.  To choose one of the completions listed, click
-@kbd{Mouse-2} on it, or move the cursor there in the completions window
-and type @key{RET}.  @xref{Text Mode}.
+word, and then type @kbd{M-@key{TAB}}; the command displays a
+completion list window.  (If your window manager intercepts
+@kbd{M-@key{TAB}}, type @kbd{@key{ESC} @key{TAB}}.)  To choose one of
+the completions listed, click @kbd{Mouse-2} on it, or move the cursor
+there in the completions window and type @key{RET}.  @xref{Text Mode}.
 
 @ignore
 @findex reload-ispell
