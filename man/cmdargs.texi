@@ -215,8 +215,8 @@ Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
 and @samp{-batch} have no effect on the loading of this file---this is
 the only option that blocks it.
 
-@item --nosplash
-@opindex --nosplash
+@item --no-splash
+@opindex --no-splash
 @vindex inhibit-startup-message
 Do not display a splash screen on startup; this is equivlaent to
 setting the variable @code{inhibit-startup-message} to non-nil.

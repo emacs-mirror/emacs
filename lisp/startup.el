@@ -70,8 +70,8 @@
 ;; -no-site-file             Do not load "site-start.el".  (This is the ONLY
 ;; --no-site-file            way to prevent loading that file.)
 ;; -------------------------
-;; -nosplash                 Don't display a splash screen on startup.
-;; --nosplash
+;; -no-splash                 Don't display a splash screen on startup.
+;; --no-splash
 ;; -------------------------
 ;; -u USER                   Load USER's init file instead of the init
 ;; -user USER                file belonging to the user starting Emacs.
@@ -1508,7 +1508,7 @@ normal otherwise."
 	    ;; and long versions of what's on command-switch-alist.
 	    (longopts
 	     (append '(("--funcall") ("--load") ("--insert") ("--kill")
-		       ("--directory") ("--eval") ("--execute") ("--nosplash")
+		       ("--directory") ("--eval") ("--execute") ("--no-splash")
 		       ("--find-file") ("--visit") ("--file"))
 		     (mapcar (lambda (elt)
 			       (list (concat "-" (car elt))))
@@ -1561,7 +1561,7 @@ normal otherwise."
 			 (funcall (cdr tem) argi))
 		     (funcall (cdr tem) argi)))
 
-		  ((string-equal argi "-nosplash")
+		  ((string-equal argi "-no-splash")
 		   (setq inhibit-startup-message t))
 
 		  ((member argi '("-f"	;what the manual claims
