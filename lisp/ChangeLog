@@ -1,3 +1,8 @@
+2003-12-08  Miles Bader  <miles@gnu.org>
+
+	* dired.el (dired-between-files): Always use dired-move-to-filename,
+	which is more robust in non-english locales.
+
 2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* vc.el (vc-dired-purge): Avoid error from `kill-line'.

@@ -1,3 +1,7 @@
+2003-12-08  Miles Bader  <miles@gnu.org>
+
+	* .cvsignore: Add .arch-inventory.
+
 2003-12-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Check for <sys/socket.h>.  Include it before
