@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1134,7 +1134,9 @@ where FACE is a valid face specification, as it can be used with
 (defun fancy-splash-default-action ()
   "Default action for events in the splash screen buffer."
   (interactive)
+  (setq hansi last-nonmenu-event)
   (push last-command-event unread-command-events)
+  (setq unread (copy-sequence unread-command-events))
   (throw 'exit nil))
 
 
@@ -1143,7 +1145,7 @@ where FACE is a valid face specification, as it can be used with
   (setq fancy-splash-help-echo (startup-echo-area-message))
   (switch-to-buffer "GNU Emacs")
   (setq tab-width 20)
-  (let ((old-busy-cursor display-busy-cursor)
+  (let ((old-hourglass display-hourglass)
 	(splash-buffer (current-buffer))
 	timer)
     (catch 'stop-splashing
@@ -1153,7 +1155,7 @@ where FACE is a valid face specification, as it can be used with
 	    (define-key map [t] 'fancy-splash-default-action)
 	    (define-key map [mouse-movement] 'ignore)
 	    (setq cursor-type nil
-		  display-busy-cursor nil
+		  display-hourglass nil
 		  buffer-undo-list t
 		  mode-line-format
 		  (propertize "---- %b %-" 'face '(:weight bold))
@@ -1164,8 +1166,10 @@ where FACE is a valid face specification, as it can be used with
 					splash-buffer))
 	    (recursive-edit))
 	  (cancel-timer timer)
-	  (setq display-busy-cursor old-busy-cursor)
-	  (kill-buffer splash-buffer)))))
+	  (setq display-hourglass old-hourglass)
+	  (kill-buffer splash-buffer)
+	  (setq hansi2 last-nonmenu-event)
+	  ))))
 
 
 (defun use-fancy-splash-screens-p ()
