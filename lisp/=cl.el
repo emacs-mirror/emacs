@@ -1724,7 +1724,7 @@ equal to the real square root of the argument."
                  done   (or (= new approx) (= new (+ approx 1)))
                  approx new)))))
 
-(defun floor (number &optional divisor)
+(defun cl-floor (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward minus infinity.
 DIVISOR defaults to 1.  The remainder is produced as a second value."
   (cond ((and (null divisor)            ; trivial case
@@ -1744,7 +1744,7 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
                     (let ((q (- (+ q 1))))
                       (values q (- number (* q divisor)))))))))))
 
-(defun ceiling (number &optional divisor)
+(defun cl-ceiling (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward plus infinity.
 DIVISOR defaults to 1.  The remainder is produced as a second value."
   (cond ((and (null divisor)            ; trivial case
@@ -1761,7 +1761,7 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
                  (t
                   (values (- q) (+ number (* q divisor)))))))))
 
-(defun truncate (number &optional divisor)
+(defun cl-truncate (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward zero.
 DIVISOR defaults to 1.  The remainder is produced as a second value."
   (cond ((and (null divisor)            ; trivial case
@@ -1778,7 +1778,7 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
                  (t                     ;same as ceiling
                   (values (- q) (+ number (* q divisor)))))))))
 
-(defun round (number &optional divisor)
+(defun cl-round (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding to nearest integer.
 DIVISOR defaults to 1.  The remainder is produced as a second value."
   (cond ((and (null divisor)            ; trivial case
