@@ -19,6 +19,7 @@
 # Boston, MA 02111-1307, USA.
 
 # Here are the things that we expect ../configure to edit.
+# We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 VPATH=@srcdir@
 CC=@CC@
@@ -1081,7 +1082,7 @@ $(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
 w16select.o: w16select.c lisp.h dispextern.h frame.h blockinput.h \
    msdos.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
-   ../lwlib/lwlib.h $(config_h)
+   $(srcdir)/../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h dispextern.h msdos.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
@@ -1090,9 +1091,9 @@ xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
-   ../lwlib/lwlib.h blockinput.h paths.h charset.h $(config_h)
+   $(srcdir)/../lwlib/lwlib.h blockinput.h paths.h charset.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h keyboard.h \
-   ../lwlib/lwlib.h blockinput.h msdos.h $(config_h)
+   $(srcdir)/../lwlib/lwlib.h blockinput.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h charset.h ccl.h fontset.h $(config_h)
