@@ -45,7 +45,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'ring)
 
 (defgroup winner nil
