@@ -76,7 +76,16 @@
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  We convert it to a -rpath option
    which is what OSF1 uses.  */
-#define LD_SWITCH_SYSTEM `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
+#define LD_SWITCH_SYSTEM_tmp `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
+#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp /usr/local/lib
+
+/* The following is needed to make `configure' find Xpm, Xaw3d and
+   image include and library files if using /usr/bin/gcc.  That
+   compiler seems to be modified to not find headers in
+   /usr/local/include or libs in /usr/local/lib by default.  */
+
+#define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/local/include -L/usr/local/lib
+
 #endif /* __ELF__ */
 
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
