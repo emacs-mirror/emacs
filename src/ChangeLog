@@ -1,3 +1,9 @@
+2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_dialog, xg_separator_p)
+	(xg_item_label_same_p, xg_update_menu_item): Check for NULL string
+	before calling strcmp or strlen.
+
 2003-01-26  Jan D.  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Call prepare_image_for_display

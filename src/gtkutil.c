@@ -759,7 +759,7 @@ create_dialog (wv, select_cb, deactivate_cb)
       GtkWidget *w;
       GtkRequisition req;
 
-      if (strcmp (item->name, "message") == 0)
+      if (item->name && strcmp (item->name, "message") == 0)
         {
           /* This is the text part of the dialog.  */
           w = gtk_label_new (utf8_label);
@@ -776,7 +776,7 @@ create_dialog (wv, select_cb, deactivate_cb)
           gtk_widget_size_request (w, &req);
           gtk_box_set_spacing (GTK_BOX (GTK_DIALOG (wdialog)->vbox),
                                req.height);
-	  if (strlen (item->value) > 0)
+	  if (item->value && strlen (item->value) > 0)
             button_spacing = 2*req.width/strlen (item->value);
         }
       else
@@ -1201,8 +1201,10 @@ make_menu_item (utf8_label, utf8_key, item, group)
 static int
 xg_separator_p (char *name)
 {
+  if (! name) return 0;
+
   return strcmp (name, "--") == 0
-    || strcmp (name, "--:") == 0
+    || strncmp (name, "--:", 3) == 0
     || strcmp (name, "---") == 0;
 }
 
@@ -1539,6 +1541,7 @@ xg_create_widget (type, name, f, val,
   return w;
 }
 
+/* Return the label for menu item WITEM.  */
 static const char *
 xg_get_menu_item_label (witem)
      GtkMenuItem *witem;
@@ -1547,16 +1550,22 @@ xg_get_menu_item_label (witem)
   return gtk_label_get_label (wlabel);
 }
 
+/* Return non-zero if the menu item WITEM has the text LABEL.  */
 static int
 xg_item_label_same_p (witem, label)
      GtkMenuItem *witem;
      char *label;
 {
-  int is_same;
+  int is_same = 0;
   char *utf8_label = get_utf8_string (label);
-  
-  is_same = strcmp (utf8_label, xg_get_menu_item_label (witem)) == 0;
-  if (utf8_label != label) g_free (utf8_label);
+  const char *old_label = witem ? xg_get_menu_item_label (witem) : 0;
+
+  if (! old_label && ! utf8_label)
+    is_same = 1;
+  else if (old_label && utf8_label)
+    is_same = strcmp (utf8_label, old_label) == 0;
+
+  if (utf8_label && utf8_label != label) g_free (utf8_label);
 
   return is_same;
 }
@@ -1773,6 +1782,8 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
   GtkLabel *wkey = 0;
   char *utf8_label;
   char *utf8_key;
+  const char *old_label = 0;
+  const char *old_key = 0;
   xg_menu_item_cb_data *cb_data;
   
   wchild = gtk_bin_get_child (GTK_BIN (w));  
@@ -1812,14 +1823,18 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
         }
     }
 
-  if (utf8_key && strcmp (utf8_key, gtk_label_get_label (wkey)) != 0)
+  
+  if (wkey) old_key = gtk_label_get_label (wkey);
+  if (wlbl) old_label = gtk_label_get_label (wlbl);
+  
+  if (wkey && utf8_key && (! old_key || strcmp (utf8_key, old_key) != 0))
     gtk_label_set_text (wkey, utf8_key);
 
-  if (strcmp (utf8_label, gtk_label_get_label (wlbl)) != 0)
+  if (! old_label || strcmp (utf8_label, old_label) != 0)
     gtk_label_set_text_with_mnemonic (wlbl, utf8_label);
 
-  if (utf8_key != val->key) g_free (utf8_key);
-  if (utf8_label != val->name) g_free (utf8_label);
+  if (utf8_key && utf8_key != val->key) g_free (utf8_key);
+  if (utf8_label && utf8_label != val->name) g_free (utf8_label);
   
   if (! val->enabled && GTK_WIDGET_SENSITIVE (w))
     gtk_widget_set_sensitive (w, FALSE);
