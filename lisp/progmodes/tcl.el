@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.57 $
+;; Version: $Revision: 1.58 $
 
 ;; This file is part of GNU Emacs.
 
@@ -21,16 +21,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;; HOW TO INSTALL:
-;; Put the following forms in your .emacs to enable autoloading of Tcl
-;; mode, and auto-recognition of ".tcl" files.
-;;
-;;   (autoload 'tcl-mode "tcl" "Tcl mode." t)
-;;   (autoload 'inferior-tcl "tcl" "Run inferior Tcl process." t)
-;;   (setq auto-mode-alist (append '(("\\.tcl$" . tcl-mode)) auto-mode-alist))
+;; BEFORE USE:
 ;;
 ;; If you plan to use the interface to the TclX help files, you must
 ;; set the variable tcl-help-directory-list to point to the topmost
@@ -38,20 +33,7 @@
 ;;
 ;;   (setq tcl-help-directory-list '("/usr/local/lib/tclx/help"))
 ;;
-;; Also you will want to add the following to your .emacs:
-;;
-;;   (autoload 'tcl-help-on-word "tcl" "Help on Tcl commands" t)
-;;
-;; FYI a *very* useful thing to do is nroff all the Tk man pages and
-;; put them in a subdir of the help system.
-;;
-
 ;;; Commentary:
-
-;; LCD Archive Entry:
-;; tcl|Tom Tromey|tromey@busco.lanl.gov|
-;; Major mode for editing Tcl|
-;; $Date: 1999/07/19 00:35:36 $|$Revision: 1.57 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -62,248 +44,6 @@
 ;; for flow-control words.  Eg I add "unwind_protect" to this list.
 ;; * tcl-type-alist can be used to minimally customize indentation
 ;; according to context.
-
-;; Change log:
-;; $Log: tcl.el,v $
-;; Revision 1.57  1999/07/19 00:35:36  tromey
-;; (tcl-keyword-list): Added method, body, configbody, class
-;;
-;; Revision 1.56  1999/07/18 18:40:27  tromey
-;; (tcl-mode): Set font-lock-defaults, not font-lock-keywords.
-;;
-;; Revision 1.55  1999/07/18 05:21:33  tromey
-;; (tcl-proc-list): Reverted; already had `body'.
-;;
-;; Revision 1.54  1999/07/18 05:19:57  tromey
-;; (tcl-proc-list): Added `body'.
-;;
-;; Revision 1.53  1999/03/29 07:35:55  tromey
-;; (tcl-using-emacs-19-23): Recognize Emacs 20.
-;;
-;; Revision 1.52  1998/07/02 17:47:49  tromey
-;; Some itcl additions:
-;; (tcl-typeword-list): Added private, itk_option.
-;; (tcl-proc-list): Added body, configbody, class.
-;;
-;; Revision 1.51  1996/09/12 17:02:52  tromey
-;; (tcl-indent-command): Use insert-tab, not self-insert-command.
-;;
-;; Revision 1.50  1996/03/23  05:14:50  tromey
-;; (tcl-using-emacs-19): Work with XEmacs 20.0.  From Ben Wing.
-;;
-;; Revision 1.49  1995/12/07  18:27:47  tromey
-;; (add-log-tcl-defun): Don't use tcl-beginning-of-defun; just go to end
-;; of line before searching.
-;;
-;; Revision 1.48  1995/12/07  18:18:21  tromey
-;; (add-log-tcl-defun): Now uses tcl-beginning-of-defun.
-;;
-;; Revision 1.47  1995/08/22  17:49:45  tromey
-;; (tcl-hilit): New function from "Chris Alfeld" <calfeld@math.utah.edu>
-;; (tcl-mode): Call it
-;;
-;; Revision 1.46  1995/08/07  16:02:01  tromey
-;; (tcl-do-auto-fill): Only fill past fill-column; for 19.29.
-;; (tcl-auto-fill-mode): Use force-mode-line-update.
-;;
-;; Revision 1.45  1995/07/23  23:51:25  tromey
-;; (tcl-word-no-props): New function.
-;; (tcl-figure-type): Use it.
-;; (tcl-current-word): Ditto.
-;;
-;; Revision 1.44  1995/07/23  20:26:47  tromey
-;; Doc fixes.
-;;
-;; Revision 1.43  1995/07/17  19:59:49  tromey
-;; (inferior-tcl-mode): Use modeline-process if it exists.
-;;
-;; Revision 1.42  1995/07/17  19:55:25  tromey
-;; XEmacs currently must use tcl-internal-end-of-defun
-;;
-;; Revision 1.41  1995/07/14  21:54:56  tromey
-;; Changes to make menus work in XEmacs.
-;; From Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
-;;
-;; Revision 1.40  1995/07/11  03:13:15  tromey
-;; (tcl-mode): Customize for new dabbrev.
-;;
-;; Revision 1.39  1995/07/09  21:58:03  tromey
-;; (tcl-do-fill-paragraph): New function.
-;; (tcl-mode): Set up for paragraph filling.
-;;
-;; Revision 1.38  1995/07/09  21:30:32  tromey
-;; (tcl-mode): Fixes to 19.29 paragraph variables.
-;;
-;; Revision 1.37  1995/07/09  18:52:16  tromey
-;; (tcl-do-auto-fill): Set fill-prefix.
-;;
-;; Revision 1.36  1995/07/09  01:07:57  tromey
-;; (tcl-imenu-create-index-function): Work with imenu from Emacs 19.29
-;;
-;; Revision 1.35  1995/06/27  20:12:00  tromey
-;; (tcl-type-alist): More itcl changes.
-;;
-;; Revision 1.34  1995/06/27  20:06:05  tromey
-;; More changes for itcl.
-;; Bug fixes for Emacs 19.29.
-;;
-;; Revision 1.33  1995/06/27  20:01:29  tromey
-;; (tcl-set-proc-regexp): Allow leading spaces.
-;; (tcl-proc-list): Changes for itcl.
-;; (tcl-typeword-list): Ditto.
-;; (tcl-keyword-list): Ditto.
-;;
-;; Revision 1.32  1995/05/11  22:12:49  tromey
-;; (tcl-type-alist): Include entry for "proc".
-;;
-;; Revision 1.31  1995/05/10  23:38:12  tromey
-;; (tcl-add-fsf-menu): Use make-lucid-menu-keymap, not
-;; "make-xemacs-menu-keymap".
-;;
-;; Revision 1.30  1995/05/10  18:22:21  tromey
-;; Bug fix in menu code for XEmacs.
-;;
-;; Revision 1.29  1995/05/09  21:36:53  tromey
-;; Changed "Lucid Emacs" to "XEmacs".
-;; Tcl's popup menu now added to existing one, courtesy
-;; dfarmer@evolving.com (Doug Farmer)
-;;
-;; Revision 1.28  1995/04/08  19:52:50  tromey
-;; (tcl-outline-level): New function
-;; (tcl-mode): Added outline-handling stuff.
-;; From Jesper Pedersen <blackie@imada.ou.dk>
-;;
-;; Revision 1.27  1994/10/11  02:01:27  tromey
-;; (tcl-mode): imenu-create-index-function made buffer local.
-;;
-;; Revision 1.26  1994/09/01  18:06:24  tromey
-;; Added filename completion in inferior tcl mode
-;;
-;; Revision 1.25  1994/08/22  15:56:24  tromey
-;; tcl-load-file default to current buffer.
-;;
-;; Revision 1.24  1994/08/21  20:33:05  tromey
-;; Fixed bug in tcl-guess-application.
-;;
-;; Revision 1.23  1994/08/21  03:54:45  tromey
-;; Keybindings don't overshadown comint bindings.
-;;
-;; Revision 1.22  1994/07/26  00:46:07  tromey
-;; Emacs 18 changes from Carl Witty.
-;;
-;; Revision 1.21  1994/07/14  22:49:21  tromey
-;; Added ";;;###autoload" comments where appropriate.
-;;
-; Revision 1.20  1994/06/05  16:57:22  tromey
-; tcl-current-word does the right thing in inferior-tcl-mode.
-;
-; Revision 1.19  1994/06/03  21:09:19  tromey
-; Another menu fix.
-;
-; Revision 1.18  1994/06/03  20:39:14  tromey
-; Fixed menu bug.
-;
-; Revision 1.17  1994/06/03  00:47:15  tromey
-; Fixed bug in bug-reporting code.
-;
-; Revision 1.16  1994/05/26  05:06:14  tromey
-; Menu items now sensitive as appropriate.
-;
-; Revision 1.15  1994/05/22  20:38:11  tromey
-; Added bug-report keybindings and menu entries.
-;
-; Revision 1.14  1994/05/22  20:18:28  tromey
-; Even more compile stuff.
-;
-; Revision 1.13  1994/05/22  20:17:15  tromey
-; Moved emacs version checking code to very beginning.
-;
-; Revision 1.12  1994/05/22  20:14:59  tromey
-; Compile fixes.
-;
-; Revision 1.11  1994/05/22  20:12:44  tromey
-; Fixed mark-defun for 19.23.
-; More menu fixes.
-;
-; Revision 1.10  1994/05/22  20:02:03  tromey
-; Fixed bug with M-;.
-; Wrote bug-reporting code.
-;
-; Revision 1.9  1994/05/22  05:26:51  tromey
-; Fixes for imenu.
-;
-; Revision 1.8  1994/05/22  03:38:07  tromey
-; Fixed menu support.
-;
-; Revision 1.7  1994/05/03  01:23:42  tromey
-; *** empty log message ***
-;
-; Revision 1.6  1994/04/23  16:23:36  tromey
-; Wrote tcl-indent-for-comment
-;
-;;
-;; 18-Mar-1994		Tom Tromey	Fourth beta release.
-;;    Added {un,}comment-region to menu.  Idea from
-;;    Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
-;; 17-Mar-1994		Tom Tromey	
-;;    Fixed tcl-restart-with-file.  Bug fix attempt in
-;;    tcl-internal-end-of-defun.
-;; 16-Mar-1994		Tom Tromey	Third beta release
-;;    Added support code for menu (from Tcl mode written by
-;;    schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid)).
-;; 12-Mar-1994		Tom Tromey	
-;;    Better documentation for inferior-tcl-buffer.  Wrote
-;;    tcl-restart-with-file.  Wrote Lucid Emacs menu (but no
-;;    code to install it).
-;; 12-Mar-1994		Tom Tromey	
-;;    Wrote tcl-guess-application.  Another stab at making
-;;    tcl-omit-ws-regexp work.
-;; 10-Mar-1994		Tom Tromey	Second beta release
-;;    Last Modified: Thu Mar 10 01:24:25 1994 (Tom Tromey)
-;;    Wrote perl-mode style line indentation command.
-;;    Wrote more documentation.  Added tcl-continued-indent-level.
-;;    Integrated help code.
-;; 8-Mar-1994		Tom Tromey	
-;;    Last Modified: Tue Mar  8 11:58:44 1994 (Tom Tromey)
-;;    Bug fixes.
-;; 6-Mar-1994		Tom Tromey	
-;;    Last Modified: Sun Mar  6 18:55:41 1994 (Tom Tromey)
-;;    Updated auto-newline support.
-;; 6-Mar-1994		Tom Tromey	Beta release
-;;    Last Modified: Sat Mar  5 17:24:32 1994 (Tom Tromey)
-;;    Wrote tcl-hashify-buffer.  Other minor bug fixes.
-;; 5-Mar-1994		Tom Tromey	
-;;    Last Modified: Sat Mar  5 16:11:20 1994 (Tom Tromey)
-;;    Wrote electric-hash code.
-;; 3-Mar-1994		Tom Tromey	
-;;    Last Modified: Thu Mar  3 02:53:40 1994 (Tom Tromey)
-;;    Added code to handle auto-fill in comments.
-;;    Added imenu support code.
-;;    Cleaned up code.
-;;    Better font-lock support.
-;; 28-Feb-1994		Tom Tromey	
-;;    Last Modified: Mon Feb 28 14:08:05 1994 (Tom Tromey)
-;;    Made tcl-figure-type more easily configurable.
-;; 28-Feb-1994		Tom Tromey	
-;;    Last Modified: Mon Feb 28 01:02:58 1994 (Tom Tromey)
-;;    Wrote inferior-tcl mode.
-;; 16-Feb-1994		Tom Tromey	
-;;    Last Modified: Wed Feb 16 17:05:19 1994 (Tom Tromey)
-;;    Added support for font-lock-mode.
-;; 29-Oct-1993		Tom Tromey	
-;;    Last Modified: Sun Oct 24 17:39:14 1993 (Tom Tromey)
-;;    Patches from Guido Bosch to make things work with Lucid Emacs.
-;; 22-Oct-1993		Tom Tromey	
-;;    Last Modified: Fri Oct 22 15:26:46 1993 (Tom Tromey)
-;;    Made many characters have "_" syntax class; suggested by Guido
-;;    Bosch <Guido.Bosch@loria.fr>.  Note that this includes the "$"
-;;    character, which might be a change you'd notice.
-;; 21-Oct-1993		Tom Tromey	
-;;    Last Modified: Thu Oct 21 20:28:40 1993 (Tom Tromey)
-;;    More fixes for tcl-omit-ws-regexp.
-;; 20-Oct-1993		Tom Tromey	
-;;    Started keeping history.  Fixed tcl-{beginning,end}-of-defun.
-;;    Added some code to make things work with Emacs 18.
 
 ;; THANKS TO:
 ;; Guido Bosch <Guido.Bosch@loria.fr>
@@ -332,10 +72,6 @@
 ;;   the syntax class of characters between them, while braces do not.
 ;;   The electric-# mode helps alleviate this problem somewhat.
 ;; * indent-tcl-exp is untested.
-;; * Doesn't work under Emacs 18 yet.
-;; * There's been a report that font-lock does strange things under
-;;   Lucid Emacs 19.6.  For instance in "proc foobar", the space
-;;   before "foobar" is highlighted.
 
 ;; TODO:
 ;; * make add-log-tcl-defun smarter.  should notice if we are in the
@@ -372,20 +108,19 @@
 ;; I sure wish Emacs had a package that made it easy to extract this
 ;; sort of information.  Strange definition works with XEmacs 20.0.
 (defconst tcl-using-emacs-19 (not (string-match "18\\." emacs-version))
-  "Nil unless using Emacs 19 (XEmacs or FSF).")
+  "Non-nil if using Emacs 19.")
 
-;; FIXME this will break on Emacs 19.100.
 (defconst tcl-using-emacs-19-23
   (or (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
       (string-match "^20\\." emacs-version))
-  "Nil unless using Emacs 19-23 or later.")
+  "Non-nil if using Emacs 19-23 or later.")
 
 (defconst tcl-using-xemacs-19 (string-match "XEmacs" emacs-version)
-  "Nil unless using XEmacs).")
+  "Non-nil if using XEmacs.")
 
 (require 'comint)
 
-;; When compiling under GNU Emacs, load imenu during compilation.  If
+;; When compiling under Emacs, load imenu during compilation.  If
 ;; you have 19.22 or earlier, comment this out, or get imenu.
 (and (fboundp 'eval-when-compile)
      (eval-when-compile
@@ -394,7 +129,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.57 $")
+(defconst tcl-version "$Revision: 1.58 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -408,8 +143,7 @@
   "*Indentation of continuation line relative to first line of command.")
 
 (defvar tcl-auto-newline nil
-  "*Non-nil means automatically newline before and after braces
-inserted in Tcl code.")
+  "*Non-nil means automatically newline before and after braces you insert.")
 
 (defvar tcl-tab-always-indent t
   "*Control effect of TAB key.
@@ -427,25 +161,24 @@ to take place:
   6. Move backward to start of comment, indenting if necessary.")
 
 (defvar tcl-use-hairy-comment-detector t
-  "*If not `nil', the the more complicated, but slower, comment
-detecting function is used.  This variable is only used in GNU Emacs
-19 (the fast function is always used elsewhere).")
+  "*If not nil, use the more complicated, but slower, comment-delete method.
+This variable is only used in Emacs 19;
+the fast function is always used in other versions.")
 
 (defvar tcl-electric-hash-style 'smart
   "*Style of electric hash insertion to use.
-Possible values are 'backslash, meaning that `\\' quoting should be
-done; 'quote, meaning that `\"' quoting should be done; 'smart,
-meaning that the choice between 'backslash and 'quote should be
+Possible values are `backslash', meaning that `\\' quoting should be
+done; `quote', meaning that `\"' quoting should be done; `smart',
+meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
-taken to mean 'smart.  The default is 'smart.")
+taken to mean `smart'.  The default is `smart'.")
 
 (defvar tcl-help-directory-list nil
   "*List of topmost directories containing TclX help files")
 
 (defvar tcl-use-smart-word-finder t
-  "*If not nil, use a better way of finding the current word when
-looking up help on a Tcl command.")
+  "*If not nil, use smart way to find current word, for Tcl help feature.")
 
 (defvar tcl-application "wish"
   "*Name of Tcl application to run in inferior Tcl mode.")
@@ -533,9 +266,9 @@ quoted for Tcl.")
     ["Send bug report" tcl-submit-bug-report t])
   "XEmacs menu for Tcl mode.")
 
-;; GNU Emacs does menus via keymaps.  Do it in a function in case we
+;; Emacs does menus via keymaps.  Do it in a function in case we
 ;; later decide to add it to inferior Tcl mode as well.
-(defun tcl-add-fsf-menu (map)
+(defun tcl-add-emacs-menu (map)
   (define-key map [menu-bar] (make-sparse-keymap))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
@@ -576,7 +309,7 @@ quoted for Tcl.")
   ;; Make menus.
   (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
       (progn
-	(tcl-add-fsf-menu tcl-mode-map))))
+	(tcl-add-emacs-menu tcl-mode-map))))
 
 (defun tcl-fill-inferior-map ()
   (define-key inferior-tcl-mode-map "\t" 'comint-dynamic-complete)
@@ -664,11 +397,11 @@ information):
   tcl-auto-fill-mode
     Auto-filling of Tcl comments.
 
-Emacs 19 users can add functions to the hook with `add-hook':
+Add functions to the hook with `add-hook':
 
    (add-hook 'tcl-mode-hook 'tcl-guess-application)
 
-Emacs 18 users must use `setq':
+Emacs 18 users must use `setq' instead:
 
    (setq tcl-mode-hook (cons 'tcl-guess-application tcl-mode-hook))")
 
@@ -679,7 +412,7 @@ Emacs 18 users must use `setq':
 (defvar tcl-proc-list
   '("proc" "method" "itcl_class" "body" "configbody" "class")
   "List of commands whose first argument defines something.
-This exists because some people (eg, me) use \"defvar\" et al.
+This exists because some people (eg, me) use `defvar' et al.
 Call `tcl-set-proc-regexp' and `tcl-set-font-lock-keywords'
 after changing this list.")
 
@@ -761,7 +494,6 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;; Work around differences between various versions of Emacs.
 ;;
 
-;; We use this because Lemacs 19.9 has what we need.
 (defconst tcl-pps-has-arg-6
   (or tcl-using-emacs-19
       (and tcl-using-xemacs-19
@@ -770,8 +502,7 @@ is a Tcl expression, and the last argument is Tcl commands.")
 		 (parse-partial-sexp (point) (point) nil nil nil t)
 		 t)
 	     (error nil))))
-  "t if using an emacs which supports sixth (\"commentstop\") argument
-to parse-partial-sexp.")
+  "t if Emacs supports \"commentstop\" argument to `parse-partial-sexp'.")
 
 ;; Its pretty bogus to have to do this, but there is no easier way to
 ;; say "match not syntax-1 and not syntax-2".  Too bad you can't put
@@ -796,7 +527,7 @@ to parse-partial-sexp.")
 (defconst tcl-omit-ws-regexp "^[^ \t\n#}][^\n}]+}*[ \t]+")
 
 (defun tcl-internal-beginning-of-defun (&optional arg)
-  "Move backward to next beginning-of-defun.
+  "Move backward to next beginning of defun.
 With argument, do this that many times.
 Returns t unless search stops due to end of buffer."
   (interactive "p")
@@ -836,7 +567,7 @@ An end of a defun is found by moving forward from the beginning of one."
       (forward-line)
       (if (> (point) start) (setq arg (1- arg))))))
 
-;; In Emacs 19, we can use begining-of-defun as long as we set up a
+;; We can now use begining-of-defun as long as we set up a
 ;; certain regexp.  In Emacs 18, we need our own function.
 (fset 'tcl-beginning-of-defun
       (if tcl-using-emacs-19
@@ -861,14 +592,14 @@ An end of a defun is found by moving forward from the beginning of one."
   (tcl-beginning-of-defun)
   (backward-paragraph))
 
-;; In GNU Emacs 19-23 and later, mark-defun works as advertised.  I
+;; In Emacs 19.23 and later, mark-defun works as advertised.  I
 ;; don't know about XEmacs, so for now it and Emacs 18 just lose.
 (fset 'tcl-mark-defun
       (if tcl-using-emacs-19-23
 	  'mark-defun
 	'tcl-internal-mark-defun))
 
-;; In GNU Emacs 19, mark takes an additional "force" argument.  I
+;; In Emacs 19, mark takes an additional "force" argument.  I
 ;; don't know about XEmacs, so I'm just assuming it is the same.
 ;; Emacs 18 doesn't have this argument.
 (defun tcl-mark ()
@@ -954,7 +685,7 @@ documentation for details):
     Controls action of `#' key.
   tcl-use-hairy-comment-detector
     If t, use more complicated, but slower, comment detector.
-    This variable is only used in GNU Emacs 19.
+    This variable is only used in Emacs 19.
   tcl-use-smart-word-finder
     If not nil, use a smarter, Tcl-specific way to find the current
     word when looking up help on a Tcl command.
@@ -979,8 +710,7 @@ Commands:
   (if (and tcl-using-emacs-19-23
 	   (>= emacs-minor-version 29))
       (progn
-	;; In Emacs 19.29, you aren't supposed to start these with a
-	;; ^.
+	;; In Emacs 19.29, you aren't supposed to start these with a ^.
 	(setq paragraph-start "$\\|")
 	(setq paragraph-separate paragraph-start))
     (setq paragraph-start (concat "^$\\|" page-delimiter))
@@ -1014,7 +744,6 @@ Commands:
   (setq font-lock-defaults
 	'(tcl-font-lock-keywords))
 
-  ;; The following only really makes sense under GNU Emacs 19.
   (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function 'tcl-imenu-create-index-function)
   (make-local-variable 'parse-sexp-ignore-comments)
@@ -1046,7 +775,7 @@ Commands:
     (setq parse-sexp-ignore-comments nil))
 
   ;; Put Tcl menu into menubar for XEmacs.  This happens
-  ;; automatically for GNU Emacs.
+  ;; automatically in Emacs.
   (if (and tcl-using-xemacs-19
 	   current-menubar
 	   (not (assoc "Tcl" current-menubar)))
@@ -1109,10 +838,10 @@ Commands:
 
 (defun tcl-indent-command (&optional arg)
   "Indent current line as Tcl code, or in some cases insert a tab character.
-If tcl-tab-always-indent is t (the default), always indent current line.
-If tcl-tab-always-indent is nil and point is not in the indentation
+If `tcl-tab-always-indent' is t (the default), always indent current line.
+If `tcl-tab-always-indent' is nil and point is not in the indentation
 area at the beginning of the line, a TAB is inserted.
-Other values of tcl-tab-always-indent cause the first possible action
+Other values of `tcl-tab-always-indent' cause the first possible action
 from the following list to take place:
 
   1. Move from beginning of line to correct indentation.
@@ -1209,7 +938,7 @@ Return the amount the indentation changed by."
 
 (defun tcl-figure-type ()
   "Determine type of sexp at point.
-This is either 'tcl-expr, 'tcl-commands, or nil.  Puts point at start
+This is either `tcl-expr', `tcl-commands', or nil.  Puts point at start
 of sexp that indicates types.
 
 See documentation for variable `tcl-type-alist' for more information."
@@ -1586,8 +1315,8 @@ Prefix argument means switch to the Tcl buffer afterwards."
 
 A Tcl process can be started with M-x inferior-tcl.
 
-Entry to this mode runs the hooks comint-mode-hook and
-inferior-tcl-mode-hook, in that order.
+Entry to this mode runs the normal hooks `comint-mode-hook' and
+`inferior-tcl-mode-hook', in that order.
 
 You can send text to the inferior Tcl process from other buffers
 containing Tcl source.
@@ -1690,7 +1419,9 @@ semicolon, opening brace, or opening bracket on the same line."
 Returns a list of the form `(FLAG . STATE)'.  STATE can be used
 as input to future invocations.  FLAG is nil if not in comment,
 t otherwise.  If in comment, leaves point at beginning of comment.
-Only works in Emacs 19.  See also `tcl-simple-scan-for-comment', a
+
+This function does not work in Emacs 18.
+See also `tcl-simple-scan-for-comment', a
 simpler version that is often right, and works in Emacs 18."
   (let ((bol (save-excursion
 	       (goto-char end)
@@ -1729,16 +1460,14 @@ simpler version that is often right, and works in Emacs 18."
     (cons real-comment state)))
 
 (defun tcl-hairy-in-comment ()
-  "Return t if point is in a comment, and leave point at beginning
-of comment."
+  "Return t if point is in a comment, and leave point at beginning of comment."
   (let ((save (point)))
     (tcl-beginning-of-defun)
     (car (tcl-hairy-scan-for-comment nil save nil))))
 
 (defun tcl-simple-in-comment ()
-  "Return t if point is in comment, and leave point at beginning
-of comment.  This is faster that `tcl-hairy-in-comment', but is
-correct less often."
+  "Return t if point is in comment, and leave point at beginning of comment.
+This is faster that `tcl-hairy-in-comment', but is correct less often."
   (let ((save (point))
 	comment)
     (beginning-of-line)
@@ -1748,8 +1477,7 @@ correct less often."
     comment))
 
 (defun tcl-in-comment ()
-  "Return t if point is in comment, and leave point at beginning
-of comment."
+  "Return t if point is in comment, and leave point at beginning of comment."
   (if (and tcl-pps-has-arg-6
 	   tcl-use-hairy-comment-detector)
       (tcl-hairy-in-comment)
@@ -1997,13 +1725,11 @@ Prefix argument means switch to the Tcl buffer afterwards."
 		     tcl-application file tcl-command-switches)
 	(if and-go (switch-to-tcl t)))))))
 
-;; FIXME I imagine you can do this under Emacs 18.  I just don't know
-;; how.
 (defun tcl-auto-fill-mode (&optional arg)
   "Like `auto-fill-mode', but controls filling of Tcl comments."
   (interactive "P")
   (and (not tcl-using-emacs-19)
-       (error "You must use Emacs 19 to get this feature."))
+       (error "This feature is not supported in Emacs 18"))
   ;; Following code taken from "auto-fill-mode" (simple.el).
   (prog1
       (setq auto-fill-function
@@ -2096,7 +1822,7 @@ styles."
 (defun tcl-indent-for-comment ()
   "Indent this line's comment to comment column, or insert an empty comment.
 Is smart about syntax of Tcl comments.
-Parts of this were taken from indent-for-comment (simple.el)."
+Parts of this were taken from `indent-for-comment'."
   (interactive "*")
   (end-of-line)
   (or (tcl-in-comment)
@@ -2169,7 +1895,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; XEmacs menu support.
 ;; Taken from schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid),
 ;; who wrote a different Tcl mode.
-;; We also have support for menus in FSF.  We do this by
+;; We also have support for menus in Emacs.  We do this by
 ;; loading the XEmacs menu emulation code.
 ;;
 
@@ -2186,7 +1912,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 	 ;; Both of these problems are fixed in Emacs 19.23.  People
 	 ;; using an Emacs before that just suffer.
 	 (require 'menubar "lmenu")))  ;; This is annoying
-  ;; IMHO popup-menu should be autoloaded in FSF Emacs.  Oh well.
+  ;; IMHO popup-menu should be autoloaded.  Oh well.
   (popup-menu tcl-xemacs-menu))
 
 
