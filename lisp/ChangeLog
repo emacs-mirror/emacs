@@ -1,3 +1,9 @@
+2001-12-07  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-visit-buffer): Use
+	`select-frame-set-input-focus'.  Needed when window manager
+	uses "click to focus" policy.  Doc fixes.
+
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
@@ -68,8 +74,7 @@
 	* textmodes/fill.el (set-justification): Rename arg VALUE to STYLE.
 	(set-justification-left, set-justification-right): Doc fix.
 
-	* progmodes/f90.el (f90-break-line): Use (newline 1)
-	to insert newlines.
+	* progmodes/f90.el (f90-break-line): Use (newline 1) to insert newline.
 	(bug-f90-mode): Variable deleted.
 
 2001-12-06  Stefan Monnier  <monnier@cs.yale.edu>
@@ -79,14 +84,13 @@
 2001-12-07  Miles Bader  <miles@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
-	Added regexps for RXP.  From Reto Stamm <reto@xilinx.com>.
+	Added regexps for RXP.
 
 2001-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/cwarn.el (cwarn-font-lock-match-assignment-in-expression):
 	Add shift-assignment operators to those highlighted, and highlight
-	the whole operator rather than just the "=".  From Broadey Kevin
-	<Kevin.Broadey@motorola.com>.
+	the whole operator rather than just the "=".
 
 2001-12-04  Juanma Barranquero  <lektu@terra.es>
 
@@ -1176,13 +1180,11 @@
 
 	* README: Update maintainer.
 
-2001-11-13  Alan Shutko  <ats@acm.org>
-
-	* compile.el (recompile): Use compilation-arguments if set, so as
-	to be able to M-x recompile the exact command which created a
-	compilation-mode buffer.
-
 2001-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (recompile): Use compilation-arguments if
+	set, so as to be able to M-x recompile the exact command which
+	created a compilation-mode buffer.
 
 	* progmodes/ada-mode.el (ada-fill-comment-prefix): Doc fix.
 
@@ -1233,8 +1235,6 @@
 	(electric-buffer-overlay): New variable.
 	(electric-buffer-menu-looper): Call electric-buffer-update-highlight.
 	(electric-buffer-list): Likewise.
-
-2001-11-13  Per Starback  <starback@ling.uu.se>
 
 	* isearch.el (isearch-whitespace-chars): Doc fix.
 	(isearch-mode): Handle negative search-slow-window-lines correctly.
