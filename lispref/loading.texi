@@ -515,12 +515,18 @@ with a call to @code{provide}.  The order of the elements in the
 reclaim memory for other Lisp objects.  To do this, use the function
 @code{unload-feature}:
 
-@deffn Command unload-feature feature
+@deffn Command unload-feature feature &optional force
 This command unloads the library that provided feature @var{feature}.
 It undefines all functions, macros, and variables defined in that
 library with @code{defconst}, @code{defvar}, @code{defun},
 @code{defmacro}, @code{defsubst} and @code{defalias}.  It then restores
 any autoloads formerly associated with those symbols.
+
+Ordinarily, @code{unload-feature} refuses to unload a library on which
+other loaded libraries depend.  (A library @var{a} depends on library
+@var{b} if @var{a} contains a @code{require} for @var{b}.)  If the
+optional argument @var{force} is non-@code{nil}, dependencies are
+ignored and you can unload any library.
 @end deffn
 
   The @code{unload-feature} function is written in Lisp; its actions are
