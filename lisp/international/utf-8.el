@@ -479,19 +479,21 @@ default.  Also, installing them may be rather slow."
 			 (write-multibyte-character r5 r3))
 		     (write-multibyte-character r6 r3))
 		   (if (r0 >= #xf8)	; 5- or 6-byte encoding
-		       ((read r1)
-			(if (r1 < #xa0)
-			    (if (r1 < #x80) ; invalid byte
-				(write r1)
-			      (write-multibyte-character r5 r1))
-			  (write-multibyte-character r6 r1))
+		       ((r0 = -1)
+			(read r0)
+			(if (r0 < #xa0)
+			    (if (r0 < #x80) ; invalid byte
+				(write r0)
+			      (write-multibyte-character r5 r0))
+			  (write-multibyte-character r6 r0))
 			(if (r0 >= #xfc) ; 6-byte
-			    ((read r1)
-			     (if (r1 < #xa0)
-				 (if (r1 < #x80) ; invalid byte
-				     (write r1)
-				   (write-multibyte-character r5 r1))
-			       (write-multibyte-character r6 r1)))))))
+			    ((r0 = -1)
+			     (read r0)
+			     (if (r0 < #xa0)
+				 (if (r0 < #x80) ; invalid byte
+				     (write r0)
+				   (write-multibyte-character r5 r0))
+			       (write-multibyte-character r6 r0)))))))
 		;; else invalid byte >= #xfe
 		(write-multibyte-character r6 r0))))))
       (repeat)))
