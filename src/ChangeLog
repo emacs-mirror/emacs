@@ -1,3 +1,13 @@
+2001-04-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (compute_tip_xy): Add parameters WIDTH and HEIGHT.
+	Make sure the tooltip is completely visible.
+	(x_make_gc): Use FRAME_X_SCREEN_NUMBER.
+
+	* xterm.h (FRAME_X_SCREEN_NUMBER): New macro.
+
+	* xmenu.c (xmenu_show): Use FRAME_X_SCREEN_NUMBER.
+
 2001-04-06  Dave Love  <fx@gnu.org>
 
 	* composite.c (update_compositions) <check_mask & CHECK_HEAD>: Fix
