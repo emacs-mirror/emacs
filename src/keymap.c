@@ -164,7 +164,7 @@ synkey (frommap, fromchar, tomap, tochar)
 {
   Lisp_Object v, c;
   XSETVECTOR (v, tomap);
-  XFASTINT (c) = tochar;
+  XSETFASTINT (c, tochar);
   frommap->contents[fromchar] = Fcons (v, c);
 }
 #endif /* 0 */
@@ -284,7 +284,7 @@ access_keymap (map, idx, t_ok, noinherit)
   else if (INTEGERP (idx))
     /* Clobber the high bits that can be present on a machine
        with more than 24 bits of integer.  */
-    XFASTINT (idx) = XINT (idx) & (CHAR_META | (CHAR_META - 1));
+    XSETFASTINT (idx, XINT (idx) & (CHAR_META | (CHAR_META - 1)));
 
   {
     Lisp_Object tail;
@@ -414,7 +414,7 @@ store_in_keymap (keymap, idx, def)
   else if (INTEGERP (idx))
     /* Clobber the high bits that can be present on a machine
        with more than 24 bits of integer.  */
-    XFASTINT (idx) = XINT (idx) & (CHAR_META | (CHAR_META - 1));
+    XSETFASTINT (idx, XINT (idx) & (CHAR_META | (CHAR_META - 1)));
 
   /* Scan the keymap for a binding of idx.  */
   {
@@ -1317,7 +1317,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	  for (i = 0; i < prefixlen; i++)
 	    {
 	      Lisp_Object i1;
-	      XFASTINT (i1) = i;
+	      XSETFASTINT (i1, i);
 	      if (!EQ (Faref (thisseq, i1), Faref (prefix, i1)))
 		break;
 	    }
@@ -1352,11 +1352,11 @@ spaces are put between sequence elements, etc.")
       for (i = 0; i < XSTRING (keys)->size; i++)
 	{
 	  if (XSTRING (keys)->data[i] & 0x80)
-	    XFASTINT (XVECTOR (vector)->contents[i])
-	      = meta_modifier | (XSTRING (keys)->data[i] & ~0x80);
+	    XSETFASTINT (XVECTOR (vector)->contents[i],
+			 meta_modifier | (XSTRING (keys)->data[i] & ~0x80));
 	  else
-	    XFASTINT (XVECTOR (vector)->contents[i])
-	      = XSTRING (keys)->data[i];
+	    XSETFASTINT (XVECTOR (vector)->contents[i],
+			 XSTRING (keys)->data[i]);
 	}
       keys = vector;
     }
@@ -1568,14 +1568,15 @@ static int
 ascii_sequence_p (seq)
      Lisp_Object seq;
 {
-  Lisp_Object i;
+  int i;
   int len = XINT (Flength (seq));
 
-  for (XFASTINT (i) = 0; XFASTINT (i) < len; XFASTINT (i)++)
+  for (i = 0; i < len; i++)
     {
-      Lisp_Object elt;
+      Lisp_Object ii, elt;
 
-      elt = Faref (seq, i);
+      XSETFASTINT (ii, i);
+      elt = Faref (seq, ii);
 
       if (!INTEGERP (elt)
 	  || (XUINT (elt) & ~CHAR_META) >= 0x80)
@@ -1692,7 +1693,7 @@ indirect definition itself.")
 	    {
 	      /* In a vector, look at each element.  */
 	      binding = XVECTOR (elt)->contents[i];
-	      XFASTINT (key) = i;
+	      XSETFASTINT (key, i);
 	      i++;
 
 	      /* If we've just finished scanning a vector, advance map
@@ -2307,7 +2308,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 	insert1 (elt_prefix);
 
       /* Get the string to describe the character I, and print it.  */
-      XFASTINT (dummy) = i;
+      XSETFASTINT (dummy, i);
 
       /* THIS gets the string to describe the character DUMMY.  */
       this = Fsingle_key_description (dummy);
@@ -2328,7 +2329,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 
-	  XFASTINT (dummy) = i;
+	  XSETFASTINT (dummy, i);
 	  insert1 (Fsingle_key_description (dummy));
 	}
 
