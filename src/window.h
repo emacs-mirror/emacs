@@ -27,7 +27,7 @@ All windows in use are arranged into a tree, with pointers up and down.
 Windows that are leaves of the tree are actually displayed
 and show the contents of buffers.  Windows that are not leaves
 are used for representing the way groups of leaf windows are
-arranged on the screen.  Leaf windows never become non-leaves.
+arranged on the frame.  Leaf windows never become non-leaves.
 They are deleted only by calling delete-window on them (but
 this can be done implicitly).  Combination windows can be created
 and deleted at any time.
@@ -38,7 +38,7 @@ A leaf window has a non-nil buffer field, and also
 
 Non-leaf windows are either vertical or horizontal combinations.
 
-A vertical combination window has children that are arranged on the screen
+A vertical combination window has children that are arranged on the frame
 one above the next.  Its vchild field points to the uppermost child.
 The parent field of each of the children points to the vertical
 combination window.  The next field of each child points to the
@@ -57,7 +57,7 @@ combination window may be leaf windows or vertical combination windows.
 
 At the top of the tree are two windows which have nil as parent.
 The second of these is minibuf_window.  The first one manages all
-the screen area that is not minibuffer, and is called the root window.
+the frame area that is not minibuffer, and is called the root window.
 Different windows can be the root at different times;
 initially the root window is a leaf window, but if more windows
 are created then that leaf window ceases to be root and a newly
@@ -75,8 +75,8 @@ struct window
     /* The window code does not refer to them.  */
     int size;
     struct Lisp_Vector *vec_next;
-    /* The screen this window is on.  */
-    Lisp_Object screen;
+    /* The frame this window is on.  */
+    Lisp_Object frame;
     /* t if this window is a minibuffer window.  */
     Lisp_Object mini_p;
     /* Following child (to right or down) at same level of tree */
@@ -90,7 +90,7 @@ struct window
     /* The window this one is a child of. */
     Lisp_Object parent;
     /* The upper left corner coordinates of this window,
-       as integers relative to upper left corner of screen = 0, 0 */
+       as integers relative to upper left corner of frame = 0, 0 */
     Lisp_Object left;
     Lisp_Object top;
     /* The size of the window */
@@ -122,11 +122,11 @@ struct window
     /* Value of point at that time */
     Lisp_Object last_point;
 /* The rest are currently not used or only half used */
-    /* Screen coords of point at that time */
+    /* Frame coords of point at that time */
     Lisp_Object last_point_x;
     Lisp_Object last_point_y;
-    /* Screen coords of mark as of last time display completed */
-    /* May be nil if mark does not exist or was not on screen */
+    /* Frame coords of mark as of last time display completed */
+    /* May be nil if mark does not exist or was not on frame */
     Lisp_Object last_mark_x;
     Lisp_Object last_mark_y;
     /* Number of characters in buffer past bottom of window,
@@ -134,8 +134,8 @@ struct window
     Lisp_Object window_end_pos;
     /* t if window_end_pos is truly valid.
        This is nil if nontrivial redisplay is preempted
-       since in that case the screen image that window_end_pos
-       did not get onto the screen.  */
+       since in that case the frame image that window_end_pos
+       did not get onto the frame.  */
     Lisp_Object window_end_valid;
     /* Vertical position (relative to window top) of that buffer position
        of the first of those characters */
@@ -162,17 +162,17 @@ struct window
    the top level editing loop at the end of each command.
 
    This value is always the same as
-    SCREEN_SELECTED_WINDOW (selected_screen).  */
+    FRAME_SELECTED_WINDOW (selected_frame).  */
 
 extern Lisp_Object selected_window;
 
 /* This is a time stamp for window selection, so we can find the least
    recently used window.  Its only users are Fselect_window,
-   init_window_once, and make_screen.  */
+   init_window_once, and make_frame.  */
 
 extern int window_select_count;
 
-/* The minibuffer window of the selected screen.
+/* The minibuffer window of the selected frame.
    Note that you cannot test for minibufferness of an arbitrary window
    by comparing against this; but you can test for minibufferness of
    the selected window or of any window that is displayed.  */

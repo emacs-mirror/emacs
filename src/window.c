@@ -21,7 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "config.h"
 #include "lisp.h"
 #include "buffer.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "commands.h"
 #include "indent.h"
@@ -43,11 +43,11 @@ static struct window *decode_window();
    the top level editing loop at the end of each command.
 
    This value is always the same as
-    SCREEN_SELECTED_WINDOW (selected_screen).  */
+   FRAME_SELECTED_WINDOW (selected_frame).  */
 
 Lisp_Object selected_window;
 
-/* The minibuffer window of the selected screen.
+/* The minibuffer window of the selected frame.
    Note that you cannot test for minibufferness of an arbitrary window
    by comparing against this; but you can test for minibufferness of
    the selected window.  */
@@ -76,11 +76,11 @@ int window_min_width;
 /* Nonzero implies Fdisplay_buffer should create windows. */
 int pop_up_windows;
 
-/* Nonzero implies make new X screens for Fdisplay_buffer.  */
-int pop_up_screens;
+/* Nonzero implies make new frames for Fdisplay_buffer.  */
+int pop_up_frames;
 
 /* Non-nil means use this function instead of default */
-Lisp_Object Vpop_up_screen_function;
+Lisp_Object Vpop_up_frame_function;
 
 /* Function to call to handle Fdisplay_buffer.  */
 Lisp_Object Vdisplay_buffer_function;
@@ -128,7 +128,7 @@ make_window ()
   p->start = Fmake_marker ();
   p->pointm = Fmake_marker ();
   XFASTINT (p->use_time) = 0;
-  p->screen = Qnil;
+  p->frame = Qnil;
   p->display_table = Qnil;
   p->dedicated = Qnil;
   return val;
@@ -145,9 +145,9 @@ DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 0, 0,
   "Return the window used now for minibuffers.")
   ()
 {
-#ifdef MULTI_SCREEN
-  choose_minibuf_screen ();
-#endif /* MULTI_SCREEN */
+#ifdef MULTI_FRAME
+  choose_minibuf_frame ();
+#endif /* MULTI_FRAME */
   return minibuf_window;
 }
 
@@ -162,7 +162,7 @@ DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 1, 1, 
 
 DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
   Spos_visible_in_window_p, 0, 2, 0,
-  "Return t if position POS is currently on the screen in WINDOW.\n\
+  "Return t if position POS is currently on the frame in WINDOW.\n\
 Returns nil if that position is scrolled vertically out of view.\n\
 POS defaults to point; WINDOW, to the selected window.")
   (pos, window)
@@ -198,7 +198,7 @@ POS defaults to point; WINDOW, to the selected window.")
   buf = XBUFFER (w->buffer);
   if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf))
     {
-      /* If screen is up to date,
+      /* If frame is up to date,
 	 use the info recorded about how much text fit on it. */
       if (posint < BUF_Z (buf) - XFASTINT (w->window_end_pos)
 	  || (XFASTINT (w->window_end_vpos) < height))
@@ -214,7 +214,7 @@ POS defaults to point; WINDOW, to the selected window.")
       posval = *compute_motion (top, 0, 0, posint, height, 0,
 				XFASTINT (w->width) - 1
 				- (XFASTINT (w->width) + XFASTINT (w->left)
-				   != SCREEN_WIDTH (XSCREEN (w->screen))),
+				   != FRAME_WIDTH (XFRAME (w->frame))),
 				XINT (w->hscroll), 0);
 
       return posval.vpos < height ? Qt : Qnil;
@@ -258,7 +258,7 @@ DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
 
   /* If this window does not end at the right margin,
      must deduct one column for the border */
-  if ((width + w->left) == SCREEN_WIDTH (XSCREEN (WINDOW_SCREEN (w))))
+  if ((width + w->left) == FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
     return width;
   return width - 1;
 }
@@ -292,7 +292,7 @@ NCOL should be zero or positive.")
 
 DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
   "Return a list of the edge coordinates of WINDOW.\n\
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of screen.\n\
+\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.\n\
 RIGHT is one more than the rightmost column used by WINDOW,\n\
 and BOTTOM is one more than the bottommost row used by WINDOW\n\
  and its mode-line.")
@@ -338,7 +338,7 @@ coordinates_in_window (w, x, y)
   
   /* Is the character in the right border?  */
   if (*x == left + width - 1
-      && left + width != SCREEN_WIDTH (XSCREEN (w->screen)))
+      && left + width != FRAME_WIDTH (XFRAME (w->frame)))
     return 3;
 
   *x -= left;
@@ -350,9 +350,9 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   Scoordinates_in_window_p, 2, 2, 0,
   "Return non-nil if COORDINATES are in WINDOW.\n\
 COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
-measured in characters from the upper-left corner of the screen.\n\
+measured in characters from the upper-left corner of the frame.\n\
 (0 .  0) denotes the character in the upper left corner of the\n\
-screen.\n\
+frame.\n\
 If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
 If they are in the mode line of WINDOW, `mode-line' is returned.\n\
@@ -393,14 +393,14 @@ If they are on the border between WINDOW and its right sibling,\n\
    right sibling, set it to 2; otherwise set it to 0.  If there is no
    window under x, y return nil and leave *part unmodified.  */
 Lisp_Object
-window_from_coordinates (screen, x, y, part)
-     SCREEN_PTR screen;
+window_from_coordinates (frame, x, y, part)
+     FRAME_PTR frame;
      int x, y;
      int *part;
 {
   register Lisp_Object tem, first;
 
-  tem = first = SCREEN_SELECTED_WINDOW (screen);
+  tem = first = FRAME_SELECTED_WINDOW (frame);
 
   do
     {
@@ -420,23 +420,23 @@ window_from_coordinates (screen, x, y, part)
 }
 
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
-  "Return window containing row ROW, column COLUMN on SCREEN.\n\
-If omitted, SCREEN defaults to the currently selected screen.\n\
-The top left corner of the screen is considered to be row 0,\n\
+  "Return window containing row ROW, column COLUMN on FRAME.\n\
+If omitted, FRAME defaults to the currently selected frame.\n\
+The top left corner of the frame is considered to be row 0,\n\
 column 0.")
-  (row, column, screen)
-      Lisp_Object row, column, screen;
+  (row, column, frame)
+      Lisp_Object row, column, frame;
 {
   int part;
 
-  if (NILP (screen))
-    XSET (screen, Lisp_Screen, selected_screen);
+  if (NILP (frame))
+    XSET (frame, Lisp_Frame, selected_frame);
   else
-    CHECK_LIVE_SCREEN (screen, 2);
+    CHECK_LIVE_FRAME (frame, 2);
   CHECK_NUMBER (row, 0);
   CHECK_NUMBER (column, 1);
 
-  return window_from_coordinates (XSCREEN (screen),
+  return window_from_coordinates (XFRAME (frame),
 				  XINT (row), XINT (column),
 				  &part);
 }
@@ -631,11 +631,11 @@ replace_window (old, replacement)
   register Lisp_Object tem;
   register struct window *o = XWINDOW (old), *p = XWINDOW (replacement);
 
-  /* If OLD is its screen's root_window, then replacement is the new
-     root_window for that screen.  */
+  /* If OLD is its frame's root_window, then replacement is the new
+     root_window for that frame.  */
 
-  if (old == SCREEN_ROOT_WINDOW (XSCREEN (o->screen)))
-    SCREEN_ROOT_WINDOW (XSCREEN (o->screen)) = replacement;
+  if (old == FRAME_ROOT_WINDOW (XFRAME (o->frame)))
+    FRAME_ROOT_WINDOW (XFRAME (o->frame)) = replacement;
 
   p->left = o->left;
   p->top = o->top;
@@ -748,7 +748,7 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 }
 
 
-extern Lisp_Object next_screen (), prev_screen ();
+extern Lisp_Object next_frame (), prev_frame ();
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
   "Return next window after WINDOW in canonical ordering of windows.\n\
@@ -759,17 +759,17 @@ if not active.  MINIBUF nil or omitted means count the minibuffer iff\n\
 it is active.  MINIBUF neither t nor nil means not to count the\n\
 minibuffer even if it is active.\n\
 \n\
-Several screens may share a single minibuffer; if the minibuffer\n\
-counts, all windows on all screens that share that minibuffer count\n\
+Several frames may share a single minibuffer; if the minibuffer\n\
+counts, all windows on all frames that share that minibuffer count\n\
 too.  This means that next-window may be used to iterate through the\n\
-set of windows even when the minibuffer is on another screen.  If the\n\
-minibuffer does not count, only windows from WINDOW's screen count.\n\
+set of windows even when the minibuffer is on another frame.  If the\n\
+minibuffer does not count, only windows from WINDOW's frame count.\n\
 \n\
-Optional third arg ALL-SCREENS t means include windows on all screens.\n\
-ALL-SCREENS nil or omitted means cycle within the screens as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's screen.")
-  (window, minibuf, all_screens)
-     register Lisp_Object window, minibuf, all_screens;
+Optional third arg ALL-FRAMES t means include windows on all frames.\n\
+ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
+above.  If neither nil nor t, restrict to WINDOW's frame.")
+  (window, minibuf, all_frames)
+     register Lisp_Object window, minibuf, all_frames;
 {
   register Lisp_Object tem;
   Lisp_Object start_window;
@@ -786,17 +786,17 @@ above.  If neither nil nor t, restrict to WINDOW's screen.")
   if (NILP (minibuf))
     minibuf = (minibuf_level ? Qt : Qlambda);
 
-  /* all_screens == nil doesn't specify which screens to include.
-     Decide which screens it includes.  */
-  if (NILP (all_screens))
-    all_screens = (EQ (minibuf, Qt)
-		   ? (SCREEN_MINIBUF_WINDOW
-		      (XSCREEN
-		       (WINDOW_SCREEN
+  /* all_frames == nil doesn't specify which frames to include.
+     Decide which frames it includes.  */
+  if (NILP (all_frames))
+    all_frames = (EQ (minibuf, Qt)
+		   ? (FRAME_MINIBUF_WINDOW
+		      (XFRAME
+		       (WINDOW_FRAME
 			(XWINDOW (window)))))
 		   : Qnil);
-  else if (! EQ (all_screens, Qt))
-    all_screens = Qnil;
+  else if (! EQ (all_frames, Qt))
+    all_frames = Qnil;
 
   /* Do this loop at least once, to get the next window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -809,14 +809,14 @@ above.  If neither nil nor t, restrict to WINDOW's screen.")
 	  window = tem;
 	else
 	  {
-	    /* We've reached the end of this screen.
-	       Which other screens are acceptable?  */
-	    tem = WINDOW_SCREEN (XWINDOW (window));
-#ifdef MULTI_SCREEN
-	    if (! NILP (all_screens))
-	      tem = next_screen (tem, all_screens);
+	    /* We've reached the end of this frame.
+	       Which other frames are acceptable?  */
+	    tem = WINDOW_FRAME (XWINDOW (window));
+#ifdef MULTI_FRAME
+	    if (! NILP (all_frames))
+	      tem = next_frame (tem, all_frames);
 #endif
-	    tem = SCREEN_ROOT_WINDOW (XSCREEN (tem));
+	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
 	    break;
 	  }
@@ -855,18 +855,18 @@ if not active.  MINIBUF nil or omitted means count the minibuffer iff\n\
 it is active.  MINIBUF neither t nor nil means not to count the\n\
 minibuffer even if it is active.\n\
 \n\
-Several screens may share a single minibuffer; if the minibuffer\n\
-counts, all windows on all screens that share that minibuffer count\n\
+Several frames may share a single minibuffer; if the minibuffer\n\
+counts, all windows on all frames that share that minibuffer count\n\
 too.  This means that previous-window may be used to iterate through\n\
-the set of windows even when the minibuffer is on another screen.  If\n\
-the minibuffer does not count, only windows from WINDOW's screen\n\
+the set of windows even when the minibuffer is on another frame.  If\n\
+the minibuffer does not count, only windows from WINDOW's frame\n\
 count.\n\
 \n\
-Optional third arg ALL-SCREENS t means include windows on all screens.\n\
-ALL-SCREENS nil or omitted means cycle within the screens as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's screen.")
-  (window, minibuf, all_screens)
-     register Lisp_Object window, minibuf, all_screens;
+Optional third arg ALL-FRAMES t means include windows on all frames.\n\
+ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
+above.  If neither nil nor t, restrict to WINDOW's frame.")
+  (window, minibuf, all_frames)
+     register Lisp_Object window, minibuf, all_frames;
 {
   register Lisp_Object tem;
   Lisp_Object start_window;
@@ -883,17 +883,17 @@ above.  If neither nil nor t, restrict to WINDOW's screen.")
   if (NILP (minibuf))
     minibuf = (minibuf_level ? Qt : Qlambda);
 
-  /* all_screens == nil doesn't specify which screens to include.
-     Decide which screens it includes.  */
-  if (NILP (all_screens))
-    all_screens = (EQ (minibuf, Qt)
-		   ? (SCREEN_MINIBUF_WINDOW
-		      (XSCREEN
-		       (WINDOW_SCREEN
+  /* all_frames == nil doesn't specify which frames to include.
+     Decide which frames it includes.  */
+  if (NILP (all_frames))
+    all_frames = (EQ (minibuf, Qt)
+		   ? (FRAME_MINIBUF_WINDOW
+		      (XFRAME
+		       (WINDOW_FRAME
 			(XWINDOW (window)))))
 		   : Qnil);
-  else if (! EQ (all_screens, Qt))
-    all_screens = Qnil;
+  else if (! EQ (all_frames, Qt))
+    all_frames = Qnil;
 
   /* Do this loop at least once, to get the previous window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -906,14 +906,14 @@ above.  If neither nil nor t, restrict to WINDOW's screen.")
 	  window = tem;
 	else
 	  {
-	    /* We have found the top window on the screen.
-	       Which screens are acceptable?  */
-	    tem = WINDOW_SCREEN (XWINDOW (window));
-#ifdef MULTI_SCREEN
-	    if (! NILP (all_screens))
-	      tem = next_screen (tem, all_screens);
+	    /* We have found the top window on the frame.
+	       Which frames are acceptable?  */
+	    tem = WINDOW_FRAME (XWINDOW (window));
+#ifdef MULTI_FRAME
+	    if (! NILP (all_frames))
+	      tem = next_frame (tem, all_frames);
 #endif
-	    tem = SCREEN_ROOT_WINDOW (XSCREEN (tem));
+	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
 	    break;
 	  }
@@ -945,13 +945,13 @@ above.  If neither nil nor t, restrict to WINDOW's screen.")
 }
 
 DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
-  "Select the ARG'th different window on this screen.\n\
-All windows on current screen are arranged in a cyclic order.\n\
+  "Select the ARG'th different window on this frame.\n\
+All windows on current frame are arranged in a cyclic order.\n\
 This command selects the window ARG steps away in that order.\n\
 A negative ARG moves in the opposite order.  If the optional second\n\
-argument ALL_SCREENS is non-nil, cycle through all screens.")
-  (n, all_screens)
-     register Lisp_Object n, all_screens;
+argument ALL_FRAMES is non-nil, cycle through all frames.")
+  (n, all_frames)
+     register Lisp_Object n, all_frames;
 {
   register int i;
   register Lisp_Object w;
@@ -962,12 +962,12 @@ argument ALL_SCREENS is non-nil, cycle through all screens.")
 
   while (i > 0)
     {
-      w = Fnext_window (w, Qnil, all_screens);
+      w = Fnext_window (w, Qnil, all_frames);
       i--;
     }
   while (i < 0)
     {
-      w = Fprevious_window (w, Qnil, all_screens);
+      w = Fprevious_window (w, Qnil, all_frames);
       i++;
     }
   Fselect_window (w);
@@ -976,8 +976,8 @@ argument ALL_SCREENS is non-nil, cycle through all screens.")
 
 /* Look at all windows, performing an operation specified by TYPE
    with argument OBJ.
-   If SCREENS is Qt, look at all screens, if Qnil, look at just the selected
-   screen.  If SCREENS is a screen, just look at windows on that screen.
+   If FRAMES is Qt, look at all frames, if Qnil, look at just the selected
+   frame.  If FRAMES is a frame, just look at windows on that frame.
    If MINI is non-zero, perform the operation on minibuffer windows too.
 */
 
@@ -993,34 +993,34 @@ enum window_loop
 };
 
 static Lisp_Object
-window_loop (type, obj, mini, screens)
+window_loop (type, obj, mini, frames)
      enum window_loop type;
-     register Lisp_Object obj, screens;
+     register Lisp_Object obj, frames;
      int mini;
 {
   register Lisp_Object w;
   register Lisp_Object best_window;
   register Lisp_Object next_window;
   register Lisp_Object first_window;
-  SCREEN_PTR screen;
+  FRAME_PTR frame;
 
-  /* If we're only looping through windows on a particular screen,
-     screen points to that screen.  If we're looping through windows
-     on all screens, screen is 0.  */
-  if (SCREENP (screens))
-    screen = XSCREEN (screens);
-  else if (NILP (screens))
-    screen = selected_screen;
+  /* If we're only looping through windows on a particular frame,
+     frame points to that frame.  If we're looping through windows
+     on all frames, frame is 0.  */
+  if (FRAMEP (frames))
+    frame = XFRAME (frames);
+  else if (NILP (frames))
+    frame = selected_frame;
   else
-    screen = 0;
+    frame = 0;
 
   /* Pick a window to start with.  */
   if (XTYPE (obj) == Lisp_Window)
     first_window = obj;
-  else if (screen)
-    first_window = SCREEN_SELECTED_WINDOW (screen);
+  else if (frame)
+    first_window = FRAME_SELECTED_WINDOW (frame);
   else
-    first_window = SCREEN_SELECTED_WINDOW (selected_screen);
+    first_window = FRAME_SELECTED_WINDOW (selected_frame);
 
   w = first_window;
   best_window = Qnil;
@@ -1028,13 +1028,13 @@ window_loop (type, obj, mini, screens)
     {
       /* Pick the next window now, since some operations will delete
 	 the current window.  */
-#ifdef MULTI_SCREEN
-      if (screen)
+#ifdef MULTI_FRAME
+      if (frame)
 	next_window = Fnext_window (w, (mini ? Qt : Qnil), Qlambda);
       else
-#endif	/* MULTI_SCREEN */
-	/* We know screen is 0, so we're looping through all screens.
-	   Or we know this isn't a MULTI_SCREEN Emacs, so who cares?  */
+#endif	/* MULTI_FRAME */
+	/* We know frame is 0, so we're looping through all frames.
+	   Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
 	next_window = Fnext_window (w, mini ? Qt : Qnil, Qt);
 
       if (!MINI_WINDOW_P (XWINDOW (w))
@@ -1043,9 +1043,9 @@ window_loop (type, obj, mini, screens)
 	  {
 	  case GET_BUFFER_WINDOW:
 #if 0
-	    /* Ignore invisible and iconified screens.  */
-	    if (! SCREEN_VISIBLE_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w))))
-		|| SCREEN_ICONIFIED_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w)))))
+	    /* Ignore invisible and iconified frames.  */
+	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
+		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
 	      break;
 #endif
 	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj))
@@ -1055,12 +1055,12 @@ window_loop (type, obj, mini, screens)
 	  case GET_LRU_WINDOW:
 	    /* t as arg means consider only full-width windows */
 	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width)
-		!= SCREEN_WIDTH (screen))
+		!= FRAME_WIDTH (frame))
 	      break;
 #if 0
-	    /* Ignore invisible and iconified screens.  */
-	    if (! SCREEN_VISIBLE_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w))))
-		|| SCREEN_ICONIFIED_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w)))))
+	    /* Ignore invisible and iconified frames.  */
+	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
+		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
 	      break;
 #endif
 	    /* Ignore dedicated windows and minibuffers.  */
@@ -1082,7 +1082,7 @@ window_loop (type, obj, mini, screens)
 	    if (EQ (XWINDOW (w)->buffer, obj))
 	      {
 		/* If we're deleting the buffer displayed in the only window
-		   on the screen, find a new buffer to display there.  */
+		   on the frame, find a new buffer to display there.  */
 		if (NILP (XWINDOW (w)->parent))
 		  {
 		    Lisp_Object new_buffer = Fother_buffer (obj);
@@ -1099,9 +1099,9 @@ window_loop (type, obj, mini, screens)
 
 	  case GET_LARGEST_WINDOW:
 #if 0
-	    /* Ignore invisible and iconified screens.  */
-	    if (! SCREEN_VISIBLE_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w))))
-		|| SCREEN_ICONIFIED_P (XSCREEN (WINDOW_SCREEN (XWINDOW (w)))))
+	    /* Ignore invisible and iconified frames.  */
+	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
+		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
 	      break;
 #endif
 	    /* Ignore dedicated windows and minibuffers.  */
@@ -1142,49 +1142,49 @@ window_loop (type, obj, mini, screens)
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
   "Return the window least recently selected or used for display.\n\
-If optional argument SCREENS is t, search all screens.  If SCREEN is a\n\
-screen, search only that screen.\n")
-  (screens)
-    Lisp_Object screens;
+If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
+frame, search only that frame.\n")
+  (frames)
+    Lisp_Object frames;
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
-  w = window_loop (GET_LRU_WINDOW, Qt, 0, screens);
+  w = window_loop (GET_LRU_WINDOW, Qt, 0, frames);
   if (!NILP (w) && !EQ (w, selected_window))
     return w;
   /* If none of them, try the rest */
-  return window_loop (GET_LRU_WINDOW, Qnil, 0, screens);
+  return window_loop (GET_LRU_WINDOW, Qnil, 0, frames);
 }
 
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
   "Return the largest window in area.\n\
-If optional argument SCREENS is t, search all screens.  If SCREEN is a\n\
-screen, search only that screen.\n")
-  (screen)
-    Lisp_Object screen;
+If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
+frame, search only that frame.\n")
+  (frame)
+    Lisp_Object frame;
 {
   return window_loop (GET_LARGEST_WINDOW, Qnil, 0,
-		      screen);
+		      frame);
 }
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
   "Return a window currently displaying BUFFER, or nil if none.\n\
-If optional argument SCREENS is t, search all screens.  If SCREEN is a\n\
-screen, search only that screen.\n")
-  (buffer, screen)
-    Lisp_Object buffer, screen;
+If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
+frame, search only that frame.\n")
+  (buffer, frame)
+    Lisp_Object buffer, frame;
 {
   buffer = Fget_buffer (buffer);
   if (XTYPE (buffer) == Lisp_Buffer)
-    return window_loop (GET_BUFFER_WINDOW, buffer, 1, screen);
+    return window_loop (GET_BUFFER_WINDOW, buffer, 1, frame);
   else
     return Qnil;
 }
 
 DEFUN ("delete-other-windows", Fdelete_other_windows, Sdelete_other_windows,
   0, 1, "",
-  "Make WINDOW (or the selected window) fill its screen.\n\
-Only the screen WINDOW is on is affected.")
+  "Make WINDOW (or the selected window) fill its frame.\n\
+Only the frame WINDOW is on is affected.")
   (window)
      Lisp_Object window;
 {
@@ -1201,7 +1201,7 @@ Only the screen WINDOW is on is affected.")
   w = XWINDOW (window);
   top = XFASTINT (w->top);
 
-  window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_SCREEN(w));
+  window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME(w));
 
   Fset_buffer (w->buffer);
   SET_PT (marker_position (w->start));
@@ -1439,14 +1439,14 @@ before each command.")
 	       ow->buffer);
 
   selected_window = window;
-#ifdef MULTI_SCREEN
-  if (XSCREEN (WINDOW_SCREEN (w)) != selected_screen)
+#ifdef MULTI_FRAME
+  if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
     {
-      XSCREEN (WINDOW_SCREEN (w))->selected_window = window;
-      Fselect_screen (WINDOW_SCREEN (w), Qnil);
+      XFRAME (WINDOW_FRAME (w))->selected_window = window;
+      Fselect_frame (WINDOW_FRAME (w), Qnil);
     }
   else
-    selected_screen->selected_window = window;
+    selected_frame->selected_window = window;
 #endif
 
   record_buffer (w->buffer);
@@ -1499,48 +1499,48 @@ Returns the window displaying BUFFER.")
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     return window;
 
-#ifdef MULTI_SCREEN
-  /* If there are no screens open that have more than a minibuffer,
-     we need to create a new screen.  */
-  if (pop_up_screens || last_nonminibuf_screen == 0)
+#ifdef MULTI_FRAME
+  /* If there are no frames open that have more than a minibuffer,
+     we need to create a new frame.  */
+  if (pop_up_frames || last_nonminibuf_frame == 0)
     {
       window
-	= Fscreen_selected_window (call0 (Vpop_up_screen_function));
+	= Fframe_selected_window (call0 (Vpop_up_frame_function));
       Fset_window_buffer (window, buffer);
 #if 0
-      Fselect_screen (XWINDOW (window)->screen, Qnil);
+      Fselect_frame (XWINDOW (window)->frame, Qnil);
 #endif
       return window;
     }
-#endif /* MULTI_SCREEN */
+#endif /* MULTI_FRAME */
 
   if (pop_up_windows
-#ifdef MULTI_SCREEN
-      || SCREEN_MINIBUF_ONLY_P (selected_screen)
+#ifdef MULTI_FRAME
+      || FRAME_MINIBUF_ONLY_P (selected_frame)
 #endif
       )
     {
-      Lisp_Object screens = Qnil;
+      Lisp_Object frames = Qnil;
       
-#ifdef MULTI_SCREEN
-      if (SCREEN_MINIBUF_ONLY_P (selected_screen))
-	XSET (screens, Lisp_Screen, last_nonminibuf_screen);
+#ifdef MULTI_FRAME
+      if (FRAME_MINIBUF_ONLY_P (selected_frame))
+	XSET (frames, Lisp_Frame, last_nonminibuf_frame);
 #endif
       /* Don't try to create a window if would get an error */
       if (split_height_threshold < window_min_height << 1)
 	split_height_threshold = window_min_height << 1;
 
-      window = Fget_largest_window (screens);
+      window = Fget_largest_window (frames);
 
       if (!NILP (window)
 	  && window_height (window) >= split_height_threshold
 	  &&
 	  (XFASTINT (XWINDOW (window)->width)
-	   == SCREEN_WIDTH (XSCREEN (WINDOW_SCREEN (XWINDOW (window))))))
+	   == FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (window))))))
 	window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
-	  window = Fget_lru_window (screens);
+	  window = Fget_lru_window (frames);
 	  if ((EQ (window, selected_window)
 	       || EQ (XWINDOW (window)->parent, Qnil))
 	      && window_height (window) >= window_min_height << 1)
@@ -1576,10 +1576,10 @@ temp_output_buffer_show (buf)
     {
       window = Fdisplay_buffer (buf, Qnil);
 
-#ifdef MULTI_SCREEN
-      if (XSCREEN (XWINDOW (window)->screen) != selected_screen)
-	Fmake_screen_visible (XWINDOW (window)->screen);
-#endif /* MULTI_SCREEN */
+#ifdef MULTI_FRAME
+      if (XFRAME (XWINDOW (window)->frame) != selected_frame)
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+#endif /* MULTI_FRAME */
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
       XFASTINT (w->hscroll) = 0;
@@ -1654,8 +1654,8 @@ and put SIZE columns in the first of the pair.")
 
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (SCREEN_NO_SPLIT_P (XSCREEN (WINDOW_SCREEN (o))))
-    error ("Attempt to split unsplittable screen");
+  else if (FRAME_NO_SPLIT_P (XFRAME (WINDOW_FRAME (o))))
+    error ("Attempt to split unsplittable frame");
 
   /* Smaller values might permit a crash.  */
   if (window_min_width < 2)
@@ -1698,7 +1698,7 @@ and put SIZE columns in the first of the pair.")
   new = make_window ();
   p = XWINDOW (new);
 
-  p->screen = o->screen;
+  p->frame = o->frame;
   p->next = o->next;
   if (!NILP (p->next))
     XWINDOW (p->next)->prev = new;
@@ -1709,7 +1709,7 @@ and put SIZE columns in the first of the pair.")
 
   Fset_window_buffer (new, o->buffer);
 
-  /* Apportion the available screen space among the two new windows */
+  /* Apportion the available frame space among the two new windows */
 
   if (!NILP (horflag))
     {
@@ -1833,14 +1833,14 @@ change_window_height (delta, widthflag)
     maxdelta = (!NILP (parent) ? (*sizefun) (parent) - *sizep
 		: !NILP (p->next) ? (*sizefun) (p->next) - MINSIZE (p->next)
 		: !NILP (p->prev) ? (*sizefun) (p->prev) - MINSIZE (p->prev)
-		/* This is a screen with only one window, a minibuffer-only
-		   or a minibufferless screen.  */
+		/* This is a frame with only one window, a minibuffer-only
+		   or a minibufferless frame.  */
 		: (delta = 0));
 
     if (delta > maxdelta)
       /* This case traps trying to make the minibuffer
-	 the full screen, or make the only window aside from the
-	 minibuffer the full screen.  */
+	 the full frame, or make the only window aside from the
+	 minibuffer the full frame.  */
       delta = maxdelta;
 
     if (delta == 0)
@@ -1914,7 +1914,7 @@ window_internal_height (w)
 
   if (!NILP (w->parent) || !NILP (w->vchild) || !NILP (w->hchild)
       || !NILP (w->next) || !NILP (w->prev)
-      || SCREEN_WANTS_MODELINE_P (XSCREEN (WINDOW_SCREEN (w))))
+      || FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (w))))
     return ht - 1;
 
   return ht;
@@ -2145,11 +2145,11 @@ Default for ARG is window width minus 2.")
 }
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-  "Center point in window and redisplay screen.  With ARG, put point on line ARG.\n\
+  "Center point in window and redisplay frame.  With ARG, put point on line ARG.\n\
 The desired position of point is always relative to the current window.\n\
-Just C-u as prefix means put point in the center of the screen.\n\
-No arg (i.e., it is nil) erases the entire screen and then\n\
-redraws with point in the center.")
+Just C-u as prefix means put point in the center of the window.\n\
+No arg (i.e., it is nil) erases the entire frame and then\n\
+redraws with point in the center of the current window.")
   (n)
      register Lisp_Object n;
 {
@@ -2159,9 +2159,9 @@ redraws with point in the center.")
 
   if (NILP (n))
     {
-      extern int screen_garbaged;
+      extern int frame_garbaged;
 
-      SET_SCREEN_GARBAGED (XSCREEN (WINDOW_SCREEN (w)));
+      SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
       XFASTINT (n) = ht / 2;
     }
   else if (XTYPE (n) == Lisp_Cons) /* Just C-u. */
@@ -2193,7 +2193,7 @@ DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
   1, 1, "P",
   "Position point relative to window.\n\
 With no argument, position text at center of window.\n\
-An argument specifies screen line; zero means top of window,\n\
+An argument specifies frame line; zero means top of window,\n\
 negative means relative to bottom of window.")
   (arg)
      register Lisp_Object arg;
@@ -2229,7 +2229,7 @@ struct save_window_data
   {
     int size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
-    Lisp_Object screen_width, screen_height;
+    Lisp_Object frame_width, frame_height;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
     Lisp_Object minibuf_scroll_window;
@@ -2285,7 +2285,7 @@ by `current-window-configuration' (which see).")
   register Lisp_Object tem;
   Lisp_Object new_current_buffer;
   int k;
-  SCREEN_PTR s;
+  FRAME_PTR f;
 
   while (XTYPE (arg) != Lisp_Window_Configuration)
     {
@@ -2295,16 +2295,16 @@ by `current-window-configuration' (which see).")
   data = (struct save_window_data *) XVECTOR (arg);
   saved_windows = XVECTOR (data->saved_windows);
 
-  s = XSCREEN (XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->screen);
+  f = XFRAME (XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame);
 
-  if (XFASTINT (data->screen_height) != SCREEN_HEIGHT (s)
-      || XFASTINT (data->screen_width) != SCREEN_WIDTH (s))
+  if (XFASTINT (data->frame_height) != FRAME_HEIGHT (f)
+      || XFASTINT (data->frame_width) != FRAME_WIDTH (f))
     {
       /* Presumably something clever could be done.
 	 However, it doesn't seem worth the effort */
-      error ("Screen size %dx%d in saved window configuration mismatches screen.",
-	     XFASTINT (data->screen_height),
-	     XFASTINT (data->screen_width));
+      error ("Frame size %dx%d in saved window configuration mismatches frame.",
+	     XFASTINT (data->frame_height),
+	     XFASTINT (data->frame_width));
     }
 
   windows_or_buffers_changed++;
@@ -2312,12 +2312,12 @@ by `current-window-configuration' (which see).")
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
 
-  /* Mark all windows now on screen as "deleted".
+  /* Mark all windows now on frame as "deleted".
      Restoring the new configuration "undeletes" any that are in it.  */
 
-  delete_all_subwindows (XWINDOW (SCREEN_ROOT_WINDOW (s)));
+  delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
 #if 0
-  /* This loses when the minibuf screen is not s. */
+  /* This loses when the minibuf frame is not f. */
   delete_all_subwindows (XWINDOW (XWINDOW (minibuf_window)->prev));
 #endif
 
@@ -2335,12 +2335,12 @@ by `current-window-configuration' (which see).")
       if (!NILP (p->prev))
 	{
 	  w->prev = SAVED_WINDOW_N (saved_windows, XFASTINT (p->prev))->window;
-#ifdef MULTI_SCREEN
-	  /* This is true for a minibuffer-only screen. */
+#ifdef MULTI_FRAME
+	  /* This is true for a minibuffer-only frame. */
 	  if (w->mini_p && EQ (w->prev, p->window))
 	    w->next = Qnil;
 	  else
-#endif	/* MULTI_SCREEN */
+#endif	/* MULTI_FRAME */
 	    XWINDOW (w->prev)->next = p->window;
 	}
       else
@@ -2412,14 +2412,14 @@ by `current-window-configuration' (which see).")
 	}
     }
 
-  SCREEN_ROOT_WINDOW (s) = data->root_window;
+  FRAME_ROOT_WINDOW (f) = data->root_window;
 
-#ifdef MULTI_SCREEN
-  if (s != selected_screen && ! SCREEN_IS_TERMCAP (s))
-    Fselect_screen (WINDOW_SCREEN (XWINDOW (data->root_window)), Qnil);
+#ifdef MULTI_FRAME
+  if (f != selected_frame && ! FRAME_IS_TERMCAP (f))
+    Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
 #endif
 
-  if (s == selected_screen)
+  if (f == selected_frame)
     {
       Fselect_window (data->current_window);
       if (!NILP (new_current_buffer))
@@ -2432,7 +2432,7 @@ by `current-window-configuration' (which see).")
   return (Qnil);
 }
 
-/* Mark all windows now on screen as deleted
+/* Mark all windows now on frame as deleted
    by setting their buffers to nil.  */
 
 static void
@@ -2536,45 +2536,45 @@ save_window_save (window, vector, i)
 
 DEFUN ("current-window-configuration",
 	Fcurrent_window_configuration, Scurrent_window_configuration, 0, 1, 0,
-  "Return an object representing the current window configuration of SCREEN.\n\
-If SCREEN is nil or omitted, use the selected screen.\n\
+  "Return an object representing the current window configuration of FRAME.\n\
+If FRAME is nil or omitted, use the selected frame.\n\
 This describes the number of windows, their sizes and current buffers,\n\
 and for each displayed buffer, where display starts, and the positions of\n\
 point and mark.  An exception is made for point in the current buffer:\n\
 its value is -not- saved.")
-  (screen)
-     Lisp_Object screen;
+  (frame)
+     Lisp_Object frame;
 {
   register Lisp_Object tem;
   register int n_windows;
   register struct save_window_data *data;
   register int i;
-  SCREEN_PTR s;
+  FRAME_PTR f;
 
-  if (NILP (screen))
-    s = selected_screen;
+  if (NILP (frame))
+    f = selected_frame;
   else
     {
-      CHECK_LIVE_SCREEN (screen, 0);
-      s = XSCREEN (screen);
+      CHECK_LIVE_FRAME (frame, 0);
+      f = XFRAME (frame);
     }
 
-  n_windows = count_windows (XWINDOW (SCREEN_ROOT_WINDOW (s)));
+  n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   data = (struct save_window_data *)
            XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE),
 				  Qnil));
-  XFASTINT (data->screen_width) = SCREEN_WIDTH (s);
-  XFASTINT (data->screen_height) = SCREEN_HEIGHT (s);
-  data->current_window = SCREEN_SELECTED_WINDOW (s);
+  XFASTINT (data->frame_width) = FRAME_WIDTH (f);
+  XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
+  data->current_window = FRAME_SELECTED_WINDOW (f);
   XSET (data->current_buffer, Lisp_Buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
-  data->root_window = SCREEN_ROOT_WINDOW (s);
+  data->root_window = FRAME_ROOT_WINDOW (f);
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
     XVECTOR (tem)->contents[i]
       = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
-  save_window_save (SCREEN_ROOT_WINDOW (s),
+  save_window_save (FRAME_ROOT_WINDOW (f),
 		    XVECTOR (tem), 0);
   XSET (tem, Lisp_Window_Configuration, data);
   return (tem);
@@ -2600,47 +2600,47 @@ Does not restore the value of point in current buffer.")
 
 init_window_once ()
 {
-#ifdef MULTI_SCREEN
-  selected_screen = make_terminal_screen ();
-  minibuf_window = selected_screen->minibuffer_window;
-  selected_window = selected_screen->selected_window;
-  last_nonminibuf_screen = selected_screen;
-#else /* not MULTI_SCREEN */
+#ifdef MULTI_FRAME
+  selected_frame = make_terminal_frame ();
+  minibuf_window = selected_frame->minibuffer_window;
+  selected_window = selected_frame->selected_window;
+  last_nonminibuf_frame = selected_frame;
+#else /* not MULTI_FRAME */
   extern Lisp_Object get_minibuffer ();
 
-  SCREEN_ROOT_WINDOW (selected_screen) = make_window ();
+  FRAME_ROOT_WINDOW (selected_frame) = make_window ();
   minibuf_window = make_window ();
 
-  XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->next = minibuf_window;
-  XWINDOW (minibuf_window)->prev = SCREEN_ROOT_WINDOW (selected_screen);
+  XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->next = minibuf_window;
+  XWINDOW (minibuf_window)->prev = FRAME_ROOT_WINDOW (selected_frame);
 
   /* These values 9 and 10 are arbitrary,
      just so that there is "something there."
      Correct values are put in in init_xdisp */
 
-  XFASTINT (XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->width) = 10;
+  XFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->width) = 10;
   XFASTINT (XWINDOW (minibuf_window)->width) = 10;
 
-  XFASTINT (XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->height) = 9;
+  XFASTINT (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->height) = 9;
   XFASTINT (XWINDOW (minibuf_window)->top) = 9;
   XFASTINT (XWINDOW (minibuf_window)->height) = 1;
 
   /* Prevent error in Fset_window_buffer.  */
-  XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->buffer = Qt;
+  XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->buffer = Qt;
   XWINDOW (minibuf_window)->buffer = Qt;
 
   /* Now set them up for real.  */
-  Fset_window_buffer (SCREEN_ROOT_WINDOW (selected_screen),
+  Fset_window_buffer (FRAME_ROOT_WINDOW (selected_frame),
 		      Fcurrent_buffer ());
   Fset_window_buffer (minibuf_window, get_minibuffer (0));
 
-  selected_window = SCREEN_ROOT_WINDOW (selected_screen);
+  selected_window = FRAME_ROOT_WINDOW (selected_frame);
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  Increment
      window_select_count so the first selection ever will get
      something newer than this.  */
   XFASTINT (XWINDOW (selected_window)->use_time) = ++window_select_count;
-#endif /* not MULTI_SCREEN */
+#endif /* not MULTI_FRAME */
 }
 
 syms_of_window ()
@@ -2670,13 +2670,13 @@ work using this function.");
 
   DEFVAR_LISP ("mouse-event", &Vmouse_event,
      "The last mouse-event object.  A list of four elements:\n\
-  ((X-POS Y-POS) WINDOW SCREEN-PART KEYSEQ).\n\
+  ((X-POS Y-POS) WINDOW FRAME-PART KEYSEQ).\n\
 KEYSEQ is a string, the key sequence to be looked up in the mouse maps.\n\
 WINDOW is the window that the click applies do.\n\
-If SCREEN-PART is non-nil, the event was on a scrollbar;\n\
+If FRAME-PART is non-nil, the event was on a scrollbar;\n\
 then Y-POS is really the total length of the scrollbar, while X-POS is\n\
 the relative position of the scrollbar's value within that total length.\n\
-SCREEN-PART is one of the following symbols:\n\
+FRAME-PART is one of the following symbols:\n\
  `vertical-scrollbar', `vertical-slider',\n\
  `vertical-thumbup', `vertical-thumbdown',\n\
  `horizontal-scrollbar', `horizontal-slider',\n\
@@ -2691,18 +2691,18 @@ SCREEN-PART is one of the following symbols:\n\
     "If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.");
   Vother_window_scroll_buffer = Qnil;
 
-#ifdef MULTI_SCREEN
-  DEFVAR_BOOL ("pop-up-screens", &pop_up_screens,
+#ifdef MULTI_FRAME
+  DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
     "*Non-nil means `display-buffer' should make a separate X-window.");
-  pop_up_screens = 0;
+  pop_up_frames = 0;
 
-  DEFVAR_LISP ("pop-up-screen-function", &Vpop_up_screen_function,
-    "*If non-nil, function to call to handle automatic new screen creation.\n\
-It is called with no arguments and should return a newly created screen.\n\
+  DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
+    "*If non-nil, function to call to handle automatic new frame creation.\n\
+It is called with no arguments and should return a newly created frame.\n\
 \n\
-A typical value might be `(lambda () (x-create-screen auto-screen-parms))'\n\
-where `auto-screen-parms' would hold the default screen parameters.");
-  Vpop_up_screen_function = Qnil;
+A typical value might be `(lambda () (new-frame pop-up-frame-alist))'\n\
+where `pop-up-frame-alist' would hold the default frame parameters.");
+  Vpop_up_frame_function = Qnil;
 #endif
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
