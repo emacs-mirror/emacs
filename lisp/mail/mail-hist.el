@@ -3,8 +3,8 @@
 
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Created: March, 1994
-;; Version: 1.2.2
-;; Keywords: mail
+;; Version: 1.3
+;; Keywords: mail, history
 
 ;; This file is part of GNU Emacs.
 
@@ -112,7 +112,7 @@ the message."
         (and
          name-start
          name-end
-         (buffer-substring name-start name-end))))))
+         (downcase (buffer-substring name-start name-end)))))))
 
 (defsubst mail-hist-forward-header (count)
   "Move forward COUNT headers (backward if COUNT is negative).
@@ -175,12 +175,14 @@ colon, or just after the colon if it is not followed by whitespace."
 (defsubst mail-hist-get-header-ring (header)
   "Get HEADER's history ring, or nil if none.
 HEADER is a string without the colon."
+  (setq header (downcase header))
   (cdr (assoc header mail-hist-header-ring-alist)))
 
 (defsubst mail-hist-add-header-contents-to-ring (header &optional contents)
   "Add the contents of HEADER to the header history ring.
 Optional argument CONTENTS is a string which will be the contents
-\(instead of whatever's found in the header)."
+(instead of whatever's found in the header)."
+  (setq header (downcase header))
   (let ((ring (cdr (assoc header mail-hist-header-ring-alist))))
     (or ring
         ;; If the ring doesn't exist, we'll have to make it and add it
@@ -223,6 +225,7 @@ its own independent history, as does the body of the message.
 The history only contains the contents of outgoing messages, not
 received mail."
   (interactive (list (or (mail-hist-current-header-name) "body")))
+  (setq header (downcase header))
   (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
          (len (ring-length ring))
          (repeat (eq last-command 'mail-hist-input-access)))
@@ -251,11 +254,12 @@ its own independent history, as does the body of the message.
 
 Although you can do so, it does not make much sense to call this
 without having called `mail-hist-previous-header' first
-\(\\[mail-hist-previous-header]).
+(\\[mail-hist-previous-header]).
 
 The history only contains the contents of outgoing messages, not
 received mail."
   (interactive (list (or (mail-hist-current-header-name) "body")))
+  (setq header (downcase header))
   (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
          (len (ring-length ring))
          (repeat (eq last-command 'mail-hist-input-access)))
