@@ -1,8 +1,6 @@
-;;; -*- Mode:Emacs-Lisp -*-
 ;;; The optimization passes of the emacs-lisp byte compiler.
-
+;;; Copyright (c) 1991 Free Software Foundation, Inc.
 ;; By Jamie Zawinski <jwz@lucid.com> and Hallvard Furuseth <hbf@ulrik.uio.no>.
-;; last modified 29-oct-91.
 
 ;; This file is part of GNU Emacs.
 
@@ -131,11 +129,6 @@
 ;;; the code that relies on dynamic scope of non-defvarred variables.
 
 
-(require 'byte-compile "bytecomp")
-
-(or (fboundp 'byte-compile-lapcode)
-    (error "loading bytecomp got the wrong version of the compiler."))
-
 (defun byte-compile-log-lap-1 (format &rest args)
   (if (aref byte-code-vector 0)
       (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well."))
@@ -196,11 +189,11 @@
 	 (cdr form))))
 
 
+;; Splice the given lap code into the current instruction stream.
+;; If it has any labels in it, you're responsible for making sure there
+;; are no collisions, and that byte-compile-tag-number is reasonable
+;; after this is spliced in.  The provided list is destroyed.
 (defun byte-inline-lapcode (lap)
-  "splice the given lap code into the current instruction stream.
-If it has any labels in it, you're responsible for making sure there
-are no collisions, and that byte-compile-tag-number is reasonable
-after this is spliced in.  the provided list is destroyed."
   (setq byte-compile-output (nconc (nreverse lap) byte-compile-output)))
 
 
@@ -528,10 +521,10 @@ after this is spliced in.  the provided list is destroyed."
 	   ((not (symbolp (, form))))
 	   ((eq (, form) t)))))
 
+;; If the function is being called with constant numeric args,
+;; evaluate as much as possible at compile-time.  This optimizer 
+;; assumes that the function is associative, like + or *.
 (defun byte-optimize-associative-math (form)
-  "If the function is being called with constant numeric args,
-evaluate as much as possible at compile-time.  This optimizer 
-assumes that the function is associative, like + or *."
   (let ((args nil)
 	(constants nil)
 	(rest (cdr form)))
@@ -550,10 +543,10 @@ assumes that the function is associative, like + or *."
 	    (apply (car form) constants))
 	form)))
 
+;; If the function is being called with constant numeric args,
+;; evaluate as much as possible at compile-time.  This optimizer 
+;; assumes that the function is nonassociative, like - or /.
 (defun byte-optimize-nonassociative-math (form)
-  "If the function is being called with constant numeric args,
-evaluate as much as possible at compile-time.  This optimizer 
-assumes that the function is nonassociative, like - or /."
   (if (or (not (numberp (car (cdr form))))
 	  (not (numberp (car (cdr (cdr form))))))
       form
@@ -1052,11 +1045,11 @@ assumes that the function is nonassociative, like - or /."
 	(byte-compile-tag-number 0))
     (byte-decompile-bytecode-1 bytes constvec)))
 
+;; As byte-decompile-bytecode, but updates
+;; byte-compile-{constants, variables, tag-number}.
+;; If the optional 3rd arg is true, then `return' opcodes are replaced
+;; with `goto's destined for the end of the code.
 (defun byte-decompile-bytecode-1 (bytes constvec &optional make-splicable)
-  "As byte-decompile-bytecode, but updates
-byte-compile-{constants, variables, tag-number}.
-If the optional 3rd arg is true, then `return' opcodes are replaced
-with `goto's destined for the end of the code."
   (let ((length (length bytes))
 	(ptr 0) optr tag tags op offset
 	lap tmp

@@ -24,7 +24,7 @@
 
 (load "subr")
 (garbage-collect)
-(load "bytecomp-runtime")
+(load "byte-run")
 (garbage-collect)
 (load "map-ynp")
 (garbage-collect)
