@@ -55,11 +55,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* ========================= Face Data Structures =========================
 
-   All lisp code uses symbols as face names.
+   Let FACE-NAME be a symbol naming a face.
 
-   Each frame has a face_alist member (with the frame-face-alist and
-   set-frame-face-alist accessors), associating the face names with
-   vectors of the form 
+   Let FACE-VECTOR be (assq FACE-NAME (frame-face-alist FRAME))
+   FACE-VECTOR is either nil, or a vector of the form
        [face NAME ID FONT FOREGROUND BACKGROUND BACKGROUND-PIXMAP UNDERLINE-P]
    where
        face is the symbol `face',
@@ -71,53 +70,67 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
        BACKGROUND-PIXMAP is the name of an x bitmap filename, which we don't
            use right now, and
        UNDERLINE-P is non-nil if the face should be underlined.
-   If any of these elements are nil, that allows the frame's parameters to
-   show through.
-   (lisp/faces.el maintains these association lists.)
+   If any of these elements are nil, that parameter is considered
+   unspecified; parameters from faces specified by lower-priority
+   overlays or text properties, or the parameters of the frame itself,
+   can show through.  (lisp/faces.el maintains these lists.)
 
-   The frames' private alists hold the frame-local definitions for the
-   faces.  The lisp variable global-face-data contains the global
-   defaults for faces.  (See lisp/faces.el for this too.)
+   (assq FACE-NAME global-face-data) returns a vector describing the
+   global parameters for that face.
 
-   In the C code, we also have a `struct face' with the elements
-      `foreground', `background', `font', and `underline',
-   which specify its visual appearance, and elements
-      `gc' and `cached_index';
-   `gc' may be an X GC which has been built for the given display
-   parameters.  Faces with GC's are called `display faces'.  Whether
-   or not a face has a GC depends on what data structure the face is
-   in; we explain these more below.  (See src/dispextern.h.)
+   Let PARAM-FACE be FRAME->display.x->param_faces[Faref (FACE-VECTOR, 2)].
+   PARAM_FACE is a struct face whose members are the Xlib analogues of
+   the parameters in FACE-VECTOR.  If an element of FACE-VECTOR is
+   nil, then the corresponding member of PARAM_FACE is FACE_DEFAULT.
+   These faces are called "parameter faces", because they're the ones
+   lisp manipulates to control what gets displayed.  Elements 0 and 1
+   of FRAME->display.x->param_faces are special - they describe the
+   default and mode line faces.  None of the faces in param_faces have
+   GC's.  (See src/dispextern.h for the definiton of struct face.
+   lisp/faces.el maintains the isomorphism between face_alist and
+   param_faces.)
 
-   Each frame also has members called `faces' and `n_faces' (with the
-   accessors FRAME_FACES and FRAME_N_FACES), which define an array of
-   struct face pointers, indexed by face ID (element 2 of the
-   vector).  These are called "frame faces".
-      Element 0 is the default face --- the one used for normal text.
-      Element 1 is the modeline face.
-   These faces have their GC's set; the rest do not.
-   If faces[i] is filled in (i.e. non-zero) on one frame, then it must
-   be filled in on all frames.  Code assumes that face ID's can be
-   used on any frame.  (See src/xterm.h.)
+   The functions compute_char_face and compute_glyph_face find and
+   combine the parameter faces associated with overlays and text
+   properties.  The resulting faces are called "computed faces"; none
+   of their members are FACE_DEFAULT; they are completely specified.
+   They then call intern_compute_face to search
+   FRAME->display.x->computed_faces for a matching face, add one if
+   none is found, and return the index into
+   FRAME->display.x->computed_faces.  FRAME's glyph matrices use these
+   indices to record the faces of the matrix characters, and the X
+   display hooks consult compute_faces to decide how to display these
+   characters.  Elements 0 and 1 of computed_faces always describe the
+   default and mode-line faces.
 
-   The global variables `face_vector' and `nfaces' define another
-   array of struct face pointers, with their GC's set.  This array
-   acts as a cache of GC's to be used by all frames.  The function
-   `intern_face', passed a struct face *, searches face_vector for a
-   struct face with the same parameters, adds a new one with a GC if
-   it doesn't find one, and returns it.  If you have a `struct face',
-   and you want a GC for it, call intern_face on that struct, and it
-   will return a `struct face *' with its GC set.  The faces in
-   face_vector are called `cached faces.' (See src/xfaces.c.)
+   Elements 0 and 1 of computed_faces have GC's; all the other faces
+   in computed_faces do not.  The global array face_vector contains
+   faces with their GC's set.  Given a computed_face, the function
+   intern_face finds (or adds) an element of face_vector with
+   equivalent parameters, and returns a pointer to that face, whose GC
+   can then be used for display.
 
-   The `GLYPH' data type is an unsigned integer type; the bottom byte
-   is a character code, and the byte above that is a face id.  The
-   `struct frame_glyphs' structure, used to describe frames' current
-   or desired contents, is essentially a matrix of GLYPHs; the face
-   ID's in a struct frame_glyphs are indices into FRAME_FACES.  (See
-   src/dispextern.h.)
+   Constraints:
+
+   Symbols naming faces must have associations on all frames; for any
+   FRAME, for all FACE-NAME, if (assq FACE-NAME (frame-face-alist
+   FRAME)) is non-nil, it must be non-nil for all frames.
+
+   Analogously, indices into param_faces must be valid on all frames;
+   if param_faces[i] is a non-zero face pointer on one frame, then it
+   must be filled in on all frames.  Code assumes that face ID's can
+   be used on any frame.
 
    Some subtleties:
    
+   Why do we keep param_faces and computed_faces separate?
+   computed_faces contains an element for every combination of facial
+   parameters we have ever displayed.  indices into param_faces have
+   to be valid on all frames.  If they were the same array, then that
+   array would grow very large on all frames, because any facial
+   combination displayed on any frame would need to be a valid entry
+   on all frames.
+
    Since face_vector is just a cache --- there are no pointers into it
    from the rest of the code, and everyone accesses it through
    intern_face --- we could just free its GC's and throw the whole
@@ -127,7 +140,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    refill it as needed.  The function clear_face_vector performs this
    purge.
 
-   We're often applying intern_face to faces in frames' local arrays -
+   We're often applying intern_face to faces in computed_faces -
    for example, we do this while sending GLYPHs from a struct
    frame_glyphs to X during redisplay.  It would be nice to avoid
    searching all of face_vector every time we intern a frame's face.
@@ -139,11 +152,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Definitions and declarations.  */
 
 /* A table of display faces.  */
-struct face **face_vector;
+static struct face **face_vector;
 /* The length in use of the table.  */
-int nfaces;
+static int nfaces;
 /* The allocated length of the table.   */
-int nfaces_allocated;
+static int nfaces_allocated;
 
 /* The number of face-id's in use (same for all frames).  */
 int next_face_id;
@@ -161,6 +174,8 @@ static void build_face ( /* FRAME_PTR, struct face * */ );
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
 
 struct face *intern_face ( /* FRAME_PTR, struct face * */ );
+static int new_computed_face ( /* FRAME_PTR, struct face * */ );
+static int intern_computed_face ( /* FRAME_PTR, struct face * */ );
 static void ensure_face_ready ( /* FRAME_PTR, int id */ );
 void recompute_basic_faces ( /* FRAME_PTR f */ );
 
@@ -259,7 +274,7 @@ get_cached_face (f, face)
   return result;
 }
 
-/* Given a frame face, return an equivalent display face
+/* Given a computed face, return an equivalent display face
    (one which has a graphics context).  */
 
 struct face *
@@ -455,7 +470,7 @@ unload_color (f, pixel)
 #endif
 }
 
-/* Initializing face arrays for frames. */
+/* Managing parameter face arrays for frames. */
 
 void
 init_frame_faces (f)
@@ -464,6 +479,8 @@ init_frame_faces (f)
   ensure_face_ready (f, 0);
   ensure_face_ready (f, 1);
 
+  new_computed_face (f, FRAME_PARAM_FACES (f)[0]);
+  new_computed_face (f, FRAME_PARAM_FACES (f)[1]);
   recompute_basic_faces (f);
 
   /* Find another X frame.  */
@@ -486,8 +503,8 @@ init_frame_faces (f)
     if (FRAMEP (result))
       {
 	int i;
-	int n_faces = XFRAME (result)->display.x->n_faces;
-	struct face **faces = XFRAME (result)->display.x->faces;
+	int n_faces = FRAME_N_PARAM_FACES (XFRAME (result));
+	struct face **faces = FRAME_PARAM_FACES (XFRAME (result));
 
 	for (i = 2; i < n_faces; i++)
 	  if (faces[i])
@@ -507,89 +524,112 @@ free_frame_faces (f)
 
   BLOCK_INPUT;
 
-  for (i = 0; i < FRAME_N_FACES (f); i++)
+  for (i = 0; i < FRAME_N_PARAM_FACES (f); i++)
     {
-      struct face *face = FRAME_FACES (f) [i];
+      struct face *face = FRAME_PARAM_FACES (f) [i];
       if (face)
 	{
 	  if (face->gc)
 	    XFreeGC (dpy, face->gc);
-	  if (! face->copy)
-	    {
-	      unload_font (f, face->font);
-	      unload_color (f, face->foreground);
-	      unload_color (f, face->background);
+	  unload_font (f, face->font);
+	  unload_color (f, face->foreground);
+	  unload_color (f, face->background);
 #if 0
-	      unload_pixmap (f, face->stipple);
+	  unload_pixmap (f, face->stipple);
 #endif
-	    }
 	  xfree (face);
 	}
     }
-  xfree (FRAME_FACES (f));
-  FRAME_FACES (f) = 0;
-  FRAME_N_FACES (f) = 0;
+  xfree (FRAME_PARAM_FACES (f));
+  FRAME_PARAM_FACES (f) = 0;
+  FRAME_N_PARAM_FACES (f) = 0;
+
+  /* All faces in FRAME_COMPUTED_FACES use resources copied from
+     FRAME_PARAM_FACES; we can free them without fuss.  */
+  xfree (FRAME_COMPUTED_FACES (f));
+  FRAME_COMPUTED_FACES (f) = 0;
+  FRAME_N_COMPUTED_FACES (f) = 0;
 
   UNBLOCK_INPUT;
 }
 
 /* Interning faces in a frame's face array.  */
 
-/* Find a match for NEW_FACE in a FRAME's face array, and add it if we don't
-   find one.  */
 static int
-intern_frame_face (frame, new_face)
-     struct frame *frame;
+new_computed_face (f, new_face)
+     struct frame *f;
      struct face *new_face;
 {
-  int len = FRAME_N_FACES (frame);
+  int i = FRAME_N_COMPUTED_FACES (f);
+
+  if (i >= FRAME_SIZE_COMPUTED_FACES (f))
+    {
+      int new_size = i + 32;
+
+      FRAME_COMPUTED_FACES (f)
+	= (struct face **)
+	  (FRAME_SIZE_COMPUTED_FACES (f) == 0
+	   ? xmalloc (new_size * sizeof (struct face *))
+	   : xrealloc (FRAME_COMPUTED_FACES (f),
+		       new_size * sizeof (struct face *)));
+      FRAME_SIZE_COMPUTED_FACES (f) = new_size;
+    }
+
+  i = FRAME_N_COMPUTED_FACES (f)++;
+  FRAME_COMPUTED_FACES (f)[i] = copy_face (new_face);
+  return i;
+}
+
+
+/* Find a match for NEW_FACE in a FRAME's computed face array, and add
+   it if we don't find one.  */
+static int
+intern_computed_face (f, new_face)
+     struct frame *f;
+     struct face *new_face;
+{
+  int len = FRAME_N_COMPUTED_FACES (f);
   int i;
 
-  /* Search for a face already on FRAME equivalent to FACE.  */
+  /* Search for a computed face already on F equivalent to FACE.  */
   for (i = 0; i < len; i++)
     {
-      struct face *frame_face = FRAME_FACES (frame)[i];
-      
-      if (frame_face && face_eql (new_face, frame_face))
+      if (! FRAME_COMPUTED_FACES (f)[i])
+	abort ();
+      if (face_eql (new_face, FRAME_COMPUTED_FACES (f)[i]))
 	return i;
     }
 
   /* We didn't find one; add a new one.  */
-  i = next_face_id++;
-
-  ensure_face_ready (frame, i);
-  bcopy (new_face, FRAME_FACES (frame)[i], sizeof (*new_face));
-  FRAME_FACES (frame)[i]->copy = 1;
-
-  return i;
+  return new_computed_face (f, new_face);
 }
 
-/* Make face id ID valid on frame F.  */
+/* Make parameter face id ID valid on frame F.  */
 
 static void
 ensure_face_ready (f, id)
      struct frame *f;
      int id;
 {
-  if (FRAME_N_FACES (f) <= id)
+  if (FRAME_N_PARAM_FACES (f) <= id)
     {
       int n = id + 10;
       int i;
-      if (!FRAME_N_FACES (f))
-	FRAME_FACES (f)
+      if (!FRAME_N_PARAM_FACES (f))
+	FRAME_PARAM_FACES (f)
 	  = (struct face **) xmalloc (sizeof (struct face *) * n);
       else
-	FRAME_FACES (f)
-	  = (struct face **) xrealloc (FRAME_FACES (f),
+	FRAME_PARAM_FACES (f)
+	  = (struct face **) xrealloc (FRAME_PARAM_FACES (f),
 				       sizeof (struct face *) * n);
 
-      bzero (FRAME_FACES (f) + FRAME_N_FACES (f),
-	     (n - FRAME_N_FACES (f)) * sizeof (struct face *));
-      FRAME_N_FACES (f) = n;
+      bzero (FRAME_PARAM_FACES (f) + FRAME_N_PARAM_FACES (f),
+	     (n - FRAME_N_PARAM_FACES (f)) * sizeof (struct face *));
+      FRAME_N_PARAM_FACES (f) = n;
     }
 
-  if (FRAME_FACES (f) [id] == 0)
-    FRAME_FACES (f) [id] = allocate_face ();
+  if (FRAME_PARAM_FACES (f) [id] == 0)
+    FRAME_PARAM_FACES (f) [id] = allocate_face ();
 }
 
 /* Computing faces appropriate for a given piece of text in a buffer.  */
@@ -757,9 +797,9 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
   if (!NILP (prop))
     {
       facecode = face_name_id_number (f, prop);
-      if (facecode >= 0 && facecode < FRAME_N_FACES (f)
-	  && FRAME_FACES (f) [facecode] != 0)
-	merge_faces (FRAME_FACES (f) [facecode], &face);
+      if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
+	  && FRAME_PARAM_FACES (f) [facecode] != 0)
+	merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
     }
 
   /* Put the valid and relevant overlays into sortvec.  */
@@ -814,9 +854,9 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
 	  int oendpos;
 
 	  facecode = face_name_id_number (f, prop);
-	  if (facecode >= 0 && facecode < FRAME_N_FACES (f)
-	      && FRAME_FACES (f) [facecode] != 0)
-	    merge_faces (FRAME_FACES (f) [facecode], &face);
+	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
+	      && FRAME_PARAM_FACES (f) [facecode] != 0)
+	    merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
 
 	  oend = OVERLAY_END (sortvec[i].overlay);
 	  oendpos = OVERLAY_POSITION (oend);
@@ -830,12 +870,12 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
       if (region_end < endpos)
 	endpos = region_end;
       if (region_face >= 0 && region_face < next_face_id)
-	merge_faces (FRAME_FACES (f) [region_face], &face);
+	merge_faces (FRAME_PARAM_FACES (f) [region_face], &face);
     }
 
   *endptr = endpos;
 
-  return intern_frame_face (f, &face);
+  return intern_computed_face (f, &face);
 }
 
 /* Return the face ID to use to display a special glyph which selects
@@ -850,11 +890,11 @@ compute_glyph_face (f, face_code)
 
   compute_base_face (f, &face);
 
-  if (face_code >= 0 && face_code < FRAME_N_FACES (f)
-      && FRAME_FACES (f) [face_code] != 0)
-    merge_faces (FRAME_FACES (f) [face_code], &face);
+  if (face_code >= 0 && face_code < FRAME_N_PARAM_FACES (f)
+      && FRAME_PARAM_FACES (f) [face_code] != 0)
+    merge_faces (FRAME_PARAM_FACES (f) [face_code], &face);
 
-  return intern_frame_face (f, &face);
+  return intern_computed_face (f, &face);
 }
 
 
@@ -867,17 +907,23 @@ recompute_basic_faces (f)
 {
   /* If the frame's faces haven't been initialized yet, don't worry about
      this stuff.  */
-  if (FRAME_N_FACES (f) < 2)
+  if (FRAME_N_PARAM_FACES (f) < 2)
     return;
 
   BLOCK_INPUT;
 
   if (FRAME_DEFAULT_FACE (f)->gc)
     XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
-  build_face (f, FRAME_DEFAULT_FACE (f));
-
   if (FRAME_MODE_LINE_FACE (f)->gc)
     XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
+
+  compute_base_face (f, FRAME_DEFAULT_FACE (f));
+  compute_base_face (f, FRAME_MODE_LINE_FACE (f));
+
+  merge_faces (FRAME_DEFAULT_PARAM_FACE (f), FRAME_DEFAULT_FACE (f));
+  merge_faces (FRAME_MODE_LINE_PARAM_FACE (f), FRAME_MODE_LINE_FACE (f));
+  
+  build_face (f, FRAME_DEFAULT_FACE (f));
   build_face (f, FRAME_MODE_LINE_FACE (f));
 
   UNBLOCK_INPUT;
@@ -952,7 +998,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
     return;
 
   ensure_face_ready (f, id);
-  face = FRAME_FACES (f) [XFASTINT (face_id)];
+  face = FRAME_PARAM_FACES (f) [XFASTINT (face_id)];
 
   if (EQ (attr_name, intern ("font")))
     {
@@ -995,23 +1041,8 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   else
     error ("unknown face attribute");
 
-  if (id == 0)
-    {
-      BLOCK_INPUT;
-      if (FRAME_DEFAULT_FACE (f)->gc != 0)
-	XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
-      build_face (f, FRAME_DEFAULT_FACE (f));
-      UNBLOCK_INPUT;
-    }
-
-  if (id == 1)
-    {
-      BLOCK_INPUT;
-      if (FRAME_MODE_LINE_FACE (f)->gc != 0)
-	XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
-      build_face (f, FRAME_MODE_LINE_FACE (f));
-      UNBLOCK_INPUT;
-    }
+  if (id == 0 || id == 1)
+    recompute_basic_faces (f);
 
   /* If we're modifying either of the frame's display faces, that
      means that we're changing the parameters of a fixed face code;
