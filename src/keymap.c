@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1960,9 +1960,13 @@ around function keys and event symbols.")
       else
 	{
 	  char tem[KEY_DESCRIPTION_SIZE];
+	  int len;
 
 	  *push_key_description (XUINT (key), tem, 1) = 0;
-	  return build_string (tem);
+	  len = strlen (tem);
+	  return make_multibyte_string (tem,
+					multibyte_chars_in_text (tem, len),
+					len);
 	}
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
