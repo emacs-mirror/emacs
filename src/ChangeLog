@@ -1,5 +1,12 @@
 2001-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (clear_mouse_face): Return 1 if text with mouse face was
+	actually redrawn.  Make the function static.
+	(note_mouse_highlight): Fix a case where the mouse cursor
+	was changed back to the text cursor.
+
+	* xterm.h (clear_mouse_face): Remove prototype.
+
 	* xdisp.c (try_window_id): Fix the fix and set the right
 	window_end_vpos.
 
