@@ -326,21 +326,22 @@ composed.")
 		      (read-string "(Very) brief summary of problem: ")))
 	(mailbuf
 	 (progn
-	   (call-interactively
-	    (if (nlistp reporter-mailer)
-		reporter-mailer
-	      (let ((mlist reporter-mailer)
-		    (mailer nil))
-		(while mlist
-		  (if (commandp (car mlist))
-		      (setq mailer (car mlist)
-			    mlist nil)
-		    (setq mlist (cdr mlist))))
-		(if (not mailer)
-		    (error
-		     "variable `%s' does not contain a command for mailing."
-		     "reporter-mailer"))
-		mailer)))
+	   (or (call-interactively
+		(if (nlistp reporter-mailer)
+		    reporter-mailer
+		  (let ((mlist reporter-mailer)
+			(mailer nil))
+		    (while mlist
+		      (if (commandp (car mlist))
+			  (setq mailer (car mlist)
+				mlist nil)
+			(setq mlist (cdr mlist))))
+		    (if (not mailer)
+			(error
+			 "Variable `%s' does not contain a command for mailing"
+			 "reporter-mailer"))
+		    mailer)))
+	       (error "Bug report aborted"))
 	   (current-buffer))))
     (require 'sendmail)
     (pop-to-buffer reporter-eval-buffer)
@@ -410,7 +411,7 @@ composed.")
 		  (length reporter-initial-text))
 	       (string= (buffer-substring after-sep-pos (point))
 			reporter-initial-text))
-	  (error "Empty bug report cannot be sent."))
+	  (error "Empty bug report cannot be sent"))
       )))
 
 
