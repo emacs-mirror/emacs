@@ -564,7 +564,7 @@ extern int iso_charset_table[2][2][128];
 #define CHAR_STRING(c, workbuf, str)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
    ? *(str = workbuf) = (unsigned char)(c), 1	 	\
-   : non_ascii_char_to_string (c, workbuf, &str))
+   : non_ascii_char_to_string (c, workbuf, (unsigned char **)&str))
 
 /* Return a character code of the character of which multi-byte form
    is at STR and the length is LEN.  If STR doesn't contain valid
