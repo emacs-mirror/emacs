@@ -513,7 +513,7 @@ static Lisp_Object kbd_buffer_gcpro;
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
-   This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the the
+   This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the
    next available char is in kbd_buffer[0].  */
 static struct input_event *kbd_fetch_ptr;
 
@@ -8111,7 +8111,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
     }
   else
     {
-      int extra_maps = 2;
       int nminor;
       int total;
       Lisp_Object *maps;
