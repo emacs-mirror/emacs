@@ -1,3 +1,37 @@
+2003-03-12  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidates the fringe handling from
+	xterm.c, w32term.c, and macterm.c into xdisp.c.
+	
+	* xdisp.c: Consolidate fringe handling code here.
+	(left_bits, right_bits, continued_bits, continuation_bits)
+	(ov_bits, zv_bits): Define fringe bitmaps.
+	(fringe_bitmaps): New array holding fringe bitmaps.
+	(draw_fringe_bitmap): Draw a specific bitmap; call display
+	specific drawing routine via rif->draw_fringe_bitmap.
+	(draw_row_fringe_bitmaps): Generic replacement for
+	x_draw_row_fringe_bitmaps; all callers changed.
+	(compute_fringe_widths): Generic replacement for
+	x_compute_fringe_widths; all callers changed.
+
+	* dispextern.h (enum fringe_bitmap_type): Define here.
+	(struct fringe_bitmap, struct draw_fringe_bitmap_params): New.
+	(fringe_bitmaps): Declare extern.
+	(struct redisplay_interface): New member draw_fringe_bitmap.
+	(draw_row_fringe_bitmaps, compute_fringe_widths): Declare extern.
+
+	* xterm.c: Remove generic fringe code.
+	(x_draw_fringe_bitmap): Only perform actual fringe drawing.
+	(x_redisplay_interface): Add x_draw_fringe_bitmap member.
+
+	* w32term.c: Remove generic fringe code.
+	(w32_draw_fringe_bitmap): Only perform actual fringe drawing.
+	(w32_redisplay_interface): Add w32_draw_fringe_bitmap member.
+	
+	* macterm.c: Remove generic fringe code.
+	(x_draw_fringe_bitmap): Only perform actual fringe drawing.
+	(x_redisplay_interface): Add x_draw_fringe_bitmap member.
+
 2003-03-09  David Kastrup  <dak@gnu.org>
 
 	* process.c (read_process_output): We have allocated enough space
