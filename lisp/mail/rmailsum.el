@@ -807,7 +807,7 @@ Commands for sorting the summary:
 		 (goto-char (point-max))
 		 (rmail-summary-goto-msg)))
       (goto-char (point-min))
-      (if (not (re-search-forward (concat "^ *" (int-to-string n)) nil t))
+      (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
 	  (progn (or nowarn (message "Message %d not found" n))
 		 (setq n curmsg)
 		 (setq message-not-found t)
