@@ -365,14 +365,16 @@ Non-nil OLD means that we want the old file."
 		   (condition-case ()
 		       (progn (diff-prev-hunk) (point))
 		     (error (point-min)))))
+	   (header-files
+	    (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\s-.*\n[-+][-+][-+] \\(\\S-+\\)\\s-.*$")
+		(list (if old (match-string 1) (match-string 2))
+		      (if old (match-string 2) (match-string 1)))
+	      (forward-line 1) nil))
 	   (fs (append
-		(when (looking-at "[-*][-*][-*] \\(\\S-+\\)\\s-.*\n[-+][-+][-+] \\(\\S-+\\)\\s-.*$")
-		  (list (if old (match-string 1) (match-string 2))
-			(if old (match-string 2) (match-string 1))))
-		(progn (forward-line 1) nil)
 		(when (save-excursion
 			(re-search-backward "^Index: \\(.+\\)" limit t))
 		  (list (match-string 1)))
+		header-files
 		(when (re-search-backward "^diff \\(-\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?" nil t)
 		  (list (if old (match-string 2) (match-string 4))
 			(if old (match-string 4) (match-string 2))))))
