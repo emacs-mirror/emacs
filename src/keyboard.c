@@ -198,16 +198,15 @@ Lisp_Object last_command;
    instead of the actual command.  */
 Lisp_Object this_command;
 
+#ifdef MULTI_FRAME
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.
    command_loop_1 will select this frame before running the
    command bound to an event sequence, and read_key_sequence will
    toss the existing prefix if the user starts typing at a
-   new frame.  
-
-   On a non-multi-frame Emacs, this will be either Qmacro or
-   selected_frame. */
+   new frame.  */
 Lisp_Object Vlast_event_frame;
+#endif
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
@@ -1135,6 +1134,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (!NILP (Vexecuting_macro))
     {
+#ifdef MULTI_FRAME
       /* We set this to Qmacro; since that's not a frame, nobody will
 	 try to switch frames on us, and the selected window will
 	 remain unchanged.
@@ -1145,6 +1145,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 Vlast_event_frame after each command is read, but events read
 	 from a macro should never cause a new frame to be selected.  */
       Vlast_event_frame = Qmacro;
+#endif
 
       if (executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
@@ -1179,7 +1180,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (_setjmp (getcjmp))
     {
       XSET (c, Lisp_Int, quit_char);
+#ifdef MULTI_FRAME
       XSET (Vlast_event_frame, Lisp_Frame, selected_frame);
+#endif
 
       goto non_reread;
     }
@@ -1492,11 +1495,13 @@ kbd_buffer_store_event (event)
 	{
 	  extern SIGTYPE interrupt_signal ();
 
+#ifdef MULTI_FRAME
 	  /* If this results in a quit_char being returned to Emacs as
 	     input, set last-event-frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  Vlast_event_frame = FRAME_FOCUS_FRAME (event->frame);
+#endif
 
 	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
@@ -1594,33 +1599,38 @@ kbd_buffer_get_event ()
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
-      Lisp_Object frame;
 
       event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
 	       ? kbd_fetch_ptr
 	       : kbd_buffer);
 
       last_event_timestamp = event->timestamp;
-      XSET (frame, Lisp_Frame, XFRAME (FRAME_FOCUS_FRAME (event->frame)));
 
-      /* If this event is on a different frame, return a switch-frame this
-	 time, and leave the event in the queue for next time.  */
-      if (! EQ (frame, Vlast_event_frame))
-	{
-	  Vlast_event_frame = frame;
-	  obj = make_lispy_switch_frame (frame);
-	}
-      else
-	{
-	  obj = make_lispy_event (event);
-	  if (XTYPE (obj) == Lisp_Int)
-	    XSET (obj, Lisp_Int, XINT (obj) & (meta_key ? 0377 : 0177));
+      {
+#ifdef MULTI_FRAME
+	Lisp_Object frame;
+
+	/* If this event is on a different frame, return a switch-frame this
+	   time, and leave the event in the queue for next time.  */
+	XSET (frame, Lisp_Frame, XFRAME (FRAME_FOCUS_FRAME (event->frame)));
+	if (! EQ (frame, Vlast_event_frame))
+	  {
+	    Vlast_event_frame = frame;
+	    obj = make_lispy_switch_frame (frame);
+	  }
+	else
+#endif
+	  {
+	    obj = make_lispy_event (event);
+	    if (XTYPE (obj) == Lisp_Int)
+	      XSET (obj, Lisp_Int, XINT (obj) & (meta_key ? 0377 : 0177));
       
-	  /* Wipe out this event, to catch bugs.  */
-	  event->kind = no_event;
+	    /* Wipe out this event, to catch bugs.  */
+	    event->kind = no_event;
 
-	  kbd_fetch_ptr = event + 1;
-	}
+	    kbd_fetch_ptr = event + 1;
+	  }
+      }
     }
   else if (do_mouse_tracking && mouse_moved)
     {
@@ -1630,6 +1640,7 @@ kbd_buffer_get_event ()
 
       (*mouse_position_hook) (&frame, &x, &y, &time);
 
+#ifdef MULTI_FRAME
       /* Decide if we should generate a switch-frame event.  Don't generate
 	 switch-frame events for motion outside of all Emacs frames.  */
       if (frame && frame != XFRAME (Vlast_event_frame))
@@ -1638,6 +1649,7 @@ kbd_buffer_get_event ()
 	  obj = make_lispy_switch_frame (Vlast_event_frame);
 	}
       else
+#endif
 	obj = make_lispy_movement (frame, x, y, time);
     }
   else
@@ -2954,10 +2966,12 @@ read_key_sequence (keybuf, bufsize, prompt)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
 
- replay_sequence_new_buffer:
+ replay_sequence:
   /* Build our list of keymaps.
-     If the sequence starts with a mouse click, we may need to switch buffers
-     and jump back here; that's what replay_sequence_new_buffer is for.  */
+     If we recognize a function key and replace its escape sequence in
+     keybuf with its symbol, or if the sequence starts with a mouse
+     click and we need to switch buffers, we jump back here to rebuild
+     the initial keymaps from the current buffer.  */
   { 
     Lisp_Object *maps;
 
@@ -2978,7 +2992,6 @@ read_key_sequence (keybuf, bufsize, prompt)
     if (! NILP (submaps[first_binding]))
       break;
 
- replay_sequence:
   /* We jump here when a function key substitution has forced us to
      reprocess the current key sequence.  keybuf[0..mock_input] is the
      sequence we want to reread.  */
@@ -3089,7 +3102,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 			}
 
 		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		      goto replay_sequence_new_buffer;
+		      goto replay_sequence;
 		    }
 		  else if (XTYPE (posn) == Lisp_Symbol)
 		    {
@@ -3851,6 +3864,12 @@ init_keyboard ()
   do_mouse_tracking = 0;
   input_pending = 0;
 
+#ifdef MULTI_FRAME
+  /* This means that we don't get a switch-frame event before the first
+     character typed.  */
+  XSET (Vlast_event_frame, Lisp_Frame, selected_frame);
+#endif
+
   if (!noninteractive)
     {
       signal (SIGINT, interrupt_signal);
@@ -4074,10 +4093,12 @@ Polling is automatically disabled in all other cases.");
     "*Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;
 
+#ifdef MULTI_FRAME
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
     "*The frame in which the most recently read event occurred.\n\
 If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
+#endif
 
   DEFVAR_LISP ("help-char", &help_char,
     "Character to recognize as meaning Help.\n\
