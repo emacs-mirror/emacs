@@ -1202,7 +1202,7 @@ ensure_scope_buffer_room (len)
   if (scope_buffer_len + len >= scope_buffer_size)
     {
       int new_size = max (2 * scope_buffer_size, scope_buffer_len + len);
-      scope_buffer = (char *) xrealloc (new_size);
+      scope_buffer = (char *) xrealloc (scope_buffer, new_size);
       scope_buffer_size = new_size;
     }
 }
