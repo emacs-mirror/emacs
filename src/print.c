@@ -434,12 +434,18 @@ printchar (ch, fun)
 		printbufidx--;
 	    }
 	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
-	  message_enable_multibyte = 1;
 	}
 
+      /* Record whether the message buffer is multibyte.
+	 (If at any point some multibyte characters are added, then it is.)  */
+      if (len > 0 && ! NILP (current_buffer->enable_multibyte_characters))
+	message_enable_multibyte = 1;
+
       if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
-	bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len),
-	printbufidx += len;
+	{
+	  bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len);
+	  printbufidx += len;
+	}
       FRAME_MESSAGE_BUF (mini_frame)[printbufidx] = 0;
       echo_area_glyphs_length = printbufidx;
 
