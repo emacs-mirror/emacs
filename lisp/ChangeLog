@@ -1,5 +1,7 @@
 2000-01-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* align.el: New file.
+
 	* menu-bar.el (menu-bar-tools-menu): Add EUDC submenu.
 
 	* net/eudc.el (toplevel): Define EUDC menu for Emacs.

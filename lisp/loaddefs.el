@@ -306,6 +306,80 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation." nil 
 
 ;;;***
 
+;;;### (autoloads (align-unhighlight-rule align-highlight-rule align-current
+;;;;;;  align-entire align-regexp align) "align" "align.el" (14463
+;;;;;;  7197))
+;;; Generated autoloads from align.el
+
+(autoload (quote align) "align" "\
+Attempt to align a region based on a set of alignment rules.
+BEG and END mark the region.  If BEG and END are specifically set to
+nil (this can only be done programmatically), the beginning and end of
+the current alignment section will be calculated based on the location
+of point, and the value of `align-region-separate' (or possibly each
+rule's `separate' attribute).
+
+If SEPARATE is non-nil, it overrides the value of
+`align-region-separate' for all rules, except those that have their
+`separate' attribute set.
+
+RULES and EXCLUDE-RULES, if either is non-nil, will replace the
+default rule lists defined in `align-rules-list' and
+`align-exclude-rules-list'.  See `align-rules-list' for more details
+on the format of these lists." t nil)
+
+(autoload (quote align-regexp) "align" "\
+Align the current region using an ad-hoc rule read from the minibuffer.
+BEG and END mark the limits of the region.  This function will prompt
+for the REGEXP to align with.  If no prefix arg was specified, you
+only need to supply the characters to be lined up and any preceding
+whitespace is replaced.  If a prefix arg was specified, the full
+regexp with parenthesized whitespace should be supplied; it will also
+prompt for which parenthesis GROUP within REGEXP to modify, the amount
+of SPACING to use, and whether or not to REPEAT the rule throughout
+the line.  See `align-rules-list' for more information about these
+options.
+
+For example, let's say you had a list of phone numbers, and wanted to
+align them so that the opening parentheses would line up:
+
+    Fred (123) 456-7890
+    Alice (123) 456-7890
+    Mary-Anne (123) 456-7890
+    Joe (123) 456-7890
+
+There is no predefined rule to handle this, but you could easily do it
+using a REGEXP like \"(\". All you would have to do is to mark the
+region, call `align-regexp' and type in that regular expression." t nil)
+
+(autoload (quote align-entire) "align" "\
+Align the selected region as if it were one alignment section.
+BEG and END mark the extent of the region.  If RULES or EXCLUDE-RULES
+is set to a list of rules (see `align-rules-list'), it can be used to
+override the default alignment rules that would have been used to
+align that section." t nil)
+
+(autoload (quote align-current) "align" "\
+Call `align' on the current alignment section.
+This function assumes you want to align only the current section, and
+so saves you from having to specify the region.  If RULES or
+EXCLUDE-RULES is set to a list of rules (see `align-rules-list'), it
+can be used to override the default alignment rules that would have
+been used to align that section." t nil)
+
+(autoload (quote align-highlight-rule) "align" "\
+Highlight the whitespace which a given rule would have modified.
+BEG and END mark the extent of the region.  TITLE identifies the rule
+that should be highlighted.  If RULES or EXCLUDE-RULES is set to a
+list of rules (see `align-rules-list'), it can be used to override the
+default alignment rules that would have been used to identify the text
+to be colored." t nil)
+
+(autoload (quote align-unhighlight-rule) "align" "\
+Remove any highlighting that was added by `align-highlight-rule'." t nil)
+
+;;;***
+
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
 ;;;;;;  "ange-ftp.el" (14460 38616))
 ;;; Generated autoloads from ange-ftp.el
