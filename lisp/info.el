@@ -55,6 +55,10 @@ in paths.el.")
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
+	;; This is for older Emacs versions
+	;; which might get this info.el from the Texinfo distribution.
+	(path-separator (if (boundp 'path-separator) path-separator
+			  (if (eq system-type 'ms-dos) ";" ":")))
 	(sibling (if installation-directory
 		     (expand-file-name "info/" installation-directory))))
     (if path
