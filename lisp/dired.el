@@ -807,6 +807,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   '("Next Marked" . dired-next-marked-file))
 (define-key dired-mode-map [menu-bar mark marks]
   '("Change Marks..." . dired-change-marks))
+(define-key dired-mode-map [menu-bar mark unmark-all]
+  '("Unmark All" . dired-unmark-all-files-no-query))
 (define-key dired-mode-map [menu-bar mark symlinks]
   '("Mark Symlinks" . dired-mark-symlinks))
 (define-key dired-mode-map [menu-bar mark directories]
@@ -815,11 +817,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   '("Mark Old Backups" . dired-clean-directory))
 (define-key dired-mode-map [menu-bar mark executables]
   '("Mark Executables" . dired-mark-executables))
-(define-key dired-mode-map [menu-bar mark unmark-all]
-  '("Unmark All" . dired-unmark-all-files))
-(define-key dired-mode-map [menu-bar mark files]
+(define-key dired-mode-map [menu-bar mark backup-files]
   '("Flag Backup Files" . dired-flag-backup-files))
-(define-key dired-mode-map [menu-bar mark files]
+(define-key dired-mode-map [menu-bar mark auto-save-files]
   '("Flag Auto-save Files" . dired-flag-auto-save-files))
 (define-key dired-mode-map [menu-bar mark deletion]
   '("Flag" . dired-flag-file-deletion))
@@ -1910,6 +1910,11 @@ OLD and NEW are both characters used to mark files."
 	(while (search-forward string nil t)
 	  (subst-char-in-region (match-beginning 0)
 				(match-end 0) old new))))))
+
+(defun dired-unmark-all-files-no-query ()
+  "Remove all marks from all files in the Dired buffer."
+  (interactive)
+  (dired-unmark-all-files ?\r))
 
 (defun dired-unmark-all-files (mark &optional arg)
   "Remove a specific mark (or any mark) from every file.
