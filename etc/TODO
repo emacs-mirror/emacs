@@ -75,6 +75,12 @@ to the FSF.
 
 * Other features we would like:
 
+** A function to check for customizable options that have been
+  set but not saved, and ask the user whether to save them.
+  This could go in kill-emacs-query-functions, to remind people
+  to save their changes. If the user says yes, show them
+  in a Custom buffer using customize-customized.
+
 ** ange-ftp
 *** understand sftp
 *** Use MLS for ange-ftp-insert-directory if a list of files is specified.

@@ -1,3 +1,7 @@
+2005-01-21  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fcopy_file): Doc fix.
+
 2005-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_detach_callback): Remove unused variable bw.
