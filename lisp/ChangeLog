@@ -1,3 +1,9 @@
+2001-01-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-1): In non-batch case,
+	don't mention the file name or the date here, because they are
+	logged at the start of the file.
+
 2001-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
