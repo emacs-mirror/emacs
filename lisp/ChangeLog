@@ -1,3 +1,8 @@
+2002-03-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* image.el (image-type-from-file-header): Make temporary buffer
+	unibyte.
+
 2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (shell-command-on-region): Call push-mark with
