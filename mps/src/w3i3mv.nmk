@@ -7,18 +7,19 @@
 PFM = w3i3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
-MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
+MPM = <assert> <ring> <mpm> <bt> \
       <arenavm> <vmw3> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protw3> <shield> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> \
-      <mpsioan> <event> <action> <seg>
+      <event> <action> <seg>
 SW  = <assert> <ring> <mpm> \
       <arenacl> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <shield> \
       <thw3i3> <ssw3i3> <mpsisw> <mpsiw3> <ld> <poolepdl> \
       <action> <seg>
+PLINTH = <mpsliban> <mpsioan>
 AMC = <amc>
 AWL = <poolawl>
 LO = <lo>
@@ -45,6 +46,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDF)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDF)
 MPMOBJ0 = $(MPM:<=w3i3mv\df\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\df\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\df\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\df\)
@@ -66,6 +69,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDP)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDP)
 MPMOBJ0 = $(MPM:<=w3i3mv\dp\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\dp\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\dp\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\dp\)
@@ -87,6 +92,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDS)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDS)
 MPMOBJ0 = $(MPM:<=w3i3mv\ds\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ds\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\ds\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\ds\)
@@ -108,6 +115,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDL)
 MPMOBJ0 = $(MPM:<=w3i3mv\dl\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\dl\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\dl\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\dl\)
@@ -129,6 +138,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRO)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRO)
 MPMOBJ0 = $(MPM:<=w3i3mv\ro\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ro\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 SWOBJ0 = $(SW:<=w3i3mv\ro\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\ro\)
@@ -150,6 +161,8 @@ LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
 MPMOBJ0 = $(MPM:<=w3i3mv\cv\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\cv\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=w3i3mv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 AWLOBJ0 = $(AWL:<=w3i3mv\cv\)
