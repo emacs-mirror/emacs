@@ -1,9 +1,16 @@
+2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-indent):
+	Fix misindentation for comment-only lines.
+	(comment-indent-new-line): Only obey comment-multi-line if the
+	comment-ender is not the end-of-line.
+
 2001-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* net/net-utils.el (network-connection-service-abbrev-alist):
 	New variable.
 
-	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): 
+	* emacs-lisp/cl-indent.el (lisp-indent-defmethod):
 	Advance to start of 3rd sexp by moving fwd and backing over it.
 	At first three elements, act like defun.
 
@@ -12,8 +19,8 @@
 
 2001-11-18  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/fortran.el (fortran-mode-syntax-table): Specify
-	punctuation syntax for backslash.
+	* progmodes/fortran.el (fortran-mode-syntax-table):
+	Specify punctuation syntax for backslash.
 
 	* progmodes/sh-script.el (sh-must-be-shell-mode): Function deleted.
 	All calls deleted.
