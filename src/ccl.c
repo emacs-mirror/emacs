@@ -196,7 +196,7 @@ Lisp_Object Vccl_program_table;
 					IC += ADDRESS;
 					*/
 /* Note: If read is suspended, the resumed execution starts from the
-   Mth code (YYYYY == CCL_ReadJump).  */
+   Nth code (YYYYY == CCL_ReadJump).  */
 
 #define CCL_ReadJump		0x0C /* Read and jump:
 					1:A--D--D--R--E--S--S-rrrYYYYY
@@ -462,7 +462,7 @@ Lisp_Object Vccl_program_table;
   } while (0)
 
 /* Encode one character CH to multibyte form and write to the current
-   output buffer.  If CH is negative, write one byte -CH.  */
+   output buffer.  If CH is less than 256, CH is written as is.  */
 #define CCL_WRITE_CHAR(ch)		      	\
   do {					      	\
     if (!dst)				      	\
@@ -655,13 +655,13 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	case CCL_WriteArrayReadJump: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
-	  j = ccl_prog[ic++];
+	  j = ccl_prog[ic];
 	  if ((unsigned int) i < j)
 	    {
-	      i = XINT (ccl_prog[ic + i]);
+	      i = XINT (ccl_prog[ic + 1 + i]);
 	      CCL_WRITE_CHAR (i);
 	    }
-	  ic += j + 1;
+	  ic += j + 2;
 	  CCL_READ_CHAR (reg[rrr]);
 	  ic += ADDR - (j + 2);
 	  break;
@@ -926,8 +926,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		dst += msglen;
 	      }
 	  }
-	  goto ccl_finish;
 #endif
+	  goto ccl_finish;
 
 	case CCL_STAT_QUIT:
 	  sprintf(msg, "\nCCL: Quited.");
