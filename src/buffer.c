@@ -3741,15 +3741,13 @@ buffer.  */)
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      if (b->overlays_after)
-	XOVERLAY (overlay)->next = b->overlays_after;
-    b->overlays_after = XOVERLAY (overlay);
+      XOVERLAY (overlay)->next = b->overlays_after;
+      b->overlays_after = XOVERLAY (overlay);
     }
   else
     {
-      if (b->overlays_before)
-	XOVERLAY (overlay)->next = b->overlays_before;
-    b->overlays_before = XOVERLAY (overlay);
+      XOVERLAY (overlay)->next = b->overlays_before;
+      b->overlays_before = XOVERLAY (overlay);
     }
 
   /* This puts it in the right list, and in the right order.  */
