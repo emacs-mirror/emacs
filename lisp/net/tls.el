@@ -66,7 +66,7 @@ after successful negotiation."
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
-  "*Value for `process-connection-type' to use when starting process."
+  "*Value for `process-connection-type' to use when starting TLS process."
   :type 'boolean
   :group 'tls)
 

@@ -1,3 +1,8 @@
+2004-08-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (tls-process-connection-type): Fix docstring.  (Sync
+	with Gnus v5_10 branch.)
+
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* calendar/time-date.el (time-to-number-of-days): New function.
