@@ -528,6 +528,16 @@ the user from the mailer."
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
 
+;; Return non-nil if file FILE is an Rmail file.
+(defun mail-file-babyl-p (file)
+  (unwind-protect
+      (save-excursion
+	(set-buffer (get-buffer-create " mail-temp"))
+	(erase-buffer)
+	(insert-file-contents file nil 0 20)
+	(looking-at "BABYL OPTIONS:"))
+  (kill-buffer " mail-temp")))
+
 (defun mail-do-fcc (header-end)
   (let (fcc-list
 	(rmailbuf (current-buffer))
@@ -569,52 +579,63 @@ the user from the mailer."
 	  (forward-char -5)
 	  (insert ?>)))
       (while fcc-list
-	(let ((buffer (get-file-buffer (car fcc-list))))
+	(let ((buffer (get-file-buffer (car fcc-list)))
+	      (curbuf (current-buffer))
+	      (beg (point-min)) (end (point-max))
+	      (beg2 (save-excursion (goto-char (point-min))
+				    (forward-line 2) (point))))
 	  (if buffer
 	      ;; File is present in a buffer => append to that buffer.
-	      (let ((curbuf (current-buffer))
-		    (beg (point-min)) (end (point-max))
-		    (beg2 (save-excursion (goto-char (point-min))
-					  (forward-line 2) (point))))
-		(save-excursion
-		  (set-buffer buffer)
-		  ;; Keep the end of the accessible portion at the same place
-		  ;; unless it is the end of the buffer.
-		  (let ((max (if (/= (1+ (buffer-size)) (point-max))
-				 (point-max))))
-		    (unwind-protect
-			;; Code below lifted from rmailout.el
-			;; function rmail-output-to-rmail-file:
-			(let ((buffer-read-only nil)
-			      (msg (and (boundp 'rmail-current-message)
-					rmail-current-message)))
-			  ;; If MSG is non-nil, buffer is in RMAIL mode.
-			  (if msg
-			      (progn
-				(rmail-maybe-set-message-counters)
-				(widen)
-				(narrow-to-region (point-max) (point-max))
-				(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-					"From: " (user-login-name) "\n"
-					"Date: " (mail-rfc822-date) "\n")
-				(insert-buffer-substring curbuf beg2 end)
-				(insert "\n\C-_")
-				(goto-char (point-min))
-				(widen)
-				(search-backward "\n\^_")
-				(narrow-to-region (point) (point-max))
-				(rmail-count-new-messages t)
-				(rmail-show-message msg)
-				(setq max nil))
-			    ;; Output file not in rmail mode
-			    ;; => just insert at the end.
-			    (narrow-to-region (point-min) (1+ (buffer-size)))
-			    (goto-char (point-max))
-			    (insert-buffer-substring curbuf beg end)))
-		      (if max (narrow-to-region (point-min) max))))))
+	      (save-excursion
+		(set-buffer buffer)
+		;; Keep the end of the accessible portion at the same place
+		;; unless it is the end of the buffer.
+		(let ((max (if (/= (1+ (buffer-size)) (point-max))
+			       (point-max))))
+		  (unwind-protect
+		      ;; Code below lifted from rmailout.el
+		      ;; function rmail-output-to-rmail-file:
+		      (let ((buffer-read-only nil)
+			    (msg (and (boundp 'rmail-current-message)
+				      rmail-current-message)))
+			;; If MSG is non-nil, buffer is in RMAIL mode.
+			(if msg
+			    (progn
+			      (rmail-maybe-set-message-counters)
+			      (widen)
+			      (narrow-to-region (point-max) (point-max))
+			      (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
+				      "From: " (user-login-name) "\n"
+				      "Date: " (mail-rfc822-date) "\n")
+			      (insert-buffer-substring curbuf beg2 end)
+			      (insert "\n\C-_")
+			      (goto-char (point-min))
+			      (widen)
+			      (search-backward "\n\^_")
+			      (narrow-to-region (point) (point-max))
+			      (rmail-count-new-messages t)
+			      (rmail-show-message msg)
+			      (setq max nil))
+			  ;; Output file not in rmail mode
+			  ;; => just insert at the end.
+			  (narrow-to-region (point-min) (1+ (buffer-size)))
+			  (goto-char (point-max))
+			  (insert-buffer-substring curbuf beg end)))
+		    (if max (narrow-to-region (point-min) max)))))
 	    ;; Else append to the file directly.
-	    (write-region
-	     (1+ (point-min)) (point-max) (car fcc-list) t)))
+	    (if (mail-file-babyl-p (car fcc-list))
+		;; If the file is a Babyl file,
+		;; convert the message to Babyl format.
+		(save-excursion
+		  (set-buffer (get-buffer-create " mail-temp"))
+		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
+			  "From: " (user-login-name) "\n"
+			  "Date: " (mail-rfc822-date) "\n")
+		  (insert-buffer-substring curbuf beg2 end)
+		  (insert "\n\C-_")
+		  (write-region (point-min) (point-max) (car fcc-list) t))
+	      (write-region
+	       (1+ (point-min)) (point-max) (car fcc-list) t))))
 	(setq fcc-list (cdr fcc-list))))
     (kill-buffer tembuf)))
 
