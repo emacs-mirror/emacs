@@ -1773,8 +1773,10 @@ Returns the window displaying BUFFER.")
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     {
+#ifdef MULTI_FRAME
       if (FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (window)))))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+#endif
       return window;
     }
 
