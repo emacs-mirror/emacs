@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -351,13 +351,26 @@ See `find-variable' for more details."
   "Find the function that KEY invokes.  KEY is a string.
 Point is saved if FUNCTION is in the current buffer."
   (interactive "kFind function on key: ")
-  (let ((defn (key-binding key))
-	(key-desc (key-description key)))
-    (if (or (null defn) (integerp defn))
-        (message "%s is unbound" key-desc)
-      (if (consp defn)
-	  (message "%s runs %s" key-desc (prin1-to-string defn))
-	(find-function-other-window defn)))))
+  (save-excursion
+    (let* ((event (aref key 0))
+	   (start (event-start event))
+	   (modifiers (event-modifiers event))
+	   (window (and (or (memq 'click modifiers) (memq 'down modifiers)
+			    (memq 'drag modifiers))
+			(posn-window start))))
+      ;; For a mouse button event, go to the button it applies to
+      ;; to get the right key bindings.  And go to the right place
+      ;; in case the keymap depends on where you clicked.
+      (when (windowp window)
+	(set-buffer (window-buffer window))
+	(goto-char (posn-point start)))
+      (let ((defn (key-binding key))
+	    (key-desc (key-description key)))
+	(if (or (null defn) (integerp defn))
+	    (message "%s is unbound" key-desc)
+	  (if (consp defn)
+	      (message "%s runs %s" key-desc (prin1-to-string defn))
+	    (find-function-other-window defn)))))))
 
 ;;;###autoload
 (defun find-function-at-point ()
