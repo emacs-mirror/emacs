@@ -1,3 +1,9 @@
+2002-04-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_phys_cursor_glyph): Take into account that a box
+	cursor on a stretch glyph has a width that depends on
+	x_stretch_cursor_p.
+
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* indent.c (Fvertical_motion): Fix last change.
