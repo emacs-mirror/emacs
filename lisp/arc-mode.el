@@ -120,6 +120,8 @@
   :group 'archive)
 
 (defcustom archive-tmpdir
+  ;; make-temp-name is safe here because we use this name
+  ;; to create a directory.
   (make-temp-name
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
 		     temporary-file-directory))
