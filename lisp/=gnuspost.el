@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnuspost.el,v 1.14 1993/07/20 04:25:04 rms Exp rms $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnuspost.el,v 1.15 1993/11/22 06:38:28 rms Exp rms $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -591,7 +591,8 @@ a program specified by the rest of the value."
 		(t
 		 ;; Suggested by hyoko@flab.fujitsu.junet.
 		 ;; Save article in Unix mail format by default.
-		 (if gnus-author-copy-saver
+		 (if (and gnus-author-copy-saver
+			  (not (eq gnus-author-copy-saver 'rmail-output)))
 		     (funcall gnus-author-copy-saver fcc-file)
 		   (if (and (file-readable-p fcc-file) (rmail-file-p fcc-file))
 		       (gnus-output-to-rmail fcc-file)
