@@ -673,8 +673,9 @@ which font is being used for displaying the character."
 			   (lambda (a b)
 			     (< (length (cdr a))
 				(length (cdr b))))))
-	  (insert (format "  %s: %s\n" (car elt) (cdr elt))))
-	))))
+	  (insert (format "  %s: %s\n" (propertize (symbol-name (car elt))
+						   'font-lock-face 'italic)
+			  (cdr elt))))))))
 
 
 ;;; CODING-SYSTEM
