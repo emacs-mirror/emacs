@@ -918,6 +918,9 @@ init_frame_faces (f)
 #ifdef WINDOWSNT
   if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
 #endif
+#ifdef MAC_OS
+  if (!FRAME_MAC_P (f) || FRAME_MAC_WINDOW (f))
+#endif
     if (!realize_basic_faces (f))
       abort ();
 }
@@ -6337,6 +6340,17 @@ try_font_list (f, attrs, family, registry, fonts)
   if (STRINGP (face_family))
     nfonts = try_alternative_families (f, face_family, registry, fonts);
 
+#ifdef MAC_OS
+  /* When realizing the default face and a font spec does not matched
+     exactly, Emacs looks for ones with the same registry as the
+     default font.  On the Mac, this is mac-roman, which does not work
+     if the family is -etl-fixed, e.g.  The following widens the
+     choices and fixes that problem.  */
+  if (nfonts == 0 && STRINGP (face_family) && STRINGP (registry)
+      && xstricmp (XSTRING (registry)->data, "mac-roman") == 0)
+    nfonts = try_alternative_families (f, face_family, Qnil, fonts);
+#endif
+
   if (nfonts == 0 && !NILP (family))
     nfonts = try_alternative_families (f, family, registry, fonts);
 
@@ -6743,18 +6757,6 @@ realize_x_face (cache, attrs, c, base_face)
 	fontset = default_face->fontset;
       face->fontset = make_fontset_for_ascii_face (f, fontset);
       face->font = NULL;	/* to force realize_face to load font */
-
-#ifdef MAC_OS
-      /* Load the font if it is specified in ATTRS.  This fixes
-         changing frame font on the Mac.  */
-      if (STRINGP (attrs[LFACE_FONT_INDEX]))
-        {
-          struct font_info *font_info =
-            FS_LOAD_FONT (f, 0, XSTRING (attrs[LFACE_FONT_INDEX])->data, -1);
-          if (font_info)
-            face->font = font_info->font;
-        }
-#endif
     }
 
   /* Load colors, and set remaining attributes.  */

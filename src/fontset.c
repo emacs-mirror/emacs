@@ -1413,7 +1413,7 @@ syms_of_fontset ()
 #if defined (MAC_OS)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
-	     build_string ("-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1"));
+	     build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman"));
 #elif defined (WINDOWSNT)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),

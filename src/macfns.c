@@ -72,6 +72,7 @@ static unsigned char gray_bits[] = {
    precompiled header Carbon.h.  */
 #undef max
 #undef min
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef Z
 #define Z (current_buffer->text->z)
@@ -85,7 +86,9 @@ static unsigned char gray_bits[] = {
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
-#else /* not MAC_OSX */ 
+#undef
+#define init_process emacs_init_process
+#else /* not MAC_OSX */
 #include <Windows.h>
 #include <Gestalt.h>
 #include <TextUtils.h>
@@ -4434,7 +4437,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
     }
 #endif /* 0 */
 
-  error ("Display has an unknown visual class");
+  return (intern ("true-color"));
 }
 
 DEFUN ("x-display-save-under", Fx_display_save_under,

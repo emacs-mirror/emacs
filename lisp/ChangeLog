@@ -1,3 +1,7 @@
+2002-06-16  Andrew Choi  <akochoi@shaw.ca>
+
+	* term/mac-win.el (scalable-fonts-allowed): Set to t.
+
 2002-06-15  Colin Walters  <walters@debian.org>
 
 	* pcvs-info.el (global-font-lock-mode, font-lock-auto-fontify):
@@ -294,7 +298,7 @@
 	* select.el (xselect-convert-to-string): If VALUE is a string,
 	return a cons of TYPE and the string.
 
-2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* language/cyrillic.el (cyrillic-alternativnyj-decode-table):
 	Fix the table to contain correct characters.

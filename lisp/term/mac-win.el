@@ -225,6 +225,12 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; ange-ftp will not work without it.
 (setq process-connection-type nil)
 
+;; Assume that fonts are always scalable on the Mac.  This sometimes
+;; results in characters with jagged edges.  However, without it,
+;; fonts with both truetype and bitmap representations but no italic
+;; or bold bitmap versions will not display these variants correctly.
+(setq scalable-fonts-allowed t)
+
 ;; (prefer-coding-system 'mac-roman)
 
 ;;

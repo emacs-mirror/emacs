@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #undef free
 #undef malloc
 #undef realloc
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef free
 #define free unexec_free
@@ -47,6 +48,8 @@ Boston, MA 02111-1307, USA.  */
 #define malloc unexec_malloc
 #undef realloc
 #define realloc unexec_realloc
+#undef init_process
+#define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <Files.h>
 #include <MacTypes.h>

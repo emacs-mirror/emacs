@@ -253,6 +253,13 @@ Boston, MA 02111-1307, USA.  */
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 
+/* The ncurses library has been moved out of the System framework in
+   Mac OS X 10.2.  So if ./configure detects it, set the command-line
+   option to use it.  */
+#ifdef HAVE_LIBNCURSES
+#define LIBS_TERMCAP -lncurses
+#endif
+
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
 

@@ -46,6 +46,7 @@ Boston, MA 02111-1307, USA.  */
    precompiled header Carbon.h.  */
 #undef max
 #undef min
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef Z
 #define Z (current_buffer->text->z)
@@ -59,6 +60,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <MacTypes.h>
 #include <Menus.h>

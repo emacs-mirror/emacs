@@ -44,6 +44,7 @@ Boston, MA 02111-1307, USA.  */
    precompiled header Carbon.h.  */
 #undef max
 #undef min
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef free
 #define free unexec_free
@@ -55,6 +56,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <Quickdraw.h>
 #include <ToolUtils.h>
@@ -9559,6 +9562,13 @@ x_new_font (f, fontname)
   /* Now make the frame display the given font.  */
   if (FRAME_MAC_WINDOW (f) != 0)
     {
+      XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
+		f->output_data.mac->font);
+      XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->reverse_gc,
+		f->output_data.mac->font);
+      XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->cursor_gc,
+		f->output_data.mac->font);
+
       frame_update_line_height (f);
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
         x_set_window_size (f, 0, f->width, f->height);
@@ -10651,10 +10661,30 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
 }
 
 
-/* Sets up the table font_name_table to contain the list of all
-   monospace fonts in the system the first time the table is used so
-   that the Resource Manager need not be accessed every time this
-   information is needed.  */
+static void
+add_font_name_table_entry (char *font_name)
+{
+  if (font_name_table_size == 0)
+    {
+      font_name_table_size = 16;
+      font_name_table = (char **)
+	xmalloc (font_name_table_size * sizeof (char *));
+    }
+  else if (font_name_count + 1 >= font_name_table_size)
+    {
+      font_name_table_size += 16;
+      font_name_table = (char **)
+	xrealloc (font_name_table,
+		  font_name_table_size * sizeof (char *));
+    }
+
+  font_name_table[font_name_count++] = font_name;
+}
+
+/* Sets up the table font_name_table to contain the list of all fonts
+   in the system the first time the table is used so that the Resource
+   Manager need not be accessed every time this information is
+   needed.  */
 
 static void
 init_font_name_table ()
@@ -10700,23 +10730,21 @@ init_font_name_table ()
       
 	  while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
 		 == noErr)
-	    {
-	      if (font_name_table_size == 0)
-		{
-		  font_name_table_size = 16;
-		  font_name_table = (char **)
-		    xmalloc (font_name_table_size * sizeof (char *));
-		}
-	      else if (font_name_count + 1 >= font_name_table_size)
-		{
-		  font_name_table_size += 16;
-		  font_name_table = (char **)
-		    xrealloc (font_name_table,
-			      font_name_table_size * sizeof (char *));
-		}
-	      font_name_table[font_name_count++]
-		= mac_to_x_fontname (name, size, style, sc);
-	    }
+	    if (size == 0)
+	      {
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      style, sc));
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      italic, sc));
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      bold, sc));
+		add_font_name_table_entry (mac_to_x_fontname (name, size,
+							      italic | bold,
+							      sc));
+	      }
+	    else
+	      add_font_name_table_entry (mac_to_x_fontname (name, size, style,
+							    sc));
 	}
   
       /* Dispose of the iterators.  */
