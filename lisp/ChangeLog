@@ -1,5 +1,8 @@
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (face-spec-set): Ignore invalid attributes like 20.x.
+	(face-x-resources): Remove duplicate entry for :font.
+
 	* textmodes/refer.el (refer-find-entry-internal): Use some-window
 	instead of cycling through windows with next-window.
 

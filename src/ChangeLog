@@ -1,5 +1,7 @@
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* m/macppc.h (LINKER, LD_SWITCH_MACHINE) [LINUX]: Define.
+
 	* fns.c (sweep_weak_table): Mark only objects that are not 
 	marked already.
 

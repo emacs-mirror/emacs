@@ -1,3 +1,11 @@
+2000-07-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* viper.texi, vip.texi, widget.texi, ada-mode.texi, sc.texi
+	* reftex.texi, pcl-cvs.texi, mh-e.texi, idlwave.texi
+	* forms.texi, faq.texi, eudc.texi, emacs.texi, ediff.texi
+	* dired-x.texi, cl.texi, cc-mode.texi, autotype.texi: Use
+	dircategory `Emacs'.
+
 2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* programs.texi (Documentation): Describe how man pages with
