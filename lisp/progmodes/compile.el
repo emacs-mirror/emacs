@@ -902,7 +902,7 @@ See variables `compilation-parse-errors-function' and
 See variable `compilation-parse-errors-function' for the interface it uses."
   (setq compilation-error-list nil)
   (message "Parsing error messages...")
-  (let (text-buffer
+  (let (text-buffer orig orig-expanded parent-expanded
 	regexp enter-group leave-group error-group
 	alist subexpr error-regexp-groups
 	(found-desired nil)
@@ -952,6 +952,10 @@ See variable `compilation-parse-errors-function' for the interface it uses."
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
 
+    (setq orig default-directory)
+    (setq orig-expanded (file-truename orig))
+    (setq parent-expanded (expand-file-name "../" orig-expanded))
+
     (while (and (not found-desired)
 		;; We don't just pass LIMIT-SEARCH to re-search-forward
 		;; because we want to find matches containing LIMIT-SEARCH
@@ -966,6 +970,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		     (expand-file-name
 		      (buffer-substring (match-beginning (+ enter-group 1))
 					(match-end (+ enter-group 1)))))))
+	       ;; The directory name in the "entering" message
+	       ;; is a truename.  Try to convert it to a form
+	       ;; like what the user typed in.
+	       (setq dir
+		     (compile-abbreviate-directory dir orig orig-expanded
+						   parent-expanded))
 	       (setq compilation-directory-stack
 		     (cons dir compilation-directory-stack))
 	       (and (file-directory-p dir)
@@ -982,6 +992,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			    (buffer-substring beg
 					      (match-end (+ leave-group
 							    1)))))))
+		     ;; The directory name in the "entering" message
+		     ;; is a truename.  Try to convert it to a form
+		     ;; like what the user typed in.
+		     (setq dir
+			   (compile-abbreviate-directory dir orig orig-expanded
+							 parent-expanded))
 		     (while (and stack
 				 (not (string-equal (car stack) dir)))
 		       (setq stack (cdr stack)))))
@@ -1068,6 +1084,28 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				    (point-max))))
   (setq compilation-error-list (nreverse compilation-error-list))
   (message "Parsing error messages...done"))
+
+;; If directory DIR is a subdir of ORIG or of ORIG's parent,
+;; return a relative name for it starting from ORIG or its parent.
+;; ORIG-EXPANDED is an expanded version of ORIG.
+;; PARENT-EXPANDED is an expanded version of ORIG's parent.
+;; Those two args could be computed here, but we run faster by
+;; having the caller compute them just once.
+(defun compile-abbreviate-directory (dir orig orig-expanded parent-expanded)
+  (if (and (> (length dir) (length orig-expanded))
+	   (string= orig-expanded
+		    (substring dir 0 (length orig-expanded))))
+      (setq dir
+	    (concat orig
+		    (substring dir (length orig-expanded)))))
+  (if (and (> (length dir) (length parent-expanded))
+	   (string= parent-expanded
+		    (substring dir 0 (length parent-expanded))))
+    (setq dir
+	  (concat (file-name-directory
+		   (directory-file-name orig))
+		  (substring dir (length parent-expanded)))))
+  dir)
 
 (provide 'compile)
 
