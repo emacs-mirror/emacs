@@ -3192,11 +3192,6 @@ Otherwise returns nil.  */)
      (filename)
      Lisp_Object filename;
 {
-#ifdef S_IFLNK
-  char *buf;
-  int bufsize;
-  int valsize;
-  Lisp_Object val;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -3207,6 +3202,13 @@ Otherwise returns nil.  */)
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
+
+#ifdef S_IFLNK
+  {
+  char *buf;
+  int bufsize;
+  int valsize;
+  Lisp_Object val;
 
   filename = ENCODE_FILE (filename);
 
@@ -3242,6 +3244,7 @@ Otherwise returns nil.  */)
   xfree (buf);
   val = DECODE_FILE (val);
   return val;
+  }
 #else /* not S_IFLNK */
   return Qnil;
 #endif /* not S_IFLNK */
