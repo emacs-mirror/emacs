@@ -619,8 +619,8 @@ Moves point to end of buffer and then repeatedly calls
 Their results are gathered into an index alist."
   ;; These should really be done by setting imenu-create-index-function
   ;; in these major modes.  But save that change for later.
-  (cond ((and (fboundp imenu-prev-index-position-function)
-	      (fboundp imenu-extract-index-name-function))
+  (cond ((and imenu-prev-index-position-function
+	      imenu-extract-index-name-function)
 	 (let ((index-alist '())
 	       prev-pos name)
 	   (goto-char (point-max))
@@ -902,20 +902,20 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
 NAME is a string used to name the menu bar item.
 See the command `imenu' for more information."
   (interactive "sImenu menu item name: ")
-  (if (or (not (eq imenu-create-index-function
-                   'imenu-default-create-index-function))
-          (and (fboundp imenu-prev-index-position-function)
-		   (fboundp imenu-extract-index-name-function))
-	      (and imenu-generic-expression))
-	 (let ((newmap (make-sparse-keymap))
-	       (menu-bar (lookup-key (current-local-map) [menu-bar])))
-	   (define-key newmap [menu-bar]
-	     (append (make-sparse-keymap) menu-bar))
-	   (define-key newmap [menu-bar index]
-	     (cons name (nconc (make-sparse-keymap "Imenu")
-			       (make-sparse-keymap))))
-	   (use-local-map (append newmap (current-local-map)))
-	   (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+  (if (or (and imenu-prev-index-position-function
+	       imenu-extract-index-name-function)
+	  imenu-generic-expression
+	  (not (eq imenu-create-index-function
+		   'imenu-default-create-index-function)))
+      (let ((newmap (make-sparse-keymap))
+	    (menu-bar (lookup-key (current-local-map) [menu-bar])))
+	(define-key newmap [menu-bar]
+	  (append (make-sparse-keymap) menu-bar))
+	(define-key newmap [menu-bar index]
+	  (cons name (nconc (make-sparse-keymap "Imenu")
+			    (make-sparse-keymap))))
+	(use-local-map (append newmap (current-local-map)))
+	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
     (error "The mode `%s' does not support Imenu" mode-name)))
 
 (defvar imenu-buffer-menubar nil)
