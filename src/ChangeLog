@@ -1,3 +1,7 @@
+2002-05-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (Fmake_char): Make it more backward compatible.
+
 2002-05-13  Dave Love  <fx@gnu.org>
 
 	* coding.c: Doc fixes.
