@@ -1,5 +1,5 @@
 #! /usr/bin/perl
-# $Id: grep-changelog,v 1.4 2001/07/20 09:59:19 gerd Exp $
+# $Id: grep-changelog,v 1.5 2001/07/20 10:02:06 gerd Exp $
 
 # Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 #
@@ -182,6 +182,8 @@ sub parse_changelog ($) {
 	        $header = "$header$line";
 	    }
         }
+
+        last unless defined $line;
 
 	if ($line =~ /^\s*\*/) {
 	    # LINE is the first line of a ChangeLog entry.  Print
