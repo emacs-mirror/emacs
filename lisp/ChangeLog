@@ -1,3 +1,19 @@
+2000-09-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vms-patch.el (print-region-function): Don't quote lambda.
+
+	* tempo.el (tempo-expand-if-complete): Quote paren in docstring.
+
+	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Cleanup the regexp.
+	(lm-get-header-re): Allow spaces between the header and the colon.
+	(lm-header): Allow $ in non-RCS headers.
+	(lm-header-multiline): Put the strings back into order.
+	Stop at an empty line.  Don't require two space chars if the
+	line is clearly not another header line.
+
+	* emacs-lisp/lmenu.el (popup-menu, popup-menu-internal)
+	(popup-menu-popup): Remove.
+
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* toolbar/toolbar.el (toolbar-add-item): Use the same image
