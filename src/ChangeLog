@@ -1,11 +1,14 @@
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fignore_event): Fix ancient obscure C-u handling bug.
+
 2005-03-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (HASHKEY_TERMINAL): Remove.
 	(HASHKEY_MAX_NID): New macro.
 	(xrm_q_get_resource_1): Rename from xrm_q_get_resource.  Add extra
 	argument.
-	(xrm_q_get_resource): Call xrm_q_get_resource_1 with extra
-	argument.
+	(xrm_q_get_resource): Call xrm_q_get_resource_1 with extra argument.
 	(xrm_create_database, xrm_q_put_resource)
 	(xrm_merge_string_database, xrm_q_get_resource_1)
 	(xrm_q_get_resource): Change resource database representation so
