@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate February 13, 1999
+@set lastupdate March 26, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -394,18 +394,6 @@ Software for designing and printing business cards.
 @chapter Network Projects
 
 @itemize @bullet
-@item
-A web-based front end for the system and network monitoring program 
-@code{mon}, so that it can do the job of Big Brother (which is not free 
-software).  Some other modifications to mon are probably necessary.
-@code{mon} is considered to be at least as good as Big Brother except
-for the lack of a good Web-based display to make it easy to scan the
-status at a glance.
-
-It might be good to add a few other features to @code{mon}, including
-``dialup'' hosts: systems that are monitored, but for which the lack of
-any reply is not considered a failure.
-
 @item
 A teleconferencing program which does the job of CU-SeeMe (which is,
 alas, not free software).
