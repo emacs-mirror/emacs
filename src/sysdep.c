@@ -588,7 +588,7 @@ child_setup_tty (out)
 #endif
   s.main.c_lflag &= ~ECHO;	/* Disable echo */
   s.main.c_lflag |= ISIG;	/* Enable signals */
-#if 0
+#if 0  /* This causes bugs in (for instance) telnet to certain sites.  */
   s.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef INLCR  /* Just being cautious, since I can't check how
 		 widespread INLCR is--rms.  */
