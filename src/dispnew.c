@@ -3482,6 +3482,7 @@ direct_output_for_insert (g)
   it.current_y = w->cursor.y;
   it.end_charpos = PT;
   it.stop_charpos = min (PT, it.stop_charpos);
+  it.stop_charpos = max (IT_CHARPOS (it), it.stop_charpos);
 
   /* More than one display element may be returned for PT - 1 if
      (i) it's a control character which is translated into `\003' or
