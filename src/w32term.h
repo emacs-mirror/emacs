@@ -75,23 +75,6 @@ struct win32_bitmap_record
   /* Record some info about this pixmap.  */
   int height, width, depth;
 };
-
-/* Palette book-keeping stuff for mapping requested colors into the
-   system palette.  Keep a ref-counted list of requested colors and
-   regenerate the app palette whenever the requested list changes. */
-
-extern Lisp_Object Vwin32_enable_palette;
-
-struct win32_palette_entry {
-  struct win32_palette_entry * next;
-  PALETTEENTRY entry;
-#if 0
-  unsigned refcount;
-#endif
-};
-
-extern void win32_regenerate_palette(struct frame *f);
-
 
 /* For each display (currently only one on win32), we have a structure that
    records information about it.  */
@@ -118,15 +101,6 @@ struct win32_display_info
   Window root_window;
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
-
-  /* color palette information */
-  int has_palette;
-  struct win32_palette_entry * p_colors_in_use;
-  unsigned n_colors_in_use;
-  HPALETTE h_palette;
-
-  /* deferred action flags checked when starting frame update */
-  int regen_palette;
 
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
@@ -213,9 +187,6 @@ extern struct win32_display_info *win32_term_init ();
 
 struct win32_output
 {
-  /* Original palette (used to deselect real palette after drawing) */
-  HPALETTE h_old_palette;
-
   /* Position of the Win32 window (x and y offsets in root window).  */
   int left_pos;
   int top_pos;
@@ -577,6 +548,10 @@ win32_fill_area (f,hdc,f->output_data.win32->background_pixel,x,y,nx,ny)
 extern XFontStruct *win32_load_font ();
 extern void win32_unload_font ();
 
+extern HDC map_mode();
+
+#define my_get_dc(hwnd) (map_mode (GetDC (hwnd)))
+
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
 #define WM_EMACS_CREATEWINDOW          (WM_EMACS_START + 0x01)
@@ -603,25 +578,10 @@ typedef struct Win32Msg {
     RECT rect;
 } Win32Msg;
 
-/* Identifiers for array of critical sections; we need one for
-   serializing access to hand-crafter message queue, and another
-   for preventing palette changes during GDI calls. */
-enum win32_critical_section {
-  CRIT_MSG,			/* message queue */
-  CRIT_GDI,			/* GDI calls */
-  CRIT_TOTAL			/* num of critical sections */
-};
-
-extern CRITICAL_SECTION critsect[CRIT_TOTAL];
-
 extern void init_crit ();
+extern void enter_crit ();
+extern void leave_crit ();
 extern void delete_crit ();
-
-#define enter_crit(index) EnterCriticalSection (&critsect[index])
-#define leave_crit(index) LeaveCriticalSection (&critsect[index])
-
-extern HDC GetFrameDC (struct frame * f);
-extern int ReleaseFrameDC (struct frame * f, HDC hDC);
 
 extern BOOL get_next_msg ();
 extern BOOL post_msg ();
