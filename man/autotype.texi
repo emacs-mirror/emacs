@@ -397,7 +397,7 @@ the filename to prevent multiple inclusions.  C and C++ sources insert an
 include of the header.  Makefiles insert the file makefile.inc if it exists.
 
   TeX and bibTeX mode files insert the file tex-insert.tex if it exists, while
-LaTeX mode files insert insert a typical @code{\documentclass} frame.  Html
+LaTeX mode files insert a typical @code{\documentclass} frame.  Html
 files insert a skeleton with the usual frame.
 
   Ada mode files call the Ada header skeleton command.  Emacs lisp source
@@ -616,7 +616,7 @@ formatting or define special points of interest in the inserted text.
 used to jump between such points.
 
 More flexible templates can be created by including lisp symbols, which
-will be evaluated as variables, or lists, which will will be evaluated
+will be evaluated as variables, or lists, which will be evaluated
 as lisp expressions.  Automatic completion of specified tags to expanded
 templates can be provided.
 
