@@ -655,8 +655,10 @@ fs_load_font (f, c, fontname, id, face)
       /* The font itself doesn't have information about encoding.  */
       int i;
 
-      /* At first, set 1 (means 0xA0..0xFF) as the default.  */
-      fontp->encoding[0] = 1;
+      fontname = fontp->full_name;
+      /* By default, encoding of ASCII chars is 0 (i.e. 0x00..0x7F),
+	 others is 1 (i.e. 0x80..0xFF).  */
+      fontp->encoding[0] = 0;
       for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
 	fontp->encoding[i] = 1;
       /* Then override them by a specification in Vfont_encoding_alist.  */
