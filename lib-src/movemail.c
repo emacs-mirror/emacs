@@ -95,9 +95,7 @@ Boston, MA 02111-1307, USA.  */
    implemented and used on Unix.  */
 //#define DISABLE_DIRECT_ACCESS
 
-/* Ensure all file i/o is in binary mode. */
 #include <fcntl.h>
-int _fmode = _O_BINARY;
 #endif /* WINDOWSNT */
 
 #ifdef USG
@@ -193,6 +191,11 @@ main (argc, argv)
 #else /* ! MAIL_USE_POP */
 # define ARGSTR "p"
 #endif /* MAIL_USE_POP */
+
+#ifdef WINDOWSNT
+  /* Ensure all file i/o is in binary mode. */
+  _fmode = _O_BINARY;
+#endif
 
   delete_lockname = 0;
 
