@@ -233,7 +233,7 @@ Variable `ada-indent' controls the number of spaces for indent/undent."
   (setq ada-comment-end-column 72)
   (set-syntax-table ada-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
