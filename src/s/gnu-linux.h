@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define UNIPLUS */
 /* #define USG5 */
 #define USG
-#define BSD
+/* #define BSD */
 #define LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
@@ -131,6 +131,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
+/* On POSIX systems the system calls are interruptible by signals
+ that the user program has elected to catch.  Thus the system call
+ must be retried in these cases.  To handle this without massive
+ changes in the source code, we remap the standard system call names
+ to names for our own functions in sysdep.c that do the system call
+ with retries. */
+
+#define read sys_read
+#define write sys_write
+#define open sys_open
+#define close sys_close
+
+#define INTERRUPTIBLE_OPEN
+#define INTERRUPTIBLE_CLOSE
+#define INTERRUPTIBLE_IO
 
 /* If you mount the proc file system somewhere other than /proc
    you will have to uncomment the following and make the proper
@@ -152,6 +167,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef emacs
 #include <signal.h>
 #undef SIGIO
+#undef signal
+#define signal sys_signal
+#include <values.h>
 #endif
 
 #define HAVE_SETSID
@@ -167,7 +185,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_VFORK
 #define HAVE_SYS_SIGLIST
 #define HAVE_GETWD            /* cure conflict with getcwd? */
-#define HAVE_TCATTR	      /* faith@cs.unc.edu says this is needed.  */
 
 #define USE_UTIME             /* don't have utimes */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
@@ -188,6 +205,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X11
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
+
+/* Work around a bug in glibc with _longjmp. */
+#define C_SWITCH_SYSTEM -D_BSD_SOURCE
 
 /* Let's try this out, just in case.  */
 #define SIGNALS_VIA_CHARACTERS
