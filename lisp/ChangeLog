@@ -19,11 +19,18 @@
 2004-09-07  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-highlight-matches): Change default from
-	`t' to `auto-detect', and type from `boolean' to `choice'.
+	`t' to `auto-detect', and type from `boolean' to `choice'.  Doc fix.
 	(grep-compute-defaults): Set `grep-highlight-matches' to `t'
 	if grep option `--color' is available, or to `nil' otherwise.
+	(grep-process-setup): Call `grep-compute-defaults' if
+	`grep-highlight-matches' is not computed.  Set env-vars only
+	if `grep-highlight-matches' is `t'.
 	(grep-use-null-device): Remove redundant type `boolean' (`choice'
 	is already defined).
+
+	* progmodes/compile.el (compilation-start): Use copy of
+	`process-environment' created by `copy-sequence' to not
+	modify env-vars in the global `process-environment'.
 
 2004-09-06  Eli Zaretskii  <eliz@gnu.org>
 
