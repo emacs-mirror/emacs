@@ -2823,10 +2823,6 @@ x_clear_frame ()
 
   XFlush (FRAME_X_DISPLAY (f));
 
-#ifdef USE_GTK
-  xg_frame_cleared (f);
-#endif
-
   UNBLOCK_INPUT;
 }
 
@@ -4861,9 +4857,7 @@ x_scroll_bar_create (w, top, left, width, height)
                              top,
                              left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                             max (height, 1),
-                             left,
-                             width);
+                             max (height, 1));
     xg_show_scroll_bar (SCROLL_BAR_X_WINDOW (bar));
 #else /* not USE_GTK */
     Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
@@ -5107,18 +5101,6 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
-#ifdef USE_GTK
-      if (mask)
-        xg_update_scrollbar_pos (f,
-                                 SCROLL_BAR_X_WINDOW (bar),
-                                 top,
-                                 sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                                 sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                                 max (height, 1),
-                                 left,
-                                 width);
-#else /* not USE_GTK */
-
       /* Move/size the scroll bar widget.  */
       if (mask)
 	{
@@ -5127,13 +5109,21 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  if (width > 0 && height > 0)
 	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
                           left, top, width, height, False);
+#ifdef USE_GTK
+          xg_update_scrollbar_pos (f,
+                                   SCROLL_BAR_X_WINDOW (bar),
+                                   top,
+                                   sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+                                   sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM *2,
+                                   max (height, 1));
+#else /* not USE_GTK */
           XtConfigureWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar),
                              sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              top,
                              sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
                              max (height, 1), 0);
-	}
 #endif /* not USE_GTK */
+	}
 #else /* not USE_TOOLKIT_SCROLL_BARS */
 
       /* Clear areas not covered by the scroll bar because of
