@@ -176,10 +176,6 @@ after `show-paren-delay' seconds of Emacs idle time."
 	       (and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
 		    (delete-overlay show-paren-overlay-1)))))))
 
-;;; For back compatibility we turn ourselves on if we're dumped or loaded.
-(add-hook 'window-setup-hook '(lambda () (show-paren-mode t)))
-(show-paren-mode t)
-
 (provide 'paren)
 
 ;;; paren.el ends here
