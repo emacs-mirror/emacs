@@ -230,6 +230,7 @@
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
 	     (truncate-partial-width-windows display boolean)
+	     (mode-line-inverse-video modeline boolean)
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
