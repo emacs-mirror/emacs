@@ -322,8 +322,11 @@ typedef struct frame *FRAME_PTR;
 #define XFRAME(p) ((struct frame *) XPNTR (p))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
+/* Given a window, return its frame as a Lisp_Object.  */
 #define WINDOW_FRAME(w) (w)->frame
 
+/* Test a frame for particular kinds of display methods.  */
+#define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
@@ -340,40 +343,90 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_P(f) (0)
 #endif
 
+/* Nonzero if frame F is still alive (not deleted).  */
 #define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
-#define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
+
+/* Nonzero if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \
   EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
+
+/* Nonzero if frame F contains a minibuffer window.
+   (If this is 0, F must use some other minibuffer window.)  */
 #define FRAME_HAS_MINIBUF_P(f) ((f)->has_minibuffer)
+
+/* This points to the structure which describes the contents
+   currently displayed on frame F.  See dispextern.h.  */
 #define FRAME_CURRENT_GLYPHS(f) (f)->current_glyphs
+
+/* This points to the structure which describes the contents
+   intended to be displayed on frame F.  See dispextern.h.  */
 #define FRAME_DESIRED_GLYPHS(f) (f)->desired_glyphs
+
 #define FRAME_TEMP_GLYPHS(f) (f)->temp_glyphs
+#define SET_GLYPHS_FRAME(glyphs,frame) ((glyphs)->frame = (frame))
+
+/* Height of frame F, measured in character lines.  */
 #define FRAME_HEIGHT(f) (f)->height
+
+/* Width of frame F, measured in character columns,
+   not including scroll bars if any.  */
 #define FRAME_WIDTH(f) (f)->width
-#define FRAME_NEW_HEIGHT(f) (f)->new_height
-#define FRAME_NEW_WIDTH(f) (f)->new_width
+
+/* Number of lines of frame F used for menu bar.
+   This is relevant on terminal frames and on
+   X Windows when not using the X toolkit.
+   These lines are counted in FRAME_HEIGHT.  */
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
+
+/* Nonzero if this frame should display a menu bar
+   in a way that does not use any text lines.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
 #endif
+
+/* Current cursor position for frame F.  */
 #define FRAME_CURSOR_X(f) (f)->cursor_x
 #define FRAME_CURSOR_Y(f) (f)->cursor_y
+
+/* Nonzero if frame F is currently visible.  */
 #define FRAME_VISIBLE_P(f) ((f)->visible != 0)
+
+/* Nonzero if frame F is currently visible but hidden.  */
 #define FRAME_OBSCURED_P(f) ((f)->visible > 1)
+
+/* Nonzero if frame F is currently iconified.  */
+#define FRAME_ICONIFIED_P(f) (f)->iconified
+
 #define FRAME_SET_VISIBLE(f,p) \
   ((f)->async_visible = (p), FRAME_SAMPLE_VISIBILITY (f))
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
 #define FRAME_GARBAGED_P(f) (f)->garbaged
+
+/* Nonzero means do not allow splitting this frame's window.  */
 #define FRAME_NO_SPLIT_P(f) (f)->no_split
+
+/* Not really implemented.  */
 #define FRAME_WANTS_MODELINE_P(f) (f)->wants_modeline
-#define FRAME_ICONIFIED_P(f) (f)->iconified
+
+/* Nonzero if a size change has been requested for frame F
+   but not yet really put into effect.  This can be true temporarily
+   when an X event comes in at a bad time.  */
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
+/* When a size change is pending, these are the requested new sizes.  */
+#define FRAME_NEW_HEIGHT(f) (f)->new_height
+#define FRAME_NEW_WIDTH(f) (f)->new_width
+
+/* The minibuffer window of frame F, if it has one; otherwise nil.  */
 #define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
+
+/* The root window of the window tree of frame F.  */
 #define FRAME_ROOT_WINDOW(f) (f)->root_window
+
+/* The currently selected window of the window tree of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) (f)->selected_window
-#define SET_GLYPHS_FRAME(glyphs,frame) ((glyphs)->frame = (frame))
+
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost    
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost    
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
@@ -381,7 +434,14 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+
+/* Nonzero if frame F supports scroll bars.
+   If this is zero, then it is impossible to enable scroll bars
+   on frame F.  */
 #define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
+
+/* This frame slot says whether scroll bars are currently enabled for frame F,
+   and which side they are on.  */
 #define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
      ((f)->vertical_scroll_bar_type != vertical_scroll_bar_none)
@@ -389,24 +449,54 @@ typedef struct frame *FRAME_PTR;
      ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
      ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
+
+/* Width that a scroll bar in frame F should have, if there is one.
+   Measured in pixels.
+   If scroll bars are turned off, this is still nonzero.  */
 #define FRAME_SCROLL_BAR_PIXEL_WIDTH(f) ((f)->scroll_bar_pixel_width)
+
+/* Width that a scroll bar in frame F should have, if there is one.
+   Measured in columns (characters).
+   If scroll bars are turned off, this is still nonzero.  */
 #define FRAME_SCROLL_BAR_COLS(f) ((f)->scroll_bar_cols)
+
+/* Width of a scroll bar in frame F, measured in columns (characters),
+   but only if scroll bars are on the left.
+   If scroll bars are on the right in this frame, it is 0.  */
 #define FRAME_LEFT_SCROLL_BAR_WIDTH(f) \
      (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f) \
       ? FRAME_SCROLL_BAR_COLS (f) \
       : 0)
+
+/* Width of a scroll bar in frame F, measured in columns (characters).  */
 #define FRAME_SCROLL_BAR_WIDTH(f) \
      (FRAME_HAS_VERTICAL_SCROLL_BARS (f) \
       ? FRAME_SCROLL_BAR_COLS (f) \
       : 0)
+
+/* Total width of frame F, in columns (characters),
+   including the width used by scroll bars if any.  */
+#define FRAME_WINDOW_WIDTH(f) ((f)->window_width)
+
+/* Set the width of frame F to VAL.
+   VAL is the width of a full-frame window,
+   not including scroll bars.  */
+#define SET_FRAME_WIDTH(f, val)						\
+     ((f)->width = (val),						\
+      (f)->window_width = FRAME_WINDOW_WIDTH_ARG (f, (f)->width))
+
+/* Given a value WIDTH for frame F's nominal width,
+   return the value that FRAME_WINDOW_WIDTH should have.  */
 #define FRAME_WINDOW_WIDTH_ARG(f, width) \
      ((width) + FRAME_SCROLL_BAR_WIDTH (f))
-#define FRAME_WINDOW_WIDTH(f) ((f)->window_width)
+
 /* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
 #define FRAME_CURSOR_X_LIMIT(f) \
      (FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f))
-#define SET_FRAME_WIDTH(f,val) ((f)->width = (val), (f)->window_width = FRAME_WINDOW_WIDTH_ARG (f, (f)->width))
+
+/* Nonzero if frame F has scroll bars.  */
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
