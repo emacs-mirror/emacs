@@ -85,7 +85,9 @@ Boston, MA 02111-1307, USA.  */
 #define bcmp		memcmp
 #endif
 
-#ifdef __hpux
+/* Common definitions for HPUX and GNU/Linux.  */
+
+#if defined (__hpux) || defined (GNU_LINUX)
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
@@ -94,20 +96,42 @@ Boston, MA 02111-1307, USA.  */
 #     define hp9000s800
 #endif
 
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE double
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
-
-
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
 
 #undef CANNOT_DUMP
+
+#define STACK_DIRECTION 1 
+
+/* Define NO_REMAP if memory segmentation makes it not work well
+   to change the boundary between the text section and data section
+   when Emacs is dumped.  If you define this, the preloaded Lisp
+   code will not be sharable; but that's better than failing completely.  */
+
+#define NO_REMAP
+
+#endif /* __hpux or GNU_LINUX */
+
+/* Stuff for just GNU/Linux.  */
+
+#ifdef GNU_LINUX
+
+#define HAVE_ALLOCA
+
+/* Data type of load average, as read out of kmem.  */
+
+#define LOAD_AVE_TYPE long
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+
+#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
+
+#endif /* GNU_LINUX */
+
+/* Stuff for just HPUX.  */
+
+#ifdef __hpux
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
@@ -135,15 +159,6 @@ Boston, MA 02111-1307, USA.  */
 #define DATA_START    0x40000000
 #define TEXT_START    0x00000000
 
-#define STACK_DIRECTION 1 
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
-
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
@@ -154,7 +169,15 @@ Boston, MA 02111-1307, USA.  */
 
 /* Include the file bsdtty.h, since this machine has job control.  */
 #define NEED_BSDTTY
-
+
+/* Data type of load average, as read out of kmem.  */
+
+#define LOAD_AVE_TYPE double
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+
+#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
+
 /* The symbol in the kernel where the load average is found
    is named _avenrun.  At this time there are two major flavors
    of hp-ux (there is the s800 and s300 (s200) flavors).  The
