@@ -1263,17 +1263,30 @@ Puts point on a blank line between them."
 ;;;; LaTeX syntax navigation
 ;;;;
 
+(defmacro tex-search-noncomment (&rest body)
+  "Execute BODY as long as it return non-nil and point is in a comment.
+Return the value returned by the last execution of BODY."
+  (declare (debug t))
+  (let ((res-sym (make-symbol "result")))
+    `(let (,res-sym)
+       (while
+	   (and (setq ,res-sym (progn ,@body))
+		(save-excursion (skip-chars-backward "^\n%") (not (bolp)))))
+       ,res-sym)))
+
 (defun tex-last-unended-begin ()
   "Leave point at the beginning of the last `\\begin{...}' that is unended."
   (condition-case nil
-      (while (and (re-search-backward "\\\\\\(begin\\|end\\)\\s *{")
+      (while (and (tex-search-noncomment
+		   (re-search-backward "\\\\\\(begin\\|end\\)\\s *{"))
 		  (looking-at "\\\\end"))
 	(tex-last-unended-begin))
     (search-failed (error "Couldn't find unended \\begin"))))
 
 (defun tex-next-unmatched-end ()
   "Leave point at the end of the next `\\end' that is unended."
-  (while (and (re-search-forward "\\\\\\(begin\\|end\\)\\s *{[^}]+}")
+  (while (and (tex-search-noncomment
+	       (re-search-forward "\\\\\\(begin\\|end\\)\\s *{[^}]+}"))
 	      (save-excursion (goto-char (match-beginning 0))
 			      (looking-at "\\\\begin")))
     (tex-next-unmatched-end)))
@@ -1813,13 +1826,14 @@ FILE is typically the output DVI or PDF file."
   ;; FIXME: Use time-stamps on files to decide the next op.
   (interactive
    (let* ((file (tex-main-file))
-	  (dir (prog1 (file-name-directory (expand-file-name file))
-		 (setq file (file-name-nondirectory file))))
+	  (default-directory
+	    (prog1 (file-name-directory (expand-file-name file))
+	      (setq file (file-name-nondirectory file))))
 	  (root (file-name-sans-extension file))
 	  (fspec (list (cons ?r (comint-quote-filename root))
 		       (cons ?f (comint-quote-filename file))))
 	  (default (tex-compile-default fspec)))
-     (list dir
+     (list default-directory
 	   (completing-read
 	    (format "Command [%s]: " (tex-summarize-command default))
 	    (mapcar (lambda (x)
