@@ -472,6 +472,7 @@ Don't use this command in Lisp programs!
 		 (point-min))))
   (if arg (forward-line 1)))
 
+;;;###autoload
 (defun pc-selection-mode ()
   "Change mark behaviour to emulate motif, MAC or MS-Windows cut and paste style.\n
 This mode will switch on delete-selection-mode and
