@@ -1,3 +1,16 @@
+2002-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_display_and_set_cursor): Change the cursor in the same
+	way for blinked-off state and for a nonselected window.
+
+	* window.c (window_scroll_pixel_based): Don't call Fbolp;
+	instead, see if the new start pos is at beginning of line.
+
+	* fileio.c (Fwrite_region): If START is a string, don't
+	make any annotations.
+
+	* eval.c (syms_of_eval): Doc fix.
+
 2002-05-28  Colin Walters  <walters@debian.org>
 
 	* emacs.c (USAGE1): Add --no-splash.
