@@ -1,3 +1,8 @@
+2004-03-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Do not pass key press events to
+	GTK.
+
 2004-03-19  Richard M. Stallman  <rms@gnu.org>
 
 	* s/sol2-6.h: Delete previous change.

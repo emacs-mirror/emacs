@@ -6217,6 +6217,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           Lisp_Object coding_system = Qlatin_1;
 	  Lisp_Object c;
 
+#ifdef USE_GTK
+          /* Don't pass keys to GTK.  A Tab will shift focus to the
+             tool bar in GTK 2.4.  Keys will still go to menus and
+             dialogs because in that case popup_activated is TRUE
+             (see above).  */
+          *finish = X_EVENT_DROP;
+#endif
+
           event.xkey.state
             |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
                                        extra_keyboard_modifiers);
