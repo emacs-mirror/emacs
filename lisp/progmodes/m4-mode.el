@@ -108,6 +108,12 @@
     (define-key map "\C-c\C-c" 'comment-region)
     map))
 
+(defvar m4-mode-abbrev-table nil
+  "Abbrev table used while in text mode.")
+
+(unless m4-mode-abbrev-table
+  (define-abbrev-table 'm4-mode-abbrev-table ()))
+
 (defun m4-m4-buffer ()
   "send contents of the current buffer to m4"
   (interactive)
@@ -134,7 +140,7 @@
   (setq comment-start "#")
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
-
+  (setq local-abbrev-table m4-mode-abbrev-table)
 
   (make-local-variable	'font-lock-defaults)  
   (setq major-mode 'm4-mode
