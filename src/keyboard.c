@@ -2157,9 +2157,10 @@ static int button_up_x;
 static int button_up_y;
 static unsigned long button_up_time;
 
-/* The minimum time between clicks to make a double-click. */
-
-int double_click_time;
+/* The maximum time between clicks to make a double-click,
+   or Qnil to disable double-click detection,
+   or Qt for no time limit.  */
+Lisp_Object Vdouble_click_time;
 
 /* The number of clicks in this multiple-click. */
 
@@ -2347,8 +2348,10 @@ make_lispy_event (event)
 			&& XINT (event->x) == button_up_x
 			&& XINT (event->y) == button_up_y
 			&& button_up_time != 0
-			&& ((int)(event->timestamp - button_up_time)
-			    < double_click_time))
+			&& (EQ (Vdouble_click_time, Qt)
+			    || (INTEGERP (Vdouble_click_time)
+				&& ((int)(event->timestamp - button_up_time)
+				    < XINT (Vdouble_click_time)))))
 		      {
 			double_click_count++;
 			event->modifiers |= ((double_click_count > 2)
@@ -5084,10 +5087,10 @@ Polling is needed only when using X windows and SIGIO does not work.\n\
 Polling is automatically disabled in all other cases.");
   polling_period = 2;
   
-  DEFVAR_INT ("double-click-time", &double_click_time,
+  DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
     "*Maximum time between mouse clicks to make a double-click.\n\
-Measured in milliseconds.  Zero means disable double-click recognition;\n\
-a large number means double-clicks have no time limit and are detected\n\
+Measured in milliseconds.  nil means disable double-click recognition;\n\
+t means double-clicks have no time limit and are detected\n\
 by position only.");
   double_click_time = 500;
 
