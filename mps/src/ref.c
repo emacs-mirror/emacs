@@ -1,18 +1,18 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.7) $
+ * $HopeName: MMsrc!ref.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved
  *
- * Ref is an alias for Addr which can be used to document where
- * references are being passed.
+ * .def.ref: Ref is an alias for Addr which can be used to document
+ * where references are being passed.
  *
- * RefSet is a conservative approximation to a set of references.
- * It is conservative in the sense that if isMember returns FALSE
- * for a reference then it is guaranteed that the reference was
- * not added into the RefSet (ie, accumulating a pointer guarantees
- * that isMember will return TRUE for that reference), but the
- * converse is not true (ie isMember can return TRUE for references
- * that have not been accumulated).
+ * .def.refset: RefSet is a conservative approximation to a set of
+ * references.  It is conservative in the sense that if isMember returns
+ * FALSE for a reference then it is guaranteed that the reference was
+ * not added into the RefSet (i.e., accumulating a pointer guarantees
+ * that isMember will return TRUE for that reference), but the converse
+ * is not true (i.e., isMember can return TRUE for references that have
+ * not been accumulated).
  *
  * RefSets are designed to provide a very fast method for Add and
  * for IsMember.  Add is used to implement reference summaries,
@@ -24,11 +24,12 @@
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.7) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.8) $");
 
 Bool RankCheck(Rank rank)
 {
   CHECKL(rank < RankMAX);
+  UNUSED(rank); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
@@ -36,6 +37,7 @@ Bool RankCheck(Rank rank)
 Bool RankSetCheck(RankSet rankSet)
 {
   CHECKL(rankSet < (1uL << RankMAX));
+  UNUSED(rankSet); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
