@@ -394,7 +394,7 @@ fast_string_match (regexp, string)
 extern Lisp_Object Vascii_downcase_table;
 
 int
-fast_string_match_ignore_case (regexp, string)
+fast_c_string_match_ignore_case (regexp, string)
      Lisp_Object regexp;
      char *string;
 {
@@ -402,6 +402,7 @@ fast_string_match_ignore_case (regexp, string)
   struct re_pattern_buffer *bufp;
   int len = strlen (string);
 
+  re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
 			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0);
   immediate_quit = 1;
