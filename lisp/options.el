@@ -98,7 +98,7 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate "[^\^@-\^?]")
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start "^\t")
+  (setq paragraph-start "\t")
   (setq truncate-lines t)
   (setq major-mode 'Edit-options-mode)
   (setq mode-name "Options")
