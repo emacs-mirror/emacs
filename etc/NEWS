@@ -481,6 +481,13 @@ command.
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
 
+---
+** The pop up menus for Lucid now stay up if you do a fast click and can
+be navigated with the arrow keys (like Gtk+ and W32).
+
+---
+** Dialogs for Lucid/Athena and Lesstif/Motif pops down when pressing ESC.
+
 +++
 ** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
 disabled by customizing the variable `use-file-dialog'.
@@ -945,6 +952,12 @@ count backward from the end of the year.
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
+
++++
+** The procedure for activating appointment reminders has changed: use
+the new function `appt-activate'. The new variable
+`appt-display-format' controls how reminders are displayed, replacing
+appt-issue-message, appt-visible, and appt-msg-window.
 
 ** VC Changes
 

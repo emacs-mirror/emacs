@@ -277,6 +277,9 @@ xaw_pop_instance (instance, up)
 
 static char overrideTrans[] =
 	"<Message>WM_PROTOCOLS: lwlib_delete_dialog()";
+/* Dialogs pop down on any key press */
+static char dialogOverride[] =
+       "<KeyPress>:	lwlib_delete_dialog()";
 static void wm_delete_window();
 static XtActionsRec xaw_actions [] = {
   {"lwlib_delete_dialog", wm_delete_window}
@@ -333,6 +336,8 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
 
   ac = 0;
   dialog = XtCreateManagedWidget (name, dialogWidgetClass, shell, av, ac);
+  override = XtParseTranslationTable (dialogOverride);
+  XtOverrideTranslations (dialog, override);
 
   bc = 0;
   button = 0;
@@ -511,8 +516,8 @@ xaw_generic_callback (widget, closure, call_data)
 }
 
 static void
-wm_delete_window (shell, closure, call_data)
-     Widget shell;
+wm_delete_window (w, closure, call_data)
+     Widget w;
      XtPointer closure;
      XtPointer call_data;
 {
@@ -520,7 +525,13 @@ wm_delete_window (shell, closure, call_data)
   Cardinal nkids;
   int i;
   Widget *kids = 0;
-  Widget widget;
+  Widget widget, shell;
+
+  if (XtIsSubclass (w, dialogWidgetClass))
+    shell = XtParent (w);
+  else
+    shell = w;
+
   if (! XtIsSubclass (shell, shellWidgetClass))
     abort ();
   XtVaGetValues (shell, XtNnumChildren, &nkids, NULL);

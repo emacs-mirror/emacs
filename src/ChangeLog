@@ -1,3 +1,13 @@
+2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Check new parameter down_on_keypress
+	if a key press should pop down.  Only pop down if a key is pressed
+	outside the menu/dialog.
+	(create_and_show_popup_menu): Pass 0 for down_on_keypress to
+	popup_get_selection.
+	(create_and_show_dialog): Pass 1 for down_on_keypress to
+	popup_get_selection.
+
 2004-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* alloc.c (allocate_vectorlike): Surround calls to mallopt with
