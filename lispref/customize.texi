@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc. 
+@c Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -64,6 +64,10 @@ in the customization buffer with the Info node name.
 @item (url-link @var{url})
 Link to a web page; @var{url} is a string which specifies the @sc{url}.
 The link appears in the customization buffer as @var{url}.
+
+@item (emacs-commentary-link @var{library})
+Link to the commentary section of a library; @var{library} is a string
+which specifies the library name.
 @end table
 
 You can specify the text to use in the customization buffer by adding
@@ -542,6 +546,14 @@ using @code{choice} and @code{const} together (see the next section),
 you can specify that the value must be @code{nil} or @code{t}, but also
 specify the text to describe each value in a way that fits the specific
 meaning of the alternative.
+
+@item coding-system
+The value must be a coding-system name, and you can do completion with
+@kbd{M-@key{TAB}}.
+
+@item color
+The value must be a valid color name, and you can do completion with
+@kbd{M-@key{TAB}}.  A sample is provided,
 @end table
 
 @node Composite Types
