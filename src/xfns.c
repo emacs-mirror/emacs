@@ -236,7 +236,7 @@ Lisp_Object Quser_position;
 Lisp_Object Quser_size;
 extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
-Lisp_Object Qscreen_gamma, Qline_spacing;
+Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
 
 /* The below are defined in frame.c.  */
 
@@ -5024,6 +5024,7 @@ enum image_value_type
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
   IMAGE_NON_NEGATIVE_INTEGER_VALUE,
+  IMAGE_ASCENT_VALUE,
   IMAGE_INTEGER_VALUE,
   IMAGE_FUNCTION_VALUE,
   IMAGE_NUMBER_VALUE,
@@ -5126,6 +5127,15 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	    return 0;
 	  break;
 
+	case IMAGE_ASCENT_VALUE:
+	  if (SYMBOLP (value) && EQ (value, Qcenter))
+	    break;
+	  else if (INTEGERP (value)
+		   && XINT (value) >= 0
+		   && XINT (value) <= 100)
+	    break;
+	  return 0;
+	      
 	case IMAGE_NON_NEGATIVE_INTEGER_VALUE:
 	  if (!INTEGERP (value) || XINT (value) < 0)
 	    return 0;
@@ -5287,6 +5297,31 @@ prepare_image_for_display (f, img)
     img->load_failed_p = img->type->load (f, img) == 0;
 }
      
+
+/* Value is the number of pixels for the ascent of image IMG when
+   drawn in face FACE.  */
+
+int
+image_ascent (img, face)
+     struct image *img;
+     struct face *face;
+{
+  int height = img->height + img->margin;
+  int ascent;
+
+  if (img->ascent == CENTERED_IMAGE_ASCENT)
+    {
+      if (face->font)
+	ascent = height / 2 - (face->font->descent - face->font->ascent) / 2;
+      else
+	ascent = height / 2;
+    }
+  else
+    ascent = height * img->ascent / 100.0;
+
+  return ascent;
+}
+
 
 
 /***********************************************************************
@@ -5540,13 +5575,15 @@ lookup_image (f, spec)
       else
 	{
 	  /* Handle image type independent image attributes
-	     `:ascent PERCENT', `:margin MARGIN', `:relief RELIEF'.  */
+	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF'.  */
 	  Lisp_Object ascent, margin, relief, algorithm, heuristic_mask;
 	  Lisp_Object file;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
 	    img->ascent = XFASTINT (ascent);
+	  else if (EQ (ascent, Qcenter))
+	    img->ascent = CENTERED_IMAGE_ASCENT;
 	  
 	  margin = image_spec_value (spec, QCmargin, NULL);
 	  if (INTEGERP (margin) && XINT (margin) >= 0)
@@ -5855,7 +5892,7 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":foreground",	IMAGE_STRING_VALUE,			0},
   {":background",	IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -5995,11 +6032,6 @@ xbm_image_p (object)
 	return 0;
     }
 
-  /* Baseline must be a value between 0 and 100 (a percentage).  */
-  if (kw[XBM_ASCENT].count
-      && XFASTINT (kw[XBM_ASCENT].value) > 100)
-    return 0;
-  
   return 1;
 }
 
@@ -6383,9 +6415,6 @@ xbm_load (f, img)
 
       BLOCK_INPUT;
       
-      if (fmt[XBM_ASCENT].count)
-	img->ascent = XFASTINT (fmt[XBM_ASCENT].value);
-
       /* Get foreground and background colors, maybe allocate colors.  */
       if (fmt[XBM_FOREGROUND].count)
 	foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
@@ -6488,7 +6517,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -6544,9 +6573,7 @@ xpm_image_p (object)
 	  /* Either no `:color-symbols' or it's a list of conses
 	     whose car and cdr are strings.  */
 	  && (fmt[XPM_COLOR_SYMBOLS].count == 0
-	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value))
-	  && (fmt[XPM_ASCENT].count == 0
-	      || XFASTINT (fmt[XPM_ASCENT].value) < 100));
+	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
 
 
@@ -7187,7 +7214,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -7216,9 +7243,7 @@ pbm_image_p (object)
   
   bcopy (pbm_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm)
-      || (fmt[PBM_ASCENT].count 
-	  && XFASTINT (fmt[PBM_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm))
     return 0;
 
   /* Must specify either :data or :file.  */
@@ -7507,7 +7532,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -7535,9 +7560,7 @@ png_image_p (object)
   struct image_keyword fmt[PNG_LAST];
   bcopy (png_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng)
-      || (fmt[PNG_ASCENT].count 
-	  && XFASTINT (fmt[PNG_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -7993,7 +8016,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8022,9 +8045,7 @@ jpeg_image_p (object)
   
   bcopy (jpeg_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg)
-      || (fmt[JPEG_ASCENT].count 
-	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -8357,7 +8378,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8385,9 +8406,7 @@ tiff_image_p (object)
   struct image_keyword fmt[TIFF_LAST];
   bcopy (tiff_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff)
-      || (fmt[TIFF_ASCENT].count 
-	  && XFASTINT (fmt[TIFF_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff))
     return 0;
   
   /* Must specify either the :data or :file keyword.  */
@@ -8684,7 +8703,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8713,9 +8732,7 @@ gif_image_p (object)
   struct image_keyword fmt[GIF_LAST];
   bcopy (gif_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif)
-      || (fmt[GIF_ASCENT].count 
-	  && XFASTINT (fmt[GIF_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif))
     return 0;
   
   /* Must specify either the :data or :file keyword.  */
@@ -9001,7 +9018,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":file",		IMAGE_STRING_VALUE,			1},
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -9046,9 +9063,7 @@ gs_image_p (object)
   
   bcopy (gs_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript)
-      || (fmt[GS_ASCENT].count 
-	  && XFASTINT (fmt[GS_ASCENT].value) > 100))
+  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript))
     return 0;
 
   /* Bounding box must be a list or vector containing 4 integers.  */
@@ -10092,37 +10107,6 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
 
 #endif /* USE_MOTIF */
 
-
-/***********************************************************************
-				Tests
- ***********************************************************************/
-
-#if GLYPH_DEBUG
-
-DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
-  "Value is non-nil if SPEC is a valid image specification.")
-  (spec)
-     Lisp_Object spec;
-{
-  return valid_image_p (spec) ? Qt : Qnil;
-}
-
-
-DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
-  (spec)
-     Lisp_Object spec;
-{
-  int id = -1;
-  
-  if (valid_image_p (spec))
-    id = lookup_image (SELECTED_FRAME (), spec);
-
-  debug_print (spec);
-  return make_number (id);
-}
-
-#endif /* GLYPH_DEBUG != 0 */
-
 
 
 /***********************************************************************
@@ -10206,6 +10190,8 @@ syms_of_xfns ()
   staticpro (&Qscreen_gamma);
   Qline_spacing = intern ("line-spacing");
   staticpro (&Qline_spacing);
+  Qcenter = intern ("center");
+  staticpro (&Qcenter);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
@@ -10442,11 +10428,6 @@ Each element of the list is a symbol for a supported image type.");
 #endif
 
   defsubr (&Sclear_image_cache);
-
-#if GLYPH_DEBUG
-  defsubr (&Simagep);
-  defsubr (&Slookup_image);
-#endif
 
   busy_cursor_atimer = NULL;
   busy_cursor_shown_p = 0;
