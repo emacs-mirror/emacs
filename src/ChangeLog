@@ -1,3 +1,10 @@
+2001-09-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id) [!GLYPH_DEBUG]: Give up if
+	first_unchanged_at_end_row is in front of
+	last_unchanged_at_beg_row.  This code should be removed after the
+	release of 21.1.
+
 2001-09-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.h (BUF_COMPUTE_UNCHANGED): Use BUF_MODIFF and
