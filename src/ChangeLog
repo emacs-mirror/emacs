@@ -1,3 +1,11 @@
+2001-11-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (FRAME_X_FRINGE_COLS): No fringe on tip frames.
+
+	* w32fns.c (x_create_tip_frame): Set frame's fringes_extra to 0.
+	(Fx_show_tip): Block input during frame creation.
+	(Fx_show_tip, Fx_hide_tip): Enable.
+
 2001-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* lread.c (Fload): Detect recursive load error for more than 3
