@@ -1,3 +1,8 @@
+2004-10-29  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-show-mark): Repleace the last occurrence of
+	x-lost-selection-hooks with x-lost-selection-functions.
+
 2004-10-28  Stefan  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-show-mark): Adjust to new name and don't assume
