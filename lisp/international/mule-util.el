@@ -216,8 +216,8 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
   (let ((eol-type (coding-system-eol-type coding-system)))
     (cond ((vectorp eol-type) eol-mnemonic-undecided)
 	  ((eq eol-type 0) eol-mnemonic-unix)
-	  ((eq eol-type 1) eol-mnemonic-unix)
-	  ((eq eol-type 2) eol-mnemonic-unix)
+	  ((eq eol-type 1) eol-mnemonic-dos)
+	  ((eq eol-type 2) eol-mnemonic-mac)
 	  (t ?-))))
 
 ;;;###autoload
