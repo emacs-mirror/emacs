@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part I
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -1178,7 +1178,7 @@ commands given here will actually operate on the *Calculator* stack."
 	(save-excursion
 	  (set-buffer (calc-trail-buffer))
 	  (and calc-display-trail
-	       (= (window-width) (screen-width))
+	       (= (window-width) (frame-width))
 	       (calc-trail-display 1 t)))
 	(message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit.")
 	(run-hooks 'calc-start-hook)
@@ -1243,8 +1243,8 @@ commands given here will actually operate on the *Calculator* stack."
 	      (kbuf (get-buffer "*Calc Keypad*")))
 	  (delete-windows-on (calc-trail-buffer))
 	  (if (and win
-		   (< (window-height win) (1- (screen-height)))
-		   (= (window-width win) (screen-width))  ; avoid calc-keypad
+		   (< (window-height win) (1- (frame-height)))
+		   (= (window-width win) (frame-width))  ; avoid calc-keypad
 		   (not (get-buffer-window "*Calc Keypad*")))
 	      (setq calc-window-height (- (window-height win) 2)))
 	  (if calc-was-split
@@ -3139,7 +3139,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defun calc-window-width ()
   (if calc-embedded-info
       (let ((win (get-buffer-window (aref calc-embedded-info 0))))
-	(1- (if win (window-width win) (screen-width))))
+	(1- (if win (window-width win) (frame-width))))
     (- (window-width (get-buffer-window (current-buffer)))
        (if calc-line-numbering 5 1)))
 )
@@ -3528,22 +3528,16 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 )
 
 (defun calc-unread-command (&optional input)
-  (cond (calc-emacs-type-gnu19
-	 (setq unread-command-events (cons (or input last-command-event)
-					   unread-command-events)))
-	(calc-emacs-type-lucid
-	 (setq unread-command-event
-	       (if (integerp input) (character-to-event input)
-		 (or input last-command-event))))
-	(t
-	 (setq unread-command-char (or input last-command-char))))
-)
+  (if (featurep 'xemacs)
+      (setq unread-command-event
+	    (if (integerp input) (character-to-event input)
+	      (or input last-command-event)))
+    (push (or input last-command-event) unread-command-events)))
 
 (defun calc-clear-unread-commands ()
-  (cond (calc-emacs-type-gnu19 (setq unread-command-events nil))
+  (if (featurep 'xemacs) 
 	(calc-emacs-type-lucid (setq unread-command-event nil))
-	(t (setq unread-command-char -1)))
-)
+    (setq unread-command-events nil)))
 
 (if calc-always-load-extensions
     (progn
