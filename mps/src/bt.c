@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.12) $
+ * $HopeName: MMsrc!bt.c(trunk.13) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.12) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.13) $");
 
 /* is the whole word of bits at this index set? */
 
@@ -27,7 +27,7 @@ SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.12) $");
 
 /* align bit-table indices up and down */
 
-#define BTIndexAlignUp(index) ((Index)SizeAlignUp(index, MPS_WORD_WIDTH))
+#define BTIndexAlignUp(index) ((Index)SizeAlignUp((index), MPS_WORD_WIDTH))
 #define BTIndexAlignDown(index) ((Index)SizeAlignDown((index), MPS_WORD_WIDTH))
 
 
