@@ -1973,6 +1973,9 @@ C_entries (c_ext, inf)
       c = *lp++;
       if (c == '\\')
 	{
+	  /* deal with \r (13) at end of msdos lines */
+	  if ((*lp =='\r')&&(*(lp+1)=='\0'))
+	      *lp = '\0';
 	  /* If we're at the end of the line, the next character is a
 	     '\0'; don't skip it, because it's the thing that tells us
 	     to read the next line.  */
