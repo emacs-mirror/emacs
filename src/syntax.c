@@ -1254,6 +1254,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   register int i, i_byte;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte = STRING_MULTIBYTE (string);
+  int size_byte = STRING_BYTES (XSTRING (string));
 
   CHECK_STRING (string, 0);
   char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
@@ -1273,7 +1274,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   i = 0, i_byte = 0;
 
-  if (i < XSTRING (string)->size
+  if (i_byte < size_byte
       && XSTRING (string)->data[0] == '^')
     {
       negate = 1; i++, i_byte++;
@@ -1283,7 +1284,7 @@ skip_chars (forwardp, syntaxp, string, lim)
      If syntaxp, each character counts as itself.
      Otherwise, handle backslashes and ranges specially.  */
 
-  while (i < XSTRING (string)->size)
+  while (i_byte < size_byte)
     {
       int c_leading_code;
 
@@ -1293,7 +1294,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 	}
       else
-	c = c_leading_code = XSTRING (string)->data[i++];
+	c = c_leading_code = XSTRING (string)->data[i_byte++];
 
       /* Convert multibyteness between what the string has
 	 and what the buffer has.  */
@@ -1308,18 +1309,18 @@ skip_chars (forwardp, syntaxp, string, lim)
 	{
 	  if (c == '\\')
 	    {
-	      if (i == XSTRING (string)->size)
+	      if (i_byte == size_byte)
 		break;
 
 	      if (string_multibyte)
 		{
-		  c_leading_code = XSTRING (string)->data[i];
+		  c_leading_code = XSTRING (string)->data[i_byte];
 		  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 		}
 	      else
-		c = c_leading_code = XSTRING (string)->data[i++];
+		c = c_leading_code = XSTRING (string)->data[i_byte++];
 	    }
-	  if (i < XSTRING (string)->size
+	  if (i_byte < size_byte
 	      && XSTRING (string)->data[i_byte] == '-')
 	    {
 	      unsigned int c2, c2_leading_code;
@@ -1327,7 +1328,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      /* Skip over the dash.  */
 	      i++, i_byte++;
 
-	      if (i == XSTRING (string)->size)
+	      if (i_byte == size_byte)
 		break;
 
 	      /* Get the end of the range.  */
@@ -1337,7 +1338,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		  FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
 		}
 	      else
-		c2 = XSTRING (string)->data[i++];
+		c2 = XSTRING (string)->data[i_byte++];
 
 	      if (SINGLE_BYTE_CHAR_P (c))
 		{
