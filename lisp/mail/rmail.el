@@ -1397,33 +1397,50 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 			     (progn (re-search-forward "\n[^ \t]")
 				    (1- (point))))))))))
 
-(defun rmail-toggle-header ()
-  "Show original message header if pruned header currently shown, or vice versa."
-  (interactive)
+(defun rmail-msg-is-pruned ()
   (rmail-maybe-set-message-counters)
+  (save-restriction
+    (save-excursion
   (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-  (let ((buffer-read-only nil))
     (goto-char (point-min))
     (forward-line 1)
-    (if (= (following-char) ?1)
-	(progn (delete-char 1)
-	       (insert ?0)
-	       (forward-line 1)
-	       (let ((case-fold-search t))
- 		 (while (looking-at "Summary-Line:\\|Mail-From:")
- 		   (forward-line 1)))
-	       (insert "*** EOOH ***\n")
-	       (forward-char -1)
-	       (search-forward "\n*** EOOH ***\n")
-	       (forward-line -1)
-	       (let ((temp (point)))
-		 (and (search-forward "\n\n" nil t)
-		      (delete-region temp (point))))
-	       (goto-char (point-min))
-	       (search-forward "\n*** EOOH ***\n")
-	       (narrow-to-region (point) (point-max)))
-      (rmail-reformat-message (point-min) (point-max))))
-  (rmail-highlight-headers))
+      (= (following-char) ?1))))
+
+(defun rmail-toggle-header (&optional arg)
+  "Show original message header if pruned header currently shown, or vice versa.
+With argument ARG, show the message header pruned if ARG is greater than zero;
+otherwise, show it in full."
+  (interactive "P")
+  (let* ((buffer-read-only nil)
+	 (pruned (rmail-msg-is-pruned))
+	 (prune (if arg
+		    (> (prefix-numeric-value arg) 0)
+		  (not pruned))))
+    (if (eq pruned prune)
+	t
+      (rmail-maybe-set-message-counters)
+      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (if pruned
+	  (progn (goto-char (point-min))
+		 (forward-line 1)
+		 (delete-char 1)
+		 (insert ?0)
+		 (forward-line 1)
+		 (let ((case-fold-search t))
+		   (while (looking-at "Summary-Line:\\|Mail-From:")
+		     (forward-line 1)))
+		 (insert "*** EOOH ***\n")
+		 (forward-char -1)
+		 (search-forward "\n*** EOOH ***\n")
+		 (forward-line -1)
+		 (let ((temp (point)))
+		   (and (search-forward "\n\n" nil t)
+			(delete-region temp (point))))
+		 (goto-char (point-min))
+		 (search-forward "\n*** EOOH ***\n")
+		 (narrow-to-region (point) (point-max)))
+	(rmail-reformat-message (point-min) (point-max)))
+      (rmail-highlight-headers))))
 
 ;;;; *** Rmail Attributes and Keywords ***
 
