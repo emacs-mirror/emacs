@@ -448,7 +448,6 @@ is visible (and the real data of the buffer is hidden)."
   (define-key tar-mode-map "n" 'tar-next-line)
   (define-key tar-mode-map "\^N" 'tar-next-line)
   (define-key tar-mode-map "o" 'tar-extract-other-window)
-  (define-key tar-mode-map "\^C" 'tar-copy)
   (define-key tar-mode-map "p" 'tar-previous-line)
   (define-key tar-mode-map "\^P" 'tar-previous-line)
   (define-key tar-mode-map "r" 'tar-rename-entry)
