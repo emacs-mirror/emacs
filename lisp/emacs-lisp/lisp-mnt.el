@@ -297,12 +297,14 @@ The returned value is a list of strings, one per line."
 
 (defmacro lm-with-file (file &rest body)
   "Execute BODY in a buffer containing the contents of FILE.
-If FILE is nil, just return nil."
+If FILE is nil, execute BODY in the current buffer."
   (let ((filesym (make-symbol "file")))
     `(let ((,filesym ,file))
-       (when ,filesym 
-	 (with-temp-buffer
-	   (insert-file-contents ,filesym)
+       (if ,filesym
+	   (with-temp-buffer
+	     (insert-file-contents ,filesym)
+	     ,@body)
+	 (save-excursion 
 	   ,@body)))))
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
