@@ -9207,6 +9207,7 @@ gif_load (f, img)
   Lisp_Object image;
   int ino, image_left, image_top, image_width, image_height;
   gif_memory_source memsrc;
+  unsigned char *raster;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -9327,7 +9328,11 @@ gif_load (f, img)
 	XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
     }
 
-  /* Read the GIF image into the X image.  */
+  /* Read the GIF image into the X image.  We use a local variable
+     `raster' here because RasterBits below is a char *, and invites
+     problems with bytes >= 0x80.  */
+  raster = (unsigned char *) gif->SavedImages[ino].RasterBits;
+  
   if (gif->SavedImages[ino].ImageDesc.Interlace)
     {
       static int interlace_start[] = {0, 4, 2, 1};
@@ -9348,8 +9353,7 @@ gif_load (f, img)
 	  
 	  for (x = 0; x < image_width; x++)
 	    {
-	      unsigned int i
-		= gif->SavedImages[ino].RasterBits[(y * image_width) + x];
+	      int i = raster[(y * image_width) + x];
 	      XPutPixel (ximg, x + image_left, row + image_top,
 			 pixel_colors[i]);
 	    }
@@ -9362,7 +9366,7 @@ gif_load (f, img)
       for (y = 0; y < image_height; ++y)
 	for (x = 0; x < image_width; ++x)
 	  {
-	    unsigned i = gif->SavedImages[ino].RasterBits[y * image_width + x];
+	    int i = raster[y * image_width + x];
 	    XPutPixel (ximg, x + image_left, y + image_top, pixel_colors[i]);
 	  }
     }
