@@ -511,7 +511,6 @@ coordinates_in_window (w, x, y)
      everywhere.  */
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int left_x, right_x, top_y, bottom_y;
-  int fringe_width = FRAME_LEFT_FRINGE_WIDTH (f);
   enum window_part part;
   int ux = CANON_X_UNIT (f);
   int x0 = XFASTINT (w->left) * ux;
@@ -584,10 +583,10 @@ coordinates_in_window (w, x, y)
   else if (*y < top_y
 	   || *y >= bottom_y
 	   || *x < (left_x
-		    - fringe_width
+		    - FRAME_LEFT_FRINGE_WIDTH (f)
 		    - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * ux)
 	   || *x > (right_x
-		    + fringe_width
+		    + FRAME_RIGHT_FRINGE_WIDTH (f)
 		    + FRAME_RIGHT_SCROLL_BAR_WIDTH (f) * ux))
     {
       part = ON_NOTHING;
@@ -597,7 +596,7 @@ coordinates_in_window (w, x, y)
       if (!w->pseudo_window_p
 	  && !FRAME_HAS_VERTICAL_SCROLL_BARS (f)
 	  && !WINDOW_RIGHTMOST_P (w)
-	  && (abs (*x - right_x - fringe_width) < grabbable_width))
+	  && (abs (*x - right_x - FRAME_RIGHT_FRINGE_WIDTH (f)) < grabbable_width))
 	{
 	  part = ON_VERTICAL_BORDER;
 	}
