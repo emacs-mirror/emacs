@@ -1,6 +1,6 @@
 ;; todomode.el -- major mode for editing TODO list files
 
-;; $Id: todomode.el,v 1.9 1997/08/06 08:12:03 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.10 1997/08/06 08:56:03 os10000 Exp os10000 $
 
 ;; ---------------------------------------------------------------------------
 
@@ -178,6 +178,10 @@
 
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.10  1997/08/06  08:56:03  os10000
+;; Acted upon suggestion from Shane Holder <holder@rsn.hp.com>:
+;; Cancelling the editing of an entry will not delete it any more.
+;;
 ;; Revision 1.9  1997/08/06 08:12:03  os10000
 ;; Improved documentation.  Broke some lines to comply with
 ;; Richard Stallman's email to please keep in sync with the
@@ -224,7 +228,12 @@
 
 ;; ---------------------------------------------------------------------------
 
+;; Get some outside help ...
+
 (require 'time-stamp)
+(require 'easymenu)
+
+;; ---------------------------------------------------------------------------
 
 (defvar todo-mode-map nil "TODO mode keymap.  See `todo-mode'")
 (if todo-mode-map
@@ -488,8 +497,8 @@
 
 ;; ---------------------------------------------------------------------------
 
-(defvar todo-mode-popup-menu
-  (purecopy '("Todo Mode Menu"
+(easy-menu-define todo-menu todo-mode-map "Todo Menu"
+		'("Todo"
               ["Forward item"         todo-cmd-forw t]
               ["Backward item"        todo-cmd-back t]
               "---"
@@ -507,9 +516,7 @@
               ["Save"                 todo-cmd-save t]
               "---"
               ["Quit"                 todo-cmd-done t]
-              )
-	    )
-  )
+              ))
 
 (defvar todo-cats nil "TODO categories.")
 (defvar todo-category-number 0 "TODO category number.")
@@ -519,9 +526,8 @@
   (setq major-mode 'todo-mode)
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
-  (setq mode-popup-menu todo-mode-popup-menu)
-  (run-hooks 'todo-mode-hook)
-  )
+  (easy-menu-add todo-menu)
+  (run-hooks 'todo-mode-hook))
 
 (defun todo-show () "Show TODO list."
   (interactive)
