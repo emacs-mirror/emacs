@@ -102,6 +102,13 @@
   :type 'boolean
   :group 'rmail-retrieve)
 
+(defcustom rmail-movemail-flags nil
+  "*List of flags to pass to movemail.  Most commonly used to specify
+`-g' to enable GSS-API authentication or `-k' to enable Kerberos
+authentication."
+  :type 'list
+  :group 'rmail-retrieve)
+
 (defvar rmail-pop-password-error "invalid usercode or password"
   "Regular expression matching incorrect-password POP server error messages.
 If you get an incorrect-password error that this expression does not match,
@@ -1316,6 +1323,7 @@ It returns t if it got any new messages."
 			     (if rmail-preserve-inbox 
 				 (list "-p")
 			       nil)
+			     rmail-movemail-flags
 			     (list file tofile)
 			     (if rmail-pop-password 
 				 (list rmail-pop-password)
