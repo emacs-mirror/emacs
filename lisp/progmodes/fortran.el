@@ -3,7 +3,7 @@
 ;; Copyright (c) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
-;; Maintainer: bug-fortran-mode@erl.mit.edu
+;; Maintainer: bug-fortran-mode@erl.mit.edu (Steve Gildea and others)
 ;; Version 1.30.6 (July 27, 1995)
 ;; Keywords: languages
 
