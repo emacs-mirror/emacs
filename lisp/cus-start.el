@@ -191,8 +191,8 @@
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
 	     ;; window.c
-	     (temp-buffer-show-function windows function)
-	     (display-buffer-function windows function)
+	     (temp-buffer-show-function windows (choice (const nil) function))
+	     (display-buffer-function windows (choice (const nil) function))
 	     (pop-up-frames frames boolean)
 	     (pop-up-frame-function frames function)
 	     (special-display-buffer-names 
