@@ -200,14 +200,14 @@ echo "Making links to \`cpp'."
 (cd cpp
  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
 
-echo "Making links to \`info'."
-# Don't distribute backups or autosaves.
-(cd info
- ln [a-zA-Z]* ../${tempdir}/info
- cd ../${tempdir}/info
- # Avoid an error when expanding the wildcards later.
- ln emacs dummy~ ; ln emacs \#dummy\#
- rm -f *~ \#*\# core)
+;;;!! echo "Making links to \`info'."
+;;;!! # Don't distribute backups or autosaves.
+;;;!! (cd info
+;;;!!  ln [a-zA-Z]* ../${tempdir}/info
+;;;!!  cd ../${tempdir}/info
+;;;!!  # Avoid an error when expanding the wildcards later.
+;;;!!  ln emacs dummy~ ; ln emacs \#dummy\#
+;;;!!  rm -f *~ \#*\# core)
 
 echo "Making links to \`man'."
 (cd man
