@@ -4065,11 +4065,11 @@ update_window (w, force_p)
   extern Lisp_Object do_mouse_tracking;
 #if GLYPH_DEBUG
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-#endif
 
   /* Check that W's frame doesn't have glyph matrices.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (updating_frame != NULL);
+#endif
 
   /* Check pending input the first time so that we can quickly return.  */
   if (redisplay_dont_pause)
