@@ -1,3 +1,8 @@
+2002-10-11  Andre Spiegel  <spiegel@gnu.org>
+
+	* dired.el (dired-insert-directory): Fix check for indentation
+	from ls --dired.
+
 2002-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* finder-inf.el, subdirs.el, cus-load.el: Remove.
