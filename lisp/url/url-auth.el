@@ -78,7 +78,7 @@ instead of the pathname inheritance method."
      ((and prompt (not byserv))
       (setq user (read-string (url-auth-user-prompt url realm)
 			      (user-real-login-name))
-	    pass (funcall url-passwd-entry-func "Password: "))
+	    pass (read-passwd "Password: "))
       (set url-basic-auth-storage
 	   (cons (list server
 		       (cons path
@@ -102,7 +102,7 @@ instead of the pathname inheritance method."
 	  (progn
 	    (setq user (read-string (url-auth-user-prompt url realm)
 				    (user-real-login-name))
-		  pass (funcall url-passwd-entry-func "Password: ")
+		  pass (read-passwd "Password: ")
 		  retval (base64-encode-string (format "%s:%s" user pass))
 		  byserv (assoc server (symbol-value url-basic-auth-storage)))
 	    (setcdr byserv
@@ -160,7 +160,7 @@ instead of hostname:portnum."
 	 ((and prompt (not byserv))
 	  (setq user (read-string (url-auth-user-prompt url realm)
 				  (user-real-login-name))
-		pass (funcall url-passwd-entry-func "Password: ")
+		pass (read-passwd "Password: ")
 		url-digest-auth-storage
 		(cons (list server
 			    (cons path
@@ -187,7 +187,7 @@ instead of hostname:portnum."
 	      (progn
 		(setq user (read-string (url-auth-user-prompt url realm)
 					(user-real-login-name))
-		      pass (funcall url-passwd-entry-func "Password: ")
+		      pass (read-passwd "Password: ")
 		      retval (setq retval
 				   (cons user
 					 (url-digest-auth-create-key
