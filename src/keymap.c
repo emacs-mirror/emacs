@@ -55,7 +55,7 @@ Lisp_Object Vminibuffer_local_map;
 				   minibuf */
 
 /* was MinibufLocalNSMap */
-Lisp_Object Vminibuffer_local_ns_map;			
+Lisp_Object Vminibuffer_local_ns_map;
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are not encouraged
 				   in the minibuf */
@@ -107,10 +107,10 @@ static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 static Lisp_Object define_as_prefix P_ ((Lisp_Object, Lisp_Object));
-static void describe_command P_ ((Lisp_Object));
-static void describe_translation P_ ((Lisp_Object));
+static void describe_command P_ ((Lisp_Object, Lisp_Object));
+static void describe_translation P_ ((Lisp_Object, Lisp_Object));
 static void describe_map P_ ((Lisp_Object, Lisp_Object,
-			      void (*) P_ ((Lisp_Object)),
+			      void (*) P_ ((Lisp_Object, Lisp_Object)),
 			      int, Lisp_Object, Lisp_Object*, int));
 
 /* Keymap object support - constructors and predicates.			*/
@@ -1932,7 +1932,7 @@ push_key_description (c, p, force_multibyte)
 	p += CHAR_STRING (c, p);
     }
 
-  return p;  
+  return p;
 }
 
 /* This function cannot GC.  */
@@ -2033,7 +2033,7 @@ push_text_char_description (c, p)
     }
   else
     *p++ = c;
-  return p;  
+  return p;
 }
 
 /* This function cannot GC.  */
@@ -2751,8 +2751,8 @@ key             binding\n\
 static int previous_description_column;
 
 static void
-describe_command (definition)
-     Lisp_Object definition;
+describe_command (definition, args)
+     Lisp_Object definition, args;
 {
   register Lisp_Object tem1;
   int column = current_column ();
@@ -2788,8 +2788,8 @@ describe_command (definition)
 }
 
 static void
-describe_translation (definition)
-     Lisp_Object definition;
+describe_translation (definition, args)
+     Lisp_Object definition, args;
 {
   register Lisp_Object tem1;
 
@@ -2820,7 +2820,7 @@ static void
 describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
      register Lisp_Object map;
      Lisp_Object keys;
-     void (*elt_describer) P_ ((Lisp_Object));
+     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
      int partial;
      Lisp_Object shadow;
      Lisp_Object *seen;
@@ -2863,7 +2863,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
       if (VECTORP (XCAR (tail))
 	  || CHAR_TABLE_P (XCAR (tail)))
 	describe_vector (XCAR (tail),
-			 elt_prefix, elt_describer, partial, shadow, map,
+			 elt_prefix, Qnil, elt_describer, partial, shadow, map,
 			 (int *)0, 0);
       else if (CONSP (XCAR (tail)))
 	{
@@ -2917,7 +2917,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 	  /* Print a description of the definition of this character.
 	     elt_describer will take care of spacing out far enough
 	     for alignment purposes.  */
-	  (*elt_describer) (definition);
+	  (*elt_describer) (definition, Qnil);
 	}
       else if (EQ (XCAR (tail), Qkeymap))
 	{
@@ -2935,25 +2935,26 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 }
 
 static void
-describe_vector_princ (elt)
-     Lisp_Object elt;
+describe_vector_princ (elt, fun)
+     Lisp_Object elt, fun;
 {
   Findent_to (make_number (16), make_number (1));
-  Fprinc (elt, Qnil);
+  call1 (fun, elt);
   Fterpri (Qnil);
 }
 
-DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 1, 0,
+DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,
        doc: /* Insert a description of contents of VECTOR.
 This is text showing the elements of vector matched against indices.  */)
-     (vector)
-     Lisp_Object vector;
+     (vector, describer)
+     Lisp_Object vector, describer;
 {
   int count = specpdl_ptr - specpdl;
-
+  if (NILP (describer))
+    describer = intern ("princ");
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR_OR_CHAR_TABLE (vector);
-  describe_vector (vector, Qnil, describe_vector_princ, 0,
+  describe_vector (vector, Qnil, describer, describe_vector_princ, 0,
 		   Qnil, Qnil, (int *)0, 0);
 
   return unbind_to (count, Qnil);
@@ -2987,15 +2988,17 @@ This is text showing the elements of vector matched against indices.  */)
 
    When describing a sub-char-table, INDICES is a list of
    indices at higher levels in this char-table,
-   and CHAR_TABLE_DEPTH says how many levels down we have gone.  */
+   and CHAR_TABLE_DEPTH says how many levels down we have gone.
+
+   ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
 
 void
-describe_vector (vector, elt_prefix, elt_describer,
+describe_vector (vector, elt_prefix, args, elt_describer,
 		 partial, shadow, entire_map,
 		 indices, char_table_depth)
      register Lisp_Object vector;
-     Lisp_Object elt_prefix;
-     void (*elt_describer) P_ ((Lisp_Object));
+     Lisp_Object elt_prefix, args;
+     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
      int partial;
      Lisp_Object shadow;
      Lisp_Object entire_map;
@@ -3088,7 +3091,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       else
 	definition = get_keyelt (AREF (vector, i), 0);
 
-      if (NILP (definition)) continue;      
+      if (NILP (definition)) continue;
 
       /* Don't mention suppressed commands.  */
       if (SYMBOLP (definition) && partial)
@@ -3204,7 +3207,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       if (CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
 	{
 	  insert ("\n", 1);
-	  describe_vector (definition, elt_prefix, elt_describer,
+	  describe_vector (definition, elt_prefix, args, elt_describer,
 			   partial, shadow, entire_map,
 			   indices, char_table_depth + 1);
 	  continue;
@@ -3277,7 +3280,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* Print a description of the definition of this character.
 	 elt_describer will take care of spacing out far enough
 	 for alignment purposes.  */
-      (*elt_describer) (definition);
+      (*elt_describer) (definition, args);
     }
 
   /* For (sub) char-table, print `defalt' slot at last.  */
@@ -3285,7 +3288,7 @@ describe_vector (vector, elt_prefix, elt_describer,
     {
       insert ("    ", char_table_depth * 2);
       insert_string ("<<default>>");
-      (*elt_describer) (XCHAR_TABLE (vector)->defalt);
+      (*elt_describer) (XCHAR_TABLE (vector)->defalt, args);
     }
 
   UNGCPRO;
