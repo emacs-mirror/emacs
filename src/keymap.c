@@ -73,7 +73,7 @@ Lisp_Object Vminor_mode_map_alist;
    documentation.  */
 Lisp_Object Vfunction_key_map;
 
-Lisp_Object Qkeymapp, Qkeymap;
+Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
 
 /* A char over 0200 in a key sequence
    is equivalent to prefixing with this character.  */
@@ -1311,6 +1311,28 @@ Control characters turn into \"^char\", etc.")
 
   return build_string (tem);
 }
+
+/* Return non-zero if SEQ contains only ASCII characters, perhaps with
+   a meta bit.  */
+static int
+ascii_sequence_p (seq)
+     Lisp_Object seq;
+{
+  Lisp_Object i;
+  int len = XINT (Flength (seq));
+  
+  for (XFASTINT (i) = 0; XFASTINT (i) < len; XFASTINT (i)++)
+    {
+      Lisp_Object elt = Faref (seq, i);
+
+      if (XTYPE (elt) != Lisp_Int
+	  || (XUINT (elt) & ~CHAR_META) >= 0x80)
+	return 0;
+    }
+
+  return 1;
+}
+
 
 /* where-is - finding a command in a set of keymaps.			*/
 
@@ -1319,9 +1341,12 @@ DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
 If KEYMAP is nil, search only KEYMAP1.\n\
 If KEYMAP1 is nil, use the current global map.\n\
 \n\
-If optional 4th arg FIRSTONLY is non-nil,\n\
-return a string representing the first key sequence found,\n\
-rather than a list of all possible key sequences.\n\
+If optional 4th arg FIRSTONLY is non-nil, return a string representing\n\
+the first key sequence found, rather than a list of all possible key\n\
+sequences.  If FIRSTONLY is t, avoid key sequences which use non-ASCII\n\
+keys and therefore may not be usable on ASCII terminals.  If FIRSTONLY\n\
+is the symbol `non-ascii', return the first binding found, no matter\n\
+what its components.\n\
 \n\
 If optional 5th arg NOINDIRECT is non-nil, don't follow indirections\n\
 to other keymaps or slots.  This makes it possible to search for an\n\
@@ -1469,13 +1494,28 @@ indirect definition itself.")
 	    }
 
 	  /* It is a true unshadowed match.  Record it.  */
-
-	  if (!NILP (firstonly))
-	    return sequence;
 	  found = Fcons (sequence, found);
+
+	  /* If firstonly is Qnon_ascii, then we can return the first
+	     binding we find.  If firstonly is not Qnon_ascii but not
+	     nil, then we should return the first ascii-only binding
+	     we find.  */
+	  if (EQ (firstonly, Qnon_ascii))
+	    return sequence;
+	  else if (! NILP (firstonly) && ascii_sequence_p (sequence))
+	    return sequence;
 	}
     }
-  return Fnreverse (found);
+
+  found = Fnreverse (found);
+
+  /* firstonly may have been t, but we may have gone all the way through
+     the keymaps without finding an all-ASCII key sequence.  So just
+     return the best we could find.  */
+  if (! NILP (firstonly))
+    return Fcar (found);
+    
+  return found;
 }
 
 /* Return a string listing the keys and buttons that run DEFINITION.  */
@@ -2038,6 +2078,9 @@ key, typing `ESC O P x' would return [pf1 x].");
 
   Qkeymapp = intern ("keymapp");
   staticpro (&Qkeymapp);
+
+  Qnon_ascii = intern ("non-ascii");
+  staticpro (&Qnon_ascii);
 
   defsubr (&Skeymapp);
   defsubr (&Smake_keymap);
