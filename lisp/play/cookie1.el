@@ -104,7 +104,7 @@ and subsequent calls on the same file won't go to disk."
     (if sym
 	(symbol-value sym)
       (setq sym (intern phrase-file cookie-cache))
-      (message startmsg)
+      (message "%s" startmsg)
       (save-excursion
 	(let ((buf (generate-new-buffer "*cookie*"))
 	      (result nil))
@@ -118,7 +118,7 @@ and subsequent calls on the same file won't go to disk."
 	      (setq result (cons (buffer-substring beg (1- (point)))
 				 result))))
 	  (kill-buffer buf)
-	  (message endmsg)
+	  (message "%s" endmsg)
 	  (set sym (apply 'vector result)))))))
 
 (defun read-cookie (prompt phrase-file startmsg endmsg &optional require-match)
