@@ -562,7 +562,7 @@ openp (path, str, suffix, storeptr, exec_only)
 	      if (exec_only)
 		fd = (access (fn, X_OK) == 0) ? 1 : -1;
 	      else
-		fd = open (fn, O_RDONLY, 0);
+		fd = open (fn, 0, 0);
 
 	      if (fd >= 0)
 		{
