@@ -301,14 +301,11 @@ dnl AC_SYS_LARGEFILE_MACRO_VALUE(C-MACRO, VALUE, CACHE-VAR, COMMENT, INCLUDES, F
 AC_DEFUN(AC_SYS_LARGEFILE_MACRO_VALUE,
   [AC_CACHE_CHECK([for $1 value needed for large files], $3,
      [$3=no
-      AC_TRY_COMPILE(AC_SYS_LARGEFILE_TEST_INCLUDES
-$5
-        ,
+      AC_TRY_COMPILE([$5],
 	[$6], 
 	,
 	[AC_TRY_COMPILE([#define $1 $2]
-AC_SYS_LARGEFILE_TEST_INCLUDES
-$5
+[$5]
 	   ,
 	   [$6],
 	   [$3=$2])])])
@@ -317,7 +314,8 @@ $5
    fi])
 
 AC_DEFUN(AC_SYS_LARGEFILE,
-  [AC_ARG_ENABLE(largefile,
+  [AC_REQUIRE([AC_PROG_CC])
+   AC_ARG_ENABLE(largefile,
      [  --disable-largefile     omit support for large files])
    if test "$enable_largefile" != no; then
 
@@ -340,20 +338,33 @@ AC_DEFUN(AC_SYS_LARGEFILE,
 
      AC_SYS_LARGEFILE_MACRO_VALUE(_FILE_OFFSET_BITS, 64,
        ac_cv_sys_file_offset_bits,
-       [Number of bits in a file offset, on hosts where this is settable.])
-     AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE, 1,
-       ac_cv_sys_largefile_source,
-       [Define to make ftello visible on some hosts (e.g. HP-UX 10.20).],
-       [#include <stdio.h>], [return !ftello;])
+       [Number of bits in a file offset, on hosts where this is settable.],
+       AC_SYS_LARGEFILE_TEST_INCLUDES)
      AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES, 1,
        ac_cv_sys_large_files,
-       [Define for large files, on AIX-style hosts.])
-     AC_SYS_LARGEFILE_MACRO_VALUE(_XOPEN_SOURCE, 500,
-       ac_cv_sys_xopen_source,
-       [Define to make ftello visible on some hosts (e.g. glibc 2.1.3).],
-       [#include <stdio.h>], [return !ftello;])
+       [Define for large files, on AIX-style hosts.]
+       AC_SYS_LARGEFILE_TEST_INCLUDES)
    fi
   ])
+
+AC_DEFUN(AC_FUNC_FSEEKO,
+  [AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE, 1,
+     ac_cv_sys_largefile_source,
+     [Define to make fseeko visible on some hosts (e.g. glibc 2.2).],
+     [#include <stdio.h>], [return !fseeko;])
+   # We used to try defining _XOPEN_SOURCE=500 too, to work around a bug
+   # in glibc 2.1.3, but that breaks too many other things.
+   # If you want fseeko and ftello with glibc, upgrade to a fixed glibc.
+
+   AC_CACHE_CHECK([for fseeko], ac_cv_func_fseeko,
+     [ac_cv_func_fseeko=no
+      AC_TRY_LINK([#include <stdio.h>],
+        [return fseeko && fseeko (stdin, 0, 0);],
+	[ac_cv_func_fseeko=yes])])
+   if test $ac_cv_func_fseeko != no; then
+     AC_DEFINE(HAVE_FSEEKO, 1,
+       [Define if fseeko (and presumably ftello) exists and is declared.])
+   fi])
 
 undefine([AC_FUNC_MMAP])dnl
 dnl The autoconf 2.13 version loses on OSF, at least,
