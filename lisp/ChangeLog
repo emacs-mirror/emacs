@@ -1,3 +1,13 @@
+2002-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Be sure to
+	return a unibyte string.
+
+2002-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-locale-environment): Delete
+	superfluous ')'s at the tail.
+
 2002-10-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (define-coding-system): Fix typo;
