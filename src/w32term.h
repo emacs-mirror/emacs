@@ -350,10 +350,9 @@ struct w32_output
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
-  Cursor cross_cursor;
+  Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
-  Cursor hand_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is
      temporarily mapped to display an hourglass cursor.  */
