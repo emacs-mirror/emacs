@@ -74,6 +74,26 @@
 	 reftex-default-bibliography))
   (get 'reftex-default-bibliography :reftex-expanded))
 
+(defun reftex-bib-or-thebib ()
+  ;; Tests if BibTeX or \begin{tehbibliography} should be used for the
+  ;; citation
+  ;; Find the bof of the current file
+  (let* ((docstruct (symbol-value reftex-docstruct-symbol))
+	 (rest (or (member (list 'bof (buffer-file-name)) docstruct)
+		   docstruct))
+	 (bib (assq 'bib rest))
+	 (thebib (assq 'thebib rest))
+	 (bibmem (memq bib rest))
+	 (thebibmem (memq thebib rest)))
+    (when (not (or thebib bib))
+      (setq bib (assq 'bib docstruct)
+	    thebib (assq 'thebib docstruct)
+	    bibmem (memq bib docstruct)
+	    thebibmem (memq thebib docstruct)))
+    (if (> (length bibmem) (length thebibmem))
+	(if bib 'bib nil)
+      (if thebib 'thebib nil))))
+
 (defun reftex-get-bibfile-list ()
   ;; Return list of bibfiles for current document.
   ;; When using the chapterbib or bibunits package you should either
@@ -736,17 +756,20 @@ While entering the regexp, completion on knows citation keys is possible.
 (defun reftex-offer-bib-menu ()
   ;; Offer bib menu and return list of selected items
 
-  (let (found-list rtn key data selected-entries)
+  (let ((bibtype (reftex-bib-or-thebib))
+	found-list rtn key data selected-entries)
     (while 
 	(not 
 	 (catch 'done
 	   ;; Scan bibtex files
 	   (setq found-list
 	      (cond
-	       ((assq 'bib (symbol-value reftex-docstruct-symbol))
+	       ((eq bibtype 'bib)
+;	       ((assq 'bib (symbol-value reftex-docstruct-symbol))
 		;; using BibTeX database files.
 		(reftex-extract-bib-entries (reftex-get-bibfile-list)))
-	       ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+	       ((eq bibtype 'thebib)
+;	       ((assq 'thebib (symbol-value reftex-docstruct-symbol))
 		;; using thebibliography environment.
 		(reftex-extract-bib-entries-from-thebibliography
 		 (reftex-uniquify
@@ -987,15 +1010,18 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; recommended for follow mode.  It works OK for individual lookups.
   (let ((win (selected-window))
         (key (reftex-get-bib-field "&key" data))
-        bibfile-list item)
+        bibfile-list item bibtype)
 
     (catch 'exit
       (save-excursion
 	(set-buffer reftex-call-back-to-this-buffer)
+	(setq bibtype (reftex-bib-or-thebib))
 	(cond
-	 ((assq 'bib (symbol-value reftex-docstruct-symbol))
+	 ((eq bibtype 'bib)
+;	 ((assq 'bib (symbol-value reftex-docstruct-symbol))
 	  (setq bibfile-list (reftex-get-bibfile-list)))
-	 ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+	 ((eq bibtype 'thebib)
+;	 ((assq 'thebib (symbol-value reftex-docstruct-symbol))
 	  (setq bibfile-list
 		(reftex-uniquify
 		 (mapcar 'cdr

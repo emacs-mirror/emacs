@@ -1665,7 +1665,7 @@ When DIE is non-nil, throw an error if file not found."
 (autoload 'reftex-citation "reftex-cite"
  "Make a citation using BibTeX database files." t)
 (autoload 'reftex-default-bibliography "reftex-cite")
-
+(autoload 'reftex-bib-or-thebib "reftex-cite")
 
 ;;; =========================================================================
 ;;;

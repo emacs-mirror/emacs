@@ -116,13 +116,16 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (put 'reftex-auto-view-crossref 'last-window-conf 
 	   (current-window-configuration)))
 
-  (let (files size item (pos (point)) (win (selected-window)) pop-win)
+  (let (files size item (pos (point)) (win (selected-window)) pop-win
+	      (bibtype (reftex-bib-or-thebib)))
     ;; Find the citation mode and the file list
     (cond
-     ((assq 'bib (symbol-value reftex-docstruct-symbol))
+;     ((assq 'bib (symbol-value reftex-docstruct-symbol))
+     ((eq bibtype 'bib)
       (setq item nil
 	    files (reftex-get-bibfile-list)))
-     ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+;     ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+     ((eq bibtype 'thebib)
       (setq item t
 	    files (reftex-uniquify
 		   (mapcar 'cdr
