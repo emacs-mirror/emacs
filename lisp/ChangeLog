@@ -1,3 +1,8 @@
+2003-08-25  John Paul Wallington  <jpw@gnu.org>
+
+	* man.el (Man-default-man-entry): Don't whizz past the section
+	number before looking for it.
+
 2003-08-24  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gud-display-line): Don't set window-point if
