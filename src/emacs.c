@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include <ssdef.h>
 #endif
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #include <sys/ioctl.h>
 #endif
 

@@ -137,11 +137,11 @@ CC = C_COMPILER
 
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
-#if !defined (__GNUC__) && (defined(COFF_ENCAPSULATE) || (defined (BSD) && !defined (COFF)))
+#if !defined (__GNUC__) && (defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)))
 #define LD_SWITCH_SYSTEM -X
-#else /* ! defined(COFF_ENCAPSULATE) || (defined (BSD) && !defined (COFF)) */
+#else /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
 #define LD_SWITCH_SYSTEM
-#endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD) && !defined (COFF)) */
+#endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
 /* Some m/MACHINE.h files define this to request special switches in ld.  */
