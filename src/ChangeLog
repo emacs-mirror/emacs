@@ -1,3 +1,9 @@
+2000-08-21  Miles Bader  <miles@gnu.org>
+
+	* minibuf.c (do_completion): Try again if we rewrite the input
+	string, but no completion was done, so that any completion message
+	will be correct.
+
 2000-08-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (lface_equal_p): Compare strings differently.
