@@ -42,6 +42,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 ;;; cus-load.el --- automatically extracted custom dependencies
 ;;
 ;;; Code:
+
 ")
   (mapatoms (lambda (symbol)
 	      (let ((members (get symbol 'custom-group))
