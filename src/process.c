@@ -4163,7 +4163,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 but select says there is input.  */
 
       if (XINT (read_kbd) && interrupt_input
-	  && keyboard_bit_set (&Available))
+	  && keyboard_bit_set (&Available) && ! noninteractive)
 	kill (getpid (), SIGIO);
 #endif
 
