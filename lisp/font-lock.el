@@ -2243,7 +2243,9 @@ See also `c-font-lock-extra-types'.")
 			"switch" "while" "sizeof"
 			;; Type related, but we don't do anything special.
 			"typedef" "extern" "auto" "register" "static"
-			"volatile" "const") t)))
+			"volatile" "const"
+			;; Dan Nicolaescu <done@gnu.org> says this is new.
+			"restrict") t)))
        (c-type-specs
 	(eval-when-compile
 	  (regexp-opt '("enum" "struct" "union") t)))
