@@ -3084,7 +3084,7 @@ Setting this variable automatically makes it local to the current buffer.")
 		(save-excursion (forward-paragraph 1) (point)))))
 	  (and prefix (not (equal prefix ""))
 	       ;; Use auto-indentation rather than a guessed empty prefix.
-	       (not (and (fill-indent-according-to-mode)
+	       (not (and fill-indent-according-to-mode
 			 (string-match "\\`[ \t]*\\'" prefix)))
 	       (setq fill-prefix prefix))))
       
