@@ -1,15 +1,45 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.14) $
+ * $HopeName: MMsrc!config.h(trunk.15) $
+ *
+ * .readership: MPS developers.
  */
 
 #ifndef config_h
 #define config_h
 
+
 /* Platform Configuration */
 
 #include "mpstd.h"
+
+/* Suppress Visual C warnings at warning level 4, */
+/* see mail.richard.1997-09-25.13-26. */
+/* Essentially the same settings are done in testlib.h. */
+
+#ifdef MPS_BUILD_MV
+
+/* "unreferenced inline function has been removed" (windows.h) */
+#pragma warning(disable: 4514)
+
+/* "constant conditional" (MPS_END) */
+#pragma warning(disable: 4127)
+
+/* "unreachable code" (ASSERT, if cond is constantly true). */
+#pragma warning(disable: 4702)
+
+/* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
+#ifdef _MSC_VER
+#if _MSC_VER < 1000
+#pragma warning(disable: 4705)
+#endif
+#else /* _MSC_VER */
+#error "Expected _MSC_VER to be defined for builder.mv"
+#endif /* _MSC_VER */
+
+#endif /* MPS_BUILD_MV */
+
 
 
 /* Variety Configuration
@@ -82,12 +112,14 @@
 /* .nosync.why: ScriptWorks is single-threaded when using the MM. */
 #define THREAD_SINGLE
 #define PROTECTION_NONE
+
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
 #define AMC_SIZE_LIMIT          ((Size)64<<20)  /* experimentally reasonable limit */
 #define THREAD_MULTI
 #define PROTECTION
+
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
@@ -99,6 +131,7 @@
 #endif /* MPS_OS_S7 */
 #define THREAD_MULTI
 #define PROTECTION
+
 #else
 #error "No target product configured."
 #endif
@@ -146,5 +179,6 @@
 
 #define EVENT_BUFFER_SIZE       ((Count)4096)
 #define EVENT_HEADER_SIZE       ((Count)3)
+
 
 #endif /* config_h */
