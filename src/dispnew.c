@@ -566,7 +566,7 @@ margin_glyphs_to_reserve (w, total_glyphs, margin)
       int width = XFASTINT (w->total_cols);
       double d = max (0, XFLOATINT (margin));
       d = min (width / 2 - 1, d);
-      n = (int) ((double) total_glyphs / width * d);
+      n = (int) ((double) total_glyphs / width * d) * w->ncols_scale_factor;
     }
   else
     n = 0;
@@ -1900,10 +1900,10 @@ allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
 	      || dim.width != w->desired_matrix->matrix_w
 	      || dim.height != w->desired_matrix->matrix_h
 	      || (margin_glyphs_to_reserve (w, dim.width,
-					    w->right_margin_cols)
+					    w->left_margin_cols)
 		  != w->desired_matrix->left_margin_glyphs)
 	      || (margin_glyphs_to_reserve (w, dim.width,
-					    w->left_margin_cols)
+					    w->right_margin_cols)
 		  != w->desired_matrix->right_margin_glyphs))
 	    *window_change_flags |= CHANGED_LEAF_MATRIX;
 
@@ -1971,7 +1971,7 @@ required_matrix_height (w)
       int ch_height = FRAME_SMALLEST_FONT_HEIGHT (f);
       int window_pixel_height = window_box_height (w) + abs (w->vscroll);
       return (((window_pixel_height + ch_height - 1)
-	       / ch_height)
+	       / ch_height) * w->nrows_scale_factor
 	      /* One partially visible line at the top and
 		 bottom of the window.  */
 	      + 2
@@ -1999,7 +1999,7 @@ required_matrix_width (w)
 
       /* Compute number of glyphs needed in a glyph row.  */
       return (((window_pixel_width + ch_width - 1)
-	       / ch_width)
+	       / ch_width) * w->ncols_scale_factor
 	      /* 2 partially visible columns in the text area.  */
 	      + 2
 	      /* One partially visible column at the right

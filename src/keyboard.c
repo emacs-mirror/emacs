@@ -595,7 +595,7 @@ int interrupts_deferred;
 
 /* We are unable to use interrupts if FIONREAD is not available,
    so flush SIGIO so we won't try.  */
-#ifndef FIONREAD
+#if !defined (FIONREAD) || defined(HAVE_CARBON)
 #ifdef SIGIO
 #undef SIGIO
 #endif

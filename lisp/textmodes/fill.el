@@ -353,7 +353,12 @@ and `fill-nobreak-invisible'."
      ;; Don't split a line if the rest would look like a new paragraph.
      (unless use-hard-newlines
        (save-excursion
-	 (skip-chars-forward " \t") (looking-at paragraph-start)))
+	 (skip-chars-forward " \t")
+	 ;; If this break point is at the end of the line,
+	 ;; which can occur for auto-fill, don't consider the newline
+	 ;; which follows as a reason to return t.
+	 (and (not (eolp))
+	      (looking-at paragraph-start))))
      (run-hook-with-args-until-success 'fill-nobreak-predicate)))))
 
 ;; Put `fill-find-break-point-function' property to charsets which

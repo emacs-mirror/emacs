@@ -262,6 +262,7 @@ make_window ()
   bzero (&p->last_cursor, sizeof (p->last_cursor));
   bzero (&p->phys_cursor, sizeof (p->phys_cursor));
   p->desired_matrix = p->current_matrix = 0;
+  p->nrows_scale_factor = p->ncols_scale_factor = 1;
   p->phys_cursor_type = -1;
   p->phys_cursor_width = -1;
   p->must_be_updated_p = 0;
@@ -320,15 +321,17 @@ WINDOW defaults to the selected window.  */)
 
 DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
        Spos_visible_in_window_p, 0, 3, 0,
-       doc: /* Return t if position POS is currently on the frame in WINDOW.
+       doc: /* Return non-nil if position POS is currently on the frame in WINDOW.
 Return nil if that position is scrolled vertically out of view.
 If a character is only partially visible, nil is returned, unless the
 optional argument PARTIALLY is non-nil.
+If POS is only out of view because of horizontal scrolling, return non-nil.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y PARTIAL) where X and Y are the pixel relative
-coordinate  */)
+return value is a list (X Y FULLY) where X and Y are the pixel coordinates
+relative to the top left corner of the window, and FULLY is t if the
+character after POS is fully visible and nil otherwise.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -432,7 +435,7 @@ DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
        doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
-NCOL should be zero or positive.
+Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
 window so that the location of point becomes invisible.  */)
@@ -546,7 +549,7 @@ display margins, fringes, header line, and/or mode line.  */)
 }
 
 DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge coordinates of WINDOW.
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
 \(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
 RIGHT is one more than the rightmost x position used by text in WINDOW,
 and BOTTOM is one more than the bottommost y position used by text in WINDOW.
@@ -988,6 +991,8 @@ DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
 This is updated by redisplay, when it runs to completion.
 Simply changing the buffer text or setting `window-start'
 does not update this value.
+Return nil if there is no recorded value.  \(This can happen if the
+last redisplay of WINDOW was preempted, and did not finish.)
 If UPDATE is non-nil, compute the up-to-date position
 if it isn't already recorded.  */)
      (window, update)
@@ -1053,7 +1058,8 @@ if it isn't already recorded.  */)
 }
 
 DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
-       doc: /* Make point value in WINDOW be at position POS in WINDOW's buffer.  */)
+       doc: /* Make point value in WINDOW be at position POS in WINDOW's buffer.
+Return POS.  */)
      (window, pos)
      Lisp_Object window, pos;
 {
@@ -1076,6 +1082,7 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
 
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
        doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
+Return POS.
 Optional third arg NOFORCE non-nil inhibits next redisplay
 from overriding motion of point in order to display at this exact start.  */)
      (window, pos, noforce)
@@ -4850,7 +4857,8 @@ scroll_command (n, direction)
 }
 
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
-       doc: /* Scroll text of current window upward ARG lines; or near full screen if no ARG.
+       doc: /* Scroll text of current window upward ARG lines.
+If ARG is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 If ARG is the atom `-', scroll downward by nearly full screen.
@@ -4863,7 +4871,8 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
 }
 
 DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
-       doc: /* Scroll text of current window down ARG lines; or near full screen if no ARG.
+       doc: /* Scroll text of current window down ARG lines.
+If ARG is omitted or nil, scroll down by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
 If ARG is the atom `-', scroll upward by nearly full screen.
@@ -4877,10 +4886,11 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
 
 DEFUN ("other-window-for-scrolling", Fother_window_for_scrolling, Sother_window_for_scrolling, 0, 0, 0,
        doc: /* Return the other window for \"other window scroll\" commands.
-If in the minibuffer, `minibuffer-scroll-window' if non-nil
-specifies the window.
 If `other-window-scroll-buffer' is non-nil, a window
-showing that buffer is used.  */)
+showing that buffer is used.
+If in the minibuffer, `minibuffer-scroll-window' if non-nil
+specifies the window.  This takes precedence over
+`other-window-scroll-buffer'.  */)
      ()
 {
   Lisp_Object window;
@@ -4926,10 +4936,11 @@ if the current one is at the bottom.  Negative ARG means scroll downward.
 If ARG is the atom `-', scroll downward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'.
 
-If in the minibuffer, `minibuffer-scroll-window' if non-nil
-specifies the window to scroll.
 If `other-window-scroll-buffer' is non-nil, scroll the window
-showing that buffer, popping the buffer up if necessary.  */)
+showing that buffer, popping the buffer up if necessary.
+If in the minibuffer, `minibuffer-scroll-window' if non-nil
+specifies the window to scroll.  This takes precedence over
+`other-window-scroll-buffer'.  */)
      (arg)
      Lisp_Object arg;
 {
@@ -5905,7 +5916,8 @@ redirection (see `redirect-frame-focus').  */)
 
 DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
        0, UNEVALLED, 0,
-       doc: /* Execute body, preserving window sizes and contents.
+       doc: /* Execute BODY, preserving window sizes and contents.
+Return the value of the last form in BODY.
 Restore which buffer appears in which window, where display starts,
 and the value of point and mark for each window.
 Also restore the choice of selected window.
@@ -6165,7 +6177,11 @@ DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
        doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
 WINDOW nil means use the selected window.  Normally, VSCROLL is a
 non-negative multiple of the canonical character height of WINDOW;
-optional third arg PIXELS_P non-nil means that VSCROLL is in pixels.  */)
+optional third arg PIXELS_P non-nil means that VSCROLL is in pixels.
+If PIXELS-P is nil, VSCROLL may have to be rounded so that it
+corresponds to an integral number of pixels.  The return value is the
+result of this rounding.
+If PIXELS-P is non-nil, the return value is VSCROLL.  */)
   (window, vscroll, pixels_p)
      Lisp_Object window, vscroll, pixels_p;
 {
@@ -6649,9 +6665,11 @@ The selected frame is the one whose configuration has changed.  */);
 
   DEFVAR_BOOL ("window-size-fixed", &window_size_fixed,
 	       doc: /* Non-nil in a buffer means windows displaying the buffer are fixed-size.
+If the value is`height', then only the window's height is fixed.
+If the value is `width', then only the window's width is fixed.
+Any other non-nil value fixes both the width and the height.
 Emacs won't change the size of any window displaying that buffer,
-unless you explicitly change the size, or Emacs has no other choice.
-This variable automatically becomes buffer-local when set.  */);
+unless you explicitly change the size, or Emacs has no other choice.  */);
   Fmake_variable_buffer_local (Qwindow_size_fixed);
   window_size_fixed = 0;
 

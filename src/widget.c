@@ -758,7 +758,6 @@ EmacsFrameDestroy (widget)
 
   if (! s) abort ();
   if (! s->output_data.x) abort ();
-  if (! s->output_data.x->normal_gc) abort ();
 
   BLOCK_INPUT;
   x_free_gcs (s);

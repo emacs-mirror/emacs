@@ -1,3 +1,28 @@
+2004-07-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.
+
+2004-07-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (modify-all-frames-parameters): Minor doc fix.
+
+2004-07-20  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
+	(fill-delete-newlines): Call sentence-end as function.
+	(fill-nobreak-p, canonically-space-region): Likewise.
+	(fill-nobreak-p): If this break point is at the end of the line,
+	don't consider the newline which follows as a reason to return t.
+
+2004-07-19  John Paul Wallington  <jpw@gnu.org>
+
+	* dired-aux.el (dired-file-set-difference): Don't use `caddr'.
+
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-kill-lines): Expand docstring.
+	Delete irrelevant code.
+
 2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New

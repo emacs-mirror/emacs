@@ -4190,12 +4190,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  SELECT_TYPE Atemp, Ctemp;
 
 	  Atemp = input_wait_mask;
-#ifdef MAC_OSX
-          /* On Mac OS X, the SELECT system call always says input is
+#if 0
+          /* On Mac OS X 10.0, the SELECT system call always says input is
              present (for reading) at stdin, even when none is.  This
              causes the call to SELECT below to return 1 and
              status_notify not to be called.  As a result output of
-             subprocesses are incorrectly discarded.  */
+             subprocesses are incorrectly discarded.  
+	  */
           FD_CLR (0, &Atemp);
 #endif
 	  Ctemp = connect_wait_mask;
