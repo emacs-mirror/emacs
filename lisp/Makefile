@@ -5,6 +5,11 @@ EMACS = emacs
 SOURCES = *.el COPYING Makefile
 lisptagsfiles = [a-zA-Z]*.el */[a-zA-Z]*.el
 
+dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
+dontcompilefiles: forms-d2.el forms-pass.el i3-syntax.el iso-syntax.el
+dontcompilefiles: loaddefs.el loadup.el mule-conf.el patcomp.el
+dontcompilefiles: paths.el sc.el subdirs.el term-nasty.el version.el 
+
 doit:
 
 custom-deps: doit
