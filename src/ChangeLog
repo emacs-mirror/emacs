@@ -1,3 +1,7 @@
+1999-10-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (gif_load): Fix handling of interlaced GIFs.
+
 1999-10-14  Dave Love  <fx@gnu.org>
 
 	* xdisp.c (handle_fontified_prop): GCPRO `pos'.
