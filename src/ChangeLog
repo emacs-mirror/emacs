@@ -1,3 +1,10 @@
+2005-01-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_new_font): Set FRAME_SPACE_WIDTH.
+	(x_font_min_bounds, XLoadQueryFont): Use the correct font width
+	metrics for max and min bounds.
+	(x_load_font): Correctly calculate average font width metrics.
+
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (Fgarbage_collect): Don't truncate_undo_list on dead buffers.
