@@ -438,6 +438,7 @@ This can take a while for large buffers."
 		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
 		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
 		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
+		  ((eq major-mode 'dired-mode)      dired-font-lock-keywords)
 		  (t nil)))))
 
 (defconst lisp-font-lock-keywords-1
@@ -644,6 +645,17 @@ This does a lot more highlighting.")
 	'("^[^ \t]+:.*$" . font-lock-string-face)
 	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
   "Additional expressions to highlight in Shell mode.")
+
+(defvar dired-font-lock-keywords
+  '(;; Put directory headers in italics.
+    ("^  \\(/.+\\)$" 1 font-lock-type-face)
+    ;; Put symlinks in bold italics.
+    ("\\([^ ]+\\) -> [^ ]+$" . font-lock-function-name-face)
+    ;; Put marks in bold.
+    ("^\\([^ ]\\).*$" 1 font-lock-keyword-face t)
+    ;; Put files that are subdirectories in bold.
+    ("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
+  "Additional expressions to highlight in Dired mode.")
 
 (provide 'font-lock)
 
