@@ -85,11 +85,11 @@
     (define-key map "<" 'beginning-of-buffer)
     (define-key map ">" 'end-of-buffer)
     ;(define-key map "\C-g" 'electric-help-exit)
-    (define-key map "q" 'electric-help-exit)
     (define-key map "Q" 'electric-help-exit)
+    (define-key map "q" 'electric-help-exit)
     ;;a better key than this?
-    (define-key map "r" 'electric-help-retain)
     (define-key map "R" 'electric-help-retain)
+    (define-key map "r" 'electric-help-retain)
     (define-key map "\ex" 'electric-help-execute-extended)
     (define-key map "\C-x" 'electric-help-ctrl-x-prefix)
 
