@@ -1,3 +1,8 @@
+2000-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* jka-compr.el (jka-compr-compression-info-list): Add `.z'
+	to extensions handled by gzip.
+
 2000-04-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (encoded-string-description):
