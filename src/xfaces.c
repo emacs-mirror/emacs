@@ -3687,6 +3687,14 @@ Value is a vector of face attributes.  */)
   else
     lface = global_lface;
 
+  /* Changing a named face means that all realized faces depending on
+     that face are invalid.  Since we cannot tell which realized faces
+     depend on the face, make sure they are all removed.  This is done
+     by incrementing face_change_count.  The next call to
+     init_iterator will then free realized faces.  */
+  ++face_change_count;
+  ++windows_or_buffers_changed;
+
   xassert (LFACEP (lface));
   check_lface (lface);
   return lface;
@@ -3753,6 +3761,14 @@ Value is TO.  */)
 
   bcopy (XVECTOR (lface)->contents, XVECTOR (copy)->contents,
 	 LFACE_VECTOR_SIZE * sizeof (Lisp_Object));
+
+  /* Changing a named face means that all realized faces depending on
+     that face are invalid.  Since we cannot tell which realized faces
+     depend on the face, make sure they are all removed.  This is done
+     by incrementing face_change_count.  The next call to
+     init_iterator will then free realized faces.  */
+  ++face_change_count;
+  ++windows_or_buffers_changed;
 
   return to;
 }
@@ -4263,6 +4279,14 @@ update_face_from_frame_parameter (f, param, new_value)
      face-set-after-frame-defaults.  */
   if (NILP (f->face_alist))
     return;
+
+  /* Changing a named face means that all realized faces depending on
+     that face are invalid.  Since we cannot tell which realized faces
+     depend on the face, make sure they are all removed.  This is done
+     by incrementing face_change_count.  The next call to
+     init_iterator will then free realized faces.  */
+  ++face_change_count;
+  ++windows_or_buffers_changed;
 
   if (EQ (param, Qforeground_color))
     {
