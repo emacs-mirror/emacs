@@ -1,4 +1,4 @@
-/* impl.h.prmcli:  PROTECTION MUTATOR CONTEXT (FreeBSD)
+/* impl.h.prmcfr:  PROTECTION MUTATOR CONTEXT (FREEBSD)
  *
  * $HopeName: $
  * Copyright (C) 1998 The Harlequin Group Limited.  All rights reserved.
