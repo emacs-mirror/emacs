@@ -880,15 +880,16 @@ control system name."
 		       (and vc-display-status (vc-status file)))))
     ;; If the file is locked by some other user, make
     ;; the buffer read-only.  Like this, even root
-    ;; cannot modify a file without locking it first.
+    ;; cannot modify a file that someone else has locked.
     (and vc-type 
 	 (equal file (buffer-file-name))
 	 (vc-locking-user file)
 	 (not (string= (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
-    ;; If the user is root, and the file is not owner-readable,
-    ;; then pretend that we can't read it
-    ;; even though we can (because root can read anything).
+    ;; If the user is root, and the file is not owner-writable,
+    ;; then pretend that we can't write it
+    ;; even though we can (because root can write anything).
+    ;; This way, even root cannot modify a file that isn't locked.
     (and vc-type
 	 (equal file (buffer-file-name))
 	 (not buffer-read-only)
