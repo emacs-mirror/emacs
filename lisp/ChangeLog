@@ -1,3 +1,50 @@
+2004-03-23  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-width): New var.
+	(Man-getpage-in-background): Use it.
+	(Man-support-local-filenames): New var and fun.
+	(Man-build-man-command): Don't add a second %s.
+	(Man-fontify-manpage): Clean up message.
+	(Man-mode): Set outline-regexp, outline-level,
+	imenu-generic-expression.
+
+	* woman.el (woman-fill-frame): Doc fix.
+	(woman-decode-region): Use window-width instead of frame-width.
+
+	* abbrevlist.el (list-one-abbrev-table): Use window-width instead
+	of frame-width.
+
+	* descr-text.el (describe-char): Use window-width instead of
+	frame-width.
+
+	* international/mule-diag.el (describe-current-coding-system): Use
+	window-width instead of frame-width.
+
+	* international/quail.el (quail-insert-decode-map): Use
+	window-width instead of frame-width.
+
+	* jka-compr.el (jka-compr-compression-info-list): Add tbz and dz.
+	(jka-compr-mode-alist-additions): Add tbz.
+	(jka-compr-write-region): Add error message for undefined
+	compress-program.
+	(jka-compr-insert-file-contents): Add message for undefined
+	compress-program.
+	(jka-compr-write-region): Remove redundant var bindings.
+
+	* dired-x.el (dired-guess-shell-alist-default): Add choices for
+	extracting files into subdirectory.  Add tbz and dz.  Fix regexps.
+	Add extensions .[0-9] for man and nroff, and .pod for perldoc.
+	(dired-man): Use dired-guess-shell-command.
+	(dired-guess-shell-case-fold-search): Change defvar to defcustom.
+	Change default nil to t.
+
+	* dired-aux.el (dired-compress-file-suffixes): Add dz and tbz.
+	(dired-compare-directories): Add default value for empty input.
+
+	* help-at-pt.el: Move suggestions for key bindings to Commentary.
+
+	* time.el (display-time-string-forms): Fix help-echo date format.
+
 2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (global-auto-revert-non-file-buffers): Expand doc
