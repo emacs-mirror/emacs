@@ -266,10 +266,6 @@ Do the same for the keys of the same name."
 
 (defalias 'menu-bar-buffers (make-sparse-keymap "Buffers"))
 
-(defvar complex-buffers-menu-p nil
-  "*Non-nil says, offer a choice of actions after you pick a buffer.
-This applies to the Buffers menu from the menu bar.")
-
 (defvar buffers-menu-max-size 10
   "*Maximum number of entries which may appear on the Buffers menu.
 If this is 10, then only the ten most-recently-selected buffers are shown.
