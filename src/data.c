@@ -646,24 +646,24 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 }
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
-  "Set SYMBOL's function definition to NEWDEF, and return NEWDEF.\n\
+  "Set SYMBOL's function definition to DEFINITION, and return DEFINITION.\n\
 Associates the function with the current load file, if any.")
-  (symbol, newdef)
-     register Lisp_Object symbol, newdef;
+  (symbol, definition)
+     register Lisp_Object symbol, definition;
 {
   CHECK_SYMBOL (symbol, 0);
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (symbol, XSYMBOL (symbol)->function),
 			     Vautoload_queue);
-  XSYMBOL (symbol)->function = newdef;
+  XSYMBOL (symbol)->function = definition;
   /* Handle automatic advice activation */
   if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
     {
       call2 (Qad_activate, symbol, Qnil);
-      newdef = XSYMBOL (symbol)->function;
+      definition = XSYMBOL (symbol)->function;
     }
   LOADHIST_ATTACH (symbol);
-  return newdef;
+  return definition;
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
