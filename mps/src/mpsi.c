@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.9) $
+ * $HopeName: MMsrc!mpsi.c(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.9) $");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.10) $");
 
 
 /* Check consistency of interface mappings. */
@@ -622,6 +622,12 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
   } MPS_SCAN_END(mps_ss);
 
   return res;
+}
+
+mps_word_t mps_collections(mps_space_t mps_space)
+{
+  Space space = (Space)mps_space;
+  return SpaceEpoch(space);  /* thread safe: see impl.h.space.epoch.ts */
 }
 
 /* @@@@ not done from here on */
