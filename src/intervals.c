@@ -1473,11 +1473,11 @@ verify_interval_modification (buf, start, end)
 	    error ("Attempt to insert within read-only text");
 	}
 
-      /* Run both mod hooks (just once if they're the same).  */
+      /* Run both insert hooks (just once if they're the same).  */
       if (!NULL_INTERVAL_P (prev))
-	prev_mod_hooks = textget (prev->plist, Qmodification_hooks);
+	prev_mod_hooks = textget (prev->plist, Qinsert_after_hooks);
       if (!NULL_INTERVAL_P (i))
-	mod_hooks = textget (i->plist, Qmodification_hooks);
+	mod_hooks = textget (i->plist, Qinsert_before_hooks);
       GCPRO1 (mod_hooks);
       if (! NILP (prev_mod_hooks))
 	call_mod_hooks (prev_mod_hooks, make_number (start),
