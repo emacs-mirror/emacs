@@ -3,10 +3,11 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
+;;	Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
-;; $Id: makefile.el,v 1.5 1993/03/28 06:24:54 eric Exp rms $
+;; $Id: makefile.el,v 1.3 1993/04/20 20:01:16 esr Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -26,9 +27,33 @@
 
 ;;; Commentary:
 
-;; A major mode for editing Makefiles.  Hairy.  Needs more documentation.
-;; If you get familiar with it, please write some and send it to the GNU
-;; Emacs maintainers.
+;; A major mode for editing makefiles.  The mode knows about Makefile
+;; syntax and defines M-n and M-p to move to next and previous productions.
+;;
+;; The keys $, =, : and . are electric; they try to help you fill in a
+;; macro reference, macro definition, ordinary target name, or special
+;; target name, respectively.  Such names are completed using a list of
+;; targets and macro names parsed out of the makefile.  This list is
+;; automatically updated, if necessary, whenever you invoke one of
+;; these commands.  You can force it to be updated with C-c C-p.
+;;
+;; The command C-c f adds certain filenames in the current directory
+;; as targets.  You can filter out filenames by setting the variable
+;; makefile-ignored-files-in-pickup-regex.
+;;
+;; The command C-c C-u grinds for a bit, then pops up a report buffer
+;; showing which target names are up-to-date with respect to their
+;; prerequisites, which targets are out-of-date, and which have no
+;; prerequisites.
+;;
+;; The command C-c b pops up a browser window listing all target and
+;; macro names.  You can mark or unmark items wit C-c SPC, and insert
+;; all marked items back in the Makefile with C-c TAB.
+;;
+;; The command C-c TAB in the makefile buffer inserts a GNU make builtin.
+;; You will be prompted for the builtin's args.
+;;
+;; There are numerous other customization variables.
 
 ;;; Code:
 
@@ -38,9 +63,8 @@
 ;;; Configureable stuff
 ;;; ------------------------------------------------------------
 
-(defvar makefile-mode-name "makefile"
-  "The \"pretty name\" of makefile-mode, as it
-appears in the modeline.")
+(defconst makefile-mode-name "makefile"
+  "The \"pretty name\" of makefile-mode, as it appears in the modeline.")
 
 (defvar makefile-browser-buffer-name "*Macros and Targets*"
   "Name of the macro- and target browser buffer.")
@@ -59,8 +83,9 @@ allow a larger variety of different macro assignments, so you
 might prefer to use \" += \" or \" := \" .")
 
 (defvar makefile-use-curly-braces-for-macros-p nil
-  "Set this variable to a non-nil value if you prefer curly braces
-in macro-references, so it looks like ${this}. A value of nil
+  "Controls the style of generated macro references.
+Set this variable to a non-nil value if you prefer curly braces
+in macro-references, so it looks like ${this}.  A value of nil
 will cause makefile-mode to use parantheses, making macro references
 look like $(this) .")
 
@@ -82,34 +107,24 @@ up or down in the browser.")
   "String used to mark unselected entries in the browser.")
 
 (defvar makefile-browser-auto-advance-after-selection-p t
-  "If this variable is set to a non-nil value the cursor
-will automagically advance to the next line after an item
-has been selected in the browser.")
-
-(defvar makefile-find-file-autopickup-p t
-  "If this variable is set to a non-nil value then finding a file in
-a makefile-mode buffer will cause an automatic initial pickup of
-all macros and targets from the found file.")
+  "If non-nil, the cursor will automagically advance to the next line after
+an item has been selected in the browser.")
 
 (defvar makefile-pickup-everything-picks-up-filenames-p nil
-  "If this variable is set to a non-nil value then
-makefile-pickup-everything also picks up filenames as targets
-(i.e. it calls makefile-find-filenames-as-targets), otherwise
-filenames are omitted.")
+  "If non-nil, makefile-pickup-everything also picks up filenames as targets
+(i.e. it calls makefile-find-filenames-as-targets), otherwise filenames are
+omitted.")
 
 (defvar makefile-cleanup-continuations-p t
-  "If this variable is set to a non-nil value then makefile-mode
-will assure that no line in the file ends with a backslash
-(the continuation character) followed by any whitespace.
-This is done by silently removing the trailing whitespace, leaving
-the backslash itself intact.
-IMPORTANT: Please note that enabling this option causes makefile-mode
+  "If non-nil, makefile-mode will assure that no line in the file ends with a
+backslash (the continuation character) followed by any whitespace.  This is
+done by silently removing the trailing whitespace, leaving the backslash itself
+intact.  IMPORTANT: Please note that enabling this option causes makefile-mode
 to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \'it seems necessary\'.")
 
 (defvar makefile-browser-hook '()
   "A function or list of functions to be called just before the
-browser is entered. This is executed in the makefile buffer, so
-you can for example run a makefile-pickup-everything automatically.")
+browser is entered. This is executed in the makefile buffer.")
 
 ;;
 ;; Special targets for DMake, Sun's make ...
@@ -135,7 +150,7 @@ of the macro is checked against this list. If it can be found its name will
 not be enclosed in { } or ( ).")
 
 (defconst makefile-dependency-regex
-  "^[^ \t#:]+\\([ \t]+[^ \t#:]+\\)*[ \t]*:\\($\\|\\([^=].*$\\)\\)"
+  "^[^ \t#:]+\\([ \t]+[^ \t#:]+\\)*[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
 (defconst makefile-macroassign-regex
@@ -143,7 +158,7 @@ not be enclosed in { } or ( ).")
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
-  "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)"
+  "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
 
 ;;; ------------------------------------------------------------
@@ -158,15 +173,15 @@ not be enclosed in { } or ( ).")
 ;;; should return an exit status of zero if the target `foo' is
 ;;; up to date and a nonzero exit status otherwise.
 ;;; Many makes can do this although the docs/manpages do not mention
-;;; it. Try it with your favourite one. GNU make and Dennis Vaduras
-;;; DMake have no problems.
+;;; it. Try it with your favourite one.  GNU make, System V make, and
+;;; Dennis Vadura's DMake have no problems.
 ;;; Set the variable `makefile-brave-make' to the name of the
 ;;; make utility that does this on your system.
 ;;; To understand what this is all about see the function defintion
 ;;; of `makefile-query-by-make-minus-q' .
 ;;; ------------------------------------------------------------
 
-(defvar makefile-brave-make "gmake"
+(defvar makefile-brave-make "make"
   "A make that can handle the \'-q\' option.")
 
 (defvar makefile-query-one-target-method 'makefile-query-by-make-minus-q
@@ -178,7 +193,7 @@ interface:
   be checked, as a string.
 
 * As its second argument, it may accept the name of a makefile
-  as a string. Depending on what you\'re going to do you may
+  as a string. Depending on what you're going to do you may
   not need this.
 
 * It must return the integer value 0 (zero) if the given target
@@ -188,16 +203,7 @@ interface:
 (defvar makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
   "Name of the Up-to-date overview buffer.")
 
-(defvar makefile-target-needs-rebuild-mark "  .. NEEDS REBUILD"
-  "A string that is appended to the target name in the up-to-date
-overview if that target is considered to require a rebuild.")
-
-(defvar makefile-target-up-to-date-mark    "  .. is up to date"
-  "A string that is appenden to the target name in the up-to-date
-overview if that target is considered up-to-date.")
-
 ;;; --- end of up-to-date-overview configuration ------------------
-
 
 (defvar makefile-mode-map nil
   "The keymap that is used in makefile-mode.")
@@ -210,11 +216,7 @@ overview if that target is considered up-to-date.")
   (define-key makefile-mode-map ":"        'makefile-electric-colon)
   (define-key makefile-mode-map "="        'makefile-electric-equal)
   (define-key makefile-mode-map "."        'makefile-electric-dot)
-  (define-key makefile-mode-map "\C-c\C-t" 'makefile-pickup-targets)
-  (define-key makefile-mode-map "\C-c\C-m" 'makefile-pickup-macros)
   (define-key makefile-mode-map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
-  (define-key makefile-mode-map "\C-c\C-0" 'makefile-forget-everything)
-  (define-key makefile-mode-map "\C-c0"    'makefile-forget-everything)  
   (define-key makefile-mode-map "\C-c\C-b" 'makefile-switch-to-browser)
   (define-key makefile-mode-map "\C-c\C-p" 'makefile-pickup-everything)
   (define-key makefile-mode-map "\C-c\C-u" 'makefile-create-up-to-date-overview)
@@ -275,11 +277,13 @@ using makefile-pickup-macros.")
   "A buffer in makefile-mode that is currently using the browser.")
 
 (defvar makefile-browser-selection-vector nil)
+(defvar makefile-has-prereqs nil)
+(defvar makefile-need-target-pickup t)
+(defvar makefile-need-macro-pickup t)
 
 (defvar makefile-mode-hook '())
 
 (defconst makefile-gnumake-functions-alist
-
   '(
     ;; Text functions
     ("subst" "From" "To" "In")
@@ -370,11 +374,6 @@ makefile-browser-auto-advance-after-selection-p:
    will automagically advance to the next line after an item
    has been selected in the browser.
 
-makefile-find-file-autopickup-p:
-   If this variable is set to a non-nil value then finding a file in
-   a makefile-mode buffer will cause an automatic initial pickup of
-   all macros and targets from the found file.
-
 makefile-pickup-everything-picks-up-filenames-p:
    If this variable is set to a non-nil value then
    makefile-pickup-everything also picks up filenames as targets
@@ -392,8 +391,7 @@ makefile-cleanup-continuations-p:
 
 makefile-browser-hook:
    A function or list of functions to be called just before the
-   browser is entered. This is executed in the makefile buffer, so
-   you can for example run a makefile-pickup-everything automatically.
+   browser is entered. This is executed in the makefile buffer.
 
 makefile-special-targets-list:
    List of special targets. You will be offered to complete
@@ -401,16 +399,14 @@ makefile-special-targets-list:
    at the beginning of a line in makefile-mode."
   (interactive)
   (kill-all-local-variables)
-  (if (not (memq 'makefile-find-file-autopickup find-file-hooks))
-      (setq find-file-hooks
-	    (append find-file-hooks (list 'makefile-find-file-autopickup))))
   (if (not (memq 'makefile-cleanup-continuations write-file-hooks))
       (setq write-file-hooks
 	    (append write-file-hooks (list 'makefile-cleanup-continuations))))
   (make-variable-buffer-local 'makefile-target-table)
   (make-variable-buffer-local 'makefile-macro-table)
-  (makefile-forget-all-macros)
-  (makefile-forget-all-targets)
+  (make-variable-buffer-local 'makefile-has-prereqs)
+  (make-variable-buffer-local 'makefile-need-target-pickup)
+  (make-variable-buffer-local 'makefile-need-macro-pickup)
   (setq comment-start "#")
   (setq comment-end "")
   (setq comment-start-skip "#[ \t]*")
@@ -422,15 +418,8 @@ makefile-special-targets-list:
   (set-syntax-table makefile-mode-syntax-table)
   (run-hooks 'makefile-mode-hook))  
 
-
-(defun makefile-find-file-autopickup ()
-  (if (eq major-mode 'makefile-mode)
-      (if makefile-find-file-autopickup-p
-	  (makefile-pickup-everything))))
-
 (defun makefile-next-dependency ()
-  "Move (point) to the beginning of the next dependency line
-below the current position of (point)."
+  "Move (point) to the beginning of the next dependency line below (point)."
   (interactive)
   (let ((here (point)))
     (end-of-line)
@@ -439,8 +428,7 @@ below the current position of (point)."
       (goto-char here) nil)))
       
 (defun makefile-previous-dependency ()
-  "Move (point) to the beginning of the next dependency line
-above the current position of (point)."
+  "Move (point) to the beginning of the next dependency line above (point)."
   (interactive)
   (let ((here (point)))
     (beginning-of-line)
@@ -448,6 +436,8 @@ above the current position of (point)."
 	(progn (beginning-of-line) t)	; indicate success
       (goto-char here) nil)))
 
+
+;;; Stuff below here depends on the pickup state
 
 (defun makefile-electric-dot ()
   "At (bol), offer completion on makefile-special-targets-list.
@@ -457,11 +447,10 @@ Anywhere else just insert a dot."
       (makefile-insert-special-target)
     (insert ".")))
 
-
 (defun makefile-insert-special-target ()
-  "Offer completion on makefile-special-targets-list and insert
-the result at (point)."
+  "Complete on makefile-special-targets-list, insert result at (point)."
   (interactive)
+  (makefile-pickup-targets)
   (let
       ((special-target
        (completing-read "Special target: "
@@ -471,11 +460,10 @@ the result at (point)."
       (insert (format ".%s:" special-target))
       (makefile-forward-after-target-colon))))
 
-
 (defun makefile-electric-equal ()
-  "At (bol) do makefile-insert-macro. Anywhere else just
-self-insert."
+  "At (bol) do makefile-insert-macro.  Anywhere else just self-insert."
   (interactive)
+  (makefile-pickup-macros)
   (if (bolp)
       (call-interactively 'makefile-insert-macro)
     (insert "=")))
@@ -483,24 +471,25 @@ self-insert."
 (defun makefile-insert-macro (macro-name)
   "Prepare definition of a new macro."
   (interactive "sMacro Name: ")
+  (makefile-pickup-macros)
   (if (not (zerop (length macro-name)))
       (progn
 	(beginning-of-line)
 	(insert (format "%s%s" macro-name makefile-macro-assign))
+	(setq makefile-need-macro-pickup t)
 	(makefile-remember-macro macro-name))))
 
-
 (defun makefile-insert-macro-ref (macro-name)
-  "Offer completion on a list of known macros, then
-insert complete macro-ref at (point) ."
+  "Complete on a list of known macros, then insert complete ref at (point)."
   (interactive
    (list
-    (completing-read "Refer to macro: " makefile-macro-table nil nil nil)))
+    (progn
+      (makefile-pickup-macros)
+      (completing-read "Refer to macro: " makefile-macro-table nil nil nil))))
    (if (not (zerop (length macro-name)))
        (if (assoc macro-name makefile-runtime-macros-list)
 	   (insert (format "$%s " macro-name))
 	 (insert (makefile-format-macro-ref macro-name) " "))))
-
 
 (defun makefile-insert-target (target-name)
   "Prepare definition of a new target (dependency line)."
@@ -511,15 +500,16 @@ insert complete macro-ref at (point) ."
 	(insert (format "%s%s" target-name makefile-target-colon))
 	(makefile-forward-after-target-colon)
 	(end-of-line)
+	(setq makefile-need-target-pickup t)
 	(makefile-remember-target target-name))))
 
-
 (defun makefile-insert-target-ref (target-name)
-  "Offer completion on a list of known targets, then
-insert complete target-ref at (point) ."
+  "Complete on a list of known targets, then insert target-ref at (point) ."
   (interactive
    (list
-    (completing-read "Refer to target: " makefile-target-table nil nil nil)))
+    (pogn
+     (makefile-pickup-targets)
+     (completing-read "Refer to target: " makefile-target-table nil nil nil))))
    (if (not (zerop (length target-name)))
        (progn
 	 (insert (format "%s " target-name)))))
@@ -531,7 +521,6 @@ insert complete target-ref at (point) ."
       (call-interactively 'makefile-insert-target)
     (insert ":")))
 
-
 ;;; ------------------------------------------------------------
 ;;; Extracting targets and macros from an existing makefile
 ;;; ------------------------------------------------------------
@@ -540,16 +529,22 @@ insert complete target-ref at (point) ."
   "Scan a buffer that contains a makefile for target definitions (dependencies)
 and add them to the list of known targets."
   (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward makefile-dependency-regex (point-max) t)
-      (makefile-add-this-line-targets))))
-;      (forward-line 1))))
+  (if (not makefile-need-target-pickup)
+      nil
+    (setq makefile-need-target-pickup nil)
+    (setq makefile-target-table nil)
+    (setq makefile-has-prereqs nil)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward makefile-dependency-regex (point-max) t)
+	(makefile-add-this-line-targets)))
+    (message "Read targets OK.")))
 
 (defun makefile-add-this-line-targets ()
   (save-excursion
     (beginning-of-line)
-    (let ((done-with-line nil))
+    (let ((done-with-line nil)
+	  (line-number (1+ (count-lines (point-min) (point)))))
       (while (not done-with-line)
 	(skip-chars-forward " \t")
 	(if (not (setq done-with-line (or (eolp)
@@ -559,20 +554,28 @@ and add them to the list of known targets."
 		     (target-name
 		      (progn
 			(skip-chars-forward "^ \t:#")
-			(buffer-substring start-of-target-name (point)))))
-		(if (makefile-remember-target target-name)
-		    (message "Picked up target \"%s\"" target-name)))))))))
+			(buffer-substring start-of-target-name (point))))
+		     (has-prereqs
+		      (not (looking-at ":[ \t]*$"))))
+		(if (makefile-remember-target target-name has-prereqs)
+		    (message "Picked up target \"%s\" from line %d"
+			     target-name line-number)))))))))
 
 
 (defun makefile-pickup-macros ()
   "Scan a buffer that contains a makefile for macro definitions
 and add them to the list of known macros."
   (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward makefile-macroassign-regex (point-max) t)
-      (makefile-add-this-line-macro)
-      (forward-line 1))))
+  (if (not makefile-need-macro-pickup)
+      nil
+    (setq makefile-need-macro-pickup nil)
+    (setq makefile-macro-table nil)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward makefile-macroassign-regex (point-max) t)
+	(makefile-add-this-line-macro)
+	(forward-line 1)))
+    (message "Read macros OK.")))
 
 (defun makefile-add-this-line-macro ()
   (save-excursion
@@ -580,12 +583,13 @@ and add them to the list of known macros."
     (skip-chars-forward " \t")
     (if (not (eolp))
 	(let* ((start-of-macro-name (point))
+	       (line-number (1+ (count-lines (point-min) (point))))
 	       (macro-name (progn
 			     (skip-chars-forward "^ \t:#=*")
 			     (buffer-substring start-of-macro-name (point)))))
 	  (if (makefile-remember-macro macro-name)
-	      (message "Picked up macro \"%s\"" macro-name))))))
-
+	      (message "Picked up macro \"%s\" from line %d"
+		       macro-name line-number))))))
 
 (defun makefile-pickup-everything ()
   "Calls makefile-pickup-targets and makefile-pickup-macros.
@@ -617,7 +621,6 @@ names to the list of known targets."
 ;;; ------------------------------------------------------------
 ;;; The browser window
 ;;; ------------------------------------------------------------
-
 
 (defun makefile-browser-format-target-line (target selected)
   (format
@@ -656,7 +659,6 @@ names to the list of known targets."
   (goto-char (point-min))
   (forward-char makefile-browser-cursor-column)
   (setq buffer-read-only t))
-  
 
 ;;;
 ;;; Moving up and down in the browser
@@ -729,10 +731,11 @@ from that it has been entered."
 ;;;
 
 (defun makefile-browser-insert-continuation ()
-  "In the browser\'s client buffer, go to (end-of-line), insert a \'\\\'
+  "Insert a makefile continuation.
+In the browser\'s client buffer, go to (end-of-line), insert a \'\\\'
 character, insert a new blank line, go to that line and indent by one TAB.
-This is most useful in the process of creating continued lines when 'sending' large
-dependencies from the browser to the client buffer.
+This is most useful in the process of creating continued lines when copying
+large dependencies from the browser to the client buffer.
 (point) advances accordingly in the client buffer."
   (interactive)
   (save-excursion
@@ -770,11 +773,9 @@ Insertion takes place at (point)."
 	(set-buffer makefile-browser-client)
 	(insert target-name " ")))))
 
-
 (defun makefile-browser-start-interaction ()
   (use-local-map makefile-browser-map)
   (setq buffer-read-only t))
-
 
 (defun makefile-browse (targets macros)
   (interactive)
@@ -786,15 +787,17 @@ Insertion takes place at (point)."
 	(pop-to-buffer browser-buffer)
 	(make-variable-buffer-local 'makefile-browser-selection-vector)
 	(makefile-browser-fill targets macros)
+	(shrink-window-if-larger-than-buffer)
 	(setq makefile-browser-selection-vector
 	      (make-vector (+ (length targets) (length macros)) nil))
 	(makefile-browser-start-interaction))))
-  
 
 (defun makefile-switch-to-browser ()
   (interactive)
   (run-hooks 'makefile-browser-hook)
   (setq makefile-browser-client (current-buffer))
+  (makefile-pickup-targets)
+  (makefile-pickup-macros)
   (makefile-browse makefile-target-table makefile-macro-table))
 
 
@@ -803,8 +806,7 @@ Insertion takes place at (point)."
 ;;; ------------------------------------------------------------
 
 (defun makefile-create-up-to-date-overview ()
-  "Create a buffer containing an overview of the state of all
-known targets from the makefile that is currently being edited.
+  "Create a buffer containing an overview of the state of all known targets.
 Known targets are targets that are explicitly defined in that makefile;
 in other words, all targets that appear on the left hand side of a
 dependency in the makefile."
@@ -827,14 +829,15 @@ dependency in the makefile."
 	    ;; The 'old' target table will be restored later.
 	    ;;
 	    (real-targets (progn
-			    (makefile-forget-all-targets)
 			    (makefile-pickup-targets)
-			    makefile-target-table)))
+			    makefile-target-table))
+	    (prereqs makefile-has-prereqs)
+	    )
 
 	(set-buffer makefile-up-to-date-buffer)
 	(setq buffer-read-only nil)
 	(erase-buffer)
-	(makefile-query-targets filename real-targets)
+	(makefile-query-targets filename real-targets prereqs)
 	(if (zerop (buffer-size))		; if it did not get us anything
 	    (progn
 	      (kill-buffer (current-buffer))
@@ -844,10 +847,9 @@ dependency in the makefile."
 	(if (get-buffer makefile-up-to-date-buffer-name)
 	    (progn
 	      (pop-to-buffer (get-buffer makefile-up-to-date-buffer-name))
+	      (shrink-window-if-larger-than-buffer)
 	      (sort-lines nil (point-min) (point-max))
 	      (setq buffer-read-only t))))))
-      
-  
 
 (defun makefile-save-temporary ()
   "Create a temporary file from the current makefile buffer."
@@ -870,30 +872,32 @@ with the generated name !"
 	      (substring my-uid 0 3)
 	    my-uid))))
 
-(defun makefile-query-targets (filename target-table)
+(defun makefile-query-targets (filename target-table prereq-list)
   "This function fills the up-to-date-overview-buffer.
 It checks each target in target-table using makefile-query-one-target-method
 and generates the overview, one line per target name."
   (insert
-   (mapconcat '(lambda (item)
-		 (let ((target-name (car item)))
-		   (makefile-format-up-to-date-buffer-entry
-		    (funcall makefile-query-one-target-method
-			     target-name filename) target-name)))
-	      target-table "\n"))
+   (mapconcat
+    (function (lambda (item)
+		(let* ((target-name (car item))
+		       (no-prereqs (not (member target-name prereq-list)))
+		       (needs-rebuild (or no-prereqs 
+					  (funcall
+					   makefile-query-one-target-method
+					   target-name
+					   filename))))
+		  (format "\t%s%s"
+			  target-name
+			  (cond (no-prereqs "  .. has no prerequisites")
+				(needs-rebuild "  .. NEEDS REBUILD")
+				(t "  .. is up to date"))))
+		))
+    target-table "\n"))
   (goto-char (point-min))
   (delete-file filename))		; remove the tmpfile
 
 (defun makefile-query-by-make-minus-q (target &optional filename)
   (not (zerop (call-process makefile-brave-make nil nil nil "-f" filename "-q" target))))
-
-(defun makefile-format-up-to-date-buffer-entry (needs-rebuild target)
-  (format "\t%s%s"
-	  target
-	  (if needs-rebuild
-	      makefile-target-needs-rebuild-mark
-	    makefile-target-up-to-date-mark)))
-
 
 ;;; ------------------------------------------------------------
 ;;; Continuation cleanup
@@ -949,34 +953,16 @@ powerfull GNU make feature."
 ;;; Utility functions
 ;;; ------------------------------------------------------------
 
-(defun makefile-forget-all-targets ()
-  "Clear the target-table for this buffer."
-  (interactive)
-  (setq makefile-target-table '()))
-
-(defun makefile-forget-all-macros ()
-  "Clear the macro-table for this buffer."
-  (interactive)
-  (setq makefile-macro-table '()))
-
-
-(defun makefile-forget-everything ()
-  "Clear the macro-table AND the target-table for this buffer."
-  (interactive)
-  (if (y-or-n-p "Really forget all macro- and target information ? ")
-      (progn
-	(makefile-forget-all-targets)
-	(makefile-forget-all-macros)
-	(if (get-buffer makefile-browser-buffer-name)
-	    (kill-buffer makefile-browser-buffer-name))
-	(message "Cleared macro- and target tables."))))
-
-(defun makefile-remember-target (target-name)
+(defun makefile-remember-target (target-name &optional has-prereqs)
   "Remember a given target if it is not already remembered for this buffer."
   (if (not (zerop (length target-name)))
+      (progn
       (if (not (assoc target-name makefile-target-table))
 	  (setq makefile-target-table
-		(cons (list target-name) makefile-target-table)))))
+		(cons (list target-name) makefile-target-table)))
+      (if has-prereqs
+	  (setq makefile-has-prereqs
+		(cons target-name makefile-has-prereqs))))))
 
 (defun makefile-remember-macro (macro-name)
   "Remember a given macro if it is not already remembered for this buffer."
