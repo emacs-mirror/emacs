@@ -217,7 +217,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 
       if (!current_perdisplay)
 	abort ();
-      current_perdisplay->Vprefix_arg = Qnil;
+      clear_prefix_arg ();
       command_loop_1 ();
 
       QUIT;
