@@ -142,6 +142,9 @@ enum iso_code_class_type
    on input.  */
 #define CODING_FLAG_ISO_LATIN_EXTRA	0x1000
 
+/* If set, use designation escape sequence.  */
+#define CODING_FLAG_ISO_DESIGNATION	0x10000
+
 /* A character to be produced on output if encoding of the original
    character is prohibited by CODING_FLAG_ISO_SAFE.  */
 #define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* 077 == `?' */
@@ -157,6 +160,10 @@ struct iso2022_spec
 
   /* A charset initially designated to each graphic register.  */
   int initial_designation[4];
+
+  /* If not -1, it is a graphic register specified in an invalid
+     designation sequence.  */
+  int last_invalid_designation_register;
 
   /* A graphic register to which each charset should be designated.  */
   unsigned char requested_designation[MAX_CHARSET + 1];
@@ -176,19 +183,19 @@ struct iso2022_spec
 
 /* Macros to access each field in the structure `spec.iso2022'.  */
 #define CODING_SPEC_ISO_INVOCATION(coding, plane) \
-  coding->spec.iso2022.current_invocation[plane]
+  (coding)->spec.iso2022.current_invocation[plane]
 #define CODING_SPEC_ISO_DESIGNATION(coding, reg) \
-  coding->spec.iso2022.current_designation[reg]
+  (coding)->spec.iso2022.current_designation[reg]
 #define CODING_SPEC_ISO_INITIAL_DESIGNATION(coding, reg) \
-  coding->spec.iso2022.initial_designation[reg]
+  (coding)->spec.iso2022.initial_designation[reg]
 #define CODING_SPEC_ISO_REQUESTED_DESIGNATION(coding, charset) \
-  coding->spec.iso2022.requested_designation[charset]
+  (coding)->spec.iso2022.requested_designation[charset]
 #define CODING_SPEC_ISO_REVISION_NUMBER(coding, charset) \
-  coding->spec.iso2022.charset_revision_number[charset]
+  (coding)->spec.iso2022.charset_revision_number[charset]
 #define CODING_SPEC_ISO_SINGLE_SHIFTING(coding) \
-  coding->spec.iso2022.single_shifting
+  (coding)->spec.iso2022.single_shifting
 #define CODING_SPEC_ISO_BOL(coding) \
-  coding->spec.iso2022.bol
+  (coding)->spec.iso2022.bol
 
 /* A value which may appear in
    coding->spec.iso2022.requested_designation indicating that the
@@ -269,44 +276,62 @@ enum coding_type
 /* 1 iff composing with embeded composition rule.  */
 #define COMPOSING_WITH_RULE_P(composing) ((composing) & 1)
 
+/* Macros used for the member finish_status of the struct
+   coding_system.  */
+#define CODING_FINISH_NORMAL		0
+#define CODING_FINISH_INSUFFICIENT_SRC	1
+#define CODING_FINISH_INSUFFICIENT_DST	2
+#define CODING_FINISH_INCONSISTENT_EOL	3
+
+/* Macros used for the member mode of the struct coding_systme.  */
+
+/* If set, recover the original CR or LF of the already decoded text
+   when the decoding routine encounters an inconsistent eol format.  */
+#define CODING_MODE_INHIBIT_INCONSISTENT_EOL	0x01
+
+/* If set, the decoding/encoding routines treat the current data as
+   the last block of the whole text to be converted, and do
+   appropriate fisishing job.  */
+#define CODING_MODE_LAST_BLOCK			0x02
+
+/* If set, it means that the current source text is in a buffer which
+   enables selective display.  */
+#define CODING_MODE_SELECTIVE_DISPLAY		0x04
+
+/* This flag is used by the decoding/encoding routines on the fly.  If
+   set, it means that right-to-left text is being processed.  */
+#define CODING_MODE_DIRECTION			0x08
+
 struct coding_system
 {
   /* Type of the coding system.  */
   enum coding_type type;
 
+  /* Type of end-of-line format (LF, CRLF, or CR) of the coding system.  */
+  int eol_type;
+
   /* Flag bits of the coding system.  The meaning of each bit is common
-     to any type of coding systems.  */
+     to all types of coding systems.  */
   unsigned int common_flags;
 
   /* Flag bits of the coding system.  The meaning of each bit depends
      on the type of the coding system.  */
   unsigned int flags;
 
-  /* Type of end-of-line format (LF, CRLF, or CR) of the coding system.  */
-  int eol_type;
+  /* Mode bits of the coding system.  See the comments of the macros
+     CODING_MODE_XXX.  */
+  unsigned int mode;
 
   /* Table of safe character sets for this coding system.  If the Nth
-     element is 0, the charset of ID N is not an safe character set.
+     element is 0, the charset of ID N is not a safe character set.
      Such a character set is not encoded when CODING_ISO_FLAG_SAFE is
      set.  */
   unsigned char safe_charsets[MAX_CHARSET + 1];
-
-  /* Non-zero means that the current source text is the last block of the
-     whole text to be converted.  */
-  int last_block;
 
   /* Non-zero means that characters are being composed currently while
      decoding or encoding.  See macros COMPOSING_XXXX above for the
      meaing of each non-zero value.  */
   int composing;
-
-  /* 0 (left-to-right) or 1 (right-to-left): the direction of the text
-     being processed currently.  */
-  int direction;
-
-  /* Non-zero means that the current source text is in a buffer which
-     enables selective display.  */
-  int selective;
 
   /* Detailed information specific to each type of coding system.  */
   union spec
@@ -315,29 +340,36 @@ struct coding_system
       struct ccl_spec ccl;	/* Defined in ccl.h.  */
     } spec;
 
+  /* Index number of coding category of the coding system.  */
+  int category_idx;
+
+  /* How may heading bytes we can skip for decoding.  This member is
+     set by the function detect_coding.  The initial value is -1 which
+     means detect_coding has not yet been called.  */
+  int heading_ascii;
+
+  /* The following members are set by encoding/decoding routine.  */
+  int produced, produced_char, consumed, consumed_char;
+
+  /* The following members are all Lisp symbols.  We don't have to
+     protect them from GC because the current garbage collection
+     doesn't relocate Lisp symbols.  But, when it is changed, we must
+     find a way to protect them.  */
+
   /* Backward pointer to the Lisp symbol of the coding system.  */
   Lisp_Object symbol;
 
   /* Lisp function (symbol) to be called after decoding to do
-     additional conversion. */
+     additional conversion, or nil.  */
   Lisp_Object post_read_conversion;
 
   /* Lisp function (symbol) to be called before encoding to do
-     additional conversion. */
+     additional conversion, or nil.  */
   Lisp_Object pre_write_conversion;
 
   /* Character unification tables to look up, or nil.  */
   Lisp_Object character_unification_table_for_decode;
   Lisp_Object character_unification_table_for_encode;
-
-  /* Carryover yielded by decoding/encoding incomplete source.  No
-     coding-system yields more than 7-byte of carryover.  This does
-     not include a text which is not processed because of short of
-     output buffer.  */
-  char carryover[8];
-
-  /* Actual data length in the above array.  */
-  int carryover_size;
 };
 
 #define CODING_REQUIRE_FLUSHING_MASK	1
@@ -365,25 +397,30 @@ struct coding_system
 #define CODING_REQUIRE_DETECTION(coding) \
   ((coding)->common_flags & CODING_REQUIRE_DETECTION_MASK)
 
+#define CODING_MAY_REQUIRE_DECODING(coding)	\
+  ((coding)->common_flags			\
+   & (CODING_REQUIRE_DETECTION_MASK | CODING_REQUIRE_DECODING_MASK))
 
 /* Index for each coding category in `coding_category_table' */
 #define CODING_CATEGORY_IDX_EMACS_MULE	0
 #define CODING_CATEGORY_IDX_SJIS	1
 #define CODING_CATEGORY_IDX_ISO_7	2
-#define CODING_CATEGORY_IDX_ISO_8_1	3
-#define CODING_CATEGORY_IDX_ISO_8_2	4
-#define CODING_CATEGORY_IDX_ISO_7_ELSE	5
-#define CODING_CATEGORY_IDX_ISO_8_ELSE	6
-#define CODING_CATEGORY_IDX_BIG5	7
-#define CODING_CATEGORY_IDX_RAW_TEXT	8
-#define CODING_CATEGORY_IDX_BINARY	9
-#define CODING_CATEGORY_IDX_MAX		10
+#define CODING_CATEGORY_IDX_ISO_7_TIGHT	3
+#define CODING_CATEGORY_IDX_ISO_8_1	4
+#define CODING_CATEGORY_IDX_ISO_8_2	5
+#define CODING_CATEGORY_IDX_ISO_7_ELSE	6
+#define CODING_CATEGORY_IDX_ISO_8_ELSE	7
+#define CODING_CATEGORY_IDX_BIG5	8
+#define CODING_CATEGORY_IDX_RAW_TEXT	9
+#define CODING_CATEGORY_IDX_BINARY	10
+#define CODING_CATEGORY_IDX_MAX		11
 
 /* Definitions of flag bits returned by the function
    detect_coding_mask ().  */
 #define CODING_CATEGORY_MASK_EMACS_MULE	(1 << CODING_CATEGORY_IDX_EMACS_MULE)
 #define CODING_CATEGORY_MASK_SJIS	(1 << CODING_CATEGORY_IDX_SJIS)
 #define CODING_CATEGORY_MASK_ISO_7	(1 << CODING_CATEGORY_IDX_ISO_7)
+#define CODING_CATEGORY_MASK_ISO_7_TIGHT (1 << CODING_CATEGORY_IDX_ISO_7_TIGHT)
 #define CODING_CATEGORY_MASK_ISO_8_1	(1 << CODING_CATEGORY_IDX_ISO_8_1)
 #define CODING_CATEGORY_MASK_ISO_8_2	(1 << CODING_CATEGORY_IDX_ISO_8_2)
 #define CODING_CATEGORY_MASK_ISO_7_ELSE	(1 << CODING_CATEGORY_IDX_ISO_7_ELSE)
@@ -398,11 +435,26 @@ struct coding_system
   (  CODING_CATEGORY_MASK_EMACS_MULE	\
    | CODING_CATEGORY_MASK_SJIS	  	\
    | CODING_CATEGORY_MASK_ISO_7	  	\
+   | CODING_CATEGORY_MASK_ISO_7_TIGHT  	\
    | CODING_CATEGORY_MASK_ISO_8_1 	\
    | CODING_CATEGORY_MASK_ISO_8_2 	\
    | CODING_CATEGORY_MASK_ISO_7_ELSE	\
    | CODING_CATEGORY_MASK_ISO_8_ELSE	\
    | CODING_CATEGORY_MASK_BIG5)
+
+#define CODING_CATEGORY_MASK_ISO_7BIT \
+  (CODING_CATEGORY_MASK_ISO_7 | CODING_CATEGORY_MASK_ISO_7_TIGHT)
+
+#define CODING_CATEGORY_MASK_ISO_8BIT \
+  (CODING_CATEGORY_MASK_ISO_8_1 | CODING_CATEGORY_MASK_ISO_8_2)
+
+#define CODING_CATEGORY_MASK_ISO_SHIFT \
+  (CODING_CATEGORY_MASK_ISO_7_ELSE | CODING_CATEGORY_MASK_ISO_8_ELSE)
+
+#define CODING_CATEGORY_MASK_ISO	\
+  (  CODING_CATEGORY_MASK_ISO_7BIT	\
+   | CODING_CATEGORY_MASK_ISO_SHIFT	\
+   | CODING_CATEGORY_MASK_ISO_8BIT)
 
 /* Macros to decode or encode a character of JISX0208 in SJIS.  S1 and
    S2 are the 1st and 2nd position-codes of JISX0208 in SJIS coding
@@ -431,9 +483,9 @@ struct coding_system
 
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, unsigned char *,
-			      unsigned char *, int, int, int *));
+			      unsigned char *, int, int));
 extern int encode_coding P_ ((struct coding_system *, unsigned char *,
-			      unsigned char *, int, int, int *));
+			      unsigned char *, int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void detect_coding P_ ((struct coding_system *, unsigned char *, int));
@@ -443,7 +495,7 @@ extern char *conversion_buffer;
 extern char *get_conversion_buffer P_ ((int));
 extern int setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
-extern Lisp_Object Qemacs_mule;
+extern Lisp_Object Qraw_text;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
 
@@ -451,11 +503,6 @@ extern Lisp_Object Vcoding_category_list;
 extern int eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
 /* Mnemonic character to indicate type of end-of-line is not yet decided.  */
 extern int eol_mnemonic_undecided;
-
-/* Table of coding-systems currently assigned to each coding-category.  */
-extern Lisp_Object coding_category_table[CODING_CATEGORY_IDX_MAX];
-/* Table of names of symbol for each coding-category.  */
-extern char *coding_category_name[CODING_CATEGORY_IDX_MAX];
 
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
@@ -485,6 +532,10 @@ extern struct coding_system keyboard_coding;
 
 /* Default coding systems used for process I/O.  */
 extern Lisp_Object Vdefault_process_coding_system;
+
+/* Function to call to force a user to force select a propert coding
+   system.  */
+extern Lisp_Object Vselect_safe_coding_system_function;
 
 #endif
 
