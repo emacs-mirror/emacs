@@ -1,11 +1,12 @@
-;; tcl.el -- Tcl code editing commands for Emacs
+;; tcl.el --- Tcl code editing commands for Emacs
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
-;;; Author: Tom Tromey <tromey@busco.lanl.gov>
-;;;    Chris Lindblad <cjl@lcs.mit.edu>
-;;; Keywords: languages
+;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
+;; Author: Tom Tromey <tromey@busco.lanl.gov>
+;;    Chris Lindblad <cjl@lcs.mit.edu>
+;; Keywords: languages tcl modes
+;; Version: $Revision$
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; 6-Apr-94|1.0|
+;; 6-Apr-94|$Revision$|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
