@@ -1,5 +1,5 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.18
@@ -773,7 +773,7 @@ of master file."
           pos cmd-list cmd cnt cnt-opt entry)
       (save-restriction
         (save-excursion
-          (narrow-to-region (max 1 bound) (point-max))
+          (narrow-to-region (max (point-min) bound) (point-max))
           ;; move back out of the current parenthesis
           (while (condition-case nil
                      (progn (up-list -1) t)
