@@ -1,3 +1,12 @@
+1999-12-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* fileio.c (decide_coding_unwind): Renamed from
+	set_auto_coding_unwind.
+	(Finsert_file_contents): Make single unwind protect to call both
+	Vset_auto_coding_function and Ffind_operation_coding_system.
+
+	* insdel.c (adjust_markers_for_delete): Make it non-static.
+
 1999-12-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (regex_compile): Recognize *?, +? and ?? as non-greedy

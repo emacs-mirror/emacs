@@ -1,3 +1,8 @@
+1999-12-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (set-buffer-file-coding-system): Docstring
+	modified.
+
 1999-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* textmodes/bibtex.el (bibtex-hs-forward-sexp): Added to support
