@@ -59,7 +59,7 @@ extern int interrupt_input_pending;
 #define UNBLOCK_INPUT \
   (interrupt_input_blocked--, \
    (interrupt_input_blocked < 0 ? (abort (), 0) : 0), \
-   ((interrupt_input_blocked == 0 && interupt_input_pending != 0) \
+   ((interrupt_input_blocked == 0 && interrupt_input_pending != 0) \
     ? (kill (0, SIGIO), 0) \
     : 0))
 #else
