@@ -103,8 +103,10 @@ A byte-code function object is also allowed.")
  retry:
   if (STRINGP (obj))
     XSETFASTINT (val, XSTRING (obj)->size);
-  else if (VECTORP (obj) || COMPILEDP (obj))
+  else if (VECTORP (obj))
     XSETFASTINT (val, XVECTOR (obj)->size);
+  else if (COMPILEDP (obj))
+    XSETFASTINT (val, XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (obj))
     {
       for (i = 0, tail = obj; !NILP (tail); i++)
