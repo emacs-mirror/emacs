@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2001/08/07 13:22:04 vinicius>
-;; Version: 6.5.4
+;; Time-stamp: <2001/09/17 14:50:19 vinicius>
+;; Version: 6.5.5
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.4"
-  "ps-print.el, v 6.5.4 <2001/08/07 vinicius>
+(defconst ps-print-version "6.5.5"
+  "ps-print.el, v 6.5.5 <2001/09/17 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -664,7 +664,7 @@ Please send all bug fixes and enhancements to
 ;;             11 8  5  2                        11 8  5  2
 ;;             12 9  6  3                        10 7  4  1
 ;;
-;; Any other value is treated as left-top.
+;; Any other value is treated as `left-top'.
 ;;
 ;; The default value is left-top.
 ;;
@@ -1086,8 +1086,10 @@ Please send all bug fixes and enhancements to
 ;; embeds color information in the PostScript image.
 ;; The default foreground and background colors are defined by the variables
 ;; `ps-default-fg' and `ps-default-bg'.
-;; On black-and-white printers, colors are displayed in gray scale.
+;; On black/white printers, colors are displayed in gray scale.
 ;; To turn off color output, set `ps-print-color-p' to nil.
+;; You can also set `ps-print-color-p' to 'black-white to have a better looking
+;; on black/white printers.  See also `ps-black-white-faces' for documentation.
 ;;
 ;;
 ;; How Ps-Print Maps Faces
@@ -1349,6 +1351,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
+;; Thanks to Adam Doppelt <adoppelt@avogadro.com> for face mapping suggestion
+;; for black/white PostScript printers.
+;;
 ;; Thanks to Toni Ronkko <tronkko@hytti.uku.fi> for line and paragraph spacing,
 ;; region to cut out when printing and footer suggestions.
 ;;
@@ -1432,8 +1437,10 @@ Please send all bug fixes and enhancements to
 ;;; Code:
 
 (eval-and-compile
-  (unless (featurep 'lisp-float-type)
-    (error "`ps-print' requires floating point support"))
+  (require 'lpr)
+
+  (or (featurep 'lisp-float-type)
+      (error "`ps-print' requires floating point support"))
 
 
   ;; For Emacs 20.2 and the earlier version.
@@ -2851,8 +2858,23 @@ uses the fonts resident in your printer."
       (fboundp 'x-color-values)		; Emacs
       (fboundp 'color-instance-rgb-components))
 					; XEmacs
-  "*Non-nil means print the buffer's text in color."
-  :type 'boolean
+  "*Specify how buffer's text color is printed.
+
+Valid values are:
+
+   nil		Do not print colors.
+
+   t		Print colors.
+
+   black-white	Print colors on black/white printer.
+		See also `ps-black-white-faces'.
+
+Any other value is treated as t."
+  :type '(choice :menu-tag "Print Color"
+		 :tag "Print Color"
+		 (const :tag "Do NOT Print Color" nil)
+		 (const :tag "Print Always Color" t)
+		 (const :tag "Print Black/White Color" black-white))
   :group 'ps-print-color)
 
 (defcustom ps-default-fg '(0.0 0.0 0.0)
@@ -2885,6 +2907,45 @@ If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces', and
 `ps-underlined-faces'."
   :type 'boolean
   :group 'ps-print-font)
+
+(defcustom ps-black-white-faces
+  '((font-lock-builtin-face       "black"  nil bold       )
+    (font-lock-comment-face       "gray20" nil      italic)
+    (font-lock-constant-face      "black"  nil bold       )
+    (font-lock-function-name-face "black"  nil bold       )
+    (font-lock-keyword-face       "black"  nil bold       )
+    (font-lock-string-face        "black"  nil      italic)
+    (font-lock-type-face          "black"  nil      italic)
+    (font-lock-variable-name-face "black"  nil bold italic)
+    (font-lock-warning-face       "black"  nil bold italic))
+  "*Specify list of face attributes to print colors on black/white printers.
+
+The list elements are the same as defined on `ps-extend-face' (which see).
+
+This variable is used only when `ps-print-color-p' is set to `black-white'."
+  :version "21.1"
+  :type '(repeat
+	  (list :tag "Face Specification"
+		(face :tag "Face Symbol")
+		(choice :menu-tag "Foreground Color"
+			:tag "Foreground Color"
+			(const :tag "Black" nil)
+			(string :tag "Color Name"))
+		(choice :menu-tag "Background Color"
+			:tag "Background Color"
+			(const :tag "None" nil)
+			(string :tag "Color Name"))
+		(repeat :inline t
+			(choice :menu-tag "Attribute"
+				(const bold)
+				(const italic)
+				(const underline)
+				(const strikeout)
+				(const overline)
+				(const shadow)
+				(const box)
+				(const outline)))))
+  :group 'ps-print-face)
 
 (defcustom ps-bold-faces
   (unless ps-print-color-p
@@ -3211,10 +3272,7 @@ so it has a way to determine color values."
 (defun ps-print-region (from to &optional filename)
   "Generate and print a PostScript image of the region.
 Like `ps-print-buffer', but prints just the current region."
-  (interactive
-   (unless mark-active
-     (error "The mark is not set now"))
-   (list (point) (mark) (ps-print-preprint current-prefix-arg)))
+  (interactive (ps-print-preprint-region current-prefix-arg))
   (ps-print-without-faces from to filename t))
 
 
@@ -3224,10 +3282,7 @@ Like `ps-print-buffer', but prints just the current region."
 Like `ps-print-region', but includes font, color, and underline information in
 the generated image.  This command works only if you are using a window system,
 so it has a way to determine color values."
-  (interactive
-   (unless mark-active
-     (error "The mark is not set now"))
-   (list (point) (mark) (ps-print-preprint current-prefix-arg)))
+  (interactive (ps-print-preprint-region current-prefix-arg))
   (ps-print-with-faces from to filename t))
 
 
@@ -3301,17 +3356,14 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
 (defun ps-nb-pages-buffer (nb-lines)
   "Display number of pages to print this buffer, for various font heights.
 The table depends on the current ps-print setup."
-  (interactive (list (count-lines (point-min) (point-max))))
+  (interactive (ps-count-lines-preprint (point-min) (point-max)))
   (ps-nb-pages nb-lines))
 
 ;;;###autoload
 (defun ps-nb-pages-region (nb-lines)
   "Display number of pages to print the region, for various font heights.
 The table depends on the current ps-print setup."
-  (interactive
-   (unless mark-active
-     (error "The mark is not set now"))
-   (list (count-lines (mark) (point))))
+  (interactive (ps-count-lines-preprint (mark) (point)))
   (ps-nb-pages nb-lines))
 
 (defvar ps-prefix-quote nil
@@ -3428,6 +3480,7 @@ The table depends on the current ps-print setup."
       '(20 . ps-bold-faces)
       '(20 . ps-italic-faces)
       '(20 . ps-underlined-faces)
+      '(20 . ps-black-white-faces)
       "      )\n
 ;; The following customized variables have long lists and are seldom modified:
 ;;    ps-page-dimensions-database
@@ -3787,6 +3840,17 @@ This is in units of points (1/72 inch).")
 ;; Internal Variables
 
 
+(defvar ps-black-white-faces-alist nil
+  "Alist of symbolic faces used for black/white PostScript printers.
+An element of this list has the same form as `ps-print-face-extension-alist'
+(which see).
+
+Don't change this list directly; instead,
+use `ps-extend-face' and `ps-extend-face-list'.
+See documentation for `ps-extend-face' for valid extension symbol.
+See also documentation for `ps-print-color-p'.")
+
+
 (defvar ps-print-face-extension-alist nil
   "Alist of symbolic faces *WITH* extension features (box, outline, etc).
 An element of this list has the following form:
@@ -3833,26 +3897,32 @@ Each symbol correspond to one bit in a bit vector.")
 
 
 ;;;###autoload
-(defun ps-extend-face-list (face-extension-list &optional merge-p)
-  "Extend face in `ps-print-face-extension-alist'.
+(defun ps-extend-face-list (face-extension-list &optional merge-p alist-sym)
+  "Extend face in ALIST-SYM.
 
 If optional MERGE-P is non-nil, extensions in FACE-EXTENSION-LIST are merged
-with face extension in `ps-print-face-extension-alist'; otherwise, overrides.
+with face extension in ALIST-SYM; otherwise, overrides.
+
+If optional ALIST-SYM is nil, it's used `ps-print-face-extension-alist';
+otherwise, it should be an alist symbol.
 
 The elements in FACE-EXTENSION-LIST is like those for `ps-extend-face'.
 
 See `ps-extend-face' for documentation."
   (while face-extension-list
-    (ps-extend-face (car face-extension-list) merge-p)
+    (ps-extend-face (car face-extension-list) merge-p alist-sym)
     (setq face-extension-list (cdr face-extension-list))))
 
 
 ;;;###autoload
-(defun ps-extend-face (face-extension &optional merge-p)
-  "Extend face in `ps-print-face-extension-alist'.
+(defun ps-extend-face (face-extension &optional merge-p alist-sym)
+  "Extend face in ALIST-SYM.
 
 If optional MERGE-P is non-nil, extensions in FACE-EXTENSION list are merged
-with face extensions in `ps-print-face-extension-alist'; otherwise, overrides.
+with face extensions in ALIST-SYM; otherwise, overrides.
+
+If optional ALIST-SYM is nil, it's used `ps-print-face-extension-alist';
+otherwise, it should be an alist symbol.
 
 The elements of FACE-EXTENSION list have the form:
 
@@ -3874,23 +3944,26 @@ EXTENSION is one of the following symbols:
    outline   - print characters as hollow outlines.
 
 If EXTENSION is any other symbol, it is ignored."
-  (let* ((face-name  (nth 0 face-extension))
-	 (foreground (nth 1 face-extension))
-	 (background (nth 2 face-extension))
-	 (ps-face (cdr (assq face-name ps-print-face-extension-alist)))
+  (or alist-sym
+      (setq alist-sym 'ps-print-face-extension-alist))
+  (let* ((background  (nth 2 face-extension))
+	 (foreground  (nth 1 face-extension))
+	 (face-name   (nth 0 face-extension))
+	 (ps-face     (cdr (assq face-name (symbol-value alist-sym))))
 	 (face-vector (or ps-face (vector 0 nil nil)))
-	 (face-bit (ps-extension-bit face-extension)))
+	 (face-bit    (ps-extension-bit face-extension)))
     ;; extend face
     (aset face-vector 0 (if merge-p
 			    (logior (aref face-vector 0) face-bit)
 			  face-bit))
-    (and foreground (stringp foreground) (aset face-vector 1 foreground))
-    (and background (stringp background) (aset face-vector 2 background))
+    (and (or (not merge-p) (and foreground (stringp foreground)))
+	 (aset face-vector 1 foreground))
+    (and (or (not merge-p) (and background (stringp background)))
+	 (aset face-vector 2 background))
     ;; if face does not exist, insert it
     (or ps-face
-	(setq ps-print-face-extension-alist
-	      (cons (cons face-name face-vector)
-		    ps-print-face-extension-alist)))))
+	(set alist-sym (cons (cons face-name face-vector)
+			     (symbol-value alist-sym))))))
 
 
 (defun ps-extension-bit (face-extension)
@@ -3977,6 +4050,12 @@ If EXTENSION is any other symbol, it is ignored."
   (run-hooks 'ps-print-hook)
   (ps-printing-region region-p from)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
+
+
+(defun ps-count-lines-preprint (from to)
+   (or (and from to)
+       (error "The mark is not set now"))
+   (list (count-lines from to)))
 
 
 (defun ps-count-lines (from to)
@@ -4326,6 +4405,13 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		     (ps-line-height 'ps-font-for-text)
 		     ps-line-spacing-internal
 		     ps-print-height))))))
+
+
+(defun ps-print-preprint-region (prefix-arg)
+  (or mark-active
+      (error "The mark is not set now"))
+  (list (point) (mark) (ps-print-preprint prefix-arg)))
+
 
 (defun ps-print-preprint (prefix-arg)
   (and prefix-arg
@@ -5522,7 +5608,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
 	ps-default-foreground (ps-rgb-color ps-default-fg 0.0)
-	ps-default-color (and ps-print-color-p ps-default-foreground)
+	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
 	ps-current-color ps-default-color
 	;; Set the color scale.  We do it here instead of in the defvar so
 	;; that ps-print can be dumped into emacs.  This expression can't be
@@ -5882,6 +5968,10 @@ return the attribute vector.
 
 If FACE is not a valid face name, it is used default face."
   (cond
+   (ps-black-white-faces-alist
+    (or (and (symbolp face)
+	     (cdr (assq face ps-black-white-faces-alist)))
+	(vector 0 nil nil)))
    ((symbolp face)
     (cdr (or (assq face ps-print-face-extension-alist)
 	     (assq face ps-print-face-alist)
@@ -6050,6 +6140,13 @@ If FACE is not a valid face name, it is used default face."
 	    ps-build-face-reference)
     (message "Collecting face information...")
     (ps-build-reference-face-lists))
+
+  ;; Black/white printer.
+  (setq ps-black-white-faces-alist nil)
+  (and (eq ps-print-color-p 'black-white)
+       (ps-extend-face-list ps-black-white-faces nil
+			    'ps-black-white-faces-alist))
+
   ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
