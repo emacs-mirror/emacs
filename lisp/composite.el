@@ -338,17 +338,18 @@ This function is the default value of `compose-chars-after-function'."
   (let ((tail (aref composition-function-table (char-after pos)))
 	pattern func result)
     (when tail
-      (save-excursion
-	(while (and tail (not func))		  
-	  (setq pattern (car (car tail))
-		func (cdr (car tail)))
-	  (goto-char pos)
-	  (if (if limit
-		  (and (re-search-forward pattern limit t)
-		       (= (match-beginning 0) pos))
-		(looking-at pattern))
-	      (setq result (funcall func pos (match-end 0) pattern nil))
-	    (setq func nil tail (cdr tail))))))
+      (save-match-data
+	(save-excursion
+	  (while (and tail (not func))		  
+	    (setq pattern (car (car tail))
+		  func (cdr (car tail)))
+	    (goto-char pos)
+	    (if (if limit
+		    (and (re-search-forward pattern limit t)
+			 (= (match-beginning 0) pos))
+		  (looking-at pattern))
+		(setq result (funcall func pos (match-end 0) pattern nil))
+	      (setq func nil tail (cdr tail)))))))
       result))
 
 ;;;###autoload
