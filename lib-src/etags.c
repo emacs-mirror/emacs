@@ -30,9 +30,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
+char pot_etags_version[] = "@(#) pot revision number is 11.21";
 
 
-char pot_etags_version[] = "@(#) pot revision number is 11.19";
 #ifdef MSDOS
 #include <fcntl.h>
 #include <sys/param.h>
@@ -218,6 +218,7 @@ struct linebuffer
 };
 
 struct linebuffer lb;		/* the current line */
+struct linebuffer token_str;	/* used by C_entries as temporary area */
 struct
 {
   long linepos;
@@ -368,12 +369,15 @@ struct lang_entry lang_extensions[] =
   { "c", default_C_entries },
   { "h", default_C_entries },
 
-  /* .C or .H or .cpp or .cxx or .hxx or .hh or .cc or .cpp: a C++ file */
+  /* .C or .H or .c++ or .cc or .cpp or .cxx or .h++ or .hh or .hxx:
+     a C++ file */
   { "C", Cplusplus_entries },
   { "H", Cplusplus_entries },
+  { "c++", Cplusplus_entries },
   { "cc", Cplusplus_entries },
   { "cpp", Cplusplus_entries },
   { "cxx", Cplusplus_entries },
+  { "h++", Cplusplus_entries },
   { "hh", Cplusplus_entries },
   { "hxx", Cplusplus_entries },
 
@@ -857,6 +861,7 @@ main (argc, argv)
   init ();			/* set up boolean "functions" */
 
   initbuffer (&lb);
+  initbuffer (&token_str);
   initbuffer (&lbs[0].lb);
   initbuffer (&lbs[1].lb);
   initbuffer (&filename_lb);
@@ -921,7 +926,6 @@ main (argc, argv)
 	  break;
 	}
     }
-
   if (!CTAGS)
     {
       while (nincluded_files-- > 0)
@@ -1815,6 +1819,8 @@ typedef struct
   logical named;
   int linelen;
   int lineno;
+  long linepos;
+  char *buffer;
 } TOKEN;
 
 #define current_lb_is_new (newndx == curndx)
@@ -1848,10 +1854,8 @@ do {									\
   definedef = dnone;							\
 } while (0)
 
-#define make_tag_from_new_lb(isfun)  pfnote (tok.str, isfun, tok.named,	\
-  newlb.buffer, tok.linelen, tok.lineno, newlinepos)
-#define make_tag_from_oth_lb(isfun)  pfnote (tok.str, isfun, tok.named,	\
-  othlb.buffer, tok.linelen, tok.lineno, othlinepos)
+#define make_tag(isfun)  pfnote (savestr (token_str.buffer), isfun, \
+  tok.named, tok.buffer, tok.linelen, tok.lineno, tok.linepos)
 
 void
 C_entries (c_ext, inf)
@@ -2053,17 +2057,28 @@ C_entries (c_ext, inf)
 			      && is_func)
 			    /* function defined in C++ class body */
 			    {
-			      char *cp = newlb.buffer + tokoff + toklen;
-			      char c = *cp;
-			      *cp = '\0';
-			      tok.str = concat (structtag, "::",
-						newlb.buffer + tokoff);
-			      *cp = c;
+			      int strsize = strlen(structtag) + 2 + toklen + 1;
+			      while (token_str.size < strsize)
+				{
+				  token_str.size *= 2;
+				  xrealloc (token_str.buffer, token_str.size);
+				}
+			      strcpy (token_str.buffer, structtag);
+			      strcat (token_str.buffer, "::");
+			      strncat (token_str.buffer,
+				       newlb.buffer+tokoff, toklen);
 			      tok.named = TRUE;
 			    }
 			  else
 			    {
-			      tok.str = savenstr (newlb.buffer+tokoff, toklen);
+			      while (token_str.size < toklen + 1)
+				{
+				  token_str.size *= 2;
+				  xrealloc (token_str.buffer, token_str.size);
+				}
+			      strncpy (token_str.buffer,
+				       newlb.buffer+tokoff, toklen);
+			      token_str.buffer[toklen] = '\0';
 			      if (structdef == stagseen
 				  || typdef == tend
 				  || (is_func
@@ -2074,6 +2089,8 @@ C_entries (c_ext, inf)
 			    }
 			  tok.lineno = lineno;
 			  tok.linelen = tokoff + toklen + 1;
+			  tok.buffer = newlb.buffer;
+			  tok.linepos = newlinepos;
 
 			  if (definedef == dnone
 			      && (funcdef == ftagseen
@@ -2084,7 +2101,7 @@ C_entries (c_ext, inf)
 				switch_line_buffers ();
 			    }
 			  else
-			    make_tag_from_new_lb (is_func);
+			    make_tag (is_func);
 			}
 		      midtoken = FALSE;
 		    }
@@ -2106,7 +2123,7 @@ C_entries (c_ext, inf)
 		      funcdef = finlist;
 		      continue;
 		    case flistseen:
-		      make_tag_from_oth_lb (TRUE);
+		      make_tag (TRUE);
 		      funcdef = fignore;
 		      break;
 		    case ftagseen:
@@ -2146,7 +2163,7 @@ C_entries (c_ext, inf)
 	      case ftagseen:
 		if (yacc_rules)
 		  {
-		    make_tag_from_oth_lb (FALSE);
+		    make_tag (FALSE);
 		    funcdef = fignore;
 		  }
 		break;
@@ -2162,7 +2179,7 @@ C_entries (c_ext, inf)
 	    switch (typdef)
 	      {
 	      case tend:
-		make_tag_from_oth_lb (FALSE);
+		make_tag (FALSE);
 		/* FALLTHRU */
 	      default:
 		typdef = tnone;
@@ -2186,7 +2203,7 @@ C_entries (c_ext, inf)
 	  if (cblev == 0 && typdef == tend)
 	    {
 	      typdef = tignore;
-	      make_tag_from_oth_lb (FALSE);
+	      make_tag (FALSE);
 	      break;
 	    }
 	  if (funcdef != finlist && funcdef != fignore)
@@ -2210,7 +2227,7 @@ C_entries (c_ext, inf)
 		  if (*lp != '*')
 		    {
 		      typdef = tignore;
-		      make_tag_from_oth_lb (FALSE);
+		      make_tag (FALSE);
 		    }
 		  break;
 		} /* switch (typdef) */
@@ -2239,7 +2256,7 @@ C_entries (c_ext, inf)
 	      if (cblev == 0 && typdef == tend)
 		{
 		  typdef = tignore;
-		  make_tag_from_oth_lb (FALSE);
+		  make_tag (FALSE);
 		}
 	    }
 	  else if (parlev < 0)	/* can happen due to ill-conceived #if's. */
@@ -2259,13 +2276,13 @@ C_entries (c_ext, inf)
 	    case stagseen:
 	    case scolonseen:	/* named struct */
 	      structdef = sinbody;
-	      make_tag_from_oth_lb (FALSE);
+	      make_tag (FALSE);
 	      break;
 	    }
 	  switch (funcdef)
 	    {
 	    case flistseen:
-	      make_tag_from_oth_lb (TRUE);
+	      make_tag (TRUE);
 	      /* FALLTHRU */
 	    case fignore:
 	      funcdef = fnone;
