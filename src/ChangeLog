@@ -1,3 +1,8 @@
+1999-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (echo_area_display) [HAVE_X_WINDOWS]: Do nothing
+	if selected_frame is equal to Vterminal_frame.
+
 1999-10-19  Paul Eggert  <eggert@twinsun.com>
 	
 	Add support for large files, 64-bit Solaris, system locale codings.
