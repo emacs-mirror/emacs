@@ -12922,7 +12922,9 @@ If that fails to bring point back on frame, point is centered instead.\n\
 If this is zero, point is always centered after it moves off frame.");
 
   DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
-    "*Scroll up to this many lines, to bring point back on screen.");
+    "*Scroll up to this many lines, to bring point back on screen.\n\
+A value of zero means to scroll the text to center point vertically\n\
+in the window.");
   scroll_conservatively = 0;
 
   DEFVAR_INT ("scroll-margin", &scroll_margin,
