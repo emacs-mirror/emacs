@@ -1,6 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,1998
+;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -134,7 +135,7 @@ value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
-(defcustom rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:\\|^content-transfer-encoding:"
+(defcustom rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:\\|^content-transfer-encoding:\\|^x-coding-system:\\|^return-path:\\|^errors-to:\\|^return-receipt-to:\\|^x-attribution:\\|^x-disclaimer:"
   "*Regexp to match header fields that Rmail should normally hide."
   :type 'regexp
   :group 'rmail-headers)
@@ -556,6 +557,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 ; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
 ; will not cause emacs 18.55 problems.
 
+;; This calls rmail-decode-babyl-format if the file is already Babyl.
+
 (defun rmail-convert-file ()
   (let (convert)
     (widen)
@@ -600,11 +603,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  ;; We still have to decode BABYL part.
 	  (rmail-decode-babyl-format)))))
 
-;;; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
-;;; will not cause emacs 18.55 problems.
-
 (defun rmail-insert-rmail-file-header ()
   (let ((buffer-read-only nil))
+    ;; -*-rmail-*- is here so that visiting the file normally
+    ;; recognizes it as an Rmail file.
     (insert "BABYL OPTIONS: -*- rmail -*-
 Version: 5
 Labels:
@@ -618,29 +620,24 @@ Note:    it means the file has no messages in it.\n\^_")))
 (defun rmail-decode-babyl-format ()
   (let ((modifiedp (buffer-modified-p))
 	(buffer-read-only nil)
+	(coding-system rmail-file-coding-system)
 	from to)
     (goto-char (point-min))
-    (search-forward "\n\^_" nil t)	; Skip BYBYL header.
+    (search-forward "\n\^_" nil t)	; Skip BABYL header.
     (setq from (point))
     (goto-char (point-max))
     (search-backward "\n\^_" from 'mv)
     (setq to (point))
-    (if (not (and rmail-file-coding-system
-		  (coding-system-p rmail-file-coding-system)))
-	(setq rmail-file-coding-system (detect-coding-region from to t)))
-    (if (not (eq rmail-file-coding-system 'undecided))
-	(let ((count 1))
-	  (goto-char from)
-	  (while (search-forward "\n\^_" nil t)
-	    (decode-coding-region from (1- (point)) rmail-file-coding-system)
-	    (goto-char (point))
-	    (setq from (point))
-	    (if (= (% count 10) 0)
-		(message "Decoding messages...%d" count))
-	    (setq count (1+ count)))
-	  (message "Decoding messages...done")
-	  (set-buffer-file-coding-system rmail-file-coding-system)
-	  (set-buffer-modified-p modifiedp)))))
+    (unless (and coding-system
+		 (coding-system-p coding-system))
+      (setq coding-system (detect-coding-region from to t)))
+    (unless (eq coding-system 'undecided)
+      (decode-coding-region from to coding-system)
+      (setq coding-system last-coding-system-used))
+    (set-buffer-modified-p modifiedp)
+    (setq buffer-file-coding-system nil)
+    (setq save-buffer-coding-system
+	  (or coding-system 'undecided))))
 
 (defvar rmail-mode-map nil)
 (if rmail-mode-map
@@ -935,6 +932,13 @@ Instead, these commands are available:
 
 ;; Set up the non-permanent locals associated with Rmail mode.
 (defun rmail-variables ()
+  (make-local-variable 'save-buffer-coding-system)
+  ;; If we don't already have a value for save-buffer-coding-system,
+  ;; get it from buffer-file-coding-system, and clear that
+  ;; because it should be determined in rmail-show-message.
+  (unless save-buffer-coding-system
+    (setq save-buffer-coding-system (or buffer-file-coding-system 'undecided))
+    (setq buffer-file-coding-system nil))
   ;; Don't let a local variables list in a message cause confusion.
   (make-local-variable 'enable-local-variables)
   (setq enable-local-variables nil)
@@ -942,11 +946,12 @@ Instead, these commands are available:
   (setq revert-buffer-function 'rmail-revert)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
-   '(rmail-font-lock-keywords t nil nil nil
-     (font-lock-maximum-size . nil)
-     (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
-     (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
-     (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+	'(rmail-font-lock-keywords
+	  t nil nil nil
+	  (font-lock-maximum-size . nil)
+	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
+	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+	  (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline nil)
   (make-local-variable 'version-control)
@@ -1459,11 +1464,27 @@ Optional DEFAULT is password to start with."
 			      (save-excursion
 				(skip-chars-forward " \t\n")
 				(point)))
+	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
 		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point)
 					 (or rmail-file-coding-system
 					     'undecided)))
+	       ;; Add an X-Coding-System: header if we don't have one.
+	       (save-excursion
+		 (goto-char start)
+		 (forward-line 1)
+		 (if (looking-at "0")
+		     (forward-line 1)
+		   (forward-line 2))
+		 (or (save-restriction
+		       (narrow-to-region (point) (point-max))
+		       (rfc822-goto-eoh)
+		       (goto-char (point-min))
+		       (re-search-forward "^X-Coding-System:" nil t))
+		     (insert "X-Coding-System: "
+			     (symbol-name last-coding-system-used)
+			     "\n")))
 	       (narrow-to-region (point) (point-max)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
@@ -1478,9 +1499,16 @@ Optional DEFAULT is password to start with."
 		   (goto-char (point-min))
 		   (while (search-forward "\n\^_" nil t); single char "\^_"
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
 		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point) 'undecided))
+	       (save-excursion
+		 (goto-char start)
+		 (forward-line 3)
+		 (insert "X-Coding-System: "
+			 (symbol-name last-coding-system-used)
+			 "\n"))
 	       (narrow-to-region (point) (point-max))
 	       (setq count (1+ count)))
 	      ;;*** Mail format
@@ -1554,9 +1582,16 @@ Optional DEFAULT is password to start with."
 		   (while (search-forward "\n\^_" nil t); single char
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (insert ?\^_)
+	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
 		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point) 'undecided))
+	       (save-excursion
+		 (goto-char start)
+		 (forward-line 3)
+		 (insert "X-Coding-System: "
+			 (symbol-name last-coding-system-used)
+			 "\n"))
 	       (narrow-to-region (point) (point-max)))
 	      ;;
 	      ;; This kludge is because some versions of sendmail.el
@@ -2021,7 +2056,7 @@ If summary buffer is currently displayed, update current message there also."
       (progn (narrow-to-region (point-min) (1- (point-max)))
 	     (goto-char (point-min))
 	     (setq mode-line-process nil))
-    (let (blurb)
+    (let (blurb coding-system)
       (if (not n)
 	  (setq n rmail-current-message)
 	(cond ((<= n 0)
@@ -2037,10 +2072,25 @@ If summary buffer is currently displayed, update current message there also."
       (let ((beg (rmail-msgbeg n)))
 	(goto-char beg)
 	(forward-line 1)
+	(save-excursion
+	  (let ((end (rmail-msgend n)))
+	    (save-restriction
+	      (if (prog1 (= (following-char) ?0)
+		    (forward-line 2)
+		    (narrow-to-region (point) end))
+		  (rfc822-goto-eoh)
+		(search-forward "\n*** EOOH ***\n" end t))
+	      (narrow-to-region beg (point))
+	      (goto-char (point-min))
+	      (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
+		  (let ((coding-system (intern (match-string 1))))
+		    (check-coding-system coding-system)
+		    (setq buffer-file-coding-system coding-system))
+		(setq buffer-file-coding-system nil)))))
 	;; Clear the "unseen" attribute when we show a message.
 	(rmail-set-attribute "unseen" nil)
-	;; Reformat the header, or else find the reformatted header.
 	(let ((end (rmail-msgend n)))
+	  ;; Reformat the header, or else find the reformatted header.
 	  (if (= (following-char) ?0)
 	      (rmail-reformat-message beg end)
 	    (search-forward "\n*** EOOH ***\n" end t)
