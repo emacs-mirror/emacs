@@ -55,6 +55,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 
+extern unsigned int msh_mousewheel;
+
 extern void free_frame_menubar ();
 
 extern Lisp_Object Vwindow_system;
@@ -3204,6 +3206,31 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    }
 	  
 	  check_visibility = 1;
+	  break;
+
+	default:
+	  /* Check for messages registered at runtime. */
+	  if (msg.msg.message == msh_mousewheel)
+	    {
+	      if (dpyinfo->grabbed && last_mouse_frame 
+		  && FRAME_LIVE_P (last_mouse_frame))
+		f = last_mouse_frame;
+	      else
+		f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+          
+	      if (f)
+		{
+		  if ((!dpyinfo->w32_focus_frame 
+		       || f == dpyinfo->w32_focus_frame)
+		      && (numchars >= 1))
+		    {
+		      construct_mouse_wheel (bufp, &msg, f);
+		      bufp++;
+		      count++;
+		      numchars--;
+		    }
+		}
+	    }
 	  break;
 	}
     }
