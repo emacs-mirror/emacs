@@ -5,6 +5,8 @@
 
 2001-10-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_build_heuristic_mask): Use x_alloc_image_color.
+	
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
 	a loop counter.
 
