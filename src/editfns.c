@@ -769,7 +769,7 @@ If you want them to stand for years in this century, you must do that yourself."
 	  tzstring = tzbuf;
 #ifdef _NEXT_SOURCE
 	  /* On NEXTSTEP, timezone environment var is ignored.  */
-	  tm.tm_gmtoff = -abszone;
+	  tm.tm_gmtoff = XINT (zone);
 #endif
 	}
       else
