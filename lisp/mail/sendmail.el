@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -34,6 +34,8 @@
   (provide 'sendmail)
   (require 'rmail)
   (require 'mailalias))
+
+(autoload 'rfc2047-encode-string "rfc2047")
 
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
@@ -96,10 +98,12 @@ nil means let mailer mail back a message to report errors."
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defcustom send-mail-function 'sendmail-send-it "\
-Function to call to send the current buffer as mail.
+(defcustom send-mail-function 'sendmail-send-it
+  "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
-not a valid RFC822 header or continuation line."
+not a valid RFC822 header or continuation line.
+This is used by the default mail-sending commands.  See also
+`message-send-mail-function' for use with the Message package."
   :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
 		(function-item smtpmail-send-it :tag "Use SMTPmail package")
 		(function-item feedmail-send-it :tag "Use Feedmail package")
@@ -779,6 +783,9 @@ of outgoing mails regardless of the current language environment.
 See also the function `select-message-coding-system'.")
 
 (defun sendmail-send-it ()
+  "Send the current mail buffer using the Sendmail package.
+This is a suitable value for `send-mail-function'.  It sends using the
+external program defined by `sendmail-program'."
   (require 'mail-utils)
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " sendmail errors")
@@ -863,8 +870,8 @@ See also the function `select-message-coding-system'.")
 		(let* ((login user-mail-address)
 		       (fullname (user-full-name))
 		       (quote-fullname nil))
-		  (if (string-match "[\200-\377]" fullname)
-		      (setq fullname (mail-quote-printable fullname t)
+		  (if (string-match "[^\0-\177]" fullname)
+		      (setq fullname (rfc2047-encode-string fullname)
 			    quote-fullname t))
 		  (cond ((eq mail-from-style 'angles)
 			 (insert "From: " fullname)
