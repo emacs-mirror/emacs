@@ -32,10 +32,17 @@ Boston, MA 02111-1307, USA.  */
 #include "termchar.h"
 #include "termhooks.h"
 #include "frame.h"
+#include "blockinput.h"
+#include "window.h"
 #include "dosfns.h"
 #include "msdos.h"
+#include <dpmi.h>
 #include <go32.h>
 #include <dirent.h>
+
+#ifndef __DJGPP_MINOR__
+# define __tb _go32_info_block.linear_address_of_transfer_buffer;
+#endif
 
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
   "Call specific MSDOS interrupt number INTERRUPT with REGISTERS.\n\
@@ -259,6 +266,24 @@ int dos_keypad_mode;
 
 Lisp_Object Vdos_version;
 Lisp_Object Vdos_display_scancodes;
+
+#ifndef HAVE_X_WINDOWS
+static unsigned dos_windows_version;
+Lisp_Object Vdos_windows_version;
+
+char parent_vm_title[50];	/* Ralf Brown says 30 is enough */
+int w95_set_virtual_machine_title (const char *);
+
+void
+restore_parent_vm_title (void)
+{
+  if (NILP (Vdos_windows_version))
+    return;
+  if ((dos_windows_version & 0xff) >= 4 && parent_vm_title[0])
+    w95_set_virtual_machine_title (parent_vm_title);
+  delay (50);
+}
+#endif /* !HAVE_X_WINDOWS */
   
 void
 init_dosfns ()
@@ -311,6 +336,54 @@ init_dosfns ()
   else
     dos_codepage = regs.x.bx & 0xffff;
 
+#ifndef HAVE_X_WINDOWS
+  parent_vm_title[0] = '\0';
+
+  /* If we are running from DOS box on MS-Windows, get Windows version.  */
+  dpmiregs.x.ax = 0x1600;	/* enhanced mode installation check */
+  dpmiregs.x.ss = dpmiregs.x.sp = dpmiregs.x.flags = 0;
+  _go32_dpmi_simulate_int (0x2f, &dpmiregs);
+  /* We only support Windows-specific features when we run on Windows 9X
+     or on Windows 3.X/enhanced mode.
+
+     Int 2Fh/AX=1600h returns:
+
+     AL = 00:  no Windows at all;
+     AL = 01:  Windows/386 2.x;
+     AL = 80h: Windows 3.x in mode other than enhanced;
+     AL = FFh: Windows/386 2.x
+
+     We also check AH > 0 (Windows 3.1 or later), in case AL tricks us.  */
+  if (dpmiregs.h.al > 2 && dpmiregs.h.al != 0x80 && dpmiregs.h.al != 0xff
+      && (dpmiregs.h.al > 3 || dpmiregs.h.ah > 0))
+    {
+      dos_windows_version = dpmiregs.x.ax;
+      Vdos_windows_version =
+	Fcons (make_number (dpmiregs.h.al), make_number (dpmiregs.h.ah));
+
+      /* Save the current title of this virtual machine, so we can restore
+	 it before exiting.  Otherwise, Windows 95 will continue to use
+	 the title we set even after we are history, stupido...  */
+      if (dpmiregs.h.al >= 4)
+	{
+	  dpmiregs.x.ax = 0x168e;
+	  dpmiregs.x.dx = 3;	/* get VM title */
+	  dpmiregs.x.cx = sizeof(parent_vm_title) - 1;
+	  dpmiregs.x.es = __tb >> 4;
+	  dpmiregs.x.di = __tb & 15;
+	  dpmiregs.x.sp = dpmiregs.x.ss = dpmiregs.x.flags = 0;
+	  _go32_dpmi_simulate_int (0x2f, &dpmiregs);
+	  if (dpmiregs.x.ax == 1)
+	    dosmemget (__tb, sizeof(parent_vm_title), parent_vm_title);
+	}
+    }
+  else
+    {
+      dos_windows_version = 0;
+      Vdos_windows_version = Qnil;
+    }
+#endif /* !HAVE_X_WINDOWS */
+
 #if __DJGPP__ >= 2
 
   /* Without this, we never see hidden files.
@@ -327,6 +400,77 @@ init_dosfns ()
 #endif /* __DJGPP__ >= 2 */
 }
 
+#ifndef HAVE_X_WINDOWS
+/* Support for features that are available when we run in a DOS box
+   on MS-Windows.  */
+int
+ms_windows_version (void)
+{
+  return dos_windows_version;
+}
+
+/* Set the title of the current virtual machine, to appear on
+   the caption bar of that machine's window.  */
+
+int
+w95_set_virtual_machine_title (const char *title_string)
+{
+  /* Only Windows 9X (version 4 and higher) support this function.  */
+  if (!NILP (Vdos_windows_version)
+      && (dos_windows_version & 0xff) >= 4)
+    {
+      _go32_dpmi_registers regs;
+      dosmemput (title_string, strlen (title_string) + 1, __tb);
+      regs.x.ax = 0x168e;
+      regs.x.dx = 1;
+      regs.x.es = __tb >> 4;
+      regs.x.di = __tb & 15;
+      regs.x.sp = regs.x.ss = regs.x.flags = 0;
+      _go32_dpmi_simulate_int (0x2f, &regs);
+      return regs.x.ax == 1;
+    }
+  return 0;
+}
+
+/* Change the title of frame F to NAME.
+   If NAME is nil, use the frame name as the title.
+
+   If Emacs is not run from a DOS box on Windows 9X, this only
+   sets the name in the frame struct, but has no other effects.  */
+
+void
+x_set_title (f, name)
+     struct frame *f;
+     Lisp_Object name;
+{
+  /* Don't change the title if it's already NAME.  */
+  if (EQ (name, f->title))
+    return;
+
+  update_mode_lines = 1;
+
+  f->title = name;
+
+  if (NILP (name))
+    name = f->name;
+
+  if (FRAME_MSDOS_P (f))
+    {
+      BLOCK_INPUT;
+      w95_set_virtual_machine_title (XSTRING (name)->data);
+      UNBLOCK_INPUT;
+    }
+}
+#endif /* !HAVE_X_WINDOWS */
+
+void
+dos_cleanup (void)
+{
+#ifndef HAVE_X_WINDOWS
+  restore_parent_vm_title ();
+#endif
+}
+
 /*
  *	Define everything
  */
@@ -368,6 +512,11 @@ Implicitly modified when the TZ variable is changed.");
   
   DEFVAR_LISP ("dos-version", &Vdos_version,
     "The (MAJOR . MINOR) Dos version (subject to modification with setver).");
+
+#ifndef HAVE_X_WINDOWS
+  DEFVAR_LISP ("dos-windows-version", &Vdos_windows_version,
+    "The (MAJOR . MINOR) Windows version for DOS session on MS-Windows.");
+#endif
 
   DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
     "*When non-nil, the keyboard scan-codes are displayed at the bottom right\n\
