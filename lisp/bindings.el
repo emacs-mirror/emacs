@@ -277,7 +277,7 @@ Keymap for what is displayed by `mode-line-buffer-identification'.")
 Return the last non-hidden buffer in the buffer list."
   ;; This logic is more or less copied from bury-buffer,
   ;; except that we reverse the buffer list.
-  (let ((fbl  (frame-parameter 'buffer-list))
+  (let ((fbl  (frame-parameter nil 'buffer-list))
 	(list (buffer-list))
 	(pred (frame-parameter nil 'buffer-predicate))
 	found notsogood)
