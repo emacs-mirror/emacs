@@ -26,71 +26,57 @@
 
 ;;; Code:
 
+;; Information for exiting Ethiopic environment.
+(defvar exit-ethiopic-environment-data nil)
+
 ;;;###autoload
 (defun setup-ethiopic-environment ()
   "Setup multilingual environment for Ethiopic."
   (interactive)
   (setup-english-environment)
-  (setq default-input-method "ethiopic"))
+  (setq default-input-method "ethiopic")
 
-;;
-;; Ethio minor mode
-;;
+  (let ((key-bindings '((" " . ethio-insert-space)
+			([?\S- ] . ethio-insert-ethio-space)
+			([?\C-'] . ethio-gemination)
+			([f2] . ethio-toggle-space)
+			([S-f2] . ethio-replace-space) ; as requested
+			([f3] . ethio-toggle-punctuation)
+			([f4] . ethio-sera-to-fidel-buffer)
+			([S-f4] . ethio-sera-to-fidel-region)
+			([C-f4] . ethio-sera-to-fidel-mail-or-marker)
+			([f5] . ethio-fidel-to-sera-buffer)
+			([S-f5] . ethio-fidel-to-sera-region)
+			([C-f5] . ethio-fidel-to-sera-mail-or-marker)
+			([f6] . ethio-modify-vowel)
+			([f7] . ethio-replace-space)
+			([f8] . ethio-input-special-character)))
+	kb)
+    (while key-bindings
+      (setq kb (car (car key-bindings)))
+      (setq exit-ethiopic-environment-data
+	    (cons (cons kb (global-key-binding kb))
+		  exit-ethiopic-environment-data))
+      (global-set-key kb (cdr (car key-bindings)))
+      (setq key-bindings (cdr key-bindings))))
 
-(defvar ethio-mode nil "Non-nil if in Ethio minor mode.")
-(make-variable-buffer-local 'ethio-mode)
+  (add-hook 'quail-mode-hook 'ethio-select-a-translation)
+  (add-hook 'find-file-hooks 'ethio-find-file)
+  (add-hook 'write-file-hooks 'ethio-write-file)
+  (add-hook 'after-save-hook 'ethio-find-file))
 
-(or (assq 'ethio-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(ethio-mode " Ethio") minor-mode-alist)))
+(defun exit-ethiopic-environment ()
+  "Exit Ethiopic language environment"
+  (while exit-ethiopic-environment-data
+    (global-set-key (car (car exit-ethiopic-environment-data))
+		    (cdr (car exit-ethiopic-environment-data)))
+    (setq exit-ethiopic-environment-data
+	  (cdr exit-ethiopic-environment-data)))
 
-(defvar ethio-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " "     'ethio-insert-space)
-    (define-key map [?\S- ] 'ethio-insert-ethio-space)
-    (define-key map [?\C-'] 'ethio-gemination)
-    (define-key map [f2]    'ethio-toggle-space)
-    (define-key map [S-f2]  'ethio-replace-space) ; as requested
-    (define-key map [f3]    'ethio-toggle-punctuation)
-    (define-key map [f4]    'ethio-sera-to-fidel-buffer)
-    (define-key map [S-f4]  'ethio-sera-to-fidel-region)
-    (define-key map [C-f4]  'ethio-sera-to-fidel-mail-or-marker)
-    (define-key map [f5]    'ethio-fidel-to-sera-buffer)
-    (define-key map [S-f5]  'ethio-fidel-to-sera-region)
-    (define-key map [C-f5]  'ethio-fidel-to-sera-mail-or-marker)
-    (define-key map [f6]    'ethio-modify-vowel)
-    (define-key map [f7]    'ethio-replace-space)
-    (define-key map [f8]    'ethio-input-special-character)
-    map)
-  "Keymap for Ethio minor mode.")
-
-(or (assq 'ethio-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'ethio-mode ethio-mode-map) minor-mode-map-alist)))
-
-;;;###autoload
-(defun ethio-mode (&optional arg)
-  "Toggle Ethio minor mode.
-With arg, turn Ethio mode on if and only if arg is positive.
-
-Also, Ethio minor mode is automatically turned on
-when you activate the Ethiopic quail package.
-
-The keys that are defined in ethio-mode are:
-\\{ethio-mode-map}"
-
-  (interactive)
-  (setq ethio-mode
-	(if (null arg) (not ethio-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (if ethio-mode
-      (progn
-	(add-hook 'find-file-hooks 'ethio-find-file)
-	(add-hook 'write-file-hooks 'ethio-write-file)
-	(add-hook 'after-save-hook 'ethio-find-file))
-    (remove-hook 'find-file-hooks 'ethio-find-file)
-    (remove-hook 'write-file-hooks 'ethio-write-file)
-    (remove-hook 'after-save-hook 'ethio-find-file)))
+  (remove-hook 'quail-mode-hook 'ethio-select-a-translation)
+  (remove-hook 'find-file-hooks 'ethio-find-file)
+  (remove-hook 'write-file-hooks 'ethio-write-file)
+  (remove-hook 'after-save-hook 'ethio-find-file))
 
 ;;
 ;; ETHIOPIC UTILITY FUNCTIONS
@@ -1826,9 +1812,6 @@ Otherwise, [0-9A-F]."
   "Transcribe file content into Ethiopic dependig on filename suffix."
   (cond
 
-   ((null ethio-mode)
-    nil)
-
    ((string-match "\\.sera$" (buffer-file-name))
     (save-excursion
       (ethio-sera-to-fidel-buffer nil 'force)
@@ -1862,9 +1845,6 @@ Otherwise, [0-9A-F]."
 (defun ethio-write-file nil
   "Transcribe Ethiopic characters in ASCII depending on the file extension."
   (cond
-
-   ((null ethio-mode)
-    nil)
 
    ((string-match "\\.sera$" (buffer-file-name))
     (save-excursion
