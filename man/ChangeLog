@@ -1,3 +1,8 @@
+2004-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Rename use-old-gtk-file-dialog to
+	x-use-old-gtk-file-dialog.
+
 2004-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* idlwave.texi: Fix the setfilename directive to put the produced

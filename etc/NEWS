@@ -953,7 +953,7 @@ disabled by customizing the variable `use-file-dialog'.
 
 +++
 ** For Gtk+ version 2.4, you can make Emacs use the old file dialog
-by setting the variable `use-old-gtk-file-dialog' to t.  Default is to use
+by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
 the new dialog.
 
 +++
