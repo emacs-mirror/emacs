@@ -2123,7 +2123,7 @@ and there is no meaningful selection value.");
 \(This happens when some other X client makes its own selection\n\
 or when a Lisp program explicitly clears the selection.)\n\
 The functions are called with one argument, the selection type\n\
-\(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.)");
+\(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').");
   Vx_lost_selection_hooks = Qnil;
 
   DEFVAR_LISP ("x-sent-selection-hooks", &Vx_sent_selection_hooks,
