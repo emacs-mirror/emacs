@@ -12,7 +12,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <../src/paths.h>      /* For PATH_DATA.  */
+#include <../src/epaths.h>      /* For PATH_DATA.  */
 
 #define BUFSIZE  80
 #define SEP      '\0'
