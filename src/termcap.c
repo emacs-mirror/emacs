@@ -349,7 +349,7 @@ tputs (str, nlines, outfun)
 
 /* Finding the termcap entry in the termcap data base.  */
 
-struct buffer
+struct termcap_buffer
   {
     char *beg;
     int size;
@@ -422,7 +422,7 @@ tgetent (bp, name)
 {
   register char *termcap_name;
   register int fd;
-  struct buffer buf;
+  struct termcap_buffer buf;
   register char *bp1;
   char *tc_search_point;
   char *term;
@@ -585,7 +585,7 @@ static int
 scan_file (str, fd, bufp)
      char *str;
      int fd;
-     register struct buffer *bufp;
+     register struct termcap_buffer *bufp;
 {
   register char *end;
 
@@ -681,7 +681,7 @@ compare_contin (str1, str2)
 static char *
 gobble_line (fd, bufp, append_end)
      int fd;
-     register struct buffer *bufp;
+     register struct termcap_buffer *bufp;
      char *append_end;
 {
   register char *end;
