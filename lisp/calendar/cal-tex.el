@@ -1355,7 +1355,7 @@ Use double backslash as a separator unless optional SEPARATOR is given."
                (while p
                  (and (car (car p))
                       (calendar-date-equal date (car (car p)))
-                      (setq result (append (cdr (car p)) result)))
+                      (setq result (append result (cdr (car p)))))
                  (setq p (cdr p)))
                result)
              (if separator separator "\\\\")))
