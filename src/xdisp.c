@@ -8775,12 +8775,9 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
   /* Compute how much we should try to scroll maximally to bring point
      into view.  */
-  if (scroll_step)
-    scroll_max = scroll_step;
-  else if (scroll_conservatively)
-    scroll_max = scroll_conservatively;
-  else if (temp_scroll_step)
-    scroll_max = temp_scroll_step;
+  if (scroll_step || scroll_conservatively || temp_scroll_step)
+    scroll_max = max (scroll_step,
+		      max (scroll_conservatively, temp_scroll_step));
   else if (NUMBERP (current_buffer->scroll_down_aggressively)
 	   || NUMBERP (current_buffer->scroll_up_aggressively))
     /* We're trying to scroll because of aggressive scrolling
@@ -8843,7 +8840,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       start_display (&it, w, startp);
 
       if (scroll_conservatively)
-	amount_to_scroll = dy;
+	amount_to_scroll =
+	  max (dy, CANON_Y_UNIT (f) * max (scroll_step, temp_scroll_step));
       else if (scroll_step || temp_scroll_step)
 	amount_to_scroll = scroll_max;
       else
@@ -8896,7 +8894,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  start_display (&it, w, startp);
 	  
 	  if (scroll_conservatively)
-	    amount_to_scroll = dy;
+	    amount_to_scroll =
+	      max (dy, CANON_Y_UNIT (f) * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
 	  else
@@ -13766,7 +13765,9 @@ See also `overlay-arrow-string'.");
   DEFVAR_INT ("scroll-step", &scroll_step,
     "*The number of lines to try scrolling a window by when point moves out.\n\
 If that fails to bring point back on frame, point is centered instead.\n\
-If this is zero, point is always centered after it moves off frame.");
+If this is zero, point is always centered after it moves off frame.\n\
+If you want scrolling to always be a line at a time, you should set\n\
+  `scroll-conservatively' to a large value rather than set this to 1.");
 
   DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
     "*Scroll up to this many lines, to bring point back on screen.\n\
