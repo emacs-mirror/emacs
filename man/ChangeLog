@@ -1,5 +1,21 @@
 2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* frames.texi (Secondary Selection): Setting the secondary
+	selection with M-Drag-Mouse-1 does not alter the kill ring,
+	setting it with M-Mouse-1 and M-Mouse-3 does.
+	(Mode Line Mouse): C-Mouse-2 on scroll bar now also works for
+	toolkit scroll bars.
+	(Scroll Bars): Ditto.
+
+	* windows.texi (Basic Window): When using a window system, the value
+	of point in a non-selected window is indicated by a hollow box.
+	(Split Window): Side by side windows are separated by a scroll bar,
+	if scroll bars are used.
+	C-Mouse-2 on scroll bar now also works for toolkit scroll bars.
+	(Change Window): Correct Mouse-2 vs Mouse-3 mess-up.
+	(Window Convenience): Update bindings for `winner-undo' and
+	`winner-redo'.
+
 	* ack.texi (Acknowledgments): Use `@unnumbered'.
 	* misc.texi : Adapt sectioning in Info to the node structure.
 	(Invoking emacsclient): Make "Invoking emacsclient" a subsection
@@ -12,7 +28,8 @@
 	Rearrange order of nodes and sections such that both "GNU GENERAL
 	PUBLIC LICENSE" and "GNU Free Documentation License" appear at the
 	end, as appropriate for appendices.
-	(Acknowledgments): Use `@unnumberedsec'.
+	(Acknowledgments): Put inside @iftex instead of @ifnotinfo.
+	Use `@unnumberedsec'.
 	* trouble.texi: Adapt sectioning in Info to the node structure.
 	Adapt node pointers to change in emacs.texi.
 	* cmdargs.texi, doclicense.texi: Adapt node pointers.
@@ -21,8 +38,8 @@
 
 	* faq.texi: Fix texinfo usage, esp. doublequotes.
 	(Difference between Emacs and XEmacs): Some clarification.
-	
-	* faq.texi (Difference between Emacs and XEmacs): 
+
+	* faq.texi (Difference between Emacs and XEmacs):
 	Explain not to contrast XEmacs with GNU Emacs.
 
 2004-08-26  Richard M. Stallman  <rms@gnu.org>
