@@ -27,6 +27,19 @@ mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
 
+* Encoding some characters as Unicode (UTF-8/16) is rejected by Emacs.
+
+Emacs currently, by default, only supports the parts of the BMP whose
+codepoints are in the ranges 0000-33ff and e000-ffff.  This excludes
+CJK, Yi, Music, and Maths.
+
+If you try to save a file containing characters with code points
+outside this range, Emacs will suggest other compatible coding
+systems.
+
+By turning Utf-Translate-Cjk mode on, many more CJK characters are
+included in the support.
+
 * Problems with file dialogs in Emacs built with Open Motif.
 
 When Emacs 21 is built with Open Motif 2.1, it can happen that the
