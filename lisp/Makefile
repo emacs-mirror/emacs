@@ -129,7 +129,6 @@ compile: doit
             fi;							\
           done;							\
           if test $$compile_it = y; then			\
-            echo $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
             $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
           else							\
             echo "Don't compile $$el";				\
