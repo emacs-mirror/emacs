@@ -1,3 +1,7 @@
+2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* configure.in: Add support for mipseb-*-netbsd* machines.
+
 2002-06-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep, uninstall): Add Tramp.
