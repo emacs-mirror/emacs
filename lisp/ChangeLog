@@ -1,3 +1,12 @@
+2000-03-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
+	Disable new code.
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Fix bug
+	trying to `load' the symbol of an autoload instead of the file
+	recorded in the autoload.  Fix error messages.
+
 2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el:
