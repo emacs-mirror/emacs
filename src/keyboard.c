@@ -957,6 +957,11 @@ command_loop_1 ()
 
       last_command_char = keybuf[i - 1];
 
+      /* If the previous command tried to force a specific window-start,
+	 forget about that, in case this command moves point far away
+	 from that position.  */
+      XWINDOW (selected_window)->force_start = Qnil;
+
       cmd = read_key_sequence_cmd;
       if (!NILP (Vexecuting_macro))
 	{
