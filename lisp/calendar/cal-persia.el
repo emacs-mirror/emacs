@@ -1,4 +1,4 @@
-;;; cal-persian.el --- calendar functions for the Persian calendar.
+;;; cal-persia.el --- calendar functions for the Persian calendar.
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
@@ -201,6 +201,6 @@ Echo Persian date unless NOECHO is t."
   "Persian calendar equivalent of date diary entry."
  (calendar-persian-date-string (calendar-cursor-to-date t)))
 
-(provide 'cal-persian)
+(provide 'cal-persia)
 
-;;; cal-persian.el ends here
+;;; cal-persia.el ends here
