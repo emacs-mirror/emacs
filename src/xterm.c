@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1989, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6365,7 +6365,10 @@ x_list_fonts (f, pattern, size, maxnames)
       char **names;
 
       pattern = XCONS (patterns)->car;
-      /* See if we cached the result for this particular query.  */
+      /* See if we cached the result for this particular query.
+         The cache is an alist of the form:
+	   (((PATTERN . MAXNAMES) (FONTNAME . WIDTH) ...) ...)
+      */
       if (f && (tem = XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr,
 		key = Fcons (pattern, make_number (maxnames)),
 		!NILP (list = Fassoc (key, tem))))
@@ -6439,6 +6442,8 @@ x_list_fonts (f, pattern, size, maxnames)
       /* Make a list of the fonts that have the right width.  */
       for (; CONSP (list); list = XCONS (list)->cdr)
 	{
+	  int found_size;
+
 	  tem = XCONS (list)->car;
 
 	  if (!CONSP (tem) || NILP (XCONS (tem)->car))
@@ -6462,7 +6467,10 @@ x_list_fonts (f, pattern, size, maxnames)
 
 	      if (thisinfo)
 		{
-		  XCONS (tem)->cdr =  make_number (thisinfo->max_bounds.width);
+		  XCONS (tem)->cdr
+		    = (thisinfo->min_bounds.width == 0
+		       ? make_number (0)
+		       : make_number (thisinfo->max_bounds.width));
 		  XFreeFont (dpy, thisinfo);
 		}
 	      else
@@ -6471,21 +6479,26 @@ x_list_fonts (f, pattern, size, maxnames)
 		  as 0 not to try to open it again.  */
 		XCONS (tem)->cdr = make_number (0);
 	    }
-	  if (XINT (XCONS (tem)->cdr) == size)
+
+	  found_size = XINT (XCONS (tem)->cdr);
+	  if (found_size == size)
 	    newlist = Fcons (XCONS (tem)->car, newlist);
-	  else if (NILP (second_best))
-	    second_best = tem;
-	  else if (XINT (XCONS (tem)->cdr) < size)
+	  else if (found_size > 0)
 	    {
-	      if (XINT (XCONS (second_best)->cdr) > size
-		  || XINT (XCONS (second_best)->cdr) < XINT (XCONS (tem)->cdr))
+	      if (NILP (second_best))
 		second_best = tem;
-	    }
-	  else
-	    {
-	      if (XINT (XCONS (second_best)->cdr) > size
-		  && XINT (XCONS (second_best)->cdr) > XINT (XCONS (tem)->cdr))
-		second_best = tem;
+	      else if (found_size < size)
+		{
+		  if (XINT (XCONS (second_best)->cdr) > size
+		      || XINT (XCONS (second_best)->cdr) < found_size)
+		    second_best = tem;
+		}
+	      else
+		{
+		  if (XINT (XCONS (second_best)->cdr) > size
+		      && XINT (XCONS (second_best)->cdr) > found_size)
+		    second_best = tem;
+		}
 	    }
 	}
       if (!NILP (newlist))
