@@ -1,3 +1,15 @@
+2003-05-21  Dave Love  <fx@gnu.org>
+
+	[Merged from unicode branch.]
+
+	* xfns.c (x_window, x_window): Use use_xim.
+
+	* xterm.c (use_xim): Initialize.
+	(xim_open_dpy, xim_initialize, xim_close_dpy): Use use_xim.
+	(x_term_init): Maybe set use_xim.
+
+	* xterm.h (use_xim) [HAVE_X_I18N]: Declare.
+
 2003-05-21  Jason Rumney  <jasonr@gnu.org>
 
 	* unexw32.c (_start): Remove _fmode initialization.

@@ -1,3 +1,13 @@
+2003-05-21  Dave Love  <fx@gnu.org>
+
+	* descr-text.el (unicodedata-file): New.
+	(unicode-data): New (adapted from unicode branch).
+	(describe-char): Use it.  Print char's unicode differently.  Avoid
+	elements with null cadr when formatting list.  Clarify error
+	message when used in Help buffer.
+	(button): Require when compiling.
+	(describe-char-after): Alias for obsolete command.
+
 2003-05-21  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gud-gdba-command-name): Use -noasync option for Gdb

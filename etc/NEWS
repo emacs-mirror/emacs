@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2001-03-15
+GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
 Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -87,6 +87,12 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 
 * Changes in Emacs 21.4
+
+** The X resource useXIM can be used to turn off use of XIM, which may
+speed up Emacs with slow networking to the X server.
+
+** `describe-char' can show data from the Unicode database file.  See
+user option `unicode-data'.
 
 ** `undo-only' (bound to C-x U) does an undo which does not redo any
 previous undo.
@@ -1314,9 +1320,6 @@ on garbage collection.
 
 ** New function `decode-coding-inserted-region' decodes a region as if
 it is read from a file without decoding.
-
-** New function `optimize-char-coding-system-table' can be called
-after making changes to `char-coding-system-table'.
 
 ** New function `langinfo' accesses locale information.
 
