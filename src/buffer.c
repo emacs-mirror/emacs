@@ -5303,7 +5303,7 @@ A value of t means, after a ^M, all the rest of the line is invisible.
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		    &current_buffer->selective_display_ellipses,
 		     Qnil,
-		     doc: /* t means display ... on previous line when a line is invisible.  */);
+		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
 #endif
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
