@@ -35,6 +35,10 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+---
+** PO translation files are decoded according to their MIME headers
+when Emacs visits them.
+
 ** The game `mpuz' is enhanced.
 
 `mpuz' now allows the 2nd factor not to have two identical digits.  By
