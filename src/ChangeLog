@@ -1,3 +1,7 @@
+2002-11-14  Francesco Potorti`  <pot@gnu.org>
+
+	* s/sol2-8.h: New file.
+
 2002-11-08  Juanma Barranquero  <lektu@terra.es>
 
 	* dispextern.h [!HAVE_X_WINDOWS]: Define XColor.
