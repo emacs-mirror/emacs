@@ -752,12 +752,10 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     ;; matches the start of the expansion,
     ;; copy the expansion's case
     ;; instead of downcasing all the rest.
-    (if (and (string= (or old abbrev)
-		      (substring expansion 0 (length (or old abbrev))))
-	     (not (string= (or old abbrev)
-			   (downcase (or old abbrev))))
-	     (not (string= (or old abbrev)
-			   (upcase (or old abbrev)))))
+    (if (and (string= abbrev
+		      (substring expansion 0 (length abbrev)))
+	     (not (string= abbrev (downcase abbrev)))
+	     (not (string= abbrev (upcase abbrev))))
 	(setq use-case-replace nil)
       (if use-case-replace
 	  (setq expansion (downcase expansion))))
