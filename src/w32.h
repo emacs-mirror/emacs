@@ -21,6 +21,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+
 /* File descriptor set emulation.  */
 
 /* MSVC runtime library has limit of 64 descriptors by default */
@@ -102,6 +103,9 @@ extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
 
 /* ------------------------------------------------------------------------- */
+
+/* Equivalent of strerror for W32 error codes.  */
+extern char * w32_strerror (int error_no);
 
 /* Get long (aka "true") form of file name, if it exists.  */
 extern BOOL w32_get_long_filename (char * name, char * buf, int size);
