@@ -1,6 +1,6 @@
 2002-05-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* international/mule.el (auto-coding-alist): Use no-conversion
+	* international/mule.el (auto-coding-alist): Use emacs-mule
 	for auto-save files.
 
 2002-05-20  Miles Bader  <miles@gnu.org>
