@@ -1,5 +1,10 @@
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* data.c (Qtext_read_only): New built-in error.
+	(syms_of_data): Initialize it.
+
+	* lisp.h: Add extern declaration for Qtext_read_only.
+
 	* syntax.c: Remove whitespace after open or in front of closing
 	parentheses.
 

@@ -1,5 +1,9 @@
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (blink-cursor-mode): Call internal-show-cursor instead
+	of show-cursor.
+	(blink-cursor-start, blink-cursor-end): Ditto.
+
 	* textmodes/tex-mode.el (tex-default-mode): Changed to latex-mode.
 
 1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
