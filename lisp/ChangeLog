@@ -1,3 +1,8 @@
+2004-09-08  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Fix last
+	change.  Use zero width overlays when necessary.
+
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* subr.el (split-string): Docfix.
