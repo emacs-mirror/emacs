@@ -1,3 +1,8 @@
+2000-09-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (Fccl_execute_on_string): Make multibyte string correctly.
+	If output buffer is too small, signal an appropriated error.
+
 2000-09-18  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (menu_bar_items, tool_bar_items) 
