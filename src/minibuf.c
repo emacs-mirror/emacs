@@ -1913,7 +1913,7 @@ DEFUN ("self-insert-and-exit", Fself_insert_and_exit, Sself_insert_and_exit, 0, 
   ()
 {
   if (INTEGERP (last_command_char))
-    internal_self_insert (last_command_char, 0);
+    internal_self_insert (XINT (last_command_char), 0);
   else
     bitch_at_user ();
 
