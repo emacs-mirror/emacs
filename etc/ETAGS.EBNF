@@ -11,7 +11,7 @@ DEL ::= #x7f				   /* pattern terminator */
 
 SOH ::= #x01				   /* name terminator */
 
-regchar ::= [^#x0a#x0c#x80]		   /* regular character */
+regchar ::= [^#x0a#x0c#x7f]		   /* regular character */
 
 regstring ::= { regchar }		   /* regular string */
 
