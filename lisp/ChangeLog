@@ -1,3 +1,8 @@
+2005-03-07  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* align.el (align-rules-list): Added an alignment rule for CSS
+	declarations (applies to css-mode and html-mode buffers).
+
 2005-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug-on-entry-1): Fix handling of macros.
