@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996 Free Software Foundation.
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 1997 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -1057,9 +1057,11 @@ x_report_frame_params (f, alistptr)
   store_in_alist (alistptr, Qdisplay,
 		  XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->car);
 
-  store_in_alist (alistptr, Qparent_id,
-		  (f->output_data.x->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window
-		   ? Qnil : f->output_data.x->parent_desc));
+  if (f->output_data.x->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
+    tem = Qnil;
+  else
+    XSETFASTINT (tem, f->output_data.x->parent_desc);
+  store_in_alist (alistptr, Qparent_id, tem);
 }
 
 
@@ -1580,6 +1582,8 @@ x_set_icon_name (f, arg, oldval)
 }
 
 extern Lisp_Object x_new_font ();
+extern Lisp_Object x_new_fontset ();
+extern Lisp_Object Fquery_fontset ();
 
 void
 x_set_font (f, arg, oldval)
@@ -3237,7 +3241,7 @@ This function is an internal primitive--use `make-frame' instead.")
 
   if (!NILP (parent))
     {
-      f->output_data.x->parent_desc = (Window) XINT (parent);
+      f->output_data.x->parent_desc = (Window) XFASTINT (parent);
       f->output_data.x->explicit_parent = 1;
     }
   else
