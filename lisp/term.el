@@ -1587,7 +1587,7 @@ applications."
     (while (not done)
       (if stars
           (message "%s%s" prompt (make-string (length ans) ?*))
-        (message prompt))
+        (message "%s" prompt))
       (setq c (read-char))
       (cond ((= c ?\C-g)
              ;; This function may get called from a process filter, where
