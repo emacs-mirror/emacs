@@ -1595,6 +1595,11 @@ init_sys_modes ()
 #endif
     set_terminal_modes ();
 
+  if (!term_initted
+      && FRAMEP (Vterminal_frame)
+      && FRAME_TERMCAP_P (XFRAME (Vterminal_frame)))
+    init_frame_faces (XFRAME (Vterminal_frame));
+
   if (term_initted && no_redraw_on_reenter)
     {
       if (display_completed)
