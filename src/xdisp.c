@@ -11260,12 +11260,14 @@ try_window_id (w)
     }
 
   /* Handle the case that changes are all below what is displayed in
-     the window, and that PT is in the window.  This short cut cannot
+     the window, and that PT is in the window.  This shortcut cannot
      be taken if ZV is visible in the window, and text has been added
      there that is visible in the window.  */
   if (first_changed_charpos >= MATRIX_ROW_END_CHARPOS (row)
-      /* ZV is not visible in the window.  */
-      && current_matrix->zv > MATRIX_ROW_END_CHARPOS (row))
+      /* ZV is not visible in the window, or there are no
+	 changes at ZV, actually.  */
+      && (current_matrix->zv > MATRIX_ROW_END_CHARPOS (row)
+	  || first_changed_charpos == last_changed_charpos))
     {
       struct glyph_row *r0;
 
@@ -11420,7 +11422,7 @@ try_window_id (w)
   
 #endif /* GLYPH_DEBUG != 0 */
 
-
+  
   /* Display new lines.  Set last_text_row to the last new line
      displayed which has text on it, i.e. might end up as being the
      line where the window_end_vpos is.  */
@@ -11904,7 +11906,7 @@ dump_glyph_row (matrix, vpos, glyphs)
       fprintf (stderr, "=======================================================================\n");
   
       fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
-%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d %4d %4d %4d %4d\n",
+%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       row - matrix->rows,
 	       MATRIX_ROW_START_CHARPOS (row),
 	       MATRIX_ROW_END_CHARPOS (row),
@@ -11930,8 +11932,9 @@ dump_glyph_row (matrix, vpos, glyphs)
 	       row->visible_height,
 	       row->ascent,
 	       row->phys_ascent);
-      fprintf (stderr, "%9d %5d\n", row->start.overlay_string_index,
-	       row->end.overlay_string_index);
+      fprintf (stderr, "%9d %5d\t%5d\n", row->start.overlay_string_index,
+	       row->end.overlay_string_index,
+	       row->continuation_lines_width);
       fprintf (stderr, "%9d %5d\n",
 	       CHARPOS (row->start.string_pos),
 	       CHARPOS (row->end.string_pos));
@@ -12261,6 +12264,10 @@ compute_line_metrics (it)
   else
     {
       row->pixel_width = row->used[TEXT_AREA];
+      if (row->continued_p)
+	row->pixel_width -= it->continuation_pixel_width;
+      else if (row->truncated_on_right_p)
+	row->pixel_width -= it->truncation_pixel_width;
       row->ascent = row->phys_ascent = 0;
       row->height = row->phys_height = row->visible_height = 1;
     }
