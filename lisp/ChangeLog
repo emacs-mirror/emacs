@@ -1,5 +1,36 @@
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
+	* international/quail.el (quail-guidance-str)
+	(quail-guidance-frame): New variables.
+	(quail-guidance-win): Delete this variable.
+	(quail-setup-overlays): Make overlay not rear-advancing.
+	(quail-kill-guidance-buf): Delete this function.
+	(quail-activate): Add/remove quail-show-guidance to/from
+	post-command-hook.
+	(quail-input-method): Don't setup quail-guidance-buf.  Initialize
+	quail-guidance-str to "".
+	(quail-start-translation): Call quail-show-guidance at first.
+	(quail-start-conversion): Likewise.
+	(quail-terminate-translation): Don't erase quail-guidance-buf.
+	(quail-update-translation): Stretch overlays if their starting and
+	ending positions are same.
+	(quail-update-current-translations): Check the width of the
+	current window, not the width of quail-guidance-win.
+	(quail-make-guidance-frame): Delete the arg BUF.  Fix position
+	calculation.  Don't set the window buffer, just return the new
+	frame.
+	(quail-minibuffer-message): New function.
+	(quail-show-guidance): Renamed from quail-show-guidance-buf.  Use
+	message and quail-minibuffer-message to display the guidance.
+	(quail-hide-guidance): Renamed from quail-hide-guidance-buf.  Only
+	delete quail-guidance-frame.
+	(quail-update-guidance): Just update quail-guidance-str, not
+	display it.
+	(quail-get-translations): Renamed from quail-show-translations.
+	Return a string instead of inserting it in quail-guaidance-buf.
+
+2003-04-11  Kenichi Handa  <handa@m17n.org>
+
 	* international/mule-cmds.el (sort-coding-systems): Set lower
 	priority to a utf-16 base coding system.  Set higher priority to a
 	coding system listed in coding-category-list.
