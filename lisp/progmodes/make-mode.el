@@ -278,21 +278,12 @@ not be enclosed in { } or ( )."
 
    ;; Fontify conditionals and includes.
    ;; Note that plain `if' is an automake conditional, and not a bug.
-   '("^[ \t]*\\(-?include\\|if\\(n?eq\\|n?def\\)?\\)[ \t]+\\([^: \t\n#]+\\)"
-     (1 font-lock-warning-face) (3 font-lock-variable-name-face))
-
-   ;; Fontify endif and else.
-   '("^[ \t]*\\(else\\|endif\\)[ \t]*\\(#.*$\\)?"
-     (1 font-lock-warning-face))
-
-   ;; Fontify conditionals and includes.
-   ;; Note that plain `if' is an automake conditional, and not a bug.
-   '("^[ \t]*\\(-?include\\|if\\(n?eq\\|n?def\\)?\\)[ \t]+\\([^: \t\n#]+\\)"
-     (1 font-lock-reference-face) (3 font-lock-variable-name-face))
-
-   ;; Fontify endif and else.
-   '("^[ \t]*\\(else\\|endif\\)[ \t]*\\(#.*$\\)?"
-     (1 font-lock-reference-face))
+   (list
+    (concat "^\\(?: [ \t]*\\)?"
+	    (regexp-opt '("-include" "-sinclude" "include" "sinclude" "ifeq"
+			  "if" "ifneq" "ifdef" "ifndef" "endif" "else") t)
+	    "\\>[ \t]*\\([^: \t\n#]*\\)")
+    '(1 font-lock-keyword-face) '(2 font-lock-variable-name-face))
 
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.
