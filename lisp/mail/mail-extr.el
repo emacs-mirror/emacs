@@ -1871,7 +1871,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 
 ;;;###autoload
 (defun what-domain (domain)
-  "Convert mail domain to country tit corresponds to."
+  "Convert mail domain DOMAIN to the country it corresponds to."
   (interactive
    (let ((completion-ignore-case t))
      (list (completing-read "Domain: "
