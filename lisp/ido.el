@@ -1352,6 +1352,12 @@ This function also adds a hook to the minibuffer."
       (define-key map "\C-k" 'ido-kill-buffer-at-head)
       )
 
+    (when (if (boundp 'viper-mode) viper-mode)
+      (define-key map [remap viper-backward-char] 'ido-delete-backward-updir)
+      (define-key map [remap viper-del-backward-char-in-insert] 'ido-delete-backward-updir)
+      (define-key map [remap viper-delete-backward-word] 'ido-delete-backward-word-updir)
+      (define-key map [remap viper-intercept-ESC-key] 'ignore))
+
     (setq ido-mode-map map)
     (run-hooks 'ido-define-mode-map-hook)))
 
@@ -2166,6 +2172,10 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
 	(ido-up-directory t)))
    ((and ido-pre-merge-state (string-equal (car ido-pre-merge-state) ido-text))
     (ido-undo-merge-work-directory (substring ido-text 0 -1) t t))
+   ((eq this-original-command 'viper-backward-char)
+    (funcall this-original-command (prefix-numeric-value count)))
+   ((eq this-original-command 'viper-del-backward-char-in-insert)
+    (funcall this-original-command))
    (t
     (delete-backward-char (prefix-numeric-value count)))))
 
@@ -2175,7 +2185,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   (if (= (minibuffer-prompt-end) (point))
       (if (not count)
 	  (ido-up-directory t))
-    (backward-kill-word (prefix-numeric-value count))))
+    (if (eq this-original-command 'viper-delete-backward-word)
+	(funcall this-original-command (prefix-numeric-value count))
+      (backward-kill-word (prefix-numeric-value count)))))
 
 (defun ido-get-work-directory (&optional incr must-match)
   (let ((n (length ido-work-directory-list))
