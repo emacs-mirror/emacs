@@ -1040,11 +1040,14 @@ If SYMBOL is nil, customize all faces.
 Interactively, when point is on text which has a face specified,
 suggest to customized that face, if it's customizable."
   (interactive
-   (list (completing-read "Customize face (default all): "
-			  obarray 'custom-facep t
-			  (let ((face (get-char-property (point) 'face)))
-			    (when (and face (symbolp face))
-			      (symbol-name face))))))
+   (list
+    (let ((face (get-char-property (point) 'face)))
+      (if (and face (symbolp face))
+	  (completing-read (format "Customize face (default `%s'): "
+				   (symbol-name face))
+			   obarray 'custom-facep t nil nil (symbol-name face))
+	(completing-read "Customize face (default all): "
+			 obarray 'custom-facep t)))))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       (custom-buffer-create (custom-sort-items
 			     (mapcar (lambda (symbol)
@@ -1067,11 +1070,14 @@ suggest to customized that face, if it's customizable."
 Interactively, when point is on text which has a face specified,
 suggest to customized that face, if it's customizable."
   (interactive
-   (list (completing-read "Customize face: "
-			  obarray 'custom-facep t
-			  (let ((face (get-char-property (point) 'face)))
-			    (when (and face (symbolp face))
-			      (symbol-name face))))))
+   (list
+    (let ((face (get-char-property (point) 'face)))
+      (if (and face (symbolp face))
+	  (completing-read (format "Customize face (default `%s'): "
+				   (symbol-name face))
+			   obarray 'custom-facep t nil nil (symbol-name face))
+	(completing-read "Customize face (default all): "
+			 obarray 'custom-facep t)))))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       ()
     (if (stringp symbol)
