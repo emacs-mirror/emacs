@@ -158,8 +158,8 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::	        The mark: how to delimit a ``region'' of text.
-* Killing::	        Killing text.
-* Yanking::	        Recovering killed text.  Moving text.
+* Killing::	        Killing (cutting) text.
+* Yanking::	        Recovering killed text.  Moving text. (Pasting.)
 * Accumulating Text::   Other ways of copying text.
 * Rectangles::	        Operating on the text inside a rectangle on the screen.
 * Registers::	        Saving a text string or a location in the buffer.
