@@ -889,6 +889,10 @@ with `delete-process'.")
 
   b = XBUFFER (buf);
 
+  /* Avoid trouble for buffer already dead.  */
+  if (NILP (b->name))
+    return Qnil;
+
   /* Query if the buffer is still modified.  */
   if (INTERACTIVE && !NILP (b->filename)
       && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
@@ -946,7 +950,9 @@ with `delete-process'.")
       GCPRO1 (buf);
 
       for (other = all_buffers; other; other = other->next)
-	if (other->base_buffer == b)
+	/* all_buffers contains dead buffers too;
+	   don't re-kill them.  */
+	if (other->base_buffer == b && !NILP (other->name))
 	  {
 	    Lisp_Object buf;
 	    XSETBUFFER (buf, other);
@@ -992,11 +998,26 @@ with `delete-process'.")
 	internal_delete_file (b->auto_save_file_name);
     }
 
-  if (! b->base_buffer)
+  if (b->base_buffer)
     {
-      /* Unchain all markers of this buffer
+      /* Unchain all markers that belong to this indirect buffer.
+	 Don't unchain the markers that belong to the base buffer
+	 or its other indirect buffers.  */
+      for (tem = BUF_MARKERS (b); !NILP (tem); )
+	{
+	  Lisp_Object next;
+	  m = XMARKER (tem);
+	  next = m->chain;
+	  if (m->buffer == b)
+	    unchain_marker (tem);
+	  tem = next;
+	}
+    }
+  else
+    {
+      /* Unchain all markers of this buffer and its indirect buffers.
 	 and leave them pointing nowhere.  */
-      for (tem = BUF_MARKERS (b); !EQ (tem, Qnil); )
+      for (tem = BUF_MARKERS (b); !NILP (tem); )
 	{
 	  m = XMARKER (tem);
 	  m->buffer = 0;
