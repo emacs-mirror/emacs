@@ -1,3 +1,8 @@
+2001-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/emacsbug.el (report-emacs-bug): Don't switch the buffer to
+	unibyte.  Suggested by Kenichi Handa <handa@etl.go.jp>.
+
 2001-05-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* net/browse-url.el (browse-url-filename-alist): Allow UNC file
