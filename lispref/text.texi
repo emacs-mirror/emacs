@@ -2438,12 +2438,12 @@ the function will be called.
 @itemx insert-behind-hooks
 @kindex insert-in-front-hooks @r{(text property)}
 @kindex insert-behind-hooks @r{(text property)}
-The operation of inserting text in a buffer, before actually modifying
-the buffer, calls the functions listed in the
-@code{insert-in-front-hooks} property of the following character and in
-the @code{insert-behind-hooks} property of the preceding character.
-These functions receive two arguments, the beginning and end of the
-inserted text.
+The operation of inserting text in a buffer also calls the functions
+listed in the @code{insert-in-front-hooks} property of the following
+character and in the @code{insert-behind-hooks} property of the
+preceding character.  These functions receive two arguments, the
+beginning and end of the inserted text.  The functions are called
+@emph{after} the actual insertion takes place.
 
 See also @ref{Change Hooks}, for other hooks that are called
 when you change text in a buffer.
