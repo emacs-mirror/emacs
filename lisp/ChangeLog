@@ -1,3 +1,10 @@
+2000-06-08  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): If
+	DEFAULT-CODING-SYSTEM is not specified, also check the most
+	preferred coding-system if buffer-file-coding-system is
+	`undecided'.  From Handa.
+
 2000-06-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el
