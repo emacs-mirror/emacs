@@ -448,7 +448,7 @@ set_frame_size (ew)
     frame->output_data.x->flags_areas_extra
       = 2 * FRAME_FLAGS_AREA_WIDTH (frame);
 
-    change_frame_size (frame, h, w, 1, 0);
+    change_frame_size (frame, h, w, 1, 0, 0);
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
     ew->core.width = pixel_width;
     ew->core.height = pixel_height;
@@ -783,7 +783,7 @@ EmacsFrameResize (widget)
   int rows;
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
-  change_frame_size (f, rows, columns, 0, 1);
+  change_frame_size (f, rows, columns, 0, 1, 0);
   update_wm_hints (ew); 
   update_various_frame_slots (ew);
 
@@ -841,7 +841,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
       new->core.height = pixel_height;
 
       change_frame_size (new->emacs_frame.frame, char_height, char_width,
-			  1, 0);
+			  1, 0, 0);
       needs_a_refresh = True;
     }
 

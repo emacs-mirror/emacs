@@ -2581,7 +2581,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       clear_waiting_for_input ();
 
       /*  If we woke up due to SIGWINCH, actually change size now.  */
-      do_pending_window_change ();
+      do_pending_window_change (0);
 
       if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
 	/* We wanted the full specified time, so return now.  */
@@ -2705,7 +2705,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If checking input just got us a size-change event from X,
 	 obey it now if we should.  */
       if (XINT (read_kbd) || wait_for_cell)
-	do_pending_window_change ();
+	do_pending_window_change (0);
 
       /* Check for data from a process.  */
       /* Really FIRST_PROC_DESC should be 0 on Unix,
@@ -4881,7 +4881,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       clear_waiting_for_input ();
 
       /*  If we woke up due to SIGWINCH, actually change size now.  */
-      do_pending_window_change ();
+      do_pending_window_change (0);
 
       if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
 	/* We waited the full specified time, so return now.  */

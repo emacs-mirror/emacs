@@ -4092,7 +4092,7 @@ the return value is nil.  Otherwise the value is t.")
       if (XFASTINT (data->frame_height) != previous_frame_height
 	  || XFASTINT (data->frame_width) != previous_frame_width)
 	change_frame_size (f, XFASTINT (data->frame_height),
-			   XFASTINT (data->frame_width), 0, 0);
+			   XFASTINT (data->frame_width), 0, 0, 0);
 #if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
       if (XFASTINT (data->frame_menu_bar_lines)
 	  != previous_frame_menu_bar_lines)
@@ -4259,7 +4259,7 @@ the return value is nil.  Otherwise the value is t.")
       if (previous_frame_height != FRAME_HEIGHT (f)
 	  || previous_frame_width != FRAME_WIDTH (f))
 	change_frame_size (f, previous_frame_height, previous_frame_width,
-			   0, 0);
+			   0, 0, 0);
 #if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
 	x_set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
