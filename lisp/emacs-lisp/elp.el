@@ -313,7 +313,7 @@ Argument FUNSYM is the symbol of a defined function."
     ;; the case that a lisp function can be compiled instrumented?
     (and info
 	 (functionp funsym)
-	 (not (compiled-function-p (symbol-function funsym)))
+	 (not (byte-code-function-p (symbol-function funsym)))
 	 (assq 'elp-wrapper (symbol-function funsym))
 	 (fset funsym (aref info 2)))))
 
