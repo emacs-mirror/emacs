@@ -134,9 +134,9 @@
 ;; Each of the tests below must work on any version of emacs.
 ;; (Perhaps provide and featurep could be used for this purpose.)
 
-(defconst isearch-frames-exist nil) ;; emacs 19
+(defconst isearch-frames-exist (fboundp 'select-frame)) ;; emacs 19
 (defconst isearch-pre-command-hook-exists (boundp 'pre-command-hook)) ;; lemacs
-(defconst isearch-events-exist nil)  ;; lemacs
+(defconst isearch-event-data-type nil)  ;; lemacs
 
 
 ;;;=========================================================================
@@ -210,10 +210,11 @@ currently matches the search-string.")
   "*Maximum length of regexp search ring before oldest elements are thrown away.")
 
 (defvar search-ring-yank-pointer nil
-  "The tail of the search ring whose car is the last thing searched for.")
+  "Index in `search-ring' of last string reused.
+nil if none yet.")
 (defvar regexp-search-ring-yank-pointer nil
-  "The tail of the regular expression search ring whose car is the last
-thing searched for.")
+  "Index in `regexp-search-ring' of last string reused.
+nil if none yet.")
 
 (defvar search-ring-update nil
   "*Non-nil if advancing or retreating in the search ring should cause search.
@@ -311,8 +312,8 @@ Default value, nil, means edit the string instead.")
 (or minibuffer-local-isearch-map
     (let ((map (copy-keymap minibuffer-local-map)))
       (define-key map "\r" 'isearch-nonincremental-exit-minibuffer)
-      (define-key map "\M-n" 'isearch-ring-advance-edit)
-      (define-key map "\M-p" 'isearch-ring-retreat-edit)
+;;      (define-key map "\M-n" 'isearch-ring-advance-edit)
+;;      (define-key map "\M-p" 'isearch-ring-retreat-edit)
       (define-key map "\M-\t" 'isearch-complete-edit)
       (define-key map "\C-s" 'isearch-forward-exit-minibuffer)
       (define-key map "\C-r" 'isearch-reverse-exit-minibuffer)
@@ -500,7 +501,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 	isearch-opoint (point)
 	isearch-window-configuration (current-window-configuration)
-	isearch-old-local-map (current-local-map))
+	isearch-old-local-map (current-local-map)
+	search-ring-yank-pointer nil
+	regexp-search-ring-yank-pointer nil)
   (if isearch-pre-command-hook-exists
       (add-hook 'pre-command-hook 'isearch-pre-command-hook))
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
@@ -524,7 +527,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 (defun isearch-update ()
   ;; Called after each command to update the display.  
-  (if (if isearch-events-exist
+  (if (if isearch-event-data-type
 	  (null unread-command-event)
 	(if isearch-frames-exist
 	    (null unread-command-char)
@@ -588,23 +591,18 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (if (> (length isearch-string) 0)
       ;; Update the ring data.
       (if isearch-regexp 
-	  (if (not (setq regexp-search-ring-yank-pointer
-			 ;; really need equal test instead of eq.
-			 (isearch-member-equal 
-			  isearch-string regexp-search-ring)))
+	  (if (and regexp-search-ring
+		   (not (string= isearch-string (car regexp-search-ring))))
 	      (progn
 		(setq regexp-search-ring
-		      (cons isearch-string regexp-search-ring)
-		      regexp-search-ring-yank-pointer regexp-search-ring)
+		      (cons isearch-string regexp-search-ring))
 		(if (> (length regexp-search-ring) regexp-search-ring-max)
 		    (setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
 			    nil))))
-	(if (not (setq search-ring-yank-pointer
-		       ;; really need equal test instead of eq.
-		       (isearch-member-equal isearch-string search-ring)))
+	(if (and search-ring
+		 (not (string= isearch-string (car search-ring))))
 	    (progn
-	      (setq search-ring (cons isearch-string search-ring)
-		    search-ring-yank-pointer search-ring)
+	      (setq search-ring (cons isearch-string search-ring))
 	      (if (> (length search-ring) search-ring-max)
 		  (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
@@ -663,8 +661,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   ;; Editing doesnt back up the search point.  Should it?
   (interactive)
   (condition-case err
-      (let ((minibuffer-local-map minibuffer-local-isearch-map)
-	    isearch-nonincremental	; should search nonincrementally?
+      (let (isearch-nonincremental	; should search nonincrementally?
 
 	    ;; Locally bind all isearch global variables to protect them
 	    ;; from recursive isearching.
@@ -705,7 +702,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	    (let* (;; Why does following read-char echo?  
 		   ;;(echo-keystrokes 0) ;; not needed with above message
 		   (cursor-in-echo-area t)
-		   (e (if isearch-events-exist (allocate-event) (read-char)))
+		   (e (if isearch-event-data-type (allocate-event) (read-char)))
 		   ;; Binding minibuffer-history-symbol to nil is a work-around
 		   ;; for some incompatibility with gmhist.
 		   (minibuffer-history-symbol))
@@ -720,14 +717,28 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 		      (lookup-key
 		       isearch-mode-map
 		       (char-to-string
-			(if isearch-events-exist
+			(if isearch-event-data-type
 			    (or (event-to-character (next-command-event e)) 0)
 			  e))))
 		  (setq isearch-word t  ;; so message-prefix is right
 			isearch-new-word t)
 		(isearch-unread e))
-	      (setq isearch-new-string (read-string (isearch-message-prefix)
-						    isearch-string)
+	      (setq cursor-in-echo-area nil)
+	      (setq isearch-new-string
+		    (let ((search-ring search-ring)
+			  (regexp-search-ring regexp-search-ring))
+		      (read-from-minibuffer (isearch-message-prefix)
+					    isearch-string
+					    minibuffer-local-isearch-map nil
+					    (cons
+					     (if isearch-regexp
+						 'regexp-search-ring
+					       'search-ring)
+					     (or
+					      (if isearch-regexp
+						  regexp-search-ring-yank-pointer
+						search-ring-yank-pointer)
+					      0))))
 		    isearch-new-message (mapconcat 'text-char-description
 						   isearch-new-string "")))
 	  ;; Always resume isearching by restarting it.
@@ -793,7 +804,7 @@ Use `isearch-exit' to quit without signalling."
       ;; and really do quit.
       (progn (goto-char isearch-opoint)
 	     (isearch-done)   ; exit isearch
-	     (signal 'quit '(isearch)))  ; and pass on quit signal
+	     (signal 'quit nil))  ; and pass on quit signal
     ;; If search is failing, rub out until it is once more successful.
     (while (not isearch-success) (isearch-pop-state))
     (isearch-update)))
@@ -807,12 +818,8 @@ Use `isearch-exit' to quit without signalling."
 	  ;; If search string is empty, use last one.
 	  (setq isearch-string
 		(or (if isearch-regexp
-			(if regexp-search-ring-yank-pointer
-			    (car regexp-search-ring-yank-pointer)
-			  (car regexp-search-ring))
-		      (if search-ring-yank-pointer
-			  (car search-ring-yank-pointer)
-			(car search-ring)))
+			(car regexp-search-ring)
+		      (car search-ring))
 		    "")
 		isearch-message
 		(mapconcat 'isearch-text-char-description
@@ -1083,10 +1090,10 @@ If not in regexp mode, activate word search."
 	()
       (set yank-pointer-name
 	   (setq yank-pointer
-		 (nthcdr (% (+ (- length (length yank-pointer))
-			       (if advance (1- length) 1))
-			    length) ring)))
-      (setq isearch-string (car yank-pointer)
+		 (% (+ (or yank-pointer 0)
+		       (if advance (1- length) 1))
+		    length)))
+      (setq isearch-string (nth yank-pointer ring)
 	    isearch-message (mapconcat 'isearch-text-char-description
 				       isearch-string "")))))
 
@@ -1114,20 +1121,56 @@ If not in regexp mode, activate word search."
   (interactive)
   (isearch-ring-adjust nil))
 
-(defun isearch-ring-adjust-edit (advance)
-  "Use the next or previous search string in the ring while in minibuffer."
-  (isearch-ring-adjust1 advance)
-  (erase-buffer)
-  (insert isearch-string))
+(defun isearch-ring-advance-edit (n)
+  "Insert the next element of the search history into the minibuffer."
+  (interactive "p")
+  (let* ((yank-pointer-name (if isearch-regexp
+				'regexp-search-ring-yank-pointer
+			      'search-ring-yank-pointer))
+	 (yank-pointer (eval yank-pointer-name))
+	 (ring (if isearch-regexp regexp-search-ring search-ring))
+	 (length (length ring)))
+    (if (zerop length)
+	()
+      (set yank-pointer-name
+	   (setq yank-pointer
+		 (% (+ (or yank-pointer 0)
+		       (if advance (+ length (% n length))))
+		    length)))
 
-(defun isearch-ring-advance-edit ()
-  (interactive)
-  (isearch-ring-adjust-edit 'advance))
+    (if (= minibuffer-history-position narg)
+	(error (if (= minibuffer-history-position 1)
+		   "End of history; no next item"
+		 "Beginning of history; no preceding item"))
+      (erase-buffer)
+      (setq minibuffer-history-position narg)
+      (let ((elt (nth (1- minibuffer-history-position)
+		      (symbol-value minibuffer-history-variable))))
+	(insert
+	 (if minibuffer-history-sexp-flag
+	     (prin1-to-string elt)
+	   elt)))
+      (goto-char (point-min)))))
 
-(defun isearch-ring-retreat-edit ()
-  "Retreat to the previous search string in the ring while in the minibuffer."
-  (interactive)
-  (isearch-ring-adjust-edit nil))
+(defun isearch-ring-retreat-edit (n)
+  "Inserts the previous element of the search history into the minibuffer."
+  (interactive "p")
+  (isearch-ring-advance-edit (- n)))
+
+;;(defun isearch-ring-adjust-edit (advance)
+;;  "Use the next or previous search string in the ring while in minibuffer."
+;;  (isearch-ring-adjust1 advance)
+;;  (erase-buffer)
+;;  (insert isearch-string))
+
+;;(defun isearch-ring-advance-edit ()
+;;  (interactive)
+;;  (isearch-ring-adjust-edit 'advance))
+
+;;(defun isearch-ring-retreat-edit ()
+;;  "Retreat to the previous search string in the ring while in the minibuffer."
+;;  (interactive)
+;;  (isearch-ring-adjust-edit nil))
 
 
 (defun isearch-complete1 ()
@@ -1377,13 +1420,13 @@ have special meaning in a regexp."
 
 (defun isearch-unread (char-or-event)
   ;; General function to unread a character or event.
-  (if isearch-events-exist
+  (if isearch-event-data-type
       (setq unread-command-event char-or-event)
     (setq unread-command-char char-or-event)))
 
 (defun isearch-last-command-char ()
   ;; General function to return the last command character.
-  (if isearch-events-exist
+  (if isearch-event-data-type
       last-command-event
     last-command-char))
 
