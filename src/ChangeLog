@@ -1,3 +1,10 @@
+2000-11-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]: Map the
+	scroll bar widget after configuring it, so that it will appear at
+	the right position from the start.
+	(XTredeem_scroll_bar): Cleaned up.
+
 2000-11-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (VCENTER_BASELINE_OFFSET): Fix previous change.  If the
