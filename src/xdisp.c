@@ -456,14 +456,15 @@ prepare_menu_bars ()
 		 || clip_changed || windows_or_buffers_changed);
 
 #ifdef HAVE_X_WINDOWS
-  {
-    Lisp_Object tail, frame;
+  if (windows_or_buffers_changed)
+    {
+      Lisp_Object tail, frame;
 
-    FOR_EACH_FRAME (tail, frame)
-      if (FRAME_VISIBLE_P (XFRAME (frame))
-	  || FRAME_ICONIFIED_P (XFRAME (frame)))
-	x_consider_frame_title (frame);
-  }
+      FOR_EACH_FRAME (tail, frame)
+	if (FRAME_VISIBLE_P (XFRAME (frame))
+	    || FRAME_ICONIFIED_P (XFRAME (frame)))
+	  x_consider_frame_title (frame);
+    }
 #endif
 
   /* Update the menu bar item lists, if appropriate.
