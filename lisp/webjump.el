@@ -130,7 +130,7 @@
 
     ;; Emacs.
     ("Emacs Lisp Archive" .
-     "ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
+     "ftp://ftp.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
 
     ;; Internet search engines.
     ("AltaVista" . 
@@ -279,18 +279,18 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		webjump-sites))
 	 (name (car item))
 	 (expr (cdr item)))
-    (funcall browse-url-browser-function
-	     (webjump-url-fix
-	      (cond ((not expr) "")
-		    ((stringp expr) expr)
-		    ((vectorp expr) (webjump-builtin expr name))
-		    ((listp expr) (eval expr))
-		    ((symbolp expr)
-		     (if (fboundp expr)
-			 (funcall expr name)
-		       (error "WebJump URL function \"%s\" undefined." expr)))
-		    (t (error "WebJump URL expression for \"%s\" invalid."
-			      name)))))))
+    (browse-url (webjump-url-fix
+		 (cond ((not expr) "")
+		       ((stringp expr) expr)
+		       ((vectorp expr) (webjump-builtin expr name))
+		       ((listp expr) (eval expr))
+		       ((symbolp expr)
+			(if (fboundp expr)
+			    (funcall expr name)
+			  (error "WebJump URL function \"%s\" undefined." 
+				 expr)))
+		       (t (error "WebJump URL expression for \"%s\" invalid."
+				 name)))))))
 
 (defun webjump-builtin (expr name)
   (if (< (length expr) 1)
