@@ -1,3 +1,7 @@
+2001-11-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): Add entries for Calc.
+
 2001-11-09  Miles Bader  <miles@gnu.org>
 
 	* subr.el (functionp): Don't consider macros as functions.
