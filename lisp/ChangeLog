@@ -1,3 +1,9 @@
+2001-11-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-edit-menu): Don't use x-selection-exists-p if
+	it is not fboundp.
+	(clipboard-yank): Ditto.
+
 2001-11-11  Colin Walters  <walters@verbum.org>
 
 	The following changes are based on patches from
