@@ -1,3 +1,9 @@
+2003-04-07  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* xt-mouse.el (xterm-mouse-event-read): New function.
+	(xterm-mouse-event): Use it to get xterm sequences above #x7f.
+	Suggested by Aman Bhargava <emacs-bug@amanb.net>.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
