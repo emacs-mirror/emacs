@@ -4590,7 +4590,7 @@ decode_eol_post_ccl (coding, ptr, bytes)
 	{
 	  /* If the last character is CR, we can't handle it here
 	     because LF will be in the not-yet-decoded source text.
-	     Recorded that the CR is not yet processed.  */
+	     Record that the CR is not yet processed.  */
 	  coding->spec.ccl.cr_carryover = 1;
 	  coding->produced--;
 	  coding->produced_char--;
@@ -4686,6 +4686,8 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
      unsigned char *source, *destination;
      int src_bytes, dst_bytes;
 {
+  int extra = 0;
+
   if (coding->type == coding_type_undecided)
     detect_coding (coding, source, src_bytes);
 
@@ -4728,18 +4730,24 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
     case coding_type_ccl:
       if (coding->spec.ccl.cr_carryover)
 	{
-	  /* Set the CR which is not processed by the previous call of
-	     decode_eol_post_ccl in DESTINATION.  */
+	  /* Put the CR which was not processed by the previous call
+	     of decode_eol_post_ccl in DESTINATION.  It will be
+	     decoded together with the following LF by the call to
+	     decode_eol_post_ccl below.  */
 	  *destination = '\r';
 	  coding->produced++;
 	  coding->produced_char++;
 	  dst_bytes--;
+	  extra = coding->spec.ccl.cr_carryover;
 	}
-      ccl_coding_driver (coding, source,
-			 destination + coding->spec.ccl.cr_carryover,
+      ccl_coding_driver (coding, source, destination + extra,
 			 src_bytes, dst_bytes, 0);
       if (coding->eol_type != CODING_EOL_LF)
-	decode_eol_post_ccl (coding, destination, coding->produced);
+	{
+	  coding->produced += extra;
+	  coding->produced_char += extra;
+	  decode_eol_post_ccl (coding, destination, coding->produced);
+	}
       break;
 
     default:
