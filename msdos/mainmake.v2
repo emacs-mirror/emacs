@@ -75,7 +75,7 @@ TAGS tags:	lib-src FRC
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
 	cd lisp
-	../bin/etags [a-zA-Z]*.el term/[a-zA-Z]*.el
+	../bin/etags [a-zA-Z]*.el [a-z][A-Z]*/[a-zA-Z]*.el
 	cd ..
 	cd src
 	../bin/etags --include=../lisp/TAGS \
