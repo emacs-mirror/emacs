@@ -522,7 +522,6 @@ void
 make_gap (nbytes_added)
      int nbytes_added;
 {
-  unsigned char *result;
   Lisp_Object tem;
   int real_gap_loc;
   int real_gap_loc_byte;
