@@ -71,7 +71,7 @@
   (set-case-syntax 179 "w" tbl)		;superscript three
   (set-case-syntax-pair 180 184 tbl)	;latin letter z with caron *
   (set-case-syntax 181 "_" tbl)		;micro sign
-  (set-case-syntax 182 "w" tbl)		;pilcrow sign
+  (set-case-syntax 182 "." tbl)		;pilcrow sign
   (set-case-syntax 183 "_" tbl)		;middle dot
   (set-case-syntax 185 "w" tbl)		;superscript one
   (set-case-syntax 186 "w" tbl)		;masculine ordinal indicator
