@@ -642,7 +642,7 @@ Entry to this mode runs the hooks on term-mode-hook"
       (goto-char (process-mark proc))
       (if (term-pager-enabled)
 	  (setq term-pager-count (term-current-row)))
-      (send-string proc chars))))
+      (process-send-string proc chars))))
 
 (defun term-send-raw ()
   "Send the last character typed through the terminal-emulator
@@ -1376,7 +1376,7 @@ Argument 0 is the command name."
   (let ((argpart "[^ \n\t\"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
 	(args ()) (pos 0)
 	(count 0)
-	beg str value quotes)
+	beg str quotes)
     ;; Build a list of all the args until we have as many as we want.
     (while (and (or (null mth) (<= count mth))
 		(string-match argpart string pos))
@@ -2331,10 +2331,10 @@ See `term-prompt-regexp'."
 
 (defun term-handle-deferred-scroll ()
   (let ((count (- (term-current-row) term-height)))
-    (if (> count 0)
+    (if (>= count 0)
 	(save-excursion
 	  (goto-char term-home-marker)
-	  (term-vertical-motion count)
+	  (term-vertical-motion (1+ count))
 	  (set-marker term-home-marker (point))
 	  (setq term-current-row (1- term-height))))))
 
