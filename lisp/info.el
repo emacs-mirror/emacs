@@ -304,7 +304,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (Info-select-node)))
     ;; If we did not finish finding the specified node,
     ;; go back to the previous one.
-    (or Info-current-node no-going-back
+    (or Info-current-node no-going-back (null Info-history)
 	(let ((hist (car Info-history)))
 	  (setq Info-history (cdr Info-history))
 	  (Info-find-node (nth 0 hist) (nth 1 hist) t)
@@ -373,6 +373,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				       Info-dir-file-attributes))))))
 	(setq dirs (cdr dirs)))
 
+      (or buffers
+	  (error "Can't find the info directory node"))
       ;; Distinguish the dir file that comes with Emacs from all the
       ;; others.  Yes, that is really what this is supposed to do.
       ;; If it doesn't work, fix it.
