@@ -1,5 +1,15 @@
 2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* sysdep.c (wait_for_kbd_input) [VMS]: Do not call
+	clear_waiting_for_input with argument.
+
+	* xterm.h (x_update_cursor): Remove duplicated prototype.
+
+	* keyboard.h (clear_waiting_for_input): Remove duplicated
+	prototype.
+
+	* xterm.c (waiting_for_input): Remove unnecessary prototype.
+
 	* data.c (Ftimes): Doc fix.
 	(Fquo): Likewise.
 	(Frem): Likewise.

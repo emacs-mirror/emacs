@@ -1,3 +1,7 @@
+2001-11-16  Pavel Janík  <Pavel@Janik.cz>
+
+	* src/macterm.c (waiting_for_input): Remove unnecessary prototype.
+
 2001-11-16  Kim F. Storm  <storm@cua.dk>
 
 	The following changes are made to clean up the various internal
