@@ -3134,13 +3134,15 @@ create_frame_xic (f)
   xim = FRAME_X_XIM (f);
   if (xim)
     {
-      XRectangle s_area = {0, 0, 1, 1};
-      XPoint spot = {0, 1};
+      XRectangle s_area;
+      XPoint spot;
       XVaNestedList preedit_attr;
       XVaNestedList status_attr;
       char *base_fontname;
       int fontset;
 
+      s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
+      spot.x = 0; spot.y = 1;
       /* Create X fontset. */
       fontset = FRAME_FONTSET (f);
       if (fontset < 0)
