@@ -189,7 +189,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 {
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object mini_frame, ambient_dir;
+  Lisp_Object mini_frame, ambient_dir, minibuffer;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   single_kboard_state ();
@@ -268,7 +268,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* Switch to the minibuffer.  */
 
-  Fset_buffer (get_minibuffer (minibuf_level));
+  minibuffer = get_minibuffer (minibuf_level);
+  Fset_buffer (minibuffer);
 
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
@@ -354,6 +355,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     }
 
   /* Make minibuffer contents into a string */
+  Fset_buffer (minibuffer);
   val = make_buffer_string (1, Z, 1);
 #if 0  /* make_buffer_string should handle the gap.  */
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
