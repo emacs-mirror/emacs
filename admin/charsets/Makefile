@@ -192,9 +192,9 @@ JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 > $@
 
-CP932-2BYTE.map: ${MISC_CHARMAPS}/cp932.txt mapconv
+CP932-2BYTE.map: ${MISC_CHARMAPS}/cp932.txt mapconv cp932.awk
 	# Generating $@...
-	@mapconv $< '/^0x[89a-f][0-9A-F][0-9A-F]/' UNICODE2 > $@
+	@mapconv $< '/^0x[89A-F][0-9A-F][0-9A-F]/' UNICODE2 cp932.awk > $@
 
 JISC6226.map : ${MISC_CHARMAPS}/Uni2JIS mapconv kuten.awk
 	# Generating $@...
