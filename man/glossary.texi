@@ -275,6 +275,7 @@ Customization is making minor changes in the way Emacs works.  It is
 often done by setting variables (@pxref{Variables}) or by rebinding
 key sequences (@pxref{Keymaps}).
 
+@cindex cut and paste
 @item Cut and Paste
 See `killing' and `yanking.'
 
