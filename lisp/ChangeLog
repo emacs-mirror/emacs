@@ -1,3 +1,7 @@
+2003-04-24  Lars Hansen  <larsh@math.ku.dk>
+
+	* subr.el (assq-delete-all): Ignore non-cons elememts.
+
 2003-04-24  John Paul Wallington  <jpw@gnu.org>
 
 	* help-mode.el (help-make-xrefs): Remove extra paren.
