@@ -29,6 +29,7 @@
 (define-key rmail-mode-map "\C-c\C-s\C-a" 'rmail-sort-by-author)
 (define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
 (define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
+(define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-size-lines)
 
 (defun rmail-sort-by-date (reverse)
   "Sort messages of current Rmail file by date.
@@ -96,6 +97,17 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 	     (or (rmail-fetch-field msg (car fields)) ""))))
      (setq fields (cdr fields)))
    ans))
+
+(defun rmail-sort-by-size-lines (reverse)
+  "Sort messages of current Rmail file by message size.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-messages reverse
+		       (function
+			(lambda (msg)
+			  (format "%9d"
+				  (count-lines (rmail-msgbeg msgnum)
+					       (rmail-msgend msgnum)))))))
 
 
 (defun rmail-sort-messages (reverse keyfunc)
@@ -113,6 +125,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			  (buffer-substring
 			   (rmail-msgbeg msgnum) (rmail-msgend msgnum)))
 		    sort-lists))
+	(if (zerop (% msgnum 10))
+	    (message "Finding sort keys...%d" msgnum))
 	(setq msgnum (1+ msgnum))))
     (or reverse (setq sort-lists (nreverse sort-lists)))
     (setq sort-lists
@@ -123,12 +137,15 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
     (if reverse (setq sort-lists (nreverse sort-lists)))
     (message "Reordering buffer...")
     (delete-region (rmail-msgbeg 1) (rmail-msgend rmail-total-messages))
-    (while sort-lists
-      (insert (cdr (car sort-lists)))
-      (setq sort-lists (cdr sort-lists)))
+    (let ((msgnum 1))
+      (while sort-lists
+	(insert (cdr (car sort-lists)))
+	(if (zerop (% msgnum 10))
+	    (message "Reordering buffer...%d" msgnum))
+	(setq sort-lists (cdr sort-lists))
+	(setq msgnum (1+ msgnum))))
     (rmail-set-message-counters)
-    (rmail-show-message)
-    ))
+    (rmail-show-message)))
 
 (defun rmail-fetch-field (msg field)
   "Return the value of the header field FIELD of MSG.
@@ -172,9 +189,7 @@ Arguments are MSG and FIELD."
 	 ;; Time
 	 (substring date (match-beginning 4) (match-end 4)))
       ;; Cannot understand DATE string.
-      date
-      )
-    ))
+      date)))
 
 (defun rmail-date-full-year (year-string)
   (if (<= (length year-string) 2)
