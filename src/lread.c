@@ -142,8 +142,7 @@ static int read_from_string_limit;
    that `readchar' has already advanced over.  */
 static int readchar_backlog;
 
-/* This contains the last string skipped with #@, but only on some systems.
-     On other systems we can't put the string here.  */
+/* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
 /* Length of buffer allocated in saved_doc_string.  */
 static int saved_doc_string_size;
@@ -151,6 +150,17 @@ static int saved_doc_string_size;
 static int saved_doc_string_length;
 /* This is the file position that string came from.  */
 static int saved_doc_string_position;
+
+/* This contains the previous string skipped with #@.
+   We copy it from saved_doc_string when a new string
+   is put in saved_doc_string.  */
+static char *prev_saved_doc_string;
+/* Length of buffer allocated in prev_saved_doc_string.  */
+static int prev_saved_doc_string_size;
+/* Length of actual data in prev_saved_doc_string.  */
+static int prev_saved_doc_string_length;
+/* This is the file position that string came from.  */
+static int prev_saved_doc_string_position;
 
 /* Nonzero means inside a new-style backquote
    with no surrounding parentheses.
@@ -702,6 +712,11 @@ Return t if file exists.")
     free (saved_doc_string);
   saved_doc_string = 0;
   saved_doc_string_size = 0;
+
+  if (prev_saved_doc_string)
+    free (prev_saved_doc_string);
+  prev_saved_doc_string = 0;
+  prev_saved_doc_string_size = 0;
 
   if (!noninteractive && NILP (nomessage))
     {
@@ -1519,7 +1534,7 @@ read1 (readcharfun, pch, first_in_list)
       return read_list (0, readcharfun);
 
     case '[':
-      return read_vector (readcharfun);
+      return read_vector (readcharfun, 0);
 
     case ')':
     case ']':
@@ -1536,7 +1551,7 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c == '[')
 	    {
 	      Lisp_Object tmp;
-	      tmp = read_vector (readcharfun);
+	      tmp = read_vector (readcharfun, 0);
 	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS
 		  || XVECTOR (tmp)->size > CHAR_TABLE_STANDARD_SLOTS + 10)
 		error ("Invalid size char-table");
@@ -1550,7 +1565,7 @@ read1 (readcharfun, pch, first_in_list)
 	      if (c == '[')
 		{
 		  Lisp_Object tmp;
-		  tmp = read_vector (readcharfun);
+		  tmp = read_vector (readcharfun, 0);
 		  if (XVECTOR (tmp)->size != SUB_CHAR_TABLE_STANDARD_SLOTS)
 		    error ("Invalid size char-table");
 		  XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
@@ -1601,7 +1616,7 @@ read1 (readcharfun, pch, first_in_list)
 	  /* Accept compiled functions at read-time so that we don't have to
 	     build them using function calls.  */
 	  Lisp_Object tmp;
-	  tmp = read_vector (readcharfun);
+	  tmp = read_vector (readcharfun, 1);
 	  return Fmake_byte_code (XVECTOR (tmp)->size,
 				  XVECTOR (tmp)->contents);
 	}
@@ -1656,12 +1671,31 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c >= 0)
 	    UNREAD (c);
 	  
-#ifndef WINDOWSNT /* I don't know if filepos works right on Windoze.  */
 	  if (load_force_doc_strings && EQ (readcharfun, Qget_file_char))
 	    {
 	      /* If we are supposed to force doc strings into core right now,
 		 record the last string that we skipped,
 		 and record where in the file it comes from.  */
+
+	      /* But first exchange saved_doc_string
+		 with prev_saved_doc_string, so we save two strings.  */
+	      {
+		char *temp = saved_doc_string;
+		int temp_size = saved_doc_string_size;
+		int temp_pos = saved_doc_string_position;
+		int temp_len = saved_doc_string_length;
+
+		saved_doc_string = prev_saved_doc_string;
+		saved_doc_string_size = prev_saved_doc_string_size;
+		saved_doc_string_position = prev_saved_doc_string_position;
+		saved_doc_string_length = prev_saved_doc_string_length;
+
+		prev_saved_doc_string = temp;
+		prev_saved_doc_string_size = temp_size;
+		prev_saved_doc_string_position = temp_pos;
+		prev_saved_doc_string_length = temp_len;
+	      }
+
 	      if (saved_doc_string_size == 0)
 		{
 		  saved_doc_string_size = nskip + 100;
@@ -1683,7 +1717,6 @@ read1 (readcharfun, pch, first_in_list)
 	      saved_doc_string_length = i;
 	    }
 	  else
-#endif /* not WINDOWSNT */
 	    {
 	      /* Skip that many characters.  */
 	      for (i = 0; i < nskip && c >= 0; i++)
@@ -2134,13 +2167,14 @@ isfloat_string (cp)
 #endif /* LISP_FLOAT_TYPE */
 
 static Lisp_Object
-read_vector (readcharfun)
+read_vector (readcharfun, bytecodeflag)
      Lisp_Object readcharfun;
+     int bytecodeflag;
 {
   register int i;
   register int size;
   register Lisp_Object *ptr;
-  register Lisp_Object tem, vector;
+  register Lisp_Object tem, item, vector;
   register struct Lisp_Cons *otem;
   Lisp_Object len;
 
@@ -2148,12 +2182,55 @@ read_vector (readcharfun)
   len = Flength (tem);
   vector = (read_pure ? make_pure_vector (XINT (len)) : Fmake_vector (len, Qnil));
 
-
   size = XVECTOR (vector)->size;
   ptr = XVECTOR (vector)->contents;
   for (i = 0; i < size; i++)
     {
-      ptr[i] = read_pure ? Fpurecopy (Fcar (tem)) : Fcar (tem);
+      item = Fcar (tem);
+      /* If `load-force-doc-strings' is t when reading a lazily-loaded
+	 bytecode object, the docstring containing the bytecode and
+	 constants values must be treated as unibyte and passed to
+	 Fread, to get the actual bytecode string and constants vector.  */
+      if (bytecodeflag && load_force_doc_strings)
+	{
+	  if (i == COMPILED_BYTECODE)
+	    {
+	      if (!STRINGP (item))
+		error ("invalid byte code");
+
+	      /* Delay handling the bytecode slot until we know whether
+		 it is lazily-loaded (we can tell by whether the
+		 constants slot is nil).  */
+	      ptr[COMPILED_CONSTANTS] = item;
+	      item = Qnil;
+	    }
+	  else if (i == COMPILED_CONSTANTS)
+	    {
+	      Lisp_Object bytestr = ptr[COMPILED_CONSTANTS];
+
+	      if (NILP (item))
+		{
+		  /* Coerce string to unibyte (like string-as-unibyte,
+		     but without generating extra garbage and
+		     guaranteeing no change in the contents).  */
+		  XSTRING (bytestr)->size = STRING_BYTES (XSTRING (bytestr));
+		  SET_STRING_BYTES (XSTRING (bytestr), -1);
+
+		  item = Fread (bytestr);
+		  if (!CONSP (item))
+		    error ("invalid byte code");
+
+		  otem = XCONS (item);
+		  bytestr = XCONS (item)->car;
+		  item = XCONS (item)->cdr;
+		  free_cons (otem);
+		}
+
+	      /* Now handle the bytecode slot.  */
+	      ptr[COMPILED_BYTECODE] = read_pure ? Fpurecopy (bytestr) : bytestr;
+	    }
+	}
+      ptr[i] = read_pure ? Fpurecopy (item) : item;
       otem = XCONS (tem);
       tem = Fcdr (tem);
       free_cons (otem);
@@ -2251,6 +2328,8 @@ read_list (flag, readcharfun)
 		      /* Get a doc string from the file we are loading.
 			 If it's in saved_doc_string, get it from there.  */
 		      int pos = XINT (XCONS (val)->cdr);
+		      /* Position is negative for user variables.  */
+		      if (pos < 0) pos = -pos;
 		      if (pos >= saved_doc_string_position
 			  && pos < (saved_doc_string_position
 				    + saved_doc_string_length))
@@ -2282,8 +2361,40 @@ read_list (flag, readcharfun)
 			  return make_string (saved_doc_string + start,
 					      to - start);
 			}
+		      /* Look in prev_saved_doc_string the same way.  */
+		      else if (pos >= prev_saved_doc_string_position
+			       && pos < (prev_saved_doc_string_position
+					 + prev_saved_doc_string_length))
+			{
+			  int start = pos - prev_saved_doc_string_position;
+			  int from, to;
+
+			  /* Process quoting with ^A,
+			     and find the end of the string,
+			     which is marked with ^_ (037).  */
+			  for (from = start, to = start;
+			       prev_saved_doc_string[from] != 037;)
+			    {
+			      int c = prev_saved_doc_string[from++];
+			      if (c == 1)
+				{
+				  c = prev_saved_doc_string[from++];
+				  if (c == 1)
+				    prev_saved_doc_string[to++] = c;
+				  else if (c == '0')
+				    prev_saved_doc_string[to++] = 0;
+				  else if (c == '_')
+				    prev_saved_doc_string[to++] = 037;
+				}
+			      else
+				prev_saved_doc_string[to++] = c;
+			    }
+
+			  return make_string (prev_saved_doc_string + start,
+					      to - start);
+			}
 		      else
-			return read_doc_string (val);
+			return get_doc_string (val, 0);
 		    }
 
 		  return val;
