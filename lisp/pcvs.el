@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.46 2002/12/05 15:23:37 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.47 2003/02/04 11:57:37 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -541,7 +541,8 @@ Working dir: " (abbreviate-file-name dir) "
 	       ;; If process-connection-type is nil and the repository
 	       ;; is accessed via SSH, a bad interaction between libc,
 	       ;; CVS and SSH can lead to garbled output.
-	       ;; It might be a glibc-specific problem.
+	       ;; It might be a glibc-specific problem (but it also happens
+	       ;; under Mac OS X, it seems).
 	       ;; Until the problem is cleared, we'll use a pty rather than
 	       ;; a pipe.
 	       ;; (process-connection-type nil) ; Use a pipe, not a pty.
