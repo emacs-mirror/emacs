@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.2) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -208,7 +208,7 @@ static void DebugPoolFinish(Pool pool)
  */
 
 static Res FenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
-                      Size size, Bool withReservoirPermit)
+                      Size size, Bool withReservoir)
 {
   Res res;
   Addr new, clientNew;
@@ -218,12 +218,12 @@ static Res FenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
   AVERT(PoolDebugMixin, debug);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
+  AVERT(Bool, withReservoir);
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
   res = (pool->class->super->alloc)(&new, pool,
                                     alignedSize + 2*debug->fenceSize,
-                                    withReservoirPermit);
+                                    withReservoir);
   if (res != ResOK)
     return res;
   clientNew = AddrAdd(new, debug->fenceSize);
@@ -287,8 +287,7 @@ static void FenceFree(PoolDebugMixin debug,
 /* TagAlloc -- tag allocation */
 
 static Res TagAlloc(PoolDebugMixin debug,
-                    Pool pool, Addr new, Size size,
-                    Bool withReservoirPermit, void *tagData)
+                    Pool pool, Addr new, Size size, Bool withReservoir)
 {
   Tag tag;
   Res res;
@@ -299,14 +298,14 @@ static Res TagAlloc(PoolDebugMixin debug,
 
   res = PoolAlloc((Addr*)&tag, debug->tagPool, debug->tagSize, FALSE);
   if (res != ResOK)
-    if (withReservoirPermit) { /* design.mps.debug.@@@@ */
+    if (withReservoir) { /* design.mps.object-debug.out-of-space */
       debug->missingTags++;
       return ResOK;
     } else {
       return res;
     }
   tag->addr = new; tag->size = size;
-  (debug->tagInit)((void *)tag->userdata, tagData);
+  /* In the future, we might call debug->tagInit here. */
   res = SplayTreeInsert(&debug->index, &tag->splayNode, (void *)&new);
   AVER(res == ResOK);
   return ResOK;
@@ -337,10 +336,13 @@ static void TagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
 }
 
 
-/* DebugPoolAlloc -- alloc method for a debug pool */
+/* DebugPoolAlloc -- alloc method for a debug pool
+ *
+ * Eventually, tag init args will need to be handled somewhere here.
+ */
 
 static Res DebugPoolAlloc(Addr *aReturn,
-                          Pool pool, Size size, Bool withReservoirPermit)
+                           Pool pool, Size size, Bool withReservoir)
 {
   Res res;
   Addr new;
@@ -349,15 +351,15 @@ static Res DebugPoolAlloc(Addr *aReturn,
   AVER(aReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
+  AVERT(Bool, withReservoir);
 
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
-  res = FenceAlloc(&new, debug, pool, size, withReservoirPermit);
+  res = FenceAlloc(&new, debug, pool, size, withReservoir);
   if (res != ResOK)
     return res;
-  res = TagAlloc(debug, pool, new, size, withReservoirPermit, NULL);
+  res = TagAlloc(debug, pool, new, size, withReservoir);
   if (res != ResOK)
     goto tagFail;
 
