@@ -1492,7 +1492,7 @@ If DIRECTION is `backward', search in the reverse direction."
 			    (save-excursion
 			      (and (search-backward "\^_" nil t)
 				   (looking-at "\^_\nTag Table"))))))
-	    (let ((search-whitespace-regexp
+	    (let ((search-spaces-regexp
 		   Info-search-whitespace-regexp))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
