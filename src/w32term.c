@@ -9604,31 +9604,33 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	 and speech synthesizers can follow the cursor.  */
       if (active_cursor)
 	{
-	  HWND hwnd = FRAME_W32_WINDOW (f);
-
 	  struct glyph * cursor_glyph = get_phys_cursor_glyph (w);
-	  int caret_width = cursor_glyph->pixel_width;
-	  w32_system_caret_x
-	    = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-	  w32_system_caret_y
-	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-	       + glyph_row->ascent - w->phys_cursor_ascent);
-
-	  /* If the size of the active cursor changed, destroy the old
-	     system caret.  */
-	  if (w32_system_caret_hwnd
-	      && (w32_system_caret_height != w->phys_cursor_height
-		  || w32_system_caret_width != caret_width))
-	    PostMessage (hwnd, WM_EMACS_DESTROY_CARET, NULL, NULL);
-
-	  if (!w32_system_caret_hwnd)
+	  if (cursor_glyph)
 	    {
-	      w32_system_caret_height = w->phys_cursor_height;
-	      w32_system_caret_width = caret_width;
-	    }
+	      HWND hwnd = FRAME_W32_WINDOW (f);
+	      int caret_width = cursor_glyph->pixel_width;
+	      w32_system_caret_x
+		= WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+	      w32_system_caret_y
+		= (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
+		   + glyph_row->ascent - w->phys_cursor_ascent);
 
-	  /* Move the system caret.  */
-	  PostMessage (hwnd, WM_EMACS_TRACK_CARET, NULL, NULL);
+	      /* If the size of the active cursor changed, destroy the old
+		 system caret.  */
+	      if (w32_system_caret_hwnd
+		  && (w32_system_caret_height != w->phys_cursor_height
+		      || w32_system_caret_width != caret_width))
+		PostMessage (hwnd, WM_EMACS_DESTROY_CARET, NULL, NULL);
+
+	      if (!w32_system_caret_hwnd)
+		{
+		  w32_system_caret_height = w->phys_cursor_height;
+		  w32_system_caret_width = caret_width;
+		}
+
+	      /* Move the system caret.  */
+	      PostMessage (hwnd, WM_EMACS_TRACK_CARET, NULL, NULL);
+	    }
 	}
 
       switch (new_cursor_type)
