@@ -1032,15 +1032,26 @@ Each @var{line} should be a string, and each @var{item} should be the
 value to return if that @var{line} is chosen.
 @end defun
 
-@strong{Usage note:} Don't use @code{x-popup-menu} to display a menu if
+  @strong{Usage note:} Don't use @code{x-popup-menu} to display a menu if
 a prefix key with a menu keymap would do the job.  If you use a menu
 keymap to implement a menu, @kbd{C-h c} and @kbd{C-h a} can see the
 individual items in that menu and provide help for them.  If instead you
 implement the menu by defining a command that calls @code{x-popup-menu},
 the help facilities cannot know what happens inside that command, so
-they cannot give any help for the menu's items.  This is the reason why
-all the menu bar items are normally implemented with menu keymaps
-(@pxref{Menu Keymaps}).
+they cannot give any help for the menu's items.
+
+  The menu bar mechanism, which lets you switch between submenus by
+moving the mouse, cannot look within the definition of a command to see
+that it calls @code{x-popup-menu}.  Therefore, if you try to implement a
+submenu using @code{x-popup-menu}, it cannot work with the menu bar in
+an integrated fashion.  This is why all menu bar submenus are
+implemented with menu keymaps within the parent menu, and never with
+@code{x-popup-menu}.  @xref{Menu Bar},
+
+  If you want a menu bar submenu to have contents that vary, you should
+still use a menu keymap to implement it.  To make the contents vary, add
+a hook function to @code{menu-bar-update-hook} to update the contents of
+the menu keymap as necessary.
 
 @node Dialog Boxes
 @section Dialog Boxes
