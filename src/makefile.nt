@@ -25,11 +25,7 @@
 #
 !include ..\nt\makefile.def
 
-!IFDEF NTGUI
-SUBSYSTEM=windows
-!ELSE
 SUBSYSTEM=console
-!ENDIF
 
 #
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
@@ -54,7 +50,9 @@ TRES		= $(BLD)\emacs.rbj
 !endif
 TLASTLIB	= $(BLD)\lastfile.lib
 
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -map
+# see comments in allocate_heap in ntheap.c before changing any of the
+# -stack, -heap, or -base settings.
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
 
 #
 # Split up the objects into two sets so that we don't run out of
@@ -139,6 +137,7 @@ LIBS =  $(TLIB1)	\
 	gdi32.lib       \
 	comdlg32.lib    \
 !ENDIF
+#	libcmt.lib      \
 	$(BASE_LIBS)	\
 	$(ADVAPI32)	\
 	user32.lib	\
@@ -730,6 +729,7 @@ $(BLD)\mocklisp.obj : \
 
 $(BLD)\nt.obj : \
 	$(SRC)\nt.c \
+	$(SRC)\nt.h \
 	$(SRC)\s\windowsnt.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
