@@ -34,6 +34,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"
+#include "keyboard.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -130,9 +131,9 @@ be the return value for that line (i.e. if it is selected.")
     }
   else
     {
-      tem = Fcdr (position);
-      window = Fcar (tem);
-      tem = Fcar (Fcdr (Fcdr (tem)));
+      tem = EVENT_START (position);
+      window = POSN_WINDOW (tem);
+      tem = POSN_WINDOW_POSN (tem);
       x = Fcar (tem);
       y = Fcdr (tem);
     }
