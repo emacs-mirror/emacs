@@ -1,3 +1,7 @@
+2003-09-17  Dave Love  <fx@gnu.org>
+
+	* unexalpha.c: Don't include varargs.h.
+
 2003-07-12  Paul Eggert  <eggert@twinsun.com>
 
 	* unexelf.c (unexec): Consider a section to precede the .bss
