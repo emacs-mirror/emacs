@@ -4496,7 +4496,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       inserted_byte += coding->produced;
       len_byte -= coding->consumed;
       src += coding->consumed;
-      dst += inserted_byte;
+      dst += coding->produced;
 
       if (result == CODING_FINISH_NORMAL)
 	{
