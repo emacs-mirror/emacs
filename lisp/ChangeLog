@@ -1,3 +1,17 @@
+2000-01-28  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl.el: Remove stuff for dotimes, dolist, push, pop.
+	Don't use lisp-indent-hook property.
+	(cl-abs): Remove.
+
+	* subr.el: Move out indent and edebug specs for when and unless.
+
+	* emacs-lisp/lisp-mode.el: Add indent specs for dolist, dotimes,
+	when, unless.
+
+	* emacs-lisp/edebug.el: Add specs for push, pop, dotimes, dolist,
+	unless, when.
+
 2000-01-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Recognize
