@@ -770,7 +770,6 @@ with no args, if that value is non-nil."
                                  f90-font-lock-keywords-3
                                  f90-font-lock-keywords-4)
          nil t))
-  ;; Tell imenu how to handle f90.
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        f90-imenu-generic-expression)
@@ -817,6 +816,9 @@ not the last line of a continued statement."
     (skip-chars-backward " \t")
     (= (preceding-char) ?&)))
 
+;; GM this is not right, eg a continuation line starting with a number.
+;; Need f90-code-start-position function.
+;; And yet, things seems to work with this...
 (defsubst f90-current-indentation ()
   "Return indentation of current line.
 Line-numbers are considered whitespace characters."
@@ -827,12 +829,11 @@ Line-numbers are considered whitespace characters."
 If optional argument NO-LINE-NUMBER is nil, jump over a possible
 line-number before indenting."
   (beginning-of-line)
-  (if (not no-line-number)
+  (or no-line-number
       (skip-chars-forward " \t0-9"))
   (delete-horizontal-space)
-  (if (zerop (current-column))
-      (indent-to col)
-    (indent-to col 1)))                 ; leave >= 1 space after line number
+  ;; Leave >= 1 space after line number.
+  (indent-to col (if (zerop (current-column)) 0 1)))
 
 (defsubst f90-get-present-comment-type ()
   "If point lies within a comment, return the string starting the comment.
@@ -850,22 +851,18 @@ For example, \"!\" or \"!!\"."
   (equal (if a (downcase a) nil)
          (if b (downcase b) nil)))
 
-;; XEmacs 19.11 & 19.12 return a single char when matching an empty regexp.
-;; The next 2 functions are therefore longer than necessary.
 (defsubst f90-looking-at-do ()
   "Return (\"do\" NAME) if a do statement starts after point.
 NAME is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(do\\)\\>")
-      (list (match-string 3)
-            (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))))
+      (list (match-string 3) (match-string 2)))
 
 (defsubst f90-looking-at-select-case ()
   "Return (\"select\" NAME) if a select-case statement starts after point.
 NAME is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
 \\(select\\)[ \t]*case[ \t]*(")
-      (list (match-string 3)
-            (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))))
+      (list (match-string 3) (match-string 2))))
 
 (defsubst f90-looking-at-if-then ()
   "Return (\"if\" NAME) if an if () then statement starts after point.
@@ -873,7 +870,7 @@ NAME is nil if the statement has no label."
   (save-excursion
     (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(if\\)\\>")
       (let ((struct (match-string 3))
-            (label (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))
+            (label (match-string 2))
             (pos (scan-lists (point) 1 0)))
         (and pos (goto-char pos))
         (skip-chars-forward " \t")
@@ -891,7 +888,7 @@ NAME is nil if the statement has no label."
     (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
 \\(where\\|forall\\)\\>")
       (let ((struct (match-string 3))
-            (label (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))
+            (label (match-string 2))
             (pos (scan-lists (point) 1 0)))
         (and pos (goto-char pos))
         (skip-chars-forward " \t")
@@ -915,8 +912,8 @@ NAME is non-nil only for type."
 	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)\
-[ \t]+\\(\\sw+\\)"))
+	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
+\\(\\sw+\\)"))
     (list (match-string 1) (match-string 2)))))
 
 (defsubst f90-looking-at-program-block-end ()
@@ -966,24 +963,24 @@ Comment lines embedded amongst continued lines return 'middle."
   "If `f90-leave-line-no' is nil, left-justify a line number.
 Leaves point at the first non-blank character after the line number.
 Call from beginning of line."
-  (if (and (null f90-leave-line-no) (looking-at "[ \t]+[0-9]"))
-      (delete-horizontal-space))
+  (and (null f90-leave-line-no) (looking-at "[ \t]+[0-9]")
+       (delete-horizontal-space))
   (skip-chars-forward " \t0-9"))
 
 (defsubst f90-no-block-limit ()
   "Return nil if point is at the edge of a code block.
 Searches line forward for \"function\" or \"subroutine\",
 if all else fails."
-  (let ((eol (line-end-position)))
-    (save-excursion
-      (not (or (looking-at "end")
-	       (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
+  (save-excursion
+    (not (or (looking-at "end")
+             (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*case\\|case\\|where\\|forall\\)\\>")
-	       (looking-at "\\(program\\|module\\|interface\\|\
+             (looking-at "\\(program\\|module\\|interface\\|\
 block[ \t]*data\\)\\>")
-	       (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
-	       (looking-at f90-type-def-re)
-	       (re-search-forward "\\(function\\|subroutine\\)" eol t))))))
+             (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
+             (looking-at f90-type-def-re)
+             (re-search-forward "\\(function\\|subroutine\\)"
+                                (line-end-position) t)))))
 
 (defsubst f90-update-line ()
   "Change case of current line as per `f90-auto-keyword-case'."
@@ -1196,10 +1193,10 @@ and completes outermost block if necessary."
                      start-list (cdr start-list)
                      start-type (car start-this)
                      start-label (cadr start-this))
-               (if (not (f90-equal-symbols start-type end-type))
+               (or (f90-equal-symbols start-type end-type)
                    (error "End type `%s' does not match start type `%s'"
                           end-type start-type))
-               (if (not (f90-equal-symbols start-label end-label))
+               (or (f90-equal-symbols start-label end-label)
                    (error "End label `%s' does not match start label `%s'"
                           end-label start-label)))))
       (end-of-line))
@@ -1221,7 +1218,8 @@ Does not check the outermost block, because it may be incomplete."
   (if (and num (< num 0)) (f90-end-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1))
-        end-list end-this end-type end-label start-this start-type start-label)
+        end-list end-this end-type end-label
+        start-this start-type start-label)
     (if (interactive-p) (push-mark (point) t))
     (beginning-of-line)                 ; probably want this
     (while (and (> count 0) (re-search-backward f90-blocks-re nil 'move))
@@ -1250,10 +1248,10 @@ Does not check the outermost block, because it may be incomplete."
                      end-list (cdr end-list)
                      end-type (car end-this)
                      end-label (cadr end-this))
-               (if (not (f90-equal-symbols start-type end-type))
+               (or (f90-equal-symbols start-type end-type)
                    (error "Start type `%s' does not match end type `%s'"
                           start-type end-type))
-               (if (not (f90-equal-symbols start-label end-label))
+               (or (f90-equal-symbols start-label end-label)
                    (error "Start label `%s' does not match end label `%s'"
                           start-label end-label))))))
      (if (> count 0) (error "Missing block start"))))
@@ -1313,15 +1311,14 @@ A block is a subroutine, if-endif, etc."
 Insert the variable `f90-comment-region' at the start of every line
 in the region, or, if already present, remove it."
   (interactive "*r")
-  (let ((end (make-marker)))
-    (set-marker end end-region)
+  (let ((end (copy-marker end-region)))
     (goto-char beg-region)
     (beginning-of-line)
     (if (looking-at (regexp-quote f90-comment-region))
 	(delete-region (point) (match-end 0))
       (insert f90-comment-region))
     (while (and (zerop (forward-line 1))
-		(< (point) (marker-position end)))
+		(< (point) end))
       (if (looking-at (regexp-quote f90-comment-region))
 	  (delete-region (point) (match-end 0))
 	(insert f90-comment-region)))
@@ -1332,26 +1329,29 @@ in the region, or, if already present, remove it."
 Unless optional argument NO-UPDATE is non-nil, call `f90-update-line'
 after indenting."
   (interactive "*P")
-  (let (indent no-line-number (pos (make-marker)) (case-fold-search t))
-    (set-marker pos (point))
-    (beginning-of-line)                ; digits after & \n are not line-nos
-    (if (save-excursion (and (f90-previous-statement) (f90-line-continued)))
-	(progn (setq no-line-number t) (skip-chars-forward " \t"))
-      (f90-indent-line-no))
+  (let ((case-fold-search t)
+        (pos (point-marker))
+        indent no-line-number)
+    (beginning-of-line)           ; digits after & \n are not line-nos
+    (if (not (save-excursion (and (f90-previous-statement)
+                                  (f90-line-continued))))
+        (f90-indent-line-no)
+      (setq no-line-number t)
+      (skip-chars-forward " \t"))
     (if (looking-at "!")
 	(setq indent (f90-comment-indent))
-      (if (and (looking-at "end") f90-smart-end)
-          (f90-match-end))
+      (and f90-smart-end (looking-at "end")
+           (f90-match-end))
       (setq indent (f90-calculate-indent)))
-    (if (not (zerop (- indent (current-column))))
+    (or (= indent (current-column))
         (f90-indent-to indent no-line-number))
     ;; If initial point was within line's indentation,
     ;; position after the indentation.  Else stay at same point in text.
-    (if (< (point) (marker-position pos))
-	(goto-char (marker-position pos)))
+    (and (< (point) pos)
+         (goto-char pos))
     (if auto-fill-function
         (f90-do-auto-fill)              ; also updates line
-      (if (not no-update) (f90-update-line)))
+      (or no-update (f90-update-line)))
     (set-marker pos nil)))
 
 (defun f90-indent-new-line ()
@@ -1359,30 +1359,27 @@ after indenting."
 An abbrev before point is expanded if the variable `abbrev-mode' is non-nil.
 If run in the middle of a line, the line is not broken."
   (interactive "*")
-  (let (string cont (case-fold-search t))
-    (if abbrev-mode (expand-abbrev))
-    (beginning-of-line)                ; reindent where likely to be needed
-    (f90-indent-line-no)
-    (f90-indent-line 'no-update)
-    (end-of-line)
-    (delete-horizontal-space)		; destroy trailing whitespace
-    (setq string (f90-in-string)
-          cont (f90-line-continued))
-    (if (and string (not cont)) (insert "&"))
+  (if abbrev-mode (expand-abbrev))
+  (beginning-of-line)             ; reindent where likely to be needed
+  (f90-indent-line-no)
+  (f90-indent-line 'no-update)
+  (end-of-line)
+  (delete-horizontal-space)		; destroy trailing whitespace
+  (let ((string (f90-in-string))
+        (cont (f90-line-continued)))
+    (and string (not cont) (insert "&"))
     (f90-update-line)
     (newline)
-    (if (or string (and cont f90-beginning-ampersand)) (insert "&"))
-    (f90-indent-line 'no-update)))
+    (if (or string (and cont f90-beginning-ampersand)) (insert "&")))
+  (f90-indent-line 'no-update))
 
 
 (defun f90-indent-region (beg-region end-region)
   "Indent every line in region by forward parsing."
   (interactive "*r")
-  (let ((end-region-mark (make-marker))
+  (let ((end-region-mark (copy-marker end-region))
         (save-point (point-marker))
-	block-list ind-lev ind-curr ind-b cont
-	struct beg-struct end-struct)
-    (set-marker end-region-mark end-region)
+	block-list ind-lev ind-curr ind-b cont struct beg-struct end-struct)
     (goto-char beg-region)
     ;; First find a line which is not a continuation line or comment.
     (beginning-of-line)
@@ -1419,8 +1416,8 @@ If run in the middle of a line, the line is not broken."
 		(< (point) end-region-mark))
       (if (looking-at "[ \t]*!")
           (f90-indent-to (f90-comment-indent))
-        (if (not (zerop (- (current-indentation)
-                           (+ ind-curr f90-continuation-indent))))
+        (or (= (current-indentation)
+               (+ ind-curr f90-continuation-indent))
             (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no))))
     ;; Process all following lines.
     (while (and (zerop (forward-line 1)) (< (point) end-region-mark))
@@ -1465,14 +1462,14 @@ If run in the middle of a line, the line is not broken."
 	     (setq ind-curr ind-lev))
 	    (t (setq ind-curr ind-lev)))
       ;; Do the indentation if necessary.
-      (if (not (zerop (- ind-curr (current-column))))
+      (or (= ind-curr (current-column))
 	  (f90-indent-to ind-curr))
       (while (and (f90-line-continued) (zerop (forward-line 1))
 		  (< (point) end-region-mark))
         (if (looking-at "[ \t]*!")
             (f90-indent-to (f90-comment-indent))
-          (if (not (zerop (- (current-indentation)
-                             (+ ind-curr f90-continuation-indent))))
+          (or (= (current-indentation)
+                 (+ ind-curr f90-continuation-indent))
               (f90-indent-to
                (+ ind-curr f90-continuation-indent) 'no-line-no)))))
     ;; Restore point, etc.
@@ -1517,15 +1514,12 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 
 (defun f90-find-breakpoint ()
   "From `fill-column', search backward for break-delimiter."
-  (let ((bol (line-beginning-position)))
-    (re-search-backward f90-break-delimiters bol)
-    (if (not f90-break-before-delimiters)
-        (if (looking-at f90-no-break-re)
-            (forward-char 2)
-          (forward-char))
-      (backward-char)
-      (if (not (looking-at f90-no-break-re))
-          (forward-char)))))
+  (re-search-backward f90-break-delimiters (line-beginning-position))
+  (if (not f90-break-before-delimiters)
+      (forward-char (if (looking-at f90-no-break-re) 2 1))
+    (backward-char)
+    (or (looking-at f90-no-break-re)
+        (forward-char)))))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'.
@@ -1570,10 +1564,9 @@ Like `join-line', but handles F90 syntax."
 (defun f90-fill-region (beg-region end-region)
   "Fill every line in region by forward parsing.  Join lines if possible."
   (interactive "*r")
-  (let ((end-region-mark (make-marker))
+  (let ((end-region-mark (copy-marker end-region))
         (go-on t)
 	f90-smart-end f90-auto-keyword-case auto-fill-function)
-    (set-marker end-region-mark end-region)
     (goto-char beg-region)
     (while go-on
       ;; Join as much as possible.
@@ -1588,10 +1581,11 @@ Like `join-line', but handles F90 syntax."
 	(move-to-column fill-column)
 	(f90-find-breakpoint)
 	(f90-break-line 'no-update))
-      (setq go-on (and (< (point) (marker-position end-region-mark))
+      (setq go-on (and (< (point) end-region-mark)
                        (zerop (forward-line 1)))
             f90-cache-position (point)))
     (setq f90-cache-position nil)
+    (set-marker end-region-mark nil)
     (if (fboundp 'zmacs-deactivate-region)
  	(zmacs-deactivate-region)
       (deactivate-mark))))
@@ -1605,35 +1599,37 @@ END-NAME is the block end name (may be nil).
 Leave point at the end of line."
   (search-forward "end" (line-end-position))
   (catch 'no-match
-    (if (not (f90-equal-symbols beg-block end-block))
-	(if end-block
-	    (progn
-	      (message "END %s does not match %s." end-block beg-block)
-	      (end-of-line)
-	      (throw 'no-match nil))
-	  (message "Inserting %s." beg-block)
-	  (insert (concat " " beg-block)))
-      (search-forward end-block))
-    (if (not (f90-equal-symbols beg-name end-name))
-	(cond ((and beg-name (not end-name))
-	       (message "Inserting %s." beg-name)
-	       (insert (concat " " beg-name)))
-	      ((and beg-name end-name)
-	       (message "Replacing %s with %s." end-name beg-name)
-	       (search-forward end-name)
-	       (replace-match beg-name))
-	      ((and (not beg-name) end-name)
-	       (message "Deleting %s." end-name)
-	       (search-forward end-name)
-	       (replace-match "")))
-      (if end-name (search-forward end-name)))
-    (if (not (looking-at "[ \t]*!")) (delete-horizontal-space))))
+    (if (f90-equal-symbols beg-block end-block)
+        (search-forward end-block)
+      (if end-block
+          (progn
+            (message "END %s does not match %s." end-block beg-block)
+            (end-of-line)
+            (throw 'no-match nil))
+        (message "Inserting %s." beg-block)
+        (insert (concat " " beg-block))))
+    (if (f90-equal-symbols beg-name end-name)
+        (and end-name (search-forward end-name))
+      (cond ((and beg-name (not end-name))
+             (message "Inserting %s." beg-name)
+             (insert (concat " " beg-name)))
+            ((and beg-name end-name)
+             (message "Replacing %s with %s." end-name beg-name)
+             (search-forward end-name)
+             (replace-match beg-name))
+            ((and (not beg-name) end-name)
+             (message "Deleting %s." end-name)
+             (search-forward end-name)
+             (replace-match ""))))
+    (or (looking-at "[ \t]*!") (delete-horizontal-space))))
 
 (defun f90-match-end ()
   "From an end block statement, find the corresponding block and name."
   (interactive)
-  (let ((count 1) (top-of-window (window-start))
-	(end-point (point)) (case-fold-search t)
+  (let ((count 1)
+        (top-of-window (window-start))
+	(end-point (point))
+        (case-fold-search t)
 	matching-beg beg-name end-name beg-block end-block end-struct)
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
                           (setq end-struct (f90-looking-at-program-block-end)))
@@ -1643,6 +1639,9 @@ Leave point at the end of line."
         (beginning-of-line)
         (while (and (> count 0) (re-search-backward f90-blocks-re nil t))
           (beginning-of-line)
+          ;; GM not a line number if continued line.
+;;;          (skip-chars-forward " \t")
+;;;          (skip-chars-forward "0-9")
           (skip-chars-forward " \t0-9")
           (cond ((or (f90-in-string) (f90-in-comment)))
                 ((setq matching-beg
@@ -1764,6 +1763,7 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
 	    (unless (progn
                       (setq state (parse-partial-sexp ref-point (point)))
                       (or (nth 3 state) (nth 4 state)
+                          ;; GM f90-directive-comment-re?
                           (save-excursion ; check for cpp directive
                             (beginning-of-line)
                             (skip-chars-forward " \t0-9")
