@@ -36,6 +36,13 @@
 
 2000-11-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (mode-line-toggle-read-only)
+	(mode-line-toggle-modified, mode-line-widen)
+	(mode-line-abbrev-mode, mode-line-auto-fill-mode): New functions.
+	(make-mode-line-mouse2-map): Rewritten.
+	(mode-line-modified, mode-line-format, minor-mode-alist): Use new
+	functions so that C-h k can show something with a doc string.
+	
 	* startup.el (fancy-splash-delay): Set to 10 seconds.
 	(fancy-splash-max-time): New user-option.
 	(fancy-splash-stop-time): New variable.
