@@ -560,7 +560,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		Lisp_Object tem2;
 
 		teml = Fget (teml, intern ("event-symbol-elements"));
-		tem2 = Fmemq (intern ("down"), teml);
+		/* Ignore first element, which is the base key.  */
+		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
 		  Fread_event (Qnil, Qnil);
 	      }
@@ -587,7 +588,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		Lisp_Object tem2;
 
 		teml = Fget (teml, intern ("event-symbol-elements"));
-		tem2 = Fmemq (intern ("down"), teml);
+		/* Ignore first element, which is the base key.  */
+		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
 		  Fread_event (Qnil, Qnil);
 	      }
