@@ -98,11 +98,10 @@
         * ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
         it can appear unencoded and has been seen from yahoo.
 
-2004-12-27  Simon Josefsson  <jas@extundo.com>
+2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Send AUTH CRAM-MD5
-	in upper case.  Reported by Wojciech Polak <polak@gnu.org> and
-	tiny patch from Sergey Poznyakoff.
+	in upper case.  Reported by Wojciech Polak <polak@gnu.org>.
 
 2004-12-27  Kenichi Handa  <handa@m17n.org>
 
