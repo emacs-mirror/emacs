@@ -2742,7 +2742,7 @@ See also `auto-save-file-name-p'."
       (if (and (eq system-type 'ms-dos)
 	       (not (msdos-long-file-names)))
 	  (let ((fn (file-name-nondirectory buffer-file-name)))
-		(string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
+	    (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
 	    (concat (file-name-directory buffer-file-name)
 		    "#" (match-string 1 fn) 
 		    "." (match-string 3 fn) "#"))
