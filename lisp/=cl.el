@@ -1806,18 +1806,18 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
 
 (defun mod (number divisor)
   "Return remainder of X by Y (rounding quotient toward minus infinity).
-That is, the remainder goes with the quotient produced by `floor'.
+That is, the remainder goes with the quotient produced by `cl-floor'.
 Emacs Lisp hint:
 If you know that both arguments are positive, use `%' instead for speed."
-  (floor number divisor)
+  (cl-floor number divisor)
   (cadr *mvalues-values*))
 
 (defun rem (number divisor)
   "Return remainder of X by Y (rounding quotient toward zero).
-That is, the remainder goes with the quotient produced by `truncate'.
+That is, the remainder goes with the quotient produced by `cl-truncate'.
 Emacs Lisp hint:
 If you know that both arguments are positive, use `%' instead for speed."
-  (truncate number divisor)
+  (cl-truncate number divisor)
   (cadr *mvalues-values*))
 
 ;;; internal utilities
