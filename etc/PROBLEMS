@@ -111,12 +111,6 @@ gives the appearance of "double spacing".
 To prevent this,  turn off the Exceed's "automatic font substitution"
 feature (in the font part of the configuration window).
 
-* On Solaris 7 or later, the compiler complains about the struct member `_ptr'.
-
-This suggests that you are trying to build Emacs in 64 bit mode
-(e.g. with cc -xarch=v9).  Emacs does not yet support this on Solaris.
-Build Emacs in the default 32 bit mode instead.
-
 * Failure in unexec while dumping emacs on Digital Unix 4.0
 
 This problem manifests itself as an error message
