@@ -545,6 +545,10 @@ prepare_menu_bars ()
 
 static int do_verify_charstarts;
 
+/* Counter is used to clear the face cache
+   no more than once ever 1000 redisplays.  */
+static int clear_face_cache_count;
+
 void
 redisplay ()
 {
@@ -732,14 +736,20 @@ redisplay ()
   this_line_bufpos = 0;
   all_windows |= buffer_shared > 1;
 
+  clear_face_cache_count++;
+
   if (all_windows)
     {
       Lisp_Object tail, frame;
 
 #ifdef HAVE_X_WINDOWS
-      /* Since we're doing a thorough redisplay, we might as well
-	 recompute all our display faces.  */
-      clear_face_vector ();
+      /* Clear the face cache, only when we do a full redisplay
+	 and not too often either.  */
+      if (clear_face_cache_count > 1000)
+	{
+	  clear_face_cache ();
+	  clear_face_cache_count = 0;
+	}
 #endif
 
       /* Recompute # windows showing selected buffer.
