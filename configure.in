@@ -1661,7 +1661,7 @@ AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in, [
 
 ### Make the necessary directories, if they don't exist.
-for dir in cpp etc ; do
+for dir in cpp etc lisp ; do
   test -d ${dir} || mkdir ${dir}
 done
 
