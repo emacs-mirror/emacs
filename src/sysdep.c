@@ -2011,7 +2011,7 @@ kbd_input_ast ()
   if (c >= 0)
     {
       struct input_event e;
-      e.kind = ascii_keystroke;
+      e.kind = ASCII_KEYSTROKE_EVENT;
       XSETINT (e.code, c);
       e.frame_or_window = selected_frame;
       kbd_buffer_store_event (&e);
@@ -2680,7 +2680,7 @@ read_input_waiting ()
 	  kbd_buffer_store_event (&buf[i]);
 	  /* Don't look at input that follows a C-g too closely.
 	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf[i].kind == ascii_keystroke
+	  if (buf[i].kind == ASCII_KEYSTROKE_EVENT
 	      && buf[i].code == quit_char)
 	    break;
 	}
@@ -2691,7 +2691,7 @@ read_input_waiting ()
       nread = read (fileno (stdin), buf, 1);
 
       /* Scan the chars for C-g and store them in kbd_buffer.  */
-      e.kind = ascii_keystroke;
+      e.kind = ASCII_KEYSTROKE_EVENT;
       e.frame_or_window = selected_frame;
       e.modifiers = 0;
       for (i = 0; i < nread; i++)

@@ -905,11 +905,11 @@ struct scroll_bar
 			  - (f)->output_data.x->internal_border_width)))
 
 
-/* If a struct input_event has a kind which is selection_request_event
-   or selection_clear_event, then its contents are really described
+/* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
+   or SELECTION_CLEAR_EVENT, then its contents are really described
    by this structure.  */
 
-/* For an event of kind selection_request_event,
+/* For an event of kind SELECTION_REQUEST_EVENT,
    this structure really describes the contents.
    **Don't make this struct longer!**
    If it overlaps the frame_or_window field of struct input_event,

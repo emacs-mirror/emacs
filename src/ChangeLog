@@ -1,3 +1,21 @@
+2002-06-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* macterm.c, macmenu.c, msdos.c, sysdep.c, termhooks.h, xterm.h
+	* xsmfns.c, w32term.c, w32menu.c, w32inevt.c: Rename enum event_kind
+	as follows: ascii_keystroke to ASCII_KEYSTROKE_EVENT,
+	multibyte_char_keystroke to MULTIBYTE_CHAR_KEYSTROKE_EVENT,
+	non_ascii_keystroke to NON_ASCII_KEYSTROKE_EVENT, timer_event to
+	TIMER_EVENT, mouse_click to MOUSE_CLICK_EVENT, mouse_wheel to
+	MOUSE_WHEEL_EVENT, language_change_event to LANGUAGE_CHANGE_EVENT,
+	scroll_bar_click to SCROLL_BAR_CLICK_EVENT, w32_scroll_bar_click
+	to W32_SCROLL_BAR_CLICK_EVENT, selection_request_event to
+	SELECTION_REQUEST_EVENT, selection_clear_event to
+	SELECTION_CLEAR_EVENT, buffer_switch_event to BUFFER_SWITCH_EVENT,
+	delete_window_event to DELETE_WINDOW_EVENT, iconify_event to
+	ICONIFY_EVENT, deiconify_event to DEICONIFY_EVENT,
+	menu_bar_activate_event to MENU_BAR_ACTIVATE_EVENT, drag_n_drop to
+	DRAG_N_DROP_EVENT, save_session_event to SAVE_SESSION_EVENT.
+
 2002-06-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* macmenu.c: Remove declaration of Qmouse_click and Qevent_kind.

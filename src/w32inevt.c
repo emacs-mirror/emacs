@@ -426,7 +426,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 
   if (lispy_function_keys[event->wVirtualKeyCode] == 0)
     {
-      emacs_ev->kind = ascii_keystroke;
+      emacs_ev->kind = ASCII_KEYSTROKE_EVENT;
 
       if (!NILP (Vw32_recognize_altgr)
 	  && (event->dwControlKeyState & LEFT_CTRL_PRESSED)
@@ -468,7 +468,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
     }
   else
     {
-      emacs_ev->kind = non_ascii_keystroke;
+      emacs_ev->kind = NON_ASCII_KEYSTROKE_EVENT;
       XSETINT (emacs_ev->code, event->wVirtualKeyCode);
     }
 
@@ -584,7 +584,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   if (event->dwButtonState == button_state)
     return 0;
   
-  emacs_ev->kind = mouse_click;
+  emacs_ev->kind = MOUSE_CLICK_EVENT;
   
   /* Find out what button has changed state since the last button event.  */
   but_change = button_state ^ event->dwButtonState;
