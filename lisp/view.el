@@ -106,7 +106,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-Calls the value of  view-hook  if that is non-nil."
+This command runs the normal hook `view-hook'."
   (interactive "fView file: ")
   (let ((old-buf (current-buffer))
 	(had-a-buf (get-file-buffer file-name))
@@ -126,7 +126,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-Calls the value of  view-hook  if that is non-nil."
+This command runs the normal hook `view-hook'."
   (interactive "fView file: ")
   (let ((old-arrangement (current-window-configuration))
 	(had-a-buf (get-file-buffer file-name))
@@ -145,7 +145,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-Calls the value of  view-hook  if that is non-nil."
+This command runs the normal hook `view-hook'."
   (interactive "bView buffer: ")
   (let ((old-buf (current-buffer)))
     (switch-to-buffer buffer-name t)
@@ -154,15 +154,16 @@ Calls the value of  view-hook  if that is non-nil."
 ;;;###autoload
 (defun view-buffer-other-window (buffer-name not-return)
   "View BUFFER in View mode in another window,
-returning to original buffer when done  ONLY if 
-prefix argument not-return is nil (as by default).
-  The usual Emacs commands are not available; instead,
+returning to original buffer when done *only* if 
+prefix argument NOT-RETURN is nil (which is the default).
+
+The usual Emacs commands are not available in View mode; instead,
 a special set of commands (mostly letters and punctuation)
 are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-Calls the value of  view-hook  if that is non-nil."
+This command runs the normal hook `view-hook'."
   (interactive "bView buffer:\nP")
   (let ((return-to (and not-return (current-window-configuration))))
     (switch-to-buffer-other-window buffer-name)
@@ -204,7 +205,8 @@ C-p		moves upward lines vertically.
 C-l		recenters the screen.
 q or C-c	exit view-mode and return to previous buffer.
 
-Entry to this mode calls the value of  view-hook  if non-nil.
+Entry to this mode runs the normal hook `view-hook'.
+
 \\{view-mode-map}"
 ;  Not interactive because dangerous things happen
 ;  if you call it without passing a buffer as argument
@@ -301,7 +303,7 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
   (min (view-window-size) (or view-scroll-size (view-window-size))))
 
 (defvar view-hook nil
-  "If non-nil, its value is called when viewing buffer or file.")
+  "Normal hook run when starting to view a buffer or file.")
 
 ;(defun view-last-command (&optional who what)
 ;  (setq view-last-command-entry this-command)
@@ -317,7 +319,7 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 ;  (setq this-command view-last-command-entry))
 
 (defun View-goto-line (&optional line)
-  "Move to LINE in View mode.
+  "Move to line LINE in View mode.
 Display is centered at LINE.  Sets mark at starting position and pushes
 mark ring."
   (interactive "p")
@@ -379,36 +381,36 @@ Arg is number of lines to scroll."
 				 (- (prefix-numeric-value lines))
 			       (- (view-scroll-size)))))
   
-(defun View-search-regexp-forward (times regexp)
-  "Search forward for NTH occurrence of REGEXP in View mode.
+(defun View-search-regexp-forward (n regexp)
+  "Search forward for Nth occurrence of REGEXP.
 Displays line found at center of window.  REGEXP is remembered for
 searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
   (interactive "p\nsSearch forward (regexp): ")
   (if (> (length regexp) 0)
       (progn
-       ;(view-last-command 'View-search-last-regexp-forward times)
-	(view-search times regexp))))
+       ;(view-last-command 'View-search-last-regexp-forward n)
+	(view-search n regexp))))
 
-(defun View-search-regexp-backward (times regexp)
-  "Search backward from window start for NTH instance of REGEXP in View mode.
+(defun View-search-regexp-backward (n regexp)
+  "Search backward from window start for Nth instance of REGEXP.
 Displays line found at center of window.  REGEXP is remembered for
 searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
   (interactive "p\nsSearch backward (regexp): ")
-  (View-search-regexp-forward (- times) regexp))
+  (View-search-regexp-forward (- n) regexp))
 
-(defun View-search-last-regexp-forward (times)
-  "Search forward from window end for NTH instance of last regexp in View mode.
+(defun View-search-last-regexp-forward (n)
+  "Search forward from window end for Nth instance of last regexp.
 Displays line found at center of window.  Sets mark at starting position
 and pushes mark ring."
   (interactive "p")
-  (View-search-regexp-forward times view-last-regexp))
+  (View-search-regexp-forward n view-last-regexp))
 
-(defun View-search-last-regexp-backward (times)
-  "Search backward from window start for NTH instance of last regexp in View mode.
+(defun View-search-last-regexp-backward (n)
+  "Search backward from window start for Nth instance of last regexp.
 Displays line found at center of window.  Sets mark at starting position and
 pushes mark ring."
   (interactive "p")
-  (View-search-regexp-backward times view-last-regexp))
+  (View-search-regexp-backward n view-last-regexp))
 
 (defun View-back-to-mark (&optional ignore)
   "Return to last mark set in View mode, else beginning of file.
