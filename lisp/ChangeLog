@@ -1,5 +1,7 @@
 2001-03-12  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (register-input-method): Doc fix.
+
 	* international/quail.el (quail-translate-key): Fix condition to
 	check if there's another breaking point in the current key.
 
