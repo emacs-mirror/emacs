@@ -2,8 +2,8 @@
 @c %**start of header
 @setfilename tasks.info
 @settitle GNU Task List
-@c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 16 September 1997
+@c This date is automagically updated when you save this file:
+@set lastupdate August  1, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -47,9 +47,9 @@ list is available there in several different formats: @file{tasks.text},
 HURD task list is also there in file @file{tasks.hurd}.
 @c to fix an overfill, join the paragraphs -len
 The task list is also available on the GNU World Wide Web server:
-@url{http://www.gnu.ai.mit.edu/prep/tasks_toc.html}.
+@uref{http://www.gnu.org/prep/tasks_toc.html}.
 
-If you start working steadily on a project, please let @code{gnu@@prep}
+If you start working steadily on a project, please let @email{gvc@@gnu.org}
 know.  We might have information that could help you; we'd also like to
 send you the GNU coding standards.
 
@@ -92,37 +92,39 @@ If you are good at writing documentation, please do that.
 @item
 If you are very good at C programming and interested in kernels, you can
 help develop the GNU HURD, the kernel for the GNU system.  Please have a
-look at @url{http://www.gnu.ai.mit.edu/software/hurd/hurd.html}, and
+look at @uref{http://www.gnu.org/software/hurd/hurd.html}, and
 then get a copy of the latest HURD task list from:
 
 @itemize @bullet
 
 @item
-@url{http://www.gnu.ai.mit.edu/prep/tasks.hurd.html}, via the World Wide
+@uref{http://www.gnu.org/prep/tasks.hurd.html}, via the World Wide
 Web.
 
 @item
-@url{ftp://prep.ai.mit.edu/pub/gnu/tasks/tasks.hurd}, via anonymous FTP.
+@uref{ftp://ftp.gnu.org/pub/gnu/tasks/tasks.hurd}, via anonymous FTP.
 
 @item
-@email{gnu@@prep.ai.mit.edu} via e-mail.
+@email{gnu@@gnu.org} via e-mail.
 
 @end itemize
 
 @item
 If you are a Scheme fan, you can help develop Guile.  Please have a look
-at the URL @url{http://www.gnu.ai.mit.edu:/software/guile/guile.html}
-and then contact @email{guile@@gnu.ai.mit.edu}.
+at the URL @uref{http://www.gnu.org/software/guile/guile.html}
+and then contact the Guile developers at @email{guile@@gnu.org}.
 
 @item
-Help develop the GNU web browser, E-scape.
+Help develop XmHTML.
 
 @item
-Help develop Windows NT emulation for GNU systems---for example, WINE.
+Help develop software to emulate Windows NT on top of GNU systems.
+For example, you could help work on Willows Twin.
 
 @item
 Implement the Kermit data transfer protocol.  (See below.)
 
+@ignore This is being done (Harmony)
 @item
 Develop a free compatible replacement for Qt, a GUI toolkit library.  Qt
 is not free software, because users are prohibited from distributing
@@ -135,6 +137,12 @@ free operating systems because there is no way to make them run.
 
 This is leading to a serious problem, and a free replacement for Qt is
 the only solution.  Hence the high degree of urgency of this project.
+@end ignore
+
+@item
+Develop a free replacement for a semi-free program such as Xv or POV.
+These semi-free programs are less restricted than typical proprietary
+programs, but too restricted to be part of any free operating system.
 
 @item
 Develop a substitute, which runs on GNU systems, for some very popular
@@ -145,13 +153,21 @@ and which has no comparable free equivalent now.
 @node Documentation
 @chapter Documentation
 
-We very urgently need documentation for some parts of the system
-that already exist or will exist very soon:
+We very urgently need documentation for many existing parts of the
+system.
+
+Note that there are proprietary manuals for many of these topics, but
+proprietary manuals do not count, because we are not free to copy and
+modify them along with the software they document.  For this reason,
+we do not recommend any non-free manuals.
 
 @itemize @bullet
 @item
 A C reference manual.  (RMS made a try at one, which you could start
 with).
+
+@item
+Reference manuals for C++, Pascal, Fortran 77, and Java.
 
 @item
 A manual for Ghostscript.
@@ -160,10 +176,19 @@ A manual for Ghostscript.
 A manual for TCSH.
 
 @item
-A manual for PIC (the graphics formatting language).
+A good free reference manual for Perl.  The free Perl on-line reference
+documentation is good, for what it is--a list of functions and a
+description of each--but that is not the same as a reference manual.
+(Compare, for example, the Emacs Lisp Reference Manual with the
+collection of documentation strings of Emacs Lisp functions.)
 
 @item
-A manual for Oleo.
+A good free Perl language tutorial introduction.  The existing Perl
+introductions are published with restrictions on copying and
+modification, so that they cannot be part of a GNU system.
+
+@item
+A manual for PIC (the graphics formatting language).
 
 @item
 A book on how GCC works and why various machine descriptions
@@ -190,7 +215,8 @@ Many utilities need documentation, including @code{grep} and others.
 @item
 An improved version of the POSIX utility @code{pax}.  There is one on
 Usenet, but it is said to be poorly written.  Talk with
-@code{thomas@@gnu.ai.mit.edu} about this project.
+@email{thomas@@gnu.org}, @email{pinard@@iro.umontreal.ca} and
+@email{juo@@klinzhai.rutgers.edu} for advice about this project.
 
 @ignore
 @item
@@ -205,12 +231,9 @@ A @code{grap} preprocessor program for @code{troff}.
 Various other libraries.
 
 @item
-An emulation of SCCS that works using RCS.
-
-@item
-Less urgent: @code{diction}, @code{explain}, and @code{style}, or
-something to do the same kind of job.  Compatibility with Unix is not
-especially important for these programs.
+Less urgent: make a replacement for the ``writer's workbench'' program
+@code{style}, or something to do the same kind of job.  Compatibility
+with Unix is not especially important for this programs.
 @end itemize
 
 @node Kernel Projects
@@ -252,7 +275,11 @@ distribution.
 @item
 Interface GDB to Guile, so that users can write debugging commands in
 Scheme.  This would also make it possible to write, in Scheme, a
-graphical interface that uses Tk and is tightly integrated into GDB.
+graphical interface that uses GTK and is tightly integrated into GDB.
+
+@item
+Extend Octave to support programs that were written
+to run on Khoros.
 
 @item
 Rewrite GNU @code{sed} completely, to make it cleaner.
@@ -263,11 +290,14 @@ Right now they are written in Perl and TCL, respectively.  There are
 also other programs, not terribly long, which we would also like
 to have rewritten in Scheme.
 
+Deja-GNU uses TCL via Expect.  It may be easy to adapt Expect
+to work with Scheme instead of TCL.
+
 @item
 Finish the partially-implemented C interpreter project.
 
 @item
-Help with the development of GNUStep, a GNU implementation of the
+Help with the development of GNUstep, a GNU implementation of the
 OpenStep specification.
 
 @item
@@ -283,10 +313,13 @@ files without reading entire files into core.
 An @code{nroff} macro package to simplify @code{texi2roff}.
 
 @item
+An implementation of XML (see @uref{http://www.w3.org/XML/}).
+
+@item
 A queueing system for the mailer Smail that groups pending work by
 destination rather than by original message.  This makes it possible
 to schedule retries coherently for each destination.  Talk to
-@code{tron@@veritas.com} about this.
+@email{tron@@veritas.com} about this.
 
 Smail also needs a new chief maintainer.
 
@@ -305,26 +338,21 @@ An emulator for Macintosh graphics calls on top of X Windows.
 
 @item
 A music playing and editing system.  This should work with LilyPond, a
-free program for music typesetting.
+GNU program for music typesetting.
+
+@item
+An ephemeris program to replace xephem (which is, alas, too restricted
+to qualify as free software).
 
 @item
 A program to edit dance notation (such as labanotation) and display
 dancers moving on the screen.
 
 @item
-Port the Vibrant toolkit to work on X without using Motif.
+Make sure the Vibrant toolkit works with LessTif instead of Motif.
 
 @item
 A program to display and edit Hypercard stacks.
-
-@item
-A paint program, supporting both bitmap-oriented operations and
-component-oriented operations.  @code{xpaint} exists, but isn't very
-usable.
-
-@item
-A vector-based drawing program in the spirit of Adobe Illustrator
-and Corel Draw.
 
 @item
 An interactive 3D modeling utility with rendering/raytracing capabilities.
@@ -345,36 +373,13 @@ A free library for public-key encryption.
 
 This library should use the Diffie-Helman algorithm for public key
 encryption, not the RSA algorithm, because the Diffie-Helman patent in
-the US will expire in 1997.
-
-@item
-A free program for sended encrypted mail using public-key encryption.
-
-This program should use the library described above for the public-key
-encryption.  It should use triple-DES, not IDEA, for block encryption,
-because IDEA is patented in many countries and the patents will not
-expire soon.
-
-In other respects, it should be like PGP.  If the new version of PGP
-no longer uses RSA and IDEA, compatibility with it may be feasible.
-
-There is a suggestion that the Blowfish algorithm might be a good choice
-for the non-public-key block encryption.  I'm not an encryption expert
-so I don't have an opinion about that.
-
-Many people believe that PGP is free software, but that is not actually
-true.  The distribution terms do not allow everyone to use and
-redistribute it.  We used to think that these restrictions had been
-imposed by the patent holders for the RSA and IDEA algorithms, and that
-PGP could be free software if these algorithms were replaced by
-alternatives.  But we have since learned that the owners of PGP are
-themselves unwilling to make it free software.  Writing a new program is
-the only way to get free software for this job.
+the US expired in 1997.  This library can probably be developed from
+the code for the GNU Privacy Guard (now in development).
 
 @item
 A free secure telnet program more or less like ssh/sshd.  Since this
-requires a public key encryption algorithm, it is closely related to the
-preceding item.
+requires a public key encryption algorithm, it should be based
+on the library above.
 
 This program should follow the draft standard for ssh.  As always, it
 cannot implement the RSA algorithm, but must instead support the
@@ -387,13 +392,29 @@ Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
 @end itemize
 
+A free replacement for PGP is no longer listed here because the GNU
+Privacy Guard will do that job.
+
 @node Other Projects
 @chapter Other Projects
 
 If you think of others that should be added, please
-send them to @code{gnu@@prep.ai.mit.edu}.
+send them to @email{gnu@@gnu.org}.
 
 @itemize @bullet
+@item
+A simple PC BIOS.  On most new PCs, the BIOS is stored in writable
+memory (misleadingly known as ``flash ROM'').  In order to have a wholly
+free system on these PCs, we need a free BIOS.
+
+This task is made simpler by the fact that this BIOS need only support
+enough features to enable a boot-loader such as LILO or GRUB to finish
+loading the kernel.  Neither Linux nor Mach actually uses the BIOS once
+it starts up.  Also, it is not absolutely necessary to do all the many
+diagnostics that an ordinary BIOS does (though it would be useful to do
+some of them).  However, there may be a need to configure certain data
+in the computer in a way that is specific to each model of computer.
+
 @item
 A free program that can transfer files on a serial line
 using the same protocol that Kermit uses.
@@ -405,11 +426,6 @@ An imitation of Page Maker or Ventura Publisher.
 An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
 
 @item
-A bulletin board system.  There are a few free ones, but they don't have
-all the features that people want in such systems.  It would make sense
-to start with an existing one and add the other features.
-
-@item
 A general ledger program, including support for accounts payable, 
 account receivables, payroll, inventory control, order processing, etc.
 
@@ -418,8 +434,11 @@ A teleconferencing program which does the job of CU-SeeMe (which is,
 alas, not free software).
 
 @item
-A program to typeset C code for printing.
-For ideas on what to do, see the book,
+A free replacement for Glimpse, which is not free software.
+
+@item
+A program to typeset C code for printing, to make it easier to read on
+paper.  For ideas on what to do, see the book,
 
 @display
 Human Factors and Typography for More Readable Programs,
@@ -427,24 +446,45 @@ Ronald M. Baecker and Aaron Marcus,
 Addison-Wesley, ISBN 0-201-10745-7
 @end display
 
-(I don't quite agree with a few of the details they propose.)
+But you don't have to do exactly what they propose.
 
+@ignore
+@c This is now being worked on -- rms, 22 June 1998
 @item
 A program to convert Microsoft Word documents to text/enriched, TeX,
 LaTeX, Texinfo, or some other format that free software can edit.
+@end ignore
+
+@ignore
+@c People are helping the developer of siff release it as free software.
 
 @item
+A free replacement for siff (sometimes called sif).  THis would be a
+program to find similar files in a large file system, ``similar''
+meaning that the files contain a significant number of common substrings
+that are of a certain size or greater.  You can find some information
+about siff (which is, unfortunately, not free software) at
+@uref{ftp://ftp.cs.arizona.edu/reports/1993/TR93-33.ps.Z}.
+@end ignore
+
+@ignore
+@c This is being developed -- rms, 3 May 1998
+@item
 A free replacement for the semi-free Qt library.
+@end ignore
 
 @item
 High-quality music compression software.
-(Talk with phr@@netcom.com for relevant suggestions.)
+(Talk with @email{phr@@netcom.com} for relevant suggestions.)
 
 @item
 A program to play sound distributed in ``Real Audio'' format.
 
 @item
 A program to generate ``Real Audio'' format from audio input.
+
+@item
+Programs to handle audio in RTSP format.
 
 @ignore  @c Software patents have made this domain off limits to free software.
 @item
@@ -458,6 +498,14 @@ could improve).
 
 @item
 Speech-recognition programs (single-speaker, disconnected speech is sufficient).
+
+@ignore Being done
+@item
+A program to display text word by word, always showing just one word at
+a time.  This method permits much faster reading than ordinary text
+display.  If you want to work on this, contact @email{stutz@@dsl.org} to
+learn more.
+@end ignore
 
 @item
 More scientific mathematical subroutines.
@@ -519,15 +567,15 @@ reverse-engineering of communication protocols.
 @chapter Compilers for Other Batch Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
-Algol 60, Algol 68, PL/I, Cobol, Fortran 90, Eiffel, or whatever, to be
+Algol 60, Algol 68, PL/I, Cobol, Fortran 90, or whatever, to be
 used with the code generation phases of the GNU C compiler.
 
-@c Fortran status is here so gnu@prep and the volunteer coordinators
+@c Fortran status is here so gnu@gnu.org and the volunteer coordinators
 @c don't have to answer the question -len
 You can get the status of the Fortran front end with this command:
 
 @example
-finger -l fortran@@gnu.ai.mit.edu
+finger -l fortran@@gnu.org
 @end example
 
 @node Games and Recreations
@@ -547,7 +595,11 @@ simulation games.
 Improve GnuGo, which is not yet very sophisticated.
 
 @item
-Write imitations of some popular video game:
+A Hierarchical Task Network package which can be used
+to program play the computer's side in various strategic games.
+
+@item
+Write imitations of some popular video games:
 
 @itemize -
 @item
@@ -557,12 +609,14 @@ Defending cities from missiles.
 @item
 Plane shoots at lots of other planes, tanks, etc.
 @item
-Wizard fights fanciful monster.
+Wizard fights fanciful monsters.
 @item
 A golf game.
+@ignore Being done by jhall1@isd.net
 @item
 Program a robot by sticking building blocks together,
 then watch it explore a world.
+@end ignore
 @item
 Biomorph evolution (as in Scientific American and @cite{The Blind
 Watchmaker}).
@@ -576,3 +630,9 @@ We do not need @code{rogue}, as we have @code{hack}.
 @contents
 
 @bye
+Local variables:
+update-date-leading-regexp: "@c This date is automagically updated when you save this file:\n@set lastupdate "
+update-date-trailing-regexp: ""
+eval: (load "/gd/gnuorg/update-date.el")
+eval: (add-hook 'write-file-hooks 'update-date)
+End:
