@@ -1,3 +1,7 @@
+2001-12-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* language/ind-util.el (mapthread): Make a closure.
+
 2001-12-15  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-start-hscroll): New variable.
