@@ -225,7 +225,7 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp lisp/term site-lisp \
+for subdir in lisp lisp/term lisp/language site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
 	      etc etc/e lock cpp info man msdos vms; do
@@ -265,6 +265,13 @@ echo "Making links to \`lisp/term'"
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
  ln README ../../${tempdir}/lisp/term
+ rm -f =* TAGS)
+
+echo "Making links to \`lisp/term'"
+### Don't distribute =*.el files or TAGS.
+(cd lisp/language
+ ln [a-zA-Z]*.el ../../${tempdir}/lisp/language
+ ln [a-zA-Z]*.elc ../../${tempdir}/lisp/language
  rm -f =* TAGS)
 
 echo "Making links to \`src'"
