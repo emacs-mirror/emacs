@@ -130,6 +130,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 
   BLOCK_INPUT;
 
+  /* Include the terminating NULL character in the source of
+     conversion.  */
   nbytes = SBYTES (string) + 1;
   src = SDATA (string);
   dst = src;
@@ -208,7 +210,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  {
 	    string = run_pre_post_conversion_on_str (string, &coding, 1);
 	    src = SDATA (string);
-	    nbytes = SBYTES (string);
+	    /* Include the terminating NULL character in the source of
+	       conversion.  */
+	    nbytes = SBYTES (string) + 1;
 	  }
 	coding.src_multibyte = 1;
 	coding.dst_multibyte = 0;
