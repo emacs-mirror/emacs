@@ -1069,8 +1069,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
       /* The last frame we saw with a minibuffer, minibuffer-only or not.  */
       Lisp_Object frame_with_minibuf;
+      /* Some frame we found on the same kboard, or nil if there are none.  */
+      Lisp_Object frame_on_same_kboard;
 
+      frame_on_same_kboard = Qnil;
       frame_with_minibuf = Qnil;
+
       for (frames = Vframe_list;
 	   CONSP (frames);
 	   frames = XCONS (frames)->cdr)
@@ -1092,18 +1096,27 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	      if (FRAME_MINIBUF_ONLY_P (f1))
 		break;
 	    }
+
+	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
+	    frame_on_same_kboard = this;
 	}
 
-      /* We know that there must be some frame with a minibuffer out
-	 there.  If this were not true, all of the frames present
-	 would have to be minibufferless, which implies that at some
-	 point their minibuffer frames must have been deleted, but
-	 that is prohibited at the top; you can't delete surrogate
-	 minibuffer frames.  */
-      if (NILP (frame_with_minibuf))
-	abort ();
+      if (!NILP (frame_on_same_kboard))
+	{
+	  /* We know that there must be some frame with a minibuffer out
+	     there.  If this were not true, all of the frames present
+	     would have to be minibufferless, which implies that at some
+	     point their minibuffer frames must have been deleted, but
+	     that is prohibited at the top; you can't delete surrogate
+	     minibuffer frames.  */
+	  if (NILP (frame_with_minibuf))
+	    abort ();
 
-      FRAME_KBOARD (f)->Vdefault_minibuffer_frame = frame_with_minibuf;
+	  FRAME_KBOARD (f)->Vdefault_minibuffer_frame = frame_with_minibuf;
+	}
+      else
+	/* No frames left on this kboard--say no minibuffer either.  */
+	FRAME_KBOARD (f)->Vdefault_minibuffer_frame = Qnil;
     }
 
   return Qnil;
