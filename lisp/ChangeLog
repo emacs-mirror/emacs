@@ -1,5 +1,25 @@
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
+	* simple.el (beginning-of-buffer, end-of-buffer):
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Do not push mark when mark is active in transient-mark-mode.
+
+	* simple.el (mark-word):
+	* emacs-lisp/lisp.el (mark-sexp, mark-defun):
+	* textmodes/paragraphs.el (mark-paragraph):
+	Extend the region when mark is active in transient-mark-mode,
+	regardless of the last command.  Doc fix.
+
+	* simple.el (mark-word): Preserve direction when repeating.
+	Make arg optional.  Interactive "p" -> "P".
+	(transient-mark-mode, inhibit-mark-movement): Doc fix.
+
+	* emacs-lisp/lisp.el (mark-sexp): Reverse the condition for
+	preserving direction, to mark forward instead of backward when mark
+	is equal to point (e.g. when C-SPC C-M-SPC is typed in t-m-m).
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-edit-string): Set 7th arg of
 	`read-from-minibuffer' to `t' to inherit the current input
 	method (whose name is indicated by [IM] in the minibuffer prompt)

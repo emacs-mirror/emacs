@@ -1,3 +1,8 @@
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* mark.texi (Marking Objects): Marking commands also extend the
+	region when mark is active in Transient Mark mode.
+
 2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* reftex.texi (Imprint): Remove erroneous @value's.

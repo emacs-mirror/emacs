@@ -1064,7 +1064,7 @@ All regular expression replacement commands now allow `\?' in the
 replacement string to specify a position where the replacement string
 can be edited for each replacement.
 
-* query-replace uses isearch highlighting with lazy highlighting
+** query-replace uses isearch highlighting with lazy highlighting
 when the user option `query-replace-highlight' is set to `isearch'.
 If it is t, it uses old query-replace highlighting method.
 
@@ -1372,7 +1372,10 @@ you hit M-C-SPC (mark-sexp), M-@ (mark-word), M-h (mark-paragraph), or
 C-M-h (mark-defun) repeatedly, the marked region extends each time, so
 you can mark the next two sexps with M-C-SPC M-C-SPC, for example.
 This feature also works for mark-end-of-sentence, if you bind that to
-a key.
+a key.  It also extends the region when the mark is active in Transient
+Mark mode, regardless of the last command.  To start a new region with
+one of marking commands in Transient Mark mode, you can deactivate the
+active region with C-g, or set the new mark with C-SPC.
 
 +++
 ** Some commands do something special in Transient Mark mode when the
@@ -1396,6 +1399,11 @@ C-g.
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+
+** Movement commands `beginning-of-buffer', `end-of-buffer',
+`beginning-of-defun', `end-of-defun' do not set the mark if the new
+option `inhibit-mark-movement' is non-nil, or if the mark is already
+active in Transient Mark mode.
 
 +++
 ** In the *Occur* buffer, `o' switches to it in another window, and
