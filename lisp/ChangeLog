@@ -1,5 +1,7 @@
 2001-02-10  Richard M. Stallman  <rms@gnu.org>
 
+	* complete.el (partial-completion-mode): Doc fix.
+
 	* simple.el (delete-key-deletes-forward-mode):
 	Change `let' to `let*' to fix gross bug in last change.
 
