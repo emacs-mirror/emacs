@@ -214,7 +214,7 @@ POS defaults to point; WINDOW, to the selected window.")
     }
   else
     {
-      if (posint > BUF_Z (buf))
+      if (posint > BUF_ZV (buf))
 	return Qnil;
 
       /* If that info is not correct, calculate afresh */
