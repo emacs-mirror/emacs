@@ -1629,12 +1629,13 @@ command_loop_1 ()
 		  goto directly_done;
 		}
 	      else if (EQ (Vthis_command, Qself_insert_command)
-		       /* Try this optimization only on character keystrokes.  */
-		       && CHAR_VALID_P (last_command_char, 0))
+		       /* Try this optimization only on char keystrokes.  */
+		       && NATNUMP (last_command_char)
+		       && CHAR_VALID_P (XFASTINT (last_command_char), 0))
 		{
 		  unsigned int c =
 		    translate_char (Vtranslation_table_for_input,
-				    XINT (last_command_char), 0, 0, 0);
+				    XFASTINT (last_command_char), 0, 0, 0);
 		  int value;
 		  if (NILP (Vexecuting_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -1790,6 +1791,9 @@ extern Lisp_Object Qcomposition, Qdisplay;
    `composition', `display' and `invisible' properties.
    LAST_PT is the last position of point.  */
 
+extern Lisp_Object Qafter_string, Qbefore_string;
+extern Lisp_Object get_pos_property P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+
 static void
 adjust_point_for_property (last_pt)
      int last_pt;
@@ -1807,9 +1811,9 @@ adjust_point_for_property (last_pt)
 	  && beg < PT /* && end > PT   <- It's always the case.  */
 	  && (last_pt <= beg || last_pt >= end))
 	{
+	  xassert (end > PT);
 	  SET_PT (PT < last_pt ? beg : end);
-	  check_display = 1;
-	  check_invisible = 1;
+	  check_display = check_invisible = 1;
 	}
       check_composition = 0;
       if (check_display
@@ -1821,31 +1825,75 @@ adjust_point_for_property (last_pt)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
 	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
 		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
-	  && beg < PT /* && end > PT   <- It's always the case.  */
-	  && (last_pt <= beg || last_pt >= end))
+	  && beg < PT) /* && end > PT   <- It's always the case.  */
 	{
+	  xassert (end > PT);
 	  SET_PT (PT < last_pt ? beg : end);
-	  check_composition = 1;
-	  check_invisible = 1;
+	  check_composition = check_invisible = 1;
 	}
       check_display = 0;
-      if (check_invisible
-	  && PT > BEGV && PT < ZV
-	  && !NILP (val = get_char_property_and_overlay
-		              (make_number (PT), Qinvisible, Qnil, &overlay))
-	  && TEXT_PROP_MEANS_INVISIBLE (val)
-	  && (tmp = Fprevious_single_char_property_change
-	                (make_number (PT + 1), Qinvisible, Qnil, Qnil),
-	      beg = NILP (tmp) ? BEGV : XFASTINT (tmp),
-	      beg < PT)
-	  && (tmp = Fnext_single_char_property_change
-	                (make_number (PT), Qinvisible, Qnil, Qnil),
-	      end = NILP (tmp) ? ZV : XFASTINT (tmp),
-	      (last_pt <= beg || last_pt >= end)))
+      if (check_invisible && PT > BEGV && PT < ZV)
 	{
-	  SET_PT (PT < last_pt ? beg : end);
-	  check_composition = 1;
-	  check_display = 1;
+	  int inv, ellipsis = 0;
+	  beg = end = PT;
+
+	  /* Find boundaries `beg' and `end' of the invisible area, if any.  */
+	  while (end < ZV
+		 && !NILP (val = get_char_property_and_overlay
+		           (make_number (end), Qinvisible, Qnil, &overlay))
+		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
+	    {
+	      ellipsis = ellipsis || inv > 1
+		|| (OVERLAYP (overlay)
+		    && (!NILP (Foverlay_get (overlay, Qafter_string))
+			|| !NILP (Foverlay_get (overlay, Qbefore_string))));
+	      tmp = Fnext_single_char_property_change
+		(make_number (end), Qinvisible, Qnil, Qnil);
+	      end = NATNUMP (tmp) ? XFASTINT (tmp) : ZV;
+	    }
+	  while (beg > BEGV
+		 && !NILP (val = get_char_property_and_overlay
+		           (make_number (beg - 1), Qinvisible, Qnil, &overlay))
+		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
+	    {
+	      ellipsis = ellipsis || inv > 1
+		|| (OVERLAYP (overlay)
+		    && (!NILP (Foverlay_get (overlay, Qafter_string))
+			|| !NILP (Foverlay_get (overlay, Qbefore_string))));
+	      tmp = Fprevious_single_char_property_change
+		(make_number (beg), Qinvisible, Qnil, Qnil);
+	      beg = NATNUMP (tmp) ? XFASTINT (tmp) : BEGV;
+	    }
+	  
+	  /* Move away from the inside area.  */
+	  if (beg < PT && end > PT)
+	    {
+	      SET_PT (PT < last_pt ? beg : end);
+	      check_composition = check_display = 1;
+	    }
+	  xassert (PT == beg || PT == end);
+	  /* Pretend the area doesn't exist.  */
+	  if (!ellipsis && beg < end)
+	    {
+	      if (last_pt == beg && PT == end && end < ZV)
+		(check_composition = check_display = 1, SET_PT (end + 1));
+	      else if (last_pt == end && PT == beg && beg > BEGV)
+		(check_composition = check_display = 1, SET_PT (beg - 1));
+	      else if (PT == ((PT < last_pt) ? beg : end))
+		/* We've already moved as far as we can.  Trying to go
+		   to the other end would mean moving backwards and thus
+		   could lead to an infinite loop.  */
+		;
+	      else if (val = get_pos_property (make_number (PT),
+					       Qinvisible, Qnil),
+		       TEXT_PROP_MEANS_INVISIBLE (val)
+		       && (val = get_pos_property
+			   (make_number (PT == beg ? end : beg),
+			    Qinvisible, Qnil),
+			   !TEXT_PROP_MEANS_INVISIBLE (val)))
+		(check_composition = check_display = 1,
+		 SET_PT (PT == beg ? end : beg));
+	    }
 	}
       check_invisible = 0;
     }
@@ -5310,7 +5358,7 @@ make_lispy_event (event)
 	/* Get the symbol we should use for the mouse click.  */
 	head = modify_event_symbol (event->code,
 				    event->modifiers,
-				    Qmouse_click, 
+				    Qmouse_click,
 				    Vlispy_mouse_stem,
 				    NULL, &mouse_syms,
 				    XVECTOR (mouse_syms)->size);
@@ -7670,7 +7718,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      int *used_mouse_menu;
 {
   int mapno;
-  register Lisp_Object name;
+  register Lisp_Object name = Qnil;
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
@@ -7772,6 +7820,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   int mapno;
   register Lisp_Object name;
   int nlength;
+  /* FIXME: Use the minibuffer's frame width.  */
   int width = FRAME_WIDTH (SELECTED_FRAME ()) - 4;
   int idx = -1;
   int nobindings = 1;
@@ -10033,7 +10082,7 @@ clear_waiting_for_input ()
    eval to throw, when it gets a chance.  If quit-flag is already
    non-nil, it stops the job right away.  */
 
-SIGTYPE
+static SIGTYPE
 interrupt_signal (signalnum)	/* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls. */
 {
