@@ -6017,14 +6017,18 @@ parse_menu_item (item, notreal, inmenubar)
   /* See if this is a separate pane or a submenu.  */
   def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
   tem = get_keymap_1 (def, 0, 1);
+  /* For a subkeymap, just record its details and exit.  */
   if (!NILP (tem))
     {
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP] = tem;
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = tem;
       return 1;
     }
-  else if (inmenubar > 0)
-    return 0;			/* Entries in menu bar must be submenus.  */
+  /* At the top level in the menu bar, do likewise for commands also.
+     The menu bar does not display equivalent key bindings anyway.
+     ITEM_PROPERTY_DEF is already set up properly.  */
+  if (inmenubar > 0)
+    return 1;
 
   /* This is a command.  See if there is an equivalent key binding. */
   if (NILP (cachelist))
