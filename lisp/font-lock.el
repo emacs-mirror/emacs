@@ -1638,13 +1638,16 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Face name to use for variable names.")
 
 (defvar font-lock-type-face		'font-lock-type-face
-  "Face name to use for type names.")
+  "Face name to use for type and class names.")
 
-(defvar font-lock-reference-face	'font-lock-reference-face
-  "Face name to use for reference names.")
+(defvar font-lock-constant-face		'font-lock-constant-face
+  "Face name to use for constant and label names.")
 
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
+
+(defvar font-lock-reference-face	'font-lock-constant-face
+  "This variable is obsolete.  Use font-lock-constant-face.")
 
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
 ;; Users then changed the default face attributes by setting that variable.
@@ -1739,10 +1742,10 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
-  "Font Lock mode face used to highlight types."
+  "Font Lock mode face used to highlight type and classes."
   :group 'font-lock-highlighting-faces)
 
-(defface font-lock-reference-face
+(defface font-lock-constant-face
   '((((class grayscale) (background light))
      (:foreground "LightGray" :bold t :underline t))
     (((class grayscale) (background dark))
@@ -1750,7 +1753,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:bold t :underline t)))
-  "Font Lock mode face used to highlight references."
+  "Font Lock mode face used to highlight constants and labels."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
@@ -1932,9 +1935,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	       nil t))
      ;;
      ;; Emacs Lisp autoload cookies.
-     '("^;;;\\(###\\)\\(autoload\\)\\>"
-       (1 font-lock-reference-face prepend)
-       (2 font-lock-warning-face prepend))
+     '("^;;;###\\(autoload\\)\\>" 1 font-lock-warning-face prepend)
      ))
   "Subdued level highlighting for Lisp modes.")
 
@@ -1972,15 +1973,15 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "\\>")
 	    1)
       ;;
-      ;; Feature symbols as references.
+      ;; Feature symbols as constants.
       '("(\\(featurep\\|provide\\|require\\)\\>[ \t']*\\(\\sw+\\)?"
-	(1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+	(1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
       ;;
       ;; Words inside \\[] tend to be for `substitute-command-keys'.
-      '("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-reference-face prepend)
+      '("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-constant-face prepend)
       ;;
       ;; Words inside `' tend to be symbol names.
-      '("`\\(\\sw\\sw+\\)'" 1 font-lock-reference-face prepend)
+      '("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
       ;;
       ;; Constant values.
       '("\\<:\\sw\\sw+\\>" 0 font-lock-builtin-face)
@@ -2058,7 +2059,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
 ;     2 font-lock-function-name-face)
 ;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
-;     2 font-lock-reference-face)
+;     2 font-lock-constant-face)
 ;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
 ;    ;; not be able to display those fonts.
 ;    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
@@ -2069,7 +2070,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
 ;     2 font-lock-function-name-face)
 ;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
-;     2 font-lock-reference-face)
+;     2 font-lock-constant-face)
 ;    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
 ;    "\\\\\\([a-zA-Z@]+\\|.\\)"
 ;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
@@ -2189,10 +2190,10 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	;; Citation args.
 	(list (concat slash citations arg)
 	      (+ (regexp-opt-depth citations) arg-depth)
-	      'font-lock-reference-face)
+	      'font-lock-constant-face)
 	(list (concat slash citations-opt opt arg)
 	      (+ (regexp-opt-depth citations-opt) opt-depth arg-depth)
-	      'font-lock-reference-face)
+	      'font-lock-constant-face)
 	;;
 	;; Command names, special and general.
 	(cons (concat slash specials) 'font-lock-warning-face)
@@ -2368,13 +2369,13 @@ See also `c-font-lock-extra-types'.")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     ;; Anders Lindgren <andersl@csd.uu.se> points out that it is quicker to use
     ;; MATCH-ANCHORED to effectively anchor the regexp on the left.
     ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
 	   (beginning-of-line) (end-of-line)
-	   (1 font-lock-reference-face)))
+	   (1 font-lock-constant-face)))
     )))
 
  (setq c-font-lock-keywords-3
@@ -2551,17 +2552,17 @@ See also `c++-font-lock-extra-types'.")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:\\($\\|[^:]\\)"
 	   (beginning-of-line) (end-of-line)
-	   (1 font-lock-reference-face)))
+	   (1 font-lock-constant-face)))
     ;;
     ;; Fontify other builtin keywords.
     (concat "\\<" c++-keywords "\\>")
     ;;
     ;; Eric Hopper <hopper@omnifarious.mn.org> says `true' and `false' are new.
-    '("\\<\\(false\\|true\\)\\>" . font-lock-reference-face)
+    '("\\<\\(false\\|true\\)\\>" . font-lock-constant-face)
     )))
 
  (setq c++-font-lock-keywords-3
@@ -2700,15 +2701,15 @@ See also `objc-font-lock-extra-types'.")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     ;; Fontify tags iff sole statement on line, otherwise we detect selectors.
     ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*$"
 	   (beginning-of-line) (end-of-line)
-	   (1 font-lock-reference-face)))
+	   (1 font-lock-constant-face)))
     ;;
     ;; Fontify null object pointers.
-    '("\\<[Nn]il\\>" . font-lock-reference-face)
+    '("\\<[Nn]il\\>" . font-lock-constant-face)
     )))
 
  (setq objc-font-lock-keywords-3
@@ -2812,7 +2813,7 @@ See also `java-font-lock-extra-types'.")
    ;;
    ;; Fontify package names in import directives.
    '("\\<\\(import\\|package\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+     (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
    ))
 
  (setq java-font-lock-keywords-2
@@ -2828,11 +2829,11 @@ See also `java-font-lock-extra-types'.")
     ;;
     ;; Fontify keywords and targets, and case default/goto tags.
     (list "\\<\\(break\\|case\\|continue\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
-	  '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+	  '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
     ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
 	   (beginning-of-line) (end-of-line)
-	   (1 font-lock-reference-face)))
+	   (1 font-lock-constant-face)))
     ;;
     ;; Fontify keywords and types; the first can be followed by a type list.
     (list (concat "\\<\\("
@@ -2845,13 +2846,13 @@ See also `java-font-lock-extra-types'.")
 	    (1 font-lock-type-face)))
     ;;
     ;; Fontify all constants.
-    '("\\<\\(false\\|null\\|true\\)\\>" . font-lock-reference-face)
+    '("\\<\\(false\\|null\\|true\\)\\>" . font-lock-constant-face)
     ;;
     ;; Javadoc tags within comments.
     '("@\\(author\\|exception\\|return\\|see\\|version\\)\\>"
-      (1 font-lock-reference-face prepend))
+      (1 font-lock-constant-face prepend))
     '("@\\(param\\)\\>[ \t]*\\(\\sw+\\)?"
-      (1 font-lock-reference-face prepend)
+      (1 font-lock-constant-face prepend)
       (2 font-lock-variable-name-face prepend t))
     )))
 
