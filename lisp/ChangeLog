@@ -1,3 +1,7 @@
+2001-04-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/paragraphs.el (sentence-end): Doc fix.
+
 2001-04-20  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-escape-newlines-and-send): New function.
