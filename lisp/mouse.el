@@ -1296,10 +1296,10 @@ again.  If you do this twice in the same position, it kills the selection."
 			    (overlay-start mouse-secondary-overlay)
 			    (overlay-end mouse-secondary-overlay)))))))
 
-(defcustom mouse-menu-buffer-maxlen 20
+(defcustom mouse-buffer-menu-maxlen 20
   "*Number of buffers in one pane (submenu) of the buffer menu.
 If we have lots of buffers, divide them into groups of
-`mouse-menu-buffer-maxlen' and make a pane (or submenu) for each one."
+`mouse-buffer-menu-maxlen' and make a pane (or submenu) for each one."
   :type 'integer
   :group 'mouse)
 
@@ -1448,15 +1448,15 @@ and selects that window."
 (defun mouse-buffer-menu-split (title alist)
   ;; If we have lots of buffers, divide them into groups of 20
   ;; and make a pane (or submenu) for each one.
-  (if (> (length alist) (/ (* mouse-menu-buffer-maxlen 3) 2))
+  (if (> (length alist) (/ (* mouse-buffer-menu-maxlen 3) 2))
       (let ((alist alist) sublists next
 	    (i 1))
 	(while alist
-	  ;; Pull off the next mouse-menu-buffer-maxlen buffers
+	  ;; Pull off the next mouse-buffer-menu-maxlen buffers
 	  ;; and make them the next element of sublist.
-	  (setq next (nthcdr mouse-menu-buffer-maxlen alist))
+	  (setq next (nthcdr mouse-buffer-menu-maxlen alist))
 	  (if next
-	      (setcdr (nthcdr (1- mouse-menu-buffer-maxlen) alist)
+	      (setcdr (nthcdr (1- mouse-buffer-menu-maxlen) alist)
 		      nil))
 	  (setq sublists (cons (cons (format "Buffers %d" i) alist)
 			       sublists))
