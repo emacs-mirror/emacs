@@ -60,6 +60,10 @@
 (defvar rmail-pop-password-required nil
   "*Non-nil if a password is required when reading mail using POP.")
 
+(defvar rmail-preserve-inbox nil
+  "*Non-nil if incoming mail should be left in the user's inbox,
+rather than deleted, after it is retrieved.")
+
 ;;;###autoload
 (defvar rmail-dont-reply-to-names nil "\
 *A regexp specifying names to prune of reply to messages.
@@ -891,6 +895,9 @@ file of new mail is not changed or deleted.  Noninteractively, you can
 pass the inbox file name as an argument.  Interactively, a prefix
 argument causes us to read a file name and use that file as the inbox.
 
+If the variable `rmail-preserve-inbox' is non-nil, new mail will
+always be left in inbox files rather than deleted.
+
 This function runs `rmail-get-new-mail-hook' before saving the updated file.
 It returns t if it got any new messages."
   (interactive
@@ -1074,34 +1081,42 @@ It returns t if it got any new messages."
 					     (not (file-exists-p file))))
 	     nil)
 	    ((and (not movemail) (not popmail))
-	     ;; Try copying.  If that fails (perhaps no space),
-	     ;; rename instead.
-	     (condition-case nil
+	     ;; Try copying.  If that fails (perhaps no space) and
+	     ;; we're allowed to blow away the inbox, rename instead.
+	     (if rmail-preserve-inbox
 		 (copy-file file tofile nil)
-	       (error
-		;; Third arg is t so we can replace existing file TOFILE.
-		(rename-file file tofile t)))
+	       (condition-case nil
+		   (copy-file file tofile nil)
+		 (error
+		  ;; Third arg is t so we can replace existing file TOFILE.
+		  (rename-file file tofile t))))
 	     ;; Make the real inbox file empty.
 	     ;; Leaving it deleted could cause lossage
 	     ;; because mailers often won't create the file.
-	     (condition-case ()
-		 (write-region (point) (point) file)
-	       (file-error nil)))
+	     (if (not rmail-preserve-inbox)
+		 (condition-case ()
+		     (write-region (point) (point) file)
+		   (file-error nil))))
 	    (t
 	     (let ((errors nil))
 	       (unwind-protect
 		   (save-excursion
 		     (setq errors (generate-new-buffer " *rmail loss*"))
 		     (buffer-disable-undo errors)
-		     (if rmail-pop-password
-			 (call-process
-			  (or rmail-movemail-program
-			      (expand-file-name "movemail" exec-directory))
-			  nil errors nil file tofile rmail-pop-password)
-		       (call-process
-			(or rmail-movemail-program
-			    (expand-file-name "movemail" exec-directory))
-			nil errors nil file tofile))
+		     (let ((args 
+			    (append 
+			     (list (or rmail-movemail-program
+				       (expand-file-name "movemail"
+							 exec-directory))
+				   nil errors nil)
+			     (if rmail-preserve-inbox 
+				 (list "-p")
+			       nil)
+			     (list file tofile)
+			     (if rmail-pop-password 
+				 (list rmail-pop-password)
+			       nil))))
+		       (apply 'call-process args))
 		     (if (not (buffer-modified-p errors))
 			 ;; No output => movemail won
 			 nil
@@ -1132,7 +1147,8 @@ It returns t if it got any new messages."
 	    (or (= (preceding-char) ?\n)
 		(zerop size)
 		(insert ?\n))
-	    (setq delete-files (cons tofile delete-files))))
+	    (if (not (and rmail-preserve-inbox (string= file tofile)))
+		(setq delete-files (cons tofile delete-files)))))
       (message "")
       (setq files (cdr files)))
     delete-files))
