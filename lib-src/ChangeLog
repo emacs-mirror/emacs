@@ -1,3 +1,8 @@
+2002-02-10  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs-checkin: Use `sort -k 2', not `sort +1', as POSIX 1003.1-2001
+	disallows the old syntax.
+
 2002-02-03  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs2log (Copyright): Update to 2002.
