@@ -1,5 +1,20 @@
 2004-04-13  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (fontset_font): Renamed from fontset_face.  Return
+	value changed.
+	(face_suitable_for_char_p): Adjusted for the change of
+	fontset_font.
+	(face_for_char): Likewise.
+	(make_fontset_for_ascii_face): Fix setting of the fontset element
+	for ASCII.
+	(Finternal_char_font): Use fontset_font instead of FACE_FOR_CHAR
+	to get a font name.
+	(Ffontset_info): Adjusted for the change of fontset_font.
+
+	* composite.c: Sync to HEAD.
+
+	* search.c: Sync to HEAD.
+
 	* coding.c: Sync to HEAD.
 	(emacs_mule_char): Check invalid code more regidly.
 	
