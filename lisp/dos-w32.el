@@ -244,24 +244,10 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
 
-;; Process I/O decoding and encoding.
-
-(defun find-binary-process-coding-system (command)
-  "Choose a coding system for process I/O.
-The coding system for decode is 'no-conversion' if 'binary-process-output'
-is non-nil, and 'undecided-dos' otherwise.  Similarly, the coding system 
-for encode is 'no-conversion' if 'binary-process-input' is non-nil,
-and 'undecided-dos' otherwise."
-  (let ((decode 'undecided-dos)
-	(encode 'undecided-dos))
-    (if binary-process-output
-	(setq decode 'no-conversion))
-    (if binary-process-input
-	(setq encode 'no-conversion))
-    (cons decode encode)))
-
-(modify-coding-system-alist 'process "" 'find-binary-process-coding-system)
-
+(setq-default default-process-coding-system
+	      (if (fboundp 'start-process)
+		  '(raw-text-dos . raw-text-dos)
+		'(undecided-dos . undecided-dos)))
 
 (provide 'dos-w32)
 
