@@ -1,5 +1,8 @@
 2001-12-24  Richard M. Stallman  <rms@gnu.org>
 
+	* faces.el (minibuffer-prompt): New face.
+	(minibuffer-prompt-properties): Add `face' property.
+
 	* replace.el (occur-mode-display-occurrence): New function.
 	(occur-mode-map): Bind C-o to it.
 

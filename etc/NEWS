@@ -77,6 +77,13 @@ only happen after 0.25s of idle time.
 will now be extended each time, so you can mark the next two sexps with
 M-C-SPC M-C-SPC, for example.
 
+** In the *Occur* buffer, C-o displays the current line's occurrence
+in another window without switching to it.
+
+** When you specify a frame size with --geometry, the size applies to
+all frames you create.  A position specified with --geometry only
+affects the initial frame.
+
 +++
 ** M-h (mark-paragraph) now accepts a prefix arg.
 With positive arg, M-h marks the current and the following paragraphs;
