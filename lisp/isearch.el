@@ -4,10 +4,9 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/08/10 04:14:17 $|$Revision: 1.48 $
+;; |$Date: 1993/08/13 06:32:49 $|$Revision: 1.49 $
 
-;; This file is not yet part of GNU Emacs, but it is based almost
-;; entirely on isearch.el which is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY.  No author or distributor

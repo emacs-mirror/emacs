@@ -6,7 +6,7 @@
 ;; Created:         19-Apr-1993
 ;; Keywords: bug reports lisp
 
-;; This file is not yet part of GNU Emacs.
+;; This file is part of GNU Emacs.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
