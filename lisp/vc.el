@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.295 2001/02/01 15:08:49 spiegel Exp $
+;; $Id: vc.el,v 1.296 2001/02/01 17:41:06 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1025,11 +1025,11 @@ NOT-URGENT means it is ok to continue if the user says not to save."
         (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
         unchanged))))
 
-(defun vc-default-workfile-unchanged-p (file)
+(defun vc-default-workfile-unchanged-p (backend file)
   "Default check whether FILE is unchanged: diff against master version."
   (zerop (vc-call diff file (vc-workfile-version file))))
 
-(defun vc-default-latest-on-branch-p (file)
+(defun vc-default-latest-on-branch-p (backend file)
   "Default check whether the current workfile version of FILE is the 
 latest on its branch."
   t)
