@@ -704,7 +704,7 @@ function, it is changed to a list of functions."
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
     (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
-      (set hook-value (list hook-value)))
+      (setq hook-value (list hook-value)))
     ;; Do the actual addition if necessary
     (unless (member function hook-value)
       (setq hook-value

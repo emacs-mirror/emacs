@@ -1,3 +1,7 @@
+2000-05-16  Sam Steingold  <sds@gnu.org>
+
+	* subr.el (add-hook): `setq' hook-value, not `set'.
+
 2000-05-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line-1): Mention the FAQ in the startup
