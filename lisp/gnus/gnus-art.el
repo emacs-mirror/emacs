@@ -191,7 +191,7 @@ asynchronously.	 The compressed face will be piped to this command."
 	 (lambda (spec)
 	   (list
 	    (format format (car spec) (cadr spec))
-	    2 3 (intern (format "gnus-emphasis-%s" (caddr spec)))))
+	    2 3 (intern (format "gnus-emphasis-%s" (car (cddr spec))))))
 	 types)))
   "Alist that says how to fontify certain phrases.
 Each item looks like this:
