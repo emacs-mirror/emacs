@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985, 1986, 1987, 1989, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1989, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -196,6 +196,8 @@ region_limit (beginningp)
      int beginningp;
 {
   register Lisp_Object m;
+  if (!NILP (Vtransient_mark_mode) && NILP (current_buffer->mark_active))
+    error ("There is no region now");
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m)) error ("There is no region now");
   if ((point < XFASTINT (m)) == beginningp)
@@ -281,14 +283,15 @@ save_excursion_save ()
 
   return Fcons (Fpoint_marker (),
 		Fcons (Fcopy_marker (current_buffer->mark),
-		       visible ? Qt : Qnil));
+		       Fcons (visible ? Qt : Qnil,
+			      current_buffer->mark_active)));		       
 }
 
 Lisp_Object
 save_excursion_restore (info)
      register Lisp_Object info;
 {
-  register Lisp_Object tem;
+  register Lisp_Object tem, tem1;
 
   tem = Fmarker_buffer (Fcar (info));
   /* If buffer being returned to is now deleted, avoid error */
@@ -305,9 +308,17 @@ save_excursion_restore (info)
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   unchain_marker (tem);
   tem = Fcdr (Fcdr (info));
-  if (!NILP (tem)
+  tem1 = Fcar (tem);
+  if (!NILP (tem1)
       && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
+
+  tem1 = current_buffer->mark_active;
+  current_buffer->mark_active = Fcdr (tem);
+  if (! NILP (current_buffer->mark_active))
+    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+  else if (! NILP (tem1))
+    call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
   return Qnil;
 }
 
@@ -315,7 +326,8 @@ DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
   "Save point, mark, and current buffer; execute BODY; restore those things.\n\
 Executes BODY just like `progn'.\n\
 The values of point, mark and the current buffer are restored\n\
-even in case of abnormal exit (throw or error).")
+even in case of abnormal exit (throw or error).\n\
+The state of activation of the mark is also restored.")
   (args)
      Lisp_Object args;
 {
