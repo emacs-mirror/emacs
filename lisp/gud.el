@@ -1318,7 +1318,11 @@ Obeying it means displaying in another window the specified file and line."
 
 (defun gud-display-line (true-file line)
   (let* ((last-nonmenu-event t)	 ; Prevent use of dialog box for questions.
-	 (buffer (gud-find-file true-file))
+	 (buffer
+	  (save-excursion
+	    (or (eq (current-buffer) gud-comint-buffer)
+		(set-buffer gud-comint-buffer))
+	    (gud-find-file true-file)))
 	 (window (display-buffer buffer))
 	 (pos))
 ;;;    (if (equal buffer (current-buffer))
