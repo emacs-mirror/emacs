@@ -318,6 +318,17 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
   return val;
 }
 
+DEFUN ("minibufferp", Fminibufferp,
+       Sminibufferp, 0, 0, 0,
+       doc: /* Return t if the current buffer is a minibuffer.  */)
+     ()
+{
+  Lisp_Object tem;
+
+  tem = Fmemq (Fcurrent_buffer (), Vminibuffer_list);
+  return ! NILP (tem) ? Qt : Qnil;
+}
+
 DEFUN ("minibuffer-prompt-end", Fminibuffer_prompt_end,
        Sminibuffer_prompt_end, 0, 0, 0,
        doc: /* Return the buffer position of the end of the minibuffer prompt.
@@ -325,8 +336,14 @@ Return (point-min) if current buffer is not a mini-buffer.  */)
      ()
 {
   /* This function is written to be most efficient when there's a prompt.  */
-  Lisp_Object beg = make_number (BEGV);
-  Lisp_Object end = Ffield_end (beg, Qnil, Qnil);
+  Lisp_Object beg, end, tem;
+  beg = make_number (BEGV);
+
+  tem = Fmemq (Fcurrent_buffer (), Vminibuffer_list);
+  if (NILP (tem))
+    return beg;
+
+  end = Ffield_end (beg, Qnil, Qnil);
 
   if (XINT (end) == ZV && NILP (Fget_char_property (beg, Qfield, Qnil)))
     return beg;
@@ -2581,6 +2598,7 @@ properties.  */);
   defsubr (&Sminibuffer_depth);
   defsubr (&Sminibuffer_prompt);
 
+  defsubr (&Sminibufferp);
   defsubr (&Sminibuffer_prompt_end);
   defsubr (&Sminibuffer_contents);
   defsubr (&Sminibuffer_contents_no_properties);
