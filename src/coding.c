@@ -5305,6 +5305,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
      struct coding_system *coding;
 {
   int len = to - from, len_byte = to_byte - from_byte;
+  int nchars_del = 0, nbytes_del = 0;
   int require, inserted, inserted_byte;
   int head_skip, tail_skip, total_skip = 0;
   Lisp_Object saved_coding_symbol;
@@ -5427,7 +5428,15 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     }
 
   if (replace)
-    deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+    {
+      if (! EQ (current_buffer->undo_list, Qt))
+	deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+      else
+	{
+	  nchars_del = to - from;
+	  nbytes_del = to_byte - from_byte;
+	}
+    }
 
   if (coding->composing != COMPOSITION_DISABLED)
     {
@@ -5719,7 +5728,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     }
 
   prev_Z = Z;
-  adjust_after_replace (from, from_byte, deletion, inserted, inserted_byte);
+  if (! EQ (current_buffer->undo_list, Qt))
+    adjust_after_replace (from, from_byte, deletion, inserted, inserted_byte);
+  else
+    adjust_after_replace_noundo (from, from_byte, nchars_del, nbytes_del,
+				 inserted, inserted_byte);
   inserted = Z - prev_Z;
 
   if (!encodep && coding->cmp_data && coding->cmp_data->used)
