@@ -1,5 +1,7 @@
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* make-dist: Add the lispref directory to the distribution.
+
 	* Makefile.in (install-arch-indep): Add elisp* to the list of
 	installed Info files.
 

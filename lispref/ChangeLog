@@ -1,3 +1,20 @@
+2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	The following changes make ELisp manual part of the Emacs
+	distribution:
+
+	* Makefile.in: Add Copyright notice.
+	(prefix): Remove.
+	(infodir): Change value to "../info".
+	(VPATH): New variable.
+	(MAKE): Don't define.
+	(texmacrodir): Don't define.
+	(texinputdir): Append the existing value of TEXINPUTS.
+	($(infodir)/elisp): Instead of just "elisp".  Reformat the
+	command to be compatible with man/Makefile.in, and to put the
+	output into ../info.
+	(installall): Target removed.
+
 2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
