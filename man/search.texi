@@ -845,6 +845,18 @@ C-@key{SPC}} to move back there.
   A numeric argument restricts replacement to matches that are surrounded
 by word boundaries.  The argument's value doesn't matter.
 
+  What if you want to exchange @samp{x} and @samp{y}: replace every @samp{x} with a @samp{y} and vice versa?  You can do it this way:
+
+@example
+M-x query-replace @key{RET} x @key{RET} @@TEMP@@ @key{RET}
+M-x query-replace @key{RET} y @key{RET} x @key{RET}
+M-x query-replace @key{RET} @@TEMP@@ @key{RET} y @key{RET}
+@end example
+
+@noindent
+This works provided the string @samp{@@TEMP@@} does not appear
+in your text.
+
 @node Regexp Replace, Replacement and Case, Unconditional Replace, Replace
 @subsection Regexp Replacement
 
