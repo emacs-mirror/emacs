@@ -422,7 +422,8 @@ For most uses, it is simpler and safer to use command remappping like this:
 	    (nconc (nreverse skipped) newdef)))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
-	    (condition-case nil (indirect-function defn) (error defn)))
+	    (and defn
+		 (condition-case nil (indirect-function defn) (error defn))))
       ;; For nested keymaps, we use `inner-def' rather than `defn' so as to
       ;; avoid autoloading a keymap.  This is mostly done to preserve the
       ;; original non-autoloading behavior of pre-map-keymap times.
