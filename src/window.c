@@ -33,11 +33,7 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p;
 
-Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
-Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
-
-void delete_all_subwindows ();
-static struct window *decode_window();
+static struct window *decode_window P_ ((Lisp_Object));
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -803,6 +799,7 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
   return Qnil;
 }
 
+void
 delete_window (window)
      register Lisp_Object window;
 {
@@ -1720,6 +1717,7 @@ check_frame_size (frame, rows, cols)
    nodelete nonzero means do not do this.
    (The caller should check later and do so if appropriate)  */
 
+void
 set_window_height (window, height, nodelete)
      Lisp_Object window;
      int height;
@@ -1790,6 +1788,7 @@ set_window_height (window, height, nodelete)
 
 /* Recursively set width of WINDOW and its inferiors. */
 
+void
 set_window_width (window, width, nodelete)
      Lisp_Object window;
      int width;
@@ -2540,6 +2539,7 @@ window_width (window)
    also changes the heights of the siblings so as to
    keep everything consistent. */
 
+void
 change_window_height (delta, widthflag)
      register int delta;
      int widthflag;
@@ -2548,10 +2548,10 @@ change_window_height (delta, widthflag)
   Lisp_Object window;
   register struct window *p;
   int *sizep;
-  int (*sizefun) () = widthflag ? window_width : window_height;
-  register int (*setsizefun) () = (widthflag
-				   ? set_window_width
-				   : set_window_height);
+  int (*sizefun) P_ ((Lisp_Object))
+    = widthflag ? window_width : window_height;
+  register void (*setsizefun) P_ ((Lisp_Object, int, int))
+    = (widthflag ? set_window_width : set_window_height);
   int maximum;
   Lisp_Object next, prev;
 
