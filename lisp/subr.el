@@ -826,19 +826,20 @@ Wildcards and redirection are handled as usual in the shell."
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
   (let ((original (make-symbol "match-data")))
-    (list
-     'let (list (list original '(match-data)))
-     (list 'unwind-protect
-           (cons 'progn body)
-           (list 'store-match-data original)))))
+    (list 'let (list (list original '(match-data)))
+	  (list 'unwind-protect
+		(cons 'progn body)
+		(list 'store-match-data original)))))
 
-(defun match-string (n &optional string)
-  "Return the Nth subexpression matched by the last regexp search or match.
-If the last search or match was done against a string,
-specify that string as the second argument STRING."
-  (if string
-      (substring string (match-beginning n) (match-end n))
-    (buffer-substring (match-beginning n) (match-end n))))
+(defmacro match-string (num &optional string)
+  "Return string of text matched by last search.
+NUM specifies which parenthesized expression in the last regexp.
+ Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
+Zero means the entire text matched by the whole regexp or whole string.
+STRING should be given if the last search was by `string-match' on STRING."
+  (list 'and (list 'match-beginning num)
+	(append (if string (list 'substring string) '(buffer-substring))
+		(list (list 'match-beginning num) (list 'match-end num)))))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
