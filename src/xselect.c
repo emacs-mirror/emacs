@@ -1765,11 +1765,16 @@ lisp_data_to_selection_data (display, obj,
       *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
 				 (int *) size_ret, &stringp);
       *nofree_ret = (*data_ret == XSTRING (obj)->data);
-      if (EQ (Vnext_selection_coding_system,
-	      Qcompound_text_with_extensions))
-	type = QCOMPOUND_TEXT;
-      else if (NILP (type))
-	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
+      if (NILP (type))
+	{
+	  if (stringp && *nofree_ret)
+	    type = QSTRING;
+	  else if (EQ (Vnext_selection_coding_system,
+		       Qcompound_text_with_extensions))
+	    type = QCOMPOUND_TEXT;
+	  else
+	    type = (stringp ? QSTRING : QCOMPOUND_TEXT);
+	}
       Vlast_coding_system_used = (*nofree_ret
 				  ? Qraw_text
 				  : Vnext_selection_coding_system);
