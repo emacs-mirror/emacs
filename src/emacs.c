@@ -235,6 +235,15 @@ main (argc, argv, envp)
     }
 #endif
 
+#ifdef NeXT
+  static int malloc_cookie;
+
+  /* This helps out unexnext.c.  */
+  if (initialized)
+    if (malloc_jumpstart (malloc_cookie) != 0)
+      printf ("malloc jumpstart failed!\n");
+#endif /* NeXT */
+
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
      handle this argument entirely in window system dependent code
