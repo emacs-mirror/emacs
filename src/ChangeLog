@@ -1,3 +1,13 @@
+2003-02-23  Richard M. Stallman  <rms@gnu.org>
+
+	* callint.c (fix_command): New subroutine, from Fcall_interactively.
+	Detect (when ... (region-beginning)) etc.
+	(Fcall_interactively): Call fix_command.
+	(Qif, Qwhen): New variables.
+	(syms_of_callint): Init and staticpro them.
+	
+	* regex.c (print_partial_compiled_pattern): Output to stderr.
+
 2003-02-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.c (directory_files_internal): Don't expand directory.
