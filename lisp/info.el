@@ -407,6 +407,7 @@ in all the directories in that path."
 
 ;;;###autoload
 (defun info-emacs-manual ()
+  "Display the Emacs manual in Info mode."
   (interactive)
   (info "emacs"))
 
@@ -1663,6 +1664,7 @@ N is the digit argument used to invoke this command."
     (quit-window)))
 
 (defun Info-next-menu-item ()
+  "Go to the node of the next menu item."
   (interactive)
   ;; Bind this in case the user sets it to nil.
   (let* ((case-fold-search t)
@@ -1676,6 +1678,7 @@ N is the digit argument used to invoke this command."
       (error "No more items in menu"))))
 
 (defun Info-last-menu-item ()
+  "Go to the node of the previous menu item."
   (interactive)
   (save-excursion
     (forward-line 1)
@@ -1795,7 +1798,7 @@ parent node."
 		 (search-forward "\n* Menu:"
 				 current-point
 				 t)))))
-    (if (or virtual-end 
+    (if (or virtual-end
 	    (pos-visible-in-window-p (point-min) nil t))
 	(Info-last-preorder)
       (scroll-down))))
@@ -1895,8 +1898,8 @@ Give a blank topic name to go to the Index node itself."
 		  (push (list (match-string-no-properties 1)
 			      (match-string-no-properties 2)
 			      Info-current-node
-			      (string-to-int (concat "0"
-						     (match-string 3))))
+			      (string-to-number (concat "0"
+							(match-string 3))))
 			matches))
 		(and (setq node (Info-extract-pointer "next" t))
 		     (string-match "\\<Index\\>" node)))
