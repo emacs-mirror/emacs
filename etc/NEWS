@@ -1438,8 +1438,8 @@ The following changes have been made to provide command remapping:
   to definition DEF in keymap MAP.  The definition is not limited to
   another command; it can be anything accepted for a normal binding.
 
-- The new function `remap-command' returns the binding for a remapped
-  command in the current keymaps, or nil if it isn't remapped.
+- The new function `command-remapping' returns the binding for a
+  remapped command in the current keymaps, or nil if not remapped.
 
 - key-binding now remaps interactive commands unless the optional
   third argument NO-REMAP is non-nil.
