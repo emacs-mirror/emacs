@@ -56,6 +56,12 @@ strings or patterns."
   :type 'symbol
   :version "20.3")
 
+(defcustom query-replace-skip-read-only nil
+  "*Non-nil means `query-replace' and friends ignore read-only matches."
+  :type 'boolean
+  :group 'matching
+  :version "21.3")
+
 (defun query-replace-read-args (string regexp-flag)
   (let (from to)
     (if query-replace-interactive
@@ -967,158 +973,163 @@ see the documentation of `replace-match' to find out how to simulate
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
 				 (match-data t real-match-data)))))
+	  ;; Optionally ignore matches that have a read-only property.
+	  (unless (and query-replace-skip-read-only
+		       (text-property-not-all
+			(match-beginning 0) (match-end 0)
+			'read-only nil))
 
-	  ;; Record whether the match is nonempty, to avoid an infinite loop
-	  ;; repeatedly matching the same empty string.
-	  (setq nonempty-match
-		(/= (nth 0 real-match-data) (nth 1 real-match-data)))
+	    ;; Record whether the match is nonempty, to avoid an infinite loop
+	    ;; repeatedly matching the same empty string.
+	    (setq nonempty-match
+		  (/= (nth 0 real-match-data) (nth 1 real-match-data)))
 
-	  ;; If the match is empty, record that the next one can't be
-	  ;; adjacent.
+	    ;; If the match is empty, record that the next one can't be
+	    ;; adjacent.
 
-	  ;; Otherwise, if matching a regular expression, do the next
-	  ;; match now, since the replacement for this match may
-	  ;; affect whether the next match is adjacent to this one.
-	  ;; If that match is empty, don't use it.
-	  (setq match-again
-		(and nonempty-match
-		     (or (not regexp-flag)
-			 (and (looking-at search-string)
-			      (let ((match (match-data)))
-				(and (/= (nth 0 match) (nth 1 match))
-				     match))))))
+	    ;; Otherwise, if matching a regular expression, do the next
+	    ;; match now, since the replacement for this match may
+	    ;; affect whether the next match is adjacent to this one.
+	    ;; If that match is empty, don't use it.
+	    (setq match-again
+		  (and nonempty-match
+		       (or (not regexp-flag)
+			   (and (looking-at search-string)
+				(let ((match (match-data)))
+				  (and (/= (nth 0 match) (nth 1 match))
+				       match))))))
 
-	  ;; Calculate the replacement string, if necessary.
-	  (when replacements
-            (set-match-data real-match-data)
-            (setq next-replacement
-                  (funcall (car replacements) (cdr replacements)
-                           replace-count)))
-	  (if (not query-flag)
-	      (progn
-		(set-match-data real-match-data)
-		(replace-match next-replacement nocasify literal)
-		(setq replace-count (1+ replace-count)))
-	    (undo-boundary)
-	    (let (done replaced key def)
-	      ;; Loop reading commands until one of them sets done,
-	      ;; which means it has finished handling this occurrence.
-	      (while (not done)
-		(set-match-data real-match-data)
-		(replace-highlight (match-beginning 0) (match-end 0))
-		;; Bind message-log-max so we don't fill up the message log
-		;; with a bunch of identical messages.
-		(let ((message-log-max nil))
-		  (message message from-string next-replacement))
-		(setq key (read-event))
-		;; Necessary in case something happens during read-event
-		;; that clobbers the match data.
-		(set-match-data real-match-data)
-		(setq key (vector key))
-		(setq def (lookup-key map key))
-		;; Restore the match data while we process the command.
-		(cond ((eq def 'help)
-		       (with-output-to-temp-buffer "*Help*"
-			 (princ
-			  (concat "Query replacing "
-				  (if regexp-flag "regexp " "")
-				  from-string " with "
-				  next-replacement ".\n\n"
-				  (substitute-command-keys
-				   query-replace-help)))
-			 (with-current-buffer standard-output
-			   (help-mode))))
-		      ((eq def 'exit)
-		       (setq keep-going nil)
-		       (setq done t))
-		      ((eq def 'backup)
-		       (if stack
-			   (let ((elt (car stack)))
-			     (goto-char (car elt))
-			     (setq replaced (eq t (cdr elt)))
-			     (or replaced
-				 (set-match-data (cdr elt)))
-			     (setq stack (cdr stack)))
-			 (message "No previous match")
-			 (ding 'no-terminate)
-			 (sit-for 1)))
-		      ((eq def 'act)
-		       (or replaced
-			   (progn
-			     (replace-match next-replacement nocasify literal)
-			     (setq replace-count (1+ replace-count))))
-		       (setq done t replaced t))
-		      ((eq def 'act-and-exit)
-		       (or replaced
-			   (progn
-			     (replace-match next-replacement nocasify literal)
-			     (setq replace-count (1+ replace-count))))
-		       (setq keep-going nil)
-		       (setq done t replaced t))
-		      ((eq def 'act-and-show)
-		       (if (not replaced)
-			   (progn
-			     (replace-match next-replacement nocasify literal)
-			     (setq replace-count (1+ replace-count))
-			     (setq replaced t))))
-		      ((eq def 'automatic)
-		       (or replaced
-			   (progn
-			     (replace-match next-replacement nocasify literal)
-			     (setq replace-count (1+ replace-count))))
-		       (setq done t query-flag nil replaced t))
-		      ((eq def 'skip)
-		       (setq done t))
-		      ((eq def 'recenter)
-		       (recenter nil))
-		      ((eq def 'edit)
-		       (let ((opos (point-marker)))
-			 (goto-char (match-beginning 0))
-			 (save-excursion
-			   (funcall search-function search-string limit t)
-			   (setq real-match-data (match-data)))
-			 (save-excursion (recursive-edit))
-			 (goto-char opos))
-		       (set-match-data real-match-data)
-		       ;; Before we make the replacement,
-		       ;; decide whether the search string
-		       ;; can match again just after this match.
-		       (if (and regexp-flag nonempty-match)
-			   (setq match-again (and (looking-at search-string)
-						  (match-data)))))
+	    ;; Calculate the replacement string, if necessary.
+	    (when replacements
+	      (set-match-data real-match-data)
+	      (setq next-replacement
+		    (funcall (car replacements) (cdr replacements)
+			     replace-count)))
+	    (if (not query-flag)
+		(let ((inhibit-read-only query-replace-skip-read-only))
+		  (set-match-data real-match-data)
+		  (replace-match next-replacement nocasify literal)
+		  (setq replace-count (1+ replace-count)))
+	      (undo-boundary)
+	      (let (done replaced key def)
+		;; Loop reading commands until one of them sets done,
+		;; which means it has finished handling this occurrence.
+		(while (not done)
+		  (set-match-data real-match-data)
+		  (replace-highlight (match-beginning 0) (match-end 0))
+		  ;; Bind message-log-max so we don't fill up the message log
+		  ;; with a bunch of identical messages.
+		  (let ((message-log-max nil))
+		    (message message from-string next-replacement))
+		  (setq key (read-event))
+		  ;; Necessary in case something happens during read-event
+		  ;; that clobbers the match data.
+		  (set-match-data real-match-data)
+		  (setq key (vector key))
+		  (setq def (lookup-key map key))
+		  ;; Restore the match data while we process the command.
+		  (cond ((eq def 'help)
+			 (with-output-to-temp-buffer "*Help*"
+			   (princ
+			    (concat "Query replacing "
+				    (if regexp-flag "regexp " "")
+				    from-string " with "
+				    next-replacement ".\n\n"
+				    (substitute-command-keys
+				     query-replace-help)))
+			   (with-current-buffer standard-output
+			     (help-mode))))
+			((eq def 'exit)
+			 (setq keep-going nil)
+			 (setq done t))
+			((eq def 'backup)
+			 (if stack
+			     (let ((elt (car stack)))
+			       (goto-char (car elt))
+			       (setq replaced (eq t (cdr elt)))
+			       (or replaced
+				   (set-match-data (cdr elt)))
+			       (setq stack (cdr stack)))
+			   (message "No previous match")
+			   (ding 'no-terminate)
+			   (sit-for 1)))
+			((eq def 'act)
+			 (or replaced
+			     (progn
+			       (replace-match next-replacement nocasify literal)
+			       (setq replace-count (1+ replace-count))))
+			 (setq done t replaced t))
+			((eq def 'act-and-exit)
+			 (or replaced
+			     (progn
+			       (replace-match next-replacement nocasify literal)
+			       (setq replace-count (1+ replace-count))))
+			 (setq keep-going nil)
+			 (setq done t replaced t))
+			((eq def 'act-and-show)
+			 (if (not replaced)
+			     (progn
+			       (replace-match next-replacement nocasify literal)
+			       (setq replace-count (1+ replace-count))
+			       (setq replaced t))))
+			((eq def 'automatic)
+			 (or replaced
+			     (progn
+			       (replace-match next-replacement nocasify literal)
+			       (setq replace-count (1+ replace-count))))
+			 (setq done t query-flag nil replaced t))
+			((eq def 'skip)
+			 (setq done t))
+			((eq def 'recenter)
+			 (recenter nil))
+			((eq def 'edit)
+			 (let ((opos (point-marker)))
+			   (goto-char (match-beginning 0))
+			   (save-excursion
+			     (funcall search-function search-string limit t)
+			     (setq real-match-data (match-data)))
+			   (save-excursion (recursive-edit))
+			   (goto-char opos))
+			 (set-match-data real-match-data)
+			 ;; Before we make the replacement,
+			 ;; decide whether the search string
+			 ;; can match again just after this match.
+			 (if (and regexp-flag nonempty-match)
+			     (setq match-again (and (looking-at search-string)
+						    (match-data)))))
 		      
-		      ;; Edit replacement.
-		      ((eq def 'edit-replacement)
-		       (setq next-replacement
-			     (read-input "Edit replacement string: "
-					 next-replacement))
-		       (or replaced
-			   (replace-match next-replacement nocasify literal))
-		       (setq done t))
+			;; Edit replacement.
+			((eq def 'edit-replacement)
+			 (setq next-replacement
+			       (read-input "Edit replacement string: "
+					   next-replacement))
+			 (or replaced
+			     (replace-match next-replacement nocasify literal))
+			 (setq done t))
 		      
-		      ((eq def 'delete-and-edit)
-		       (delete-region (match-beginning 0) (match-end 0))
-		       (set-match-data
-			(prog1 (match-data)
-			  (save-excursion (recursive-edit))))
-		       (setq replaced t))
-		      ;; Note: we do not need to treat `exit-prefix'
-		      ;; specially here, since we reread
-		      ;; any unrecognized character.
-		      (t
-		       (setq this-command 'mode-exited)
-		       (setq keep-going nil)
-		       (setq unread-command-events
-			     (append (listify-key-sequence key)
-				     unread-command-events))
-		       (setq done t))))
-	      ;; Record previous position for ^ when we move on.
-	      ;; Change markers to numbers in the match data
-	      ;; since lots of markers slow down editing.
-	      (setq stack
-		    (cons (cons (point)
-				(or replaced (match-data t)))
-			  stack)))))
+			((eq def 'delete-and-edit)
+			 (delete-region (match-beginning 0) (match-end 0))
+			 (set-match-data
+			  (prog1 (match-data)
+			    (save-excursion (recursive-edit))))
+			 (setq replaced t))
+			;; Note: we do not need to treat `exit-prefix'
+			;; specially here, since we reread
+			;; any unrecognized character.
+			(t
+			 (setq this-command 'mode-exited)
+			 (setq keep-going nil)
+			 (setq unread-command-events
+			       (append (listify-key-sequence key)
+				       unread-command-events))
+			 (setq done t))))
+		;; Record previous position for ^ when we move on.
+		;; Change markers to numbers in the match data
+		;; since lots of markers slow down editing.
+		(setq stack
+		      (cons (cons (point)
+				  (or replaced (match-data t)))
+			    stack))))))
 
       ;; The code preventing adjacent regexp matches in the condition
       ;; of the while-loop above will haven taken us one character
