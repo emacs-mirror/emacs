@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.144 2002/09/04 20:45:34 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.145 2002/09/05 06:31:11 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -170,7 +170,7 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-find-backend-function (backend fun)
   "Return BACKEND-specific implementation of FUN.
-If there is no such implementation, return the default implementation; 
+If there is no such implementation, return the default implementation;
 if that doesn't exist either, return nil."
   (let ((f (vc-make-backend-sym backend fun)))
     (if (fboundp f) f
@@ -217,7 +217,7 @@ It is usually called via the `vc-call' macro."
 
 Optional argument LIMIT is a regexp.  If present, the file is inserted
 in chunks of size BLOCKSIZE (default 8 kByte), until the first
-occurrence of LIMIT is found.  Anything from the start of that occurence
+occurrence of LIMIT is found.  Anything from the start of that occurrence
 to the end of the buffer is then deleted.  The function returns
 non-nil if FILE exists and its contents were successfully inserted."
   (erase-buffer)
@@ -268,7 +268,7 @@ backend is tried first."
 	     (and (vc-call-backend b 'registered file)
 		  (vc-file-setprop file 'vc-backend b)
 		  (throw 'found t)))
-	   (if (or (not backend) (eq backend 'none)) 
+	   (if (or (not backend) (eq backend 'none))
 	       vc-handled-backends
 	     (cons backend vc-handled-backends))))
         ;; File is not registered.
@@ -351,7 +351,7 @@ For registered files, the value returned is one of:
 
   USER               The current version of the working file is locked by
                      some other USER (a string).
-            
+
   'needs-patch       The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
                      in the master file.
@@ -501,8 +501,8 @@ a regexp for matching all such backup files, regardless of the version."
   (if regexp
       (concat (regexp-quote (file-name-nondirectory file))
               "\\.~[0-9.]+" (unless manual "\\.") "~")
-    (expand-file-name (concat (file-name-nondirectory file) 
-                              ".~" (or rev (vc-workfile-version file)) 
+    (expand-file-name (concat (file-name-nondirectory file)
+                              ".~" (or rev (vc-workfile-version file))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 
@@ -658,7 +658,7 @@ current, and kill the buffer that visits the link."
 		       (get-file-buffer
 			(abbreviate-file-name
                          (file-chase-links buffer-file-name))))
-		       
+
 		   (vc-follow-link)
 		   (message "Followed link to %s" buffer-file-name)
 		   (vc-find-file-hook))
