@@ -101,7 +101,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.4.3" "Version number of MH-E.")
+(defconst mh-version "7.4.4" "Version number of MH-E.")
 
 ;;; Autoloads
 (autoload 'Info-goto-node "info")
