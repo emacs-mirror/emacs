@@ -75,8 +75,7 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(if (fboundp 'new-fontset)
-    (require 'fontset))
+(require 'fontset)
 
 (defvar x-invocation-args)
 
@@ -2267,6 +2266,9 @@ This is in addition to, but in preference to, the primary selection."
 
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
+
+;; Setup the default fontset.
+(setup-default-fontset)
 
 ;; Create the standard fontset.
 (create-fontset-from-fontset-spec standard-fontset-spec t)
