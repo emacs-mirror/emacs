@@ -9923,7 +9923,7 @@ Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
 #endif
 
-  DEFVAR_LISP ("mac-use-core-graphics", &Vmac_use_core_graphics,
+  DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
    doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
 
