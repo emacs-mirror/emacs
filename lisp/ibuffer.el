@@ -409,6 +409,7 @@ directory, like `default-directory'."
     (define-key map (kbd "/ o") 'ibuffer-or-filter)
     (define-key map (kbd "/ g") 'ibuffer-filters-to-filter-group)
     (define-key map (kbd "/ P") 'ibuffer-pop-filter-group)
+    (define-key map (kbd "/ D") 'ibuffer-decompose-filter-group)
     (define-key map (kbd "/ /") 'ibuffer-filter-disable)
 
     (define-key map (kbd "M-n") 'ibuffer-forward-filter-group)
@@ -558,7 +559,8 @@ directory, like `default-directory'."
 
     (define-key-after groups-map [filters-to-filter-group]
       '(menu-item "Create filter group from current filters..."
-		  ibuffer-filters-to-filter-group))
+		  ibuffer-filters-to-filter-group
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after groups-map [forward-filter-group]
       '(menu-item "Move point to the next filter group"
 		  ibuffer-forward-filter-group))    
@@ -579,11 +581,16 @@ directory, like `default-directory'."
     (define-key-after groups-map [pop-filter-group]
       '(menu-item "Remove top filter group"
 		  ibuffer-pop-filter-group
-		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
     (define-key-after groups-map [clear-filter-groups]
       '(menu-item "Remove all filter groups"
 		  ibuffer-clear-filter-groups
-		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
+    (define-key-after groups-map [pop-filter-group]
+      '(menu-item "Decompose filter group..."
+		  ibuffer-pop-filter-group
+		  :help "\"Unmake\" a filter group"
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
     (define-key-after groups-map [save-filter-groups]
       '(menu-item "Save current filter groups permanently..."
 		  ibuffer-save-filter-groups
@@ -720,7 +727,16 @@ directory, like `default-directory'."
     
     (setq ibuffer-mode-map map
 	  ibuffer-mode-operate-map operate-map
-	  ibuffer-mode-groups-popup groups-map)))
+	  ibuffer-mode-groups-popup (copy-keymap groups-map))))
+
+(define-key ibuffer-mode-groups-popup [kill-filter-group]
+      '(menu-item "Kill filter group"
+		  ibuffer-kill-line
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
+(define-key  ibuffer-mode-groups-popup [yank-filter-group]
+      '(menu-item "Yank last killed filter group"
+		  ibuffer-yank
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
  
 (defvar ibuffer-name-map nil)
 (unless ibuffer-name-map
