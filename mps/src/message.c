@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.2) $
+ * $HopeName: MMsrc!message.c(trunk.3) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.2) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.3) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -84,6 +84,7 @@ Bool MessageClassCheck(MessageClass class)
   CHECKS(MessageClass, class);
   CHECKL(class->name != NULL);
   CHECKL(FUNCHECK(class->delete));
+  CHECKL(FUNCHECK(class->finalizationRef));
   CHECKL(class->endSig == MessageClassSig);
 
   return TRUE;
