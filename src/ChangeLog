@@ -1,3 +1,7 @@
+1999-11-16  Dave Love  <fx@gnu.org>
+
+	* doc.c (Fdocumentation): Remove gcpro here too.
+
 1999-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (command_loop_1): Remove no_redisplay.
