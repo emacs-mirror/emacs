@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(MMdevel_sw_eq.5) $
+ * $HopeName: MMsrc!arenacl.c(trunk.2) $
  * 
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
@@ -41,7 +41,7 @@
 #error "Client arena not configured"
 #endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(MMdevel_sw_eq.5) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.2) $");
 
 Bool ArenaCheck(Arena arena)
 {
@@ -430,14 +430,6 @@ Size ArenaCommitted(Space space)
   return size;
 }
 
-/* SegCheck -- check the consistency of a segment structure */  
-
-Bool SegCheck(Seg seg)
-{
-  CHECKU(Pool, seg->pool);
-  /* .seg.check-little: all other fields can't be checked */
-  return TRUE;
-}
 
 /* preferences... */
 
@@ -548,14 +540,7 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, Pool pool,
 found:
   /* Initialize the generic segment structure. */
   seg = &chunk->pageTable[base].the.head;
-  seg->pool = pool;
-  seg->p = NULL;
-  seg->rank = RankEXACT;    /*  exact by default */
-  seg->condemned = TraceIdNONE;
-
-  seg->pm = AccessSetEMPTY; /* see impl.c.shield */
-  seg->sm = AccessSetEMPTY;
-  seg->depth = 0;
+  SegInit(seg, pool);
 
   /* Allocate the first page, and, if there is more than one page,
    * allocate the rest of the pages and store the multi-page information
@@ -666,6 +651,8 @@ void SegFree(Space space, Seg seg)
   AVER(res == ResOK);
 
   limit = SegLimit(space, seg);
+
+  SegFinish(seg);
 
   /* Remember the base address of the segment so it can be */
   /* unmapped .free.unmap */

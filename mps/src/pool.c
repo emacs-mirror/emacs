@@ -1,7 +1,7 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.23) $
- * Copyright (C) 1994,1995,1996,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!pool.c(MMdevel_action2.10) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
  * functions here dispatch to pool-specific methods.
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.23) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_action2.10) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -39,7 +39,6 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->scan));
   CHECKL(FUNCHECK(class->fix));
   CHECKL(FUNCHECK(class->reclaim));
-  CHECKL(FUNCHECK(class->access));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(class->endSig == PoolClassSig);
   return TRUE;
@@ -55,6 +54,7 @@ Bool PoolCheck(Pool pool)
   CHECKL(RingCheck(&pool->spaceRing));
   CHECKL(RingCheck(&pool->bufferRing));
   CHECKL(RingCheck(&pool->segRing));
+  CHECKL(RingCheck(&pool->actionRing));
   /* Cannot check pool->bufferSerial */
   CHECKL(AlignCheck(pool->alignment));
   return TRUE;
@@ -91,8 +91,10 @@ Res PoolInitV(Pool pool, Space space,
   RingInit(&pool->spaceRing);
   RingInit(&pool->bufferRing);
   RingInit(&pool->segRing);
+  RingInit(&pool->actionRing);
+  pool->bufferSerial = (Serial)0;
+  pool->actionSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
-  RingAppend(SpacePoolRing(space), &pool->spaceRing);
 
   /* Initialise signature last; see design.mps.sig */
   pool->sig = PoolSig;
@@ -106,12 +108,16 @@ Res PoolInitV(Pool pool, Space space,
   if(res != ResOK)
     goto failInit;
 
+  /* Add initialized pool to list of pools in space. */
+  RingAppend(SpacePoolRing(space), &pool->spaceRing);
+
   EVENT3(PoolInit, pool, space, class);
 
   return ResOK;
 
 failInit:
   pool->sig = SigInvalid;      /* Leave space->poolSerial incremented */
+  RingFinish(&pool->actionRing);
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingRemove(&pool->spaceRing);
@@ -177,21 +183,12 @@ void PoolFinish(Pool pool)
   /* Do any class-specific finishing. */
   (*pool->class->finish)(pool);
 
-  /* There must be no buffers attached to the pool at */
-  /* this point.  The class-specific finish method is */
-  /* allowed to remove them. */
-  AVER(RingCheckSingle(&pool->bufferRing)); 
-
-  /* There must be no segments attached to the pool at */
-  /* this point.  The class-specific finish method is */
-  /* allowed to remove them. */
-  AVER(RingCheckSingle(&pool->segRing));
-  
   /* Detach the pool from the space, and unsig it. */
   RingRemove(&pool->spaceRing);
   pool->sig = SigInvalid;
   
   /* .ring.finish: Finish the generic fields.  See .ring.init */
+  RingFinish(&pool->actionRing);
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->spaceRing);
@@ -250,34 +247,44 @@ void PoolFree(Pool pool, Addr old, Size size)
   EVENT3(PoolFree, (Word)pool, (Word)old, (Word)size);
 }
 
-Res PoolCondemn(RefSet *condemnedReturn, Pool pool,
-                  Space space, TraceId ti)
+Res PoolCondemn(Pool pool, Trace trace, Seg seg)
 {  
-  AVER(condemnedReturn != NULL);
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(pool->space == space);
-  AVERT(TraceId, ti);
-  AVER(ti != TraceIdNONE);
-  return (*pool->class->condemn)(condemnedReturn, pool, space, ti);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(pool->space == trace->space);
+  AVER(seg->pool == pool);
+  return (*pool->class->condemn)(pool, trace, seg);
 }
 
-void PoolGrey(Pool pool, Space space, TraceId ti)
+void PoolGrey(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(pool->space == space);
-  AVERT(TraceId, ti);
-  AVER(ti != TraceIdNONE);
-  (*pool->class->grey)(pool, space, ti);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(pool->space == trace->space);
+  AVER(seg->pool == pool);
+  (*pool->class->grey)(pool, trace, seg);
 }
 
-Res PoolScan(ScanState ss, Pool pool, Bool *finishedReturn)
+Res PoolScan(ScanState ss, Pool pool, Seg seg)
 {
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
-  AVER(finishedReturn != NULL);
-  return (*pool->class->scan)(ss, pool, finishedReturn);
+  AVERT(Seg, seg);
+  AVER(ss->space == pool->space);
+
+  /* The segment must belong to the pool. */
+  AVER(pool == seg->pool);
+
+  /* Should only scan for a rank for which there are references */
+  /* in the segment. */
+  AVER(RankSetIsMember(seg->rankSet, ss->rank));
+
+  /* Should only scan segments which contain grey objects. */
+  AVER(TraceSetInter(seg->grey, ss->traces) != TraceSetEMPTY);
+
+  return (*pool->class->scan)(ss, pool, seg);
 }
 
 /* See impl.h.mpm for macro version; see design.mps.pool.req.fix */
@@ -286,23 +293,30 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   AVERT(Pool, pool);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
+  AVER(pool == seg->pool);
   AVER(refIO != NULL);
+
+  /* Should only be fixing references to white segments. */
+  AVER(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY);
+
   return PoolFix(pool, ss, seg, refIO);
 }
 
-void PoolReclaim(Pool pool, Space space, TraceId ti)
+void PoolReclaim(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(pool->space == space);
-  (*pool->class->reclaim)(pool, space, ti);
-}
-
-void PoolAccess(Pool pool, Seg seg, AccessSet mode)
-{
-  AVERT(Pool, pool);
+  AVERT(Trace, trace);
   AVERT(Seg, seg);
-  (*pool->class->access)(pool, seg, mode);
+  AVER(pool->space == trace->space);
+  AVER(seg->pool == pool);
+
+  /* There shouldn't be any grey things left for this trace. */
+  AVER(!TraceSetIsMember(seg->grey, trace->ti));
+
+  /* Should only be reclaiming segments which are still white. */
+  AVER(TraceSetIsMember(seg->white, trace->ti));
+
+  (*pool->class->reclaim)(pool, trace, seg);
 }
 
 
@@ -353,6 +367,12 @@ Space (PoolSpace)(Pool pool)
 }
 
 
+/* PoolSegAlloc -- allocate a segment in a pool
+ *
+ * @@@@ There's no need for this routine.  The segment could be
+ * attached in SegInit.
+ */
+
 Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size)
 {
   Res res;
@@ -374,6 +394,12 @@ Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size)
   return ResOK;
 }
 
+
+/* PoolSegFree -- free a segment from a pool
+ *
+ * @@@@ There's no need for this routine.  The segment could be
+ * detached in SegFinish.
+ */
 
 void PoolSegFree(Pool pool, Seg seg)
 {
@@ -477,32 +503,34 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   NOOP;                         /* trivial free has no effect */
 }
 
-Res PoolNoBufferInit(Pool pool, Buffer buf)
+Res PoolNoBufferInit(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
+  UNUSED(buffer);
   NOTREACHED;
   return ResUNIMPL;
 }
 
 /* The generic method initialised all generic fields; */
 /* This doesn't override any fields */
-Res PoolTrivBufferInit(Pool pool, Buffer buf)
+Res PoolTrivBufferInit(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
+  UNUSED(buffer);
   return ResOK;
 }
 
-void PoolNoBufferFinish(Pool pool, Buffer buf)
+void PoolNoBufferFinish(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
-  AVERT(Buffer, buf);
+  AVERT(Buffer, buffer);
   NOTREACHED;
 }
 
-void PoolTrivBufferFinish(Pool pool, Buffer buf)
+void PoolTrivBufferFinish(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
-  AVERT(Buffer, buf);
+  AVERT(Buffer, buffer);
   NOOP;
 }
 
@@ -555,29 +583,48 @@ Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
   return WriteF(stream, "  No class-specific description available.\n", NULL);
 }
 
-Res PoolNoCondemn(RefSet *condemnedReturn, Pool pool, Space space, TraceId ti)
+Res PoolNoCondemn(Pool pool, Trace trace, Seg seg)
 {
-  AVER(condemnedReturn != NULL);
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(TraceIdCheck(ti));
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-void PoolNoGrey(Pool pool, Space space, TraceId ti)
+void PoolNoGrey(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(TraceIdCheck(ti));
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
   NOTREACHED;
 }
 
-Res PoolNoScan(ScanState ss, Pool pool, Bool *finishedReturn)
+void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+
+  /* @@@@ The trivial grey method probably shouldn't exclude */
+  /* the white segments, since they might also contain grey objects. */
+  /* It's probably also the Tracer's responsibility to raise the */
+  /* shield. */
+  /* @@@@ This should be calculated by comparing colour */
+  /* with the mutator colour.  For the moment we assume */
+  /* a read-barrier collector. */
+
+  if(!TraceSetIsMember(seg->white, trace->ti)) {
+    seg->grey = TraceSetAdd(seg->grey, trace->ti);
+    ShieldRaise(trace->space, seg, AccessREAD | AccessWRITE);
+  }
+}
+
+Res PoolNoScan(ScanState ss, Pool pool, Seg seg)
 {
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
-  AVER(finishedReturn != NULL);
+  AVERT(Seg, seg);
   NOTREACHED;
   return ResUNIMPL;
 }
@@ -592,17 +639,10 @@ Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   return ResUNIMPL;
 }
 
-void PoolNoReclaim(Pool pool, Space space, TraceId ti)
+void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
-  AVERT(Space, space);
-  AVER(TraceIdCheck(ti));
-  NOTREACHED;
-}
-
-void PoolNoAccess(Pool pool, Seg seg, AccessSet mode)
-{
-  AVERT(Pool, pool);
+  AVERT(Trace, trace);
   AVERT(Seg, seg);
   NOTREACHED;
 }
