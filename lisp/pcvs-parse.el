@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.9 2001/09/22 20:22:34 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.10 2001/09/24 16:39:23 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -251,7 +251,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
      ;; A special cvs message
      (and
-      (cvs-match "cvs[.ex]* [a-z]+: ")
+      (let ((case-fold-search t))
+	(cvs-match "cvs[.a-z]* [a-z]+: "))
       (cvs-or
 
        ;; CVS is descending a subdirectory
@@ -435,6 +436,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 		 (type (if nofile 'MISSING 'NEED-UPDATE)))
       (cvs-match "Up-to-date$"
 		 (type (if nofile '(UP-TO-DATE . REMOVED) 'UP-TO-DATE)))
+      (cvs-match "File had conflicts on merge$" (type 'MODIFIED))
       (cvs-match ".*[Cc]onflict.*$"	(type 'CONFLICT))
       (cvs-match "Locally Added$"		(type 'ADDED))
       (cvs-match "Locally Removed$"	(type 'REMOVED))
