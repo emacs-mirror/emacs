@@ -83,6 +83,8 @@
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
 
+(define-key help-map "P" 'view-emacs-problems)
+
 (define-key help-map "s" 'describe-syntax)
 
 (define-key help-map "t" 'help-with-tutorial)
@@ -460,6 +462,11 @@ With numeric argument display information on correspondingly older changes."
   (interactive)
 ;;;  (find-file-read-only (expand-file-name "FAQ" data-directory))
   (info "(emacs-faq)"))
+
+(defun view-emacs-problems ()
+  "Display info on known problems with Emacs and possible workarounds."
+  (interactive)
+  (view-file (expand-file-name "PROBLEMS" data-directory)))
 
 (defun view-lossage ()
   "Display last 100 input keystrokes."
