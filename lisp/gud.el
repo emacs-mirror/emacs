@@ -497,7 +497,7 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-history nil)
 
 (defun gud-perldb-massage-args (file args)
-  (cons "-fullname" (cons file args)))
+  (cons "-d" (cons file (cons "-emacs" args))))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -564,7 +564,7 @@ and source-file directory for your debugger."
    (list (read-from-minibuffer "Run perldb (like this): "
 			       (if (consp gud-perldb-history)
 				   (car gud-perldb-history)
-				 "perldb ")
+				 "perl ")
 			       nil nil
 			       '(gud-perldb-history . 1))))
   (gud-overload-functions '((gud-massage-args . gud-perldb-massage-args)
@@ -574,20 +574,18 @@ and source-file directory for your debugger."
 
   (gud-common-init command-line)
 
-  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
-  (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
-  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
-  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "d %l"         "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "s"            "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "n"            "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "c"            "\C-r" "Continue with display.")
+;  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
+;  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
+;  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "%e"           "\C-p" "Evaluate perl expression at point.")
 
-  (setq comint-prompt-regexp "^(.*perldb[+]?) *")
-  (run-hooks 'gdb-mode-hook)
+  (setq comint-prompt-regexp "^  DB<[0-9]+> ")
+  (run-hooks 'perldb-mode-hook)
   )
 
 ;;
