@@ -280,8 +280,8 @@ SYMBOL does not need to be quoted.
 Third arg DOC is the group documentation.
 
 MEMBERS should be an alist of the form ((NAME WIDGET)...) where
-NAME is a symbol and WIDGET is a widget is a widget for editing that
-symbol.  Useful widgets are `custom-variable' for editing variables,
+NAME is a symbol and WIDGET is a widget for editing that symbol.
+Useful widgets are `custom-variable' for editing variables,
 `custom-face' for edit faces, and `custom-group' for editing groups.
 
 The remaining arguments should have the form
