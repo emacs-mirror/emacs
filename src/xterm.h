@@ -107,15 +107,6 @@ Boston, MA 02111-1307, USA.  */
    | EnterWindowMask		\
    | VisibilityChangeMask)
 
-enum text_cursor_kinds
-{
-  NO_CURSOR = -1,
-  FILLED_BOX_CURSOR,
-  HOLLOW_BOX_CURSOR,
-  BAR_CURSOR,
-  HBAR_CURSOR
-};
-
 /* Structure recording X pixmap and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -510,24 +501,6 @@ struct x_output
   /* Flag to set when the X window needs to be completely repainted.  */
   int needs_exposure;
 
-  /* What kind of text cursor is drawn in this window right now?
-     (If there is no cursor (phys_cursor_x < 0), then this means nothing.)  */
-  enum text_cursor_kinds current_cursor;
-
-  /* What kind of text cursor should we draw in the future?
-     This should always be filled_box_cursor or bar_cursor.  */
-  enum text_cursor_kinds desired_cursor;
-
-  /* Width of bar cursor (if we are using that).  */
-  int cursor_width;
-
-  /* What kind of text cursor should we draw when the cursor blinks off?
-     This can be filled_box_cursor or bar_cursor or no_cursor.  */
-  enum text_cursor_kinds blink_off_cursor;
-
-  /* Width of bar cursor (if we are using that) for blink-off state.  */
-  int blink_off_cursor_width;
-
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
      member of the hints structure, does not leave the corresponding
@@ -700,11 +673,6 @@ enum
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.x->pixel_width)
 #define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
-
-#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
-#define FRAME_BLINK_OFF_CURSOR(f) ((f)->output_data.x->blink_off_cursor)
-#define FRAME_CURSOR_WIDTH(f) ((f)->output_data.x->cursor_width)
-#define FRAME_BLINK_OFF_CURSOR_WIDTH(f) ((f)->output_data.x->blink_off_cursor_width)
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 #define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
@@ -1101,7 +1069,6 @@ extern int x_char_width P_ ((struct frame *));
 extern int x_char_height P_ ((struct frame *));
 extern int x_screen_planes P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
-extern enum text_cursor_kinds x_specified_cursor_type P_ ((Lisp_Object, int *));
 extern int x_defined_color P_ ((struct frame *, char *, XColor *, int));
 #ifdef HAVE_X_I18N
 extern void free_frame_xic P_ ((struct frame *));
