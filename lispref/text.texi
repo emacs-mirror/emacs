@@ -4225,8 +4225,6 @@ disabled; none of them run.  This affects all the hook variables
 described above in this section, as well as the hooks attached to
 certain special text properties (@pxref{Special Properties}) and overlay
 properties (@pxref{Overlay Properties}).
-
-This variable is available starting in Emacs 21.
 @end defvar
 
 @ignore
