@@ -33,7 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef signal
 
 
-#if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
+#if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 #include <stdio.h>
 
 main ()
@@ -126,7 +126,9 @@ main ()
       exit (1);
     }
   strcpy (server.sun_path, homedir);
-  strcat (server.sun_path, "/.emacs_server");
+  strcat (server.sun_path, "/.emacs-server-");
+  gethostname (system_name, sizeof (system_name));
+  strcat (server.sun_path, system_name);
   /* Delete anyone else's old server.  */
   unlink (server.sun_path);
 #endif
@@ -253,6 +255,9 @@ main ()
 #include <sys/msg.h>
 #include <setjmp.h>
 #include <errno.h>
+#include <sys/utsname.h>
+
+struct utsname system_name;
 
 #ifndef errno
 extern int errno;
@@ -285,7 +290,7 @@ main ()
   FILE *infile;
 
   /*
-   * Create a message queue using ~/.emacs_server as the path for ftok
+   * Create a message queue using ~/.emacs-server as the path for ftok
    */
   if ((homedir = getenv ("HOME")) == NULL)
     {
@@ -293,7 +298,14 @@ main ()
       exit (1);
     }
   strcpy (string, homedir);
-  strcat (string, "/.emacs_server");
+#ifndef HAVE_LONG_FILE_NAMES
+  /* If file names are short, we can't fit the host name.  */
+  strcat (string, "/.emacs-server");
+#else
+  strcat (string, "/.emacs-server-");
+  uname (&system_name);
+  strcat (string, system_name.nodename);
+#endif
   creat (string, 0600);
   key = ftok (string, 1);	/* unlikely to be anyone else using it */
   s = msgget (key, 0600 | IPC_CREAT);
