@@ -1391,6 +1391,8 @@ Otherwise, indent the current line with `antlr-indent-line'."
   (make-local-variable 'comment-multi-line)
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-level)
+  (make-local-variable 'adaptive-fill-regexp)
+  (make-local-variable 'adaptive-fill-mode)
   (make-local-variable 'imenu-generic-expression) ;set in the mode functions
   (and (boundp 'comment-line-break-function)
        (make-local-variable 'comment-line-break-function))
@@ -1412,7 +1414,9 @@ Otherwise, indent the current line with `antlr-indent-line'."
 	comment-column 32
 	comment-start-skip "/\\*+ *\\|// *"
 	comment-multi-line nil
-	comment-line-break-function 'c-comment-line-break-function)
+	comment-line-break-function 'c-comment-line-break-function
+	adaptive-fill-regexp nil
+	adaptive-fill-mode nil)
   ;; we have to do something special for c-offsets-alist so that the
   ;; buffer local value has its own alist structure.
   (setq c-offsets-alist (copy-alist c-offsets-alist))
