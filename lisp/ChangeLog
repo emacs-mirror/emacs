@@ -1,25 +1,29 @@
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/isearch-x.el (isearch-exit-recursive-edit): Take
-	three parameters, since it's used as an after-change-function.
+	* international/isearch-x.el (isearch-exit-recursive-edit):
+	Take three parameters, since it's used as an after-change-function.
 
-	* emacs-lisp/backquote.el (backquote-backquote-symbol) 
+	* emacs-lisp/backquote.el (backquote-backquote-symbol)
 	(backquote-unquote-symbol, backquote-splice-symbol): Remove `*'
 	from doc strings.
 
 2001-09-02  Milan Zamazal  <pdm@zamazal.org>
 
-	* progmodes/glasses.el (glasses-convert-to-unreadable): Consider
-	underscores as in `glasses-make-readable'.
+	* progmodes/glasses.el (glasses-convert-to-unreadable):
+	Consider underscores as in `glasses-make-readable'.
 
 2001-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/cmacexp.el (c-macro-preprocessor): Use "gcc -E" for
 	MS-DOS, since cpp might not be available.
 
-	* menu-bar.el (menu-bar-edit-menu) <yank-menu, yank>: Mention
-	"yank" in the help-echo text.  Suggested by Pavel Jan,Bm(Bk
-	<Pavel@Janik.cz>.
+	* menu-bar.el (menu-bar-edit-menu) <yank-menu, yank>:
+	Mention "yank" in the help-echo text.
+	Suggested by Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
+2001-09-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-indent): Insert spaces more carefully.
 
 2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -38,8 +42,8 @@
 
 2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* menu-bar.el (menu-bar-options-menu) <transient-mark-mode>: Fix
-	the menu entry to mention transient-mark-mode.
+	* menu-bar.el (menu-bar-options-menu) <transient-mark-mode>:
+	Fix the menu entry to mention transient-mark-mode.
 
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
@@ -53,8 +57,8 @@
 
 	* emacs-lisp/find-gc.el: Moved here from lisp/.
 
-	* international/quail.el (quail-completion-1): Reverse
-	the ((CHAR . DEFN) ...) list before processing it.
+	* international/quail.el (quail-completion-1):
+	Reverse the ((CHAR . DEFN) ...) list before processing it.
 	From Kenichi Handa <handa@etl.go.jp>.
 
 	* obsolete/rsz-mini.el, obsolete/sun-curs.el, obsolete/sun-fns.el
