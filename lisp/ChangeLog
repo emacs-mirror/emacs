@@ -1,3 +1,7 @@
+2003-06-06  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* info.el (Info-complete-menu-item): Revert change of 2003-06-03.
+
 2003-06-06  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* progmodes/sh-script.el: Fix bug in "Options Loop" skeleton for
