@@ -1030,7 +1030,12 @@ from adjoining text, if those properties are sticky.")
       n -= strlen;
     }
   if (n > 0)
-    insert (string, n);
+    {
+      if (!NILP (inherit))
+	insert_and_inherit (string, n);
+      else
+	insert (string, n);
+    }
   return Qnil;
 }
 
