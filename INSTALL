@@ -505,11 +505,17 @@ problems sometimes encountered, and what to do about them.
 Installation on MSDOG (a.k.a. MSDOS)
 
 To install on MSDOG, you need to have the GNU C compiler for MSDOG
-(also known as djgpp), GNU Make, rm, mv, chmod, and sed.  Type these
-commands:
+(also known as djgpp), GNU Make, rm, mv, chmod, and sed.
 
-config msdos
-make install
+Some users report that running Emacs 19.29 requires qdpmi memory
+management.  We do not know why this is so, since 19.28 did not need
+it.  If we find out what change introduced this requirement, we will
+try to eliminate it.
+
+To build and install Emacs, type these commands:
+
+    config msdos
+    make install
 
 To save disk space, Emacs is built with the idea that you will execute
 it from the same place in the file system where you built it.  As the
