@@ -3687,11 +3687,14 @@ read_key_sequence (keybuf, bufsize, prompt)
   if (INTERACTIVE)
     echo_truncate (echo_start);
 
-  /* If the best binding for the current key sequence is a keymap,
-     or we may be looking at a function key's escape sequence, keep
-     on reading.  */
+  /* If the best binding for the current key sequence is a keymap, or
+     we may be looking at a function key's escape sequence, keep on
+     reading.  */
   while ((first_binding < nmaps && ! NILP (submaps[first_binding]))
-	 || (first_binding >= nmaps && fkey_start < t))
+	 || (first_binding >= nmaps
+	     && fkey_start < t
+	     /* mock input is never part of a function key's sequence.  */
+	     && mock_input <= fkey_start))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -3763,7 +3766,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 	     Furthermore, key sequences beginning with mouse clicks
 	     are read using the keymaps of the buffer clicked on, not
 	     the current buffer.  So we may have to switch the buffer
-	     here.  */
+	     here.
+
+	     If the event was obtained from the unread_command_events
+	     queue, then don't expand it; we did that the first time
+	     we read it.  */
 	  if (EVENT_HAS_PARAMETERS (key))
 	    {
 	      Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
@@ -3782,19 +3789,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      && XTYPE (XWINDOW (window)->buffer) == Lisp_Buffer
 		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      if (XTYPE (posn) == Lisp_Symbol)
-			{
-			  if (t + 1 >= bufsize)
-			    error ("key sequence too long");
-			  keybuf[t] = posn;
-			  keybuf[t+1] = key;
-			  mock_input = t + 2;
-			}
-		      else
-			{
-			  keybuf[t] = key;
-			  mock_input = t + 1;
-			}
+		      keybuf[t] = key;
+		      mock_input = t + 1;
 
 		      /* Arrange to go back to the original buffer once we're
 			 done reading the key sequence.  Note that we can't
@@ -3819,11 +3815,24 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      keybuf[t+1] = key;
 		      mock_input = t + 2;
 
+		      /* Zap the position in key, so we know that we've
+			 expanded it, and don't try to do so again.  */
+		      POSN_BUFFER_POSN (EVENT_START (key))
+			= Fcons (posn, Qnil);
+
 		      /* If we switched buffers while reading the first event,
 			 replay in case we switched keymaps too.  */
 		      if (buf != current_buffer && t == 0)
 			goto replay_sequence;
 		      goto replay_key;
+		    }
+		  else if (XTYPE (posn) == Lisp_Cons)
+		    {
+		      /* We're looking at the second event of a
+			 sequence which we expanded before.  Set
+			 last_real_key_start appropriately.  */
+		      if (last_real_key_start == t && t > 0)
+			last_real_key_start = t - 1;
 		    }
 		}
 	      else if (EQ (kind, Qswitch_frame))
@@ -4057,8 +4066,11 @@ read_key_sequence (keybuf, bufsize, prompt)
      read-key-sequence will always return a logical unit.
 
      Better ideas?  */
-  if (mock_input > t)
-    t = mock_input;
+  for (; t < mock_input; t++)
+    {
+      echo_char (keybuf[t]);
+      add_command_key (keybuf[t]);
+    }
 
   return t;
 }
