@@ -52,6 +52,9 @@ define such variables for their internal use; we don't list them here.
 @item buffer-undo-list
 @pxref{Undo}
 
+@item cache-long-line-scans
+@pxref{Text Lines}
+
 @item case-fold-search
 @pxref{Searching and Case}
 
