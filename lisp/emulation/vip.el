@@ -70,7 +70,7 @@
 re-execute last destructive command")
 
 (defconst vip-shift-width 8
-  "*The number of colums shifted by > and < command.")
+  "*The number of columns shifted by > and < command.")
 
 (defconst vip-re-replace nil
   "*If t then do regexp replace, if nil then do string replace.")
@@ -396,7 +396,7 @@ obtained so far, and COM is the command part obtained so far."
 	(setq unread-command-events (list char)))
     ;; as com is non-nil, this means that we have a command to execute
     (if (or (= (car com) ?r) (= (car com) ?R))
-	;; execute apropriate region command.
+	;; execute appropriate region command.
 	(let ((char (car com)) (com (cdr com)))
 	  (setq prefix-arg (cons value com))
 	  (if (= char ?r) (vip-region prefix-arg)
