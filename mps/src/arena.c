@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.20) $
+ * $HopeName: MMsrc!arena.c(trunk.21) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -35,7 +35,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.20) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.21) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1218,6 +1218,14 @@ Ref ArenaRead(Arena arena, Addr addr)
   
   b = SegOfAddr(&seg, arena, addr);
   AVER(b == TRUE);
+
+  /* .read.flipped: We AVER that the reference that we are reading */
+  /* refers to an object for which all the traces that the object is */
+  /* white for are also flipped.  This is because we don't have any */
+  /* write-barrier (in the sense of write-barrier collectors) */
+  /* mechanism in place for reading (strictly speaking, writing */
+  /* it somewhere after having read it) references that are white. */
+  AVER(TraceSetSub(SegWhite(seg), arena->flippedTraces));
 
   /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
   /* not RankEXACT which is conservative.  See also */
