@@ -616,27 +616,30 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let ((history-buf (get-file-buffer comint-input-ring-file-name))
+	 (let ((history-buf (get-buffer-create " *temp*"))
+	       (file comint-input-ring-file-name)
+	       (count 0)
 	       (ring (make-ring comint-input-ring-size)))
-	   (save-excursion
-	     (set-buffer (or history-buf
-			     (find-file-noselect comint-input-ring-file-name)))
-	     ;; Save restriction in case file is already visited...
-	     ;; Watch for those date stamps in history files!
-	     (save-excursion
-	       (save-restriction
+	   (unwind-protect
+	       (save-excursion
+		 (set-buffer history-buf)
 		 (widen)
-		 (goto-char (point-min))
-		 (while (re-search-forward "^[ \t]*\\([^#\n].*\\)[ \t]*$" nil t)
+		 (erase-buffer)
+		 (insert-file-contents file)
+		 ;; Save restriction in case file is already visited...
+		 ;; Watch for those date stamps in history files!
+		 (goto-char (point-max))
+		 (while (and (< count comint-input-ring-size)
+			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
+						 nil t))
 		   (let ((history (buffer-substring (match-beginning 1)
 						    (match-end 1))))
 		     (if (or (null comint-input-ignoredups)
 			     (ring-empty-p ring)
 			     (not (string-equal (ring-ref ring 0) history)))
-			 (ring-insert ring history)))))
-	       ;; Kill buffer unless already visited.
-	       (if (null history-buf)
-		   (kill-buffer nil))))
+			 (ring-insert-at-beginning ring history)))
+		   (setq count (1+ count))))
+	     (kill-buffer history-buf))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
 
