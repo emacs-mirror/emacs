@@ -1535,9 +1535,9 @@ If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 If there is no line in the buffer after this one, behavior depends on the
-value of next-line-add-newlines.  If non-nil, a newline character is inserted
-to create a line and the cursor moves to that line, otherwise the cursor is
-moved to the end of the buffer (if already at the end of the buffer, an error
+value of `next-line-add-newlines'.  If non-nil, it inserts a newline character
+to create a line, and moves the cursor to that line.  Otherwise it moves the
+cursor to the end of the buffer (if already at the end of the buffer, an error
 is signaled).
 
 The command \\[set-goal-column] can be used to create
@@ -1556,7 +1556,11 @@ and more reliable (no dependence on goal column, etc.)."
 	    (insert ?\n)
 	  (goto-char opoint)
 	  (line-move arg)))
-    (line-move arg))
+    (if (interactive-p)
+	(condition-case nil
+	    (line-move arg)
+	  ((beginning-of-buffer end-of-buffer) (ding)))
+      (line-move arg)))
   nil)
 
 (defun previous-line (arg)
@@ -1573,7 +1577,11 @@ If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (line-move (- arg))
+  (if (interactive-p)
+      (condition-case nil
+	  (line-move (- arg))
+	((beginning-of-buffer end-of-buffer) (ding)))
+    (line-move (- arg)))
   nil)
 
 (defconst track-eol nil
