@@ -4428,8 +4428,7 @@ actually used.  */)
 	current_buffer->enable_multibyte_characters = Qnil;
     }
 
-  if ((! NILP (current_buffer->enable_multibyte_characters)
-       || CODING_REQUIRE_DETECTION (&coding)
+  if ((CODING_REQUIRE_DETECTION (&coding)
        || CODING_REQUIRE_DECODING (&coding))
       && (inserted > 0 || CODING_REQUIRE_FLUSHING (&coding)))
     {
