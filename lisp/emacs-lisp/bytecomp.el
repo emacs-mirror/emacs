@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.137 $")
+(defconst byte-compile-version "$Revision: 2.138 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -975,7 +975,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	     (setq default-directory dir)
 	     (unless was-same
 	       (insert (format "Entering directory `%s'\n" default-directory))))
-	   (setq byte-compile-last-logged-file byte-compile-current-file)
+	   (setq byte-compile-last-logged-file byte-compile-current-file
+		 byte-compile-last-warned-form nil)
 	   ;; Do this after setting default-directory.
 	   (unless (eq major-mode 'compilation-mode)
 	     (compilation-mode))
