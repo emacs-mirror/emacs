@@ -108,7 +108,7 @@ and do The Right Thing.")
    (or (getenv "TMPDIR") (getenv "TMP") "/tmp"))
   "*Directory for temporary files made by arc-mode.el")
 
-(defvar archive-remote-regexp "^/[^/:]*[^/:]:"
+(defvar archive-remote-regexp "^/[^/:]*[^/:.]:"
   "*Regexp recognizing archive files names that are not local (i.e., are
 not proper file names outside Emacs).  A local copy a the archive will
 be used when updating.")
