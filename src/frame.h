@@ -71,6 +71,10 @@ struct x_output
 
 #endif /* ! HAVE_X_WINDOWS */
 
+
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
+
 /* A structure describing a termcap frame display.  */
 extern struct x_output tty_display;
 
