@@ -30,12 +30,6 @@
    doc-directory is set to this value.  */
 #define PATH_DOC "/usr/local/lib/emacs/data"
 
-/* The name of the directory that contains lock files with which we
-   record what files are being modified in Emacs.  This directory
-   should be writable by everyone.  THE STRING MUST END WITH A
-   SLASH!!!  */
-#define PATH_LOCK "/usr/local/lib/emacs/lock/"
-
 /* Where the configuration process believes the info tree lives.  The
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
