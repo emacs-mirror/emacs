@@ -408,10 +408,11 @@ preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
 @item *?, +?, ??
+@cindex non-greedy regexp matching
 are non-greedy variants of the operators above.  The normal operators
-@samp{*, +, ?} are greedy in that they match as much as they can,
-while if you prepend a @samp{?} after them, it makes them non-greedy
-in that they will match as little as possible.
+@samp{*}, @samp{+}, @samp{?} are @dfn{greedy} in that they match as much
+as they can, while if you append a @samp{?} after them, it makes them
+non-greedy: they will match as little as possible.
 
 @item [ @dots{} ]
 is a @dfn{character set}, which begins with @samp{[} and is terminated
