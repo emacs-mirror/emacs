@@ -6803,7 +6803,9 @@ or `network-coding-system-alist' depending on OPERATION.\n\
 They may specify a coding system, a cons of coding systems,\n\
 or a function symbol to call.\n\
 In the last case, we call the function with one argument,\n\
-which is a list of all the arguments given to this function.")
+which is a list of all the arguments given to this function.\n\
+\n\
+usage: (find-operation-coding-system OPERATION ARGUMENTS ...)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
