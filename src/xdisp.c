@@ -1791,8 +1791,12 @@ start_display (it, w, pos)
 			     || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
       if (!start_at_line_beg_p)
 	{
+	  int new_x;
+
 	  reseat_at_previous_visible_line_start (it);
 	  move_it_to (it, CHARPOS (pos), -1, -1, -1, MOVE_TO_POS);
+
+	  new_x = it->current_x + it->pixel_width;
 
 	  /* If lines are continued, this line may end in the middle
 	     of a multi-glyph character (e.g. a control character
@@ -1800,7 +1804,14 @@ start_display (it, w, pos)
 	     string).  In this case move_it_to above will not have
 	     taken us to the start of the continuation line but to the
 	     end of the continued line.  */
-	  if (it->current_x > 0)
+	  if (it->current_x > 0
+	      && !it->truncate_lines_p /* Lines are continued.  */
+	      && (/* And glyph doesn't fit on the line.  */
+		  new_x > it->last_visible_x
+		  /* Or it fits exactly and we're on a window
+		     system frame.  */
+		  || (new_x == it->last_visible_x
+		      && FRAME_WINDOW_P (it->f))))
 	    {
 	      if (it->current.dpvec_index >= 0
 		  || it->current.overlay_string_index >= 0)
@@ -5407,6 +5418,7 @@ move_it_vertically_backward (it, dy)
 
   /* We are now surely at a line start.  */
   it->current_x = it->hpos = 0;
+  it->continuation_lines_width = 0;
 
   /* Move forward and see what y-distance we moved.  First move to the
      start of the next line so that we get its height.  We need this
