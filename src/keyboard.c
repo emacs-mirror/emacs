@@ -1123,11 +1123,12 @@ command_loop_1 ()
 	     rather than quitting back to the minibuffer.  */
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qinhibit_quit, Qt);
-	  Fsit_for (make_number (2), Qnil, Qnil);
-	  unbind_to (count, Qnil);
 
+	  Fsit_for (make_number (2), Qnil, Qnil);
 	  /* Clear the echo area.  */
 	  message2 (0);
+
+	  unbind_to (count, Qnil);
 
 	  /* If a C-g came in before, treat it as input now.  */
 	  if (!NILP (Vquit_flag))
@@ -3549,10 +3550,12 @@ static char *lispy_mouse_names[] =
 
 /* Scroll bar parts.  */
 Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
+Lisp_Object Qup, Qdown;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
 Lisp_Object *scroll_bar_parts[] = {
-  &Qabove_handle, &Qhandle, &Qbelow_handle
+  &Qabove_handle, &Qhandle, &Qbelow_handle,
+  &Qup, &Qdown,
 };
 
 
@@ -3790,12 +3793,12 @@ make_lispy_event (event)
 	    portion_whole = Fcons (event->x, event->y);
 	    part = *scroll_bar_parts[(int) event->part];
 
-	    position =
-	      Fcons (window,
-		     Fcons (Qvertical_scroll_bar,
-			    Fcons (portion_whole,
-				   Fcons (make_number (event->timestamp),
-					  Fcons (part, Qnil)))));
+	    position
+	      = Fcons (window,
+		       Fcons (Qvertical_scroll_bar,
+			      Fcons (portion_whole,
+				     Fcons (make_number (event->timestamp),
+					    Fcons (part, Qnil)))));
 	  }
 
 	start_pos_ptr = &XVECTOR (button_down_location)->contents[button];
@@ -3907,6 +3910,56 @@ make_lispy_event (event)
 				 Qnil));
 	}
       }
+
+#ifdef WINDOWSNT
+    case win32_scroll_bar_click:
+      {
+	int button = event->code;
+	int is_double;
+	Lisp_Object position;
+	Lisp_Object *start_pos_ptr;
+	Lisp_Object start_pos;
+
+	if (button < 0 || button >= NUM_MOUSE_BUTTONS)
+	  abort ();
+
+	{
+	  Lisp_Object window;
+	  Lisp_Object portion_whole;
+	  Lisp_Object part;
+
+	  window = event->frame_or_window;
+	  portion_whole = Fcons (event->x, event->y);
+	  part = *scroll_bar_parts[(int) event->part];
+
+	  position =
+	    Fcons (window,
+		   Fcons (Qvertical_scroll_bar,
+			  Fcons (portion_whole,
+				 Fcons (make_number (event->timestamp),
+					Fcons (part, Qnil)))));
+	}
+
+	/* Always treat Win32 scroll bar events as clicks. */
+	event->modifiers |= click_modifier;
+
+	{
+	  /* Get the symbol we should use for the mouse click.  */
+	  Lisp_Object head;
+
+	  head = modify_event_symbol (button,
+				      event->modifiers,
+				      Qmouse_click, Qnil,
+				      lispy_mouse_names, &mouse_syms,
+				      (sizeof (lispy_mouse_names)
+				       / sizeof (lispy_mouse_names[0])));
+	  return Fcons (head,
+			Fcons (position,
+			       Qnil));
+	}
+      }
+#endif
+
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
@@ -7763,6 +7816,10 @@ syms_of_keyboard ()
   staticpro (&Qhandle);
   Qbelow_handle = intern ("below-handle");
   staticpro (&Qbelow_handle);
+  Qup = intern ("up");
+  staticpro (&Qup);
+  Qdown = intern ("down");
+  staticpro (&Qdown);
 
   Qevent_kind = intern ("event-kind");
   staticpro (&Qevent_kind);
