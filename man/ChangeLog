@@ -1,3 +1,8 @@
+2004-06-21  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): mention that only Emacs has mouse support.
+	(Getting Started): mention this in a few other places.
+
 2004-06-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.
