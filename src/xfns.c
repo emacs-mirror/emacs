@@ -851,7 +851,8 @@ x_set_frame_parameters (f, alist)
     XSETFRAME (frame, f);
 
     if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
-	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
+	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f))
+	|| FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
       Fset_frame_size (frame, width, height);
 
     if ((!NILP (left) || !NILP (top))
