@@ -699,6 +699,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
+	${lispsource}server.elc \
 	${lispsource}button.elc \
 	${lispsource}emacs-lisp/byte-run.elc \
 	${lispsource}cus-face.elc \
@@ -791,6 +792,7 @@ lisp= \
 shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
+	../lisp/server.elc \
 	../lisp/button.elc \
 	../lisp/emacs-lisp/byte-run.elc \
 	../lisp/cus-face.elc \

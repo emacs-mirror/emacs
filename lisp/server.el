@@ -8,6 +8,7 @@
 ;; Keywords: processes
 
 ;; Changes by peck@sun.com and by rms.
+;; Overhaul by Karoly Lorentey <lorentey@elte.hu> for multi-tty support.
 
 ;; This file is part of GNU Emacs.
 
@@ -872,7 +873,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 
 (global-set-key "\C-x#" 'server-edit)
 
-(defsubst server-getenv (variable &optional frame)
+;;;###autoload
+(defun server-getenv (variable &optional frame)
   "Get the value of VARIABLE in the client environment of frame FRAME.
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.

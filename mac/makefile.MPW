@@ -1017,6 +1017,7 @@ LispSource = ¶
 	{Lisp}international:codepage.elc ¶
 	{Lisp}abbrev.elc ¶
 	{Lisp}buff-menu.elc ¶
+	{Lisp}server.elc ¶
 	{Lisp}byte-run.elc ¶
 	{Lisp}cus-start.el ¶
 	{Lisp}custom.elc ¶

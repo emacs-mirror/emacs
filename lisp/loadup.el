@@ -163,6 +163,7 @@
       (load "vmsproc")))
 (load "abbrev")
 (load "buff-menu")
+(load "server") ; server-getenv is used throughout the terminal initialization code
 (if (eq system-type 'vax-vms)
     (progn
       (load "vms-patch")))
