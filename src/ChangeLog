@@ -1,3 +1,23 @@
+<<<<<<< ChangeLog
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (Vascii_upcase_table, Vascii_canon_table,
+	Vascii_eqv_table): Extern them.
+
+	* casetab.c (set_case_table): If standard is nonzero, setup
+	Vascii_upcase_table, Vascii_canon_table, and Vascii_eqv_table.
+
+	* search.c (looking_at_1): Use current_buffer->case_canon_table,
+	not DOWNCASE_TABLE.
+	(string_match_1): Likewise.
+	(fast_c_string_match_ignore_case): Use Vascii_canon_table, not
+	Vascii_downcase_table.
+	(fast_string_match_ignore_case): Likewise.
+	(search_buffer): Fix checking of boyer-moore usability.
+	(boyer_moore): Calculate translate_prev_byte1/2/3 in advance.  No
+	need of tranlating characters in PAT.  Fix calculation of
+	simple_translate.
+
 2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c [HAVE_XAW3D]: Include ThreeD.h for XtNbeNiceToColormap.

@@ -1,3 +1,8 @@
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Coding System Basics): Describe about rondtrip
+	identity of coding systems.
+
 2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Buffer Contents): Add filter-buffer-substring and
