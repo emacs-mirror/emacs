@@ -1068,7 +1068,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
       for (; symp < symendp; symp ++)
 	if (strcmp ((char *) (symnames + symp->st_name), "_end") == 0
-	    || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0)
+	    || strcmp ((char *) (symnames + symp->st_name), "end") == 0
+	    || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0
+	    || strcmp ((char *) (symnames + symp->st_name), "edata") == 0)
 	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
     }
 
