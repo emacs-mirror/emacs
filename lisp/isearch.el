@@ -1414,11 +1414,6 @@ since they have special meaning in a regexp."
 
 ;; Portability functions to support various Emacs versions.
 
-;; To quiet the byte-compiler.
-(defvar unread-command-event)
-(defvar unread-command-events)
-(defvar last-command-event)
-
 (defun isearch-char-to-string (c)
   (make-string 1 c))
 
