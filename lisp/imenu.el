@@ -798,8 +798,6 @@ depending on PATTERNS."
     (unwind-protect			; for syntax table
 	(save-match-data
 	  (set-syntax-table table)
-	  (if (or comment-start comment-start-skip)
-	      (comment-normalize-vars))
 
 	  ;; map over the elements of imenu-generic-expression
 	  ;; (typically functions, variables ...)
@@ -809,8 +807,7 @@ depending on PATTERNS."
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
 		  (rest (nthcdr 4 pat))
-		  start
-		  cs)
+		  start)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
 	      (while (and (re-search-backward regexp nil t)
@@ -820,37 +817,32 @@ depending on PATTERNS."
 		(setq start (point))
 		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		(setq cs (and (or comment-start comment-start-skip)
-			      (save-match-data
-				(comment-beginning))))
-		(if cs
-		    (goto-char (min cs beg)) ; skip this one, it's in a comment
-		  (goto-char beg)
-		  (imenu-progress-message prev-pos nil t)
-		  ;; Add this sort of submenu only when we've found an
-		  ;; item for it, avoiding empty, duff menus.
-		  (unless (assoc menu-title index-alist)
-		    (push (list menu-title) index-alist))
-		  (if imenu-use-markers
-		      (setq beg (copy-marker beg)))
-		  (let ((item
-			 (if function
-			     (nconc (list (match-string-no-properties index)
-					  beg function)
-				    rest)
-			   (cons (match-string-no-properties index)
-				 beg)))
-			;; This is the desired submenu,
-			;; starting with its title (or nil).
-			(menu (assoc menu-title index-alist)))
-		    ;; Insert the item unless it is already present.
-		    (unless (member item (cdr menu))
-		      (setcdr menu
-			      (cons item (cdr menu)))))
-		  ;; Move to the start of the entire match,
-		  ;; to ensure we keep moving backwards
-		  ;; as long as the match is nonempty.
-		  (goto-char start)))))
+		(goto-char beg)
+		(imenu-progress-message prev-pos nil t)
+		;; Add this sort of submenu only when we've found an
+		;; item for it, avoiding empty, duff menus.
+		(unless (assoc menu-title index-alist)
+		  (push (list menu-title) index-alist))
+		(if imenu-use-markers
+		    (setq beg (copy-marker beg)))
+		(let ((item
+		       (if function
+			   (nconc (list (match-string-no-properties index)
+					beg function)
+				  rest)
+			 (cons (match-string-no-properties index)
+			       beg)))
+		      ;; This is the desired submenu,
+		      ;; starting with its title (or nil).
+		      (menu (assoc menu-title index-alist)))
+		  ;; Insert the item unless it is already present.
+		  (unless (member item (cdr menu))
+		    (setcdr menu
+			    (cons item (cdr menu)))))
+		;; Move to the start of the entire match,
+		;; to ensure we keep moving backwards
+		;; as long as the match is nonempty.
+		(goto-char start))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.
