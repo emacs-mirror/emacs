@@ -239,9 +239,8 @@ This function returns the @code{interactive} form of @var{function}.  If
 @var{function} is a command (@pxref{Interactive Call}), the value is a
 list of the form @code{(interactive @var{spec})}, where @var{spec} is
 the descriptor specification used by the command's @code{interactive}
-form to compute the function's arguments (@pxref{Using Interactive}).
-If @var{function} is not a command, @code{interactive-form} returns
-@code{nil}.
+form to compute the function's arguments.  If @var{function} is not a
+command, @code{interactive-form} returns @code{nil}.
 @end defun
 
 @node Interactive Codes
@@ -328,7 +327,7 @@ The position of point, as an integer (@pxref{Point}).  No I/O.
 
 @item D
 A directory name.  The default is the current default directory of the
-current buffer, @code{default-directory} (@pxref{System Environment}).
+current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
 @item e
@@ -340,7 +339,7 @@ You can use @samp{e} more than once in a single command's interactive
 specification.  If the key sequence that invoked the command has
 @var{n} events that are lists, the @var{n}th @samp{e} provides the
 @var{n}th such event.  Events that are not lists, such as function keys
-and @sc{ascii} characters, do not count where @samp{e} is concerned.
+and @acronym{ASCII} characters, do not count where @samp{e} is concerned.
 
 @item f
 A file name of an existing file (@pxref{File Names}).  The default
@@ -503,7 +502,7 @@ command is a function, @code{command-execute} calls
 @code{call-interactively}, which reads the arguments and calls the
 command.  You can also call these functions yourself.
 
-@defun commandp object
+@defun commandp object &optional for-call-interactively
 Returns @code{t} if @var{object} is suitable for calling interactively;
 that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
@@ -514,11 +513,13 @@ expressions, autoload objects that are declared as interactive
 (non-@code{nil} fourth argument to @code{autoload}), and some of the
 primitive functions.
 
-A symbol satisfies @code{commandp} if its function definition satisfies
-@code{commandp}.
+A symbol satisfies @code{commandp} if its function definition
+satisfies @code{commandp}.  Keys and keymaps are not commands.
+Rather, they are used to look up commands (@pxref{Keymaps}).
 
-Keys and keymaps are not commands.  Rather, they are used to look up
-commands (@pxref{Keymaps}).
+If @var{for-call-interactively} is non-@code{nil}, then
+@code{commandp} returns @code{t} only for objects that
+@code{call-interactively} could call---thus, not for keyboard macros.
 
 See @code{documentation} in @ref{Accessing Documentation}, for a
 realistic example of using @code{commandp}.
@@ -661,6 +662,10 @@ non-@code{nil}.  Here's how:
     (message "foo")))
 @end example
 
+@noindent
+Defined in this way, the function does display the message when
+called from a keyboard macro.
+
   The numeric prefix argument, provided by @samp{p}, is never @code{nil}.
 
 @node Command Loop Info
@@ -727,6 +732,14 @@ We do not bind @code{this-command} with @code{let} because that would
 restore the old value in case of error---a feature of @code{let} which
 in this case does precisely what we want to avoid.
 
+@defvar this-original-command
+This has the same value as @code{this-command} except when command
+remapping occurs (@pxref{Remapping Commands}).  In that case,
+@code{this-command} gives the command actually run (the result of
+remapping), and @code{this-original-command} gives the command that
+was specified to run but remapped into another command.
+@end defvar
+
 @defun this-command-keys
 This function returns a string or vector containing the key sequence
 that invoked the present command, plus any previous commands that
@@ -783,7 +796,7 @@ last-command-event
 @end example
 
 @noindent
-The value is 5 because that is the @sc{ascii} code for @kbd{C-e}.
+The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
 
 The alias @code{last-command-char} exists for compatibility with
 Emacs version 18.
@@ -902,14 +915,14 @@ The
 @ifnottex
 2**26
 @end ifnottex
-bit in the character code indicates a non-@sc{ascii}
+bit in the character code indicates a non-@acronym{ASCII}
 control character.
 
 @sc{ascii} control characters such as @kbd{C-a} have special basic
 codes of their own, so Emacs needs no special bit to indicate them.
 Thus, the code for @kbd{C-a} is just 1.
 
-But if you type a control combination not in @sc{ascii}, such as
+But if you type a control combination not in @acronym{ASCII}, such as
 @kbd{%} with the control key, the numeric value you get is the code
 for @kbd{%} plus
 @tex
@@ -918,7 +931,7 @@ for @kbd{%} plus
 @ifnottex
 2**26
 @end ifnottex
-(assuming the terminal supports non-@sc{ascii}
+(assuming the terminal supports non-@acronym{ASCII}
 control characters).
 
 @item shift
@@ -929,13 +942,13 @@ The
 @ifnottex
 2**25
 @end ifnottex
-bit in the character code indicates an @sc{ascii} control
+bit in the character code indicates an @acronym{ASCII} control
 character typed with the shift key held down.
 
 For letters, the basic code itself indicates upper versus lower case;
 for digits and punctuation, the shift key selects an entirely different
 character with a different basic code.  In order to keep within the
-@sc{ascii} character set whenever possible, Emacs avoids using the
+@acronym{ASCII} character set whenever possible, Emacs avoids using the
 @tex
 @math{2^{25}}
 @end tex
@@ -944,7 +957,7 @@ character with a different basic code.  In order to keep within the
 @end ifnottex
 bit for those characters.
 
-However, @sc{ascii} provides no way to distinguish @kbd{C-A} from
+However, @acronym{ASCII} provides no way to distinguish @kbd{C-A} from
 @kbd{C-a}, so Emacs uses the
 @tex
 @math{2^{25}}
@@ -1018,10 +1031,10 @@ function keys:
 
 @table @asis
 @item @code{backspace}, @code{tab}, @code{newline}, @code{return}, @code{delete}
-These keys correspond to common @sc{ascii} control characters that have
+These keys correspond to common @acronym{ASCII} control characters that have
 special keys on most keyboards.
 
-In @sc{ascii}, @kbd{C-i} and @key{TAB} are the same character.  If the
+In @acronym{ASCII}, @kbd{C-i} and @key{TAB} are the same character.  If the
 terminal can distinguish between them, Emacs conveys the distinction to
 Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
@@ -1033,7 +1046,7 @@ character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
 symbols in this group.  The function @code{read-char} likewise converts
 these events into characters.
 
-In @sc{ascii}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
+In @acronym{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
 (@key{BS}).  This is what most users prefer.
 
@@ -1105,26 +1118,12 @@ binding of the key sequence.
 @cindex mouse click event
 
 When the user presses a mouse button and releases it at the same
-location, that generates a @dfn{click} event.  Mouse click events have
-this form:
+location, that generates a @dfn{click} event.  All mouse click event
+share the same format:
 
 @example
-(@var{event-type}
- (@var{window} @var{buffer-pos} (@var{x} . @var{y})
-  @var{timestamp})
- @var{click-count})
+(@var{event-type} @var{position} @var{click-count})
 @end example
-
-or, for clicks on strings in the mode line, header line or marginal
-areas:
-
-@example
-(@var{event-type}
- (@var{window} @var{buffer-pos} (@var{x} . @var{y}) @var{timestamp} (@var{string} . @var{string-pos})
- @var{click-count})
-@end example
-
-Here is what the elements normally mean:
 
 @table @asis
 @item @var{event-type}
@@ -1141,21 +1140,50 @@ describe events by their types; thus, if there is a key binding for
 @code{mouse-1}, that binding would apply to all events whose
 @var{event-type} is @code{mouse-1}.
 
+@item @var{position}
+This is the position where the mouse click occurred.  The actual
+format of @var{position} depends on what part of a window was clicked
+on.  The various formats are described below.
+
+@item @var{click-count}
+This is the number of rapid repeated presses so far of the same mouse
+button.  @xref{Repeat Events}.
+@end table
+
+For mouse click events in the text area, mode line, header line, or in
+the marginal areas, @var{position} has this form:
+
+@example
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row}) 
+ @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
+@end example
+
+@table @asis
 @item @var{window}
 This is the window in which the click occurred.
+
+@item @var{pos-or-area}
+This is the buffer position of the character clicked on in the text
+area, or if clicked outside the text area, it is the window area in
+which the click occurred.  It is one of the symbols @code{mode-line},
+@code{header-line}, @code{vertical-line}, @code{left-margin},
+@code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
 @item @var{x}, @var{y}
 These are the pixel-denominated coordinates of the click, relative to
 the top left corner of @var{window}, which is @code{(0 . 0)}.
-
-@item @var{buffer-pos}
-This is the buffer position of the character clicked on.
+For the mode or header line, @var{y} does not have meaningful data.
+For the vertical line, @var{x} does not have meaningful data.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.  (Since
-this value wraps around the entire range of Emacs Lisp integers in about
-five hours, it is useful only for relating the times of nearby
-events.)
+This is the time at which the event occurred, in milliseconds.
+
+@item @var{object}
+This is the object on which the click occurred.  It is either
+@code{nil} if there is no string property, or it has the form
+(@var{string} . @var{string-pos}) when there is a string-type text
+property at the click position.
 
 @item @var{string}
 This is the string on which the click occurred, including any
@@ -1165,29 +1193,58 @@ properties.
 This is the position in the string on which the click occurred,
 relevant if properties at the click need to be looked up.
 
-@item @var{click-count}
-This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
+@item @var{text-pos}
+For clicks on a marginal area or on a fringe, this is the buffer
+position of the first visible character in the corresponding line in
+the window.  For other events, it is the current buffer position in
+the window.
+
+@item @var{col}, @var{row}
+These are the actual coordinates of the glyph under the @var{x},
+@var{y} position, possibly padded with default character width
+glyphs if @var{x} is beyond the last glyph on the line.
+
+@item @var{image}
+This is the image object on which the click occurred.  It is either
+@code{nil} if there is no image at the position clicked on, or it is
+an image object as returned by @code{find-image} if click was in an image.
+
+@item @var{dx}, @var{dy}
+These are the pixel-denominated coordinates of the click, relative to
+the top left corner of @var{object}, which is @code{(0 . 0)}.  If
+@var{object} is @code{nil}, the coordinates are relative to the top
+left corner of the character glyph clicked on.
 @end table
 
-The meanings of @var{buffer-pos}, @var{x} and @var{y} are somewhat
-different when the event location is in a special part of the screen,
-such as the mode line or a scroll bar.
+For mouse clicks on a scroll-bar, @var{position} has this form:
 
-If the location is in a scroll bar, then @var{buffer-pos} is the symbol
-@code{vertical-scroll-bar} or @code{horizontal-scroll-bar}, and the pair
-@code{(@var{x} . @var{y})} is replaced with a pair @code{(@var{portion}
-. @var{whole})}, where @var{portion} is the distance of the click from
-the top or left end of the scroll bar, and @var{whole} is the length of
-the entire scroll bar.
+@example
+(@var{window} @var{area} (@var{portion} . @var{whole}) @var{timestamp} @var{part})
+@end example
 
-If the position is on a mode line, the vertical line separating
-@var{window} from its neighbor to the right, or in a marginal area,
-then @var{buffer-pos} is the symbol @code{mode-line},
-@code{header-line}, @code{vertical-line}, @code{left-margin}, or
-@code{right-margin}.  For the mode line, @var{y} does not have
-meaningful data.  For the vertical line, @var{x} does not have
-meaningful data.
+@table @asis
+@item @var{window}
+This is the window whose scroll-bar was clicked on.
+
+@item @var{area}
+This is the scroll bar where the click occurred.  It is one of the
+symbols @code{vertical-scroll-bar} or @code{horizontal-scroll-bar}.
+
+@item @var{portion}
+This is the distance of the click from the top or left end of
+the scroll bar.
+
+@item @var{whole}
+This is the length of the entire scroll bar.
+
+@item @var{timestamp}
+This is the time at which the event occurred, in milliseconds.
+
+@item @var{part}
+This is the part of the scroll-bar which was clicked on.  It is one
+of the symbols @code{above-handle}, @code{handle}, @code{below-handle},
+@code{up}, @code{down}, @code{top}, @code{bottom}, and @code{end-scroll}.
+@end table
 
 In one special case, @var{buffer-pos} is a list containing a symbol (one
 of the symbols listed above) instead of just the symbol.  This happens
@@ -1615,7 +1672,9 @@ a mouse button or motion event.
 mouse-button event, as a list of this form:
 
 @example
-(@var{window} @var{buffer-position} (@var{x} . @var{y}) @var{timestamp})
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row})
+ @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
 @end example
 
 @defun event-start event
@@ -1636,15 +1695,24 @@ position such events have.
 @end defun
 
 @cindex mouse position list, accessing
-  These five functions take a position list as described above, and
+  These seven functions take a position list as described above, and
 return various parts of it.
 
 @defun posn-window position
 Return the window that @var{position} is in.
 @end defun
 
+@defun posn-area position
+Return the window area recorded in @var{position}.  It returns @code{nil}
+when the event occurred in the text area of the window; otherwise, it
+is a symbol identifying the area in which the the event occurred.
+@end defun
+
 @defun posn-point position
-Return the buffer position in @var{position}.  This is an integer.
+Return the buffer position in @var{position}.  When the event occurred
+in the text area of the window, in a marginal area, or on a fringe,
+this is an integer specifying a buffer position.  Otherwise, the value
+is undefined.
 @end defun
 
 @defun posn-x-y position
@@ -1653,15 +1721,54 @@ cell @code{(@var{x} . @var{y})}.
 @end defun
 
 @defun posn-col-row position
-Return the row and column (in units of characters) of @var{position}, as
-a cons cell @code{(@var{col} . @var{row})}.  These are computed from the
-@var{x} and @var{y} values actually found in @var{position}.
+Return the row and column (in units of frame default characters) of
+@var{position}, as a cons cell @code{(@var{col} . @var{row})}.  These
+are computed from the @var{x} and @var{y} values actually found in
+@var{position}.
+@end defun
+
+@defun posn-actual-col-row position
+Return the actual row and column in @var{position}, as a cons cell
+@code{(@var{col} . @var{row})}.  The values are the actual row number
+in the window, and the actual character number in that row.  Return
+@code{nil} if @var{position} does not include the actual positions; in that
+case, @code{posn-col-row} can be used to get approximate values.
+@end defun
+
+@defun posn-string position
+Return the string object in @var{position}, either @code{nil}, or a
+cons cell @code{(@var{string} . @var{string-pos})}.
+@end defun
+
+@defun posn-image position
+Return the image object in @var{position}, either @code{nil}, or an
+image @code{(image ...)}.
+@end defun
+
+@defun posn-object position
+Return the image or string object in @var{position}, either
+@code{nil}, an image @code{(image ...)}, or a cons cell
+@code{(@var{string} . @var{string-pos})}.
+@end defun
+
+@defun posn-object-x-y position
+Return the pixel-based x and y coordinates relative to the upper left
+corner of the object in @var{position} as a cons cell @code{(@var{dx}
+. @var{dy})}.  If the @var{position} is a buffer position, return the
+relative position in the character at that position.
+@end defun
+
+@defun posn-object-width-height position
+Return the pixel width and height of the object in @var{position} as a
+cons cell @code{(@var{width} . @var{height})}.  If the @var{position}
+is a buffer position, return the size of the character at that position.
 @end defun
 
 @cindex mouse event, timestamp
 @cindex timestamp of a mouse event
-@defun posn-timestamp position
-Return the timestamp in @var{position}.
+@defun posn-timestamp
+Return the timestamp in @var{position}.  This is the time at which the
+event occurred, in milliseconds.
 @end defun
 
   These functions are useful for decoding scroll bar events.
@@ -1796,7 +1903,7 @@ bit, resulting in a value between 128 and 255.  Only a unibyte string
 can include these codes.
 
 @item
-Non-@sc{ascii} characters above 256 can be included in a multibyte string.
+Non-@acronym{ASCII} characters above 256 can be included in a multibyte string.
 
 @item
 Other keyboard character events cannot fit in a string.  This includes
@@ -1965,7 +2072,7 @@ Echo Area}.
 
 If @var{inherit-input-method} is non-@code{nil}, then the current input
 method (if any) is employed to make it possible to enter a
-non-@sc{ascii} character.  Otherwise, input method handling is disabled
+non-@acronym{ASCII} character.  Otherwise, input method handling is disabled
 for reading this event.
 
 If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
@@ -1995,7 +2102,7 @@ user generates an event which is not a character (i.e. a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
-In the first example, the user types the character @kbd{1} (@sc{ascii}
+In the first example, the user types the character @kbd{1} (@acronym{ASCII}
 code 49).  The second example shows a keyboard macro definition that
 calls @code{read-char} from the minibuffer using @code{eval-expression}.
 @code{read-char} reads the keyboard macro's very next character, which
@@ -2041,7 +2148,7 @@ calls that function, passing the character as an argument.
 If this is non-@code{nil}, its value specifies the current input method
 function.
 
-@strong{Note:} Don't bind this variable with @code{let}.  It is often
+@strong{Warning:} don't bind this variable with @code{let}.  It is often
 buffer-local, and if you bind it around reading input (which is exactly
 when you @emph{would} bind it), switching buffers asynchronously while
 Emacs is waiting will cause the value to be restored in the wrong
@@ -2175,7 +2282,7 @@ This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
 In the example below, the Lisp program reads the character @kbd{1},
-@sc{ascii} code 49.  It becomes the value of @code{last-input-event},
+@acronym{ASCII} code 49.  It becomes the value of @code{last-input-event},
 while @kbd{C-e} (we assume @kbd{C-x C-e} command is used to evaluate
 this expression) remains the value of @code{last-command-event}.
 
@@ -2819,3 +2926,7 @@ This normal hook (@pxref{Standard Hooks}) is run when a keyboard
 macro terminates, regardless of what caused it to terminate (reaching
 the macro end or an error which ended the macro prematurely).
 @end defvar
+
+@ignore
+   arch-tag: e34944ad-7d5c-4980-be00-36a5fe54d4b1
+@end ignore

@@ -23,3 +23,7 @@
 @sp 5
 @center Free Software Foundation
 @bye
+
+@ignore
+   arch-tag: 4466c7ca-e549-4119-948c-6eed34e1ff87
+@end ignore

@@ -76,8 +76,10 @@ alternatives:
 
 @table @code
 @item eql
-Keys which are numbers are ``the same'' if they are equal in value;
-otherwise, two distinct objects are never ``the same''.
+Keys which are numbers are ``the same'' if they are @code{equal}, that
+is, if they are equal in value and either both are integers or both
+are floating point numbers; otherwise, two distinct objects are never
+``the same''.
 
 @item eq
 Any two distinct Lisp objects are ``different'' as keys.
@@ -96,7 +98,7 @@ value in the hash table preserves it from garbage collection.
 
 The value, @var{weak}, must be one of @code{nil}, @code{key},
 @code{value}, @code{key-or-value}, @code{key-and-value}, or @code{t}
-which is an alias for @code{key-or-value}.  If @var{weak} is @code{key}
+which is an alias for @code{key-and-value}.  If @var{weak} is @code{key}
 then the hash table does not prevent its keys from being collected as
 garbage (if they are not referenced anywhere else); if a particular key
 does get collected, the corresponding association is removed from the
@@ -107,19 +109,19 @@ values from being collected as garbage (if they are not referenced
 anywhere else); if a particular value does get collected, the
 corresponding association is removed from the hash table.
 
-If @var{weak} is @code{key-or-value} or @code{t}, the hash table does
-not protect either keys or values from garbage collection; if either
-one is collected as garbage, the association is removed.
+If @var{weak} is @code{key-and-value} or @code{t}, both the key and
+the value must be live in order to preserve the association.  Thus,
+the hash table does not protect either keys or values from garbage
+collection; if either one is collected as garbage, that removes the
+association.
 
-If @var{weak} is @code{key-and-value}, associations are removed from
-the hash table when both their key and value would be collected as
-garbage, again not considering references to the key and value from
-weak hash tables.
+If @var{weak} is @code{key-or-value}, either the key or
+the value can preserve the association.  Thus, associations are
+removed from the hash table when both their key and value would be
+collected as garbage (if not for references from weak hash tables).
 
 The default for @var{weak} is @code{nil}, so that all keys and values
-referenced in the hash table are preserved from garbage collection.  If
-@var{weak} is @code{t}, neither keys nor values are protected (that is,
-both are weak).
+referenced in the hash table are preserved from garbage collection.
 
 @item :size @var{size}
 This specifies a hint for how many associations you plan to store in the
@@ -158,8 +160,7 @@ This is equivalent to @code{make-hash-table}, but with a different style
 argument list.  The argument @var{test} specifies the method
 of key lookup.
 
-If you want to specify other parameters, you should use
-@code{make-hash-table}.
+This function is obsolete. Use @code{make-hash-table} instead.
 @end defun
 
 @node Hash Access
@@ -187,6 +188,10 @@ value @var{value}.  If @var{key} already has an association in
 This function removes the association for @var{key} from @var{table}, if
 there is one.  If @var{key} has no association, @code{remhash} does
 nothing.
+
+@b{Common Lisp note:} In Common Lisp, @code{remhash} returns
+non-@code{nil} if it actually removed an association and @code{nil}
+otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @end defun
 
 @tindex clrhash
@@ -194,9 +199,13 @@ nothing.
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
 table.
+
+@b{Common Lisp note:} In Common Lisp, @code{clrhash} returns the empty
+@var{table}.  In Emacs Lisp, it returns @code{nil}.
 @end defun
 
 @tindex maphash
+@anchor{Definition of maphash}
 @defun maphash function table
 This function calls @var{function} once for each of the associations in
 @var{table}.  The function @var{function} should accept two
@@ -255,8 +264,8 @@ If two objects @var{obj1} and @var{obj2} are equal, then @code{(sxhash
 @var{obj1})} and @code{(sxhash @var{obj2})} are the same integer.
 
 If the two objects are not equal, the values returned by @code{sxhash}
-are usually different, but not always; but once in a rare while, by
-luck, you will encounter two distinct-looking objects that give the same
+are usually different, but not always; once in a rare while, by luck,
+you will encounter two distinct-looking objects that give the same
 result from @code{sxhash}.
 @end defun
 
@@ -334,3 +343,7 @@ This returns the rehash threshold of @var{table}.
 @defun hash-table-size table
 This returns the current nominal size of @var{table}.
 @end defun
+
+@ignore
+   arch-tag: 3b5107f9-d2f0-47d5-ad61-3498496bea0e
+@end ignore

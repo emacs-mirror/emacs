@@ -37,7 +37,7 @@ containing Lisp code.
 @menu
 * How Programs Do Loading::     The @code{load} function and others.
 * Library Search::              Finding a library to load.
-* Loading Non-ASCII::           Non-@sc{ascii} characters in Emacs Lisp files.
+* Loading Non-ASCII::           Non-@acronym{ASCII} characters in Emacs Lisp files.
 * Autoload::                    Setting up a function to autoload.
 * Repeated Loading::            Precautions about loading a file twice.
 * Named Features::              Loading a library if it isn't already loaded.
@@ -140,6 +140,7 @@ This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.
 @end defvar
 
+@anchor{Definition of load-read-function}
 @defvar load-read-function
 This variable specifies an alternate expression-reading function for
 @code{load} and @code{eval-region} to use instead of @code{read}.
@@ -148,9 +149,9 @@ The function should accept one argument, just as @code{read} does.
 Normally, the variable's value is @code{nil}, which means those
 functions should use @code{read}.
 
-@strong{Note:} Instead of using this variable, it is cleaner to use
-another, newer feature: to pass the function as the @var{read-function}
-argument to @code{eval-region}.  @xref{Eval}.
+Instead of using this variable, it is cleaner to use another, newer
+feature: to pass the function as the @var{read-function} argument to
+@code{eval-region}.  @xref{Definition of eval-region,, Eval}.
 @end defvar
 
   For information about how @code{load} is used in building Emacs, see
@@ -172,7 +173,7 @@ directory).
 
   The value of @code{load-path} is initialized from the environment
 variable @code{EMACSLOADPATH}, if that exists; otherwise its default
-value is specified in @file{emacs/src/paths.h} when Emacs is built.
+value is specified in @file{emacs/src/epaths.h} when Emacs is built.
 Then the list is expanded by adding subdirectories of the directories
 in the list.
 
@@ -289,13 +290,13 @@ tells @code{locate-library} to display the file name in the echo area.
 @defvar load-suffixes
 This variable is a list of suffixes (strings) that @code{load} should
 try adding to the specified file name.  The default value is
-@code{(".el" ".elc")}.  There is no need to include the null suffix.
+@code{(".elc" ".el")}.  There is no need to include the null suffix.
 @end defvar
 
 @node Loading Non-ASCII
-@section Loading Non-@sc{ascii} Characters
+@section Loading Non-@acronym{ASCII} Characters
 
-  When Emacs Lisp programs contain string constants with non-@sc{ascii}
+  When Emacs Lisp programs contain string constants with non-@acronym{ASCII}
 characters, these can be represented within Emacs either as unibyte
 strings or as multibyte strings (@pxref{Text Representations}).  Which
 representation is used depends on how the file is read into Emacs.  If
@@ -309,7 +310,7 @@ unibyte text, and its string constants will be unibyte strings.
   To make the results more predictable, Emacs always performs decoding
 into the multibyte representation when loading Lisp files, even if it
 was started with the @samp{--unibyte} option.  This means that string
-constants with non-@sc{ascii} characters translate into multibyte
+constants with non-@acronym{ASCII} characters translate into multibyte
 strings.  The only exception is when a particular file specifies no
 decoding.
 
@@ -321,7 +322,7 @@ notice whether the user prefers unibyte or multibyte text, by checking
 @code{default-enable-multibyte-characters}, and convert representations
 appropriately.
 
-  In most Emacs Lisp programs, the fact that non-@sc{ascii} strings are
+  In most Emacs Lisp programs, the fact that non-@acronym{ASCII} strings are
 multibyte strings should not be noticeable, since inserting them in
 unibyte buffers converts them to unibyte automatically.  However, if
 this does make a difference, you can force a particular Lisp file to be
@@ -329,7 +330,7 @@ interpreted as unibyte by writing @samp{-*-unibyte: t;-*-} in a
 comment on the file's first line.  With that designator, the file will
 unconditionally be interpreted as unibyte, even in an ordinary
 multibyte Emacs session.  This can matter when making keybindings to
-non-@sc{ascii} characters written as @code{?v@var{literal}}.
+non-@acronym{ASCII} characters written as @code{?v@var{literal}}.
 
 @node Autoload
 @section Autoload
@@ -656,6 +657,7 @@ The argument @var{feature} must be a symbol.  @code{provide} returns
 
 If provided, @var{subfeatures} should be a list of symbols indicating
 a set of specific subfeatures provided by this version of @var{feature}.
+You can test the presence of a subfeature using @code{featurep}.
 
 @smallexample
 features
@@ -668,7 +670,7 @@ features
 @end smallexample
 
 When a file is loaded to satisfy an autoload, and it stops due to an
-error in the evaluating its contents, any function definitions or
+error in the evaluation of its contents, any function definitions or
 @code{provide} calls that occurred during the load are undone.
 @xref{Autoload}.
 @end defun
@@ -723,12 +725,14 @@ library with @code{defun}, @code{defalias}, @code{defsubst},
 It then restores any autoloads formerly associated with those symbols.
 (Loading saves these in the @code{autoload} property of the symbol.)
 
+@vindex unload-feature-special-hooks
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
-hooks.  These hooks include variables whose names end in @samp{hook} or
-@samp{-hooks}, plus those listed in @code{loadhist-special-hooks}.  This
-is to prevent Emacs from ceasing to function because important hooks
-refer to functions that are no longer defined.
+hooks.  These hooks include variables whose names end in @samp{hook}
+or @samp{-hooks}, plus those listed in
+@code{unload-feature-special-hooks}.  This is to prevent Emacs from
+ceasing to function because important hooks refer to functions that
+are no longer defined.
 
 @vindex @var{feature}-unload-hook
 If these measures are not sufficient to prevent malfunction, a library
@@ -786,18 +790,7 @@ The value of @code{load-history} may have one element whose @sc{car} is
 by adding the symbols defined to the element for the file being visited,
 rather than replacing that element.  @xref{Eval}.
 
-  Preloaded libraries don't contribute initially to @code{load-history}.
-Instead, preloading writes information about preloaded libraries into a
-file, which can be loaded later on to add information to
-@code{load-history} describing the preloaded files.  This file is
-installed in @code{exec-directory} and has a name of the form
-@file{fns-@var{emacsversion}.el}.
-
-@findex symbol-file
-  See the source for the function @code{symbol-file}, for an example of
-code that loads this file to find functions in preloaded libraries.
-
-@defvar loadhist-special-hooks
+@defvar unload-feature-special-hooks
 This variable holds a list of hooks to be scanned before unloading a
 library, to remove functions defined in the library.
 @end defvar
@@ -852,3 +845,7 @@ implement @code{eval-after-load}.
 @end defvar
 
 @c Emacs 19 feature
+
+@ignore
+   arch-tag: df731f89-0900-4389-a436-9105241b6f7a
+@end ignore

@@ -62,6 +62,10 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @code{"Symbol's chain of function indirections\@* contains a loop"}@*
 @xref{Function Indirection}.
 
+@item cyclic-variable-indirection
+@code{"Symbol's chain of variable indirections contains a loop"}@*
+@xref{Variable Aliases}.
+
 @item end-of-buffer
 @code{"End of buffer"}@*
 @xref{Motion}.
@@ -69,7 +73,7 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @item end-of-file
 @code{"End of file during parsing"}@*
 Note that this is not a subcategory of @code{file-error},
-because it pertains to the Lisp reader, not to file I/O.
+because it pertains to the Lisp reader, not to file I/O.@*
 @xref{Input Functions}.
 
 @item file-already-exists
@@ -79,12 +83,16 @@ This is a subcategory of @code{file-error}.@*
 @item file-date-error
 This is a subcategory of @code{file-error}.  It occurs when
 @code{copy-file} tries and fails to set the last-modification time of
-the output file.  @xref{Changing Files}.
+the output file.@*
+@xref{Changing Files}.
 
 @item file-error
-This error and its subcategories do not have error-strings, because the
-error message is constructed from the data items alone when the error
-condition @code{file-error} is present.@*
+We do not list the error-strings of this error and its subcategories,
+because the error message is normally constructed from the data items
+alone when the error condition @code{file-error} is present.  Thus,
+the error-strings are not very relevant.  However, these error symbols
+do have @code{error-message} properties, and if no data is provided,
+the @code{error-message} property @emph{is} used.@*
 @xref{Files}.
 
 @item file-locked
@@ -113,7 +121,7 @@ in accessing a remote file using ftp.@*
 @xref{Regular Expressions}.
 
 @item mark-inactive
-@code{"Mark inactive"}@*
+@code{"The mark is not active now"}@*
 @xref{The Mark}.
 
 @item no-catch
@@ -139,6 +147,7 @@ may not be changed.@*
 
 @item text-read-only
 @code{"Text is read-only"}@*
+This is a subcategory of @code{buffer-read-only}.@*
 @xref{Special Properties}.
 
 @item undefined-color
@@ -173,6 +182,7 @@ mathematical functions.
 
 @item overflow-error
 @code{"Arithmetic overflow error"}@*
+This is a subcategory of @code{domain-error}.@*
 @xref{Math Functions}.
 
 @item range-error
@@ -181,9 +191,15 @@ mathematical functions.
 
 @item singularity-error
 @code{"Arithmetic singularity error"}@*
+This is a subcategory of @code{domain-error}.@*
 @xref{Math Functions}.
 
 @item underflow-error
 @code{"Arithmetic underflow error"}@*
+This is a subcategory of @code{domain-error}.@*
 @xref{Math Functions}.
 @end table
+
+@ignore
+   arch-tag: 717c6048-5d9d-4c7d-9a62-df57390b6f19
+@end ignore

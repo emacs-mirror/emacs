@@ -42,7 +42,9 @@ it as a number; Lisp knows it is a vector, not a number.
 variable, and the type is known by the compiler but not represented in
 the data.  Such type declarations do not exist in Emacs Lisp.  A Lisp
 variable can have any type of value, and it remembers whatever value
-you store in it, type and all.
+you store in it, type and all.  (Actually, a small number of Emacs
+Lisp variables can only take on values of a certain type.
+@xref{Variables with Restricted Values}.)
 
   This chapter describes the purpose, printed representation, and read
 syntax of each of the standard types in GNU Emacs Lisp.  Details on how
@@ -161,24 +163,24 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  The range of values for integers in Emacs Lisp is @minus{}134217728 to
-134217727 (28 bits; i.e.,
+  The range of values for integers in Emacs Lisp is @minus{}268435456 to
+268435455 (29 bits; i.e.,
 @ifnottex
--2**27
+-2**28
 @end ifnottex
 @tex
-@math{-2^{27}}
+@math{-2^{28}}
 @end tex
 to
 @ifnottex
-2**27 - 1)
+2**28 - 1)
 @end ifnottex
 @tex
 @math{2^{28}-1})
 @end tex
 on most machines.  (Some machines may provide a wider range.)  It is
 important to note that the Emacs Lisp arithmetic functions do not check
-for overflow.  Thus @code{(1+ 134217727)} is @minus{}134217728 on most
+for overflow.  Thus @code{(1+ 268435455)} is @minus{}268435456 on most
 machines.
 
   The read syntax for integers is a sequence of (base ten) digits with an
@@ -192,7 +194,7 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
-268435457        ; @r{Also the integer 1 on a 28-bit implementation.}
+536870913        ; @r{Also the integer 1 on a 29-bit implementation.}
 @end group
 @end example
 
@@ -216,7 +218,7 @@ number whose value is 1500.  They are all equivalent.
 
 @node Character Type
 @subsection Character Type
-@cindex @sc{ascii} character codes
+@cindex @acronym{ASCII} character codes
 
   A @dfn{character} in Emacs Lisp is nothing more than an integer.  In
 other words, characters are represented by their character codes.  For
@@ -226,11 +228,12 @@ example, the character @kbd{A} is represented as the @w{integer 65}.
 common to work with @emph{strings}, which are sequences composed of
 characters.  @xref{String Type}.
 
-  Characters in strings, buffers, and files are currently limited to the
-range of 0 to 524287---nineteen bits.  But not all values in that range
-are valid character codes.  Codes 0 through 127 are @sc{ascii} codes; the
-rest are non-@sc{ascii} (@pxref{Non-ASCII Characters}).  Characters that represent
-keyboard input have a much wider range, to encode modifier keys such as
+  Characters in strings, buffers, and files are currently limited to
+the range of 0 to 524287---nineteen bits.  But not all values in that
+range are valid character codes.  Codes 0 through 127 are
+@acronym{ASCII} codes; the rest are non-@acronym{ASCII}
+(@pxref{Non-ASCII Characters}).  Characters that represent keyboard
+input have a much wider range, to encode modifier keys such as
 Control, Meta and Shift.
 
 @cindex read syntax for characters
@@ -323,9 +326,9 @@ equivalent to @samp{?\^I} and to @samp{?\^i}:
 @end example
 
   In strings and buffers, the only control characters allowed are those
-that exist in @sc{ascii}; but for keyboard input purposes, you can turn
+that exist in @acronym{ASCII}; but for keyboard input purposes, you can turn
 any character into a control character with @samp{C-}.  The character
-codes for these non-@sc{ascii} control characters include the
+codes for these non-@acronym{ASCII} control characters include the
 @tex
 @math{2^{26}}
 @end tex
@@ -333,7 +336,7 @@ codes for these non-@sc{ascii} control characters include the
 2**26
 @end ifnottex
 bit as well as the code for the corresponding non-control
-character.  Ordinary terminals have no way of generating non-@sc{ascii}
+character.  Ordinary terminals have no way of generating non-@acronym{ASCII}
 control characters, but you can generate them straightforwardly using X
 and other window systems.
 
@@ -365,9 +368,8 @@ modifier key.  The integer that represents such a character has the
 @ifnottex
 2**27
 @end ifnottex
-bit set (which on most machines makes it a negative number).  We
-use high bits for this and other modifiers to make possible a wide range
-of basic character codes.
+bit set.  We use high bits for this and other modifiers to make
+possible a wide range of basic character codes.
 
   In a string, the
 @tex
@@ -376,11 +378,11 @@ of basic character codes.
 @ifnottex
 2**7
 @end ifnottex
-bit attached to an @sc{ascii} character indicates a meta character; thus, the
-meta characters that can fit in a string have codes in the range from
-128 to 255, and are the meta versions of the ordinary @sc{ascii}
-characters.  (In Emacs versions 18 and older, this convention was used
-for characters outside of strings as well.)
+bit attached to an @acronym{ASCII} character indicates a meta
+character; thus, the meta characters that can fit in a string have
+codes in the range from 128 to 255, and are the meta versions of the
+ordinary @acronym{ASCII} characters.  (In Emacs versions 18 and older,
+this convention was used for characters outside of strings as well.)
 
   The read syntax for meta characters uses @samp{\M-}.  For example,
 @samp{?\M-A} stands for @kbd{M-A}.  You can use @samp{\M-} together with
@@ -390,8 +392,8 @@ or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
 @samp{?\M-\C-b}, @samp{?\C-\M-b}, or @samp{?\M-\002}.
 
   The case of a graphic character is indicated by its character code;
-for example, @sc{ascii} distinguishes between the characters @samp{a}
-and @samp{A}.  But @sc{ascii} has no way to represent whether a control
+for example, @acronym{ASCII} distinguishes between the characters @samp{a}
+and @samp{A}.  But @acronym{ASCII} has no way to represent whether a control
 character is upper case or lower case.  Emacs uses the
 @tex
 @math{2^{25}}
@@ -409,15 +411,16 @@ represents the shifted-control-o character.
 @cindex hyper characters
 @cindex super characters
 @cindex alt characters
-  The X Window System defines three other modifier bits that can be set
+  The X Window System defines three other @anchor{modifier bits}
+modifier bits that can be set
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  (Case is
 significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
 @kbd{Alt-Hyper-Meta-x}.  (Note that @samp{\s} with no following @samp{-}
 represents the space character.)
 @tex
-Numerically, the
-bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
+Numerically, the bit values are @math{2^{22}} for alt, @math{2^{23}}
+for super and @math{2^{24}} for hyper.
 @end tex
 @ifnottex
 Numerically, the
@@ -432,9 +435,9 @@ character code in either octal or hex.  To use octal, write a question
 mark followed by a backslash and the octal character code (up to three
 octal digits); thus, @samp{?\101} for the character @kbd{A},
 @samp{?\001} for the character @kbd{C-a}, and @code{?\002} for the
-character @kbd{C-b}.  Although this syntax can represent any @sc{ascii}
+character @kbd{C-b}.  Although this syntax can represent any @acronym{ASCII}
 character, it is preferred only when the precise octal value is more
-important than the @sc{ascii} representation.
+important than the @acronym{ASCII} representation.
 
 @example
 @group
@@ -915,11 +918,11 @@ but the newline is ignored if escaped."
 @end example
 
 @node Non-ASCII in Strings
-@subsubsection Non-@sc{ascii} Characters in Strings
+@subsubsection Non-@acronym{ASCII} Characters in Strings
 
-  You can include a non-@sc{ascii} international character in a string
+  You can include a non-@acronym{ASCII} international character in a string
 constant by writing it literally.  There are two text representations
-for non-@sc{ascii} characters in Emacs strings (and in buffers): unibyte
+for non-@acronym{ASCII} characters in Emacs strings (and in buffers): unibyte
 and multibyte.  If the string constant is read from a multibyte source,
 such as a multibyte buffer or string, or a file that would be visited as
 multibyte, then the character is read as a multibyte character, and that
@@ -927,9 +930,9 @@ makes the string multibyte.  If the string constant is read from a
 unibyte source, then the character is read as unibyte and that makes the
 string unibyte.
 
-  You can also represent a multibyte non-@sc{ascii} character with its
+  You can also represent a multibyte non-@acronym{ASCII} character with its
 character code: use a hex escape, @samp{\x@var{nnnnnnn}}, with as many
-digits as necessary.  (Multibyte non-@sc{ascii} character codes are all
+digits as necessary.  (Multibyte non-@acronym{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the next character in the string could be
 interpreted as a hex digit, write @w{@samp{\ }} (backslash and space) to
@@ -938,10 +941,13 @@ one character, @samp{a} with grave accent.  @w{@samp{\ }} in a string
 constant is just like backslash-newline; it does not contribute any
 character to the string, but it does terminate the preceding hex escape.
 
-  Using a multibyte hex escape forces the string to multibyte.  You can
-represent a unibyte non-@sc{ascii} character with its character code,
-which must be in the range from 128 (0200 octal) to 255 (0377 octal).
-This forces a unibyte string.
+  You can represent a unibyte non-@acronym{ASCII} character with its
+character code, which must be in the range from 128 (0200 octal) to
+255 (0377 octal).  If you write all such character codes in octal and
+the string contains no other characters forcing it to be multibyte,
+this produces a unibyte string.  However, using any hex escape in a
+string (even for an @acronym{ASCII} character) forces the string to be
+multibyte.
 
   @xref{Text Representations}, for more information about the two
 text representations.
@@ -958,14 +964,14 @@ description of the read syntax for characters.
 
   However, not all of the characters you can write with backslash
 escape-sequences are valid in strings.  The only control characters that
-a string can hold are the @sc{ascii} control characters.  Strings do not
-distinguish case in @sc{ascii} control characters.
+a string can hold are the @acronym{ASCII} control characters.  Strings do not
+distinguish case in @acronym{ASCII} control characters.
 
   Properly speaking, strings cannot hold meta characters; but when a
 string is to be used as a key sequence, there is a special convention
-that provides a way to represent meta versions of @sc{ascii} characters in a
-string.  If you use the @samp{\M-} syntax to indicate a meta character
-in a string constant, this sets the
+that provides a way to represent meta versions of @acronym{ASCII}
+characters in a string.  If you use the @samp{\M-} syntax to indicate
+a meta character in a string constant, this sets the
 @tex
 @math{2^{7}}
 @end tex
@@ -1082,16 +1088,25 @@ constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
 specify the next 8 elements of the bool-vector (1 stands for @code{t},
 and 0 for @code{nil}).  The least significant bits of the character
-correspond to the lowest indices in the bool-vector.  If the length is not a
-multiple of 8, the printed representation shows extra elements, but
-these extras really make no difference.
+correspond to the lowest indices in the bool-vector.
 
 @example
 (make-bool-vector 3 t)
-     @result{} #&3"\007"
+     @result{} #&3"^G"
 (make-bool-vector 3 nil)
-     @result{} #&3"\0"
-;; @r{These are equal since only the first 3 bits are used.}
+     @result{} #&3"^@@"
+@end example
+
+@noindent
+These results make sense, because the binary code for @samp{C-g} is
+111 and @samp{C-@@} is the character with code 0.
+
+  If the length is not a multiple of 8, the printed representation
+shows extra elements, but these extras really make no difference.  For
+instance, in the next example, the two bool-vectors are equal, because
+only the first 3 bits are used:
+
+@example
 (equal #&3"\377" #&3"\007")
      @result{} t
 @end example
@@ -1484,7 +1499,7 @@ positions.
 @cindex @samp{#@var{n}=} read syntax
 @cindex @samp{#@var{n}#} read syntax
 
-  In Emacs 21, to represent shared or circular structure within a
+  In Emacs 21, to represent shared or circular structures within a
 complex of Lisp objects, you can use the reader constructs
 @samp{#@var{n}=} and @samp{#@var{n}#}.
 
@@ -1875,9 +1890,12 @@ always true.
 @end example
 
 Comparison of strings is case-sensitive, but does not take account of
-text properties---it compares only the characters in the strings.
-A unibyte string never equals a multibyte string unless the
-contents are entirely @sc{ascii} (@pxref{Text Representations}).
+text properties---it compares only the characters in the strings.  For
+technical reasons, a unibyte string and a multibyte string are
+@code{equal} if and only if they contain the same sequence of
+character codes and all these codes are either in the range 0 through
+127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
+(@pxref{Text Representations}).
 
 @example
 @group
@@ -1902,3 +1920,7 @@ returns @code{t} if and only if both the expressions below return
 
 Because of this recursive method, circular lists may therefore cause
 infinite recursion (leading to an error).
+
+@ignore
+   arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
+@end ignore

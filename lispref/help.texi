@@ -156,6 +156,7 @@ Here is an example of using the two functions, @code{documentation} and
 @code{documentation-property}, to display the documentation strings for
 several symbols in a @samp{*Help*} buffer.
 
+@anchor{describe-symbols example}
 @smallexample
 @group
 (defun describe-symbols (pattern)
@@ -259,6 +260,7 @@ as shown above for the @code{goal-column} variable, means that it is a
 user option; see the description of @code{defvar} in @ref{Defining
 Variables}.
 
+@anchor{Definition of Snarf-documentation}
 @defun Snarf-documentation filename
 This function is used only during Emacs initialization, just before
 the runnable Emacs is dumped.  It finds the file offsets of the
@@ -430,7 +432,8 @@ This function returns a string describing @var{character} in the
 standard Emacs notation for characters that appear in text---like
 @code{single-key-description}, except that control characters are
 represented with a leading caret (which is how control characters in
-Emacs buffers are usually displayed).
+Emacs buffers are usually displayed) and character codes 128
+and above are not treated as Meta characters.
 
 @smallexample
 @group
@@ -439,11 +442,11 @@ Emacs buffers are usually displayed).
 @end group
 @group
 (text-char-description ?\M-m)
-     @result{} "M-m"
+     @result{} "\xed"
 @end group
 @group
 (text-char-description ?\C-\M-m)
-     @result{} "M-^M"
+     @result{} "\x8d"
 @end group
 @end smallexample
 @end defun
@@ -635,3 +638,7 @@ If this variable is non-@code{nil}, commands defined with
 echo area at first, and display the longer @var{help-text} strings only
 if the user types the help character again.
 @end defopt
+
+@ignore
+   arch-tag: ba36b4c2-e60f-49e2-bc25-61158fdcd815
+@end ignore

@@ -123,3 +123,4 @@ foreach $key (keys %removed) {
     print "  $key\n";
 }
 
+# arch-tag: f8460df6-6bef-4c98-8555-e2c63a88b0fa

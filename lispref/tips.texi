@@ -126,6 +126,12 @@ If a user option variable records a true-or-false condition, give it a
 name that ends in @samp{-flag}.
 
 @item
+If the purpose of a variable is to store a single function, give it a
+name that ends in @samp{-function}.  If the purpose of a variable is
+to store a list of functions (i.e., the variable is a hook), please
+follow the naming conventions for hooks.  @xref{Hooks}.
+
+@item
 @cindex reserved keys
 @cindex keys, reserved
 Please do not define @kbd{C-c @var{letter}} as a key in your major
@@ -204,7 +210,15 @@ off, and make it autoload (@pxref{Autoload}).  Design the package so
 that simply loading it has no visible effect---that should not enable
 the feature.@footnote{Consider that the package may be loaded
 arbitrarily by Custom for instance.}  Users will request the feature by
-invoking the command.
+invoking the command.  It is a good idea to define this command
+as a minor mode.
+
+@cindex unloading packages
+If loading the file adds functions to hooks, define a function
+@code{@var{feature}-unload-hook}, where @var{feature} is the name of
+the feature the package provides, and make it undo any such changes.
+Using @code{unload-feature} to unload the file will run this function.
+@xref{Unloading}.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Use the
@@ -234,6 +248,13 @@ If a file does replace any of the functions or library programs of
 standard Emacs, prominent comments at the beginning of the file should
 say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
+
+@item
+Avoid using macros that define functions and variables with names that
+are constructed.  It is best for maintenance when the name of the
+function or variable being defined is given explicitly in the source
+code, as the second element of the list---as it is when you use
+@code{defun}, @code{defalias}, @code{defvar} and @code{defopt}.
 
 @item
 Please keep the names of your Emacs Lisp source files to 13 characters
@@ -517,7 +538,7 @@ important arguments.
 
 @item
 For consistency, phrase the verb in the first sentence of a function's
-documentation string as an imperative--for instance, use ``Return the
+documentation string as an imperative---for instance, use ``Return the
 cons of A and B.'' in preference to ``Returns the cons of A and B@.''
 Usually it looks good to do likewise for the rest of the first
 paragraph.  Subsequent paragraphs usually look better if each sentence
@@ -626,6 +647,7 @@ The argument FOO can be either a number
 This prevents the open-parenthesis from being treated as the start of a
 defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
 
+@anchor{Docstring hyperlinks}
 @item
 @iftex
 When a documentation string refers to a Lisp symbol, write it as it
@@ -674,9 +696,20 @@ that satisfy the criterion.
 does not make a hyperlink to the documentation, irrelevant here, of the
 function @code{list}.
 
+Normally, no hyperlink is made for a variable without variable
+documentation.  You can force a hyperlink for such variables by
+preceding them with one of the words @samp{variable} or
+@samp{option}.
+
+Hyperlinks for faces are only made if the face name is preceded or
+followed by the word @samp{face}.  In that case, only the face
+documentation will be shown, even if the symbol is also defined as a
+variable or as a function.
+
 To make a hyperlink to Info documentation, write the name of the Info
-node in single quotes, preceded by @samp{info node} or @samp{Info
-node}.  The Info file name defaults to @samp{emacs}.  For example,
+node (or anchor) in single quotes, preceded by @samp{info node},
+@samp{Info node}, @samp{info anchor} or @samp{Info anchor}.  The Info
+file name defaults to @samp{emacs}.  For example,
 
 @smallexample
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
@@ -769,18 +802,29 @@ Comments that start with three semicolons, @samp{;;;}, should start at
 the left margin.  These are used, occasionally, for comments within
 functions that should start at the margin.  We also use them sometimes
 for comments that are between functions---whether to use two or three
-semicolons there is a matter of style.
+semicolons depends on whether the comment should be considered a
+``heading'' by Outline minor mode.  By default, comments starting with
+at least three semicolons (followed by a single space and a
+non-whitespace character) are considered headings, comments starting
+with two or less are not.
 
 Another use for triple-semicolon comments is for commenting out lines
 within a function.  We use three semicolons for this precisely so that
-they remain at the left margin.
+they remain at the left margin.  By default, Outline minor mode does
+not consider a comment to be a heading (even if it starts with at
+least three semicolons) if the semicolons are followed by at least two
+spaces.  Thus, if you add an introductory comment to the commented out
+code, make sure to indent it by at least two spaces after the three
+semicolons.
 
 @smallexample
 (defun foo (a)
-;;; This is no longer necessary.
+;;;  This is no longer necessary.
 ;;;  (force-mode-line-update)
   (message "Finished with %s" a))
 @end smallexample
+
+When commenting out entire functions, use two semicolons.
 
 @item ;;;;
 Comments that start with four semicolons, @samp{;;;;}, should be aligned
@@ -850,7 +894,8 @@ if we haven't installed it in Emacs yet!
 @end example
 
 @noindent
-The description should be complete in one line.
+The description should be complete in one line.  If the file
+needs a @samp{-*-} specification, put it after @var{description}.
 
   After the copyright notice come several @dfn{header comment} lines,
 each beginning with @samp{;; @var{header-name}:}.  Here is a table of
@@ -926,9 +971,9 @@ It should come right after the copying permissions, terminated by a
 text is used by the Finder package, so it should make sense in that
 context.
 
-@item ;;; Documentation
-This has been used in some files in place of @samp{;;; Commentary:},
-but @samp{;;; Commentary:} is preferred.
+@item ;;; Documentation:
+This was used in some files in place of @samp{;;; Commentary:},
+but it is deprecated.
 
 @item ;;; Change Log:
 This begins change log information stored in the library file (if you
@@ -945,3 +990,7 @@ This is the @dfn{footer line}; it appears at the very end of the file.
 Its purpose is to enable people to detect truncated versions of the file
 from the lack of a footer line.
 @end table
+
+@ignore
+   arch-tag: 9ea911c2-6b1d-47dd-88b7-0a94e8b27c2e
+@end ignore

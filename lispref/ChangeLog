@@ -1,3 +1,935 @@
+2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Read Only Buffers): Mention optional ARG to
+	`toggle-read-only'.
+
+2004-04-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* windows.texi (Selecting Windows): Note that get-lru-window
+	returns a full-width window if possible.
+
+2004-04-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi: Various changes in addition to:
+	(Buffer File Name): Add `find-buffer-visiting'.
+	(Buffer Modification): Mention optional ARG to `not-modified'.
+	(Indirect Buffers): Mention optional CLONE argument to
+	`make-indirect-buffer'.
+
+	* files.texi: Various changes in addition to:
+	(Visiting Functions): `find-file-hook' is now a normal hook.
+	(File Name Expansion): Explain difference between the way that
+	`expand-file-name' and `file-truename' treat `..'.
+	(Contents of Directories): Mention optional ID-FORMAT argument to
+	`directory-files-and-attributes'.
+	(Format Conversion): Mention new optional CONFIRM argument to
+	`format-write-file'.
+
+2004-04-12  Miles Bader  <miles@gnu.org>
+
+	* macros.texi (Expansion): Add description of `macroexpand-all'.
+
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* variables.texi (Variable Aliases): Mention
+	cyclic-variable-indirection.
+
+	* errors.texi (Standard Errors): Ditto.
+
+2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* backups.texi:  Various small changes in addition to:
+	(Making Backups): Mention return value of `backup-buffer'.
+	(Auto-Saving): Mention optional FORCE argument to
+	`delete-auto-save-file-if-necessary'.
+	(Reverting): Mention optional PRESERVE-MODES argument to
+	`revert-buffer'.  Correct description of `revert-buffer-function'.
+
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* sequences.texi (Sequence Functions): Replace xref to `Vectors'
+	with `Vector Functions'.
+
+	* text.texi (Sorting): Add missing quote.
+
+2004-03-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intro.texi (Lisp History): Replace xref to `cl' manual with
+	inforef.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* intro.texi (Version Info): Add arg to emacs-version.
+	(Lisp History): Change xref to CL manual.
+
+2004-03-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Completion Commands): Add xref to Emacs manual
+	for Partial Completion mode.
+
+2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* customize.texi: Fix typo. Remove eol whitespace.
+
+2004-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi: Fix typos.
+
+	* lists.texi (Building Lists): Minor clarification.
+
+	* hash.texi (Creating Hash): Correct the meaning of t for WEAK
+	in make-hash-table.
+
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (clean, maintainer-clean): Use $(DEL) instead of
+	rm, and ignore exit code.
+
+2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* display.texi (Defining Faces): Add description for min-colors.
+	Update example.
+
+2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrevs.texi: Various corrections and clarifications in addition
+	to the following:
+	(Abbrev Tables): Delete add-abbrev (as suggested by RMS).
+
+2004-02-22  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar.texi (Holiday Customizing): Quote arg of holiday-sexp.
+
+2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi: Various small changes in addition to the following:
+	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
+	to delete-horizontal-space.
+	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	description of yank-handler text property at various places.
+
+	* frames.texi (Window System Selections): Add anchor.
+
+	* syntax.texi (Syntax Table Functions): Clarify and correct
+	descriptions of make-syntax-table and copy-syntax-table.
+	(Motion and Syntax): Clarify SYNTAXES argument to
+	skip-syntax-forward.
+	(Parsing Expressions): Mention that the return value of
+	parse-partial-sexp is currently a list of ten rather than nine
+	elements.
+	(Categories): Various corrections and clarifications.
+
+2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Marker Insertion Types): Minor change.
+
+	* locals.texi (Standard Buffer-Local Variables):
+	* commands.texi (Interactive Codes, Using Interactive):
+	* functions.texi (Related Topics): Fix xrefs.
+
+2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Update description of delete-dups.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* keymaps.texi (Tool Bar): tool-bar-item => tool-bar-button.
+
+2004-02-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Parameter Access): frame-parameters arg is optional.
+	modify-frame-parameters handles nil for FRAME.
+	(Window Frame Parameters): menu-bar-lines and tool-bar-lines
+	are all-or-nothing for certain toolkits.
+	Mention parameter wait-for-wm.
+	(Frames and Windows): In frame-first-window and frame-selected-window
+	the arg is optional.
+	(Input Focus): In redirect-frame-focus the second arg is optional.
+	(Window System Selections): Mention selection type CLIPBOARD.
+	Mention data-type UTF8_STRING.
+	Mention numbering of cut buffers.
+	(Resources): Describe x-resource-name.
+
+2004-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Buffers and Windows): Delete false table
+	about all-frames.
+
+	* syntax.texi (Parsing Expressions): Delete old caveat
+	about parse-sexp-ignore-comments.
+
+	* streams.texi (Output Variables): Add print-quoted.
+
+	* lists.texi (Building Lists): Minor cleanup.
+
+	* hash.texi (Creating Hash): Correct and clarify doc of WEAK values.
+
+	* display.texi (Overlays): Explain overlays use markers.
+	(Managing Overlays): Explain front-advance and rear-advance
+	in more detail.
+
+	* loading.texi (Unloading): Document unload-feature-special-hooks.
+	Get rid of fns-NNN.el file.
+
+2004-02-16  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* help.texi (Describing Characters): Fix text-char-description
+	example output.
+
+	* edebug.texi (Using Edebug): Fix example.
+
+	* debugging.texi (Internals of Debugger): Fix return value.
+
+	* files.texi (Changing Files): Fix argname.
+
+	* calendar.texi: Fix parens, and default values.
+
+	* display.texi, frames.texi, internals.texi, modes.texi: Minor fixes.
+	* nonascii.texi, objects.texi, os.texi: Minor fixes.
+	* searching.texi, text.texi, tips.texi, windows.text: Minor fixes.
+
+	* positions.texi (Text Lines): Don't add -1 in current-line.
+
+2004-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* compile.texi (Compiler Errors): if-boundp feature applies to cond.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* processes.texi (Low-Level Network): Fix a typo.
+
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringes): Use consistent wording.
+	Note that window-fringe's window arg is optional.
+	(Scroll Bars): Use consistent wording.
+
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Comment Tips): Document the new conventions for
+	commenting out code.
+
+2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* positions.texi (Text Lines): Added missing end defun.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* positions.texi (Text Lines): Add line-number-at-pos.
+
+2004-02-06  John Paul Wallington  <jpw@gnu.org>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	mouse-2 invokes button, not down-mouse-1.
+
+2004-02-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Sync with Makefile.in changes.
+
+2004-02-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Text from Minibuffer): Various corrections and
+	clarifications.
+	(Object from Minibuffer): Correct Lisp description of
+	read-minibuffer.
+	(Minibuffer History): Clarify description of cons values for
+	HISTORY arguments.
+	(Basic Completion): Various corrections and clarifications.  Add
+	completion-regexp-list.
+	(Minibuffer Completion): Correct and clarify description of
+	completing-read.
+	(Completion Commands): Mention Partial Completion mode.  Various
+	other minor changes.
+	(High-Level Completion): Various corrections and clarifications.
+	(Reading File Names): Ditto.
+	(Minibuffer Misc): Ditto.
+
+2004-01-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): assoc-string also matches
+	elements of alists that are strings instead of conses.
+	(Formatting Strings): Standardize Texinfo usage.  Update index
+	entries.
+
+2004-01-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Add delete-dups.
+
+2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting Macro Calls): `declare' is not a
+	special form.
+	* macros.texi (Defining Macros): Update description of `declare',
+	which now is a macro.
+	(Wrong Time): Fix typos.
+
+2004-01-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* compile.texi (Compilation Functions): Expand descriptions of
+	`compile-defun', `byte-compile-file', `byte-recompile-directory'
+	and `batch-byte-compile'.  In particular, mention and describe
+	all optional arguments.
+	(Disassembly): Correct and clarify the description of `disassemble'.
+
+2004-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi: Various small changes in addition to the
+	following.
+	(Regexp Example): Adapt to new value of `sentence-end'.
+	(Regexp Functions): The PAREN argument to `regexp-opt' can be
+	`words'.
+	(Search and Replace): Add usage note for `perform-replace'.
+	(Entire Match Data): Mention INTEGERS and REUSE arguments to
+	`match-data'.
+	(Standard Regexps): Update for new values of `paragraph-start'
+	and `sentence-end'.
+
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Saving Buffers): Clarify descriptions of
+	`write-contents-functions' and `before-save-hook'.
+	Make the defvar's for `before-save-hook' and `after-save-hook'
+	into defopt's.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe new image and
+	width/height elements of click events.
+	(Accessing Events): Add posn-string, posn-image, and
+	posn-object-width-height.  Change posn-object to return either
+	image or string object.
+
+2004-01-01  Simon Josefsson  <jas@extundo.com>
+
+	* hooks.texi (Standard Hooks): Add before-save-hook.
+	* files.texi (Saving Buffers): Likewise.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Frames and Windows): Delete frame-root-window.
+
+2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.texi, hash.texi, help.texi, symbols.texi: Add anchors.
+
+	* functions.texi: Various small changes in addition to the
+	following.
+	(What Is a Function): `functionp' returns nil for macros.  Clarify
+	behavior of this and following functions for symbol arguments.
+	(Function Documentation): Add `\' in front of (fn @var{arglist})
+	and explain why.
+	(Defining Functions): Mention DOCSTRING argument to `defalias'.
+	Add anchor.
+	(Mapping Functions): Add anchor.  Unquote nil in mapcar* example.
+
+2004-01-01  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Buttons): New section.
+
+2003-12-31  Andreas Schwab  <schwab@suse.de>
+
+	* numbers.texi (Math Functions): sqrt reports a domain-error
+	error.
+	(Float Basics): Use `(/ 0.0 0.0)' instead of `(sqrt -1.0)'.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Update item on hyperlinks in
+	documentation strings.
+
+	* errors.texi (Standard Errors): Various small corrections and
+	additions.
+
+	* control.texi: Various small changes in addition to the
+	following.
+	(Signaling Errors): Provide some more details on how `signal'
+	constructs the error message.  Add anchor to the definition of
+	`signal'.
+	(Error Symbols): Describe special treatment of `quit'.
+	(Cleanups): Rename BODY argument of `unwind-protect' to BODY-FORM
+	to emphasize that it has to be a single form.
+
+	* buffers.texi: Add anchor.
+
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Choosing Window): Add same-window-p, special-display-p.
+	(Window Configurations): Add window-configuration-frame.
+
+	* variables.texi (Creating Buffer-Local): Add local-variable-if-set-p.
+
+	* text.texi (Examining Properties): Add get-char-property-and-overlay.
+	Change arg name in get-char-property.
+	(Special Properties): Update handling of keymap property.
+
+	* strings.texi (Modifying Strings): Add clear-string.
+	(Text Comparison): Add assoc-string and remove
+	assoc-ignore-case, assoc-ignore-representation.
+
+	* os.texi (Time of Day): Add set-time-zone-rule.
+
+	* numbers.texi (Math Functions): asin, acos, log, log10
+	report domain-error errors.
+
+	* nonascii.texi (Converting Representations):
+	Add multibyte-char-to-unibyte and unibyte-char-to-multibyte.
+	(Encoding and I/O): Add file-name-coding-system.
+
+	* modes.texi (Search-based Fontification): Explain that
+	face specs are symbols with face names as values.
+
+	* minibuf.texi (Minibuffer Misc): Add set-minibuffer-window.
+
+	* lists.texi (Building Lists): remq moved elsewhere.
+	(Sets And Lists): remq moved here.
+	(Association Lists): Refer to assoc-string.
+
+	* internals.texi (Garbage Collection): Add memory-use-counts.
+
+	* frames.texi (Frames and Windows): Add set-frame-selected-window
+	and frame-root-window.
+
+	* files.texi (Contents of Directories):
+	Add directory-files-and-attributes.
+
+	* display.texi (Refresh Screen): Add force-window-update.
+	(Invisible Text): Explain about moving point out of invis text.
+	(Overlay Properties): Add overlay-properties.
+	(Managing Overlays): Add overlayp.
+	(GIF Images): Invalid image number displays a hollow box.
+
+	* buffers.texi (Buffer Modification): Add restore-buffer-modified-p.
+	(Killing Buffers): Add buffer-live-p.
+
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* display.texi (Fringes): Fix typo "set-buffer-window".
+
+2003-12-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi, eval.texi, help.texi, internals.texi, loading.texi:
+	* nonascii.texi, processes.texi, tips.texi, variables.texi:
+	Add or change various xrefs and anchors.
+
+	* commands.texi: Replace all occurrences of @acronym{CAR} with
+	@sc{car}, for consistency with the rest of the Elisp manual.
+	`car' and `cdr' are historically acronyms, but are no longer
+	widely thought of as such.
+
+	* internals.texi (Pure Storage): Mention that `purecopy' does not
+	copy text properties.
+	(Object Internals): Now 29 bits are used (in most implementations)
+	to address Lisp objects.
+
+	* variables.texi (Variables with Restricted Values): New node.
+
+	* objects.texi (Lisp Data Types): Mention that certain variables
+	can only take on a restricted set of values and add an xref to
+	the new node "Variables with Restricted Values".
+
+	* eval.texi (Function Indirection): Describe the errors that
+	`indirect-function' can signal.
+	(Eval): Clarify the descriptions of `eval-region' and `values'.
+	Describe `eval-buffer' instead of `eval-current-buffer' and
+	mention `eval-current-buffer' as an alias for `current-buffer'.
+	Correct the description and mention all optional arguments.
+
+	* nonascii.texi: Various small changes in addition to the
+	following.
+	(Converting Representations): Clarify behavior of
+	`string-make-multibyte' and `string-to-multibyte' for unibyte all
+	ASCII arguments.
+	(Character Sets): Document the variable `charset-list' and adapt
+	the definition of the function `charset-list' accordingly.
+	(Translation of Characters): Clarify use of generic characters in
+	`make-translation-table'.  Clarify and correct the description of
+	the use of translation tables in encoding and decoding.
+	(User-Chosen Coding Systems): Correct and clarify the description
+	of `select-safe-coding-system'.
+	(Default Coding Systems): Clarify description of
+	`file-coding-system-alist'.
+
+2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): Correctly describe when two
+	strings are `equal'.  Combine and clarify descriptions of
+	`assoc-ignore-case' and `assoc-ignore-representation'.
+
+	* objects.texi (Non-ASCII in Strings): Clarify description of
+	when a string is unibyte or multibyte.
+	(Bool-Vector Type): Update examples.
+	(Equality Predicates): Correctly describe when two strings are
+	`equal'.
+
+2003-11-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Building Lists): `append' no longer accepts integer
+	arguments.  Update the description of `number-sequence' to reflect
+	recent changes.
+	(Sets And Lists): Describe `member-ignore-case' after `member'.
+
+2003-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Click object may be an images.
+	Describe (dx . dy) element of click positions.
+	(Accessing Events): Remove duplicate posn-timestamp.
+	New functions posn-object and posn-object-x-y.
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe enhancements to event
+	position lists, including new text-pos and (col . row) items.
+	Mention left-fringe and right-fringe area events.
+	(Accessing Events): New functions posn-area and
+	posn-actual-col-row.  Mention posn-timestamp.  Mention that
+	posn-point in non-text area still returns buffer position.
+	Clarify posn-col-row.
+
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.texi (File Attributes): Describe new parameter ID-FORMAT.
+	* anti.texi (File Attributes): Describe removed parameter
+	ID-FORMAT.
+
+2003-11-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* positions.texi (Positions): Mention that, if a marker is used as
+	a position, its buffer is ignored.
+
+	* markers.texi (Overview of Markers): Mention it here too.
+
+2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* numbers.texi (Numeric Conversions): Not just `floor', but also
+	`truncate', `ceiling' and `round' accept optional argument DIVISOR.
+
+2003-11-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Creating Markers): Specify insertion type of
+	created markers.  Add xref to `Marker Insertion Types'.
+	Second argument to `copy-marker' is optional.
+	(Marker Insertion Types): Mention that most markers are created
+	with insertion type nil.
+	(The Mark): Correctly describe when `mark' signals an error.
+	(The Region): Correctly describe when `region-beginning' and
+	`region-end' signal an error.
+
+2003-11-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hash.texi (Creating Hash): Clarify description of `eql'.
+	`makehash' is obsolete.
+	(Hash Access): Add Common Lisp notes for `remhash' and `clrhash'.
+
+	* positions.texi (Point): Change description of `buffer-end', so
+	that it is also correct for floating point arguments.
+	(List Motion): Correct argument lists of `beginning-of-defun' and
+	`end-of-defun'.
+	(Excursions): Add xref to `Marker Insertion Types'.
+	(Narrowing): Argument to `narrow-to-page' is optional.
+
+2003-11-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* streams.texi (Output Streams): Clarify behavior of point for
+	marker output streams.
+
+2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Defining Variables): Second argument to
+	`defconst' is not optional.
+	(Setting Variables): Mention optional argument APPEND to
+	`add-to-list'.
+	(Creating Buffer-Local): Expand description of
+	`make-variable-buffer-local'.
+	(Frame-Local Variables): Expand description of
+	`make-variable-frame-local'.
+	(Variable Aliases): Correct description of optional argument
+	DOCSTRING to `defvaralias'.  Mention return value of
+	`defvaralias'.
+	(File Local Variables): Add xref to `File variables' in Emacs
+	Manual.  Correct description of `hack-local-variables'.  Mention
+	`safe-local-variable' property.  Mention optional second argument
+	to `risky-local-variable-p'.
+
+2003-11-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* symbols.texi (Symbol Plists): Mention return value of `setplist'.
+
+2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* lispref/anti.texi, lispref/backups.texi, lispref/commands.texi
+	lispref/customize.texi, lispref/display.texi, lispref/files.texi,
+	lispref/internals.texi, lispref/keymaps.texi, lispref/loading.texi,
+	lispref/modes.texi, lispref/nonascii.texi, lispref/numbers.texi,
+	lispref/objects.texi, lispref/os.texi, lispref/positions.texi,
+	lispref/processes.texi, lispref/searching.texi,
+	lispref/sequences.texi, lispref/streams.texi, lispref/strings.texi,
+	lispref/syntax.texi, lispref/text.texi: Replace @sc{foo} with
+	@acronym{FOO}.
+
+2003-10-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Creating Strings): Argument START to `substring'
+	can not be `nil'.  Expand description of
+	`substring-no-properties'.  Correct description of `split-string',
+	especially with respect to empty matches.  Prevent very bad line
+	break in definition of `split-string-default-separators'.
+	(Text Comparison): `string=' and `string<' also accept symbols as
+	arguments.
+	(String Conversion): More completely describe argument BASE in
+	`string-to-number'.
+	(Formatting Strings): `%s' and `%S' in `format' do require
+	corresponding object.  Clarify behavior of numeric prefix after
+	`%' in `format'.
+	(Case Conversion): The argument to `upcase-initials' can be a
+	character.
+
+2003-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Fix texinfo usage.
+
+2003-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Add description of the function
+	set-fontset-font.
+
+2003-10-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Temporary Displays): Add xref to `Documentation
+	Tips'.
+
+	* functions.texi (Function Safety): Use inforef instead of pxref
+	for SES.
+
+2003-10-23  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (TEX, texinputdir): Don't define.
+	(TEXI2DVI): Define.
+	(srcs): Remove $(srcdir)/index.perm and $(srcdir)/index.unperm,
+	add $(srcdir)/index.texi.
+	($(infodir)/elisp): Remove index.texi dependency.
+	(elisp.dvi): Likewise.  Use $(TEXI2DVI).
+	(index.texi): Remove target.
+	(dist): Don't link $(srcdir)/permute-index.
+	(clean): Don't remove index.texi.
+
+	* permute-index, index.perm: Remove.
+	* index.texi: Rename from index.unperm.
+
+2003-10-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Document new behavior for face
+	and variable hyperlinks in Help mode.
+
+2003-10-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* objects.texi (Integer Type): Update for extra bit of integer range.
+	(Character Type): Ditto.
+
+2003-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* numbers.texi (Integer Basics): Add index entries for reading
+	numbers in hex, octal, and binary.
+
+2003-10-16  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Format): Mention force-mode-line-update's
+	argument.
+
+2003-10-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* windows.texi (Choosing Window): Fix typo.
+	* edebug.texi (Edebug Execution Modes): Fix typo.
+
+2003-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Windows): A window has fringe settings,
+	display margins and scroll-bar settings.
+	(Splitting Windows): Doc split-window return value.
+	Clean up one-window-p.
+	(Selecting Windows): Fix typo.
+	(Cyclic Window Ordering): Explain frame as ALL-FRAMES in next-window.
+	(Buffers and Windows): In set-window-buffer, explain effect
+	on fringe settings and scroll bar settings.
+	(Displaying Buffers): In pop-to-buffer, explain nil as buffer arg.
+	(Choosing Window): Use defopt for pop-up-frame-function.
+	For special-display-buffer-names, explain same-window and same-frame.
+	Clarify window-dedicated-p return value.
+	(Textual Scrolling): scroll-up and scroll-down can get an error.
+	(Horizontal Scrolling): Clarify auto-hscroll-mode.
+	Clarify set-window-hscroll.
+	(Size of Window): Don't mention tool bar in window-height.
+	(Coordinates and Windows): Explain what coordinates-in-window-p
+	returns for fringes and display margins.
+	(Window Configurations): Explain saving fringes, etc.
+
+	* tips.texi (Library Headers): Clean up Documentation.
+
+	* syntax.texi (Parsing Expressions): Clean up forward-comment
+	and parse-sexp-lookup-properties.
+
+	* sequences.texi (Sequence Functions): sequencep accepts bool-vectors.
+
+	* os.texi (System Environment): Clean up text for load-average errors.
+
+	* modes.texi (Hooks): Don't explain local hook details at front.
+	Clarify run-hooks and run-hook-with-args a little.
+	Clean up add-hook and remove-hook.
+
+	* edebug.texi (Edebug Execution Modes): Clarify t.
+	Document edebug-sit-for-seconds.
+	(Coverage Testing): Document C-x X = and =.
+	(Instrumenting Macro Calls): Fix typo.
+	(Specification List): Don't index the specification keywords.
+
+2003-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network): Introduce make-network-process.
+
+2003-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Library Headers): Fix typo.
+
+2003-10-07  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (Imenu): Mention imenu-create-index-function's
+	default value.  Explain submenus better.
+
+2003-10-07  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Faces for Font Lock): Fix typo.
+	(Hooks): Explain how buffer-local hook variables can refer to
+	global hook variables.
+	Various minor clarifications.
+
+2003-10-06  Lute Kamstra  <lute@gnu.org>
+
+	* tips.texi (Coding Conventions): Mention naming conventions for
+	hooks.
+
+2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Correct default value of
+	load-suffixes.
+	(Named Features): Fix typo.
+
+2003-10-05  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Named Features): In `provide',
+	say how to test for subfeatures.
+	(Unloading): In unload-feature, use new var name
+	unload-feature-special-hooks.
+
+2003-10-03  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention third way to set up
+	Imenu.
+	(Imenu): A number of small fixes.
+	Delete documentation of internal variable imenu--index-alist.
+	Document the return value format of imenu-create-index-function
+	functions.
+
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Network): Say what stopped datagram connections do.
+
+	* lists.texi (Association Lists): Clarify `assq-delete-all'.
+
+	* display.texi (Overlay Properties): Clarify `evaporate' property.
+
+2003-09-29  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Data): Explain when symbols in mode-line
+	constructs should be marked as risky.
+	Change cons cell into proper list.
+	(Mode Line Variables): Change cons cell into proper list.
+
+2003-09-26  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Data): Document the :propertize construct.
+	(Mode Line Variables): Reorder the descriptions of the variables
+	to match their order in the default mode-line-format.
+	Describe the new variables mode-line-position and mode-line-modes.
+	Update the default values of mode-line-frame-identification,
+	minor-mode-alist, and default-mode-line-format.
+	(Properties in Mode): Mention the :propertize construct.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi, commands.texi, debugging.texi, eval.texi:
+	* loading.texi, minibuf.texi, text.texi, variables.texi:
+	Avoid @strong{Note:}.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Fix typo.
+
+2003-09-23  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* processes.texi (Low-Level Network): Fix typo.
+
+2003-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network, Network Servers): Fix typos.
+	(Low-Level Network): Add timeout value for :server keyword.
+	Add new option keywords to make-network-process.
+	Add set-network-process-options.
+	Explain how to test availability of network options.
+
+2003-09-19  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Motion by Indent): Arg to
+	backward-to-indentation and forward-to-indentation is optional.
+
+	* strings.texi (Creating Strings): Add substring-no-properties.
+
+	* processes.texi
+	(Process Information): Add list-processes arg QUERY-ONLY.
+	Delete process-contact from here.
+	Add new status values for process-status.
+	Add process-get, process-put, process-plist, set-process-plist.
+	(Synchronous Processes): Add call-process-shell-command.
+	(Signals to Processes): signal-process allows process objects.
+	(Network): Complete rewrite.
+	(Network Servers, Datagrams, Low-Level Network): New nodes.
+
+	* positions.texi (Word Motion): forward-word, backward-word
+	arg is optional.  Reword.
+
+	* abbrevs.texi (Defining Abbrevs): Index no-self-insert.
+
+	* variables.texi (Creating Buffer-Local):
+	Delete duplicate definition of buffer-local-value.
+	(File Local Variables): Explain about discarding text props.
+
+2003-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Explain that the minibuffer
+	changes variables that record input events.
+	(Minibuffer Misc): Add minibuffer-selected-window.
+
+	* lists.texi (Building Lists): Add copy-tree.
+
+	* display.texi (Fontsets): Add char-displayable-p.
+	(Scroll Bars): New node.
+
+2003-09-08  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (%-Constructs): Document new `%i' and `%I'
+	constructs.
+
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Properties): Clarify how priorities
+	affect use of the properties.
+
+2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* customize.texi (Type Keywords): Correct the description of
+	`:help-echo' in the case where `motion-doc' is a function.
+
+2003-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Subsection, not section.
+
+2003-08-13  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode lists in menu.
+
+	* text.texi (Insertion): Add insert-buffer-substring-no-properties.
+	(Kill Functions): kill-region has new arg yank-handler.
+	(Yanking): New node.
+	(Yank Commands): Add yank-undo-function.
+	(Low-Level Kill Ring):
+	kill-new and kill-append have new arg yank-handler.
+	(Changing Properties): Add remove-list-of-text-properties.
+	(Atomic Changes): New node.
+
+	* symbols.texi (Other Plists): Add lax-plist-get, lax-plist-put.
+
+	* streams.texi (Output Variables): Add eval-expression-print-length
+	and eval-expression-print-level.
+
+	* os.texi (Time Conversion): For encode-time, explain limits on year.
+
+	* objects.texi (Character Type): Define anchor "modifier bits".
+
+	* modes.texi (Emulating Mode Line): New node.
+	(Search-based Fontification): Font Lock uses font-lock-face property.
+	(Other Font Lock Variables): Likewise.
+
+	* keymaps.texi (Format of Keymaps): Keymaps contain char tables,
+	not vectors.
+	(Active Keymaps): Add emulation-mode-map-alists.
+	(Functions for Key Lookup): key-binding has new arg no-remap.
+	(Remapping Commands): New node.
+	(Scanning Keymaps): where-is-internal has new arg no-remap.
+	(Tool Bar): Add tool-bar-local-item-from-menu.
+	Clarify when to use tool-bar-add-item-from-menu.
+
+	* commands.texi (Interactive Call): commandp has new arg.
+	(Command Loop Info): Add this-original-command.
+
+2003-08-06  John Paul Wallington  <jpw@gnu.org>
+
+	* compile.texi (Compiler Errors): Say `@end defmac' after `@defmac'.
+
+	* display.texi (Warning Basics): Fix typo.
+	(Fringes): Add closing curly bracket and fix typo.
+
+	* elisp.texi (Top): Fix typo.
+
+2003-08-05  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi: Update lists of subnodes.
+
+	* windows.texi (Buffers and Windows): set-window-buffer has new arg.
+
+	* variables.texi (Local Variables): Use lc for example variable names.
+
+	* tips.texi (Library Headers): Explain where to put -*-.
+
+	* strings.texi (Creating Strings): Fix xref for vconcat.
+
+	* sequences.texi (Vector Functions):
+	vconcat no longer allows integer args.
+
+	* minibuf.texi (Reading File Names): read-file-name has new
+	arg PREDICATE.  New function read-directory-name.
+
+	* macros.texi (Defining Macros): Give definition of `declare'
+	(Indenting Macros): New node.
+
+	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
+	(Window Frame Parameters): Make separate table of parameters
+	that are coupled with specific face attributes.
+	(Deleting Frames): delete-frame-hooks renamed to
+	delete-frame-functions.
+
+	* files.texi (Magic File Names): Add file-remote-p.
+	Clarify file-local-copy.
+
+	* edebug.texi (Instrumenting Macro Calls): Don't define `declare'
+	here; instead xref Defining Macros.
+
+	* display.texi (Warnings): New node, and subnodes.
+	(Fringes): New node.
+
+	* debugging.texi (Test Coverage): New node.
+
+	* compile.texi (Compiler Errors): Explain with-no-warnings
+	and other ways to suppress warnings.
+
+	* commands.texi (Interactive Call): Minor clarification.
+
+	* buffers.texi (Buffer File Name): set-visited-file-name
+	renames the buffer too.
+
+	* abbrevs.texi (Abbrev Tables): Add copy-abbrev-table.
+
 2003-07-24  Markus Rost  <rost@math.ohio-state.edu>
 
 	* abbrevs.texi (Abbrev Expansion): Use \s syntax in example.
@@ -88,7 +1020,7 @@
 	(Hooks): Add run-mode-hooks and delay-mode-hooks.
 
 	* variables.texi (Creating Buffer-Local): Add buffer-local-value.
-	(Variable Aliases): Clarify defvralias.
+	(Variable Aliases): Clarify defvaralias.
 
 	* loading.texi (Library Search): Add load-suffixes.
 
@@ -738,9 +1670,11 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 	for the Project GNU development environment.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

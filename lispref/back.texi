@@ -31,3 +31,7 @@ are peculiar to Emacs Lisp or relate specifically to editing.
 
 @hfil
 @bye
+
+@ignore
+   arch-tag: ac7694c8-1f02-4b42-9531-33ba13b179e1
+@end ignore

@@ -13,7 +13,7 @@ the preloaded Lisp libraries in it, how storage is allocated, and some
 internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
-* Building Emacs::      How to the dumped Emacs is made.
+* Building Emacs::      How the dumped Emacs is made.
 * Pure Storage::        A kludge to make preloaded Lisp functions sharable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Memory Usage::        Info about total size of Lisp objects made so far.
@@ -81,8 +81,9 @@ faster.  On modern machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
-variables) in the file @file{etc/DOC} where they are stored, by calling
-@code{Snarf-documentation} (@pxref{Accessing Documentation}).
+variables) in the file @file{etc/DOC} where they are stored, by
+calling @code{Snarf-documentation} (@pxref{Definition of
+Snarf-documentation,, Accessing Documentation}).
 
 @cindex @file{site-init.el}
   You can specify other Lisp expressions to execute just before dumping
@@ -151,10 +152,10 @@ preload additional libraries or add features to the standard ones.
 @defun purecopy object
 This function makes a copy in pure storage of @var{object}, and returns
 it.  It copies a string by simply making a new string with the same
-characters in pure storage.  It recursively copies the contents of
-vectors and cons cells.  It does not make copies of other objects such
-as symbols, but just returns them unchanged.  It signals an error if
-asked to copy markers.
+characters, but without text properties, in pure storage.  It
+recursively copies the contents of vectors and cons cells.  It does
+not make copies of other objects such as symbols, but just returns
+them unchanged.  It signals an error if asked to copy markers.
 
 This function is a no-op except while Emacs is being built and dumped;
 it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
@@ -367,7 +368,7 @@ until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
 @end defopt
 
-  The value return by @code{garbage-collect} describes the amount of
+  The value returned by @code{garbage-collect} describes the amount of
 memory used by Lisp data, broken down by data type.  By contrast, the
 function @code{memory-limit} provides information on the total amount of
 memory Emacs is currently using.
@@ -380,6 +381,12 @@ Lisp integer.
 
 You can use this to get a general idea of how your actions affect the
 memory usage.
+@end defun
+
+@defun memory-use-counts
+This returns a list of numbers that count the number of objects
+created in this Emacs session.  Each of these counters increments for
+a certain kind of object.  See the documentation string for details.
 @end defun
 
 @defvar gcs-done
@@ -563,6 +570,8 @@ If the last line of the documentation string begins with the keyword
 @samp{usage:}, the rest of the line is treated as the argument list
 for documentation purposes.  This way, you can use different argument
 names in the documentation string from the ones used in the C code.
+@samp{usage:} is required if the function has an unlimited number of
+arguments.
 
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
@@ -593,9 +602,9 @@ protected in the current function.  It is necessary to do this explicitly.
 GC-protected; as long as the object is not recycled, all pointers to
 it remain valid.  So if you are sure that a local variable points to
 an object that will be preserved by some other pointer, that local
-variable does not need a GCPRO.  (Formerly, strings were an exception
-to this rule; in older Emacs versions, every pointer to a string
-needed to be marked by GC.)
+variable does not need a @code{GCPRO}.  (Formerly, strings were an
+exception to this rule; in older Emacs versions, every pointer to a
+string needed to be marked by GC.)
 
   The macro @code{GCPRO1} protects just one local variable.  If you
 want to protect two, use @code{GCPRO2} instead; repeating
@@ -610,7 +619,7 @@ Alas, we can't explain all the tricky details here.
 accept two arguments at the C level: the number of Lisp arguments, and
 a @code{Lisp_Object *} pointer to a C vector containing those Lisp
 arguments.  This C vector may be part of a Lisp vector, but it need
-not be.  The responsibility for using GCPRO to protecting the Lisp
+not be.  The responsibility for using @code{GCPRO} to protect the Lisp
 arguments from GC if necessary rests with the caller in this case,
 since the caller allocated or found the storage for them.
 
@@ -649,6 +658,7 @@ file, add to it a @code{syms_of_@var{filename}} (e.g.,
 of these functions are called, and add a call to
 @code{syms_of_@var{filename}} there.
 
+@anchor{Defining Lisp variables in C}
 @vindex byte-boolean-vars
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
@@ -746,10 +756,10 @@ number of arguments.  They work by calling @code{Ffuncall}.
 @file{lisp.h} contains the definitions for some important macros and
 functions.
 
-  If you define a function which is side-effect free, update the code in
-@file{byte-opt.el} which binds @code{side-effect-free-fns} and
-@code{side-effect-and-error-free-fns} to include it.  This will help the
-optimizer.
+  If you define a function which is side-effect free, update the code
+in @file{byte-opt.el} which binds @code{side-effect-free-fns} and
+@code{side-effect-and-error-free-fns} so that the compiler optimizer
+knows about it.
 
 @node Object Internals
 @appendixsec Object Internals
@@ -759,9 +769,9 @@ optimizer.
 data are stored in a heap and the only access that programs have to it
 is through pointers.  Pointers are thirty-two bits wide in most
 implementations.  Depending on the operating system and type of machine
-for which you compile Emacs, twenty-eight bits are used to address the
-object, and the remaining four bits are used for a GC mark bit and the
-tag that identifies the object's type.
+for which you compile Emacs, twenty-nine bits are used to address the
+object, and the remaining three bits are used for the tag that
+identifies the object's type.
 
   Because Lisp objects are represented as tagged pointers, it is always
 possible to determine the Lisp data type of any object.  The C data type
@@ -1287,7 +1297,7 @@ onto the screen.
 
 @item redisplay_end_trigger
 If redisplay in this window goes beyond this buffer position, it runs
-run the @code{redisplay-end-trigger-hook}.
+the @code{redisplay-end-trigger-hook}.
 
 @ignore
 @item orig_height
@@ -1386,7 +1396,7 @@ A function called whenever the process receives a signal, or @code{nil}.
 The associated buffer of the process.
 
 @item pid
-An integer, the Unix process @sc{id}.
+An integer, the operating system's process @acronym{ID}.
 
 @item childp
 A flag, non-@code{nil} if this is really a child process.
@@ -1416,7 +1426,7 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a @sc{pty};
+Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
 @code{nil} if it uses a pipe.
 
 @item infd
@@ -1456,3 +1466,7 @@ Size of carryover in encoding.
 Flag to set @code{coding-system} of the process buffer from the
 coding system used to decode process output.
 @end table
+
+@ignore
+   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
+@end ignore

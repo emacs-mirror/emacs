@@ -187,3 +187,7 @@ A sparse keymap used by Text mode.
 @vindex view-mode-map
 A full keymap used by View mode.
 @end table
+
+@ignore
+   arch-tag: b741253c-7e23-4a02-b3fa-cffd9e4d72b9
+@end ignore

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2004 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -47,6 +47,7 @@ however, we have renamed all of those.)
 @item before-init-hook
 @item before-make-frame-hook
 @item before-revert-hook
+@item before-save-hook
 @item blink-paren-function
 @item buffer-access-fontify-functions
 @item c-mode-hook
@@ -136,3 +137,7 @@ however, we have renamed all of those.)
 @item write-file-functions
 @item write-region-annotate-functions
 @end table
+
+@ignore
+   arch-tag: 55fd0296-d906-4551-b300-979d3846aa88
+@end ignore

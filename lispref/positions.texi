@@ -18,7 +18,11 @@ after that position.
   Positions are usually represented as integers starting from 1, but can
 also be represented as @dfn{markers}---special objects that relocate
 automatically when text is inserted or deleted so they stay with the
-surrounding characters.  @xref{Markers}.
+surrounding characters.  Functions that expect an argument to be a
+position (an integer), but accept a marker as a substitute, normally
+ignore the marker buffer.  Of course, markers used this way usually
+point to a position in the buffer that the function operates on, but
+that is entirely the programmer's responsibility.  @xref{Markers}.
 
   See also the ``field'' feature (@pxref{Fields}), which provides
 functions that are used by many cursor-motion commands.
@@ -89,8 +93,9 @@ that you narrowed to.  (@xref{Narrowing}.)
 @end defun
 
 @defun buffer-end flag
-This function returns @code{(point-min)} if @var{flag} is less than 1,
-@code{(point-max)} otherwise.  The argument @var{flag} must be a number.
+This function returns @code{(point-max)} if @var{flag} is greater than
+0, @code{(point-min)} otherwise.  The argument @var{flag} must be a
+number.
 @end defun
 
 @defun buffer-size &optional buffer
@@ -185,7 +190,7 @@ In an interactive call, @var{count} is the numeric prefix argument.
   These functions for parsing words use the syntax table to decide
 whether a given character is part of a word.  @xref{Syntax Tables}.
 
-@deffn Command forward-word count
+@deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
 @var{count} is negative).  ``Moving one word'' means moving until point
 crosses a word-constituent character and then encounters a
@@ -203,19 +208,12 @@ If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
 In an interactive call, @var{count} is specified by the numeric prefix
-argument.
+argument.  If @var{count} is omitted or @code{nil}, it defaults to 1.
 @end deffn
 
-@deffn Command backward-word count
+@deffn Command backward-word &optional count
 This function is just like @code{forward-word}, except that it moves
 backward until encountering the front of a word, rather than forward.
-
-In an interactive call, @var{count} is set to the numeric prefix
-argument.
-
-@c [Now optimized by compiler.]
-@c This function is rarely used in programs, as it is more efficient to
-@c call @code{forward-word} with a negative argument.
 @end deffn
 
 @defvar words-include-escapes
@@ -405,10 +403,16 @@ Here is an example of using @code{count-lines}:
 (defun current-line ()
   "Return the vertical position of point@dots{}"
   (+ (count-lines (window-start) (point))
-     (if (= (current-column) 0) 1 0)
-     -1))
+     (if (= (current-column) 0) 1 0)))
 @end group
 @end example
+@end defun
+
+@defun line-number-at-pos &optional pos
+@cindex line number
+This function returns the line number in the current buffer
+corresponding the buffer position @var{pos}.  If @var{pos} is @code{nil}
+or omitted, the current buffer position is used.
 @end defun
 
 @ignore
@@ -662,8 +666,8 @@ A negative argument means move backward but still to a less deep spot.
 @end deffn
 
 @deffn Command down-list &optional arg
-This function moves forward into @var{arg} (default 1) levels of parentheses.  A
-negative argument means move backward but still go
+This function moves forward into @var{arg} (default 1) levels of
+parentheses.  A negative argument means move backward but still go
 deeper in parentheses (@minus{}@var{arg} levels).
 @end deffn
 
@@ -695,13 +699,13 @@ other kinds, such as words and string constants
 This function moves backward across @var{arg} (default 1) balanced expressions.
 @end deffn
 
-@deffn Command beginning-of-defun arg
+@deffn Command beginning-of-defun &optional arg
 This function moves back to the @var{arg}th beginning of a defun.  If
 @var{arg} is negative, this actually moves forward, but it still moves
 to the beginning of a defun, not to the end of one.
 @end deffn
 
-@deffn Command end-of-defun arg
+@deffn Command end-of-defun &optional arg
 This function moves forward to the @var{arg}th end of a defun.  If
 @var{arg} is negative, this actually moves backward, but it still moves
 to the end of a defun, not to the beginning of one.
@@ -794,7 +798,7 @@ comes back" twice.
 Note that char classes are not currently supported in
 @var{character-set}; they will be treated as literals.  Thus you
 cannot use @code{"[:alpha:]"} instead of @code{"a-zA-Z"} to include
-non-ASCII letters.  A way to skip forward over all letters is:
+non-@acronym{ASCII} letters.  A way to skip forward over all letters is:
 
 @example
 (re-search-forward "\\=[[:alpha:]]*" nil t)
@@ -874,8 +878,9 @@ The value returned by @code{save-excursion} is the result of the last of
 
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
 point value relocates the saved value, just as it relocates all markers.
-Therefore, when the saved point value is restored, it normally comes
-before the inserted text.
+More precisely, the saved value is a marker with insertion type
+@code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the saved
+point value is restored, it normally comes before the inserted text.
 
   Although @code{save-excursion} saves the location of the mark, it does
 not prevent functions which modify the buffer from setting
@@ -916,7 +921,7 @@ In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
 @end deffn
 
-@deffn Command narrow-to-page move-count
+@deffn Command narrow-to-page &optional move-count
 This function sets the accessible portion of the current buffer to
 include just the current page.  An optional first argument
 @var{move-count} non-@code{nil} means to move forward or backward by
@@ -996,3 +1001,7 @@ This is the contents of foo@point{}
 @end group
 @end example
 @end defspec
+
+@ignore
+   arch-tag: 56e8ff26-4ffe-4832-a141-7e991a2d0f87
+@end ignore
