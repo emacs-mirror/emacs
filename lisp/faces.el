@@ -166,7 +166,7 @@ in that frame; otherwise change each frame."
   (if (stringp font)
       (setq font (or (and (fontset-name-p font)
 			  (or (query-fontset font)
-			      (instanciate-fontset font)))
+			      (instantiate-fontset font)))
 		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame))
 
