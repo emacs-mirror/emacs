@@ -116,6 +116,7 @@ enum coding_attr_index
     coding_attr_ascii_compat,
     coding_attr_decode_tbl,
     coding_attr_encode_tbl,
+    coding_attr_trans_tbl,
     coding_attr_post_read,
     coding_attr_pre_write,
     coding_attr_default_char,
@@ -154,6 +155,7 @@ enum coding_attr_index
 #define CODING_ATTR_ASCII_COMPAT(attrs)	AREF (attrs, coding_attr_ascii_compat)
 #define CODING_ATTR_DECODE_TBL(attrs)	AREF (attrs, coding_attr_decode_tbl)
 #define CODING_ATTR_ENCODE_TBL(attrs)	AREF (attrs, coding_attr_encode_tbl)
+#define CODING_ATTR_TRANS_TBL(attrs)	AREF (attrs, coding_attr_trans_tbl)
 #define CODING_ATTR_POST_READ(attrs)	AREF (attrs, coding_attr_post_read)
 #define CODING_ATTR_PRE_WRITE(attrs)	AREF (attrs, coding_attr_pre_write)
 #define CODING_ATTR_DEFAULT_CHAR(attrs)	AREF (attrs, coding_attr_default_char)
