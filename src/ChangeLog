@@ -1,5 +1,9 @@
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* msdos.c (last_mouse_window): New variable.
+	(dos_rawgetc): Fix last change--if the mouse is in the same window
+	as recorded in last_mouse_window, don't select this window.
+
 	* Makefile.in (lisp, shortlisp): Use cus-start.elc, not
 	cus-start.el.
 
