@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'jka-compr))
+
 (defgroup info nil
   "Info subsystem"
   :group 'help
@@ -148,21 +150,25 @@ Marker points nowhere if file has no tag table.")
        (".info.Y".    "unyabba")
        (".info.gz".   "gunzip")
        (".info.z".    "gunzip")
+       (".info.bz2" . "bzip2 -dc")
        (".info".      nil)
        ("-info.Z".   "uncompress")
        ("-info.Y".   "unyabba")
        ("-info.gz".  "gunzip")
+       ("-info.bz2" . "bzip2 -dc")
        ("-info.z".   "gunzip")
        ("-info".     nil)
        ("/index.Z".   "uncompress")
        ("/index.Y".   "unyabba")
        ("/index.gz".  "gunzip")
        ("/index.z".   "gunzip")
+       ("/index.bz2". "bzip2 -dc")
        ("/index".     nil)
        (".Z".         "uncompress")
        (".Y".         "unyabba")
        (".gz".        "gunzip")
        (".z".         "gunzip")
+       (".bz2" .      "bzip2 -dc")
        ("".           nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
