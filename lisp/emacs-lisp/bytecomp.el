@@ -1145,7 +1145,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 
   (if byte-compile-verbose
       (message "Compiling %s..." filename))
-  (let ((byte-compile-current-file (file-name-nondirectory filename))
+  (let ((byte-compile-current-file filename)
 	target-file input-buffer output-buffer)
     (save-excursion
       (setq input-buffer (get-buffer-create " *Compiler Input*"))
