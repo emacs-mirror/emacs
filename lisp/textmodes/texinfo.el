@@ -398,10 +398,9 @@ chapter."
   (define-key texinfo-mode-map "\C-c\C-c\C-e" 'texinfo-insert-@emph)
 
   (define-key texinfo-mode-map "\C-c\C-cv"    'texinfo-insert-@var)
-  (define-key texinfo-mode-map "\C-c\C-cu"    'texinfo-insert-@url)
+  (define-key texinfo-mode-map "\C-c\C-cu"    'texinfo-insert-@uref)
   (define-key texinfo-mode-map "\C-c\C-ct"    'texinfo-insert-@table)
   (define-key texinfo-mode-map "\C-c\C-cs"    'texinfo-insert-@samp)
-  ;; (define-key texinfo-mode-map "\C-c\C-cr"    'texinfo-insert-@uref)
   (define-key texinfo-mode-map "\C-c\C-cq"    'texinfo-insert-@quotation)
   (define-key texinfo-mode-map "\C-c\C-co"    'texinfo-insert-@noindent)
   (define-key texinfo-mode-map "\C-c\C-cn"    'texinfo-insert-@node)
@@ -822,12 +821,13 @@ The default is not to surround any existing words with the braces."
   (interactive "P")
   (texinfo-insert-@-with-arg "var" arg))
 
-(defun texinfo-insert-@url (&optional arg)
+(defun texinfo-insert-@uref (&optional arg)
   "Insert a `@url{}' command in a Texinfo buffer.
 A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
   (interactive "P")
-  (texinfo-insert-@-with-arg "url" arg))
+  (texinfo-insert-@-with-arg "uref" arg))
+(defalias 'texinfo-insert-@url 'texinfo-insert-@uref)
 
 ;;; Texinfo file structure
 
