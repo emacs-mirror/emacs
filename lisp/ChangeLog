@@ -1,3 +1,12 @@
+2003-01-13  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-dep.el (custom-make-dependencies):  Don't set standard-value
+	and version numbers for variables.  Handle faces.
+
+	* cus-edit.el (customize-changed-options):  Doc addition.  Load the
+	version deps earlier.  Use other tests for groups and variables.
+	Handle faces.
+
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-ignore-directories-merge): Doc fix.
