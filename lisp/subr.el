@@ -1497,6 +1497,8 @@ If DIR-FLAG is non-nil, create a new empty directory instead of a file."
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 
+This is an XEmacs-compatibility function.  Use `define-minor-mode' instead.
+
 TOGGLE is a symbol which is the name of a buffer-local variable that
 is toggled on or off to say whether the minor mode is active or not.
 
@@ -1510,64 +1512,61 @@ to `minor-mode-map-alist'.
 Optional AFTER specifies that TOGGLE should be added after AFTER
 in `minor-mode-alist'.
 
-Optional TOGGLE-FUN is an interactive function to toggle the mode.  If
-supplied, it is used to make mouse clicks on the mode-line string turn
-off the mode.
+Optional TOGGLE-FUN is an interactive function to toggle the mode.
+It defaults to (and should by convention be) TOGGLE.
 
-If TOGGLE-FUN is supplied and TOGGLE has a non-nil `:included'
-property, an entry for the mode is included in the mode-line minor
-mode menu.  If TOGGLE has a `:menu-tag', that is used for the menu
-item's label instead of NAME.
-
-In most cases, `define-minor-mode' should be used instead."
+If TOGGLE has a non-nil `:included' property, an entry for the mode is
+included in the mode-line minor mode menu.
+If TOGGLE has a `:menu-tag', that is used for the menu item's label."
+  (unless toggle-fun (setq toggle-fun toggle))
+  ;; Add the toggle to the minor-modes menu if requested.
+  (when (get toggle :included)
+    (define-key mode-line-mode-menu
+      (vector toggle)
+      (list 'menu-item
+	    (or (get toggle :menu-tag)
+		(if (stringp name) name (symbol-name toggle)))
+	    toggle-fun
+	    :button (cons :toggle toggle))))
+  ;; Add the name to the minor-mode-alist.
   (when name
-    (let ((existing (assq toggle minor-mode-alist))
-	  (name (if (symbolp name) (symbol-value name) name)))
-      (when (functionp toggle-fun)
+    (let ((existing (assq toggle minor-mode-alist)))
+      (when (and (stringp name) (not (get-text-property 0 'local-map name)))
 	(setq name
 	      (apply 'propertize name
 		     'local-map (make-mode-line-mouse2-map toggle-fun)
 		     (unless (get-text-property 0 'help-echo name)
 		       (list 'help-echo
-			     (format "mouse-2: turn off %S" toggle)))))
-	(when (get toggle :included)
-	  (define-key mode-line-mode-menu
-	    (vector toggle)
-	    (list 'menu-item
-		  (or (get toggle :menu-tag) name)
-		  toggle-fun
-		  :button (cons :toggle toggle)))))
-      (cond ((null existing)
-	     (let ((tail minor-mode-alist) found)
-	       (while (and tail (not found))
-		 (if (eq after (caar tail))
-		     (setq found tail)
-		   (setq tail (cdr tail))))
-	       (if found
-		   (let ((rest (cdr found)))
-		     (setcdr found nil)
-		     (nconc found (list (list toggle name)) rest))
-		 (setq minor-mode-alist (cons (list toggle name)
-					      minor-mode-alist)))))
-	    (t
-	     (setcdr existing (list name))))))
-    
+			     (format "mouse-2: turn off %S" toggle))))))
+      (if existing
+	  (setcdr existing (list name))
+	(let ((tail minor-mode-alist) found)
+	  (while (and tail (not found))
+	    (if (eq after (caar tail))
+		(setq found tail)
+	      (setq tail (cdr tail))))
+	  (if found
+	      (let ((rest (cdr found)))
+		(setcdr found nil)
+		(nconc found (list (list toggle name)) rest))
+	    (setq minor-mode-alist (cons (list toggle name)
+					 minor-mode-alist)))))))
+  ;; Add the map to the minor-mode-map-alist.    
   (when keymap
     (let ((existing (assq toggle minor-mode-map-alist)))
-      (cond ((null existing)
-	     (let ((tail minor-mode-map-alist) found)
-	       (while (and tail (not found))
-		 (if (eq after (caar tail))
-		     (setq found tail)
-		   (setq tail (cdr tail))))
-	       (if found
-		   (let ((rest (cdr found)))
-		     (setcdr found nil)
-		     (nconc found (list (cons toggle keymap)) rest))
-		 (setq minor-mode-map-alist (cons (cons toggle keymap)
-						  minor-mode-map-alist)))))
-	    (t
-	     (setcdr existing keymap))))))
+      (if existing
+	  (setcdr existing keymap)
+	(let ((tail minor-mode-map-alist) found)
+	  (while (and tail (not found))
+	    (if (eq after (caar tail))
+		(setq found tail)
+	      (setq tail (cdr tail))))
+	  (if found
+	      (let ((rest (cdr found)))
+		(setcdr found nil)
+		(nconc found (list (cons toggle keymap)) rest))
+	    (setq minor-mode-map-alist (cons (cons toggle keymap)
+					     minor-mode-map-alist))))))))
 
 
 ;;; subr.el ends here
