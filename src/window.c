@@ -2142,13 +2142,12 @@ check_frame_size (frame, rows, cols)
      int *rows, *cols;
 {
   /* For height, we have to see:
-     whether the frame has a minibuffer,
-     whether it wants a mode line, and
-     whether it has a menu bar.  */
-  int min_height =
-    (FRAME_MINIBUF_ONLY_P (frame) ? MIN_SAFE_WINDOW_HEIGHT - 1
-     : (! FRAME_HAS_MINIBUF_P (frame)) ? MIN_SAFE_WINDOW_HEIGHT
-     : 2 * MIN_SAFE_WINDOW_HEIGHT - 1);
+     how many windows the frame has at minimum (one or two),
+     and whether it has a menu bar or other special stuff at the top.  */
+  int min_height
+    = ((FRAME_MINIBUF_ONLY_P (frame) || ! FRAME_HAS_MINIBUF_P (frame))
+       ? MIN_SAFE_WINDOW_HEIGHT
+       : 2 * MIN_SAFE_WINDOW_HEIGHT);
   
   if (FRAME_TOP_MARGIN (frame) > 0)
     min_height += FRAME_TOP_MARGIN (frame);
