@@ -571,7 +571,7 @@ exited abnormally with code %d\n"
     (define-key map [menu-bar compilation-menu compilation-mode-recompile]
       '("Recompile" . recompile))
     (define-key map [menu-bar compilation-menu compilation-mode-compile]
-      '("Compile" . compile))
+      '("Compile..." . compile))
     map)
   "Keymap for compilation log buffers.
 `compilation-minor-mode-map' is a cdr of this.")
