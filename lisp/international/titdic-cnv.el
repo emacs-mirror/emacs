@@ -270,8 +270,7 @@
 ;; function call.
 (defun tit-process-body ()
   (message "Formatting translation rules...")
-  (let ((enable-multibyte-characters nil)
-	(keyseq "\000")
+  (let ((keyseq "\000")
 	pos)
     (insert "(quail-define-rules\n")
     (while (null (eobp))
@@ -355,6 +354,7 @@ the generated Quail package is saved."
 	(insert-file-contents (expand-file-name filename)))
       (set-visited-file-name
        (tit-make-quail-package-file-name filename dirname) t)
+      (setq enable-multibyte-characters t)
       (set-buffer-file-coding-system 'iso-2022-7bit)
 
       ;; Decode the buffer contents from the encoding specified by a
