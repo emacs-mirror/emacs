@@ -25,9 +25,9 @@ that Emacs presents to the user.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
-* Fringe Bitmaps::     Customizing fringe bitmaps.
+* Fringe Bitmaps::      Customizing fringe bitmaps.
 * Scroll Bars::         Controlling vertical scroll bars.
-* Pointer Shapes::      Controlling the mouse pointer shape.
+* Pointer Shape::       Controlling the mouse pointer shape.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -2786,8 +2786,8 @@ in a buffer that is already visible in a window, you can make the
 window take note of the new values by calling @code{set-window-buffer}
 specifying the same buffer that is already displayed.
 
-@node Pointer Shapes
-@section Pointer Shapes
+@node Pointer Shape
+@section Pointer Shape
 
 Normally, the mouse pointer has the @code{text} shape over text and
 the @code{arrow} shape over window areas which do not correspond to
@@ -2921,7 +2921,7 @@ used as an absolute number of pixels.
 @end example
 
   The form @var{NUM} specifies a fractional width or height of the
-default frame font size.  The form @code(@var{NUM})} specifies an
+default frame font size.  The form @code{(@var{NUM})} specifies an
 absolute number of pixels.  If a symbol @var{SYMBOL} is specified, its
 buffer-local variable binding is used.
 
@@ -2955,7 +2955,7 @@ the left-margin, use
 to the left edge of the text area.  For example, @samp{:align-to 0} in a
 header-line aligns with the first text column in the text area.
 
-  The value of the form @code(@var{NUM} . @var{EXPR})} is the value of
+  The value of the form @code{(@var{NUM} . @var{EXPR})} is the value of
 @var{NUM} multiplied by the value of the expression @var{EXPR}.  For
 example, @samp{(2 . in)} specifies a width of 2 inches, while
 @samp{(0.5 . IMAGE)} specifies half the width (or height) of the
@@ -3227,7 +3227,6 @@ function always returns @code{t}; for other image types, it returns
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
-* Image Slices::        Displaying image slices.
 * Image Cache::         Internal mechanisms of image display.
 @end menu
 
@@ -3413,7 +3412,7 @@ which specifies the center and the radius of the circle; @var{r} may
 be a float or integer.
 
 A polygon is a cons
-@code(poly . [@var{x0} @var{y0} @var{x1} @var{y1} ...])}
+@code{(poly . [@var{x0} @var{y0} @var{x1} @var{y1} ...])}
 where each pair in the vector describes one corner in the polygon.
 
 When the mouse pointer is above a hot-spot area of an image, the

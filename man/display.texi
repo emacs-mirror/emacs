@@ -998,7 +998,6 @@ character) shall not be broken into two lines on the display (with
 just the newline on the second line).  Instead, the newline
 overflows into the right fringe, and the cursor will be displayed in
 the fringe when positioned on that newline.
-@end defvar
 
 @vindex indicate-buffer-boundaries
   On a window system, Emacs may indicate the buffer boundaries in the
