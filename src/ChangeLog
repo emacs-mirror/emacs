@@ -1,3 +1,11 @@
+2002-08-19  Kenichi Handa  <handa@localhost>
+
+	* composite.c (run_composition_function): Call FUNC if it is
+	fboundp.
+
+	* composite.h (COMPOSITION_MODIFICATION_FUNC): If PROP is not a
+	cons, return Qnil.
+
 2002-08-18  Andreas Schwab  <schwab@suse.de>
 
 	* puresize.h (BASE_PURESIZE): Increase to 720000.
