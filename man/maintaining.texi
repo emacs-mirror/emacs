@@ -511,8 +511,7 @@ VT (vertical tab).
 @end table
 
   The syntax of regular expressions in @code{etags} is the same as in
-Emacs.  However, non-greedy operators and shy groups are not
-available.
+Emacs.
 
   You should not match more characters with @var{tagregexp} than that
 needed to recognize what you want to tag.  If the match is such that
