@@ -1226,7 +1226,7 @@ Remaining arguments are strings to give program as arguments.")
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
 
-  create_process (proc, new_argv, current_dir);
+  create_process (proc, (char **) new_argv, current_dir);
 
   return unbind_to (count, proc);
 }
@@ -1281,6 +1281,7 @@ create_process_sigchld ()
 #endif
 
 #ifndef VMS /* VMS version of this function is in vmsproc.c.  */
+void
 create_process (process, new_argv, current_dir)
      Lisp_Object process;
      char **new_argv;
@@ -2020,6 +2021,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 }
 #endif	/* HAVE_SOCKETS */
 
+void
 deactivate_process (proc)
      Lisp_Object proc;
 {
@@ -2069,6 +2071,7 @@ deactivate_process (proc)
    with subprocess.  This is used in a newly-forked subprocess
    to get rid of irrelevant descriptors.  */
 
+void
 close_process_descs ()
 {
 #ifndef WINDOWSNT
@@ -3729,6 +3732,7 @@ text to PROCESS after you call this function.")
 /* Kill all processes associated with `buffer'.
  If `buffer' is nil, kill all processes  */
 
+void
 kill_buffer_processes (buffer)
      Lisp_Object buffer;
 {
@@ -4014,6 +4018,7 @@ exec_sentinel (proc, reason)
    (either run the sentinel or output a message).
    This is done while Emacs is waiting for keyboard input.  */
 
+void
 status_notify ()
 {
   register Lisp_Object proc, buffer;
