@@ -1,10 +1,9 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 1996-2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
-;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
-;; Keywords: extensions convenience
+;; Keywords: keyboard convenience
 
 ;; This file is part of GNU Emacs.
 
