@@ -2465,6 +2465,44 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
   return current_message ();
 }
 
+
+DEFUN ("properties", Fproperties, Sproperties, 3, MANY, 0,
+       "Return a copy of STRING with text properties added.\n\
+First argument is the string to copy.\n\
+Remaining arguments are sequences of PROPERTY VALUE pairs for text\n\
+properties to add to the result ")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object properties, string;
+  struct gcpro gcpro1, gcpro2;
+  int i;
+
+  /* Number of args must be odd.  */
+  if ((nargs & 1) == 0 || nargs < 3)
+    error ("Wrong number of arguments");
+
+  properties = string = Qnil;
+  GCPRO2 (properties, string);
+  
+  /* First argument must be a string.  */
+  CHECK_STRING (args[0], 0);
+  string = Fcopy_sequence (args[0]);
+
+  for (i = 1; i < nargs; i += 2)
+    {
+      CHECK_SYMBOL (args[i], i);
+      properties = Fcons (args[i], Fcons (args[i + 1], properties));
+    }
+
+  Fadd_text_properties (make_number (0),
+			make_number (XSTRING (string)->size),
+			properties, string);
+  RETURN_UNGCPRO (string);
+}
+
+
 /* Number of bytes that STRING will occupy when put into the result.
    MULTIBYTE is nonzero if the result should be multibyte.  */
 
@@ -2847,6 +2885,7 @@ Use %% to put a single % into the output.")
 
   return val;
 }
+
 
 /* VARARGS 1 */
 Lisp_Object
@@ -3365,6 +3404,7 @@ functions if all the text being accessed has this property.");
   DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
 	       "The user's name, based upon the real uid only.");
 
+  defsubr (&Sproperties);
   defsubr (&Schar_equal);
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
