@@ -30,8 +30,8 @@
 ;;; Code:
 
 (defvar rmail-summary-font-lock-keywords
-  '(("^....D.*$" . font-lock-string-face)			; Deleted.
-    ("^....-.*$" . font-lock-type-face)				; Unread.
+  '(("^....D.*" . font-lock-string-face)			; Deleted.
+    ("^....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^}]+\\),}" 1 font-lock-comment-face))		; Labels.
