@@ -55,7 +55,6 @@
 (define-key help-map "\C-d" 'describe-distribution)
 (define-key help-map "\C-e" 'view-emacs-problems)
 (define-key help-map "\C-f" 'view-emacs-FAQ)
-(define-key help-map "\C-h" 'view-hello-file)
 (define-key help-map "\C-m" 'view-order-manuals)
 (define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "\C-p" 'describe-project)
@@ -191,6 +190,7 @@ e  view-echo-area-messages.  Show the `*Messages*' buffer.
 f  describe-function.  Type a function name and get documentation of it.
 F  Info-goto-emacs-command-node.  Type a function name;
 	it takes you to the Info node for that command.
+h  Display the HELLO file which illustrates various scripts.
 i  info. The  info  documentation reader.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
@@ -218,7 +218,6 @@ C-c Display Emacs copying permission (GNU General Public License).
 C-d Display Emacs ordering information.
 C-e Display info about Emacs problems.
 C-f Display the Emacs FAQ.
-C-h Display the HELLO file which illustrates various scripts.
 C-m Display how to order printed Emacs manuals.
 C-n Display news of recent Emacs changes.
 C-p Display information about the GNU project.
