@@ -6484,14 +6484,14 @@ pfatal (s1)
 static void
 suggest_asking_for_help ()
 {
-  fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	   progname,
+
 #ifdef LONG_OPTIONS
-	   "--help"
+fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
+	 progname, "--help");
 #else
-	   "-h"
+fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
+	 progname, "-h");
 #endif
-	   );
   exit (BAD);
 }
 
