@@ -660,7 +660,7 @@ the data it can't find.")
       if (!s)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
-	  long am = (offset < 0 ? -offset : offset) / 60;
+	  int am = (offset < 0 ? -offset : offset) / 60;
 	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
 	  s = buf;
 	}
