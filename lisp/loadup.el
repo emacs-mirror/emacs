@@ -54,6 +54,8 @@
 (garbage-collect)
 (load "indent")
 (garbage-collect)
+(load "isearch")
+(garbage-collect)
 (load "window")
 (if (fboundp 'delete-frame)
     (progn
@@ -92,8 +94,6 @@
 (load "fill")
 (garbage-collect)
 (load "c-mode")
-(garbage-collect)
-(load "isearch")
 (garbage-collect)
 (load "replace")
 (if (eq system-type 'vax-vms)
