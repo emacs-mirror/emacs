@@ -3,6 +3,7 @@
 ;; Copyright (C) 1994, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: strings, regexps
 ;; Version: 1.07
 
