@@ -8374,6 +8374,9 @@ redisplay_internal (preserve_echo_area)
   if (consider_all_windows_p)
     {
       Lisp_Object tail, frame;
+      int i, n = 0, size = 50;
+      struct frame **updated
+	= (struct frame **) alloca (size * sizeof *updated);
 
       /* Clear the face cache eventually.  */
       if (clear_face_cache_count > CLEAR_FACE_CACHE_COUNT)
@@ -8429,11 +8432,28 @@ redisplay_internal (preserve_echo_area)
 		  if (pause)
 		    break;
 
-		  mark_window_display_accurate (f->root_window, 1);
-		  if (frame_up_to_date_hook)
-		    frame_up_to_date_hook (f);
+		  if (n == size)
+		    {
+		      int nbytes = size * sizeof *updated;
+		      struct frame **p = (struct frame **) alloca (2 * nbytes);
+		      bcopy (updated, p, nbytes);
+		      size *= 2;
+		    }
+		  
+		  updated[n++] = f;
 		}
 	    }
+	}
+
+      /* Do the mark_window_display_accurate after all windows have
+	 been redisplayed because this call resets flags in buffers
+	 which are needed for proper redisplay.  */
+      for (i = 0; i < n; ++i)
+	{
+	  struct frame *f = updated[i];
+	  mark_window_display_accurate (f->root_window, 1);
+	  if (frame_up_to_date_hook)
+	    frame_up_to_date_hook (f);
 	}
     }
   else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
