@@ -36,10 +36,10 @@
 
 ;; INSTRUCTIONS:
 ;;
-;; To use jka-compr, simply load this package, and edit as usual.
-;; Its operation should be transparent to the user (except for
-;; messages appearing when a file is being compressed or
-;; uncompressed).
+;; To use jka-compr, invoke the command `auto-compression-mode' (which
+;; see), or customize the variable of the same name.  Its operation
+;; should be transparent to the user (except for messages appearing when
+;; a file is being compressed or uncompressed).
 ;;
 ;; The variable, jka-compr-compression-info-list can be used to
 ;; customize jka-compr to work with other compression programs.
