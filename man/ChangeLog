@@ -1,6 +1,25 @@
+2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ack.texi (Acknowledgments): Use `@unnumbered'.
+	* misc.texi : Adapt sectioning in Info to the node structure.
+	(Invoking emacsclient): Make "Invoking emacsclient" a subsection
+	of "Using Emacs as a Server".
+	* building.texi (Building): Interchange nodes (for correct numbering).
+	* programs.texi (Programs): Interchange nodes (for correct numbering).
+	* killing.texi, entering.texi, commands.texi: Adapt sectioning in
+	Info to the node structure.
+	* emacs.texi: Make "GNU GENERAL PUBLIC LICENSE" an appendix.
+	Rearrange order of nodes and sections such that both "GNU GENERAL
+	PUBLIC LICENSE" and "GNU Free Documentation License" appear at the
+	end, as appropriate for appendices.
+	(Acknowledgments): Use `@unnumberedsec'.
+	* trouble.texi: Adapt sectioning in Info to the node structure.
+	Adapt node pointers to change in emacs.texi.
+	* cmdargs.texi, doclicense.texi: Adapt node pointers.
+
 2004-08-27  Richard M. Stallman  <rms@gnu.org>
 
-	* faq.texi (Difference between Emacs and XEmacs): 
+	* faq.texi (Difference between Emacs and XEmacs):
 	Explain not to contrast XEmacs with GNU Emacs.
 
 2004-08-26  Richard M. Stallman  <rms@gnu.org>
