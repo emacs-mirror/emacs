@@ -1,7 +1,7 @@
 /*  impl.c.teletest: TELEMETRY TEST
  *
- *  $HopeName: MMsrc!teletest.c(trunk.2) $
- * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
+ *  $HopeName: MMsrc!teletest.c(trunk.3) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
  */
@@ -20,7 +20,7 @@
 #endif /* MPS_OS_SU */
 
 
-SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.2) $");
+SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.3) $");
 
 
 static mps_arena_t arena; 
@@ -91,6 +91,11 @@ static void doLabel(void)
 {
   mps_telemetry_label((mps_addr_t)args[0], args[1]);
 }
+
+static void doFlush(void)
+{
+  mps_telemetry_flush();
+}
  
 static void doQuit(void)
 {
@@ -108,6 +113,7 @@ static void doHelp(void)
                "flip <mask>              -> <old> <new>    Toggle filter\n"
                "intern <string>          -> <id>           Intern string\n"
                "label <address> <id>                       Label address\n"
+               "flush                                      Flush buffer\n"
                "help                                       Print this message\n"
                "quit                                       Quit\n");
 }
@@ -126,6 +132,7 @@ static struct commandShapeStruct {
   {"flip", 1, 0, doFlip},
   {"intern", 0, 1, doIntern},
   {"label", 2, 0, doLabel},
+  {"flush", 0, 0, doFlush},
   {"help", 0, 0, doHelp},
   {"quit", 0, 0, doQuit},
   {NULL, 0, 0, NULL}
