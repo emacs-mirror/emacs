@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <config.h>
 #include <stdio.h>
+#include <math.h>
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
@@ -120,6 +121,7 @@ extern XFontStruct *xlwmenu_default_font;
 #endif
 
 extern void free_frame_menubar ();
+extern double atof ();
 
 #endif /* USE_X_TOOLKIT */
 
@@ -251,6 +253,7 @@ Lisp_Object Quser_position;
 Lisp_Object Quser_size;
 Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
+Lisp_Object Qscreen_gamma;
 
 /* The below are defined in frame.c.  */
 
@@ -741,29 +744,31 @@ x_destroy_all_bitmaps (dpyinfo)
 struct x_frame_parm_table
 {
   char *name;
-  void (*setter)( /* struct frame *frame, Lisp_Object val, oldval */ );
+  void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
-void x_set_foreground_color ();
-void x_set_background_color ();
-void x_set_mouse_color ();
-void x_set_cursor_color ();
-void x_set_border_color ();
-void x_set_cursor_type ();
-void x_set_icon_type ();
-void x_set_icon_name ();
-void x_set_font ();
-void x_set_border_width ();
-void x_set_internal_border_width ();
-void x_explicitly_set_name ();
-void x_set_autoraise ();
-void x_set_autolower ();
-void x_set_vertical_scroll_bars ();
-void x_set_visibility ();
-void x_set_menu_bar_lines ();
-void x_set_scroll_bar_width ();
-void x_set_title ();
-void x_set_unsplittable ();
+void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_border_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_cursor_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_icon_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_icon_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
+				      Lisp_Object));
+void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_autoraise P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_autolower P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_vertical_scroll_bars P_ ((struct frame *, Lisp_Object,
+				     Lisp_Object));
+void x_set_visibility P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_scroll_bar_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_toolbar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_scroll_bar_foreground P_ ((struct frame *, Lisp_Object,
 				      Lisp_Object));
@@ -774,6 +779,7 @@ static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
 							     Lisp_Object,
 							     char *, char *,
 							     int));
+static void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -800,6 +806,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "toolbar-lines", x_set_toolbar_lines,
   "scroll-bar-foreground", x_set_scroll_bar_foreground,
   "scroll-bar-background", x_set_scroll_bar_background,
+  "screen-gamma", x_set_screen_gamma
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1208,6 +1215,23 @@ x_report_frame_params (f, alistptr)
 }
 
 
+
+/* Gamma-correct COLOR on frame F.  */
+
+void
+gamma_correct (f, color)
+     struct frame *f;
+     XColor *color;
+{
+  if (f->gamma)
+    {
+      color->red = pow (color->red / 65535.0, f->gamma) * 65535.0 + 0.5;
+      color->green = pow (color->green / 65535.0, f->gamma) * 65535.0 + 0.5;
+      color->blue = pow (color->blue / 65535.0, f->gamma) * 65535.0 + 0.5;
+    }
+}
+
+
 /* Decide if color named COLOR is valid for the display associated with
    the selected frame; if so, return the rgb values in COLOR_DEF.
    If ALLOC is nonzero, allocate a new colormap cell.  */
@@ -1229,6 +1253,9 @@ defined_color (f, color, color_def, alloc)
   status = XParseColor (display, screen_colormap, color, color_def);
   if (status && alloc) 
     {
+      /* Apply gamma correction.  */
+      gamma_correct (f, color_def);
+      
       status = XAllocColor (display, screen_colormap, color_def);
       if (!status)
 	{
@@ -1330,6 +1357,27 @@ x_decode_color (f, arg, def)
 			  Fcons (arg, Qnil)));
 }
 
+/* Change the `screen-gamma' frame parameter of frame F.  OLD_VALUE is
+   the previous value of that parameter, NEW_VALUE is the new value.  */
+
+static void
+x_set_screen_gamma (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  if (NILP (new_value))
+    f->gamma = 0;
+  else if (NUMBERP (new_value) && XFLOATINT (new_value) > 0)
+    /* The value 0.4545 is the normal viewing gamma.  */
+    f->gamma = 1.0 / (0.4545 * XFLOATINT (new_value));
+  else
+    Fsignal (Qerror, Fcons (build_string ("Illegal screen-gamma"),
+			    Fcons (new_value, Qnil)));
+
+  clear_face_cache (0);
+}
+
+
 /* Functions called only from `x_set_frame_param'
    to set individual parameters.
 
@@ -2154,9 +2202,9 @@ x_implicitly_set_name (f, arg, oldval)
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
 void
-x_set_title (f, name)
+x_set_title (f, name, old_name)
      struct frame *f;
-     Lisp_Object name;
+     Lisp_Object name, old_name;
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -2553,6 +2601,7 @@ x_get_resource_string (attribute, class)
 enum resource_types
 {
   RES_TYPE_NUMBER,
+  RES_TYPE_FLOAT,
   RES_TYPE_BOOLEAN,
   RES_TYPE_STRING,
   RES_TYPE_SYMBOL
@@ -2599,6 +2648,9 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	    {
 	    case RES_TYPE_NUMBER:
 	      return make_number (atoi (XSTRING (tem)->data));
+
+	    case RES_TYPE_FLOAT:
+	      return make_float (atof (XSTRING (tem)->data));
 
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
@@ -3701,6 +3753,8 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qscreen_gamma, Qnil,
+		       "screenGamma", "ScreenGamma", RES_TYPE_FLOAT);
 
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
 					"scrollBarForeground",
@@ -7213,8 +7267,7 @@ lookup_rgb_color (f, r, g, b)
       
       BLOCK_INPUT;
       cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-      rc = x_alloc_nearest_color (FRAME_X_DISPLAY (f), FRAME_X_SCREEN (f),
-				  cmap, &color);
+      rc = x_alloc_nearest_color (f, cmap, &color);
       UNBLOCK_INPUT;
 
       if (rc)
@@ -7263,8 +7316,7 @@ lookup_pixel_color (f, pixel)
       cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
       color.pixel = pixel;
       XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
-      rc = x_alloc_nearest_color (FRAME_X_DISPLAY (f), FRAME_X_SCREEN (f),
-				  cmap, &color);
+      rc = x_alloc_nearest_color (f, cmap, &color);
       UNBLOCK_INPUT;
 
       if (rc)
@@ -10127,6 +10179,8 @@ syms_of_xfns ()
   staticpro (&Qscroll_bar_foreground);
   Qscroll_bar_background = intern ("scroll-bar-background");
   staticpro (&Qscroll_bar_background);
+  Qscreen_gamma = intern ("screen-gamma");
+  staticpro (&Qscreen_gamma);
   /* This is the end of symbol initialization.  */
 
   Qlaplace = intern ("laplace");
