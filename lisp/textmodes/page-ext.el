@@ -473,6 +473,8 @@ contain matches to the regexp.\)")
 (defvar pages-pos-list nil
   "List containing the positions of the pages in the pages-buffer.")
 
+(defvar pages-target-buffer)
+
 (defvar pages-directory-map nil
   "Keymap for the pages-directory-buffer.")
 
@@ -569,7 +571,7 @@ directory for only the accessible portion of the buffer."
       (message "Creating directory for: %s "
                (buffer-name)))
   
-  (let ((target-buffer (current-buffer))
+  (let ((pages-target-buffer (current-buffer))
         (pages-directory-buffer
 	 (concat pages-directory-prefix " " (buffer-name)))
         (linenum 1)
@@ -585,7 +587,7 @@ directory for only the accessible portion of the buffer."
         (pages-directory-mode)
         (insert
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
-        (setq pages-buffer target-buffer)
+        (setq pages-buffer pages-target-buffer)
         (setq pages-pos-list nil))
       
       (if pages-list-all-headers-p
@@ -635,7 +637,7 @@ directory for only the accessible portion of the buffer."
       (setq pages-pos-list (nreverse pages-pos-list))
       (if (interactive-p)
           (message "%d matching lines in: %s"
-                   (length pages-pos-list) (buffer-name target-buffer))))
+                   (length pages-pos-list) (buffer-name pages-target-buffer))))
     (pop-to-buffer pages-directory-buffer)
     (sit-for 0)  ; otherwise forward-line fails if N > window height.
     (forward-line (if (= 0 pages-buffer-original-page)
@@ -680,7 +682,7 @@ Used by `pages-directory' function."
         (setq pages-pos-list (cons position pages-pos-list))
         ;; insert page header
 	(setq inserted-at (point))
-	(insert-buffer-substring target-buffer start end)
+	(insert-buffer-substring pages-target-buffer start end)
 	(add-text-properties inserted-at (point) 
 			     '(mouse-face highlight
 			       help-echo "mouse-2: go to this page"))
