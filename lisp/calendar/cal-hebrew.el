@@ -1008,7 +1008,8 @@ use when highlighting the day in the calendar."
 			       (aref calendar-day-name-array
 				     (% (- 30 h-day) 7))))))
         (if (and (= h-day 29) (/= h-month 6))
-            (cons (format "Erev Rosh Hodesh %s"
+            (cons mark
+		  (format "Erev Rosh Hodesh %s"
 			  (aref h-month-names
 				(if (= h-month
 				       (hebrew-calendar-last-month-of-year
