@@ -5,15 +5,21 @@
 MAKE = make
 # BSD doesn't have it as a default.
 
-# These values are edited by configure.
+# ==================== Things `configure' might edit ====================
+
 CC=cc
-CFLAGS=-g
+CONFIG_CFLAGS=-g
+srcdir=.
+
+# ============================= Targets ==============================
 
 CPP = $(CC) -E -Is -Im
 #Note: an alternative is  CPP = /lib/cpp
 
 # Just to avoid uncertainty.
 SHELL = /bin/sh
+
+CFLAGS=${CONFIG_CFLAGS}
 
 all: doall
 
@@ -23,10 +29,13 @@ doall: xmakefile
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean:
-	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ m/*~ s/*~ \#* *.o
+	-rm -f paths.h config.h emacs-* temacs xemacs xmakefile core *.o
 
 clean:
 	-rm -f temacs xemacs prefix-args xmakefile* core \#* *.o
+
+extraclean: distclean
+	-rm -f *~ \#* m/*~ s/*~
 
 xemacs: doxemacs
 
@@ -57,6 +66,7 @@ xmakefile: ymakefile config.h
 	| sed -n -e '/^..*$$/p' 			\
 	> xmakefile.new
 	mv -f xmakefile.new xmakefile
+	chmod 444 xmakefile
 	rm -f junk.c junk.cpp
 
 tags TAGS:
