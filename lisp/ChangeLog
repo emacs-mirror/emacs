@@ -1,3 +1,16 @@
+2002-09-13  Francesco Potorti`  <pot@gnu.org>
+
+	* play/tetris.el (tetris-blank-options, tetris-cell-options):
+	Remove various redundant `(t nil)'.
+
+	* play/snake.el (snake-border-options): Use color on tty if
+	available.
+
+	* play/tetris.el (tetris-border-options): Likewise.
+
+	* play/pong.el (pong-border-options): Likewise, plus reset
+	color on tty to be [0.5 0.5 0.5].
+
 2002-09-12  Francesco Potorti`  <pot@gnu.org>
 
 	* play/gamegrid.el (gamegrid-display-type): Treat any
