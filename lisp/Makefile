@@ -6,7 +6,7 @@ SOURCES = *.el COPYING Makefile
 lisptagsfiles = [a-zA-Z]*.el [a-zA-Z]*/[a-zA-Z]*.el
 
 dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
-dontcompilefiles: forms-d2.el forms-pass.el 
+dontcompilefiles: cyril-util.el forms-d2.el forms-pass.el 
 dontcompilefiles: latin-1.el latin-2.el latin-3.el latin-4.el latin-5.el
 dontcompilefiles: loaddefs.el loadup.el mule-conf.el patcomp.el
 dontcompilefiles: paths.el sc.el subdirs.el term-nasty.el version.el 
