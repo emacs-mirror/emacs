@@ -177,22 +177,6 @@
 ;; 
 ;; 	Bugs
 ;; 	----
-;; - Here-documents are marked with text properties face and syntax
-;;   table.  This serves 2 purposes: stopping indentation while inside
-;;   them, and moving over them when finding the previous line to
-;;   indent to.  However, if font-lock mode is active when there is
-;;   any change inside the here-document font-lock clears that
-;;   property.  This causes several problems: lines after the here-doc
-;;   will not be re-indented properly, words in the here-doc region
-;;   may be fontified, and indentation may occur within the
-;;   here-document.
-;;   I'm not sure how to fix this, perhaps using the point-entered
-;;   property.  Anyway, if you use font lock and change a
-;;   here-document, I recommend using M-x sh-rescan-buffer after the
-;;   changes are made.  Similarly, when using highlight-changes-mode,
-;;   changes inside a here-document may confuse shell indenting, but again
-;;   using `sh-rescan-buffer' should fix them.
-;; 
 ;; - Indenting many lines is slow.  It currently does each line
 ;;   independently, rather than saving state information.
 ;; 
@@ -455,9 +439,6 @@ the car and cdr are the same symbol.")
     (define-key map "'" 'skeleton-pair-insert-maybe)
     (define-key map "`" 'skeleton-pair-insert-maybe)
     (define-key map "\"" 'skeleton-pair-insert-maybe)
-    (define-key map  ")" 'sh-electric-rparen)
-    (define-key map  "<" 'sh-electric-less)
-    (define-key map  "#" 'sh-electric-hash)
 
     (substitute-key-definition 'complete-tag 'comint-dynamic-complete
 			       map (current-global-map))
@@ -815,6 +796,61 @@ See `sh-feature'.")
 (defvar sh-font-lock-keywords-2 ()
   "Gaudy level highlighting for Shell Script modes.")
 
+;; These are used for the syntax table stuff (derived from cperl-mode).
+;; Note: parse-sexp-lookup-properties must be set to t for it to work.
+(defconst sh-st-punc (string-to-syntax "."))
+(defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
+
+(defun sh-font-lock-heredoc (start string quoted)
+  "Determine the syntax of the \\n after a <<HEREDOC."
+  (unless (sh-in-comment-or-string start)
+    ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
+    ;; font-lock keywords to detect the end of this here document.
+    (let ((ere (concat
+		"^" (if quoted "[ \t]*")
+		(regexp-quote (replace-regexp-in-string "['\"]" "" string))
+		"\\(\n\\)")))
+      (unless (assoc ere font-lock-syntactic-keywords)
+	(let* (	;; A rough regexp that should find us back.
+	       (sre (concat "<<\\(-\\)?\\s-*['\"]?"
+			    (regexp-quote string) "['\"]?[ \t\n]"))
+	       (code `(cond
+		       ((save-excursion (re-search-backward ,sre nil t))
+			;; This ^STRING$ is indeed following a <<STRING
+			sh-here-doc-syntax)
+		       ((not (save-excursion (re-search-forward ,sre nil t)))
+			;; There's no <<STRING either before or after us,
+			;; so we should remove this now obsolete entry.
+			(setq font-lock-syntactic-keywords
+			      (delq (assoc ,ere font-lock-syntactic-keywords)
+				    font-lock-syntactic-keywords))
+			nil))))
+	  ;; Use destructive update so the new keyword gets used right away.
+	  (setq font-lock-syntactic-keywords
+		(nconc font-lock-syntactic-keywords
+		       (list (font-lock-compile-keyword `(,ere 1 ,code))))))))
+    sh-here-doc-syntax))
+
+(defun sh-font-lock-paren (start)
+  (save-excursion
+    (goto-char start)
+    ;; Skip through all patterns
+    (while
+	(progn
+	  (forward-comment (- (point-max)))
+	  ;; Skip through one pattern
+	  (while
+	      (or (/= 0 (skip-syntax-backward "w_"))
+		  (/= 0 (skip-chars-backward "?*/"))
+		  (when (memq (char-before) '(?\" ?\'))
+		    (condition-case nil (progn (backward-sexp 1) t)
+		      (error nil)))))
+	  (forward-comment (- (point-max)))
+	  (when (eq (char-before) ?|)
+	    (backward-char 1) t)))
+    (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))
+      sh-st-punc)))
+
 (defconst sh-font-lock-syntactic-keywords
   ;; Mark a `#' character as having punctuation syntax in a variable reference.
   ;; Really we should do this properly.  From Chet Ramey and Brian Fox:
@@ -824,7 +860,13 @@ See `sh-feature'.")
   ;; But I can't be bothered to write a function to do it properly and
   ;; efficiently.  So we only do it properly for `#' in variable references and
   ;; do it efficiently by anchoring the regexp to the left.
-  '(("\\${?[^}#\n\t ]*\\(##?\\)" 1 (1 . nil))))
+  `(("\\${?[^}#\n\t ]*\\(##?\\)" 1 ,sh-st-punc)
+    ;; Find HEREDOC starters and add a corresponding rule for the ender.
+    ("[^<>]<<\\(-\\)?\\s-*\\(\\(['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)"
+     4 (sh-font-lock-heredoc
+	(match-beginning 0) (match-string 2) (match-end 1)))
+    ;; Distinguish the special close-paren in `case'.
+    (")" 0 (sh-font-lock-paren (match-beginning 0)))))
 
 (defgroup sh-indentation nil
   "Variables controlling indentation in shell scripts.
@@ -1051,50 +1093,14 @@ This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
-(defface sh-heredoc-face
-  '((((class color)
-      (background dark))
-     (:foreground "yellow" :bold t))
-    (((class color)
-      (background light))
-     (:foreground "tan" ))
-    (t
-     (:bold t)))
-  "Face to show a here-document"
-  :group 'sh-indentation)
-
-(defface sh-st-face
-  '((((class color)
-      (background dark))
-     (:foreground "yellow" :bold t))
-    (((class color)
-      (background light))
-     (:foreground "tan" ))
-    (t
-     (:bold t)))
-  "Face to show characters with special syntax properties."
-  :group 'sh-indentation)
-
 
 ;; Internal use - not designed to be changed by the user:
-
-;; These are used for the syntax table stuff (derived from cperl-mode).
-;; Note: parse-sexp-lookup-properties must be set to t for it to work.
-(defconst sh-here-doc-syntax '(15))	;; generic string
-(defconst sh-st-punc '(1))
-(defconst sh-special-syntax sh-st-punc)
 
 (defun sh-mkword-regexpr (word)
   "Make a regexp which matches WORD as a word.
 This specifically excludes an occurrence of WORD followed by
 punctuation characters like '-'."
   (concat word "\\([^-a-z0-9_]\\|$\\)"))
-
-(defun sh-mkword-regexp (word)
-  "Make a regexp which matches WORD as a word.
-This specifically excludes an occurrence of WORD followed by
-or preceded by punctuation characters like '-'."
-  (concat "\\(^\\|[^-a-z0-9_]\\)" word "\\([^-a-z0-9_]\\|$\\)"))
 
 (defconst sh-re-done (sh-mkword-regexpr "done"))
 
@@ -1119,9 +1125,6 @@ or preceded by punctuation characters like '-'."
 (defconst sh-electric-rparen-needed
   '((sh . t))
   "Non-nil if the shell type needs an electric handling of case alternatives.")
-
-(defvar sh-electric-rparen-needed-here nil
-  "Non-nil if the buffer needs an electric handling of case alternatives.")
 
 (defconst sh-var-list
   '(
@@ -1257,13 +1260,13 @@ with your script for an edit-interpret-debug cycle."
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
 	font-lock-defaults
-	'((sh-font-lock-keywords
+	`((sh-font-lock-keywords
 	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
 	  nil nil
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords))
-	font-lock-unfontify-region-function
-		'sh-font-lock-unfontify-region-function
+	  (font-lock-syntactic-keywords
+	   ;; Copy so we can use destructive update in `sh-font-lock-heredoc'.
+	   . ,(copy-sequence sh-font-lock-syntactic-keywords)))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -1420,10 +1423,7 @@ Calls the value of `sh-set-shell-hook' if set."
   (if (setq sh-indent-supported-here (sh-feature sh-indent-supported))
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
-	(set (make-local-variable 'sh-electric-rparen-needed-here)
-	     (sh-feature sh-electric-rparen-needed))
 	(set (make-local-variable 'parse-sexp-lookup-properties) t)
-	(sh-scan-buffer)
 	(set (make-local-variable 'sh-kw-alist) (sh-feature sh-kw))
 	(let ((regexp (sh-feature sh-kws-for-done)))
 	  (if regexp
@@ -1923,7 +1923,8 @@ STRING	     This is ignored for the purposes of calculating
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((equal (get-text-property (point) 'syntax-table) sh-here-doc-syntax)
+       ((and (boundp 'font-lock-string-face)
+	     (equal (get-text-property (point) 'face) font-lock-string-face))
 	(setq result t)
 	(setq have-result t))
        ((looking-at "\\s-*#")		; was (equal this-kw "#")
@@ -1982,7 +1983,7 @@ STRING	     This is ignored for the purposes of calculating
 	      (cond
 	       ((and (equal x ")")
 		     (equal (get-text-property (1- (point)) 'syntax-table)
-			    sh-special-syntax))
+			    sh-st-punc))
 		(sh-debug "Case label) here")
 		(setq x 'case-label)
 		(if (setq val (sh-check-rule 2 x))
@@ -2120,13 +2121,15 @@ we go to the end of the previous line and do not check for continuations."
     (forward-comment (- (point-max)))
     (unless end (beginning-of-line))
     (when (and (not (bobp))
-	       (equal (get-text-property (1- (point)) 'syntax-table)
-		      sh-here-doc-syntax))
-      (let ((p1 (previous-single-property-change (1- (point)) 'syntax-table)))
+	       (boundp 'font-lock-string-face)
+	       (equal (get-text-property (1- (point)) 'face)
+		      font-lock-string-face))
+      (let ((p1 (previous-single-property-change (1- (point)) 'face)))
 	(when p1
 	  (goto-char p1)
-	  (forward-line -1)
-	  (if end (end-of-line)))))
+	  (if end
+	      (end-of-line)
+	    (beginning-of-line)))))
     (unless end
       ;; we must check previous lines to see if they are continuation lines
       ;; if so, we must return position of first of them
@@ -2187,8 +2190,7 @@ we go to the end of the previous line and do not check for continuations."
 	    (setq found nil))
 	(or found
 	    (sh-debug "Did not find prev stmt.")))
-      found
-      )))
+      found)))
 
 
 (defun sh-get-word ()
@@ -2283,8 +2285,7 @@ If AND-MOVE is non-nil then move to end of word."
 	(buffer-substring (point)
 			  (progn (skip-chars-forward "^ \t\n;")(point)))
       (unless and-move
-	(goto-char start)))
-    ))
+	(goto-char start)))))
 
 (defun sh-find-prev-matching (open close &optional depth)
   "Find a matching token for a set of opening and closing keywords.
@@ -2981,337 +2982,7 @@ Return values:
 		 (car (car x)))
 	;; result is nil here
 	))
-      result
-      )))
-
-
-;; The default font-lock-unfontify-region-function removes 
-;; syntax-table properties, and so removes our information.
-(defun sh-font-lock-unfontify-region-function (beg end)
-  (let* ((modified (buffer-modified-p)) (buffer-undo-list t)
-	 (inhibit-read-only t) (inhibit-point-motion-hooks t)
-	 before-change-functions after-change-functions
-	 deactivate-mark buffer-file-name buffer-file-truename)
-    (remove-text-properties beg end '(face nil))
-    (when (and (not modified) (buffer-modified-p))
-      (set-buffer-modified-p nil))))
-
-(defun sh-set-char-syntax (where new-prop)
-  "Set the character's syntax table property at WHERE to be NEW-PROP."
-  (or where
-      (setq where (point)))
-  (let ((inhibit-modification-hooks t))
-    (put-text-property where (1+ where) 'syntax-table new-prop)
-    (add-text-properties where (1+ where)
-			 '(face sh-st-face rear-nonsticky t))
-    ))
-
-
-(defun sh-check-paren-in-case ()
-  "Make syntax class of case label's right parenthesis not close parenthesis.
-If this parenthesis is a case alternative, set its syntax class to a word."
-  (let ((start (point))
-	state prev-line)
-    ;; First test if this is a possible candidate, the first "(" or ")"
-    ;; on the line;  then, if go, check prev line is ;; or case.
-    (save-excursion
-      (beginning-of-line)
-      ;; stop at comment or when depth becomes -1
-      (setq state (parse-partial-sexp (point) start -1 nil nil t))
-      (if (and
-	   (= (car state) -1)
-	   (= (point) start)
-	   (setq prev-line (sh-prev-line nil)))
-	  (progn
-	    (goto-char prev-line)
-	    (beginning-of-line)
-	    ;; (setq case-stmt-start (point))
-	    ;; (if (looking-at "\\(^\\s-*case[^-a-z0-9_]\\|[^#]*;;\\s-*$\\)")
-	    (if (sh-search-word "\\(case\\|;;\\)" start)
-		(sh-set-char-syntax (1- start) sh-special-syntax)
-	      ))))))
-
-(defun sh-electric-rparen ()
-  "Insert a right parenthesis and check if it is a case alternative.
-If so, its syntax class is set to word, and its text property
-is set to have face `sh-st-face'."
-  (interactive)
-  (insert ")")
-  (if sh-electric-rparen-needed-here
-      (sh-check-paren-in-case)))
-
-(defun sh-electric-hash ()
-  "Insert a hash, but check it is preceded by \"$\".
-If so, it is given a syntax type of comment.
-Its text property has face `sh-st-face'."
-  (interactive)
-  (let ((pos (point)))
-    (insert "#")
-    (if (eq (char-before pos) ?$)
-      (sh-set-char-syntax pos sh-st-punc))))
-
-(defun sh-electric-less (arg)
-  "Insert a \"<\" and see if this is the start of a here-document.
-If so, the syntax class is set so that it will not be automatically
-reindented.
-Argument ARG if non-nil disables this test."
-  (interactive "*P")
-  (let ((p1 (point)) p2 p3)
-    (sh-maybe-here-document arg) ;; call the original fn in sh-script.el.
-    (setq p2 (point))
-    (if (/= (+ p1 (prefix-numeric-value arg)) p2)
-	(save-excursion
-	  (forward-line 1)
-	  (end-of-line)
-	  (setq p3 (point))
-	  (sh-set-here-doc-region p2 p3))
-      )))
-
-(defun sh-set-here-doc-region (start end)
-  "Mark a here-document from START to END so that it will not be reindented."
-  (interactive "r")
-  ;; Make the whole thing have syntax type word...
-  ;; That way sexp movement doens't worry about any parentheses.
-  ;; A disadvantage of this is we can't use forward-word within a
-  ;; here-doc, which is annoying.
-  (let ((inhibit-modification-hooks t))
-    (put-text-property start end 'syntax-table sh-here-doc-syntax)
-    (put-text-property start end 'face 'sh-heredoc-face)
-    (put-text-property (1- end) end  'rear-nonsticky t)
-    (put-text-property start (1+ start)  'front-sticky t)
-    ))
-
-(defun sh-remove-our-text-properties ()
-  "Remove text properties relating to right parentheses and here documents."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let ((plist (text-properties-at (point)))
-	    (next-change
-	     (or (next-single-property-change (point) 'syntax-table
-					      (current-buffer) )
-		 (point-max))))
-	;; Process text from point to NEXT-CHANGE...
-	(if (get-text-property (point) 'syntax-table)
-	    (progn
-	      (sh-debug "-- removing props from %d to %d --"
-			 (point) next-change)
-	      (remove-text-properties (point) next-change
-				      '(syntax-table nil))
-	      (remove-text-properties (point) next-change '(face nil))
-	      ))
-	(goto-char next-change)))
-    ))
-
-;; (defun sh-search-word (word &optional limit)
-;;   "Search forward for regexp WORD occurring as a word not in string nor comment.
-;; If found, returns non nil with the match available in  \(match-string 2\).
-;; Yes 2, not 1, since we build a regexp to guard against false matches
-;; such as matching \"a-case\" when we are searching for \"case\".
-;; If not found, it returns nil.
-;; The search maybe limited by optional argument LIMIT."
-;;   (interactive "sSearch for: ")
-;;   (let ((found nil)
-;; 	;; Cannot use \\b here since it matches "-" and "_"
-;; 	(regexp (sh-mkword-regexp word))
-;; 	start state where)
-;;     (setq start (point))
-;;     (while (and (setq start (point))
-;; 		(not found)
-;; 		(re-search-forward regexp limit t))
-;;       ;; Found str;  check it is not in a comment or string.
-;;       (setq state
-;; 	    ;; Stop on comment:
-;; 	    (parse-partial-sexp start (point) nil nil nil 'syntax_table))
-;;       (if (setq where (nth 8 state))
-;; 	  ;; in comment or string
-;; 	  (if (= where -1)
-;; 	      (setq found (point))
-;; 	    (if (eq (char-after where) ?#)
-;; 		(end-of-line)
-;; 	      (goto-char where)
-;; 	      (unless (sh-safe-forward-sexp)
-;; 		;; If the above fails we must either give up or
-;; 		;; move forward and try again.
-;; 		(forward-line 1))
-;; 	      ))
-;; 	;; not in comment or string, so accept it
-;; 	(setq found (point))
-;; 	))
-;;     found
-;;     ))
-
-(defun sh-search-word (word &optional limit)
-  "Search forward for regexp WORD occurring as a word not in string nor comment.
-If found, returns non-nil, with the match available in  \(match-string 2\).
-Yes, that is 2, not 1.
-If not found, it returns nil.
-The search may be limited by optional argument LIMIT."
-  (interactive "sSearch for: ")
-  (let ((found nil)
-	start state where match)
-    (setq start (point))
-    (while (and (not found)
-		(re-search-forward word limit t))
-      (setq match (match-data))
-      ;; Found the word as a string; check it occurs as a word.
-      (when (and (or (= (match-beginning 0) (point-min))
-		     (save-excursion
-		       (goto-char (1- (match-beginning 0)))
-		       (looking-at "[^-a-z0-9_]")))
-		 (or (= (point) (point-max))
-		     (looking-at "[^-a-z0-9_]")))
-	;; Check it is not in a comment or string.
-	(setq state
-	      ;; Stop on comment:
-	      (parse-partial-sexp start (point) nil nil nil 'syntax_table))
-	(if (setq where (nth 8 state))
-	    ;; in comment or string
-	    (if (= where -1)
-		(setq found (point))
-	      (if (eq (char-after where) ?#)
-		  (end-of-line)
-		(goto-char where)
-		(unless (sh-safe-forward-sexp)
-		  ;; If the above fails we must either give up or
-		  ;; move forward and try again.
-		  (forward-line 1))))
-	  ;; not in comment or string, so accept it
-	  (setq found (point)))
-	(setq start (point))))
-    (when found
-      (set-match-data match)
-      (goto-char (1- (match-beginning 0)))
-      (looking-at (sh-mkword-regexp word))
-      (goto-char found))
-    found
-    ))
-
-
-(defun sh-scan-case ()
-  "Scan a case statement for right parens belonging to case alternatives.
-Mark each as having syntax `sh-special-syntax'.
-Called from scan-buff.  If ok, return non-nil."
-  (let (end
-	state
-	(depth 1) ;; we are called at a "case"
-	(start (point))
-	(return t))
-    ;; We enter here at a case statement
-    ;; First, find limits of the case.
-    (while (and (> depth 0)
-		(sh-search-word "\\(case\\|esac\\)"))
-      (if (equal (match-string 2) "case")
-	  (setq depth (1+ depth))
-	(setq depth (1- depth))))
-    ;; (message "end of search for esac  at %d depth=%d" (point) depth)
-    (setq end (point))
-    (goto-char start)
-    ;; if we found the esac, then fix all appropriate ')'s in the region
-    (if (zerop depth)
-	(progn
-	  (while (< (point) end)
-	    ;; search for targetdepth of -1 meaning extra right paren
-	    (setq state (parse-partial-sexp (point) end -1 nil nil nil))
-	    (if (and (= (car state) -1)
-		     (= (char-before) ?\)))
-		(progn
-		  ;; (message "At %d  state is %s" (point) state)
-		  ;; (message "Fixing %d" (point))
-		  (sh-set-char-syntax (1- (point)) sh-special-syntax)
-		  ;; we could advance to the next ";;" perhaps
-		  )
-	      ;; (message "? Not found at %d" (point)) ; ok, could be "]"
-	      ))
-	  (goto-char end))
-      (message "No matching esac for case at %d" start)
-      (setq return nil)
-      )
-    return
-    ))
-
-
-;; FIXME: This loses big time on very large files (such as CVS' sanity.sh).
-(defun sh-scan-buffer ()
-  "Scan a sh buffer for case statements and here-documents.
-
-For each case alternative found, mark its \")\" with a text property
-so that its syntax class is no longer a close parenthesis character.
-
-Each here-document is also marked so that it is effectively immune
-from indentation changes."
-  ;; Do not call this interactively, call `sh-rescan-buffer' instead.
-  (sh-must-be-shell-mode)
-  (let ((n 0)
-	(initial-buffer-modified-p (buffer-modified-p))
-	start end where label ws)
-      (save-excursion
-	(goto-char (point-min))
-	;; 1. Scan for ")" in case statements.
-	(while (and ;; (re-search-forward "^[^#]*\\bcase\\b" nil t)
-		(sh-search-word "\\(case\\|esac\\)")
-		;; (progn (message "Found a case at %d" (point)) t)
-		(sh-scan-case)))
-	;; 2. Scan for here docs
-	(goto-char (point-min))
-	;;  while (re-search-forward "<<\\(-?\\)\\(\\s-*\\)\\(.*\\)$" nil t)
-	(while (re-search-forward "<<\\(-?\\)" nil t)
-	  (unless (sh-in-comment-or-string (match-beginning 0))
-	    ;; (setq label (match-string 3))
-	    (setq label (sh-get-word))
-	    (if (string= (match-string 1) "-")
-		;; if <<- then we allow whitespace
-		(setq ws "\\s-*")
-	      ;; otherwise we don't
-	      (setq ws ""))
-	    (while (string-match "['\"\\]" label)
-	      (setq label (replace-match "" nil nil label)))
-	    (if (setq n (string-match "\\s-+$" label))
-		(setq label (substring label 0 n)))
-	    (forward-line 1)
-	    ;; the line containing the << could be continued...
-	    (while (sh-this-is-a-continuation)
-	      (forward-line 1))
-	    (setq start (point))
-	    (if (re-search-forward (concat "^" ws (regexp-quote label)
-					   "\\s-*$")
-				   nil t)
-		(sh-set-here-doc-region start (point))
-	      (sh-debug "missing here-doc delimiter `%s'" label))))
-	;; 3. Scan for $# -- make the "#" a punctuation not a comment
-	(goto-char (point-min))
-	(let (state)
-	  (while (and (not (eobp))
-		      (setq state (parse-partial-sexp
-				   (1+ (point))(point-max) nil nil nil t))
-		      (nth 4 state))
-	    (goto-char (nth 8 state))
-	    (sh-debug "At %d  %s" (point) (eq (char-before) ?$))
-	    (if (eq (char-before) ?$)
-		(sh-set-char-syntax (point) sh-st-punc) ;; not a comment!
-	      (end-of-line) ;; if this *was* a comment, ignore rest of line!
-	      )))
-	;; 4. Hide these changes from making a previously unmodified
-	;; buffer into a modified buffer.
-	(if sh-debug
-	    (if initial-buffer-modified-p
-		(message "buffer was initially modified")
-	      (message
-	       "buffer not initially modified - so clearing modified flag")))
-	(set-buffer-modified-p initial-buffer-modified-p)
-	)))
-
-(defun sh-rescan-buffer ()
-  "Rescan the buffer for case alternative parentheses and here documents."
-  (interactive)
-  (if (eq major-mode 'sh-mode)
-      (let ((inhibit-read-only t))
-	(sh-remove-our-text-properties)
-	(message "Re-scanning buffer...")
-	(sh-scan-buffer)
-	(message "Re-scanning buffer...done")
-	)))
+      result)))
 
 ;; ========================================================================
 
