@@ -1080,7 +1080,7 @@ ask you to edit the replacement string in the minibuffer, putting
 point where the @samp{\?} was.  For example,
 
 @example
-M-x replace-regexp @key{RET} \footnote@{ @key{RET}
+M-x replace-regexp @key{RET} \\footnote@{ @key{RET}
 \&\\label@{fn:\#\?@} @key{RET}
 @end example
 
