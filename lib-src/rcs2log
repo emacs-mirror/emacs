@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
 
-Id='$Id: rcs2log,v 1.40 1997/05/11 20:02:32 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.41 1997/05/13 22:44:08 eggert Exp eggert $'
 
 # Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -522,11 +522,12 @@ $AWK <$rlogout '
 	}
 	/^Working file:/ { if (repository == "") filename = $3 }
 	/'"$rlog_revision_pattern"'/, /^(-----------*|===========*)$/ {
-		if ($0 ~ /'"$rlog_revision_pattern"'/) {
+		line = $0
+		if (line ~ /'"$rlog_revision_pattern"'/) {
 			rev = $2
 			next
 		}
-		if ($0 ~ /^date: [0-9][- +\/0-9:]*;/) {
+		if (line ~ /^date: [0-9][- +\/0-9:]*;/) {
 			date = $2
 			if (date ~ /\//) {
 				# This is a traditional RCS format date YYYY/MM/DD.
@@ -544,12 +545,12 @@ $AWK <$rlogout '
 			rev = "?"
 			next
 		}
-		if ($0 ~ /^branches: /) { next }
-		if ($0 ~ /^(-----------*|===========*)$/) { print ""; next }
-		if ($0 == "Initial revision" || $0 ~ /^file .+ was initially added on branch .+\.$/) {
-			$0 = "New file."
-        }
-		printf "%s%c", $0, 1
+		if (line ~ /^branches: /) { next }
+		if (line ~ /^(-----------*|===========*)$/) { print ""; next }
+		if (line == "Initial revision" || line ~ /^file .+ was initially added on branch .+\.$/) {
+			line = "New file."
+		}
+		printf "%s%c", line, 1
 	}
 ' |
 
