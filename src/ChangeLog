@@ -1,5 +1,8 @@
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* sound.c (vox_configure): Set volume for left and right channel.
+	(sound_cleanup): Return nil.
+
 	* xdisp.c (move_it_by_lines): Fix paren typo.
 
 	* xterm.c (x_load_font): Don't use the font's max_bounds for
