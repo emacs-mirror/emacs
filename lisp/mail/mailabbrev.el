@@ -1,6 +1,7 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>, now <jwz@jwz.org>
 ;; Maintainer: FSF
@@ -49,7 +50,7 @@
 ;; If auto-fill mode is on, abbrevs will wrap at commas instead of at word
 ;; boundaries; also, header continuation-lines will be properly indented.
 ;;
-;; You can also insert a mail alias with mail-interactive-insert-alias
+;; You can also insert a mail alias with mail-abbrev-insert-alias
 ;; (bound to C-c C-a), which prompts you for an alias (with completion)
 ;; and inserts its expansion at point.
 ;;
@@ -554,7 +555,7 @@ of a mail alias.")
   (setq mail-abbrevs nil)
   (build-mail-abbrevs file))
 
-(defun mail-interactive-insert-alias (&optional alias)
+(defun mail-abbrev-insert-alias (&optional alias)
   "Prompt for and insert a mail alias."
   (interactive (progn
 		(if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
@@ -562,6 +563,34 @@ of a mail alias.")
   (if (not (vectorp mail-abbrevs)) (mail-abbrevs-setup))
   (insert (or (and alias (symbol-value (intern-soft alias mail-abbrevs))) ""))
   (mail-abbrev-expand-hook))
+
+(defun mail-abbrev-complete-alias ()
+  "Perform completion on alias preceding point."
+  ;; Based on lisp.el:lisp-complete-symbol
+  (interactive)
+  (let* ((end (point))
+	 (syntax-table (syntax-table))
+	 (beg (unwind-protect
+		  (save-excursion
+		    (set-syntax-table mail-abbrev-syntax-table)
+		    (backward-word 1)
+		    (point))
+		(set-syntax-table syntax-table)))
+	 (alias (buffer-substring beg end))
+	 (completion (try-completion alias mail-abbrevs)))
+    (cond ((eq completion t)
+	   (message "%s" alias))	; confirm
+	  ((null completion)
+	   (error "[Can't complete \"%s\"]" alias)) ; (message ...) (ding)
+	  ((not (string= completion alias))
+	   (delete-region beg end)
+	   (insert completion))
+	  (t (with-output-to-temp-buffer "*Completions*"
+	       (display-completion-list
+		(prog2
+		    (message "Making completion list...")
+		    (all-completions alias mail-abbrevs)
+		  (message "Making completion list...done"))))))))
 
 (defun mail-abbrev-next-line (&optional arg)
   "Expand any mail abbrev, then move cursor vertically down ARG lines.
@@ -597,7 +626,9 @@ Don't use this command in Lisp programs!
   (setq this-command 'end-of-buffer)
   (end-of-buffer arg))
 
-(define-key mail-mode-map "\C-c\C-a" 'mail-interactive-insert-alias)
+(define-key mail-mode-map "\C-c\C-a" 'mail-abbrev-insert-alias)
+(define-key mail-mode-map "\e\t"	; like lisp-complete-symbol
+  'mail-abbrev-complete-alias) 
 
 ;;(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
 ;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
