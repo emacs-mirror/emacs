@@ -789,11 +789,18 @@ case "${canonical}" in
     machine=i386 opsys=usg5-3
   ;;
 
-  ## Sequent Symmetry
+  ## Sequent Symmetry running Dynix
   i[345]86-sequent-bsd* )
     machine=symmetry opsys=bsd4-3
   ;;
 
+  ## Sequent Symmetry running DYNIX/ptx
+  ## Use the old cpp rather than the newer ANSI one.
+  i[345]86-sequent-ptx* )
+    machine=sequent-ptx opsys=ptx
+    NON_GNU_CPP="/lib/cpp"
+  ;;
+ 
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
   ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
   i[345]86-ncr-sysv* )
