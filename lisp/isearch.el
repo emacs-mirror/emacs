@@ -1312,6 +1312,11 @@ If there is no completion possible, say so and continue searching."
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
   (let ((m (concat (if isearch-success "" "failing ")
+		   (if (and isearch-wrapped
+			    (if isearch-forward
+				(> (point) isearch-opoint)
+			      (< (point) isearch-opoint)))
+		       "over")
 		   (if isearch-wrapped "wrapped ")
 		   (if isearch-word "word " "")
 		   (if isearch-regexp "regexp " "")
