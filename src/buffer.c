@@ -1861,7 +1861,7 @@ buffer.")
 	}
 
       /* Redisplay where the overlay is going to be.  */
-      redisplay_region (ob, beg, end);
+      redisplay_region (ob, XINT (beg), XINT (end));
 
       /* Don't limit redisplay to the selected window.  */
       windows_or_buffers_changed = 1;
