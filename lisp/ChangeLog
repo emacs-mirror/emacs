@@ -1,3 +1,8 @@
+2002-05-04  Thomas Link <t.link@gmx.at>
+
+	* filesets.el (filesets-ingroup-collect-files):
+	Fix problem with inclusion groups' :scan-depth property.
+
 2002-05-04  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-kill-filter-group): Test for killing
