@@ -1424,7 +1424,13 @@ With argument, insert value in current buffer after the form."
 	      (insert "\n")
 	      (setq position
 		    (byte-compile-output-as-comment
-		     (nth (nth 1 info) form) nil))))
+		     (nth (nth 1 info) form) nil))
+	      ;; If the doc string starts with * (a user variable),
+	      ;; negate POSITION.
+	      (if (and (stringp (nth (nth 1 info) form))
+		       (> (length (nth (nth 1 info) form)) 0)
+		       (eq (aref (nth (nth 1 info) form) 0) ?*))
+		  (setq position (- position)))))
 
        (if preface
 	   (progn
