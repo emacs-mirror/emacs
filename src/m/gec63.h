@@ -58,8 +58,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define TERMINFO
 
 /* Define sizes of portions of a Lisp_Object.  */
-#define VALBITS 22
-#define GCTYPEBITS 5
+#define VALBITS 24
 
 #define VALAMASK (((1<<VALBITS) - 1)| 0xF0000000L)
 
@@ -73,6 +72,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Move some garbage-collector flag bits to different bit positions.  */
 #define ARRAY_MARK_FLAG (1 << 27)
-#define DONT_COPY_FLAG (1 << 26)
 
 #define NO_REMAP

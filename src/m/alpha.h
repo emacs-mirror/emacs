@@ -168,9 +168,9 @@ NOTE-END
 
 #define PNTR_COMPARISON_TYPE unsigned long
 
-/* On the 64 bit architecture, we can use 56 bits for addresses */
+/* On the 64 bit architecture, we can use 60 bits for addresses */
 
-#define VALBITS         56
+#define VALBITS         60
 
 
 /* This definition of MARKBIT is necessary because of the comparison of
