@@ -255,6 +255,12 @@ The value is never nil.")
 
   b = (struct buffer *) xmalloc (sizeof (struct buffer));
 
+  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+
+  /* An ordinary buffer uses its own struct buffer_text.  */
+  b->text = &b->own_text;
+  b->base_buffer = 0;
+
   BUF_GAP_SIZE (b) = 20;
   BLOCK_INPUT;
   BUFFER_ALLOC (BUF_BEG_ADDR (b), BUF_GAP_SIZE (b));
@@ -268,6 +274,8 @@ The value is never nil.")
   BUF_ZV (b) = 1;
   BUF_Z (b) = 1;
   BUF_MODIFF (b) = 1;
+  BUF_SAVE_MODIFF (b) = 1;
+  BUF_INTERVALS (b) = 0;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -277,8 +285,11 @@ The value is never nil.")
   b->next = all_buffers;
   all_buffers = b;
 
-  b->mark = Fmake_marker ();
-  /*b->number = make_number (++buffer_count);*/
+  /* An ordinary buffer normally doesn't need markers
+     to handle BEGV and ZV.  */
+  b->pt_marker = Qnil;
+  b->begv_marker = Qnil;
+  b->zv_marker = Qnil;
 
   name = Fcopy_sequence (name);
   INITIALIZE_INTERVAL (XSTRING (name), NULL_INTERVAL);
@@ -297,8 +308,97 @@ The value is never nil.")
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
   b->mark = Fmake_marker ();
-  b->markers = Qnil;
+  BUF_MARKERS (b) = Qnil;
   b->name = name;
+  return buf;
+}
+
+DEFUN ("make-indirect-buffer",
+       Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
+       "BMake indirect buffer: \nbIndirect to base buffer: ",
+  "Create and return an indirect buffer named NAME, with base buffer BASE.\n\
+BASE should be an existing buffer (or buffer name).")
+  (name, base_buffer)
+     register Lisp_Object name, base_buffer;
+{
+  register Lisp_Object buf;
+  register struct buffer *b;
+
+  buf = Fget_buffer (name);
+  if (!NILP (buf))
+    error ("Buffer name `%s' is in use", XSTRING (name)->data);
+
+  base_buffer = Fget_buffer (base_buffer);
+  if (NILP (base_buffer))
+    error ("No such buffer: `%s'",
+	   XSTRING (XBUFFER (base_buffer)->name)->data);
+
+  if (XSTRING (name)->size == 0)
+    error ("Empty string for buffer name is not allowed");
+
+  b = (struct buffer *) xmalloc (sizeof (struct buffer));
+
+  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+
+  if (XBUFFER (base_buffer)->base_buffer)
+    b->base_buffer = XBUFFER (base_buffer)->base_buffer;
+  else
+    b->base_buffer = XBUFFER (base_buffer);
+
+  /* Use the base buffer's text object.  */
+  b->text = b->base_buffer->text;
+
+  BUF_BEGV (b) = BUF_BEGV (b->base_buffer);
+  BUF_ZV (b) = BUF_ZV (b->base_buffer);
+  BUF_PT (b) = BUF_PT (b->base_buffer);
+
+  b->newline_cache = 0;
+  b->width_run_cache = 0;
+  b->width_table = Qnil;
+
+  /* Put this on the chain of all buffers including killed ones.  */
+  b->next = all_buffers;
+  all_buffers = b;
+
+  name = Fcopy_sequence (name);
+  INITIALIZE_INTERVAL (XSTRING (name), NULL_INTERVAL);
+  b->name = name;
+
+  reset_buffer (b);
+  reset_buffer_local_variables (b);
+
+  /* Put this in the alist of all live buffers.  */
+  XSETBUFFER (buf, b);
+  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+
+  b->mark = Fmake_marker ();
+  b->name = name;
+
+  /* Make sure the base buffer has markers for its narrowing.  */
+  if (NILP (b->base_buffer->pt_marker))
+    {
+      b->base_buffer->pt_marker = Fmake_marker ();
+      Fset_marker (b->base_buffer->pt_marker,
+		   make_number (BUF_PT (b->base_buffer)), base_buffer);
+    }
+  if (NILP (b->base_buffer->begv_marker))
+    {
+      b->base_buffer->begv_marker = Fmake_marker ();
+      Fset_marker (b->base_buffer->begv_marker,
+		   make_number (BUF_BEGV (b->base_buffer)), base_buffer);
+    }
+  if (NILP (b->base_buffer->zv_marker))
+    {
+      b->base_buffer->zv_marker = Fmake_marker ();
+      Fset_marker (b->base_buffer->zv_marker,
+		   make_number (BUF_ZV (b->base_buffer)), base_buffer);
+    }
+
+  /* Give the indirect buffer markers for its narrowing.  */
+  b->pt_marker = Fpoint_marker ();
+  b->begv_marker = Fpoint_min_marker ();
+  b->zv_marker = Fpoint_max_marker ();
+
   return buf;
 }
 
@@ -312,7 +412,6 @@ reset_buffer (b)
   b->filename = Qnil;
   b->directory = (current_buffer) ? current_buffer->directory : Qnil;
   b->modtime = 0;
-  b->save_modified = 1;
   XSETFASTINT (b->save_length, 0);
   b->last_window_start = 1;
   b->backed_up = Qnil;
@@ -324,9 +423,6 @@ reset_buffer (b)
   b->overlays_after = Qnil;
   XSETFASTINT (b->overlay_center, 1);
   b->mark_active = Qnil;
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  INITIALIZE_INTERVAL (b, NULL_INTERVAL);
 }
 
 /* Reset buffer B's local variables info.
@@ -352,6 +448,7 @@ reset_buffer_local_variables (b)
   b->upcase_table = Vascii_upcase_table;
   b->case_canon_table = Vascii_canon_table;
   b->case_eqv_table = Vascii_eqv_table;
+  b->buffer_file_type = Qnil;
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
@@ -438,6 +535,30 @@ No argument or nil as argument means use the current buffer.")
     return current_buffer->filename;
   CHECK_BUFFER (buffer, 0);
   return XBUFFER (buffer)->filename;
+}
+
+DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
+       0, 1, 0,
+  "Return the base buffer of indirect buffer BUFFER.\n\
+If BUFFER is not indirect, return nil.")
+  (buffer)
+     register Lisp_Object buffer;
+{
+  struct buffer *base;
+  Lisp_Object base_buffer;
+
+  if (NILP (buffer))
+    base = current_buffer->base_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer, 0);
+      base = XBUFFER (buffer)->base_buffer;
+    }
+
+  if (! base)
+    return Qnil;
+  XSETBUFFER (base_buffer, base);
+  return base_buffer;
 }
 
 DEFUN ("buffer-local-variables", Fbuffer_local_variables,
@@ -529,7 +650,7 @@ No argument or nil as argument means use current buffer as BUFFER.")
       buf = XBUFFER (buffer);
     }
 
-  return buf->save_modified < BUF_MODIFF (buf) ? Qt : Qnil;
+  return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
 DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
@@ -549,7 +670,7 @@ A non-nil FLAG means mark the buffer modified.")
   fn = current_buffer->filename;
   if (!NILP (fn))
     {
-      already = current_buffer->save_modified < MODIFF;
+      already = SAVE_MODIFF < MODIFF;
       if (!already && !NILP (flag))
 	lock_file (fn);
       else if (already && NILP (flag))
@@ -557,7 +678,7 @@ A non-nil FLAG means mark the buffer modified.")
     }
 #endif /* CLASH_DETECTION */
 
-  current_buffer->save_modified = NILP (flag) ? MODIFF : 0;
+  SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
   update_mode_lines++;
   return flag;
 }
@@ -762,7 +883,7 @@ with `delete-process'.")
 
   /* Query if the buffer is still modified.  */
   if (INTERACTIVE && !NILP (b->filename)
-      && BUF_MODIFF (b) > b->save_modified)
+      && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
     {
       GCPRO2 (buf, bufname);
       tem = do_yes_or_no_p (format1 ("Buffer %s modified; kill anyway? ",
@@ -807,6 +928,26 @@ with `delete-process'.")
   if (NILP (b->name))
     return Qnil;
 
+  /* When we kill a base buffer, kill all its indirect buffers.
+     We do it at this stage so nothing terrible happens if they
+     ask questions or their hooks get errors.  */
+  if (! b->base_buffer)
+    {
+      struct buffer *other;
+
+      GCPRO1 (buf);
+
+      for (other = all_buffers; other; other = other->next)
+	if (other->base_buffer == b)
+	  {
+	    Lisp_Object buf;
+	    XSETBUFFER (buf, other);
+	    Fkill_buffer (buf);
+	  }
+
+      UNGCPRO;
+    }
+  
   /* Make this buffer not be current.
      In the process, notice if this is the sole visible buffer
      and give up if so.  */
@@ -843,24 +984,32 @@ with `delete-process'.")
 	internal_delete_file (b->auto_save_file_name);
     }
 
-  /* Unchain all markers of this buffer
-     and leave them pointing nowhere.  */
-  for (tem = b->markers; !EQ (tem, Qnil); )
+  if (! b->base_buffer)
     {
-      m = XMARKER (tem);
-      m->buffer = 0;
-      tem = m->chain;
-      m->chain = Qnil;
-    }
-  b->markers = Qnil;
+      /* Unchain all markers of this buffer
+	 and leave them pointing nowhere.  */
+      for (tem = BUF_MARKERS (b); !EQ (tem, Qnil); )
+	{
+	  m = XMARKER (tem);
+	  m->buffer = 0;
+	  tem = m->chain;
+	  m->chain = Qnil;
+	}
+      BUF_MARKERS (b) = Qnil;
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  INITIALIZE_INTERVAL (b, NULL_INTERVAL);
-  /* Perhaps we should explicitly free the interval tree here... */
+#ifdef USE_TEXT_PROPERTIES
+      BUF_INTERVALS (b) = NULL_INTERVAL;
+#endif
+
+      /* Perhaps we should explicitly free the interval tree here... */
+    }
 
   b->name = Qnil;
+
   BLOCK_INPUT;
-  BUFFER_FREE (BUF_BEG_ADDR (b));
+  if (! b->base_buffer)
+    BUFFER_FREE (BUF_BEG_ADDR (b));
+
   if (b->newline_cache)
     {
       free_region_cache (b->newline_cache);
@@ -1029,6 +1178,49 @@ set_buffer_internal (b)
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
 
+  if (old_buf)
+    {
+      /* Put the undo list back in the base buffer, so that it appears
+	 that an indirect buffer shares the undo list of its base.  */
+      if (old_buf->base_buffer)
+	old_buf->base_buffer->undo_list = old_buf->undo_list;
+
+      /* If the old current buffer has markers to record PT, BEGV and ZV
+	 when it is not current, update them now.  */
+      if (! NILP (old_buf->pt_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->pt_marker, BUF_PT (old_buf), obuf);
+	}
+      if (! NILP (old_buf->begv_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->begv_marker, BUF_BEGV (old_buf), obuf);
+	}
+      if (! NILP (old_buf->zv_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->zv_marker, BUF_ZV (old_buf), obuf);
+	}
+    }
+
+  /* Get the undo list from the base buffer, so that it appears
+     that an indirect buffer shares the undo list of its base.  */
+  if (b->base_buffer)
+    b->undo_list = b->base_buffer->undo_list;
+
+  /* If the new current buffer has markers to record PT, BEGV and ZV
+     when it is not current, fetch them now.  */
+  if (! NILP (b->pt_marker))
+    BUF_PT (b) = marker_position (b->pt_marker);
+  if (! NILP (b->begv_marker))
+    BUF_BEGV (b) = marker_position (b->begv_marker);
+  if (! NILP (b->zv_marker))
+    BUF_ZV (b) = marker_position (b->zv_marker);
+
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
 
@@ -1058,6 +1250,55 @@ set_buffer_internal (b)
                to cause it to become set for this buffer.  */
 	  Fsymbol_value (XCONS (XCONS (tail)->car)->car);
       }
+}
+
+/* Switch to buffer B temporarily for redisplay purposes.
+   This avoids certain things thatdon't need to be done within redisplay.  */
+
+void
+set_buffer_temp (b)
+     struct buffer *b;
+{
+  register struct buffer *old_buf;
+
+  if (current_buffer == b)
+    return;
+
+  old_buf = current_buffer;
+  current_buffer = b;
+
+  if (old_buf)
+    {
+      /* If the old current buffer has markers to record PT, BEGV and ZV
+	 when it is not current, update them now.  */
+      if (! NILP (old_buf->pt_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->pt_marker, BUF_PT (old_buf), obuf);
+	}
+      if (! NILP (old_buf->begv_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->begv_marker, BUF_BEGV (old_buf), obuf);
+	}
+      if (! NILP (old_buf->zv_marker))
+	{
+	  Lisp_Object obuf;
+	  XSETBUFFER (obuf, old_buf);
+	  Fset_marker (old_buf->zv_marker, BUF_ZV (old_buf), obuf);
+	}
+    }
+
+  /* If the new current buffer has markers to record PT, BEGV and ZV
+     when it is not current, fetch them now.  */
+  if (! NILP (b->pt_marker))
+    BUF_PT (b) = marker_position (b->pt_marker);
+  if (! NILP (b->begv_marker))
+    BUF_BEGV (b) = marker_position (b->begv_marker);
+  if (! NILP (b->zv_marker))
+    BUF_ZV (b) = marker_position (b->zv_marker);
 }
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
@@ -1207,7 +1448,7 @@ list_buffers_1 (files)
 	XSETFASTINT (desired_point, PT);
       write_string (b == old ? "." : " ", -1);
       /* Identify modified buffers */
-      write_string (BUF_MODIFF (b) > b->save_modified ? "*" : " ", -1);
+      write_string (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b) ? "*" : " ", -1);
       /* The current buffer is special-cased to be marked read-only.
 	 It is actually made read-only by the call to
 	 Buffer-menu-mode, below. */
@@ -2540,6 +2781,13 @@ init_buffer_once ()
   reset_buffer_local_variables (&buffer_defaults);
   reset_buffer (&buffer_local_symbols);
   reset_buffer_local_variables (&buffer_local_symbols);
+  /* Prevent GC from getting confused.  */
+  buffer_defaults.text = &buffer_defaults.own_text;
+  buffer_local_symbols.text = &buffer_local_symbols.own_text;
+#ifdef USE_TEXT_PROPERTIES
+  BUF_INTERVALS (&buffer_defaults) = 0;
+  BUF_INTERVALS (&buffer_local_symbols) = 0;
+#endif
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
@@ -3124,10 +3372,12 @@ is a member of the list.");
   defsubr (&Sget_buffer);
   defsubr (&Sget_file_buffer);
   defsubr (&Sget_buffer_create);
+  defsubr (&Smake_indirect_buffer);
   defsubr (&Sgenerate_new_buffer_name);
   defsubr (&Sbuffer_name);
 /*defsubr (&Sbuffer_number);*/
   defsubr (&Sbuffer_file_name);
+  defsubr (&Sbuffer_base_buffer);
   defsubr (&Sbuffer_local_variables);
   defsubr (&Sbuffer_modified_p);
   defsubr (&Sset_buffer_modified_p);
