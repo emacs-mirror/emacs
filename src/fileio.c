@@ -3860,9 +3860,32 @@ to the file, instead of any buffer contents, and END is ignored.")
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (NILP (current_buffer->enable_multibyte_characters))
-      val = (NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil))
-	     ? Qnil
-	     : Fsymbol_value (Qbuffer_file_coding_system));
+      {
+	/* If the variable `buffer-file-coding-system' is set locally,
+	   it means that the file was read with some kind of code
+	   conversion or the varialbe is explicitely set by users.  We
+	   had better write it out with the same coding system even if
+	   `enable-multibyte-characters' is nil.
+
+	   If is is not set locally, we anyway have to convert EOL
+	   format if the default value of `buffer-file-coding-system'
+	   tells that it is not Unix-like (LF only) format.  */
+	val = current_buffer->buffer_file_coding_system;
+	if (NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
+	  {
+	    struct coding_system coding_temp;
+
+	    setup_coding_system (Fcheck_coding_system (val), &coding_temp);
+	    if (coding_temp.eol_type == CODING_EOL_CRLF
+		|| coding_temp.eol_type == CODING_EOL_CR)
+	      {
+		setup_coding_system (Qemacs_mule, &coding);
+		coding.eol_type = coding_temp.eol_type;
+		goto done_setup_coding;
+	      }
+	    val = Qnil;
+	  }
+      }
     else
       {
 	Lisp_Object args[7], coding_systems;
@@ -3876,6 +3899,8 @@ to the file, instead of any buffer contents, and END is ignored.")
 	       : current_buffer->buffer_file_coding_system);
       }
     setup_coding_system (Fcheck_coding_system (val), &coding); 
+
+  done_setup_coding:
     if (!STRINGP (start) && !NILP (current_buffer->selective_display))
       coding.selective = 1;
   }
@@ -4920,7 +4945,7 @@ DIR defaults to current buffer's directory default.")
   GCPRO2 (insdef, default_filename);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch, insdef1,
-			  Qfile_name_history, default_filename);
+			  Qfile_name_history, default_filename, Qnil);
   /* If Fcompleting_read returned the default string itself
      (rather than a new string with the same contents),
      it has to mean that the user typed RET with the minibuffer empty.
@@ -4995,7 +5020,7 @@ DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch,
 			  insert_default_directory ? insdef : Qnil,
-			  Qfile_name_history, Qnil);
+			  Qfile_name_history, Qnil, Qnil);
 
 #ifdef VMS
   unbind_to (count, Qnil);
