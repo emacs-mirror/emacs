@@ -1,5 +1,9 @@
 2001-04-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* process.c (wait_reading_process_input): Call
+	record_asynch_buffer_change only if a timer really changed
+	buffers.
+
 	* buffer.c (mouse_face_overlay_overlaps): Fix the computation
 	of the number of overlays to check.
 
