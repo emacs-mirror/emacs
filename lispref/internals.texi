@@ -400,7 +400,7 @@ appearance.)
 @smallexample
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
-  "Eval args until one of them yields non-nil, then return that value.\n\
+  "Eval args until one of them yields non-nil; return that value.\n\
 The remaining args are not evalled at all.\n\
 @end group
 @group

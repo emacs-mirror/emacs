@@ -259,7 +259,7 @@ Here is the complete function definition for it:
 @smallexample
 @group
 (defun split-window-vertically (&optional arg)
-  "Split current window into two windows, one above the other."
+  "Split current window into two windows, @dots{}"
   (interactive "P")
   (split-window nil (and arg (prefix-numeric-value arg))))
 @end group

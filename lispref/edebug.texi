@@ -452,7 +452,7 @@ Set a conditional breakpoint which stops the program only if
 breakpoint is temporary.
 
 @item B
-Move point to the next breakpoint in the definition
+Move point to the next breakpoint in the current definition
 (@code{edebug-next-breakpoint}).
 @end table
 
@@ -505,9 +505,9 @@ evaluating the condition gets an error, execution does not stop.
 
 @findex edebug-set-global-break-condition
 @vindex edebug-global-break-condition
-  You can set or edit the condition expression, stored in
-@code{edebug-global-break-condition}, using the @kbd{X} command
-(@code{edebug-set-global-break-condition}).
+  The condition expression is stored in
+@code{edebug-global-break-condition}.  You can specify a new expression
+using the @kbd{X} command (@code{edebug-set-global-break-condition}).
 
   The global break condition is the simplest way to find where in your
 code some event occurs, but it makes code run much more slowly.  So you

@@ -53,7 +53,8 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @xref{Read Only Buffers}.
 
 @item cyclic-function-indirection
-@code{"Symbol's chain of function indirections contains a loop"}@*
+@code{"Symbol's chain of function indirections contains a@*
+loop"}@*
 @xref{Function Indirection}.
 
 @item end-of-buffer

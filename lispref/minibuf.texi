@@ -861,9 +861,9 @@ Command name?
 If the user types @kbd{forward-c @key{RET}}, then this function returns
 @code{forward-char}.
 
-The @code{read-command} function is a simplified interface to the
-function @code{completing-read}.  It uses the variable @code{obarray} so
-as to complete in the set of extant Lisp symbols, and it uses the
+The @code{read-command} function is a simplified interface to
+@code{completing-read}.  It uses the variable @code{obarray} so as to
+complete in the set of extant Lisp symbols, and it uses the
 @code{commandp} predicate so as to accept only command names:
 
 @cindex @code{commandp} example

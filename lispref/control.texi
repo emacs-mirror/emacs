@@ -821,10 +821,10 @@ that are being exited and executes the cleanups of all
 @code{unwind-protect} forms that are exited.  Once control arrives at
 the handler, the body of the handler is executed.
 
-  After execution of the handler body, execution continues by returning
-from the @code{condition-case} form.  Because the protected form is
-exited completely before execution of the handler, the handler cannot
-resume execution at the point of the error, nor can it examine variable
+  After execution of the handler body, execution returns from the
+@code{condition-case} form.  Because the protected form is exited
+completely before execution of the handler, the handler cannot resume
+execution at the point of the error, nor can it examine variable
 bindings that were made within the protected form.  All it can do is
 clean up and proceed.
 

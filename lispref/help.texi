@@ -213,7 +213,7 @@ but provides more information.
 
 ---------- Buffer: *Help* ----------
 goal-column     Option 
-*Semipermanent goal column for vertical motion, as set by C-x C-n, or nil.
+*Semipermanent goal column for vertical motion, as set by @dots{}
 @end group
 @c Do not blithely break or fill these lines.
 @c That makes them incorrect.

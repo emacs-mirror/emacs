@@ -370,8 +370,9 @@ is a grouping construct that serves three purposes:
 
 @enumerate
 @item
-To enclose a set of @samp{\|} alternatives for other operations.
-Thus, @samp{\(foo\|bar\)x} matches either @samp{foox} or @samp{barx}.
+To enclose a set of @samp{\|} alternatives for other operations.  Thus,
+the regular expression @samp{\(foo\|bar\)x} matches either @samp{foox}
+or @samp{barx}.
 
 @item
 To enclose an expression for a suffix operator such as @samp{*} to act

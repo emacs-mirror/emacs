@@ -553,13 +553,13 @@ part of the prompt.
 @end deffn
 
 @defun interactive-p
-This function returns @code{t} if the containing function (the one that
-called @code{interactive-p}) was called interactively, with the function
-@code{call-interactively}.  (It makes no difference whether
-@code{call-interactively} was called from Lisp or directly from the
-editor command loop.)  If the containing function was called by Lisp
-evaluation (or with @code{apply} or @code{funcall}), then it was not
-called interactively.
+This function returns @code{t} if the containing function (the one whose
+code includes the call to @code{interactive-p}) was called
+interactively, with the function @code{call-interactively}.  (It makes
+no difference whether @code{call-interactively} was called from Lisp or
+directly from the editor command loop.)  If the containing function was
+called by Lisp evaluation (or with @code{apply} or @code{funcall}), then
+it was not called interactively.
 
 The most common use of @code{interactive-p} is for deciding whether to
 print an informative message.  As a special exception,
@@ -2187,8 +2187,8 @@ returned.
 
 @defvar current-prefix-arg
 This variable holds the raw prefix argument for the @emph{current}
-command.  Commands may examine it directly, but the usual way to access
-it is with @code{(interactive "P")}.
+command.  Commands may examine it directly, but the usual method for
+accessing it is with @code{(interactive "P")}.
 @end defvar
 
 @defvar prefix-arg
@@ -2197,9 +2197,9 @@ The value of this variable is the raw prefix argument for the
 the following command work by setting this variable.
 @end defvar
 
-  Do not call the functions @code{universal-argument},
-@code{digit-argument}, or @code{negative-argument} unless you intend to
-let the user enter the prefix argument for the @emph{next} command.
+  Do not call @code{universal-argument}, @code{digit-argument}, or
+@code{negative-argument} unless you intend to let the user enter the
+prefix argument for the @emph{next} command.
 
 @deffn Command universal-argument
 This command reads input and specifies a prefix argument for the

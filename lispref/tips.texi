@@ -450,11 +450,11 @@ single-quotes for those symbols.)
 @item
 Don't write key sequences directly in documentation strings.  Instead,
 use the @samp{\\[@dots{}]} construct to stand for them.  For example,
-instead of writing @samp{C-f}, write @samp{\\[forward-char]}.  When
-Emacs displays the documentation string, it substitutes whatever key is
-currently bound to @code{forward-char}.  (This is normally @samp{C-f},
-but it may be some other character if the user has moved key bindings.)
-@xref{Keys in Documentation}.
+instead of writing @samp{C-f}, write the construct
+@samp{\\[forward-char]}.  When Emacs displays the documentation string,
+it substitutes whatever key is currently bound to @code{forward-char}.
+(This is normally @samp{C-f}, but it may be some other character if the
+user has moved key bindings.)  @xref{Keys in Documentation}.
 
 @item
 In documentation strings for a major mode, you will want to refer to the

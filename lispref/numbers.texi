@@ -103,8 +103,8 @@ complement} notation.)
 1111  1111 1111  1111 1111  1111 1011
 @end example
 
-  In this implementation, the largest 28-bit binary integer is the
-decimal integer 134,217,727.  In binary, it looks like this:
+  In this implementation, the largest 28-bit binary integer value is
+134,217,727 in decimal.  In binary, it looks like this:
 
 @example
 0111  1111 1111  1111 1111  1111 1111

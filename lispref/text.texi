@@ -1183,7 +1183,7 @@ paragraphs are removed.  This function justifies as well as filling when
 
 In an interactive call, any prefix argument requests justification.
 
-In Adaptive Fill mode, which is enabled by default,
+In Adaptive Fill mode, which is enabled by default, calling the function
 @code{fill-region-as-paragraph} on an indented paragraph when there is
 no fill prefix uses the indentation of the second line of the paragraph
 as the fill prefix.
@@ -1200,7 +1200,7 @@ of justification.  It can be @code{left}, @code{right}, @code{full},
 follow specified justification style (see @code{current-justification},
 below).  @code{nil} means to do full justification.
 
-If @var{eop} is non-@code{nil}, that means do left-justification when
+If @var{eop} is non-@code{nil}, that means do left-justification if
 @code{current-justification} specifies full justification.  This is used
 for the last line of a paragraph; even if the paragraph as a whole is
 fully justified, the last line should not be.

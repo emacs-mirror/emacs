@@ -474,7 +474,7 @@ the definition for @code{run-prolog} includes the following code:
 
 @smallexample
 (defun run-prolog ()
-  "Run an inferior Prolog process, input and output via buffer *prolog*."
+  "Run an inferior Prolog process, with I/O via buffer *prolog*."
   (interactive)
   (require 'comint)
   (switch-to-buffer (make-comint "prolog" prolog-program-name))

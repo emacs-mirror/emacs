@@ -94,9 +94,9 @@ the @code{byte-compile} function.  You can compile a whole file with
 @code{byte-compile-file}, or several files with
 @code{byte-recompile-directory} or @code{batch-byte-compile}.
 
-  When you run the byte compiler, you may get warnings in a buffer
-called @samp{*Compile-Log*}.  These report things in your program that
-suggest a problem but are not necessarily erroneous.
+  The byte compiler produces error messages and warnings about each file
+in a buffer called @samp{*Compile-Log*}.  These report things in your
+program that suggest a problem but are not necessarily erroneous.
 
 @cindex macro compilation
   Be careful when byte-compiling code that uses macros.  Macro calls are

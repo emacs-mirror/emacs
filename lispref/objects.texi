@@ -1158,9 +1158,10 @@ uniquely).
 sizes, and contents of the windows in a frame, so you can recreate the
 same arrangement of windows later.
 
-  Window configurations do not have a read syntax.  They print as
-@samp{#<window-configuration>}.  @xref{Window Configurations}, for a
-description of several functions related to window configurations.
+  Window configurations do not have a read syntax; their print syntax
+looks like @samp{#<window-configuration>}.  @xref{Window
+Configurations}, for a description of several functions related to
+window configurations.
 
 @node Process Type
 @subsection Process Type
@@ -1427,11 +1428,11 @@ types.  In most cases, it is more convenient to use type predicates than
 
 @defun type-of object
 This function returns a symbol naming the primitive type of
-@var{object}.  The value is one of @code{symbol}, @code{integer},
-@code{float}, @code{string}, @code{cons}, @code{vector}, @code{marker},
-@code{overlay}, @code{window}, @code{buffer}, @code{subr},
-@code{compiled-function}, @code{window-configuration}, or
-@code{process}.
+@var{object}.  The value is one of the symbols @code{symbol},
+@code{integer}, @code{float}, @code{string}, @code{cons}, @code{vector},
+@code{marker}, @code{overlay}, @code{window}, @code{buffer},
+@code{subr}, @code{compiled-function}, @code{process}, or
+@code{window-configuration}.
 
 @example
 (type-of 1)

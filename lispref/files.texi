@@ -1081,9 +1081,9 @@ In the first part of the following example, we list two files,
 @end group
 @end example
 
-Then we evaluate the form @code{(add-name-to-file "~/lewis/foo"
-"~/lewis/foo2")}.  Again we list the files.  This shows two names,
-@file{foo} and @file{foo2}.
+Now we create a hard link, by calling @code{add-name-to-file}, then list
+the files again.  This shows two names for one file, @file{foo} and
+@file{foo2}.
 
 @example
 @group
@@ -1683,8 +1683,8 @@ The argument @var{partial-filename} must be a file name containing no
 directory part and no slash.  The current buffer's default directory is
 prepended to @var{directory}, if @var{directory} is not absolute.
 
-In the following example, suppose that the current default directory,
-@file{~rms/lewis}, has five files whose names begin with @samp{f}:
+In the following example, suppose that @file{~rms/lewis} is the current
+default directory, and has five files whose names begin with @samp{f}:
 @file{foo}, @file{file~}, @file{file.c}, @file{file.c.~1~}, and
 @file{file.c.~2~}.@refill
 
@@ -1948,26 +1948,30 @@ Here are the operations that a magic file name handler gets to handle:
 @code{delete-file},@*
 @code{diff-latest-backup-file},
 @code{directory-file-name},
-@code{directory-files}, @code{dired-call-process},
+@code{directory-files},@*
+@code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},@*
 @code{file-accessible-directory-p},
-@code{file-attributes}, @code{file-directory-p},
+@code{file-attributes}, @code{file-directory-p},@*
 @code{file-executable-p}, @code{file-exists-p}, @code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
-@code{file-name-as-directory}, @code{file-name-completion},
-@code{file-name-directory}, @code{file-name-nondirectory},
+@code{file-name-as-directory}, @code{file-name-completion},@*
+@code{file-name-directory},
+@code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @code{get-file-buffer},
-@code{insert-directory}, @code{insert-file-contents},
+@code{insert-directory},@*
+@code{insert-file-contents},
 @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{shell-command}.
-@code{unhandled-file-name-directory}, @code{vc-registered},
+@code{unhandled-file-name-directory},@*
+@code{vc-registered},
 @code{verify-visited-file-modtime}, @code{write-region}.
 
 Handlers for @code{insert-file-contents} typically need to clear the
