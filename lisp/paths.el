@@ -85,7 +85,7 @@ comparision."
     ;; so make sure that experimental version's Info files override
     ;; the ones in standard directories.
     (if (member config-dir standard-info-dirs)
-	(nconc (delete config-dir standard-info-dirs) config)
+	(nconc standard-info-dirs config)
       (cons config-dir standard-info-dirs)))
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
