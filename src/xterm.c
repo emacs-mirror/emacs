@@ -5289,7 +5289,10 @@ x_new_font (f, fontname)
       f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
     }
   else
-    f->scroll_bar_cols = 2;
+    {
+      int wid = FONT_WIDTH (f->output_data.x->font);
+      f->scroll_bar_cols = (14 + wid - 1) / wid;
+    }
 
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
