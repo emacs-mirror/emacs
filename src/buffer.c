@@ -1808,6 +1808,10 @@ but the contents viewed as characters do change.")
       }
 
       tail = markers = BUF_MARKERS (current_buffer);
+
+      /* This prevents BYTE_TO_CHAR (that is, buf_bytepos_to_charpos) from
+	 getting confused by the markers that have not yet been updated.
+	 It is also a signal that it should never create a marker.  */
       BUF_MARKERS (current_buffer) = Qnil;
 
       while (XSYMBOL (tail) != XSYMBOL (Qnil))
