@@ -131,6 +131,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Lisp_Object mini_frame;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+#ifdef MULTI_PERDISPLAY
+  display_locked = 1;
+#endif
+
   val = Qnil;
   /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
      store them away before we can GC.  Don't need to protect
