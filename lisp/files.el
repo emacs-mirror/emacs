@@ -2988,6 +2988,8 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		(and enable-multibyte-characters
 		     (or file-name-coding-system
 			 default-file-name-coding-system)))
+	       ;; This binding is for encoding arguements by call-process.
+	       (coding-system-for-write coding-system-for-read)
 	       (result
 		(if wildcard
 		    ;; Run ls in the directory of the file pattern we asked for.
@@ -3016,9 +3018,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 						     switches
 						   (mapconcat 'identity switches " "))
 						 " -- "
-						 (encode-coding-string
-						  pattern
-						  file-name-coding-system t))))
+						  pattern)))
 		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		  ;; directory if FILE is a symbolic link.
 		  (apply 'call-process
@@ -3039,11 +3039,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 				    ;; Avoid lossage if FILE starts with `-'.
 				    '("--")
 				    (list
-				     (encode-coding-string
-				      (if full-directory-p
-					  (concat (file-name-as-directory file) ".")
-					file)
-				      file-name-coding-system t))))))))
+				     (if full-directory-p
+					 (concat (file-name-as-directory file) ".")
+				       file))))))))
 	  (if (/= result 0)
 	      ;; We get here if ls failed.
 	      ;; Access the file to get a suitable error.
