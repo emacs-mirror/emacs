@@ -1,3 +1,8 @@
+1999-11-01  Markus Rost  <rost@ias.edu>
+
+	* dired-x.el (dired-smart-shell-command): Use
+	shell-command-history as in shell-command.
+
 1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* userlock.el (ask-user-about-lock): Doc fix.

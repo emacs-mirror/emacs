@@ -1,5 +1,8 @@
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (Finternal_show_cursor): Renamed from Fshow_cursor.
+	(syms_of_display): Use the new name.
+
 	* textprop.c (verify_interval_modification): Signal text-read-only
 	instead of calling error.
 
