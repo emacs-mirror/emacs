@@ -1,5 +1,13 @@
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xfns.c (xic_create_fontsetname): Add `motif' argument.
+	Always return a freshly allocated string.
+	(xic_create_xfontset): Adjust call.
+
+	* xfaces.c (x_update_menu_appearance) [USE_MOTIF]:
+	Use xic_create_fontsetname to create a fontset so utf-8 locales work.
+	(dump_realized_face): Fix warning.
+
 	* emacs.c (Fkill_emacs): YAILOM.
 
 	* frame.c (Fignore_event): Fix ancient obscure C-u handling bug.
