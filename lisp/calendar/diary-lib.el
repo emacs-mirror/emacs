@@ -1974,19 +1974,20 @@ message contains an appointment, don't make a diary entry."
 	  (throw 'finished t))))
     nil))
 
-(defun diary-from-outlook ()
+(defun diary-from-outlook (&optional donotask)
   "Maybe snarf diary entry from current Outlook-generated message.
-Currently knows about Gnus and Rmail modes."
-  (interactive)
+Currently knows about Gnus and Rmail modes.  Unless the optional
+argument DONOTASK is non-nil (which is the case when this
+function is called interactively), then if an entry is found the
+user is asked to confirm its addition."
+  (interactive "p")
   (let ((func (cond
 	       ((eq major-mode 'rmail-mode)
 		#'diary-from-outlook-rmail)
 	       ((memq major-mode '(gnus-summary-mode gnus-article-mode))
 		#'diary-from-outlook-gnus)
 	       (t (error "Don't know how to snarf in `%s'" major-mode)))))
-    (if (interactive-p)
-	(call-interactively func)
-      (funcall func))))
+    (funcall func donotask)))
 
 
 (defvar gnus-article-mime-handles)
@@ -1996,11 +1997,14 @@ Currently knows about Gnus and Rmail modes."
 (autoload 'gnus-narrow-to-body "gnus")
 (autoload 'mm-get-part "mm-decode")
 
-(defun diary-from-outlook-gnus ()
+(defun diary-from-outlook-gnus (&optional donotask)
   "Maybe snarf diary entry from Outlook-generated message in Gnus.
-Add this to `gnus-article-prepare-hook' to notice appointments
+Unless the optional argument DONOTASK is non-nil (which is the case when
+this function is called interactively), then if an entry is found the
+user is asked to confirm its addition.
+Add this function to `gnus-article-prepare-hook' to notice appointments
 automatically."
-  (interactive)
+  (interactive "p")
   (with-current-buffer gnus-article-buffer
     (let ((subject (gnus-fetch-field "subject"))
 	  (body (if gnus-article-mime-handles
@@ -2011,8 +2015,7 @@ automatically."
 		    (gnus-narrow-to-body)
 		    (buffer-string)))))
       (when (diary-from-outlook-internal t)
-	(when (or (interactive-p)
-                  (y-or-n-p "Snarf diary entry? "))
+	(when (or donotask (y-or-n-p "Snarf diary entry? "))
 	  (diary-from-outlook-internal)
 	  (message "Diary entry added"))))))
 
@@ -2021,9 +2024,12 @@ automatically."
 
 (defvar rmail-buffer)
 
-(defun diary-from-outlook-rmail ()
-  "Maybe snarf diary entry from Outlook-generated message in Rmail."
-  (interactive)
+(defun diary-from-outlook-rmail (&optional donotask)
+  "Maybe snarf diary entry from Outlook-generated message in Rmail.
+Unless the optional argument DONOTASK is non-nil (which is the case when
+this function is called interactively), then if an entry is found the
+user is asked to confirm its addition."
+  (interactive "p")
   (with-current-buffer rmail-buffer
     (let ((subject (mail-fetch-field "subject"))
 	  (body (buffer-substring (save-excursion
@@ -2031,8 +2037,7 @@ automatically."
 				    (point))
 				  (point-max))))
       (when (diary-from-outlook-internal t)
-	(when (or (interactive-p)
-                  (y-or-n-p "Snarf diary entry? "))
+	(when (or donotask (y-or-n-p "Snarf diary entry? "))
 	  (diary-from-outlook-internal)
 	  (message "Diary entry added"))))))
 
