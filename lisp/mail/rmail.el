@@ -1691,11 +1691,10 @@ It returns t if it got any new messages."
 	   (delete-char -1)
 	   (delete-char 1))
 	  ((looking-at "[0-9A-F][0-9A-F]")
-	   (subst-char-in-region
-	    (1- (point)) (point) ?=
-	    (rmail-hex-string-to-integer
-	     (buffer-substring (point) (+ 2 (point)))))
-	   (delete-char 2))
+	   (let ((byte (rmail-hex-string-to-integer
+			(buffer-substring (point) (+ 2 (point))))))
+	     (delete-region (1- (point)) (+ 2 (point)))
+	     (insert byte)))
 	  ((looking-at "=")
 	   (delete-char 1))
 	  (t
