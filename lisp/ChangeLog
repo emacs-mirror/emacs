@@ -1,3 +1,7 @@
+2004-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Make it work on *Help* buffer.
+
 2004-04-21  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (insert-image): Add optional SLICE arg.
