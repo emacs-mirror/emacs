@@ -560,8 +560,10 @@ help buffer."
 	      method (cadr item)
 	      args (cddr item))))
     (apply method args)
-    ;; FIXME: are we sure we're in the right buffer ?
-    (goto-char position)))
+    (with-current-buffer buffer
+      (if (get-buffer-window buffer)
+	  (set-window-point (get-buffer-window buffer) position)
+	(goto-char position)))))
 
 (defun help-go-back ()
   "Invoke the [back] button (if any) in the Help mode buffer."
