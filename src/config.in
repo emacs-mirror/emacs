@@ -132,6 +132,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
+#undef HAVE_LIBHESIOD
 
 /* Header for Voxware or PCM sound card driver.  */
 #undef HAVE_MACHINE_SOUNDCARD_H
@@ -199,6 +200,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBDES425
 #undef HAVE_LIBKRB5
 #undef HAVE_LIBCRYPTO
+#undef HAVE_LIBK5CRYPTO
 #undef HAVE_LIBCOM_ERR
 /* header files */
 #undef HAVE_KRB5_H

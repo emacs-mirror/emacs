@@ -201,8 +201,12 @@ MOVE_FLAGS=
 # ifdef HAVE_LIBKRB5
     KRB5LIB = -lkrb5
 # endif
-# ifdef HAVE_LIBCRYPTO
+# ifdef HAVE_LIBK5CRYPTO
+    CRYPTOLIB = -lk5crypto
+# else
+#  ifdef HAVE_LIBCRYPTO
     CRYPTOLIB = -lcrypto
+#  endif
 # endif
 # ifdef HAVE_LIBCOM_ERR
     COM_ERRLIB = -lcom_err
@@ -210,7 +214,13 @@ MOVE_FLAGS=
 #endif /* KERBEROS */
 
 /* If HESIOD is defined, set this to "-lhesiod". */
-HESIODLIB=
+#ifdef HAVE_LIBHESIOD
+# ifdef HAVE_LIBRESOLV
+    HESIODLIB= -lhesiod -lresolv
+# else
+    HESIODLIB= -lhesiod
+# endif
+#endif
 
 MOVE_LIBS=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 

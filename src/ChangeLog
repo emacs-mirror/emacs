@@ -1,3 +1,7 @@
+2001-10-18  Ken Raeburn  <raeburn@gnu.org>
+
+	* config.in (HAVE_LIBHESIOD, HAVE_LIBK5CRYPTO): Undef these.
+
 2001-10-18  Andrew Innes  <andrewi@gnu.org>
 
 	* fontset.c (fs_load_font) [WINDOWSNT && _MSC_VER]: Disable
