@@ -215,9 +215,7 @@ enum event_kind
   multibyte_char_keystroke,	/* The multibye char code is in .code,
 				   perhaps with modifiers applied.
 				   The others are the same as
-				   ascii_keystroke.  This type of event
-				   is generated only when we are using
-				   XIM on X window.  */
+				   ascii_keystroke.  */
   non_ascii_keystroke,		/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is
