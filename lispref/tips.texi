@@ -113,8 +113,16 @@ alter the text in that buffer by hand.  Modes such as Dired, Info,
 Compilation, and Occur redefine it in this way.
 
 @item
-It is a bad idea to define aliases for the Emacs primitives.
-Use the standard names instead.
+When a package provides a modification of ordinary Emacs behavior, it is
+good to include a command to enable and disable the feature, Provide a
+command named @code{@var{whatever}-mode} which turns the feature on or
+off, and make it autoload (@pxref{Autoload}).  Design the package so
+that simply loading it has no visible effect---that should not enable
+the feature.  Users will request the feature by invoking the command.
+
+@item
+It is a bad idea to define aliases for the Emacs primitives.  Use the
+standard names instead.
 
 @item
 Redefining an Emacs primitive is an even worse idea.
