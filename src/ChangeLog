@@ -1,3 +1,7 @@
+2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (Fdump_emacs): Only output warning on GNU/Linux.
+
 2004-11-07  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h: Declare Fmsdos_downcase_filename.

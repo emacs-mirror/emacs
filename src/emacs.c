@@ -2179,16 +2179,19 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
 
+#ifdef __linux__
   if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap.  This usually means that exec-shield or\n");
-      fprintf (stderr, "something similar is in effect.  The dump may fail\n");
-      fprintf (stderr, "because of this.  See the section about exec-shield\n");
-      fprintf (stderr, "in etc/PROBLEMS for more information.\n");
+      fprintf (stderr, "heap (%d byte).  This usually means that exec-shield\n",
+               heap_bss_diff);
+      fprintf (stderr, "or something similar is in effect.  The dump may\n");
+      fprintf (stderr, "fail because of this.  See the section about \n");
+      fprintf (stderr, "exec-shield in etc/PROBLEMS for more information.\n");
       fprintf (stderr, "**************************************************\n");
     }
+#endif /* __linux__ */
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
