@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Author: Thomas Link aka t.link (at gmx at)
-;; Time-stamp: <2002-03-22>
+;; Author: Thomas Link <t.link@gmx.at>
 ;; Keywords: filesets convenience
+
+;; This file is part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,29 +27,29 @@
 
 ;;; Commentary:
 
-;;Define filesets, which can be opened or saved with the power one or
-;;two mouse clicks only.  A fileset is either a list of files, a file
-;;pattern, a base directory and a search pattern (for files), or an
-;;inclusion group (i.e. a base file including other files).
+;; Define filesets, which can be opened or saved with the power one or
+;; two mouse clicks only.  A fileset is either a list of files, a file
+;; pattern, a base directory and a search pattern (for files), or an
+;; inclusion group (i.e. a base file including other files).
 
-;;Usage: 1. Put (require 'filesets) into your start-up file.  2. Type
-;;M-x filesets-edit or choose "Edit Filesets" from the menu.  3. Save
-;;your customizations.
+;; Usage: 1. Put (require 'filesets) into your start-up file.  2. Type
+;; M-x filesets-edit or choose "Edit Filesets" from the menu.  3. Save
+;; your customizations.
 
-;;Caveat: Fileset names have to be unique.
+;; Caveat: Fileset names have to be unique.
 
-;;Filesets.el adds a nifty filesets menu to your menubar.  If you change
-;;your filesets on the fly, don't forget to select "Save Filesets" from
-;;the menu.
+;; Filesets.el adds a nifty filesets menu to your menubar.  If you change
+;; your filesets on the fly, don't forget to select "Save Filesets" from
+;; the menu.
 
-;;Pressing on the first item in the submenu will open all files at once.
-;;Define your own function, e.g. browse-url, for opening a fileset's
-;;files.  Or define external viewers for opening files with other
-;;programs.  See `filesets-external-viewers'.
+;; Pressing on the first item in the submenu will open all files at once.
+;; Define your own function, e.g. browse-url, for opening a fileset's
+;; files.  Or define external viewers for opening files with other
+;; programs.  See `filesets-external-viewers'.
 
-;;BTW, if you close a fileset, files, which have been changed, will
-;;be silently saved.  Change this behaviour by setting
-;;`filesets-save-buffer-fn'.
+;; BTW, if you close a fileset, files, which have been changed, will
+;; be silently saved.  Change this behaviour by setting
+;; `filesets-save-buffer-fn'.
 
 ;;; Supported modes for inclusion groups (`filesets-ingroup-patterns'):
 ;; - Elisp
@@ -82,9 +83,10 @@
 
 
 ;;; Some variables
-(unless (boundp 'filesets-running-xemacs)
-  (defvar filesets-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
-    "Non-nil means we are runninn XEmacs."))
+(eval-and-compile
+  (unless (boundp 'filesets-running-xemacs)
+    (defvar filesets-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
+      "Non-nil means we are runninn XEmacs.")))
 
 (defvar filesets-menu-cache nil
   "The whole filesets menu.")
@@ -923,7 +925,7 @@ of the file name pattern.
 :filter-dirs-flag BOOLEAN ... is only used in conjunction with :tree.
 
 :tree-max-level INTEGER ... recurse into directories this many levels
-(see `filesets-tree-max-level' for a full explanation)
+\(see `filesets-tree-max-level' for a full explanation)
 
 :dormant-flag BOOLEAN ... non-nil means don't show this item in the
 menu; dormant filesets can still be manipulated via commands available
