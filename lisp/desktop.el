@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.07
+;; Version: 2.08
 ;; Keywords: customization
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -218,22 +218,42 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
 			    ")"))
 	(cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
    ((consp val)
-    (let ((car-q.txt (desktop-internal-v2s (car val)))
-	  (cdr-q.txt (desktop-internal-v2s (cdr val))))
-      (cond
-       ((or (null (car car-q.txt)) (null (car cdr-q.txt)))
-	(cons nil (concat "(cons "
-			  (if (eq (car car-q.txt) 'must) "'")
-			  (cdr car-q.txt) " "
-			  (if (eq (car cdr-q.txt) 'must) "'")
-			  (cdr cdr-q.txt) ")")))
-       ((consp (cdr val))
-	(cons 'must (concat "(" (cdr car-q.txt)
-			    " " (substring (cdr cdr-q.txt) 1 -1) ")")))
-       ((null (cdr val))
-	(cons 'must (concat "(" (cdr car-q.txt) ")")))
-       (t
-	(cons 'must (concat "(" (cdr car-q.txt) " . " (cdr cdr-q.txt) ")"))))))
+    (let ((p val)
+	  newlist
+	  anynil)
+      (while (consp p)
+	(let ((q.txt (desktop-internal-v2s (car p))))
+	  (or anynil (setq anynil (null (car q.txt))))
+	  (setq newlist (cons q.txt newlist)))
+	(setq p (cdr p)))
+      (if p
+	  (let ((last (desktop-internal-v2s p))
+		(el (car newlist)))
+	    (setcar newlist
+		    (if (or anynil (setq anynil (null (car last))))
+			(cons nil
+			      (concat "(cons "
+				      (if (eq (car el) 'must) "'" "")
+				      (cdr el)
+				      " "
+				      (if (eq (car last) 'must) "'" "")
+				      (cdr last)
+				      ")"))
+		      (cons 'must
+			    (concat (cdr el) " . " (cdr last)))))))
+      (setq newlist (nreverse newlist))
+      (if anynil
+	  (cons nil
+		(concat "(list "
+			(mapconcat (lambda (el)
+				     (if (eq (car el) 'must)
+					 (concat "'" (cdr el))
+				       (cdr el)))
+				   newlist
+				   " ")
+			")"))
+	(cons 'must
+	      (concat "(" (mapconcat 'cdr newlist " ") ")")))))
    ((subrp val)
     (cons nil (concat "(symbol-function '"
 		      (substring (prin1-to-string val) 7 -1)
@@ -246,7 +266,7 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
 			" (list 'lambda '() (list 'set-marker mk "
 			pos " (get-buffer " buf ")))) mk)"))))
    (t					; save as text
-    (cons nil (prin1-to-string (prin1-to-string val))))))
+    (cons 'may (prin1-to-string val)))))
 
 (defun desktop-value-to-string (val)
   "Convert VALUE to a string that when read evaluates to the same value.  Not
