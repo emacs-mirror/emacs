@@ -19,8 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _CHARSET_H
-#define _CHARSET_H
+#ifndef EMACS_CHARSET_H
+#define EMACS_CHARSET_H
 
 /* #define BYTE_COMBINING_DEBUG */
 
@@ -805,4 +805,4 @@ extern Lisp_Object Vauto_fill_chars;
     while (i--) *to_p++ = *from_p++;		\
   } while (0)
 
-#endif /* _CHARSET_H */
+#endif /* EMACS_CHARSET_H */
