@@ -77,12 +77,12 @@ Called from a program, takes three arguments, START, END and ARG."
 	    (goto-char epos)))))
 
 (defvar indent-region-function nil
-  "Function which is short cut to indent each line in region with TAB.
-A value of nil means really perform TAB on each line.")
+  "Function which is short cut to indent region using indent-according-to-mode.
+A value of nil means really run indent-according-to-mode on each line.")
 
 (defun indent-region (start end arg)
   "Indent each nonblank line in the region.
-With no argument, indent each line with TAB.
+With no argument, indent each line using indent-according-to-mode.
 \(If there is a fill prefix, make each line start with the fill prefix.)
 With argument COLUMN, indent each line to that column.
 Called from a program, takes three args: START, END and COLUMN."
