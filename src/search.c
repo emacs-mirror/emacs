@@ -1994,7 +1994,7 @@ wordify (string)
 
       if (SYNTAX (c) == Sword)
 	{
-	  bcopy (&SREF (string, i_byte_orig), o,
+	  bcopy (SDATA (string) + i_byte_orig, o,
 		 i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
@@ -2471,7 +2471,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  else
 	    {
 	      /* Note that we don't have to increment POS.  */
-	      c = SDATA (newtext)[pos_byte++];
+	      c = SREF (newtext, pos_byte++);
 	      if (buf_multibyte)
 		c = unibyte_char_to_multibyte (c);
 	    }
