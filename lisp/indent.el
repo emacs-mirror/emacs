@@ -54,7 +54,10 @@ If nil, hitting TAB indents the current line if point is at the left margin
   :type '(choice (const nil) (const t) (const always)))
 
 (defun indent-according-to-mode ()
-  "Indent line in proper way for current major mode."
+  "Indent line in proper way for current major mode.
+The buffer-local variable `indent-line-function' determines how to do this,
+but the functions `indent-relative' and `indent-relative-maybe' are
+special; we don't actually use them here."
   (interactive)
   (if (memq indent-line-function
 	    '(indent-relative indent-relative-maybe))
@@ -325,14 +328,21 @@ A value of nil means really run `indent-according-to-mode' on each line.")
 
 (defun indent-region (start end &optional column)
   "Indent each nonblank line in the region.
-With no prefix argument, indent each line using `indent-according-to-mode',
-or use `indent-region-function' to do the whole region if that's non-nil.
-If there is a fill prefix, make each line start with the fill prefix.
-With argument COLUMN, indent each line to that column.
+A numeric prefix argument specifies a column: indent each line to that column.
 
-When you call this from a program, START and END specify
-the region to indent, and COLUMN specifies the indentation column.
-If COLUMN is nil, then indent each line according to the mode."
+With no prefix argument, the command chooses one of these methods and
+indents all the lines with it:
+
+  1) If `fill-prefix' is non-nil, insert `fill-prefix' at the
+     beginning of each line in the region that does not already begin
+     with it.
+  2) If `indent-region-function' is non-nil, call that function
+     to indent the region.
+  3) Indent each line as specified by the variable `indent-line-function'.
+
+Called from a program, START and END specify the region to indent.
+If the third argument COLUMN is an integer, it specifies the
+column to indent to; if it is nil, use one of the three methods above."
   (interactive "r\nP")
   (if (null column)
       (if fill-prefix
