@@ -807,6 +807,40 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
     }
 
+#ifdef SOLARIS2
+  /* This loop seeks out relocation sections for the data section, so
+     that it can undo relocations performed by the runtime linker.  */
+  for (n = new_file_h->e_shnum - 1; n; n--)
+    {
+      Elf32_Shdr section = NEW_SECTION_H (n);
+      switch (section.sh_type) {
+      default:
+	break;
+      case SHT_REL:
+      case SHT_RELA:
+	/* This code handles two different size structs, but there
+            should be no harm in that provided that r_offset is always
+            the first member.  */
+	nn = section.sh_info;
+	if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data")
+	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			".data1"))
+	  {
+	    Elf32_Addr offset = NEW_SECTION_H (nn).sh_addr -
+	      NEW_SECTION_H (nn).sh_offset;
+	    caddr_t reloc = old_base + section.sh_offset, end;
+	    for (end = reloc + section.sh_size; reloc < end;
+		 reloc += section.sh_entsize)
+	      {
+		Elf32_Addr addr = ((Elf32_Rel *) reloc)->r_offset - offset;
+		memcpy (new_base + addr, old_base + addr, 4);
+	      }
+	  }
+	break;
+      }
+    }
+#endif
+
 #ifdef UNEXEC_USE_MAP_PRIVATE
   if (lseek (new_file, 0, SEEK_SET) == -1)
     fatal ("Can't rewind (%s): errno %d\n", new_name, errno);
