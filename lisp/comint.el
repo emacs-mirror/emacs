@@ -1473,7 +1473,7 @@ Does not delete the prompt."
 			  (beginning-of-line nil)
 			  (point-marker))))
 	(delete-region comint-last-input-end pmark)
-	(comint-skip-prompt)
+	(goto-char (process-mark proc))
 	(setq replacement (concat "*** output flushed ***\n"
 				  (buffer-substring pmark (point))))
 	(delete-region pmark (point))))
