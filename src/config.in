@@ -92,6 +92,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define if we should use XIM, if it is available.  */
 #undef USE_XIM
 
+/* Define if we have the session management (SM) library.  */
+#undef HAVE_X_SM
+
 /* Define if netdb.h declares h_errno.  */
 #undef HAVE_H_ERRNO
 
