@@ -2,48 +2,47 @@
 @c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@iftex
+
+@node Killing, Yanking, Mark, Top
 @chapter Killing and Moving Text
-
-  @dfn{Killing} means erasing text and copying it into the @dfn{kill
-ring}, from which it can be retrieved by @dfn{yanking} it.  Some systems
-use the terms ``cutting'' and ``pasting'' for these operations.
-
-  The most common way of moving or copying text within Emacs is to kill it
-and later yank it elsewhere in one or more places.  This is very safe
-because Emacs remembers several recent kills, not just the last one.  It
-is versatile, because the many commands for killing syntactic units can
-also be used for moving those units.  But there are other ways of
-copying text for special purposes.
-
-  On terminals that support multiple windows for multiple applications,
-the kill commands also provide a way to select text for other applications
-to copy, and the Emacs yank commands can access selections made by
-other programs.
-
-  Emacs has only one kill ring for all buffers, so you can kill text in
-one buffer and yank it in another buffer.
-
-@end iftex
 
 @ifnottex
 @raisesections
 @end ifnottex
 
-@node Killing, Yanking, Mark, Top
+  @dfn{Killing} means erasing text and copying it into the @dfn{kill
+ring}, from which you can bring it back into the buffer by
+@dfn{yanking} it.  (Some systems use the terms ``cutting'' and
+``pasting'' for these operations.)  This is the most common way of
+moving or copying text within Emacs.  Killing and yanking is very safe
+because Emacs remembers several recent kills, not just the last one.
+It is versatile, because the many commands for killing syntactic units
+can also be used for moving those units.  But there are other ways of
+copying text for special purposes.
+
+@iftex
 @section Deletion and Killing
+@end iftex
 
 @cindex killing text
 @cindex cutting text
 @cindex deletion
-  Most commands which erase text from the buffer save it in the @dfn{kill
-ring} so that you can move or copy it to other parts of the buffer.
-These commands are known as @dfn{kill} commands.  The rest of the
-commands that erase text do not save it in the kill ring; they are known
-as @dfn{delete} commands.  (This distinction is made only for erasure of
-text in the buffer.)  If you do a kill or delete command by mistake, you
-can use the @kbd{C-x u} (@code{undo}) command to undo it
-(@pxref{Undo}).
+  Most commands which erase text from the buffer save it in the kill
+ring.  These commands are known as @dfn{kill} commands.  The commands
+that erase text but do not save it in the kill ring are known as
+@dfn{delete} commands.  The @kbd{C-x u} (@code{undo}) command
+(@pxref{Undo}) can undo both kill and delete commands; the importance
+of the kill ring is that you can also yank the text in a different
+place or places.  Emacs has only one kill ring for all buffers, so you
+can kill text in one buffer and yank it in another buffer.
+
+  The delete commands include @kbd{C-d} (@code{delete-char}) and
+@key{DEL} (@code{delete-backward-char}), which delete only one
+character at a time, and those commands that delete only spaces or
+newlines.  Commands that can erase significant amounts of nontrivial
+data generally do a kill operation instead.  The commands' names and
+individual descriptions use the words @samp{kill} and @samp{delete} to
+say which kind of operation they perform.
 
 @vindex kill-read-only-ok
 @cindex read-only text, killing
@@ -52,34 +51,10 @@ kind of modification.  But some users like to use the kill commands to
 copy read-only text into the kill ring, without actually changing it.
 Therefore, the kill commands work specially in a read-only buffer:
 they move over text, and copy it to the kill ring, without actually
-deleting it from the buffer.  Normally, Emacs beeps and prints an
-error message when this happens.  But if you set the variable
-@code{kill-read-only-ok} to a non-@code{nil} value, it just prints a
-message in the echo area, telling you what is happening.
-
-  The delete commands include @kbd{C-d} (@code{delete-char}) and
-@key{DEL} (@code{delete-backward-char}), which delete only one
-character at a time, and those commands that delete only spaces or
-newlines.  Commands that can destroy significant amounts of nontrivial
-data generally do a kill operation instead.  The commands' names and
-individual descriptions use the words @samp{kill} and @samp{delete} to
-say which kind of operation they perform.
-
-  On window systems, the most recent kill done in Emacs is also the
-primary selection, if it is more recent than any selection you made in
-another program.  This means that the paste commands of other window
-applications copy the text that you killed in Emacs.
-
-@cindex Delete Selection mode
-@cindex mode, Delete Selection
-@findex delete-selection-mode
-  Many window systems follow the convention that insertion while text
-is selected deletes the selected text.  You can make Emacs behave this
-way by enabling Delete Selection mode, with @kbd{M-x
-delete-selection-mode}, or using Custom.  Another effect of this mode
-is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
-exists, will kill the whole selection.  It also enables Transient Mark
-mode (@pxref{Transient Mark}).
+deleting it from the buffer.  Normally, kill commands beep and display
+an error message when this happens.  But if you set the variable
+@code{kill-read-only-ok} to a non-@code{nil} value, they just print a
+message in the echo area to explain why the text has not been erased.
 
 @menu
 * Deletion::            Commands for deleting small amounts of text and
@@ -87,6 +62,8 @@ mode (@pxref{Transient Mark}).
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
                           syntactic units such as words and sentences.
+* Graphical Kill::      The kill ring on graphical terminals:
+                          yanking between applications.
 @end menu
 
 @need 1500
@@ -651,6 +628,28 @@ rectangle shifts right.
   The command @kbd{M-x string-insert-rectangle} is similar to
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
+
+@node Graphical Kill
+@section Killing on Graphical Terminals
+
+  On multi-window terminals, the most recent kill done in Emacs is
+also the primary selection, if it is more recent than any selection
+you made in another program.  This means that the paste commands of
+other applications with separate windows copy the text that you killed
+in Emacs.  In addition, Emacs yank commands treat other applications'
+selections as part of the kill ring, so you can yank them into Emacs.
+
+@cindex Delete Selection mode
+@cindex mode, Delete Selection
+@findex delete-selection-mode
+  Many window systems follow the convention that insertion while text
+is selected deletes the selected text.  You can make Emacs behave this
+way by enabling Delete Selection mode, with @kbd{M-x
+delete-selection-mode}, or using Custom.  Another effect of this mode
+is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
+exists, will kill the whole selection.  It also enables Transient Mark
+mode (@pxref{Transient Mark}).
+
 
 @ifnottex
 @lowersections
