@@ -754,15 +754,19 @@ menu bar.
 @section Tool Bars
 @cindex Tool Bar mode
 @cindex mode, Tool Bar
+@cindex icons, tool bar
 
 You can turn display of tool bars on or off with @kbd{M-x tool-bar-mode}
 analogously to @code{menu-bar-mode}.  @xref{Menu Bars}.  This will only
-work in an Emacs built with appropriate image support to display the
-available tool bar icons.
+work in an Emacs with appropriate image support for the available icons
+on a graphic display.  By default, monochrome (PBM or XBM format) icons
+are used.  XPM format icons, which normally look better, will normally
+be used if Emacs was built with XPM support.
 
-There is a global tool bar with some useful items and various modes may
-define their own tool bars.  More could be added if suitable icons are
-contributed.
+There is a global tool bar with useful items and some modes define their
+own tool bars to replace it.@footnote{We could provide more if suitable
+icons are contributed.}  Some items are removed from the global bar in
+`special' modes not designed for editing text.
 
 @node Dialog Boxes
 @section Using Dialog Boxes
