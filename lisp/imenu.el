@@ -426,8 +426,9 @@ This variable is local in all buffers, once set.")
 
 (make-variable-buffer-local 'imenu--index-alist)
 
-;; The latest buffer index used to update the menu bar menu.
-(defvar imenu--last-menubar-index-alist nil)
+(defvar imenu--last-menubar-index-alist nil
+  "The latest buffer index used to update the menu bar menu.")
+
 (make-variable-buffer-local 'imenu--last-menubar-index-alist)
 
 ;; History list for 'jump-to-function-in-buffer'.
@@ -991,6 +992,7 @@ See the command `imenu' for more information."
 		   'imenu-default-create-index-function)))
       (let ((newmap (make-sparse-keymap))
 	    (menu-bar (lookup-key (current-local-map) [menu-bar])))
+	(setq imenu--last-menubar-index-alist nil)
 	(define-key newmap [menu-bar]
 	  (append (make-sparse-keymap) menu-bar))
 	(define-key newmap [menu-bar index]
