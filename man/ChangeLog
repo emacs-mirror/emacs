@@ -1,3 +1,8 @@
+2004-08-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* regs.texi (RegNumbers): Mention `C-x r i' binding for
+	`insert-register', instead of `C-x r g' binding, for consistency.
+
 2004-08-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fixit.texi (Spelling): Fix typo.
