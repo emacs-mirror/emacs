@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
-   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99, 2000, 2001
+   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -25,14 +25,15 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Ed Pelegri-Llopart added C typedefs.
  *	Gnu Emacs TAGS format and modifications by RMS?
  * 1989	Sam Kendall added C++.
- * 1993	Francesco Potortì reorganised C and C++ based on work by Joe Wells.
+ * 1992 Joseph B. Wells improved C and C++ parsing.
+ * 1993	Francesco Potortì reorganised C and C++.
  * 1994	Regexp tags by Tom Tromey.
- * 2001 Nested classes by Francesco Potortì based on work by Mykola Dzyuba.
+ * 2001 Nested classes by Francesco Potortì (ideas by Mykola Dzyuba).
  *
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.26";
+char pot_etags_version[] = "@(#) pot revision number is 14.35";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -45,12 +46,6 @@ char pot_etags_version[] = "@(#) pot revision number is 14.26";
 #  define NDEBUG		/* disable assert */
 #endif
 
-#if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
-# define P_(proto) proto
-#else
-# define P_(proto) ()
-#endif
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
   /* On some systems, Emacs defines static as nothing for the sake
@@ -58,10 +53,20 @@ char pot_etags_version[] = "@(#) pot revision number is 14.26";
 # undef static
 # define ETAGS_REGEXPS		/* use the regexp features */
 # define LONG_OPTIONS		/* accept long options */
+# ifndef PTR			/* for Xemacs */
+#   define PTR void *
+# endif
+# ifndef __P			/* for Xemacs */
+#   define __P(args) args
+# endif
 #else
-# ifndef __STDC__
-#   define static		/* remove static for old compilers' sake */
-#   define const		/* same for const */
+# if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
+#   define __P(args) args	/* use prototypes */
+#   define PTR void *		/* for generic pointers */
+# else
+#   define __P(args) ()		/* no prototypes */
+#   define const		/* remove const for old compilers' sake */
+#   define PTR long *		/* don't use void* */
 # endif
 #endif /* !HAVE_CONFIG_H */
 
@@ -217,9 +222,9 @@ If you want regular expression support, you should delete this notice and
 					(char *) (op), (n) * sizeof (Type)))
 #endif
 
-typedef int bool;
+#define bool int
 
-typedef void Lang_function P_((FILE *));
+typedef void Lang_function __P((FILE *));
 
 typedef struct
 {
@@ -265,83 +270,83 @@ typedef struct
 /* Many compilers barf on this:
 	Lang_function Ada_funcs;
    so let's write it this way */
-static void Ada_funcs P_((FILE *));
-static void Asm_labels P_((FILE *));
-static void C_entries P_((int c_ext, FILE *));
-static void default_C_entries P_((FILE *));
-static void plain_C_entries P_((FILE *));
-static void Cjava_entries P_((FILE *));
-static void Cobol_paragraphs P_((FILE *));
-static void Cplusplus_entries P_((FILE *));
-static void Cstar_entries P_((FILE *));
-static void Erlang_functions P_((FILE *));
-static void Fortran_functions P_((FILE *));
-static void Yacc_entries P_((FILE *));
-static void Lisp_functions P_((FILE *));
-static void Makefile_targets P_((FILE *));
-static void Pascal_functions P_((FILE *));
-static void Perl_functions P_((FILE *));
-static void PHP_functions P_((FILE *));
-static void Postscript_functions P_((FILE *));
-static void Prolog_functions P_((FILE *));
-static void Python_functions P_((FILE *));
-static void Scheme_functions P_((FILE *));
-static void TeX_commands P_((FILE *));
-static void Texinfo_nodes P_((FILE *));
-static void just_read_file P_((FILE *));
+static void Ada_funcs __P((FILE *));
+static void Asm_labels __P((FILE *));
+static void C_entries __P((int c_ext, FILE *));
+static void default_C_entries __P((FILE *));
+static void plain_C_entries __P((FILE *));
+static void Cjava_entries __P((FILE *));
+static void Cobol_paragraphs __P((FILE *));
+static void Cplusplus_entries __P((FILE *));
+static void Cstar_entries __P((FILE *));
+static void Erlang_functions __P((FILE *));
+static void Fortran_functions __P((FILE *));
+static void Yacc_entries __P((FILE *));
+static void Lisp_functions __P((FILE *));
+static void Makefile_targets __P((FILE *));
+static void Pascal_functions __P((FILE *));
+static void Perl_functions __P((FILE *));
+static void PHP_functions __P((FILE *));
+static void Postscript_functions __P((FILE *));
+static void Prolog_functions __P((FILE *));
+static void Python_functions __P((FILE *));
+static void Scheme_functions __P((FILE *));
+static void TeX_commands __P((FILE *));
+static void Texinfo_nodes __P((FILE *));
+static void just_read_file __P((FILE *));
 
-static void print_language_names P_((void));
-static void print_version P_((void));
-static void print_help P_((void));
-int main P_((int, char **));
-static int number_len P_((long));
+static void print_language_names __P((void));
+static void print_version __P((void));
+static void print_help __P((void));
+int main __P((int, char **));
+static int number_len __P((long));
 
-static compressor *get_compressor_from_suffix P_((char *, char **));
-static language *get_language_from_langname P_((char *));
-static language *get_language_from_interpreter P_((char *));
-static language *get_language_from_filename P_((char *));
-static int total_size_of_entries P_((node *));
-static long readline P_((linebuffer *, FILE *));
-static long readline_internal P_((linebuffer *, FILE *));
-static void get_tag P_((char *));
+static compressor *get_compressor_from_suffix __P((char *, char **));
+static language *get_language_from_langname __P((const char *));
+static language *get_language_from_interpreter __P((char *));
+static language *get_language_from_filename __P((char *));
+static int total_size_of_entries __P((node *));
+static long readline __P((linebuffer *, FILE *));
+static long readline_internal __P((linebuffer *, FILE *));
+static bool nocase_tail __P((char *));
+static char *get_tag __P((char *));
 
 #ifdef ETAGS_REGEXPS
-static void analyse_regex P_((char *, bool));
-static void add_regex P_((char *, bool, language *));
-static void free_patterns P_((void));
+static void analyse_regex __P((char *, bool));
+static void add_regex __P((char *, bool, language *));
+static void free_patterns __P((void));
 #endif /* ETAGS_REGEXPS */
-static void error P_((const char *, const char *));
-static void suggest_asking_for_help P_((void));
-void fatal P_((char *, char *));
-static void pfatal P_((char *));
-static void add_node P_((node *, node **));
+static void error __P((const char *, const char *));
+static void suggest_asking_for_help __P((void));
+void fatal __P((char *, char *));
+static void pfatal __P((char *));
+static void add_node __P((node *, node **));
 
-static void init P_((void));
-static void initbuffer P_((linebuffer *));
-static void find_entries P_((char *, FILE *));
-static void free_tree P_((node *));
-static void pfnote P_((char *, bool, char *, int, int, long));
-static void new_pfnote P_((char *, int, bool, char *, int, int, long));
-static void process_file P_((char *));
-static void put_entries P_((node *));
-static void takeprec P_((void));
+static void init __P((void));
+static void initbuffer __P((linebuffer *));
+static void find_entries __P((char *, FILE *));
+static void free_tree __P((node *));
+static void pfnote __P((char *, bool, char *, int, int, long));
+static void new_pfnote __P((char *, int, bool, char *, int, int, long));
+static void process_file __P((char *));
+static void put_entries __P((node *));
 
-static char *concat P_((char *, char *, char *));
-static char *skip_spaces P_((char *));
-static char *skip_non_spaces P_((char *));
-static char *savenstr P_((char *, int));
-static char *savestr P_((char *));
-static char *etags_strchr P_((const char *, int));
-static char *etags_strrchr P_((const char *, int));
-static char *etags_getcwd P_((void));
-static char *relative_filename P_((char *, char *));
-static char *absolute_filename P_((char *, char *));
-static char *absolute_dirname P_((char *, char *));
-static bool filename_is_absolute P_((char *f));
-static void canonicalize_filename P_((char *));
-static void linebuffer_setlen P_((linebuffer *, int));
-long *xmalloc P_((unsigned int));
-long *xrealloc P_((char *, unsigned int));
+static char *concat __P((char *, char *, char *));
+static char *skip_spaces __P((char *));
+static char *skip_non_spaces __P((char *));
+static char *savenstr __P((char *, int));
+static char *savestr __P((char *));
+static char *etags_strchr __P((const char *, int));
+static char *etags_strrchr __P((const char *, int));
+static char *etags_getcwd __P((void));
+static char *relative_filename __P((char *, char *));
+static char *absolute_filename __P((char *, char *));
+static char *absolute_dirname __P((char *, char *));
+static bool filename_is_absolute __P((char *f));
+static void canonicalize_filename __P((char *));
+static void linebuffer_setlen __P((linebuffer *, int));
+PTR xmalloc __P((unsigned int));
+PTR xrealloc __P((char *, unsigned int));
 
 
 char searchar = '/';		/* use /.../ searches */
@@ -370,7 +375,7 @@ char
   /* white chars */
   *white = " \f\t\n\r\v",
   /* not in a name */
-  *nonam = " \f\t\n\r(=,[;",
+  *nonam = " \f\t\n\r()=,;",
   /* token ending chars */
   *endtk = " \t\n\r\"'#()[]{}=-+%*/&|^~!<>;,.:?",
   /* token starting chars */
@@ -440,9 +445,9 @@ struct option longopts[] =
 typedef struct pattern
 {
   struct pattern *p_next;
-  language *language;
+  language *lang;
   char *regex;
-  struct re_pattern_buffer *pattern;
+  struct re_pattern_buffer *pat;
   struct re_registers regs;
   char *name_pattern;
   bool error_signaled;
@@ -1289,7 +1294,7 @@ get_compressor_from_suffix (file, extptr)
  */
 static language *
 get_language_from_langname (name)
-     char *name;
+     const char *name;
 {
   language *lang;
 
@@ -1702,7 +1707,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
  *     also be one of the characters " \t(),;".
  *
  * The real implementation uses the notinname() macro, which recognises
- * characters slightly different form " \t\r\n(),;".  See the variable
+ * characters slightly different from " \t\r\n(),;".  See the variable
  * `nonam'.
  */
 #define traditional_tag_style TRUE
@@ -1965,9 +1970,9 @@ enum sym_type
   st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
 };
 
-static unsigned int hash P_((const char *, unsigned int));
-static struct C_stab_entry * in_word_set P_((const char *, unsigned int));
-static enum sym_type C_symtype P_((char *, int, int));
+static unsigned int hash __P((const char *, unsigned int));
+static struct C_stab_entry * in_word_set __P((const char *, unsigned int));
+static enum sym_type C_symtype __P((char *, int, int));
 
 /* Feed stuff between (but not including) %[ and %] lines to:
       gperf -c -k 1,3 -o -p -r -t
@@ -2315,9 +2320,9 @@ linebuffer token_name;		/* its name */
  * Variables and functions for dealing with nested structures.
  * Idea by Mykola Dzyuba <mdzyuba@yahoo.com> (2001)
  */
-static void pushclass_above P_((int, char *, int));
-static void popclass_above P_((int));
-static void write_classname P_((linebuffer *, char *qualifier));
+static void pushclass_above __P((int, char *, int));
+static void popclass_above __P((int));
+static void write_classname __P((linebuffer *, char *qualifier));
 
 struct {
   char **cname;			/* nested class names */
@@ -2406,8 +2411,8 @@ write_classname (cn, qualifier)
 }
 
 
-static bool consider_token P_((char *, int, int, int *, int, int, bool *));
-static void make_C_tag P_((bool));
+static bool consider_token __P((char *, int, int, int *, int, int, bool *));
+static void make_C_tag __P((bool));
 
 /*
  * consider_token ()
@@ -3607,9 +3612,9 @@ Yacc_entries (inf)
 	   TRUE);							\
       )
 #define LOOKING_AT(cp, keyword)	/* keyword is a constant string */	\
-  (strneq ((cp), keyword, sizeof(keyword)-1) /* cp points at kyword */	\
-   && iswhite((cp)[sizeof(keyword)-1])	/* followed by a blank */	\
-   && ((cp) = skip_spaces((cp)+sizeof(keyword)-1))) /* skip blanks */
+  (strneq ((cp), keyword, sizeof(keyword)-1) /* cp points at keyword */	\
+   && notinname ((cp)[sizeof(keyword)-1])	/* end of keyword */	\
+   && ((cp) = skip_spaces((cp)+sizeof(keyword)-1))) /* skip spaces */
 
 /*
  * Read a file, but do no processing.  This is used to do regexp
@@ -3628,28 +3633,11 @@ just_read_file (inf)
 
 /* Fortran parsing */
 
-static bool tail P_((char *));
-static void takeprec P_((void));
-static void getit P_((FILE *));
-
-static bool
-tail (cp)
-     char *cp;
-{
-  register int len = 0;
-
-  while (*cp != '\0' && lowcase (*cp) == lowcase (dbp[len]))
-    cp++, len++;
-  if (*cp == '\0' && !intoken (dbp[len]))
-    {
-      dbp += len;
-      return TRUE;
-    }
-  return FALSE;
-}
+static void F_takeprec __P((void));
+static void F_getit __P((FILE *));
 
 static void
-takeprec ()
+F_takeprec ()
 {
   dbp = skip_spaces (dbp);
   if (*dbp != '*')
@@ -3672,7 +3660,7 @@ takeprec ()
 }
 
 static void
-getit (inf)
+F_getit (inf)
      FILE *inf;
 {
   register char *cp;
@@ -3712,28 +3700,28 @@ Fortran_functions (inf)
       switch (lowcase (*dbp))
 	{
 	case 'i':
-	  if (tail ("integer"))
-	    takeprec ();
+	  if (nocase_tail ("integer"))
+	    F_takeprec ();
 	  break;
 	case 'r':
-	  if (tail ("real"))
-	    takeprec ();
+	  if (nocase_tail ("real"))
+	    F_takeprec ();
 	  break;
 	case 'l':
-	  if (tail ("logical"))
-	    takeprec ();
+	  if (nocase_tail ("logical"))
+	    F_takeprec ();
 	  break;
 	case 'c':
-	  if (tail ("complex") || tail ("character"))
-	    takeprec ();
+	  if (nocase_tail ("complex") || nocase_tail ("character"))
+	    F_takeprec ();
 	  break;
 	case 'd':
-	  if (tail ("double"))
+	  if (nocase_tail ("double"))
 	    {
 	      dbp = skip_spaces (dbp);
 	      if (*dbp == '\0')
 		continue;
-	      if (tail ("precision"))
+	      if (nocase_tail ("precision"))
 		break;
 	      continue;
 	    }
@@ -3745,26 +3733,26 @@ Fortran_functions (inf)
       switch (lowcase (*dbp))
 	{
 	case 'f':
-	  if (tail ("function"))
-	    getit (inf);
+	  if (nocase_tail ("function"))
+	    F_getit (inf);
 	  continue;
 	case 's':
-	  if (tail ("subroutine"))
-	    getit (inf);
+	  if (nocase_tail ("subroutine"))
+	    F_getit (inf);
 	  continue;
 	case 'e':
-	  if (tail ("entry"))
-	    getit (inf);
+	  if (nocase_tail ("entry"))
+	    F_getit (inf);
 	  continue;
 	case 'b':
-	  if (tail ("blockdata") || tail ("block data"))
+	  if (nocase_tail ("blockdata") || nocase_tail ("block data"))
 	    {
 	      dbp = skip_spaces (dbp);
 	      if (*dbp == '\0')	/* assume un-named */
 		pfnote (savestr ("blockdata"), TRUE,
 			lb.buffer, dbp - lb.buffer, lineno, linecharno);
 	      else
-		getit (inf);	/* look for name */
+		F_getit (inf);	/* look for name */
 	    }
 	  continue;
 	}
@@ -3774,15 +3762,16 @@ Fortran_functions (inf)
 
 /*
  * Ada parsing
+ * Original code by
  * Philippe Waroquiers <philippe.waroquiers@eurocontrol.be> (1998)
  */
 
-static void adagetit P_((FILE *, char *));
+static void Ada_getit __P((FILE *, char *));
 
 /* Once we are positioned after an "interesting" keyword, let's get
    the real tag value necessary. */
 static void
-adagetit (inf, name_qualifier)
+Ada_getit (inf, name_qualifier)
      FILE *inf;
      char *name_qualifier;
 {
@@ -3801,11 +3790,10 @@ adagetit (inf, name_qualifier)
 	  charno += readline (&lb, inf);
 	  dbp = lb.buffer;
 	}
-      switch (*dbp)
+      switch (lowcase(*dbp))
         {
         case 'b':
-        case 'B':
-          if (tail ("body"))
+          if (nocase_tail ("body"))
             {
               /* Skipping body of   procedure body   or   package body or ....
 		 resetting qualifier to body instead of spec. */
@@ -3814,9 +3802,8 @@ adagetit (inf, name_qualifier)
             }
           break;
         case 't':
-        case 'T':
           /* Skipping type of   task type   or   protected type ... */
-          if (tail ("type"))
+          if (nocase_tail ("type"))
             continue;
           break;
         }
@@ -3897,33 +3884,30 @@ Ada_funcs (inf)
 	    }
 
 	  /* We are at the beginning of a token. */
-	  switch (*dbp)
+	  switch (lowcase(*dbp))
 	    {
 	    case 'f':
-	    case 'F':
-	      if (!packages_only && tail ("function"))
-		adagetit (inf, "/f");
+	      if (!packages_only && nocase_tail ("function"))
+		Ada_getit (inf, "/f");
 	      else
 		break;		/* from switch */
 	      continue;		/* advance char */
 	    case 'p':
-	    case 'P':
-	      if (!packages_only && tail ("procedure"))
-		adagetit (inf, "/p");
-	      else if (tail ("package"))
-		adagetit (inf, "/s");
-	      else if (tail ("protected")) /* protected type */
-		adagetit (inf, "/t");
+	      if (!packages_only && nocase_tail ("procedure"))
+		Ada_getit (inf, "/p");
+	      else if (nocase_tail ("package"))
+		Ada_getit (inf, "/s");
+	      else if (nocase_tail ("protected")) /* protected type */
+		Ada_getit (inf, "/t");
 	      else
 		break;		/* from switch */
 	      continue;		/* advance char */
 	    case 't':
-	    case 'T':
-	      if (!packages_only && tail ("task"))
-		adagetit (inf, "/k");
-	      else if (typedefs && !packages_only && tail ("type"))
+	      if (!packages_only && nocase_tail ("task"))
+		Ada_getit (inf, "/k");
+	      else if (typedefs && !packages_only && nocase_tail ("type"))
 		{
-		  adagetit (inf, "/t");
+		  Ada_getit (inf, "/t");
 		  while (*dbp != '\0')
 		    dbp += 1;
 		}
@@ -3942,9 +3926,9 @@ Ada_funcs (inf)
 
 
 /*
- * Bob Weiner, Motorola Inc., 4/3/94
  * Unix and microcontroller assembly tag handling
- * look for '^[a-zA-Z_.$][a-zA_Z0-9_.$]*[: ^I^J]'
+ * Labels:  /^[a-zA-Z_.$][a-zA_Z0-9_.$]*[: ^I^J]/
+ * Idea by Bob Weiner, Motorola Inc. (1994)
  */
 static void
 Asm_labels (inf)
@@ -3975,40 +3959,57 @@ Asm_labels (inf)
 
 /*
  * Perl support
- * Perl sub names: look for /^sub[ \t\n]+[^ \t\n{]+/
+ * Perl sub names: /^sub[ \t\n]+[^ \t\n{]+/
  * Perl variable names: /^(my|local).../
- * Bart Robinson <lomew@cs.utah.edu> (1995)
- * Michael Ernst <mernst@alum.mit.edu> (1997)
+ * Original code by Bart Robinson <lomew@cs.utah.edu> (1995)
+ * Additions by Michael Ernst <mernst@alum.mit.edu> (1997)
+ * Ideas by Kai Großjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE> (2001)
  */
 static void
 Perl_functions (inf)
      FILE *inf;
 {
+  char *package = savestr ("main"); /* current package name */
   register char *cp;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      if (LOOKING_AT (cp, "sub"))
+      skip_spaces(cp);
+
+      if (LOOKING_AT (cp, "package"))
 	{
- 	  if (*cp != '\0')
- 	    {
-	      char *sp = cp;
- 	      while (*cp != '\0'
-		     && !iswhite (*cp) && *cp != '{' && *cp != '(')
-		cp++;
-	      pfnote (savenstr (sp, cp-sp), TRUE,
- 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
- 	    }
+	  free (package);
+	  package = get_tag (cp);
+	  if (package == NULL)	/* can't parse package name */
+	    package = savestr ("");
+	  else
+	    package = savestr(package);	/* make a copy */
+	}
+      else if (LOOKING_AT (cp, "sub"))
+	{
+	  char *name, *fullname, *pos;
+	  char *sp = cp;
+
+	  while (!notinname (*cp))
+	    cp++;
+	  if (cp == sp)
+	    continue;
+	  name = savenstr (sp, cp-sp);
+	  if ((pos = etags_strchr (name, ':')) != NULL && pos[1] == ':')
+	    fullname = name;
+	  else
+	    fullname = concat (package, "::", name);
+	  pfnote (fullname, TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  if (name != fullname)
+	    free (name);
  	}
        else if (globals		/* only if tagging global vars is enabled */
-		&& ((strneq (cp, "my", 2) && (cp+=2))
-		    || (strneq (cp, "local", 5) && (cp+=5)))
-		&& (*cp == '(' || iswhite (*cp)))
+		&& (LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local")))
  	{
  	  /* After "my" or "local", but before any following paren or space. */
  	  char *varname = NULL;
 
- 	  cp = skip_spaces (cp);
  	  if (*cp == '$' || *cp == '@' || *cp == '%')
  	    {
  	      char* varstart = ++cp;
@@ -4036,7 +4037,7 @@ Perl_functions (inf)
 /*
  * Python support
  * Look for /^def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
- * Eric S. Raymond <esr@thyrsus.com> (1997)
+ * Idea by Eric S. Raymond <esr@thyrsus.com> (1997)
  */
 static void
 Python_functions (inf)
@@ -4047,7 +4048,7 @@ Python_functions (inf)
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     if (LOOKING_AT (cp, "def") || LOOKING_AT (cp, "class"))
       {
-	while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
+	while (!notinname (*cp) && *cp != ':')
 	  cp++;
 	pfnote (NULL, TRUE,
 		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4063,7 +4064,7 @@ Python_functions (inf)
  *  - /^[ \t]*define\(\"[^\"]+/
  * Only with --members:
  *  - /^[ \t]*var[ \t\n]+\$[^ \t\n=;]/
- * originally by Diez B. Roggisch 2001-06-06
+ * Idea by Diez B. Roggisch (2001)
  */
 static void
 PHP_functions (inf)
@@ -4078,7 +4079,7 @@ PHP_functions (inf)
       if (search_identifier
 	  && *cp != '\0')
 	{
-	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(')
+	  while (!notinname (*cp))
 	    cp++;
 	  pfnote (NULL, TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4090,7 +4091,7 @@ PHP_functions (inf)
 	    cp = skip_spaces (cp+1);
 	  if(*cp != '\0')
 	    {
-	      while (*cp != '\0' && !iswhite (*cp) && *cp != '(')
+	      while (!notinname (*cp))
 		cp++;
 	      pfnote (NULL, TRUE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4125,7 +4126,7 @@ PHP_functions (inf)
 	       && LOOKING_AT (cp, "var")
 	       && *cp == '$')
 	{
-	  while (*cp != '=' && *cp != ';' && *cp != '\0' && !iswhite(*cp))
+	  while (!notinname(*cp))
 	    cp++;
 	  pfnote (NULL, FALSE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4134,10 +4135,11 @@ PHP_functions (inf)
 }
 
 
-/* Idea by Corny de Souza
+/*
  * Cobol tag functions
  * We could look for anything that could be a paragraph name.
  * i.e. anything that starts in column 8 is one word and ends in a full stop.
+ * Idea by Corny de Souza (1993)
  */
 static void
 Cobol_paragraphs (inf)
@@ -4187,10 +4189,10 @@ Makefile_targets (inf)
 }
 
 
-/* Added by Mosur Mohan, 4/22/88 */
-/* Pascal parsing                */
-
 /*
+ * Pascal parsing
+ * Original code by Mosur K. Mohan (1989)
+ *
  *  Locates tags for procedures & functions.  Doesn't do any type- or
  *  var-definitions.  It does look for the keyword "extern" or
  *  "forward" immediately following the procedure statement; if found,
@@ -4303,7 +4305,7 @@ Pascal_functions (inf)
 	    continue;
 	  if (lowcase (*dbp == 'e'))
 	    {
-	      if (tail ("extern"))	/* superfluous, really! */
+	      if (nocase_tail ("extern")) /* superfluous, really! */
 		{
 		  found_tag = FALSE;
 		  verify_tag = FALSE;
@@ -4311,7 +4313,7 @@ Pascal_functions (inf)
 	    }
 	  else if (lowcase (*dbp) == 'f')
 	    {
-	      if (tail ("forward"))	/*  check for forward reference */
+	      if (nocase_tail ("forward")) /*  check for forward reference */
 		{
 		  found_tag = FALSE;
 		  verify_tag = FALSE;
@@ -4355,11 +4357,11 @@ Pascal_functions (inf)
 	  switch (lowcase (c))
 	    {
 	    case 'p':
-	      if (tail ("rocedure"))	/* c = 'p', dbp has advanced */
+	      if (nocase_tail ("rocedure")) /* c = 'p', dbp has advanced */
 		get_tagname = TRUE;
 	      continue;
 	    case 'f':
-	      if (tail ("unction"))
+	      if (nocase_tail ("unction"))
 		get_tagname = TRUE;
 	      continue;
 	    }
@@ -4375,56 +4377,22 @@ Pascal_functions (inf)
  *  look for (def or (DEF, quote or QUOTE
  */
 
-static int L_isdef P_((char *));
-static int L_isquote P_((char *));
-static void L_getit P_((void));
-
-static int
-L_isdef (strp)
-     register char *strp;
-{
-  return ((strp[1] == 'd' || strp[1] == 'D')
-	  && (strp[2] == 'e' || strp[2] == 'E')
-	  && (strp[3] == 'f' || strp[3] == 'F'));
-}
-
-static int
-L_isquote (strp)
-     register char *strp;
-{
-  return ((*++strp == 'q' || *strp == 'Q')
-	  && (*++strp == 'u' || *strp == 'U')
-	  && (*++strp == 'o' || *strp == 'O')
-	  && (*++strp == 't' || *strp == 'T')
-	  && (*++strp == 'e' || *strp == 'E')
-	  && iswhite (*++strp));
-}
+static void L_getit __P((void));
 
 static void
 L_getit ()
 {
-  register char *cp;
-
   if (*dbp == '\'')		/* Skip prefix quote */
     dbp++;
   else if (*dbp == '(')
   {
-    if (L_isquote (dbp))
-      dbp += 7;			/* Skip "(quote " */
-    else
-      dbp += 1;			/* Skip "(" before name in (defstruct (foo)) */
-    dbp = skip_spaces (dbp);
+    dbp++;
+    /* Try to skip "(quote " */
+    if (!LOOKING_AT (dbp, "quote") && !LOOKING_AT (dbp, "QUOTE"))
+      /* Ok, then skip "(" before name in (defstruct (foo)) */
+      dbp = skip_spaces (dbp);
   }
-
-  for (cp = dbp /*+1*/;
-       *cp != '\0' && *cp != '(' && !iswhite(*cp) && *cp != ')';
-       cp++)
-    continue;
-  if (cp == dbp)
-    return;
-
-  pfnote (savenstr (dbp, cp-dbp), TRUE,
-	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  get_tag (dbp);
 }
 
 static void
@@ -4433,33 +4401,32 @@ Lisp_functions (inf)
 {
   LOOP_ON_INPUT_LINES (inf, lb, dbp)
     {
-      if (dbp[0] == '(')
+      if (dbp[0] != '(')
+	continue;
+
+      if (strneq (dbp+1, "def", 3) || strneq (dbp+1, "DEF", 3))
 	{
-	  if (L_isdef (dbp))
+	  dbp = skip_non_spaces (dbp);
+	  dbp = skip_spaces (dbp);
+	  L_getit ();
+	}
+      else
+	{
+	  /* Check for (foo::defmumble name-defined ... */
+	  do
+	    dbp++;
+	  while (!notinname (*dbp) && *dbp != ':');
+	  if (*dbp == ':')
 	    {
-	      dbp = skip_non_spaces (dbp);
-	      dbp = skip_spaces (dbp);
-	      L_getit ();
-	    }
-	  else
-	    {
-	      /* Check for (foo::defmumble name-defined ... */
 	      do
 		dbp++;
-	      while (*dbp != '\0' && !iswhite (*dbp)
-		     && *dbp != ':' && *dbp != '(' && *dbp != ')');
-	      if (*dbp == ':')
-		{
-		  do
-		    dbp++;
-		  while (*dbp == ':');
+	      while (*dbp == ':');
 
-		  if (L_isdef (dbp - 1))
-		    {
-		      dbp = skip_non_spaces (dbp);
-		      dbp = skip_spaces (dbp);
-		      L_getit ();
-		    }
+	      if (strneq (dbp, "def", 3) || strneq (dbp, "DEF", 3))
+		{
+		  dbp = skip_non_spaces (dbp);
+		  dbp = skip_spaces (dbp);
+		  L_getit ();
 		}
 	    }
 	}
@@ -4471,8 +4438,9 @@ Lisp_functions (inf)
  * Postscript tag functions
  * Just look for lines where the first character is '/'
  * Also look at "defineps" for PSWrap
- * Richard Mlynarik <mly@adoc.xerox.com> (1997)
- * Ideas by Masatake Yamato <masata-y@is.aist-nara.ac.jp> (1999)
+ * Ideas by:
+ *   Richard Mlynarik <mly@adoc.xerox.com> (1997)
+ *   Masatake Yamato <masata-y@is.aist-nara.ac.jp> (1999)
  */
 static void
 Postscript_functions (inf)
@@ -4491,12 +4459,8 @@ Postscript_functions (inf)
 	  pfnote (savenstr (bp, ep-bp), TRUE,
 		  lb.buffer, ep - lb.buffer + 1, lineno, linecharno);
 	}
-      else if (strneq (bp, "defineps", 8))
-	{
-	  bp = skip_non_spaces (bp);
- 	  bp = skip_spaces (bp);
-	  get_tag (bp);
-	}
+      else if (LOOKING_AT (bp, "defineps"))
+	get_tag (bp);
     }
 }
 
@@ -4504,9 +4468,10 @@ Postscript_functions (inf)
 /*
  * Scheme tag functions
  * look for (def... xyzzy
- * look for (def... (xyzzy
- * look for (def ... ((...(xyzzy ....
- * look for (set! xyzzy
+ *          (def... (xyzzy
+ *          (def ... ((...(xyzzy ....
+ *          (set! xyzzy
+ * Original code by Ken Haase (1985?)
  */
 
 static void
@@ -4517,14 +4482,11 @@ Scheme_functions (inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, bp)
     {
-      if (bp[0] == '('
-	  && (bp[1] == 'D' || bp[1] == 'd')
-	  && (bp[2] == 'E' || bp[2] == 'e')
-	  && (bp[3] == 'F' || bp[3] == 'f'))
+      if (strneq (bp, "(def", 4) || strneq (bp, "(DEF", 4))
 	{
-	  bp = skip_non_spaces (bp);
+	  bp = skip_non_spaces (bp+4);
 	  /* Skip over open parens and white space */
-	  while (iswhite (*bp) || *bp == '(')
+	  while (notinname (*bp))
 	    bp++;
 	  get_tag (bp);
 	}
@@ -4554,9 +4516,9 @@ char *TEX_defenv = "\
 :chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem\
 :part:appendix:entry:index";
 
-static void TEX_mode P_((FILE *));
-static struct TEX_tabent *TEX_decode_env P_((char *, char *));
-static int TEX_Token P_((char *));
+static void TEX_mode __P((FILE *));
+static struct TEX_tabent *TEX_decode_env __P((char *, char *));
+static int TEX_Token __P((char *));
 
 char TEX_esc = '\\';
 char TEX_opgrp = '{';
@@ -4736,14 +4698,16 @@ Texinfo_nodes (inf)
 
 
 /*
- * Prolog support (rewritten) by Anders Lindgren, Mar. 96
+ * Prolog support
  *
- * Assumes that the predicate starts at column 0.
- * Only the first clause of a predicate is added.
+ * Assumes that the predicate or rule starts at column 0.
+ * Only the first clause of a predicate or rule is added.
+ * Original code by Sunichirou Sugou (1989)
+ * Rewritten by Anders Lindgren (1996)
  */
-static int prolog_pr P_((char *, char *));
-static void prolog_skip_comment P_((linebuffer *, FILE *));
-static int prolog_atom P_((char *, int));
+static int prolog_pr __P((char *, char *));
+static void prolog_skip_comment __P((linebuffer *, FILE *));
+static int prolog_atom __P((char *, int));
 
 static void
 Prolog_functions (inf)
@@ -4767,8 +4731,8 @@ Prolog_functions (inf)
 	prolog_skip_comment (&lb, inf);
       else if ((len = prolog_pr (cp, last)) > 0)
 	{
-	  /* Predicate.  Store the function name so that we only
-	     generate a tag for the first clause.  */
+	  /* Predicate or rule.  Store the function name so that we
+	     only generate a tag for the first clause.  */
 	  if (last == NULL)
 	    last = xnew(len + 1, char);
 	  else if (len + 1 > allocated)
@@ -4900,15 +4864,15 @@ prolog_atom (s, pos)
 
 
 /*
- * Support for Erlang  --  Anders Lindgren, Feb 1996.
+ * Support for Erlang
  *
  * Generates tags for functions, defines, and records.
- *
  * Assumes that Erlang functions start at column 0.
+ * Original code by Anders Lindgren (1996)
  */
-static int erlang_func P_((char *, char *));
-static void erlang_attribute P_((char *));
-static int erlang_atom P_((char *, int));
+static int erlang_func __P((char *, char *));
+static void erlang_attribute __P((char *));
+static int erlang_atom __P((char *, int));
 
 static void
 Erlang_functions (inf)
@@ -5010,9 +4974,8 @@ erlang_attribute (s)
   int pos;
   int len;
 
-  if (strneq (s, "-define", 7) || strneq (s, "-record", 7))
+  if (LOOKING_AT (s, "-define") || LOOKING_AT (s, "-record"))
     {
-      pos = skip_spaces (s + 7) - s;
       if (s[pos++] == '(')
 	{
 	  pos = skip_spaces (s + pos) - s;
@@ -5079,10 +5042,10 @@ erlang_atom (s, pos)
 
 #ifdef ETAGS_REGEXPS
 
-static char *scan_separators P_((char *));
-static void analyse_regex P_((char *, bool));
-static void add_regex P_((char *, bool, language *));
-static char *substitute P_((char *, char *, struct re_registers *));
+static char *scan_separators __P((char *));
+static void analyse_regex __P((char *, bool));
+static void add_regex __P((char *, bool, language *));
+static char *substitute __P((char *, char *, struct re_registers *));
 
 /* Take a string like "/blah/" and turn it into "blah", making sure
    that the first and last characters are the same, and handling
@@ -5244,8 +5207,8 @@ add_regex (regexp_pattern, ignore_case, lang)
   p_head = xnew (1, pattern);
   p_head->regex = savestr (regexp_pattern);
   p_head->p_next = pp;
-  p_head->language = lang;
-  p_head->pattern = patbuf;
+  p_head->lang = lang;
+  p_head->pat = patbuf;
   p_head->name_pattern = savestr (name);
   p_head->error_signaled = FALSE;
 }
@@ -5318,21 +5281,37 @@ free_patterns ()
 #endif /* ETAGS_REGEXPS */
 
 
-static void
+static bool
+nocase_tail (cp)
+     char *cp;
+{
+  register int len = 0;
+
+  while (*cp != '\0' && lowcase (*cp) == lowcase (dbp[len]))
+    cp++, len++;
+  if (*cp == '\0' && !intoken (dbp[len]))
+    {
+      dbp += len;
+      return TRUE;
+    }
+  return FALSE;
+}
+
+static char *
 get_tag (bp)
      register char *bp;
 {
-  register char *cp;
+  register char *cp, *name;
 
   if (*bp == '\0')
-    return;
+    return NULL;
   /* Go till you get to white space or a syntactic break */
-  for (cp = bp + 1;
-       *cp != '\0' && *cp != '(' && *cp != ')' && !iswhite (*cp);
-       cp++)
+  for (cp = bp + 1; !notinname (*cp); cp++)
     continue;
-  pfnote (savenstr (bp, cp-bp), TRUE,
+  name = savenstr (bp, cp-bp);
+  pfnote (name, TRUE,
 	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  return name;
 }
 
 /* Initialize a linebuffer for use */
@@ -5436,10 +5415,10 @@ readline (lbp, stream)
     for (pp = p_head; pp != NULL; pp = pp->p_next)
       {
 	/* Only use generic regexps or those for the current language. */
-	if (pp->language != NULL && pp->language != curlang)
+	if (pp->lang != NULL && pp->lang != curlang)
 	  continue;
 
-	match = re_match (pp->pattern, lbp->buffer, lbp->len, 0, &pp->regs);
+	match = re_match (pp->pat, lbp->buffer, lbp->len, 0, &pp->regs);
 	switch (match)
 	  {
 	  case -2:
@@ -5847,22 +5826,22 @@ linebuffer_setlen (lbp, toksize)
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
-long *
+PTR
 xmalloc (size)
      unsigned int size;
 {
-  long *result = (long *) malloc (size);
+  PTR result = (PTR) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
 
-long *
+PTR
 xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  long *result =  (long *) realloc (ptr, size);
+  PTR result = (PTR) realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
@@ -5873,6 +5852,6 @@ xrealloc (ptr, size)
  * c-indentation-style: gnu
  * indent-tabs-mode: t
  * tab-width: 8
- * c-font-lock-extra-types: ("FILE" "bool" "linebuffer")
+ * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer")
  * End:
  */
