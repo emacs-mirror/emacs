@@ -921,50 +921,49 @@ print_partial_compiled_pattern (start, end)
 
   if (start == NULL)
     {
-      printf ("(null)\n");
+      fprintf (stderr, "(null)\n");
       return;
     }
 
   /* Loop over pattern commands.  */
   while (p < pend)
     {
-      printf ("%d:\t", p - start);
+      fprintf (stderr, "%d:\t", p - start);
 
       switch ((re_opcode_t) *p++)
 	{
 	case no_op:
-	  printf ("/no_op");
+	  fprintf (stderr, "/no_op");
 	  break;
 
 	case succeed:
-	  printf ("/succeed");
+	  fprintf (stderr, "/succeed");
 	  break;
 
 	case exactn:
 	  mcnt = *p++;
-	  printf ("/exactn/%d", mcnt);
+	  fprintf (stderr, "/exactn/%d", mcnt);
 	  do
 	    {
-	      putchar ('/');
-	      putchar (*p++);
+	      fprintf (stderr, "/%c", *p++);
 	    }
 	  while (--mcnt);
 	  break;
 
 	case start_memory:
-	  printf ("/start_memory/%d", *p++);
+	  fprintf (stderr, "/start_memory/%d", *p++);
 	  break;
 
 	case stop_memory:
-	  printf ("/stop_memory/%d", *p++);
+	  fprintf (stderr, "/stop_memory/%d", *p++);
 	  break;
 
 	case duplicate:
-	  printf ("/duplicate/%d", *p++);
+	  fprintf (stderr, "/duplicate/%d", *p++);
 	  break;
 
 	case anychar:
-	  printf ("/anychar");
+	  fprintf (stderr, "/anychar");
 	  break;
 
 	case charset:
@@ -975,7 +974,7 @@ print_partial_compiled_pattern (start, end)
 	    int length = CHARSET_BITMAP_SIZE (p - 1);
 	    int has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
-	    printf ("/charset [%s",
+	    fprintf (stderr, "/charset [%s",
 		    (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
 	    assert (p + *p < pend);
@@ -987,33 +986,33 @@ print_partial_compiled_pattern (start, end)
 		  /* Are we starting a range?  */
 		  if (last + 1 == c && ! in_range)
 		    {
-		      putchar ('-');
+		      fprintf (stderr, "-");
 		      in_range = 1;
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
 		    {
-		      putchar (last);
+		      fprintf (stderr, "%c", last);
 		      in_range = 0;
 		    }
 
 		  if (! in_range)
-		    putchar (c);
+		    fprintf (stderr, "%c", c);
 
 		  last = c;
 	      }
 
 	    if (in_range)
-	      putchar (last);
+	      fprintf (stderr, "%c", last);
 
-	    putchar (']');
+	    fprintf (stderr, "]");
 
 	    p += 1 + length;
 
 	    if (has_range_table)
 	      {
 		int count;
-		printf ("has-range-table");
+		fprintf (stderr, "has-range-table");
 
 		/* ??? Should print the range table; for now, just skip it.  */
 		p += 2;		/* skip range table bits */
@@ -1024,130 +1023,130 @@ print_partial_compiled_pattern (start, end)
 	  break;
 
 	case begline:
-	  printf ("/begline");
+	  fprintf (stderr, "/begline");
 	  break;
 
 	case endline:
-	  printf ("/endline");
+	  fprintf (stderr, "/endline");
 	  break;
 
 	case on_failure_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_keep_string_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_keep_string_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nastyloop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_nastyloop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_nastyloop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_loop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_loop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_smart:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_smart to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_smart to %d", p + mcnt - start);
 	  break;
 
 	case jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/jump to %d", p + mcnt - start);
 	  break;
 
 	case succeed_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case jump_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case set_number_at:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case wordbound:
-	  printf ("/wordbound");
+	  fprintf (stderr, "/wordbound");
 	  break;
 
 	case notwordbound:
-	  printf ("/notwordbound");
+	  fprintf (stderr, "/notwordbound");
 	  break;
 
 	case wordbeg:
-	  printf ("/wordbeg");
+	  fprintf (stderr, "/wordbeg");
 	  break;
 
 	case wordend:
-	  printf ("/wordend");
+	  fprintf (stderr, "/wordend");
 
 	case syntaxspec:
-	  printf ("/syntaxspec");
+	  fprintf (stderr, "/syntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notsyntaxspec:
-	  printf ("/notsyntaxspec");
+	  fprintf (stderr, "/notsyntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 # ifdef emacs
 	case before_dot:
-	  printf ("/before_dot");
+	  fprintf (stderr, "/before_dot");
 	  break;
 
 	case at_dot:
-	  printf ("/at_dot");
+	  fprintf (stderr, "/at_dot");
 	  break;
 
 	case after_dot:
-	  printf ("/after_dot");
+	  fprintf (stderr, "/after_dot");
 	  break;
 
 	case categoryspec:
-	  printf ("/categoryspec");
+	  fprintf (stderr, "/categoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notcategoryspec:
-	  printf ("/notcategoryspec");
+	  fprintf (stderr, "/notcategoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 # endif /* emacs */
 
 	case begbuf:
-	  printf ("/begbuf");
+	  fprintf (stderr, "/begbuf");
 	  break;
 
 	case endbuf:
-	  printf ("/endbuf");
+	  fprintf (stderr, "/endbuf");
 	  break;
 
 	default:
-	  printf ("?%d", *(p-1));
+	  fprintf (stderr, "?%d", *(p-1));
 	}
 
-      putchar ('\n');
+      fprintf (stderr, "\n");
     }
 
-  printf ("%d:\tend of pattern.\n", p - start);
+  fprintf (stderr, "%d:\tend of pattern.\n", p - start);
 }
 
 
