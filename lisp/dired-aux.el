@@ -505,9 +505,11 @@ and use this command with a prefix argument (the value does not matter)."
   ;; pop-up unless OP-SYMBOL is a member of `dired-no-confirm'.
   ;; The files used are determined by ARG (as in dired-get-marked-files).
   (or (memq op-symbol dired-no-confirm)
-      (let ((files (dired-get-marked-files t arg)))
+      (let ((files (dired-get-marked-files t arg))
+	    (string (if (eq op-symbol 'compress) "Compress or uncompress"
+		      (capitalize (symbol-name op-symbol)))))
 	(dired-mark-pop-up nil op-symbol files (function y-or-n-p)
-			   (concat (capitalize (symbol-name op-symbol)) " "
+			   (concat string " "
 				   (dired-mark-prompt arg files) "? ")))))
 
 (defun dired-map-over-marks-check (fun arg op-symbol &optional show-progress)
@@ -529,15 +531,16 @@ and use this command with a prefix argument (the value does not matter)."
 	      (dired-map-over-marks (funcall fun) arg show-progress))
 	     (total (length total-list))
 	     (failures (delq nil total-list))
-	     (count (length failures)))
+	     (count (length failures))
+	     (string (if (eq op-symbol 'compress) "Compress or uncompress"
+		       (capitalize (symbol-name op-symbol)))))
 	(if (not failures)
 	    (message "%s: %d file%s."
-		     (capitalize (symbol-name op-symbol))
-		     total (dired-plural-s total))
+		     string total (dired-plural-s total))
 	  ;; end this bunch of errors:
 	  (dired-log-summary
 	   (format "Failed to %s %d of %d file%s"
-		   (symbol-name op-symbol) count total (dired-plural-s total))
+		   (downcase string) count total (dired-plural-s total))
 	   failures)))))
 
 (defvar dired-query-alist
