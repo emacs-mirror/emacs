@@ -434,8 +434,8 @@ find_field (pos, merge_at_boundary, beg, end)
     }
 }
 
-DEFUN ("erase-field", Ferase_field, Serase_field, 0, 1, "d",
-  "Erases the field surrounding POS.\n\
+DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, "d",
+  "Delete the field surrounding POS.\n\
 A field is a region of text with the same `field' property.\n\
 If POS is nil, the position of the current buffer's point is used.")
   (pos)
@@ -3725,7 +3725,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Sfield_end);
   defsubr (&Sfield_string);
   defsubr (&Sfield_string_no_properties);
-  defsubr (&Serase_field);
+  defsubr (&Sdelete_field);
   defsubr (&Sconstrain_to_field);
 
   defsubr (&Sline_beginning_position);
