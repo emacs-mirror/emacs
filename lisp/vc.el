@@ -1157,6 +1157,7 @@ files in or below it."
 	(set-buffer (get-buffer-create "*vc-diff*"))
 	(cd file)
 	(vc-file-tree-walk
+	 default-directory
 	 (function (lambda (f)
 		     (message "Looking at %s" f)
 		     (and
@@ -1238,28 +1239,20 @@ the variable `vc-header-alist'."
       (replace-match "$\\1$"))
     (vc-restore-buffer-context context)))
 
-;; The VC directory submode.  Coopt Dired for this.
+;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
 
-(defvar vc-dired-prefix-map (make-sparse-keymap))
-(define-key vc-dired-prefix-map "\C-xv" vc-prefix-map)
-(define-key vc-dired-prefix-map "g" 'vc-directory)
-(define-key vc-dired-prefix-map "=" 'vc-diff)
-
-(or (not (boundp 'minor-mode-map-alist))
-    (assq 'vc-dired-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	   (cons (cons 'vc-dired-mode vc-dired-prefix-map)
-		 minor-mode-map-alist)))
-
-(defun vc-dired-mode ()
-  "The augmented Dired minor mode used in VC directory buffers.
+(define-derived-mode vc-dired-mode dired-mode "Dired under VC"
+  "The major mode used in VC directory buffers.  It is derived from Dired.
 All Dired commands operate normally.  Users currently locking listed files
 are listed in place of the file's owner and group.
 Keystrokes bound to VC commands will execute as though they had been called
 on a buffer attached to the file named in the current Dired buffer line."
-  (setq vc-dired-mode t)
-  (setq vc-mode " under VC"))
+  (setq vc-dired-mode t))
+
+(define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
+(define-key vc-dired-mode-map "g" 'vc-dired-update)
+(define-key vc-dired-mode-map "=" 'vc-diff)
 
 (defun vc-dired-state-info (file)
   ;; Return the string that indicates the version control status
@@ -1286,15 +1279,31 @@ on a buffer attached to the file named in the current Dired buffer line."
   ;; (insert (concat x "\t")))
   ;;
   ;; This code, like dired, assumes UNIX -l format.
-  (cond
-   ((re-search-forward 
-        "\\([drwx-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( .*\\)" 
-	nil 0)
-    (if (numberp x) (setq x (match-string 2)))
+  (let ((pos (point)) limit perm owner date-and-file)
+    (end-of-line)
+    (setq limit (point))
+    (goto-char pos)
+    (cond
+     ((or
+       (re-search-forward  ;; owner and group
+"\\([drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[^ ]+ +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
+	  limit t)       
+       (re-search-forward  ;; only owner displayed
+"\\([drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)" 
+	  limit t))
+      (setq perm          (match-string 1)
+	    owner         (match-string 2)
+	    date-and-file (match-string 3)))
+     ((re-search-forward  ;; OS/2 -l format, no links, owner, group
+"\\([drwxlts-]+ \\) *[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
+         limit t)
+      (setq perm          (match-string 1)
+	    date-and-file (match-string 2))))
+    (if (numberp x) (setq x (or owner (number-to-string x))))
     (if x (setq x (concat "(" x ")")))
     (let ((rep (substring (concat x "                 ") 0 10)))
-      (replace-match (concat "\\1" rep "\\3"))))))
-
+      (replace-match (concat perm rep date-and-file)))))
+       
 (defun vc-dired-update-line (file)
   ;; Update the vc-dired listing line of file -- it is assumed 
   ;; that point is already on this line.  Don't use dired-do-redisplay
@@ -1314,20 +1323,30 @@ on a buffer attached to the file named in the current Dired buffer line."
     (goto-char start))
   (vc-dired-reformat-line (vc-dired-state-info file)))
 
+(defun vc-dired-update (verbose)
+  (interactive "P")
+  (vc-directory default-directory verbose))
+
 ;;; Note in Emacs 18 the following defun gets overridden
 ;;; with the symbol 'vc-directory-18.  See below.
 ;;;###autoload
-(defun vc-directory (verbose)
+(defun vc-directory (dirname verbose)
   "Show version-control status of the current directory and subdirectories.
 Normally it creates a Dired buffer that lists only the locked files
 in all these directories.  With a prefix argument, it lists all files."
-  (interactive "P")
+  (interactive "DDired under VC (directory): \nP")
+  (setq dirname (expand-file-name dirname))
+  ;; force a trailing slash
+  (if (not (eq (elt dirname (1- (length dirname))) ?/))
+      (setq dirname (concat dirname "/")))
   (let (nonempty
-	(dl (length (expand-file-name default-directory)))
+	(dl (length dirname))
 	(filelist nil) (statelist nil)
+	(old-dir default-directory)
 	dired-buf
 	dired-buf-mod-count)
     (vc-file-tree-walk
+     dirname
      (function 
       (lambda (f)
 	(if (vc-registered f)
@@ -1337,28 +1356,14 @@ in all these directories.  With a prefix argument, it lists all files."
 		   (setq statelist (cons state statelist))))))))
     (save-window-excursion
       (save-excursion
-	;; First, kill any existing vc-dired buffers of this directory.
-	;; (Code much like dired-find-buffer-nocreate.)
-	(let ((buffers (buffer-list)) 
-	      (dir (expand-file-name default-directory)))
-	  (while buffers
-	    (if (buffer-name (car buffers))
-		(progn (set-buffer (car buffers))
-		       (if (and (eq major-mode 'dired-mode)
-				(string= dir 
-					 (expand-file-name default-directory))
-				vc-dired-mode)
-			   (kill-buffer (car buffers)))))
-	    (setq buffers (cdr buffers)))
-	  ;; This uses a semi-documented feature of dired; giving a switch
-	  ;; argument forces the buffer to refresh each time.
-	  (dired
-	   (cons dir (nreverse filelist))
-	   dired-listing-switches)
-	  (setq dired-buf (current-buffer))
-	  (setq nonempty (not (eq 0 (length filelist)))))))
+	;; This uses a semi-documented feature of dired; giving a switch
+	;; argument forces the buffer to refresh each time.
+	(setq dired-buf
+	      (dired-internal-noselect
+	       (cons dirname (nreverse filelist))
+	       dired-listing-switches 'vc-dired-mode))
+	(setq nonempty (not (eq 0 (length filelist))))))
     (switch-to-buffer dired-buf)
-    (vc-dired-mode)
     ;; Make a few modifications to the header
     (setq buffer-read-only nil)
     (goto-char (point-min))
@@ -1385,7 +1390,7 @@ in all these directories.  With a prefix argument, it lists all files."
       (insert "  ")
       (setq buffer-read-only t)
       (message "No files are currently %s under %s"
-	       (if verbose "registered" "locked") default-directory))
+	       (if verbose "registered" "locked") dirname))
     ))
 
 ;; Emacs 18 version
@@ -1398,6 +1403,7 @@ in all these directories.  With a prefix argument, it lists all files."
       (erase-buffer)
       (cd dir)
       (vc-file-tree-walk
+       default-directory
        (function (lambda (f)
 		   (if (vc-registered f)
 		       (let ((user (vc-locking-user f)))
@@ -1406,6 +1412,7 @@ in all these directories.  With a prefix argument, it lists all files."
 				      "%s	%s\n"
 				      (concat user) f))))))))
       (setq nonempty (not (zerop (buffer-size)))))
+
     (if nonempty
 	(progn
 	  (pop-to-buffer "*vc-status*" t)
@@ -1482,6 +1489,7 @@ in all these directories.  With a prefix argument, it lists all files."
   (let ((status nil))
     (catch 'vc-locked-example
       (vc-file-tree-walk
+       default-directory
        (function (lambda (f)
 		   (and (vc-registered f)
 			(if (vc-locking-user f) (throw 'vc-locked-example f)
@@ -1499,6 +1507,7 @@ version becomes part of the named configuration."
     (if (stringp result)
 	(error "File %s is locked" result)
       (vc-file-tree-walk
+       default-directory
        (function (lambda (f) (and
 			      (vc-name f)
 			      (vc-backend-assign-name f name)))))
@@ -1518,6 +1527,7 @@ levels in the snapshot."
       (if (eq result 'visited)
 	  (setq update (yes-or-no-p "Update the affected buffers? ")))
       (vc-file-tree-walk
+       default-directory
        (function (lambda (f) (and
 			      (vc-name f)
 			      (vc-error-occurred
@@ -2299,11 +2309,11 @@ Global user options:
 
 ;;; These things should probably be generally available
 
-(defun vc-file-tree-walk (func &rest args)
-  "Walk recursively through default directory.
+(defun vc-file-tree-walk (dirname func &rest args)
+  "Walk recursively through DIRNAME.
 Invoke FUNC f ARGS on each non-directory file f underneath it."
-  (vc-file-tree-walk-internal (expand-file-name default-directory) func args)
-  (message "Traversing directory %s...done" default-directory))
+  (vc-file-tree-walk-internal (expand-file-name dirname) func args)
+  (message "Traversing directory %s...done" dirname))
 
 (defun vc-file-tree-walk-internal (file func args)
   (if (not (file-directory-p file))
