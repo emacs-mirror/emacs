@@ -227,6 +227,25 @@ matched by parenthesis constructs in the pattern.")
   if (val < 0) return Qnil;
   return make_number (val);
 }
+
+/* Match REGEXP against STRING, searching all of STRING,
+   and return the index of the match, or negative on failure.
+   This does not clobber the match data.  */
+
+int
+fast_string_match (regexp, string)
+     Lisp_Object regexp, string;
+{
+  int val;
+
+  compile_pattern (regexp, &searchbuf, 0, 0);
+  immediate_quit = 1;
+  val = re_search (&searchbuf, (char *) XSTRING (string)->data,
+		   XSTRING (string)->size, 0, XSTRING (string)->size,
+		   0);
+  immediate_quit = 0;
+  return val;
+}
 
 /* Search for COUNT instances of the character TARGET, starting at START.
    If COUNT is negative, search backwards.
