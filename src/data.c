@@ -1853,7 +1853,8 @@ IDX starts at 0.")
   else if (STRING_MULTIBYTE (array))
     {
       int c, idxval_byte, new_len, actual_len;
-      unsigned char *p, *str;
+      unsigned char *p, workbuf[4], *str;
+      int recount = 0;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
@@ -1864,13 +1865,22 @@ IDX starts at 0.")
       actual_len
 	= MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)) - idxval_byte);
       CHECK_NUMBER (newelt, 2);
-      new_len = CHAR_BYTES (XINT (newelt));
+      new_len = CHAR_STRING (XINT (newelt), workbuf, str);
       if (actual_len != new_len)
 	error ("Attempt to change byte length of a string");
-
-      CHAR_STRING (XINT (newelt), p, str);
-      if (p != str)
-	bcopy (str, p, actual_len);
+      if (!CHAR_HEAD_P (*str)
+	  || !CHAR_HEAD_P (XSTRING (array)->data[idxval_byte + actual_len]))
+	/* We may have to combine bytes.  */
+	recount = 1;
+      while (new_len--)
+	*p++ = *str++;
+      if (recount)
+	{
+	  XSTRING (array)->size =
+	    chars_in_text (XSTRING (array)->data,
+			   STRING_BYTES (XSTRING (array)));
+	  clear_string_char_byte_cache ();
+	}
     }
   else
     {
