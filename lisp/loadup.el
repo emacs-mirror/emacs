@@ -32,6 +32,26 @@
 ;;; We don't want to have any undo records in the dumped Emacs.
 (buffer-disable-undo "*scratch*")
 
+;; Write a file subdirs.el into the Lisp directory
+;; containing the names of the subdirs of that directory
+;; which we should check for Lisp files.
+(message "Writing subdirs.el...")
+(let ((files (directory-files "../lisp/" nil nil t))
+      new)
+  (while files
+    (if (and (null (member (car files) '("." ".." "term" "RCS")))
+	     (null (string-match "\\.elc?$" (car files)))
+	     (file-directory-p (expand-file-name (car files) "../lisp/")))
+	(setq new (cons (car files) new)))
+    (setq files (cdr files)))
+  (insert ";; In load-path, after this directory should come\n")
+  (insert ";; certain of its subdirectories.  Here we specify them.\n")
+  (prin1 (list 'normal-top-level-add-to-load-path
+	       (list 'quote new)) (current-buffer))
+  (write-region (point-min) (point-max)
+		(expand-file-name "subdirs.el" "../lisp/"))
+  (erase-buffer))
+
 (load "subr")
 (garbage-collect)
 (load "byte-run")
@@ -113,27 +133,6 @@
 
 (garbage-collect)
 (load "vc-hooks")
-
-;; Write a file subdirs.el into the Lisp directory
-;; containing the names of the subdirs of that directory
-;; which we should check for Lisp files.
-(message "Writing subdirs.el...")
-(let ((files (directory-files "../lisp/" nil nil t))
-      (buffer-undo-list t)
-      new)
-  (while files
-    (if (and (not (member (car files) '("." ".." "term" "RCS")))
-	     (not (string-match "\\.elc?$" (car files)))
-	     (file-directory-p (expand-file-name (car files) "../lisp/")))
-	(setq new (cons (car files) new)))
-    (setq files (cdr files)))
-  (insert ";; In load-path, after this directory should come\n")
-  (insert ";; certain of its subdirectories.  Here we specify them.\n")
-  (prin1 (list 'normal-top-level-add-to-load-path
-	       (list 'quote new)) (current-buffer))
-  (write-region (point-min) (point-max)
-		(expand-file-name "subdirs.el" "../lisp/"))
-  (erase-buffer))
 
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
