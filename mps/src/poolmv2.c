@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.3) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.4) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -17,7 +17,7 @@
 #include "abq.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.3) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.4) $");
 
 
 /* Signatures */
@@ -146,6 +146,7 @@ static PoolClassStruct PoolClassMV2Struct =
   "MV2",                        /* name */
   sizeof(MV2Struct),            /* size */
   offsetof(MV2Struct, poolStruct), /* offset */
+  NULL,                         /* super */
   /* --- should we implement AttrALLOC? */
   AttrFREE | AttrBUF | AttrBUF_RESERVE,/* attr */
   MV2Init,                      /* init */
@@ -171,6 +172,7 @@ static PoolClassStruct PoolClassMV2Struct =
   PoolNoRampEnd,
   PoolNoWalk,                   /* walk */
   MV2Describe,                  /* describe */
+  PoolNoDebugMixin,
   PoolClassSig                  /* impl.h.mpmst.class.end-sig */
 };
 
@@ -260,7 +262,7 @@ static Res MV2Init(Pool pool, va_list arg)
     return ResLIMIT;
   /* --- check that reserveDepth is not too large or small */
   fragLimit = va_arg(arg, Count);
-  unless (fragLimit >= 0 && fragLimit <= 100)
+  unless (fragLimit <= 100)
     return ResLIMIT;
 
   /* see design.mps.poolmv2:arch.parameters */
@@ -376,7 +378,7 @@ static Bool MV2Check(MV2 mv2)
   CHECKL(mv2->maxSize >= mv2->meanSize);
   CHECKL(mv2->meanSize >= mv2->minSize);
   CHECKL(mv2->minSize > 0);
-  CHECKL(mv2->fragLimit >= 0 && mv2->fragLimit <= 100);
+  CHECKL(mv2->fragLimit <= 100);
   CHECKL(mv2->availLimit == mv2->size * mv2->fragLimit / 100);
   CHECKL(BoolCheck(mv2->abqOverflow));
   CHECKL(BoolCheck(mv2->splinter));
