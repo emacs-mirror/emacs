@@ -637,6 +637,9 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
   defn = Fcons (Qlambda, Fcdr (args));
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
+  if (CONSP (XSYMBOL (fn_name)->function)
+      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
+    LOADHIST_ATTACH (Fcons (Qt, fn_name));
   Ffset (fn_name, defn);
   LOADHIST_ATTACH (fn_name);
   return fn_name;
@@ -702,6 +705,9 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
   
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
+  if (CONSP (XSYMBOL (fn_name)->function)
+      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
+    LOADHIST_ATTACH (Fcons (Qt, fn_name));
   Ffset (fn_name, defn);
   LOADHIST_ATTACH (fn_name);
   return fn_name;
