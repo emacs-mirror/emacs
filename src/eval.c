@@ -91,6 +91,7 @@ Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
+Lisp_Object Qdeclare;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -188,6 +189,11 @@ Lisp_Object Vsignaling_function;
    which is unsafe because the interpreter isn't reentrant.  */
 
 int handling_signal;
+
+/* Function to process declarations in defmacro forms.  */
+
+Lisp_Object Vmacro_declaration_function;
+
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
 
@@ -651,9 +657,39 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)  */)
 {
   register Lisp_Object fn_name;
   register Lisp_Object defn;
+  Lisp_Object lambda_list, doc, tail;
 
   fn_name = Fcar (args);
-  defn = Fcons (Qmacro, Fcons (Qlambda, Fcdr (args)));
+  lambda_list = Fcar (Fcdr (args));
+  tail = Fcdr (Fcdr (args));
+
+  doc = Qnil;
+  if (STRINGP (Fcar (tail)))
+    {
+      doc = Fcar (tail);
+      tail = Fcdr (tail);
+    }
+
+  while (CONSP (Fcar (tail))
+	 && EQ (Fcar (Fcar (tail)), Qdeclare))
+    {
+      if (!NILP (Vmacro_declaration_function))
+	{
+	  struct gcpro gcpro1;
+	  GCPRO1 (args);
+	  call2 (Vmacro_declaration_function, fn_name, Fcar (tail));
+	  UNGCPRO;
+	}
+      
+      tail = Fcdr (tail);
+    }
+
+  if (NILP (doc))
+    tail = Fcons (lambda_list, tail);
+  else
+    tail = Fcons (lambda_list, Fcons (doc, tail));
+  defn = Fcons (Qmacro, Fcons (Qlambda, tail));
+  
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   Ffset (fn_name, defn);
@@ -3229,6 +3265,9 @@ before making `inhibit-quit' nil.  */);
   Qmacro = intern ("macro");
   staticpro (&Qmacro);
 
+  Qdeclare = intern ("declare");
+  staticpro (&Qdeclare);
+  
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
   Qexit = intern ("exit");
@@ -3313,6 +3352,14 @@ The Edebug package uses this to regain control.  */);
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
+
+  DEFVAR_LISP ("macro-declaration-function", &Vmacro_declaration_function,
+	       doc: /* Function to process declarations in a macro definition.
+The function will be called with two args MACRO and DECL.
+MACRO is the name of the macro being defined.
+DECL is a list `(declare ...)' containing the declarations.
+The value the function returns is not used.  */);
+  Vmacro_declaration_function = Qnil;
 
   Vrun_hooks = intern ("run-hooks");
   staticpro (&Vrun_hooks);
