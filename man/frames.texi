@@ -42,6 +42,7 @@ such support.
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
 * Secondary Selection:: Cutting without altering point and mark.
+* Clipboard::           Using the clipboard for selections.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -260,6 +261,30 @@ lines, much like @kbd{Mouse-1}.
 If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2}
 yanks at point.  Then it does not matter precisely where you click; all
 that matters is which window you click on.  @xref{Mouse Commands}.
+
+@node Clipboard
+@section Using the Clipboard
+@cindex X clipboard
+@cindex clipboard
+@vindex x-select-enable-clipboard
+@findex menu-bar-enable-clipboard
+@cindex OpenWindows
+@cindex Gnome
+
+As well as the primary and secondary selection types, X supports a
+@dfn{clipboard} selection type which is used by some applications,
+particularly under OpenWindows and Gnome.
+
+The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
+@code{Paste} and @code{Copy} menu items, as well as the keys of the same
+names, all use the clipboard.
+ 
+You can customize the option @code{x-select-enable-clipboard} to make
+the Emacs yank functions consult the clipboard before the primary
+selection, and to make the kill functions to store in the clipboard as
+well as the primary selection.  Otherwise they do not access the
+clipboard at all.  Using the clipboard is the default on MS-Windows,
+unlike most systems.
 
 @node Mouse References
 @section Following References with the Mouse
