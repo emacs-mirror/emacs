@@ -1,3 +1,9 @@
+2001-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* aclocal.m4: Remove the commented-out AC_PREREQ (it caused
+	trouble on Debian woody with both Autoconf 2.13 and 2.52
+	installed: the wrong version would be selected by Debian).
+
 2001-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Use `=' instead of `=='.  From Kenichi Handa
