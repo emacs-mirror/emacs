@@ -732,7 +732,7 @@ init_environment (char ** argv)
       {"HOME", "C:/"},
       {"PRELOAD_WINSOCK", NULL},
       {"emacs_dir", "C:/emacs"},
-      {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
+      {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
       {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
       {"EMACSDATA", "%emacs_dir%/etc"},
       {"EMACSPATH", "%emacs_dir%/bin"},
