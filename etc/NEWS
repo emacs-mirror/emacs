@@ -376,6 +376,8 @@ the text at point.
 
 *** sql.el provides an interface to SQL data bases.
 
+*** fortune.el uses the fortune program to create mail/news signatures.
+
 *** whitespace.el ???
 
 ** Withdrawn packages
