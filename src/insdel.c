@@ -2060,8 +2060,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
       UNGCPRO;
     }
 
-  if (!NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after))
+  if (current_buffer->overlays_before || current_buffer->overlays_after)
     {
       PRESERVE_VALUE;
       report_overlay_modification (FETCH_START, FETCH_END, 0,
@@ -2095,8 +2094,8 @@ signal_after_change (charpos, lendel, lenins)
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
       && NILP (Vbefore_change_functions)
-      && NILP (current_buffer->overlays_before)
-      && NILP (current_buffer->overlays_after))
+      && !current_buffer->overlays_before
+      && !current_buffer->overlays_after)
     {
       Lisp_Object elt;
 
@@ -2161,8 +2160,7 @@ signal_after_change (charpos, lendel, lenins)
       UNGCPRO;
     }
 
-  if (!NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after))
+  if (current_buffer->overlays_before || current_buffer->overlays_after)
     report_overlay_modification (make_number (charpos),
 				 make_number (charpos + lenins),
 				 1,
