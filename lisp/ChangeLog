@@ -1,3 +1,9 @@
+2003-08-31  Masatake YAMATO  <jet@gyve.org>
+
+	* pcvs.el (cvs-do-removal): Use = instead of eq to check
+	the numbre of files. Bind the numbre of files to a a local
+	variable. Suggestd by Kevin Rodgers <ihs_4664@yahoo.com>.
+
 2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* vc-hooks.el (vc-make-version-backup): Fix the change made on
