@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.10) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -24,6 +24,7 @@ extern mps_class_t PoolClassMFS(void);
 
 
 #define TEST_SET_SIZE 200
+#define TEST_LOOPS 10
 
 
 static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int i), ...)
@@ -31,7 +32,7 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   mps_res_t res;
   mps_pool_t pool;
   va_list arg;
-  int i;
+  int i,k;
   void *ps[TEST_SET_SIZE];
   size_t ss[TEST_SET_SIZE];
 
@@ -40,8 +41,9 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   va_end(arg);
   if(res != MPS_RES_OK) return res;
 
-  for(i=0; i<TEST_SET_SIZE; ++i)
-  {
+
+  /* allocate a load of objects */
+  for(i=0; i<TEST_SET_SIZE; ++i) {
     ss[i] = (*size)(i);
 
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
@@ -52,24 +54,37 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   }
   putchar('\n');
 
-  for(i=0; i<TEST_SET_SIZE; ++i)
-  {
-    int j = rand()%(TEST_SET_SIZE-i);
-    void *tp;
-    size_t ts;
-
-    tp = ps[j]; ts = ss[j];
-    ps[j] = ps[i]; ss[j] = ss[i];
-    ps[i] = tp; ss[i] = ts;
+  for (k=0; k<TEST_LOOPS; ++k) {
+    /* shuffle all the objects */
+    for(i=0; i<TEST_SET_SIZE; ++i) {
+      int j = rand()%(TEST_SET_SIZE-i);
+      void *tp;
+      size_t ts;
+      
+      tp = ps[j]; ts = ss[j];
+      ps[j] = ps[i]; ss[j] = ss[i];
+      ps[i] = tp; ss[i] = ts;
+    }
+    /* free half of the objects */
+    /* upper half, as when allocaating them again we want smaller objects */
+    /* see randomSize() */
+    for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
+      mps_free(pool, (mps_addr_t)ps[i], ss[i]);
+      /*    if(i == TEST_SET_SIZE/2)
+	    PoolDescribe((Pool)pool, mps_lib_stdout); */
+    }
+    /* allocate some new objects */
+    for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
+      ss[i] = (*size)(i);
+      res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
+      if(res != MPS_RES_OK) return res;
+      
+      if(i && i%4==0) putchar('\n');
+      printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
+    }
+    putchar('\n');
   }
-
-  for(i=0; i<TEST_SET_SIZE; ++i)
-  {
-    mps_free(pool, (mps_addr_t)ps[i], ss[i]);
-/*    if(i == TEST_SET_SIZE/2)
-      PoolDescribe((Pool)pool, mps_lib_stdout); */
-  }
-
+    
   mps_pool_destroy(pool);
 
   return MPS_RES_OK;
