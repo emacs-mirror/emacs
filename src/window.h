@@ -225,7 +225,7 @@ extern Lisp_Object window_from_coordinates ();
 extern Lisp_Object Fwindow_dedicated_p ();
 
 /* Prompt to display in front of the minibuffer contents.  */
-extern char *minibuf_prompt;
+extern Lisp_Object minibuf_prompt;
 
 /* The visual width of the above.  */
 extern int minibuf_prompt_width;
