@@ -144,11 +144,11 @@ static int expose_all_icons;
 int BLOCK_INPUT_mask;
 #endif /* ! defined (SIGIO) && defined (FIONREAD) */
 
-/* The id of a bitmap used for icon windows.
-   One such map is shared by all Emacs icon windows.
-   This is zero if we have not yet had a need to create the bitmap.  */
+/* The id of a bitmap used for icon windows, in frames
+   for which no specific bitmap was specified.
+   This is 0 if we have not yet had a need to create the bitmap.  */
 
-static Bitmap icon_bitmap;
+static int icon_bitmap;
 
 /* Font used for text icons.  */
 
@@ -4263,18 +4263,26 @@ int
 x_bitmap_icon (f)
      struct frame *f;
 {
-  int mask;
+  int mask, bitmap_id;
   Window icon_window;
 
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-  if (! icon_bitmap)
-    icon_bitmap =
-      XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
-			     gnu_bits, gnu_width, gnu_height);
-  x_wm_set_icon_pixmap (f, icon_bitmap);
-  f->display.x->icon_bitmap_flag = 1;
+#ifdef HAVE_X11
+  if (file)
+    bitmap_id = x_create_bitmap_from_file (f, file);
+  else
+    {
+      if (!icon_bitmap)
+	icon_bitmap = x_create_bitmap_from_data (f, gnu_bits,
+						 gnu_width, gnu_height);
+      x_reference_bitmap (icon_bitmap);
+      bitmap_id = icon_bitmap;
+    }
+
+  x_wm_set_icon_pixmap (f, bitmap_id);
+  f->display.x->icon_bitmap = bitmap_id;
 
   return 0;
 }
@@ -4301,7 +4309,8 @@ x_text_icon (f, icon_name)
 		(char *) f->display.x->icon_label);
 #endif
 
-  f->display.x->icon_bitmap_flag = 0;
+  x_destroy_bitmap (f->display.x->icon_bitmap);
+  f->display.x->icon_bitmap = 0;
   x_wm_set_icon_pixmap (f, 0);
 
   return 0;
@@ -5392,9 +5401,9 @@ x_wm_set_window_state (f, state)
 #endif /* not USE_X_TOOLKIT */
 }
 
-x_wm_set_icon_pixmap (f, icon_pixmap)
+x_wm_set_icon_pixmap (f, pixmap_id)
      struct frame *f;
-     Pixmap icon_pixmap;
+     int pixmap_id;
 {
 #ifdef USE_X_TOOLKIT
   Window window = XtWindow (f->display.x->widget);
@@ -5402,13 +5411,17 @@ x_wm_set_icon_pixmap (f, icon_pixmap)
   Window window = FRAME_X_WINDOW (f);
 #endif
 
-  if (icon_pixmap)
+  if (pixmap_id > 0)
     {
+      Pixmap icon_pixmap = x_lookup_pixmap (pixmap_id);
       f->display.x->wm_hints.icon_pixmap = icon_pixmap;
       f->display.x->wm_hints.flags |= IconPixmapHint;
     }
   else
-    f->display.x->wm_hints.flags &= ~IconPixmapHint;
+    {
+      f->display.x->wm_hints.icon_pixmap = None;
+      f->display.x->wm_hints.flags &= ~IconPixmapHint;
+    }
 
   XSetWMHints (x_current_display, window, &f->display.x->wm_hints);
 }
