@@ -1,3 +1,19 @@
+2000-05-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (callproc.o): Depend on composite.h.
+
+	* callproc.c: Include composite.h.
+	(Fcall_process): Handle composition correctly.
+
+	* coding.h (coding_allocate_composition_data): Extern it.
+	(coding_restore_composition): Likewise.
+
+	* coding.c (DECODE_COMPOSITION_START): If coding->cmp_data is not
+	yet allocated, finish decoding with result
+	CODING_FINISH_INSUFFICIENT_CMP.
+	(coding_allocate_composition_data): Make it non-static.
+	(coding_restore_composition): Likewise.
+
 2000-05-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* charset.c (syms_of_charset): Revert last change.
