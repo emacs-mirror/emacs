@@ -42,6 +42,11 @@ The value is only computed when needed to avoid an expensive search.")
   "*If non-nil, use VC for files managed with CVS.
 If it is nil, don't use VC for those files.")
 
+(defvar vc-rcsdiff-knows-brief nil
+  "*Indicates whether rcsdiff understands the --brief option.
+The value is either `yes', `no', or nil.  If it is nil, VC tries
+to use --brief and sets this variable to remember whether it worked.")
+
 (defvar vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")
@@ -563,14 +568,22 @@ For CVS, the full name of CVS/Entries is returned."
 
 (defun vc-rcs-lock-from-diff (file)
   ;; Diff the file against the master version.  If differences are found,
-  ;; mark the file locked.  This is only meaningful for RCS with non-strict
-  ;; locking.
-  (if (zerop (vc-simple-command 1 "rcsdiff" file
-	       "--brief"  ; Some diffs don't understand "--brief", but
-	                  ; for non-strict locking under VC we require it.
-	       (concat "-r" (vc-workfile-version file))))
-      (vc-file-setprop file 'vc-locking-user 'none)
-    (vc-file-setprop file 'vc-locking-user (vc-file-owner file))))
+  ;; mark the file locked.  This is only used for RCS with non-strict
+  ;; locking.  (If "rcsdiff" doesn't understand --brief, we do a double-take
+  ;; and remember the fact for the future.)
+  (let* ((version (concat "-r" (vc-workfile-version file)))
+         (status (if (eq vc-rcsdiff-knows-brief 'no)
+                     (vc-simple-command 1 "rcsdiff" file version)
+                   (vc-simple-command 2 "rcsdiff" file "--brief" version))))
+    (if (eq status 2)
+        (if (not vc-rcsdiff-knows-brief)
+            (setq vc-rcsdiff-knows-brief 'no
+                  status (vc-simple-command 1 "rcsdiff" file version))
+          (error "rcsdiff failed."))
+      (if (not vc-rcsdiff-knows-brief) (setq vc-rcsdiff-knows-brief 'yes)))
+    (if (zerop status)
+        (vc-file-setprop file 'vc-locking-user 'none)
+      (vc-file-setprop file 'vc-locking-user (vc-file-owner file)))))
 
 (defun vc-locking-user (file)
   ;; Return the name of the person currently holding a lock on FILE.
@@ -737,10 +750,10 @@ For CVS, the full name of CVS/Entries is returned."
 
 (defun vc-utc-string (timeval)
   ;; Convert a time value into universal time, and return it as a
-  ;; human-readable string.  This is to compare CVS checkout times
+  ;; human-readable string.  This is for comparing CVS checkout times
   ;; with file modification times.
   (let (utc (high (car timeval)) (low  (nth 1 timeval))
-	(offset (car (current-time-zone))))
+        (offset (car (current-time-zone timeval))))
     (setq low (- low offset))
     (setq utc (if (> low 65535) 
 		  (list (1+ high) (- low 65536))
