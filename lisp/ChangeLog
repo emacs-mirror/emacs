@@ -1,3 +1,9 @@
+2001-04-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/tty-colors.el (tty-color-define, tty-color-off-gray-diag)
+	(tty-color-translate, tty-color-by-index, tty-color-values)
+	(tty-color-desc): Doc fix.
+
 2001-04-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired-aux.el (dired-do-create-files, dired-do-copy)
