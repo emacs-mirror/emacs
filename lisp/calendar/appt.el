@@ -337,10 +337,7 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 				    (concat  "App't in "
 					     min-to-app " min. " new-time " "))
 
-			      ;; force mode line updates - from time.el
-
-			      (save-excursion (set-buffer (other-buffer)))
-			      (set-buffer-modified-p (buffer-modified-p))
+			      (force-mode-line-update t)
 			      (sit-for 0)))
 
 			(if (= min-to-app 0)
