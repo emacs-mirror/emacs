@@ -173,8 +173,8 @@ Called with region narrowed to the message, including headers.")
      ;; On some systems the time zone can appear after the year, too.
      time-zone-regexp
 
-     ;; I'm not sure what this is.
-     "\\(remote from [^\n]*\\)?"
+     ;; Old uucp cruft.
+     "\\(remote from .*\\)?"
 
      "\n"))
   nil)
@@ -1686,8 +1686,9 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (let* ((omax (- (buffer-size) (point-max)))
 	 (omin (- (buffer-size) (point-min)))
 	 (opoint (if (and (> rmail-current-message 0)
-			  (= ?D (aref rmail-deleted-vector rmail-current-message)))
-		     0 (- (point) (point-min))))
+			  (rmail-message-deleted-p rmail-current-message))
+		     0
+		   (- (point) (point-min))))
 	 (messages-head (cons (aref rmail-message-vector 0) nil))
 	 (messages-tail messages-head)
 	 ;; Don't make any undo records for the expunging.
