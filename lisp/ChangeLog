@@ -1,3 +1,23 @@
+2002-07-20  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (toggle-read-only): Clean up the hint message.
+
+	* emacs-lisp/bytecomp.el: Use warnings.el.
+	(byte-compile-warning-prefix): New function.
+	(byte-compile-log-file): Return page start position.
+	(byte-compile-log-warning): New function.
+	(byte-compile-warn): Use byte-compile-log-warning.
+	(byte-compile-report-error): Likewise.  Also use error-message-string.
+	(displaying-byte-compile-warnings): Bind warning-series.
+	Don't bind or use byte-compile-warnings-point-max.
+	Don't display the log buffer at the end.
+	(byte-compile-warnings-point-max): Variable deleted.
+	(byte-compile-log-1): Rewrite for trace info, not used for warnings.
+	(byte-compile-last-warned-form, byte-compile-last-logged-file): 
+	Defvars moved.
+	
+	* warnings.el: New file.
+
 2002-07-19  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Delete `values'
