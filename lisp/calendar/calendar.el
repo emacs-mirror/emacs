@@ -742,7 +742,7 @@ describes the style of such diary entries."
 ;;;###autoload
 (defcustom diary-list-include-blanks nil
   "*If nil, do not include days with no diary entry in the list of diary entries.
-Such days will then not be shown in the the fancy diary buffer, even if they
+Such days will then not be shown in the fancy diary buffer, even if they
 are holidays."
   :type 'boolean
   :group 'diary)
