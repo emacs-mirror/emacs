@@ -61,7 +61,10 @@ This variable is automatically buffer-local.
 If you wish your place in any file to always be automatically saved,
 simply put this in your `~/.emacs' file:
 
-\(setq-default save-place t\)"
+\(setq-default save-place t)
+\(require 'saveplace)
+
+or else use the Custom facility to set this option."
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
