@@ -165,8 +165,8 @@ With a prefix, push that prefix as a number onto the stack."
   (message "Calc %s" calc-version))
 
 
-(defun calc-flush-caches ()
-  (interactive)
+(defun calc-flush-caches (&optional inhibit-msg)
+  (interactive "P")
   (calc-wrapper
    (setq math-lud-cache nil
 	 math-log2-cache nil
@@ -184,7 +184,8 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
    (mapcar (function (lambda (x) (set x -100))) math-cache-list)
-   (message "All internal calculator caches have been reset")))
+   (unless inhibit-msg
+     (message "All internal calculator caches have been reset"))))
 
 
 ;;; Conversions.
