@@ -552,7 +552,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	(or (and transient-mark-mode mark-active)
 	    (progn
 	      (push-mark isearch-opoint t)
-	      (or executing-macro (> (minibuffer-depth) 0)
+	      (or executing-kbd-macro (> (minibuffer-depth) 0)
 		  (message "Mark saved where search started"))))))
 
   (setq isearch-mode nil)
@@ -726,8 +726,10 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 
 	;; Empty isearch-string means use default.
 	(if (= 0 (length isearch-string))
-	    (setq isearch-string (car (if isearch-regexp regexp-search-ring
-					search-ring)))
+	    (setq isearch-string (or (car (if isearch-regexp
+					      regexp-search-ring
+					    search-ring))
+				     ""))
 	  ;; This used to set the last search string,
 	  ;; but I think it is not right to do that here.
 	  ;; Only the string actually used should be saved.
