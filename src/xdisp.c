@@ -1270,6 +1270,15 @@ update:
 	  w->last_had_star
 	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       ? Qt : Qnil);
+
+	  /* Record if we are showing a region, so can make sure to
+	     update it fully at next redisplay.  */
+	  w->region_showing = (!NILP (Vtransient_mark_mode)
+			       && w == XWINDOW (current_buffer->last_selected_window)
+			       && !NILP (XBUFFER (w->buffer)->mark_active)
+			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
+			       : Qnil);
+
 	  w->window_end_valid = w->buffer;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
@@ -2850,7 +2859,10 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
       w->region_showing = Qt;
     }
   else
-    region_beg = region_end = -1;
+    {
+      region_beg = region_end = -1;
+      w->region_showing = Qnil;
+    }
 
   if (MINI_WINDOW_P (w)
       && start == BEG
