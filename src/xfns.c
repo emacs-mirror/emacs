@@ -9575,6 +9575,8 @@ x_create_tip_frame (dpyinfo, parms)
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
   f->output_data.x->fontset = -1;
+  f->output_data.x->scroll_bar_foreground_pixel = -1;
+  f->output_data.x->scroll_bar_background_pixel = -1;
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #ifdef MULTI_KBOARD
@@ -9582,6 +9584,29 @@ x_create_tip_frame (dpyinfo, parms)
 #endif
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
+
+  /* These colors will be set anyway later, but it's important
+     to get the color reference counts right, so initialize them!  */
+  {
+    Lisp_Object black;
+    struct gcpro gcpro1;
+    
+    black = build_string ("black");
+    GCPRO1 (black);
+    f->output_data.x->foreground_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->background_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->cursor_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->cursor_foreground_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->border_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->mouse_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    UNGCPRO;
+  }
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
