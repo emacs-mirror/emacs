@@ -2052,14 +2052,12 @@ del_range_1 (from, to, prepare)
 {
   int from_byte, to_byte;
   
-#if !NO_PROMPT_IN_BUFFER
   if (INTEGERP (current_buffer->minibuffer_prompt_length))
     {
       /* Don't delete part of a mini-buffer prompt.  */
       int len = XFASTINT (current_buffer->minibuffer_prompt_length);
       from = max (from, len);
     }
-#endif /* !NO_PROMPT_IN_BUFFER */
 
   /* Make args be valid */
   if (from < BEGV)

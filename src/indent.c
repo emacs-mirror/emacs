@@ -1654,21 +1654,6 @@ vmotion (from, vtarget, w)
 
   XSETWINDOW (window, w);
 
-#if NO_PROMPT_IN_BUFFER
-  /* The omission of the clause
-         && marker_position (w->start) == BEG
-     here is deliberate; I think we want to measure from the prompt
-     position even if the minibuffer window has scrolled.  */
-  if (EQ (window, minibuf_window))
-    {
-      if (minibuf_prompt_width == 0 && STRINGP (minibuf_prompt))
-	minibuf_prompt_width
-	  = string_display_width (minibuf_prompt, Qnil, Qnil);
-
-      start_hpos = minibuf_prompt_width;
-    }
-#endif /* NO_PROMPT_IN_BUFFER */
-
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
   if (EQ (w->buffer, Fcurrent_buffer ()))

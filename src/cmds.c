@@ -163,7 +163,6 @@ If scan reaches end of buffer, stop there without error.")
   else
     CHECK_NUMBER (n, 0);
 
-#if !NO_PROMPT_IN_BUFFER
   {
     int pos = XFASTINT (Fline_beginning_position (n));
     if (INTEGERP (current_buffer->minibuffer_prompt_length)
@@ -171,9 +170,7 @@ If scan reaches end of buffer, stop there without error.")
       pos = XFASTINT (current_buffer->minibuffer_prompt_length);
     SET_PT (pos);
   }
-#else
-  SET_PT (XINT (Fline_beginning_position (n)));
-#endif
+  
   return Qnil;
 }
 

@@ -369,9 +369,7 @@ The value is never nil.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
-#if !NO_PROMPT_IN_BUFFER
   b->minibuffer_prompt_length = Qnil;
-#endif
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -450,9 +448,7 @@ NAME should be a string which is not the name of an existing buffer.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
-#if !NO_PROMPT_IN_BUFFER
   b->minibuffer_prompt_length = Qnil;
-#endif
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -1221,9 +1217,7 @@ with SIGHUP.")
       b->width_run_cache = 0;
     }
   b->width_table = Qnil;
-#if !NO_PROMPT_IN_BUFFER
   b->minibuffer_prompt_length = Qnil;
-#endif
   UNBLOCK_INPUT;
   b->undo_list = Qnil;
 
