@@ -1,7 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.14) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!seg.c(trunk.15) $
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
  *
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.14) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.15) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -216,8 +216,26 @@ void SegSetGrey(Seg seg, TraceSet grey)
       RingRemove(&seg->_greyRing);
   }
 
+  STATISTIC_STAT
+    ({
+       TraceId ti; Trace trace;
+       TraceSet diff;
+
+       diff = TraceSetDiff(grey, oldGrey);
+       TRACE_SET_ITER(ti, trace, diff, arena)
+         ++trace->greySegCount;
+         if(trace->greySegCount > trace->greySegMax)
+           trace->greySegMax = trace->greySegCount;
+       TRACE_SET_ITER_END(ti, trace, diff, arena);
+
+       diff = TraceSetDiff(oldGrey, grey);
+       TRACE_SET_ITER(ti, trace, diff, arena)
+         --trace->greySegCount;
+       TRACE_SET_ITER_END(ti, trace, diff, arena);
+     });
+
   /* The read barrier is raised when the segment is grey for */
-  /* some _flipped_ trace, i.e. is grey for a trace for which */
+  /* some _flipped_ trace, i.e., is grey for a trace for which */
   /* the mutator is black. */
   flippedTraces = arena->flippedTraces;
   if(TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
