@@ -6676,15 +6676,12 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(when (eq mode 'gnus-summary-mode)
 	  (gnus-kill-buffer buf)))
       (setq gnus-current-select-method gnus-select-method)
-      (if leave-hidden
-	  (set-buffer gnus-group-buffer)
-	(pop-to-buffer gnus-group-buffer))
-      (if (not quit-config)
-	  (progn
-	    (goto-char group-point)
-	    (unless leave-hidden
-	      (gnus-configure-windows 'group 'force)))
-	(gnus-handle-ephemeral-exit quit-config))
+      (set-buffer gnus-group-buffer)
+      (if quit-config
+	  (gnus-handle-ephemeral-exit quit-config)
+	(goto-char group-point)
+	(unless leave-hidden
+	  (gnus-configure-windows 'group 'force)))
       ;; Clear the current group name.
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
@@ -11769,5 +11766,5 @@ If ALL is a number, fetch this number of articles."
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: 17c6748f-6d00-4d36-bf01-835c42f31235
+;; arch-tag: 17c6748f-6d00-4d36-bf01-835c42f31235
 ;;; gnus-sum.el ends here
