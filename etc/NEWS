@@ -725,7 +725,7 @@ M-mouse-2 switches to the previous buffer in the buffer list.
 - Mouse-2 on the read-only or modified status in the mode line (`%' or
 `*') toggles the status.
 
-- Mouse-3 on the mode name display a minor-mode menu.
+- Mouse-3 on the mode name displays a minor-mode menu.
 
 ** LessTif/Motif file selection dialog.
 
@@ -2081,9 +2081,11 @@ functionality with aliases for the mldrag functions.
 
 There are a few Lisp changes which are not backwards-compatible and
 may require changes to existing code. Here is a list for reference.
+See the sections below for details.
 
 ** Since `format' preserves text properties, the idiom
-`(format %s foo)' no longer works to remove properties.
+`(format %s foo)' no longer works to copy and remove properties.
+Use `copy-sequence' and `set-text-properties'.
 
 ** Since the `keymap' text property now has significance, some code
 which uses both `local-map' and `keymap' properties (for portability)
