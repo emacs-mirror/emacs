@@ -422,6 +422,20 @@ This is the same as @code{(cdr (cdr @var{cons-cell}))}
 or @code{(nthcdr 2 @var{cons-cell})}.
 @end defun
 
+@defun butlast x &optional n
+This function returns the list @var{x} with the last element,
+or the last @var{n} elements, removed.  If @var{n} is greater
+than zero it makes a copy of the list so as not to damage the
+original list.  In general, @code{(append (butlast @var{x} @var{n})
+(last @var{x} @var{n}))} will return a list equal to @var{x}.
+@end defun
+
+@defun nbutlast x &optional n
+This is a version of @code{butlast} that works by destructively
+modifying the @code{cdr} of the appropriate element, rather than
+making a copy of the list.
+@end defun
+
 @node Building Lists
 @comment  node-name,  next,  previous,  up
 @section Building Cons Cells and Lists

@@ -2106,6 +2106,10 @@ long promised.
 (Display-related features are described in a page of their own below.)
 
 +++
+** Functions `butlast' and `nbutlast' for removing trailing elements
+from a list are now available without requiring the CL package.
+
++++
 ** The new user-option `even-window-heights' can be set to nil
 to prevent `display-buffer' from evening out window heights.
 
