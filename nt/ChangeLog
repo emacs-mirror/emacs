@@ -1,3 +1,8 @@
+2004-05-06  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Use -mno-cygwin to check for image libraries
+	when needed.
+
 2004-05-03  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.nt, ebuild.bat, install.bat, fast-install.bat:
