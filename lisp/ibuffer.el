@@ -73,7 +73,7 @@ the ability to filter the displayed buffers by various criteria."
 
 With Ibuffer, you are not limited to displaying just certain
 attributes of a buffer such as size, name, and mode in a particular
-fashion.  Through this variable, you can completely customize and
+order.  Through this variable, you can completely customize and
 control the appearance of an Ibuffer buffer.  See also
 `define-ibuffer-column', which allows you to define your own columns
 for display.
@@ -116,7 +116,7 @@ own!):
   read-only status, as well as the name of the buffer and its size.  In
   this format, the name is restricted to 16 characters (longer names
   will be truncated, and shorter names will be padded with spaces), and
-  the name is also aligned to the right.  The size of the buffer will
+  the name is also aligned to the left.  The size of the buffer will
   be padded with spaces up to a minimum of six characters, but there is
   no upper limit on its size.  The size will also be aligned to the
   right.
@@ -372,7 +372,7 @@ directory, like `default-directory'."
     (define-key map (kbd "<down>") 'ibuffer-forward-line)
     (define-key map (kbd "SPC") 'forward-line)
     (define-key map (kbd "p") 'ibuffer-backward-line)
-    (define-key map (kbd "<up>") 'ibuffer-forward-line)
+    (define-key map (kbd "<up>") 'ibuffer-backward-line)
     (define-key map (kbd "M-}") 'ibuffer-forward-next-marked)
     (define-key map (kbd "M-{") 'ibuffer-backwards-next-marked)
     (define-key map (kbd "l") 'ibuffer-redisplay)
@@ -414,6 +414,12 @@ directory, like `default-directory'."
     (define-key map (kbd "M-p") 'ibuffer-backward-filter-group)
     (define-key map (kbd "<left>") 'ibuffer-backward-filter-group)
     (define-key map (kbd "M-j") 'ibuffer-jump-to-filter-group)
+    (define-key map (kbd "C-k") 'ibuffer-kill-line)
+    (define-key map (kbd "C-y") 'ibuffer-yank)
+    (define-key map (kbd "/ S") 'ibuffer-save-filter-groups)
+    (define-key map (kbd "/ R") 'ibuffer-switch-to-saved-filter-groups)
+    (define-key map (kbd "/ X") 'ibuffer-delete-saved-filter-groups)
+    (define-key map (kbd "/ \\") 'ibuffer-clear-filter-groups)
   
     (define-key map (kbd "q") 'ibuffer-quit)
     (define-key map (kbd "h") 'describe-mode)
@@ -487,11 +493,9 @@ directory, like `default-directory'."
       (cons "Sort" (make-sparse-keymap "Sort")))
 
     (define-key-after map [menu-bar view sort do-sort-by-major-mode]
-      '(menu-item "Sort by major mode" ibuffer-do-sort-by-major-mode
-		  :help "Sort by the alphabetic order of the buffer's major mode"))
+      '(menu-item "Sort by major mode" ibuffer-do-sort-by-major-mode))
     (define-key-after map [menu-bar view sort do-sort-by-size]
-      '(menu-item "Sort by buffer size" ibuffer-do-sort-by-size
-		  :help "Sort by the size of the buffer"))
+      '(menu-item "Sort by buffer size" ibuffer-do-sort-by-size))
     (define-key-after map [menu-bar view sort do-sort-by-alphabetic]
       '(menu-item "Sort lexicographically" ibuffer-do-sort-by-alphabetic
 		  :help "Sort by the alphabetic order of buffer name"))
@@ -510,26 +514,19 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar view filter filter-disable]
       '(menu-item "Disable all filtering" ibuffer-filter-disable))
     (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode
-		  :help "Show only buffers in a major mode"))
+      '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
-      '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name
-		  :help "Show only buffers whose name matches a regexp"))
+      '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
     (define-key-after map [menu-bar view filter filter-by-filename]
-      '(menu-item "Add filter by filename..." ibuffer-filter-by-filename
-		  :help "Show only buffers whose filename matches a regexp"))
+      '(menu-item "Add filter by filename..." ibuffer-filter-by-filename))
     (define-key-after map [menu-bar view filter filter-by-size-lt]
-      '(menu-item "Add filter by size less than..." ibuffer-filter-by-size-lt
-		  :help "Show only buffers of size less than..."))
+      '(menu-item "Add filter by size less than..." ibuffer-filter-by-size-lt))
     (define-key-after map [menu-bar view filter filter-by-size-gt]
-      '(menu-item "Add filter by size greater than..." ibuffer-filter-by-size-gt
-		  :help "Show only buffers of size greater than..."))
+      '(menu-item "Add filter by size greater than..." ibuffer-filter-by-size-gt))
     (define-key-after map [menu-bar view filter filter-by-content]
-      '(menu-item "Add filter by content (regexp)..." ibuffer-filter-by-content
-		  :help "Show only buffers containing a regexp"))
+      '(menu-item "Add filter by content (regexp)..." ibuffer-filter-by-content))
     (define-key-after map [menu-bar view filter filter-by-predicate]
-      '(menu-item "Add filter by Lisp predicate..." ibuffer-filter-by-predicate
-		  :help "Show only buffers for which a predicate is true"))
+      '(menu-item "Add filter by Lisp predicate..." ibuffer-filter-by-predicate))
     (define-key-after map [menu-bar view filter pop-filter]
       '(menu-item "Remove top filter" ibuffer-pop-filter))
     (define-key-after map [menu-bar view filter or-filter]
@@ -550,22 +547,51 @@ directory, like `default-directory'."
 		  :help "Replace current filters with a saved stack"))
     (define-key-after map [menu-bar view filter add-saved-filters]
       '(menu-item "Add to permanently saved filters..." ibuffer-add-saved-filters
-		  :help "Include current filters in an already saved stack"))
+		  :help "Include already saved stack with current filters"))
     (define-key-after map [menu-bar view filter delete-saved-filters]
-      '(menu-item "Delete permanently saved filters..." ibuffer-delete-saved-filters
-		  :help "Remove stack of filters from saved list"))
+      '(menu-item "Delete permanently saved filters..."
+		  ibuffer-delete-saved-filters))
+
     (define-key-after map [menu-bar view filter-groups]
       (cons "Filter Groups" (make-sparse-keymap "Filter Groups")))
+
     (define-key-after map [menu-bar view filter-groups filters-to-filter-group]
-      '(menu-item "Make current filters into filter group"
+      '(menu-item "Create filter group from current filters..."
 		  ibuffer-filters-to-filter-group))
+    (define-key-after map [menu-bar view filter-groups forward-filter-group]
+      '(menu-item "Move point to the next filter group"
+		  ibuffer-forward-filter-group))    
+    (define-key-after map [menu-bar view filter-groups backward-filter-group]
+      '(menu-item "Move point to the previous filter group"
+		  ibuffer-backward-filter-group))
+    (define-key-after map [menu-bar view filter-groups jump-to-filter-group]
+      '(menu-item "Move point to a specific filter group..."
+		  ibuffer-jump-to-filter-group))
     (define-key-after map [menu-bar view filter-groups pop-filter-group]
       '(menu-item "Remove top filter group"
 		  ibuffer-pop-filter-group))
-    (define-key-after map [menu-bar view filter-groups filters-to-filter-group]
-      '(menu-item "Create filter group from current filters"
-		  ibuffer-filters-to-filter-group))
+    (define-key-after map [menu-bar view filter-groups clear-filter-groups]
+      '(menu-item "Remove all filter groups"
+		  ibuffer-clear-filter-groups))    
+    (define-key-after map [menu-bar view filter-groups save-filter-groups]
+      '(menu-item "Save current filter groups permanently..."
+		  ibuffer-save-filter-groups
+		  :help "Use a mnemnonic name to store current filter groups"))
+    (define-key-after map [menu-bar view filter-groups switch-to-saved-filter-groups]
+      '(menu-item "Restore permanently saved filters..."
+		  ibuffer-switch-to-saved-filter-groups
+		  :help "Replace current filters with a saved stack"))    
+    (define-key-after map [menu-bar view filter-groups delete-saved-filter-groups]
+      '(menu-item "Delete permanently saved filter groups..."
+		  ibuffer-delete-saved-filter-groups))
+    (define-key-after map [menu-bar view filter-groups set-filter-groups-by-mode]
+      '(menu-item "Set current filter groups to filter by mode"
+		  ibuffer-set-filter-groups-by-mode))
 
+;; FIXME add menu entries    
+;;    (define-key map (kbd "C-k") 'ibuffer-kill-line)
+;;    (define-key map (kbd "C-y") 'ibuffer-yank)
+    
     (define-key-after map [menu-bar view dashes2]
       '("--"))
     (define-key-after map [menu-bar view diff-with-file]
@@ -1149,8 +1175,12 @@ a new window in the current frame, splitting vertically."
 (defun ibuffer-toggle-marks (&optional group)
   "Toggle which buffers are marked.
 In other words, unmarked buffers become marked, and marked buffers
-become unmarked."
+become unmarked.
+If point is on a group name, then this function operates on that
+group."
   (interactive)
+  (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
+      (setq group it))
   (let ((count
 	 (ibuffer-map-lines
 	  #'(lambda (buf mark)
@@ -1167,17 +1197,20 @@ become unmarked."
   (ibuffer-redisplay t))
 
 (defun ibuffer-mark-forward (arg)
-  "Mark the buffer on this line, and move forward ARG lines."
+  "Mark the buffer on this line, and move forward ARG lines.
+If point is on a group name, this function operates on that group."
   (interactive "P")
   (ibuffer-mark-interactive arg ibuffer-marked-char 1))
 
 (defun ibuffer-unmark-forward (arg)
-  "Unmark the buffer on this line, and move forward ARG lines."
+  "Unmark the buffer on this line, and move forward ARG lines.
+If point is on a group name, this function operates on that group."
   (interactive "P")
   (ibuffer-mark-interactive arg ?  1))
 
 (defun ibuffer-unmark-backward (arg)
-  "Unmark the buffer on this line, and move backward ARG lines."
+  "Unmark the buffer on this line, and move backward ARG lines.
+If point is on a group name, this function operates on that group."
   (interactive "P")
   (ibuffer-mark-interactive arg ?  -1))
 
@@ -1185,12 +1218,17 @@ become unmarked."
   (assert (eq major-mode 'ibuffer-mode))
   (unless arg
     (setq arg 1))
-  (ibuffer-forward-line 0 t) 
-  (let ((inhibit-read-only t))
-    (while (> arg 0)
-      (ibuffer-set-mark mark)
-      (ibuffer-forward-line movement t)
-      (setq arg (1- arg)))))
+  (ibuffer-forward-line 0)
+  (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
+      (progn
+	(require 'ibuf-ext)
+	(ibuffer-mark-on-buffer #'identity mark it))
+    (ibuffer-forward-line 0 t) 
+    (let ((inhibit-read-only t))
+      (while (> arg 0)
+	(ibuffer-set-mark mark)
+	(ibuffer-forward-line movement t)
+	(setq arg (1- arg))))))
 
 (defun ibuffer-set-mark (mark)
   (assert (eq major-mode 'ibuffer-mode))
@@ -1208,12 +1246,14 @@ become unmarked."
 			     mark))))
 
 (defun ibuffer-mark-for-delete (arg)
-  "Mark the buffers on ARG lines forward for deletion."
+  "Mark the buffers on ARG lines forward for deletion.
+If point is on a group name, this function operates on that group."
   (interactive "P")
   (ibuffer-mark-interactive arg ibuffer-deletion-char 1))
 
 (defun ibuffer-mark-for-delete-backwards (arg)
-  "Mark the buffers on ARG lines backward for deletion."
+  "Mark the buffers on ARG lines backward for deletion.
+If point is on a group name, this function operates on that group."
   (interactive "P")
   (ibuffer-mark-interactive arg ibuffer-deletion-char -1))
 
@@ -1737,22 +1777,6 @@ the value of point at the beginning of the line for that buffer."
 	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
     (nreverse ibuffer-current-state-list-tmp)))
 
-(defun ibuffer-current-filter-groups ()
-  (save-excursion
-    (goto-char (point-min))
-    (let ((pos nil)
-	  (result nil))
-      (while (and (not (eobp))
-		  (setq pos (next-single-property-change
-			     (point) 'ibuffer-filter-group-name)))
-	(goto-char pos)
-	(push (cons (get-text-property (point) 'ibuffer-filter-group-name)
-		    pos)
-	      result)
-	(goto-char (next-single-property-change
-		    pos 'ibuffer-filter-group-name)))
-      (nreverse result))))
-
 (defun ibuffer-current-buffers-with-marks (curbufs)
   "Return a list like (BUF . MARK) of all open buffers."
   (let ((bufs (ibuffer-current-state-list)))
@@ -1947,7 +1971,7 @@ If SILENT is non-`nil', do not generate progress messages."
   (let ((blist (ibuffer-current-state-list)))
     (when (null blist)
       (if (and (featurep 'ibuf-ext)
-	       (or ibuffer-filtering-qualifiers ibuffer-hidden-filtering-groups))
+	       (or ibuffer-filtering-qualifiers ibuffer-hidden-filter-groups))
 	  (message "No buffers! (note: filtering in effect)")
 	(error "No buffers!")))
     (ibuffer-redisplay-engine blist t)
@@ -2053,15 +2077,18 @@ Do not display messages if SILENT is non-nil."
 	  (dolist (group (nreverse bgroups))
 	    (let* ((name (car group))
 		   (disabled (and ext-loaded
-				  (member name ibuffer-hidden-filtering-groups)))
+				  (member name ibuffer-hidden-filter-groups)))
 		   (bmarklist (cdr group)))
-	      (ibuffer-insert-filter-group
-	       name
-	       (if disabled (concat name " ...") name)
-	       --ibuffer-insert-buffers-and-marks-format
-	       (if disabled
-		   nil
-		 (ibuffer-sort-bufferlist bmarklist)))))
+	      (unless (and (null bmarklist)
+			   ext-loaded
+			   (null ibuffer-show-empty-filter-groups))
+		(ibuffer-insert-filter-group
+		 name
+		 (if disabled (concat name " ...") name)
+		 --ibuffer-insert-buffers-and-marks-format
+		 (if disabled
+		     nil
+		   (ibuffer-sort-bufferlist bmarklist))))))
 	  (ibuffer-update-title-and-summary --ibuffer-expanded-format))
       (setq buffer-read-only t)
       (set-buffer-modified-p ibuffer-did-modification)
@@ -2112,7 +2139,7 @@ Optional argument NOSELECT means don't select the Ibuffer buffer.
 Optional argument SHRINK means shrink the buffer to minimal size.  The
 special value `onewindow' means always use another window.
 Optional argument FILTER-GROUPS is an initial set of filtering
-groups to use; see `ibuffer-filtering-groups'."
+groups to use; see `ibuffer-filter-groups'."
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
@@ -2140,7 +2167,7 @@ groups to use; see `ibuffer-filtering-groups'."
 	  (setq ibuffer-filtering-qualifiers qualifiers))
 	(when filter-groups
 	  (require 'ibuf-ext)
-	  (setq ibuffer-filtering-groups filter-groups))
+	  (setq ibuffer-filter-groups filter-groups))
 	(ibuffer-update nil)
 	;; Skip the group name by default.
 	(ibuffer-forward-line 0 t)
@@ -2234,6 +2261,11 @@ Filtering commands:
   '\\[ibuffer-negate-filter]' - Invert the logical sense of the top filter.
   '\\[ibuffer-decompose-filter]' - Break down the topmost filter.
   '\\[ibuffer-filter-disable]' - Remove all filtering currently in effect.
+
+Filter group commands:
+
+  '\\[ibuffer-filters-to-filter-group]' - Create filter group from filters.
+  '\\[ibuffer-pop-filter-group]' - Remove top filter group.
     
 Sorting commands:
 
@@ -2260,7 +2292,7 @@ Other commands:
           the new window.
   '\\[ibuffer-bury-buffer]' - Bury (not kill!) the buffer on this line.
 
-Information on Filtering:
+** Information on Filtering:
 
  You can filter your ibuffer view via different critera.  Each Ibuffer
 buffer has its own stack of active filters.  For example, suppose you
@@ -2288,7 +2320,33 @@ functions `ibuffer-save-filters' and `ibuffer-switch-to-saved-filters'.
 
 To remove the top filter on the stack, use '\\[ibuffer-pop-filter]', and
 to disable all filtering currently in effect, use
-'\\[ibuffer-filter-disable]'."
+'\\[ibuffer-filter-disable]'.
+
+** Filter Groups:
+
+Once one has mastered filters, the next logical step up is \"filter
+groups\".  A filter group is basically a named group of buffers which
+match a filter, which are displayed together in an Ibuffer buffer.  To
+create a filter group, simply use the regular functions to create a
+filter, and then type '\\[ibuffer-filters-to-filter-group]'.
+
+A quick example will make things clearer.  Suppose that one wants to
+group all of one's Emacs Lisp buffers together.  To do this, type
+
+'\\[ibuffer-filter-by-mode] emacs-lisp-mode RET \\[ibuffer-filters-to-filter-group] RET emacs lisp buffers RET'
+
+You may, of course, name the group whatever you want; it doesn't have
+to be \"emacs lisp buffers\".  Filter groups may be composed of any
+arbitrary combination of filters.
+
+Just like filters themselves, filter groups act as a stack.  Buffers
+will not be displayed multiple times if they would be included in
+multiple filter groups; instead, the first filter group is used.  The
+filter groups are displayed in this order of precedence.
+
+You may rearrange filter groups by using the regular
+'\\[ibuffer-kill-line]' and '\\[ibuffer-yank]' pair.  Yanked groups
+will be inserted before the group at point."
   (kill-all-local-variables)
   (use-local-map ibuffer-mode-map)
   (setq major-mode 'ibuffer-mode)
@@ -2314,8 +2372,9 @@ to disable all filtering currently in effect, use
   (set (make-local-variable 'ibuffer-shrink-to-minimum-size)
        ibuffer-default-shrink-to-minimum-size)
   (set (make-local-variable 'ibuffer-filtering-qualifiers) nil)
-  (set (make-local-variable 'ibuffer-filtering-groups) nil)
-  (set (make-local-variable 'ibuffer-hidden-filtering-groups) nil)
+  (set (make-local-variable 'ibuffer-filter-groups) nil)
+  (set (make-local-variable 'ibuffer-filter-group-kill-ring) nil)
+  (set (make-local-variable 'ibuffer-hidden-filter-groups) nil)
   (set (make-local-variable 'ibuffer-compiled-formats) nil)
   (set (make-local-variable 'ibuffer-cached-formats) nil)
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
