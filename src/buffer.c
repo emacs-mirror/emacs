@@ -4403,8 +4403,8 @@ static int mmap_initialized_p;
 
 #define MEM_ALIGN	sizeof (double)
 
-/* Predicate returning true if part of the address range [START ..
-   END[ is currently mapped.  Used to prevent overwriting an existing
+/* Predicate returning true if part of the address range [START .. END]
+   is currently mapped.  Used to prevent overwriting an existing
    memory mapping.
 
    Default is to conservativly assume the address range is occupied by

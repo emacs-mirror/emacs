@@ -573,7 +573,7 @@ make_gap_larger (nbytes_added)
 }
 
 
-/* Make the gap NBYTES_REMOVED bytes shorted.  */
+/* Make the gap NBYTES_REMOVED bytes shorter.  */
 
 void
 make_gap_smaller (nbytes_removed)
