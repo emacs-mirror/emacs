@@ -1020,9 +1020,15 @@ See documentation of variable `tags-file-name'."
       nil
     (forward-line 1)
     (while (not (or (eobp) (looking-at "\f")))
-      (princ (buffer-substring (point)
-			       (progn (skip-chars-forward "^\177")
-				      (point))))
+      (let ((tag (buffer-substring (point)
+				   (progn (skip-chars-forward "^\177")
+					  (point)))))
+	(princ (if (looking-at "[^\n]+\001")
+		   ;; There is an explicit tag name; use that.
+		   (buffer-substring (point)
+				     (progn (skip-chars-forward "^\001")
+					    (point)))
+		 tag)))
       (terpri)
       (forward-line 1))
     t))
