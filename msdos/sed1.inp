@@ -10,6 +10,14 @@ s/\.h\.in/.h-in/
 s!^.-if.*inc-vers.*$!#!
 s!^	\./temacs!	go32 temacs!
 s!/bin/sh!command.com!
+/^MAKE *=/s/^/# /
+/^SHELL *=/s/^/# /
+/^srcdir *=/s/@[^@\n]+@/./
+/^VPATH *=/s/@[^@\n]+@/./
+/^CC *=/s/@[^@\n]+@/gcc/
+/^CPP *=/s/@[^@\n]+@/gcc -e/
+/^CFLAGS *=/s/@[^@\n]+@/-g/
+/^LN_S *=/s/@[^@\n]+@/ln -s/
 /DEBUG_MOLE *=/s/=.*$/=/
 /^.\${libsrc}make-doc/s!>.*$!!
 /^.\${libsrc}make-docfile/s!make-docfile!make-docfile -o ../etc/DOC!
