@@ -3345,7 +3345,12 @@ Optional EVENT is the location for the menu."
   "File used for storing customization information.
 The default is nil, which means to use your init file
 as specified by `user-init-file'.  If you specify some other file,
-you need to explicitly load that file for the settings to take effect."
+you need to explicitly load that file for the settings to take effect.
+
+When you change this variable, look in the previous custom file
+\(usually your init file) for the forms `(custom-set-variables ...)'
+and `(custom-set-faces ...)', and copy them (whichever ones you find)
+to the new custom file.  This will preserve your existing customizations."
   :type '(choice (const :tag "Your Emacs init file" nil) file)
   :group 'customize)
 
@@ -3358,8 +3363,9 @@ you need to explicitly load that file for the settings to take effect."
 			    "~/" nil nil ".emacs"))))
 
 (defun custom-save-delete (symbol)
-  "Delete the call to SYMBOL from `custom-file'.
-Leave point at the location of the call, or after the last expression."
+  "Visit `custom-file' and delete all calls to SYMBOL from it.
+Leave point at the old location of the first such call,
+or (if there were none) at the end of the buffer."
   (let ((default-major-mode))
     (set-buffer (find-file-noselect (custom-file))))
   (goto-char (point-min))
@@ -3367,18 +3373,23 @@ Leave point at the location of the call, or after the last expression."
   (while (forward-comment 1))
   (or (eobp)
       (save-excursion (forward-sexp (buffer-size)))) ; Test for scan errors.
-  (catch 'found
-    (while t
-      ;; Skip all whitespace and comments.
-      (while (forward-comment 1))
-      (let ((start (point))
-	    (sexp (condition-case nil
-		      (read (current-buffer))
-		    (end-of-file (throw 'found nil)))))
-	(when (and (listp sexp)
-		   (eq (car sexp) symbol))
-	  (delete-region start (point))
-	  (throw 'found nil))))))
+  (let (first)
+    (catch 'found
+      (while t ;; We exit this loop only via throw.
+	;; Skip all whitespace and comments.
+	(while (forward-comment 1))
+	(let ((start (point))
+	      (sexp (condition-case nil
+			(read (current-buffer))
+		      (end-of-file (throw 'found nil)))))
+	  (when (and (listp sexp)
+		     (eq (car sexp) symbol))
+	    (delete-region start (point))
+	    (unless first
+	      (setq first (point)))))))
+    (if first
+	(goto-char first)
+      (goto-char (point-max)))))
 
 (defun custom-save-variables ()
   "Save all customized variables in `custom-file'."
@@ -3397,7 +3408,7 @@ Leave point at the location of the call, or after the last expression."
 	(princ "\n"))
       (princ "(custom-set-variables
   ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
-  ;; Your init file must only contain one such instance.")
+  ;; Your init file must only contain one such instance.\n")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-value))
@@ -3408,7 +3419,9 @@ Leave point at the location of the call, or after the last expression."
 	       (comment (get symbol 'saved-variable-comment))
 	       sep)
 	   (when (or value comment)
-	     (princ "\n '(")
+	     (unless (bolp)
+	       (princ "\n"))
+	     (princ " '(")
 	     (prin1 symbol)
 	     (princ " ")
 	     (prin1 (car value))
@@ -3433,6 +3446,8 @@ Leave point at the location of the call, or after the last expression."
 		   (t
 		    (princ ")"))))))
        saved-list)
+      (if (bolp)
+	  (princ " "))
       (princ ")")
       (unless (looking-at "\n")
 	(princ "\n")))))
@@ -3457,7 +3472,7 @@ Leave point at the location of the call, or after the last expression."
 	(princ "\n"))
       (princ "(custom-set-faces
   ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
-  ;; Your init file must only contain one such instance.")
+  ;; Your init file must only contain one such instance.\n")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-face))
@@ -3467,7 +3482,9 @@ Leave point at the location of the call, or after the last expression."
 	       (comment (get 'default 'saved-face-comment)))
 	   (unless (eq symbol 'default))
 	   ;; Don't print default face here.
-	   (princ "\n '(")
+	   (unless (bolp)
+	     (princ "\n"))
+	   (princ " '(")
 	   (prin1 symbol)
 	   (princ " ")
 	   (prin1 value)
@@ -3485,6 +3502,8 @@ Leave point at the location of the call, or after the last expression."
 		 (t
 		  (princ ")")))))
        saved-list)
+      (if (bolp)
+	  (princ " "))
       (princ ")")
       (unless (looking-at "\n")
 	(princ "\n")))))
