@@ -8959,9 +8959,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (first_binding == nmaps && ! function_key_possible
 	  && ! key_translation_possible
 	  && INTEGERP (key)
-	  && ((((XINT (key) & 0x3ffff)
-		< XCHAR_TABLE (current_buffer->downcase_table)->size)
-	       && UPPERCASEP (XINT (key) & 0x3ffff))
+	  && ((CHARACTERP (XINT (key) & ~CHAR_MODIFIER_MASK)
+	       && UPPERCASEP (XINT (key) & ~CHAR_MODIFIER_MASK))
 	      || (XINT (key) & shift_modifier)))
 	{
 	  Lisp_Object new_key;
@@ -8972,8 +8971,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (XINT (key) & shift_modifier)
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
-	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
-			       | (XINT (key) & ~0x3ffff)));
+	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
+			       | (XINT (key) & CHAR_MODIFIER_MASK)));
 
 	  /* We have to do this unconditionally, regardless of whether
 	     the lower-case char is defined in the keymaps, because they
