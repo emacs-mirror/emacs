@@ -70,6 +70,9 @@
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.2  1999/08/18 05:08:39  blaak
+;;; checked in with -k by blaak at 1999/08/18 05:08:39
+;;;
 ;;; Revision 3.2  1999/08/04 05:09:19  blaak
 ;;; Consider assembly sections as blocks, to indent them better.
 ;;;
@@ -105,6 +108,7 @@
 
 (defgroup delphi nil
   "Major mode for editing Delphi source in Emacs"
+  :version "21.1"
   :group 'languages)
 
 (defconst delphi-debug nil
