@@ -715,9 +715,9 @@ so there is no danger of generating a name being used by another process.")
 {
   Lisp_Object val;
 #ifdef MSDOS
-  /* Don't use too much characters of the restricted 8+3 DOS
+  /* Don't use too many characters of the restricted 8+3 DOS
      filename space.  */
-  val = concat2 (prefix, build_string (".XXX"));
+  val = concat2 (prefix, build_string ("a.XXX"));
 #else
   val = concat2 (prefix, build_string ("XXXXXX"));
 #endif
