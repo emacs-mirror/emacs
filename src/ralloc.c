@@ -1303,8 +1303,9 @@ POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
 void r_alloc_free P_ ((POINTER_TYPE **ptr));
 
 
-/* Return a region overlapping with the address range START...END, or
-   null if none.  */
+/* Return a region overlapping address range START...END, or null if
+   none.  END is not including, i.e. the last byte in the range
+   is at END - 1.  */
 
 static struct mmap_region *
 mmap_find (start, end)
@@ -1318,10 +1319,14 @@ mmap_find (start, end)
       char *rstart = (char *) r;
       char *rend   = rstart + r->nbytes_mapped;
 
-      if ((s >= rstart && s < rend)
-	  || (e >= rstart && e < rend)
+      if (/* First byte of range, i.e. START, in this region?  */
+	  (s >= rstart && s < rend)
+	  /* Last byte of range, i.e. END - 1, in this region?  */
+	  || (e > rstart && e <= rend)
+	  /* First byte of this region in the range?  */
 	  || (rstart >= s && rstart < e)
-	  || (rend >= s && rend < e))
+	  /* Last byte of this region in the range?  */
+	  || (rend > s && rend <= e))
 	break;
     }
 
@@ -1348,7 +1353,7 @@ mmap_free (r)
       fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
       return 0;
     }
-  
+
   return 1;
 }
 
@@ -1379,6 +1384,8 @@ mmap_enlarge (r, npages)
     }
   else if (npages > 0)
     {
+      nbytes = npages * page_size;
+      
       /* Try to map additional pages at the end of the region.  We
 	 cannot do this if the address range is already occupied by
 	 something else because mmap deletes any previous mapping.
@@ -1389,7 +1396,6 @@ mmap_enlarge (r, npages)
 	{
 	  POINTER_TYPE *p;
       
-	  nbytes = npages * page_size;
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
 	  if (p == MAP_FAILED)
@@ -1547,7 +1553,7 @@ r_re_alloc (var, nbytes)
 	  /* Try to map additional pages at the end of the region.
 	     If that fails, allocate a new region,  copy data
 	     from the old region, then free it.  */
-	  if (mmap_enlarge (r, ROUND (nbytes - room, page_size)))
+	  if (mmap_enlarge (r, ROUND (nbytes - room, page_size) / page_size))
 	    {
 	      r->nbytes_specified = nbytes;
 	      *var = result = old_ptr;
