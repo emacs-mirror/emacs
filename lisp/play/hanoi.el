@@ -149,10 +149,11 @@
 	  (setq i (1+ i))))
       (setq buffer-read-only t)
       (sit-for 0)
-      ;;
-      ;; do it!
-      ;;
-      (hanoi0 (1- nrings) pole-1 pole-2 pole-3)
+      ;; Disable display of line and column numbers, for speed.
+      (let ((line-number-mode nil)
+	    (column-number-mode nil))
+	;; do it!
+	(hanoi0 (1- nrings) pole-1 pole-2 pole-3))
       (goto-char (point-min))
       (message "Done")
       (setq buffer-read-only t)
