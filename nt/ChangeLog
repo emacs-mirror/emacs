@@ -1,3 +1,8 @@
+2001-03-05  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* configure.bat: Use correct options when compiling a test program
+	with Cygwin.  From David Ponce <dponce@voila.fr>.
+
 2001-02-24  Andrew Innes  <andrewi@gnu.org>
 
 	* _emacs: Remove obsolete file.
