@@ -386,11 +386,10 @@ Optional second argument non-nil means use scientific notation."
 ;; digits of the exponent.
 (defun string-to-float (str)
   "Convert the string to a floating point number.
-Accepts a decimal string in scientific notation, 
-with exponent preceded by either E or e.
-Only the 6 most significant digits of the integer and fractional parts
-are used; only the first two digits of the exponent are used.
-Negative signs preceding both the decimal number and the exponent
+Accepts a decimal string in scientific notation,  with exponent preceded
+by either E or e.  Only the six most significant digits of the integer
+and fractional parts are used; only the first two digits of the exponent
+are used.  Negative signs preceding both the decimal number and the exponent
 are recognized."
 
   (if (string-match floating-point-regexp str 0)
@@ -447,5 +446,3 @@ are recognized."
 	   (funcall func exponent (aref powers-of-10 tens)))))
 		  
     _f0))				; if invalid, return 0
-
-

@@ -42,8 +42,7 @@
 (defconst radians-to-degrees (/ 180.0 pi)
   "Radian to degree conversion constant")
 
-;; these expand to a single multiply by a float
-;; when byte compiled
+;; these expand to a single multiply by a float when byte compiled
 
 (defmacro degrees-to-radians (x)
   "Convert ARG from degrees to radians."

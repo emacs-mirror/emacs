@@ -50,7 +50,9 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			    (setq tail (cdr tail))))
 			;; If not suggestions, use same file as last time.
 			(or answer rmail-last-rmail-file)))))
-  (setq file-name (expand-file-name file-name))
+  (setq file-name
+	(expand-file-name file-name
+			  (file-name-directory rmail-last-rmail-file)))
   (setq rmail-last-rmail-file file-name)
   (rmail-maybe-set-message-counters)
   (or (get-file-buffer file-name)
@@ -129,7 +131,10 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		    ": "))			
 	  (and rmail-last-file (file-name-directory rmail-last-file))
 	  rmail-last-file)))
-  (setq file-name (expand-file-name file-name))
+  (setq file-name
+	(expand-file-name file-name
+			  (and rmail-last-file
+			       (file-name-directory rmail-last-file))))
   (setq rmail-last-file file-name)
   (while (> count 0)
     (let ((rmailbuf (current-buffer))
