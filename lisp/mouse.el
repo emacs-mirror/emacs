@@ -321,7 +321,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 	;; we must select the window where the start event originated.
 	;; unwind-protect will restore the old selected window later.
 	(select-window start-event-window)
-	
+
 	;; if this is the bottommost ordinary window, then to
 	;; move its modeline the minibuffer must be enlarged.
 	(setq should-enlarge-minibuffer
@@ -330,13 +330,13 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		   (not (one-window-p t))
 		   (= (nth 1 (window-edges minibuffer))
 		      (nth 3 (window-edges)))))
-	
+
 	;; loop reading events and sampling the position of
 	;; the mouse.
 	(while (not done)
 	  (setq event (read-event)
 		mouse (mouse-position))
-	  
+
 	  ;; do nothing if
 	  ;;   - there is a switch-frame event.
 	  ;;   - the mouse isn't in the frame that we started in
@@ -350,27 +350,27 @@ MODE-LINE-P non-nil means a mode line is dragged."
 	  ;;     unknown event.
 	  (cond ((integerp event)
 		 (setq done t))
-		
+
 		((eq (car event) 'switch-frame)
 		 nil)
-		
+
 		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
 		 (when (consp event)
 		   (push event unread-command-events))
 		 (setq done t))
-		
+
 		((not (eq (car mouse) start-event-frame))
 		 nil)
-		
+
 		((null (car (cdr mouse)))
 		 nil)
-		
+
 		(t
 		 (setq y (cdr (cdr mouse))
 		       edges (window-edges)
 		       top (nth 1 edges)
 		       bot (nth 3 edges))
-		 
+
 		 ;; compute size change needed
 		 (cond (mode-line-p
 			;; Scale back a move that would make the
@@ -384,13 +384,13 @@ MODE-LINE-P non-nil means a mode line is dragged."
 			;; The window's top includes the header line!
 			(setq growth (- top y))))
 		 (setq wconfig (current-window-configuration))
-		 
+
 		 ;; Check for an error case.
 		 (when (and (/= growth 0)
 			    (not minibuffer)
 			    (one-window-p t))
 		   (error "Attempt to resize sole window"))
-		 
+
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
 		     (progn
@@ -411,7 +411,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		   ;; no.  grow/shrink the selected window
 		   ;(message "growth = %d" growth)
 		   (enlarge-window growth))
-		 
+
 		 ;; if this window's growth caused another
 		 ;; window to be deleted because it was too
 		 ;; short, rescind the change.
@@ -792,7 +792,7 @@ remains active.  Otherwise, it remains until the next input event."
 		    (mouse-show-mark)
 		    ;; mouse-show-mark can call read-event,
 		    ;; and that means the Emacs server could switch buffers
-		    ;; under us.  If that happened, 
+		    ;; under us.  If that happened,
 		    ;; avoid trying to use the region.
 		    (and (mark t) mark-active
 			 (eq buffer (current-buffer))
@@ -864,7 +864,7 @@ If DIR is positive skip forward; if negative, skip backward."
               (= start end)
 	      (char-after start)
               (= (char-syntax (char-after start)) ?\)))
-	 (list (save-excursion 
+	 (list (save-excursion
 		 (goto-char (1+ start))
 		 (backward-sexp 1)
 		 (point))
@@ -881,7 +881,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	       (list start
 		     (save-excursion
 		       (condition-case nil
-			   (progn 
+			   (progn
 			     (goto-char start)
 			     (forward-sexp 1)
 			     (point))
@@ -943,7 +943,7 @@ If DIR is positive skip forward; if negative, skip backward."
       (setcar last event)
       nil)))
 
-;; Momentarily show where the mark is, if highlighting doesn't show it. 
+;; Momentarily show where the mark is, if highlighting doesn't show it.
 
 (defvar mouse-region-delete-keys '([delete])
   "List of keys which shall cause the mouse region to be deleted.")
@@ -1106,7 +1106,7 @@ which prepares for a second click to delete the text.
 If you have selected words or lines, this command extends the
 selection through the word or line clicked on.  If you do this
 again in a different position, it extends the selection again.
-If you do this twice in the same position, the selection is killed." 
+If you do this twice in the same position, the selection is killed."
   (interactive "e")
   (let ((before-scroll
 	 (with-current-buffer (window-buffer (posn-window (event-start click)))
@@ -1120,7 +1120,7 @@ If you do this twice in the same position, the selection is killed."
 		 (set-buffer (window-buffer (posn-window (event-start click))))
 		 (and (mark t) (> (mod mouse-selection-click-count 3) 0)
 		      ;; Don't be fooled by a recent click in some other buffer.
-		      (eq mouse-selection-click-count-buffer 
+		      (eq mouse-selection-click-count-buffer
 			  (current-buffer)))))
 	  (if (not (and (eq last-command 'mouse-save-then-kill)
 			(equal click-posn
@@ -1461,7 +1461,7 @@ again.  If you do this twice in the same position, it kills the selection."
 				      click-posn))
 		      (setq deactivate-mark nil)))
 		(if (eq last-command 'mouse-secondary-save-then-kill)
-		    ;; If the front of the kill ring comes from 
+		    ;; If the front of the kill ring comes from
 		    ;; an immediately previous use of this command,
 		    ;; replace it with the extended region.
 		    ;; (It would be annoying to make a separate entry.)
@@ -1514,6 +1514,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("ObjC" . "C")
     ("Text" . "Text")
     ("Outline" . "Text")
+    ("\\(log\\|diff\\|vc\\|cvs\\)" . "Version Control") ; "Change Management"?
     ("Lisp" . "Lisp"))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
@@ -1634,7 +1635,7 @@ and selects that window."
 		     (save-excursion
 		       (set-buffer elt)
 		       (if buffer-read-only "%" " "))
-		     (or (buffer-file-name elt) 
+		     (or (buffer-file-name elt)
 			 (save-excursion
 			   (set-buffer elt)
 			   (if list-buffers-directory
@@ -1671,27 +1672,27 @@ and selects that window."
 ;;; These need to be rewritten for the new scroll bar implementation.
 
 ;;;!! ;; Commands for the scroll bar.
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-down (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (scroll-down (1+ (cdr (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-up (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (scroll-up (1+ (cdr (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-down-full ()
 ;;;!!   (interactive "@")
 ;;;!!   (scroll-down nil))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-up-full ()
 ;;;!!   (interactive "@")
 ;;;!!   (scroll-up nil))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-move-cursor (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (move-to-window-line (1+ (cdr (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-absolute (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (let* ((pos (car event))
@@ -1705,70 +1706,70 @@ and selects that window."
 ;;;!! 		      scale-factor)))
 ;;;!!       (goto-char newpos)
 ;;;!!       (recenter '(4)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-left (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (scroll-left (1+ (car (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-right (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (scroll-right (1+ (car (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-left-full ()
 ;;;!!   (interactive "@")
 ;;;!!   (scroll-left nil))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-right-full ()
 ;;;!!   (interactive "@")
 ;;;!!   (scroll-right nil))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-move-cursor-horizontally (click)
 ;;;!!   (interactive "@e")
 ;;;!!   (move-to-column (1+ (car (mouse-coords click)))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-scroll-absolute-horizontally (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (let* ((pos (car event))
 ;;;!! 	 (position (car pos))
 ;;;!! 	 (length (car (cdr pos))))
 ;;;!!   (set-window-hscroll (selected-window) 33)))
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [scroll-bar mouse-1] 'mouse-scroll-up)
 ;;;!! (global-set-key [scroll-bar mouse-2] 'mouse-scroll-absolute)
 ;;;!! (global-set-key [scroll-bar mouse-3] 'mouse-scroll-down)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [vertical-slider mouse-1] 'mouse-scroll-move-cursor)
 ;;;!! (global-set-key [vertical-slider mouse-2] 'mouse-scroll-move-cursor)
 ;;;!! (global-set-key [vertical-slider mouse-3] 'mouse-scroll-move-cursor)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [thumbup mouse-1] 'mouse-scroll-up-full)
 ;;;!! (global-set-key [thumbup mouse-2] 'mouse-scroll-up-full)
 ;;;!! (global-set-key [thumbup mouse-3] 'mouse-scroll-up-full)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [thumbdown mouse-1] 'mouse-scroll-down-full)
 ;;;!! (global-set-key [thumbdown mouse-2] 'mouse-scroll-down-full)
 ;;;!! (global-set-key [thumbdown mouse-3] 'mouse-scroll-down-full)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [horizontal-scroll-bar mouse-1] 'mouse-scroll-left)
 ;;;!! (global-set-key [horizontal-scroll-bar mouse-2]
 ;;;!! 		'mouse-scroll-absolute-horizontally)
 ;;;!! (global-set-key [horizontal-scroll-bar mouse-3] 'mouse-scroll-right)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [horizontal-slider mouse-1]
 ;;;!! 		'mouse-scroll-move-cursor-horizontally)
 ;;;!! (global-set-key [horizontal-slider mouse-2]
 ;;;!! 		'mouse-scroll-move-cursor-horizontally)
 ;;;!! (global-set-key [horizontal-slider mouse-3]
 ;;;!! 		'mouse-scroll-move-cursor-horizontally)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [thumbleft mouse-1] 'mouse-scroll-left-full)
 ;;;!! (global-set-key [thumbleft mouse-2] 'mouse-scroll-left-full)
 ;;;!! (global-set-key [thumbleft mouse-3] 'mouse-scroll-left-full)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [thumbright mouse-1] 'mouse-scroll-right-full)
 ;;;!! (global-set-key [thumbright mouse-2] 'mouse-scroll-right-full)
 ;;;!! (global-set-key [thumbright mouse-3] 'mouse-scroll-right-full)
-;;;!! 
+;;;!!
 ;;;!! (global-set-key [horizontal-scroll-bar S-mouse-2]
 ;;;!! 		'mouse-split-window-horizontally)
 ;;;!! (global-set-key [mode-line S-mouse-2]
@@ -1800,7 +1801,7 @@ and selects that window."
 ;;;!! ;;		   (car relative-coordinate)
 ;;;!! ;;		   (car (cdr relative-coordinate)))
 ;;;!! ;;	(message "mouse: [%d %d]" abs-x abs-y)))))
-;;;!! 
+;;;!!
 ;;;!! ;;
 ;;;!! ;; Dynamically put a box around the line indicated by point
 ;;;!! ;;
@@ -1872,20 +1873,20 @@ and selects that window."
 ;;;!! ;;      (progn
 ;;;!! ;;	(x-erase-rectangle (selected-screen))
 ;;;!! ;;	(setq last-line-drawn nil))))
-;;;!! 
+;;;!!
 ;;;!! ;;; (defun test-x-rectangle ()
 ;;;!! ;;;   (use-local-mouse-map (setq rectangle-test-map (make-sparse-keymap)))
 ;;;!! ;;;   (define-key rectangle-test-map mouse-motion-button-left 'mouse-boxing)
 ;;;!! ;;;   (define-key rectangle-test-map mouse-button-left-up 'mouse-erase-box))
-;;;!! 
+;;;!!
 ;;;!! ;;
 ;;;!! ;; Here is how to do double clicking in lisp.  About to change.
 ;;;!! ;;
-;;;!! 
+;;;!!
 ;;;!! (defvar double-start nil)
 ;;;!! (defconst double-click-interval 300
 ;;;!!   "Max ticks between clicks")
-;;;!! 
+;;;!!
 ;;;!! (defun double-down (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (if double-start
@@ -1897,58 +1898,58 @@ and selects that window."
 ;;;!! 	      (sleep-for 1)))
 ;;;!! 	(setq double-start nil))
 ;;;!!     (setq double-start (nth 4 event))))
-;;;!!     
+;;;!!
 ;;;!! (defun double-up (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (and double-start
 ;;;!!        (> (- (nth 4 event ) double-start) double-click-interval)
 ;;;!!        (setq double-start nil)))
-;;;!! 
+;;;!!
 ;;;!! ;;; (defun x-test-doubleclick ()
 ;;;!! ;;;   (use-local-mouse-map (setq doubleclick-test-map (make-sparse-keymap)))
 ;;;!! ;;;   (define-key doubleclick-test-map mouse-button-left 'double-down)
 ;;;!! ;;;   (define-key doubleclick-test-map mouse-button-left-up 'double-up))
-;;;!! 
+;;;!!
 ;;;!! ;;
 ;;;!! ;; This scrolls while button is depressed.  Use preferable in scroll bar.
 ;;;!! ;;
-;;;!! 
+;;;!!
 ;;;!! (defvar scrolled-lines 0)
 ;;;!! (defconst scroll-speed 1)
-;;;!! 
+;;;!!
 ;;;!! (defun incr-scroll-down (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (setq scrolled-lines 0)
 ;;;!!   (incremental-scroll scroll-speed))
-;;;!! 
+;;;!!
 ;;;!! (defun incr-scroll-up (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (setq scrolled-lines 0)
 ;;;!!   (incremental-scroll (- scroll-speed)))
-;;;!! 
+;;;!!
 ;;;!! (defun incremental-scroll (n)
 ;;;!!   (while (= (x-mouse-events) 0)
 ;;;!!     (setq scrolled-lines (1+ (* scroll-speed scrolled-lines)))
 ;;;!!     (scroll-down n)
 ;;;!!     (sit-for 300 t)))
-;;;!! 
+;;;!!
 ;;;!! (defun incr-scroll-stop (event)
 ;;;!!   (interactive "@e")
 ;;;!!   (message "Scrolled %d lines" scrolled-lines)
 ;;;!!   (setq scrolled-lines 0)
 ;;;!!   (sleep-for 1))
-;;;!! 
+;;;!!
 ;;;!! ;;; (defun x-testing-scroll ()
 ;;;!! ;;;   (let ((scrolling-map (function mouse-vertical-scroll-bar-prefix)))
 ;;;!! ;;;     (define-key scrolling-map mouse-button-left 'incr-scroll-down)
 ;;;!! ;;;     (define-key scrolling-map mouse-button-right 'incr-scroll-up)
 ;;;!! ;;;     (define-key scrolling-map mouse-button-left-up 'incr-scroll-stop)
 ;;;!! ;;;     (define-key scrolling-map mouse-button-right-up 'incr-scroll-stop)))
-;;;!! 
+;;;!!
 ;;;!! ;;
 ;;;!! ;; Some playthings suitable for picture mode?  They need work.
 ;;;!! ;;
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-kill-rectangle (event)
 ;;;!!   "Kill the rectangle between point and the mouse cursor."
 ;;;!!   (interactive "@e")
@@ -1959,7 +1960,7 @@ and selects that window."
 ;;;!!       (if (> point-save (point))
 ;;;!! 	  (kill-rectangle (point) point-save)
 ;;;!! 	(kill-rectangle point-save (point))))))
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-open-rectangle (event)
 ;;;!!   "Kill the rectangle between point and the mouse cursor."
 ;;;!!   (interactive "@e")
@@ -1970,16 +1971,16 @@ and selects that window."
 ;;;!!       (if (> point-save (point))
 ;;;!! 	  (open-rectangle (point) point-save)
 ;;;!! 	(open-rectangle point-save (point))))))
-;;;!! 
+;;;!!
 ;;;!! ;; Must be a better way to do this.
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-multiple-insert (n char)
 ;;;!!   (while (> n 0)
 ;;;!!     (insert char)
 ;;;!!     (setq n (1- n))))
-;;;!! 
+;;;!!
 ;;;!! ;; What this could do is not finalize until button was released.
-;;;!! 
+;;;!!
 ;;;!! (defun mouse-move-text (event)
 ;;;!!   "Move text from point to cursor position, inserting spaces."
 ;;;!!   (interactive "@e")
