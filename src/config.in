@@ -58,6 +58,9 @@ and this notice must be preserved on all copies.  */
    and not on others.  */
 #undef HAVE_X_MENU
 
+/* Define if we have the X11R6 or newer version of Xt.  */
+#undef HAVE_X11XTR6
+
 /* If we're using any sort of window system, define MULTI_FRAME.  */
 #ifdef HAVE_X_WINDOWS
 #define MULTI_FRAME
