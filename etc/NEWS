@@ -1074,7 +1074,7 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
----
++++
 ** SES mode (ses-mode) is a new major mode for creating and editing
 spreadsheet files.  Besides the usual Emacs features (intuitive command
 letters, undo, cell formulas in Lisp, plaintext files, etc.) it also offers
@@ -1092,7 +1092,6 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
-+++
 ** New Lisp library testcover.el works with edebug to help you determine
 whether you've tested all your Lisp code.  Function testcover-start
 instruments all functions in a given file.  Then test your code.  Function
@@ -1110,7 +1109,7 @@ to always evaluate to the same value, such as (setq x 14).
 out the test coverage tool.  The macro 1value suppresses a brown splotch for
 its argument.  The macro noreturn suppresses a red splotch.
 
----
++++
 ** New function unsafep returns nil if the given Lisp form can't possibly
 do anything dangerous; otherwise it returns a reason why the form might be
 unsafe (calls dangerous function, alters global variable, etc).
