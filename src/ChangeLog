@@ -1,4 +1,6 @@
-2002-02-20  Kim F. Storm  <storm@cua.dk>
+2002-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c (syms_of_frame): Change mouse-highlight default to t.
 
 	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Corrected
 	composing of language-change event.
