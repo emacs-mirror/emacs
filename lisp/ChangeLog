@@ -1,3 +1,20 @@
+2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Expand doc
+	string.
+	(buffer-stale-function): New variable.
+	(auto-revert-list-diff, auto-revert-dired-file-list)
+	(auto-revert-dired-changed-p, auto-revert-buffer-p): Delete.
+	(auto-revert-handler): Take over some functionality of deleted
+	functions.
+	(auto-revert-buffers): Delete call to auto-revert-buffer-p.
+
+	* dired.el (dired-directory-changed-p, dired-buffer-stale-p): New
+	functions.
+	(dired-internal-noselect): Use dired-directory-changed-p.
+	Eliminate revert messages.
+	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
+
 2004-03-23  Kenichi Handa  <handa@etlken2>
 
 	* international/characters.el: Setup syntaxes for more parentheses
