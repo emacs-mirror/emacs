@@ -1377,7 +1377,7 @@ set_frame_menubar (f, first_time)
   Widget menubar_widget = f->display.x->menubar_widget;
   int id = (int) f;
   Lisp_Object tail, items;
-  widget_value *wv, *save_wv, *first_wv, *prev_wv = 0;
+  widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
 
   BLOCK_INPUT;
@@ -1386,7 +1386,7 @@ set_frame_menubar (f, first_time)
   wv->name = "menubar";
   wv->value = 0;
   wv->enabled = 1;
-  save_wv = first_wv = wv;
+  first_wv = wv;
   items = FRAME_MENU_BAR_ITEMS (f);
   menu_items = f->menu_bar_vector;
   menu_items_allocated = XVECTOR (menu_items)->size;
@@ -1405,11 +1405,24 @@ set_frame_menubar (f, first_time)
       wv = single_submenu (key, string, maps);
       if (prev_wv) 
 	prev_wv->next = wv;
-      else 
-	save_wv->contents = wv;
-      wv->name = (char *) XSTRING (string)->data;
+      else
+	first_wv->contents = wv;
+      /* Don't set wv->name here; GC during the loop might relocate it.  */
       wv->enabled = 1;
       prev_wv = wv;
+    }
+
+  /* Now GC cannot happen during the lifetime of the widget_value,
+     so it's safe to store data from a Lisp_String.  */
+  wv = first_wv->contents;
+  for (i = 0; i < XVECTOR (items)->size; i += 3)
+    {
+      Lisp_Object string;
+      string = XVECTOR (items)->contents[i + 1];
+      if (NILP (string))
+	break;
+      wv->name = (char *) XSTRING (string)->data;
+      wv = wv->next;
     }
 
   finish_menu_items ();
