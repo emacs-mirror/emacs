@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "sysselect.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -156,8 +157,6 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
-
-extern EMACS_TIME timer_check P_ ((int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -1115,6 +1114,60 @@ on the left of the dialog box and all following items on the right.
   }
 #endif
 }
+
+
+#ifndef MSDOS
+
+/* Wait for an X event to arrive or for a timer to expire.  */
+
+static void
+x_menu_wait_for_event (void *data)
+{
+  extern EMACS_TIME timer_check P_ ((int));
+
+  /* Another way to do this is to register a timer callback, that can be
+     done in GTK and Xt.  But we have to do it like this when using only X
+     anyway, and with callbacks we would have three variants for timer handling
+     instead of the small ifdefs below.  */
+
+  while (
+#ifdef USE_X_TOOLKIT
+         XtAppPending (Xt_app_con)
+#elif defined USE_GTK
+         ! gtk_events_pending ()
+#else
+         ! XPending ((Display*) data)
+#endif
+         )
+    {
+      EMACS_TIME next_time = timer_check (1);
+      long secs = EMACS_SECS (next_time);
+      long usecs = EMACS_USECS (next_time);
+      SELECT_TYPE read_fds;
+      struct x_display_info *dpyinfo;
+      int n = 0;
+
+      FD_ZERO (&read_fds);
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+        {
+          int fd = ConnectionNumber (dpyinfo->display);
+          FD_SET (fd, &read_fds);
+          if (fd > n) n = fd;
+        }
+
+      if (secs < 0 || (secs == 0 && usecs == 0))
+        {
+          /* Sometimes timer_check returns -1 (no timers) even if there are
+             timers.  So do a timeout anyway.  */
+          EMACS_SET_SECS (next_time, 1);
+          EMACS_SET_USECS (next_time, 0);
+        }
+
+      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, &next_time);
+    }
+}
+#endif /* ! MSDOS */
+
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
@@ -1140,17 +1193,16 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 
   while (popup_activated_flag)
     {
-       /* If we have no events to run, consider timers.  */ 	 
-       if (do_timers && !XtAppPending (Xt_app_con)) 	 
-         timer_check (1); 	 
-
        if (initial_event)
         {
           event = *initial_event;
           initial_event = 0;
         }
       else
-        XtAppNextEvent (Xt_app_con, &event);
+        {
+          if (do_timers) x_menu_wait_for_event (0);
+          XtAppNextEvent (Xt_app_con, &event);
+        }
 
       /* Make sure we don't consider buttons grabbed after menu goes.
          And make sure to deactivate for any ButtonRelease,
@@ -1196,13 +1248,15 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 /* Loop util popup_activated_flag is set to zero in a callback.
    Used for popup menus and dialogs. */
 static void
-popup_widget_loop ()
+popup_widget_loop (do_timers)
+     int do_timers;
 {
   ++popup_activated_flag;
 
   /* Process events in the Gtk event loop until done.  */
   while (popup_activated_flag)
     {
+      if (do_timers) x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
 }
@@ -2402,7 +2456,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
-  popup_widget_loop ();
+  popup_widget_loop (0);
 
   gtk_widget_destroy (menu);
 
@@ -2811,7 +2865,7 @@ create_and_show_dialog (f, first_wv)
       gtk_widget_show_all (menu);
 
       /* Process events that apply to the menu.  */
-      popup_widget_loop ();
+      popup_widget_loop (1);
 
       gtk_widget_destroy (menu);
     }
@@ -3322,6 +3376,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   XMenuSetAEQ (menu, TRUE);
   XMenuSetFreeze (menu, TRUE);
   pane = selidx = 0;
+
+#ifndef MSDOS
+  XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+#endif
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
