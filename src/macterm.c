@@ -13561,6 +13561,8 @@ mac_check_for_quit_char()
       /* Use an input_event to emulate what the interrupt handler does. */
       e.kind = ASCII_KEYSTROKE_EVENT;
       e.code = quit_char;
+      e.arg = NULL;
+      e.modifiers = NULL;
       e.timestamp = EventTimeToTicks(GetEventTime(event))*(1000/60);
       XSETFRAME(e.frame_or_window, mwp->mFP);
       /* Remove event from queue to prevent looping. */

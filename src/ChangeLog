@@ -1,3 +1,10 @@
+2002-12-12  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_check_for_quit_char): Correctly set the
+	modifiers of the event to 0.
+	* mac.c (sys_select): Duplicate rfds before calling select to
+	ensure that rfds survive the while loop.
+
 2002-12-11  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (try_window_id): Don't call set_cursor_from_row if

@@ -2776,7 +2776,7 @@ sys_select (n, rfds, wfds, efds, timeout)
   else
     {
       EMACS_TIME end_time, now;
-      
+
       EMACS_GET_TIME (end_time);
       if (timeout)
 	EMACS_ADD_TIME (end_time, end_time, *timeout);
@@ -2785,6 +2785,13 @@ sys_select (n, rfds, wfds, efds, timeout)
 	{
 	  int r;
 	  EMACS_TIME one_second;
+	  SELECT_TYPE orfds;
+	  
+	  FD_ZERO (&orfds);
+	  if (rfds)
+	    {
+	      orfds = *rfds;
+	    }
 	  
 	  EMACS_SET_SECS (one_second, 1);
 	  EMACS_SET_USECS (one_second, 0);
@@ -2792,9 +2799,12 @@ sys_select (n, rfds, wfds, efds, timeout)
 	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
 	    one_second = *timeout;
 
-	  if ((r = select (n, rfds, wfds, efds, &one_second)) > 0)
-	    return r;
-	  
+	  if ((r = select (n, &orfds, wfds, efds, &one_second)) > 0)
+	    {
+	      *rfds = orfds;
+	      return r;
+	    }
+
 	  mac_check_for_quit_char();
 	  
 	  EMACS_GET_TIME (now);
