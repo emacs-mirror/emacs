@@ -2973,7 +2973,7 @@ is nil and `use-dialog-box' is non-nil.  */)
       {
 	Lisp_Object pargs[3];
 
-	/* Colorize prompt accordingly to `minibuffer-prompt' face.  */
+	/* Colorize prompt according to `minibuffer-prompt' face.  */
 	pargs[0] = build_string ("%s(y or n) ");
 	pargs[1] = intern ("face");
 	pargs[2] = intern ("minibuffer-prompt");
@@ -3250,6 +3250,10 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
     {
       int count = specpdl_ptr - specpdl;
       int nesting = 0;
+
+      if (! NILP (Vpurify_flag))
+	error ("(require %s) while preparing to dump",
+	       XSYMBOL (feature)->name->data);
       
       /* A certain amount of recursive `require' is legitimate,
 	 but if we require the same feature recursively 3 times,
