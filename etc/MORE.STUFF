@@ -91,6 +91,8 @@ You might find bug-fixes or enhancements in these places.
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
+ * PS mode: <URL:http://odur.let.rug.nl/~kleiweg/postscript/>
+
  * RefTeX: <URL:http://www.strw.leidenuniv.nl/%7Edominik/Tools/>
 
  * Speedbar, Checkdoc etc: <URL:ftp://www.ultranet.com/pub/zappo/>
@@ -180,6 +182,10 @@ the future.
    <URL:ftp://ftp.jaist.ac.jp/pub/GNU/elisp/mule-ucs/himi/>: 
    Extended coding systems for MULE, specifically for reading and
    writing UTF-8 encoded Unicode.
+
+   An alternative system for using UTF-8 is at
+   <URL:http://www.cs.ust.hk/%7Eotfried/Mule/>.  This includes an
+   external program for (partial) inter-conversion of UTF-8.
 
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
