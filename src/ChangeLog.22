@@ -1,3 +1,11 @@
+2004-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fs_load_font): Use fast_string_match_ignore_case
+	instead of fast_c_string_match_ignore_case.
+	(find_font_encoding): Argument changed to Lisp_Object.  Use
+	fast_string_match_ignore_case instead of
+	fast_c_string_match_ignore_case.  Caller changed.
+
 2004-10-15  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): In unibyte case, decide to
