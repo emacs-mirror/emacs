@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,45 +19,63 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-#ifdef USE_TEXT_PROPERTIES
-#define SET_PT(position) (set_point ((position), current_buffer))
-#define TEMP_SET_PT(position) (temp_set_point ((position), current_buffer))
+/* Accessing the parameters of the current buffer.  */
 
-#define BUF_SET_PT(buffer, position) (set_point ((position), (buffer)))
-#define BUF_TEMP_SET_PT(buffer, position) (temp_set_point ((position), (buffer)))
+/* These macros come in pairs, one for the char position
+   and one for the byte position.  */
 
-extern void set_point P_ ((int, struct buffer *));
-extern INLINE void temp_set_point P_ ((int, struct buffer *));
-
-#else  /* don't support text properties */
-
-#define SET_PT(position) (current_buffer->pt = (position))
-#define TEMP_SET_PT(position) (current_buffer->pt = (position))
-
-#define BUF_SET_PT(buffer, position) (buffer->pt = (position))
-#define BUF_TEMP_SET_PT(buffer, position) (buffer->pt = (position))
-#endif /* don't support text properties */
-
-/* Character position of beginning of buffer.  */ 
+/* Position of beginning of buffer.  */ 
 #define BEG (1)
+#define BEG_BYTE (1)
 
-/* Character position of beginning of accessible range of buffer.  */ 
+/* Position of beginning of accessible range of buffer.  */ 
 #define BEGV (current_buffer->begv)
+#define BEGV_BYTE (current_buffer->begv_byte)
 
-/* Character position of point in buffer.  The "+ 0" makes this
+/* Position of point in buffer.  The "+ 0" makes this
    not an l-value, so you can't assign to it.  Use SET_PT instead.  */ 
 #define PT (current_buffer->pt + 0)
+#define PT_BYTE (current_buffer->pt_byte + 0)
 
-/* Character position of gap in buffer.  */ 
+/* Position of gap in buffer.  */ 
 #define GPT (current_buffer->text->gpt)
+#define GPT_BYTE (current_buffer->text->gpt_byte)
 
-/* Character position of end of accessible range of buffer.  */ 
+/* Position of end of accessible range of buffer.  */ 
 #define ZV (current_buffer->zv)
+#define ZV_BYTE (current_buffer->zv_byte)
 
-/* Character position of end of buffer.  */ 
+/* Position of end of buffer.  */ 
 #define Z (current_buffer->text->z)
+#define Z_BYTE (current_buffer->text->z_byte)
 
-/* Is the current buffer narrowed? */
+/* Macros for the addresses of places in the buffer.  */
+
+/* Address of beginning of buffer.  */ 
+#define BEG_ADDR (current_buffer->text->beg)
+
+/* Address of beginning of accessible range of buffer.  */ 
+#define BEGV_ADDR (BYTE_POS_ADDR (current_buffer->begv_byte))
+
+/* Address of point in buffer.  */ 
+#define PT_ADDR (BYTE_POS_ADDR (current_buffer->pt_byte))
+
+/* Address of beginning of gap in buffer.  */ 
+#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - 1)
+
+/* Address of end of gap in buffer.  */
+#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - 1)
+
+/* Address of end of accessible range of buffer.  */ 
+#define ZV_ADDR (BYTE_POS_ADDR (current_buffer->zv_byte))
+
+/* Address of end of buffer.  */ 
+#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - 1)
+
+/* Size of gap.  */
+#define GAP_SIZE (current_buffer->text->gap_size)
+
+/* Is the current buffer narrowed?  */
 #define NARROWED	((BEGV != BEG) || (ZV != Z))
 
 /* Modification count.  */
@@ -69,52 +87,59 @@ extern INLINE void temp_set_point P_ ((int, struct buffer *));
 /* Modification count as of last visit or save.  */
 #define SAVE_MODIFF (current_buffer->text->save_modiff)
 
-/* Address of beginning of buffer.  */ 
-#define BEG_ADDR (current_buffer->text->beg)
+/* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
+   the max (resp. min) p such that
 
-/* Address of beginning of accessible range of buffer.  */ 
-#define BEGV_ADDR (POS_ADDR (current_buffer->begv))
+   BYTE_POS_ADDR (p) - BYTE_POS_ADDR (n) == p - n       */
 
-/* Address of point in buffer.  */ 
-#define PT_ADDR (POS_ADDR (current_buffer->pt))
-
-/* Address of beginning of gap in buffer.  */ 
-#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt - 1)
-
-/* Address of end of gap in buffer.  */
-#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt + current_buffer->text->gap_size - 1)
-
-/* Address of end of accessible range of buffer.  */ 
-#define ZV_ADDR (POS_ADDR (current_buffer->zv))
-
-/* Address of end of buffer.  */ 
-#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z - 1)
-
-/* Size of gap.  */
-#define GAP_SIZE (current_buffer->text->gap_size)
-
-/* Now similar macros for a specified buffer.
+#define BUFFER_CEILING_OF(BYTEPOS) \
+  (((BYTEPOS) < GPT_BYTE && GPT < ZV ? GPT_BYTE : ZV_BYTE) - 1)
+#define BUFFER_FLOOR_OF(BYTEPOS) \
+  (BEGV <= GPT && GPT_BYTE <= (BYTEPOS) ? GPT_BYTE : BEGV_BYTE)
+
+/* Similar macros to operate on a specified buffer.
    Note that many of these evaluate the buffer argument more than once.  */
 
-/* Character position of beginning of buffer.  */ 
+/* Position of beginning of buffer.  */ 
 #define BUF_BEG(buf) (1)
+#define BUF_BEG_BYTE(buf) (1)
 
-/* Character position of beginning of accessible range of buffer.  */ 
+/* Position of beginning of accessible range of buffer.  */ 
 #define BUF_BEGV(buf) ((buf)->begv)
+#define BUF_BEGV_BYTE(buf) ((buf)->begv_byte)
 
-/* Character position of point in buffer.  */ 
+/* Position of point in buffer.  */ 
 #define BUF_PT(buf) ((buf)->pt)
+#define BUF_PT_BYTE(buf) ((buf)->pt_byte)
 
-/* Character position of gap in buffer.  */ 
+/* Position of gap in buffer.  */ 
 #define BUF_GPT(buf) ((buf)->text->gpt)
+#define BUF_GPT_BYTE(buf) ((buf)->text->gpt_byte)
 
-/* Character position of end of accessible range of buffer.  */ 
+/* Position of end of accessible range of buffer.  */ 
 #define BUF_ZV(buf) ((buf)->zv)
+#define BUF_ZV_BYTE(buf) ((buf)->zv_byte)
 
-/* Character position of end of buffer.  */ 
+/* Position of end of buffer.  */ 
 #define BUF_Z(buf) ((buf)->text->z)
+#define BUF_Z_BYTE(buf) ((buf)->text->z_byte)
 
-/* Is this buffer narrowed? */
+/* Address of beginning of buffer.  */
+#define BUF_BEG_ADDR(buf) ((buf)->text->beg)
+
+/* Address of beginning of gap of buffer.  */
+#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte - 1)
+
+/* Address of end of buffer.  */
+#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z_byte - 1)
+
+/* Address of end of gap in buffer.  */
+#define BUF_GAP_END_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte + (buf)->text->gap_size - 1)
+
+/* Size of gap.  */
+#define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
+
+/* Is this buffer narrowed?  */
 #define BUF_NARROWED(buf) ((BUF_BEGV (buf) != BUF_BEG (buf)) \
 			   || (BUF_ZV (buf) != BUF_Z (buf)))
 
@@ -132,48 +157,220 @@ extern INLINE void temp_set_point P_ ((int, struct buffer *));
 
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
+
+/* Macros to set PT in the current buffer, or another buffer..  */
 
-/* Address of beginning of buffer.  */
-#define BUF_BEG_ADDR(buf) ((buf)->text->beg)
+#ifdef USE_TEXT_PROPERTIES
+#define SET_PT(position) (set_point (current_buffer, (position)))
+#define TEMP_SET_PT(position) (temp_set_point (current_buffer, (position)))
 
-/* Address of beginning of gap of buffer.  */
-#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt - 1)
+#define SET_PT_BOTH(position, byte) \
+  (set_point_both (current_buffer, (position), (byte)))
+#define TEMP_SET_PT_BOTH(position, byte) \
+  (temp_set_point_both (current_buffer, (position), (byte)))
 
-/* Address of end of buffer.  */
-#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z - 1)
+#define BUF_SET_PT(buffer, position) \
+  (set_point ((buffer), (position)))
+#define BUF_TEMP_SET_PT(buffer, position) \
+  (temp_set_point ((buffer), (position)))
 
-/* Macro for setting the value of BUF_ZV (BUF) to VALUE,
-   by varying the end of the accessible region.  */
-#define SET_BUF_ZV(buf, value) ((buf)->zv = (value))
-#define SET_BUF_PT(buf, value) ((buf)->pt = (value))
+extern void set_point P_ ((struct buffer *, int));
+extern INLINE void temp_set_point P_ ((struct buffer *, int));
+extern void set_point_both P_ ((struct buffer *, int, int));
+extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
 
-/* Size of gap.  */
-#define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
+#else  /* don't support text properties */
 
-/* Return the address of character at position POS in buffer BUF. 
+#define SET_PT(position) (current_buffer->pt = (position))
+#define TEMP_SET_PT(position) (current_buffer->pt = (position))
+
+#define SET_PT_BOTH(position, byte)		\
+   (current_buffer->pt = (position),		\
+    current_buffer->pt_byte = (byte))
+
+#define TEMP_SET_PT_BOTH(position, byte)	\
+   (current_buffer->pt = (position),		\
+    current_buffer->pt_byte = (byte))
+
+#define BUF_SET_PT(buffer, position) (buffer->pt = (position))
+#define BUF_TEMP_SET_PT(buffer, position) (buffer->pt = (position))
+#endif /* don't support text properties */
+
+/* Macros for setting the BEGV, ZV or PT of a given buffer.
+
+   SET_BUF_PT* seet to be redundant.  Get rid of them?
+
+   The ..._BOTH macros take both a charpos and a bytepos,
+   which must correspond to each other.
+
+   The macros without ..._BOTH take just a charpos,
+   and compute the bytepos from it.  */
+
+#define SET_BUF_BEGV(buf, charpos)				 \
+  ((buf)->begv_byte = buf_charpos_to_bytepos ((buf), (charpos)), \
+   (buf)->begv = (charpos))
+
+#define SET_BUF_ZV(buf, charpos)				\
+  ((buf)->zv_byte = buf_charpos_to_bytepos ((buf), (charpos)),	\
+   (buf)->zv = (charpos))
+
+#define SET_BUF_BEGV_BOTH(buf, charpos, byte)		\
+  ((buf)->begv = (charpos),				\
+   (buf)->begv_byte = (byte))
+
+#define SET_BUF_ZV_BOTH(buf, charpos, byte)		\
+  ((buf)->zv = (charpos),				\
+   (buf)->zv_byte = (byte))
+
+#define SET_BUF_PT_BOTH(buf, charpos, byte)		\
+  ((buf)->pt = (charpos),				\
+   (buf)->pt_byte = (byte))
+
+/* Macros to access a character or byte in the current buffer,
+   or convert between a byte position and an address.
+   These macros do not check that the position is in range.  */
+
+/* Access a Lisp position value in POS,
+   and store the charpos in CHARPOS and the bypepos in BYPEPOS.  */
+
+#define DECODE_POSITION(charpos, bytepos, pos)			\
+if (1)								\
+  {								\
+    Lisp_Object __pos = (pos);					\
+    if (NUMBERP (__pos))					\
+      {								\
+	charpos = __pos;					\
+	bytepos = buf_charpos_to_bytepos (current_buffer, __pos);  \
+      }								\
+    else if (MARKERP (__pos))					\
+      {								\
+	charpos = marker_position (__pos);			\
+	bytepos = marker_byte_position (__pos);			\
+      }								\
+    else							\
+      wrong_type_argument (Qinteger_or_marker_p, __pos);	\
+  }								\
+else
+
+/* Return the address of byte position N in current buffer.  */
+
+#define BYTE_POS_ADDR(n) \
+  (((n) >= GPT_BYTE ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+
+/* Return the address of char position N.  */
+
+#define CHAR_POS_ADDR(n)			\
+  (((n) >= GPT ? GAP_SIZE : 0)			\
+   + buf_charpos_to_bytepos (current_buffer, n)	\
+   + BEG_ADDR - 1)
+
+/* Convert a character position to a byte position.  */
+
+#define CHAR_TO_BYTE(charpos)			\
+  (buf_charpos_to_bytepos (current_buffer, charpos))
+
+/* Convert a byte position to a character position.  */
+
+#define BYTE_TO_CHAR(bytepos)			\
+  (buf_bytepos_to_charpos (current_buffer, bytepos))
+
+/* Convert PTR, the address of a byte in the buffer, into a byte position.  */
+
+#define PTR_BYTE_POS(ptr) \
+((ptr) - (current_buffer)->text->beg					    \
+ - (ptr - (current_buffer)->text->beg < (unsigned) GPT_BYTE ? 0 : GAP_SIZE) \
+ + 1)
+
+/* Return character at position POS.  */
+
+#define FETCH_CHAR(pos)				      	\
+  (!NILP (current_buffer->enable_multibyte_characters)	\
+   ? FETCH_MULTIBYTE_CHAR ((pos))		      	\
+   : FETCH_BYTE ((pos)))
+
+/* Return the byte at byte position N.  */
+
+#define FETCH_BYTE(n) *(BYTE_POS_ADDR ((n)))
+
+/* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
+extern unsigned char *_fetch_multibyte_char_p;
+extern int _fetch_multibyte_char_len;
+
+/* Return character code of multi-byte form at position POS.  If POS
+   doesn't point the head of valid multi-byte form, only the byte at
+   POS is returned.  No range checking.  */
+
+#define FETCH_MULTIBYTE_CHAR(pos)				 	\
+  (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
+			       + (pos) + BEG_ADDR - 1),		 	\
+   _fetch_multibyte_char_len						\
+      = ((pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE) - (pos),		\
+   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
+
+/* Macros for accessing a character or byte,
+   or converting between byte positions and addresses,
+   in a specified buffer.  */
+
+/* Return the address of character at byte position POS in buffer BUF. 
    Note that both arguments can be computed more than once.  */
-#define BUF_CHAR_ADDRESS(buf, pos) \
+
+#define BUF_BYTE_ADDRESS(buf, pos) \
 ((buf)->text->beg + (pos) - 1		\
+ + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
+
+/* Return the address of character at char position POS in buffer BUF. 
+   Note that both arguments can be computed more than once.  */
+
+#define BUF_CHAR_ADDRESS(buf, pos) \
+((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - 1	\
  + ((pos) >= (buf)->text->gpt ? (buf)->text->gap_size : 0))
 
-/* Convert the address of a char in the buffer into a character position.  */
-#define PTR_CHAR_POS(ptr) \
-((ptr) - (current_buffer)->text->beg					\
- - (ptr - (current_buffer)->text->beg < (unsigned) GPT ? 0 : GAP_SIZE)	\
+/* Convert PTR, the address of a char in buffer BUF,
+   into a character position.  */
+
+#define BUF_PTR_BYTE_POS(buf, ptr)				\
+((ptr) - (buf)->text->beg					\
+ - (ptr - (buf)->text->beg < (unsigned) BUF_GPT_BYTE ((buf))	\
+    ? 0 : BUF_GAP_SIZE ((buf)))					\
  + 1)
 
-/* Convert the address of a char in the buffer into a character position.  */
-#define BUF_PTR_CHAR_POS(buf, ptr)			\
-((ptr) - (buf)->text->beg				\
- - (ptr - (buf)->text->beg < (unsigned) BUF_GPT ((buf))	\
-    ? 0 : BUF_GAP_SIZE ((buf)))				\
- + 1)
+/* Return the character at byte position POS in buffer BUF.   */
+
+#define BUF_FETCH_CHAR(buf, pos)	      	\
+  (!NILP (buf->enable_multibyte_characters)	\
+   ? BUF_FETCH_MULTIBYTE_CHAR ((buf), (pos))    \
+   : BUF_FETCH_BYTE ((buf), (pos)))
+
+/* Return the byte at byte position N in buffer BUF.   */
+
+#define BUF_FETCH_BYTE(buf, n) \
+  *(BUF_BYTE_ADDRESS ((buf), (n)))
+
+/* Return character code of multi-byte form at byte position POS in BUF.
+   If POS doesn't point the head of valid multi-byte form, only the byte at
+   POS is returned.  No range checking.  */
+
+#define BUF_FETCH_MULTIBYTE_CHAR(buf, pos)				\
+  (_fetch_multibyte_char_p						\
+     = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
+        + (pos) + BUF_BEG_ADDR (buf) - 1),				\
+   _fetch_multibyte_char_len						\
+     = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_ZV_BYTE (buf) : BUF_GPT_BYTE (buf)) \
+        - (pos)),							\
+   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
 
+/* Define the actual buffer data structures.  */
+
+/* This data structure describes the actual text contents of a buffer.
+   It is shared between indirect buffers and their base buffer.  */
+
 struct buffer_text
   {
     unsigned char *beg;		/* Actual address of buffer contents.  */
-    int gpt;			/* Index of gap in buffer.  */
-    int z;			/* Index of end of buffer.  */
+    int gpt;			/* Char pos of gap in buffer.  */
+    int z;			/* Char pos of end of buffer.  */
+    int gpt_byte;		/* Byte pos of gap in buffer.  */
+    int z_byte;			/* Byte pos of end of buffer.  */
     int gap_size;		/* Size of buffer's gap.  */
     int modiff;			/* This counts buffer-modification events
 				   for this buffer.  It is incremented for
@@ -193,6 +390,8 @@ struct buffer_text
        are the other markers referring to this buffer.  */
     Lisp_Object markers;
   };
+
+/* This is the structure that the buffer Lisp object points to.  */
 
 struct buffer
   {
@@ -219,12 +418,18 @@ struct buffer
        In an indirect buffer, this is the own_text field of another buffer.  */
     struct buffer_text *text;
 
-    /* Position of point in buffer.  */
+    /* Char position of point in buffer.  */
     int pt;
-    /* Index of beginning of accessible range.  */
+    /* Byte position of point in buffer.  */
+    int pt_byte;
+    /* Char position of beginning of accessible range.  */
     int begv;
-    /* Index of end of accessible range.  */
+    /* Byte position of beginning of accessible range.  */
+    int begv_byte;
+    /* Char position of end of accessible range.  */
     int zv;
+    /* Byte position of end of accessible range.  */
+    int zv_byte;
 
     /* In an indirect buffer, this points to the base buffer.
        In an ordinary buffer, it is 0.  */
@@ -494,40 +699,6 @@ extern struct buffer buffer_local_symbols;
    always be safely stored in any slot.  */
 extern struct buffer buffer_local_types;
 
-/* Return the address of position N.  No range checking.  */
-#define POS_ADDR(n) (((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
-
-/* Return the byte at position N.  No range checking.  */
-#define FETCH_BYTE(n) *(POS_ADDR ((n)))
-
-/* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
-extern unsigned char *_fetch_multibyte_char_p;
-extern int _fetch_multibyte_char_len;
-
-/* Return character code of multi-byte form at position POS.  If POS
-   doesn't point the head of valid multi-byte form, only the byte at
-   POS is returned.  No range checking.  */
-
-#define FETCH_MULTIBYTE_CHAR(pos)				 	\
-  (_fetch_multibyte_char_p = (((pos) >= GPT ? GAP_SIZE : 0)	 	\
-			       + (pos) + BEG_ADDR - 1),		 	\
-   _fetch_multibyte_char_len = ((pos) >= GPT ? ZV : GPT) - (pos),	\
-   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
-
-/* Return character at position POS.  No range checking.  */
-#define FETCH_CHAR(pos)				      	\
-  (!NILP (current_buffer->enable_multibyte_characters)	\
-   ? FETCH_MULTIBYTE_CHAR ((pos))		      	\
-   : FETCH_BYTE ((pos)))
-
-/* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
-   the max (resp. min) p such that
-
-   POS_ADDR (p) - POS_ADDR (n) == p - n       */
-
-#define BUFFER_CEILING_OF(n) (((n) < GPT && GPT < ZV ? GPT : ZV) - 1)
-#define BUFFER_FLOOR_OF(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
-
 extern void reset_buffer P_ ((struct buffer *));
 extern void evaporate_overlays P_ ((int));
 extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *));
