@@ -733,6 +733,12 @@ instead.  @xref{Catch and Throw}.
 @subsubsection How to Signal an Error
 @cindex signaling errors
 
+   @dfn{Signalling} an error means beginning error processing.  Error
+processing normally aborts all or part of the running program and
+returns to a point that is set up to handle the error
+(@pxref{Processing of Errors}).  Here we describe how to signal an
+error.
+
   Most errors are signaled ``automatically'' within Lisp primitives
 which you call for other purposes, such as if you try to take the
 @sc{car} of an integer or move forward a character at the end of the
@@ -743,10 +749,11 @@ buffer.  You can also signal errors explicitly with the functions
 considered an error, but it is handled almost like an error.
 @xref{Quitting}.
 
-  The error message should state what is wrong (``File does not
-exist''), not how things ought to be (``File must exist'').  The
-convention in Emacs Lisp is that error messages should start with a
-capital letter, but should not end with any sort of punctuation.
+  Every error specifies an error message, one way or another.  The
+message should state what is wrong (``File does not exist''), not how
+things ought to be (``File must exist'').  The convention in Emacs
+Lisp is that error messages should start with a capital letter, but
+should not end with any sort of punctuation.
 
 @defun error format-string &rest args
 This function signals an error with an error message constructed by
