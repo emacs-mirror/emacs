@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.8 1997/02/03 06:13:34 friedman Exp $
+;; $Id: eldoc.el,v 1.9 1997/02/04 18:21:29 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -92,41 +92,30 @@ This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
 returns another string is acceptable.")
 
+;; No user options below here.
+
 (defvar eldoc-message-commands nil
-  "*Commands after which it is appropriate to print in the echo area.
+  "Commands after which it is appropriate to print in the echo area.
 
 Eldoc does not try to print function arglists, etc. after just any command,
 because some commands print their own messages in the echo area and these
 functions would instantly overwrite them.  But self-insert-command as well
 as most motion commands are good candidates.
 
-This variable contains an obarray of symbols; it is probably best to
-manipulate this data structure with the commands `eldoc-add-command' and
+This variable contains an obarray of symbols; do not manipulate it
+directly.  Instead, use the functions `eldoc-add-command' and
 `eldoc-remove-command'.")
 
-(cond ((null eldoc-message-commands)
-       ;; If you increase the number of buckets, keep it a prime number.
-       (setq eldoc-message-commands (make-vector 31 0))
-       (let ((list '("self-insert-command"
-                     "next-"         "previous-"
-                     "forward-"      "backward-"
-                     "beginning-of-" "end-of-"
-                     "goto-"
-                     "recenter"
-                     "scroll-"
-                     "mouse-set-point"))
-             (syms nil))
-         (while list
-           (setq syms (all-completions (car list) obarray 'fboundp))
-           (setq list (cdr list))
-           (while syms
-             (set (intern (car syms) eldoc-message-commands) t)
-             (setq syms (cdr syms)))))))
+;; This is used by eldoc-add-command to initialize eldoc-message-commands
+;; as an obarray.
+;; If you increase the number of buckets, keep it a prime number.
+(defconst eldoc-message-commands-table-size 31)
 
 ;; Bookkeeping; the car contains the last symbol read from the buffer.
 ;; The cdr contains the string last displayed in the echo area, so it can
 ;; be printed again if necessary without reconsing.
 (defvar eldoc-last-data '(nil . nil))
+(defvar eldoc-last-message nil)
 
 ;; Idle timers are supported in Emacs 19.31 and later.
 (defconst eldoc-use-idle-timer-p (fboundp 'run-with-idle-timer))
@@ -137,16 +126,6 @@ manipulate this data structure with the commands `eldoc-add-command' and
 ;; idle time delay currently in use by timer.
 ;; This is used to determine if eldoc-idle-delay is changed by the user.
 (defvar eldoc-current-idle-delay eldoc-idle-delay)
-
-;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages are
-;; recorded in a log.  Do not put eldoc messages in that log since
-;; they are Legion.
-(defmacro eldoc-message (&rest args)
-  (if (fboundp 'display-message)
-      ;; XEmacs 19.13 way of preventing log messages.
-      (list 'display-message '(quote no-log) (apply 'list 'format args))
-    (list 'let (list (list 'message-log-max 'nil))
-          (apply 'list 'message args))))
 
 
 ;;;###autoload
@@ -159,23 +138,26 @@ of the mode.
 If called with a positive or negative prefix argument, enable or disable
 the mode, respectively."
   (interactive "P")
-
+  (setq eldoc-last-message nil)
   (cond (eldoc-use-idle-timer-p
-         (add-hook 'post-command-hook 'eldoc-schedule-timer))
+         (add-hook 'post-command-hook 'eldoc-schedule-timer)
+         (add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area))
         (t
          ;; Use post-command-idle-hook if defined, otherwise use
          ;; post-command-hook.  The former is only proper to use in Emacs
          ;; 19.30; that is the first version in which it appeared, but it
          ;; was obsolesced by idle timers in Emacs 19.31.
          (add-hook (if (boundp 'post-command-idle-hook)
-                       'post-command-idle-hook
-                     'post-command-hook)
-                   'eldoc-print-current-symbol-info)))
-
+                  'post-command-idle-hook
+                'post-command-hook)
+              'eldoc-print-current-symbol-info)
+         ;; quick and dirty hack for seeing if this is XEmacs
+         (and (fboundp 'display-message)
+              (add-hook 'pre-command-hook
+                        'eldoc-pre-command-refresh-echo-area))))
   (setq eldoc-mode (if prefix
                        (>= (prefix-numeric-value prefix) 0)
                      (not eldoc-mode)))
-
   (and (interactive-p)
        (if eldoc-mode
            (message "eldoc-mode is enabled")
@@ -187,38 +169,6 @@ the mode, respectively."
   "Unequivocally turn on eldoc-mode (see variable documentation)."
   (interactive)
   (eldoc-mode 1))
-
-(defun eldoc-add-command (cmd)
-  "Add COMMAND to the list of commands which causes function arg display.
-If called interactively, completion on defined commands is available.
-
-When point is in a sexp, the function args are not reprinted in the echo
-area after every possible interactive command because some of them print
-their own messages in the echo area; the eldoc functions would instantly
-overwrite them unless it is more restrained."
-  (interactive "CAdd function to eldoc message commands list: ")
-  (and (fboundp cmd)
-       (set (intern (symbol-name cmd) eldoc-message-commands) t)))
-
-(defun eldoc-remove-command (cmd)
-  "Remove COMMAND from the list of commands which causes function arg display.
-If called interactively, completion matches only those functions currently
-in the list.
-
-When point is in a sexp, the function args are not reprinted in the echo
-area after every possible interactive command because some of them print
-their own messages in the echo area; the eldoc functions would instantly
-overwrite them unless it is more restrained."
-  (interactive (list (completing-read
-                      "Remove function from eldoc message commands list: "
-                      eldoc-message-commands 'boundp t)))
-  (and (symbolp cmd)
-       (setq cmd (symbol-name cmd)))
-  (if (fboundp 'unintern)
-      (unintern cmd eldoc-message-commands)
-    (let ((s (intern-soft cmd eldoc-message-commands)))
-      (and s
-           (makunbound s)))))
 
 ;; Idle timers are part of Emacs 19.31 and later.
 (defun eldoc-schedule-timer ()
@@ -233,27 +183,58 @@ overwrite them unless it is more restrained."
          (setq eldoc-current-idle-delay eldoc-idle-delay)
          (timer-set-idle-time eldoc-timer eldoc-idle-delay t))))
 
+;; This function goes on pre-command-hook for XEmacs or when using idle
+;; timers in Emacs.  Motion commands clear the echo area for some reason,
+;; which make eldoc messages flicker or disappear just before motion
+;; begins.  This function reprints the last eldoc message immediately
+;; before the next command executes, which does away with the flicker.
+;; This doesn't seem to be required for Emacs 19.28 and earlier.
+(defun eldoc-pre-command-refresh-echo-area ()
+  (and eldoc-last-message
+       (if (eldoc-display-message-no-interference-p)
+           (eldoc-message eldoc-last-message)
+         (setq eldoc-last-message nil))))
+
+(defun eldoc-message (&rest args)
+  (let ((omessage eldoc-last-message))
+    (cond ((eq (car args) eldoc-last-message))
+          ((or (null args)
+               (null (car args)))
+           (setq eldoc-last-message nil))
+          (t
+           (setq eldoc-last-message (apply 'format args))))
+    ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
+    ;; are recorded in a log.  Do not put eldoc messages in that log since
+    ;; they are Legion.
+    (if (fboundp 'display-message)
+        ;; XEmacs 19.13 way of preventing log messages.
+        (if eldoc-last-message
+            (display-message 'no-log eldoc-last-message)
+          (and omessage
+               (clear-message 'no-log)))
+      (let ((message-log-max nil))
+        (if eldoc-last-message
+            (message "%s" eldoc-last-message)
+          (and omessage
+               (message nil))))))
+  eldoc-last-message)
+
 
 (defun eldoc-print-current-symbol-info ()
   (and (eldoc-display-message-p)
        (let ((current-symbol (eldoc-current-symbol))
              (current-fnsym  (eldoc-fnsym-in-current-sexp)))
-         (cond ((eq current-symbol current-fnsym)
-                (eldoc-print-fnsym-args current-fnsym))
-               (t
-                (or (eldoc-print-var-docstring current-symbol)
-                    (eldoc-print-fnsym-args current-fnsym)))))))
+         (or (cond ((eq current-symbol current-fnsym)
+                    (or (eldoc-print-fnsym-args current-fnsym)
+                        (eldoc-print-var-docstring current-symbol)))
+                   (t
+                    (or (eldoc-print-var-docstring current-symbol)
+                        (eldoc-print-fnsym-args current-fnsym))))
+             (eldoc-message nil)))))
 
 ;; Decide whether now is a good time to display a message.
 (defun eldoc-display-message-p ()
-  (and eldoc-mode
-       (not executing-kbd-macro)
-
-       ;; Having this mode operate in an active minibuffer/echo area causes
-       ;; interference with what's going on there.
-       (not cursor-in-echo-area)
-       (not (eq (selected-window) (minibuffer-window)))
-
+  (and (eldoc-display-message-no-interference-p)
        (cond (eldoc-use-idle-timer-p
               ;; If this-command is non-nil while running via an idle
               ;; timer, we're still in the middle of executing a command,
@@ -273,11 +254,19 @@ overwrite them unless it is more restrained."
                                 eldoc-message-commands)
                    (sit-for eldoc-idle-delay))))))
 
-(defun eldoc-print-fnsym-args (&optional symbol)
+(defun eldoc-display-message-no-interference-p ()
+  (and eldoc-mode
+       (not executing-kbd-macro)
+       ;; Having this mode operate in an active minibuffer/echo area causes
+       ;; interference with what's going on there.
+       (not cursor-in-echo-area)
+       (not (eq (selected-window) (minibuffer-window)))))
+
+(defun eldoc-print-fnsym-args (sym)
   (interactive)
-  (let ((sym (or symbol (eldoc-fnsym-in-current-sexp)))
-        (args nil))
-    (cond ((not (and (symbolp sym)
+  (let ((args nil))
+    (cond ((not (and sym
+                     (symbolp sym)
                      (fboundp sym))))
           ((eq sym (car eldoc-last-data))
            (setq args (cdr eldoc-last-data)))
@@ -294,24 +283,40 @@ overwrite them unless it is more restrained."
          (eldoc-message "%s: %s" sym args))))
 
 (defun eldoc-fnsym-in-current-sexp ()
-  (let* ((p (point))
-         (sym (progn
-                (while (and (eldoc-forward-sexp-safe -1)
-                            (> (point) (point-min))))
-                (cond ((or (= (point) (point-min))
-                           (memq (or (char-after (point)) 0)
-                                 '(?\( ?\"))
-                           ;; If we hit a quotation mark before a paren, we
-                           ;; are inside a specific string, not a list of
-                           ;; symbols.
-                           (eq (or (char-after (1- (point))) 0) ?\"))
-                       nil)
-                      (t (condition-case nil
-                             (read (current-buffer))
-                           (error nil)))))))
-    (goto-char p)
-    (and (symbolp sym)
-         sym)))
+  (let ((p (point)))
+    (eldoc-beginning-of-sexp)
+    (prog1
+        ;; Don't do anything if current word is inside a string.
+        (if (= (or (char-after (1- (point))) 0) ?\")
+            nil
+          (eldoc-current-symbol))
+      (goto-char p))))
+
+(defun eldoc-beginning-of-sexp ()
+  (let ((parse-sexp-ignore-comments t))
+    (condition-case err
+        (while (progn
+                 (forward-sexp -1)
+                 (or (= (or (char-after (1- (point)))) ?\")
+                     (> (point) (point-min)))))
+      (error nil))))
+
+;; returns nil unless current word is an interned symbol.
+(defun eldoc-current-symbol ()
+  (let ((c (char-after (point))))
+    (and c
+         (memq (char-syntax c) '(?w ?_))
+         (intern-soft (current-word)))))
+
+;; Do indirect function resolution if possible.
+(defun eldoc-symbol-function (fsym)
+  (let ((defn (and (fboundp fsym)
+                   (symbol-function fsym))))
+    (and (symbolp defn)
+         (condition-case err
+             (setq defn (indirect-function fsym))
+           (error (setq defn nil))))
+    defn))
 
 (defun eldoc-function-argstring (fn)
   (let* ((prelim-def (eldoc-symbol-function fn))
@@ -349,8 +354,7 @@ overwrite them unless it is more restrained."
   (concat "(" (mapconcat 'identity arglist " ") ")"))
 
 
-(defun eldoc-print-var-docstring (&optional sym)
-  (or sym (setq sym (eldoc-current-symbol)))
+(defun eldoc-print-var-docstring (sym)
   (eldoc-print-docstring sym (documentation-property
                               sym 'variable-documentation t)))
 
@@ -473,6 +477,20 @@ overwrite them unless it is more restrained."
                      (string-match "^Args are +\\([^\n]+\\)$" doc)))
          (function (lambda (doc)
                      (substring doc (match-beginning 1) (match-end 1)))))
+
+   ;; These subrs don't have arglists in their docstrings.
+   ;; This is cheating.
+   (list (function (lambda (doc fn)
+                     (memq fn '(and or list + -))))
+         (function (lambda (doc)
+                     ;; The value nil is a placeholder; otherwise, the
+                     ;; following string may be compiled as a docstring,
+                     ;; and not a return value for the function.
+                     ;; In interpreted lisp form they are
+                     ;; indistinguishable; it only matters for compiled
+                     ;; forms.
+                     nil
+                     "&rest args")))
    ))
 
 (defun eldoc-function-argstring-from-docstring (fn)
@@ -507,36 +525,64 @@ overwrite them unless it is more restrained."
              (concat "(" (funcall eldoc-argument-case doc) ")"))))))
 
 
-;; forward-sexp calls scan-sexps, which returns an error if it hits the
-;; beginning or end of the sexp.  This returns nil instead.
-(defun eldoc-forward-sexp-safe (&optional count)
-  "Move forward across one balanced expression (sexp).
-With argument, do it that many times.  Negative arg -COUNT means
-move backward across COUNT balanced expressions.
-Return distance in buffer moved, or nil."
-  (or count (setq count 1))
-  (condition-case err
-      (- (- (point) (progn
-                      (let ((parse-sexp-ignore-comments t))
-                        (forward-sexp count))
-                      (point))))
-    (error nil)))
+;; When point is in a sexp, the function args are not reprinted in the echo
+;; area after every possible interactive command because some of them print
+;; their own messages in the echo area; the eldoc functions would instantly
+;; overwrite them unless it is more restrained.
+;; These functions do display-command table management.
 
-;; Do indirect function resolution if possible.
-(defun eldoc-symbol-function (fsym)
-  (let ((defn (and (fboundp fsym)
-                   (symbol-function fsym))))
-    (and (symbolp defn)
-         (condition-case err
-             (setq defn (indirect-function fsym))
-           (error (setq defn nil))))
-    defn))
+(defun eldoc-add-command (&rest cmds)
+  (or eldoc-message-commands
+      (setq eldoc-message-commands
+            (make-vector eldoc-message-commands-table-size 0)))
 
-(defun eldoc-current-symbol ()
-  (let ((c (char-after (point))))
-    (and c
-         (memq (char-syntax c) '(?w ?_))
-         (intern-soft (current-word)))))
+  (let (name sym)
+    (while cmds
+      (setq name (car cmds))
+      (setq cmds (cdr cmds))
+
+      (cond ((symbolp name)
+             (setq sym name)
+             (setq name (symbol-name sym)))
+            ((stringp name)
+             (setq sym (intern-soft name))))
+
+      (and (symbolp sym)
+           (fboundp sym)
+           (set (intern name eldoc-message-commands) t)))))
+
+(defun eldoc-add-command-completions (&rest names)
+  (while names
+      (apply 'eldoc-add-command
+             (all-completions (car names) obarray 'fboundp))
+      (setq names (cdr names))))
+
+(defun eldoc-remove-command (&rest cmds)
+  (let (name)
+    (while cmds
+      (setq name (car cmds))
+      (setq cmds (cdr cmds))
+
+      (and (symbolp name)
+           (setq name (symbol-name name)))
+
+      (if (fboundp 'unintern)
+          (unintern name eldoc-message-commands)
+        (let ((s (intern-soft name eldoc-message-commands)))
+          (and s
+               (makunbound s)))))))
+
+(defun eldoc-remove-command-completions (&rest names)
+  (while names
+    (apply 'eldoc-remove-command
+           (all-completions (car names) eldoc-message-commands))
+    (setq names (cdr names))))
+
+;; Prime the command list.
+(eldoc-add-command-completions
+ "backward-" "beginning-of-" "delete-other-windows" "delete-window"
+ "end-of-" "forward-" "goto-" "mouse-set-point" "next-" "other-window"
+ "previous-" "recenter" "scroll-" "self-insert-command" "split-window-")
 
 (provide 'eldoc)
 
