@@ -64,6 +64,12 @@ The --with-x, --with-x11 and --with-x10 options specify what window
 	system to use; if all are omitted, use X11 if present.  If you
 	don't want X, specify \`--with-x=no'.
 
+The --with-gcc option says that the build process should use GCC to
+	compile Emacs.  If you have GCC but don't want to use it,
+	specify \`--with-gcc=no'.  \`configure' tries to guess whether
+	or not you have GCC by searching your executable path, but if
+	it guesses incorrectly, you may need to use this.
+
 The --srcdir=DIR option specifies that the configuration and build
 	processes should look for the Emacs source code in DIR, when
 	DIR is not the current directory.  This option doesn't work yet.
@@ -116,6 +122,22 @@ while [ $# != 0 ]; do
 
         ## Has the user specified which window systems they want to support?
         "with_x" | "with_x11" | "with_x10" )
+	  ## Make sure the value given was either "yes" or "no".
+	  case "${val}" in
+	    y | ye | yes )	val=yes ;;
+	    n | no )		val=no  ;;
+	    * )
+	      (echo "${progname}: the \`--${opt}' option is supposed to have a boolean value.
+Set it to either \`yes' or \`no'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    ;;
+	  esac
+          eval "${opt}=\"${val}\""
+        ;;
+
+	## Has the user specified whether or not they want GCC?
+	"with_gcc" )
 	  ## Make sure the value given was either "yes" or "no".
 	  case "${val}" in
 	    y | ye | yes )	val=yes ;;
@@ -749,17 +771,25 @@ esac
 
 
 #### Choose a compiler.
-echo "Checking for GCC."
-temppath=`echo $PATH | sed 's/^:/.:/
-			    s/::/:.:/g
-			    s/:$/:./
-			    s/:/ /g'`
-default_cc=`(
-  for dir in ${temppath}; do
-    if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
-  done
-  echo cc
-)`
+echo "Checking compilers."
+if [ "${with_gcc}" = "" ]; then
+  echo "  Searching load path for GCC."
+  temppath=`echo $PATH | sed 's/^:/.:/
+			      s/::/:.:/g
+			      s/:$/:./
+			      s/:/ /g'`
+  default_cc=`(
+    for dir in ${temppath}; do
+      if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
+    done
+    echo cc
+  )`
+else
+  case ${with_gcc} in
+    "yes" ) default_cc="gcc" ;;
+    "no"  ) default_cc="cc"  ;;
+  esac
+fi
 
 case "${default_cc}" in
   "gcc" )
