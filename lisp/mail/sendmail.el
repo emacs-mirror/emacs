@@ -82,6 +82,7 @@ If this is nil while `mail-specify-envelope-from' is non-nil, the
 content of `user-mail-address' is used."
   :version "21.1"
   :type '(choice (string :tag "From-name")
+		 (const :tag "Use From: header from message" header)
 		 (const :tag "Use `user-mail-address'" nil))
   :group 'sendmail)
 
@@ -774,6 +775,14 @@ the user from the mailer."
 	    (progn
 	      (set-buffer-modified-p nil)
 	      (delete-auto-save-file-if-necessary t))))))
+
+(defun mail-envelope-from ()
+  "Return the envelope mail address to use when sending mail.
+This function uses `mail-envelope-from'."
+  (if (eq mail-envelope-from 'header)
+      (nth 1 (mail-extract-address-components
+ 	      (mail-fetch-field "From")))
+    mail-envelope-from))
 
 ;; This does the real work of sending a message via sendmail.
 ;; It is called via the variable send-mail-function.
@@ -822,7 +831,7 @@ external program defined by `sendmail-program'."
 	;; local binding in the mail buffer will take effect.
 	(envelope-from
 	 (and mail-specify-envelope-from
-	      (or mail-envelope-from user-mail-address))))
+	      (or (mail-envelope-from) user-mail-address))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)

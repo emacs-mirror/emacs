@@ -540,6 +540,7 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
+	(envelope-from (mail-envelope-from))
 	response-code
 	greeting
 	process-buffer
@@ -689,7 +690,7 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     (or mail-envelope-from
+						     (or envelope-from
 							 smtpmail-mail-address)
 						     size-part
 						     body-part))
