@@ -444,11 +444,12 @@ appearance.)
 @smallexample
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
-  "Eval args until one of them yields non-nil; return that value.\n\
-The remaining args are not evalled at all.\n\
+  doc: /* Eval args until one of them yields non-nil, then return that value.
+The remaining args are not evalled at all.
+If all args return nil, return nil.
 @end group
 @group
-If all args return nil, return nil.")
+usage: (or CONDITIONS ...)  */)
   (args)
      Lisp_Object args;
 @{
@@ -534,10 +535,21 @@ called interactively.  A value of @code{""} indicates a function that
 should receive no arguments when called interactively.
 
 @item doc
-This is the documentation string.  It is written just like a
-documentation string for a function defined in Lisp, except you must
-write @samp{\n\} at the end of each line.  In particular, the first line
-should be a single sentence.
+This is the documentation string.  It uses C comment syntax rather
+than C string syntax because comment syntax requires nothing special
+to include multiple lines.  The @samp{doc:} identifies the comment
+that follows as the documentation string.  The @samp{/*} and @samp{*/}
+delimiters that begin and end the comment are not part of the
+documentation string.
+
+If the last line of the documentation string begins with the keyword
+@samp{usage:}, the rest of the line is treated as the argument list
+for documentation purposes.  This way, you can use different argument
+names in the documentation string from the ones used in the C code.
+
+All the usual rules for documentation strings in Lisp code
+(@pxref{Documentation Tips}) apply to C code documentation strings
+too.
 @end table
 
   After the call to the @code{DEFUN} macro, you must write the argument
