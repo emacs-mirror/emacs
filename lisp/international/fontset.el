@@ -97,6 +97,7 @@
 	("muletibetan-1" . tibetan-1-column)
 	("jisx0213.2000-1" . japanese-jisx0213-1)
 	("jisx0213.2000-2" . japanese-jisx0213-2)
+	("jisx0213.2004-1" . japanese-jisx0213.2004-1)
 	("abobe-symbol" . symbol)
 	("iso10646-1" . (unicode . nil))
 	("iso10646.indian-1" . (unicode . nil))))
