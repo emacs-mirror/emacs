@@ -1,3 +1,11 @@
+2004-06-03  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (Fx_display_grayscale_p, Fw32_send_sys_command)
+	(Vw32_color_map): Fix typo in docstring.
+	(Fx_create_frame, Fw32_find_bdf_fonts, Fx_show_tip)
+	(Fw32_unregister_hot_key, Fw32_reconstruct_hot_key):
+	Make argument names match their use in docstring.
+
 2004-06-02  Juanma Barranquero  <lektu@terra.es>
 
 	Work around bugs/problems with MinGW builds of graphics libraries
