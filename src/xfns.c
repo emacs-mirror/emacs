@@ -3447,7 +3447,7 @@ arg XRM_STRING is a string of resources in xrdb format.")
   else
     xrm_option = (unsigned char *) 0;
   xrdb = x_load_resources (x_current_display, xrm_option, EMACS_CLASS);
-#ifdef HAVE_X11R5
+#if defined (HAVE_X11R5) && ! defined (NO_XRM_SET_DATBASE)
   XrmSetDatabase (x_current_display, xrdb);
 #else
   x_current_display->db = xrdb;
