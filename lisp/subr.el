@@ -135,6 +135,20 @@ If N is bigger than the length of X, return X."
       (setq x (cdr x)))
     x))
 
+(defun butlast (x &optional n)
+  "Returns a copy of LIST with the last N elements removed."
+  (if (and n (<= n 0)) x
+    (nbutlast (copy-sequence x) n)))
+
+(defun nbutlast (x &optional n)
+  "Modifies LIST to remove the last N elements."
+  (let ((m (length x)))
+    (or n (setq n 1))
+    (and (< n m)
+	 (progn
+	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
+	   x))))
+
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurences of ELT removed.
 SEQ must be a list, vector, or string.  The comparison is done with `equal'."
