@@ -4174,10 +4174,10 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 				    (:background "green"))
 				   (((class color) (background dark))
 				    (:background "sea green"))
-				   (((class grayscale monochrome)
+				   (((class grayscale mono)
 				     (background light))
 				    (:background "black"))
-				   (((class grayscale monochrome)
+				   (((class grayscale mono)
 				     (background dark))
 				    (:background "white")))
   "Face used for highlighting buttons with the mouse."
