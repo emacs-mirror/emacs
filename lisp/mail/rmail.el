@@ -1291,7 +1291,7 @@ Hook `rmail-quit-hook' is run after expunging."
 	  (bury-buffer rmail-summary-buffer)))
     (quit-window)))
 
-;;; mbox: not ready
+;;; mbox: ready
 (defun rmail-duplicate-message ()
   "Create a duplicated copy of the current message.
 The duplicate copy goes into the Rmail file just after the
@@ -2010,13 +2010,16 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
   instead of the current message."
   (rmail-desc-get-header-display-state (or msg rmail-current-message)))
 
+;; mbox: untested
 (defun rmail-msg-restore-non-pruned-header ()
   (let ((old-point (point))
 	new-point
 	new-start
 	(inhibit-read-only t))
     (save-excursion
-      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (narrow-to-region
+       (rmail-desc-get-start rmail-current-message)
+       (point-max))
       (goto-char (point-min))
       (forward-line 1)
       ;; Change 1 to 0.
@@ -2044,11 +2047,14 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
     (if new-point
 	(goto-char new-point))))
 
+;; mbox: untested
 (defun rmail-msg-prune-header ()
   (let ((new-point
 	 (= (point) (point-min))))
     (save-excursion
-      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (narrow-to-region
+       (rmail-desc-get-start rmail-current-message)
+       (point-max))
       (rmail-reformat-message (point-min) (point-max)))
     (if new-point
 	(goto-char (point-min)))))
@@ -2147,11 +2153,13 @@ otherwise, show it in full."
 
 ;;;; *** Rmail Message Selection And Support ***
 
+;; mbox: deprecated. -pmr
 (defun rmail-msgend (n)
-  (marker-position (aref rmail-message-vector (1+ n))))
+  (rmail-desc-get-start n))
 
+;; mbox: deprecated. -pmr
 (defun rmail-msgbeg (n)
-  (marker-position (aref rmail-message-vector n)))
+  (rmail-desc-get-end n))
 
 (defun rmail-widen-to-current-msgbeg (function)
   "Call FUNCTION with point at start of internal data of current message.
