@@ -2130,12 +2130,16 @@ x_pixel_height (struct frame *f)
 
 /* ----------------------- DOS / UNIX conversion --------------------- */
 
+void msdos_downcase_filename (unsigned char *);
+
 /* Destructively turn backslashes into slashes.  */
 
 void
 dostounix_filename (p)
      register char *p;
 {
+  msdos_downcase_filename (p);
+
   while (*p)
     {
       if (*p == '\\')
@@ -2150,6 +2154,12 @@ void
 unixtodos_filename (p)
      register char *p;
 {
+  if (p[1] == ':' && *p >= 'A' && *p <= 'Z')
+    {
+      *p += 'a' - 'A';
+      p += 2;
+    }
+
   while (*p)
     {
       if (*p == '/')
@@ -2159,7 +2169,6 @@ unixtodos_filename (p)
 }
 
 /* Get the default directory for a given drive.  0=def, 1=A, 2=B, ...  */
-void msdos_downcase_filename (unsigned char *);
 
 int
 getdefdir (drive, dst)
@@ -2376,7 +2385,7 @@ init_environment (argc, argv, skip_args)
      "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
   root = alloca (MAXPATHLEN + 20);
   _fixpath (argv[0], root);
-  strlwr (root);
+  msdos_downcase_filename (root);
   len = strlen (root);
   while (len > 0 && root[len] != '/' && root[len] != ':')
     len--;
@@ -2410,7 +2419,6 @@ init_environment (argc, argv, skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  strlwr (t);
   dostounix_filename (t);
   setenv ("SHELL", t, 0);
 
@@ -2421,7 +2429,6 @@ init_environment (argc, argv, skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  strlwr (t);
   dostounix_filename (t); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
