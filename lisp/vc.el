@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.251 1999/08/27 07:59:22 schwab Exp eliz $
+;; $Id: vc.el,v 1.252 1999/09/02 12:50:28 eliz Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -2474,7 +2474,12 @@ THRESHOLD, nil otherwise"
 	     (day (string-to-number (match-string 1)))
              (month (cdr (assoc (match-string 2) local-month-numbers)))
 	     (year-tmp (string-to-number (match-string 3)))
-	     (year (+ (if (> 100 year-tmp) 1900 0) year-tmp)) ; Possible millenium problem
+	     ;; Years 0..69 are 2000..2069.
+	     ;; Years 70..99 are 1970..1999.
+	     (year (+ (cond ((> 70 year-tmp) 2000)
+			    ((> 100 year-tmp) 1900)
+			    (t 0))
+		      year-tmp))
 	     (high (- (car (current-time))
 		      (car (encode-time 0 0 0 day month year))))
 	     (color (cond ((vc-annotate-compcar high (cond (color-map)
