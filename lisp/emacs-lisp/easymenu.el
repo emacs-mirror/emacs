@@ -354,7 +354,7 @@ MENU, just change it, otherwise put it last in MENU."
     ;; `intern' the name so as to merge multiple entries with the same name.
     ;; It also makes it easier/possible to lookup/change menu bindings
     ;; via keymap functions.
-    (cons (intern name)
+    (cons (if (stringp name) (intern name) name)
 	  (and (not remove)
 	       (cons 'menu-item
 		     (cons label
