@@ -5,6 +5,8 @@
 
 2002-12-09  Dave Love  <fx@gnu.org>
 
+	* international/code-pages.el (mik, pt154): New coding systems.
+
 	* international/ucs-tables.el: Fix properly.
 
 2002-12-09  Andreas Schwab  <schwab@suse.de>
