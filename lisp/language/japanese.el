@@ -55,13 +55,12 @@
 (define-coding-system-alias 'euc-japan-1990 'euc-japan)
 
 (register-input-method
- "Japanese" '("uum" encoded-kbd-select-terminal iso-2022-jp))
-(register-input-method
  "Japanese" '("quail-ja-hiragana" quail-use-package "quail/japanese"))
 (register-input-method
  "Japanese" '("quail-ja" quail-use-package "quail/japanese"))
 
 (defun setup-japanese-environment ()
+  "Setup multilingual environment (MULE) for Japanese."
   (interactive)
   (setq coding-category-iso-8-2 'euc-japan-1990)
 
@@ -84,17 +83,26 @@
     (set-keyboard-coding-system 'iso-2022-jp))
 
   (set-default-input-method "Japanese" "quail-ja")
+
+  (setq sendmail-coding-system 'iso-2022-jp
+	rmail-file-coding-system 'iso-2022-jp)
   )
+
+(defun describe-japanese-support ()
+  "Describe how Emacs supports Japanese."
+  (interactive)
+  (describe-language-support-internal "Japanese"))
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
+	      (describe-function . describe-japanese-support)
 	      (tutorial . "TUTORIAL.jp")
 	      (charset . (japanese-jisx0208 japanese-jisx0208-1978
 			  japanese-jisx0212 latin-jisx0201
 			  katakana-jisx0201))
 	      (coding-system . (euc-japan-1990 sjis
 				iso-2022-jp iso-2022-jp-1978-irv))
-	      (documentation . t)
-	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")))
+	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")
+	      (documentation . nil)))
 
 ;;; japanese.el ends here
