@@ -468,6 +468,10 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
+       ;; font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
+       ;; highlighted as tex-verbatim-face.  Let's undo that.
+       ;; This is ugly and brittle :-(  --Stef
+       '("^\\(\\\\\\)end" (1 (get-text-property (match-end 1) 'face) t))
        ;; display $$ math $$
        ;; We only mark the match between $$ and $$ because the $$ delimiters
        ;; themselves have already been marked (along with $..$) by syntactic
@@ -619,6 +623,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
       ;; 2 - font-lock considers the preceding \n as being part of the
       ;;     preceding line, so things gets screwed every time the previous
       ;;     line is re-font-locked on its own.
+      ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
+      ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
       (,(concat "^\\(\\\\\\)end *{" verbs "}\\(.?\\)") (1 "|") (3 "<"))
       ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
       ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
