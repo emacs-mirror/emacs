@@ -4663,6 +4663,11 @@ free_realized_faces (c)
       int i, size;
       struct frame *f = c->f;
 
+      /* We must block input here because we can't process X events
+	 safely while only some faces are freed, or when the frame's
+	 current matrix still references freed faces.  */
+      BLOCK_INPUT;
+
       for (i = 0; i < c->used; ++i)
 	{
 	  free_realized_face (f, c->faces_by_id[i]);
@@ -4682,6 +4687,8 @@ free_realized_faces (c)
 	  clear_current_matrices (f);
 	  ++windows_or_buffers_changed;
 	}
+
+      UNBLOCK_INPUT;
     }
 }
 
@@ -4698,6 +4705,11 @@ free_realized_multibyte_face (f, fontset)
   struct face *face;
   int i;
 
+  /* We must block input here because we can't process X events safely
+     while only some faces are freed, or when the frame's current
+     matrix still references freed faces.  */
+  BLOCK_INPUT;
+      
   for (i = 0; i < cache->used; i++)
     {
       face = cache->faces_by_id[i];
@@ -4709,11 +4721,18 @@ free_realized_multibyte_face (f, fontset)
 	  free_realized_face (f, face);
 	}
     }
+  
+  /* Must do a thorough redisplay the next time.  Mark current
+     matrices as invalid because they will reference faces freed
+     above.  This function is also called when a frame is destroyed.
+     In this case, the root window of F is nil.  */
   if (WINDOWP (f->root_window))
     {
       clear_current_matrices (f);
       ++windows_or_buffers_changed;
     }
+  
+  UNBLOCK_INPUT;
 }
 
 
