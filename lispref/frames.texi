@@ -768,8 +768,9 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @defun frame-list
 The function @code{frame-list} returns a list of all the frames that
 have not been deleted.  It is analogous to @code{buffer-list} for
-buffers.  The list that you get is newly created, so modifying the list
-doesn't have any effect on the internals of Emacs.
+buffers, and includes frames on all terminals.  The list that you get is
+newly created, so modifying the list doesn't have any effect on the
+internals of Emacs.
 @end defun
 
 @defun visible-frame-list
@@ -780,9 +781,10 @@ This function returns a list of just the currently visible frames.
 
 @defun next-frame &optional frame minibuf
 The function @code{next-frame} lets you cycle conveniently through all
-the frames from an arbitrary starting point.  It returns the ``next''
-frame after @var{frame} in the cycle.  If @var{frame} is omitted or
-@code{nil}, it defaults to the selected frame (@pxref{Input Focus}).
+the frames on the current display from an arbitrary starting point.  It
+returns the ``next'' frame after @var{frame} in the cycle.  If
+@var{frame} is omitted or @code{nil}, it defaults to the selected frame
+(@pxref{Input Focus}).
 
 The second argument, @var{minibuf}, says which frames to consider:
 
