@@ -17,7 +17,7 @@ Tapez C-x C-c (deux caractères) pour terminer une session Emacs.
 Dans ce didacticiel, les caractères ">>" en marge gauche indiquent les
 directions à suivre pour essayer une commande. Ainsi :
 <<Lignes blanches insérées après cette ligne par help-with-tutorial>>
-[Centre de page deliberéement vide. Le texte continue ci-dessous.]
+[Centre de page delibérément vide. Le texte continue ci-dessous.]
 >>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
     (faites-le, pressez la touche CTRL tout en pressant la touche v).
     À partir de maintenant, vous devrez le faire à chaque fois que
@@ -36,7 +36,7 @@ touche META, EDIT ou ALT).
 >>  Faites M-v, puis C-v plusieurs fois.
 
 Si votre terminal en dispose, vous pouvez également utiliser les
-touches PgUp et PgDn pour monter ou descendre d'un écran, bien les
+touches PgUp et PgDn pour monter ou descendre d'un écran, bien que les
 combinaisons C-v et M-v soient plus efficaces.
 
 * RÉSUMÉ
@@ -347,7 +347,7 @@ avant la position courante du curseur.
 Lorsqu'une ligne de texte devient trop longue pour tenir sur une seule
 ligne de l'écran, elle se « continue » sur une deuxième ligne
 d'écran. Une barre de fraction inverse (« \ ») ou, si vous utilisez un
-environnement grapgique, une petite flèche recourbée, sur la marge
+environnement graphique, une petite flèche recourbée, sur la marge
 droite indique une ligne qui se poursuit sur la ligne suivante.
 
 >> Insérez du texte jusqu'à atteindre la marge droite et continuez
@@ -423,7 +423,7 @@ espaces, les effacent (vous ne pouvez donc pas récupérer ce texte).
 Notez qu'un simple C-k supprime le contenu de la ligne et qu'un second
 détruit la ligne elle-même, ce qui fait remonter toutes les lignes
 suivantes. C-k traite son paramètre numérique d'une façon spéciale :
-il détruit ce nombre de lignes ET leurs contenus. Ce n'est pas une
+il détruit ce nombre de lignes ET leur contenu. Ce n'est pas une
 simple répétition : C-u 2 C-k détruit deux lignes et leurs Newlines
 alors que taper deux fois C-k n'aurait pas le même effet.
 
@@ -523,7 +523,7 @@ sauvegardez, Emacs garde le fichier original sous un nom modifié au
 cas où vous décideriez ensuite d'annuler vos modifications.
 
 Si vous examinez le bas de l'écran, vous verrez une ligne qui commence
-et finit par des tirets et débute par « --:-- TUTORIAL.fr » ou quelque
+et finit par des tirets et débute par « -1:-- TUTORIAL.fr » ou quelque
 chose comme ça. Cette partie de l'écran montre normalement le nom du
 fichier que vous êtes en train de visiter. Pour l'instant, vous
 visitez un fichier appelé « TUTORIAL.fr », qui est votre copie
@@ -584,7 +584,7 @@ l'éditer. Vous pouvez également trouver un fichier qui n'existe pas
 encore. C'est ainsi que l'on crée un fichier avec Emacs : on trouve le
 fichier, qui démarre vide, puis on insère du texte. Lorsque l'on
 demande à « sauvegarder » le fichier, Emacs crée alors vraiment le
-fichier avec le texte que l'on a inséré. À partir de ce moment là,
+fichier avec le texte que l'on a inséré. À partir de ce moment-là,
 vous pouvez considérer que vous éditez un fichier déjà existant.
 
 
@@ -666,10 +666,10 @@ non.
 * EXTENSION DU JEU DE COMMANDES
 -------------------------------
 
-Il y bien plus de commandes Emacs qu'il ne serait possible d'en créer
-avec tous les caractères de contrôle et les caractères Meta. Emacs
-contourne ce problème à l'aide de la commande X (eXtension). Celle-ci
-se présente sous deux déclinaisons :
+Il y a bien plus de commandes Emacs qu'il ne serait possible d'en
+créer avec tous les caractères de contrôle et Meta. Emacs contourne ce
+problème à l'aide de la commande X (eXtension). Celle-ci se présente
+sous deux déclinaisons :
 
 	C-x	eXtension caractère, suivie d'un seul caractère.
 	M-x	eXtension d'une commande nommée, suivie d'un nom long.
@@ -742,7 +742,7 @@ paramètre par <Entrée>.
 
 Lorsque vous avez modifié un fichier, mais que vous ne l'avez pas
 encore sauvegardé, ces modifications pourraient être perdues si votre
-système se plantait. Pour vous protéger ce de problème, Emacs écrit
+système se plantait. Pour vous protéger de ce problème, Emacs écrit
 périodiquement un fichier de « sauvegarde automatique » pour chaque
 fichier en cours d'édition. Le nom de ce fichier commence et se
 termine par un # : si, par exemple, votre fichier s'appelle
@@ -772,14 +772,14 @@ zone d'écho ». La zone d'écho contient la dernière ligne de l'écran.
 La ligne placée immédiatement au dessus de la zone d'écho s'appelle la
 « ligne de mode ». Elle affiche quelque chose comme ça :
 
---:**  TUTORIAL.fr          (Fundamental)--L752--67%----------------
+-1:**  TUTORIAL.fr          (Fundamental)--L752--67%----------------
 
 Cette ligne donne des informations sur l'état d'Emacs et sur le texte
 que vous êtes en train d'éditer.
 
 Vous savez déjà ce que signifie le nom de fichier -- c'est celui que
 vous avez chargé.  -NN%-- indique votre position actuelle dans le
-texte ; cela signifie que NN pourcent du texte se trouve au dessus du
+texte ; cela signifie que NN pour cent du texte se trouve au dessus du
 sommet de l'écran. Si le début du fichier est sur l'écran, il
 s'affichera --Top-- et non --00%--.  Si le bas du texte est sur
 l'écran, il s'affichera --Bot--. Si tout le texte tient dans l'écran,
@@ -802,7 +802,7 @@ Emacs possède de nombreux modes majeurs différents. Certains sont
 prévus pour éditer différents langages et/ou types de texte (mode
 Lisp, mode Text, etc). À tout instant, il n'y a qu'un seul mode majeur
 actif et son nom se trouve toujours dans la ligne de mode, à l'endroit
-ou « Fundamental » se trouve actuellement.
+où « Fundamental » se trouve actuellement.
 
 Chaque mode majeur modifie le comportement de quelques commandes. Il
 existe, par exemple, des commandes pour créer des commentaires dans un
@@ -940,7 +940,7 @@ haut dans le texte, faites plutôt C-r. Tout ce que nous avons dit sur
 C-s s'applique également à C-r, sauf que la direction de la recherche
 est inversée.
 
-* FENETRES MULTIPLES
+* FENÊTRES MULTIPLES
 --------------------
 
 L'une des caractéristiques les plus agréables d'Emacs est que vous
