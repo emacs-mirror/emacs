@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/09/21 16:15:42 $
-;; Version:		$Revision: 1.48 $
+;; Last-Modified:	$Date: 1994/09/22 12:10:16 $
+;; Version:		$Revision: 1.49 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -331,6 +331,7 @@ This is necessary if one wants to dump man.el with emacs."
 	 "")
        "-e '/\e[789]/s///g'"
        "-e '/o\b+/s//o/g'"
+       "-e '/|\b-/s//+/g'"
        "-e '/^\\n$/D'"
        "-e '/[Nn]o such file or directory/d'"
        "-e '/Reformatting page.  Wait/d'"
@@ -618,6 +619,9 @@ Same for the ANSI bold and normal escape sequences."
   (while (search-forward "o\b+" nil t)
     (backward-delete-char 2)
     (put-text-property (1- (point)) (point) 'face 'bold))
+  (while (search-forward "|\b-" nil t)
+    (replace-match "+")
+    (put-text-property (1- (point)) (point) 'face 'bold))
   (goto-char (point-min))
   (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
     (replace-match "\\1")
@@ -638,6 +642,8 @@ Same for the ANSI bold and normal escape sequences."
   (while (re-search-forward "\e[789]" nil t) (backward-delete-char 2))
   (goto-char (point-min))
   (while (search-forward "o\b+" nil t) (backward-delete-char 2))
+  (goto-char (point-min))
+  (while (search-forward "|\b-" nil t) (replace-match "+"))
   (goto-char (point-min))
   (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
     (replace-match "\\1"))
