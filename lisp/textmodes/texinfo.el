@@ -872,28 +872,53 @@ with @-sign commands for @chapter, @section, and the like, and list
 
 Lines with structuring commands beginning in them are displayed in
 another buffer named `*Occur*'.  In that buffer, you can move point to
-one of those lines and then use \\<occur-mode-map>\\[occur-mode-goto-occurrence],
+one of those lines and then use 
+\\<occur-mode-map>\\[occur-mode-goto-occurrence],
 to jump to the corresponding spot in the Texinfo source file."
 
   (interactive "P")
-  (save-excursion
+  ;; First, remember current location
+  (let ((source-buffer (current-buffer))
+        current-location)
+    (save-excursion
+      (end-of-line)            ; so as to find section on current line
+      (if (re-search-backward 
+           ;; do not require `texinfo-section-types-regexp' in texnfo-upd.el
+           "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
+           nil t)
+          (setq current-location
+                (progn
+                  (beginning-of-line)
+                  (buffer-substring (point) (progn (end-of-line) (point)))))
+        ;; else point is located before before any section command
+        (setq current-location "tex")))
+    ;; Second, create and format an *Occur* buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if nodes-too
+          (occur (concat "^@node\\>\\|" outline-regexp))
+        (occur outline-regexp)))
+    (pop-to-buffer "*Occur*")
     (goto-char (point-min))
-    (if nodes-too
-        (occur (concat "^@node\\>\\|" outline-regexp))
-      (occur outline-regexp)))
-  (pop-to-buffer "*Occur*")
-  (goto-char (point-min))
-  (let ((inhibit-read-only t))
-    (flush-lines "-----")
-    ;; Now format the "*Occur*" buffer to show the structure.
-    ;; Thanks to ceder@signum.se (Per Cederqvist)
-    (goto-char (point-max))
-    (let (level)
-      (while (re-search-backward "^ *[0-9]*:@\\(\\sw+\\)" nil 0)
-	(goto-char (1- (match-beginning 1)))
-	(setq level (or (cadr (assoc (match-string 1) texinfo-section-list)) 2))
-	(indent-to-column (+ (current-column) (* 4 (- level 2))))
-	(beginning-of-line)))))
+    (let ((inhibit-read-only t))
+      (flush-lines "-----")
+      ;; Now format the "*Occur*" buffer to show the structure.
+      ;; Thanks to ceder@signum.se (Per Cederqvist)
+      (goto-char (point-max))
+      (let (level)
+        (while (re-search-backward "^ *[0-9]*:@\\(\\sw+\\)" nil 0)
+          (goto-char (1- (match-beginning 1)))
+          (setq level
+                (or (cadr (assoc (match-string 1) texinfo-section-list)) 2))
+          (indent-to-column (+ (current-column) (* 4 (- level 2))))
+          (beginning-of-line))))
+    ;; Third, go to line corresponding to location in source file
+    ;; potential bug: two exactly similar `current-location' lines ... 
+    (goto-char (point-min))
+    (re-search-forward current-location nil t)
+    (beginning-of-line)
+    ))
+
 
 ;;; The  tex  and  print  function definitions:
 
