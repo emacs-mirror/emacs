@@ -108,7 +108,9 @@ matcher_overflow ()
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
    MULTIBYTE is nonzero iff a target of match is a multibyte buffer or
-   string.  */
+   string.
+
+   The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
 compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
@@ -127,11 +129,18 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->posix = posix;
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.target_multibyte = multibyte;
+  cp->whitespace_regexp = Vsearch_spaces_regexp;
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
+  re_set_whitespace_regexp (NILP (Vsearch_spaces_regexp) ? NULL
+			    : SDATA (Vsearch_spaces_regexp));
+
   val = (char *) re_compile_pattern ((char *) SDATA (pattern),
 				     SBYTES (pattern), &cp->buf);
+
+  re_set_whitespace_regexp (NULL);
+
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
@@ -192,7 +201,8 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.target_multibyte == multibyte)
+	  && cp->buf.target_multibyte == multibyte
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
