@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "3.00 (Polyglot) of August 18, 1997"
+(defconst viper-version "3.001 (Polyglot) of September 23, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -334,6 +334,12 @@ defaults to `~/.viper'."
 
 (require 'viper-cmd)
 
+(defgroup viper-misc nil
+  "Miscellaneous Viper customization."
+  :prefix "viper-"
+  :group 'viper)
+
+
 (defcustom viper-always t
   "Non-nil means, arrange for vi-state to be a default when appropriate.
 This is different from `viper-mode' variable in that `viper-mode' determines
@@ -341,7 +347,7 @@ whether to use Viper in the first place, while `viper-always', if nil, lets
 user decide when to invoke Viper in a major mode."
   :type 'boolean
   :tag "Always Invoke Viper"
-  :group 'viper)
+  :group 'viper-misc)
 
 ;; Non-viper variables that need to be saved in case the user decides to
 ;; de-viperize emacs.
@@ -357,10 +363,11 @@ If t, viperize emacs. If nil -- don't. If `ask', ask the user.
 This variable is used primatily when Viper is being loaded.
 
 Must be set in `~/.emacs' before Viper is loaded.
-DO NOT set this variable interactively."
+DO NOT set this variable interactively, unless you are using the customization
+widget."
   :type '(choice (const nil) (const t) (const ask))
   :tag "Set Viper Mode on Loading"
-  :group 'viper)
+  :group 'viper-misc)
 
 (defcustom viper-non-vi-major-modes
   '(custom-mode dired-mode efs-mode internal-ange-ftp-mode tar-mode
@@ -371,7 +378,7 @@ Viper automatically augments this list with some obvious modes, such as
 `dired-mode', `tar-mode', etc.  So, don't put a mode on this list, unless 
 it comes up in a wrong Viper state."
   :type '(repeat symbol)
-  :group 'viper)
+  :group 'viper-misc)
 
 
 

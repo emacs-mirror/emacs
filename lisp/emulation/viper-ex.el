@@ -107,8 +107,10 @@
 ;; List of addresses passed to Ex command
 (defvar ex-addresses nil)
 
-;; It seems that this flag is used only for `#', `print', and `list', which
-;; aren't implemented. Check later.
+;; This flag is supposed to be set only by `#', `print', and `list',
+;; none of which is implemented. So, it and the pices of the code it
+;; controls are dead weight. We keep it just in case this might be
+;; needed in the future.
 (defvar ex-flag nil)
 
 ;; "buffer" where Ex commands keep deleted data.
@@ -1134,16 +1136,16 @@ reversed."
 	(copy-region-as-kill (point) (mark t)))
       (if ex-flag
 	  (progn
-	    (with-output-to-temp-buffer "*copy text*"
+	    (with-output-to-temp-buffer " *copy text*"
 	      (princ
 	       (if (or del-flag ex-g-flag ex-g-variant)
 		   (current-kill 0)
 		 (buffer-substring (point) (mark t)))))
 	    (condition-case nil
 		(progn
-		  (read-string "[Hit return to continue] ")
-		  (save-excursion (kill-buffer "*copy text*")))
-	      (quit (save-excursion (kill-buffer "*copy text*"))
+		  (read-string "[Hit return to confirm] ")
+		  (save-excursion (kill-buffer " *copy text*")))
+	      (quit (save-excursion (kill-buffer " *copy text*"))
 		    (signal 'quit nil))))))
     (if (= address 0)
 	(goto-char (point-min))
@@ -1172,7 +1174,7 @@ reversed."
 	    (with-output-to-temp-buffer " *delete text*"
 	      (princ (buffer-substring (point) (mark t))))
 	    (condition-case nil
-		(read-string "[Hit return to continue] ")
+		(read-string "[Hit return to confirm] ")
 	      (quit
 	       (save-excursion (kill-buffer " *delete text*"))
 	       (error "")))
@@ -1349,14 +1351,14 @@ reversed."
       (if ex-flag
 	  ;; show text to be joined and ask for confirmation
 	  (progn
-	    (with-output-to-temp-buffer " *text*"
+	    (with-output-to-temp-buffer " *join text*"
 	      (princ (buffer-substring (point) (mark t))))
 	    (condition-case nil
 		(progn
-		  (read-string "[Hit return to continue] ")
+		  (read-string "[Hit return to confirm] ")
 		  (ex-line-subr com (point) (mark t)))
 	      (quit (ding)))
-	    (save-excursion (kill-buffer " *text*")))
+	    (save-excursion (kill-buffer " *join text*")))
 	(ex-line-subr com (point) (mark t)))
       (setq point (point)))
     (goto-char (1- point))
@@ -2115,10 +2117,9 @@ Please contact your system administrator. "
 	(message (concat file " " info))
       (save-window-excursion
 	(with-output-to-temp-buffer " *viper-info*"
-	  (princ (concat "\n"
-			 file "\n\n\t" info
-			 "\n\n\nPress any key to continue...\n\n")))
-	(viper-read-event)
+	  (princ (concat "\n" file "\n\n\t" info "\n\n")))
+	(let ((inhibit-quit t))
+	  (viper-set-unread-command-events (viper-read-event)))
 	(kill-buffer " *viper-info*")))
     ))
 

@@ -877,7 +877,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-A 'ediff-current-diff-face-A)
+(defvar ediff-current-diff-face-A 'ediff-current-diff-face-A
+  "Face for highlighting the selected difference in buffer A.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-current-diff-face-A'
+this variable represents.")
 (ediff-hide-face 'ediff-current-diff-face-A)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
@@ -913,7 +917,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-B 'ediff-current-diff-face-B)
+(defvar ediff-current-diff-face-B 'ediff-current-diff-face-B
+  "Face for highlighting the selected difference in buffer B.
+ this variable. Instead, use the customization
+widget to customize the actual face `ediff-current-diff-face-B'
+this variable represents.")
 (ediff-hide-face 'ediff-current-diff-face-B)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
@@ -947,7 +955,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-C 'ediff-current-diff-face-C)
+(defvar ediff-current-diff-face-C 'ediff-current-diff-face-C
+  "Face for highlighting the selected difference in buffer C.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-current-diff-face-C'
+this variable represents.")
 (ediff-hide-face 'ediff-current-diff-face-C)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
@@ -973,7 +985,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-Ancestor 'ediff-current-diff-face-Ancestor)
+(defvar ediff-current-diff-face-Ancestor 'ediff-current-diff-face-Ancestor
+  "Face for highlighting the selected difference in buffer Ancestor.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-current-diff-face-Ancestor'
+this variable represents.")
 (ediff-hide-face 'ediff-current-diff-face-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
@@ -1015,7 +1031,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-A 'ediff-fine-diff-face-A)
+(defvar ediff-fine-diff-face-A 'ediff-fine-diff-face-A
+  "Face for highlighting the fine differences in buffer A.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-fine-diff-face-A'
+this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-A)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1047,7 +1067,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-B 'ediff-fine-diff-face-B)
+(defvar ediff-fine-diff-face-B 'ediff-fine-diff-face-B
+  "Face for highlighting the fine differences in buffer B.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-fine-diff-face-B'
+this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-B)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1080,7 +1104,11 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-C 'ediff-fine-diff-face-C)
+(defvar ediff-fine-diff-face-C 'ediff-fine-diff-face-C
+  "Face for highlighting the fine differences in buffer C.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-fine-diff-face-C'
+this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-C)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1114,7 +1142,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-Ancestor 'ediff-fine-diff-face-Ancestor)
+(defvar ediff-fine-diff-face-Ancestor 'ediff-fine-diff-face-Ancestor
+  "Face for highlighting the fine differences in buffer Ancestor.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-fine-diff-face-Ancestor'
+this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1149,7 +1181,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-A 'ediff-even-diff-face-A)
+(defvar ediff-even-diff-face-A 'ediff-even-diff-face-A
+  "Face for highlighting even-numbered non-current differences in buffer A.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-even-diff-face-A'
+this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-A)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1183,7 +1219,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-B 'ediff-even-diff-face-B)
+(defvar ediff-even-diff-face-B 'ediff-even-diff-face-B
+  "Face for highlighting even-numbered non-current differences in buffer B.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-even-diff-face-B'
+this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-B)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1212,7 +1252,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-C 'ediff-even-diff-face-C)
+(defvar ediff-even-diff-face-C 'ediff-even-diff-face-C
+  "Face for highlighting even-numbered non-current differences in buffer C.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-even-diff-face-C'
+this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-C)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1242,7 +1286,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-Ancestor 'ediff-even-diff-face-Ancestor)
+(defvar ediff-even-diff-face-Ancestor 'ediff-even-diff-face-Ancestor
+  "Face for highlighting even-numbered non-current differences in buffer Ancestor.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-even-diff-face-Ancestor'
+this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1284,7 +1332,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-A 'ediff-odd-diff-face-A)
+(defvar ediff-odd-diff-face-A 'ediff-odd-diff-face-A
+  "Face for highlighting odd-numbered non-current differences in buffer A.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-odd-diff-face-A'
+this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-A)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1319,7 +1371,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-B 'ediff-odd-diff-face-B)
+(defvar ediff-odd-diff-face-B 'ediff-odd-diff-face-B
+  "Face for highlighting odd-numbered non-current differences in buffer B.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-odd-diff-face-B'
+this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-B)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1347,7 +1403,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-C 'ediff-odd-diff-face-C)
+(defvar ediff-odd-diff-face-C 'ediff-odd-diff-face-C
+  "Face for highlighting odd-numbered non-current differences in buffer C.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-odd-diff-face-C'
+this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-C)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.
@@ -1375,7 +1435,11 @@ ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable. Ediff takes the face from here. When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-Ancestor 'ediff-odd-diff-face-Ancestor)
+(defvar ediff-odd-diff-face-Ancestor 'ediff-odd-diff-face-Ancestor
+  "Face for highlighting odd-numbered non-current differences in buffer Ancestor.
+DO NOT CHANGE this variable. Instead, use the customization
+widget to customize the actual face object `ediff-odd-diff-face-Ancestor'
+this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :stipple we do this.
 ;; This means that some use customization may be trashed.

@@ -1814,7 +1814,7 @@ suffixes, the user is asked to confirm.
 
 To turn this feature off, set this variable to nil."
   :type '(repeat string)
-  :group 'viper)
+  :group 'viper-misc)
     
 
 ;; Try to add a suitable suffix to files whose name ends with a `.'
@@ -3230,7 +3230,8 @@ controlled by the sign of prefix numeric value."
 (defun viper-forward-sentence (arg)
   "Forward sentence."
   (interactive "P")
-  (push-mark nil t) 
+  (or (eq last-command this-command)
+      (push-mark nil t))
   (let ((val (viper-p-val arg))
 	(com (viper-getcom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
@@ -3240,7 +3241,8 @@ controlled by the sign of prefix numeric value."
 (defun viper-backward-sentence (arg)
   "Backward sentence."
   (interactive "P")
-  (push-mark nil t) 
+  (or (eq last-command this-command)
+      (push-mark nil t))
   (let ((val (viper-p-val arg))
 	(com (viper-getcom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
@@ -3250,7 +3252,8 @@ controlled by the sign of prefix numeric value."
 (defun viper-forward-paragraph (arg)
   "Forward paragraph."
   (interactive "P")
-  (push-mark nil t) 
+  (or (eq last-command this-command)
+      (push-mark nil t))
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
@@ -3263,7 +3266,8 @@ controlled by the sign of prefix numeric value."
 (defun viper-backward-paragraph (arg)
   "Backward paragraph."
   (interactive "P")
-  (push-mark nil t) 
+  (or (eq last-command this-command)
+      (push-mark nil t))
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
@@ -3274,8 +3278,7 @@ controlled by the sign of prefix numeric value."
 	  (viper-execute-com 'viper-backward-paragraph nil com)
 	  (backward-char 1)))))
 
-;; should be mode-specific etc.
-
+;; should be mode-specific
 (defun viper-prev-heading (arg)
   (interactive "P")
   (let ((val (viper-p-val arg))
@@ -4288,13 +4291,10 @@ One can use `` and '' to temporarily jump 1 step back."
 	   (view-register (downcase reg)))
 	  ((viper-valid-register reg '(digit))
 	   (let ((text (current-kill (- reg ?1) 'do-not-rotate)))
-	     (save-excursion 
-	       (set-buffer (get-buffer-create "*Output*"))
-	       (delete-region (point-min) (point-max))
-	       (insert (format "Register %c contains the string:\n" reg))
-	       (insert text)
-	       (goto-char (point-min)))
-	     (display-buffer "*Output*")))
+	     (with-output-to-temp-buffer " *viper-info*"
+	       (princ (format "Register %c contains the string:\n" reg))
+	       (princ text))
+	     ))
 	  ((= ?\] reg)
 	   (viper-next-heading arg))
 	  (t (error
@@ -4310,14 +4310,12 @@ One can use `` and '' to temporarily jump 1 step back."
 	   (viper-heading-end arg))
 	  ((viper-valid-register reg '(letter))
 	   (let* ((val (get-register (1+ (- reg ?a))))
-		  (buf (if (not val) 
+		  (buf (if (not (markerp val))
 			   (error viper-EmptyTextmarker reg)
 			 (marker-buffer val)))
 		  (pos (marker-position val))
 		  line-no text (s pos) (e pos))
-	     (save-excursion 
-	       (set-buffer (get-buffer-create "*Output*"))
-	       (delete-region (point-min) (point-max))
+	     (with-output-to-temp-buffer " *viper-info*"
 	       (if (and buf pos)
 		   (progn
 		     (save-excursion 
@@ -4339,15 +4337,14 @@ One can use `` and '' to temporarily jump 1 step back."
 		       (setq text (format "%s<%c>%s" 
 					  (substring text 0 (- pos s)) 
 					  reg (substring text (- pos s)))))
-		     (insert
+		     (princ
 		      (format
 		       "Textmarker `%c' is in buffer `%s' at line %d.\n"
 				     reg (buffer-name buf) line-no))
-		     (insert (format "Here is some text around %c:\n\n %s" 
+		     (princ (format "Here is some text around %c:\n\n %s" 
 				     reg text)))
-		 (insert (format viper-EmptyTextmarker reg)))
-	       (goto-char (point-min)))
-	     (display-buffer "*Output*")))
+		 (princ (format viper-EmptyTextmarker reg))))
+	     ))
 	  (t (error viper-InvalidTextmarker reg)))))
   
 

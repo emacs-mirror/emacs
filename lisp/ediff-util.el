@@ -1586,20 +1586,20 @@ With a prefix argument, go forward that many differences."
   (if (< ediff-current-difference ediff-number-of-differences)
       (let ((n (min ediff-number-of-differences
 		    (+ ediff-current-difference arg)))
-	    regexp-skip)
+	    non-clash-skip regexp-skip)
 	    
 	(ediff-visible-region)
 	(or (>= n ediff-number-of-differences)
 	    (setq regexp-skip (funcall ediff-skip-diff-region-function n))
+	    ;; this won't exec if regexp-skip is t
+	    (setq non-clash-skip (ediff-merge-region-is-non-clash n))
 	    (ediff-install-fine-diff-if-necessary n))
 	(while (and (< n ediff-number-of-differences)
 		    (or
 		     ;; regexp skip
 		     regexp-skip
 		     ;; skip clashes, if necessary
-		     (and ediff-show-clashes-only
-			  (string-match "prefer"
-					(or (ediff-get-state-of-merge n) "")))
+		     non-clash-skip
 		     ;; skip difference regions that differ in white space
 		     (and ediff-ignore-similar-regions
 			  (eq (ediff-no-fine-diffs-p n) t))))
@@ -1608,6 +1608,8 @@ With a prefix argument, go forward that many differences."
 	      (message "Skipped over region %d and counting ..."  n))
 	  (or (>= n ediff-number-of-differences)
 	      (setq regexp-skip (funcall ediff-skip-diff-region-function n))
+	      ;; this won't exec if regexp-skip is t
+	      (setq non-clash-skip (ediff-merge-region-is-non-clash n))
 	      (ediff-install-fine-diff-if-necessary n))
 	  )
 	(message "")
@@ -1623,20 +1625,20 @@ With a prefix argument, go back that many differences."
   (ediff-barf-if-not-control-buffer)
   (if (> ediff-current-difference -1)
       (let ((n (max -1 (- ediff-current-difference arg)))
-	    regexp-skip)
+	    non-clash-skip regexp-skip)
 	    
 	(ediff-visible-region)
 	(or (< n 0)
 	    (setq regexp-skip (funcall ediff-skip-diff-region-function n))
+	    ;; this won't exec if regexp-skip is t
+	    (setq non-clash-skip (ediff-merge-region-is-non-clash n))
 	    (ediff-install-fine-diff-if-necessary n))
 	(while (and (> n -1)
 		    (or
 		     ;; regexp skip
 		     regexp-skip
 		     ;; skip clashes, if necessary
-		     (and ediff-show-clashes-only
-			  (string-match "prefer"
-					(or (ediff-get-state-of-merge n) "")))
+		     non-clash-skip
 		     ;; skip difference regions that differ in white space
 		     (and ediff-ignore-similar-regions
 			  (eq (ediff-no-fine-diffs-p n) t))))
@@ -1645,6 +1647,8 @@ With a prefix argument, go back that many differences."
 	  (setq n (1- n))
 	  (or (< n 0)
 	      (setq regexp-skip (funcall ediff-skip-diff-region-function n))
+	      ;; this won't exec if regexp-skip is t
+	      (setq non-clash-skip (ediff-merge-region-is-non-clash n))
 	      (ediff-install-fine-diff-if-necessary n))
 	  )
 	(message "")

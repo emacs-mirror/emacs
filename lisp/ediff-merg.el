@@ -81,6 +81,12 @@ STRING3
 This means that regions that have status prefer-A or prefer-B will be
 skiped over. Nil means show all regions.")
 
+;; If ediff-show-clashes-only, check if there is no clash between the ancestor
+;; and one of the variants.
+(defsubst ediff-merge-region-is-non-clash (n)
+  (and ediff-show-clashes-only
+       (string-match "prefer" (or (ediff-get-state-of-merge n) ""))))
+
 	
 (defsubst ediff-get-combined-region (n)
   (concat (nth 0 ediff-combination-pattern) "\n"
