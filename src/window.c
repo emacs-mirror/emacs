@@ -2497,6 +2497,8 @@ change_window_height (delta, widthflag)
   register int (*setsizefun) () = (widthflag
 				   ? set_window_width
 				   : set_window_height);
+  int maximum;
+  Lisp_Object next, prev;
 
   check_min_window_sizes ();
 
@@ -2545,22 +2547,71 @@ change_window_height (delta, widthflag)
   if (delta == 0)
     return;
 
-  if (!NILP (p->next)
-      && (*sizefun) (p->next) - delta >= MINSIZE (p->next))
+  /* Find the total we can get from other siblings.  */
+  maximum = 0;
+  for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
+    maximum += (*sizefun) (next) - MINSIZE (next);
+  for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
+    maximum += (*sizefun) (prev) - MINSIZE (prev);
+
+  /* If we can get it all from them, do so.  */
+  if (delta < maximum)
     {
-      (*setsizefun) (p->next, (*sizefun) (p->next) - delta, 0);
-      (*setsizefun) (window, *sizep + delta, 0);
-      CURBEG (p->next) += delta;
-      /* This does not change size of p->next,
-	 but it propagates the new top edge to its children */
-      (*setsizefun) (p->next, (*sizefun) (p->next), 0);
-    }
-  else if (!NILP (p->prev)
-	   && (*sizefun) (p->prev) - delta >= MINSIZE (p->prev))
-    {
-      (*setsizefun) (p->prev, (*sizefun) (p->prev) - delta, 0);
-      CURBEG (window) -= delta;
-      (*setsizefun) (window, *sizep + delta, 0);
+      Lisp_Object first_unaffected;
+      Lisp_Object first_affected;
+
+      next = p->next;
+      prev = p->prev;
+      first_affected = window;
+      /* Look at one sibling at a time,
+	 moving away from this window in both directions alternately,
+	 and take as much as we can get without deleting that sibling.  */
+      while (delta > 0)
+	{
+	  if (delta == 0)
+	    break;
+	  if (! NILP (next))
+	    {
+	      int this_one = (*sizefun) (next) - MINSIZE (next);
+	      if (this_one > delta)
+		this_one = delta;
+
+	      (*setsizefun) (next, (*sizefun) (next) - this_one, 0);
+	      (*setsizefun) (window, *sizep + this_one, 0);
+
+	      delta -= this_one;
+	      next = XWINDOW (next)->next;
+	    }
+	  if (delta == 0)
+	    break;
+	  if (! NILP (prev))
+	    {
+	      int this_one = (*sizefun) (prev) - MINSIZE (prev);
+	      if (this_one > delta)
+		this_one = delta;
+
+	      first_affected = prev;
+
+	      (*setsizefun) (prev, (*sizefun) (prev) - this_one, 0);
+	      (*setsizefun) (window, *sizep + this_one, 0);
+
+	      delta -= this_one;
+	      prev = XWINDOW (prev)->prev;
+	    }
+	}
+
+      /* Now recalculate the edge positions of all the windows affected,
+	 based on the new sizes.  */
+      first_unaffected = next;
+      prev = first_affected;
+      for (next = XWINDOW (prev)->next; ! EQ (next, first_unaffected);
+	   prev = next, next = XWINDOW (next)->next)
+	{
+	  CURBEG (next) = CURBEG (prev) + (*sizefun) (prev);
+	  /* This does not change size of NEXT,
+	     but it propagates the new top edge to its children */
+	  (*setsizefun) (next, (*sizefun) (next), 0);
+	}
     }
   else
     {
