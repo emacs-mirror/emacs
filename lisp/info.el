@@ -1213,8 +1213,7 @@ N is the digit argument used to invoke this command."
   (interactive)
   (if Info-standalone
       (save-buffers-kill-emacs)
-    (switch-to-buffer (prog1 (other-buffer (current-buffer))
-			(bury-buffer (current-buffer))))))
+    (bury-buffer)))
 
 (defun Info-next-menu-item ()
   (interactive)
