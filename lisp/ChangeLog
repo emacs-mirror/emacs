@@ -6,7 +6,11 @@
 	* diff.el (diff): Add optional argument no-async, and use the
 	above argument.
 	
-	* files.el (diff-buffer-with-file): Use it.
+	* files.el (diff-buffer-with-file): Call diff synchronously, so we
+	don't delete the temporary file before diff has a chance to read
+	it.
+	
+	* ibuf-ext.el (ibuffer-diff-with-file): Just call `diff-buffer-with-file'.
 
 2002-09-07  John Paul Wallington  <jpw@shootybangbang.com>
 
