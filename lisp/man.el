@@ -285,7 +285,10 @@ This regular expression should start with a `^' character.")
   "Regular expression describing a reference in the SEE ALSO section.")
 
 (defvar Man-switches ""
-  "Switches passed to the man command, as a single string.")
+  "Switches passed to the man command, as a single string.
+
+If you want to be able to see all the manpages for a subject you type,
+make -a one of the switches, if your `man' program supports it.")
 
 (defvar Man-specified-section-option
   (if (string-match "-solaris[0-9.]*$" system-configuration)
@@ -549,7 +552,9 @@ results in a Man mode (manpage browsing) buffer.  See variable
 If a buffer already exists for this man page, it will display immediately.
 
 To specify a man page from a certain section, type SUBJECT(SECTION) or
-SECTION SUBJECT when prompted for a manual entry."
+SECTION SUBJECT when prompted for a manual entry.  To see manpages from
+all sections related to a subject, put something appropriate into the
+`Man-switches' variable, which see."
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
 		(input (read-string
