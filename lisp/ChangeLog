@@ -1,3 +1,8 @@
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
+	Set compilation-error-regexp-alist earlier.
+
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compile-goto-error): Select the buffer/window
@@ -139,6 +144,10 @@
 	* recentf.el (recentf-version): Variable removed.
 	* progmodes/delphi.el (delphi-version): Variable removed.
 	* progmodes/ada-mode.el (ada-mode): RCS keyword removed from docstring.
+
+2004-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-add): Make it work in non-X Emacs.
 
 2004-04-09  Jesper Harder  <harder@ifa.au.dk>
 

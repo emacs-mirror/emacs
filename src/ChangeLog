@@ -32,6 +32,10 @@
 	* buffer.c (fix_start_end_in_overlays): Make overlays
 	empty if they are backwards.
 
+2004-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (face_color_supported_p): Fix compilation without X11.
+
 2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (Fsnarf_documentation): Ignore new file name entries.
