@@ -1142,7 +1142,9 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       if (XINT (c) & 0x80 && STRINGP (key))
 	XSETINT (c, (XINT (c) | meta_modifier) & ~0x80);
 
-      if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c))
+      /* Allow string since binding for `menu-bar-select-buffer'
+	 includes the buffer name in the key sequence.  */
+      if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c) && !STRINGP (c))
 	error ("Key sequence contains invalid event");
 
       cmd = access_keymap (keymap, c, t_ok, 0, 1);
