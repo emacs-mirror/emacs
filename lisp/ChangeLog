@@ -1,3 +1,16 @@
+2001-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* man.el (Man-hyphenated-reference-regexp): New variable.
+	(Man-build-references-alist): Use it to search for referenced
+	manpages.  If hyphenated is non-nil, record a concatenated word in
+	Man-refpages-alist only if it matches Man-reference-regexp.
+	Update word's length when it is concatenated.  Reverse the list,
+	to get the first manpage at the head.
+	(Man-possibly-hyphenated-word): New function.
+	(Man-follow-manual-reference): Use it instead of current-word to
+	find a manpage at point, in a way that accounts for hyphenated
+	references.
+
 2001-03-06  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-interbase): New function.
