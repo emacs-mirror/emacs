@@ -112,7 +112,8 @@ enum text_cursor_kinds
   NO_CURSOR = -1,
   FILLED_BOX_CURSOR,
   HOLLOW_BOX_CURSOR,
-  BAR_CURSOR
+  BAR_CURSOR,
+  HBAR_CURSOR
 };
 
 /* Structure recording X pixmap and reference count.
