@@ -440,7 +440,7 @@ get_display_line (frame, vpos, hpos)
   register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (frame);
   register GLYPH *p;
 
-  if (vpos < 0 || (! FRAME_VISIBLE_P (frame)))
+  if (vpos < 0)
     abort ();
 
   if ((desired_glyphs->enable[vpos]) && desired_glyphs->used[vpos] > hpos)
