@@ -1,3 +1,7 @@
+2003-10-16  Vadim Nasardinov  <vadimn@redhat.com>  (tiny change)
+
+	* allout.el (allout-mode): Doc fix.
+
 2003-10-16  Lute Kamstra  <lute@gnu.org>
 
 	* subr.el (force-mode-line-update): Fix docstring.
