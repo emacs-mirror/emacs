@@ -1606,8 +1606,6 @@ current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 @findex iso-gtex2iso
 @cindex Latin-1 @TeX{} encoding
 @TeX{} encoding
-@vindex format-alist
-@findex format-find-file
   The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
 iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert
 between Latin-1 encoded files and @TeX{}-encoded equivalents.
