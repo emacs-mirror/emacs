@@ -786,7 +786,6 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
     }
   else
     {
-      int start_byte = CHAR_TO_BYTE (start);
       while (start_byte > limit_byte)
 	{
 	  ceiling = BUFFER_FLOOR_OF (start_byte - 1);
