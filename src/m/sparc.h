@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -81,7 +81,7 @@ NOTE-END  */
    in the file alloca.s should be used.  */
 
 #define HAVE_ALLOCA
-#if __GNUC__ >= 2 /* Modern versions of GCC handle alloca directly.  */
+#if __GNUC__ < 2 /* Modern versions of GCC handle alloca directly.  */
 #include <alloca.h>
 #endif
 
