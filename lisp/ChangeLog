@@ -1,8 +1,8 @@
 2004-03-07  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (gdb-overlay-arrow-position): Add defvar.
-	(gdb-reset): Remove gdb-overlay-arrow-position from
-	overlay-arrow-variable-list.
+	(gdb-reset): Reset gdb-overlay-arrow-position marker and remove it
+	from overlay-arrow-variable-list.
 	(gdb-assembler-mode): Use add-to-list for
 	gdb-overlay-arrow-position.
 
