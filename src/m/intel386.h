@@ -230,3 +230,10 @@ NOTE-END */
 #ifdef MSDOS
 #define NO_REMAP
 #endif
+
+#ifdef WINDOWSNT
+#define VIRT_ADDR_VARIES
+#define DATA_END 	get_data_end ()
+#define DATA_START 	get_data_start ()
+#define HAVE_ALLOCA
+#endif
