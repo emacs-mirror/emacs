@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "syntax.h"
 #include "window.h"
 #include "keyboard.h"
+#include "keymap.h"
 #include "dispextern.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;

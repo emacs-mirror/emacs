@@ -49,6 +49,7 @@ extern int errno;
 #include "indent.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "keymap.h"
 #include "frame.h"
 
 struct buffer *current_buffer;		/* the current buffer */

@@ -37,6 +37,7 @@ Boston, MA 02111-1307, USA.  */
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
 #include "keyboard.h"
+#include "keymap.h"
 #include "frame.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"

@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
+#include "keymap.h"
 
 Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
 

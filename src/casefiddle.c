@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "syntax.h"
 #include "composite.h"
+#include "keymap.h"
 
 enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 

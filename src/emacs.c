@@ -51,6 +51,7 @@ Boston, MA 02111-1307, USA.  */
 #include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "keymap.h"
 
 #ifdef HAVE_SETLOCALE
 #include <locale.h>

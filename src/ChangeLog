@@ -1,3 +1,8 @@
+2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* window.c, syntax.c, macros.c, frame.c, emacs.c, cmds.c, category.c,
+	casefiddle.c, buffer.c: Include keymap.h.
+
 2001-10-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/osf5-0.h (C_SWITCH_SYSTEM) [!__GNUC__]: Add `-nointrinsics'
@@ -11,7 +16,7 @@
 	* editfns.c (Fcurrent_time_zone): Cast isalnum() argument to
 	unsigned char.
 	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
-	
+
 2001-10-08  Andrew Innes  <andrewi@gnu.org>
 
 	* lisp.h [max]: Undef min and max before redefining them.

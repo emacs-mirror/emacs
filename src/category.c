@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "category.h"
+#include "keymap.h"
 
 /* The version number of the latest category table.  Each category
    table has a unique version number.  It is assigned a new number

@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "charset.h"
+#include "keymap.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX_ENTRY_VIA_PROPERTY
