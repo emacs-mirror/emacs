@@ -699,7 +699,7 @@ a DOS codepage, using Emacs running on some other operating system.
 asynchronous subprocesses are not available.  In particular, Shell
 mode and its variants do not work.  Most Emacs features that use
 asynchronous subprocesses also don't work on MS-DOS, including
-spelling correction and GUD.  When in doubt, try and see; commands that
+Shell mode and GUD.  When in doubt, try and see; commands that
 don't work print an error message saying that asynchronous processes
 aren't supported.
 
@@ -708,6 +708,14 @@ aren't supported.
 diff} do work, by running the inferior processes synchronously.  This
 means you cannot do any more editing until the inferior process
 finishes.
+
+  Spell checking also works, by means of special support for synchronous
+invocation of the @code{ispell} program.  This is slower than the
+asynchronous invocation on Unix.
+
+  Instead of the Shell mode, which doesn't work on MS-DOS, you can use
+the @kbd{M-x eshell} command.  This invokes the Eshell package that
+implements a Unix-like shell entirely in Emacs Lisp.
 
   By contrast, Emacs compiled as native Windows application
 @strong{does} support asynchronous subprocesses.  @xref{Windows
