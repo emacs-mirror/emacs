@@ -1,3 +1,7 @@
+2004-02-04  J,bi(Br,bt(Bme Marant <jmarant@nerim.net> (tiny)
+
+	* emacsclient.c (decode_options): Fix handling of alternate editor.
+
 2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacsclient.c (main): Don't use the hostname in the socket name.
