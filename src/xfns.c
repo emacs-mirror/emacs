@@ -1969,7 +1969,7 @@ x_set_scroll_bar_width (f, arg, oldval)
   if (NILP (arg))
     {
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
-      FRAME_SCROLL_BAR_COLS (f) = 2;
+      FRAME_SCROLL_BAR_COLS (f) = 3;
       if (FRAME_X_WINDOW (f))
         x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
@@ -1982,6 +1982,8 @@ x_set_scroll_bar_width (f, arg, oldval)
       if (FRAME_X_WINDOW (f))
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
+
+  change_frame_size (f, 0, FRAME_WIDTH (f), 0, 0);
 }
 
 /* Subroutines of creating an X frame.  */
@@ -3202,7 +3204,7 @@ This function is an internal primitive--use `make-frame' instead.")
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
+  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
 		       "internalBorderWidth", "BorderWidth", number);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
 		       "verticalScrollBars", "ScrollBars", boolean);
