@@ -1779,7 +1779,7 @@ defvar_int (namestring, address)
   sym = intern (namestring);
   val = allocate_misc ();
   XMISC (val)->type = Lisp_Misc_Intfwd;
-  XMISC (val)->u_intfwd.intvar = address;
+  XINTFWD (val)->intvar = address;
   XSYMBOL (sym)->value = val;
 }
 
@@ -1794,7 +1794,7 @@ defvar_bool (namestring, address)
   sym = intern (namestring);
   val = allocate_misc ();
   XMISC (val)->type = Lisp_Misc_Boolfwd;
-  XMISC (val)->u_boolfwd.boolvar = address;
+  XBOOLFWD (val)->boolvar = address;
   XSYMBOL (sym)->value = val;
 }
 
@@ -1812,7 +1812,7 @@ defvar_lisp_nopro (namestring, address)
   sym = intern (namestring);
   val = allocate_misc ();
   XMISC (val)->type = Lisp_Misc_Objfwd;
-  XMISC (val)->u_objfwd.objvar = address;
+  XOBJFWD (val)->objvar = address;
   XSYMBOL (sym)->value = val;
 }
 
@@ -1847,7 +1847,7 @@ defvar_per_buffer (namestring, address, type, doc)
   offset = (char *)address - (char *)current_buffer;
 
   XMISC (val)->type = Lisp_Misc_Buffer_Objfwd;
-  XMISC (val)->u_buffer_objfwd.offset = offset;
+  XBUFFER_OBJFWD (val)->offset = offset;
   XSYMBOL (sym)->value = val;
   *(Lisp_Object *)(offset + (char *)&buffer_local_symbols) = sym;
   *(Lisp_Object *)(offset + (char *)&buffer_local_types) = type;
