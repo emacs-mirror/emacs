@@ -356,6 +356,7 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 5) ?d)	; directory
 		  ((eq type 6) ?p)	; FIFO/pipe
 		  ((eq type 20) ?*)	; directory listing
+		  ((eq type 28) ?L)	; next has longname
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
@@ -660,6 +661,7 @@ appear on disk when you save the tar-file's buffer."
 	(error "This is a %s, not a real file"
 	       (cond ((eq link-p 5) "directory")
 		     ((eq link-p 20) "tar directory header")
+		     ((eq link-p 28) "next has longname")
 		     ((eq link-p 29) "multivolume-continuation")
 		     ((eq link-p 35) "sparse entry")
 		     ((eq link-p 38) "volume header")
