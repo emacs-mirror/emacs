@@ -2086,7 +2086,7 @@ change_frame_size (f, newheight, newwidth, pretend, delay)
 static void
 change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
      register FRAME_PTR frame;
-     int newheight, newwidth, pretend;
+     int newheight, newwidth, pretend, delay;
 {
   /* If we can't deal with the change now, queue it for later.  */
   if (delay)
