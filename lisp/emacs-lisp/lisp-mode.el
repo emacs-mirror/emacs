@@ -512,27 +512,30 @@ With argument, print output into current buffer."
 						      expr
 						      'args)))))
 			 expr)))))))
-      (let ((unabbreviated (let ((print-length nil) (print-level nil))
-			     (prin1-to-string value)))
-	    (print-length eval-expression-print-length)
-	    (print-level eval-expression-print-level)
-	    (char-string (prin1-char value))
-	    (beg (point))
-	    end)
-	(prog1
-	    (prin1 value)
-	  (if (and (eq standard-output t) char-string)
-	      (princ (concat " = " char-string)))
-	  (setq end (point))
-	  (when (and (bufferp standard-output)
-		     (or (not (null print-length))
-			 (not (null print-level)))
-		     (not (string= unabbreviated
-				   (buffer-substring-no-properties beg end))))
-	    (last-sexp-setup-props beg end value
-				   unabbreviated
-				   (buffer-substring-no-properties beg end))
-	    ))))))
+      (eval-last-sexp-print-value value))))
+
+(defun eval-last-sexp-print-value (value)
+  (let ((unabbreviated (let ((print-length nil) (print-level nil))
+			 (prin1-to-string value)))
+	(print-length eval-expression-print-length)
+	(print-level eval-expression-print-level)
+	(char-string (prin1-char value))
+	(beg (point))
+	end)
+    (prog1
+	(prin1 value)
+      (if (and (eq standard-output t) char-string)
+	  (princ (concat " = " char-string)))
+      (setq end (point))
+      (when (and (bufferp standard-output)
+		 (or (not (null print-length))
+		     (not (null print-level)))
+		 (not (string= unabbreviated
+			       (buffer-substring-no-properties beg end))))
+	(last-sexp-setup-props beg end value
+			       unabbreviated
+			       (buffer-substring-no-properties beg end))
+	))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
