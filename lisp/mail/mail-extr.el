@@ -645,7 +645,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
   ;;  which lie outside of the range, one character at that position is
   ;;  replaced with a SPC.
   (or (memq no-replace '(t nil))
-      (error "no-replace must be t or nil, evalable at macroexpand-time."))
+      (error "no-replace must be t or nil, evaluable at macroexpand-time."))
   (` (let ((temp (, list-symbol))
 	   ch)
        (while temp
@@ -1701,7 +1701,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
       
       ;; If the last thing in the name is 2 or more periods, or one or more
       ;; other sentence terminators (but not a single period) then keep them
-      ;; and the preceeding word.  This is for the benefit of whole sentences
+      ;; and the preceding word.  This is for the benefit of whole sentences
       ;; in the name field: it's better behavior than dropping the last word
       ;; of the sentence...
       (if (and (not suffix-flag)
@@ -1740,7 +1740,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	     (narrow-to-region (point) (point-max))))
       
       ;; Delete leading and trailing junk characters.
-      ;; *** This is probably completly unneeded now.
+      ;; *** This is probably completely unneeded now.
       ;;(goto-char (point-max))
       ;;(skip-chars-backward mail-extr-non-end-name-chars)
       ;;(if (eq ?. (following-char))
@@ -1856,7 +1856,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
        ("kp" "Korea (North)")
        ("kr" "Korea (South)")
        ("kw" "Kuwait")
-       ("kz" "Kazachstan")
+       ("kz" "Kazakhstan")
        ("lb" "Lebanon")
        ("lc" "St. Lucia")
        ("li" "Liechtenstein")
@@ -1893,7 +1893,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
        ("pk" "Pakistan")
        ("pl" "Poland")
        ("pr" "Puerto Rico (U.S.)")
-       ("pt" "Portugal"		"The Portugese Republic")
+       ("pt" "Portugal"		"The Portuguese Republic")
        ("py" "Paraguay")
        ("re" "Reunion (Fr.)")		; In .fr domain
        ("ro" "Romania")
