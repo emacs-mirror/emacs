@@ -8,6 +8,8 @@
 
 	* font-lock.el (font-lock-default-fontify-region): Fix subtle
 	off-by-one problem that could force re-fontifying the whole buffer.
+	(font-lock-remove-keywords): New function.
+	(font-lock-add-keywords): Use the new function to ensure idempotence.
 
 1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
 	
