@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.28) $
+ * $HopeName: MMsrc!mps.h(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -226,9 +226,8 @@ extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 /* Allocation Points */
 
-extern mps_res_t mps_ap_create(mps_ap_t *, mps_pool_t, mps_rank_t, ...);
-extern mps_res_t mps_ap_create_v(mps_ap_t *, mps_pool_t, mps_rank_t,
-                                 va_list);
+extern mps_res_t mps_ap_create(mps_ap_t *, mps_pool_t, ...);
+extern mps_res_t mps_ap_create_v(mps_ap_t *, mps_pool_t, va_list);
 extern void mps_ap_destroy(mps_ap_t);
 
 extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
