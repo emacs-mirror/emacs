@@ -16,7 +16,11 @@
 	(produce_composition): New argument pos.  Caller changed.
 	Adjusted for the change of annotation data format.
 	(produce_charset, produce_annotation): Likewise.
-	(decode_coding): Don't call translate_chars.
+	(decode_coding, encode_coding): Don't call translate_chars.
+	(consume_chars): New arg translation_table.  Caller changed.
+	(translate_chars): Deleted.
+	(syms_of_coding): Make translation-table's number of extra slots
+	2.
 
 2004-03-09  Kenichi Handa  <handa@m17n.org>
 

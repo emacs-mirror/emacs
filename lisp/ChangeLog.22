@@ -1,3 +1,11 @@
+2004-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (jisx0213-to-unicode, unicode-to-jisx0213):
+	New translation tables.
+
+	* international/mule.el (make-translation-table-from-alist): New
+	function.
+
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (translate-region): Re-implement it here.
