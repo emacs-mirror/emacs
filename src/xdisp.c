@@ -2033,14 +2033,16 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	{
 	  int last_point = XFASTINT (w->last_point);
 	  int last_point_byte = CHAR_TO_BYTE (last_point);
+	  int tab_offset = (pos_tab_offset (w, last_point, last_point_byte)
+			    - (last_point_x + hscroll - !! hscroll));
 
 	  pos = *compute_motion (last_point, last_point_y, last_point_x, 0,
 				 PT, height,
-				 /* BUG FIX: See the comment of
+				 /* BUG FIX: See the comment of	
 				    Fpos_visible_in_window_p (window.c).  */
 				 - (1 << (BITS_PER_SHORT - 1)),
 				 width, hscroll,
-				 pos_tab_offset (w, last_point, last_point_byte),
+				 tab_offset,
 				 w);
 	}
       else
@@ -3048,9 +3050,10 @@ fix_glyph (f, glyph, cface)
 }
 
 /* Return the column of position POS / POS_BYTE in window W's buffer.
-   The result is rounded down to a multiple of the internal width of W.
-   This is the amount of indentation of position POS
-   that is not visible in its horizontal position in the window.  */
+   When used on the character at the beginning of a line,
+   starting at column 0, this says how much to subtract from
+   the column position of any character in the line
+   to get its horizontal position on the screen.  */
 
 static int
 pos_tab_offset (w, pos, pos_byte)
