@@ -2396,8 +2396,13 @@ in the mode line."
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
   (and (> (point) (1+ (point-min)))
-       (not (memq (char-syntax (char-after (- (point) 2))) '(?/ ?\\ )))
        blink-matching-paren
+       ;; Verify an even number of quoting characters precede the close.
+       (= 1 (logand 1 (- (point)
+			 (save-excursion
+			   (forward-char -1)
+			   (skip-syntax-backward "/\\")
+			   (point)))))
        (let* ((oldpos (point))
 	      (blinkpos)
 	      (mismatch))
