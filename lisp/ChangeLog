@@ -1,3 +1,17 @@
+2004-11-11  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Save match data for isearch.
+	Skip Tag Table node.
+
+	* descr-text.el (describe-char): Replace syntax-after with code
+	from its previous version.
+
+	* files.el (magic-mode-alist): Use optimization for SGML mode too.
+	(set-auto-mode): Doc fix.  Remove unused variable `xml'.
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Remove > after <html to allow HTML attributes.
+
 2004-11-11  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-comb.el (math-prime-factors-finished):  Declared it as
