@@ -1,3 +1,8 @@
+2004-11-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to, display_line):
+	Restore saved_face_id also when truncate-lines or hscrolled.
+
 2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_name): Rename use-old-gtk-file-dialog to
