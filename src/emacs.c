@@ -228,6 +228,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch			do not do interactive display; implies -q\n\
+--script FILE           run FILE as an Emacs Lisp script.
 --debug-init		enable Emacs Lisp debugger during init file\n\
 --help			display this help message and exit\n\
 --multibyte, --no-unibyte   run Emacs in multibyte mode\n\
@@ -779,6 +780,7 @@ main (argc, argv, envp)
   struct rlimit rlim;
 #endif
   int no_loadup = 0;
+  char *junk = 0;
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -1033,6 +1035,15 @@ main (argc, argv, envp)
   noninteractive = 0;
   if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
     noninteractive = 1;
+  if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
+    {
+      noninteractive = 1;	/* Set batch mode.  */
+      /* Convert --script to -l, un-skip it, and sort again so that -l will be
+	 handled in proper sequence.  */
+      argv[skip_args - 1] = "-l";
+      skip_args -= 2;
+      sort_args (argc, argv);
+    }
 
   /* Handle the --help option, which gives a usage message.  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
@@ -1658,6 +1669,7 @@ struct standard_args standard_args[] =
   { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },
   { "-batch", "--batch", 100, 0 },
+  { "-script", "--script", 100, 1 },
   { "-help", "--help", 90, 0 },
   { "-no-unibyte", "--no-unibyte", 83, 0 },
   { "-multibyte", "--multibyte", 82, 0 },
