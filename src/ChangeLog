@@ -1,3 +1,8 @@
+2000-07-20  Dave Love  <fx@gnu.org>
+
+	* ccl.c (Fccl_execute_on_string): Don't check xmalloc return.  Use
+	xfree, not free.
+
 2000-07-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (help_echo_window): New variable.

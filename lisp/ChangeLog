@@ -1,3 +1,10 @@
+2000-07-20  Dave Love  <fx@gnu.org>
+
+	* net/goto-addr.el (goto-address-fontify): Don't bother with
+	buffer-modified and read-only stuff -- irrelevant with overlays.
+	Put an extra property on the overlays and use it to clean up in
+	case goto-address is re-run.
+
 2000-07-19  Richard M. Stallman  <rms@gnu.org>
 
 	* timer.el (run-with-idle-timer): Doc fix.
