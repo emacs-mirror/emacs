@@ -114,6 +114,20 @@ This must be bound to a mouse click."
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))))
 
+(defun mouse-set-region (click)
+  "Set the region to the text that the mouse is dragged over.
+This must be bound to a mouse click."
+  (interactive "e")
+  (let ((posn (event-start click))
+	(end (event-end click)))
+    (select-window (posn-window posn))
+    (if (numberp (posn-point posn))
+	(goto-char (posn-point posn)))
+    (sit-for 1)
+    (push-mark)
+    (if (numberp (posn-point end))
+	(goto-char (posn-point end)))))
+
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
 Display cursor at that position for a second.
@@ -582,7 +596,7 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;; are properly implemented.
 (global-set-key   [mouse-1]	'mouse-set-point)
 
-(global-set-key   [drag-mouse-1]	'mouse-set-mark)
+(global-set-key   [drag-mouse-1]	'mouse-set-region)
 (global-set-key   [mouse-2]	'mouse-yank-at-click)
 (global-set-key   [mouse-3]	'mouse-save-then-kill)
 
