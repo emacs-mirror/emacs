@@ -1,3 +1,17 @@
+2002-09-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (display_string): Fix for the case of zero width glyph.
+
+	* xfns.c (x_set_font): Change the error message of the case that
+	x_new_fontset returns Qt.
+
+	* xfaces.c (set_lface_from_font_name): Reject the default fontset.
+	(Finternal_set_lisp_face_attribute): Use signal_error for the
+	error of invalid fontset.
+
+	* xterm.c (x_new_fontset): If FONTSETNAME specifies the default
+	fontset, return Qt.
+
 2002-09-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* regex.c (re_search_2): Fix previous change.

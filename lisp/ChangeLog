@@ -1,3 +1,10 @@
+2002-09-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (generate-fontset-menu): Exclude the
+	defualt fontset.
+
+	* faces.el (describe-face): Describe :fontset property too.
+
 2002-09-25  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: Fix last change.
