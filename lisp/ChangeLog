@@ -1,3 +1,9 @@
+2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* bindings.el <Local Variables>: Remove no-byte-compile, since
+	there are some non-trivial functions here, and src/Makefile.in now
+	wants bindings.elc.
+
 2001-10-12  Eli Barzilay <eli@barzilay.org>
 
 	* calculator.el (calculator-eng-display): Don't call concat
