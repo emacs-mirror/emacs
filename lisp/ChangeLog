@@ -1,3 +1,9 @@
+2003-06-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.el (Info-fontify-node): Give only the last whitespace
+	character after the node name the display property.  Give all
+	other such whitespace the invisibility property.
+
 2003-06-17  Pinku Surana  <surana@rcn.com>
 
 	* progmodes/sql.el: Add support for SQLite interpreter.
