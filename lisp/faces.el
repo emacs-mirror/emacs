@@ -824,14 +824,14 @@ Use `set-face-attribute' or `modify-face' for finer control."
 
 (defun invert-face (face &optional frame)
   "Swap the foreground and background colors of FACE.
-FRAME nil or not specified means change face on all frames.
+If FRAME is omitted or nil, it means change face on all frames.
 If FACE specifies neither foreground nor background color,
 set its foreground and background to the background and foreground
 of the default face.  Value is FACE."
   (interactive (list (read-face-name "Invert face ")))
   (let ((fg (face-attribute face :foreground frame))
 	(bg (face-attribute face :background frame)))
-    (if (or fg bg)
+    (if (not (and (eq fg 'unspecified) (eq bg 'unspecified)))
 	(set-face-attribute face frame :foreground bg :background fg)
       (set-face-attribute face frame
 			  :foreground
