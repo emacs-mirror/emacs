@@ -1,3 +1,44 @@
+2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Changes largely merged in from Dave Love's code.
+	* progmodes/python.el: Doc fixes.
+	(python-mode-map): Add python-complete-symbol.
+	(python-comment-line-p, python-beginning-of-string): Use syntax-ppss.
+	(python-comment-indent, python-complete-symbol)
+	(python-symbol-completions, python-partial-symbol)
+	(python-try-complete): New.
+	(python-indent-line): Remove optional arg.  Use python-block-end-p.
+	(python-check): Bind compilation-error-regexp-alist.
+	(inferior-python-mode): Use rx.  Move keybindings to top level.
+	Set comint-input-filter.
+	(python-preoutput-filter): Use rx.
+	(python-input-filter): Re-introduce.
+	(python-proc): Start new process if necessary.
+	Check python-buffer non-nil.
+	(view-return-to-alist): Defvar.
+	(python-send-receive): New.
+	(python-eldoc-function): Use it.
+	(python-mode-running): Don't defvar.
+	(python-mode): Set comment-indent-function.
+	Maybe update hippie-expand-try-functions-list.
+	(python-indentation-levels): Initialize differently.
+	(python-block-end-p): New.
+	(python-indent-line): Use it.
+	(python-compilation-regexp-alist): Augment.
+	(run-python): Import `emacs' module to Python rather than loading
+	code directly.  Set python-buffer differently.
+	(python-send-region): Use emacs.eexecfile.  Fix orig-start calculation.
+	Use python-proc.
+	(python-send-command): Go to end of comint buffer.
+	(python-load-file): Use python-proc, emacs.eimport.
+	(python-describe-symbol): Simplify interactive form.
+	Use emacs.help.  Do use temp-buffer-show-hook.
+	Call print-help-return-message.
+	(hippie-exp): Require when compiling.
+	(python-preoutput-continuation): Use rx.
+
+	* diff-mode.el (diff-make-unified): Fix regexp.
+
 2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
 
 	* ibuffer.el (ibuffer-redisplay-engine): Do not remove folded

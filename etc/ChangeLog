@@ -1,3 +1,7 @@
+2004-05-06  Dave Love  <fx@gnu.org>
+
+	* emacs.py: New file for python-mode's internal use.
+
 2004-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* TODO: Use outline mode.  Remove compile.el entry (done).
