@@ -2198,7 +2198,7 @@ init_system_name ()
     {
       struct hostent *hp;
       int count;
-      for (count = 0; count < 10; count++)
+      for (count = 0;; count++)
 	{
 #ifdef TRY_AGAIN
 	  h_errno = 0;
@@ -2207,6 +2207,8 @@ init_system_name ()
 #ifdef TRY_AGAIN
 	  if (! (hp == 0 && h_errno == TRY_AGAIN))
 #endif
+	    break;
+	  if (count >= 5)
 	    break;
 	  Fsleep_for (make_number (1), Qnil);
 	}
