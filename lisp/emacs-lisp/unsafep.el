@@ -250,7 +250,7 @@ is okay if GLOBAL-OKAY is non-nil."
   (cond
    ((not (symbolp sym))
     `(variable ,sym))
-   ((risky-local-variable-p sym)
+   ((risky-local-variable-p sym nil)
     `(risky-local-variable ,sym))
    ((not (or global-okay
 	     (memq sym unsafep-vars)
