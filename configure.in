@@ -1935,6 +1935,21 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+### Use session management (-lSM -lICE) if available
+HAVE_X_SM=no
+if test "${HAVE_X11}" = "yes"; then
+  AC_CHECK_HEADER(X11/SM/SMlib.h,
+    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, -lICE))
+
+  if test "${HAVE_X_SM}" = "yes"; then
+    AC_DEFINE(HAVE_X_SM)
+    case "$LIBS" in
+      *-lSM*) ;;
+      *)      LIBS="-lSM -lICE $LIBS" ;;
+    esac
+  fi
+fi
+  
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_CACHE_CHECK(whether netdb declares h_errno,
 	       emacs_cv_netdb_declares_h_errno,
