@@ -169,27 +169,29 @@ The remaining arguments should have the form
 
    [KEYWORD VALUE]... 
 
-The following KEYWORD's are defined:
+The following keywords are meaningful:
 
 :type	VALUE should be a widget type for editing the symbols value.
 	The default is `sexp'.
 :options VALUE should be a list of valid members of the widget type.
 :group  VALUE should be a customization group.  
         Add SYMBOL to that group.
-:initialize VALUE should be a function used to initialize the
+:initialize
+	VALUE should be a function used to initialize the
 	variable.  It takes two arguments, the symbol and value
 	given in the `defcustom' call.  The default is
 	`custom-initialize-default' 
 :set	VALUE should be a function to set the value of the symbol. 
 	It takes two arguments, the symbol to set and the value to
-	give it.  The default is `set-default'.
+	give it.  The default choice of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
-	the current value for that symbol.  The default is
-	`default-value'. 
-:require VALUE should be a feature symbol.  Each feature will be
-	required after initialization, of the the user have saved this
-	option.
+	the current value for that symbol.  The default choice of function
+	is `default-value'. 
+:require
+	VALUE should be a feature symbol.  If you save a value
+	for this option, then when your `.emacs' file loads the value,
+	it does (require VALUE) first.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
