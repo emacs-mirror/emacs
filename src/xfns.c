@@ -19,6 +19,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* Ability to read images from memory instead of a file added by
+   William Perry <wmperry@gnu.org> */
+
 /* Image support (XBM, XPM, PBM, JPEG, TIFF, GIF, PNG, GS). tooltips,
    tool-bars, busy-cursor, file selection dialog added by Gerd
    Moellmann <gerd@gnu.org>.  */
@@ -7922,6 +7925,7 @@ Lisp_Object Qpng;
 enum png_keyword_index
 {
   PNG_TYPE,
+  PNG_DATA,
   PNG_FILE,
   PNG_ASCENT,
   PNG_MARGIN,
@@ -7937,7 +7941,8 @@ enum png_keyword_index
 static struct image_keyword png_format[PNG_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
-  {":file",		IMAGE_STRING_VALUE,			1},
+  {":data",     IMAGE_STRING_VALUE,         0},
+  {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -7970,6 +7975,13 @@ png_image_p (object)
       || (fmt[PNG_ASCENT].count 
 	  && XFASTINT (fmt[PNG_ASCENT].value) > 100))
     return 0;
+
+  /* Must specify either the :data or :file keyword.  This should
+  ** probably be moved up into parse_image_spec, since it seems to be
+  ** a general requirement.
+  */
+  if (!fmt[PNG_FILE].count && !fmt[PNG_DATA].count)
+	return 0;
   return 1;
 }
 
@@ -7997,6 +8009,28 @@ my_png_warning (png_ptr, msg)
   image_error ("PNG warning: %s", build_string (msg), Qnil);
 }
 
+/* Memory source for PNG decoding.  Originally written for XEmacs by
+   William Perry <wmperry@gnu.org>, who has paperwork on file, and so
+   it is safe to use. */
+struct png_memory_storage
+{
+  unsigned char *bytes;			/* The data       */
+  size_t len;					/* How big is it? */
+  int index;					/* Where are we?  */
+};
+
+static void
+png_read_from_memory(png_structp png_ptr, png_bytep data,
+		     png_size_t length)
+{
+   struct png_memory_storage *tbr =
+     (struct png_memory_storage *) png_get_io_ptr (png_ptr);
+
+   if (length > (tbr->len - tbr->index))
+     png_error (png_ptr, (png_const_charp) "Read Error");
+   memcpy (data,tbr->bytes + tbr->index,length);
+   tbr->index = tbr->index + length;
+}
 
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -8007,12 +8041,13 @@ png_load (f, img)
      struct image *img;
 {
   Lisp_Object file, specified_file;
+  Lisp_Object specified_data;
   int x, y, i;
   XImage *ximg, *mask_img = NULL;
   struct gcpro gcpro1;
   png_struct *png_ptr = NULL;
   png_info *info_ptr = NULL, *end_info = NULL;
-  FILE *fp;
+  FILE *fp = NULL;
   png_byte sig[8];
   png_byte *pixels = NULL;
   png_byte **rows = NULL;
@@ -8024,44 +8059,69 @@ png_load (f, img)
   char *gamma_str;
   double screen_gamma, image_gamma;
   int intent;
+  struct png_memory_storage tbr;  /* Data to be read */
 
   /* Find out what file to load.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  file = x_find_image_file (specified_file);
-  GCPRO1 (file);
-  if (!STRINGP (file))
-    {
-      image_error ("Cannot find image file %s", specified_file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
+  specified_data = image_spec_value (img->spec, QCdata, NULL);
 
-  /* Open the image file.  */
-  fp = fopen (XSTRING (file)->data, "rb");
-  if (!fp)
-    {
-      image_error ("Cannot open image file %s", file, Qnil);
-      UNGCPRO;
-      fclose (fp);
-      return 0;
-    }
+  if (NILP (specified_data))
+	{
+	  file = x_find_image_file (specified_file);
+	  GCPRO1 (file);
+	  if (!STRINGP (file))
+		{
+		  image_error ("Cannot find image file %s", specified_file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
 
-  /* Check PNG signature.  */
-  if (fread (sig, 1, sizeof sig, fp) != sizeof sig
-      || !png_check_sig (sig, sizeof sig))
-    {
-      image_error ("Not a PNG file: %s", file, Qnil);
-      UNGCPRO;
-      fclose (fp);
-      return 0;
-    }
+	  /* Open the image file.  */
+	  fp = fopen (XSTRING (file)->data, "rb");
+	  if (!fp)
+		{
+		  image_error ("Cannot open image file %s", file, Qnil);
+		  UNGCPRO;
+		  fclose (fp);
+		  return 0;
+		}
+
+	  /* Check PNG signature.  */
+	  if (fread (sig, 1, sizeof sig, fp) != sizeof sig
+		  || !png_check_sig (sig, sizeof sig))
+		{
+		  image_error ("Not a PNG file: %s", file, Qnil);
+		  UNGCPRO;
+		  fclose (fp);
+		  return 0;
+		}
+	}
+  else
+	{
+	  /* Read from memory */
+	  tbr.bytes = XSTRING (specified_data)->data;
+	  tbr.len = STRING_BYTES (XSTRING (specified_data));
+	  tbr.index = 0;
+
+	  /* Chekc PNG signature */
+	  if ((tbr.len < sizeof(sig)) ||
+		  !png_check_sig (tbr.bytes, sizeof(sig)))
+		{
+		  image_error ("Not a PNG file: %s", file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+
+	  /* Need to skip past the signature */
+	  tbr.bytes += sizeof(sig);
+	}
 
   /* Initialize read and info structs for PNG lib.  */
   png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL,
 				    my_png_error, my_png_warning);
   if (!png_ptr)
     {
-      fclose (fp);
+      if (fp) fclose (fp);
       UNGCPRO;
       return 0;
     }
@@ -8070,7 +8130,7 @@ png_load (f, img)
   if (!info_ptr)
     {
       png_destroy_read_struct (&png_ptr, NULL, NULL);
-      fclose (fp);
+      if (fp) fclose (fp);
       UNGCPRO;
       return 0;
     }
@@ -8079,7 +8139,7 @@ png_load (f, img)
   if (!end_info)
     {
       png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-      fclose (fp);
+      if (fp) fclose (fp);
       UNGCPRO;
       return 0;
     }
@@ -8093,14 +8153,17 @@ png_load (f, img)
         png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
       xfree (pixels);
       xfree (rows);
-      if (fp)
-	fclose (fp);
+      if (fp) fclose (fp);
       UNGCPRO;
       return 0;
     }
 
   /* Read image info.  */
-  png_init_io (png_ptr, fp);
+  if (!NILP (specified_data))
+	png_set_read_fn (png_ptr,(void *) &tbr, png_read_from_memory);
+  else
+	png_init_io (png_ptr, fp);
+
   png_set_sig_bytes (png_ptr, sizeof sig);
   png_read_info (png_ptr, info_ptr);
   png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
@@ -8209,7 +8272,7 @@ png_load (f, img)
   /* Read the entire image.  */
   png_read_image (png_ptr, rows);
   png_read_end (png_ptr, info_ptr);
-  fclose (fp);
+  if (fp) fclose (fp);
   fp = NULL;
   
   BLOCK_INPUT;
@@ -8391,7 +8454,7 @@ jpeg_image_p (object)
   
   if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg)
       || (fmt[JPEG_ASCENT].count 
-	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
+		  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
     return 0;
 
   /* Must specify either the :data or :file keyword.  This should
@@ -8414,7 +8477,6 @@ my_error_exit (cinfo)
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
   longjmp (mgr->setjmp_buffer, 1);
 }
-
 
 /* Init source method for JPEG data source manager.  Called by
    jpeg_read_header() before any data is actually read.  See
@@ -8514,7 +8576,6 @@ jpeg_memory_src (cinfo, data, len)
   src->next_input_byte = data;
 }
 
-
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */
 
@@ -8562,41 +8623,41 @@ jpeg_load (f, img)
     }
 
   /* Customize libjpeg's error handling to call my_error_exit
-     when an error is detected.  This function will perform
-     a longjmp.  */
+	 when an error is detected.  This function will perform
+	 a longjmp.  */
   mgr.pub.error_exit = my_error_exit;
   cinfo.err = jpeg_std_error (&mgr.pub);
   
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
     {
-      if (rc == 1)
-	{
-	  /* Called from my_error_exit.  Display a JPEG error.  */
-	  char buffer[JMSG_LENGTH_MAX];
-	  cinfo.err->format_message ((j_common_ptr) &cinfo, buffer);
-	  image_error ("Error reading JPEG file `%s': %s", file,
-		       build_string (buffer));
-	}
+	  if (rc == 1)
+		{
+		  /* Called from my_error_exit.  Display a JPEG error.  */
+		  char buffer[JMSG_LENGTH_MAX];
+		  cinfo.err->format_message ((j_common_ptr) &cinfo, buffer);
+		  image_error ("Error reading JPEG file `%s': %s", file,
+					   build_string (buffer));
+		}
 	  
       /* Close the input file and destroy the JPEG object.  */
 	  if (fp) fclose (fp);
       jpeg_destroy_decompress (&cinfo);
 
-      BLOCK_INPUT;
+	  BLOCK_INPUT;
       
-      /* If we already have an XImage, free that.  */
-      x_destroy_x_image (ximg);
+	  /* If we already have an XImage, free that.  */
+	  x_destroy_x_image (ximg);
 
-      /* Free pixmap and colors.  */
-      x_clear_image (f, img);
+	  /* Free pixmap and colors.  */
+	  x_clear_image (f, img);
       
-      UNBLOCK_INPUT;
-      UNGCPRO;
-      return 0;
+	  UNBLOCK_INPUT;
+	  UNGCPRO;
+	  return 0;
     }
 
   /* Create the JPEG decompression object.  Let it read from fp.
-     Read the JPEG image header.  */
+	 Read the JPEG image header.  */
   jpeg_create_decompress (&cinfo);
 
   if (NILP (specified_data))
@@ -8604,11 +8665,11 @@ jpeg_load (f, img)
   else
     jpeg_memory_src (&cinfo, XSTRING (specified_data)->data,
 		     STRING_BYTES (XSTRING (specified_data)));
-  
+
   jpeg_read_header (&cinfo, TRUE);
 
   /* Customize decompression so that color quantization will be used.
-     Start decompression.  */
+	 Start decompression.  */
   cinfo.quantize_colors = TRUE;
   jpeg_start_decompress (&cinfo);
   width = img->width = cinfo.output_width;
@@ -8618,59 +8679,59 @@ jpeg_load (f, img)
 
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, file, width, height, 0, &ximg,
-				    &img->pixmap))
+									&img->pixmap))
     {
-      UNBLOCK_INPUT;
-      longjmp (mgr.setjmp_buffer, 2);
+	  UNBLOCK_INPUT;
+	  longjmp (mgr.setjmp_buffer, 2);
     }
 
   /* Allocate colors.  When color quantization is used,
-     cinfo.actual_number_of_colors has been set with the number of
-     colors generated, and cinfo.colormap is a two-dimensional array
-     of color indices in the range 0..cinfo.actual_number_of_colors.
-     No more than 255 colors will be generated.  */
+	 cinfo.actual_number_of_colors has been set with the number of
+	 colors generated, and cinfo.colormap is a two-dimensional array
+	 of color indices in the range 0..cinfo.actual_number_of_colors.
+	 No more than 255 colors will be generated.  */
   {
-    int i, ir, ig, ib;
+	int i, ir, ig, ib;
 
-    if (cinfo.out_color_components > 2)
-      ir = 0, ig = 1, ib = 2;
-    else if (cinfo.out_color_components > 1)
-      ir = 0, ig = 1, ib = 0;
-    else
-      ir = 0, ig = 0, ib = 0;
+	if (cinfo.out_color_components > 2)
+	  ir = 0, ig = 1, ib = 2;
+	else if (cinfo.out_color_components > 1)
+	  ir = 0, ig = 1, ib = 0;
+	else
+	  ir = 0, ig = 0, ib = 0;
 
-    /* Use the color table mechanism because it handles colors that
-       cannot be allocated nicely.  Such colors will be replaced with
-       a default color, and we don't have to care about which colors
-       can be freed safely, and which can't.  */
-    init_color_table ();
-    colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
-				       * sizeof *colors);
+	/* Use the color table mechanism because it handles colors that
+	   cannot be allocated nicely.  Such colors will be replaced with
+	   a default color, and we don't have to care about which colors
+	   can be freed safely, and which can't.  */
+	init_color_table ();
+	colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
+									   * sizeof *colors);
   
-    for (i = 0; i < cinfo.actual_number_of_colors; ++i)
-      {
-	/* Multiply RGB values with 255 because X expects RGB values
-	   in the range 0..0xffff.  */
-	int r = cinfo.colormap[ir][i] << 8;
-	int g = cinfo.colormap[ig][i] << 8;
-	int b = cinfo.colormap[ib][i] << 8;
-	colors[i] = lookup_rgb_color (f, r, g, b);
-      }
+	for (i = 0; i < cinfo.actual_number_of_colors; ++i)
+	  {
+		/* Multiply RGB values with 255 because X expects RGB values
+		   in the range 0..0xffff.  */
+		int r = cinfo.colormap[ir][i] << 8;
+		int g = cinfo.colormap[ig][i] << 8;
+		int b = cinfo.colormap[ib][i] << 8;
+		colors[i] = lookup_rgb_color (f, r, g, b);
+	  }
 
-    /* Remember those colors actually allocated.  */
-    img->colors = colors_in_color_table (&img->ncolors);
-    free_color_table ();
+	/* Remember those colors actually allocated.  */
+	img->colors = colors_in_color_table (&img->ncolors);
+	free_color_table ();
   }
 
   /* Read pixels.  */
   row_stride = width * cinfo.output_components;
   buffer = cinfo.mem->alloc_sarray ((j_common_ptr) &cinfo, JPOOL_IMAGE,
-				    row_stride, 1);
+									row_stride, 1);
   for (y = 0; y < height; ++y)
     {
-      jpeg_read_scanlines (&cinfo, buffer, 1);
-      for (x = 0; x < cinfo.output_width; ++x)
-	XPutPixel (ximg, x, y, colors[buffer[0][x]]);
+	  jpeg_read_scanlines (&cinfo, buffer, 1);
+	  for (x = 0; x < cinfo.output_width; ++x)
+		XPutPixel (ximg, x, y, colors[buffer[0][x]]);
     }
 
   /* Clean up.  */
@@ -8710,6 +8771,7 @@ Lisp_Object Qtiff;
 enum tiff_keyword_index
 {
   TIFF_TYPE,
+  TIFF_DATA,
   TIFF_FILE,
   TIFF_ASCENT,
   TIFF_MARGIN,
@@ -8725,7 +8787,8 @@ enum tiff_keyword_index
 static struct image_keyword tiff_format[TIFF_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
-  {":file",		IMAGE_STRING_VALUE,			1},
+  {":data",     IMAGE_STRING_VALUE,         0},
+  {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -8758,9 +8821,92 @@ tiff_image_p (object)
       || (fmt[TIFF_ASCENT].count 
 	  && XFASTINT (fmt[TIFF_ASCENT].value) > 100))
     return 0;
+  /* Must specify either the :data or :file keyword.  This should
+  ** probably be moved up into parse_image_spec, since it seems to be
+  ** a general requirement.
+  */
+  if (!fmt[TIFF_FILE].count && !fmt[TIFF_DATA].count)
+	return 0;
   return 1;
 }
 
+/* Reading from a memory buffer for TIFF images
+   Based on the PNG memory source, but we have to provide a lot of
+   extra functions.  Blah.
+
+   We really only need to implement read and seek, but I am not
+   convinced that the TIFF library is smart enough not to destroy
+   itself if we only hand it the function pointers we need to
+   override. */
+typedef struct {
+  unsigned char *bytes;
+  size_t len;
+  int index;
+} tiff_memory_source;
+
+static size_t tiff_read_from_memory(thandle_t data, tdata_t buf, tsize_t size)
+{
+  tiff_memory_source *src = (tiff_memory_source *)data;
+
+  if (size > src->len - src->index)
+	return (size_t) -1;
+  memcpy(buf, src->bytes + src->index, size);
+  src->index += size;
+  return size;
+}
+
+static size_t tiff_write_from_memory(thandle_t data, tdata_t buf, tsize_t size)
+{
+  return (size_t) -1;
+}
+
+static toff_t tiff_seek_in_memory(thandle_t data, toff_t off, int whence)
+{
+  tiff_memory_source *src = (tiff_memory_source *)data;
+  int idx;
+
+  switch (whence)
+	{
+	case SEEK_SET:				/* Go from beginning of source */
+	  idx = off;
+	  break;
+	case SEEK_END:				/* Go from end of source */
+	  idx = src->len + off;
+	  break;
+	case SEEK_CUR:				/* Go from current position */
+	  idx = src->index + off;
+	  break;
+	default:					/* Invalid `whence' */
+	  return(-1);
+	}
+  if ((idx > src->len) || (idx < 0))
+	return -1;
+  src->index = idx;
+  return src->index;
+}
+
+static int tiff_close_memory(thandle_t data)
+{
+  /* NOOP */
+  return(0);
+}
+
+static int tiff_mmap_memory(thandle_t data, tdata_t *pbase, toff_t *psize)
+{
+  /* It is already _IN_ memory. */
+  return(0);
+}
+
+static void tiff_unmap_memory(thandle_t data, tdata_t base, toff_t size)
+{
+  /* We don't need to do this. */
+  return;
+}
+
+static toff_t tiff_size_of_memory(thandle_t data)
+{
+  return(((tiff_memory_source *) data)->len);
+}
 
 /* Load TIFF image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -8771,31 +8917,62 @@ tiff_load (f, img)
      struct image *img;
 {
   Lisp_Object file, specified_file;
+  Lisp_Object specified_data;
   TIFF *tiff;
   int width, height, x, y;
   uint32 *buf;
   int rc;
   XImage *ximg;
   struct gcpro gcpro1;
+  tiff_memory_source memsrc;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  file = x_find_image_file (specified_file);
-  GCPRO1 (file);
-  if (!STRINGP (file))
-    {
-      image_error ("Cannot find image file %s", file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
-  
-  /* Try to open the image file.  */
-  tiff = TIFFOpen (XSTRING (file)->data, "r");
-  if (tiff == NULL)
-    {
-      image_error ("Cannot open `%s'", file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
+  specified_data = image_spec_value (img->spec, QCdata, NULL);
+
+  if (NILP (specified_data))
+	{
+	  /* Read from a file */
+	  file = x_find_image_file (specified_file);
+	  GCPRO1 (file);
+	  if (!STRINGP (file))
+		{
+		  image_error ("Cannot find image file %s", file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+	  
+	  /* Try to open the image file.  */
+	  tiff = TIFFOpen (XSTRING (file)->data, "r");
+	  if (tiff == NULL)
+		{
+		  image_error ("Cannot open `%s'", file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+	}
+  else
+	{
+	  /* Memory source! */
+	  memsrc.bytes = XSTRING (specified_data)->data;
+	  memsrc.len = STRING_BYTES (XSTRING (specified_data));
+	  memsrc.index = 0;
+
+	  tiff = TIFFClientOpen ("memory_source", "r", &memsrc,
+							 (TIFFReadWriteProc)tiff_read_from_memory,
+							 (TIFFReadWriteProc)tiff_write_from_memory,
+							 tiff_seek_in_memory,
+							 tiff_close_memory,
+							 tiff_size_of_memory,
+							 tiff_mmap_memory,
+							 tiff_unmap_memory);
+
+	  if (!tiff)
+		{
+		  image_error ("Cannot open memory source `%s'. ", specified_data, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+	}
 
   /* Get width and height of the image, and allocate a raster buffer
      of width x height 32-bit values.  */
@@ -8884,6 +9061,7 @@ Lisp_Object Qgif;
 enum gif_keyword_index
 {
   GIF_TYPE,
+  GIF_DATA,
   GIF_FILE,
   GIF_ASCENT,
   GIF_MARGIN,
@@ -8900,7 +9078,8 @@ enum gif_keyword_index
 static struct image_keyword gif_format[GIF_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
-  {":file",		IMAGE_STRING_VALUE,			1},
+  {":data",     IMAGE_STRING_VALUE,         0},
+  {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -8934,9 +9113,35 @@ gif_image_p (object)
       || (fmt[GIF_ASCENT].count 
 	  && XFASTINT (fmt[GIF_ASCENT].value) > 100))
     return 0;
+  /* Must specify either the :data or :file keyword.  This should
+  ** probably be moved up into parse_image_spec, since it seems to be
+  ** a general requirement.
+  */
+  if (!fmt[GIF_FILE].count && !fmt[GIF_DATA].count)
+	return 0;
   return 1;
 }
 
+/* Reading a GIF image from memory
+   Based on the PNG memory stuff to a certain extent. */
+
+typedef struct {
+  unsigned char *bytes;
+  size_t len;
+  int index;
+} gif_memory_source;
+
+static int gif_read_from_memory(GifFileType *file, GifByteType *buf, int len)
+{
+  gif_memory_source *src = (gif_memory_source *) file->UserData;
+
+  if (len > (src->len - src->index))
+	return -1;
+
+  memcpy(buf, src->bytes + src->index, len);
+  src->index += len;
+  return len;
+}
 
 /* Load GIF image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -8947,6 +9152,7 @@ gif_load (f, img)
      struct image *img;
 {
   Lisp_Object file, specified_file;
+  Lisp_Object specified_data;
   int rc, width, height, x, y, i;
   XImage *ximg;
   ColorMapObject *gif_color_map;
@@ -8955,25 +9161,46 @@ gif_load (f, img)
   struct gcpro gcpro1;
   Lisp_Object image;
   int ino, image_left, image_top, image_width, image_height;
+  gif_memory_source memsrc;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  file = x_find_image_file (specified_file);
-  GCPRO1 (file);
-  if (!STRINGP (file))
-    {
-      image_error ("Cannot find image file %s", specified_file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
+  specified_data = image_spec_value (img->spec, QCdata, NULL);
+
+  if (NILP (specified_data))
+	{
+	  file = x_find_image_file (specified_file);
+	  GCPRO1 (file);
+	  if (!STRINGP (file))
+		{
+		  image_error ("Cannot find image file %s", specified_file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
   
-  /* Open the GIF file.  */
-  gif = DGifOpenFileName (XSTRING (file)->data);
-  if (gif == NULL)
-    {
-      image_error ("Cannot open `%s'", file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
+	  /* Open the GIF file.  */
+	  gif = DGifOpenFileName (XSTRING (file)->data);
+	  if (gif == NULL)
+		{
+		  image_error ("Cannot open `%s'", file, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+	}
+  else
+	{
+	  /* Read from memory! */
+	  memsrc.bytes = XSTRING (specified_data)->data;
+	  memsrc.len = STRING_BYTES (XSTRING (specified_data));
+	  memsrc.index = 0;
+
+	  gif = DGifOpen(&memsrc, gif_read_from_memory);
+	  if (!gif)
+		{
+		  image_error ("Cannot open memory source `%s'",specified_data, Qnil);
+		  UNGCPRO;
+		  return 0;
+		}
+	}
 
   /* Read entire contents.  */
   rc = DGifSlurp (gif);

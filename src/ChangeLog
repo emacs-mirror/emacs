@@ -1,17 +1,36 @@
+1999-12-31  William M. Perry  <wmperry@aventail.com>
+
+	* xfns.c (jpeg_format): Added the :data keyword
+	(jpeg_image_p): JPEG is valid with :file _or_ :data
+	(jpeg_memory_src): Defined new JPEG image source to read from a
+	memory buffer.
+	(jpeg_load): Pay attention to the :data keyword if specified.
+	Instantiates a jpeg_memory_src instead of jpeg_stdio_src if
+	found.
+	(png_format): Added the :data keyword
+	(png_image_p): PNG is valid with :file _or_ :data
+	(png_read_from_memory): New PNG read function to read from a
+	memory buffer.
+	(png_load): Pay attention to the :data keyword if specified.  Uses
+	png_set_read_fn() instead of png_init_io() if specified.
+	(tiff_format): Added the :data keyword for TIFF images.
+	(tiff_image_p): TIFF is valid with :file _or_ :data
+	(tiff_read_from_memory): Defined new TIFF I/O functions to read
+	from a memory buffer.
+	(tiff_load): Pay attention to the :data keyword if specified.
+	Uses TIFFClientOpen() instead of TIFFOpen() if specified.
+	(gif_format): Added the :data keyword
+	(gif_image_p): GIF is valid with :file _or_ :data
+	(gif_read_from_memory): New GIF input function to read from a
+	memory buffer.
+	(gif_load): Pay attention tot he :data keyword.  Uses DGifOpen()
+	instead of DGifOpenFileName() if specified.
+
 1999-12-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (next_element_from_buffer): Change assertion at the end
 	because it doesn't hold when there's an overlay string at the end
 	from which we deliver an image.
-
-1999-12-31  William M. Perry <wmperry@gnu.org>
-
-	* xfns.c (enum jpeg_keyword_index): Add JPEG_DATA.
-	(jpeg_format): Add :data.
-	(jpeg_image_p): Handle :data.
-	(our_fill_input_buffer, our_skip_input_data, our_term_source)
-	(jpeg_memory_src): New functions.
-	(jpeg_load): Read image from string data.
 
 1999-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
