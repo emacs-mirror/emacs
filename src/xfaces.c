@@ -659,6 +659,31 @@ same_size_fonts (font1, font2)
 	  && bounds1->descent == bounds2->descent);  */
 }
 
+/* Update the line_height of frame F according to the biggest font in
+   any face, and resize the frame if line_height changes.  */
+
+void
+frame_update_line_height (f)
+     FRAME_PTR f;
+{
+  int i;
+  int biggest = FONT_HEIGHT (f->display.x->font);
+
+  for (i = 0; i < f->display.x->n_param_faces; i++)
+    if (f->display.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
+      {
+	int height = FONT_HEIGHT (f->display.x->param_faces[i]->font);
+	if (height > biggest)
+	  biggest = height;
+      }
+
+  if (biggest == f->display.x->line_height)
+    return;
+
+  f->display.x->line_height = biggest;
+  x_set_window_size (f, 0, f->width, f->height);
+}
+
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
 static void 
@@ -967,6 +992,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       if (face->font != f->display.x->font)
 	unload_font (f, face->font);
       face->font = font;
+      frame_update_line_height (f);
     }
   else if (EQ (attr_name, intern ("foreground")))
     {
