@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.24 2002/03/18 17:17:38 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.25 2002/07/19 13:27:44 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -116,7 +116,6 @@ For a description of possible values, see `vc-check-master-templates'."
                                                      'vc-workfile-version))))
     (if (not (eq state 'up-to-date))
         state
-      (require 'vc)
       (if (vc-workfile-unchanged-p file)
           'up-to-date
         (if (eq (vc-checkout-model file) 'locking)
