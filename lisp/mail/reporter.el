@@ -352,8 +352,8 @@ composed.")
 		mailer)))
 	   (current-buffer))))
     (require 'sendmail)
-    (pop-to-buffer reporter-eval-buffer)
     (pop-to-buffer mailbuf)
+    (display-buffer reporter-eval-buffer)
     (goto-char (point-min))
     ;; different mailers use different separators, some may not even
     ;; use m-h-s, but sendmail.el stuff must have m-h-s bound.
@@ -400,7 +400,7 @@ composed.")
 	   (killkey (if killkey-whereis
 			(key-description killkey-whereis)
 		      "M-x kill-buffer")))
-      (message "Please type in your report. Hit %s to send, %s to abort."
+      (message "Please type in your report.  Hit %s to send, %s to abort."
 	       sendkey killkey))
     ))
 
