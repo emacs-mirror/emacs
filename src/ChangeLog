@@ -1,3 +1,12 @@
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal decl
+	for K&R.
+
+	* xterm.c: Fix prototype for K&R.
+
+	* term.c (costs_set): Declare static, non-initialized for pcc.
+
 2002-07-01  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (timer_last_idleness_start_time): New variable.

@@ -1,3 +1,24 @@
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	Make strokes a proper minor mode, and don't try to overload
+	mouse-2, which doesn't work satisfactorily.
+
+	* strokes.el: Doc fixes.
+	(strokes-mode): Defcustom deleted; replaced by minor mode def with
+	re-written function.
+	(strokes-while-inhibiting-garbage-collector): Comment out.
+	(define-stroke, strokes-fix-button2-command, strokes-insinuated)
+	(strokes-insinuate, global-set-stroke, describe-stroke)
+	(load-user-strokes, save-strokes, strokes-bug-address)
+	(strokes-click-command): Deleted.
+	(strokes-execute-stroke): Remove strokes-click-p case.
+	(strokes-describe-stroke): Remove strokes-click-p stuff.
+	(strokes-help): Fix.
+	(strokes-report-bug): Alias to report-emacs-bug.
+	(strokes-prompt-user-save-strokes): Modify format of the file.
+	(strokes-mode-map, strokes-unload-hook): New.
+	(strokes-buffer-name): Don't customize.
+	
 2002-07-01  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-index): Get immediate error if used in `dir'.
