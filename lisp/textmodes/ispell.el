@@ -837,26 +837,33 @@ and added as a submenu of the \"Edit\" menu.")
 (if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  (dir (if (boundp 'ispell-library-directory) ispell-library-directory))
+	  (dict-map (make-sparse-keymap "Dictionaries"))
 	  name load-dict)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
-      (while dicts
-	(setq name (car (car dicts))
-	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
-	      dicts (cdr dicts))
-	(cond ((not (stringp name))
-	       (define-key ispell-menu-map [default]
-		 '("Select Default Dict"
-		   "Dictionary for which Ispell was configured"
-		   . (lambda () (interactive)
-		       (ispell-change-dictionary "default")))))
+      (dolist (dict dicts)
+	(setq name (car dict)
+	      load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	(unless (stringp name)
+	  (define-key ispell-menu-map [default]
+	    '("Select Default Dict"
+	      "Dictionary for which Ispell was configured"
+	      . (lambda () (interactive)
+		  (ispell-change-dictionary "default"))))))
+      (fset 'ispell-dict-map dict-map)
+      (define-key ispell-menu-map [dictionaries]
+	`(menu-item "Select Dict" ispell-dict-map))
+      (dolist (dict dicts)
+	(setq name (car dict)
+	      load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	(cond ((not (stringp name)))
 	      ((or (not dir)		; load all if library dir not defined
 		   (file-exists-p (concat dir "/" name ".hash"))
 		   (file-exists-p (concat dir "/" name ".has"))
 		   (and load-dict
 			(or (file-exists-p (concat dir "/" load-dict ".hash"))
 			    (file-exists-p (concat dir "/" load-dict ".has")))))
-	       (define-key ispell-menu-map (vector (intern name))
+	       (define-key dict-map (vector (intern name))
 		 (cons (concat "Select " (capitalize name) " Dict")
 		       `(lambda () (interactive)
 			  (ispell-change-dictionary ,name)))))))))
