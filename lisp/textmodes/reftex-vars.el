@@ -334,7 +334,7 @@ ENV-OR-MACRO
     which contains all labels.
 
     This may also be a function to do local parsing and identify point
-    to be in a a non-standard label environment.  The function must take
+    to be in a non-standard label environment.  The function must take
     an argument BOUND and limit backward searches to this value.  It
     should return either nil or a cons cell (FUNCTION . POSITION) with
     the function symbol and the position where the special environment
