@@ -476,7 +476,8 @@ static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
 			       GC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, XRectangle *));
 static void x_draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-static void notice_overwritten_cursor P_ ((struct window *, int, int));
+static void notice_overwritten_cursor P_ ((struct window *, enum glyph_row_area,
+					   int, int, int, int));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
@@ -5207,7 +5208,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  x1 -= left_area_width;
 	}
 
-      notice_overwritten_cursor (w, x0, x1);
+      notice_overwritten_cursor (w, area, x0, x1,
+				 row->y, MATRIX_ROW_BOTTOM_Y (row));
     }
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
@@ -5429,7 +5431,10 @@ x_clear_end_of_line (to_x)
   
   /* Notice if the cursor will be cleared by this operation.  */
   if (!updated_row->full_width_p)
-    notice_overwritten_cursor (w, output_cursor.x, -1);
+    notice_overwritten_cursor (w, updated_area,
+			       output_cursor.x, -1,
+			       updated_row->y,
+			       MATRIX_ROW_BOTTOM_Y (updated_row));
 
   from_x = output_cursor.x;
      
@@ -7780,7 +7785,8 @@ show_mouse_face (dpyinfo, draw)
 	      x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 			     start_hpos, end_hpos, draw, 0);
 
-	      row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
+	      row->mouse_face_p
+		= draw == DRAW_MOUSE_FACE || draw == DRAW_IMAGE_RAISED;
 	    }
 	}
 
@@ -11098,22 +11104,25 @@ XTread_socket (sd, bufp, numchars, expected)
 			     Text Cursor
  ***********************************************************************/
 
-/* Notice if the text cursor of window W has been overwritten by a
-   drawing operation that outputs N glyphs starting at START_X and
-   ending at END_X in the line given by output_cursor.vpos.
-   Coordinates are area-relative.  END_X < 0 means all the rest
-   of the line after START_X has been written.  */
+/* Notice when the text cursor of window W has been completely
+   overwritten by a drawing operation that outputs glyphs in AREA
+   starting at X0 and ending at X1 in the line starting at Y0 and
+   ending at Y1.  X coordinates are area-relative.  X1 < 0 means all
+   the rest of the line after X0 has been written.  Y coordinates
+   are window-relative.  */
 
 static void
-notice_overwritten_cursor (w, start_x, end_x)
+notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      struct window *w;
-     int start_x, end_x;
+     enum glyph_row_area area;
+     int x0, y0, x1, y1;
 {
-  if (updated_area == TEXT_AREA
+  if (area == TEXT_AREA
       && w->phys_cursor_on_p
-      && output_cursor.vpos == w->phys_cursor.vpos
-      && start_x <= w->phys_cursor.x
-      && (end_x < 0 || end_x > w->phys_cursor.x))
+      && y0 <= w->phys_cursor.y
+      && y1 >= w->phys_cursor.y + w->phys_cursor_height
+      && x0 <= w->phys_cursor.x
+      && (x1 < 0 || x1 > w->phys_cursor.x))
     w->phys_cursor_on_p = 0;
 }
 
