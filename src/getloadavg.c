@@ -141,7 +141,7 @@ extern int errno;
 #define decstation
 #endif
 
-#if defined(sun) && defined(SVR4)
+#if (defined(sun) && defined(SVR4)) || defined (SOLARIS2)
 #define SUNOS_5
 #endif
 
