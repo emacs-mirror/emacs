@@ -406,8 +406,8 @@ that."
 			  (let ((sym (intern-soft (match-string 0))))
 			    (if (fboundp sym)
 				(help-xref-button 0 'help-function sym))))
-		      (forward-line)))))))
-          (set-syntax-table stab))
+		      (forward-line))))))
+	  (set-syntax-table stab))
 	;; Delete extraneous newlines at the end of the docstring
 	(goto-char (point-max))
 	(while (and (not (bobp)) (bolp))
