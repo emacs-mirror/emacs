@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.211 1998/03/18 13:25:00 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.212 1998/03/20 15:40:24 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -781,14 +781,13 @@ before the filename."
 			    "Buffer %s modified; merge file on disc anyhow? " 
 			    (buffer-name buffer)))))
 		(error "Merge aborted"))
-	    (if (not (zerop (vc-backend-merge-news file)))
-		;; Overlaps detected - what now?  Should use some
-		;; fancy RCS conflict resolving package, or maybe
-		;; emerge, but for now, simply warn the user with a
-		;; message.
-		(message "Conflicts detected!"))
-	    (and buffer
-		 (vc-resynch-buffer file t (not (buffer-modified-p buffer)))))
+	    (let ((status (vc-backend-merge-news file)))
+              (and buffer
+                   (vc-resynch-buffer file t 
+                                      (not (buffer-modified-p buffer))))
+              (if (not (zerop status))
+                  (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
+                      (vc-resolve-conflicts)))))
 	(error "%s needs update" (buffer-name))))
 
      ;; For CVS files with implicit checkout: if unmodified, don't do anything
@@ -867,7 +866,7 @@ before the filename."
 	      (if (yes-or-no-p "Replace file on disk with buffer contents? ")
 		  (write-file (buffer-file-name))
 		(error "Aborted"))
-	    ;; give luser a chance to save before checking in.
+            ;; if buffer is not saved, give user a chance to do it
 	    (vc-buffer-sync))
 
 	  ;; Revert if file is unchanged and buffer is too.
@@ -1204,9 +1203,6 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
   ;; Check and record the comment, if any.
   (if (not nocomment)
       (progn
-	(goto-char (point-max))
-	(if (not (bolp))
-	    (newline))
 	;; Comment too long?
 	(vc-backend-logentry-check vc-log-file)
 	;; Record the comment in the comment ring
@@ -1487,6 +1483,86 @@ the variable `vc-header-alist'."
 	      nil t)
 	(replace-match "$\\1$")))
     (vc-restore-buffer-context context)))
+
+(defun vc-resolve-conflicts ()
+  "Invoke ediff to resolve conflicts in the current buffer.
+The conflicts must be marked with rcsmerge conflict markers."
+  (interactive)
+  (let* ((found nil)
+         (file-name (file-name-nondirectory buffer-file-name))
+	 (your-buffer   (generate-new-buffer 
+                         (concat "*" file-name " WORKFILE*")))
+	 (other-buffer  (generate-new-buffer 
+                         (concat "*" file-name " CHECKED-IN*")))
+         (result-buffer (current-buffer)))
+    (save-excursion 
+      (set-buffer your-buffer)
+      (erase-buffer)
+      (insert-buffer result-buffer)
+      (goto-char (point-min))
+      (while (re-search-forward (concat "^<<<<<<< " 
+					(regexp-quote file-name) "\n") nil t)
+        (setq found t)
+	(replace-match "")
+	(if (not (re-search-forward "^=======\n" nil t))
+	    (error "Malformed conflict marker"))
+	(replace-match "")
+	(let ((start (point)))
+	  (if (not (re-search-forward "^>>>>>>> [0-9.]+\n" nil t))
+	      (error "Malformed conflict marker"))
+	  (delete-region start (point))))
+      (if (not found)
+          (progn
+            (kill-buffer your-buffer)
+            (kill-buffer other-buffer)
+            (error "No conflict markers found")))
+      (set-buffer other-buffer)
+      (erase-buffer)
+      (insert-buffer result-buffer)
+      (goto-char (point-min))
+      (while (re-search-forward (concat "^<<<<<<< " 
+					(regexp-quote file-name) "\n") nil t)
+	(let ((start (match-beginning 0)))
+	(if (not (re-search-forward "^=======\n" nil t))
+	    (error "Malformed conflict marker"))
+	(delete-region start (point))
+	(if (not (re-search-forward "^>>>>>>> [0-9.]+\n" nil t))
+	    (error "Malformed conflict marker"))
+	(replace-match "")))
+      (let ((config (current-window-configuration))
+            (ediff-default-variant 'default-B))
+
+        ;; Fire up ediff.
+
+        (set-buffer (ediff-merge-buffers your-buffer other-buffer))
+
+        ;; Ediff is now set up, and we are in the control buffer.
+        ;; Do a few further adjustments and take precautions for exit.
+
+        (make-local-variable 'vc-ediff-windows)
+        (setq vc-ediff-windows config)
+        (make-local-variable 'vc-ediff-result)
+        (setq vc-ediff-result result-buffer)        
+        (make-local-variable 'ediff-quit-hook)
+        (setq ediff-quit-hook 
+              (function 
+               (lambda ()
+                 (let ((buffer-A ediff-buffer-A)
+                       (buffer-B ediff-buffer-B)
+                       (buffer-C ediff-buffer-C)
+                       (result vc-ediff-result)
+                       (windows vc-ediff-windows))
+                   (ediff-cleanup-mess)
+                   (set-buffer result)
+                   (erase-buffer)
+                   (insert-buffer buffer-C)
+                   (kill-buffer buffer-A)
+                   (kill-buffer buffer-B)
+                   (kill-buffer buffer-C)
+                   (set-window-configuration windows)
+                   (message "Conflict resolution finished; you may save the buffer")))))
+        (message "Please resolve conflicts now; exit ediff when done")
+        nil))))
 
 ;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
@@ -1850,11 +1926,11 @@ locked are updated to the latest versions."
 
 ;;;###autoload
 (defun vc-revert-buffer ()
-  "Revert the current buffer's file back to the latest checked-in version.
+  "Revert the current buffer's file back to the version it was based on.
 This asks for confirmation if the buffer contents are not identical
-to that version.
-If the back-end is CVS, this will give you the most recent revision of
-the file on the branch you are editing."
+to that version.  Note that for RCS and CVS, this function does not 
+automatically pick up newer changes found in the master file; 
+use C-u \\[vc-next-action] RET to do so."
   (interactive)
   (if vc-dired-mode
       (find-file-other-window (dired-get-filename)))
@@ -2636,8 +2712,7 @@ THRESHOLD, nil otherwise"
   (message "Checking in %s...done" file))
 
 (defun vc-backend-revert (file)
-  ;; Revert file to latest checked-in version.
-  ;; (for RCS, to workfile version)
+  ;; Revert file to the version it was based on.
   (message "Reverting %s..." file)
   (vc-file-clear-masterprops file)
   (vc-backend-dispatch
@@ -2645,14 +2720,19 @@ THRESHOLD, nil otherwise"
    ;; SCCS
    (progn
      (vc-do-command nil 0 "unget" file 'MASTER nil)
-     (vc-do-command nil 0 "get" file 'MASTER nil))
+     (vc-do-command nil 0 "get" file 'MASTER nil)
+     ;; Checking out explicit versions is not supported under SCCS, yet.
+     ;; We always "revert" to the latest version; therefore 
+     ;; vc-workfile-version is cleared here so that it gets recomputed.
+     (vc-file-setprop 'vc-workfile-version nil))
    ;; RCS
    (vc-do-command nil 0 "co" file 'MASTER
 		  "-f" (concat "-u" (vc-workfile-version file)))
    ;; CVS
    (progn
      (delete-file file)
-     (vc-do-command nil 0 "cvs" file 'WORKFILE "update")))
+     (vc-do-command nil 0 "cvs" file 'WORKFILE "update"
+                    (concat "-r" (vc-workfile-version file)))))
   (vc-file-setprop file 'vc-locking-user 'none)
   (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
   (message "Reverting %s...done" file)
