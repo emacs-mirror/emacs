@@ -1,5 +1,8 @@
 2001-03-13  Kenichi Handa  <handa@etl.go.jp>
 
+	* fontset.c (syms_of_fontset): Describe highlight-wrong-size-font
+	and clip-large-size-font as obsolete.
+
 	* lread.c (read_multibyte): Check the validity of multibyte
 	sequence.  If invalid, return the first byte.
 
