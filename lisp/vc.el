@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.248 1999/06/15 05:48:18 kwzh Exp kwzh $
+;; $Id: vc.el,v 1.249 1999/06/15 17:40:09 kwzh Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1740,7 +1740,7 @@ There is a special command, `*l', to mark all files currently locked."
   (let ((default-directory dir))
     ;; Don't specify DIR in this command, the default-directory is
     ;; enough.  Otherwise it might fail with remote repositories.
-    (vc-do-command "*vc-info*" 0 "cvs" nil nil "status")
+    (vc-do-command "*vc-info*" 0 "cvs" nil nil "status" "-l")
     (save-excursion
       (set-buffer (get-buffer "*vc-info*"))
       (goto-char (point-min))
