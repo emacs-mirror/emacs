@@ -1,3 +1,15 @@
+2000-09-18  Miles Bader  <miles@gnu.org>
+
+	* info.el (Info-fontify-node): Make a few cleanups.
+	Add extra `help-echo' and `local-map' props to node xrefs.
+	Use header-specific faces for node-names & xrefs.
+	(Info-use-header-line): New variable.
+	(info-header, info-header-xref, info-header-node): New faces.
+	(Info-setup-header-line): New function.
+	(Info-select-node): Call Info-setup-header-line when enabled.
+	(Info-extract-pointer): Work even if the header line is hidden.
+	(Info-header-line): New variable.
+
 2000-09-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vms-patch.el (print-region-function): Don't quote lambda.
