@@ -961,8 +961,12 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
     }
   if (!NILP (notsogood))
     return notsogood;
-  buf = Fget_buffer_create (build_string ("*scratch*"));
-  Fset_buffer_major_mode (buf);
+  buf = Fget_buffer (build_string ("*scratch*"));
+  if (NILP (buf))
+    {
+      buf = Fget_buffer_create (build_string ("*scratch*"));
+      Fset_buffer_major_mode (buf);
+    }
   return buf;
 }
 
