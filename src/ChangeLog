@@ -1,3 +1,7 @@
+2003-10-12  Andrew Choi  <akochoi@shaw.ca>
+
+	* s/darwin.h (GC_MARK_STACK): Define.
+
 2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* window.c (shrink_windows): New function.
