@@ -1,9 +1,9 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: hardware
+;; Keywords: hardware, mouse
 
 ;; This file is part of GNU Emacs.
 
@@ -46,15 +46,18 @@
 
 (defun popup-menu (menu &optional position prefix)
   "Popup the given menu and call the selected option.
-MENU can be a keymap or an easymenu-style menu.
+MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
+`x-popup-menu'.
 POSITION can be a click event or ((XOFFSET YOFFSET) WINDOW) and defaults to
   the current mouse position.
 PREFIX is the prefix argument (if any) to pass to the command."
-  (let* ((map (if (keymapp menu) menu
-		(let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
+  (let* ((map (cond
+	       ((keymapp menu) menu)
+	       ((and (listp menu) (keymapp (car menu))) menu)
+	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
 		       (filter (when (symbolp map)
 				 (plist-get (get map 'menu-pro) :filter))))
-		  (if filter (funcall filter (symbol-function map)) map))))
+		  (if filter (funcall filter (symbol-function map)) map)))))
 	 event)
     ;; The looping behavior was taken from lmenu's popup-menu-popup
     (while (and map (setq event (x-popup-menu position map)))
@@ -135,6 +138,25 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	    menubar
 	  (setq mouse-major-mode-menu-prefix (list (car submap)))
 	  (lookup-key menubar (vector (car submap)))))))
+
+(defun mouse-popup-menubar (event prefix)
+  "Pops up a menu equiavlent to the menu bar a keyboard EVENT with PREFIX.
+The contents are the items that would be in the menu bar whether or
+not it is actually displayed."
+  (interactive "@e \nP")
+  (run-hooks 'activate-menubar-hook)
+  (let* ((local-menu (lookup-key (current-local-map) [menu-bar]))
+	 (global-menu (lookup-key global-map [menu-bar])))
+    ;; Supplying the list is faster than making a new map.
+    (popup-menu (list global-menu local-menu) event prefix)))
+
+(defun mouse-popup-menubar-stuff (event prefix)
+  "Popup a menu like either `mouse-major-mode-menu' or `mouse-popup-menubar'.
+Use the former if the menu bar is showing, otherwise the latter."
+  (interactive "@e \nP")
+  (if (zerop (assoc-default 'menu-bar-lines (frame-parameters) 'eq 0))
+      (mouse-popup-menubar event prefix)
+    (mouse-major-mode-menu event prefix)))
 
 ;; Commands that operate on windows.
 
@@ -2047,7 +2069,7 @@ and selects that window."
 (if (not (eq system-type 'ms-dos))
     (global-set-key [S-down-mouse-1] 'mouse-set-font))
 ;; C-down-mouse-2 is bound in facemenu.el.
-(global-set-key [C-down-mouse-3] 'mouse-major-mode-menu)
+(global-set-key [C-down-mouse-3] 'mouse-popup-menubar-stuff)
 
 
 ;; Replaced with dragging mouse-1
