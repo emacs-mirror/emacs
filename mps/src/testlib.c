@@ -1,7 +1,7 @@
-/* impl.c.testlib: Test library
+/* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.16) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!testlib.c(trunk.17) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */
@@ -30,6 +30,7 @@ struct itimerspec; /* stop complaints from time.h */
  * Stephen K Park & Keith W Miller (1988). Random number generators:
  * good one are to find.  Communications of the ACM, 31:1192-1201
  */
+
 unsigned long rnd(void)
 {
   static unsigned long seed = 1;
@@ -63,6 +64,7 @@ void randomize(int argc, char **argv)
 
 
 /* die -- Test a return code, and exit on error */
+
 void die(mps_res_t res, const char *s)
 {
   if(res != MPS_RES_OK)
@@ -75,6 +77,7 @@ void die(mps_res_t res, const char *s)
 
 
 /* die_expect -- Test a return code, and exit on unexpected result */
+
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
   if(res != expected)
@@ -89,41 +92,34 @@ void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 /* adjust_collection_freq -- multiply all collection frequencies by
  *                           a given factor
  *
- * If frequencies are adjusted too low, they are corrected so that all are
- * non-zero and larger than the ones for lower generations.
+ * If sizes are adjusted too low, they are corrected so that all are
+ * non-zero and noticeably larger than the ones for lower generations.
  */
 
-#define multFREQ(freq, mult) ((freq) = (unsigned long)((freq) * (mult)))
-#define freqLIMIT 63uL
+#define multSIZE(size, mult) ((size) = (unsigned long)((size) * (mult)))
+#define sizeLIMIT 63uL
 
 void adjust_collection_freq(double multiplier)
 {
-  multFREQ(AMCGen0Frequency, multiplier);
-  if(AMCGen0Frequency < freqLIMIT)
-    AMCGen0Frequency = freqLIMIT;
-  multFREQ(AMCGen1Frequency, multiplier);
-  if(AMCGen1Frequency <= AMCGen0Frequency)
-    AMCGen1Frequency = 2 * AMCGen0Frequency;
-  multFREQ(AMCGen2Frequency, multiplier);
-  if(AMCGen2Frequency <= AMCGen1Frequency)
-    AMCGen2Frequency = 2 * AMCGen1Frequency;
-  multFREQ(AMCGen2plusFrequencyMultiplier, multiplier);
-  if(AMCGen2plusFrequencyMultiplier <= 1)
-    AMCGen2plusFrequencyMultiplier = 2;
-  multFREQ(AMCGen0RampmodeFrequency, multiplier);
-  if(AMCGen0RampmodeFrequency < freqLIMIT)
-    AMCGen0RampmodeFrequency = freqLIMIT;
-  multFREQ(AMCGen1RampmodeFrequency, multiplier);
-  if(AMCGen1RampmodeFrequency <= AMCGen0RampmodeFrequency)
-    AMCGen1RampmodeFrequency = 2 * AMCGen0RampmodeFrequency;
-  multFREQ(AMCRampGenFrequency, multiplier);
-  assert(AMCRampGenFollows == 1);
-  if(AMCRampGenFrequency <= AMCGen1RampmodeFrequency)
-    AMCRampGenFrequency = 2 * AMCGen1RampmodeFrequency;
-  multFREQ(AMCGen2RampmodeFrequency, multiplier);
-  if(AMCGen2RampmodeFrequency <= AMCRampGenFrequency)
-    AMCGen2RampmodeFrequency = AMCRampGenFrequency * 2;
-  multFREQ(AMCGen2plusRampmodeFrequencyMultiplier, multiplier);
-  if(AMCGen2plusRampmodeFrequencyMultiplier <= 1)
-    AMCGen2plusRampmodeFrequencyMultiplier = 2;
+  multSIZE(TraceGen0Size, multiplier);
+  if(TraceGen0Size < sizeLIMIT)
+    TraceGen0Size = sizeLIMIT;
+  multSIZE(TraceGen1Size, multiplier);
+  if(TraceGen1Size <= sizeLIMIT)
+    TraceGen1Size = sizeLIMIT;
+  multSIZE(TraceGen2Size, multiplier);
+  if(TraceGen2Size <= sizeLIMIT)
+    TraceGen2Size = sizeLIMIT;
+  multSIZE(TraceGen0RampmodeSize, multiplier);
+  if(TraceGen0RampmodeSize < sizeLIMIT)
+    TraceGen0RampmodeSize = sizeLIMIT;
+  multSIZE(TraceGen1RampmodeSize, multiplier);
+  if(TraceGen1RampmodeSize <= sizeLIMIT)
+    TraceGen1RampmodeSize = sizeLIMIT;
+  multSIZE(TraceRampGenSize, multiplier);
+  if(TraceRampGenSize <= sizeLIMIT)
+    TraceRampGenSize = sizeLIMIT;
+  multSIZE(TraceGen2RampmodeSize, multiplier);
+  if(TraceGen2RampmodeSize <= sizeLIMIT)
+    TraceGen2RampmodeSize = sizeLIMIT;
 }
