@@ -495,7 +495,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (if purify-flag
 		 (garbage-collect))))
       (setq submap (cdr submap))))
-  (setq define-key-rebound-commands t))
+    (setq define-key-rebound-commands t))
 
 (defun command-line ()
   (setq command-line-default-directory default-directory)
@@ -998,40 +998,51 @@ where FACE is a valid face specification, as it can be used with
   (throw 'exit nil))
 
 
+(defvar fancy-splash-pending-command nil
+  "If non-nil, a command to be executed after the splash screen display.")
+
+(defun fancy-splash-pre-command ()
+  (unless (memq this-command
+		'(ignore fancy-splash-default-action browse-url))
+    (setq fancy-splash-pending-command this-command)
+    (throw 'exit nil)))
+
+
 (defun fancy-splash-screens ()
   "Display fancy splash screens when Emacs starts."
-  (let ((old-buffer (current-buffer)))
-    (setq fancy-splash-help-echo (startup-echo-area-message))
-    (switch-to-buffer "GNU Emacs")
-    (let ((old-local-map (current-local-map))
-	  (old-global-map (current-global-map))
-	  (old-busy-cursor display-busy-cursor)
-	  (splash-buffer (current-buffer))
-	  (show-help-function nil)
-	  (fontification-functions nil)
-	  timer)
-      (unwind-protect
-	  (let ((map (make-sparse-keymap)))
-	    (setq map (nconc map '((t . fancy-splash-default-action))))
-	    (define-key map [mouse-movement] 'ignore)
-	    (define-key map [menu-bar] (lookup-key old-global-map [menu-bar]))
-	    (define-key map [tool-bar] (lookup-key old-global-map [tool-bar]))
-	    (use-global-map map)
-	    (use-local-map nil)
-	    (setq cursor-type nil
-		  display-busy-cursor nil
-		  mode-line-format
-		  (propertize "---- %b %-" 'face '(:weight bold)))
-	    (setq timer (run-with-timer 0 5 #'fancy-splash-screens-1
-					splash-buffer))
-	    (recursive-edit))
-	(use-local-map old-local-map)
-	(use-global-map old-global-map)
-	(cancel-timer timer)
-	(switch-to-buffer old-buffer)
-	(kill-buffer splash-buffer)
-	(erase-buffer)
-	(setq display-busy-cursor old-busy-cursor)))))
+  (setq fancy-splash-help-echo (startup-echo-area-message))
+  (switch-to-buffer "GNU Emacs")
+  (let ((old-global-map (current-global-map))
+	(old-busy-cursor display-busy-cursor)
+	(splash-buffer (current-buffer))
+	;; Don't update menu bindings in the following.  Since
+	;; C-x etc. are not bound in the map installed below,
+	;; there wouldn't be any bindings shown otherwise.
+	(update-menu-bindings nil)
+	timer)
+    (unwind-protect
+	(let ((map (nconc (make-sparse-keymap)
+			  '((t . fancy-splash-default-action))))
+	      (show-help-function nil))
+	  (use-global-map map)
+	  (use-local-map nil)
+	  (define-key map [mouse-movement] 'ignore)
+	  (define-key map [menu-bar] (lookup-key old-global-map [menu-bar]))
+	  (define-key map [tool-bar] (lookup-key old-global-map [tool-bar]))
+	  (setq cursor-type nil
+		display-busy-cursor nil
+		mode-line-format
+		(propertize "---- %b %-" 'face '(:weight bold))
+		timer (run-with-timer 0 5 #'fancy-splash-screens-1
+				      splash-buffer))
+	  (add-hook 'pre-command-hook 'fancy-splash-pre-command)
+	  (recursive-edit))
+      (trace-to-stderr "EXITTT\n")
+      (cancel-timer timer)
+      (remove-hook 'pre-command-hook 'fancy-splash-pre-command)
+      (use-global-map old-global-map)
+      (setq display-busy-cursor old-busy-cursor)
+      (kill-buffer splash-buffer))))
 
 
 (defun startup-echo-area-message ()
@@ -1093,19 +1104,22 @@ where FACE is a valid face specification, as it can be used with
 	     ;; display the startup message; otherwise, the settings
 	     ;; won't take effect until the user gives the first
 	     ;; keystroke, and that's distracting.
-	     (if (fboundp 'frame-notice-user-settings)
-		 (frame-notice-user-settings))
+	     (when (fboundp 'frame-notice-user-settings)
+	       (frame-notice-user-settings))
 
-	     (and window-setup-hook
-		  (run-hooks 'window-setup-hook))
-	     (setq window-setup-hook nil)
+	     (when window-setup-hook
+	       (run-hooks 'window-setup-hook)
+	       (setq window-setup-hook nil))
+	     
+ 	     (when (memq window-system '(x w32))
+ 	       (precompute-menubar-bindings))
+ 	     (setq menubar-bindings-done t)
+	     
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
-	     (when (memq window-system '(x w32))
-	       (precompute-menubar-bindings))
-	     (setq menubar-bindings-done t)
 	     (when (= (buffer-size) 0)
-	       (let ((buffer-undo-list t))
+	       (let ((buffer-undo-list t)
+		     (wait-for-input t))
 		 (unwind-protect
 		     (when (not (input-pending-p))
 		       (goto-char (point-max))
@@ -1116,11 +1130,15 @@ where FACE is a valid face specification, as it can be used with
 		       (if (eq system-type 'gnu/linux)
 			   (insert ", one component of a Linux-based GNU system."))
 		       (insert "\n")
+		       
 		       (if (assq 'display (frame-parameters))
+			   
 			   (if (or (and (display-color-p)
 					(image-type-available-p 'xpm))
 				   (image-type-available-p 'pbm))
-			       (fancy-splash-screens)
+			       (progn
+				 (setq wait-for-input nil)
+				 (fancy-splash-screens))
 			     (progn
 			       (insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
@@ -1139,6 +1157,7 @@ Getting New Versions	How to obtain the latest version of Emacs.
 			       (insert "\n\n" (emacs-version)
 				       "
 Copyright (C) 2000 Free Software Foundation, Inc.")))
+			 
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
 			 (if (and (eq (key-binding "\C-h") 'help-command)
@@ -1219,13 +1238,18 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (goto-char (point-min))
 
 		       (set-buffer-modified-p nil)
-		       (sit-for 120)
-		       )
+		       (when wait-for-input
+			 (sit-for 120)))
+		   
 		   (with-current-buffer (get-buffer "*scratch*")
 		     (erase-buffer)
-		     (and initial-scratch-message
-			  (insert initial-scratch-message))
-		     (set-buffer-modified-p nil)))))))
+		     (when initial-scratch-message
+		       (insert initial-scratch-message))
+		     (set-buffer-modified-p nil))
+
+		   (when fancy-splash-pending-command
+		     (call-interactively fancy-splash-pending-command)))))))
+    
     ;; Delay 2 seconds after the init file error message
     ;; was displayed, so user can read it.
     (if init-file-had-error
