@@ -286,6 +286,12 @@ interactively, the argument @var{interactive-call} is @code{t}, and this
 tells @code{locate-library} to display the file name in the echo area.
 @end deffn
 
+@defvar load-suffixes
+This variable is a list of suffixes (strings) that @code{load} should
+try adding to the specified file name.  The default value is
+@code{(".el" ".elc")}.  There is no need to include the null suffix.
+@end defvar
+
 @node Loading Non-ASCII
 @section Loading Non-@sc{ascii} Characters
 
