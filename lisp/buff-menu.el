@@ -1,8 +1,10 @@
 ;;; buff-menu.el --- buffer menu main function and support functions
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +28,7 @@
 ;; Edit, delete, or change attributes of all currently active Emacs
 ;; buffers from a list summarizing their state.  A good way to browse
 ;; any special or scratch buffers you have loaded, since you can't find
-;; them by filename.  The single entry point is `Buffer-menu-mode',
+;; them by filename.  The single entry point is `list-buffers',
 ;; normally bound to C-x C-b.
 
 ;;; Change Log:
