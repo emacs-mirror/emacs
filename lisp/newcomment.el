@@ -5,7 +5,6 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.47 2002/04/29 23:43:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -240,14 +239,18 @@ This is obsolete because you might as well use \\[newline-and-indent]."
       ;; 	(kill-local-variable 'comment-continue))
       )
     ;; comment-skip regexps
-    (unless comment-start-skip
+    (unless (and comment-start-skip
+		 ;; In case comment-start has changed since last time.
+		 (string-match comment-start-skip comment-start))
       (set (make-local-variable 'comment-start-skip)
 	   (concat "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
 		   ;; Let's not allow any \s- but only [ \t] since \n
 		   ;; might be both a comment-end marker and \s-.
 		   "+\\)[ \t]*")))
-    (unless comment-end-skip
+    (unless (and comment-end-skip
+		 ;; In case comment-end has changed since last time.
+		 (string-match comment-end-skip comment-end))
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
 	(set (make-local-variable 'comment-end-skip)
