@@ -851,7 +851,7 @@ command_loop_1 ()
 
 #if 0
 #ifdef HAVE_X_WINDOWS
-      if (FRAME_IS_X (selected_frame))
+      if (FRAME_X_P (selected_frame))
 	{
 	  if (i == -1)		/* Mouse event */
 	    {
@@ -3210,7 +3210,7 @@ On such systems, Emacs will start a subshell and wait for it to exit.")
      with a window system; but suspend should be disabled in that case.  */
   get_frame_size (&width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (height, width, 0);
+    change_frame_size (0, height, width, 0, 0);
 
   /* Call value of suspend-resume-hook
      if it is bound and value is non-nil.  */
@@ -3313,7 +3313,7 @@ interrupt_signal ()
 
   cancel_echoing ();
 
-  if (!NILP (Vquit_flag) && FRAME_IS_TERMCAP (selected_frame))
+  if (!NILP (Vquit_flag) && FRAME_TERMCAP_P (selected_frame))
     {
       fflush (stdout);
       reset_sys_modes ();
