@@ -633,11 +633,20 @@ There should be no more than seven characters after the final `/'")
       (jka-compr-delete-temp-file local-copy))
 
     t))
+
+(defun jka-compr-byte-compiler-base-file-name (file)
+  (let ((info (jka-compr-get-compression-info file)))
+    (if (and info (jka-compr-info-strip-extension info))
+	(save-match-data
+	  (substring file 0 (string-match (jka-compr-info-regexp info) file)))
+      file)))
 
 (put 'write-region 'jka-compr 'jka-compr-write-region)
 (put 'insert-file-contents 'jka-compr 'jka-compr-insert-file-contents)
 (put 'file-local-copy 'jka-compr 'jka-compr-file-local-copy)
 (put 'load 'jka-compr 'jka-compr-load)
+(put 'byte-compiler-base-file-name 'jka-compr
+     'jka-compr-byte-compiler-base-file-name)
 
 (defun jka-compr-handler (operation &rest args)
   (save-match-data
