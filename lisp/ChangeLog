@@ -1,3 +1,8 @@
+2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: Call menu-bar-enable-clipboard and make Paste
+	use clipboard first.
+
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (outline-insert-heading): Tighten up match.

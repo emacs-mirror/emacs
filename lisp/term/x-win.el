@@ -2385,12 +2385,6 @@ order until succeed.")
 	;; generated from FONT.
 	(create-fontset-from-ascii-font font resolved-name "startup"))))
 
-;; Sun expects the menu bar cut and paste commands to use the clipboard.
-;; This has ,? to match both on Sunos and on Solaris.
-(if (string-match "Sun Microsystems,? Inc\\."
-		  (x-server-vendor))
-    (menu-bar-enable-clipboard))
-
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
 ;; precedence.
@@ -2455,6 +2449,23 @@ order until succeed.")
 
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
+
+;; Enable CLIPBOARD copy/paste through menu bar commands.
+(menu-bar-enable-clipboard)
+
+;; Override Paste so it looks at CLIPBOARD first.
+(defun x-clipboard-yank ()
+  "Insert the clipboard contents, or the last stretch of killed text."
+  (interactive)
+  (let ((clipboard-text (x-get-selection 'CLIPBOARD))
+	(x-select-enable-clipboard t))
+    (if (and clipboard-text (> (length clipboard-text) 0))
+	(kill-new clipboard-text))
+    (yank)))
+
+(define-key menu-bar-edit-menu [paste]
+  (cons "Paste" (cons "Paste text from clipboard or kill ring"
+		      'x-clipboard-yank)))
 
 ;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here
