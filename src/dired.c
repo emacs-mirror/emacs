@@ -239,7 +239,7 @@ Returns nil if DIR contains no name starting with FILE.")
      a directory name and has supplied one ending in a /.
      We would not want to add anything in that case
      even if there are some unique characters in that directory.  */
-  if (XTYPE (file) == Lisp_String && XSTRING (file)->size == 0)
+  if (STRINGP (file) && XSTRING (file)->size == 0)
     return file;
 
   /* If the file name has special constructs in it,
@@ -362,7 +362,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		     CONSP (tem); tem = XCONS (tem)->cdr)
 		  {
 		    elt = XCONS (tem)->car;
-		    if (XTYPE (elt) != Lisp_String) continue;
+		    if (!STRINGP (elt)) continue;
 		    skip = len - XSTRING (elt)->size;
 		    if (skip < 0) continue;
 
