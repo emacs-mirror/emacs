@@ -1,8 +1,8 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.h(trunk.6) $
+ *  $HopeName: MMsrc!testlib.h(trunk.7) $
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  *
  *  This is a library of functions that unit test developers might find
  *  useful.  We hope they enhance your programming pleasure.
@@ -17,6 +17,31 @@
 
 #include "mps.h"
 
+
+/* Suppress Visual C warnings at warning level 4, */
+/* see mail.richard.1997-09-25.13-26. */
+/* Essentially the same settings are done in config.h. */
+
+#ifdef MPS_BUILD_MV
+
+/* "unreferenced inline function has been removed" (windows.h) */
+#pragma warning(disable: 4514)
+
+/* "constant conditional" (MPS_END) */
+#pragma warning(disable: 4127)
+
+/* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
+#ifdef _MSC_VER
+#if _MSC_VER < 1000
+#pragma warning(disable: 4705)
+#endif
+#else /* _MSC_VER */
+#error "Expected _MSC_VER to be defined for builder.mv"
+#endif /* _MSC_VER */
+
+#endif /* MPS_BUILD_MV */
+
+
 /*  == MISC ==  */
 
 /*  == UNUSED ==
@@ -28,17 +53,6 @@
  */
 
 #define testlib_unused(v) ((void)(v))
-
-/* MSVC 2.0 generates a warning when using testlib_unused */
-#ifdef MPS_BUILD_MV
-#ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif /* _MSC_VER < 1000 */
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
-#endif /* MPS_BUILD_MV */
 
 
 /*  == SUCCEED OR DIE ==
