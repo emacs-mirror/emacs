@@ -996,7 +996,8 @@ casefiddle.o: casefiddle.c syntax.h commands.h buffer.h composite.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
 category.o: category.c category.h buffer.h charset.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
-charset.o: charset.c charset.h buffer.h coding.h disptab.h $(config_h)
+charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
+	$(config_h)
 coding.o: coding.c coding.h ccl.h buffer.h charset.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
