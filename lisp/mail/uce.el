@@ -114,18 +114,21 @@
 ;; RMAIL are only evaluated if we have received a message with RMAIL...
 ;;(require 'rmail) 
 
-(defvar uce-mail-reader 'rmail
-  "A symbol indicating which mail reader you are using.
-Choose from: gnus, rmail.")
-
 (defgroup uce nil
   "Facilitate reply to unsolicited commercial email."
   :prefix "uce-"
   :group 'mail)
 
+(defcustom uce-mail-reader 'rmail
+  "A symbol indicating which mail reader you are using.
+Choose from: `gnus', `rmail'."
+  :type '(choice (const gnus) (const rmail))
+  :version "20.3"
+  :group 'uce)
+
 (defcustom uce-setup-hook nil
   "Hook to run after UCE rant message is composed.
-This hook is run after mail-setup-hook, which is run as well."
+This hook is run after `mail-setup-hook', which is run as well."
   :type 'hook
   :group 'uce)
 
@@ -166,7 +169,7 @@ using your sendmail at this moment of time.
 
 Thank you."
 
-  "This is the text that uce-reply-to-uce command will put in reply buffer.
+  "This is the text that `uce-reply-to-uce' command will put in reply buffer.
 Some of spamming programs in use will be set up to read all incoming
 to spam address email, and will remove people who put the word `remove'
 on beginning of some line from the spamming list.  So, when you set it
@@ -185,7 +188,7 @@ Value nil means use no separator."
 
 (defcustom uce-signature mail-signature
 "Text to put as your signature after the note to UCE sender.  
-Value nil means none, t means insert ~/.signature file (if it happens
+Value nil means none, t means insert `~/.signature' file (if it happens
 to exist), if this variable is a string this string will be inserted
 as your signature."
   :type '(choice (const nil) (const t) string)
