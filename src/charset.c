@@ -1361,19 +1361,26 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
   unsigned char *buf = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH * n);
   unsigned char *p = buf;
   Lisp_Object val;
-  int c;
+  int c, multibyte_p = 0;
 
   for (i = 0; i < n; i++)
     {
-      if (!INTEGERP (args[i]))
-	CHECK_NUMBER (args[i], 0);
+      CHECK_NUMBER (args[i], 0);
       c = XINT (args[i]);
       p += CHAR_STRING (c, p);
+
+      if (!SINGLE_BYTE_CHAR_P (c))
+	multibyte_p = 1;
     }
 
   /* Here, we can't use make_string_from_bytes because of byte
-     combining problem.  */
-  val = make_string (buf, p - buf);
+     combining problem.  Make a multibyte string if there is any
+     multibyte character in ARGS to make sure that `(insert 2276)'
+     returns a multibyte string if running --unibyte.  */
+  if (multibyte_p)
+    val = make_multibyte_string (buf, n, p - buf);
+  else
+    val = make_unibyte_string (buf, p - buf);
   return val;
 }
 
