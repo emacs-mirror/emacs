@@ -1,3 +1,16 @@
+2002-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ediff-init.el (ediff-current-diff-face-A) 
+	(ediff-current-diff-face-B, ediff-current-diff-face-C) 
+	(ediff-current-diff-face-Ancestor, ediff-fine-diff-face-A) 
+	(ediff-fine-diff-face-B, ediff-fine-diff-face-C) 
+	(ediff-fine-diff-face-Ancestor, ediff-even-diff-face-A) 
+	(ediff-even-diff-face-B, ediff-even-diff-face-C) 
+	(ediff-even-diff-face-Ancestor, ediff-odd-diff-face-A) 
+	(ediff-odd-diff-face-B, ediff-odd-diff-face-C) 
+	(ediff-odd-diff-face-Ancestor): Add special color definitions for
+	tty and MS-DOS displays.
+
 2002-04-15  Andrew Innes  <andrewi@gnu.org>
 
 	* facemenu.el: Require wid-edit.
