@@ -36,6 +36,7 @@
 
 ;; This is now ISO/IEC 8859-8:1999.    As of 1999-05, there was a `final
 ;; proof' at <URL:http://www.indigo.ie/egt/standards/iso8859/8859-14-en.pdf>.
+;; See also <URL:http://www.itscj.ipsj.or.jp/ISO-IR/199.pdf>.
 
 ;;; Code:
 
