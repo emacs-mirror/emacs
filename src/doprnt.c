@@ -126,6 +126,16 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'x':
 	      if (cnt == nargs)
 		error ("not enough arguments for format string");
+	      if (sizeof (int) == sizeof (EMACS_INT))
+		;
+	      else if (sizeof (long) == sizeof (EMACS_INT))
+		/* Insert an `l' the right place.  */
+		string[1] = string[0],
+		string[0] = string[-1],
+		string[-1] = 'l',
+		string++;
+	      else
+		abort ();
 	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
 	      /* Now copy into final output, truncating as nec.  */
 	      string = sprintf_buffer;
