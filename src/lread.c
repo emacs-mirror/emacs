@@ -368,8 +368,8 @@ Print messages at start and end of loading unless\n\
 If optional fourth arg NOSUFFIX is non-nil, don't try adding\n\
  suffixes `.elc' or `.el' to the specified name FILE.\n\
 Return t if file exists.")
-  (str, noerror, nomessage, nosuffix)
-     Lisp_Object str, noerror, nomessage, nosuffix;
+  (file, noerror, nomessage, nosuffix)
+     Lisp_Object file, noerror, nomessage, nosuffix;
 {
   register FILE *stream;
   register int fd = -1;
@@ -385,24 +385,24 @@ Return t if file exists.")
   char *dosmode = "rt";
 #endif /* DOS_NT */
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (file, 0);
 
   /* If file name is magic, call the handler.  */
-  handler = Ffind_file_name_handler (str, Qload);
+  handler = Ffind_file_name_handler (file, Qload);
   if (!NILP (handler))
-    return call5 (handler, Qload, str, noerror, nomessage, nosuffix);
+    return call5 (handler, Qload, file, noerror, nomessage, nosuffix);
 
   /* Do this after the handler to avoid
      the need to gcpro noerror, nomessage and nosuffix.
      (Below here, we care only whether they are nil or not.)  */
-  str = Fsubstitute_in_file_name (str);
+  file = Fsubstitute_in_file_name (file);
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
-  if (XSTRING (str)->size > 0)
+  if (XSTRING (file)->size > 0)
     {
-      GCPRO1 (str);
-      fd = openp (Vload_path, str, !NILP (nosuffix) ? "" : ".elc:.el:",
+      GCPRO1 (file);
+      fd = openp (Vload_path, file, !NILP (nosuffix) ? "" : ".elc:.el:",
 		  &found, 0);
       UNGCPRO;
     }
@@ -412,7 +412,7 @@ Return t if file exists.")
       if (NILP (noerror))
 	while (1)
 	  Fsignal (Qfile_error, Fcons (build_string ("Cannot open load file"),
-				       Fcons (str, Qnil)));
+				       Fcons (file, Qnil)));
       else
 	return Qnil;
     }
@@ -449,13 +449,13 @@ Return t if file exists.")
   if (stream == 0)
     {
       close (fd);
-      error ("Failure to create stdio stream for %s", XSTRING (str)->data);
+      error ("Failure to create stdio stream for %s", XSTRING (file)->data);
     }
 
   if (NILP (nomessage) && !nomessage1)
-    message ("Loading %s...", XSTRING (str)->data);
+    message ("Loading %s...", XSTRING (file)->data);
 
-  GCPRO1 (str);
+  GCPRO1 (file);
   lispstream = Fcons (Qnil, Qnil);
   XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
   XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
@@ -465,11 +465,11 @@ Return t if file exists.")
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
-  readevalloop (Qget_file_char, stream, str, Feval, 0);
+  readevalloop (Qget_file_char, stream, file, Feval, 0);
   unbind_to (count, Qnil);
 
   /* Run any load-hooks for this file.  */
-  temp = Fassoc (str, Vafter_load_alist);
+  temp = Fassoc (file, Vafter_load_alist);
   if (!NILP (temp))
     Fprogn (Fcdr (temp));
   UNGCPRO;
@@ -480,7 +480,7 @@ Return t if file exists.")
   saved_doc_string_size = 0;
 
   if (!noninteractive && NILP (nomessage))
-    message ("Loading %s...done", XSTRING (str)->data);
+    message ("Loading %s...done", XSTRING (file)->data);
   return Qt;
 }
 
