@@ -2219,6 +2219,7 @@ args of an executive .run, .rnew or .compile."
     (looking-at "\\$")))
 
 ;; Debugging Commands ------------------------------------------------------
+(defvar idlwave-shell-electric-debug-mode) ; defined by easy-mmode
 
 (defun idlwave-shell-redisplay (&optional hide)
   "Tries to resync the display with where execution has stopped.
@@ -4091,7 +4092,6 @@ Otherwise, just expand the file name."
     (setq idlwave-shell-suppress-electric-debug nil))
   (idlwave-shell-electric-debug-mode))
 
-(defvar idlwave-shell-electric-debug-mode) ; defined by easy-mmode
 (defvar idlwave-shell-electric-debug-read-only) 
 (defvar idlwave-shell-electric-debug-buffers nil)
 
