@@ -46,7 +46,7 @@ extern void safe_bcopy ();
 extern int mallopt ();
 #else /* not DOUG_LEA_MALLOC */
 #ifndef SYSTEM_MALLOC
-extern int __malloc_extra_blocks;
+extern size_t __malloc_extra_blocks;
 #endif /* SYSTEM_MALLOC */
 #endif /* not DOUG_LEA_MALLOC */
 
