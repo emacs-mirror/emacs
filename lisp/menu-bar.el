@@ -227,7 +227,8 @@ turn off menu bars; otherwise, turn on menu bars."
       (setq frames (cdr frames)))))
 
 ;; Make frames created from now on have a menu bar.
-(menu-bar-mode t)
+(if window-system
+    (menu-bar-mode t))
 
 (provide 'menu-bar)
 
