@@ -120,7 +120,8 @@ cus-load.el:
 	touch $@
 custom-deps: cus-load.el doit
 	@echo Directories: $(WINS)
-	$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
+	set EMACSLOADPATH=$(lisp)
+	-$(SETLOADPATH) $(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
 finder-inf.el:
 	echo (provide $(SQUOTE)finder-inf)>> $@
