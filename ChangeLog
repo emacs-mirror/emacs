@@ -1,3 +1,7 @@
+2001-01-24  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* Makefile.in (tags): Fix typo.
+
 2001-01-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* configure.in: Fix typo in the code setting x_search_path.

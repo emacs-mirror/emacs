@@ -1,5 +1,9 @@
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (echo_area_display): Don't call redisplay_internal
+	when Emacs is shutting down.  We can't run hooks etc. that
+	would be necessary to do a redisplay.
+
 	* lread.c (read_integer): Use type EMACS_INT instead of int.
 
 2001-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
