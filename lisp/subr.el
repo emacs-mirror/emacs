@@ -35,6 +35,8 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 
 ;;;; Lisp language features.
 
+(defalias 'not 'null)
+
 (defmacro lambda (&rest cdr)
   "Return a lambda expression.
 A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
@@ -664,7 +666,6 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
 (defalias 'move-marker 'set-marker)
-(defalias 'not 'null)
 (defalias 'rplaca 'setcar)
 (defalias 'rplacd 'setcdr)
 (defalias 'beep 'ding) ;preserve lingual purity
@@ -1204,6 +1205,13 @@ See also `with-temp-file' and `with-output-to-string'."
 	   (buffer-string)
 	 (kill-buffer nil)))))
 
+(defmacro with-local-quit (&rest body)
+  "Execute BODY with `inhibit-quit' temporarily bound to nil."
+  `(condition-case nil
+       (let ((inhibit-quit nil))
+	 ,@body)
+     (quit (setq quit-flag t))))
+
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
 If BODY makes changes in the buffer, they are recorded
@@ -1445,14 +1453,11 @@ and replace a sub-expression, e.g.
 
 (defun make-syntax-table (&optional oldtable)
   "Return a new syntax table.
-If OLDTABLE is non-nil, copy OLDTABLE.
-Otherwise, create a syntax table which inherits from the
-`standard-syntax-table'."
-  (if oldtable
-      (copy-syntax-table oldtable)
-    (let ((table (make-char-table 'syntax-table nil)))
-      (set-char-table-parent table (standard-syntax-table))
-      table)))
+Create a syntax table which inherits from OLDTABLE (if non-nil) or
+from `standard-syntax-table' otherwise."
+  (let ((table (make-char-table 'syntax-table nil)))
+    (set-char-table-parent table (or oldtable (standard-syntax-table)))
+    table))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.
@@ -1528,10 +1533,12 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil if OBJECT is a type of object that can be called as a function."
-  (or (subrp object) (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)
-      (and (symbolp object) (fboundp object))))
+  "Non-nil iff OBJECT is a type of object that can be called as a function."
+  (or (and (symbolp object) (setq object (indirect-function object))
+	   (eq (car-safe object) 'autoload)
+	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
+      (subrp object) (byte-code-function-p object)
+      (eq (car-safe object) 'lambda)))
 
 (defun interactive-form (function)
   "Return the interactive form of FUNCTION.
