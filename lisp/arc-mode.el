@@ -789,8 +789,8 @@ using `make-temp-file', and the generated name is returned."
     (if (or alien (file-exists-p fullname))
 	(make-temp-file
 	 (expand-file-name
-	  (if (and (fboundp 'msdos-long-file-names)
-		   (not (msdos-long-file-names)))
+	  (if (if (fboundp 'msdos-long-file-names)
+		  (not (msdos-long-file-names)))
 	      "am"
 	    "arc-mode.")
 	  dir))
@@ -1386,7 +1386,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (defun archive-arc-rename-entry (archive newname descr)
   (if (string-match "[:\\\\/]" newname)
-      (error "File names in arc files may not contain a path"))
+      (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
   (let ((name (concat newname (substring "\0\0\0\0\0\0\0\0\0\0\0\0\0"
@@ -1426,7 +1426,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (width (string-width ifnname))
 	     (p2      (+ p 22 fnlen))
 	     (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	     mode modestr uid gid text path prname
+	     mode modestr uid gid text dir prname
 	     )
 	(if (= hdrlvl 0)
 	    (setq mode    (if (= creator ?U) (archive-l-e (+ p2 8) 2) ?\666)
@@ -1440,7 +1440,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		  (cond
 		   ((= etype 2) (let ((i (+ p3 3)))
 				  (while (< i (+ p3 hsize))
-				    (setq path (concat path
+				    (setq dir (concat dir
 						       (if (= (char-after i)
 							      255)
 							   "/"
@@ -1454,7 +1454,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		  (setq p3 (+ p3 hsize))
 		  (setq hsize (archive-l-e p3 2))
 		  (setq etype (char-after (+ p3 2)))))))
-	(setq prname (if path (concat path ifnname) ifnname))
+	(setq prname (if dir (concat dir ifnname) ifnname))
 	(setq modestr (if mode (archive-int-to-mode mode) "??????????"))
 	(setq text    (if archive-alternate-display
 			  (format "  %8d  %5S  %5S  %s"
