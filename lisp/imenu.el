@@ -132,7 +132,7 @@ The function should take two arguments and return t if the first
 element should come before the second.  The arguments are cons cells;
 \(NAME . POSITION).  Look at `imenu--sort-by-name' for an example."
   :type '(choice (const :tag "No sorting" nil)
-		 (const :tag "Sort by name" 'imenu--sort-by-name)
+		 (const :tag "Sort by name" imenu--sort-by-name)
 		 (function :tag "Another function"))
   :group 'imenu)
 
