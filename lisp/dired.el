@@ -1387,7 +1387,7 @@ invokes SHELL-COMMAND to view the file, putting the file name
 at the end of the command."
   :group 'dired
   :type '(alist :key-type regexp :value-type string)
-  :version 21.4)
+  :version "21.4")
 
 (defun dired-view-file ()
   "In Dired, examine a file in view mode, returning to dired when done.
