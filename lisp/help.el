@@ -749,7 +749,7 @@ It can also be nil, if the definition is not associated with any file."
       (if doc
 	  (progn (terpri)
 		 (princ doc)
-		 (if (subrp (symbol-function function))
+		 (if (subrp def)
 		     (with-current-buffer standard-output
 		       (beginning-of-line)
 		       ;; Builtins get the calling sequence at the end of
