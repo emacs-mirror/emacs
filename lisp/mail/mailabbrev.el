@@ -30,7 +30,7 @@
 ;; This file ensures that, when the point is in a To:, CC:, BCC:, or From:
 ;; field, word-abbrevs are defined for each of your mail aliases.  These
 ;; aliases will be defined from your .mailrc file (or the file specified by
-;; the MAILRC environment variable) if it exists.  Your mail aliases will
+;; `mail-personal-alias-file') if it exists.  Your mail aliases will
 ;; expand any time you type a word-delimiter at the end of an abbreviation.
 ;;
 ;; What you see is what you get: if mailabbrev is in use when you type
