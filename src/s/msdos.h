@@ -112,6 +112,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define BSTRING
 
+/* Define this is the compiler understands `volatile'.  */
+#define HAVE_VOLATILE
+
+
 /* subprocesses should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
