@@ -1941,14 +1941,6 @@ adjust_frame_glyphs (f)
   adjust_decode_mode_spec_buffer (f);
 
   f->glyphs_initialized_p = 1;
-
-  /* If mini-window is resized, make it not restore its saved window
-     configuration.  This function being called indicates that the
-     current window configuration is being changed.  These changes
-     would be undone if resize_mini_window would restore its saved
-     configuration.  */
-  if (f == resize_mini_frame)
-    Vresize_mini_config = Qnil;
 }
 
 
