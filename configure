@@ -9166,7 +9166,8 @@ fi
 fi
 
 if test "${HAVE_CARBON}" = "yes"; then
-  cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_CARBON 1
 _ACEOF
 

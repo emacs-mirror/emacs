@@ -1,3 +1,9 @@
+2002-04-30  Andrew Choi  <akochoi@shaw.ca>
+
+	* configure.in: Provide documentation string when defining
+	variable HAVE_CARBON.  Also define HAVE_WINDOW_SYSTEM, HAVE_MOUSE,
+	and HAVE_MENUS in AH_BOTTOM if HAVE_CARBON is defined.
+
 2002-04-28  Colin Walters  <walters@verbum.org>
 
 	* configure.in: Delete configure check for access to the game

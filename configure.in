@@ -1994,7 +1994,7 @@ if test "${with_carbon}" != "no"; then
 fi
 
 if test "${HAVE_CARBON}" = "yes"; then
-  AC_DEFINE(HAVE_CARBON)
+  AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
 fi
 
 ### Use session management (-lSM -lICE) if available
@@ -2408,6 +2408,14 @@ AH_BOTTOM([
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
+#endif
+
+/* If we're using the Carbon API on Mac OS X, define a few more
+   variables as well.  */
+#ifdef HAVE_CARBON
+#define HAVE_WINDOW_SYSTEM
+#define HAVE_MOUSE
+#define HAVE_MENUS
 #endif
 
 /* Define USER_FULL_NAME to return a string
