@@ -198,41 +198,121 @@ scan_file (filename)
 
 char buf[128];
 
-/* Add CH to either outfile, if PRINTFLAG is positive, or to the buffer
-   whose end is pointed to by BUFP, if PRINTFLAG is negative.
-   If the counters pointed to by PENDING_NEWLINES and PENDING_SPACES are
-   non-zero, that many newlines and spaces are output before CH, and
-   the counters are zeroed.  */
+/* Some state during the execution of `read_c_string_or_comment'.  */
+struct rcsoc_state
+{
+  /* A count of spaces and newlines that have been read, but not output. */
+  unsigned pending_spaces, pending_newlines;
+
+  /* Where we're reading from.  */
+  FILE *in_file;
+
+  /* If non-zero, a buffer into which to copy characters.  */
+  char *buf_ptr;
+  /* If non-zero, a file into which to copy characters.  */
+  FILE *out_file;
+
+  /* A keyword we look for at the beginning of lines.  If found, it is
+     not copied, and SAW_KEYWORD is set to true.  */
+  char *keyword;
+  /* The current point we've reached in an occurance of KEYWORD in
+     the input stream.  */
+  char *cur_keyword_ptr;
+  /* Set to true if we saw an occurance of KEYWORD.  */
+  int saw_keyword;
+};
+
+/* Output CH to the file or buffer in STATE.  Any pending newlines or
+   spaces are output first.  */
 
 static INLINE void
-put_char (ch, printflag, bufp, pending_newlines, pending_spaces)
-     int ch, printflag;
-     char **bufp;
-     unsigned *pending_newlines, *pending_spaces;
+put_char (ch, state)
+     int ch;
+     struct rcsoc_state *state;
 {
   int out_ch;
   do
     {
-      if (*pending_newlines > 0)
+      if (state->pending_newlines > 0)
 	{
-	  (*pending_newlines)--;
+	  state->pending_newlines--;
 	  out_ch = '\n';
 	}
-      else if (*pending_spaces > 0)
+      else if (state->pending_spaces > 0)
 	{
-	  (*pending_spaces)--;
+	  state->pending_spaces--;
 	  out_ch = ' ';
 	}
       else
 	out_ch = ch;
 
-      if (printflag > 0)
-	putc (out_ch, outfile);
-      else if (printflag < 0)
-	*(*bufp)++ = out_ch;
+      if (state->out_file)
+	putc (out_ch, state->out_file);
+      if (state->buf_ptr)
+	*state->buf_ptr++ = out_ch;
     }
   while (out_ch != ch);
 }
+
+/* If in the middle of scanning a keyword, continue scanning with
+   character CH, otherwise output CH to the file or buffer in STATE.
+   Any pending newlines or spaces are output first, as well as any
+   previously scanned characters that were thought to be part of a
+   keyword, but were in fact not.  */
+
+static void
+scan_keyword_or_put_char (ch, state)
+     int ch;
+     struct rcsoc_state *state;
+{
+  if (state->keyword
+      && *state->cur_keyword_ptr == ch
+      && (state->cur_keyword_ptr > state->keyword
+	  || state->pending_newlines > 0))
+    /* We might be looking at STATE->keyword at some point.
+       Keep looking until we know for sure.  */
+    {
+      if (*++state->cur_keyword_ptr == '\0')
+	/* Saw the whole keyword.  Set SAW_KEYWORD flag to true.  */
+	{
+	  state->saw_keyword = 1;
+
+	  /* Reset the scanning pointer.  */
+	  state->cur_keyword_ptr = state->keyword;
+
+	  /* Canonicalize whitespace preceding a usage string. */
+	  state->pending_newlines = 2;
+	  state->pending_spaces = 0;
+
+	  /* Skip any whitespace between the keyword and the
+	     usage string.  */
+	  do
+	    ch = getc (state->in_file);
+	  while (ch == ' ' || ch == '\n');
+
+	  /* Put back the non-whitespace character.  */
+	  ungetc (ch, state->in_file);
+	}
+    }
+  else
+    {
+      if (state->keyword && state->cur_keyword_ptr > state->keyword)
+	/* We scanned the beginning of a potential usage
+	   keyword, but it was a false alarm.  Output the
+	   part we scanned.  */
+	{
+	  char *p;
+
+	  for (p = state->keyword; p < state->cur_keyword_ptr; p++)
+	    put_char (*p, state);
+
+	  state->cur_keyword_ptr = state->keyword;
+	}
+
+      put_char (ch, state);
+    }
+}
+
 
 /* Skip a C string or C-style comment from INFILE, and return the
    character that follows.  COMMENT non-zero means skip a comment.  If
@@ -250,26 +330,21 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
      int *saw_usage;
 {
   register int c;
-  unsigned pending_spaces = 0, pending_newlines = 0;
-  char *p = buf;
-  /* When this keyword occurs at the beginning of a line, we remove it,
-     and set *SAW_USAGE to true.  */
-  static char usage_keyword[] = "usage:";
-  /* The current point we've reached in an occurance of USAGE_KEYWORD in
-     the input stream.  */
-  char *cur_usage_ptr = usage_keyword;
+  struct rcsoc_state state;
 
+  state.in_file = infile;
+  state.buf_ptr = (printflag < 0 ? buf : 0);
+  state.out_file = (printflag > 0 ? outfile : 0);
+  state.pending_spaces = 0;
+  state.pending_newlines = 0;
+  state.keyword = (saw_usage ? "usage:" : 0);
+  state.cur_keyword_ptr = state.keyword;
+  state.saw_keyword = 0;
+
+  c = getc (infile);
   if (comment)
-    {
-      while ((c = getc (infile)) != EOF
-	     && (c == '\n' || c == '\r' || c == '\t' || c == ' '))
-	;
-    }
-  else
-    c = getc (infile);
-  
-  if (saw_usage)
-    *saw_usage = 0;
+    while (c == '\n' || c == '\r' || c == '\t' || c == ' ')
+      c = getc (infile);
 
   while (c != EOF)
     {
@@ -290,59 +365,14 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
 	    }
 	  
 	  if (c == ' ')
-	    pending_spaces++;
+	    state.pending_spaces++;
 	  else if (c == '\n')
 	    {
-	      pending_newlines++;
-	      pending_spaces = 0;
+	      state.pending_newlines++;
+	      state.pending_spaces = 0;
 	    }
 	  else
-	    {
-	      if (saw_usage
-		  && *cur_usage_ptr == c
-		  && (cur_usage_ptr > usage_keyword || pending_newlines > 0))
-		/* We might be looking at USAGE_KEYWORD at some point.
-		   Keep looking until we know for sure.  */
-		{
-		  if (*++cur_usage_ptr == '\0')
-		    /* Saw the whole keyword.  Set *SAW_USAGE to true.  */
-		    {
-		      *saw_usage = 1;
-
-		      /* Reset the scanning pointer.  */
-		      cur_usage_ptr = usage_keyword;
-
-		      /* Canonicalize whitespace preceding a usage string. */
-		      pending_newlines = 2;
-		      pending_spaces = 0;
-
-		      /* Skip any whitespace between the keyword and the
-			 usage string.  */
-		      do
-			c = getc (infile);
-		      while (c == ' ' || c == '\n');
-
-		      continue;	/* This just skips the getc at end-of-loop. */
-		    }
-		}
-	      else
-		{
-		  if (cur_usage_ptr > usage_keyword)
-		    /* We scanned the beginning of a potential usage
-		       keyword, but it was a false alarm.  Output the
-		       part we scanned.  */
-		    {
-		      char *p;
-		      for (p = usage_keyword; p < cur_usage_ptr; p++)
-			put_char (*p, printflag, &p,
-				  &pending_newlines, &pending_spaces);
-		      cur_usage_ptr = usage_keyword;
-		    }
-
-		  put_char (c, printflag, &p,
-			    &pending_newlines, &pending_spaces);
-		}
-	    }
+	    scan_keyword_or_put_char (c, &state);
 
 	  c = getc (infile);
 	}
@@ -358,7 +388,7 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
 	      break;
 	    }
 	  
-	  put_char ('*', printflag, &p, &pending_newlines, &pending_spaces);
+	  scan_keyword_or_put_char ('*', &state);
 	}
       else
 	{
@@ -371,7 +401,10 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
     }
   
   if (printflag < 0)
-    *p = 0;
+    *state.buf_ptr = 0;
+
+  if (saw_usage)
+    *saw_usage = state.saw_keyword;
 
   return c;
 }
