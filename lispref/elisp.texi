@@ -184,6 +184,7 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 
 Appendices
 
+* Antinews::                Info for users downgrading to Emacs 20.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
@@ -953,9 +954,9 @@ Object Internals
 @include abbrevs.texi
 @include processes.texi
 
-@include os.texi
 @include display.texi
 @include calendar.texi
+@include os.texi
 
 @c MOVE to Emacs Manual:  include misc-modes.texi
 

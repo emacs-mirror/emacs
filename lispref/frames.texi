@@ -1485,7 +1485,7 @@ or @code{(@var{name} @var{number})}.  Here, @var{name} is the color
 name, @var{number} is the number used to specify it to the terminal.
 If present, @var{rgb} is an rgb value that says what the color
 actually looks like.
-@end defun
+@end defvar
 
 @defun tty-color-approximate rgb
 @tindex tty-color-approximate

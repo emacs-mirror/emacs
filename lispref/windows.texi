@@ -272,7 +272,7 @@ You could define a simplified version of the function like this:
 (defun split-window-horizontally (&optional arg)
   "Split selected window into two windows, side by side..."
   (interactive "P")
-@endgroup
+@end group
 @group
   (let ((size (and arg (prefix-numeric-value arg))))
     (and size (< size 0)

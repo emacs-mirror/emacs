@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
-@node System Interface, Tips, Calendar, Top
+@node System Interface, Antinews, Calendar, Top
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to

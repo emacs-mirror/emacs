@@ -1352,7 +1352,7 @@ The default value of @code{default-mode-line-format} is this list:
 @group
  "   %[("
  ;; @r{@code{mode-line-mode-name} is a function}
- ;; @r{that copies the mode name and adds text
+ ;; @r{that copies the mode name and adds text}
  ;; @r{properties to make it mouse-sensitive.}
  (:eval (mode-line-mode-name))
  mode-line-process

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
-@node Tips, GNU Emacs Internals, System Interface, Top
+@node Tips, GNU Emacs Internals, Antinews, Top
 @appendix Tips and Conventions
 @cindex tips
 @cindex standards of coding style
@@ -295,7 +295,7 @@ Try to avoid compiler warnings about undefined free variables, by adding
 
 Sometimes adding a @code{require} for another package is useful to avoid
 compilation warnings for variables and functions defined in that
-package.  If you do this, often it is better if the @cpde{require} acts
+package.  If you do this, often it is better if the @code{require} acts
 only at compile time.  Here's how to do that:
 
 @example
