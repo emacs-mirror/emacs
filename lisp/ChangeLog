@@ -1,3 +1,15 @@
+2002-03-19  pmr-sav  <pmr-sav@hamm.pajato.com>
+
+	* mail-utils.el (rmail-dont-reply-to):
+	Overhaul to correctly apply the regular
+	expressions in the variable `rmail-dont-reply-to-names' to the list of
+	destination addresses.  Contributed by lorentey@elte.hu.
+
+	* rmail.el (rmail-dont-reply-to-names):
+	Modify the documentation to make it email
+	address centric rather than login name centric.  Contributed by
+	lorentey@elte.hu.
+
 2002-03-18  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Remove `find-if' so
