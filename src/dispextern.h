@@ -1482,6 +1482,50 @@ extern int face_change_count;
 
 
 /***********************************************************************
+			       Fringes
+ ***********************************************************************/
+
+enum fringe_bitmap_type
+{
+  NO_FRINGE_BITMAP = 0,
+  LEFT_TRUNCATION_BITMAP,
+  RIGHT_TRUNCATION_BITMAP,
+  CONTINUED_LINE_BITMAP,
+  CONTINUATION_LINE_BITMAP,
+  OVERLAY_ARROW_BITMAP,
+  ZV_LINE_BITMAP,
+  MAX_FRINGE_BITMAPS
+};
+
+struct fringe_bitmap
+{
+  int width;
+  int height;
+  int period;
+  unsigned char *bits;
+};
+
+/* Structure used to describe where and how to draw a fringe bitmap.
+   WHICH is the fringe bitmap to draw.  WD and H is the (adjusted)
+   width and height of the bitmap, DH is the height adjustment (if
+   bitmap is periodic).  X and Y are frame coordinates of the area to
+   display the bitmap, DY is relative offset of the bitmap into that
+   area.  BX, NX, BY, NY specifies the area to clear if the bitmap 
+   does not fill the entire area.  FACE is the fringe face.  */
+
+struct draw_fringe_bitmap_params
+{
+  enum fringe_bitmap_type which;
+  int wd, h, dh;
+  int x, y;
+  int bx, nx, by, ny;
+  struct face *face;
+};
+
+extern struct fringe_bitmap fringe_bitmaps[MAX_FRINGE_BITMAPS];
+
+
+/***********************************************************************
 			    Display Iterator
  ***********************************************************************/
 
@@ -1977,6 +2021,11 @@ struct redisplay_interface
      desired rows have been made current.  */
   void (*fix_overlapping_area) P_ ((struct window *w, struct glyph_row *row,
 				    enum glyph_row_area area));
+
+  /* Draw a fringe bitmap in window W of row ROW using parameters P.  */
+  void (*draw_fringe_bitmap) P_ ((struct window *w, struct glyph_row *row,
+				  struct draw_fringe_bitmap_params *p));
+
 };
 
 /* The current interface for window-based redisplay.  */
@@ -2283,6 +2332,8 @@ int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
+void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
+void compute_fringe_widths P_ ((struct frame *, int));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
