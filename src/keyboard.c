@@ -453,9 +453,10 @@ int meta_key;
 extern char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
+
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
 
-/* Vector to GCPRO the frames and windows mentioned in kbd_buffer.
+/* Vector to GCPRO the Lisp objects referenced from kbd_buffer.
 
    The interrupt-level event handlers will never enqueue an event on a
    frame which is not in Vframe_list, and once an event is dequeued,
@@ -474,14 +475,16 @@ static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
    Similar things happen when an event on a scroll bar is enqueued; the
    window may be deleted while the event is in the queue.
 
-   So, we use this vector to protect the frame_or_window field in the
-   event queue.  That way, they'll be dequeued as dead frames or
-   windows, but still valid lisp objects.
+   So, we use this vector to protect the Lisp_Objects in the event
+   queue.  That way, they'll be dequeued as dead frames or windows,
+   but still valid Lisp objects.
 
    If kbd_buffer[i].kind != no_event, then
-     (XVECTOR (kbd_buffer_frame_or_window)->contents[i]
-      == kbd_buffer[i].frame_or_window.  */
-static Lisp_Object kbd_buffer_frame_or_window;
+
+   AREF (kbd_buffer_gcpro, 2 * i) == kbd_buffer[i].frame_or_window.
+   AREF (kbd_buffer_gcpro, 2 * i + 1) == kbd_buffer[i].arg.  */
+
+static Lisp_Object kbd_buffer_gcpro;
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
@@ -620,9 +623,11 @@ int flow_control;
    point to the boundary of the region.  But, if a command sets this
    valiable to non-nil, we suppress this point adjustment.  This
    variable is set to nil before reading a command.  */
+
 Lisp_Object Vdisable_point_adjustment;
 
 /* If non-nil, always disable point adjustment.  */
+
 Lisp_Object Vglobal_disable_point_adjustment;
 
 
@@ -3030,6 +3035,7 @@ kbd_buffer_store_event (event)
 		    {
 		      sp->kind = no_event;
 		      sp->frame_or_window = Qnil;
+		      sp->arg = Qnil;
 		    }
 		}
 	      return;
@@ -3077,6 +3083,11 @@ kbd_buffer_store_event (event)
      Discard the event if it would fill the last slot.  */
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
+      int idx;
+      
+#if 0 /* The selection_request_event case looks bogus, and it's error
+	 prone to assign individual members for other events, in case
+	 the input_event structure is changed.  --2000-07-13, gerd.  */
       struct input_event *sp = kbd_store_ptr;
       sp->kind = event->kind;
       if (event->kind == selection_request_event)
@@ -3087,20 +3098,25 @@ kbd_buffer_store_event (event)
 	  bcopy (event, (char *) sp, sizeof (*event));
 	}
       else
+
 	{
 	  sp->code = event->code;
 	  sp->part = event->part;
 	  sp->frame_or_window = event->frame_or_window;
+	  sp->arg = event->arg;
 	  sp->modifiers = event->modifiers;
 	  sp->x = event->x;
 	  sp->y = event->y;
 	  sp->timestamp = event->timestamp;
 	}
-      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_store_ptr
-						      - kbd_buffer]
-       = event->frame_or_window);
+#else
+      *kbd_store_ptr = *event;
+#endif
 
-      kbd_store_ptr++;
+      idx = 2 * (kbd_store_ptr - kbd_buffer);
+      ASET (kbd_buffer_gcpro, idx, event->frame_or_window);
+      ASET (kbd_buffer_gcpro, idx + 1, event->arg);
+      ++kbd_store_ptr;
     }
 }
 
@@ -3323,9 +3339,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	kbd_fetch_ptr = event + 1;
       else if (event->kind == HELP_EVENT)
 	{
-	  /* The car of event->frame_or_window is a frame,
-	     the cdr is the help to display.  */
-	  obj = Fcons (Qhelp_echo, event->frame_or_window);
+	  /* Event->frame_or_window is a frame, event->arg is the
+	     help to display.  */
+	  obj = Fcons (Qhelp_echo,
+		       Fcons (event->frame_or_window,
+			      event->arg));
 	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
@@ -3373,24 +3391,28 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 
 	  if (NILP (obj))
 	    {
+	      int idx;
+	      
 	      obj = make_lispy_event (event);
+	      
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
 		 beginning of the menu sequence, and we might as well leave
 		 that as the `event with parameters' for this selection.  */
-	      if ((event->kind == menu_bar_event
-		   || event->kind == TOOL_BAR_EVENT)
-		  && !(CONSP (obj) && EQ (XCAR (obj), Qmenu_bar))
-		  && !(CONSP (obj) && EQ (XCAR (obj), Qtool_bar))
-		  && used_mouse_menu)
+	      if (used_mouse_menu
+		  && !EQ (event->frame_or_window, event->arg)
+		  && (event->kind == MENU_BAR_EVENT
+		      || event->kind == TOOL_BAR_EVENT))
 		*used_mouse_menu = 1;
 #endif
 
 	      /* Wipe out this event, to catch bugs.  */
 	      event->kind = no_event;
-	      XVECTOR (kbd_buffer_frame_or_window)->contents[event - kbd_buffer] = Qnil;
+	      idx = 2 * (event - kbd_buffer);
+	      ASET (kbd_buffer_gcpro, idx, Qnil);
+	      ASET (kbd_buffer_gcpro, idx + 1, Qnil);
 
 	      kbd_fetch_ptr = event + 1;
 	    }
@@ -4854,25 +4876,26 @@ make_lispy_event (event)
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
-    case menu_bar_event:
-      /* The event value is in the cdr of the frame_or_window slot.  */
-      if (!CONSP (event->frame_or_window))
-	abort ();
-      return XCDR (event->frame_or_window);
+    case MENU_BAR_EVENT:
+      if (EQ (event->arg, event->frame_or_window))
+	/* This is the prefix key.  We translate this to
+	   `(menu_bar)' because the code in keyboard.c for menu
+	   events, which we use, relies on this.  */
+	return Fcons (Qmenu_bar, Qnil);
+      return event->arg;
 #endif
 
     case TOOL_BAR_EVENT:
-      {
-	Lisp_Object key;
-	if (!CONSP (event->frame_or_window))
-	  abort ();
-	key = XCDR (event->frame_or_window);
-	if (SYMBOLP (key))
-	  key = apply_modifiers (event->modifiers, key);
-	return key;
-      }
+      if (EQ (event->arg, event->frame_or_window))
+	/* This is the prefix key.  We translate this to
+	   `(tool_bar)' because the code in keyboard.c for menu
+	   events, which we use, relies on this.  */
+	return Fcons (Qtool_bar, Qnil);
+      else if (SYMBOLP (event->arg))
+	return apply_modifiers (event->modifiers, event->arg);
+      return event->arg;
 
-    case user_signal:
+    case USER_SIGNAL_EVENT:
       /* A user signal.  */
       return *lispy_user_signals[event->code];
       
@@ -5646,6 +5669,7 @@ record_asynch_buffer_change ()
 
   event.kind = buffer_switch_event;
   event.frame_or_window = Qnil;
+  event.arg = Qnil;
 
 #ifdef subprocesses
   /* We don't need a buffer-switch event unless Emacs is waiting for input.
@@ -5807,6 +5831,7 @@ read_avail_input (expected)
 
 	  buf[i].code = cbuf[i];
 	  buf[i].frame_or_window = selected_frame;
+	  buf[i].arg = Qnil;
 	}
     }
 
@@ -9214,7 +9239,7 @@ Also cancel any kbd macro being defined.")
   discard_tty_input ();
 
   kbd_fetch_ptr =  kbd_store_ptr;
-  Ffillarray (kbd_buffer_frame_or_window, Qnil);
+  Ffillarray (kbd_buffer_gcpro, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -9298,20 +9323,25 @@ stuff_buffered_input (stuffstring)
 	stuff_char (*p++);
       stuff_char ('\n');
     }
+  
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
      Should we ignore anything that was typed in at the "wrong" kboard?  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
+      int idx;
+      
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ascii_keystroke)
 	stuff_char (kbd_fetch_ptr->code);
+      
       kbd_fetch_ptr->kind = no_event;
-      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_fetch_ptr
-						      - kbd_buffer]
-       = Qnil);
+      idx = 2 * (kbd_fetch_ptr - kbd_buffer);
+      ASET (kbd_buffer_gcpro, idx, Qnil);
+      ASET (kbd_buffer_gcpro, idx + 1, Qnil);
     }
+  
   input_pending = 0;
 #endif
 #endif /* BSD_SYSTEM and not BSD4_1 */
@@ -9692,8 +9722,7 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-  kbd_buffer_frame_or_window
-    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
+  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
 #ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
 #endif
@@ -9711,10 +9740,9 @@ init_keyboard ()
   init_kboard (current_kboard);
 
   if (initialized)
-    Ffillarray (kbd_buffer_frame_or_window, Qnil);
+    Ffillarray (kbd_buffer_gcpro, Qnil);
 
-  kbd_buffer_frame_or_window
-    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
+  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
   if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
     {
       signal (SIGINT, interrupt_signal);
@@ -9973,9 +10001,8 @@ syms_of_keyboard ()
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
 
-  kbd_buffer_frame_or_window
-    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
-  staticpro (&kbd_buffer_frame_or_window);
+  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
+  staticpro (&kbd_buffer_gcpro);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
