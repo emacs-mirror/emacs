@@ -314,16 +314,49 @@ wait_for_termination (pid)
       status = SYS$FORCEX (&pid, 0, 0);
       break;
 #else /* not VMS */
-
-      /* Exit if the process has terminated.  */
-      if (!synch_process_alive)
+#if defined (BSD) || (defined (HPUX) && !defined (HPUX_5))
+      /* Note that kill returns -1 even if the process is just a zombie now.
+	 But inevitably a SIGCHLD interrupt should be generated
+	 and child_sig will do wait3 and make the process go away. */
+      /* There is some indication that there is a bug involved with
+	 termination of subprocesses, perhaps involving a kernel bug too,
+	 but no idea what it is.  Just as a hunch we signal SIGCHLD to see
+	 if that causes the problem to go away or get worse.  */
+      sigsetmask (sigmask (SIGCHLD));
+      if (0 > kill (pid, 0))
+        {
+	  sigsetmask (SIGEMPTYMASK);
+	  kill (getpid (), SIGCHLD);
+	  break;
+	}
+      if (wait_debugging)
+	sleep (1);
+      else
+	sigpause (SIGEMPTYMASK);
+#else /* not BSD, and not HPUX version >= 6 */
+#ifdef UNIPLUS
+      if (0 > kill (pid, 0))
 	break;
-      /* Otherwise wait 1 second or until a signal comes in.  */
-      signal (SIGALRM, wait_for_termination_signal);
-      alarm (1);
-      pause ();
-      alarm (0);
-      signal (SIGALRM, SIG_IGN);
+      wait (0);
+#else /* neither BSD nor UNIPLUS: random sysV */
+#ifdef HAVE_SYSV_SIGPAUSE
+      sighold (SIGCHLD);
+      if (0 > kill (pid, 0))
+	{
+	  sigrelse (SIGCHLD);
+	  break;
+	}
+      sigpause (SIGCHLD);
+#else /* not HAVE_SYSV_SIGPAUSE */
+      if (0 > kill (pid, 0))
+	break;
+      /* Using sleep instead of pause avoids timing error.
+	 If the inferior dies just before the sleep,
+	 we lose just one second.  */
+      sleep (1);
+#endif /* not HAVE_SYSV_SIGPAUSE */
+#endif /* not UNIPLUS */
+#endif /* not BSD, and not HPUX version >= 6 */
 #endif /* not VMS */
 #else /* not subprocesses */
 #ifndef BSD4_1
