@@ -211,9 +211,9 @@ If you don't like this feature, you can turn it off by setting
 
 @vindex isearch-lazy-highlight-face
 @cindex faces for highlighting search matches
-  You can control how does the highlighting of matches look like by
-customizing the faces @code{isearch} (used for the current match) and
-@code{isearch-lazy-highlight-face} (used for the other matches).
+  You can control how this highlighting looks by customizing the faces
+@code{isearch} (used for the current match) and
+@code{isearch-lazy-highlight-face} (for all the other matches).
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
@@ -227,11 +227,11 @@ of bindings, look at the documentation of @code{isearch-mode} with
 that is designed to take less time.  Instead of redisplaying the buffer at
 each place the search gets to, it creates a new single-line window and uses
 that to display the line that the search has found.  The single-line window
-comes into play as soon as point gets outside of the text that is already
+comes into play as soon as point moves outside of the text that is already
 on the screen.
 
   When you terminate the search, the single-line window is removed.
-Then Emacs redisplays the window in which the search was done, to show
+Emacs then redisplays the window in which the search was done, to show
 its new position of point.
 
 @vindex search-slow-speed
@@ -289,8 +289,9 @@ for them.
 
   Word search searches for a sequence of words without regard to how the
 words are separated.  More precisely, you type a string of many words,
-using single spaces to separate them, and the string can be found even if
-there are multiple spaces, newlines or other punctuation between the words.
+using single spaces to separate them, and the string can be found even
+if there are multiple spaces, newlines, or other punctuation characters
+between these words.
 
   Word search is useful for editing a printed document made with a text
 formatter.  If you edit while looking at the printed, formatted version,
