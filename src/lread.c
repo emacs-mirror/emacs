@@ -1492,8 +1492,10 @@ read_escape (readcharfun, stringp)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun, 0);
-      if ((c & 0177) == '?')
-	return 0177 | c;
+      if ((c & ~CHAR_MODIFIER_MASK) == '?')
+	return 0177 | (c & CHAR_MODIFIER_MASK);
+      else if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+	return c | ctrl_modifier;
       /* ASCII control chars are made from letters (both cases),
 	 as well as the non-letters within 0100...0137.  */
       else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
@@ -1949,17 +1951,20 @@ read1 (readcharfun, pch, first_in_list)
 
 		/* If an escape specifies a non-ASCII single-byte character,
 		   this must be a unibyte string.  */
-		if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_META))
-		    && ! ASCII_BYTE_P (c))
+		if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK))
+		    && ! ASCII_BYTE_P ((c & ~CHAR_MODIFIER_MASK)))
 		  force_singlebyte = 1;
 	      }
 
-	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
+	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
 	      {
 		unsigned char workbuf[4];
 		unsigned char *str = workbuf;
 		int length;
 
+		/* Any modifiers for a multibyte character are invalid.  */
+		if (c & CHAR_MODIFIER_MASK)
+		  error ("Invalid modifier in string");
 		length = non_ascii_char_to_string (c, workbuf, &str);
 		if (length > 1)
 		  force_multibyte = 1;
@@ -1974,6 +1979,15 @@ read1 (readcharfun, pch, first_in_list)
 		  c = 0;
 		else if (c == (CHAR_CTL | '?'))
 		  c = 127;
+
+		if (c & CHAR_SHIFT)
+		  {
+		    /* Shift modifier is valid only with [A-Za-z].  */
+		    if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
+		      c &= ~CHAR_SHIFT;
+		    else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
+		      c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+		  }
 
 		if (c & CHAR_META)
 		  /* Move the meta bit to the right place for a string.  */
