@@ -1168,7 +1168,7 @@ update_frame (f, force, inhibit_hairy_id)
      int inhibit_hairy_id;
 {
   register struct frame_glyphs *current_frame;
-  register struct frame_glyphs *desired_frame;
+  register struct frame_glyphs *desired_frame = 0;
   register int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
@@ -1176,10 +1176,6 @@ update_frame (f, force, inhibit_hairy_id)
 #ifdef HAVE_X_WINDOWS
   register int downto, leftmost;
 #endif
-
-  /* These are separate to avoid a possible bug in the AIX C compiler.  */
-  current_frame = FRAME_CURRENT_GLYPHS (f);
-  desired_frame = FRAME_DESIRED_GLYPHS (f);
 
   if (preempt_count <= 0)
     preempt_count = 1;
@@ -1197,6 +1193,10 @@ update_frame (f, force, inhibit_hairy_id)
 
   if (!line_ins_del_ok)
     inhibit_hairy_id = 1;
+
+  /* These are separate to avoid a possible bug in the AIX C compiler.  */
+  current_frame = FRAME_CURRENT_GLYPHS (f);
+  desired_frame = FRAME_DESIRED_GLYPHS (f);
 
   /* See if any of the desired lines are enabled; don't compute for
      i/d line if just want cursor motion. */
@@ -1335,7 +1335,8 @@ update_frame (f, force, inhibit_hairy_id)
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
   display_completed = !pause;
 
-  bzero (desired_frame->enable, FRAME_HEIGHT (f));
+  if (desired_frame)
+    bzero (desired_frame->enable, FRAME_HEIGHT (f));
   return pause;
 }
 
