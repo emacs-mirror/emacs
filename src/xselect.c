@@ -529,7 +529,7 @@ x_reply_selection_request (event, format, data, size, type)
 
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
   BLOCK_INPUT;
-  x_catch_errors (display, count);
+  count = x_catch_errors (display);
 
   /* Store the data on the requested property.
      If the selection is large, only store the first N bytes of it.
