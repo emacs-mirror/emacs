@@ -1507,24 +1507,27 @@ use \\[mail-yank-original] to yank the original message into it."
 	(subject (concat "["
 			 (mail-strip-quoted-names (mail-fetch-field "From"))
 			 ": " (or (mail-fetch-field "Subject") "") "]")))
-    ;; If only one window, use it for the mail buffer.
-    ;; Otherwise, use another window for the mail buffer
-    ;; so that the Rmail buffer remains visible
-    ;; and sending the mail will get back to it.
-    (if (funcall (if (one-window-p t)
-		     (function mail)
-		   (function mail-other-window))
-                 nil nil subject nil nil nil
-                 (list (list (function (lambda (buf msgnum)
-                               (save-excursion
-                                 (set-buffer buf)
-                                 (rmail-set-attribute "forwarded" t msgnum))))
-                             (current-buffer)
-                             rmail-current-message)))
-	(save-excursion
-	  (goto-char (point-max))
-	  (forward-line 1)
-	  (insert-buffer forward-buffer)))))
+    ;; Turn off the usual actions for initializing the message body
+    ;; because we want to get only the text from the failure message.
+    (let (mail-signature mail-setup-hook)
+      ;; If only one window, use it for the mail buffer.
+      ;; Otherwise, use another window for the mail buffer
+      ;; so that the Rmail buffer remains visible
+      ;; and sending the mail will get back to it.
+      (if (funcall (if (one-window-p t)
+		       (function mail)
+		     (function mail-other-window))
+		   nil nil subject nil nil nil
+		   (list (list (function (lambda (buf msgnum)
+				 (save-excursion
+				   (set-buffer buf)
+				   (rmail-set-attribute "forwarded" t msgnum))))
+			       (current-buffer)
+			       rmail-current-message)))
+	  (save-excursion
+	    (goto-char (point-max))
+	    (forward-line 1)
+	    (insert-buffer forward-buffer))))))
 
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
