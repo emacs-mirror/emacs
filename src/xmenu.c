@@ -1049,11 +1049,24 @@ on the left of the dialog box and all following items on the right.\n\
 
    NOTE: All calls to popup_get_selection() should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
+
 void
-popup_get_selection (initial_event)
+popup_get_selection (initial_event, dpyinfo)
      XEvent *initial_event;
+     struct x_display_info *dpyinfo;
 {
   XEvent event;
+
+  /* Define a queue to save up for later unreading
+     all X events that don't pertain to the menu.  */
+  struct event_queue
+    {
+      XEvent event;
+      struct event_queue *next;
+    };
+  
+  struct event_queue *queue = NULL;
+  struct event_queue *queue_tmp;
 
   if (initial_event)
     event = *initial_event;
@@ -1062,14 +1075,52 @@ popup_get_selection (initial_event)
 
   while (1)
     {
+      /* Handle expose events for editor frames right away.  */
+      if (event.type == Expose)
+	process_expose_from_menu (event);
+      /* Make sure we don't consider buttons grabbed after menu goes.  */
+      else if (event.type == ButtonRelease
+	       && dpyinfo->display == event.xbutton.display)
+	dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+
+      /* Queue all events not for this popup,
+	 except for Expose, which we've already handled.  */
+      if (event.type != Expose
+	  && (event.xany.display != dpyinfo->display
+	      || ! x_any_window_to_frame (dpyinfo, event.xany.window)))
+	{
+
+	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
+
+	  if (queue_tmp != NULL) 
+	    {
+	      queue_tmp->event = event;
+	      queue_tmp->next = queue;
+	      queue = queue_tmp;
+	    }
+	}
+
       XtDispatchEvent (&event);
-      if (!popup_activated())
+
+      if (!popup_activated ())
 	break;
       XtAppNextEvent (Xt_app_con, &event);
+    }
+
+  /* Unread any events that we got but did not handle.  */
+  while (queue != NULL) 
+    {
+      queue_tmp = queue;
+      XPutBackEvent (queue_tmp->event.xany.display, &queue_tmp->event);
+      queue = queue_tmp->next;
+      free ((char *)queue_tmp);
+      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
+      interrupt_input_pending = 1;
     }
 }
 
 /* Detect if a dialog or menu has been posted.  */
+
 int
 popup_activated ()
 {
@@ -1427,10 +1478,11 @@ set_frame_menubar (f, first_time)
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
   int id;
+  int count;
+
+  count = inhibit_garbage_collection ();
 
   id = frame_vector_add_frame (f);
-
-  BLOCK_INPUT;
 
   wv = malloc_widget_value ();
   wv->name = "menubar";
@@ -1480,6 +1532,10 @@ set_frame_menubar (f, first_time)
   f->menu_bar_vector = menu_items;
   f->menu_bar_items_used = menu_items_used;
   menu_items = Qnil;
+
+  unbind_to (count, Qnil);
+
+  BLOCK_INPUT;
 
   if (menubar_widget)
     {
@@ -1614,17 +1670,6 @@ xmenu_show (f, x, y, menubarp, for_click, keymaps, title, error)
   Lisp_Object *subprefix_stack
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
-
-  /* Define a queue to save up for later unreading
-     all X events that don't pertain to the menu.  */
-  struct event_queue
-    {
-      XEvent event;
-      struct event_queue *next;
-    };
-  
-  struct event_queue *queue = NULL;
-  struct event_queue *queue_tmp;
 
   Position root_x, root_y;
 
@@ -1786,25 +1831,15 @@ xmenu_show (f, x, y, menubarp, for_click, keymaps, title, error)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f));
 
- pop_down:
+#if 0
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
      I observer that is not so. -- rms.  */
   /* Make sure the menu disappears.  */
   lw_destroy_all_widgets (menu_id); 
-
-  /* Unread any events that we got but did not handle.  */
-  while (queue != NULL) 
-    {
-      queue_tmp = queue;
-      XPutBackEvent (FRAME_X_DISPLAY (f), &queue_tmp->event);
-      queue = queue_tmp->next;
-      free ((char *)queue_tmp);
-      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
-      interrupt_input_pending = 1;
-    }
+#endif
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -1895,17 +1930,6 @@ xdialog_show (f, menubarp, keymaps, title, error)
   char dialog_name[6];
 
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-
-  /* Define a queue to save up for later unreading
-     all X events that don't pertain to the menu.  */
-  struct event_queue
-    {
-      XEvent event;
-      struct event_queue *next;
-    };
-  
-  struct event_queue *queue = NULL;
-  struct event_queue *queue_tmp;
 
   /* Number of elements seen so far, before boundary.  */
   int left_count = 0;
@@ -2024,53 +2048,10 @@ xdialog_show (f, menubarp, keymaps, title, error)
 
   /* Display the menu.  */
   lw_pop_up_all_widgets (dialog_id);
+  popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  while (1)
-    {
-      XEvent event;
-
-      XtAppNextEvent (Xt_app_con, &event);
-      if (event.type == ButtonRelease)
-	{
-	  XtDispatchEvent (&event);
-	  break;
-	}
-      else if (event.type == Expose)
-	process_expose_from_menu (event);
-      XtDispatchEvent (&event);
-      if (XtWindowToWidget (FRAME_X_DISPLAY (f), event.xany.window) != menu)
-	{
-	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
-
-	  if (queue_tmp != NULL) 
-	    {
-	      queue_tmp->event = event;
-	      queue_tmp->next = queue;
-	      queue = queue_tmp;
-	    }
-	}
-    }
- pop_down:
-
-#ifdef HAVE_X_WINDOWS
-  /* State that no mouse buttons are now held.
-     That is not necessarily true, but the fiction leads to reasonable
-     results, and it is a pain to ask which are actually held now
-     or track this in the loop above.  */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
-#endif
-
-  /* Unread any events that we got but did not handle.  */
-  while (queue != NULL) 
-    {
-      queue_tmp = queue;
-      XPutBackEvent (FRAME_X_DISPLAY (f), &queue_tmp->event);
-      queue = queue_tmp->next;
-      free ((char *)queue_tmp);
-      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
-      interrupt_input_pending = 1;
-    }
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f));
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
