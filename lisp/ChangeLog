@@ -1,3 +1,8 @@
+2002-09-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-completion): Be sure to scroll
+	quail-completion-buf.
+
 2002-09-23  Richard M. Stallman  <rms@gnu.org>
 
 	* ielm.el (*1): Fix previous change.
