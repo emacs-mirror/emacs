@@ -2495,8 +2495,11 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defvar auto-save-hook nil
   "Normal hook run just before auto-saving.")
 
-(defvar after-save-hook nil
-  "Normal hook that is run after a buffer is saved to its file.")
+(defcustom after-save-hook nil
+  "Normal hook that is run after a buffer is saved to its file."
+  :options '(make-buffer-file-executable-if-script-p)
+  :type 'hook
+  :group 'files)
 
 (defvar save-buffer-coding-system nil
   "If non-nil, use this coding system for saving the buffer.
