@@ -1,4 +1,4 @@
-2004-03-29  Kenichi Handa  <handa@etlken2>
+2004-03-29  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (setwins, setwins_almost): Change directory to $wd
 	before finding directories by `find'.
@@ -325,7 +325,7 @@
 	Eliminate revert messages.
 	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
 
-2004-03-23  Kenichi Handa  <handa@etlken2>
+2004-03-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Setup syntaxes for more parentheses
 	Unicode characters.
