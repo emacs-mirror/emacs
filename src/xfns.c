@@ -11605,7 +11605,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   int ac = 0;
   extern XtAppContext Xt_app_con;
   XmString dir_xmstring, pattern_xmstring;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);

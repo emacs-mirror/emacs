@@ -284,7 +284,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  int pdlcount = specpdl_ptr - specpdl;
+  int pdlcount = SPECPDL_INDEX ();
   int repeat = 1;
   struct gcpro gcpro1;
   int success_count = 0;
