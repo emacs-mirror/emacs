@@ -3514,8 +3514,6 @@ regex_compile (pattern, size, syntax, bufp)
   if (syntax & RE_NO_POSIX_BACKTRACKING)
     BUF_PUSH (succeed);
 
-  free (compile_stack.stack);
-
   /* We have succeeded; set the length of the buffer.  */
   bufp->used = b - bufp->buffer;
 
@@ -3555,7 +3553,7 @@ regex_compile (pattern, size, syntax, bufp)
   }
 #endif /* not MATCH_MAY_ALLOCATE */
 
-  return REG_NOERROR;
+  FREE_STACK_RETURN (REG_NOERROR);
 } /* regex_compile */
 
 /* Subroutines for `regex_compile'.  */
