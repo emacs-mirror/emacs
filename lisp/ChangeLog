@@ -1,3 +1,8 @@
+2004-10-17  Kim F. Storm  <storm@cua.dk>
+
+	* language/indian.el (indian-script-language-alist): Swap value and doc.
+	(indian-font-char-index-table): Doc fix.
+
 2004-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-find-file-hook): Call vc-backend with absolute name.
