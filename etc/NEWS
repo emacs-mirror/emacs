@@ -118,6 +118,8 @@ versions which recognize Thai words.  Affected commands are
     M-t     (transpose-words)
     M-q     (fill-paragraph)
 
+** fast-lock.el and lazy-lock.el are obsolete.  Use jit-lock.el instead.
+
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
