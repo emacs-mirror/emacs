@@ -17,7 +17,7 @@
 	* textprop.c (Fprevious_single_char_property_change): Don't do
 	arithmetic directly on lisp objects.
 
-	* editfns.c (find_field): Use EQ, not ==, to compare lisp
+	* editfns.c (find_field): Use EQ, not ==, to compare Lisp
 	objects.
 
 	* keyboard.h (menu_item_eval_property): Declare.
@@ -26,15 +26,15 @@
 	reuse as buffer name, instead of recreating (and discarding) every
 	time a message is logged.
 	(with_echo_area_buffer): Make callback arg A2 a lisp object.
-	(current_message_1, truncate_message_1, set_message_1,
-	display_echo_area_1, resize_mini_window_1): Signatures changed.
-	(current_message, truncate_echo_area, display_echo_area,
-	resize_echo_area_axactly): Changed calls.
+	(current_message_1, truncate_message_1, set_message_1)
+	(display_echo_area_1, resize_mini_window_1): Signatures changed.
+	(current_message, truncate_echo_area, display_echo_area)
+	(resize_echo_area_axactly): Changed calls.
 
 	* coding.c (find_safe_codings): CHAR_TABLE_SET index must be a
-	lisp object.
+	Lisp object.
 	(Ffind_coding_systems_region_internal): First argument to Fappend
-	must be an integer, not a lisp object.
+	must be an integer, not a Lisp object.
 
 2000-08-08  Kenichi Handa  <handa@etl.go.jp>
 

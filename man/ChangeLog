@@ -1,3 +1,8 @@
+2000-08-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* faq.texi (Disabling backups): Replace reference to 
+	non-existent initial-dired-omit-files-p with something that works.
+	
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* programs.texi (Documentation): Add an xref to WoMan's own

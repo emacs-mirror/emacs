@@ -1,5 +1,26 @@
 2000-08-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* info.el (Info-insert-dir): Use Info-additional-directory-list if
+	non-nil.
+	(Info-file-list-for-emacs): Remove "info" from the list because
+	that leads to trying to use the documentation from file `info'
+	in various situations where it isn't appropriate, for instance
+	C-h C-k C-h i.
+
+	* ffap.el (ffap-read-file-or-url-internal): Handle case that
+	DIR and/or STRING are nil.
+
+	* progmodes/compile.el (compilation-setup): Make variable
+	compilation-error-screen-columns buffer-local, as some comment
+	in the code suggests it should be.
+
+	* files.el (auto-mode-interpreter-regexp): New variable.
+	(set-auto-mode): Use it.
+
+	* indent.el (indent-for-tab-command): Doc fix.
+
+	* mouse-sel.el (mouse-sel-mode): Doc fix.
+
 	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Handle `#N='
 	labels.
 
