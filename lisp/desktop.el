@@ -4,6 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
+;; Maintainter: Lars Hansen <larsh@math.ku.dk>
 ;; Keywords: convenience
 ;; Favourite-brand-of-beer: None, I hate beer.
 
