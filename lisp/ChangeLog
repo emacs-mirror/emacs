@@ -1,3 +1,10 @@
+2004-11-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-enable-debug-log)
+	(gdb-use-inferior-io-buffer, gdb-use-colon-colon-notation)
+	(gud-gdba-command-name, gdb-show-main, gdb-many-windows):
+	Add :version keyword.
+
 2004-11-01  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-frac.el (calc-over-notation): Replaced
