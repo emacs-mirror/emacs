@@ -425,26 +425,24 @@ window_from_coordinates (screen, x, y, part)
 }
 
 DEFUN ("window-at", Fwindow_at, Swindow_at, 1, 2, 0,
-  "Return window containing position COORDINATES on SCREEN.\n\
+  "Return window containing row ROW, column COLUMN on SCREEN.\n\
 If omitted, SCREEN defaults to the currently selected screen.\n\
-COORDINATES is a pair (SCREEN-X . SCREEN-Y) of coordinates\n\
-which are relative to 0,0 at the top left corner of the screen.")
-  (coordinates, screen)
-      Lisp_Object coordinates, screen;
+The top left corner of the screen is considered to be row 0,\n\
+column 0.")
+  (row, column, screen)
+      Lisp_Object row, column, screen;
 {
   int part;
 
   if (NILP (screen))
     XSET (screen, Lisp_Screen, selected_screen);
   else
-    CHECK_LIVE_SCREEN (screen, 0);
-  CHECK_CONS (coordinates, 1);
-  CHECK_NUMBER (XCONS (coordinates)->car, 1);
-  CHECK_NUMBER (XCONS (coordinates)->cdr, 1);
+    CHECK_LIVE_SCREEN (screen, 2);
+  CHECK_NUMBER (row, 0);
+  CHECK_NUMBER (column, 1);
 
   return window_from_coordinates (XSCREEN (screen),
-				  XINT (Fcar (coordinates)),
-				  XINT (Fcdr (coordinates)),
+				  XINT (row), XINT (column),
 				  &part);
 }
 
@@ -2007,13 +2005,13 @@ scroll_command (n, direction)
   register int defalt;
   int count = specpdl_ptr - specpdl;
 
-  /* Code here used to set the current buffer to the selected window's
-     buffer, but since this command always operates on the selected
-     window, the current buffer should always be the selected window's
-     buffer already.  Verify this assumption, so we won't be screwed
-     if we're guessing wrong.  */
+  /* If selected window's buffer isn't current, make it current for the moment.
+     But don't screw up if window_scroll gets an error.  */
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-    abort ();
+    {
+      record_unwind_protect (save_excursion_restore, save_excursion_save ());
+      Fset_buffer (XWINDOW (selected_window)->buffer);
+    }
 
   defalt = (window_internal_height (XWINDOW (selected_window))
 	    - next_screen_context_lines);
@@ -2028,6 +2026,8 @@ scroll_command (n, direction)
       n = Fprefix_numeric_value (n);
       window_scroll (selected_window, XINT (n) * direction, 0);
     }
+
+  unbind_to (count, Qnil);
 }
 
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
@@ -2614,8 +2614,8 @@ init_window_once ()
 #else /* not MULTI_SCREEN */
   extern Lisp_Object get_minibuffer ();
 
-  root_window = make_window (0);
-  minibuf_window = make_window (0);
+  root_window = make_window ();
+  minibuf_window = make_window ();
 
   XWINDOW (root_window)->next = minibuf_window;
   XWINDOW (minibuf_window)->prev = root_window;
