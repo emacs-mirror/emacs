@@ -4,6 +4,8 @@
 	Coding Standards.
 	(Finternal_set_lisp_face_attribute): Likewise.
 
+	* buffer.c (Fbury_buffer): Likewise.
+
 	* indent.c (current_column_1): Remove unused variable `prev_col'.
 
 2001-11-07  Jason Rumney  <jasonr@gnu.org>
