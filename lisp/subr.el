@@ -823,7 +823,7 @@ is converted into a string by expressing it in decimal."
 (defalias 'unfocus-frame 'ignore "")
 
 
-;;;; Obsolescence declarations for variables.
+;;;; Obsolescence declarations for variables, and aliases.
 
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
 (make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
@@ -840,6 +840,8 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "21.4")
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
 (make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "21.4")
+
+(defvaralias 'messages-buffer-max-lines 'message-log-max)
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -1012,19 +1014,33 @@ other hooks, such as major mode hooks, can do the job."
 ;;; 	  nil nil t)
 ;;;     (setq symbol-file-load-history-loaded t)))
 
-(defun symbol-file (function)
-  "Return the input source from which FUNCTION was loaded.
+(defun symbol-file (symbol &optional type)
+  "Return the input source in which SYMBOL was defined.
 The value is normally a string that was passed to `load':
 either an absolute file name, or a library name
 \(with no directory name and no `.el' or `.elc' at the end).
-It can also be nil, if the definition is not associated with any file."
-  (if (and (symbolp function) (fboundp function)
-	   (eq 'autoload (car-safe (symbol-function function))))
-      (nth 1 (symbol-function function))
+It can also be nil, if the definition is not associated with any file.
+
+If TYPE is nil, then any kind of definition is acceptable.
+If type is `defun' or `defvar', that specifies function
+definition only or variable definition only."
+  (if (and (or (null type) (eq type 'defun))
+	   (symbolp symbol) (fboundp symbol)
+	   (eq 'autoload (car-safe (symbol-function symbol))))
+      (nth 1 (symbol-function symbol))
     (let ((files load-history)
 	  file)
       (while files
-	(if (member function (cdr (car files)))
+	(if (if type
+		(if (eq type 'defvar)
+		    ;; Variables are present just as their names.
+		    (member symbol (cdr (car files)))
+		  ;; Other types are represented as (TYPE . NAME).
+		  (member (cons type symbol) (cdr (car files))))
+	      ;; We accept all types, so look for variable def
+	      ;; and then for any other kind.
+	      (or (member symbol (cdr (car files)))
+		  (rassq symbol (cdr (car files)))))
 	    (setq file (car (car files)) files nil))
 	(setq files (cdr files)))
       file)))
