@@ -173,7 +173,7 @@
 
 2000-10-06  Dave Love  <fx@gnu.org>
 
-	* textmodes/fill.el (sentence-end-double-space) 
+	* textmodes/fill.el (sentence-end-double-space)
 	(sentence-end-without-period):  Doc fix.
 	(adaptive-fill-regexp): Purecopy.
 	(unjustify-current-line): Use line-end-position.
@@ -201,7 +201,7 @@
 	and add filename to the names so that diff-mode can jump to source.
 
 	* font-lock.el (font-lock-defaults-alist): Remove the TeX entries.
-	(tex-font-lock-keywords, tex-font-lock-keywords-2) 
+	(tex-font-lock-keywords, tex-font-lock-keywords-2)
 	(tex-font-lock-keywords-1): Remove.
 	(font-lock-turn-on-thing-lock): Use jit-lock-register.
 	(font-lock-turn-off-thing-lock): Use jit-lock-unregister.
@@ -233,7 +233,7 @@
 	* emacs-lisp/easy-mmode.el (define-derived-mode): Tweak generated
 	docstring parts.
 
-	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp) 
+	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp)
 	(smbclient-prompt-regexp): Add usage note to doc string.
 	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Removed.
 	(ftp-mode, smbclient-mode): Don't set `font-lock-defaults'.
@@ -300,13 +300,13 @@
 
 	* image.el (image): New group.
 
-	* smerge-mode.el (smerge-mine-face, smerge-other-face) 
+	* smerge-mode.el (smerge-mine-face, smerge-other-face)
 	(smerge-base-face, smerge-markers-face): Add dark-background variants.
 
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el (nslookup-font-lock-keywords)
-	(ftp-font-lock-keywords, smbclient-font-lock-keywords): 
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords):
 	Ignore the value of wqindow-system; always define keywords
 
 2000-10-05  Kenichi Handa  <handa@etl.go.jp>
@@ -362,12 +362,12 @@
 
 2000-10-04  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-before-save, vc-default-make-version-backups, 
+	* vc-hooks.el (vc-before-save, vc-default-make-version-backups,
 	vc-version-backup-file-name): New functions.
 
 	* files.el (basic-save-buffer): Call vc-before-save before saving.
-	
-	* vc-cvs.el (vc-cvs-make-version-backups): Return t if 
+
+	* vc-cvs.el (vc-cvs-make-version-backups): Return t if
 	vc-cvs-stay-local-p.
 
 	* vc.el (vc-revert-buffer): Handle empty diff properly.
@@ -388,13 +388,13 @@
 2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el (nslookup-font-lock-keywords)
-	(ftp-font-lock-keywords, smbclient-font-lock-keywords): 
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords):
 	Only set if window-system is non-nil
 	(net-utils-run-program): Returns buffer.
 	(network-connection-reconnect): Added this function.
 
-	* generic.el: 
-	Incorporates extensive cleanup and docfixes by 
+	* generic.el:
+	Incorporates extensive cleanup and docfixes by
 	Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu).
 	Uses cl compile-time macros.
 	(generic-mode-name, generic-comment-list)
@@ -410,12 +410,12 @@
 	into function instead of putting them in alist.
 	(generic-mode-set-comments): Reworked extensively.
 	(generic-mode-find-file-hook): Simplified regexp searching
-	(generic-make-keywords-list): Omit extra pair of parens	
+	(generic-make-keywords-list): Omit extra pair of parens
 
-	* find-lisp.el (find-lisp-find-files-internal): 
+	* find-lisp.el (find-lisp-find-files-internal):
 	Make sure directory name ends with "/".
 
-	* generic-x.el (apache-conf-generic-mode): 
+	* generic-x.el (apache-conf-generic-mode):
 	Regexp now allows leading whitespace.
 	(rc-generic-mode): Added eval-when-compile
 	around generic-make-keywords-list.
@@ -424,7 +424,7 @@
 	around generic-make-keywords-list.
 	(etc-fstab-generic-mode): New generic mode.
 	(rul-generic-mode): Removed one eval-when-compile
-	which caused a max-specpdl-size exceeded error.	
+	which caused a max-specpdl-size exceeded error.
 
 2000-10-04  Miles Bader  <miles@gnu.org>
 
@@ -446,11 +446,11 @@
 
 2000-10-03  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-transfer-file, vc-default-receive-file): Rewritten to 
+	* vc.el (vc-transfer-file, vc-default-receive-file): Rewritten to
 	factorize backend-specific code cleanly (this was essentially
 	conceived by Stefan Monnier).
 	(vc-unregister): Function removed.
- 	(vc-revert-file): New function.
+	(vc-revert-file): New function.
 	(vc-revert-buffer): Delegate some of the work to it.
 
 	* vc-rcs.el (vc-rcs-fetch-master-state): Parse and remember
@@ -492,7 +492,7 @@
 	* vc-hooks.el (vc-registered): If FILE used to be registered under
 	a certain backend, try that one first.
 
-	* vc.el (vc-responsible-backend): Undo the previous change in the 
+	* vc.el (vc-responsible-backend): Undo the previous change in the
 	argument list.  Handle multiple backends correctly.
 	(vc-find-new-backend): Function removed.
 	(vc-register): Use vc-responsible-backend, as before.
@@ -540,12 +540,12 @@
 
 2000-10-01  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-next-action-on-file): Update mode line only if file 
+	* vc.el (vc-next-action-on-file): Update mode line only if file
 	is visited.
 	(vc-start-entry): New argument initial-contents.  Don't visit the file
 	if it isn't already visited.  Brought documentation up-to-date.
-	(vc-next-action, vc-register): Updated calls to vc-start-entry. 
-	(vc-checkin): New optional arg initial-contents, which is passed to 
+	(vc-next-action, vc-register): Updated calls to vc-start-entry.
+	(vc-checkin): New optional arg initial-contents, which is passed to
 	vc-start-entry.
 	(vc-finish-logentry): Make sure to bury log buffer only if there
 	really is one.  Call `vc-resynch-buffer' on log-file, not
@@ -559,7 +559,7 @@
 
 	* vc-rcs.el (vc-rcs-receive-file): Call comment-history
 	unconditionally.  Use the comments as initial contents of the log
-	entry buffer.  Document the trick to force branch creation with no 
+	entry buffer.  Document the trick to force branch creation with no
 	changes.
 
 2000-10-01  Miles Bader  <miles@gnu.org>
@@ -573,13 +573,13 @@
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Only jump 2 not 3 levels.
 
-	* progmodes/c-mode.el (c-mode): 
+	* progmodes/c-mode.el (c-mode):
 	Don't gratuitously override the default for comment-column.
 
 	* textmodes/tex-mode.el (latex-metasection-list): New var.
 	(latex-imenu-create-index): Use it.
 	Move the regexp construction outside loops (and use push).
-	(tex-font-lock-keywords-1, tex-font-lock-keywords-2) 
+	(tex-font-lock-keywords-1, tex-font-lock-keywords-2)
 	(tex-font-lock-keywords): Moved from font-lock.el.
 	(tex-comment-indent): Remove.
 	(tex-common-initialization): Don't set comment-indent-function.
@@ -600,7 +600,7 @@
 	(texinfo-inside-macro-p, texinfo-inside-env-p, texinfo-insert-quote):
 	New functions.
 	(texinfo-mode-map): Bind " to insert-quote and M-RET to insert-@item.
-	(texinfo-section-types-regexp, texinfo-section-level-regexp) 
+	(texinfo-section-types-regexp, texinfo-section-level-regexp)
 	(texinfo-subsection-level-regexp, texinfo-subsubsection-level-regexp):
 	Remove declaration.
 	(texinfo-show-structure): Use outline-regexp and texinfo-section-list.
@@ -681,7 +681,7 @@
 	* textmodes/outline.el (outline-minor-mode): Use define-minor-mode.
 	(outline-mode): Use define-derived-mode.
 
-	* progmodes/perl-mode.el (perl-mode): 
+	* progmodes/perl-mode.el (perl-mode):
 	* progmodes/awk-mode.el (awk-mode):
 	* progmodes/asm-mode.el (asm-mode):
 	Don't gratuitously override the default for comment-column.
@@ -725,7 +725,7 @@
 	(partial-completion-mode): Use define-minor-mode.
 	(PC-do-completion): Understand `completion-auto-help = delay'
 	to mean to popup the completion buffer only the second time.
-	(PC-include-file-all-completions, PC-include-file-all-completions) 
+	(PC-include-file-all-completions, PC-include-file-all-completions)
 	(PC-include-file-all-completions): Don't quote lambda.
 
 	* comint.el (comint-mode-hook): Docstring fix.
@@ -800,7 +800,7 @@
 
 	* frame.el (frame-notice-user-settings): Don't call
 	frame-update-faces, which is a no-op now.
-	
+
 	* ediff-wind.el (ediff-control-frame-parameters): Add zero
 	tool-bar-lines.
 
@@ -830,7 +830,7 @@
 
 	* frame.el (frame-notice-user-settings): Don't add a
 	tool-bar-lines frame parameter to default-frame-alist in batch mode.
-	
+
 	* frame.el (frame-notice-user-settings):
 	Make tool-bar-mode and default-frame-alist consistent.
 
@@ -4062,7 +4062,7 @@
 2000-08-14  Emmanuel Briot  <briot@gnat.com>
 
 	* xml.el (xml-parse-tag, xml-parse-attlist): Do not downcase
-        identifiers, since XML is case sensitive
+	identifiers, since XML is case sensitive
 
 2000-08-12  Miles Bader  <miles@gnu.org>
 
@@ -4902,7 +4902,7 @@
 	(ada-adjust-case-interactive): When auto-casing is not active,
 	correctly insert newlines (used to insert only ^M).  Prevent the
 	syntax table from being changed in case of an error
-        (or '_' becomes part of a word and some commands are confused).
+	(or '_' becomes part of a word and some commands are confused).
 	Do nothing if ada-auto-case is nil.
 	(ada-after-keyword-p): Ignore keywords that are also attributes
 	(ada-batch-reformat): Update usage comment
