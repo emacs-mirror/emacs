@@ -163,14 +163,20 @@ install: ${archlibdir}
 	  mv ${bindir}/$${file}.new ${bindir}/$${file} ; \
         done
 
+uninstall:
+	(cd ${bindir}; \
+	 rm -f ${INSTALLABLES} ${INSTALLABLE_SCRIPTS})
+	(cd ${archlibdir}; \
+	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
+
 clean mostlyclean:
 	-rm -f ${INSTALLABLES} ${UTILITIES} core *.o
 
-distclean:
-	-rm -f ${INSTALLABLES} ${UTILITIES} ../etc/DOC* core *.o
+distclean: clean
+	-rm -f ../etc/DOC* *.tab.c *.tab.h aixcc.c TAGS
 
 realclean: distclean
-	-rm TAGS aixcc.c
+	true
 
 extraclean: realclean
 	-rm -f *~ \#*
