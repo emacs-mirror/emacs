@@ -1093,12 +1093,17 @@ When not inside a field, move to the previous button or field."
 (defun widget-field-buffer (widget)
   "Return the start of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
-    (and overlay (overlay-buffer overlay))))
+    (cond ((overlayp overlay)
+	   (overlay-buffer overlay))
+	  ((consp overlay)
+	   (marker-buffer (car overlay))))))
 
 (defun widget-field-start (widget)
   "Return the start of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
-    (and overlay (overlay-start overlay))))
+    (if (overlayp overlay)
+	(overlay-start overlay)
+      (car overlay))))
 
 (defun widget-field-end (widget)
   "Return the end of WIDGET's editing field."
@@ -1106,15 +1111,16 @@ When not inside a field, move to the previous button or field."
     ;; Don't subtract one if local-map works at the end of the overlay,
     ;; or if a special `boundary' field has been added after the widget
     ;; field.
-    (and overlay
-	 (if (and (not (eq (get-char-property (overlay-end overlay)
-					      'field
-					      (widget-field-buffer widget))
-			   'boundary))
-		  (or widget-field-add-space
-		      (null (widget-get widget :size))))
-	     (1- (overlay-end overlay))
-	   (overlay-end overlay)))))
+    (if (overlayp overlay)
+	(if (and (not (eq (get-char-property (overlay-end overlay)
+					     'field
+					     (widget-field-buffer widget))
+			  'boundary))
+		 (or widget-field-add-space
+		     (null (widget-get widget :size))))
+	    (1- (overlay-end overlay))
+	  (overlay-end overlay))
+      (cdr overlay))))
 
 (defun widget-field-find (pos)
   "Return the field at POS.
@@ -1745,6 +1751,7 @@ the earlier input."
 (defun widget-field-value-delete (widget)
   "Remove the widget from the list of active editing fields."
   (setq widget-field-list (delq widget widget-field-list))
+  (setq widget-field-new (delq widget widget-field-new))
   ;; These are nil if the :format string doesn't contain `%v'.
   (let ((overlay (widget-get widget :field-overlay)))
     (when (overlayp overlay)
