@@ -241,12 +241,12 @@ The following key sequence may cause multilingual text insertion."
 With arg, turn Encoded-kbd mode on if and only if arg is positive.
 
 You should not turn this mode on manually, instead use the command
-`set-keyboard-coding-system' which turns on or off this mode
+\\[set-keyboard-coding-system] which turns on or off this mode
 automatically.
 
 In Encoded-kbd mode, a text sent from keyboard is accepted
 as a multilingual text encoded in a coding system set by
-`set-keyboard-coding-system'."
+\\[set-keyboard-coding-system]."
   (if encoded-kbd-mode
       ;; We must at first reset input-mode to the original.
       (apply 'set-input-mode saved-input-mode))
