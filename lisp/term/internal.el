@@ -204,8 +204,8 @@ terminal which does not have corresponding glyphs built into the
 installed codepage.")
 
 (defun IT-display-table-setup (codepage &optional table)
-  "Set up display table TABLE for a DOS terminal which supports a
-glyphs built into the current codepage CODEPAGE.
+  "Set up display table TABLE for a DOS terminal which supports
+glyphs built into the codepage CODEPAGE.
 
 If TABLE is nil or omitted, `standard-display-table' is used."
   (let* ((surrogates IT-character-translations)
@@ -243,11 +243,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 		       (if (> (length glyph) 1) (concat "{" glyph "}")
 			 glyph)))))
 	  (setq i (1+ i))))
-      (setq surrogates (cdr surrogates)))
-    ;; Most Windows programs send out apostrophe's as \222.  Most DOS
-    ;; fonts contain a different character at that position.  Map it
-    ;; to the ASCII apostrophe.
-    (aset standard-display-table 146 [39])))
+      (setq surrogates (cdr surrogates)))))
 
 (defun dos-cpNNN-setup (codepage)
   "Set up the MULE environment using the DOS codepage CODEPAGE.
