@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.21) $
+ * $HopeName: MMsrc!bt.c(trunk.22) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.21) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.22) $");
 
 
 /* BTIndexAlignUp, BTIndexAlignDown -- Align bit-table indices
@@ -632,11 +632,11 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
 
   foundRes = FALSE;     /* don't know first reset bit */
   minLimit = 0;         /* avoid spurious compiler warning */
-  resBase = 0;          /* avoid spurious compiler warning */
+  resBase = searchBase; /* haven't seen anything yet */
   unseenBase = searchBase;  /* haven't seen anything yet */
   resLimit = searchLimit - minLength + 1;
 
-  while (unseenBase < resLimit) {
+  while (resBase < resLimit) {
     Index setIndex;  /* index of last set bit found */
     Bool foundSet = FALSE; /* true if a set bit is found */
 
@@ -676,9 +676,9 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
     } else {
       /* Range was too small. Try again */
       unseenBase = minLimit;
-      if ((setIndex + 1) != minLimit) {
+      resBase = setIndex + 1;
+      if (resBase != minLimit) {
         /* Already found the start of next candidate range */
-        resBase = setIndex + 1;
         minLimit = resBase + minLength;
       } else {
         foundRes = FALSE;
@@ -721,11 +721,11 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
 
   foundRes = FALSE;     /* don't know first reset bit */
   minBase = 0;          /* avoid spurious compiler warning */
-  resLimit = 0;         /* avoid spurious compiler warning */
+  resLimit = searchLimit;    /* haven't seen anything yet */
   unseenLimit = searchLimit; /* haven't seen anything yet */
   resBase = searchBase + minLength -1;
 
-  while (unseenLimit > resBase) { 
+  while (resLimit > resBase) { 
     Index setIndex;  /* index of first set bit found */
     Bool foundSet = FALSE; /* true if a set bit is found */
  
@@ -771,9 +771,9 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
     } else {
       /* Range was too small. Try again */
       unseenLimit = minBase;
-      if (setIndex != minBase) {
+      resLimit = setIndex;
+      if (resLimit != minBase) {
         /* Already found the start of next candidate range */
-        resLimit = setIndex;
         minBase = resLimit - minLength;
       } else {
         foundRes = FALSE;
