@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.6 2000/10/05 06:05:51 miles Exp $
+;; Revision: $Id: smerge-mode.el,v 1.7 2000/10/06 16:07:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -113,7 +113,7 @@ Used in `smerge-diff-base-mine' and related functions."
 (defvar smerge-markers-face 'smerge-markers-face)
 
 (easy-mmode-defmap smerge-basic-map
-  '(("n" . smerge-next)
+  `(("n" . smerge-next)
     ("p" . smerge-prev)
     ("a" . smerge-keep-all)
     ("b" . smerge-keep-base)
@@ -121,15 +121,16 @@ Used in `smerge-diff-base-mine' and related functions."
     ("m" . smerge-keep-mine)
     ("E" . smerge-ediff)
     ("\C-m" . smerge-keep-current)
-    ("d<" . smerge-diff-base-mine)
-    ("d>" . smerge-diff-base-other)
-    ("d=" . smerge-diff-mine-other))
+    ("=" . ,(make-sparse-keymap "Diff"))
+    ("=<" "base-mine" . smerge-diff-base-mine)
+    ("=>" "base-other" . smerge-diff-base-other)
+    ("==" "mine-other" . smerge-diff-mine-other))
   "The base keymap for `smerge-mode'.")
 
-(defcustom smerge-command-prefix "\e"
+(defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :group 'smerge
-  :type '(choice (string "\e") (string "C-x^") (string "") string))
+  :type '(choice (string "\e") (string "\C-c^") (string "") string))
 
 (easy-mmode-defmap smerge-mode-map
   `((,smerge-command-prefix . ,smerge-basic-map))
@@ -162,6 +163,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (1 smerge-mine-face prepend)
      (2 smerge-base-face prepend t)
      (3 smerge-other-face prepend t)
+     ;; FIXME: `keep' doesn't work right with syntactic fontification.
      (0 smerge-markers-face keep)
      (4 nil t t)
      (5 nil t t)))
@@ -477,6 +479,10 @@ The point is moved to the end of the conflict."
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.7  2000/10/06 16:07:31  monnier
+;; (smerge-diff): Setup the buffer's default-directory
+;; and add filename to the names so that diff-mode can jump to source.
+;;
 ;; Revision 1.6  2000/10/05 06:05:51  miles
 ;; (smerge-mine-face, smerge-other-face, smerge-base-face, smerge-markers-face):
 ;;   Add dark-background variants.
