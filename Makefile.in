@@ -606,8 +606,7 @@ relock:
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
-TAGS tags:
-	lib-src src
+TAGS tags: lib-src src
 	cd src; $(MAKE) tags
 
 check:
