@@ -1,3 +1,11 @@
+2000-12-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): Resolve
+	ASCII font name so that the same family name is used for fonts
+	registered in x-font-name-charset-alist.
+	(create-fontset-from-fontset-spec): Adjusted for the above change.
+	The name of fontset alias should be a unresolved ASCII font name.
+
 2000-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (delete-key-deletes-forward-mode): Bind backspace
