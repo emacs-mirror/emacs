@@ -2115,21 +2115,6 @@ compare_string_intervals (s1, s2)
   return 1;
 }
 
-static void set_intervals_multibyte_1 (INTERVAL, int, int, int, int, int);
-
-/* Update the intervals of the current buffer
-   to fit the contents as multibyte (if MULTI_FLAG is 1)
-   or to fit them as non-multibyte (if MULTI_FLAG is 0).  */
-
-void
-set_intervals_multibyte (multi_flag)
-     int multi_flag;
-{
-  if (BUF_INTERVALS (current_buffer))
-    set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
-			       BEG, BEG_BYTE, Z, Z_BYTE);
-}
-
 /* Recursively adjust interval I in the current buffer
    for setting enable_multibyte_characters to MULTI_FLAG.
    The range of interval I is START ... END in characters,
@@ -2187,6 +2172,19 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 				 right_start, right_start_byte,
 				 end, end_byte);
     }
+}
+
+/* Update the intervals of the current buffer
+   to fit the contents as multibyte (if MULTI_FLAG is 1)
+   or to fit them as non-multibyte (if MULTI_FLAG is 0).  */
+
+void
+set_intervals_multibyte (multi_flag)
+     int multi_flag;
+{
+  if (BUF_INTERVALS (current_buffer))
+    set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
+			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
 
 #endif /* USE_TEXT_PROPERTIES */
