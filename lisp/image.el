@@ -87,8 +87,8 @@ Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:heuristic-mask t'.
 Value is the image created, or nil if images of type TYPE are not supported."
-  (unless (stringp file-or-data)
-    (error "Invalid image file name or data `%s'" file-or-data))
+  (when (and (not data-p) (not (stringp file-or-data)))
+    (error "Invalid image file name `%s'" file-or-data))
   (cond ((null data-p)
 	 ;; FILE-OR-DATA is a file name.
 	 (unless (or type
@@ -206,7 +206,7 @@ Example:
 		 (setq file (expand-file-name file data-directory))
 		 (when (file-readable-p file)
 		   (setq image (cons 'image (plist-put spec :file file)))))
-		((stringp data)
+		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
     `(defvar ,symbol ',image ,doc)))
