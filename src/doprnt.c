@@ -108,7 +108,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   char *big_buffer = 0;
 
   register int tem;
-  char *string;
+  unsigned char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
   int minlen;
@@ -135,7 +135,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
-	  string = fmtcpy;
+	  string = (unsigned char *)fmtcpy;
 	  *string++ = '%';
 	  while (1)
 	    {
@@ -207,7 +207,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		abort ();
 	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
 	      /* Now copy into final output, truncating as nec.  */
-	      string = sprintf_buffer;
+	      string = (unsigned char *)sprintf_buffer;
 	      goto doit;
 
 	    case 'f':
@@ -221,7 +221,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		u.half[1] = args[cnt++];
 		sprintf (sprintf_buffer, fmtcpy, u.d);
 		/* Now copy into final output, truncating as nec.  */
-		string = sprintf_buffer;
+		string = (unsigned char *)sprintf_buffer;
 		goto doit;
 	      }
 
@@ -234,13 +234,13 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		minlen = atoi (&fmtcpy[1]);
 	      if (lispstrings)
 		{
-		  string = (char *) ((struct Lisp_String *)args[cnt])->data;
+		  string = ((struct Lisp_String *)args[cnt])->data;
 		  tem = ((struct Lisp_String *)args[cnt])->size;
 		  cnt++;
 		}
 	      else
 		{
-		  string = args[cnt++];
+		  string = (unsigned char *)args[cnt++];
 		  tem = strlen (string);
 		}
 	      width = strwidth (string, tem);
