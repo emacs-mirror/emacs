@@ -181,6 +181,8 @@ can be found:
   . libpng for PNG:   ftp://www.libpng.org/pub/png/
   . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
   . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
+                      Get version 6b -- 6a is reported to fail in
+                      Emacs.
   . libtiff for TIFF: http://www.libtiff.org/
   . libungif for GIF: 
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
@@ -193,6 +195,20 @@ appropriate --without-LIB option.  In some cases, older versions of
 these libraries won't work because some routines are missing, and
 configure should avoid such old versions.  If that happens, use the
 --without-LIB options to `configure'.  See below for more details.
+
+* Extra fonts
+
+To take proper advantage of Emacs 21's mule-unicode charsets, you need
+a Unicode font.  For information on Unicode fonts for X, see
+<URL:http://czyborra.com/unifont/> and
+<URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
+<URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
+ISO-8859 charsets.
+
+XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/> and mirrors)
+contains font support for most, if not all, of the charsets that Emacs
+supports.  The font files should be usable separately with older X
+releases.
 
 
 DETAILED BUILDING AND INSTALLATION:
