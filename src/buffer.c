@@ -2115,25 +2115,33 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   (overlay, prop, value)
      Lisp_Object overlay, prop, value;
 {
-  Lisp_Object plist, tail;
+  Lisp_Object plist, tail, buffer;
 
   CHECK_OVERLAY (overlay, 0);
 
-  tail = Fmarker_buffer (OVERLAY_START (overlay));
-  if (! NILP (tail))
-    redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
-		      marker_position (OVERLAY_START (overlay)),
-		      marker_position (OVERLAY_END   (overlay)));
-  
+  buffer = Fmarker_buffer (OVERLAY_START (overlay));
+
   plist = Fcdr_safe (XCONS (overlay)->cdr);
 
   for (tail = plist;
        CONSP (tail) && CONSP (XCONS (tail)->cdr);
        tail = XCONS (XCONS (tail)->cdr)->cdr)
-    {
-      if (EQ (XCONS (tail)->car, prop))
+    if (EQ (XCONS (tail)->car, prop))
+      {
+	/* If actually changing the property, mark redisplay needed.  */
+	if (! NILP (buffer) && !EQ (XCONS (XCONS (tail)->cdr)->car, value))
+	  redisplay_region (buffer,
+			    marker_position (OVERLAY_START (overlay)),
+			    marker_position (OVERLAY_END   (overlay)));
+
 	return XCONS (XCONS (tail)->cdr)->car = value;
-    }
+      }
+
+  /* Actually changing the property; mark redisplay needed.  */
+  if (! NILP (buffer))
+    redisplay_region (buffer,
+		      marker_position (OVERLAY_START (overlay)),
+		      marker_position (OVERLAY_END   (overlay)));
 
   if (! CONSP (XCONS (overlay)->cdr))
     XCONS (overlay)->cdr = Fcons (Qnil, Qnil);
