@@ -62,6 +62,12 @@ extern int errno;
 
 #include <utmp.h>
 
+/* A file whose last-modified time is just after the most recent boot.
+   Define this to be NULL to disable checking for this file.  */
+#ifndef BOOT_TIME_FILE
+#define BOOT_TIME_FILE "/var/run/random-seed"
+#endif
+
 #ifndef WTMP_FILE
 #define WTMP_FILE "/var/log/wtmp"
 #endif
@@ -113,17 +119,10 @@ static time_t
 get_boot_time ()
 {
   int counter;
-  struct stat st;
 
   if (boot_time_initialized)
     return boot_time;
   boot_time_initialized = 1;
-
-  if (stat ("/var/run/random-seed", &st) == 0)
-    {
-      boot_time = st.st_mtime;
-      return boot_time;
-    }
 
 #if defined (CTL_KERN) && defined (KERN_BOOTTIME)
   {
@@ -142,6 +141,16 @@ get_boot_time ()
       }
   }
 #endif /* defined (CTL_KERN) && defined (KERN_BOOTTIME) */
+
+  if (BOOT_TIME_FILE)
+    {
+      struct stat st;
+      if (stat (BOOT_TIME_FILE, &st) == 0)
+	{
+	  boot_time = st.st_mtime;
+	  return boot_time;
+	}
+    }
 
 #if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
 #ifndef CANNOT_DUMP
