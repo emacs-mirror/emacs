@@ -25,6 +25,7 @@
 (require 'calc)
 
 (require 'calc-macs)
+(eval-when-compile '(require calc-macs))
 
 (defun calc-Need-calc-aent () nil)
 
@@ -85,11 +86,11 @@
 				    (format ", \"%c\"" (car alg-exp))
 				  "")
 				")")))
-	  (if (and (< (length buf) (screen-width)) (= (length entry) 1)
+	  (if (and (< (length buf) (frame-width)) (= (length entry) 1)
 		   calc-extensions-loaded)
 	      (let ((long (concat (math-format-value (car entry) 1000)
 				  " =>  " buf)))
-		(if (<= (length long) (- (screen-width) 8))
+		(if (<= (length long) (- (frame-width) 8))
 		    (setq buf long))))
 	  (calc-handle-whys)
 	  (message "Result: %s" buf)))
@@ -385,7 +386,7 @@
 	  (calc-minibuffer-contains
 	   "\\`\\([^\"]*\"[^\"]*\"\\)*[^\"]*\"[^\"]*\\'"))
       (insert "`")
-    (setq alg-exp (buffer-string))
+    (setq alg-exp (minibuffer-contents))
     (and (> (length alg-exp) 0) (setq calc-previous-alg-entry alg-exp))
     (exit-minibuffer))
 )
@@ -393,14 +394,14 @@
 
 (defun calcAlg-enter ()
   (interactive)
-  (let* ((str (buffer-string))
+  (let* ((str (minibuffer-contents))
 	 (exp (and (> (length str) 0)
 		   (save-excursion
 		     (set-buffer calc-buffer)
 		     (math-read-exprs str)))))
     (if (eq (car-safe exp) 'error)
 	(progn
-	  (goto-char (point-min))
+	  (goto-char (minibuffer-prompt-end))
 	  (forward-char (nth 1 exp))
 	  (beep)
 	  (calc-temp-minibuffer-message
@@ -455,14 +456,14 @@
   (interactive)
   (if (calc-minibuffer-contains ".*[@oh] *[^'m ]+[^'m]*\\'")
       (calcDigit-key)
-    (setq calc-digit-value (buffer-string))
+    (setq calc-digit-value (minibuffer-contents))
     (exit-minibuffer))
 )
 
 (defun calcDigit-edit ()
   (interactive)
   (calc-unread-command)
-  (setq calc-digit-value (buffer-string))
+  (setq calc-digit-value (minibuffer-contents))
   (exit-minibuffer)
 )
 
