@@ -1,3 +1,17 @@
+2003-03-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (struct xg_last_sb_pos): New structure.
+	(handle_fixed_child): New function.
+	(xg_resize_widgets): Call handle_fixed_child on all scroll bar widgets
+	and force a redraw on them.
+	(xg_gtk_scroll_destroy): Free struct xg_last_sb_pos also.
+	(xg_create_scroll_bar): Add struct xg_last_sb_pos to scroll bar
+	so we can avoid unneeded redraws.
+	(xg_update_scrollbar_pos): Invalidate data in xg_last_sb_pos
+	and force a redraw on the scroll bar.
+	(xg_set_toolkit_scroll_bar_thumb): Do not change/redraw scroll bar
+	if xg_last_sb_pos shows the positions are up to date.
+
 2003-03-13  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdetect_coding_region): Fix docstring.

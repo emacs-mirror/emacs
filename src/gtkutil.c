@@ -35,6 +35,19 @@ Boston, MA 02111-1307, USA.  */
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
   (PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
+
+
+/* Key to save a struct xg_last_sb_pos in the scroll bars.  */
+#define XG_LAST_SB_POS "emacs_last_sb_pos"
+
+
+/*  Use this in scroll bars to keep track of when redraw is really needed.  */
+struct xg_last_sb_pos
+{
+  int portion, position, whole;
+};
+
+
 
 /***********************************************************************
                       Utility functions
@@ -285,6 +298,24 @@ xg_resize_outer_widget (f, columns, rows)
   gdk_window_process_all_updates ();
 }
 
+/* When the Emacs frame is resized, we must call this function for each
+   child of our GtkFixed widget.  The children are scroll bars and
+   we invalidate the last position data here so it will be properly
+   redrawn later when xg_update_scrollbar_pos is called.
+   W is the child widget.
+   CLIENT_DATA is not used.  */
+static handle_fixed_child (w, client_data)
+     GtkWidget *w;
+     gpointer client_data;
+{
+  struct xg_last_sb_pos *last_pos
+    = g_object_get_data (G_OBJECT (w), XG_LAST_SB_POS);
+  if (last_pos)
+    {
+      last_pos->portion = last_pos->position = last_pos->whole = .1;
+    }
+}
+
 /* Function to handle resize of our widgets.  Since Emacs has some layouts
    that does not fit well with GTK standard containers, we do most layout
    manually.
@@ -314,6 +345,12 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
       all.height = pixelheight - mbheight - tbheight;
 
       gtk_widget_size_allocate (x->edit_widget, &all);
+
+      gtk_container_foreach (GTK_CONTAINER (x->edit_widget),
+                             (GtkCallback) handle_fixed_child,
+                             NULL);
+      gtk_container_set_reallocate_redraws (GTK_CONTAINER (x->edit_widget),
+                                            TRUE);
       gdk_window_process_all_updates ();
 
       change_frame_size (f, rows, columns, 0, 1, 0);
@@ -2330,7 +2367,7 @@ xg_get_scroll_id_for_window (wid)
 
 /* Callback invoked when scroll bar WIDGET is destroyed.
    DATA is the index into id_to_widget for WIDGET.
-   We free pointer to last scroll bar value here and remove the index.  */
+   We free pointer to last scroll bar values here and remove the index.  */
 static void
 xg_gtk_scroll_destroy (widget, data)
      GtkWidget *widget;
@@ -2340,6 +2377,8 @@ xg_gtk_scroll_destroy (widget, data)
   int id = (int)data;
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
+  if (p) xfree (p);
+  p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_POS);
   if (p) xfree (p);
   xg_remove_widget_from_map (id);
 }
@@ -2420,6 +2459,16 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   /* Set the cursor to an arrow.  */
   xg_set_cursor (wscroll, &xg_left_ptr_cursor);
 
+  /* Allocate a place to hold the last scollbar size.  GTK redraw for
+     scroll bars is basically clear all, and then redraw.  This flickers
+     a lot since xg_update_scrollbar_pos gets called on every cursor move
+     and a lot more places.  So we have this to check if a redraw really
+     is needed.  */
+  struct xg_last_sb_pos *last_pos
+    = (struct xg_last_sb_pos *) xmalloc (sizeof (struct xg_last_sb_pos));
+  last_pos->portion = last_pos->position = last_pos->whole = -1;
+  g_object_set_data (G_OBJECT (wscroll), XG_LAST_SB_POS, last_pos);
+  
   SET_SCROLL_BAR_X_WINDOW (bar, scroll_id);
 }
 
@@ -2467,11 +2516,17 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
   if (wscroll)
     {
       int gheight = max (height, 1);
+      struct xg_last_sb_pos *last_pos
+        = g_object_get_data (G_OBJECT (wscroll), XG_LAST_SB_POS);
+      GtkWidget *wfixed = f->output_data.x->edit_widget;
 
-      gtk_fixed_move (GTK_FIXED (f->output_data.x->edit_widget),
-                      wscroll, left, top);
+      last_pos->portion = last_pos->position = last_pos->whole = -1;
+      xg_ignore_next_thumb = 0;
 
+      gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
       gtk_widget_set_size_request (wscroll, width, gheight);
+
+      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
 
       /* Must force out update so wscroll gets the resize.
          Otherwise, the gdk_window_clear clears the old window size.  */
@@ -2502,9 +2557,16 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
   GtkWidget *wscroll = xg_get_widget_from_map (SCROLL_BAR_X_WINDOW (bar));
 
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct xg_last_sb_pos *last_pos
+    = (wscroll ? g_object_get_data (G_OBJECT (wscroll), XG_LAST_SB_POS) : 0);
 
   BLOCK_INPUT;
-  if (wscroll && ! xg_ignore_next_thumb)
+  if (wscroll
+      && ! xg_ignore_next_thumb
+      && last_pos
+      && (last_pos->portion != portion
+          || last_pos->position != position
+          || last_pos->whole != whole))
     {
       GtkAdjustment *adj;
       gdouble shown;
@@ -2538,15 +2600,23 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       /* Assume all lines are equal.  */
       adj->step_increment = portion / max (1, FRAME_HEIGHT (f));
 
+      if (last_pos)
+        {
+          last_pos->portion = portion;
+          last_pos->position = position;
+          last_pos->whole = whole;
+        }
+
       /* gtk_range_set_value invokes the callback.  Set
          ignore_gtk_scrollbar to make the callback do nothing  */
       xg_ignore_gtk_scrollbar = 1;
       gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
       xg_ignore_gtk_scrollbar = 0;
+
+      /* Make sure the scroll bar is redrawn with new thumb  */
+      gtk_widget_queue_draw (wscroll);
     }
 
-  /* Make sure the scroll bar is redrawn with new thumb  */
-  gtk_widget_queue_draw (wscroll);
   gdk_window_process_all_updates ();
   xg_ignore_next_thumb = 0;
   UNBLOCK_INPUT;
