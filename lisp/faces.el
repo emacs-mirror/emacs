@@ -1820,7 +1820,8 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
-     :underline t)
+     :underline t
+     :inverse-video nil)
     (((class color grayscale) (background light))
      :background "grey90" :foreground "grey20"
      :box nil)
