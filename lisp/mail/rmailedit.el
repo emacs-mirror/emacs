@@ -61,10 +61,16 @@ to return to regular RMAIL:
 	(rmail-summary-disable)))
   (run-hooks 'rmail-edit-mode-hook))
 
+(defvar rmail-old-pruned nil)
+(put 'rmail-old-pruned 'permanent-local t)
+
 ;;;###autoload
 (defun rmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
+  (make-local-variable 'rmail-old-pruned)
+  (setq rmail-old-pruned (rmail-msg-is-pruned))
+  (rmail-toggle-header 0)
   (rmail-edit-mode)
   (make-local-variable 'rmail-old-text)
   (setq rmail-old-text (buffer-substring (point-min) (point-max)))
@@ -74,7 +80,7 @@ to return to regular RMAIL:
 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))
       (message "Editing: Type C-c C-c to return to Rmail, C-c C-] to abort")
     (message "%s" (substitute-command-keys
-	       "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
+		   "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
 
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
@@ -114,7 +120,8 @@ to return to regular RMAIL:
 						 (progn (forward-line 1)
 							(point))))))))))))
     (save-excursion
-      (rmail-show-message)))
+      (rmail-show-message)
+      (rmail-toggle-header (if rmail-old-pruned 1 0))))
   (setq buffer-read-only t))
 
 (defun rmail-abort-edit ()
