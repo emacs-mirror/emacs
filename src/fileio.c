@@ -3111,7 +3111,7 @@ This is the sort of file that holds an ordinary stream of data bytes.")
     return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
   }
 #else
-  if (stat (XSTRING (absname)->data, &st) < 0)
+  if (lstat (XSTRING (absname)->data, &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
 #endif
