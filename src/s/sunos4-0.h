@@ -5,7 +5,11 @@
 #define O_NDELAY        FNDELAY /* Non-blocking I/O (4.2 style) */
 #endif
 
+#ifdef __GNUC__
+#define LD_SWITCH_SYSTEM -e __start -static
+#else
 #define LD_SWITCH_SYSTEM -e __start -Bstatic
+#endif
 
 /* In SunOS 4.1, a static function called by tzsetwall reportedly
    clears the byte just past an eight byte region it mallocs, corrupting
