@@ -31,7 +31,7 @@
 ;;; Definitions of character sets.
 
 ;; Basic (official) character sets.  These character sets are treated
-;; effectively in the aspect of memory in a buffer.
+;; efficiently with respect to buffer memory.
 
 ;; Syntax:
 ;; (define-charset CHARSET-ID CHARSET
@@ -68,6 +68,10 @@
      "ISO8859-5 (Cyrillic)"])
 (define-charset 141 'latin-iso8859-9
   [1 96 1 0 ?M 1 "Latin-5" "ISO8859-9 (Latin-5)" "ISO8859-9 (Latin-5)"])
+(define-charset 142 'latin-iso8859-15
+  [1 96 1 0 ?b 1 "Latin-9" "ISO8859-15 (Latin-9)" "ISO8859-15 (Latin-9)"])
+(define-charset 143 'latin-iso8859-14
+  [1 96 1 0 ?_ 1 "Latin-8" "ISO8859-14 (Latin-8)" "ISO8859-14 (Latin-8)"])
 (define-charset 144 'japanese-jisx0208-1978
   [2 94 2 0 ?@ 0 "JISX0208.1978" "JISX0208.1978 (Japanese)"
      "JISX0208.1978 Japanese Kanji (so called \"old JIS\")"])
@@ -96,7 +100,7 @@
      "Big5 Level-2 Chinese traditional"])
 
 ;; Additional (private) character sets.  These character sets are
-;; treated less effectively in the aspect of memory in a buffer.
+;; treated less space-efficiently in the buffer.
 
 ;; Syntax:
 ;; (define-charset nil CHARSET
@@ -142,7 +146,7 @@
 
 ;; Chinese CNS11643 Plane3 thru Plane7.  Although these are official
 ;; character sets, the use is rare and don't have to be treated
-;; effectively in the aspect of memory in a buffer.
+;; space-efficiently in the buffer.
 (define-charset nil 'chinese-cns11643-3
   [2 94 2 0 ?I 0 "CNS11643-3" "CNS11643-3 (Chinese traditional)"
      "CNS11643 Plane 3 Chinese Traditional"])

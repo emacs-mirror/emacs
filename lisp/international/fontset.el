@@ -76,6 +76,8 @@
     (lao . "MuleLao-1")
     (tibetan . "MuleTibetan-0")
     (tibetan-1-column . "MuleTibetan-1")
+    (latin-iso8859-14 . "ISO8859-14")
+    (latin-iso8859-15 . "ISO8859-15")
     ))
 
 (let ((l x-charset-registries))
@@ -113,6 +115,8 @@
     ("iso8859-6" ascii arabic-iso8859-6)
     ("iso8859-7" ascii greek-iso8859-7)
     ("iso8859-8" ascii hebrew-iso8859-8)
+    ("iso8859-14" ascii latin-iso8859-14)
+    ("iso8859-15" ascii latin-iso8859-15)
     ("tis620" ascii thai-tis620)
     ("koi8" ascii cyrillic-iso8859-5)
     ("viscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)

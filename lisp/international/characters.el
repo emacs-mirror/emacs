@@ -281,12 +281,16 @@
 (modify-category-entry (make-char 'latin-iso8859-3) ?l)
 (modify-category-entry (make-char 'latin-iso8859-4) ?l)
 (modify-category-entry (make-char 'latin-iso8859-9) ?l)
+(modify-category-entry (make-char 'latin-iso8859-14) ?l)
+(modify-category-entry (make-char 'latin-iso8859-15) ?l)
 
 (modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
 (modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
 (modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
 (modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
 (modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-14 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-15 160) ?\ )
 
 ;; Greek character set (ISO-8859-7)
 
@@ -615,7 +619,9 @@
 	   (chinese-cns11643-6	. iso-2022-cn)
 	   (chinese-cns11643-7	. iso-2022-cn)
 	   (indian-2-column	. devanagari)
-	   (tibetan		. tibetan))))
+	   (tibetan		. tibetan)
+	   (latin-iso8859-14	. iso-latin-8)
+	   (latin-iso8859-15	. iso-latin-9))))
   (while l
     (put-charset-property (car (car l)) 'preferred-coding-system (cdr (car l)))
     (setq l (cdr l))))
