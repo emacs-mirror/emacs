@@ -2051,9 +2051,14 @@ x_window (f)
   f->display.x->wm_hints.input = True;
   f->display.x->wm_hints.flags |= InputHint;
   XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
-  XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f),
-		   &Xatom_wm_delete_window, 1);
 
+  /* Request "save yourself" and "delete window" commands from wm.  */
+  {
+    Atom protocols[2];
+    protocols[0] = Xatom_wm_delete_window;
+    protocols[1] = Xatom_wm_save_yourself;
+    XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f), protocols, 2);
+  }
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
