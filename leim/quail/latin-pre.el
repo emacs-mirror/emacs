@@ -259,6 +259,49 @@ Key translation rules are:
 )
 
 (quail-define-package
+ "romanian-prefix" "Romanian" "RO>" t
+ "Romanian (rom,Bb(Bne,B:(Bte) input method with prefix modifiers
+
+    effect   | prefix | examples
+ ------------+--------+------------------
+    tilde    |   ~    | ~a -> ,Bc(B
+  circumflex |   ^    | ^a -> ,Bb(B, ^i -> ,Bn(B
+   cedilla   |   ,    | ,s -> ,B:(B, ,t -> ,B~(B
+   ~         |   ~    | ~~ -> ~
+   ^         |   ^    | ^^ -> ^
+   ,         |   ,    | ,, -> ,
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("~A" ?,BC(B) ("~a" ?,Bc(B)
+ ("^A" ?,BB(B) ("^a" ?,Bb(B)
+ ("^I" ?,BN(B) ("^i" ?,Bn(B)
+ (",S" ?,B*(B) (",s" ?,B:(B)
+ (",T" ?,B^(B) (",t" ?,B~(B)
+ ("^^" ?^) ("~~" ?~) (",," ?,))
+
+(quail-define-package
+ "romanian-alt-prefix" "Romanian" "RO>" t
+ "Alternative Romanian (rom,Bb(Bne,B:(Bte) input method with prefix modifiers
+
+    effect   | prefix | examples
+ ------------+--------+------------------
+    tilde    |   \"    | \"a -> ,Bb(B
+  circumflex |   '    | 'a -> ,Bb(B, 'i -> ,Bn(B
+   cedilla   |   '    | 's -> ,B:(B, 't -> ,B~(B
+   '         |   '    | '' -> '
+   \"         |   \"    | \"\" -> \"
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("'A" ?,BC(B) ("'a" ?,Bc(B)
+ ("\"A" ?,BB(B) ("\"a" ?,Bb(B)
+ ("'I" ?,BN(B) ("'i" ?,Bn(B)
+ ("'S" ?,B*(B) ("'s" ?,B:(B)
+ ("'T" ?,B^(B) ("'t" ?,B~(B)
+ ("''" ?') ("\"\"" ?\"))
+
+(quail-define-package
  "german-prefix" "Latin-1" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
