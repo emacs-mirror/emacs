@@ -1,3 +1,7 @@
+2005-03-22  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Require generic again.
+
 2005-03-22  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
