@@ -1386,10 +1386,12 @@ parameters such as width, horizontal scrolling, and so on.\n\
 the default is the selected window.\n\
 It does not matter what buffer is displayed in WINDOW.\n\
 `vertical-motion' always uses the current buffer.\n\
+This makes it possible to use `vertical-motion' in any buffer,\n\
+whether or not it is currently displayed in some window.\n\
 \n\
-Sets point to position found; this may be start of line\n\
+This function sets point to position found; this may be start of line\n\
 or just the start of a continuation line.\n\
-Returns number of lines moved; may be closer to zero than LINES\n\
+It returns number of lines moved; that may be closer to zero than LINES\n\
 if beginning or end of buffer was reached.")
   (lines, window)
      Lisp_Object lines, window;
