@@ -34,7 +34,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 
-Lisp_Object Vdoc_file_name, Vdata_directory;
+Lisp_Object Vdoc_file_name;
 
 Lisp_Object
 get_doc_string (filepos)
@@ -492,11 +492,6 @@ syms_of_doc ()
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
     "Name of file containing documentation strings of built-in symbols.");
   Vdoc_file_name = Qnil;
-
-  DEFVAR_LISP ("data-directory", &Vdata_directory,
-    "Directory of architecture-independent files that come with GNU Emacs,\n\
-intended for Emacs to use.");
-  Vdata_directory = Qnil;
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
