@@ -1,3 +1,15 @@
+2004-04-14  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (find_font_encoding): Return `ascii' for unknown
+	encoding.
+	(load_font_get_repertory): Delete unnecessary check of ENCODING of
+	FONT_DEF.
+	(font_def_arg, add_arg, from_arg, to_arg): New args.
+	(set_fontset_font): Argument changed.
+	(Fset_fontset_font): Fix for the case that TARGET is a script
+	name and charset name.
+	(new_fontset_from_font_name): Fix argument to Fnew_fontset.
+
 2004-04-13  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_font): Renamed from fontset_face.  Return
