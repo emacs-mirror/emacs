@@ -1,3 +1,12 @@
+2005-03-31  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode)
+	(define-minor-mode): Call custom-current-group at load-time.
+
+	* generic.el (define-generic-mode): Add debug declaration.
+	Add defcustom for the mode hook.
+	(generic-mode-internal): Use run-mode-hooks.
+
 2005-03-31  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-1-click-follows-link): Increase to 450 ms.
