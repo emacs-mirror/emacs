@@ -168,6 +168,12 @@ together with the Emacs User Manual, into the Info directory.
 change the `fill-column', `window-margins' and `tab-stop-list'
 settings.
 
+*** The reveal.el package provides the minor modes `reveal-mode' and
+`global-reveal-mode' which will make text visible on the fly as you
+move your cursor into hidden region of the buffer.
+It should work with any package that uses overlays to hide parts
+of a buffer, such as outline-minor-mode, hs-minor-mode, hide-ifdef-mode, ...
+
 *** master-mode.el implements a minor mode for scrolling a slave
 buffer without leaving your current buffer, the master buffer.
 

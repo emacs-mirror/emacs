@@ -1,3 +1,27 @@
+2001-11-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* reveal.el: New file.
+
+	* progmodes/hideif.el: Misc cleanup.
+	(hide-ifdef-mode-submap): Put the def in the defvar.
+	Use substitute-key-definition.
+	(hide-ifdef-mode): Use define-minor-mode.
+	(hif-outline-flag-region): Remove.
+	(hif-show-all): Define in terms of hif-show-ifdef-region.
+	(hif-after-revert-function): Rename from hif-before-revert-function.
+	(hide-ifdef-region, hif-show-ifdef-region): Use overlays.
+	(hif-tokenize): Use with-syntax-table.
+	(hif-make-range): Use `else' also for `else-p'.
+	(hif-range-else-p): Remove.
+	(hif-find-range): Simplify.
+	(hif-hide-line): Don't bother preserving buffer-modified-p.
+	(hide-ifdefs, show-ifdefs, hide-ifdef-block, show-ifdef-block):
+	Don't use selective-display and inhibit-read-only.
+
+	* subr.el (copy-overlay, remove-overlays): New funs.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix off-by-two error.
+
 2001-11-27  Sam Steingold  <sds@gnu.org>
 
 	* ansi-color.el, bookmark.el, dired.el, emerge.el, fast-lock.el
