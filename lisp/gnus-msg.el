@@ -1560,7 +1560,7 @@ mailer."
 		    subject message-of nil gnus-article-copy nil)
 
 	(auto-save-mode auto-save-default)
-	(use-local-map (copy-keymap mail-mode-map))
+	(use-local-map (copy-keymap (current-local-map)))
 	(local-set-key "\C-c\C-c" 'gnus-mail-send-and-exit)
 
 	(if (and follow-to (listp follow-to))
