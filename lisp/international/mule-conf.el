@@ -1112,6 +1112,7 @@ is treated as a character."
 (define-coding-system 'emacs-mule
  "Emacs 21 internal format used in buffer and string."
  :coding-type 'emacs-mule
+ :charset-list 'emacs-mule
  :mnemonic ?M)
 
 (define-coding-system 'utf-8
@@ -1173,6 +1174,7 @@ is treated as a character."
   "ISO 2022 based 7-bit encoding using only G0."
   :coding-type 'iso-2022
   :mnemonic ?J
+  :charset-list 'iso-2022
   :designation [(ascii t) nil nil nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation composition))
 
@@ -1180,6 +1182,7 @@ is treated as a character."
   "ISO 2022 based 7-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?$
+  :charset-list 'iso-2022
   :designation [(ascii 94) nil (nil 96) nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit
 		 designation single-shift composition))
@@ -1188,6 +1191,7 @@ is treated as a character."
   "ISO-2022 coding system using Locking-Shift for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?&
+  :charset-list 'iso-2022
   :designation [(ascii 94) (nil 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl 7-bit
 			designation locking-shift composition))
@@ -1219,6 +1223,7 @@ is treated as a character."
   "ISO 2022 based 8-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?@
+  :charset-list 'iso-2022
   :designation [(ascii 94) nil (nil 96) nil]
   :flags '(ascii-at-eol ascii-at-cntl designation single-shift composition))
 
@@ -1228,6 +1233,7 @@ is treated as a character."
 This coding system does not support ICCCM Extended Segments."
   :coding-type 'iso-2022
   :mnemonic ?x
+  :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl
 			designation locking-shift single-shift composition)
@@ -1249,6 +1255,7 @@ This coding system does not support ICCCM Extended Segments."
 Like `compound-text', but does not produce escape sequences for compositions."
   :coding-type 'iso-2022
   :mnemonic ?x
+  :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl
 			designation locking-shift single-shift))
