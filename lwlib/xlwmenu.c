@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/cursorfont.h>
 #include <X11/bitmaps/gray>
 #include "xlwmenuP.h"
+
 #ifdef emacs
 /* Defined in xterm.c.  */
 extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
@@ -41,6 +42,12 @@ extern int x_catch_errors __P ((Display*));
 extern int x_uncatch_errors __P ((Display*, int));
 extern int x_had_errors_p __P ((Display*));
 extern int x_clear_errors __P ((Display*));
+extern unsigned long x_copy_dpy_color __P ((Display *, Colormap,
+					    unsigned long));
+
+/* Defined in xfaces.c.  */
+extern void x_free_dpy_colors __P ((Display *, Screen *, Colormap,
+				    unsigned long *pixels, int npixels));
 #endif
 
 static int pointer_grabbed;
@@ -621,7 +628,6 @@ draw_shadow_rhombus (mw, window, x, y, width, height, erase_p, down_p)
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = mw->menu.shadow_thickness;
   XPoint points [4];
-  double sqrt2 = 1.4142;
 
   if (!erase_p && down_p)
     {
@@ -1494,9 +1500,19 @@ make_shadow_gcs (mw)
       else if (topc.pixel == botc.pixel)
 	{
 	  if (botc.pixel == mw->menu.foreground)
-	    mw->menu.top_shadow_color = mw->core.background_pixel;
+	    {
+	      x_free_dpy_colors (dpy, screen, cmap,
+				 &mw->menu.top_shadow_color, 1);
+	      mw->menu.top_shadow_color
+		= x_copy_dpy_color (dpy, cmap, mw->core.background_pixel);
+	    }
 	  else
-	    mw->menu.bottom_shadow_color = mw->menu.foreground;
+	    {
+	      x_free_dpy_colors (dpy, screen, cmap,
+				 &mw->menu.bottom_shadow_color, 1);
+	      mw->menu.bottom_shadow_color
+		= x_copy_dpy_color (dpy, cmap, mw->menu.foreground);
+	    }
 	}
     }
 
@@ -1504,13 +1520,20 @@ make_shadow_gcs (mw)
       mw->menu.top_shadow_color == mw->core.background_pixel)
     {
       mw->menu.top_shadow_pixmap = mw->menu.gray_pixmap;
-      mw->menu.top_shadow_color = mw->menu.foreground;
+      if (top_frobbed)
+	x_free_dpy_colors (dpy, screen, cmap, &mw->menu.top_shadow_color, 1);
+      mw->menu.top_shadow_color = x_copy_dpy_color (dpy, cmap,
+						    mw->menu.foreground);
     }
   if (!mw->menu.bottom_shadow_pixmap &&
       mw->menu.bottom_shadow_color == mw->core.background_pixel)
     {
       mw->menu.bottom_shadow_pixmap = mw->menu.gray_pixmap;
-      mw->menu.bottom_shadow_color = mw->menu.foreground;
+      if (bottom_frobbed)
+	x_free_dpy_colors (dpy, screen, cmap,
+			   &mw->menu.bottom_shadow_color, 1);
+      mw->menu.bottom_shadow_color = x_copy_dpy_color (dpy, cmap,
+						       mw->menu.foreground);
     }
 
   xgcv.fill_style = FillStippled;
@@ -1530,6 +1553,14 @@ static void
 release_shadow_gcs (mw)
      XlwMenuWidget mw;
 {
+  Display *dpy = XtDisplay ((Widget) mw);
+  Screen *screen = XtScreen ((Widget) mw);
+  Colormap cmap = mw->core.colormap;
+  Pixel px[2];
+
+  px[0] = mw->menu.top_shadow_color;
+  px[1] = mw->menu.bottom_shadow_color;
+  x_free_dpy_colors (dpy, screen, cmap, px, 2);
   XtReleaseGC ((Widget) mw, mw->menu.shadow_top_gc);
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
 }
