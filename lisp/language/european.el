@@ -284,6 +284,22 @@ but it selects the French tutorial."))
  '("European"))
 
 (set-language-info-alist
+ "Italian" '((tutorial . "TUTORIAL.it")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1 iso-latin-9)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "italian-postfix")
+	    (sample-text . "Salve, ciao!")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but sets the default input method to \"italian-postfix\".
+Additionally, it selects the Italian tutorial."))
+ '("European"))
+
+(set-language-info-alist
  "Slovenian" '((charset . (ascii latin-iso8859-2))
 	      (coding-system . (iso-8859-2))
 	      (coding-priority . (iso-8859-2))
