@@ -144,6 +144,12 @@ wish to have fontification turned on and off by Font Lock.  If this
 variable is non-nil, then calling `font-lock-mode' will simply toggle
 the symbol property `face' of CATEGORY-SYMBOL.")
 
+(defvar font-lock-function 'font-lock-default-function
+  "A function which is called when `font-lock-mode' is toggled.
+It will be passed one argument, which is the current value of
+`font-lock-mode'.")
+(make-variable-buffer-local 'font-lock-default-function)
+
 (define-minor-mode font-lock-mode
   "Toggle Font Lock mode.
 With arg, turn Font Lock mode off if and only if arg is a non-positive
@@ -198,13 +204,19 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block].
 
 See the variable `font-lock-defaults-alist' for the Font Lock mode default
 settings.  You can set your own default settings for some mode, by setting a
-buffer local value for `font-lock-defaults', via its mode hook."
+buffer local value for `font-lock-defaults', via its mode hook.
+
+The above is the default behavior of `font-lock-mode'; you may specify
+your own function which is called when `font-lock-mode' is toggled via
+`font-lock-function'. "
   nil nil nil
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
   (when (or noninteractive (eq (aref (buffer-name) 0) ?\ ))
     (setq font-lock-mode nil))
+  (funcall font-lock-function font-lock-mode))
 
+(defun font-lock-default-function (font-lock-mode)
   ;; Turn on Font Lock mode.
   (when font-lock-mode
     (font-lock-set-defaults)
