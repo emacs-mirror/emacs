@@ -606,7 +606,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 		    dired-standard-move-to-filename-regexp)
 	     ;; It also isn't necessary if we'd use the C locale anyway.
 	     (not (equal (or (getenv "LC_ALL") (getenv "LC_TIME")
-			     (getenv "LANGUAGE") "C")
+			     (getenv "LANGUAGE") (getenv "LANG") "C")
 			 "C")))
 	(setq process-environment (cons "LC_ALL=C" process-environment)))
     (if (consp dir-or-list)
