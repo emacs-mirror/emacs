@@ -413,30 +413,26 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
    (let ((fn (function-called-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read (if fn
-				    (format "Where is command (default %s): " fn)
-				  "Where is command: ")
-				obarray 'commandp t))
-     (list (if (equal val "")
-	       fn (intern val))
-	   current-prefix-arg)))
+     (setq val (completing-read
+		(if fn
+		    (format "Where is command (default %s): " fn)
+		  "Where is command: ")
+		obarray 'commandp t))
+     (list (if (equal val "") fn (intern val)) current-prefix-arg)))
   (let ((func (indirect-function definition))
-        (map nil)
+        (defs nil)
         (standard-output (if insert (current-buffer) t)))
-    (mapatoms #'(lambda (symbol)
-                  (when (and (not (eq symbol definition))
-                             (fboundp symbol)
-                             (eq func (indirect-function symbol)))
-                    (setq map (cons symbol map)))))
+    (mapatoms (lambda (symbol)
+		(and (fboundp symbol)
+		     (not (eq symbol definition))
+		     (eq func (indirect-function symbol))
+		     (push symbol defs))))
     (princ (mapconcat
             #'(lambda (symbol)
                 (let* ((remapped (remap-command symbol))
-                       (keys (mapconcat 'key-description
-                                        (where-is-internal symbol
-                                                           overriding-local-map
-                                                           nil nil
-                                                           remapped)
-                                        ", ")))
+		       (keys (where-is-internal
+			      symbol overriding-local-map nil nil remapped))
+                       (keys (mapconcat 'key-description keys ", ")))
                   (if insert
                       (if (> (length keys) 0)
                           (if remapped
@@ -450,7 +446,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
                                     definition symbol keys)
                           (format "%s is on %s" symbol keys))
                       (format "%s is not on any key" symbol)))))
-            (cons definition map)
+            (cons definition defs)
             ";\nand ")))
   nil)
 
