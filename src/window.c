@@ -3670,8 +3670,9 @@ Does not restore the value of point in current buffer.")
    describe the same state of affairs.  This is used by Fequal.   */
 
 int
-compare_window_configurations (c1, c2)
+compare_window_configurations (c1, c2, ignore_positions)
      Lisp_Object c1, c2;
+     int ignore_positions;
 {
   register struct save_window_data *d1, *d2;
   struct Lisp_Vector *sw1, *sw2;
@@ -3694,8 +3695,9 @@ compare_window_configurations (c1, c2)
      Instead see w1_is_current and w2_is_current, below.  */
   if (! EQ (d1->current_buffer, d2->current_buffer))
     return 0;
-  if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
-    return 0;
+  if (! ignore_positions)
+    if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
+      return 0;
   /* Don't compare the root_window field.
      We don't require the two configurations
      to use the same window object,
@@ -3739,25 +3741,41 @@ compare_window_configurations (c1, c2)
 	return 0;
       if (! EQ (p1->height, p2->height))
 	return 0;
-      if (! EQ (p1->hscroll, p2->hscroll))
-	return 0;
-      if (! EQ (p1->start_at_line_beg, p2->start_at_line_beg))
-	return 0;
       if (! EQ (p1->display_table, p2->display_table))
 	return 0;
       if (! EQ (p1->parent, p2->parent))
 	return 0;
       if (! EQ (p1->prev, p2->prev))
 	return 0;
-      if (NILP (Fequal (p1->start, p2->start)))
-	return 0;
-      if (NILP (Fequal (p1->pointm, p2->pointm)))
-	return 0;
-      if (NILP (Fequal (p1->mark, p2->mark)))
-	return 0;
+      if (! ignore_positions)
+	{
+	  if (! EQ (p1->hscroll, p2->hscroll))
+	    return 0;
+	  if (! EQ (p1->start_at_line_beg, p2->start_at_line_beg))
+	    return 0;
+	  if (NILP (Fequal (p1->start, p2->start)))
+	    return 0;
+	  if (NILP (Fequal (p1->pointm, p2->pointm)))
+	    return 0;
+	  if (NILP (Fequal (p1->mark, p2->mark)))
+	    return 0;
+	}
     }
 
   return 1;
+}
+
+DEFUN ("compare-window-configurations", Fcompare_window_configurations,
+       Scompare_window_configurations, 2, 2, 0,
+  "Compare two window configurations as regards the structure of windows.\n\
+This function ignores details such as the values of point and mark\n\
+and scrolling positions.")
+  (x, y)
+     Lisp_Object x, y;
+{
+  if (compare_window_configurations (x, y, 1))
+    return Qt;
+  return Qnil;
 }
 
 init_window_once ()
@@ -3987,6 +4005,7 @@ The selected frame is the one whose configuration has changed.");
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
   defsubr (&Ssave_window_excursion);
+  defsubr (&Scompare_window_configurations);
 }
 
 keys_of_window ()
