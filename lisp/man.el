@@ -624,6 +624,9 @@ Same for the ANSI bold and normal escape sequences."
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
     (replace-match "+")
     (put-text-property (1- (point)) (point) 'face 'bold))
+  ;; \255 is some kind of dash in Latin-1.
+  (goto-char (point-min))
+  (while (search-forward "\255" nil t) (replace-match "-"))
   (message "%s man page made up" Man-arguments))
 
 (defun Man-cleanup-manpage ()
@@ -647,6 +650,9 @@ Same for the ANSI bold and normal escape sequences."
 	))
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
+  ;; \255 is some kind of dash in Latin-1.
+  (goto-char (point-min))
+  (while (search-forward "\255" nil t) (replace-match "-"))
   (message "%s man page cleaned up" Man-arguments))
 
 (defun Man-bgproc-sentinel (process msg)
