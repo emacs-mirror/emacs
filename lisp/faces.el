@@ -66,7 +66,7 @@ a font height that isn't optimal."
   '(("courier" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
-Each element has the the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
+Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
   :tag "Alternative font families to try."
@@ -90,7 +90,7 @@ ALTERNATIVE2 etc."
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
       ("muletibetan-2" "muletibetan-0")))
   "*Alist of alternative font registry names.
-Each element has the the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
+Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
 tries to find a best matching font among all fonts of registry
 REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
@@ -303,7 +303,7 @@ If FRAME is omitted or nil, use the selected frame."
   "*List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
-(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
+\(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
 X resource class for the attribute."
   :type '(repeat (cons symbol (repeat (cons string string))))
   :group 'faces)
@@ -634,7 +634,7 @@ Argument NOERROR is ignored and retained for compatibility."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of font weight and slant."
-  (interactive (list (read-face-name "Make which face bold-italic: ")))
+  (interactive (list (read-face-name "Make which face bold-italic ")))
   (set-face-attribute face frame :weight 'bold :slant 'italic))
 
 
@@ -1044,7 +1044,7 @@ The sample text is a string that comes from the variable
 	   "Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
 	   "\\[help-follow] on a face name to customize it\n"
-	   "or on its sample text for a decription of the face.\n\n")))
+	   "or on its sample text for a description of the face.\n\n")))
 	(setq help-xref-stack nil)
 	(while faces
 	  (setq face (car faces))
