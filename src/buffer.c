@@ -2786,7 +2786,7 @@ The remaining six elements control the display of\n\
   the decoration indicating the presence of invisible lines (element 260,\n\
     a vector of characters);\n\
   the character used to draw the border between side-by-side windows\n\
-    (element 261, a single character).;\n\
+    (element 261, a single character).\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 #endif
