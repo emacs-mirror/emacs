@@ -67,7 +67,13 @@ Boston, MA 02111-1307, USA.  */
   (all uppercase), we mean the coding system, and when we write
   "Big5" (capitalized), we mean the character set.
 
-  4. Other
+  4. Raw text
+
+  A coding system to for a text containing random 8-bit code.  Emacs
+  does no code conversion on such a text except for end-of-line
+  format.
+
+  5. Other
 
   If a user wants to read/write a text encoded in a coding system not
   listed above, he can supply a decoder and an encoder for it in CCL
@@ -246,6 +252,7 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes, consumed)
 Lisp_Object Qcoding_system, Qeol_type;
 Lisp_Object Qbuffer_file_coding_system;
 Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
+Lisp_Object Qno_conversion, Qundecided;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -319,6 +326,7 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-iso-7-else",
   "coding-category-iso-8-else",
   "coding-category-big5",
+  "coding-category-raw-text",
   "coding-category-binary"
 };
 
@@ -2546,6 +2554,10 @@ setup_coding_system (coding_system, coding)
       coding->require_flushing = 1;
       break;
 
+    case 5:
+      coding->type = coding_type_raw_text;
+      break;
+
     default:
       if (EQ (type, Qt))
 	coding->type = coding_type_undecided;
@@ -2687,7 +2699,7 @@ detect_coding_mask (src, src_bytes)
       /* If C is a special latin extra code,
 	 or is an ISO2022 specific control code of C1 (SS2 or SS3), 
 	 or is an ISO2022 control-sequence-introducer (CSI),
-	 we should also consider the possibility of someof ISO2022 codings.  */
+	 we should also consider the possibility of ISO2022 codings.  */
       if ((VECTORP (Vlatin_extra_code_table)
 	   && !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
 	  || (c == ISO_CODE_SS2 || c == ISO_CODE_SS3)
@@ -2700,14 +2712,14 @@ detect_coding_mask (src, src_bytes)
 	mask = (detect_coding_iso2022 (src, src_end)
 		| detect_coding_sjis (src, src_end)
 		| detect_coding_emacs_mule (src, src_end)
-		| CODING_CATEGORY_MASK_BINARY);
+		| CODING_CATEGORY_MASK_RAW_TEXT);
 
       else
-	/* C is the first byte of SJIS character code, or a
-	   leading-code of Emacs.  */
+	/* C is the first byte of SJIS character code,
+	   or a leading-code of Emacs' internal format (emacs-mule).  */
 	mask = (detect_coding_sjis (src, src_end)
 		| detect_coding_emacs_mule (src, src_end)
-		| CODING_CATEGORY_MASK_BINARY);
+		| CODING_CATEGORY_MASK_RAW_TEXT);
     }
   else
     /* C is a character of ISO2022 in graphic plane right,
@@ -2716,7 +2728,7 @@ detect_coding_mask (src, src_bytes)
     mask = (detect_coding_iso2022 (src, src_end)
 	    | detect_coding_sjis (src, src_end)
 	    | detect_coding_big5 (src, src_end)
-	    | CODING_CATEGORY_MASK_BINARY);
+	    | CODING_CATEGORY_MASK_RAW_TEXT);
 
   return mask;
 }
@@ -2732,42 +2744,33 @@ detect_coding (coding, src, src_bytes)
 {
   int mask = detect_coding_mask (src, src_bytes);
   int idx;
+  Lisp_Object val = Vcoding_category_list;
 
   if (mask == CODING_CATEGORY_MASK_ANY)
     /* We found nothing other than ASCII.  There's nothing to do.  */
     return;
 
-  if (!mask)
-    /* The source text seems to be encoded in unknown coding system.
-       Emacs regards the category of such a kind of coding system as
-       `coding-category-binary'.  We assume that a user has assigned
-       an appropriate coding system for a `coding-category-binary'.  */
-    idx = CODING_CATEGORY_IDX_BINARY;
+  /* We found some plausible coding systems.  Let's use a coding
+     system of the highest priority.  */
+
+  if (CONSP (val))
+    while (!NILP (val))
+      {
+	idx = XFASTINT (Fget (XCONS (val)->car, Qcoding_category_index));
+	if ((idx < CODING_CATEGORY_IDX_MAX) && (mask & (1 << idx)))
+	  break;
+	val = XCONS (val)->cdr;
+      }
   else
+    val = Qnil;
+
+  if (NILP (val))
     {
-      /* We found some plausible coding systems.  Let's use a coding
-	 system of the highest priority.  */
-      Lisp_Object val = Vcoding_category_list;
-
-      if (CONSP (val))
-	while (!NILP (val))
-	  {
-	    idx = XFASTINT (Fget (XCONS (val)->car, Qcoding_category_index));
-	    if ((idx < CODING_CATEGORY_IDX_MAX) && (mask & (1 << idx)))
-	      break;
-	    val = XCONS (val)->cdr;
-	  }
-      else
-	val = Qnil;
-
-      if (NILP (val))
-	{
-	  /* For unknown reason, `Vcoding_category_list' contains none
-	     of found categories.  Let's use any of them.  */
-	  for (idx = 0; idx < CODING_CATEGORY_IDX_MAX; idx++)
-	    if (mask & (1 << idx))
-	      break;
-	}
+      /* For unknown reason, `Vcoding_category_list' contains none of
+	 found categories.  Let's use any of them.  */
+      for (idx = 0; idx < CODING_CATEGORY_IDX_MAX; idx++)
+	if (mask & (1 << idx))
+	  break;
     }
   setup_coding_system (XSYMBOL (coding_category_table[idx])->value, coding);
 }
@@ -2807,8 +2810,8 @@ detect_eol_type (src, src_bytes)
 	    eol_type = this_eol_type;
 	  else if (eol_type != this_eol_type)
 	    /* The found type is different from what found before.
-	       We had better not decode end-of-line.  */
-	    return CODING_EOL_LF;
+	       Let's notice the caller about this inconsistency.  */
+	    return CODING_EOL_INCONSISTENT;
 	}
     }
 
@@ -2831,6 +2834,24 @@ detect_eol (coding, src, src_bytes)
   if (eol_type == CODING_EOL_UNDECIDED)
     /*  We found no end-of-line in the source text.  */
     return;
+
+  if (eol_type == CODING_EOL_INCONSISTENT)
+    {
+#if 0
+      /* This code is suppressed until we find a better way to
+         distinguish raw-text and binary.  */
+
+      /* If we have already detected that the coding is raw-text, the
+	 coding should actually be no-conversion.  */
+      if (coding->type == coding_type_raw_text)
+	{
+	  setup_coding_system (Qno_conversion, coding);
+	  return;
+	}
+      /* Else, let's decode only text code anyway.  */
+#endif /* 0 */
+      eol_type == CODING_EOL_LF;
+    }
 
   coding_system = coding->symbol;
   while (!NILP (coding_system)
@@ -2877,6 +2898,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
 
     case coding_type_emacs_mule:
     case coding_type_undecided:
+    case coding_type_raw_text:
       if (coding->eol_type == CODING_EOL_LF
 	  ||  coding->eol_type == CODING_EOL_UNDECIDED)
 	goto label_no_conversion;
@@ -2941,6 +2963,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
 
     case coding_type_emacs_mule:
     case coding_type_undecided:
+    case coding_type_raw_text:
       if (coding->eol_type == CODING_EOL_LF
 	  ||  coding->eol_type == CODING_EOL_UNDECIDED)
 	goto label_no_conversion;
@@ -3133,10 +3156,11 @@ If only ASCII characters are found, it returns `undecided'\n\
 
   if (coding_mask == CODING_CATEGORY_MASK_ANY)
     {
-      val = intern ("undecided");
-      if (eol_type != CODING_EOL_UNDECIDED)
+      val = Qundecided;
+      if (eol_type != CODING_EOL_UNDECIDED
+	  && eol_type != CODING_EOL_INCONSISTENT)
 	{
-	  Lisp_Object val2 = Fget (val, Qeol_type);
+	  Lisp_Object val2 = Fget (Qundecided, Qeol_type);
 	  if (VECTORP (val2))
 	    val = XVECTOR (val2)->contents[eol_type];
 	}
@@ -3155,13 +3179,26 @@ If only ASCII characters are found, it returns `undecided'\n\
 	  int idx
 	    = XFASTINT (Fget (XCONS (val2)->car, Qcoding_category_index));
 	  if (coding_mask & (1 << idx))
-	    val = Fcons (Fsymbol_value (XCONS (val2)->car), val);
+	    {
+#if 0
+	      /* This code is suppressed until we find a better way to
+		 distinguish raw-text and binary.  */
+
+	      if (idx == CODING_CATEGORY_IDX_RAW_TEXT
+		  && eol_type == CODING_EOL_INCONSISTENT)
+		val = Fcons (Qno_conversion, val);
+	      else
+#endif /* 0 */
+		val = Fcons (Fsymbol_value (XCONS (val2)->car), val);
+	    }
 	}
 
       /* Then, change the order of the list, while getting subsidiary
 	 coding-systems.  */
       val2 = val;
       val = Qnil;
+      if (eol_type == CODING_EOL_INCONSISTENT)
+	eol_type == CODING_EOL_UNDECIDED;
       for (; !NILP (val2); val2 = XCONS (val2)->cdr)
 	{
 	  if (eol_type == CODING_EOL_UNDECIDED)
@@ -3206,6 +3243,7 @@ shrink_conversion_area (begp, endp, coding, encodep)
 	case coding_type_no_conversion:
 	case coding_type_emacs_mule:
 	case coding_type_undecided:
+	case coding_type_raw_text:
 	  /* We need no conversion.  */
 	  *begp = *endp;
 	  return;
@@ -3243,6 +3281,7 @@ shrink_conversion_area (begp, endp, coding, encodep)
 	  *begp = *endp;
 	  return;
 	case coding_type_emacs_mule:
+	case coding_type_raw_text:
 	  if (coding->eol_type == CODING_EOL_LF)
 	    {
 	      /* We need no conversion.  */
@@ -3856,6 +3895,12 @@ syms_of_coding ()
 
   Qpre_write_conversion = intern ("pre-write-conversion");
   staticpro (&Qpre_write_conversion);
+
+  Qno_conversion = intern ("no-conversion");
+  staticpro (&Qno_conversion);
+
+  Qundecided = intern ("undecided");
+  staticpro (&Qundecided);
 
   Qcoding_system_spec = intern ("coding-system-spec");
   staticpro (&Qcoding_system_spec);
