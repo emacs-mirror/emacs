@@ -360,6 +360,7 @@ the list of completions is long, you can scroll it with @kbd{C-M-v}
 @subsection Completion Options
 
 @vindex completion-ignored-extensions
+@cindex ignored file names, in completion
   When completion is done on file names, certain file names are usually
 ignored.  The variable @code{completion-ignored-extensions} contains a
 list of strings; a file whose name ends in any of those strings is
