@@ -1391,7 +1391,13 @@ and we don't even do that unless it would come from the file name."
 			      keep-going nil)))
 		  (setq alist (cdr alist))))
 	      (if mode
-		  (funcall mode)
+		  ;; When JUST-FROM-FILE-NAME is set,
+		  ;; we are working on behalf of set-visited-file-name.
+		  ;; In that case, if the major mode specified is the
+		  ;; same one we already have, don't actually reset it.
+		  ;; We don't want to lose minor modes such as Font Lock.
+		  (unless (and just-from-file-name (eq mode major-mode))
+		    (funcall mode))
 		;; If we can't deduce a mode from the file name,
 		;; look for an interpreter specified in the first line.
 		;; As a special case, allow for things like "#!/bin/env perl",
