@@ -1,3 +1,8 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (Fface_font): Use UNSPECIFIEDP instead of NILP for
+	the slant attribute if FRAME is t.
+	
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs.c (Finvocation_directory): Doc fix.
