@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 3 January 1997
+@set lastupdate 1 February 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -106,10 +106,6 @@ Many utilities need documentation, including @code{grep} and others.
 @chapter Unix-Related Projects
 
 @itemize @bullet
-@item
-We could use an emulation of Unix @code{spell}, which would run by
-invoking @code{ispell}.
-
 @item
 An improved version of the POSIX utility @code{pax}.  There is one on
 Usenet, but it is said to be poorly written.  Talk with
