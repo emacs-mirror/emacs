@@ -1,10 +1,10 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;;; Copyright (c) 1986, 1992 Free Software Foundation, Inc.
+;;; Copyright (c) 1986, 1993 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30 (February 2, 1993)
+;; Version 1.30.2 (June 1, 1993)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -41,11 +41,12 @@
 ;;;  Replace:
 ;;;   frame-width                           with screen-width
 ;;;   auto-fill-function                    with auto-fill-hook
+;;;   comment-indent-function               with comment-indent-hook
 ;;;   (setq unread-command-events (list c)) with (setq unread-command-char c)
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30")
+(defconst fortran-mode-version "version 1.30.2")
 
 ;;; Code:
 
@@ -551,7 +552,7 @@ See also `fortran-window-create'."
   (fortran-indent-line))		;when the cont string is C, c or *.
 
 (defun fortran-numerical-continuation-char ()
-  "Return a digit for tab-digit style of continution lines.
+  "Return a digit for tab-digit style of continuation lines.
 If, previous line is a tab-digit continuation line, returns that digit
 plus one.  Otherwise return 1.  Zero not allowed."
   (save-excursion
@@ -832,6 +833,8 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		 (looking-at "     [^ 0\n]")
 		 (looking-at "\t[1-9]"))
 	     (setq icol (+ icol fortran-continuation-indent)))
+	    ((looking-at "[ \t]*#")	; Check for cpp directive.
+	     (setq fortran-minimum-statement-indent 0 icol 0))
 	    (first-statement)
 	    ((and fortran-check-all-num-for-matching-do
 		  (looking-at "[ \t]*[0-9]+")
@@ -1013,34 +1016,69 @@ Return t if `comment-start-skip' found, nil if not."
 	    t))
       nil)))
 
-(defun fortran-is-in-string-p (pos)
-  "Return t if POS (a buffer position) is inside a standard Fortran string.
-Fortran strings are delimeted by apostrophes (\').  Quote-Escape-sequences
-(\\'), strings delimited by \" and detection of syntax-errors
-(unbalanced quotes) are NOT supported."
-;;; The algorithm is simple: start at point with value nil
-;;; and toggle value at each quote found until end of line.
-;;; The quote skip is hard-coded, maybe it's possible to change this
-;;; and use something like 'string-constant-delimiter' (which
-;;; doesn't exist yet) so this function can be used by other modes,
-;;; but then one must pay attention to escape sequences, multi-line-constants
-;;; and such things.
-  (let ((is-in-fortran-string nil))
-    (save-excursion   
-      (goto-char pos)
-      (if (not (fortran-previous-statement))
-	  (fortran-next-statement))
-      (while (< (point) pos)
-	;; Make sure we don't count quotes in continuation column.
-	(if (looking-at "^     ")
-	    (goto-char (+ 1 (match-end 0)))
-	  (if (and (not is-in-fortran-string)
-		   (looking-at comment-start-skip))
-	      (beginning-of-line 2)
-	    (if (looking-at "'")
-		(setq is-in-fortran-string (not is-in-fortran-string)))
-	    (forward-char 1)))))
-    is-in-fortran-string))
+;;;From: ralf@up3aud1.gwdg.de (Ralf Fassel)
+;;; Test if TAB format continuation lines work.
+(defun fortran-is-in-string-p (where)
+  "Return non-nil if POS (a buffer position) is inside a Fortran string,
+nil else."
+  (save-excursion
+    (goto-char where)
+    (cond
+     ((bolp) nil)			; bol is never inside a string
+     ((save-excursion			; comment lines too
+	(beginning-of-line)(looking-at comment-line-start-skip)) nil)
+     (t (let (;; ok, serious now. Init some local vars:
+	      (parse-state '(0 nil nil nil nil nil 0))
+	      (quoted-comment-start (if comment-start
+					(regexp-quote comment-start)))
+	      (not-done t)
+	      parse-limit
+	      end-of-line
+	      )
+	  ;; move to start of current statement
+	  (fortran-next-statement)
+	  (fortran-previous-statement)
+	  ;; now parse up to WHERE
+	  (while not-done
+	    (if (or ;; skip to next line if:
+		 ;; - comment line?
+		 (looking-at comment-line-start-skip)
+		 ;; - at end of line?
+		 (eolp)
+		 ;; - not in a string and after comment-start?
+		 (and (not (nth 3 parse-state))
+		      comment-start
+		      (equal comment-start
+			     (char-to-string (preceding-char)))))
+		;; get around a bug in forward-line in versions <= 18.57
+		(if (or (> (forward-line 1) 0) (eobp))
+		    (setq not-done nil))
+	      ;; else:
+	      ;; if we are at beginning of code line, skip any
+	      ;; whitespace, labels and tab continuation markers.
+	      (if (bolp) (skip-chars-forward " \t0-9"))
+	      ;; if we are in column <= 5 now, check for continuation char
+	      (cond ((= 5 (current-column)) (forward-char 1))
+		    ((and (< (current-column) 5)
+			  (equal fortran-continuation-string
+				 (char-to-string (following-char)))
+			  (forward-char 1))))
+	      ;; find out parse-limit from here
+	      (setq end-of-line (save-excursion (end-of-line)(point)))
+	      (setq parse-limit (min where end-of-line))
+	      ;; parse max up to comment-start, if non-nil and in current line
+	      (if comment-start
+		  (save-excursion
+		    (if (re-search-forward quoted-comment-start end-of-line t)
+			(setq parse-limit (min (point) parse-limit)))))
+	      ;; now parse if still in limits
+	      (if (< (point) where)
+		  (setq parse-state (parse-partial-sexp
+				     (point) parse-limit nil nil parse-state))
+		(setq not-done nil))
+	      ))
+	  ;; result is
+	  (nth 3 parse-state))))))
 
 (defun fortran-auto-fill-mode (arg)
   "Toggle fortran-auto-fill mode.
@@ -1093,6 +1131,7 @@ automatically breaks the line at a previous space."
 		(if (<= (point) (1+ bos))
 		    (progn
 		      (move-to-column (1+ fill-column))
+;;;what is this doing???
 		      (if (not (re-search-forward "[\t\n,'+-/*)=]" eol t))
 			  (goto-char bol))))
 		(if (bolp)
@@ -1195,3 +1234,4 @@ file before the end or the first `fortran-analyze-depth' lines."
 (provide 'fortran)
 
 ;;; fortran.el ends here
+
