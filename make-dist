@@ -140,9 +140,6 @@ if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
   autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
 fi
 
-### Update getdate.c.
-(cd lib-src; make -f Makefile getdate.c YACC="bison -y")
-
 echo "Updating Info files"
 
 (cd man; make info)
