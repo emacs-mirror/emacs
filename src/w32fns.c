@@ -4791,7 +4791,7 @@ w32_load_system_font (f,fontname,size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
-    fontp->charset = charset_unicode;
+    fontp->charset = -1;
     charset = xlfd_charset_of_font (fontname);
 
   /* Cache the W32 codepage for a font.  This makes w32_encode_char
@@ -4970,12 +4970,16 @@ x_to_w32_charset (lpcs)
   if (strncmp (lpcs, "*-#", 3) == 0)
     return atoi (lpcs + 3);
 
+  /* All Windows fonts qualify as unicode.  */
+  if (!strncmp (lpcs, "iso10646", 8))
+    return DEFAULT_CHARSET;
+
   /* Handle wildcards by ignoring them; eg. treat "big5*-*" as "big5".  */
   charset = alloca (len + 1);
   strcpy (charset, lpcs);
   lpcs = strchr (charset, '*');
   if (lpcs)
-    *lpcs = 0;
+    *lpcs = '\0';
 
   /* Look through w32-charset-info-alist for the character set.
      Format of each entry is
@@ -5043,11 +5047,26 @@ x_to_w32_charset (lpcs)
 
 
 static char *
-w32_to_x_charset (fncharset)
+w32_to_x_charset (fncharset, matching)
     int fncharset;
+    char *matching;
 {
   static char buf[32];
   Lisp_Object charset_type;
+  int match_len = 0;
+
+  if (matching)
+    {
+      /* If fully specified, accept it as it is.  Otherwise use a
+	 substring match. */
+      char *wildcard = strchr (matching, '*');
+      if (wildcard)
+	*wildcard = '\0';
+      else if (strchr (matching, '-'))
+	return matching;
+
+      match_len = strlen (matching);
+    }
 
   switch (fncharset)
     {
@@ -5132,6 +5151,7 @@ w32_to_x_charset (fncharset)
   {
     Lisp_Object rest;
     char * best_match = NULL;
+    int matching_found = 0;
 
     /* Look through w32-charset-info-alist for the character set.
        Prefer ISO codepages, and prefer lower numbers in the ISO
@@ -5167,12 +5187,34 @@ w32_to_x_charset (fncharset)
             /* If we don't have a match already, then this is the
                best.  */
             if (!best_match)
-              best_match = x_charset;
-            /* If this is an ISO codepage, and the best so far isn't,
-               then this is better.  */
-            else if (strnicmp (best_match, "iso", 3) != 0
-                     && strnicmp (x_charset, "iso", 3) == 0)
-              best_match = x_charset;
+	      {
+		best_match = x_charset;
+		if (matching && !strnicmp (x_charset, matching, match_len))
+		  matching_found = 1;
+	      }
+	    /* If we already found a match for MATCHING, then
+	       only consider other matches.  */
+	    else if (matching_found
+		     && strnicmp (x_charset, matching, match_len))
+	      continue;
+	    /* If this matches what we want, and the best so far doesn't,
+	       then this is better.  */
+	    else if (!matching_found && matching
+		     && !strnicmp (x_charset, matching, match_len))
+	      {
+		best_match = x_charset;
+		matching_found = 1;
+	      }
+	    /* If this is fully specified, and the best so far isn't,
+	       then this is better.  */
+	    else if ((!strchr (best_match, '-') && strchr (x_charset, '-'))
+	    /* If this is an ISO codepage, and the best so far isn't,
+	       then this is better, but only if it fully specifies the
+	       encoding.  */
+		|| (strnicmp (best_match, "iso", 3) != 0
+		    && strnicmp (x_charset, "iso", 3) == 0
+		    && strchr (x_charset, '-')))
+		best_match = x_charset;
             /* If both are ISO8859 codepages, choose the one with the
                lowest number in the encoding field.  */
             else if (strnicmp (best_match, "iso8859-", 8) == 0
@@ -5193,7 +5235,18 @@ w32_to_x_charset (fncharset)
         return buf;
       }
 
-    strncpy(buf, best_match, 31);
+    strncpy (buf, best_match, 31);
+    /* If the charset is not fully specified, put -0 on the end.  */
+    if (!strchr (best_match, '-'))
+      {
+	int pos = strlen (best_match);
+	/* Charset specifiers shouldn't be very long.  If it is a made
+	   up one, truncating it should not do any harm since it isn't
+	   recognized anyway.  */
+	if (pos > 29)
+	  pos = 29;
+	strcpy (buf + pos, "-0");
+      }
     buf[31] = '\0';
     return buf;
   }
@@ -5293,7 +5346,8 @@ w32_to_all_x_charsets (fncharset)
   {
     Lisp_Object rest;
     /* Look through w32-charset-info-alist for the character set.
-       Only return charsets for codepages which are installed.
+       Only return fully specified charsets for codepages which are
+       installed.
 
        Format of each entry in Vw32_charset_info_alist is
          (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
@@ -5315,6 +5369,9 @@ w32_to_all_x_charsets (fncharset)
         x_charset = XCAR (this_entry);
         w32_charset = XCAR (XCDR (this_entry));
         codepage = XCDR (XCDR (this_entry));
+
+	if (!strchr (SDATA (x_charset), '-'))
+	  continue;
 
         /* Look for Same charset and a valid codepage (or non-int
            which means ignore).  */
@@ -5346,9 +5403,6 @@ w32_codepage_for_font (char *fontname)
   Lisp_Object codepage, entry;
   char *charset_str, *charset, *end;
 
-  if (NILP (Vw32_charset_info_alist))
-    return CP_DEFAULT;
-
   /* Extract charset part of font string.  */
   charset = xlfd_charset_of_font (fontname);
 
@@ -5373,6 +5427,12 @@ w32_codepage_for_font (char *fontname)
           end--;
         *end = '\0';
       }
+
+  if (!strcmp (charset, "iso10646"))
+    return CP_UNICODE;
+
+  if (NILP (Vw32_charset_info_alist))
+    return CP_DEFAULT;
 
   entry = Fassoc (build_string(charset), Vw32_charset_info_alist);
   if (NILP (entry))
@@ -5474,8 +5534,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH)
              ? 'p' : 'c',                            /* spacing */
 	     width_pixels,                           /* avg width */
-	     specific_charset ? specific_charset
-             : w32_to_x_charset (lplogfont->lfCharSet)
+             w32_to_x_charset (lplogfont->lfCharSet, specific_charset)
              /* charset registry and encoding */
 	     );
 
@@ -5946,14 +6005,17 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	if (charset
 	    && strncmp (charset, "*-*", 3) != 0
 	    && lpef->logfont.lfCharSet == DEFAULT_CHARSET
-	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET)) != 0)
+	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET, NULL)) != 0)
 	  return 1;
       }
 
     if (charset)
       charset_list = Fcons (build_string (charset), Qnil);
     else
-      charset_list = w32_to_all_x_charsets (lplf->elfLogFont.lfCharSet);
+      /* Always prefer unicode.  */
+      charset_list
+	= Fcons (build_string ("iso10646-1"),
+		 w32_to_all_x_charsets (lplf->elfLogFont.lfCharSet));
 
     /* Loop through the charsets.  */
     for ( ; CONSP (charset_list); charset_list = Fcdr (charset_list))
@@ -5961,14 +6023,15 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	Lisp_Object this_charset = Fcar (charset_list);
 	charset = SDATA (this_charset);
 
+	enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+				     charset, width);
+
 	/* List bold and italic variations if w32-enable-synthesized-fonts
 	   is non-nil and this is a plain font.  */
 	if (w32_enable_synthesized_fonts
 	    && lplf->elfLogFont.lfWeight == FW_NORMAL
 	    && lplf->elfLogFont.lfItalic == FALSE)
 	  {
-	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
-					 charset, width);
 	    /* bold.  */
 	    lplf->elfLogFont.lfWeight = FW_BOLD;
 	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
@@ -5982,9 +6045,6 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
 					 charset, width);
 	  }
-	else
-	  enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
-				       charset, width);
       }
   }
 
