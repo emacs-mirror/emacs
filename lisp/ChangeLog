@@ -1,4 +1,4 @@
-2003-03-18  Kenichi Handa  <handa@etlken2>
+2003-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-fragment-on-decoding): Don't call
 	register-char-codings.
@@ -150,8 +150,8 @@
 	* international/quail.el (quail-show-guidance-buf): Make the quail
 	guidance buffer inherit the current value of quail-current-package.
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Don't loose
-	bytes on handling an invalid byte sequence.
+	* international/utf-8.el (ccl-decode-mule-utf-8): Don't lose bytes
+	on handling an invalid byte sequence.
 
 2003-03-11  Jason Rumney  <jasonr@gnu.org>
 
@@ -8706,7 +8706,6 @@
 	(speedbar-directory-face): Likewise.
 	(defimage-speedbar): Likewise.
 	(speedbar-convert-emacs21-imagespec-to-xemacs): Likewise.
-	(defimage-speedbar): Likewise.
 
 2002-07-09  Miles Bader  <miles@gnu.org>
 
