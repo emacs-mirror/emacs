@@ -201,6 +201,8 @@
 ;;;; Mouse bindings and mode motion
 ;;;;
 
+(defvar cvs-minor-current-files)
+
 (defun cvs-menu (e)
   "Popup the CVS menu."
   (interactive "e")
@@ -728,7 +730,6 @@ clear what alternative to use.
      ((eq style 'DOUBLE)
       (string-match ".*" docstring)
       (let ((line1 (match-string 0 docstring))
-	    (restdoc (substring docstring (match-end 0)))
 	    (fun-1 (intern (concat (symbol-name fun) "-1"))))
 	`(progn
 	   (defun ,fun-1 ,args
@@ -1280,7 +1281,6 @@ See `cvs-prefix-set' for further description of the behavior.
 (defun cvs-mode-mark-get-modif (cmd)
   (if (cvs-ignore-marks-p cmd 'read-only) "/IM" "/FM"))
 
-(defvar cvs-minor-current-files)
 (defun cvs-get-marked (&optional ignore-marks ignore-contents)
   "Return a list of all selected fileinfos.
 If there are any marked tins, and IGNORE-MARKS is nil, return them.
@@ -1424,6 +1424,7 @@ The POSTPROC specified there (typically `log-edit') is then called,
 	   (match-beginning 0)
 	 (point))))))
 
+(defvar cvs-edit-log-revision)
 (defun cvs-mode-edit-log (rev &optional text)
   "Edit the log message at point.
 This is best called from a `log-view-mode' buffer."
@@ -1556,9 +1557,7 @@ or \"Conflict\" in the *cvs* buffer."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "diff flags")))
   (unless (listp flags) (error "flags should be a list of strings"))
   (save-some-buffers)
-  (let* ((filter 'diff)
-	 (marked (cvs-get-marked (cvs-ignore-marks-p "diff")))
-	 ;;(tins (cvs-filter-applicable filter marked))
+  (let* ((marked (cvs-get-marked (cvs-ignore-marks-p "diff")))
 	 (fis (car (cvs-partition 'cvs-fileinfo->backup-file marked))))
     (unless (consp fis)
       (error "No files with a backup file selected!"))
@@ -1591,6 +1590,7 @@ Signal an error if there is no backup file."
 ;;
 
 (defvar ediff-after-quit-destination-buffer)
+(defvar ediff-after-quit-hook-internal)
 (defvar cvs-transient-buffers)
 (defun cvs-ediff-startup-hook ()
   (add-hook 'ediff-after-quit-hook-internal
@@ -1760,8 +1760,7 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
 	     ;; (equal (cvs-fileinfo->file (car fis)) ".")
 	     (equal (cvs-fileinfo->dir (car fis)) ""))
     (setq fis nil))
-  (let* ((cvs-buf (current-buffer))
-	 (single-dir (or (not (listp cvs-execute-single-dir))
+  (let* ((single-dir (or (not (listp cvs-execute-single-dir))
 			 (member cmd cvs-execute-single-dir)))
 	 (parse (member cmd cvs-parse-known-commands))
 	 (args (append cvsargs (list cmd) flags))
@@ -1779,14 +1778,13 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
     (setq postproc (if (cdr postproc) (cons 'progn postproc) (car postproc)))
     (cvs-update-header args fis)
     (with-current-buffer buf
-      ;;(set (make-local-variable 'cvs-buffer) cvs-buf)
       (let ((inhibit-read-only t)) (erase-buffer))
       (message "Running cvs %s ..." cmd)
       (cvs-run-process args fis postproc single-dir))))
 
 
 (defun* cvs-mode-do (cmd flags filter
-		     &key show dont-change-disc parse cvsargs postproc)
+		     &key show dont-change-disc cvsargs postproc)
   "Generic cvs-mode-<foo> function.
 Executes `cvs CVSARGS CMD FLAGS' on the selected files.
 FILTER is passed to `cvs-applicable-p' to only apply the command to
