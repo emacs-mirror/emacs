@@ -772,7 +772,7 @@ concat (nargs, args, target_type, last_special)
     XCONS (prev)->cdr = last_tail;
 
   if (maybe_combine_byte)
-    /* Characater counter of the multibyte string VAL may be wrong
+    /* Character counter of the multibyte string VAL may be wrong
        because of byte combining problem.  We must re-calculate it.  */
     XSTRING (val)->size = multibyte_chars_in_text (XSTRING (val)->data,
 						   XSTRING (val)->size_byte);
