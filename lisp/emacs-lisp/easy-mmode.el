@@ -177,7 +177,7 @@ With zero or negative ARG turn mode off.
 \\{%s}") pretty-name keymap-sym))
 	 ;; Make no arg by default in an interactive call,
 	 ;; so that repeating the command toggles again.
-	 (interactive)
+	 (interactive "P")
 	 (setq ,mode
 	       (if arg
 		   (> (prefix-numeric-value arg) 0)
