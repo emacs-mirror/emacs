@@ -1,3 +1,19 @@
+2000-10-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* fns.c (READ_QUADRUPLET_BYTE): Set *NCHARS_RETURN before
+	returning.
+	(base64_encode_1): Make it work for a text of multibyte form.
+	(Fbase64_decode_region): Allocate sufficient memory for multibyte
+	case.  Don't call str_to_multibyte because base64_decode_1
+	produces correct multibyte form for eight-bit codes.
+	(Fbase64_decode_string): Adjusted for the change of
+	base64_decode_1.
+	(base64_decode_1): New args MULTIBYTE and NCHARS_RETURN.  If
+	MULTIBYTE is nonzero, produce correct multibyte form for eight-bit
+	codes.
+
+	* charset.h (CHAR_STRING): Optimized for single byte characters.
+
 2000-10-09  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (Fopen_network_stream) [HAVE_GETADDRINFO]: Reset S to
@@ -17,6 +33,7 @@
 	(syms_of_msdos): Don't intern and don't staticpro
 	Qbackground_color and Qforeground_color.
 
+>>>>>>> 1.946
 2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_parameter): For non-windowed frames, if
