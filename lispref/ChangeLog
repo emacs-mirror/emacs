@@ -1,3 +1,10 @@
+2004-01-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): assoc-string also matches
+	elements of alists that are strings instead of conses.
+	(Formatting Strings): Standardize Texinfo usage.  Update index
+	entries.
+
 2004-01-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Sets And Lists): Add delete-dups.

@@ -2366,12 +2366,20 @@ since only regular expressions have distinguished subexpressions.  */)
 		      substart = search_regs.start[sub];
 		      subend = search_regs.end[sub];
 		    }
-		  else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
+		  else if (c >= '1' && c <= '9')
 		    {
-		      if (search_regs.start[c - '0'] >= 0)
+		      if (search_regs.start[c - '0'] >= 0
+			  && c <= search_regs.num_regs + '0')
 			{
 			  substart = search_regs.start[c - '0'];
 			  subend = search_regs.end[c - '0'];
+			}
+		      else
+			{
+			  /* If that subexp did not match,
+			     replace \\N with nothing.  */
+			  substart = 0;
+			  subend = 0;
 			}
 		    }
 		  else if (c == '\\')

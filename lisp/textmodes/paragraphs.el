@@ -132,14 +132,23 @@ without a period."
   :type 'boolean
   :group 'fill)
 
+(defcustom sentence-end-without-space
+  "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
+  "*String containing characters that end sentence without following spaces.
+If you change this, you should also change `sentence-end'.  See Info
+node `Sentences'."
+  :group 'paragraphs
+  :type 'string)
+
 (defcustom sentence-end
   (purecopy
    ;; This is a bit stupid since it's not auto-updated when the
    ;; other variables are changes, but it's still useful info.
    (concat (if sentence-end-without-period "\\w  \\|")
-	   "[.?!$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B][]\"')}]*"
+	   "\\([.?!][]\"')}]*"
 	   (if sentence-end-double-space
 	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+	   "\\|[" sentence-end-without-space "]+\\)"
 	   "[ \t\n]*"))
   "*Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.

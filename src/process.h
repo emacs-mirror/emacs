@@ -136,6 +136,9 @@ extern int synch_process_alive;
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 extern char *synch_process_death;
 
+/* Nonzero => this is the signal number that terminated the subprocess.  */
+extern int synch_process_termsig;
+
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 extern int synch_process_retcode;

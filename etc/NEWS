@@ -856,12 +856,19 @@ Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
 is only rarely needed.
 
 ---
-** jit-lock can now be delayed with `jit-lock-defer-time'.
+** JIT-lock changes
+*** jit-lock can now be delayed with `jit-lock-defer-time'.
 
 If this variable is non-nil, its value should be the amount of Emacs
 idle time in seconds to wait before starting fontification.  For
 example, if you set `jit-lock-defer-time' to 0.25, fontification will
 only happen after 0.25s of idle time.
+
+*** contextual refontification is now separate from stealth fontification.
+
+jit-lock-defer-contextually is renamed jit-lock-contextually and
+jit-lock-context-time determines the delay after which contextual
+refontification takes place.
 
 +++
 ** Marking commands extend the region when invoked multiple times.  If
@@ -1789,6 +1796,10 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** The default value of `sentence-end' is now defined using the new
+variable `sentence-end-without-space' which contains such characters
+that end a sentence without following spaces.
 
 +++
 ** The flags, width, and precision options for %-specifications in function

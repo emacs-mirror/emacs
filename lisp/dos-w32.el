@@ -378,7 +378,8 @@ indicates a specific program should be invoked."
 	 (printer (or (and (boundp 'dos-printer)
 			   (stringp (symbol-value 'dos-printer))
 			   (symbol-value 'dos-printer))
-		      printer-name)))
+		      printer-name
+		      (default-printer-name))))
     (or (eq coding-system-for-write 'no-conversion)
 	(setq coding-system-for-write
 	      (aref eol-type 1)))	; force conversion to DOS EOLs
@@ -411,7 +412,8 @@ indicates a specific program should be invoked."
   (let ((printer (or (and (boundp 'dos-ps-printer)
 			  (stringp (symbol-value 'dos-ps-printer))
 			  (symbol-value 'dos-ps-printer))
-		     ps-printer-name)))
+		     ps-printer-name
+		     (default-printer-name))))
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
 

@@ -1,12 +1,162 @@
+2004-02-02  David Kastrup  <dak@gnu.org>
+
+	* replace.el (perform-replace): Allow 'literal argument in
+	regexp-flag to indicate literal replacement.
+	(query-replace-regexp-eval): Use it.
+
+2004-02-01  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/executable.el (executable-command-find-posix-p): Doc
+	fix.
+
+2004-02-01  Stephen Eglen  <stephen@gnu.org>
+
+	* info-look.el: Add support for maxima-mode.  Update commentary
+	because info-lookup-symbol is now bound to C-h S.
+
+2004-01-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (edit-and-eval-command): Bind print-level and
+	minibuffer-history-sexp-flag around call to read-from-minibuffer.
+	Correct initial position in command-history.
+
+2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (read-directory-name): Adapt the docstring to recent
+	change in Fread_file_name.
+
+2004-01-30  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-print-cell): If print format too wide for column
+	width, truncate decimal places if that helps to avoid "#####" fill.
+	* ses.el (ses-initial-column-width): Revert previous change.
+
+2004-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-context-time, jit-lock-context-timer): New var.
+	(with-buffer-unmodified, with-buffer-prepared-for-jit-lock):
+	Add edebug info.
+	(jit-lock-mode): Setup/cancel the new timer.
+	(jit-lock-context-fontify): New fun.  Extracted from
+	context fontification code of jit-lock-stealth-fontify.
+	(jit-lock-stealth-fontify): Don't do context fontification any more.
+
+	* jit-lock.el (jit-lock-stealth-fontify): Allow quit.
+	(jit-lock-fontify-now): Handle the `quit' case.
+	(jit-lock-contextually): Rename from jit-lock-defer-contextually.
+
+2004-01-29  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* progmodes/executable.el (executable-command-find-posix-p):
+	New.  Check if find handles arguments Posix-style.
+
+	* progmodes/grep.el (grep-compute-defaults):
+	Use executable-command-find-posix-p.
+	(grep-find): Check `grep-find-command'.
+
+	* filecache.el (file-cache-find-posix-p): Delete.
+	(file-cache-add-directory-using-find):
+	Use `executable-command-find-posix-p'.
+
+2004-01-29  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw, end-of-defun):
+	Iterate the hook function if arg is given.
+	(mark-defun, narrow-to-defun): Change order of finding the limits.
+
+	* emacs-lisp/bytecomp.el (byte-compile-compatibility): Doc fix.
+	(byte-compile-format-warn): New.
+	(byte-compile-callargs-warn): Use it.
+	(Format, message, error): Add byte-compile-format-like property.
+	(byte-compile-maybe-guarded): New.
+	(byte-compile-if, byte-compile-cond): Use it.
+	(byte-compile-lambda): Compile interactive forms,
+	just to make warnings about them.
+
+2004-01-29  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-initial-column-width): Increase to 14, so it will
+	work well with the default printer of "%.7g" for extreme values
+	like "-1.234567e+07".
+
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): Optimize for ASCII only case.
+
+2004-01-28  Peter 'Luna' Runestig  <peter@runestig.com>
+
+	* dos-w32.el: Added support for the `default-printer-name' function.
+
+2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-socket-name): Don't use the hostname in the
+	socket name since /tmp is local to the host anyway.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Use a more
+	robust check of widening and fix var-naming.
+
+2004-01-27  Eli Tziperman  <eli@deas.harvard.edu>
+
+	* rmail-spam-filter.el: Change rmail-spam-filter- or spam-filter-
+	or rmail-spam- to rsf- in all function and variable names.
+	(rsf-min-region-to-spam-list): New variable.
+	(rsf-bbdb-auto-delete-spam-entries): Rename from
+	rmail-bbdb-auto-delete-spam-bbdb-entries.  The cc: field is
+	scanned together with the recipients field for spam testing; Don't
+	delete spam message if rmail-delete-after-output is non-nil;
+	(rsf-check-field): New function, extracted from code in
+	rmail-spam-filter to ease addition of header fields like
+	content-type:;
+	(message-content-type): New variable.  The content-type: field was
+	added also in defcustom of rsf-definitions-alist;
+	(rmail-spam-filter): Replace repeated test code for header fields
+	by calls to check-field; change the call to
+	rmail-output-to-rmail-file such that rmail-current-message stays
+	the same to avoid wrong deletion of unseen flags.
+	(rmail-use-spam-filter): Add autoload cookie.
+
+2004-01-27  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* filecache.el (file-cache-find-posix-p): New function.  Detect Cygwin.
+	(file-cache-add-directory-using-find): Add Cygwin support.
+	(file-cache-find-command-posix-flag): New user variable.
+
+	* filecache.el (file-cache-add-directory): Check for
+	directories an remove them from dir-files.
+
+2004-01-27  Richard M. Stallman  <rms@gnu.org>
+
+	* man.el (Man-fontify-manpage): Clean up message.
+
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/paragraphs.el (sentence-end-without-space): New variable.
+	(sentence-end): Define using sentence-end-without-space.
+
+	* textmodes/fill.el (fill-delete-newlines): Don't add a space if
+	a sentence ends with one of a character in sentence-end-without-space.
+
+2004-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock): Add jit-lock as explicit group member.
+	(jit-lock): Group declaration moved to jit-lock.el.
+	(toplevel): Don't explicitly require jit-lock, since it's autoloaded
+	when necessary.
+
+	* jit-lock.el (jit-lock): Move group declaration from font-lock.el.
+	(jit-lock-context-unfontify-pos): Rename from
+	jit-lock-first-unfontify-pos.
+	(jit-lock-defer-buffers): Rename from jit-lock-buffers.
+
 2004-01-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/fortran.el (fortran-break-before-delimiters): Doc fix. 
-	(fortran-break-delimiters-re, fortran-no-break-re): New defconsts.
+	* progmodes/fortran.el (fortran-break-before-delimiters): Doc fix.
+	(fortran-break-delimiters-re, fortran-no-break-re): New consts.
 	(fortran-fill): When filling a string, adjust re-search-backward
 	argument for special case of string just on fill-column.
 	When filling non-string, allow one extra char if
-	fortran-break-before-delimiters is non-nil.  Suggested by
-	Michael Hagemann <michael.hagemann@unibas.ch>. 
+	fortran-break-before-delimiters is non-nil.
+	Suggested by Michael Hagemann <michael.hagemann@unibas.ch>.
 	Use fortran-break-delimiters-re and fortran-no-break-re to
 	correctly handle cases such as "**".
 
@@ -41,16 +191,16 @@
 
 2004-01-22  Kenichi Handa  <handa@m17n.org>
 
-	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange
-	code point (register r1) only for charset mule-unicode-0100-24ff.
+	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange code
+	point (register r1) only for charset mule-unicode-0100-24ff.
 
 2004-01-21  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Avoid deleting
 	trailing white space and ensure a final newline.
 
-	* mail/rmail-spam-filter.el (rmail-use-spam-filter): Add autoload
-	cookie.
+	* mail/rmail-spam-filter.el (rmail-use-spam-filter):
+	Add autoload cookie.
 
 2004-01-21  Benjamin Rutt  <brutt@bloomington.in.us>
 

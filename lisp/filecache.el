@@ -170,6 +170,19 @@ do not use this variable."
   :type 'string
   :group 'file-cache)
 
+(defcustom file-cache-find-command-posix-flag 'not-defined
+  "*Set to t, if `file-cache-find-command' handles wildcards POSIX style.
+This variable is automatically set to nil or non-nil
+if it has the initial value `not-defined' whenever you first
+call the `file-cache-add-directory-using-find'.
+
+Under Windows operating system where Cygwin is available, this value
+should be t."
+  :type  '(choice (const :tag "Yes" t)
+		  (const :tag "No" nil)
+		  (const :tag "Unknown" not-defined))
+  :group 'file-cache)
+
 (defcustom file-cache-locate-command "locate"
   "*External program used by `file-cache-add-directory-using-locate'."
   :type 'string
@@ -267,11 +280,13 @@ be added to the cache."
       ;; Filter out files we don't want to see
       (mapcar
        '(lambda (file)
-	(mapcar
-	 '(lambda (regexp)
-	    (if (string-match regexp file)
-		(setq dir-files (delq file dir-files))))
-	 file-cache-filter-regexps))
+          (if (file-directory-p file)
+              (setq dir-files (delq file dir-files))
+	    (mapcar
+	     '(lambda (regexp)
+		(if (string-match regexp file)
+		    (setq dir-files (delq file dir-files))))
+	     file-cache-filter-regexps)))
        dir-files)
       (file-cache-add-file-list dir-files))))
 
@@ -322,12 +337,21 @@ in each directory, not to the directory list itself."
 Find is run in DIRECTORY."
   (interactive "DAdd files under directory: ")
   (let ((dir (expand-file-name directory)))
+    (if (eq file-cache-find-command-posix-flag 'not-defined)
+        (setq file-cache-find-command-posix-flag
+	      (executable-command-find-posix-p file-cache-find-command)))
     (set-buffer (get-buffer-create file-cache-buffer))
     (erase-buffer)
     (call-process file-cache-find-command nil
 		  (get-buffer file-cache-buffer) nil
 		  dir "-name"
-		  (if (eq system-type 'windows-nt) "'*'" "*")
+                  (cond
+                   (file-cache-find-command-posix-flag
+                    "\\*")
+                   ((eq system-type 'windows-nt)
+                    "'*'")
+                   (t
+                    "*"))
 		  "-print")
     (file-cache-add-from-file-cache-buffer)))
 

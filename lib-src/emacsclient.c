@@ -382,8 +382,6 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  char *system_name;
-  int system_name_length;
   int s, i, needlf = 0;
   FILE *out, *in;
   struct sockaddr_un server;
@@ -418,39 +416,24 @@ main (argc, argv)
   server.sun_family = AF_UNIX;
 
   {
-    char *dot;
-    system_name_length = 32;
-
-    while (1)
-      {
-	system_name = (char *) xmalloc (system_name_length + 1);
-
-	/* system_name must be null-terminated string.  */
-	system_name[system_name_length] = '\0';
-
- 	if (gethostname (system_name, system_name_length) == 0)
-	  break;
-
-	free (system_name);
-	system_name_length *= 2;
-      }
-
-    /* We always use the non-dotted host name, for simplicity.  */
-    dot = index (system_name, '.');
-    if (dot)
-      *dot = '\0';
-  }
-
-  {
     int sock_status = 0;
     int default_sock = !socket_name;
     int saved_errno = 0;
     
-    if (default_sock)
+     char *server_name = "server";
+ 
+     if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
+       { /* socket_name is a file name component.  */
+ 	server_name = socket_name;
+ 	socket_name = NULL;
+ 	default_sock = 1;	/* Try both UIDs.  */
+       }
+
+     if (default_sock)
       {
-	socket_name = alloca (system_name_length + 100);
-	sprintf (socket_name, "/tmp/emacs%d-%s/server",
-		 (int) geteuid (), system_name);
+ 	socket_name = alloca (100 + strlen (server_name));
+ 	sprintf (socket_name, "/tmp/emacs%d/%s",
+ 		 (int) geteuid (), server_name);
       }
 
     if (strlen (socket_name) < sizeof (server.sun_path))
@@ -484,8 +467,9 @@ main (argc, argv)
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		sprintf (socket_name, "/tmp/emacs%d-%s/server",
-			 (int) pw->pw_uid, system_name);
+		socket_name = alloca (100 + strlen (server_name));
+		sprintf (socket_name, "/tmp/emacs%d/%s",
+			 (int) pw->pw_uid, server_name);
 
 		if (strlen (socket_name) < sizeof (server.sun_path))
 		  strcpy (server.sun_path, socket_name);

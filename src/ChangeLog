@@ -1,3 +1,73 @@
+2004-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_restore_composition): Check invalid
+	composition data more rigidly.
+
+2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fread_file_name_internal): Correctly handle the case
+	where insert-default-directory is nil.
+	(Fread_file_name): Always return an empty string if the user exits
+	with an empty minibuffer.  Adapt the docstring accordingly.
+	(syms_of_fileio): Adapt the docstring of insert-default-directory
+	to the change in Fread_file_name.
+
+2004-01-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* alloca.c [!alloca]: Fix the prototype for xfree.
+
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (string_char_to_byte): Optimize for ASCII only string.
+	(string_byte_to_char): Likewise.
+
+2004-01-28  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in, w32fns.c: Add `default-printer-name' function.
+
+2004-01-27  Steven Tamm <steventamm@mac.com>
+
+	* unexmacosx.c (unexec_copy): Do not copy more than was
+	requested to prevent overwriting during unexec.
+
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.c (sigchld_handler): Add comment about not calling malloc.
+
+	* process.h: Add extern to synch_process_termsig.
+
+2004-01-27  Steven Tamm <steventamm@mac.com>
+
+	* macterm.c (make_mac_frame, make_mac_terminal_frame): Move
+	setting of scroll bars from make_mac_frame to
+	make_mac_terminal_frame to prevent clobbering of
+	scroll-bar-mode.
+
+2004-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Freplace_match): Handle nonexistent
+	back-references properly.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (decode_any_window): New function.
+	(Fwindow_height, Fwindow_width, Fwindow_edges)
+	(Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_inside_pixel_edges): Use decode_any_window.
+
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.h: synch_process_termsig new variable.
+
+	* callproc.c: Define synch_process_termsig.
+	(Fcall_process): Initiate synch_process_termsig to zero and
+	check if non-zero and get signal name after subprocess has ended.
+
+	* process.c (sigchld_handler): Set synch_process_termsig
+	if terminated by a signal.  synch_process_death setting removed.
+
+	* sysdep.c (mkdir, rmdir): Also check synch_process_termsig.
+
 2004-01-26  Andreas Schwab  <schwab@suse.de>
 
 	* print.c (print_preprocess): Declare size as EMACS_INT to not

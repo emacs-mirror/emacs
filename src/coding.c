@@ -5458,6 +5458,9 @@ coding_restore_composition (coding, obj)
 	      if (method == COMPOSITION_WITH_RULE_ALTCHARS
 		  && len % 2 == 0)
 		len --;
+	      if (len < 1)
+		/* Invalid composition data.  */
+		break;
 	      for (j = 0; j < len; j++)
 		args[j] = make_number (data[4 + j]);
 	      components = (method == COMPOSITION_WITH_ALTCHARS

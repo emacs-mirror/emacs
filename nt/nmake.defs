@@ -124,6 +124,7 @@ SHELL32		= shell32.lib
 USER32		= user32.lib
 WSOCK32		= wsock32.lib
 WINMM     = winmm.lib
+WINSPOOL	= winspool.lib
 
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG

@@ -6094,7 +6094,10 @@ kill_buffer_processes (buffer)
    queued and the signal-catching function will be continually
    reentered until the queue is empty".  Invoking signal() causes the
    kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
-   Inc. */
+   Inc.
+
+   ** Malloc WARNING: This should never call malloc either directly or
+   indirectly; if it does, that is a bug  */
 
 SIGTYPE
 sigchld_handler (signo)
@@ -6212,18 +6215,7 @@ sigchld_handler (signo)
 	  if (WIFEXITED (w))
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
-	    {
-	      int code = WTERMSIG (w);
-	      char *signame;
-
-	      synchronize_system_messages_locale ();
-	      signame = strsignal (code);
-
-	      if (signame == 0)
-		signame = "unknown";
-
-	      synch_process_death = signame;
-	    }
+            synch_process_termsig = WTERMSIG (w);
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */

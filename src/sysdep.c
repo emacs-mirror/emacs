@@ -3832,7 +3832,8 @@ mkdir (dpath, dmode)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/mkdir failed */
@@ -3878,7 +3879,8 @@ rmdir (dpath)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/rmdir failed */

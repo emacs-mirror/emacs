@@ -1254,37 +1254,30 @@ This keyboard layout is standard for Bulgarian typewriters.
 
 The letters $,1(F(B, $,1(<(B, $,1(G(B, $,1(@(B, $,1(;(B, $,1(1(B and $,1(K(B are not affected by Caps Lock.
 
-In addition to original bulgarian typewriter layout, keys \ and |
-are transformed into ' and $,1(K(B respectively."
+In addition to original Bulgarian typewriter layout, keys \\ and |
+are transformed into ' and $,1(K(B respectively.  Some keyboards mark these
+keys as being transformed into ( and ) respectively.  For ( and ), use
+` and ~ respectively.  This input method follows XKB."
  nil t t t t nil nil nil nil nil t)
 
 ;;  () 1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0$,1uV(B -I .V
 ;;      ,$,1(k(B $,1(C(B  $,1(5(B  $,1(8(B  $,1(H(B  $,1(I(B  $,1(:(B  $,1(A(B  $,1(4(B  $,1(7(B  $,1(F(B  ;,A'(B
-;;       $,1(l(B  $,1(O(B  $,1(0(B  $,1(>(B  $,1(6(B  $,1(3(B  $,1(B(B  $,1(=(B  $,1(2(B  $,1(<(B  $,1(G(B  '$,1(K(B
+;;       $,1(L(B  $,1(O(B  $,1(0(B  $,1(>(B  $,1(6(B  $,1(3(B  $,1(B(B  $,1(=(B  $,1(2(B  $,1(<(B  $,1(G(B  '$,1(K(B
 ;;        $,1(N(B  $,1(9(B  $,1(J(B  $,1(M(B  $,1(D(B  $,1(E(B  $,1(?(B  $,1(@(B  $,1(;(B  $,1(1(B
 
 (quail-define-rules
 
  ("1" ?1) ("!" ?!)
- ("2" ?2)
- ("@" ??)
- ("3" ?3)
- ("#" ?+)
- ("4" ?4)
- ("$" ?\")
+ ("2" ?2) ("@" ??)
+ ("3" ?3) ("#" ?+)
+ ("4" ?4) ("$" ?\")
  ("5" ?5) ("%" ?%)
- ("6" ?6)
- ("^" ?=)
- ("7" ?7)
- ("&" ?:)
- ("8" ?8)
- ("*" ?/)
- ("9" ?9)
- ("(" ?_)
- ("0" ?0)
- (")" ?$,1uV(B)
- ("-" ?-)
- ("_" ?I)
+ ("6" ?6) ("^" ?=)
+ ("7" ?7) ("&" ?:)
+ ("8" ?8) ("*" ?/)
+ ("9" ?9) ("(" ?_)
+ ("0" ?0) (")" ?$,1uV(B)
+ ("-" ?-) ("_" ?I)
  ("=" ?.) ("+" ?V)
 
  ("q" ?,) ("Q" ?$,1(k(B)
@@ -1298,8 +1291,7 @@ are transformed into ' and $,1(K(B respectively."
  ("o" ?$,1(T(B) ("O" ?$,1(4(B)
  ("p" ?$,1(W(B) ("P" ?$,1(7(B)
  ("[" ?$,1(f(B) ("{" ?$,1(F(B)
- ("]" ?\;)
- ("}" ?,A'(B) ;; not in XKB's bg
+ ("]" ?\;) ("}" ?,A'(B)
 
  ("a" ?$,1(l(B) ("A" ?$,1(L(B)
  ("s" ?$,1(o(B) ("S" ?$,1(O(B)

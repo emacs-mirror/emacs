@@ -188,7 +188,8 @@ If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
   (if beginning-of-defun-function
-      (funcall beginning-of-defun-function)
+      (dotimes (i (or arg 1))
+	(funcall beginning-of-defun-function))
     (and arg (< arg 0) (not (eobp)) (forward-char 1))
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat (if open-paren-in-column-0-is-defun-start
@@ -219,7 +220,8 @@ If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
   (if end-of-defun-function
-      (funcall end-of-defun-function)
+      (dotimes (i (or arg 1))
+	(funcall end-of-defun-function))
     (if (or (null arg) (= arg 0)) (setq arg 1))
     (let ((first t))
       (while (and (> arg 0) (< (point) (point-max)))
@@ -267,10 +269,14 @@ already marked."
 	    (end-of-defun)
 	    (point))))
 	(t
+	 ;; Do it in this order for the sake of languages with nested
+	 ;; functions where several can end at the same place as with
+	 ;; the offside rule, e.g. Python.
 	 (push-mark (point))
-	 (end-of-defun)
-	 (push-mark (point) nil t)
 	 (beginning-of-defun)
+	 (push-mark (point) nil t)
+	 (end-of-defun)
+	 (exchange-point-and-mark)
 	 (re-search-backward "^\n" (- (point) 1) t))))
 
 (defun narrow-to-defun (&optional arg)
@@ -280,10 +286,13 @@ Optional ARG is ignored."
   (interactive)
   (save-excursion
     (widen)
-    (end-of-defun)
-    (let ((end (point)))
-      (beginning-of-defun)
-      (narrow-to-region (point) end))))
+    ;; Do it in this order for the sake of languages with nested
+    ;; functions where several can end at the same place as with the
+    ;; offside rule, e.g. Python.
+    (beginning-of-defun)
+    (let ((beg (point)))
+      (end-of-defun)
+      (narrow-to-region beg (point)))))
 
 (defun insert-parentheses (arg)
   "Enclose following ARG sexps in parentheses.  Leave point after open-paren.

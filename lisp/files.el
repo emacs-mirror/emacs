@@ -490,13 +490,18 @@ patterns and to guarantee valid names."
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-DIRNAME if user enters a null string.
+Default name to DEFAULT-DIRNAME if user exits with the same
+non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, the current buffer's directory is used,
   except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
 Fourth arg MUSTMATCH non-nil means require existing directory's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
-DIR defaults to current buffer's directory default."
+DIR should be an absolute directory name.  It defaults to
+the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
   (unless default-dirname
