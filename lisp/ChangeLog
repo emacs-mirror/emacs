@@ -3,6 +3,11 @@
 	* startup.el (fancy-splash-screens): Temporarily set
 	minor-mode-map-alist to nil while displaying splash screens.
 
+2001-08-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* buff-menu.el: Add Keywords header.
+	Doc fix (C-x C-b is bound to list-buffers).
+
 2001-08-28  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-revert-file): Call the backend even if the FILE's
