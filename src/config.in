@@ -537,6 +537,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
 
+/* Define to 1 if you have the <sys/_mbstate_t.h> header file. */
+#undef HAVE_SYS__MBSTATE_T_H
+
 /* Define to 1 if you have the <termcap.h> header file. */
 #undef HAVE_TERMCAP_H
 
@@ -739,6 +742,10 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
+   XPointer or XPointer*. */
+#undef XRegisterIMInstantiateCallback_arg6
+
 /* Define to 1 if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
@@ -827,6 +834,9 @@ Boston, MA 02111-1307, USA.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
+/* We have blockinput.h.  */
+#define DO_BLOCK_INPUT
+
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */
@@ -902,6 +912,8 @@ Boston, MA 02111-1307, USA.  */
 #if ! HAVE_MKTIME || BROKEN_MKTIME
 #define mktime emacs_mktime
 #endif
+
+#define my_strftime nstrftime	/* for strftime.c */
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
