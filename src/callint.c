@@ -868,7 +868,7 @@ syms_of_callint ()
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-U's\n\
+or a list whose car is a number for just one or more C-u's\n\
 or nil if no argument has been specified.\n\
 \n\
 You cannot examine this variable to find the argument for this command\n\
@@ -883,7 +883,7 @@ See `prefix-arg' for the meaning of the value.");
   DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
     "The value of the prefix argument for this editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-U's\n\
+or a list whose car is a number for just one or more C-u's\n\
 or nil if no argument has been specified.\n\
 This is what `(interactive \"P\")' returns.");
   Vcurrent_prefix_arg = Qnil;
