@@ -1,3 +1,8 @@
+2001-07-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (main): Check that the output file exists and
+	is non-empty if invoked with `--append'.
+
 2001-05-14  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (add_regex): Reset the whole newly allocated pattern

@@ -1,3 +1,8 @@
+2001-07-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (set-variable): Require 'cus-edit' instead of
+	`wid-edit', so that the Custom widgets get defined.
+
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* allout.el: A fix to follow coding conventions.
