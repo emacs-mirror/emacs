@@ -4,7 +4,7 @@
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
-@node System Interface, Antinews, Calendar, Top
+@node System Interface, Antinews, Display, Top
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to

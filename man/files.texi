@@ -244,7 +244,7 @@ For information on how to customize this, see @xref{Dialog Boxes}.
 window system.  Dropping a file into an ordinary Emacs window visits
 the file using that window.  However, dropping a file into a window
 displaying a Dired buffer moves or copies the file into the displayed
-directory.  For details, see @xref{Drag and Drop} and @xref{Misc Dired
+directory.  For details, see @ref{Drag and Drop}, @ref{Misc Dired
 Features}.
 
 @cindex creating files
@@ -939,6 +939,15 @@ Auto-Revert Tail mode, @kbd{M-x auto-revert-tail-mode}.
   The variable @code{auto-revert-interval} controls how often to check
 for a changed file.  Since checking a remote file is too slow, these
 modes do not check or revert remote files.
+
+@vindex auto-revert-check-vc-info
+  Whenever Auto Revert mode reverts the buffer, it updates the version
+control information, such as the version control number displayed in
+the mode line.  However, this information may not be properly updated
+if the version control state changes outside of Emacs---for example,
+if a new version is checked in from outside the current Emacs session.
+If you set @code{auto-revert-check-vc-info} to @code{t}, Auto Revert
+mode will update the version control status information periodically.
 
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters

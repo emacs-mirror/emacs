@@ -1,3 +1,39 @@
+2005-03-26  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* w32term.h (x_output): add focus_state.
+
+	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
+	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
+
+2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fminibuffer_complete_and_exit, Fself_insert_and_exit):
+	Use Fexit_minibuffer.
+	(Fexit_minibuffer): Mark it as no-return, deactivate the mark.
+
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (Ffile_attributes): Add a missing gcpro.
+
+	* alloc.c (make_number): The arg can be bigger than `int'.
+	* lisp.h (make_number): Make prototype more precise.
+
+	* process.c, dired.c (Vfile_name_coding_system)
+	(Vdefault_file_name_coding_system):
+	* callproc.c (Vdoc_file_name, Vfile_name_coding_system)
+	(Vdefault_file_name_coding_system): Remove unused declarations.
+
+2005-03-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (create_and_show_popup_menu): Just remove menu and return
+	if it failed to pop up (Gnome "show pointer on ctrl" option makes
+	menus fail to pop up).
+
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_next_display_element): Also use `\ ' & `\-' for latin-9.
+	Just prepend a backslash without replacing the NBSP by an SPC.
+
 2005-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* xfaces.c (lookup_derived_face): Add arg SIGNAL_P.
@@ -17,7 +53,7 @@
 2005-03-22  David Kastrup  <dak@gnu.org>
 
 	* textprop.c (Fnext_char_property_change)
-	(Fprevious_char_property_change): allow marker as limit.
+	(Fprevious_char_property_change): Allow marker as limit.
 	(Fnext_single_char_property_change)
 	(Fprevious_single_char_property_change): Check that limit is a
 	number in strings.
@@ -51,8 +87,7 @@
 
 2005-03-17  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (syms_of_coding): Docstring of coding-category-list
-	fixed.
+	* coding.c (syms_of_coding): Docstring of coding-category-list fixed.
 
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 

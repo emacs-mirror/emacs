@@ -1,6 +1,7 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985, 86, 87, 94, 95, 98, 2000, 03 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1994, 1995, 1998, 2000, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -33,7 +34,7 @@
 ;;  auto-mode-alist.
 ;;
 ;;  To use:
-;;     (add-hook 'find-file-hooks 'auto-insert)
+;;     (add-hook 'find-file-hook 'auto-insert)
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
 ;;  You can also customize the variable `auto-insert-mode' to load the
@@ -67,7 +68,7 @@ Insertion is possible when something appropriate is found in
 `auto-insert-alist'.  When the insertion is marked as unmodified, you can
 save it with  \\[write-file] RET.
 This variable is used when the function `auto-insert' is called, e.g.
-when you do (add-hook 'find-file-hooks 'auto-insert).
+when you do (add-hook 'find-file-hook 'auto-insert).
 With \\[auto-insert], this is always treated as if it were t."
   :type '(choice (const :tag "Insert if possible" t)
                  (const :tag "Do nothing" nil)
@@ -326,10 +327,10 @@ When Auto-insert mode is enabled, when new files are created you can
 insert a template for the file depending on the mode of the buffer."
   :global t :group 'auto-insert
   (if auto-insert-mode
-      (add-hook 'find-file-hooks 'auto-insert)
-    (remove-hook 'find-file-hooks 'auto-insert)))
+      (add-hook 'find-file-hook 'auto-insert)
+    (remove-hook 'find-file-hook 'auto-insert)))
 
 (provide 'autoinsert)
 
-;;; arch-tag: 5b6630ac-c735-43cf-b097-b78c622af909
+;; arch-tag: 5b6630ac-c735-43cf-b097-b78c622af909
 ;;; autoinsert.el ends here

@@ -2490,11 +2490,14 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
 
   record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
-  /* Set this to one.  popup_widget_loop increases it by one, so it becomes
-     two.  show_help_echo uses this to detect popup menus.  */
-  popup_activated_flag = 1;
-  /* Process events that apply to the menu.  */
-  popup_widget_loop (1, menu);
+  if (GTK_WIDGET_MAPPED (menu))
+    {
+      /* Set this to one.  popup_widget_loop increases it by one, so it becomes
+         two.  show_help_echo uses this to detect popup menus.  */
+      popup_activated_flag = 1;
+      /* Process events that apply to the menu.  */
+      popup_widget_loop (1, menu);
+    }
 
   unbind_to (specpdl_count, Qnil);
 

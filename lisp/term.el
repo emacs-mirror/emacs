@@ -2573,7 +2573,16 @@ See `term-prompt-regexp'."
 
 (defun term-move-columns (delta)
   (setq term-current-column (max 0 (+ (term-current-column) delta)))
-  (move-to-column term-current-column t))
+  (let (point-at-eol)
+    (save-excursion
+      (end-of-line)
+      (setq point-at-eol (point)))
+    (move-to-column term-current-column t)
+    ;; If move-to-column extends the current line it will use the face
+    ;; from the last character on the line, set the face for the chars
+    ;; to default.
+    (when (> (point) point-at-eol)
+      (put-text-property point-at-eol (point) 'face 'default))))
 
 ;; Insert COUNT copies of CHAR in the default face.
 (defun term-insert-char (char count)
@@ -3028,7 +3037,7 @@ See `term-prompt-regexp'."
 ;;; default one. 
 (defun term-reset-terminal ()
   (erase-buffer)
-  (setq term-current-row 1)
+  (setq term-current-row 0)
   (setq term-current-column 1)
   (setq term-insert-mode nil)
   (setq term-current-face nil)
@@ -3037,7 +3046,7 @@ See `term-prompt-regexp'."
   (setq term-ansi-current-reverse 0)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible 0)
-  (setq term-ansi-face-already-done 1)
+  (setq term-ansi-face-already-done 0)
   (setq term-ansi-current-bg-color 0))
 
 ;;; New function to deal with ansi colorized output, as you can see you can
@@ -3685,12 +3694,20 @@ Should only be called when point is at the start of a screen line."
 ;;; at teh end of this screen line to make room.
 
 (defun term-insert-spaces (count)
-  (let ((save-point (point)) (save-eol))
+  (let ((save-point (point)) (save-eol) (point-at-eol))
     (term-vertical-motion 1)
     (if (bolp)
 	(backward-char))
     (setq save-eol (point))
+    (save-excursion
+      (end-of-line)
+      (setq point-at-eol (point)))
     (move-to-column (+ (term-start-line-column) (- term-width count)) t)
+    ;; If move-to-column extends the current line it will use the face
+    ;; from the last character on the line, set the face for the chars
+    ;; to default.
+    (when (> (point) (point-at-eol))
+      (put-text-property point-at-eol (point) 'face 'default))
     (if (> save-eol (point))
 	(delete-region (point) save-eol))
     (goto-char save-point)

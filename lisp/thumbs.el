@@ -1,6 +1,6 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
 
-;; Copyright 2004 Free Software Foundation, Inc
+;; Copyright 2004, 2005 Free Software Foundation, Inc
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Keywords: Multimedia
@@ -630,7 +630,7 @@ Open another window."
 
 (defun thumbs-modify-image (action &optional arg)
   "Call convert to do ACTION on image with argument ARG.
-ACTION and ARG should be legal convert command."
+ACTION and ARG should be a valid convert command."
   (interactive "sAction: \nsValue: ")
   ;; cleaning of old temp file
   (mapc 'delete-file

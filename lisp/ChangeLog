@@ -1,3 +1,249 @@
+2005-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-move-columns): Fix face after extending a line.
+	(term-insert-spaces): Likewise.
+	(term-reset-terminal): Fix off by one error.
+
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .xpi files.
+
+	* files.el (auto-mode-alist): Add .xpi files.
+
+2005-03-26  Jure Cuhalev  <gandalf@owca.info>  (tiny change)
+
+	* textmodes/ispell.el (ispell-dictionary-alist-6): Add slovenian.
+
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/bobcat.el: Don't use keyswap.el, since it is now obsolete.
+
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/cal-menu.el (top level): Delete local C-down-mouse-3
+	binding.  Suggested by Stephan Stahl <stahl@eos.franken.de>.
+
+	* calendar/cal-move.el (calendar-beginning-of-year): Move the
+	cursor to Jan 1 when needed.
+	(calendar-end-of-year): Fix -/+ typo.
+	Reported by Chong Yidong <cyd@stupidchicken.com>.
+
+2005-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode): Add autoload cookie.
+
+	* emacs-lisp/debug.el (debugger-record-expression): Add a missing
+	format to `message'.  Inspired by Deepak Goel <deego@gnufans.org>.
+
+2005-03-25  Richard M. Stallman  <rms@gnu.org>
+
+	* filesets.el (filesets-init): Add autoload.
+
+	* mail/mailalias.el (mail-directory): Doc fix.
+
+2005-03-25  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/mailalias.el (mail-directory-process): Do nothing if
+	mail-directory-process is an atom.
+	(mail-get-names): Ignore mail-directory-names if it is an atom.
+	(mail-directory-process defvar): Doc fix.
+	(mail-names): Doc fix.
+
+2005-03-25  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>  (tiny change)
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify): Fix regexp syntax.
+
+2005-03-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (detect-coding-with-priority):
+	Call update-coding-systems-internal before detect-coding-region.
+
+2005-03-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode-map)
+	(gdb-frames-mode-map): Add follow-link property.
+
+2005-03-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (calc-solve-for): Use "Variable(s)" to prompt
+	for variables.
+
+2005-03-25  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el: Optimize image filename extension regexps in
+	autoload cookies.  Associate .x[bp]m with `image-mode-maybe'
+	in `auto-mode-alist'.
+	(image-mode): Add `image-toggle-display-text' to local hook
+	`change-major-mode-hook'.  Display the image as an image by
+	default.  Set `cursor-type' and `truncate-lines' if the image
+	is already displayed.  Take into account the current mode (image
+	or text) in message.
+	(image-minor-mode): New minor mode.
+	(image-mode-maybe, image-toggle-display-text): New functions.
+	(image-toggle-display): Use called-interactively-p.
+	Let-bind `inhibit-read-only' to t.
+
+	* image-mode.el (image-minor-mode): Set `cursor-type' and
+	`truncate-lines' if the image is already displayed.  Add turning
+	image-minor-mode off to `change-major-mode-hook'.  Add message.
+	Call `image-toggle-display-text' after turning image-minor-mode off.
+
+2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): For Mac OS X's
+	Terminal.app, use utf-8.
+	(set-display-table-and-terminal-coding-system): Add coding-system arg.
+	(set-locale-environment): Use it.
+
+	* term/xterm.el: Undo last change, better done in mule-cmds.el.
+
+	* emacs-lisp/rx.el (rx-constituents): Add symbol-start and symbol-end.
+
+	* progmodes/python.el (python-close-block-statement-p)
+	(python-outdent-p, python-current-defun): Use symbol-end.
+
+2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+
+	* files.el (save-some-buffers): Doc fix.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* complete.el, thumbs.el: Replace `legal' with `valid'.
+	* calendar/calendar.el: Replace `legal' with `valid'.
+	* emacs-lisp/advice.el: Replace `legal' with `valid'.
+	* mail/supercite.el: Replace `legal' with `valid'.
+	* progmodes/cperl-mode.el, progmodes/idlw-shell.el,
+	progmodes/idlwave.el, progmodes/vhdl-mode.el: Replace `legal' with
+	`valid'.
+	* textmodes/reftex-vars.el, textmodes/reftex.el: Replace `legal'
+	with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with `invalid'.
+	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
+	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
+	* emulation/vip.el: Replace `illegal' with `invalid'.
+	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with `invalid'.
+	* mail/supercite.el: Replace `illegal' with `invalid'.
+	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el,
+	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el,
+	progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el,
+	progmodes/sh-script.el, progmodes/xscheme.el: Replace `illegal' with
+	`invalid'.
+	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el,
+	textmodes/reftex-index.el, textmodes/reftex-parse.el,
+	textmodes/reftex-ref.el, textmodes/reftex-vars.el,
+	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
+
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-get-file-name-mode-and-masks)
+	(flymake-find-buildfile, flymake-find-possible-master-files)
+	(flymake-check-include, flymake-parse-line): Replace loops over the
+	length of lists, by loops over lists, to remove silly O(n,A2(B) behavior.
+
+	* progmodes/flymake.el (flymake-ensure-ends-with-slash): Remove.
+	Substitute file-name-as-directory in the rest of the file.
+	(flymake-get-common-file-prefix): Rewrite, using compare-strings.
+	(flymake-replace-region): Remove unused arg `buffer'.
+	(flymake-check-patch-master-file-buffer): Update calls to it.
+	(flymake-add-err-info): Remove unused var `count'.
+	(flymake-mode): Use define-minor-mode.
+
+	* progmodes/flymake.el: Use with-current-buffer.
+	(flymake-float-time, flymake-get-temp-dir, flymake-line-end-position)
+	flymake-replace-regexp-in-string, flymake-line-beginning-position)
+	(flymake-popup-menu, flymake-current-row, flymake-selected-frame):
+	Avoid testing for `xemacs'.
+	(flymake-nop): Move.
+	(flymake-region-has-flymake-overlays): Return the computed value.
+	(flymake-reformat-err-line-patterns-from-compile-el): Use dolist.
+	Remove unused var `endline'.
+	(flymake-get-line-count): Remove unused function.
+	(flymake-display-err-menu-for-current-line): Unused var move-mouse-pos.
+
+	* emulation/vi.el:
+	* generic.el:
+	* hilit-chg.el (global-highlight-changes):
+	* hi-lock.el (hi-lock-mode):
+	* follow.el: find-file-hooks -> find-file-hook.
+
+	* comint.el (comint-insert-input): Obey mouse-yank-at-point.
+
+2005-03-24  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Add menu item "Compare directories"
+	for dired-compare-directories.
+
+	* dired-aux.el (dired-compare-directories): Add autoload cookie.
+	Doc fix.  Replace `read-file-name' with `read-directory-name'.
+
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el: If running in Terminal.app set coding-system to utf-8.
+
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-mode-change):  Save all
+	relevant mode settings in calc-embedded-original-modes when modes
+	are permanently changed.
+
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autoinsert.el: find-file-hooks -> find-file-hook.
+
+2005-03-24  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el (generic-font-lock-defaults): Make it obsolete.
+	(generic-font-lock-keywords): New variable to replace
+	generic-font-lock-defaults.
+	(generic-mode-set-font-lock): Delete it.
+	(generic-mode-internal): Don't call generic-mode-set-font-lock.
+	(generic-bracket-support): Add docstring.
+
+	* generic-x.el: Rename generic-font-lock-defaults to
+	generic-font-lock-keywords throughout.
+	(mailagent-rules-setup-function): Delete it.
+	(mailagent-rules-generic-mode): Use anonymous function instead.
+	(show-tabs-generic-mode-font-lock-defaults-1)
+	(show-tabs-generic-mode-font-lock-defaults-2): Make them constants.
+	Quote faces.
+	(show-tabs-tab-face, show-tabs-space-face): Specify background,
+	not foreground.
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Recognize define-generic-mode.
+
+2005-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-simple-completing-p): Don't turn on icomplete
+	if there's no completion table.
+
+2005-03-23  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Remove tty-specific variants, as they're no longer needed.
+
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Code cleanup: make args constant whenever possible.
+	(installshield-statement-keyword-list)
+	(installshield-system-functions-list)
+	(installshield-system-variables-list, installshield-types-list)
+	(installshield-funarg-constants-list): Make them constants.
+
+	* generic.el (generic-make-keywords-list): Add autoload cookie.
+
+	* calendar/time-date.el: Add comment on time value formats.
+	Don't require parse-time.
+	(with-decoded-time-value): New macro.
+	(encode-time-value): New function.
+	(time-to-seconds, time-less-p, time-subtract, time-add): Use them.
+	(days-to-time): Return a valid time value when arg is huge.
+	(time-since): Use time-subtract.
+	(time-to-number-of-days): Use time-to-seconds.
+
 2005-03-23  David Ponce  <david@dponce.com>
 
 	* recentf.el: (recentf-keep): New option.
@@ -9,8 +255,8 @@
 	(recentf-include-p): More robust.
 	(recentf-keep-p): New function.
 	(recentf-remove-if-non-kept): Rename from
-	`recentf-remove-if-non-readable'. Use `recentf-keep-p'. All
-	callers updated.
+	`recentf-remove-if-non-readable'. Use `recentf-keep-p'.
+	All callers updated.
 	(recentf-menu-items-for-commands): Fix help string.
 	(recentf-track-closed-file): Update. Doc fix.
 	(recentf-cleanup): Update. Count removed files. Doc fix.

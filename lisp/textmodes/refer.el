@@ -1,6 +1,6 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -388,7 +388,7 @@ found on the last refer-find-entry or refer-find-next-entry."
                       (eq refer-bib-directory 'bibinputs)))
              (refer-expand-files refer-bib-files dir-list))
             ((listp refer-bib-files) refer-bib-files)
-            (t (error "Illegal value for refer-bib-files: %s"
+            (t (error "Invalid value for refer-bib-files: %s"
                       refer-bib-files)))))
     (if (or (eq refer-bib-directory 'texinputs)
             (eq refer-bib-directory 'bibinputs))

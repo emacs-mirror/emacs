@@ -326,7 +326,7 @@ delays when a file is visited, Emacs fontifies only the visible
 portion of a buffer.  As you scroll through the buffer, each portion
 that becomes visible is fontified as soon as it is displayed.  The
 parts of the buffer that are not displayed are fontified
-``stealthily'', in the background, i.e.@: when Emacs is idle.  You can
+``stealthily,'' in the background, i.e.@: when Emacs is idle.  You can
 control this background fontification, also called @dfn{Just-In-Time}
 (or @dfn{JIT}) Lock, by customizing variables in the customization
 group @samp{jit-lock}.  @xref{Specific Customization}.
@@ -912,6 +912,17 @@ as Latin-1 graphics.  In unibyte mode, if you enable European display
 they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
+
+@vindex show-nonbreak-escape
+@cindex no-break space, display
+@cindex no-break hyphen, display
+  Some character sets define ``no-break'' versions of the space
+and hyphen characters, which are used where a line should not be
+broken.  Emacs displays these with an escape character in order to
+distinguish them from ordinary spaces and hyphens.  For example, a
+non-breaking space is displayed as @samp{\ }.  You can turn off this
+behavior by setting the variable @code{show-nonbreak-escape} to
+@code{nil}.
 
 @node Cursor Display
 @section Displaying the Cursor

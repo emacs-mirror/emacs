@@ -1,5 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.26
@@ -544,7 +545,7 @@ of master file."
            (funcall parse env)
          (error (format "HOOK ERROR: %s" (cdr error-var))))))
     (t
-     "ILLEGAL VALUE OF PARSE"))))
+     "INVALID VALUE OF PARSE"))))
 
 (defun reftex-where-am-I ()
   ;; Return the docstruct entry above point.  Actually returns a cons

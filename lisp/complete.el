@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2003
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2003, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
@@ -118,7 +118,7 @@ Some arcane rules:
 If `]' is in this string, it must come first.
 If `^' is in this string, it must not come first.
 If `-' is in this string, it must come first or right after `]'.
-In other words, if S is this string, then `[S]' must be a legal Emacs regular
+In other words, if S is this string, then `[S]' must be a valid Emacs regular
 expression (not containing character ranges like `a-z')."
   :type 'string
   :group 'partial-completion)

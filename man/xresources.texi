@@ -7,10 +7,14 @@
   You can customize some X-related aspects of Emacs behavior using X
 resources, as is usual for programs that use X.  On MS-Windows, you
 can customize some of the same aspects using the system registry.
-@xref{MS-Windows Registry}.  X resources are the only way to customize
-tooltip windows and LessTif menus, since the libraries that implement
-them don't provide for customization through Emacs.  This appendix
-describes the X resources that Emacs recognizes and how to use them.
+@xref{MS-Windows Registry}.
+
+  When Emacs is built using an `X toolkit', such as Lucid or LessTif,
+you need to use X resources to customize the appearance of the
+widgets, including the menu-bar, scroll-bar, and dialog boxes.  This
+is because the libraries that implement these don't provide for
+customization through Emacs.  GTK+ widgets use a separate system of
+`GTK resources', which we will also describe.
 
 @menu
 * Resources::           Using X resources with Emacs (in general).
@@ -58,6 +62,11 @@ of the external border.  Both of these resources are part of the
 @samp{BorderWidth} class.  Case distinctions are significant in these
 names.
 
+  Every resource definition is associated with a specific program
+name---the name of the executable file that you ran.  For Emacs, that
+is normally @samp{emacs}.  To specify a definition for all instances
+of Emacs, regardless of their names, use @samp{Emacs}.
+
   In @file{~/.Xdefaults}, you can specify a value for a single resource
 on one line, like this:
 
@@ -86,11 +95,8 @@ emacs.borderWidth: 4
 
   The order in which the lines appear in the file does not matter.
 Also, command-line options always override the X resources file.
-
-  The string @samp{emacs} in the examples above is also a resource
-name.  It actually represents the name of the executable file that you
-invoke to run Emacs.  If Emacs is installed under a different name, it
-looks for resources under that name instead of @samp{emacs}.
+Here is a list of X command-line options and their corresponding
+resource names.
 
 @table @samp
 @item -name @var{name}
@@ -272,6 +278,17 @@ especially slow X client/server links.
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
 @samp{off}.
+
+@item @code{visualClass} (class @code{VisualClass})
+Specify the ``visual'' that X should use.  This tells X how to handle
+colors.
+
+The value should start with one of @samp{TrueColor},
+@samp{PseudoColor}, @samp{DirectColor}, @samp{StaticColor},
+@samp{GrayScale}, and @samp{StaticGray}, followed by
+@samp{-@var{depth}}, where @var{depth} is the number of color planes.
+Most terminals only allow a few ``visuals,'' and the @samp{dpyinfo}
+program outputs information saying which ones.
 @end table
 
 @node Face Resources
@@ -552,31 +569,32 @@ The color for the border shadow, on the top and the left.
 @cindex @file{~/.gtkrc-2.0} file
 @cindex @file{~/.emacs.d/gtkrc} file
 
-  If the Emacs installed at your site was built to use the GTK widget set,
-then the menu bar, scroll bar and the dialogs can be customized with
-the standard GTK @file{~/.gtkrc-2.0} file or with the Emacs specific
-@file{~/.emacs.d/gtkrc} file; note that these files are only for
-customizing specific GTK widget features.  To customize Emacs font,
-background, faces etc., use the normal X resources, see @ref{Resources}.
+  If Emacs was built to use the GTK widget set, then the menu bar,
+scroll bar and the dialogs are customized with the standard GTK
+customization file, @file{~/.gtkrc-2.0}, or with the Emacs specific
+file @file{~/.emacs.d/gtkrc}.  We recommend that you use
+@file{~/.emacs.d/gtkrc} for customizations, since @file{~/.gtkrc-2.0}
+seems to be ignored when running GConf with GNOME.  These files apply
+only to GTK widget features.  To customize Emacs font, background,
+faces, etc., use the normal X resources (@pxref{Resources}).
 
   Some GTK themes override these mechanisms, which means that using
-these mechanisms will not work to customize them.  We recommend that
-you use @file{~/.emacs.d/gtkrc} for customizations, since
-@file{~/.gtkrc-2.0} seems to be ignored when running GConf with GNOME.
+these mechanisms will not work to customize them.
 
-  In these files you first defines a style and then how to apply that style
-to widgets (@pxref{GTK widget names}).  Here is an example of how to
-change the font for Emacs menus:
+  In these files you first define a style and say what it means; then
+you specify to apply the style to various widget types (@pxref{GTK
+widget names}).  Here is an example of how to change the font for
+Emacs menus:
 
 @smallexample
-# This is a comment.
+# @r{Define the style @samp{metafont}.}
 style "menufont"
 @{
   font_name = "helvetica bold 14"  # This is a Pango font name
 @}
 
+# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{metafont}.}
 widget "*emacs-menuitem*" style "menufont"
-
 @end smallexample
 
   Here is a more elaborate example, showing how to change the parts of
@@ -585,72 +603,74 @@ the scroll bar:
 @smallexample
 style "scroll"
 @{
-  fg[NORMAL] = "red"@ @ @ @ @ # The arrow color.
-  bg[NORMAL] = "yellow"@ @ # The thumb and background around the arrow.
-  bg[ACTIVE] = "blue"@ @ @ @ # The trough color.
-  bg[PRELIGHT] = "white"@ # The thumb color when the mouse is over it.
+  fg[NORMAL] = "red"@ @ @ @ @ # @r{The arrow color.}
+  bg[NORMAL] = "yellow"@ @ # @r{The thumb and background around the arrow.}
+  bg[ACTIVE] = "blue"@ @ @ @ # @r{The trough color.}
+  bg[PRELIGHT] = "white"@ # @r{The thumb color when the mouse is over it.}
 @}
 
 widget "*verticalScrollBar*" style "scroll"
 @end smallexample
 
-  There are some things you can set without using any style or widget name,
-which affect GTK as a whole.  Most of these are poorly documented, but can
-be found in the `Properties' section of the documentation page for
-@code{GtkSetting}, in the GTK document references below.
-
-One property of interest is @code{gtk-font-name} which sets the default
-font for GTK; you must use Pango font names (@pxref{GTK styles}).  A
-@file{~/.gtkrc-2.0} file that just sets a default font looks like this:
+  There are also parameters that affect GTK as a whole.  For example,
+the property @code{gtk-font-name} sets the default font for GTK.  You
+must use Pango font names (@pxref{GTK styles}).  A GTK resources file
+that just sets a default font looks like this:
 
 @smallexample
 gtk-font-name = "courier 12"
 @end smallexample
 
-
-  If GTK at your site is installed under @var{prefix},
-the resource file syntax is fully described in the GTK API
-document
-@file{@var{prefix}/share/gtk-doc/html/gtk/gtk-resource-files.html}.
-@var{prefix} is usually @file{/usr} or @file{/usr/local}.
-You can find the same document online at
+  The GTK resources file is fully described in the GTK API document.
+This can be found in
+@file{@var{prefix}/share/gtk-doc/html/gtk/gtk-resource-files.html},
+where @file{prefix} is the directory in which the GTK libraries were
+installed (usually @file{/usr} or @file{/usr/local}).  You can also
+find the document online, at
 @uref{http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html}.
-
 
 @menu
 * GTK widget names::      How widgets in GTK are named in general.
-* GTK names in Emacs::    GTK widget names in Emacs.
+* GTK Names in Emacs::    GTK widget names in Emacs.
 * GTK styles::            What can be customized in a GTK widget.
 @end menu
-
 
 @node GTK widget names
 @appendixsubsec GTK widget names
 @cindex GTK widget names
 
-  Widgets are specified by widget class or by widget name.
-The widget class is the type of the widget, for example @code{GtkMenuBar}.
-The widget name is the name given to a specific widget within a program.
-A widget always have a class but it is not mandatory to give a name to
-a widget.  Absolute names are sequences of widget names or
-widget classes, corresponding to hierarchies of widgets embedded within
-other widgets.  For example, if a @code{GtkWindow} contains a @code{GtkVBox}
-which in turn contains a @code{GtkMenuBar}, the absolute class name
-is @code{GtkWindow.GtkVBox.GtkMenuBar}.
+  A GTK widget is specified by its @dfn{widget class} and
+@dfn{widget name}.  The widget class is the type of the widget: for
+example, @code{GtkMenuBar}.  The widget name is the name given to a
+specific widget.  A widget always has a class, but need not have a
+name.
 
-@noindent
-If the widgets are named ``top'', ``box'' and ``menubar'', the absolute
-widget name is @code{top.box.menubar},
+  @dfn{Absolute names} are sequences of widget names or widget
+classes, corresponding to hierarchies of widgets embedded within
+other widgets.  For example, if a @code{GtkWindow} named @code{top}
+contains a @code{GtkVBox} named @code{box}, which in turn contains
+a @code{GtkMenuBar} called @code{menubar}, the absolute class name
+of the menu-bar widget is @code{GtkWindow.GtkVBox.GtkMenuBar}, and
+its absolute widget name is @code{top.box.menubar}.
 
   When assigning a style to a widget, you can use the absolute class
 name or the absolute widget name.
-There are two commands:  @code{widget_class} will assign a style to
-widgets, matching only against the absolute class name.
-The command @code{widget} will match the absolute widget name,
-but if there is no name for a widget in the hierarchy, the class is matched.
-These commands require the absolute name and the style name to be
-within  double quotes.  These commands are written at the top level in a
-@file{~/.gtkrc-2.0} file, like this:
+
+  There are two commands to specify changes for widgets:
+
+@table @asis
+@item @code{widget_class}
+specifies a style for widgets based on the absolute class name.
+
+@item @code{widget}
+specifies a style for widgets based on the absolute class name,
+or just the class.
+@end table
+
+@noindent
+You must soecify the class and the style in double-quotes, and put
+these commands at the top level in a @file{~/.gtkrc-2.0} file, like
+this:
 
 @smallexample
 style "menufont"
@@ -662,18 +682,17 @@ widget "top.box.menubar" style "menufont"
 widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "menufont"
 @end smallexample
 
-
-  Matching of absolute names is done with shell ``glob'' syntax, that is
-@samp{*} matches zero or more characters and @samp{?} matches one character.
-So the following would assign @code{base_style} to all widgets:
+  Matching of absolute names uses shell wildcard syntax: @samp{*}
+matches zero or more characters and @samp{?} matches one character.
+This example assigns @code{base_style} to all widgets:
 
 @smallexample
 widget "*" style "base_style"
 @end smallexample
 
   Given the absolute class name @code{GtkWindow.GtkVBox.GtkMenuBar}
-and the corresponding absolute widget name @code{top.box.menubar},
-the following all assign @code{my_style} to the menu bar:
+and the corresponding absolute widget name @code{top.box.menubar}, all
+these examples specify @code{my_style} for the menu bar:
 
 @smallexample
 widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "my_style"
@@ -685,17 +704,17 @@ widget "*menubar" style "my_style"
 widget "*menu*" style "my_style"
 @end smallexample
 
-@node GTK names in Emacs
-@appendixsubsec GTK names in Emacs
+@node GTK Names in Emacs
+@appendixsubsec GTK Widget Names in Emacs
 @cindex GTK widget names
 @cindex GTK widget classes
 
-  In Emacs the top level widget for a frame is a @code{GtkWindow} that
-contains a @code{GtkVBox}.  The @code{GtkVBox} contains the
-@code{GtkMenuBar} and a @code{GtkFixed} widget.
-The vertical scroll bars, @code{GtkVScrollbar},
-are contained in the @code{GtkFixed} widget.
-The text you write in Emacs is drawn in the @code{GtkFixed} widget.
+  In Emacs, the top level widget for a frame is a @code{GtkWindow}
+that contains a @code{GtkVBox}.  The @code{GtkVBox} contains the
+@code{GtkMenuBar} and a @code{GtkFixed} widget.  The vertical scroll
+bars, @code{GtkVScrollbar}, are contained in the @code{GtkFixed}
+widget.  The text you write in Emacs is drawn in the @code{GtkFixed}
+widget.
 
   Dialogs in Emacs are @code{GtkDialog} widgets.  The file dialog is a
 @code{GtkFileSelection} widget.
@@ -759,14 +778,14 @@ widget "*emacs-filedialog* style "my_file_style"
 widget "*emacs-menuitem* style "my_menu_style"
 @end smallexample
 
-  An alternative is to put customization into @file{~/.emacs.d/gtkrc}.
-This file is only read by Emacs, so anything in @file{~/.emacs.d/gtkrc}
-affects Emacs but leaves other applications unaffected.
-For example, the drop down menu in the file dialog can not
-be customized by any absolute widget name, only by an absolute
-class name.  This is so because the widgets in the drop down menu does not
-have names and the menu is not contained in the Emacs GtkWindow.
-To have all menus in Emacs look the same, use this in @file{~/.emacs.d/gtkrc}:
+  If you specify a customization in @file{~/.emacs.d/gtkrc}, then it
+automatically applies only to Emacs, since other programs don't read
+that file.  For example, the drop down menu in the file dialog can not
+be customized by any absolute widget name, only by an absolute class
+name.  This is so because the widgets in the drop down menu do not
+have names and the menu is not contained in the Emacs GtkWindow.  To
+have all menus in Emacs look the same, use this in
+@file{~/.emacs.d/gtkrc}:
 
 @smallexample
 widget_class "*Menu*" style "my_menu_style"
@@ -777,16 +796,16 @@ widget_class "*Menu*" style "my_menu_style"
 @cindex GTK styles
 
   In a GTK style you specify the appearance widgets shall have.  You
-can specify foreground and background color, background pixmap and font.
-The edit widget (where you edit the text) in Emacs is a GTK widget,
-but trying to specify a style for the edit widget will have no effect.
-This is so that Emacs compiled for GTK is compatible with Emacs compiled
-for other X toolkits.  The settings for foreground, background and font
-for the edit widget is taken from the X resources; @pxref{Resources}.
-Here is an example of two style declarations, ``default'' and ``ruler'':
+can specify foreground and background color, background pixmap and
+font.  The edit widget (where you edit the text) in Emacs is a GTK
+widget, but trying to specify a style for the edit widget will have no
+effect.  This is so that Emacs compiled for GTK is compatible with
+Emacs compiled for other X toolkits.  The settings for foreground,
+background and font for the edit widget is taken from the X resources;
+@pxref{Resources}.  Here is an example of two style declarations,
+@samp{default} and @samp{ruler}:
 
 @smallexample
-
 pixmap_path "/usr/share/pixmaps:/usr/include/X11/pixmaps"
 
 style "default"
@@ -821,12 +840,13 @@ style "ruler" = "default"
 
 @end smallexample
 
-  The style ``ruler'' inherits from ``default''.  This way you can build
+  The style @samp{ruler} inherits from @samp{default}.  This way you can build
 on existing styles.  The syntax for fonts and colors is described below.
 
-  As this example shows, it is possible to specify several values
-for foreground and background depending on which state the widget has.
-The possible states are
+  As this example shows, it is possible to specify several values for
+foreground and background depending on the widget's @dfn{state}.  The
+possible states are:
+
 @table @code
 @item NORMAL
 This is the default state for widgets.
@@ -846,71 +866,73 @@ be selected text or items selected in a list.
 There is no place in Emacs where this setting has any effect.
 @item INSENSITIVE
 This is the state for widgets that are visible, but they can not be
-manipulated like they normally can.  For example, buttons that can't be
-pressed and menu items that can't be selected.
-Text for menu items that are not available can be set to yellow with
-@code{fg[INSENSITIVE] = "yellow"}.
+manipulated in the usual way---for example, buttons that can't be
+pressed, and disabled menu items.  To display disabled menu items in
+yellow, use @code{fg[INSENSITIVE] = "yellow"}.
 @end table
 
-Here are the things that can go in a style declaration:
+  Here are the things that can go in a style declaration:
 
 @table @code
 @item bg[@var{state}] = @var{color}
-This is the background color widgets use.  This background is not used for
-editable text, use @code{base} for that.
+This specifies the background color for the widget.  Note that
+editable text doesn't use @code{bg}; it uses @code{base} instead.
 
 @item base[@var{state}] = @var{color}
-This is the background color for editable text.
-In Emacs, this color is used for the background of the text fields in the
-file dialog.
+This specifies the background color for editable text.  In Emacs, this
+color is used for the background of the text fields in the file
+dialog.
 
 @item bg_pixmap[@var{state}] = "@var{pixmap}"
-You can specify a pixmap to be used instead of the background color.
-@var{pixmap} is a file name.  GTK can use a number of file formats,
-including XPM, XBM, GIF, JPEG and PNG.  If you want a widget to use the same
-pixmap as its parent, use @samp{<parent>}.  If you don't want any
-pixmap use @samp{<none>}.  Using @samp{<none>} can be useful
-if your style inherits a style that does specify a pixmap.
+This specifies an image background (instead of a background color).
+@var{pixmap} should be the image file name.  GTK can use a number of
+image file formats, including XPM, XBM, GIF, JPEG and PNG.  If you
+want a widget to use the same image as its parent, use
+@samp{<parent>}.  If you don't want any image, use @samp{<none>}.
+@samp{<none>} is the way to cancel a background image inherited from a
+parent style.
 
-  GTK looks for the pixmap in directories specified in @code{pixmap_path}.
-It is not possible to refer to a file by its absolute path name.
-@code{pixmap_path} is a colon-separated list of directories within double
-quotes, specified at the top level in a @file{gtkrc} file (i.e. not inside
-a style definition; see example above):
+You can't specify the file by its absolute file name.  GTK looks for
+the pixmap file in directories specified in @code{pixmap_path}.
+@code{pixmap_path} is a colon-separated list of directories within
+double quotes, specified at the top level in a @file{gtkrc} file
+(i.e. not inside a style definition; see example above):
 
 @smallexample
 pixmap_path "/usr/share/pixmaps:/usr/include/X11/pixmaps"
 @end smallexample
 
 @item fg[@var{state}] = @var{color}
-This is the foreground color widgets use.  This is the color
-of text in menus and buttons.  It is also the color for the arrows in the
-scroll bar.  For editable text, use @code{text}.
+This specifies the foreground color for widgets to use.  It is the
+color of text in menus and buttons, and the color for the arrows in
+the scroll bar.  For editable text, use @code{text}.
 
 @item text[@var{state}] = @var{color}
 This is the color for editable text.  In Emacs, this color is used for the
 text fields in the file dialog.
 
 @item font_name = "@var{font}"
-This is the font a widget shall use.  @var{font} is a Pango font name,
-for example ``Sans Italic 10'', ``Helvetica Bold 12'', ``Courier 14'',
-``Times 18''.  See below for exact syntax.  The names are case insensitive.
+This specifies the the font for text in the widget.  @var{font} is a
+Pango font name, for example @samp{Sans Italic 10}, @samp{Helvetica
+Bold 12}, @samp{Courier 14}, @samp{Times 18}.  See below for exact
+syntax.  The names are case insensitive.
 @end table
 
-  Colors are specified in three ways, a name, a hexadecimal form or
-an RGB triplet.
+  There are three ways to specify a color: by name, in hexadecimal
+form, and with an RGB triplet.
 
 @noindent
 A color name is written within double quotes, for example @code{"red"}.
 
 @noindent
-A hexadecimal form is written within double quotes.  There are four forms,
-@code{#rrrrggggbbbb}, @code{#rrrgggbbb},
-@code{#rrggbb}, or @code{#rgb}.  In each of these r, g and b are hex digits.
+Hexadecimal form is the same as in X:
+@code{#@var{rrrr}@var{gggg}@var{bbbb}}, where all three color specs
+must have the same number of hex digits (1, 2, 3 or 4).
 
 @noindent
-An RGB triplet looks like @code{@{ r, g, b @}}, where r, g and b are either
-integers in the range 0-65535 or floats in the range 0.0-1.0.
+An RGB triplet looks like @code{@{ @var{r}, @var{g}, @var{b} @}},
+where @var{r}, @var{g} and @var{b} are either integers in the range
+0-65535 or floats in the range 0.0-1.0.
 
   Pango font names have the form ``@var{family-list} @var{style-options}
 @var{size}''.
@@ -935,8 +957,9 @@ these is @code{normal}.
 
 @noindent
 A `style' corresponds to the fourth part of an X font name.  In X font
-names it is the character ``r'', ``i'' or ``o''; in Pango font names the
-corresponding values are @code{normal}, @code{italic}, or @code{oblique}.
+names it is the character @samp{r}, @samp{i} or @samp{o}; in Pango
+font names the corresponding values are @code{normal}, @code{italic},
+or @code{oblique}.
 
 @noindent
 A `variant' is either @code{normal} or @code{small-caps}.

@@ -39,7 +39,8 @@ system, including many technical ones.  Examples:
  \\'a -> á  \\`{a} -> à
  \\pi -> π  \\int -> ∫  ^1 -> ¹"
 
- nil t t nil nil nil nil nil nil nil t)
+ '(("\t" . quail-completion))
+ t t nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("!`" ?¡)

@@ -1,3 +1,43 @@
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi: Delete file (and move contents to emacs-xtra.texi
+	in the Emacs Manual).
+	* Makefile.in (srcs): Remove calendar.texi.
+	* makefile.w32-in (srcs): Remove calendar.texi.
+	* display.texi (Display): Change name of next node.
+	* os.texi (System In): Change name of previous node.
+	* elisp.texi (Top): Remove Calendar references.
+	* vol1.texi (Top): Remove Calendar references.
+	* vol2.texi (Top): Remove Calendar references.
+
+2005-03-25  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Standard Faces, Fringe Bitmaps, Customizing Bitmaps):
+	Cleanup previous change.
+
+2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Face Attributes): Faces earlier in an :inherit
+	list take precedence.
+	(Scroll Bars): Fix description of vertical-scroll-bars.
+	Document frame-current-scroll-bars and window-current-scroll-bars.
+
+	* markers.texi (The Mark): Document temporary Transient Mark mode.
+
+	* minibuf.texi (Reading File Names): Document
+	read-file-name-completion-ignore-case.
+
+	* positions.texi (Screen Lines): Document nil for width argument
+	to compute-motion.
+
+2005-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Standard Faces): Other faces used in the fringe
+	implicitly inherits from the fringe face.
+	(Fringe Bitmaps): FACE in right-fringe and left-fringe display
+	properties implicitly inherits from fringe face.
+	(Customizing Bitmaps): Likewise for set-fringe-bitmap-face.
+
 2005-03-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Invisible Text): State default value of

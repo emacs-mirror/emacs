@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -2219,7 +2219,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
       (if type
 	  (progn
 	    (or (memq type '(vector list))
-		(error "Illegal :type specifier: %s" type))
+		(error "Invalid :type specifier: %s" type))
 	    (if named (setq tag name)))
 	(setq type 'vector named 'true)))
     (or named (setq descs (delq (assq 'cl-tag-slot descs) descs)))

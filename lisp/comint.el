@@ -1,7 +1,7 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
 ;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -791,14 +791,16 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
   ;; This doesn't use "e" because it is supposed to work
   ;; for events without parameters.
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
   (let ((pos (point)))
-    (if (not (eq (get-char-property pos 'field) 'input))
+    (if event (mouse-set-point event))
+    (if (not (eq (get-char-property (point) 'field) 'input))
 	;; No input at POS, fall back to the global definition.
 	(let* ((keys (this-command-keys))
 	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
 	       (fun (and last-key (lookup-key global-map (vector last-key)))))
+	  (goto-char pos)
 	  (and fun (call-interactively fun)))
+      (setq pos (point))
       ;; There's previous input at POS, insert it at the end of the buffer.
       (goto-char (point-max))
       ;; First delete any old unsent input at the end

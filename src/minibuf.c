@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03,04
+   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03,04,05
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2085,6 +2085,8 @@ complete_and_exit_2 (ignore)
   return make_number (1);
 }
 
+EXFUN (Fexit_minibuffer, 0) NO_RETURN;
+
 DEFUN ("minibuffer-complete-and-exit", Fminibuffer_complete_and_exit,
        Sminibuffer_complete_and_exit, 0, 0, "",
        doc: /* If the minibuffer contents is a valid completion then exit.
@@ -2147,7 +2149,7 @@ a repetition of this command will exit.  */)
       return Qnil;
     }
  exit:
-  return Fthrow (Qexit, Qnil);
+  return Fexit_minibuffer ();
   /* NOTREACHED */
 }
 
@@ -2554,14 +2556,21 @@ DEFUN ("self-insert-and-exit", Fself_insert_and_exit, Sself_insert_and_exit, 0, 
   else
     bitch_at_user ();
 
-  return Fthrow (Qexit, Qnil);
+  return Fexit_minibuffer ();
 }
 
 DEFUN ("exit-minibuffer", Fexit_minibuffer, Sexit_minibuffer, 0, 0, "",
        doc: /* Terminate this minibuffer argument.  */)
      ()
 {
-  return Fthrow (Qexit, Qnil);
+  /* If the command that uses this has made modifications in the minibuffer,
+     we don't want them to cause deactivation of the mark in the original
+     buffer.
+     A better solution would be to make deactivate-mark buffer-local
+     (or to turn it into a list of buffers, ...), but in the mean time,
+     this should do the trick in most cases.  */
+  Vdeactivate_mark = Qnil;
+  Fthrow (Qexit, Qnil);
 }
 
 DEFUN ("minibuffer-depth", Fminibuffer_depth, Sminibuffer_depth, 0, 0, 0,

@@ -90,23 +90,23 @@ line.
 @findex picture-backward-clear-column
 @findex picture-clear-column
 @findex picture-clear-line
-  Picture mode provides erasure instead of deletion and killing of
-text.  @key{DEL} (@code{picture-backward-clear-column}) replaces the
-preceding character with a space rather than removing it; this moves
-point backwards.  @kbd{C-d} (@code{picture-clear-column}) replaces the
-next character or characters with spaces, but does not move point.  (If
-you want to clear characters to spaces and move forward over them, use
+  In Picture mode, the commands that normally delete or kill text,
+instead erase text (replacing it with spaces).  @key{DEL}
+(@code{picture-backward-clear-column}) replaces the preceding
+character with a space rather than removing it; this moves point
+backwards.  @kbd{C-d} (@code{picture-clear-column}) replaces the next
+character or characters with spaces, but does not move point.  (If you
+want to clear characters to spaces and move forward over them, use
 @key{SPC}.)  @kbd{C-k} (@code{picture-clear-line}) really kills the
-contents of lines, but does not delete the newlines from the
-buffer.
+contents of lines, but does not delete the newlines from the buffer.
 
 @findex picture-open-line
   To do actual insertion, you must use special commands.  @kbd{C-o}
-(@code{picture-open-line}) creates a blank line after the current line;
-it never splits a line.  @kbd{C-M-o} (@code{split-line}) makes sense in
-Picture mode, so it is not changed.  @kbd{C-j}
-(@code{picture-duplicate-line}) inserts below the current line another
-line with the same contents.@refill
+(@code{picture-open-line}) creates a blank line after the current
+line; it never splits a line.  @kbd{C-M-o} (@code{split-line}) makes
+sense in Picture mode, so it is not changed.  @kbd{C-j}
+(@code{picture-duplicate-line}) inserts another line with the same
+contents below the current line.
 
 @kindex C-c C-d @r{(Picture mode)}
    To do actual deletion in Picture mode, use @kbd{C-w}, @kbd{C-c C-d}
@@ -141,22 +141,30 @@ character.  This is useful for drawing lines in the buffer.
 
 @table @kbd
 @item C-c <
+@itemx C-c @key{LEFT}
 Move left after insertion (@code{picture-movement-left}).
 @item C-c >
+@itemx C-c @key{RIGHT}
 Move right after insertion (@code{picture-movement-right}).
 @item C-c ^
+@itemx C-c @key{UP}
 Move up after insertion (@code{picture-movement-up}).
 @item C-c .
+@itemx C-c @key{DOWN}
 Move down after insertion (@code{picture-movement-down}).
 @item C-c `
+@itemx C-c @key{HOME}
 Move up and left (``northwest'') after insertion (@code{picture-movement-nw}).
 @item C-c '
+@itemx C-c @key{PAGEUP}
 Move up and right (``northeast'') after insertion
 (@code{picture-movement-ne}).
 @item C-c /
+@itemx C-c @key{END}
 Move down and left (``southwest'') after insertion
 @*(@code{picture-movement-sw}).
 @item C-c \
+@itemx C-c @key{PAGEDOWN}
 Move down and right (``southeast'') after insertion
 @*(@code{picture-movement-se}).
 @end table

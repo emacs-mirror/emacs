@@ -46,7 +46,6 @@ srcs = \
   $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
-  $(srcdir)/calendar.texi \
   $(srcdir)/commands.texi \
   $(srcdir)/compile.texi \
   $(srcdir)/control.texi \

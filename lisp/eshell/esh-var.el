@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2005 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -568,7 +568,7 @@ For example, to retrieve the second element of a user's record in
 			(split-string value separator)))))
       (cond
        ((< (length refs) 0)
-	(error "Illegal array variable index: %s"
+	(error "Invalid array variable index: %s"
 	       (eshell-stringify refs)))
        ((= (length refs) 1)
 	(setq value (eshell-index-value value (car refs))))

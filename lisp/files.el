@@ -1777,8 +1777,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . archive-mode)
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
      ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -3422,7 +3422,7 @@ This requires the external program `diff' to be in your `exec-path'."
   "Save some modified file-visiting buffers.  Asks user about each one.
 You can answer `y' to save, `n' not to save, `C-r' to look at the
 buffer in question with `view-buffer' before deciding or `d' to
-view the differences using `diff-buffer-to-file'.
+view the differences using `diff-buffer-with-file'.
 
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:

@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python
 
-;; Copyright (C) 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -336,14 +336,14 @@ keyword `raise', `break', `continue' or `pass'."
     (unless bos (python-beginning-of-statement))
     (back-to-indentation)
     (looking-at (rx (and (or "return" "raise" "break" "continue" "pass")
-			 word-end)))))
+			 symbol-end)))))
 
 (defun python-outdent-p ()
   "Return non-nil if current line should outdent a level."
   (save-excursion
     (back-to-indentation)
-    (and (looking-at (rx (and (or (and (or "else" "finally") word-end)
-				  (and (or "except" "elif") word-end
+    (and (looking-at (rx (and (or (and (or "else" "finally") symbol-end)
+				  (and (or "except" "elif") symbol-end
 				       (1+ (not (any ?:)))))
 			      (optional space) ":" (optional space)
 			      (or (syntax comment-start) line-end))))
@@ -355,8 +355,8 @@ keyword `raise', `break', `continue' or `pass'."
 	 ;; Fixme: check this
 	 (not (looking-at (rx (and (or (and (or "if" "elif" "except"
 						"for" "while")
-					    word-end (1+ (not (any ?:))))
-				       (and "try" word-end))
+					    symbol-end (1+ (not (any ?:))))
+				       (and "try" symbol-end))
 				   (optional space) ":" (optional space)
 				   (or (syntax comment-start) line-end)))))
 	 (progn (end-of-line)
@@ -1562,7 +1562,8 @@ of current line."
 	(beginning-of-defun)
 	(if (looking-at (rx (and (0+ space) (or "def" "class") (1+ space)
 				 (group (1+ (or word (syntax symbol))))
-				 word-end)))
+				 ;; Greediness makes this unnecessary?  --Stef
+				 symbol-end)))
 	    (push (match-string 1) accum)))
       (if accum (mapconcat 'identity accum ".")))))
 
@@ -1702,9 +1703,9 @@ lines count as headers.
        '(python-font-lock-keywords nil nil ((?_ . "w")) nil
 				   (font-lock-syntactic-keywords
 				    . python-font-lock-syntactic-keywords)
-;;; This probably isn't worth it.
-;;; 				   (font-lock-syntactic-face-function
-;;; 				    . python-font-lock-syntactic-face-function)
+				   ;; This probably isn't worth it.
+				   ;; (font-lock-syntactic-face-function
+				   ;;  . python-font-lock-syntactic-face-function)
 				   ))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set (make-local-variable 'comment-start) "# ")

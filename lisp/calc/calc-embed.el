@@ -1257,26 +1257,8 @@ The command \\[yank] can retrieve it from there."
 		       calc-embedded-close-mode))))
 	      (setq vars (cdr vars)
 		    values (cdr values))))))
-    (when (and vars calc-embedded-original-modes (eq calc-mode-save-mode 'save))
-      (cond ((equal vars '(the-language))
-             (setcar calc-embedded-original-modes
-                     (cons calc-language calc-language-option)))
-            ((equal vars '(the-display-just))
-             (let* ((modes (cdr calc-embedded-original-modes))
-                    (just (assq 'calc-display-just modes))
-                    (origin (assq 'calc-display-origin modes)))
-               (if just
-                   (setcdr just calc-display-just))
-               (if origin
-                   (setcdr origin calc-display-origin))))
-            (t
-             (let ((modes (cdr calc-embedded-original-modes)))
-               (while vars
-                 (let* ((var (car vars))
-                        (cell (assq var modes)))
-                   (if cell
-                       (setcdr cell (symbol-value var))))
-                 (setq vars (cdr vars)))))))))
+    (when (and vars (eq calc-mode-save-mode 'save))
+      (calc-embedded-save-original-modes))))
 
 (defun calc-embedded-var-change (var &optional buf)
   (if (symbolp var)

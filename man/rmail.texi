@@ -1193,7 +1193,7 @@ which applies the code when displaying the text.
 @code{movemail} program and determine its version.  There are two
 versions of @code{movemail} program: the native one, shipped with GNU
 Emacs (the ``emacs version'') and the one included in GNU mailutils
-(the ``mailutils version'', @pxref{movemail,,,mailutils,GNU
+(the ``mailutils version,'' @pxref{movemail,,,mailutils,GNU
 mailutils}).  They support the same command line syntax and the same
 basic subset of options.  However, the @samp{mailutils} version offers
 additional features.

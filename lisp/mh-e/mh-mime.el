@@ -1,6 +1,7 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
-;; Copyright (C) 1993, 1995, 2001, 02, 03, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 02, 03, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -197,7 +198,7 @@ Returns nil if file command not on system."
     ("text/richtext") ("text/x-vcard") ("text/xml")
 
     ("video/mpeg") ("video/quicktime"))
-  "Legal MIME content types.
+  "Valid MIME content types.
 See documentation for \\[mh-edit-mhn].")
 
 ;; RFC 2045 - Multipurpose Internet Mail Extensions (MIME) Part One:
@@ -224,7 +225,7 @@ See documentation for \\[mh-edit-mhn].")
     ("tftp")            ; RFC2046 Trivial File Transfer Protocol
     ("url")             ; RFC2017 URL scheme MIME access-type Protocol
     ("wais"))           ; RFC1738 Wide Area Information Servers
-  "Legal MIME access-type values.")
+  "Valid MIME access-type values.")
 
 ;;;###mh-autoload
 (defun mh-mhn-compose-insertion (filename type description attributes)

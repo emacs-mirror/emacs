@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985,86,87,91,92,93,94,95,96,97,98,99,2000,03,2004
+;; Copyright (C) 1985,86,87,91,92,93,94,95,96,97,98,99,2000,03,2004,2005
 ;;     Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich and Bob Olson
@@ -713,7 +713,7 @@ should work if the balance of delimiters is not broken by POD).
 
 The main trick (to make $ a \"backslash\") makes constructions like
 ${aaa} look like unbalanced braces.  The only trick I can think of is
-to insert it as $ {aaa} (legal in perl5, not in perl4).
+to insert it as $ {aaa} (valid in perl5, not in perl4).
 
 Similar problems arise in regexps, when /(\\s|$)/ should be rewritten
 as /($|\\s)/.  Note that such a transposition is not always possible.

@@ -83,6 +83,18 @@ in between the mouse command and @key{DELETE}, it does not do this.
 Move point to where you click (@code{mouse-set-point}).
 This is normally the left button.
 
+@vindex x-mouse-click-focus-ignore-position
+Normally, Emacs does not distinguish between ordinary mouse clicks and
+clicks that select a frame.  When you click on a frame to select it,
+that also changes the selected window and cursor position according to
+the mouse click position.  On the X window system, you can change this
+behavior by setting the variable
+@code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
+first click selects the frame, but does not affect the selected window
+or cursor position.  If you click again in the same place, since that
+click will be in the selected frame, it will change the window or
+cursor position.
+
 @item Drag-Mouse-1
 Set the region to the text you select by dragging, and copy it to the
 kill ring (@code{mouse-set-region}).  You can specify both ends of the
@@ -95,6 +107,10 @@ back into the window.  This way, you can select regions that don't fit
 entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
+
+@vindex mouse-drag-copy-region
+If the variable @code{mouse-drag-copy-region} is @code{nil}, this
+mouse command does not copy the selected region into the kill ring.
 
 @item Mouse-2
 Yank the last killed text, where you click (@code{mouse-yank-at-click}).

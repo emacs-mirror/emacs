@@ -1251,6 +1251,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate dashes]
       '("--"))
 
+    (define-key map [menu-bar immediate compare-directories]
+      '(menu-item "Compare directories" dired-compare-directories
+		  :help "Mark files with different attributes in two dired buffers"))
     (define-key map [menu-bar immediate backup-diff]
       '(menu-item "Compare with Backup" dired-backup-diff
 		  :help "Diff file at cursor with its latest backup"))

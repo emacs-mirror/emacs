@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2003 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2003, 2005 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -5065,7 +5065,7 @@ Try to increase performance by using this macro."
 
 (defun vhdl-read-offset (langelem)
   "Read new offset value for LANGELEM from minibuffer.
-Return a legal value only."
+Return a valid value only."
   (let ((oldoff (format "%s" (cdr-safe (assq langelem vhdl-offsets-alist))))
 	(errmsg "Offset must be int, func, var, or one of +, -, ++, --: ")
 	(prompt "Offset: ")

@@ -1,3 +1,154 @@
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* emacs-xtra.texi (Advanced Calendar/Diary Usage): New section;
+	move here from Emacs Lisp Reference Manual.
+	* calendar.texi (Calendar/Diary, Diary Commands)
+	(Special Diary Entries, Importing Diary): Change some xrefs to
+	point to emacs-xtra rather than elisp.
+
+	* emacs-xtra.texi (Calendar Customizing): Move
+	view-diary-entries-initially, view-calendar-holidays-initially,
+	mark-diary-entries-in-calendar, mark-holidays-in-calendar to main
+	Emacs Manual.
+	(Appt Customizing): Merge entire section into main Emacs Manual.
+	* calendar.texi (Holidays): Move view-calendar-holidays-initially,
+	mark-holidays-in-calendar here from emacs-xtra.
+	(Displaying the Diary): Move view-diary-entries-initially,
+	mark-diary-entries-in-calendar here from emacs-xtra.
+	(Appointments): Move appt-display-mode-line,
+	appt-display-duration, appt-disp-window-function,
+	appt-delete-window-function here from emacs-xtra.
+
+	* calendar.texi: Update and reformat copyright.
+	Change all @xrefs to the non-printing emacs-xtra to @inforefs.
+	(Calendar/Diary): Menu now only on Mouse-3, not C-Mouse-3.
+	(Diary): Refer to `diary-file' rather than ~/diary.
+	(Diary Commands): Rename node to "Displaying the Diary".
+	* emacs.texi (Top): Rename "Diary Commands" section.
+	* misc.texi (Hardcopy): Rename "Diary Commands" xref.
+
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (Emacs Server): Fix the command for setting
+	server-name.  Add an xref to Invoking emacsclient.
+
+	* help.texi (Help Summary): Clarify when "C-h ." will do something
+	nontrivial.
+	(Apropos): Add cindex entry for apropos-sort-by-scores.
+
+	* display.texi (Text Display): Add index entries for how no-break
+	characters are displayed.
+
+2005-03-26  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* dired-x.texi (Multiple Dired Directories): default-directory was
+	renamed to dired-default-directory.
+
+2005-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Visiting): Fix cross-references introduced with the
+	last change.
+
+	* xresources.texi (GTK resources): Fix last change. 
+
+2005-03-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Simplifying Formulas, Rewrite Rules): Change
+	description of top and bottom of fraction.
+	(Modulo Forms): Move description of how to create modulo forms to
+	earlier in the section.
+	(Fraction Mode): Suggest using : to get a fraction by dividing.
+	(Basic Arithmetic): Adjust placement of command name.
+	(Truncating the Stack): Emphasize that "hidden" entries are still
+	visible.
+	(Installation): Move discussion of printing manual to "About This
+	Manual".
+	(About This Manual): Mention how to print the manual.
+	(Reporting Bugs): Remove first person.
+	(Building Vectors): Add algebraic version of append.
+	(Manipulating Vectors): Fix algebraic version of calc-reverse-vector.
+	(Grouping Digits): Fix typo.
+
+2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xresources.texi (X Resources): GTK options documented too.
+	(Resources): Clarify meaning of program name.
+	(Table of Resources): Add visualClass.
+	(GTK resources): Rewrite.
+	(GTK widget names, GTK Names in Emacs, GTK styles): Cleanups.
+
+	* display.texi (Text Display): Mention non-breaking spaces.
+
+	* files.texi (Reverting): Document auto-revert-check-vc-info.
+
+	* frames.texi (Mouse Commands): Document
+	x-mouse-click-focus-ignore-position and mouse-drag-copy-region.
+
+	* help.texi (Help Summary): Add `C-h .'.
+	(Apropos): Apropos accepts a list of search terms.
+	Document apropos-sort-by-scores.
+	(Help Echo): Document display-local-help.
+
+	* misc.texi (Emacs Server): Document server-name.
+	(Invoking emacsclient): Document -s option for server names.
+
+	* text.texi (Outline Visibility): Introduce "current heading
+	line" (commands can be called with point on a body line).
+	Re-order table to follow the sequence of discussion.
+	hide-body won't hide lines before first header line.
+	(TeX Mode): Add DocTeX mode.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi: Replace
+	`legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, reftex.texi: Replace `illegal' with `invalid'.
+
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (General Mode Commands)
+	(Mode Settings in Embedded Mode): Added some explanation of
+	recording mode settings.
+
+2005-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mule.texi (Single-Byte Character Support): Delete mention
+	of iso-acc.el and iso-transl.el.
+
+	* calc.texi: Remove praise of non-free software.
+
+	* idlwave.texi: Don't say where to get IDL or its non-free manual.
+	(Installation): Node deleted.
+
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Rename from Non-Ascii Isearch.
+
+2005-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi (HTTP language/coding): Improve last change.
+
+	* search.texi: Delete explicit node pointers.
+	(Incremental Search): New menu.
+	(Basic Isearch, Repeat Isearch, Error in Isearch)
+	(Non-Ascii Isearch, Isearch Yank, Highlight Isearch, Isearch Scroll)
+	(Slow Isearch): New subnodes.
+	(Configuring Scrolling): Node deleted.
+	(Search Case): Doc default-case-fold-search.
+	(Regexp Replace): Move replace-regexp doc here.
+
+	* rmail.texi (Movemail): Put commas inside closequotes.
+
+	* picture.texi (Insert in Picture): Document C-c arrow combos.
+	(Basic Picture): Clarify erasure.
+
+	* display.texi (Font Lock): Put commas inside closequotes.
+
+	* cmdargs.texi (General Variables): Put commas inside closequotes.
+
 2005-03-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Stack Buffer): Mention reverse contrast for

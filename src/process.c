@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1998, 1999,
+      2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -375,8 +375,6 @@ extern int timers_run;
 
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
-
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 #ifdef HAVE_PTYS
 #ifdef HAVE_PTY_H
