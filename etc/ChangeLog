@@ -1,6 +1,7 @@
 2000-11-09  Kenichi Handa  <handa@etl.go.jp>
 
-	* TUTORIAL.ja: Use C-x C-l, not M-:, as example of disabled command.
+	* TUTORIAL.ja: Adjusted for the change of TUTORIAL (use C-x C-l,
+	not M-:, as example of disabled command).
 
 2000-11-02  Gerd Moellmann  <gerd@gnu.org>
 
