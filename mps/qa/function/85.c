@@ -58,15 +58,17 @@ static void test(void)
     lev1--;
     mps_epvm_restore(pool1, lev1);
    }
+   mps_epvm_save(pool1);
+   lev1++;
   }
   j = ranint(40);
   switch (j)  {
    case 1:
-    if (lev1==0) break;
+    if (lev1==1) break;
     lev1--;
     mps_epvm_restore(pool1, lev1);
     comment("Restore to %i", lev1);
-    while (ranint(2) && (lev1>0)) {
+    while (ranint(2) && (lev1>1)) {
      lev1--;
      mps_epvm_restore(pool1, lev1);
     }
