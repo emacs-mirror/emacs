@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.28) $
+# $HopeName: MMsrc!comm.gmk(trunk.29) $
 # Copyright (C) 1995,1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -157,10 +157,10 @@ endif
 # These values are defined here because they have no variation between
 # platforms.
 
-AMC = amc.c
+AMC = poolamc.c
 AMS = poolams.c
 AWL = poolawl.c
-LO = lo.c
+LO = poollo.c
 POOLN = pooln.c
 ARENAAN = arenaan.c
 TESTLIB = testlib.c
