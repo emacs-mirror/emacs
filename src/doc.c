@@ -131,7 +131,7 @@ get_doc_string (filepos)
     }
   else
     {
-      name = XSTRING (file)->data;
+      name = (char *) XSTRING (file)->data;
     }
 
   fd = open (name, O_RDONLY, 0);
