@@ -1062,7 +1062,7 @@ temp_echo_area_glyphs (m)
   SET_PT (opoint);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
-  del_range (PT, ZV);
+  del_range (osize, ZV);
   SET_PT (opoint);
   if (!NILP (Vquit_flag))
     {
