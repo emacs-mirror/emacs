@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.62 $")
+(defconst byte-compile-version "$Revision: 2.63 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +32,8 @@
 ;;; Commentary:
 
 ;; The Emacs Lisp byte compiler.  This crunches lisp source into a sort
-;; of p-code which takes up less space and can be interpreted faster.
+;; of p-code (`lapcode') which takes up less space and can be interpreted
+;; faster.  [`LAP' == `Lisp Assembly Program'.]
 ;; The user entry points are byte-compile-file and byte-recompile-directory.
 
 ;;; Code:
@@ -99,6 +100,8 @@
 ;;					    a macro to a lambda or vice versa,
 ;;					    or redefined to take other args)
 ;;				'obsolete  (obsolete variables and functions)
+;;				'noruntime (calls to functions only defined
+;;					    within `eval-when-compile')
 ;; byte-compile-compatibility	Whether the compiler should
 ;;				generate .elc files which can be loaded into
 ;;				generic emacs 18.
@@ -324,7 +327,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
   :type 'boolean)
 
 (defconst byte-compile-warning-types
-  '(redefine callargs free-vars unresolved obsolete))
+  '(redefine callargs free-vars unresolved obsolete noruntime))
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
 Elements of the list may be be:
@@ -340,7 +343,7 @@ Elements of the list may be be:
 		 (set :menu-tag "Some"
 		      (const free-vars) (const unresolved)
 		      (const callargs) (const redefined)
-		      (const obsolete))))
+		      (const obsolete) (const noruntime))))
 
 (defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
@@ -386,9 +389,9 @@ specify different fields to sort on."
 ;; which the link points to being overwritten.")
 
 (defvar byte-compile-constants nil
-  "list of all constants encountered during compilation of this form")
+  "List of all constants encountered during compilation of this form.")
 (defvar byte-compile-variables nil
-  "list of all variables encountered during compilation of this form")
+  "List of all variables encountered during compilation of this form.")
 (defvar byte-compile-bound-variables nil
   "List of variables bound in the context of the current form.
 This list lives partly on the stack.")
@@ -402,8 +405,9 @@ This list lives partly on the stack.")
 ;;     (byte-compiler-options . (lambda (&rest forms)
 ;; 			       (apply 'byte-compiler-options-handler forms)))
     (eval-when-compile . (lambda (&rest body)
-			   (list 'quote (eval (byte-compile-top-level
-					       (cons 'progn body))))))
+			   (list 'quote
+				 (byte-compile-eval (byte-compile-top-level
+						     (cons 'progn body))))))
     (eval-and-compile . (lambda (&rest body)
 			  (eval (cons 'progn body))
 			  (cons 'progn body))))
@@ -423,8 +427,9 @@ Each element looks like (FUNCTIONNAME . DEFINITION).  It is
 \(FUNCTIONNAME . nil) when a function is redefined as a macro.")
 
 (defvar byte-compile-unresolved-functions nil
-  "Alist of undefined functions to which calls have been compiled (used for
-warnings when the function is later defined with incorrect args).")
+  "Alist of undefined functions to which calls have been compiled.
+Used for warnings when the function is not known to be defined or is later
+defined with incorrect args.")
 
 (defvar byte-compile-tag-number 0)
 (defvar byte-compile-output nil
@@ -755,6 +760,28 @@ otherwise pop it")
     (concat (nreverse bytes))))
 
 
+;;; compile-time evaluation
+
+(defun byte-compile-eval (x)
+  (let ((hist-orig load-history)
+	(hist-nil-orig current-load-list))
+    (prog1 (eval x)
+      (when (memq 'noruntime byte-compile-warnings)
+	(let ((hist-new load-history)
+	      (hist-nil-new current-load-list))
+	  (while (not (eq hist-new hist-orig))
+	    (dolist (s (pop hist-new))
+	      (cond
+	       ((symbolp s) (put s 'byte-compile-noruntime t))
+	       ((and (consp s) (eq 'autoload (car s)))
+		(put (cdr s) 'byte-compile-noruntime t)))))
+	  (while (not (eq hist-nil-new hist-nil-orig))
+	    (let ((s (pop hist-nil-new)))
+	      (when (symbolp s)
+		(put s 'byte-compile-noruntime t)))))))))
+
+
+
 ;;; byte compiler messages
 
 (defvar byte-compile-current-form nil)
@@ -1012,7 +1039,8 @@ otherwise pop it")
 		  "requires"
 		  "accepts only")
 	      (byte-compile-arglist-signature-string sig)))
-      (or (fboundp (car form)) ; might be a subr or autoload.
+      (or (and (fboundp (car form))	; might be a subr or autoload.
+	       (not (get (car form) 'byte-compile-noruntime)))
 	  (eq (car form) byte-compile-current-form) ; ## this doesn't work
 						    ; with recursion.
 	  ;; It's a currently-undefined function.
@@ -1067,29 +1095,46 @@ otherwise pop it")
 		    (delq calls byte-compile-unresolved-functions)))))
       )))
 
+(defun byte-compile-print-syms (str1 strn syms)
+  (cond
+   ((cdr syms)
+    (let* ((str strn)
+	   (L (length str))
+	   s)
+      (while syms
+	(setq s (symbol-name (pop syms))
+	      L (+ L (length s) 2))
+	(if (< L (1- fill-column))
+	    (setq str (concat str " " s (and syms ",")))
+	  (setq str (concat str "\n    " s (and syms ","))
+		L (+ (length s) 4))))
+      (byte-compile-warn "%s" str)))
+   (syms
+    (byte-compile-warn str1 (car syms)))))
+
 ;; If we have compiled any calls to functions which are not known to be 
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
-  (if (memq 'unresolved byte-compile-warnings)
-   (let ((byte-compile-current-form "the end of the data"))
-    (if (cdr byte-compile-unresolved-functions)
-	(let* ((str "The following functions are not known to be defined:")
-	       (L (length str))
-	       (rest (reverse byte-compile-unresolved-functions))
-	       s)
-	  (while rest
-	    (setq s (symbol-name (car (car rest)))
-		  L (+ L (length s) 2)
-		  rest (cdr rest))
-	    (if (< L (1- fill-column))
-		(setq str (concat str " " s (and rest ",")))
-	      (setq str (concat str "\n    " s (and rest ","))
-		    L (+ (length s) 4))))
-	  (byte-compile-warn "%s" str))
-	(if byte-compile-unresolved-functions
-	    (byte-compile-warn "the function %s is not known to be defined."
-	      (car (car byte-compile-unresolved-functions)))))))
+  (when (memq 'unresolved byte-compile-warnings)
+    (let ((byte-compile-current-form "the end of the data")
+	  (noruntime nil)
+	  (unresolved nil))
+      ;; Separate the functions that will not be available at runtime
+      ;; from the truly unresolved ones.
+      (dolist (f byte-compile-unresolved-functions)
+	(setq f (car f))
+	(if (fboundp f) (push f noruntime) (push f unresolved)))
+      ;; Complain about the no-run-time functions
+      (byte-compile-print-syms
+       "The function `%s' might not be defined at runtime."
+       "The following functions might not be defined at runtime:"
+       noruntime)
+      ;; Complain about the unresolved functions
+      (byte-compile-print-syms
+       "The function `%s' is not known to be defined."
+       "The following functions are not known to be defined:"
+       unresolved)))
   nil)
 
 
@@ -1273,7 +1318,7 @@ The value is t if there were no errors, nil if errors."
   (or noninteractive
       (let ((b (get-file-buffer (expand-file-name filename))))
 	(if (and b (buffer-modified-p b)
-		 (y-or-n-p (format "save buffer %s first? " (buffer-name b))))
+		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
 	    (save-excursion (set-buffer b) (save-buffer)))))
 
   (if byte-compile-verbose
