@@ -738,7 +738,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	 a new section in between.  */
       
       PATCH_INDEX (NEW_SECTION_H (nn).sh_link);
-      PATCH_INDEX (NEW_SECTION_H (nn).sh_info);
+      /* For symbol tables, info is a symbol table index,
+	 so don't change it.  */
+      if (NEW_SECTION_H (nn).sh_type != SHT_SYMTAB
+	  && NEW_SECTION_H (nn).sh_type != SHT_DYNSYM)
+	PATCH_INDEX (NEW_SECTION_H (nn).sh_info);
       
       /* Now, start to copy the content of sections. */
       if (NEW_SECTION_H (nn).sh_type == SHT_NULL
