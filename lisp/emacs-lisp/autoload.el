@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -377,11 +377,11 @@ Update loaddefs.el with all the current autoloads from DIR, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
   (setq dir (expand-file-name dir))
-  (let ((files (directory-files dir nil "^[^=].*\\.el$")))
+  (let ((files (directory-files dir t "^[^=].*\\.el$")))
     (save-excursion
       (set-buffer (find-file-noselect
 		   (if (file-exists-p generated-autoload-file)
-		       generated-autoload-file
+		       (expand-file-name generated-autoload-file)
 		     (expand-file-name generated-autoload-file
 				       dir))))
       (save-excursion
