@@ -438,12 +438,13 @@ coding system whose eol-type is N."
 
 (defun make-coding-system (coding-system type mnemonic doc-string
 					 &optional flags properties)
-  "Define a new CODING-SYSTEM (symbol).
+  "Define a new coding system CODING-SYSTEM (symbol).
 Remaining arguments are TYPE, MNEMONIC, DOC-STRING, FLAGS (optional), 
 and PROPERTIES (optional) which construct a coding-spec of CODING-SYSTEM
 in the following format:
 	[TYPE MNEMONIC DOC-STRING PLIST FLAGS]
-TYPE is an integer value indicating the type of coding-system as follows:
+
+TYPE is an integer value indicating the type of the coding system as follows:
   0: Emacs internal format,
   1: Shift-JIS (or MS-Kanji) used mainly on Japanese PC,
   2: ISO-2022 including many variants,
@@ -451,13 +452,13 @@ TYPE is an integer value indicating the type of coding-system as follows:
   4: private, CCL programs provide encoding/decoding algorithm,
   5: Raw-text, which means that text contains random 8-bit codes. 
 
-MNEMONIC is a character to be displayed on mode line for the coding-system.
+MNEMONIC is a character to be displayed on mode line for the coding system.
 
-DOC-STRING is a documentation string for the coding-system.
+DOC-STRING is a documentation string for the coding system.
 
-FLAGS specifies more precise information of each TYPE.
+FLAGS specifies more detailed information of the coding system as follows:
 
-  If TYPE is 2 (ISO-2022), FLAGS should be a list of:
+  If TYPE is 2 (ISO-2022), FLAGS is a list of these elements:
       CHARSET0, CHARSET1, CHARSET2, CHARSET3, SHORT-FORM,
       ASCII-EOL, ASCII-CNTL, SEVEN, LOCKING-SHIFT, SINGLE-SHIFT,
       USE-ROMAN, USE-OLDJIS, NO-ISO6429, INIT-BOL, DESIGNATION-BOL,
@@ -487,17 +488,22 @@ FLAGS specifies more precise information of each TYPE.
       a code specified in `latin-extra-code-table' (which see) as a valid
       code of the coding system.
 
-  If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
-    for decoding and encoding.  See the documentation of CCL for more detail.
+  If TYPE is 4 (private), FLAGS should be a cons of CCL programs, for
+    decoding and encoding.  CCL programs should be specified by their
+    symbols.
 
 PROPERTIES is an alist of properties vs the corresponding values.
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
 automatically.
 
-Kludgy feature: For backward compatibility, if PROPERTIES is a list of
-character sets, the list is set as a value of `safe-charsets' in
-PLIST."
+Kludgy features for backward compatibility:
+
+1. If TYPE is 4 and car or cdr of FLAGS is a vector, the vector is
+treated as a compiled CCL code.
+
+2. If PROPERTIES is just a list of character sets, the list is set as
+a value of `safe-charsets' in PLIST."
   (if (memq coding-system coding-system-list)
       (error "Coding system %s already exists" coding-system))
 
@@ -573,11 +579,17 @@ PLIST."
 	   (setq coding-category 'coding-category-big5))
 	  ((= type 4)			; private
 	   (setq coding-category 'coding-category-binary)
-	   (if (and (consp flags)
-		    (vectorp (car flags))
-		    (vectorp (cdr flags)))
-	       (aset coding-spec 4 flags)
-	     (error "Invalid FLAGS argument for TYPE 4 (CCL)")))
+	   (if (not (consp flags))
+	       (error "Invalid FLAGS argument for TYPE 4 (CCL)")
+	     (let ((decoder (check-ccl-program
+			     (car flags)
+			     (intern (format "%s-decoder" coding-system))))
+		   (encoder (check-ccl-program
+			     (cdr flags)
+			     (intern (format "%s-encoder" coding-system)))))
+	       (if (and decoder encoder)
+		   (aset coding-spec 4 (cons decoder encoder))
+		 (error "Invalid FLAGS argument for TYPE 4 (CCL)")))))
 	  (t				; i.e. (= type 5)
 	   (setq coding-category 'coding-category-raw-text)))
 
