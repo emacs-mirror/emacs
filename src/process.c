@@ -208,9 +208,9 @@ int update_tick;
 
 #include "sysselect.h"
 
-/* If we support X Windows, turn on the code to poll periodically
+/* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 #define POLL_FOR_INPUT
 #endif
 
