@@ -230,7 +230,7 @@ struct UAF {
     uaf_v_wednesday : 1,
 #define uaf$v_wednesday uaf_u_primedays.uaf_v_wednesday
     uaf_v_thursday : 1,
-#define uaf$v_thursday uaf_u_primedays.uaf_v_thrusday
+#define uaf$v_thursday uaf_u_primedays.uaf_v_thursday
     uaf_v_friday : 1,
 #define uaf$v_friday uaf_u_primedays.uaf_v_friday
     uaf_v_saturday : 1,
