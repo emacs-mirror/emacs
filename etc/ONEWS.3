@@ -1,56 +1,8 @@
-GNU Emacs NEWS -- history of user-visible changes.  1992.
-Copyright (C) 1992 Free Software Foundation, Inc.
+GNU Emacs NEWS -- history of user-visible changes.  17-Aug-1988
+Copyright (C) 1988 Free Software Foundation, Inc.
 See the end for copying conditions.
 
-For older news, see the file NEWS.3.
-
-Changes in version 18.58.
-
-* RMAIL reply now properly parses nested comments in addesses.
-
-* The "visual bell" feature when used with X windows
-now flashes only 1/4 of the window's total area.  This is because
-flashing the whole window is too slow on some systems.
-
-* `call-process' and `call-process-region' now return an indication
-of the exit status of the subprocess: either a numeric exit code
-or a string describing the signal which caused termination.
-
-* It is possible for regular expression matching to overflow the stack
-of failure points.  In the past, such overflow was treated as simple
-failure to match.  Now it causes an error.
-
-* You can use C-u to end a numeric argument.  Thus, type C-u 1 0 0 C-u 1
-to insert 100 1's.
-
-* Emacs now knows how to get resource values from the X server.
-
-* Job control commands in shell mode work properly on more systems
-because they now work by "typing" signal characters such as C-c.
-
-* copy-keymap no longer recursively copies keymaps reached through
-symbols' function definitions (i.e., those that have names).  It does
-copy nested keymaps that appear directly in the other copied keymaps.
-
-Changes in version 18.56.
-
-* C-g should now work to interrupt a running program
-on all kinds of systems even when using X windows.
-
-* Quitting is inhibited while a filter or sentinel is running.
-Those functions can run asynchronously while Emacs is waiting
-for keyboard input, and if they allow quitting, they
-make the behavior of C-g unpredictable.
-
-* Storing text into the X windows cut buffer
-now clears out any selection.
-
-* The undo facility is completely rewritten, and now
-uses Lisp data structures.  It can record much more
-information.  You can use the variables undo-threshold
-and undo-high-threshold to control how much.
-
-* There is no longer a maximum screen height or width. 
+For older news, see the file NEWS.2.
 
 Changes in version 18.52.
 
@@ -108,8 +60,7 @@ as a function of no arguments before the actual posting.
 ** Rmail now calls the value of `rmail-show-message-hook' (if not nil)
 as a function of no arguments, each time a new message is selected.
 
-** `kill-emacs' calls the value of `kill-emacs-hook' as a function of no args
-unless Emacs is running in batch mode.
+** `kill-emacs' calls the value of `kill-emacs-hook' as a function of no args.
 
 * New libraries.
 See the source code of each library for more information.
@@ -445,6 +396,10 @@ Refer to the self-documentation of these commands for full usage information.
 
 * Changes in various commands.
 
+** `tags-query-replace' and `tags-search' change.
+
+These functions now display the name of the file being searched at the moment.
+
 ** `occur' output now serves as a menu.  `occur-menu' command deleted.
 
 `M-x occur' now allows you to move quickly to any of the occurrences
@@ -552,10 +507,10 @@ appear on the screen and scrolls it so that the bottom is showing.
 Two variables `inferior-lisp-load-command' and `inferior-lisp-prompt',
 exist to customize these feature for different Lisp implementations.
 
-** C-x n p now disabled.
+** C-x p now disabled.
 
-The command C-x n p, a nonrecomended command which narrows to the current
-page, is now initially disabled like C-x n n.
+The command C-x p, a nonrecomended command which narrows to the current
+page, is now initially disabled like C-x n.
 
 * Dealing with files.
 
@@ -772,10 +727,10 @@ to do a reverse incremental search.  That now works.
 
 ** Caesar rotation added.
 
-The function news-caesar-buffer-body performs the rot13 code on the
-body of a news message.  You can also specify the number to rotate by,
-as a prefix argument.  The function is bound to C-c C-r in both
-News mode and News Reply mode.
+The function news-caesar-buffer-body performs encryption and
+decryption of the body of a news message.  It defaults to the USENET
+standard of 13, and accepts any numeric arg between 1 to 25 and -25 to -1.
+The function is bound to C-c C-r in both news-mode and news-reply-mode.
 
 ** rmail-output command added.
 
@@ -807,40 +762,6 @@ C-c C-f	 move to a header field (and create it if there isn't):
 C-c C-y  news-reply-yank-original (insert current message, in NEWS).
 C-c C-q  mail-fill-yanked-message (fill what was yanked).
 C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13).
-
-* Changes in tags handling.
-
-** M-. (`find-tag') and similar commands now look first for an exact
-match in the tags table, and try substring matches only afterward.
-
-** The new command `find-tag-regexp' visits successively the tags that
-match a specified regular expression.
-
-** You can now use more than one tags table.  Using `visit-tags-table'
-to load a new tags table does not discard the other tables previously
-loaded.  The other tags commands use all the tags tables that are loaded;
-the first tags table used is the one that mentions the current visited file.
-
-** Tags tables can now be told to "include" other tags tables.  This means
-the tags table gives the file names of other tags tables.  Tags command
-then search included tags tables after the including table (but before any
-other tags tables you have loaded).  Included tags tables can make it much
-easier and more efficient to maintain a tags table for a large package with
-many subdirectories--there is one tags table for each subdirectory, and a
-master tags table that includes each subdirectory table.  You use `-i'
-options to `etags' when creating the tags table to give the file names of
-the included tables.
-
-** You can now use the tags table for completion of names during
-ordinary editing.  The command M-TAB (except in Emacs Lisp mode)
-completes the identifier in the buffer before point, using the set of
-all tags as the list of possible completions.
-
-** `tags-query-replace' and `tags-search' changes.
-
-These functions no longer permanently create buffers for files that
-are searched but that do not contain any matches for the search
-pattern.
 
 * Existing Emacs usable as a server.
 
@@ -968,9 +889,6 @@ and need not be quoted.
 
 `(setq-default case-fold-search nil)' would make searches case-sensitive
 in all buffers that do not have local values for `case-fold-search'.
-
-You can set multiple variables sequentially, each with its own value,
-in `setq-default' just as in `setq'.
 
 ** Functions `global-set' and `global-value' deleted.
 
@@ -1358,10 +1276,10 @@ Thus, you could display only 24 lines on a screen known to have 48 lines.
 What practical difference is there between using only 24 lines for display
 and really believing that the terminal has 24 lines?
 
-1. The "real" height of the terminal says what the terminal command
+1. The ``real'' height of the terminal says what the terminal command
 to move the cursor to the last line will do.
 
-2. The "real" height of the terminal determines how much padding is
+2. The ``real'' height of the terminal determines how much padding is
 needed.
 
 * File-related changes.
@@ -1669,12 +1587,12 @@ C_DEBUG_SWITCH defines the switches to give `cc' when debugging.  Default `-g'.
 C_OPTIMIZE_SWITCH defines the switches to give `cc' to optimize.  Default `-O'.
 C_SWITCH_MACHINE can be defined by the m- file to specify extra `cc' switches.
 
-For older news, see the file NEWS.3.
+For older news, see the file ONEWS.2.
 
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1992 Free Software Foundation, Inc.
+Copyright (C) 1988 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

@@ -6,7 +6,7 @@
 
 2000-11-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Extension for even/odd printing.  Doc Fix.
+	* ps-print.el: Extension for even/odd printing.  Doc fix.
 	(ps-print-version): New version number (6.3.1).
 	(ps-even-or-odd-pages): Customization fix.
 	(ps-print-page-p, ps-begin-file, ps-begin-job, ps-page-number)

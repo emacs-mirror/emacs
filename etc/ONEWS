@@ -254,7 +254,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.1 1999/10/03 11:59:45 fx Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.2 2000/08/17 15:19:41 gerd Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -5685,7 +5685,7 @@ old file versions, executables, DOC files, and other
 architecture-specific or easy-to-recreate files are not included in
 the tar file.
 
-* For older news, see the file NEWS.4.  For Lisp changes in (the first
+* For older news, see the file ONEWS.4.  For Lisp changes in (the first
 * release of) Emacs 19, see the file LNEWS.
 
 ----------------------------------------------------------------------
