@@ -293,7 +293,7 @@ override them.  Users can prevent loading `default.el' with the `-q'
 option or by setting `inhibit-default-init' in their own init files,
 but inhibiting `site-start.el' requires `--no-site-file', which
 is less convenient."
-  :type 'string
+  :type '(choice (const :tag "none" nil) string)
   :group 'initialization)
 
 (defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\)"
