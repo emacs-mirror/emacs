@@ -286,27 +286,13 @@ mark_byte_stack ()
 	 The culprit is found in the frame of Fbyte_code where the
 	 address of its local variable `stack' is equal to the
 	 recorded value of `stack' here.  */
-      if (!stack->top)
-	abort ();
+      eassert (stack->top);
 
       for (obj = stack->bottom; obj <= stack->top; ++obj)
-	if (!XMARKBIT (*obj))
-	  {
-	    mark_object (*obj);
-	    XMARK (*obj);
-	  }
+	mark_object (*obj);
 
-      if (!XMARKBIT (stack->byte_string))
-	{
-          mark_object (stack->byte_string);
-	  XMARK (stack->byte_string);
-	}
-
-      if (!XMARKBIT (stack->constants))
-	{
-	  mark_object (stack->constants);
-	  XMARK (stack->constants);
-	}
+      mark_object (stack->byte_string);
+      mark_object (stack->constants);
     }
 }
 
@@ -318,16 +304,9 @@ void
 unmark_byte_stack ()
 {
   struct byte_stack *stack;
-  Lisp_Object *obj;
 
   for (stack = byte_stack_list; stack; stack = stack->next)
     {
-      for (obj = stack->bottom; obj <= stack->top; ++obj)
-	XUNMARK (*obj);
-
-      XUNMARK (stack->byte_string);
-      XUNMARK (stack->constants);
-
       if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
 	  int offset = stack->pc - stack->byte_string_start;
