@@ -1002,7 +1002,9 @@ by using just the low 8 bits.")
 DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
   "Return a unibyte string with the same individual bytes as STRING.\n\
-If STRING is unibyte, the result is STRING itself.")
+If STRING is unibyte, the result is STRING itself.\n\
+If STRING is multibyte, the result is STRING itself.\n\
+Otherwise it is a newly created string, with no text properties.")
   (string)
      Lisp_Object string;
 {
@@ -1012,6 +1014,7 @@ If STRING is unibyte, the result is STRING itself.")
     {
       string = Fcopy_sequence (string);
       XSTRING (string)->size = STRING_BYTES (XSTRING (string));
+      XSTRING (string)->intervals = NULL_INTERVAL;
       SET_STRING_BYTES (XSTRING (string), -1);
     }
   return string;
@@ -1020,7 +1023,8 @@ If STRING is unibyte, the result is STRING itself.")
 DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
        1, 1, 0,
   "Return a multibyte string with the same individual bytes as STRING.\n\
-If STRING is multibyte, the result is STRING itself.")
+If STRING is multibyte, the result is STRING itself.\n\
+Otherwise it is a newly created string, with no text properties.")
   (string)
      Lisp_Object string;
 {
@@ -1034,6 +1038,7 @@ If STRING is multibyte, the result is STRING itself.")
       string = Fcopy_sequence (string);
       XSTRING (string)->size = newlen;
       XSTRING (string)->size_byte = nbytes;
+      XSTRING (string)->intervals = NULL_INTERVAL;
     }
   return string;
 }
