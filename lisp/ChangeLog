@@ -1,3 +1,18 @@
+2001-03-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/cperl-mode.el (cperl-mode): Set major-mode to cperl-mode
+	so that C-h m shows the correct information.
+	Use make-local-variable rather than make-variable-buffer-local.
+	(cperl-info-buffer, cperl-setup-tmp-buf):
+	Use make-local-variable rather than make-variable-buffer-local.
+	(cperl-msb-fix, cperl-get-help-defer):
+	Check major-mode for `cperl-mode' as well.
+
+	* progmodes/cperl-mode.el: Updated to author version 4.23.
+	(cperl-electric-pod): SYNOPSIS was misspelled.
+	(cperl-find-pods-heres): @if ? a : b was considered a REx.
+	(cperl-after-expr-p): Make true after __END__.
+
 2001-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* bookmark.el (bookmark-get-bookmark): Use assoc-ignore-case if
