@@ -1,3 +1,14 @@
+2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.48.
+
+	* trampver.texi.in: Replace "Emacs" by "GNU Emacs".
+
+	* tramp.texi: Replace "Emacs" by "GNU Emacs".  Replace "Linux" by
+	"GNU/Linux".  Change all addresses to .gnu.org.
+	(Default Method): Offer shortened syntax for "su" and "sudo"
+	methods.
+
 2005-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ack.texi (Acknowledgments): Update.
@@ -46,7 +57,7 @@
 	(Rmail Display): Mention Mouse-1.
 	(Movemail): Clarify two movemail versions.
 	Clarify rmail-movemail-program.
-	
+
 	* pcl-cvs.texi (About PCL-CVS): Get rid of "Emacs 21".
 	(Installation): Node deleted.
 

@@ -1,3 +1,26 @@
+2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.48.
+
+	* tramp.el (all): Change all addresses to .gnu.org.
+	(tramp-append-tramp-buffers): New defun.
+	(tramp-bug): Apply `tramp-append-tramp-buffers' as post-hook.
+	Catch `dont-send' signal.
+	(tramp-set-auto-save-file-modes): Set always permissions, because
+	there might be an old auto-saved file belonging to another
+	original file.  This could be a security threat.  Reported by
+	Kjetil Kjernsmo <kjetil@kjernsmo.net>.
+	Check for Emacs 21.3.50 removed.
+
+	* tramp-smb.el (all): Remove debug construct for
+	`with-parsed-tramp-file-name'.
+	(tramp-smb-prompt): Prompt can contain spaces inside directory
+	names.
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file):
+	No error message if DIRECTORY or FILENAME doesn't exist.
+	(tramp-smb-open-connection): Check existence of
+	`tramp-smb-program'.
+
 2005-03-20  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Use breakpoint faces
