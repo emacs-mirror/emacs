@@ -88,6 +88,10 @@ Default nil means to write characters above \\177 in octal notation.")
   (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit)
   (define-key edmacro-mode-map "\C-c\C-q" 'edmacro-insert-key))
 
+(defvar edmacro-store-hook)
+(defvar edmacro-finish-hook)
+(defvar edmacro-original-buffer)
+
 ;;;###autoload
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
