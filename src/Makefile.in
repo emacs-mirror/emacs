@@ -772,7 +772,7 @@ clean: mostlyclean
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
-	rm -f paths.h config.h ../etc/DOC-*
+	rm -f paths.h config.h Makefile Makefile.in ../etc/DOC-*
 realclean: distclean
 	rm -f TAGS
 versionclean:
