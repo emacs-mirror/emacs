@@ -1,6 +1,20 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Emacs dumps core on Solaris in function IMCheckWindow.
+
+This bug was reported to Sun as
+
+    Gtk apps dump core in ximlocal.so.2:IMCheckIMWindow()
+    Bug Reports: 4463537
+
+The bug is said to be "Integrated in Releases: s81_40" but there is no
+Patch ID listed.
+
+As far as Emacs is concerned, you can configure it with
+`--with-xim=no' to prevent the core dump, but will loose X input
+method support, of course.
+
 * Building Emacs with GCC 2.9x fails in the `src' directory.
 
 This may happen if you use a development version of GNU `cpp' from one
