@@ -153,6 +153,7 @@ The desktop is never saved when `desktop-enable' is nil."
   "File for Emacs desktop, not including the directory name."
   :type 'file
   :group 'desktop)
+(defvaralias 'desktop-basefilename 'desktop-base-file-name)
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
