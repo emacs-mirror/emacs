@@ -70,8 +70,11 @@ All the commands defined in Text mode are inherited unless overridden.")
 
 (if indented-text-mode-map
     ()
-  (setq indented-text-mode-map (nconc (make-sparse-keymap) text-mode-map))
-  (define-key indented-text-mode-map "\t" 'indent-relative))
+  ;; Make different definintion for TAB before the one in text-mode-map, but
+  ;; share the rest.
+  (let ((newmap (make-sparse-keymap)))
+    (define-key newmap "\t" 'indent-relative)
+    (setq indented-text-mode-map (nconc newmap text-mode-map))))
 
 (defun indented-text-mode ()
   "Major mode for editing indented text intended for humans to read.\\{indented-text-mode-map}
