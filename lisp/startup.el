@@ -63,9 +63,9 @@
 ;; -------------------------
 ;; -q                        Do not load user's init file and do not load
 ;; -no-init-file             "default.el".  Regardless of this switch,
-;; --no-init-file            "site-init.el" is still loaded.
+;; --no-init-file            "site-start" is still loaded.
 ;; -------------------------
-;; -no-site-file             Do not load "site-init.el".  (This is the ONLY
+;; -no-site-file             Do not load "site-start.el".  (This is the ONLY
 ;; --no-site-file            way to prevent loading that file.)
 ;; -------------------------
 ;; -u USER                   Load USER's init file instead of the init
@@ -276,7 +276,7 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	  (expand-file-name
 	   (format "~/.saves-%d-%s"
 		   (emacs-pid)
-		   (or mail-host-address (system-name)))))
+		   (system-name))))
     (let ((menubar-bindings-done nil))
       (unwind-protect
 	  (command-line)
