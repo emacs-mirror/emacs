@@ -273,7 +273,9 @@ reset_buffer (b)
   b->auto_save_modified = 0;
   b->auto_save_file_name = Qnil;
   b->read_only = Qnil;
-  b->fieldlist = Qnil;
+  b->overlays_before = Qnil;
+  b->overlays_after = Qnil;
+  XFASTINT (b->overlay_center) = 1;
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   INITIALIZE_INTERVAL (b, NULL_INTERVAL);
@@ -1180,65 +1182,453 @@ a non-nil `permanent-local' property are not eliminated by this function.")
   return Qnil;
 }
 
-DEFUN ("region-fields", Fregion_fields, Sregion_fields, 2, 4, "", 
-  "Return list of fields overlapping a given portion of a buffer.\n\
-The portion is specified by arguments START, END and BUFFER.\n\
-BUFFER defaults to the current buffer.\n\
-Optional 4th arg ERROR-CHECK non nil means just report an error\n\
-if any protected fields overlap this portion.")
-  (start, end, buffer, error_check)
-     Lisp_Object start, end, buffer, error_check;
+/* Find all the overlays in the current buffer that contain position POS.
+   Return the number found, and store them in a vector in *VEC_PTR.  
+   Store in *LEN_PTR the size allocated for the vector.
+   Store in *NEXT_PTR the next position after POS where an overlay starts.
+
+   *VEC_PTR and *LEN_PTR should contain a valid vector and size
+   when this function is called.  */
+
+int
+overlays_at (pos, vec_ptr, len_ptr, next_ptr)
+     int pos;
+     Lisp_Object **vec_ptr;
+     int *len_ptr;
+     int *next_ptr;
 {
-  register int start_loc, end_loc;
-  Lisp_Object fieldlist;
-  Lisp_Object collector;
+  Lisp_Object tail, overlay, start, end, result;
+  int idx = 0;
+  int len = *len_ptr;
+  Lisp_Object *vec = *vec_ptr;
+  int next = ZV;
+  int startpos;
 
-  if (NILP (buffer))
-    fieldlist = current_buffer->fieldlist;
-  else
+  for (tail = current_buffer->overlays_before;
+       CONSP (tail);
+       tail = XCONS (tail)->cdr)
     {
-      CHECK_BUFFER (buffer, 1);
-      fieldlist = XBUFFER (buffer)->fieldlist;
-    }
+      overlay = XCONS (tail)->car;
+      if (! OVERLAY_VALID (overlay))
+	continue;
 
-  CHECK_NUMBER_COERCE_MARKER (start, 2);
-  start_loc = XINT (start);
-
-  CHECK_NUMBER_COERCE_MARKER (end, 2);
-  end_loc = XINT (end);
-  
-  collector = Qnil;
-  
-  while (XTYPE (fieldlist) == Lisp_Cons)
-    {
-      register Lisp_Object field;
-      register int field_start, field_end;
-
-      field = XCONS (fieldlist)->car;
-      field_start = marker_position (FIELD_START_MARKER (field)) - 1;
-      field_end = marker_position (FIELD_END_MARKER (field));
-
-      if ((start_loc < field_start && end_loc > field_start)
-	  || (start_loc >= field_start && start_loc < field_end))
+      start = OVERLAY_START (overlay);
+      end = OVERLAY_END (overlay);
+      if (OVERLAY_POSITION (end) <= pos)
+	break;
+      startpos = OVERLAY_POSITION (start);
+      if (startpos <= pos)
 	{
-	  if (!NILP (error_check))
+	  if (idx == len)
 	    {
-	      if (!NILP (FIELD_PROTECTED_FLAG (field)))
-		{
-		  struct gcpro gcpro1;
-		  GCPRO1 (fieldlist);
-		  Fsignal (Qprotected_field, Fcons (field, Qnil));
-		  UNGCPRO;
-		}
+	      *len_ptr = len *= 2;
+	      vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+	      *vec_ptr = vec;
 	    }
-	  else
-	    collector = Fcons (field, collector);
+	  vec[idx++] = overlay;
 	}
-      
-      fieldlist = XCONS (fieldlist)->cdr;
+      else if (startpos < next)
+	next = startpos;
     }
 
-  return collector;
+  for (tail = current_buffer->overlays_after;
+       CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      overlay = XCONS (tail)->car;
+      if (! OVERLAY_VALID (overlay))
+	continue;
+
+      start = OVERLAY_START (overlay);
+      end = OVERLAY_END (overlay);
+      startpos = OVERLAY_POSITION (start);
+      if (startpos > pos)
+	{
+	  if (startpos < next)
+	    next = startpos;
+	  break;
+	}
+      if (OVERLAY_POSITION (end) > pos)
+	{
+	  if (idx == len)
+	    {
+	      *len_ptr = len *= 2;
+	      vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+	      *vec_ptr = vec;
+	    }
+	  vec[idx++] = overlay;
+	}
+    }
+
+  *next_ptr = next;
+  return idx;
+}
+
+/* Shift overlays in the current buffer's overlay lists,
+   to center the lists at POS.  */
+
+void
+recenter_overlay_lists (pos)
+     int pos;
+{
+  Lisp_Object overlay, tail, next, prev, beg, end;
+
+  /* See if anything in overlays_before should move to overlays_after.  */
+
+  /* We don't strictly need prev in this loop; it should always be nil.
+     But we use it for symmetry and in case that should cease to be true
+     with some future change.  */
+  prev = Qnil;
+  for (tail = current_buffer->overlays_before;
+       CONSP (tail);
+       prev = tail, tail = next)
+    {
+      next = XCONS (tail)->cdr;
+      overlay = XCONS (tail)->car;
+
+      /* If the overlay is not valid, get rid of it.  */
+      if (!OVERLAY_VALID (overlay))
+	{
+	  /* Splice the cons cell TAIL out of overlays_before.  */
+	  if (!NILP (prev))
+	    XCONS (prev)->cdr = next;
+	  else
+	    current_buffer->overlays_before = next;
+	  tail = prev;
+	  continue;
+	}
+
+      beg = OVERLAY_START (overlay);
+      end = OVERLAY_END (overlay);
+
+      if (OVERLAY_POSITION (end) > pos)
+	{
+	  /* OVERLAY needs to be moved.  */
+	  int where = OVERLAY_POSITION (beg);
+	  Lisp_Object other, other_prev;
+
+	  /* Splice the cons cell TAIL out of overlays_before.  */
+	  if (!NILP (prev))
+	    XCONS (prev)->cdr = next;
+	  else
+	    current_buffer->overlays_before = next;
+
+	  /* Search thru overlays_after for where to put it.  */
+	  other_prev = Qnil;
+	  for (other = current_buffer->overlays_after;
+	       CONSP (other);
+	       other_prev = other, other = XCONS (other)->cdr)
+	    {
+	      Lisp_Object otherbeg, otheroverlay, follower;
+	      int win;
+
+	      otheroverlay = XCONS (other)->car;
+	      if (! OVERLAY_VALID (otheroverlay))
+		continue;
+
+	      otherbeg = OVERLAY_START (otheroverlay);
+	      if (OVERLAY_POSITION (otherbeg) >= where)
+		break;
+	    }
+
+	  /* Add TAIL to overlays_after before OTHER.  */
+	  XCONS (tail)->cdr = other;
+	  if (!NILP (other_prev))
+	    XCONS (other_prev)->cdr = tail;
+	  else
+	    current_buffer->overlays_after = tail;
+	  tail = prev;
+	}
+      else
+	/* We've reached the things that should stay in overlays_before.
+	   All the rest of overlays_before must end even earlier,
+	   so stop now.  */
+	break;
+    }
+
+  /* See if anything in overlays_after should be in overlays_before.  */
+  prev = Qnil;
+  for (tail = current_buffer->overlays_after;
+       CONSP (tail);
+       prev = tail, tail = next)
+    {
+      next = XCONS (tail)->cdr;
+      overlay = XCONS (tail)->car;
+
+      /* If the overlay is not valid, get rid of it.  */
+      if (!OVERLAY_VALID (overlay))
+	{
+	  /* Splice the cons cell TAIL out of overlays_after.  */
+	  if (!NILP (prev))
+	    XCONS (prev)->cdr = next;
+	  else
+	    current_buffer->overlays_after = next;
+	  tail = prev;
+	  continue;
+	}
+
+      beg = OVERLAY_START (overlay);
+      end = OVERLAY_END (overlay);
+
+      /* Stop looking, when we know that nothing further
+	 can possibly end before POS.  */
+      if (OVERLAY_POSITION (beg) > pos)
+	break;
+
+      if (OVERLAY_POSITION (end) <= pos)
+	{
+	  /* OVERLAY needs to be moved.  */
+	  int where = OVERLAY_POSITION (end);
+	  Lisp_Object other, other_prev;
+
+	  /* Splice the cons cell TAIL out of overlays_after.  */
+	  if (!NILP (prev))
+	    XCONS (prev)->cdr = next;
+	  else
+	    current_buffer->overlays_after = next;
+
+	  /* Search thru overlays_before for where to put it.  */
+	  other_prev = Qnil;
+	  for (other = current_buffer->overlays_before;
+	       CONSP (other);
+	       other_prev = other, other = XCONS (other)->cdr)
+	    {
+	      Lisp_Object otherend, otheroverlay;
+	      int win;
+
+	      otheroverlay = XCONS (other)->car;
+	      if (! OVERLAY_VALID (otheroverlay))
+		continue;
+
+	      otherend = OVERLAY_END (otheroverlay);
+	      if (OVERLAY_POSITION (otherend) <= where)
+		break;
+	    }
+
+	  /* Add TAIL to overlays_before before OTHER.  */
+	  XCONS (tail)->cdr = other;
+	  if (!NILP (other_prev))
+	    XCONS (other_prev)->cdr = tail;
+	  else
+	    current_buffer->overlays_before = tail;
+	  tail = prev;
+	}
+    }
+
+  XFASTINT (current_buffer->overlay_center) = pos;
+}
+
+DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 2, 0,
+  "Create a new overlay in the current buffer, with range BEG to END.\n\
+BEG and END may be integers or markers.")
+  (beg, end)
+     Lisp_Object beg, end;
+{
+  Lisp_Object overlay;
+
+  if (MARKERP (beg) && XBUFFER (Fmarker_buffer (beg)) != current_buffer)
+    error ("Marker points into wrong buffer");
+  if (MARKERP (end) && XBUFFER (Fmarker_buffer (end)) != current_buffer)
+    error ("Marker points into wrong buffer");
+
+  overlay = Fcons (Fcons (Fcopy_marker (beg), Fcopy_marker (end)), Qnil);
+
+  /* Put the new overlay on the wrong list.  */ 
+  end = OVERLAY_END (overlay);
+  if (OVERLAY_POSITION (end) < XINT (current_buffer->overlay_center))
+    current_buffer->overlays_after
+      = Fcons (overlay, current_buffer->overlays_after);
+  else
+    current_buffer->overlays_before
+      = Fcons (overlay, current_buffer->overlays_before);
+
+  /* This puts it in the right list, and in the right order.  */
+  recenter_overlay_lists (XINT (current_buffer->overlay_center));
+
+  return overlay;
+}
+
+DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 3, 0,
+  "Set the endpoints of OVERLAY to BEG and END.")
+  (overlay, beg, end)
+     Lisp_Object overlay, beg, end;
+{
+  if (!OVERLAY_VALID (overlay))
+    error ("Invalid overlay object");
+
+  current_buffer->overlays_before
+    = Fdelq (overlay, current_buffer->overlays_before);
+  current_buffer->overlays_after
+    = Fdelq (overlay, current_buffer->overlays_after);
+
+  Fset_marker (OVERLAY_START (overlay), beg, Qnil);
+  Fset_marker (OVERLAY_END (overlay), end, Qnil);
+
+  /* Put the overlay on the wrong list.  */ 
+  end = OVERLAY_END (overlay);
+  if (OVERLAY_POSITION (end) < XINT (current_buffer->overlay_center))
+    current_buffer->overlays_after
+      = Fcons (overlay, current_buffer->overlays_after);
+  else
+    current_buffer->overlays_before
+      = Fcons (overlay, current_buffer->overlays_before);
+
+  /* This puts it in the right list, and in the right order.  */
+  recenter_overlay_lists (XINT (current_buffer->overlay_center));
+
+  return overlay;
+}
+
+DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
+  "Delete the overlay OVERLAY from the current buffer.")
+  (overlay)
+{
+  current_buffer->overlays_before
+    = Fdelq (overlay, current_buffer->overlays_before);
+  current_buffer->overlays_after
+    = Fdelq (overlay, current_buffer->overlays_after);
+  return Qnil;
+}
+
+DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
+  "Return a list of the overays that contain position POS.")
+  (pos)
+     Lisp_Object pos;
+{
+  int noverlays;
+  int endpos;
+  Lisp_Object *overlay_vec;
+  int len;
+  Lisp_Object result;
+
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+  /* Put all the overlays we want in a vector in overlay_vec.
+     Store the length in len.  */
+  noverlays = overlays_at (XINT (pos), &overlay_vec, &len, &endpos);
+
+  /* Make a list of them all.  */
+  result = Flist (noverlays, overlay_vec);
+
+  free (overlay_vec);
+  return result;
+}
+
+DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
+  1, 1, 0,
+  "Return the next position after POS where an overlay starts or ends.")
+  (pos)
+     Lisp_Object pos;
+{
+  int noverlays;
+  int endpos;
+  Lisp_Object *overlay_vec;
+  int len;
+  Lisp_Object result;
+  int i;
+
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+  /* Put all the overlays we want in a vector in overlay_vec.
+     Store the length in len.
+     endpos gets the position where the next overlay starts.  */
+  noverlays = overlays_at (XINT (pos), &overlay_vec, &len, &endpos);
+
+  /* If any of these overlays ends before endpos,
+     use its ending point instead.  */
+  for (i = 0; i < noverlays; i++)
+    {
+      Lisp_Object oend;
+      int oendpos;
+
+      oend = OVERLAY_END (overlay_vec[i]);
+      oendpos = OVERLAY_POSITION (oend);
+      if (oendpos < endpos)
+	endpos = oendpos;
+    }
+
+  free (overlay_vec);
+  return make_number (endpos);
+}
+
+/* These functions are for debugging overlays.  */
+
+DEFUN ("overlay-lists", Foverlay_lists, Soverlay_lists, 0, 0, 0,
+  "Return a pair of lists giving all the overlays of the current buffer.\n\
+The car has all the overlays before the overlay center;\n\
+the cdr has all the overlays before the overlay center.\n\
+Recentering overlays moves overlays between these lists.\n\
+The lists you get are copies, so that changing them has no effect.\n\
+However, the overlays you get are the real objects that the buffer uses.")
+  ()
+{
+  Lisp_Object before, after;
+  before = current_buffer->overlays_before;
+  if (CONSP (before))
+    before = Fcopy_sequence (before);
+  after = current_buffer->overlays_after;
+  if (CONSP (after))
+    after = Fcopy_sequence (after);
+
+  return Fcons (before, after);
+}
+
+DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
+  "Recenter the overlays of the current buffer around position POS.")
+  (pos)
+     Lisp_Object pos;
+{
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  recenter_overlay_lists (XINT (pos));
+  return Qnil;
+}
+
+DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
+  "Get the property of overlay OVERLAY with property name NAME.")
+  (overlay, prop)
+     Lisp_Object overlay, prop;
+{
+  Lisp_Object plist;
+  for (plist = Fcdr_safe (Fcdr_safe (overlay));
+       CONSP (plist) && CONSP (XCONS (plist)->cdr);
+       plist = XCONS (XCONS (plist)->cdr)->cdr)
+    {
+      if (EQ (XCONS (plist)->car, prop))
+	return XCONS (XCONS (plist)->cdr)->car;
+    }
+}
+
+DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
+  "Set one property of overlay OVERLAY: give property PROP value VALUE.")
+  (overlay, prop, value)
+     Lisp_Object overlay, prop, value;
+{
+  Lisp_Object plist, tail;
+
+  plist = Fcdr_safe (Fcdr_safe (overlay));
+
+  for (tail = plist;
+       CONSP (tail) && CONSP (XCONS (tail)->cdr);
+       tail = XCONS (XCONS (tail)->cdr)->cdr)
+    {
+      if (EQ (XCONS (tail)->car, prop))
+	return XCONS (XCONS (tail)->cdr)->car = value;
+    }
+
+  if (! CONSP (XCONS (overlay)->cdr))
+    XCONS (overlay)->cdr = Fcons (Qnil, Qnil);
+
+  XCONS (XCONS (overlay)->cdr)->cdr
+    = Fcons (prop, Fcons (value, plist));
+
+  return value;
 }
 
 /* Somebody has tried to store NEWVAL into the buffer-local slot with
@@ -1295,9 +1685,11 @@ init_buffer_once ()
 #endif
   buffer_defaults.abbrev_table = Qnil;
   buffer_defaults.display_table = Qnil;
-  buffer_defaults.fieldlist = Qnil;
   buffer_defaults.undo_list = Qnil;
   buffer_defaults.mark_active = Qnil;
+  buffer_defaults.overlays_before = Qnil;
+  buffer_defaults.overlays_after = Qnil;
+  XFASTINT (buffer_defaults.overlay_center) = 1;
 
   XFASTINT (buffer_defaults.tab_width) = 8;
   buffer_defaults.truncate_lines = Qnil;
@@ -1343,7 +1735,6 @@ init_buffer_once ()
   XFASTINT (buffer_local_flags.left_margin) = 0x800;
   XFASTINT (buffer_local_flags.abbrev_table) = 0x1000;
   XFASTINT (buffer_local_flags.display_table) = 0x2000;
-  XFASTINT (buffer_local_flags.fieldlist) = 0x4000;
   XFASTINT (buffer_local_flags.syntax_table) = 0x8000;
 
   Vbuffer_alist = Qnil;
@@ -1732,7 +2123,16 @@ Automatically local in all buffers.");
   defsubr (&Sbury_buffer);
   defsubr (&Slist_buffers);
   defsubr (&Skill_all_local_variables);
-  defsubr (&Sregion_fields);
+
+  defsubr (&Smake_overlay);
+  defsubr (&Sdelete_overlay);
+  defsubr (&Smove_overlay);
+  defsubr (&Soverlays_at);
+  defsubr (&Snext_overlay_change);
+  defsubr (&Soverlay_recenter);
+  defsubr (&Soverlay_lists);
+  defsubr (&Soverlay_get);
+  defsubr (&Soverlay_put);
 }
 
 keys_of_buffer ()
