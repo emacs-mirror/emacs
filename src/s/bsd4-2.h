@@ -126,3 +126,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    is named _avenrun.  */
 
 #define LDAV_SYMBOL "_avenrun"
+
+/* Send signals to subprocesses by "typing" special chars at them.  */
+
+#define SIGNALS_VIA_CHARACTERS
