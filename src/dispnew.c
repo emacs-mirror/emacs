@@ -29,8 +29,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termchar.h"
 #include "termopts.h"
 #include "termhooks.h"
+#ifdef HAVE_NTGUI
+#include "dispextern.h"
+#include "cm.h"
+#else
 #include "cm.h"
 #include "dispextern.h"
+#endif /* HAVE_NTGUI */
 #include "buffer.h"
 #include "frame.h"
 #include "window.h"
@@ -45,6 +50,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
+
+#ifdef HAVE_NTGUI
+#include "w32term.h"
+#endif /* HAVE_NTGUI */
 
 /* Include systime.h after xterm.h to avoid double inclusion of time.h. */
 #include "systime.h"
@@ -271,8 +280,8 @@ make_frame_glyphs (frame, empty)
   bzero (new->enable, height * sizeof (char));
   new->bufp = (int *) xmalloc (height * sizeof (int));
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (frame))
     {
       new->top_left_x = (short *) xmalloc (height * sizeof (short));
       new->top_left_y = (short *) xmalloc (height * sizeof (short));
@@ -280,7 +289,7 @@ make_frame_glyphs (frame, empty)
       new->pix_height = (short *) xmalloc (height * sizeof (short));
       new->max_ascent = (short *) xmalloc (height * sizeof (short));
     }
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
 
   if (empty)
     {
@@ -345,8 +354,8 @@ free_frame_glyphs (frame, glyphs)
   if (glyphs->charstarts)
     xfree (glyphs->charstarts);
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (frame))
     {
       xfree (glyphs->top_left_x);
       xfree (glyphs->top_left_y);
@@ -354,7 +363,7 @@ free_frame_glyphs (frame, glyphs)
       xfree (glyphs->pix_height);
       xfree (glyphs->max_ascent);
     }
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
 
   xfree (glyphs);
 }
@@ -718,8 +727,8 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		  current_frame->bufp + from + amount,
 		  (end - from) * sizeof current_frame->bufp[0]);
 
-#ifdef HAVE_X_WINDOWS
-      if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (frame))
 	{
 	  safe_bcopy (current_frame->top_left_x + from,
 		      current_frame->top_left_x + from + amount,
@@ -741,7 +750,7 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		      current_frame->max_ascent + from + amount,
 		      (end - from) * sizeof current_frame->max_ascent[0]);
 	}
-#endif				/* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
       update_end (frame);
     }
@@ -814,8 +823,8 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		  current_frame->bufp + from + amount,
 		  (end - from) * sizeof current_frame->bufp[0]);
 
-#ifdef HAVE_X_WINDOWS
-      if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (frame))
 	{
 	  safe_bcopy (current_frame->top_left_x + from,
 		      current_frame->top_left_x + from + amount,
@@ -837,7 +846,7 @@ scroll_frame_lines (frame, from, end, amount, newpos)
 		      current_frame->max_ascent + from + amount,
 		      (end - from) * sizeof current_frame->max_ascent[0]);
 	}
-#endif				/* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
       update_end (frame);
     }
@@ -1110,7 +1119,7 @@ direct_output_for_insert (g)
 #ifdef HAVE_FACES
     int dummy;
 
-    if (FRAME_X_P (frame))
+    if (FRAME_WINDOW_P (frame))
       face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point, 0);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
@@ -1215,7 +1224,7 @@ update_frame (f, force, inhibit_hairy_id)
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
   extern input_pending;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   register int downto, leftmost;
 #endif
 
@@ -1258,21 +1267,21 @@ update_frame (f, force, inhibit_hairy_id)
   if (desired_frame->enable[FRAME_HEIGHT (f) - 1])
     update_line (f, FRAME_HEIGHT (f) - 1);
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
-      leftmost = downto = f->output_data.x->internal_border_width;
+      leftmost = downto = FRAME_INTERNAL_BORDER_WIDTH (f);
       if (desired_frame->enable[0])
 	{
 	  current_frame->top_left_x[FRAME_HEIGHT (f) - 1] = leftmost;
 	  current_frame->top_left_y[FRAME_HEIGHT (f) - 1]
-	    = PIXEL_HEIGHT (f) - f->output_data.x->internal_border_width
+	    = PIXEL_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f)
 	      - current_frame->pix_height[FRAME_HEIGHT (f) - 1];
 	  current_frame->top_left_x[0] = leftmost;
 	  current_frame->top_left_y[0] = downto;
 	}
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Now update the rest of the lines. */
   for (i = 0; i < FRAME_HEIGHT (f) - 1 && (force || !input_pending); i++)
@@ -1308,19 +1317,19 @@ update_frame (f, force, inhibit_hairy_id)
 	    }
 
 	  update_line (f, i);
-#ifdef HAVE_X_WINDOWS
-	  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (FRAME_WINDOW_P (f))
 	    {
 	      current_frame->top_left_y[i] = downto;
 	      current_frame->top_left_x[i] = leftmost;
 	    }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 	}
 
-#ifdef HAVE_X_WINDOWS
-      if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f))
 	downto += current_frame->pix_height[i];
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
     }
   pause = (i < FRAME_HEIGHT (f) - 1) ? i : 0;
 
@@ -1624,16 +1633,16 @@ update_line (frame, vpos)
   current_frame->highlight[vpos] = desired_frame->highlight[vpos];
   current_frame->bufp[vpos] = desired_frame->bufp[vpos];
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (frame))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (frame))
     {
       current_frame->pix_width[vpos]
 	= current_frame->used[vpos]
-	  * FONT_WIDTH (frame->output_data.x->font);
+	  * FONT_WIDTH (FRAME_FONT (frame));
       current_frame->pix_height[vpos]
-	= frame->output_data.x->line_height;
+	= FRAME_LINE_HEIGHT (frame);
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
   if (!desired_frame->enable[vpos])
     {
@@ -2491,6 +2500,15 @@ init_display ()
       return;
     }
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_NTGUI
+  if (!inhibit_window_system) 
+    {
+      Vwindow_system = intern ("win32");
+      Vwindow_system_version = make_number (1);
+      return;
+    }
+#endif /* HAVE_NTGUI */
 
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))
