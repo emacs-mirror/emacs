@@ -1,3 +1,8 @@
+2001-01-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* fns.c (Fset_char_table_default): Fix to make sub char-table
+	correctly.
+
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (build_desired_tool_bar_string): Make sure we have
