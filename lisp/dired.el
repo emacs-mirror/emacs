@@ -513,13 +513,27 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
   ;; inset all files listed in the cdr (the car is the passed-in directory
   ;; list.
-  (if (consp dir-or-list)
-      (progn
-	(mapcar
-	 (function (lambda (x) (insert-directory x switches wildcard full-p)))
-	 (cdr dir-or-list)))
-    (insert-directory dir-or-list switches wildcard full-p))
+  (let ((opoint (point)))
+    (if (consp dir-or-list)
+	(progn
+	  (mapcar
+	   (function (lambda (x) (insert-directory x switches wildcard full-p)))
+	   (cdr dir-or-list)))
+      (insert-directory dir-or-list switches wildcard full-p))
+    (dired-insert-set-properties opoint (point)))
   (setq dired-directory dir-or-list))
+
+(defun dired-insert-set-properties (beg end)
+  (save-excursion
+    (goto-char beg)
+    (while (< (point) end)
+      (if (dired-move-to-filename)
+	  (put-text-property (point)
+			     (save-excursion
+			       (dired-move-to-end-of-filename)
+			       (point))
+			     'mouse-face 'highlight))
+      (forward-line 1))))
 
 (defun dired-insert-headerline (dir);; also used by dired-insert-subdir
   ;; Insert DIR's headerline with no trailing slash, exactly like ls
