@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2c
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.15 1998/09/12 13:58:46 zappo Exp $
+;; X-RCS: $Id: speedbar.el,v 1.16 1998/09/18 09:21:27 schwab Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -267,15 +267,10 @@ second parameter.  The 0 indicates the uppermost indentation level.
 They must assume that the cursor is at the position where they start
 inserting buttons.")
 
-(defcustom speedbar-initial-expansion-list-name "files"
+(defvar speedbar-initial-expansion-list-name "files"
   "A symbol name representing the expansion list to use.
 The expansion list `speedbar-initial-expansion-mode-alist' contains
-the names and associated functions to use for buttons in speedbar."
-  :group 'speedbar
-  :type '(radio (const :tag "File Directories" "files")
-		(const "buffers")
-		(const "quick buffers")
-	       ))
+the names and associated functions to use for buttons in speedbar.")
 
 (defvar speedbar-previously-used-expansion-list-name "files"
   "Save the last expansion list method.
@@ -1007,6 +1002,8 @@ supported at a time.
 				(x-sensitive-text-pointer-shape
 				 x-pointer-hand2))
 			    (make-frame params)))))
+		  (if (listp cfx) (setq cfx (eval cfx)))
+		  (if (listp cfy) (setq cfx (eval cfy)))
 		  (if (and window-system (not (eq window-system 'pc)))
 		      (set-frame-position frame
 					  ;; Decide which side to put it
@@ -1029,7 +1026,8 @@ supported at a time.
 	  (select-frame speedbar-frame)
 	  (switch-to-buffer speedbar-buffer)
 	  (set-window-dedicated-p (selected-window) t))
-	(if (or (null window-system) (eq window-system 'pc))
+	(if (and (or (null window-system) (eq window-system 'pc))
+		 (fboundp 'set-frame-name))
 	    (progn
 	      (select-frame speedbar-frame)
 	      (set-frame-name "Speedbar")))
