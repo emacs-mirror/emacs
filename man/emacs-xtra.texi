@@ -143,8 +143,9 @@ automatically erasing the marks.
 @node Auto Reverting Dired
 @section Auto Reverting Dired buffers
 
-Auto-reverting Dired buffers currently only works satisfactorily on
-GNU/Linux and Unix style operating systems.
+Auto-reverting Dired buffers currently works on GNU or Unix style
+operating systems.  It may not work satisfactorily on some other
+systems.
 
 Dired buffers only auto-revert when the file list of the buffer's main
 directory changes.  They do not auto-revert when information about a
@@ -161,16 +162,15 @@ not guaranteed.
 If the Dired buffer is marked modified and there are no changes you
 want to protect, then most of the time you can make auto-reverting
 resume by manually reverting the buffer using @kbd{g}.  There is one
-exception.  If you flag or mark files, then, unlike for the Buffer
-Menu, you can safely revert the buffer.  This will not erase the flags
-or marks (unless the marked file has been deleted, of course).
-However, the buffer will stay modified, even after reverting, and
-auto-reverting will not resume.  This is because, if you flag or mark
-files, you may be working on the buffer and you might not want the
-buffer to change without warning.  If you want auto-reverting to
-resume in the presence of marks and flags, mark the buffer
-non-modified using @kbd{M-~}.  However, adding, deleting or changing
-marks or flags will mark it modified again.
+exception.  If you flag or mark files, you can safely revert the
+buffer.  This will not erase the flags or marks (unless the marked
+file has been deleted, of course).  However, the buffer will stay
+modified, even after reverting, and auto-reverting will not resume.
+This is because, if you flag or mark files, you may be working on the
+buffer and you might not want the buffer to change without warning.
+If you want auto-reverting to resume in the presence of marks and
+flags, mark the buffer non-modified using @kbd{M-~}.  However, adding,
+deleting or changing marks or flags will mark it modified again.
 
 Remote Dired buffers are not auto-reverted.  Neither are Dired buffers
 for which you used shell wildcards or file arguments to list only some
