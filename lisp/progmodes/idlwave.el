@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/10/18 08:12:35 $
+;; Date: $Date: 2003/02/14 09:59:13 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -5272,9 +5272,9 @@ When we force a method or a method keyword, CLASS can specify the class."
   "List of special completion functions.
 These functions are called for each completion.  Each function must check
 if its own special completion context is present.  If yes, it should
-use `idlwave-complete-in-buffer' to do some completion and return `t'.
-If such a function returns `t', *no further* attempts to complete
-other contexts will be done.  If the function returns `nil', other completions
+use `idlwave-complete-in-buffer' to do some completion and return t.
+If such a function returns t, *no further* attempts to complete
+other contexts will be done.  If the function returns nil, other completions
 will be tried.")
 
 (defun idlwave-call-special (functions &rest args)
