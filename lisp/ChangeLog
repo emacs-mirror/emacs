@@ -1,3 +1,8 @@
+2004-12-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-inverse, calc-hyperbolic):
+	Change message.
+
 2004-12-01  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/prolog.el (prolog-mode-variables):
