@@ -1355,7 +1355,10 @@ With argument, insert value in current buffer after the form."
 	       "\n(if (and (boundp 'emacs-version)\n"
 	       "\t (or (and (boundp 'epoch::version) epoch::version)\n"
 	       "\t     (string-lessp emacs-version \"19\")))\n"
-	       "    (error \"`" filename "' was compiled for Emacs 19\"))\n"
+	       "    (error \"`"
+	       ;; This escapes all backslashes in FILENAME.  Needed on Windows.
+	       (substring (prin1-to-string filename) 1 -1)
+	       "' was compiled for Emacs 19\"))\n"
 	       ))
    ))
 
