@@ -169,6 +169,12 @@ the last file dropped is selected."
 (global-set-key [drag-n-drop] 'w32-drag-n-drop)
 (global-set-key [C-drag-n-drop] 'w32-drag-n-drop-other-frame)
 
+;; Keyboard layout/language change events
+;; For now ignore language-change events; in the future
+;; we should switch the Emacs Input Method to match the
+;; new layout/language selected by the user.
+(global-set-key [language-change] 'ignore)
+
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
