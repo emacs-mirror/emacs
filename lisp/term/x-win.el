@@ -522,8 +522,8 @@ This returns ARGS with the arguments that have been processed removed."
 	(65395 . deletechar)
 	(65396 . backtab)
 	(65397 . kp-backtab)
-	;; This is used on some system or other.
-	(0 . remove)
+	;; This is used by DEC's X server.
+	(65280 . remove)
 	;; These are for Sun.
 	(392976 . f35)
     	(392977 . f36)
