@@ -30,7 +30,7 @@
 
 (require 'case-table)
 
-(let ((table (standard-case-table)))
+(let ((table (car (standard-case-table))))
   (set-case-syntax 160 " " table)	; NBSP (no-break space)
   (set-case-syntax 161 "." table)	; inverted exclamation mark
   (set-case-syntax 162 "w" table)	; cent sign
@@ -97,7 +97,7 @@
   (set-case-syntax 223 "w" table)	; small sharp s, German
   (set-case-syntax 247 "_" table)	; division sign
   (set-case-syntax 255 "w" table)	; small y with diaeresis or umlaut mark
-  (set-standard-case-table (list (car table))))
+  (set-standard-case-table (list table)))
 
 (provide 'iso8859-1)
 
