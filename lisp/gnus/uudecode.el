@@ -36,10 +36,19 @@
 
 (eval-when-compile (require 'cl))
 
-(defalias 'uudecode-char-int
-  (if (fboundp 'char-int)
-      'char-int
-    'identity))
+(eval-and-compile
+  (defalias 'uudecode-char-int
+    (if (fboundp 'char-int)
+	'char-int
+      'identity))
+
+  (if (fboundp 'insert-char)
+      (defalias 'uudecode-insert-char 'insert-char)
+    (defun uudecode-insert-char (char &optional count ignored buffer)
+      (if (or (null buffer) (eq buffer (current-buffer)))
+	  (insert-char char count)
+	(with-current-buffer buffer
+	  (insert-char char count))))))
 
 (defcustom uudecode-decoder-program "uudecode"
   "*Non-nil value should be a string that names a uu decoder.
@@ -120,14 +129,6 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (message "Can not uudecode")))
       (and work-buffer (kill-buffer work-buffer))
       (ignore-errors (or file-name (delete-file tempfile))))))
-
-(if (featurep 'xemacs)
-    (defalias 'uudecode-insert-char 'insert-char)
-  (defun uudecode-insert-char (char &optional count ignored buffer)
-    (if (or (null buffer) (eq buffer (current-buffer)))
-	(insert-char char count)
-      (with-current-buffer buffer
-	(insert-char char count)))))
 
 ;;;###autoload
 
