@@ -1,3 +1,23 @@
+2005-02-27  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-change-dictionary): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-mode-on):
+	Call ispell-change-dictionary only if necessary.
+
+	* emacs-lisp/re-builder.el (regexp-builder): New function.
+
+	* register.el (describe-register-1): Explicitly handle
+	yank-excluded-properties = t.
+
+	* cus-edit.el (custom-buffer-create-internal): Improve progress msgs.
+	(custom-magic-alist): Change the status descriptions again.
+	(face widget-type): Total rewrite based on `restricted-sexp'
+	to eliminate the confusing double hiding levels.
+
+	* emacs-lisp/debug.el (debug-on-entry-1):
+	If function body is empty, add nil as body form.
+
 2005-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/trace.el (inhibit-trace): New var.
