@@ -3502,9 +3502,12 @@ int
 XScreenNumberOfScreen (scr)
     register Screen *scr;
 {
-  register Display *dpy = scr->display;
-  register Screen *dpyscr = dpy->screens;
+  register Display *dpy;
+  register Screen *dpyscr;
   register int i;
+
+  dpy = scr->display;
+  dpyscr = dpy->screens;
 
   for (i = 0; i < dpy->nscreens; i++, dpyscr++)
     if (scr == dpyscr)
