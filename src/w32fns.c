@@ -5558,6 +5558,11 @@ x_to_w32_font (lpxstr, lplogfont)
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
 	  coding.src_multibyte = 1;
 	  coding.dst_multibyte = 1;
+	  /* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
+	     encode_coding_iso2022 trying to dereference a null pointer.  */
+	  coding.composing = COMPOSITION_DISABLED;
+	  if (coding.type == coding_type_iso2022)
+	    coding.flags |= CODING_FLAG_ISO_SAFE;
 	  bufsize = encoding_buffer_size (&coding, strlen (name));
 	  buf = (unsigned char *) alloca (bufsize);
           coding.mode |= CODING_MODE_LAST_BLOCK;
