@@ -2067,9 +2067,11 @@ If optional arg SILENT is non-nil, do not display progress messages."
      mouse-face highlight
      help-echo ,(let ((echo '(if tooltip-mode
 				 "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group"
-			       " mouse-1: toggle marks  mouse-2: hide/show")))
+			       "mouse-1: toggle marks  mouse-2: hide/show")))
 		  (if (> (length filter-string) 0)
-		      `(concat ,filter-string (and tooltip-mode "\n") ,echo)
+		      `(concat ,filter-string
+			       (if tooltip-mode "\n" " ")
+			       ,echo)
 		    echo))))
   (insert "\n")
   (when bmarklist
