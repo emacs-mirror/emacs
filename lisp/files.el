@@ -1912,6 +1912,7 @@ only set the major mode, if that would change it."
 		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
+		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
@@ -1924,10 +1925,11 @@ only set the major mode, if that would change it."
 	    ;; Map interpreter name to a mode, signalling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist)))
+			interpreter-mode-alist))
+      (if done
+	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
     ;; If we found an interpreter mode to use, invoke it now.
-    (if done
-	(set-auto-mode-0 (cdr done) keep-mode-if-same)
+    (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
 		       (assoc-default nil magic-mode-alist
