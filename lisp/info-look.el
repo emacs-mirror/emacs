@@ -752,6 +752,20 @@ Return nil if there is nothing appropriate."
  :doc-spec '(("(r5rs)Index" nil
 	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
 
+(info-lookup-maybe-add-help
+ :mode 'octave-mode
+ :regexp "[_a-zA-Z0-9]+"
+ :doc-spec '(("(octave)Function Index" nil "^ - [^:]+:[ ]+" nil)
+	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
+	     ;; Catch lines of the form "xyz statement"
+	     ("(octave)Concept Index" 
+	      (lambda (item)
+		(cond
+		 ((string-match "^\\([A-Z]+\\) statement\\b" item)
+		    (match-string 1 item))
+		 (t nil)))
+	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
+	      nil)))
 
 (provide 'info-look)
 
