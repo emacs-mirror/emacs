@@ -1,3 +1,7 @@
+2002-03-14  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (x_real_positions): Handle failure in XQueryTree.
+
 2002-03-14  Miles Bader  <miles@gnu.org>
 
 	* intervals.c (adjust_for_invis_intang): New function.
@@ -55,7 +59,7 @@
 
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
-	* xterm.h: (x_session_check_input, x_session_initialize): Declared.
+	* xterm.h (x_session_check_input, x_session_initialize): Declared.
 
 	* xterm.c: (XTread_socket): Add call to x_session_check_input and
 	x_session_have_connection.
@@ -71,9 +75,9 @@
 
 	* config.in: Add HAVE_X_SM.
 
-	* Makefile.in: Add -lSM -lICE to LIBXT if HAVE_X_SM and not
-	USE_X_TOOLKIT.
-	New file xsmfns.c added to XOBJ.
+	* Makefile.in (LIBXT): Add -lSM -lICE
+	if HAVE_X_SM and not USE_X_TOOLKIT.
+	(XOBJ): New file xsmfns.c added.
 
 	* xsmfns.c: New file for X session management.
 
