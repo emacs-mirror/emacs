@@ -1335,7 +1335,7 @@ the left on even-numbered pages."
      (size . 10.0)
      (line-height . 11.0)
      (space-width . 2.5)
-     (avg-char-width 4.71432))
+     (avg-char-width . 4.71432))
     (Palatino
      (fonts (normal      . "Palatino-Roman")
 	    (bold        . "Palatino-Bold")
@@ -1360,7 +1360,7 @@ the left on even-numbered pages."
 	    (italic      . "NewCenturySchlbk-Italic")
 	    (bold-italic . "NewCenturySchlbk-BoldItalic"))
      (size . 10.0)
-     (line-height 12.15)
+     (line-height . 12.15)
      (space-width . 2.78)
      (avg-char-width . 5.31162))
     ;; got no bold for the next ones
@@ -1426,20 +1426,26 @@ To get the info for another specific font (say Helvetica), do the following:
 You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :type '(repeat (list :tag "Font Definition"
 		       (symbol :tag "Font Family")
-		       (cons (const fonts)
-			     (repeat (cons (choice (const normal)
+		       (cons :format "%v"
+			     (const :format "" fonts)
+			     (repeat :tag "Faces"
+				     (cons (choice (const normal)
 						   (const bold)
 						   (const italic)
 						   (const bold-italic)
 						   (symbol :tag "Face"))
 					   (string :tag "Font Name"))))
-		       (cons (const size)
+		       (cons :format "%v"
+			     (const :format "" size)
 			     (number :tag "Reference Size"))
-		       (cons (const line-height)
+		       (cons :format "%v"
+			     (const :format "" line-height)
 			     (number :tag "Line Height"))
-		       (cons (const space-width)
+		       (cons :format "%v"
+			     (const :format "" space-width)
 			     (number :tag "Space Width"))
-		       (cons (const avg-char-width)
+		       (cons :format "%v"
+			     (const :format "" avg-char-width)
 			     (number :tag "Average Character Width"))))
   :group 'ps-print-font)
 
