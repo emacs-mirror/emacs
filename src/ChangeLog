@@ -1,3 +1,8 @@
+2001-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (redisplay_internal): Don't clear echo area if the
+	mini-window is selected.
+
 2001-10-18  Ken Raeburn  <raeburn@gnu.org>
 
 	* config.in (HAVE_LIBHESIOD, HAVE_LIBK5CRYPTO): Undef these.

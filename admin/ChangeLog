@@ -1,3 +1,8 @@
+2001-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* build-configs: Add --help option.  Add support for building
+	in arbitrary source trees.
+
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
 	* admin/nt/makedist.bat: Remove reference to obsolete file
