@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.18) $
+ * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!config.h(trunk.19) $
  *
  * .readership: MPS developers.
  */
@@ -37,6 +37,12 @@
 #else /* _MSC_VER */
 #error "Expected _MSC_VER to be defined for builder.mv"
 #endif /* _MSC_VER */
+
+/* MSVC 10.00 on PowerPC generates erroneous warnings about */
+/* uninitialized local variables, if you take their address. */
+#ifdef MPS_ARCH_PP
+#pragma warning(disable: 4701)
+#endif
 
 /* In white-hot versions, absolutely no checking is done.  This leads to
  * many spurious warnings because parameters are suddenly unused, etc.
