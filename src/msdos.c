@@ -670,7 +670,13 @@ IT_set_face (int face)
   unsigned long fg, bg;
 
   if (!fp)
-    fp = FACE_FROM_ID (selected_frame, DEFAULT_FACE_ID);
+    {
+      fp = FACE_FROM_ID (selected_frame, DEFAULT_FACE_ID);
+      /* The default face for the frame should always be realized and
+	 cached.  */
+      if (!fp)
+	abort ();
+    }
   screen_face = face;
   fg = fp->foreground;
   bg = fp->background;
@@ -729,6 +735,13 @@ IT_write_glyphs (struct glyph *str, int str_len)
   
   screen_buf = screen_bp = alloca (str_len * 2);
   screen_buf_end = screen_buf + str_len * 2;
+
+  /* Since faces get cached and uncached behind our back, we can't
+     rely on their indices in the cache being consistent across
+     invocations.  So always reset the screen face to the default
+     face of the frame, before writing glyphs, and let the glyphs
+     set the right face if it's different from the default.  */
+  IT_set_face (DEFAULT_FACE_ID);
   
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
