@@ -106,7 +106,7 @@ CHILD-NAME should be a lower case symbol."
 
 (defun xml-get-attribute-or-nil (node attribute)
   "Get from NODE the value of ATTRIBUTE.
-nil is returned if the attribute was not found.
+Return `nil' if the attribute was not found.
 
 See also `xml-get-attribute'."
   (when (xml-node-attributes node)
