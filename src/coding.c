@@ -4264,18 +4264,20 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     {
       /* The function in pre-write-conversion may put a new text in a
          new buffer.  */
-      struct buffer *prev = current_buffer, *new;
+      struct buffer *prev = current_buffer;
+      Lisp_Object new;
 
       call2 (coding->pre_write_conversion,
 	     make_number (from), make_number (to));
       if (current_buffer != prev)
 	{
 	  len = ZV - BEGV;
-	  new = current_buffer;
+	  new = Fcurrent_buffer ();
 	  set_buffer_internal_1 (prev);
 	  del_range_2 (from, from_byte, to, to_byte);
 	  TEMP_SET_PT_BOTH (from, from_byte);
-	  insert_from_buffer (new, 1, len, 0);
+	  insert_from_buffer (XBUFFER (new), 1, len, 0);
+	  Fkill_buffer (new);
 	  if (orig_point >= to)
 	    orig_point += len - orig_len;
 	  else if (orig_point > from)
