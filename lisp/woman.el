@@ -500,7 +500,7 @@ Change only via `Customization' or the function `add-hook'."
   :group 'woman)
 
 (defcustom woman-man.conf-path
-  '("/etc" "/usr/local/lib")
+  '("/etc" "/etc/manpath.config" "/usr/local/lib")
   "*List of dirs to search and/or files to try for man config file.
 Default is '(\"/etc\" \"/usr/local/lib\") [for GNU/Linux, Cygwin resp.]
 A trailing separator (`/' for UNIX etc.) on directories is optional
@@ -517,7 +517,11 @@ Used only if MANPATH is not set or contains null components.
 Look in `woman-man.conf-path' and return a value for `woman-manpath'.
 Concatenate data from all lines in the config file of the form
 
-MANPATH	/usr/man"
+  MANPATH	/usr/man
+
+or
+
+  MANDATORY_MANPATH     /usr/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
 	file manpath)
@@ -535,8 +539,8 @@ MANPATH	/usr/man"
 		  (with-temp-buffer
 		    (insert-file-contents file)
 		    (while (re-search-forward
-			    "^[ \t]*MANPATH[ \t]+\\(\\S-+\\)" nil t)
-		      (setq manpath (cons (match-string 1) manpath)))
+			    "^[ \t]*\\(MANDATORY_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
+		      (setq manpath (cons (match-string 2) manpath)))
 		    manpath))
 		 ))
       (setq path (cdr path)))
@@ -547,7 +551,7 @@ MANPATH	/usr/man"
     (or
      (and manpath (woman-parse-colon-path manpath))
      (woman-parse-man.conf)
-     '("/usr/man" "/usr/local/man")
+     '("/usr/man" "/usr/share/man" "/usr/local/man")
      ))
   "*List of DIRECTORY TREES to search for UN*X manual files.
 Each element should be the name of a directory that contains
