@@ -1,5 +1,8 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (displayed_window_lines): Change buffers if necessary.
+	Fix computation of displayed lines.
+
 	* keyboard.c (syms_of_keyboard): Change DEFVAR_LISP of
 	update_menu_bindings to DEFVAR_BOOL.
 

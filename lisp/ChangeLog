@@ -1,3 +1,9 @@
+2000-10-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* delim-col.el: Little fix: replace delimit-columns-align-columns by
+	delimit-columns-format.
+	(delimit-columns-region, delimit-columns-rectangle): Code fix.
+	
 2000-10-30  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-replace-by-expanded-history): Don't use
@@ -32,7 +38,7 @@
 	
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-wind.el (ediff-setup-control-frame): enclose
+	* ediff-wind.el (ediff-setup-control-frame): Enclose
 	face-attribute in condition-case to avoid errors in older emacsen.
 
 2000-10-29  Miles Bader  <miles@gnu.org>
