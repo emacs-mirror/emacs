@@ -3733,7 +3733,12 @@ init_buffer ()
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
   temp = Ffind_file_name_handler (current_buffer->directory, Qt);
-  if (! NILP (temp))
+  if (! NILP (temp)
+      /* If the default dir is just /, TEMP is non-nil
+	 because of the ange-ftp completion handler.
+	 However, it is not necessary to turn / into /:/.
+	 So avoid doing that.  */
+      && strcmp ("/", XSTRING (current_buffer->directory)->data))
     current_buffer->directory
       = concat2 (build_string ("/:"), current_buffer->directory);
 
