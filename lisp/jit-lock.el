@@ -147,6 +147,8 @@ The value of this variable is used when JIT Lock mode is turned on."
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
 
+(defvar jit-lock-saved-fontify-buffer-function nil
+  "Value of `font-lock-fontify-buffer-function' before jit-lock's activation.") 
 
 
 ;;; JIT lock mode
@@ -182,7 +184,7 @@ following ways:
 Stealth fontification only occurs while the system remains unloaded.
 If the system load rises above `jit-lock-stealth-load' percent, stealth
 fontification is suspended.  Stealth fontification intensity is controlled via
-the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
+the variable `jit-lock-stealth-nice'."
   (interactive "P")
   (setq jit-lock-mode (if arg
 			  (> (prefix-numeric-value arg) 0)
@@ -199,16 +201,23 @@ the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
 	(jit-lock-mode
 	 ;; Setting `font-lock-fontified' makes font-lock believe the
 	 ;; buffer is already fontified, so that it won't highlight
-	 ;; the whole buffer.
+	 ;; the whole buffer or bail out on a large buffer.
 	 (make-local-variable 'font-lock-fontified)
 	 (setq font-lock-fontified t)
+
+	 ;; Setup JIT font-lock-fontify-buffer.
+	 (unless jit-lock-saved-fontify-buffer-function
+	   (set (make-local-variable 'jit-lock-saved-fontify-buffer-function)
+		font-lock-fontify-buffer-function)
+	   (set (make-local-variable 'font-lock-fontify-buffer-function)
+		'jit-lock-fontify-buffer))
 
 	 (setq jit-lock-first-unfontify-pos nil)
 	 
 	 ;; Install an idle timer for stealth fontification.
 	 (when (and jit-lock-stealth-time
 		    (null jit-lock-stealth-timer))
-	   (setq jit-lock-stealth-timer 
+	   (setq jit-lock-stealth-timer
 		 (run-with-idle-timer jit-lock-stealth-time
 				      jit-lock-stealth-time
 				      'jit-lock-stealth-fontify)))
@@ -229,8 +238,14 @@ the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
 	   (cancel-timer jit-lock-stealth-timer)
 	   (setq jit-lock-stealth-timer nil))
 
+	 ;; Restore non-JIT font-lock-fontify-buffer.
+	 (when jit-lock-saved-fontify-buffer-function
+	   (set (make-local-variable 'font-lock-fontify-buffer-function)
+		jit-lock-saved-fontify-buffer-function)
+	   (setq jit-lock-saved-fontify-buffer-function nil))
+
 	 ;; Remove hooks.
-	 (remove-hook 'after-change-functions 'jit-lock-after-change)
+	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
 
@@ -239,6 +254,17 @@ the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
   "Unconditionally turn on Just-in-time Lock mode."
   (jit-lock-mode 1))
 
+;; This function is used to prevent font-lock-fontify-buffer from
+;; fontifying eagerly the whole buffer.  This is important for
+;; things like CWarn mode which adds/removes a few keywords and
+;; does a refontify (which takes ages on large files).
+(defun jit-lock-fontify-buffer ()
+  (if (not (and font-lock-mode jit-lock-mode))
+      (funcall jit-lock-saved-fontify-buffer-function)
+    (with-buffer-prepared-for-font-lock
+     (save-restriction
+       (widen)
+       (add-text-properties (point-min) (point-max) '(fontified nil))))))
 
 
 ;;; On demand fontification.
@@ -252,9 +278,7 @@ is active."
      
   
 (defun jit-lock-function-1 (start)
-  "Fontify current buffer starting at position START.
-This function is added to `fontification-functions' when `jit-lock-mode'
-is active."
+  "Fontify current buffer starting at position START."
   (with-buffer-prepared-for-font-lock
    (save-excursion
      (save-restriction
