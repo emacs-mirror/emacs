@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (c) 1994, 1995 Free Software Foundation
+;; Copyright (c) 1994, 1995, 1997 Free Software Foundation
 
 ;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
 
@@ -64,13 +64,49 @@
 (put 'buffer-file-format 'permanent-local t)
 
 (defvar format-alist 
-  '((text/enriched "Extended MIME text/enriched format."
+  '((compressed "compressed" 
+	   "^\037\213"                       ; magic number for gzip
+	   "gunzip -f" "gzip -f" t nil)
+    (text/enriched "Extended MIME text/enriched format."
 		   "Content-[Tt]ype:[ \t]*text/enriched"
 		   enriched-decode enriched-encode t enriched-mode)
-    (plain "Standard ASCII format, no text properties."
+    (plain "ISO 8859-1 standard format, no text properties."
 	   ;; Plain only exists so that there is an obvious neutral choice in
 	   ;; the completion list.
-	   nil nil nil nil nil))
+	   nil nil nil nil nil)
+    (ibm   "IBM Code Page 850 (DOS)" 
+	   "1\\(^\\)"
+	   "recode ibm-ps:latin1" "recode latin1:ibm-pc" t nil)
+    (mac   "Apple Macintosh" 
+	   "1\\(^\\)"
+	   "recode mac:latin1" "recode latin1:mac" t nil)
+    (hp    "HP Roman8" 
+	   "1\\(^\\)"
+	   "recode roman8:latin1" "recode latin1:roman8" t nil)
+    (TeX   "TeX (encoding)"  
+	   "1\\(^\\)"
+	   iso-tex2iso iso-iso2tex t nil)
+    (gtex  "German TeX (encoding)" 
+	   "1\\(^\\)"
+	   iso-gtex2iso iso-iso2gtex t nil)
+    (html  "HTML (encoding)" 
+	   "1\\(^\\)"
+	   "recode html:latin1" "recode latin1:html" t nil)
+    (rot13 "rot13" 
+	   "1\\(^\\)"
+	   "tr a-mn-z n-za-m" "tr a-mn-z n-za-m" t nil)
+    (duden "Duden Ersatzdarstellung" 
+	   "1\\(^\\)"
+	   "diac" iso-iso2duden t nil) 
+    (de646 "German ASCII (ISO 646)" 
+	   "1\\(^\\)"
+	   "recode iso646-ge:latin1" "recode latin1:iso646-ge" t nil)
+    (denet "net German" 
+	   "1\\(^\\)"
+	   iso-german iso-cvt-read-only t nil)
+    (esnet "net Spanish" 
+	   "1\\(^\\)"
+	   iso-spanish iso-cvt-read-onlyt nil))
   "List of information about understood file formats.
 Elements are of the form \(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN).
 NAME    is a symbol, which is stored in `buffer-file-format'.
@@ -96,6 +132,28 @@ MODE-FN, if specified, is called when visiting a file with that format.")
 
 ;;; Basic Functions (called from Lisp)
 
+(defun format-encode-run-method (method from to &optional buffer)
+  "Translate using function or shell script METHOD the text from FROM to TO.
+If METHOD is a string, it is a shell command;
+otherwise, it should be a Lisp function.
+BUFFER should be the buffer that the output originally came from."
+  (if (stringp method)
+      (save-current-buffer
+	(set-buffer buffer)
+	(shell-command-on-region from to method t)
+	(point))
+    (funcall method from to buffer)))
+
+(defun format-decode-run-method (method from to &optional buffer)
+  "Decode using function or shell script METHOD the text from FROM to TO.
+If METHOD is a string, it is a shell command;
+otherwise, it should be a Lisp function."
+  (if (stringp method)
+      (progn
+	(shell-command-on-region from to method t)
+	(point))
+    (funcall method from to)))
+
 (defun format-annotate-function (format from to orig-buf)
   "Returns annotations for writing region as FORMAT.
 FORMAT is a symbol naming one of the formats defined in `format-alist',
@@ -119,7 +177,7 @@ For most purposes, consider using `format-encode-region' instead."
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
-	      (funcall to-fn (point-min) (point-max) orig-buf)
+	      (format-encode-run-method to-fn (point-min) (point-max) orig-buf)
 	      nil)
 	  ;; Otherwise just call function, it will return annotations.
 	  (funcall to-fn from to orig-buf)))))
@@ -156,7 +214,8 @@ For most purposes, consider using `format-decode-region' instead."
 		  (progn
 		    (setq format (cons (car f) format))
 		    ;; Decode it
-		    (if (nth 3 f) (setq end (funcall (nth 3 f) begin end)))
+		    (if (nth 3 f)
+			(setq end (format-decode-run-method (nth 3 f) begin end)))
 		    ;; Call visit function if required
 		    (if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
 		    ;; Safeguard against either of the functions changing pt.
@@ -171,7 +230,8 @@ For most purposes, consider using `format-decode-region' instead."
 	  (or (setq f (assq (car do) format-alist))
 	      (error "Unknown format" (car do)))
 	  ;; Decode:
-	  (if (nth 3 f) (setq end (funcall (nth 3 f) begin end)))
+	  (if (nth 3 f)
+	      (setq end (format-decode-run-method (nth 3 f) begin end)))
 	  ;; Call visit function if required
 	  (if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
 	  (setq do (cdr do)))))
@@ -237,7 +297,8 @@ one of the formats defined in `format-alist', or a list of such symbols."
 	      result)
 	 (if to-fn
 	     (if modify
-		 (setq end (funcall to-fn beg end (current-buffer)))
+		 (setq end (format-encode-run-method to-fn beg end
+						     (current-buffer)))
 	       (format-insert-annotations 
 		(funcall to-fn beg end (current-buffer)))))
 	 (setq format (cdr format)))))))
@@ -295,7 +356,7 @@ a list (ABSOLUTE-FILE-NAME . SIZE)."
       (setq value (insert-file-contents filename nil beg end))
       (setq size (nth 1 value)))
     (if format
-	(setq size (format-decode size format)
+	(setq size (format-decode format size)
 	      value (cons (car value) size)))
     value))
 
@@ -810,4 +871,5 @@ OLD and NEW are the values."
 	    (if default
 		(funcall (car (cdr default)) old new))))))))
 
+(provide 'format)
 ;; format.el ends here
