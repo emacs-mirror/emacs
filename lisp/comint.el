@@ -1106,14 +1106,15 @@ See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 Returns t if successful."
   (interactive)
   (if (and comint-input-autoexpand
-	   (string-match "!\\|^\\^" (funcall comint-get-old-input))
 	   (if comint-use-prompt-regexp-instead-of-fields
 	       ;; Use comint-prompt-regexp
-	       (save-excursion (beginning-of-line)
-			       (looking-at comint-prompt-regexp))
+	       (save-excursion
+		 (beginning-of-line)
+		 (looking-at (concat comint-prompt-regexp "!\\|\\^")))
 	     ;; Use input fields.  User input that hasn't been entered
 	     ;; yet, at the end of the buffer, has a nil `field' property.
-	     (null (get-char-property (point) 'field))))
+	     (and (null (get-char-property (point) 'field))
+		  (string-match "!\\|^\\^" (field-string)))))
       ;; Looks like there might be history references in the command.
       (let ((previous-modified-tick (buffer-modified-tick)))
 	(comint-replace-by-expanded-history-before-point silent start)
@@ -1711,8 +1712,10 @@ value of `comint-use-prompt-regexp-instead-of-fields'."
 	  (end-of-line)
 	  (buffer-substring beg (point))))
     ;; Return the contents of the field at the current point.
-    (field-string)))
-
+    (let ((pos (field-beginning (point))))
+      (unless (eq (get-char-property pos 'field) 'input)
+	(error "Point not in input field"))
+      (field-string pos))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
