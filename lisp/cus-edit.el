@@ -1043,8 +1043,7 @@ suggest to customized that face, if it's customizable."
    (list
     (let ((face (get-char-property (point) 'face)))
       (if (and face (symbolp face))
-	  (completing-read (format "Customize face (default `%s'): "
-				   (symbol-name face))
+	  (completing-read (format "Customize face (default `%s'): " face)
 			   obarray 'custom-facep t nil nil (symbol-name face))
 	(completing-read "Customize face (default all): "
 			 obarray 'custom-facep t)))))
@@ -1073,8 +1072,7 @@ suggest to customized that face, if it's customizable."
    (list
     (let ((face (get-char-property (point) 'face)))
       (if (and face (symbolp face))
-	  (completing-read (format "Customize face (default `%s'): "
-				   (symbol-name face))
+	  (completing-read (format "Customize face (default `%s'): " face)
 			   obarray 'custom-facep t nil nil (symbol-name face))
 	(completing-read "Customize face (default all): "
 			 obarray 'custom-facep t)))))
