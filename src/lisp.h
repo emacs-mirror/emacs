@@ -69,11 +69,15 @@ extern void die P_((const char *, const char *, int));
 
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
+#ifndef ENABLE_CHECKING
+#define eassert(X)	(void) 0
+#else /* ENABLE_CHECKING */
 #if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
 #define eassert(cond) CHECK(cond,"assertion failed: " #cond)
 #else
 #define eassert(cond) CHECK(cond,"assertion failed")
 #endif
+#endif /* ENABLE_CHECKING */
 
 /* Define the fundamental Lisp data structures.  */
 
