@@ -1,3 +1,15 @@
+2000-02-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el (hs-flag-region): No longer use
+	`intangible' overlay property.
+
+	(hs-toggle-hiding): New command.
+	(hs-mouse-toggle-hiding): Use `hs-toggle-hiding'.
+
+	(hs-minor-mode): Move call to `hs-grok-mode-type' early on.
+	Fix omission bug: Run `hs-minor-mode-hook' for both activation
+	and deactivation.
+
 2000-02-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-macs.el (caar, cadr, cdar, cddr): Add defsetfs.
@@ -27,11 +39,11 @@
 
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
-	* dired-aux.el (dired-do-copy): Remove spurious character.`n' 
+	* dired-aux.el (dired-do-copy): Remove spurious character.`n'
 	within the code.
-	
+
 2000-02-16  Dave Love  <fx@gnu.org>
-	
+
 	* faces.el: Don't require custom.  Add more specific :groups to
 	various deffaces.
 	(set-face-attribute): Purecopy args.
@@ -446,7 +458,7 @@
 	(idlwave-statement-match): Fixed problem with assignment regexp.
 	(idlwave-font-lock-keywords): Improved regexp for keyword
 	parameters.
-	(idlwave-surround): New argument LENGTH to support padding of 
+	(idlwave-surround): New argument LENGTH to support padding of
 	operators longer than 1 char.
 
 	* progmodes/idlw-shell.el (idlwave-shell-print): Fixed bug with
@@ -466,7 +478,7 @@
 	(idlwave-shell-make-new-bp-overlay): Fixed glyph display for Emacs
 	21.
 	(idlwave-shell-print-expression-function): New option.
-	  
+
 	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere,
 	idlwave-toolbar-remove-everywhere): Keybindings prefix is now
 	`tool-bar' instead of `toolbar'.
@@ -534,7 +546,7 @@
 	documentation.
 	(view-mode-exit): Keep entry in `view-return-to-alist' only when a
 	window is not deleted.  Modifies change 1998-04-26.
-	
+
 2000-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* windmove.el: New file.
@@ -542,7 +554,7 @@
 	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
 	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
 	progmodes/ebnf-yac.el: Update copyright and license info.
-	
+
 	* jit-lock.el (jit-lock-function): Widen before calculating end
 	position.
 	(jit-lock-stealth-chunk-start): Rewritten.
@@ -597,7 +609,7 @@
 	currently selected frame.
 	(iswitchb-make-buflist): If iswitchb-use-frame-buffer-list is
 	non-nil, pass the selected frame to function buffer-list.
-	
+
 2000-01-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* progmodes/ebnf2ps.el (ebnf-syntax): Doc fix
@@ -702,7 +714,7 @@
 	* subr.el (dolist, dotimes): Copied from cl-macs.el
 	and made to work.
 
-	* mail/undigest.el (rmail-digest-end-regexps): 
+	* mail/undigest.el (rmail-digest-end-regexps):
 	Variable replaces rmail-digest-end-regexp.
 	Allows multiple regexps for detecting the end line.
 	(undigestify-rmail-message): Corresponding changes.
@@ -731,7 +743,7 @@
 	* emacs-lisp/copyright.el (copyright-update): Removed the
 	requirement for a trailing space from `copyright-regexp', to
 	support copyrights with owner specified on a separate line..
-	
+
 	* align.el: New file.
 
 	* menu-bar.el (menu-bar-tools-menu): Add EUDC submenu.
@@ -769,7 +781,7 @@
 	* net/eudc-bob.el, net/eudc-export.el, net/eudc-hotlist.el,
 	net/eudc-vars.el, net/eudc.el, net/eudcb-bbdb.el,
 	net/eudcb-ldap.el, net/eudcb-ph.el, net/ldap.el: New files.
-	
+
 	* add-log.el (add-change-log-entry): Fix error trying an `(insert
 	nil)'.
 
@@ -788,7 +800,7 @@
 	debug-on-error, and propagate new value to global binding, if
 	eval-expression-debug-on-error is non-nil,
 	(eval-expression-debug-on-error): Change doc string.
-	
+
 2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/edebug.el (with-syntax-table): Add a def-edebug-spec.
@@ -818,14 +830,14 @@
 
 	* add-log.el (add-log-current-defun): Handle user-defined
 	add-log-current-function returning nil,
-	
+
 	* add-log.el (add-change-log-entry): Insert version number
 	if having found a current function
 
 	* add-log.el (add-log-current-defun): Call
 	`add-log-current-defun-function'.  Try matches at level 0 and
 	level 1.  Strip whitespace from defun found.
-	
+
 2000-01-10  John Wiegley  <johnw@gnu.org>
 
 	* allout.el (isearch-done/outline-provisions): Added `edit'
@@ -840,7 +852,7 @@
 
 	* vc-hooks.el (vc-parse-buffer): Handle mixtures of dates
 	before and after the year 2000.
-	
+
 	* textmodes/ispell-merged.el (xemacsp, version18p, version-20p):
 	Add ispell- prefix.
 
@@ -888,13 +900,13 @@
 	already accepted on this line.  Don't allow query-replace on line
 	starting with math characters.  Doesn't resend a line already sent
 	to ispell process.  Fixes alignment error bug.
-	
+
 2000-01-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
-	* dired-x.el (dired-guess-shell-alist-default): 
+	* dired-x.el (dired-guess-shell-alist-default):
 	Suggest xloadimage, which is free, not xv, which isn't.
 
-	* ange-ftp.el (ange-ftp-file-name-nondirectory): 
+	* ange-ftp.el (ange-ftp-file-name-nondirectory):
 	Don't ever include the host name or user name in the value.
 
 2000-01-09  Gerd Moellmann  <gerd@gnu.org>
@@ -904,7 +916,7 @@
 
 2000-01-09  Stephen Eglen  <stephen@gnu.org>
 
-	* dired-x.el (dired-guess-shell-alist-default): Suggest xv 
+	* dired-x.el (dired-guess-shell-alist-default): Suggest xv
 	for .png files.
 
 2000-01-09  Per Abrahamsen  <abraham@dina.kvl.dk>
@@ -916,7 +928,7 @@
 	* progmodes/cperl-mode.el: Replace ^F with ^L.
 
 	* sendmail.el (toplevel): Provide `sendmail' when compiling
-	before `require'ing rmail and mailalias to prevent infinite 
+	before `require'ing rmail and mailalias to prevent infinite
 	recursion.
 
 2000-01-08  Dave Love  <fx@gnu.org>
