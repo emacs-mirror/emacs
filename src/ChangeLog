@@ -1,3 +1,12 @@
+2001-03-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (detect_coding_sjis): Do more rigid check.
+	(detect_coding_big5): Likewise.
+	(decode_coding_sjis_big5): Likewise.
+	(Fdetect_coding_region): Call detect_coding_system with tailing
+	anchor byte `\0' for more rigid detection.
+	(Fdetect_coding_string): Likewise.
+
 2001-03-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* bytecode.c (Fbyte_code) <Btemp_output_buffer_setup>: Check the arg is
