@@ -1,4 +1,4 @@
-2002-10-16   Markus Rost  <rost@math.ohio-state.edu>
+2002-10-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-test.el: Extended and reorganized.  There are now 4 tests
 	which can be run in batch mode.  See the Commentary section.
@@ -81,7 +81,7 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
 	* admin/nt/makedist.bat: Remove reference to obsolete file

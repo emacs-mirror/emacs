@@ -21,7 +21,7 @@
 	(imap-open): Typos.
 
 	* ietf-drums.el (ietf-drums-text-token, ietf-drums-qtext-token): Typos.
-	
+
 	* gnus.el: Typo.
 
 	* gnus-win.el (gnus-configure-frame): Typo.
@@ -30,8 +30,8 @@
 
 	* gnus-topic.el (gnus-topic-sort-topics): Typo.
 
-	* gnus-sum.el (gnus-summary-article-number) 
-	(gnus-summary-read-group-1, gnus-summary-mark-article) 
+	* gnus-sum.el (gnus-summary-article-number)
+	(gnus-summary-read-group-1, gnus-summary-mark-article)
 	(gnus-summary-fetch-faq, gnus-refer-article-methods): Typos.
 
 	* gnus-mule.el (gnus-mule-add-group): Typo.
@@ -53,12 +53,12 @@
 	* message.el (message-set-auto-save-file-name):
 	Use make-directory, to avoid the dependence on gnus-util.
 
-2002-11-11   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-11  Markus Rost  <rost@math.ohio-state.edu>
 
 	* gnus-sum.el (gnus-summary-goto-unread): Doc fix - escape open
 	parens in column 0.
 
-2002-11-08   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-08  Markus Rost  <rost@math.ohio-state.edu>
 
 	* nnimap.el (nnimap-split-rule): Doc fix - escape open parens in
 	column 0.
@@ -85,7 +85,7 @@
 	(rfc2047-q-encoding-alist): Augment header list.
 	(rfc2047-encoding-type): New.
 	(rfc2047-dissect-region): Deleted.
-	(rfc2047-encode-region, rfc2047-encode):  Rewritten to take
+	(rfc2047-encode-region, rfc2047-encode): Rewritten to take
 	account of rfc2047 rules with respect to rfc2822 tokens and to do
 	encoding in place rather than by passing strings.
 	(rfc2047-encode-message-header): Don't include header name field
@@ -865,7 +865,7 @@
 
 	* gnus-msg.el (gnus-summary-mail-forward):
 
-	* message.el (message-forward):  Move mime-to-mml here.
+	* message.el (message-forward): Move mime-to-mml here.
 
 	* nnmbox.el (nnmbox-file-coding-system): Use binary.
 	(nnmbox-active-file-coding-system): Ditto.
@@ -1250,7 +1250,7 @@
 
 	* nnheader.el: Wrap subst-char-in-string def in eval-and-compile.
 	Put some defvars in eval-when-compile.
-	(gnus-intersection, gnus-sorted-complement):  Autoload.
+	(gnus-intersection, gnus-sorted-complement): Autoload.
 
 	* imap.el (imap-point-at-eol): New, replacing gnus-point-at-eol.
 
@@ -1762,7 +1762,7 @@
 	(gnus-audio): New custom group.
 	(gnus-audio-inline-sound): Change to work with Emacs.
 	(gnus-audio-directory, gnus-audio-directory)
-	(gnus-audio-au-player):  Customize.
+	(gnus-audio-au-player): Customize.
 	(gnus-audio-play): Try external player if play-sound-file fails.
 	Use file-name-extension, not string-match.
 
@@ -1772,7 +1772,7 @@
 
 	* qp.el (mm-decode-coding-region, mm-encode-coding-region):
 	Autoload.
-	(quoted-printable-decode-region):  Rename arg which confused
+	(quoted-printable-decode-region): Rename arg which confused
 	charset with coding-system.  Don't use nonascii-insert-offset.
 	Coding-system encode the region initially.  Don't recognize `=='
 	as valid QP.  Coding-system decode the region finally.
@@ -1862,7 +1862,7 @@
 	* gnus.el (gnus-mode-line-buffer-identification)[EMACS]: Use
 	`:ascent center'.
 
-	* smiley-ems.el (smiley-update-cache):  Use `:ascent center'.
+	* smiley-ems.el (smiley-update-cache): Use `:ascent center'.
 
 2000-09-28  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2276,7 +2276,6 @@
 	Encoding is not done on incoming mail, so why should it be done on
 	expired mail?
 
-
 2000-08-14  Rod Whitby  <list.ding@rwhitby.net>
 
 	* nnml.el (nnml-request-expire-articles): Fix the calls to
@@ -2607,7 +2606,7 @@
 
 	* gnus-srvr.el (gnus-browse-group-name): Likewise.
 
-	* gnus-msg.el (gnus-copy-article-buffer):  Likewise.
+	* gnus-msg.el (gnus-copy-article-buffer): Likewise.
 
 	* gnus-score.el (gnus-summary-score-entry): Likewise.
 
@@ -3593,7 +3592,7 @@
 
 2000-04-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-        * gnus-util.el (gnus-netrc-machine): Didn't work.
+	* gnus-util.el (gnus-netrc-machine): Didn't work.
 
 2000-04-20  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
@@ -3692,8 +3691,8 @@
 
 1999-11-30  Daiki Ueno  <ueno@unixuser.org>
 
-        * lisp/imap.el (imap-body-lines): Check Content-Type: of the
-        article case insensitively.
+	* lisp/imap.el (imap-body-lines): Check Content-Type: of the
+	article case insensitively.
 
 2000-04-10  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
@@ -3930,8 +3929,8 @@
 
 2000-01-06  Kim-Minh Kaplan  <kmkaplan@vocatex.fr>
 
-        * mm-decode.el (mm-mailcap-command): handle "%%" and the case where
-        there is no "%s" in the method.
+	* mm-decode.el (mm-mailcap-command): handle "%%" and the case
+	where there is no "%s" in the method.
 
 2000-01-08  Kim-Minh Kaplan  <kmkaplan@vocatex.fr>
 
@@ -4454,7 +4453,6 @@
 	* gnus-msg.el (gnus-group-posting-charset-alist): Use iso-8859-1
 	for the `de' newsgroups hierarchy, as it is common practice there.
 
-
 1999-12-07  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnwarchive.el (nnwarchive-mail-archive-article): Fix
@@ -4823,7 +4821,7 @@
 
 1999-11-20  Simon Josefsson  <jas@pdc.kth.se>
 
-        * gnus-start.el (gnus-get-unread-articles): Scan each method only
+	* gnus-start.el (gnus-get-unread-articles): Scan each method only
 	once.
 
 1999-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -5430,8 +5428,8 @@
 
 	* gnus-srvr.el (gnus-browse-unsubscribe-group): Simplify method.
 
-        * mml.el (mml-preview): Remove mail-header-separator before
-        encoding.
+	* mml.el (mml-preview): Remove mail-header-separator before
+	encoding.
 
 1999-11-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -5739,7 +5737,7 @@
 
 1999-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-        * message.el (message-send): Too much and.
+	* message.el (message-send): Too much and.
 
 1999-09-24  Andreas Schwab  <schwab@suse.de>
 
@@ -5802,8 +5800,8 @@
 1999-08-09  Simon Josefsson  <jas@pdc.kth.se>
 
 	* gnus-art.el (gnus-ignored-headers): Remove "X-Pgp-*"
-          (already matched by "^X-Pgp"), removed duplicate
-          X-Mailing-List, added several new junk headers.
+	(already matched by "^X-Pgp"), removed duplicate X-Mailing-List,
+	added several new junk headers.
 
 1999-08-01  Simon Josefsson  <jas@pdc.kth.se>
 
@@ -5888,12 +5886,12 @@
 
 1999-07-10  Simon Josefsson  <jas@pdc.kth.se>
 
-       * gnus-agent.el (gnus-agent-fetch-group-1): Search topics for
-       predicate.
+	* gnus-agent.el (gnus-agent-fetch-group-1): Search topics for
+	predicate.
 
 1999-07-10  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
-        * gnus-mlspl.el: Documentation fixes.
+	* gnus-mlspl.el: Documentation fixes.
 
 1999-08-27  Rui Zhu  <sprache@iname.com>
 
@@ -6099,12 +6097,13 @@
 
 1999-07-08  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
-        * gnus-cus.el (gnus-group-parameters): New entries for
-        gnus-group-split.
+	* gnus-cus.el (gnus-group-parameters): New entries for
+	gnus-group-split.
 
-        * gnus-mlspl.el: Renamed functions and variables so as to
-        start with gnus-group-split.
-        * gnus.el: Adjust autoload entries.
+	* gnus-mlspl.el: Renamed functions and variables so as to
+	start with gnus-group-split.
+
+	* gnus.el: Adjust autoload entries.
 
 1999-11-30  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
@@ -6416,7 +6415,7 @@
 1999-06-15  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-msg.el (gnus-configure-posting-styles): Fix bug when
-          gnus-newsgroup-name is nil.
+	gnus-newsgroup-name is nil.
 
 1999-06-15  Shenghuo ZHU  <zsh@cs.rochester.edu>
 
@@ -6538,10 +6537,10 @@
 
 1999-06-12  Simon Josefsson  <jas@pdc.kth.se>
 
-        (gnus-agent-get-undownloaded-list): Operate on all articles, not
-        only unread ones.
-        (gnus-agent-fetch-headers): Fetch headers from unread and marked
-        articles, not only unread ones.
+	* gnus-agent.el (gnus-agent-get-undownloaded-list): Operate on all
+	articles, not only unread ones.
+	(gnus-agent-fetch-headers): Fetch headers from unread and marked
+	articles, not only unread ones.
 
 1999-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -6600,7 +6599,7 @@
 	(gnus-select-newsgroup): Use it.
 	(gnus-group-highlight-words-alist): New variable.
 	(gnus-newsgroup-emphasis-alist): New variable.
-	(gnus-summary-local-variables):  Use it.
+	(gnus-summary-local-variables): Use it.
 	* gnus-art.el (article-emphasize): Use it.
 	(gnus-emphasis-highlight-words): New face.
 	* gnus-cus.el (gnus-group-parameters): New parameter.
@@ -6652,8 +6651,8 @@
 
 1999-05-21  Simon Josefsson  <jas@pdc.kth.se>
 
-        * gnus-start.el (gnus-read-descriptions-file): Protect if no
-        function in backend.
+	* gnus-start.el (gnus-read-descriptions-file): Protect if no
+	function in backend.
 
 1999-05-15  Simon Josefsson  <jas@pdc.kth.se>
 
@@ -7165,7 +7164,7 @@
 	* nnmail.el (nnmail-split-it): new syntax: `(! FUNC SPLIT)'. FUNC
 	is called with the result of SPLIT and should return a new split.
 
-        * gnus.texi: update the doc.
+	* gnus.texi: update the doc.
 
 1999-02-23  Didier Verna  <verna@inf.enst.fr>
 
@@ -7285,8 +7284,8 @@
 
 1999-02-11  Matt Pharr  <mmp@graphics.stanford.edu>
 
-      * gnus-msg.el (gnus-bug): Encode environment info as a MIME
-      attachment.
+	* gnus-msg.el (gnus-bug): Encode environment info as a MIME
+	attachment.
 
 1999-02-11  Lars Magne Ingebrigtsen  <larsi@menja.ifi.uio.no>
 
@@ -8005,9 +8004,9 @@
 
 1998-12-23  Matt Pharr  <mmp@graphics.stanford.edu>
 
-      * message.el (message-cite-original-without-signature): Use
-      message-signature-separator when searching for signature in
-      message-cite-original-without-signature.
+	* message.el (message-cite-original-without-signature): Use
+	message-signature-separator when searching for signature in
+	message-cite-original-without-signature.
 
 1998-12-24  Simon Josefsson  <jas@pdc.kth.se>
 
@@ -9707,8 +9706,8 @@
 
 1998-09-26  Simon Josefsson  <jas@pdc.kth.se>
 
-	* gnus-range.el (gnus-remove-from-range): Don't add stuff in
-          list to range.
+	* gnus-range.el (gnus-remove-from-range): Don't add stuff in list
+	to range.
 
 1998-10-20  Simon Josefsson  <jas@pdc.kth.se>
 
@@ -9728,8 +9727,8 @@
 
 1998-10-18  Kurt Swanson  <ksw@dna.lth.se>
 
-        * gnus-msg.el (gnus-summary-mail-forward): Erase old forward
-        buffer.
+	* gnus-msg.el (gnus-summary-mail-forward): Erase old forward
+	buffer.
 
 1998-10-20  Katsumi Yamaoka  <yamaoka@ga.sony.co.jp>
 
@@ -9812,8 +9811,8 @@
 
 1998-10-15  Matt Pharr  <mmp@graphics.stanford.edu>
 
-      * gnus-msg.el (gnus-summary-mail-forward): Erase contents of old
-      forward buffer first.
+	* gnus-msg.el (gnus-summary-mail-forward): Erase contents of old
+	forward buffer first.
 
 1998-10-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -9991,7 +9990,7 @@
 
 1998-09-26  Simon Josefsson  <jas@pdc.kth.se>
 
-       * mm-util.el (mm-disable-multibyte): New function.
+	* mm-util.el (mm-disable-multibyte): New function.
 
 1998-09-24  Lars Magne Ingebrigtsen  <larsi@menja.ifi.uio.no>
 
@@ -10055,8 +10054,8 @@
 
 1998-09-22  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* gnus-util.el (gnus-output-to-rmail):  adjust to
-          `rmail-output-to-rmail-file'
+	* gnus-util.el (gnus-output-to-rmail): Adjust to
+	`rmail-output-to-rmail-file'.
 
 1998-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -10069,7 +10068,7 @@
 
 1998-09-17  Simon Josefsson  <jas@pdc.kth.se>
 
-        * mailcap.el (mailcap-save-binary-file): Goto point-min.
+	* mailcap.el (mailcap-save-binary-file): Goto point-min.
 
 1998-09-23  Aaron M. Ucko  <amu@mit.edu>
 
@@ -10215,8 +10214,8 @@
 1998-09-13  Francois Pinard  <pinard@iro.umontreal.ca>
 
 	* nndoc.el: Make nndoc-dissection-alist simpler for MIME, adjust all
-          related functions.  Handle message/rfc822 parts.  Display subject on
-          multipart summary lines.  Display name on sub-parts when available.
+	related functions.  Handle message/rfc822 parts.  Display subject on
+	multipart summary lines.  Display name on sub-parts when available.
 
 1998-09-14  Hallvard B. Furuseth  <h.b.furuseth@usit.uio.no>
 

@@ -66,7 +66,7 @@
 
 	* macterm.c (mac_check_for_quit_char, quit_char_comp)
 	(init_quit_char_handler, mac_determine_quit_char_modifiers)
-	(mac_initialize):  Added code to check for pressing of quit_char
+	(mac_initialize): Added code to check for pressing of quit_char
 	in the OS event queue.
 
 	* mac.c (sys_select): Call mac_check_for_quit_char every second
@@ -130,7 +130,7 @@
 
 2002-12-01  Steven Tamm  <steventamm@mac.com>
 
-	* unexmacosx.c (copy_twolevelhints, dump_it):  Now corrects the
+	* unexmacosx.c (copy_twolevelhints, dump_it): Now corrects the
 	offset in two hints table to allow prebinding to be redone and
 	allow the executable to be stripped.
 
@@ -274,7 +274,7 @@
 
 	* fileio.c (_GNU_SOURCE, HAVE_FSYNC): Don't define.
 
-2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
 
 	* s/sol2-8.h: Include sol2-6.h.
 
@@ -323,7 +323,7 @@
 	function pointer track_mouse_event_fn in the handler for the
 	WM_SETFOCUS message.
 
-	* w32menu.c (initialize_frame_menubar):  Added code to
+	* w32menu.c (initialize_frame_menubar): Added code to
 	reinitialize the function pointers set_menu_item_info and
 	get_menu_item_info.
 
@@ -1456,7 +1456,7 @@
 	(single_submenu, set_frame_menubar)
 	(w32_menu_show, w32_dialog_show): Use AREF, ASET, ASIZE.
 
-	(Fx_popup_menu):  Don't show pop up menu until preceding one is
+	(Fx_popup_menu): Don't show pop up menu until preceding one is
 	actually cleaned up.  Moved UNGCPRO outside #ifdef HAVE_MENUS block.
 
 	* w32menu.c: Changes adapted from xmenu.c
@@ -3864,7 +3864,7 @@
 	(status_message): Convert Qfailed status.
 	(Fopen_network_stream): Added support for non-blocking connect.
 	New optional args: filter, sentinel, non_blocking.  Doc updated.
-	[HAVE_GETADDRINFO, !HAVE_GETADDRINFO]:  Merged common code.
+	[HAVE_GETADDRINFO, !HAVE_GETADDRINFO]: Merged common code.
 	(deactivate_process): Handle pending non-blocking connect.
 	(wait_reading_process_input): Poll for status of non-blocking
 	connects.  Exec sentinel directly when connect succeeds.
@@ -4081,7 +4081,7 @@
 
 	* w32term.c (x_check_fullscreen, x_check_fullscreen_move)
 	(x_fullscreen_adjust): New functions.
-	(w32_read_socket) <WM_WINDOWPOSCHANGED>:  Don't	resize to
+	(w32_read_socket) <WM_WINDOWPOSCHANGED>: Don't	resize to
 	fullscreen.  Call x_check_fullscreen_move, and set the
 	want_fullscreen member of output_data.w32
 	<WM_ACTIVATE, WM_ACTIVATEAPP>: Call x_check_fullscreen.
@@ -6135,7 +6135,7 @@
 	(last-input-char): Revert doc-string to be the same as the
 	doc-string of `last-input-event'.
 
-	* xdisp.c:  Fix typos in comments.
+	* xdisp.c: Fix typos in comments.
 
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
@@ -6456,7 +6456,7 @@
 	(inhibit_try_cursor_movement) [GLYPH_DEBUG]: New variables.
 	(try_window_id, try_window_reusing_current_matrix)
 	(try_cursor_movement) [GLYPH_DEBUG]: Don't run if inhibited.
-	(syms_of_xdisp) [GLYPH_DEBUG]:  DEFVAR_BOOL the variables.
+	(syms_of_xdisp) [GLYPH_DEBUG]: DEFVAR_BOOL the variables.
 
 2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
