@@ -1016,10 +1016,11 @@ x_decode_color (f, arg, def)
   if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
     return def;
 
-  if (defined_color (f, XSTRING (arg)->data, &cdef, 1))
-    return cdef.pixel;
-  else
-    Fsignal (Qundefined_color, Fcons (arg, Qnil));
+  /* Ignore the return value of defined_color so that
+     we use a color close to the one requested
+     if we can't get the exact request.  */
+  defined_color (f, XSTRING (arg)->data, &cdef, 1);
+  return cdef.pixel;
 }
 
 /* Functions called only from `x_set_frame_param'
