@@ -26,13 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-prog () nil)
 
 
 (defun calc-equal-to (arg)
@@ -2282,6 +2279,8 @@
 		    (if (eq (car x) 'calcFunc-geq) 1 0))
 		 (math-read-expr-level (nth 3 op)) (nth 1 x))
 	      (throw 'syntax "Syntax error"))))))
+
+(provide 'calc-prog)
 
 ;;; arch-tag: 4c5a183b-c9e5-4632-bb3f-e41a764518b0
 ;;; calc-prog.el ends here
