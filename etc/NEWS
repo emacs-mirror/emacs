@@ -782,7 +782,7 @@ counter to the specified source line (the one where point is).
 +++
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
-changes the behavior of motion commands line C-e and C-p.
+changes the behavior of motion commands like C-e and C-p.
 
 +++
 ** In Dired's ! command (dired-do-shell-command), `*' and `?' now
