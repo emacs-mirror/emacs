@@ -59,7 +59,7 @@ This means that the body of the form must be put into a closure.")
 ;; lvarinfo:
 ;; constructor
 (defsubst byte-compile-make-lvarinfo (var &optional already-set)
-  `(,var 0 ,(if already-set 1 0) 0) nil)
+  `(,var 0 ,(if already-set 1 0) 0 nil))
 ;; accessors
 (defsubst byte-compile-lvarinfo-var (vinfo) (car vinfo))
 (defsubst byte-compile-lvarinfo-numrefs (vinfo) (cadr vinfo))
@@ -81,7 +81,7 @@ This means that the body of the form must be put into a closure.")
 (defalias 'byte-compile-lforminfo-vars 'car)
 (defalias 'byte-compile-lforminfo-num-closures 'cdr)
 ;; setters
-(defalias byte-compile-lforminfo-add-var (finfo var &optional already-set)
+(defsubst byte-compile-lforminfo-add-var (finfo var &optional already-set)
   (setcar finfo (cons (byte-compile-make-lvarinfo var already-set)
 		      (car finfo))))
 
@@ -96,7 +96,7 @@ describes the variable.  CLOSURE-FLAG is either nil, if currently _not_
 inside a closure, and otherwise a `closure flag' returned by
 `byte-compile-lforminfo-make-closure-flag'."
   (when closure-flag
-    (byte-compile-lvarinfo-note-closure vinfo)
+    (byte-compile-lvarinfo-note-closure lvarinfo)
     (unless (car closure-flag)
       (setcdr lforminfo (1+ (cdr lforminfo)))
       (setcar closure-flag t))))
@@ -119,11 +119,11 @@ where:
      (cond ((eq (car form) 'let)
 	    ;; Find the bound variables
 	    (dolist (clause (cadr form))
-	      (let ((var (if (consp claus) (car clause) clause)))
+	      (let ((var (if (consp clause) (car clause) clause)))
 		(unless (memq var special)
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
-	    (unless (null (byte-compile-lformat-info-vars lforminfo))
+	    (unless (null (byte-compile-lforminfo-vars lforminfo))
 	      (byte-compile-lforminfo-analyze-forms lforminfo form 2
 						    special nil)))
 	   ((eq (car form) 'let*)
@@ -137,7 +137,7 @@ where:
 		(unless (memq var special)
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
-	    (unless (null (byte-compile-lformat-info-vars lforminfo))
+	    (unless (null (byte-compile-lforminfo-vars lforminfo))
 	      (byte-compile-lforminfo-analyze-forms lforminfo form 2
 						    special nil)))
 	   ((eq (car form) 'condition-case)
@@ -151,7 +151,7 @@ where:
 	   ((and (consp (car form)) (eq (caar form) 'lambda))
 	    ;; An embedded lambda, which is basically just a `let'
 	    (byte-compile-lforminfo-from-lambda lforminfo (cdr form) special)))
-     (if (byte-compile-lformat-info-vars lforminfo)
+     (if (byte-compile-lforminfo-vars lforminfo)
 	 lforminfo
        nil))))
 
@@ -163,10 +163,10 @@ The first element of LAMBDA is ignored; it need not actually be `lambda'."
   (dolist (arg (byte-compile-arglist-vars (cadr lambda)))
     (byte-compile-lforminfo-add-var lforminfo arg t))
   ;; Analyze the body
-  (unless (null (byte-compile-lformat-info-vars lforminfo))
+  (unless (null (byte-compile-lforminfo-vars lforminfo))
     (byte-compile-lforminfo-analyze-forms lforminfo lambda 2 special nil)))
 
-(defun byte-compile-lforminfo-analyze (lforminfo form ignore closure-flag)
+(defun byte-compile-lforminfo-analyze (lforminfo form &optional ignore closure-flag)
   "Update variable information in LFORMINFO by analyzing FORM.
 IGNORE is a list of variables that shouldn't be analyzed (usually because
 they're special, or because some inner binding shadows the version in
@@ -193,7 +193,8 @@ LFORMINFO."
 		 (byte-compile-lforminfo-analyze lforminfo (pop form)
 						 ignore closure-flag)
 		 (unless (member var ignore)
-		   (let ((vinfo (assq var lforminfo)))
+		   (let ((vinfo
+			  (assq var (byte-compile-lforminfo-vars lforminfo))))
 		     (byte-compile-lvarinfo-note-set vinfo)
 		     (byte-compile-lforminfo-note-closure lforminfo vinfo
 							  closure-flag))))))
@@ -259,7 +260,7 @@ LFORMINFO."
 	     (dolist (clause (cadr form))
 	       (if (symbolp clause)
 		   (push clause ignore)
-		 (byte-compile-lforminfo-analyze lforminfo (cadr claus)
+		 (byte-compile-lforminfo-analyze lforminfo (cadr clause)
 						 ignore closure-flag)
 		 (push (car clause) ignore)))
 	     ;; analyze body
@@ -449,7 +450,7 @@ by `byte-compile-make-lambda-lexenv'."
 (defun byte-compile-heapenv-add-accessible-env (heapenv env offset)
   "Add to HEAPENV's list of accessible environments, ENV at OFFSET."
   (setcdr (nthcdr 2 heapenv)
-	  (cons (cons accessible-env offset)
+	  (cons (cons env offset)
 		(byte-compile-heapenv-accessible-envs heapenv))))
 
 (defun byte-compile-push-heapenv ()
@@ -474,7 +475,7 @@ Return a `lexvar' descriptor for the new heap environment."
 (defun byte-compile-heapenv-ensure-access (heapenv other-heapenv)
   "Make sure that HEAPENV can be used to access OTHER-HEAPENV.
 If not, then add a new slot to HEAPENV pointing to OTHER-HEAPENV."
-  (unless (memq env (byte-compile-heapenv-accessible-envs heapenv))
+  (unless (memq heapenv (byte-compile-heapenv-accessible-envs heapenv))
     (let ((offset (byte-compile-heapenv-add-slot heapenv)))
       (byte-compile-heapenv-add-accessible-env heapenv other-heapenv offset))))
 
@@ -516,7 +517,7 @@ LFORMINFO should be information about lexical variables being bound."
       (let* ((clause (pop clauses))
 	     (var (if (consp clause) (car clause) clause))
 	     (init (and (consp clause) (cadr clause)))
-	     (vinfo (assq var lforminfo)))
+	     (vinfo (assq var (byte-compile-lforminfo-vars lforminfo))))
 	(cond
 	 ((or (and vinfo
 		   (not (byte-compile-lvarinfo-closed-over-p vinfo)))
@@ -570,7 +571,7 @@ Return non-nil if the TOS value was popped."
   ;; juggle things on the stack, either to move them to TOS for
   ;; dynamic binding, or to put them in a non-stack environment
   ;; vector.
-  (let ((vinfo (assq var lforminfo)))
+  (let ((vinfo (assq var (byte-compile-lforminfo-vars lforminfo))))
     (unless (and vinfo (zerop (byte-compile-lvarinfo-numrefs vinfo)))
       (cond ((and (null vinfo) (eq var (caar init-lexenv)))
 	     ;; VAR is dynamic and is on the top of the
@@ -623,7 +624,7 @@ Return non-nil if the TOS value was popped."
 		 ;; Store nil into VAR's temporary stack
 		 ;; position to avoid problems with GC
 		 (byte-compile-push-constant nil)
-		 (byte-compile-out 'byte-stack-set stack-pos))
+		 (byte-compile-out 'byte-stack-set init-stack-pos))
 	       ;; Push a record of VAR's new lexical binding
 	       (push (byte-compile-make-lexvar
 		      var env-vec-pos byte-compile-current-heap-environment)
@@ -648,7 +649,8 @@ binding slots have been popped."
   ;; Unbind dynamic variables
   (let ((num-dynamic-bindings 0))
     (dolist (clause clauses)
-      (unless (assq (if (consp clause) (car clause) clause) lforminfo)
+      (unless (assq (if (consp clause) (car clause) clause)
+		    (byte-compile-lforminfo-vars lforminfo))
 	(setq num-dynamic-bindings (1+ num-dynamic-bindings))))
     (unless (zerop num-dynamic-bindings)
       (byte-compile-out 'byte-unbind num-dynamic-bindings)))
