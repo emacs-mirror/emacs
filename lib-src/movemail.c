@@ -237,7 +237,11 @@ main (argc, argv)
       /* Give up if cannot do that.  */
       desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (desc < 0)
-	pfatal_with_name ("lock file--see source file lib-src/movemail.c");
+	{
+	  char *message = (char *) malloc (strlen (tempname) + 50);
+	  sprintf (message, "%s--see source file lib-src/movemail.c");
+	  pfatal_with_name (message);
+	}
       close (desc);
 
       tem = link (tempname, lockname);
