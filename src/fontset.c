@@ -187,10 +187,6 @@ static Lisp_Object font_family_registry P_ ((Lisp_Object));
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
 
-/* Macros for Lisp vector.  */
-#define AREF(V, IDX)	XVECTOR (V)->contents[IDX]
-#define ASIZE(V)	XVECTOR (V)->size
-
 /* Return the fontset with ID.  No check of ID's validness.  */
 #define FONTSET_FROM_ID(id) AREF (Vfontset_table, id)
 
