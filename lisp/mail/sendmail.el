@@ -198,7 +198,9 @@ actually occur.")
     (if to (setq to (point)))
     (cond ((eq mail-signature t)
 	   (if (file-exists-p "~/.signature")
-	       (insert-file-contents "~/.signature")))
+	       (progn
+		 (insert "\n\n-- \n")
+		 (insert-file-contents "~/.signature"))))
 	  (mail-signature
 	   (insert mail-signature)))
     (goto-char (point-max))
