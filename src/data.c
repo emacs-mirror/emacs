@@ -2142,11 +2142,9 @@ double
 fmod (f1, f2)
      double f1, f2;
 {
-#ifdef HAVE_DREM  /* Some systems use this non-standard name.  */
-  return (drem (f1, f2));
-#else  /* Other systems don't seem to have it at all.  */
+  if (f2 < 0.0)
+    f2 = -f2;
   return (f1 - f2 * floor (f1/f2));
-#endif
 }
 #endif /* ! HAVE_FMOD */
 
