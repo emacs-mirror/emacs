@@ -298,7 +298,7 @@ to keep: LEN chars starting BEG chars from the beginning."
   (if jka-compr-use-shell
 
       (let ((err-file (jka-compr-make-temp-name))
-	    (coding-system-for-read 'undecided)
+	    (coding-system-for-read (or coding-system-for-read 'undecided))
             (coding-system-for-write 'no-conversion) )
 
 	(unwind-protect
@@ -431,13 +431,16 @@ There should be no more than seven characters after the final `/'."
 	    (jka-compr-run-real-handler 'write-region
 					(list start end temp-file t 'dont))
 
-	    (jka-compr-call-process compress-program
-				    (concat compress-message
-					    " " base-name)
-				    temp-file
-				    temp-buffer
-				    nil
-				    compress-args)
+	    ;; Here we must read the output of compress program as is
+	    ;; without any code conversion.
+	    (let ((coding-system-for-read 'no-conversion))
+	      (jka-compr-call-process compress-program
+				      (concat compress-message
+					      " " base-name)
+				      temp-file
+				      temp-buffer
+				      nil
+				      compress-args))
 
 	    (with-current-buffer temp-buffer
               (let ((coding-system-for-write 'no-conversion))
@@ -496,7 +499,7 @@ There should be no more than seven characters after the final `/'."
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
 	      size start
-              (coding-system-for-read 'undecided) )
+              (coding-system-for-read (or coding-system-for-read 'undecided)) )
 
 	  (setq local-file (or local-copy filename))
 
@@ -625,20 +628,28 @@ There should be no more than seven characters after the final `/'."
 		 uncompress-message
 		 (message "%s %s..." uncompress-message base-name))
 		  
-		(jka-compr-call-process uncompress-program
-					(concat uncompress-message
-						" " base-name)
-					local-file
-					t
-					nil
-					uncompress-args)
+		;; Here we must read the output of uncompress program
+		;; and write it to TEMP-FILE without any code
+		;; conversion.  An appropriate code conversion (if
+		;; necessary) is done by the later I/O operation
+		;; (e.g. load).
+		(let ((coding-system-for-read 'no-conversion)
+		      (coding-system-for-write 'no-conversion))
 
-		(and
-		 uncompress-message
-		 (message "%s %s...done" uncompress-message base-name))
+		  (jka-compr-call-process uncompress-program
+					  (concat uncompress-message
+						  " " base-name)
+					  local-file
+					  t
+					  nil
+					  uncompress-args)
 
-		(write-region
-		 (point-min) (point-max) temp-file nil 'dont))
+		  (and
+		   uncompress-message
+		   (message "%s %s...done" uncompress-message base-name))
+
+		  (write-region
+		   (point-min) (point-max) temp-file nil 'dont)))
 
 	    (and
 	     local-copy
