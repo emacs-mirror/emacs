@@ -601,21 +601,25 @@ static tr_stack *mapping_stack_pointer;
 static int stack_idx_of_map_multiple;
 
 #define PUSH_MAPPING_STACK(restlen, orig)		\
-  do {							\
+do							\
+  {							\
     mapping_stack_pointer->rest_length = (restlen);	\
     mapping_stack_pointer->orig_val = (orig);		\
     mapping_stack_pointer++;				\
-  } while (0)
+  }							\
+while (0)
 
 #define POP_MAPPING_STACK(restlen, orig)		\
-  do {							\
+do							\
+  {							\
     mapping_stack_pointer--;				\
     (restlen) = mapping_stack_pointer->rest_length;	\
     (orig) = mapping_stack_pointer->orig_val;		\
-  } while (0)
+  }							\
+while (0)
 
 #define CCL_CALL_FOR_MAP_INSTRUCTION(symbol, ret_ic)		\
-if (1)								\
+do								\
   {								\
     struct ccl_program called_ccl;				\
     if (stack_idx >= 256					\
@@ -635,7 +639,7 @@ if (1)								\
     ic = CCL_HEADER_MAIN;					\
     goto ccl_repeat;						\
   }								\
-else
+while (0)
 
 #define CCL_MapSingle		0x12 /* Map by single code conversion map
 					1:ExtendedCOMMNDXXXRRRrrrXXXXX
@@ -676,34 +680,34 @@ else
 
 /* Terminate CCL program successfully.  */
 #define CCL_SUCCESS			\
-if (1)					\
+do					\
   {					\
     ccl->status = CCL_STAT_SUCCESS;	\
     goto ccl_finish;			\
   }					\
-else
+while(0)
 
 /* Suspend CCL program because of reading from empty input buffer or
    writing to full output buffer.  When this program is resumed, the
    same I/O command is executed.  */
 #define CCL_SUSPEND(stat)	\
-if (1)				\
+do				\
   {				\
     ic--;			\
     ccl->status = stat;		\
     goto ccl_finish;		\
   }				\
-else
+while (0)
 
 /* Terminate CCL program because of invalid command.  Should not occur
    in the normal case.  */
 #define CCL_INVALID_CMD		     	\
-if (1)					\
+do					\
   {				     	\
     ccl->status = CCL_STAT_INVALID_CMD;	\
     goto ccl_error_handler;	     	\
   }					\
-else
+while(0)
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
