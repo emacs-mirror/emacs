@@ -690,7 +690,7 @@ mbx_write (line, mbf)
 mbx_delimit_begin (mbf)
      FILE *mbf;
 {
-  fputs ("\f\n0,unseen,,\n", mbf);
+  fputs ("\f\n0, unseen,,\n", mbf);
 }
 
 mbx_delimit_end (mbf)
