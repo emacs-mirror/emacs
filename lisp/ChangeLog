@@ -1,3 +1,9 @@
+2004-05-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (find-file-noselect-1): Do not bind
+	`inhibit-read-only' to t during execution of
+	`find-file-not-found-functions'.
+
 2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-mcvs.el (vc-mcvs-print-log, vc-mcvs-diff):
