@@ -2698,7 +2698,14 @@ For that it has to be fbound with a non-autoload definition."
       ;; Need to turn off auto-activation
       ;; because `byte-compile' uses `fset':
       (ad-with-auto-activation-disabled
-       (let ((symbol (make-symbol "advice-compilation")))
+       (require 'bytecomp)
+       (let ((symbol (make-symbol "advice-compilation"))
+	     (byte-compile-warnings
+	      (if (listp byte-compile-warnings) byte-compile-warnings
+		byte-compile-warning-types)))
+	 (if (featurep 'cl)
+	     (setq byte-compile-warnings
+		   (remq 'cl-functions byte-compile-warnings)))
 	 (fset symbol (symbol-function function))
 	 (byte-compile symbol)
 	 (fset function (symbol-function symbol))))))
