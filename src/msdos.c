@@ -1711,16 +1711,25 @@ IT_update_begin (struct frame *f)
 	 Likewise, don't do anything if the frame is garbaged;
 	 in that case, the frame's current matrix that we would use
 	 is all wrong, and we will redisplay that line anyway.  */
-      if (!NILP (display_info->mouse_face_window))
+      if (!NILP (display_info->mouse_face_window)
+	  && WINDOWP (display_info->mouse_face_window))
 	{
 	  struct window *w = XWINDOW (display_info->mouse_face_window);
 	  int i;
 
-	  for (i = 0; i < w->desired_matrix->nrows; ++i)
-	    if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
-	      break;
+	  /* If the mouse highlight is in the window that was deleted
+	     (e.g., if it was popped by completion), clear highlight
+	     unconditionally.  */
+	  if (NILP (w->buffer))
+	    display_info->mouse_face_window = Qnil;
+	  else
+	    {
+	      for (i = 0; i < w->desired_matrix->nrows; ++i)
+		if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
+		  break;
+	    }
 
-	  if (i < w->desired_matrix->nrows)
+	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (display_info);
 	}
     }
