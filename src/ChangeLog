@@ -1,5 +1,8 @@
 2001-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* process.c (sigchld_handler): Use GC_CONSP, GC_INTEGERP, GC_EQ
+	since this function can be called during GC.
+
 	* callproc.c (Fcall_process): Handle errors from pipe(2).
 	(child_setup): Delete code in #ifdef vipc.
 
