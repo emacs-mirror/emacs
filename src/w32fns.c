@@ -1,4 +1,4 @@
-/* Functions for the Win32 window system.
+/* Functions for the MS Win32 window system API.
    Copyright (C) 1989, 92, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -44,33 +44,33 @@ extern struct scroll_bar *x_window_to_scroll_bar ();
 extern int quit_char;
 
 /* The colormap for converting color names to RGB values */
-Lisp_Object Vwin32_color_map;
+Lisp_Object Vw32_color_map;
 
 /* Non nil if alt key presses are passed on to Windows.  */
-Lisp_Object Vwin32_pass_alt_to_system;
+Lisp_Object Vw32_pass_alt_to_system;
 
 /* Non nil if alt key is translated to meta_modifier, nil if it is translated
    to alt_modifier.  */
-Lisp_Object Vwin32_alt_is_meta;
+Lisp_Object Vw32_alt_is_meta;
 
 /* Non nil if left window, right window, and application key events
    are passed on to Windows.  */
-Lisp_Object Vwin32_pass_optional_keys_to_system;
+Lisp_Object Vw32_pass_optional_keys_to_system;
 
 /* Switch to control whether we inhibit requests for italicised fonts (which
    are synthesized, look ugly, and are trashed by cursor movement under NT). */
-Lisp_Object Vwin32_enable_italics;
+Lisp_Object Vw32_enable_italics;
 
 /* Enable palette management. */
-Lisp_Object Vwin32_enable_palette;
+Lisp_Object Vw32_enable_palette;
 
 /* Control how close left/right button down events must be to
    be converted to a middle button down event. */
-Lisp_Object Vwin32_mouse_button_tolerance;
+Lisp_Object Vw32_mouse_button_tolerance;
 
 /* Minimum interval between mouse movement (and scroll bar drag)
    events that are passed on to the event loop. */
-Lisp_Object Vwin32_mouse_move_interval;
+Lisp_Object Vw32_mouse_move_interval;
 
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
@@ -165,9 +165,9 @@ Lisp_Object Qdisplay;
 #define RMOUSE 4
 
 static int button_state = 0;
-static Win32Msg saved_mouse_button_msg;
+static W32Msg saved_mouse_button_msg;
 static unsigned mouse_button_timer;	/* non-zero when timer is active */
-static Win32Msg saved_mouse_move_msg;
+static W32Msg saved_mouse_move_msg;
 static unsigned mouse_move_timer;
 
 #define MOUSE_BUTTON_ID	1
@@ -182,14 +182,14 @@ extern Lisp_Object Vwindow_system_version;
 extern Lisp_Object last_mouse_scroll_bar;
 extern int last_mouse_scroll_bar_pos;
 
-/* From win32term.c. */
-extern Lisp_Object Vwin32_num_mouse_buttons;
+/* From w32term.c. */
+extern Lisp_Object Vw32_num_mouse_buttons;
 
 Time last_mouse_movement_time;
 
 
 /* Extract a frame as a FRAME_PTR, defaulting to the selected frame
-   and checking validity for Win32.  */
+   and checking validity for W32.  */
 
 FRAME_PTR
 check_x_frame (frame)
@@ -204,25 +204,25 @@ check_x_frame (frame)
       CHECK_LIVE_FRAME (frame, 0);
       f = XFRAME (frame);
     }
-  if (! FRAME_WIN32_P (f))
-    error ("non-win32 frame used");
+  if (! FRAME_W32_P (f))
+    error ("non-w32 frame used");
   return f;
 }
 
 /* Let the user specify an display with a frame.
-   nil stands for the selected frame--or, if that is not a win32 frame,
+   nil stands for the selected frame--or, if that is not a w32 frame,
    the first display on the list.  */
 
-static struct win32_display_info *
+static struct w32_display_info *
 check_x_display_info (frame)
      Lisp_Object frame;
 {
   if (NILP (frame))
     {
-      if (FRAME_WIN32_P (selected_frame))
-	return FRAME_WIN32_DISPLAY_INFO (selected_frame);
+      if (FRAME_W32_P (selected_frame))
+	return FRAME_W32_DISPLAY_INFO (selected_frame);
       else
-	return &one_win32_display_info;
+	return &one_w32_display_info;
     }
   else if (STRINGP (frame))
     return x_display_info_for_name (frame);
@@ -232,20 +232,20 @@ check_x_display_info (frame)
 
       CHECK_LIVE_FRAME (frame, 0);
       f = XFRAME (frame);
-      if (! FRAME_WIN32_P (f))
-	error ("non-win32 frame used");
-      return FRAME_WIN32_DISPLAY_INFO (f);
+      if (! FRAME_W32_P (f))
+	error ("non-w32 frame used");
+      return FRAME_W32_DISPLAY_INFO (f);
     }
 }
 
-/* Return the Emacs frame-object corresponding to an win32 window.
+/* Return the Emacs frame-object corresponding to an w32 window.
    It could be the frame's main window or an icon window.  */
 
 /* This function can be called during GC, so use GC_xxx type test macros.  */
 
 struct frame *
 x_window_to_frame (dpyinfo, wdesc)
-     struct win32_display_info *dpyinfo;
+     struct w32_display_info *dpyinfo;
      HWND wdesc;
 {
   Lisp_Object tail, frame;
@@ -258,9 +258,9 @@ x_window_to_frame (dpyinfo, wdesc)
         continue;
       f = XFRAME (frame);
       if (f->output_data.nothing == 1 
-	  || FRAME_WIN32_DISPLAY_INFO (f) != dpyinfo)
+	  || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (FRAME_WIN32_WINDOW (f) == wdesc)
+      if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
     }
   return 0;
@@ -287,7 +287,7 @@ x_bitmap_height (f, id)
      FRAME_PTR f;
      int id;
 {
-  return FRAME_WIN32_DISPLAY_INFO (f)->bitmaps[id - 1].height;
+  return FRAME_W32_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
 int
@@ -295,7 +295,7 @@ x_bitmap_width (f, id)
      FRAME_PTR f;
      int id;
 {
-  return FRAME_WIN32_DISPLAY_INFO (f)->bitmaps[id - 1].width;
+  return FRAME_W32_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
 
 int
@@ -303,7 +303,7 @@ x_bitmap_pixmap (f, id)
      FRAME_PTR f;
      int id;
 {
-  return (int) FRAME_WIN32_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
+  return (int) FRAME_W32_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 
 
@@ -313,14 +313,14 @@ static int
 x_allocate_bitmap_record (f)
      FRAME_PTR f;
 {
-  struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   int i;
 
   if (dpyinfo->bitmaps == NULL)
     {
       dpyinfo->bitmaps_size = 10;
       dpyinfo->bitmaps
-	= (struct win32_bitmap_record *) xmalloc (dpyinfo->bitmaps_size * sizeof (struct win32_bitmap_record));
+	= (struct w32_bitmap_record *) xmalloc (dpyinfo->bitmaps_size * sizeof (struct w32_bitmap_record));
       dpyinfo->bitmaps_last = 1;
       return 1;
     }
@@ -334,8 +334,8 @@ x_allocate_bitmap_record (f)
 
   dpyinfo->bitmaps_size *= 2;
   dpyinfo->bitmaps
-    = (struct win32_bitmap_record *) xrealloc (dpyinfo->bitmaps,
-					   dpyinfo->bitmaps_size * sizeof (struct win32_bitmap_record));
+    = (struct w32_bitmap_record *) xrealloc (dpyinfo->bitmaps,
+					   dpyinfo->bitmaps_size * sizeof (struct w32_bitmap_record));
   return ++dpyinfo->bitmaps_last;
 }
 
@@ -346,7 +346,7 @@ x_reference_bitmap (f, id)
      FRAME_PTR f;
      int id;
 {
-  ++FRAME_WIN32_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
+  ++FRAME_W32_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
@@ -357,13 +357,13 @@ x_create_bitmap_from_data (f, bits, width, height)
      char *bits;
      unsigned int width, height;
 {
-  struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   Pixmap bitmap;
   int id;
 
   bitmap = CreateBitmap (width, height,
-			 FRAME_WIN32_DISPLAY_INFO (XFRAME (frame))->n_planes,
-			 FRAME_WIN32_DISPLAY_INFO (XFRAME (frame))->n_cbits,
+			 FRAME_W32_DISPLAY_INFO (XFRAME (frame))->n_planes,
+			 FRAME_W32_DISPLAY_INFO (XFRAME (frame))->n_cbits,
 			 bits);
 
   if (! bitmap)
@@ -390,7 +390,7 @@ x_create_bitmap_from_file (f, file)
 {
   return -1;
 #if 0
-  struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   unsigned int width, height;
   Pixmap bitmap;
   int xhot, yhot, result, id;
@@ -425,7 +425,7 @@ x_create_bitmap_from_file (f, file)
       return -1;
 
   
-  result = XReadBitmapFile (FRAME_WIN32_DISPLAY (f), FRAME_WIN32_WINDOW (f),
+  result = XReadBitmapFile (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
   if (result != BitmapSuccess)
     return -1;
@@ -450,7 +450,7 @@ x_destroy_bitmap (f, id)
      FRAME_PTR f;
      int id;
 {
-  struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   if (id > 0)
     {
@@ -473,7 +473,7 @@ x_destroy_bitmap (f, id)
 
 static void
 x_destroy_all_bitmaps (dpyinfo)
-     struct win32_display_info *dpyinfo;
+     struct w32_display_info *dpyinfo;
 {
   int i;
   for (i = 0; i < dpyinfo->bitmaps_last; i++)
@@ -486,7 +486,7 @@ x_destroy_all_bitmaps (dpyinfo)
   dpyinfo->bitmaps_last = 0;
 }
 
-/* Connect the frame-parameter names for Win32 frames
+/* Connect the frame-parameter names for W32 frames
    to the ways of passing the parameter values to the window system.
 
    The name of a parameter, as a Lisp symbol,
@@ -563,7 +563,7 @@ static struct x_frame_parm_table x_frame_parms[] =
 };
 
 /* Attach the `x-frame-parameter' properties to
-   the Lisp symbol names of parameters relevant to Win32.  */
+   the Lisp symbol names of parameters relevant to W32.  */
 
 init_x_parm_symbols ()
 {
@@ -668,18 +668,18 @@ x_set_frame_parameters (f, alist)
   if (EQ (left, Qunbound))
     {
       left_no_change = 1;
-      if (f->output_data.win32->left_pos < 0)
-	left = Fcons (Qplus, Fcons (make_number (f->output_data.win32->left_pos), Qnil));
+      if (f->output_data.w32->left_pos < 0)
+	left = Fcons (Qplus, Fcons (make_number (f->output_data.w32->left_pos), Qnil));
       else
-	XSETINT (left, f->output_data.win32->left_pos);
+	XSETINT (left, f->output_data.w32->left_pos);
     }
   if (EQ (top, Qunbound))
     {
       top_no_change = 1;
-      if (f->output_data.win32->top_pos < 0)
-	top = Fcons (Qplus, Fcons (make_number (f->output_data.win32->top_pos), Qnil));
+      if (f->output_data.w32->top_pos < 0)
+	top = Fcons (Qplus, Fcons (make_number (f->output_data.w32->top_pos), Qnil));
       else
-	XSETINT (top, f->output_data.win32->top_pos);
+	XSETINT (top, f->output_data.w32->top_pos);
     }
 
   /* If one of the icon positions was not set, preserve or default it.  */
@@ -719,28 +719,28 @@ x_set_frame_parameters (f, alist)
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
-	&& ! (NUMBERP (left) && XINT (left) == f->output_data.win32->left_pos
-	      && NUMBERP (top) && XINT (top) == f->output_data.win32->top_pos))
+	&& ! (NUMBERP (left) && XINT (left) == f->output_data.w32->left_pos
+	      && NUMBERP (top) && XINT (top) == f->output_data.w32->top_pos))
       {
 	int leftpos = 0;
 	int toppos = 0;
 
 	/* Record the signs.  */
-	f->output_data.win32->size_hint_flags &= ~ (XNegative | YNegative);
+	f->output_data.w32->size_hint_flags &= ~ (XNegative | YNegative);
 	if (EQ (left, Qminus))
-	  f->output_data.win32->size_hint_flags |= XNegative;
+	  f->output_data.w32->size_hint_flags |= XNegative;
 	else if (INTEGERP (left))
 	  {
 	    leftpos = XINT (left);
 	    if (leftpos < 0)
-	      f->output_data.win32->size_hint_flags |= XNegative;
+	      f->output_data.w32->size_hint_flags |= XNegative;
 	  }
 	else if (CONSP (left) && EQ (XCONS (left)->car, Qminus)
 		 && CONSP (XCONS (left)->cdr)
 		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
 	  {
 	    leftpos = - XINT (XCONS (XCONS (left)->cdr)->car);
-	    f->output_data.win32->size_hint_flags |= XNegative;
+	    f->output_data.w32->size_hint_flags |= XNegative;
 	  }
 	else if (CONSP (left) && EQ (XCONS (left)->car, Qplus)
 		 && CONSP (XCONS (left)->cdr)
@@ -750,19 +750,19 @@ x_set_frame_parameters (f, alist)
 	  }
 
 	if (EQ (top, Qminus))
-	  f->output_data.win32->size_hint_flags |= YNegative;
+	  f->output_data.w32->size_hint_flags |= YNegative;
 	else if (INTEGERP (top))
 	  {
 	    toppos = XINT (top);
 	    if (toppos < 0)
-	      f->output_data.win32->size_hint_flags |= YNegative;
+	      f->output_data.w32->size_hint_flags |= YNegative;
 	  }
 	else if (CONSP (top) && EQ (XCONS (top)->car, Qminus)
 		 && CONSP (XCONS (top)->cdr)
 		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
 	  {
 	    toppos = - XINT (XCONS (XCONS (top)->cdr)->car);
-	    f->output_data.win32->size_hint_flags |= YNegative;
+	    f->output_data.w32->size_hint_flags |= YNegative;
 	  }
 	else if (CONSP (top) && EQ (XCONS (top)->car, Qplus)
 		 && CONSP (XCONS (top)->cdr)
@@ -773,10 +773,10 @@ x_set_frame_parameters (f, alist)
 
 
 	/* Store the numeric value of the position.  */
-	f->output_data.win32->top_pos = toppos;
-	f->output_data.win32->left_pos = leftpos;
+	f->output_data.w32->top_pos = toppos;
+	f->output_data.w32->left_pos = leftpos;
 
-	f->output_data.win32->win_gravity = NorthWestGravity;
+	f->output_data.w32->win_gravity = NorthWestGravity;
 
 	/* Actually set that position, and convert to absolute.  */
 	x_set_offset (f, leftpos, toppos, -1);
@@ -802,14 +802,14 @@ x_real_positions (f, xptr, yptr)
   {
       RECT rect;
       
-      GetClientRect(FRAME_WIN32_WINDOW(f), &rect);
-      AdjustWindowRect(&rect, f->output_data.win32->dwStyle, FRAME_EXTERNAL_MENU_BAR(f));
+      GetClientRect(FRAME_W32_WINDOW(f), &rect);
+      AdjustWindowRect(&rect, f->output_data.w32->dwStyle, FRAME_EXTERNAL_MENU_BAR(f));
       
       pt.x = rect.left;
       pt.y = rect.top;
   }
 
-  ClientToScreen (FRAME_WIN32_WINDOW(f), &pt);
+  ClientToScreen (FRAME_W32_WINDOW(f), &pt);
 
   *xptr = pt.x;
   *yptr = pt.y;
@@ -817,7 +817,7 @@ x_real_positions (f, xptr, yptr)
 
 /* Insert a description of internally-recorded parameters of frame X
    into the parameter alist *ALISTPTR that is to be given to the user.
-   Only parameters that are specific to Win32
+   Only parameters that are specific to W32
    and whose values are not correctly recorded in the frame's
    param_alist need to be considered here.  */
 
@@ -830,23 +830,23 @@ x_report_frame_params (f, alistptr)
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
-  XSETINT (tem, f->output_data.win32->left_pos);
-  if (f->output_data.win32->left_pos >= 0)
+  XSETINT (tem, f->output_data.w32->left_pos);
+  if (f->output_data.w32->left_pos >= 0)
     store_in_alist (alistptr, Qleft, tem);
   else
     store_in_alist (alistptr, Qleft, Fcons (Qplus, Fcons (tem, Qnil)));
 
-  XSETINT (tem, f->output_data.win32->top_pos);
-  if (f->output_data.win32->top_pos >= 0)
+  XSETINT (tem, f->output_data.w32->top_pos);
+  if (f->output_data.w32->top_pos >= 0)
     store_in_alist (alistptr, Qtop, tem);
   else
     store_in_alist (alistptr, Qtop, Fcons (Qplus, Fcons (tem, Qnil)));
 
   store_in_alist (alistptr, Qborder_width,
-       	   make_number (f->output_data.win32->border_width));
+       	   make_number (f->output_data.w32->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
-       	   make_number (f->output_data.win32->internal_border_width));
-  sprintf (buf, "%ld", (long) FRAME_WIN32_WINDOW (f));
+       	   make_number (f->output_data.w32->internal_border_width));
+  sprintf (buf, "%ld", (long) FRAME_W32_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
   store_in_alist (alistptr, Qicon_name, f->icon_name);
@@ -855,13 +855,13 @@ x_report_frame_params (f, alistptr)
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
-		  XCONS (FRAME_WIN32_DISPLAY_INFO (f)->name_list_element)->car);
+		  XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->car);
 }
 
 
-DEFUN ("win32-define-rgb-color", Fwin32_define_rgb_color, Swin32_define_rgb_color, 4, 4, 0,
+DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color, Sw32_define_rgb_color, 4, 4, 0,
   "Convert RGB numbers to a windows color reference and associate with NAME (a string).\n\
-This adds or updates a named color to win32-color-map, making it available for use.\n\
+This adds or updates a named color to w32-color-map, making it available for use.\n\
 The original entry's RGB ref is returned, or nil if the entry is new.")
     (red, green, blue, name)
     Lisp_Object red, green, blue, name;
@@ -879,12 +879,12 @@ The original entry's RGB ref is returned, or nil if the entry is new.")
 
   BLOCK_INPUT;
 
-  /* replace existing entry in win32-color-map or add new entry. */
-  entry = Fassoc (name, Vwin32_color_map);
+  /* replace existing entry in w32-color-map or add new entry. */
+  entry = Fassoc (name, Vw32_color_map);
   if (NILP (entry))
     {
       entry = Fcons (name, rgb);
-      Vwin32_color_map = Fcons (entry, Vwin32_color_map);
+      Vw32_color_map = Fcons (entry, Vw32_color_map);
     }
   else
     {
@@ -897,9 +897,9 @@ The original entry's RGB ref is returned, or nil if the entry is new.")
   return (oldrgb);
 }
 
-DEFUN ("win32-load-color-file", Fwin32_load_color_file, Swin32_load_color_file, 1, 1, 0,
+DEFUN ("w32-load-color-file", Fw32_load_color_file, Sw32_load_color_file, 1, 1, 0,
   "Create an alist of color entries from an external file (ie. rgb.txt).\n\
-Assign this value to win32-color-map to replace the existing color map.\n\
+Assign this value to w32-color-map to replace the existing color map.\n\
 \
 The file should define one named RGB color per line like so:\
   R G B   name\n\
@@ -943,14 +943,14 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.")
   return cmap;
 }
 
-/* The default colors for the win32 color map */
+/* The default colors for the w32 color map */
 typedef struct colormap_t 
 {
   char *name;
   COLORREF colorref;
 } colormap_t;
 
-colormap_t win32_color_map[] = 
+colormap_t w32_color_map[] = 
 {
   {"snow"                      , PALETTERGB (255,250,250)},
   {"ghost white"               , PALETTERGB (248,248,255)},
@@ -1194,19 +1194,19 @@ colormap_t win32_color_map[] =
   {"LightGreen"                , PALETTERGB (144,238,144)},
 };
 
-DEFUN ("win32-default-color-map", Fwin32_default_color_map, Swin32_default_color_map,
+DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
        0, 0, 0, "Return the default color map.")
      ()
 {
   int i;
-  colormap_t *pc = win32_color_map;
+  colormap_t *pc = w32_color_map;
   Lisp_Object cmap;
   
   BLOCK_INPUT;
   
   cmap = Qnil;
   
-  for (i = 0; i < sizeof (win32_color_map) / sizeof (win32_color_map[0]); 
+  for (i = 0; i < sizeof (w32_color_map) / sizeof (w32_color_map[0]); 
        pc++, i++)
     cmap = Fcons (Fcons (build_string (pc->name),
 			 make_number (pc->colorref)),
@@ -1218,7 +1218,7 @@ DEFUN ("win32-default-color-map", Fwin32_default_color_map, Swin32_default_color
 }
 
 Lisp_Object 
-win32_to_x_color (rgb)
+w32_to_x_color (rgb)
      Lisp_Object rgb;
 {
   Lisp_Object color;
@@ -1227,7 +1227,7 @@ win32_to_x_color (rgb)
   
   BLOCK_INPUT;
   
-  color = Frassq (rgb, Vwin32_color_map);
+  color = Frassq (rgb, Vw32_color_map);
   
   UNBLOCK_INPUT;
   
@@ -1238,14 +1238,14 @@ win32_to_x_color (rgb)
 }
 
 COLORREF 
-x_to_win32_color (colorname)
+x_to_w32_color (colorname)
      char * colorname;
 {
   register Lisp_Object tail, ret = Qnil;
   
   BLOCK_INPUT;
   
-  for (tail = Vwin32_color_map; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
     {
       register Lisp_Object elt, tem;
 
@@ -1270,26 +1270,26 @@ x_to_win32_color (colorname)
 
 
 void
-win32_regenerate_palette (FRAME_PTR f)
+w32_regenerate_palette (FRAME_PTR f)
 {
-  struct win32_palette_entry * list;
+  struct w32_palette_entry * list;
   LOGPALETTE *          log_palette;
   HPALETTE              new_palette;
   int                   i;
 
   /* don't bother trying to create palette if not supported */
-  if (! FRAME_WIN32_DISPLAY_INFO (f)->has_palette)
+  if (! FRAME_W32_DISPLAY_INFO (f)->has_palette)
     return;
 
   log_palette = (LOGPALETTE *)
     alloca (sizeof (LOGPALETTE) +
-	     FRAME_WIN32_DISPLAY_INFO (f)->num_colors * sizeof (PALETTEENTRY));
+	     FRAME_W32_DISPLAY_INFO (f)->num_colors * sizeof (PALETTEENTRY));
   log_palette->palVersion = 0x300;
-  log_palette->palNumEntries = FRAME_WIN32_DISPLAY_INFO (f)->num_colors;
+  log_palette->palNumEntries = FRAME_W32_DISPLAY_INFO (f)->num_colors;
 
-  list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  list = FRAME_W32_DISPLAY_INFO (f)->color_list;
   for (i = 0;
-       i < FRAME_WIN32_DISPLAY_INFO (f)->num_colors;
+       i < FRAME_W32_DISPLAY_INFO (f)->num_colors;
        i++, list = list->next)
     log_palette->palPalEntry[i] = list->entry;
 
@@ -1297,9 +1297,9 @@ win32_regenerate_palette (FRAME_PTR f)
 
   enter_crit ();
 
-  if (FRAME_WIN32_DISPLAY_INFO (f)->palette)
-    DeleteObject (FRAME_WIN32_DISPLAY_INFO (f)->palette);
-  FRAME_WIN32_DISPLAY_INFO (f)->palette = new_palette;
+  if (FRAME_W32_DISPLAY_INFO (f)->palette)
+    DeleteObject (FRAME_W32_DISPLAY_INFO (f)->palette);
+  FRAME_W32_DISPLAY_INFO (f)->palette = new_palette;
 
   /* Realize display palette and garbage all frames. */
   release_frame_dc (f, get_frame_dc (f));
@@ -1307,8 +1307,8 @@ win32_regenerate_palette (FRAME_PTR f)
   leave_crit ();
 }
 
-#define WIN32_COLOR(pe)  RGB (pe.peRed, pe.peGreen, pe.peBlue)
-#define SET_WIN32_COLOR(pe, color) \
+#define W32_COLOR(pe)  RGB (pe.peRed, pe.peGreen, pe.peBlue)
+#define SET_W32_COLOR(pe, color) \
   do \
     { \
       pe.peRed = GetRValue (color); \
@@ -1320,17 +1320,17 @@ win32_regenerate_palette (FRAME_PTR f)
 #if 0
 /* Keep these around in case we ever want to track color usage. */
 void
-win32_map_color (FRAME_PTR f, COLORREF color)
+w32_map_color (FRAME_PTR f, COLORREF color)
 {
-  struct win32_palette_entry * list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry * list = FRAME_W32_DISPLAY_INFO (f)->color_list;
 
-  if (NILP (Vwin32_enable_palette))
+  if (NILP (Vw32_enable_palette))
     return;
 
   /* check if color is already mapped */
   while (list)
     {
-      if (WIN32_COLOR (list->entry) == color)
+      if (W32_COLOR (list->entry) == color)
         {
 	  ++list->refcount;
 	  return;
@@ -1339,37 +1339,37 @@ win32_map_color (FRAME_PTR f, COLORREF color)
     }
 
   /* not already mapped, so add to list and recreate Windows palette */
-  list = (struct win32_palette_entry *)
-    xmalloc (sizeof (struct win32_palette_entry));
-  SET_WIN32_COLOR (list->entry, color);
+  list = (struct w32_palette_entry *)
+    xmalloc (sizeof (struct w32_palette_entry));
+  SET_W32_COLOR (list->entry, color);
   list->refcount = 1;
-  list->next = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
-  FRAME_WIN32_DISPLAY_INFO (f)->color_list = list;
-  FRAME_WIN32_DISPLAY_INFO (f)->num_colors++;
+  list->next = FRAME_W32_DISPLAY_INFO (f)->color_list;
+  FRAME_W32_DISPLAY_INFO (f)->color_list = list;
+  FRAME_W32_DISPLAY_INFO (f)->num_colors++;
 
   /* set flag that palette must be regenerated */
-  FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+  FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
 }
 
 void
-win32_unmap_color (FRAME_PTR f, COLORREF color)
+w32_unmap_color (FRAME_PTR f, COLORREF color)
 {
-  struct win32_palette_entry * list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
-  struct win32_palette_entry **prev = &FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry * list = FRAME_W32_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry **prev = &FRAME_W32_DISPLAY_INFO (f)->color_list;
 
-  if (NILP (Vwin32_enable_palette))
+  if (NILP (Vw32_enable_palette))
     return;
 
   /* check if color is already mapped */
   while (list)
     {
-      if (WIN32_COLOR (list->entry) == color)
+      if (W32_COLOR (list->entry) == color)
         {
 	  if (--list->refcount == 0)
 	    {
 	      *prev = list->next;
 	      xfree (list);
-	      FRAME_WIN32_DISPLAY_INFO (f)->num_colors--;
+	      FRAME_W32_DISPLAY_INFO (f)->num_colors--;
 	      break;
 	    }
 	  else
@@ -1380,7 +1380,7 @@ win32_unmap_color (FRAME_PTR f, COLORREF color)
     }
 
   /* set flag that palette must be regenerated */
-  FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+  FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
 }
 #endif
 
@@ -1397,21 +1397,21 @@ defined_color (f, color, color_def, alloc)
 {
   register Lisp_Object tem;
 
-  tem = x_to_win32_color (color);
+  tem = x_to_w32_color (color);
 
   if (!NILP (tem)) 
     {
-      if (!NILP (Vwin32_enable_palette))
+      if (!NILP (Vw32_enable_palette))
 	{
-	  struct win32_palette_entry * entry =
-	    FRAME_WIN32_DISPLAY_INFO (f)->color_list;
-	  struct win32_palette_entry ** prev =
-	    &FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+	  struct w32_palette_entry * entry =
+	    FRAME_W32_DISPLAY_INFO (f)->color_list;
+	  struct w32_palette_entry ** prev =
+	    &FRAME_W32_DISPLAY_INFO (f)->color_list;
       
 	  /* check if color is already mapped */
 	  while (entry)
 	    {
-	      if (WIN32_COLOR (entry->entry) == XUINT (tem))
+	      if (W32_COLOR (entry->entry) == XUINT (tem))
 		break;
 	      prev = &entry->next;
 	      entry = entry->next;
@@ -1420,15 +1420,15 @@ defined_color (f, color, color_def, alloc)
 	  if (entry == NULL && alloc)
 	    {
 	      /* not already mapped, so add to list */
-	      entry = (struct win32_palette_entry *)
-		xmalloc (sizeof (struct win32_palette_entry));
-	      SET_WIN32_COLOR (entry->entry, XUINT (tem));
+	      entry = (struct w32_palette_entry *)
+		xmalloc (sizeof (struct w32_palette_entry));
+	      SET_W32_COLOR (entry->entry, XUINT (tem));
 	      entry->next = NULL;
 	      *prev = entry;
-	      FRAME_WIN32_DISPLAY_INFO (f)->num_colors++;
+	      FRAME_W32_DISPLAY_INFO (f)->num_colors++;
 
 	      /* set flag that palette must be regenerated */
-	      FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+	      FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
 	    }
 	}
       /* Ensure COLORREF value is snapped to nearest color in (default)
@@ -1463,7 +1463,7 @@ x_decode_color (f, arg, def)
   else if (strcmp (XSTRING (arg)->data, "white") == 0)
     return WHITE_PIX_DEFAULT (f);
 
-  if ((FRAME_WIN32_DISPLAY_INFO (f)->n_planes * FRAME_WIN32_DISPLAY_INFO (f)->n_cbits) == 1)
+  if ((FRAME_W32_DISPLAY_INFO (f)->n_planes * FRAME_W32_DISPLAY_INFO (f)->n_cbits) == 1)
     return def;
 
   /* defined_color is responsible for coping with failures
@@ -1478,7 +1478,7 @@ x_decode_color (f, arg, def)
 /* Functions called only from `x_set_frame_param'
    to set individual parameters.
 
-   If FRAME_WIN32_WINDOW (f) is 0,
+   If FRAME_W32_WINDOW (f) is 0,
    the frame is being created and its window does not exist yet.
    In that case, just record the parameter's new value
    in the standard place; do not attempt to change the window.  */
@@ -1488,10 +1488,10 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  f->output_data.win32->foreground_pixel
+  f->output_data.w32->foreground_pixel
     = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     {
       recompute_basic_faces (f);
       if (FRAME_VISIBLE_P (f))
@@ -1507,12 +1507,12 @@ x_set_background_color (f, arg, oldval)
   Pixmap temp;
   int mask;
 
-  f->output_data.win32->background_pixel
+  f->output_data.w32->background_pixel
     = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     {
-      SetWindowLong (FRAME_WIN32_WINDOW (f), WND_BACKGROUND_INDEX, f->output_data.win32->background_pixel);
+      SetWindowLong (FRAME_W32_WINDOW (f), WND_BACKGROUND_INDEX, f->output_data.w32->background_pixel);
 
       recompute_basic_faces (f);
 
@@ -1532,110 +1532,110 @@ x_set_mouse_color (f, arg, oldval)
   int mask_color;
 
   if (!EQ (Qnil, arg))
-    f->output_data.win32->mouse_pixel
+    f->output_data.w32->mouse_pixel
       = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  mask_color = f->output_data.win32->background_pixel;
+  mask_color = f->output_data.w32->background_pixel;
 				/* No invisible pointers.  */
-  if (mask_color == f->output_data.win32->mouse_pixel
-	&& mask_color == f->output_data.win32->background_pixel)
-    f->output_data.win32->mouse_pixel = f->output_data.win32->foreground_pixel;
+  if (mask_color == f->output_data.w32->mouse_pixel
+	&& mask_color == f->output_data.w32->background_pixel)
+    f->output_data.w32->mouse_pixel = f->output_data.w32->foreground_pixel;
 
 #if 0
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  x_catch_errors (FRAME_WIN32_DISPLAY (f));
+  x_catch_errors (FRAME_W32_DISPLAY (f));
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
       CHECK_NUMBER (Vx_pointer_shape, 0);
-      cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f), XINT (Vx_pointer_shape));
+      cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XINT (Vx_pointer_shape));
     }
   else
-    cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_WIN32_DISPLAY (f), "bad text pointer cursor: %s");
+    cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
+  x_check_errors (FRAME_W32_DISPLAY (f), "bad text pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_nontext_pointer_shape))
     {
       CHECK_NUMBER (Vx_nontext_pointer_shape, 0);
-      nontext_cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f),
+      nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
 					  XINT (Vx_nontext_pointer_shape));
     }
   else
-    nontext_cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f), XC_left_ptr);
-  x_check_errors (FRAME_WIN32_DISPLAY (f), "bad nontext pointer cursor: %s");
+    nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_left_ptr);
+  x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_mode_pointer_shape))
     {
       CHECK_NUMBER (Vx_mode_pointer_shape, 0);
-      mode_cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f),
+      mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
 				       XINT (Vx_mode_pointer_shape));
     }
   else
-    mode_cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f), XC_xterm);
-  x_check_errors (FRAME_WIN32_DISPLAY (f), "bad modeline pointer cursor: %s");
+    mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
+  x_check_errors (FRAME_W32_DISPLAY (f), "bad modeline pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
       cross_cursor
-	= XCreateFontCursor (FRAME_WIN32_DISPLAY (f),
+	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
 			     XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (FRAME_WIN32_DISPLAY (f), XC_crosshair);
+    cross_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
 
   /* Check and report errors with the above calls.  */
-  x_check_errors (FRAME_WIN32_DISPLAY (f), "can't set cursor shape: %s");
-  x_uncatch_errors (FRAME_WIN32_DISPLAY (f));
+  x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
+  x_uncatch_errors (FRAME_W32_DISPLAY (f));
 
   {
     XColor fore_color, back_color;
 
-    fore_color.pixel = f->output_data.win32->mouse_pixel;
+    fore_color.pixel = f->output_data.w32->mouse_pixel;
     back_color.pixel = mask_color;
-    XQueryColor (FRAME_WIN32_DISPLAY (f),
-		 DefaultColormap (FRAME_WIN32_DISPLAY (f),
-				  DefaultScreen (FRAME_WIN32_DISPLAY (f))),
+    XQueryColor (FRAME_W32_DISPLAY (f),
+		 DefaultColormap (FRAME_W32_DISPLAY (f),
+				  DefaultScreen (FRAME_W32_DISPLAY (f))),
 		 &fore_color);
-    XQueryColor (FRAME_WIN32_DISPLAY (f),
-		 DefaultColormap (FRAME_WIN32_DISPLAY (f),
-				  DefaultScreen (FRAME_WIN32_DISPLAY (f))),
+    XQueryColor (FRAME_W32_DISPLAY (f),
+		 DefaultColormap (FRAME_W32_DISPLAY (f),
+				  DefaultScreen (FRAME_W32_DISPLAY (f))),
 		 &back_color);
-    XRecolorCursor (FRAME_WIN32_DISPLAY (f), cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_WIN32_DISPLAY (f), nontext_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), nontext_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_WIN32_DISPLAY (f), mode_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), mode_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_WIN32_DISPLAY (f), cross_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), cross_cursor,
                     &fore_color, &back_color);
   }
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     {
-      XDefineCursor (FRAME_WIN32_DISPLAY (f), FRAME_WIN32_WINDOW (f), cursor);
+      XDefineCursor (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f), cursor);
     }
 
-  if (cursor != f->output_data.win32->text_cursor && f->output_data.win32->text_cursor != 0)
-    XFreeCursor (FRAME_WIN32_DISPLAY (f), f->output_data.win32->text_cursor);
-  f->output_data.win32->text_cursor = cursor;
+  if (cursor != f->output_data.w32->text_cursor && f->output_data.w32->text_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->text_cursor);
+  f->output_data.w32->text_cursor = cursor;
 
-  if (nontext_cursor != f->output_data.win32->nontext_cursor
-      && f->output_data.win32->nontext_cursor != 0)
-    XFreeCursor (FRAME_WIN32_DISPLAY (f), f->output_data.win32->nontext_cursor);
-  f->output_data.win32->nontext_cursor = nontext_cursor;
+  if (nontext_cursor != f->output_data.w32->nontext_cursor
+      && f->output_data.w32->nontext_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->nontext_cursor);
+  f->output_data.w32->nontext_cursor = nontext_cursor;
 
-  if (mode_cursor != f->output_data.win32->modeline_cursor
-      && f->output_data.win32->modeline_cursor != 0)
-    XFreeCursor (FRAME_WIN32_DISPLAY (f), f->output_data.win32->modeline_cursor);
-  f->output_data.win32->modeline_cursor = mode_cursor;
-  if (cross_cursor != f->output_data.win32->cross_cursor
-      && f->output_data.win32->cross_cursor != 0)
-    XFreeCursor (FRAME_WIN32_DISPLAY (f), f->output_data.win32->cross_cursor);
-  f->output_data.win32->cross_cursor = cross_cursor;
+  if (mode_cursor != f->output_data.w32->modeline_cursor
+      && f->output_data.w32->modeline_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->modeline_cursor);
+  f->output_data.w32->modeline_cursor = mode_cursor;
+  if (cross_cursor != f->output_data.w32->cross_cursor
+      && f->output_data.w32->cross_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->cross_cursor);
+  f->output_data.w32->cross_cursor = cross_cursor;
 
-  XFlush (FRAME_WIN32_DISPLAY (f));
+  XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 #endif
 }
@@ -1651,19 +1651,19 @@ x_set_cursor_color (f, arg, oldval)
     fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
 				 WHITE_PIX_DEFAULT (f));
   else
-    fore_pixel = f->output_data.win32->background_pixel;
-  f->output_data.win32->cursor_pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+    fore_pixel = f->output_data.w32->background_pixel;
+  f->output_data.w32->cursor_pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   
   /* Make sure that the cursor color differs from the background color.  */
-  if (f->output_data.win32->cursor_pixel == f->output_data.win32->background_pixel)
+  if (f->output_data.w32->cursor_pixel == f->output_data.w32->background_pixel)
     {
-      f->output_data.win32->cursor_pixel = f->output_data.win32->mouse_pixel;
-      if (f->output_data.win32->cursor_pixel == fore_pixel)
-	fore_pixel = f->output_data.win32->background_pixel;
+      f->output_data.w32->cursor_pixel = f->output_data.w32->mouse_pixel;
+      if (f->output_data.w32->cursor_pixel == fore_pixel)
+	fore_pixel = f->output_data.w32->background_pixel;
     }
-  f->output_data.win32->cursor_foreground_pixel = fore_pixel;
+  f->output_data.w32->cursor_foreground_pixel = fore_pixel;
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     {
       if (FRAME_VISIBLE_P (f))
 	{
@@ -1703,9 +1703,9 @@ x_set_border_pixel (f, pix)
      struct frame *f;
      int pix;
 {
-  f->output_data.win32->border_pixel = pix;
+  f->output_data.w32->border_pixel = pix;
 
-  if (FRAME_WIN32_WINDOW (f) != 0 && f->output_data.win32->border_width > 0)
+  if (FRAME_W32_WINDOW (f) != 0 && f->output_data.w32->border_width > 0)
     {
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -1720,13 +1720,13 @@ x_set_cursor_type (f, arg, oldval)
   if (EQ (arg, Qbar))
     {
       FRAME_DESIRED_CURSOR (f) = bar_cursor;
-      f->output_data.win32->cursor_width = 2;
+      f->output_data.w32->cursor_width = 2;
     }
   else if (CONSP (arg) && EQ (XCONS (arg)->car, Qbar)
 	   && INTEGERP (XCONS (arg)->cdr))
     {
       FRAME_DESIRED_CURSOR (f) = bar_cursor;
-      f->output_data.win32->cursor_width = XINT (XCONS (arg)->cdr);
+      f->output_data.w32->cursor_width = XINT (XCONS (arg)->cdr);
     }
   else
     /* Treat anything unknown as "box cursor".
@@ -1776,12 +1776,12 @@ x_set_icon_type (f, arg, oldval)
   if (FRAME_VISIBLE_P (f))
     {
 #ifdef USE_X_TOOLKIT
-      XtPopup (f->output_data.win32->widget, XtGrabNone);
+      XtPopup (f->output_data.w32->widget, XtGrabNone);
 #endif
-      XMapWindow (FRAME_WIN32_DISPLAY (f), FRAME_WIN32_WINDOW (f));
+      XMapWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
     }
 
-  XFlush (FRAME_WIN32_DISPLAY (f));
+  XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 #endif
 }
@@ -1820,7 +1820,7 @@ x_set_icon_name (f, arg, oldval)
   f->icon_name = arg;
 
 #if 0
-  if (f->output_data.win32->icon_bitmap != 0)
+  if (f->output_data.w32->icon_bitmap != 0)
     return;
 
   BLOCK_INPUT;
@@ -1841,12 +1841,12 @@ x_set_icon_name (f, arg, oldval)
   if (FRAME_VISIBLE_P (f))
     {
 #ifdef USE_X_TOOLKIT
-      XtPopup (f->output_data.win32->widget, XtGrabNone);
+      XtPopup (f->output_data.w32->widget, XtGrabNone);
 #endif
-      XMapWindow (FRAME_WIN32_DISPLAY (f), FRAME_WIN32_WINDOW (f));
+      XMapWindow (FRAME_W32_DISPLAY (f), FRAME_W32_WINDOW (f));
     }
 
-  XFlush (FRAME_WIN32_DISPLAY (f));
+  XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 #endif
 }
@@ -1886,13 +1886,13 @@ x_set_border_width (f, arg, oldval)
 {
   CHECK_NUMBER (arg, 0);
 
-  if (XINT (arg) == f->output_data.win32->border_width)
+  if (XINT (arg) == f->output_data.w32->border_width)
     return;
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     error ("Cannot change the border width of a window");
 
-  f->output_data.win32->border_width = XINT (arg);
+  f->output_data.w32->border_width = XINT (arg);
 }
 
 void
@@ -1901,17 +1901,17 @@ x_set_internal_border_width (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   int mask;
-  int old = f->output_data.win32->internal_border_width;
+  int old = f->output_data.w32->internal_border_width;
 
   CHECK_NUMBER (arg, 0);
-  f->output_data.win32->internal_border_width = XINT (arg);
-  if (f->output_data.win32->internal_border_width < 0)
-    f->output_data.win32->internal_border_width = 0;
+  f->output_data.w32->internal_border_width = XINT (arg);
+  if (f->output_data.w32->internal_border_width < 0)
+    f->output_data.w32->internal_border_width = 0;
 
-  if (f->output_data.win32->internal_border_width == old)
+  if (f->output_data.w32->internal_border_width == old)
     return;
 
-  if (FRAME_WIN32_WINDOW (f) != 0)
+  if (FRAME_W32_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
       x_set_window_size (f, 0, f->width, f->height);
@@ -1968,7 +1968,7 @@ x_set_menu_bar_lines (f, value, oldval)
 }
 
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
-       win32_id_name.
+       w32_id_name.
 
    If EXPLICIT is non-zero, that indicates that lisp code is setting the
        name; if NAME is a string, set F's name to NAME and set
@@ -1998,15 +1998,15 @@ x_set_name (f, name, explicit)
   else if (f->explicit_name)
     return;
 
-  /* If NAME is nil, set the name to the win32_id_name.  */
+  /* If NAME is nil, set the name to the w32_id_name.  */
   if (NILP (name))
     {
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (!strcmp (FRAME_WIN32_DISPLAY_INFO (f)->win32_id_name,
+      if (!strcmp (FRAME_W32_DISPLAY_INFO (f)->w32_id_name,
 		   XSTRING (f->name)->data))
 	return;
-      name = build_string (FRAME_WIN32_DISPLAY_INFO (f)->win32_id_name);
+      name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
     }
   else
     CHECK_STRING (name, 0);
@@ -2015,10 +2015,10 @@ x_set_name (f, name, explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  if (FRAME_WIN32_WINDOW (f))
+  if (FRAME_W32_WINDOW (f))
     {
       BLOCK_INPUT;
-      SetWindowText(FRAME_WIN32_WINDOW (f), XSTRING (name)->data);
+      SetWindowText(FRAME_W32_WINDOW (f), XSTRING (name)->data);
       UNBLOCK_INPUT;
     }
 
@@ -2091,7 +2091,7 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	 frame, so we can get the geometry right from the start.
 	 However, if the window hasn't been created yet, we shouldn't
 	 call x_set_window_size.  */
-      if (FRAME_WIN32_WINDOW (f))
+      if (FRAME_W32_WINDOW (f))
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
@@ -2109,10 +2109,10 @@ x_set_scroll_bar_width (f, arg, oldval)
   else if (INTEGERP (arg) && XINT (arg) > 0
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
     {
-      int wid = FONT_WIDTH (f->output_data.win32->font);
+      int wid = FONT_WIDTH (f->output_data.w32->font);
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = XFASTINT (arg);
       FRAME_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
-      if (FRAME_WIN32_WINDOW (f))
+      if (FRAME_W32_WINDOW (f))
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
@@ -2474,8 +2474,8 @@ x_figure_window_size (f, parms)
   f->height = DEFAULT_ROWS;
   /* Window managers expect that if program-specified
      positions are not (0,0), they're intentional, not defaults.  */
-  f->output_data.win32->top_pos = 0;
-  f->output_data.win32->left_pos = 0;
+  f->output_data.w32->top_pos = 0;
+  f->output_data.w32->left_pos = 0;
 
   tem0 = x_get_arg (parms, Qheight, 0, 0, number);
   tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
@@ -2498,14 +2498,14 @@ x_figure_window_size (f, parms)
 	window_prompting |= PSize;
     }
 
-  f->output_data.win32->vertical_scroll_bar_extra
+  f->output_data.w32->vertical_scroll_bar_extra
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
        : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.win32->font)));
-  f->output_data.win32->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
-  f->output_data.win32->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
+       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.w32->font)));
+  f->output_data.w32->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
+  f->output_data.w32->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
   tem0 = x_get_arg (parms, Qtop, 0, 0, number);
   tem1 = x_get_arg (parms, Qleft, 0, 0, number);
@@ -2514,57 +2514,57 @@ x_figure_window_size (f, parms)
     {
       if (EQ (tem0, Qminus))
 	{
-	  f->output_data.win32->top_pos = 0;
+	  f->output_data.w32->top_pos = 0;
 	  window_prompting |= YNegative;
 	}
       else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qminus)
 	       && CONSP (XCONS (tem0)->cdr)
 	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
 	{
-	  f->output_data.win32->top_pos = - XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.w32->top_pos = - XINT (XCONS (XCONS (tem0)->cdr)->car);
 	  window_prompting |= YNegative;
 	}
       else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qplus)
 	       && CONSP (XCONS (tem0)->cdr)
 	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
 	{
-	  f->output_data.win32->top_pos = XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.w32->top_pos = XINT (XCONS (XCONS (tem0)->cdr)->car);
 	}
       else if (EQ (tem0, Qunbound))
-	f->output_data.win32->top_pos = 0;
+	f->output_data.w32->top_pos = 0;
       else
 	{
 	  CHECK_NUMBER (tem0, 0);
-	  f->output_data.win32->top_pos = XINT (tem0);
-	  if (f->output_data.win32->top_pos < 0)
+	  f->output_data.w32->top_pos = XINT (tem0);
+	  if (f->output_data.w32->top_pos < 0)
 	    window_prompting |= YNegative;
 	}
 
       if (EQ (tem1, Qminus))
 	{
-	  f->output_data.win32->left_pos = 0;
+	  f->output_data.w32->left_pos = 0;
 	  window_prompting |= XNegative;
 	}
       else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qminus)
 	       && CONSP (XCONS (tem1)->cdr)
 	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
 	{
-	  f->output_data.win32->left_pos = - XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.w32->left_pos = - XINT (XCONS (XCONS (tem1)->cdr)->car);
 	  window_prompting |= XNegative;
 	}
       else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qplus)
 	       && CONSP (XCONS (tem1)->cdr)
 	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
 	{
-	  f->output_data.win32->left_pos = XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.w32->left_pos = XINT (XCONS (XCONS (tem1)->cdr)->car);
 	}
       else if (EQ (tem1, Qunbound))
-	f->output_data.win32->left_pos = 0;
+	f->output_data.w32->left_pos = 0;
       else
 	{
 	  CHECK_NUMBER (tem1, 0);
-	  f->output_data.win32->left_pos = XINT (tem1);
-	  if (f->output_data.win32->left_pos < 0)
+	  f->output_data.w32->left_pos = XINT (tem1);
+	  if (f->output_data.w32->left_pos < 0)
 	    window_prompting |= XNegative;
 	}
 
@@ -2579,16 +2579,16 @@ x_figure_window_size (f, parms)
 
 
 
-extern LRESULT CALLBACK win32_wnd_proc ();
+extern LRESULT CALLBACK w32_wnd_proc ();
 
 BOOL 
-win32_init_class (hinst)
+w32_init_class (hinst)
      HINSTANCE hinst;
 {
   WNDCLASS wc;
 
   wc.style = CS_HREDRAW | CS_VREDRAW;
-  wc.lpfnWndProc = (WNDPROC) win32_wnd_proc;
+  wc.lpfnWndProc = (WNDPROC) w32_wnd_proc;
   wc.cbClsExtra = 0;
   wc.cbWndExtra = WND_EXTRA_BYTES;
   wc.hInstance = hinst;
@@ -2602,7 +2602,7 @@ win32_init_class (hinst)
 }
 
 HWND 
-win32_createscrollbar (f, bar)
+w32_createscrollbar (f, bar)
      struct frame *f;
      struct scroll_bar * bar;
 {
@@ -2610,14 +2610,14 @@ win32_createscrollbar (f, bar)
 			/* Position and size of scroll bar.  */
 			XINT(bar->left), XINT(bar->top), 
 			XINT(bar->width), XINT(bar->height),
-			FRAME_WIN32_WINDOW (f),
+			FRAME_W32_WINDOW (f),
 			NULL,
 			hinst,
 			NULL));
 }
 
 void 
-win32_createwindow (f)
+w32_createwindow (f)
      struct frame *f;
 {
   HWND hwnd;
@@ -2626,14 +2626,14 @@ win32_createwindow (f)
   
   if (!hprevinst)
     {
-      win32_init_class (hinst);
+      w32_init_class (hinst);
     }
   
-  FRAME_WIN32_WINDOW (f) = hwnd = CreateWindow (EMACS_CLASS,
+  FRAME_W32_WINDOW (f) = hwnd = CreateWindow (EMACS_CLASS,
 						f->namebuf,
-						f->output_data.win32->dwStyle | WS_CLIPCHILDREN,
-						f->output_data.win32->left_pos,
-						f->output_data.win32->top_pos,
+						f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
+						f->output_data.w32->left_pos,
+						f->output_data.w32->top_pos,
 						PIXEL_WIDTH (f),
 						PIXEL_HEIGHT (f),
 						NULL,
@@ -2643,29 +2643,29 @@ win32_createwindow (f)
   
   if (hwnd)
     {
-      SetWindowLong (hwnd, WND_X_UNITS_INDEX, FONT_WIDTH (f->output_data.win32->font));
-      SetWindowLong (hwnd, WND_Y_UNITS_INDEX, f->output_data.win32->line_height);
-      SetWindowLong (hwnd, WND_BACKGROUND_INDEX, f->output_data.win32->background_pixel);
+      SetWindowLong (hwnd, WND_X_UNITS_INDEX, FONT_WIDTH (f->output_data.w32->font));
+      SetWindowLong (hwnd, WND_Y_UNITS_INDEX, f->output_data.w32->line_height);
+      SetWindowLong (hwnd, WND_BACKGROUND_INDEX, f->output_data.w32->background_pixel);
 
       /* Do this to discard the default setting specified by our parent. */
       ShowWindow (hwnd, SW_HIDE);
     }
 }
 
-/* Convert between the modifier bits Win32 uses and the modifier bits
+/* Convert between the modifier bits W32 uses and the modifier bits
    Emacs uses.  */
 unsigned int
-win32_get_modifiers ()
+w32_get_modifiers ()
 {
   return (((GetKeyState (VK_SHIFT)&0x8000)   ? shift_modifier  : 0) |
 	  ((GetKeyState (VK_CONTROL)&0x8000) ? ctrl_modifier   : 0) |
           ((GetKeyState (VK_MENU)&0x8000)    ? 
-	   ((NILP (Vwin32_alt_is_meta)) ? alt_modifier : meta_modifier) : 0));
+	   ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier) : 0));
 }
 
 void 
 my_post_msg (wmsg, hwnd, msg, wParam, lParam)
-     Win32Msg * wmsg;
+     W32Msg * wmsg;
      HWND hwnd;
      UINT msg;
      WPARAM wParam;
@@ -2897,12 +2897,12 @@ win_msg_worker (dw)
 	  switch (msg.message)
 	    {
 	    case WM_EMACS_CREATEWINDOW:
-	      win32_createwindow ((struct frame *) msg.wParam);
+	      w32_createwindow ((struct frame *) msg.wParam);
 	      PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
 	      break;
 	    case WM_EMACS_CREATESCROLLBAR:
 	      {
-		HWND hwnd = win32_createscrollbar ((struct frame *) msg.wParam,
+		HWND hwnd = w32_createscrollbar ((struct frame *) msg.wParam,
 						   (struct scroll_bar *) msg.lParam);
 		PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, (WPARAM)hwnd, 0);
 	      }
@@ -2925,7 +2925,7 @@ win_msg_worker (dw)
 extern char *lispy_function_keys[];
 
 LRESULT CALLBACK 
-win32_wnd_proc (hwnd, msg, wParam, lParam)
+w32_wnd_proc (hwnd, msg, wParam, lParam)
      HWND hwnd;
      UINT msg;
      WPARAM wParam;
@@ -2933,8 +2933,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 {
   struct frame *f;
   LRESULT ret = 1;
-  struct win32_display_info *dpyinfo = &one_win32_display_info;
-  Win32Msg wmsg;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
+  W32Msg wmsg;
   int windows_translate;
 
   /* Note that it is okay to call x_window_to_frame, even though we are
@@ -2950,7 +2950,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
      delete-frame has synchronized with this thread.
 
      It is also safe to use functions that make GDI calls, such as
-     win32_clear_rect, because these functions must obtain a DC handle
+     w32_clear_rect, because these functions must obtain a DC handle
      from the frame struct using get_frame_dc which is thread-aware.  */
 
   switch (msg) 
@@ -2960,7 +2960,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       if (f)
 	{
 	  GetUpdateRect (hwnd, &wmsg.rect, FALSE);
-	  win32_clear_rect (f, NULL, &wmsg.rect);
+	  w32_clear_rect (f, NULL, &wmsg.rect);
 	}
       return 1;
     case WM_PALETTECHANGED:
@@ -3009,11 +3009,11 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       case VK_RWIN:
       case VK_APPS:
 	/* More support for these keys will likely be necessary.  */
-	if (!NILP (Vwin32_pass_optional_keys_to_system))
+	if (!NILP (Vw32_pass_optional_keys_to_system))
 	  windows_translate = 1;
 	break;
       case VK_MENU:
-	if (NILP (Vwin32_pass_alt_to_system)) 
+	if (NILP (Vw32_pass_alt_to_system)) 
 	  return 0;
 	windows_translate = 1;
 	break;
@@ -3070,7 +3070,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-      if (XINT (Vwin32_num_mouse_buttons) == 3)
+      if (XINT (Vw32_num_mouse_buttons) == 3)
 	goto handle_plain_button;
 
       {
@@ -3109,7 +3109,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 		/* Flush out saved message. */
 		post_msg (&saved_mouse_button_msg);
 	      }
-	    wmsg.dwModifiers = win32_get_modifiers ();
+	    wmsg.dwModifiers = w32_get_modifiers ();
 	    my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 
 	    /* Clear message buffer. */
@@ -3119,20 +3119,20 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	  {
 	    /* Hold onto message for now. */
 	    mouse_button_timer =
-	      SetTimer (hwnd, MOUSE_BUTTON_ID, XINT (Vwin32_mouse_button_tolerance), NULL);
+	      SetTimer (hwnd, MOUSE_BUTTON_ID, XINT (Vw32_mouse_button_tolerance), NULL);
 	    saved_mouse_button_msg.msg.hwnd = hwnd;
 	    saved_mouse_button_msg.msg.message = msg;
 	    saved_mouse_button_msg.msg.wParam = wParam;
 	    saved_mouse_button_msg.msg.lParam = lParam;
 	    saved_mouse_button_msg.msg.time = GetMessageTime ();
-	    saved_mouse_button_msg.dwModifiers = win32_get_modifiers ();
+	    saved_mouse_button_msg.dwModifiers = w32_get_modifiers ();
 	  }
       }
       return 0;
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-      if (XINT (Vwin32_num_mouse_buttons) == 3)
+      if (XINT (Vw32_num_mouse_buttons) == 3)
 	goto handle_plain_button;
 
       {
@@ -3165,7 +3165,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 		post_msg (&saved_mouse_button_msg);
 	      }
 	  }
-	wmsg.dwModifiers = win32_get_modifiers ();
+	wmsg.dwModifiers = w32_get_modifiers ();
 	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 
 	/* Always clear message buffer and cancel timer. */
@@ -3191,16 +3191,16 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	  }
       }
       
-      wmsg.dwModifiers = win32_get_modifiers ();
+      wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
     case WM_VSCROLL:
     case WM_MOUSEMOVE:
-      if (XINT (Vwin32_mouse_move_interval) <= 0
+      if (XINT (Vw32_mouse_move_interval) <= 0
 	  || (msg == WM_MOUSEMOVE && button_state == 0))
   	{
-	  wmsg.dwModifiers = win32_get_modifiers ();
+	  wmsg.dwModifiers = w32_get_modifiers ();
 	  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 	  return 0;
   	}
@@ -3212,7 +3212,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 
       if (saved_mouse_move_msg.msg.hwnd == 0)
 	mouse_move_timer =
-	  SetTimer (hwnd, MOUSE_MOVE_ID, XINT (Vwin32_mouse_move_interval), NULL);
+	  SetTimer (hwnd, MOUSE_MOVE_ID, XINT (Vw32_mouse_move_interval), NULL);
 
       /* Hold onto message for now. */
       saved_mouse_move_msg.msg.hwnd = hwnd;
@@ -3220,7 +3220,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       saved_mouse_move_msg.msg.wParam = wParam;
       saved_mouse_move_msg.msg.lParam = lParam;
       saved_mouse_move_msg.msg.time = GetMessageTime ();
-      saved_mouse_move_msg.dwModifiers = win32_get_modifiers ();
+      saved_mouse_move_msg.dwModifiers = w32_get_modifiers ();
   
       return 0;
 
@@ -3264,12 +3264,12 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_SIZE:
     case WM_SYSCOMMAND:
     case WM_COMMAND:
-      wmsg.dwModifiers = win32_get_modifiers ();
+      wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
 
     case WM_CLOSE:
-      wmsg.dwModifiers = win32_get_modifiers ();
+      wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
@@ -3343,7 +3343,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       return ShowWindow (hwnd, wParam);
     case WM_EMACS_SETWINDOWPOS:
       {
-	Win32WindowPos * pos = (Win32WindowPos *) wParam;
+	W32WindowPos * pos = (W32WindowPos *) wParam;
 	return SetWindowPos (hwnd, pos->hwndAfter,
 			     pos->x, pos->y, pos->cx, pos->cy, pos->flags);
       }
@@ -3368,10 +3368,10 @@ my_create_window (f)
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
 
-/* Create and set up the win32 window for frame F.  */
+/* Create and set up the w32 window for frame F.  */
 
 static void
-win32_window (f, window_prompting, minibuffer_only)
+w32_window (f, window_prompting, minibuffer_only)
      struct frame *f;
      long window_prompting;
      int minibuffer_only;
@@ -3413,7 +3413,7 @@ win32_window (f, window_prompting, minibuffer_only)
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
     initialize_frame_menubar (f);
 
-  if (FRAME_WIN32_WINDOW (f) == 0)
+  if (FRAME_W32_WINDOW (f) == 0)
     error ("Unable to create window");
 }
 
@@ -3471,7 +3471,7 @@ This function is an internal primitive--use `make-frame' instead.")
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
   Lisp_Object display;
-  struct win32_display_info *dpyinfo;
+  struct w32_display_info *dpyinfo;
   Lisp_Object parent;
   struct kboard *kb;
 
@@ -3526,11 +3526,11 @@ This function is an internal primitive--use `make-frame' instead.")
   XSETFRAME (frame, f);
   GCPRO1 (frame);
 
-  f->output_method = output_win32;
-  f->output_data.win32 = (struct win32_output *) xmalloc (sizeof (struct win32_output));
-  bzero (f->output_data.win32, sizeof (struct win32_output));
+  f->output_method = output_w32;
+  f->output_data.w32 = (struct w32_output *) xmalloc (sizeof (struct w32_output));
+  bzero (f->output_data.w32, sizeof (struct w32_output));
 
-/*  FRAME_WIN32_DISPLAY_INFO (f) = dpyinfo; */
+/*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
@@ -3539,13 +3539,13 @@ This function is an internal primitive--use `make-frame' instead.")
 
   if (!NILP (parent))
     {
-      f->output_data.win32->parent_desc = (Window) parent;
-      f->output_data.win32->explicit_parent = 1;
+      f->output_data.w32->parent_desc = (Window) parent;
+      f->output_data.w32->explicit_parent = 1;
     }
   else
     {
-      f->output_data.win32->parent_desc = FRAME_WIN32_DISPLAY_INFO (f)->root_window;
-      f->output_data.win32->explicit_parent = 0;
+      f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+      f->output_data.w32->explicit_parent = 0;
     }
 
   /* Note that the frame has no physical cursor right now.  */
@@ -3555,7 +3555,7 @@ This function is an internal primitive--use `make-frame' instead.")
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->win32_id_name);
+      f->name = build_string (dpyinfo->w32_id_name);
       f->explicit_name = 0;
     }
   else
@@ -3639,28 +3639,28 @@ This function is an internal primitive--use `make-frame' instead.")
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", number);
 
-  f->output_data.win32->dwStyle = WS_OVERLAPPEDWINDOW;
-  f->output_data.win32->parent_desc = FRAME_WIN32_DISPLAY_INFO (f)->root_window;
+  f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
+  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
 
   if (window_prompting & XNegative)
     {
       if (window_prompting & YNegative)
-	f->output_data.win32->win_gravity = SouthEastGravity;
+	f->output_data.w32->win_gravity = SouthEastGravity;
       else
-	f->output_data.win32->win_gravity = NorthEastGravity;
+	f->output_data.w32->win_gravity = NorthEastGravity;
     }
   else
     {
       if (window_prompting & YNegative)
-	f->output_data.win32->win_gravity = SouthWestGravity;
+	f->output_data.w32->win_gravity = SouthWestGravity;
       else
-	f->output_data.win32->win_gravity = NorthWestGravity;
+	f->output_data.w32->win_gravity = NorthWestGravity;
     }
 
-  f->output_data.win32->size_hint_flags = window_prompting;
+  f->output_data.w32->size_hint_flags = window_prompting;
 
-  win32_window (f, window_prompting, minibuffer_only);
+  w32_window (f, window_prompting, minibuffer_only);
   x_icon (f, parms);
   init_frame_faces (f);
 
@@ -3704,12 +3704,12 @@ This function is an internal primitive--use `make-frame' instead.")
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
-  FRAME_WIN32_DISPLAY_INFO (f)->reference_count++;
+  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
 
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  However, with explicit parent,
      Emacs cannot control visibility, so don't try.  */
-  if (! f->output_data.win32->explicit_parent)
+  if (! f->output_data.w32->explicit_parent)
     {
       Lisp_Object visibility;
 
@@ -3736,18 +3736,18 @@ Lisp_Object
 x_get_focus_frame (frame)
      struct frame *frame;
 {
-  struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (frame);
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (frame);
   Lisp_Object xfocus;
-  if (! dpyinfo->win32_focus_frame)
+  if (! dpyinfo->w32_focus_frame)
     return Qnil;
 
-  XSETFRAME (xfocus, dpyinfo->win32_focus_frame);
+  XSETFRAME (xfocus, dpyinfo->w32_focus_frame);
   return xfocus;
 }
 
 XFontStruct *
-win32_load_font (dpyinfo,name)
-struct win32_display_info *dpyinfo;
+w32_load_font (dpyinfo,name)
+struct w32_display_info *dpyinfo;
 char * name;
 {
   XFontStruct * font = NULL;
@@ -3756,7 +3756,7 @@ char * name;
   {
     LOGFONT lf;
 
-    if (!name || !x_to_win32_font (name, &lf))
+    if (!name || !x_to_w32_font (name, &lf))
       return (NULL);
 
     font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
@@ -3788,13 +3788,13 @@ char * name;
 
   if (ok) return (font);
 
-  win32_unload_font (dpyinfo, font);
+  w32_unload_font (dpyinfo, font);
   return (NULL);
 }
 
 void 
-win32_unload_font (dpyinfo, font)
-     struct win32_display_info *dpyinfo;
+w32_unload_font (dpyinfo, font)
+     struct w32_display_info *dpyinfo;
      XFontStruct * font;
 {
   if (font) 
@@ -3804,7 +3804,7 @@ win32_unload_font (dpyinfo, font)
     }
 }
 
-/* The font conversion stuff between x and win32 */
+/* The font conversion stuff between x and w32 */
 
 /* X font string is as follows (from faces.el)
  * (let ((- 		"[-?]")
@@ -3879,7 +3879,7 @@ win32_unload_font (dpyinfo, font)
 #define FONT_REGEXP_WEIGHT "-" FONT_WEIGHT "-"
 
 LONG 
-x_to_win32_weight (lpw)
+x_to_w32_weight (lpw)
      char * lpw;
 {
   if (!lpw) return (FW_DONTCARE);
@@ -3899,7 +3899,7 @@ x_to_win32_weight (lpw)
 
 
 char * 
-win32_to_x_weight (fnweight)
+w32_to_x_weight (fnweight)
      int fnweight;
 {
   if (fnweight >= FW_HEAVY)      return "heavy";
@@ -3916,7 +3916,7 @@ win32_to_x_weight (fnweight)
 }
 
 LONG
-x_to_win32_charset (lpcs)
+x_to_w32_charset (lpcs)
     char * lpcs;
 {
   if (!lpcs) return (0);
@@ -3934,7 +3934,7 @@ x_to_win32_charset (lpcs)
 }
 
 char *
-win32_to_x_charset (fncharset)
+w32_to_x_charset (fncharset)
     int fncharset;
 {
   switch (fncharset)
@@ -3950,7 +3950,7 @@ win32_to_x_charset (fncharset)
 }
 
 BOOL 
-win32_to_x_font (lplogfont, lpxstr, len)
+w32_to_x_font (lplogfont, lpxstr, len)
      LOGFONT * lplogfont;
      char * lpxstr;
      int len;
@@ -3968,7 +3968,7 @@ win32_to_x_font (lplogfont, lpxstr, len)
     {
       sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
       sprintf (height_dpi, "%u",
-	       (abs (lplogfont->lfHeight) * 720) / one_win32_display_info.height_in);
+	       (abs (lplogfont->lfHeight) * 720) / one_w32_display_info.height_in);
     }
   else
     {
@@ -3983,13 +3983,13 @@ win32_to_x_font (lplogfont, lpxstr, len)
   _snprintf (lpxstr, len - 1,
 	     "-*-%s-%s-%c-*-*-%s-%s-*-*-%c-%s-*-%s-",
 	     lplogfont->lfFaceName,
-	     win32_to_x_weight (lplogfont->lfWeight),
+	     w32_to_x_weight (lplogfont->lfWeight),
 	     lplogfont->lfItalic?'i':'r',
 	     height_pixels,
 	     height_dpi,
 	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH) ? 'p' : 'c',
 	     width_pixels,
-	     win32_to_x_charset (lplogfont->lfCharSet)
+	     w32_to_x_charset (lplogfont->lfCharSet)
 	     );
 
   lpxstr[len - 1] = 0;		/* just to be sure */
@@ -3997,7 +3997,7 @@ win32_to_x_font (lplogfont, lpxstr, len)
 }
 
 BOOL 
-x_to_win32_font (lpxstr, lplogfont)
+x_to_w32_font (lpxstr, lplogfont)
      char * lpxstr;
      LOGFONT * lplogfont;
 {
@@ -4049,11 +4049,11 @@ x_to_win32_font (lpxstr, lplogfont)
 
       fields--;
 
-      lplogfont->lfWeight = x_to_win32_weight ((fields > 0 ? weight : ""));
+      lplogfont->lfWeight = x_to_w32_weight ((fields > 0 ? weight : ""));
 
       fields--;
 
-      if (!NILP (Vwin32_enable_italics))
+      if (!NILP (Vw32_enable_italics))
 	lplogfont->lfItalic = (fields > 0 && slant == 'i');
 
       fields--;
@@ -4065,7 +4065,7 @@ x_to_win32_font (lpxstr, lplogfont)
 
       if (fields > 0 && lplogfont->lfHeight == 0 && height[0] != '*')
 	lplogfont->lfHeight = (atoi (height)
-			       * one_win32_display_info.height_in) / 720;
+			       * one_w32_display_info.height_in) / 720;
 
       fields--;
 
@@ -4090,7 +4090,7 @@ x_to_win32_font (lpxstr, lplogfont)
       encoding = remainder;
       if (strncmp (encoding, "*-", 2) == 0)
 	encoding += 2;
-      lplogfont->lfCharSet = x_to_win32_charset (fields > 0 ? encoding : "");
+      lplogfont->lfCharSet = x_to_w32_charset (fields > 0 ? encoding : "");
     }
   else
     {
@@ -4125,7 +4125,7 @@ x_to_win32_font (lpxstr, lplogfont)
 
       fields--;
 
-      lplogfont->lfWeight = x_to_win32_weight ((fields > 0 ? weight : ""));
+      lplogfont->lfWeight = x_to_w32_weight ((fields > 0 ? weight : ""));
     }
 
   /* This makes TrueType fonts work better. */
@@ -4135,7 +4135,7 @@ x_to_win32_font (lpxstr, lplogfont)
 }
 
 BOOL 
-win32_font_match (lpszfont1, lpszfont2)
+w32_font_match (lpszfont1, lpszfont2)
     char * lpszfont1;
     char * lpszfont2;
 {
@@ -4200,9 +4200,9 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	lplf->elfLogFont.lfWidth = lpef->logfont.lfWidth;
       }
 
-    if (!win32_to_x_font (lplf, buf, 100)) return (0);
+    if (!w32_to_x_font (lplf, buf, 100)) return (0);
 
-    if (NILP (*(lpef->pattern)) || win32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+    if (NILP (*(lpef->pattern)) || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
       {
 	*lpef->tail = Fcons (build_string (buf), Qnil);
 	lpef->tail = &XCONS (*lpef->tail)->cdr;
@@ -4270,25 +4270,25 @@ even if they match PATTERN and FACE.")
       int face_id;
 
       /* Don't die if we get called with a terminal frame.  */
-      if (! FRAME_WIN32_P (f))
-	error ("non-win32 frame used in `x-list-fonts'");
+      if (! FRAME_W32_P (f))
+	error ("non-w32 frame used in `x-list-fonts'");
 
       face_id = face_name_id_number (f, face);
 
       if (face_id < 0 || face_id >= FRAME_N_PARAM_FACES (f)
 	  || FRAME_PARAM_FACES (f) [face_id] == 0)
-	size_ref = f->output_data.win32->font;
+	size_ref = f->output_data.w32->font;
       else
 	{
 	  size_ref = FRAME_PARAM_FACES (f) [face_id]->font;
 	  if (size_ref == (XFontStruct *) (~0))
-	    size_ref = f->output_data.win32->font;
+	    size_ref = f->output_data.w32->font;
 	}
     }
 
   /* See if we cached the result for this particular query.  */
   list = Fassoc (pattern,
-		 XCONS (FRAME_WIN32_DISPLAY_INFO (f)->name_list_element)->cdr);
+		 XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr);
 
   /* We have info in the cache for this PATTERN.  */
   if (!NILP (list))
@@ -4309,12 +4309,12 @@ even if they match PATTERN and FACE.")
 	{
 	  XFontStruct *thisinfo;
 
-          thisinfo = win32_load_font (FRAME_WIN32_DISPLAY_INFO (f), XSTRING (XCONS (tem)->car)->data);
+          thisinfo = w32_load_font (FRAME_W32_DISPLAY_INFO (f), XSTRING (XCONS (tem)->car)->data);
 
           if (thisinfo && same_size_fonts (thisinfo, size_ref))
 	    newlist = Fcons (XCONS (tem)->car, newlist);
 
-	  win32_unload_font (FRAME_WIN32_DISPLAY_INFO (f), thisinfo);
+	  w32_unload_font (FRAME_W32_DISPLAY_INFO (f), thisinfo);
         }
 
       UNBLOCK_INPUT;
@@ -4328,14 +4328,14 @@ even if they match PATTERN and FACE.")
   ef.pattern = &pattern;
   ef.tail = ef.head = &namelist;
   ef.numFonts = 0;
-  x_to_win32_font (STRINGP (pattern) ? XSTRING (pattern)->data : NULL, &ef.logfont);
+  x_to_w32_font (STRINGP (pattern) ? XSTRING (pattern)->data : NULL, &ef.logfont);
 
   {
-    ef.hdc = GetDC (FRAME_WIN32_WINDOW (f));
+    ef.hdc = GetDC (FRAME_W32_WINDOW (f));
 
     EnumFontFamilies (ef.hdc, NULL, (FONTENUMPROC) enum_font_cb1, (LPARAM)&ef);
     
-    ReleaseDC  (FRAME_WIN32_WINDOW (f), ef.hdc);
+    ReleaseDC  (FRAME_W32_WINDOW (f), ef.hdc);
   }
 
   UNBLOCK_INPUT;
@@ -4347,9 +4347,9 @@ even if they match PATTERN and FACE.")
 
       /* Make a list of all the fonts we got back.
 	 Store that in the font cache for the display.  */
-      XCONS (FRAME_WIN32_DISPLAY_INFO (f)->name_list_element)->cdr
+      XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr
 	= Fcons (Fcons (pattern, namelist),
-		 XCONS (FRAME_WIN32_DISPLAY_INFO (f)->name_list_element)->cdr);
+		 XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr);
 
       /* Make a list of the fonts that have the right width.  */
       list = Qnil;
@@ -4365,11 +4365,11 @@ even if they match PATTERN and FACE.")
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
-	      thisinfo = win32_load_font (FRAME_WIN32_DISPLAY_INFO (f), XSTRING (Fcar (cur))->data);
+	      thisinfo = w32_load_font (FRAME_W32_DISPLAY_INFO (f), XSTRING (Fcar (cur))->data);
 
 	      keeper = thisinfo && same_size_fonts (thisinfo, size_ref);
 
-	      win32_unload_font (FRAME_WIN32_DISPLAY_INFO (f), thisinfo);
+	      w32_unload_font (FRAME_W32_DISPLAY_INFO (f), thisinfo);
 
 	      UNBLOCK_INPUT;
 	    }
@@ -4436,7 +4436,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   if ((dpyinfo->n_planes * dpyinfo->n_cbits) <= 2)
     return Qnil;
@@ -4454,7 +4454,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   if ((dpyinfo->n_planes * dpyinfo->n_cbits) <= 1)
     return Qnil;
@@ -4471,7 +4471,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->width);
 }
@@ -4485,7 +4485,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->height);
 }
@@ -4499,7 +4499,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->n_planes * dpyinfo->n_cbits);
 }
@@ -4513,7 +4513,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
   HDC hdc;
   int cap;
 
@@ -4538,20 +4538,20 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (1);
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-  "Returns the vendor ID string of the Win32 system (Microsoft).\n\
+  "Returns the vendor ID string of the W32 system (Microsoft).\n\
 The optional argument DISPLAY specifies which display to ask about.\n\
 DISPLAY should be either a frame or a display name (a string).\n\
 If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
   char *vendor = "Microsoft Corp.";
 
   if (! vendor) vendor = "";
@@ -4569,10 +4569,10 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
-  return Fcons (make_number (nt_major_version),
-		Fcons (make_number (nt_minor_version), Qnil));
+  return Fcons (make_number (w32_major_version),
+		Fcons (make_number (w32_minor_version), Qnil));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -4583,7 +4583,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (1);
 }
@@ -4596,7 +4596,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
   HDC hdc;
   int cap;
 
@@ -4617,7 +4617,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   HDC hdc;
   int cap;
@@ -4655,7 +4655,7 @@ If omitted or nil, that stands for the selected frame's display.")
 	(display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
 #if 0
   switch (dpyinfo->visual->class)
@@ -4683,7 +4683,7 @@ If omitted or nil, that stands for the selected frame's display.")
   (display)
      Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return Qnil;
 }
@@ -4706,37 +4706,37 @@ int
 x_char_width (f)
      register struct frame *f;
 {
-  return FONT_WIDTH (f->output_data.win32->font);
+  return FONT_WIDTH (f->output_data.w32->font);
 }
 
 int
 x_char_height (f)
      register struct frame *f;
 {
-  return f->output_data.win32->line_height;
+  return f->output_data.w32->line_height;
 }
 
 int
 x_screen_planes (frame)
      Lisp_Object frame;
 {
-  return (FRAME_WIN32_DISPLAY_INFO (XFRAME (frame))->n_planes * 
-	  FRAME_WIN32_DISPLAY_INFO (XFRAME (frame))->n_cbits);
+  return (FRAME_W32_DISPLAY_INFO (XFRAME (frame))->n_planes * 
+	  FRAME_W32_DISPLAY_INFO (XFRAME (frame))->n_cbits);
 }
 
 /* Return the display structure for the display named NAME.
    Open a new connection if necessary.  */
 
-struct win32_display_info *
+struct w32_display_info *
 x_display_info_for_name (name)
      Lisp_Object name;
 {
   Lisp_Object names;
-  struct win32_display_info *dpyinfo;
+  struct w32_display_info *dpyinfo;
 
   CHECK_STRING (name, 0);
 
-  for (dpyinfo = &one_win32_display_info, names = win32_display_name_list;
+  for (dpyinfo = &one_w32_display_info, names = w32_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCONS (names)->cdr)
     {
@@ -4751,7 +4751,7 @@ x_display_info_for_name (name)
 
   validate_x_resource_name ();
 
-  dpyinfo = win32_term_init (name, (unsigned char *)0,
+  dpyinfo = w32_term_init (name, (unsigned char *)0,
 			     (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
@@ -4773,7 +4773,7 @@ terminate Emacs if we can't open the connection.")
 {
   unsigned int n_planes;
   unsigned char *xrm_option;
-  struct win32_display_info *dpyinfo;
+  struct w32_display_info *dpyinfo;
 
   CHECK_STRING (display, 0);
   if (! NILP (xrm_string))
@@ -4794,12 +4794,12 @@ terminate Emacs if we can't open the connection.")
 	Fexpand_file_name (build_string ("rgb.txt"),
 			   Fsymbol_value (intern ("data-directory")));
 
-    Vwin32_color_map = Fwin32_load_color_file (color_file);
+    Vw32_color_map = Fw32_load_color_file (color_file);
 
     UNGCPRO;
   }
-  if (NILP (Vwin32_color_map))
-    Vwin32_color_map = Fwin32_default_color_map ();
+  if (NILP (Vw32_color_map))
+    Vw32_color_map = Fw32_default_color_map ();
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
@@ -4822,7 +4822,7 @@ terminate Emacs if we can't open the connection.")
 
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
-  dpyinfo = win32_term_init (display, xrm_option,
+  dpyinfo = w32_term_init (display, xrm_option,
 			     (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
@@ -4846,8 +4846,8 @@ If DISPLAY is nil, that stands for the selected frame's display.")
   (display)
   Lisp_Object display;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
-  struct win32_display_info *tail;
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *tail;
   int i;
 
   if (dpyinfo->reference_count > 0)
@@ -4861,7 +4861,7 @@ If DISPLAY is nil, that stands for the selected frame's display.")
 	free (dpyinfo->font_table[i].name);
       /* Don't free the full_name string;
 	 it is always shared with something else.  */
-      win32_unload_font (dpyinfo, dpyinfo->font_table[i].font);
+      w32_unload_font (dpyinfo, dpyinfo->font_table[i].font);
     }
   x_destroy_all_bitmaps (dpyinfo);
 
@@ -4878,7 +4878,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   Lisp_Object tail, result;
 
   result = Qnil;
-  for (tail = win32_display_name_list; ! NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = w32_display_name_list; ! NILP (tail); tail = XCONS (tail)->cdr)
     result = Fcons (XCONS (XCONS (tail)->car)->car, result);
 
   return result;
@@ -4887,23 +4887,23 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
    "If ON is non-nil, report errors as soon as the erring request is made.\n\
 If ON is nil, allow buffering of requests.\n\
-This is a noop on Win32 systems.\n\
+This is a noop on W32 systems.\n\
 The optional second argument DISPLAY specifies which display to act on.\n\
 DISPLAY should be either a frame or a display name (a string).\n\
 If DISPLAY is omitted or nil, that stands for the selected frame's display.")
   (on, display)
     Lisp_Object display, on;
 {
-  struct win32_display_info *dpyinfo = check_x_display_info (display);
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
 
   return Qnil;
 }
 
 
-/* These are the win32 specialized functions */
+/* These are the w32 specialized functions */
 
-DEFUN ("win32-select-font", Fwin32_select_font, Swin32_select_font, 0, 1, 0,
-   "This will display the Win32 font dialog and return an X font string corresponding to the selection.")
+DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
+   "This will display the W32 font dialog and return an X font string corresponding to the selection.")
   (frame)
      Lisp_Object frame;
 {
@@ -4915,18 +4915,18 @@ DEFUN ("win32-select-font", Fwin32_select_font, Swin32_select_font, 0, 1, 0,
   bzero (&cf, sizeof (cf));
 
   cf.lStructSize = sizeof (cf);
-  cf.hwndOwner = FRAME_WIN32_WINDOW (f);
+  cf.hwndOwner = FRAME_W32_WINDOW (f);
   cf.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_SCREENFONTS;
   cf.lpLogFont = &lf;
 
-  if (!ChooseFont (&cf) || !win32_to_x_font (&lf, buf, 100))
+  if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100))
       return Qnil;
 
   return build_string (buf);
 }
 
 
-syms_of_win32fns ()
+syms_of_w32fns ()
 {
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
@@ -5004,56 +5004,56 @@ syms_of_win32fns ()
   Fput (Qundefined_color, Qerror_message,
 	build_string ("Undefined color"));
 
-  DEFVAR_LISP ("win32-color-map", &Vwin32_color_map,
+  DEFVAR_LISP ("w32-color-map", &Vw32_color_map,
 	       "A array of color name mappings for windows.");
-  Vwin32_color_map = Qnil;
+  Vw32_color_map = Qnil;
 
-  DEFVAR_LISP ("win32-pass-alt-to-system", &Vwin32_pass_alt_to_system,
+  DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,
 	       "Non-nil if alt key presses are passed on to Windows.\n\
 When non-nil, for example, alt pressed and released and then space will\n\
 open the System menu.  When nil, Emacs silently swallows alt key events.");
-  Vwin32_pass_alt_to_system = Qnil;
+  Vw32_pass_alt_to_system = Qnil;
 
-  DEFVAR_LISP ("win32-alt-is-meta", &Vwin32_alt_is_meta,
+  DEFVAR_LISP ("w32-alt-is-meta", &Vw32_alt_is_meta,
 	       "Non-nil if the alt key is to be considered the same as the meta key.\n\
 When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.");
-  Vwin32_alt_is_meta = Qt;
+  Vw32_alt_is_meta = Qt;
 
-  DEFVAR_LISP ("win32-pass-optional-keys-to-system", 
-	       &Vwin32_pass_optional_keys_to_system,
+  DEFVAR_LISP ("w32-pass-optional-keys-to-system", 
+	       &Vw32_pass_optional_keys_to_system,
 	       "Non-nil if the 'optional' keys (left window, right window,\n\
 and application keys) are passed on to Windows.");
-  Vwin32_pass_optional_keys_to_system = Qnil;
+  Vw32_pass_optional_keys_to_system = Qnil;
 
-  DEFVAR_LISP ("win32-enable-italics", &Vwin32_enable_italics,
+  DEFVAR_LISP ("w32-enable-italics", &Vw32_enable_italics,
 	       "Non-nil enables selection of artificially italicized fonts.");
-  Vwin32_enable_italics = Qnil;
+  Vw32_enable_italics = Qnil;
 
-  DEFVAR_LISP ("win32-enable-palette", &Vwin32_enable_palette,
+  DEFVAR_LISP ("w32-enable-palette", &Vw32_enable_palette,
 	       "Non-nil enables Windows palette management to map colors exactly.");
-  Vwin32_enable_palette = Qt;
+  Vw32_enable_palette = Qt;
 
-  DEFVAR_INT ("win32-mouse-button-tolerance",
-	      &Vwin32_mouse_button_tolerance,
+  DEFVAR_INT ("w32-mouse-button-tolerance",
+	      &Vw32_mouse_button_tolerance,
 	      "Analogue of double click interval for faking middle mouse events.\n\
 The value is the minimum time in milliseconds that must elapse between\n\
 left/right button down events before they are considered distinct events.\n\
 If both mouse buttons are depressed within this interval, a middle mouse\n\
 button down event is generated instead.");
-  XSETINT (Vwin32_mouse_button_tolerance, GetDoubleClickTime () / 2);
+  XSETINT (Vw32_mouse_button_tolerance, GetDoubleClickTime () / 2);
 
-  DEFVAR_INT ("win32-mouse-move-interval",
-	      &Vwin32_mouse_move_interval,
+  DEFVAR_INT ("w32-mouse-move-interval",
+	      &Vw32_mouse_move_interval,
 	      "Minimum interval between mouse move events.\n\
 The value is the minimum time in milliseconds that must elapse between\n\
 successive mouse move (or scroll bar drag) events before they are\n\
 reported as lisp events.");
-  XSETINT (Vwin32_mouse_move_interval, 50);
+  XSETINT (Vw32_mouse_move_interval, 50);
 
   init_x_parm_symbols ();
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-    "List of directories to search for bitmap files for win32.");
+    "List of directories to search for bitmap files for w32.");
   Vx_bitmap_file_path = decode_env_path ((char *) 0, "PATH");
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
@@ -5122,18 +5122,18 @@ unless you set it to something else.");
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
 
-  /* Win32 specific functions */
+  /* W32 specific functions */
 
-  defsubr (&Swin32_select_font);
-  defsubr (&Swin32_define_rgb_color);
-  defsubr (&Swin32_default_color_map);
-  defsubr (&Swin32_load_color_file);
+  defsubr (&Sw32_select_font);
+  defsubr (&Sw32_define_rgb_color);
+  defsubr (&Sw32_default_color_map);
+  defsubr (&Sw32_load_color_file);
 }
 
 #undef abort
 
 void 
-win32_abort()
+w32_abort()
 {
   int button;
   button = MessageBox (NULL,

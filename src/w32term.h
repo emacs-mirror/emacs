@@ -1,4 +1,4 @@
-/* Definitions and headers for communication with Win32 GUI.
+/* Definitions and headers for communication under the Win32 API.
    Copyright (C) 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_HEIGHT(f)	((f)->tm.tmHeight)
 #define FONT_BASE(f)    ((f)->tm.tmAscent)
 
-#define CHECK_WIN32_FRAME(f, frame)		\
+#define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
     f = selected_frame;				\
   else						\
@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
       CHECK_LIVE_FRAME (frame, 0);		\
       f = XFRAME (frame);			\
     }						\
-  if (! FRAME_WIN32_P (f))
+  if (! FRAME_W32_P (f))
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */
@@ -55,7 +55,7 @@ enum text_cursor_kinds {
 };
 
 /* This data type is used for the font_table field
-   of struct win32_display_info.  */
+   of struct w32_display_info.  */
 
 struct font_info 
 {
@@ -66,7 +66,7 @@ struct font_info
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
-struct win32_bitmap_record 
+struct w32_bitmap_record 
 {
   Pixmap pixmap;
   char *file;
@@ -80,26 +80,26 @@ struct win32_bitmap_record
    system palette.  Keep a ref-counted list of requested colors and
    regenerate the app palette whenever the requested list changes. */
 
-extern Lisp_Object Vwin32_enable_palette;
+extern Lisp_Object Vw32_enable_palette;
 
-struct win32_palette_entry {
-  struct win32_palette_entry * next;
+struct w32_palette_entry {
+  struct w32_palette_entry * next;
   PALETTEENTRY entry;
 #if 0
   unsigned refcount;
 #endif
 };
 
-extern void win32_regenerate_palette(struct frame *f);
+extern void w32_regenerate_palette(struct frame *f);
 
 
-/* For each display (currently only one on win32), we have a structure that
+/* For each display (currently only one on w32), we have a structure that
    records information about it.  */
 
-struct win32_display_info
+struct w32_display_info
 {
-  /* Chain of all win32_display_info structures.  */
-  struct win32_display_info *next;
+  /* Chain of all w32_display_info structures.  */
+  struct w32_display_info *next;
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
@@ -121,7 +121,7 @@ struct win32_display_info
 
   /* color palette information */
   int has_palette;
-  struct win32_palette_entry * color_list;
+  struct w32_palette_entry * color_list;
   unsigned num_colors;
   HPALETTE palette;
 
@@ -156,15 +156,15 @@ struct win32_display_info
   /* Nonzero means defer mouse-motion highlighting.  */
   int mouse_face_defer;
 
-  char *win32_id_name;
+  char *w32_id_name;
 
-  /* The number of fonts actually stored in win32_font_table.
+  /* The number of fonts actually stored in w32_font_table.
      font_table[n] is used and valid iff 0 <= n < n_fonts.
      0 <= n_fonts <= font_table_size.  */
   int n_fonts;
 
   /* Pointer to bitmap records.  */
-  struct win32_bitmap_record *bitmaps;
+  struct w32_bitmap_record *bitmaps;
 
   /* Allocated size of bitmaps field.  */
   int bitmaps_size;
@@ -176,54 +176,54 @@ struct win32_display_info
      Zero if none.  This is examined by Ffocus_frame in w32fns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
      last frame specified in a FocusIn or FocusOut event, use
-     win32_focus_event_frame.  */
-  struct frame *win32_focus_frame;
+     w32_focus_event_frame.  */
+  struct frame *w32_focus_frame;
 
   /* The last frame mentioned in a FocusIn or FocusOut event.  This is
-     separate from win32_focus_frame, because whether or not LeaveNotify
+     separate from w32_focus_frame, because whether or not LeaveNotify
      events cause us to lose focus depends on whether or not we have
      received a FocusIn event for it.  */
-  struct frame *win32_focus_event_frame;
+  struct frame *w32_focus_event_frame;
 
   /* The frame which currently has the visual highlight, and should get
      keyboard input (other sorts of input have the frame encoded in the
      event).  It points to the focus frame's selected window's
-     frame.  It differs from win32_focus_frame when we're using a global
+     frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
-  struct frame *win32_highlight_frame;
+  struct frame *w32_highlight_frame;
 };
 
 /* This is a chain of structures for all the displays currently in use.  */
-extern struct win32_display_info one_win32_display_info;
+extern struct w32_display_info one_w32_display_info;
 
 /* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of win32_display_list and in the same order.
+   one for each element of w32_display_list and in the same order.
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
-extern Lisp_Object win32_display_name_list;
+extern Lisp_Object w32_display_name_list;
 
-extern struct win32_display_info *x_display_info_for_display ();
-extern struct win32_display_info *x_display_info_for_name ();
+extern struct w32_display_info *x_display_info_for_display ();
+extern struct w32_display_info *x_display_info_for_name ();
 
-extern struct win32_display_info *win32_term_init ();
+extern struct w32_display_info *w32_term_init ();
 
-/* Each Win32 frame object points to its own struct win32_display object
-   in the output_data.win32 field.  The win32_display structure contains all
-   the information that is specific to Win32 windows.  */
+/* Each W32 frame object points to its own struct w32_display object
+   in the output_data.w32 field.  The w32_display structure contains all
+   the information that is specific to W32 windows.  */
 
-struct win32_output
+struct w32_output
 {
   /* Original palette (used to deselect real palette after drawing) */
   HPALETTE old_palette;
 
-  /* Position of the Win32 window (x and y offsets in root window).  */
+  /* Position of the W32 window (x and y offsets in root window).  */
   int left_pos;
   int top_pos;
 
-  /* Border width of the Win32 window as known by the window system.  */
+  /* Border width of the W32 window as known by the window system.  */
   int border_width;
 
-  /* Size of the Win32 window in pixels.  */
+  /* Size of the W32 window in pixels.  */
   int pixel_height, pixel_width;
 
   /* Height of a line, in pixels.  */
@@ -304,7 +304,7 @@ struct win32_output
   int size_hint_flags;
 
   /* This is the Emacs structure for the display this frame is on.  */
-  /* struct win32_display_info *display_info; */
+  /* struct w32_display_info *display_info; */
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
@@ -315,37 +315,37 @@ struct win32_output
 };
 
 /* Get at the computed faces of an X window frame.  */
-#define FRAME_PARAM_FACES(f) ((f)->output_data.win32->param_faces)
-#define FRAME_N_PARAM_FACES(f) ((f)->output_data.win32->n_param_faces)
+#define FRAME_PARAM_FACES(f) ((f)->output_data.w32->param_faces)
+#define FRAME_N_PARAM_FACES(f) ((f)->output_data.w32->n_param_faces)
 #define FRAME_DEFAULT_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[0])
 #define FRAME_MODE_LINE_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[1])
 
-#define FRAME_COMPUTED_FACES(f) ((f)->output_data.win32->computed_faces)
-#define FRAME_N_COMPUTED_FACES(f) ((f)->output_data.win32->n_computed_faces)
-#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->output_data.win32->size_computed_faces)
-#define FRAME_DEFAULT_FACE(f) ((f)->output_data.win32->computed_faces[0])
-#define FRAME_MODE_LINE_FACE(f) ((f)->output_data.win32->computed_faces[1])
+#define FRAME_COMPUTED_FACES(f) ((f)->output_data.w32->computed_faces)
+#define FRAME_N_COMPUTED_FACES(f) ((f)->output_data.w32->n_computed_faces)
+#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->output_data.w32->size_computed_faces)
+#define FRAME_DEFAULT_FACE(f) ((f)->output_data.w32->computed_faces[0])
+#define FRAME_MODE_LINE_FACE(f) ((f)->output_data.w32->computed_faces[1])
 
 /* Return the window associated with the frame F.  */
-#define FRAME_WIN32_WINDOW(f) ((f)->output_data.win32->window_desc)
+#define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.win32->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.win32->background_pixel)
-#define FRAME_FONT(f) ((f)->output_data.win32->font)
-#define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.win32->internal_border_width)
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.w32->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.w32->background_pixel)
+#define FRAME_FONT(f) ((f)->output_data.w32->font)
+#define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.w32->internal_border_width)
 
-/* This gives the win32_display_info structure for the display F is on.  */
-#define FRAME_WIN32_DISPLAY_INFO(f) (&one_win32_display_info)
+/* This gives the w32_display_info structure for the display F is on.  */
+#define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
-#define PIXEL_WIDTH(f) ((f)->output_data.win32->pixel_width)
-#define PIXEL_HEIGHT(f) ((f)->output_data.win32->pixel_height)
-#define FRAME_LINE_HEIGHT(f) ((f)->output_data.win32->line_height)
+#define PIXEL_WIDTH(f) ((f)->output_data.w32->pixel_width)
+#define PIXEL_HEIGHT(f) ((f)->output_data.w32->pixel_height)
+#define FRAME_LINE_HEIGHT(f) ((f)->output_data.w32->line_height)
 
-#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.win32->desired_cursor)
+#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.w32->desired_cursor)
 
 
-/* Win32-specific scroll bar stuff.  */
+/* W32-specific scroll bar stuff.  */
 
 /* We represent scroll bars as lisp vectors.  This allows us to place
    references to them in windows without worrying about whether we'll
@@ -369,7 +369,7 @@ struct scroll_bar {
 
   /* The window representing this scroll bar.  Since this is a full
      32-bit quantity, we store it split into two 32-bit values.  */
-  Lisp_Object win32_window_low, win32_window_high;
+  Lisp_Object w32_window_low, w32_window_high;
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
@@ -415,18 +415,18 @@ struct scroll_bar {
 
 
 /* Extract the window id of the scroll bar from a struct scroll_bar.  */
-#define SCROLL_BAR_WIN32_WINDOW(ptr) \
-  ((Window) SCROLL_BAR_PACK ((ptr)->win32_window_low, (ptr)->win32_window_high))
+#define SCROLL_BAR_W32_WINDOW(ptr) \
+  ((Window) SCROLL_BAR_PACK ((ptr)->w32_window_low, (ptr)->w32_window_high))
 
 /* Store a window id in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_WIN32_WINDOW(ptr, id) \
-  (SCROLL_BAR_UNPACK ((ptr)->win32_window_low, (ptr)->win32_window_high, (int) id))
+#define SET_SCROLL_BAR_W32_WINDOW(ptr, id) \
+  (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (int) id))
 
 
 /* Return the outside pixel height for a vertical scroll bar HEIGHT
    rows high on frame F.  */
 #define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
-  ((height) * (f)->output_data.win32->line_height)
+  ((height) * (f)->output_data.w32->line_height)
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -476,41 +476,41 @@ struct scroll_bar {
    Return the upper/left pixel position of the character cell on frame F
    at ROW/COL.  */
 #define CHAR_TO_PIXEL_ROW(f, row) \
-  ((f)->output_data.win32->internal_border_width \
-   + (row) * (f)->output_data.win32->line_height)
+  ((f)->output_data.w32->internal_border_width \
+   + (row) * (f)->output_data.w32->line_height)
 #define CHAR_TO_PIXEL_COL(f, col) \
-  ((f)->output_data.win32->internal_border_width \
-   + (col) * FONT_WIDTH ((f)->output_data.win32->font))
+  ((f)->output_data.w32->internal_border_width \
+   + (col) * FONT_WIDTH ((f)->output_data.w32->font))
 
 /* Return the pixel width/height of frame F if it has
    WIDTH columns/HEIGHT rows.  */
 #define CHAR_TO_PIXEL_WIDTH(f, width) \
   (CHAR_TO_PIXEL_COL (f, width) \
-   + (f)->output_data.win32->vertical_scroll_bar_extra \
-   + (f)->output_data.win32->internal_border_width)
+   + (f)->output_data.w32->vertical_scroll_bar_extra \
+   + (f)->output_data.w32->internal_border_width)
 #define CHAR_TO_PIXEL_HEIGHT(f, height) \
   (CHAR_TO_PIXEL_ROW (f, height) \
-   + (f)->output_data.win32->internal_border_width)
+   + (f)->output_data.w32->internal_border_width)
 
 
 /* Return the row/column (zero-based) of the character cell containing 
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
-  (((row) - (f)->output_data.win32->internal_border_width) \
-   / (f)->output_data.win32->line_height)
+  (((row) - (f)->output_data.w32->internal_border_width) \
+   / (f)->output_data.w32->line_height)
 #define PIXEL_TO_CHAR_COL(f, col) \
-  (((col) - (f)->output_data.win32->internal_border_width) \
-   / FONT_WIDTH ((f)->output_data.win32->font))
+  (((col) - (f)->output_data.w32->internal_border_width) \
+   / FONT_WIDTH ((f)->output_data.w32->font))
 
 /* How many columns/rows of text can we fit in WIDTH/HEIGHT pixels on
    frame F?  */
 #define PIXEL_TO_CHAR_WIDTH(f, width) \
   (PIXEL_TO_CHAR_COL (f, ((width) \
-			  - (f)->output_data.win32->internal_border_width \
-			  - (f)->output_data.win32->vertical_scroll_bar_extra)))
+			  - (f)->output_data.w32->internal_border_width \
+			  - (f)->output_data.w32->vertical_scroll_bar_extra)))
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
-			  - (f)->output_data.win32->internal_border_width)))
+			  - (f)->output_data.w32->internal_border_width)))
 
 /* Interface to the face code functions.  */
 
@@ -555,27 +555,27 @@ extern int compute_char_face (/* FRAME_PTR frame,
    be BASIC_FACE.  F is the frame.  */
 extern int compute_glyph_face (/* FRAME_PTR, int */);
 
-extern void win32_fill_rect ();
-extern void win32_clear_window ();
+extern void w32_fill_rect ();
+extern void w32_clear_window ();
 
-#define win32_fill_area(f,hdc,pix,x,y,nx,ny) \
+#define w32_fill_area(f,hdc,pix,x,y,nx,ny) \
 { \
     RECT rect; \
     rect.left = x; \
     rect.top = y; \
     rect.right = x + nx; \
     rect.bottom = y + ny; \
-    win32_fill_rect (f,hdc,pix,&rect); \
+    w32_fill_rect (f,hdc,pix,&rect); \
 }
 
-#define win32_clear_rect(f,hdc,lprect) \
-win32_fill_rect (f,hdc,f->output_data.win32->background_pixel,lprect)
+#define w32_clear_rect(f,hdc,lprect) \
+w32_fill_rect (f,hdc,f->output_data.w32->background_pixel,lprect)
 
-#define win32_clear_area(f,hdc,x,y,nx,ny) \
-win32_fill_area (f,hdc,f->output_data.win32->background_pixel,x,y,nx,ny)
+#define w32_clear_area(f,hdc,x,y,nx,ny) \
+w32_fill_area (f,hdc,f->output_data.w32->background_pixel,x,y,nx,ny)
 
-extern XFontStruct *win32_load_font ();
-extern void win32_unload_font ();
+extern XFontStruct *w32_load_font ();
+extern void w32_unload_font ();
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
@@ -594,7 +594,7 @@ typedef struct {
   int cx;
   int cy;
   int flags;
-} Win32WindowPos;
+} W32WindowPos;
 
 #define WND_X_UNITS_INDEX      (0) 
 #define WND_Y_UNITS_INDEX      (4) 
@@ -608,11 +608,11 @@ extern HANDLE hWinThread;
 extern DWORD dwMainThreadId;
 extern HANDLE hMainThread;
 
-typedef struct Win32Msg {
+typedef struct W32Msg {
     MSG msg;
     DWORD dwModifiers;
     RECT rect;
-} Win32Msg;
+} W32Msg;
 
 extern CRITICAL_SECTION critsect;
 
@@ -633,7 +633,7 @@ extern void wait_for_sync ();
 
 extern BOOL parse_button ();
 
-/* Keypad command key support.  Win32 doesn't have virtual keys defined
+/* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
    fuction keys), so we define our own.  */
 #define VK_NUMPAD_BEGIN		0x92

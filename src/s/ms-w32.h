@@ -319,7 +319,7 @@ Boston, MA 02111-1307, USA.  */
 #define rindex    strrchr
 
 #ifdef HAVE_NTGUI
-#define abort	win32_abort
+#define abort	w32_abort
 #endif
 
 /* Defines that we need that aren't in the standard signal.h  */

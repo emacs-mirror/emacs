@@ -75,7 +75,7 @@ Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
-Lisp_Object Qwin32;
+Lisp_Object Qw32;
 Lisp_Object Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
@@ -112,8 +112,8 @@ syms_of_frame_1 ()
   staticpro (&Qwidth);
   Qx = intern ("x");
   staticpro (&Qx);
-  Qwin32 = intern ("win32");
-  staticpro (&Qwin32);
+  Qw32 = intern ("w32");
+  staticpro (&Qw32);
   Qpc = intern ("pc");
   staticpro (&Qpc);
   Qvisible = intern ("visible");
@@ -221,8 +221,8 @@ See also `frame-live-p'.")
       return Qt;
     case output_x_window:
       return Qx;
-    case output_win32:
-      return Qwin32;
+    case output_w32:
+      return Qw32;
     case output_msdos_raw:
       return Qpc;
     default:

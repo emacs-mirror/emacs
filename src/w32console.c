@@ -58,7 +58,7 @@ static void reassert_line_highlight (int, int);
 static void insert_glyphs (GLYPH *start, int len);
 static void write_glyphs (GLYPH *string, int len);
 static void delete_glyphs (int n);
-void nt_ring_bell (void);
+void w32_sys_ring_bell (void);
 static void reset_terminal_modes (void);
 static void set_terminal_modes (void);
 static void set_terminal_window (int size);
@@ -193,7 +193,7 @@ ins_del_lines (int vpos, int n)
   
   ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
 
-  /* Here we have to deal with a win32 console flake: If the scroll
+  /* Here we have to deal with a w32 console flake: If the scroll
      region looks like abc and we scroll c to a and fill with d we get
      cbd... if we scroll block c one line at a time to a, we get cdd...
      Emacs expects cdd consistently... So we have to deal with that
@@ -418,7 +418,7 @@ delete_glyphs (int n)
 static unsigned int sound_type = 0xFFFFFFFF;
 
 void
-nt_ring_bell (void)
+w32_sys_ring_bell (void)
 {
   if (sound_type == 0xFFFFFFFF) 
       Beep (666, 100);
@@ -554,15 +554,15 @@ initialize_win_nt_display (void)
   insert_glyphs_hook		= (term_hook) insert_glyphs;
   write_glyphs_hook		= (term_hook) write_glyphs;
   delete_glyphs_hook		= (term_hook) delete_glyphs;
-  ring_bell_hook		= (term_hook) nt_ring_bell;
+  ring_bell_hook		= (term_hook) w32_sys_ring_bell;
   reset_terminal_modes_hook	= (term_hook) reset_terminal_modes;
   set_terminal_modes_hook	= (term_hook) set_terminal_modes;
   set_terminal_window_hook	= (term_hook) set_terminal_window;
   update_begin_hook		= (term_hook) update_begin;
   update_end_hook		= (term_hook) update_end;
   
-  read_socket_hook = win32_read_socket;
-  mouse_position_hook = win32_mouse_position;
+  read_socket_hook = w32_console_read_socket;
+  mouse_position_hook = w32_mouse_position;
   
   prev_screen = GetStdHandle (STD_OUTPUT_HANDLE);
   

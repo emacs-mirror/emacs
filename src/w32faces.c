@@ -1,4 +1,4 @@
-/* "Face" primitives.
+/* "Face" primitives under the Win32 API.
    Copyright (C) 1993, 1994, 1995 Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Ported xfaces.c for win32 - Kevin Gallo */
+/* Ported xfaces.c for w32 - Kevin Gallo */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -227,7 +227,7 @@ load_font (f, name)
 
   CHECK_STRING (name, 0);
   BLOCK_INPUT;
-  font = win32_load_font (FRAME_WIN32_DISPLAY_INFO (f), (char *) XSTRING (name)->data);
+  font = w32_load_font (FRAME_W32_DISPLAY_INFO (f), (char *) XSTRING (name)->data);
   UNBLOCK_INPUT;
 
   if (! font)
@@ -245,7 +245,7 @@ unload_font (f, font)
     return;
 
   BLOCK_INPUT;
-  win32_unload_font (FRAME_WIN32_DISPLAY_INFO (f), font);
+  w32_unload_font (FRAME_W32_DISPLAY_INFO (f), font);
   UNBLOCK_INPUT;
 }
 
@@ -379,7 +379,7 @@ init_frame_faces (f)
     
     result = Qnil;
     FOR_EACH_FRAME (tail, frame)
-      if (FRAME_WIN32_P (XFRAME (frame))
+      if (FRAME_W32_P (XFRAME (frame))
 	  && XFRAME (frame) != f)
 	{
 	  result = frame;
@@ -546,21 +546,21 @@ frame_update_line_height (f)
      FRAME_PTR f;
 {
   int i;
-  int biggest = FONT_HEIGHT (f->output_data.win32->font);
+  int biggest = FONT_HEIGHT (f->output_data.w32->font);
 
-  for (i = 0; i < f->output_data.win32->n_param_faces; i++)
-    if (f->output_data.win32->param_faces[i] != 0
-	&& f->output_data.win32->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
+  for (i = 0; i < f->output_data.w32->n_param_faces; i++)
+    if (f->output_data.w32->param_faces[i] != 0
+	&& f->output_data.w32->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
       {
-	int height = FONT_HEIGHT (f->output_data.win32->param_faces[i]->font);
+	int height = FONT_HEIGHT (f->output_data.w32->param_faces[i]->font);
 	if (height > biggest)
 	  biggest = height;
       }
 
-  if (biggest == f->output_data.win32->line_height)
+  if (biggest == f->output_data.w32->line_height)
     return 0;
 
-  f->output_data.win32->line_height = biggest;
+  f->output_data.w32->line_height = biggest;
   return 1;
 }
 
@@ -902,7 +902,7 @@ DEFUN ("make-face-internal", Fmake_face_internal, Smake_face_internal, 1, 1, 0,
 
   FOR_EACH_FRAME (rest, frame)
     {
-      if (FRAME_WIN32_P (XFRAME (frame)))
+      if (FRAME_W32_P (XFRAME (frame)))
 	ensure_face_ready (XFRAME (frame), id);
     }
   return Qnil;
@@ -929,7 +929,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id < 0 || id >= next_face_id)
     error ("Face id out of range");
 
-  if (! FRAME_WIN32_P (f))
+  if (! FRAME_W32_P (f))
     return Qnil;
 
   ensure_face_ready (f, id);
@@ -938,7 +938,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (EQ (attr_name, intern ("font")))
     {
       XFontStruct *font = load_font (f, attr_value);
-      if (face->font != f->output_data.win32->font)
+      if (face->font != f->output_data.w32->font)
 	unload_font (f, face->font);
       face->font = font;
       if (frame_update_line_height (f))
@@ -1024,7 +1024,7 @@ face_name_id_number (f, name)
 /* Emacs initialization.  */
 
 void
-syms_of_win32faces ()
+syms_of_w32faces ()
 {
   Qface = intern ("face");
   staticpro (&Qface);

@@ -1,4 +1,4 @@
-/* Input event support for Windows NT port of GNU Emacs.
+/* Input event support for Emacs under Win32 API.
    Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -48,7 +48,7 @@ extern void reinvoke_input_signal (void);
 extern int change_frame_size (FRAME_PTR, int, int, int, int);
 
 /* from w32fns.c */
-extern Lisp_Object Vwin32_alt_is_meta;
+extern Lisp_Object Vw32_alt_is_meta;
 
 /* Event queue */
 #define EVENT_QUEUE_SIZE 50
@@ -96,7 +96,7 @@ get_frame (void)
 /* Translate console modifiers to emacs modifiers.  
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
 int
-win32_kbd_mods_to_emacs (DWORD mods)
+w32_kbd_mods_to_emacs (DWORD mods)
 {
   int retval = 0;
 
@@ -106,7 +106,7 @@ win32_kbd_mods_to_emacs (DWORD mods)
     mods &= ~ (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED);
 
   if (mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
-    retval = ((NILP (Vwin32_alt_is_meta)) ? alt_modifier : meta_modifier);
+    retval = ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier);
   
   if (mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
     {
@@ -125,7 +125,7 @@ win32_kbd_mods_to_emacs (DWORD mods)
 
 /* The return code indicates key code size. */
 int
-win32_kbd_patch_key (KEY_EVENT_RECORD *event)
+w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 {
   unsigned int key_code = event->wVirtualKeyCode;
   unsigned int mods = event->dwControlKeyState;
@@ -331,7 +331,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       /* ASCII */
       emacs_ev->kind = ascii_keystroke;
-      key_flag = win32_kbd_patch_key (event); /* 95.7.25 by himi */
+      key_flag = w32_kbd_patch_key (event); /* 95.7.25 by himi */
       if (key_flag == 0) 
 	return 0;
       XSETINT (emacs_ev->code, event->uChar.AsciiChar);
@@ -375,7 +375,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 #else
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
 #endif
-  emacs_ev->modifiers = win32_kbd_mods_to_emacs (event->dwControlKeyState);
+  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState);
   emacs_ev->timestamp = GetTickCount ();
   if (key_flag == 2) return -1; /* 95.7.25 by himi */
   return 1;
@@ -383,7 +383,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 
 /* Mouse position hook.  */
 void 
-win32_mouse_position (FRAME_PTR *f,
+w32_mouse_position (FRAME_PTR *f,
 #ifndef MULE
 		      int insist,
 #endif
@@ -482,7 +482,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   
   button_state = event->dwButtonState;
   emacs_ev->timestamp = GetTickCount ();
-  emacs_ev->modifiers = win32_kbd_mods_to_emacs (event->dwControlKeyState) |
+  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState) |
     ((event->dwButtonState & mask) ? down_modifier : up_modifier);
   
   XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
@@ -507,8 +507,8 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 }
 
 int 
-win32_read_socket (int sd, struct input_event *bufp, int numchars,
-		   int waitp, int expected)
+w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
+			 int waitp, int expected)
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;

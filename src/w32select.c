@@ -1,4 +1,4 @@
-/* Win32 Selection processing for emacs
+/* Selection processing for Emacs using the Win32 API.
    Copyright (C) 1993, 1994 Free Software Foundation.
    
 This file is part of GNU Emacs.
@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include "lisp.h"
-#include "w32term.h"	/* for all of the win32 includes */
+#include "w32term.h"	/* for all of the w32 includes */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
@@ -30,7 +30,7 @@ Boston, MA 02111-1307, USA.  */
 Lisp_Object QCLIPBOARD;
 
 #if 0
-DEFUN ("win32-open-clipboard", Fwin32_open_clipboard, Swin32_open_clipboard, 0, 1, 0,
+DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
        "This opens the clipboard with the given frame pointer.")
      (frame)
      Lisp_Object frame;
@@ -42,14 +42,14 @@ DEFUN ("win32-open-clipboard", Fwin32_open_clipboard, Swin32_open_clipboard, 0, 
   
   BLOCK_INPUT;
   
-  ok = OpenClipboard ((!NILP (frame) && FRAME_WIN32_P (XFRAME (frame))) ? FRAME_WIN32_WINDOW (XFRAME (frame)) : NULL);
+  ok = OpenClipboard ((!NILP (frame) && FRAME_W32_P (XFRAME (frame))) ? FRAME_W32_WINDOW (XFRAME (frame)) : NULL);
   
   UNBLOCK_INPUT;
   
   return (ok ? frame : Qnil);
 }
 
-DEFUN ("win32-empty-clipboard", Fwin32_empty_clipboard, Swin32_empty_clipboard, 0, 0, 0,
+DEFUN ("w32-empty-clipboard", Fw32_empty_clipboard, Sw32_empty_clipboard, 0, 0, 0,
        "This empties the clipboard and assigns ownership to the window which opened the clipboard.")
      ()
 {
@@ -64,7 +64,7 @@ DEFUN ("win32-empty-clipboard", Fwin32_empty_clipboard, Swin32_empty_clipboard, 
   return (ok ? Qt : Qnil);
 }
 
-DEFUN ("win32-close-clipboard", Fwin32_close_clipboard, Swin32_close_clipboard, 0, 0, 0,
+DEFUN ("w32-close-clipboard", Fw32_close_clipboard, Sw32_close_clipboard, 0, 0, 0,
        "This closes the clipboard.")
      ()
 {
@@ -81,7 +81,7 @@ DEFUN ("win32-close-clipboard", Fwin32_close_clipboard, Swin32_close_clipboard, 
 
 #endif
 
-DEFUN ("win32-set-clipboard-data", Fwin32_set_clipboard_data, Swin32_set_clipboard_data, 1, 2, 0,
+DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_data, 1, 2, 0,
        "This sets the clipboard data to the given text.")
     (string, frame)
     Lisp_Object string, frame;
@@ -146,7 +146,7 @@ DEFUN ("win32-set-clipboard-data", Fwin32_set_clipboard_data, Swin32_set_clipboa
     
   GlobalUnlock (htext);
   
-  if (!OpenClipboard ((!NILP (frame) && FRAME_WIN32_P (XFRAME (frame))) ? FRAME_WIN32_WINDOW (XFRAME (frame)) : NULL))
+  if (!OpenClipboard ((!NILP (frame) && FRAME_W32_P (XFRAME (frame))) ? FRAME_W32_WINDOW (XFRAME (frame)) : NULL))
     goto error;
   
   ok = EmptyClipboard () && SetClipboardData (CF_TEXT, htext);
@@ -166,7 +166,7 @@ DEFUN ("win32-set-clipboard-data", Fwin32_set_clipboard_data, Swin32_set_clipboa
   return (ok ? string : Qnil);
 }
 
-DEFUN ("win32-get-clipboard-data", Fwin32_get_clipboard_data, Swin32_get_clipboard_data, 0, 1, 0,
+DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_data, 0, 1, 0,
        "This gets the clipboard data in text format.")
      (frame)
      Lisp_Object frame;
@@ -179,7 +179,7 @@ DEFUN ("win32-get-clipboard-data", Fwin32_get_clipboard_data, Swin32_get_clipboa
   
   BLOCK_INPUT;
   
-  if (!OpenClipboard ((!NILP (frame) && FRAME_WIN32_P (XFRAME (frame))) ? FRAME_WIN32_WINDOW (XFRAME (frame)) : NULL))
+  if (!OpenClipboard ((!NILP (frame) && FRAME_W32_P (XFRAME (frame))) ? FRAME_W32_WINDOW (XFRAME (frame)) : NULL))
     goto done;
   
   if ((htext = GetClipboardData (CF_TEXT)) == NULL)
@@ -284,15 +284,15 @@ and t is the same as `SECONDARY'.")
 }
 
 void 
-syms_of_win32select ()
+syms_of_w32select ()
 {
 #if 0
-  defsubr (&Swin32_open_clipboard);
-  defsubr (&Swin32_empty_clipboard);
-  defsubr (&Swin32_close_clipboard);
+  defsubr (&Sw32_open_clipboard);
+  defsubr (&Sw32_empty_clipboard);
+  defsubr (&Sw32_close_clipboard);
 #endif
-  defsubr (&Swin32_set_clipboard_data);
-  defsubr (&Swin32_get_clipboard_data);
+  defsubr (&Sw32_set_clipboard_data);
+  defsubr (&Sw32_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);

@@ -36,8 +36,8 @@ Boston, MA 02111-1307, USA.
 #define get_page_size()			sysinfo_cache.dwPageSize
 #define get_allocation_unit()		sysinfo_cache.dwAllocationGranularity
 #define get_processor_type()		sysinfo_cache.dwProcessorType
-#define get_nt_major_version()  	nt_major_version
-#define get_nt_minor_version()  	nt_minor_version
+#define get_w32_major_version()  	w32_major_version
+#define get_w32_minor_version()  	w32_minor_version
 
 extern unsigned char *get_data_start();
 extern unsigned char *get_data_end();
@@ -45,8 +45,8 @@ extern unsigned long  data_region_size;
 extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
 extern BOOL   	      need_to_recreate_heap;
-extern int    	      nt_major_version;
-extern int    	      nt_minor_version;
+extern int    	      w32_major_version;
+extern int    	      w32_minor_version;
 
 /* Emulation of Unix sbrk().  */
 extern void *sbrk (unsigned long size);

@@ -979,11 +979,11 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
 #endif
 
 #ifdef HAVE_NTGUI
-      syms_of_win32term ();
-      syms_of_win32fns ();
-      syms_of_win32faces ();
-      syms_of_win32select ();
-      syms_of_win32menu ();
+      syms_of_w32term ();
+      syms_of_w32fns ();
+      syms_of_w32faces ();
+      syms_of_w32select ();
+      syms_of_w32menu ();
 #endif /* HAVE_NTGUI */
 
 #ifdef SYMS_SYSTEM

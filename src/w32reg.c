@@ -31,7 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE 
-win32_get_string_resource (name, class, dwexptype)
+w32_get_string_resource (name, class, dwexptype)
      char *name, *class;
      DWORD dwexptype;
 {
@@ -93,5 +93,5 @@ x_get_string_resource (rdb, name, class)
      int rdb;
      char *name, *class;
 {
-  return (win32_get_string_resource (name, class, REG_SZ));
+  return (w32_get_string_resource (name, class, REG_SZ));
 }

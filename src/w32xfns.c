@@ -1,4 +1,4 @@
-/* Functions taken directly from X sources
+/* Functions taken directly from X sources for use with the Win32 API.
    Copyright (C) 1989, 1992, 1993, 1994, 1995 Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -59,11 +59,11 @@ delete_crit ()
 void
 select_palette (FRAME_PTR f, HDC hdc)
 {
-  if (!NILP (Vwin32_enable_palette))
-    f->output_data.win32->old_palette =
-      SelectPalette (hdc, one_win32_display_info.palette, FALSE);
+  if (!NILP (Vw32_enable_palette))
+    f->output_data.w32->old_palette =
+      SelectPalette (hdc, one_w32_display_info.palette, FALSE);
   else
-    f->output_data.win32->old_palette = NULL;
+    f->output_data.w32->old_palette = NULL;
 
   if (RealizePalette (hdc))
   {
@@ -78,8 +78,8 @@ select_palette (FRAME_PTR f, HDC hdc)
 void
 deselect_palette (FRAME_PTR f, HDC hdc)
 {
-  if (f->output_data.win32->old_palette)
-    SelectPalette (hdc, f->output_data.win32->old_palette, FALSE);
+  if (f->output_data.w32->old_palette)
+    SelectPalette (hdc, f->output_data.w32->old_palette, FALSE);
 }
 
 /* Get a DC for frame and select palette for drawing; force an update of
@@ -91,7 +91,7 @@ get_frame_dc (FRAME_PTR f)
 
   enter_crit ();
 
-  hdc = GetDC (f->output_data.win32->window_desc);
+  hdc = GetDC (f->output_data.w32->window_desc);
   select_palette (f, hdc);
 
   return hdc;
@@ -103,7 +103,7 @@ release_frame_dc (FRAME_PTR f, HDC hdc)
   int ret;
 
   deselect_palette (f, hdc);
-  ret = ReleaseDC (f->output_data.win32->window_desc, hdc);
+  ret = ReleaseDC (f->output_data.w32->window_desc, hdc);
 
   leave_crit ();
 
@@ -112,7 +112,7 @@ release_frame_dc (FRAME_PTR f, HDC hdc)
 
 typedef struct int_msg
 {
-  Win32Msg w32msg;
+  W32Msg w32msg;
   struct int_msg *lpNext;
 } int_msg;
 
@@ -122,7 +122,7 @@ int nQueue = 0;
 
 BOOL 
 get_next_msg (lpmsg, bWait)
-     Win32Msg * lpmsg;
+     W32Msg * lpmsg;
      BOOL bWait;
 {
   BOOL bRet = FALSE;
@@ -140,7 +140,7 @@ get_next_msg (lpmsg, bWait)
   
   if (nQueue)
     {
-      bcopy (&(lpHead->w32msg), lpmsg, sizeof (Win32Msg));
+      bcopy (&(lpHead->w32msg), lpmsg, sizeof (W32Msg));
 
       {
 	int_msg * lpCur = lpHead;
@@ -165,14 +165,14 @@ get_next_msg (lpmsg, bWait)
 
 BOOL 
 post_msg (lpmsg)
-     Win32Msg * lpmsg;
+     W32Msg * lpmsg;
 {
   int_msg * lpNew = (int_msg *) myalloc (sizeof (int_msg));
 
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (Win32Msg));
+  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
   lpNew->lpNext = NULL;
 
   enter_crit ();
@@ -195,14 +195,14 @@ post_msg (lpmsg)
 }
 
 BOOL
-prepend_msg (Win32Msg *lpmsg)
+prepend_msg (W32Msg *lpmsg)
 {
   int_msg * lpNew = (int_msg *) myalloc (sizeof (int_msg));
 
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (Win32Msg));
+  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
 
   enter_crit ();
 
@@ -357,7 +357,7 @@ have_menus_p (void)
   return 1;
 }
 
-/* x_sync is a no-op on Win32.  */
+/* x_sync is a no-op on W32.  */
 void
 x_sync (f)
      void *f;

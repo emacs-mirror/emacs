@@ -1,4 +1,4 @@
-/* Win32 input routines.
+/* Input routines for Emacs on Win32 API.
    Copyright (C) 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -21,9 +21,9 @@ Boston, MA 02111-1307, USA.  */
 #ifndef __NTINEVT_H__
 #define __NTINEVT_H__
 
-int win32_read_socket (/* int sd, struct input_event *bufp, int numchars,
-			  int waitp, int expected */);
-void win32_mouse_position (/* FRAME_PTR *f,
+int w32_console_read_socket (/* int sd, struct input_event *bufp, int numchars,
+				int waitp, int expected */);
+void w32_mouse_position (/* FRAME_PTR *f,
 			      Lisp_Object *bar_window,
 			      enum scroll_bar_part *part,
 			      Lisp_Object *x,

@@ -122,7 +122,7 @@ static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
 
-extern Lisp_Object Vwin32_downcase_file_names;
+extern Lisp_Object Vw32_downcase_file_names;
 
 DIR *
 opendir (char *filename)
@@ -199,7 +199,7 @@ readdir (DIR *dirp)
   strcpy (dir_static.d_name, find_data.cFileName);
   if (dir_is_fat)
     _strlwr (dir_static.d_name);
-  else if (!NILP (Vwin32_downcase_file_names))
+  else if (!NILP (Vw32_downcase_file_names))
     {
       register char *p;
       for (p = dir_static.d_name; *p; p++)
@@ -412,7 +412,7 @@ normalize_filename (fp, path_sep)
       fp += 2;
     }
 
-  if (NILP (Vwin32_downcase_file_names))
+  if (NILP (Vw32_downcase_file_names))
     {
       while (*fp)
 	{
@@ -536,7 +536,7 @@ request_sigio (void)
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE 
-nt_get_resource (key, lpdwtype)
+w32_get_resource (key, lpdwtype)
     char *key;
     LPDWORD lpdwtype;
 {
@@ -610,7 +610,7 @@ init_environment ()
     for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
       {
 	if (!getenv (env_vars[i]) &&
-	    (lpval = nt_get_resource (env_vars[i], &dwType)) != NULL)
+	    (lpval = w32_get_resource (env_vars[i], &dwType)) != NULL)
 	  {
 	    if (dwType == REG_EXPAND_SZ)
 	      {
@@ -691,7 +691,7 @@ get_emacs_configuration (void)
   os = (GetVersion () & 0x80000000) ? "win95" : "nt";
 
   sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
-	   get_nt_major_version (), get_nt_minor_version ());
+	   get_w32_major_version (), get_w32_minor_version ());
   return configuration_buffer;
 }
 
@@ -714,7 +714,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 }
 
 /* ------------------------------------------------------------------------- */
-/* IO support and wrapper functions for Win32 API. */
+/* IO support and wrapper functions for W32 API. */
 /* ------------------------------------------------------------------------- */
 
 /* Place a wrapper around the MSVC version of ctime.  It returns NULL
@@ -818,7 +818,7 @@ is_fat_volume (const char * name, const char ** pPath)
 
 /* Map filename to a legal 8.3 name if necessary. */
 const char *
-map_win32_filename (const char * name, const char ** pPath)
+map_w32_filename (const char * name, const char ** pPath)
 {
   static char shortname[MAX_PATH];
   char * str = shortname;
@@ -922,25 +922,25 @@ map_win32_filename (const char * name, const char ** pPath)
 int
 sys_access (const char * path, int mode)
 {
-  return _access (map_win32_filename (path, NULL), mode);
+  return _access (map_w32_filename (path, NULL), mode);
 }
 
 int
 sys_chdir (const char * path)
 {
-  return _chdir (map_win32_filename (path, NULL));
+  return _chdir (map_w32_filename (path, NULL));
 }
 
 int
 sys_chmod (const char * path, int mode)
 {
-  return _chmod (map_win32_filename (path, NULL), mode);
+  return _chmod (map_w32_filename (path, NULL), mode);
 }
 
 int
 sys_creat (const char * path, int mode)
 {
-  return _creat (map_win32_filename (path, NULL), mode);
+  return _creat (map_w32_filename (path, NULL), mode);
 }
 
 FILE *
@@ -980,7 +980,7 @@ sys_fopen(const char * path, const char * mode)
       }
     else break;
 
-  fd = _open (map_win32_filename (path, NULL), oflag | _O_NOINHERIT, 0644);
+  fd = _open (map_w32_filename (path, NULL), oflag | _O_NOINHERIT, 0644);
   if (fd < 0)
     return NULL;
 
@@ -997,7 +997,7 @@ sys_link (const char * path1, const char * path2)
 int
 sys_mkdir (const char * path)
 {
-  return _mkdir (map_win32_filename (path, NULL));
+  return _mkdir (map_w32_filename (path, NULL));
 }
 
 /* Because of long name mapping issues, we need to implement this
@@ -1054,7 +1054,7 @@ int
 sys_open (const char * path, int oflag, int mode)
 {
   /* Force all file handles to be non-inheritable. */
-  return _open (map_win32_filename (path, NULL), oflag | _O_NOINHERIT, mode);
+  return _open (map_w32_filename (path, NULL), oflag | _O_NOINHERIT, mode);
 }
 
 int
@@ -1076,7 +1076,7 @@ sys_rename (const char * oldname, const char * newname)
      So, on Win95 we always rename through a temp name, and we make sure
      the temp name has a long extension to ensure correct renaming.  */
 
-  strcpy (temp, map_win32_filename (oldname, NULL));
+  strcpy (temp, map_w32_filename (oldname, NULL));
 
   if (GetVersion () & 0x80000000)
     {
@@ -1091,7 +1091,7 @@ sys_rename (const char * oldname, const char * newname)
       /* Force temp name to require a manufactured 8.3 alias - this
 	 seems to make the second rename work properly. */
       strcat (temp, ".long");
-      if (rename (map_win32_filename (oldname, NULL), temp) < 0)
+      if (rename (map_w32_filename (oldname, NULL), temp) < 0)
 	return -1;
     }
 
@@ -1099,7 +1099,7 @@ sys_rename (const char * oldname, const char * newname)
      (at least if it is a file; don't do this for directories).
      However, don't do this if we are just changing the case of the file
      name - we will end up deleting the file we are trying to rename!  */
-  newname = map_win32_filename (newname, NULL);
+  newname = map_w32_filename (newname, NULL);
   if (stricmp (newname, temp) != 0
       && (attr = GetFileAttributes (newname)) != -1
       && (attr & FILE_ATTRIBUTE_DIRECTORY) == 0)
@@ -1114,13 +1114,13 @@ sys_rename (const char * oldname, const char * newname)
 int
 sys_rmdir (const char * path)
 {
-  return _rmdir (map_win32_filename (path, NULL));
+  return _rmdir (map_w32_filename (path, NULL));
 }
 
 int
 sys_unlink (const char * path)
 {
-  return _unlink (map_win32_filename (path, NULL));
+  return _unlink (map_w32_filename (path, NULL));
 }
 
 static FILETIME utc_base_ft;
@@ -1218,7 +1218,7 @@ generate_inode_val (const char * name)
 
   GetFullPathName (name, sizeof (fullname), fullname, &p);
   get_volume_info (fullname, &p);
-  /* Normal Win32 filesystems are still case insensitive. */
+  /* Normal W32 filesystems are still case insensitive. */
   _strlwr (p);
   hash = hashval (p);
   return (_ino_t) (hash ^ (hash >> 16));
@@ -1243,7 +1243,7 @@ stat (const char * path, struct stat * buf)
       return -1;
     }
 
-  name = (char *) map_win32_filename (path, &path);
+  name = (char *) map_w32_filename (path, &path);
   /* must be valid filename, no wild cards */
   if (strchr (name, '*') || strchr (name, '?'))
     {
@@ -1340,7 +1340,7 @@ stat (const char * path, struct stat * buf)
   buf->st_uid = the_passwd.pw_uid;
   buf->st_gid = the_passwd.pw_gid;
 
-  /* volume_info is set indirectly by map_win32_filename */
+  /* volume_info is set indirectly by map_w32_filename */
   buf->st_dev = volume_info.serialnum;
   buf->st_rdev = volume_info.serialnum;
 
@@ -1932,7 +1932,7 @@ sys_pipe (int * phandles)
 }
 
 /* From ntproc.c */
-extern Lisp_Object Vwin32_pipe_read_delay;
+extern Lisp_Object Vw32_pipe_read_delay;
 
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */
@@ -1969,11 +1969,11 @@ _sys_read_ahead (int fd)
 	 connects DOS programs to pipes by making the pipe appear to be
 	 the normal console stdout - as a result most DOS programs will
 	 write to stdout without buffering, ie.  one character at a
-	 time.  Even some Win32 programs do this - "dir" in a command
+	 time.  Even some W32 programs do this - "dir" in a command
 	 shell on NT is very slow if we don't do this. */
       if (rc > 0)
 	{
-	  int wait = XINT (Vwin32_pipe_read_delay);
+	  int wait = XINT (Vw32_pipe_read_delay);
 
 	  if (wait > 0)
 	    Sleep (wait);
@@ -2165,7 +2165,7 @@ init_ntproc ()
 #ifdef HAVE_SOCKETS
   /* Initialise the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
-     delayed until open-network-stream is called (win32-has-winsock can
+     delayed until open-network-stream is called (w32-has-winsock can
      also be used to dynamically load or reload winsock).
 
      Conveniently, init_environment is called before us, so
@@ -2238,7 +2238,7 @@ init_ntproc ()
   }
 
   /* Restrict Emacs to running only one DOS program at a time (with any
-     number of Win32 programs).  This is to prevent the user from
+     number of W32 programs).  This is to prevent the user from
      running into problems with DOS programs being run in the same VDM
      under both Windows 95 and Windows NT.
 

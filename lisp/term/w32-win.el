@@ -81,7 +81,7 @@
 ;; with the standard X scroll-bars, we don't try to use the normal
 ;; scroll bar routines.
 
-(defun win32-handle-scroll-bar-event (event)
+(defun w32-handle-scroll-bar-event (event)
   "Handle Win32 scroll bar events to do normal Window style scrolling."
   (interactive "e")
   (let ((old-window (selected-window)))
@@ -107,9 +107,9 @@
       (select-window old-window))))
 
 ;; The following definition is used for debugging.
-;(defun win32-handle-scroll-bar-event (event) (interactive "e") (princ event))
+;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-(global-set-key [vertical-scroll-bar mouse-1] 'win32-handle-scroll-bar-event)
+(global-set-key [vertical-scroll-bar mouse-1] 'w32-handle-scroll-bar-event)
 
 ;; (scroll-bar-mode nil)
 
@@ -521,7 +521,7 @@ This is in addition to the primary selection.")
 
 (defun x-select-text (text &optional push)
   (if x-select-enable-clipboard 
-      (win32-set-clipboard-data text))
+      (w32-set-clipboard-data text))
   (setq x-last-selected-text text))
     
 ;;; Return the value of the current selection.
@@ -532,8 +532,8 @@ This is in addition to the primary selection.")
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(condition-case c
-	    (setq text (win32-get-clipboard-data))
-	  (error (message "win32-get-clipboard-data:%s" c)))
+	    (setq text (w32-get-clipboard-data))
+	  (error (message "w32-get-clipboard-data:%s" c)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)
@@ -576,7 +576,7 @@ This is in addition to the primary selection.")
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
 
-;; Win32 expects the menu bar cut and paste commands to use the clipboard.
+;; W32 expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
 (menu-bar-enable-clipboard)
 
@@ -628,7 +628,7 @@ This is in addition to the primary selection.")
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
-;;; Turn off window-splitting optimization; win32 is usually fast enough
+;;; Turn off window-splitting optimization; w32 is usually fast enough
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
 
@@ -638,7 +638,7 @@ This is in addition to the primary selection.")
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep 'ok)
 
-;; Remap some functions to call win32 common dialogs
+;; Remap some functions to call w32 common dialogs
 
 (defun internal-face-interactive (what &optional bool)
   (let* ((fn (intern (concat "face-" what)))
@@ -658,10 +658,10 @@ This is in addition to the primary selection.")
 			   default)))))
 	 (list face (if (equal value "") nil value))))
 
-;; Redefine the font selection to use the Win32 dialog
+;; Redefine the font selection to use the standard Win32 dialog
 
 (defun mouse-set-font (&rest fonts)
   (interactive)
-  (set-default-font (win32-select-font)))
+  (set-default-font (w32-select-font)))
 
 ;;; win32-win.el ends here

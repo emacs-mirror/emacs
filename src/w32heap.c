@@ -38,8 +38,8 @@ int edata;
 int etext;
 
 /* The major and minor versions of NT.  */
-int nt_major_version;
-int nt_minor_version;
+int w32_major_version;
+int w32_minor_version;
 
 /* Cache information describing the NT system for later use.  */
 void
@@ -58,8 +58,8 @@ cache_system_info (void)
 
   /* Cache the version of the operating system.  */
   version.data = GetVersion ();
-  nt_major_version = version.info.major;
-  nt_minor_version = version.info.minor;
+  w32_major_version = version.info.major;
+  w32_minor_version = version.info.minor;
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);

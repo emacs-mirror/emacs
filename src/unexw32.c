@@ -314,7 +314,7 @@ static unsigned long
 get_section_size (PIMAGE_SECTION_HEADER p_section)
 {
   /* The section size is in different locations in the different versions.  */
-  switch (get_nt_minor_version ()) 
+  switch (get_w32_minor_version ()) 
     {
     case 10:
       return p_section->SizeOfRawData;

@@ -119,7 +119,7 @@ extern void reset_standard_handles (int in, int out,
 				    int err, HANDLE handles[4]);
 
 /* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE nt_get_resource (char * key, LPDWORD type);
+extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 
 extern void init_ntproc ();
 extern void term_ntproc ();

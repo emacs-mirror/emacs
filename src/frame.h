@@ -33,7 +33,7 @@ extern int message_buf_print;
 /* The structure representing a frame.  */
 
 enum output_method
-{ output_termcap, output_x_window, output_msdos_raw, output_win32 };
+{ output_termcap, output_x_window, output_msdos_raw, output_w32 };
 
 enum vertical_scroll_bar_type
 { vertical_scroll_bar_none, vertical_scroll_bar_left, vertical_scroll_bar_right };
@@ -181,9 +181,9 @@ struct frame
   /* A structure of auxiliary data used for displaying the contents.
      struct x_output is used for X window frames;
      it is defined in xterm.h.  
-     struct win32_output is used for Win32 window frames;
+     struct w32_output is used for W32 window frames;
      it is defined in w32term.h.  */
-  union output_data { struct x_output *x; struct win32_output *win32; int nothing; } output_data;
+  union output_data { struct x_output *x; struct w32_output *w32; int nothing; } output_data;
 
 #ifdef MULTI_KBOARD
   /* A pointer to the kboard structure associated with this frame.
@@ -309,7 +309,7 @@ typedef struct frame *FRAME_PTR;
 #define WINDOW_FRAME(w) (w)->frame
 
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
-#define FRAME_WIN32_P(f) ((f)->output_method == output_win32)
+#define FRAME_W32_P(f) ((f)->output_method == output_w32)
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
@@ -318,7 +318,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_P(f) FRAME_X_P (f)
 #endif
 #ifdef HAVE_NTGUI
-#define FRAME_WINDOW_P(f) FRAME_WIN32_P (f)
+#define FRAME_WINDOW_P(f) FRAME_W32_P (f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) (0)

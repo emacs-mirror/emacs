@@ -66,8 +66,8 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
-static Lisp_Object win32_dialog_show ();
-static Lisp_Object win32menu_show ();
+static Lisp_Object w32_dialog_show ();
+static Lisp_Object w32menu_show ();
 
 static HMENU keymap_panes ();
 static HMENU single_keymap_panes ();
@@ -576,7 +576,7 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
       eltcdr = XCONS (elt)->cdr;
       string = XCONS (eltcdr)->car;
       /* We no longer discard the @ from the beginning of the string here.
-	 Instead, we do this in win32menu_show.  */
+	 Instead, we do this in w32menu_show.  */
       {
 	HMENU new_hmenu = single_keymap_panes (lpmm,
 					       Fcar (elt),
@@ -946,7 +946,7 @@ get_single_keymap_event (keymap, lpnum)
       eltcdr = XCONS (elt)->cdr;
       string = XCONS (eltcdr)->car;
       /* We no longer discard the @ from the beginning of the string here.
-	 Instead, we do this in win32menu_show.  */
+	 Instead, we do this in w32menu_show.  */
       {
 	Lisp_Object event = get_single_keymap_event (Fcar (elt), lpnum);
 
@@ -1212,8 +1212,8 @@ cached information about equivalent key sequences.")
 	  CHECK_LIVE_WINDOW (window, 0);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 	  
-	  xpos = (FONT_WIDTH (f->output_data.win32->font) * XWINDOW (window)->left);
-	  ypos = (f->output_data.win32->line_height * XWINDOW (window)->top);
+	  xpos = (FONT_WIDTH (f->output_data.w32->font) * XWINDOW (window)->left);
+	  ypos = (f->output_data.w32->line_height * XWINDOW (window)->top);
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1240,7 +1240,7 @@ cached information about equivalent key sequences.")
   /* Display them in a menu.  */
   BLOCK_INPUT;
   
-  selection = win32menu_show (f, xpos, ypos, menu, &hmenu, &error_name);
+  selection = w32menu_show (f, xpos, ypos, menu, &hmenu, &error_name);
   
   UNBLOCK_INPUT;
   
@@ -1337,7 +1337,7 @@ on the left of the dialog box and all following items on the right.\n\
 
     /* Display them in a dialog box.  */
     BLOCK_INPUT;
-    selection = win32_dialog_show (f, 0, 0, title, &error_name);
+    selection = w32_dialog_show (f, 0, 0, title, &error_name);
     UNBLOCK_INPUT;
 
     discard_menu_items ();
@@ -1465,8 +1465,8 @@ set_frame_menubar (f, first_time)
   
   BLOCK_INPUT;
   {
-    HMENU old = GetMenu (FRAME_WIN32_WINDOW (f));
-    SetMenu (FRAME_WIN32_WINDOW (f), hmenu);
+    HMENU old = GetMenu (FRAME_W32_WINDOW (f));
+    SetMenu (FRAME_W32_WINDOW (f), hmenu);
     DestroyMenu (old);
   }
   
@@ -1484,14 +1484,14 @@ free_frame_menubar (f)
   BLOCK_INPUT;
 
   {
-    HMENU old = GetMenu (FRAME_WIN32_WINDOW (f));
-    SetMenu (FRAME_WIN32_WINDOW (f), NULL);
+    HMENU old = GetMenu (FRAME_W32_WINDOW (f));
+    SetMenu (FRAME_W32_WINDOW (f), NULL);
     DestroyMenu (old);
   }
     
   UNBLOCK_INPUT;
 }
-/* Called from Fwin32_create_frame to create the initial menubar of a frame
+/* Called from Fw32_create_frame to create the initial menubar of a frame
    before it is mapped, so that the window is mapped with the menubar already
    there instead of us tacking it on later and thrashing the window after it
    is visible.  */
@@ -1647,9 +1647,9 @@ else
 
 #endif
 
-/* win32menu_show actually displays a menu using the panes and items in 
+/* w32menu_show actually displays a menu using the panes and items in 
    menu_items and returns the value selected from it.
-   There are two versions of win32menu_show, one for Xt and one for Xlib.
+   There are two versions of w32menu_show, one for Xt and one for Xlib.
    Both assume input is blocked by the caller.  */
 
 /* F is the frame the menu is for.
@@ -1665,7 +1665,7 @@ else
 
 
 static Lisp_Object 
-win32menu_show (f, x, y, menu, hmenu, error)
+w32menu_show (f, x, y, menu, hmenu, error)
      FRAME_PTR f;
      int x;
      int y;
@@ -1688,7 +1688,7 @@ win32menu_show (f, x, y, menu, hmenu, error)
   pos.y = y;
     
   /* Offset the coordinates to root-relative.  */
-  ClientToScreen (FRAME_WIN32_WINDOW (f), &pos);
+  ClientToScreen (FRAME_W32_WINDOW (f), &pos);
   
 #if 0
   /* If the mouse moves out of the menu before we show the menu,
@@ -1705,7 +1705,7 @@ win32menu_show (f, x, y, menu, hmenu, error)
 				   0x10,
 				   pos.x, pos.y,
 				   0,
-				   FRAME_WIN32_WINDOW (f),
+				   FRAME_W32_WINDOW (f),
 				   NULL);
   if (menu_selection == -1)
     {
@@ -1739,7 +1739,7 @@ static char * button_names [] =
 };
 
 static Lisp_Object
-win32_dialog_show (f, menubarp, keymaps, title, error)
+w32_dialog_show (f, menubarp, keymaps, title, error)
      FRAME_PTR f;
      int menubarp;
      int keymaps;
@@ -1856,7 +1856,7 @@ win32_dialog_show (f, menubarp, keymaps, title, error)
   /* Actually create the dialog.  */
   dialog_id = ++popup_id_tick;
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
-			   f->output_data.win32->widget, 1, 0,
+			   f->output_data.w32->widget, 1, 0,
 			   dialog_selection_callback, 0);
 #if 0 /* This causes crashes, and seems to be redundant -- rms.  */
   lw_modify_all_widgets (dialog_id, first_wv, True);
@@ -1903,7 +1903,7 @@ win32_dialog_show (f, menubarp, keymaps, title, error)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now
      or track this in the loop above.  */
-  win32_mouse_grabbed = 0;
+  w32_mouse_grabbed = 0;
   
   /* Unread any events that we got but did not handle.  */
   while (queue != NULL) 
@@ -1957,7 +1957,7 @@ win32_dialog_show (f, menubarp, keymaps, title, error)
 }
 #endif
 
-syms_of_win32menu ()
+syms_of_w32menu ()
 {
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);

@@ -248,7 +248,7 @@ enum event_kind
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
 #ifdef WINDOWSNT
-  win32_scroll_bar_click,	/* as for scroll_bar_click, but only generated
+  w32_scroll_bar_click,	/* as for scroll_bar_click, but only generated
 				   by MS-Windows scroll bar controls. */
 #endif
   selection_request_event,	/* Another X client wants a selection from us.

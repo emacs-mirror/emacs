@@ -49,21 +49,21 @@ Boston, MA 02111-1307, USA.
    correct parsing by child process.  Because not all uses of spawnve
    are careful about constructing argv arrays, we make this behaviour
    conditional (off by default). */
-Lisp_Object Vwin32_quote_process_args;
+Lisp_Object Vw32_quote_process_args;
 
 /* Control whether create_child causes the process' window to be
    hidden.  The default is nil. */
-Lisp_Object Vwin32_start_process_show_window;
+Lisp_Object Vw32_start_process_show_window;
 
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
-   but is useful for Win32 processes on both Win95 and NT as well.  */
-Lisp_Object Vwin32_pipe_read_delay;
+   but is useful for W32 processes on both Win95 and NT as well.  */
+Lisp_Object Vw32_pipe_read_delay;
 
 /* Control conversion of upper case file names to lower case.
    nil means no, t means yes. */
-Lisp_Object Vwin32_downcase_file_names;
+Lisp_Object Vw32_downcase_file_names;
 
 /* Keep track of whether we have already started a DOS program. */
 BOOL dos_process_running;
@@ -288,7 +288,7 @@ create_child (char *exe, char *cmdline, char *env,
   start.cb = sizeof (start);
   
 #ifdef HAVE_NTGUI
-  if (NILP (Vwin32_start_process_show_window))
+  if (NILP (Vw32_start_process_show_window))
     start.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
   else
     start.dwFlags = STARTF_USESTDHANDLES;
@@ -530,7 +530,7 @@ sys_wait (int *status)
 }
 
 int
-win32_is_dos_binary (char * filename)
+w32_is_dos_binary (char * filename)
 {
   IMAGE_DOS_HEADER dos_header;
   DWORD signature;
@@ -553,7 +553,7 @@ win32_is_dos_binary (char * filename)
 	     Therefore, we have to do the same here as well. */
 	  p = getenv ("COMSPEC");
 	  if (p)
-	    is_dos_binary = win32_is_dos_binary (p);
+	    is_dos_binary = w32_is_dos_binary (p);
 	}
       else
 	{
@@ -626,7 +626,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
   /* Check if program is a DOS executable, and if so whether we are
      allowed to start it. */
-  is_dos_binary = win32_is_dos_binary (cmdname);
+  is_dos_binary = w32_is_dos_binary (cmdname);
   if (is_dos_binary && dos_process_running)
     {
       errno = EAGAIN;
@@ -641,10 +641,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      Additionally, zero-length args and args containing whitespace need
      to be wrapped in double quotes.  Args containing embedded double
      quotes (as opposed to enclosing quotes, which we leave alone) are
-     usually illegal (most Win32 programs do not implement escaping of
+     usually illegal (most W32 programs do not implement escaping of
      double quotes - sad but true, at least for programs compiled with
      MSVC), but we will escape quotes anyway for those programs that can
-     handle it.  The Win32 gcc library from Cygnus doubles quotes to
+     handle it.  The W32 gcc library from Cygnus doubles quotes to
      escape them, so we will use that convention.
    
      Since I have no idea how large argv and envp are likely to be
@@ -685,7 +685,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       if (*p == 0)
 	add_quotes = 1;
 
-      if (!NILP (Vwin32_quote_process_args))
+      if (!NILP (Vw32_quote_process_args))
 	{
 	  /* This is conditional because it sometimes causes more
 	     problems than it solves, since argv arrays are not always
@@ -1059,7 +1059,7 @@ sys_kill (int pid, int sig)
     }
   else
     {
-      /* Kill the process.  On Win32 this doesn't kill child processes
+      /* Kill the process.  On W32 this doesn't kill child processes
 	 so it doesn't work very well for shells which is why it's not
 	 used in every case.  Also, don't try to terminate DOS processes
 	 (on Win95), because this will hang Emacs. */
@@ -1183,7 +1183,7 @@ extern BOOL init_winsock (int load_now);
 
 extern Lisp_Object Vsystem_name;
 
-DEFUN ("win32-has-winsock", Fwin32_has_winsock, Swin32_has_winsock, 0, 1, 0,
+DEFUN ("w32-has-winsock", Fw32_has_winsock, Sw32_has_winsock, 0, 1, 0,
   "Test for presence of the Windows socket library `winsock'.\n\
 Returns non-nil if winsock support is present, nil otherwise.\n\
 \n\
@@ -1218,7 +1218,7 @@ returned to indicate winsock support is present.")
   return Qnil;
 }
 
-DEFUN ("win32-unload-winsock", Fwin32_unload_winsock, Swin32_unload_winsock,
+DEFUN ("w32-unload-winsock", Fw32_unload_winsock, Sw32_unload_winsock,
        0, 0, 0,
   "Unload the Windows socket library `winsock' if loaded.\n\
 This is provided to allow dial-up socket connections to be disconnected\n\
@@ -1235,11 +1235,11 @@ socket connections still exist.")
 syms_of_ntproc ()
 {
 #ifdef HAVE_SOCKETS
-  defsubr (&Swin32_has_winsock);
-  defsubr (&Swin32_unload_winsock);
+  defsubr (&Sw32_has_winsock);
+  defsubr (&Sw32_unload_winsock);
 #endif
 
-  DEFVAR_LISP ("win32-quote-process-args", &Vwin32_quote_process_args,
+  DEFVAR_LISP ("w32-quote-process-args", &Vw32_quote_process_args,
     "Non-nil enables quoting of process arguments to ensure correct parsing.\n\
 Because Windows does not directly pass argv arrays to child processes,\n\
 programs have to reconstruct the argv array by parsing the command\n\
@@ -1249,15 +1249,15 @@ in double quotes or it will be parsed as multiple arguments.\n\
 However, the argument list to call-process is not always correctly\n\
 constructed (or arguments have already been quoted), so enabling this\n\
 option may cause unexpected behavior.");
-  Vwin32_quote_process_args = Qnil;
+  Vw32_quote_process_args = Qnil;
 
-  DEFVAR_LISP ("win32-start-process-show-window",
-	       &Vwin32_start_process_show_window,
+  DEFVAR_LISP ("w32-start-process-show-window",
+	       &Vw32_start_process_show_window,
     "When nil, processes started via start-process hide their windows.\n\
 When non-nil, they show their window in the method of their choice.");
-  Vwin32_start_process_show_window = Qnil;
+  Vw32_start_process_show_window = Qnil;
 
-  DEFVAR_INT ("win32-pipe-read-delay", &Vwin32_pipe_read_delay,
+  DEFVAR_INT ("w32-pipe-read-delay", &Vw32_pipe_read_delay,
     "Forced delay before reading subprocess output.\n\
 This is done to improve the buffering of subprocess output, by\n\
 avoiding the inefficiency of frequently reading small amounts of data.\n\
@@ -1266,11 +1266,11 @@ If positive, the value is the number of milliseconds to sleep before\n\
 reading the subprocess output.  If negative, the magnitude is the number\n\
 of time slices to wait (effectively boosting the priority of the child\n\
 process temporarily).  A value of zero disables waiting entirely.");
-  Vwin32_pipe_read_delay = 50;
+  Vw32_pipe_read_delay = 50;
 
-  DEFVAR_LISP ("win32-downcase-file-names", &Vwin32_downcase_file_names,
+  DEFVAR_LISP ("w32-downcase-file-names", &Vw32_downcase_file_names,
     "Non-nil means convert all-upper case file names to lower case.\n\
 This applies when performing completions and file name expansion.");
-  Vwin32_downcase_file_names = Qnil;
+  Vw32_downcase_file_names = Qnil;
 }
 /* end of ntproc.c */

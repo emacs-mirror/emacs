@@ -3920,7 +3920,7 @@ make_lispy_event (event)
       }
 
 #ifdef WINDOWSNT
-    case win32_scroll_bar_click:
+    case w32_scroll_bar_click:
       {
 	int button = event->code;
 	int is_double;
@@ -3948,7 +3948,7 @@ make_lispy_event (event)
 					Fcons (part, Qnil)))));
 	}
 
-	/* Always treat Win32 scroll bar events as clicks. */
+	/* Always treat W32 scroll bar events as clicks. */
 	event->modifiers |= click_modifier;
 
 	{
