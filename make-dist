@@ -154,11 +154,11 @@ echo "Making links to \`src'."
 
 echo "Making links to \`src/m'."
 (cd src/m
- ln README *.h ../../${tempdir}/src/m)
+ ln README [a-zA-Z].h ../../${tempdir}/src/m)
 
 echo "Making links to \`src/s'."
 (cd src/s
- ln README *.h ../../${tempdir}/src/s)
+ ln README [a-zA-Z].h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib-src'."
 (cd lib-src
