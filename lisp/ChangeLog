@@ -1,3 +1,12 @@
+2005-01-13  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/ispell.el: These changes are to fix misalignment error
+	caused by equivalent characters of different Emacs charsets.
+	(ispell-unified-chars-table): New variable.
+	(ispell-get-decoded-string): New function.
+	(ispell-get-casechars, ispell-get-not-casechars)
+	(ispell-get-otherchars): Call ispell-get-decoded-string.
+
 2005-01-12  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
 
 	* custom.el (custom-declare-variable): Just put symbol instead
