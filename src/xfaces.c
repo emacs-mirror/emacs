@@ -6752,7 +6752,7 @@ syms_of_xfaces ()
   defsubr (&Sclear_face_cache);
   defsubr (&Stty_suppress_bold_inverse_default_colors);
 
-#ifdef DEBUG_X_COLORS
+#if defined DEBUG_X_COLORS && defined HAVE_X_WINDOWS
   defsubr (&Sdump_colors);
 #endif
 
