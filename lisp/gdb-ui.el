@@ -43,7 +43,8 @@
 ;;
 ;;  Known Bugs: 
 ;;  Does not auto-display arrays of structures or structures containing arrays. 
-;;  On MS Windows, GDB from MINGW does not flush the output from the inferior.
+;;  On MS Windows, Gdb 5.1.1 from MinGW 2.0 does not flush the output from the
+;;  inferior.
 
 ;;; Code:
 
@@ -170,7 +171,7 @@ The following interactive lisp functions help control operation :
   (gdb-clear-inferior-io)
   ;;
   (if (eq window-system 'w32)
-      (gdb-enqueue-input (list "set set new-console off\n" 'ignore)))
+      (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list\n" 'ignore))
@@ -517,7 +518,10 @@ This filter may simply queue output for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "gdb -annotate=2"
+(defcustom gud-gdba-command-name 
+  (if (eq window-system 'w32)
+      "gdb -annotate=2 -noasync"
+    "gdb -annotate=2")
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
   :group 'gud)
@@ -785,12 +789,12 @@ output from the current command if that happens to be appropriate."
     (let ((start (progn (point)))
 	  (end (progn (end-of-line) (point))))
       (with-current-buffer gdb-expression-buffer-name
-	(setq buffer-read-only nil)
-	(delete-region (point-min) (point-max))
-	(insert-buffer-substring (gdb-get-buffer
-				  'gdb-partial-output-buffer)
-				 start end)
-	(insert "\n")))
+	(let ((buffer-read-only nil))
+	  (delete-region (point-min) (point-max))
+	  (insert-buffer-substring (gdb-get-buffer
+				    'gdb-partial-output-buffer)
+				   start end)
+	  (insert "\n"))))
     (goto-char (point-min))
     (re-search-forward "##" nil t)
     (setq gdb-nesting-level 0)
@@ -1478,6 +1482,36 @@ current line."
 				 file
 			       (expand-file-name file gdb-cdir))))
 	  (goto-line (string-to-number line))))))
+;; I'll get this to work one day!
+;; (defun gdb-goto-breakpoint ()
+;;   "Display the file in the source buffer at the breakpoint specified on the
+;; current line."
+;;   (interactive)
+;;   (save-excursion
+;;     (let ((eol (progn (end-of-line) (point))))
+;;       (beginning-of-line 1)
+;;       (if (re-search-forward "\\(\\S-*\\):\\([0-9]+\\)" eol t)
+;; 	  (let ((line (match-string 2))
+;; 		(file (match-string 1)))
+;; 	    (save-selected-window
+;; 	      (select-window gdb-source-window)
+;; 	      (switch-to-buffer (find-file-noselect
+;; 				 (if (file-exists-p file)
+;; 				     file
+;; 				   (expand-file-name file gdb-cdir))))
+;; 	      (goto-line (string-to-number line))))))
+;;     (let ((eol (progn (end-of-line) (point))))
+;;       (beginning-of-line 1)
+;;       (if (re-search-forward "<\\(\\S-*?\\)\\(\\+*[0-9]*\\)>" eol t)
+;; 	  (save-selected-window
+;; 	    (select-window gdb-source-window)
+;; 	    (gdb-get-create-buffer 'gdb-assembler-buffer)
+;; 	    (gdb-enqueue-input
+;; 	     (list (concat "server disassemble " (match-string 1) "\n")
+;; 		   'gdb-assembler-handler))
+;; 	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+;; 	      (re-search-forward 
+;; 	       (concat (match-string 1) (match-string 2)))))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
   "Display the file in the source buffer at the selected breakpoint."
@@ -1959,10 +1993,18 @@ the source buffer."
 
 ;;; Shared keymap initialization:
 
-(defun gdb-display-gdb-buffer ()
-  (interactive)
-  (gdb-display-buffer
-   (gdb-get-create-buffer 'gdba)))
+ (let ((menu (make-sparse-keymap "GDB-Frames")))
+  (define-key gud-menu-map [frames]
+    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
+  (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
+  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
+  (define-key menu [display] '("Display" . gdb-frame-display-buffer))
+  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
+;  (define-key menu [assembler] '("Assembler" . gdb-frame-assembler-buffer))
+)
 
 (let ((menu (make-sparse-keymap "GDB-Windows")))
   (define-key gud-menu-map [displays]
@@ -1974,38 +2016,30 @@ the source buffer."
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer))
   (define-key menu [display] '("Display" . gdb-display-display-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
-  (define-key menu [assembler] '("Assembler" . gdb-display-assembler-buffer)))
+;  (define-key menu [assembler] '("Assembler" . gdb-display-assembler-buffer))
+)
+
+(let ((menu (make-sparse-keymap "View")))
+   (define-key gud-menu-map [view] `(menu-item "View" ,menu))
+;  (define-key menu [both] '(menu-item "Both" gdb-view-both
+;	       :help "Display both source and assembler"
+;	       :button (:radio . (eq gdb-selected-view 'both))))
+   (define-key menu [assembler] '(menu-item "Assembler" gdb-view-assembler
+	       :help "Display assembler only"
+	       :button (:radio . (eq gdb-selected-view 'assembler))))
+   (define-key menu [source] '(menu-item "Source" gdb-view-source
+	       :help "Display source only"
+	       :button (:radio . (eq gdb-selected-view 'source)))))
 
 (defun gdb-frame-gdb-buffer ()
   (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdba)))
 
-(let ((menu (make-sparse-keymap "GDB-Frames"))
-      (submenu (make-sparse-keymap "View")))
-  (define-key gud-menu-map [frames]
-    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
-  (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
-  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
-  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
-  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
-  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
-  (define-key menu [display] '("Display" . gdb-frame-display-buffer))
-  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
-  (define-key menu [view] `(menu-item "View" ,submenu))
-  (define-key submenu [source] 
-    '(menu-item "Source" gdb-view-source
-		:help "Display source only"
-		:button (:radio . (eq gdb-selected-view 'source))))
-  (define-key submenu [assembler] 
-    '(menu-item "Assembler" gdb-view-assembler
-		:help "Display assembler only"
-		:button (:radio . (eq gdb-selected-view 'assembler))))
-;  (define-key submenu [both] 
-;    '(menu-item "Both" gdb-view-both
-;		:help "Display both source and assembler"
-;		:button (:radio . (eq gdb-selected-view 'both))))
-)
+(defun gdb-display-gdb-buffer ()
+  (interactive)
+  (gdb-display-buffer
+   (gdb-get-create-buffer 'gdba)))
 
 (defun gdb-view-source()
 (interactive)
