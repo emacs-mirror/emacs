@@ -968,8 +968,11 @@ list: a value for the variable @code{mode} really sets the major mode,
 and a value for the variable @code{eval} is simply evaluated as an
 expression and the value is ignored.  @code{mode} and @code{eval} are
 not real variables; setting variables named @code{mode} and @code{eval}
-in any other context has no special meaning.  If @code{mode} is used to
-set a major mode, it should be the first ``variable'' in the list.
+in any other context has no special meaning.  @emph{If @code{mode} is
+used to set a major mode, it should be the first ``variable'' in the
+list.}  Otherwise, the entries that precede it in the list of the local
+variables are likely to be ignored, since most modes kill all local
+variables as part of their initialization.
 
   You can use the @code{mode} ``variable'' to set minor modes as well as
 major modes; in fact, you can use it more than once, first to set the
