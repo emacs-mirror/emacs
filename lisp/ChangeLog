@@ -1,3 +1,9 @@
+2000-11-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (list-iso-charset-chars): For
+	two-byte charset, fix the `while' condition.
+	(list-non-iso-charset-chars): Fix the `while' condition.
+
 2000-11-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (add-hook, remove-hook): Don't call make-local-hook
