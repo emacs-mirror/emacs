@@ -385,6 +385,7 @@ your .emacs), or use the \\[ispell-change-dictionary] command to
 change it, as changing this variable only takes effect in a newly
 started ispell process.")
 
+;;;###autoload
 (defvar ispell-dictionary-alist		; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
      "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
