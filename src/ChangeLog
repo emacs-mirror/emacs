@@ -1,5 +1,9 @@
 2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* w32term.c (x_calc_absolute_position): Remove calculation of
+	difference between inner and outer window.  Don't subtract difference
+	for left and top calculations.
+
 	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
 	for left and top calculations.  Remove call to x_real_positions.
 	(x_check_expected_move): Do not set change_gravity to 1 when calling
