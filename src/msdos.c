@@ -918,6 +918,14 @@ IT_set_face (int face)
       fg = bg;
       bg = tem;
     }
+  /* If the user requested inverse video, obey.  */
+  if (inverse_video)
+    {
+      unsigned long tem2 = fg;
+
+      fg = bg;
+      bg = tem2;
+    }
   if (termscript)
     fprintf (termscript, "<FACE %d%s: %d/%d[FG:%d/BG:%d]>", face,
 	     highlight ? "H" : "", fp->foreground, fp->background, fg, bg);
