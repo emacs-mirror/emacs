@@ -145,9 +145,9 @@ static HBITMAP ov_bmp;
 extern Lisp_Object Qhelp_echo;
 
 
-/* Non-zero means Emacs uses toolkit scroll bars.  */
+/* Non-nil means Emacs uses toolkit scroll bars.  */
 
-int x_toolkit_scroll_bars_p;
+Lisp_Object Vx_toolkit_scroll_bars;
 
 /* If a string, w32_read_socket generates an event to display that string.
    (The display is done in read_char.)  */
@@ -10359,9 +10359,9 @@ For example, if a block cursor is over a tab, it will be drawn as\n\
 wide as that tab on the display.");
   x_stretch_cursor_p = 0;
 
-  DEFVAR_BOOL ("x-toolkit-scroll-bars-p", &x_toolkit_scroll_bars_p,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
     "If not nil, Emacs uses toolkit scroll bars.");
-  x_toolkit_scroll_bars_p = 1;
+  Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;

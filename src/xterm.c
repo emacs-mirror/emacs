@@ -230,9 +230,9 @@ static unsigned char ov_bits[] = {
 extern Lisp_Object Qhelp_echo;
 
 
-/* Non-zero means Emacs uses toolkit scroll bars.  */
+/* Non-nil means Emacs uses toolkit scroll bars.  */
 
-int x_toolkit_scroll_bars_p;
+Lisp_Object Vx_toolkit_scroll_bars;
 
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
@@ -14006,12 +14006,20 @@ For example, if a block cursor is over a tab, it will be drawn as\n\
 wide as that tab on the display.");
   x_stretch_cursor_p = 0;
 
-  DEFVAR_BOOL ("x-toolkit-scroll-bars-p", &x_toolkit_scroll_bars_p,
-    "If not nil, Emacs uses toolkit scroll bars.");
+  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+    "What X toolkit scroll bars Emacs uses.\n\
+A value of nil means Emacs doesn't use X toolkit scroll bars.\n\
+Otherwise, value is a symbol describing the X toolkit.");
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  x_toolkit_scroll_bars_p = 1;
+#ifdef USE_MOTIF
+  Vx_toolkit_scroll_bars = intern ("motif");
+#elif defined HAVE_XAW3D
+  Vx_toolkit_scroll_bars = intern ("xaw3d");
 #else
-  x_toolkit_scroll_bars_p = 0;
+  Vx_toolkit_scroll_bars = intern ("xaw");
+#endif
+#else
+  Vx_toolkit_scroll_bars = Qnil;
 #endif
 
   staticpro (&last_mouse_motion_frame);
