@@ -876,6 +876,9 @@ EmacsFrameSetCharSize (widget, columns, rows)
   if (columns < 3) columns = 3;  /* no way buddy */
   if (rows < 3) rows = 3;
 
+  f->display.x->left_pos = f->display.x->widget->core.x;
+  f->display.x->top_pos = f->display.x->widget->core.y;
+
   check_frame_size (f, &rows, &columns);
   f->display.x->vertical_scroll_bar_extra
     = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
