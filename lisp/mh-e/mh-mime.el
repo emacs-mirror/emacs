@@ -32,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.12 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-mime.el,v 1.100 2003/01/25 19:18:51 satyaki Exp $
 
 ;;; Code:
 
@@ -787,7 +787,16 @@ displayed."
           (setq handles pre-dissected-handles)
         (setq handles (or (mm-dissect-buffer nil) (mm-uu-dissect)))
         (setf (mh-mime-handles (mh-buffer-data))
-              (mm-merge-handles handles (mh-mime-handles (mh-buffer-data)))))
+              (mm-merge-handles handles (mh-mime-handles (mh-buffer-data))))
+
+        ;; Use charset to decode body...
+        (unless handles
+          (let* ((ct (ignore-errors
+                       (mail-header-parse-content-type
+                        (message-fetch-field "Content-Type" t))))
+                 (charset (mail-content-type-get ct 'charset)))
+            (when (stringp charset)
+              (mm-decode-body charset)))))
 
       (when (and handles (or (not (stringp (car handles))) (cdr handles)))
         ;; Goto start of message body
@@ -1215,14 +1224,9 @@ Parameter EL is unused."
 The function decodes the message and displays it. It avoids decoding the same
 message multiple times."
   (let ((b (point))
-        (charset (mail-content-type-get (mm-handle-type handle) 'charset))
         (clean-message-header mh-clean-message-header-flag)
         (invisible-headers mh-invisible-headers)
         (visible-headers mh-visible-headers))
-    (when (and charset (stringp charset))
-      (setq charset (intern (downcase charset)))
-      (when (eq charset 'us-ascii)
-        (setq charset nil)))
     (save-excursion
       (save-restriction
         (narrow-to-region b b)

@@ -55,15 +55,21 @@
 
 ;;; Change Log:
 
-;; $Id: mh-customize.el,v 1.1 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-customize.el,v 1.30 2003/02/02 17:28:50 wohler Exp $
 
 ;;; Code:
+(provide 'mh-customize)
+(require 'mh-e)
 
 ;;;###mh-autoload
-(defun mh-customize ()
-  "Customize MH-E variables."
-  (interactive)
-  (customize-group 'mh))
+(defun mh-customize (&optional delete-other-windows-flag)
+  "Customize MH-E variables.
+With optional argument DELETE-OTHER-WINDOWS-FLAG, other windows in the frame
+are removed."
+  (interactive "P")
+  (customize-group 'mh)
+  (when delete-other-windows-flag
+    (delete-other-windows)))
 
 ;;; MH-E Customization Groups
 
@@ -326,13 +332,14 @@ See `mh-search-folder' and `mh-index-search' for details."
        (if (member mh-tool-bar-item-prefs mh-tool-bar-folder-buttons)
            (tool-bar-add-item "preferences" (lambda ()
                                               (interactive)
-                                              (customize-group "mh"))
+                                              (mh-customize t))
                               'mh-showtoolbar-customize
                               :help mh-tool-bar-item-prefs))
        (if (member mh-tool-bar-item-help mh-tool-bar-folder-buttons)
            (tool-bar-add-item "help" (lambda ()
                                        (interactive)
-                                       (Info-goto-node "(mh-e)Top"))
+                                       (Info-goto-node "(mh-e)Top")
+                                       (delete-other-windows))
                               'mh-showtoolbar-help
                               :help mh-tool-bar-item-help))
        tool-bar-map))))
@@ -373,13 +380,14 @@ See `mh-search-folder' and `mh-index-search' for details."
        (if (member mh-tool-bar-item-comp-prefs mh-tool-bar-letter-buttons)
           (tool-bar-add-item "preferences" (lambda ()
                                              (interactive)
-                                             (customize-group "mh-compose"))
+                                             (mh-customize t))
                              'mh-lettertoolbar-customize
                              :help mh-tool-bar-item-comp-prefs))
        (if (member mh-tool-bar-item-help mh-tool-bar-letter-buttons)
           (tool-bar-add-item "help" (lambda ()
                                       (interactive)
-                                      (Info-goto-node "(mh-e)Draft Editing"))
+                                      (Info-goto-node "(mh-e)Draft Editing")
+                                      (delete-other-windows))
                              'mh-lettertoolbar-help
                              :help mh-tool-bar-item-help))
           tool-bar-map))))
@@ -485,13 +493,14 @@ See `mh-search-folder' and `mh-index-search' for details."
        (if (member mh-tool-bar-item-prefs mh-tool-bar-folder-buttons)
            (tool-bar-add-item "preferences" (lambda ()
                                               (interactive)
-                                              (customize-group "mh"))
+                                              (mh-customize t))
                               'mh-foldertoolbar-customize
                               :help mh-tool-bar-item-prefs))
        (if (member mh-tool-bar-item-help mh-tool-bar-folder-buttons)
            (tool-bar-add-item "help" (lambda ()
                                        (interactive)
-                                       (Info-goto-node "(mh-e)Top"))
+                                       (Info-goto-node "(mh-e)Top")
+                                       (delete-other-windows))
                               'mh-foldertoolbar-help
                               :help mh-tool-bar-item-help))
        tool-bar-map))
@@ -631,6 +640,8 @@ be updated manually with the \\[mh-speed-flists] command."
   :type 'boolean
   :group 'mh-speed)
 
+
+
 ;;; Options for controlling scan listing (:group 'mh-folder)
 
 (defcustom mh-adaptive-cmd-note-flag t
@@ -646,11 +657,35 @@ If you prefer fixed-width message numbers, set this variable to nil and call
   :type 'boolean
   :group 'mh-folder)
 
-(defcustom mh-auto-folder-collect-flag t
-  "*Non-nil means to collect all folder names at startup in the background.
-Otherwise, the internal list of folder names is built as folders are
-referenced."
+(defcustom mh-default-folder-list nil
+  "*Alist of addresses and folders.
+When refiling messages, these folders are the default that is provided if the
+sender has the associated address. You do not need to list your aliases here
+as that lookup is already performed.
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
+  :type '(repeat (list (string :tag "Address")
+                       (string :tag "Folder")))
+  :group 'mh-folder)
+
+(defcustom mh-default-folder-must-exist-flag t
+  "*Non-nil means guessed folder name must exist to be used.
+If this variable is t, then the guessed name is only used if the folder
+already exists\; if the folder doesn't exist, then the last folder name used
+is suggested. This is useful if you get mail from various people for whom you
+have an alias, but file them all in the same project folder.
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
   :type 'boolean
+  :group 'mh-folder)
+
+(defcustom mh-default-folder-prefix ""
+  "*Prefix used for guessed folder names.
+This can be used to put folders associated with your aliases in a sub-folder
+so as to not clutter your mail directory.
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
+  :type 'string
   :group 'mh-folder)
 
 (defcustom mh-inc-prog "inc"
@@ -742,6 +777,8 @@ display MIME content using \"M-! mhshow RET\""
   :type 'boolean
   :group 'mh-folder)
 
+
+
 ;;; Message display (:group 'mh-show)
 
 (defcustom mh-bury-show-buffer-flag t
@@ -761,18 +798,18 @@ what is removed."
   :type 'boolean
   :group 'mh-show)
 
-(defcustom mh-decode-quoted-printable-flag
-  (not (null (and (fboundp 'executable-find)(executable-find "mimedecode"))))
-  "Non-nil means decode quoted-printable MIME part with `mimedecode'.
+(defcustom mh-decode-content-transfer-encoded-message-flag
+  (and (fboundp 'executable-find) (executable-find "mimencode") t)
+  "Non-nil means decode messages with `mimencode', if necessary.
 
-Quoted-printable message parts are translated to 8-bit characters by the
-`mimedecode' command. However, unless there is only one quoted-printable body
-part, Gnus will have already decoded the quoted-printable parts.
+Messages which are encoded as quoted-printable or base64 are translated into
+8-bit characters by the `mimencode' command.
 
-This variable is initialized t if `mimedecode' is available.
+This variable is initialized to t if `mimencode' is available.
 
-The source code for `mimedecode' can be obtained from
-http://www.freesoft.org/CIE/FAQ/mimedeco.c."
+The `mimencode' program is part of the metamail package. The source can be
+obtained from
+   ftp://thumper.bellcore.com/pub/nsb/"
   :type 'boolean
   :group 'mh-show)
 
@@ -812,7 +849,7 @@ list. The setting only has effect if `mh-decode-mime-flag' is non-nil."
 (defcustom mh-highlight-citation-p 'gnus
   "How to highlight citations in show buffers.
 The gnus method uses a different color for each indentation."
-  :type '(choice (const :tag "Use gnus" gnus)
+  :type '(choice (const :tag "Use Gnus" gnus)
                  (const :tag "Use font-lock" font-lock)
                  (const :tag "Don't fontify" nil))
   :group 'mh-show)
@@ -906,12 +943,11 @@ Done using `mh-invisible-header-fields' as input."
   (setq mh-invisible-headers
         (concat
          "^"
-         (let ((max-specpdl-size 1000)) ;workaround for insufficient default
-           (regexp-opt
-            (append
-             (if (not mh-show-use-xface-flag)
-                 '("X-Face: "))
-             mh-invisible-header-fields))))))
+         (let ((max-specpdl-size 1000) ;workaround for insufficient default
+               (fields (append (if (not mh-show-use-xface-flag)
+                                   '("X-Face: "))
+                               mh-invisible-header-fields)))
+           (regexp-opt fields t)))))
 
 (defun mh-invisible-header-fields-set (symbol value)
   "Update `mh-invisible-header-fields'.
@@ -1003,6 +1039,7 @@ variable `mh-invisible-fields' is set."
     "X-Mailing-List: "                  ; Unknown mailing list managers
     "X-Mailman-Version: "               ; Mailman mailing list manager
     "X-Message-Id"
+    "X-MHE-Checksum"                    ; Checksum added during index search
     "X-MimeOLE: "                       ; MS Outlook
     "X-Mozilla-Status: "                ; Netscape/Mozilla
     "X-Msmail-"                         ; MS Outlook
@@ -1044,19 +1081,21 @@ variable `mh-invisible-fields' is set."
     "X400-"                             ; X400
     "Xref: ")
 "*List of header fields that are not to be shown.
-Regexps are not allowed. Unique fields should have a \": \" suffix;
-otherwise, the element can be used to render an entire class of fields
-that start with the same prefix invisible.
+Regexps are not allowed. Unique fields should have a \": \" suffix; otherwise,
+the element can be used to render invisible an entire class of fields that
+start with the same prefix.
 This variable is ignored if `mh-visible-headers' is set."
   :type '(repeat (string :tag "Header field"))
   :set 'mh-invisible-header-fields-set
   :group 'mh-show)
 
+
+
 ;;; Composing messages (:group 'mh-letter)
 
 (defcustom mh-compose-insertion (if (locate-library "mml") 'gnus 'mhn)
   "Use either 'gnus or 'mhn to insert MIME message directives in messages."
-  :type '(choice (const :tag "Use gnus" gnus)
+  :type '(choice (const :tag "Use Gnus" gnus)
                  (const :tag "Use mhn"  mhn))
   :group 'mh-letter)
 
@@ -1122,7 +1161,8 @@ This corresponds to:
 While it might be tempting to add a descriptive name to the mailing list
 address, consider that this field will appear in other people's outgoing
 mail in their To: field.  It might be best to keep it simple."
-  :type '(repeat (list (string :tag "regexp") (string :tag "address")))
+  :type '(repeat (list (string :tag "Regexp")
+                       (string :tag "Address")))
   :group 'mh-letter)
 
 (defcustom mh-insert-x-mailer-flag t
@@ -1225,6 +1265,8 @@ to the yanked region."
   :type '(choice function (const nil))
   :group 'mh-letter)
 
+
+
 ;;; Alias handling (:group 'mh-alias)
 
 (defcustom mh-alias-system-aliases
@@ -1293,20 +1335,29 @@ Options are sorted alphabetically, at the top of the file or at the bottom."
                  (const :tag "At the bottom of file" bottom))
   :group 'mh-alias)
 
+
+
 ;;; Indexed searching (:group 'mh-index)
 
 (defcustom mh-index-program nil
   "Indexing program that MH-E shall use.
-The possible choices are swish++, swish-e, namazu, glimpse and grep. By
-default this variable is nil which means that the programs are tried in order
-and the first one found is used."
-  :type '(choice (const :tag "auto-detect" nil)
+The possible choices are swish++, swish-e, mairix, namazu, glimpse, pick and
+grep. By default this variable is nil which means that the programs are tried
+in order and the first one found is used.
+
+More information about setting up an indexing program to use with MH-E can be
+found in the documentation of `mh-index-search'."
+  :type '(choice (const :tag "Auto-detect" nil)
                  (const :tag "swish++" swish++)
                  (const :tag "swish-e" swish)
+                 (const :tag "mairix" mairix)
                  (const :tag "namazu" namazu)
                  (const :tag "glimpse" glimpse)
+                 (const :tag "pick" pick)
                  (const :tag "grep" grep))
   :group 'mh-index)
+
+
 
 ;;; Multiple personalities (:group 'mh-identity)
 
@@ -1366,10 +1417,12 @@ This would produce the equivalent of:
   ;;                (const "work"))
   :type (append
          '(radio)
-         (cons '(const :tag "none" nil)
+         (cons '(const :tag "None" nil)
                (mapcar (function (lambda (arg) `(const ,arg)))
                        (mapcar 'car mh-identity-list))))
   :group 'mh-identity)
+
+
 
 ;;; Hooks (:group 'mh-hooks + group where hook defined)
 
@@ -1404,12 +1457,6 @@ See also `mh-quit-hook'."
 
 (defcustom mh-find-path-hook nil
   "Invoked by `mh-find-path' after reading the user's MH profile."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-folder)
-
-(defcustom mh-folder-list-change-hook nil
-  "Invoked whenever the cached folder list `mh-folder-list' is changed."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
@@ -1526,6 +1573,8 @@ will be removed from the unseen sequence."
   '((t (:inherit mh-speedbar-selected-folder-face :bold t)))
   "Face used for the current folder when it has unread messages."
   :group 'mh-speed-faces)
+
+
 
 ;;; Faces used in scan listing (:group mh-folder-faces)
 
@@ -1656,6 +1705,8 @@ will be removed from the unseen sequence."
   "Face for highlighting the To: string in MH-Folder buffers."
   :group 'mh-folder-faces)
 
+
+
 ;;; Faces used in message display (:group mh-show-faces)
 
 (defvar mh-show-cc-face 'mh-show-cc-face
@@ -1727,6 +1778,8 @@ will be removed from the unseen sequence."
   "Face for highlighting the Subject header field.")
 (copy-face 'mh-folder-subject-face 'mh-show-subject-face)
 
+
+
 ;;; Faces used in indexed searches (:group mh-index-faces)
 
 (defvar mh-index-folder-face 'mh-index-folder-face
@@ -1740,8 +1793,6 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face for highlighting folders in MH-Index buffers."
   :group 'mh-index-faces)
-
-(provide 'mh-customize)
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil

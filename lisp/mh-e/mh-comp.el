@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.26 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-comp.el,v 1.173 2003/01/26 19:37:22 jchonig Exp $
 
 ;;; Code:
 
@@ -461,7 +461,7 @@ setting of the variable `mh-redist-full-contents'.  See its documentation."
                        "-component" "Resent:"
                        "-text" (format "\"%s %s\"" to cc))
       (if mh-redist-background
-          (mh-exec-cmd-daemon "/bin/sh" "-c"
+          (mh-exec-cmd-daemon "/bin/sh" nil "-c"
                               (format "mhdist=1 mhaltmsg=%s %s %s %s"
                                       (if mh-redist-full-contents
                                           buffer-file-name
@@ -1038,11 +1038,17 @@ called, with no arguments, before the signature is actually inserted."
   (let ((file-name buffer-file-name))
     (save-buffer)
     (message "Checking recipients...")
-    (mh-in-show-buffer ("*Recipients*")
+    (mh-in-show-buffer (mh-recipients-buffer)
       (bury-buffer (current-buffer))
       (erase-buffer)
       (mh-exec-cmd-output "whom" t file-name))
     (message "Checking recipients...done")))
+
+(defun mh-tidy-draft-buffer ()
+  "Run when a draft buffer is destroyed."
+  (let ((buffer (get-buffer mh-recipients-buffer)))
+    (if buffer
+	(kill-buffer buffer))))
 
 
 
@@ -1067,20 +1073,29 @@ The versions of MH-E, Emacs, and MH are shown."
   ;; Lazily initialize mh-x-mailer-string.
   (when (null mh-x-mailer-string)
     (save-window-excursion
-      (mh-version)
-      (set-buffer mh-temp-buffer)
-      (if mh-nmh-flag
-          (search-forward-regexp "^nmh-\\(\\S +\\)")
-        (search-forward-regexp "^MH \\(\\S +\\)" nil t))
-      (let ((x-mailer-mh (buffer-substring (match-beginning 1) (match-end 1))))
-        (setq mh-x-mailer-string
-              (format "MH-E %s; %s %s; %s %d.%d"
-                      mh-version (if mh-nmh-flag "nmh" "MH") x-mailer-mh
-                      (if mh-xemacs-flag
-                          "XEmacs"
-                        "Emacs")
-                      emacs-major-version emacs-minor-version)))
-      (kill-buffer mh-temp-buffer)))
+      ;; User would be confused if version info buffer disappeared magically,
+      ;; so don't delete buffer if it already existed.
+      (let ((info-buffer-exists-p (get-buffer mh-info-buffer)))
+        (mh-version)
+        (set-buffer mh-info-buffer)
+        (if mh-nmh-flag
+            (search-forward-regexp "^nmh-\\(\\S +\\)")
+          (search-forward-regexp "^MH \\(\\S +\\)" nil t))
+        (let ((x-mailer-mh (buffer-substring (match-beginning 1)
+                                             (match-end 1))))
+          (setq mh-x-mailer-string
+                (format "MH-E %s; %s %s; %sEmacs %s"
+                        mh-version (if mh-nmh-flag "nmh" "MH") x-mailer-mh
+                        (if mh-xemacs-flag "X" "GNU ")
+                        (cond ((not mh-xemacs-flag) emacs-version)
+                              ((string-match "[0-9.]*\\( +\([ a-z]+[0-9]+\)\\)?"
+                                             emacs-version)
+                               (match-string 0 emacs-version))
+                              (t (format "%s.%s"
+                                         emacs-major-version
+                                         emacs-minor-version))))))
+        (if (not info-buffer-exists-p)
+            (kill-buffer mh-info-buffer)))))
   ;; Insert X-Mailer, but only if it doesn't already exist.
   (save-excursion
     (when (null (mh-goto-header-field "X-Mailer"))
@@ -1152,7 +1167,9 @@ CONFIG is the window configuration to restore after sending the letter."
   (setq mh-annotate-char annotate-char)
   (setq mh-annotate-field annotate-field)
   (setq mh-previous-window-config config)
-  (setq mode-line-buffer-identification (list "{%b}"))
+  (setq mode-line-buffer-identification (list "    {%b}"))
+  (mh-logo-display)
+  (add-hook 'kill-buffer-hook 'mh-tidy-draft-buffer nil t)
   (if (and (boundp 'mh-compose-letter-function)
            mh-compose-letter-function)
       ;; run-hooks will not pass arguments.
@@ -1223,7 +1240,7 @@ Insert X-Face field if the file specified by `mh-x-face-file' exists."
            (recenter -1)
            (set-buffer draft-buffer))   ; for annotation below
           (t
-           (mh-exec-cmd-daemon mh-send-prog "-nodraftfolder" "-noverbose"
+           (mh-exec-cmd-daemon mh-send-prog nil "-nodraftfolder" "-noverbose"
                                mh-send-args file-name)))
     (if mh-annotate-char
         (mh-annotate-msg mh-sent-from-msg

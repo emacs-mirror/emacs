@@ -32,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.9 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-funcs.el,v 1.43 2003/01/26 00:57:35 jchonig Exp $
 
 ;;; Code:
 
@@ -80,48 +80,65 @@ Default is the displayed message. If optional prefix argument is provided,
 then prompt for the message sequence."
   (interactive (list (cond
                       ((mh-mark-active-p t)
-                       (mh-region-to-msg-list (region-beginning) (region-end)))
+                       (cons (region-beginning) (region-end)))
                       (current-prefix-arg
                        (mh-read-seq-default "Copy" t))
                       (t
-                       (mh-get-msg-num t)))
+                       (cons (line-beginning-position) (line-end-position))))
                      (mh-prompt-for-folder "Copy to" "" t)))
-  (mh-exec-cmd "refile"
-               (cond ((numberp msg-or-seq) msg-or-seq)
-                     ((listp msg-or-seq) msg-or-seq)
-                     (t (mh-coalesce-msg-list (mh-seq-to-msgs msg-or-seq))))
-               "-link" "-src" mh-current-folder folder)
-  (if (numberp msg-or-seq)
-      (mh-notate msg-or-seq mh-note-copied mh-cmd-note)
-    (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))
+  (let ((msg-list (cond ((numberp msg-or-seq) (list msg-or-seq))
+                        ((symbolp msg-or-seq) (mh-seq-to-msgs msg-or-seq))
+                        ((and (consp msg-or-seq) (numberp (car msg-or-seq))
+                              (numberp (cdr msg-or-seq)))
+                         (let ((result ()))
+                           (mh-iterate-on-messages-in-region msg
+                               (car msg-or-seq) (cdr msg-or-seq)
+                             (mh-notate nil mh-note-copied mh-cmd-note)
+                             (push msg result))
+                           result))
+                        (t msg-or-seq))))
+    (mh-exec-cmd "refile" (mh-coalesce-msg-list msg-list)
+                 "-link" "-src" mh-current-folder folder)
+    (cond ((numberp msg-or-seq)
+           (mh-notate msg-or-seq mh-note-copied mh-cmd-note))
+          ((symbolp msg-or-seq)
+           (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))))
 
 ;;;###mh-autoload
 (defun mh-kill-folder ()
   "Remove the current folder and all included messages.
 Removes all of the messages (files) within the specified current folder,
-and then removes the folder (directory) itself.
-The value of `mh-folder-list-change-hook' is a list of functions to be called,
-with no arguments, after the folders has been removed."
+and then removes the folder (directory) itself."
   (interactive)
-  (if (yes-or-no-p (format "Remove folder %s (and all included messages)?"
-                           mh-current-folder))
-      (let ((folder mh-current-folder))
-        (if (null mh-folder-list)
-            (mh-set-folder-list))
+  (if (or mh-index-data
+          (yes-or-no-p (format "Remove folder %s (and all included messages)?"
+                               mh-current-folder)))
+      (let ((folder mh-current-folder)
+            (window-config mh-previous-window-config))
         (mh-set-folder-modified-p t)    ; lock folder to kill it
-        (mh-exec-cmd-daemon "rmf" folder)
-        (setq mh-folder-list
-              (delq (assoc folder mh-folder-list) mh-folder-list))
+        (mh-exec-cmd-daemon "rmf" 'mh-rmf-daemon folder)
         (when (boundp 'mh-speed-folder-map)
           (mh-speed-invalidate-map folder))
-        (run-hooks 'mh-folder-list-change-hook)
-        (message "Folder %s removed" folder)
+        (mh-remove-from-sub-folders-cache folder)
         (mh-set-folder-modified-p nil)  ; so kill-buffer doesn't complain
-        (if (get-buffer mh-show-buffer)
+        (if (and mh-show-buffer (get-buffer mh-show-buffer))
             (kill-buffer mh-show-buffer))
         (if (get-buffer folder)
-            (kill-buffer folder)))
+            (kill-buffer folder))
+        (when window-config
+          (set-window-configuration window-config))
+        (message "Folder %s removed" folder))
     (message "Folder not removed")))
+
+(defun mh-rmf-daemon (process output)
+  "The rmf PROCESS puts OUTPUT in temporary buffer.
+Display the results only if something went wrong."
+  (set-buffer (get-buffer-create mh-temp-buffer))
+  (insert-before-markers output)
+  (when (save-excursion
+          (beginning-of-buffer)
+          (re-search-forward "^rmf: " (point-max) t))
+    (display-buffer mh-temp-buffer)))
 
 ;; Avoid compiler warning...
 (defvar view-exit-action)
@@ -130,7 +147,7 @@ with no arguments, after the folders has been removed."
 (defun mh-list-folders ()
   "List mail folders."
   (interactive)
-  (let ((temp-buffer mh-temp-folders-buffer))
+  (let ((temp-buffer mh-folders-buffer))
     (with-output-to-temp-buffer temp-buffer
       (save-excursion
         (set-buffer temp-buffer)
@@ -267,7 +284,7 @@ The messages are formatted by mhl. See the variable `mhl-formfile'."
                              (format "Sequence from %s"
                                      mh-current-folder)))))))
     (if mh-print-background-flag
-        (mh-exec-cmd-daemon shell-file-name "-c" print-command)
+        (mh-exec-cmd-daemon shell-file-name nil "-c" print-command)
       (call-process shell-file-name nil nil nil "-c" print-command))
     (if (numberp msg-or-seq)
         (mh-notate msg-or-seq mh-note-printed mh-cmd-note)

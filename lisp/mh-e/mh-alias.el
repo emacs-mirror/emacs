@@ -91,6 +91,10 @@
 ;;  `mh-alias-insert-file').  In particular, there is a tool-bar icon to grab
 ;;  an alias from the From line of the current message.
 
+;;; Change Log:
+
+;; $Id: mh-alias.el,v 1.25 2003/01/27 04:16:47 wohler Exp $
+
 ;;; Code:
 
 (require 'mh-e)
@@ -283,7 +287,7 @@ Blind aliases or users from /etc/passwd are not expanded."
                   (multi-prompt "," nil prompt mh-alias-alist nil nil))
                  (t
                   (split-string
-                   (completing-read "To: " mh-alias-alist nil nil)
+                   (completing-read prompt mh-alias-alist nil nil)
                    ","))))))
       (if (not mh-alias-expand-aliases-flag)
           (mapconcat 'identity the-answer ", ")
@@ -447,14 +451,14 @@ Set `mh-alias-insert-file' or set AliasFile in your .mh_profile file"))
             (completing-read "Alias file [press Tab]: "
                              (mapcar 'list autolist) nil t))))))))
 
+;;;###mh-autoload
 (defun mh-alias-address-to-alias (address)
   "Return the ADDRESS alias if defined, or nil."
   (let* ((aliases (mh-alias-ali address t)))
     (if (string-equal aliases address)
         nil                             ; ali returned same string -> no.
-      ;; For the comma-separated aliases reyurned by ali, check that one of
-      ;; them doesn't expand into a list.  e.g. we do have an individual
-      ;; alias for that adress.
+      ;; Double-check that we have an individual alias. This means that the
+      ;; alias doesn't expand into a list (of which this address is part).
       (car (delq nil (mapcar
                       (function
                        (lambda (alias)
@@ -501,7 +505,7 @@ after it."
                 ((string-match "^a" answer)
                  (forward-line 1))
                 (t
-                 error "Quitting."))))
+                 (error "Quitting")))))
        ;; No, so sort-in at the right place
        ;; search for "^alias", then "^alia", etc.
        ((eq mh-alias-insertion-location 'sorted)

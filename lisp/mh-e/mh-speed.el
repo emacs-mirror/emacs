@@ -31,7 +31,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-speed.el,v 1.2 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-speed.el,v 1.37 2003/01/31 03:18:18 satyaki Exp $
 
 ;;; Code:
 
@@ -44,7 +44,6 @@
 (defvar mh-speed-refresh-flag nil)
 (defvar mh-speed-last-selected-folder nil)
 (defvar mh-speed-folder-map (make-hash-table :test #'equal))
-(defvar mh-speed-folders-cache (make-hash-table :test #'equal))
 (defvar mh-speed-flists-cache (make-hash-table :test #'equal))
 (defvar mh-speed-flists-process nil)
 (defvar mh-speed-flists-timer nil)
@@ -256,7 +255,7 @@ Do the right thing for the different kinds of buffers that MH-E uses."
 
 (defun mh-speed-add-buttons (folder level)
   "Add speedbar button for FOLDER which is at indented by LEVEL amount."
-  (let ((folder-list (mh-speed-folders folder)))
+  (let ((folder-list (mh-sub-folders folder)))
     (mapc
      (lambda (f)
        (let* ((folder-name (format "%s%s%s" (or folder "+")
@@ -344,58 +343,7 @@ Optional ARGS are ignored."
        (mh-visit-folder folder range)
        (delete-other-windows)))))
 
-(defun mh-speed-folders (folder)
-  "Find the subfolders of FOLDER.
-The function avoids running folders unnecessarily by caching the results of
-the actual folders call."
-  (let ((match (gethash folder mh-speed-folders-cache 'no-result)))
-    (cond ((eq match 'no-result)
-           (setf (gethash folder mh-speed-folders-cache)
-                 (mh-speed-folders-actual folder)))
-          (t match))))
-
-(defun mh-speed-folders-actual (folder)
-  "Execute the command folders to return the sub-folders of FOLDER.
-Filters out the folder names that start with \".\" so that directories that
-aren't usually mail folders are hidden."
-  (let* ((folder (cond ((and (stringp folder)
-                             (equal (substring folder 0 1) "+"))
-                        folder)
-                       (t nil)))
-         (arg-list `(,(expand-file-name "folders" mh-progs)
-                     nil (t nil) nil "-noheader" "-norecurse"
-                     ,@(if (stringp folder) (list folder) ())))
-         (results ()))
-    (with-temp-buffer
-      (apply #'call-process arg-list)
-      (goto-char (point-min))
-      (while (not (and (eolp) (bolp)))
-        (goto-char (line-end-position))
-        (let ((has-pos (search-backward " has " (line-beginning-position) t)))
-          (when (integerp has-pos)
-            (while (or (equal (char-after has-pos) ? )
-                       (equal (char-after has-pos) ?+))
-              (decf has-pos))
-            (incf has-pos)
-            (let ((name (buffer-substring (line-beginning-position) has-pos)))
-              (let ((first-char (substring name 0 1)))
-                (unless (or (string-equal first-char ".")
-                            (string-equal first-char "#")
-                            (string-equal first-char ","))
-                  (push
-                   (cons name
-                         (search-forward "(others)" (line-end-position) t))
-                   results)))))
-          (forward-line 1))))
-    (setq results (nreverse results))
-    (when (stringp folder)
-      (setq results (cdr results))
-      (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
-        (setq results (mapcar (lambda (f)
-                                (cons (substring (car f) folder-name-len)
-                                      (cdr f)))
-                              results))))
-    results))
+(defvar mh-speed-current-folder nil)
 
 ;;;###mh-autoload
 (defun mh-speed-flists (force)
@@ -418,9 +366,17 @@ If FORCE is non-nil the timer is reset."
              (unless (and (processp mh-speed-flists-process)
                           (not (eq (process-status mh-speed-flists-process)
                                    'exit)))
+               (setq mh-speed-current-folder
+                     (concat
+                      (with-temp-buffer
+                        (call-process (expand-file-name "folder" mh-progs)
+                                      nil '(t nil) nil "-fast")
+                        (buffer-substring (point-min) (1- (point-max))))
+                      "+"))
                (setq mh-speed-flists-process
-                     (start-process (expand-file-name "flists" mh-progs) nil
-                                    "flists" "-recurse"
+                     (start-process "*flists*" nil
+                                    (expand-file-name "flists" mh-progs)
+                                    "-recurse"
                                     "-sequence" (symbol-name mh-unseen-seq)))
                (set-process-filter mh-speed-flists-process
                                    'mh-speed-parse-flists-output)))))))
@@ -440,7 +396,7 @@ next."
                              (substring output position line-end))
                 mh-speed-partial-line "")
           (multiple-value-setq (folder unseen total)
-            (mh-parse-flist-output-line line))
+            (mh-parse-flist-output-line line mh-speed-current-folder))
           (when (and folder unseen total)
             (setf (gethash folder mh-speed-flists-cache) (cons unseen total))
             (save-excursion
@@ -489,10 +445,8 @@ next."
            (parent (if last-slash (substring folder 0 last-slash) nil))
            (parent-position (gethash parent mh-speed-folder-map))
            (parent-change nil))
-      (remhash parent mh-speed-folders-cache)
-      (remhash folder mh-speed-folders-cache)
       (when parent-position
-        (let ((parent-kids (mh-speed-folders parent)))
+        (let ((parent-kids (mh-sub-folders parent)))
           (cond ((null parent-kids)
                  (setq parent-change ?+))
                 ((and (null (cdr parent-kids))
@@ -517,7 +471,7 @@ next."
           (setq mh-speed-last-selected-folder nil)
           (setq mh-speed-refresh-flag t)))
       (when (equal folder "")
-        (clrhash mh-speed-folders-cache)))))
+        (clrhash mh-sub-folders-cache)))))
 
 ;;;###mh-autoload
 (defun mh-speed-add-folder (folder)
@@ -545,7 +499,6 @@ The function invalidates the latest ancestor that is present."
          `(mh-children-p t)))
       (when (get-text-property (line-beginning-position) 'mh-expanded)
         (mh-speed-toggle))
-      (remhash ancestor mh-speed-folders-cache)
       (setq mh-speed-refresh-flag t))))
 
 ;; Make it slightly more general to allow for [ ] buttons to be changed to

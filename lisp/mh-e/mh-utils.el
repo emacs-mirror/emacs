@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.34 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-utils.el,v 1.214 2003/01/27 04:42:23 wohler Exp $
 
 ;;; Code:
 
@@ -121,7 +121,7 @@ variable `transient-mark-mode' is active."
   "Regexp to find the number of a message in a scan line.
 The message's number must be surrounded with \\( \\)")
 
-(defvar mh-scan-msg-overflow-regexp "^\\?[0-9]"
+(defvar mh-scan-msg-overflow-regexp "^[?0-9][0-9]"
   "Regexp to find a scan line in which the message number overflowed.
 The message's number is left truncated in this case.")
 
@@ -149,7 +149,7 @@ default, or nil to calculate the default the usual way.
 NOTE: This variable is not an ordinary hook;
 It may not be a list of functions.")
 
-(defvar mh-show-buffer-mode-line-buffer-id "{show-%s} %d"
+(defvar mh-show-buffer-mode-line-buffer-id "    {show-%s} %d"
   "Format string to produce `mode-line-buffer-identification' for show buffers.
 First argument is folder name.  Second is message number.")
 
@@ -464,11 +464,6 @@ message about the fontification operation."
 
 ;;; Internal bookkeeping variables:
 
-;; The value of `mh-folder-list-change-hook' is called whenever
-;; mh-folder-list variable is set.
-;; List of folder names for completion.
-(defvar mh-folder-list nil)
-
 ;; Cached value of the `Path:' component in the user's MH profile.
 ;; User's mail folder directory.
 (defvar mh-user-path nil)
@@ -492,14 +487,20 @@ message about the fontification operation."
 ;; Name of the Inbox folder.
 (defvar mh-inbox nil)
 
-;; Name of MH-E scratch buffer.
-(defconst mh-temp-buffer " *mh-temp*")
+;; The names of ephemeral buffers have a " *mh-" prefix (so that they are
+;; hidden and can be programmatically removed in mh-quit), and the variable
+;; names have the form mh-temp-.*-buffer.
+(defconst mh-temp-buffer " *mh-temp*")  ;scratch
 
-;; Name of the MH-E folder list buffer.
-(defconst mh-temp-folders-buffer "*Folders*")
-
-;; Name of the MH-E sequences list buffer.
-(defconst mh-temp-sequences-buffer "*Sequences*")
+;; The names of MH-E buffers that are not ephemeral and can be used by the
+;; user (and deleted by the user when no longer needed) have a "*MH-E " prefix
+;; (so they can be programmatically removed in mh-quit), and the variable
+;; names have the form mh-.*-buffer.
+(defconst mh-folders-buffer "*MH-E Folders*") ;folder list
+(defconst mh-info-buffer "*MH-E Info*") ;version information buffer
+(defconst mh-log-buffer "*MH-E Log*") ;output of MH commands and so on
+(defconst mh-recipients-buffer "*MH-E Recipients*") ;killed when draft sent
+(defconst mh-sequences-buffer "*MH-E Sequences*") ;sequences list
 
 ;; Window configuration before MH-E command.
 (defvar mh-previous-window-config nil)
@@ -529,6 +530,19 @@ message about the fontification operation."
 
 (defvar mh-show-folder-buffer nil
   "Keeps track of folder whose message is being displayed.")
+
+(defvar mh-logo-cache nil)
+
+(defun mh-logo-display ()
+  "Modify mode line to display MH-E logo."
+  (when (fboundp 'find-image)
+    (add-text-properties
+     0 2
+     `(display ,(or mh-logo-cache
+                    (setq mh-logo-cache
+                          (find-image '((:type xpm :ascent center
+                                         :file "mh-logo.xpm"))))))
+     (car mode-line-buffer-identification))))
 
 ;;; This holds a documentation string used by describe-mode.
 (defun mh-showing-mode (&optional arg)
@@ -1133,22 +1147,25 @@ The message is displayed in raw form."
     (delete-other-windows)
     (switch-to-buffer edit-buffer)))
 
-(defun mh-decode-quoted-printable ()
-  "Run mimedecode on current buffer, replacing its contents."
-  (let ((case-fold-search t))
+(defun mh-decode-content-transfer-encoded-message ()
+  "Run mimencode on message body, if needed."
+  (let ((case-fold-search t)
+        (header-end (mail-header-end)))
     (goto-char (point-min))
-    (when (and (re-search-forward
-                "^content-transfer-encoding:[ \t]*quoted-printable"
-                (if mh-decode-mime-flag (mail-header-end) nil) t)
-               (search-forward "\n\n" nil t))
-      (message "Converting quoted-printable characters...")
-      (let ((modified (buffer-modified-p))
-            (command "mimedecode"))
-        (shell-command-on-region (point-min) (point-max) command t t)
-        (if (fboundp 'deactivate-mark)
-            (deactivate-mark))
-        (set-buffer-modified-p modified))
-      (message "Converting quoted-printable characters... done."))))
+    (when (re-search-forward "^content-transfer-encoding: " header-end t)
+      (let ((enc (buffer-substring-no-properties (point) (line-end-position)))
+            cmdline)
+        (setq cmdline
+              (cond ((string-match "base64" enc) (list "-u" "-b" "-p"))
+                    ((string-match "quoted-printable" enc) (list "-u" "-q"))
+                    (t nil)))
+        (when cmdline
+          (beginning-of-line)
+          (insert "Removed-")
+          (setq header-end (mail-header-end))
+          (goto-char (1+ header-end))
+          (apply #'call-process-region (1+ header-end) (point-max) "mimencode"
+                 t t nil cmdline))))))
 
 (defun mh-show-unquote-From ()
   "Decode >From at beginning of lines for `mh-show-mode'."
@@ -1208,9 +1225,9 @@ Sets the current buffer to the show buffer."
                                          (if (stringp formfile)
                                              (list "-form" formfile))
                                          msg-filename)
-               (insert-file-contents msg-filename))
-             (if mh-decode-quoted-printable-flag
-                 (mh-decode-quoted-printable))
+               (insert-file-contents-literally msg-filename))
+             (if mh-decode-content-transfer-encoded-message-flag
+                 (mh-decode-content-transfer-encoded-message))
              ;; Cleanup old mime handles
              (mh-mime-cleanup)
              ;; Use mm to display buffer
@@ -1248,6 +1265,7 @@ Sets the current buffer to the show buffer."
              (setq mode-line-buffer-identification
                    (list (format mh-show-buffer-mode-line-buffer-id
                                  folder-name msg-num)))
+             (mh-logo-display)
              (set-buffer folder)
              (setq mh-showing-with-headers nil))))))
 
@@ -1407,12 +1425,7 @@ arguments, after these variable have been set."
       (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
       (if mh-previous-seq
           (setq mh-previous-seq (intern mh-previous-seq)))
-      (run-hooks 'mh-find-path-hook)))
-  (and mh-auto-folder-collect-flag
-       (let ((mh-no-install t))         ;only get folders if MH installed
-         (condition-case err
-             (mh-make-folder-list-background)
-           (file-error)))))             ;so don't complain if not installed
+      (run-hooks 'mh-find-path-hook))))
 
 (defun mh-file-command-p (file)
   "Return t if file FILE is the name of a executable regular file."
@@ -1537,11 +1550,14 @@ The message number width portion of the format is discovered using
                                (match-beginning 1) (match-end 1))))))
     width))
 
-(defun mh-add-msgs-to-seq (msgs seq &optional internal-flag)
+(defun mh-add-msgs-to-seq (msgs seq &optional internal-flag dont-annotate-flag)
   "Add MSGS to SEQ.
 Remove duplicates and keep sequence sorted. If optional INTERNAL-FLAG is
 non-nil, do not mark the message in the scan listing or inform MH of the
-addition."
+addition.
+
+If DONT-ANNOTATE-FLAG is non-nil then the annotations in the folder buffer are
+not updated."
   (let ((entry (mh-find-seq seq)))
     (if (and msgs (atom msgs)) (setq msgs (list msgs)))
     (if (null entry)
@@ -1552,7 +1568,8 @@ addition."
                               (append msgs (mh-seq-msgs entry))))))
     (cond ((not internal-flag)
            (mh-add-to-sequence seq msgs)
-           (mh-notate-seq seq mh-note-seq (1+ mh-cmd-note))))))
+           (unless dont-annotate-flag
+             (mh-notate-seq seq mh-note-seq (1+ mh-cmd-note)))))))
 
 (defun mh-canonicalize-sequence (msgs)
   "Sort MSGS in decreasing order and remove duplicates."
@@ -1564,19 +1581,193 @@ addition."
         (setq head (cdr head))))
     sorted-msgs))
 
+(defvar mh-sub-folders-cache (make-hash-table :test #'equal))
+
+(defun mh-normalize-folder-name (folder &optional empty-string-okay
+                                        dont-remove-trailing-slash)
+  "Normalizes FOLDER name.
+Makes sure that two '/' characters never occur next to each other. Also all
+occurrences of \"..\" and \".\" are suitably processed. So \"+inbox/../news\"
+will be normalized to \"+news\".
+
+If optional argument EMPTY-STRING-OKAY is nil then a '+' is added at the
+front if FOLDER lacks one. If non-nil and FOLDER is the empty string then
+nothing is added.
+
+If optional argument DONT-REMOVE-TRAILING-SLASH is non-nil then a trailing '/'
+if present is retained (if present), otherwise it is removed."
+  (when (stringp folder)
+    ;; Replace two or more consecutive '/' characters with a single '/'
+    (while (string-match "//" folder)
+      (setq folder (replace-match "/" nil t folder)))
+    (let* ((length (length folder))
+           (trailing-slash-present (and (> length 0)
+                                        (equal (aref folder (1- length)) ?/))))
+      (let ((components (split-string folder "/"))
+            (result ()))
+        ;; Remove .. and . from the pathname.
+        (dolist (component components)
+          (cond ((and (equal component "..") result)
+                 (pop result))
+                ((equal component ".."))
+                ((equal component "."))
+                (t (push component result))))
+        (setq folder "")
+        (dolist (component result)
+          (setq folder (concat component "/" folder)))
+        ;; Remove trailing '/' if needed.
+        (unless (and trailing-slash-present dont-remove-trailing-slash)
+          (when (not (equal folder ""))
+            (setq folder (substring folder 0 (1- (length folder))))))))
+    (cond ((and empty-string-okay (equal folder "")))
+          ((equal folder "") (setq folder "+"))
+          ((not (equal (aref folder 0) ?+)) (setq folder (concat "+" folder)))))
+  folder)
+
+(defun mh-sub-folders (folder &optional add-trailing-slash-flag)
+  "Find the subfolders of FOLDER.
+The function avoids running folders unnecessarily by caching the results of
+the actual folders call.
+
+If optional argument ADD-TRAILING-SLASH-FLAG is non-nil then a slash is added
+to each of the sub-folder names that may have nested folders within them."
+  (let* ((folder (mh-normalize-folder-name folder))
+         (match (gethash folder mh-sub-folders-cache 'no-result))
+         (sub-folders (cond ((eq match 'no-result)
+                             (setf (gethash folder mh-sub-folders-cache)
+                                   (mh-sub-folders-actual folder)))
+                            (t match))))
+    (if add-trailing-slash-flag
+        (mapcar #'(lambda (x)
+                    (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
+                sub-folders)
+      sub-folders)))
+
+(defun mh-sub-folders-actual (folder)
+  "Execute the command folders to return the sub-folders of FOLDER.
+Filters out the folder names that start with \".\" so that directories that
+aren't usually mail folders are hidden."
+  (let ((arg-list `(,(expand-file-name "folders" mh-progs)
+                    nil (t nil) nil "-noheader" "-norecurse" "-nototal"
+                    ,@(if (stringp folder) (list folder) ())))
+        (results ())
+        (current-folder (concat
+                         (with-temp-buffer
+                           (call-process (expand-file-name "folder" mh-progs)
+                                         nil '(t nil) nil "-fast")
+                           (buffer-substring (point-min) (1- (point-max))))
+                         "+")))
+    (with-temp-buffer
+      (apply #'call-process arg-list)
+      (goto-char (point-min))
+      (while (not (and (eolp) (bolp)))
+        (goto-char (line-end-position))
+        (let ((has-pos (search-backward " has " (line-beginning-position) t)))
+          (when (integerp has-pos)
+            (while (equal (char-after has-pos) ? )
+              (decf has-pos))
+            (incf has-pos)
+            (let* ((name (buffer-substring (line-beginning-position) has-pos))
+                   (first-char (aref name 0))
+                   (last-char (aref name (1- (length name)))))
+              (unless (member first-char '(?. ?# ?,))
+                (when (and (equal last-char ?+) (equal name current-folder))
+                  (setq name (substring name 0 (1- (length name)))))
+                (push
+                 (cons name
+                       (search-forward "(others)" (line-end-position) t))
+                 results))))
+          (forward-line 1))))
+    (setq results (nreverse results))
+    (when (stringp folder)
+      (setq results (cdr results))
+      (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
+        (setq results (mapcar (lambda (f)
+                                (cons (substring (car f) folder-name-len)
+                                      (cdr f)))
+                              results))))
+    results))
+
+(defun mh-remove-from-sub-folders-cache (folder)
+  "Remove FOLDER and its parent from `mh-sub-folders-cache'.
+FOLDER should be unconditionally removed from the cache. Also the last ancestor
+of FOLDER present in the cache must be removed as well.
+
+To see why this is needed assume we have a folder +foo which has a single
+sub-folder qux. Now we create the folder +foo/bar/baz. Here we will need to
+invalidate the cached sub-folders of +foo, otherwise completion on +foo won't
+tell us about the option +foo/bar!"
+  (remhash folder mh-sub-folders-cache)
+  (block ancestor-found
+    (let ((parent folder)
+          (one-ancestor-found nil)
+          last-slash)
+      (while (setq last-slash (mh-search-from-end ?/ parent))
+        (setq parent (substring parent 0 last-slash))
+        (unless (eq (gethash parent  mh-sub-folders-cache 'none) 'none)
+          (remhash parent mh-sub-folders-cache)
+          (if one-ancestor-found
+              (return-from ancestor-found)
+            (setq one-ancestor-found t))))
+      (remhash nil mh-sub-folders-cache))))
+
 (defvar mh-folder-hist nil)
 (defvar mh-speed-folder-map)
+(defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
+(define-key mh-folder-completion-map " " 'minibuffer-complete)
+
+(defun mh-folder-completion-function (name predicate flag)
+  "Programmable completion for folder names.
+NAME is the partial folder name that has been input. PREDICATE if non-nil is a
+function that is used to filter the possible choices and FLAG determines
+whether the completion is over."
+  (let* ((orig-name name)
+         (name (mh-normalize-folder-name name nil t))
+         (last-slash (mh-search-from-end ?/ name))
+         (last-complete (if last-slash (substring name 0 last-slash) nil))
+         (remainder (cond (last-complete (substring name (1+ last-slash)))
+                          ((and (> (length name) 0) (equal (aref name 0) ?+))
+                           (substring name 1))
+                          (t ""))))
+    (cond ((eq flag nil)
+           (let ((try-res (try-completion
+                           name
+                           (mapcar (lambda (x)
+                                     (cons (if (not last-complete)
+                                               (concat "+" (car x))
+                                             (concat last-complete "/" (car x)))
+                                           (cdr x)))
+                                   (mh-sub-folders last-complete t))
+                           predicate)))
+             (cond ((eq try-res nil) nil)
+                   ((and (eq try-res t) (equal name orig-name)) t)
+                   ((eq try-res t) name)
+                   (t try-res))))
+          ((eq flag t)
+           (all-completions
+            remainder (mh-sub-folders last-complete t) predicate))
+          ((eq flag 'lambda)
+           (file-exists-p
+            (concat mh-user-path
+                    (substring (mh-normalize-folder-name name) 1)))))))
+
+(defun mh-folder-completing-read (prompt default)
+  "Read folder name with PROMPT and default result DEFAULT."
+  (mh-normalize-folder-name
+   (let ((minibuffer-local-completion-map mh-folder-completion-map))
+     (completing-read prompt 'mh-folder-completion-function nil nil nil
+                      'mh-folder-hist default))
+   t))
 
 (defun mh-prompt-for-folder (prompt default can-create
-                                    &optional default-string)
+                             &optional default-string allow-root-folder-flag)
   "Prompt for a folder name with PROMPT.
 Returns the folder's name as a string. DEFAULT is used if the folder exists
 and the user types return. If the CAN-CREATE flag is t, then a folder is
 created if it doesn't already exist. If optional argument DEFAULT-STRING is
-non-nil, use it in the prompt instead of DEFAULT.
-The value of `mh-folder-list-change-hook' is a list of functions to be called,
-with no arguments, whenever the cached folder list `mh-folder-list' is
-changed."
+non-nil, use it in the prompt instead of DEFAULT. If ALLOW-ROOT-FOLDER-FLAG is
+non-nil then the function will accept the folder +, which means all folders
+when used in searching."
   (if (null default)
       (setq default ""))
   (let* ((default-string (cond (default-string (format " [%s]? "
@@ -1585,13 +1776,11 @@ changed."
                                (t (format " [%s]? " default))))
          (prompt (format "%s folder%s" prompt default-string))
          read-name folder-name)
-    (if (null mh-folder-list)
-        (mh-set-folder-list))
-    (while (and (setq read-name (completing-read prompt mh-folder-list nil nil
-                                                 "+" 'mh-folder-hist))
+    (while (and (setq read-name (mh-folder-completing-read prompt default))
                 (equal read-name "")
                 (equal default "")))
-    (cond ((or (equal read-name "") (equal read-name "+"))
+    (cond ((or (equal read-name "")
+               (and (equal read-name "+") (not allow-root-folder-flag)))
            (setq read-name default))
           ((not (mh-folder-name-p read-name))
            (setq read-name (format "+%s" read-name))))
@@ -1609,100 +1798,16 @@ changed."
                            folder-name)))
              (message "Creating %s" folder-name)
              (mh-exec-cmd-error nil "folder" folder-name)
+             (mh-remove-from-sub-folders-cache folder-name)
              (when (boundp 'mh-speed-folder-map)
                (mh-speed-add-folder folder-name))
-             (message "Creating %s...done" folder-name)
-             (setq mh-folder-list (cons (list read-name) mh-folder-list))
-             (run-hooks 'mh-folder-list-change-hook))
+             (message "Creating %s...done" folder-name))
             (new-file-flag
              (error "Folder %s is not created" folder-name))
             ((not (file-directory-p (mh-expand-file-name folder-name)))
              (error "\"%s\" is not a directory"
-                    (mh-expand-file-name folder-name)))
-            ((and (null (assoc read-name mh-folder-list))
-                  (null (assoc (concat read-name "/") mh-folder-list)))
-             (setq mh-folder-list (cons (list read-name) mh-folder-list))
-             (run-hooks 'mh-folder-list-change-hook))))
+                    (mh-expand-file-name folder-name)))))
     folder-name))
-
-(defvar mh-make-folder-list-process nil) ;The background process collecting
-                                         ;the folder list.
-
-(defvar mh-folder-list-temp nil)        ;mh-folder-list as it is being built.
-
-(defvar mh-folder-list-partial-line "") ;Start of last incomplete line from
-                                        ;folder process.
-
-(defun mh-set-folder-list ()
-  "Set `mh-folder-list' correctly.
-A useful function for the command line or for when you need to
-sync by hand.  Format is in a form suitable for completing read.
-The value of `mh-folder-list-change-hook' is a list of functions to be called,
-with no arguments, once the list of folders has been created."
-  (message "Collecting folder names...")
-  (if (not mh-make-folder-list-process)
-      (mh-make-folder-list-background))
-  (while (eq (process-status mh-make-folder-list-process) 'run)
-    (accept-process-output mh-make-folder-list-process))
-  (setq mh-folder-list mh-folder-list-temp)
-  (run-hooks 'mh-folder-list-change-hook)
-  (setq mh-folder-list-temp nil)
-  (delete-process mh-make-folder-list-process)
-  (setq mh-make-folder-list-process nil)
-  (message "Collecting folder names...done"))
-
-(defun mh-make-folder-list-background ()
-  "Start a background process to compute a list of the user's folders.
-Call `mh-set-folder-list' to wait for the result."
-  (cond
-   ((not mh-make-folder-list-process)
-    (unless mh-inbox
-      (mh-find-path))
-    (let ((process-connection-type nil))
-      (setq mh-make-folder-list-process
-            (start-process "folders" nil (expand-file-name "folders" mh-progs)
-                           "-fast"
-                           (if mh-recursive-folders-flag
-                               "-recurse"
-                             "-norecurse")))
-      (set-process-filter mh-make-folder-list-process
-                          'mh-make-folder-list-filter)
-      (process-kill-without-query mh-make-folder-list-process)))))
-
-(defun mh-make-folder-list-filter (process output)
-  "Given the PROCESS \"folders -fast\", parse OUTPUT.
-See also `set-process-filter'."
-  (let ((position 0)
-        line-end
-        new-folder
-        (prevailing-match-data (match-data)))
-    (unwind-protect
-        ;; make sure got complete line
-        (while (setq line-end (string-match "\n" output position))
-          (setq new-folder (format "+%s%s"
-                                   mh-folder-list-partial-line
-                                   (substring output position line-end)))
-          (setq mh-folder-list-partial-line "")
-          ;; is new folder a subfolder of previous?
-          (if (and mh-folder-list-temp
-                   (string-match
-                    (regexp-quote
-                     (concat (car (car mh-folder-list-temp)) "/"))
-                    new-folder))
-              ;; append slash to parent folder for better completion
-              ;; (undone by mh-prompt-for-folder)
-              (setq mh-folder-list-temp
-                    (cons
-                     (list new-folder)
-                     (cons
-                      (list (concat (car (car mh-folder-list-temp)) "/"))
-                      (cdr mh-folder-list-temp))))
-            (setq mh-folder-list-temp
-                  (cons (list new-folder)
-                        mh-folder-list-temp)))
-          (setq position (1+ line-end)))
-      (set-match-data prevailing-match-data))
-    (setq mh-folder-list-partial-line (substring output position))))
 
 ;;; Issue commands to MH.
 
@@ -1712,14 +1817,14 @@ The side effects are what is desired.
 Any output is assumed to be an error and is shown to the user.
 The output is not read or parsed by MH-E."
   (save-excursion
-    (set-buffer (get-buffer-create mh-temp-buffer))
+    (set-buffer (get-buffer-create mh-log-buffer))
     (erase-buffer)
     (apply 'call-process
            (expand-file-name command mh-progs) nil t nil
            (mh-list-to-string args))
     (if (> (buffer-size) 0)
         (save-window-excursion
-          (switch-to-buffer-other-window mh-temp-buffer)
+          (switch-to-buffer-other-window mh-log-buffer)
           (sit-for 5)))))
 
 (defun mh-exec-cmd-error (env command &rest args)
@@ -1743,24 +1848,30 @@ Signals an error if process does not complete successfully."
                     (mh-list-to-string args)))))
       (mh-handle-process-error command status))))
 
-(defun mh-exec-cmd-daemon (command &rest args)
-  "Execute MH command COMMAND with ARGS in the background.
-Any output from command is displayed in an asynchronous pop-up window."
+(defun mh-exec-cmd-daemon (command filter &rest args)
+  "Execute MH command COMMAND in the background.
+
+If FILTER is non-nil then it is used to process the output otherwise the
+default filter `mh-process-daemon' is used. See `set-process-filter' for more
+details of FILTER.
+
+ARGS are passed to COMMAND as command line arguments."
   (save-excursion
-    (set-buffer (get-buffer-create mh-temp-buffer))
+    (set-buffer (get-buffer-create mh-log-buffer))
     (erase-buffer))
   (let* ((process-connection-type nil)
          (process (apply 'start-process
                          command nil
                          (expand-file-name command mh-progs)
                          (mh-list-to-string args))))
-    (set-process-filter process 'mh-process-daemon)))
+    (set-process-filter process (or filter 'mh-process-daemon))))
 
 (defun mh-process-daemon (process output)
-  "PROCESS daemon that puts OUTPUT into a temporary buffer."
-  (set-buffer (get-buffer-create mh-temp-buffer))
+  "PROCESS daemon that puts OUTPUT into a temporary buffer.
+Any output from the process is displayed in an asynchronous pop-up window."
+  (set-buffer (get-buffer-create mh-log-buffer))
   (insert-before-markers output)
-  (display-buffer mh-temp-buffer))
+  (display-buffer mh-log-buffer))
 
 (defun mh-exec-cmd-quiet (raise-error command &rest args)
   "Signal RAISE-ERROR if COMMAND with ARGS fails.

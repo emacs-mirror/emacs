@@ -1,4 +1,151 @@
-* Changes in mh-e 7.1
+* Changes in MH-E 7.2
+
+This release includes the new features of filing hints, hierarchical
+file name completion, indexed search and pick integration, unification
+between `mh-visit-folder' and the speedbar, a displayed message
+indicator, buffer name organization, support for mairix indexed
+search, and last but not least, the MH-E logo has been added to the
+mode line. Code that handles sequences and message regions runs
+faster. Bugs have been fixed.
+
+** New Features in MH-E 7.2
+
+*** Filing Hints
+
+When you file a message, MH-E now looks for an alias corresponding to
+the address of the sender and offers that as a default folder (closes
+SF #657096). The new variable `mh-default-folder-prefix' can be used
+to put these folders in a sub-folder. The new variable
+`mh-default-folder-must-exist-flag' means to suppress the suggested
+folder (thereby providing the previous folder used) if the folder
+doesn't already exist. The new variable `mh-default-folder-list' can
+be used to map additional addresses and folders.
+
+*** Hierarchical File Name Completion
+
+When you completed filenames in the past, you were presented with a
+list of all your folders at all depths in the tree. Now you are
+presented with only one level at a time (closes SF #664821).
+As a result, the variables `mh-auto-folder-collect-flag' and
+`mh-folder-list-change-hook' are obsolete.
+
+*** Indexed Search and Pick Integration
+
+The indexed and pick searches have been integrated (closes SF
+#664816). Both "F s (mh-search-folder)" and "F i (mh-index-search)"
+use the pick template for forming queries. To submit the query, use
+"C-c C-c (mh-do-search)" which will use the query method you selected.
+If you change your mind while forming the query, you can use "C-c C-i
+(mh-index-do-search)" or "C-c C-p (mh-pick-do-search)" to submit the
+query using the respective method.
+
+Second, the results from a pick search are now saved in a sub-folder
+of +mhe-index like an indexed search.
+
+Third, `pick' is now a valid choice for `mh-index-program'.
+
+*** mh-visit-folder Metamorphosis Continues
+
+When visiting a folder from the speedbar, only the unseen messages are
+shown if there are unseen messages. If there aren't any unseen
+messages, all of the messages are shown if there are fewer than
+`mh-large-folder' messages; otherwise, the user is prompted for the
+range of messages to display. The "F v (mh-visit-folder)" command has
+been modified to mimic this behavior. Use a prefix arg to force the
+message range prompt.
+
+*** Displayed Message Indicator
+
+In graphical Emacs, the message that is shown is marked by a triangle
+in the fringe. In textual Emacs, there is a ">" in the first column
+(closes SF #664824).
+
+*** Buffer Name Organization
+
+All ephemeral buffer names start with " *mh" while all interesting
+buffers start with "*MH-E ". The "*Folders*", "*Sequences*", and
+"*Recipients*" buffers were therefore renamed to "*MH-E Folders*",
+"*MH-E Sequences*" and "*MH-E Recipients*" respectively (programmers
+should see mh-utils.el for the names of the new constants). Also, the
+output of MH commands is saved in the "*MH-E Log*" buffer.
+
+*** mh-index-program
+
+Add choices for `mairix' and `pick'.
+
+*** Logo Displayed on Mode Line
+
+** New Variables in MH-E 7.2
+
+The new variables have been discussed elsewhere.
+
+** Bug Fixes in MH-E 7.2
+
+*** mh-decode-content-transfer-encoded-message
+
+Messages that had been encoded with base64 were not decoded. This has
+been fixed with this new function (closes SF #674190). As a result,
+the variable `mh-decode-quoted-printable-flag' has been renamed to
+`mh-decode-content-transfer-encoded-message-flag'.
+
+*** mh-kill-folder
+
+Now restores previous window configuration (closes SF #664828).
+
+*** mh-mime-display
+
+MH-E was not using the charset defined in the content-type
+header. This meant that mail in a different charset would not
+be properly displayed. This has been fixed (closes SF #655123).
+
+*** mh-read-address
+
+In XEmacs and Emacs20, this function would always prompt using "To: "
+instead of using the command argument. This has been fixed (closes SF
+#670913).
+
+*** mh-rmail
+
+Unseen messages are now shown in addition to new ones (closes SF
+#667542).
+
+*** mh-scan-msg-overflow-regexp
+
+Change the variable so that a space is always maintained in the
+beginning of the scan line.
+
+*** mh-swish-execute-search
+
+The example configuration file in the docstring didn't show the
+backslash in the FileRules filename. If the example had been used
+literally by the user, no files would be indexed! This has been fixed
+(closes SF #665888).
+
+*** mh-thread-refile
+
+The "T o (mh-thread-refile)" command did not provide refiling hints
+like `mh-refile-msg'. This has been fixed (closes SF #664829).
+
+*** mh-toggle-threads
+
+If the threaded view was modified and then toggled, the standard view
+may not have been accurate (as it contained a potentially old first
+message to last message range). This has been fixed (closes SF
+#626117).
+
+*** mh-tool-bar-show-set, mh-tool-bar-letter-set, mh-tool-bar-folder-set
+
+Clicking the customize and help buttons now deletes the other windows
+in the frame.
+
+*** mh-version
+
+The "M-x mh-version" command displayed "Aliasfile: aliases". This has
+been fixed (closes SF #664467). See Buffer Name Organization above.
+
+
+
+* Changes in MH-E 7.1
 
 This release includes the new features of multiple identities and
 alias completion. In addition, indexed searching has been revamped.
@@ -204,7 +351,7 @@ changed (closes SF #643701).
 
 
 
-* Changes in mh-e 7.0
+* Changes in MH-E 7.0
 
 This is a major release which includes a lot of new features including
 improved MIME handling, speedbar folder browsing, and indexed

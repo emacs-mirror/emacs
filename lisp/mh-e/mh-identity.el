@@ -37,7 +37,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-identity.el,v 1.1 2003/01/08 23:21:16 wohler Exp $
+;; $Id: mh-identity.el,v 1.17 2002/12/03 15:54:27 psg Exp $
 
 ;;; Code:
 
