@@ -583,6 +583,7 @@ There is a new command M-x replace-rectangle.
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
 
++++
 ** M-x query-replace recognizes a new command `e' (or `E') that lets
 you edit the replacement string.
 
