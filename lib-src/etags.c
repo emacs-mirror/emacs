@@ -1236,7 +1236,7 @@ main (argc, argv)
   if (update)
     {
       char cmd[BUFSIZ];
-      sprintf (cmd, "sort %s -o %s", tagfile, tagfile);
+      sprintf (cmd, "sort -o %s %s", tagfile, tagfile);
       exit (system (cmd));
     }
   return GOOD;
