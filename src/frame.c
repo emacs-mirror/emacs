@@ -1,4 +1,3 @@
-
 /* Generic frame functions.
    Copyright (C) 1989, 1992 Free Software Foundation.
 
@@ -30,13 +29,57 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termhooks.h"
 
 Lisp_Object Vemacs_iconified;
-Lisp_Object Qframep;
-Lisp_Object Qlive_frame_p;
 Lisp_Object Vframe_list;
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_minibuffer_frame;
 Lisp_Object Vdefault_frame_alist;
+
+/* Evaluate this expression to rebuild the section of syms_of_frame
+   that initializes and staticpros the symbols declared below.  Note
+   that Emacs 18 has a bug that keeps C-x C-e from being able to
+   evaluate this expression.
+
+(progn
+  ;; Accumulate a list of the symbols we want to initialize from the
+  ;; declarations at the top of the file.
+  (goto-char (point-min))
+  (search-forward "/\*&&& symbols declared here &&&*\/\n")
+  (let (symbol-list)
+    (while (looking-at "Lisp_Object \\(Q[a-z_]+\\)")
+      (setq symbol-list
+	    (cons (buffer-substring (match-beginning 1) (match-end 1))
+		  symbol-list))
+      (forward-line 1))
+    (setq symbol-list (nreverse symbol-list))
+    ;; Delete the section of syms_of_... where we initialize the symbols.
+    (search-forward "\n  /\*&&& init symbols here &&&*\/\n")
+    (let ((start (point)))
+      (while (looking-at "^  Q")
+	(forward-line 2))
+      (kill-region start (point)))
+    ;; Write a new symbol initialization section.
+    (while symbol-list
+      (insert (format "  %s = intern (\"" (car symbol-list)))
+      (let ((start (point)))
+	(insert (substring (car symbol-list) 1))
+	(subst-char-in-region start (point) ?_ ?-))
+      (insert (format "\");\n  staticpro (&%s);\n" (car symbol-list)))
+      (setq symbol-list (cdr symbol-list)))))
+  */        
+
+/*&&& symbols declared here &&&*/
+Lisp_Object Qframep;
+Lisp_Object Qlive_frame_p;
+Lisp_Object Qheight;
+Lisp_Object Qicon;
 Lisp_Object Qminibuffer;
+Lisp_Object Qmodeline;
+Lisp_Object Qname;
+Lisp_Object Qnone;
+Lisp_Object Qonly;
+Lisp_Object Qunsplittable;
+Lisp_Object Qwidth;
+Lisp_Object Qx;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -56,7 +99,7 @@ Also see `live-frame-p'.")
     case output_termcap:
       return Qt;
     case output_x_window:
-      return intern ("x");
+      return Qx;
     default:
       abort ();
     }
@@ -290,7 +333,7 @@ focus on that frame.")
 
 #ifdef HAVE_X_WINDOWS
 #ifdef MULTI_FRAME
-  if (FRAME_IS_X (XFRAME (frame))
+  if (FRAME_X_P (XFRAME (frame))
       && NILP (no_enter))
     {
       Ffocus_frame (frame);
@@ -491,7 +534,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
-  if (FRAME_HAS_MINIBUF (XFRAME (frame)))
+  if (FRAME_HAS_MINIBUF_P (XFRAME (frame)))
     {
       Lisp_Object frames;
 
@@ -529,7 +572,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
   f->display.nothing = 0;
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (f))
+  if (FRAME_X_P (f))
     x_destroy_window (f, displ);
 #endif
 
@@ -574,7 +617,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 	    abort ();
 	  f = XFRAME (this);
 
-	  if (FRAME_HAS_MINIBUF (f))
+	  if (FRAME_HAS_MINIBUF_P (f))
 	    {
 	      frame_with_minibuf = this;
 	      if (FRAME_MINIBUF_ONLY_P (f))
@@ -632,7 +675,7 @@ WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
   CHECK_NUMBER (y, 1);
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (XFRAME (frame)))
+  if (FRAME_X_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XFRAME (frame), x, y);
 #endif
@@ -708,8 +751,10 @@ Also raises the frame so that nothing obscures it.")
 
   CHECK_LIVE_FRAME (frame, 0);
 
-  if (FRAME_IS_X (XFRAME (frame)))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (XFRAME (frame)))
     x_make_frame_visible (XFRAME (frame));
+#endif
 
   return frame;
 }
@@ -725,8 +770,10 @@ DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
 
   CHECK_LIVE_FRAME (frame, 0);
 
-  if (FRAME_IS_X (XFRAME (frame)))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (XFRAME (frame)))
     x_make_frame_invisible (XFRAME (frame));
+#endif
 
   return Qnil;
 }
@@ -742,8 +789,10 @@ DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
   
   CHECK_LIVE_FRAME (frame, 0);
 
-  if (FRAME_IS_X (XFRAME (frame)))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (XFRAME (frame)))
       x_iconify_frame (XFRAME (frame));
+#endif
 
   return Qnil;
 }
@@ -753,7 +802,7 @@ DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p,
        "Return t if FRAME is now \"visible\" (actually in use for display).\n\
 A frame that is not \"visible\" is not updated and, if it works through\n\
 a window system, it may not show at all.\n\
-Return the symbol `icon' if window is visible only as an icon.")
+Return the symbol `icon' if frame is visible only as an icon.")
   (frame)
      Lisp_Object frame;
 {
@@ -762,7 +811,7 @@ Return the symbol `icon' if window is visible only as an icon.")
   if (XFRAME (frame)->visible)
     return Qt;
   if (XFRAME (frame)->iconified)
-    return intern ("icon");
+    return Qicon;
   return Qnil;
 }
 
@@ -849,14 +898,12 @@ get_frame_param (frame, prop)
 }
 
 void
-store_in_alist (alistptr, propname, val)
+store_in_alist (alistptr, prop, val)
      Lisp_Object *alistptr, val;
-     char *propname;
+     Lisp_Object prop;
 {
   register Lisp_Object tem;
-  register Lisp_Object prop;
 
-  prop = intern (propname);
   tem = Fassq (prop, *alistptr);
   if (EQ (tem, Qnil))
     *alistptr = Fcons (Fcons (prop, val), *alistptr);
@@ -883,7 +930,7 @@ store_frame_param (f, prop, val)
       if (! MINI_WINDOW_P (XWINDOW (val)))
 	error ("Surrogate minibuffer windows must be minibuffer windows.");
 
-      if (FRAME_HAS_MINIBUF (f) || FRAME_MINIBUF_ONLY_P (f))
+      if (FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f))
 	error ("Can't change the surrogate minibuffer of a frame with its own minibuffer.");
 
       /* Install the chosen minibuffer window, with proper buffer.  */
@@ -914,18 +961,20 @@ If FRAME is omitted, return information on the currently selected frame.")
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
-  store_in_alist (&alist, "name", f->name);
-  store_in_alist (&alist, "height", make_number (f->height));
-  store_in_alist (&alist, "width", make_number (f->width));
-  store_in_alist (&alist, "modeline", (f->wants_modeline ? Qt : Qnil));
-  store_in_alist (&alist, "minibuffer",
-		  (FRAME_HAS_MINIBUF (f)
-		   ? (FRAME_MINIBUF_ONLY_P (f) ? intern ("only") : Qt)
-		   : FRAME_MINIBUF_WINDOW (f)));
-  store_in_alist (&alist, "unsplittable", (f->no_split ? Qt : Qnil));
+  store_in_alist (&alist, Qname, f->name);
+  store_in_alist (&alist, Qheight, make_number (f->height));
+  store_in_alist (&alist, Qwidth, make_number (f->width));
+  store_in_alist (&alist, Qmodeline, (f->wants_modeline ? Qt : Qnil));
+  store_in_alist (&alist, Qminibuffer,
+		  (! FRAME_HAS_MINIBUF_P (f) ? Qnone
+		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
+                   : FRAME_MINIBUF_WINDOW (f))));
+  store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
     x_report_frame_params (f, &alist);
+#endif
   return alist;
 }
 
@@ -938,7 +987,7 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
   (frame, alist)
      Lisp_Object frame, alist;
 {
-  register struct frame *f;
+  FRAME_PTR f;
   register Lisp_Object tail, elt, prop, val;
 
   if (EQ (frame, Qnil))
@@ -949,16 +998,21 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
       f = XFRAME (frame);
     }
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+#if 1
+    x_set_frame_parameters (f, alist);
+#else
     for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
       {
 	elt = Fcar (tail);
 	prop = Fcar (elt);
 	val = Fcdr (elt);
-	x_set_frame_param (f, prop, val,
-			    get_frame_param (f, prop));
+	x_set_frame_param (f, prop, val, get_frame_param (f, prop));
 	store_frame_param (f, prop, val);
       }
+#endif
+#endif
 
   return Qnil;
 }
@@ -1009,7 +1063,7 @@ DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
 Optional third arg non-nil means that redisplay should use LINES lines\n\
 but that the idea of the actual height of the frame should not be changed.")
   (frame, rows, pretend)
-     Lisp_Object rows, pretend;
+     Lisp_Object frame, rows, pretend;
 {
   register struct frame *f;
 
@@ -1022,13 +1076,15 @@ but that the idea of the actual height of the frame should not be changed.")
       f = XFRAME (frame);
     }
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
     {
       if (XINT (rows) != f->width)
 	x_set_window_size (f, f->width, XINT (rows));
     }
   else
-    change_frame_size (f, XINT (rows), 0, !NILP (pretend));
+#endif
+    change_frame_size (f, XINT (rows), 0, !NILP (pretend), 0);
   return Qnil;
 }
 
@@ -1037,7 +1093,7 @@ DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
 Optional third arg non-nil means that redisplay should use COLS columns\n\
 but that the idea of the actual width of the frame should not be changed.")
   (frame, cols, pretend)
-     Lisp_Object cols, pretend;
+     Lisp_Object frame, cols, pretend;
 {
   register struct frame *f;
   CHECK_NUMBER (cols, 0);
@@ -1049,13 +1105,15 @@ but that the idea of the actual width of the frame should not be changed.")
       f = XFRAME (frame);
     }
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
     {
       if (XINT (cols) != f->width)
 	x_set_window_size (f, XINT (cols), f->height);
     }
   else
-    change_frame_size (selected_frame, 0, XINT (cols), !NILP (pretend));
+#endif
+    change_frame_size (f, 0, XINT (cols), !NILP (pretend), 0);
   return Qnil;
 }
 
@@ -1072,13 +1130,15 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   CHECK_NUMBER (rows, 1);
   f = XFRAME (frame);
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
     {
       if (XINT (rows) != f->height || XINT (cols) != f->width)
 	x_set_window_size (f, XINT (cols), XINT (rows));
     }
   else
-    change_frame_size (f, XINT (rows), XINT (cols), 0);
+#endif
+    change_frame_size (f, XINT (rows), XINT (cols), 0, 0);
 
   return Qnil;
 }
@@ -1088,7 +1148,7 @@ DEFUN ("set-frame-position", Fset_frame_position,
   "Sets position of FRAME in pixels to XOFFSET by YOFFSET.\n\
 If XOFFSET or YOFFSET are negative, they are interpreted relative to\n\
 the leftmost or bottommost position FRAME could occupy without going\n\
-off the frame.")
+off the screen.")
   (frame, xoffset, yoffset)
      Lisp_Object frame, xoffset, yoffset;
 {
@@ -1100,8 +1160,10 @@ off the frame.")
   CHECK_NUMBER (yoffset, 2);
   f = XFRAME (frame);
 
-  if (FRAME_IS_X (f))
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
     x_set_offset (f, XINT (xoffset), XINT (yoffset));
+#endif
 
   return Qt;
 }
@@ -1164,13 +1226,31 @@ choose_minibuf_frame ()
 
 syms_of_frame ()
 {
+  /*&&& init symbols here &&&*/
   Qframep = intern ("framep");
-  Qlive_frame_p = intern ("live_frame_p");
-  Qminibuffer = intern ("minibuffer");
-
   staticpro (&Qframep);
+  Qlive_frame_p = intern ("live-frame-p");
   staticpro (&Qlive_frame_p);
+  Qheight = intern ("height");
+  staticpro (&Qheight);
+  Qicon = intern ("icon");
+  staticpro (&Qicon);
+  Qminibuffer = intern ("minibuffer");
   staticpro (&Qminibuffer);
+  Qmodeline = intern ("modeline");
+  staticpro (&Qmodeline);
+  Qname = intern ("name");
+  staticpro (&Qname);
+  Qnone = intern ("none");
+  staticpro (&Qnone);
+  Qonly = intern ("only");
+  staticpro (&Qonly);
+  Qunsplittable = intern ("unsplittable");
+  staticpro (&Qunsplittable);
+  Qwidth = intern ("width");
+  staticpro (&Qwidth);
+  Qx = intern ("x");
+  staticpro (&Qx);
 
   staticpro (&Vframe_list);
 
@@ -1245,4 +1325,105 @@ For values specific to the separate minibuffer frame, see\n\
 #endif	/* HAVE_X11 */
 }
 
-#endif
+#else /* not MULTI_SCREEN */
+
+/* If we're not using multi-frame stuff, we still need to provide 
+   some support functions.  These were present in Emacs 18.  */
+
+DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
+  "Specify that the frame FRAME has LINES lines.\n\
+Optional third arg non-nil means that redisplay should use LINES lines\n\
+but that the idea of the actual height of the frame should not be changed.")
+  (frame, rows, pretend)
+     Lisp_Object frame, rows, pretend;
+{
+  CHECK_NUMBER (rows, 0);
+
+  change_frame_size (0, XINT (rows), 0, !NILP (pretend), 0);
+  return Qnil;
+}
+
+DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
+  "Specify that the frame FRAME has COLS columns.\n\
+Optional third arg non-nil means that redisplay should use COLS columns\n\
+but that the idea of the actual width of the frame should not be changed.")
+  (frame, cols, pretend)
+     Lisp_Object frame, cols, pretend;
+{
+  CHECK_NUMBER (cols, 0);
+
+  change_frame_size (0, 0, XINT (cols), !NILP (pretend), 0);
+  return Qnil;
+}
+
+DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
+  "Sets size of FRAME to COLS by ROWS, measured in characters.")
+  (frame, cols, rows)
+     Lisp_Object frame, cols, rows;
+{
+  CHECK_NUMBER (cols, 2);
+  CHECK_NUMBER (rows, 1);
+
+  change_frame_size (0, XINT (rows), XINT (cols), 0, 0);
+
+  return Qnil;
+}
+
+DEFUN ("set-screen-height", Fset_screen_height, Sset_screen_height, 1, 2, 0,
+  "Tell redisplay that the screen has LINES lines.\n\
+Optional second arg non-nil means that redisplay should use LINES lines\n\
+but that the idea of the actual height of the screen should not be changed.")
+  (lines, pretend)
+     Lisp_Object lines, pretend;
+{
+  CHECK_NUMBER (lines, 0);
+
+  change_frame_size (0, XINT (lines), 0, !NILP (pretend), 0);
+  return Qnil;
+}
+
+DEFUN ("set-screen-width", Fset_screen_width, Sset_screen_width, 1, 2, 0,
+  "Tell redisplay that the screen has COLS columns.\n\
+Optional second arg non-nil means that redisplay should use COLS columns\n\
+but that the idea of the actual width of the screen should not be changed.")
+  (cols, pretend)
+     Lisp_Object cols, pretend;
+{
+  CHECK_NUMBER (cols, 0);
+
+  change_frame_size (0, 0, XINT (cols), !NILP (pretend), 0);
+  return Qnil;
+}
+
+DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
+  "Return number of lines available for display on selected frame.")
+  ()
+{
+  return make_number (FRAME_HEIGHT (selected_frame));
+}
+
+DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
+  "Return number of columns available for display on selected frame.")
+  ()
+{
+  return make_number (FRAME_WIDTH (selected_frame));
+}
+
+syms_of_frame ()
+{
+  defsubr (&Sset_frame_height);
+  defsubr (&Sset_frame_width);
+  defsubr (&Sset_frame_size);
+  defsubr (&Sset_screen_height);
+  defsubr (&Sset_screen_width);
+  defsubr (&Sframe_height);
+  Ffset (intern ("screen-height"), intern ("frame-height"));
+  defsubr (&Sframe_width);
+  Ffset (intern ("screen-width"), intern ("frame-width"));
+}
+
+#endif /* not MULTI_FRAME */
+
+
+
+
