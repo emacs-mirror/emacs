@@ -894,8 +894,7 @@ using `make-temp-file', and the generated name is returned."
 	(setq last-coding-system-used coding))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
-      (after-insert-file-set-buffer-file-coding-system (- (point-max)
-							  (point-min))))))
+      (after-insert-file-set-coding (- (point-max) (point-min))))))
 
 (defun archive-mouse-extract (event)
   "Extract a file whose name you click on."
