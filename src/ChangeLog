@@ -1,5 +1,9 @@
 2004-11-21  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (move_it_in_display_line_to, display_line): Restore
+	saved_face_id if overflow-newline-into-fringe is enabled and line
+	is continued before or in middle of element from display vector.
+
 	* indent.c (Fvertical_motion): Fix last change.  Use another
 	method to detect if iterator moved too far ahead after reseat.
 
