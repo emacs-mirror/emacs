@@ -1502,7 +1502,7 @@ DIR must be a directory name, not a file name."
 	 ;; weiand: changed: month ends potentially with . or , or .,
 ;;old	 (month (concat l l "+ *"))
 	 (month (concat l l "+[.]?,? *"))
-	 ;; Recognize any non-ASCII character.  
+	 ;; Recognize any non-ASCII character.
 	 ;; The purpose is to match a Kanji character.
 	 (k "[^\0-\177]")
 	 ;; (k "[^\x00-\x7f\x80-\xff]")
@@ -1512,10 +1512,16 @@ DIR must be a directory name, not a file name."
 ;;old	 (dd "[ 0-3][0-9]")
 	 (dd "[ 0-3][0-9][.]?")
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
+	 (zone "[-+][0-2][0-9][0-5][0-9]")
+	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
+	 (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
+	 (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
+		      "\\|" yyyy "-" iso-mm-dd " ?\\)"))
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
          ;; weiand: changed: year potentially unaligned
 ;;old			  s "\\(" HH:MM "\\|" s yyyy "\\|" yyyy s "\\)"))
-			  s "\\(" HH:MM 
+			  s "\\(" HH:MM
 			          "\\|" yyyy s s "?"
 			          "\\|" s "?" yyyy
 			     "\\)"))
@@ -1524,10 +1530,12 @@ DIR must be a directory name, not a file name."
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
+	 ;; The "[kMGTPEZY]?" below supports "ls -alh" output.
 	 ;; The ".*" below finds the last match if there are multiple matches.
 	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
 	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
-    (concat ".*[0-9]" s "\\(" western "\\|" japanese "\\)" s))
+    (concat ".*[0-9][kMGTPEZY]?" 
+	    s "\\(" western "\\|" japanese "\\|" iso "\\)" s))
   "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times
 regardless of the language.")
