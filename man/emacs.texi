@@ -1487,6 +1487,7 @@ edit files while running shell commands.
 @include calendar.texi
 @include misc.texi
 @include custom.texi
+@include kmacro.texi
 @include trouble.texi
 @include cmdargs.texi
 @include xresources.texi
