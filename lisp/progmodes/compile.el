@@ -458,9 +458,9 @@ starting the compilation process.")
   :version "21.4")
 
 (defface compilation-info-face
-  '((((class color) (min-colors 16) (background light)) 
+  '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
-    (((class color) (min-colors 16) (background dark)) 
+    (((class color) (min-colors 16) (background dark))
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
@@ -789,7 +789,10 @@ If this is run in a Compilation mode buffer, re-use the arguments from the
 original use.  Otherwise, recompile using `compile-command'."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (let ((default-directory (or compilation-directory default-directory)))
+  (let ((default-directory
+          (or (and (not (eq major-mode (nth 1 compilation-arguments)))
+                   compilation-directory)
+              default-directory)))
     (apply 'compilation-start (or compilation-arguments
 				  `(,(eval compile-command))))))
 
@@ -816,8 +819,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((and (eq major-mode 'compilation-mode)
-	      (equal mode-name (nth 2 compilation-arguments)))
+	((eq major-mode (nth 1 compilation-arguments))
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -1522,7 +1524,7 @@ If nil, don't scroll the compilation output window."
 
 (defun compilation-goto-locus (msg mk end-mk)
   "Jump to an error corresponding to MSG at MK.
-All arguments are markers.  If END-MK is non nil, mark is set there."
+All arguments are markers.  If END-MK is non-nil, mark is set there."
   (if (eq (window-buffer (selected-window))
 	  (marker-buffer msg))
       ;; If the compilation buffer window is selected,
