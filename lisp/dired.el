@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -929,6 +929,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
     (define-key map "f" 'dired-find-file)
+    (define-key map "w" 'dired-show-file-type)
     (define-key map "\C-m" 'dired-advertised-find-file)
     (define-key map "g" 'revert-buffer)
     (define-key map "h" 'describe-mode)
@@ -2844,6 +2845,12 @@ Use \\[dired-hide-all] to (un)hide all directories."
   "Hide all subdirectories, leaving only their header lines.
 If there is already something hidden, make everything visible again.
 Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
+  t)
+
+(autoload 'dired-show-file-type "dired-aux"
+  "Print the type of FILE, according to the `file' command.
+If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
+true then the type of the file linked to by FILE is printed instead." 
   t)
 
 (if (eq system-type 'vax-vms)
