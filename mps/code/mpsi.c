@@ -348,6 +348,19 @@ void mps_arena_expose(mps_arena_t mps_arena)
   ArenaLeave(arena);
 }
 
+/* Null implementations of remember and restore */
+void mps_arena_unsafe_expose_remember_protection(mps_arena_t mps_arena)
+{
+  mps_arena_expose(mps_arena);
+}
+
+void mps_arena_unsafe_restore_protection(mps_arena_t mps_arena)
+{
+  Arena arena = (Arena)mps_arena;
+  ArenaEnter(arena);
+  ArenaLeave(arena);
+}
+
 
 mps_res_t mps_arena_start_collect(mps_space_t mps_space)
 {
