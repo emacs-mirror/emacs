@@ -681,8 +681,28 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)
 	      default-directory
-	    (char-to-string directory-sep-char))))
-    (apply 'start-process name buffer command switches)))
+	    (char-to-string directory-sep-char)))
+	proc decoding encoding changed)
+    (setq proc (apply 'start-process name buffer command switches))
+    (let ((coding-systems (process-coding-system proc)))
+      (setq decoding (car coding-systems)
+	    encoding (cdr coding-systems)))
+    ;; If start-process decided to use some coding system for decoding
+    ;; data sent form the process and the coding system doesn't
+    ;; specify EOL conversion, we had better convert CRLF to LF.
+    (if (vectorp (coding-system-eol-type decoding))
+	(setq decoding (coding-system-change-eol-conversion decoding 'dos)
+	      changed t))
+    ;; Even if start-process left the coding system for encoding data
+    ;; sent from the process undecided, we had better use the same one
+    ;; as what we use for decoding.  But, we should suppress EOL
+    ;; conversion.
+    (if (and decoding (not encoding))
+	(setq encoding (coding-system-change-eol-conversion decoding 'unix)
+	      changed t))
+    (if changed
+	(set-process-coding-system proc decoding encoding))
+    proc))
 
 ;; Input history processing in a buffer
 ;; ===========================================================================
