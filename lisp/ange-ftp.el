@@ -1847,6 +1847,8 @@ on the gateway machine to do the ftp instead."
     (accept-process-output proc)	;wait for ftp startup message
     proc))
 
+(put 'internal-ange-ftp-mode 'mode-class 'special)
+
 (defun internal-ange-ftp-mode ()
   "Major mode for interacting with the FTP process.
 
