@@ -1,3 +1,10 @@
+2001-06-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id) <all changes below window end>: Don't
+	take this shortcut if ZV is visible in the window.
+	(try_window_id): When checking for window start being in changed
+	text, don't check that the buffer's size has changed.
+
 2001-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fcompleting_read): Doc fix.
