@@ -1,4 +1,4 @@
-2003-03-17  Kenichi Handa  <handa@etlken2>
+2003-03-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-post-read-conversion): Convert the
 	search pattern to multibyte by string-to-multibyte.
