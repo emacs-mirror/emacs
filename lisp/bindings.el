@@ -804,8 +804,8 @@ language you are using."
 (define-key ctl-x-map "\C-t" 'transpose-lines)
 
 (define-key esc-map ";" 'comment-dwim)
-(define-key esc-map "j" 'comment-indent-new-line)
-(define-key esc-map "\C-j" 'comment-indent-new-line)
+(define-key esc-map "j" 'indent-new-comment-line)
+(define-key esc-map "\C-j" 'indent-new-comment-line)
 (define-key ctl-x-map ";" 'comment-set-column)
 (define-key ctl-x-map "f" 'set-fill-column)
 (define-key ctl-x-map "$" 'set-selective-display)

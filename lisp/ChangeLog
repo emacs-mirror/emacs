@@ -1,3 +1,8 @@
+2001-10-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bindings.el (esc-map): Revert `j' and `C-j' bindings to
+	indent-new-comment-line from comment-indent-new-line.
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el <Local Variables>: Remove no-byte-compile, since
@@ -22,8 +27,8 @@
 
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
 
-	* faces.el (face-font-registry-alternatives) [windows-nt]: Make
-	gb2312 an alias for gb2312.1980.
+	* faces.el (face-font-registry-alternatives) [windows-nt]:
+	Make gb2312 an alias for gb2312.1980.
 
 2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
