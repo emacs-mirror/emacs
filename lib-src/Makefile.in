@@ -267,7 +267,7 @@ timer.o: ${srcdir}/timer.c ../src/config.h
 timer: ${TIMEROBJS}
 	$(CC) -I${srcdir}/../src $(ALL_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
 
-make-path: ${srcdir}/make-path.c
+make-path: ${srcdir}/make-path.c ../src/config.h
 	$(CC) $(CPP_CFLAGS) ${srcdir}/make-path.c -o make-path
 
 # These are NOT included in INSTALLABLES or UTILITIES.
