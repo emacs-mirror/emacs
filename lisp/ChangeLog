@@ -1,3 +1,25 @@
+2004-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-info.el (cvs-status-map): Update binding name.
+
+	* pcvs.el (cvs-mode-toggle-mark): Rename from cvs-mouse-toggle-mark.
+	Make it work for non-mouse events.
+
+	* subr.el (posn-set-point): New function.
+
+	* mouse.el (mouse-set-point): Use it.
+
+	* progmodes/compile.el (compile-goto-error): Use it.
+
+	* smerge-mode.el (smerge-popup-context-menu): Use it.
+
+	* emacs-lisp/checkdoc.el (checkdoc-output-mode-map)
+	(checkdoc-find-error-mouse, checkdoc-find-error): Use it to merge the
+	mouse and non-mouse case.
+
+	* diff-mode.el (diff-goto-source): Make it work for mouse bindings.
+	(diff-mouse-goto-source): Make it an alias of diff-goto-source.
+
 2004-04-14  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.el (info-apropos): Don't clobber Info-history-list.
