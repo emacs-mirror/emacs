@@ -744,9 +744,8 @@ This is useful for inserting control characters."
 (defun tpu-include (file)
   "TPU-like include file"
   (interactive "fInclude file: ")
-  (save-excursion
-    (insert-file file)
-    (message "")))
+  (insert-file-contents file)
+  (message ""))
 
 (defun tpu-get (file)
   "TPU-like get file"
