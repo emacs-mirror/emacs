@@ -1,3 +1,17 @@
+2000-02-28  Michael Kifer  <kifer@cs.sunysb.edu>
+	* viper-cmd.el (viper-envelop-ESC-key): added the option to
+	translate all ESC key sequences.
+	(viper-goto-mark-subr): restore markers for files for which
+	they were saved.
+	* viper-init.el (viper-translate-all-ESC-keysequences): new variable.
+	* viper-util.el (viper-set-replace-overlay-glyphs,
+	viper-set-replace-overlay): always check if the replacement
+	overlay is live.
+	* viper.el (viper-vi-state-mode-list): added major modes.
+	* ediff-wind.el: minor comment changes.
+	* ediff.el: copyright notice date fix.
+	
+	
 2000-02-27  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (face-font-family-alternatives): Add arial to helv.

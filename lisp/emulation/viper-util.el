@@ -73,6 +73,7 @@
       (fset 'viper-overlay-p (symbol-function 'extentp))
       (fset 'viper-overlay-get (symbol-function 'extent-property))
       (fset 'viper-move-overlay (symbol-function 'set-extent-endpoints))
+      (fset 'viper-overlay-live-p (symbol-function 'extent-live-p))
       (if (viper-window-display-p)
 	  (fset 'viper-iconify (symbol-function 'iconify-frame)))
       (cond ((viper-has-face-support-p)
@@ -88,6 +89,7 @@
   (fset 'viper-overlay-p (symbol-function 'overlayp))
   (fset 'viper-overlay-get (symbol-function 'overlay-get))
   (fset 'viper-move-overlay (symbol-function 'move-overlay))
+  (fset 'viper-overlay-live-p (symbol-function 'overlayp))
   (if (viper-window-display-p)
       (fset 'viper-iconify (symbol-function 'iconify-or-deiconify-frame)))
   (cond ((viper-has-face-support-p)
@@ -704,7 +706,7 @@
   (viper-move-overlay viper-replace-overlay beg end))
   
 (defun viper-set-replace-overlay (beg end)
-  (if (viper-overlay-p viper-replace-overlay)
+  (if (viper-overlay-live-p viper-replace-overlay)
       (viper-move-replace-overlay beg end)
     (setq viper-replace-overlay (viper-make-overlay beg end (current-buffer)))
     ;; never detach
@@ -729,6 +731,8 @@
   
       
 (defun viper-set-replace-overlay-glyphs (before-glyph after-glyph)
+  (or (viper-overlay-live-p viper-replace-overlay)
+      (viper-set-replace-overlay (point-min) (point-min)))
   (if (or (not (viper-has-face-support-p))
 	  viper-use-replace-region-delimiters)
       (let ((before-name (if viper-xemacs-p 'begin-glyph 'before-string))

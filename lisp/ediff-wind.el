@@ -274,8 +274,8 @@ into icons, regardless of the window manager."
     ))
       
 
+;; Select the lowest window on the frame.
 (defun ediff-select-lowest-window ()
-  "Select the lowest window on the frame."
   (if ediff-xemacs-p
       (select-window (frame-lowest-window))
     (let* ((lowest-window (selected-window))

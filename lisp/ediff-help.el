@@ -311,6 +311,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 			     ediff-brief-help-message))
   (run-hooks 'ediff-display-help-hook))
 
+;;;###autoload
 (defun ediff-customize ()
   (interactive)
   (customize-group "ediff"))

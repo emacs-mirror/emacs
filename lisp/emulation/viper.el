@@ -6,7 +6,7 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-;; Copyright (C) 1994 -- 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 (defconst viper-version "3.08 of October 31, 1999"
   "The current version of Viper")
@@ -393,9 +393,11 @@ widget."
     asm-mode
     prolog-mode
     flora-mode
+    sql-mode
 
     text-mode indented-text-mode
     tex-mode latex-mode bibtex-mode
+    ps-mode
 				  
     completion-list-mode
     

@@ -890,7 +890,8 @@ as a Meta key and any number of multiple escapes is allowed."
 		;; ESC-sequences).
 		(let* ((first-key (elt keyseq 0))
 		       (key-mod (event-modifiers first-key)))
-		  (cond ((viper-ESC-event-p first-key)
+		  (cond ((and (viper-ESC-event-p first-key)
+			      (not viper-translate-all-ESC-keysequences))
 			 ;; put keys following ESC on the unread list
 			 ;; and return ESC as the key-sequence
 			 (viper-set-unread-command-events (subseq keyseq 1))
@@ -1857,6 +1858,8 @@ Undo previous insertion and inserts new."
 
 ;; Thie is a temp hook that uses free variables init-message and initial.
 ;; A dirty feature, but it is the simplest way to have it do the right thing.
+;; The init-message and initial vars come from the scope set by 
+;; viper-read-string-with-history
 (defun viper-minibuffer-standard-hook ()
   (if (stringp init-message)
       (viper-tmp-insert-at-eob init-message))
@@ -4284,6 +4287,19 @@ One can use `` and '' to temporarily jump 1 step back."
 	 (let* ((buff (current-buffer))
 	        (reg (1+ (- char ?a)))
 	        (text-marker (get-register reg)))
+	   ;; If marker points to file that had markers set (and those markers
+	   ;; were saved (as e.g., in session.el), then restore those markers
+	   (if (and (consp text-marker)
+ 		    (eq (car text-marker) 'file-query)
+ 		    (or (find-buffer-visiting (nth 1 text-marker))
+ 			(y-or-n-p (format "Visit file %s again? "
+ 					  (nth 1 text-marker)))))
+ 	       (save-excursion
+ 		 (find-file (nth 1 text-marker))
+ 		 (when (and (<= (nth 2 text-marker) (point-max))
+ 			    (<= (point-min) (nth 2 text-marker)))
+ 		   (setq text-marker (copy-marker (nth 2 text-marker)))
+ 		   (set-register reg text-marker))))
 	   (if com (viper-move-marker-locally 'viper-com-point (point)))
 	   (if (not (viper-valid-marker text-marker))
 	       (error viper-EmptyTextmarker char))
