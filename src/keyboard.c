@@ -1445,7 +1445,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Slow down auto saves logarithmically in size of current buffer,
      and garbage collect while we're at it.  */
-  if (NILP (c))
+  if (INTERACTIVE && NILP (c))
     {
       int delay_level, buffer_size;
 
