@@ -75,6 +75,10 @@ Lisp_Object Vminibuffer_history_position;
 
 Lisp_Object Qminibuffer_history;
 
+/* Normal hook for entry to minibuffer.  */
+
+Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
+
 /* Nonzero means completion ignores case.  */
 
 int completion_ignore_case;
@@ -222,6 +226,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   current_buffer->keymap = map;
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
+
+  /* Run our hook, but not if it is empty.
+     (run-hooks would do nothing if it is empty,
+     but it's important to save time here in the usual case.  */
+  if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound))
+    call1 (Vrun_hooks, Qminibuffer_setup_hook);
 
 /* ??? MCC did redraw_screen here if switching screens.  */
   recursive_edit_1 ();
@@ -1396,6 +1406,13 @@ syms_of_minibuf ()
 
   Qminibuffer_history = intern ("minibuffer-history");
   staticpro (&Qminibuffer_history);
+
+  Qminibuffer_setup_hook = intern ("minibuffer-setup-hook");
+  staticpro (&Qminibuffer_setup_hook);
+
+  DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook, 
+    "Normal hook run just after entry to minibuffer.");
+  Vminibuffer_setup_hook = Qnil;
 
   DEFVAR_BOOL ("completion-auto-help", &auto_help,
     "*Non-nil means automatically provide help for invalid completion input.");
