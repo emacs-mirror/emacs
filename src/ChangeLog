@@ -1,3 +1,8 @@
+2004-08-31  NAKAMURA Toshikazu  <nr-tkz@nifty.com>  (tiny change)
+
+	* w32fns.c (w32_load_font): If a BDF font is already loaded, do not
+	reload it.
+
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (_widget_value): Added lname and lkey.

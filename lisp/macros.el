@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 95 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 94, 95, 04 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
@@ -151,7 +151,7 @@ use this command, and then save the file."
 		     (cond ((= char ?\\)
 			    (insert "\\\\"))
                            ((= char ?\")
-                            (insert "\\\""))   
+                            (insert "\\\""))
 			   ((= char ?\;)
 			    (insert "\\;"))
 			   ((= char 127)
@@ -240,8 +240,9 @@ Possibilities: \\<query-replace-map>
 
 ;;;###autoload
 (defun apply-macro-to-region-lines (top bottom &optional macro)
-  "For each complete line between point and mark, move to the beginning
-of the line, and run the last keyboard macro.
+  "Apply last keyboard macro to all lines in the region.
+For each line that begins in the region, move to the beginning of
+the line, and run the last keyboard macro.
 
 When called from lisp, this function takes two arguments TOP and
 BOTTOM, describing the current region.  TOP must be before BOTTOM.
@@ -277,8 +278,7 @@ and write a macro to massage a word into a table entry:
     \\C-x )
 
 and then select the region of un-tablified names and use
-`\\[apply-macro-to-region-lines]' to build the table from the names.
-"
+`\\[apply-macro-to-region-lines]' to build the table from the names."
   (interactive "r")
   (or macro
       (progn
@@ -286,10 +286,7 @@ and then select the region of un-tablified names and use
 	    (error "No keyboard macro has been defined"))
 	(setq macro last-kbd-macro)))
   (save-excursion
-    (let ((end-marker (progn
-			(goto-char bottom)
-			(beginning-of-line)
-			(point-marker)))
+    (let ((end-marker (copy-marker bottom))
 	  next-line-marker)
       (goto-char top)
       (if (not (bolp))

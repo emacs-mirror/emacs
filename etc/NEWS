@@ -98,6 +98,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
++++
+** `apply-macro-to-region-lines' now operates on all lines that begin
+in the region, rather than on all complete lines in the region.
+
 ** global-whitespace-mode is a new alias for whitespace-global-mode.
 
 +++
@@ -1858,7 +1862,9 @@ This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
 
-*** `next-error' now temporarily highlights the corresponding source line.
+*** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
 
 ** Grep has been decoupled from compilation mode setup.
 

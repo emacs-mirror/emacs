@@ -58,8 +58,8 @@ The default value for this variable is `x-dnd-default-test-function'."
     )
 
   "The functions to call for different protocols when a drop is made.
-This variable is used by `x-dnd-handle-uri-list' and `x-dnd-handle-moz-url'.
-The list contains of (REGEXP . FUNCTION) pairs.
+This variable is used by `x-dnd-handle-uri-list', `x-dnd-handle-file-name'
+and `x-dnd-handle-moz-url'.  The list contains of (REGEXP . FUNCTION) pairs.
 The functions shall take two arguments, URL, which is the URL dropped and
 ACTION which is the action to be performed for the drop (move, copy, link,
 private or ask).
@@ -104,9 +104,7 @@ is successful, nil if not."
   :type 'boolean
   :group 'x)
 
-;; Internal variables
-
-(defvar x-dnd-known-types
+(defcustom x-dnd-known-types
   '("text/uri-list"
     "text/x-moz-url"
     "_NETSCAPE_URL"
@@ -121,7 +119,12 @@ is successful, nil if not."
     "TEXT"
     )
   "The types accepted by default for dropped data.
-The types are chosen in the order they appear in the list.")
+The types are chosen in the order they appear in the list."
+  :type '(repeat string)
+  :group 'x
+)
+
+;; Internal variables
 
 (defvar x-dnd-current-state nil
   "The current state for a drop.
@@ -866,7 +869,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	      timestamp)
 	     (x-dnd-forget-drop frame)))
 
-	  (t (error "Unknown Motif DND message %s %s" message data)))))
+	  (t (error "Unknown Motif DND message %s %s" message-atom data)))))
 					   
 
 ;;;

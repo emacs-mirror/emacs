@@ -188,7 +188,7 @@ file, so be prepared for a few surprises if you enable this feature."
   :type 'boolean
   :group 'info)
 
-(defcustom Info-search-whitespace-regexp "\\\\(?:\\\\s-+\\\\)"
+(defcustom Info-search-whitespace-regexp "\\(?:\\s-+\\)"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to Info search for regular expressions.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
@@ -1442,8 +1442,9 @@ If FORK is a string, it is the name to use for the new buffer."
 (defvar Info-search-case-fold nil
   "The value of `case-fold-search' from previous `Info-search' command.")
 
-(defun Info-search (regexp)
-  "Search for REGEXP, starting from point, and select node it's found in."
+(defun Info-search (regexp &optional bound noerror count direction)
+  "Search for REGEXP, starting from point, and select node it's found in.
+If DIRECTION is `backward', search in the reverse direction."
   (interactive (list (read-string
 		      (if Info-search-history
 			  (format "Regexp search%s (default `%s'): "
@@ -1458,31 +1459,42 @@ If FORK is a string, it is the name to use for the new buffer."
     (setq regexp (car Info-search-history)))
   (when regexp
     (let (found beg-found give-up
+	  (backward (eq direction 'backward))
 	  (onode Info-current-node)
 	  (ofile Info-current-file)
 	  (opoint (point))
+	  (opoint-min (point-min))
+	  (opoint-max (point-max))
 	  (ostart (window-start))
 	  (osubfile Info-current-subfile))
       (when Info-search-whitespace-regexp
-        (setq regexp (replace-regexp-in-string
-                      "[ \t\n]+" Info-search-whitespace-regexp regexp)))
+        (setq regexp
+              (mapconcat 'identity (split-string regexp "[ \t\n]+")
+                         Info-search-whitespace-regexp)))
       (setq Info-search-case-fold case-fold-search)
       (save-excursion
 	(save-restriction
 	  (widen)
 	  (while (and (not give-up)
 		      (or (null found)
-			  (isearch-range-invisible beg-found found)))
-	    (if (re-search-forward regexp nil t)
-		(setq found (point) beg-found (match-beginning 0))
+			  (if backward
+                              (isearch-range-invisible found beg-found)
+                            (isearch-range-invisible beg-found found))))
+	    (if (if backward
+                    (re-search-backward regexp bound t)
+                  (re-search-forward regexp bound t))
+		(setq found (point) beg-found (if backward (match-end 0)
+                                                (match-beginning 0)))
 	      (setq give-up t)))))
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
-	      (re-search-forward regexp)
+	      (if backward
+                  (re-search-backward regexp)
+                (re-search-forward regexp))
 	    (setq found nil)))
 
-      (unless found
+      (unless (or found bound)
 	(unwind-protect
 	    ;; Try other subfiles.
 	    (let ((list ()))
@@ -1498,29 +1510,39 @@ If FORK is a string, it is the name to use for the new buffer."
 		  ;; Find the subfile we just searched.
 		  (search-forward (concat "\n" osubfile ": "))
 		  ;; Skip that one.
-		  (forward-line 1)
+		  (forward-line (if backward 0 1))
 		  ;; Make a list of all following subfiles.
 		  ;; Each elt has the form (VIRT-POSITION . SUBFILENAME).
-		  (while (not (eobp))
-		    (re-search-forward "\\(^.*\\): [0-9]+$")
+		  (while (not (if backward (bobp) (eobp)))
+		    (if backward
+		        (re-search-backward "\\(^.*\\): [0-9]+$")
+		      (re-search-forward "\\(^.*\\): [0-9]+$"))
 		    (goto-char (+ (match-end 1) 2))
 		    (setq list (cons (cons (+ (point-min)
 					      (read (current-buffer)))
 					   (match-string-no-properties 1))
 				     list))
-		    (goto-char (1+ (match-end 0))))
+		    (goto-char (if backward
+                                   (1- (match-beginning 0))
+                                 (1+ (match-end 0)))))
 		  ;; Put in forward order
 		  (setq list (nreverse list))))
 	      (while list
 		(message "Searching subfile %s..." (cdr (car list)))
 		(Info-read-subfile (car (car list)))
+                (if backward (goto-char (point-max)))
 		(setq list (cdr list))
 		(setq give-up nil found nil)
 		(while (and (not give-up)
 			    (or (null found)
-				(isearch-range-invisible beg-found found)))
-		  (if (re-search-forward regexp nil t)
-		      (setq found (point) beg-found (match-beginning 0))
+				(if backward
+                                    (isearch-range-invisible found beg-found)
+                                  (isearch-range-invisible beg-found found))))
+		  (if (if backward
+                          (re-search-backward regexp nil t)
+                        (re-search-forward regexp nil t))
+		      (setq found (point) beg-found (if backward (match-end 0)
+                                                      (match-beginning 0)))
 		    (setq give-up t)))
 		(if give-up
 		    (setq found nil))
@@ -1534,12 +1556,20 @@ If FORK is a string, it is the name to use for the new buffer."
 		     (goto-char opoint)
 		     (Info-select-node)
 		     (set-window-start (selected-window) ostart)))))
-      (widen)
-      (goto-char found)
-      (Info-select-node)
+
+      (if (and (string= osubfile Info-current-subfile)
+               (> found opoint-min)
+               (< found opoint-max))
+          ;; Search landed in the same node
+          (goto-char found)
+        (widen)
+        (goto-char found)
+        (save-match-data (Info-select-node)))
+
       ;; Use string-equal, not equal, to ignore text props.
       (or (and (string-equal onode Info-current-node)
 	       (equal ofile Info-current-file))
+          (and isearch-mode isearch-wrapped (eq opoint opoint-min))
 	  (setq Info-history (cons (list ofile onode opoint)
 				   Info-history))))))
 
@@ -1556,6 +1586,48 @@ If FORK is a string, it is the name to use for the new buffer."
     (if Info-search-history
         (Info-search (car Info-search-history))
       (call-interactively 'Info-search))))
+
+(defun Info-search-backward (regexp &optional bound noerror count)
+  "Search for REGEXP in the reverse direction."
+  (interactive (list (read-string
+		      (if Info-search-history
+			  (format "Regexp search%s backward (default `%s'): "
+                                  (if case-fold-search "" " case-sensitively")
+				  (car Info-search-history))
+			(format "Regexp search%s backward: "
+                                (if case-fold-search "" " case-sensitively")))
+		      nil 'Info-search-history)))
+  (Info-search regexp bound noerror count 'backward))
+
+(defun Info-isearch-search ()
+  (cond
+   (isearch-word
+    (if isearch-forward 'word-search-forward 'word-search-backward))
+   (isearch-regexp
+    (lambda (regexp bound noerror)
+      (condition-case nil
+          (progn
+            (Info-search regexp bound noerror nil
+                         (unless isearch-forward 'backward))
+            (point))
+        (error nil))))
+   (t
+    (if isearch-forward 'search-forward 'search-backward))))
+
+(defun Info-isearch-wrap ()
+  (if isearch-regexp
+      (if isearch-forward (Info-top-node) (Info-final-node))
+    (goto-char (if isearch-forward (point-min) (point-max)))))
+
+(defun Info-isearch-push-state ()
+  `(lambda (cmd)
+     (Info-isearch-pop-state cmd ,Info-current-file ,Info-current-node)))
+
+(defun Info-isearch-pop-state (cmd file node)
+  (or (and (string= Info-current-file file)
+           (string= Info-current-node node))
+      (progn (Info-find-node file node) (sit-for 0))))
+
 
 (defun Info-extract-pointer (name &optional errorname)
   "Extract the value of the node-pointer named NAME.
@@ -3064,6 +3136,14 @@ Advanced commands:
   (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (set (make-local-variable 'isearch-search-fun-function)
+       'Info-isearch-search)
+  (set (make-local-variable 'isearch-wrap-function)
+       'Info-isearch-wrap)
+  (set (make-local-variable 'isearch-push-state-function)
+       'Info-isearch-push-state)
+  (set (make-local-variable 'search-whitespace-regexp)
+       Info-search-whitespace-regexp)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 

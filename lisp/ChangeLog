@@ -1,3 +1,72 @@
+2004-09-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-wrap-function)
+	(isearch-push-state-function): New defvars.
+	(isearch-pop-fun-state): New defsubst.
+	(isearch-top-state): Call function saved in `isearch-pop-fun-state'.
+	(isearch-push-state): Set the result of calling
+	`isearch-push-state-function' to the `isearch-pop-fun-state' field.
+	(isearch-cancel): Call function saved in `isearch-pop-fun-state' to
+	restore the mode-specific starting point of terminated search.
+	(isearch-abort): Call `isearch-cancel' instead of its duplicated code.
+	(isearch-repeat): Call `isearch-wrap-function' if defined.
+	(isearch-message-prefix): Don't add prefix "over" to the message
+	for wrapped search if `isearch-wrap-function' is defined.
+	(isearch-search): Call function saved in `isearch-pop-fun-state' to
+	restore the mode-specific starting point of failed search.
+
+	* info.el (Info-search-whitespace-regexp): Fix backslashes.
+	(Info-search): Add new optional arguments for the sake of isearch.
+	Replace whitespace in Info-search-whitespace-regexp literally.
+	Add backward search.  Don't call `Info-select-node' if regexp is
+	found in the same Info node.  Don't add node to Info-history for
+	wrapped isearch.
+	(Info-search-backward, Info-isearch-search, Info-isearch-wrap)
+	(Info-isearch-push-state, Info-isearch-pop-state): New funs.
+	(Info-mode): Set local variables `isearch-search-fun-function',
+	`isearch-wrap-function', `isearch-push-state-function',
+	`search-whitespace-regexp'.
+
+	* isearch.el: Remove ancient Change Log section.
+	(isearch-string, isearch-message-string, isearch-point)
+	(isearch-success, isearch-forward-flag, isearch-other-end)
+	(isearch-word, isearch-invalid-regexp, isearch-wrapped)
+	(isearch-barrier, isearch-within-brackets)
+	(isearch-case-fold-search): Add suffix `-state' to state-related
+	defsubsts to avoid name clashes with other function names.
+
+	* simple.el (next-error): New defgroup and defface.
+	(next-error-highlight, next-error-highlight-no-select):
+	New defcustoms.
+	(next-error-no-select): Let-bind next-error-highlight to the value
+	of next-error-highlight-no-select before calling `next-error'.
+
+	* progmodes/compile.el (compilation-goto-locus):
+	Use `next-error' face instead of `region'.  Set 4-th argument of
+	`move-overlay' to `current-buffer' to move overlay to different
+	source buffers.  Use new variable `next-error-highlight'.
+
+	* simple.el (next-error-find-buffer): Move the rule
+	"if current buffer is a next-error capable buffer" after the
+	rule "if next-error-last-buffer is set to a live buffer".
+	Simplify to test all rules in one `or'.
+	(next-error): Doc fix.
+	(next-error, previous-error, first-error)
+	(next-error-no-select, previous-error-no-select):
+	Make arguments optional.
+
+2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.el (apply-macro-to-region-lines): Make it operate on all
+	lines that begin in the region, rather than on all complete lines
+	in the region.
+
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-protocol-alist): Document update.
+	(x-dnd-known-types): Defcustom it.
+	(x-dnd-handle-motif): Print message-atom in error message.
+
 2004-08-30  John Paul Wallington  <jpw@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Use distinct
@@ -600,7 +669,6 @@
 	(ps-generate-string-list): Comment fix.
 	(ps-message-log-max): Code fix.
 
-
 2004-07-22  Michael Piotrowski  <mxp@dynalabs.de>  (tiny change)
 
 	* ps-print.el (ps-begin-file): Improve the DSC compliance of the
@@ -620,11 +688,9 @@
 
 2004-07-20  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
-	(fill-delete-newlines): Call sentence-end as function.
-	(fill-nobreak-p, canonically-space-region): Likewise.
-	(fill-nobreak-p): If this break point is at the end of the line,
-	don't consider the newline which follows as a reason to return t.
+	* textmodes/fill.el (fill-nobreak-p): If this break point is
+	at the end of the line, don't consider the newline which follows
+	as a reason to return t.
 
 2004-07-19  John Paul Wallington  <jpw@gnu.org>
 
