@@ -1,3 +1,12 @@
+2002-04-17  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer-visit-buffer): Optionally allow reducing to
+	one window.
+	(ibuffer-visit-buffer-1-window): Simply call
+	`ibuffer-visit-buffer'.
+	(ibuffer-current-state-list): Reinstate optional argument; now
+	just call `point' inside the mapping function.
+ 
 2002-04-17  Francesco Potorti`  <pot@gnu.org>
 
 	* dired-aux.el (dired-star-subst-regexp,
