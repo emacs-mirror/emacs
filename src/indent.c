@@ -137,7 +137,7 @@ current_column ()
 
       c = *--ptr;
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
+	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  col++;
 	}
@@ -154,8 +154,8 @@ current_column ()
 	  col = 0;
 	  tab_seen = 1;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	col += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
+      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else
 	col += (ctl_arrow && c < 0200) ? 2 : 4;
     }
@@ -329,8 +329,8 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 	  col += tab_width;
 	  col = col / tab_width * tab_width;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	col += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
+      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else if (ctl_arrow && (c < 040 || c == 0177))
         col++;
       else if (c < 040 || c >= 0177)
@@ -434,8 +434,8 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	: !NILP (current_buffer->selective_display) ? -1 : 0;
   int prev_vpos, prev_hpos;
   int selective_rlen
-    = (selective && dp && XTYPE (DISP_INVIS_ROPE (dp)) == Lisp_String
-       ? XSTRING (DISP_INVIS_ROPE (dp))->size / sizeof (GLYPH) : 0);
+    = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
 
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
   for (pos = from; pos < to; pos++)
@@ -450,7 +450,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 
       c = FETCH_CHAR (pos);
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
+	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	hpos++;
       else if (c == '\t')
 	{
@@ -506,8 +506,8 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		hpos = width;
 	    }
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	hpos += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
+      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+	hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else
 	hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 
