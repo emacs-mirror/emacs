@@ -2278,7 +2278,6 @@ void
 specbind (symbol, value)
      Lisp_Object symbol, value;
 {
-  extern void store_symval_forwarding (); /* in eval.c */
   Lisp_Object ovalue;
 
   CHECK_SYMBOL (symbol, 0);
@@ -2289,7 +2288,7 @@ specbind (symbol, value)
   specpdl_ptr->func = 0;
   specpdl_ptr->old_value = ovalue = find_symbol_value (symbol);
   specpdl_ptr++;
-  if (BUFFER_OBJFWDP (ovalue))
+  if (BUFFER_OBJFWDP (ovalue) || DISPLAY_OBJFWDP (ovalue))
     store_symval_forwarding (symbol, ovalue, value);
   else
     Fset (symbol, value);
