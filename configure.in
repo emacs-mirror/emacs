@@ -283,7 +283,11 @@ case "${canonical}" in
     fi
   ;;
   m88k-motorola-sysv4* )
-    machine=delta88k opsys=usg5-4
+    # jbotte@bnr.ca says that UNIX_System_V <hostName> 4.0 R40V4.3 m88k mc88110
+    # needs POSIX_SIGNALS and therefore needs usg5-4-2.
+    # I hope there are not other 4.0 versions for this machine
+    # which really need usg5-4 instead.
+    machine=delta88k opsys=usg5-4-2
   ;;
   m88k-motorola-sysv* | m88k-motorola-m88kbcs* )
     machine=delta88k opsys=usg5-3
