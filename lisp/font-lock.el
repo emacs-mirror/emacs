@@ -152,9 +152,9 @@
 ;;    "Default expressions to highlight in Foo mode.")
 ;;
 ;;  (add-hook 'foo-mode-hook
-;;   (function (lambda ()
-;;               (make-local-variable 'font-lock-defaults)
-;;               (setq font-lock-defaults '(foo-font-lock-keywords t)))))
+;;   (lambda ()
+;;     (make-local-variable 'font-lock-defaults)
+;;     (setq font-lock-defaults '(foo-font-lock-keywords t))))
 
 ;;; Adding Font Lock support for modes:
 
@@ -1465,9 +1465,8 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
     (when (nth 4 defaults)
       (set (make-local-variable 'font-lock-beginning-of-syntax-function)
 	   (nth 4 defaults)))
-    ;; Variable alist?
-    (dolist (x (nthcdr 5 defaults))
-      (set (make-local-variable (car x)) (cdr x)))
+    ;; The variable alist is set in font-core.el.
+
     ;; Setup `font-lock-keywords' last because its value might depend
     ;; on other settings (e.g. font-lock-compile-keywords uses
     ;; font-lock-beginning-of-syntax-function).
