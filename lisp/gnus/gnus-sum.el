@@ -6013,8 +6013,7 @@ the subject line on."
       ;; Remove list identifiers from subject.
       (when gnus-list-identifiers
 	(let ((gnus-newsgroup-headers (list header)))
-	  (gnus-summary-remove-list-identifiers)
-	  (setq header (car gnus-newsgroup-headers))))
+	  (gnus-summary-remove-list-identifiers)))
       (when old-header
 	(mail-header-set-number header (mail-header-number old-header)))
       (setq gnus-newsgroup-sparse

@@ -1,3 +1,7 @@
+2004-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-insert-subject): Remove redundant setq.
+
 2004-10-05  Juri Linkov  <juri@jurta.org>
 
 	* gnus-group.el (gnus-update-group-mark-positions):
