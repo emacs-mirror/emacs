@@ -3140,7 +3140,8 @@ direct_output_for_insert (g)
 
   /* Make room for new glyphs, then insert them.  */
   xassert (end - glyphs - n >= 0);
-  safe_bcopy (glyphs, glyphs + n, (end - glyphs - n) * sizeof (*end));
+  safe_bcopy ((char *) glyphs, (char *) (glyphs + n),
+	      (end - glyphs - n) * sizeof (*end));
   bcopy (it.glyph_row->glyphs[TEXT_AREA], glyphs, n * sizeof *glyphs);
   glyph_row->used[TEXT_AREA] = min (glyph_row->used[TEXT_AREA] + n,
 				    end - glyph_row->glyphs[TEXT_AREA]);
