@@ -1,3 +1,7 @@
+1999-11-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/f90.el (f90-abbrev-start): Use `eq' instead of `='.
+
 1999-11-25  Dave Love  <fx@gnu.org>
 
 	* hippie-exp.el: Require comint when compiling.
