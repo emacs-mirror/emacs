@@ -2305,8 +2305,9 @@ This command is executed when texinfmt sees @item inside @multitable."
 ;;  Convert all letters to uppercase if they are not already.
 (put 'acronym 'texinfo-format 'texinfo-format-var)
 (defun texinfo-format-var ()
-  (insert (upcase (texinfo-parse-arg-discard)))
-  (goto-char texinfo-command-start))
+  (let ((arg (texinfo-parse-expanded-arg)))
+    (texinfo-discard-command)
+    (insert (upcase arg))))
 
 (put 'cite 'texinfo-format 'texinfo-format-code)
 (put 'code 'texinfo-format 'texinfo-format-code)
