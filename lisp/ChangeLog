@@ -7,7 +7,7 @@
 	
 2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
-	* lisp/net/tramp.el: Version 2.0.30 released.
+	* net/tramp.el: Version 2.0.30 released.
 	Replace term "path" with "localname" unless it is used for a
 	search path.
 	(tramp-handle-expand-file-name): Allow ".." to cross host
@@ -22,10 +22,11 @@
 
 2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* tramp-smb.el: Replace term `path' with `localname' unless it is
-	used for a search path.  In GNU, the word `path' is reserved for
-	search paths.  * tramp.el (tramp-send-string, tramp-send-region):
-	Removed.
+	* net/tramp-smb.el: Replace term `path' with `localname'
+	unless it is used for a search path.  In GNU, the word `path' is
+	reserved for search paths.
+
+	* net/tramp.el (tramp-send-string, tramp-send-region): Removed.
 	(tramp-send-string): New function.  Takes over the role of the
 	functions above, in order to have a unique place handling
 	`tramp-chunksize'.  Same implementation as `tramp-send-region'.
@@ -1161,15 +1162,14 @@
 	* mh-e: Created directory. ChangeLog will appear in a week when we
 	release version 7.2.
 
-	* lisp/mail/mh-alias.el, lisp/mail/mh-comp.el,
-	lisp/mail/mh-customize.el, lisp/mail/mh-e.el,
-	lisp/mail/mh-funcs.el, lisp/mail/mh-identity.el,
-	lisp/mail/mh-index.el, lisp/mail/mh-loaddefs.el,
-	lisp/mail/mh-mime.el, lisp/mail/mh-pick.el, lisp/mail/mh-seq.el,
-	lisp/mail/mh-speed.el, lisp/mail/mh-utils.el,
-	lisp/mail/mh-xemacs-compat.el: Moved to mh-e. Note that reply2.pbm
-	and reply2.xpm, which were created by the MH-E package, were left
-	in mail since they can probably be used by other mail packages.
+	* mail/mh-alias.el, mail/mh-comp.el, mail/mh-customize.el, mail/mh-e.el,
+	mail/mh-funcs.el, mail/mh-identity.el, mail/mh-index.el,
+	mail/mh-loaddefs.el, mail/mh-mime.el, mail/mh-pick.el,
+	mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el,
+	mail/mh-xemacs-compat.el: Moved to mh-e directory. 
+	Note that reply2.pbm and reply2.xpm, which were created by the
+	MH-E package, were left in mail since they can probably be used by
+	other mail packages.
 
 	* makefile.w32-in (WINS): Add mh-e.
 
