@@ -6,7 +6,7 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-(defconst viper-version "2.81 of August 7, 1995"
+(defconst viper-version "2.82 of October 12, 1995"
   "The current version of Viper")
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
@@ -411,7 +411,7 @@ that deletes a file.")
 
 ;;; ISO characters
   
-(defvar vip-automatic-iso-accents nil
+(vip-deflocalvar vip-automatic-iso-accents nil
   "*If non-nil, ISO accents will be turned on in insert/replace emacs states and turned off in vi-state. 
 For some users, this behavior may be too primitive. In this case, use
 insert/emacs/vi state hooks.")
@@ -797,10 +797,8 @@ These buffers can be cycled through via :R and :P commands.")
 
 ;;; Miscellaneous
 
-;; setup emacs-supported vi-style feel
-(setq mark-even-if-inactive t
-      next-line-add-newlines nil
-      require-final-newline t)
+;; don't bark when mark is inactive
+(setq mark-even-if-inactive t)
 
 (defvar vip-inhibit-startup-message nil
   "Whether Viper startup message should be inhibited.")
@@ -837,11 +835,11 @@ Should be set in `~/.vip' file.")
 (vip-deflocalvar vip-insert-minibuffer-minor-mode nil
    "Minor mode that forces Vi-style when the Minibuffer is in Insert state.")
   
-(vip-deflocalvar vip-add-newline-at-eob t
-  "If t, always add a newline at the end of buffer.
-Usually, Viper adds a newline character at the end of the last
-line in a buffer, if it's missing. In some major modes, however, like
-shell-mode, this is undesirable and must be set to nil. See vip-set-hooks.")
+;; setup emacs-supported vi-style feel
+(setq next-line-add-newlines nil
+      require-final-newline t)
+
+(make-variable-buffer-local 'require-final-newline)
        
 
 ;; Mode line
@@ -864,16 +862,16 @@ shell-mode, this is undesirable and must be set to nil. See vip-set-hooks.")
 	  (append '("" vip-mode-string) (cdr global-mode-string))))
 
 
-(defvar vip-vi-state-hooks nil
+(defvar vip-vi-state-hook nil
   "*Hooks run just before the switch to Vi mode is completed.")
-(defvar vip-insert-state-hooks nil
+(defvar vip-insert-state-hook nil
   "*Hooks run just before the switch to Insert mode is completed.")
-(defvar vip-replace-state-hooks nil
+(defvar vip-replace-state-hook nil
   "*Hooks run just before the switch to Replace mode is completed.")
-(defvar vip-emacs-state-hooks nil
+(defvar vip-emacs-state-hook nil
   "*Hooks run just before the switch to Emacs mode is completed.")
   
-(defvar vip-load-hooks nil
+(defvar vip-load-hook nil
   "Hooks run just after loading Viper.")
   
 
@@ -1306,7 +1304,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     
     ;; Protection against user errors in hooks
     (condition-case conds
-	(run-hooks 'vip-vi-state-hooks)
+	(run-hooks 'vip-vi-state-hook)
       (error
        (vip-message-conditions conds)))))
 
@@ -1319,7 +1317,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
   
   ;; Protection against user errors in hooks
   (condition-case conds
-      (run-hooks 'vip-insert-state-hooks)
+      (run-hooks 'vip-insert-state-hook)
     (error
      (vip-message-conditions conds))))
      
@@ -1338,7 +1336,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
       (iso-accents-mode 1)) ; turn iso accents on
   ;; Run insert-state-hook
   (condition-case conds
-      (run-hooks 'vip-insert-state-hooks 'vip-replace-state-hooks)
+      (run-hooks 'vip-insert-state-hook 'vip-replace-state-hook)
     (error
      (vip-message-conditions conds)))
   
@@ -1358,7 +1356,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
   
   ;; Protection agains user errors in hooks
   (condition-case conds
-      (run-hooks 'vip-emacs-state-hooks)
+      (run-hooks 'vip-emacs-state-hook)
     (error
      (vip-message-conditions conds))))
   
@@ -1761,7 +1759,9 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 ;; Get value part of prefix-argument ARG.
 (defsubst vip-p-val (arg)
   (cond ((null arg) 1)
-	((consp arg) (if (null (car arg)) 1 (car arg)))
+	((consp arg)
+	 (if (or (null (car arg)) (equal (car arg) '(nil)))
+	     1 (car arg)))
 	(t arg)))
 
 ;; Get raw value part of prefix-argument ARG.
@@ -1895,7 +1895,6 @@ behaves as in Emacs, any number of multiple escapes is allowed."
     (if vip-use-register
 	(progn
 	  (cond ((vip-valid-register vip-use-register '(letter digit))
-		 ;;(vip-valid-register vip-use-register '(letter))
 		 (copy-to-register
 		  vip-use-register (mark t) (point) nil))
 		((vip-valid-register vip-use-register '(Letter))
@@ -1906,6 +1905,7 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 	  (setq vip-use-register nil)))
     (setq last-command nil)
     (copy-region-as-kill (mark t) (point)))
+  (vip-deactivate-mark)
   (goto-char vip-com-point))
 
 (defun vip-exec-bang (m-com com)
@@ -2276,11 +2276,11 @@ Undo previous insertion and inserts new."
   (save-excursion
       (end-of-line)
       ;; make sure all lines end with newline, unless in the minibuffer or
-      ;; when requested otherwise (vip-add-newline-at-eob is nil)
+      ;; when requested otherwise (require-final-newline is nil)
       (if (and
 	   (eobp)
 	   (not (bolp))
-	   vip-add-newline-at-eob
+	   require-final-newline
 	   (not (vip-is-in-minibuffer)))
 	  (insert "\n"))))
 
@@ -2488,8 +2488,9 @@ Undo previous insertion and inserts new."
 	 '(lambda ()
 	    (if (stringp initial)
 		(progn
-		  ;; don't wait if we have unread events
+		  ;; don't wait if we have unread events or in kbd macro
 		  (or unread-command-events
+		      executing-kbd-macro
 		      (sit-for 840))
 		  (erase-buffer)
 		  (insert initial)))
@@ -3014,18 +3015,31 @@ These keys are ESC, RET, and LineFeed"
   (if (and (eolp) (bolp)) (error "No character to replace here"))
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
-    (vip-replace-char-subr (if (equal com ?r) vip-d-char (read-char)) val)
+    (vip-replace-char-subr com val)
     (if (and (eolp) (not (bolp))) (forward-char 1))
     (vip-set-destructive-command
      (list 'vip-replace-char val ?r nil vip-d-char nil))
   ))
 
-(defun vip-replace-char-subr (char arg)
-  (delete-char arg t)
-  (setq vip-d-char char)
-  (vip-loop (if (> arg 0) arg (- arg)) 
+(defun vip-replace-char-subr (com arg)
+  (let ((take-care-of-iso-accents
+	 (and (boundp 'iso-accents-mode) vip-automatic-iso-accents))
+	char)
+    (setq char (if (equal com ?r)
+		   vip-d-char
+		 (read-char)))
+    (if (and  take-care-of-iso-accents (memq char '(?' ?\" ?^ ?~)))
+	;; get European characters
+	(progn
+	  (iso-accents-mode 1)
+	  (vip-set-unread-command-events char)
+	  (setq char (aref (read-key-sequence nil) 0))
+	  (iso-accents-mode -1)))
+    (delete-char arg t)
+    (setq vip-d-char char)
+    (vip-loop (if (> arg 0) arg (- arg)) 
 	    (if (eq char ?\C-m) (insert "\n") (insert char)))
-  (backward-char arg))
+    (backward-char arg)))
 
 
 ;; basic cursor movement.  j, k, l, h commands.
@@ -3093,45 +3107,34 @@ On reaching beginning of line, stop and signal error."
 ;; Words are formed from alpha's and nonalphas - <sp>,\t\n are separators
 ;; for word movement. When executed with a destructive command, \n is
 ;; usually left untouched for the last word.
+;; Viper uses syntax table to determine what is a word and what is a
+;; separator. However, \n is always a separator. Also, if vip-syntax-preference
+;; is 'vi, then `_' is part of the word.
 
 ;; skip only one \n
 (defun vip-skip-separators (forward)
   (if forward
       (progn
-	(skip-chars-forward " \t")
+	(vip-skip-all-separators-forward 'within-line)
 	(if (looking-at "\n")
 	    (progn
 	      (forward-char)
-	      (skip-chars-forward " \t"))))
-    (skip-chars-backward " \t")
+	      (vip-skip-all-separators-forward  'within-line))))
+    (vip-skip-all-separators-backward 'within-line)
     (backward-char)
     (if (looking-at "\n")
-	(skip-chars-backward " \t")
+	(vip-skip-all-separators-backward 'within-line)
       (forward-char))))
       
-(defconst vip-ALPHA            "a-zA-Z0-9_")
-(defconst vip-ALPHA-B          (concat "[" vip-ALPHA "]"))
-(defconst vip-NONALPHA         (concat "^" vip-ALPHA))
-(defconst vip-NONALPHA-B       (concat "[" vip-NONALPHA "]"))
-(defconst vip-SEP               " \t\n")
-(defconst vip-SEP-B            (concat "[" vip-SEP "]"))
-(defconst vip-NONSEP           (concat "^" vip-SEP))
-(defconst vip-NONSEP-B         (concat "[" vip-NONSEP "]"))
-(defconst vip-ALPHASEP         (concat vip-ALPHA vip-SEP))
-(defconst vip-ALPHASEP-B       (concat "[" vip-ALPHASEP "]"))
-(defconst vip-NONALPHASEP      (concat "^" vip-ALPHASEP ))
-(defconst vip-NONALPHASEP-B    (concat "[" vip-NONALPHASEP "]"))
-
-
 (defun vip-forward-word-kernel (val)
   (while (> val 0)
-    (cond ((looking-at vip-ALPHA-B)
-	   (skip-chars-forward vip-ALPHA)
+    (cond ((vip-looking-at-alpha)
+	   (vip-skip-alpha-forward "_")
 	   (vip-skip-separators t))
-	  ((looking-at vip-SEP-B)
+	  ((vip-looking-at-separator)
 	   (vip-skip-separators t))
-	  ((looking-at vip-NONALPHASEP-B)
-	   (skip-chars-forward vip-NONALPHASEP)
+	  ((not (vip-looking-at-alphasep))
+	   (vip-skip-nonalphasep-forward)
 	   (vip-skip-separators t)))
     (setq val (1- val))))
 
@@ -3175,7 +3178,7 @@ On reaching beginning of line, stop and signal error."
     (if com (vip-move-marker-locally 'vip-com-point (point)))
     (vip-loop val
 	      (progn
-		(skip-chars-forward vip-NONSEP)
+		(vip-skip-nonseparators 'forward)
 		(vip-skip-separators t)))
     (if com (progn
 	      (cond ((memq com (list ?c (- ?c)))
@@ -3192,53 +3195,23 @@ On reaching beginning of line, stop and signal error."
 ;; makes no sense whatsoever
 (defun vip-end-of-word-kernel ()
   (if (vip-end-of-word-p) (forward-char))
-  (if (looking-at "[ \t\n]")
-      (skip-chars-forward vip-SEP))
+  (if (vip-looking-at-separator)
+      (vip-skip-all-separators-forward))
   
-  (cond ((looking-at vip-ALPHA-B) (skip-chars-forward vip-ALPHA))
-	((looking-at vip-NONALPHASEP-B)
-	 (skip-chars-forward vip-NONALPHASEP)))
+  (cond ((vip-looking-at-alpha) (vip-skip-alpha-forward "_"))
+	((not (vip-looking-at-alphasep)) (vip-skip-nonalphasep-forward)))
   (vip-backward-char-carefully))
 
 (defun vip-end-of-word-p ()
-  (if (eobp) t
-    (save-excursion
-      (cond ((looking-at vip-ALPHA-B)
-	     (forward-char)
-	     (looking-at vip-NONALPHA-B))
-	    ((looking-at vip-NONALPHASEP-B)
-	     (forward-char)
-	     (looking-at vip-ALPHASEP-B))))))
+  (or (eobp) 
+      (save-excursion
+	(cond ((vip-looking-at-alpha)
+	       (forward-char)
+	       (not (vip-looking-at-alpha)))
+	      ((not (vip-looking-at-alphasep))
+	       (forward-char)
+	       (vip-looking-at-alphasep))))))
 
-(defun vip-one-char-word-p ()
-  (let ((step 2))
-    (save-excursion
-      (cond ((looking-at vip-ALPHA-B)
-	     (if (bobp) (setq step 1) (backward-char))
-	     (if (or (bobp) (looking-at vip-NONALPHA-B))
-		 (progn
-		   (forward-char step)
-		   (looking-at vip-NONALPHA-B))
-	       nil))
-	    ((looking-at vip-NONALPHASEP-B)
-	     (if (bobp) (setq step 1) (backward-char))
-	     (if (or (bobp) (looking-at vip-ALPHASEP-B))
-		 (progn
-		   (forward-char step)
-		   (looking-at vip-ALPHASEP-B))
-	       nil))))))
-
-(defun vip-one-char-Word-p ()
-  (and (looking-at vip-NONSEP-B)
-       (save-excursion
-	 (if (bobp)
-	     t
-	   (backward-char)
-	   (looking-at vip-SEP-B)))
-       (save-excursion
-	 (forward-char)
-	 (or (eobp)
-	     (looking-at vip-SEP-B)))))
 
 (defun vip-end-of-word (arg &optional careful)
   "Move point to end of current word."
@@ -3261,13 +3234,10 @@ On reaching beginning of line, stop and signal error."
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
     (vip-loop val
-	(progn
-	  (vip-end-of-word-kernel)
-	  (if (not (re-search-forward 
-		    vip-SEP-B nil t 1))
-	      (goto-char (point-max)))
-	  (skip-chars-backward vip-SEP)
-	  (backward-char)))
+	      (progn
+		(vip-end-of-word-kernel)
+		(vip-skip-nonseparators 'forward)
+		(backward-char)))
     (if com 
 	(progn
 	  (forward-char)
@@ -3276,19 +3246,19 @@ On reaching beginning of line, stop and signal error."
 (defun vip-backward-word-kernel (val)
   (while (> val 0)
     (backward-char)
-    (cond ((looking-at vip-ALPHA-B)
-	   (skip-chars-backward vip-ALPHA))
-	  ((looking-at vip-SEP-B)
+    (cond ((vip-looking-at-alpha)
+	   (vip-skip-alpha-backward "_"))
+	  ((vip-looking-at-separator)
 	   (forward-char)
 	   (vip-skip-separators nil)
 	   (backward-char)
-	   (cond ((looking-at vip-ALPHA-B)
-		  (skip-chars-backward vip-ALPHA))
-		 ((looking-at vip-NONALPHASEP-B)
-		  (skip-chars-backward vip-NONALPHASEP))
+	   (cond ((vip-looking-at-alpha)
+		  (vip-skip-alpha-backward "_"))
+		 ((not (vip-looking-at-alphasep))
+		  (vip-skip-nonalphasep-backward))
 		 (t (forward-char))))
-	  ((looking-at vip-NONALPHASEP-B)
-	   (skip-chars-backward vip-NONALPHASEP)))
+	  ((not (vip-looking-at-alphasep))
+	   (vip-skip-nonalphasep-backward)))
     (setq val (1- val))))
 
 (defun vip-backward-word (arg)
@@ -3321,7 +3291,7 @@ On reaching beginning of line, stop and signal error."
     (vip-loop val
 	      (progn 
 		(vip-skip-separators nil)
-		(skip-chars-backward vip-NONSEP)))
+		(vip-skip-nonseparators 'backward)))
     (if com (vip-execute-com 'vip-backward-Word val com))))
 
 
@@ -3991,12 +3961,14 @@ Null string will repeat previous search."
 ;; Search for COUNT's occurrence of STRING.
 ;; Search is forward if FORWARD is non-nil, otherwise backward.
 ;; INIT-POINT is the position where search is to start.
-;; Arguments: (STRING FORWARD COUNT &optional NO-OFFSET INIT-POINT LIMIT)."
-(defun vip-search (string forward arg &optional no-offset init-point)
+;; Arguments:
+;;   (STRING FORW COUNT &optional NO-OFFSET INIT-POINT LIMIT FAIL-IF-NOT-FOUND)
+(defun vip-search (string forward arg
+			  &optional no-offset init-point fail-if-not-found)
   (if (not (equal string ""))
     (let ((val (vip-p-val arg))
 	  (com (vip-getcom arg))
-	  (null-arg (null (vip-P-val arg))) (offset (not no-offset))
+	  (offset (not no-offset))
 	  (case-fold-search vip-case-fold-search)
 	  (start-point (or init-point (point))))
       (vip-deactivate-mark)
@@ -4010,17 +3982,21 @@ Null string will repeat previous search."
 		      (re-search-backward string))
 		  (search-forward string nil nil val)
 		  (search-backward string))
-		(vip-flash-search-pattern)
+		;; don't wait and don't flash in macros
+		(or executing-kbd-macro
+		    (vip-flash-search-pattern))
 		(if (not (equal start-point (point)))
 		    (push-mark start-point t))) 
 	    (search-failed
-	     (if (and null-arg vip-search-wrap-around-t)
+	     (if (and (not fail-if-not-found) vip-search-wrap-around-t)
 	         (progn
 		   (message "Search wrapped around end of buffer")
 		   (goto-char (point-min))
-		   (vip-search string forward (cons 1 com) t start-point)
-		   ;; delete the wrapped around message
-		   (sit-for 2)(message "")
+		   (vip-search string forward (cons 1 com) t start-point 'fail)
+		   ;; don't wait in macros
+		   (or executing-kbd-macro (sit-for 2))
+		   ;; delete the wrap-around message
+		   (message "")
 		   )
 	       (goto-char start-point)
 	       (error "`%s': %s not found"
@@ -4033,17 +4009,21 @@ Null string will repeat previous search."
 	      (if vip-re-search
 		  (re-search-backward string nil nil val)
 	        (search-backward string nil nil val))
-	      (vip-flash-search-pattern)
+	      ;; don't wait and don't flash in macros
+	      (or executing-kbd-macro
+		  (vip-flash-search-pattern))
 	      (if (not (equal start-point (point)))
 		  (push-mark start-point t))) 
 	  (search-failed
-	   (if (and null-arg vip-search-wrap-around-t)
+	   (if (and (not fail-if-not-found) vip-search-wrap-around-t)
 	       (progn
 		 (message "Search wrapped around beginning of buffer")
 	         (goto-char (point-max))
-	         (vip-search string forward (cons 1 com) t start-point)
-		 ;; delete the wrapped around message
-		 (sit-for 2)(message "")
+	         (vip-search string forward (cons 1 com) t start-point 'fail)
+		 ;; don't wait in macros
+		 (or executing-kbd-macro (sit-for 2))
+		 ;; delete the wrap-around message
+		 (message "")
 		 )
 	     (goto-char start-point)
 	     (error "`%s': %s not found"
@@ -5166,10 +5146,10 @@ Please, specify your level now: ")
 		        'vip-ex-style-editing-in-insert
 		        'vip-delete-backwards-in-replace
 		        'vip-vi-style-in-minibuffer
-		        'vip-vi-state-hooks
-		        'vip-insert-state-hooks
-		        'vip-replace-state-hooks
-		        'vip-emacs-state-hooks
+		        'vip-vi-state-hook
+		        'vip-insert-state-hook
+		        'vip-replace-state-hook
+		        'vip-emacs-state-hook
 		        'ex-cycle-other-window
 		        'ex-cycle-through-non-files
 		        'vip-expert-level
@@ -5308,7 +5288,7 @@ Mail anyway (y or n)? ")
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun vip-comint-mode-hook ()
-  (setq vip-add-newline-at-eob nil)
+  (setq require-final-newline nil)
   (setq vip-ex-style-editing-in-insert nil
 	vip-ex-style-motion nil)
   (vip-add-local-keys 'vi-state
@@ -5320,7 +5300,7 @@ Mail anyway (y or n)? ")
   )
   
 
-;; This sets major mode hooks to make them come up in vip-state.
+;; This sets major mode hooks to make them come up in vi-state.
 (defun vip-set-hooks ()
   
   ;; It is of course a misnomer to call viper-mode a `major mode'.
@@ -5493,6 +5473,7 @@ Mail anyway (y or n)? ")
 (vip-set-search-face)
 (if vip-buffer-search-char
     (vip-buffer-search-enable))
+(vip-update-alphanumeric-class)
    
 ;;; Familiarize Viper with some minor modes that have their own keymaps
 (vip-harness-minor-mode "compile")
@@ -5544,7 +5525,7 @@ Mail anyway (y or n)? ")
       ))
     
 
-(run-hooks 'vip-load-hooks) ; the last chance to change something
+(run-hooks 'vip-load-hook) ; the last chance to change something
 
 (provide 'viper)
 (provide 'vip19)
