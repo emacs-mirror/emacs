@@ -2967,12 +2967,13 @@ See also `file-exists-p' and `file-attributes'.")
 
   absname = ENCODE_FILE (absname);
 
-#ifdef DOS_NT
-  /* Under MS-DOS and Windows, open does not work for directories.  */
+#if defined(DOS_NT) || defined(macintosh)
+  /* Under MS-DOS, Windows, and Macintosh, open does not work for
+     directories.  */
   if (access (XSTRING (absname)->data, 0) == 0)
     return Qt;
   return Qnil;
-#else /* not DOS_NT */
+#else /* not DOS_NT and not macintosh */
   flags = O_RDONLY;
 #if defined (S_ISFIFO) && defined (O_NONBLOCK)
   /* Opening a fifo without O_NONBLOCK can wait.
@@ -2989,7 +2990,7 @@ See also `file-exists-p' and `file-attributes'.")
     return Qnil;
   emacs_close (desc);
   return Qt;
-#endif /* not DOS_NT */
+#endif /* not DOS_NT and not macintosh */
 }
 
 /* Having this before file-symlink-p mysteriously caused it to be forgotten

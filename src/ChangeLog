@@ -1,3 +1,8 @@
+2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
+
+	* fileio.c (Ffile_readable_p) [macintosh]: Call access instead of
+	open to determine whether file is readable (as for DOS_NT).
+
 2001-08-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Finsert_file_contents): If VISIT is non-nil, and
@@ -282,7 +287,7 @@
 	* coding.c (setup_coding_system): Don't do any designation based
 	on reg_bits if charset is not yet defined.
 
-	* lisp.h (XVECTOR): Verify correct object type before returning a
+  	* lisp.h (XVECTOR): Verify correct object type before returning a
 	pointer, using eassert.
 
 2001-07-17  Gerd Moellmann  <gerd@gnu.org>
