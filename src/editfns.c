@@ -541,15 +541,40 @@ resolution finer than a second.")
 }
 
 
-DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 0, 0,
+DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
   "Return the current time, as a human-readable string.\n\
-Programs can use it too, since the number of columns in each field is fixed.\n\
-The format is `Sun Sep 16 01:03:52 1973'.")
-  ()
+Programs can use this function to decode a time,\n\
+since the number of columns in each field is fixed.\n\
+The format is `Sun Sep 16 01:03:52 1973'.\n\
+If an argument is given, it specifies a time to format\n\
+instead of the current time.  The argument should have the form:\n\
+  (HIGH . LOW)\n\
+or the form:\n\
+  (HIGH LOW . IGNORED).\n\
+Thus, you can use times obtained from `current-time'\n\
+and from `file-attributes'.")
+  (specified_time)
+     Lisp_Object specified_time;
 {
-  long current_time = time ((long *) 0);
+  long value;
   char buf[30];
-  register char *tem = (char *) ctime (&current_time);
+  register char *tem;
+
+  if (NILP (specified_time))
+    value = time ((long *) 0);
+  else
+    {
+      Lisp_Object high, low;
+      high = Fcar (specified_time);
+      CHECK_NUMBER (high, 0);
+      low = Fcdr (specified_time);
+      if (XTYPE (low) == Lisp_Cons)
+	low = Fcar (low);
+      CHECK_NUMBER (low, 0);
+      value = ((XINT (high) << 16) + (XINT (low) & 0xffff));
+    }
+
+  tem = (char *) ctime (&value);
 
   strncpy (buf, tem, 24);
   buf[24] = 0;
