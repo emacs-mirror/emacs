@@ -204,6 +204,13 @@ cd man
 sed -f ../msdos/sed6.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+If not Exist leim\quail\latin-pre.el goto maindir
+Echo Configuring the leim directory...
+cd leim
+sed -f ../msdos/sedleim.inp < Makefile.in > Makefile
+cd ..
+rem   ----------------------------------------------------------------------
+:maindir
 Echo Configuring the main directory...
 If "%DJGPP_VER%" == "1" goto mainv1
 Echo Looking for the GDB init file...
