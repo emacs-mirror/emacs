@@ -99,6 +99,13 @@
 
 	* replace.el (occur-mode): Undo 2001-5-20 change.
 
+2001-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-system-coding-system): Change to an alias for
+	locale-coding-system.
+	(set-w32-system-coding-system): Document the above change.
+	Set locale-coding-system instead.
+
 2001-11-20  Richard M. Stallman  <rms@gnu.org>
 
 	* ruler-mode.el: Add pagination.
