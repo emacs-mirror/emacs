@@ -1,5 +1,9 @@
 2001-04-25  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/make-mode.el (makefile-font-lock-keywords):
+	Rationalize the rules for includes and conditionals and use the
+	keyword face for them.
+
 	* faces.el (modify-face): Add compatibility for non-interactive use.
 
 2001-04-24  John Wiegley  <johnw@gnu.org>
