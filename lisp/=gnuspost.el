@@ -1,6 +1,6 @@
 ;;; gnuspost.el --- post news commands for GNUS newsreader
 
-;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
@@ -644,6 +644,8 @@ containing the organization."
   (let ((organization (or (getenv "ORGANIZATION")
 			  gnus-your-organization
 			  (expand-file-name "~/.organization" nil))))
+    (if (equal organization "")
+	(setq organization nil))
     (and (stringp organization)
 	 (string-equal (substring organization 0 1) "/")
 	 ;; Get it from the user and system file.
