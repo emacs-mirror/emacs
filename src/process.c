@@ -4810,6 +4810,7 @@ send_process (proc, buf, len, object)
 	   original coding system specified for the current
 	   process.  */
 	setup_coding_system (XPROCESS (proc)->encode_coding_system, coding);
+      coding->src_multibyte = 1;
     }
   else
     {
@@ -4825,10 +4826,10 @@ send_process (proc, buf, len, object)
 	      send_process (proc, "", 0, Qt);
 	      coding->mode &= CODING_MODE_LAST_BLOCK;
 	    }
-	  coding->src_multibyte = 0;
 	  setup_coding_system (raw_text_coding_system
 			       (Vlast_coding_system_used),
 			       coding);
+	  coding->src_multibyte = 0;
 	}
     }
   coding->dst_multibyte = 0;
