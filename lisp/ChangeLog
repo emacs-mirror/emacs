@@ -1,3 +1,8 @@
+2004-11-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el (math-simplify-divisor):  Remove unnecessary
+	variables.
+
 2004-11-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Eliminate use of interactive-p and eval-and-compile.
