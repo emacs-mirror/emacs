@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.106 $")
+(defconst byte-compile-version "$Revision: 2.107 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -848,7 +848,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   "Last known character position in the input.")
 
 ;; copied from gnus-util.el
-(defun byte-compile-delete-first (elt list)
+(defsubst byte-compile-delete-first (elt list)
   (if (eq (car list) elt)
       (cdr list)
     (let ((total list))
@@ -872,18 +872,16 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 ;; gross hack?  And the answer, of course, would be yes.
 (defun byte-compile-set-symbol-position (sym &optional allow-previous)
   (when byte-compile-read-position
-    (let ((last nil))
+    (let (last entry)
       (while (progn
-	       (setq last byte-compile-last-position)
-	       (let* ((entry (assq sym read-symbol-positions-list))
-		      (cur (cdr entry)))
-		 (setq byte-compile-last-position
-		       (if cur
-			   (+ byte-compile-read-position cur)
-			 last))
-		 (setq
-		  read-symbol-positions-list
-		  (byte-compile-delete-first entry read-symbol-positions-list)))
+           (setq last byte-compile-last-position
+             entry (assq sym read-symbol-positions-list))
+           (when entry
+           (setq byte-compile-last-position
+             (+ byte-compile-read-position (cdr entry))
+             read-symbol-positions-list
+             (byte-compile-delete-first
+              entry read-symbol-positions-list)))
 	       (or (and allow-previous (not (= last byte-compile-last-position)))
 		   (> last byte-compile-last-position)))))))
 
