@@ -1,5 +1,10 @@
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mail/smtpmail.el (smtpmail-send-queued-mail): Use
+	with-temp-buffer instead of find-file-noselect, and bind
+	coding-system-for-read to no-conversion when reading the queued
+	messages.  From Simon Josefsson <jas@extundo.com>.
+
 	* Makefile.in (distclean): Remove Makefile in the build
 	directory, not in the source directory.
 

@@ -1,3 +1,8 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (distclean): Remove .gdbinit if we are building
+	outside the source tree.
+
 2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w32.c (emacs_root_dir): New function.
