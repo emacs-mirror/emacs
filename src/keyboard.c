@@ -3580,6 +3580,9 @@ event_to_kboard (event)
 }
 #endif
 
+
+Lisp_Object Vthrow_on_input;
+
 /* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
 void
@@ -3705,6 +3708,14 @@ kbd_buffer_store_event_hold (event, hold_quit)
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
     }
+
+  /* If we're in a section that requested to be interrupted as soon
+     as input comes, then set quit-flag to cause an interrupt.  */
+  if (!NILP (Vthrow_on_input)
+      && event->kind != FOCUS_IN_EVENT
+      && event->kind != HELP_EVENT
+      && event->kind != DEICONIFY_EVENT)
+    Vquit_flag = Vthrow_on_input;
 }
 
 
@@ -11377,6 +11388,12 @@ Used during Emacs' startup.  */);
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.
 If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
+
+  DEFVAR_LISP ("throw-on-input", &Vthrow_on_input,
+	       doc: /* If non-nil, any keyboard input throws to this symbol.
+The value of that variable is passed to `quit-flag' and later causes a
+peculiar kind of quitting.  */);
+  Vthrow_on_input = Qnil;
 }
 
 void
