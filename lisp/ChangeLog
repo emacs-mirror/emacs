@@ -1,3 +1,8 @@
+2000-10-31  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/tex-mode.el (tex-file): Use `default-directory' when
+	`tex-main-file' does not have directory in it.
+
 2000-10-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* cus-edit.el (custom-mode-map): Switch back to a sparse keymap.

@@ -1528,7 +1528,8 @@ This function is more useful than \\[tex-buffer] when you need the
 `.aux' file of LaTeX to have the correct name."
   (interactive)
   (let* ((source-file (tex-main-file))
-	 (file-dir (expand-file-name (file-name-directory source-file))))
+	 (file-dir (expand-file-name (or (file-name-directory source-file)
+                                         default-directory))))
     (if tex-offer-save
         (save-some-buffers))
     (if (tex-shell-running)
