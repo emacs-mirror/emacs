@@ -11,6 +11,7 @@
 	(auto-revert-handler, auto-revert-active-p): New functions.
 	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
 	and `auto-revert-active-p'.
+	(eval-when-compile): Defvar dired-directory.
 
 2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
 
