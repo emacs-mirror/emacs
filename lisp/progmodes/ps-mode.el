@@ -481,8 +481,7 @@ If nil, the following are tried in turn, until success:
 
 ;; PostScript mode.
 
-;;;###autoload (autoload (quote ps-mode) "ps-mode" "Major mode for editing PostScript with GNU Emacs.\n" t)
-
+;;;###autoload
 (define-derived-mode ps-mode fundamental-mode "PostScript"
   "Major mode for editing PostScript with GNU Emacs.
 
