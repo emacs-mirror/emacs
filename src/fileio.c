@@ -607,6 +607,11 @@ See also the function `substitute-in-file-name'.")
       lose = 0;
       while (*p)
 	{
+	  /* Since we know the path is absolute, we can assume that each
+	     element starts with a "/".  */
+
+	  /* "//" anywhere isn't necessarily hairy; we just start afresh
+	     with the second slash.  */
 	  if (p[0] == '/' && p[1] == '/'
 #ifdef APOLLO
 	      /* // at start of filename is meaningful on Apollo system */
@@ -614,11 +619,18 @@ See also the function `substitute-in-file-name'.")
 #endif /* APOLLO */
 	      )
 	    nm = p + 1;
+
+	  /* "~" is hairy as the start of any path element.  */
 	  if (p[0] == '/' && p[1] == '~')
 	    nm = p + 1, lose = 1;
-	  if (p[0] == '/' && p[1] == '.'
-	      && (p[2] == '/' || p[2] == 0
-		  || (p[2] == '.' && (p[3] == '/' || p[3] == 0))))
+
+	  /* "." and ".." are hairy.  */
+	  if (p[0] == '/'
+	      && p[1] == '.'
+	      && (p[2] == '/'
+		  || p[2] == 0
+		  || (p[2] == '.' && (p[3] == '/'
+				      || p[3] == 0))))
 	    lose = 1;
 #ifdef VMS
 	  if (p[0] == '\\')
@@ -712,44 +724,46 @@ See also the function `substitute-in-file-name'.")
   newdir = 0;
 
   if (nm[0] == '~')		/* prefix ~ */
-    if (nm[1] == '/'
+    {
+      if (nm[1] == '/'
 #ifdef VMS
-	|| nm[1] == ':'
-#endif /* VMS */
-	|| nm[1] == 0)/* ~ by itself */
-      {
-	if (!(newdir = (unsigned char *) egetenv ("HOME")))
-	  newdir = (unsigned char *) "";
-	nm++;
+	  || nm[1] == ':'
+#endif				/* VMS */
+	  || nm[1] == 0)	/* ~ by itself */
+	{
+	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
+	    newdir = (unsigned char *) "";
+	  nm++;
 #ifdef VMS
-	nm++;			/* Don't leave the slash in nm.  */
-#endif /* VMS */
-      }
-    else			/* ~user/filename */
-      {
-	for (p = nm; *p && (*p != '/'
+	  nm++;			/* Don't leave the slash in nm.  */
+#endif				/* VMS */
+	}
+      else			/* ~user/filename */
+	{
+	  for (p = nm; *p && (*p != '/'
 #ifdef VMS
-			    && *p != ':'
-#endif /* VMS */
-			    ); p++);
-	o = (unsigned char *) alloca (p - nm + 1);
-	bcopy ((char *) nm, o, p - nm);
-	o [p - nm] = 0;
+			      && *p != ':'
+#endif				/* VMS */
+			      ); p++);
+	  o = (unsigned char *) alloca (p - nm + 1);
+	  bcopy ((char *) nm, o, p - nm);
+	  o [p - nm] = 0;
 
-	pw = (struct passwd *) getpwnam (o + 1);
-	if (pw)
-	  {
-	    newdir = (unsigned char *) pw -> pw_dir;
+	  pw = (struct passwd *) getpwnam (o + 1);
+	  if (pw)
+	    {
+	      newdir = (unsigned char *) pw -> pw_dir;
 #ifdef VMS
-	    nm = p + 1;		/* skip the terminator */
+	      nm = p + 1;	/* skip the terminator */
 #else
-	    nm = p;
-#endif /* VMS */
-	  }
+	      nm = p;
+#endif				/* VMS */
+	    }
 
-	/* If we don't find a user of that name, leave the name
-	   unchanged; don't move nm forward to p.  */
-      }
+	  /* If we don't find a user of that name, leave the name
+	     unchanged; don't move nm forward to p.  */
+	}
+    }
 
   if (nm[0] != '/'
 #ifdef VMS
@@ -791,7 +805,7 @@ See also the function `substitute-in-file-name'.")
 	strcpy (target, newdir);
       else
 #endif
-      file_name_as_directory (target, newdir);
+	file_name_as_directory (target, newdir);
     }
 
   strcat (target, nm);
@@ -800,7 +814,7 @@ See also the function `substitute-in-file-name'.")
     strcpy (target, sys_translate_unix (target));
 #endif /* VMS */
 
-  /* Now canonicalize by removing /. and /foo/.. if they appear */
+  /* Now canonicalize by removing /. and /foo/.. if they appear.  */
 
   p = target;
   o = target;
@@ -863,9 +877,17 @@ See also the function `substitute-in-file-name'.")
 	  o = target;
 	  p++;
 	}
-      else if (p[0] == '/' && p[1] == '.' &&
-	       (p[2] == '/' || p[2] == 0))
-	p += 2;
+      else if (p[0] == '/'
+	       && p[1] == '.'
+	       && (p[2] == '/'
+		   || p[2] == 0))
+	{
+	  /* If "/." is the entire filename, keep the "/".  Otherwise,
+	     just delete the whole "/.".  */
+	  if (o == target && p[2] == '\0')
+	    *o++ = *p;
+	  p += 2;
+	}
       else if (!strncmp (p, "/..", 3)
 	       /* `/../' is the "superroot" on certain file systems.  */
 	       && o != target
