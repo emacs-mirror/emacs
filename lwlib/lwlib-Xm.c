@@ -730,9 +730,12 @@ make_dialog (char* name, Widget parent, Boolean pop_up_p,
       result = form;
     }
 
+  n_children = left_buttons + right_buttons + 1;
   ac = 0;
-  XtSetArg(al[ac], XmNpacking, XmPACK_COLUMN); ac++;
-  XtSetArg(al[ac], XmNorientation, XmVERTICAL); ac++;
+  XtSetArg(al[ac], XmNpacking, n_children == 3? 
+	   XmPACK_COLUMN: XmPACK_TIGHT); ac++;
+  XtSetArg(al[ac], XmNorientation, n_children == 3? 
+	   XmVERTICAL: XmHORIZONTAL); ac++;
   XtSetArg(al[ac], XmNnumColumns, left_buttons + right_buttons + 1); ac++;
   XtSetArg(al[ac], XmNmarginWidth, 0); ac++;
   XtSetArg(al[ac], XmNmarginHeight, 0); ac++;
@@ -760,6 +763,7 @@ make_dialog (char* name, Widget parent, Boolean pop_up_p,
 	  XtSetArg(al[ac], XmNhighlightThickness, 1); ac++;
 	  XtSetArg(al[ac], XmNshowAsDefault, TRUE); ac++;
 	}
+      XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
 
@@ -785,6 +789,7 @@ make_dialog (char* name, Widget parent, Boolean pop_up_p,
       char button_name [16];
       sprintf (button_name, "button%d", left_buttons + i + 1);
       ac = 0;
+      XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
       if (! button) button = children [n_children];
