@@ -1,3 +1,8 @@
+2001-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* ps-bdf.el (bdf-read-bitmap): Initialize returned values to
+	defaults.
+
 2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
