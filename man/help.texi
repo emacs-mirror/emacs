@@ -60,13 +60,13 @@ This searches the @emph{documentation strings} (the built-in short
 descriptions) of all variables and functions (not their names) for a
 match for @var{topic}, a regular expression.  @xref{Apropos}.
 
-@item C-h i m emacs @key{RET} i @var{topic} @key{RET}
+@item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
 If there are several matches, Emacs displays the first one.  You can then
 press @key{,} to move to other matches, until you find what you are
 looking for.
 
-@item C-h i m emacs @key{RET} s @var{topic} @key{RET}
+@item C-h i d m emacs @key{RET} s @var{topic} @key{RET}
 Similar, but searches for @var{topic} (which can be a regular
 expression) in the @emph{text} of the manual rather than in its
 indices.
@@ -119,7 +119,7 @@ Display documentation on the Lisp function named @var{function}
 (@code{describe-function}).  Since commands are Lisp functions,
 a command name may be used.
 @item C-h h
-Display the @file{hello} file, which shows examples of various character
+Display the @file{HELLO} file, which shows examples of various character
 sets.
 @item C-h i
 Run Info, the program for browsing documentation files (@code{info}).
