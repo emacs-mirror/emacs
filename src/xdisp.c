@@ -227,6 +227,7 @@ Lisp_Object QCeval, Qwhen, QCfile, QCdata;
 Lisp_Object Qfontified;
 Lisp_Object Qgrow_only;
 Lisp_Object Qinhibit_eval_during_redisplay;
+Lisp_Object Qbuffer_position, Qposition, Qobject;
 
 /* Functions called to fontify regions of text.  */
 
@@ -2815,26 +2816,22 @@ handle_single_display_prop (it, prop, object, position,
 
   if (!NILP (form) && !EQ (form, Qt))
     {
+      int count = BINDING_STACK_SIZE ();
       struct gcpro gcpro1;
-      struct text_pos end_pos, pt;
-      
-      GCPRO1 (form);
-      end_pos = display_prop_end (it, object, *position);
 
-      /* Temporarily set point to the end position, and then evaluate
-	 the form.  This makes `(eolp)' work as FORM.  */
-      if (BUFFERP (object))
-	{
-	  CHARPOS (pt) = PT;
-	  BYTEPOS (pt) = PT_BYTE;
-	  TEMP_SET_PT_BOTH (CHARPOS (end_pos), BYTEPOS (end_pos));
-	}
-      
+      /* Bind `object' to the object having the `display' property, a
+	 buffer or string.  Bind `position' to the position in the
+	 object where the property was found, and `buffer-position'
+	 to the current position in the buffer.  */
+      specbind (Qobject, object);
+      specbind (Qposition, CHARPOS (*position));
+      specbind (Qbuffer_position, (STRINGP (object)
+				   ? make_number (IT_CHARPOS (*it))
+				   : make_number (CHARPOS (*position))));
+      GCPRO1 (form);
       form = safe_eval (form);
-      
-      if (BUFFERP (object))
-	TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
-      UNGCPRO;  
+      UNGCPRO;
+      unbind_to (count, Qnil);
     }
   
   if (NILP (form))
@@ -14587,6 +14584,12 @@ syms_of_xdisp ()
   staticpro (&Qinhibit_menubar_update);
   Qinhibit_eval_during_redisplay = intern ("inhibit-eval-during-redisplay");
   staticpro (&Qinhibit_eval_during_redisplay);
+  Qposition = intern ("position");
+  staticpro (&Qposition);
+  Qbuffer_position = intern ("buffer-position");
+  staticpro (&Qbuffer_position);
+  Qobject = intern ("object");
+  staticpro (&Qobject);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
