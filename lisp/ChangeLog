@@ -1,3 +1,7 @@
+2002-06-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/bibtex.el: Change the maintainer to "none".
+
 2002-06-10  Juanma Barranquero  <lektu@terra.es>
 
 	* emulation/viper-cmd.el (viper-smart-suffix-list): Fix typo.

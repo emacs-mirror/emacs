@@ -1,3 +1,19 @@
+2002-06-12  Juanma Barranquero  <lektu@terra.es>
+
+	* pop3.el (pop3-open-server): Fix typo.
+
+2002-06-12  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* pop3.el (pop3-munge-message-separator): Work if no date.
+	Trivial patch from Marius Vollmer <mvo@zagadka.ping.de>.
+
+	* pop3.el (pop3-munge-message-separator): Only use valid date.
+	Trivial patch from Michael Welsh Duggan <md5i@cs.cmu.edu>.
+
+2002-06-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pop3.el (pop3-md5): Don't hardcode point-min == 1.
+
 2002-02-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-art.el (gnus-article-edit-done): Widen the article buffer.
