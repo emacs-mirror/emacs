@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.2) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -82,7 +82,6 @@ typedef struct ThreadStruct {
   DequeNodeStruct spaceDeque; /* threads attached to space */
   HANDLE handle;   /* Handle of thread .thread.handle */
   DWORD id;        /* Thread id of thread */
-  Addr *stackBot;  /* bottom of stack i.e. most hidden */
 } ThreadStruct;
 
 
@@ -100,7 +99,6 @@ Bool ThreadIsValid(Thread thread, ValidationType validParam)
 #endif
 
   AVER(ISVALIDNESTED(DequeNode, &thread->spaceDeque));
-  AVER(thread->stackBot != NULL);
 
   return TRUE;
 }
@@ -108,7 +106,7 @@ Bool ThreadIsValid(Thread thread, ValidationType validParam)
 #endif /* DEBUG_ASSERT */
 
 
-Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
+Error ThreadRegister(Thread *threadReturn, Space space)
 {
   Error e;
   Thread thread;
@@ -116,7 +114,6 @@ Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
   BOOL b;
 
   AVER(threadReturn != NULL);
-  AVER(stackBot != NULL);
   AVER(ISVALID(Space, space));
 
   e = PoolAlloc((Addr *)&thread, SpaceControlPool(space),
@@ -139,7 +136,6 @@ Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
   }
 
   thread->id = GetCurrentThreadId();
-  thread->stackBot = stackBot;
 
   DequeNodeInit(&thread->spaceDeque);
 
@@ -230,64 +226,48 @@ void ThreadDequeResume(Deque deque)
   mapThreadDeque(deque, resume);
 }
 
-Error ThreadDequeScan(void *p, int i, Trace trace)
+Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
 {
-  Deque deque;
-  DequeNode node;
   DWORD id;
   Error e;
 
-  UNUSED(i);
-
-  deque = (Deque)p;
-
-  AVER(ISVALID(Deque, deque));
-
   id = GetCurrentThreadId();
-  node = DequeFirst(deque);
-  while(node != DequeSentinel(deque)) {
-    DequeNode next = DequeNodeNext(node);
-    Thread thread;
 
-    thread = DEQUENODEELEMENT(Thread, spaceDeque, node);
-    if(id != thread->id) { /* .thread.id */
-      CONTEXT context;
-      BOOL success;
-        
-      /* scan stack and register roots in other threads */
+  if(id != thread->id) { /* .thread.id */
+    CONTEXT context;
+    BOOL success;
+      
+    /* scan stack and register roots in other threads */
 
-      /* This dumps the relevent registers into the context */
-      /* .context.flags */
-      context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
-      /* .thread.handle.get-context */
-      success = GetThreadContext(thread->handle, &context);
-      AVER(success); /* .error.get-context */
- 
-      /* scan stack inclusive of current sp and exclusive of
-       * stackBot (.stack.full-descend)
-       */
-      e = TraceScanArea(((Addr *)context.Esp), /* .i3.sp */
-                          thread->stackBot, trace, RefRankAMBIG);
-      if(e != ErrSUCCESS)
-        return e;
+    /* This dumps the relevent registers into the context */
+    /* .context.flags */
+    context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+    /* .thread.handle.get-context */
+    success = GetThreadContext(thread->handle, &context);
+    AVER(success); /* .error.get-context */
 
-      /* (.context.regroots)
-       * This scans the root registers (.context.regroots).  It also
-       * unecessarily scans the rest of the context.  The optimisation
-       * to scan only relevent parts would be machine dependent.
-       */
-      e = TraceScanArea((Addr *)&context,
-             (Addr *)((char *)&context + sizeof(CONTEXT)),
-             trace, RefRankAMBIG);
-      if(e != ErrSUCCESS)
-        return e;
+    /* scan stack inclusive of current sp and exclusive of
+     * stackBot (.stack.full-descend)
+     */
+    e = TraceScanArea(ss, ((Addr *)context.Esp), /* .i3.sp */
+			stackBot);
+    if(e != ErrSUCCESS)
+      return e;
 
-    } else { /* scan this thread's stack */
-      e = StackScan(thread->stackBot, trace, RefRankAMBIG);
-      if(e != ErrSUCCESS)
-        return e;
-    }
-    node = next;
+    /* (.context.regroots)
+     * This scans the root registers (.context.regroots).  It also
+     * unecessarily scans the rest of the context.  The optimisation
+     * to scan only relevent parts would be machine dependent.
+     */
+    e = TraceScanArea(ss, (Addr *)&context,
+	   (Addr *)((char *)&context + sizeof(CONTEXT)));
+    if(e != ErrSUCCESS)
+      return e;
+
+  } else { /* scan this thread's stack */
+    e = StackScan(ss, stackBot);
+    if(e != ErrSUCCESS)
+      return e;
   }
 
   return ErrSUCCESS;
