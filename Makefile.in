@@ -349,9 +349,11 @@ install-arch-indep: mkdir
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  (cd ${srcdir}/info ; \
-	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
-	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
+	  (cd ${infodir};  \
+	   if [ ! -f dir.old ]; then mv -f dir dir.old; \
+	   else mv -f dir dir.bak; fi; \
+	   cd ${srcdir}/info ; \
+	   (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   fi ; \
 	   for f in cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*; do \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
