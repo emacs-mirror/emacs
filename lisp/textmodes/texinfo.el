@@ -244,7 +244,7 @@ chapter."
 
 (defvar texinfo-section-list
   '(("top" 1)
-    ("majorheading" 1)
+    ("majorheading" 2)
     ("chapter" 2)
     ("unnumbered" 2)
     ("appendix" 2)
@@ -290,9 +290,9 @@ chapter."
   "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
 
 (defvar texinfo-font-lock-syntactic-keywords
-  '(("\\(@\\)c\\(omment\\)?\\>" (1 '(11)))
-    ("^\\(@\\)ignore\\>" (1 '(2097163)))
-    ("^@end ignore\\(\n\\)" (1 '(2097164))))
+  '(("\\(@\\)c\\(omment\\)?\\>" (1 "<"))
+    ("^\\(@\\)ignore\\>" (1 "< b"))
+    ("^@end ignore\\(\n\\)" (1 "> b")))
   "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
 
 (defface texinfo-heading-face
