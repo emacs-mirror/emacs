@@ -109,8 +109,9 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	(use-local-map (nconc (make-sparse-keymap) (current-local-map)))
 	(define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
 	(with-output-to-temp-buffer "*Bug Help*"
-	  (princ (substitute-command-keys
-		  "Type \\[mail-send-and-exit] to send the bug report.\n"))
+	  (if (eq mail-user-agant 'sendmail-user-agent)
+	      (princ (substitute-command-keys
+		      "Type \\[mail-send-and-exit] to send the bug report.\n")))
 	  (princ (substitute-command-keys
 		  "Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	  (terpri)
