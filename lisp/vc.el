@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.8 1992/10/05 05:17:21 roland Exp roland $	
+;;	$Id: vc.el,v 1.9 1992/10/05 05:20:52 roland Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -1060,20 +1060,23 @@ Return nil if there is no such person."
   ;; keywords expanded if vc-keep-workfiles is non-nil, otherwise
   ;; it deletes the workfile.
   (message "Checking in %s..." file)
-  (vc-backend-dispatch file
-   (progn
-     (apply 'vc-do-command 0 "delta" file
-	    (if rev (concat "-r" rev))
-	    (concat "-y" comment)
-	    vc-checkin-switches)
-     (if vc-keep-workfiles
-	 (vc-do-command 0 "get" file))
-     )
-   (apply 'vc-do-command 0 "ci" file
-	  (concat (if vc-keep-workfiles "-u" "-r") rev)
-	  (concat "-m" comment)
-	  vc-checkin-switches)
-   )
+  (save-excursion
+    ;; Change buffers to get local value of vc-checkin-switches.
+    (set-buffer (or (get-file-buffer file) (current-buffer)))
+    (vc-backend-dispatch file
+      (progn
+	(apply 'vc-do-command 0 "delta" file
+	       (if rev (concat "-r" rev))
+	       (concat "-y" comment)
+	       vc-checkin-switches)
+	(if vc-keep-workfiles
+	    (vc-do-command 0 "get" file))
+	)
+      (apply 'vc-do-command 0 "ci" file
+	     (concat (if vc-keep-workfiles "-u" "-r") rev)
+	     (concat "-m" comment)
+	     vc-checkin-switches)
+      ))
   (vc-file-setprop file 'vc-locking-user nil)
   (message "Checking in %s...done" file)
   )
