@@ -1,3 +1,7 @@
+2004-12-22  Kenichi Handa  <handa@m17n.org>
+
+	* xselect.c (Fx_get_cut_buffer_internal): Return a unibyte string.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (unwind_to_catch): Clear immediate_quit.

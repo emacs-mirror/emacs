@@ -1,3 +1,11 @@
+2004-12-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-start-translation): Fix prompt
+	string for the case if input-method-use-echo-area being non-nil.
+	(quail-start-conversion): Likewise.
+	(quail-show-guidance): Don't show guidance if
+	input-method-use-echo-area is non-nil.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-help): Bind resize-mini-windows.
