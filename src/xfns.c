@@ -5788,6 +5788,7 @@ x_alloc_image_color (f, img, color_name, dflt)
  ***********************************************************************/
 
 static void cache_image P_ ((struct frame *f, struct image *img));
+static void postprocess_image P_ ((struct frame *, struct image *));
 
 
 /* Return a new, initialized image cache that is allocated from the
@@ -5919,6 +5920,81 @@ FRAME t means clear the image caches of all frames.")
 }
 
 
+/* Compute masks and transform image IMG on frame F, as specified
+   by the image's specification,  */
+
+static void
+postprocess_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  /* Manipulation of the image's mask.  */
+  if (img->pixmap)
+    {
+      Lisp_Object conversion, spec;
+      Lisp_Object mask;
+
+      spec = img->spec;
+      
+      /* `:heuristic-mask t'
+	 `:mask heuristic'
+	 means build a mask heuristically.
+	 `:heuristic-mask (R G B)'
+	 `:mask (heuristic (R G B))'
+	 means build a mask from color (R G B) in the
+	 image.
+	 `:mask nil'
+	 means remove a mask, if any.  */
+	      
+      mask = image_spec_value (spec, QCheuristic_mask, NULL);
+      if (!NILP (mask))
+	x_build_heuristic_mask (f, img, mask);
+      else
+	{
+	  int found_p;
+		    
+	  mask = image_spec_value (spec, QCmask, &found_p);
+		  
+	  if (EQ (mask, Qheuristic))
+	    x_build_heuristic_mask (f, img, Qt);
+	  else if (CONSP (mask)
+		   && EQ (XCAR (mask), Qheuristic))
+	    {
+	      if (CONSP (XCDR (mask)))
+		x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
+	      else
+		x_build_heuristic_mask (f, img, XCDR (mask));
+	    }
+	  else if (NILP (mask) && found_p && img->mask)
+	    {
+	      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+	      img->mask = None;
+	    }
+	}
+ 
+	  
+      /* Should we apply an image transformation algorithm?  */
+      conversion = image_spec_value (spec, QCconversion, NULL);
+      if (EQ (conversion, Qdisabled))
+	x_disable_image (f, img);
+      else if (EQ (conversion, Qlaplace))
+	x_laplace (f, img);
+      else if (EQ (conversion, Qemboss))
+	x_emboss (f, img);
+      else if (CONSP (conversion)
+	       && EQ (XCAR (conversion), Qedge_detection))
+	{
+	  Lisp_Object tem;
+	  tem = XCDR (conversion);
+	  if (CONSP (tem))
+	    x_edge_detection (f, img,
+			      Fplist_get (tem, QCmatrix),
+			      Fplist_get (tem, QCcolor_adjustment));
+	}
+    }
+}
+
+
 /* Return the id of image with Lisp specification SPEC on frame F.
    SPEC must be a valid Lisp image specification (see valid_image_p).  */
 
@@ -5952,6 +6028,8 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
+      extern Lisp_Object Qpostscript;
+      
       BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
@@ -6003,71 +6081,10 @@ lookup_image (f, spec)
 	      img->vmargin += abs (img->relief);
 	    }
 
-	  /* Manipulation of the image's mask.  */
-	  if (img->pixmap)
-	    {
-	      /* `:heuristic-mask t'
-		 `:mask heuristic'
-			means build a mask heuristically.
-		 `:heuristic-mask (R G B)'
-		 `:mask (heuristic (R G B))'
-			means build a mask from color (R G B) in the
-			image.
-		 `:mask nil'
-			means remove a mask, if any.  */
-	      
-	      Lisp_Object mask;
-
-	      mask = image_spec_value (spec, QCheuristic_mask, NULL);
-	      if (!NILP (mask))
-		x_build_heuristic_mask (f, img, mask);
-	      else
-		{
-		  int found_p;
-		    
-		  mask = image_spec_value (spec, QCmask, &found_p);
-		  
-		  if (EQ (mask, Qheuristic))
-		    x_build_heuristic_mask (f, img, Qt);
-		  else if (CONSP (mask)
-			   && EQ (XCAR (mask), Qheuristic))
-		    {
-		      if (CONSP (XCDR (mask)))
-			x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
-		      else
-			x_build_heuristic_mask (f, img, XCDR (mask));
-		    }
-		  else if (NILP (mask) && found_p && img->mask)
-		    {
-		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-		      img->mask = None;
-		    }
-    		}
-	    }
-	  
-	  /* Should we apply an image transformation algorithm?  */
-	  if (img->pixmap)
-	    {
-	      Lisp_Object conversion;
-
-	      conversion = image_spec_value (spec, QCconversion, NULL);
-	      if (EQ (conversion, Qdisabled))
-		x_disable_image (f, img);
-	      else if (EQ (conversion, Qlaplace))
-		x_laplace (f, img);
-	      else if (EQ (conversion, Qemboss))
-		x_emboss (f, img);
-	      else if (CONSP (conversion)
-		       && EQ (XCAR (conversion), Qedge_detection))
-		{
-		  Lisp_Object tem;
-		  tem = XCDR (conversion);
-		  if (CONSP (tem))
-		    x_edge_detection (f, img,
-				      Fplist_get (tem, QCmatrix),
-				      Fplist_get (tem, QCcolor_adjustment));
-		}
-	    }
+	  /* Do image transformations and compute masks, unless we
+	     don't have the image yet.  */
+	  if (!EQ (*img->type->type, Qpostscript))
+	    postprocess_image (f, img);
 	}
 
       UNBLOCK_INPUT;
@@ -10092,6 +10109,12 @@ x_kill_gs_process (pixmap, f)
       
       UNBLOCK_INPUT;
     }
+
+  /* Now that we have the pixmap, compute mask and transform the
+     image if requested.  */
+  BLOCK_INPUT;
+  postprocess_image (f, img);
+  UNBLOCK_INPUT;
 }
 
 
