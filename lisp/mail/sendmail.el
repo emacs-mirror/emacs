@@ -559,6 +559,7 @@ the user from the mailer."
 	(case-fold-search nil)
 	resend-to-addresses
 	delimline
+	fcc-was-found
 	(mailbuf (current-buffer)))
     (unwind-protect
 	(save-excursion
@@ -677,36 +678,45 @@ the user from the mailer."
 	    ;; Find and handle any FCC fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
-		(mail-do-fcc delimline))
+		(progn
+		  (setq fcc-was-found t)
+		  (mail-do-fcc delimline)))
 	    (if mail-interactive
 		(save-excursion
 		  (set-buffer errbuf)
 		  (erase-buffer))))
-	  (let ((default-directory "/"))
-	    (apply 'call-process-region
-		   (append (list (point-min) (point-max)
-				 (if (boundp 'sendmail-program)
-				     sendmail-program
-				   "/usr/lib/sendmail")
-				 nil errbuf nil "-oi")
-			   ;; Always specify who from,
-			   ;; since some systems have broken sendmails.
-			   (list "-f" (user-login-name))
-;;;			   ;; Don't say "from root" if running under su.
-;;;			   (and (equal (user-real-login-name) "root")
-;;;				(list "-f" (user-login-name)))
-			   (and mail-alias-file
-				(list (concat "-oA" mail-alias-file)))
-			   ;; These mean "report errors by mail"
-			   ;; and "deliver in background".
-			   (if (null mail-interactive) '("-oem" "-odb"))
-			   ;; Get the addresses from the message
-			   ;; unless this is a resend.
-			   ;; We must not do that for a resend
-			   ;; because we would find the original addresses.
-			   ;; For a resend, include the specific addresses.
-			   (or resend-to-addresses
-			       '("-t")))))
+	  (goto-char (point-min))
+	  (if (let ((case-fold-search t))
+		(re-search-forward "^To:\\|^cc:\\|^bcc:\\|^resent-to:\
+\\|^resent-cc:\\|^resent-bcc:"
+				   delimline t)
+	      (let ((default-directory "/"))
+		(apply 'call-process-region
+		       (append (list (point-min) (point-max)
+				     (if (boundp 'sendmail-program)
+					 sendmail-program
+				       "/usr/lib/sendmail")
+				     nil errbuf nil "-oi")
+			       ;; Always specify who from,
+			       ;; since some systems have broken sendmails.
+			       (list "-f" (user-login-name))
+    ;;;			   ;; Don't say "from root" if running under su.
+    ;;;			   (and (equal (user-real-login-name) "root")
+    ;;;				(list "-f" (user-login-name)))
+			       (and mail-alias-file
+				    (list (concat "-oA" mail-alias-file)))
+			       ;; These mean "report errors by mail"
+			       ;; and "deliver in background".
+			       (if (null mail-interactive) '("-oem" "-odb"))
+			       ;; Get the addresses from the message
+			       ;; unless this is a resend.
+			       ;; We must not do that for a resend
+			       ;; because we would find the original addresses.
+			       ;; For a resend, include the specific addresses.
+			       (or resend-to-addresses
+				   '("-t")))))
+	    (or fcc-was-found
+		(error "No recipients")))
 	  (if mail-interactive
 	      (save-excursion
 		(set-buffer errbuf)
