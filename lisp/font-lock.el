@@ -1456,7 +1456,7 @@ If REGEXP is non-nil, it means these keywords are used for
 		       (concat "^\\(?:" defun-prompt-regexp "\\)?\\s(")
 		     "^\\s(")
 		  (0
-		   (if (memq (get-text-property (1- (point)) 'face)
+		   (if (memq (get-text-property (match-beginning 0) 'face)
 			     '(font-lock-string-face font-lock-doc-face
 			       font-lock-comment-face))
 		       font-lock-warning-face)
