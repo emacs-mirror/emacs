@@ -489,11 +489,11 @@ that uses or sets the mark."
 	(setq start (point))
 	(goto-char opoint)
 	(forward-line 0)
-	(if (/= start 1)
+	(if (/= start (point-min))
 	    (message "line %d (narrowed line %d)"
-		     (1+ (count-lines 1 (point)))
+		     (1+ (count-lines (point-min) (point)))
 		     (1+ (count-lines start (point))))
-	  (message "Line %d" (1+ (count-lines 1 (point)))))))))
+	  (message "Line %d" (1+ (count-lines (point-min) (point)))))))))
 
 (defun count-lines (start end)
   "Return number of lines between START and END.
@@ -1958,7 +1958,7 @@ comes the newest one."
   "Reinsert the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
 killed OR yanked.  Put point at end, and set mark at beginning.
-With just C-u as argument, same but put point at beginning (and mark at end).
+With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
 With argument N, reinsert the Nth most recently killed stretch of killed
 text.
 See also the command \\[yank-pop]."
@@ -2484,7 +2484,7 @@ With prefix arg, `transient-mark-mode' is enabled temporarily."
       (goto-char omark)
       nil)))
 
-(defun transient-mark-mode (arg)
+(define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
 With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
@@ -2505,15 +2505,7 @@ default part of the buffer's text.  Examples of such commands include
 \\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
 the prompt, to see the documentation of commands which are sensitive to
 the Transient Mark mode."
-  (interactive "P")
-  (setq transient-mark-mode
-	(if (null arg)
-	    (not transient-mark-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (if (interactive-p)
-      (if transient-mark-mode
-	  (message "Transient Mark mode enabled")
-	(message "Transient Mark mode disabled"))))
+  :global t :group 'editing-basics)
 
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
@@ -3092,8 +3084,8 @@ Setting this variable automatically makes it local to the current buffer.")
 		(save-excursion (forward-paragraph 1) (point)))))
 	  (and prefix (not (equal prefix ""))
 	       ;; Use auto-indentation rather than a guessed empty prefix.
-	       (not (and fill-indent-according-to-mode
-			 (string-match "[ \t]*" prefix)))
+	       (not (and (fill-indent-according-to-mode)
+			 (string-match "\\`[ \t]*\\'" prefix)))
 	       (setq fill-prefix prefix))))
       
       (while (and (not give-up) (> (current-column) fc))
@@ -3160,6 +3152,8 @@ Setting this variable automatically makes it local to the current buffer.")
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
 Some major modes set this.")
 
+;; FIXME: turn into a proper minor mode.
+;; Add a global minor mode version of it.
 (defun auto-fill-mode (&optional arg)
   "Toggle Auto Fill mode.
 With arg, turn Auto Fill mode on if and only if arg is positive.
@@ -3282,12 +3276,7 @@ specialization of overwrite-mode, entered by setting the
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
-(defcustom line-number-mode t
-  "*Non-nil means display line number in mode line."
-  :type 'boolean
-  :group 'editing-basics)
-
-(defun line-number-mode (arg)
+(define-minor-mode line-number-mode
   "Toggle Line Number mode.
 With arg, turn Line Number mode on iff arg is positive.
 When Line Number mode is enabled, the line number appears
@@ -3296,27 +3285,14 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  (interactive "P")
-  (setq line-number-mode
-	(if (null arg) (not line-number-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  :init-value t :global t :group 'editing-basics)
 
-(defcustom column-number-mode nil
-  "*Non-nil means display column number in mode line."
-  :type 'boolean
-  :group 'editing-basics)
-
-(defun column-number-mode (arg)
+(define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  (interactive "P")
-  (setq column-number-mode
-	(if (null arg) (not column-number-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  :global t :group 'editing-basics)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -3880,7 +3856,8 @@ to decide what to delete."
   ;; or completion-no-auto-exit is non-nil.
 
   (let ((buffer (or buffer completion-reference-buffer))
-	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))))
+	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
+			      (buffer-name buffer))))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and mini-p
@@ -3889,8 +3866,9 @@ to decide what to delete."
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
       (unless (run-hook-with-args-until-success 
-	       'choose-completion-string-functions choice buffer mini-p base-size)
-	;; Insert the completion into the buffer where completion was requested.
+	       'choose-completion-string-functions
+	       choice buffer mini-p base-size)
+	;; Insert the completion into the buffer where it was requested.
 	(set-buffer buffer)
 	(if base-size
 	    (delete-region (+ base-size (if mini-p
