@@ -293,7 +293,7 @@ null strings are always omitted from the result.  Thus:
 @end example
 
 The result is not @samp{("" "two" "words" "")}, which would rarely be
-useful.  If you need such a result, use an explict value for
+useful.  If you need such a result, use an explicit value for
 @var{separators}:
 
 @example
@@ -530,6 +530,9 @@ portion) is less.
 This function works like @code{assoc}, except that @var{key} must be a
 string, and comparison is done using @code{compare-strings}.  If
 @var{case-fold} is non-@code{nil}, it ignores case differences.
+Unlike @code{assoc}, this function can also match elements of the alist
+that are strings rather than conses.  In particular, @var{alist} can
+be a list of strings rather than an actual alist.
 @xref{Association Lists}.
 @end defun
 
@@ -795,21 +798,20 @@ operation} error.
 @end group
 @end example
 
-@cindex numeric prefix
 @cindex field width
 @cindex padding
   All the specification characters allow an optional ``width'', which
 is a digit-string between the @samp{%} and the character.  If the
 printed representation of the object contains fewer characters than
 this width, then it is padded.  The padding is on the left if the
-prefix is positive (or starts with zero) and on the right if the
-prefix is negative.  The padding character is normally a space, but if
+width is positive (or starts with zero) and on the right if the
+width is negative.  The padding character is normally a space, but if
 the width starts with a zero, zeros are used for padding.  Some of
 these conventions are ignored for specification characters for which
-they do not make sense.  That is, %s, %S and %c accept a width
-starting with 0, but still pad with @emph{spaces} on the left.  Also,
-%% accepts a width, but ignores it.  Here are some examples of
-padding:
+they do not make sense.  That is, @samp{%s}, @samp{%S} and @samp{%c}
+accept a width starting with 0, but still pad with @emph{spaces} on
+the left.  Also, @samp{%%} accepts a width, but ignores it.  Here are
+some examples of padding:
 
 @example
 (format "%06d is padded on the left with zeros" 123)
@@ -849,27 +851,31 @@ not truncated.  In the third case, the padding is on the right.
 @end group
 @end smallexample
 
+@cindex precision in format specifications
   All the specification characters allow an optional ``precision''
 before the character (after the width, if present).  The precision is
 a decimal-point @samp{.} followed by a digit-string.  For the
-floating-point specifications (%e, %f, %g), the precision specifies
-how many decimal places to show; if zero, the decimal-point itself is
-also omitted.  For %s and %S, the precision truncates the string to
-the given width, so @code{"%.3s"} shows only the first three
-characters of the representation for @var{object}.  Precision is
-ignored for other specification characters.
+floating-point specifications (@samp{%e}, @samp{%f}, @samp{%g}), the
+precision specifies how many decimal places to show; if zero, the
+decimal-point itself is also omitted.  For @samp{%s} and @samp{%S},
+the precision truncates the string to the given width, so
+@samp{%.3s} shows only the first three characters of the
+representation for @var{object}.  Precision is ignored for other
+specification characters.
 
-Immediately after the % and before the optional width and precision,
-you can put certain ``flag'' characters.
+@cindex flags in format specifications
+Immediately after the @samp{%} and before the optional width and
+precision, you can put certain ``flag'' characters.
 
-A space @var{" "} inserts a space for positive numbers (otherwise
+A space character inserts a space for positive numbers (otherwise
 nothing is inserted for positive numbers).  This flag is ignored
-except for %d, %e, %f, %g.
+except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}.
 
-The flag @var{"#"} indicates ``alternate form''.  For %o it ensures
-that the result begins with a 0.  For %x and %X the result is prefixed
-with ``0x'' or ``0X''. For %e, %f, and %g a decimal point is always
-shown even if the precision is zero.
+The flag @samp{#} indicates ``alternate form''.  For @samp{%o} it
+ensures that the result begins with a 0.  For @samp{%x} and @samp{%X}
+the result is prefixed with @samp{0x} or @samp{0X}. For @samp{%e},
+@samp{%f}, and @samp{%g} a decimal point is always shown even if the
+precision is zero.
 
 @node Case Conversion
 @comment node-name, next, previous, up
@@ -1035,7 +1041,7 @@ and @samp{A} are related by case-conversion, they should have the same
 canonical equivalent character (which should be either @samp{a} for both
 of them, or @samp{A} for both of them).
 
-  The extra table @var{equivalences} is a map that cyclicly permutes
+  The extra table @var{equivalences} is a map that cyclically permutes
 each equivalence class (of characters with the same canonical
 equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
