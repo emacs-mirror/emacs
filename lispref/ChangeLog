@@ -1,3 +1,8 @@
+2002-08-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* customize.texi (Splicing into Lists): Fixed example.
+	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>
+
 2002-06-17  Juanma Barranquero  <lektu@terra.es>
 
 	* frames.texi (Display Feature Testing): Fix typo.

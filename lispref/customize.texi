@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc. 
+@c Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -821,17 +821,17 @@ matches a list with three elements, those become three elements of the
 overall sequence.  This is analogous to using @samp{,@@} in the backquote
 construct.
 
-  For example, to specify a list whose first element must be @code{t}
+  For example, to specify a list whose first element must be @code{baz}
 and whose remaining arguments should be zero or more of @code{foo} and
 @code{bar}, use this customization type:
 
 @example
-(list (const t) (set :inline t foo bar))
+(list (const baz) (set :inline t (const foo) (const bar)))
 @end example
 
 @noindent
-This matches values such as @code{(t)}, @code{(t foo)}, @code{(t bar)}
-and @code{(t foo bar)}.
+This matches values such as @code{(baz)}, @code{(baz foo)}, @code{(baz bar)}
+and @code{(baz foo bar)}.
 
   When the element-type is a @code{choice}, you use @code{:inline} not
 in the @code{choice} itself, but in (some of) the alternatives of the
