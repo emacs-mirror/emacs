@@ -54,6 +54,8 @@ int line_ins_del_ok;		/* Terminal can insert and delete lines */
 int char_ins_del_ok;		/* Terminal can insert and delete chars */
 int scroll_region_ok;		/* Terminal supports setting the
 				   scroll window */
+int scroll_region_cost;		/* Cost of setting a scroll window,
+				   measured in characters */
 int memory_below_frame;		/* Terminal remembers lines
 				   scrolled off bottom */
 int fast_clear_end_of_line;	/* Terminal has a `ce' string */
@@ -1090,12 +1092,14 @@ calculate_costs (frame)
 
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
+  scroll_region_cost = string_cost (f);
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
     {
       do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
 					0, 0,
 					x_screen_planes (frame));
+      scroll_region_cost = 0;
       return;
     }
 #endif
