@@ -494,7 +494,9 @@ as well as widgets, buttons, overlays, and text properties."
 	     ,(symbol-name charset)
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
-	     ,(format (if (< code 256) "0x%02X" "0x%04X") code))
+	     ,(if (integerp code)
+		  (format (if (< code 256) "0x%02X" "0x%04X") code)
+		(format "0x%04X%04X" (car code) (cdr code))))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
