@@ -15,11 +15,19 @@
  * environment, so we can't use strcmp from <string.h>, so we have to
  * roll our own (in fact we only ever need equality so we define a
  * simpler interface).
+ *
+ * .mpm.not: This module occupies a halfway house between the MPM and
+ * the client.  Let's make it clearer: this module should not use any
+ * services of the MPM.  That is, it should be written as if the client
+ * could have, in principle, written it.  .mpm.not.why: Perhaps the most
+ * compelling reason is that if config.h is included (via mpm.h) then
+ * the compile breaks on platform.w3i3mv because of "#define
+ * mps_lib_memset memset" in config.h.
  */
 
 #include "mpslibcb.h"
 #include "mpslib.h"
-#include "mpm.h"
+#include "mps.h"
 
 /* Forward declarations. */
 
@@ -36,7 +44,18 @@ mps_clock_t mps_lib_callback_default_clocks_per_sec(void);
 unsigned long mps_lib_callback_default_telemetry_control(void);
 int mps_lib_callback_streq(const char *, const char *);
 
+/* Macros */
+
+/* See .freestanding */
 #define EQ(p, q) (mps_lib_callback_streq((p), (q)))
+/* We use this to call mps_lib_asssert_fail (which we only ever do
+ * unconditionally).  See .mpm.not on why we cannot use ASSERT from
+ * mpm.h */
+#define AFAIL mps_lib_assert_fail
+/* Replaced UNUSED from mpm.h, see .mpm.not */
+#define UNUSED(x) ((void)(x))
+
+/* Structures and Types */
 
 struct mps_lib_callback_s
 {
@@ -54,15 +73,23 @@ struct mps_lib_callback_s
   unsigned long (*lib_telemetry_control)(void);
 };
 
+/* Globals */
+
+/* .global.why: A global is necessary so that we can store the function
+ * pointers that the client gives us.  The functions in the mpslib.h
+ * interface _are_ global.  There is no scope for having one memset
+ * function for one Arena and a different memset function for another.
+ * */
+
 /* The default functions are stubs that assert.  Except for the
  * assert_fail function (which is called when assertions fail) which
  * will be NULL.  This means: if you provide assert_fail and forget
  * something else, you'll know about it.  If you do not provide
  * assert_fail then it will probably stop anyway.
  *
- * These functions really do need to fail even if checks are off
- * (CHECK_NONE), so we reach under the hood of check.h and call ASSERT
- * directly. */
+ * These functions really do need to fail, so they subvert the checking
+ * mechanism (which is in mpm.h and not available to us, see .mpm.not)
+ */
   
 struct mps_lib_callback_s mps_lib_callback_global = {
   mps_lib_callback_default_get_EOF,
@@ -79,10 +106,12 @@ struct mps_lib_callback_s mps_lib_callback_global = {
   mps_lib_callback_default_telemetry_control
 };
 
+/* Functions */
+
 int mps_lib_callback_register(const char *name, mps_lib_function_t f)
 {
   if(NULL == name) {
-    return ResFAIL;
+    return MPS_RES_FAIL;
   }
   if(0) {
     /* just to make the "else if" neater. */
@@ -115,9 +144,9 @@ int mps_lib_callback_register(const char *name, mps_lib_function_t f)
     mps_lib_callback_global.lib_telemetry_control =
       (unsigned long(*)(void))f;
   } else {
-    return ResUNIMPL;
+    return MPS_RES_UNIMPL;
   }
-  return ResOK;
+  return MPS_RES_OK;
 }
 
 /* Return non-zero if and only if string p equals string q. */
@@ -133,19 +162,19 @@ int mps_lib_callback_streq(const char *p, const char *q)
 
 int mps_lib_callback_default_get_EOF(void)
 {
-  ASSERT(0, "mps_lib_get_EOF needs to be provided");
+  AFAIL("mps_lib_get_EOF needs to be provided");
   return 0;
 }
 
 mps_lib_FILE *mps_lib_callback_default_get_stderr(void)
 {
-  ASSERT(0, "mps_lib_get_stderr needs to be provided");
+  AFAIL("mps_lib_get_stderr needs to be provided");
   return NULL;
 }
 
 mps_lib_FILE *mps_lib_callback_default_get_stdout(void)
 {
-  ASSERT(0, "mps_lib_get_stdout needs to be provided");
+  AFAIL("mps_lib_get_stdout needs to be provided");
   return NULL;
 }
 
@@ -153,7 +182,7 @@ int mps_lib_callback_default_fputc(int c_, mps_lib_FILE *f_)
 {
   UNUSED(c_);
   UNUSED(f_);
-  ASSERT(0, "mps_lib_fputc needs to be provided");
+  AFAIL("mps_lib_fputc needs to be provided");
   return 0;
 }
 
@@ -161,7 +190,7 @@ int mps_lib_callback_default_fputs(const char *s_, mps_lib_FILE *f_)
 {
   UNUSED(s_);
   UNUSED(f_);
-  ASSERT(0, "mps_lib_fputs needs to be provided");
+  AFAIL("mps_lib_fputs needs to be provided");
   return 0;
 }
 
@@ -172,7 +201,7 @@ void *mps_lib_callback_default_memset(void *p_, int c_, size_t n_)
   UNUSED(p_);
   UNUSED(c_);
   UNUSED(n_);
-  ASSERT(0, "mps_lib_memset needs to be provided");
+  AFAIL("mps_lib_memset needs to be provided");
   return NULL;
 }
 
@@ -181,7 +210,7 @@ void *mps_lib_callback_default_memcpy(void *p_, const void *q_, size_t n_)
   UNUSED(p_);
   UNUSED(q_);
   UNUSED(n_);
-  ASSERT(0, "mps_lib_memcpy needs to be provided");
+  AFAIL("mps_lib_memcpy needs to be provided");
   return NULL;
 }
 
@@ -190,25 +219,25 @@ int mps_lib_callback_default_memcmp(const void *p_, const void *q_, size_t n_)
   UNUSED(p_);
   UNUSED(q_);
   UNUSED(n_);
-  ASSERT(0, "mps_lib_memcmp needs to be provided");
+  AFAIL("mps_lib_memcmp needs to be provided");
   return 0;
 }
 
 mps_clock_t mps_lib_callback_default_clock(void)
 {
-  ASSERT(0, "mps_clock needs to be provided");
+  AFAIL("mps_clock needs to be provided");
   return 0;
 }
 
 mps_clock_t mps_lib_callback_default_clocks_per_sec(void)
 {
-  ASSERT(0, "mps_clocks_per_sec needs to be provided");
+  AFAIL("mps_clocks_per_sec needs to be provided");
   return 0;
 }
 
 unsigned long mps_lib_callback_default_telemetry_control(void)
 {
-  ASSERT(0, "mps_lib_telemetry_control needs to be provided");
+  AFAIL("mps_lib_telemetry_control needs to be provided");
   return 0;
 }
 
