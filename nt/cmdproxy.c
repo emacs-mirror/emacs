@@ -583,6 +583,7 @@ main (int argc, char ** argv)
     {
       char * p;
       int    extra_arg_space = 0;
+      int    run_command_dot_com;
 
       progname = getenv ("COMSPEC");
       if (!progname)
@@ -593,6 +594,10 @@ main (int argc, char ** argv)
 
       if (progname == NULL || strchr (progname, '\\') == NULL)
 	fail ("error: the program %s could not be found.\n", getenv ("COMSPEC"));
+
+      /* Need to set environment size when running command.com.  */
+      run_command_dot_com =
+	(stricmp (strrchr (progname, '\\'), "command.com") == 0);
 
       /* Work out how much extra space is required for
          pass_through_args.  */
@@ -620,8 +625,7 @@ main (int argc, char ** argv)
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
 	    p += wsprintf (p, " %s", *argv);
 
-	  if (GetVersion () & 0x80000000)
-	    /* Set environment size to something reasonable on Windows 95.  */
+	  if (run_command_dot_com)
 	    wsprintf(p, " /e:%d /c %s", envsize, cmdline);
 	  else
 	    wsprintf(p, " /c %s", cmdline);
@@ -629,12 +633,10 @@ main (int argc, char ** argv)
 	}
       else
 	{
-	  if (GetVersion () & 0x80000000)
+	  if (run_command_dot_com)
 	    {
 	      /* Provide dir arg expected by command.com when first
-		 started interactively (the "command search path").
-		 cmd.exe does not require it, but accepts it silently -
-		 presumably other DOS compatible shells do the same.  To
+		 started interactively (the "command search path").  To
 		 avoid potential problems with spaces in command dir
 		 (which cannot be quoted - command.com doesn't like it),
 		 we always use the 8.3 form.  */
@@ -644,7 +646,6 @@ main (int argc, char ** argv)
 	      *(++p) = '\0';
 	    }
 	  else
-	    /* Dir arg not needed on NT.  */
 	    path[0] = '\0';
 
 	  cmdline = p = alloca (strlen (progname) + extra_arg_space +
@@ -658,8 +659,7 @@ main (int argc, char ** argv)
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
 	    p += wsprintf (p, " %s", *argv);
 
-	  if (GetVersion () & 0x80000000)
-	    /* Set environment size to something reasonable on Windows 95.  */
+	  if (run_command_dot_com)
 	    wsprintf (p, " /e:%d", envsize);
 	}
     }
