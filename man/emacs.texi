@@ -224,13 +224,12 @@ Recovery from Problems
 * Contributing::        How to contribute improvements to Emacs.
 * Service::	        How to get help for your own Emacs needs.
 
+
+Detailed Node Listing
+---------------------
+
 Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
-
-@section Detailed Node Listing
-
-  This continuation of the manual's main menu lists second-level
-subnodes (usually sections rather than chapters).
 
 The Organization of the Screen
 
