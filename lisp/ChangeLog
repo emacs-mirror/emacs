@@ -1,3 +1,9 @@
+2000-12-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (use-fancy-splash-screens-p): New function.
+	(command-line-1): Use it to determine whether or not to use
+	a fancy splash screen.
+
 2000-12-02  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/eldoc.el (eldoc): Don't make parent of itself.
@@ -14,7 +20,7 @@
 	with numeric argument.  Docstring fix.
 	(toplevel): Require cl when compiling.
 	
-	* internat/mule.el (make-char): Doc fix.
+	* international/mule.el (make-char): Doc fix.
 
 2000-12-02  Jason Rumney  <jasonr@gnu.org>
 
