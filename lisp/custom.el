@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004, 2005
 ;;  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -726,6 +726,15 @@ handle SYMBOL properly.
 COMMENT is a comment string about SYMBOL."
   (apply 'custom-theme-set-variables 'user args))
 
+(defun custom-reevaluate-setting (symbol)
+  "Reset the value of SYMBOL by re-evaluating its saved or default value.
+This is useful for variables that are defined before their default value
+can really be computed.  E.g. dumped variables whose default depends on
+run-time information."
+  (funcall (or (get symbol 'custom-set) 'set-default)
+	   symbol
+	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
+
 (defun custom-theme-set-variables (theme &rest args)
   "Initialize variables for theme THEME according to settings in ARGS.
 Each of the arguments in ARGS should be a list of this form:
@@ -753,44 +762,43 @@ SYMBOL's property `force-value' is set to the symbol `immediate'.
 EXP itself is saved unevaluated as SYMBOL property `saved-value' and
 in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
   (custom-check-theme theme)
-  (let ((immediate (get theme 'theme-immediate)))
-    (setq args
-	  (sort args
-		(lambda (a1 a2)
-		  (let* ((sym1 (car a1))
-			 (sym2 (car a2))
-			 (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
-			 (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
-		    (cond ((and 1-then-2 2-then-1)
-			   (error "Circular custom dependency between `%s' and `%s'"
-				  sym1 sym2))
-			  (2-then-1 nil)
-			  ;; Put symbols with :require last.  The macro
-			  ;; define-minor-mode generates a defcustom
-			  ;; with a :require and a :set, where the
-			  ;; setter function calls the mode function.
-			  ;; Putting symbols with :require last ensures
-			  ;; that the mode function will see other
-			  ;; customized values rather than default
-			  ;; values.
-			  (t (nth 3 a2)))))))
-    (while args
-      (let ((entry (car args)))
-	(if (listp entry)
-	    (let* ((symbol (indirect-variable (nth 0 entry)))
-		   (value (nth 1 entry))
-		   (now (nth 2 entry))
-		   (requests (nth 3 entry))
-		   (comment (nth 4 entry))
-                   set)
-	      (when requests
-		(put symbol 'custom-requests requests)
-		(mapc 'require requests))
-	      (setq set (or (get symbol 'custom-set) 'custom-set-default))
-	      (put symbol 'saved-value (list value))
-	      (put symbol 'saved-variable-comment comment)
-              (custom-push-theme 'theme-value symbol theme 'set value)
-	      ;; Allow for errors in the case where the setter has
+  (setq args
+	(sort args
+	      (lambda (a1 a2)
+		(let* ((sym1 (car a1))
+		       (sym2 (car a2))
+		       (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
+		       (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
+		  (cond ((and 1-then-2 2-then-1)
+			 (error "Circular custom dependency between `%s' and `%s'"
+				sym1 sym2))
+			(2-then-1 nil)
+			;; Put symbols with :require last.  The macro
+			;; define-minor-mode generates a defcustom
+			;; with a :require and a :set, where the
+			;; setter function calls the mode function.
+			;; Putting symbols with :require last ensures
+			;; that the mode function will see other
+			;; customized values rather than default
+			;; values.
+			(t (nth 3 a2)))))))
+  (while args
+    (let ((entry (car args)))
+      (if (listp entry)
+	  (let* ((symbol (indirect-variable (nth 0 entry)))
+		 (value (nth 1 entry))
+		 (now (nth 2 entry))
+		 (requests (nth 3 entry))
+		 (comment (nth 4 entry))
+		 set)
+	    (when requests
+	      (put symbol 'custom-requests requests)
+	      (mapc 'require requests))
+	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
+	    (put symbol 'saved-value (list value))
+	    (put symbol 'saved-variable-comment comment)
+	    (custom-push-theme 'theme-value symbol theme 'set value)
+	    ;; Allow for errors in the case where the setter has
 	    ;; changed between versions, say, but let the user know.
 	    (condition-case data
 		(cond (now
@@ -802,18 +810,18 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 		       (funcall set symbol (eval value))))
 	      (error
 	       (message "Error setting %s: %s" symbol data)))
-	      (setq args (cdr args))
-	      (and (or now (default-boundp symbol))
-		   (put symbol 'variable-comment comment)))
-	  ;; Old format, a plist of SYMBOL VALUE pairs.
-	  (message "Warning: old format `custom-set-variables'")
-	  (ding)
-	  (sit-for 2)
-	  (let ((symbol (indirect-variable (nth 0 args)))
-		(value (nth 1 args)))
-	    (put symbol 'saved-value (list value))
-            (custom-push-theme 'theme-value symbol theme 'set value))
-	  (setq args (cdr (cdr args))))))))
+	    (setq args (cdr args))
+	    (and (or now (default-boundp symbol))
+		 (put symbol 'variable-comment comment)))
+	;; Old format, a plist of SYMBOL VALUE pairs.
+	(message "Warning: old format `custom-set-variables'")
+	(ding)
+	(sit-for 2)
+	(let ((symbol (indirect-variable (nth 0 args)))
+	      (value (nth 1 args)))
+	  (put symbol 'saved-value (list value))
+	  (custom-push-theme 'theme-value symbol theme 'set value))
+	(setq args (cdr (cdr args)))))))
 
 (defun custom-set-default (variable value)
   "Default :set function for a customizable variable.
@@ -1091,5 +1099,5 @@ This means reset VARIABLE to its value in TO-THEME."
 
 (provide 'custom)
 
-;;; arch-tag: 041b6116-aabe-4f9a-902d-74092bc3dab2
+;; arch-tag: 041b6116-aabe-4f9a-902d-74092bc3dab2
 ;;; custom.el ends here

@@ -39,8 +39,8 @@
 ;; modifications before inserting or typing anything.
 ;;
 ;; Faces can be selected from the keyboard as well.
-;; The standard keybindings are M-g (or ESC g) + letter:
-;; M-g i = "set italic",  M-g b = "set bold", etc.
+;; The standard keybindings are M-o (or ESC o) + letter:
+;; M-o i = "set italic",  M-o b = "set bold", etc.
 
 ;;; Customization:
 ;; An alternative set of keybindings that may be easier to type can be set up
@@ -91,12 +91,12 @@
   (require 'button))
 
 ;;; Provide some binding for startup:
-;;;###autoload (define-key global-map "\M-g" 'facemenu-keymap)
+;;;###autoload (define-key global-map "\M-o" 'facemenu-keymap)
 ;;;###autoload (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
 
 ;; Global bindings:
 (define-key global-map [C-down-mouse-2] 'facemenu-menu)
-(define-key global-map "\M-g" 'facemenu-keymap)
+(define-key global-map "\M-o" 'facemenu-keymap)
 
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text"

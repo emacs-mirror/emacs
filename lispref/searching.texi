@@ -338,7 +338,7 @@ does match all non-@acronym{ASCII} characters (see below regarding @samp{^}),
 in both multibyte and unibyte representations, because only the
 @acronym{ASCII} characters are excluded.
 
-Starting in Emacs 21, a character alternative can also specify named
+A character alternative can also specify named
 character classes (@pxref{Char Classes}).  This is a POSIX feature whose
 syntax is @samp{[:@var{class}:]}.  Using a character class is equivalent
 to mentioning each of the characters in that class; but the latter is
@@ -416,7 +416,7 @@ special character anyway, regardless of where it appears.@refill
 @cindex character classes in regexp
 
   Here is a table of the classes you can use in a character alternative,
-in Emacs 21, and what they mean:
+and what they mean:
 
 @table @samp
 @item [:ascii:]

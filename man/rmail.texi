@@ -297,13 +297,14 @@ adding or removing this attribute.  @xref{Rmail Attributes}.
 @section Rmail Files and Inboxes
 @cindex inbox file
 
-  The operating system places incoming mail for you in a file that we
-call your @dfn{inbox}.  When you start up Rmail, it runs a C program
-called @code{movemail} to copy the new messages from your inbox into
-your primary Rmail file, which also contains other messages saved from
-previous Rmail sessions.  It is in this file that you actually read the
-mail with Rmail.  This operation is called @dfn{getting new mail}.  You
-can get new mail at any time in Rmail by typing @kbd{g}.
+  When you receive mail locally, the operating system places incoming
+mail for you in a file that we call your @dfn{inbox}.  When you start
+up Rmail, it runs a C program called @code{movemail} to copy the new
+messages from your local inbox into your primary Rmail file, which
+also contains other messages saved from previous Rmail sessions.  It
+is in this file that you actually read the mail with Rmail.  This
+operation is called @dfn{getting new mail}.  You can get new mail at
+any time in Rmail by typing @kbd{g}.
 
 @vindex rmail-primary-inbox-list
 @cindex @env{MAIL} environment variable
@@ -343,6 +344,35 @@ then, we have recognized that the usual inbox format on Unix and GNU
 systems is adequate for the job, and we plan to change Rmail to use that
 as its internal format.  However, the Rmail file will still be separate
 from the inbox file, even on systems where their format is the same.
+
+@vindex rmail-preserve-inbox
+  When getting new mail, Rmail first copies the new mail from the inbox
+file to the Rmail file; then it saves the Rmail file; then it truncates
+the inbox file.  This way, a system crash may cause duplication of mail
+between the inbox and the Rmail file, but cannot lose mail.  If
+@code{rmail-preserve-inbox} is non-@code{nil}, then Rmail will copy new
+mail from the inbox file to the Rmail file without truncating the inbox
+file.  You may wish to set this, for example, on a portable computer you
+use to check your mail via POP while traveling, so that your mail will
+remain on the server and you can save it later on your workstation.
+
+  In some cases, Rmail copies the new mail from the inbox file
+indirectly.  First it runs the @code{movemail} program to move the mail
+from the inbox to an intermediate file called
+@file{~/.newmail-@var{inboxname}}.  Then Rmail merges the new mail from
+that file, saves the Rmail file, and only then deletes the intermediate
+file.  If there is a crash at the wrong time, this file continues to
+exist, and Rmail will use it again the next time it gets new mail from
+that inbox.
+
+  If Rmail is unable to convert the data in
+@file{~/.newmail-@var{inboxname}} into Babyl format, it renames the file
+to @file{~/RMAILOSE.@var{n}} (@var{n} is an integer chosen to make the
+name unique) so that Rmail will not have trouble with the data again.
+You should look at the file, find whatever message confuses Rmail
+(probably one that includes the control-underscore character, octal code
+037), and delete it.  Then you can use @kbd{1 g} to get new mail from
+the corrected file.
 
 @node Rmail Files
 @section Multiple Rmail Files
@@ -1003,8 +1033,9 @@ turn off highlighting entirely in Rmail, set
   You can highlight and activate URLs in incoming messages by adding
 the function @code{goto-address} to the hook
 @code{rmail-show-message-hook}.  Then you can browse these URLs by
-clicking on them with @kbd{Mouse-2} or by moving to one and typing
-@kbd{C-c @key{RET}}.  @xref{Goto-address, Activating URLs, Activating URLs}.
+clicking on them with @kbd{Mouse-2} (or @kbd{Mouse-1} quickly) or by
+moving to one and typing @kbd{C-c @key{RET}}.  @xref{Goto-address,
+Activating URLs, Activating URLs}.
 
 @node Rmail Coding
 @section Rmail and Coding Systems
@@ -1158,30 +1189,27 @@ which applies the code when displaying the text.
 @section @code{movemail} program
 @cindex @code{movemail} program
 
-  When invoked for the first time, Rmail attempts to locate
-@code{movemail} program and determine its version.  There are
-two versions of @code{movemail} program: the native one, shipped with
-GNU Emacs (we will refer to it as @samp{emacs version}) and the one
-coming from GNU mailutils (@xref{movemail,,,mailutils,GNU mailutils},
-we will refer to it as @samp{mailutils version}).  Both versions are
-compatible with each other in the sense that they support the same
-command line syntax and the same basic subset of options.  However,
-the @samp{mailutils} version offers a much richer set of
-features.
+  When invoked for the first time, Rmail attempts to locate the
+@code{movemail} program and determine its version.  There are two
+versions of @code{movemail} program: the native one, shipped with GNU
+Emacs (the ``emacs version'') and the one included in GNU mailutils
+(the ``mailutils version'', @[xref{movemail,,,mailutils,GNU
+mailutils}).  They support the same command line syntax and the same
+basic subset of options.  However, the @samp{mailutils} version offers
+additional features.
 
-The @samp{Emacs version} of @code{movemail} is able to retrieve mail from usual
-UNIX mailbox formats and from remote mailboxes using the POP3 protocol.
+  The Emacs version of @code{movemail} is able to retrieve mail from
+usual UNIX mailbox formats and from remote mailboxes using the POP3
+protocol.
 
-The @samp{Mailutils version} is able to handle a wide set of mailbox
+  The Mailutils version is able to handle a wide set of mailbox
 formats, such as plain UNIX mailboxes, @code{maildir} and @code{MH}
-mailboxes, etc.  It is able to retrieve remote mail using POP3 or IMAP4
-protocol.  In the latter case, @code{mailutils movemail} can be
-instructed to retrieve mail using a TLS encrypted channel.
-
-The @samp{Mailutils movemail} accepts mailbox argument in the @acronym{URL}
-form.  The detailed description of mailbox @acronym{URL}s can be found
-in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
-@acronym{URL} is:
+mailboxes, etc.  It is able to retrieve remote mail using POP3 or
+IMAP4 protocol, and can retrieve mail from them using a TLS encrypted
+channel.  It also accepts mailbox argument in the @acronym{URL} form.
+The detailed description of mailbox @acronym{URL}s can be found in
+@ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a @acronym{URL}
+is:
 
 @smallexample
 @var{proto}://[@var{user}[:@var{password}]@@]@var{host-or-file-name}
@@ -1244,54 +1272,25 @@ address of the remote mail server to connect to;
 e.g., @code{imap://smith:guessme@@remote.server.net}.
 @end table
 
-Alternatively, the mailbox may be specified as a file name of the
-mailbox to use.  This is equivalent to specifying the @samp{file} protocol:
+  Alternatively, you can specify the file name of the mailbox to use.
+This is equivalent to specifying the @samp{file} protocol:
 
 @smallexample
-/var/spool/mail/user @equiv{} file://var/spool/mail/user
+/var/spool/mail/@var{user} @equiv{} file://var/spool/mail/@var{user}
 @end smallexample
 
 @vindex rmail-movemail-program
 @vindex rmail-movemail-search-path
- To determine which version of @code{movemail} is being used, Rmail
-examines the value of @code{rmail-movemail-program} variable.  If it
-is set, its value is used as a full path to the @code{movemail} binary.
-Otherwise, Rmail searches for @code{movemail} in the list of directories
-constructed by appending the values of @code{rmail-movemail-search-path} and
-@code{exec-path} to @code{exec-directory}.  
+  The variable @code{rmail-movemail-program} controls which version of
+@code{movemail} to use.  If that is a string, it specifies the
+absolute file name of the @code{movemail} executable.  If it is
+@code{nil}, Rmail searches for @code{movemail} in the directories
+listed in @code{rmail-movemail-search-path} and @code{exec-path}, then
+in @code{exec-directory}.
   
 @node Remote Mailboxes
 @section Retrieving Mail from Remote Mailboxes
 @pindex movemail
-
-@vindex rmail-preserve-inbox
-  When getting new mail, Rmail first copies the new mail from the inbox
-file to the Rmail file; then it saves the Rmail file; then it truncates
-the inbox file.  This way, a system crash may cause duplication of mail
-between the inbox and the Rmail file, but cannot lose mail.  If
-@code{rmail-preserve-inbox} is non-@code{nil}, then Rmail will copy new
-mail from the inbox file to the Rmail file without truncating the inbox
-file.  You may wish to set this, for example, on a portable computer you
-use to check your mail via POP while traveling, so that your mail will
-remain on the server and you can save it later on your workstation.
-
-  In some cases, Rmail copies the new mail from the inbox file
-indirectly.  First it runs the @code{movemail} program to move the mail
-from the inbox to an intermediate file called
-@file{~/.newmail-@var{inboxname}}.  Then Rmail merges the new mail from
-that file, saves the Rmail file, and only then deletes the intermediate
-file.  If there is a crash at the wrong time, this file continues to
-exist, and Rmail will use it again the next time it gets new mail from
-that inbox.
-
-  If Rmail is unable to convert the data in
-@file{~/.newmail-@var{inboxname}} into Babyl format, it renames the file
-to @file{~/RMAILOSE.@var{n}} (@var{n} is an integer chosen to make the
-name unique) so that Rmail will not have trouble with the data again.
-You should look at the file, find whatever message confuses Rmail
-(probably one that includes the control-underscore character, octal code
-037), and delete it.  Then you can use @kbd{1 g} to get new mail from
-the corrected file.
 
   Some sites use a method called POP for accessing users' inbox data
 instead of storing the data in inbox files.  The @code{Emacs

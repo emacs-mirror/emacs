@@ -1,3 +1,52 @@
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Vertical Scrolling): Get rid of "Emacs 21".
+	(Resizing Windows): Likewise.
+
+	* text.texi (Change Hooks): Get rid of "Emacs 21".
+
+	* strings.texi (Formatting Strings): Get rid of "Emacs 21".
+
+	* streams.texi (Output Variables): Get rid of "Emacs 21".
+
+	* searching.texi (Regexp Special, Char Classes): Get rid of "Emacs 21".
+
+	* os.texi (Translating Input): Replace flow-control example
+	with a less obsolete example that uses `keyboard-translate'.
+
+	* objects.texi (Hash Table Type, Circular Objects): 
+	Get rid of "Emacs 21".
+	
+	* modes.texi (Mode Line Format): Get rid of "Emacs 21".
+	(Mode Line Data, Properties in Mode, Header Lines): Likewise.
+
+	* minibuf.texi (Minibuffer Misc): Get rid of "Emacs 21".
+
+	* lists.texi (List Elements, Building Lists): Get rid of "Emacs 21".
+
+	* keymaps.texi (Menu Separators, Tool Bar): Get rid of "Emacs 21".
+	(Menu Bar): Fix when menu-bar-update-hook is called.
+
+	* hash.texi (Hash Tables): Get rid of "Emacs 21".
+
+	* frames.texi (Text Terminal Colors): Get rid of "Emacs 21",
+	and make it read better.
+
+	* files.texi (Writing to Files): Get rid of "Emacs 21".
+	(Unique File Names): Likewise.
+
+	* elisp.texi: Update Emacs version to 22.
+
+	* display.texi (Forcing Redisplay): Get rid of "Emacs 21".
+	(Overlay Properties, Face Attributes): Likewise.
+	(Managing Overlays): Fix punctuation.
+	(Attribute Functions): Clarify set-face-font; get rid of
+	info about old Emacs versions.
+	(Auto Faces, Font Lookup, Display Property, Images):
+	Get rid of "Emacs 21".
+
+	* calendar.texi (Calendar Customizing): Get rid of "Emacs 21".
+
 2005-03-05  Richard M. Stallman  <rms@gnu.org>
 
 	* debugging.texi (Error Debugging): Remove stack-trace-on-error.

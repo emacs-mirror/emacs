@@ -1,3 +1,77 @@
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Starting GUD): Don't explain text vs graphical
+	GDB here.  Just mention it and xref.
+	Delete "just one debugger process".
+	(Debugger Operation): Move GUD tooltip info here.
+	(GUD Tooltips): Node deleted.
+	(GDB Graphical Interface): Explain the two GDB modes here.
+
+	* woman.texi (Introduction): Minor cleanups.
+
+	* url.texi (HTTP language/coding): Get rid of "Emacs 21".
+
+	* sending.texi (Sending Mail): Minor cleanup.
+	(Mail Aliases): Explain quoting conventions.
+	Update key rebinding example.
+	(Header Editing): C-M-i is like M-TAB.
+	(Mail Mode Misc): mail-attach-file does not do MIME.
+
+	* rmail.texi (Rmail Inbox): Move text from Remote Mailboxes
+	that really belongs here.
+	(Remote Mailboxes): Text moved to Rmail Inbox.
+	(Rmail Display): Mention Mouse-1.
+	(Movemail): Clarify two movemail versions.
+	Clarify rmail-movemail-program.
+	
+	* pcl-cvs.texi (About PCL-CVS): Get rid of "Emacs 21".
+	(Installation): Node deleted.
+
+	* misc.texi (Single Shell): Replace uudecode example with gpg example.
+	Document async shell commands.
+	(Shell History): Clarify.
+	(Shell Ring): Mention C-UP an C-DOWN.
+	(Shell Options): Add comint-prompt-read-only.
+	(Invoking emacsclient): Set EDITOR to run Emacs.
+	(Sorting): No need to explain what region is.
+	(Saving Emacs Sessions): Fix typo.
+	(Recursive Edit): Fix punctuation.
+	(Emulation): Don't mention "PC bindings" which are standard.
+	(Hyperlinking): Explain Mouse-1 convention here.
+	(Find Func): Node deleted.
+
+	* mh-e.texi (Preface): Get rid of "Emacs 21".
+
+	* help.texi (Name Help): Xref to Hyperlinking.
+
+	* glossary.texi (Glossary):
+	Rename "Balance Parentheses" to "Balancing...".
+	Add "Byte Compilation".  Correct "Copyleft".
+	New xref in "Customization".
+	Clarify "Current Line", "Echoing", "Fringe", "Frame", "Speedbar".
+	Add "Graphical Terminal" "Keybinding", "Margin", "Window System".
+	Rename "Registers" to "Register".
+	Replace "Selecting" with "Selected Frame",
+	"Selected Window", and "Selecting a Buffer".
+
+	* files.texi (Types of Log File): Explain how projects'
+	methods can vary.
+
+	* eshell.texi (Installation): Delete node (for Emacs 20).
+
+	* display.texi (Faces): Delete "Emacs 21".
+
+	* custom.texi (Changing a Variable): C-M-i like M-TAB.
+	* fixit.texi (Spelling): C-M-i like M-TAB.
+	* mini.texi (Completion Options): C-M-i like M-TAB.
+	* programs.texi (Symbol Completion): C-M-i like M-TAB.
+	* text.texi (Text Mode): C-M-i like M-TAB.
+
+	* commands.texi (Keys): Mention F1 and F2 in list of prefixes.
+
+	* calendar.texi (Specified Dates): Mention `g w'.
+	(Appointments): appt-activate toggles with no arg.
+
 2005-03-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* flymake.texi: Refill and tweak style in @lisp blocks.
@@ -31,6 +105,10 @@
 	* calc.texi (Trigonometric and Hyperbolic Functions):
 	Mention additional functions.
 	(Algebraic Simplifications): Mention additional simplifications.
+
+2005-02-27  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation): Update mode line status info.
 
 2005-02-27  Matt Hodges  <MPHodges@member.fsf.org>
 

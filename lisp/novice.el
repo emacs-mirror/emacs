@@ -49,7 +49,7 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 (defun disabled-command-function (&rest ignore)
   (let (char)
     (save-window-excursion
-     (with-output-to-temp-buffer "*Help*"
+     (with-output-to-temp-buffer "*Disabled Command*"
        (let ((keys (this-command-keys)))
 	 (if (or (eq (aref keys 0)
 		     (if (stringp keys)
@@ -68,7 +68,7 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 	 (princ "It is disabled because new users often find it confusing.\n")
 	 (princ "Here's the first part of its description:\n\n")
 	 ;; Keep only the first paragraph of the documentation.
-	 (with-current-buffer "*Help*"
+	 (with-current-buffer "*Disabled Command*"
 	   (goto-char (point-max))
 	   (let ((start (point)))
 	     (save-excursion
@@ -91,10 +91,15 @@ SPC to try the command just this once, but leave it disabled.
 	(help-mode)))
      (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
-       (while (not (memq (setq char (downcase (read-char)))
-			 '(?! ?y ?n ?\ )))
+       (while (progn (setq char (read-event))
+		     (or (not (numberp char))
+			 (not (memq (downcase char)
+				    '(?! ?y ?n ?\  ?\C-g)))))
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
+    (setq char (downcase char))
+    (if (= char ?\C-g)
+	(setq quit-flag t))
     (if (= char ?!)
 	(setq disabled-command-function nil))
     (if (= char ?y)

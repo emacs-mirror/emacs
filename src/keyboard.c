@@ -1335,11 +1335,6 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
     cancel_hourglass ();
 #endif
 
-  /* Unblock input if we enter with input blocked.  This may happen if
-     redisplay traps e.g. during tool-bar update with input blocked.  */
-  while (INPUT_BLOCKED_P)
-    UNBLOCK_INPUT;
-
   return Fthrow (Qtop_level, Qnil);
 }
 

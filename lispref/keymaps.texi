@@ -1930,8 +1930,8 @@ where @var{separator-type} is a string starting with two or more dashes.
 That specifies the default kind of separator.  (For compatibility,
 @code{""} and @code{-} also count as separators.)
 
-  Starting in Emacs 21, certain other values of @var{separator-type}
-specify a different style of separator.  Here is a table of them:
+  Certain other values of @var{separator-type} specify a different
+style of separator.  Here is a table of them:
 
 @table @code
 @item "--no-line"
@@ -2247,9 +2247,11 @@ at the end of the menu bar, following local menu items.
 @end defvar
 
 @defvar menu-bar-update-hook
-This normal hook is run whenever the user clicks on the menu bar, before
-displaying a submenu.  You can use it to update submenus whose contents
-should vary.
+This normal hook is run by redisplay to update the menu bar contents,
+before redisplaying the menu bar.  You can use it to update submenus
+whose contents should vary.  Since this hook is run frequently, we
+advise you to ensure that the functions it calls do not take much time
+in the usual case.
 @end defvar
 
 @node Tool Bar
@@ -2258,7 +2260,7 @@ should vary.
 
   A @dfn{tool bar} is a row of icons at the top of a frame, that execute
 commands when you click on them---in effect, a kind of graphical menu
-bar.  Emacs supports tool bars starting with version 21.
+bar.
 
   The frame parameter @code{tool-bar-lines} (X resource @samp{toolBar})
 controls how many lines' worth of height to reserve for the tool bar.  A

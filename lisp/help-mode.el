@@ -194,8 +194,12 @@ Commands:
 ;;;###autoload
 (defun help-mode-finish ()
   (let ((entry (assq (selected-window) view-return-to-alist)))
-	(if entry (setcdr entry (cons (selected-window)
-				      help-return-method))
+	(if entry
+	    ;; When entering Help mode from the Help window,
+	    ;; such as by following a link, preserve the same
+	    ;; meaning for the q command.
+	    ;; (setcdr entry (cons (selected-window) help-return-method))
+	    nil
 	  (setq view-return-to-alist
 		(cons (cons (selected-window) help-return-method)
 		      view-return-to-alist))))

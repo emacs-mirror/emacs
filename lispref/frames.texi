@@ -1700,13 +1700,12 @@ and that name is still supported as an alias.
 @section Text Terminal Colors
 @cindex colors on text-only terminals
 
-  Emacs can display color on text-only terminals, starting with version
-21.  These terminals usually support only a small number of colors, and
-the computer uses small integers to select colors on the terminal.  This
-means that the computer cannot reliably tell what the selected color
-looks like; instead, you have to inform your application which small
-integers correspond to which colors.  However, Emacs does know the
-standard set of colors and will try to use them automatically.
+  Text-only terminals usually support only a small number of colors,
+and the computer uses small integers to select colors on the terminal.
+This means that the computer cannot reliably tell what the selected
+color looks like; instead, you have to inform your application which
+small integers correspond to which colors.  However, Emacs does know
+the standard set of colors and will try to use them automatically.
 
   The functions described in this section control how terminal colors
 are used by Emacs.

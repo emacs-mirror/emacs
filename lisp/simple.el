@@ -2917,6 +2917,14 @@ START and END specify the portion of the current buffer to be copied."
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
 (put 'mark-inactive 'error-message "The mark is not active now")
 
+(defvar activate-mark-hook nil
+  "Hook run when the mark becomes active.
+It is also run at the end of a command, if the mark is active and
+it is possible that the region may have changed")
+
+(defvar deactivate-mark-hook nil
+  "Hook run when the mark becomes inactive.")
+
 (defun mark (&optional force)
   "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
@@ -3008,6 +3016,7 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
     (if (or arg (null mark) (/= mark (point)))
 	(push-mark nil nomsg t)
       (setq mark-active t)
+      (run-hooks 'activate-mark-hook)
       (unless nomsg
 	(message "Mark activated")))))
 
@@ -5029,7 +5038,17 @@ the front of the list of recently selected ones."
 
 ;;; Handling of Backspace and Delete keys.
 
-(defcustom normal-erase-is-backspace nil
+(defcustom normal-erase-is-backspace
+  (and (not noninteractive)
+       (or (memq system-type '(ms-dos windows-nt))
+	   (and (memq initial-window-system '(x))
+		(fboundp 'x-backspace-delete-keys-p)
+		(x-backspace-delete-keys-p))
+	   ;; If the terminal Emacs is running on has erase char
+	   ;; set to ^H, use the Backspace key for deleting
+	   ;; backward and, and the Delete key for deleting forward.
+	   (and (null initial-window-system)
+		(eq tty-erase-char ?\^H))))
   "If non-nil, Delete key deletes forward and Backspace key deletes backward.
 
 On window systems, the default value of this option is chosen

@@ -389,12 +389,11 @@ insert the output in the current buffer, then the old region is deleted
 first and the output replaces it as the contents of the region.  It
 returns the command's exit status when it is called from a Lisp program.
 
-  One use for @kbd{M-|} is to run @code{uudecode}.  For instance, if
-the buffer contains uuencoded text, type @kbd{C-x h M-| uudecode
-@key{RET}} to feed the entire buffer contents to the @code{uudecode}
-program.  That program will ignore everything except the encoded text,
-and will store the decoded output into the file whose name is
-specified in the encoded text.
+  One use for @kbd{M-|} is to run @code{gpg} to see what keys are in
+the buffer.  For instance, if the buffer contains a GPG key, type
+@kbd{C-x h M-| uudecode @key{RET}} to feed the entire buffer contents
+to the @code{gpg} program.  That program will ignore everything except
+the encoded keys, and will output a list of the keys it contains.
 
 @vindex shell-file-name
   Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify the
@@ -405,13 +404,18 @@ searched; this list is initialized based on the environment variable
 @env{PATH} when Emacs is started.  Your @file{.emacs} file can override
 either or both of these default initializations.@refill
 
-  Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete.
-To stop waiting, type @kbd{C-g} to quit; that terminates the shell
+  Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete,
+unless you end the command with @samp{&} to make it asyncronous.  To
+stop waiting, type @kbd{C-g} to quit; that terminates the shell
 command with the signal @code{SIGINT}---the same signal that @kbd{C-c}
-normally generates in the shell.  Emacs waits until the command actually
-terminates.  If the shell command doesn't stop (because it ignores the
-@code{SIGINT} signal), type @kbd{C-g} again; this sends the command a
-@code{SIGKILL} signal which is impossible to ignore.
+normally generates in the shell.  Emacs waits until the command
+actually terminates.  If the shell command doesn't stop (because it
+ignores the @code{SIGINT} signal), type @kbd{C-g} again; this sends
+the command a @code{SIGKILL} signal which is impossible to ignore.
+
+  Asynchronous commands ending in @samp{&} feed their output into
+the buffer @samp{*Async Shell Command*}.  Output arrives in that
+buffer regardless of whether it is visible in a window.
 
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Specify Coding}.
@@ -704,12 +708,12 @@ specializations of Shell mode.
 @subsection Shell Command History
 
   Shell buffers support three ways of repeating earlier commands.  You
-can use the same keys used in the minibuffer; these work much as they do
-in the minibuffer, inserting text from prior commands while point
-remains always at the end of the buffer.  You can move through the
-buffer to previous inputs in their original place, then resubmit them or
-copy them to the end.  Or you can use a @samp{!}-style history
-reference.
+can use keys like those used for the minibuffer history; these work
+much as they do in the minibuffer, inserting text from prior commands
+while point remains always at the end of the buffer.  You can move
+through the buffer to previous inputs in their original place, then
+resubmit them or copy them to the end.  Or you can use a
+@samp{!}-style history reference.
 
 @menu
 * Ring: Shell Ring.             Fetching commands from the history list.
@@ -724,11 +728,13 @@ reference.
 @findex comint-previous-input
 @kindex M-p @r{(Shell mode)}
 @item M-p
+@itemx C-@key{UP}
 Fetch the next earlier old shell command.
 
 @kindex M-n @r{(Shell mode)}
 @findex comint-next-input
 @item M-n
+@itemx C-@key{DOWN}
 Fetch the next later old shell command.
 
 @kindex M-r @r{(Shell mode)}
@@ -762,11 +768,13 @@ reuse shell commands from the history, use the editing commands @kbd{M-p},
 history commands except that they operate on the text at the end of the
 shell buffer, where you would normally insert text to send to the shell.
 
-  @kbd{M-p} fetches an earlier shell command to the end of the shell buffer.
-Successive use of @kbd{M-p} fetches successively earlier shell commands,
-each replacing any text that was already present as potential shell input.
-@kbd{M-n} does likewise except that it finds successively more recent shell
-commands from the buffer.
+  @kbd{M-p} fetches an earlier shell command to the end of the shell
+buffer.  Successive use of @kbd{M-p} fetches successively earlier
+shell commands, each replacing any text that was already present as
+potential shell input.  @kbd{M-n} does likewise except that it finds
+successively more recent shell commands from the buffer.
+@kbd{C-@key{UP}} works like @kbd{M-p}, and @kbd{C-@key{DOWN}} like
+@kbd{M-n}.
 
   The history search commands @kbd{M-r} and @kbd{M-s} read a regular
 expression and search through the history for a matching command.  Aside
@@ -947,6 +955,10 @@ matter where in the buffer point was before.  If the value is
 the value is @code{other}, point jumps in all nonselected windows that
 show the current buffer.  The default value is @code{nil}, which means
 point does not jump to the end.
+
+@vindex comint-prompt-read-only
+  If you set @code{comint-prompt-read-only}, the prompts in the Comint
+buffer a read-only.
 
 @vindex comint-input-ignoredups
   The variable @code{comint-input-ignoredups} controls whether successive
@@ -1297,10 +1309,10 @@ long as you like to edit the files in Emacs.)
 running @code{emacsclient} in a script.  It specifies a command to run
 if @code{emacsclient} fails to contact Emacs.  For example, the
 following setting for the @var{EDITOR} environment variable will
-always give an editor, even if Emacs is not running:
+always give you an editor, even if no Emacs server is running:
 
 @example
-EDITOR="emacsclient --alternate-editor vi +%d %s"
+EDITOR="emacsclient --alternate-editor emacs +%d %s"
 @end example
 
 @noindent
@@ -1537,8 +1549,8 @@ described in the Lisp files @file{ps-print.el} and @file{ps-mule.el}.
 @cindex sorting
 
   Emacs provides several commands for sorting text in the buffer.  All
-operate on the contents of the region (the text between point and the
-mark).  They divide the text of the region into many @dfn{sort records},
+operate on the contents of the region.
+They divide the text of the region into many @dfn{sort records},
 identify a @dfn{sort key} for each record, and then reorder the records
 into the order determined by the sort keys.  The records are ordered so
 that their keys are in alphabetical order, or, for numeric sorting, in
@@ -1895,7 +1907,7 @@ subsequent Emacs sessions reload the saved desktop.
 @findex desktop-save
 @vindex desktop-save-mode
   You can save the desktop manually with the command @kbd{M-x
-desktop-save}.  You can also enable automatical desktop saving when
+desktop-save}.  You can also enable automatic desktop saving when
 you exit Emacs: use the Customization buffer (@pxref{Easy
 Customization}) to set @code{desktop-save-mode} to @code{t} for future
 sessions, or add this line in your @file{~/.emacs} file:
@@ -1962,7 +1974,7 @@ for the debugger, within the recursive editing level for @kbd{C-r}.
 Mode lines display a pair of square brackets for each recursive editing
 level currently in progress.
 
-  Exiting the inner recursive edit (such as, with the debugger @kbd{c}
+  Exiting the inner recursive edit (such as with the debugger @kbd{c}
 command) resumes the command running in the next level up.  When that
 command finishes, you can then use @kbd{C-M-c} to exit another recursive
 editing level, and so on.  Exiting applies to the innermost level only.
@@ -2041,11 +2053,7 @@ buffers or major modes while in EDT emulation.
 @cindex ``PC'' key bindings
 The command @kbd{M-x pc-bindings-mode} sets up certain key bindings
 for ``PC compatibility''---what people are often used to on PCs---as
-follows: @kbd{Delete} and its variants delete forward instead of
-backward, @kbd{C-Backspace} kills backward a word (as @kbd{C-Delete}
-normally would), @kbd{M-Backspace} does undo, @kbd{Home} and @kbd{End}
-move to beginning and end of line, @kbd{C-Home} and @kbd{C-End} move
-to beginning and end of buffer and @kbd{C-Escape} does
+follows: @kbd{M-Backspace} does undo, and @kbd{C-Escape} does
 @code{list-buffers}.
 
 @item PC Selection mode
@@ -2132,9 +2140,13 @@ key bindings.
 @cindex navigation
   Various modes documented elsewhere have hypertext features so that
 you can follow links, usually by clicking @kbd{Mouse-2} on the link or
-typing @key{RET} while point is on the link.  Info mode, Help mode and
-the Dired-like modes are examples.  The Tags facility links between
-uses and definitions in source files, see @ref{Tags}.  Imenu provides
+typing @key{RET} while point is on the link.  Clicking @kbd{Mouse-1}
+quickly on the link also follows it.  (Hold @kbd{Mouse-1} for longer
+if you want to set point instead.)
+
+  Info mode, Help mode and the Dired-like modes are examples of modes
+that have links in the buffer.  The Tags facility links between uses
+and definitions in source files, see @ref{Tags}.  Imenu provides
 navigation amongst items indexed in the current buffer, see
 @ref{Imenu}.  Info-lookup provides mode-specific lookup of definitions
 in Info indexes, see @ref{Documentation}.  Speedbar maintains a frame
@@ -2149,7 +2161,6 @@ fashion.
 * Browse-URL::                  Following URLs.
 * Goto-address::                Activating URLs.
 * FFAP::                        Finding files etc. at point.
-* Find-func::                   Finding function and variable definitions.
 @end menu
 
 @node Browse-URL
@@ -2287,41 +2298,6 @@ of a mouse click.
 Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
-
-@node Find-func
-@subsection Finding Function and Variable Definitions
-@cindex definitions, finding in Lisp sources
-@cindex Lisp definitions, finding in sources
-
-@table @kbd
-@item M-x find-function @key{RET} @var{function} @key{RET}
-Find the definition of @var{function} in its source file.
-@item M-x find-variable @key{RET} @var{variable} @key{RET}
-Find the definition of @var{variable} in its source file.
-@item M-x find-function-on-key @key{RET} @var{key}
-Find the definition of the function that @var{key} invokes.
-@end table
-
-  These commands provide an easy way to find the definitions of Emacs
-Lisp functions and variables.  They are similar in purpose to the Tags
-facility (@pxref{Tags}), but don't require a tags table; on the other
-hand, they only work for function and variable definitions that are
-already loaded in the Emacs session.
-
-@findex find-function
-@findex find-function-on-key
-@findex find-variable
-  To find the definition of a function, use @kbd{M-x find-function}.
-@kbd{M-x find-variable} finds the definition of a specified variable.
-@kbd{M-x find-function-on-key} finds the definition of the function
-bound to a specified key.
-
-  To use these commands, you must have the Lisp source (@samp{.el})
-files available along with the compiled (@samp{.elc}) files, in
-directories in @code{load-path}.  You can use compressed source files
-if you enable Auto Compression mode.  These commands only handle
-definitions written in Lisp, not primitive functions or variables
-defined in the C code of Emacs.
 
 @node Dissociated Press, Amusements, Hyperlinking, Top
 @section Dissociated Press

@@ -1731,14 +1731,14 @@ minibuffer.  If no minibuffer is active, it returns @code{nil}.
 
 @defun minibuffer-prompt-end
 @tindex minibuffer-prompt-end
-This function, available starting in Emacs 21, returns the current
+This function returns the current
 position of the end of the minibuffer prompt, if a minibuffer is
 current.  Otherwise, it returns the minimum valid buffer position.
 @end defun
 
 @defun minibuffer-contents
 @tindex minibuffer-contents
-This function, available starting in Emacs 21, returns the editable
+This function returns the editable
 contents of the minibuffer (that is, everything except the prompt) as
 a string, if a minibuffer is current.  Otherwise, it returns the
 entire contents of the current buffer.
@@ -1752,7 +1752,7 @@ properties, just the characters themselves.  @xref{Text Properties}.
 
 @defun delete-minibuffer-contents
 @tindex delete-minibuffer-contents
-This function, available starting in Emacs 21, erases the editable
+This function erases the editable
 contents of the minibuffer (that is, everything except the prompt), if
 a minibuffer is current.  Otherwise, it erases the entire buffer.
 @end defun

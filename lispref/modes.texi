@@ -1220,7 +1220,7 @@ displayed in the window.  The mode line contains information about the
 buffer, such as its name, associated file, depth of recursive editing,
 and major and minor modes.  A window can also have a @dfn{header
 line}, which is much like the mode line but appears at the top of the
-window (starting in Emacs 21).
+window.
 
   This section describes how to control the contents of the mode line
 and header line.  We include it in this chapter because much of the
@@ -1295,7 +1295,7 @@ controls which other variables are used to form the mode-line text, and
 where they appear.
 
 If you set this variable to @code{nil} in a buffer, that buffer does not
-have a mode line.  (This feature was added in Emacs 21.)
+have a mode line.
 @end defvar
 
   A mode-line construct may be as simple as a fixed string of text, but
@@ -1349,7 +1349,6 @@ common form of mode-line construct.
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
 @var{form}, and use the result as a string to display.
-(This feature is new as of Emacs 21.)
 
 @item (:propertize @var{elt} @var{props}@dots{})
 A list whose first element is the symbol @code{:propertize} says to
@@ -1713,7 +1712,7 @@ The value of @code{global-mode-string}.  Currently, only
 @subsection Properties in the Mode Line
 @cindex text properties in the mode line
 
-  Starting in Emacs 21, certain text properties are meaningful in the
+  Certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associate help strings with the text, and
 @code{local-map} can make the text mouse-sensitive.
@@ -1757,7 +1756,7 @@ local variables.
 @cindex header line (of a window)
 @cindex window header line
 
-  Starting in Emacs 21, a window can have a @dfn{header line} at the
+  A window can have a @dfn{header line} at the
 top, just as it can have a mode line at the bottom.  The header line
 feature works just like the mode-line feature, except that it's
 controlled by different variables.

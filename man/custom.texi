@@ -345,8 +345,9 @@ unacceptable value.
 @kindex M-TAB @r{(customization buffer)}
 @findex widget-complete
   While editing a value or field that is a file name, directory name,
-command name, or anything else for which completion is defined, you can
-type @kbd{M-@key{TAB}} (@code{widget-complete}) to do completion.
+command name, or anything else for which completion is defined, you
+can type @kbd{M-@key{TAB}} (@code{widget-complete}) to do completion.
+(@kbd{@key{ESC} @key{TAB}} and @kbd{C-M-i} do the same thing.)
 
   Some variables have a small fixed set of possible legitimate values.
 These variables don't let you edit the value textually.  Instead, an

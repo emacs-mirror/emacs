@@ -327,10 +327,10 @@ can be served in more than one encoding.
 
 HTTP allows specifying a list of MIME charsets which indicate your
 preferred character set encodings, e.g.@: Latin-9 or Big5, and these
-can be weighted.  In Emacs 21 this list is generated automatically
-from the list of defined coding systems which have associated MIME
-types.  These are sorted by coding priority.  @xref{Recognize Coding,
-, Recognizing Coding Systems, emacs, The GNU Emacs Manual}.
+can be weighted.  This list is generated automatically from the list
+of defined coding systems which have associated MIME types.  These are
+sorted by coding priority.  @xref{Recognize Coding, , Recognizing
+Coding Systems, emacs, The GNU Emacs Manual}.
 @end defopt
 
 @defopt url-mime-language-string

@@ -1297,23 +1297,27 @@ check-in time.  However, CVS can also be set up to require locking.
 @cindex log File, types of
 @cindex version control log
 
-GNU projects under a revision control system generally possess
-@emph{two} types of log for changes.  One is the per-file log
-maintained by the revision control system: each time you check in a
-change, you must fill out a @dfn{log entry} for the change (@pxref{Log
-Buffer}).  This kind of log is called the @dfn{version control log},
-also the @dfn{revision control log}, @dfn{RCS log}, or @dfn{CVS log}.
+  Projects that use a revision control system can have @emph{two}
+types of log for changes.  One is the per-file log maintained by the
+revision control system: each time you check in a change, you must
+fill out a @dfn{log entry} for the change (@pxref{Log Buffer}).  This
+kind of log is called the @dfn{version control log}, also the
+@dfn{revision control log}, @dfn{RCS log}, or @dfn{CVS log}.
 
-The other kind of log is the change log file, typically a file called
-@file{ChangeLog}.  It provides a chronological record of all changes
-to a large portion of a program---one directory and its
-subdirectories.  A small program would use one @file{ChangeLog} file;
-a large program may well merit a @file{ChangeLog} file in each major
-directory.  @xref{Change Log}.
+  The other kind of log is the file @file{ChangeLog} (@pxref{Change
+Log}).  It provides a chronological record of all changes to a large
+portion of a program---typically one directory and its subdirectories.
+A small program would use one @file{ChangeLog} file; a large program
+may well merit a @file{ChangeLog} file in each major directory.
+@xref{Change Log}.
 
-When you use version control, you can use just the per-file log if you
-wish, or you can use both kinds of logs.  When you use both, you
-typically want to write just one entry for each change.  You can write
+  A project maintained with version control can use just the per-file
+log, or it can use both kinds of logs.  It can handle some files one
+way and some files the other way.  Each project has its policy, which
+you should follow.
+
+  When the policy is to use both, you typically want to write an entry
+for each change just once, then put it into both logs.  You can write
 the entry in @file{ChangeLog}, then copy it to the log buffer when you
 check in the change.  Or you can write the entry in the log buffer
 while checking in the change, and later use the @kbd{C-x v a} command

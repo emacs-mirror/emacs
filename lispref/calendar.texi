@@ -115,8 +115,8 @@ the default for this variable.
 the current date is @emph{not} visible in the window.
 
 @vindex calendar-move-hook
-  Starting in Emacs 21, each of the calendar cursor motion commands
-runs the hook @code{calendar-move-hook} after it moves the cursor.
+  Each of the calendar cursor motion commands runs the hook
+@code{calendar-move-hook} after it moves the cursor.
 
 @node Holiday Customizing
 @section Customizing the Holidays

@@ -578,16 +578,15 @@ that string, rather than text from the buffer.  @var{end} is ignored in
 this case.
 
 If @var{append} is non-@code{nil}, then the specified text is appended
-to the existing file contents (if any).  Starting in Emacs 21, if
-@var{append} is an integer, then @code{write-region} seeks to that byte
-offset from the start of the file and writes the data from there.
+to the existing file contents (if any).  If @var{append} is an
+integer, @code{write-region} seeks to that byte offset from the start
+of the file and writes the data from there.
 
 If @var{mustbenew} is non-@code{nil}, then @code{write-region} asks
-for confirmation if @var{filename} names an existing file.
-Starting in Emacs 21, if @var{mustbenew} is the symbol @code{excl},
-then @code{write-region} does not ask for confirmation, but instead
-it signals an error @code{file-already-exists} if the file already
-exists.
+for confirmation if @var{filename} names an existing file.  If
+@var{mustbenew} is the symbol @code{excl}, then @code{write-region}
+does not ask for confirmation, but instead it signals an error
+@code{file-already-exists} if the file already exists.
 
 The test for an existing file, when @var{mustbenew} is @code{excl}, uses
 a special system feature.  At least for files on a local disk, there is
@@ -2013,7 +2012,7 @@ on VMS except discard superfluous initial components as shown above.
 @subsection Generating Unique File Names
 
   Some programs need to write temporary files.  Here is the usual way to
-construct a name for such a file, starting in Emacs 21:
+construct a name for such a file:
 
 @example
 (make-temp-file @var{name-of-application})
@@ -2106,7 +2105,7 @@ non-@code{nil}.
 
 @tindex small-temporary-file-directory
 @defvar small-temporary-file-directory
-This variable (new in Emacs 21) specifies the directory name for
+This variable specifies the directory name for
 creating certain temporary files, which are likely to be small.
 
 If you want to write a temporary file which is likely to be small, you

@@ -117,9 +117,10 @@ version of Emacs.  It was developed primarily on various versions of
 Microsoft Windows, but has also been tested on MS-DOS, and various
 versions of UNIX and GNU/Linux.
 
-WoMan is distributed with GNU Emacs 21, and the current source code and
-documentation files are available from
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web server}.
+WoMan is distributed with GNU Emacs.  In addition, the current source
+code and documentation files are available from
+@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, the WoMan web
+server}.
 
 WoMan implements a subset of the formatting performed by the Emacs
 @code{man} (or @code{manual-entry}) command to format a Unix-style

@@ -1,3 +1,15 @@
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (Ftop_level): Let Fthrow deal with UNBLOCK_INPUT.
+
+	* eval.c (unwind_to_catch): Use UNBLOCK_INPUT_TO.
+	(Feval, Ffuncall): Use CHECK_CONS_LIST.
+
+	* lisp.h (CHECK_CONS_LIST): New macro (two definitions).
+
+	* blockinput.h (UNBLOCK_INPUT_TO): New macro.
+	(TOTALLY_UNBLOCK_INPUT): Handle a pending signal if any.
+
 2005-03-05  Juri Linkov  <juri@jurta.org>
 
 	* emacs.c (USAGE1): Replace Info node name "command arguments"
@@ -106,6 +118,11 @@
 2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fposn_at_x_y): Check integerness of X and Y.
+
+2005-02-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (fast_find_position): Rename END to BEG.
+	(syms_of_xdisp) <menu-bar-update-hook>: Doc fix.
 
 2005-02-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
