@@ -133,8 +133,6 @@ extern void r_alloc_free ();
 
 #endif /* not NOT_C_CODE */
 
-#define DATA_SEG_BITS	0x6000000000000000
-
 #define HAVE_TEXT_START
 
 /* arch-tag: 9b8e9fb2-2e49-4c22-b68f-11a488e77c66
