@@ -1,3 +1,10 @@
+2004-08-07  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Add `rx' syntax.
+	(reb-lisp-mode): Require `rx' feature when `re-reb-syntax' is `rx'.
+	(reb-lisp-syntax-p, reb-change-syntax): `rx' is a Lisp syntax.
+	(reb-cook-regexp): Call `rx-to-string' when `re-reb-syntax' is `rx'.
+
 2004-08-04  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
