@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.31) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -187,10 +187,11 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AttrGC          ((Attr)(1<<9))
 #define AttrINCR_RB     ((Attr)(1<<10))
 #define AttrINCR_WB     ((Attr)(1<<11))
+#define AttrMOVINGGC    ((Attr)(1<<12))
 #define AttrMASK        (AttrFMT | AttrSCAN | AttrPM_NO_READ | \
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
-                         AttrGC | AttrINCR_RB | AttrINCR_WB)
+                         AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
 #define SegPrefHigh     ((SegPrefKind)0)
 #define SegPrefLow      ((SegPrefKind)1)
 #define SegPrefRefSet   ((SegPrefKind)2)
