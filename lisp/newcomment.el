@@ -194,6 +194,15 @@ makes the comment easier to read.  Default is 1.  nil means 0."
 This is obsolete because you might as well use \\[newline-and-indent]."
   :type 'boolean)
 
+(defcustom comment-empty-lines nil
+  "If nil, `comment-region' does not comment out empty lines.
+If t, it always comments out empty lines.
+if `eol' it only comments out empty lines if comments are
+terminated by the end of line (i.e. `comment-end' is empty)."
+  :type '(choice (const :tag "Never" nil)
+	  (const :tag "Always" t)
+	  (const :tag "EOl-terminated" 'eol)))
+
 ;;;;
 ;;;; Helpers
 ;;;;
@@ -821,7 +830,8 @@ of the region for CE and CS.
 INDENT indicates to put CS and CCS at the current indentation of the region
 rather than at left margin."
   ;;(assert (< beg end))
-  (let ((no-empty t))
+  (let ((no-empty (not (or (eq comment-empty-lines t)
+			   (and comment-empty-lines (zerop (length ce)))))))
     ;; Sanitize CE and CCE.
     (if (and (stringp ce) (string= "" ce)) (setq ce nil))
     (if (and (stringp cce) (string= "" cce)) (setq cce nil))
