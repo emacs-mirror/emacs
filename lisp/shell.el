@@ -121,7 +121,7 @@
   :group 'shell)
 
 ;;;###autoload
-(defvar shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
+(defcustom shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
 This variable is used to initialise `comint-prompt-regexp' in the 
@@ -131,7 +131,9 @@ The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
 on lines which don't start with a prompt.
 
-This is a fine thing to set in your `.emacs' file.")
+This is a fine thing to set in your `.emacs' file."
+  :type 'regexp
+  :group 'shell)
 
 (defcustom shell-completion-fignore nil
   "*List of suffixes to be disregarded during file/command completion.
