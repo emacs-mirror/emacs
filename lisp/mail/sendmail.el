@@ -453,7 +453,7 @@ Here are commands that move to a header field (and create it if there isn't):
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)*$"
+				"$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
 				"\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
 				"-- $\\|---+$\\|"
 				page-delimiter))
@@ -1204,7 +1204,8 @@ and don't delete any header fields."
 	  ;; delete that window to save screen space.
 	  ;; t means don't alter other frames.
 	  (delete-windows-on original t)
-	  (insert-buffer original))
+	  (insert-buffer original)
+	  (set-text-properties (point) (mark t) nil))
 	(if (consp arg)
 	    nil
 	  (goto-char start)
@@ -1265,6 +1266,9 @@ and don't delete any header fields."
   (interactive "P")
   (and (consp mail-reply-action)
        (eq (car mail-reply-action) 'insert-buffer)
+       (with-current-buffer (nth 1 mail-reply-action)
+	 (or (mark t)
+	     (error "No mark set: %S" (current-buffer))))
        (let ((buffer (nth 1 mail-reply-action))
 	     (start (point))
 	     ;; Avoid error in Transient Mark mode
