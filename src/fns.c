@@ -880,13 +880,12 @@ The PLIST is modified by side effects.")
   register Lisp_Object tail, prev;
   Lisp_Object newcell;
   prev = Qnil;
-  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; CONSP (tail) && CONSP (XCONS (tail)->cdr);
+       tail = XCONS (XCONS (tail)->cdr)->cdr)
     {
-      register Lisp_Object tem;
-      tem = Fcar (tail);
-      if (EQ (prop, tem))
+      if (EQ (prop, XCONS (tail)->car))
 	{
-	  Fsetcar (Fcdr (tail), val);
+	  Fsetcar (XCONS (tail)->cdr, val);
 	  return plist;
 	}
       prev = tail;
@@ -895,7 +894,7 @@ The PLIST is modified by side effects.")
   if (NILP (prev))
     return newcell;
   else
-    Fsetcdr (Fcdr (prev), newcell);
+    Fsetcdr (XCONS (prev)->cdr, newcell);
   return plist;
 }
 
