@@ -2,12 +2,14 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .sources: design.mps.poolamc.
  */
 
 #include "mpscamc.h"
 #include "chain.h"
+#include "bt.h"
 #include "mpm.h"
 
 SRCID(poolamc, "$Id$");
@@ -1694,14 +1696,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  if (!amcSegHasNailboard(seg)) {
-    /* We didn't keep a mark table, so preserve everything. */
-    /* We can't do anything about preservedInPlaceCount. */
-    trace->preservedInPlaceSize += SegSize(seg);
-    goto adjustColour;
-  }
-
-  /* see design.mps.poolamc.Nailboard.limitations for improvements */
+  /* see design.mps.poolamc.nailboard.limitations for improvements */
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = AddrAdd(SegBase(seg), headerSize);
@@ -1715,7 +1710,11 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     Size length;
     q = (*format->skip)(p);
     length = AddrOffset(p, q);
-    if (!amcNailGetMark(seg, p)) {
+    if (amcSegHasNailboard(seg)
+        ? !amcNailGetMark(seg, p)
+        /* If there's no mark table, retain all that hasn't been forwarded.  In
+         * this case, preservedInPlace* become somewhat overstated. */
+        : (*format->isMoved)(p) != NULL) {
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
     } else {
@@ -1729,7 +1728,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   AVER(p == limit);
   ShieldCover(arena, seg);
 
-adjustColour:
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   if (SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {

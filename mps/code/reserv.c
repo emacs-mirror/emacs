@@ -347,7 +347,7 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
   if (needed > reservoir->reservoirSize) {
     /* Try to grow the reservoir */
     reservoir->reservoirLimit = needed;
-    ReservoirEnsureFull(reservoir);
+    (void)ReservoirEnsureFull(reservoir);
   } else {
     /* Shrink the reservoir */
     reservoirShrink(reservoir, needed);
@@ -372,7 +372,7 @@ Size ReservoirLimit(Reservoir reservoir)
 Size ReservoirAvailable(Reservoir reservoir)
 {
   AVERT(Reservoir, reservoir);
-  ReservoirEnsureFull(reservoir);
+  (void)ReservoirEnsureFull(reservoir);
   return reservoir->reservoirSize;
 }
 

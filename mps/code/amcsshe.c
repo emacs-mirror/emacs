@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  */
 
 #include "fmthe.h"
@@ -18,8 +19,12 @@
 #include <string.h>
 
 
-/* These values have been tuned to cause one top-generation collection. */
-#define testArenaSIZE     ((size_t)1400*1024)
+/* These values have been tuned in the hope of getting one dynamic collection. */
+#define headerFACTOR      ((float)(20 + headerSIZE) / 20)
+/* headerFACTOR measures how much larger objects are compared to fmtdy. */
+#define testArenaSIZE     ((size_t)(1000*headerFACTOR)*1024)
+#define gen1SIZE          ((size_t)150*headerFACTOR)
+#define gen2SIZE          ((size_t)170*headerFACTOR)
 #define avLEN             3
 #define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50
@@ -32,7 +37,7 @@
 /* testChain -- generation parameters for the test */
 
 static mps_gen_param_s testChain[genCOUNT] = {
-  { 210, 0.85 }, { 248, 0.45 } };
+  { gen1SIZE, 0.85 }, { gen2SIZE, 0.45 } };
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -68,6 +73,36 @@ static mps_addr_t make(void)
 }
 
 
+/* report - report statistics from any terminated GCs */
+
+static void report(mps_arena_t arena)
+{
+  mps_message_t message;
+  static int nCollections = 0;
+    
+  while (mps_message_get(&message, arena, mps_message_type_gc())) {
+    size_t live, condemned, not_condemned;
+
+    live = mps_message_gc_live_size(arena, message);
+    condemned = mps_message_gc_condemned_size(arena, message);
+    not_condemned = mps_message_gc_not_condemned_size(arena, message);
+
+    printf("\nCollection %d finished:\n", ++nCollections);
+    printf("live %lu\n", (unsigned long)live);
+    printf("condemned %lu\n", (unsigned long)condemned);
+    printf("not_condemned %lu\n", (unsigned long)not_condemned);
+
+    mps_message_discard(arena, message);
+
+    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
+      /* When condemned size is larger than could happen in a gen 2
+       * collection (discounting ramps, natch), guess that was a dynamic
+       * collection, and reset the commit limit, so it doesn't run out. */
+      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
+  }
+}
+
+
 /* test -- the body of the test */
 
 static void *test(void *arg, size_t s)
@@ -98,7 +133,7 @@ static void *test(void *arg, size_t s)
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
   for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
+    ambigRoots[i] = rnd_addr();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
@@ -119,11 +154,11 @@ static void *test(void *arg, size_t s)
 
   collections = 0;
   rampSwitch = rampSIZE;
-  mps_ap_alloc_pattern_begin(ap, ramp);
-  mps_ap_alloc_pattern_begin(busy_ap, ramp);
+  die(mps_ap_alloc_pattern_begin(ap, ramp), "pattern begin (ap)");
+  die(mps_ap_alloc_pattern_begin(busy_ap, ramp), "pattern begin (busy_ap)");
   ramping = 1;
   objs = 0;
-  while(collections < collectionsCOUNT) {
+  while (collections < collectionsCOUNT) {
     unsigned long c;
     size_t r;
 
@@ -132,15 +167,20 @@ static void *test(void *arg, size_t s)
     if (collections != c) {
       collections = c;
       printf("\nCollection %lu, %lu objects.\n", c, objs);
-      for(r = 0; r < exactRootsCOUNT; ++r) {
+      report(arena);
+      for (r = 0; r < exactRootsCOUNT; ++r) {
         if (exactRoots[r] != objNULL)
           die(HeaderFormatCheck(exactRoots[r]), "wrapper check");
       }
       if (collections == rampSwitch) {
+        int begin_ramp = !ramping
+          || /* Every other time, switch back immediately. */ (collections & 1);
+
         rampSwitch += rampSIZE;
         if (ramping) {
-          mps_ap_alloc_pattern_end(ap, ramp);
-          mps_ap_alloc_pattern_end(busy_ap, ramp);
+          die(mps_ap_alloc_pattern_end(ap, ramp), "pattern end (ap)");
+          die(mps_ap_alloc_pattern_end(busy_ap, ramp), "pattern end (busy_ap)");
+          ramping = 0;
           /* kill half of the roots */
           for(i = 0; i < exactRootsCOUNT; i += 2) {
             if (exactRoots[i] != objNULL) {
@@ -148,12 +188,12 @@ static void *test(void *arg, size_t s)
               exactRoots[i] = objNULL;
             }
           }
-          /* Every other time, switch back immediately. */
-          if (collections & 1) ramping = 0;
         }
-        if (!ramping) {
-          mps_ap_alloc_pattern_begin(ap, ramp);
-          mps_ap_alloc_pattern_begin(busy_ap, ramp);
+        if (begin_ramp) {
+          die(mps_ap_alloc_pattern_begin(ap, ramp),
+              "pattern rebegin (ap)");
+          die(mps_ap_alloc_pattern_begin(busy_ap, ramp),
+              "pattern rebegin (busy_ap)");
           ramping = 1;
         }
       }
@@ -187,6 +227,7 @@ static void *test(void *arg, size_t s)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
     if (objs % 1024 == 0) {
+      report(arena);
       putchar('.');
       fflush(stdout);
     }
@@ -218,6 +259,7 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), 3*testArenaSIZE),
       "arena_create\n");
+  mps_message_type_enable(arena, mps_message_type_gc());
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);

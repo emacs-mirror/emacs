@@ -23,6 +23,7 @@
 
 #include "boot.h"
 #include "tract.h"
+#include "bt.h"
 #include "mpm.h"
 #include "mpsavm.h"
 

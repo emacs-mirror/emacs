@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */
@@ -14,6 +15,9 @@
 
 /* Include system header hackery. */
 #include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpswin.h"
+#endif
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
@@ -52,12 +56,12 @@
 #pragma warning(disable: 4701)
 #endif
 
-/* In white-hot versions, absolutely no checking is done.  This leads to
- * many spurious warnings because parameters are suddenly unused, etc.
- * We aren't interested in these.
+
+/* Non-checking varieties give many spurious warnings because parameters
+ * are suddenly unused, etc.  We aren't interested in these.
  */
 
-#if defined(CONFIG_VAR_WI)
+#if defined(CHECK_NONE)
 
 /* "unreferenced formal parameter" */
 #pragma warning(disable: 4100)
@@ -138,6 +142,14 @@ extern void verror(const char *format, va_list args);
  */
 
 extern unsigned long rnd(void);
+
+
+/* rnd_addr -- random number generator
+ *
+ * rnd_addr() generates a sequence of addresses all over the address space.
+ */
+
+extern mps_addr_t rnd_addr(void);
 
 
 /* randomize -- randomize the generator, or initialize to replay

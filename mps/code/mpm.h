@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the
@@ -156,61 +157,6 @@ extern size_t StringLength(const char *s);
 extern char *MPSVersion(void);
 
 
-/* Bit Table Interface -- see design.mps.bt.if.* for doc */
-
-/* design.mps.bt.if.size */
-extern size_t (BTSize)(unsigned long length);
-#define BTSize(n) (((n) + MPS_WORD_WIDTH-1) / MPS_WORD_WIDTH * sizeof(Word))
-
-
-/* design.mps.bt.if.get */
-extern Bool (BTGet)(BT bt, Index index);
-#define BTGet(a, i) \
-  ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
-           >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
-          & (Word)1))
-
-/* design.mps.bt.if.set */
-extern void (BTSet)(BT bt, Index index);
-#define BTSet(a, i) \
-  BEGIN \
-    (a)[((i)>>MPS_WORD_SHIFT)] |= (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
-  END
-
-/* design.mps.bt.if.res */
-extern void (BTRes)(BT bt, Index index);
-#define BTRes(a, i) \
-  BEGIN \
-    (a)[((i)>>MPS_WORD_SHIFT)] &= \
-      ~((Word)1 << ((i) & ~((Word)-1<<MPS_WORD_SHIFT))); \
-  END
-
-extern Res BTCreate(BT *btReturn, Arena arena, Count length);
-extern void BTDestroy(BT bt, Arena arena, Count length);
-extern void BTSetRange(BT bt, Index base, Index limit);
-extern Bool BTIsSetRange(BT bt, Index base, Index limit);
-extern void BTResRange(BT bt, Index base, Index limit);
-extern Bool BTIsResRange(BT bt, Index base, Index limit);
-extern Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
-                                BT bt, Index searchBase, Index searchLimit,
-                                unsigned long length);
-extern Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
-                                    BT bt, Index searchBase, Index searchLimit,
-                                    unsigned long length);
-extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
-                               BT bt, Index searchBase, Index searchLimit,
-                               unsigned long length);
-extern Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
-                                   BT bt, Index searchBase, Index searchLimit,
-                                   unsigned long length);
-extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
-extern void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit);
-extern void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit);
-extern void BTCopyOffsetRange(BT fromBT, BT toBT,
-                              Index fromBase, Index fromLimit,
-                              Index toBase, Index toLimit);
-
-
 /* Pool Interface -- see impl.c.pool */
 
 extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ...);
@@ -253,6 +199,7 @@ extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, unsigned long s);
+extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern Res PoolTrivInit(Pool pool, va_list arg);
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
@@ -300,6 +247,7 @@ extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
 		       void *p, unsigned long s);
+extern void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 
@@ -584,6 +532,7 @@ extern Size ArenaAvail(Arena arena);
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
 extern Res ArenaFinalize(Arena arena, Ref obj);
+extern Res ArenaDefinalize(Arena arena, Ref obj);
 
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
@@ -611,7 +560,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
-extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
+extern void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
 extern void LocusInit(Arena arena);
 extern void LocusFinish(Arena arena);

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
  *
@@ -51,10 +52,13 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->bufferFill));
   CHECKL(FUNCHECK(class->bufferEmpty));
+  CHECKL(FUNCHECK(class->access));
   CHECKL(FUNCHECK(class->whiten));
   CHECKL(FUNCHECK(class->grey));
+  CHECKL(FUNCHECK(class->blacken));
   CHECKL(FUNCHECK(class->scan));
   CHECKL(FUNCHECK(class->fix));
+  CHECKL(FUNCHECK(class->fixEmergency));
   CHECKL(FUNCHECK(class->reclaim));
   CHECKL(FUNCHECK(class->rampBegin));
   CHECKL(FUNCHECK(class->rampEnd));
@@ -62,7 +66,10 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->framePop));
   CHECKL(FUNCHECK(class->framePopPending));
   CHECKL(FUNCHECK(class->walk));
+  CHECKL(FUNCHECK(class->freewalk));
+  CHECKL(FUNCHECK(class->bufferClass));
   CHECKL(FUNCHECK(class->describe));
+  CHECKL(FUNCHECK(class->debugMixin));
   CHECKS(PoolClass, class);
   return TRUE;
 }
@@ -452,7 +459,7 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* PoolWalk -- walk objects in this pool */
+/* PoolWalk -- walk objects in this segment */
 
 void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
               void *p, Size s)
@@ -463,6 +470,21 @@ void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   /* p and s are arbitrary values, hence can't be checked. */
 
   (*pool->class->walk)(pool, seg, f, p, s);
+}
+
+
+/* PoolFreeWalk -- walk free blocks in this pool
+ *
+ * PoolFreeWalk is not required to find all free blocks.
+ */
+
+void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+{
+  AVERT(Pool, pool);
+  AVER(FUNCHECK(f));
+  /* p is arbitrary, hence can't be checked. */
+
+  (*pool->class->freewalk)(pool, f, p);
 }
 
 

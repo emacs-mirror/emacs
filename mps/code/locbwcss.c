@@ -1,0 +1,206 @@
+/* impl.c.locbwcss: LOCUS BACKWARDS COMPATIBILITY STRESS TEST
+ *
+ * $Id: locbwcss.c,v 1.4 2002/05/10 11:11:39 pekka Exp $
+ * $HopeName: MMsrc!locbwcss.c(trunk.4) $
+ * Copyright (c) 2001 Ravenbrook Limited.
+ */
+
+#include "mpscmvff.h"
+#include "mpslib.h"
+#include "mpsavm.h"
+#include "testlib.h"
+#include "mps.h"
+
+#include <stdlib.h>
+#include <stdarg.h>
+
+
+/* some constants */
+
+#define TRUE  1
+#define FALSE 0
+
+#define iterationCount 30          /* number of iterations */
+#define allocsPerIteration 8       /* number of allocs each iteration */
+#define chunkSize ((size_t)65536)  /* our allocation chunk size */
+
+#define testArenaSIZE \
+  ((size_t)(chunkSize * iterationCount * allocsPerIteration * 3))
+
+
+#define AddressOffset(b, l) \
+  ((size_t)((char *)(l) - (char *)(b)))
+
+
+/* PoolStat -- maintain data about contiguous allocations */ 
+
+typedef struct PoolStatStruct *PoolStat;
+
+typedef struct PoolStatStruct {
+  mps_pool_t pool;  /* the pool being measured */
+  size_t objSize;   /* size of each allocation */
+  mps_addr_t min;   /* lowest address lock allocated to the pool */
+  mps_addr_t max;   /* highest address lock allocated to the pool */
+  int ncCount;      /* count of non-contiguous allocations */
+  int aCount;       /* count of allocations */
+  int fCount;       /* count of frees */
+} PoolStatStruct;
+
+
+
+static mps_addr_t allocObject(mps_pool_t pool, size_t size)
+{
+  mps_addr_t addr;
+  die(mps_alloc(&addr, pool, size),
+      "Allocate Object");
+  return addr;
+}
+
+
+static void recordNewObjectStat(PoolStat stat, mps_addr_t obj)
+{
+  stat->aCount++;
+  if (obj < stat->min) {
+    if (AddressOffset(obj, stat->min) > stat->objSize) {
+      stat->ncCount++;
+    }
+    stat->min = obj;
+  } else if (obj > stat->max) {
+    if (AddressOffset(stat->max, obj) > stat->objSize) {
+      stat->ncCount++;
+    }
+    stat->max = obj;
+  }
+}
+
+static void recordFreedObjectStat(PoolStat stat)
+{
+  stat->fCount++;
+}
+
+
+static void poolStatInit(PoolStat stat, mps_pool_t pool, size_t objSize)
+{
+  mps_addr_t s1, s2, s3;
+
+  stat->pool = pool;
+  stat->objSize = objSize;
+  stat->ncCount = 0;
+  stat->aCount = 0;
+  stat->fCount = 0;
+
+  /* allocate 3 half-size sentinel objects, freeing the middle one */
+  /* to leave a bit of space for the control pool */
+  s1 = allocObject(pool, objSize / 2);
+  stat->min = s1;
+  stat->max = s1;
+  stat->aCount++;
+
+  s2 = allocObject(pool, objSize / 2);
+  recordNewObjectStat(stat, s2);
+  s3 = allocObject(pool, objSize / 2);
+  recordNewObjectStat(stat, s3);
+
+  mps_free(pool, s2, objSize / 2);  
+  recordFreedObjectStat(stat);
+
+}
+
+
+static void allocMultiple(PoolStat stat)
+{
+  mps_addr_t objects[allocsPerIteration];
+  int i;
+
+  /* allocate a few objects, and record stats for them */
+  for (i = 0; i < allocsPerIteration; i++) {
+    mps_addr_t obj = allocObject(stat->pool, stat->objSize);
+    recordNewObjectStat(stat, obj);
+    objects[i] = obj;
+  }
+
+  /* free one of the objects, to make the test more interesting */
+  i = rnd() % allocsPerIteration;
+  mps_free(stat->pool, objects[i], stat->objSize);  
+  recordFreedObjectStat(stat);
+
+}
+
+
+/* reportResults - print a report on a PoolStat */
+
+static void reportResults(PoolStat stat, char *name)
+{
+  printf("\nResults for ");
+  printf(name);
+  printf("\n");
+  printf("   Allocated  %lu objects\n", (unsigned long)stat->aCount);
+  printf("   Freed      %lu objects\n", (unsigned long)stat->fCount);
+  printf("   There were %lu non-contiguous allocations\n", 
+         (unsigned long)stat->ncCount);
+  printf("   Address range from %p to %p\n",
+         (void *)stat->min, (void *)stat->max);
+  printf("\n");
+}
+
+
+static void testInArena(mps_arena_t arena)
+{
+  mps_pool_t lopool, hipool;
+  PoolStatStruct lostruct;  /* stats about lopool */
+  PoolStatStruct histruct;  /* stats about lopool */
+  PoolStat lostat = &lostruct;
+  PoolStat histat = &histruct;
+  int i;
+
+  die(mps_pool_create(&hipool, arena, mps_class_mvff(), 
+                      chunkSize, chunkSize, 1024, 
+                      TRUE, TRUE, TRUE),
+      "Create HI MFFV");
+
+  die(mps_pool_create(&lopool, arena, mps_class_mvff(), 
+                      chunkSize, chunkSize, 1024, 
+                      FALSE, FALSE, TRUE),
+      "Create LO MFFV");
+
+  poolStatInit(lostat, lopool, chunkSize);
+  poolStatInit(histat, hipool, chunkSize);
+
+  /* iterate, allocating objects */
+  for (i=0; i<iterationCount; ++i) {
+    allocMultiple(lostat);
+    allocMultiple(histat);
+  }
+
+  /* report results */
+  reportResults(lostat, "the low MVFF pool");
+  reportResults(histat, "the high MVFF pool");
+  
+  if (lostat->max > histat->min) {
+    printf("\nFOUND PROBLEM - low range overlaps high\n");
+  } else if (lostat->ncCount != 0 || histat->ncCount != 0) {
+    printf("\nFOUND POSSIBLE PROBLEM - some non-contiguous allocations\n");
+  } else {
+    printf("\nNo problems detected.\n");
+  }
+
+  mps_pool_destroy(hipool);
+  mps_pool_destroy(lopool);
+}
+
+
+int main(int argc, char **argv)
+{
+  mps_arena_t arena;
+
+  randomize(argc, argv);
+
+  die(mps_arena_create(&arena, mps_arena_class_vmnz(), testArenaSIZE),
+      "mps_arena_create");
+
+  testInArena(arena);
+
+  mps_arena_destroy(arena);
+
+  return 0;
+}

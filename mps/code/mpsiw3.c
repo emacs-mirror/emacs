@@ -1,4 +1,4 @@
-/* impl.c.mpsint:
+/* impl.c.mpsiw3: WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
  *
  *       WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
  *
@@ -12,9 +12,10 @@
 
 #include "mpswin.h"
 
-SRCID(mpsint, "$Id$");
+SRCID(mpsiw3, "$Id$");
 
-/* This is defined in protnt.c */
+
+/* This is defined in protw3.c */
 extern LONG ProtSEHfilter(LPEXCEPTION_POINTERS info);
 
 LONG mps_SEH_filter(LPEXCEPTION_POINTERS info,

@@ -2,6 +2,8 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
+ *
  *
  * .design: See design.mps.poolams.
  *
@@ -13,8 +15,8 @@
  * (as opposed to being constructed by the caller).
  */
 
-#include "mpscams.h"
 #include "poolams.h"
+#include "dbgpool.h"
 #include "mpm.h"
 #include <stdarg.h>
 
@@ -23,6 +25,21 @@ SRCID(poolams, "$Id$");
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
+
+
+/* AMSDebugStruct -- structure for a debug subclass */
+
+typedef struct AMSDebugStruct {
+  AMSStruct amsStruct;         /* AMS structure */
+  PoolDebugMixinStruct debug;  /* debug mixin */
+} AMSDebugStruct;
+
+typedef struct AMSDebugStruct *AMSDebug;
+
+
+#define AMS2AMSDebug(ams)  PARENT(AMSDebugStruct, amsStruct, ams)
+#define AMSDebug2AMS(amsd) (&((amsd)->amsStruct))
+
 
 
 /* AMSSegCheck -- check an AMS segment */
@@ -34,18 +51,26 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKL(GCSegCheck(&amsseg->gcSegStruct));
   CHECKU(AMS, amsseg->ams);
   CHECKL(AMS2Pool(amsseg->ams) == SegPool(seg));
-  CHECKL(RingCheck(&amsseg->segRing));
+  CHECKD_NOSIG(Ring, &amsseg->segRing);
 
   CHECKL(amsseg->grains == AMSGrains(amsseg->ams, SegSize(seg)));
   CHECKL(amsseg->grains > 0);
   CHECKL(amsseg->grains >= amsseg->free + amsseg->newAlloc);
 
-  if (SegWhite(seg) != TraceSetEMPTY)
+  CHECKL(BoolCheck(amsseg->allocTableInUse));
+  if (!amsseg->allocTableInUse)
+    CHECKL(amsseg->firstFree <= amsseg->grains);
+  CHECKL(amsseg->allocTable != NULL);
+
+  if (SegWhite(seg) != TraceSetEMPTY) {
     /* design.mps.poolams.colour.single */
     CHECKL(TraceSetIsSingle(SegWhite(seg)));
+    CHECKL(amsseg->colourTablesInUse);
+  }
 
   CHECKL(BoolCheck(amsseg->marksChanged));
-  CHECKL(amsseg->allocTable != NULL);
+  CHECKL(BoolCheck(amsseg->ambiguousFixes));
+  CHECKL(BoolCheck(amsseg->colourTablesInUse));
   CHECKL(amsseg->nongreyTable != NULL);
   CHECKL(amsseg->nonwhiteTable != NULL);
 
@@ -53,9 +78,69 @@ Bool AMSSegCheck(AMSSeg amsseg)
 }
 
 
+/* AMSSegFreeWalk -- walk the free space in a segment */
+
+void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockStepMethod f, void *p)
+{
+  Pool pool;
+  Seg seg;
+
+  AVERT(AMSSeg, amsseg);
+  pool = SegPool(AMSSeg2Seg(amsseg));
+  seg = AMSSeg2Seg(amsseg);
+
+  if (amsseg->free == 0)
+    return;
+  if (amsseg->allocTableInUse) {
+    Index base, limit, next;
+
+    next = 0;
+    while (next < amsseg->grains) {
+      Bool found = BTFindLongResRange(&base, &limit, amsseg->allocTable,
+                                      next, amsseg->grains, 1);
+      if (!found) break;
+      (*f)(AMS_INDEX_ADDR(seg, base), AMS_INDEX_ADDR(seg, limit), pool, p);
+      next = limit + 1;
+    }
+  } else {
+    if ( amsseg->firstFree < amsseg->grains )
+      (*f)(AMS_INDEX_ADDR(seg, amsseg->firstFree), SegLimit(seg), pool, p);
+  }
+}
+
+
+/* AMSSegFreeCheck -- check the free space in a segment */
+
+static void amsFreeBlockCheckStep(Addr base, Addr limit, Pool pool, void *p)
+{
+  UNUSED(p);
+  DebugPoolFreeCheck(pool, base, limit);
+}
+
+void AMSSegFreeCheck(AMSSeg amsseg)
+{
+  Pool pool;
+  PoolDebugMixin debug;
+
+  AVERT(AMSSeg, amsseg);
+
+  if (amsseg->free == 0)
+    return;
+
+  /* If it's not a debug class, don't bother walking. */
+  pool = SegPool(AMSSeg2Seg(amsseg));
+  AVERT(Pool, pool);
+  debug = ((pool)->class->debugMixin)(pool);
+  if (debug == NULL)
+    return;
+
+  AMSSegFreeWalk(amsseg, amsFreeBlockCheckStep, NULL);
+}
+
+
 /* amsCreateTables -- create the tables for an AMS seg */
 
-static Res amsCreateTables(BT *allocReturn,
+static Res amsCreateTables(AMS ams, BT *allocReturn,
                            BT *nongreyReturn, BT *nonwhiteReturn,
                            Arena arena, Count length)
 {
@@ -74,9 +159,13 @@ static Res amsCreateTables(BT *allocReturn,
   res = BTCreate(&nongreyTable, arena, length);
   if (res != ResOK)
     goto failGrey;
-  res = BTCreate(&nonwhiteTable, arena, length);
-  if (res != ResOK)
-    goto failWhite;
+  if (ams->shareAllocTable)
+    nonwhiteTable = allocTable;
+  else {
+    res = BTCreate(&nonwhiteTable, arena, length);
+    if (res != ResOK)
+      goto failWhite;
+  }
 
   *allocReturn = allocTable;
   *nongreyReturn = nongreyTable;
@@ -94,7 +183,7 @@ failAlloc:
 
 /* amsDestroyTables -- destroy the tables for an AMS seg */
 
-static void amsDestroyTables(BT allocTable,
+static void amsDestroyTables(AMS ams, BT allocTable,
                              BT nongreyTable, BT nonwhiteTable,
                              Arena arena, Count length)
 {
@@ -104,7 +193,8 @@ static void amsDestroyTables(BT allocTable,
   AVERT(Arena, arena);
   AVER(length > 0);
 
-  BTDestroy(nonwhiteTable, arena, length);
+  if (!ams->shareAllocTable)
+    BTDestroy(nonwhiteTable, arena, length);
   BTDestroy(nongreyTable, arena, length);
   BTDestroy(allocTable, arena, length);
 }
@@ -142,7 +232,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   amsseg->ambiguousFixes = FALSE;
 
-  res = amsCreateTables(&amsseg->allocTable,
+  res = amsCreateTables(ams, &amsseg->allocTable,
                         &amsseg->nongreyTable, &amsseg->nonwhiteTable,
                         arena, amsseg->grains);
   if (res != ResOK)
@@ -189,7 +279,7 @@ static void AMSSegFinish(Seg seg)
   AVER(SegBuffer(seg) == NULL);
 
   /* keep the destructions in step with AMSSegInit failure cases */
-  amsDestroyTables(amsseg->allocTable, amsseg->nongreyTable,
+  amsDestroyTables(ams, amsseg->allocTable, amsseg->nongreyTable,
                    amsseg->nonwhiteTable, arena, amsseg->grains);
 
   RingRemove(&amsseg->segRing);
@@ -259,7 +349,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   AVER(!amssegHi->marksChanged);
 
   /* .alloc-early  */
-  res = amsCreateTables(&allocTable, &nongreyTable, &nonwhiteTable,
+  res = amsCreateTables(ams, &allocTable, &nongreyTable, &nonwhiteTable,
                         arena, allGrains);
   if (res != ResOK)
     goto failCreateTables;
@@ -283,9 +373,10 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     amsseg->table = (table); \
   END
 
-  MERGE_TABLES(nonwhiteTable, BTSetRange);
-  MERGE_TABLES(nongreyTable, BTSetRange);
   MERGE_TABLES(allocTable, BTResRange);
+  MERGE_TABLES(nongreyTable, BTSetRange);
+  if (!ams->shareAllocTable)
+    MERGE_TABLES(nonwhiteTable, BTSetRange);
 
   amsseg->grains = allGrains;
   amsseg->free = amsseg->free + amssegHi->free;
@@ -300,7 +391,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   return ResOK;
 
 failSuper:
-  amsDestroyTables(allocTable, nongreyTable, nonwhiteTable,
+  amsDestroyTables(ams, allocTable, nongreyTable, nonwhiteTable,
                    arena, allGrains);
 failCreateTables:
   AVERT(AMSSeg, amsseg);
@@ -346,11 +437,11 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   }
 
   /* .alloc-early */
-  res = amsCreateTables(&allocTableLo, &nongreyTableLo, &nonwhiteTableLo,
+  res = amsCreateTables(ams, &allocTableLo, &nongreyTableLo, &nonwhiteTableLo,
                         arena, loGrains);
   if (res != ResOK)
     goto failCreateTablesLo;
-  res = amsCreateTables(&allocTableHi, &nongreyTableHi, &nonwhiteTableHi,
+  res = amsCreateTables(ams, &allocTableHi, &nongreyTableHi, &nonwhiteTableHi,
                         arena, hiGrains);
   if (res != ResOK)
     goto failCreateTablesHi;
@@ -403,10 +494,10 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   return ResOK;
 
 failSuper:
-  amsDestroyTables(allocTableHi, nongreyTableHi, nonwhiteTableHi,
+  amsDestroyTables(ams, allocTableHi, nongreyTableHi, nonwhiteTableHi,
                    arena, hiGrains);
 failCreateTablesHi:
-  amsDestroyTables(allocTableLo, nongreyTableLo, nonwhiteTableLo,
+  amsDestroyTables(ams, allocTableLo, nongreyTableLo, nonwhiteTableLo,
                    arena, loGrains);
 failCreateTablesLo:
   AVERT(AMSSeg, amsseg);
@@ -481,11 +572,11 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
 
     if (AMS_ALLOCED(seg, i)) {
       if (amsseg->colourTablesInUse) {
-        if (AMSIsInvalidColor(seg, i))
+        if (AMS_IS_INVALID_COLOUR(seg, i))
           c = '!';
-        else if (AMSIsWhite(seg, i))
+        else if (AMS_IS_WHITE(seg, i))
           c = '-';
-        else if (AMSIsGrey(seg, i))
+        else if (AMS_IS_GREY(seg, i))
           c = '+';
         else /* must be black */
           c = '*';
@@ -599,14 +690,15 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     if (res != ResOK)
       goto failSeg;
   }
-  PoolGenUpdateZones(&ams->pgen, seg);
 
+  PoolGenUpdateZones(&ams->pgen, seg);
   /* see design.mps.seg.field.rankset */
   if (rankSet != RankSetEMPTY) {
     SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   } else {
     SegSetRankAndSummary(seg, rankSet, RefSetEMPTY);
   }
+  DebugPoolFreeSplat(pool, SegBase(seg), SegLimit(seg));
 
   AVERT(AMSSeg, Seg2AMSSeg(seg));
 
@@ -629,12 +721,10 @@ static void AMSSegsDestroy(AMS ams)
   RING_FOR(node, ring, next) {
     Seg seg = SegOfPoolRing(node);
     AVER(Seg2AMSSeg(seg)->ams == ams);
+    AMSSegFreeCheck(Seg2AMSSeg(seg));
     SegFree(seg);
   }
 }
-
-
-static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure);
 
 
 /* AMSInit -- the pool class initialization method
@@ -647,12 +737,16 @@ static Res AMSInit(Pool pool, va_list args)
   Res res;
   Format format;
   Chain chain;
+  Bool supportAmbiguous;
 
   AVERT(Pool, pool);
 
   format = va_arg(args, Format);
   chain = va_arg(args, Chain);
-  res = AMSInitInternal(Pool2AMS(pool), format, chain);
+  supportAmbiguous = va_arg(args, Bool);
+  /* .ambiguous.noshare: If the pool is required to support ambiguous */
+  /* references, the alloc and white tables cannot be shared. */
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
   if (res == ResOK) {
     EVENT_PPP(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -662,7 +756,7 @@ static Res AMSInit(Pool pool, va_list args)
 
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Format format, Chain chain)
+Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
 {
   Pool pool;
   Res res;
@@ -684,10 +778,11 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain)
   if (res != ResOK)
     return res;
 
+  ams->shareAllocTable = shareAllocTable;
+
   RingInit(&ams->segRing);
 
-  /* The next five might be overridden by a subclass. */
-  ams->iterate = AMSIterate; /* should be done using a format variant */
+  /* The next four might be overridden by a subclass. */
   ams->segSize = AMSSegSizePolicy;
   ams->allocRing = AMSPoolRing;
   ams->segsDestroy = AMSSegsDestroy;
@@ -725,8 +820,7 @@ void AMSFinish(Pool pool)
 /* amsSegAlloc -- try to allocate an area in the given segment
  *
  * Tries to find an area of at least the given size.  If successful,
- * makes that area black, if necessary, and returns its base and limit
- * grain indices.
+ * returns its base and limit grain indices.
  */
 static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
                         Seg seg, Size size)
@@ -766,6 +860,9 @@ static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
     amsseg->firstFree = limit;
   }
 
+  /* We don't place buffers on white segments, so no need to adjust colour. */
+  AVER(!amsseg->colourTablesInUse);
+
   amsseg->free -= limit - base;
   amsseg->newAlloc += limit - base;
   *baseReturn = base;
@@ -779,15 +876,16 @@ static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
  * Iterates over the segments looking for space.  See
  * design.mps.poolams.fill.
  */
-Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
-                  Pool pool, Buffer buffer, Size size,
-                  Bool withReservoirPermit)
+static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
+                         Pool pool, Buffer buffer, Size size,
+                         Bool withReservoirPermit)
 {
   Res res;
   AMS ams;
   Seg seg;
   Ring node, ring, nextNode;    /* for iterating over the segments */
   Index base, limit;
+  Addr baseAddr, limitAddr;
   RankSet rankSet;
   Bool b;                       /* the return value of amsSegAlloc */
   SegPrefStruct segPrefStruct;
@@ -816,7 +914,9 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
     if (amsseg->free >= AMSGrains(ams, size)) {
       seg = AMSSeg2Seg(amsseg);
 
-      if (SegRankSet(seg) == rankSet && SegBuffer(seg) == NULL) {
+      if (SegRankSet(seg) == rankSet && SegBuffer(seg) == NULL
+          /* Can't use a white or grey segment, see d.m.p.fill.colour. */
+          && SegWhite(seg) == TraceSetEMPTY && SegGrey(seg) == TraceSetEMPTY) {
         b = amsSegAlloc(&base, &limit, seg, size);
         if (b)
           goto found;
@@ -824,7 +924,7 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  /* no segment has enough room; make a new segment */
+  /* No suitable segment found; make a new one. */
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   res = AMSSegCreate(&seg, pool, size, &segPrefStruct, rankSet,
@@ -835,13 +935,13 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 found:
   AVER(b);
-  allocatedSize = AddrOffset(AMS_INDEX_ADDR(seg, base),
-                             AMS_INDEX_ADDR(seg, limit));
+  baseAddr = AMS_INDEX_ADDR(seg, base); limitAddr = AMS_INDEX_ADDR(seg, limit);
+  DebugPoolFreeCheck(pool, baseAddr, limitAddr);
+  allocatedSize = AddrOffset(baseAddr, limitAddr);
   ams->pgen.totalSize += allocatedSize;
   ams->pgen.newSize += allocatedSize;
 
-  *baseReturn = AMS_INDEX_ADDR(seg, base);
-  *limitReturn = AMS_INDEX_ADDR(seg, limit);
+  *baseReturn = baseAddr; *limitReturn = limitAddr;
   return ResOK;
 }
 
@@ -851,7 +951,7 @@ found:
  * Frees the unused part of the buffer.  The colour of the area doesn't
  * need to be changed.  See design.mps.poolams.empty.
  */
-void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
   AMS ams;
   Index initIndex, limitIndex;
@@ -876,6 +976,9 @@ void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   if (init == limit)
     return;
 
+  /* Tripped allocations might have scribbled on it, need to splat again. */
+  DebugPoolFreeSplat(pool, init, limit);
+
   initIndex = AMS_ADDR_INDEX(seg, init);
   limitIndex = AMS_ADDR_INDEX(seg, limit);
 
@@ -896,6 +999,10 @@ void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
       BTResRange(amsseg->allocTable, initIndex, limitIndex);
     }
   }
+
+  if (amsseg->colourTablesInUse)
+    AMS_RANGE_WHITEN(seg, initIndex, limitIndex);
+
   amsseg->free += limitIndex - initIndex;
   /* The unused portion of the buffer must be new, since it's not condemned. */
   AVER(amsseg->newAlloc >= limitIndex - initIndex);
@@ -907,8 +1014,6 @@ void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 
 
 /* amsRangeCondemn -- Condemn a part of an AMS segment
- *
- * I.e., alloc -> white, free -> black.
  * Allow calling it with base = limit, to simplify the callers.
  */
 static void amsRangeCondemn(Seg seg, Index base, Index limit)
@@ -919,25 +1024,14 @@ static void amsRangeCondemn(Seg seg, Index base, Index limit)
     AVER(base < limit);
     AVER(limit <= amsseg->grains);
 
-    if (amsseg->allocTableInUse) {
-      BTSetRange(amsseg->nongreyTable, base, limit);
-      BTCopyInvertRange(amsseg->allocTable, amsseg->nonwhiteTable,
-                        base, limit);
-    } else {
-      if (base < amsseg->firstFree) {
-        AMSRangeWhiten(seg, base, amsseg->firstFree);
-      }
-      if (amsseg->firstFree < limit) {
-        AMSRangeBlacken(seg, amsseg->firstFree, limit);
-      }
-    }
+    AMS_RANGE_WHITEN(seg, base, limit);
   }
 }
 
 
-/* AMSWhiten -- the pool class segment condemning method */
+/* AMSCondemn -- the pool class segment condemning method */
 
-Res AMSWhiten(Pool pool, Trace trace, Seg seg)
+static Res AMSCondemn(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSSeg amsseg;
@@ -959,6 +1053,28 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AVER(!amsseg->colourTablesInUse);
 
   amsseg->colourTablesInUse = TRUE;
+
+  /* Init allocTable, if necessary. */
+  if (!amsseg->allocTableInUse) {
+    if (0 < amsseg->firstFree)
+      BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
+    if (amsseg->firstFree < amsseg->grains)
+      BTResRange(amsseg->allocTable, amsseg->firstFree, amsseg->grains);
+  }
+
+  /* Start using allocTable as the white table, if so configured. */
+  if (ams->shareAllocTable) {
+    if (amsseg->allocTableInUse) {
+      /* During the collection, it can't use allocTable for AMS_ALLOCED, so */
+      /* make it use firstFree. */
+      amsseg->allocTableInUse = FALSE;
+      /* Could find a better value for firstFree, but probably not worth it. */
+      amsseg->firstFree = amsseg->grains;
+    }
+  } else { /* Otherwise, use it as alloc table. */
+    amsseg->allocTableInUse = TRUE;
+  }
+
   buffer = SegBuffer(seg);
   if (buffer != NULL) { /* design.mps.poolams.condemn.buffer */
     Index scanLimitIndex, limitIndex;
@@ -967,7 +1083,7 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 
     amsRangeCondemn(seg, 0, scanLimitIndex);
     if (scanLimitIndex < limitIndex)
-      AMSRangeBlacken(seg, scanLimitIndex, limitIndex);
+      AMS_RANGE_BLACKEN(seg, scanLimitIndex, limitIndex);
     amsRangeCondemn(seg, limitIndex, amsseg->grains);
     /* We didn't condemn the buffer, subtract it from the count. */
     uncondemned = limitIndex - scanLimitIndex;
@@ -989,14 +1105,26 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* AMSObjectFunction is the type of the method that an */
+/* amsIterate applies to each object in a segment. */
+typedef Res (*AMSObjectFunction)(
+  /* the segment */              Seg seg,
+  /* the object grain index */   Index i,
+  /* the address of the object */Addr p,
+  /*  "   "   after the object */Addr next,
+  /* the iteration closure */    void *closure);
 
-/* AMSIterate -- applies a function to each object in a segment
+#define AMSObjectFunctionCheck(f) \
+  ((f) != NULL) /* that's the best we can do */
+
+
+/* amsIterate -- applies a function to each object in a segment
  *
- * AMSIterate(seg, f, closure) applies f to all the
- * objects in the segment.  It skips the buffer, if any (from
- * BufferScanLimit to BufferLimit).
- */
-static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
+ * amsIterate(seg, f, closure) applies f to all the objects in the
+ * segment.  It skips the buffer, if any (from BufferScanLimit to
+ * BufferLimit).  */
+
+static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
 {
   Res res;
   AMS ams;
@@ -1019,13 +1147,17 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
   AVERT(Format, format);
   alignment = PoolAlignment(AMS2Pool(ams));
 
+  /* If we're using the alloc table as a white table, we can't use it to */
+  /* determine where there are objects. */
+  AVER(!(ams->shareAllocTable && amsseg->colourTablesInUse));
+
   p = SegBase(seg);
   limit = SegLimit(seg);
   buffer = SegBuffer(seg);
 
   while (p < limit) { /* loop over the objects in the segment */
     if (buffer != NULL
-       && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
+        && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
       /* skip buffer */
       next = BufferLimit(buffer);
       AVER(AddrIsAligned(next, alignment));
@@ -1036,10 +1168,26 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
 
       i = AMS_ADDR_INDEX(seg, p);
       if (!AMS_ALLOCED(seg, i)) { /* no object here */
-        next = AddrAdd(p, alignment); /* @@@@ this could be improved */
+        if (amsseg->allocTableInUse) {
+          Index dummy, nextIndex;
+          Bool more;
+
+          /* Find out how large the free block is. */
+          more = BTFindLongResRange(&dummy, &nextIndex, amsseg->allocTable,
+                                    i, amsseg->grains, 1);
+          AVER(more && dummy == i);
+          next = AMS_INDEX_ADDR(seg, nextIndex);
+        } else {
+          /* If there's no allocTable, this is the free block at the end. */
+          next = limit;
+        }
       } else { /* there is an object here */
-        next = (*format->skip)(AddrAdd(p, format->headerSize));
-        next = AddrSub(next, format->headerSize);
+        if (format->skip != NULL) {
+            next = (*format->skip)(AddrAdd(p, format->headerSize));
+            next = AddrSub(next, format->headerSize);
+        } else {
+          next = AddrAdd(p, alignment);
+        }
         AVER(AddrIsAligned(next, alignment));
 	res = (*f)(seg, i, p, next, closure);
 	if (res != ResOK)
@@ -1056,8 +1204,7 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
 
 /* amsScanObject -- scan a single object
  *
- * This is the object function passed to AMSIterate by AMSScan.
- */
+ * This is the object function passed to amsIterate by AMSScan.  */
 
 struct amsScanClosureStruct {
   ScanState ss;
@@ -1074,12 +1221,12 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   Res res;
 
   amsseg = Seg2AMSSeg(seg);
-  /* seg & amsseg have already been checked, in AMSIterate. */
+  /* seg & amsseg have already been checked, in amsIterate. */
   AVER(i < amsseg->grains);
   AVER(p != 0);
   AVER(p < next);
   AVER(clos != NULL);
-  closure = clos;
+  closure = (amsScanClosure)clos;
   AVERT(ScanState, closure->ss);
   AVER(BoolCheck(closure->scanAllObjects));
 
@@ -1087,7 +1234,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   AVERT(Format, format);
 
   /* @@@@ This isn't quite right for multiple traces. */
-  if (closure->scanAllObjects || AMSIsGrey(seg, i)) {
+  if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
     res = (*format->scan)(closure->ss,
                           AddrAdd(p, format->headerSize),
                           AddrAdd(next, format->headerSize));
@@ -1096,10 +1243,10 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
     closure->ss->scannedSize += AddrOffset(p, next);
     if (!closure->scanAllObjects) {
       Index j = AMS_ADDR_INDEX(seg, next);
-      AVER(!AMSIsInvalidColor(seg, i));
-      AMSGreyBlacken(seg, i);
+      AVER(!AMS_IS_INVALID_COLOUR(seg, i));
+      AMS_GREY_BLACKEN(seg, i);
       if (i+1 < j)
-        AMSRangeWhiteBlacken(seg, i+1, j);
+        AMS_RANGE_WHITE_BLACKEN(seg, i+1, j);
     }
   }
 
@@ -1141,7 +1288,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* @@@@ This isn't quite right for multiple traces. */
   if (closureStruct.scanAllObjects) {
     /* The whole seg (except the buffer) is grey for some trace. */
-    res = (ams->iterate)(seg, amsScanObject, &closureStruct);
+    res = amsIterate(seg, amsScanObject, &closureStruct);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1157,7 +1304,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
       amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.scan */
       /* design.mps.poolams.ambiguous.middle */
       if (amsseg->ambiguousFixes) {
-        res = (ams->iterate)(seg, amsScanObject, &closureStruct);
+        res = amsIterate(seg, amsScanObject, &closureStruct);
         if (res != ResOK) {
           /* design.mps.poolams.marked.scan.fail */
           amsseg->marksChanged = TRUE;
@@ -1170,13 +1317,17 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
         while(j < amsseg->grains
               && AMSFindGrey(&i, &j, seg, j, amsseg->grains)) {
-            Addr clientP, clientNext;
-          AVER(!AMSIsInvalidColor(seg, i));
+          Addr clientP, clientNext;
+          AVER(!AMS_IS_INVALID_COLOUR(seg, i));
           p = AMS_INDEX_ADDR(seg, i);
           clientP = AddrAdd(p, format->headerSize);
-          clientNext = (*format->skip)(clientP);
-          next = AddrSub(clientNext, format->headerSize);
-          AVER(AddrIsAligned(next, alignment));
+          if (format->skip != NULL) {
+            clientNext = (*format->skip)(clientP);
+            next = AddrSub(clientNext, format->headerSize);
+          } else {
+            clientNext = AddrAdd(clientP, alignment);
+            next = AddrAdd(p, alignment);
+          }
           j = AMS_ADDR_INDEX(seg, next);
           res = (*format->scan)(ss, clientP, clientNext);
           if (res != ResOK) {
@@ -1185,10 +1336,13 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
             *totalReturn = FALSE;
             return res;
           }
+          /* Check that there haven't been any ambiguous fixes during the */
+          /* scan, because AMSFindGrey won't work otherwise. */
+          AVER_CRITICAL(!amsseg->ambiguousFixes);
           ss->scannedSize += AddrOffset(p, next);
-          AMSGreyBlacken(seg, i);
+          AMS_GREY_BLACKEN(seg, i);
           if (i+1 < j)
-            AMSRangeWhiteBlacken(seg, i+1, j);
+            AMS_RANGE_WHITE_BLACKEN(seg, i+1, j);
         }
       }
     } while(amsseg->marksChanged);
@@ -1201,7 +1355,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* AMSFix -- the pool class fixing method */
 
-Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   AMSSeg amsseg;
   Index i;                      /* the index of the fixed grain */
@@ -1238,12 +1392,16 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   }
 
   i = AMS_ADDR_INDEX(seg, base);
-  AVER_CRITICAL(!AMSIsInvalidColor(seg, i));
+  AVER_CRITICAL(!AMS_IS_INVALID_COLOUR(seg, i));
 
   ss->wasMarked = TRUE;
 
   switch (ss->rank) {
   case RankAMBIG:
+    if (Pool2AMS(pool)->shareAllocTable)
+      /* In this state, the pool doesn't support ambiguous references (see */
+      /* .ambiguous.noshare), so this is not a reference. */
+      break;
     /* not a real pointer if not aligned or not allocated */
     if (!AddrIsAligned(base, PoolAlignment(pool))
        || !AMS_ALLOCED(seg, i)) {
@@ -1256,7 +1414,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankWEAK:
     AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
     AVER_CRITICAL(AMS_ALLOCED(seg, i));
-    if (AMSIsWhite(seg, i)) {
+    if (AMS_IS_WHITE(seg, i)) {
       ss->wasMarked = FALSE;
       if (ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
@@ -1272,9 +1430,9 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           next = AddrSub(clientNext, format->headerSize);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
-          AMSRangeWhiteBlacken(seg, i, AMS_ADDR_INDEX(seg, next));
+          AMS_RANGE_WHITE_BLACKEN(seg, i, AMS_ADDR_INDEX(seg, next));
         } else { /* turn it grey */
-          AMSWhiteGreyen(seg, i);
+          AMS_WHITE_GREYEN(seg, i);
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
           /* mark it for scanning - design.mps.poolams.marked.fix */
           amsseg->marksChanged = TRUE;
@@ -1294,7 +1452,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
  *
  * Turn all grey objects black.
  */
-void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
+static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
   AMS ams;
 
@@ -1304,7 +1462,7 @@ void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
-  /* If it's white for any trace, remove the greyness from tables. */
+  /* If it's white for any of these traces, remove the greyness from tables. */
   if (TraceSetInter(traceSet, SegWhite(seg)) != TraceSetEMPTY) {
     AMSSeg amsseg = Seg2AMSSeg(seg);
     AVERT(AMSSeg, amsseg);
@@ -1318,66 +1476,87 @@ void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
 /* AMSReclaim -- the pool class reclamation method */
 
-void AMSReclaim(Pool pool, Trace trace, Seg seg)
+static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSSeg amsseg;
-  Format format;
-  Align alignment;
-  Count reclaimed = 0;
-  Index i, j = 0;
-  Addr p, next;
+  Count nowFree, grains;
+  Size reclaimedSize;
+  PoolDebugMixin debug;
 
   AVERT(Pool, pool);
   ams = Pool2AMS(pool);
   AVERT(AMS, ams);
+  AVERT(Trace, trace);
   AVERT(Seg, seg);
 
   amsseg = Seg2AMSSeg(seg);
   /* It's a white seg, so it must have colour tables. */
   AVER(amsseg->colourTablesInUse);
   AVER(!amsseg->marksChanged); /* there must be nothing grey */
-  format = pool->format;
-  AVERT(Format, format);
-  alignment = PoolAlignment(AMS2Pool(ams));
+  grains = amsseg->grains;
 
-  /* Start using allocTable */
-  if (!amsseg->allocTableInUse) {
-    amsseg->allocTableInUse = TRUE;
-    if (0 < amsseg->firstFree)
-      BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
-    if (amsseg->firstFree < amsseg->grains)
-      BTResRange(amsseg->allocTable, amsseg->firstFree, amsseg->grains);
+  /* Loop over all white blocks and splat them, if it's a debug class. */
+  debug = ((pool)->class->debugMixin)(pool);
+  if (debug != NULL) {
+    Index i, j = 0;
+
+    while(j < grains && AMS_FIND_WHITE_RANGE(&i, &j, seg, j, grains)) {
+      AVER(!AMS_IS_INVALID_COLOUR(seg, i));
+      DebugPoolFreeSplat(pool, AMS_INDEX_ADDR(seg, i), AMS_INDEX_ADDR(seg, j));
+      ++j; /* we know next grain is not white */
+    }
   }
 
-  /* Loop over all white objects and free them */
-  while(j < amsseg->grains
-        && AMSFindWhite(&i, &j, seg, j, amsseg->grains)) {
-    Addr clientP, clientNext;
-    AVER(!AMSIsInvalidColor(seg, i));
-    p = AMS_INDEX_ADDR(seg, i);
-    clientP = AddrAdd(p, format->headerSize);
-    clientNext = (*format->skip)(clientP);
-    next = AddrSub(clientNext, format->headerSize);
-    AVER(AddrIsAligned(next, alignment));
-    j = AMS_ADDR_INDEX(seg, next);
-    BTResRange(amsseg->allocTable, i, j);
-    reclaimed += j - i;
+  nowFree = BTCountResRange(amsseg->nonwhiteTable, 0, grains);
+
+  /* If the free space is all after firstFree, keep on using firstFree. */
+  /* It could have a more complicated condition, but not worth the trouble. */
+  if (!amsseg->allocTableInUse && amsseg->firstFree + nowFree == grains) {
+    AVER(amsseg->firstFree == grains
+         || BTIsResRange(amsseg->nonwhiteTable,
+                         amsseg->firstFree, grains));
+  } else {
+    if (ams->shareAllocTable) {
+      /* Stop using allocTable as the white table. */
+      amsseg->allocTableInUse = TRUE;
+    } else {
+      AVER(amsseg->allocTableInUse);
+      BTCopyRange(amsseg->nonwhiteTable, amsseg->allocTable, 0, grains);
+    }
   }
 
-  amsseg->free += reclaimed;
-  trace->reclaimSize += reclaimed << ams->grainShift;
-  ams->pgen.totalSize -= reclaimed << ams->grainShift;
+  reclaimedSize = (nowFree - amsseg->free) << ams->grainShift;
+  amsseg->free = nowFree;
+  trace->reclaimSize += reclaimedSize;
+  ams->pgen.totalSize -= reclaimedSize;
   /* preservedInPlaceCount is updated on fix */
-  trace->preservedInPlaceSize +=
-    (amsseg->grains - amsseg->free) << ams->grainShift;
+  trace->preservedInPlaceSize += (grains - amsseg->free) << ams->grainShift;
 
-  if (amsseg->free == amsseg->grains && SegBuffer(seg) == NULL) {
+  if (amsseg->free == grains && SegBuffer(seg) == NULL) {
     /* No survivors */
     SegFree(seg);
   } else {
     amsseg->colourTablesInUse = FALSE;
     SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
+  }
+}
+
+
+/* AMSFreeWalk -- free block walking method of the pool class */
+
+static void AMSFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+{
+  AMS ams;
+  Ring node, ring, nextNode;    /* for iterating over the segments */
+
+  AVERT(Pool, pool);
+  ams = Pool2AMS(pool);
+  AVERT(AMS, ams);
+
+  ring = &ams->segRing;
+  RING_FOR(node, ring, nextNode) {
+    AMSSegFreeWalk(RING_ELT(AMSSeg, segRing, node), f, p);
   }
 }
 
@@ -1441,13 +1620,40 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->bufferClass = RankBufClassGet;
   this->bufferFill = AMSBufferFill;
   this->bufferEmpty = AMSBufferEmpty;
-  this->whiten = AMSWhiten;
+  this->whiten = AMSCondemn;
   this->blacken = AMSBlacken;
   this->scan = AMSScan;
   this->fix = AMSFix;
   this->fixEmergency = AMSFix;
   this->reclaim = AMSReclaim;
+  this->freewalk = AMSFreeWalk;
   this->describe = AMSDescribe;
+}
+
+
+/* AMSDebugMixin - find debug mixin in class AMSDebug */
+
+static PoolDebugMixin AMSDebugMixin(Pool pool)
+{
+  AMS ams;
+
+  AVERT(Pool, pool);
+  ams = Pool2AMS(pool);
+  AVERT(AMS, ams);
+  /* Can't check AMSDebug, because this is called during init */
+  return &(AMS2AMSDebug(ams)->debug);
+}
+
+
+/* AMSDebugPoolClass -- the class definition for the debug version */
+
+DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
+{
+  INHERIT_CLASS(this, AMSPoolClass);
+  PoolClassMixInDebug(this);
+  this->name = "AMSDBG";
+  this->size = sizeof(AMSDebugStruct);
+  this->debugMixin = AMSDebugMixin;
 }
 
 
@@ -1456,26 +1662,18 @@ DEFINE_CLASS(AMSPoolClass, this)
 Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
-  CHECKD(Pool, AMS2Pool(ams));
+  CHECKL(PoolCheck(AMS2Pool(ams)));
   CHECKL(IsSubclassPoly(AMS2Pool(ams)->class, AMSPoolClassGet()));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == AMS2Pool(ams)->format->alignment);
   CHECKD(Chain, ams->chain);
   CHECKD(PoolGen, &ams->pgen);
   CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMS2Pool(ams)))));
-  CHECKL(ams->iterate != NULL);
+  CHECKL(FUNCHECK(ams->segSize));
   CHECKL(RingCheck(&ams->segRing));
-  CHECKL(ams->allocRing != NULL);
-  CHECKL(ams->segsDestroy != NULL);
-  CHECKL(ams->segClass != NULL);
+  CHECKL(FUNCHECK(ams->allocRing));
+  CHECKL(FUNCHECK(ams->segsDestroy));
+  CHECKL(FUNCHECK(ams->segClass));
 
   return TRUE;
-}
-
-
-/* mps_class_ams -- return the pool class descriptor to the client */
-
-mps_class_t mps_class_ams(void)
-{
-  return (mps_class_t)AMSPoolClassGet();
 }

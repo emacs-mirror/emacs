@@ -2,11 +2,11 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
- * total size of objects allocated (because epoch doesn't increment
- * when AMS is collected).
- */
+ * total size of objects allocated (because epoch doesn't increment when
+ * AMS is collected).  */
 
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -32,16 +32,19 @@
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
 #define testArenaSIZE   ((size_t)16<<20)
-#define initTestFREQ    6000
+#define initTestFREQ    3000
+#define splatTestFREQ   6000
 static mps_gen_param_s testChain[1] = { { 160, 0.90 } };
 
 
-static mps_pool_t pool;
+static mps_arena_t arena;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static size_t totalSize = 0;
 
+
+/* make -- object allocation and init */
 
 static mps_addr_t make(void)
 {
@@ -51,10 +54,10 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if(res)
+    if (res)
       die(res, "MPS_RESERVE_BLOCK");
     res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
-    if(res)
+    if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
@@ -63,49 +66,48 @@ static mps_addr_t make(void)
 }
 
 
-static void *test(void *arg, size_t s)
+/* test -- the actual stress test */
+
+static mps_pool_debug_option_s freecheckOptions =
+  { NULL, 0, (void *)"Dead", 4 };
+
+static void *test(void *arg, size_t haveAmbigous)
 {
-  mps_arena_t arena;
-  mps_fmt_t format;
-  mps_chain_t chain;
+  mps_pool_t pool;
   mps_root_t exactRoot, ambigRoot;
   size_t lastStep = 0, i, r;
   unsigned long objs;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
-
-  die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
-  die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
-  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain),
-      "pool_create(ams)");
+  pool = (mps_pool_t)arg;
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
 
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
-  for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
+  if (haveAmbigous)
+    for(i = 0; i < ambigRootsCOUNT; ++i)
+      ambigRoots[i] = rnd_addr();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
                                    MPS_RANK_EXACT, (mps_rm_t)0,
                                    &exactRoots[0], exactRootsCOUNT,
                                    (mps_word_t)1),
       "root_create_table(exact)");
-  die(mps_root_create_table(&ambigRoot, arena,
-                            MPS_RANK_AMBIG, (mps_rm_t)0,
-                            &ambigRoots[0], ambigRootsCOUNT),
-      "root_create_table(ambig)");
+  if (haveAmbigous)
+    die(mps_root_create_table(&ambigRoot, arena,
+                              MPS_RANK_AMBIG, (mps_rm_t)0,
+                              &ambigRoots[0], ambigRootsCOUNT),
+        "root_create_table(ambig)");
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
-  objs = 0;
+  objs = 0; totalSize = 0;
   while(totalSize < totalSizeMAX) {
-    if(totalSize > lastStep + totalSizeSTEP) {
+    if (totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
       printf("\nSize %lu bytes, %lu objects.\n",
              (unsigned long)totalSize, objs);
@@ -116,12 +118,12 @@ static void *test(void *arg, size_t s)
     }
 
     r = (size_t)rnd();
-    if(r & 1) {
+    if (!haveAmbigous || (r & 1)) {
       i = (r >> 1) % exactRootsCOUNT;
-      if(exactRoots[i] != objNULL)
+      if (exactRoots[i] != objNULL)
         cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
-      if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+      if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                     exactRoots, exactRootsCOUNT);
     } else {
@@ -131,8 +133,11 @@ static void *test(void *arg, size_t s)
       ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
     }
 
-    if(rnd() % initTestFREQ == 0)
+    if (rnd() % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
+
+    if (rnd() % splatTestFREQ == 0)
+      mps_pool_check_free_space(pool);
 
     ++objs;
     if (objs % 256 == 0) {
@@ -145,10 +150,8 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
-  mps_root_destroy(ambigRoot);
-  mps_pool_destroy(pool);
-  mps_chain_destroy(chain);
-  mps_fmt_destroy(format);
+  if (haveAmbigous)
+    mps_root_destroy(ambigRoot);
 
   return NULL;
 }
@@ -156,8 +159,10 @@ static void *test(void *arg, size_t s)
 
 int main(int argc, char **argv)
 {
-  mps_arena_t arena;
   mps_thr_t thread;
+  mps_fmt_t format;
+  mps_chain_t chain;
+  mps_pool_t pool;
   void *r;
 
   randomize(argc, argv);
@@ -165,7 +170,37 @@ int main(int argc, char **argv)
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
+  die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
+  die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
+
+  printf("\nAMS Debug\n");
+  die(mps_pool_create(&pool, arena, mps_class_ams_debug(), &freecheckOptions,
+                      format, chain, FALSE),
+      "pool_create(ams_debug,share)");
+  mps_tramp(&r, test, pool, 0);
+  mps_pool_destroy(pool);
+
+  printf("\nAMS Debug\n");
+  die(mps_pool_create(&pool, arena, mps_class_ams_debug(), &freecheckOptions,
+                      format, chain, TRUE),
+      "pool_create(ams_debug,ambig)");
+  mps_tramp(&r, test, pool, 1);
+  mps_pool_destroy(pool);
+
+  printf("\nAMS\n");
+  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain, TRUE),
+      "pool_create(ams,ambig)");
+  mps_tramp(&r, test, pool, 1);
+  mps_pool_destroy(pool);
+
+  printf("\nAMS\n");
+  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain, FALSE),
+      "pool_create(ams,share)");
+  mps_tramp(&r, test, pool, 0);
+  mps_pool_destroy(pool);
+
+  mps_chain_destroy(chain);
+  mps_fmt_destroy(format);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

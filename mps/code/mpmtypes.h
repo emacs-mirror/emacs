@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Global Graphics Software.
  *
  * .design: design.mps.type
  *
@@ -137,8 +138,12 @@ typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
 /* Heap Walker */
 
 /* This type is used by the PoolClass method Walk */
-typedef void (*FormattedObjectsStepMethod)(Addr, Format, Pool,
-                                           void *, Size);
+typedef void (*FormattedObjectsStepMethod)(Addr obj, Format fmt, Pool pool,
+                                           void *v, unsigned long s);
+
+/* This type is used by the PoolClass method Walk */
+typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);
+
 
 /* Seg*Method -- see design.mps.seg */
 
@@ -212,7 +217,8 @@ typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
                                           AllocFrame frame);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
-                               void *p, unsigned long s);
+                               void *v, unsigned long s);
+typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockStepMethod f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
@@ -294,10 +300,11 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s)
 
 /* Format varieties */
 enum {
- FormatVarietyA = 1,
- FormatVarietyB,
- FormatVarietyAutoHeader,
- FormatVarietyLIMIT
+  FormatVarietyA = 1,
+  FormatVarietyB,
+  FormatVarietyAutoHeader,
+  FormatVarietyFixed,
+  FormatVarietyLIMIT
 };
 
 

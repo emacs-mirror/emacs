@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 
-
 SRCID(teletest, "$Id$");
 
 

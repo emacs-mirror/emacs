@@ -11,6 +11,7 @@
 
 #include "tract.h"
 #include "boot.h"
+#include "bt.h"
 #include "mpm.h"
 
 SRCID(tract, "$Id$");

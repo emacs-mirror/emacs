@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: The purpose of this code is
  *   1. to connect the MPS Library Interface to the ANSI C libraries,
@@ -78,8 +79,11 @@ int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
 }
 
 
-void mps_lib_abort(void)
+void mps_lib_assert_fail(const char *message)
 {
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nMPS ASSERTION FAILURE: %s\n", message);
+  fflush(stderr); /* make sure the message is output */
   abort();
 }
 
