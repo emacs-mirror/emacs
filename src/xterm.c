@@ -747,7 +747,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      /* We assume that MSBs are appropriately
                          set/reset by CCL program.  */
 		      if (font->max_byte1 == 0)	/* 1-byte font */
-			cp->byte2 = ccl->reg[1];
+			cp->byte1 = 0, cp->byte2 = ccl->reg[1];
 		      else
 			cp->byte1 = ccl->reg[1], cp->byte2 = ccl->reg[2];
 		    }
@@ -760,7 +760,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      /* We assume that MSBs are appropriately
                          set/reset by CCL program.  */
 		      if (font->max_byte1 == 0)	/* 1-byte font */
-			cp->byte2 = ccl->reg[1];
+			cp->byte1 = 0, cp->byte2 = ccl->reg[1];
 		      else
 			cp->byte1 = ccl->reg[1], cp->byte2 = ccl->reg[2];
 		    }
