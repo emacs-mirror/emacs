@@ -2037,7 +2037,8 @@ extern int tool_bar_button_relief;
 
 /* Defined in xdisp.c */
 
-int resize_mini_window P_ ((struct window *));
+void resize_echo_area_axactly P_ ((void));
+int resize_mini_window P_ ((struct window *, int));
 int try_window P_ ((Lisp_Object, struct text_pos));
 void window_box P_ ((struct window *, int, int *, int *, int *, int *));
 int window_box_height P_ ((struct window *));
