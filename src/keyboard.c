@@ -6689,7 +6689,7 @@ read_avail_input (expected)
 #ifdef SIGIO   /* for entire page */
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 
-SIGTYPE
+static SIGTYPE
 input_available_signal (signo)
      int signo;
 {
@@ -6855,7 +6855,10 @@ menu_bar_items (old)
 	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0, 1),
 			  0, 1);
 	if (CONSP (def))
-	  menu_bar_one_keymap (def);
+	  {
+	    menu_bar_one_keymap_changed_items = Qnil;
+	    map_keymap (def, menu_bar_item, Qnil, NULL, 1);
+	  }
       }
 
   /* Move to the end those items that should be at the end.  */
@@ -6909,48 +6912,15 @@ menu_bar_items (old)
   return menu_bar_items_vector;
 }
 
-/* Scan one map KEYMAP, accumulating any menu items it defines
-   in menu_bar_items_vector.  */
-
-static Lisp_Object menu_bar_one_keymap_changed_items;
-
-static void
-menu_bar_one_keymap (keymap)
-     Lisp_Object keymap;
-{
-  Lisp_Object tail, item;
-
-  menu_bar_one_keymap_changed_items = Qnil;
-
-  /* Loop over all keymap entries that have menu strings.  */
-  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
-    {
-      item = XCAR (tail);
-      if (CONSP (item))
-	menu_bar_item (XCAR (item), XCDR (item));
-      else if (VECTORP (item))
-	{
-	  /* Loop over the char values represented in the vector.  */
-	  int len = XVECTOR (item)->size;
-	  int c;
-	  for (c = 0; c < len; c++)
-	    {
-	      Lisp_Object character;
-	      XSETFASTINT (character, c);
-	      menu_bar_item (character, XVECTOR (item)->contents[c]);
-	    }
-	}
-    }
-}
-
 /* Add one item to menu_bar_items_vector, for KEY, ITEM_STRING and DEF.
    If there's already an item for KEY, add this DEF to it.  */
 
 Lisp_Object item_properties;
 
 static void
-menu_bar_item (key, item)
-     Lisp_Object key, item;
+menu_bar_item (key, item, dummy1, dummy2)
+     Lisp_Object key, item, dummy1;
+     void *dummy2;
 {
   struct gcpro gcpro1;
   int i;
@@ -7023,7 +6993,10 @@ menu_bar_item (key, item)
     {
       Lisp_Object old;
       old = XVECTOR (menu_bar_items_vector)->contents[i + 2];
-      XVECTOR (menu_bar_items_vector)->contents[i + 2] = Fcons (item, old);
+      /* If the new and the old items are not both keymaps,
+	 the lookup will only find `item'.  */
+      item = Fcons (item, KEYMAPP (item) && KEYMAPP (XCAR (old)) ? old : Qnil);
+      XVECTOR (menu_bar_items_vector)->contents[i + 2] = item;
     }
 }
 
