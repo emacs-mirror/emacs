@@ -72,15 +72,17 @@ extern enum emacs_code_class_type emacs_code_class[256];
    followings.  */
 enum iso_code_class_type
   {
-    ISO_control_code,		/* Control codes in the range
-				   0x00..0x1F, 0x7F, and 0x80..0x9F,
-				   except for the following seven
-				   codes.  */
+    ISO_control_0,		/* Control codes in the range
+				   0x00..0x1F and 0x7F, except for the
+				   following 5 codes.  */
     ISO_carriage_return,	/* ISO_CODE_CR (0x0D) */
     ISO_shift_out,		/* ISO_CODE_SO (0x0E) */
     ISO_shift_in,		/* ISO_CODE_SI (0x0F) */
     ISO_single_shift_2_7,	/* ISO_CODE_SS2_7 (0x19) */
     ISO_escape,			/* ISO_CODE_SO (0x1B) */
+    ISO_control_1,		/* Control codes in the range
+				   0x80..0x9F, except for the
+				   following 3 codes.  */
     ISO_single_shift_2,		/* ISO_CODE_SS2 (0x8E) */
     ISO_single_shift_3,		/* ISO_CODE_SS3 (0x8F) */
     ISO_control_sequence_introducer, /* ISO_CODE_CSI (0x9B) */
@@ -395,6 +397,9 @@ struct coding_system
   /* Index number of coding category of the coding system.  */
   int category_idx;
 
+  unsigned src_multibyte : 1;
+  unsigned dst_multibyte : 1;
+
   /* How may heading bytes we can skip for decoding.  This is set to
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
@@ -404,11 +409,12 @@ struct coding_system
   /* The following members are set by encoding/decoding routine.  */
   int produced, produced_char, consumed, consumed_char;
 
-  /* Encoding routines set this to 1 when they produce a byte sequence
-     which can be parsed as a multibyte character.  Decoding routines
-     set this to 1 when they encounter an invalid code and, as the
-     result, produce an unexpected multibyte character.  */
-  int fake_multibyte;
+  /* Number of error source data found in a decoding routine.  */
+  int errors;
+
+  /* Finish status of code conversion.  It should be one of macros
+     CODING_FINISH_XXXX.  */
+  int result;
 
   /* The following members are all Lisp symbols.  We don't have to
      protect them from GC because the current garbage collection
@@ -444,21 +450,25 @@ struct coding_system
 /* Return 1 if the coding system CODING requires code conversion on
    decoding.  */
 #define CODING_REQUIRE_DECODING(coding)	\
-  ((coding)->common_flags & CODING_REQUIRE_DECODING_MASK)
+  ((coding)->dst_multibyte		\
+   || (coding)->common_flags & CODING_REQUIRE_DECODING_MASK)
 
 /* Return 1 if the coding system CODING requires code conversion on
    encoding.  */
 #define CODING_REQUIRE_ENCODING(coding)	\
-  ((coding)->common_flags & CODING_REQUIRE_ENCODING_MASK)
+  ((coding)->src_multibyte		\
+   || (coding)->common_flags & CODING_REQUIRE_ENCODING_MASK)
 
 /* Return 1 if the coding system CODING requires some kind of code
    detection.  */
 #define CODING_REQUIRE_DETECTION(coding) \
   ((coding)->common_flags & CODING_REQUIRE_DETECTION_MASK)
 
+/* Return 1 if the coding system CODING requires code conversion on
+   decoding or some kind of code detection.  */
 #define CODING_MAY_REQUIRE_DECODING(coding)	\
-  ((coding)->common_flags			\
-   & (CODING_REQUIRE_DETECTION_MASK | CODING_REQUIRE_DECODING_MASK))
+  (CODING_REQUIRE_DECODING (coding)		\
+   || CODING_REQUIRE_DETECTION (coding))
 
 /* Index for each coding category in `coding_category_table' */
 #define CODING_CATEGORY_IDX_EMACS_MULE	0
