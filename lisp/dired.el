@@ -893,6 +893,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "p" 'dired-previous-line)
     (define-key map "q" 'dired-quit)
     (define-key map "s" 'dired-sort-toggle-or-edit)
+    (define-key map "t" 'dired-do-toggle)
     (define-key map "u" 'dired-unmark)
     (define-key map "v" 'dired-view-file)
     (define-key map "x" 'dired-do-flagged-delete)
@@ -1019,6 +1020,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       '("Unmark" . dired-unmark))
     (define-key map [menu-bar mark mark]
       '("Mark" . dired-mark))
+    (define-key map [menu-bar mark toggle-marks]
+      '("Toggle Marks" . dired-do-toggle))
 
     (define-key map [menu-bar operate]
       (cons "Operate" (make-sparse-keymap "Operate")))
@@ -2099,6 +2102,29 @@ If on a subdir headerline, mark all its files except `.' and `..'."
 Optional prefix ARG says how many lines to unflag; default is one line."
   (interactive "p")
   (dired-unmark (- arg)))
+
+(defun dired-do-toggle ()
+  "Toggle marks.
+That is, currently marked files become unmarked and vice versa.
+Files marked with other flags (such as `D') are not affected.
+`.' and `..' are never toggled.
+As always, hidden subdirs are not affected."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let (buffer-read-only)
+      (while (not (eobp))
+        (or (dired-between-files)
+            (looking-at dired-re-dot)
+            ;; use subst instead of insdel because it does not move
+            ;; the gap and thus should be faster and because
+            ;; other characters are left alone automatically
+            (apply 'subst-char-in-region
+                   (point) (1+ (point))
+                   (if (eq ?\040 (following-char)) ; SPC
+                       (list ?\040 dired-marker-char)
+                     (list dired-marker-char ?\040))))
+        (forward-line 1)))))
 
 ;;; Commands to mark or flag files based on their characteristics or names.
 
