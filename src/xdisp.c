@@ -753,8 +753,8 @@ static int next_element_from_composition P_ ((struct it *));
 static int next_element_from_image P_ ((struct it *));
 static int next_element_from_stretch P_ ((struct it *));
 static void load_overlay_strings P_ ((struct it *, int));
-static void init_from_display_pos P_ ((struct it *, struct window *,
-				       struct display_pos *));
+static int init_from_display_pos P_ ((struct it *, struct window *,
+				      struct display_pos *));
 static void reseat_to_string P_ ((struct it *, unsigned char *,
 				  Lisp_Object, int, int, int, int));
 static enum move_it_result move_it_in_display_line_to P_ ((struct it *,
@@ -762,8 +762,8 @@ static enum move_it_result move_it_in_display_line_to P_ ((struct it *,
 void move_it_vertically_backward P_ ((struct it *, int));
 static void init_to_row_start P_ ((struct it *, struct window *,
 				   struct glyph_row *));
-static void init_to_row_end P_ ((struct it *, struct window *,
-				 struct glyph_row *));
+static int init_to_row_end P_ ((struct it *, struct window *,
+				struct glyph_row *));
 static void back_to_previous_line_start P_ ((struct it *));
 static int forward_to_next_line_start P_ ((struct it *, int *));
 static struct text_pos string_pos_nchars_ahead P_ ((struct text_pos,
@@ -1805,15 +1805,17 @@ in_ellipses_for_invisible_text_p (pos, w)
 
 /* Initialize IT for stepping through current_buffer in window W,
    starting at position POS that includes overlay string and display
-   vector/ control character translation position information.  */
+   vector/ control character translation position information.  Value
+   is zero if there are overlay strings with newlines at POS.  */
 
-static void
+static int
 init_from_display_pos (it, w, pos)
      struct it *it;
      struct window *w;
      struct display_pos *pos;
 {
   int charpos = CHARPOS (pos->pos), bytepos = BYTEPOS (pos->pos);
+  int i, overlay_strings_with_newlines = 0;
   
   /* If POS specifies a position in a display vector, this might
      be for an ellipsis displayed for invisible text.  We won't
@@ -1835,6 +1837,13 @@ init_from_display_pos (it, w, pos)
      but the call to init_iterator below will move us to the
      after-string.  */
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
+
+  for (i = 0; i < it->n_overlay_strings; ++i)
+    if (index (XSTRING (it->overlay_strings[i])->data, '\n') != NULL)
+      {
+	overlay_strings_with_newlines = 1;
+	break;
+      }
 
   /* If position is within an overlay string, set up IT to the right
      overlay string.  */
@@ -1905,6 +1914,7 @@ init_from_display_pos (it, w, pos)
     }
   
   CHECK_IT (it);
+  return !overlay_strings_with_newlines;
 }
 
 
@@ -1924,20 +1934,28 @@ init_to_row_start (it, w, row)
 
      
 /* Initialize IT for stepping through current_buffer in window W
-   starting in the line following ROW, i.e. starting at ROW->end.  */
+   starting in the line following ROW, i.e. starting at ROW->end.
+   Value is zero if there are overlay strings with newlines at ROW's
+   end position.  */
 
-static void
+static int
 init_to_row_end (it, w, row)
      struct it *it;
      struct window *w;
      struct glyph_row *row;
 {
-  init_from_display_pos (it, w, &row->end);
-
-  if (row->continued_p)
-    it->continuation_lines_width = (row->continuation_lines_width
-				    + row->pixel_width);
-  CHECK_IT (it);
+  int success = 0;
+  
+  if (init_from_display_pos (it, w, &row->end))
+    {
+      if (row->continued_p)
+	it->continuation_lines_width
+	  = row->continuation_lines_width + row->pixel_width;
+      CHECK_IT (it);
+      success = 1;
+    }
+  
+  return success;
 }
 
 
@@ -8167,6 +8185,23 @@ text_outside_line_unchanged_p (w, start, end)
 	  && XINT (current_buffer->selective_display) > 0
 	  && (BEG_UNCHANGED < start || GPT <= start))
 	unchanged_p = 0;
+
+      /* If there are overlays at the start or end of the line, these
+	 may have overlay strings with newlines in them.  A change at
+	 START, for instance, may actually concern the display of such
+	 overlay strings as well, and they are displayed on different
+	 lines.  So, quickly rule out this case.  (For the future, it
+	 might be desirable to implement something more telling than
+	 just BEG/END_UNCHANGED.)  */
+      if (unchanged_p)
+	{
+	  if (BEG + BEG_UNCHANGED == start
+	      && overlay_touches_p (start))
+	    unchanged_p = 0;
+	  if (END_UNCHANGED == end
+	      && overlay_touches_p (Z - end))
+	    unchanged_p = 0;
+	}
     }
 
   return unchanged_p;
@@ -8185,6 +8220,7 @@ redisplay ()
 {
   redisplay_internal (0);
 }
+
 
 /* Return 1 if point moved out of or into a composition.  Otherwise
    return 0.  PREV_BUF and PREV_PT are the last point buffer and
@@ -8223,6 +8259,7 @@ check_point_in_composition (prev_buf, prev_pt, buf, pt)
 	  && COMPOSITION_VALID_P (start, end, prop)
 	  && start < pt && end > pt);
 }
+
 
 /* Reconsider the setting of B->clip_changed which is displayed
    in window W.  */
@@ -11399,8 +11436,9 @@ try_window_id (w)
 
       if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row))
 	GIVE_UP (17);
-      
-      init_to_row_end (&it, w, last_unchanged_at_beg_row);
+
+      if (init_to_row_end (&it, w, last_unchanged_at_beg_row) == 0)
+	GIVE_UP (18);
       start_pos = it.current.pos;
       
       /* Start displaying new lines in the desired matrix at the same
