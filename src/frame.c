@@ -972,7 +972,10 @@ doesn't support multiple overlapping frames, this function does nothing.")
      Lisp_Object frame;
 {
   CHECK_LIVE_FRAME (frame, 0);
-  
+
+  /* Do like the documentation says. */
+  Fmake_frame_visible (frame);
+
   if (frame_raise_lower_hook)
     (*frame_raise_lower_hook) (XFRAME (frame), 1);
 
