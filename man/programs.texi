@@ -1980,16 +1980,13 @@ buffer.  The first line that begins with either a tab character or six
 spaces determines the choice.  If the scan fails (for example, if the
 buffer is new and therefore empty), the value of
 @code{fortran-tab-mode-default} (@code{nil} for fixed format, and
-non-@code{nil} for tab format) is used.  You can tell which style is
-presently in effect by the presence or absence of the string specified
-by @code{fortran-tab-mode-string} (default @samp{/t}) in the mode line.
-Fortran mode sets the value of @code{indent-tabs-mode} accordingly
-(@pxref{Just Spaces}).
+non-@code{nil} for tab format) is used.  @samp{/t} in the mode line
+indicates tab format is selected.  Fortran mode sets the value of
+@code{indent-tabs-mode} accordingly (@pxref{Just Spaces}).
 
 @vindex fortran-continuation-string
   If the text on a line starts with the Fortran continuation marker
-specified by @code{fortran-continuation-string} (conventionally
-@samp{$}), or if it begins with any non-whitespace character in column
+@samp{$}, or if it begins with any non-whitespace character in column
 5, Fortran mode treats it as a continuation line.  When you indent a
 continuation line with @key{TAB}, it converts the line to the current
 continuation style.  When you split a Fortran statement with
@@ -2107,8 +2104,7 @@ default is 8.
 @end table
 
 The variables controlling the indentation of comments are described in
-a separate section (@pxref{Fortran Comments}).
-
+the following section.
 
 @node Fortran Comments
 @subsection Fortran Comments
@@ -2225,11 +2221,11 @@ commands.  You activate Auto Fill in Fortran mode in the normal way
 @vindex fortran-break-before-delimiters
    Auto Fill breaks lines at spaces or delimiters when the lines get
 longer than the desired width (the value of @code{fill-column}).  The
-delimiters (besides whitespace) that Auto Fill may break at are
+delimiters (besides whitespace) that Auto Fill can break at are
 @samp{+}, @samp{-}, @samp{/}, @samp{*}, @samp{=}, @samp{<}, @samp{>},
-and @samp{,}.  The line break comes after the delimiter if the variable
-@code{fortran-break-before-delimiters} is @code{nil}.  Otherwise (and by
-default), the break comes before the delimiter.
+and @samp{,}.  The line break comes after the delimiter if the
+variable @code{fortran-break-before-delimiters} is @code{nil}.
+Otherwise (and by default), the break comes before the delimiter.
 
   To enable Auto Fill in all Fortran buffers, add
 @code{turn-on-auto-fill} to @code{fortran-mode-hook}.  @xref{Hooks}.
