@@ -98,7 +98,7 @@ Boston, MA 02111-1307, USA.  */
 #define LEADING_CODE_PRIVATE_11	0x9A /* for private DIMENSION1 of 1-column */
 #define LEADING_CODE_PRIVATE_12	0x9B /* for private DIMENSION1 of 2-column */
 #define LEADING_CODE_PRIVATE_21	0x9C /* for private DIMENSION2 of 1-column */
-#define LEADING_CODE_PRIVATE_22	0x9D /* for private DIMENSION2o f 2-column */
+#define LEADING_CODE_PRIVATE_22	0x9D /* for private DIMENSION2 of 2-column */
 
 /* Extended leading-code.  */
 /* Start of each extended leading-codes.  */
