@@ -334,7 +334,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 }
 #endif
 
-static void
+static Lisp_Object
 delete_temp_file (name)
      Lisp_Object name;
 {
@@ -572,7 +572,6 @@ egetenv (var)
 init_callproc ()
 {
   register char * sh;
-  register char **envp;
   Lisp_Object tempdir;
 
   {
@@ -611,6 +610,11 @@ init_callproc ()
   sh = (char *) getenv ("SHELL");
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
 #endif
+}
+
+set_process_environment ()
+{
+  register char **envp;
 
   Vprocess_environment = Qnil;
 #ifndef CANNOT_DUMP
