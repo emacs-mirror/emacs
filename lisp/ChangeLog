@@ -49,9 +49,9 @@
 
 2003-10-01  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* ffap.el: Remove defadvice related code from CVS since
-	  `complete' provides a `PC-completion-as-file-name-predicate'
-	  variable that ffap can override.
+	* ffap.el: Remove defadvice related code from CVS since `complete'
+	provides a `PC-completion-as-file-name-predicate' variable that
+	ffap can override.
 
 2003-10-02  Kenichi Handa  <handa@m17n.org>
 
@@ -182,7 +182,8 @@
 	(desktop-load-default): Function made obsolete.
 	(desktop-locals-to-save): Variable made customizable.
 	(desktop-read): Optional parameter `dirname' added.
-	(desktop-change-dir, desktop-revert): Parameter `dirname' in `desktop-read' used.
+	(desktop-change-dir, desktop-revert): Parameter `dirname' in
+	`desktop-read' used.
 	(desktop-save-in-load-dir): Renamed to `desktop-save-in-desktop-dir'.
 
 2003-09-29  Rajesh Vaidheeswarran  <rv@gnu.org>
@@ -1560,8 +1561,9 @@
 	* textmodes/reftex.el (reftex-all-document-files): Delete autoload.
 	(reftex-scanning-info-available-p): Add autoload cookie.
 
-	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
-	Delete duplicate aset on standard-display-table.
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): Delete duplicate
+	aset on standard-display-table.
 
 	* view.el (view-file): If existing buffer's major mode is special,
 	don't go into view mode.
@@ -1597,8 +1599,9 @@
 
 2003-07-08  Kim F. Storm  <storm@cua.dk>
 
-	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
-	Don't break bootstrap if standard-display-table isn't setup yet.
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): Don't break
+	bootstrap if standard-display-table isn't setup yet.
 
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 
@@ -1623,8 +1626,9 @@
 	* emacs-lisp/debug.el (debug, debugger-env-macro):
 	Use with-no-warnings while accessing and binding unread-command-char.
 
-	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
-	Use explicit loop instead of calling standard-display-default.
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): Use explicit loop
+	instead of calling standard-display-default.
 
 	* net/ange-ftp.el (ange-ftp-file-symlink-p):
 	Use condition-case to catch error in ange-ftp-get-files.
