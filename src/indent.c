@@ -997,6 +997,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
     {
       while (pos == next_boundary)
 	{
+	  int newpos;
+
 	  /* If the caller says that the screen position came from an earlier
 	     call to compute_motion, then we've already accounted for the
 	     overlay strings at point.  This is only true the first time
@@ -1020,7 +1022,12 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	     (but not necessarily all that there are here),
 	     and store in next_boundary the next position where
 	     we need to call skip_invisible.  */
-	  pos = skip_invisible (pos, &next_boundary, to, window);
+	  newpos = skip_invisible (pos, &next_boundary, to, window);
+
+	  if (newpos >= to)
+	    goto after_loop;
+
+	  pos = newpos;
 	}
 
       /* Handle right margin.  */
@@ -1360,6 +1367,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 	}
     }
+
+ after_loop:
 
   /* Remember any final width run in the cache.  */
   if (current_buffer->width_run_cache
