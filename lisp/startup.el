@@ -70,6 +70,9 @@
 ;; -no-site-file             Do not load "site-start.el".  (This is the ONLY
 ;; --no-site-file            way to prevent loading that file.)
 ;; -------------------------
+;; -nosplash                 Don't display a splash screen on startup.
+;; --nosplash
+;; -------------------------
 ;; -u USER                   Load USER's init file instead of the init
 ;; -user USER                file belonging to the user starting Emacs.
 ;; --user USER
@@ -135,6 +138,8 @@ This is for use in your personal init file, once you are familiar
 with the contents of the startup message."
   :type 'boolean
   :group 'initialization)
+
+(defvaralias 'inhibit-splash-screen 'inhibit-startup-message)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -753,20 +758,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (argi (pop args))
 	    (argval nil))
 	;; Handle --OPTION=VALUE format.
-	(if (and (string-match "\\`--" argi)
-		 (string-match "=" argi))
-	    (setq argval (substring argi (match-end 0))
-		  argi (substring argi 0 (match-beginning 0))))
-	(or (equal argi "--")
-	    (let ((completion (try-completion argi longopts)))
-	      (if (eq completion t)
-		  (setq argi (substring argi 1))
-		(if (stringp completion)
-		    (let ((elt (assoc completion longopts)))
-		      (or elt
-			  (error "Option `%s' is ambiguous" argi))
-		      (setq argi (substring (car elt) 1)))
-		  (setq argval nil)))))
+	(when (and (string-match "\\`--" argi)
+		   (string-match "=" argi))
+	  (setq argval (substring argi (match-end 0))
+		argi (substring argi 0 (match-beginning 0))))
+	(unless (equal argi "--")
+	  (let ((completion (try-completion argi longopts)))
+	    (if (eq completion t)
+		(setq argi (substring argi 1))
+	      (if (stringp completion)
+		  (let ((elt (assoc completion longopts)))
+		    (or elt
+			(error "Option `%s' is ambiguous" argi))
+		    (setq argi (substring (car elt) 1)))
+		(setq argval nil)))))
 	(cond
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
@@ -1503,7 +1508,7 @@ normal otherwise."
 	    ;; and long versions of what's on command-switch-alist.
 	    (longopts
 	     (append '(("--funcall") ("--load") ("--insert") ("--kill")
-		       ("--directory") ("--eval") ("--execute")
+		       ("--directory") ("--eval") ("--execute") ("--nosplash")
 		       ("--find-file") ("--visit") ("--file"))
 		     (mapcar (lambda (elt)
 			       (list (concat "-" (car elt))))
@@ -1555,6 +1560,9 @@ normal otherwise."
 			      (cons argval command-line-args-left)))
 			 (funcall (cdr tem) argi))
 		     (funcall (cdr tem) argi)))
+
+		  ((string-equal argi "-nosplash")
+		   (setq inhibit-startup-message t))
 
 		  ((member argi '("-f"	;what the manual claims
 				  "-funcall"
