@@ -1234,7 +1234,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.22
+;; This file corresponds to RefTeX version 3.21.0.3
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -3450,7 +3450,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
   ;; limit length
   (cond
    ((> (length text) 100) (substring text 0 100))
-   ((= (length text) 0) " ")
+   ((= (length text) 0) (make-string 1 ?\ ))
    (t text)))
 
 (defun reftex-typekey-check (typekey conf-variable &optional n)
@@ -5039,6 +5039,7 @@ With argument, actually select the window showing the cross reference."
   ;; argument.  As RefTeX cannot know this, the string "bb" would still be
   ;; considered an argument of macro \macro.
 
+  (unless reftex-section-regexp (reftex-compute-ref-cite-tables))
   (catch 'exit
     (if (null which) (throw 'exit nil))
     (let ((bound (or bound (save-excursion (re-search-backward
