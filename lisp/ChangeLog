@@ -1,3 +1,7 @@
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* language/thai-word.el: New file.
+
 2005-03-19  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
 
 	* files.el (backup-buffer): If the file's directory is not
