@@ -1901,9 +1901,10 @@ update_line (frame, vpos)
   current_frame->charstarts[vpos] = temp1;
 }
 
-/* A vector of size >= NFRAMES + 3 * NBUFFERS + 1, containing the session's
-   frames, buffers, buffer-read-only flags, and buffer-modified-flags,
-   and a trailing sentinel (so we don't need to add length checks).  */
+/* A vector of size >= 2 * NFRAMES + 3 * NBUFFERS + 1, containing the
+   session's frames, frame names, buffers, buffer-read-only flags, and
+   buffer-modified-flags, and a trailing sentinel (so we don't need to
+   add length checks).  */
 static Lisp_Object frame_and_buffer_state;
 
 DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
