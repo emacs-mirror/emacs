@@ -1,3 +1,10 @@
+2002-05-20  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/sendmail.el (mail-recover-1): Remove (debug).
+	(mail-signature): Fix :type.
+	(mail-default-directory): New user option.
+	(mail, mail-recover):  Use that option.
+
 2002-05-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* international/mule.el (auto-coding-alist): Use emacs-mule
