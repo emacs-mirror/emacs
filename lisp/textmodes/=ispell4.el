@@ -243,7 +243,7 @@ that have not already been dumped will be lost."
 (define-key ispell-menu-map [ispell-buffer]
   '("Check Buffer" . ispell))
 
-;;;###autoload
+;;;autoload
 (defun ispell (&optional buf start end)
   "Run Ispell over current buffer's visited file.
 First the file is scanned for misspelled words, then Ispell
@@ -320,7 +320,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	 (message "Ispell parsing done.")
 	 (ispell-next))))
 
-;;;###autoload
+;;;autoload
 (defalias 'ispell-buffer 'ispell)
 
 (defun ispell-next ()
@@ -361,7 +361,7 @@ Return value is t unless exit is due to typing `q'."
 	       (message "Bad ispell internal list"))))
     (ispell-dump)))
 
-;;;###autoload
+;;;autoload
 (defun ispell-word (&optional resume)
   "Check the spelling of the word under the cursor.
 See the command `ispell' for more information.
@@ -382,9 +382,9 @@ With a prefix argument, resume handling of the previous Ispell command."
 	      (define-key esc-map "$" 'spell-word)
 	      (spell-word)))))))
 
-;;;###autoload (define-key esc-map "$" 'ispell-word)
+;;;autoload (define-key esc-map "$" 'ispell-word)
 
-;;;###autoload
+;;;autoload
 (defun ispell-region (start &optional end)
   "Check the spelling for all of the words in the region."
   (interactive "r")
@@ -793,7 +793,7 @@ will help find those completions.")
 (put 'ispell-lookup-last-bow 'permanent-local t)
 
 ;;;; Interactive functions.
-;;;###autoload
+;;;autoload
 (defun ispell-complete-word (&optional interior-frag)
   "Complete word using letters at point to word beginning using `look'.
 With optional argument INTERIOR-FRAG, word fragment at point is assumed to be
@@ -902,7 +902,7 @@ See also `ispell-look-dictionary' and `ispell-gnu-look-still-broken-p'."
           (display-completion-list list)))
       (message "Making completion list...done")))))
 
-;;;###autoload
+;;;autoload
 (defun ispell-complete-word-interior-frag ()
   "Runs `ispell-complete-word' with a non-nil INTERIOR-FRAG.
 A completion list is built for word fragment at point which is assumed to be
@@ -982,7 +982,7 @@ Otherwise, it must be a function which is called to get the limit.")
 (defvar ispell-message-limit (* 100 80)
   "*Ispell-message will check no more than this number of characters.")
 
-;;;###autoload
+;;;autoload
 (defun ispell-message ()
   "Check the spelling of a mail message or news post.
 Don't check spelling of message headers (except subject) or included messages.

@@ -1,5 +1,5 @@
 ;;; outline.el --- outline mode commands for Emacs
-;; Copyright (C) 1986, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -149,7 +149,7 @@ in the file it applies to.")
     ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
   "Additional expressions to highlight in Outline mode.")
 
-;;;###autoload
+;;;autoload
 (defun outline-mode ()
   "Set major mode for editing outlines with selective display.
 Headings are lines which start with asterisks: one for major headings,
@@ -235,7 +235,7 @@ After that, changing the prefix key requires manipulating keymaps.")
 	  (cons (cons 'outline-minor-mode outline-minor-mode-map)
 		minor-mode-map-alist)))
 
-;;;###autoload
+;;;autoload
 (defun outline-minor-mode (&optional arg)
   "Toggle Outline minor mode.
 With arg, turn Outline minor mode on if arg is positive, off otherwise.
