@@ -772,16 +772,30 @@ LIST is a list of coding categories ordered by priority."
 
 ;;; FILE I/O
 
+(defvar auto-coding-alist
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\)\\'" . no-conversion)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . no-conversion))
+  "Alist of filename patterns vs corresponding coding systems.
+Each element looks like (REGEXP . CODING-SYSTEM).
+A file whose name matches REGEXP is decoded on reading
+and encoded on writing by CODING-SYSTEM.
+
+The settings in this variable have higher priority than `coding:' tag
+in the file contents (see the function `set-auto-coding')
+and the variable `file-coding-system-alist'.")
+
 (defvar set-auto-coding-for-load nil
   "Non-nil means look for `load-coding' property instead of `coding'.
 This is used for loading and byte-compiling Emacs Lisp files.")
 
-(defun set-auto-coding (size)
-  "Return coding system for a file of which SIZE bytes follow point.
+(defun set-auto-coding (filename size)
+  "Return coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
 and the last 3k of the file, but the middle may be omitted.
 
-It checks for a `coding:' tag in the first one or two lines following
+It checks FILENAME against the variable `auto-coding-alist'.
+If FILENAME doesn't match any entries in the variable,
+it checks for a `coding:' tag in the first one or two lines following
 point.  If no `coding:' tag is found, it checks for alocal variables
 list in the last 3K bytes out of the SIZE bytes.
 
@@ -790,85 +804,94 @@ or nil if nothing specified.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
-  (let* ((case-fold-search t)
-	 (head-start (point))
-	 (head-end (+ head-start (min size 1024)))
-	 (tail-start (+ head-start (max (- size 3072) 0)))
-	 (tail-end (+ head-start size))
-	 coding-system head-found tail-found pos)
-    ;; Try a short cut by searching for the string "coding:"
-    ;; and for "unibyte:" at th ehead and tail of SIZE bytes.
-    (setq head-found (or (search-forward "coding:" head-end t)
-			 (search-forward "unibyte:" head-end t)))
-    (if (and head-found (> head-found tail-start))
-	;; Head and tail are overlapped.
-	(setq tail-found head-found)
-      (goto-char tail-start)
-      (setq tail-found (or (search-forward "coding:" tail-end t)
-			   (search-forward "unibyte:" tail-end t))))
+  (let ((alist auto-coding-alist)
+	(case-fold-search (memq system-type '(vax-vms windows-nt)))
+	coding-system)
+    (while (and alist (not coding-system))
+      (if (string-match (car (car alist)) filename)
+	  (setq coding-system (cdr (car alist)))
+	(setq alist (cdr alist))))
 
-    ;; At first check the head.
-    (when head-found
-      (goto-char head-start)
-      (setq pos (re-search-forward "[\n\r]" head-end t))
-      (if (and pos
-	       (= (char-after head-start) ?#)
-	       (= (char-after (1+ head-start)) ?!))
-	  ;; If the file begins with "#!" (exec interpreter magic),
-	  ;; look for coding frobs in the first two lines.  You cannot
-	  ;; necessarily put them in the first line of such a file
-	  ;; without screwing up the interpreter invocation.
-	  (setq pos (search-forward "\n" head-end t)))
-      (if pos (setq head-end pos))
-      (when (< head-found head-end)
-	(goto-char head-start)
-	(when (and set-auto-coding-for-load
-		   (re-search-forward
-		    "-\\*-\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
-		    head-end t))
-	  (setq coding-system 'raw-text))
-	(when (and (not coding-system)
-		   (re-search-forward
-		    "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
-		    head-end t))
-	  (setq coding-system (intern (match-string 2)))
-	  (or (coding-system-p coding-system)
-	      (setq coding-system nil)))))
+    (or coding-system
+	(let* ((case-fold-search t)
+	       (head-start (point))
+	       (head-end (+ head-start (min size 1024)))
+	       (tail-start (+ head-start (max (- size 3072) 0)))
+	       (tail-end (+ head-start size))
+	       coding-system head-found tail-found pos)
+	  ;; Try a short cut by searching for the string "coding:"
+	  ;; and for "unibyte:" at th ehead and tail of SIZE bytes.
+	  (setq head-found (or (search-forward "coding:" head-end t)
+			       (search-forward "unibyte:" head-end t)))
+	  (if (and head-found (> head-found tail-start))
+	      ;; Head and tail are overlapped.
+	      (setq tail-found head-found)
+	    (goto-char tail-start)
+	    (setq tail-found (or (search-forward "coding:" tail-end t)
+				 (search-forward "unibyte:" tail-end t))))
 
-    ;; If no coding: tag in the head, check the tail.
-    (when (and tail-found (not coding-system))
-      (goto-char tail-start)
-      (search-forward "\n\^L" nil t)
-      (if (re-search-forward
-	   "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
-	  ;; The prefix is what comes before "local variables:" in its
-	  ;; line.  The suffix is what comes after "local variables:"
-	  ;; in its line.
-	  (let* ((prefix (regexp-quote (match-string 1)))
-		 (suffix (regexp-quote (match-string 2)))
-		 (re-coding (concat
-			     "^" prefix
-			     "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
-			     suffix "$"))
-		 (re-unibyte (concat
-			      "^" prefix
-			      "unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
-			      suffix "$"))
-		 (re-end (concat
-			  "^" prefix "end *:[ \t]*" suffix "$"))
-		 (pos (point)))
-	    (re-search-forward re-end tail-end 'move)
-	    (setq tail-end (point))
-	    (goto-char pos)
-	    (when (and set-auto-coding-for-load
-		       (re-search-forward re-unibyte tail-end t))
-	      (setq coding-system 'raw-text))
-	    (when (and (not coding-system)
-		       (re-search-forward re-coding tail-end t))
-	      (setq coding-system (intern (match-string 1)))
-	      (or (coding-system-p coding-system)
-		  (setq coding-system nil))))))
-    coding-system))
+	  ;; At first check the head.
+	  (when head-found
+	    (goto-char head-start)
+	    (setq pos (re-search-forward "[\n\r]" head-end t))
+	    (if (and pos
+		     (= (char-after head-start) ?#)
+		     (= (char-after (1+ head-start)) ?!))
+		;; If the file begins with "#!" (exec interpreter magic),
+		;; look for coding frobs in the first two lines.  You cannot
+		;; necessarily put them in the first line of such a file
+		;; without screwing up the interpreter invocation.
+		(setq pos (search-forward "\n" head-end t)))
+	    (if pos (setq head-end pos))
+	    (when (< head-found head-end)
+	      (goto-char head-start)
+	      (when (and set-auto-coding-for-load
+			 (re-search-forward
+			  "-\\*-\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
+			  head-end t))
+		(setq coding-system 'raw-text))
+	      (when (and (not coding-system)
+			 (re-search-forward
+			  "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
+			  head-end t))
+		(setq coding-system (intern (match-string 2)))
+		(or (coding-system-p coding-system)
+		    (setq coding-system nil)))))
+
+	  ;; If no coding: tag in the head, check the tail.
+	  (when (and tail-found (not coding-system))
+	    (goto-char tail-start)
+	    (search-forward "\n\^L" nil t)
+	    (if (re-search-forward
+		 "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
+		;; The prefix is what comes before "local variables:" in its
+		;; line.  The suffix is what comes after "local variables:"
+		;; in its line.
+		(let* ((prefix (regexp-quote (match-string 1)))
+		       (suffix (regexp-quote (match-string 2)))
+		       (re-coding (concat
+				   "^" prefix
+				   "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+				   suffix "$"))
+		       (re-unibyte (concat
+				    "^" prefix
+				    "unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+				    suffix "$"))
+		       (re-end (concat
+				"^" prefix "end *:[ \t]*" suffix "$"))
+		       (pos (point)))
+		  (re-search-forward re-end tail-end 'move)
+		  (setq tail-end (point))
+		  (goto-char pos)
+		  (when (and set-auto-coding-for-load
+			     (re-search-forward re-unibyte tail-end t))
+		    (setq coding-system 'raw-text))
+		  (when (and (not coding-system)
+			     (re-search-forward re-coding tail-end t))
+		    (setq coding-system (intern (match-string 1)))
+		    (or (coding-system-p coding-system)
+			(setq coding-system nil))))))
+	  coding-system))))
 
 (setq set-auto-coding-function 'set-auto-coding)
 
