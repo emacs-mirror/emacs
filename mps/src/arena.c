@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.52) $
+ * $HopeName: MMsrc!arena.c(trunk.53) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.52) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.53) $");
 
 
 /* Forward declarations */
@@ -1132,6 +1132,52 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   return ResOK;
 }
 
+Res ArenaDescribeSegs(Arena arena, mps_lib_FILE *stream)
+{
+  Res res;
+  Seg seg;
+  Bool b;
+  Addr oldLimit, base, limit;
+  Size size;
+
+  if(!CHECKT(Arena, arena)) return ResFAIL;
+  if(stream == NULL) return ResFAIL;
+
+  b = SegFirst(&seg, arena); 
+  oldLimit = SegBase(seg);
+  while(b) {
+    base = SegBase(seg);
+    limit = SegLimit(seg);
+    size = SegSize(seg);
+
+    if(SegBase(seg) > oldLimit) {
+      res = WriteF(stream,
+                   "[$P, $P) $W $U   ---\n",
+                   (WriteFP)oldLimit,
+                   (WriteFP)base,
+                   (WriteFW)AddrOffset(oldLimit, base),
+                   (WriteFU)AddrOffset(oldLimit, base),
+                   NULL);
+      if(res != ResOK)
+        return res;
+    }
+
+    res = WriteF(stream,
+                 "[$P, $P) $W $U   $P ($S)\n",
+                 (WriteFP)base,
+                 (WriteFP)limit,
+                 (WriteFW)size,
+                 (WriteFW)size,
+                 (WriteFP)SegPool(seg),
+                 (WriteFS)(SegPool(seg)->class->name),
+                 NULL);
+    if(res != ResOK)
+      return res;
+    b = SegNext(&seg, arena, SegBase(seg));
+    oldLimit = limit;
+  }
+  return ResOK;
+}
 
 /* ArenaAlloc -- allocate a small block directly from the arena
  *

@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(MMdevel_gavinm_splay.5) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -15,47 +15,111 @@
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif /* MPS_OS_SU */
+SRCID(cbstest, "$HopeName$");
+
+#define ArraySize ((Size)123456)
+#define NOperations ((Size)125000)
+#define MinSize ((Size)120) /* Arbitrary size */
+#define Alignment ((Align)8)
+
+static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
+  NDeallocateSucceeded, NNewBlocks, NDeleteBlocks, NGrowBlocks,
+  NShrinkBlocks;
 
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(MMdevel_gavinm_splay.5) $");
+/* Used to predict which callbacks will be called, and with which values. */
+/* At most one callback of each type will be called. */
+typedef struct CallbackPredictionStruct {
+  Bool shouldBeCalled;
+  Size oldSize;
+  Addr base;
+  Addr limit;
+} CallbackPredictionStruct, *CallbackPrediction;
 
-#define ArraySize ((size_t)123456)
-#define nOperations ((size_t)125000)
-#define SuccessRatio ((long)200) /* Ratio of failures attempted */
-#define minSize ((Size)120) /* Arbitrary size */
-#define addr_of_index(i) ((mps_addr_t)((char *)block + (i)))
-#define index_of_addr(a) ((long)((char *)(a) - (char *)block))
-#define ErrorExit(message) MPS_BEGIN printf(message "\n"); exit(1); MPS_END
+static CallbackPredictionStruct CallbackNew;
+static CallbackPredictionStruct CallbackDelete;
+static CallbackPredictionStruct CallbackGrow;
+static CallbackPredictionStruct CallbackShrink;
 
-static BT alloc; /* the BT which we will use for alloc */
-static Arena arena; /* the ANSI arena which we use to allocate the BT */
-static CBSStruct cbsStruct;
-static void *block;
-static long nAllocateTried, nAllocateSucceeded, nDeallocateTried,
-  nDeallocateSucceeded, nNewBlocks;
-
-typedef struct check_cbs_closure_s {
+typedef struct CheckCBSClosureStruct {
+  BT allocTable;
   Addr base;
   Addr limit;
   Addr oldLimit;
-} check_cbs_closure_s, *check_cbs_closure_t;
+} CheckCBSClosureStruct, *CheckCBSClosure;
 
-static void cbs_new_callback(CBS cbs, CBSBlock cbsBlock) {
-  AVERT(CBS, cbs);
-  AVERT(CBSBlock, cbsBlock);
-
-  AVER(CBSBlockSize(cbsBlock) >= minSize);
-
-  nNewBlocks++;
+static Addr (AddrOfIndex)(Addr block, Index i) {
+  return AddrAdd(block, (i * Alignment));
 }
 
-static Bool check_cbs_action(CBS cbs, CBSBlock cbsBlock,
-			     void *p, unsigned long s) {
+static Index (IndexOfAddr)(Addr block, Addr a) {
+  return (Index)(AddrOffset(block, a) / Alignment);
+}
+
+/* This function encapsulates the common tests for the callbacks. */
+static void testCallback(CBS cbs, CBSBlock cbsBlock,
+                         Size oldSize, Size newSize,
+                         CallbackPrediction prediction) {
+  AVERT(CBS, cbs);
+  AVERT(CBSBlock, cbsBlock);
+  AVER(prediction->shouldBeCalled);
+  AVER(oldSize == prediction->oldSize);
+
+  if(newSize == 0) {
+    AVER(prediction->base == 0);
+    AVER(prediction->limit == 0);
+  } else {
+    AVER(CBSBlockSize(cbsBlock) == newSize);
+    AVER(newSize == AddrOffset(prediction->base, prediction->limit));
+    AVER(CBSBlockBase(cbsBlock) == prediction->base);
+    AVER(CBSBlockLimit(cbsBlock) == prediction->limit);
+  }
+
+  prediction->shouldBeCalled = FALSE;
+}
+
+static void cbsNewCallback(CBS cbs, CBSBlock cbsBlock, 
+                           Size oldSize, Size newSize) {
+  testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackNew);
+  AVER(oldSize < cbs->minSize);
+  AVER(newSize >= cbs->minSize);
+
+  NNewBlocks++;
+}
+
+static void cbsDeleteCallback(CBS cbs, CBSBlock cbsBlock, 
+                              Size oldSize, Size newSize) {
+  testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackDelete);
+  AVER(oldSize >= cbs->minSize);
+  AVER(newSize < cbs->minSize);
+
+  NDeleteBlocks++;
+}
+
+static void cbsGrowCallback(CBS cbs, CBSBlock cbsBlock, 
+                            Size oldSize, Size newSize) {
+  testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackGrow);
+  AVER(oldSize >= cbs->minSize);
+  AVER(newSize >= cbs->minSize);
+  AVER(oldSize < newSize);
+
+  NGrowBlocks++;
+}
+
+static void cbsShrinkCallback(CBS cbs, CBSBlock cbsBlock, 
+                              Size oldSize, Size newSize) {
+  testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackShrink);
+  AVER(oldSize >= cbs->minSize);
+  AVER(newSize >= cbs->minSize);
+  AVER(oldSize > newSize);
+
+  NShrinkBlocks++;
+}
+
+static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock,
+                           void *p, unsigned long s) {
   Addr base, limit;
-  check_cbs_closure_t closure = (check_cbs_closure_t)p;
+  CheckCBSClosure closure = (CheckCBSClosure)p;
 
   /* Don't need to check cbs every time */
   UNUSED(cbs);
@@ -65,16 +129,18 @@ static Bool check_cbs_action(CBS cbs, CBSBlock cbsBlock,
   base = CBSBlockBase(cbsBlock);
   limit = CBSBlockLimit(cbsBlock);
 
-  if(closure->oldLimit == NULL) {
-    if(base > closure->base)
-      AVER(BTIsSetRange(alloc, 0, index_of_addr(base)));
-    AVER(base >= closure->base);
-  } else {
-    AVER(base > closure->oldLimit);
-    AVER(BTIsSetRange(alloc, index_of_addr(closure->oldLimit), 
-		      index_of_addr(base)));
+  if(base > closure->oldLimit) {
+    AVER(BTIsSetRange(closure->allocTable, 
+                      IndexOfAddr(closure->base, closure->oldLimit), 
+                      IndexOfAddr(closure->base, base)));
+  } else { /* must be at start of table */
+    AVER(base == closure->oldLimit);
+    AVER(closure->oldLimit == closure->base);
   }
-  AVER(BTIsResRange(alloc, index_of_addr(base), index_of_addr(limit)));
+  
+  AVER(BTIsResRange(closure->allocTable, 
+                    IndexOfAddr(closure->base, base), 
+                    IndexOfAddr(closure->base, limit)));
 
 
   closure->oldLimit = limit;
@@ -82,29 +148,42 @@ static Bool check_cbs_action(CBS cbs, CBSBlock cbsBlock,
   return TRUE;
 }
 
-static void check_cbs(CBS cbs) {
-  check_cbs_closure_s closure;
+static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock) {
+  CheckCBSClosureStruct closure;
 
-  closure.base = (Addr)block;
-  closure.limit = AddrAdd(closure.base, ArraySize);
-  closure.oldLimit = NULL;
+  closure.allocTable = allocTable;
+  closure.base = dummyBlock;
+  closure.limit = AddrOfIndex(closure.base, ArraySize);
+  closure.oldLimit = closure.base;
 
-  CBSIterate(cbs, check_cbs_action, (void *)&closure, (unsigned long)0);
+  CBSIterate(cbs, checkCBSAction, (void *)&closure, (unsigned long)0);
 
-  if(closure.oldLimit ==NULL)
-    AVER(BTIsSetRange(alloc, 0, index_of_addr(closure.limit)));
+  if(closure.oldLimit == closure.base)
+    AVER(BTIsSetRange(allocTable, 0, 
+                      IndexOfAddr(dummyBlock, closure.limit)));
   else if(closure.limit > closure.oldLimit)
-    AVER(BTIsSetRange(alloc, index_of_addr(closure.oldLimit),
-		      index_of_addr(closure.limit)));
+    AVER(BTIsSetRange(allocTable, 
+                      IndexOfAddr(dummyBlock, closure.oldLimit),
+                      IndexOfAddr(dummyBlock, closure.limit)));
+  else
+    AVER(closure.oldLimit == closure.limit);
 }
 
 /* Not very uniform, but never mind. */
-static long random(long limit) {
-  return rnd() % limit;
+static Word random(Word limit) {
+  return (Word)rnd() % limit;
 }
 
-static unsigned long next_edge(BT bt, size_t size, unsigned long base) {
-  unsigned long end;
+
+/* nextEdge -- Finds the next transition in the bit table 
+ *
+ * Returns the index greater than <base> such that the
+ * range [<base>, <return>) has the same value in the bit table,
+ * and <return> has a different value or does not exist.
+ */
+
+static Index nextEdge(BT bt, Size size, Index base) {
+  Index end;
   Bool baseValue;
 
   AVER(bt != NULL);
@@ -118,137 +197,374 @@ static unsigned long next_edge(BT bt, size_t size, unsigned long base) {
   return end;
 }
 
-static void random_range(mps_addr_t *base_return, mps_addr_t *limit_return) {
-  /* base will be the start of our range */
-  /* end is an edge (i.e. different from its predecessor) after base */
-  /* such that there are an exponentially distributed number of edges */
-  /* between base and end. */
-  /* limit is a randomly chosen value in (base, limit]. */
-  /* The returned range is the addresses corresponding to [base, limit). */
 
-  unsigned long base, end, limit;
+/* lastEdge -- Finds the previous transition in the bit table 
+ *
+ * Returns the index less than <base> such that the range
+ * [<return>, <base>] has the same value in the bit table,
+ * and <return>-1 has a different value or does not exist.
+ */
+
+static Index lastEdge(BT bt, Size size, Index base) {
+  Index end;
+  Bool baseValue;
+
+  AVER(bt != NULL);
+  AVER(base < size);
+
+  baseValue = BTGet(bt, base);
+
+  for(end = base; end > (Index)0 && BTGet(bt, end - 1) == baseValue; end--) 
+    NOOP;
+
+  return end;
+}
+
+
+/* randomRange -- picks random range within table
+ *
+ * The function first picks a uniformly distributed <base> within the table.
+ *
+ * It then scans forward a binary exponentially distributed
+ * number of "edges" in the table (that is, transitions between set and 
+ * reset) to get <end>.  Note that there is a 50% chance that <end> will 
+ * be the next edge, a 25% chance it will be the edge after, etc., until
+ * the end of the table.
+ *
+ * Finally it picks a <limit> uniformly distributed in the range
+ * [base+1, limit].
+ *
+ * Hence there is a somewhat better than 50% chance that the range will be
+ * all either set or reset.
+ */
+ 
+static void randomRange(Addr *baseReturn, 
+                        Addr *limitReturn,
+                        BT allocTable,
+                        Addr block) {
+  Index base;   /* the start of our range */
+  Index end;    /* an edge (i.e. different from its predecessor) */
+                /* after base */
+  Index limit;  /* a randomly chosen value in (base, limit]. */
 
   base = random(ArraySize);
 
   do {
-    end = next_edge(alloc, ArraySize, base);
+    end = nextEdge(allocTable, ArraySize, base);
   } while(end < ArraySize && random(2) == 0); /* p=0.5 exponential */
 
   AVER(end > base);
 
   limit = base + 1 + random(end - base);
 
-  *base_return = addr_of_index(base);
-  *limit_return = addr_of_index(limit);
+  *baseReturn = AddrOfIndex(block, base);
+  *limitReturn = AddrOfIndex(block, limit);
 }
 
-static void allocate(mps_addr_t base, mps_addr_t limit) {
-  mps_res_t res;
-  long ib, il;
-  Bool isRes;
 
-  ib = index_of_addr(base);
-  il = index_of_addr(limit);
+/* Set callback expectations */
 
-  isRes = BTIsResRange(alloc, ib, il);
+static void clearExpectations(void) {
+  CallbackNew.shouldBeCalled = FALSE;
+  CallbackDelete.shouldBeCalled = FALSE;
+  CallbackGrow.shouldBeCalled = FALSE;
+  CallbackShrink.shouldBeCalled = FALSE;
+}
 
-  nAllocateTried++;
+static void expectCallback(CallbackPrediction prediction,
+                           Size oldSize, Addr base, Addr limit) {
+  AVER(prediction->shouldBeCalled == FALSE);
+  AVER(base == (Addr)0 || limit > base);
+  AVER(oldSize != (Size)0 || base != (Addr)0);
+  AVER(base != (Addr)0 || limit == (Addr)0);
 
-  res = CBSDelete(&cbsStruct, base, limit);
+  prediction->shouldBeCalled = TRUE;
+  prediction->oldSize = oldSize;
+  prediction->base = base;
+  prediction->limit = limit;
+}
 
-  if(res == ResOK) {
-    if(!isRes)  
-      ErrorExit("succeeded in deleting non-alloced block");
-    else {
-      nAllocateSucceeded++;
-      BTSetRange(alloc, ib, il);
+static void checkExpectations(void) {
+  AVER(!CallbackNew.shouldBeCalled);
+  AVER(!CallbackDelete.shouldBeCalled);
+  AVER(!CallbackGrow.shouldBeCalled);
+  AVER(!CallbackShrink.shouldBeCalled);
+}  
+
+static void allocate(CBS cbs, Addr block, BT allocTable, 
+                     Addr base, Addr limit) {
+  Res res;
+  Index ib, il;                  /* Indexed for base and limit */
+  Bool isFree;
+
+  ib = IndexOfAddr(block, base);
+  il = IndexOfAddr(block, limit);
+
+  isFree = BTIsResRange(allocTable, ib, il);
+  
+  /*
+  printf("allocate: [%p, %p) -- %s\n", 
+         base, limit, isFree ? "succeed" : "fail");
+  */
+
+  NAllocateTried++;
+
+  if(isFree) {
+    Addr outerBase, outerLimit;    /* interval containing [ib, il) */
+    Size left, right, total;       /* Sizes of block and two fragments */
+
+    outerBase = 
+      AddrOfIndex(block, lastEdge(allocTable, ArraySize, ib));
+    outerLimit = 
+      AddrOfIndex(block, nextEdge(allocTable, ArraySize, il - 1));
+
+    left = AddrOffset(outerBase, base);
+    right = AddrOffset(limit, outerLimit);
+    total = AddrOffset(outerBase, outerLimit);
+
+    /* based on detailed knowledge of CBS behaviour */
+    checkExpectations();
+    if(total >= MinSize && left < MinSize && right < MinSize) {
+      if(left == (Size)0 && right == (Size)0) {
+        expectCallback(&CallbackDelete, total, (Addr)0, (Addr)0);
+      } else if(left >= right) {
+        expectCallback(&CallbackDelete, total, outerBase, base);
+      } else {
+        expectCallback(&CallbackDelete, total, limit, outerLimit);
+      }
+    } else if(left >= MinSize && right >= MinSize) {
+      if(left >= right) {
+        expectCallback(&CallbackShrink, total, outerBase, base);
+        expectCallback(&CallbackNew, (Size)0, limit, outerLimit);
+      } else {
+        expectCallback(&CallbackNew, (Size)0, outerBase, base);
+        expectCallback(&CallbackShrink, total, limit, outerLimit);
+      }
+    } else if(total >= MinSize) {
+      if(left >= right) {
+        AVER(left >= MinSize);
+        AVER(right < MinSize);
+        expectCallback(&CallbackShrink, total, outerBase, base);
+      } else {
+        AVER(left < MinSize);
+        AVER(right >= MinSize);
+        expectCallback(&CallbackShrink, total, limit, outerLimit);
+      }
     }
-  } else if(res == ResFAIL) {
-    if(isRes)
-      ErrorExit("failed to delete alloced block");
-  } else {
-    ErrorExit("Unexpected result");
+  }
+
+  res = CBSDelete(cbs, base, limit);
+
+  if(!isFree) {
+    die_expect((mps_res_t)res, MPS_RES_FAIL, 
+               "Succeeded in deleting allocated block");
+  } else { /* isFree */
+    die_expect((mps_res_t)res, MPS_RES_OK, 
+               "failed to delete free block");
+    NAllocateSucceeded++;
+    BTSetRange(allocTable, ib, il);
+    checkExpectations();
   }
 }
 
-static void deallocate(mps_addr_t base, mps_addr_t limit) {
-  mps_res_t res;
-  long ib, il;
-  Bool isSet;
+static void deallocate(CBS cbs, Addr block, BT allocTable,
+                       Addr base, Addr limit) {
+  Res res;
+  Index ib, il;
+  Bool isAllocated;
 
-  ib = index_of_addr(base);
-  il = index_of_addr(limit);
+  ib = IndexOfAddr(block, base);
+  il = IndexOfAddr(block, limit);
 
-  isSet = BTIsSetRange(alloc, ib, il);
+  isAllocated = BTIsSetRange(allocTable, ib, il);
 
-  nDeallocateTried++;
+  /*
+  printf("deallocate: [%p, %p) -- %s\n", 
+         base, limit, isAllocated ? "succeed" : "fail");
+  */
 
-  res = CBSInsert(&cbsStruct, base, limit);
+  NDeallocateTried++;
 
-  if(res == ResOK) {
-    if(!isSet)  
-      ErrorExit("succeeded in inserting non-free block");
-    else {
-      nDeallocateSucceeded++;
-      BTResRange(alloc, ib, il);
+  if(isAllocated) {
+    Addr outerBase, outerLimit;    /* interval containing [ib, il) */
+    Size left, right, total;       /* Sizes of block and two fragments */
+
+    /* Find the free blocks adjacent to the allocated block */
+    if(ib > 0 && !BTGet(allocTable, ib - 1)) {
+      outerBase = 
+        AddrOfIndex(block, lastEdge(allocTable, ArraySize, ib - 1));
+    } else {
+      outerBase = base;
+     }
+
+    if(il < ArraySize && !BTGet(allocTable, il)) {
+      outerLimit = 
+        AddrOfIndex(block, nextEdge(allocTable, ArraySize, il));
+    } else {
+      outerLimit = limit;
     }
-  } else if(res == ResFAIL) {
-    if(isSet)
-      ErrorExit("failed to insert free block");
-  } else {
-    ErrorExit("Unexpected result");
+
+    left = AddrOffset(outerBase, base);
+    right = AddrOffset(limit, outerLimit);
+    total = AddrOffset(outerBase, outerLimit);
+
+    /* based on detailed knowledge of CBS behaviour */
+    checkExpectations();
+    if(total >= MinSize && left < MinSize && right < MinSize) {
+      if(left >= right) 
+        expectCallback(&CallbackNew, left, outerBase, outerLimit);
+      else
+        expectCallback(&CallbackNew, right, outerBase, outerLimit);
+    } else if(left >= MinSize && right >= MinSize) {
+      if(left >= right) {
+        expectCallback(&CallbackDelete, right, (Addr)0, (Addr)0);
+        expectCallback(&CallbackGrow, left, outerBase, outerLimit);
+      } else {
+        expectCallback(&CallbackDelete, left, (Addr)0, (Addr)0);
+        expectCallback(&CallbackGrow, right, outerBase, outerLimit);
+      }
+    } else if(total >= MinSize) {
+      if(left >= right) {
+        AVER(left >= MinSize);
+        AVER(right < MinSize);
+        expectCallback(&CallbackGrow, left, outerBase, outerLimit);
+      } else {
+        AVER(left < MinSize);
+        AVER(right >= MinSize);
+        expectCallback(&CallbackGrow, right, outerBase, outerLimit);
+      }
+    }
   }
+
+  res = CBSInsert(cbs, base, limit);
+
+  if(!isAllocated) { 
+    die_expect((mps_res_t)res, MPS_RES_FAIL,
+               "succeeded in inserting non-allocated block");
+  } else { /* isAllocated */
+    die_expect((mps_res_t)res, MPS_RES_OK,
+               "failed to insert allocated block");
+
+    NDeallocateSucceeded++;
+    BTResRange(allocTable, ib, il);
+    checkExpectations();
+  }
+}
+
+static void find(CBS cbs, void *block, BT alloc, Size size, Bool high) 
+{
+  Bool expected, found;
+  Index expectedBase, expectedLimit;
+  Addr foundBase, foundLimit;
+
+  if(high) {
+    expected = BTFindLongResRangeHigh(&expectedBase, &expectedLimit, 
+                                      alloc, 
+                                      (Index)0, (Index)ArraySize,
+                                      (unsigned long)size);
+
+    found = CBSFindLast(&foundBase, &foundLimit, cbs, size * Alignment);
+  } else {
+    expected = BTFindLongResRange(&expectedBase, &expectedLimit, 
+                                  alloc, 
+                                  (Index)0, (Index)ArraySize,
+                                  (unsigned long)size);
+
+    found = CBSFindFirst(&foundBase, &foundLimit, cbs, size * Alignment);
+  }
+
+  AVER(found == expected);
+  if(found) {
+    AVER(expectedBase == IndexOfAddr(block, foundBase));
+    AVER(expectedLimit == IndexOfAddr(block, foundLimit));
+  }
+
+  return;
 }
 
 extern int main(int argc, char *argv[])
 {
-  mps_res_t res;
   int i;
-  mps_addr_t base, limit;
+  Addr base, limit;
+  mps_arena_t mpsArena;
+  Arena arena; /* the ANSI arena which we use to allocate the BT */
+  CBSStruct cbsStruct;
+  CBS cbs;
+  void *p;
+  Addr dummyBlock;
+  BT allocTable;
+  Size size;
+  Bool high;
 
-  testlib_unused(argc); testlib_unused(argv);
+  testlib_unused(argc); 
+  testlib_unused(argv);
 
-  nAllocateTried = nAllocateSucceeded = nDeallocateTried = 
-    nDeallocateSucceeded = nNewBlocks = 0;
+  NAllocateTried = NAllocateSucceeded = NDeallocateTried = 
+    NDeallocateSucceeded = NNewBlocks = NDeleteBlocks = 
+    NGrowBlocks = NShrinkBlocks = 0;
 
-  res = mps_arena_create((mps_arena_t *)&arena,
-                         mps_arena_class_an());
-  if (res != MPS_RES_OK) 
-    ErrorExit("failed to create ANSI arena.");
-  res = BTCreate(&alloc, arena, ArraySize);
-  if (res != MPS_RES_OK) 
-    ErrorExit("failed to create bit table.");
+  clearExpectations();
 
-  res = CBSInit(arena, &cbsStruct, &cbs_new_callback, NULL, minSize, TRUE);
-  if(res != MPS_RES_OK)
-    ErrorExit("failed to initialise CBS.");
+  die((mps_res_t)mps_arena_create(&mpsArena,
+                                  mps_arena_class_an()),
+      "Failed to create arena");
+  arena = (Arena)mpsArena; /* avoid pun */
 
-  BTSetRange(alloc, 0, ArraySize); /* Initially all allocated */
+  die((mps_res_t)BTCreate(&allocTable, arena, ArraySize), 
+      "failed to create alloc table");
+
+  die((mps_res_t)CBSInit(arena, &cbsStruct, &cbsNewCallback, 
+                         &cbsDeleteCallback, &cbsGrowCallback,
+                         &cbsShrinkCallback, MinSize, 
+                         (Align)8, TRUE, TRUE),
+    "failed to initialise CBS");
+  cbs = &cbsStruct;
+
+  BTSetRange(allocTable, 0, ArraySize); /* Initially all allocated */
+
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
-  res = ArenaAlloc(&block, arena, ArraySize);
-  if(res != MPS_RES_OK)
-    ErrorExit("failed to allocate block");
-  printf("Allocated block [%p, %p)\n", block, (char *)block + ArraySize);
+  die((mps_res_t)ArenaAlloc(&p, arena, ArraySize * Alignment), 
+      "failed to allocate block");
+  dummyBlock = (Addr)p; /* avoid pun */
 
-  for(i = 0; i < nOperations; i++) {
-    random_range(&base, &limit);
-    if(random(2) == 1) {
-      allocate(base, limit);
-    } else {
-      deallocate(base, limit);
+  printf("Allocated block [%p, %p)\n", dummyBlock, 
+         (char *)dummyBlock + ArraySize);
+
+  checkCBS(cbs, allocTable, dummyBlock);
+  for(i = 0; i < NOperations; i++) {
+    switch(random(3)) {
+      case 0: {
+        randomRange(&base, &limit, allocTable, dummyBlock);
+        allocate(cbs, dummyBlock, allocTable, base, limit);
+      } break;
+      case 1: {
+        randomRange(&base, &limit, allocTable, dummyBlock);
+        deallocate(cbs, dummyBlock, allocTable, base, limit);
+      } break;
+      case 2: {
+        size = random(ArraySize / 10) + 1;
+        high = random(2) ? TRUE : FALSE;
+        find(cbs, dummyBlock, allocTable, size, high);
+      } break;
     }
     if(i % 5000 == 0)
-      check_cbs(&cbsStruct);
+      checkCBS(cbs, allocTable, dummyBlock);
   }
 
-  CBSDescribe(&cbsStruct, mps_lib_get_stdout());
+  checkExpectations();
 
-  printf("\nNumber of allocations attempted: %ld\n", nAllocateTried);
-  printf("Number of allocations succeeded: %ld\n", nAllocateSucceeded);
-  printf("Number of deallocations attempted: %ld\n", nDeallocateTried);
-  printf("Number of deallocations succeeded: %ld\n", nDeallocateSucceeded);
-  printf("Number of new large blocks: %ld\n", nNewBlocks);
+  /* CBSDescribe prints a very long line. */
+  /* CBSDescribe(cbs, mps_lib_get_stdout()); */
+
+  printf("\nNumber of allocations attempted: %ld\n", NAllocateTried);
+  printf("Number of allocations succeeded: %ld\n", NAllocateSucceeded);
+  printf("Number of deallocations attempted: %ld\n", NDeallocateTried);
+  printf("Number of deallocations succeeded: %ld\n", NDeallocateSucceeded);
+  printf("Number of new large blocks: %ld\n", NNewBlocks);
+  printf("Number of deleted large blocks: %ld\n", NDeleteBlocks);
+  printf("Number of grown large blocks: %ld\n", NGrowBlocks);
+  printf("Number of shrunk large blocks: %ld\n", NShrinkBlocks);
   printf("\nNo problems detected.\n");
   return 0;
 }

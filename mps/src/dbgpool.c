@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName$
+ * $HopeName: MMsrc!dbgpool.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -158,7 +158,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
-    SplayTreeInit(&debug->index, TagComp);
+    SplayTreeInit(&debug->index, TagComp, NULL);
   }
 
   debug->sig = PoolDebugMixinSig;

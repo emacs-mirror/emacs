@@ -1,6 +1,6 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.32) $
+# $HopeName: MMsrc!w3almv.nmk(trunk.33) $
 #
 # Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
 #
@@ -14,8 +14,10 @@ MPM = <assert> <ring> <mpm> <bt> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <action> <seg> <poolmrg> <message> <dbgpool> \
->>>>>>> 1.30.2.2
-      <abq> <meter> <cbs> <poolmv2> <splay> <version>
+      <ref> <trace> <protw3> <prmcan> <shield> \
+      <than> <ssan> <mpsi> <mpsiw3> <ld> <vmw3> \
+      <event> <action> <seg> <poolmrg> <message> <span> \
+      <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 SW  = <assert> <ring> <mpm> <bt> \
       <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
@@ -23,7 +25,7 @@ SW  = <assert> <ring> <mpm> <bt> \
       <than> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <poolmrg> <message> <mpsioan> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <version>
+      <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams>

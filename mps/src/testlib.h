@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.h(trunk.9) $
+ * $HopeName: MMsrc!testlib.h(trunk.11) $
  * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -88,6 +88,20 @@
  */
 
 extern void die(mps_res_t res, const char *s);
+
+
+/* die_expect -- get expected result or die
+ *
+ * If the first argument is not  thename as the second argument,
+ * prints the third argument on stderr and exits the program.  
+ * Otherwise does nothing.
+ *
+ * Typical use:
+ *   die_expect(mps_space_create(&space), MPS_RES_OK, "SpaceCreate");
+ */
+
+extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
+
 
 /* rnd -- random number generator
  *
