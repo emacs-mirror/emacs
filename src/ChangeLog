@@ -1,3 +1,7 @@
+2002-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (menu_highlight_callback): Hide any tooltip window.
+
 2002-01-03  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fcurrent_active_maps): Put the `keymap' property map first.
