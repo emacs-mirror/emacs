@@ -1,5 +1,6 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -690,8 +691,8 @@ struct x_output
    We use struct scroll_bar as a template for accessing fields of the
    vector.  */
 
-struct scroll_bar {
-
+struct scroll_bar
+{
   /* These fields are shared by all vectors.  */
   EMACS_INT size_from_Lisp_Vector_struct;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
@@ -705,9 +706,6 @@ struct scroll_bar {
   /* The X window representing this scroll bar.  Since this is a full
      32-bit quantity, we store it split into two 32-bit values.  */
   Lisp_Object x_window_low, x_window_high;
-
-  /* Same as above for the widget.  */
-  Lisp_Object x_widget_low, x_widget_high;
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
@@ -760,13 +758,20 @@ struct scroll_bar {
 #define SET_SCROLL_BAR_X_WINDOW(ptr, id) \
   (SCROLL_BAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
 
-/* Extract the X widget of the scroll bar from a struct scroll_bar.  */
-#define SCROLL_BAR_X_WIDGET(ptr) \
-  ((Widget) SCROLL_BAR_PACK ((ptr)->x_widget_low, (ptr)->x_widget_high))
+/* Extract the X widget of the scroll bar from a struct scroll_bar.
+   XtWindowToWidget should be fast enough since Xt uses a hash table
+   to map windows to widgets.  */
+
+#define SCROLL_BAR_X_WIDGET(dpy, ptr) \
+  XtWindowToWidget (dpy, SCROLL_BAR_X_WINDOW (ptr))
 
 /* Store a widget id in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_X_WIDGET(ptr, w) \
-  (SCROLL_BAR_UNPACK ((ptr)->x_widget_low, (ptr)->x_widget_high, (int) w))
+
+#define SET_SCROLL_BAR_X_WIDGET(ptr, w)		\
+  do {						\
+    Window window = XtWindow (w);		\
+    SET_SCROLL_BAR_X_WINDOW (ptr, window);	\
+} while (0)
 
 
 /* Return the inside width of a vertical scroll bar, given the outside
