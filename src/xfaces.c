@@ -61,6 +61,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
        BACKGROUND-PIXMAP is the name of an x bitmap filename, which we don't
            use right now, and
        UNDERLINE-P is non-nil if the face should be underlined.
+   If any of these elements are nil, that allows the frame's parameters to
+   show through.
    (lisp/faces.el maintains these association lists.)
 
    The frames' private alists hold the frame-local definitions for the
@@ -135,10 +137,6 @@ int next_face_id;
 
 /* The number of the face to use to indicate the region.  */
 int region_face;
-
-/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
-   We assume that they're both character-cell fonts.  */
-extern int same_size_fonts ();
 
 /* This is what appears in a slot in a face to signify that the face
    does not specify that display aspect.  */
@@ -318,27 +316,37 @@ build_face (f, face)
   XGCValues xgcv;
   unsigned long mask;
 
+  BLOCK_INPUT;
+
   if (face->foreground != FACE_DEFAULT)
     xgcv.foreground = face->foreground;
   else
-    xgcv. foreground = f->display.x->foreground_pixel;
+    xgcv.foreground = f->display.x->foreground_pixel;
+
   if (face->background != FACE_DEFAULT)
     xgcv.background = face->background;
   else
-    xgcv. background = f->display.x->background_pixel;
+    xgcv.background = f->display.x->background_pixel;
+
   if (face->font && (int) face->font != FACE_DEFAULT)
     xgcv.font = face->font->fid;
   else
     xgcv.font = f->display.x->font->fid;
+
   xgcv.graphics_exposures = 0;
+
   mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
   gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
 		  mask, &xgcv);
+
 #if 0
   if (face->stipple && face->stipple != FACE_DEFAULT)
     XSetStipple (x_current_display, gc, face->stipple);
 #endif
+
   face->gc = gc;
+
+  UNBLOCK_INPUT;
 }
 
 /* Allocating, freeing, and duplicating fonts, colors, and pixmaps.  */
@@ -371,7 +379,10 @@ unload_font (f, font)
 {
   if (!font || font == ((XFontStruct *) FACE_DEFAULT))
     return;
+
+  BLOCK_INPUT;
   XFreeFont (x_current_display, font);
+  UNBLOCK_INPUT;
 }
 
 static unsigned long
@@ -432,46 +443,16 @@ unload_color (f, pixel)
 
 /* Initializing face arrays for frames. */
 
-/* Set up faces 0 and 1 based on the normal text and modeline GC's.
-   This gets called whenever the parameters stored in the frame itself
-   (i.e. font, background color, etcetera) change.
-
-   Note that the first two faces just contain references to the
-   frame's own resources.  We shouldn't free them.  */
 void
 init_frame_faces (f)
-     struct frame *f;
+     FRAME_PTR f;
 {
   ensure_face_ready (f, 0);
-  {
-    XGCValues gcv;
-    struct face *face = FRAME_FACES (f) [0];
-
-    XGetGCValues (x_current_display, f->display.x->normal_gc,
-		  GCForeground | GCBackground | GCFont, &gcv);
-    face->gc         = f->display.x->normal_gc;
-    face->foreground = gcv.foreground;
-    face->background = gcv.background;
-    face->font       = f->display.x->font;
-    face->stipple = 0;
-    face->underline = 0;
-  }
-
   ensure_face_ready (f, 1);
-  {
-    XGCValues gcv;
-    struct face *face = FRAME_FACES (f) [1];
 
-    XGetGCValues (x_current_display, f->display.x->reverse_gc,
-		  GCForeground | GCBackground | GCFont, &gcv);
-    face->gc         = f->display.x->reverse_gc;
-    face->foreground = gcv.foreground;
-    face->background = gcv.background;
-    face->font       = f->display.x->font;
-    face->stipple = 0;
-    face->underline = 0;
-  }
+  recompute_basic_faces (f);
 }
+
 
 /* Called from Fdelete_frame.  */
 void
@@ -481,34 +462,39 @@ free_frame_faces (f)
   Display *dpy = x_current_display;
   int i;
 
-  /* The first two faces on the frame are just made of resources which 
-     we borrowed from the frame's GC's, so don't free them.  Let
-     them get freed by the x_destroy_window code.  */
-  for (i = 2; i < FRAME_N_FACES (f); i++)
+  BLOCK_INPUT;
+
+  for (i = 0; i < FRAME_N_FACES (f); i++)
     {
       struct face *face = FRAME_FACES (f) [i];
-      if (! face)
-        continue;
-      if (face->gc)
-	XFreeGC (dpy, face->gc);
-      unload_font (f, face->font);
-      unload_color (f, face->foreground);
-      unload_color (f, face->background);
+      if (face)
+	{
+	  if (face->gc)
+	    XFreeGC (dpy, face->gc);
+	  if (! face->copy)
+	    {
+	      unload_font (f, face->font);
+	      unload_color (f, face->foreground);
+	      unload_color (f, face->background);
 #if 0
-      unload_pixmap (f, face->stipple);
+	      unload_pixmap (f, face->stipple);
 #endif
-      xfree (face);
+	    }
+	  xfree (face);
+	}
     }
   xfree (FRAME_FACES (f));
   FRAME_FACES (f) = 0;
   FRAME_N_FACES (f) = 0;
+
+  UNBLOCK_INPUT;
 }
 
 /* Interning faces in a frame's face array.  */
 
 /* Find a match for NEW_FACE in a FRAME's face array, and add it if we don't
    find one.  */
-int
+static int
 intern_frame_face (frame, new_face)
      struct frame *frame;
      struct face *new_face;
@@ -530,6 +516,7 @@ intern_frame_face (frame, new_face)
 
   ensure_face_ready (frame, i);
   bcopy (new_face, FRAME_FACES (frame)[i], sizeof (*new_face));
+  FRAME_FACES (frame)[i]->copy = 1;
 
   return i;
 }
@@ -564,6 +551,20 @@ ensure_face_ready (f, id)
 
 /* Computing faces appropriate for a given piece of text in a buffer.  */
 
+/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+   We assume that they're both character-cell fonts.  */
+int
+same_size_fonts (font1, font2)
+     XFontStruct *font1, *font2;
+{
+  XCharStruct *bounds1 = &font1->min_bounds;
+  XCharStruct *bounds2 = &font2->min_bounds;
+
+  return (bounds1->width == bounds2->width
+	  && bounds1->ascent == bounds2->ascent
+	  && bounds1->descent == bounds2->descent);
+}
+
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
 static void 
@@ -583,6 +584,23 @@ merge_faces (from, to)
   if (from->underline)
     to->underline = from->underline;
 }
+
+/* Set up the basic set of facial parameters, based on the frame's
+   data; all faces are deltas applied to this.  */
+static void
+compute_base_face (f, face)
+     FRAME_PTR f;
+     struct face *face;
+{
+  struct x_display *d = f->display.x;
+  
+  face->gc = 0;
+  face->foreground = d->foreground_pixel;
+  face->background = d->background_pixel;
+  face->font = d->font;
+  face->underline = 0;
+}
+
 
 struct sortvec
 {
@@ -680,8 +698,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
       && !(pos >= region_beg && pos < region_end))
     return 0;
 
-  bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (struct face));
-  face.gc = 0;
+  compute_base_face (f, &face);
 
   if (!NILP (prop))
     {
@@ -777,8 +794,7 @@ compute_glyph_face (f, face_code)
 {
   struct face face;
 
-  bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (face));
-  face.gc = 0;
+  compute_base_face (f, &face);
 
   if (face_code >= 0 && face_code < FRAME_N_FACES (f)
       && FRAME_FACES (f) [face_code] != 0)
@@ -786,6 +802,34 @@ compute_glyph_face (f, face_code)
 
   return intern_frame_face (f, &face);
 }
+
+
+/* Recompute the GC's for the default and modeline faces.
+   We call this after changing frame parameters on which those GC's
+   depend.  */
+void
+recompute_basic_faces (f)
+     FRAME_PTR f;
+{
+  /* If the frame's faces haven't been initialized yet, don't worry about
+     this stuff.  */
+  if (FRAME_N_FACES (f) < 2)
+    return;
+
+  BLOCK_INPUT;
+
+  if (FRAME_DEFAULT_FACE (f)->gc)
+    XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
+  build_face (f, FRAME_DEFAULT_FACE (f));
+
+  if (FRAME_MODE_LINE_FACE (f)->gc)
+    XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
+  build_face (f, FRAME_MODE_LINE_FACE (f));
+
+  UNBLOCK_INPUT;
+}
+
+
 
 /* Lisp interface. */
 
@@ -900,9 +944,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id == 0)
     {
       BLOCK_INPUT;
-      if (FRAME_DEFAULT_FACE (f)->gc != 0
-	  && FRAME_DEFAULT_FACE (f)->gc != f->display.x->normal_gc
-	  && FRAME_DEFAULT_FACE (f)->gc != f->display.x->reverse_gc)
+      if (FRAME_DEFAULT_FACE (f)->gc != 0)
 	XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
       build_face (f, FRAME_DEFAULT_FACE (f));
       UNBLOCK_INPUT;
@@ -911,9 +953,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id == 1)
     {
       BLOCK_INPUT;
-      if (FRAME_MODE_LINE_FACE (f)->gc != 0
-	  && FRAME_MODE_LINE_FACE (f)->gc != f->display.x->normal_gc
-	  && FRAME_MODE_LINE_FACE (f)->gc != f->display.x->reverse_gc)
+      if (FRAME_MODE_LINE_FACE (f)->gc != 0)
 	XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
       build_face (f, FRAME_MODE_LINE_FACE (f));
       UNBLOCK_INPUT;
