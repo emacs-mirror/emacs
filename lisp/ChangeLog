@@ -1,3 +1,8 @@
+2001-03-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (read-passwd): Clear command history after each
+	character entered.  From: Stephen Gildea <gildea@alum.mit.edu>.
+
 2001-03-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/kkc.el (kkc-save-init-file): Locally bind

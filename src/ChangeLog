@@ -1,3 +1,8 @@
+2001-03-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (BYTE_CODE_QUIT): New macro.
+	(Fbyte_code): Use BYTE_CODE_QUIT instead of QUIT.
+
 2001-03-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_reusing_current_matrix) <scrolling up>:
