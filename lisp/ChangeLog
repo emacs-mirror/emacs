@@ -1,3 +1,9 @@
+2000-12-12  Andreas Schwab  <schwab@suse.de>
+
+	* tar-mode.el (tar-extract): Base the name of the subfile buffer
+	on the name of the tar buffer.  Verify that the existing buffer is
+	visiting the same subfile.
+
 2000-12-12  Dave Love  <fx@gnu.org>
 
 	* subdirs.el: Add obsolete.
