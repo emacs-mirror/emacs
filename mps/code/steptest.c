@@ -149,7 +149,8 @@ static double my_clock(void)
 
 double clock_time;      /* current estimate of time to read the clock */
 
-#define CLOCK_TESTS 20000
+/* take at least this many microseconds to set the clock */
+#define CLOCK_TIME_SET 10000
 
 /* set_clock_timing() sets clock_time. */
 
@@ -160,12 +161,14 @@ static void set_clock_timing(void)
 
     t2 = 0.0;
     t3 = my_clock();
-    for (i=0; i<CLOCK_TESTS; ++i) {
+    i = 0;
+    do {
         t1 = my_clock();
         /* do nothing here */
         t2 += my_clock()-t1;
-    }
-    clock_time = t2/CLOCK_TESTS;
+        ++i;
+    } while (t1 < t3 + CLOCK_TIME_SET);
+    clock_time = t2/i;
     total_clock_time += my_clock() - t3 + clock_time;
 }
 
