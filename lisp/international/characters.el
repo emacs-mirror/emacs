@@ -961,7 +961,7 @@
 	(goto-char pos)
 	(looking-at "\\cC+")
 	(goto-char (match-end 0))
-	(if (looking-at "\\cK+\\|\\cH+")
+	(if (looking-at "\\cH+")
 	    (goto-char (match-end 0)))
 	(point))
     (while (and (> pos limit)
