@@ -1184,7 +1184,8 @@ getline (server)
 #define GETLINE_ERROR "Error reading from server: "
 
   int ret;
-     
+  int search_offset = 0;
+
   if (server->data)
     {
       char *cp = find_crlf (server->buffer + server->buffer_index);
@@ -1208,6 +1209,14 @@ getline (server)
 	{
 	  bcopy (server->buffer + server->buffer_index,
 		 server->buffer, server->data);
+	  /* Record the fact that we've searched the data already in
+             the buffer for a CRLF, so that when we search below, we
+             don't have to search the same data twice.  There's a "-
+             1" here to account for the fact that the last character
+             of the data we have may be the CR of a CRLF pair, of
+             which we haven't read the second half yet, so we may have
+             to search it again when we read more data. */
+	  search_offset = server->data - 1;
 	  server->buffer_index = 0;
 	}
     }
@@ -1218,7 +1227,10 @@ getline (server)
 
   while (1)
     {
-      if (server->data == server->buffer_size)
+      /* There's a "- 1" here to leave room for the null that we put
+         at the end of the read data below.  We put the null there so
+         that find_crlf knows where to stop when we call it. */
+      if (server->data == server->buffer_size - 1)
 	{
 	  server->buffer_size += GETLINE_INCR;
 	  server->buffer = realloc (server->buffer, server->buffer_size);
@@ -1251,7 +1263,7 @@ getline (server)
 	  server->data += ret;
 	  server->buffer[server->data] = '\0';
 	       
-	  cp = find_crlf (server->buffer);
+	  cp = find_crlf (server->buffer + search_offset);
 	  if (cp)
 	    {
 	      int data_used = (cp + 2) - server->buffer;
@@ -1263,6 +1275,7 @@ getline (server)
 		fprintf (stderr, "<<< %s\n", server->buffer);
 	      return (server->buffer);
 	    }
+	  search_offset += ret;
 	}
     }
 
