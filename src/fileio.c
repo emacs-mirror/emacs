@@ -3999,7 +3999,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   if (auto_saved && NILP (no_message))
     {
       if (omessage)
-	message2 (omessage, omessage_length);
+	{
+	  sit_for (1, 0, 0, 0);
+	  message2 (omessage, omessage_length);
+	}
       else
 	message1 ("Auto-saving...done");
     }
