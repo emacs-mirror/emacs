@@ -167,15 +167,13 @@
 
 (defvar x-invocation-args nil)
 
-(defun x-handle-args ()
-  "Here the X-related command line options are processed, before the user's
-startup file is loaded.  These  are present in ARGS (see startup.el).
-They are copied to x-invocation args from which the X-related things
-are extracted, first the switch (e.g., \"-fg\") in the following code,
-and possible values (e.g., \"black\") in the option handler code (e.g.,
-x-handle-switch).
-When finished, only things not pertaining to X (e.g., \"-q\", filenames)
-are left in ARGS."
+(defun x-handle-args (args)
+  "Here the X-related command line options in ARGS are processed,
+before the user's startup file is loaded.  They are copied to
+x-invocation args from which the X-related things are extracted, first
+the switch (e.g., \"-fg\") in the following code, and possible values
+(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
+This returns ARGS with the arguments that have been processed removed."
   (setq x-invocation-args args
 	args nil)
   (while x-invocation-args
@@ -633,7 +631,7 @@ are left in ARGS."
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
 (x-read-resources)
-(x-handle-args)
+(setq command-line-args (x-handle-args command-line-args))
 (x-pop-initial-window)
 
 (setq suspend-hook
