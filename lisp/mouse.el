@@ -55,9 +55,9 @@ PREFIX is the prefix argument (if any) to pass to the command."
 	       ((keymapp menu) menu)
 	       ((and (listp menu) (keymapp (car menu))) menu)
 	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
-		       (filter (when (symbolp map)
-				 (plist-get (get map 'menu-pro) :filter))))
-		  (if filter (funcall filter (symbol-function map)) map)))))
+			 (filter (when (symbolp map)
+				   (plist-get (get map 'menu-prop) :filter))))
+		    (if filter (funcall filter (symbol-function map)) map)))))
 	 event cmd)
     (unless position
       (let ((mp (mouse-pixel-position)))
