@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/18 15:46:30 $|$Revision: 1.35 $
+;; |$Date: 1993/05/19 04:44:42 $|$Revision: 1.36 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -408,7 +408,6 @@ Type \\[isearch-yank-word] to yank word from buffer onto end of search\
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
 Type \\[isearch-quote-char] to quote control character to search for it.
-Type \\[isearch-whitespace-chars] to match all whitespace chars in regexp.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
  been found successfully.
