@@ -41,6 +41,7 @@ C_SWITCH_SYSTEM=@c_switch_system@
 ALLOCA=@ALLOCA@
 LN_S=@LN_S@
 CFLAGS=@CFLAGS@
+C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -297,6 +298,7 @@ oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
 	  sed < ${srcdir}/oldXMenu/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
 	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
+	  -e 's|^\(C_SWITCH_X_SITE *=\).*$$|\1'"${C_SWITCH_X_SITE}"'|'	\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
 	  -e '/^# DIST: /d') > oldXMenu/Makefile.tmp
