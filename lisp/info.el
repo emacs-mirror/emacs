@@ -1242,7 +1242,7 @@ previous node or back up to the parent node."
 	(Info-last-preorder)
       (scroll-down))))
 
-(defun Info-next-reference ()
+(defun Info-next-reference (&optional recur)
   "Move cursor to the next cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
@@ -1257,9 +1257,11 @@ previous node or back up to the parent node."
 		(error "No cross references in this node")))))
     (goto-char (match-beginning 0))
     (if (looking-at "\\* Menu:")
-	(Info-next-reference))))
+	(if recur
+	    (error "No cross references in this node")
+	  (Info-next-reference t)))))
 
-(defun Info-prev-reference ()
+(defun Info-prev-reference (&optional recur)
   "Move cursor to the previous cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
@@ -1273,7 +1275,9 @@ previous node or back up to the parent node."
 		(error "No cross references in this node")))))
     (goto-char (match-beginning 0))
     (if (looking-at "\\* Menu:")
-	(Info-prev-reference))))
+	(if recur
+	    (error "No cross references in this node")
+	  (Info-prev-reference t)))))
 
 (defun Info-index (topic)
   "Look up a string in the index for this file.
