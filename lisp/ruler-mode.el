@@ -135,7 +135,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                     (format "Invalid character value: %S" value))
         widget))))
 
-(defcustom ruler-mode-fill-column-char (if window-system
+(defcustom ruler-mode-fill-column-char (if (char-displayable-p ?¶)
                                            ?\¶
                                          ?\|)
   "*Character used at the `fill-column' location."
@@ -161,7 +161,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
           (integer :tag "Integer char value"
                    :validate ruler-mode-character-validate)))
 
-(defcustom ruler-mode-current-column-char (if window-system
+(defcustom ruler-mode-current-column-char (if (char-displayable-p ?¦)
                                               ?\¦
                                             ?\@)
   "*Character used at the `current-column' location."
