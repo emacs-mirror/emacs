@@ -37,7 +37,7 @@
 (define-key mule-keymap "t" 'set-terminal-coding-system)
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
 (define-key mule-keymap "p" 'set-buffer-process-coding-system)
-(define-key mule-keymap "\C-\\" 'select-input-method)
+(define-key mule-keymap "\C-\\" 'set-input-method)
 (define-key mule-keymap "c" 'universal-coding-system-argument)
 (define-key mule-keymap "l" 'set-language-environment)
 
@@ -82,8 +82,8 @@
 (define-key-after mule-menu-keymap [toggle-input-method]
   '("Toggle Input Method" . toggle-input-method)
   t)
-(define-key-after mule-menu-keymap [select-input-method]
-  '("Select Input Method" . select-input-method)
+(define-key-after mule-menu-keymap [set-input-method]
+  '("Select Input Method" . set-input-method)
   t)
 (define-key-after mule-menu-keymap [describe-input-method]
   '("Describe Input Method" . describe-input-method)
@@ -498,7 +498,7 @@ If some input method is already on, turn it off at first."
 	(setq current-input-method nil
 	      current-input-method-title nil)))))
 
-(defun select-input-method (input-method)
+(defun set-input-method (input-method)
   "Select and turn on INPUT-METHOD.
 This sets the default input method to what you specify,
 and turn it on for the current buffer."
