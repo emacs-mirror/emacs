@@ -54,8 +54,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/ioctl.h>
 #include <strings.h>
 #else /* ! defined (BSD) */
+#ifndef VMS
 #include <sys/termio.h>
 #include <string.h>
+#endif
 #endif /* ! defined (BSD) */
 
 /* Allow m- file to inhibit use of FIONREAD.  */
