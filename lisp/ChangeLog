@@ -1,3 +1,8 @@
+2002-06-12  Juanma Barranquero  <lektu@terra>
+
+	* term/w32-win.el (x-handle-switch): Fix handling of
+	x-invocation-args for switches with arguments.
+
 2002-06-12  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-fontify-node): Compute header line specially
