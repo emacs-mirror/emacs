@@ -846,7 +846,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   /* #### This doesn't work, I haven't been able to find ANY kludge that
      will let (x-create-frame '((iconic . t))) work.  It seems that changes
      to wm_shell's iconic slot have no effect after it has been realized,
-     and calling XIconifyWindow doesn't work either (even thought the window
+     and calling XIconifyWindow doesn't work either (even though the window
      has been created.)  Perhaps there is some property we could smash
      directly, but I'm sick of this for now.
    */
