@@ -590,7 +590,9 @@ the user from the mailer."
 	resend-to-addresses
 	delimline
 	fcc-was-found
-	(mailbuf (current-buffer)))
+	(mailbuf (current-buffer))
+	(sendmail-coding-system (or buffer-file-coding-system
+				        sendmail-coding-system)))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
