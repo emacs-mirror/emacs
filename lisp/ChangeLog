@@ -1,3 +1,8 @@
+2001-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ls-lisp.el (insert-directory): Modify the "total" line wording,
+	in accordance with files.el's insert-directory.
+
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (basic-save-buffer): If a before-write hook displays
