@@ -21,6 +21,9 @@ use, but we don't try to list them all here.
 @item auto-fill-function
 @xref{Auto Filling}.
 
+@item buffer-auto-save-file-format
+@xref{Format Conversion}.
+
 @item buffer-auto-save-file-name
 @xref{Auto-Saving}.
 
