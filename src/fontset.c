@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
+#include "intervals.h"
 #include "fontset.h"
 #include "window.h"
 
@@ -674,7 +675,7 @@ fontset_face (fontset, c, face, id)
     }
 
  try_fallback:
-  if (vec != FONTSET_FALLBACK (fontset))
+  if (! EQ (vec, FONTSET_FALLBACK (fontset)))
     {
       vec = FONTSET_FALLBACK (fontset);
       if (VECTORP (vec))
@@ -827,7 +828,7 @@ free_face_fontset (f, face)
     next_fontset_id = face->fontset;
   if (! NILP (FONTSET_DEFAULT (fontset)))
     {
-      int id = FONTSET_ID (FONTSET_DEFAULT (fontset));
+      int id = XINT (FONTSET_ID (FONTSET_DEFAULT (fontset)));
       
       fontset = AREF (Vfontset_table, id);
       xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
@@ -1579,7 +1580,7 @@ new_fontset_from_font_name (Lisp_Object fontname)
   else
     {
       char temp[20];
-      int len = Flength (auto_fontset_alist);
+      int len = XINT (Flength (auto_fontset_alist));
 
       sprintf (temp, "auto%d", len);
       ASET (vec, 13, build_string (temp));
