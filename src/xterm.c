@@ -1813,18 +1813,13 @@ x_produce_glyphs (it)
       /* Maybe translate single-byte characters to multibyte, or the
 	 other way.  */
       it->char_to_display = it->c;
-      if (!ASCII_BYTE_P (it->c))
+      if (! ASCII_CHAR_P (it->c)
+	  && ! it->multibyte_p)
 	{
-	  if (unibyte_display_via_language_environment
-	      && SINGLE_BYTE_CHAR_P (it->c))
-	    {
-	      it->char_to_display = unibyte_char_to_multibyte (it->c);
-	      it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-	  else if (!SINGLE_BYTE_CHAR_P (it->c)
-		   && !it->multibyte_p)
+	  if (SINGLE_BYTE_CHAR_P (it->c)
+	      && unibyte_display_via_language_environment)
+	    it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  if (! SINGLE_BYTE_CHAR_P (it->c))
 	    {
 	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
@@ -10714,7 +10709,7 @@ XTread_socket (sd, bufp, numchars, expected)
 				c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
 							    nbytes - i, len);
 			      
-			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+			      bufp->kind = (ASCII_CHAR_P (c)
 					    ? ascii_keystroke
 					    : multibyte_char_keystroke);
 			      bufp->code = c;
@@ -12278,19 +12273,28 @@ x_new_fontset (f, fontsetname)
   int fontset = fs_query_fontset (build_string (fontsetname), 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (f->output_data.x->fontset == fontset)
+  if (fontset >= 0 && f->output_data.x->fontset == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
 
-  result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
+  if (fontset >= 0)
+    result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
+  else
+    result = x_new_font (f, fontsetname);
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
+
+  if (fontset < 0)
+    {
+      Lisp_Object fontlist;
+
+      fontlist = Fcons (Fcons (Qascii, Fcons (result, Qnil)), Qnil);
+      Fnew_fontset (result, fontlist);
+      fontset = fs_query_fontset (result, 0);
+    }
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   f->output_data.x->fontset = fontset;
@@ -12301,7 +12305,7 @@ x_new_fontset (f, fontsetname)
     xic_set_xfontset (f, XSTRING (fontset_ascii (fontset))->data);
 #endif
   
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
 
 /* Compute actual fringe widths */
@@ -14456,6 +14460,101 @@ x_find_ccl_program (fontp)
       else
 	fontp->font_encoder = ccl;
     }
+}
+
+
+/* Return a char-table whose elements are t if the font FONT_INFO
+   contains a glyph for the corresponding character, and nil if not.
+
+   Fixme: For the moment, this function works only for fonts whose
+   glyph encoding is the same as Unicode (e.g. ISO10646-1 fonts).  */
+
+Lisp_Object
+x_get_font_repertory (f, font_info)
+     FRAME_PTR f;
+     struct font_info *font_info;
+{
+  XFontStruct *font = (XFontStruct *) font_info->font;
+  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+  Lisp_Object table;
+  int min_byte1, max_byte1, min_byte2, max_byte2;
+
+  table = Fmake_char_table (Qnil, Qnil);
+
+  min_byte1 = font->min_byte1;
+  max_byte1 = font->max_byte1;
+  min_byte2 = font->min_char_or_byte2;
+  max_byte2 = font->max_char_or_byte2;
+  if (min_byte1 == 0 && max_byte1 == 0)
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	char_table_set_range (table, min_byte2, max_byte2, Qt);
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int from = -1;
+	  int i;
+
+	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
+	    {
+	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		{
+		  if (from >= 0)
+		    {
+		      char_table_set_range (table, from, i - 1, Qt);
+		      from = -1;
+		    }
+		}
+	      else if (from < 0)
+		from = i;
+	    }
+	  if (from >= 0)
+	    char_table_set_range (table, from, i - 1, Qt);
+	}
+    }
+  else
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	{
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    char_table_set_range (table,
+				  (i << 8) | min_byte2, (i << 8) | max_byte2,
+				  Qt);
+	}
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    {
+	      int from = -1;
+	      int j;
+
+	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
+		{
+		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		    {
+		      if (from >= 0)
+			{
+			  char_table_set_range (table, (i << 8) | from,
+						(i << 8) | (j - 1), Qt);
+			  from = -1;
+			}
+		    }
+		  else if (from < 0)
+		    from = j;
+		}
+	      if (from >= 0)
+		char_table_set_range (table, (i << 8) | from,
+				      (i << 8) | (j - 1), Qt);
+	    }
+	}
+    }
+
+  return table;
 }
 
 
