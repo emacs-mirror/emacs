@@ -225,12 +225,17 @@ the associated section number."
   "Command used for processing awk scripts.")
 
 (defvar Man-mode-line-format
-  '("" mode-line-modified
-       mode-line-buffer-identification "  "
-       global-mode-string
-       " " Man-page-mode-string
-       "  %[(" mode-name mode-line-process minor-mode-alist ")%]----"
-       (-3 . "%p") "-%-")
+  '("-"
+    mode-line-mule-info
+    mode-line-modified
+    mode-line-frame-identification
+    mode-line-buffer-identification "  "
+    global-mode-string
+    " " Man-page-mode-string
+    "  %[(" mode-name mode-line-process minor-mode-alist "%n)%]--"
+    (line-number-mode "L%l--")
+    (column-number-mode "C%c--")
+    (-3 . "%p") "-%-")
   "Mode line format for manual mode buffer.")
 
 (defvar Man-mode-map nil
