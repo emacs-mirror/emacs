@@ -1,3 +1,18 @@
+2000-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* macos.texi: Fix markup and @node lines for inclusion in the
+	manual.
+
+	* emacs.texi: @include macos.texi.
+
+	* anti.texi: Update due to inclusion of macos.texi.
+
+	* msdog.texi: Ditto.
+
+2000-12-04  Andrew Choi <akochoi@i-cable.com>
+
+	* macos.texi: New file.
+
 2000-11-22  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Display Vars): Note that `mode-line-inverse-video'
