@@ -1,7 +1,7 @@
 2003-01-14  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* apropos.el (apropos): Restore autoload cookie.  Fix error
-	message typo.
+	* apropos.el (apropos): Restore autoload cookie.  Fix typo in 
+	"error retrieving function documentation" output.
 
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
