@@ -594,7 +594,8 @@ x_update_window_begin (w)
   struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
 
   /* Hide the system caret during an update.  */
-  SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
+  if (w32_use_visible_system_caret)
+    SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
 
   updated_window = w;
   set_output_cursor (&w->cursor);
@@ -720,7 +721,8 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
      x_update_window_begin.  */
-  SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
+  if (w32_use_visible_system_caret)
+    SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
 
   updated_window = NULL;
 }
@@ -7857,7 +7859,7 @@ my_create_scrollbar (f, bar)
 			     (LPARAM) bar);
 }
 
-//#define ATTACH_THREADS
+/*#define ATTACH_THREADS*/
 
 BOOL
 my_show_window (FRAME_PTR f, HWND hwnd, int how)
@@ -8111,7 +8113,7 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
             SetScrollRange (hwnd, SB_CTL, 0,
                             VERTICAL_SCROLL_BAR_TOP_RANGE (f, height), FALSE);
           my_show_window (f, hwnd, SW_NORMAL);
-          //  InvalidateRect (w, NULL, FALSE);
+          /* InvalidateRect (w, NULL, FALSE);  */
 
           /* Remember new settings.  */
           XSETINT (bar->left, sb_left);
@@ -11178,8 +11180,9 @@ the cursor have no effect.  */);
 
   /* Initialize w32_use_visible_system_caret based on whether a screen
      reader is in use.  */
-  SystemParametersInfo (SPI_GETSCREENREADER, 0,
-			&w32_use_visible_system_caret, 0);
+  if (!SystemParametersInfo (SPI_GETSCREENREADER, 0,
+			     &w32_use_visible_system_caret, 0))
+    w32_use_visible_system_caret = 0;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
 	       doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
