@@ -1,3 +1,8 @@
+2001-06-29  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-color-sample-face-get):
+	Return ((foreground-color . COLOR)) instead of constructing a face.
+
 2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (region): Change the background color for the
