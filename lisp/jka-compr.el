@@ -2,7 +2,6 @@
 ;;; Copyright (C) 1993, 1994  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
-;; Version: 0.11
 ;; Keywords: data
 
 ;;; Commentary: 
@@ -128,11 +127,11 @@ for `jka-compr-compression-info-list').")
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
   ;; can-append auto-mode-flag]
-  '(["\\.Z~?\\'"
+  '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
      "uncompressing"  "uncompress"   ("-c")
      nil t]
-    ["\\.gz~?\\'"
+    ["\\.gz\\(~\\|\\.~[0-9]+~\\)?\\'"
      "zipping"        "gzip"         ("-c" "-q")
      "unzipping"      "gzip"         ("-c" "-q" "-d")
      t t])
@@ -512,6 +511,8 @@ There should be no more than seven characters after the final `/'")
 		(condition-case error-code
 
 		    (progn
+		      (if replace
+			  (goto-char (point-min)))
 		      (setq start (point))
 		      (if (or beg end)
 			  (jka-compr-partial-uncompress uncompress-program
@@ -531,16 +532,12 @@ There should be no more than seven characters after the final `/'")
 						nil
 						uncompress-args))
 		      (setq size (- (point) start))
-		      (goto-char start)
-		      ;; Run the functions that insert-file-contents would.
-		      (let ((list after-insert-file-functions)
-			    (value size))
-			(while list
-			  (setq value (funcall (car list) size))
-			  (if value
-			      (setq size value))
-			  (setq list (cdr list)))))
-
+		      (if replace
+			  (let* ((del-beg (point))
+				 (del-end (+ del-beg size)))
+			    (delete-region del-beg
+					   (min del-end (point-max)))))
+		      (goto-char start))
 		  (error
 		   (if (and (eq (car error-code) 'file-error)
 			    (eq (nth 3 error-code) local-file))
@@ -572,6 +569,19 @@ There should be no more than seven characters after the final `/'")
 	   notfound
 	   (signal 'file-error
 		   (cons "Opening input file" (nth 2 notfound))))
+
+	  ;; Run the functions that insert-file-contents would.
+	  (let ((p after-insert-file-functions)
+		(insval size))
+	    (while p
+	      (setq insval (funcall (car p) size))
+	      (if insval
+		  (progn
+		    (or (integerp insval)
+			(signal 'wrong-type-argument
+				(list 'integerp insval)))
+		    (setq size insval)))
+	      (setq p (cdr p))))
 
 	  (list filename size))
 
