@@ -2665,12 +2665,20 @@ handle_display_prop (it)
     return HANDLED_NORMALLY;
 
   if (CONSP (prop)
-      && CONSP (XCAR (prop))
-      && !EQ (Qmargin, XCAR (XCAR (prop))))
+      /* Simple properties.  */
+      && !EQ (XCAR (prop), Qimage)
+      && !EQ (XCAR (prop), Qspace)
+      && !EQ (XCAR (prop), Qwhen)
+      && !EQ (XCAR (prop), Qspace_width)
+      && !EQ (XCAR (prop), Qheight)
+      && !EQ (XCAR (prop), Qraise)
+      /* Marginal area specifications.  */
+      && !(CONSP (XCAR (prop)) && EQ (XCAR (XCAR (prop)), Qmargin))
+      && !NILP (XCAR (prop)))
     {
-      /* A list of sub-properties.  */
       for (; CONSP (prop); prop = XCDR (prop))
 	{
+	  debug_print (XCAR (prop));
 	  if (handle_single_display_prop (it, XCAR (prop), object,
 					  position, display_replaced_p))
 	    display_replaced_p = 1;
