@@ -93,6 +93,7 @@ license to the document, as described in section 6 of the license.
 * Debugging::                     Debugging your application
 * Using non-standard file names:: Configuring Emacs for special file names
 * Working Remotely::              Working on a different machine
+* Index::
 @end menu
 
 
@@ -345,14 +346,18 @@ choice is to use this variable settings, and otherwise
 
 @table @kbd
 @item C-c u
+@findex ada-customize
 Create or edit the project file for the current buffer (@code{ada-customize}).
 @item C-c c   
+@findex ada-change-prj
 Change the project file associated with the current Ada buffer (@code{ada-change-prj}).
 @item C-c d
-Change the  default project  file for the  current directory.  Every new
-file opened  from this  directory will be  associated with that  file by
-default.
+@findex ada-change-default-project
+Change the  default project  file for the  current directory
+(@code{ada-change-default-project}).  Every new file opened  from this
+directory will be  associated with that  file by default.
 @item ada-set-default-project-file
+@findex ada-set-default-project-file
 Set the default  project file to use for *any*  Ada file opened anywhere
 on your system. This sets this file only for the current Emacs session.
 @end table
@@ -542,32 +547,40 @@ the following key bindings or the command names:
 
 @table @kbd
 @item M-C-e
+@findex ada-next-procedure
 Move to the next function/procedure/task, which ever comes next
 (@code{ada-next-procedure}).
 @item M-C-a
+@findex ada-previous-procedure
 Move to previous function/procedure/task
 (@code{ada-previous-procedure}).
 @item M-x ada-next-package
+@findex ada-next-package
 Move to next package.
 @item M-x ada-prev-package
+@findex ada-prev-package
 Move to previous package.
 @item C-c C-a
+@findex ada-move-to-start
 Move to matching start of @code{end} (@code{ada-move-to-start}).  If
 point is at the end of a subprogram, this command jumps to the
 corresponding @code{begin} if the user option
 @code{ada-move-to-declaration} is @code{nil} (default), it jumps to
 the subprogram declaration otherwise.
 @item C-c C-e
+@findex ada-move-to-end
 Move point to end of current block (@code{ada-move-to-end}).
 @item C-c o
 Switch between corresponding spec and body file
 (@code{ff-find-other-file}).  If the cursor is on a subprogram, switch
 between declaration and body.
 @item C-c c-d
+@findex ada-goto-declaration
 Move  from   any  reference  to  its  declaration   and  switch  between
 declaration  and body  (for  procedures, tasks,  private and  incomplete
 types).
 @item C-c C-r
+@findex ada-find-references
 runs the @file{gnatfind} command to search for all references to the
 entity pointed by the cursor (@code{ada-find-references}).  Use
 @kbd{C-x `} (@code{next-error}) to visit each reference (as for
@@ -638,6 +651,7 @@ identifier.
 
 @table @kbd
 @item C-@key{TAB}
+@findex ada-complete-identifier
 Complete accurately current identifier using information in @samp{.ali} file
 (@code{ada-complete-identifier}).
 @item M-/
@@ -799,6 +813,7 @@ separating argument names and argument types, plus align the
 
 @table @kbd
 @item C-c C-f
+@findex ada-format-paramlist
 Format the parameter list (@code{ada-format-paramlist}).
 @end table
 
@@ -867,14 +882,15 @@ which  should  point  to  a  system-wide  file that  each  of  them  can
 write.  That  way,  you  will  ensure  that  the  casing  is  consistent
 throughout your application(s).
 
+@findex ada-create-case-exception
 There are two ways to add new items to this file: you can simply edit it
 as you  would edit any  text file, and  add or suppress entries  in this
 file.  Remember that  you should  put one  entity per  line.  The other,
 easier way, is to position the cursor  over the word you want to add, in
 an Ada buffer.  This word should have the casing  you want.  Then simply
 select  the  menu @samp{Ada->Edit->Create  Case  Exception},  or the  key
-@kbd{C-c C-y}. The word will  automatically be added to the current list
-of exceptions and to the file.
+@kbd{C-c C-y} (@code{ada-create-case-exception}). The word will
+automatically be added to the current list of exceptions and to the file.
 
 It  is sometimes  useful to  have multiple  exception files  around (for
 instance,  one could  be  the  standard Ada  acronyms,  the second  some
@@ -892,13 +908,15 @@ Automatic casing can be performed on port or whole buffer using:
 
 @table @kbd
 @item C-c C-b
-Adjust case in the whole buffer.
+@findex ada-adjust-case-buffer
+Adjust case in the whole buffer (@code{ada-adjust-case-buffer}).
 @item C-c C-y
 Create a new entry in the exception dictionary, with the word under
-the cursor
+the cursor (@code{ada-create-case-exception})
 @item C-c C-t
+@findex ada-case-read-exceptions
 Rereads the exception dictionary from the file
-@code{ada-case-exception-file}.
+@code{ada-case-exception-file} (@code{ada-case-read-exceptions}).
 @end table
 
 @c -----------------------------------------------------------------------
@@ -914,57 +932,86 @@ buffer using the following commands:
 
 @table @kbd
 @item C-c t b
-exception Block
+@findex ada-exception-block
+exception Block (@code{ada-exception-block}).
 @item C-c t c
-case.
+@findex ada-case
+case (@code{ada-case}).
 @item C-c t d
-declare Block.
+@findex ada-declare-block
+declare Block (@code{ada-declare-block}).
 @item C-c t e
-else.
+@findex ada-else
+else (@code{ada-else}).
 @item C-c t f
-for Loop.
+@findex ada-for-loop
+for Loop (@code{ada-for-loop}).
 @item C-c t h
-Header.
+@findex ada-header
+Header (@code{ada-header}).
 @item C-c t i
-if.
+@findex ada-if
+if (@code{ada-if}).
 @item C-c t k
-package Body.
+@findex ada-package-body
+package Body (@code{ada-package-body}).
 @item C-c t l
-loop.
+@findex ada-loop
+loop (@code{ada-loop}).
+@item C-c p
+@findex ada-subprogram-body
+subprogram body (@code{ada-subprogram-body}).
 @item C-c t t
-task Body.
+@findex ada-task-body
+task Body (@code{ada-task-body}).
 @item C-c t w
-while Loop.
+@findex ada-while
+while Loop (@code{ada-while}).
 @item C-c t u
-use.
+@findex ada-use
+use (@code{ada-use}).
 @item C-c t x
-exit.
+@findex ada-exit
+exit (@code{ada-exit}).
 @item C-c t C-a
-array.
+@findex ada-array
+array (@code{ada-array}).
 @item C-c t C-e
-elsif.
+@findex ada-elsif
+elsif (@code{ada-elsif}).
 @item C-c t C-f
-function Spec.
+@findex ada-function-spec
+function Spec (@code{ada-function-spec}).
 @item C-c t C-k
-package Spec.
+@findex ada-package-spec
+package Spec (@code{ada-package-spec}).
 @item C-c t C-p
-procedure Spec.
+@findex ada-procedure-spec
+procedure Spec (@code{ada-package-spec}.
 @item C-c t C-r
-record.
+@findex ada-record
+record (@code{ada-record}).
 @item C-c t C-s
-subtype.
+@findex ada-subtype
+subtype (@code{ada-subtype}).
 @item C-c t C-t
-task Spec.
+@findex ada-task-spec
+task Spec (@code{ada-task-spec}).
 @item C-c t C-u
-with.
+@findex ada-with
+with (@code{ada-with}).
 @item C-c t C-v
-private.
+@findex ada-private
+private (@code{ada-private}).
 @item C-c t C-w
-when.
+@findex ada-when
+when (@code{ada-when}).
 @item C-c t C-x
-exception.
+@findex ada-exception
+exception (@code{ada-exception}).
 @item C-c t C-y
-type.
+@findex ada-type
+type (@code{ada-type}).
 @end table
 
 @c -----------------------------------------------------------------------
@@ -1154,7 +1201,7 @@ complicated.  You then need to rewrite the function
 for an example).
 
 @c ---------------------------------------------------------------------
-@node Working Remotely, ,Using non-standard file names, Top
+@node Working Remotely, Index, Using non-standard file names, Top
 @chapter Working Remotely
 @c ---------------------------------------------------------------------
 
@@ -1235,6 +1282,11 @@ For instance, if your command was @code{$@{main@}}, you could replace it with
 
 However, this would not work on vxworks, for instance, where
 @command{rsh} is not supported.
+
+@node Index, , Working Remotely, Top
+@unnumbered Index
+
+@printindex fn
 
 @contents
 @bye
