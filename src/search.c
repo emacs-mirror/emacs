@@ -670,11 +670,12 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	}
       while (n < 0)
 	{
+	  int val;
 	  BLOCK_INPUT;
-	  int val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
-				 pos - BEGV, lim - pos, &search_regs,
-				 /* Don't allow match past current point */
-				 pos - BEGV);
+	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
+			     pos - BEGV, lim - pos, &search_regs,
+			     /* Don't allow match past current point */
+			     pos - BEGV);
 	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
@@ -700,10 +701,11 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	}
       while (n > 0)
 	{
+	  int val;
 	  BLOCK_INPUT;
-	  int val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
-				 pos - BEGV, lim - pos, &search_regs,
-				 lim - BEGV);
+	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
+			     pos - BEGV, lim - pos, &search_regs,
+			     lim - BEGV);
 	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
