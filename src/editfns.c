@@ -281,25 +281,25 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
    for the text property PROP.  */
 
 static int
-text_property_eq (prop, pos1, pos2)
+char_property_eq (prop, pos1, pos2)
      Lisp_Object prop;
      Lisp_Object pos1, pos2;
 {
   Lisp_Object pval1, pval2;
 
-  pval1 = Fget_text_property (pos1, prop, Qnil);
-  pval2 = Fget_text_property (pos2, prop, Qnil);
+  pval1 = Fget_char_property (pos1, prop, Qnil);
+  pval2 = Fget_char_property (pos2, prop, Qnil);
 
   return EQ (pval1, pval2);
 }
 
-/* Return the direction from which the text-property PROP would be
+/* Return the direction from which the char-property PROP would be
    inherited by any new text inserted at POS: 1 if it would be
    inherited from the char after POS, -1 if it would be inherited from
    the char before POS, and 0 if from neither.  */
 
 static int
-text_property_stickiness (prop, pos)
+char_property_stickiness (prop, pos)
      Lisp_Object prop;
      Lisp_Object pos;
 {
@@ -311,7 +311,7 @@ text_property_stickiness (prop, pos)
       Lisp_Object prev_pos, rear_non_sticky;
 
       prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+      rear_non_sticky = Fget_char_property (prev_pos, Qrear_nonsticky, Qnil);
 
       if (EQ (rear_non_sticky, Qnil)
 	  || (CONSP (rear_non_sticky)
@@ -322,7 +322,7 @@ text_property_stickiness (prop, pos)
     }
 
   /* Consider following character.  */
-  front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
+  front_sticky = Fget_char_property (pos, Qfront_sticky, Qnil);
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
@@ -376,14 +376,14 @@ find_field (pos, merge_at_boundary, beg, end)
       /* First see if POS is actually *at* a boundary. */
       Lisp_Object after_field, before_field;
 
-      after_field = Fget_text_property (pos, Qfield, Qnil);
-      before_field = Fget_text_property (make_number (XINT (pos) - 1),
+      after_field = Fget_char_property (pos, Qfield, Qnil);
+      before_field = Fget_char_property (make_number (XINT (pos) - 1),
 					 Qfield, Qnil);
 
       if (! EQ (after_field, before_field))
 	/* We are at a boundary, see which direction is inclusive.  */
 	{
-	  int stickiness = text_property_stickiness (Qfield, pos);
+	  int stickiness = char_property_stickiness (Qfield, pos);
 
 	  if (stickiness > 0)
 	    at_field_start = 1;
@@ -391,7 +391,7 @@ find_field (pos, merge_at_boundary, beg, end)
 	    at_field_end = 1;
 	  else
 	    /* STICKINESS == 0 means that any inserted text will get a
-	       `field' text-property of nil, so check to see if that
+	       `field' char-property of nil, so check to see if that
 	       matches either of the adjacent characters (this being a
 	       kind of "stickiness by default").  */
 	    {
@@ -413,7 +413,8 @@ find_field (pos, merge_at_boundary, beg, end)
 	/* Find the previous field boundary.  */
 	{
 	  Lisp_Object prev;
-	  prev = Fprevious_single_property_change (pos, Qfield, Qnil, Qnil);
+	  prev =
+	    Fprevious_single_char_property_change (pos, Qfield, Qnil, Qnil);
 	  *beg = NILP (prev) ? BEGV : XFASTINT (prev);
 	}
     }
@@ -428,7 +429,7 @@ find_field (pos, merge_at_boundary, beg, end)
 	/* Find the next field boundary.  */
 	{
 	  Lisp_Object next;
-	  next = Fnext_single_property_change (pos, Qfield, Qnil, Qnil);
+	  next = Fnext_single_char_property_change (pos, Qfield, Qnil, Qnil);
 	  *end = NILP (next) ? ZV : XFASTINT (next);
 	}
     }
@@ -509,7 +510,7 @@ constrained position if that is is different.\n\
 If OLD-POS is at the boundary of two fields, then the allowable\n\
 positions for NEW-POS depends on the value of the optional argument\n\
 ESCAPE-FROM-EDGE: If ESCAPE-FROM-EDGE is nil, then NEW-POS is\n\
-constrained to the field that has the same `field' text-property\n\
+constrained to the field that has the same `field' char-property\n\
 as any new characters inserted at OLD-POS, whereas if ESCAPE-FROM-EDGE\n\
 is non-nil, NEW-POS is constrained to the union of the two adjacent\n\
 fields.\n\
@@ -536,7 +537,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
 
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
-      && !text_property_eq (Qfield, new_pos, old_pos))
+      && !char_property_eq (Qfield, new_pos, old_pos))
     /* NEW_POS is not within the same field as OLD_POS; try to
        move NEW_POS so that it is.  */
     {
