@@ -1,3 +1,19 @@
+2000-09-29  Miles Bader  <miles@gnu.org>
+
+	* image-file.el (image-file-name-extensions): New variable.
+	(image-file-name-regexps): Renamed from `image-file-regexps'.
+	New default value is nil.  Call `auto-image-file-mode'.
+	(image-file-name-regexp): New function.
+	(auto-image-file-mode): New minor mode.
+	(insert-image-file): Don't make conditional on the image-file
+	handler being enabled.
+	(image-file-handler): Make the call here conditional instead.
+	(set-image-file-handler-enabled, enable-image-file-handler)
+	(disable-image-file-handler): Functions removed.
+
+	* emacs-lisp/authors.el (authors-print): Rephrase many-files
+	string.
+
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/tex-mode.el (latex-outline-regexp): Don't use `list*';
