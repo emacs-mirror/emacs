@@ -944,7 +944,7 @@ insert_glyphs (start, len)
   cmplus (len);
   /* The field `last_block' should be set to 1 only at the tail.  */
   terminal_coding.last_block = 0;
-  while (len > 0)
+  while (len-- > 0)
     {
       int produced, consumed;
 
