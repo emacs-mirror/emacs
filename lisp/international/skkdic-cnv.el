@@ -52,9 +52,6 @@
  "Like `iso-2022-7bit' but no ASCII designation before SPC."
  '(ascii nil nil nil t t nil t))
 
-(defconst skkdic-jbytes
-  (charset-bytes 'japanese-jisx0208))
-
 (defun skkdic-convert-okuri-ari (skkbuf buf)
   (message "Processing OKURI-ARI entries ...")
   (goto-char (point-min))
@@ -220,9 +217,9 @@
 
 (defun skkdic-breakup-string (skkbuf kana str from to &optional first)
   (let ((len (- to from)))
-    (or (and (>= len (* skkdic-jbytes 2))
-	     (let ((min-idx (+ from (* skkdic-jbytes 2)))
-		   (idx (if first (- to skkdic-jbytes) to))
+    (or (and (>= len 2)
+	     (let ((min-idx (+ from 2))
+		   (idx (if first (1- to ) to))
 		   (found nil))
 	       (while (and (not found) (>= idx min-idx))
 		 (let ((kana2-list (skkdic-get-entry
@@ -243,18 +240,18 @@
 			   (and (stringp kana2-list)
 				(string-match kana2-list kana)))
 		       (setq found t)
-		     (setq idx (- idx skkdic-jbytes)))))
+		     (setq idx (1- idx)))))
 	       found))
 	(and first
-	     (> len (* skkdic-jbytes 2))
+	     (> len 2)
 	     (let ((kana2 (skkdic-get-entry
-			   (substring str from (+ from skkdic-jbytes))
+			   (substring str from (1+ from))
 			   skkdic-prefix-list)))
 	       (and (stringp kana2)
 		    (eq (string-match kana2 kana) 0)))
-	     (skkdic-breakup-string skkbuf kana str (+ from skkdic-jbytes) to))
+	     (skkdic-breakup-string skkbuf kana str (1+ from) to))
 	(and (not first)
-	     (>= len skkdic-jbytes)
+	     (>= len 1)
 	     (let ((kana2-list (skkdic-get-entry
 				(substring str from to)
 				skkdic-postfix-list)))
@@ -275,7 +272,7 @@
   (let (elt l)
     (while candidates
       (setq elt (car candidates))
-      (if (or (= (length elt) skkdic-jbytes)
+      (if (or (= (length elt) 1)
 	      (and (string-match "^\\cj" elt)
 		   (not (skkdic-breakup-string skkbuf kana elt 0 (length elt)
 					       'first))))
@@ -463,18 +460,18 @@ To get complete usage, invoke:
 
 (defun skkdic-get-kana-compact-codes (kana)
   (let* ((len (length kana))
-	 (vec (make-vector (/ (+ len (1- skkdic-jbytes)) skkdic-jbytes) 0))
+	 (vec (make-vector len 0))
 	 (i 0)
 	 ch)
     (while (< i len)
-      (setq ch (sref kana i))
-      (aset vec (/ i 3)
+      (setq ch (aref kana i))
+      (aset vec i
 	    (if (< ch 128)		; CH is an ASCII letter for OKURIGANA,
 		(- ch)			;  represented by a negative code.
 	      (if (= ch ?ー)		; `ー' is represented by 0.
 		  0
 		(- (nth 2 (split-char ch)) 32))))
-      (setq i (+ i 3)))
+      (setq i (1+ i)))
     vec))
 
 (defun skkdic-extract-conversion-data (entry)

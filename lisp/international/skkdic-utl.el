@@ -71,11 +71,8 @@
     )
   "Alist of Okuriganas vs trailing ASCII letters in OKURI-ARI entry.")
 
-(defconst skkdic-jbytes
-  (charset-bytes 'japanese-jisx0208))
-
 (defun skkdic-merge-head-and-tail (heads tails postfix)
-  (let ((min-len (* skkdic-jbytes 2))
+  (let ((min-len 2)
 	l)
     (while heads
       (if (or (not postfix)
