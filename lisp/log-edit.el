@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.8 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -60,7 +60,8 @@
     ("\C-c?" . log-edit-mode-help))
   "Keymap for the `log-edit-mode' (used when editing cvs log messages)."
   :group 'log-edit
-  :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode))
+  :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode
+	     (if (boundp 'vc-log-mode-map) vc-log-mode-map)))
 
 (defcustom log-edit-confirm t
   "*If non-nil, `log-edit-done' will request confirmation.
@@ -97,7 +98,7 @@ If SETUP is 'force, this variable has no effect."
   :type '(hook :options (log-edit-insert-cvs-template
 			 log-edit-insert-changelog)))
 
-(defcustom log-edit-mode-hook nil
+(defcustom log-edit-mode-hook (if (boundp vc-log-mode-hook) vc-log-mode-hook)
   "*Hook run when entering `log-edit-mode'."
   :group 'log-edit
   :type 'hook)
@@ -166,12 +167,13 @@ Once you're done editing the message, pressing \\[log-edit-done] will call
 	    "Press \\[log-edit-done] when you are done editing.")))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
-  "Major mode for entering commit messages.
-This mode is intended for entering messages in a *cvs-commit*
-buffer when using PCL-CVS.  It provides a binding for the
-\\[log-edit-done] command that should be used when done editing
-to trigger the actual commit, as well as a few handy support
-commands.
+  "Major mode for editing version-control log messages.
+When done editing the log entry, just type \\[log-edit-done] which
+will trigger the actual commit of the file(s).
+Several other handy support commands are provided of course and
+the package from which this is used might also provide additional
+commands (under C-x v for VC, for example).
+
 \\{log-edit-mode-map}")
 
 (defun log-edit-hide-buf (&optional buf where)
@@ -445,4 +447,8 @@ Sort REGIONS front-to-back first."
       (when (cdr buffer-entry) (newline)))))
 
 (provide 'log-edit)
+
+;;; Change Log:
+;; $log$
+
 ;;; log-edit.el ends here
