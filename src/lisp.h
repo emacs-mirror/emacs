@@ -289,11 +289,57 @@ enum pvec_type
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
 
+/***** Select the tagging scheme.  *****/
+
+/* First, try and define DECL_ALIGN(type,var) which declares a static
+   variable VAR of type TYPE with the added requirement that it be
+   TYPEBITS-aligned. */
+#ifndef DECL_ALIGN
+/* What compiler directive should we use for non-gcc compilers?  -stef  */
+#if defined (__GNUC__)
+#define DECL_ALIGN(type, var) \
+    type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#endif
+#endif
+
+#ifndef DECL_ALIGN
+/* Can't USE_LSB_TAG if we can't enforce alignment of statically allocated
+   objects like lisp_subr and the special buffers in buffer.c.  */
+#undef USE_LSB_TAG
+#endif
+
+#ifndef USE_LSB_TAG
+/* Just remove the alignment annotation if we don't use it.  */
+#define DECL_ALIGN(type, var) type var
+#endif
+
+
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 #ifdef NO_UNION_TYPE
+
+#ifdef USE_LSB_TAG
+
+#define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
+#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) & TYPEMASK))
+#define XINT(a) (((EMACS_INT) (a)) >> GCTYPEBITS)
+#define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
+#define XSET(var, type, ptr)					\
+    (eassert (XTYPE (ptr) == 0), /* Check alignment.  */	\
+     (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
+#define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
+
+/* XFASTINT and XSETFASTINT are for use when the integer is known to be
+   positive, in which case the implementation can sometimes be faster
+   depending on the tagging scheme.  With USE_LSB_TAG, there's no benefit.  */
+#define XFASTINT(a) XINT (a)
+#define XSETFASTINT(a, b) ((a) = make_number (b))
+
+#define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
+
+#else  /* not USE_LSB_TAG */
 
 #define VALMASK ((((EMACS_INT) 1) << VALBITS) - 1)
 
@@ -332,6 +378,8 @@ enum pvec_type
 
 #define make_number(N)		\
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
+
+#endif /* not USE_LSB_TAG */
 
 #define EQ(x, y) ((x) == (y))
 
@@ -1146,6 +1194,13 @@ struct Lisp_Free
     unsigned gcmarkbit : 1;
     int spacer : 15;
     union Lisp_Misc *chain;
+#ifdef USE_LSB_TAG
+    /* Try to make sure that sizeof(Lisp_Misc) preserves TYPEBITS-alignment.
+       This assumes that Lisp_Marker is the largest of the alternatives and
+       that Lisp_Intfwd has the same size as "Lisp_Free w/o padding".  */
+    char padding[((((sizeof (struct Lisp_Marker) - 1) >> GCTYPEBITS) + 1)
+		  << GCTYPEBITS) - sizeof (struct Lisp_Intfwd)];
+#endif
   };
 
 /* To get the type field of a union Lisp_Misc, use XMISCTYPE.
@@ -1513,7 +1568,7 @@ typedef unsigned char UCHAR;
 
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname ();						\
-  struct Lisp_Subr sname =						\
+  DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
@@ -1524,7 +1579,7 @@ typedef unsigned char UCHAR;
    arguments, so we can catch errors with maxargs at compile-time.  */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-  struct Lisp_Subr sname =						\
+  DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
