@@ -1347,15 +1347,15 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);
 
-      local = get_local_map (PT, current_buffer, Qkeymap);
-      if (!NILP (local))
-	keymaps = Fcons (local, keymaps);
-
       nmaps = current_minor_maps (0, &maps);
 
       for (i = --nmaps; i >= 0; i--)
 	if (!NILP (maps[i]))
 	  keymaps = Fcons (maps[i], keymaps);
+
+      local = get_local_map (PT, current_buffer, Qkeymap);
+      if (!NILP (local))
+	keymaps = Fcons (local, keymaps);
     }
   
   return keymaps;
@@ -1399,6 +1399,14 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
     { 
       Lisp_Object local;
 
+      local = get_local_map (PT, current_buffer, Qkeymap);
+      if (! NILP (local))
+	{
+	  value = Flookup_key (local, key, accept_default);
+	  if (! NILP (value) && !INTEGERP (value))
+	    RETURN_UNGCPRO (value);
+	}
+
       nmaps = current_minor_maps (0, &maps);
       /* Note that all these maps are GCPRO'd
 	 in the places where we found them.  */
@@ -1411,16 +1419,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	      RETURN_UNGCPRO (value);
 	  }
 
-      local = get_local_map (PT, current_buffer, Qkeymap);
-      if (! NILP (local))
-	{
-	  value = Flookup_key (local, key, accept_default);
-	  if (! NILP (value) && !INTEGERP (value))
-	    RETURN_UNGCPRO (value);
-	}
-
       local = get_local_map (PT, current_buffer, Qlocal_map);
-
       if (! NILP (local))
 	{
 	  value = Flookup_key (local, key, accept_default);
@@ -2613,6 +2612,15 @@ You type        Translation\n\
       nmaps = current_minor_maps (&modes, &maps);
       Fset_buffer (outbuf);
 
+      start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
+			      XBUFFER (buffer), Qkeymap);
+      if (!NILP (start1))
+	{
+	  describe_map_tree (start1, 1, shadow, prefix,
+			     "\f\n`keymap' Property Bindings", nomenu, 0, 0);
+	  shadow = Fcons (start1, shadow);
+	}
+
       /* Print the minor mode maps.  */
       for (i = 0; i < nmaps; i++)
 	{
@@ -2642,15 +2650,6 @@ You type        Translation\n\
 	}
 
       start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
-			      XBUFFER (buffer), Qkeymap);
-      if (!NILP (start1))
-	{
-	  describe_map_tree (start1, 1, shadow, prefix,
-			     "\f\nChar Property Bindings", nomenu, 0, 0);
-	  shadow = Fcons (start1, shadow);
-	}
-
-      start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
 			      XBUFFER (buffer), Qlocal_map);
       if (!NILP (start1))
 	{
@@ -2659,7 +2658,8 @@ You type        Translation\n\
 			       "\f\nMajor Mode Bindings", nomenu, 0, 0);
 	  else
 	    describe_map_tree (start1, 1, shadow, prefix,
-			       "\f\nChar Property Bindings", nomenu, 0, 0);
+			       "\f\n`local-map' Property Bindings",
+			       nomenu, 0, 0);
 
 	  shadow = Fcons (start1, shadow);
 	}
