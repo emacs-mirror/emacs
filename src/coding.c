@@ -4914,7 +4914,7 @@ setup_coding_system (coding_system, coding)
   Lisp_Object val;
 
   if (NILP (coding_system))
-    coding_system = Qno_conversion;
+    coding_system = Qundecided;
 
   CHECK_CODING_SYSTEM_GET_ID (coding_system, coding->id);
 
@@ -8155,7 +8155,11 @@ DEFUN ("terminal-coding-system",
        doc: /* Return coding system specified for terminal output.  */)
      ()
 {
-  return CODING_ID_NAME (terminal_coding.id);
+  Lisp_Object coding_system;
+
+  coding_system = CODING_ID_NAME (terminal_coding.id);
+  /* For backward compatibility, return nil if it is `undecided'. */
+  return (coding_system != Qundecided ? coding_system : Qnil);
 }
 
 DEFUN ("set-keyboard-coding-system-internal",
@@ -9594,10 +9598,23 @@ character.");
     plist[15] = args[coding_arg_eol_type] = Qunix;
     args[coding_arg_plist] = Flist (16, plist);
     Fdefine_coding_system_internal (coding_arg_max, args);
+
+    plist[1] = args[coding_arg_name] = Qundecided;
+    plist[3] = args[coding_arg_mnemonic] = make_number ('-');
+    plist[5] = args[coding_arg_coding_type] = Qundecided;
+    /* This is already set.
+    /*plist[7] = args[coding_arg_ascii_compatible_p] = Qt;*/
+    plist[8] = intern (":charset-list");
+    plist[9] = args[coding_arg_charset_list] = Fcons (Qascii, Qnil);
+    plist[11] = args[coding_arg_for_unibyte] = Qnil;
+    plist[13] = build_string ("No conversion on encoding, automatic conversion on decoding.");
+    plist[15] = args[coding_arg_eol_type] = Qnil;
+    args[coding_arg_plist] = Flist (16, plist);
+    Fdefine_coding_system_internal (coding_arg_max, args);
   }
 
   setup_coding_system (Qno_conversion, &keyboard_coding);
-  setup_coding_system (Qno_conversion, &terminal_coding);
+  setup_coding_system (Qundecided, &terminal_coding);
   setup_coding_system (Qno_conversion, &safe_terminal_coding);
 
   {
