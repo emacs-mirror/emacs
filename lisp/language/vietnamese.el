@@ -183,9 +183,9 @@
 		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
-For Vietnamese, Emacs uses special charasets internally.
+For Vietnamese, Emacs uses special charsets internally.
 They can be decoded from and encoded to VISCC, VSCII, and VIQR.
-Current setting put higher priority to the coding system VISCII than VSCII.
+Current setting puts higher priority to the coding system VISCII than VSCII.
 If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
 		))
 

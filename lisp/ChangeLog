@@ -1,3 +1,7 @@
+2003-02-11  Juanma Barranquero  <lektu@terra.es>
+
+	* language/vietnamese.el ("Vietnamese"): Fix typos.
+
 2003-02-07  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* language/european.el ("French", "Italian"): New languages.
