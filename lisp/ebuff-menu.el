@@ -63,7 +63,7 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	    (Electric-buffer-menu-mode)
 	    (setq select
 		  (catch 'electric-buffer-menu-select
-		    (message "<<< Press Space to bury the buffer list >>>")
+		    (message "<<< Press Return to bury the buffer list >>>")
 		    (if (eq (setq unread-command-events (list (read-event)))
 			    ?\ )
 			(progn (setq unread-command-events nil)
@@ -165,6 +165,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (define-key map "\C-]" 'Electric-buffer-menu-quit)
     (define-key map "q" 'Electric-buffer-menu-quit)
     (define-key map " " 'Electric-buffer-menu-select)
+    (define-key map "\C-m" 'Electric-buffer-menu-select)
     (define-key map "\C-l" 'recenter)
     (define-key map "s" 'Buffer-menu-save)
     (define-key map "d" 'Buffer-menu-delete)
