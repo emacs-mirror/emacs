@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.221 1998/04/14 12:38:25 spiegel Exp $
+;; $Id: vc.el,v 1.222 1998/04/15 09:48:04 schwab Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1603,6 +1603,27 @@ the file named in the current Dired buffer line.  `vv' invokes
 There is a special command, `*l', to mark all files currently locked."
   (make-local-hook 'dired-after-readin-hook)
   (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
+  ;; The following is slightly modified from dired.el,
+  ;; because file lines look a bit different in vc-dired-mode.
+  (set (make-local-variable 'dired-move-to-filename-regexp)
+       (let* 
+          ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+           ;; In some locales, month abbreviations are as short as 2 letters,
+           ;; and they can be padded on the right with spaces.
+           (month (concat l l "+ *"))
+           ;; Recognize any non-ASCII character.  
+           ;; The purpose is to match a Kanji character.
+           (k "[^\0-\177]")
+           ;; (k "[^\x00-\x7f\x80-\xff]")
+           (s " ")
+           (yyyy "[0-9][0-9][0-9][0-9]")
+           (mm "[ 0-1][0-9]")
+           (dd "[ 0-3][0-9]")
+           (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+           (western (concat "\\(" month s dd "\\|" dd s month "\\)"
+                            s "\\(" HH:MM "\\|" s yyyy "\\)"))
+           (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
+         (concat s "\\(" western "\\|" japanese "\\)" s)))
   (setq vc-dired-mode t))
 
 (define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
@@ -1649,32 +1670,29 @@ There is a special command, `*l', to mark all files currently locked."
     (if state (concat "(" state ")"))))
 
 (defun vc-dired-reformat-line (x)
-  ;; Reformat a directory-listing line, plugging in version control info in
-  ;; place of the user and group info.
+  ;; Reformat a directory-listing line, replacing various columns with 
+  ;; version control information.
   ;; This code, like dired, assumes UNIX -l format.
   (beginning-of-line)
-  (let ((pos (point)) limit perm owner date-and-file)
+  (let ((pos (point)) limit perm date-and-file)
     (end-of-line)
     (setq limit (point))
     (goto-char pos)
-    (cond
-     ((or
-       (re-search-forward  ;; owner and group
-"^\\(..[drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[^ ]+ +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
-	  limit t)       
-       (re-search-forward  ;; only owner displayed
-"^\\(..[drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)" 
-	  limit t))
+    (when
+        (or
+         (re-search-forward  ;; owner and group
+          "^\\(..[drwxlts-]+ \\) *[0-9]+ [^ ]+ +[^ ]+ +[0-9]+\\( .*\\)"
+          limit t)       
+         (re-search-forward  ;; only owner displayed
+          "^\\(..[drwxlts-]+ \\) *[0-9]+ [^ ]+ +[0-9]+\\( .*\\)" 
+	  limit t)
+         (re-search-forward  ;; OS/2 -l format, no links, owner, group
+          "^\\(..[drwxlts-]+ \\) *[0-9]+\\( .*\\)"
+          limit t))
       (setq perm          (match-string 1)
-	    owner         (match-string 2)
-	    date-and-file (match-string 3)))
-     ((re-search-forward  ;; OS/2 -l format, no links, owner, group
-"^\\(..[drwxlts-]+ \\) *[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
-         limit t)
-      (setq perm          (match-string 1)
-	    date-and-file (match-string 2))))
-    (setq x (substring (concat x "          ") 0 10))
-    (replace-match (concat perm x date-and-file))))
+	    date-and-file (match-string 2))
+      (setq x (substring (concat x "          ") 0 10))
+      (replace-match (concat perm x date-and-file)))))
 
 (defun vc-dired-hook ()
   ;; Called by dired after any portion of a vc-dired buffer has been read in.
