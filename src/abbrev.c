@@ -399,7 +399,7 @@ is not undone.")
       /* Total number of characters deleted.  */
       adjust = ZV - zv_before;
     }
-  SET_PT (last_abbrev_point < opoint ? opoint - adjust : opoint);
+  SET_PT (last_abbrev_point < opoint ? opoint + adjust : opoint);
   return Qnil;
 }
 
