@@ -913,7 +913,9 @@ Returns the compilation buffer created."
 	   'compilation-revert-buffer)
       (set-window-start outwin (point-min))
       (or (eq outwin (selected-window))
-	  (set-window-point outwin (point)))
+	  (set-window-point outwin (if compilation-scroll-output
+				       (point)
+				     (point-min))))
       ;; The setup function is called before compilation-set-window-height
       ;; so it can set the compilation-window-height buffer locally.
       (if compilation-process-setup-function
