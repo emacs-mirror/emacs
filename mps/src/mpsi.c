@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.48) $
+ * $HopeName: MMsrc!mpsi.c(trunk.49) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.48) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.49) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1262,4 +1262,39 @@ mps_word_t mps_telemetry_intern(const char *label)
 void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
 {
   EventLabelAddr((Addr)addr, (Word)intern_id);
+}
+
+
+/* Allocation Patterns */
+
+/* Dummy interface at the moment, ie no useful implementation. */
+
+mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
+{
+  return NULL;
+}
+
+mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
+                                     mps_alloc_pattern_t mps_alloc_pattern)
+{
+  UNUSED(mps_ap);
+  UNUSED(mps_alloc_pattern);
+ 
+  return MPS_RES_OK;
+}
+
+mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
+                                   mps_alloc_pattern_t mps_alloc_pattern)
+{
+  UNUSED(mps_ap);
+  UNUSED(mps_alloc_pattern);
+ 
+  return MPS_RES_OK;
+}
+
+mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
+{
+  UNUSED(mps_ap);
+
+  return MPS_RES_OK;
 }

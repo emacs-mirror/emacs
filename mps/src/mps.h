@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.40) $
+ * $HopeName: MMsrc!mps.h(trunk.41) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -30,7 +30,10 @@ typedef struct mps_ap_s     *mps_ap_t;     /* allocation point */
 typedef struct mps_ld_s     *mps_ld_t;     /* location dependency */
 typedef struct mps_reg_s    *mps_reg_t;    /* register file */
 typedef struct mps_ss_s     *mps_ss_t;     /* scan state */
-typedef struct mps_message_s *mps_message_t; /* message */
+typedef struct mps_message_s
+  *mps_message_t;                          /* message */
+typedef struct mps_alloc_pattern_s
+  *mps_alloc_pattern_t;                    /* allocation patterns */
 
 /* Concrete Types */
 
@@ -247,6 +250,11 @@ extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
+
+extern mps_alloc_pattern_t mps_alloc_pattern_ramp(void);
+extern mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t, mps_alloc_pattern_t);
+extern mps_res_t mps_ap_alloc_pattern_end(mps_ap_t, mps_alloc_pattern_t);
+extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
 
 /* Reserve Macros */
 /* .reserve: Keep in sync with impl.c.buffer.reserve. */
