@@ -1,3 +1,10 @@
+2000-08-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (Vcompletion_auto_help): Renamed from `auto_help'.
+	(do_completion, Fminibuffer_complete_word): Use it.
+	(syms_of_minibuf): Turn completion-auto-help into a proper Lisp
+	var so it can take non-boolean values.
+
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (find_field): Formatting changes.
