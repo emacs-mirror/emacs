@@ -67,7 +67,12 @@ match the variable `mail-header-separator'.")
 
 ;; Set up mail-header-separator for use as a category text property.
 (put 'mail-header-separator 'rear-nonsticky '(category))
-(put 'mail-header-separator 'read-only t)
+;;; This was a nice idea, for preventing accidental modification of
+;;; the separator.   But I found it also prevented or obstructed
+;;; certain deliberate operations, such as copying the separator line
+;;; up to the top to send myself a copy of an already sent outgoing message
+;;; and other things.  So I turned it off.  --rms.
+;;;(put 'mail-header-separator 'read-only t)
 
 ;;;###autoload
 (defvar mail-archive-file-name nil "\
