@@ -1,3 +1,8 @@
+2003-01-28  Andrew Choi  <akochoi@shaw.ca>
+
+	* macfns.c (x_to_mac_color): Correct the order for parsing the RGB
+	values in old-style RGB specs.
+
 2003-01-27  Juanma Barranquero  <lektu@terra.es>
 
 	* w32fns.c (init_external_image_libraries): Try alternate names for the

@@ -1837,7 +1837,7 @@ x_to_mac_color (colorname)
 	{
 	  unsigned long colorval;
 	  int i, pos;
-	  pos = 0;
+	  pos = 16;
 	  size /= 3;
 	  colorval = 0;
 
@@ -1873,7 +1873,7 @@ x_to_mac_color (colorname)
 		  break;
 		}
 	      colorval |= (value << pos);
-	      pos += 0x8;
+	      pos -= 8;
 	      if (i == 2)
 		{
 		  UNBLOCK_INPUT;
