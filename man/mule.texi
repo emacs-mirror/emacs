@@ -75,7 +75,9 @@ your keyboard can produce non-ASCII characters, you can select an
 appropriate keyboard coding system (@pxref{Specify Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
 using the @kbd{C-x 8} prefix, see @ref{Single-Byte Character Support,
-C-x 8}.
+C-x 8}.  On X Window systems, your locale should be set to an
+appropriate value to make sure keyboard input is interpreted
+correctly by Emacs, see @ref{Language Environments, locales}.
 @end itemize
 
   The rest of this chapter describes these issues in detail.
@@ -278,8 +280,9 @@ against entries in the value of the variables
 @code{locale-charset-language-names} and @code{locale-language-names},
 and selects the corresponding language environment if a match is found.
 (The former variable overrides the latter.)  It also adjusts the display
-table and terminal coding system, the locale coding system, and the
-preferred coding system as needed for the locale.
+table and terminal coding system, the locale coding system, the
+preferred coding system as needed for the locale, and---last but not
+least---the way Emacs decodes non-ASCII characters sent by your keyboard.
 
   If you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
 environment variables while running Emacs, you may want to invoke the
@@ -1037,14 +1040,17 @@ name, or it may get an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
 
 @vindex locale-coding-system
+@cindex decoding non-ASCII characters on X
   The variable @code{locale-coding-system} specifies a coding system
 to use when encoding and decoding system strings such as system error
-messages and @code{format-time-string} formats and time stamps.  You
-should choose a coding system that is compatible with the underlying
-system's text representation, which is normally specified by one of
-the environment variables @env{LC_ALL}, @env{LC_CTYPE}, and
-@env{LANG}.  (The first one, in the order specified above, whose value
-is nonempty is the one that determines the text representation.)
+messages and @code{format-time-string} formats and time stamps.  That
+coding system is also used for decoding non-ASCII keyboard input on X
+Window systems.  You should choose a coding system that is compatible
+with the underlying system's text representation, which is normally
+specified by one of the environment variables @env{LC_ALL},
+@env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
+specified above, whose value is nonempty is the one that determines
+the text representation.)
 
 @node Fontsets
 @section Fontsets
