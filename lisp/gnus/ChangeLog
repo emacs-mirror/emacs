@@ -1,3 +1,8 @@
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* mm-util.el (mm-auto-save-coding-system): Prefer utf-8-emacs
+	coding system to emacs-mule.
+
 2002-05-14  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist)

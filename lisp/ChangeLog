@@ -1,3 +1,12 @@
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* mail/sendmail.el (mail-recover-1, mail-recover): Use utf-8-emacs
+	coding system, not emacs-mule.
+
+	* files.el (revert-buffer, recover-file): Likewise.
+
+	* desktop.el (desktop-save): Likewise.
+
 2002-05-26  Dave Love  <fx@gnu.org>
 
 	* mule.el (with-category-table): Use make-symbol.
