@@ -154,11 +154,11 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 	  XtSetValues (widget, al, 1);
 	}
 
+      XtSetSensitive (widget, val->enabled);
       XtSetArg (al[0], XtNlabel, val->value);
-      XtSetArg (al[1], XtNsensitive, val->enabled);
       /* Force centered button text.  Se above. */
-      XtSetArg (al[2], XtNjustify, XtJustifyCenter);
-      XtSetValues (widget, al, 3);
+      XtSetArg (al[1], XtNjustify, XtJustifyCenter);
+      XtSetValues (widget, al, 2);
       XtRemoveAllCallbacks (widget, XtNcallback);
       XtAddCallback (widget, XtNcallback, xaw_generic_callback, instance);
     }
