@@ -2029,7 +2029,7 @@ wait_for_kbd_input ()
       /* No timing error: wait for flag to be set.  */
       set_waiting_for_input (0);
       SYS$WFLOR (input_ef, input_eflist);
-      clear_waiting_for_input (0);
+      clear_waiting_for_input ();
       if (!detect_input_pending ())
 	/* Check for subprocess input availability */
 	{
