@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 16 July 1993
+@set lastupdate 8 Aug 1994
 @c %**end of header
 
 @setchapternewpage off
@@ -57,6 +57,9 @@ We very urgently need documentation for some parts of the system
 that already exist or will exist very soon:
 
 @itemize @bullet
+@item
+Completion of the documentation for CC-mode, a new C/C++ mode for
+Emacs Lisp.
 
 @item
 A C reference manual.  (RMS has written half of one which you could
@@ -94,7 +97,9 @@ Compiler, Make, Texinfo, Termcap and maybe the C Library.
 
 @item
 Many utilities need documentation, including @code{grep}, @code{cpio},
-@code{find}, @code{less}, and the other small utilities.
+@code{find}, 
+@c @code{less}, 
+and the other small utilities.
 
 @end itemize
 
@@ -115,9 +120,11 @@ An improved version of the POSIX utility @code{pax}.  There is one on
 the usenet, but it is said to be poorly written.  Talk with
 mib@@gnu.ai.mit.edu about this project.
 
+@ignore
 @item
 Modify the GNU @code{dc} program to use the math routines of GNU
 @code{bc}.
+@end ignore
 
 @item
 A @code{grap} preprocessor program for @code{troff}.
@@ -134,10 +141,20 @@ An emulation of SCCS that works using RCS.
 @chapter Kernel-Related projects
 
 @itemize
-
 @item
-An over-the-ethernet debugger that will allow the kernel to be
+An over-the-ethernet debugger stub that will allow the kernel to be
 debugged from GDB running on another machine.
+
+This stub needs its own self-contained implementation of all protocols
+to be used, since the GNU system will use user processes to implement
+all but the lowest levels, and the stub won't be able to use those
+processes.  If a simple self-contained implementation of IP and TCP is
+impractical, it might be necessary to design a new, simple protocol
+based directly on ethernet.  It's not crucial to support high speed or
+communicating across gateways.
+
+It might be possible to use the Mach ethernet driver code, but it would
+need some changes.
 
 @item
 A shared memory X11 server to run under MACH is very desirable.  The
@@ -158,6 +175,11 @@ GNU @code{sed} probably needs to be rewritten completely just to make it
 cleaner.
 
 @item
+Add features to GNU Make to record the precise rule with which each file
+was last recompiled; then recompile any file if its rule in the makefile
+has changed.
+
+@item
 Add a few features to GNU @code{diff}, such as handling large input
 files without reading entire files into core.
 
@@ -173,10 +195,12 @@ destination rather than by original message.  This makes it possible
 to schedule retries coherently for each destination.  Talk to
 tron@@veritas.com about this.
 
-@item
-Cross-referencing, flow graph, and execution trace programs for C and
-other languages, like @code{cxref}, @code{cflow}, and @code{ctrace}.
+Smail also needs a new chief maintainer.
 
+@item
+Enhanced cross-reference browsing tools.  (We now have something at
+about the level of @code{cxref}.)  We also could use something like
+@code{ctrace}.  (Some people are now working on this project.)
 @end itemize
 
 @node X Windows Projects
@@ -301,7 +325,8 @@ Software to replace card catalogues in libraries.
 Grammar and style checking programs.
 
 @item
-An implementation of the S language.
+An implementation of the S language (an interpreted languages used for
+statistics).
 
 @item
 A translator from Scheme to C.
@@ -317,6 +342,8 @@ public domain.
 
 You don't need scanning hardware to work on OCR.  We can send you
 bitmaps you can use as test data.
+
+We may soon have an OCR program, but it will need lots of additional work.
 
 @item
 A program to scan a line drawing and convert it to Postscript.
