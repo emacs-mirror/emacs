@@ -214,10 +214,10 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
       (setq tem (cdr tem)))
     (if (> (length toplevs) 1)
 	;; Cut off our copy of load-path right before
-	;; the second directory which has simple.el in it.
+	;; the last directory which has simple.el in it.
 	;; This avoids loads of duplications between the source dir
 	;; and the dir where these files were copied by installation.
-	(let ((break (nth (- (length toplevs) 2) toplevs)))
+	(let ((break (car toplevs)))
 	  (setq tem path)
 	  (while tem
 	    (if (eq (nth 1 tem) break)
