@@ -518,7 +518,7 @@ to write these unknown annotations back into the file."
 					    (assoc (car to-reset) 
 						   (cdr open-ans)))
 				      (if this-one
-					  (setcdr this-one (list loc)))
+					  (setcar (cdr this-one) loc))
 				      (setq to-reset (cdr to-reset))))
 				  ;; Set loop variables to nil so loop
 				  ;; will exit.
