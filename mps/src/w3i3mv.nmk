@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.31) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.32) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -12,7 +12,7 @@ MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
       <poolmv> <root> <format> <buffer> <locknt> \
       <ref> <trace> <protnt> <shield> \
       <thnti3> <ssnti3> <mpsi> <mpsint> <ld> \
-      <action> <seg>
+      <mpsioan> <event> <action> <seg>
 SW  = <assert> <ring> <mpm> \
       <arenacl> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
@@ -93,6 +93,25 @@ MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\ds\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\ds\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+
+!ELSEIF "$(VARIETY)" == "dl"
+CFLAGS=$(CFLAGSCOMMON) $(CFDL)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDL)
+MPMOBJ0 = $(MPM:<=nti3mv\dl\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=nti3mv\dl\)
+SWOBJ = $(SWOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=nti3mv\dl\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=nti3mv\dl\)
+LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\dl\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=nti3mv\dl\)
+DWOBJ = $(DWOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\dl\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ro"
