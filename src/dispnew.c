@@ -1887,7 +1887,11 @@ sit_for (sec, usec, reading, display)
   wait_reading_process_input (sec, usec, read_kbd, display);
 
 
-#if 0 /* No wait_reading_process_input available.  */
+  /* wait_reading_process_input should always be available now; it is
+     simulated in a simple way on systems that don't support
+     subprocesses.  */
+#if 0
+  /* No wait_reading_process_input available.  */
   immediate_quit = 1;
   QUIT;
 
