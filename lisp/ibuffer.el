@@ -145,7 +145,7 @@ elisp byte-compiler."
   `((10 buffer-read-only font-lock-reference-face)
     (15 (string-match "^*" (buffer-name)) font-lock-keyword-face)
     (20 (string-match "^ " (buffer-name)) font-lock-warning-face)
-    (25 (memq major-mode '(help-mode apropos-mode info-mode)) font-lock-comment-face)
+    (25 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
     (30 (eq major-mode 'dired-mode) font-lock-function-name-face))
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
@@ -282,6 +282,12 @@ called.  Otherwise, this variable should be a string naming a
 directory, like `default-directory'."
   :type '(choice (const :tag "Inherit" :value nil)
 		 string)
+  :group 'ibuffer)
+
+(defcustom ibuffer-help-buffer-modes '(help-mode apropos-mode
+				       Info-mode Info-edit-mode)
+  "List of \"Help\" major modes."
+  :type '(repeat function)
   :group 'ibuffer)
 
 (defcustom ibuffer-hooks nil
@@ -801,9 +807,15 @@ width and the longest string in LIST."
     (forward-line -1)
     (when (get-text-property (point) 'ibuffer-title)
       (goto-char (point-max))
+      (beginning-of-line))
+    (while (get-text-property (point) 'ibuffer-summary)
       (forward-line -1)
-      (setq arg 0))
-    (setq arg (1- arg))))
+      (beginning-of-line))
+    ;; Handle the special case of no buffers.
+    (when (get-text-property (point) 'ibuffer-title)
+      (forward-line 1)
+      (setq arg 1))
+    (decf arg)))
 
 (defun ibuffer-forward-line (&optional arg)
   "Move forward ARG lines, wrapping around the list if necessary."
@@ -813,22 +825,14 @@ width and the longest string in LIST."
   (beginning-of-line)
   (if (< arg 0)
       (ibuffer-backward-line (- arg))
-    (progn
-      (when (get-text-property (point) 'ibuffer-title)
-	;; If we're already on the title, moving past it counts as
-	;; moving a line.
-	(decf arg)
-	(while (and (get-text-property (point) 'ibuffer-title)
-		    (not (eobp)))
-	  (forward-line 1)))
-      (while (> arg 0)
-	(forward-line 1)
-	(when (eobp)
-	  (goto-char (point-min)))
-	(while (and (get-text-property (point) 'ibuffer-title)
-		    (not (eobp)))
-	  (forward-line 1))
-	(setq arg (1- arg))))))
+    (while (> arg 0)
+      (forward-line 1)
+      (when (or (eobp)
+		(get-text-property (point) 'ibuffer-summary))
+	(goto-char (point-min)))
+      (while (get-text-property (point) 'ibuffer-title)
+	(forward-line 1))
+      (decf arg))))
 
 (defun ibuffer-visit-buffer ()
   "Visit the buffer on this line."
