@@ -371,14 +371,35 @@ basis, this may not be accurate."
 	 ;; currently selected frame.
 	 (car (internal-char-font nil char)))
 	(t
-	 (let ((coding (terminal-coding-system)))
+	 (let ((coding 'iso-2022-7bit))
 	   (if coding
-	       (let ((safe-chars (coding-system-get coding 'safe-chars))
-		     (safe-charsets (coding-system-get coding 'safe-charsets)))
-		 (or (and safe-chars
-			  (aref safe-chars char))
-		     (and safe-charsets
-			  (memq (char-charset char) safe-charsets)))))))))
+	       (let ((cs-list (coding-system-get coding :charset-list)))
+		 (cond
+		  ((listp cs-list)
+		   (catch 'tag
+		     (mapc #'(lambda (charset) 
+			       (if (encode-char char charset)
+				   (throw 'tag charset)))
+			   cs-list)
+		     nil))
+		  ((eq cs-list 'iso-2022)
+		   (catch 'tag2
+		     (mapc #'(lambda (charset)
+			       (if (and (plist-get (charset-plist charset)
+						   :iso-final-char)
+					(encode-char char charset))
+				   (throw 'tag2 charset)))
+			   charset-list)
+		     nil))
+		  ((eq cs-list 'emacs-mule)
+		   (catch 'tag3
+		     (mapc #'(lambda (charset)
+			       (if (and (plist-get (charset-plist charset) 
+						   :emacs-mule-id)
+					(encode-char char charset))
+				   (throw 'tag3 charset)))
+			   charset-list)
+		     nil)))))))))
 
 (provide 'mule-util)
 
