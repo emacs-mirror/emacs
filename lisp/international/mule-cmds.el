@@ -392,12 +392,8 @@ If nil, that means no input method is activated now.")
 (defcustom default-input-method nil
   "*Default input method for multilingual text.
 This is the input method activated automatically by the command
-`toggle-input-method' (\\[toggle-input-method]).
-Automatically local in all buffers."
+`toggle-input-method' (\\[toggle-input-method])."
   :group 'mule)
-
-(make-variable-buffer-local 'default-input-method)
-(put 'default-input-method 'permanent-local t)
 
 (defvar previous-input-method nil
   "Input method selected previously in the current buffer.
