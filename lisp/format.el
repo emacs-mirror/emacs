@@ -251,6 +251,43 @@ name as FILE, to write a file of the same old name in that directory."
   (setq buffer-file-format format)
   (write-file filename))
 
+(defun format-find-file (filename format)
+  "Find the file FILE using data format FORMAT.
+If FORMAT is nil then do not do any format conversion."
+  (interactive
+   ;; Same interactive spec as write-file, plus format question.
+   (let* ((file (read-file-name "Find file: "))
+	  (fmt (format-read (format "Read file `%s' in format: " 
+				    (file-name-nondirectory file)))))
+     (list file fmt)))
+  (let ((format-alist nil))
+     (find-file filename))
+  (if format
+      (format-decode-buffer format)))
+
+(defun format-insert-file (filename format &optional beg end)
+  "Insert the contents of file FILE using data format FORMAT.
+If FORMAT is nil then do not do any format conversion.
+The optional third and fourth arguments BEG and END specify
+the part of the file to read.
+
+The return value is like the value of `insert-file-contents':
+a list (ABSOLUTE-FILE-NAME . SIZE)."
+  (interactive
+   ;; Same interactive spec as write-file, plus format question.
+   (let* ((file (read-file-name "Find file: "))
+	  (fmt (format-read (format "Read file `%s' in format: " 
+				    (file-name-nondirectory file)))))
+     (list file fmt)))
+  (let (value size)
+    (let ((format-alist nil))
+      (setq value (insert-file-contents filename nil beg end))
+      (setq size (nth 1 value)))
+    (if format
+	(setq size (format-decode size format)
+	      value (cons (car value) size)))
+    value))
+
 (defun format-read (&optional prompt)
   "Read and return the name of a format.
 Return value is a list, like `buffer-file-format'; it may be nil.
