@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.32) $
+ * $HopeName: MMsrc!trace.c(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.32) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.33) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -59,6 +59,7 @@ Bool TraceCheck(Trace trace)
   CHECKL(TraceIdCheck(trace->ti));
   CHECKL(trace == &trace->space->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->space->busyTraces, trace->ti));
+  CHECKL(RankSetCheck(trace->grey));
   /* Can't check trace->white -- not in O(1) anyway. */
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
@@ -267,6 +268,10 @@ found:
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->interval = (Size)4096; /* @@@@ should be progress control */
+  /* We conservatively assume that there may be grey segments at all */
+  /* ranks when we create the trace.  (almost certainly we could do */
+  /* better) */
+  trace->grey = RankSetUNIV;
 
   trace->sig = TraceSig;
   AVERT(Trace, trace);
@@ -303,6 +308,10 @@ void TraceDestroy(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
+#if 0
+  /* removed AVER for now as it is not true for the first trace */
+  AVER(trace->grey == RankSetEMPTY);
+#endif
   
   PoolTraceEnd(trace->action->pool, trace, trace->action);
   
@@ -333,9 +342,15 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
 
   grey = SegGrey(seg);
   grey = TraceSetUnion(grey, ts);
-  if(grey != SegGrey(seg) &&
-     TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
-    ShieldRaise(space, seg, AccessREAD);
+  if(grey != SegGrey(seg)) {
+    /* Currently we assume that there is only one trace.  */
+    /* This makes it simpler to greyen each trace. */
+    AVER(ts == 1); /* @@@@ Hack */
+    SpaceTrace(space, 0)->grey =
+      RankSetUnion(SpaceTrace(space, 0)->grey, SegRankSet(seg));
+    if(TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
+      ShieldRaise(space, seg, AccessREAD);
+  }
   SegSetGrey(seg, grey);
   EVENT_PPU(TraceSegGreyen, space, seg, ts);
 }
@@ -538,26 +553,34 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
                      Space space, TraceId ti)
 {
   Rank rank;
+  Trace trace;
   Seg seg;
 
   AVER(segReturn != NULL);
   AVERT(Space, space);
   AVER(TraceIdCheck(ti));
+
+  trace = SpaceTrace(space, ti);
   
   for(rank = 0; rank < RankMAX; ++rank) {
-    if(SegFirst(&seg, space)) {
-      Addr base;
-      do {
-        base = SegBase(space, seg);
-        if(RankSetIsMember(SegRankSet(seg), rank) &&
-           TraceSetIsMember(SegGrey(seg), ti)) {
-          *segReturn = seg;
-          *rankReturn = rank;
-          return TRUE;
-        }
-      } while(SegNext(&seg, space, base));
+    if(RankSetIsMember(trace->grey, rank)) {
+      if(SegFirst(&seg, space)) {
+	Addr base;
+	do {
+	  base = SegBase(space, seg);
+	  if(RankSetIsMember(SegRankSet(seg), rank) &&
+	     TraceSetIsMember(SegGrey(seg), ti)) {
+	    *segReturn = seg;
+	    *rankReturn = rank;
+	    return TRUE;
+	  }
+	} while(SegNext(&seg, space, base));
+      }
+      trace->grey = RankSetDel(trace->grey, rank);
     }
   }
+
+  AVER(trace->grey == RankSetEMPTY);
 
   return FALSE;
 }
@@ -610,11 +633,26 @@ static Res TraceScan(TraceSet ts, Rank rank,
     return res;
   }
 
-  /* The summary of references seen by scan must be equal to those */
-  /* which we saw before, unless there's been a write barrier hit */
-  /* in which case the segment summary is set to RefSetUNIV */
-  AVER((ss.summary == SegSummary(seg)) || 
-       (SegSummary(seg) == RefSetUNIV));
+  /* .scan.post-condition: */ 
+  /* The summary of reference seens by scan (ss.summary) is a subset */
+  /* of the summary previously computed (SegSummary).  There are two */
+  /* reasons that it is not an equality relation: */
+
+  /* 1. if the segment has had objects forwarded onto it then its summary */
+  /* will get unioned with the summary of the segment that the object was */
+  /* forwarded from.  This may increase the summary.  The forwarded object */
+  /* of course may have a smaller summary (if such a thing were to be */
+  /* computed) and so subsequent scanning of the segment may reduce the */
+  /* summmary.  (The forwarding process may erroneously introduce zones */
+  /* into the destination's summary). */
+
+  /* 2. A write barrier hit will set the summary to RefSetUNIV. */
+
+  /* The reason that ss.summary is always a subset of the previous summary */
+  /* is due to an "optimization" which has not been made in TraceFix.  See */
+  /* .fix.fixed.all */
+
+  AVER(RefSetSub(ss.summary, SegSummary(seg)));
   TraceSetSummary(space, seg,
                   TraceSetUnion(ss.fixed,
                                 TraceSetDiff(ss.summary, ss.white)));
@@ -784,6 +822,17 @@ Res TraceFix(ScanState ss, Ref *refIO)
         return res;
     }
   }
+
+  /* .fix.fixed.all: */
+  /* ss->fixed is accumulated for all the pointers whether or not they are */
+  /* genuine references.  We could accumulate fewer pointers here, if a */
+  /* pointer fails the SegOfAddr test then we know it isn't a reference, so */
+  /* we needn't accumulate it into the fixed summary.  The design allows */
+  /* this, but it breaks a useful post-condition on scanning.  See */
+  /* .scan.post-condition.  (if the accumulation of ss->fixed was moved the */
+  /* accuracy of ss->fixed would vary according to the "width" of the white */
+  /* summary). */
+
   ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
 
   return ResOK;
