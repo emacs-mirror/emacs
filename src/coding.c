@@ -6019,14 +6019,19 @@ consume_chars (coding)
   /* Note: composition handling is not yet implemented.  */
   coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
 
-  if (coding->common_flags & CODING_ANNOTATE_COMPOSITION_MASK)
-    stop = stop_composition = pos;
+  if (NILP (coding->src_object))
+    stop = stop_composition = stop_charset = end_pos;
   else
-    stop = stop_composition = end_pos;
-  if (coding->common_flags & CODING_ANNOTATE_CHARSET_MASK)
-    stop = stop_charset = pos;
-  else
-    stop_charset = end_pos;
+    {
+      if (coding->common_flags & CODING_ANNOTATE_COMPOSITION_MASK)
+	stop = stop_composition = pos;
+      else
+	stop = stop_composition = end_pos;
+      if (coding->common_flags & CODING_ANNOTATE_CHARSET_MASK)
+	stop = stop_charset = pos;
+      else
+	stop_charset = end_pos;
+    }
 
   /* Compensate for CRLF and annotation.  */
   buf_end -= 1 + MAX_ANNOTATION_LENGTH;
