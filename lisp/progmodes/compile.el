@@ -587,8 +587,8 @@ to a function that generates a unique name."
 		       grep-command))
 	      (grep-find-use-xargs
 	       (format "find . -type f -print | xargs %s" grep-command))
-	      (t (cons (format "find . -type f -exec %s {} /dev/null \\;"
-			       grep-command)
+	      (t (cons (format "find . -type f -exec %s {} %s \\;"
+			       grep-command null-device)
 		       (+ 22 (length grep-command)))))))
 
 ;;;###autoload
