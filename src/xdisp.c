@@ -205,9 +205,6 @@ int windows_or_buffers_changed;
    and it displayed a line number.  */
 int line_number_displayed;
 
-/* Nonzero if display_mode_line needs to handle %c.  */
-int column_number_displayed;
-
 /* Maximum buffer size for which to display line numbers.  */
 int line_number_display_limit;
 
@@ -663,7 +660,9 @@ redisplay ()
       frame_garbaged = 0;
     }
 
-  if (clip_changed || windows_or_buffers_changed || column_number_displayed)
+  if (clip_changed || windows_or_buffers_changed
+      || (!NILP (w->column_number_displayed)
+	  && XFASTINT (w->column_number_displayed) != current_column ()))
     update_mode_lines++;
 
   /* Detect case that we need to write a star in the mode line.  */
@@ -1446,7 +1445,9 @@ done:
        /* If window not full width, must redo its mode line
 	  if the window to its side is being redone */
        || (!just_this_one && width < FRAME_WIDTH (f) - 1)
-       || INTEGERP (w->base_line_pos) || column_number_displayed)
+       || INTEGERP (w->base_line_pos)
+       || (!NILP (w->column_number_displayed)
+	   && XFASTINT (w->column_number_displayed) != current_column ()))
       && height != XFASTINT (w->height))
     display_mode_line (w);
   if (! line_number_displayed
@@ -2807,7 +2808,7 @@ display_mode_line (w)
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
 
   line_number_displayed = 0;
-  column_number_displayed = 0;
+  w->column_number_displayed = Qnil;
 
   get_display_line (f, vpos, left);
   display_mode_element (w, vpos, left, 0, right, right,
@@ -3115,9 +3116,12 @@ decode_mode_spec (w, c, maxwidth)
       break;
 
     case 'c':
-      column_number_displayed = 1;
-      sprintf (decode_mode_spec_buf, "%d", current_column ());
-      return decode_mode_spec_buf;
+      {
+	int col = current_column ();
+	XSETFASTINT (w->column_number_displayed, col);
+	sprintf (decode_mode_spec_buf, "%d", col);
+	return decode_mode_spec_buf;
+      }
 
     case 'l':
       {
