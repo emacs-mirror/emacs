@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 
+int overwrite_binary_mode;
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
   "Move point right ARG characters (left if ARG negative).\n\
@@ -277,8 +278,9 @@ internal_self_insert (c1, noautofill)
 
   if (!NILP (current_buffer->overwrite_mode)
       && point < ZV
-      && c != '\n' && FETCH_CHAR (point) != '\n'
-      && (FETCH_CHAR (point) != '\t'
+      && (overwrite_binary_mode || (c != '\n' && FETCH_CHAR (point) != '\n'))
+      && (overwrite_binary_mode
+	  || FETCH_CHAR (point) != '\t'
 	  || XINT (current_buffer->tab_width) <= 0
 	  || !((current_column () + 1) % XFASTINT (current_buffer->tab_width))))
     {
@@ -331,6 +333,12 @@ syms_of_cmds ()
 
   Qkill_forward_chars = intern ("kill-forward-chars");
   staticpro (&Qkill_forward_chars);
+
+  DEFVAR_BOOL ("overwrite-binary-mode", &overwrite_binary_mode,
+    "*Non-nil means overwrite mode treats tab and newline normally.\n\
+Ordinarily, overwriting preserves a tab until its whole width is overwritten\n\
+and never replaces a newline.");
+  overwrite_tabs_mode = 1;
 
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
