@@ -623,38 +623,59 @@ detect_coding_iso2022 (src, src_end)
 	  if (src >= src_end)
 	    break;
 	  c = *src++;
-	  if (src < src_end
-	      && ((c >= '(' && c <= '/')
-		  || c == '$' && ((*src >= '(' && *src <= '/')
-				  || (*src >= '@' && *src <= 'B'))))
+	  if ((c >= '(' && c <= '/'))
 	    {
-	      /* Valid designation sequence.  */
-	      if (c == ')' || (c == '$' && *src == ')'))
+	      /* Designation sequence for a charset of dimension 1.  */
+	      if (src >= src_end)
+		break;
+	      c = *src++;
+	      if (c < ' ' || c >= 0x80)
+		/* Invalid designation sequence.  */
+		return 0;
+	    }
+	  else if (c == '$')
+	    {
+	      /* Designation sequence for a charset of dimension 2.  */
+	      if (src >= src_end)
+		break;
+	      c = *src++;
+	      if (c >= '@' && c <= 'B')
+		/* Designation for JISX0208.1978, GB2312, or JISX0208.  */
+		;
+	      else if (c >= '(' && c <= '/')
 		{
-		  g1 = 1;
-		  mask &= ~(CODING_CATEGORY_MASK_ISO_7
-			    | CODING_CATEGORY_MASK_ISO_7_ELSE);
+		  if (src >= src_end)
+		    break;
+		  c = *src++;
+		  if (c < ' ' || c >= 0x80)
+		    /* Invalid designation sequence.  */
+		    return 0;
 		}
-	      src++;
-	      break;
+	      else
+		/* Invalid designation sequence.  */
+		return 0;
 	    }
 	  else if (c == 'N' || c == 'O' || c == 'n' || c == 'o')
+	    /* Locking shift.  */
 	    mask &= (CODING_CATEGORY_MASK_ISO_7_ELSE
 		     | CODING_CATEGORY_MASK_ISO_8_ELSE);
+	  else if (c == '0' || c == '1' || c == '2')
+	    /* Start/end composition.  */
+	    ;
+	  else
+	    /* Invalid escape sequence.  */
+	    return 0;
 	  break;
 
 	case ISO_CODE_SO:
-	  if (g1)
-	    mask &= (CODING_CATEGORY_MASK_ISO_7_ELSE
-		     | CODING_CATEGORY_MASK_ISO_8_ELSE);
+	  mask &= (CODING_CATEGORY_MASK_ISO_7_ELSE
+		   | CODING_CATEGORY_MASK_ISO_8_ELSE);
 	  break;
 	  
 	case ISO_CODE_CSI:
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
-	  mask &= ~(CODING_CATEGORY_MASK_ISO_7
-		    | CODING_CATEGORY_MASK_ISO_7_ELSE);
-	  break;
+	  return CODING_CATEGORY_MASK_ISO_8_ELSE;
 
 	default:
 	  if (c < 0x80)
@@ -3001,10 +3022,10 @@ The value of property should be a vector of length 5.")
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 2, 0,
-  "Detect coding-system of the text in the region between START and END.\n\
-Return a list of possible coding-systems ordered by priority.\n\
+  "Detect coding system of the text in the region between START and END.\n\
+Return a list of possible coding systems ordered by priority.\n\
 If only ASCII characters are found, it returns `undecided'\n\
- or its subsidiary coding-system according to a detected end-of-line format.")
+ or its subsidiary coding system according to a detected end-of-line format.")
   (b, e)
      Lisp_Object b, e;
 {
