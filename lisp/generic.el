@@ -401,7 +401,7 @@ INI file.  This hook is NOT installed by default."
 	      (ini-generic-mode)))))
 
 (and generic-use-find-file-hook
-    (add-hook 'find-file-hooks 'generic-mode-find-file-hook))
+    (add-hook 'find-file-hook 'generic-mode-find-file-hook))
 
 ;;;###autoload
 (defun generic-make-keywords-list (keywords-list face &optional prefix suffix)
