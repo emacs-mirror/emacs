@@ -36,12 +36,15 @@
 
 (defvar show-paren-mismatch-face nil)
 
+(defvar show-paren-face 'region
+  "*Name of face to use for showing the matching paren.")
+
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
 (defun show-paren-command-hook ()
   (if window-system
       (let (pos dir mismatch (oldpos (point))
-		(face 'region))
+		(face show-paren-face))
 	(cond ((eq (char-syntax (following-char)) ?\()
 	       (setq dir 1))
 	      ((eq (char-syntax (preceding-char)) ?\))
@@ -81,7 +84,8 @@
 			       (progn
 				 (setq show-paren-mismatch-face
 				       (make-face 'paren-mismatch))
-				 (set-face-background 'paren-mismatch 'purple))))
+				 (set-face-background 'paren-mismatch
+						      "purple"))))
 		      (if show-paren-mismatch-face
 			  (setq face show-paren-mismatch-face)
 			(message "Paren mismatch"))))
