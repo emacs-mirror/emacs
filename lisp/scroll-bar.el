@@ -144,7 +144,9 @@ EVENT should be a scroll bar click or drag event."
 				(1+ portion-start)))
       (if (or (> current-start next-portion-start)
 	      (< current-start portion-start))
-	  (set-window-start window portion-start)))))
+	  (set-window-start window portion-start)
+	;; Always set window start, to ensure scroll bar position is updated.
+	(set-window-start window current-start)))))
 
 ;; Scroll the window to the proper position for EVENT.
 (defun scroll-bar-drag-1 (event)
