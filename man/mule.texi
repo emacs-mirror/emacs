@@ -39,6 +39,9 @@ Japanese, Korean, Lao, Thai, Tibetan, and Vietnamese scripts.  These features
 have been merged from the modified version of Emacs known as MULE (for
 ``MULti-lingual Enhancement to GNU Emacs'')
 
+  Emacs also supports various encodings of these characters used by
+internationalized software, such as word processors, mailers, etc.
+
 @menu
 * International Intro::     Basic concepts of multibyte characters.
 * Enabling Multibyte::      Controlling whether to use multibyte characters.
@@ -464,6 +467,11 @@ language name.  Some coding systems are used for several languages;
 their names usually start with @samp{iso}.  There are also special
 coding systems @code{no-conversion}, @code{raw-text} and
 @code{emacs-mule} which do not convert printing characters at all.
+
+  A special class of coding systems, collectively known as
+@dfn{codepages}, is designed to support text encoded by MS-Windows and
+MS-DOS software.  To use any of these systems, you need to create it
+with @kbd{M-x codepage-setup}.  @xref{MS-DOS and MULE}.
 
 @cindex end-of-line conversion
   In addition to converting various representations of non-ASCII
