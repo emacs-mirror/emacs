@@ -309,22 +309,19 @@ struct coding_system
   int carryover_size;
 };
 
-/* Return 1 if the coding-system CODING requires conversion of
-   representation of a visible character (text).  */
-#define CODING_REQUIRE_TEXT_CONVERSION(coding)	\
-  ((coding)->type != coding_type_no_conversion  	\
-   && (coding)->type != coding_type_emacs_mule)
+/* Return 1 if coding system CODING never requires any code conversion.  */
+#define CODING_REQUIRE_NO_CONVERSION(coding)		\
+  (((coding)->type == coding_type_no_conversion		\
+    || (coding)->type == coding_type_emacs_mule)	\
+   && (coding)->eol_type == CODING_EOL_LF)
 
-/* Return 1 if the coding-system CODING requires conversion of the
-   format of end-of-line.  */
-#define CODING_REQUIRE_EOL_CONVERSION(coding)	\
-  ((coding)->eol_type != CODING_EOL_UNDECIDED  	\
-   && (coding)->eol_type != CODING_EOL_LF)
-
-/* Return 1 if the coding-system CODING requires some conversion.  */
-#define CODING_REQUIRE_CONVERSION(coding)  	\
-  (CODING_REQUIRE_TEXT_CONVERSION (coding) 	\
-   || CODING_REQUIRE_EOL_CONVERSION (coding))
+/* Return 1 if coding system CODING may not require code conversion.  */
+#define CODING_MAY_REQUIRE_NO_CONVERSION(coding)	\
+  (((coding)->type == coding_type_no_conversion		\
+    || (coding)->type == coding_type_emacs_mule		\
+    || (coding)->type == coding_type_undecided)		\
+   && ((coding)->eol_type == CODING_EOL_LF		\
+       || (coding)->eol_type == CODING_EOL_UNDECIDED))
 
 /* Index for each coding category in `coding_category_table' */
 #define CODING_CATEGORY_IDX_EMACS_MULE	0
