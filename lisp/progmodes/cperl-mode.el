@@ -38,7 +38,7 @@
 
 ;;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
 ;;; or as help on variables `cperl-tips', `cperl-problems',         <<<<<<
-;;; `cperl-non-problems', `cperl-praise', `cperl-speed'.            <<<<<<
+;;; `cperl-praise', `cperl-speed'.				    <<<<<<
 
 ;;; The mode information (on C-h m) provides some customization help.
 ;;; If you use font-lock feature of this mode, it is advisable to use
@@ -390,7 +390,7 @@ Font for POD headers."
 Currently only changes how scalar variables are highlighted.
 Note that that variable is only read at initialization time for
 the variable `cperl-font-lock-keywords-2', so changing it after you've
-entered `cperl-mode' the first time will have no effect."
+entered CPerl mode the first time will have no effect."
   :type 'boolean
   :group 'cperl)
 
@@ -519,7 +519,7 @@ One should tune up `cperl-close-paren-offset' as well."
 
 (defcustom cperl-syntaxify-unwind
   t
-  "*Non-nil means that CPerl unwinds to a start of along construction
+  "*Non-nil means that CPerl unwinds to a start of a long construction
 when syntaxifying a chunk of buffer."
   :type 'boolean
   :group 'cperl-speed)
@@ -653,7 +653,8 @@ Before reporting (non-)problems look in the problem section of online
 micro-docs on what I know about CPerl problems.")
 
 (defvar cperl-problems 'please-ignore-this-line
-"Some faces will not be shown on some versions of Emacs unless you
+  "Description of problems in CPerl mode.
+Some faces will not be shown on some versions of Emacs unless you
 install choose-color.el, available from
    ftp://ftp.math.ohio-state.edu/pub/users/ilya/emacs/
 
@@ -700,63 +701,6 @@ and on CPAN.
 If these bugs cannot be fixed on your machine (say, you have an inferior
 environment and cannot recompile), you may still disable all the fancy stuff
 via `cperl-use-syntax-table-text-property'." )
-
-(defvar cperl-non-problems 'please-ignore-this-line
-"As you know from `problems' section, Perl syntax is too hard for CPerl on
-older Emacsen.  Here is what you can do if you cannot upgrade, or if
-you want to switch off these capabilities on Emacs 20.2 (+patches) or 20.3
-or better.  Please skip this docs if you run a capable Emacs already.
-
-Most of the time, if you write your own code, you may find an equivalent
-\(and almost as readable) expression (what is discussed below is usually
-not relevant on newer Emacsen, since they can do it automatically).
-
-Try to help CPerl: add comments with embedded quotes to fix CPerl
-misunderstandings about the end of quotation:
-
-$a='500$';      # ';
-
-You won't need it too often.  The reason: $ \"quotes\" the following
-character (this saves a life a lot of times in CPerl), thus due to
-Emacs parsing rules it does not consider tick (i.e., ' ) after a
-dollar as a closing one, but as a usual character.  This is usually
-correct, but not in the above context.
-
-Even with older Emacsen the indentation code is pretty wise.  The only
-drawback is that it relied on Emacs parsing to find matching
-parentheses.  And Emacs *could not* match parentheses in Perl 100%
-correctly.  So
-	1 if s#//#/#;
-would not break indentation, but
-	1 if ( s#//#/# );
-would.  Upgrade.
-
-By similar reasons
-	s\"abc\"def\";
-could confuse CPerl a lot.
-
-If you still get wrong indentation in situation that you think the
-code should be able to parse, try:
-
-a) Check what Emacs thinks about balance of your parentheses.
-b) Supply the code to me (IZ).
-
-Pods were treated _very_ rudimentally.  Here-documents were not
-treated at all (except highlighting and inhibiting indentation).  Upgrade.
-
-To speed up coloring the following compromises exist:
-   a) sub in $mypackage::sub may be highlighted.
-   b) -z in [a-z] may be highlighted.
-   c) if your regexp contains a keyword (like \"s\"), it may be highlighted.
-
-
-Imenu in 19.31 is broken.  Set `imenu-use-keymap-menu' to t, and remove
-`car' before `imenu-choose-buffer-index' in `imenu'.
-`imenu-add-to-menubar' in 20.2 is broken.
-
-A lot of things on XEmacs may be broken too, judging by bug reports I
-receive.  Note that some releases of XEmacs are better than the others
-as far as bugs reports I see are concerned.")
 
 (defvar cperl-praise 'please-ignore-this-line
   "Advantages of CPerl mode.
@@ -987,7 +931,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 		       to cperl-do-not-fontify t)))
 
 (defcustom cperl-mode-hook nil
-  "Hook run by `cperl-mode'."
+  "Hook run by CPerl mode."
   :type 'hook
   :group 'cperl)
 
@@ -1041,7 +985,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
   (require 'cl))
 
 (defvar cperl-mode-abbrev-table nil
-  "Abbrev table in use in Cperl-mode buffers.")
+  "Abbrev table in use in CPerl mode buffers.")
 
 (add-hook 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-")))
 
@@ -1226,7 +1170,6 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	   ("Micro-docs"
 	    ["Tips" (describe-variable 'cperl-tips) t]
 	    ["Problems" (describe-variable 'cperl-problems) t]
-	    ["Non-problems" (describe-variable 'cperl-non-problems) t]
 	    ["Speed" (describe-variable 'cperl-speed) t]
 	    ["Praise" (describe-variable 'cperl-praise) t]
 	    ["Faces" (describe-variable 'cperl-tips-faces) t]
@@ -1253,10 +1196,10 @@ The expansion is entirely correct because it uses the C preprocessor."
   (concat cperl-imenu--function-name-regexp-perl "\\|" "\\`"))
 
 (defvar cperl-mode-syntax-table nil
-  "Syntax table in use in Cperl-mode buffers.")
+  "Syntax table in use in CPerl mode buffers.")
 
 (defvar cperl-string-syntax-table nil
-  "Syntax table in use in Cperl-mode string-like chunks.")
+  "Syntax table in use in CPerl mode string-like chunks.")
 
 (if cperl-mode-syntax-table
     ()
@@ -1303,7 +1246,7 @@ sometimes <>.  When the user types the first, she gets the second as
 well, with optional special formatting done on {}.  (Disabled by
 default.)  You can always quote (with \\[quoted-insert]) the left
 \"paren\" to avoid the expansion.  The processing of < is special,
-since most the time you mean \"less\".  Cperl mode tries to guess
+since most the time you mean \"less\".  CPerl mode tries to guess
 whether you want to type pair <>, and inserts is if it
 appropriate.  You can set `cperl-electric-parens-string' to the string that
 contains the parenths from the above list you want to be electrical.
@@ -1454,7 +1397,7 @@ with no args.
 
 DO NOT FORGET to read micro-docs (available from `Perl' menu)
 or as help on variables `cperl-tips', `cperl-problems',
-`cperl-non-problems', `cperl-praise', `cperl-speed'."
+`cperl-praise', `cperl-speed'."
   (interactive)
   (kill-all-local-variables)
   (use-local-map cperl-mode-map)
@@ -2626,7 +2569,7 @@ and closing parentheses and brackets.."
 				(- (current-indentation) cperl-label-offset)
 			      ;; Do not move `parse-data', this should
 			      ;; be quick anyway (this comment comes
-			      ;;from different location):
+			      ;; from different location):
 			      (cperl-calculate-indent))
 			  (current-column))
 			(if (eq char-after ?\{)
@@ -5140,7 +5083,7 @@ Style of printout regulated by the variable `cperl-ps-print-face-properties'."
 Should be used via `cperl-set-style' or via Perl menu.")
 
 (defun cperl-set-style (style)
-  "Set CPerl-mode variables to use one of several different indentation styles.
+  "Set CPerl mode variables to use one of several different indentation styles.
 The arguments are a string representing the desired style.
 The list of styles is in `cperl-style-alist', available styles
 are GNU, K&R, BSD, C++ and Whitesmith.
@@ -5209,7 +5152,7 @@ side-effect of memorizing only."
 	(current-buffer)))))
 
 (defun cperl-word-at-point (&optional p)
-  ;; Returns the word at point or at P.
+  "Return the word at point or at P."
   (save-excursion
     (if p (goto-char p))
     (or (cperl-word-at-point-hard)
@@ -5223,7 +5166,7 @@ side-effect of memorizing only."
 		       'find-tag-default))))))
 
 (defun cperl-info-on-command (command)
-  "Show documentation for Perl command in other window.
+  "Show documentation for Perl command COMMAND in other window.
 If perl-info buffer is shown in some frame, uses this frame.
 Customized by setting variables `cperl-shrink-wrap-info-frame',
 `cperl-max-help-size'."
@@ -5738,7 +5681,7 @@ Use as
    "\\)"))
 
 (defvar cperl-hierarchy '(() ())
-  "Global hierarchy of classes")
+  "Global hierarchy of classes.")
 
 (defun cperl-tags-hier-fill ()
   ;; Suppose we are in a tag table cooked by cperl.
@@ -6803,7 +6746,7 @@ prototype \&SUB	Returns prototype of the function given a reference.
 	    (insert " "))
 	(skip-chars-forward " \t"))
 	(or (looking-at "[#\n]")
-	    (error "unknown code \"%s\" in a regexp"
+	    (error "Unknown code `%s' in a regexp"
 		   (buffer-substring (point) (1+ (point)))))
 	(and inline (end-of-line 2)))
     ;; Special-case the last line of group
@@ -6851,7 +6794,7 @@ prototype \&SUB	Returns prototype of the function given a reference.
       b)))
 
 (defun cperl-beautify-regexp (&optional deep)
-  "do it.  (Experimental, may change semantics, recheck the result.)
+  "Do it.  (Experimental, may change semantics, recheck the result.)
 We suppose that the regexp is scanned already."
   (interactive "P")
   (if deep
@@ -7023,7 +6966,7 @@ We suppose that the regexp is scanned already."
 		    (cperl-indent-line))
 		(error "`%s' (EXPR) not with an {BLOCK}" s0)))
 	  (error "`%s' not with an (EXPR)" s0)))
-    (error "Not at `if', `unless', `while', `unless', `for' or `foreach'")))
+    (error "Not at `if', `unless', `while', `until', `for' or `foreach'")))
 
 ;;; By Anthony Foiani <afoiani@uswest.com>
 ;;; Getting help on modules in C-h f ?
