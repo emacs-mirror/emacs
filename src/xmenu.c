@@ -88,6 +88,8 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Qdebug_on_next_call;
 
+Lisp_Object Qmenu_alias;
+
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
 extern Lisp_Object Qmouse_click, Qevent_kind;
@@ -396,7 +398,8 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
       /* If the command is an alias for another
 	 (such as easymenu.el and lmenu.el set it up),
 	 see if the original command name has equivalent keys.  */
-      if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function))
+      if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
+	  && ! NILP (Fget (def, Qmenu_alias)))
 	savedkey = Fwhere_is_internal (XSYMBOL (def)->function,
 				       Qnil, Qt, Qnil);
       else
@@ -2648,6 +2651,9 @@ syms_of_xmenu ()
 {
   staticpro (&menu_items);
   menu_items = Qnil;
+
+  Qmenu_alias = intern ("menu-alias");
+  staticpro (&Qmenu_alias);
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
