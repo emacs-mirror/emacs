@@ -400,21 +400,21 @@ if there is a suitable one already."
 	  (cond
 	   ((or (not ignore-case-p)
 		(not dabbrev-case-replace))
-	    (mapcar (function (lambda (string)
-				(intern string my-obarray)))
+	    (mapc (function (lambda (string)
+			      (intern string my-obarray)))
 		    completion-list))
 	   ((string= abbrev (upcase abbrev))
-	    (mapcar (function (lambda (string)
-				(intern (upcase string) my-obarray)))
+	    (mapc (function (lambda (string)
+			      (intern (upcase string) my-obarray)))
 		    completion-list))
 	   ((string= (substring abbrev 0 1)
 		     (upcase (substring abbrev 0 1)))
-	    (mapcar (function (lambda (string)
-				(intern (capitalize string) my-obarray)))
+	    (mapc (function (lambda (string)
+			      (intern (capitalize string) my-obarray)))
 		    completion-list))
 	   (t
-	    (mapcar (function (lambda (string)
-				(intern (downcase string) my-obarray)))
+	    (mapc (function (lambda (string)
+			      (intern (downcase string) my-obarray)))
 		    completion-list)))
 	  (setq dabbrev--last-obarray my-obarray)
 	  (setq dabbrev--last-completion-buffer (current-buffer))
@@ -932,6 +932,11 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      (if (and ignore-case (eval dabbrev-case-replace))
 		  result
 		result)))))))
+
+(dolist (mess '("^No dynamic expansion for .* found$"
+		"^No further dynamic expansion for .* found$"
+		"^No possible abbreviation preceding point$"))
+  (add-to-list 'debug-ignored-errors mess))
 
 (provide 'dabbrev)
 
