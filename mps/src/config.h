@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(MMdevel_config.1) $
+ * $HopeName: MMsrc!config.h(trunk.2) $
  */
 
 #ifndef config_h
@@ -71,10 +71,6 @@
 /* Arena Configuration -- see impl.c.arena* */
 
 #define ARENA_SIZE              ((Size)64<<20)
-#define ARENA_ASSOC             ((Size)2)
-#define ARENA_POOL              ((int)0)
-#define ARENA_CLASS             ((int)1)
-#define ARENA_JUNKBYTE          ((unsigned char)0xA9)
 #define ARENA_ANSI_ALIGN        ((Align)4096)
 #define ARENA_ANSI_ZONESHIFT    ((Shift)20)
 
