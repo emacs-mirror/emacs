@@ -142,7 +142,7 @@ changing it.")
 					      'facemenu-set-read-only))
   (define-key facemenu-menu [invisible] (cons "Invisible"
 					  'facemenu-set-invisible))
-  (define-key facemenu-menu [sep2]      (list "---Special---"))
+  (define-key facemenu-menu [sep2]      (list "-------------"))
   (define-key facemenu-menu [other]     (cons "Other..." 'facemenu-set-face))
 
   ;; Define commands for face-changing
