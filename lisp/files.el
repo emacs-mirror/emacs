@@ -1351,6 +1351,7 @@ in that case, this function acts as if `enable-local-variables' were t."
     ("\\.sim\\'" . simula-mode)
     ("\\.mss\\'" . scribe-mode)
     ("\\.f90\\'" . f90-mode)
+    ("\\.pro\\'" . idlwave-mode)
     ("\\.lsp\\'" . lisp-mode)
     ("\\.awk\\'" . awk-mode)
     ("\\.prolog\\'" . prolog-mode)
