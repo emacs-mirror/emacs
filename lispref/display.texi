@@ -3323,11 +3323,9 @@ Define this glyph code as an alias for glyph code @var{integer}.  You
 can use an alias to specify a face code for the glyph; see below.
 
 @item @code{nil}
-This glyph is simple.  On an ordinary terminal, the glyph code mod
-524288 is the character to output.  In a window system, the glyph code
-mod 524288 is the character to output, and the glyph code divided by
-524288 specifies the face number (@pxref{Face Functions}) to use while
-outputting it.  (524288 is
+This glyph is simple.  The glyph code mod 524288 is the character to
+output, and the glyph code divided by 524288 specifies the face number
+(@pxref{Face Functions}) to use while outputting it.  (524288 is
 @ifnottex
 2**19.)
 @end ifnottex
