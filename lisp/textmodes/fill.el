@@ -161,7 +161,7 @@ space does not end a sentence, so don't break a line there."
 	  (setq to (max from to))
 	  (while (< (point) to)
 	    (if (not (eolp))
-		(if (< (current-indentation) (left-margin))
+		(if (< (current-indentation) (current-left-margin))
 		    (indent-to-left-margin)))
 	    (forward-line 1)))
 
@@ -181,7 +181,7 @@ space does not end a sentence, so don't break a line there."
 	    (remove-text-properties from to '(hard nil)))
 	;; Make sure first line is indented (at least) to left margin...
 	(if (or (memq justify '(right center))
-		(< (current-indentation) (left-margin)))
+		(< (current-indentation) (current-left-margin)))
 	    (indent-to-left-margin))
 	;; and remove indentation from other lines.
 	(beginning-of-line 2)
@@ -194,7 +194,7 @@ space does not end a sentence, so don't break a line there."
 				 (regexp-quote fill-prefix)))))
 	  (and fpre
 	       (progn
-		 (if (>= (+ (left-margin) (length fill-prefix))
+		 (if (>= (+ (current-left-margin) (length fill-prefix))
 			 (current-fill-column))
 		     (error "fill-prefix too long for specified width"))
 		 (goto-char from)
