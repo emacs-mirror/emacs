@@ -1,3 +1,12 @@
+2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (make-backup-file-name-1): On DOS/Windows, run the
+	backup file name through convert-standard-filename.
+
+	* dos-fns.el (convert-standard-filename): Convert leading
+	directories as well.  When long file names are supported, convert
+	characters that are invalid in Windows file names.
+
 2000-06-22  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Fix bug: if ^L is the very first buffer character,

@@ -1,3 +1,12 @@
+2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* programs.texi (Documentation): Describe how man pages with
+	identical names by different sections are handled by M-x man and
+	M-x woman.
+
+	* msdog.texi (Text and Binary): Separate description of EOL
+	conversions from the issues related to binary files.
+
 2000-06-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* mule.texi (set-buffer-process-coding-system): Documentation
