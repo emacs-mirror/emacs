@@ -43,7 +43,7 @@ a minibuffer frame on your own, one is created according to
 
 You can specify geometry-related options for just the initial frame
 by setting this variable in your `.emacs' file; however, they won't
-take affect until Emacs reads `.emacs', which happens after first creating
+take effect until Emacs reads `.emacs', which happens after first creating
 the frame.  If you want the frame to have the proper geometry as soon
 as it appears, you need to use this three-step process:
 * Specify X resources to give the geometry you want.
@@ -71,7 +71,7 @@ These supersede the values given in `default-frame-alist'.")
       (function (lambda ()
 		  (make-frame pop-up-frame-alist))))
 
-(defvar special-display-frame-alist 
+(defvar special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
   "*Alist of frame parameters used when creating special frames.
 Special frames are used for buffers whose names are in
@@ -85,7 +85,7 @@ These supersede the values given in `default-frame-alist'.")
 ;; Return the window chosen.
 ;; Currently we do not insist on selecting the window within its frame.
 ;; If ARGS is an alist, use it as a list of frame parameter specs.
-;; If ARGS is a list whose car is a symbol.
+;; If ARGS is a list whose car is a symbol,
 ;; use (car ARGS) as a function to do the work.
 ;; Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args.
 (defun special-display-popup-frame (buffer &optional args)
@@ -124,13 +124,13 @@ These supersede the values given in `default-frame-alist'.")
 ;;; 1) Load the window system startup file from the lisp library and read the
 ;;; high-priority arguments (-q and the like).  The window system startup
 ;;; file should create any frames specified in the window system defaults.
-;;; 
+;;;
 ;;; 2) If no frames have been opened, we open an initial text frame.
 ;;;
 ;;; 3) Once the init file is done, we apply any newly set parameters
 ;;; in initial-frame-alist to the frame.
 
-;; These are now called explicitly at the proper times, 
+;; These are now called explicitly at the proper times,
 ;; since that is easier to understand.
 ;; Actually using hooks within Emacs is bad for future maintenance. --rms.
 ;; (add-hook 'before-init-hook 'frame-initialize)
@@ -148,7 +148,7 @@ These supersede the values given in `default-frame-alist'.")
 ;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
 (defun frame-initialize ()
- 
+
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive))
       (progn
@@ -182,18 +182,18 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; because that would override explicit user resizing.
 	      (setq initial-frame-alist
 		    (frame-remove-geometry-params initial-frame-alist))))
-	;; At this point, we know that we have a frame open, so we 
+	;; At this point, we know that we have a frame open, so we
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
 	(setq terminal-frame nil))
-    
+
     ;; No, we're not running a window system.  Arrange to cause errors.
     (setq frame-creation-function
 	  (function
 	   (lambda (parameters)
 	     (error
 	      "Can't create multiple frames without a window system"))))))
-					
+
 ;;; startup.el calls this function after loading the user's init
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
 ;;; information to which we must react; do what needs to be done.
@@ -527,7 +527,7 @@ is given and non-nil, the unwanted frames are iconified instead."
 		     (progn
 		       (modify-frame-parameters
 			frame
-			;; Since we can't set a frame's minibuffer status, 
+			;; Since we can't set a frame's minibuffer status,
 			;; we might as well omit the parameter altogether.
 			(let* ((parms (nth 1 parameters))
 			       (mini (assq 'minibuffer parms)))
