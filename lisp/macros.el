@@ -195,7 +195,7 @@ Your options are: \\<query-replace-map>
 	(while loop
 	  (let ((key (let ((executing-macro nil)
 			   (defining-kbd-macro nil))
-		       (message msg)
+		       (message "%s" msg)
 		       (read-event)))
 		def)
 	    (setq key (vector key))
