@@ -27,15 +27,6 @@ Use -opsystem=bsd4-2 or -opsystem=bsd4-3, depending on the version of
 Berkeley you are running.
 NOTE-END  */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 

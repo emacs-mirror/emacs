@@ -29,15 +29,6 @@ This file works with the Amdahl uts native C compiler. The 5.2u370
 compiler is so brain damaged that it is not even worth trying to use it.
 */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 

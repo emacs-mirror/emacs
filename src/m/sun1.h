@@ -38,15 +38,6 @@ Sun 1, 2 and 3 (-machine=sun1, -machine=sun2, -machine=sun3;
   problems caused by bugs in the "export" version of SunOS 4.
 NOTE-END  */
 
-/* The following three symbols give information on
- the size of various data types.  */
-
-#define SHORTBITS 16		/* Number of bits in a short */
-
-#define INTBITS 32		/* Number of bits in an int */
-
-#define LONGBITS 32		/* Number of bits in a long */
-
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
