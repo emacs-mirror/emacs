@@ -152,7 +152,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ("^\\sw.........[0-9:+ ]*"
      (0 font-lock-string-face)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
-     ("\\([^<(]+\\)[(<]\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
+     ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
       (1 font-lock-constant-face)
       (2 font-lock-variable-name-face)))
     ;;
