@@ -955,8 +955,11 @@ or the symbol from the obarray.")
 
       if (STRINGP (eltstring)
 	  && STRING_BYTES (XSTRING (string)) <= STRING_BYTES (XSTRING (eltstring))
-	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       STRING_BYTES (XSTRING (string))))
+	  && (tem = Fcompare_strings (eltstring, make_number (0),
+				      make_number (XSTRING (string)->size),
+				      string, make_number (0), Qnil,
+				      completion_ignore_case ?Qt : Qnil),
+	      EQ (Qt, tem)))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -996,14 +999,23 @@ or the symbol from the obarray.")
 	  if (NILP (bestmatch))
 	    {
 	      bestmatch = eltstring;
-	      bestmatchsize = STRING_BYTES (XSTRING (eltstring));
+	      bestmatchsize = XSTRING (eltstring)->size;
 	    }
 	  else
 	    {
-	      compare = min (bestmatchsize, STRING_BYTES (XSTRING (eltstring)));
-	      matchsize = scmp (XSTRING (bestmatch)->data,
-				XSTRING (eltstring)->data,
-				compare);
+	      compare = min (bestmatchsize, XSTRING (eltstring)->size);
+	      tem = Fcompare_strings (bestmatch, make_number (0),
+				      make_number (compare),
+				      eltstring, make_number (0),
+				      make_number (compare),
+				      completion_ignore_case ? Qt : Qnil);
+	      if (EQ (tem, Qt))
+		matchsize = compare;
+	      else if (XINT (tem) < 0)
+		matchsize = - XINT (tem) - 1;
+	      else
+		matchsize = XINT (tem) - 1;
+
 	      if (matchsize < 0)
 		matchsize = compare;
 	      if (completion_ignore_case)
@@ -1012,8 +1024,8 @@ or the symbol from the obarray.")
 		     use it as the best match rather than one that is not an
 		     exact match.  This way, we get the case pattern
 		     of the actual match.  */
-		  if ((matchsize == STRING_BYTES (XSTRING (eltstring))
-		       && matchsize < STRING_BYTES (XSTRING (bestmatch)))
+		  if ((matchsize == XSTRING (eltstring)->size
+		       && matchsize < XSTRING (bestmatch)->size)
 		      ||
 		      /* If there is more than one exact match ignoring case,
 			 and one of them is exact including case,
@@ -1021,15 +1033,21 @@ or the symbol from the obarray.")
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
 			 of the input.  */
-		      ((matchsize == STRING_BYTES (XSTRING (eltstring)))
+		      ((matchsize == XSTRING (eltstring)->size)
 		       ==
-		       (matchsize == STRING_BYTES (XSTRING (bestmatch)))
-		       && !bcmp (XSTRING (eltstring)->data,
-				 XSTRING (string)->data,
-				 STRING_BYTES (XSTRING (string)))
-		       && bcmp (XSTRING (bestmatch)->data,
-				XSTRING (string)->data,
-				STRING_BYTES (XSTRING (string)))))
+		       (matchsize == XSTRING (bestmatch)->size)
+		       && (tem = Fcompare_strings (eltstring, make_number (0),
+						   make_number (XSTRING (string)->size),
+						   string, make_number (0),
+						   Qnil,
+						   Qnil),
+			   EQ (Qt, tem))
+		       && (tem = Fcompare_strings (bestmatch, make_number (0),
+						   make_number (XSTRING (string)->size),
+						   string, make_number (0),
+						   Qnil,
+						   Qnil),
+			   ! EQ (Qt, tem))))
 		    bestmatch = eltstring;
 		}
 	      bestmatchsize = matchsize;
@@ -1042,18 +1060,20 @@ or the symbol from the obarray.")
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
      don't change the case of what the user typed.  */
-  if (completion_ignore_case && bestmatchsize == STRING_BYTES (XSTRING (string))
-      && STRING_BYTES (XSTRING (bestmatch)) > bestmatchsize)
+  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size
+      && XSTRING (bestmatch)->size > bestmatchsize)
     return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
-  if (matchcount == 1 && bestmatchsize == STRING_BYTES (XSTRING (string))
-      && !bcmp (XSTRING (bestmatch)->data, XSTRING (string)->data,
-		bestmatchsize))
+  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size
+      && (tem = Fcompare_strings (bestmatch, make_number (0),
+				  make_number (bestmatchsize),
+				  string, make_number (0),
+				  make_number (bestmatchsize),
+				  Qnil),
+	  EQ (Qt, tem)))
     return Qt;
-
-  bestmatchsize = string_byte_to_char (bestmatch, bestmatchsize);
 
   XSETFASTINT (zero, 0);		/* Else extract the part in which */
   XSETFASTINT (end, bestmatchsize);	/* all completions agree */
@@ -1189,8 +1209,12 @@ are ignored unless STRING itself starts with a space.")
 	       && XSTRING (string)->data[0] == ' ')
 	      || XSTRING (eltstring)->data[0] != ' '
 	      || NILP (hide_spaces))
-	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       STRING_BYTES (XSTRING (string))))
+	  && (tem = Fcompare_strings (eltstring, make_number (0),
+				      make_number (XSTRING (string)->size),
+				      string, make_number (0),
+				      make_number (XSTRING (string)->size),
+				      completion_ignore_case ? Qt : Qnil),
+	      EQ (Qt, tem)))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -1604,7 +1628,7 @@ is added, provided that matches some possible completion.\n\
 Return nil if there is no valid completion, else t.")
   ()
 {
-  Lisp_Object completion, tem;
+  Lisp_Object completion, tem, tem1;
   register int i, i_byte;
   register unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
@@ -1641,8 +1665,7 @@ Return nil if there is no valid completion, else t.")
     }
 #else /* Rewritten code */
   {
-    register unsigned char *buffer_string;
-    int buffer_nbytes, completion_nbytes;
+    int buffer_nchars, completion_nchars;
 
     CHECK_STRING (completion, 0);
     tem = Fbuffer_string ();
@@ -1661,21 +1684,37 @@ Return nil if there is no valid completion, else t.")
 				STRING_BYTES (XSTRING (tem)), 0);
 	  }
       }
-    buffer_string = XSTRING (tem)->data;
-    completion_string = XSTRING (completion)->data;
-    buffer_nbytes = STRING_BYTES (XSTRING (tem)); /* ie ZV_BYTE - BEGV_BYTE */
-    completion_nbytes = STRING_BYTES (XSTRING (completion));
-    i_byte = buffer_nbytes - completion_nbytes;
-    if (i_byte > 0 ||
-	0 <= scmp (buffer_string, completion_string, buffer_nbytes))
+    buffer_nchars = XSTRING (tem)->size; /* ie ZV - BEGV */
+    completion_nchars = XSTRING (completion)->size;
+    i = buffer_nchars - completion_nchars;
+    if (i > 0
+	||
+	(tem1 = Fcompare_strings (tem, make_number (0),
+				  make_number (buffer_nchars),
+				  completion, make_number (0),
+				  make_number (buffer_nchars),
+				  completion_ignore_case ? Qt : Qnil),
+	 ! EQ (tem1, Qt)))
       {
-	/* Set buffer to longest match of buffer tail and completion head. */
-	if (i_byte <= 0) i_byte = 1;
-	buffer_string += i_byte;
-	buffer_nbytes -= i_byte;
-	while (0 <= scmp (buffer_string++, completion_string, buffer_nbytes--))
-	  i_byte++;
-	del_range_byte (1, i_byte + 1, 1);
+	int start_pos;
+
+	/* Set buffer to longest match of buffer tail and completion head.  */
+	if (i <= 0) i = 1;
+	start_pos= i;
+	buffer_nchars -= i;
+	while (1)
+	  {
+	    tem1 = Fcompare_strings (tem, make_number (start_pos),
+				     make_number (buffer_nchars + start_pos),
+				     completion, make_number (0),
+				     make_number (buffer_nchars),
+				     completion_ignore_case ? Qt : Qnil);
+	    start_pos++;
+	    if (EQ (tem1, Qt))
+	      break;
+	    i++;
+	  }
+	del_range (1, i + 1);
 	SET_PT_BOTH (ZV, ZV_BYTE);
       }
     UNGCPRO;
