@@ -62,6 +62,9 @@ character set which supports the following European languages:
 We also have specific language environments for the following languages:
   For Dutch, \"Dutch\".
   For German, \"German\".
+  For French, \"French\".
+  For Italian, \"Italian\".
+  For Slovenian, \"Slovenian\".
   For Spanish, \"Spanish\".
 
 Latin-1 also covers several written languages outside Europe, including
@@ -250,6 +253,20 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
 (set-language-info-alist
+ "Dutch" '((tutorial . "TUTORIAL.nl")
+	   (charset ascii latin-iso8859-1)
+	   (coding-system iso-latin-1)
+	   (coding-priority iso-latin-1)
+	   (nonascii-translation . iso-latin-1)
+	   (unibyte-syntax . "latin-1")
+	   (unibyte-display . iso-latin-1)
+	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
+	   (documentation . "\
+This language environment is almost the same as Latin-1,
+but it selects the Dutch tutorial and input method."))
+ '("European"))
+
+(set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
@@ -263,7 +280,39 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but default input method is set to \"german-postfix\"."))
+but default input method is set to \"german-postfix\".
+Additionally, it selects the German tutorial."))
+ '("European"))
+
+(set-language-info-alist
+ "French" '((tutorial . "TUTORIAL.fr")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "latin-1-prefix")
+	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but it selects the French tutorial and input method."))
+ '("European"))
+
+(set-language-info-alist
+ "Italian" '((tutorial . "TUTORIAL.it")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "italian-postfix")
+	    (sample-text . "Salve, ciao!")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but sets the default input method to \"italian-postfix\".
+Additionally, it selects the Italian tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -276,7 +325,9 @@ but default input method is set to \"german-postfix\"."))
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.sl")
 	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
-	      (documentation . t))
+	      (documentation . "\
+This language environment is almost the same as Latin-2,
+but it selects the Slovenian tutorial and input method."))
  '("European"))
 
 (set-language-info-alist
@@ -293,20 +344,6 @@ but default input method is set to \"german-postfix\"."))
 This language environment is almost the same as Latin-1,
 but it sets the default input method to \"spanish-postfix\",
 and selects the Spanish tutorial."))
- '("European"))
-
-(set-language-info-alist
- "Dutch" '((tutorial . "TUTORIAL.nl")
-	   (charset ascii latin-iso8859-1)
-	   (coding-system iso-latin-1)
-	   (coding-priority iso-latin-1)
-	   (nonascii-translation . iso-latin-1)
-	   (unibyte-syntax . "latin-1")
-	   (unibyte-display . iso-latin-1)
-	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
-	   (documentation . "\
-This language environment is almost the same as Latin-1,
-but it selects the Dutch tutorial."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
@@ -494,7 +531,7 @@ but it selects the Dutch tutorial."))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
   (define-translation-table 'mac-roman-decoder translation-table)
-  (define-translation-table 'mac-roman-encoder 
+  (define-translation-table 'mac-roman-encoder
     (char-table-extra-slot translation-table 0)))
 
 (define-ccl-program decode-mac-roman
