@@ -618,9 +618,9 @@ If NOERROR is non-nil, return nil on failure."
 	(and (not noerror)
 	     (error "No unitalic version of %S" font1)))))
 
-;;; Make the builtin faces; the C code knows these as faces 0, 1, and 2,
-;;; respectively, so they must be the first three faces made.
-
+;;; Make the default and modeline faces; the C code knows these as
+;;; faces 0 and 1, respectively, so they must be the first two faces
+;;; made.
 (defun face-initialize ()
   (make-face 'default)
   (make-face 'modeline)
