@@ -4089,9 +4089,15 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(ftp-error (insert (format "%s: %s, %s\n"
 				    (nth 1 oops)
 				    (nth 2 oops)
-				    (nth 3 oops))))
-	(error (insert (format "%s\n" (nth 1 oops)))))
+				    (nth 3 oops)))
+		   ;; Caller expects nonzero value to mean failure.
+		   1)
+	(error (insert (format "%s\n" (nth 1 oops)))
+	       1))
     (apply 'call-process program nil (not discard) nil arguments)))
+
+(defvar ange-ftp-remote-shell "rsh" 
+  "Remote shell to use for chmod, if FTP server rejects the `chmod' command.")
 
 ;; Handle an attempt to run chmod on a remote file
 ;; by using the ftp chmod command.
@@ -4114,10 +4120,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 						(format "doing chmod %s"
 							abbr))))
 		(or (car result)
-		    (ange-ftp-error host user
-				    (format "chmod: %s: \"%s\""
-					    file 
-					    (cdr result)))))))))
+		    (call-process 
+		     ange-ftp-remote-shell
+		     nil t nil host "chmod" mode name)))))))
      (cdr args)))
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
