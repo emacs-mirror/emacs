@@ -159,7 +159,12 @@
     ("~n"   . [241])
     ("~o"   . [245])
     ("~t"   . [254])
-    ("~~"   . [172]))
+    ("~~"   . [172])
+    ("' "   . "'")
+    ("` "   . "`")
+    ("\" "  . "\"")
+    ("^ "   . "^")
+    ("~ "   . "~"))
   "Alist of character translations for entering ISO characters.
 Each element has the form (STRING . VECTOR).
 The sequence STRING of ASCII chars translates into the
