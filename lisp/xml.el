@@ -598,8 +598,8 @@ This follows the rule [28] in the XML specifications."
 	      nil)
 	     (t
 	      (if xml-validating-parser 
-		  error "XML: (Validity) Invalid element type in the DTD")))
-
+		  (error "XML: (Validity) Invalid element type in the DTD"))))
+	    
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (and (assoc element dtd)
 		     xml-validating-parser)
