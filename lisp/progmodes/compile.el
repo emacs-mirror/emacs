@@ -50,7 +50,8 @@ error messages should be reparsed the next time the list of errors is wanted.")
   "Value of `compilation-error-list' after errors were parsed.")
 
 (defvar compilation-parse-errors-function 'compilation-parse-errors 
-  "Function to call (with no args) to parse error messages from a compilation.
+  "Function to call to parse error messages from a compilation.
+It takes one arg: if non-nil, don't bother parsing past that location.
 It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
 found.  See that variable for more info.")
@@ -384,7 +385,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 
 ;; Parse any new errors in the compilation buffer,
 ;; or reparse from the beginning if the user has asked for that.
-(defun compile-reinitialize-errors (argp)
+(defun compile-reinitialize-errors (argp &optional limit-search)
   (save-excursion
     (set-buffer compilation-last-buffer)
     ;; If we are out of errors, or if user says "reparse",
@@ -400,7 +401,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
       (switch-to-buffer compilation-last-buffer)
       (set-buffer-modified-p nil)
       (let ((at-start (= compilation-parsing-end 1)))
-	(funcall compilation-parse-errors-function)
+	(funcall compilation-parse-errors-function limit-search)
 	;; Remember the entire list for compilation-forget-errors.
 	;; If this is an incremental parse, append to previous list.
 	(if at-start
@@ -411,13 +412,13 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 (defun compile-goto-error (&optional argp)
   "Visit the source for the error message point is on.
 Use this command in a compilation log buffer.
-C-u as a prefix arg means to reparse the buffer's error messages first;
+\\[universal-argument] as a prefix arg means to reparse the buffer's error messages first;
 other kinds of prefix arguments are ignored."
   (interactive "P")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer."))
   (setq compilation-last-buffer (current-buffer))
-  (compile-reinitialize-errors argp)
+  (compile-reinitialize-errors argp (point))
   (save-excursion
     (beginning-of-line)
     ;; Move compilation-error-list to the elt of
@@ -687,14 +688,15 @@ See variables `compilation-parse-errors-function' and
 		       (setq groupings (1+ groupings))))))))
     groupings))
 
-(defun compilation-parse-errors ()
+(defun compilation-parse-errors (limit-search)
   "Parse the current buffer as grep, cc or lint error messages.
 See variable `compilation-parse-errors-function' for the interface it uses."
   (setq compilation-error-list nil)
   (message "Parsing error messages...")
   (let (text-buffer
 	regexp enter-group leave-group error-group
-	alist subexpr error-regexp-groups)
+	alist subexpr error-regexp-groups
+	(found-desired nil))
 
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
@@ -739,7 +741,11 @@ See variable `compilation-parse-errors-function' for the interface it uses."
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
 
-    (while (re-search-forward regexp nil t)
+    (while (and (re-search-forward regexp nil t)
+		;; We don't just pass LIMIT-SEARCH to re-search-forward
+		;; because we want to find matches containing LIMIT-SEARCH
+		;; but which extend past it.
+		(not found-desired))
       ;; Figure out which constituent regexp matched.
       (cond ((match-beginning enter-group)
 	     ;; The match was the enter-directory regexp.
@@ -807,9 +813,18 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				   (cons filename linenum))
 			     compilation-error-list)))))
 	    (t
-	     (error "Impossible regexp match!"))))
-    (setq compilation-parsing-end (point-max)))
-  (message "Parsing error messages...done")
+	     (error "Impossible regexp match!")))
+      (and limit-search (>= (point) limit-search)
+	   ;; The user wanted a specific error, and we're past it.
+	   (setq found-desired t)))
+    (if desired-found
+	(progn
+	  (setq compilation-parsing-end (point))
+	  (message "Desired error message found."))
+      ;; Set to point-max, not point, so we don't perpetually
+      ;; parse the last bit of text when it isn't an error message.
+      (setq compilation-parsing-end (point-max))
+      (message "Parsing error messages...done")))
   (setq compilation-error-list (nreverse compilation-error-list)))
 
 (define-key ctl-x-map "`" 'next-error)
