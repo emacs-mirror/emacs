@@ -200,7 +200,8 @@ Boston, MA 02111-1307, USA.  */
 
 #define INFINITY 10000000
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
 extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
 #endif
@@ -7518,7 +7519,8 @@ update_menu_bar (f, save_match_data)
 
   if (FRAME_WINDOW_P (f)
       ?
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
       FRAME_EXTERNAL_MENU_BAR (f)
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -7569,7 +7571,8 @@ update_menu_bar (f, save_match_data)
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
 	  if (FRAME_WINDOW_P (f)
 #if defined (MAC_OS)
               /* All frames on Mac OS share the same menubar.  So only the
@@ -7582,11 +7585,11 @@ update_menu_bar (f, save_match_data)
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
 	    w->update_mode_line = Qt;
-#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI) */
+#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
 	  /* In the non-toolkit version, the menu bar is an ordinary screen
 	     line, and this makes it get updated.  */
 	  w->update_mode_line = Qt;
-#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI) */
+#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
@@ -7612,8 +7615,14 @@ update_tool_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
-  if (WINDOWP (f->tool_bar_window)
-      && XFASTINT (XWINDOW (f->tool_bar_window)->height) > 0)
+#ifdef USE_GTK
+  int do_update = FRAME_EXTERNAL_TOOL_BAR(f);
+#else
+  int do_update = WINDOWP (f->tool_bar_window)
+    && XFASTINT (XWINDOW (f->tool_bar_window)->height) > 0;
+#endif
+
+  if (do_update)
     {
       Lisp_Object window;
       struct window *w;
@@ -7991,6 +8000,12 @@ redisplay_tool_bar (f)
   struct it it;
   struct glyph_row *row;
   int change_height_p = 0;
+  
+#ifdef USE_GTK
+  if (FRAME_EXTERNAL_TOOL_BAR(f))
+    update_frame_tool_bar (f);
+  return 0;
+#endif
 
   /* If frame hasn't a tool-bar window or if it is zero-height, don't
      do anything.  This means you must start with tool-bar-lines
@@ -7998,7 +8013,7 @@ redisplay_tool_bar (f)
      can turn off tool-bars by specifying tool-bar-lines zero.  */
   if (!WINDOWP (f->tool_bar_window)
       || (w = XWINDOW (f->tool_bar_window),
-	  XFASTINT (w->height) == 0))
+          XFASTINT (w->height) == 0))
     return 0;
 
   /* Set up an iterator for the tool-bar window.  */
@@ -8550,7 +8565,7 @@ redisplay_internal (preserve_echo_area)
 	return;
     }
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (popup_activated ())
     return;
 #endif
@@ -10785,10 +10800,12 @@ redisplay_window (window, just_this_one_p)
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
       int redisplay_menu_p = 0;
+      int redisplay_tool_bar_p = 0;
 
       if (FRAME_WINDOW_P (f))
 	{
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
 	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
 #else
 	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
@@ -10801,10 +10818,17 @@ redisplay_window (window, just_this_one_p)
         display_menu_bar (w);
 
 #ifdef HAVE_WINDOW_SYSTEM
-      if (WINDOWP (f->tool_bar_window)
-	  && (FRAME_TOOL_BAR_LINES (f) > 0
-	      || auto_resize_tool_bars_p))
-	redisplay_tool_bar (f);
+#ifdef USE_GTK
+      redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
+#else
+      redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
+        && (FRAME_TOOL_BAR_LINES (f) > 0
+            || auto_resize_tool_bars_p);
+      
+#endif
+
+      if (redisplay_tool_bar_p)
+        redisplay_tool_bar (f);
 #endif
     }
 
@@ -13535,7 +13559,7 @@ display_menu_bar (w)
   if (!NILP (Vwindow_system))
     return;
 #endif
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (FRAME_X_P (f))
     return;
 #endif

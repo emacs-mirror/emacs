@@ -1,3 +1,10 @@
+2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): New node.
+	(GTK widget names): New node.
+	(GTK names in Emacs): New node.
+	(GTK styles): New node.
+
 2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.texi: Do not use `path' in several locations.

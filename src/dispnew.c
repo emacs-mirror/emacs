@@ -2371,7 +2371,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
 
   /* Allocate/ reallocate matrices of the dummy window used to display
      the menu bar under X when no X toolkit support is available.  */
-#ifndef USE_X_TOOLKIT
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   {
     /* Allocate a dummy window if not already done.  */
     if (NILP (f->menu_bar_window))
@@ -2394,6 +2394,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
   }
 #endif /* not USE_X_TOOLKIT */
 
+#ifndef USE_GTK
   /* Allocate/ reallocate matrices of the tool bar window.  If we
      don't have a tool bar window yet, make one.  */
   if (NILP (f->tool_bar_window))
@@ -2411,6 +2412,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
   XSETFASTINT (w->height, FRAME_TOOL_BAR_LINES (f));
   XSETFASTINT (w->width, FRAME_WINDOW_WIDTH (f));
   allocate_matrices_for_window_redisplay (w);
+#endif
 }
 
 

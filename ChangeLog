@@ -1,3 +1,9 @@
+2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+
+	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add text about GTK.
+
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* configure.in (m68k-motorola-sysv): Removed (obsolete).

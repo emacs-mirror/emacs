@@ -215,6 +215,11 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
+#if defined (USE_GTK)
+  /* Nonzero means using a tool bar that comes from the toolkit.  */
+  int external_tool_bar;
+#endif
+
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
 
@@ -270,7 +275,8 @@ struct frame
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
   int external_menu_bar;
 #endif
@@ -457,9 +463,18 @@ typedef struct frame *FRAME_PTR;
    These lines are counted in FRAME_HEIGHT.  */
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
 
+/* Nonzero if this frame should display a tool bar
+   in a way that does not use any text lines.  */
+#if defined (USE_GTK)
+#define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
+#else
+#define FRAME_EXTERNAL_TOOL_BAR(f) 0
+#endif
+
 /* Number of lines of frame F used for the tool-bar.  */
 
 #define FRAME_TOOL_BAR_LINES(f) (f)->tool_bar_lines
+
 
 /* Lines above the top-most window in frame F.  */
 
@@ -468,7 +483,8 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if this frame should display a menu bar
    in a way that does not use any text lines.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0

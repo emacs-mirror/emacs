@@ -3878,7 +3878,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
 	  kbd_fetch_ptr = event + 1;
@@ -3985,7 +3986,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    {
 	      obj = make_lispy_event (event);
 	      
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
+    || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
@@ -5048,7 +5050,7 @@ make_lispy_event (event)
  	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
 	 			   &column, &row, NULL, 1);
 
-#ifndef USE_X_TOOLKIT
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 	    /* In the non-toolkit version, clicks on the menu bar
 	       are ordinary button events in the event buffer.
 	       Distinguish them, and invoke the menu.
@@ -5100,7 +5102,7 @@ make_lispy_event (event)
 
 		return Fcons (item, Fcons (position, Qnil));
 	      }
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
 
 	    /* Set `window' to the window under frame pixel coordinates
 	       event->x/event->y.  */
@@ -5589,7 +5591,8 @@ make_lispy_event (event)
       }
 #endif /* HAVE_MOUSE */
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to

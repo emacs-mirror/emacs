@@ -252,11 +252,18 @@ STARTFILES = START_FILES
 #define C_SWITCH_ASM
 #endif
 
+#if HAVE_GTK
+#define USE_GTK
+TOOLKIT_DEFINES = -DUSE_GTK
+#endif
+
 #ifdef USE_X_TOOLKIT
 #define USE_@X_TOOLKIT_TYPE@
 TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
 #else
+#ifndef USE_GTK
 TOOLKIT_DEFINES =
+#endif
 #endif
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
@@ -300,7 +307,12 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
+
+#ifdef USE_GTK
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o gtkutil.o
+#else
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+#endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -372,10 +384,17 @@ LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #endif /* not LIBXT_STATIC */
 
 #else /* not USE_X_TOOLKIT */
+
+#ifdef USE_GTK
+LIBW=@GTK_LIBS@
+OLDXMENU=
+LIBXMENU=
+#endif /* USE_GTK */
+
 #ifdef HAVE_X_SM
-LIBXT=-lSM -lICE
+LIBXT=$(LIBW) -lSM -lICE
 #else
-LIBXT=
+LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
 
@@ -1150,18 +1169,21 @@ xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   charset.h $(config_h)
+   charset.h gtkutil.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h \
-   msdos.h $(config_h)
+   gtkutil.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
   dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
   keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
-  coding.h process.h $(config_h)
+  coding.h process.h gtkutil.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   charset.h coding.h ccl.h buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
+gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
+  blockinput.h window.h atimer.h termhooks.h
+
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
 atimer.o: atimer.c atimer.h systime.h $(config_h)

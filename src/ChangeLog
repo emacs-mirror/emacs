@@ -1,3 +1,113 @@
+2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+
+	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK
+	(gtkutil.o): New file.
+	(TOOLKIT_DEFINES): Set to -DUSE_GTK if HAVE_GTK.
+	(LIBW): Set to @GTK_LIBS@ if USE_GTK.
+
+	* gtkutil.c: New file for GTK version.
+
+	* gtkutil.h: New file for GTK version.
+
+	* xterm.h: Add xt_or_gtk_widget.
+	Include gtk files for USE_GTK.
+	(struct x_output): Add toolbar_height.
+	(struct x_output): Add GTK widgets and Gdk size_hints.
+	(GTK_WIDGET_TO_X_WIN, FRAME_GTK_OUTER_WIDGET, FRAME_GTK_WIDGET)
+	(FRAME_OUTER_WINDOW): New macros for USE_GTK.
+	(FRAME_OUTER_TO_INNER_DIFF_Y): Add FRAME_TOOLBAR_HEIGHT to calculation.
+
+	* xterm.c: Include gtkutil.h for USE_GTK.
+	Declare extern void free_frame_menubar for USE_GTK.
+	(note_mouse_highlight): Check popup_activated for USE_GTK.
+	(xt_action_hook): Don't compile if USE_GTK.
+	(x_scroll_bar_to_input_event): Use CurrentTime for USE_GTK.
+	(xg_scroll_callback): New function.
+	(x_create_toolkit_scroll_bar): Call xg_create_scroll_bar for USE_GTK.
+	(x_set_toolkit_scroll_bar_thumb): Call xg_set_toolkit_scroll_bar_thumb
+	for USE_GTK.
+	(x_scroll_bar_create): Call xg_update_scrollbar_pos and
+	xg_show_scroll_bar for USE_GTK.
+	(x_scroll_bar_remove): Call xg_remove_scroll_bar for USE_GTK.
+	(XTset_vertical_scroll_bar): Call xg_update_scrollbar_pos for USE_GTK.
+	(event_handler_gdk): New function for USE_GTK.
+	(handle_one_xevent): Call xg_resize_widgets for USE_GTK.
+	(handle_one_xevent): Make sure widget is mapped before
+	calling x_real_positions for USE_GTK.
+	(XTread_socket): Add GTK event loop for USE_GTK.
+	(x_set_window_size): Call xg_frame_set_char_size for USE_GTK.
+	(x_make_frame_visible): Call gtk_widget_show_all for USE_GTK.
+	(x_make_frame_invisible): Call gtk_widget_hide for USE_GTK.
+	(x_iconify_frame): Add code for USE_GTK.
+	(x_free_frame_resources): Call gtk_widget_destroy for USE_GTK.
+	(x_wm_set_size_hint): Only compile if not USE_GTK.  GTK version
+	is in gtkutil.c.
+	(x_term_init): Add initialization for GTK.
+	(syms_of_xterm): Set Vx_toolkit_scroll_bars for USE_GTK.
+
+	* xmenu.c: Include gtkutil.h for USE_GTK.
+	(Fx_popup_menu): Use current position if x and y is NIL.
+	(single_menu_item, single_menu_item, Fx_popup_dialog): Check
+	for USE_GTK.
+	(popup_widget_loop): New function for USE_GTK.
+	(x_activate_menubar): Add code for USE_GTK.
+	(popup_activate_callback, popup_deactivate_callback)
+	(menu_highlight_callback, menubar_selection_callback): USE_GTK versions
+	added.
+	(update_frame_menubar): Call xg_update_frame_menubar for USE_GTK.
+	(set_frame_menubar): Call xg_modify_menubar_widgets for USE_GTK.
+	(free_frame_menubar): Only compile if not USE_GTK.  GTK version
+	is in gtkutil.c.
+	(popup_selection_callback): New version for USE_GTK.
+	(create_and_show_popup_menu): New fuction, one USE_GTK version and
+ 	one USE_X_TOOLKIT version.
+	(xmenu_show): Call create_and_show_popup_menu.
+	(dialog_selection_callback): New version for USE_GTK.
+	(create_and_show_dialog): New fuction, one USE_GTK version and
+ 	one USE_X_TOOLKIT version.
+	(xdialog_show): Call create_and_show_dialog.
+
+	* xfns.c: Include gtkutil for USE_GTK.
+	(x_window_to_frame, x_any_window_to_frame)
+	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
+	(x_top_window_to_frame): Add code for USE_GTK.
+	(x_set_background_color): Call xg_set_background_color for GTK.
+	(x_set_menu_bar_lines): Check for USE_GTK.
+	(x_set_tool_bar_lines): Call update_frame_tool_bar for USE_GTK.
+	(x_set_name, x_set_title): Call gtk_window_set_title for USE_GTK.
+	(x_window): Call xg_create_frame_widgets for USE_GTK.
+	(Fx_create_frame): Check for USE_GTK
+	(Fx_file_dialog): New implementation for USE_GTK.
+	
+
+	* xdisp.c: Add check for USE_GTK for extern void set_frame_menubar.
+	(update_menu_bar): Add check for USE_GTK.
+	(update_tool_bar): Add check for USE_GTK and external tool bar.
+	(redisplay_tool_bar): Add check for USE_GTK and external tool bar.
+	(redisplay_internal): Add check for USE_GTK and popup_activated.
+	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_MENU_BAR.
+	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_TOOL_BAR.
+	(display_menu_bar): Add check for USE_GTK
+
+	* lisp.h: Declare Vx_resource_name extern.
+
+	* keyboard.c (kbd_buffer_get_event):  Check MENU_BAR_ACTIVATE_EVENT
+	for USE_GTK.
+	(make_lispy_event): Check MENU_BAR_EVENT for USE_GTK.
+
+	* frame.h (struct frame): Add external_tool_bar.  Check for USE_GTK.
+	(FRAME_EXTERNAL_TOOL_BAR): New macro.
+	(FRAME_EXTERNAL_MENU_BAR): Check for USE_GTK.
+
+	* fileio.c (Fread_file_name): Add check for USE_GTK.
+
+	* dispnew.c (adjust_frame_glyphs_for_window_redisplay): Add
+	check for USE_GTK.
+
+	* config.in: Added HAVE_GTK
+
+	* alloc.c (Fgarbage_collect): Call xg_mark_data for GTK.
+
 2003-01-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* charset.h (Funibyte_char_to_multibyte): Export.

@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE PKG_CONFIG GTK_CFLAGS GTK_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -866,12 +866,15 @@ Optional Packages:
   --with-kerberos5        support Kerberos version 5 authenticated POP
   --with-hesiod           support Hesiod to get the POP server host
   --without-sound         don't compile with sound support
-  --with-x-toolkit=KIT    use an X toolkit (KIT = yes/lucid/athena/motif/no)
+  --with-x-toolkit=KIT    use an X toolkit
+                              (KIT = yes/lucid/athena/motif/gtk/no)
   --with-xpm              use -lXpm for displaying XPM images
   --with-jpeg             use -ljpeg for displaying JPEG images
   --with-tiff             use -ltiff for displaying TIFF images
   --with-gif              use -lungif for displaying GIF images
   --with-png              use -lpng for displaying PNG images
+  --with-gtk              use GTK (same as --with-x-toolkit=gtk)
+  --with-pkg-config-prog  Path to pkg-config to use for finding GTK
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xim           don't use X11 XIM
@@ -1402,12 +1405,13 @@ if test "${with_x_toolkit+set}" = set; then
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
+	    g | gt | gtk  )	val=gtk ;;
 	    * )
 { { echo "$as_me:$LINENO: error: \`--with-x-toolkit=$withval' is invalid\;
-this option's value should be \`yes', \`no', \`lucid', \`athena', or \`motif'.
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
 Currently, \`yes', \`athena' and \`lucid' are synonyms." >&5
 echo "$as_me: error: \`--with-x-toolkit=$withval' is invalid\;
-this option's value should be \`yes', \`no', \`lucid', \`athena', or \`motif'.
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
 Currently, \`yes', \`athena' and \`lucid' are synonyms." >&2;}
    { (exit 1); exit 1; }; }
 	    ;;
@@ -1443,6 +1447,18 @@ fi;
 # Check whether --with-png or --without-png was given.
 if test "${with_png+set}" = set; then
   withval="$with_png"
+
+fi;
+
+# Check whether --with-gtk or --without-gtk was given.
+if test "${with_gtk+set}" = set; then
+  withval="$with_gtk"
+
+fi;
+
+# Check whether --with-pkg-config-prog or --without-pkg-config-prog was given.
+if test "${with_pkg_config_prog+set}" = set; then
+  withval="$with_pkg_config_prog"
 
 fi;
 
@@ -6800,6 +6816,8 @@ case "${window_system}" in
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
+      gtk ) with_gtk=yes
+            USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
       * ) USE_X_TOOLKIT=maybe ;;
     esac
@@ -8058,6 +8076,134 @@ echo "${ECHO_T}before 5" >&6
   fi
 fi
 
+
+
+HAVE_GTK=no
+if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
+  if test "$USE_X_TOOLKIT" != "none"; then
+    { { echo "$as_me:$LINENO: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&5
+echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&2;}
+   { (exit 1); exit 1; }; };
+  fi
+  GLIB_REQUIRED=2.0.1
+  GTK_REQUIRED=2.0.1
+  GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+
+    if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or give the full path to pkg-config with"
+     echo "*** the PKG_CONFIG environment variable or --with-pkg-config-prog."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        echo "$as_me:$LINENO: checking for $GTK_MODULES" >&5
+echo $ECHO_N "checking for $GTK_MODULES... $ECHO_C" >&6
+
+        if $PKG_CONFIG --exists "$GTK_MODULES" ; then
+            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+            succeeded=yes
+
+            echo "$as_me:$LINENO: checking GTK_CFLAGS" >&5
+echo $ECHO_N "checking GTK_CFLAGS... $ECHO_C" >&6
+            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"`
+            echo "$as_me:$LINENO: result: $GTK_CFLAGS" >&5
+echo "${ECHO_T}$GTK_CFLAGS" >&6
+
+            echo "$as_me:$LINENO: checking GTK_LIBS" >&5
+echo $ECHO_N "checking GTK_LIBS... $ECHO_C" >&6
+            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"`
+            echo "$as_me:$LINENO: result: $GTK_LIBS" >&5
+echo "${ECHO_T}$GTK_LIBS" >&6
+        else
+            GTK_CFLAGS=""
+            GTK_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+            echo $GTK_PKG_ERRORS
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     :
+  else
+     { { echo "$as_me:$LINENO: error: Library requirements ($GTK_MODULES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
+echo "$as_me: error: Library requirements ($GTK_MODULES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+
+
+
+  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
+  HAVE_GTK=yes
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GTK 1
+_ACEOF
+
+  USE_X_TOOLKIT=none
+
+      with_toolkit_scroll_bars=yes
+fi
+
 if test x"${USE_X_TOOLKIT}" = xmaybe; then
   if test x"${HAVE_X11R5}" = xyes; then
     echo "$as_me:$LINENO: checking X11 version 5 with Xaw" >&5
@@ -8650,6 +8796,12 @@ _ACEOF
 
       USE_TOOLKIT_SCROLL_BARS=yes
     fi
+  elif test "${HAVE_GTK}" = "yes"; then
+    cat >>confdefs.h <<\_ACEOF
+#define USE_TOOLKIT_SCROLL_BARS 1
+_ACEOF
+
+    USE_TOOLKIT_SCROLL_BARS=yes
   fi
 fi
 
@@ -17845,6 +17997,13 @@ fi
 
 
 #### Report on what we decided to do.
+#### Report GTK as a toolkit, even if it doesn't use Xt.
+#### It makes printing result more understandable as using GTK sets
+#### toolkit_scroll_bars to yes by default.
+if test "${HAVE_GTK}" = "yes"; then
+  USE_X_TOOLKIT=GTK
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -18566,6 +18725,9 @@ s,@INSTALL_INFO@,$INSTALL_INFO,;t t
 s,@EGREP@,$EGREP,;t t
 s,@LIBSOUND@,$LIBSOUND,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
+s,@PKG_CONFIG@,$PKG_CONFIG,;t t
+s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
+s,@GTK_LIBS@,$GTK_LIBS,;t t
 s,@ALLOCA@,$ALLOCA,;t t
 s,@liblockfile@,$liblockfile,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t

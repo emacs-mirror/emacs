@@ -3136,6 +3136,7 @@ extern int getloadavg P_ ((double *, int));
 extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
 extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 4);
 #endif /* HAVE_X_WINDOWS */

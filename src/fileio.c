@@ -6116,8 +6116,8 @@ provides a file dialog box.  */)
 	    (NILP (predicate) ? Qfile_exists_p : predicate));
 
   GCPRO2 (insdef, default_filename);
-
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI)
+  
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && have_menus_p ())

@@ -4266,6 +4266,13 @@ Garbage collection happens automatically if you cons more than
   mark_stack ();
 #endif
 
+#ifdef USE_GTK
+  {
+    extern void xg_mark_data ();
+    xg_mark_data ();
+  }
+#endif
+
   gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */

@@ -33,6 +33,18 @@ Boston, MA 02111-1307, USA.  */
 				   window inside a widget instead of one 
 				   that Xt creates... */
 #include <X11/StringDefs.h>
+
+typedef Widget xt_or_gtk_widget;
+#endif
+
+#ifdef USE_GTK
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+
+/* Some definitions to reduce conditionals.  */
+typedef GtkWidget *xt_or_gtk_widget;
+#define XtParent(x) (gtk_widget_get_parent (x))
+
 #endif
 
 /* The class of this X application.  */
@@ -348,7 +360,7 @@ extern void check_x P_ ((void));
 
 extern struct frame *x_window_to_frame P_ ((struct x_display_info *, int));
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 extern struct frame *x_any_window_to_frame P_ ((struct x_display_info *, int));
 extern struct frame *x_non_menubar_window_to_frame P_ ((struct x_display_info *, int));
 extern struct frame *x_top_window_to_frame P_ ((struct x_display_info *, int));
@@ -403,6 +415,10 @@ struct x_output
      if the menubar is turned off.  */
   int menubar_height;
 
+  /* Height of tool bar widget, in pixels.
+     Zero if not using an external tool bar.  */
+  int toolbar_height;
+
   /* Height of a line, in pixels.  */
   int line_height;
 
@@ -444,6 +460,26 @@ struct x_output
   Widget edit_widget;
 
   Widget menubar_widget;
+#endif
+
+#ifdef USE_GTK
+  /* The widget of this screen.  This is the window of a top widget.  */
+  GtkWidget *widget;
+  /* The widget of the edit portion of this screen; the window in
+     "window_desc" is inside of this.  */
+  GtkWidget *edit_widget;
+  /* The widget used for laying out widgets vertically.  */
+  GtkWidget *vbox_widget;
+  /* The menubar in this frame.  */
+  GtkWidget *menubar_widget;
+  /* The tool bar in this frame  */
+  GtkWidget *toolbar_widget;
+  /* The handle box that makes the tool bar detachable.  */
+  GtkWidget *handlebox_widget;
+  
+  /* The last size hints set.  */
+  GdkGeometry size_hints;
+  long hint_flags;
 #endif
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
@@ -638,13 +674,28 @@ enum
                                XtWindow ((f)->output_data.x->widget) :  \
                                FRAME_X_WINDOW (f))
 #else
+#ifdef USE_GTK
+#define GTK_WIDGET_TO_X_WIN(w) \
+  ((w) && (w)->window ? GDK_WINDOW_XWINDOW ((w)->window) : 0)
+
+#define FRAME_GTK_OUTER_WIDGET(f) ((f)->output_data.x->widget)
+#define FRAME_GTK_WIDGET(f) ((f)->output_data.x->edit_widget)
+#define FRAME_OUTER_WINDOW(f)                                   \
+       (FRAME_GTK_OUTER_WIDGET (f) ?                            \
+        GTK_WIDGET_TO_X_WIN (FRAME_GTK_OUTER_WIDGET (f)) :      \
+         FRAME_X_WINDOW (f))
+
+#else /* !USE_GTK */
 #define FRAME_OUTER_WINDOW(f) (FRAME_X_WINDOW (f))
+#endif /* !USE_GTK */
 #endif
+
 
 #define FRAME_FONT(f) ((f)->output_data.x->font)
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
 #define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
 #define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
+#define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.x->toolbar_height)
 #define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
 
 /* Width of the default font of frame F.  Must be defined by each
@@ -681,7 +732,7 @@ enum
      ((f)->output_data.x->x_pixels_outer_diff)
 #define FRAME_OUTER_TO_INNER_DIFF_Y(f)          \
      ((f)->output_data.x->y_pixels_outer_diff   \
-      + (f)->output_data.x->menubar_height)
+      + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
 
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
