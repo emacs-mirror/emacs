@@ -2947,6 +2947,7 @@ If there is no error, we return nil.")
   int fd;
 
   CHECK_STRING (filename, 0);
+  CHECK_STRING (string, 1);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -5363,10 +5364,12 @@ DIR defaults to current buffer's directory default.")
   else
     insdef = Qnil, insdef1 = Qnil;
 
-#ifdef VMS
   count = specpdl_ptr - specpdl;
+#ifdef VMS
   specbind (intern ("completion-ignore-case"), Qt);
 #endif
+
+  specbind (intern ("minibuffer-completing-file-name"), Qt);
 
   GCPRO2 (insdef, default_filename);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
@@ -5392,10 +5395,7 @@ DIR defaults to current buffer's directory default.")
       val = build_string ("");
     }
 
-#ifdef VMS
   unbind_to (count, Qnil);
-#endif
-
   UNGCPRO;
   if (NILP (val))
     error ("No file name specified");
