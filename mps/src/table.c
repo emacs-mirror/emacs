@@ -1,7 +1,7 @@
 /* impl.h.table: A dictionary mapping a Word to a void*
  * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName$
+ * $HopeName: MMsrc!table.c(trunk.1) $
  */
 
 #include "table.h"
@@ -155,25 +155,14 @@ extern void TableDestroy(Table table)
 
 /* TableLookup -- look up */
 
-extern void *TableLookup(Table table, Word key)
+extern Bool TableLookup(void **valueReturn, Table table, Word key)
 {
   TableEntry entry = TableFind(table, key, 1 /* skip deleted */);
 
-  if((entry == NULL) ||
-     (entry->status != TABLE_ACTIVE))
-    return NULL;
-
-  return entry->value;
-}
-
-extern void *TableSlowLookup(Table table, Word key)
-{
-  size_t i;
-  for (i = 0; i < table->length; i++)
-    if ((table->array[i].status == TABLE_ACTIVE) &&
-	(table->array[i].key == key))
-      return table->array[i].value;
-  return NULL;
+  if(entry == NULL || entry->status != TABLE_ACTIVE)
+    return FALSE;
+  *valueReturn = entry->value;
+  return TRUE;
 }
 
 
@@ -181,9 +170,10 @@ extern void *TableSlowLookup(Table table, Word key)
 
 extern Res TableDefine(Table table, Word key, void *value)
 {
-  TableEntry entry = TableFind(table, key, 1 /* skip deletions */);
+  TableEntry entry = TableFind(table, key, 1 /* skip deleted */);
 
-  assert(entry == NULL || entry->status == TABLE_UNUSED);
+  if (entry != NULL && entry->status == TABLE_ACTIVE)
+    return ResFAIL;
 
   if (entry == NULL) {
     Res res;
@@ -212,8 +202,8 @@ extern Res TableRedefine(Table table, Word key, void *value)
 {
   TableEntry entry = TableFind(table, key, 1 /* skip deletions */);
   
-  assert(entry != NULL);
-  assert(entry->status == TABLE_ACTIVE);
+  if (entry == NULL || entry->status != TABLE_ACTIVE)
+    return ResFAIL;
   assert(entry->key == key);
   entry->value = value;
   return ResOK;
@@ -225,18 +215,18 @@ extern Res TableRedefine(Table table, Word key, void *value)
 extern Res TableRemove(Table table, Word key)
 {
   TableEntry entry = TableFind(table, key, 1);
+
   if (entry == NULL || entry->status != TABLE_ACTIVE)
     return ResFAIL;
-
   entry->status = TABLE_DELETED;
   --table->count;
   return ResOK;
 }
 
 
-/* TableApply -- apply a function to all the mappings */
+/* TableMap -- apply a function to all the mappings */
 
-extern void TableApply(Table table, void(*fun)(Word key, void*value))
+extern void TableMap(Table table, void(*fun)(Word key, void*value))
 {
   size_t i;
   for (i = 0; i < table->length; i++)
