@@ -1,3 +1,9 @@
+2003-05-07  Kenichi Handa  <handa@m17n.org>
+
+	* chartab.c (map_sub_char_table): New argument DEFAULT_VAL.
+	(map_char_table): Don't inherit the value from the parent on
+	initializing VAL.  Adjusted for the above change.
+
 2003-05-06  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Qsignature, Qendian): Delete these variables.

@@ -821,7 +821,7 @@ map_char_table (c_function, function, table, arg, depth, indices)
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
   2, 2, 0,
        doc: /*
-Call FUNCTION for each character in CHAR-TABLE.
+Call FUNCTION for each character in CHAR-TABLE that has non-nil value.
 FUNCTION is called with two arguments--a key and a value.
 The key is a character code or a cons of character codes specifying a
 range of characters that have the same value.  */)
