@@ -1,6 +1,11 @@
-#include "s-usg5-4.h"
+#include "usg5-4.h"
+
 #ifdef LIBS_SYSTEM
 #undef LIBS_SYSTEM
+#endif
+
+#ifdef LIB_STANDARD
+#undef LIB_STANDARD
 #endif
 
 #ifdef SYSTEM_TYPE
@@ -17,7 +22,12 @@
    working alloca function and it should be used. */
 #define HAVE_ALLOCA
 #undef C_ALLOCA
-#define alloca __builtin_alloca
+
+#ifndef NOT_C_CODE
+#ifndef __GNUC__
+#include <alloca.h>
+#endif
+#endif
 
 /* use K&R C */
 #ifndef __GNUC__
@@ -71,3 +81,12 @@ char *_getpty();
   strcpy (pty_name, name);				    \
 }
 
+/* jpff@maths.bath.ac.uk reports `struct exception' is not defined
+   on this system, so inhibit use of matherr.  */
+#define NO_MATHERR
+
+/* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
+#define GETPGRP_NO_ARG
+
+/* Ulimit(UL_GMEMLIM) is busted...  */
+#define ULIMIT_BREAK_VALUE 0x14000000
