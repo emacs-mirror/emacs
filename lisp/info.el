@@ -940,7 +940,7 @@ Bind this in case the user sets it to nil."
 
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
-	(nconc (propertized-buffer-identification " %b")
+	(nconc (propertized-buffer-identification "%b")
 	       (list
 		(concat " ("
 			(file-name-nondirectory
