@@ -10,6 +10,9 @@
 
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-rect.el (cua--rectangle-operation): Let bind
+	inhibit-field-text-motion to t so rectangles work in comint buffers.
+
 	* simple.el (choose-completion-string): Set buffer before running
 	choose-completion-string-functions hook so it can be buffer-local.
 
