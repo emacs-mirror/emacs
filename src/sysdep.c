@@ -147,17 +147,9 @@ extern int errno;
 #include <sys/file.h>
 #endif /* not VMS */
 
-#ifndef BSD4_1
-#ifdef BSD_SYSTEM /* avoid writing defined (BSD_SYSTEM) || defined (USG)
-	      because the vms compiler doesn't grok `defined' */
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef USG
-#ifndef USG5
-#include <fcntl.h>
-#endif
-#endif
-#endif /* not 4.1 bsd */
 
 #ifndef MSDOS
 #include <sys/ioctl.h>
