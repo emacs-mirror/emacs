@@ -203,6 +203,10 @@ property of the major mode name.")
     'emacs))
   "The type of Emacs we are currently running.")
 
+(defvar flyspell-use-local-map
+  (or (eq flyspell-emacs 'xemacs)
+      (not (string< emacs-version "20"))))
+
 ;*---------------------------------------------------------------------*/
 ;*    The minor mode declaration.                                      */
 ;*---------------------------------------------------------------------*/
@@ -216,19 +220,22 @@ property of the major mode name.")
     (setq minor-mode-alist
 	  (cons '(flyspell-mode " Fly") minor-mode-alist)))
 
-(or (assoc 'flyspell-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'flyspell-mode flyspell-mode-map)
-		minor-mode-map-alist)))
-
-(define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
-
-;; mouse bindings
+;; mouse or local-map bindings
 (cond
  ((eq flyspell-emacs 'xemacs)
   (define-key flyspell-mouse-map [(button2)]
-    (function flyspell-correct-word/mouse-keymap)))
+    (function flyspell-correct-word/mouse-keymap))
+  (define-key flyspell-mouse-map "\M-\t" 'flyspell-auto-correct-word))
+ (flyspell-use-local-map
+  (define-key flyspell-mouse-map [(mouse-2)]
+    (function flyspell-correct-word/mouse-keymap))
+  (define-key flyspell-mouse-map "\M-\t" 'flyspell-auto-correct-word))
  (t
+  (or (assoc 'flyspell-mode minor-mode-map-alist)
+      (setq minor-mode-map-alist
+  	  (cons (cons 'flyspell-mode flyspell-mode-map)
+  		minor-mode-map-alist)))
+  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
   (define-key flyspell-mode-map [(mouse-2)]
     (function flyspell-correct-word/local-keymap))))
 
@@ -868,7 +875,7 @@ for the overlay."
     (overlay-put flyspell-overlay 'face face)
     (overlay-put flyspell-overlay 'mouse-face mouse-face)
     (overlay-put flyspell-overlay 'flyspell-overlay t)
-    (if (eq flyspell-emacs 'xemacs)
+    (if flyspell-use-local-map
 	(overlay-put flyspell-overlay
 		     flyspell-overlay-keymap-property-name
 		     flyspell-mouse-map))))
@@ -1014,9 +1021,9 @@ Word syntax described by `ispell-dictionary-alist' (which see).
 This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
 or \\[ispell-region] to update the Ispell process."
   (interactive "e")
-  (if (eq flyspell-emacs 'xemacs)
+  (if flyspell-use-local-map
       (flyspell-correct-word/mouse-keymap event)
-      (flyspell-correct-word/local-keymap event)))
+    (flyspell-correct-word/local-keymap event)))
     
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-correct-word/local-keymap ...                           */
