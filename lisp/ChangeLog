@@ -1,3 +1,16 @@
+2001-06-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el: Move `provide' to the end.  Update copyright.
+	(sgml-mode-map): Use `make-keymap' rather than make the keymap by hand.
+	Bind the latin-1 charset-char to sgml-maybe-name-self rather than
+	incorrectly binding chars between 128 and 256 to it.
+	(sgml-maybe-name-self): Handle latin-1 chars properly.
+	(sgml-tags-invisible): Bind buffer-file-name to nil.
+	Use unwind-protect and restore-buffer-modified-p.
+	(sgml-point-entered): Use buffer-substring-no-properties.
+	(html-tag-alist): Add `div' and `span' and fix backquote/unquote typos.
+	(html-mode): Don't force `imenu-sort-function'.
+
 2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tar-mode.el: Fix the copyright notice.
@@ -16,14 +29,14 @@
 
 2001-06-15  Miles Bader  <miles@gnu.org>
 
-	* textmodes/texinfmt.el (texinfo-format-syntax-table): Revert
-	previous change.
+	* textmodes/texinfmt.el (texinfo-format-syntax-table):
+	Revert previous change.
 
 2001-06-14  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (keep-lines-read-args): Return just a regexp.
 	Provide nil for the region args.
-	(keep-lines, flush-lines, how-many): 
+	(keep-lines, flush-lines, how-many):
 	Calculate the defaults for the region here, when args are nil.
 
 2001-06-14  Eli Zaretskii  <eliz@is.elta.co.il>
