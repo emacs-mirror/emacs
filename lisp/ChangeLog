@@ -1,3 +1,11 @@
+2000-02-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-mode): Call propertized-buffer-identification
+	to set mode-line-buffer-identification to something having
+	the right text properties.
+
+	* bindings.el (propertized-buffer-identification): New function.
+
 2000-02-20  Dave Love  <fx@gnu.org>
 
 	* frame.el (display-mouse-p): Use variable xterm-mouse-mode and
@@ -201,11 +209,9 @@
 	bibtex.el directly.  Instead the hideshow package can be used.
 	Added a special bibtex entry to hs-special-modes-alist.
 	(bibtex-hs-forward-sexp): Added for hideshow.el.
->>>>>>> 1.389
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-<<<<<<< ChangeLog
         * textmodes/bibtex.el (bibtex-mode): Replaced manual splitting of path
         at ':' characters by call to split-string.
 
@@ -338,10 +344,7 @@
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-        * bibtex.el (bibtex-entry-field-alist): Added booktitle field to
-=======
 	* bibtex.el (bibtex-entry-field-alist): Added booktitle field to
->>>>>>> 1.389
 	proceedings entry type (for cross referencing). Thanks to Wagner
 	Toledo Correa for the suggestion.
 
