@@ -915,7 +915,7 @@ where FACE is a valid face specification, as it can be used with
   "Insert the head part of the splash screen into the current buffer."
   (let* ((img (create-image (or fancy-splash-image
 				(if (display-color-p)
-				    "splash.xpm" "splash.xbm"))))
+				    "splash.xpm" "splash.pbm"))))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width (selected-window))))
     (when img
@@ -1049,7 +1049,7 @@ where FACE is a valid face specification, as it can be used with
 		       (if (assq 'display (frame-parameters))
 			   (if (or (and (display-color-p)
 					(image-type-available-p 'xpm))
-				   (image-type-available-p 'xbm))
+				   (image-type-available-p 'pbm))
 			       (fancy-splash-screens)
 			     (progn
 			       (insert "\
