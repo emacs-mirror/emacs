@@ -1,8 +1,8 @@
 ;;; mule.el --- basic commands for mulitilingual environment
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, character set, coding system
 
@@ -1653,18 +1653,18 @@ character, say TO-ALT, FROM is also translated to TO-ALT."
 
 (defun make-translation-table-from-vector (vec)
   "Make translation table from decoding vector VEC.
-VEC is an array of 256 elements to map unibyte codes to multibyte characters.
+VEC is an array of 256 elements to map unibyte codes to multibyte
+characters.  Elements may be nil for undefined code points.
 See also the variable `nonascii-translation-table'."
   (let ((table (make-char-table 'translation-table))
 	(rev-table (make-char-table 'translation-table))
-	(i 0)
 	ch)
-    (while (< i 256)
+    (dotimes (i 256)
       (setq ch (aref vec i))
-      (aset table i ch)
-      (if (>= ch 256)
-	  (aset rev-table ch i))
-      (setq i (1+ i)))
+      (when ch
+	(aset table i ch)
+	(if (>= ch 256)
+	    (aset rev-table ch i))))
     (set-char-table-extra-slot table 0 rev-table)
     table))
 
