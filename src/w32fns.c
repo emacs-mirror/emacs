@@ -315,10 +315,13 @@ extern Lisp_Object Vw32_num_mouse_buttons;
 extern Lisp_Object Vw32_recognize_altgr;
 
 extern HWND w32_system_caret_hwnd;
-extern int w32_system_caret_width;
+
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+extern int w32_use_visible_system_caret;
+
+HWND w32_visible_system_caret_hwnd;
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -4878,6 +4881,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  DestroyCaret ();
 	  w32_system_caret_hwnd = NULL;
+	  w32_visible_system_caret_hwnd = NULL;
 	}
     case WM_MOVE:
     case WM_SIZE:
@@ -5023,19 +5027,46 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       DragAcceptFiles ((HWND) wParam, FALSE);
       return DestroyWindow ((HWND) wParam);
 
+    case WM_EMACS_HIDE_CARET:
+      return HideCaret (hwnd);
+
+    case WM_EMACS_SHOW_CARET:
+      return ShowCaret (hwnd);
+
     case WM_EMACS_DESTROY_CARET:
       w32_system_caret_hwnd = NULL;
+      w32_visible_system_caret_hwnd = NULL;
       return DestroyCaret ();
 
     case WM_EMACS_TRACK_CARET:
       /* If there is currently no system caret, create one.  */
       if (w32_system_caret_hwnd == NULL)
 	{
+	  /* Use the default caret width, and avoid changing it
+	     unneccesarily, as it confuses screen reader software.  */
 	  w32_system_caret_hwnd = hwnd;
-	  CreateCaret (hwnd, NULL, w32_system_caret_width,
+	  CreateCaret (hwnd, NULL, 0,
 		       w32_system_caret_height);
 	}
-      return SetCaretPos (w32_system_caret_x, w32_system_caret_y);
+      
+      if (!SetCaretPos (w32_system_caret_x, w32_system_caret_y))
+	return 0;
+      /* Ensure visible caret gets turned on when requested.  */
+      else if (w32_use_visible_system_caret
+	       && w32_visible_system_caret_hwnd != hwnd)
+	{
+	  w32_visible_system_caret_hwnd = hwnd;
+	  return ShowCaret (hwnd);
+	}
+      /* Ensure visible caret gets turned off when requested.  */
+      else if (!w32_use_visible_system_caret
+	       && w32_visible_system_caret_hwnd)
+	{
+	  w32_visible_system_caret_hwnd = NULL;
+	  return HideCaret (hwnd);
+	}
+      else
+	return 1;
 
     case WM_EMACS_TRACKPOPUPMENU:
       {
