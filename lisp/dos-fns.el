@@ -74,18 +74,25 @@ with a definition that really does change some file names."
 	    ;; Change a leading period to a leading underscore.
 	    (if (= (aref string 0) ?.)
 		(aset string 0 ?_))
+	    ;; If the name is longer than 8 chars, and doesn't have a
+	    ;; period, and we have a dash or underscore that isn't too
+	    ;; close to the beginning, change that to a period.  This
+	    ;; is so we could salvage more characters of the original
+	    ;; name by pushing them into the extension.
+	    (if (and (not (string-match "\\." string))
+		     (> (length string) 8)
+		     ;; We don't gain anything if we put the period closer
+		     ;; than 5 chars from the beginning (5 + 3 = 8).
+		     (setq i (string-match "[-_]" string 5)))
+		(aset string i ?\.))
 	    ;; Get rid of invalid characters.
 	    (while (setq i (string-match
 			    "[^-a-zA-Z0-9_.%~^$!#&{}@`'()\200-\376]"
 			    string))
 	      (aset string i ?_))
-	    ;; If we don't have a period,
-	    ;; and we have a dash or underscore that isn't the first char,
-	    ;; change that to a period.
-	    (if (and (not (string-match "\\." string))
-		     (setq i (string-match "[-_]" string 1)))
-		(aset string i ?\.))
 	    ;; If we don't have a period in the first 8 chars, insert one.
+	    ;; This enables to have 3 more characters from the original
+	    ;; name in the extension.
 	    (if (> (or (string-match "\\." string) (length string))
 		   8)
 		(setq string
@@ -98,13 +105,14 @@ with a definition that really does change some file names."
 	    (if (> (length string) (+ firstdot 4))
 		(setq string (substring string 0 (+ firstdot 4))))
 	    ;; Change all periods except the first one into underscores.
+	    ;; (DOS doesn't allow more than one period.)
 	    (while (string-match "\\." string (1+ firstdot))
 	      (setq i (string-match "\\." string (1+ firstdot)))
 	      (aset string i ?_))
-	    ;; If the last character of the original filename was `~',
-	    ;; make sure the munged name ends with it also.  This is so
-	    ;; a backup file retains its final `~'.
-	    (if (equal lastchar ?~)
+	    ;; If the last character of the original filename was `~' or `#',
+	    ;; make sure the munged name ends with it also.  This is so that
+	    ;; backup and auto-save files retain their telltale form.
+	    (if (memq lastchar '(?~ ?#))
 		(aset string (1- (length string)) lastchar))))
 	  (concat (if (and (stringp dir)
 			   (memq (aref dir dlen-m-1) '(?/ ?\\)))
