@@ -2417,7 +2417,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
-      SetFileAttributes (filename, attributes ^ FILE_ATTRIBUTE_READONLY);
+      SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
       if (set_file_times (filename, now, now))
 	{
 	  /* Restore original attributes.  */
