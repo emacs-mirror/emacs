@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/19 04:44:42 $|$Revision: 1.36 $
+;; |$Date: 1993/05/27 03:33:12 $|$Revision: 1.37 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -1269,7 +1269,7 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-search ()
   ;; Do the search with the current search string.
   (isearch-message nil t)
-  (if search-upper-case
+  (if (and isearch-case-fold-search search-upper-case)
       (setq isearch-case-fold-search (isearch-no-upper-case-p isearch-string)))
   (condition-case lossage
       (let ((inhibit-quit nil)
