@@ -40,6 +40,7 @@
 (define-key mule-keymap "p" 'set-buffer-process-coding-system)
 (define-key mule-keymap "\C-\\" 'select-input-method)
 (define-key mule-keymap "c" 'universal-coding-system-argument)
+(define-key mule-keymap "l" 'set-language-environment)
 
 (define-key help-map "\C-L" 'describe-language-environment)
 (define-key help-map "L" 'describe-language-environment)
@@ -140,6 +141,9 @@
 ;; alternative is "\C-\]" which is now bound to `abort-recursive-edit'
 ;; but it won't be used that frequently.
 (define-key global-map "\C-\\" 'toggle-input-method)
+
+;; Here's an alternative key binding for X users (Shift-SPACE).
+(define-key global-map [?\S- ] 'toggle-input-method)
 
 (defun toggle-enable-multibyte-characters (&optional arg)
   "Change whether this buffer enables multibyte characters.
@@ -344,10 +348,13 @@ If nil, it means no input method is activated now.")
 (make-variable-buffer-local 'current-input-method-title)
 (put 'current-input-method-title 'permanent-local t)
 
-(defvar default-input-method nil
-  "Default input method for multilingual text.
-The default input method is the one activated automatically by the command
-`toggle-input-method' (\\[toggle-input-method]).")
+(defcustom default-input-method nil
+  "*Default input method for multilingual text.
+This is the input method activated automatically by the command
+`toggle-input-method' (\\[toggle-input-method]).
+Automatically local in all buffers."
+  :group 'mule)
+
 (make-variable-buffer-local 'default-input-method)
 (put 'default-input-method 'permanent-local t)
 
@@ -440,6 +447,8 @@ See also the function `register-input-method'."
   (interactive
    (let* ((default (or previous-input-method default-input-method))
 	  (initial (if default (cons default 0))))
+     (if (not enable-multibyte-characters)
+	 (error "Can't activate any input method while enable-multibyte-characters is nil"))
      (list (read-input-method-name "Input method: " initial t))))
   (activate-input-method input-method)
   (setq-default default-input-method default-input-method))
@@ -454,15 +463,14 @@ interactively."
   (interactive "P")
   (let* ((default (or previous-input-method default-input-method))
 	 (initial (if default (cons default 0))))
-    (if arg
-	(activate-input-method
-	 (read-input-method-name "Input method: " initial t))
-      (if current-input-method
-	  (inactivate-input-method)
-	(if default-input-method
-	    (activate-input-method default-input-method)
-	  (activate-input-method
-	   (read-input-method-name "Input method: " initial t)))))))
+    (if (and current-input-method (not arg))
+	(inactivate-input-method)
+      (if (not enable-multibyte-characters)
+	  (error "Can't activate any input method while enable-multibyte-characters is nil"))
+      (activate-input-method
+       (if (or arg (not default-input-method))
+	   (read-input-method-name "Input method: " initial t)  
+	 default-input-method)))))
 
 (defun describe-input-method (input-method)
   "Describe the current input method."
@@ -538,16 +546,15 @@ inputting at minibuffer if this flag is t.")
 (defvar current-language-environment "English"
   "The last language environment specified with `set-language-environment'.")
 
-;;;###autoload
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
 and sometimes other things."
-  (interactive (list (read-language-name 'setup-function "Language: ")))
-  (if (member (downcase language-name) '("default"))
-      (setq language-name "english"))
-  (if (or (null language-name)
-	  (null (get-language-info language-name 'setup-function)))
+  (interactive (list (read-language-name 'setup-function
+					 "Language (null for default): ")))
+  (or language-name
+      (setq language-name "English"))
+  (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
   (funcall (get-language-info language-name 'setup-function))
   (setq current-language-environment language-name)
