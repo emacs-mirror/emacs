@@ -6423,14 +6423,21 @@ x_list_fonts (f, pattern, size, maxnames)
 {
   Lisp_Object list = Qnil, patterns, newlist = Qnil, key, tem, second_best;
   Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
+  int try_XLoadQueryFont = 0;
 
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
     patterns = Fcons (pattern, Qnil);
 
-  /* We try at least 10 fonts because X server will return auto-scaled
-     fonts at the head.  */
-  if (maxnames < 10) maxnames = 10;
+  if (maxnames == 1 && !size)
+    /* We can return any single font matching PATTERN.  */
+    try_XLoadQueryFont = 1;
+  else
+    {
+      /* We try at least 10 fonts because XListFonts will return
+	 auto-scaled fonts at the head.  */
+      if (maxnames < 10) maxnames = 10;
+    }
 
   for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
     {
@@ -6452,8 +6459,33 @@ x_list_fonts (f, pattern, size, maxnames)
 	}
 
       /* At first, put PATTERN in the cache.  */
+
       BLOCK_INPUT;
-      names = XListFonts (dpy, XSTRING (pattern)->data, maxnames, &num_fonts);
+      if (try_XLoadQueryFont)
+	{
+	  XFontStruct *font;
+	  unsigned long value;
+
+	  font = XLoadQueryFont (dpy, XSTRING (pattern)->data);
+	  if (font
+	      && XGetFontProperty (font, XA_FONT, &value))
+	    {
+	      char *name = (char *) XGetAtomName (dpy, (Atom) value);
+	      int len = strlen (name);
+
+	      num_fonts = 1;
+	      names = alloca (sizeof (char *));
+	      names[0] = alloca (len + 1);
+	      bcopy (name, names[0], len + 1);
+	      XFree (name);
+	    }
+	  else
+	    try_XLoadQueryFont = 0;
+	}
+
+      if (!try_XLoadQueryFont)
+	names = XListFonts (dpy, XSTRING (pattern)->data, maxnames,
+			    &num_fonts);
       UNBLOCK_INPUT;
 
       if (names)
@@ -6499,7 +6531,8 @@ x_list_fonts (f, pattern, size, maxnames)
 		    }
 		}
 	    }
-	  XFreeFontNames (names);
+	  if (!try_XLoadQueryFont)
+	    XFreeFontNames (names);
 	}
 
       /* Now store the result in the cache.  */
@@ -6603,7 +6636,7 @@ x_load_font (f, fontname, size)
   /* Get a list of all the fonts that match this name.  Once we
      have a list of matching fonts, we compare them against the fonts
      we already have by comparing names.  */
-  font_names = x_list_fonts (f, build_string (fontname), size, 256);
+  font_names = x_list_fonts (f, build_string (fontname), size, 1);
 
   if (!NILP (font_names))
     {
