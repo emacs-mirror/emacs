@@ -680,8 +680,8 @@ translate_id (pid, owner)
   int prcnam[2];
 
   if (NILP (pid)
-      || XTYPE (pid) == Lisp_String && XSTRING (pid)->size == 0
-      || XTYPE (pid) == Lisp_Int && XFASTINT (pid) == 0)
+      || STRINGP (pid) && XSTRING (pid)->size == 0
+      || INTEGERP (pid) && XFASTINT (pid) == 0)
     {
       code = owner ? JPI$_OWNER : JPI$_PID;
       status = lib$getjpi (&code, 0, 0, &id);
@@ -691,7 +691,7 @@ translate_id (pid, owner)
 	       vmserrstr (status));
       return (id);
     }
-  if (XTYPE (pid) == Lisp_Int)
+  if (INTEGERP (pid))
     return (XFASTINT (pid));
   CHECK_STRING (pid, 0);
   pid = Fupcase (pid);
