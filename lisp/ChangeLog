@@ -1,5 +1,9 @@
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* progmodes/etags.el (find-tag-noselect, find-tag) 
+	(find-tag-other-window, find-tag-other-frame, find-tag-regexp):
+	Fix a typo in doc strings.
+
 	Support for ICCCM  Extended Segments in X selections:
 
 	* international/mule-conf.el (ctext-no-compositions) 
