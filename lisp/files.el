@@ -3910,12 +3910,12 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 
 	  ;; Read the actual directory using `insert-directory-program'.
 	  ;; RESULT gets the status code.
-	  (let ((coding-system-for-read
-		 (and enable-multibyte-characters
-		      (or file-name-coding-system
-			  default-file-name-coding-system)))
-		;; This is to control encoding the arguments in call-process.
-		(coding-system-for-write coding-system-for-read))
+	  (let* ((coding-system-for-read
+		  (and enable-multibyte-characters
+		       (or file-name-coding-system
+			   default-file-name-coding-system)))
+		 ;; This is to control encoding the arguments in call-process.
+		 (coding-system-for-write coding-system-for-read))
 	    (setq result
 		  (if wildcard
 		      ;; Run ls in the directory part of the file pattern
