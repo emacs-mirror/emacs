@@ -23,7 +23,7 @@
 /* We need to increase the expression tree space with -Wf,-XNh
    (ghazi@caip.rutgers.edu 7/8/97.)
 */
-#define C_SWITCH_SYSTEM -cckr -Wf,-XNh3000
+#define C_SWITCH_SYSTEM -cckr -Wf,-XNh4000
 #endif
 
 /* SGI has all the fancy wait stuff, but we can't include sys/wait.h
