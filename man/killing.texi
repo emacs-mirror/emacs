@@ -557,12 +557,13 @@ any difference to this command.
 
 @kindex C-x r t
 @findex string-rectangle
-  The command @kbd{C-x r t} (@code{M-x string-rectangle}) replaces the
-rectangle with a specified string (inserted once on each line).  The
-string's width need not be the same as the width of the rectangle.  If
-the string's width is less, the text after the rectangle shifts left; if
-the string is wider than the rectangle, the text after the rectangle
-shifts right.
+The command @kbd{C-x r t} (@code{M-x string-rectangle}) inserts a
+string on each line of the region-rectangle before the rectangle,
+shifting text right.
+
 @findex replace-rectangle
 The command @kbd{M-x replace-rectangle} is similar, but replaces the
-original version.
+original rectangle.  The string's width need not be the same as the
+width of the rectangle.  If the string's width is less, the text after
+the rectangle shifts left; if the string is wider than the rectangle,
+the text after the rectangle shifts right.
