@@ -246,12 +246,12 @@ actually defined as the table for the like of \\[edit-abbrevs].")
     (define-key map "\C-c|" 'sh-execute-region)
     (define-key map "\C-c!" 'executable-interpret)
     (define-key map "<" 'sh-maybe-here-document)
-    (define-key map "(" 'pair-insert-maybe)
-    (define-key map "{" 'pair-insert-maybe)
-    (define-key map "[" 'pair-insert-maybe)
-    (define-key map "'" 'pair-insert-maybe)
-    (define-key map "`" 'pair-insert-maybe)
-    (define-key map "\"" 'pair-insert-maybe)
+    (define-key map "(" 'skeleton-pair-insert-maybe)
+    (define-key map "{" 'skeleton-pair-insert-maybe)
+    (define-key map "[" 'skeleton-pair-insert-maybe)
+    (define-key map "'" 'skeleton-pair-insert-maybe)
+    (define-key map "`" 'skeleton-pair-insert-maybe)
+    (define-key map "\"" 'skeleton-pair-insert-maybe)
 
     (define-key map "\t" 'sh-indent-line)
     (substitute-key-definition 'complete-tag 'comint-dynamic-complete
@@ -626,8 +626,8 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-header-marker)
   (make-local-variable 'sh-shell-path)
   (make-local-variable 'sh-shell)
-  (make-local-variable 'pair-alist)
-  (make-local-variable 'pair-filter)
+  (make-local-variable 'skeleton-pair-alist)
+  (make-local-variable 'skeleton-pair-filter)
   (make-local-variable 'font-lock-keywords)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
@@ -647,8 +647,8 @@ with your script for an edit-interpret-debug cycle."
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
-	pair-alist '((?` _ ?`))
-	pair-filter 'sh-quoted-p
+	skeleton-pair-alist '((?` _ ?`))
+	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
 						(current-column)))))
 	skeleton-filter 'sh-feature)
