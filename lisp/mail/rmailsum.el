@@ -802,14 +802,15 @@ Commands for sorting the summary:
 	  (select-window selwin))))))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
-  "Scroll other window forward."
+  "Scroll the Rmail window forward."
   (interactive "P")
-  (scroll-other-window dist))
+  (let ((other-window-scroll-buffer rmail-buffer))
+    (scroll-other-window dist)))
 
 (defun rmail-summary-scroll-msg-down (&optional dist)
-  "Scroll other window backward."
+  "Scroll the Rmail window backward."
   (interactive "P")
-  (scroll-other-window
+  (rmail-summary-scroll-msg-up
    (cond ((eq dist '-) nil)
 	 ((null dist) '-)
 	 (t (- (prefix-numeric-value dist))))))
