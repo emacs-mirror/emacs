@@ -30,6 +30,15 @@
 (defvar debug-function-list nil
   "List of functions currently set for debug on entry.")
 
+(defvar debugger-step-after-exit nil
+  "Non-nil means \"single-step\" after the debugger exits.")
+
+(defvar debugger-value nil
+  "This is the value for the debugger to return, when it returns.")
+
+(defvar debugger-old-buffer nil
+  "This is the buffer that was current when the debugger was entered.")
+
 (defvar debugger-outer-match-data)
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
