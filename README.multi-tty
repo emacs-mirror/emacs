@@ -205,6 +205,8 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** Have a look at fatal_error_hook.
+
 ** Check if we got term-setup-hook right.
 
 ** make-frame does not correctly handle extra parameters in its
