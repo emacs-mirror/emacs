@@ -1,9 +1,8 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000 Free Software Foundation, Inc.
 
-;; Author: Eric Ding <ericding@mit.edu>
-;; Maintainer: Eric Ding <ericding@mit.edu>
+;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Created: 15 Aug 1995
 ;; Keywords: mh-e, www, mouse, mail
 
