@@ -1214,6 +1214,7 @@ intervals.  You can use it for whatever purpose you like, but the
 typical scenario is to keep track of how much time you spend working
 on certain projects.
 
++++
 *** The new package hi-lock.el, text matching interactively entered
 regexp's can be highlighted.  For example,
 
