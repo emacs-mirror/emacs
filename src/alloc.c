@@ -234,7 +234,7 @@ emacs_blocked_malloc (size)
 
   BLOCK_INPUT;
   __malloc_hook = old_malloc_hook;
-  value = malloc (size);
+  value = (void *) malloc (size);
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
 
@@ -250,7 +250,7 @@ emacs_blocked_realloc (ptr, size)
 
   BLOCK_INPUT;
   __realloc_hook = old_realloc_hook;
-  value = realloc (ptr, size);
+  value = (void *) realloc (ptr, size);
   __realloc_hook = emacs_blocked_realloc;
   UNBLOCK_INPUT;
 
