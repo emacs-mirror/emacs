@@ -1,5 +1,10 @@
 2001-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* eval.c (specbind): If SYMBOL has a frame-local binding, record
+	the frame on the binding stack.  Change format of entries for
+	local bindings on the binding stack to '(SYMBOL . WHERE)'.
+	(unbind_to): Handle unbinding a frame-local variable.
+
 	* xdisp.c (compute_line_metrics): On ttys, subtract continuation
 	glyphs and truncation glyphs at the end of a row from its pixel
 	width.

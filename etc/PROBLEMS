@@ -1,16 +1,19 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
-* Emacs hangs when changing the default font
+* Emacs pauses for several seconds when changing the default font
 
 This has been reported for fvwm 2.2.5 and the window manager of KDE
-2.1.  The reason for the hang is that Xt waits indefinitely for a
-ConfigureNotify event from the window manager.  A workaround is to add
-something like
+2.1.  The reason for the pause is Xt waiting for a ConfigureNotify
+event from the window manager, which the window manager doesn't send.
+Xt stops waiting after a default timeout of usually 5 seconds.
+
+A workaround for this is to add something like
 
 emacs.waitForWM: false
 
-to your X resources.
+to your X resources. or to add `(wait-for-wm . nil)' to a frame's
+parameter list.
 
 * Underlines appear at the wrong position.
 
@@ -32,7 +35,7 @@ The solution is to make sure the preprocessor is run with the
 automatically.)
 
 Note that this problem does not pertain to the MS-Windows port of
-Emacs, since it doesn't use the preprocessor to generate Makefile's.
+Emacs, since it doesn't use the preprocessor to generate Makefiles.
 
 * Building the MS-Windows port with Cygwin GCC can fail.
 
