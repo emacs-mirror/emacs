@@ -417,6 +417,36 @@ FONTLIST is an alist of charsets vs font names to be used in FONSET.")
   "Alist of font style vs function to generate a X font name of the style.
 The function is called with one argument, a font name.")
 
+(defconst x-style-funcs-alist
+  `((bold . x-make-font-bold)
+    (demibold . x-make-font-demibold)
+    (italic . x-make-font-italic)
+    (oblique . x-make-font-oblique)
+    (bold-italic . x-make-font-bold-italic)
+    (demibold-italic
+     . ,(function (lambda (x)
+		    (let ((y (x-make-font-demibold x)))
+		      (and y (x-make-font-italic y))))))
+    (demibold-oblique
+     . ,(function (lambda (x)
+		    (let ((y (x-make-font-demibold x)))
+		      (and y (x-make-font-oblique y))))))
+    (bold-oblique
+     . ,(function (lambda (x)
+		    (let ((y (x-make-font-bold x)))
+		      (and y (x-make-font-oblique y)))))))
+  "Alist of font style vs function to generate a X font name of the style.
+The function is called with one argument, a font name.")
+
+(defcustom fontset-default-styles '(bold italic bold-italic)
+  "List of alternative styles to create for a fontset.
+Valid elements include `bold', `demibold'; `italic', `oblique';
+and combinations of one from each group,
+such as `bold-italic' and `demibold-oblique'."
+  :group 'faces
+  :type '(set bold demibold italic oblique bold-italic bold-oblique
+	      demibold-italic demibold-oblique))
+
 (defun x-modify-font-name (fontname style)
   "Substitute style specification part of FONTNAME for STYLE.
 STYLE should be listed in the variable `x-style-funcs-alist'."
@@ -488,7 +518,7 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 
 	;; At last, handle style variants.
 	(if (eq style-variant t)
-	    (setq style-variant (mapcar 'car x-style-funcs-alist)))
+	    (setq style-variant fontset-default-styles))
 
 	(if style-variant
 	    ;; Generate fontset names of style variants and set them
