@@ -183,8 +183,7 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 			      (looking-at "[ \t]")))
 		;; Back up over newline, then trailing spaces or tabs
 		(forward-char -1)
-		(while (member (preceding-char) '(?  ?\t))
-		  (forward-char -1))
+		(skip-chars-backward " \t" opoint)
 		(setq value (concat value
 				    (if (string= value "") "" ", ")
 				    (buffer-substring-no-properties
@@ -198,8 +197,7 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 			      (looking-at "[ \t]")))
 		;; Back up over newline, then trailing spaces or tabs
 		(forward-char -1)
-		(while (member (preceding-char) '(?  ?\t))
-		  (forward-char -1))
+		(skip-chars-backward " \t" opoint)
 		(buffer-substring-no-properties opoint (point)))))))))
 
 ;; Parse a list of tokens separated by commas.
