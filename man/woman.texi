@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.4 2000/09/28 15:01:34 gerd Exp $
+@c $Id: woman.texi,v 1.5 2001/02/17 16:58:25 rms Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
@@ -136,7 +136,7 @@ This version of WoMan should run with GNU Emacs 20.3 or later on any
 platform.  It has not been tested, and may not run, with any other
 version of Emacs.  It was developed primarily on various versions of
 Microsoft Windows, but has also been tested on MS-DOS, and various
-versions of UNIX and Linux.
+versions of UNIX and GNU/Linux.
 
 WoMan is distributed with GNU Emacs 21, and the current source code and
 documentation files are available from
@@ -691,7 +691,7 @@ its cache every time it is run in a new Emacs session.
 
 A prefix argument always causes the @code{woman} command (only) to
 rebuild its topic cache, and to re-save it to
-@code{woman-cache-filename} if this variable has a non-nil value.  This
+@code{woman-cache-filename} if this variable has a non-@code{nil} value.  This
 is necessary if the @emph{names} of any of the directories or files in
 the paths specified by @code{woman-manpath} or @code{woman-path} change.
 If WoMan user options that affect the cache are changed then WoMan will
@@ -1107,7 +1107,7 @@ customization should be possible via existing user options.
 
 @vtable @code
 @item woman-show-log
-A boolean value that defaults to nil.  If non-nil then show the
+A boolean value that defaults to @code{nil}.  If non-@code{nil} then show the
 @code{*WoMan-Log*} buffer if appropriate, i.e.@: if any warning messages
 are written to it.  @xref{Log, , The *WoMan-Log* Buffer}.
 
@@ -1290,13 +1290,13 @@ Either a string representing the full pathname of the WoMan directory
 and topic cache file, or @code{nil}.  It is used to save and restore the
 cache between Emacs sessions.  This is especially useful with
 remote-mounted man page files!  The default value of @code{nil}
-suppresses this action.  The ``standard'' non-nil filename is
+suppresses this action.  The ``standard'' non-@code{nil} filename is
 @file{~/.wmncach.el}.  Remember that a prefix argument forces the
 @code{woman} command to update and re-write the cache.
 
 @item woman-dired-keys
 A list of @code{dired} mode keys to be defined to run WoMan on the
-current file, e.g.@: @code{("w" "W")} or any non-nil atom to
+current file, e.g.@: @code{("w" "W")} or any non-@code{nil} atom to
 automatically define @kbd{w} and @kbd{W} if they are unbound, or
 @code{nil} to do nothing.  Default is @code{t}.
 
@@ -1311,7 +1311,7 @@ the form @code{(MENU-TITLE REGEXP INDEX)} -- see the documentation for
 @end lisp
 
 @item woman-imenu
-A boolean value that defaults to @code{nil}.  If non-nil then WoMan adds
+A boolean value that defaults to @code{nil}.  If non-@code{nil} then WoMan adds
 a Contents menu to the menubar by calling @code{imenu-add-to-menubar}.
 
 @item woman-imenu-title
@@ -1321,7 +1321,7 @@ the menubar.  Default is @code{"CONTENTS"}.
 @item woman-topic-at-point
 A symbol, which may be either @code{t}, @code{nil} or @code{confirm},
 that controls the use by @code{woman} of the ``word at point'' as a
-topic suggestion.  If it is non-nil then the @code{woman} command uses
+topic suggestion.  If it is non-@code{nil} then the @code{woman} command uses
 the word at point as an initial topic suggestion when it reads a topic
 from the minibuffer; if it is @code{t} then @code{woman} uses the word
 at point @emph{without interactive confirmation} if it exists as a
@@ -1369,10 +1369,10 @@ complicated, includes an inappropriate extension (@file{.tgz}) and is
 not loaded by default!]
 
 @item woman-use-own-frame
-If non-nil then use a dedicated frame for displaying WoMan windows.
+If non-@code{nil} then use a dedicated frame for displaying WoMan windows.
 This is useful only when WoMan is run under a window system such as X or
 Microsoft Windows that supports real multiple frames, in which case the
-default value is non-nil.
+default value is non-@code{nil}.
 @end vtable
 
 
@@ -1389,29 +1389,29 @@ An integer specifying the right margin for formatted text.  Default is
 65.
 
 @item woman-fill-frame
-A boolean value.  If non-nil then most of the frame width is used,
-overriding the value of @code{woman-fill-column}.  Default is nil.
+A boolean value.  If non-@code{nil} then most of the frame width is used,
+overriding the value of @code{woman-fill-column}.  Default is @code{nil}.
 
 @item woman-default-indent
 An integer specifying the default prevailing indent for the @code{-man}
-macros.  Default is 5.  Set this variable to 7 to emulate Linux man
+macros.  Default is 5.  Set this variable to 7 to emulate GNU/Linux man
 formatting.
 
 @item woman-bold-headings
-A boolean value.  If non-nil then embolden section and subsection
-headings.  Default is t.  [Heading emboldening is @emph{not} standard
+A boolean value.  If non-@code{nil} then embolden section and subsection
+headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
 @code{man} behaviour.]
 
 @item woman-ignore
-A boolean value.  If non-nil then unrecognised requests etc. are
-ignored.  Default is t.  This gives the standard @code{ROFF} behaviour.
+A boolean value.  If non-@code{nil} then unrecognised requests etc. are
+ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behaviour.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
 @item woman-preserve-ascii
-A boolean value.  If non-nil then preserve @sc{ascii} characters in the
+A boolean value.  If non-@code{nil} then preserve @sc{ascii} characters in the
 WoMan buffer.  Otherwise, non-@sc{ascii} characters (that display as
 @sc{ascii}) may remain, which is irrelevant unless the buffer is to be
-saved to a file.  Default is nil.
+saved to a file.  Default is @code{nil}.
 
 @item woman-emulation
 WoMan emulation, currently either @code{NROFF} or @code{TROFF}.  Default
@@ -1430,8 +1430,8 @@ man page.
 
 @vtable @code
 @item woman-fontify
-A boolean value.  If non-nil then WoMan assumes that face support is
-available.  It defaults to a non-nil value if the display supports
+A boolean value.  If non-@code{nil} then WoMan assumes that face support is
+available.  It defaults to a non-@code{nil} value if the display supports
 either colours or different fonts.
 
 @item woman-italic-face
@@ -1473,11 +1473,11 @@ work on any other platform.
 
 @vtable @code
 @item woman-use-extended-font
-A boolean value.  If non-nil then WoMan may use non-@sc{ascii} characters
+A boolean value.  If non-@code{nil} then WoMan may use non-@sc{ascii} characters
 from the default font.  Default is @code{t}.
 
 @item woman-use-symbol-font
-A boolean value.  If non-nil then WoMan may use the symbol font.
+A boolean value.  If non-@code{nil} then WoMan may use the symbol font.
 Default is @code{nil}, mainly because it may change the line spacing (at
 least in NTEmacs 20).
 
@@ -1503,7 +1503,7 @@ Under MS-Windows, the default is
 This is modelled on the Emacs byte-compiler.  It logs all files
 formatted by WoMan and the time taken.  If WoMan finds anything that it
 cannot handle then it writes a warning to this buffer.  If the variable
-@code{woman-show-log} is non-nil (by default it is @code{nil}) then
+@code{woman-show-log} is non-@code{nil} (by default it is @code{nil}) then
 WoMan automatically displays this buffer.  @xref{Interface Options, ,
 Interface Options}.  Many WoMan warnings can be completely ignored,
 because they are reporting the fact that WoMan has ignored requests that
