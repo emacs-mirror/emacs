@@ -544,6 +544,7 @@ Return the amount the indentation changed by."
 		  (setq indent (save-excursion
 				 (forward-char)
 				 (backward-sexp)
+				 (c-backward-to-start-of-if)
 				 (current-indentation))))
 		 ((and (looking-at "while\\b")
 		       (save-excursion
