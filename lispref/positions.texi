@@ -608,31 +608,31 @@ Expressions}, for lower-level primitives for scanning sexps or parts of
 sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, The GNU
 Emacs Manual}.
 
-@deffn Command forward-list arg
-This function moves forward across @var{arg} balanced groups of
+@deffn Command forward-list &optional arg
+This function moves forward across @var{arg} (default 1) balanced groups of
 parentheses.  (Other syntactic entities such as words or paired string
 quotes are ignored.)
 @end deffn
 
-@deffn Command backward-list arg
-This function moves backward across @var{arg} balanced groups of
+@deffn Command backward-list &optional arg
+This function moves backward across @var{arg} (default 1) balanced groups of
 parentheses.  (Other syntactic entities such as words or paired string
 quotes are ignored.)
 @end deffn
 
-@deffn Command up-list arg
-This function moves forward out of @var{arg} levels of parentheses.
+@deffn Command up-list &optional arg
+This function moves forward out of @var{arg} (default 1) levels of parentheses.
 A negative argument means move backward but still to a less deep spot.
 @end deffn
 
-@deffn Command down-list arg
-This function moves forward into @var{arg} levels of parentheses.  A
+@deffn Command down-list &optional arg
+This function moves forward into @var{arg} (default 1) levels of parentheses.  A
 negative argument means move backward but still go
 deeper in parentheses (@minus{}@var{arg} levels).
 @end deffn
 
-@deffn Command forward-sexp arg
-This function moves forward across @var{arg} balanced expressions.
+@deffn Command forward-sexp &optional arg
+This function moves forward across @var{arg} (default 1) balanced expressions.
 Balanced expressions include both those delimited by parentheses and
 other kinds, such as words and string constants.  For example,
 
@@ -654,8 +654,8 @@ other kinds, such as words and string constants.  For example,
 @end example
 @end deffn
 
-@deffn Command backward-sexp arg
-This function moves backward across @var{arg} balanced expressions.
+@deffn Command backward-sexp &optional arg
+This function moves backward across @var{arg} (default 1) balanced expressions.
 @end deffn
 
 @deffn Command beginning-of-defun arg
