@@ -1183,7 +1183,7 @@ command_loop_1 ()
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
-			     Qnil, 0, 1);
+			     Qnil, 0, 1, 1);
 
       /* A filter may have run while we were reading the input.  */
       if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
@@ -5873,16 +5873,20 @@ follow_key (key, nmaps, current, defs, next)
 
    If the user switches frames in the midst of a key sequence, we put
    off the switch-frame event until later; the next call to
-   read_char will return it.  */
+   read_char will return it.
+
+   If FIX_CURRENT_BUFFER is nonzero, we restore current_buffer
+   from the selected window's buffer.  */
 
 static int
 read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
-		   can_return_switch_frame)
+		   can_return_switch_frame, fix_current_buffer)
      Lisp_Object *keybuf;
      int bufsize;
      Lisp_Object prompt;
      int dont_downcase_last;
      int can_return_switch_frame;
+     int fix_current_buffer;
 {
   int count = specpdl_ptr - specpdl;
 
@@ -6222,6 +6226,14 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (BUFFERP (key))
 	    {
 	      mock_input = t;
+	      /* Reset the current buffer from the selected window
+		 in case something changed the former and not the latter.
+		 This is to be more consistent with the behavior
+		 of the command_loop_1.  */
+	      if (fix_current_buffer)
+		if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+		  Fset_buffer (XWINDOW (selected_window)->buffer);
+
 	      orig_local_map = get_local_map (PT, current_buffer);
 	      goto replay_sequence;
 	    }
@@ -6942,7 +6954,7 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
-			 ! NILP (can_return_switch_frame));
+			 ! NILP (can_return_switch_frame), 0);
 
   if (i == -1)
     {
