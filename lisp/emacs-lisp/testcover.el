@@ -171,14 +171,13 @@ call to one of the `testcover-1value-functions'."
 ;;; Add instrumentation to your module
 ;;;=========================================================================
 
-;;;###autoload
 (defun testcover-start (filename &optional byte-compile)
   "Uses edebug to instrument all macros and functions in FILENAME, then
 changes the instrumentation from edebug to testcover--much faster, no
 problems with type-ahead or post-command-hook, etc.  If BYTE-COMPILE is
 non-nil, byte-compiles each function after instrumenting."
   (interactive "f")
-  (let ((buf             (find-file filename))
+  (let ((buf                (find-file filename))
 	(load-read-function 'testcover-read)
 	(edebug-all-defs t))
     (setq edebug-form-data                       nil
@@ -210,7 +209,8 @@ non-nil, byte-compiles each function after instrumenting."
   "Reinstruments FORM to use testcover instead of edebug.  This function
 modifies the list that FORM points to.  Result is non-nil if FORM will
 always return the same value."
-  (let ((fun (car-safe form)))
+  (let ((fun (car-safe form))
+	id)
     (cond
      ((not fun) ;Atom
       (or (not (symbolp form))
@@ -234,10 +234,10 @@ always return the same value."
       (testcover-reinstrument (cadr form)))
      ((memq fun testcover-compose-functions)
       ;;1-valued if all arguments are
-      (setq fun t)
-      (mapc #'(lambda (x) (setq fun (or (testcover-reinstrument x) fun)))
+      (setq id t)
+      (mapc #'(lambda (x) (setq id (or (testcover-reinstrument x) id)))
 	    (cdr form))
-      fun)
+      id)
      ((eq fun 'edebug-enter)
       ;;(edebug-enter 'SYM ARGS #'(lambda nil FORMS))
       ;;  => (testcover-enter 'SYM #'(lambda nil FORMS))
@@ -250,17 +250,22 @@ always return the same value."
       ;; => (testcover-after YYY FORM), mark XXX as ok-coverage
       (unless (eq (cadr form) 0)
 	(aset testcover-vector (cadr (cadr form)) 'ok-coverage))
-      (setq fun (nth 2 form))
+      (setq id (nth 2 form))
       (setcdr form (nthcdr 2 form))
-      (if (not (memq (car-safe (nth 2 form)) testcover-noreturn-functions))
-	  (setcar form 'testcover-after)
+      (cond
+       ((memq (car-safe (nth 2 form)) testcover-noreturn-functions)
 	;;This function won't return, so set the value in advance
 	;;(edebug-after (edebug-before XXX) YYY FORM)
 	;;  => (progn (edebug-after YYY nil) FORM)
 	(setcar form 'progn)
-	(setcar (cdr form) `(testcover-after ,fun nil)))
+	(setcar (cdr form) `(testcover-after ,id nil)))
+       ((eq (car-safe (nth 2 form)) '1value)
+	;;This function is always supposed to return the same value
+	(setcar form 'testcover-1value))
+       (t
+	(setcar form 'testcover-after)))
       (when (testcover-reinstrument (nth 2 form))
-	(aset testcover-vector fun '1value)))
+	(aset testcover-vector id '1value)))
      ((eq fun 'defun)
       (if (testcover-reinstrument-list (nthcdr 3 form))
 	  (push (cadr form) testcover-module-1value-functions)))
@@ -316,8 +321,11 @@ always return the same value."
       ;;Hack - pretend the arg is 1-valued here
       (if (symbolp (cadr form)) ;A pseudoconstant variable
 	  t
+	(if (eq (car (cadr form)) 'edebug-after)
+	    (setq id (car (nth 3 (cadr form))))
+	  (setq id (car (cadr form))))
 	(let ((testcover-1value-functions
-	       (cons (car (cadr form)) testcover-1value-functions)))
+	       (cons id testcover-1value-functions)))
 	  (testcover-reinstrument (cadr form)))))
      (t ;Some other function or weird thing
       (testcover-reinstrument-list (cdr form))
@@ -348,15 +356,6 @@ Result is t if every clause is 1-valued."
   (let ((buf (find-file-noselect buffer)))
     (eval-buffer buf t)))
 
-(defmacro 1value (form)
-  "For coverage testing, indicate FORM should always have the same value."
-  form)
-
-(defmacro noreturn (form)
-  "For coverage testing, indicate that FORM will never return."
-  `(prog1 ,form
-     (error "Form marked with `noreturn' did return")))
-
 
 ;;;=========================================================================
 ;;; Accumulate coverage data
@@ -378,6 +377,19 @@ binding `testcover-vector' to the code-coverage vector for TESTCOVER-SYM
    ((not (equal (aref testcover-vector idx) val))
     (aset testcover-vector idx 'ok-coverage)))
   val)
+
+(defun testcover-1value (idx val)
+  "Internal function for coverage testing.  Returns VAL after installing it in
+`testcover-vector' at offset IDX.  Error if FORM does not always return the
+same value during coverage testing."
+  (cond
+   ((eq (aref testcover-vector idx) '1value)
+    (aset testcover-vector idx (cons '1value val)))
+   ((not (and (eq (car-safe (aref testcover-vector idx)) '1value)
+	      (equal (cdr (aref testcover-vector idx)) val)))
+    (error "Value of form marked with `1value' does vary.")))
+  val)
+
 
 
 ;;;=========================================================================
@@ -411,6 +423,7 @@ eliminated by adding more test cases."
 	(setq len  (1- len)
 	      data (aref coverage len))
 	(when (and (not (eq data 'ok-coverage))
+		   (not (eq (car-safe data) '1value))
 		   (setq j (+ def-mark (aref points len))))
 	  (setq ov (make-overlay (1- j) j))
 	  (overlay-put ov 'face
