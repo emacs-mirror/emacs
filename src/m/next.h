@@ -60,10 +60,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define A_TEXT_OFFSET(HDR) sizeof (HDR)
 
-/* Use dk.h, not dkstat.h, in loadst.c.  */
-
-#define DK_HEADER_FILE
-
 /* Mask for address bits within a memory segment */
 
 #define SEGSIZ 0x20000
