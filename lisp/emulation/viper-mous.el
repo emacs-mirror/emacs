@@ -84,25 +84,24 @@ For convenience, in Lisp modes, `-' is considered alphanumeric.
 If CLICK-COUNT is 3 or more, returns the line clicked on with leading and
 trailing space and tabs removed. In that case, the first argument, COUNT,
 is ignored."
-   (if (> click-count 2)
-       (let (beg)
+   (let ((basic-alpha "_a-zA-Z0-9") ; it is important for `_' to come first
+	 (basic-alpha-B "[_a-zA-Z0-9]")
+	 (basic-nonalphasep-B vip-NONALPHASEP-B)
+	 (end-modifiers "")
+	 (start-modifiers "")
+	 vip-ALPHA vip-ALPHA-B
+	 vip-NONALPHA vip-NONALPHA-B
+	 vip-ALPHASEP vip-ALPHASEP-B
+	 vip-NONALPHASEP vip-NONALPHASEP-B
+	 beg skip-flag result
+	 one-char-word-func word-function-forw word-function-back word-beg)
+     (if (> click-count 2)
 	 (save-excursion
 	   (beginning-of-line)
 	   (skip-chars-forward " \t")
 	   (setq beg (point))
 	   (end-of-line)
-	   (buffer-substring beg (point))))
-     (let* ((basic-alpha "_a-zA-Z0-9") ;; it is important for `_' to come first
-	    (basic-alpha-B "[_a-zA-Z0-9]")
-	    (basic-nonalphasep-B vip-NONALPHASEP-B)
-	    (end-modifiers "")
-	    (start-modifiers "")
-	    vip-ALPHA vip-ALPHA-B
-	    vip-NONALPHA vip-NONALPHA-B
-	    vip-ALPHASEP vip-ALPHASEP-B
-	    vip-NONALPHASEP vip-NONALPHASEP-B
-	    skip-flag
-	    one-char-word-func word-function-forw word-function-back word-beg)
+	   (setq result (buffer-substring beg (point))))
        
        (if (and (looking-at basic-nonalphasep-B)
 		(or (save-excursion (vip-backward-char-carefully)
@@ -173,8 +172,14 @@ is ignored."
 	   (setq count (1- count)))
 	 
 	 (vip-forward-char-carefully)
-	 (buffer-substring word-beg (point)))
-       )))
+	 (setq result (buffer-substring word-beg (point))))
+       ) ; if
+     ;; XEmacs doesn't have set-text-propertiesr, but there buffer-substring
+     ;; doesn't return properties together with the string, so it's not needed.
+     (if vip-emacs-p
+	 (set-text-properties 0 (length result) nil result))
+     result
+     ))
 
 
 (defun vip-mouse-click-get-word (click count click-count)
