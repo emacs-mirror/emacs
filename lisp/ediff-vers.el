@@ -52,12 +52,28 @@
 ;; end pacifier
       
 ;; VC.el support
+
+(defun ediff-vc-latest-version (file)
+  "Return the version level of the latest version of FILE in repository."
+  (if (fboundp 'vc-latest-version)
+      (vc-latest-version file)
+    (or (vc-file-getprop file 'vc-latest-version)
+	(cond ((vc-backend file)
+	       (vc-call state file)
+	       (vc-file-getprop file 'vc-latest-version))
+	      (t (error "File %s is not under version control" file))))
+    ))
+
+
 (defun ediff-vc-internal (rev1 rev2 &optional startup-hooks)
-;; Run Ediff on versions of the current buffer.
-;; If REV2 is "" then compare current buffer with REV1.
-;; If the current buffer is named `F', the version is named `F.~REV~'.
-;; If `F.~REV~' already exists, it is used instead of being re-created.
+  ;; Run Ediff on versions of the current buffer.
+  ;; If REV1 is "", use the latest version of the current buffer's file.
+  ;; If REV2 is "" then compare current buffer with REV1.
+  ;; If the current buffer is named `F', the version is named `F.~REV~'.
+  ;; If `F.~REV~' already exists, it is used instead of being re-created.
   (let (file1 file2 rev1buf rev2buf)
+    (if (string= rev1 "") 
+	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
 	(vc-version-other-window rev1)

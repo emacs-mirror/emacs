@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 03 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.77" "The current version of Ediff")
-(defconst ediff-date "March 5, 2002" "Date of last update")  
+(defconst ediff-version "2.78" "The current version of Ediff")
+(defconst ediff-date "January 25, 2003" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -1353,11 +1353,11 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format "Version 1 to compare (default: %s's working version): "
+	   (format "Revision 1 to compare (default: %s's latest revision): "
 		   (file-name-nondirectory file)))
 	  rev2
 	  (read-string 
-	   (format "Version 2 to compare (default: %s): "
+	   (format "Revision 2 to compare (default: %s's current state): "
 		   (file-name-nondirectory file))))
     (ediff-load-version-control)
     (funcall
