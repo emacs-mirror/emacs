@@ -1009,19 +1009,28 @@ typedef struct
     : ((fail_stack).stack[(fail_stack).avail++] = pattern_op,		\
        1))
 
-/* This pushes an item onto the failure stack.  Must be a four-byte
-   value.  Assumes the variable `fail_stack'.  Probably should only
+/* Push a pointer value onto the failure stack.
+   Assumes the variable `fail_stack'.  Probably should only
    be called from within `PUSH_FAILURE_POINT'.  */
-#define PUSH_FAILURE_ITEM(item)						\
-  fail_stack.stack[fail_stack.avail++] = (fail_stack_elt_t) item
+#define PUSH_FAILURE_POINTER(item)					\
+  fail_stack.stack[fail_stack.avail++] = (fail_stack_elt_t) (item)
+
+/* This pushes an integer-valued item onto the failure stack.
+   Assumes the variable `fail_stack'.  Probably should only
+   be called from within `PUSH_FAILURE_POINT'.  */
+#define PUSH_FAILURE_INT(item)					\
+  fail_stack.stack[fail_stack.avail++] = (fail_stack_elt_t) (EMACS_INT) (item)
 
 /* The complement operation.  Assumes `fail_stack' is nonempty.  */
-#define POP_FAILURE_ITEM() fail_stack.stack[--fail_stack.avail]
+#define POP_FAILURE_POINTER() fail_stack.stack[--fail_stack.avail]
+
+/* The complement operation.  Assumes `fail_stack' is nonempty.  */
+#define POP_FAILURE_INT() (EMACS_INT) fail_stack.stack[--fail_stack.avail]
 
 /* Used to omit pushing failure point id's when we're not debugging.  */
 #ifdef DEBUG
-#define DEBUG_PUSH PUSH_FAILURE_ITEM
-#define DEBUG_POP(item_addr) *(item_addr) = POP_FAILURE_ITEM ()
+#define DEBUG_PUSH PUSH_FAILURE_INT
+#define DEBUG_POP(item_addr) *(item_addr) = POP_FAILURE_INT ()
 #else
 #define DEBUG_PUSH(item)
 #define DEBUG_POP(item_addr)
@@ -1074,10 +1083,10 @@ typedef struct
         DEBUG_STATEMENT (num_regs_pushed++);				\
 									\
 	DEBUG_PRINT2 ("    start: 0x%x\n", regstart[this_reg]);		\
-        PUSH_FAILURE_ITEM (regstart[this_reg]);				\
+        PUSH_FAILURE_POINTER (regstart[this_reg]);			\
                                                                         \
 	DEBUG_PRINT2 ("    end: 0x%x\n", regend[this_reg]);		\
-        PUSH_FAILURE_ITEM (regend[this_reg]);				\
+        PUSH_FAILURE_POINTER (regend[this_reg]);			\
 									\
 	DEBUG_PRINT2 ("    info: 0x%x\n      ", reg_info[this_reg]);	\
         DEBUG_PRINT2 (" match_null=%d",					\
@@ -1088,24 +1097,24 @@ typedef struct
         DEBUG_PRINT2 (" ever_matched=%d",				\
                       EVER_MATCHED_SOMETHING (reg_info[this_reg]));	\
 	DEBUG_PRINT1 ("\n");						\
-        PUSH_FAILURE_ITEM (reg_info[this_reg].word);			\
+        PUSH_FAILURE_POINTER (reg_info[this_reg].word);			\
       }									\
 									\
     DEBUG_PRINT2 ("  Pushing  low active reg: %d\n", lowest_active_reg);\
-    PUSH_FAILURE_ITEM (lowest_active_reg);				\
+    PUSH_FAILURE_INT (lowest_active_reg);				\
 									\
     DEBUG_PRINT2 ("  Pushing high active reg: %d\n", highest_active_reg);\
-    PUSH_FAILURE_ITEM (highest_active_reg);				\
+    PUSH_FAILURE_INT (highest_active_reg);				\
 									\
     DEBUG_PRINT2 ("  Pushing pattern 0x%x: ", pattern_place);		\
     DEBUG_PRINT_COMPILED_PATTERN (bufp, pattern_place, pend);		\
-    PUSH_FAILURE_ITEM (pattern_place);					\
+    PUSH_FAILURE_POINTER (pattern_place);				\
 									\
     DEBUG_PRINT2 ("  Pushing string 0x%x: `", string_place);		\
     DEBUG_PRINT_DOUBLE_STRING (string_place, string1, size1, string2,   \
 				 size2);				\
     DEBUG_PRINT1 ("'\n");						\
-    PUSH_FAILURE_ITEM (string_place);					\
+    PUSH_FAILURE_POINTER (string_place);				\
 									\
     DEBUG_PRINT2 ("  Pushing failure id: %u\n", failure_id);		\
     DEBUG_PUSH (failure_id);						\
@@ -1167,7 +1176,7 @@ typedef struct
   /* If the saved string location is NULL, it came from an		\
      on_failure_keep_string_jump opcode, and we want to throw away the	\
      saved NULL, thus retaining our current position in the string.  */	\
-  string_temp = POP_FAILURE_ITEM ();					\
+  string_temp = POP_FAILURE_POINTER ();					\
   if (string_temp != NULL)						\
     str = (const char *) string_temp;					\
 									\
@@ -1175,28 +1184,28 @@ typedef struct
   DEBUG_PRINT_DOUBLE_STRING (str, string1, size1, string2, size2);	\
   DEBUG_PRINT1 ("'\n");							\
 									\
-  pat = (unsigned char *) POP_FAILURE_ITEM ();				\
+  pat = (unsigned char *) POP_FAILURE_POINTER ();			\
   DEBUG_PRINT2 ("  Popping pattern 0x%x: ", pat);			\
   DEBUG_PRINT_COMPILED_PATTERN (bufp, pat, pend);			\
 									\
   /* Restore register info.  */						\
-  high_reg = (unsigned) POP_FAILURE_ITEM ();				\
+  high_reg = (unsigned) POP_FAILURE_INT ();				\
   DEBUG_PRINT2 ("  Popping high active reg: %d\n", high_reg);		\
 									\
-  low_reg = (unsigned) POP_FAILURE_ITEM ();				\
+  low_reg = (unsigned) POP_FAILURE_INT ();				\
   DEBUG_PRINT2 ("  Popping  low active reg: %d\n", low_reg);		\
 									\
   for (this_reg = high_reg; this_reg >= low_reg; this_reg--)		\
     {									\
       DEBUG_PRINT2 ("    Popping reg: %d\n", this_reg);			\
 									\
-      reg_info[this_reg].word = POP_FAILURE_ITEM ();			\
+      reg_info[this_reg].word = POP_FAILURE_POINTER ();			\
       DEBUG_PRINT2 ("      info: 0x%x\n", reg_info[this_reg]);		\
 									\
-      regend[this_reg] = (const char *) POP_FAILURE_ITEM ();		\
+      regend[this_reg] = (const char *) POP_FAILURE_POINTER ();		\
       DEBUG_PRINT2 ("      end: 0x%x\n", regend[this_reg]);		\
 									\
-      regstart[this_reg] = (const char *) POP_FAILURE_ITEM ();		\
+      regstart[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
       DEBUG_PRINT2 ("      start: 0x%x\n", regstart[this_reg]);		\
     }									\
 									\
@@ -3685,7 +3694,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
                 }
             } /* d != end_match_2 */
 
-	succeed:
+	succeed_label:
           DEBUG_PRINT1 ("Accepting match.\n");
 
           /* If caller wants register contents data back, do it.  */
@@ -3784,7 +3793,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	case succeed:
           DEBUG_PRINT1 ("EXECUTING succeed.\n");
-	  goto succeed;
+	  goto succeed_label;
 
         /* Match the next n pattern characters exactly.  The following
            byte in the pattern defines n, and the n bytes after that
@@ -4030,7 +4039,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
                           regstart[r] = old_regstart[r];
 
                           /* xx why this test?  */
-                          if ((int) old_regend[r] >= (int) regstart[r])
+                          if (old_regend[r] >= regstart[r])
                             regend[r] = old_regend[r];
                         }     
                     }
