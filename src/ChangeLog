@@ -1,5 +1,8 @@
 2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* buffer.c (overlays_at): Only let CHANGE_REQ inhibit an
+	assignment of startpos to prev when startpos == pos.
+
 	* editfns.c (find_field): Set the field stickiness correctly from
 	overlay fields.  Use renamed `text_property_stickiness'.
 	(text_property_stickiness): Renamed from `char_property_stickiness'.

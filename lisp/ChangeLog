@@ -1,8 +1,18 @@
 2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* wid-edit.el (widget-field-at): New function.
+	(widget-at, widget-field-activate): Use it.
+	(widget-tabable-at): Use `widget-at'.
+	(widget-specify-field): If the terminating character of the widget
+	field (which is read-only) is a newline, put it into a special
+	`boundary' field so that C-n/C-p act more naturally.
+	(widget-field-end): Also don't subtract one if a special
+	`boundary' field has been added after the widget field.
+
 	* comint.el (comint-output-filter, comint-send-input): Don't
 	bother adding stickiness fields to overlays to fool the field
 	code, since it should notice the overlay insertion-types now.
+
 	* wid-edit.el (widget-beginning-of-line, widget-end-of-line):
 	Replace with aliases of the normal emacs b-o-l/e-o-l functions.
 	(widget-field-keymap, widget-text-keymap): Don't bind C-a/C-e.
