@@ -21,11 +21,27 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This mode is intended to be used for telnet or rsh to a remode host;
+;; `telnet' and `rsh' are the two entry points.  Multiple telnet or rsh
+;; sessions are supported.
+;;
+;; Normally, input is sent to the remote telnet/rsh line-by-line, as you
+;; type RET or LFD.  C-c C-c sends a C-c to the remote immediately; 
+;; C-c C-z sends C-z immediately.  C-c C-q followed by any character
+;; sends that character immediately.
+;;
+;; All RET characters are filtered out of the output coming back from the
+;; remote system.  The mode tries to do other useful translations based
+;; on what it sees coming back from the other system before the password
+;; query.  It knows about UNIX, ITS, TOPS-20 and Explorer systems.
+
 ;;; Code:
 
-;;to do fix software types for lispm:
-;;to eval current expression.  Also to try to send escape keys correctly.
-;;essentially we'll want the rubout-handler off.
+;; to do fix software types for lispm:
+;; to eval current expression.  Also to try to send escape keys correctly.
+;; essentially we'll want the rubout-handler off.
 
 ;; filter is simplistic but should be okay for typical shell usage.
 ;; needs hacking if it is going to deal with asynchronous output in a sane
@@ -165,16 +181,14 @@ Normally input is edited in Emacs and sent a line at a time."
     (setq telnet-count telnet-initial-count)))
 
 (defun telnet-mode ()
-  "This mode is for telnetting from a buffer to another host.
+  "This mode is for using telnet (or rsh) from a buffer to another host.
 It has most of the same commands as comint-mode.
 There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed.
 
 \\{telnet-mode-map}
-
-Bugs:
---Replaces  by a space, really should remove."
+"
   (interactive)
   (comint-mode)
   (setq major-mode 'telnet-mode
@@ -182,6 +196,19 @@ Bugs:
 	comint-prompt-regexp telnet-prompt-pattern)
   (use-local-map telnet-mode-map)
   (run-hooks 'telnet-mode-hook))
+
+;;;###autoload
+(defun rsh (arg)
+  "Open a network login connection to host named HOST (a string).
+Communication with HOST is recorded in a buffer *HOST-rsh*.
+Normally input is edited in Emacs and sent a line at a time."
+  (interactive "sOpen rsh connection to host: ")
+  (require 'shell)
+  (let ((name (concat arg "-rsh" )))
+    (switch-to-buffer (make-comint name "rsh"))
+    (set-process-filter (get-process name) 'telnet-initial-filter)
+    (telnet-mode)
+    (setq telnet-count -16)))
 
 (defun read-password ()
   (let ((answ "") tem)
