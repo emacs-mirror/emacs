@@ -31,6 +31,26 @@ Boston, MA 02111-1307, USA.  */
 #include "xlwmenu.h"
 
 /* Menu callbacks */
+
+/* Callback XtNhighlightCallback for Lucid menus.  W is the menu
+   widget, CLIENT_DATA contains a pointer to the widget_instance
+   for the menu, CALL_DATA contains a pointer to the widget_value
+   structure for the highlighted menu item.  The latter may be null
+   if there isn't any highlighted menu item.  */
+
+static void
+highlight_hook (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data;
+     XtPointer call_data;
+{
+  widget_instance *instance = (widget_instance *) client_data;
+
+  if (instance->info->highlight_cb
+      && !w->core.being_destroyed)
+    instance->info->highlight_cb (w, instance->info->id, call_data);
+}
+
 static void
 pre_hook (w, client_data, call_data)
      Widget w;
@@ -100,6 +120,8 @@ xlw_create_menubar (instance)
 
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
+  XtAddCallback (widget, XtNhighlightCallback, highlight_hook,
+		 (XtPointer)instance);
   return widget;
 }
 
@@ -125,7 +147,8 @@ xlw_create_popup_menu (instance)
 			     popup_shell, al, ac);
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
-
+  XtAddCallback (widget, XtNhighlightCallback, highlight_hook,
+		 (XtPointer)instance);
   return popup_shell;
 }
 
