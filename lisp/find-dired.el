@@ -143,8 +143,11 @@ Thus ARG can also contain additional grep options."
   (interactive "DFind-grep (directory): \nsFind-grep (grep regexp): ")
   ;; find -exec doesn't allow shell i/o redirections in the command,
   ;; or we could use `grep -l >/dev/null'
+  ;; We use -type f, not ! -type d, to avoid getting screwed
+  ;; by FIFOs and devices.  I'm not sure what's best to do
+  ;; about symlinks, so as far as I know this is not wrong.
   (find-dired dir
-	      (concat "! -type d -exec grep " find-grep-options " "
+	      (concat "-type f -exec grep " find-grep-options " "
 		      args " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
