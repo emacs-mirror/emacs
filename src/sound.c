@@ -220,7 +220,7 @@ Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
 Lisp_Object Qplay_sound_functions;
 
-/* These are set during `play-sound' so that sound_cleanup has
+/* These are set during `play-sound-internal' so that sound_cleanup has
    access to them.  */
 
 struct sound_device *current_sound_device;
@@ -371,7 +371,7 @@ find_sound_type (s)
 }
 
 
-/* Function installed by play-sound with record_unwind_protect.  */
+/* Function installed by play-sound-internal with record_unwind_protect.  */
 
 static Lisp_Object
 sound_cleanup (arg)
@@ -389,24 +389,10 @@ sound_cleanup (arg)
 }
 
 
-DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
+DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 0,
        doc: /* Play sound SOUND.
-SOUND is a list of the form `(sound KEYWORD VALUE...)'.
-The following keywords are recognized:
 
-  :file FILE - read sound data from FILE.  If FILE isn't an
-absolute file name, it is searched in `data-directory'.
-
-  :data DATA - read sound data from string DATA.
-
-Exactly one of :file or :data must be present.
-
-  :volume VOL - set volume to VOL.  VOL must an integer in the
-range 0..100 or a float in the range 0..1.0.  If not specified,
-don't change the volume setting of the sound device.
-
-  :device DEVICE - play sound on DEVICE.  If not specified,
-a system-dependent default device name is used.  */)
+Internal use only, use `play-sound' instead.  */)
      (sound)
      Lisp_Object sound;
 {
@@ -954,7 +940,7 @@ syms_of_sound ()
   Qplay_sound_functions = intern ("play-sound-functions");
   staticpro (&Qplay_sound_functions);
 
-  defsubr (&Splay_sound);
+  defsubr (&Splay_sound_internal);
 }
 
 
