@@ -2180,7 +2180,7 @@ sys_socket(int af, int type, int protocol)
 	    if (!pfn_SetHandleInformation
 		|| !pfn_SetHandleInformation ((HANDLE) s,
 					      HANDLE_FLAG_INHERIT,
-					      HANDLE_FLAG_INHERIT))
+					      0))
 	      {
 		DuplicateHandle (parent,
 				 (HANDLE) s,
