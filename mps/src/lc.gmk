@@ -1,7 +1,7 @@
 # impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
 #
-# $HopeName: MMsrc!lc.gmk(trunk.1) $
-# Copyright (C) 1996,1997 Harlequin Group, all rights reserved
+# $HopeName: MMsrc!lc.gmk(trunk.2) $
+# Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # This file is included by platform makefiles that use the LCC
 # compiler.  It defines the compiler specific variables that the
@@ -11,16 +11,15 @@
 # the time and ignores the -O flag.  Hence the empty CFLAGSOPTIMIZE
 # macro.
 
-# We need a symbol for a non-empty defintion with empty value
+# We need a symbol for a non-empty definition with empty value
 ifdef MPS_EMPTY
 error "lc.gmk: MPS_EMPTY defined"
 endif
 
 CC = lcc
 CFLAGSCOMPILER = -I/usr/include
-CFLAGSHOT = $(MPS_EMPTY)
-CFLAGSCOOL = $(MPS_EMPTY)
-CFLAGSINTERNAL = -g
-CFLAGSEXTERNAL = $(MPS_EMPTY)
+CFLAGSDEBUG = -g
+CFLAGSOPT = $(MPS_EMPTY)
+CFLAGSOPTNODEBUG = $(MPS_EMPTY)
 
 include comm.gmk
