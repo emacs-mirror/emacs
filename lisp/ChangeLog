@@ -1,3 +1,25 @@
+2004-01-20  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* vc.el (vc-default-previous-version): Doc enhancement.
+	(vc-default-next-version): New function.
+	(vc-print-log): New arg FOCUS-REV.
+	(vc-annotate-mode):  Derives from view-mode now.
+	(vc-annotate):	New args REVISION, DISPLAY-MODE.
+	(vc-annotate-prev-version): New function.
+	(vc-annotate-prev-version): New function.
+	(vc-annotate-next-version): New function.
+	(vc-annotate-workfile-version): New function.
+	(vc-annotate-extract-revision-at-line): New function.
+	(vc-annotate-revision-at-line): New function.
+	(vc-annotate-revision-previous-to-line): New function.
+	(vc-annotate-show-log-revision-at-line): New function.
+	(vc-annotate-show-diff-revision-at-line): New function.
+	(vc-current-line): New function.
+	(vc-annotate-warp-version): New function.
+        
+	* vc-cvs.el (vc-cvs-annotate-extract-revision-at-line): New
+	function.
+
 2004-01-19  Karl Berry  <karl@gnu.org>
 
 	* textmodes/texinfo.el: Use "Texinfo" consistently, no "TeXinfo"
