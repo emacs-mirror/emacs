@@ -628,7 +628,6 @@ static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 					     struct text_pos));
 static int compute_window_start_on_continuation_line P_ ((struct window *));
 static Lisp_Object eval_handler P_ ((Lisp_Object));
-static Lisp_Object eval_form P_ ((Lisp_Object));
 static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
@@ -1063,7 +1062,7 @@ eval_handler (arg)
 /* Evaluate SEXPR and return the result, or nil if something went
    wrong.  */
 
-static Lisp_Object
+Lisp_Object
 eval_form (sexpr)
      Lisp_Object sexpr;
 {
