@@ -1,8 +1,9 @@
 /* Definitions file for GNU Emacs running on Mips operating system.
    That system can emulate either BSD or Sys V, in either case with changes.
-   If BSD is defined, we assume BSD is being emulated; otherwise, Sys V.  */
+   If BSD_SYSTEM is defined, we assume BSD is being emulated; otherwise,
+   Sys V.  */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #include "bsd4-3.h"
 
 #define C_SWITCH_SYSTEM -systype bsd43
@@ -17,7 +18,7 @@
 #undef MAIL_USE_FLOCK  /* Someone should check this.  */
 #undef HAVE_UNION_WAIT
 
-#else /* not BSD */
+#else /* not BSD_SYSTEM */
 
 #include "usg5-2-2.h"
 
@@ -70,7 +71,7 @@
 /* ??? */
 #define IRIS
 
-#endif /* not BSD */
+#endif /* not BSD_SYSTEM */
 
 /* High order bit must be stripped off nlist return values */
 #define FIXUP_KERNEL_SYMBOL_ADDR(NL)  (NL)[0].n_value &= 0x7fffffff;

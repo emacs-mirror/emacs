@@ -70,7 +70,7 @@ NOTE-END  */
 
 #define DOT_GLOBAL_START
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 /* USG systems I know of running on Vaxes do not actually
    support the load average, so disable it for them.  */
 
@@ -82,7 +82,7 @@ NOTE-END  */
 
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
 
-#endif /* BSD */
+#endif /* BSD_SYSTEM */
 
 #ifdef VMS
 
@@ -111,9 +111,9 @@ NOTE-END  */
 #define TEXT_START 0
 #endif /* USG */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #define HAVE_ALLOCA
-#endif /* BSD */
+#endif /* BSD_SYSTEM */
 
 #ifdef VMS
 #define C_ALLOCA

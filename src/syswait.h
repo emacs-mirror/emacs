@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
 
 #else /* not WAIT_USE_INT */
 
-#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER))
+#if (!defined (BSD_SYSTEM) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER))
 #define WAITTYPE int
 #define WIFSTOPPED(w) ((w&0377) == 0177)
 #define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
@@ -84,7 +84,7 @@ Boston, MA 02111-1307, USA.  */
 #ifndef WIFEXITED
 #define WIFEXITED(w) (WTERMSIG (w) == 0)
 #endif
-#endif /* BSD or UNIPLUS or STRIDE */
+#endif /* BSD_SYSTEM || UNIPLUS || STRIDE || HPUX */
 #endif /* not WAIT_USE_INT */
 #endif /* no WAITTYPE */
 

@@ -34,7 +34,7 @@
 
 /* This silences a few compilation warnings.  */
 #ifdef emacs
-#undef BSD
+#undef BSD_SYSTEM
 #include <sys/param.h> /* To get BSD defined consistently.  */
 #endif
 

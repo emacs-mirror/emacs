@@ -50,8 +50,8 @@ NOTE-END  */
 #define NO_MODE_T
 
 /* These are needed on Riscos 4.0.
-   It appears that's the only system which uses mips4.h and defined BSD.  */
-#ifdef BSD
+   It appears that's the only system which uses mips4.h and defines BSD.  */
+#ifdef BSD_SYSTEM
 #undef HAVE_STRERROR
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING

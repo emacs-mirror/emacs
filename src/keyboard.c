@@ -7321,7 +7321,7 @@ stuff_buffered_input (stuffstring)
      Lisp_Object stuffstring;
 {
 /* stuff_char works only in BSD, versions 4.2 and up.  */
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #ifndef BSD4_1
   register unsigned char *p;
 
@@ -7351,7 +7351,7 @@ stuff_buffered_input (stuffstring)
     }
   input_pending = 0;
 #endif
-#endif /* BSD and not BSD4_1 */
+#endif /* BSD_SYSTEM and not BSD4_1 */
 }
 
 set_waiting_for_input (time_to_clear)

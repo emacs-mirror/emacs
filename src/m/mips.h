@@ -130,7 +130,7 @@ NOTE-END  */
 /* Alter some of the options used when linking.  */
 
 #ifndef NEWSOS5
-#ifdef BSD
+#ifdef BSD_SYSTEM
 
 /* DECstations don't have this library.
    #define LIBS_MACHINE -lmld  */
@@ -140,7 +140,7 @@ NOTE-END  */
 
 #define LINKER /bsd43/bin/ld
   
-#else /* not BSD */
+#else /* not BSD_SYSTEM */
 
 #if defined(__GNUC__) && defined(_ABIN32)
 #define LIBS_MACHINE
@@ -160,7 +160,7 @@ NOTE-END  */
 #define HAVE_VFORK		/* Graciously provided by libX.a */
 #endif
 
-#endif /* not BSD */
+#endif /* not BSD_SYSTEM */
 #endif /* not NEWSOS5 */
 
 /* The standard definitions of these macros would work ok,
@@ -214,11 +214,11 @@ NOTE-END  */
 
 #endif /* USG */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #define COFF
 #define TERMINFO
 #undef MAIL_USE_FLOCK  /* Someone should check this.  */
 #undef HAVE_UNION_WAIT
-#endif /* BSD */
+#endif /* BSD_SYSTEM */
 
 #endif /* not NEWSOS5 */

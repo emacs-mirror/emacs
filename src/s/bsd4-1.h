@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define BSD4_1
 
-#define BSD
+#define BSD_SYSTEM
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */

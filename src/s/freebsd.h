@@ -75,11 +75,11 @@
 #define TAB3 OXTABS
 
 /* this silences a few compilation warnings */
-#undef BSD
+#undef BSD_SYSTEM
 #if __FreeBSD__ == 1
-#define BSD 199103
+#define BSD_SYSTEM 199103
 #elif __FreeBSD__ == 2
-#define BSD 199306
+#define BSD_SYSTEM 199306
 #endif
 
 #define WAITTYPE int

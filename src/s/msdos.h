@@ -35,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
 /* #define BSD4_1 */
 /* #define BSD4_2 */
 /* #define BSD4_3 */
-/* #define BSD */
+/* #define BSD_SYSTEM */
 /* #define VMS */
 #ifndef MSDOS
 #define MSDOS
@@ -50,7 +50,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
 #define DOS_NT	/* MSDOS or WINDOWSNT */
-#undef BSD
+#undef BSD_SYSTEM
 #undef VMS
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.

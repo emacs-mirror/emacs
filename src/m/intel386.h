@@ -200,9 +200,9 @@ NOTE-END */
 #endif /* USG */
 #endif /* not XENIX */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #define HAVE_ALLOCA
-#endif /* BSD */
+#endif /* BSD_SYSTEM */
 
 /* If compiling with GCC, let GCC implement alloca.  */
 #if defined(__GNUC__) && !defined(alloca)

@@ -51,9 +51,9 @@ Boston, MA 02111-1307, USA.  */
 #endif /* makedev */
 #endif /* USG */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #include <sys/ioctl.h>
-#endif /* ! defined (BSD) */
+#endif /* ! defined (BSD_SYSTEM) */
 
 #include "systty.h"
 #include "systime.h"

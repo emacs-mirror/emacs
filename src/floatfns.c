@@ -885,7 +885,7 @@ float_error (signo)
   if (! in_float)
     fatal_error_signal (signo);
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #ifdef BSD4_1
   sigrelse (SIGILL);
 #else /* not BSD4_1 */
@@ -894,7 +894,7 @@ float_error (signo)
 #else
   /* Must reestablish handler each time it is called.  */
   signal (SIGILL, float_error);
-#endif /* BSD */
+#endif /* BSD_SYSTEM */
 
   in_float = 0;
 

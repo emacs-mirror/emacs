@@ -73,12 +73,12 @@ Boston, MA 02111-1307, USA.  */
 #define NUMERIC_ADDR_ERROR (numeric_addr == -1)
 #endif
 
-#if defined(BSD) || defined(STRIDE)
+#if defined(BSD_SYSTEM) || defined(STRIDE)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
-#endif /* BSD or STRIDE */
+#endif /* BSD_SYSTEM || STRIDE */
 
 #ifdef BROKEN_O_NONBLOCK
 #undef O_NONBLOCK
@@ -1334,7 +1334,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
   sighold (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
   sigsetmask (sigmask (SIGCHLD));
 #else /* ordinary USG */
 #if 0
@@ -1504,7 +1504,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
 	sigrelse (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
 	sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
 #if 0
@@ -1585,7 +1585,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
   sigrelse (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
   sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
 #if 0
