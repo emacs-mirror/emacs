@@ -2851,7 +2851,12 @@ setup_coding_system (coding_system, coding)
   coding->mode = 0;
   coding->heading_ascii = -1;
   coding->post_read_conversion = coding->pre_write_conversion = Qnil;
+
+  if (NILP (coding_system))
+    goto label_invalid_coding_system;
+
   coding_spec = Fget (coding_system, Qcoding_system);
+
   if (!VECTORP (coding_spec)
       || XVECTOR (coding_spec)->size != 5
       || !CONSP (XVECTOR (coding_spec)->contents[3]))
