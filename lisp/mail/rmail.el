@@ -670,7 +670,7 @@ Instead, these commands are available:
 
 ;; Choose a .xmail file in dir rmail-secondary-file-directory.
 (defun rmail-secondary-file-menu (event)
-  (let* ((files (directory-files rmail-secondary-file-directory tnil
+  (let* ((files (directory-files rmail-secondary-file-directory nil
 				 rmail-secondary-file-regexp))
 	 (menu (list "Rmail Files"
 		     (cons "Rmail Files"
