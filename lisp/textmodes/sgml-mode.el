@@ -410,6 +410,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (set (make-local-variable 'paragraph-separate)
        (concat paragraph-start "$"))
   (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
+  (set (make-local-variable 'indent-line-function) 'sgml-indent-line)
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
   (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
