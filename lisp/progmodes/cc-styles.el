@@ -43,6 +43,7 @@
 
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
+(cc-require 'cc-align)
 
 
 ;; Warning: don't eval-defun this constant or you'll break style inheritance.
