@@ -1,3 +1,11 @@
+2001-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* play/snake.el (snake-score-file): Use temporary-file-directory
+	instead of a literal "/tmp".  Suggested by Robert
+	<robert@chezmarshall.freeserve.co.uk>.
+
+	* play/tetris.el (tetris-score-file): Ditto.
+
 2001-09-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* apropos.el (apropos-print): Make the directions inserted at the
