@@ -816,14 +816,19 @@ don't want to mark the buffer modified, just set the variable
   (interactive "zCoding system for visited file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
-      (let ((x (coding-system-eol-type buffer-file-coding-system))
-	    (y (coding-system-eol-type coding-system)))
-	(if (and (numberp x) (>= x 0) (<= x 2) (vectorp y))
-	    (setq coding-system (aref y x))
-	  (if (and (eq (coding-system-base coding-system) 'undecided)
-		   (numberp y))
-	      (setq coding-system (coding-system-change-eol-conversion
-				   buffer-file-coding-system y))))))
+      (let ((base (coding-system-base buffer-file-coding-system))
+	    (eol (coding-system-eol-type buffer-file-coding-system)))
+	;; If CODING-SYSTEM doesn't specify text conversion, merge
+	;; with that of buffer-file-coding-system.
+	(if (eq (coding-system-base coding-system) 'undecided)
+	    (setq coding-system (coding-system-change-text-conversion
+				 coding-system base)))
+	;; If CODING-SYSTEM doesn't specify eol conversion, merge with
+	;; that of buffer-file-coding-system.
+	(if (and (vectorp (coding-system-eol-type coding-system))
+		 (numberp eol) (>= eol 0) (<= eol 2))
+	    (setq coding-system (coding-system-change-eol-conversion
+				 coding-system eol)))))
   (setq buffer-file-coding-system coding-system)
   (set-buffer-modified-p t)
   (force-mode-line-update))
