@@ -92,6 +92,14 @@ key bindings of Emacs do not include any characters with these
 modifiers.  But you can assign them meanings of your own by customizing
 Emacs.
 
+  If your keyboard lacks one of these modifier keys, you can enter it
+using @kbd{C-x @@}: @kbd{C-x @@ h} adds the ``hyper'' flag to the next
+character, @kbd{C-x @@ s} adds the ``super'' flag, and @kbd{C-x @@ a}
+adds the ``alt'' flag.  For instance, @kbd{C-x @@ h C-a} is a way to
+enter @kbd{Hyper-Control-a}.  (Unfortunately there is no way to add
+two modifiers by using @kbd{C-x @@} twice for the same character,
+because the first one goes to work on the @kbd{C-x}.)
+
   Keyboard input includes keyboard keys that are not characters at all:
 for example function keys and arrow keys.  Mouse buttons are also
 outside the gamut of characters.  You can modify these events with the
