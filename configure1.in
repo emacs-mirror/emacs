@@ -503,6 +503,9 @@ case "${configuration}" in
   m68*-motorola-sysv* )
     machine=delta opsys=usg5-3
   ;;
+  m88k-motorola-sysv4* )
+    machine=delta88k opsys=usg5-4
+  ;;
   m88k-motorola-sysv* | m88k-motorola-m88kbcs* )
     machine=delta88k opsys=usg5-3
   ;;
