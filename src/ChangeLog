@@ -1,3 +1,18 @@
+2000-08-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keyboard.c (kbd_buffer_events_waiting): New function.
+
+	* keyboard.h (kbd_buffer_events_waiting): Add prototype.
+
+	* msdos.c: Include keyboard.h.
+	(XMenuActivate): Empty no_event events from the event buffer.  If
+	no events are left after that, call clear_input_pending.
+	(mouse_clear_clicks): New function, code moved from mouse_init.
+	(mouse_init, XMenuActivate): Call mouse_clear_clicks to force the
+	mouse driver to ``forget'' any past clicks.
+
+	* Makefile.in (msdos.o): Depend on keyboard.h.
+
 2000-08-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (mode_line_string): Declare parameter MODE_LINE_P.

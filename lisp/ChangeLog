@@ -1,3 +1,8 @@
+2000-08-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (insert-directory): Don't call access-file on
+	directories on DOS and Windows.
+
 2000-08-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ccl.el (ccl-embed-data): Make ccl-program-vector
