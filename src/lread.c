@@ -1200,8 +1200,8 @@ read0 (readcharfun)
 
   val = read1 (readcharfun, &c, 0);
   if (c)
-    Fsignal (Qinvalid_read_syntax, Fcons (Fmake_string (make_number (c),
-							make_number (1)),
+    Fsignal (Qinvalid_read_syntax, Fcons (Fmake_string (make_number (1),
+							make_number (c)),
 					  Qnil));
 
   return val;
