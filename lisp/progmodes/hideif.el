@@ -32,7 +32,7 @@
 ;;; has a value.  To explicitly hide ifdefs using a buffer-local
 ;;; define list (default empty), type
 ;;;
-;;; M-x hide-ifdefs  or C-c h
+;;; M-x hide-ifdefs  or C-c @ h
 ;;;
 ;;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
 ;;; pass through.  The support of constant expressions in #if lines is 
@@ -46,14 +46,14 @@
 ;;; selective-display-ellipses to nil.  But this can be dangerous.
 ;;; You can make your buffer read-only while hide-ifdef-hiding by setting
 ;;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
-;;; variable with hide-ifdef-toggle-read-only (C-c C-q).
+;;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
 ;;;
 ;;; You can undo the effect of hide-ifdefs by typing
 ;;;
-;;; M-x show-ifdefs  or C-c s
+;;; M-x show-ifdefs  or C-c @ s
 ;;;
-;;; Use M-x hide-ifdef-define (C-c d) to define a symbol.
-;;; Use M-x hide-ifdef-undef (C-c u) to undefine a symbol.
+;;; Use M-x hide-ifdef-define (C-c @ d) to define a symbol.
+;;; Use M-x hide-ifdef-undef (C-c @ u) to undefine a symbol.
 ;;;
 ;;; If you define or undefine a symbol while hide-ifdef-mode is in effect,
 ;;; the display will be updated.  Only the define list for the current
@@ -75,7 +75,7 @@
 ;;;	 (hide-ifdef-use-define-alist 'list2) ; use list2 by default
 ;;;	 ))
 ;;;
-;;; You can call hide-ifdef-use-define-alist (C-c u) at any time to specify
+;;; You can call hide-ifdef-use-define-alist (C-c @ u) at any time to specify
 ;;; another list to use.
 ;;;
 ;;; To cause ifdefs to be hidden as soon as hide-ifdef-mode is called,
@@ -115,20 +115,20 @@
 (defvar hide-ifdef-mode-map nil
   "Keymap used with Hide-Ifdef mode.")
 
-(defconst hide-ifdef-mode-prefix-key "\C-c"
+(defconst hide-ifdef-mode-prefix-key "\C-c@"
   "Prefix key for all Hide-Ifdef mode commands.")
 
 ;; Set up the submap that goes after the prefix key.
 (if hide-ifdef-mode-submap
     ()				; dont redefine it.
   (setq hide-ifdef-mode-submap (make-sparse-keymap))
-  (define-key hide-ifdef-mode-submap "\ed" 'hide-ifdef-define)
-  (define-key hide-ifdef-mode-submap "\eu" 'hide-ifdef-undef)
-  (define-key hide-ifdef-mode-submap "\eD" 'hide-ifdef-set-define-alist)
-  (define-key hide-ifdef-mode-submap "\eU" 'hide-ifdef-use-define-alist)
+  (define-key hide-ifdef-mode-submap "d" 'hide-ifdef-define)
+  (define-key hide-ifdef-mode-submap "u" 'hide-ifdef-undef)
+  (define-key hide-ifdef-mode-submap "D" 'hide-ifdef-set-define-alist)
+  (define-key hide-ifdef-mode-submap "U" 'hide-ifdef-use-define-alist)
 
-  (define-key hide-ifdef-mode-submap "\eh" 'hide-ifdefs)
-  (define-key hide-ifdef-mode-submap "\es" 'show-ifdefs)
+  (define-key hide-ifdef-mode-submap "h" 'hide-ifdefs)
+  (define-key hide-ifdef-mode-submap "s" 'show-ifdefs)
   (define-key hide-ifdef-mode-submap "\C-d" 'hide-ifdef-block)
   (define-key hide-ifdef-mode-submap "\C-s" 'show-ifdef-block)
 
